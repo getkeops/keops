@@ -1,0 +1,84 @@
+/* Based on the work of J. Glaunes */
+/* Authors : this file is part of the fshapesTk by B. Charlier, N. Charon, A. Trouve (2012-2014) */
+
+///////////////////////
+//  Gaussian Kernel  //
+///////////////////////
+
+
+template < typename TYPE >
+__device__ TYPE KernelGauss(TYPE *u, TYPE *v, TYPE ooSigma2, int DIM){
+ 
+TYPE r2 = 0.0f;
+TYPE temp;
+// norm squared
+for(int k=0; k<DIM; k++)
+{
+         temp =  v[k]-u[k];
+         r2 += temp*temp;
+}
+
+// Gaussian radial kernel
+return exp(- r2 * ooSigma2);
+
+}
+
+
+template < typename TYPE >
+__device__ TYPE Kerneld1Gauss(TYPE *u, TYPE *v, TYPE ooSigma2, int l, int DIM){
+ 
+TYPE r2 = 0.0f;
+TYPE temp;
+// norm squared
+for(int k=0; k<DIM; k++)
+{
+         temp =  v[k]-u[k];
+         r2 += temp*temp;
+}
+
+// Gaussian radial kernel
+return -2 * ooSigma2 * (v[l] - u[l]) * exp(- r2 * ooSigma2);
+
+}
+
+
+
+//////////////////////////
+//  Kernel on Varifold  //
+//////////////////////////
+
+template < typename TYPE >
+__device__ TYPE KernelGaussVar(TYPE *u, TYPE *v, TYPE ooSigma2, int DIM){
+ 
+TYPE temp;
+
+// norm(u) squared
+TYPE normu2 = 0.0f;
+for(int k=0; k<DIM; k++)
+{
+         temp = u[k]*u[k];
+         normu2 += temp;
+}
+
+// norm(v) squared
+TYPE normv2 = 0.0f;
+for(int k=0; k<DIM; k++)
+{
+         temp =  v[k]*v[k];
+         normv2 += temp;
+}
+
+// norm(u) squared
+TYPE prsuv = 0.0f;
+for(int k=0; k<DIM; k++)
+{
+         temp =  v[k]*u[k];
+         prsuv += temp;
+}
+
+temp = (normu2*normv2);
+
+// Gaussian kernel
+return sqrt(temp)*exp(2.0f * (prsuv*prsuv /temp)* ooSigma2);
+
+}
