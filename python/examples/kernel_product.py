@@ -287,18 +287,21 @@ if __name__ == "__main__":
 	# Init variables to get a minimal working example:
 	#--------------------------------------------------#
 	dtype = torch.FloatTensor
+
+        n = 15
+        d = 3
 	
-	x = .6 * torch.linspace(0,5,15   ).type(dtype).view(5,3)
+	x = .6 * torch.linspace(0,5,n*d   ).type(dtype).view(n,d)
 	x = torch.autograd.Variable(x, requires_grad = True)
 	
-	y = .2 * torch.linspace(0,5,15   ).type(dtype).view(5,3)
+	y = .2 * torch.linspace(0,5,n*d   ).type(dtype).view(n,d)
 	y = torch.autograd.Variable(y, requires_grad = True)
 	
-	b = .6 * torch.linspace(-.2,.2,15).type(dtype).view(5,3)
+	b = .6 * torch.linspace(-.2,.2,n*d).type(dtype).view(n,d)
 	b = torch.autograd.Variable(b, requires_grad = True)
 	
 	s = torch.Tensor([2.5]).type(dtype)
-	s = torch.autograd.Variable(s, requires_grad = True)
+	s = torch.autograd.Variable(s, requires_grad = False)
 	
 	#--------------------------------------------------#
 	# check the class KernelProduct
@@ -331,16 +334,14 @@ if __name__ == "__main__":
 	grad_bb  = torch.autograd.grad(grad_b2,x,create_graph = True)[0]
 	print(grad_bb)
 	
-	#print('derivative of sin(ham): ',p1.grad)
-
 	#--------------------------------------------------#
 	# check that we are able to compute derivatives with autograd
 	#--------------------------------------------------#
 	if False :
-		q1 = .6 * torch.linspace(0,5,15).type(dtype).view(5,3)
+		q1 = .6 * torch.linspace(0,5,n*d).type(dtype).view(n,d)
 		q1 = torch.autograd.Variable(q1, requires_grad = True)
 
-		p1 = .5 * torch.linspace(-.2,.2,15).type(dtype).view(5,3)
+		p1 = .5 * torch.linspace(-.2,.2,n*d).type(dtype).view(n,d)
 		p1 = torch.autograd.Variable(p1, requires_grad = True)
 		sh = torch.sin(ham)
 
