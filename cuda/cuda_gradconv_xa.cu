@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cuda.h>
-#include "kernels_old.cx"
+#include "radial_kernels.cx"
 
 
 #define UseCudaOnDoubles USE_DOUBLE_PRECISION

@@ -5,6 +5,23 @@
 //  Gaussian Kernel  //
 ///////////////////////
 
+template < typename TYPE >
+__device__ TYPE GaussF(TYPE r2, TYPE ooSigma2){
+        // Gaussian radial kernel - takes as input the squared norm r2
+        return exp(- r2 * ooSigma2);
+}
+
+template < typename TYPE >
+__device__ TYPE GaussFp(TYPE r2, TYPE ooSigma2){
+        // Gaussian radial kernel - 1st derivative
+        return - ooSigma2 * exp(- r2 * ooSigma2);
+}
+
+template < typename TYPE >
+__device__ TYPE GaussFpp(TYPE r2, TYPE ooSigma2){
+        // Gaussian radial kernel - 2nd derivative
+        return + ooSigma2 * ooSigma2 * exp(- r2 * ooSigma2);
+}
 
 template < typename TYPE >
 __device__ TYPE KernelGauss(TYPE *u, TYPE *v, TYPE ooSigma2, int DIM){

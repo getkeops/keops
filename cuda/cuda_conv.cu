@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cuda.h>
-#include "kernels_old.cx"
+#include "radial_kernels.cx"
 
 
 #define UseCudaOnDoubles USE_DOUBLE_PRECISION
@@ -110,7 +110,7 @@ __global__ void GaussGpuConvOnDevice(TYPE ooSigma2,
                     r2     +=   temp*temp;
                 }
                 // Straighforward inplace reduction loop over j : at last, we're getting to the maths... **********
-                TYPE s = GaussF(r2,ooSigma2);  // The kernel function is stored in "kernels_old.cx"
+                TYPE s = GaussF(r2,ooSigma2);  // The kernel function is stored in "radial_kernels.cx"
                 for(int k=0; k<DIMVECT; k++)   // Add the vector s*beta_j to gamma_i 
                     gammai[k] += s * betaj[k]; // (no need to be extra-clever here)
                 // ************************************************************************************************
