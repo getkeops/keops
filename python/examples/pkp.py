@@ -1,4 +1,9 @@
-from libds import cudaconv,cudagradconv
+import os.path
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
+
+
+from pyds import cudaconv,cudagradconv
 import torch
 import numpy
 

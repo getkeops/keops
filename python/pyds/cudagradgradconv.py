@@ -12,7 +12,7 @@ def get_cuda_gradconv_xa_xx_xy_xb():
 	"""
 	cuda_routines = []
 	for dll_name in ['cuda_gradconv_xa.so', 'cuda_gradconv_xx.so', 'cuda_gradconv_xy.so', 'cuda_gradconv_xb.so']:
-		dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + dll_name
+                dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + '..' + os.path.sep+ 'build' + os.path.sep + dll_name
 		dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
 		if   dll_name == 'cuda_gradconv_xa.so' :
 			func = dll.GaussGpuGradConvXA
