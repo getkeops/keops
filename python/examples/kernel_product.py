@@ -1,11 +1,14 @@
-from libds import cudaconv,cudagradconv,cudagradgradconv
+import os.path
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
+
+from pyds import cudaconv,cudagradconv,cudagradgradconv
 import torch
 import numpy
 from torch.autograd import Variable
 
 # Computation are made in float32
 dtype = torch.FloatTensor 
-
 
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
 # for reference on the forward-backward syntax
