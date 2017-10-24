@@ -30,24 +30,29 @@ class Hamiltonian(torch.autograd.Function):
 
     def backward(self,e):
         # init gammagrad which contains the output of the grad_convolution
-        gammagrad = torch.Tensor(5*3).type(dtype) #0d array
-        cudagradconv.cuda_gradconv(self.pp.numpy(),self.qq.numpy(),self.qq.numpy(),self.pp.numpy(),
-                                   gammagrad.numpy(),self.sig.numpy()[0])
-        return 2* gammagrad.view(5,3)*e, 2 * self.gamma.view(5,3)*e, None
+        gammagrad = torch.Tensor(self.qq.numel()).type(dtype) #0d array
+        cudagradconv.cuda_gradconv(self.pp.numpy(),self.qq.numpy(),self.qq.numpy(),self.pp.numpy(),gammagrad.numpy(),self.sig.numpy()[0])
+        n = self.qq.size(0)
+        d = self.qq.size(1)
+                                   
+        return 2* gammagrad.view(n,d)*e, 2 * self.gamma.view(n,d)*e, None
 
 #--------------------------------------------------#
 # Init variables to get a minimal working example:
 #--------------------------------------------------#
 dtype = torch.FloatTensor
 
-q0 = .6 * torch.linspace(0,5,15).type(dtype).view(5,3)
+n =15
+d=3
+
+q0 = .6 * torch.linspace(0,5,n*d).type(dtype).view(n,d)
 q0 = torch.autograd.Variable(q0, requires_grad = True)
 
-p0 = .6 * torch.linspace(-.2,.2,15).type(dtype).view(5,3)
+p0 = .6 * torch.linspace(-.2,.2,n*d).type(dtype).view(n,d)
 p0 = torch.autograd.Variable(p0, requires_grad = True)
 
 s = torch.Tensor([2.5]).type(dtype)
-s = torch.autograd.Variable(s, requires_grad = True)
+s = torch.autograd.Variable(s, requires_grad = False)
 
 #--------------------------------------------------#
 # check the class Hamiltonian
@@ -57,17 +62,17 @@ h = ham(q0,p0,s)
 dq = torch.autograd.grad(ham(q0,p0,s),q0,create_graph = True)[0]
 dp = torch.autograd.grad(ham(q0,p0,s),p0,create_graph = True)[0]
 
-gc = torch.autograd.gradcheck(ham, inputs=(q0,p0,s) , eps=1e-3, atol=1e-5, rtol=1e-3 )
+gc = torch.autograd.gradcheck(ham, inputs=(q0,p0,s) , eps=4e-3, atol=1e-5, rtol=1e-3 )
 print('Gradcheck for Hamiltonian: ',gc)
 print('\n')
 
 #--------------------------------------------------#
 # check that we are able to compute derivatives with autograd
 #--------------------------------------------------#
-q1 = .6 * torch.linspace(0,5,15).type(dtype).view(5,3)
+q1 = .6 * torch.linspace(0,5,n*d).type(dtype).view(n,d)
 q1 = torch.autograd.Variable(q1, requires_grad = True)
 
-p1 = .5 * torch.linspace(-.2,.2,15).type(dtype).view(5,3)
+p1 = .5 * torch.linspace(-.2,.2,n*d).type(dtype).view(n,d)
 p1 = torch.autograd.Variable(p1, requires_grad = True)
 gg = torch.sin(ham(q1,p1,s))
 gg.backward()
@@ -76,18 +81,13 @@ print('derivative of sin(ham): ',p1.grad)
 #--------------------------------------------------#
 # check that we are able to compute derivatives with autograd
 #--------------------------------------------------#
-q1 = .6 * torch.linspace(0,5,15).type(dtype).view(5,3)
+q1 = .6 * torch.linspace(0,5,n*d).type(dtype).view(n,d)
 q1 = torch.autograd.Variable(q1, requires_grad = True)
 
-p1 = .5 * torch.linspace(-.2,.2,15).type(dtype).view(5,3)
+p1 = .5 * torch.linspace(-.2,.2,n*d).type(dtype).view(n,d)
 p1 = torch.autograd.Variable(p1, requires_grad = True)
 sh = torch.sin(ham(q1,p1,s))
 
 gsh = torch.autograd.grad( sh , p1, create_graph = True)[0]
 print('derivative of sin(ham): ', gsh)
-print(gsh.volatile)
-
-ngsh = gsh.sum()
-
-ggsh = torch.autograd.grad( ngsh , p1)
-print('derivative of sin(ham): ', ggsh)
+print('Is gsh volatile ? ',gsh.volatile)

@@ -269,8 +269,6 @@ class KernelProductGrad_x(torch.autograd.Function):
 
 
 if __name__ == "__main__":
-	from visualize import make_dot
-	
 	backend = "libds" # Other value : 'pytorch'
 	
 	if   backend == "libds" :
@@ -307,11 +305,9 @@ if __name__ == "__main__":
 	#--------------------------------------------------#
 	def Ham(q,p) :
 		Kq_p  = kernel_product(s,q,q,p)
-		make_dot(Kq_p, {'x':q, 'b':p, 's':s}).render('graphs/Kqp_'+backend+'.pdf', view=True)
 		return torch.dot( p.view(-1), Kq_p.view(-1) )
 	
 	ham0   = Ham(x, b)
-	make_dot(ham0, {'x':x, 'b':b, 's':s}).render('graphs/ham0_'+backend+'.pdf', view=True)
 	
 	print("Ham0:")
 	print(ham0)
@@ -331,10 +327,8 @@ if __name__ == "__main__":
 	#--------------------------------------------------#
 	
 	grad_b2 = (grad_x).sum()
-	make_dot(grad_b2, {'x':x, 'b':b, 's':s}).render('graphs/grad_b2_'+backend+'.pdf', view=True)
 	
 	grad_bb  = torch.autograd.grad(grad_b2,x,create_graph = True)[0]
-	make_dot(grad_bb, {'x':x, 'b':b, 's':s}).render('graphs/grad_bb_'+backend+'.pdf', view=True)
 	print(grad_bb)
 	
 	#print('derivative of sin(ham): ',p1.grad)
