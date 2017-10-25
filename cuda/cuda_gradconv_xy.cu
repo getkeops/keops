@@ -116,7 +116,7 @@ __global__ void GaussGpuGradConvXYOnDevice(TYPE ooSigma2, // 1/sigma^2
                 //    g_j  = -2* \sum_i < a_i, b_j > * [                       f_s'(  |x_i-y_j|^2 ) * e_i
                 //                                     + 2* < x_i-y_j, e_i > * f_s''( |x_i-y_j|^2 ) * (x_i-y_j) ]
 
-                TYPE r2 = 0.0f, ei_s_xmy = 0.0f, ai_s_bj;
+                TYPE r2 = 0.0f, ei_s_xmy = 0.0f, ai_s_bj = 0.0f; // NEVER forget to initialize your accumulation variables
                 // Compute x_i-y_j and its squared norm:
                 for(int k=0; k<DIMPOINT; k++) {
                     xmy[k]  =  xi[k]-yj[k];
