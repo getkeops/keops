@@ -35,10 +35,14 @@
 ///////////////////////////////////////
 /////////// CUDA KERNEL ///////////////
 ///////////////////////////////////////
+#if !(UseCudaOnDoubles) 
+typedef  float(*KernelFun)( float,  float);
+#else
+typedef double(*KernelFun)(double, double);
+#endif
 
-
-template < typename TYPE, int DIMPOINT, int DIMVECT > // Typically, float32, D, E
-__global__ void GaussGpuGradConvXAOnDevice(TYPE ooSigma2, // 1/sigma^2
+template < typename TYPE, int DIMPOINT, int DIMVECT, KernelFun KernelFp > // Typically, float32, D, E, GaussFp
+__global__ void KernelGpuGradConvXAOnDevice(TYPE ooSigma2, // 1/sigma^2
 		TYPE *e,                                   // N-by-D array
 		TYPE *alpha, TYPE *x, TYPE *y, TYPE *beta, // N-by-E, N-by-D, M-by-D, M-by-E arrays
 		TYPE *gamma,                               // Output variable, N-by-E (same as alpha)
@@ -118,7 +122,7 @@ __global__ void GaussGpuGradConvXAOnDevice(TYPE ooSigma2, // 1/sigma^2
                 for(int k=0; k<DIMPOINT; k++) // Scalar product between POINTS.
                     ei_s_xmy += ei[k]*xmy[k];
                 // Scalar factor,   "2* f_s'( |x_i-y_j|^2 ) * < e_i, x_i-y_j>"
-                TYPE s =  2.0f * ei_s_xmy * GaussFp( r2 , ooSigma2 );
+                TYPE s =  2.0f * ei_s_xmy * KernelFp( r2 , ooSigma2 );
                 for(int k=0; k<DIMVECT; k++)    // Output: N-by-E
                     gammai[k] += s * betaj[k];  // Final increment
                 // ******************************************************************************
@@ -141,7 +145,8 @@ __global__ void GaussGpuGradConvXAOnDevice(TYPE ooSigma2, // 1/sigma^2
 
 
 #if !(UseCudaOnDoubles) 
-extern "C" int GaussGpuGradConvXA(float ooSigma2,               // 1 / sigma^2
+template < KernelFun KernelFp >
+int KernelGpuGradConvXA(float ooSigma2,               // 1 / sigma^2
 								float* e_h,                     // N-by-D array (same as x)
 								float* alpha_h, float* x_h,     // N-by-E, N-by-D arrays
 								float* y_h,     float* beta_h,  // M-by-D, M-by-E arrays
@@ -179,25 +184,25 @@ extern "C" int GaussGpuGradConvXA(float ooSigma2,               // 1 / sigma^2
 
 	// Copy-paste templating, allowing us to pass the DIMPOINT and DIMVECT at compilation time : 
 	if(     dimPoint==1 && dimVect==1)
-		GaussGpuGradConvXAOnDevice<float,1,1><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
+		KernelGpuGradConvXAOnDevice<float,1,1,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==2 && dimVect==1)
-		GaussGpuGradConvXAOnDevice<float,2,1><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
+		KernelGpuGradConvXAOnDevice<float,2,1,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==3 && dimVect==1)
-		GaussGpuGradConvXAOnDevice<float,3,1><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
+		KernelGpuGradConvXAOnDevice<float,3,1,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==4 && dimVect==1)
-		GaussGpuGradConvXAOnDevice<float,4,1><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
+		KernelGpuGradConvXAOnDevice<float,4,1,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==2 && dimVect==2)
-		GaussGpuGradConvXAOnDevice<float,2,2><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
+		KernelGpuGradConvXAOnDevice<float,2,2,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==3 && dimVect==3)
-		GaussGpuGradConvXAOnDevice<float,3,3><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
+		KernelGpuGradConvXAOnDevice<float,3,3,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==4 && dimVect==4)
-		GaussGpuGradConvXAOnDevice<float,4,4><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
+		KernelGpuGradConvXAOnDevice<float,4,4,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else
 	{
@@ -226,6 +231,24 @@ extern "C" int GaussGpuGradConvXA(float ooSigma2,               // 1 / sigma^2
 	cudaFree(gamma_d);
 
 	return 0;
+}
+
+
+// Couldn't find a clean way to give a name to an explicit instantiation :-(
+extern "C" int GaussGpuGradConvXA(float ooSigma2, float* e_h,
+                                float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXA<GaussFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+}
+extern "C" int LaplaceGpuGradConvXA(float ooSigma2, float* e_h,
+                                float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXA<LaplaceFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+}
+extern "C" int EnergyGpuGradConvXA(float ooSigma2, float* e_h,
+                                float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXA<EnergyFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
 
 #else

@@ -6,27 +6,33 @@ import os.path
 #nvcc -D "USE_DOUBLE_PRECISION=OFF" -D "CUDA_BLOCK_SIZE=192"  -Xcompiler -fPIC -shared -o cuda_conv.so cuda_conv.cu
 
 # extract cuda_gradconv function pointer in the shared object cuda_gradconv.so
-def get_cuda_gradconv():
+def get_cuda_gradconvs():
 	"""
 	Loads the gradient of the convolution routine from the compiled .so file.
 	"""
 	dll_name = 'cuda_grad1conv.so'
 	dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + '..' + os.path.sep+ 'build' + os.path.sep + dll_name
 	dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
-	func = dll.GaussGpuGrad1Conv
-	# Arguments :          1/s^2,
-	func.argtypes = [     c_float, 
-	#                      alpha,              x,                y,              beta,             result,
-					 POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), 
-	#                 dim-xy,  dim-beta,   nx,    ny
-					  c_int,    c_int,   c_int, c_int  ]
-	return func
+	
+	func_dict = {}
+	for (name, routine) in [("gaussian",  dll.GaussGpuGrad1Conv), 
+	                        ("laplacian", dll.LaplaceGpuGrad1Conv), 
+	                        ("energy",    dll.EnergyGpuGrad1Conv) ] :
+		func = routine
+		# Arguments :          1/s^2,
+		func.argtypes = [     c_float, 
+		#                      alpha,              x,                y,              beta,             result,
+						 POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), 
+		#                 dim-xy,  dim-beta,   nx,    ny
+						  c_int,    c_int,   c_int, c_int  ]
+		func_dict[name] = routine
+	return func_dict
 
 # create __cuda_gradconv function with get_cuda_gradconv()
-__cuda_gradconv = get_cuda_gradconv()
+__cuda_gradconvs = get_cuda_gradconvs()
 
 # convenient python wrapper for __cuda_gradconv it does all job with types convertation from python ones to C++ ones 
-def cuda_gradconv(alpha,x, y, beta, result, sigma):
+def cuda_gradconv(alpha,x, y, beta, result, sigma, kernel = "gaussian"):
 	"""
 	Implements the operation :
 	
@@ -54,7 +60,7 @@ def cuda_gradconv(alpha,x, y, beta, result, sigma):
 	ooSigma2 = float(1/ (sigma*sigma))  # Compute this once and for all
 	
 	# Let's use our GPU, which works "in place" :
-	__cuda_gradconv(ooSigma2, alpha_p, x_p, y_p, beta_p, result_p, dimPoint, dimVect, nx, ny )
+	__cuda_gradconvs[kernel](ooSigma2, alpha_p, x_p, y_p, beta_p, result_p, dimPoint, dimVect, nx, ny )
 
 # testing, benchmark gradconvolution with a naive python implementation of the Gaussian convolution
 if __name__ == '__main__':

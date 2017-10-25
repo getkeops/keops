@@ -37,10 +37,14 @@
 ///////////////////////////////////////
 /////////// CUDA KERNEL ///////////////
 ///////////////////////////////////////
+#if !(UseCudaOnDoubles) 
+typedef  float(*KernelFun)( float,  float);
+#else
+typedef double(*KernelFun)(double, double);
+#endif
 
-
-template < typename TYPE, int DIMPOINT, int DIMVECT > // Typically, float32, D, E
-__global__ void GaussGpuGradConvXYOnDevice(TYPE ooSigma2, // 1/sigma^2
+template < typename TYPE, int DIMPOINT, int DIMVECT, KernelFun KernelFp, KernelFun KernelFpp > // Typically, float32, D, E, GaussFp, GaussFpp
+__global__ void KernelGpuGradConvXYOnDevice(TYPE ooSigma2, // 1/sigma^2
 		TYPE *e,                                   // N-by-D array
 		TYPE *alpha, TYPE *x, TYPE *y, TYPE *beta, // N-by-E, N-by-D, M-by-D, M-by-E arrays
 		TYPE *gamma,                               // Output variable, M-by-D (same as y)
@@ -129,9 +133,9 @@ __global__ void GaussGpuGradConvXYOnDevice(TYPE ooSigma2, // 1/sigma^2
                 for(int k=0; k<DIMVECT; k++)  // Scalar product between VECTORS.
                     ai_s_bj  += alphai[k]* betaj[k];
                 // Scalar factor for the first line,   "-2* <a_i,b_j> * f_s'( |x_i-y_j|^2 )"
-                TYPE s1 =  -2.0f * ai_s_bj *            GaussFp(  r2 , ooSigma2 );
+                TYPE s1 =  -2.0f * ai_s_bj *            KernelFp(  r2 , ooSigma2 );
                 // Scalar factor for the second line,  "-4* <a_i,b_j> * < e_i, x_i-y_j > * f_s''( |x_i-y_j|^2 )"
-                TYPE s2 =  -4.0f * ai_s_bj * ei_s_xmy * GaussFpp( r2 , ooSigma2 );
+                TYPE s2 =  -4.0f * ai_s_bj * ei_s_xmy * KernelFpp( r2 , ooSigma2 );
                 
                 for(int k=0; k<DIMPOINT; k++)    // Output: M-by-D
                     gammaj[k] += s1 * ei[k] + s2 * xmy[k];  // Final increment
@@ -155,7 +159,8 @@ __global__ void GaussGpuGradConvXYOnDevice(TYPE ooSigma2, // 1/sigma^2
 
 
 #if !(UseCudaOnDoubles) 
-extern "C" int GaussGpuGradConvXY(float ooSigma2,               // 1 / sigma^2
+template < KernelFun KernelFp , KernelFun KernelFpp >
+int KernelGpuGradConvXY(float ooSigma2,               // 1 / sigma^2
 								float* e_h,                     // N-by-D array (same as x)
 								float* alpha_h, float* x_h,     // N-by-E, N-by-D arrays
 								float* y_h,     float* beta_h,  // M-by-D, M-by-E arrays
@@ -195,25 +200,25 @@ extern "C" int GaussGpuGradConvXY(float ooSigma2,               // 1 / sigma^2
 	// NB: Here, we use more SharedData than in the rowwise code !
 	//     One block of SharedData = [ei,ai,xi], of size (dimPoint+dimVect+dimPoint)*sizeof(float)
 	if(     dimPoint==1 && dimVect==1)
-		GaussGpuGradConvXYOnDevice<float,1,1><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
+		KernelGpuGradConvXYOnDevice<float,1,1,KernelFp,KernelFpp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==2 && dimVect==1)
-		GaussGpuGradConvXYOnDevice<float,2,1><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
+		KernelGpuGradConvXYOnDevice<float,2,1,KernelFp,KernelFpp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==3 && dimVect==1)
-		GaussGpuGradConvXYOnDevice<float,3,1><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
+		KernelGpuGradConvXYOnDevice<float,3,1,KernelFp,KernelFpp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==4 && dimVect==1)
-		GaussGpuGradConvXYOnDevice<float,4,1><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
+		KernelGpuGradConvXYOnDevice<float,4,1,KernelFp,KernelFpp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==2 && dimVect==2)
-		GaussGpuGradConvXYOnDevice<float,2,2><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
+		KernelGpuGradConvXYOnDevice<float,2,2,KernelFp,KernelFpp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==3 && dimVect==3)
-		GaussGpuGradConvXYOnDevice<float,3,3><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
+		KernelGpuGradConvXYOnDevice<float,3,3,KernelFp,KernelFpp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else if(dimPoint==4 && dimVect==4)
-		GaussGpuGradConvXYOnDevice<float,4,4><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
+		KernelGpuGradConvXYOnDevice<float,4,4,KernelFp,KernelFpp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect+dimPoint)*sizeof(float)>>>
 			(ooSigma2, e_d, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
 	else
 	{
@@ -242,6 +247,23 @@ extern "C" int GaussGpuGradConvXY(float ooSigma2,               // 1 / sigma^2
 	cudaFree(gamma_d);
 
 	return 0;
+}
+
+// Couldn't find a clean way to give a name to an explicit instantiation :-(
+extern "C" int GaussGpuGradConvXY(float ooSigma2, float* e_h,
+                                float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXY<GaussFp,GaussFpp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+}
+extern "C" int LaplaceGpuGradConvXY(float ooSigma2, float* e_h,
+                                float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXY<LaplaceFp,LaplaceFpp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+}
+extern "C" int EnergyGpuGradConvXY(float ooSigma2, float* e_h,
+                                float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXY<EnergyFp,EnergyFpp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
 
 #else

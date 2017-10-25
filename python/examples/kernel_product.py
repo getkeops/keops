@@ -40,7 +40,7 @@ class KernelProduct(torch.autograd.Function):
 	"""
 	
 	@staticmethod
-	def forward(ctx, s, x, y, b):
+	def forward(ctx, s, x, y, b, kernel):
 		""" 
 			KernelProduct(s, x, y, b)_i = \sum_j k_s(  x_i , y_j  ) b_j
 			                            = \sum_j f_s( |x_i-y_j|^2 ) b_j .
@@ -51,11 +51,12 @@ class KernelProduct(torch.autograd.Function):
 		#       if you want to be able to differentiate the output of the backward
 		#       once again. It helps pytorch to keep track of "who is who".
 		ctx.save_for_backward( s, x, y, b ) # Call at most once in the "forward".
+		ctx.kernel = kernel
 		
 		# init gamma which contains the output of the convolution K_xy @ b
 		gamma  = torch.zeros( x.size()[0] * b.size()[1] ).type(dtype)
 		# Inplace CUDA routine
-		cudaconv.cuda_conv(x.numpy(),y.numpy(),b.numpy(),gamma.numpy(),s.numpy()) 
+		cudaconv.cuda_conv(x.numpy(),y.numpy(),b.numpy(),gamma.numpy(),s.numpy(), kernel = kernel) 
 		gamma  = gamma.view( x.size()[0], b.size()[1] )
 		return gamma
 	
@@ -70,7 +71,7 @@ class KernelProduct(torch.autograd.Function):
 			- \partial_b K(s,x,y,b) . a, which is a M-by-E array, equal to K(s,y,x,a).		
 		"""
 		(ss, xx, yy, bb) = ctx.saved_variables # Unwrap the saved variables
-		
+		kernel = ctx.kernel
 		# In order to get second derivatives, we encapsulated the cudagradconv.cuda_gradconv
 		# routine in another torch.autograd.Function object:
 		kernelproductgrad_x = KernelProductGrad_x().apply 
@@ -84,8 +85,8 @@ class KernelProduct(torch.autograd.Function):
 		# kernelproductgrad_x computes the gradient, with respect to the 3rd variable x, of trace(
 		grad_x = kernelproductgrad_x( ss, a,  #     a^T
 								      xx, yy, #   @ K(x,y)
-								      bb    ) #   @ b )
-		
+								      bb,     #   @ b )
+									  kernel)
 		# Compute \partial_y K(s,x,y,b) . a   --------------------------------------------------- 
 		# We're looking for the gradient with respect to y of
 		# < a, K(s,x,y,b) >  =  \sum_{i,j} f_s( |x_i-y_j|^2 ) < a_i, b_j >
@@ -94,15 +95,15 @@ class KernelProduct(torch.autograd.Function):
 		# kernelproductgrad_x computes the gradient, with respect to the 3rd variable y, of trace(
 		grad_y = kernelproductgrad_x( ss, bb, #     b^T
 								      yy, xx, #   @ K(y,x)
-								      a     ) #   @ a )
-		
+								      a,      #   @ a )
+									  kernel) 
 		# Compute \partial_b K(s,x,y,b) . a   --------------------------------------------------- 
 		Kt = KernelProduct().apply # Will be used to compute the kernel "transpose"
 		grad_b = Kt(    ss,      # We use the same kernel scale
 		                yy, xx,  # But we compute K_yx, instead of K_xy
-		                a     )  # And multiply it with a         
-		
-		return (grad_s, grad_x, grad_y, grad_b)
+		                a,       # And multiply it with a         
+		                kernel)
+		return (grad_s, grad_x, grad_y, grad_b, None)
 
 class KernelProductGrad_x(torch.autograd.Function):
 	""" This class implements the gradient of the above operator
@@ -136,7 +137,7 @@ class KernelProductGrad_x(torch.autograd.Function):
 	"""
 	
 	@staticmethod
-	def forward(ctx, s, a, x, y, b):
+	def forward(ctx, s, a, x, y, b, kernel):
 		""" 
 		KernelProduct(s, a, x, y, b)_i = \sum_j f_s'( |x_i-y_j|^2 ) * < a_i, b_j> * 2(x_i-y_j).
 		"""
@@ -150,6 +151,7 @@ class KernelProductGrad_x(torch.autograd.Function):
 		#       this formulation is not strictly necessary here... 
 		#       But I think it is good practice anyway.
 		ctx.save_for_backward( s, a, x, y, b )   # Call at most once in the "forward".
+		ctx.kernel = kernel
 		
 		# init grad_x which contains the output
 		grad_x = torch.zeros(x.numel()).type(dtype) #0d array
@@ -160,7 +162,8 @@ class KernelProductGrad_x(torch.autograd.Function):
 								    x.numpy(), y.numpy(), #   @ K(x,y)
 								    b.numpy(),            #   @ b )
 								    grad_x.numpy(),       # Output array
-								    s.numpy())            # Kernel scale parameter
+								    s.numpy(),            # Kernel scale parameter
+								    kernel = kernel)
 		grad_x = grad_x.view(x.shape)
 		
 		return grad_x
@@ -177,16 +180,8 @@ class KernelProductGrad_x(torch.autograd.Function):
 			- \partial_b Kx(s,a,x,y,b) . e, which is a M-by-E array, equal to K(s,y,x,a).		
 		"""
 		(ss, aa, xx, yy, bb) = ctx.saved_variables # Unwrap the saved variables
+		kernel = ctx.kernel
 		
-		#print(type(ss.data), type(e.data), type(aa.data), type(xx.data), type(yy.data), type(bb.data))
-		#print("ss :\n", ss)
-		#e = e.type(dtype)
-		#e = 1. * e
-		#print("e  :\n", e )
-		#print("aa :\n", aa)
-		#print("xx :\n", xx)
-		#print("yy :\n", yy)
-		#print("bb :\n", bb)
 		
 		
 		# Compute \partial_s Kx(s,a,x,y,b) . e   ------------NOT IMPLEMENTED YET-----------------
@@ -209,7 +204,8 @@ class KernelProductGrad_x(torch.autograd.Function):
 										   xx.data.numpy(), yy.data.numpy(),
 										   bb.data.numpy(),
 										   grad_xa.numpy(),  # Output array
-										   ss.data.numpy()   ) 
+										   ss.data.numpy(),
+										   kernel = kernel ) 
 		grad_xa  = Variable(grad_xa.view( aa.size()[0], aa.size()[1] ))
 		
 		# Compute \partial_x Kx(s,a,x,y,b) . e   ------------------------------------------------ 
@@ -230,7 +226,8 @@ class KernelProductGrad_x(torch.autograd.Function):
 										   xx.data.numpy(), yy.data.numpy(),
 										   bb.data.numpy(),
 										   grad_xx.numpy(),  # Output array
-										   ss.data.numpy()   ) 
+										   ss.data.numpy(),
+										   kernel = kernel  ) 
 		grad_xx  = Variable(grad_xx.view( xx.size()[0], xx.size()[1] ))
 		
 		# Compute \partial_y Kx(s,a,x,y,b) . e   ------------------------------------------------ 
@@ -251,7 +248,8 @@ class KernelProductGrad_x(torch.autograd.Function):
 										   xx.data.numpy(), yy.data.numpy(),
 										   bb.data.numpy(),
 										   grad_xy.numpy(),  # Output array
-										   ss.data.numpy()   ) 
+										   ss.data.numpy(),
+										   kernel = kernel ) 
 		grad_xy  = Variable(grad_xy.view( yy.size()[0], yy.size()[1] ))
 		
 		# Compute \partial_b Kx(s,a,x,y,b) . e   ------------------------------------------------ 
@@ -271,11 +269,12 @@ class KernelProductGrad_x(torch.autograd.Function):
 										   xx.data.numpy(), yy.data.numpy(),
 										   bb.data.numpy(),
 										   grad_xb.numpy(),  # Output array
-										   ss.data.numpy()   ) 
+										   ss.data.numpy(),
+										   kernel = kernel ) 
 		grad_xb  = Variable(grad_xb.view( bb.size()[0], bb.size()[1] ))
 		
 		
-		return (grad_xs, grad_xa, grad_xx, grad_xy, grad_xb)
+		return (grad_xs, grad_xa, grad_xx, grad_xy, grad_xb, None)
 
 
 
@@ -326,7 +325,7 @@ if __name__ == "__main__":
 	# check the class KernelProductGrad_x routines
 	#--------------------------------------------------#
 	
-	grad_x = kernel_product_grad_x(s, a, x, y, b)
+	grad_x = kernel_product_grad_x(s, a, x, y, b, "gaussian")
 	(grad_xa, grad_xx, grad_xy, grad_xb) = torch.autograd.grad( grad_x, (a,x,y,b), e)
 	
 	if False :
@@ -341,7 +340,7 @@ if __name__ == "__main__":
 	# check the class KernelProduct
 	#--------------------------------------------------#
 	def Ham(q,p) :
-		Kq_p  = kernel_product(s,q,q,p)
+		Kq_p  = kernel_product(s,q,q,p, "gaussian")
 		make_dot(Kq_p, {'q':q, 'p':p, 's':s}).render('graphs/Kqp_'+backend+'.pdf', view=True)
 		return torch.dot( p.view(-1), Kq_p.view(-1) )
 	
@@ -364,7 +363,7 @@ if __name__ == "__main__":
 	
 	if False :
 		def to_check( X, Y, B ):
-			return kernel_product(s, X, Y, B)
+			return kernel_product(s, X, Y, B, "gaussian")
 		gc = torch.autograd.gradcheck(to_check, inputs=(x, y, b) , eps=1e-4, atol=1e-3, rtol=1e-3 )
 		print('Gradcheck for Hamiltonian: ',gc)
 		print('\n')

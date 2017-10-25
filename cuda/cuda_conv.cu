@@ -13,10 +13,14 @@
 ///////////////////////////////////////
 /////////// CUDA KERNEL ///////////////
 ///////////////////////////////////////
+#if !(UseCudaOnDoubles) 
+typedef  float(*KernelFun)( float,  float);
+#else
+typedef double(*KernelFun)(double, double);
+#endif
 
-
-template < typename TYPE, int DIMPOINT, int DIMVECT >
-__global__ void GaussGpuConvOnDevice(TYPE ooSigma2,
+template < typename TYPE, int DIMPOINT, int DIMVECT, KernelFun KernelF >
+__global__ void KernelGpuConvOnDevice(TYPE ooSigma2,
                                       TYPE *x, TYPE *y, TYPE *beta, TYPE *gamma,
                                       int nx, int ny) {
     // Thread kernel:
@@ -110,7 +114,7 @@ __global__ void GaussGpuConvOnDevice(TYPE ooSigma2,
                     r2     +=   temp*temp;
                 }
                 // Straighforward inplace reduction loop over j : at last, we're getting to the maths... **********
-                TYPE s = GaussF(r2,ooSigma2);  // The kernel function is stored in "radial_kernels.cx"
+                TYPE s = KernelF(r2,ooSigma2);  // The kernel function is stored in "radial_kernels.cx"
                 for(int k=0; k<DIMVECT; k++)   // Add the vector s*beta_j to gamma_i 
                     gammai[k] += s * betaj[k]; // (no need to be extra-clever here)
                 // ************************************************************************************************
@@ -134,7 +138,8 @@ __global__ void GaussGpuConvOnDevice(TYPE ooSigma2,
 /////////// CPU -> GPU -> CPU routines ///////////////
 //////////////////////////////////////////////////////
 #if !(UseCudaOnDoubles) 
-extern "C" int GaussGpuEvalConv(float ooSigma2,
+template < KernelFun KernelF >
+int KernelGpuEvalConv(float ooSigma2,
                                    float* x_h, float* y_h, float* beta_h, float* gamma_h,
                                    int dimPoint, int dimVect, int nx, int ny) {
 
@@ -171,19 +176,19 @@ extern "C" int GaussGpuEvalConv(float ooSigma2,
 
     // Copy-paste templating, allowing us to pass the DIMPOINT and DIMVECT at compilation time :
     if(     dimPoint==1 && dimVect==1)
-        GaussGpuConvOnDevice<float,1,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
+        KernelGpuConvOnDevice<float,1,1,KernelF><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==3 && dimVect==1)
-        GaussGpuConvOnDevice<float,3,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
+        KernelGpuConvOnDevice<float,3,1,KernelF><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==2 && dimVect==1)
-        GaussGpuConvOnDevice<float,2,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
+        KernelGpuConvOnDevice<float,2,1,KernelF><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==2 && dimVect==2)
-        GaussGpuConvOnDevice<float,2,2><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
+        KernelGpuConvOnDevice<float,2,2,KernelF><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==3 && dimVect==3)
-        GaussGpuConvOnDevice<float,3,3><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
+        KernelGpuConvOnDevice<float,3,3,KernelF><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(float)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else {
         printf("Error: dimensions of Gauss kernel not implemented in cuda. You probably just need a copy-paste in the conda_conv.cu file !");
@@ -207,6 +212,24 @@ extern "C" int GaussGpuEvalConv(float ooSigma2,
     cudaFree(gamma_d);
 
     return 0;
+}
+
+
+// Couldn't find a clean way to give a name to an explicit instantiation :-(
+extern "C" int GaussGpuEvalConv(float ooSigma2,
+                                   float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                   int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuEvalConv<GaussF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+}
+extern "C" int LaplaceGpuEvalConv(float ooSigma2,
+                                   float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                   int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuEvalConv<LaplaceF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+}
+extern "C" int EnergyGpuEvalConv(float ooSigma2,
+                                   float* x_h, float* y_h, float* beta_h, float* gamma_h,
+                                   int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuEvalConv<EnergyF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
 
 ////////////////////////////////////////////////////
@@ -241,19 +264,19 @@ extern "C" int GaussGpuEvalConv(double ooSigma2,
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 //test if ggridSIze \leq  65535
     if(dimPoint==1 && dimVect==1)
-        GaussGpuConvOnDevice<double,1,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
+        KernelGpuConvOnDevice<double,1,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==3 && dimVect==1)
-        GaussGpuConvOnDevice<double,3,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
+        KernelGpuConvOnDevice<double,3,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==2 && dimVect==1)
-        GaussGpuConvOnDevice<double,2,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
+        KernelGpuConvOnDevice<double,2,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==2 && dimVect==2)
-        GaussGpuConvOnDevice<double,2,2><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
+        KernelGpuConvOnDevice<double,2,2><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==3 && dimVect==3)
-        GaussGpuConvOnDevice<double,3,3><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
+        KernelGpuConvOnDevice<double,3,3><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(double)>>>
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else {
         printf("error: dimensions of Gauss kernel not implemented in cuda");
