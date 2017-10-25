@@ -53,11 +53,11 @@ class KernelProduct(torch.autograd.Function):
 		ctx.save_for_backward( s, x, y, b ) # Call at most once in the "forward".
 		
 		# init gamma which contains the output of the convolution K_xy @ b
-		ctx.gamma  = torch.Tensor( x.size()[0] * b.size()[1] ).type(dtype)
+		gamma  = torch.zeros( x.size()[0] * b.size()[1] ).type(dtype)
 		# Inplace CUDA routine
-		cudaconv.cuda_conv(x.numpy(),y.numpy(),b.numpy(),ctx.gamma.numpy(),s.numpy()) 
-		ctx.gamma  = ctx.gamma.view( x.size()[0], b.size()[1] )
-		return ctx.gamma
+		cudaconv.cuda_conv(x.numpy(),y.numpy(),b.numpy(),gamma.numpy(),s.numpy()) 
+		gamma  = gamma.view( x.size()[0], b.size()[1] )
+		return gamma
 	
 	@staticmethod
 	def backward(ctx, a):
@@ -97,8 +97,8 @@ class KernelProduct(torch.autograd.Function):
 								      a     ) #   @ a )
 		
 		# Compute \partial_b K(s,x,y,b) . a   --------------------------------------------------- 
-		ctx.Kt = KernelProduct().apply # Will be used to compute the kernel "transpose"
-		grad_b = ctx.Kt(ss,      # We use the same kernel scale
+		Kt = KernelProduct().apply # Will be used to compute the kernel "transpose"
+		grad_b = Kt(    ss,      # We use the same kernel scale
 		                yy, xx,  # But we compute K_yx, instead of K_xy
 		                a     )  # And multiply it with a         
 		
@@ -152,18 +152,18 @@ class KernelProductGrad_x(torch.autograd.Function):
 		ctx.save_for_backward( s, a, x, y, b )   # Call at most once in the "forward".
 		
 		# init grad_x which contains the output
-		ctx.grad_x = torch.Tensor(x.numel()).type(dtype) #0d array
+		grad_x = torch.zeros(x.numel()).type(dtype) #0d array
 		# We're looking for the gradient with respect to x of
 		# < a, K(s,x,y,b) >  =  \sum_{i,j} f_s( |x_i-y_j|^2 ) < a_i, b_j >
 		# Cudagradconv computes the gradient, with respect to x, of trace(
 		cudagradconv.cuda_gradconv( a.numpy(),            #     a^T
 								    x.numpy(), y.numpy(), #   @ K(x,y)
 								    b.numpy(),            #   @ b )
-								    ctx.grad_x.numpy(),   # Output array
+								    grad_x.numpy(),       # Output array
 								    s.numpy())            # Kernel scale parameter
-		ctx.grad_x = ctx.grad_x.view(x.shape)
+		grad_x = grad_x.view(x.shape)
 		
-		return ctx.grad_x
+		return grad_x
 	
 	@staticmethod
 	def backward(ctx, e):
@@ -177,6 +177,17 @@ class KernelProductGrad_x(torch.autograd.Function):
 			- \partial_b Kx(s,a,x,y,b) . e, which is a M-by-E array, equal to K(s,y,x,a).		
 		"""
 		(ss, aa, xx, yy, bb) = ctx.saved_variables # Unwrap the saved variables
+		
+		#print(type(ss.data), type(e.data), type(aa.data), type(xx.data), type(yy.data), type(bb.data))
+		#print("ss :\n", ss)
+		#e = e.type(dtype)
+		#e = 1. * e
+		#print("e  :\n", e )
+		#print("aa :\n", aa)
+		#print("xx :\n", xx)
+		#print("yy :\n", yy)
+		#print("bb :\n", bb)
+		
 		
 		# Compute \partial_s Kx(s,a,x,y,b) . e   ------------NOT IMPLEMENTED YET-----------------
 		grad_xs = None
@@ -192,7 +203,7 @@ class KernelProductGrad_x(torch.autograd.Function):
 		#
 		# This is what cuda_gradconv_xa is all about:
 		
-		grad_xa = torch.Tensor( aa.numel() ).type(dtype) #0d array
+		grad_xa = torch.zeros( aa.numel() ).type(dtype) #0d array
 		cudagradgradconv.cuda_gradconv_xa( e.data.numpy(),
 										   aa.data.numpy(),
 										   xx.data.numpy(), yy.data.numpy(),
@@ -213,7 +224,7 @@ class KernelProductGrad_x(torch.autograd.Function):
 		#
 		# This is what cuda_gradconv_xx is all about:
 		
-		grad_xx = torch.Tensor( xx.numel() ).type(dtype) #0d array
+		grad_xx = torch.zeros( xx.numel() ).type(dtype) #0d array
 		cudagradgradconv.cuda_gradconv_xx(  e.data.numpy(),
 										   aa.data.numpy(),
 										   xx.data.numpy(), yy.data.numpy(),
@@ -234,7 +245,7 @@ class KernelProductGrad_x(torch.autograd.Function):
 		#
 		# This is what cuda_gradconv_xy is all about:
 		
-		grad_xy = torch.Tensor( yy.numel() ).type(dtype) #0d array
+		grad_xy = torch.zeros( yy.numel() ).type(dtype) #0d array
 		cudagradgradconv.cuda_gradconv_xy(  e.data.numpy(),
 										   aa.data.numpy(),
 										   xx.data.numpy(), yy.data.numpy(),
@@ -254,7 +265,7 @@ class KernelProductGrad_x(torch.autograd.Function):
 		#
 		# This is what cuda_gradconv_xb is all about:
 		
-		grad_xb = torch.Tensor( bb.numel() ).type(dtype) #0d array
+		grad_xb = torch.zeros( bb.numel() ).type(dtype) #0d array
 		cudagradgradconv.cuda_gradconv_xb(  e.data.numpy(),
 										   aa.data.numpy(),
 										   xx.data.numpy(), yy.data.numpy(),
@@ -269,10 +280,13 @@ class KernelProductGrad_x(torch.autograd.Function):
 
 
 if __name__ == "__main__":
+	from visualize import make_dot
+	
 	backend = "libds" # Other value : 'pytorch'
 	
 	if   backend == "libds" :
-		kernel_product = KernelProduct().apply
+		kernel_product        = KernelProduct().apply
+		kernel_product_grad_x = KernelProductGrad_x().apply
 	elif backend == "pytorch" :
 		def kernel_product(s, x, y, b) :
 			x_col = x.unsqueeze(1) # Theano : x.dimshuffle(0, 'x', 1)
@@ -287,36 +301,66 @@ if __name__ == "__main__":
 	# Init variables to get a minimal working example:
 	#--------------------------------------------------#
 	dtype = torch.FloatTensor
-
-        n = 15
-        d = 3
 	
-	x = .6 * torch.linspace(0,5,n*d   ).type(dtype).view(n,d)
+	N = 10 ; M = 15 ; D = 3 ; E = 3
+	
+	e = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
+	e = torch.autograd.Variable(e, requires_grad = True)
+	
+	a = .6 * torch.linspace(  0, 5,N*E).type(dtype).view(N,E)
+	a = torch.autograd.Variable(a, requires_grad = True)
+	
+	x = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
 	x = torch.autograd.Variable(x, requires_grad = True)
 	
-	y = .2 * torch.linspace(0,5,n*d   ).type(dtype).view(n,d)
+	y = .2 * torch.linspace(  0, 5,M*D).type(dtype).view(M,D)
 	y = torch.autograd.Variable(y, requires_grad = True)
 	
-	b = .6 * torch.linspace(-.2,.2,n*d).type(dtype).view(n,d)
+	b = .6 * torch.linspace(-.2,.2,M*E).type(dtype).view(M,E)
 	b = torch.autograd.Variable(b, requires_grad = True)
 	
 	s = torch.Tensor([2.5]).type(dtype)
 	s = torch.autograd.Variable(s, requires_grad = False)
 	
 	#--------------------------------------------------#
+	# check the class KernelProductGrad_x routines
+	#--------------------------------------------------#
+	
+	grad_x = kernel_product_grad_x(s, a, x, y, b)
+	(grad_xa, grad_xx, grad_xy, grad_xb) = torch.autograd.grad( grad_x, (a,x,y,b), e)
+	
+	if False :
+		print("grad_x  :\n",  grad_x.data.numpy())
+		print("grad_xa :\n", grad_xa.data.numpy())
+		print("grad_xx :\n", grad_xx.data.numpy())
+		print("grad_xy :\n", grad_xy.data.numpy())
+		print("grad_xb :\n", grad_xb.data.numpy())
+	
+	
+	#--------------------------------------------------#
 	# check the class KernelProduct
 	#--------------------------------------------------#
 	def Ham(q,p) :
 		Kq_p  = kernel_product(s,q,q,p)
+		make_dot(Kq_p, {'q':q, 'p':p, 's':s}).render('graphs/Kqp_'+backend+'.pdf', view=True)
 		return torch.dot( p.view(-1), Kq_p.view(-1) )
 	
-	ham0   = Ham(x, b)
+	ham0   = Ham(y, b)
+	make_dot(ham0, {'y':y, 'b':b, 's':s}).render('graphs/ham0_'+backend+'.pdf', view=True)
 	
+	print('----------------------------------------------------')
 	print("Ham0:")
 	print(ham0)
 	
-	grad_x = torch.autograd.grad(ham0,x,create_graph = True)[0]
+	grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
 	grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
+	
+	print('grad_y  :\n', grad_y.data.numpy())
+	print('grad_b  :\n', grad_b.data.numpy())
+	
+	
+	make_dot(grad_y, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_'+backend+'.pdf', view=True)
+	print('grad_y :\n', grad_y.data.numpy())
 	
 	if False :
 		def to_check( X, Y, B ):
@@ -329,10 +373,34 @@ if __name__ == "__main__":
 	# check that we are able to compute derivatives with autograd
 	#--------------------------------------------------#
 	
-	grad_b2 = (grad_x).sum()
+	if False :
+		grad_b_sum = torch.dot(grad_b.view(-1), grad_b.view(-1))
+		make_dot(grad_b_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_'+backend+'.pdf', view=True)
+		print('grad_b_sum :\n', grad_b_sum.data.numpy())
+		
+		grad_b_sum_b  = torch.autograd.grad(grad_b_sum,b,create_graph = True)[0]
+		make_dot(grad_b_sum_b, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_b_'+backend+'.pdf', view=True)
+		print('grad_b_sum_b :\n', grad_b_sum_b.data.numpy())
 	
-	grad_bb  = torch.autograd.grad(grad_b2,x,create_graph = True)[0]
-	print(grad_bb)
+	if True :
+		# N.B. : As of October 2017, there's clearly a type problem within pytorch's implementation
+		#        of sum's backward operator - I looks as though they naively pass an array of
+		#        "1" to the backward operator
+		# grad_y_sum = grad_y.sum() # backward will be randomish, due to type conversion issues
+		Ones = Variable(torch.ones( grad_y.numel() ).type(dtype))
+		grad_y_sum = torch.dot(grad_y.view(-1), Ones )
+		make_dot(grad_y_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_'+backend+'.pdf', view=True)
+		print('grad_y_sum :\n', grad_y_sum.data.numpy())
+		
+		grad_y_sum_y  = torch.autograd.grad(grad_y_sum,y,create_graph = True)[0]
+		make_dot(grad_y_sum_y, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_y_'+backend+'.pdf', view=True)
+		print('grad_y_sum_y :\n', grad_y_sum_y.data.numpy())
+		
+		
+		grad_y_sum_b  = torch.autograd.grad(grad_y_sum,b,create_graph = True)[0]
+		make_dot(grad_y_sum_b, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_b_'+backend+'.pdf', view=True)
+		print('grad_y_sum_b :\n', grad_y_sum_b.data.numpy())
+	
 	
 	#--------------------------------------------------#
 	# check that we are able to compute derivatives with autograd

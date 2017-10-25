@@ -41,6 +41,8 @@ def cuda_gradconv_order2(e, alpha, x, y, beta, result, sigma, mode):
     """
 
         """
+    #print(e.dtype, alpha.dtype, x.dtype, y.dtype, beta.dtype, result.dtype, sigma.dtype)
+    #print(e, alpha, x, y, beta, result, sigma)
     # From python to C float pointers and int :
     e_p      =      e.ctypes.data_as(POINTER(c_float))
     alpha_p  =  alpha.ctypes.data_as(POINTER(c_float))
@@ -54,8 +56,8 @@ def cuda_gradconv_order2(e, alpha, x, y, beta, result, sigma, mode):
     dimPoint = x.shape[1]
     dimVect  = beta.shape[1]
 
-    ooSigma2 = float(1/ (sigma*sigma))  # Compute this once and for all
-
+    ooSigma2 = np.float32(1. / (sigma*sigma))  # Compute this once and for all
+    
     # Let's use our GPU, which works "in place" :
     if   mode == "xa" :
         __cuda_gradconv_xa(ooSigma2, e_p, alpha_p, x_p, y_p, beta_p, result_p, dimPoint, dimVect, nx, ny )
@@ -69,14 +71,14 @@ def cuda_gradconv_order2(e, alpha, x, y, beta, result, sigma, mode):
         a = 1/0
 
 
-def cuda_gradconv_xa(e, alpha, x, y, beta, result, sigma) :
+def cuda_gradconv_xa(    e, alpha, x, y, beta, result, sigma) :
     cuda_gradconv_order2(e, alpha, x, y, beta, result, sigma, "xa")
 
-def cuda_gradconv_xx(e, alpha, x, y, beta, result, sigma) :
+def cuda_gradconv_xx(    e, alpha, x, y, beta, result, sigma) :
     cuda_gradconv_order2(e, alpha, x, y, beta, result, sigma, "xx")
 
-def cuda_gradconv_xy(e, alpha, x, y, beta, result, sigma) :
+def cuda_gradconv_xy(    e, alpha, x, y, beta, result, sigma) :
     cuda_gradconv_order2(e, alpha, x, y, beta, result, sigma, "xy")
 
-def cuda_gradconv_xb(e, alpha, x, y, beta, result, sigma) :
+def cuda_gradconv_xb(    e, alpha, x, y, beta, result, sigma) :
     cuda_gradconv_order2(e, alpha, x, y, beta, result, sigma, "xb")

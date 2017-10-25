@@ -2,3 +2,9 @@
 *__pycache__*
 *~
 build*
+
+# Exclude "private" experimental research folders
+*private*
+
+# Exclude the graphs pdf
+*.pdf
