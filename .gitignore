@@ -2,6 +2,7 @@
 *__pycache__*
 *~
 build*
+*output*
 
 # Exclude "private" experimental research folders
 *private*

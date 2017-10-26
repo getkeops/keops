@@ -287,7 +287,7 @@ if __name__ == "__main__":
 		kernel_product        = KernelProduct().apply
 		kernel_product_grad_x = KernelProductGrad_x().apply
 	elif backend == "pytorch" :
-		def kernel_product(s, x, y, b) :
+		def kernel_product(s, x, y, b, kernel) :
 			x_col = x.unsqueeze(1) # Theano : x.dimshuffle(0, 'x', 1)
 			y_lin = y.unsqueeze(0) # Theano : y.dimshuffle('x', 0, 1)
 			sq    = torch.sum( (x_col - y_lin)**2 , 2 )
@@ -325,8 +325,9 @@ if __name__ == "__main__":
 	# check the class KernelProductGrad_x routines
 	#--------------------------------------------------#
 	
-	grad_x = kernel_product_grad_x(s, a, x, y, b, "gaussian")
-	(grad_xa, grad_xx, grad_xy, grad_xb) = torch.autograd.grad( grad_x, (a,x,y,b), e)
+	if False :
+		grad_x = kernel_product_grad_x(s, a, x, y, b, "gaussian")
+		(grad_xa, grad_xx, grad_xy, grad_xb) = torch.autograd.grad( grad_x, (a,x,y,b), e)
 	
 	if False :
 		print("grad_x  :\n",  grad_x.data.numpy())
