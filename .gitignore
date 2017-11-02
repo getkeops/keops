@@ -3,6 +3,7 @@
 *~
 build*
 *output*
+*.swp
 
 # Exclude mex files
 *mexa64
