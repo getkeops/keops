@@ -4,6 +4,9 @@
 build*
 *output*
 
+# Exclude mex files
+*mexa64
+
 # Exclude "private" experimental research folders
 *private*
 
