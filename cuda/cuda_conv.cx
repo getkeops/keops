@@ -18,8 +18,8 @@ __global__ void KernelGpuConvOnDevice(TYPE ooSigma2,
                                       TYPE *x, TYPE *y, TYPE *beta, TYPE *gamma,
                                       int nx, int ny) {
     // Thread kernel:
-    // Computation of gamma_i = sum_j k(x_i,y_j)*beta_j for index i given by thread id.
-    // 
+    // Computation of gamma_i = sum_j k(x_i,y_j)*beta_j 
+    // for index i given by thread id.
     
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 

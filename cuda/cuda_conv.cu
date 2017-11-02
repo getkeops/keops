@@ -17,8 +17,6 @@ int KernelGpuEvalConv(TYPE ooSigma2,
                                    TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
                                    int dimPoint, int dimVect, int nx, int ny) {
 
-    //printf("%f %f %f", x_h[0] , x_h[1] ,x_h[2]);
-
     // Data on the device.
     TYPE* x_d;
     TYPE* y_d;

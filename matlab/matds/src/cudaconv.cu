@@ -9,12 +9,9 @@
 
 
 /* the gateway function */
-void mexFunction( int nlhs, mxArray *plhs[],
-        int nrhs, const mxArray *prhs[])
+void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     //plhs: double *gamma
     //prhs: double *x, double *y, double *beta, double sigma
-
-{ 
 
     // register an exit function to prevent crash at matlab exit or recompiling
     mexAtExit(ExitFcn);
@@ -68,6 +65,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
             mxGetN(prhs[argu])*mxGetM(prhs[argu])!=1 ) {
         mexErrMsgTxt("Input sigma must be a scalar.");
     }
+
     /*  get the scalar input sigma */
     double sigma = mxGetScalar(prhs[argu]);
     if (sigma <= 0.0)
