@@ -1,29 +1,35 @@
 % 
 addpath(genpath('../'))
 
-n=50;
-m=50;
-d=3;
+n=2000; m=1200; d=3;
 
 x = randn(n,d);
 y = randn(m,d);
-
 p = randn(m,d);
 
 sig = 2.4;
 
-% ----------- matds version -----------
+gaussian = @(x,s) exp(-x / s .^2);
+
+squmatrix_distance = @(x,y) sum( (repmat(reshape(x,size(x,1),1,size(x,2)),1,size(y,1),1)  - repmat(reshape(y,1,size(y,1),size(y,2)),size(x,1),1,1)) .^2,3);
+
+
+%dry run
 Mp = cudaconv(x',y',p',sig)';
 
+% ----------- gaussian kernel -----------
+tic
+Mp = cudaconv(x',y',p',sig)';
+fprintf('Time for cuda  : %g\n',toc)
 
-% ----------- matlab version -----------
-d2 = zeros(n,m);
-for i=1:d
-    d2 = d2 + ( repmat(x(:,i),1,m)  -  repmat(y(:,i)',n,1) ) .^2 ;
-end
+tic
+d2 = squmatrix_distance(x,y);
+Mp2 = gaussian(d2,sig) * p;
+fprintf('Time for matlab: %g\n',toc)
 
-Mp2 = exp(-d2 / sig .^2) * p;
+fprintf('conv absolute error: %g\n',max(abs(Mp(:) - Mp2(:))))
 
 
-% ---------- Compare results -----------
-fprintf('conv absolute error: %g\n',sum(abs(Mp(:) - Mp2(:)) .^2))
+
+
+exit

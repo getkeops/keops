@@ -42,14 +42,14 @@ __device__ TYPE LaplaceF(TYPE r2, TYPE ooSigma2){
 template < typename TYPE >
 __device__ TYPE LaplaceFp(TYPE r2, TYPE ooSigma2){
         // Laplace radial kernel - 1st derivative
-        TYPE s = sqrtf( 1.0f/ooSigma2 + r2);
+        TYPE s = sqrt( 1.0f/ooSigma2 + r2);
         return - exp(- s ) / (2.0f * s );
 }
 
 template < typename TYPE >
 __device__ TYPE LaplaceFpp(TYPE r2, TYPE ooSigma2){
         // Laplace radial kernel - 2nd derivative
-        TYPE s = sqrtf( 1.0f/ooSigma2 + r2);
+        TYPE s = sqrt( 1.0f/ooSigma2 + r2);
         return .25f * (1.0f/(s*s*s) + 1.0f/s) * exp(- s);
 }
 

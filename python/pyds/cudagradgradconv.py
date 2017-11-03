@@ -5,7 +5,7 @@ import os.path
 
 #nvcc -D "USE_DOUBLE_PRECISION=OFF" -D "CUDA_BLOCK_SIZE=192"  -Xcompiler -fPIC -shared -o cuda_conv.so cuda_conv.cu
 
-# extract cuda_gradconv function pointer in the shared object cuda_gradconv.so
+# extract cuda_gradconv_** function pointer in the shared object cuda_gradconv_**.so
 def get_cuda_gradconvs_xa_xx_xy_xb():
     """
     Loads the gradient of the convolution routine from the compiled .so files.

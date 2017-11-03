@@ -1,9 +1,7 @@
 % 
 addpath(genpath('../'))
 
-n=50;
-m=70;
-d=3;
+n=50; m=70; d=3;
 
 x = randn(n,d);
 y = randn(m,d);
@@ -14,7 +12,7 @@ q = randn(n,d);
 sig = 2.4;
 
 % ----------- matds version -----------
-Mp = cudagradconv(q',x',y',p',sig)';
+Mp = cudagrad1conv(q',x',y',p',sig)';
 
 
 % ----------- matlab version -----------

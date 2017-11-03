@@ -55,27 +55,3 @@ g_xb = np.zeros(b.shape).astype('float32')
 cudagradgradconv.cuda_gradconv_xb(e, a, x, y, b, g_xb, s)
 print("g_xb : \n", g_xb)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

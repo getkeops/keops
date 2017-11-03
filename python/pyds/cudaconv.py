@@ -59,9 +59,12 @@ def cuda_conv(x, y, beta, result, sigma, kernel = "gaussian"):
 	# Let's use our GPU, which works "in place" :
 	__cuda_convs[kernel](ooSigma2, x_p, y_p, beta_p, result_p, dimPoint, dimVect, nx, ny )
 
-# testing, benchmark convolution with two naive python implementations of the Gaussian convolution
+
+
 if __name__ == '__main__':
-	
+	"""
+	testing, benchmark convolution with two naive python implementations of the Gaussian convolution
+	"""
 	np.set_printoptions(linewidth=200)
 	
 	sizeX    = int(600)
