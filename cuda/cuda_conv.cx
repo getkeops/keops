@@ -1,13 +1,3 @@
-#include <cuda.h>
-#include "radial_kernels.cx"
-
-
-#if !(UseCudaOnDoubles) 
-typedef float(*KernelFun)(float, float);
-#else
-typedef double(*KernelFun)(double, double);
-#endif
-
 
 ///////////////////////////////////////
 /////////// CUDA KERNEL ///////////////

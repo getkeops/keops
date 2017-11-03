@@ -1,6 +1,12 @@
 /* Based on the work of J. Glaunes */
 /* Authors : this file is part of the fshapesTk by B. Charlier, N. Charon, A. Trouve (2012-2014) */
 
+#if !(UseCudaOnDoubles) 
+typedef  float(*KernelFun)( float,  float);
+#else
+typedef double(*KernelFun)(double, double);
+#endif
+
 ///////////////////////
 //  Gaussian Kernel  //
 ///////////////////////

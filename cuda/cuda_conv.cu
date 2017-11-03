@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <cuda.h>
+#include "radial_kernels.cx"
 #include "cuda_conv.cx"
 
 #define UseCudaOnDoubles USE_DOUBLE_PRECISION
