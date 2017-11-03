@@ -7,7 +7,7 @@ import time
 from pyds import cudagrad1conv
 import numpy as np
 
-N = 2000 ; M = 1200; D = 3; E = 3
+N = 5000 ; M = 12000; D = 3; E = 3
 
 a = np.random.rand(N,E).astype('float32')
 x = np.random.rand(N,D).astype('float32')

@@ -12,14 +12,18 @@
 void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[]){
     //plhs: double *gamma
-    //prhs: double *alpha, double *x, double *y, double *beta, double sigma
+    //prhs: double *alpha, double *x, double *y, double *beta, double sigma, char kernel_type
  
     // register an exit function to prevent crash at matlab exit or recompiling
     mexAtExit(ExitFcn);
 
+    const char *kernel_type = "gaussian";
+
     /*  check for proper number of arguments */
-    if(nrhs != 5) 
-        mexErrMsgTxt("5 inputs required.");
+    if(nrhs <= 4) 
+        mexErrMsgTxt("6 inputs required.");
+    if(nrhs >= 7) 
+        mexErrMsgTxt("6 inputs required.");
     if(nlhs < 1 | nlhs > 1) 
         mexErrMsgTxt("One output required.");
 
@@ -82,6 +86,18 @@ void mexFunction( int nlhs, mxArray *plhs[],
         mexErrMsgTxt("Input sigma must be a positive number.");
     double oosigma2 = 1.0f/(sigma*sigma);
 
+    //----- the sixtht input argument: kernel_type-------------//
+    if (nrhs == 6) {
+        argu++;
+        /* check to make sure the input argument is a scalar */
+        if( !mxIsChar(prhs[argu]) ) {
+            mexErrMsgTxt("Input kernel_type must be a string.");
+        }  
+
+        /*  get the scalar input sigma */
+        kernel_type = mxArrayToString(prhs[argu]);
+    }
+
     //////////////////////////////////////////////////////////////
     // Output arguments
     //////////////////////////////////////////////////////////////
@@ -92,7 +108,14 @@ void mexFunction( int nlhs, mxArray *plhs[],
     double *gamma = mxGetPr(plhs[0]);
 
 #if UseCudaOnDoubles
-    GaussGpuGrad1Conv(oosigma2,alpha,x,y,beta,gamma,dimpoint,dimvect,nx,ny);  
+    if (strcmp(kernel_type,"gaussian") == 0)
+        GaussGpuGrad1Conv(oosigma2,alpha,x,y,beta,gamma,dimpoint,dimvect,nx,ny);  
+    else if (strcmp(kernel_type,"laplacian") == 0)
+        LaplaceGpuGrad1Conv(oosigma2,alpha,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"energy") == 0)
+        EnergyGpuGrad1Conv(oosigma2,alpha,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
+    else
+        mexErrMsgTxt("kernel_type is not implemented");
 #else
     // convert to float
     float *alpha_f = new float[nx*dimvect];
@@ -110,7 +133,14 @@ void mexFunction( int nlhs, mxArray *plhs[],
         beta_f[i] = beta[i];
 
     // function calls;
-    GaussGpuGrad1Conv(oosigma2,alpha_f,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+    if (strcmp(kernel_type,"gaussian") == 0)
+        GaussGpuGrad1Conv(oosigma2,alpha_f,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"laplacian") == 0)
+        LaplaceGpuGrad1Conv(oosigma2,alpha_f,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"energy") == 0)
+        EnergyGpuGrad1Conv(oosigma2,alpha_f,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+    else
+        mexErrMsgTxt("kernel_type is not implemented");
 
     for(int i=0; i<nx*dimpoint; i++)
         gamma[i] = gamma_f[i];

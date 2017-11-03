@@ -7,11 +7,11 @@ import time
 from pyds import cudaconv
 import numpy as np
 
-N = 2000 ; M = 1200; D = 3; E = 3
+N = 5000 ; M = 12000; D = 3; E = 3
 
-x = np.random.rand(N,D).astype('float32')
-y = np.random.rand(M,D).astype('float32')
-b = np.random.rand(M,E).astype('float32')
+x = np.random.randn(N,D).astype('float32')
+y = np.random.randn(M,D).astype('float32')
+b = np.random.randn(M,E).astype('float32')
 s = np.array([2.4]).astype('float32')
 
 def gaussian(r2,s):
@@ -48,7 +48,7 @@ g2 =  gaussian(squdistance_matrix(x,y),s) @ b
 #print("python gaussianconv : \n", g2)
 print("Time for Python: ", time.perf_counter() - start)
 
-print("absolute error: ", np.sqrt(np.sum( (g - g2) **2)))
+print("absolute error: ", np.max(np.abs (g - g2)))
 
 
 ##############################
@@ -67,7 +67,7 @@ g2 =  laplacian(squdistance_matrix(x,y),s) @ b
 #print("python laplacianianconv : \n", g2)
 print("Time for Python: ", time.perf_counter() - start)
 
-print("absolute error: ", np.sqrt(np.sum( (g - g2) **2)))
+print("absolute error: ", np.max(np.abs (g - g2)))
 
 
 ##############################
@@ -86,5 +86,5 @@ g2 =  energy(squdistance_matrix(x,y),s) @ b
 #print("python energyconv : \n", g2)
 print("Time for Python: ", time.perf_counter() - start)
 
-print("absolute error: ", np.sqrt(np.sum( (g - g2) **2)))
+print("absolute error: ", np.max(np.abs (g - g2)))
 
