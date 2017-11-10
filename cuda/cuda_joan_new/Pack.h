@@ -82,4 +82,28 @@ template < int N, int... NS > struct pack<N,NS...>
     }
 };
 
+template < class DIMSX, class DIMSY, typename TYPE, class FUN, typename... Args  >
+__host__ __device__ void call(FUN fun, TYPE* x, Args... args)
+{
+    DIMSX:: template call<DIMSY>(fun,x,args...);
+}
+
+template < class DIMS, typename TYPE, typename... Args >
+void getlist(TYPE** px, TYPE* x, Args... args)
+{
+    DIMS::getlist(px,x,args...);
+}
+
+template < class DIMSX, class DIMSY, typename TYPE, typename... Args  >
+static void getlist(TYPE** px, TYPE* x, Args... args)
+{
+    DIMSX::template getlist<DIMSY>(px,x,args...);
+}
+
+template < class DIMS, typename TYPE >
+__host__ __device__ void load(int i, TYPE* xi, TYPE** px)
+{
+	DIMS::load(i,xi,px);
+}
+
 #endif
