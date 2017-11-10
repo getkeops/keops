@@ -37,12 +37,12 @@ __global__ void reduce0(TYPE* in, TYPE* out, int sizeY,int nx)
 template < typename TYPE, class KER, class FUN >
 __global__ void GpuConv2DOnDevice(KER Ker, FUN fun, int nx, int ny, TYPE** px, TYPE** py)
 {
-
-    typedef typename FUN::DIMSX DIMSX;
-    typedef typename FUN::DIMSY DIMSY;
-    const int DIMX = DIMSX::SUM;
-    const int DIMY = DIMSY::SUM;        
-    const int DIMX1 = DIMSX::FIRST;
+	// gets dimensions and number of variables of inputs of function FUN
+    typedef typename FUN::DIMSX DIMSX; // DIMSX is a "vector" of templates giving dimensions of xi variables
+    typedef typename FUN::DIMSY DIMSY; // DIMSY is a "vector" of templates giving dimensions of yj variables
+    const int DIMX = DIMSX::SUM; // DIMX is sum of dimensions for xi variables
+    const int DIMY = DIMSY::SUM; // DIMY is sum of dimensions for yj variables
+    const int DIMX1 = DIMSX::FIRST; // DIMX1 is dimension of output variable
 
     extern __shared__ char yj_char[];
     TYPE* const yj = reinterpret_cast<TYPE*>(yj_char);
@@ -52,21 +52,22 @@ __global__ void GpuConv2DOnDevice(KER Ker, FUN fun, int nx, int ny, TYPE** px, T
     if(i<nx)  // we will compute x1i only if i is in the range
     {
         for(int k=0; k<DIMX1; k++)
-            xi[k] = 0.0f;
+            xi[k] = 0.0f; // initialize output
         // load xi from device global memory
-	DIMSX::NEXT::load(i,xi+DIMX1,px+1);
+		load<DIMSX::NEXT>(i,xi+DIMX1,px+1); // load xi variables from global memory to local thread memory
     }
     
     int j = blockIdx.y * blockDim.x + threadIdx.x;
     if(j<ny) // we load yj from device global memory only if j<ny
-	DIMSY::load(j,yj+threadIdx.x*DIMY,py);    	
+		load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load xi variables from global memory to shared memory
+		   	
     __syncthreads();
         
     if(i<nx) // we compute x1i only if needed
     {
     	TYPE* yjrel = yj;
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY)
-			DIMSX::template call<DIMSY>(fun,xi,yjrel,Ker);	
+			call<DIMSX,DIMSY>(fun,xi,yjrel,Ker); // call function
         __syncthreads();
     }
 
@@ -139,7 +140,6 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h)
 
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(Ker,fun,nx,ny,px_d,py_d);
 	
-
     reduce0<TYPE,DIMX1><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
     
     // block until the device has completed
@@ -170,19 +170,13 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE* x1_h, Args... args)
 
     TYPE *px_h[SIZEX];
     TYPE *py_h[SIZEY];
-    DIMSX::getlist(px_h,x1_h,args...);
-    DIMSX::template getlist<DIMSY>(py_h,x1_h,args...);
- 
+    getlist<DIMSX>(px_h,x1_h,args...);
+    getlist<DIMSX,DIMSY>(py_h,x1_h,args...);
+    
 	return GpuConv2D(Ker,fun,nx,ny,px_h,py_h);
 
 }
 
-template < typename... Args >
-int GpuConv2D(int Nx, int Ny, Args... args)
-{
-	struct KER::EVAL funeval;
-	typedef RADIALFUN<__TYPE__> RadialFun;
-	GpuConv2D(KER(RadialFun()),funeval,Nx,Ny,args...);
-}
+
 
 
