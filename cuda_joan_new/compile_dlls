@@ -1,0 +1,30 @@
+nvcc -std=c++11 -shared -Xcompiler -fPIC GpuConv2D.cu -D__TYPE__=double -D__DIMPOINT__=3 -D__DIMVECT__=3 \
+	-DKERNEL=SCALARRADIAL \
+	-DRADIALFUN=GaussFunction \
+	-DEVAL=sEval \
+	-o cuda_conv.so  
+
+nvcc -std=c++11 -shared -Xcompiler -fPIC GpuConv2D.cu -D__TYPE__=double -D__DIMPOINT__=3 -D__DIMVECT__=3 \
+	-DKERNEL=SCALARRADIAL \
+	-DRADIALFUN=GaussFunction \
+	-DEVAL=sGrad1 \
+	-o cuda_grad1.so  
+	
+nvcc -std=c++11 -shared -Xcompiler -fPIC GpuConv2D.cu -D__TYPE__=double -D__DIMPOINT__=3 -D__DIMVECT__=3 \
+	-DKERNEL=SCALARRADIAL \
+	-DRADIALFUN=GaussFunction \
+	-DEVAL=sGrad \
+	-o cuda_grad.so  
+	
+nvcc -std=c++11 -shared -Xcompiler -fPIC GpuConv2D.cu -D__TYPE__=double -D__DIMPOINT__=3 -D__DIMVECT__=3 \
+	-DKERNEL=SCALARRADIAL \
+	-DRADIALFUN=GaussFunction \
+	-DEVAL=sDiff \
+	-o cuda_diff.so  
+	
+nvcc -std=c++11 -shared -Xcompiler -fPIC GpuConv2D.cu -D__TYPE__=double -D__DIMPOINT__=3 -D__DIMVECT__=3 \
+	-DKERNEL=SCALARRADIAL \
+	-DRADIALFUN=GaussFunction \
+	-DEVAL=sHess \
+	-o cuda_hess.so  
+
