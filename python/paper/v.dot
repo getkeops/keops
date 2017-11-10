@@ -1,0 +1,19 @@
+digraph {
+	graph [ordering=in rankdir=BT size="12,12"]
+	node [align=right fontsize=12 height=0.2 ranksep=0.1 shape=box style=filled]
+	140065721600664 [label="$\partial$KernelProduct" fillcolor="green!10" margin="\"0.5\""]
+	140065721600664 -> 140065716671936
+	140065716671936 [label="\tl{$x$}{(1000, 3)}" fillcolor="red!10" margin="\"0.5\""]
+	140065721600664 -> 140066518827640
+	140066518827640 [label="\tl{$y$}{(2000, 3)}" fillcolor="red!10" margin="\"0.5\""]
+	140065721600664 -> 140066518827584
+	140066518827584 [label="\tl{$b$}{(2000, 1)}" fillcolor="red!10" margin="\"0.5\""]
+	140065716710856 -> 140065721600664
+	140065716710856 [label="\tl{$s$}{(1)}" fillcolor="blue!10" margin="\"0.5\""]
+	140065716710792 -> 140065721600664
+	140065716710792 [label="\tl{$x$}{(1000, 3)}" fillcolor="blue!10" margin="\"0.5\""]
+	140065716711304 -> 140065721600664
+	140065716711304 [label="\tl{$y$}{(2000, 3)}" fillcolor="blue!10" margin="\"0.5\""]
+	140065716761160 -> 140065721600664
+	140065716761160 [label="\tl{$b$}{(2000, 1)}" fillcolor="blue!10" margin="\"0.5\""]
+}
