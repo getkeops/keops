@@ -1,0 +1,55 @@
+
+\begin{tikzpicture}[>=latex,line join=bevel,]
+%%
+\node (139622845773288) at (289.0bp,527.0bp) [draw,fill=white,rectangle] {$\partial$Unsqueeze};
+  \node (139622845774968) at (322.0bp,271.0bp) [draw,fill=white,rectangle] {$\partial$Div};
+  \node (139622840926760) at (118.0bp,60.0bp) [draw,fill=white,rectangle] {$\partial$Dot};
+  \node (139622845773768) at (327.0bp,476.0bp) [draw,fill=white,rectangle] {$\partial$Sub};
+  \node (139622840926520) at (141.0bp,111.5bp) [draw,fill=white,rectangle] {$\partial$View};
+  \node (139622845775208) at (234.0bp,219.0bp) [draw,fill=white,rectangle] {$\partial$Exp};
+  \node (139622840931912) at (118.0bp,8.5bp) [draw,fill=blue!10,rectangle] {\tl{$K_{q,q}p$}{(3000)}};
+  \node (139622845773528) at (365.0bp,527.0bp) [draw,fill=white,rectangle] {$\partial$Unsqueeze};
+  \node (139622840931656) at (301.0bp,111.5bp) [draw,fill=blue!10,rectangle] {\tl{$p$}{(1000, 3)}};
+  \node (139622840931464) at (369.0bp,374.5bp) [draw,fill=blue!10,rectangle] {\tl{$q_i-q_j$}{(1000, 1000, 3)}};
+  \node (139622845775448) at (201.0bp,165.0bp) [draw,fill=white,rectangle] {$\partial$Addmm};
+  \node (139622840931528) at (410.0bp,219.0bp) [draw,fill=blue!10,rectangle] {\tl{$s^2$}{(1)}};
+  \node (139622845774488) at (285.0bp,322.0bp) [draw,fill=white,rectangle] {$\partial$Negate};
+  \node (139622845750072) at (168.0bp,219.0bp) [draw,fill=red!10,rectangle] {\tl{$p$}{(1000, 3)}};
+  \node (139622840931848) at (186.0bp,8.5bp) [draw,fill=blue!10,rectangle] {\tl{$p$}{(3000)}};
+  \node (139622845750856) at (327.0bp,579.5bp) [draw,fill=red!10,rectangle] {\tl{$q$}{(1000, 3)}};
+  \node (139622840931784) at (217.0bp,111.5bp) [draw,fill=blue!10,rectangle] {\tl{$K_{q,q}$}{(1000, 1000)}};
+  \node (139622845774248) at (285.0bp,374.5bp) [draw,fill=white,rectangle] {$\partial$Sum};
+  \node (139622840931720) at (304.0bp,165.0bp) [draw,fill=blue!10,rectangle] {\tl{$-|q_i-q_j|^2/s^2$}{(1000, 1000)}};
+  \node (139622840927000) at (35.0bp,8.5bp) [draw,fill=green!10,rectangle] {$\partial$MulConstant};
+  \node (139622840926280) at (126.0bp,165.0bp) [draw,fill=white,rectangle] {$\partial$View};
+  \node (139622845774008) at (327.0bp,426.0bp) [draw,fill=white,rectangle] {$\partial$PowConstant};
+  \node (139622845774728) at (360.0bp,322.0bp) [draw,fill=white,rectangle] {$\partial$PowConstant};
+  \node (139622840931592) at (322.0bp,219.0bp) [draw,fill=blue!10,rectangle] {\tl{$-\|q_i-q_j\|^2$}{(1000, 1000)}};
+  \draw [->] (139622840926280) ..controls (137.11bp,179.76bp) and (147.15bp,192.19bp)  .. (139622845750072);
+  \draw [->] (139622845774968) ..controls (312.26bp,284.9bp) and (303.52bp,296.47bp)  .. (139622845774488);
+  \draw [->] (139622845773288) ..controls (299.66bp,542.17bp) and (308.18bp,553.49bp)  .. (139622845750856);
+  \draw [->] (139622840931592) ..controls (322.0bp,235.12bp) and (322.0bp,245.1bp)  .. (139622845774968);
+  \draw [->] (139622845775448) ..controls (192.36bp,179.61bp) and (184.7bp,191.69bp)  .. (139622845750072);
+  \draw [->] (139622845773768) ..controls (316.99bp,489.9bp) and (308.02bp,501.47bp)  .. (139622845773288);
+  \draw [->] (139622845773528) ..controls (354.34bp,542.17bp) and (345.82bp,553.49bp)  .. (139622845750856);
+  \draw [->] (139622845774488) ..controls (285.0bp,337.03bp) and (285.0bp,348.06bp)  .. (139622845774248);
+  \draw [->] (139622840927000) ..controls (58.494bp,23.511bp) and (82.097bp,37.588bp)  .. (139622840926760);
+  \draw [->] (139622845774008) ..controls (327.0bp,439.71bp) and (327.0bp,449.98bp)  .. (139622845773768);
+  \draw [->] (139622840926760) ..controls (114.8bp,78.018bp) and (111.44bp,100.87bp)  .. (114.0bp,120.0bp) .. controls (115.27bp,129.5bp) and (118.02bp,139.84bp)  .. (139622840926280);
+  \draw [->] (139622840931656) ..controls (269.14bp,128.91bp) and (240.84bp,143.48bp)  .. (139622845775448);
+  \draw [->] (139622845775208) ..controls (261.15bp,235.43bp) and (285.23bp,249.11bp)  .. (139622845774968);
+  \draw [->] (139622840931912) ..controls (118.0bp,23.964bp) and (118.0bp,33.947bp)  .. (139622840926760);
+  \draw [->] (139622840931720) ..controls (282.07bp,182.29bp) and (264.92bp,195.03bp)  .. (139622845775208);
+  \draw [->] (139622845774968) ..controls (332.19bp,285.14bp) and (341.58bp,297.25bp)  .. (139622845774728);
+  \draw [->] (139622845773768) ..controls (337.01bp,489.9bp) and (345.98bp,501.47bp)  .. (139622845773528);
+  \draw [->] (139622840931464) ..controls (356.14bp,390.65bp) and (346.5bp,402.02bp)  .. (139622845774008);
+  \draw [->] (139622840926520) ..controls (157.72bp,126.86bp) and (174.13bp,140.94bp)  .. (139622845775448);
+  \draw [->] (139622840931848) ..controls (164.79bp,24.94bp) and (147.48bp,37.538bp)  .. (139622840926760);
+  \draw [->] (139622840931528) ..controls (381.16bp,236.39bp) and (358.03bp,249.53bp)  .. (139622845774968);
+  \draw [->] (139622840926760) ..controls (124.06bp,74.047bp) and (129.5bp,85.758bp)  .. (139622840926520);
+  \draw [->] (139622845775448) ..controls (209.74bp,179.77bp) and (217.65bp,192.24bp)  .. (139622845775208);
+  \draw [->] (139622840931784) ..controls (212.34bp,127.5bp) and (208.78bp,138.97bp)  .. (139622845775448);
+  \draw [->] (139622845774248) ..controls (296.32bp,388.84bp) and (306.86bp,401.26bp)  .. (139622845774008);
+%
+\end{tikzpicture}
+

@@ -1,0 +1,31 @@
+digraph {
+	graph [ordering=in rankdir=BT size="12,12"]
+	node [align=right fontsize=12 height=0.2 ranksep=0.1 shape=box style=filled]
+	140065721600424 [label="$\partial$MulConstant" fillcolor="green!10" margin="\"0.5\""]
+	140065721600424 -> 140065721600184
+	140065721600184 [label="$\partial$Dot" fillcolor=white margin="\"0.5\""]
+	140065721600184 -> 140065721599704
+	140065721599704 [label="$\partial$View" fillcolor=white margin="\"0.5\""]
+	140065721599704 -> 140066518827472
+	140066518827472 [label="\tl{$p$}{(1000, 3)}" fillcolor="red!10" margin="\"0.5\""]
+	140065721600184 -> 140065721599944
+	140065721599944 [label="$\partial$View" fillcolor=white margin="\"0.5\""]
+	140065721599944 -> 140065721599464
+	140065721599464 [label="$\partial$KernelProduct" fillcolor=white margin="\"0.5\""]
+	140065721599464 -> 140065721461784
+	140065721461784 [label="\tl{$q$}{(1000, 3)}" fillcolor="red!10" margin="\"0.5\""]
+	140065721599464 -> 140065721461784
+	140065721599464 -> 140066518827472
+	140065716710088 -> 140065721599464
+	140065716710088 [label="\tl{$s$}{(1)}" fillcolor="blue!10" margin="\"0.5\""]
+	140065716709896 -> 140065721599464
+	140065716709896 [label="\tl{$q$}{(1000, 3)}" fillcolor="blue!10" margin="\"0.5\""]
+	140065716710472 -> 140065721599464
+	140065716710472 [label="\tl{$q$}{(1000, 3)}" fillcolor="blue!10" margin="\"0.5\""]
+	140065716710536 -> 140065721599464
+	140065716710536 [label="\tl{$p$}{(1000, 3)}" fillcolor="blue!10" margin="\"0.5\""]
+	140065716710600 -> 140065721600184
+	140065716710600 [label="\tl{$K_{q,q}$}{(3000)}" fillcolor="blue!10" margin="\"0.5\""]
+	140065716710664 -> 140065721600184
+	140065716710664 [label="\tl{$p$}{(3000)}" fillcolor="blue!10" margin="\"0.5\""]
+}
