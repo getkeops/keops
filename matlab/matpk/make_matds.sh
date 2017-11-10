@@ -7,7 +7,7 @@ CC="/usr/bin/gcc"
 NVCC="/usr/bin/nvcc"
 LIBDSROOT="../../"
 
-INSTALL_DIR="$LIBDSROOT/matlab/matds/mex"
+INSTALL_DIR="$LIBDSROOT/matlab/matpk/mex"
 
 # --------- # GPU PARAMETERS: --------- #
 
