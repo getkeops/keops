@@ -17,9 +17,9 @@ For instance, the basic example is a Gaussian convolution (on a non regular grid
 
  gamma_i =  \sum_j K(x_i,y_j) beta_j
 
- where K(x_i,y_j) = exp(-|x_i - y_j|^2/s) 
+ where K(x_i,y_j) = exp(-|x_i - y_j|^2 /sigma^2) 
  
-The core of code is written in CUDA. We also provide bindings in python (numpy and pytorchcomplient),  matlab and R.
+The core of code is written in CUDA. We also provide bindings in python (numpy and pytorch complient),  matlab and R.
 
 
 ** Quick start
@@ -28,9 +28,9 @@ The core of code is written in CUDA. We also provide bindings in python (numpy a
 
 Two steps:
 
-1) Compilation of the cuda codes. The subdirectorie ./python contains a shell script"makefile.sh". The user need to custom the paths contained in this file.
+1) Compilation of the cuda codes. The subdirectory ./python contains a shell script "makefile.sh". The user needs to custom the paths contained in this file.
 
-2) Run the outof-box working examples ./python/example/convolution.py port libkp
+2) Run the out-of-the-box working examples ./python/example/convolution.py
 
 
 *** matlab user
