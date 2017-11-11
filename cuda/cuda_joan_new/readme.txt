@@ -1,11 +1,11 @@
+This folder contains a new implementation of the Cuda libkp library which allows to write more general kernel convolutions. 
+It is still under development and not currently compatible with the previous version. Only a test executable is provided for the moment. 
 
-Le fichier test.cu est destiné à donner un exécutable pour tester un appel de convolution. Pour le compiler : 
+The stand-alone programm test.cu performs a single convolution in the GPU. To compile it, use the command
 nvcc -std=c++11 -o test test.cu
-Les différents paramètres (type de noyau, de fonction scalaire, dimensions) peuvent être modifiés via les #define au début du fichier.
+Different types of kernels and dimensions can be used. They are set via #define macros at the beginning of the file.
 
-2 points importants :
-- pour l'instant il n'y a pas de paramètre d'échelle sigma dans ces codes. C'est parce que dans mes codes matlab, je divise par sigma les coordonnées avant de faire les convolutions. 
-- l'ordre des variables d'entrée est différent des autres codes Cuda. 
+
 
 
 
