@@ -2,7 +2,7 @@ import os.path
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
 
-from pypk import cudaconv,cudagradconv,cudagradgradconv
+from pypk import cudaconv,cudagrad1conv,cudagradgradconv
 import torch
 import numpy
 from torch.autograd import Variable
@@ -158,12 +158,12 @@ class KernelProductGrad_x(torch.autograd.Function):
 		# We're looking for the gradient with respect to x of
 		# < a, K(s,x,y,b) >  =  \sum_{i,j} f_s( |x_i-y_j|^2 ) < a_i, b_j >
 		# Cudagradconv computes the gradient, with respect to x, of trace(
-		cudagradconv.cuda_gradconv( a.numpy(),            #     a^T
-								    x.numpy(), y.numpy(), #   @ K(x,y)
-								    b.numpy(),            #   @ b )
-								    grad_x.numpy(),       # Output array
-								    s.numpy(),            # Kernel scale parameter
-								    kernel = kernel)
+		cudagrad1conv.cuda_grad1conv( a.numpy(),            #     a^T
+								      x.numpy(), y.numpy(), #   @ K(x,y)
+								      b.numpy(),            #   @ b )
+								      grad_x.numpy(),       # Output array
+								      s.numpy(),            # Kernel scale parameter
+								      kernel = kernel)
 		grad_x = grad_x.view(x.shape)
 		
 		return grad_x
