@@ -9,7 +9,7 @@ dtype    = torch.cuda.FloatTensor if use_gpu else torch.FloatTensor
 # forward and backward operations, as they have all been 
 # implemented both in pure CPU and in GPU (CUDA) code.
 
-N = 1000; D = 3 ; # Work with clouds of 10,000 points in 3D
+N = 10000; D = 3 ; # Work with clouds of 10,000 points in 3D
 # Generate arbitrary arrays on the host (CPU) or device (GPU):
 q = torch.linspace( 0, 5, N*D ).type(dtype).view(N,D)
 p = torch.linspace( 3, 6, N*D ).type(dtype).view(N,D)
