@@ -21,9 +21,9 @@ deformations) to kernel density estimations (non parametric statistics).
 
 For instance, the basic example is a Gaussian convolution (on a non regular grid):
 ```math
- gamma_i =  \sum_j K(x_i,y_j) beta_j
+ \gamma_i =  \sum_j K(x_i,y_j) \beta_j
 ```
- where $`K(x_i,y_j) = exp(-|x_i - y_j|^2 /sigma^2)`$
+ where $`K(x_i,y_j) = exp(-|x_i - y_j|^2 / \sigma^2)`$.
  
 The core of code is written in CUDA. We also provide bindings in python (numpy and pytorch complient),  matlab and R.
 
