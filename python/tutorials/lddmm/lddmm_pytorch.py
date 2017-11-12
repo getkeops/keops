@@ -242,7 +242,8 @@ def _kernel_matching(q1_x, q1_mu, xt_x, xt_mu, params) :
 	return [cost , info.view( (res,res) ) ]
 
 def _L2_matching(q1_x, q1_mu, xt_x, xt_mu, params) :
-	cost = torch.sum( ( (q1_x - xt_x)**2 ) * q1_mu.view(-1,1) )
+	#cost = torch.sum( ( (q1_x - xt_x)**2 ) * q1_mu.view(-1,1) )
+	cost = torch.sum( ( (q1_x - xt_x)**2 ))
 	return [ cost, cost.view(-1) ]
 	
 
@@ -320,11 +321,14 @@ def perform_matching( Q0, Xt, params, scale_momentum = 1, scale_attach = 1, show
 	# Cost is a function of 6 parameters :
 	# The source 'q',                    the starting momentum 'p',
 	# the target points 'xt_x',          the target weights 'xt_mu',
-	# the deformation scale 'sigma_def', the attachment scale 'sigma_att'.
-	q0    = Variable(torch.from_numpy(    Q0_points ).type(dtype), requires_grad=True)
-	p0    = Variable(torch.from_numpy( 0.*Q0_points ).type(dtype), requires_grad=True )
-	Xt_x  = Variable(torch.from_numpy(    Xt_x      ).type(dtype), requires_grad=False)
-	Xt_mu = Variable(torch.from_numpy(    Xt_mu     ).type(dtype), requires_grad=False)
+	# the deformation scale 'sigma_def', the attachment scale 'sigma_att'. 
+	# N.B. : the .contiguous() is there to ensure that variables will be stored in a contiguous
+	#        memory space, which is not always the case if the numpy arrays were constructed
+	#        by concatenation operators.
+	q0    = Variable(torch.from_numpy(    Q0_points ).type(dtype), requires_grad=True ).contiguous()
+	p0    = Variable(torch.from_numpy( 0.*Q0_points ).type(dtype), requires_grad=True ).contiguous()
+	Xt_x  = Variable(torch.from_numpy(    Xt_x      ).type(dtype), requires_grad=False).contiguous()
+	Xt_mu = Variable(torch.from_numpy(    Xt_mu     ).type(dtype), requires_grad=False).contiguous()
 	
 	# Encapsulate the float radius. Maybe, one day, we'll implement the derivatives wrt the
 	# kernel radii, so just in case...
@@ -383,26 +387,52 @@ def perform_matching( Q0, Xt, params, scale_momentum = 1, scale_attach = 1, show
 		return c
 	matching_problem.bestc = np.inf ; matching_problem.it = 0 ; matching_problem.Info = None
 	
-	# The PyTorch factorization of minimisation problems is a bit unusual...
-	# 
-	optimizer = torch.optim.LBFGS(
-					[p0],
-					lr               = 1.,      # Learning rate
-					max_iter         = 1000, 
-					tolerance_change = .000001, 
-					history_size     = 10)
-	#optimizer = torch.optim.Adam(
-	#				[p0])
-	time1 = time.time()
-	def closure():
-		"Encapsulates the matching problem + display."
-		optimizer.zero_grad()
-		c = matching_problem(p0)
-		c.backward()
-		return c
-	
-	for it in range(100) :
-		optimizer.step(closure)
+	if False : # We cannot rely on PyTorch's LBFGS just yet, as they did not implement line search...
+		# The PyTorch factorization of minimisation problems is a bit unusual...
+		optimizer = torch.optim.LBFGS(
+						[p0],
+						lr               = 1.,      # Learning rate
+						max_iter         = 1000, 
+						tolerance_change = .000001, 
+						history_size     = 10)
+		#optimizer = torch.optim.Adam(
+		#				[p0])
+		time1 = time.time()
+		def closure():
+			"Encapsulates the matching problem + display."
+			optimizer.zero_grad()
+			c = matching_problem(p0)
+			c.backward()
+			return c
+		
+		for it in range(100) :
+			optimizer.step(closure)
+	else :
+		from scipy.optimize import minimize
+		def numpy_matching_problem(num_p0) :
+			#print(num_p0)
+			num_p0 = .001 * num_p0.astype('float64')
+			tor_p0 = Variable(torch.from_numpy(num_p0.reshape(Q0_points.shape)).type(dtype), 
+			                  requires_grad=True ).contiguous()
+			c = matching_problem(tor_p0)
+			print('Cost : ', c)
+			dp_c = torch.autograd.grad( c, [tor_p0] )[0]
+			dp_c = .001 * dp_c.data.numpy()
+			# The fortran routines used by scipy.optimize expect float64 vectors
+			# instead of the gpu-friendly float32 matrices
+			return (c.data.numpy(), dp_c.ravel().astype('float64'))
+			
+		time1 = time.time()
+		res = minimize( numpy_matching_problem, # function to minimize
+						(0.*Q0_points).ravel().astype('float64'), # starting estimate
+						method = 'L-BFGS-B',  # an order 2 method
+						jac = True,           # matching_problems also returns the gradient
+						options = dict(
+							maxiter = 1000,
+							ftol    = .00001, # Don't bother fitting the shapes to float precision
+							maxcor  = 10      # Number of previous gradients used to approximate the Hessian
+						))
+	time2 = time.time()
 	
 	time2 = time.time()
 	return p0, matching_problem.Info
@@ -413,7 +443,7 @@ if __name__ == '__main__' :
 	plt.show()
 	
 	deformation_example = 1 ; attachment_example  = 1 ;
-	dataset = "ameoba_measures"      ; npoints             = 1000
+	dataset = "mario"      ; npoints             = 1000
 	
 	# A few deformation kernels =================================================================
 	if   deformation_example == 1 : # Standard Gaussian kernel
@@ -425,7 +455,7 @@ if __name__ == '__main__' :
 	elif deformation_example == 2 :  # Normalized Gaussian   -> plate tectonics
 		params_def = dict(
 			mode      = "gaussian",
-			radius    = [.1],
+			radius    = [.2],
 			normalize = True
 		)
 	elif deformation_example == 3 :  # Normalized Heavy tail -> translation awareness
@@ -501,6 +531,43 @@ if __name__ == '__main__' :
 		
 		Q0_mu = np.ones((len(Q0_x),))
 		Xt_mu = np.ones((len(Xt_x),))
+		Q0 = [np.array(Q0_x).astype('float32'), np.array(Q0_mu).astype('float32')]
+		Xt = [np.array(Xt_x).astype('float32'), np.array(Xt_mu).astype('float32')]
+		
+	elif dataset == "GFSW03" :
+		params = dict(
+			data_type        = "landmarks",
+			transport_action = "measure",
+			deformation      = params_def,
+			data_attachment  = params_att
+		)
+		t = np.linspace(0, 2*np.pi, npoints // 2 + 1)[:-1]
+
+		# Shapes to be matched, given by their Fourier series :
+		Q0_1 = np.vstack( (     np.cos(t) + .2 * np.sin(4*t) + .2 * np.cos(7*t) + .05 * np.cos(13*t),
+						    1 * np.sin(t) + .3 * np.cos(4*t) + .2 * np.sin(7*t) + .05 * np.sin(13*t)  ) 
+					  ).T
+		Xt_1 = np.vstack( (np.cos(t) + .2 * np.sin(4*t) + .05 * np.cos(13*t),
+						   1 * np.sin(t) + .3 * np.cos(4*t) + .05 * np.sin(13*t)  ) 
+					  ).T
+		
+		Q0_2 = np.vstack( (1.5*np.cos(t),     np.sin(t)) ).T
+		Xt_2 = np.vstack( (    np.cos(t), 1.5*np.sin(t)) ).T
+		
+		Q0_x = np.vstack(( .1* Q0_1 + np.array([.25,.75]),  .1*Q0_2 + np.array([.75,.5])))
+		Xt_x = np.vstack(( .1* Xt_1 + np.array([.75,.50]),  .1*Xt_2 + np.array([.25,.25])))
+		
+		Q01_mu = 10*np.ones((len(Q0_1),))
+		Xt1_mu = 10*np.ones((len(Xt_1),))
+		Q02_mu =    np.ones((len(Q0_2),))
+		Xt2_mu =    np.ones((len(Xt_2),))
+		Q0_mu = np.hstack((Q01_mu,Q02_mu))
+		Xt_mu = np.hstack((Xt1_mu,Xt2_mu))
+		
+		# normalize so that parameters make sense whatever the number of points
+		Q0_mu = Q0_mu / np.sum(Q0_mu)
+		Xt_mu = Xt_mu / np.sum(Xt_mu)
+		
 		Q0 = [np.array(Q0_x).astype('float32'), np.array(Q0_mu).astype('float32')]
 		Xt = [np.array(Xt_x).astype('float32'), np.array(Xt_mu).astype('float32')]
 
