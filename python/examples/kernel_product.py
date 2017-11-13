@@ -29,12 +29,12 @@ class KernelProduct(torch.autograd.Function):
 		
 		                 k_s(x,y)  =  f_s( |x_i-y_j|^2 )
 		
-		Computations are performed with CUDA on the GPU, using the 'libds' files:
+		Computations are performed with CUDA on the GPU, using the 'libkp' files:
 		the operator KernelProduct is differentiable 2 times, with all variable combinations.                 
 		This code was designed for memory efficiency: the kernel matrix is computed "one tile
 		after another", and never stored in memory, be it on the GPU or on the RAM.
 		
-		N.B.: f and its derivatives f', f'' are hardcoded in the 'libds/kernels.cx' file.
+		N.B.: f and its derivatives f', f'' are hardcoded in the 'libkp/kernels.cx' file.
 		
 		Author: Jean Feydy
 	"""
@@ -127,11 +127,11 @@ class KernelProductGrad_x(torch.autograd.Function):
 		
 		                 k_s(x,y)  =  f_s( |x_i-y_j|^2 )
 		
-		Computations are performed with CUDA on the GPU, using the 'libds' files.                 
+		Computations are performed with CUDA on the GPU, using the 'libkp' files.                 
 		This code was designed for memory efficiency: the kernel matrix is computed "one tile
 		after another", and never stored in memory, be it on the GPU or on the RAM.
 		
-		N.B.: f and its derivatives f', f'' are hardcoded in the 'libds/kernels.cx' file.
+		N.B.: f and its derivatives f', f'' are hardcoded in the 'libkp/kernels.cx' file.
 		
 		Author: Jean Feydy
 	"""
@@ -281,9 +281,9 @@ class KernelProductGrad_x(torch.autograd.Function):
 if __name__ == "__main__":
 	from visualize import make_dot
 	
-	backend = "libds" # Other value : 'pytorch'
+	backend = "libkp" # Other value : 'pytorch'
 	
-	if   backend == "libds" :
+	if   backend == "libkp" :
 		kernel_product        = KernelProduct().apply
 		kernel_product_grad_x = KernelProductGrad_x().apply
 	elif backend == "pytorch" :

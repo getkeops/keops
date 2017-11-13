@@ -10,7 +10,7 @@ class Hamiltonian(torch.autograd.Function):
     """ This class implement the Hamiltonian (used in the LDDMM formulation).
         It may be used with the pytorch autograd lib. 
 
-        It uses the 'libds' to perform the computation with cuda.
+        It uses the 'libkp' to perform the computation with cuda.
         Author: b.
     """
     # Computation are made in float32

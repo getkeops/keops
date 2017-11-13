@@ -5,13 +5,13 @@ from torch.autograd import Variable
 
 from examples.kernel_product import KernelProduct
 
-BACKEND = "libds" # or "pytorch"
+BACKEND = "libkp" # or "pytorch"
 
 if   BACKEND == "pytorch" :
 	def _kernelproduct(s, x, y, p, mode) :
 		return _k(x, y, s, mode) @ p
 	
-elif BACKEND == "libds" :
+elif BACKEND == "libkp" :
 	__kernelproduct = KernelProduct().apply
 	def _kernelproduct(s, x, y, p, mode) :
 		return __kernelproduct(s, x, y, p, mode)
