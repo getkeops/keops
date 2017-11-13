@@ -407,24 +407,27 @@ def perform_matching( Q0, Xt, params, scale_momentum = 1, scale_attach = 1, show
 		
 		for it in range(100) :
 			optimizer.step(closure)
-	else :
+	else : # So, let's fall back on the good old rock-solid Fortran routines...
 		from scipy.optimize import minimize
 		def numpy_matching_problem(num_p0) :
-			#print(num_p0)
-			num_p0 = .001 * num_p0.astype('float64')
+			"""
+			Wraps matching_problem into a 'float64'-vector routine,
+			as expected by scipy.optimize.
+			"""
+			num_p0 = params["learning_rate"] * num_p0.astype('float64')
 			tor_p0 = Variable(torch.from_numpy(num_p0.reshape(Q0_points.shape)).type(dtype), 
 			                  requires_grad=True ).contiguous()
 			c = matching_problem(tor_p0)
-			print('Cost : ', c)
+			#print('Cost : ', c)
 			dp_c = torch.autograd.grad( c, [tor_p0] )[0]
-			dp_c = .001 * dp_c.data.numpy()
+			dp_c = params["learning_rate"] * dp_c.data.numpy()
 			# The fortran routines used by scipy.optimize expect float64 vectors
 			# instead of the gpu-friendly float32 matrices
 			return (c.data.numpy(), dp_c.ravel().astype('float64'))
 			
 		time1 = time.time()
 		res = minimize( numpy_matching_problem, # function to minimize
-						(0.*Q0_points).ravel().astype('float64'), # starting estimate
+						(0.*Q0_points).ravel(), # starting estimate
 						method = 'L-BFGS-B',  # an order 2 method
 						jac = True,           # matching_problems also returns the gradient
 						options = dict(
@@ -443,19 +446,19 @@ if __name__ == '__main__' :
 	plt.show()
 	
 	deformation_example = 1 ; attachment_example  = 1 ;
-	dataset = "mario"      ; npoints             = 1000
+	dataset = "ameoba"      ; npoints             = 1000
 	
 	# A few deformation kernels =================================================================
 	if   deformation_example == 1 : # Standard Gaussian kernel
 		params_def = dict(
 			mode      = "gaussian",
-			radius    = [.25],
+			radius    = [.15],
 			normalize = False
 		)
 	elif deformation_example == 2 :  # Normalized Gaussian   -> plate tectonics
 		params_def = dict(
 			mode      = "gaussian",
-			radius    = [.2],
+			radius    = [.15],
 			normalize = True
 		)
 	elif deformation_example == 3 :  # Normalized Heavy tail -> translation awareness
@@ -471,7 +474,7 @@ if __name__ == '__main__' :
 			mode      = "energy",
 			radius    = [.05]
 		)
-	elif attachment_example == 2 :  # Optimal Transport
+	elif attachment_example == 2 :  # Optimal Transport. N.B.: I didn't really implement it all yet...
 		params_att = dict(
 			formula   = "OT",
 			epsilon   = (.1)**2,   # regularization parameter
@@ -497,7 +500,7 @@ if __name__ == '__main__' :
 		Q0 = Curve.from_file('amoeba_1.png', npoints = npoints) # Load source...
 		Xt = Curve.from_file('amoeba_2.png', npoints = npoints) # and target.
 	
-	elif dataset == "homo" :
+	elif dataset == "skulls" :
 		params = dict(
 			data_type        = "curves",
 			transport_action = "image",
@@ -573,6 +576,8 @@ if __name__ == '__main__' :
 
 	
 	# Run the test (+rescale the quivers as needed...) ==========================================
+	params["learning_rate"] = .001  # L-BFGS will adjust the scale after a few iterations, but you'd
+	                                # better start slowly if you don't want to get lost at step=1...
 	p0, info = perform_matching( Q0, Xt, params, scale_momentum = 2., scale_attach = 1.) 
 
 
