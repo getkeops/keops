@@ -1,33 +1,28 @@
 This library is under development... some keys features have not been implemented yet. 
 
 ```
-oooo   o8o   .o8       oooo                   
-`888        "888       `888                   
-888  oooo   888oooo.   888  oooo  oo.ooooo.  
-888  `888   d88' `88b  888 .8P'    888' `88b 
-888   888   888   888  888888.     888   888 
-888   888   888   888  888 `88b.   888   888 
-o888o o888o  `Y8bod8P' o888o o888o  888bod8P' 
-                                   888       
-                                  o888o     
+  __/\\\\\\____       _______       __/\\\________       _______________       _______________        
+   _\////\\\____       _______       _\/\\\________       __/\\\_________       _______________       
+    ____\/\\\____       __/\\\_       _\/\\\________       _\/\\\_________       ___/\\\\\\\\\__      
+     ____\/\\\____       _\///__       _\/\\\________       _\/\\\\\\\\____       __/\\\/////\\\_     
+      ____\/\\\____       __/\\\_       _\/\\\\\\\\\__       _\/\\\////\\\__       _\/\\\\\\\\\\__    
+       ____\/\\\____       _\/\\\_       _\/\\\////\\\_       _\/\\\\\\\\/___       _\/\\\//////___   
+        ____\/\\\____       _\/\\\_       _\/\\\__\/\\\_       _\/\\\///\\\___       _\/\\\_________  
+         __/\\\\\\\\\_       _\/\\\_       _\/\\\\\\\\\__       _\/\\\_\///\\\_       _\/\\\_________ 
+          _\/////////__       _\///__       _\/////////___       _\///____\///__       _\///__________
 ```
 
 
-libkp is a library which implements in Cuda various operations using kernels. It 
-uses a "tiled implementation" in order to have a O(n) memory footprint instead 
-of usual O(n^2) codes generating by high level libraries like Thrust, pyTorch or
-TensorFlow... It comes with various examples ranging from lddmm (non rigid 
-deformations) to kernel density estimations (non parametric statistics).  
+libkp is a library which implements in Cuda various operations using kernels. We also provide bindings in python (numpy and pytorch complient),  matlab and R.
 
-For instance, the basic example is a Gaussian convolution (on a non regular grid):
+It uses a "tiled implementation" in order to have a $`O(n)`$ memory footprint instead of usual $`O(n^2)`$ codes generating by high level libraries like Thrust or cuda version of pyTorch and TensorFlow. It comes with various examples ranging from lddmm (non rigid deformations) to kernel density estimations (non parametric statistics).  
+
+For instance, the basic example is a Gaussian convolution on a non regular grid in $`\mathbb R^3`$ : given two point clouds $`(x_i)_{i=1}^N \in  \mathbb R^{N \time 3}`$ and $`(y_j)_{j=1}^M \in  \mathbb R^{M \time 3}`$  and a vector field $`(\beta_j)_{j=1}^M \in  \mathbb R^{M \time 3}`$ attached to the $`y_j`$'s, libkp may computes $`(\gamma_i)_{i=1}^N \in  \mathbb R^{N \time 3}`$ given by
 ```math
- \gamma_i =  \sum_j K(x_i,y_j) \beta_j
+ \gamma_i =  \sum_j K(x_i,y_j) \beta_j,  \qquad i=1,cdots,N
 ```
- where $`K(x_i,y_j) = exp(-|x_i - y_j|^2 / \sigma^2)`$.
+ where $`K(x_i,y_j) = \exp(-|x_i - y_j|^2 / \sigma^2)`$. The best performances are achieved for the range $`N=1000`$ to $`N=5.10^5`$.
  
-The core of code is written in CUDA. We also provide bindings in python (numpy and pytorch complient),  matlab and R.
-
-
 # Quick start
 
 ## Python user
@@ -39,7 +34,7 @@ Two steps:
 2) Run the out-of-the-box working examples `./python/example/convolution.py`
 
 
-## matlab user
+## Matlab user
 
 
 ## R user
