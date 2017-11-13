@@ -38,6 +38,7 @@ Two steps:
 
 2) Run the out-of-the-box working examples `./python/example/convolution.py`
 
+3) If you are already familiar with the LDDMM theory and want ot get started quickly, please check the all-in-one script: `python/tutorials/lddmm/lddmm_pytorch.py`
 
 ## matlab user
 
