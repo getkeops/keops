@@ -7,7 +7,7 @@ CC="/usr/bin/gcc"
 NVCC="/usr/bin/nvcc"
 LIBKPROOT="../../"
 
-INSTALL_DIR="$LIBKPROOT/matlab/matpk/mex"
+INSTALL_DIR="$LIBKPROOT/matlab/matkp/mex"
 
 # --------- # GPU PARAMETERS: --------- #
 
@@ -41,8 +41,8 @@ rm -f *.o;
 rm -f $INSTALL_DIR/*.mexa64;
 
 #create object file with nvcc
-#$NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" ./src/cudaconv.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o cudaconv.o;
-#$NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" ./src/cudagrad1conv.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o cudagrad1conv.o;
+$NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" ./src/cudaconv.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o cudaconv.o;
+$NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" ./src/cudagrad1conv.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o cudagrad1conv.o;
 
 
 for i in ${KERNEL_GEOM[@]}; do 
