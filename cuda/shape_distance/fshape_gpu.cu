@@ -72,7 +72,7 @@ int fshape_gpu(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
         (ooSigmax2,ooSigmaf2, ooSigmaXi2, x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
     else
     {
-        printf("error: dimensions of Gauss kernel not implemented in cuda");
+        printf("error: dimensions of kernel not implemented in fshape_gpu");
 		cudaFree(x_d);
 		cudaFree(y_d);
 		cudaFree(f_d);

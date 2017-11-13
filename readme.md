@@ -19,7 +19,7 @@ It uses a "tiled implementation" in order to have a $`O(n)`$ memory footprint in
 
 For instance, the basic example is a Gaussian convolution on a non regular grid in $`\mathbb R^3`$ : given two point clouds $`(x_i)_{i=1}^N \in  \mathbb R^{N \times 3}`$ and $`(y_j)_{j=1}^M \in  \mathbb R^{M \times 3}`$  and a vector field $`(\beta_j)_{j=1}^M \in  \mathbb R^{M \times 3}`$ attached to the $`y_j`$'s, libkp may computes $`(\gamma_i)_{i=1}^N \in  \mathbb R^{N \times 3}`$ given by
 ```math
- \gamma_i =  \sum_j K(x_i,y_j) \beta_j,  \qquad i=1,cdots,N
+ \gamma_i =  \sum_j K(x_i,y_j) \beta_j,  \qquad i=1,\cdots,N
 ```
  where $`K(x_i,y_j) = \exp(-|x_i - y_j|^2 / \sigma^2)`$. The best performances are achieved for the range $`N=1000`$ to $`N=5.10^5`$.
  
