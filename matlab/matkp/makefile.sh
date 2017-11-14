@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # --------- # PATH: --------- #
 
 MATLABROOT="/usr/local/MATLAB/R2014a"
@@ -30,9 +32,9 @@ KGEOM=( "gaussian" "cauchy" )
 KSIG=( "gaussian" "cauchy" )
 KVAR=("gaussian_unoriented" "binet" "gaussian_oriented" "linear")
 
-KERNEL_GEOM=(0)
+KERNEL_GEOM=(0 1)
 KERNEL_SIG=(0 1)
-KERNEL_VAR=(0 2)
+KERNEL_VAR=(0 1 2 3)
 
 
 
@@ -48,7 +50,7 @@ $NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" .
 for i in ${KERNEL_GEOM[@]}; do 
     for j in ${KERNEL_SIG[@]}; do
         for k in ${KERNEL_VAR[@]}; do
-            $NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" ./src/cudafshape.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o ./cudafshape_scp_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.o;
+            $NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" ./src/cudafshape.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o ./cuda_fshape_scp_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.o;
             $NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" ./src/cudafshape_dx.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o ./cudafshape_scp_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}_dx.o;
             $NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" ./src/cudafshape_dxi.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o ./cudafshape_scp_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}_dxi.o;
             $NVCC -c -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" ./src/cudafshape_df.cu $NVCCFLAGS $MEXPATH $LIBKPPATH -o ./cudafshape_scp_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}_df.o;
