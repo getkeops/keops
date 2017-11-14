@@ -9,7 +9,6 @@
 #include "CudaNCSurfKernels.h"
 #include "CudaVarSurfKernels.h"
 
-
 using namespace std;
 
 template <typename TYPE, int DIMVECT>
@@ -59,7 +58,7 @@ __global__ void GpuConv2DOnDevice(KER Ker, FUN fun, int nx, int ny, TYPE** px, T
     
     int j = blockIdx.y * blockDim.x + threadIdx.x;
     if(j<ny) // we load yj from device global memory only if j<ny
-		load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load xi variables from global memory to shared memory
+		load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load yj variables from global memory to shared memory
 		   	
     __syncthreads();
         
@@ -89,10 +88,11 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h)
     const int DIMX1 = DIMSX::FIRST;
     const int SIZEX = DIMSX::SIZE;
     const int SIZEY = DIMSY::SIZE;
-
+    
     // Data on the device.
-    TYPE *x1B, *x_d, *y_d, **px_d, **py_d;
+    TYPE *x1B, *x_d, *y_d;
 
+    TYPE **px_d, **py_d;
     cudaHostAlloc((void**)&px_d, SIZEX*sizeof(TYPE*), cudaHostAllocMapped);
     cudaHostAlloc((void**)&py_d, SIZEY*sizeof(TYPE*), cudaHostAllocMapped);
 
@@ -146,14 +146,14 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h)
     cudaThreadSynchronize();
 
     // Send data from device to host.
-    cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMX1),cudaMemcpyDeviceToHost);
+    cudaMemcpy(*px_h, px_d[0], sizeof(TYPE)*(nx*DIMX1),cudaMemcpyDeviceToHost);
 
     // Free memory.
     cudaFree(x_d);
     cudaFree(y_d);
     cudaFree(x1B);
-    cudaFree(px_d);
-    cudaFree(py_d);
+    cudaFreeHost(px_d);
+    cudaFreeHost(py_d);
 
     return 0;
 }
@@ -171,8 +171,8 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE* x1_h, Args... args)
     TYPE *px_h[SIZEX];
     TYPE *py_h[SIZEY];
     getlist<DIMSX>(px_h,x1_h,args...);
-    getlist<DIMSX,DIMSY>(py_h,x1_h,args...);
-    
+    getlist_delayed<DIMSX,DIMSY>(py_h,x1_h,args...);
+
 	return GpuConv2D(Ker,fun,nx,ny,px_h,py_h);
 
 }
