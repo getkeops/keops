@@ -20,14 +20,14 @@ public:
     {
         typedef pack<DIM,DIM,DIM> DIMSX;
         typedef pack<DIM,DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()
+        __host__ __device__ __forceinline__ void operator()
         (VarSurfKernel& ker, TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj, TYPE* etaj)
         {
             ker.Scal(gammai, xi, alphai, yj, betaj, etaj);
         }
     };
     
-   __device__ __forceinline__ void Scal( TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj, TYPE* etaj)
+   __host__ __device__ __forceinline__ void Scal( TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj, TYPE* etaj)
     {
         TYPE r2 = 0.0f, sg = 0.0f;
         TYPE xmy;
@@ -47,14 +47,14 @@ public:
     {
         typedef pack<1,DIM,DIM> DIMSX;
         typedef pack<DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()
+        __host__ __device__ __forceinline__ void operator()
         (VarSurfKernel& ker, TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj)
         {
             ker.SqScal(gammai, xi, alphai, yj, betaj);
         }
     };
     
-    __device__ __forceinline__ void SqScal(TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj)
+    __host__ __device__ __forceinline__ void SqScal(TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj)
     {
         TYPE r2 = 0.0f, sg = 0.0f;
         TYPE ximyj;
@@ -71,14 +71,14 @@ public:
     {
         typedef pack<DIM,DIM,DIM> DIMSX;
         typedef pack<DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()
+        __host__ __device__ __forceinline__ void operator()
         (VarSurfKernel& ker, TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj)
         {
             ker.GradSqScal(gammai, xi, alphai, yj, betaj);
         }
     };
     
-    __device__ __forceinline__ void GradSqScal(TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj)
+    __host__ __device__ __forceinline__ void GradSqScal(TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj)
     {
         TYPE r2 = 0.0f, sg = 0.0f;
         TYPE ximyj[DIM];

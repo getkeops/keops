@@ -19,15 +19,15 @@ template < int... NS > struct pack
     
     template < typename TYPE, class FUN, typename... Args  >
     __host__ __device__ static void call(FUN fun, TYPE* x, Args... args) { fun(args...); }
-    
+
     template < class DIMS, typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call(FUN fun, TYPE* x, Args... args) { DIMS::call(fun,args...); }
+    __host__ __device__ static void call2(FUN fun, TYPE* x, Args... args) { DIMS::call(fun,args...); }
     
     template < typename TYPE, typename... Args  >
     static void getlist(TYPE** px, Args... args) { }
     
     template < class DIMS, typename TYPE, typename... Args  >
-    static void getlist(TYPE** px, Args... args) { DIMS::getlist(px,args...); }
+    static void getlist_delayed(TYPE** px, Args... args) { DIMS::getlist(px,args...); }
 };
 
 template < int N, int... NS > struct pack<N,NS...>
@@ -63,9 +63,9 @@ template < int N, int... NS > struct pack<N,NS...>
     }
     
     template < class DIMS, typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call(FUN fun, TYPE* x, Args... args)
+    __host__ __device__ static void call2(FUN fun, TYPE* x, Args... args)
     {
-        NEXT::template call<DIMS>(fun,x+FIRST,args...,x);
+        NEXT::template call2<DIMS>(fun,x+FIRST,args...,x);
     }
     
     template < typename TYPE, typename... Args  >
@@ -74,30 +74,30 @@ template < int N, int... NS > struct pack<N,NS...>
         *px = x;
         NEXT::getlist(px+1,args...);
     }
-    
+     
     template < class DIMS, typename TYPE, typename... Args  >
-    static void getlist(TYPE** px, TYPE* x, Args... args)
+    static void getlist_delayed(TYPE** px, TYPE* y, Args... args)
     {
-        NEXT::template getlist<DIMS>(px,x,args...);
+        NEXT::template getlist_delayed<DIMS>(px,args...);
     }
 };
 
 template < class DIMSX, class DIMSY, typename TYPE, class FUN, typename... Args  >
 __host__ __device__ void call(FUN fun, TYPE* x, Args... args)
 {
-    DIMSX:: template call<DIMSY>(fun,x,args...);
+    DIMSX:: template call2<DIMSY>(fun,x,args...);
 }
 
 template < class DIMS, typename TYPE, typename... Args >
-void getlist(TYPE** px, TYPE* x, Args... args)
+void getlist(TYPE** px, Args... args)
 {
-    DIMS::getlist(px,x,args...);
+    DIMS::getlist(px,args...);
 }
 
 template < class DIMSX, class DIMSY, typename TYPE, typename... Args  >
-static void getlist(TYPE** px, TYPE* x, Args... args)
+static void getlist_delayed(TYPE** px, Args... args)
 {
-    DIMSX::template getlist<DIMSY>(px,x,args...);
+    DIMSX::template getlist_delayed<DIMSY>(px,args...);
 }
 
 template < class DIMS, typename TYPE >

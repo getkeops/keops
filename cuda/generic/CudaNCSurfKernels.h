@@ -20,13 +20,13 @@ public:
     {
         typedef pack<DIM,DIM> DIMSX;
         typedef pack<DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()(NCSurfKernel& ker, TYPE* gammai, TYPE* xi, TYPE* yj, TYPE* betaj)
+        __host__ __device__ __forceinline__ void operator()(NCSurfKernel& ker, TYPE* gammai, TYPE* xi, TYPE* yj, TYPE* betaj)
         {
             ker.Simple(gammai,xi,yj,betaj);
         }
     };
     
-    __device__ __forceinline__ void Simple(TYPE* gammai, TYPE* xi, TYPE* yj, TYPE* betaj)
+    __host__ __device__ __forceinline__ void Simple(TYPE* gammai, TYPE* xi, TYPE* yj, TYPE* betaj)
     {
         TYPE r2 = 0.0f;
         TYPE temp;
@@ -44,14 +44,14 @@ public:
     {
         typedef pack<DIM,DIM,DIM> DIMSX;
         typedef pack<DIM,DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()
+        __host__ __device__ __forceinline__ void operator()
         (NCSurfKernel& ker, TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj, TYPE* etaj)
         {
             ker.Scal(gammai, xi, alphai, yj, betaj, etaj);
         }
     };
     
-   __device__ __forceinline__ void Scal( TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj, TYPE* etaj)
+   __host__ __device__ __forceinline__ void Scal( TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* betaj, TYPE* etaj)
     {
         TYPE r2 = 0.0f, sg = 0.0f;
         TYPE xmy;
@@ -71,14 +71,14 @@ public:
     {
         typedef pack<DIM,DIM,DIM,DIM> DIMSX;
         typedef pack<DIM,DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()
+        __host__ __device__ __forceinline__ void operator()
         (NCSurfKernel& ker, TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* betai, TYPE* yj, TYPE* alphaj, TYPE* betaj)
         {
             ker.GradScal2(gammai, xi, alphai, betai, yj, alphaj, betaj);
         }
     };
     
-    __device__ __forceinline__ void GradScal2(TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* betai, TYPE* yj, TYPE* alphaj, TYPE* betaj)
+    __host__ __device__ __forceinline__ void GradScal2(TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* betai, TYPE* yj, TYPE* alphaj, TYPE* betaj)
     {
         TYPE r2 = 0.0f, sga = 0.0f, sgb = 0.0f;
         TYPE ximyj[DIM];
@@ -103,14 +103,14 @@ public:
     {
         typedef pack<DIM,DIM,DIM> DIMSX;
         typedef pack<DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()
+        __host__ __device__ __forceinline__ void operator()
         (NCSurfKernel& ker, TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* alphaj)
         {
             ker.GradScal(gammai, xi, alphai, yj, alphaj);
         }
     };
     
-    __device__ __forceinline__ void GradScal(TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* alphaj)
+    __host__ __device__ __forceinline__ void GradScal(TYPE* gammai, TYPE* xi, TYPE* alphai, TYPE* yj, TYPE* alphaj)
     {
         TYPE r2 = 0.0f, sga = 0.0f;
         TYPE ximyj[DIM];
@@ -136,7 +136,7 @@ public:
     {
         typedef pack<2*DIM,DIM,DIM,DIM,DIM,DIM,DIM,DIM> DIMSX;
         typedef pack<DIM,DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()
+        __host__ __device__ __forceinline__ void operator()
         (NCSurfKernel& ker, TYPE* gammai, TYPE* xi1, TYPE* xi2, TYPE* xi3, TYPE* alpha1i, TYPE* alpha2i, TYPE* alpha3i,
                                    TYPE* etai, 
                                    TYPE* yj, TYPE* betaj, TYPE* nuj)
@@ -145,14 +145,14 @@ public:
         }
     };
     
-    __device__ __forceinline__ void cross(TYPE* gamma, TYPE* alpha, TYPE* beta)
+    __host__ __device__ __forceinline__ void cross(TYPE* gamma, TYPE* alpha, TYPE* beta)
     {
         gamma[0] = alpha[1]*beta[2]-alpha[2]*beta[1];
         gamma[1] = alpha[2]*beta[0]-alpha[0]*beta[2];
         gamma[2] = alpha[0]*beta[1]-alpha[1]*beta[0];
     }
 
-    __device__ __forceinline__ void GradCyl
+    __host__ __device__ __forceinline__ void GradCyl
     (TYPE* gammai, TYPE* xi1, TYPE* xi2, TYPE* xi3, TYPE* alpha1i, TYPE* alpha2i, TYPE* alpha3i,
      TYPE* etai, 
      TYPE* yj, TYPE* betaj, TYPE* nuj)
@@ -204,14 +204,14 @@ public:
     {
         typedef pack<DIM,DIM,DIM,DIM> DIMSX;
         typedef pack<DIM,DIM> DIMSY;
-        __device__ __forceinline__ void operator()
+        __host__ __device__ __forceinline__ void operator()
         (NCSurfKernel& ker, TYPE* gammai, TYPE* xi1, TYPE* xi2, TYPE* etai, TYPE* yj, TYPE* betaj)
         {
             ker.GradSph(gammai, xi1, xi2, etai, yj, betaj);
         }
     };
     
-    __device__ __forceinline__ void GradSph
+    __host__ __device__ __forceinline__ void GradSph
     (TYPE* gammai, TYPE* xi1, TYPE* xi2, TYPE* etai, TYPE* yj, TYPE* betaj)
     {
         TYPE pr[DIM];

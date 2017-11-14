@@ -17,13 +17,13 @@ public:
     {
         typedef pack<DIMVECT,DIMPOINT> DIMSX;
         typedef pack<DIMPOINT,DIMVECT> DIMSY;
-        __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* xi, TYPE* yj, TYPE* betaj)
+        __host__ __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* xi, TYPE* yj, TYPE* betaj)
         {
             ker.Eval(gammai,xi,yj,betaj);
         }
     };
     
-    __device__ __forceinline__ void Eval(TYPE* gammai, TYPE* xi, TYPE* yj, TYPE* betaj)
+    __host__ __device__ __forceinline__ void Eval(TYPE* gammai, TYPE* xi, TYPE* yj, TYPE* betaj)
     {
         TYPE r2 = 0.0f;
         TYPE temp;
@@ -41,13 +41,13 @@ public:
     {
         typedef pack<DIMPOINT,DIMVECT,DIMPOINT> DIMSX;
         typedef pack<DIMPOINT,DIMVECT> DIMSY;
-        __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* alphai, TYPE* xi, TYPE* yj, TYPE* betaj)
+        __host__ __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* alphai, TYPE* xi, TYPE* yj, TYPE* betaj)
         {
             ker.Grad1(gammai, alphai, xi, yj, betaj);
         }
     };
     
-   __device__ __forceinline__ void Grad1(TYPE* gammai, TYPE* alphai, TYPE* xi, TYPE* yj, TYPE* betaj)
+   __host__ __device__ __forceinline__ void Grad1(TYPE* gammai, TYPE* alphai, TYPE* xi, TYPE* yj, TYPE* betaj)
     {
         TYPE r2 = 0.0f, sga = 0.0f;
         TYPE xmy[DIMPOINT];
@@ -67,13 +67,13 @@ public:
     {
         typedef pack<DIMPOINT,DIMVECT,DIMPOINT,DIMVECT> DIMSX;
         typedef pack<DIMVECT,DIMPOINT,DIMVECT> DIMSY;
-        __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* alphai, TYPE* xi, TYPE* betai, TYPE* alphaj, TYPE* xj, TYPE* betaj)
+        __host__ __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* alphai, TYPE* xi, TYPE* betai, TYPE* alphaj, TYPE* xj, TYPE* betaj)
         {
             ker.Grad(gammai, alphai, xi, betai, alphaj, xj, betaj);
         }
     };
     
-    __device__ __forceinline__ void Grad(TYPE* gammai, TYPE* alphai, TYPE* xi, TYPE* betai, TYPE* alphaj, TYPE* xj, TYPE* betaj)
+    __host__ __device__ __forceinline__ void Grad(TYPE* gammai, TYPE* alphai, TYPE* xi, TYPE* betai, TYPE* alphaj, TYPE* xj, TYPE* betaj)
     {
         TYPE r2 = 0.0f, sga = 0.0f;
         TYPE ximxj[DIMPOINT];
@@ -93,13 +93,13 @@ public:
     {
         typedef pack<DIMPOINT,DIMPOINT,DIMVECT,DIMPOINT> DIMSX;
         typedef pack<DIMPOINT,DIMVECT,DIMPOINT> DIMSY;
-        __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* xi, TYPE* betai, TYPE* etai, TYPE* xj, TYPE* betaj, TYPE* etaj)
+        __host__ __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* xi, TYPE* betai, TYPE* etai, TYPE* xj, TYPE* betaj, TYPE* etaj)
         {
             ker.Hess(gammai, xi, betai, etai, xj, betaj, etaj);
         }
     };
     
-   __device__ __forceinline__ void Hess(TYPE* gammai, TYPE* xi, TYPE* betai, TYPE* etai, TYPE* xj, TYPE* betaj, TYPE* etaj)
+   __host__ __device__ __forceinline__ void Hess(TYPE* gammai, TYPE* xi, TYPE* betai, TYPE* etai, TYPE* xj, TYPE* betaj, TYPE* etaj)
     {
         TYPE r2 = 0.0f, bidbj = 0.0f, dotex = 0.0f;
         TYPE ximxj[DIMPOINT], eimej[DIMPOINT];
@@ -124,13 +124,13 @@ public:
     {
         typedef pack<DIMVECT,DIMPOINT,DIMPOINT> DIMSX;
         typedef pack<DIMPOINT,DIMPOINT,DIMVECT> DIMSY;
-        __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* xi, TYPE* etai, TYPE* xj, TYPE* etaj, TYPE* betaj)
+        __host__ __device__ __forceinline__ void operator()(ScalarRadialKernel& ker, TYPE* gammai, TYPE* xi, TYPE* etai, TYPE* xj, TYPE* etaj, TYPE* betaj)
         {
             ker.Diff(gammai, xi, etai, xj, etaj, betaj);
         }
     };
     
-    __device__ __forceinline__ void Diff(TYPE* gammai, TYPE* xi, TYPE* etai, TYPE* xj, TYPE* etaj, TYPE* betaj)
+    __host__ __device__ __forceinline__ void Diff(TYPE* gammai, TYPE* xi, TYPE* etai, TYPE* xj, TYPE* etaj, TYPE* betaj)
     {
         TYPE r2 = 0.0f, dotex = 0.0f;
         TYPE ximxj[DIMPOINT], eimej[DIMPOINT];

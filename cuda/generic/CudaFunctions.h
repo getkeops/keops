@@ -7,10 +7,10 @@ class RadialFunction
     
 public:
     
-    virtual __device__ __forceinline__ TYPE Eval(TYPE u) = 0;
-    virtual __device__ __forceinline__ TYPE Diff(TYPE u) = 0;
-    virtual __device__ __forceinline__ TYPE Diff2(TYPE u) = 0;
-    virtual __device__ __forceinline__ void DiffDiff2(TYPE u, TYPE* d1, TYPE* d2)
+    virtual __host__ __device__ __forceinline__ TYPE Eval(TYPE u) = 0;
+    virtual __host__ __device__ __forceinline__ TYPE Diff(TYPE u) = 0;
+    virtual __host__ __device__ __forceinline__ TYPE Diff2(TYPE u) = 0;
+    virtual __host__ __device__ __forceinline__ void DiffDiff2(TYPE u, TYPE* d1, TYPE* d2)
     {
         *d1 = Diff(u);
         *d2 = Diff2(u);
@@ -28,24 +28,24 @@ public:
     
     CauchyFunction() { }
         
-    __device__ __forceinline__ TYPE Eval(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Eval(TYPE r2)
     {
         return 1.0/(1.0+r2);
     }
     
-    __device__ __forceinline__ TYPE Diff(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Diff(TYPE r2)
     {
         TYPE u = 1.0+r2;
         return (- 1.0 / (u*u));
     }
     
-    __device__ __forceinline__ TYPE Diff2(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2)
     {
         TYPE u = 1.0+r2;
         return 2.0 / (u*u*u);
     }
     
-    __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2)
+    __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2)
     {
         TYPE u = 1.0/(1.0+r2);
         *d1 = - u * u;
@@ -61,22 +61,22 @@ public:
     
     GaussFunction() { }
     
-    __device__ __forceinline__ TYPE Eval(TYPE r2)
+    __host__ __host__ __device__ __forceinline__ TYPE Eval(TYPE r2)
     {
         return exp(-r2);
     }
     
-    __device__ __forceinline__ TYPE Diff(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Diff(TYPE r2)
     {
         return (-exp(-r2));
     }
     
-    __device__ __forceinline__ TYPE Diff2(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2)
     {
         return exp(-r2);
     }
     
-    __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2)
+    __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2)
     {
         *d1 = - exp(-r2);
         *d2 = - *d1;
@@ -91,22 +91,22 @@ public:
     
     Sum4GaussFunction() { }
         
-    __device__ __forceinline__ TYPE Eval(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Eval(TYPE r2)
     {
         return exp(-r2) + exp(-4.0*r2) + exp(-16.0*r2) + exp(-64.0*r2);
     }
     
-    __device__ __forceinline__ TYPE Diff(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Diff(TYPE r2)
     {
         return - exp(-r2) - 4.0*exp(-4.0*r2) - 16.0*exp(-16.0*r2) - 64.0*exp(-64.0*r2);
     }
     
-    __device__ __forceinline__ TYPE Diff2(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2)
     {
 	return exp(-r2) + 16.0*exp(-4.0*r2) + 256.0*exp(-16.0*r2) + 4096*exp(-64.0*r2);
     }
     
-    __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2)
+    __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2)
     {
         *d1 = 0;
         *d2 = 0;
@@ -130,12 +130,12 @@ public:
     
     Sum4CauchyFunction() { }
     
-    __device__ __forceinline__ TYPE Eval(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Eval(TYPE r2)
     {
         return 1.0/(1.0+r2) + 1.0/(1.0+r2*4.0) + 1.0/(1.0+r2*16.0) + 1.0/(1.0+r2*64.0);
     }
   
-    __device__ __forceinline__ TYPE Diff(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Diff(TYPE r2)
     {
         TYPE u, v = 0, oosigma2 = 1;
         for(int k=0; k<4; k++)
@@ -147,7 +147,7 @@ public:
         return v;
     }
    
-    __device__ __forceinline__ TYPE Diff2(TYPE r2)
+    __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2)
     {
         TYPE u, v = 0, oosigma2=1;
         for(int k=0; k<4; k++)
@@ -159,7 +159,7 @@ public:
         return u;
     }
 
-    __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2)
+    __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2)
     {
         *d1 = 0;
         *d2 = 0;
