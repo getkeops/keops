@@ -141,12 +141,12 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h)
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(Ker,fun,nx,ny,px_d,py_d);
 	
     reduce0<TYPE,DIMX1><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
-    
+        
     // block until the device has completed
     cudaThreadSynchronize();
 
     // Send data from device to host.
-    cudaMemcpy(*px_h, px_d[0], sizeof(TYPE)*(nx*DIMX1),cudaMemcpyDeviceToHost);
+    cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMX1),cudaMemcpyDeviceToHost);
 
     // Free memory.
     cudaFree(x_d);
@@ -176,6 +176,56 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE* x1_h, Args... args)
 	return GpuConv2D(Ker,fun,nx,ny,px_h,py_h);
 
 }
+
+
+
+
+// Host implementation of the convolution, for comparison
+
+
+template < typename TYPE, class KER, class FUN >
+int CpuConv(KER Ker, FUN fun, int nx, int ny, TYPE** px, TYPE** py)
+{	
+    typedef typename FUN::DIMSX DIMSX;
+    typedef typename FUN::DIMSY DIMSY;
+    const int DIMX = DIMSX::SUM;
+    const int DIMY = DIMSY::SUM;
+    const int DIMX1 = DIMSX::FIRST;
+
+	TYPE xi[DIMX], yj[DIMY];
+	for(int i=0; i<nx; i++)
+	{
+		load<DIMSX>(i,xi,px);
+		for(int k=0; k<DIMX1; k++)
+			xi[k] = 0;		
+		for(int j=0; j<ny; j++)
+		{
+			load<DIMSY>(j,yj,py);
+			call<DIMSX,DIMSY>(fun,xi,yj,Ker);
+		}
+		for(int k=0; k<DIMX1; k++)
+			px[0][i*DIMX1+k] = xi[k];
+	}   
+	
+	return 0;
+}
+
+template < typename TYPE, class KER, class FUN, typename... Args >
+int CpuConv(KER Ker, FUN fun, int nx, int ny, TYPE* x1, Args... args)
+{
+    typedef typename FUN::DIMSX DIMSX;
+    typedef typename FUN::DIMSY DIMSY;
+    const int SIZEX = DIMSX::SIZE;
+    const int SIZEY = DIMSY::SIZE;
+
+    TYPE *px[SIZEX];
+    TYPE *py[SIZEY];
+    getlist<DIMSX>(px,x1,args...);
+    getlist_delayed<DIMSX,DIMSY>(py,x1,args...);
+
+	return CpuConv(Ker,fun,nx,ny,px,py);
+}
+
 
 
 
