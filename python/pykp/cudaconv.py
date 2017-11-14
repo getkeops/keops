@@ -11,7 +11,7 @@ def get_cuda_convs():
 	Loads the convolution routine from the compiled .so file.
 	"""
 	dll_name = 'cuda_conv.so'
-	dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + '..' + os.path.sep+ 'build' + os.path.sep + dll_name
+	dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep+ 'build' + os.path.sep + dll_name
 	dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
 	
 	func_dict = {}
@@ -122,6 +122,3 @@ if __name__ == '__main__':
 	print("\nIs everything okay ? ")
 	print(np.allclose(gamma, gamma_py ))
 	print(np.allclose(gamma, gamma_py2))
-
-
-
