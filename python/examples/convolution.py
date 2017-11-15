@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
 
 import time
 
-from pypk import cudaconv
+from pykp import cudaconv
 import numpy as np
 
 N = 5000 ; M = 12000; D = 3; E = 3
