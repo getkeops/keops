@@ -1,4 +1,3 @@
-
 // nvcc -std=c++11 -Xcompiler -fPIC -shared -o cuda_grad1conv.so cuda_grad1conv.cu
 
 #include "GpuConv2D.cu"
@@ -85,14 +84,18 @@ extern "C" int Sum4CauchyGpuGrad1Conv(TYPE ooSigma2, TYPE* alpha_h, TYPE* x_h, T
 
 
 
-#if !(UseCudaOnDoubles) 
+#if (UseCudaOnDoubles) 
 	DECLARE_EXTERNC_SCALARRADIAL_Gauss(double)
 	DECLARE_EXTERNC_SCALARRADIAL_Cauchy(double)
+	DECLARE_EXTERNC_SCALARRADIAL_Laplace(double)
+	DECLARE_EXTERNC_SCALARRADIAL_Energy(double)
 	DECLARE_EXTERNC_SCALARRADIAL_Sum4Gauss(double)
 	DECLARE_EXTERNC_SCALARRADIAL_Sum4Cauchy(double)
 #else
 	DECLARE_EXTERNC_SCALARRADIAL_Gauss(float)
 	DECLARE_EXTERNC_SCALARRADIAL_Cauchy(float)
+	DECLARE_EXTERNC_SCALARRADIAL_Laplace(float)
+	DECLARE_EXTERNC_SCALARRADIAL_Energy(float)
 	DECLARE_EXTERNC_SCALARRADIAL_Sum4Gauss(float)
 	DECLARE_EXTERNC_SCALARRADIAL_Sum4Cauchy(float)
 #endif
