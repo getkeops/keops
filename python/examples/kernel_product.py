@@ -2,7 +2,7 @@ import os.path
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
 
-from pypk import cudaconv,cudagrad1conv,cudagradgradconv
+from pykp import cudaconv,cudagrad1conv,cudagradgradconv
 import torch
 import numpy
 from torch.autograd import Variable
