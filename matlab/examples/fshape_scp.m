@@ -1,11 +1,24 @@
-nx = 550; d= 3; ny = 1001;
+nx = 4; d= 3; ny = 5;
 
-center_faceX = randn(nx,d);
-signalX = randn(nx,1);
-normalsX = randn(nx,d);
-center_faceY = randn(ny,d);
-signalY = randn(ny,1);
-normalsY = randn(ny,d);
+if 1
+    center_faceX = randn(nx,d);
+    signalX = randn(nx,1);
+    normalsX = randn(nx,d);
+    center_faceY = randn(ny,d);
+    signalY = randn(ny,1);
+    normalsY = randn(ny,d);
+else
+    center_faceX     = linspace(1,2,nx)' * ones(1,d)
+    normalsX         = linspace(1,2,nx)' * ones(1,d)
+    signalX         = linspace(1,2,nx)'
+    center_faceY     = linspace(1,2,ny)' * ones(1,d)
+    normalsY         = linspace(1,2,ny)' * ones(1,d)
+    signalY         = linspace(1,2,ny)'
+end
+kernel_size_geom = 1;
+kernel_size_signal = 1;
+kernel_size_sphere =pi;
+
 
 kernel_gaussian = @(r2,s) exp(-r2 / s^2);
 dkernel_gaussian = @(r2,s) -exp(-r2/s^2)/l^2;
@@ -26,22 +39,18 @@ kernel_gaussian_unoriented = @(prs,s)  exp( (-2 + 2 * prs.^2) / s^2);
 dkernel_gaussian_unoriented = @(prs,s) 4 * x .* exp( (-2 + 2 *prs.^2) /s^2) / s^2;
 
 
-kernel_geom = 'gaussian';
-kernel_signal = 'cauchy';
+kernel_geom = 'cauchy';
+kernel_signal = 'gaussian';
 kernel_sphere = 'binet';
-
-kernel_size_geom = 1;
-kernel_size_signal = 2;
-kernel_size_sphere =pi;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                  CUDA                                       %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('../matkp/mex')
-eval(['fshape_scp=@cuda_fshape_scp_',lower(kernel_geom),lower(kernel_signal),lower(kernel_sphere),';']);
+eval(['cuda_fshape_scp=@cuda_fshape_scp_',lower(kernel_geom),lower(kernel_signal),lower(kernel_sphere),';']);
         
 %prs(x,y) =
-XY= fshape_scp(center_faceX',center_faceY',signalX',signalY',normalsX',normalsY',kernel_size_geom,kernel_size_signal,kernel_size_sphere);
+XY= cuda_fshape_scp(center_faceX',center_faceY',signalX',signalY',normalsX',normalsY',kernel_size_geom,kernel_size_signal,kernel_size_sphere);
 res_cuda =  sum(XY);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,6 +85,7 @@ Kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
 Kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY,kernel_size_sphere);
 
 %prs(x,y) =
+sum((norm_normalsX * norm_normalsY') .* Kernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY,2)'
 res_matlab = sum(sum((norm_normalsX * norm_normalsY') .* Kernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY));
 
 fprintf('relative errror between cuda and matlab version: %g\n',abs( (res_matlab - res_cuda) ./ res_matlab ))

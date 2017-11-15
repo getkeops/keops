@@ -22,8 +22,8 @@ LIBKPPATH_CONV="$LIBKPROOT/cuda/convolutions"
 LIBKPPATH_DIST="$LIBKPROOT/cuda/shape_distance"
 
 # --------- FSHAPES DISTANCES PARAMETERS: --------- #
-KGEOM=( "gaussian" "cauchy" )
-KSIG=( "gaussian" "cauchy" )
+KGEOM=("gaussian" "cauchy")
+KSIG=("gaussian" "cauchy")
 KVAR=("gaussian_unoriented" "binet" "gaussian_oriented" "linear")
 
 KERNEL_GEOM=(0 1)
@@ -45,9 +45,9 @@ for i in ${KERNEL_GEOM[@]}; do
     for j in ${KERNEL_SIG[@]}; do
         for k in ${KERNEL_VAR[@]}; do
             $NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu.cu";
-            $NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_dx_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_dx.cu";
-            $NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_dxi_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_dxi.cu";
-            $NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_df_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_df.cu";
+            #$NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_dx_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_dx.cu";
+            #$NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_dxi_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_dxi.cu";
+            #$NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_VAR_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_df_${KGEOM[$i]}${KSIG[$j]}${KVAR[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_df.cu";
         done;
     done;
 done;

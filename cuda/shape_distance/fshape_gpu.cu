@@ -15,7 +15,7 @@
 //////////////////////////////////////////////////////
 
 template <typename TYPE>
-int fshape_gpu(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
+int fshape_gpu(TYPE ooSigmax2,TYPE ooSigmaf2, TYPE ooSigmaXi2,
                                    TYPE* x_h, TYPE* y_h,
                                    TYPE* f_h, TYPE* g_h,
 				   TYPE* alpha_h, TYPE* beta_h, 
@@ -104,7 +104,7 @@ int fshape_gpu(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
 
 #if !(UseCudaOnDoubles) 
 
-extern "C" int cudafshape(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2, float* x_h, float* y_h, float* f_h, float* g_h, float* alpha_h, float* beta_h, float* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny){
+extern "C" int cudafshape(float ooSigmax2,float ooSigmaf2, float ooSigmaXi2, float* x_h, float* y_h, float* f_h, float* g_h, float* alpha_h, float* beta_h, float* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny){
     return fshape_gpu<float>(ooSigmax2,ooSigmaf2,ooSigmaXi2,x_h,y_h,f_h,g_h,alpha_h,beta_h,gamma_h,dimPoint,dimSig,dimVect,nx,ny);
 }
 
