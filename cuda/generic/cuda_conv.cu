@@ -1,7 +1,7 @@
-
 // nvcc -std=c++11 -Xcompiler -fPIC -shared -o cuda_conv.so cuda_conv.cu
 
 #include "GpuConv2D.cu"
+#include "CudaScalarRadialKernels.h"
 
 #define CALL_SCALARRADIALKER(EVAL,ARGSCUDA,TYPE,DIMPOINT,DIMVECT) \
 	if(dimPoint==DIMPOINT && dimVect==DIMVECT) \
