@@ -75,19 +75,19 @@ int main()
 	
 	// compute
 	begin = clock();
-	GpuConv2D(KER(RadialFun()),funeval,Nx,Ny,x,y);
+	GpuConv2D(funeval,KER(RadialFun()),funeval,Nx,Ny,x,y);
 	end = clock();
 	cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 		
 	begin = clock();
-	GpuConv2D(KER(RadialFun()),funeval,Nx,Ny,x,y);
+	GpuConv2D(funeval,KER(RadialFun()),Nx,Ny,x,y);
 	end = clock();
 	cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
 	resgpu = vx[0];
 	
 	begin = clock();
-	CpuConv(KER(RadialFun()),funeval,Nx,Ny,x,y);
+	CpuConv(funeval,KER(RadialFun()),Nx,Ny,x,y);
 	end = clock();
 	cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
