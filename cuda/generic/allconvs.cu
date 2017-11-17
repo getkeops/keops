@@ -2,6 +2,7 @@
 // this produces one shared library with all convolutions for radial kernels, but templated...
 
 #include "GpuConv2D.cu"
+#include "CudaScalarRadialKernels.h"
 
 // http://www.parashift.com/c++-faq-lite/separate-template-fn-defn-from-decl.html
 #define DECLARE_Conv2D_SCALARRADIAL_EVALS(TYPE,DIMPOINT,DIMVECT,FUN) \
