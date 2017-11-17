@@ -1,13 +1,9 @@
-
 #include <stdio.h>
 #include <iostream>
 #include <assert.h>
 #include <cuda.h>
 
 #include "Pack.h"
-#include "CudaScalarRadialKernels.h"
-#include "CudaNCSurfKernels.h"
-#include "CudaVarSurfKernels.h"
 
 using namespace std;
 
