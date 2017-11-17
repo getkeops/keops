@@ -6,11 +6,11 @@
 
 // http://www.parashift.com/c++-faq-lite/separate-template-fn-defn-from-decl.html
 #define DECLARE_Conv2D_SCALARRADIAL_EVALS(TYPE,DIMPOINT,DIMVECT,FUN) \
-	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sEval, int, int, TYPE*, TYPE*, TYPE*, TYPE*); \
-	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sGrad1, int, int, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*); \
-	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sGrad, int, int, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*); \
-	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sHess, int, int, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*); \
-	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sDiff, int, int, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*);
+	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sEval, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, int, int, TYPE*, TYPE*, TYPE*, TYPE*); \
+	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sGrad1, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, int, int, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*); \
+	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sGrad, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, int, int, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*); \
+	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sHess, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, int, int, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*); \
+	template int GpuConv2D(ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>::sDiff, ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,FUN>, int, int, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*, TYPE*);
 
 #define DECLARE_Conv2D_SCALARRADIAL_FUNS(TYPE,DIMPOINT,DIMVECT) \
 	DECLARE_Conv2D_SCALARRADIAL_EVALS(TYPE,DIMPOINT,DIMVECT,CauchyFunction<TYPE>) \
