@@ -8,7 +8,7 @@
 	{ \
 		typedef ScalarRadialKernel<TYPE,DIMPOINT,DIMVECT,RadialFun> Ker; \
 		struct Ker::EVAL funeval; \
-		return GpuConv2D(Ker(RadialFun(Sigma)),funeval, nx, ny, ARGSCUDA()); \
+		return GpuConv2D(funeval,Ker(RadialFun(Sigma)), nx, ny, ARGSCUDA()); \
 	}
 
 // here we give the list of possible values for DIMVECT
