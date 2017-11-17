@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <iostream>
 #include <assert.h>
@@ -29,8 +30,8 @@ __global__ void reduce0(TYPE* in, TYPE* out, int sizeY,int nx)
 
 
 // thread kernel: computation of x1i = sum_j k(x2i,x3i,...,y1j,y2j,...) for index i given by thread id.
-template < typename TYPE, class KER, class FUN >
-__global__ void GpuConv2DOnDevice(KER Ker, FUN fun, int nx, int ny, TYPE** px, TYPE** py)
+template < typename TYPE, class FUN, class PARAM >
+__global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py)
 {
 	// gets dimensions and number of variables of inputs of function FUN
     typedef typename FUN::DIMSX DIMSX; // DIMSX is a "vector" of templates giving dimensions of xi variables
@@ -62,7 +63,7 @@ __global__ void GpuConv2DOnDevice(KER Ker, FUN fun, int nx, int ny, TYPE** px, T
     {
     	TYPE* yjrel = yj;
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY)
-			call<DIMSX,DIMSY>(fun,xi,yjrel,Ker); // call function
+			call<DIMSX,DIMSY>(fun,xi,yjrel,param); // call function
         __syncthreads();
     }
 
@@ -74,8 +75,8 @@ __global__ void GpuConv2DOnDevice(KER Ker, FUN fun, int nx, int ny, TYPE** px, T
 ///////////////////////////////////////////////////
 
 
-template < typename TYPE, class KER, class FUN >
-int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h)
+template < typename TYPE, class FUN, class PARAM >
+int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE** px_h, TYPE** py_h)
 {
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
@@ -134,7 +135,7 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h)
     cudaMalloc((void**)&x1B, sizeof(TYPE)*(nx*DIMX1*gridSize.y));
     px_d[0] = x1B;
 
-    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(Ker,fun,nx,ny,px_d,py_d);
+    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,param,nx,ny,px_d,py_d);
 	
     reduce0<TYPE,DIMX1><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
         
@@ -155,8 +156,8 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h)
 }
 
 
-template < typename TYPE, class KER, class FUN, typename... Args >
-int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE* x1_h, Args... args)
+template < typename TYPE, class FUN, class PARAM, typename... Args >
+int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, Args... args)
 {
 
     typedef typename FUN::DIMSX DIMSX;
@@ -169,7 +170,7 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE* x1_h, Args... args)
     getlist<DIMSX>(px_h,x1_h,args...);
     getlist_delayed<DIMSX,DIMSY>(py_h,x1_h,args...);
 
-	return GpuConv2D(Ker,fun,nx,ny,px_h,py_h);
+	return GpuConv2D(fun,param,nx,ny,px_h,py_h);
 
 }
 
@@ -179,8 +180,8 @@ int GpuConv2D(KER Ker, FUN fun, int nx, int ny, TYPE* x1_h, Args... args)
 // Host implementation of the convolution, for comparison
 
 
-template < typename TYPE, class KER, class FUN >
-int CpuConv(KER Ker, FUN fun, int nx, int ny, TYPE** px, TYPE** py)
+template < typename TYPE, class FUN, class PARAM >
+int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py)
 {	
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
@@ -197,7 +198,7 @@ int CpuConv(KER Ker, FUN fun, int nx, int ny, TYPE** px, TYPE** py)
 		for(int j=0; j<ny; j++)
 		{
 			load<DIMSY>(j,yj,py);
-			call<DIMSX,DIMSY>(fun,xi,yj,Ker);
+			call<DIMSX,DIMSY>(fun,xi,yj,param);
 		}
 		for(int k=0; k<DIMX1; k++)
 			px[0][i*DIMX1+k] = xi[k];
@@ -206,8 +207,8 @@ int CpuConv(KER Ker, FUN fun, int nx, int ny, TYPE** px, TYPE** py)
 	return 0;
 }
 
-template < typename TYPE, class KER, class FUN, typename... Args >
-int CpuConv(KER Ker, FUN fun, int nx, int ny, TYPE* x1, Args... args)
+template < typename TYPE, class FUN, class PARAM, typename... Args >
+int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE* x1, Args... args)
 {
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
@@ -219,7 +220,7 @@ int CpuConv(KER Ker, FUN fun, int nx, int ny, TYPE* x1, Args... args)
     getlist<DIMSX>(px,x1,args...);
     getlist_delayed<DIMSX,DIMSY>(py,x1,args...);
 
-	return CpuConv(Ker,fun,nx,ny,px,py);
+	return CpuConv(fun,param,nx,ny,px,py);
 }
 
 
