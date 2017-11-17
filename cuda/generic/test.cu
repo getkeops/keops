@@ -1,4 +1,3 @@
-
 // test convolution
 // compile with 
 //		nvcc -std=c++11 -o test test.cu
@@ -20,6 +19,9 @@
 #include <ctime>
 
 #include "GpuConv2D.cu"
+#include "CudaScalarRadialKernels.h"
+#include "CudaNCSurfKernels.h"
+#include "CudaVarSurfKernels.h"
 
 int main()
 {
