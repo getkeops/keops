@@ -75,7 +75,7 @@ int main()
 	
 	// compute
 	begin = clock();
-	GpuConv2D(funeval,KER(RadialFun()),funeval,Nx,Ny,x,y);
+	GpuConv2D(funeval,KER(RadialFun()),Nx,Ny,x,y);
 	end = clock();
 	cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 		
