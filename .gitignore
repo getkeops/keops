@@ -3,6 +3,7 @@
 *~
 build*
 *output*
+!*input_output.py
 *.swp
 
 # Exclude mex files
