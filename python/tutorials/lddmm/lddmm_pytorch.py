@@ -456,7 +456,7 @@ if __name__ == '__main__' :
 	plt.ion()
 	plt.show()
 	
-	deformation_example = 1 ; attachment_example  = 2 ;
+	deformation_example = 1 ; attachment_example  = 1 ;
 	dataset = "ameoba"      ; npoints             = 200
 	
 	# A few deformation kernels =================================================================
@@ -493,7 +493,7 @@ if __name__ == '__main__' :
 			niter     = 10000,      # max niter in the sinkhorn loop
 			tau       = .5,        # nesterov-like acceleration
 			radius    = [0.],
-			log_implementation = False
+			log_implementation = True
 		)
 	elif attachment_example == 3 :  # L2
 		params_att = dict(
