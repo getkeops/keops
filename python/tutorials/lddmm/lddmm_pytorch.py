@@ -10,7 +10,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '../.
 
 
 if BACKEND == "libkp" :
-	from examples.kernel_product import KernelProduct
+	from pykp.pytorch.kernel_product import KernelProduct
 	_kernelproduct_raw = KernelProduct().apply
 
 # Note about function names :
@@ -85,7 +85,7 @@ def _kernelproduct(x, y, p, params, y_mu = None) :
 		
 		y_mu = y_mu.view(y.size(0),1) # use pointwise multiplications instead of broadcasting...
 		# Sinkhornization loop
-		for i in range(5) :
+		for i in range(5) : # Really, we should be using a break statement here...
 			ly = torch.sqrt( ly / _kernelproduct_onestep(s, y, y, ly * y_mu, mode) )
 		return  _kernelproduct_onestep(s, x, y, ly * p,    mode) \
 		      / _kernelproduct_onestep(s, x, y, ly * y_mu, mode) 
@@ -144,7 +144,7 @@ def _ot_matching(q1_x, q1_mu, xt_x, xt_mu, params) :
 	Given two measures q1 and xt represented by locations/weights arrays, 
 	outputs an optimal transport fidelity term and the transport plan.
 	"""
-	LOG_IMPLEMENTATION = True
+	
 	
 	# The Sinkhorn algorithm takes as input three variables :
 	mu = q1_mu ; nu = xt_mu
@@ -154,6 +154,8 @@ def _ot_matching(q1_x, q1_mu, xt_x, xt_mu, params) :
 	rho                = params['rho']      # unbalanced transport (See PhD Th. of Lenaic Chizat)
 	niter              = params['niter']    # max niter in the sinkhorn loop
 	tau                = params['tau']      # nesterov-like acceleration
+	LOG_IMPLEMENTATION = params['log_implementation'] # Shall we use Sinkhorn in the log domain or not?
+	
 	
 	lam = rho / (rho + epsilon)            # Update exponent
 	
@@ -177,7 +179,7 @@ def _ot_matching(q1_x, q1_mu, xt_x, xt_mu, params) :
 		
 		for i in range(niter) :
 			u1= u # useful to check the update
-			u = ave( u, lam * ( epsilon * ( torch.log(mu) - lse(M(u,v))   ) + u ) )
+			u = ave( u, lam * ( epsilon * ( torch.log(mu) - lse(M(u,v))     ) + u ) )
 			v = ave( v, lam * ( epsilon * ( torch.log(nu) - lse(M(u,v).t()) ) + v ) )
 			err = (u - u1).abs().sum()
 			
@@ -197,19 +199,28 @@ def _ot_matching(q1_x, q1_mu, xt_x, xt_mu, params) :
 			radius    = Variable(torch.from_numpy( np.array([np.sqrt(epsilon)]) ).type(dtype), requires_grad=False),
 			normalize = False
 		)
-		actual_nits = 0
+		actual_nits = 0 # We'll break out of the loop at some point
 		for i in range(niter) :
 			aprev = a
-			a = mu / _kernelproduct(q1_x, xt_x, b.view(-1,1), kparams)
-			b = nu / _kernelproduct(xt_x, q1_x, a.view(-1,1), kparams)
-			err = (a - aprev).abs().sum()
+			# The simplistic Sinkhorn iterations :
+			a_s = mu / _kernelproduct(q1_x, xt_x, b.view(-1,1), kparams)
+			b_s = nu / _kernelproduct(xt_x, q1_x, a.view(-1,1), kparams)
+			
+			# The unbalanced + accelerated ones :
+			a = a.pow(tau) * a_s.pow( (1.-tau) * lam )
+			b = b.pow(tau) * b_s.pow( (1.-tau) * lam )
+			
+			
+			err = (a / aprev).log().abs().sum()
+			
 			#print(a,b,err)
 			actual_nits += 1
-			if (err < 1e-6).data.cpu().numpy() :
+			if (err < 1e-4).data.cpu().numpy() :
 				break
 		cost = torch.dot( a.view(-1), _kernelproduct(q1_x, xt_x, b.view(-1,1), kparams).view(-1) )
 		Gamma = Variable(torch.zeros( (q1_x.size(0),xt_x.size(0)) ).type(dtype))
 	print('Sinkhorn error after ' + str(actual_nits) + ' iterations : ' + str(err.data.cpu().numpy()))
+	print('Sinkhorn distance : ', cost.data.cpu().numpy() )
 	
 	return [cost, Gamma]
 	
@@ -445,8 +456,8 @@ if __name__ == '__main__' :
 	plt.ion()
 	plt.show()
 	
-	deformation_example = 1 ; attachment_example  = 1 ;
-	dataset = "ameoba"      ; npoints             = 1000
+	deformation_example = 1 ; attachment_example  = 2 ;
+	dataset = "ameoba"      ; npoints             = 200
 	
 	# A few deformation kernels =================================================================
 	if   deformation_example == 1 : # Standard Gaussian kernel
@@ -480,8 +491,9 @@ if __name__ == '__main__' :
 			epsilon   = (.1)**2,   # regularization parameter
 			rho       = (.5) **2,   # unbalanced transport (See PhD Th. of Lenaic Chizat)
 			niter     = 10000,      # max niter in the sinkhorn loop
-			tau       = -.8,        # nesterov-like acceleration
-			radius    = [0.]
+			tau       = .5,        # nesterov-like acceleration
+			radius    = [0.],
+			log_implementation = False
 		)
 	elif attachment_example == 3 :  # L2
 		params_att = dict(
