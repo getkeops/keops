@@ -1,6 +1,6 @@
 import os.path
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + '..')
 
 from pykp import cudaconv,cudagrad1conv,cudagradgradconv
 import torch
@@ -279,7 +279,7 @@ class KernelProductGrad_x(torch.autograd.Function):
 
 
 if __name__ == "__main__":
-	from visualize import make_dot
+	# from visualize import make_dot
 	
 	backend = "libkp" # Other value : 'pytorch'
 	
@@ -342,11 +342,11 @@ if __name__ == "__main__":
 	#--------------------------------------------------#
 	def Ham(q,p) :
 		Kq_p  = kernel_product(s,q,q,p, "gaussian")
-		make_dot(Kq_p, {'q':q, 'p':p, 's':s}).render('graphs/Kqp_'+backend+'.pdf', view=True)
+		# make_dot(Kq_p, {'q':q, 'p':p, 's':s}).render('graphs/Kqp_'+backend+'.pdf', view=True)
 		return torch.dot( p.view(-1), Kq_p.view(-1) )
 	
 	ham0   = Ham(y, b)
-	make_dot(ham0, {'y':y, 'b':b, 's':s}).render('graphs/ham0_'+backend+'.pdf', view=True)
+	# make_dot(ham0, {'y':y, 'b':b, 's':s}).render('graphs/ham0_'+backend+'.pdf', view=True)
 	
 	print('----------------------------------------------------')
 	print("Ham0:")
@@ -359,7 +359,7 @@ if __name__ == "__main__":
 	print('grad_b  :\n', grad_b.data.numpy())
 	
 	
-	make_dot(grad_y, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_'+backend+'.pdf', view=True)
+	# make_dot(grad_y, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_'+backend+'.pdf', view=True)
 	print('grad_y :\n', grad_y.data.numpy())
 	
 	if False :
@@ -375,7 +375,7 @@ if __name__ == "__main__":
 	
 	if False :
 		grad_b_sum = torch.dot(grad_b.view(-1), grad_b.view(-1))
-		make_dot(grad_b_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_'+backend+'.pdf', view=True)
+		# make_dot(grad_b_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_'+backend+'.pdf', view=True)
 		print('grad_b_sum :\n', grad_b_sum.data.numpy())
 		
 		grad_b_sum_b  = torch.autograd.grad(grad_b_sum,b,create_graph = True)[0]
@@ -389,16 +389,16 @@ if __name__ == "__main__":
 		# grad_y_sum = grad_y.sum() # backward will be randomish, due to type conversion issues
 		Ones = Variable(torch.ones( grad_y.numel() ).type(dtype))
 		grad_y_sum = torch.dot(grad_y.view(-1), Ones )
-		make_dot(grad_y_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_'+backend+'.pdf', view=True)
+		# make_dot(grad_y_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_'+backend+'.pdf', view=True)
 		print('grad_y_sum :\n', grad_y_sum.data.numpy())
 		
 		grad_y_sum_y  = torch.autograd.grad(grad_y_sum,y,create_graph = True)[0]
-		make_dot(grad_y_sum_y, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_y_'+backend+'.pdf', view=True)
+		# make_dot(grad_y_sum_y, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_y_'+backend+'.pdf', view=True)
 		print('grad_y_sum_y :\n', grad_y_sum_y.data.numpy())
 		
 		
 		grad_y_sum_b  = torch.autograd.grad(grad_y_sum,b,create_graph = True)[0]
-		make_dot(grad_y_sum_b, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_b_'+backend+'.pdf', view=True)
+		# make_dot(grad_y_sum_b, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_b_'+backend+'.pdf', view=True)
 		print('grad_y_sum_b :\n', grad_y_sum_b.data.numpy())
 	
 	
