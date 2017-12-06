@@ -93,6 +93,16 @@ int KernelGpuEvalConv(TYPE ooSigma2,
 
 #if !(UseCudaOnDoubles) 
 
+// This instantiation bypass the function KernelGpuEvalConv as the pointers contain a address directly on the device
+extern "C" int GaussGpuEvalConv_onDevice(float ooSigma2, float* x_d, float* y_d, float* beta_d, float* gamma_d, int dimPoint, int dimVect, int nx, int ny) {
+    dim3 blockSize (CUDA_BLOCK_SIZE,1,1); // number of threads in each block
+    dim3 gridSize (nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1));
+
+    KernelGpuConvOnDevice<float,3,3,GaussF><<<gridSize,blockSize,blockSize.x*(3+3)*sizeof(float)>>>
+        (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
+    return 0;
+}
+
 extern "C" int GaussGpuEvalConv(float ooSigma2, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
     return KernelGpuEvalConv<float,GaussF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
