@@ -1,8 +1,7 @@
 
-
-[ ] R bindings
-[ ] Python tutorials
-[ ] generics cuda codes
-[ ] support pointer in device global mem 
+- [ ] R bindings
+- [ ] Python tutorials
+- [ ] generics cuda codes
+- [x] support pointer in device global mem 
 
 
