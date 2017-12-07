@@ -1,6 +1,6 @@
 nx = 4; d= 3; ny = 5;
 
-if 1
+if 0
     center_faceX = randn(nx,d);
     signalX = randn(nx,1);
     normalsX = randn(nx,d);
@@ -8,11 +8,11 @@ if 1
     signalY = randn(ny,1);
     normalsY = randn(ny,d);
 else
-    center_faceX     = linspace(1,2,nx)' * ones(1,d)
-    normalsX         = linspace(1,2,nx)' * ones(1,d)
-    signalX         = linspace(1,2,nx)'
-    center_faceY     = linspace(1,2,ny)' * ones(1,d)
-    normalsY         = linspace(1,2,ny)' * ones(1,d)
+    center_faceX     = linspace(.5,2,nx)' * linspace(0,1,d)
+    normalsX         = linspace(-1,2,nx)' * linspace(1,2,d)
+    signalX         = -linspace(1,2,nx)'
+    center_faceY     = -linspace(1,3,ny)' * linspace(1,2,d)
+    normalsY         = -linspace(1,2,ny)' * ones(1,d)
     signalY         = linspace(1,2,ny)'
 end
 kernel_size_geom = 1;

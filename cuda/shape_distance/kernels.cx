@@ -108,10 +108,10 @@ __device__  TYPE dKernel_geom1(TYPE u2, TYPE ooSigma2){
 #define GAUSSIAN_ORIENTED 2
 #define LINEAR 3
 
-//#define KERNEL_VAR KERNEL_VAR_TYPE
+//#define KERNEL_SPHERE KERNEL_SPHERE_TYPE
 
 
-#if KERNEL_VAR_TYPE == GAUSSIAN_UNORIENTED
+#if KERNEL_SPHERE_TYPE == GAUSSIAN_UNORIENTED
 // GAUSIAN UNORIENTED
 
 template < typename TYPE >
@@ -131,11 +131,10 @@ __device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
 	return  4.0f * u * exp( (-2.0f + 2.0f * u *u) * ooSigma2) * ooSigma2;
 
 }
-#elif KERNEL_VAR_TYPE == BINET
+#elif KERNEL_SPHERE_TYPE == BINET
 // BINET
 template < typename TYPE>
 __device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2){
-
 
 	return  u * u;
 
@@ -150,7 +149,7 @@ __device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
 }
 
 
-#elif KERNEL_VAR_TYPE == GAUSSIAN_ORIENTED
+#elif KERNEL_SPHERE_TYPE == GAUSSIAN_ORIENTED
 // GAUSSIAN ORIENTED
 
 template < typename TYPE>
@@ -168,7 +167,7 @@ __device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
 }
 
 
-#elif KERNEL_VAR_TYPE == LINEAR
+#elif KERNEL_SPHERE_TYPE == LINEAR
 // LINEAR (current)
 
 template < typename TYPE>
