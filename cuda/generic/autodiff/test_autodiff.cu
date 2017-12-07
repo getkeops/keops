@@ -58,10 +58,10 @@ int main()
 	// here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
 	using F = Scal<Square<Scalprod<U,V>>,GaussKernel<C,X,Y,Beta>>;
 
-	// defines X and Y variables for F
+	// precise which variables will be indexed by i or j when calling the convolution with function F
 	using FVARSI = univpack<X,U>;
 	using FVARSJ = univpack<Y,V,Beta>;
-	const int FDIMPARAM = 1;
+	const int FDIMPARAM = 1; // there is only one parameter 
 	
 	using FUNCONVF = typename Generic<F,FVARSI,FVARSJ,FDIMPARAM>::sEval;
 	
@@ -69,7 +69,7 @@ int main()
 	using Eta = Var<5,F::DIM>;	// new variable is in sixth position and is input of gradient
 	using G = Grad<F,X,Eta>;
 	
-	// defines X and Y variables for G
+	// precise i and j variables for convolution with G
 	using GVARSI = univpack<Eta,X,U>;
 	using GVARSJ = univpack<Y,V,Beta>;
 	const int GDIMPARAM = 1;
