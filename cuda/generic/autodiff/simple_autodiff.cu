@@ -15,18 +15,17 @@ using C = Param<0>;		// C is the first extra parameter
 // define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
 using F = Scal<Square<Scalprod<U,V>>,GaussKernel<C,X,Y,Beta>>;
 
-// define which variables are indexed by i and which are indexed by j 
+// define which variables are indexed by i and which are indexed by j
 using FVARSI = univpack<X,U>;
 using FVARSJ = univpack<Y,V,Beta>;
 const int FDIMPARAM = 1;
 
 using FUNCONVF = typename Generic<F,FVARSI,FVARSJ,FDIMPARAM>::sEval;
 
-extern "C" int FConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* gamma, int nx, int ny) 
-{
-	float params[1];
-	params[0] = ooSigma2;
-	return GpuConv2D(FUNCONVF(), params, nx, ny, gamma, x, y, u, v, beta); 
+extern "C" int FConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* gamma, int nx, int ny) {
+    float params[1];
+    params[0] = ooSigma2;
+    return GpuConv2D(FUNCONVF(), params, nx, ny, gamma, x, y, u, v, beta);
 }
 
 
@@ -39,11 +38,10 @@ const int GXDIMPARAM = 1;
 
 using FUNCONVGX = typename Generic<GX,GXVARSI,GXVARSJ,GXDIMPARAM>::sEval;
 
-extern "C" int GXConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) 
-{
-	float params[1];
-	params[0] = ooSigma2;
-	return GpuConv2D(FUNCONVGX(), params, nx, ny, gamma, x, y, u, v, beta, eta); 
+extern "C" int GXConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) {
+    float params[1];
+    params[0] = ooSigma2;
+    return GpuConv2D(FUNCONVGX(), params, nx, ny, gamma, x, y, u, v, beta, eta);
 }
 
 
@@ -56,11 +54,10 @@ const int GYDIMPARAM = 1;
 
 using FUNCONVGY = typename Generic<GY,GYVARSI,GYVARSJ,GYDIMPARAM>::sEval;
 
-extern "C" int GYConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) 
-{
-	float params[1];
-	params[0] = ooSigma2;
-	return GpuConv2D(FUNCONVGY(), params, nx, ny, gamma, x, y, u, v, beta, eta); 
+extern "C" int GYConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) {
+    float params[1];
+    params[0] = ooSigma2;
+    return GpuConv2D(FUNCONVGY(), params, nx, ny, gamma, x, y, u, v, beta, eta);
 }
 
 
