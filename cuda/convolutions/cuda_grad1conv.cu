@@ -17,8 +17,8 @@
 
 template < typename TYPE, KernelFun KernelFp >
 int KernelGpuGrad1Conv(TYPE ooSigma2,
-                                TYPE* alpha_h, TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
-                                int dimPoint, int dimVect, int nx, int ny){
+                       TYPE* alpha_h, TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
+                       int dimPoint, int dimVect, int nx, int ny) {
 
     // Data on the device.
     TYPE* x_d;
@@ -45,31 +45,30 @@ int KernelGpuGrad1Conv(TYPE ooSigma2,
     blockSize.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
-    
-    // Copy-paste templating, allowing us to pass the DIMPOINT and DIMVECT at compilation time : 
+
+    // Copy-paste templating, allowing us to pass the DIMPOINT and DIMVECT at compilation time :
     if(     dimPoint==1 && dimVect==1)
         KernelGpuGrad1ConvOnDevice<TYPE,1,1,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
-            (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
+        (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==2 && dimVect==1)
         KernelGpuGrad1ConvOnDevice<TYPE,2,1,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
-            (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
+        (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==3 && dimVect==1)
         KernelGpuGrad1ConvOnDevice<TYPE,3,1,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
-            (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
+        (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==4 && dimVect==1)
         KernelGpuGrad1ConvOnDevice<TYPE,4,1,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
-            (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
+        (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==2 && dimVect==2)
         KernelGpuGrad1ConvOnDevice<TYPE,2,2,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
-            (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
+        (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==3 && dimVect==3)
         KernelGpuGrad1ConvOnDevice<TYPE,3,3,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
-            (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
+        (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==4 && dimVect==4)
         KernelGpuGrad1ConvOnDevice<TYPE,4,4,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
-            (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
-    else
-    {
+        (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
+    else {
         printf("GaussGpuGrad1Conv error: dimensions of Gauss kernel not implemented in cuda\nYou probably just need a copy-paste in the conda_grad1conv.cu file !");
         cudaFree(x_d);
         cudaFree(y_d);
@@ -95,7 +94,7 @@ int KernelGpuGrad1Conv(TYPE ooSigma2,
     return 0;
 }
 
-#if !(UseCudaOnDoubles) 
+#if !(UseCudaOnDoubles)
 
 // Couldn't find a clean way to give a name to an explicit instantiation :-(
 extern "C" int GaussGpuGrad1Conv(float ooSigma2, float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
@@ -123,7 +122,6 @@ extern "C" int EnergyGpuGrad1Conv(double ooSigma2, double* alpha_h, double* x_h,
 
 
 
-void ExitFcn(void)
-{
+void ExitFcn(void) {
     cudaDeviceReset();
 }

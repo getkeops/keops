@@ -4,16 +4,15 @@
 
 template < typename TYPE, int DIMPOINT, int DIMVECT, KernelFun KernelFp > // Typically, float32, D, E, GaussFp
 __global__ void KernelGpuGradConvXBOnDevice(TYPE ooSigma2, // 1/sigma^2
-		TYPE *e,                                   // N-by-D array
-		TYPE *alpha, TYPE *x, TYPE *y, TYPE *beta, // N-by-E, N-by-D, M-by-D, M-by-E arrays
-		TYPE *gamma,                               // Output variable, M-by-E (same as beta)
-		int nx, int ny)
-{
+        TYPE *e,                                   // N-by-D array
+        TYPE *alpha, TYPE *x, TYPE *y, TYPE *beta, // N-by-E, N-by-D, M-by-D, M-by-E arrays
+        TYPE *gamma,                               // Output variable, M-by-E (same as beta)
+        int nx, int ny) {
     // Thread kernel:
     // Computation of gamma_j = \partial_{beta_j} < e_i, \partial_{x_i} < alpha_i, sum_j k(x_i,y_j)*beta_j > >
     //                        = \sum_i 2* f_s'( |x_i-y_j|^2 ) * < e_i, x_i-y_j> * a_i
     // for index j given by thread id.
-    
+
     int j = blockIdx.x * blockDim.x + threadIdx.x;
 
     // the following line does not work with nvcc 3.0 (it is a bug; it works with anterior and posterior versions)
@@ -22,14 +21,14 @@ __global__ void KernelGpuGradConvXBOnDevice(TYPE ooSigma2, // 1/sigma^2
     extern __shared__ char SharedData_char[];
     TYPE* const SharedData = reinterpret_cast<TYPE*>(SharedData_char);
     // end of bug fix
-    
+
     // One thread = One column = One y_j + One gamma_j + a whole bunch of "e_i", "a_i", "x_i".
     TYPE yj[DIMPOINT], xmy[DIMPOINT], gammaj[DIMVECT];
     if(j<ny) { // we will compute gammaj only if j is in the range
         for(int k=0; k<DIMPOINT; k++)
             yj[k]     = y[j*DIMPOINT+k]; // load y_j from device global memory
         for(int k=0; k<DIMVECT; k++)     // output : M-by-E : DIMVECT
-            gammaj[k] = 0.0f;            // Make sure to put to zero the output array 
+            gammaj[k] = 0.0f;            // Make sure to put to zero the output array
     }
 
     // Here, we use a tiled matrix decomposition. See cuda_conv.cu for graphs and explanations.
@@ -57,21 +56,20 @@ __global__ void KernelGpuGradConvXBOnDevice(TYPE ooSigma2, // 1/sigma^2
         //   in the SharedData, where [I : I+blockDim.x] is the tile span.
         // - the output line gamma_j is in the thread memory, and contains the result
         //   of the summation over the previous tiles.
-      
-        
+
+
         // Map-Reduction loop -------------------------------------------------------------------
         // We can now proceed to the "tiled" matrix product, where one line = one thread.
-        if(j<ny) // we compute gammaj only if j is in the range
-        {
+        if(j<ny) { // we compute gammaj only if j is in the range
             TYPE *ei, *alphai, *xi;            // As ei and alphai and xi are interleaved...
             ei      = SharedData;              // We'll on some cute pointer arithmetics!
             alphai  = SharedData + DIMPOINT;
             xi      = SharedData + DIMPOINT + DIMVECT;
             int inc = DIMPOINT   + DIMVECT + DIMPOINT; // The increment, size of a [ei, ai, xi] block.
-            
+
             for(int irel = 0; irel < blockDim.x && irel<nx-istart; irel++, ei+=inc, alphai+=inc, xi+=inc) {
                 // Reduction loop over i : we're getting to the maths ***************************
-                // Remember: we're computing 
+                // Remember: we're computing
                 //        g_j  =  \sum_i 2* f_s'( |x_i-y_j|^2 ) * < e_i, x_i-y_j> * a_i
 
                 TYPE r2 = 0.0f, ei_s_xmy = 0.0f;

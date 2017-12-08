@@ -9,11 +9,11 @@ __global__ void KernelGpuGrad1ConvOnDevice(TYPE ooSigma2,
     // Thread kernel:
     // Computation of gamma_i = \partial_{x_i} < alpha_i, sum_j k(x_i,y_j)*beta_j >
     // for index i given by thread id.
-    
+
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     extern __shared__ TYPE SharedData[];  // shared data will contain x and alpha data for the block
-    
+
     // One thread = One line = One x_i + One a_i + One gamma_i + a whole bunch of "y_j", "b_j".
     TYPE xi[DIMPOINT], alphai[DIMVECT], xmy[DIMPOINT], gammai[DIMPOINT];
     if(i<nx) { // we will compute gammai only if i is in the range
@@ -22,11 +22,11 @@ __global__ void KernelGpuGrad1ConvOnDevice(TYPE ooSigma2,
         for(int k=0; k<DIMVECT; k++)
             alphai[k] = alpha[i*DIMVECT +k]; // load alpha_i from device global memory
         for(int k=0; k<DIMPOINT; k++)
-            gammai[k] = 0.0f;                // Make sure to put to zero the output array 
+            gammai[k] = 0.0f;                // Make sure to put to zero the output array
     }
 
     // Here, we use a tiled matrix decomposition. See cuda_conv.cu for graphs and explanations.
-    
+
     for(int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {
 
         // Load data in Shared memory -----------------------------------------------------------
@@ -48,17 +48,16 @@ __global__ void KernelGpuGrad1ConvOnDevice(TYPE ooSigma2,
         //   in the SharedData, where [N : N+blockDim.x] is the tile span.
         // - the output line gamma_i is in the thread memory, and contains the result
         //   of the summation over the previous tiles.
-      
-        
+
+
         // Map-Reduction loop -------------------------------------------------------------------
         // We can now proceed to the "tiled" matrix product, where one line = one thread.
-        if(i<nx) // we compute gammai only if i is in the range
-        {
+        if(i<nx) { // we compute gammai only if i is in the range
             TYPE *yj, *betaj;                  // As y_j and beta_j are interleaved...
             yj      = SharedData;              // We'll on some cute pointer arithmetics!
             betaj   = SharedData + DIMPOINT;
             int inc = DIMPOINT   + DIMVECT;    // The increment, size of a [y_j,b_j] block.
-            
+
             for(int jrel = 0; jrel < blockDim.x && jrel<ny-jstart; jrel++, yj+=inc, betaj+=inc) {
                 // Reduction loop over j : we're getting to the maths ***************************
                 TYPE r2 = 0.0f, sga = 0.0f;

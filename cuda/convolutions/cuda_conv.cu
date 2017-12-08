@@ -16,8 +16,8 @@
 
 template < typename TYPE, KernelFun KernelF >
 int KernelGpuEvalConv(TYPE ooSigma2,
-                                   TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
-                                   int dimPoint, int dimVect, int nx, int ny) {
+                      TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
+                      int dimPoint, int dimVect, int nx, int ny) {
 
     // Data on the device.
     TYPE* x_d;
@@ -66,10 +66,10 @@ int KernelGpuEvalConv(TYPE ooSigma2,
         (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     else {
         printf("Error: dimensions of Gauss kernel not implemented in cuda. You probably just need a copy-paste in the conda_conv.cu file !");
-		cudaFree(x_d);
-		cudaFree(y_d);
-		cudaFree(beta_d);
-		cudaFree(gamma_d);
+        cudaFree(x_d);
+        cudaFree(y_d);
+        cudaFree(beta_d);
+        cudaFree(gamma_d);
         return(-1);
     }
 
@@ -91,7 +91,7 @@ int KernelGpuEvalConv(TYPE ooSigma2,
 
 // Couldn't find a clean way to give a name to an explicit instantiation :-(
 
-#if !(UseCudaOnDoubles) 
+#if !(UseCudaOnDoubles)
 
 // This instantiation bypass the function KernelGpuEvalConv as the pointers contain a address directly on the device
 extern "C" int GaussGpuEvalConv_onDevice(float ooSigma2, float* x_d, float* y_d, float* beta_d, float* gamma_d, int dimPoint, int dimVect, int nx, int ny) {
@@ -99,7 +99,7 @@ extern "C" int GaussGpuEvalConv_onDevice(float ooSigma2, float* x_d, float* y_d,
     dim3 gridSize (nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1));
 
     KernelGpuConvOnDevice<float,3,3,GaussF><<<gridSize,blockSize,blockSize.x*(3+3)*sizeof(float)>>>
-        (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
+    (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
     return 0;
 }
 
@@ -129,6 +129,6 @@ extern "C" int EnergyGpuEvalConv(double ooSigma2, double* x_h, double* y_h, doub
 
 
 void ExitFcn(void) {
-  cudaDeviceReset();
+    cudaDeviceReset();
 }
 

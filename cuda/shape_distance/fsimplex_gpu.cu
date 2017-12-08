@@ -14,14 +14,13 @@
 ///////////////////////////////////////
 
 // thread kernel: computation of gammai = sum_j k(xi,yj)betaj for index i given by thread id.
-    template < typename TYPE, int DIMPOINT, int DIMSIG, int DIMVECT >
+template < typename TYPE, int DIMPOINT, int DIMSIG, int DIMVECT >
 __global__ void fsimplex_on_device(TYPE ooSigmax2, TYPE ooSigmaf2,
-        TYPE *x, TYPE *y, 
-        TYPE *f, TYPE *g, 
-        TYPE *alpha, TYPE *beta,
-        TYPE *gamma,
-        int nx, int ny)
-{
+                                   TYPE *x, TYPE *y,
+                                   TYPE *f, TYPE *g,
+                                   TYPE *alpha, TYPE *beta,
+                                   TYPE *gamma,
+                                   int nx, int ny) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     // the following line does not work with nvcc 3.0 (it is a bug; it works with anterior and posterior versions)
@@ -32,8 +31,7 @@ __global__ void fsimplex_on_device(TYPE ooSigmax2, TYPE ooSigmaf2,
     // end of bug fix
 
     TYPE xi[DIMPOINT], fi[DIMSIG], alphai[DIMPOINT], gammai;
-    if(i<nx)  // we will compute gammai only if i is in the range
-    {
+    if(i<nx) { // we will compute gammai only if i is in the range
         // load xi from device global memory
         for(int k=0; k<DIMPOINT; k++)
             xi[k] = x[i*DIMPOINT+k];
@@ -45,11 +43,9 @@ __global__ void fsimplex_on_device(TYPE ooSigmax2, TYPE ooSigmaf2,
         gammai = 0.0f;
     }
 
-    for(int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++)
-    {
+    for(int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {
         int j = tile * blockDim.x + threadIdx.x;
-        if(j<ny) // we load yj and betaj from device global memory only if j<ny
-        {
+        if(j<ny) { // we load yj and betaj from device global memory only if j<ny
             int inc = DIMPOINT + DIMSIG + DIMVECT;
             for(int k=0; k<DIMPOINT; k++)
                 SharedData[threadIdx.x*inc+k] = y[j*DIMPOINT+k];
@@ -60,15 +56,13 @@ __global__ void fsimplex_on_device(TYPE ooSigmax2, TYPE ooSigmaf2,
         }
         __syncthreads();
 
-        if(i<nx) // we compute gammai only if needed
-        {
+        if(i<nx) { // we compute gammai only if needed
             TYPE *yj, *gj, *betaj;
             yj = SharedData;
             gj = SharedData + DIMPOINT;
             betaj = SharedData + DIMPOINT + DIMSIG;
             int inc = DIMPOINT + DIMSIG + DIMVECT;
-            for(int jrel = 0; jrel < blockDim.x && jrel<ny-jstart; jrel++, yj+=inc, gj +=inc, betaj+=inc)
-            {
+            for(int jrel = 0; jrel < blockDim.x && jrel<ny-jstart; jrel++, yj+=inc, gj +=inc, betaj+=inc) {
 
                 // distance between points and signals
                 TYPE dist2_geom = sq_dist<TYPE,DIMPOINT>(xi,yj);
@@ -77,7 +71,7 @@ __global__ void fsimplex_on_device(TYPE ooSigmax2, TYPE ooSigmaf2,
                 // Angles between normals
                 TYPE norm2Xix = 0.0f, norm2Xiy = 0.0f;
                 for(int k=0; k<DIMVECT; k++) {
-                    norm2Xix += alphai[k]*alphai[k]; 
+                    norm2Xix += alphai[k]*alphai[k];
                     norm2Xiy += betaj[k]*betaj[k];
                 }
 
@@ -94,14 +88,13 @@ __global__ void fsimplex_on_device(TYPE ooSigmax2, TYPE ooSigmaf2,
 
 ///////////////////////////////////////////////////
 
-    template< typename TYPE >
+template< typename TYPE >
 int fsimplex(TYPE ooSigmax2,TYPE ooSigmaf2,
-        TYPE* x_h, TYPE* y_h,
-        TYPE* f_h, TYPE* g_h,
-        TYPE* alpha_h, TYPE* beta_h, 
-        TYPE* gamma_h,
-        int dimPoint, int dimSig, int dimVect, int nx, int ny)
-{
+             TYPE* x_h, TYPE* y_h,
+             TYPE* f_h, TYPE* g_h,
+             TYPE* alpha_h, TYPE* beta_h,
+             TYPE* gamma_h,
+             int dimPoint, int dimSig, int dimVect, int nx, int ny) {
 
     // Data on the device.
     TYPE* x_d;
@@ -137,18 +130,17 @@ int fsimplex(TYPE ooSigmax2,TYPE ooSigmaf2,
 
     if(dimPoint==1 && dimSig==1 && dimVect==1)
         fsimplex_on_device<TYPE,1,1,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimSig+dimPoint)*sizeof(TYPE)>>>
-            (ooSigmax2,ooSigmaf2, x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
+        (ooSigmax2,ooSigmaf2, x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==2 && dimSig==1 && dimVect==1)
         fsimplex_on_device<TYPE,2,1,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimSig+dimPoint)*sizeof(TYPE)>>>
-            (ooSigmax2,ooSigmaf2,x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
+        (ooSigmax2,ooSigmaf2,x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==3 && dimSig==1 && dimVect==1)
         fsimplex_on_device<TYPE,3,1,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimSig+dimPoint)*sizeof(TYPE)>>>
-            (ooSigmax2,ooSigmaf2,x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
+        (ooSigmax2,ooSigmaf2,x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==4 && dimSig==1 && dimVect==1)
         fsimplex_on_device<TYPE,4,1,1><<<gridSize,blockSize,blockSize.x*(dimVect+dimSig+dimPoint)*sizeof(TYPE)>>>
-            (ooSigmax2,ooSigmaf2,x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
-    else
-    {
+        (ooSigmax2,ooSigmaf2,x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
+    else {
         printf("fsimplex error: dimensions of Gauss kernel not implemented in cuda\n");
         cudaFree(x_d);
         cudaFree(y_d);
@@ -179,8 +171,7 @@ int fsimplex(TYPE ooSigmax2,TYPE ooSigmaf2,
 
 
 
-void ExitFcn(void)
-{
+void ExitFcn(void) {
     cudaDeviceReset();
 }
 
@@ -192,19 +183,19 @@ void ExitFcn(void)
 
 /* the gateway function */
 void mexFunction( int nlhs, mxArray *plhs[],
-        int nrhs, const mxArray *prhs[])
-    //plhs: double *gamma
-    //prhs: double *x, double *y, double *beta, double sigma
+                  int nrhs, const mxArray *prhs[])
+//plhs: double *gamma
+//prhs: double *x, double *y, double *beta, double sigma
 
-{ 
+{
 
     // register an exit function to prevent crash at matlab exit or recompiling
     mexAtExit(ExitFcn);
 
     /*  check for proper number of arguments */
-    if(nrhs != 8) 
+    if(nrhs != 8)
         mexErrMsgTxt("8 inputs required.");
-    if(nlhs < 1 | nlhs > 1) 
+    if(nlhs < 1 | nlhs > 1)
         mexErrMsgTxt("One output required.");
 
     //////////////////////////////////////////////////////////////
@@ -268,8 +259,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /*  create a pointer to the input vectors wts */
     double *beta = mxGetPr(prhs[argu]);
     /*  get the dimensions of the input weights */
-    if (dimvect != mxGetM(prhs[argu])){
-        mexErrMsgTxt("Input beta must have the same number of row as alpha");}
+    if (dimvect != mxGetM(prhs[argu])) {
+        mexErrMsgTxt("Input beta must have the same number of row as alpha");
+    }
     /* check to make sure the second dimension is ny */
     if( mxGetN(prhs[argu])!=ny ) {
         mexErrMsgTxt("Input beta must have same number of columns as y.");
@@ -297,7 +289,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     }
     /*  get the input sigma */
     double sigmaf = mxGetScalar(prhs[argu]);
-    if (sigmaf <= 0.0){
+    if (sigmaf <= 0.0) {
         mexErrMsgTxt("Input sigmaf must be a positive number.");
     }
     double oosigmaf2=1.0f/(sigmaf*sigmaf);
@@ -312,7 +304,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /*  create a C pointer to a copy of the output result(vector)*/
     double *gamma = mxGetPr(plhs[0]);
 
-#if UseCudaOnDoubles   
+#if UseCudaOnDoubles
     fsimplex_double<double>(oosigmax2,oosigmaf2,x,y,f,g,alpha,beta,gamma,dimpoint,dimsig,dimvect,nx,ny);
 #else
     // convert to float

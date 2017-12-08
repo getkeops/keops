@@ -1,16 +1,15 @@
 // compares two strings in compile time constant fashion
 
 template < typename TYPE, int DIM >
-__device__  TYPE sq_dist(TYPE *u, TYPE *v){
+__device__  TYPE sq_dist(TYPE *u, TYPE *v) {
 
-	TYPE r2 = 0.0f;
-	for(int k=0; k<DIM; k++)
-	{
-		TYPE temp =  v[k]-u[k];
-		r2 += temp*temp;
-	}
+    TYPE r2 = 0.0f;
+    for(int k=0; k<DIM; k++) {
+        TYPE temp =  v[k]-u[k];
+        r2 += temp*temp;
+    }
 
-	return r2;
+    return r2;
 
 }
 
@@ -24,32 +23,32 @@ __device__  TYPE sq_dist(TYPE *u, TYPE *v){
 #if KERNEL_SIG_TYPE == CAUCHY_SIG
 
 template < typename TYPE >
-__device__  TYPE Kernel_sig1(TYPE u2, TYPE ooSigma2){
+__device__  TYPE Kernel_sig1(TYPE u2, TYPE ooSigma2) {
 
-        return 1.0/(1.0+u2*ooSigma2);
+    return 1.0/(1.0+u2*ooSigma2);
 
 }
 
 template < typename TYPE >
-__device__  TYPE dKernel_sig1(TYPE u2, TYPE ooSigma2){
+__device__  TYPE dKernel_sig1(TYPE u2, TYPE ooSigma2) {
 
-        TYPE c = 1.0+u2*ooSigma2;
-        return - ooSigma2 / (c*c);
+    TYPE c = 1.0+u2*ooSigma2;
+    return - ooSigma2 / (c*c);
 
 }
 
 #elif KERNEL_SIG_TYPE == GAUSSIAN_SIG
 template < typename TYPE>
-__device__  TYPE Kernel_sig1(TYPE u2, TYPE ooSigma2){
+__device__  TYPE Kernel_sig1(TYPE u2, TYPE ooSigma2) {
 
-	return exp(- u2 * ooSigma2);
+    return exp(- u2 * ooSigma2);
 
 }
 
 template < typename TYPE>
-__device__  TYPE dKernel_sig1(TYPE u2, TYPE ooSigma2){
+__device__  TYPE dKernel_sig1(TYPE u2, TYPE ooSigma2) {
 
-	return - ooSigma2 * exp(- u2 * ooSigma2);
+    return - ooSigma2 * exp(- u2 * ooSigma2);
 
 }
 
@@ -68,32 +67,32 @@ __device__  TYPE dKernel_sig1(TYPE u2, TYPE ooSigma2){
 
 #if KERNEL_GEOM_TYPE == CAUCHY_GEOM
 template < typename TYPE >
-__device__  TYPE Kernel_geom1(TYPE u2, TYPE ooSigma2){
+__device__  TYPE Kernel_geom1(TYPE u2, TYPE ooSigma2) {
 
-        return 1.0/(1.0+u2*ooSigma2);
+    return 1.0/(1.0+u2*ooSigma2);
 
 }
 
 template < typename TYPE >
-__device__  TYPE dKernel_geom1(TYPE u2, TYPE ooSigma2){
+__device__  TYPE dKernel_geom1(TYPE u2, TYPE ooSigma2) {
 
-        TYPE c = 1.0+u2*ooSigma2;
-        return - ooSigma2 / (c*c);
+    TYPE c = 1.0+u2*ooSigma2;
+    return - ooSigma2 / (c*c);
 
 }
 
 #elif KERNEL_GEOM_TYPE == GAUSSIAN_GEOM
 template < typename TYPE>
-__device__  TYPE Kernel_geom1(TYPE u2, TYPE ooSigma2){
+__device__  TYPE Kernel_geom1(TYPE u2, TYPE ooSigma2) {
 
-	return exp(- u2 * ooSigma2);
+    return exp(- u2 * ooSigma2);
 
 }
 
 template < typename TYPE>
-__device__  TYPE dKernel_geom1(TYPE u2, TYPE ooSigma2){
+__device__  TYPE dKernel_geom1(TYPE u2, TYPE ooSigma2) {
 
-	return - ooSigma2 * exp(- u2 * ooSigma2);
+    return - ooSigma2 * exp(- u2 * ooSigma2);
 
 }
 
@@ -115,36 +114,36 @@ __device__  TYPE dKernel_geom1(TYPE u2, TYPE ooSigma2){
 // GAUSIAN UNORIENTED
 
 template < typename TYPE >
-__device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2){
+__device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2) {
 
 
-	// Gaussian kernel
-	return exp( (-2.0f + 2.0f * u*u) * ooSigma2);
+    // Gaussian kernel
+    return exp( (-2.0f + 2.0f * u*u) * ooSigma2);
 
 }
 
 template < typename TYPE >
-__device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
+__device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2) {
 
 
-	// Gaussian kernel
-	return  4.0f * u * exp( (-2.0f + 2.0f * u *u) * ooSigma2) * ooSigma2;
+    // Gaussian kernel
+    return  4.0f * u * exp( (-2.0f + 2.0f * u *u) * ooSigma2) * ooSigma2;
 
 }
 #elif KERNEL_SPHERE_TYPE == BINET
 // BINET
 template < typename TYPE>
-__device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2){
+__device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2) {
 
-	return  u * u;
+    return  u * u;
 
 }
 
 template < typename TYPE>
-__device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
+__device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2) {
 
 
-	return  2 * u;
+    return  2 * u;
 
 }
 
@@ -153,16 +152,16 @@ __device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
 // GAUSSIAN ORIENTED
 
 template < typename TYPE>
-__device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2){
+__device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2) {
 
-	return  exp( (-2.0f + 2.0 * u) * ooSigma2 );
+    return  exp( (-2.0f + 2.0 * u) * ooSigma2 );
 
 }
 
 template < typename TYPE>
-__device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
+__device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2) {
 
-	return  2.0 * ooSigma2 * exp( (-2.0f + 2.0 * u) * ooSigma2 );
+    return  2.0 * ooSigma2 * exp( (-2.0f + 2.0 * u) * ooSigma2 );
 
 }
 
@@ -171,16 +170,16 @@ __device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
 // LINEAR (current)
 
 template < typename TYPE>
-__device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2){
+__device__  TYPE Kernel_var1(TYPE u, TYPE ooSigma2) {
 
-	return  u;
+    return  u;
 
 }
 
 template < typename TYPE>
-__device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2){
+__device__  TYPE dKernel_var1(TYPE u, TYPE ooSigma2) {
 
-	return  1.0f;
+    return  1.0f;
 
 }
 

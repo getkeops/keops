@@ -16,12 +16,11 @@
 
 template <typename TYPE>
 int fshape_gpu_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
-                                   TYPE* x_h, TYPE* y_h,
-                                   TYPE* f_h, TYPE* g_h,
-				   TYPE* alpha_h, TYPE* beta_h, 
-				   TYPE* gamma_h,
-                                   int dimPoint, int dimSig, int dimVect, int nx, int ny)
-{
+                   TYPE* x_h, TYPE* y_h,
+                   TYPE* f_h, TYPE* g_h,
+                   TYPE* alpha_h, TYPE* beta_h,
+                   TYPE* gamma_h,
+                   int dimPoint, int dimSig, int dimVect, int nx, int ny) {
 
     // Data on the device.
     TYPE* x_d;
@@ -70,16 +69,15 @@ int fshape_gpu_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
     else if(dimPoint==3 && dimSig==1 && dimVect==3)
         fshape_scp_dxi_OnDevice<TYPE,3,1,3><<<gridSize,blockSize,blockSize.x*(dimVect+dimSig+dimPoint)*sizeof(TYPE)>>>
         (ooSigmax2,ooSigmaf2, ooSigmaXi2, x_d, y_d, f_d, g_d, alpha_d, beta_d, gamma_d, nx, ny);
-    else
-    {
+    else {
         printf("error: dimensions of kernel not implemented in fshape_scp_dxi");
-		cudaFree(x_d);
-		cudaFree(y_d);
-		cudaFree(f_d);
-		cudaFree(g_d);
-		cudaFree(alpha_d);
-		cudaFree(beta_d);
-		cudaFree(gamma_d);
+        cudaFree(x_d);
+        cudaFree(y_d);
+        cudaFree(f_d);
+        cudaFree(g_d);
+        cudaFree(alpha_d);
+        cudaFree(beta_d);
+        cudaFree(gamma_d);
         return(-1);
     }
 
@@ -102,23 +100,22 @@ int fshape_gpu_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
 
 // Couldn't find a clean way to give a name to an explicit instantiation :-(
 
-#if !(UseCudaOnDoubles) 
+#if !(UseCudaOnDoubles)
 
-extern "C" int cudafshape_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2, float* x_h, float* y_h, float* f_h, float* g_h, float* alpha_h, float* beta_h, float* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny){
+extern "C" int cudafshape_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2, float* x_h, float* y_h, float* f_h, float* g_h, float* alpha_h, float* beta_h, float* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny) {
     return fshape_gpu_dxi<float>(ooSigmax2,ooSigmaf2,ooSigmaXi2,x_h,y_h,f_h,g_h,alpha_h,beta_h,gamma_h,dimPoint,dimSig,dimVect,nx,ny);
 }
 
 #else
 
-extern "C" int cudafshape_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2, double* x_h, double* y_h, double* f_h, double* g_h, double* alpha_h, double* beta_h, double* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny){
+extern "C" int cudafshape_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2, double* x_h, double* y_h, double* f_h, double* g_h, double* alpha_h, double* beta_h, double* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny) {
     return fshape_gpu_dxi<double>(ooSigmax2,ooSigmaf2,ooSigmaXi2,x_h,y_h,f_h,g_h,alpha_h,beta_h,gamma_h,dimPoint,dimSig,dimVect,nx,ny);
 }
 
 #endif
 
 
-void ExitFcn(void)
-{
-  cudaDeviceReset();
+void ExitFcn(void) {
+    cudaDeviceReset();
 }
 
