@@ -2,22 +2,27 @@
 // compile with
 //		nvcc -std=c++11 -o test test.cu
 
+// Define the variables which will define our kernel
+#define __TYPE__ double         // Use float (faster) or double (more precise), depending on your needs
+#define __DIMPOINT__ 3          // Dimension of the ambient space for point clouds x_i, y_j.
+#define __DIMVECT__ 3           // Dimension of the "vectors" which are summed: b_j.
+#define KERNEL SCALARRADIAL     // Type of kernel. Others are VARSURF (varifolds surfaces) and NCSURF (for normal cycles surfaces)
+#define EVAL sEval              // Type of convolution for the type of kernel. For scalar radial kernels, others are sGrad1, sGrad, sHess, sDiff 
+#define RADIALFUN GaussFunction // Others are CauchyFunction, Sum4GaussFunction, Sum4CauchyFunction
 
-#define __TYPE__ double
-#define __DIMPOINT__ 3
-#define __DIMVECT__ 3
-#define KERNEL SCALARRADIAL 	// type of kernel. Others are VARSURF (varifolds surfaces) and NCSURF (for normal cycles surfaces)
-#define EVAL sEval 	// type of convolution for the type of kernel. For scalar radial kernels, others are sGrad1, sGrad, sHess, sDiff 
-#define RADIALFUN GaussFunction 	// Others are CauchyFunction, Sum4GaussFunction, Sum4CauchyFunction
 
-
-
+// Standard imports...
 #include <stdio.h>
 #include <assert.h>
 #include <cuda.h>
 #include <vector>
 #include <ctime>
 
+/*
+ * As we go through the files that define the different types of kernels,
+ * the "symbolic" values of KERNEL, EVAL and RADIALFUN
+ * help the compiler to define the appropriate memory footprints.
+*/
 #include "GpuConv2D.cu"
 #include "CudaScalarRadialKernels.h"
 #include "CudaNCSurfKernels.h"
@@ -27,14 +32,14 @@ int main() {
 
     int Nx=5000, Ny=5000;
 
-
+    // Our code is generic, in the sense that it allows us to implement any kind of summation
+    // sum f(x1i, x2i, ..., y1j, y2j, ...)  - in fact, even sum could be replaced with another reduction op.
     typedef typename KER::EVAL::DIMSX DIMSX;
     typedef typename KER::EVAL::DIMSY DIMSY;
     const int SIZEX = DIMSX::SIZE;
     const int SIZEY = DIMSY::SIZE;
 
     __TYPE__ *x[SIZEX];
-
     __TYPE__ *y[SIZEY];
 
     vector< vector<__TYPE__> > vx(SIZEX), vy(SIZEY);

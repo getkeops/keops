@@ -10,11 +10,21 @@ using namespace std;
 
 template <typename TYPE, int DIMVECT>
 __global__ void reduce0(TYPE* in, TYPE* out, int sizeY,int nx) {
+    /* Function used as a final reduction pass in the 2D scheme,
+     * once the block reductions have been made.
+     * Takes as input: 
+     * - in,  a  sizeY * (nx * DIMVECT ) array
+     * - out, an          nx * DIMVECT   array
+     * 
+     * Computes, in parallel, the "columnwise"-sum (which correspond to lines of blocks)
+     * of *in and stores the result in out.
+     */
+    
     TYPE res = 0;
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid < nx*DIMVECT) {
         for (int i = 0; i < sizeY; i++)
-            res += in[tid + i*nx*DIMVECT];
+            res += in[tid + i*nx*DIMVECT]; // We use "+=" as a reduction op. But it could be anything, really!
         out[tid] = res;
     }
 }
@@ -23,44 +33,78 @@ __global__ void reduce0(TYPE* in, TYPE* out, int sizeY,int nx) {
 
 
 // thread kernel: computation of x1i = sum_j k(x2i,x3i,...,y1j,y2j,...) for index i given by thread id.
+// N.B.: This routine by itself is generic, and does not specifically refer to the "sum" operation.
+//       It can be used for any Map-Reduce operation, provided that "fun" is well-understood.
 template < typename TYPE, class FUN, class PARAM >
 __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {
+    /*
+     * px and py are pointers to the device global memory.
+     * both are arrays of arrays with the relevant size: for instance,
+     * px[1] is a TYPE array of size ( nx * DIMSX::VAL(1) ).
+     * 
+     * (*px) = px[0] is the output array, of size (nx * DIMSX::FIRST).
+     * 
+     */
     // gets dimensions and number of variables of inputs of function FUN
     typedef typename FUN::DIMSX DIMSX; // DIMSX is a "vector" of templates giving dimensions of xi variables
     typedef typename FUN::DIMSY DIMSY; // DIMSY is a "vector" of templates giving dimensions of yj variables
-    const int DIMX = DIMSX::SUM; // DIMX is sum of dimensions for xi variables
-    const int DIMY = DIMSY::SUM; // DIMY is sum of dimensions for yj variables
-    const int DIMX1 = DIMSX::FIRST; // DIMX1 is dimension of output variable
+    const int DIMX  = DIMSX::SUM;      // DIMX  is sum of dimensions for xi variables
+    const int DIMY  = DIMSY::SUM;      // DIMY  is sum of dimensions for yj variables
+    const int DIMX1 = DIMSX::FIRST;    // DIMX1 is dimension of output variable
 
+    // Weird syntax to create a pointer in shared memory.
     extern __shared__ char yj_char[];
     TYPE* const yj = reinterpret_cast<TYPE*>(yj_char);
-
+    
+    // Step 1 : Load in Thread Memory the information needed in the current line ---------------------------
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     TYPE xi[DIMX];
     if(i<nx) { // we will compute x1i only if i is in the range
         for(int k=0; k<DIMX1; k++)
             xi[k] = 0.0f; // initialize output
-        // load xi from device global memory
+        // Load xi from device global memory.
+        // Remember that we use an interleaved memory scheme where
+        // xi = [ x1i, x2i, x3i, ... ].
+        // Since we do not want to erase x1i, and only load x2i, x3i, etc.,
+        // we add a small offset to the pointer given as an argument to the loading routine,
+        // and ask it to only load "DIMSX::NEXT" bits of memory.
         load<DIMSX::NEXT>(i,xi+DIMX1,px+1); // load xi variables from global memory to local thread memory
     }
-
-    int j = blockIdx.y * blockDim.x + threadIdx.x;
+    
+    // Step 2 : Load in Shared Memory the information needed in the current block of the product -----------
+    // In the 1D scheme, we use a loop to run through the line.
+    // In the 2D scheme presented here, the computation is done in parallel wrt both lines and columns.
+    // Hence, we use "blockId.y" to get our current column number.
+    int j = blockIdx.y * blockDim.x + threadIdx.x; // Same blockDim in x and y : squared tiles.
     if(j<ny) // we load yj from device global memory only if j<ny
         load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load yj variables from global memory to shared memory
-
-    __syncthreads();
+        // More precisely : the j-th line of py is loaded to yj, at a location which depends on the
+        // current threadId.
+        
+    __syncthreads(); // Make sure nobody lags behind
+    
+    // Step 3 : Once the data is loaded, execute fun --------------------------------------------------------
+    // N.B.: There's no explicit summation here. Just calls to fun, which *accumulates* the results 
+    //       along the line, but does not *have* to use a "+=" as reduction operator.
+    //       In the future, we could provide other reductions: max, min, ... whatever's needed.
 
     if(i<nx) { // we compute x1i only if needed
-        TYPE* yjrel = yj;
+        TYPE* yjrel = yj;  // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY)
-            call<DIMSX,DIMSY>(fun,xi,yjrel,param); // call function
-        __syncthreads();
+            call<DIMSX,DIMSY>(fun,xi,yjrel,param); // Call the function, which accumulates results in xi[0:DIMX1]
+        __syncthreads();                           // Shouldn't we put the syncthreads outside the if ??? It may make no difference, mind.
     }
 
-    // Save the result in global memory.
+    // Step 4 : Save the result in global memory -----------------------------------------------------------
+    // The current thread has computed the "linewise-sum" of a small block of the full Kernel Product 
+    // matrix, which corresponds to KP[ blockIdx.x * blockDim.x : (blockIdx.x+1) * blockDim.x ,
+    //                                  blockIdx.y * blockDim.x : (blockIdx.y+1) * blockDim.x ]
+    // We accumulate it in the output array (*px) = px[0], which has in fact gridSize.y * nx
+    // lines of size DIMX1. The final reduction, which "sums over the block lines",
+    // shall be done in a later step.
     if(i<nx)
         for(int k=0; k<DIMX1; k++)
-            (*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k] = xi[k];
+            (*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k] = xi[k]; // 
 }
 ///////////////////////////////////////////////////
 
@@ -75,7 +119,8 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE** px_h, TYPE** py_h) {
     const int SIZEX = DIMSX::SIZE;
     const int SIZEY = DIMSY::SIZE;
 
-    // Data on the device.
+    // Data on the device. We need an "inflated" x1B, which contains gridSize.y "copies" of x_d
+    // that will be reduced in the final pass.
     TYPE *x1B, *x_d, *y_d;
 
     TYPE **px_d, **py_d;
@@ -122,8 +167,11 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE** px_h, TYPE** py_h) {
     cudaMalloc((void**)&x1B, sizeof(TYPE)*(nx*DIMX1*gridSize.y));
     px_d[0] = x1B;
 
+    // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,param,nx,ny,px_d,py_d);
-
+    
+    // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
+    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMX1 ) to (nx, DIMX1)
     reduce0<TYPE,DIMX1><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
 
     // block until the device has completed
@@ -143,6 +191,8 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE** px_h, TYPE** py_h) {
 }
 
 
+// Wrapper around GpuConv2D, which takes lists of arrays *x1, *x2, ..., *y1, *y2, ...
+// and use getlist to enroll them into "pointers arrays" px and py.
 template < typename TYPE, class FUN, class PARAM, typename... Args >
 int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, Args... args) {
 
@@ -188,6 +238,7 @@ int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {
     return 0;
 }
 
+// Wrapper, for user-friendly input format.
 template < typename TYPE, class FUN, class PARAM, typename... Args >
 int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE* x1, Args... args) {
     typedef typename FUN::DIMSX DIMSX;
