@@ -1,11 +1,6 @@
-
+// generic convolution ; requires FORMULA to be defined via a #define command at the beginning
+// or with the command line ; for example using :
 // (echo "#define FORMULA Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>" ; cat link_autodiff.cu) | nvcc -x cu -std=c++11 -Xcompiler -fPIC -shared -o link_autodiff.so -I $PWD -
-
-// ./compile "Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>"
-// ./compile "GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>"
-// ./compile "X<0,3>"
-
-// nvcc -std=c++11 -Xcompiler -fPIC -shared -o link_autodiff.so link_autodiff.cu
 
 #include "GpuConv2D.cu"
 #include "autodiff.h"
