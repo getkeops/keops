@@ -1,0 +1,1 @@
+(echo "#define FORMULA $1" ; cat link_autodiff.cu) | nvcc -x cu -std=c++11 -Xcompiler -fPIC -shared -o /dev/stdout -I $PWD - > "$1.so"
