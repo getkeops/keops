@@ -23,7 +23,7 @@ using namespace std;
 
 // Conditional type, a templating emulator of a conditional statement. --------------------------
 // This convoluted syntax allows us to write
-// CondType<A,B,0> = B,  CondType<A,B,1> = B
+// CondType<A,B,1> = A,  CondType<A,B,0> = B
 template < class A, class B, bool TEST >
 struct CondTypeAlias;
 
