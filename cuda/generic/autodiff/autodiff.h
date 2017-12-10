@@ -422,34 +422,38 @@ struct ScalprodAlias<Zero<DIM1>,Zero<DIM2>>
 
 
 //////////////////////////////////////////////////////////////
+////         SQUARED L2 NORM : SqNorm2< F >               ////
 //////////////////////////////////////////////////////////////
 
-
+// Simple alias
 template < class F >
 using SqNorm2 = Scalprod<F,F>;
 
 //////////////////////////////////////////////////////////////
+////             EXPONENTIAL : Exp< F >                   ////
 //////////////////////////////////////////////////////////////
-
-
 
 template < class F >
 struct Exp
-{	
+{   
+    // The exponential goes from R^1 to R^1
     static const int DIM = 1;
     static_assert(F::DIM==1,"Dimension of input must be one for exp function");
 
+    // Vars(Exp(F)) = Vars(F)
     template < int CAT >
     using VARS = typename F::VARS<CAT>;
 
+    // To evaluate Exp(F), first evaluate F, then take its exponential...
     template < class INDS, typename... ARGS >
     INLINE void Eval(float* params, float* out, ARGS... args)
-    {	
-        float outF[1];	
+    {
+        float outF[1];
         F::template Eval<INDS>(params,outF,args...);
-        *out = exp(*outF);		
+        *out = exp(*outF);
     }
-
+    
+    // [\partial_V exp(F)].gradin = exp(F) * [\partial_V F].gradin
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
         
@@ -458,24 +462,31 @@ struct Exp
 
 };
 
+//////////////////////////////////////////////////////////////
+////             POWER OPERATOR : Pow< F, M >             ////
+//////////////////////////////////////////////////////////////
 
 template < class F, int M >
 struct Pow
-{	
+{
+    // Pow goes from R^1 to R^1
     static const int DIM = 1;
     static_assert(F::DIM==1,"Dimension of input must be one for exp function");
-
+    
+    // Vars( F^M ) = Vars( F )
     template < int CAT >
     using VARS = typename F::VARS<CAT>;
 
+    // To compute F^M, first compute F, then use the cmath function pow.
     template < class INDS, typename... ARGS >
     INLINE void Eval(float* params, float* out, ARGS... args)
-    {	
-        float outF[1];	
+    {
+        float outF[1];
         F::template Eval<INDS>(params,outF,args...);
-        *out = pow(*outF,M);		
+        *out = pow(*outF,M);
     }
 
+    // [\partial_V F^M].gradin  =  M * (F^(M-1)) * [\partial_V F].gradin
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
         
@@ -484,31 +495,50 @@ struct Pow
 
 };
 
+//////////////////////////////////////////////////////////////
+////             SQUARED OPERATOR : Square< F >           ////
+//////////////////////////////////////////////////////////////
+
 template < class F >
 using Square = Pow<F,2>;
 
+//////////////////////////////////////////////////////////////
+////               MINUS OPERATOR : Minus< F >            ////
+//////////////////////////////////////////////////////////////
 
 template < class F >
 using Minus = Scal<IntConstant<-1>,F>;
+
+//////////////////////////////////////////////////////////////
+////               SUBTRACTION  : Subtract< A,B >         ////
+//////////////////////////////////////////////////////////////
 
 template < class FA, class FB >
 using Subtract = Add<FA,Minus<FB>>;
 
 
+//////////////////////////////////////////////////////////////
+//// GAUSSIAN KERNEL  : GaussKernel< OOS2, X, Y, Beta >   ////
+//////////////////////////////////////////////////////////////
 
+// GaussKernel( c, x, y, b = exp(- c * |x-y|_2^2 )  * b
 template < class OOS2, class X, class Y, class Beta >
 using GaussKernel = Scal<Exp<Scal<Constant<OOS2>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
 
 
-
+//////////////////////////////////////////////////////////////
+////             N-th PARAMETER  : Param< N >             ////
+//////////////////////////////////////////////////////////////
 
 template < int N >
 struct Param
-{
-    static const int INDEX = N;
-};
+{   static const int INDEX = N; };
 
+//////////////////////////////////////////////////////////////
+////      GRADIENT OPERATOR  : Grad< F, V, Gradin >       ////
+//////////////////////////////////////////////////////////////
 
+// Computes [\partial_V F].gradin
 template < class F, class V, class GRADIN >
 using Grad = typename F::template DiffT<V,GRADIN>;
 
