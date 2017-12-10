@@ -1,32 +1,42 @@
 #ifndef CUDAFUNCTIONS
 #define CUDAFUNCTIONS
 
+// CONVENTION WARNINGS:
+// - for efficiency, these routines take as input the SQUARED norm
+// - they are not "normalized", so beware and look at the formula that is actually implemented
+// - for efficiency, the "gaussian" formula is exp(-x2 / s^2), and not exp(-x^2 / 2s^2)
+
+// Defines the elementary Real-valued functions, which take as input a quadratic norm
+// and output a kernel value (gaussian...) and its derivatives.
+
+// An abstract radial function f : r^2 -> f(r^2) should define :
 template < typename TYPE >
 class RadialFunction {
 
   public:
 
-    virtual __host__ __device__ __forceinline__ TYPE Eval(TYPE u) = 0;
-    virtual __host__ __device__ __forceinline__ TYPE Diff(TYPE u) = 0;
-    virtual __host__ __device__ __forceinline__ TYPE Diff2(TYPE u) = 0;
+    virtual __host__ __device__ __forceinline__ TYPE Eval(TYPE u) = 0;  // f  (r2)
+    virtual __host__ __device__ __forceinline__ TYPE Diff(TYPE u) = 0;  // f' (r2)
+    virtual __host__ __device__ __forceinline__ TYPE Diff2(TYPE u) = 0; // f''(r2)
     virtual __host__ __device__ __forceinline__ void DiffDiff2(TYPE u, TYPE* d1, TYPE* d2) {
         *d1 = Diff(u);
         *d2 = Diff2(u);
     }
 };
 
+// Cauchy_s(r2) = 1 / (1 + r2/(s^2))
+// It is a scalable version of the Cauchy kernel x -> 1 / (1+x^2)
 template < typename TYPE >
 class CauchyFunction : public RadialFunction<TYPE> {
-    TYPE ooSigma2, ooSigma4;
+    TYPE ooSigma2, ooSigma4; // We precompute the inverse of sigma, for efficiency
 
   public:
 
-    CauchyFunction() {
+    CauchyFunction() {       // Default constructor, sigma = 1
         ooSigma2 = 1.0;
         ooSigma4 = 1.0;
     }
-
-    CauchyFunction(TYPE sigma) {
+    CauchyFunction(TYPE sigma) {  // Generic constructor
         ooSigma2 = 1.0/(sigma*sigma);
         ooSigma4 = ooSigma2*ooSigma2;
     }
@@ -34,17 +44,14 @@ class CauchyFunction : public RadialFunction<TYPE> {
     __host__ __device__ __forceinline__ TYPE Eval(TYPE r2) {
         return 1.0/(1.0+r2*ooSigma2);
     }
-
     __host__ __device__ __forceinline__ TYPE Diff(TYPE r2) {
         TYPE u = 1.0+r2*ooSigma2;
         return (- ooSigma2 / (u*u));
     }
-
     __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2) {
         TYPE u = 1.0+r2*ooSigma2;
         return 2.0*ooSigma4 / (u*u*u);
     }
-
     __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2) {
         TYPE u = 1.0/(1.0+r2*ooSigma2);
         *d1 = - ooSigma2 * u * u;
@@ -52,19 +59,20 @@ class CauchyFunction : public RadialFunction<TYPE> {
     }
 };
 
+// Gauss_s(r2) = exp( - r2 / s^2)
+// It is a scalable version of the Gaussian kernel x -> exp( - x^2 ) 
 template < typename TYPE >
 class GaussFunction : public RadialFunction<TYPE> {
 
-    TYPE ooSigma2, ooSigma4;
+    TYPE ooSigma2, ooSigma4; // We precompute the inverse of sigma, for efficiency
 
   public:
 
-    GaussFunction() {
+    GaussFunction() {        // Default constructor, sigma = 1
         ooSigma2 = 1.0;
         ooSigma4 = 1.0;
     }
-
-    GaussFunction(TYPE sigma) {
+    GaussFunction(TYPE sigma) {  // Generic constructor
         ooSigma2 = 1.0/(sigma*sigma);
         ooSigma4 = ooSigma2*ooSigma2;
     }
@@ -72,21 +80,20 @@ class GaussFunction : public RadialFunction<TYPE> {
     __host__ __device__ __forceinline__ TYPE Eval(TYPE r2) {
         return exp(-r2*ooSigma2);
     }
-
     __host__ __device__ __forceinline__ TYPE Diff(TYPE r2) {
         return (-ooSigma2*exp(-r2*ooSigma2));
     }
-
     __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2) {
         return ooSigma4*exp(-r2*ooSigma2);
     }
-
     __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2) {
         *d1 = - ooSigma2*exp(-r2*ooSigma2);
         *d2 = - ooSigma2* *d1;
     }
 };
 
+// Laplace_s(r2) = exp( - sqrt( s^2 + r2 ) )
+// It is a scalable version of the exponential-like kernel x -> exp( - sqrt(1+x^2) ) 
 template < typename TYPE >
 class LaplaceFunction : public RadialFunction<TYPE> {
 
@@ -98,7 +105,6 @@ class LaplaceFunction : public RadialFunction<TYPE> {
         ooSigma2 = 1.0;
         ooSigma4 = 1.0;
     }
-
     LaplaceFunction(TYPE sigma) {
         ooSigma2 = 1.0/(sigma*sigma);
         ooSigma4 = ooSigma2*ooSigma2;
@@ -107,17 +113,14 @@ class LaplaceFunction : public RadialFunction<TYPE> {
     __host__ __device__ __forceinline__ TYPE Eval(TYPE r2) {
         return exp(- sqrt( 1.0/ooSigma2 + r2));
     }
-
     __host__ __device__ __forceinline__ TYPE Diff(TYPE r2) {
         TYPE s = sqrt( 1.0/ooSigma2 + r2);
         return - exp(- s ) / (2.0 * s );
     }
-
     __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2) {
         TYPE s = sqrt( 1.0/ooSigma2 + r2);
         return .25 * (1.0/(s*s*s) + 1.0/s) * exp(- s);
     }
-
     __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2) {
         TYPE s = sqrt( 1.0/ooSigma2 + r2);
         *d1 = - exp(- s ) / (2.0 * s );
@@ -125,6 +128,9 @@ class LaplaceFunction : public RadialFunction<TYPE> {
     }
 };
 
+
+// Energy_s(r2) = 1 / (s^2 + r2)^(1/4)
+// It is a scalable and smooth version of the heavy tail kernel x -> 1 / sqrt( ||x|| )
 template < typename TYPE >
 class EnergyFunction : public RadialFunction<TYPE> {
 
@@ -136,7 +142,6 @@ class EnergyFunction : public RadialFunction<TYPE> {
         ooSigma2 = 1.0;
         ooSigma4 = 1.0;
     }
-
     EnergyFunction(TYPE sigma) {
         ooSigma2 = 1.0/(sigma*sigma);
         ooSigma4 = ooSigma2*ooSigma2;
@@ -145,21 +150,24 @@ class EnergyFunction : public RadialFunction<TYPE> {
     __host__ __device__ __forceinline__ TYPE Eval(TYPE r2) {
         return 1.0 / pow( 1.0/ooSigma2 + r2, .25);
     }
-
     __host__ __device__ __forceinline__ TYPE Diff(TYPE r2) {
         return -.25 / pow( 1.0/ooSigma2 + r2, 1.25);
     }
-
     __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2) {
         return .3125 / pow( 1.0/ooSigma2 + r2, 2.25);
     }
-
     __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2) {
         *d1 = -.25 / pow( 1.0/ooSigma2 + r2, 1.25);
         *d2 = .3125 / pow( 1.0/ooSigma2 + r2, 2.25);
     }
 };
 
+
+// Gauss4_s(r2) = Gauss_s(r2) + Gauss_(s/2)(r2) + Gauss_(s/4)(r2) + Gauss_(s/8)(r2)
+// It can be used as a Gaussian approximation to heavy-tail kernels,
+// and is most relevant in a "full image" setting where the separability of the Gaussian
+// convolution operator comes handy.
+// It is provided here for the sake of completeness, and for historical reasons.
 template < typename TYPE >
 class Sum4GaussFunction : public RadialFunction<TYPE> {
     TYPE ooSigma2, ooSigma4;
@@ -178,15 +186,12 @@ class Sum4GaussFunction : public RadialFunction<TYPE> {
     __host__ __device__ __forceinline__ TYPE Eval(TYPE r2) {
         return exp(-r2*ooSigma2) + exp(-4.0*r2*ooSigma2) + exp(-16.0*r2*ooSigma2) + exp(-64.0*r2*ooSigma2);
     }
-
     __host__ __device__ __forceinline__ TYPE Diff(TYPE r2) {
         return - ooSigma2*(exp(-r2*ooSigma2) - 4.0*exp(-4.0*r2*ooSigma2) - 16.0*exp(-16.0*r2*ooSigma2) - 64.0*exp(-64.0*r2*ooSigma2));
     }
-
     __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2) {
         return ooSigma4*(exp(-r2*ooSigma2) + 16.0*exp(-4.0*r2*ooSigma2) + 256.0*exp(-16.0*r2*ooSigma2) + 4096*exp(-64.0*r2*ooSigma2));
     }
-
     __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2) {
         *d1 = 0;
         *d2 = 0;
@@ -203,6 +208,10 @@ class Sum4GaussFunction : public RadialFunction<TYPE> {
     }
 };
 
+
+
+// Cauchy4_s(r2) = Cauchy_s(r2) + Cauchy_(s/2)(r2) + Cauchy_(s/4)(r2) + Cauchy_(s/8)(r2)
+// It can be used as a Cauchy approximation to heavy-tail kernels.
 template < typename TYPE >
 class Sum4CauchyFunction : public RadialFunction<TYPE> {
     TYPE ooSigma2, ooSigma4;
@@ -213,7 +222,6 @@ class Sum4CauchyFunction : public RadialFunction<TYPE> {
         ooSigma2 = 1.0;
         ooSigma4 = 1.0;
     }
-
     Sum4CauchyFunction(TYPE sigma) {
         ooSigma2 = 1.0/(sigma*sigma);
         ooSigma4 = ooSigma2*ooSigma2;
@@ -222,7 +230,6 @@ class Sum4CauchyFunction : public RadialFunction<TYPE> {
     __host__ __device__ __forceinline__ TYPE Eval(TYPE r2) {
         return 1.0/(1.0+r2*ooSigma2) + 1.0/(1.0+r2*4.0*ooSigma2) + 1.0/(1.0+r2*16.0*ooSigma2) + 1.0/(1.0+r2*64.0*ooSigma2);
     }
-
     __host__ __device__ __forceinline__ TYPE Diff(TYPE r2) {
         TYPE u, v = 0, oos2 = 1;
         for(int k=0; k<4; k++) {
@@ -232,7 +239,6 @@ class Sum4CauchyFunction : public RadialFunction<TYPE> {
         }
         return v*ooSigma2;
     }
-
     __host__ __device__ __forceinline__ TYPE Diff2(TYPE r2) {
         TYPE u, v = 0, oos2=1;
         for(int k=0; k<4; k++) {
@@ -242,7 +248,6 @@ class Sum4CauchyFunction : public RadialFunction<TYPE> {
         }
         return u*ooSigma4;
     }
-
     __host__ __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2) {
         *d1 = 0;
         *d2 = 0;
@@ -261,7 +266,12 @@ class Sum4CauchyFunction : public RadialFunction<TYPE> {
 
 
 
-
+// SumGauss_{w1,s1, w2,s2, ...}(r2) = \sum_i wi * Gauss_{si}(r2)
+// It can be a convenient way to generate tunable parametric kernel functions.
+// It can be used to generate Gaussian approximations of heavy-tail kernels,
+// and is most relevant in a "full image" setting where the separability of the Gaussian
+// convolution operator comes handy.
+// It is provided here for the sake of completeness, and for historical reasons.
 template < typename TYPE >
 class SumGaussFunction : public RadialFunction<TYPE> {
     int Nfuns;
@@ -298,28 +308,24 @@ class SumGaussFunction : public RadialFunction<TYPE> {
         cudaFree(ooSigma2s);
         cudaFree(ooSigma4s);
     }
-
     __device__ __forceinline__ TYPE Eval(TYPE r2) {
         TYPE res = 0.0;
         for(int i=0; i<Nfuns; i++)
             res += Weights[i] * exp(-r2*ooSigma2s[i]);
         return res;
     }
-
     __device__ __forceinline__ TYPE Diff(TYPE r2) {
         TYPE res = 0.0;
         for(int i=0; i<Nfuns; i++)
             res += Weights[i] * (- ooSigma2s[i] * exp(-r2*ooSigma2s[i]));
         return res;
     }
-
     __device__ __forceinline__ TYPE Diff2(TYPE r2) {
         TYPE res = 0.0;
         for(int i=0; i<Nfuns; i++)
             res += Weights[i] * (ooSigma4s[i] * exp(-r2*ooSigma2s[i]));
         return res;
     }
-
     __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2) {
         TYPE tmp;
         *d1 = 0.0;
@@ -333,6 +339,9 @@ class SumGaussFunction : public RadialFunction<TYPE> {
 
 };
 
+
+// SumCauchy_{w1,s1, w2,s2, ...}(r2) = \sum_i wi * Cauchy_{si}(r2)
+// It can be a convenient way to generate tunable parametric kernel functions.
 template < typename TYPE >
 class SumCauchyFunction : public RadialFunction<TYPE> {
     int Nfuns;
@@ -362,21 +371,19 @@ class SumCauchyFunction : public RadialFunction<TYPE> {
         free(oosigma2s);
         free(oosigma4s);
     }
-
     __device__ __forceinline__ ~SumCauchyFunction() {
         cudaFree(Weights);
         cudaFree(Sigmas);
         cudaFree(ooSigma2s);
         cudaFree(ooSigma4s);
     }
-
+    
     __device__ __forceinline__ TYPE Eval(TYPE r2) {
         TYPE res = 0.0;
         for(int i=0; i<Nfuns; i++)
             res += Weights[i] / (1.0+r2*ooSigma2s[i]);
         return res;
     }
-
     __device__ __forceinline__ TYPE Diff(TYPE r2) {
         TYPE res = 0.0, u;
         for(int i=0; i<Nfuns; i++) {
@@ -385,7 +392,6 @@ class SumCauchyFunction : public RadialFunction<TYPE> {
         }
         return res;
     }
-
     __device__ __forceinline__ TYPE Diff2(TYPE r2) {
         TYPE res = 0.0, u;
         for(int i=0; i<Nfuns; i++) {
@@ -394,7 +400,6 @@ class SumCauchyFunction : public RadialFunction<TYPE> {
         }
         return res;
     }
-
     __device__ __forceinline__ void DiffDiff2(TYPE r2, TYPE* d1, TYPE* d2) {
         TYPE u, tmp;
         *d1 = 0.0;
@@ -406,8 +411,6 @@ class SumCauchyFunction : public RadialFunction<TYPE> {
             *d2 += Weights[i] * (-2.0 * ooSigma2s[i] * tmp * u);
         }
     }
-
-
 
 };
 
