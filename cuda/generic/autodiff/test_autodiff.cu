@@ -126,23 +126,23 @@ int main()
 
 
 
-	vector<float> vex(Nx*Eta::DIM); fillrandom(vex); float *ex = vex.data();
+	vector<float> ve(Nx*Eta::DIM); fillrandom(ve); float *e = ve.data();
 
 	cout << "testing function GX" << endl;
 	begin = clock();
-	GpuConv2D(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, ex); 
+	GpuConv2D(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e); 
 	end = clock();
 	cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
 	begin = clock();
-	GpuConv2D(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, ex); 
+	GpuConv2D(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e); 
 	end = clock();
 	cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
 	resgpu = vf;
 		
 	begin = clock();
-	CpuConv(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, ex); 
+	CpuConv(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e); 
 	end = clock();
 	cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
@@ -156,9 +156,8 @@ int main()
 
 
 
-	// gradient wrt Y, which is a "j" variable. This part fails for some reason...
-/*
-	vector<float> vey(Ny*Eta::DIM); fillrandom(vey); float *ey = vey.data();
+	// gradient wrt Y, which is a "j" variable. 
+
 	rescpu.resize(Ny*GY::DIM);
 	resgpu.resize(Ny*GY::DIM);
 	vf.resize(Ny*GY::DIM);
@@ -166,19 +165,19 @@ int main()
 
 	cout << "testing function GY" << endl;
 	begin = clock();
-	GpuConv2D(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, ey); 
+	GpuConv2D(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e); 
 	end = clock();
 	cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
 	begin = clock();
-	GpuConv2D(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, ey); 
+	GpuConv2D(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e); 
 	end = clock();
 	cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
 	resgpu = vf;
 		
 	begin = clock();
-	CpuConv(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, ey); 
+	CpuConv(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e); 
 	end = clock();
 	cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
@@ -188,8 +187,8 @@ int main()
 	s = 0;
 	for(int i=0; i<Ny*GY::DIM; i++)
 		s += abs(resgpu[i]-rescpu[i]);
-	cout << "mean abs error =" << s/Nx << endl;
-*/
+	cout << "mean abs error =" << s/Ny << endl;
+
 
 
 }
