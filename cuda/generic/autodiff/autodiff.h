@@ -1,3 +1,24 @@
+/*
+ * 
+ * The file where the elementary operators are defined.
+ * Available operations are :
+ *      IntConstant<N>				: constant integer function with value N
+ *      Constant<PRM>				: constant function with value given by parameter PRM (ex : Constant<C> here)
+ *      Add<FA,FB>					: adds FA and FB functions
+ *      Scalprod<FA,FB> 			: scalar product between FA and FB
+ *      Scal<FA,FB>					: product of FA (scalar valued) with FB
+ *      SqNorm2<F>					: alias for Scalprod<F,F>
+ *      Exp<F>						: exponential of F (scalar valued)
+ *      Pow<F,M>					: Mth power of F (scalar valued) ; M is an integer
+ *      Square<F>					: alias for Pow<F,2>
+ *      Minus<F>					: alias for Scal<IntConstant<-1>,F>
+ *      Subtract<FA,FB>				: alias for Add<FA,Minus<FB>>
+ *      GaussKernel<PRM,FA,FB,FC> 	: alias for Scal<Exp<Scal<Constant<PRM>,Minus<SqNorm2<Subtract<FA,FB>>>>>,FC>
+ *      Grad<F,V,GRADIN>			: gradient (in fact transpose of diff op) of F with respect to variable V, applied to GRADIN
+ * 
+ */
+
+// N.B.: this file assumes that Pack.h has already been loaded, defining univpack and other collection class.
 
 #define INLINE static __host__ __device__ __forceinline__ 
 //#define INLINE static inline
@@ -8,14 +29,14 @@
 
 using namespace std;
 
-
+// At compilation time, detect the maximum between two values (typically, dimensions)
 template <typename T>
 static constexpr T static_max(T a, T b) 
 {
     return a < b ? b : a;
 }
 
-template < int DIM > struct Zero;
+template < int DIM > struct Zero; // Declare Zero in the header, for IdOrZeroAlias. Implementation below.
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -38,33 +59,40 @@ using IdOrZero = typename IdOrZeroAlias<Vref,V,FUN>::type;
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-// class for base variable
+/* Class for base variable
+ * It is the atomic block of our autodiff engine.
+ * A variable is given by :
+ * - an index number _N (is it x1i, x2i, x3i or ... ?)
+ * - a dimension _DIM of the vector
+ * - a category CAT, equal to 0 if Var is "a  parallel variable" xi,
+ *                   equal to 1 if Var is "a summation variable" yj.
+ */
 template < int _N, int _DIM, int CAT=0 >
 struct Var
 {
-	static const int N = _N;
-	static const int DIM = _DIM;
-	
-	template < int CAT_ >
-	using VARS = CondType<univpack<Var<N,DIM>>,univpack<>,CAT==CAT_>;
+    static const int N   = _N;
+    static const int DIM = _DIM;
 
-	template < class INDS, typename ...ARGS >
-	INLINE void Eval(float* params, float* out, ARGS... args)
-	{
-		auto t = thrust::make_tuple(args...);
-		float* xi = thrust::get<IndValAlias<INDS,N>::ind>(t);
-		for(int k=0; k<DIM; k++)
-			out[k] = xi[k];
-	}
+    template < int CAT_ >
+    using VARS = CondType<univpack<Var<N,DIM>>,univpack<>,CAT==CAT_>;
 
-	template < class V, class GRADIN >
-	using DiffT = IdOrZero<Var<N,DIM,CAT>,V,GRADIN>;
-			
+    template < class INDS, typename ...ARGS >
+    INLINE void Eval(float* params, float* out, ARGS... args)
+    {
+        auto t = thrust::make_tuple(args...);
+        float* xi = thrust::get<IndValAlias<INDS,N>::ind>(t);
+        for(int k=0; k<DIM; k++)
+            out[k] = xi[k];
+    }
+
+    template < class V, class GRADIN >
+    using DiffT = IdOrZero<Var<N,DIM,CAT>,V,GRADIN>;
 };
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+// A "zero" vector of size _DIM
 template < int _DIM >
 struct Zero
 {

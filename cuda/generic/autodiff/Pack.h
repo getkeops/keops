@@ -1,3 +1,19 @@
+/*
+ * To differentiate automatically our code at compilation time, we'll have to use some 
+ * very advanced C++ syntax. Indeed, as we use the compiler as a "formula/graph-processing engine",
+ * we need it to process tree structures and lists of variables.
+ * This is achieved using the recursive ("variadic") templating of C++11; 
+ * we define the following "container/symbolic" templates:
+ * - univpack,    which acts as a list of symbolic types
+ * - pack,        which acts more specifically as a list of vectors of known sizes
+ * - CondType,    which acts as a symbolic conditional statement
+ * - ConcatPacks, which is a concatenation operator for packs
+ * 
+ */
+
+
+
+
 #ifndef PACK
 #define PACK
 
@@ -5,207 +21,192 @@
 
 using namespace std;
 
+// Conditional type, a templating emulator of a conditional statement. --------------------------
+// This convoluted syntax allows us to write
+// CondType<A,B,0> = B,  CondType<A,B,1> = B
 template < class A, class B, bool TEST >
 struct CondTypeAlias;
 
 template < class A, class B >
 struct CondTypeAlias<A,B,true>
-{
-	using type = A;
-};
+{   using type = A; };
 
 template < class A, class B >
 struct CondTypeAlias<A,B,false>
-{
-	using type = B;
-};
+{   using type = B; };
 
 template < class A, class B, bool TEST >
 using CondType = typename CondTypeAlias<A,B,TEST>::type;
 
 
 
+// "univpack" is a minimal "templating list", defined recursively. ------------------------------
+// It allows us to work with "lists" of variables in a formula, at compilation time.
 
-template < int... NS > struct pack;
+template < int... NS > struct pack; // "pack" is the m
 
+// The empty "univpack", an empty list "< > = []"
 template < typename... Args >
 struct univpack
 {
-    using FIRST = void;
-    
-	static const int SIZE = 0;
-	
-    template < class D >
-    using PUTLEFT = univpack<D>;
-		
-	using NEXT = void;
+    using FIRST = void;         // [].head() = void
+    static const int SIZE = 0;  // len([])   = 0
 
+    template < class D >        // [].append_first(D) = [D]
+    using PUTLEFT = univpack<D>;
+        
+    using NEXT = void;          // [].tail() = void
 };
 
-
+// A non-empty univpack, defined recursively as [C] + univpack( Args )
 template < class C, typename... Args >
 struct univpack<C,Args...>
 {
-    using FIRST = C;
-    
-	static const int SIZE = 1+sizeof...(Args);
-	
-    template < class D >
-    using PUTLEFT = univpack<D, C, Args...>;
-		
-	using NEXT = univpack<Args...>;
+    using FIRST = C;             // [C, ...].head() = C
+    static const int SIZE = 1+sizeof...(Args); // len([C, ...]) = 1 + len([...])
 
+    template < class D >         // [C, ...].append_first(D) = [D, C, ...]
+    using PUTLEFT = univpack<D, C, Args...>;
+        
+    using NEXT = univpack<Args...>; // [C, ...].tail() = [...]
 };
 
+
+// OPERATIONS ON PACKS AND UNIVPACKS ============================================================
+// Once again, a convoluted syntax to write the "concatenation" of two lists. -------------------
+// ConcatPacks<[...],[...]> = [..., ...]  (for packs)
 template < class PACK1, class PACK2 >
 struct ConcatPacksAlias
-{
-	using type = int;
-};
+{   using type = int; }; // default dummy type
 
 template < int... IS, int... JS >
 struct ConcatPacksAlias<pack<IS...>,pack<JS...>>
-{
-	using type = pack<IS...,JS...>;
-};
+{   using type = pack<IS...,JS...>; };
 
 template < class PACK1, class PACK2 >
 using ConcatPacks = typename ConcatPacksAlias<PACK1,PACK2>::type;
 
 
+// Merge operation for univpacks. ---------------------------------------------------------------
+// MergePacks<[...],[...]> = {...} : a "merged" list, without preservation of ordering
+//                                   and uniqueness of elements
+// Basically, this operator concatenates two LISTS and sees the result as a SET.
+// (Jean :) the syntax becomes *really* convoluted here. I may have made a mistake when commenting.
 
+// First step : MergeIn, which "adds" an element C to a set PACK
 template < class C, class PACK >
 struct MergeInPackAlias
-{
-	using type = int;
-};
+{   using type = int; };
 
 template < class C, class D, typename... Args >
-struct MergeInPackAlias<C,univpack<D,Args...>>
+struct MergeInPackAlias<C,univpack<D,Args...>> // MergeIn( C, [D, ...] )
 {
-	using tmp = typename MergeInPackAlias<C,univpack<Args...>>::type;
-	using type = typename tmp::PUTLEFT<D>;
+    using tmp = typename MergeInPackAlias<C,univpack<Args...>>::type;
+    using type = typename tmp::PUTLEFT<D>;     // = [D] + MergeIn( C, [...] ) (ordering is not preserved !)
 };
 
 template < class C, typename... Args >
-struct MergeInPackAlias<C,univpack<C,Args...>>
-{
-	using type = univpack<C,Args...>;
-};
+struct MergeInPackAlias<C,univpack<C,Args...>> // MergeIn( C, [C, ...] )
+{   using type = univpack<C,Args...>; };       // = [C, ...] (without repetition of C !)
 
 template < class C >
-struct MergeInPackAlias<C,univpack<>>
-{
-	using type = univpack<C>;
-};
+struct MergeInPackAlias<C,univpack<>>          // MergeIn( C, [] )
+{   using type = univpack<C>; };               // = [C]
 
 //template < class C, class PACK >
 //using MergeInPack = typename MergeInPackAlias<C,PACK>::type;
 
-	
-
+// Second step : merging two sets by "eating-up" the first one and applying MergeIn.
 template < class PACK1, class PACK2 >
 struct MergePacksAlias;
 
 template < typename... Args1, class C, typename... Args2 >
-struct MergePacksAlias<univpack<C,Args1...>,univpack<Args2...>>
+struct MergePacksAlias<univpack<C,Args1...>,univpack<Args2...>>           // Merge([C,...], [...])
 {
 	using tmp = typename MergeInPackAlias<C,univpack<Args2...>>::type;
-	using type = typename MergePacksAlias<univpack<Args1...>,tmp>::type;
+	using type = typename MergePacksAlias<univpack<Args1...>,tmp>::type;  // = Merge([...], MergeIn(C, [...]))
 };
 
 template < typename... Args2 >
-struct MergePacksAlias<univpack<>,univpack<Args2...>>
-{
-	using type = univpack<Args2...>;
-};
+struct MergePacksAlias<univpack<>,univpack<Args2...>>                     // Merge( [], [...])
+{   using type = univpack<Args2...>; };                                   // = [...]
 
 template < class PACK1, class PACK2 >
 using MergePacks = typename MergePacksAlias<PACK1,PACK2>::type;
 
-	
-
+// Get the list of dimensions. ------------------------------------------------------------------
+// GetDims([a, b, c]) = [dim_a, dim_b, dim_c]                (works for univpacks)
 template < class UPACK >
 struct GetDimsAlias
 {
-	using a = typename UPACK::NEXT;
-	using c = typename GetDimsAlias<a>::type;
-	using type = typename c::PUTLEFT<UPACK::FIRST::DIM>;
+    using a = typename UPACK::NEXT;
+    using c = typename GetDimsAlias<a>::type;
+    using type = typename c::PUTLEFT<UPACK::FIRST::DIM>;
 };
 
 template <>
 struct GetDimsAlias< univpack<> >
 {
-	using type = pack<>;
+    using type = pack<>;
 };
 
 template < class UPACK >
 using GetDims = typename GetDimsAlias<UPACK>::type;
 
 
-
-
+// Get the list of indices (useful for univpacks of abstract Variables) -------------------------
+// GetInds( [X1, X3, Y2] ) = [1, 3, 2]
 template < class UPACK >
-struct GetIndsAlias
+struct GetIndsAlias                                    // GetInds( [Xi, ...] )
 {
-	using a = typename UPACK::NEXT;
-	using c = typename GetIndsAlias<a>::type;
-	using type = typename c::PUTLEFT<UPACK::FIRST::N>;
+    using a = typename UPACK::NEXT;
+    using c = typename GetIndsAlias<a>::type;
+    using type = typename c::PUTLEFT<UPACK::FIRST::N>; // = [i] + GetInds( [...] )
 };
 
 template <>
-struct GetIndsAlias< univpack<> >
-{
-	using type = pack<>;
-};
+struct GetIndsAlias< univpack<> >  // GetInds( [] )
+{   using type = pack<>; };        // = []
 
 template < class UPACK >
 using GetInds = typename GetIndsAlias<UPACK>::type;
 
 
-template < class INTPACK, int N >
-struct IndValAlias
-{	
-	static const int ind = 1+IndValAlias<typename INTPACK::NEXT,N>::ind;
-};
+// Search in a univpack -------------------------------------------------------------------------
+// IndVal( [ x0, x1, x2, ...], x2 ) = 2
+template < class INTPACK, int N >    // IndVal( [C, ...], N)     ( C != N )
+struct IndValAlias                   // = 1 + IndVal( [...], N)
+{   static const int ind = 1+IndValAlias<typename INTPACK::NEXT,N>::ind; };
 
 template < int N, int... NS >
-struct IndValAlias< pack<N,NS...>, N >
-{	
-	static const int ind = 0;
-};
+struct IndValAlias< pack<N,NS...>, N >  // IndVal( [N, ...], N)
+{   static const int ind = 0; };        // = 0
 
 template < int N >
-struct IndValAlias< pack<>, N >
-{	
-	static const int ind = 0;
-};
+struct IndValAlias< pack<>, N >         // IndVal( [], N )
+{   static const int ind = 0; };        // = 0
 
 template < class INTPACK, int N >
-static int IndVal() 
-{ 
-	return IndValAlias<INTPACK,N>::ind;
-}
+static int IndVal()                     // Use as IndVal<Intpack, N>()
+{   return IndValAlias<INTPACK,N>::ind; }
 
-
-
-
-template < class UPACK, int N >
+// Access the n-th element of an univpack -------------------------------------------------------
+// Val( [ x0, x1, x2, ...], i ) = xi
+template < class UPACK, int N >                  // Val([C, ...], N)  (N > 0)
 struct ValAlias
-{	
-	using a = typename UPACK::NEXT;
-	using type = typename ValAlias<a,N-1>::type;
+{
+    using a = typename UPACK::NEXT;
+    using type = typename ValAlias<a,N-1>::type; // = Val([...], N-1)
 };
 
 template < class UPACK >
-struct ValAlias< UPACK, 0 >
-{
-	using type = typename UPACK::FIRST;
-};
+struct ValAlias< UPACK, 0 >                      // Val([C, ...], 0)
+{   using type = typename UPACK::FIRST; };       // = C
 
 template < class UPACK, int N >
 using Val = typename ValAlias<UPACK,N>::type;
 
+// PACKS OF VECTORS =================================================================================
 // Define recursively how a "package" of variables should behave.
 // Packages are handled as list of vectors, stored in a contiguous memory space.
 // They are meant to represent (location,), (location, normal), (signal, location)
