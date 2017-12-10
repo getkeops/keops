@@ -404,6 +404,22 @@ struct ScalprodAlias<FA,Zero<DIM>>
     using type = Zero<1>;
 };
 
+// <0,B> = 0
+template < class FB, int DIM >
+struct ScalprodAlias<Zero<DIM>,FB>
+{
+    static_assert(DIM==FB::DIM,"Dimensions must be the same for Scalprod");
+    using type = Zero<1>;
+};
+
+// <0,0> = 0
+template < int DIM1, int DIM2 >
+struct ScalprodAlias<Zero<DIM1>,Zero<DIM2>>
+{
+    static_assert(DIM1==DIM2,"Dimensions must be the same for Scalprod");
+    using type = Zero<1>;
+};
+
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
