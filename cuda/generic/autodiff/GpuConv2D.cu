@@ -94,8 +94,9 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
 
 
 template < typename TYPE, class FUN, class PARAM >
-int GpuConv2D(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h)
+int GpuConv2D_(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h)
 {
+
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     const int DIMPARAM = FUN::DIMPARAM;
@@ -139,7 +140,7 @@ int GpuConv2D(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h)
         nvals = ny*DIMSY::VAL(k);
         cudaMemcpy(py_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     }
-
+    
     // Compute on device.
     dim3 blockSize;
     blockSize.x = 192; // number of threads in each block
@@ -156,7 +157,7 @@ int GpuConv2D(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h)
 
     cudaMalloc((void**)&x1B, sizeof(TYPE)*(nx*DIMX1*gridSize.y));
     px_d[0] = x1B;
-
+    
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,param_d,nx,ny,px_d,py_d);
 	
     reduce0<TYPE,DIMX1><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
@@ -200,7 +201,36 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, Args... args)
     getlist<INDSI>(px_h+1,args...);
     getlist<INDSJ>(py_h,args...);
 
-	return GpuConv2D(fun,param,nx,ny,px_h,py_h);
+	return GpuConv2D_(fun,param,nx,ny,px_h,py_h);
+
+}
+
+
+template < typename TYPE, class FUN, class PARAM >
+int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, TYPE** args)
+{
+	typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    
+    const int SIZEI = VARSI::SIZE+1;
+    const int SIZEJ = VARSJ::SIZE;
+
+    using DIMSX = GetDims<VARSI>; 
+    using DIMSY = GetDims<VARSJ>; 
+    
+    using INDSI = GetInds<VARSI>; 
+    using INDSJ = GetInds<VARSJ>; 
+
+    TYPE *px_h[SIZEI];
+    TYPE *py_h[SIZEJ];
+    
+    px_h[0] = x1_h;
+    for(int i=1; i<SIZEI; i++)
+    	px_h[i] = args[INDSI::VAL(i-1)];
+    for(int i=0; i<SIZEJ; i++)
+    	py_h[i] = args[INDSJ::VAL(i)];
+
+	return GpuConv2D_(fun,param,nx,ny,px_h,py_h);
 
 }
 
@@ -211,7 +241,7 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, Args... args)
 
 
 template < typename TYPE, class FUN, class PARAM >
-int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py)
+int CpuConv_(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py)
 {	
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
@@ -261,7 +291,34 @@ int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE* x1, Args... args)
     getlist<INDSI>(px+1,args...);
     getlist<INDSJ>(py,args...);
 
-	return CpuConv(fun,param,nx,ny,px,py);
+	return CpuConv_(fun,param,nx,ny,px,py);
+}
+
+template < typename TYPE, class FUN, class PARAM >
+int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE* x1, TYPE** args)
+{
+	typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    
+    const int SIZEI = VARSI::SIZE+1;
+    const int SIZEJ = VARSJ::SIZE;
+
+    using DIMSX = GetDims<VARSI>; 
+    using DIMSY = GetDims<VARSJ>; 
+    
+    using INDSI = GetInds<VARSI>; 
+    using INDSJ = GetInds<VARSJ>; 
+
+    TYPE *px[SIZEI];
+    TYPE *py[SIZEJ];
+    
+    px[0] = x1;
+    for(int i=1; i<SIZEI; i++)
+    	px[i] = args[INDSI::VAL(i-1)];
+    for(int i=0; i<SIZEJ; i++)
+    	py[i] = args[INDSJ::VAL(i)];
+
+	return CpuConv_(fun,param,nx,ny,px,py);
 }
 
 
