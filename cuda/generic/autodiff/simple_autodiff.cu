@@ -1,4 +1,3 @@
-
 // nvcc -std=c++11 -Xcompiler -fPIC -shared -o simple_autodiff.so simple_autodiff.cu
 
 
@@ -50,7 +49,7 @@ extern "C" int GYConv(float ooSigma2, float* x, float* y, float* u, float* v, fl
 {
 	float params[1];
 	params[0] = ooSigma2;
-	return GpuConv2D(FUNCONVGY(), params, nx, ny, gamma, x, y, u, v, beta, eta); 
+	return GpuConv2D(FUNCONVGY(), params, ny, nx, gamma, x, y, u, v, beta, eta); 
 }
 
 
