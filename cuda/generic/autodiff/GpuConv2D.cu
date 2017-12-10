@@ -375,8 +375,12 @@ int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE* x1, TYPE** args)
     return CpuConv_(fun,param,nx,ny,px,py);
 }
 
-
+// Generic function, created from a formula F (see autodiff.h), and a tag which is equal:
+// - to 0 if you do the summation over j (with i the index of the output vector),
+// - to 1 if you do the summation over i (with j the index of the output vector).
+//
 // (Jean :) It's a nice wrapper, but I don't really know why it's been put in this file ?
+//          Wouldn't the beginning of "autodiff.h" be a more appropriate location ?
 template < class F, int tagI=0 >
 class Generic
 {
@@ -387,9 +391,9 @@ class Generic
 
     struct sEval // static wrapper
     {
-        using VARSI = typename F::VARS<tagI>;
-        using VARSJ = typename F::VARS<tagJ>;
-        using DIMSX = typename GetDims<VARSI>::PUTLEFT<F::DIM>; // dimensions of "i" variables 
+        using VARSI = typename F::VARS<tagI>; // Use the tag to select the "parallel"  variable
+        using VARSJ = typename F::VARS<tagJ>; // Use the tag to select the "summation" variable
+        using DIMSX = typename GetDims<VARSI>::PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
         using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables  
 
         using INDSI = GetInds<VARSI>; 
