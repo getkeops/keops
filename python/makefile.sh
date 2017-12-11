@@ -52,8 +52,8 @@ for i in ${KERNEL_GEOM[@]}; do
         for k in ${KERNEL_SPHERE[@]}; do
             echo "Compiling $LIBKPPATH_DIST/fshape_gpu.cu with kernel geom: ${KGEOM[$i]}, kernel sig: ${KSIG[$j]}, kernel sphere: ${KSPHERE[$k]}..."
             $NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_SPHERE_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_${KGEOM[$i]}${KSIG[$j]}${KSPHERE[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu.cu";
-            #echo "Compiling $LIBKPPATH_DIST/fshape_gpu_dx.cu with kernel geom: ${KGEOM[$i]}, kernel sig: ${KSIG[$j]}, kernel sphere: ${KSPHERE[$k]}..."
-            #$NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_SPHERE_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_dx_${KGEOM[$i]}${KSIG[$j]}${KSPHERE[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_dx.cu";
+            echo "Compiling $LIBKPPATH_DIST/fshape_gpu_dx.cu with kernel geom: ${KGEOM[$i]}, kernel sig: ${KSIG[$j]}, kernel sphere: ${KSPHERE[$k]}..."
+            $NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_SPHERE_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_dx_${KGEOM[$i]}${KSIG[$j]}${KSPHERE[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_dx.cu";
             #echo "Compiling $LIBKPPATH_DIST/fshape_gpu_dxi.cu with kernel geom: ${KGEOM[$i]}, kernel sig: ${KSIG[$j]}, kernel sphere: ${KSPHERE[$k]}..."
             #$NVCC -D "USE_DOUBLE_PRECISION=$USE_DOUBLE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" -D "KERNEL_GEOM_TYPE=$i" -D "KERNEL_SIG_TYPE=$j" -D "KERNEL_SPHERE_TYPE=$k" $NVCCFLAGS -I$LIBKPPATH_DIST -o "$INSTALL_DIR/cuda_fshape_scp_dxi_${KGEOM[$i]}${KSIG[$j]}${KSPHERE[$k]}.so" "$LIBKPPATH_DIST/fshape_gpu_dxi.cu";
             #echo "Compiling $LIBKPPATH_DIST/fshape_gpu_df.cu with kernel geom: ${KGEOM[$i]}, kernel sig: ${KSIG[$j]}, kernel sphere: ${KSPHERE[$k]}..."
