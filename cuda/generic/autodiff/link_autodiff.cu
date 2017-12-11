@@ -2,6 +2,7 @@
 
 #include "GpuConv2D.cu"
 #include "autodiff.h"
+#include "kernel_library.h"
 
 #include <stdarg.h>
 #include <stdio.h>
