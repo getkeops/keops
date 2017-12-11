@@ -18,12 +18,15 @@ using namespace std;
 extern "C" int GpuTransConv(float*, int, int, float*, float**);
 extern "C" int CpuTransConv(float*, int, int, float*, float**);
 
-float floatrand() { return ((float)rand())/RAND_MAX-.5; } // random value between -.5 and .5
+float floatrand() { 
+    return ((float)rand())/RAND_MAX-.5; // random value between -.5 and .5
+} 
 
-template < class V > void fillrandom(V& v) { generate(v.begin(), v.end(), floatrand); } // fills vector with random values
+template < class V > void fillrandom(V& v) { 
+    generate(v.begin(), v.end(), floatrand); // fills vector with random values
+}
 
-int main()
-{
+int main() {
 	
 	int Nx=5000, Ny=2000;
 
