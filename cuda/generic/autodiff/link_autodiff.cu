@@ -2,7 +2,6 @@
 
 #include "GpuConv2D.cu"
 #include "autodiff.h"
-#include "kernel_library.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -15,6 +14,8 @@ using Y = Var<N,DIM,1>;
 
 template < int N >
 using P = Param<N>;
+
+#include "kernel_library.h"
 
 // sum over j : gamma_i = sum_j F(X_i,Y_j)
 extern "C" int GpuConv(float* params, int nx, int ny, float* gamma, float** args) {
