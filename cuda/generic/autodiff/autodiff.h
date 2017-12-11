@@ -542,3 +542,73 @@ struct Param
 template < class F, class V, class GRADIN >
 using Grad = typename F::template DiffT<V,GRADIN>;
 
+//////////////////////////////////////////////////////////////
+////      INVERSE : Inv<F>                                ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+using Inv = Pow<F,-1>;
+
+//////////////////////////////////////////////////////////////
+////      INVERSE OF INTEGER CONSTANT : Inv<N> is 1/N     ////
+//////////////////////////////////////////////////////////////
+
+// remark : there is currently no way to get a fixed real number directly...
+
+template < int N >
+using IntInv = Inv<IntConstant<N>>;
+
+//////////////////////////////////////////////////////////////
+////      DIVIDE : Divide<A,B> is A/B                     ////
+//////////////////////////////////////////////////////////////
+
+template < class FA, class FB >
+using Divide = Scal<FA,Inv<FB>>;
+
+//////////////////////////////////////////////////////////////
+////      SQUARED DISTANCE : SqDist<A,B>                  ////
+//////////////////////////////////////////////////////////////
+
+template < class X, class Y >
+using SqDist = SqNorm2<Subtract<X,Y>>;
+
+//////////////////////////////////////////////////////////////
+////             LOGARITHM : Log< F >                     ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+struct Log {	
+	static const int DIM = 1;
+	static_assert(F::DIM==1,"Dimension of input must be one for exp function");
+
+	template < int CAT >
+	using VARS = typename F::VARS<CAT>;
+
+	template < class INDS, typename... ARGS >
+	INLINE void Eval(float* params, float* out, ARGS... args) {	
+		float outF[1];	
+		F::template Eval<INDS>(params,outF,args...);
+		*out = log(*outF);		
+	}
+
+	template < class V, class GRADIN >
+	using DiffTF = typename F::template DiffT<V,GRADIN>;
+		
+	template < class V, class GRADIN >
+	using DiffT = Scal<Inv<F>,DiffTF<V,GRADIN>>;
+};
+
+//////////////////////////////////////////////////////////////
+////             POWER OPERATOR : Powf< A, B >            ////
+//////////////////////////////////////////////////////////////
+
+template < class FA, class FB >
+using Powf = Exp<Scal<FB,Log<FA>>>;
+
+//////////////////////////////////////////////////////////////
+////             SQUARE ROOT : Sqrt< F >                  ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+using Sqrt = Powf<F,IntInv<2>>;
+
