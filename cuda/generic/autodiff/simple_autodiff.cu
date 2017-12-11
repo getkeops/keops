@@ -17,11 +17,10 @@ using F = Scal<Square<Scalprod<U,V>>,GaussKernel<C,X,Y,Beta>>;
 
 using FUNCONVF = typename Generic<F>::sEval;
 
-extern "C" int FConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* gamma, int nx, int ny) 
-{
-	float params[1];
-	params[0] = ooSigma2;
-	return GpuConv2D(FUNCONVF(), params, nx, ny, gamma, x, y, u, v, beta); 
+extern "C" int FConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* gamma, int nx, int ny) {
+    float params[1];
+    params[0] = ooSigma2;
+    return GpuConv2D(FUNCONVF(), params, nx, ny, gamma, x, y, u, v, beta);
 }
 
 
@@ -31,11 +30,10 @@ using GX = Grad<F,X,Eta>;
 
 using FUNCONVGX = typename Generic<GX>::sEval;
 
-extern "C" int GXConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) 
-{
-	float params[1];
-	params[0] = ooSigma2;
-	return GpuConv2D(FUNCONVGX(), params, nx, ny, gamma, x, y, u, v, beta, eta); 
+extern "C" int GXConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) {
+    float params[1];
+    params[0] = ooSigma2;
+    return GpuConv2D(FUNCONVGX(), params, nx, ny, gamma, x, y, u, v, beta, eta);
 }
 
 
@@ -45,11 +43,10 @@ using GY = Grad<F,Y,Eta>;
 // since Y is a j variable, all i variables become j variables and conversely : this is why we put 1 as second template argument after GY :
 using FUNCONVGY = typename Generic<GY,1>::sEval;
 
-extern "C" int GYConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) 
-{
-	float params[1];
-	params[0] = ooSigma2;
-	return GpuConv2D(FUNCONVGY(), params, ny, nx, gamma, x, y, u, v, beta, eta); 
+extern "C" int GYConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) {
+    float params[1];
+    params[0] = ooSigma2;
+    return GpuConv2D(FUNCONVGY(), params, ny, nx, gamma, x, y, u, v, beta, eta);
 }
 
 

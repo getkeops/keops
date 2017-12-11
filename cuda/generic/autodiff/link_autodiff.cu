@@ -16,13 +16,11 @@ using Y = Var<N,DIM,1>;
 template < int N >
 using P = Param<N>;
 
-extern "C" int GpuConv(float* params, int nx, int ny, float* gamma, float** args) 
-{
-	return GpuConv2D(Generic<FORMULA>::sEval(), params, nx, ny, gamma, args);
+extern "C" int GpuConv(float* params, int nx, int ny, float* gamma, float** args) {
+    return GpuConv2D(Generic<FORMULA>::sEval(), params, nx, ny, gamma, args);
 }
 
-extern "C" int CpuConv(float* params, int nx, int ny, float* gamma, float** args) 
-{
-	return CpuConv(Generic<FORMULA>::sEval(), params, nx, ny, gamma, args);
+extern "C" int CpuConv(float* params, int nx, int ny, float* gamma, float** args) {
+    return CpuConv(Generic<FORMULA>::sEval(), params, nx, ny, gamma, args);
 }
 
