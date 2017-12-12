@@ -1,4 +1,3 @@
-
 # to test, first compile the kernel via :
 # ./compile "GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<2,3>>"
 
@@ -12,7 +11,7 @@ def get_cuda_convs():
 	"""
 	Loads the convolution routine from the compiled .so file.
 	"""
-	dll_name = 'GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<2,3>>.so'
+	dll_name = 'GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<2,3>>_float.so'
 	dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep+ 'build' + os.path.sep + dll_name
 	dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
 	
