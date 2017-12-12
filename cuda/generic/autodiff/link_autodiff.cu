@@ -1,4 +1,4 @@
-// (echo "#define FORMULA Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>" ; cat link_autodiff.cu) | nvcc -x cu -std=c++11 -Xcompiler -fPIC -shared -o link_autodiff.so -I $PWD -
+// use "compile" file for compilation
 
 #include "GpuConv2D.cu"
 #include "autodiff.h"
@@ -18,21 +18,25 @@ using P = Param<N>;
 #include "kernel_library.h"
 
 // sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv(float* params, int nx, int ny, float* gamma, float** args) {
-    return GpuConv2D(Generic<FORMULA>::sEval(), params, nx, ny, gamma, args);
+extern "C" int GpuConv(__TYPE__* params, int nx, int ny, __TYPE__* gamma, __TYPE__** args) 
+{
+	return GpuConv2D(Generic<FORMULA>::sEval(), params, nx, ny, gamma, args);
 }
 
-extern "C" int CpuConv(float* params, int nx, int ny, float* gamma, float** args) {
-    return CpuConv(Generic<FORMULA>::sEval(), params, nx, ny, gamma, args);
+extern "C" int CpuConv(__TYPE__* params, int nx, int ny, __TYPE__* gamma, __TYPE__** args) 
+{
+	return CpuConv(Generic<FORMULA>::sEval(), params, nx, ny, gamma, args);
 }
 
 // sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv(float* params, int nx, int ny, float* gamma, float** args) {
-    return GpuConv2D(Generic<FORMULA,1>::sEval(), params, ny, nx, gamma, args);
+extern "C" int GpuTransConv(__TYPE__* params, int nx, int ny, __TYPE__* gamma, __TYPE__** args) 
+{
+	return GpuConv2D(Generic<FORMULA,1>::sEval(), params, ny, nx, gamma, args);
 }
 
-extern "C" int CpuTransConv(float* params, int nx, int ny, float* gamma, float** args) {
-    return CpuConv(Generic<FORMULA,1>::sEval(), params, ny, nx, gamma, args);
+extern "C" int CpuTransConv(__TYPE__* params, int nx, int ny, __TYPE__* gamma, __TYPE__** args) 
+{
+	return CpuConv(Generic<FORMULA,1>::sEval(), params, ny, nx, gamma, args);
 }
 
 
