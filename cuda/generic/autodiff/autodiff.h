@@ -81,11 +81,11 @@ struct Var
     // will see that the index 1 is targeted,
     // assume that "var5" is of size DIM, and copy its value in "out".
     template < class INDS, typename ...ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
         auto t = thrust::make_tuple(args...); // let us access the args using indexing syntax
         // IndValAlias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
-        float* xi = thrust::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
+        __TYPE__* xi = thrust::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
         for(int k=0; k<DIM; k++) // Assume that xi and out are of size DIM, 
             out[k] = xi[k];      // and copy xi into out.
     }
@@ -112,7 +112,7 @@ struct Zero
 
     // Evaluation is easy : simply fill-up *out with zeros.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
         for(int k=0; k<DIM; k++)
             out[k] = 0;
@@ -134,7 +134,7 @@ struct IntConstant
     
     // Evaluation is easy : simply fill *out = out[0] with N.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
         *out = N;
     }
@@ -157,7 +157,7 @@ struct Constant
 
     // "returns" the appropriate value in the params array.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
         *out = params[PRM::INDEX];
     }
@@ -209,9 +209,9 @@ struct AddImpl
 
     // To evaluate A + B, first evaluate A, then B, and then add the result and put it in "out".
     template < class INDS, typename... ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
-        float outA[DIM], outB[DIM];
+        __TYPE__ outA[DIM], outB[DIM];
         FA::template Eval<INDS>(params,outA,args...);
         FB::template Eval<INDS>(params,outB,args...);
         for(int k=0; k<DIM; k++)
@@ -281,9 +281,9 @@ struct ScalImpl
 
     // To evaluate A*B, first evaluate A, then B, then store the pointwise mult. in out.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
-        float outA[1], outB[DIM];
+        __TYPE__ outA[1], outB[DIM];
         FA::template Eval<INDS>(params,outA,args...);
         FB::template Eval<INDS>(params,outB,args...);
         for(int k=0; k<DIM; k++)
@@ -365,10 +365,10 @@ struct ScalprodImpl
     
     // To evaluate the scalar <A,B>, first evaluate A, then B, then proceed to the summation.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
         *out = 0;
-        float outA[DIMIN], outB[DIMIN]; // Don't forget to allocate enough memory !
+        __TYPE__ outA[DIMIN], outB[DIMIN]; // Don't forget to allocate enough memory !
         FA::template Eval<INDS>(params,outA,args...);
         FB::template Eval<INDS>(params,outB,args...);
         for(int k=0; k<DIMIN; k++)
@@ -446,9 +446,9 @@ struct Exp
 
     // To evaluate Exp(F), first evaluate F, then take its exponential...
     template < class INDS, typename... ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
-        float outF[1];
+        __TYPE__ outF[1];
         F::template Eval<INDS>(params,outF,args...);
         *out = exp(*outF);
     }
@@ -479,9 +479,9 @@ struct Pow
 
     // To compute F^M, first compute F, then use the cmath function pow.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(float* params, float* out, ARGS... args)
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
-        float outF[1];
+        __TYPE__ outF[1];
         F::template Eval<INDS>(params,outF,args...);
         *out = pow(*outF,M);
     }
@@ -585,8 +585,8 @@ struct Log {
 	using VARS = typename F::VARS<CAT>;
 
 	template < class INDS, typename... ARGS >
-	INLINE void Eval(float* params, float* out, ARGS... args) {	
-		float outF[1];	
+	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {	
+		__TYPE__ outF[1];	
 		F::template Eval<INDS>(params,outF,args...);
 		*out = log(*outF);		
 	}
@@ -611,4 +611,5 @@ using Powf = Exp<Scal<FB,Log<FA>>>;
 
 template < class F >
 using Sqrt = Powf<F,IntInv<2>>;
+
 
