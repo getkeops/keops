@@ -2,7 +2,7 @@
 // compile with
 //		nvcc -std=c++11 -O2 -c test_link.cu
 //		./compile "Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>"
-// 		nvcc -o test_link test_link.o "build/Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>.so"
+// 		nvcc -o test_link test_link.o "build/Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>_float.so"
 
 
 #include <iostream>
