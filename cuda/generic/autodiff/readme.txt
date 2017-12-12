@@ -1,6 +1,11 @@
 This part is still completely under development.. 
 To be read and used by authors only !!!
 
+If you are using a standard Ubuntu 16.04 configuration (nvcc7.5, etc.),
+please consider adding the flag "-D_FORCE_INLINES"
+to your compilation command (see e.g. the "compile" script).
+
+
 La commande "compile" permet de compiler une formule arbitraire ; 
 le fichier ".so" correspondant est placé dans le répertoire build
 

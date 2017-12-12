@@ -65,7 +65,12 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     const int DIMX1 = DIMSX::FIRST;     // DIMX1 is dimension of output variable
 
     // Load the parameter vector in the Thread Memory, for improved efficiency
-    TYPE param_loc[static_max_device(DIMPARAM,1)];
+    //TYPE param_loc[static_max_device(DIMPARAM,1)];
+    // (Jean :) Direct inlining to compile on Ubuntu 16.04 with nvcc7.5, 
+    //          which is a standard config in research. For whatever reason, I can't make
+    //          it work an other way... Is it bad practice/performance?
+    TYPE param_loc[DIMPARAM < 1 ? 1 : DIMPARAM]; 
+    
     for(int k=0; k<DIMPARAM; k++)
         param_loc[k] = param[k];
 
