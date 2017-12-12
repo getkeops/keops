@@ -1,3 +1,7 @@
+
+# to test, first compile the kernel via :
+# ./compile "GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<2,3>>"
+
 import numpy as np
 import ctypes
 from ctypes import *
