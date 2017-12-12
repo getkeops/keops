@@ -1,4 +1,13 @@
-
+/*
+ * The file where the elementary constants are defined.
+ * Available constants are :
+ * 
+ *      Zero<DIM>					: zero-valued vector of dimension DIM
+ *      IntConstant<N>				: constant integer function with value N
+ *      Constant<PRM>				: constant function with value given by parameter PRM (ex : Constant<C> here)
+ * 
+ */
+ 
 // A "zero" vector of size _DIM
 // Declared using the   Zero<DIM>   syntax.
 template < int _DIM >
@@ -34,9 +43,7 @@ struct IntConstant
     // Evaluation is easy : simply fill *out = out[0] with N.
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
-    {
-        *out = N;
-    }
+    {   *out = N; }
         
     // There is no gradient to accumulate on V, whatever V.
     template < class V, class GRADIN >
@@ -57,9 +64,7 @@ struct Constant
     // "returns" the appropriate value in the params array.
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
-    {
-        *out = params[PRM::INDEX];
-    }
+    {   *out = params[PRM::INDEX]; }
     
     // There's no gradient to accumulate in V, whatever V.    
     template < class V, class GRADIN >
