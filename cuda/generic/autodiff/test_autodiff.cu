@@ -43,23 +43,9 @@ int main() {
     using C = Param<0>;		// C is the first extra parameter
 
     // symbolic expression of the function
-    // Available operations are :
-    // 		IntConstant<N>				: constant integer function with value N
-    // 		Constant<PRM>				: constant function with value given by parameter PRM (ex : Constant<C> here)
-    // 		Add<FA,FB>					: adds FA and FB functions
-    //		Scalprod<FA,FB> 			: scalar product between FA and FB
-    //		Scal<FA,FB>					: product of FA (scalar valued) with FB
-    //		SqNorm2<F>					: alias for Scalprod<F,F>
-    //		Exp<F>						: exponential of F (scalar valued)
-    //		Pow<F,M>					: Mth power of F (scalar valued) ; M is an integer
-    //		Square<F>					: alias for Pow<F,2>
-    //		Minus<F>					: alias for Scal<IntConstant<-1>,F>
-    //		Subtract<FA,FB>				: alias for Add<FA,Minus<FB>>
-    //		GaussKernel<PRM,FA,FB,FC> 	: alias for Scal<Exp<Scal<Constant<PRM>,Minus<SqNorm2<Subtract<FA,FB>>>>>,FC>
-    //		Grad<F,V,GRADIN>			: gradient (in fact transpose of diff op) of F with respect to variable V, applied to GRADIN
-
+    
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = Scal<Square<Scalprod<U,V>>,GaussKernel<C,X,Y,Beta>>;
+    using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
     using FUNCONVF = typename Generic<F>::sEval;
 

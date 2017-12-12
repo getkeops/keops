@@ -13,7 +13,7 @@ using Beta = Var<4,3>;	// Beta is the fifth variable and represents a 3D vector
 using C = Param<0>;		// C is the first extra parameter
 
 // define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-using F = Scal<Square<Scalprod<U,V>>,GaussKernel<C,X,Y,Beta>>;
+using F = Scal<Square<Scalprod<U,V>>,Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
 using FUNCONVF = typename Generic<F>::sEval;
 

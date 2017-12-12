@@ -5,8 +5,11 @@
  * The core operators of our engine are :
  *      Var<N,DIM,CAT>				: the N-th variable, a vector of dimension DIM,
  *                                    with CAT = 0 (i-variable), 1 (j-variable) or 2 (parameter)
- *      Param<N>					: the N-th parameter variable
  *      Grad<F,V,GRADIN>			: gradient (in fact transpose of diff op) of F with respect to variable V, applied to GRADIN
+ *      P<N>, or Param<N>			: the N-th parameter variable
+ *      X<N,DIM>					: the N-th variable, vector of dimension DIM, CAT = 0
+ *      Y<N,DIM>					: the N-th variable, vector of dimension DIM, CAT = 1
+ * 
  * 
  * Available constants are :
  * 
@@ -146,6 +149,20 @@ struct Param
 // provided that the operators have implemented their DiffT "compiler methods":
 template < class F, class V, class GRADIN >
 using Grad = typename F::template DiffT<V,GRADIN>; 
+
+
+//////////////////////////////////////////////////////////////
+////    STANDARD VARIABLES : X<N,DIM>, Y<N,DIM>, P<N>     ////
+//////////////////////////////////////////////////////////////
+
+template < int N, int DIM >
+using X = Var<N,DIM,0>;
+
+template < int N, int DIM >
+using Y = Var<N,DIM,1>;
+
+template < int N >
+using P = Param<N>;
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
