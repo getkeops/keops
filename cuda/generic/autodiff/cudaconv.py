@@ -1,5 +1,12 @@
-# to test, first compile the kernel via :
+# To test, first compile the kernel via :
 # ./compile "GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<2,3>>"
+#
+# This will compile the isotropic Gaussian kernel in dimension 3,
+# which takes as input :
+# - a scalar parameter P<0>, inverse of the variance
+# - an array X_0 (x_i) of dimension N-by-3
+# - an array Y_1 (y_j) of dimension M-by-3
+# - an array Y_2 (b_j) of dimension M-by-3
 
 import numpy as np
 import ctypes
