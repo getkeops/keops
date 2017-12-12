@@ -42,6 +42,7 @@ using TRI_Kernel = Add<Scal<FORTHO<Param<0>,SqDist<X<0,DIM>,Y<1,DIM>>>,X<2,DIM>>
 // Div-free and curl-free kernel with gaussian functions. 
 // k_df(x,y)b = exp(-r^2/s2)*(((d-1)/(2c)-r^2)b + <b,x-y>(x-y))
 // k_cf(x,y)b = exp(-r^2/s2)*(	   (1/(2c)) b   - <b,x-y>(x-y))
+// The value of 1/s2 must be given as first parameter (P<0>) when calling Eval() 
 // We do not use the previous template because exp(-r^2/s2) is factorized
 
 template < int DIM >
@@ -60,3 +61,10 @@ Divide<IntConstant<1>,Scal<IntConstant<2>,Constant<P<0>>>>,
 Y<2,DIM>>,
 Scal<Scalprod<Y<2,DIM>,Subtract<X<0,DIM>,Y<1,DIM>>>,Subtract<X<0,DIM>,Y<1,DIM>>>>>;
 
+// Weighted combination of the two previous kernels, which gives a Translation and Rotation Invariant kernel with gaussian base function.
+// k_tri(x,y)b = lambda * k_df(x,y)b + (1-lambda) * k_cf(x,y)b
+// The weight lambda must be specified as the second parameter (P<1>) when calling Eval() 
+// remark : this is currently not efficient at all since almost the same computations will be done twice...
+
+template < int DIM >
+using TRIGaussKernel = Add<Scal<Constant<P<1>>,DivFreeGaussKernel<DIM>>,Scal<Subtract<IntConstant<1>,Constant<P<1>>>,CurlFreeGaussKernel<DIM>>>;
