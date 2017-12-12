@@ -11,6 +11,9 @@ J'ai rajouté (12 décembre) :
 - Un code python cudaconv.py adapté de celui du dossier pykp qui appelle un noyau 
 compilé avec le module
 - des noyaux matriciels Curl Free, Div Free et TRI pour dans le fichier kernel_library.h
+- la possibilité d'utiliser des floats ou des doubles. Les fichiers compilés se
+terminent maintenant en "_float.so" ou "_double.so". Par défaut la compilation 
+produit une version float, sinon il faut faire "./compile FORMULE double"
 
 Remarques :
 - Je n'ai pas eu le temps de vérifier grand chose sur les sorties ; 
