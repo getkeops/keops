@@ -5,5 +5,6 @@
 - [ ] implement non-isotropic kernels (diagonal, full symmetric tensor)
 - [ ] derivatives with respect to the radius/metric used
 - [ ] implement non-scalar kernels (Glaunès & Michelli)
+- [x] everybody knows how to use git !
 
 
