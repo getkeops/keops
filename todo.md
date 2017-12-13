@@ -26,6 +26,5 @@ Joan :
 - [ ] Full on-device
 - [ ] Adapt cudaconv.py to make it generic
 - [ ] Speed benchmarks; Symbolic Diff vs. Hardcoded vs. PyTorch
-- [ ] Mex files
-
+- [ ] Mex files
 
