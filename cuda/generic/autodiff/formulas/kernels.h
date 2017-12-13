@@ -59,6 +59,10 @@ template < int DIMPOINT, int DIMVECT >
 using EnergyKernel = ScalarRadialKernel<EnergyFunction,DIMPOINT,DIMVECT>;
 
 
+//////////////////////////////////////////////////////////////
+////                 MATRIX-VALUED KERNELS                ////
+//////////////////////////////////////////////////////////////
+
 // Matrix-valued kernels : implementations from Micheli/Glaunes paper
 
 // TRI kernel - general form :

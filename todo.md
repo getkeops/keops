@@ -1,10 +1,31 @@
 - [ ] R bindings
 - [ ] Python tutorials
-- [ ] generics cuda codes
+- [ ] generic cuda codes
+- [ ] baseline CPU implementation
 - [x] support pointer in device global mem
-- [ ] implement non-isotropic kernels (diagonal, full symmetric tensor)
-- [ ] derivatives with respect to the radius/metric used
-- [ ] implement non-scalar kernels (Glaunès & Michelli)
+- [x] implement non-scalar kernels (Glaunès & Michelli)
 - [x] everybody knows how to use Git !
+
+For the 20th of Dec.:
+
+Jean :
+- [ ] PyTorch recursive syntax
+- [ ] implement non-isotropic kernels (diagonal, full symmetric tensor)
+- [ ] Derivatives w.r.t. \Sigma (scalar, diagonal, full) + (fixed, tied, independent)
+- [ ] Let KernelProduct choose 1D/2D, CPU/GPU
+- [ ] Gaussian Mixtures
+- [ ] Other Applications
+
+Benjamin :
+- [ ] 1D scheme for the generic code
+- [ ] R bindings
+- [ ] Check the limits of the GPU device, gridsizes
+- [ ] Rules for choosing 1D/2D
+
+Joan :
+- [ ] Full on-device
+- [ ] Adapt cudaconv.py to make it generic
+- [ ] Speed benchmarks; Symbolic Diff vs. Hardcoded vs. PyTorch
+- [ ] Mex files
 
 

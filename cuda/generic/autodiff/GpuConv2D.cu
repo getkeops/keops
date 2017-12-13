@@ -81,7 +81,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     // Step 1 : Load in Thread Memory the information needed in the current line ---------------------------
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     TYPE xi[DIMX];
-    TYPE tmp[DIMX1]; // (Jean :) Why do we use a temp. variable instead of accumulating the results
+    TYPE tmp[DIMX1];
     //          in xi[0:DIMX1] ? It's not clear to me. Is it some kind of clever
     //          memory access optimization ?
     //          (b. :) Pas d'optimization ici, mais de la gestion de mémoire : xi[0:DIMX1] est memoire global et est 'commun à tous les thread'.
