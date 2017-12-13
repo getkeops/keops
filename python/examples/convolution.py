@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
 
 import time, timeit
 
-from pykp import cudaconv
+from pykp.convolutions import cudaconv
 import numpy as np
 
 import torch
