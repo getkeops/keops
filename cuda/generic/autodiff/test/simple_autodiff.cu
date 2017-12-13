@@ -1,19 +1,19 @@
 // nvcc -std=c++11 -Xcompiler -fPIC -shared -o simple_autodiff.so simple_autodiff.cu
 
 
-#include "GpuConv2D.cu"
-#include "autodiff.h"
+#include "../core/GpuConv2D.cu"
+#include "../core/autodiff.h"
 
 // define variables
-using X = Var<0,3>; 	// X is the first variable and represents a 3D vector
-using Y = Var<1,3>; 	// Y is the second variable and represents a 3D vector
+using XX = Var<0,3>; 	// X is the first variable and represents a 3D vector
+using YY = Var<1,3>; 	// Y is the second variable and represents a 3D vector
 using U = Var<2,4>; 	// U is the third variable and represents a 4D vector
 using V = Var<3,4>; 	// V is the fourth variable and represents a 4D vector
 using Beta = Var<4,3>;	// Beta is the fifth variable and represents a 3D vector
 using C = Param<0>;		// C is the first extra parameter
 
-// define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-using F = Scal<Square<Scalprod<U,V>>,Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
+// define F = <U,V>^2 * exp(-C*|XX-YY|^2) * Beta in usual notations
+using F = Scal<Square<Scalprod<U,V>>,Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<XX,YY>>>>>,Beta>>;
 
 using FUNCONVF = typename Generic<F>::sEval;
 
@@ -24,9 +24,9 @@ extern "C" int FConv(float ooSigma2, float* x, float* y, float* u, float* v, flo
 }
 
 
-// now define the gradient wrt X
+// now define the gradient wrt XX
 using Eta = Var<5,F::DIM>;	// new variable is in sixth position and is input of gradient
-using GX = Grad<F,X,Eta>;
+using GX = Grad<F,XX,Eta>;
 
 using FUNCONVGX = typename Generic<GX>::sEval;
 
@@ -38,7 +38,7 @@ extern "C" int GXConv(float ooSigma2, float* x, float* y, float* u, float* v, fl
 
 
 // now define the gradient wrt Y. There may be still a problem with indices in this part...
-using GY = Grad<F,Y,Eta>;
+using GY = Grad<F,YY,Eta>;
 
 // since Y is a j variable, all i variables become j variables and conversely : this is why we put 1 as second template argument after GY :
 using FUNCONVGY = typename Generic<GY,1>::sEval;
