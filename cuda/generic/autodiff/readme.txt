@@ -1,24 +1,51 @@
 This part is still completely under development.. 
 To be read and used by authors only !!!
 
+------------------------- Compilation options------------------------------------
+
 If you are using a standard Ubuntu 16.04 configuration (nvcc7.5, etc.),
-please consider adding the flag "-D_FORCE_INLINES"
-to your compilation command (see e.g. the "compile" script).
+please consider adding the flag "-D_FORCE_INLINES" and/or "-D_MWAITXINTRIN_H_INCLUDED "
+to your compilation command (see e.g. the various "compile" and "compile_XX" scripts)
+as suggested in https://github.com/tensorflow/tensorflow/issues/1066#issuecomment-225937814
+
+
+---------------------------Nouvelle arborescence----------------------------------
+
+/ : les 'makeFile' et ce Readme
+|
+---- core : contient les fichiers autodiff, Gpu, Pack et formulas math et noyaux
+|
+---- build : repertoire qui contient les .o, .so et binaire
+|
+---- test : les fichiers d'exemples et test
+|
+---- Python : les fichiers contenant les bindings python. TODO: a mettre dans
+                pykp quand cela sera stable.
+
+----------------------------MakeFiles-----------------------------------------
 
 La commande "compile" permet de compiler une formule arbitraire ; 
 le fichier ".so" correspondant est placé dans le répertoire build
 
-Pour vérifier que ça fonctionne, j'ai fait deux programmes test_link.cu 
-et test_link_grad.cu qui testent une fonction et son gradient 
-
-J'ai rajouté (12 décembre) :
-- Un code python cudaconv.py adapté de celui du dossier pykp qui appelle un noyau 
-compilé avec le module
-- des noyaux matriciels Curl Free, Div Free et TRI pour dans le fichier kernel_library.h
-- la possibilité d'utiliser des floats ou des doubles. Les fichiers compilés se
+La possibilité d'utiliser des floats ou des doubles. Les fichiers compilés se
 terminent maintenant en "_float.so" ou "_double.so". Par défaut la compilation 
 produit une version float, sinon il faut faire "./compile FORMULE double"
 
+Pour vérifier que ça fonctionne, j'ai fait deux programmes test_link.cu 
+et test_link_grad.cu qui testent une fonction et son gradient. Les commandes 
+"compile_XX" permettent de compiler les fichiers de tests correspondant 
+qui sont maintenant dans le sous-repertoire ./test/
+
+
+
+------------------------------------ Python -----------------------------------
+- Un code python cudaconv.py adapté de celui du dossier pykp qui appelle un noyau 
+compilé avec le module
+
+
+
+ 
 Remarques :
+- des noyaux matriciels Curl Free, Div Free et TRI pour dans le fichier kernel_library.h
 - Je n'ai pas eu le temps de vérifier grand chose sur les sorties ; 
   je le ferai quand je pourrai comparer facilement avec les codes existants.
