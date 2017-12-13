@@ -48,6 +48,6 @@ Two steps:
 To do.
 
 
-.......
+......
    
 authors : Charlier,Feydy, Glaunès
