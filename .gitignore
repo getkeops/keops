@@ -1,7 +1,7 @@
 *.idea*
 *__pycache__*
 *~
-build*
+*build*
 *output*
 !*input_output.py
 *.swp
