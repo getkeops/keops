@@ -21,6 +21,11 @@
  * 
  */
 
+// Legacy 
+
+template < class OOS2, class X, class Y, class Beta > 
+using GaussKernel = Scal<Exp<Scal<Constant<OOS2>,Minus<SqDist<X,Y>>>>,Beta>;
+
 //////////////////////////////////////////////////////////////
 ////             STANDARD RADIAL FUNCTIONS                ////
 //////////////////////////////////////////////////////////////
@@ -45,7 +50,7 @@ using ScalarRadialKernel = Scal<F<Param<0>,SqDist<X<0,DIMPOINT>,Y<1,DIMPOINT>>>,
 
 // Utility aliases :
 template < int DIMPOINT, int DIMVECT >
-using GaussKernel = ScalarRadialKernel<GaussFunction,DIMPOINT,DIMVECT>;
+using GaussKernel_ = ScalarRadialKernel<GaussFunction,DIMPOINT,DIMVECT>;
 
 template < int DIMPOINT, int DIMVECT >
 using LaplaceKernel = ScalarRadialKernel<LaplaceFunction,DIMPOINT,DIMVECT>;
