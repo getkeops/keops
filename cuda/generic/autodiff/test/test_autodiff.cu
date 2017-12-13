@@ -18,8 +18,8 @@
 #include <ctime>
 #include <algorithm>
 
-#include "GpuConv2D.cu"
-#include "autodiff.h"
+#include "../core/GpuConv2D.cu"
+#include "../core/autodiff.h"
 
 using namespace std;
 
