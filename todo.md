@@ -1,7 +1,7 @@
 - [ ] R bindings
 - [ ] Python tutorials
 - [ ] generic cuda codes
-- [ ] baseline CPU implementation
+- [ ] baseline CPU implementation
 - [x] support pointer in device global mem
 - [x] implement non-scalar kernels (Glaunès & Michelli)
 - [x] everybody knows how to use Git !
