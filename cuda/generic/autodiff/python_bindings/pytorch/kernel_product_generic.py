@@ -14,28 +14,105 @@ dtype = torch.FloatTensor
 # for reference on the forward-backward syntax
 class GenericKernelProduct(torch.autograd.Function):
 	""" 
+	Computes a Generic Kernel Product specified by a formula (string) such as :
+	formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
 	"""
 	
 	@staticmethod
-	def forward(ctx, s, x, y, b, kernel):
+	def forward(ctx, aliases, formula, signature, sum_index, *args):
 		""" 
-			KernelProduct(s, x, y, b)_i = \sum_j k_s(  x_i , y_j  ) b_j
-			                            = \sum_j f_s( |x_i-y_j|^2 ) b_j .
+		Computes a Generic Kernel Product specified by a formula (string) such as :
+		```
+		formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
+		```
+		i.e.       <U,V>^2 * exp(-C*|X-Y|^2 ) * B 
+		
+		aliases is a list of strings, which specifies "who is who"; for example :
+		```
+		aliases = [ "DIMPOINT = 3", "DIMVECT = 4", "DIMOUT = 5",
+					"C = Param<0>"          ,   # 1st parameter
+					"X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim 3, indexed by i
+					"Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim 3, indexed by j
+					"U = Var<2,DIMVECT ,0>" ,   # 3rd variable, dim 4, indexed by i
+					"V = Var<3,DIMVECT ,1>" ,   # 4th variable, dim 4, indexed by j
+					"B = Var<4,DIMOUT  ,1>" ]   # 5th variable, dim 5, indexed by j
+		```
+		
+		signature is a list of (DIM, CAT) integer pairs allowing the user to specify
+		the respective dimensions of the output (head) and variables (tail of the list).
+		Remember that CAT=0 for "x_i" indexing  variables,
+		              CAT=1 for "y_j" summation variables,
+		              CAT=2 for parameters.
+		For instance,
+		```
+		signature = [ (5,0), (1,2), (3,0), (3,1), (4,0), (4,1), (5,1) ]
+		# stands for:  R_i ,   C  ,  X_i  , Y_j  , U_i  , V_j  , B_j   .
+		```
+		
+		Theoretically, signature could be inferred from formula+aliases...
+		But asking the user to provide it explicitely is a good way to let him double-check
+		his formula, and makes debugging easier.
+		
+		With the values defined above,
+		```
+		genconv = GenericKernelProduct().apply
+		R = genconv( aliases, formula, signature, C, X, Y, U, V, B )
+		```
+		is a legal call, where :
+		- C is a scalar              (torch Variable)
+		- X is a nx-by-3 float array (torch Variable)
+		- Y is a ny-by-3 float array (torch Variable)
+		- U is a nx-by-4 float array (torch Variable)
+		- V is a ny-by-4 float array (torch Variable)
+		- B is a ny-by-5 float array (torch Variable)
+		which outputs:
+		- R, an  nx-by-5 float array (torch Variable)
+		
+		(nx and ny are automatically inferred from the data; 
+		an error is thrown if the lengths of the input arrays are not compatible with each other)
+		
+		Eventually, in this example, we've computed a "Gaussian-CauchyBinet varifold kernel"
+		with a signal B of dimension 4 :
+		
+		R_i = \sum_j <U_i,V_j>^2 * exp(-C*|X_i-Y_j|^2 ) * B_j
+		
+		Its derivatives wrt. X, Y, U, V, B are automatically computed (symbolically, without backprop), 
+		and are accessible using standard PyTorch syntax.
+		
+		N.B.: The data type (float v. double) is inferred automatically from the PyTorch type of args.
+			  The CPU/GPU mode is chosen automatically.
+			  The grid_scheme  (1D v. 2D) is chosen according to heuristic rules.
 		"""
-		# save everything to compute the gradient
-		# ctx.ss = s ; ctx.xx = x ; ctx.yy = y ; ctx.bb = b # Too naive! We need to save VARIABLES.
+		# Save everything to compute the gradient -----------------------------------------------
 		# N.B.: relying on the "ctx.saved_variables" attribute is necessary
 		#       if you want to be able to differentiate the output of the backward
 		#       once again. It helps pytorch to keep track of "who is who".
-		ctx.save_for_backward( s, x, y, b ) # Call at most once in the "forward".
-		ctx.kernel = kernel
+		ctx.save_for_backward( *args ) # Call at most once in the "forward".
+		ctx.aliases   = aliases
+		ctx.formula   = formula
+		ctx.signature = signature
+		ctx.sum_index = sum_index
 		
-		# init gamma which contains the output of the convolution K_xy @ b
-		gamma  = torch.zeros( x.size()[0] * b.size()[1] ).type(dtype)
-		# Inplace CUDA routine
-		cudaconv.cuda_conv(x.numpy(),y.numpy(),b.numpy(),gamma.numpy(),s.numpy(), kernel = kernel) 
-		gamma  = gamma.view( x.size()[0], b.size()[1] )
-		return gamma
+		# Get the size nx by looping on the signature until we've found an "x_i" ----------------
+		nx = -1
+		for ( index, (dim,cat) ) in enumerate(signature[1:]) : # Omit the output
+			if cat == 0 :
+				nx = len( args[index] ) # Lengths compatibility is done by cuda_conv_generic
+				break
+		if nx == -1 : raise ValueError("The signature should contain at least on indexing argument x_i.")
+		
+		# Data Conversion (only CPU via numpy implented at the moment) --------------------------
+		
+		args_conv = [ arg.numpy() for arg in args]
+		
+	                  
+		# Actual computation --------------------------------------------------------------------
+		result  = torch.zeros( nx * signature[0][0] ).type(dtype) # Init the output of the convolution
+		cuda_conv_generic(formula, result, *args_conv,            # Inplace CUDA routine
+		                  aliases = aliases, sum_index = sum_index,
+		                  cuda_type = "float", grid_scheme = "2D") 
+		result  = result.view( nx, signature[0][0] )
+		return result
 	
 	@staticmethod
 	def backward(ctx, a):
