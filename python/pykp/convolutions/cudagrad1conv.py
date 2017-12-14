@@ -11,7 +11,7 @@ def get_cuda_grad1convs():
 	Loads the gradient of the convolution routine from the compiled .so file.
 	"""
 	dll_name = 'cuda_grad1conv.so'
-	dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep+ 'build' + os.path.sep + dll_name
+	dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + 'build' + os.path.sep + dll_name
 	dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
 	
 	func_dict = {}
