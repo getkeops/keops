@@ -66,20 +66,23 @@ def cuda_conv(x, y, beta, result, ooSigma2, kernel = "gaussian"):
 	__cuda_convs[kernel](params_p, nx, ny, result_p, args_p )
 
 # Ideally, this routine could be implemented by Joan :
-def cuda_conv_generic(formula, result, *args, cuda_type = "float", grid_scheme = "2D", aliases = []):
+def cuda_conv_generic(formula, result, *args, 
+	                  aliases   = []     , sum_index   = 0    ,
+	                  cuda_type = "float", grid_scheme = "2D" ):
 	"""
 	Executes the "autodiff" kernel associated to "formula". 
 	Aliases can be given as a list of strings.
+	sum_index specifies whether the summation should be done over "I/X" (sum_index=1) or "J/Y" (sum_index=0).
 	The arguments are given as :
 		params, then variables, sorted in the order specified by the "Var<index,dimension,I-or-J>" syntax.
 	For instance,
 		```    
-		aliases = [ "DIMPOINT = 3", "DIMVECT = 4",
+		aliases = [ "DIMPOINT = 3", "DIMVECT = 4", "DIMOUT = 5",
 		            "X = Var<0,DIMPOINT,0>" ,
 		            "Y = Var<1,DIMPOINT,1>" ,
 		            "U = Var<2,DIMVECT ,0>" ,
 		            "V = Var<3,DIMVECT ,1>" ,
-		            "B = Var<4,DIMPOINT,1>" ,
+		            "B = Var<4,DIMOUT  ,1>" ,
 		            "C = Param<0>"          ]
 		formula = "Scal< Square<Scalprod<U,V>>, " \
 		        + "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
@@ -88,19 +91,47 @@ def cuda_conv_generic(formula, result, *args, cuda_type = "float", grid_scheme =
 		                   aliases = aliases )
 		```
 	is a legal call, where :
-	- R is a nx-by-4 float array (the output array)
+	- R is a nx-by-5 float array (the output array)
 	- C is a scalar
 	- X is a nx-by-3 float array
 	- Y is a ny-by-3 float array
 	- U is a nx-by-4 float array
 	- V is a ny-by-4 float array
-	- B is a ny-by-4 float array
+	- B is a ny-by-5 float array
 	
 	(nx and ny are automatically inferred from the data; 
 	an error is thrown if the lengths of the input arrays are not compatible with each other)
 	
 	If the CUDA kernel associated to the given formula is not found in the "build/" folder,
 	the routine is compiled on-the-fly using the "compile" script.
+	
+	N.B.: additional examples documenting the use of symbolic differentiation :
+	
+	Gradient with respect to X : ---------------------------------------------------------------
+		```
+		aliases_gx = aliases + [ "Eta = Var<5,DIMOUT,0>" ]
+		formula_gx = "Grad< " + formula + ", X, Eta>"
+		cuda_conv_generic( formula,
+						   R, C, X, Y, U, V, B, E,
+						   aliases = aliases, sum_index = 0 )
+		```
+	where :
+	- R is a nx-by-3 float array (same as X)
+	- E is a nx-by-5 float array (same as the output of "formula")
+	
+	
+	Gradient with respect to V : ---------------------------------------------------------------
+		```
+		aliases_gv = aliases + [ "Eta = Var<5,DIMOUT,0>" ]
+		formula_gv = "Grad< " + formula + ", V, Eta>"
+		cuda_conv_generic( formula,
+						   R, C, X, Y, U, V, B, E,
+						   aliases = aliases, sum_index = 1 )
+		```
+	where :
+	- R is a ny-by-4 float array (same as V)
+	- E is a nx-by-5 float array (same as the output of "formula")
+	
 	"""
 	None
 
