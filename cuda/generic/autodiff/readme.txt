@@ -8,6 +8,9 @@ please consider adding the flag "-D_FORCE_INLINES" and/or "-D_MWAITXINTRIN_H_INC
 to your compilation command (see e.g. the various "compile" and "compile_XX" scripts)
 as suggested in https://github.com/tensorflow/tensorflow/issues/1066#issuecomment-225937814
 
+On top of it, specifying explicitly a version of GCC that is compatible with your CUDA
+version may make a difference : try adding the "-ccbin gcc-4.9" option to your nvcc commands.
+
 
 ---------------------------Nouvelle arborescence----------------------------------
 

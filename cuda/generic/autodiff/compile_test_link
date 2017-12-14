@@ -1,11 +1,13 @@
+compiler_option=${1:-""} # Try using "-ccbin gcc-4.9"
+
 #########################
 #       test_link       #
 #########################
 
 # consider the cxx flag below as suggested in https://github.com/tensorflow/tensorflow/issues/1066#issuecomment-225937814
-nvcc -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -O2 -c test/test_link.cu -o build/test_link.o
+nvcc $compiler_option -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -O2 -c test/test_link.cu -o build/test_link.o
 ./compile "Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>"
-nvcc -o build/test_link build/test_link.o $(pwd)"/build/Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>_float.so"
+nvcc $compiler_option -o build/test_link build/test_link.o $(pwd)"/build/Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>_float.so"
 rm build/test_link.o
 
 
@@ -13,17 +15,17 @@ rm build/test_link.o
 #       test_link_grad       #
 ##############################
 
-nvcc -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -O2 -c test/test_link_grad.cu -o build/test_link_grad.o
+nvcc $compiler_option -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -O2 -c test/test_link_grad.cu -o build/test_link_grad.o
 ./compile "Grad<Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>,X<0,3>,X<5,3>>"
-nvcc -o build/test_link_grad build/test_link_grad.o $(pwd)"/build/Grad<Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>,X<0,3>,X<5,3>>_float.so"
+nvcc $compiler_option -o build/test_link_grad build/test_link_grad.o $(pwd)"/build/Grad<Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>,X<0,3>,X<5,3>>_float.so"
 rm build/test_link_grad.o
 
 ##############################
 #       test_link_grady      #
 ##############################
 
-nvcc -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -O2 -c test/test_link_grady.cu -o build/test_link_grady.o
+nvcc $compiler_option -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -O2 -c test/test_link_grady.cu -o build/test_link_grady.o
 ./compile "Grad<Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>,Y<1,3>,X<5,3>>"
-nvcc -o build/test_link_grady build/test_link_grady.o $(pwd)"/build/Grad<Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>,Y<1,3>,X<5,3>>_float.so"
+nvcc $compiler_option -o build/test_link_grady build/test_link_grady.o $(pwd)"/build/Grad<Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>,Y<1,3>,X<5,3>>_float.so"
 rm build/test_link_grady.o
 
