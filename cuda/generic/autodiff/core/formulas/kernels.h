@@ -46,7 +46,7 @@ using EnergyFunction = Inv<Powf<Add<Inv<Constant<OOS2>>,R2>,IntInv<4>>>;
 
 // Utility function
 template < template<class,class> class F, int DIMPOINT, int DIMVECT >
-using ScalarRadialKernel = Scal<F<Param<0>,SqDist<X<0,DIMPOINT>,Y<1,DIMPOINT>>>,Y<2,DIMVECT>>;
+using ScalarRadialKernel = Scal<F<Param<0>,SqDist<_X<0,DIMPOINT>,_Y<1,DIMPOINT>>>,_Y<2,DIMVECT>>;
 
 // Utility aliases :
 template < int DIMPOINT, int DIMVECT >
@@ -70,10 +70,10 @@ using EnergyKernel = ScalarRadialKernel<EnergyFunction,DIMPOINT,DIMVECT>;
 // which gives the formula below. Drawback : x-y and r2 are computed several times when calling Eval()
 // Is there a way to avoid this by detecting several Eval() calls for the same class ??
 template < template<class,class> class FORTHO, template<class,class> class FTILDE, int DIM >
-using TRI_Kernel = Add<Scal<FORTHO<Param<0>,SqDist<X<0,DIM>,Y<1,DIM>>>,X<2,DIM>>,
-	Scal<Scal<FTILDE<Param<1>,SqDist<X<0,DIM>,Y<1,DIM>>>,Scalprod
-			<X<2,DIM>,Subtract<X<0,DIM>,Y<1,DIM>>>>,
-		Subtract<X<0,DIM>,Y<1,DIM>>>>;
+using TRI_Kernel = Add<Scal<FORTHO<Param<0>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,_X<2,DIM>>,
+	Scal<Scal<FTILDE<Param<1>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,Scalprod
+			<_X<2,DIM>,Subtract<_X<0,DIM>,_Y<1,DIM>>>>,
+		Subtract<_X<0,DIM>,_Y<1,DIM>>>>;
 
 
 // Div-free and curl-free kernel with gaussian functions. 
@@ -84,19 +84,19 @@ using TRI_Kernel = Add<Scal<FORTHO<Param<0>,SqDist<X<0,DIM>,Y<1,DIM>>>,X<2,DIM>>
 
 template < int DIM >
 using DivFreeGaussKernel = 
-Scal<GaussFunction<P<0>,SqDist<X<0,DIM>,Y<1,DIM>>>,
+Scal<GaussFunction<_P<0>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,
 Add<Scal<Subtract<
-Divide<IntConstant<DIM-1>,Scal<IntConstant<2>,Constant<P<0>>>>,
-SqDist<X<0,DIM>,Y<1,DIM>>>,Y<2,DIM>>,
-Scal<Scalprod<Y<2,DIM>,Subtract<X<0,DIM>,Y<1,DIM>>>,Subtract<X<0,DIM>,Y<1,DIM>>>>>;
+Divide<IntConstant<DIM-1>,Scal<IntConstant<2>,Constant<_P<0>>>>,
+SqDist<_X<0,DIM>,_Y<1,DIM>>>,_Y<2,DIM>>,
+Scal<Scalprod<_Y<2,DIM>,Subtract<_X<0,DIM>,_Y<1,DIM>>>,Subtract<_X<0,DIM>,_Y<1,DIM>>>>>;
 
 template < int DIM >
 using CurlFreeGaussKernel = 
-Scal<GaussFunction<P<0>,SqDist<X<0,DIM>,Y<1,DIM>>>,
+Scal<GaussFunction<_P<0>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,
 Subtract<Scal<
-Divide<IntConstant<1>,Scal<IntConstant<2>,Constant<P<0>>>>,
-Y<2,DIM>>,
-Scal<Scalprod<Y<2,DIM>,Subtract<X<0,DIM>,Y<1,DIM>>>,Subtract<X<0,DIM>,Y<1,DIM>>>>>;
+Divide<IntConstant<1>,Scal<IntConstant<2>,Constant<_P<0>>>>,
+_Y<2,DIM>>,
+Scal<Scalprod<_Y<2,DIM>,Subtract<_X<0,DIM>,_Y<1,DIM>>>,Subtract<_X<0,DIM>,_Y<1,DIM>>>>>;
 
 // Weighted combination of the two previous kernels, which gives a Translation and Rotation Invariant kernel with gaussian base function.
 // k_tri(x,y)b = lambda * k_df(x,y)b + (1-lambda) * k_cf(x,y)b
@@ -104,4 +104,4 @@ Scal<Scalprod<Y<2,DIM>,Subtract<X<0,DIM>,Y<1,DIM>>>,Subtract<X<0,DIM>,Y<1,DIM>>>
 // remark : this is currently not efficient at all since almost the same computations will be done twice...
 
 template < int DIM >
-using TRIGaussKernel = Add<Scal<Constant<P<1>>,DivFreeGaussKernel<DIM>>,Scal<Subtract<IntConstant<1>,Constant<P<1>>>,CurlFreeGaussKernel<DIM>>>;
+using TRIGaussKernel = Add<Scal<Constant<_P<1>>,DivFreeGaussKernel<DIM>>,Scal<Subtract<IntConstant<1>,Constant<_P<1>>>,CurlFreeGaussKernel<DIM>>>;

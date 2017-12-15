@@ -270,26 +270,27 @@ if __name__ == "__main__":
 		def kernel_product(s, x, y, b, kernel) :
 			genconv  = GenericKernelProduct().apply
 			dimpoint = x.size(1) ; dimout = b.size(1)
-			aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
-					   "C = Param<0>"          ,   # 1st parameter
-					   "X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim DIM,    indexed by i
-					   "Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim DIM,    indexed by j
-					   "B = Var<2,DIMOUT  ,1>" ]   # 3rd variable, dim DIMOUT, indexed by j
-					   
-			# stands for:     R_i   ,   C  ,      X_i    ,      Y_j    ,     B_j    .
-			signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
 			
-			#   R   =        exp(            C    *   -          |         X-Y|^2   )*  B
-			formula = "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B>"
+			if True :
+				aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
+						    "C = Param<0>"          ,   # 1st parameter
+						    "X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim DIM,    indexed by i
+						    "Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim DIM,    indexed by j
+						    "B = Var<2,DIMOUT  ,1>" ]   # 3rd variable, dim DIMOUT, indexed by j
+						   
+				# stands for:     R_i   ,   C  ,      X_i    ,      Y_j    ,     B_j    .
+				signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
+				
+				#   R   =        exp(            C    *   -          |         X-Y|^2   )*  B
+				formula = "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B>"
 			
-			
-			aliases = []
-			C = "Param<0>"
-			X = "Var<0,"+str(dimpoint)+",0>"
-			Y = "Var<1,"+str(dimpoint)+",1>"
-			B = "Var<2,"+str(dimout  )+",1>"
-			formula = "Scal< Exp< Scal<Constant<"+C+">, Minus<SqNorm2<Subtract<"+X+","+Y+">>> > >,  "+B+">"
-			
+			else :
+				aliases = []
+				C = "Param<0>"
+				X = "Var<0,"+str(dimpoint)+",0>"
+				Y = "Var<1,"+str(dimpoint)+",1>"
+				B = "Var<2,"+str(dimout  )+",1>"
+				formula = "Scal< Exp< Scal<Constant<"+C+">, Minus<SqNorm2<Subtract<"+X+","+Y+">>> > >,  "+B+">"
 			
 			sum_index = 0 # the output vector is indexed by "i" (CAT=0)
 			return genconv( aliases, formula, signature, sum_index, 1/(s**2), x, y, b )

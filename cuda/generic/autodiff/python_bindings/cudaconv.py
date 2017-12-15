@@ -12,6 +12,7 @@ import numpy as np
 import ctypes
 from ctypes import *
 import os.path
+import re # Regexp for aliases
 
 # HARDCODED GAUSSIAN CONVOLUTION (demo) =========================================================
 
@@ -72,16 +73,28 @@ def cuda_conv(x, y, beta, result, ooSigma2, kernel = "gaussian"):
 
 __cuda_convs_generic = {}
 
-def compile_generic_routine( aliases, formula, dllabspath, script_folder = None, script_name = None ) :
+def compile_generic_routine( aliases, formula, dllname, cuda_type, script_folder = None, script_name = None ) :
 	if script_folder is None :
 		script_folder = os.path.dirname(os.path.abspath(__file__)) \
 		              + os.path.sep + '..' + os.path.sep
 	if script_name   is None :
 		script_name   = '.' + os.path.sep + 'compile_with_aliases'
+	
+	def process_alias(alias) :
+		match = re.fullmatch("(.+)=[ ]*([0-9]+)[ ]*", alias) # example : "DIMPOINT = 3"
+		if match is not None : # alias is of the form
+			return "#define " + match.group(1) + " " + match.group(2) # "#define DIMPOINT 3"
+		else :
+			return "using " + str(alias) + "; "
+		
+	alias_string = "\n".join( [ process_alias(alias) for alias in aliases] )
+	
 	import subprocess
 	print("\n\n")
-	print("Compiled formula = " + formula + ". ", end = '')
-	subprocess.run([script_name +  ' "'+formula+'"'], shell = True, cwd = script_folder)
+	print(alias_string)
+	print("Compiled formula = " + formula + ". ", end = '', flush = True)
+	subprocess.run( [script_name, formula, alias_string, dllname, cuda_type], \
+	                cwd = script_folder)
 
 
 def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, build_folder = None, dll_extension = ".so") :
@@ -116,7 +129,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, build_folder =
 		except OSError :
 			print('Tried to load ' + dllabspath + ", ", end = '')
 			print("but could not find the DLL. Compiling it... ", end = '')
-			compile_generic_routine( aliases, formula, dllabspath )
+			compile_generic_routine( aliases, formula, dll_name + dll_extension, cuda_type )
 			print("Done. ", end = '')
 			dll        = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
 			print("Loaded.\n\n")
