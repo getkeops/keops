@@ -9,7 +9,8 @@
 For the 20th of Dec.:
 
 Jean :
-- [ ] PyTorch recursive syntax
+- [ ] Adapt cudaconv.py to make it generic
+- [x] PyTorch recursive syntax
 - [ ] implement non-isotropic kernels (diagonal, full symmetric tensor)
 - [ ] Derivatives w.r.t. \Sigma (scalar, diagonal, full) + (fixed, tied, independent)
 - [ ] Let KernelProduct choose 1D/2D, CPU/GPU
@@ -24,7 +25,6 @@ Benjamin :
 
 Joan :
 - [ ] Full on-device
-- [ ] Adapt cudaconv.py to make it generic
 - [ ] Speed benchmarks; Symbolic Diff vs. Hardcoded vs. PyTorch
 - [ ] Mex files
 

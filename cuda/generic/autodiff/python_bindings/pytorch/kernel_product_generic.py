@@ -252,7 +252,7 @@ class GenericKernelProduct(torch.autograd.Function):
 					# (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
 					#  sense if we were to expand our model to 3D tensors or whatever.)
 					sumindex_g  = sig[1]     # The sum will be "eventually indexed just like V".
-					args_g      = args + [G] # Don't forget the gradient to backprop !
+					args_g      = args + (G,) # Don't forget the gradient to backprop !
 					
 					# N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
 					genconv = GenericKernelProduct().apply  
@@ -263,17 +263,32 @@ class GenericKernelProduct(torch.autograd.Function):
 
 
 if __name__ == "__main__":
-	# from visualize import make_dot
-	
+		
 	backend = "libkp" # Other value : 'pytorch'
 	
 	if   backend == "libkp" :
-		kernel_product        = KernelProduct().apply
-		kernel_product_grad_x = KernelProductGrad_x().apply
+		def kernel_product(s, x, y, b, kernel) :
+			genconv  = GenericKernelProduct().apply
+			dimpoint = x.size(1) ; dimout = b.size(1)
+			aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
+					   "C = Param<0>"          ,   # 1st parameter
+					   "X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim DIM,    indexed by i
+					   "Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim DIM,    indexed by j
+					   "B = Var<2,DIMOUT  ,1>" ]   # 3rd variable, dim DIMOUT, indexed by j
+					   
+			# stands for:     R_i   ,   C  ,      X_i    ,      Y_j    ,     B_j    .
+			signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
+			
+			#   R   =        exp(            C    *   -          |         X-Y|^2   )*  B
+			formula = "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B>"
+			
+			sum_index = 0 # the output vector is indexed by "i" (CAT=0)
+			return genconv( aliases, formula, signature, sum_index, 1/(s**2), x, y, b )
+		
 	elif backend == "pytorch" :
 		def kernel_product(s, x, y, b, kernel) :
-			x_col = x.unsqueeze(1) # Theano : x.dimshuffle(0, 'x', 1)
-			y_lin = y.unsqueeze(0) # Theano : y.dimshuffle('x', 0, 1)
+			x_col = x.unsqueeze(1) # (N,D) -> (N,1,D)
+			y_lin = y.unsqueeze(0) # (N,D) -> (1,N,D)
 			sq    = torch.sum( (x_col - y_lin)**2 , 2 )
 			K_xy  = torch.exp( -sq / (s**2))
 			return K_xy @ b
@@ -285,7 +300,7 @@ if __name__ == "__main__":
 	#--------------------------------------------------#
 	dtype = torch.FloatTensor
 	
-	N = 10 ; M = 15 ; D = 3 ; E = 3
+	N = 5 ; M = 15 ; D = 3 ; E = 2
 	
 	e = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
 	e = torch.autograd.Variable(e, requires_grad = True)
@@ -306,45 +321,26 @@ if __name__ == "__main__":
 	s = torch.autograd.Variable(s, requires_grad = False)
 	
 	#--------------------------------------------------#
-	# check the class KernelProductGrad_x routines
-	#--------------------------------------------------#
-	
-	if False :
-		grad_x = kernel_product_grad_x(s, a, x, y, b, "gaussian")
-		(grad_xa, grad_xx, grad_xy, grad_xb) = torch.autograd.grad( grad_x, (a,x,y,b), e)
-	
-	if False :
-		print("grad_x  :\n",  grad_x.data.numpy())
-		print("grad_xa :\n", grad_xa.data.numpy())
-		print("grad_xx :\n", grad_xx.data.numpy())
-		print("grad_xy :\n", grad_xy.data.numpy())
-		print("grad_xb :\n", grad_xb.data.numpy())
-	
-	
-	#--------------------------------------------------#
 	# check the class KernelProduct
 	#--------------------------------------------------#
 	def Ham(q,p) :
 		Kq_p  = kernel_product(s,q,q,p, "gaussian")
-		# make_dot(Kq_p, {'q':q, 'p':p, 's':s}).render('graphs/Kqp_'+backend+'.pdf', view=True)
 		return torch.dot( p.view(-1), Kq_p.view(-1) )
 	
-	ham0   = Ham(y, b)
-	# make_dot(ham0, {'y':y, 'b':b, 's':s}).render('graphs/ham0_'+backend+'.pdf', view=True)
+	ham0 = Ham(y, b)
 	
 	print('----------------------------------------------------')
-	print("Ham0:")
-	print(ham0)
+	print("Ham0:") ; print(ham0)
 	
 	grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
 	grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
+	grad_yb = torch.autograd.grad(grad_y,b, torch.ones(grad_y.size()), create_graph = True)[0]
 	
-	print('grad_y  :\n', grad_y.data.numpy())
-	print('grad_b  :\n', grad_b.data.numpy())
+	print('grad_y   :\n', grad_y.data.numpy())
+	print('grad_b   :\n', grad_b.data.numpy())
+	print('grad_yb  :\n', grad_yb.data.numpy())
 	
-	
-	# make_dot(grad_y, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_'+backend+'.pdf', view=True)
-	print('grad_y :\n', grad_y.data.numpy())
+	print('grad_y   :\n', grad_y.data.numpy())
 	
 	if False :
 		def to_check( X, Y, B ):
@@ -373,16 +369,13 @@ if __name__ == "__main__":
 		# grad_y_sum = grad_y.sum() # backward will be randomish, due to type conversion issues
 		Ones = Variable(torch.ones( grad_y.numel() ).type(dtype))
 		grad_y_sum = torch.dot(grad_y.view(-1), Ones )
-		# make_dot(grad_y_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_'+backend+'.pdf', view=True)
 		print('grad_y_sum :\n', grad_y_sum.data.numpy())
 		
 		grad_y_sum_y  = torch.autograd.grad(grad_y_sum,y,create_graph = True)[0]
-		# make_dot(grad_y_sum_y, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_y_'+backend+'.pdf', view=True)
 		print('grad_y_sum_y :\n', grad_y_sum_y.data.numpy())
 		
 		
 		grad_y_sum_b  = torch.autograd.grad(grad_y_sum,b,create_graph = True)[0]
-		# make_dot(grad_y_sum_b, {'y':y, 'b':b, 's':s}).render('graphs/grad_y_sum_b_'+backend+'.pdf', view=True)
 		print('grad_y_sum_b :\n', grad_y_sum_b.data.numpy())
 	
 	
