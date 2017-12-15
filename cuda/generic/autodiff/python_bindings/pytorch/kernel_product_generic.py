@@ -119,8 +119,8 @@ class GenericKernelProduct(torch.autograd.Function):
 		args_conv = [ arg.numpy() for arg in args]
 		
 		# Actual computation --------------------------------------------------------------------
-		result  = torch.zeros( n * signature[0][0] ).type(dtype) # Init the output of the convolution
-		cuda_conv_generic(formula, result, *args_conv,           # Inplace CUDA routine
+		result  = torch.zeros( n,  signature[0][0] ).type(dtype)  # Init the output of the convolution
+		cuda_conv_generic(formula, signature, result.numpy(), *args_conv, # Inplace CUDA routine
 		                  aliases   = aliases, sum_index   = sum_index,
 		                  cuda_type = "float", grid_scheme = "2D") 
 		result  = result.view( n, signature[0][0] )
@@ -281,6 +281,15 @@ if __name__ == "__main__":
 			
 			#   R   =        exp(            C    *   -          |         X-Y|^2   )*  B
 			formula = "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B>"
+			
+			
+			aliases = []
+			C = "Param<0>"
+			X = "Var<0,"+str(dimpoint)+",0>"
+			Y = "Var<1,"+str(dimpoint)+",1>"
+			B = "Var<2,"+str(dimout  )+",1>"
+			formula = "Scal< Exp< Scal<Constant<"+C+">, Minus<SqNorm2<Subtract<"+X+","+Y+">>> > >,  "+B+">"
+			
 			
 			sum_index = 0 # the output vector is indexed by "i" (CAT=0)
 			return genconv( aliases, formula, signature, sum_index, 1/(s**2), x, y, b )

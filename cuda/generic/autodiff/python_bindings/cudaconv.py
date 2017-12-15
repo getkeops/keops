@@ -13,6 +13,8 @@ import ctypes
 from ctypes import *
 import os.path
 
+# HARDCODED GAUSSIAN CONVOLUTION (demo) =========================================================
+
 # extract cuda_conv function pointer in the shared object 
 def get_cuda_convs():
 	"""
@@ -32,7 +34,7 @@ def get_cuda_convs():
 	return func_dict
 
 # create __cuda_conv function with get_cuda_conv()
-__cuda_convs = get_cuda_convs()
+# __cuda_convs = get_cuda_convs()
 
 # convenient python wrapper for __cuda_conv it does all job with types convertation from python ones to C++ ones 
 def cuda_conv(x, y, beta, result, ooSigma2, kernel = "gaussian"):
@@ -65,8 +67,74 @@ def cuda_conv(x, y, beta, result, ooSigma2, kernel = "gaussian"):
 	# Let's use our GPU, which works "in place" :
 	__cuda_convs[kernel](params_p, nx, ny, result_p, args_p )
 
+
+# GENERIC FORMULAS DLLs =========================================================================
+
+__cuda_convs_generic = {}
+
+def compile_generic_routine( aliases, formula, dllabspath, script_folder = None, script_name = None ) :
+	if script_folder is None :
+		script_folder = os.path.dirname(os.path.abspath(__file__)) \
+		              + os.path.sep + '..' + os.path.sep
+	if script_name   is None :
+		script_name   = '.' + os.path.sep + 'compile_with_aliases'
+	import subprocess
+	print("\n\n")
+	print("Compiled formula = " + formula + ". ", end = '')
+	subprocess.run([script_name +  ' "'+formula+'"'], shell = True, cwd = script_folder)
+
+
+def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, build_folder = None, dll_extension = ".so") :
+	"""
+	Returns the appropriate CUDA routine, given:
+	- a list of aliases (strings)
+	- a formula         (string)
+	- a cuda_type       ("float" or "double").
+	
+	If it is not already in __cuda_convs_generic, load it from the appropriate "build" folder.
+	If the .dll/.so cannot be found, compile it on-the-fly (and store it for later use).
+	"""
+	
+	# Compose the DLL name ----------------------------------------------------------------------
+	formula  = formula.replace(" ", "")  # Remove spaces
+	aliases  = [ alias.replace(" ", "") for alias in aliases ]
+	
+	dll_name = ",".join(aliases + [formula]) + "_" + cuda_type
+	
+	if dll_name in __cuda_convs_generic : # If this formula has already been loaded in memory...
+		return __cuda_convs_generic[dll_name][sum_index]
+	else :                                # Otherwise :
+		# Load the DLL --------------------------------------------------------------------------
+		if build_folder is None :
+			build_folder = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep \
+						 + 'build' + os.path.sep
+		dllabspath = build_folder + dll_name + dll_extension
+		
+		
+		try :
+			dll        = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
+		except OSError :
+			print('Tried to load ' + dllabspath + ", ", end = '')
+			print("but could not find the DLL. Compiling it... ", end = '')
+			compile_generic_routine( aliases, formula, dllabspath )
+			print("Done. ", end = '')
+			dll        = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
+			print("Loaded.\n\n")
+			
+		routine_i    = dll.GpuConv
+		# Arguments :            params,          nx,    ny,    result,                args
+		routine_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		
+		routine_j    = dll.GpuTransConv
+		# Arguments :            params,          nx,    ny,    result,                args
+		routine_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		
+		__cuda_convs_generic[dll_name] = [routine_i, routine_j]  # Add our new functions to the module's dictionnary
+		return __cuda_convs_generic[dll_name][sum_index]         # And return it.
+
+
 # Ideally, this routine could be implemented by Joan :
-def cuda_conv_generic(formula, result, *args, 
+def cuda_conv_generic(formula,  signature, result, *args, 
 	                  aliases   = []     , sum_index   = 0    ,
 	                  cuda_type = "float", grid_scheme = "2D" ):
 	"""
@@ -86,7 +154,7 @@ def cuda_conv_generic(formula, result, *args,
 		            "C = Param<0>"          ]
 		formula = "Scal< Square<Scalprod<U,V>>, " \
 		        + "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
-		cuda_conv_generic( formula,
+		cuda_conv_generic( formula, signature,
 		                   R, C, X, Y, U, V, B,
 		                   aliases = aliases )
 		```
@@ -133,7 +201,86 @@ def cuda_conv_generic(formula, result, *args,
 	- E is a nx-by-5 float array (same as the output of "formula")
 	
 	"""
-	None
+	
+	# Check that *args matches the given signature ----------------------------------------------
+	# (Jean :) The way parameters are handled currently (scalar only, etc.) is not really optimal...
+	#          Eventually, they should simply be handled as variables with "CAT=2".
+	params = [] ; variables = [] ; nx = -1 ; ny = -1
+	for (arg, sig) in zip(args, signature[1:]) : # Signature = [ Result, *Args]
+		
+		if   sig[1] ==  0: # If the current arg is an "X^n_i" variable
+			if not (arg.ndim == 2) : raise ValueError("Generic CUDA routines require 2D-arrays as variables.")
+			if   nx == -1: nx = arg.shape[0]  # First "X^0_i" variable encountered
+			if not (      nx == arg.shape[0]) : raise ValueError("CAT=0 variables (X_i) lengths are not compatible with each other.")
+			if not (  sig[0] == arg.shape[1]) : raise ValueError("The size of a CAT=0 variable does not match the signature.")
+			variables.append( arg ) # No worries : arg is in fact a pointer, so no copy is done here
+		
+		elif sig[1] ==  1: # If the current arg is an "Y^m_j" variable
+			if not (arg.ndim == 2) : raise ValueError("Generic CUDA routines require 2D-arrays as variables.")
+			if   ny == -1: ny = arg.shape[0]  # First "Y^0_j" variable encountered
+			if not (      ny == arg.shape[0]) : raise ValueError("CAT=1 variables (Y_j) lengths are not compatible with each other.")
+			if not (  sig[0] == arg.shape[1]) : raise ValueError("The size of a CAT=1 variable does not match the signature.")
+			variables.append( arg ) # No worries : arg is in fact a pointer, so no copy is done here
+		
+		elif sig[1] ==  2: # If the current arg is a parameter
+			if not (  sig[0] == 1) : raise ValueError("As of today, only scalar parameters are allowed.")
+			if not (arg.size == 1) : raise ValueError("Parameters should be size=1 arrays.")
+			params.append( arg[0] )
+		
+	# Assert that we won't make an "empty" convolution :
+	if not nx > 0 : raise ValueError("There should be at least one (nonempty...) 'X_i' variable as input.")
+	if not ny > 0 : raise ValueError("There should be at least one (nonempty...) 'Y_j' variable as input.")
+	
+	# Check the result's shape :
+	sig = signature[0]        # Signature = [ Result, *Args]
+	if        sig[1]   == 2 : raise ValueError("Derivatives wrt. parameters have not been implemented yet.")
+	if not result.ndim == 2 : raise ValueError("The result array should be bi-dimensional.")
+	if not    sig[0]   == result.shape[1] : raise ValueError("The width of the result array does not match the signature.")
+	
+	if sum_index == 0 : # Sum wrt. j, final result index by i
+		if not  sig[1] == 0 : raise ValueError("The result's signature does not indicate an indexation by 'i'...")
+		if not      nx == result.shape[0] : raise ValueError("The result array does not have the correct number of lines wrt. the 'X_i' inputs given.")
+	
+	if sum_index == 1 : # Sum wrt. i, final result index by j
+		if not  sig[1] == 1 : raise ValueError("The result's signature does not indicate an indexation by 'j'...")
+		if not      ny == result.shape[0] : raise ValueError("The result array does not have the correct number of lines wrt. the 'Y_j' inputs given.")
+	
+	# Stack the parameters into a single array :
+	params = np.array( params )
+	
+	# From python to C float pointers and int : -------------------------------------------------
+	vars_p   = tuple(var.ctypes.data_as(POINTER(c_float)) for var in variables)
+	vars_p   = (POINTER(c_float)*len(vars_p))(*vars_p)
+	
+	result_p = result.ctypes.data_as(POINTER(c_float))
+	params_p = params.ctypes.data_as(POINTER(c_float))
+	
+	# Let's use our GPU, which works "in place" : -----------------------------------------------
+	# N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",
+	#       which make a summation wrt. 'j' or 'i', indexing the final result with 'i' or 'j'.
+	routine = get_cuda_conv_generic(aliases, formula, cuda_type, sum_index)
+	routine(params_p, nx, ny, result_p, vars_p )
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
 	"""
