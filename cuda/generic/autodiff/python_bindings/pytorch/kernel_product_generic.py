@@ -55,9 +55,14 @@ class GenericKernelProduct(torch.autograd.Function):
 		
 		
 		A POINT ABOUT EFFICIENCY :
-			The default behavior of GenericKernelProduct.backward is to compute the derivatives
-			with respect to all of its variables. However, we understand that in practice,
-			users know which 
+			The naive behavior of GenericKernelProduct.backward would be to compute the derivatives
+			with respect to all of its variables, even the ones that are not needed...
+			This would be woefully inefficient!
+			Thankfully, PyTorch provides a nice "ctx.needs_input_grad[index]" which allows
+			the "backward" method to automatically "skip" the computation of gradients
+			that are not needed to answer the current user's request.
+			So no need to worry about this :-)
+			
 		
 		
 		With the values defined above,
@@ -218,34 +223,40 @@ class GenericKernelProduct(torch.autograd.Function):
 		args      = ctx.saved_variables # Unwrap the saved variables
 		
 		# Compute the number of arguments which are not parameters
-		nargs = 0 ; 
+		nvars = 0 ; 
 		for sig in signature[1:] : 
-			if sig[1] != 2 : nargs += 1
+			if sig[1] != 2 : nvars += 1
 		
-		# If formula takes 5 arguments (numbered from 0 to 4), then the gradient
+		# If formula takes 5 variables (numbered from 0 to 4), then the gradient
 		# wrt. the output, G, should be given as a 6-th variable (numbered 5),
 		# with the same dim-cat as the formula's output. 
-		eta   = "Var<"+str(nargs)+","+str(signature[0][0])+","+str(signature[0][1])+">"
-		grads = [] ; ind = 0  # list of gradients wrt. args; current variable index
-		for sig in signature[1:] :
+		eta     = "Var<"+str(nvars)+","+str(signature[0][0])+","+str(signature[0][1])+">"
+		grads   = []                # list of gradients wrt. args;
+		arg_ind = 3; var_ind = -1;  # current arg index (3 since aliases, ... are in front of the tensors); current Variable index;
+		
+		for sig in signature[1:] : # Run through the actual parameters, given in *args in the forward.
+			arg_ind += 1
 			if sig[1] == 2 : # we're referring to a parameter
 				grads.append(None) # Not implemented yet
 			else :
-				# adding new aliases is waaaaay too dangerous if we want to compute
-				# second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
-				var         = "Var<"+str(ind)+","+str(sig[0])+","+str(sig[1])+">" # V
-				formula_g   = "Grad< "+ formula +","+ var +","+ eta +">"
-				signature_g = [ sig ] + signature[1:] + signature[:1]
-				# sumindex is "the index that stays in the end", not "the one in the sum" 
-				# (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
-				#  sense if we were to expand our model to 3D tensors or whatever.)
-				sumindex_g  = sig[1]     # The sum will be "eventually indexed just like V".
-				args_g      = args + [G] # Don't forget the gradient to backprop !
-				
-				# N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-				genconv = GenericKernelProduct().apply  
-				grads.append( genconv( aliases, formula_g, signature_g, sumindex_g, *args_g )  )
-				ind += 1 # increment the variable count
+				var_ind += 1 # increment the Variable count
+				if not ctx.needs_input_grad[arg_ind] :  # If the current gradient is to be discarded immediatly...
+					grads.append(None)                  # Don't waste time computing it.
+				else :                                  # Otherwise, the current gradient is really needed by the user:
+					# adding new aliases is waaaaay too dangerous if we want to compute
+					# second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
+					var         = "Var<"+str(var_ind)+","+str(sig[0])+","+str(sig[1])+">" # V
+					formula_g   = "Grad< "+ formula +","+ var +","+ eta +">"              # Grad<F,V,G>
+					signature_g = [ sig ] + signature[1:] + signature[:1]
+					# sumindex is "the index that stays in the end", not "the one in the sum" 
+					# (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
+					#  sense if we were to expand our model to 3D tensors or whatever.)
+					sumindex_g  = sig[1]     # The sum will be "eventually indexed just like V".
+					args_g      = args + [G] # Don't forget the gradient to backprop !
+					
+					# N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
+					genconv = GenericKernelProduct().apply  
+					grads.append( genconv( aliases, formula_g, signature_g, sumindex_g, *args_g )  )
 		
 		# Grads wrt. aliases, formula, signature, sum_index, *args
 		return      (   None,    None,      None,      None, *grads )
