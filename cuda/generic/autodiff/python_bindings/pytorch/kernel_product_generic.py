@@ -53,6 +53,13 @@ class GenericKernelProduct(torch.autograd.Function):
 		But asking the user to provide it explicitely is a good way to let him double-check
 		his formula, and makes debugging easier.
 		
+		
+		A POINT ABOUT EFFICIENCY :
+			The default behavior of GenericKernelProduct.backward is to compute the derivatives
+			with respect to all of its variables. However, we understand that in practice,
+			users know which 
+		
+		
 		With the values defined above,
 		```
 		genconv = GenericKernelProduct().apply
@@ -95,8 +102,8 @@ class GenericKernelProduct(torch.autograd.Function):
 		
 		# Get the size nx by looping on the signature until we've found an "x_i" ----------------
 		n = -1
-		for ( index, (dim,cat) ) in enumerate(signature[1:]) : # Omit the output
-			if cat == sum_index :
+		for ( index, sig) in enumerate(signature[1:]) : # Omit the output
+			if sig[1] == sum_index :
 				n = len( args[index] ) # Lengths compatibility is done by cuda_conv_generic
 				break
 		if n == -1 and sum_index == 0: raise ValueError("The signature should contain at least one indexing argument x_i.")
@@ -119,6 +126,90 @@ class GenericKernelProduct(torch.autograd.Function):
 		"""
 		Backward scheme.
 		G has the same shape (and thus, dim-cat signature) as the formula's output.
+		
+		Denoting s = i if sum_index == 0,                t = j if sum_index == 0
+		           = j if sum_index == 1,                  = i if sum_index == 1
+		We have designed the forward pass so that
+		
+		R_s = \sum_t F( P^0, ..., X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ... ) .         (*)
+		
+		G, the gradient wrt. the output R, has the same shape as the latter and is thus
+		indexed by "s". 
+		If V is a variable (be it a parameter P, an "i" variable X^n or a "j" variable Y^n), we have:
+		
+		[\partial_V R].G 
+		  = \sum_s [\partial_V R_s].G_s                                   (by definition of the L^2 scalar product)
+		  = \sum_s [\partial_V \sum_t F( P^0, X^0_i, Y^0_j, ...) ].G_s    (formula (*)  )
+		  = \sum_s \sum_t [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s    (linearity of the gradient operator)
+		  
+		  = \sum_i \sum_j [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s    (Fubini theorem : the summation order doesn't matter)
+		  = \sum_j \sum_i [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s    (Fubini theorem : the summation order doesn't matter)
+		
+		Then, there are three cases depending on the CAT(EGORY) of V:
+		
+		- if CAT == 0, i.e. V is an "X^n" : -----------------------------------------------------
+			
+			\sum_j [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s 
+			  =   \sum_j [\partial_{X^n} F( P^0, X^0_i, Y^0_j, ...) ].G_s 
+			  
+			    | 0 ..................................................... 0 |
+			    | 0 ..................................................... 0 |
+			  = | \sum_j [\partial_{X^n_i} F( P^0, X^0_i, Y^0_j, ...) ].G_s |  <- (i-th line)
+			    | 0 ..................................................... 0 |
+			    | 0 ..................................................... 0 |
+			
+			Hence, 
+			[\partial_V R].G  = \sum_i ( \sum_j ... )
+			
+			  | \sum_j [\partial_{X^n_1} F( P^0, X^0_1, Y^0_j, ...) ].G_s |
+			  | \sum_j [\partial_{X^n_2} F( P^0, X^0_2, Y^0_j, ...) ].G_s |
+			= |                              .                            |
+			  |                              .                            |
+			  | \sum_j [\partial_{X^n_I} F( P^0, X^0_I, Y^0_j, ...) ].G_s |
+			  
+			= GenericKernelProduct(  Grad( F, V, G_s ), sum_index = 0 )
+			
+		- if CAT == 1, i.e. V is an "Y^m" : -----------------------------------------------------
+			
+			\sum_i [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s 
+			  =   \sum_i [\partial_{Y^m} F( P^0, X^0_i, Y^0_j, ...) ].G_s 
+			  
+			    | 0 ..................................................... 0 |
+			    | 0 ..................................................... 0 |
+			  = | \sum_i [\partial_{Y^m_j} F( P^0, X^0_i, Y^0_j, ...) ].G_s |  <- (j-th line)
+			    | 0 ..................................................... 0 |
+			    | 0 ..................................................... 0 |
+			    | 0 ..................................................... 0 |
+			
+			Hence, 
+			[\partial_V R].G  = \sum_j ( \sum_i ... )
+			
+			  | \sum_i [\partial_{Y^m_1} F( P^0, X^0_1, Y^0_j, ...) ].G_s |
+			  | \sum_i [\partial_{Y^m_2} F( P^0, X^0_2, Y^0_j, ...) ].G_s |
+			= |                              .                            |
+			  |                              .                            |
+			  |                              .                            |
+			  | \sum_i [\partial_{Y^m_J} F( P^0, X^0_I, Y^0_j, ...) ].G_s |
+			  
+			= GenericKernelProduct(  Grad( F, V, G_s ), sum_index = 1 )
+			
+		- if CAT==2, i.e. V is a parameter P^l: ----------------------------------------------------
+			
+			[\partial_V R].G = \sum_{i,j} \partial_{P^l} F( P^0, X^0_I, Y^0_j, ...) ].G_s
+			
+			That is, the gradient wrt. P^l is the reduction of a convolution product
+				GenericKernelProduct(  Grad( F, V, G ), sum_index = whatever )
+				
+			
+		Bottom line : ---------------------------------------------------------------------------
+			
+			If V.CAT == 0 or 1, the gradient [\partial_V F].G is given by
+			      GenericKernelProduct(  Grad( F, V, G ), sum_index = V.CAT )
+			
+			If V.CAT == 2, the gradient [\partial_V F].G HAS NOT BEEN PROPERLY IMPLEMENTED YET,
+			               and we put it to None until the feature has been implemented in the
+			               CUDA symbolic differentiation engine.
+			
 		"""
 		aliases   = ctx.aliases
 		formula   = ctx.formula
@@ -135,18 +226,21 @@ class GenericKernelProduct(torch.autograd.Function):
 		# wrt. the output, G, should be given as a 6-th variable (numbered 5),
 		# with the same dim-cat as the formula's output. 
 		eta   = "Var<"+str(nargs)+","+str(signature[0][0])+","+str(signature[0][1])+">"
-		grads = [] ; ind = 0
+		grads = [] ; ind = 0  # list of gradients wrt. args; current variable index
 		for sig in signature[1:] :
 			if sig[1] == 2 : # we're referring to a parameter
-				grads.append(None)
+				grads.append(None) # Not implemented yet
 			else :
 				# adding new aliases is waaaaay too dangerous if we want to compute
 				# second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
-				var         = "Var<"+str(ind)+","+str(sig[0])+","+str(sig[1])+">"
+				var         = "Var<"+str(ind)+","+str(sig[0])+","+str(sig[1])+">" # V
 				formula_g   = "Grad< "+ formula +","+ var +","+ eta +">"
 				signature_g = [ sig ] + signature[1:] + signature[:1]
-				sumindex_g  = 1 - sig[1]
-				args_g      = args + [G]
+				# sumindex is "the index that stays in the end", not "the one in the sum" 
+				# (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
+				#  sense if we were to expand our model to 3D tensors or whatever.)
+				sumindex_g  = sig[1]     # The sum will be "eventually indexed just like V".
+				args_g      = args + [G] # Don't forget the gradient to backprop !
 				
 				# N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
 				genconv = GenericKernelProduct().apply  
