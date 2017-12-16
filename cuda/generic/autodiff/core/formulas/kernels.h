@@ -61,9 +61,10 @@ using EnergyKernel = ScalarRadialKernel<EnergyFunction,DIMPOINT,DIMVECT>;
 
 //////////////////////////////////////////////////////////////
 ////   DIRECT IMPLEMENTATIONS FOR SCALAR RADIAL KERNELS   ////
+////	(FOR FASTER COMPUTATIONS)						  ////
 //////////////////////////////////////////////////////////////
 
-// hardcoded implementation of the gaussian kernel
+// specific implementation of the gaussian kernel and its gradient wrt to X
 
 template < int DIMPOINT, int DIMVECT > struct GaussKernel_specific;
 template < int DIMPOINT, int DIMVECT, class V, class GRADIN > struct GradGaussKernel_specific;
@@ -71,10 +72,13 @@ template < int DIMPOINT, int DIMVECT, class V, class GRADIN > struct GradGaussKe
 template < int DIMPOINT, int DIMVECT >
 struct GaussKernel_specific
 {
-    static const int DIM = DIMVECT;
+	using GenericVersion = GaussKernel_<DIMPOINT,DIMVECT>;
+
+    static const int DIM = GenericVersion::DIM;
 	
-	using VARS = univpack < X<0,DIMPOINT> , Y<1,DIMPOINT> , Y<2,DIMVECT> >;
-	
+	template < int CAT >
+	using VARS = typename GenericVersion::template VARS<CAT>;
+		
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
 	{	
@@ -99,35 +103,38 @@ struct GaussKernel_specific
 
 };	
 
-// not all gradients are implemented yet, so by default we make links to the standard autodiff versions
+// by default we link to the standard autodiff versions of the gradients
 template < int DIMPOINT, int DIMVECT, class V, class GRADIN > 
 struct GradGaussKernel_specific
 {
-    static const int DIM = DIMPOINT;
+	using GenericVersion = Grad<GaussKernel_<DIMPOINT,DIMVECT>,V,GRADIN>;
+
+    static const int DIM = GenericVersion::DIM;
 	
-	using VARS = MergePacks < typename GaussKernel_specific<DIMPOINT,DIMVECT>::VARS , typename GRADIN::VARS >;
-	
+	template < int CAT >
+	using VARS = typename GenericVersion::template VARS<CAT>;
+		
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
 	{	
-        Grad<GaussKernel_<DIMPOINT,DIMVECT>,V,GRADIN>::template Eval<INDS>(params,gammai,args...);
+        GenericVersion::template Eval<INDS>(params,gammai,args...);
     }
 
     template < class V2, class GRADIN2 >
-    using DiffT = Grad<Grad<GaussKernel_<DIMPOINT,DIMVECT>,V,GRADIN>,V2,GRADIN2>;
+    using DiffT = Grad<GenericVersion,V2,GRADIN2>;
 	
 };
 	
-
-
-// implementation of gradient wrt X
-
+// specific implementation of gradient wrt X
 template < int DIMPOINT, int DIMVECT, class GRADIN > 
-struct GradGaussKernel_specific<DIMPOINT,DIMVECT,X<0,DIMPOINT>,GRADIN>
+struct GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,GRADIN>
 {
-    static const int DIM = DIMPOINT;
+	using GenericVersion = Grad<GaussKernel_<DIMPOINT,DIMVECT>,_X<0,DIMPOINT>,GRADIN>;
+
+    static const int DIM = GenericVersion::DIM;
 	
-	using VARS = MergePacks < typename GaussKernel_specific<DIMPOINT,DIMVECT>::VARS , typename GRADIN::VARS >;
+	template < int CAT >
+	using VARS = typename GenericVersion::template VARS<CAT>;
 		
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
@@ -154,7 +161,7 @@ struct GradGaussKernel_specific<DIMPOINT,DIMVECT,X<0,DIMPOINT>,GRADIN>
 
 	// direct implementation stops here, so we link back to the usual autodiff module
     template < class V2, class GRADIN2 >
-    using DiffT = Grad<Grad<GaussKernel_<DIMPOINT,DIMVECT>,X<0,DIMPOINT>,GRADIN>,V2,GRADIN2>;
+    using DiffT = Grad<GenericVersion,V2,GRADIN2>;
 	
 };
 	
@@ -180,7 +187,7 @@ using TRI_Kernel = Add<Scal<FORTHO<Param<0>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,_X<2,DI
 // Div-free and curl-free kernel with gaussian functions. 
 // k_df(x,y)b = exp(-r^2/s2)*(((d-1)/(2c)-r^2)b + <b,x-y>(x-y))
 // k_cf(x,y)b = exp(-r^2/s2)*(	   (1/(2c)) b   - <b,x-y>(x-y))
-// The value of 1/s2 must be given as first parameter (P<0>) when calling Eval() 
+// The value of 1/s2 must be given as first parameter (_P<0>) when calling Eval() 
 // We do not use the previous template because exp(-r^2/s2) is factorized
 
 template < int DIM >
@@ -201,7 +208,7 @@ Scal<Scalprod<_Y<2,DIM>,Subtract<_X<0,DIM>,_Y<1,DIM>>>,Subtract<_X<0,DIM>,_Y<1,D
 
 // Weighted combination of the two previous kernels, which gives a Translation and Rotation Invariant kernel with gaussian base function.
 // k_tri(x,y)b = lambda * k_df(x,y)b + (1-lambda) * k_cf(x,y)b
-// The weight lambda must be specified as the second parameter (P<1>) when calling Eval() 
+// The weight lambda must be specified as the second parameter (_P<1>) when calling Eval() 
 // remark : this is currently not efficient at all since almost the same computations will be done twice...
 
 template < int DIM >
