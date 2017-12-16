@@ -26,6 +26,18 @@ struct ScalprodImpl
     static_assert(DIMIN==FB::DIM,"Dimensions must be the same for Scalprod");
     static const int DIM = 1;
 
+    static void PrintId() 
+    {
+    	cout << "Scalprod<";
+    	FA::PrintId();
+    	cout << ",";
+    	FB::PrintId();
+    	cout << ">";
+    }
+
+	using AllTypes = MergePacks<univpack<Scalprod<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
+
+    // Vars( A + B ) = Vars(A) U Vars(B), whatever the category
     // Vars(<A,B>) = Vars(A) U Vars(B)
     template < int CAT >
     using VARS = MergePacks<typename FA::VARS<CAT>,typename FB::VARS<CAT>>;

@@ -60,6 +60,17 @@ struct AddImpl
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Add");
     
+    static void PrintId() 
+    {
+    	cout << "Add<";
+    	FA::PrintId();
+    	cout << ",";
+    	FB::PrintId();
+    	cout << ">";
+    }
+
+	using AllTypes = MergePacks<univpack<Add<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
+	
     // Vars( A + B ) = Vars(A) U Vars(B), whatever the category
     template < int CAT >
     using VARS = MergePacks<typename FA::VARS<CAT>,typename FB::VARS<CAT>>;
@@ -130,6 +141,17 @@ struct ScalImpl
     // FB is a vector, Output has the same size, and FA is a scalar
     static const int DIM = FB::DIM;
     static_assert(FA::DIM==1,"Dimension of FA must be 1 for Scal");
+
+    static void PrintId() 
+    {
+    	cout << "Scal<";
+    	FA::PrintId();
+    	cout << ",";
+    	FB::PrintId();
+    	cout << ">";
+    }
+
+	using AllTypes = MergePacks<univpack<Scal<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
 
     // Vars( A * B ) = Vars(A) U Vars(B)
     template < int CAT >
@@ -213,6 +235,15 @@ struct Exp
     static const int DIM = 1;
     static_assert(F::DIM==1,"Dimension of input must be one for exp function");
 
+    static void PrintId() 
+    {
+    	cout << "Exp<";
+    	F::PrintId();
+    	cout << ">";
+    }
+
+	using AllTypes = MergePacks<univpack<Exp<F>>,typename F::AllTypes>;
+
     // Vars(Exp(F)) = Vars(F)
     template < int CAT >
     using VARS = typename F::VARS<CAT>;
@@ -246,6 +277,15 @@ struct Pow
     static const int DIM = 1;
     static_assert(F::DIM==1,"Dimension of input must be one for exp function");
     
+    static void PrintId() 
+    {
+    	cout << "Pow<";
+    	F::PrintId();
+    	cout << "," << M << ">";
+    }
+
+	using AllTypes = MergePacks<univpack<Pow<F,M>>,typename F::AllTypes>;
+
     // Vars( F^M ) = Vars( F )
     template < int CAT >
     using VARS = typename F::VARS<CAT>;
@@ -322,6 +362,15 @@ template < class F >
 struct Log {	
 	static const int DIM = 1;
 	static_assert(F::DIM==1,"Dimension of input must be one for exp function");
+
+    static void PrintId() 
+    {
+    	cout << "Log<";
+    	F::PrintId();
+    	cout << ">";
+    }
+
+	using AllTypes = MergePacks<univpack<Log<F>>,typename F::AllTypes>;
 
 	template < int CAT >
 	using VARS = typename F::VARS<CAT>;

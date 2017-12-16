@@ -58,8 +58,8 @@ void main_generic(int Nx) {
     vector<float*> vargs(4);
     vargs[0]=x;
     vargs[1]=y;
-    vargs[2]=u;
-    vargs[3]=v;
+    vargs[2]=v;
+    vargs[3]=u;
     float **args = vargs.data();
 
     float params[1];

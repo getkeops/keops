@@ -51,7 +51,7 @@
  * 
  */
 
-// N.B.: this file assumes that Pack.h has already been loaded, defining univpack and other collection class.
+#include "Pack.h"
 
 #define INLINE static __host__ __device__ __forceinline__ 
 //#define INLINE static inline
@@ -104,6 +104,13 @@ struct Var
 {
     static const int N   = _N;   // The index and dimension of Var, formally specified using the
     static const int DIM = _DIM; // templating syntax, are accessible using Var::N, Var::DIM.
+    
+    static void PrintId() 
+    {
+    	cout << "Var<" << N << "," << DIM << "," << CAT << ">";
+    }
+    
+    using AllTypes = univpack<Var<N,DIM,CAT>>;
 
     template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
     using VARS = CondType<univpack<Var<N,DIM>>,univpack<>,CAT==CAT_>;
@@ -129,6 +136,7 @@ struct Var
     //                             Zero(V::DIM) otherwise
     template < class V, class GRADIN >
     using DiffT = IdOrZero<Var<N,DIM,CAT>,V,GRADIN>;
+    
 };
 
 
@@ -138,7 +146,12 @@ struct Var
 
 template < int N >
 struct Param
-{   static const int INDEX = N; };
+{   static const int INDEX = N;
+    static void PrintId() 
+    {
+    	cout << "Param<" << N << ">";
+    }
+};
 
 //////////////////////////////////////////////////////////////
 ////      GRADIENT OPERATOR  : Grad< F, V, Gradin >       ////

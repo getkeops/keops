@@ -15,6 +15,13 @@ struct Zero
 {
     static const int DIM = _DIM;
 
+    static void PrintId() 
+    {
+    	cout << "Zero<" << DIM << ">";
+    }
+
+    using AllTypes = univpack<Zero<DIM>>;
+
     template < int CAT >      // Whatever CAT... 
     using VARS = univpack<>;  // there's no variable used in there.
 
@@ -37,6 +44,13 @@ struct IntConstant
 {
     static const int DIM = 1;
 
+    static void PrintId() 
+    {
+    	cout << "IntConstant<" << N << ">";
+    }
+
+    using AllTypes = univpack<IntConstant<N>>;
+    
     template < int CAT >      // Whatever CAT... 
     using VARS = univpack<>;  // there's no variable used in there.
     
@@ -57,6 +71,15 @@ struct Constant
 {
     static const int DIM = 1; // Scalar-valued parameters only.
 
+    static void PrintId() 
+    {
+    	cout << "Constant<";
+    	PRM::PrintId();
+    	cout << ">";
+    }
+
+    using AllTypes = univpack<Constant<PRM>>;
+    
     // A parameter is a variable of category "2" ( 0 = Xi, 1 = Yj )
     template < int CAT >
     using VARS = CondType<univpack<PRM>,univpack<>,CAT==2>;
