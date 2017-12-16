@@ -165,17 +165,20 @@ using Grad = typename F::template DiffT<V,GRADIN>;
 
 
 //////////////////////////////////////////////////////////////
-////    STANDARD VARIABLES : X<N,DIM>, Y<N,DIM>, P<N>     ////
+////    STANDARD VARIABLES :_X<N,DIM>,_Y<N,DIM>,_P<N>     ////
 //////////////////////////////////////////////////////////////
 
-template < int N, int DIM >
-using X = Var<N,DIM,0>;
+// N.B. : We leave "X", "Y" and "P" to the user 
+//        and restrict ourselves to "_X", "_Y", "_P".
 
 template < int N, int DIM >
-using Y = Var<N,DIM,1>;
+using _X = Var<N,DIM,0>;
+
+template < int N, int DIM >
+using _Y = Var<N,DIM,1>;
 
 template < int N >
-using P = Param<N>;
+using _P = Param<N>;
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
