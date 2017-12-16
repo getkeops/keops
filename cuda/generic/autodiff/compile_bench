@@ -1,0 +1,22 @@
+# The script below is not yet generic... You must first compile the google/benchmark code and install it system wide (or you have to custom the "-lbenchmark" option...). After this:
+
+NVCC="/usr/bin/nvcc"
+CC="/usr/bin/gcc"
+COMPUTECAPABILITY=35
+NVCCFLAGS="-ccbin=$CC -arch=sm_$COMPUTECAPABILITY -Xcompiler -fPIC -shared"
+
+# the kernel to be compared:
+FUN="Scal<Square<Scalprod<X<2,4>,Y<3,4>>>,GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<4,3>>>"
+SPECIFIC="cuda_grad1conv.cu"
+
+
+
+# First: compile (but do not link) the benchmark (because of '-c' flag) 
+#$NVCC -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -lbenchmark -O2 -c test/bench.cu -o build/bench.o
+
+# Second: create the shared objects that you want to compare:
+./compile $FUN
+#$NVCC -D "USE_DOUBLE_PRECISION=0" -D "CUDA_BLOCK_SIZE=192" $NVCCFLAGS -I../../convolutions/ -o "build/"$SPECIFIC".so"   "../../convolutions/"$SPECIFIC".cu"
+
+# Third: link all together
+#$NVCC -o build/bench -lbenchmark build/bench.o $(pwd)"/build/"$FUN"_float.so" $(pwd)"/build/"$SPECIFIC".so"
