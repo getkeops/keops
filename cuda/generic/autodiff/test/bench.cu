@@ -5,10 +5,17 @@
 #include <algorithm>
 #include <benchmark/benchmark.h>
 
+// use manuaml timing for GPU based functions
+#include <chrono>
+#include <ctime>
 
 using namespace std;
 
+/////////////////////////////////////////////////////////////////////////////////////
+//                      The function to be benchmarked                            //
+/////////////////////////////////////////////////////////////////////////////////////
 
+// Some convenient functions
 float floatrand() {
     return ((float)rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
@@ -17,42 +24,43 @@ template < class V > void fillrandom(V& v) {
     generate(v.begin(), v.end(), floatrand);    // fills vector with random values
 }
 
-
+// Signature of the generic function:
 extern "C" int GpuConv(float*, int, int, float*, float**);
-extern "C" int CpuConv(float*, int, int, float*, float**);
 
-void main_generic() {
+void main_generic(int Nx) {
 
-    int Nx=5000, Ny=2000;
+    int Ny= Nx /2 ;
 
-    vector<float> vf(Nx*3);
+    int dimPoint = 3;
+    int dimVect = 3;
+
+    vector<float> vf(Nx*dimPoint);
     fillrandom(vf);
     float *f = vf.data();
-    vector<float> vx(Nx*3);
+
+    vector<float> vx(Nx*dimPoint);
     fillrandom(vx);
     float *x = vx.data();
-    vector<float> vy(Ny*3);
+    
+    vector<float> vy(Ny*dimPoint);
     fillrandom(vy);
     float *y = vy.data();
-    vector<float> vu(Nx*4);
+    
+    vector<float> vu(Nx*dimVect);
     fillrandom(vu);
     float *u = vu.data();
-    vector<float> vv(Ny*4);
+    
+    vector<float> vv(Ny*dimVect);
     fillrandom(vv);
     float *v = vv.data();
-    vector<float> vb(Ny*3);
-    fillrandom(vb);
-    float *b = vb.data();
 
-    vector<float*> vargs(5);
+    // wrap variables
+    vector<float*> vargs(4);
     vargs[0]=x;
     vargs[1]=y;
     vargs[2]=u;
     vargs[3]=v;
-    vargs[4]=b;
     float **args = vargs.data();
-
-    vector<float> resgpu(Nx*3), rescpu(Nx*3);
 
     float params[1];
     float Sigma = 1;
@@ -60,71 +68,92 @@ void main_generic() {
 
     GpuConv(params, Nx, Ny, f, args);
 
-
 }
+
 extern "C" int GaussGpuGrad1Conv(float ooSigma2, float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 
-void main_specific() {
+void main_specific(int Nx) {
 
-    int Nx=5000, Ny=2000;
+    int Ny= Nx /2 ;
 
-    vector<float> vf(Nx*3);
+    int dimPoint = 3;
+    int dimVect = 3;
+
+    vector<float> vf(Nx*dimVect);
     fillrandom(vf);
     float *f = vf.data();
-    vector<float> vx(Nx*3);
+
+    vector<float> vx(Nx*dimPoint);
     fillrandom(vx);
     float *x = vx.data();
-    vector<float> vy(Ny*3);
+    
+    vector<float> vy(Ny*dimPoint);
     fillrandom(vy);
     float *y = vy.data();
-    vector<float> vu(Nx*4);
+    
+    vector<float> vu(Nx*dimVect);
     fillrandom(vu);
     float *u = vu.data();
-    vector<float> vv(Ny*4);
+    
+    vector<float> vv(Ny*dimVect);
     fillrandom(vv);
     float *v = vv.data();
-    vector<float> vb(Ny*3);
-    fillrandom(vb);
-    float *b = vb.data();
+    
+    float Sigma =1;
+    float ooSigma2 = 1.0/(Sigma*Sigma);
 
-    vector<float*> vargs(5);
-    vargs[0]=x;
-    vargs[1]=y;
-    vargs[2]=u;
-    vargs[3]=v;
-    vargs[4]=b;
-    float **args = vargs.data();
-
-    vector<float> resgpu(Nx*3), rescpu(Nx*3);
-
-    float params[1];
-    float Sigma = 1;
-    params[0] = 1.0/(Sigma*Sigma);
-
-    GaussGpuGrad1Conv(params[0], u, x, y, v, f, 3,3,Nx,Ny);
+    GaussGpuGrad1Conv(ooSigma2, u, x, y, v, f, 3,3,Nx,Ny);
 
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+//                          Call the benchmark                                     //
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+// The zeroth benchmark : simply to avoid warm up the GPU...
 static void BM_dummy(benchmark::State& state) {
     for (auto _ : state)
-        main_generic();
+        main_generic(1000);
 }
-// Register the function as a benchmark
-BENCHMARK(BM_dummy);
+BENCHMARK(BM_dummy);// Register the function as a benchmark
 
-// Define another benchmark
-static void BM_specific(benchmark::State& state) {
-    for (auto _ : state)
-        main_specific();
+
+// A first Benchmark:
+static void cuda_specific(benchmark::State& state) {
+    int Nx = state.range(0);
+
+    for (auto _ : state) {
+        auto start = chrono::high_resolution_clock::now();
+        //----------- the function to be benchmarked ------------//
+        main_specific(Nx); 
+        //------------------------------------------------------//
+        auto end   = chrono::high_resolution_clock::now();
+
+        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start); 
+        state.SetIterationTime(elapsed_seconds.count());
+    }
 }
-BENCHMARK(BM_specific);
+// set range of the parameter to be tested : [ 8, 64, 512, 4k, 8k ]
+BENCHMARK(cuda_specific)->Range(8, 8<<10)->UseManualTime();// Register the function as a benchmark
 
-static void BM_generic(benchmark::State& state) {
-    for (auto _ : state)
-        main_generic();
+// A second one: 
+static void cuda_generic(benchmark::State& state) {
+    int Nx = state.range(0);
+
+    for (auto _ : state) {
+        auto start = chrono::high_resolution_clock::now();
+        //----------- the function to be benchmarked ------------//
+        main_generic(Nx);
+        //------------------------------------------------------//
+        auto end   = chrono::high_resolution_clock::now();
+
+        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start); 
+        state.SetIterationTime(elapsed_seconds.count());
+    }
 }
-// Register the function as a benchmark
-BENCHMARK(BM_generic);
+// set range of the parameter to be tested : [ 8, 64, 512, 4k, 8k ]
+BENCHMARK(cuda_generic)->Range(8, 8<<10)->UseManualTime();// Register the function as a benchmark
 
 
-BENCHMARK_MAIN();
+BENCHMARK_MAIN();// generate the benchmarks
