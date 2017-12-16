@@ -52,6 +52,11 @@ struct univpack
     using FIRST = void;         // [].head() = void
     static const int SIZE = 0;  // len([])   = 0
 
+	// helpers to print the univpack to the standard output
+	static void PrintAll() { }
+	static void PrintComma() { }		
+    static void PrintId() { cout << "univpack< >"; }
+
     template < class D >        // [].append_first(D) = [D]
     using PUTLEFT = univpack<D>;
         
@@ -64,6 +69,22 @@ struct univpack<C,Args...>
 {
     using FIRST = C;             // [C, ...].head() = C
     static const int SIZE = 1+sizeof...(Args); // len([C, ...]) = 1 + len([...])
+
+	// helpers to print the univpack to the standard output
+	static void PrintComma() { cout << " ," << endl; }
+	
+	static void PrintAll() 
+	{ 
+		FIRST::PrintId();
+		NEXT::PrintComma();
+		NEXT::PrintAll();
+	}
+		
+    static void PrintId() 
+    { 
+    	cout << "univpack< " << endl;
+    	PrintAll();
+    	cout << " >"; }
 
     template < class D >         // [C, ...].append_first(D) = [D, C, ...]
     using PUTLEFT = univpack<D, C, Args...>;

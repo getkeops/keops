@@ -60,6 +60,107 @@ using EnergyKernel = ScalarRadialKernel<EnergyFunction,DIMPOINT,DIMVECT>;
 
 
 //////////////////////////////////////////////////////////////
+////   DIRECT IMPLEMENTATIONS FOR SCALAR RADIAL KERNELS   ////
+//////////////////////////////////////////////////////////////
+
+// hardcoded implementation of the gaussian kernel
+
+template < int DIMPOINT, int DIMVECT > struct GaussKernel_specific;
+template < int DIMPOINT, int DIMVECT, class V, class GRADIN > struct GradGaussKernel_specific;
+
+template < int DIMPOINT, int DIMVECT >
+struct GaussKernel_specific
+{
+    static const int DIM = DIMVECT;
+	
+	using VARS = univpack < X<0,DIMPOINT> , Y<1,DIMPOINT> , Y<2,DIMVECT> >;
+	
+    template < class INDS, typename... ARGS >
+    INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
+	{	
+        auto t = thrust::make_tuple(args...); 
+        __TYPE__*& xi = thrust::get<IndValAlias<INDS,0>::ind>(t); 
+        __TYPE__*& yj = thrust::get<IndValAlias<INDS,1>::ind>(t); 
+        __TYPE__*& betaj = thrust::get<IndValAlias<INDS,2>::ind>(t); 
+
+	    __TYPE__ r2 = 0.0f;
+        __TYPE__ temp;
+        for(int k=0; k<DIMPOINT; k++) {
+            temp =  yj[k]-xi[k];
+            r2 += temp*temp;
+        }
+        __TYPE__ s = exp(-r2*params[0]);
+        for(int k=0; k<DIMVECT; k++)
+            gammai[k] += s * betaj[k];
+    }
+
+    template < class V, class GRADIN >
+    using DiffT = GradGaussKernel_specific<DIMPOINT,DIMVECT,V,GRADIN>;
+
+};	
+
+// not all gradients are implemented yet, so by default we make links to the standard autodiff versions
+template < int DIMPOINT, int DIMVECT, class V, class GRADIN > 
+struct GradGaussKernel_specific
+{
+    static const int DIM = DIMPOINT;
+	
+	using VARS = MergePacks < typename GaussKernel_specific<DIMPOINT,DIMVECT>::VARS , typename GRADIN::VARS >;
+	
+    template < class INDS, typename... ARGS >
+    INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
+	{	
+        Grad<GaussKernel_<DIMPOINT,DIMVECT>,V,GRADIN>::template Eval<INDS>(params,gammai,args...);
+    }
+
+    template < class V2, class GRADIN2 >
+    using DiffT = Grad<Grad<GaussKernel_<DIMPOINT,DIMVECT>,V,GRADIN>,V2,GRADIN2>;
+	
+};
+	
+
+
+// implementation of gradient wrt X
+
+template < int DIMPOINT, int DIMVECT, class GRADIN > 
+struct GradGaussKernel_specific<DIMPOINT,DIMVECT,X<0,DIMPOINT>,GRADIN>
+{
+    static const int DIM = DIMPOINT;
+	
+	using VARS = MergePacks < typename GaussKernel_specific<DIMPOINT,DIMVECT>::VARS , typename GRADIN::VARS >;
+		
+    template < class INDS, typename... ARGS >
+    INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
+	{	
+        auto t = thrust::make_tuple(args...); 
+        __TYPE__*& xi = thrust::get<IndValAlias<INDS,0>::ind>(t); 
+        __TYPE__*& yj = thrust::get<IndValAlias<INDS,1>::ind>(t); 
+        __TYPE__*& betaj = thrust::get<IndValAlias<INDS,2>::ind>(t); 
+        __TYPE__ alphai[GRADIN::DIM];
+        GRADIN::template Eval<INDS>(params,alphai,args...);
+
+        __TYPE__ r2 = 0.0f, sga = 0.0f;          // Don't forget to initialize at 0.0
+        __TYPE__ xmy[DIMPOINT];
+        for(int k=0; k<DIMPOINT; k++) {      // Compute the L2 squared distance r2 = | x_i-y_j |_2^2
+            xmy[k] =  xi[k]-yj[k];
+            r2 += xmy[k]*xmy[k];
+        }
+        for(int k=0; k<DIMVECT; k++)         // Compute the L2 dot product <a_i, b_j>
+            sga += betaj[k]*alphai[k];
+        __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
+        for(int k=0; k<DIMPOINT; k++)        // Increment the output vector gammai - which is a POINT
+            gammai[k] += s * xmy[k];
+    }
+
+	// direct implementation stops here, so we link back to the usual autodiff module
+    template < class V2, class GRADIN2 >
+    using DiffT = Grad<Grad<GaussKernel_<DIMPOINT,DIMVECT>,X<0,DIMPOINT>,GRADIN>,V2,GRADIN2>;
+	
+};
+	
+	
+
+//////////////////////////////////////////////////////////////
 ////                 MATRIX-VALUED KERNELS                ////
 //////////////////////////////////////////////////////////////
 
