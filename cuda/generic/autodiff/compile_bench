@@ -10,7 +10,9 @@ FUN="Grad<GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<2,3>>,_X<0,3>,_X<3,3>>"
 #FUN="GradGaussKernel_specific<3,3,_X<0,3>,_X<3,3>>" new "specific inside generic" version, should be almost as fast as the specific...
 SPECIFIC="cuda_grad1conv"
 
-
+# (Joan) I think there is a problem with the call to cuda_grad1conv : when I do "nvprof build/bench", only the call 
+# to the generic kernel is listed, not the one from cuda_grad1conv. So it looks like only the memory transfers are done
+# and the kernel is not launched..
 
 # First: compile (but do not link) the benchmark (because of '-c' flag) 
 $NVCC -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -lbenchmark -O2 -c test/bench.cu -o build/bench.o
