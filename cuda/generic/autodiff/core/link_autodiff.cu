@@ -38,9 +38,18 @@ extern "C" int GpuTransConv_FromDevice(__TYPE__* params, int nx, int ny, __TYPE_
 	return GpuConv2D_FromDevice(Generic<FORMULA,1>::sEval(), params, ny, nx, gamma, args);
 }
 
+
+
+
+
+
+
+
 /////////////////////////
 // Convolutions on Cpu //
 /////////////////////////
+
+#include "core/CpuConv.cpp"
 
 // sum over j : gamma_i = sum_j F(X_i,Y_j)
 extern "C" int CpuConv(__TYPE__* params, int nx, int ny, __TYPE__* gamma, __TYPE__** args) 

@@ -21,6 +21,8 @@
 #include "../core/GpuConv2D.cu"
 #include "../core/autodiff.h"
 
+#include "../core/CpuConv.cpp"
+
 using namespace std;
 
 
