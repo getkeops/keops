@@ -87,28 +87,19 @@ if __name__ == '__main__':
 	cuda_conv(x, y, beta, gamma, sigma) # In place, gamma_i = k(x_i,y_j) @ beta_j
 	gamma = gamma.reshape((sizeX,dimVect))
 	
-	# A first implementation, with (shock horror !) a bunch of "for" loops
+	# A implementation using numpy
 	oosigma2 = 1 / (sigma * sigma) 
-	gamma_py = np.zeros((sizeX,dimVect)).astype('float32')
 	
-	for i in range(sizeX):
-		for j in range(sizeY):
-			rij2 = 0.
-			for k in range(dimPoint):
-				rij2 += (x[i,k] - y[j,k]) ** 2
-			for l in range(dimVect):
-				gamma_py[i,l] +=  np.exp(-rij2 * oosigma2) * beta[j,l]
+	def squared_distances(x, y):
+		return np.sum((x[:,np.newaxis,:] - y[np.newaxis,:,:]) ** 2, axis=2)
+	
+	def differences(x, y):
+		return (x.T[:,:,np.newaxis] - y.T[:,np.newaxis,:])
+	
+	# A=exp(-|x_i - y_j|^2/(ker^2)).
+	A = np.exp(-squared_distances(x, y) * oosigma2)
+	gamma_py = (np.matmul(A,beta))
 
-	# A second implementation, a bit more efficient
-	r2 = np.zeros((sizeX,sizeY)).astype('float32')
-	for i in range(sizeX):
-		for j in range(sizeY):
-			for k in range(dimPoint):
-				r2[i,j] += (x[i,k] - y[j,k]) ** 2
-				
-	K         = np.exp(-r2 * oosigma2)
-	gamma_py2 = np.dot(K,beta)
-	
 	# compare output
 	print("\nCuda convolution :")
 	print(gamma)
@@ -116,9 +107,5 @@ if __name__ == '__main__':
 	print("\nPython convolution 1 :")
 	print(gamma_py)
 	
-	print("\nPython convolution 2 :")
-	print(gamma_py2)
-	
 	print("\nIs everything okay ? ")
 	print(np.allclose(gamma, gamma_py ))
-	print(np.allclose(gamma, gamma_py2))
