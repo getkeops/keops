@@ -64,41 +64,69 @@ def cuda_grad1conv(alpha,x, y, beta, result, sigma, kernel = "gaussian"):
 
 # testing, benchmark grad1convolution with a naive python implementation of the Gaussian convolution
 if __name__ == '__main__':
-	
-	np.set_printoptions(linewidth=200)
-	sizeX    = int(600)
-	sizeY    = int(100)
-	dimPoint = int(3)
-	dimVect  = int(3)
-	sigma    = float(2)
-	
-	alpha = np.random.rand(sizeX,dimVect ).astype('float32')
-	x     = np.random.rand(sizeX,dimPoint).astype('float32')
-	y     = np.random.rand(sizeY,dimPoint).astype('float32')
-	beta  = np.random.rand(sizeY,dimVect ).astype('float32')
-	
-	# Call cuda kernel
-	gamma = np.zeros(dimPoint*sizeX).astype('float32')
-	cuda_grad1conv(alpha,x, y, beta, gamma, sigma) # In place, gamma_i = k(x_i,y_j) @ beta_j
-	gamma = gamma.reshape((sizeX,dimPoint))
-	
-	# A first implementation
-	oosigma2 = 1 / (sigma * sigma) 
-	gamma_py = np.zeros((sizeX,dimPoint)).astype('float32')
-	
-	for i in range(sizeX):
-		for j in range(sizeY):
-			rijk = (x[i,] - y[j,])
-			rij2 = (rijk **2).sum()
-			sga = (beta[j,] * alpha[i,]).sum()
-			gamma_py[i,] -=  rijk * np.exp(-rij2 * oosigma2) * sga * 2.0 * oosigma2
-			
-	# compare output
-	print("\nCuda convolution :")
-	print(gamma)
-	
-	print("\nPython gradconvolution 1 :")
-	print(gamma_py)
-	
-	print("\nIs everything okay ? ")
-	print(np.allclose(gamma, gamma_py, atol = 1e-6))
+
+    np.set_printoptions(linewidth=200)
+    sizeX    = int(10)
+    sizeY    = int(11)
+    dimPoint = int(3)
+    dimVect  = int(3)
+    sigma    = float(2)
+
+    alpha = np.random.rand(sizeX,dimVect ).astype('float32')
+    x     = np.random.rand(sizeX,dimPoint).astype('float32')
+    y     = np.random.rand(sizeY,dimPoint).astype('float32')
+    beta  = np.random.rand(sizeY,dimVect ).astype('float32')
+
+    # Call cuda kernel
+    gamma = np.zeros(dimPoint*sizeX).astype('float32')
+    cuda_grad1conv(alpha,x, y, beta, gamma, sigma) # In place, gamma_i = k(x_i,y_j) @ beta_j
+    gamma = gamma.reshape((sizeX,dimPoint))
+
+    # A first implementation
+    oosigma2 = 1 / (sigma * sigma) 
+
+    def squared_distances(x, y):
+        return np.sum((x[:,np.newaxis,:] - y[np.newaxis,:,:]) ** 2, axis=2)
+
+    def differences(x, y):
+        return (x.T[:,:,np.newaxis] - y.T[:,np.newaxis,:])
+
+    # A=exp(-|x_i - y_j|^2/(ker^2)).
+    A = np.exp(-squared_distances(x, y) * oosigma2)
+
+    # B=2*(x_i - y_j)*exp(-|x_i - y_j|^2/(ker^2))/(ker^2).
+    B = (differences(x, y) * A)
+
+    gamma_py = -2*(np.sum( alpha * (np.matmul(B,beta)),axis=2) * oosigma2).T
+
+    # A second one using torch:
+    """
+    import torch
+
+    x = torch.Tensor(x)
+    y = torch.Tensor(y)
+    pp = torch.Tensor(alpha)
+    p = torch.Tensor(beta)
+    def torch_squared_distances(x, y):
+        return torch.sum((x[:,None,:] - y[None,:,:]) ** 2, 2)
+
+    def torch_differences(x, y):
+        return (x.t()[:,:,None] - y.t()[:,None,:])
+
+    # A=exp(-|x_i - y_j|^2/(ker^2)).
+    A = torch.exp(-torch_squared_distances(x, y) / (sigma ** 2))
+
+    # B=2*(x_i - y_j)*exp(-|x_i - y_j|^2/(ker^2))/(ker^2).
+    B = (torch_differences(x, y) * A)
+
+    gamma_torch = -(torch.sum( pp * (torch.matmul(B,p)),2) / (0.5 * sigma ** 2)).t()
+    """
+    # compare output
+    print("\nCuda gradconvolution :")
+    print(gamma)
+
+    print("\nNumpy gradconvolution :")
+    print(gamma_py)
+
+    print("\nIs everything okay ? ")
+    print(np.allclose(gamma, gamma_py, atol = 1e-6))
