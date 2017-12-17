@@ -143,7 +143,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
 
 
 template < typename TYPE, class FUN, class PARAM >
-int GpuConv2D_(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h) {
+int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h) {
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
@@ -228,6 +228,52 @@ int GpuConv2D_(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h)
     return 0;
 }
 
+
+
+template < typename TYPE, class FUN, class PARAM >
+int GpuConv2D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TYPE** py_d) {
+
+    typedef typename FUN::DIMSX DIMSX;
+    typedef typename FUN::DIMSY DIMSY;
+    const int DIMY = DIMSY::SUM;
+    const int DIMX1 = DIMSX::FIRST;
+
+    // Data on the device. We need an "inflated" x1B, which contains gridSize.y "copies" of x_d
+    // that will be reduced in the final pass.
+    TYPE *x1B, *out;
+
+    // Compute on device.
+    dim3 blockSize;
+    blockSize.x = 192; // number of threads in each block
+    int blockSizey = blockSize.x;
+    dim3 gridSize;
+    gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
+    gridSize.y =  ny / blockSizey + (ny%blockSizey==0 ? 0 : 1);
+
+    // Reduce  : grid and block are 1d
+    dim3 blockSize2;
+    blockSize2.x = 192; // number of threads in each block
+    dim3 gridSize2;
+    gridSize2.x =  (nx*DIMX1) / blockSize2.x + ((nx*DIMX1)%blockSize2.x==0 ? 0 : 1);
+
+    cudaMalloc((void**)&x1B, sizeof(TYPE)*(nx*DIMX1*gridSize.y));
+    out = px_d[0]; // save the output location
+    px_d[0] = x1B;
+
+    // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
+    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,param_d,nx,ny,px_d,py_d);
+
+    // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
+    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMX1 ) to (nx, DIMX1)
+    reduce0<TYPE,DIMX1><<<gridSize2, blockSize2>>>(x1B, out, gridSize.y,nx);
+
+    // block until the device has completed
+    cudaThreadSynchronize();
+
+    return 0;
+}
+
+
 // Wrapper around GpuConv2D, which takes lists of arrays *x1, *x2, ..., *y1, *y2, ...
 // and use getlist to enroll them into "pointers arrays" px and py.
 template < typename TYPE, class FUN, class PARAM, typename... Args >
@@ -252,7 +298,7 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, Args... args) {
     getlist<INDSI>(px_h+1,args...);
     getlist<INDSJ>(py_h,args...);
 
-    return GpuConv2D_(fun,param,nx,ny,px_h,py_h);
+    return GpuConv2D_FromHost(fun,param,nx,ny,px_h,py_h);
 
 }
 
@@ -280,7 +326,62 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, TYPE** args) {
     for(int i=0; i<SIZEJ; i++)
         py_h[i] = args[INDSJ::VAL(i)];
 
-    return GpuConv2D_(fun,param,nx,ny,px_h,py_h);
+    return GpuConv2D_FromHost(fun,param,nx,ny,px_h,py_h);
+
+}
+
+
+// Same wrappers, but for data located on the device
+template < typename TYPE, class FUN, class PARAM, typename... Args >
+int GpuConv2D_FromDevice(FUN fun, PARAM param, int nx, int ny, TYPE* x1_d, Args... args) {
+
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+
+    const int SIZEI = VARSI::SIZE+1;
+    const int SIZEJ = VARSJ::SIZE;
+
+    using DIMSX = GetDims<VARSI>;
+    using DIMSY = GetDims<VARSJ>;
+
+    using INDSI = GetInds<VARSI>;
+    using INDSJ = GetInds<VARSJ>;
+
+    TYPE *px_d[SIZEI];
+    TYPE *py_d[SIZEJ];
+
+    px_d[0] = x1_d;
+    getlist<INDSI>(px_d+1,args...);
+    getlist<INDSJ>(py_d,args...);
+
+    return GpuConv2D_FromDevice(fun,param,nx,ny,px_d,py_d);
+
+}
+
+template < typename TYPE, class FUN, class PARAM >
+int GpuConv2D_FromDevice(FUN fun, PARAM param, int nx, int ny, TYPE* x1_d, TYPE** args) {
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+
+    const int SIZEI = VARSI::SIZE+1;
+    const int SIZEJ = VARSJ::SIZE;
+
+    using DIMSX = GetDims<VARSI>;
+    using DIMSY = GetDims<VARSJ>;
+
+    using INDSI = GetInds<VARSI>;
+    using INDSJ = GetInds<VARSJ>;
+
+    TYPE *px_d[SIZEI];
+    TYPE *py_d[SIZEJ];
+
+    px_d[0] = x1_d;
+    for(int i=1; i<SIZEI; i++)
+        px_d[i] = args[INDSI::VAL(i-1)];
+    for(int i=0; i<SIZEJ; i++)
+        py_d[i] = args[INDSJ::VAL(i)];
+
+    return GpuConv2D_FromDevice(fun,param,nx,ny,px_d,py_d);
 
 }
 
