@@ -3,7 +3,6 @@
 #include <iostream>
 #include <assert.h>
 #include <cuda.h>
-#include <vector>
 
 #include "Pack.h"
 
