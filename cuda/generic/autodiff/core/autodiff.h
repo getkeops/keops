@@ -180,6 +180,59 @@ using _Y = Var<N,DIM,1>;
 template < int N >
 using _P = Param<N>;
 
+
+//////////////////////////////////////////////////////////////
+////      FACTORIZE OPERATOR  : Factorize< F,G >          ////
+//////////////////////////////////////////////////////////////
+
+template < class F, class G >
+struct Factorize
+{
+
+    static const int DIM = F::DIM;
+    
+    static void PrintId() 
+    {
+    	cout << "Factorize<";
+	F::PrintId();
+	cout << ",";
+	G::PrintId();
+	cout << ">";
+    }
+    
+    using AllTypes = F::AllTypes;
+
+    template < int CAT >       
+    using VARS = F::VARS<CAT>;
+
+    template < class INDS, typename ...ARGS >
+    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
+    {
+	__TYPE__ outG[G::DIMOUT];
+	G::Eval(params,outG,args...;
+	using INDVAR = INDS::SIZE+1;
+	using Ffact = REPLACE<F,G,Var<INDVAR,G::DIMOUT,2>>;
+	using NEWINDS = ConcatPacks<INDS,pack<INDVAR>>;
+	Ffact::Eval<NEWINDS>(params,out,args...,outG);
+	
+        auto t = thrust::make_tuple(args...); // let us access the args using indexing syntax
+        // IndValAlias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
+        __TYPE__* xi = thrust::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
+        for(int k=0; k<DIM; k++) // Assume that xi and out are of size DIM, 
+            out[k] = xi[k];      // and copy xi into out.
+    }
+    
+    // Assuming that the gradient wrt. Var is GRADIN, how does it affect V ?
+    // Var::DiffT<V, grad_input> = grad_input   if V == Var (in the sense that it represents the same symb. var.)
+    //                             Zero(V::DIM) otherwise
+    template < class V, class GRADIN >
+    using DiffT = IdOrZero<Var<N,DIM,CAT>,V,GRADIN>;
+    
+};
+
+
+
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 #include "formulas/constants.h"
