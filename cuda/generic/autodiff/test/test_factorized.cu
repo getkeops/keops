@@ -5,12 +5,6 @@
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test
 
-// Here we build the function F(x,y,u,v,beta) = <u,v>^2 * exp(-C*|x-y|^2) * beta
-// where x, y, beta are 3D vectors, and u, v are 4D vectors
-// and the convolution is gamma_i = sum_j F(x_i,y_j,u_i,v_j,beta_j)
-// then we define G(x,y,u,v,beta,eta) = gradient of F with respect to x, with new input variable eta (3D)
-// and the new convolution is gamma_i = sum_j G(x_i,y_j,u_i,v_j,beta_j,eta_i)
-
 #include <stdio.h>
 #include <assert.h>
 #include <cuda.h>
@@ -19,6 +13,7 @@
 #include <algorithm>
 
 #include "../core/GpuConv2D.cu"
+#include "../core/CpuConv.cpp"
 
 #define __TYPE__ float
 
