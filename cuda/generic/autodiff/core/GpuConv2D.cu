@@ -3,7 +3,6 @@
 #include <iostream>
 #include <assert.h>
 #include <cuda.h>
-#include <vector>
 
 #include "Pack.h"
 
@@ -66,11 +65,11 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
 
     // Load the parameter vector in the Thread Memory, for improved efficiency
     //TYPE param_loc[static_max_device(DIMPARAM,1)];
-    // (Jean :) Direct inlining to compile on Ubuntu 16.04 with nvcc7.5, 
+    // (Jean :) Direct inlining to compile on Ubuntu 16.04 with nvcc7.5,
     //          which is a standard config in research. For whatever reason, I can't make
     //          it work an other way... Is it bad practice/performance?
-    TYPE param_loc[DIMPARAM < 1 ? 1 : DIMPARAM]; 
-    
+    TYPE param_loc[DIMPARAM < 1 ? 1 : DIMPARAM];
+
     for(int k=0; k<DIMPARAM; k++)
         param_loc[k] = param[k];
 
@@ -82,13 +81,6 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     TYPE xi[DIMX];
     TYPE tmp[DIMX1];
-    //          in xi[0:DIMX1] ? It's not clear to me. Is it some kind of clever
-    //          memory access optimization ?
-    //          (b. :) Pas d'optimization ici, mais de la gestion de mémoire : xi[0:DIMX1] est memoire global et est 'commun à tous les thread'.
-    //                  Imposible de faire += sur une variable global depuis chaque thread (il faut coder une opération de réduction). Et surtout, 
-    //                  cela couterai un acces memoire globale à chaque incrémentation: sous optimal.
-    //                  Ainsi, il faut d'abord accumuler dans register (ie localement) puis chaque thread écrit le résultat dans une case mémoire
-   //                   differente (namely: '(*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k]'). A la fin, on réduit en appelant reduced0.
     if(i<nx) { // we will compute x1i only if i is in the range
         for(int k=0; k<DIMX1; k++)
             tmp[k] = 0.0f; // initialize output
@@ -126,7 +118,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
                 tmp[k] += xi[k];
         }
     }
-    __syncthreads();  
+    __syncthreads();
 
     // Step 4 : Save the result in global memory -----------------------------------------------------------
     // The current thread has computed the "linewise-sum" of a small block of the full Kernel Product
@@ -188,15 +180,14 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
         cudaMemcpy(py_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     }
 
-    // Compute on device.
+    // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
     blockSize.x = 192; // number of threads in each block
-    int blockSizey = blockSize.x;
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
-    gridSize.y =  ny / blockSizey + (ny%blockSizey==0 ? 0 : 1);
+    gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
 
-    // Reduce  : grid and block are 1d
+    // Reduce  : grid and block are both 1d
     dim3 blockSize2;
     blockSize2.x = 192; // number of threads in each block
     dim3 gridSize2;
@@ -242,15 +233,14 @@ int GpuConv2D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
     // that will be reduced in the final pass.
     TYPE *x1B, *out;
 
-    // Compute on device.
+    // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
     blockSize.x = 192; // number of threads in each block
-    int blockSizey = blockSize.x;
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
-    gridSize.y =  ny / blockSizey + (ny%blockSizey==0 ? 0 : 1);
+    gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
 
-    // Reduce  : grid and block are 1d
+    // Reduce : grid and block are both 1d
     dim3 blockSize2;
     blockSize2.x = 192; // number of threads in each block
     dim3 gridSize2;
@@ -385,124 +375,6 @@ int GpuConv2D_FromDevice(FUN fun, PARAM param, int nx, int ny, TYPE* x1_d, TYPE*
 
 }
 
-
-
-
-// Host implementation of the convolution, for comparison
-
-
-template < typename TYPE, class FUN, class PARAM >
-int CpuConv_(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {
-    typedef typename FUN::DIMSX DIMSX;
-    typedef typename FUN::DIMSY DIMSY;
-    const int DIMX = DIMSX::SUM;
-    const int DIMY = DIMSY::SUM;
-    const int DIMX1 = DIMSX::FIRST;
-
-    TYPE xi[DIMX], yj[DIMY], tmp[DIMX1];
-    for(int i=0; i<nx; i++) {
-        load<DIMSX>(i,xi,px);
-        for(int k=0; k<DIMX1; k++)
-            tmp[k] = 0;
-        for(int j=0; j<ny; j++) {
-            load<DIMSY>(j,yj,py);
-            call<DIMSX,DIMSY>(fun,xi,yj,param);
-            for(int k=0; k<DIMX1; k++)
-                tmp[k] += xi[k];
-        }
-        for(int k=0; k<DIMX1; k++)
-            px[0][i*DIMX1+k] = tmp[k];
-    }
-
-    return 0;
-}
-
-// Wrapper with an user-friendly input format for px and py.
-template < typename TYPE, class FUN, class PARAM, typename... Args >
-int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE* x1, Args... args) {
-    typedef typename FUN::VARSI VARSI;
-    typedef typename FUN::VARSJ VARSJ;
-
-    const int SIZEI = VARSI::SIZE+1;
-    const int SIZEJ = VARSJ::SIZE;
-
-    using DIMSX = GetDims<VARSI>;
-    using DIMSY = GetDims<VARSJ>;
-
-    using INDSI = GetInds<VARSI>;
-    using INDSJ = GetInds<VARSJ>;
-
-    TYPE *px[SIZEI];
-    TYPE *py[SIZEJ];
-
-    px[0] = x1;
-    getlist<INDSI>(px+1,args...);
-    getlist<INDSJ>(py,args...);
-
-    return CpuConv_(fun,param,nx,ny,px,py);
-}
-
-// Idem, but with args given as an array of arrays, instead of an explicit list of arrays.
-template < typename TYPE, class FUN, class PARAM >
-int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE* x1, TYPE** args) {
-    typedef typename FUN::VARSI VARSI;
-    typedef typename FUN::VARSJ VARSJ;
-
-    const int SIZEI = VARSI::SIZE+1;
-    const int SIZEJ = VARSJ::SIZE;
-
-    using DIMSX = GetDims<VARSI>;
-    using DIMSY = GetDims<VARSJ>;
-
-    using INDSI = GetInds<VARSI>;
-    using INDSJ = GetInds<VARSJ>;
-
-    TYPE *px[SIZEI];
-    TYPE *py[SIZEJ];
-
-    px[0] = x1;
-    for(int i=1; i<SIZEI; i++)
-        px[i] = args[INDSI::VAL(i-1)];
-    for(int i=0; i<SIZEJ; i++)
-        py[i] = args[INDSJ::VAL(i)];
-
-    return CpuConv_(fun,param,nx,ny,px,py);
-}
-
-// Generic function, created from a formula F (see autodiff.h), and a tag which is equal:
-// - to 0 if you do the summation over j (with i the index of the output vector),
-// - to 1 if you do the summation over i (with j the index of the output vector).
-//
-// (Jean :) It's a nice wrapper, but I don't really know why it's been put in this file ?
-//          Wouldn't the beginning of "autodiff.h" be a more appropriate location ?
-template < class F, int tagI=0 >
-class Generic {
-
-    static const int tagJ = 1-tagI;
-
-  public :
-
-    struct sEval { // static wrapper
-        using VARSI = typename F::VARS<tagI>; // Use the tag to select the "parallel"  variable
-        using VARSJ = typename F::VARS<tagJ>; // Use the tag to select the "summation" variable
-        using DIMSX = typename GetDims<VARSI>::PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
-        using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
-
-        using INDSI = GetInds<VARSI>;
-        using INDSJ = GetInds<VARSJ>;
-
-        using INDS = ConcatPacks<INDSI,INDSJ>;  // indices of variables
-
-        using tmp = typename F::VARS<2>;
-        static const int DIMPARAM = tmp::SIZE;
-
-        template < typename... Args >
-        __host__ __device__ __forceinline__ void operator()(Args... args) {
-            F::template Eval<INDS>(args...);
-        }
-    };
-
-};
 
 
 
