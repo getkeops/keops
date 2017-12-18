@@ -15,7 +15,8 @@
 using namespace std;
 
 
-extern "C" int GpuTransConv(float*, int, int, float*, float**);
+extern "C" int GpuTransConv1D(float*, int, int, float*, float**);
+extern "C" int GpuTransConv2D(float*, int, int, float*, float**);
 extern "C" int CpuTransConv(float*, int, int, float*, float**);
 
 float floatrand() { 
@@ -40,7 +41,7 @@ int main() {
 
 	vector<float*> vargs(6); vargs[0] = x; vargs[1]=y; vargs[2]=u; vargs[3]=v; vargs[4]=b; vargs[5]=ex; float **args = vargs.data();
 	
-	vector<float> resgpu(Ny*3), rescpu(Ny*3);
+	vector<float> resgpu2D(Ny*3), resgpu1D(Ny*3), rescpu(Ny*3);
 
 	float params[1];
 	float Sigma = 1;
@@ -56,17 +57,19 @@ int main() {
 	
 	cout << "testing gradient wrt y" << endl;
 	begin = clock();
-	GpuTransConv(params, Nx, Ny, f, args);
+	GpuTransConv2D(params, Nx, Ny, f, args);
 	end = clock();
-	cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+	cout << "time for GPU computation (2D) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
+	resgpu2D = vf;
+
 	begin = clock();
-	GpuTransConv(params, Nx, Ny, f, args);
+	GpuTransConv1D(params, Nx, Ny, f, args);
 	end = clock();
-	cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+	cout << "time for GPU computation (1D) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 	
 
-	resgpu = vf;
+	resgpu1D = vf;
 		
 	begin = clock();
 	CpuTransConv(params, Nx, Ny, f, args);
@@ -78,9 +81,14 @@ int main() {
 	// display mean of errors
 	float s = 0;
 	for(int i=0; i<Ny*3; i++)
-		s += abs(resgpu[i]-rescpu[i]);
-	cout << "mean abs error =" << s/Ny << endl;
+		s += abs(resgpu2D[i]-rescpu[i]);
+	cout << "mean abs error 2D=" << s/Ny << endl;
 
+
+	s = 0;
+	for(int i=0; i<Ny*3; i++)
+		s += abs(resgpu1D[i]-rescpu[i]);
+	cout << "mean abs error 1D =" << s/Ny << endl;
 
 
 }
