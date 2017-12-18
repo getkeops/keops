@@ -13,9 +13,9 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     // declare shared mem
-    extern __shared__ TYPE yj[]; 
+    extern __shared__ TYPE yj[];
 
-    // get templated dimensions : 
+    // get templated dimensions :
     typedef typename FUN::DIMSX DIMSX;  // DIMSX is a "vector" of templates giving dimensions of xi variables
     typedef typename FUN::DIMSY DIMSY;  // DIMSY is a "vector" of templates giving dimensions of yj variables
     const int DIMPARAM = FUN::DIMPARAM; // DIMPARAM is the total size of the param vector
@@ -24,13 +24,13 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     const int DIMX1 = DIMSX::FIRST;     // DIMX1 is dimension of output variable
 
     // load parameter(s)
-    TYPE param_loc[DIMPARAM < 1 ? 1 : DIMPARAM]; 
+    TYPE param_loc[DIMPARAM < 1 ? 1 : DIMPARAM];
     for(int k=0; k<DIMPARAM; k++)
         param_loc[k] = param[k];
 
     // get the value of variable (index with i)
     TYPE xi[DIMX] ,tmp[DIMX1];
-    if(i<nx) { 
+    if(i<nx) {
         for(int k=0; k<DIMX1; k++)
             tmp[k] = 0.0f; // initialize output
 
@@ -41,8 +41,8 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
 
         // get the current column
         int j = tile * blockDim.x + threadIdx.x;
-        
-        if(j<ny){ // we load yj from device global memory only if j<ny
+
+        if(j<ny) { // we load yj from device global memory only if j<ny
             load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load yj variables from global memory to shared memory
         }
 
@@ -51,13 +51,13 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
         if(i<nx) { // we compute x1i only if needed
             TYPE* yjrel = yj; // Loop on the columns of the current block.
             for(int jrel = 0; (jrel < blockDim.x) && (jrel<ny-jstart); jrel++, yjrel+=DIMY) {
-            call<DIMSX,DIMSY>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-            for(int k=0; k<DIMX1; k++)
-                tmp[k] += xi[k];
+                call<DIMSX,DIMSY>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
+                for(int k=0; k<DIMX1; k++)
+                    tmp[k] += xi[k];
             }
         }
 
-        __syncthreads(); 
+        __syncthreads();
     }
 
     if(i<nx)

@@ -65,11 +65,11 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
 
     // Load the parameter vector in the Thread Memory, for improved efficiency
     //TYPE param_loc[static_max_device(DIMPARAM,1)];
-    // (Jean :) Direct inlining to compile on Ubuntu 16.04 with nvcc7.5, 
+    // (Jean :) Direct inlining to compile on Ubuntu 16.04 with nvcc7.5,
     //          which is a standard config in research. For whatever reason, I can't make
     //          it work an other way... Is it bad practice/performance?
-    TYPE param_loc[DIMPARAM < 1 ? 1 : DIMPARAM]; 
-    
+    TYPE param_loc[DIMPARAM < 1 ? 1 : DIMPARAM];
+
     for(int k=0; k<DIMPARAM; k++)
         param_loc[k] = param[k];
 
@@ -118,7 +118,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
                 tmp[k] += xi[k];
         }
     }
-    __syncthreads(); 
+    __syncthreads();
 
     // Step 4 : Save the result in global memory -----------------------------------------------------------
     // The current thread has computed the "linewise-sum" of a small block of the full Kernel Product
