@@ -110,6 +110,9 @@ struct Var
     	cout << "Var<" << N << "," << DIM << "," << CAT << ">";
     }
     
+    template<class A, class B>
+    using Replace = Var<N,DIM,CAT>;
+    
     using AllTypes = univpack<Var<N,DIM,CAT>>;
 
     template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
@@ -185,6 +188,10 @@ using _P = Param<N>;
 ////      FACTORIZE OPERATOR  : Factorize< F,G >          ////
 //////////////////////////////////////////////////////////////
 
+// Factorize< F,G > is the same as F, but when evaluating we factorize
+// the computation of G, meaning that if G appears several times inside the
+// formula F, we will compute it once only
+
 template < class F, class G >
 struct Factorize
 {
@@ -199,34 +206,39 @@ struct Factorize
 	G::PrintId();
 	cout << ">";
     }
-    
-    using AllTypes = F::AllTypes;
+
+    using THIS = Factorize<F,G>;    
+
+    using Factor = G;
+
+    // we define a new formula from F (called factoorized formula), replacing G inside by a new variable ; this is used in function Eval()
+    template < class INDS >
+    using FactorizedFormula = typename F::template Replace<G,Var<INDS::SIZE,G::DIM,2>>;	     // means replace G by Var<INDS::SIZE,G::DIM,2> in formula F
+
+    template<class A, class B>
+    using Replace = CondType< B , Factorize<typename F::template Replace<A,B>,typename G::template Replace<A,B>> , IsSameType<A,THIS>::val >;
+        
+    using AllTypes = MergePacks < MergePacks< univpack<THIS> , typename F::AllTypes > , typename G::AllTypes >;
 
     template < int CAT >       
-    using VARS = F::VARS<CAT>;
+    using VARS = typename F::VARS<CAT>;
 
     template < class INDS, typename ...ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
-	__TYPE__ outG[G::DIMOUT];
-	G::Eval(params,outG,args...;
-	using INDVAR = INDS::SIZE+1;
-	using Ffact = REPLACE<F,G,Var<INDVAR,G::DIMOUT,2>>;
-	using NEWINDS = ConcatPacks<INDS,pack<INDVAR>>;
-	Ffact::Eval<NEWINDS>(params,out,args...,outG);
-	
-        auto t = thrust::make_tuple(args...); // let us access the args using indexing syntax
-        // IndValAlias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
-        __TYPE__* xi = thrust::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
-        for(int k=0; k<DIM; k++) // Assume that xi and out are of size DIM, 
-            out[k] = xi[k];      // and copy xi into out.
+	// First we compute G
+	__TYPE__ outG[G::DIM];
+	G::template Eval<INDS>(params,outG,args...);
+	// Ffact is the factorized formula
+	using Ffact = typename THIS::FactorizedFormula<INDS>;
+	// new indices for the call to Eval : we add one more index to the list
+	using NEWINDS = ConcatPacks<INDS,pack<INDS::SIZE>>;
+	// call to Eval on the factorized formula, we pass outG as last parameter
+	Ffact::template Eval<NEWINDS>(params,out,args...,outG);
     }
     
-    // Assuming that the gradient wrt. Var is GRADIN, how does it affect V ?
-    // Var::DiffT<V, grad_input> = grad_input   if V == Var (in the sense that it represents the same symb. var.)
-    //                             Zero(V::DIM) otherwise
     template < class V, class GRADIN >
-    using DiffT = IdOrZero<Var<N,DIM,CAT>,V,GRADIN>;
+    using DiffT = Factorize<typename F::DiffT<V,GRADIN>,G>;
     
 };
 

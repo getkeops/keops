@@ -39,6 +39,16 @@ template < class A, class B, bool TEST >
 using CondType = typename CondTypeAlias<A,B,TEST>::type;
 
 
+// IsSameType<A,B> = false and IsSameType<A,A> = true
+template < class A, class B > 
+struct IsSameTypeAlias { static const bool val = false; };
+
+template < class A >
+struct IsSameTypeAlias<A,A> { static const bool val = true; };
+
+template < class A, class B > 
+struct IsSameType { static const bool val = IsSameTypeAlias<A,B>::val; };
+
 
 // "univpack" is a minimal "templating list", defined recursively. ------------------------------
 // It allows us to work with "lists" of variables in a formula, at compilation time.

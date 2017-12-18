@@ -35,6 +35,9 @@ struct ScalprodImpl
     	cout << ">";
     }
 
+    template<class A, class B>
+    using Replace = CondType< B , Scalprod<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,Scalprod<FA,FB>>::val >;
+    
 	using AllTypes = MergePacks<univpack<Scalprod<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
 
     // Vars( A + B ) = Vars(A) U Vars(B), whatever the category

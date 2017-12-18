@@ -59,6 +59,14 @@ template < int DIMPOINT, int DIMVECT >
 using EnergyKernel = ScalarRadialKernel<EnergyFunction,DIMPOINT,DIMVECT>;
 
 
+
+//////////////////////////////////////////////////////////////
+////                 FACTORIZED GAUSS KERNEL              ////
+//////////////////////////////////////////////////////////////
+template < int DIMPOINT, int DIMVECT >
+using GaussKernel_Factorized = Factorize< GaussKernel_<DIMPOINT,DIMVECT> , Subtract<_X<0,DIMPOINT>,_Y<1,DIMPOINT>> >;
+
+
 //////////////////////////////////////////////////////////////
 ////   DIRECT IMPLEMENTATIONS FOR SCALAR RADIAL KERNELS   ////
 ////	(FOR FASTER COMPUTATIONS)						  ////
@@ -78,7 +86,14 @@ struct GaussKernel_specific
 	
 	template < int CAT >
 	using VARS = typename GenericVersion::template VARS<CAT>;
+
+    using THIS = GaussKernel_specific<DIMPOINT,DIMVECT>;
 		
+    template<class A, class B>
+    using Replace = CondType< B, THIS, IsSameType<A,THIS>::val >;
+    
+    using AllTypes = univpack<THIS>;
+
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
 	{	
@@ -114,6 +129,13 @@ struct GradGaussKernel_specific
 	template < int CAT >
 	using VARS = typename GenericVersion::template VARS<CAT>;
 		
+    using THIS = GradGaussKernel_specific<DIMPOINT,DIMVECT,V,GRADIN>;
+		
+    template<class A, class B>
+    using Replace = CondType< B, GradGaussKernel_specific<DIMPOINT,DIMVECT,V,typename GRADIN::Replace<A,B>>, IsSameType<A,THIS>::val >;
+    
+    using AllTypes = MergePacks < univpack<THIS,V> , typename GRADIN::AllTypes >;
+
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
 	{	
@@ -136,6 +158,13 @@ struct GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,GRADIN>
 	template < int CAT >
 	using VARS = typename GenericVersion::template VARS<CAT>;
 		
+    using THIS = GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,GRADIN>;
+		
+    template<class A, class B>
+    using Replace = CondType< B, GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,typename GRADIN::Replace<A,B>>, IsSameType<A,THIS>::val >;
+    
+    using AllTypes = MergePacks < univpack<THIS,_X<0,DIMPOINT>> , typename GRADIN::AllTypes >;
+
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args)
 	{	

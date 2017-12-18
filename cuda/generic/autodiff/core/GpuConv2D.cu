@@ -125,8 +125,8 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
             for(int k=0; k<DIMX1; k++)
                 tmp[k] += xi[k];
         }
-        __syncthreads();  // Shouldn't we put the syncthreads outside the if ??? It may make no difference, mind.
     }
+    __syncthreads();  
 
     // Step 4 : Save the result in global memory -----------------------------------------------------------
     // The current thread has computed the "linewise-sum" of a small block of the full Kernel Product
