@@ -60,9 +60,10 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
         __syncthreads();
     }
 
-    if(i<nx)
+    if(i<nx){
         for(int k=0; k<DIMX1; k++)
             (*px)[i*DIMX1+k] = tmp[k];
+    }
 }
 
 template < typename TYPE, class FUN, class PARAM >

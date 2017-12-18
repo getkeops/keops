@@ -15,10 +15,13 @@ SPECIFIC="cuda_grad1conv"
 
 # First: compile (but do not link) the benchmark (because of '-c' flag) 
 $NVCC -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -lbenchmark -O2 -c test/bench.cu -o build/bench.o
+echo 'bench is compiled...'
 
 # Second: create the shared objects that you want to compare:
 ./compile $FUN
 $NVCC -D "USE_DOUBLE_PRECISION=0" -D "CUDA_BLOCK_SIZE=192" $NVCCFLAGS -I../../convolutions/ -o "build/"$SPECIFIC".so"   "../../convolutions/"$SPECIFIC".cu"
+echo 'generic is compiled...'
 
 # Third: link all together
 $NVCC -o build/bench -lbenchmark build/bench.o $(pwd)"/build/"$FUN"_float.so" $(pwd)"/build/"$SPECIFIC".so"
+echo 'linking done'
