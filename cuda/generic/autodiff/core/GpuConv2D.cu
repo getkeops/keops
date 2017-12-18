@@ -81,13 +81,6 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     TYPE xi[DIMX];
     TYPE tmp[DIMX1];
-    //          in xi[0:DIMX1] ? It's not clear to me. Is it some kind of clever
-    //          memory access optimization ?
-    //          (b. :) Pas d'optimization ici, mais de la gestion de mémoire : xi[0:DIMX1] est memoire global et est 'commun à tous les thread'.
-    //                  Imposible de faire += sur une variable global depuis chaque thread (il faut coder une opération de réduction). Et surtout, 
-    //                  cela couterai un acces memoire globale à chaque incrémentation: sous optimal.
-    //                  Ainsi, il faut d'abord accumuler dans register (ie localement) puis chaque thread écrit le résultat dans une case mémoire
-   //                   differente (namely: '(*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k]'). A la fin, on réduit en appelant reduced0.
     if(i<nx) { // we will compute x1i only if i is in the range
         for(int k=0; k<DIMX1; k++)
             tmp[k] = 0.0f; // initialize output
@@ -124,8 +117,8 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
             for(int k=0; k<DIMX1; k++)
                 tmp[k] += xi[k];
         }
-        __syncthreads();  // Shouldn't we put the syncthreads outside the if ??? It may make no difference, mind.
     }
+    __syncthreads(); 
 
     // Step 4 : Save the result in global memory -----------------------------------------------------------
     // The current thread has computed the "linewise-sum" of a small block of the full Kernel Product
@@ -187,15 +180,14 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
         cudaMemcpy(py_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     }
 
-    // Compute on device.
+    // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
     blockSize.x = 192; // number of threads in each block
-    int blockSizey = blockSize.x;
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
-    gridSize.y =  ny / blockSizey + (ny%blockSizey==0 ? 0 : 1);
+    gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
 
-    // Reduce  : grid and block are 1d
+    // Reduce  : grid and block are both 1d
     dim3 blockSize2;
     blockSize2.x = 192; // number of threads in each block
     dim3 gridSize2;
@@ -241,15 +233,14 @@ int GpuConv2D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
     // that will be reduced in the final pass.
     TYPE *x1B, *out;
 
-    // Compute on device.
+    // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
     blockSize.x = 192; // number of threads in each block
-    int blockSizey = blockSize.x;
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
-    gridSize.y =  ny / blockSizey + (ny%blockSizey==0 ? 0 : 1);
+    gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
 
-    // Reduce  : grid and block are 1d
+    // Reduce : grid and block are both 1d
     dim3 blockSize2;
     blockSize2.x = 192; // number of threads in each block
     dim3 gridSize2;
@@ -384,44 +375,6 @@ int GpuConv2D_FromDevice(FUN fun, PARAM param, int nx, int ny, TYPE* x1_d, TYPE*
 
 }
 
-
-
-
-
-// Generic function, created from a formula F (see autodiff.h), and a tag which is equal:
-// - to 0 if you do the summation over j (with i the index of the output vector),
-// - to 1 if you do the summation over i (with j the index of the output vector).
-//
-// (Jean :) It's a nice wrapper, but I don't really know why it's been put in this file ?
-//          Wouldn't the beginning of "autodiff.h" be a more appropriate location ?
-template < class F, int tagI=0 >
-class Generic {
-
-    static const int tagJ = 1-tagI;
-
-  public :
-
-    struct sEval { // static wrapper
-        using VARSI = typename F::VARS<tagI>; // Use the tag to select the "parallel"  variable
-        using VARSJ = typename F::VARS<tagJ>; // Use the tag to select the "summation" variable
-        using DIMSX = typename GetDims<VARSI>::PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
-        using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
-
-        using INDSI = GetInds<VARSI>;
-        using INDSJ = GetInds<VARSJ>;
-
-        using INDS = ConcatPacks<INDSI,INDSJ>;  // indices of variables
-
-        using tmp = typename F::VARS<2>;
-        static const int DIMPARAM = tmp::SIZE;
-
-        template < typename... Args >
-        __host__ __device__ __forceinline__ void operator()(Args... args) {
-            F::template Eval<INDS>(args...);
-        }
-    };
-
-};
 
 
 

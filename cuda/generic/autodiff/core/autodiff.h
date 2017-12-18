@@ -62,6 +62,38 @@
 
 using namespace std;
 
+// Generic function, created from a formula F (see autodiff.h), and a tag which is equal:
+// - to 0 if you do the summation over j (with i the index of the output vector),
+// - to 1 if you do the summation over i (with j the index of the output vector).
+//
+template < class F, int tagI=0 >
+class Generic {
+
+    static const int tagJ = 1-tagI;
+
+  public :
+
+    struct sEval { // static wrapper
+        using VARSI = typename F::VARS<tagI>; // Use the tag to select the "parallel"  variable
+        using VARSJ = typename F::VARS<tagJ>; // Use the tag to select the "summation" variable
+        using DIMSX = typename GetDims<VARSI>::PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
+        using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
+
+        using INDSI = GetInds<VARSI>;
+        using INDSJ = GetInds<VARSJ>;
+
+        using INDS = ConcatPacks<INDSI,INDSJ>;  // indices of variables
+
+        using tmp = typename F::VARS<2>;
+        static const int DIMPARAM = tmp::SIZE;
+
+        template < typename... Args >
+        __host__ __device__ __forceinline__ void operator()(Args... args) {
+            F::template Eval<INDS>(args...);
+        }
+    };
+
+};
 
 // At compilation time, detect the maximum between two values (typically, dimensions)
 template <typename T>
