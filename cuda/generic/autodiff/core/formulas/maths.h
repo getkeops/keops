@@ -67,13 +67,16 @@ struct AddImpl {
         cout << ">";
     }
 
+    template<class A, class B>
+    using Replace = CondType< B , Add<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,Add<FA,FB>>::val >;
+    
     using AllTypes = MergePacks<univpack<Add<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
-
-    // Vars( A + B ) = Vars(A) U Vars(B), whatever the category
+	
+    // Vars( FA + FB ) = Vars(FA) U Vars(FB), whatever the category
     template < int CAT >
     using VARS = MergePacks<typename FA::VARS<CAT>,typename FB::VARS<CAT>>;
 
-    // To evaluate A + B, first evaluate A, then B, and then add the result and put it in "out".
+    // To evaluate FA + FB, first evaluate FA, then FB, and then add the result and put it in "out".
     template < class INDS, typename... ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
         __TYPE__ outA[DIM], outB[DIM];
@@ -144,7 +147,10 @@ struct ScalImpl {
         cout << ">";
     }
 
-    using AllTypes = MergePacks<univpack<Scal<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
+    template<class A, class B>
+    using Replace = CondType< B , Scal<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,Scal<FA,FB>>::val >;
+    
+	using AllTypes = MergePacks<univpack<Scal<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
 
     // Vars( A * B ) = Vars(A) U Vars(B)
     template < int CAT >
@@ -228,7 +234,10 @@ struct Exp {
         cout << ">";
     }
 
-    using AllTypes = MergePacks<univpack<Exp<F>>,typename F::AllTypes>;
+    template<class A, class B>
+    using Replace = CondType< B , Exp<typename F::template Replace<A,B>> , IsSameType<A,Exp<F>>::val >;
+    
+	using AllTypes = MergePacks<univpack<Exp<F>>,typename F::AllTypes>;
 
     // Vars(Exp(F)) = Vars(F)
     template < int CAT >
@@ -267,7 +276,10 @@ struct Pow {
         cout << "," << M << ">";
     }
 
-    using AllTypes = MergePacks<univpack<Pow<F,M>>,typename F::AllTypes>;
+    template<class A, class B>
+    using Replace = CondType< B , Pow<typename F::template Replace<A,B>,M> , IsSameType<A,Pow<F,M>>::val >;
+    
+	using AllTypes = MergePacks<univpack<Pow<F,M>>,typename F::AllTypes>;
 
     // Vars( F^M ) = Vars( F )
     template < int CAT >
@@ -351,7 +363,10 @@ struct Log {
         cout << ">";
     }
 
-    using AllTypes = MergePacks<univpack<Log<F>>,typename F::AllTypes>;
+    template<class A, class B>
+    using Replace = CondType< B , Log<typename F::template Replace<A,B>> , IsSameType<A,Log<F>>::val >;
+    
+	using AllTypes = MergePacks<univpack<Log<F>>,typename F::AllTypes>;
 
     template < int CAT >
     using VARS = typename F::VARS<CAT>;

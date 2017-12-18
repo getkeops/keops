@@ -18,6 +18,9 @@ struct Zero {
         cout << "Zero<" << DIM << ">";
     }
 
+    template<class A, class B>
+    using Replace = Zero<DIM>;
+    
     using AllTypes = univpack<Zero<DIM>>;
 
     template < int CAT >      // Whatever CAT...
@@ -44,6 +47,9 @@ struct IntConstant {
         cout << "IntConstant<" << N << ">";
     }
 
+    template<class A, class B>
+    using Replace = IntConstant<N>;
+    
     using AllTypes = univpack<IntConstant<N>>;
 
     template < int CAT >      // Whatever CAT...
@@ -72,6 +78,9 @@ struct Constant {
         cout << ">";
     }
 
+    template<class A, class B>
+    using Replace = Constant<PRM>;
+    
     using AllTypes = univpack<Constant<PRM>>;
 
     // A parameter is a variable of category "2" ( 0 = Xi, 1 = Yj )
