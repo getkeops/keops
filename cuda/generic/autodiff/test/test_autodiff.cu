@@ -150,7 +150,7 @@ int main() {
     vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
     vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    vector<float> resgpu2D(Nx*F::DIM), resgpu1D(Nx*F::DIM), rescpu(Nx*F::DIM);
+    vector<__TYPE__> resgpu2D(Nx*F::DIM), resgpu1D(Nx*F::DIM), rescpu(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
