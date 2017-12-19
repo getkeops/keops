@@ -78,26 +78,34 @@ int GpuConv1D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
 
+
+    // pointers to device data
     TYPE *x_d, *y_d, *param_d;
 
+    // device arrays of pointers to device data
+    TYPE **px_d, **py_d;
 
+    // single cudaMalloc
+    void **p_data;
+    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ)+sizeof(TYPE)*(DIMPARAM+nx*DIMX+ny*DIMY));
+
+    TYPE **p_data_a = (TYPE**)p_data;
+    px_d = p_data_a;
+    p_data_a += SIZEI;
+    py_d = p_data_a;
+    p_data_a += SIZEJ;
+    TYPE *p_data_b = (TYPE*)p_data_a;
+    param_d = p_data_b;
+    p_data_b += DIMPARAM;
+    x_d = p_data_b;
+    p_data_b += nx*DIMX;
+    y_d = p_data_b;
 
     // host arrays of pointers to device data
     TYPE *phx_d[SIZEI];
     TYPE *phy_d[SIZEJ];
 
-    // device arrays of pointers to device data
-    TYPE **px_d, **py_d;
-    cudaMalloc((void**)&px_d, SIZEI*sizeof(TYPE*));
-    cudaMalloc((void**)&py_d, SIZEJ*sizeof(TYPE*));
-
-    // Allocate arrays on device.
-    cudaMalloc((void**)&x_d, sizeof(TYPE)*(nx*DIMX));
-    cudaMalloc((void**)&y_d, sizeof(TYPE)*(ny*DIMY));
-    cudaMalloc((void**)&param_d, sizeof(TYPE)*(DIMPARAM));
-
     // Send data from host to device.
-
     cudaMemcpy(param_d, param_h, sizeof(TYPE)*DIMPARAM, cudaMemcpyHostToDevice);
 
     int nvals;
@@ -137,10 +145,7 @@ int GpuConv1D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMX1),cudaMemcpyDeviceToHost);
 
     // Free memory.
-    cudaFree(x_d);
-    cudaFree(y_d);
-    cudaFreeHost(px_d);
-    cudaFreeHost(py_d);
+    cudaFree(p_data);
 
     return 0;
 }
