@@ -164,18 +164,24 @@ int main() {
     end = clock();
     cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
+    cout << "blank run" << endl;
+    begin = clock();
+    GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    end = clock();
+    cout << "time for blank run : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+
     cout << "testing function F" << endl;
     begin = clock();
     GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
     end = clock();
-    cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu2D = vf;
 
     begin = clock();
     GpuConv1D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
     end = clock();
-    cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu1D = vf;
 
@@ -206,14 +212,14 @@ int main() {
     begin = clock();
     GpuConv2D(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e);
     end = clock();
-    cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu2D = vf;
 
     begin = clock();
     GpuConv1D(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e);
     end = clock();
-    cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu1D = vf;
 
@@ -247,14 +253,14 @@ int main() {
     begin = clock();
     GpuConv2D(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e);
     end = clock();
-    cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu2D = vf;
 
     begin = clock();
     GpuConv1D(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e);
     end = clock();
-    cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu1D = vf;
 
