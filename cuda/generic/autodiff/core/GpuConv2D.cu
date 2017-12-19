@@ -146,40 +146,6 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
 
-    // Data on the device. We need an "inflated" x1B, which contains gridSize.y "copies" of x_d
-    // that will be reduced in the final pass.
-    TYPE *x1B, *x_d, *y_d, *param_d;
-
-    TYPE **px_d, **py_d;
-    cudaHostAlloc((void**)&px_d, SIZEI*sizeof(TYPE*), cudaHostAllocMapped);
-    cudaHostAlloc((void**)&py_d, SIZEJ*sizeof(TYPE*), cudaHostAllocMapped);
-
-    // Allocate arrays on device.
-    cudaMalloc((void**)&x_d, sizeof(TYPE)*(nx*DIMX));
-    cudaMalloc((void**)&y_d, sizeof(TYPE)*(ny*DIMY));
-    cudaMalloc((void**)&param_d, sizeof(TYPE)*(DIMPARAM));
-
-    // Send data from host to device.
-
-    cudaMemcpy(param_d, param_h, sizeof(TYPE)*DIMPARAM, cudaMemcpyHostToDevice);
-
-    int nvals;
-    px_d[0] = x_d;
-    nvals = nx*DIMSX::VAL(0);
-    for(int k=1; k<SIZEI; k++) {
-        px_d[k] = px_d[k-1] + nvals;
-        nvals = nx*DIMSX::VAL(k);
-        cudaMemcpy(px_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
-    }
-    py_d[0] = y_d;
-    nvals = ny*DIMSY::VAL(0);
-    cudaMemcpy(py_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
-    for(int k=1; k<SIZEJ; k++) {
-        py_d[k] = py_d[k-1] + nvals;
-        nvals = ny*DIMSY::VAL(k);
-        cudaMemcpy(py_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
-    }
-
     // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
     blockSize.x = 192; // number of threads in each block
@@ -193,8 +159,61 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     dim3 gridSize2;
     gridSize2.x =  (nx*DIMX1) / blockSize2.x + ((nx*DIMX1)%blockSize2.x==0 ? 0 : 1);
 
-    cudaMalloc((void**)&x1B, sizeof(TYPE)*(nx*DIMX1*gridSize.y));
-    px_d[0] = x1B;
+
+    // Data on the device. We need an "inflated" x1B, which contains gridSize.y "copies" of x_d
+    // that will be reduced in the final pass.
+    TYPE *x1B, *x_d, *y_d, *param_d;
+
+    // device arrays of pointers to device data
+    TYPE **px_d, **py_d;
+
+    // single cudaMalloc
+    void **p_data;
+    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ)+sizeof(TYPE)*(DIMPARAM+nx*DIMX+ny*DIMY+nx*DIMX1*gridSize.y));
+
+    TYPE **p_data_a = (TYPE**)p_data;
+    px_d = p_data_a;
+    p_data_a += SIZEI;
+    py_d = p_data_a;
+    p_data_a += SIZEJ;
+    TYPE *p_data_b = (TYPE*)p_data_a;
+    param_d = p_data_b;
+    p_data_b += DIMPARAM;
+    x_d = p_data_b;
+    p_data_b += nx*DIMX;
+    y_d = p_data_b;
+    p_data_b += ny*DIMY;
+    x1B = p_data_b;
+
+    // host arrays of pointers to device data
+    TYPE *phx_d[SIZEI];
+    TYPE *phy_d[SIZEJ];
+
+    // Send data from host to device.
+    cudaMemcpy(param_d, param_h, sizeof(TYPE)*DIMPARAM, cudaMemcpyHostToDevice);
+
+    int nvals;
+    phx_d[0] = x_d;
+    nvals = nx*DIMSX::VAL(0);
+    for(int k=1; k<SIZEI; k++) {
+        phx_d[k] = phx_d[k-1] + nvals;
+        nvals = nx*DIMSX::VAL(k);
+        cudaMemcpy(phx_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    }
+    phy_d[0] = y_d;
+    nvals = ny*DIMSY::VAL(0);
+    cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    for(int k=1; k<SIZEJ; k++) {
+        phy_d[k] = phy_d[k-1] + nvals;
+        nvals = ny*DIMSY::VAL(k);
+        cudaMemcpy(phy_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    }
+
+    phx_d[0] = x1B; // we write the result before reduction in the "inflated" vector
+
+    // copy arrays of pointers
+    cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice);
+    cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice);
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,param_d,nx,ny,px_d,py_d);
@@ -210,11 +229,7 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMX1),cudaMemcpyDeviceToHost);
 
     // Free memory.
-    cudaFree(x_d);
-    cudaFree(y_d);
-    cudaFree(x1B);
-    cudaFreeHost(px_d);
-    cudaFreeHost(py_d);
+    cudaFree(p_data);
 
     return 0;
 }
