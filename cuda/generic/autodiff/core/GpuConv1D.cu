@@ -80,9 +80,16 @@ int GpuConv1D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
 
     TYPE *x_d, *y_d, *param_d;
 
+
+
+    // host arrays of pointers to device data
+    TYPE *phx_d[SIZEI];
+    TYPE *phy_d[SIZEJ];
+
+    // device arrays of pointers to device data
     TYPE **px_d, **py_d;
-    cudaHostAlloc((void**)&px_d, SIZEI*sizeof(TYPE*), cudaHostAllocMapped);
-    cudaHostAlloc((void**)&py_d, SIZEJ*sizeof(TYPE*), cudaHostAllocMapped);
+    cudaMalloc((void**)&px_d, SIZEI*sizeof(TYPE*));
+    cudaMalloc((void**)&py_d, SIZEJ*sizeof(TYPE*));
 
     // Allocate arrays on device.
     cudaMalloc((void**)&x_d, sizeof(TYPE)*(nx*DIMX));
@@ -94,21 +101,25 @@ int GpuConv1D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     cudaMemcpy(param_d, param_h, sizeof(TYPE)*DIMPARAM, cudaMemcpyHostToDevice);
 
     int nvals;
-    px_d[0] = x_d;
+    phx_d[0] = x_d;
     nvals = nx*DIMSX::VAL(0);
     for(int k=1; k<SIZEI; k++) {
-        px_d[k] = px_d[k-1] + nvals;
+        phx_d[k] = phx_d[k-1] + nvals;
         nvals = nx*DIMSX::VAL(k);
-        cudaMemcpy(px_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+        cudaMemcpy(phx_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     }
-    py_d[0] = y_d;
+    phy_d[0] = y_d;
     nvals = ny*DIMSY::VAL(0);
-    cudaMemcpy(py_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     for(int k=1; k<SIZEJ; k++) {
-        py_d[k] = py_d[k-1] + nvals;
+        phy_d[k] = phy_d[k-1] + nvals;
         nvals = ny*DIMSY::VAL(k);
-        cudaMemcpy(py_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+        cudaMemcpy(phy_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     }
+
+    // copy arrays of pointers
+    cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice);
+    cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice);
 
     // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
