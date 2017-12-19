@@ -56,8 +56,8 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
      *
      */
     // gets dimensions and number of variables of inputs of function FUN
-    typedef typename FUN::DIMSX DIMSX;  // DIMSX is a "vector" of templates giving dimensions of xi variables
-    typedef typename FUN::DIMSY DIMSY;  // DIMSY is a "vector" of templates giving dimensions of yj variables
+    using DIMSX = typename FUN::DIMSX;  // DIMSX is a "vector" of templates giving dimensions of xi variables
+    using DIMSY = typename FUN::DIMSY;  // DIMSY is a "vector" of templates giving dimensions of yj variables
     const int DIMPARAM = FUN::DIMPARAM; // DIMPARAM is the total size of the param vector
     const int DIMX = DIMSX::SUM;        // DIMX  is sum of dimensions for xi variables
     const int DIMY = DIMSY::SUM;        // DIMY  is sum of dimensions for yj variables
@@ -137,8 +137,8 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
 template < typename TYPE, class FUN, class PARAM >
 int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h) {
 
-    typedef typename FUN::DIMSX DIMSX;
-    typedef typename FUN::DIMSY DIMSY;
+    using DIMSX = typename FUN::DIMSX;
+    using DIMSY = typename FUN::DIMSY;
     const int DIMPARAM = FUN::DIMPARAM;
     const int DIMX = DIMSX::SUM;
     const int DIMY = DIMSY::SUM;

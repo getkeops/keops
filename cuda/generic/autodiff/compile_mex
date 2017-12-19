@@ -1,0 +1,19 @@
+# This command allows to build a mex file corresponding to any formula
+# chmod 700 compile_mex
+# examples :
+# - To build for the function f(x,y,u,v,b) = <u,v>^2*exp(-oos2*|x-y|^2)*b :
+# 		./compile_mex "Scal<Square<Scalprod<_X<2,4>,_Y<3,4>>>,GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<4,3>>>"
+# - To build for the gradient of the same function wrt x :
+# 		./compile_mex "Grad<Scal<Square<Scalprod<_X<2,4>,_Y<3,4>>>,GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<4,3>>>,_X<0,3>,_X<5,3>>"
+
+MATLABROOT="/usr/local/MATLAB/R2017b"
+MEXC="$MATLABROOT/bin/mex"
+MEXPATH="$MATLABROOT/extern/include"
+
+type=${2:-float}
+(echo "#define FORMULA $1" ; cat matlab_bindings/cudaconv.cu) | nvcc -O2 -x cu -D_FORCE_INLINES -D __TYPE__=$type -std=c++11 -Xcompiler -fPIC -o /dev/stdout -I$MEXPATH -I $PWD - > "build/mex_$1_$type.o"
+
+$MEXC -O3 "build/mex_$1_$type.o" -outdir build
+
+
+

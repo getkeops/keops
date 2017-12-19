@@ -208,6 +208,24 @@ template < class UPACK >
 using GetInds = typename GetIndsAlias<UPACK>::type;
 
 
+// Get the list of categories (useful for univpacks of abstract Variables) -------------------------
+// GetCats( [X1, X3, Y2] ) = [1, 3, 2]
+template < class UPACK >
+struct GetCatsAlias                                    // GetCats( [Xi, ...] )
+{
+    using a = typename UPACK::NEXT;
+    using c = typename GetCatsAlias<a>::type;
+    using type = typename c::PUTLEFT<UPACK::FIRST::CAT>; // = [i] + GetCats( [...] )
+};
+
+template <>
+struct GetCatsAlias< univpack<> >  // GetCats( [] )
+{   using type = pack<>; };        // = []
+
+template < class UPACK >
+using GetCats = typename GetCatsAlias<UPACK>::type;
+
+
 // Search in a univpack -------------------------------------------------------------------------
 // IndVal( [ x0, x1, x2, ...], x2 ) = 2
 template < class INTPACK, int N >    // IndVal( [C, ...], N)     ( C != N )
