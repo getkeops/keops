@@ -99,12 +99,13 @@ using IdOrZero = typename IdOrZeroAlias<Vref,V,FUN>::type;
  * - a category CAT, equal to 0 if Var is "a  parallel variable" xi,
  *                   equal to 1 if Var is "a summation variable" yj.
  */
-template < int _N, int _DIM, int CAT=0 >
+template < int _N, int _DIM, int _CAT=0 >
 struct Var
 {
     static const int N   = _N;   // The index and dimension of Var, formally specified using the
     static const int DIM = _DIM; // templating syntax, are accessible using Var::N, Var::DIM.
-    
+    static const int CAT = _CAT;
+
     static void PrintId() 
     {
     	cout << "Var<" << N << "," << DIM << "," << CAT << ">";
