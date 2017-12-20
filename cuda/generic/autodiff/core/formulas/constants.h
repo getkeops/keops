@@ -83,7 +83,7 @@ struct Constant {
     
     using AllTypes = univpack<Constant<PRM>>;
 
-    // A parameter is a variable of category "2" ( 0 = Xi, 1 = Yj )
+    // A parameter is a variable of category "2" ( 0 = Xi, 1 = Yj, 3 for factorized variables )
     template < int CAT >
     using VARS = CondType<univpack<PRM>,univpack<>,CAT==2>;
 

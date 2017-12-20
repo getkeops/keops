@@ -10,10 +10,23 @@ MATLABROOT="/usr/local/MATLAB/R2017b"
 MEXC="$MATLABROOT/bin/mex"
 MEXPATH="$MATLABROOT/extern/include"
 
-type=${2:-float}
-(echo "#define FORMULA $1" ; cat matlab_bindings/cudaconv.cu) | nvcc -O2 -x cu -D_FORCE_INLINES -D __TYPE__=$type -std=c++11 -Xcompiler -fPIC -o /dev/stdout -I$MEXPATH -I $PWD - > "build/mex_$1_$type.o"
+CUDAROOT="/usr/local/cuda-8.0/lib64/"
 
-$MEXC -O3 "build/mex_$1_$type.o" -outdir build
+CC=g++-4.9
+COPTIMFLAG="-O3" 
+
+# --------- C COMPILATION PARAMETERS: --------- #
+COPTIMFLAG="-O3" 
+CLIB="-L$CUDAROOT -lcudart"
+
+
+type=${2:-double}
+(echo "#define FORMULA $1" ; cat matlab_bindings/cudaconv.cu) | nvcc -Wno-deprecated-gpu-targets -O2 -c -x cu -D_FORCE_INLINES -D __TYPE__=$type -std=c++11 -Xcompiler -fPIC -o /dev/stdout -I$MEXPATH -I $PWD - > "matlab_bindings/build/tmp.o"
+
+$MEXC GCC=$CC $CLIB COPTIMFLAGS=$COPTIMFLAG -O matlab_bindings/build/tmp.o -output matlab_bindings/build/tmp
+rm matlab_bindings/build/tmp.o
+
+
 
 
 

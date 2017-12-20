@@ -330,7 +330,7 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, TYPE** args) {
         px_h[i] = args[INDSI::VAL(i-1)];
     for(int i=0; i<SIZEJ; i++)
         py_h[i] = args[INDSJ::VAL(i)];
-
+        
     return GpuConv2D_FromHost(fun,param,nx,ny,px_h,py_h);
 
 }
