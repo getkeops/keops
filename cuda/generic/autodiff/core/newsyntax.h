@@ -35,7 +35,9 @@
 #define p9 _P<9>()
 
 
-#define Factorize(F,G) Factorize<F,G>()
+#define Factorize(F,G) Factorize<decltype(F),decltype(G)>()
+
+#define Grad(F,V,GRADIN)  Grad<decltype(F),decltype(V),decltype(GRADIN)>()
 
 #define IntCst(N) IntConstant<N>
 #define Cst(p) Constant<decltype(p)>()
