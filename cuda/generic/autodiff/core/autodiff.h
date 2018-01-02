@@ -242,7 +242,7 @@ struct Factorize
 
     using Factor = G;
 
-    // we define a new formula from F (called factoorized formula), replacing G inside by a new variable ; this is used in function Eval()
+    // we define a new formula from F (called factorized formula), replacing G inside by a new variable ; this is used in function Eval()
     template < class INDS >
     using FactorizedFormula = typename F::template Replace<G,Var<INDS::SIZE,G::DIM,2>>;	     // means replace G by Var<INDS::SIZE,G::DIM,2> in formula F
 

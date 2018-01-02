@@ -198,14 +198,26 @@ struct GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,GRADIN> {
 
 // TRI kernel - general form :
 // k(x,y)b = k_ortho(r2)b + k_tilde(r2)<b,x-y>(x-y),   where r2=|x-y|^2
-// which gives the formula below. Drawback : x-y and r2 are computed several times when calling Eval()
-// Is there a way to avoid this by detecting several Eval() calls for the same class ??
-template < template<class,class> class FORTHO, template<class,class> class FTILDE, int DIM >
-using TRI_Kernel = Add<Scal<FORTHO<Param<0>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,_X<2,DIM>>,
-      Scal<Scal<FTILDE<Param<1>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,Scalprod
-      <_X<2,DIM>,Subtract<_X<0,DIM>,_Y<1,DIM>>>>,
-      Subtract<_X<0,DIM>,_Y<1,DIM>>>>;
+// which gives the formula below. 
 
+// we construct the formula step by step (we use a struct just as a namespace, to avoid defining these temporary alias in the global scope)
+template < template<class,class> class FORTHO, template<class,class> class FTILDE, int DIM >
+struct TRI_Kernel_helper
+{
+	using R2 = SqDist<_X<0,DIM>,_Y<1,DIM>>; 	// r2=|x-y|^2
+	using KORTHOR2 = FORTHO<Param<0>,R2>;		// k_ortho(r2)
+	using B = _X<2,DIM>;						// b
+	using KTILDER2 = FTILDE<Param<1>,R2>;		// k_tilde(r2)
+	using XMY = Subtract<_X<0,DIM>,_Y<1,DIM>>;	// x-y
+	using BDOTXMY = Scalprod<_X<2,DIM>,XMY>;	// <b,x-y>
+	using C = Scalprod<BDOTXMY,XMY>;			// <b,x-y>(x-y)
+	using type = Add<Scal<KORTHOR2,B>,Scal<KTILDER2,C>>;		// final formula 
+	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y
+};
+
+// final definition is here
+template < template<class,class> class FORTHO, template<class,class> class FTILDE, int DIM >
+using TRI_Kernel = typename TRI_Kernel_helper<FORTHO,FTILDE,DIM>::factorized_type;
 
 // Div-free and curl-free kernel with gaussian functions.
 // k_df(x,y)b = exp(-r^2/s2)*(((d-1)/(2c)-r^2)b + <b,x-y>(x-y))
@@ -214,25 +226,62 @@ using TRI_Kernel = Add<Scal<FORTHO<Param<0>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,_X<2,DI
 // We do not use the previous template because exp(-r^2/s2) is factorized
 
 template < int DIM >
-using DivFreeGaussKernel =
-    Scal<GaussFunction<_P<0>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,
-    Add<Scal<Subtract<
-    Divide<IntConstant<DIM-1>,Scal<IntConstant<2>,Constant<_P<0>>>>,
-    SqDist<_X<0,DIM>,_Y<1,DIM>>>,_Y<2,DIM>>,
-    Scal<Scalprod<_Y<2,DIM>,Subtract<_X<0,DIM>,_Y<1,DIM>>>,Subtract<_X<0,DIM>,_Y<1,DIM>>>>>;
+struct DivFreeGaussKernel_helper
+{
+	using R2 = SqDist<_X<0,DIM>,_Y<1,DIM>>; 			// r2=|x-y|^2
+	using XMY = Subtract<_X<0,DIM>,_Y<1,DIM>>;			// x-y
+	using G = GaussFunction<_P<0>,R2>;					// exp(-r^2/s2)
+	using TWOC = Scal<IntConstant<2>,Constant<_P<0>>>; 	// 2c
+	using C1 = Divide<IntConstant<DIM-1>,TWOC>;			// (d-1)/(2c)
+	using B = _X<2,DIM>;								// b
+	using C2 = Scal<Subtract<C1,R2>,B>;					// ((d-1)/(2c)-r^2)b
+	using BDOTXMY = Scalprod<_X<2,DIM>,XMY>;			// <b,x-y>
+	using C = Scal<BDOTXMY,XMY>;						// <b,x-y>(x-y)
+	using type = Scal<G,Add<C2,C>>;								// final formula
+	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y
+};
 
 template < int DIM >
-using CurlFreeGaussKernel =
-    Scal<GaussFunction<_P<0>,SqDist<_X<0,DIM>,_Y<1,DIM>>>,
-    Subtract<Scal<
-    Divide<IntConstant<1>,Scal<IntConstant<2>,Constant<_P<0>>>>,
-    _Y<2,DIM>>,
-    Scal<Scalprod<_Y<2,DIM>,Subtract<_X<0,DIM>,_Y<1,DIM>>>,Subtract<_X<0,DIM>,_Y<1,DIM>>>>>;
+using DivFreeGaussKernel = typename DivFreeGaussKernel_helper<DIM>::factorized_type;
+
+template < int DIM >
+struct CurlFreeGaussKernel_helper
+{
+	using R2 = SqDist<_X<0,DIM>,_Y<1,DIM>>; 			// r2=|x-y|^2
+	using XMY = Subtract<_X<0,DIM>,_Y<1,DIM>>;			// x-y
+	using G = GaussFunction<_P<0>,R2>;					// exp(-r^2/s2)
+	using TWOC = Scal<IntConstant<2>,Constant<_P<0>>>; 	// 2c
+	using C1 = Divide<IntConstant<1>,TWOC>;				// 1/(2c)
+	using B = _X<2,DIM>;								// b
+	using C2 = Scal<C1,B>;								// (1/(2c))b
+	using BDOTXMY = Scalprod<_X<2,DIM>,XMY>;			// <b,x-y>
+	using C = Scal<BDOTXMY,XMY>;						// <b,x-y>(x-y)
+	using type = Scal<G,Subtract<C2,C>>;						// final formula
+	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y
+};
+
+template < int DIM >
+using CurlFreeGaussKernel = typename CurlFreeGaussKernel_helper<DIM>::factorized_type;
 
 // Weighted combination of the two previous kernels, which gives a Translation and Rotation Invariant kernel with gaussian base function.
 // k_tri(x,y)b = lambda * k_df(x,y)b + (1-lambda) * k_cf(x,y)b
 // The weight lambda must be specified as the second parameter (_P<1>) when calling Eval()
-// remark : this is currently not efficient at all since almost the same computations will be done twice...
 
 template < int DIM >
-using TRIGaussKernel = Add<Scal<Constant<_P<1>>,DivFreeGaussKernel<DIM>>,Scal<Subtract<IntConstant<1>,Constant<_P<1>>>,CurlFreeGaussKernel<DIM>>>;
+struct TRIGaussKernel_helper
+{
+	using L = Constant<_P<1>>;								// lambda
+	using OML = Subtract<IntConstant<1>,L>;					// 1-lambda
+	using DF = DivFreeGaussKernel_helper<DIM>;				// k_df(x,y)b (the helper struct, because we need it below)
+	using CF = CurlFreeGaussKernel_helper<DIM>;				// k_cf(x,y)b (the helper struct, because we need it below)
+	using type =  Add<Scal<L,typename DF::type>,Scal<OML,typename CF::type>>;	// final formula (not factorized)
+	// here we can factorize a lot ; we look at common expressions in Div Free and Curl Free kernels:
+	using G = typename DF::G;							// exp(-r^2/s2) can be factorized
+	using C = typename DF::C;							// <b,x-y>(x-y) can be factorized
+	using XMY = typename DF::XMY;						// x-y can be factorized
+	using R2 = typename DF::R2;							// r^2 can be factorized
+	using factorized_type = Factorize<Factorize<Factorize<Factorize<type,G>,C>,R2>,XMY>;
+};
+	
+template < int DIM >
+using TRIGaussKernel = typename TRIGaussKernel_helper<DIM>::factorized_type;
