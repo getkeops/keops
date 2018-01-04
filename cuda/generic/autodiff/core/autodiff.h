@@ -154,6 +154,7 @@ struct Var
     template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
     using VARS = CondType<univpack<Var<N,DIM,CAT>>,univpack<>,CAT==CAT_>;
 
+
     // Evaluate a variable given a list of arguments:
     //
     // Var( 5, DIM )::Eval< [ 2, 5, 0 ], type2, type5, type0 >( params, out, var2, var5, var0 )
@@ -169,12 +170,111 @@ struct Var
             out[k] = xi[k];      // and copy xi into out.
     }
 
+
     // Assuming that the gradient wrt. Var is GRADIN, how does it affect V ?
     // Var::DiffT<V, grad_input> = grad_input   if V == Var (in the sense that it represents the same symb. var.)
     //                             Zero(V::DIM) otherwise
     template < class V, class GRADIN >
     using DiffT = IdOrZero<Var<N,DIM,CAT>,V,GRADIN>;
 
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+////                      Unary and Binary operations wrappers                                ////
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Unary and Binary structures for evaluation
+// these will be used in the Eval member function of the math operations 
+// (Add, Scal, Scalprod, Exp, etc., see files math.h and norms.h)
+// we define them to be able to specialize evaluation when dealing with the Var class as template parameters
+// in order to avoid the use of Eval member function of the Var class which does a useless vector copy.
+
+// default unary operator class
+template < class F, class FA >
+struct UnaryOp {
+	template < class INDS, typename... ARGS >
+	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+		// we create a vector of size FA::DIM
+        __TYPE__ outA[FA::DIM];
+        // then we call the Eval function of FA
+        FA::template Eval<INDS>(params,outA,args...);
+        // then we call the Operation function
+        F::Operation(out,outA);
+    }
+};
+
+// specialization when template is of type Var
+template < class F, int N, int DIM, int CAT >
+struct UnaryOp<F,Var<N,DIM,CAT>> {
+	template < class INDS, typename... ARGS >
+	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+		// we do not need to create a vector ; just access the Nth argument of args
+        auto t = thrust::make_tuple(args...); 
+        __TYPE__* outA = thrust::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
+        // then we call the Operation function
+        F::Operation(out,outA);
+    }
+};
+
+// default binary operator class
+template < class F, class FA, class FB >
+struct BinaryOp {
+	template < class INDS, typename... ARGS >
+	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+		// we create vectors of sizes FA::DIM and FB::DIM
+        __TYPE__ outA[FA::DIM], outB[FB::DIM];
+        // then we call the Eval function of FA and FB
+        FA::template Eval<INDS>(params,outA,args...);
+        FB::template Eval<INDS>(params,outB,args...);
+        // then we call the Operation function
+        F::Operation(out,outA,outB);
+    }
+};
+
+// specialization when left template is of type Var
+template < class F, class FA, int N, int DIM, int CAT >
+struct BinaryOp<F,FA,Var<N,DIM,CAT>> {
+	template < class INDS, typename... ARGS >
+	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        // we create a vector and call Eval only for FA
+        __TYPE__ outA[FA::DIM];
+        FA::template Eval<INDS>(params,outA,args...);
+        // access the Nth argument of args
+        auto t = thrust::make_tuple(args...); 
+        __TYPE__* outB = thrust::get<IndValAlias<INDS,N>::ind>(t); // outB = the "ind"-th argument.
+        // then we call the Operation function
+        F::Operation(out,outA,outB);
+    }
+};
+
+// specialization when right template is of type Var
+template < class F, class FB, int N, int DIM, int CAT >
+struct BinaryOp<F,Var<N,DIM,CAT>,FB> {
+	template < class INDS, typename... ARGS >
+	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+		// we create a vector and call Eval only for FB
+        __TYPE__ outB[FB::DIM];
+        FB::template Eval<INDS>(params,outB,args...);
+        // access the Nth argument of args
+        auto t = thrust::make_tuple(args...);
+        __TYPE__* outA = thrust::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
+        // then we call the Operation function
+        F::Operation(out,outA,outB);
+    }
+};
+
+// specialization when both templates are of type Var
+template < class F, int NA, int DIMA, int CATA, int NB, int DIMB, int CATB >
+struct BinaryOp<F,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>> {
+	template < class INDS, typename... ARGS >
+	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+	 	// we access the NAth and NBth arguments of args
+        auto t = thrust::make_tuple(args...);
+        __TYPE__* outA = thrust::get<IndValAlias<INDS,NA>::ind>(t);
+        __TYPE__* outB = thrust::get<IndValAlias<INDS,NB>::ind>(t);
+        // then we call the Operation function
+        F::Operation(out,outA,outB);
+    }
 };
 
 
@@ -250,7 +350,6 @@ struct Factorize
     using Factor = G;
 
     // we define a new formula from F (called factorized formula), replacing G inside by a new variable ; this is used in function Eval()
-    // the new variable is assigned position INDS::SIZE (next position after all other variables), dimension=output dim of G, and category 3
     template < class INDS >
     using FactorizedFormula = typename F::template Replace<G,Var<INDS::SIZE,G::DIM,3>>;	// means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
 
