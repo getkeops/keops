@@ -6,7 +6,7 @@ x = randn(3,Nx);
 y = randn(3,Ny);
 b = randn(3,Ny);
 p = .25;
-g = EvalFormula('GaussKernel_<3,3>',x,y,b,p);
+g = EvalFormula('GaussKernel_(3,3)',x,y,b,p);
 
 ox = ones(Nx,1);
 oy = ones(Ny,1);

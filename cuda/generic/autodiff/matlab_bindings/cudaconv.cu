@@ -4,9 +4,11 @@
 #include <mex.h>
 #include "core/GpuConv2D.cu"
 #include "core/autodiff.h"
+#include "core/newsyntax.h"
 
 // FORMULA and __TYPE__ are supposed to be set via #define macros in the compilation command
 
+using F = decltype(FORMULA);
 
 void ExitFcn(void) {
     cudaDeviceReset();
@@ -24,13 +26,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     
     const int TAG = 0; // only summation over j index...
 
-	using VARSI = typename FORMULA::template VARS<TAG>;
-	using VARSJ = typename FORMULA::template VARS<1-TAG>;
+	using VARSI = typename F::template VARS<TAG>;
+	using VARSJ = typename F::template VARS<1-TAG>;
 	
 	using DIMSX = GetDims<VARSI>;
 	using DIMSY = GetDims<VARSJ>;
 	
-    using PARAMS = typename FORMULA::VARS<2>;
+    using PARAMS = typename F::VARS<2>;
     static const int DIMPARAM = PARAMS::SIZE;
 
 	using INDSI = GetInds<VARSI>;
@@ -119,7 +121,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     //////////////////////////////////////////////////////////////
 
     /*  set the output pointer to the output result(vector) */
-    int dimout = FORMULA::DIM;
+    int dimout = F::DIM;
     int nout = n[TAG];
     plhs[0] = mxCreateDoubleMatrix(dimout,nout,mxREAL);
 
@@ -130,7 +132,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     // Call Cuda codes
     //////////////////////////////////////////////////////////////
     
-    GpuConv2D(Generic<FORMULA,TAG>::sEval(), params, n[TAG], n[1-TAG], gamma, args);
+    GpuConv2D(Generic<F,TAG>::sEval(), params, n[TAG], n[1-TAG], gamma, args);
 
     
 

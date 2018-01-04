@@ -7,7 +7,7 @@ y = randn(3,Ny);
 b = randn(3,Ny);
 c = randn(3,Nx);
 p = .25;
-g = EvalFormula('Grad<Grad<GaussKernel_<3,3>,_X<0,3>,_X<3,3>>,_X<0,3>,_X<4,3>>',x,y,b,c,c,p);
+g = EvalFormula('Grad(Grad(GaussKernel_(3,3),x0(3),x3(3)),x0(3),x4(3))',x,y,b,c,c,p);
 
 g(:,1:10)
 

@@ -1,6 +1,10 @@
 function out = EvalFormula(F,varargin)
-fname = ['F',encodestring(F)];
+fname = [encodestring(F),'.',mexext];
 if ~(exist(fname,'file')==3)
     buildFormula(F)
 end
-out = feval(fname,varargin{:});
+eval(['!mv "build/',fname,'" build/tmp.',mexext])
+out = tmp(varargin{:});
+eval(['!mv build/tmp.',mexext,' "build/',fname,'"'])
+
+
