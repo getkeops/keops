@@ -5,26 +5,35 @@ classdef KernelClass < handle
     end
     methods
         function obj = KernelClass(varargin)
-            obj.indxy = [-1,-1,nargin-1];
+            obj.indxy = [-1,-1];
             formula = varargin{nargin};
+            fname = formula;
+            CodeFormula = ['#define F ',formula];
+            CodeVars = '';
             for k=1:nargin-1
-                [varname,vartype] = sepeqstr(varargin{k});
-                formula = strrep(formula,varname,vartype);
+                str = varargin{k};
+                fname = [str,';',fname];
+                [varname,vartype] = sepeqstr(str);
+                if ~isempty(varname)
+                    CodeVars = [CodeVars,'decltype(',vartype,') ',varname,';'];
+                end
                 if vartype(1)=='x' && obj.indxy(1)==-1
-                    obj.indxy(1) = k-1;
+                    obj.indxy(1) = str2num(vartype(2))+1;
                 elseif vartype(1)=='y' && obj.indxy(2)==-1
-                    obj.indxy(2) = k-1;
+                    obj.indxy(2) = str2num(vartype(2))+1;
                 end
             end
-            filename = [formula,'.',mexext];
+            filename = [fname,'.',mexext];
             if ~(exist(filename,'file')==3)
-                buildFormula(formula)
+                buildFormula(CodeVars,CodeFormula,filename)
             end
             obj.Fname = ['F',clockstr,num2str(floor(rand(1)*1e16))];
             eval(['!cp "build/',filename,'" build/',obj.Fname,'.',mexext])
         end
         function out = Eval(obj,varargin)
-            out = feval(obj.Fname,obj.indxy,varargin{:});
+            nx = size(varargin{obj.indxy(1)},2);
+            ny = size(varargin{obj.indxy(2)},2);
+            out = feval(obj.Fname,nx,ny,varargin{:});
         end
         function delete(obj)
             eval(['!rm build/',obj.Fname,'.',mexext])
@@ -32,13 +41,13 @@ classdef KernelClass < handle
     end
 end
 
-function buildFormula(F)
+function buildFormula(code1,code2,filename)
 mysetenv('PATH','/Developer/NVIDIA/CUDA-9.1/bin/')
 mysetenv('PATH','/Applications/MATLAB_R2014a.app/bin/')
 cd ..
-eval(['!./compile_mex_cpu "',F,'"'])
+eval(['!./compile_mex_cpu "',code1,'" "',code2,'"'])
 cd matlab_bindings
-eval(['!mv build/tmp.',mexext,' "build/',F,'.',mexext,'"'])
+eval(['!mv build/tmp.',mexext,' "build/',filename,'"'])
 end
 
 function mysetenv(var,string)
@@ -58,6 +67,9 @@ end
 function [left,right] = sepeqstr(str)
 % get string before and after equal sign
 pos = find(str=='=');
+if isempty(pos)
+    pos = 0;
+end
 left = str(1:pos-1);
 right = str(pos+1:end);
 end

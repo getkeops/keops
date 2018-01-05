@@ -1,14 +1,9 @@
 
-// see compile_mex file for compiling
+// see compile_mex_cpu file for compiling
 
-#include <mex.h>
-#include "core/CpuConv.cpp"
-#include "core/autodiff.h"
-#include "core/newsyntax.h"
+// F and __TYPE__ are supposed to be set via "using" or "#define" 
 
-// FORMULA and __TYPE__ are supposed to be set via #define macros in the compilation command
-
-using F = decltype(FORMULA);
+using FORMULA = decltype(F);
 
 void ExitFcn(void) {
     cudaDeviceReset();
@@ -44,13 +39,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     
     const int TAG = 0;
 
-	using VARSI = typename F::template VARS<TAG>;	// list variables of type I used in formula F
-	using VARSJ = typename F::template VARS<1-TAG>; // list variables of type J used in formula F
+	using VARSI = typename FORMULA::template VARS<TAG>;	// list variables of type I used in formula F
+	using VARSJ = typename FORMULA::template VARS<1-TAG>; // list variables of type J used in formula F
 	
 	using DIMSX = GetDims<VARSI>;
 	using DIMSY = GetDims<VARSJ>;
 	
-    using PARAMS = typename F::VARS<2>;
+    using PARAMS = typename FORMULA::VARS<2>;
     static const int DIMPARAM = PARAMS::SIZE;
 
 	using INDSI = GetInds<VARSI>;
@@ -62,29 +57,21 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
 
     int argu = 0;
-    //----- the first input arguments: info--------------//
-	double *info;
-	info = mxGetPr(prhs[argu]);
-	if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=3)
-		mexErrMsgTxt("first arg should be info (1x3)");
+    int n[2];
+    //----- the first input arguments: nx--------------//
+	if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
+		mexErrMsgTxt("first arg should be scalar nx");
+	n[0] = *mxGetPr(prhs[argu]);
 	argu++;
-    int n[2]; // n[0] will be nx, n[1] will be ny;
-	for(int k=0; k<2; k++)
-		n[k] = mxGetN(prhs[argu+(int)info[k]]);
-	int NARGS = info[2];
 	
-cout << "	NARGSI = " << NARGSI << endl;
-cout << "	NARGSJ = " << NARGSJ << endl;
-
-F::PrintId();
-    
-    /*  check for proper number of arguments */
-    if(nrhs != 1+(DIMPARAM?1:0)+NARGS) // info, args..., params or info, args... if no parameter in formula
-    {
-        cout << "number of inputs is " << nrhs << endl;
-        cout << "number of inputs should be " << 1+(DIMPARAM?1:0)+NARGS << endl;
-        mexErrMsgTxt("Wrong number of inputs.");
-    }
+    //----- the second input arguments: ny--------------//
+	if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
+		mexErrMsgTxt("second arg should be scalar ny");
+	n[1] = *mxGetPr(prhs[argu]);
+	argu++;
+	
+	int NARGS = nrhs-2-(DIMPARAM?1:0);
+	
     if(nlhs != 1) 
         mexErrMsgTxt("One output required.");
 
@@ -126,12 +113,6 @@ F::PrintId();
 			// we check nx and ny here from the formula
 			int nk = mxGetN(prhs[argu+k]);
 			int typek = typeargs[k];
-			cout << "k=" << k << endl;
-			cout << "typek=" << typek << endl;
-			cout << "nk=" << nk << endl;
-			cout << "n[typek]=" << n[typek] << endl;
-			cout << "dimk=" << dimk << endl;
-			cout << "dimargs[k]=" << dimargs[k] << endl;
 			// we check dimension here from the formula
 			if(dimk!=dimargs[k])
 				mexErrMsgTxt("wrong dimension for input");
@@ -152,7 +133,6 @@ F::PrintId();
 		int mp = mxGetM(prhs[argu]); //nrows
 		int np = mxGetN(prhs[argu]); //ncols
 		/* check to make sure the array is 1D */
-cout << "min(mp,np) = " << min(mp,np) << endl;
 		if( min(mp,np)!=1 )
 			mexErrMsgTxt("Input params must be a 1D array.");
 		np = max(mp,np);
@@ -165,7 +145,7 @@ cout << "min(mp,np) = " << min(mp,np) << endl;
     //////////////////////////////////////////////////////////////
 
     /*  set the output pointer to the output result(vector) */
-    int dimout = F::DIM;
+    int dimout = FORMULA::DIM;
     int nout = n[TAG];
     plhs[0] = mxCreateDoubleMatrix(dimout,nout,mxREAL);
 
@@ -176,7 +156,7 @@ cout << "min(mp,np) = " << min(mp,np) << endl;
     // Call Cuda codes
     //////////////////////////////////////////////////////////////
     
-    CpuConv(Generic<F,TAG>::sEval(), params, n[TAG], n[1-TAG], gamma, args);
+    CpuConv(Generic<FORMULA,TAG>::sEval(), params, n[TAG], n[1-TAG], gamma, args);
 
     delete[] args;
     delete[] typeargs;
