@@ -2,11 +2,11 @@
 # chmod 700 compile_newsyntax
 # examples :
 # - To build for the function f(x,y,u,v,b) = <u,v>^2*exp(-oos2*|x-y|^2)*b, use either:
-#		./compile_newsyntax "(x2(4),y3(4))*GaussKernel(p0,x0(3),y1(3),y4(3))"
+#		./compile_newsyntax "(Vx(2,4),Vy(3,4))*GaussKernel(Pm(0),Vx(0,3),Vy(1,3),Vy(4,3))"
 #		or:
-# 		./compile_newsyntax "(x2(4),y3(4))*Exp(-Cst(p0)*SqNorm2(x0(3)-y1(3)))*y4(3)"
+# 		./compile_newsyntax "(Vx(2,4),Vy(3,4))*Exp(-Cst(Pm(0))*SqNorm2(Vx(0,3)-Vy(1,3)))*Vy(4,3)"
 # - To build for the gradient of the same function wrt x :
-# 		./compile_newsyntax "Grad((x2(4),y3(4))*GaussKernel(p0,x0(3),y1(3),y4(3)),x0(3),x5(3))"
+# 		./compile_newsyntax "Grad((Vx(2,4),Vy(3,4))*GaussKernel(Pm(0),Vx(0,3),Vy(1,3),Vy(4,3)),Vx(0,3),Vx(5,3))"
 
 type=${2:-float}
 (echo "#define FORMULA $1" ; cat core/link_autodiff.cu) | nvcc -O2 -x cu -DUSENEWSYNTAX -D_FORCE_INLINES -D __TYPE__=$type -std=c++11 -Xcompiler -fPIC -shared -o build/tmp.so -I $PWD -
