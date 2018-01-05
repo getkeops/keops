@@ -95,12 +95,6 @@ class Generic {
 
 };
 
-// At compilation time, detect the maximum between two values (typically, dimensions)
-template <typename T>
-static constexpr T static_max(T a, T b) {
-    return a < b ? b : a;
-}
-
 template < int DIM > struct Zero; // Declare Zero in the header, for IdOrZeroAlias. Implementation below.
 
 //////////////////////////////////////////////////////////////

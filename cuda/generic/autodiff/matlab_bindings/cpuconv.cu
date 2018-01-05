@@ -14,6 +14,24 @@ void ExitFcn(void) {
     cudaDeviceReset();
 }
 
+class mystream : public std::streambuf
+{
+protected:
+virtual std::streamsize xsputn(const char *s, std::streamsize n) { mexPrintf("%.*s", n, s); return n; }
+virtual int overflow(int c=EOF) { if (c != EOF) { mexPrintf("%.1s", &c); } return 1; }
+};
+class scoped_redirect_cout
+{
+public:
+	scoped_redirect_cout() { old_buf = std::cout.rdbuf(); std::cout.rdbuf(&mout); }
+	~scoped_redirect_cout() { std::cout.rdbuf(old_buf); }
+private:
+	mystream mout;
+	std::streambuf *old_buf;
+};
+static scoped_redirect_cout mycout_redirect;
+
+
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
 //////////////////////////////////////////////////////////////////
@@ -24,10 +42,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     // register an exit function to prevent crash at matlab exit or recompiling
     mexAtExit(ExitFcn);
     
-    const int TAG = 0; // only summation over j index...
+    const int TAG = 0;
 
-	using VARSI = typename F::template VARS<TAG>;
-	using VARSJ = typename F::template VARS<1-TAG>;
+	using VARSI = typename F::template VARS<TAG>;	// list variables of type I used in formula F
+	using VARSJ = typename F::template VARS<1-TAG>; // list variables of type J used in formula F
 	
 	using DIMSX = GetDims<VARSI>;
 	using DIMSY = GetDims<VARSJ>;
@@ -40,17 +58,31 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 
 	using INDS = ConcatPacks<INDSI,INDSJ>;
 	
-	const int NARGSI = VARSI::SIZE;
-	const int NARGSJ = VARSJ::SIZE;
-	const int NARGS = NARGSI+NARGSJ;
+	const int NARGSI = VARSI::SIZE; // number of I variables used in formula F
+	const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
 
+    int argu = 0;
+    //----- the first input arguments: info--------------//
+	double *info;
+	info = mxGetPr(prhs[argu]);
+	if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=3)
+		mexErrMsgTxt("first arg should be info (1x3)");
+	argu++;
+    int n[2]; // n[0] will be nx, n[1] will be ny;
+	for(int k=0; k<2; k++)
+		n[k] = mxGetN(prhs[argu+(int)info[k]]);
+	int NARGS = info[2];
 	
+cout << "	NARGSI = " << NARGSI << endl;
+cout << "	NARGSJ = " << NARGSJ << endl;
+
+F::PrintId();
     
     /*  check for proper number of arguments */
-    if(nrhs != (DIMPARAM?1:0)+NARGS) // args..., params or args... if no parameter in formula
+    if(nrhs != 1+(DIMPARAM?1:0)+NARGS) // info, args..., params or info, args... if no parameter in formula
     {
         cout << "number of inputs is " << nrhs << endl;
-        cout << "number of inputs should be " << (DIMPARAM?1:0)+NARGS << endl;
+        cout << "number of inputs should be " << 1+(DIMPARAM?1:0)+NARGS << endl;
         mexErrMsgTxt("Wrong number of inputs.");
     }
     if(nlhs != 1) 
@@ -62,7 +94,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     //////////////////////////////////////////////////////////////
 
 
-    int typeargs[NARGS], dimargs[NARGS];
+    int *typeargs = new int[NARGS];
+    int *dimargs = new int[NARGS];
+    for(int k=0; k<NARGS; k++)
+    {
+        typeargs[k] = -1;
+        dimargs[k] = -1;
+    }
     for(int k=0; k<NARGSI; k++)
     {
         typeargs[INDSI::VAL(k)] = TAG;
@@ -74,35 +112,36 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
         dimargs[INDSJ::VAL(k)] = DIMSY::VAL(k);
     }
 
-    int argu = 0;
-    //----- the first input arguments: args--------------//
-    int n[2] = {-1,-1}; // n[0] will be nx, n[1] will be ny;
+    //----- the next input arguments: args--------------//
     /*  create pointers to the input vectors */
     double **args = new double*[NARGS];    
     for(int k=0; k<NARGS; k++)
     {
     	/*  input sources */
     	args[k] = mxGetPr(prhs[argu+k]);
-    	int dimk = mxGetM(prhs[argu+k]);
-        // we get/check nx and ny here from the formula
-    	int nk = mxGetN(prhs[argu+k]);
-        int typek = typeargs[k];
-        cout << "k=" << k << endl;
-        cout << "nk=" << nk << endl;
-        cout << "n[typek]=" << n[typek] << endl;
-        cout << "dimk=" << dimk << endl;
-        cout << "dimargs[k]=" << dimargs[k] << endl;
-    	// we check dimension here from the formula
-    	if(dimk!=dimargs[k])
-            mexErrMsgTxt("wrong dimension for input");
-        if(n[typek]==-1)
-            n[typek] = nk;
-            else if(n[typek]!=nk)
-            {
-                mexErrMsgTxt("inconsistent input sizes");
-            }
+    	// checking dimensions
+    	if(dimargs[k]!=-1) // we care only if the current variable is used in formula
+    	{
+			int dimk = mxGetM(prhs[argu+k]);
+			// we check nx and ny here from the formula
+			int nk = mxGetN(prhs[argu+k]);
+			int typek = typeargs[k];
+			cout << "k=" << k << endl;
+			cout << "typek=" << typek << endl;
+			cout << "nk=" << nk << endl;
+			cout << "n[typek]=" << n[typek] << endl;
+			cout << "dimk=" << dimk << endl;
+			cout << "dimargs[k]=" << dimargs[k] << endl;
+			// we check dimension here from the formula
+			if(dimk!=dimargs[k])
+				mexErrMsgTxt("wrong dimension for input");
+			if(n[typek]!=nk)
+			{
+				mexErrMsgTxt("inconsistent input sizes");
+			}
+		}
     }
-
+    
 	double *params;
 	if(DIMPARAM) {
 		//----- the last input argument: params--------------//
@@ -139,6 +178,9 @@ cout << "min(mp,np) = " << min(mp,np) << endl;
     
     CpuConv(Generic<F,TAG>::sEval(), params, n[TAG], n[1-TAG], gamma, args);
 
+    delete[] args;
+    delete[] typeargs;
+    delete[] dimargs;
     
 
 }

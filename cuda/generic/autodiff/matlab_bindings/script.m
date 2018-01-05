@@ -1,16 +1,17 @@
 addpath build
 
-Nx = 5000;
-Ny = 2000;
+Nx = 500;
+Ny = 200;
 x = randn(3,Nx);
 y = randn(3,Ny);
 b = randn(3,Ny);
 p = .25;
-g = EvalFormula('GaussKernel_(3,3)',x,y,b,p);
+
+F = Kernel('GaussKernel_(3,3)');
+g = F(x,y,b,p);
 
 ox = ones(Nx,1);
 oy = ones(Ny,1);
-
 r2=0;
 for k=1:3
     xmy = ox*y(k,:)-(oy*x(k,:))';
@@ -18,6 +19,4 @@ for k=1:3
 end
 g0 = (exp(-p*r2)*b')';
 
-g(:,1:10)
-g0(:,1:10)
 norm(g-g0)
