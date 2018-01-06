@@ -7,7 +7,7 @@ y = randn(3,Ny);
 b = randn(3,Ny);
 p = .25;
 
-F = Kernel('x0','y1','GaussKernel_(3,3)');
+F = Kernel('Vx(0,3)','Vy(1,3)','GaussKernel_(3,3)');
 g = F(x,y,b,p);
 
 ox = ones(Nx,1);

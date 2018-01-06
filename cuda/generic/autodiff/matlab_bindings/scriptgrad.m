@@ -7,7 +7,7 @@ y = randn(3,Ny);
 b = randn(3,Ny);
 c = randn(3,Nx);
 p = .25;
-F = Kernel('x0','y1','Grad(Grad(GaussKernel_(3,3),x0(3),x3(3)),x0(3),x4(3))');
+F = Kernel('x=Vx(0,3)','Vy(1,3)','c=Vx(3,3)','d=Vx(4,3)','Grad(Grad(GaussKernel_(3,3),x,c),x,d)');
 g = F(x,y,b,c,c,p);
 
 g(:,1:10)

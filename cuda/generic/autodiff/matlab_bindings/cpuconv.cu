@@ -9,6 +9,8 @@ void ExitFcn(void) {
     cudaDeviceReset();
 }
 
+// uncomment the following block of code to redirect stdout to matlab console
+/*
 class mystream : public std::streambuf
 {
 protected:
@@ -25,7 +27,7 @@ private:
 	std::streambuf *old_buf;
 };
 static scoped_redirect_cout mycout_redirect;
-
+*/
 
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
