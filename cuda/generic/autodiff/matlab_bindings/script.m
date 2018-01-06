@@ -8,7 +8,9 @@ b = randn(3,Ny);
 p = .25;
 
 F = Kernel('Vx(0,3)','Vy(1,3)','GaussKernel_(3,3)');
+tic
 g = F(x,y,b,p);
+toc
 
 ox = ones(Nx,1);
 oy = ones(Ny,1);
