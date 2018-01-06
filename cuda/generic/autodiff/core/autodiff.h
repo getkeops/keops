@@ -53,12 +53,17 @@
 
 #include "Pack.h"
 
-#define INLINE static __host__ __device__ __forceinline__
-//#define INLINE static inline
+#ifdef __CUDACC__
+	#define INLINE static __host__ __device__ __forceinline__
+	#include <thrust/tuple.h>
+	#define TUPLE_VERSION thrust
+#else
+	#define INLINE static inline
+	#define TUPLE_VERSION std
+#endif
 
 #include <tuple>
 #include <cmath>
-#include <thrust/tuple.h>
 
 using namespace std;
 
@@ -157,9 +162,9 @@ struct Var
     // assume that "var5" is of size DIM, and copy its value in "out".
     template < class INDS, typename ...ARGS >
     INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        auto t = thrust::make_tuple(args...); // let us access the args using indexing syntax
+        auto t = TUPLE_VERSION::make_tuple(args...); // let us access the args using indexing syntax
         // IndValAlias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
-        __TYPE__* xi = thrust::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
+        __TYPE__* xi = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
         for(int k=0; k<DIM; k++) // Assume that xi and out are of size DIM,
             out[k] = xi[k];      // and copy xi into out.
     }
@@ -203,8 +208,8 @@ struct UnaryOp<F,Var<N,DIM,CAT>> {
 	template < class INDS, typename... ARGS >
 	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
 		// we do not need to create a vector ; just access the Nth argument of args
-        auto t = thrust::make_tuple(args...); 
-        __TYPE__* outA = thrust::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
+        auto t = TUPLE_VERSION::make_tuple(args...); 
+        __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
         // then we call the Operation function
         F::Operation(out,outA);
     }
@@ -234,8 +239,8 @@ struct BinaryOp<F,FA,Var<N,DIM,CAT>> {
         __TYPE__ outA[FA::DIM];
         FA::template Eval<INDS>(params,outA,args...);
         // access the Nth argument of args
-        auto t = thrust::make_tuple(args...); 
-        __TYPE__* outB = thrust::get<IndValAlias<INDS,N>::ind>(t); // outB = the "ind"-th argument.
+        auto t = TUPLE_VERSION::make_tuple(args...); 
+        __TYPE__* outB = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outB = the "ind"-th argument.
         // then we call the Operation function
         F::Operation(out,outA,outB);
     }
@@ -250,8 +255,8 @@ struct BinaryOp<F,Var<N,DIM,CAT>,FB> {
         __TYPE__ outB[FB::DIM];
         FB::template Eval<INDS>(params,outB,args...);
         // access the Nth argument of args
-        auto t = thrust::make_tuple(args...);
-        __TYPE__* outA = thrust::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
+        auto t = TUPLE_VERSION::make_tuple(args...);
+        __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
         // then we call the Operation function
         F::Operation(out,outA,outB);
     }
@@ -263,9 +268,9 @@ struct BinaryOp<F,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>> {
 	template < class INDS, typename... ARGS >
 	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
 	 	// we access the NAth and NBth arguments of args
-        auto t = thrust::make_tuple(args...);
-        __TYPE__* outA = thrust::get<IndValAlias<INDS,NA>::ind>(t);
-        __TYPE__* outB = thrust::get<IndValAlias<INDS,NB>::ind>(t);
+        auto t = TUPLE_VERSION::make_tuple(args...);
+        __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,NA>::ind>(t);
+        __TYPE__* outB = TUPLE_VERSION::get<IndValAlias<INDS,NB>::ind>(t);
         // then we call the Operation function
         F::Operation(out,outA,outB);
     }
