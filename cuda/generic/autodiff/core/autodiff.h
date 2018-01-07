@@ -67,7 +67,7 @@
 
 using namespace std;
 
-// Generic function, created from a formula F (see autodiff.h), and a tag which is equal:
+// Generic function, created from a formula F, and a tag which is equal:
 // - to 0 if you do the summation over j (with i the index of the output vector),
 // - to 1 if you do the summation over i (with j the index of the output vector).
 //
@@ -99,12 +99,6 @@ class Generic {
     };
 
 };
-
-// At compilation time, detect the maximum between two values (typically, dimensions)
-template <typename T>
-static constexpr T static_max(T a, T b) {
-    return a < b ? b : a;
-}
 
 template < int DIM > struct Zero; // Declare Zero in the header, for IdOrZeroAlias. Implementation below.
 
@@ -139,13 +133,16 @@ using IdOrZero = typename IdOrZeroAlias<Vref,V,FUN>::type;
  * - a category CAT, equal to 0 if Var is "a  parallel variable" xi,
  *                   equal to 1 if Var is "a summation variable" yj.
  */
-template < int _N, int _DIM, int CAT=0 >
-struct Var {
+template < int _N, int _DIM, int _CAT=0 >
+struct Var
+{
     static const int N   = _N;   // The index and dimension of Var, formally specified using the
     static const int DIM = _DIM; // templating syntax, are accessible using Var::N, Var::DIM.
+    static const int CAT = _CAT;
 
-    static void PrintId() {
-        cout << "Var<" << N << "," << DIM << "," << CAT << ">";
+    static void PrintId() 
+    {
+    	cout << "Var<" << N << "," << DIM << "," << CAT << ">";
     }
     
     template<class A, class B>
@@ -154,7 +151,7 @@ struct Var {
     using AllTypes = univpack<Var<N,DIM,CAT>>;
 
     template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
-    using VARS = CondType<univpack<Var<N,DIM>>,univpack<>,CAT==CAT_>;
+    using VARS = CondType<univpack<Var<N,DIM,CAT>>,univpack<>,CAT==CAT_>;
 
 
     // Evaluate a variable given a list of arguments:
@@ -287,6 +284,10 @@ struct BinaryOp<F,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>> {
 template < int N >
 struct Param {
     static const int INDEX = N;
+    
+	template < int CAT >
+    using VARS = CondType<univpack<Param<N>>,univpack<>,CAT==3>;
+    
     static void PrintId() {
         cout << "Param<" << N << ">";
     }
@@ -349,7 +350,7 @@ struct Factorize
 
     // we define a new formula from F (called factorized formula), replacing G inside by a new variable ; this is used in function Eval()
     template < class INDS >
-    using FactorizedFormula = typename F::template Replace<G,Var<INDS::SIZE,G::DIM,2>>;	     // means replace G by Var<INDS::SIZE,G::DIM,2> in formula F
+    using FactorizedFormula = typename F::template Replace<G,Var<INDS::SIZE,G::DIM,3>>;	// means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
 
     template<class A, class B>
     using Replace = CondType< B , Factorize<typename F::template Replace<A,B>,typename G::template Replace<A,B>> , IsSameType<A,THIS>::val >;

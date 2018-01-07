@@ -21,6 +21,13 @@
 
 using namespace std;
 
+// At compilation time, detect the maximum between two values (typically, dimensions)
+template <typename T>
+static constexpr T static_max(T a, T b) {
+    return a < b ? b : a;
+}
+
+
 // Conditional type, a templating emulator of a conditional statement. --------------------------
 // This convoluted syntax allows us to write
 // CondType<A,B,1> = A,  CondType<A,B,0> = B
@@ -138,7 +145,7 @@ struct MergeInPackAlias {
 template < class C, class D, typename... Args >
 struct MergeInPackAlias<C,univpack<D,Args...>> { // MergeIn( C, [D, ...] )
     using tmp = typename MergeInPackAlias<C,univpack<Args...>>::type;
-    using type = typename tmp::PUTLEFT<D>;     // = [D] + MergeIn( C, [...] ) (ordering is not preserved !)
+    using type = typename tmp::template PUTLEFT<D>;     // = [D] + MergeIn( C, [...] ) (ordering is not preserved !)
 };
 
 template < class C, typename... Args >
@@ -178,7 +185,7 @@ template < class UPACK >
 struct GetDimsAlias {
     using a = typename UPACK::NEXT;
     using c = typename GetDimsAlias<a>::type;
-    using type = typename c::PUTLEFT<UPACK::FIRST::DIM>;
+    using type = typename c::template PUTLEFT<UPACK::FIRST::DIM>;
 };
 
 template <>
@@ -196,7 +203,7 @@ template < class UPACK >
 struct GetIndsAlias {                                  // GetInds( [Xi, ...] )
     using a = typename UPACK::NEXT;
     using c = typename GetIndsAlias<a>::type;
-    using type = typename c::PUTLEFT<UPACK::FIRST::N>; // = [i] + GetInds( [...] )
+    using type = typename c::template PUTLEFT<UPACK::FIRST::N>; // = [i] + GetInds( [...] )
 };
 
 template <>
@@ -273,6 +280,7 @@ template < int... NS > struct pack {
 
     // Furthermore, the empty package :
     static const int SIZE = 0; // Has zero size (number of vectors) ...
+    static const int MAX = -1; // max is set to -1 (we assume packs of non negative integers...)
     static const int SUM = 0;  // ... zero sum  (total memory footprint) ...
 
     // ... is loaded trivially ...
@@ -316,6 +324,7 @@ template < int N, int... NS > struct pack<N,NS...> {
 
     static const int SIZE = 1+sizeof...(NS); // The number of vectors in pack<N,NS...>
     typedef pack<NS...> NEXT;                // "NEXT" is the tail of our list of vectors.
+    static const int MAX = static_max(N,NEXT::MAX);  // get the max of values
     static const int SUM = N + NEXT::SUM;    // The total "memory footprint" of pack<N,NS...> is computed recursively.
 
     // Loads the i-th element of the (global device memory pointer) px
@@ -380,7 +389,5 @@ template < class DIMS, typename TYPE >
 __host__ __device__ void load(int i, TYPE* xi, TYPE** px) {
     DIMS::load(i,xi,px);
 }
-
-
 
 #endif
