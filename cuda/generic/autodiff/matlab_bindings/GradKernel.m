@@ -19,13 +19,12 @@ function G = GradKernel(F,var,newvar)
 % p = .25;
 % res = G(x,y,b,c,p);
 
-options = struct;
-
 % we get the arguments (variables and formula) from the original call to 
 % the Kernel function in the nested function F
 s = functions(F);
 vars = s.workspace{1}.varargin(1:end-1);
 formula = s.workspace{1}.varargin{end};
+options = s.workspace{1}.options;
 
 % we analyse the "newvar" string argument : the string can be either of the form
 % 'name=type' or simply 'type'

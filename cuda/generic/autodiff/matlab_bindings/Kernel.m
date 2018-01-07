@@ -45,13 +45,14 @@ else
     tagcompile = 'cpp';
 end
 
+options = struct;
 % tagIJ=0 means sum over j, tagIj=1 means sum over j
-tagIJ = 0;
+options.tagIJ = 0;
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu,
 % tagCpuGpu=2 means convolution on Gpu from device data
-tagCpuGpu = 0;
+options.tagCpuGpu = 0;
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
-tag1D2D = 1;
+options.tag1D2D = 1;
 
 Nargin = nargin;
 
@@ -60,7 +61,7 @@ if isstruct(varargin{end})
     s = varargin{end};
     option = fieldnames(s);
     for k=1:length(option)
-        eval([option{k},'=s.',option{k},';'])
+        eval(['options.',option{k},'=s.',option{k},';'])
     end  
     Nargin = Nargin-1;
     varargin = varargin(1:Nargin);
@@ -117,7 +118,8 @@ end
     function out = Eval(varargin)
         nx = size(varargin{indxy(1)},2);
         ny = size(varargin{indxy(2)},2);
-        out = feval(Fname,nx,ny,tagIJ,tagCpuGpu,tag1D2D,varargin{:});
+        out = feval(Fname,nx,ny,options.tagIJ,options.tagCpuGpu,...
+            options.tag1D2D,varargin{:});
     end
 F = @Eval;
 

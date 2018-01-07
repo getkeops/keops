@@ -1,7 +1,7 @@
 addpath build
 
-Nx = 500;
-Ny = 200;
+Nx = 5000;
+Ny = 2000;
 x = randn(3,Nx);
 y = randn(3,Ny);
 b = randn(3,Ny);
@@ -12,6 +12,7 @@ tic
 g = F(x,y,b,p);
 toc
 
+tic
 ox = ones(Nx,1);
 oy = ones(Ny,1);
 r2=0;
@@ -20,5 +21,6 @@ for k=1:3
     r2 = r2 + xmy.^2;
 end
 g0 = (exp(-p*r2)*b')';
+toc
 
 norm(g-g0)
