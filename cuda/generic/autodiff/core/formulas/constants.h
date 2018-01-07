@@ -93,7 +93,7 @@ struct Constant {
         *out = params[PRM::INDEX];
     }
 
-    // There's no gradient to accumulate in V, whatever V.
+    // Derivative of a constant iz zero, except if we take the derivative with respect to the constant !
     template < class V, class GRADIN >
-    using DiffT = Zero<V::DIM>;
+    using DiffT = IdOrZero<PRM,V,GRADIN>;
 };

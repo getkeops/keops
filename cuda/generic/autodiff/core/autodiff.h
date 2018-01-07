@@ -284,6 +284,7 @@ struct BinaryOp<F,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>> {
 template < int N >
 struct Param {
     static const int INDEX = N;
+    static const int DIM = 1;
     
 	template < int CAT >
     using VARS = CondType<univpack<Param<N>>,univpack<>,CAT==3>;
