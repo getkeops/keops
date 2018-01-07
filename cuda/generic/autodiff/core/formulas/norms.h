@@ -41,9 +41,9 @@ struct ScalprodImpl {
     // Vars( A + B ) = Vars(A) U Vars(B), whatever the category
     // Vars(<A,B>) = Vars(A) U Vars(B)
     template < int CAT >
-    using VARS = MergePacks<typename FA::VARS<CAT>,typename FB::VARS<CAT>>;
+    using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
     
-    INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
     		*out = 0;
             for(int k=0; k<DIMIN; k++)
             	*out += outA[k]*outB[k];
@@ -51,7 +51,7 @@ struct ScalprodImpl {
 
     // To evaluate the scalar <A,B>, first evaluate A, then B, then proceed to the summation.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
         BinaryOp<ScalprodImpl<FA,FB>,FA,FB>::template Eval<INDS>(params,out,args...);
     }
 

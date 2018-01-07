@@ -17,6 +17,12 @@
 #ifndef PACK
 #define PACK
 
+#ifdef __CUDACC__
+	#define HOST_DEVICE __host__ __device__
+#else
+	#define HOST_DEVICE 
+#endif
+
 #include <tuple>
 
 using namespace std;
@@ -285,17 +291,17 @@ template < int... NS > struct pack {
 
     // ... is loaded trivially ...
     template < typename TYPE >
-    __host__ __device__ static void load(int i, TYPE* xi, TYPE** px) { }
+    HOST_DEVICE static void load(int i, TYPE* xi, TYPE** px) { }
 
     // ... counts for nothing in the evaluation of a function ...
     template < typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call(FUN fun, TYPE* x, Args... args) {
+    HOST_DEVICE static void call(FUN fun, TYPE* x, Args... args) {
         fun(args...);
     }
 
     // ... idem ...
     template < class DIMS, typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call2(FUN fun, TYPE* x, Args... args) {
+    HOST_DEVICE static void call2(FUN fun, TYPE* x, Args... args) {
         DIMS::call(fun,args...);
     }
 
@@ -330,7 +336,7 @@ template < int N, int... NS > struct pack<N,NS...> {
     // Loads the i-th element of the (global device memory pointer) px
     // to the "array" xi.
     template < typename TYPE >
-    __host__ __device__ static void load(int i, TYPE* xi, TYPE** px) {
+    HOST_DEVICE static void load(int i, TYPE* xi, TYPE** px) {
         /*
          * px is an "array" of pointers to data arrays of appropriate sizes.
          * That is, px[0] = *px     is a pointer to a TYPE array of size Ni * FIRST
@@ -347,7 +353,7 @@ template < int N, int... NS > struct pack<N,NS...> {
 
     // call(fun, [x1, x2, x3], arg1, arg2 ) will end up executing fun( arg1, arg2, x1, x2, x3 ).
     template < typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call(FUN fun, TYPE* x, Args... args) {
+    HOST_DEVICE static void call(FUN fun, TYPE* x, Args... args) {
         NEXT::call(fun,x+FIRST,args...,x);  // Append [x[0:FIRST]] to the list of arguments, then iterate.
     }
 
@@ -355,7 +361,7 @@ template < int N, int... NS > struct pack<N,NS...> {
     // two "packed" variables (x_i and y_j) as first inputs.
     // call2(fun, [x1, x2], [y1, y2], arg1 ) will end up executing fun(arg1, x1, x2, y1, y2).
     template < class DIMS, typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call2(FUN fun, TYPE* x, Args... args) {
+    HOST_DEVICE static void call2(FUN fun, TYPE* x, Args... args) {
         NEXT::template call2<DIMS>(fun,x+FIRST,args...,x);
     }
 
@@ -375,7 +381,7 @@ template < int N, int... NS > struct pack<N,NS...> {
 
 // Templated call
 template < class DIMSX, class DIMSY, typename TYPE, class FUN, typename... Args  >
-__host__ __device__ void call(FUN fun, TYPE* x, Args... args) {
+HOST_DEVICE void call(FUN fun, TYPE* x, Args... args) {
     DIMSX:: template call2<DIMSY>(fun,x,args...);
 }
 
@@ -386,7 +392,7 @@ void getlist(TYPE** px, Args... args) {
 
 // Loads the i-th "line" of px to xi.
 template < class DIMS, typename TYPE >
-__host__ __device__ void load(int i, TYPE* xi, TYPE** px) {
+HOST_DEVICE void load(int i, TYPE* xi, TYPE** px) {
     DIMS::load(i,xi,px);
 }
 

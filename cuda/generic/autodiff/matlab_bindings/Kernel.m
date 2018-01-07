@@ -36,7 +36,7 @@ pathtomex = '/Applications/MATLAB_R2014a.app/bin/';
 mysetenv('PATH',pathtocuda)
 mysetenv('PATH',pathtomex)
 
-[~,tmp] = system('which nvccc');
+[~,tmp] = system('which nvcc');
 if ~isempty(tmp)
     compilescript = 'compile_mex';
     tagcompile = 'cuda';
@@ -60,7 +60,7 @@ if isstruct(varargin{end})
     s = varargin{end};
     option = fieldnames(s);
     for k=1:length(option)
-        eval([option{k},'=s.',option{k}])
+        eval([option{k},'=s.',option{k},';'])
     end  
     Nargin = Nargin-1;
     varargin = varargin(1:Nargin);

@@ -54,11 +54,11 @@
 #include "Pack.h"
 
 #ifdef __CUDACC__
-	#define INLINE static __host__ __device__ __forceinline__
+	#define INLINE __forceinline__
 	#include <thrust/tuple.h>
 	#define TUPLE_VERSION thrust
 #else
-	#define INLINE static inline
+	#define INLINE inline
 	#define TUPLE_VERSION std
 #endif
 
@@ -79,9 +79,9 @@ class Generic {
   public :
 
     struct sEval { // static wrapper
-        using VARSI = typename F::VARS<tagI>; // Use the tag to select the "parallel"  variable
-        using VARSJ = typename F::VARS<tagJ>; // Use the tag to select the "summation" variable
-        using DIMSX = typename GetDims<VARSI>::PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
+        using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
+        using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
+        using DIMSX = typename GetDims<VARSI>::template PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
         using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
 
         using INDSI = GetInds<VARSI>;
@@ -89,11 +89,11 @@ class Generic {
 
         using INDS = ConcatPacks<INDSI,INDSJ>;  // indices of variables
 
-        using tmp = typename F::VARS<2>;
+        using tmp = typename F::template VARS<2>;
         static const int DIMPARAM = tmp::SIZE;
 
         template < typename... Args >
-        __host__ __device__ __forceinline__ void operator()(Args... args) {
+        HOST_DEVICE INLINE void operator()(Args... args) {
             F::template Eval<INDS>(args...);
         }
     };
@@ -161,7 +161,7 @@ struct Var
     // will see that the index 1 is targeted,
     // assume that "var5" is of size DIM, and copy its value in "out".
     template < class INDS, typename ...ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
         auto t = TUPLE_VERSION::make_tuple(args...); // let us access the args using indexing syntax
         // IndValAlias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
         __TYPE__* xi = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
@@ -192,7 +192,7 @@ struct Var
 template < class F, class FA >
 struct UnaryOp {
 	template < class INDS, typename... ARGS >
-	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
 		// we create a vector of size FA::DIM
         __TYPE__ outA[FA::DIM];
         // then we call the Eval function of FA
@@ -206,7 +206,7 @@ struct UnaryOp {
 template < class F, int N, int DIM, int CAT >
 struct UnaryOp<F,Var<N,DIM,CAT>> {
 	template < class INDS, typename... ARGS >
-	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
 		// we do not need to create a vector ; just access the Nth argument of args
         auto t = TUPLE_VERSION::make_tuple(args...); 
         __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
@@ -219,7 +219,7 @@ struct UnaryOp<F,Var<N,DIM,CAT>> {
 template < class F, class FA, class FB >
 struct BinaryOp {
 	template < class INDS, typename... ARGS >
-	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
 		// we create vectors of sizes FA::DIM and FB::DIM
         __TYPE__ outA[FA::DIM], outB[FB::DIM];
         // then we call the Eval function of FA and FB
@@ -234,7 +234,7 @@ struct BinaryOp {
 template < class F, class FA, int N, int DIM, int CAT >
 struct BinaryOp<F,FA,Var<N,DIM,CAT>> {
 	template < class INDS, typename... ARGS >
-	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
         // we create a vector and call Eval only for FA
         __TYPE__ outA[FA::DIM];
         FA::template Eval<INDS>(params,outA,args...);
@@ -250,7 +250,7 @@ struct BinaryOp<F,FA,Var<N,DIM,CAT>> {
 template < class F, class FB, int N, int DIM, int CAT >
 struct BinaryOp<F,Var<N,DIM,CAT>,FB> {
 	template < class INDS, typename... ARGS >
-	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
 		// we create a vector and call Eval only for FB
         __TYPE__ outB[FB::DIM];
         FB::template Eval<INDS>(params,outB,args...);
@@ -266,7 +266,7 @@ struct BinaryOp<F,Var<N,DIM,CAT>,FB> {
 template < class F, int NA, int DIMA, int CATA, int NB, int DIMB, int CATB >
 struct BinaryOp<F,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>> {
 	template < class INDS, typename... ARGS >
-	INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
 	 	// we access the NAth and NBth arguments of args
         auto t = TUPLE_VERSION::make_tuple(args...);
         __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,NA>::ind>(t);
@@ -358,10 +358,10 @@ struct Factorize
     using AllTypes = MergePacks < MergePacks< univpack<THIS> , typename F::AllTypes > , typename G::AllTypes >;
 
     template < int CAT >       
-    using VARS = typename F::VARS<CAT>;
+    using VARS = typename F::template VARS<CAT>;
 
     template < class INDS, typename ...ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args)
     {
 	// First we compute G
 	__TYPE__ outG[G::DIM];
@@ -375,7 +375,7 @@ struct Factorize
     }
     
     template < class V, class GRADIN >
-    using DiffT = Factorize<typename F::DiffT<V,GRADIN>,G>;
+    using DiffT = Factorize<typename F::template DiffT<V,GRADIN>,G>;
     
 };
 

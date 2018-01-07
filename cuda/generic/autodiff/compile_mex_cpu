@@ -19,7 +19,7 @@ COPTIMFLAG="-O3"
 COPTIMFLAG="-O3" 
 
 type=${3:-double}
-(echo "$1" ; echo "$2" ;  cat matlab_bindings/cppconv.cpp) | g++ -O2 -c -x c++ -D __TYPE__=$type -std=c++11 -o /dev/stdout -I $PWD -include $PWD/core/CpuConv.cpp -include $PWD/core/autodiff.h -include $PWD/core/newsyntax.h - > "matlab_bindings/build/tmp.o"
+(echo "$1" ; echo "$2" ;  cat matlab_bindings/cudaconv.cu) | g++ -O2 -c -x c++ -D __TYPE__=$type -std=c++11 -o /dev/stdout -I$MEXPATH -include $MEXPATH/mex.h -I $PWD -include $PWD/core/CpuConv.cpp -include $PWD/core/autodiff.h -include $PWD/core/newsyntax.h - > "matlab_bindings/build/tmp.o"
 
 $MEXC GCC=$CC COPTIMFLAGS=$COPTIMFLAG -O matlab_bindings/build/tmp.o -output matlab_bindings/build/tmp
 rm matlab_bindings/build/tmp.o

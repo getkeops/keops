@@ -94,11 +94,11 @@ struct GaussKernel_specific {
     using AllTypes = univpack<THIS>;
 
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args) {
-        auto t = thrust::make_tuple(args...);
-        __TYPE__*& xi = thrust::get<IndValAlias<INDS,0>::ind>(t);
-        __TYPE__*& yj = thrust::get<IndValAlias<INDS,1>::ind>(t);
-        __TYPE__*& betaj = thrust::get<IndValAlias<INDS,2>::ind>(t);
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args) {
+        auto t = TUPLE_VERSION::make_tuple(args...);
+        __TYPE__*& xi = TUPLE_VERSION::get<IndValAlias<INDS,0>::ind>(t);
+        __TYPE__*& yj = TUPLE_VERSION::get<IndValAlias<INDS,1>::ind>(t);
+        __TYPE__*& betaj = TUPLE_VERSION::get<IndValAlias<INDS,2>::ind>(t);
 
         __TYPE__ r2 = 0.0f;
         __TYPE__ temp;
@@ -129,12 +129,12 @@ struct GradGaussKernel_specific {
     using THIS = GradGaussKernel_specific<DIMPOINT,DIMVECT,V,GRADIN>;
 		
     template<class A, class B>
-    using Replace = CondType< B, GradGaussKernel_specific<DIMPOINT,DIMVECT,V,typename GRADIN::Replace<A,B>>, IsSameType<A,THIS>::val >;
+    using Replace = CondType< B, GradGaussKernel_specific<DIMPOINT,DIMVECT,V,typename GRADIN::template Replace<A,B>>, IsSameType<A,THIS>::val >;
     
     using AllTypes = MergePacks < univpack<THIS,V> , typename GRADIN::AllTypes >;
 
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args) {
         GenericVersion::template Eval<INDS>(params,gammai,args...);
     }
 
@@ -156,16 +156,16 @@ struct GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,GRADIN> {
     using THIS = GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,GRADIN>;
 		
     template<class A, class B>
-    using Replace = CondType< B, GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,typename GRADIN::Replace<A,B>>, IsSameType<A,THIS>::val >;
+    using Replace = CondType< B, GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<0,DIMPOINT>,typename GRADIN::template Replace<A,B>>, IsSameType<A,THIS>::val >;
     
     using AllTypes = MergePacks < univpack<THIS,_X<0,DIMPOINT>> , typename GRADIN::AllTypes >;
 
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args) {
-        auto t = thrust::make_tuple(args...);
-        __TYPE__*& xi = thrust::get<IndValAlias<INDS,0>::ind>(t);
-        __TYPE__*& yj = thrust::get<IndValAlias<INDS,1>::ind>(t);
-        __TYPE__*& betaj = thrust::get<IndValAlias<INDS,2>::ind>(t);
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* gammai, ARGS... args) {
+        auto t = TUPLE_VERSION::make_tuple(args...);
+        __TYPE__*& xi = TUPLE_VERSION::get<IndValAlias<INDS,0>::ind>(t);
+        __TYPE__*& yj = TUPLE_VERSION::get<IndValAlias<INDS,1>::ind>(t);
+        __TYPE__*& betaj = TUPLE_VERSION::get<IndValAlias<INDS,2>::ind>(t);
         __TYPE__ alphai[GRADIN::DIM];
         GRADIN::template Eval<INDS>(params,alphai,args...);
 

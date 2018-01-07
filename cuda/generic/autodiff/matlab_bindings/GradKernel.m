@@ -56,7 +56,7 @@ if vartype(2)=='y'
 end
 
 % finally we call the Kernel function with the new formula
-args = [vars,newvar,['Grad(',formula,',',var,',',newvarname,')']]
+args = [vars,newvar,['Grad(',formula,',',var,',',newvarname,')']];
 G = Kernel(args{:},options);
 
 end

@@ -6,7 +6,9 @@
 using FORMULA = decltype(F);
 
 void ExitFcn(void) {
-    cudaDeviceReset();
+	#ifdef __CUDACC__
+	    cudaDeviceReset();
+	#endif
 }
 
 // uncomment the following block of code to redirect stdout to matlab console
@@ -184,6 +186,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 		else
 			CpuConv(Generic<FORMULA,1>::sEval(), params, n[1], n[0], gamma, args);
 	}
+#ifdef __CUDACC__
 	else if(tagCpuGpu==1)
     {
     	if(tagIJ==0)
@@ -218,7 +221,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 			    GpuConv2D_FromDevice(Generic<FORMULA,1>::sEval(), params, n[1], n[0], gamma, args);
 		}		
 	}
-	
+#endif
 
     delete[] args;
     delete[] typeargs;
