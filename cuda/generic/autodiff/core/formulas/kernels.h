@@ -206,10 +206,10 @@ struct TRI_Kernel_helper
 {
 	using R2 = SqDist<_X<0,DIM>,_Y<1,DIM>>; 	// r2=|x-y|^2
 	using KORTHOR2 = FORTHO<Param<0>,R2>;		// k_ortho(r2)
-	using B = _X<2,DIM>;						// b
+	using B = _Y<2,DIM>;						// b
 	using KTILDER2 = FTILDE<Param<1>,R2>;		// k_tilde(r2)
 	using XMY = Subtract<_X<0,DIM>,_Y<1,DIM>>;	// x-y
-	using BDOTXMY = Scalprod<_X<2,DIM>,XMY>;	// <b,x-y>
+	using BDOTXMY = Scalprod<_Y<2,DIM>,XMY>;	// <b,x-y>
 	using C = Scalprod<BDOTXMY,XMY>;			// <b,x-y>(x-y)
 	using type = Add<Scal<KORTHOR2,B>,Scal<KTILDER2,C>>;		// final formula 
 	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y
@@ -233,9 +233,9 @@ struct DivFreeGaussKernel_helper
 	using G = GaussFunction<_P<0>,R2>;					// exp(-r^2/s2)
 	using TWOC = Scal<IntConstant<2>,Constant<_P<0>>>; 	// 2c
 	using C1 = Divide<IntConstant<DIM-1>,TWOC>;			// (d-1)/(2c)
-	using B = _X<2,DIM>;								// b
+	using B = _Y<2,DIM>;								// b
 	using C2 = Scal<Subtract<C1,R2>,B>;					// ((d-1)/(2c)-r^2)b
-	using BDOTXMY = Scalprod<_X<2,DIM>,XMY>;			// <b,x-y>
+	using BDOTXMY = Scalprod<_Y<2,DIM>,XMY>;			// <b,x-y>
 	using C = Scal<BDOTXMY,XMY>;						// <b,x-y>(x-y)
 	using type = Scal<G,Add<C2,C>>;								// final formula
 	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y
@@ -252,9 +252,9 @@ struct CurlFreeGaussKernel_helper
 	using G = GaussFunction<_P<0>,R2>;					// exp(-r^2/s2)
 	using TWOC = Scal<IntConstant<2>,Constant<_P<0>>>; 	// 2c
 	using C1 = Divide<IntConstant<1>,TWOC>;				// 1/(2c)
-	using B = _X<2,DIM>;								// b
+	using B = _Y<2,DIM>;								// b
 	using C2 = Scal<C1,B>;								// (1/(2c))b
-	using BDOTXMY = Scalprod<_X<2,DIM>,XMY>;			// <b,x-y>
+	using BDOTXMY = Scalprod<_Y<2,DIM>,XMY>;			// <b,x-y>
 	using C = Scal<BDOTXMY,XMY>;						// <b,x-y>(x-y)
 	using type = Scal<G,Subtract<C2,C>>;						// final formula
 	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y

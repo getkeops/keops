@@ -78,4 +78,8 @@ Scalprod<FA,FB> operator,(FA fa, FB fb)
 #define LaplaceKernel(DIMPOINT,DIMVECT) LaplaceKernel<DIMPOINT,DIMVECT>()
 #define EnergyKernel(DIMPOINT,DIMVECT) EnergyKernel<DIMPOINT,DIMVECT>()
 
+#define DivFreeGaussKernel(DIM) DivFreeGaussKernel<DIM>()
+#define CurlFreeGaussKernel(DIM) CurlFreeGaussKernel<DIM>()
+#define TRIGaussKernel(DIM) TRIGaussKernel<DIM>()
+
 #endif // NEWSYNTAX

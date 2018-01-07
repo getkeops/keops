@@ -127,7 +127,7 @@ F = @Eval;
         cd ..
         eval(['!./',compilescript,' "',code1,'" "',code2,'"'])
         cd matlab_bindings
-        testbuild = exist(['build/tmp.',mexext],'file')==3;
+        testbuild = exist(['build/tmp.',mexext],'file');
         if testbuild
             eval(['!mv build/tmp.',mexext,' "build/',filename,'"'])
         end
