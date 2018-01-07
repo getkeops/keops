@@ -33,6 +33,17 @@ function F = Kernel(varargin)
 
 pathtocuda = '/Developer/NVIDIA/CUDA-9.1/bin/';
 pathtomex = '/Applications/MATLAB_R2014a.app/bin/';
+mysetenv('PATH',pathtocuda)
+mysetenv('PATH',pathtomex)
+
+[~,tmp] = system('which nvccc');
+if ~isempty(tmp)
+    compilescript = 'compile_mex';
+    tagcompile = 'cuda';
+else
+    compilescript = 'compile_mex_cpu';
+    tagcompile = 'cpp';
+end
 
 % tagIJ=0 means sum over j, tagIj=1 means sum over j
 tagIJ = 0;
@@ -88,7 +99,7 @@ end
 if fname(end)==char(10) || fname(end)==char(13)
     fname = fname(1:end-1);
 end
-Fname = ['F',fname];
+Fname = ['F',fname,'_',tagcompile];
 filename = [Fname,'.',mexext];
 if ~(exist(filename,'file')==3)
     disp('Formula is not compiled yet ; compiling...')
@@ -111,10 +122,8 @@ end
 F = @Eval;
 
     function testbuild = buildFormula(code1,code2,filename)
-        mysetenv('PATH',pathtocuda)
-        mysetenv('PATH',pathtomex)
         cd ..
-        eval(['!./compile_mex "',code1,'" "',code2,'"'])
+        eval(['!./',compilescript,' "',code1,'" "',code2,'"'])
         cd matlab_bindings
         testbuild = exist(['build/tmp.',mexext],'file')==3;
         if testbuild

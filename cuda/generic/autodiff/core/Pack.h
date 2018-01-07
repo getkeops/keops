@@ -145,7 +145,7 @@ struct MergeInPackAlias {
 template < class C, class D, typename... Args >
 struct MergeInPackAlias<C,univpack<D,Args...>> { // MergeIn( C, [D, ...] )
     using tmp = typename MergeInPackAlias<C,univpack<Args...>>::type;
-    using type = typename tmp::PUTLEFT<D>;     // = [D] + MergeIn( C, [...] ) (ordering is not preserved !)
+    using type = typename tmp::template PUTLEFT<D>;     // = [D] + MergeIn( C, [...] ) (ordering is not preserved !)
 };
 
 template < class C, typename... Args >
@@ -185,7 +185,7 @@ template < class UPACK >
 struct GetDimsAlias {
     using a = typename UPACK::NEXT;
     using c = typename GetDimsAlias<a>::type;
-    using type = typename c::PUTLEFT<UPACK::FIRST::DIM>;
+    using type = typename c::template PUTLEFT<UPACK::FIRST::DIM>;
 };
 
 template <>
@@ -203,7 +203,7 @@ template < class UPACK >
 struct GetIndsAlias {                                  // GetInds( [Xi, ...] )
     using a = typename UPACK::NEXT;
     using c = typename GetIndsAlias<a>::type;
-    using type = typename c::PUTLEFT<UPACK::FIRST::N>; // = [i] + GetInds( [...] )
+    using type = typename c::template PUTLEFT<UPACK::FIRST::N>; // = [i] + GetInds( [...] )
 };
 
 template <>

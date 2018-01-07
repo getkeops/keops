@@ -1,5 +1,5 @@
 
-// see compile_mex file for compiling
+// see compile_mex_cpu file for compiling
 
 // F and __TYPE__ are supposed to be set via "using" or "#define" 
 
@@ -56,7 +56,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	const int NARGSI = VARSI::SIZE; // number of I variables used in formula F
 	const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
 
-	int NARGS = nrhs-5-(DIMPARAM?1:0);
+	int NARGS = nrhs-3-(DIMPARAM?1:0);
 	
     if(nlhs != 1) 
         mexErrMsgTxt("One output required.");
@@ -83,18 +83,6 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
 		mexErrMsgTxt("third arg should be scalar tagIJ");
 	int tagIJ = *mxGetPr(prhs[argu]);
-	argu++;
-	
-    //----- the next input arguments: tagCpuGpu--------------//
-	if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
-		mexErrMsgTxt("fourth arg should be scalar tagCpuGpu");
-	int tagCpuGpu = *mxGetPr(prhs[argu]);
-	argu++;
-	
-    //----- the next input arguments: tag1D2D--------------//
-	if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
-		mexErrMsgTxt("fifth arg should be scalar tagID2D");
-	int tag1D2D = *mxGetPr(prhs[argu]);
 	argu++;
 	
     int *typeargs = new int[NARGS];
@@ -170,54 +158,15 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     double *gamma = mxGetPr(plhs[0]);
 
     //////////////////////////////////////////////////////////////
-    // Call Cuda codes
+    // Call code
     //////////////////////////////////////////////////////////////
     
-    // tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
     // tagIJ=0 means sum over j, tagIJ=1 means sum over j
-    // tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
     
-    if(tagCpuGpu==0)
-    {
-    	if(tagIJ==0)
-		    CpuConv(Generic<FORMULA,0>::sEval(), params, n[0], n[1], gamma, args);
-		else
-			CpuConv(Generic<FORMULA,1>::sEval(), params, n[1], n[0], gamma, args);
-	}
-	else if(tagCpuGpu==1)
-    {
-    	if(tagIJ==0)
-    	{
-    		if(tag1D2D==0)
-			    GpuConv1D(Generic<FORMULA,0>::sEval(), params, n[0], n[1], gamma, args);
-			else
-			    GpuConv2D(Generic<FORMULA,0>::sEval(), params, n[0], n[1], gamma, args);
-		}
-		else
-    	{
-    		if(tag1D2D==0)
-			    GpuConv1D(Generic<FORMULA,1>::sEval(), params, n[1], n[0], gamma, args);
-			else
-			    GpuConv2D(Generic<FORMULA,1>::sEval(), params, n[1], n[0], gamma, args);
-		}		
-	}
+    if(tagIJ==0)
+		CpuConv(Generic<FORMULA,0>::sEval(), params, n[0], n[1], gamma, args);
 	else
-    {
-    	if(tagIJ==0)
-    	{
-    		if(tag1D2D==0)
-			    GpuConv1D_FromDevice(Generic<FORMULA,0>::sEval(), params, n[0], n[1-0], gamma, args);
-			else
-			    GpuConv2D_FromDevice(Generic<FORMULA,0>::sEval(), params, n[0], n[1-0], gamma, args);
-		}
-		else
-    	{
-    		if(tag1D2D==0)
-			    GpuConv1D_FromDevice(Generic<FORMULA,1>::sEval(), params, n[1], n[0], gamma, args);
-			else
-			    GpuConv2D_FromDevice(Generic<FORMULA,1>::sEval(), params, n[1], n[0], gamma, args);
-		}		
-	}
+		CpuConv(Generic<FORMULA,1>::sEval(), params, n[1], n[0], gamma, args);
 	
 
     delete[] args;
