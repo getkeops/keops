@@ -31,12 +31,11 @@ function F = Kernel(varargin)
 % lambda = .25;
 % res = F(x,y,beta,eta,lambda);
 
-pathtocuda = '/Developer/NVIDIA/CUDA-9.1/bin/';
-pathtomex = '/Applications/MATLAB_R2014a.app/bin/';
-mysetenv('PATH',pathtocuda)
-mysetenv('PATH',pathtomex)
+% the follwing adds path settings from the shell before calling external
+% programs; this is used to get nvcc and mex commands in the path
+bashpathcommand = 'source ~/.bash_profile;';
 
-[~,tmp] = system('which nvcc');
+[~,tmp] = mysystemcall([bashpathcommand,'which nvcc']);
 if ~isempty(tmp)
     compilescript = 'compile_mex';
     tagcompile = 'cuda';
@@ -96,10 +95,13 @@ for k=1:Nargin-1
 end
 % we use md5 hash to shorten string and avoid special characters in the
 % filename
-[~,fname] = system(['echo "',fname,'"|md5']);
-if fname(end)==char(10) || fname(end)==char(13)
-    fname = fname(1:end-1);
+[~,sysid] = mysystemcall(['uname']);
+if strcmp(sysid,'Darwin')
+    md5cmd = 'md5';
+else
+    md5cmd = 'md5sum';
 end
+[~,fname] = mysystemcall(['echo "',fname,'"|',md5cmd]);
 Fname = ['F',fname,'_',tagcompile];
 filename = [Fname,'.',mexext];
 if ~(exist(filename,'file')==3)
@@ -125,7 +127,7 @@ F = @Eval;
 
     function testbuild = buildFormula(code1,code2,filename)
         cd ..
-        eval(['!./',compilescript,' "',code1,'" "',code2,'"'])
+        mysystemcall(['./',compilescript,' "',code1,'" "',code2,'"']);
         cd matlab_bindings
         testbuild = exist(['build/tmp.',mexext],'file');
         if testbuild
@@ -133,21 +135,13 @@ F = @Eval;
         end
     end
 
-end
+    function [status,cmdout] = mysystemcall(command)
+        [status,cmdout] = system([bashpathcommand,command]);
+        if cmdout(end)==char(10) || cmdout(end)==char(13)
+            cmdout = cmdout(1:end-1);
+        end
+    end
 
-
-function mysetenv(var,string)
-if isempty(strfind(getenv(var),string))
-    setenv(var, [getenv(var) ':' string])
-end
-end
-
-function c = clockstr
-c = num2str(clock');
-c(:,end+1) = '_';
-c = c';
-c = strrep(c(:)',' ','');
-c = strrep(c,'.','_');
 end
 
 function [left,right] = sepeqstr(str)
@@ -159,5 +153,6 @@ end
 left = str(1:pos-1);
 right = str(pos+1:end);
 end
+
 
 
