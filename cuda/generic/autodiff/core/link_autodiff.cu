@@ -1,5 +1,3 @@
-#include "formula.h"
-
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/autodiff.h"

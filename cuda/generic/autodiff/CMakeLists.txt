@@ -40,6 +40,7 @@ configure_file(formula.h.in formula.h @ONLY)
 
 CUDA_compile(
 	link_autodiff STATIC
+        formula.h
 	${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
 )
 
