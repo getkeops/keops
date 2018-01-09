@@ -41,18 +41,21 @@ struct ScalprodImpl {
     // Vars( A + B ) = Vars(A) U Vars(B), whatever the category
     // Vars(<A,B>) = Vars(A) U Vars(B)
     template < int CAT >
-    using VARS = MergePacks<typename FA::VARS<CAT>,typename FB::VARS<CAT>>;
+    using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+    		*out = 0;
+            for(int k=0; k<DIMIN; k++)
+            	*out += outA[k]*outB[k];
+	}
 
     // To evaluate the scalar <A,B>, first evaluate A, then B, then proceed to the summation.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        *out = 0;
-        __TYPE__ outA[DIMIN], outB[DIMIN]; // Don't forget to allocate enough memory !
-        FA::template Eval<INDS>(params,outA,args...);
-        FB::template Eval<INDS>(params,outB,args...);
-        for(int k=0; k<DIMIN; k++)
-            *out += outA[k]*outB[k];
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        BinaryOp<ScalprodImpl<FA,FB>,FA,FB>::template Eval<INDS>(params,out,args...);
     }
+
+
 
     // <A,B> is scalar-valued, so that gradin is necessarily a scalar.
     // [\partial_V <A,B>].gradin = gradin * ( [\partial_V A].B + [\partial_V B].A )

@@ -28,7 +28,7 @@ struct Zero {
 
     // Evaluation is easy : simply fill-up *out with zeros.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
         for(int k=0; k<DIM; k++)
             out[k] = 0;
     }
@@ -57,7 +57,7 @@ struct IntConstant {
 
     // Evaluation is easy : simply fill *out = out[0] with N.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
         *out = N;
     }
 
@@ -83,17 +83,17 @@ struct Constant {
     
     using AllTypes = univpack<Constant<PRM>>;
 
-    // A parameter is a variable of category "2" ( 0 = Xi, 1 = Yj )
+    // A parameter is a variable of category "2" ( 0 = Xi, 1 = Yj, 3 for factorized variables )
     template < int CAT >
     using VARS = CondType<univpack<PRM>,univpack<>,CAT==2>;
 
     // "returns" the appropriate value in the params array.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
         *out = params[PRM::INDEX];
     }
 
-    // There's no gradient to accumulate in V, whatever V.
+    // Derivative of a constant iz zero, except if we take the derivative with respect to the constant !
     template < class V, class GRADIN >
-    using DiffT = Zero<V::DIM>;
+    using DiffT = IdOrZero<PRM,V,GRADIN>;
 };

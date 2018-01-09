@@ -17,9 +17,22 @@
 #ifndef PACK
 #define PACK
 
+#ifdef __CUDACC__
+	#define HOST_DEVICE __host__ __device__
+#else
+	#define HOST_DEVICE 
+#endif
+
 #include <tuple>
 
 using namespace std;
+
+// At compilation time, detect the maximum between two values (typically, dimensions)
+template <typename T>
+static constexpr T static_max(T a, T b) {
+    return a < b ? b : a;
+}
+
 
 // Conditional type, a templating emulator of a conditional statement. --------------------------
 // This convoluted syntax allows us to write
@@ -138,7 +151,7 @@ struct MergeInPackAlias {
 template < class C, class D, typename... Args >
 struct MergeInPackAlias<C,univpack<D,Args...>> { // MergeIn( C, [D, ...] )
     using tmp = typename MergeInPackAlias<C,univpack<Args...>>::type;
-    using type = typename tmp::PUTLEFT<D>;     // = [D] + MergeIn( C, [...] ) (ordering is not preserved !)
+    using type = typename tmp::template PUTLEFT<D>;     // = [D] + MergeIn( C, [...] ) (ordering is not preserved !)
 };
 
 template < class C, typename... Args >
@@ -178,7 +191,7 @@ template < class UPACK >
 struct GetDimsAlias {
     using a = typename UPACK::NEXT;
     using c = typename GetDimsAlias<a>::type;
-    using type = typename c::PUTLEFT<UPACK::FIRST::DIM>;
+    using type = typename c::template PUTLEFT<UPACK::FIRST::DIM>;
 };
 
 template <>
@@ -196,7 +209,7 @@ template < class UPACK >
 struct GetIndsAlias {                                  // GetInds( [Xi, ...] )
     using a = typename UPACK::NEXT;
     using c = typename GetIndsAlias<a>::type;
-    using type = typename c::PUTLEFT<UPACK::FIRST::N>; // = [i] + GetInds( [...] )
+    using type = typename c::template PUTLEFT<UPACK::FIRST::N>; // = [i] + GetInds( [...] )
 };
 
 template <>
@@ -273,21 +286,22 @@ template < int... NS > struct pack {
 
     // Furthermore, the empty package :
     static const int SIZE = 0; // Has zero size (number of vectors) ...
+    static const int MAX = -1; // max is set to -1 (we assume packs of non negative integers...)
     static const int SUM = 0;  // ... zero sum  (total memory footprint) ...
 
     // ... is loaded trivially ...
     template < typename TYPE >
-    __host__ __device__ static void load(int i, TYPE* xi, TYPE** px) { }
+    HOST_DEVICE static void load(int i, TYPE* xi, TYPE** px) { }
 
     // ... counts for nothing in the evaluation of a function ...
     template < typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call(FUN fun, TYPE* x, Args... args) {
+    HOST_DEVICE static void call(FUN fun, TYPE* x, Args... args) {
         fun(args...);
     }
 
     // ... idem ...
     template < class DIMS, typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call2(FUN fun, TYPE* x, Args... args) {
+    HOST_DEVICE static void call2(FUN fun, TYPE* x, Args... args) {
         DIMS::call(fun,args...);
     }
 
@@ -316,12 +330,13 @@ template < int N, int... NS > struct pack<N,NS...> {
 
     static const int SIZE = 1+sizeof...(NS); // The number of vectors in pack<N,NS...>
     typedef pack<NS...> NEXT;                // "NEXT" is the tail of our list of vectors.
+    static const int MAX = static_max(N,NEXT::MAX);  // get the max of values
     static const int SUM = N + NEXT::SUM;    // The total "memory footprint" of pack<N,NS...> is computed recursively.
 
     // Loads the i-th element of the (global device memory pointer) px
     // to the "array" xi.
     template < typename TYPE >
-    __host__ __device__ static void load(int i, TYPE* xi, TYPE** px) {
+    HOST_DEVICE static void load(int i, TYPE* xi, TYPE** px) {
         /*
          * px is an "array" of pointers to data arrays of appropriate sizes.
          * That is, px[0] = *px     is a pointer to a TYPE array of size Ni * FIRST
@@ -338,7 +353,7 @@ template < int N, int... NS > struct pack<N,NS...> {
 
     // call(fun, [x1, x2, x3], arg1, arg2 ) will end up executing fun( arg1, arg2, x1, x2, x3 ).
     template < typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call(FUN fun, TYPE* x, Args... args) {
+    HOST_DEVICE static void call(FUN fun, TYPE* x, Args... args) {
         NEXT::call(fun,x+FIRST,args...,x);  // Append [x[0:FIRST]] to the list of arguments, then iterate.
     }
 
@@ -346,7 +361,7 @@ template < int N, int... NS > struct pack<N,NS...> {
     // two "packed" variables (x_i and y_j) as first inputs.
     // call2(fun, [x1, x2], [y1, y2], arg1 ) will end up executing fun(arg1, x1, x2, y1, y2).
     template < class DIMS, typename TYPE, class FUN, typename... Args  >
-    __host__ __device__ static void call2(FUN fun, TYPE* x, Args... args) {
+    HOST_DEVICE static void call2(FUN fun, TYPE* x, Args... args) {
         NEXT::template call2<DIMS>(fun,x+FIRST,args...,x);
     }
 
@@ -366,7 +381,7 @@ template < int N, int... NS > struct pack<N,NS...> {
 
 // Templated call
 template < class DIMSX, class DIMSY, typename TYPE, class FUN, typename... Args  >
-__host__ __device__ void call(FUN fun, TYPE* x, Args... args) {
+HOST_DEVICE void call(FUN fun, TYPE* x, Args... args) {
     DIMSX:: template call2<DIMSY>(fun,x,args...);
 }
 
@@ -377,10 +392,8 @@ void getlist(TYPE** px, Args... args) {
 
 // Loads the i-th "line" of px to xi.
 template < class DIMS, typename TYPE >
-__host__ __device__ void load(int i, TYPE* xi, TYPE** px) {
+HOST_DEVICE void load(int i, TYPE* xi, TYPE** px) {
     DIMS::load(i,xi,px);
 }
-
-
 
 #endif

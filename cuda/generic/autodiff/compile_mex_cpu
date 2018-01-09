@@ -1,0 +1,30 @@
+# This command allows to build a mex file corresponding to any formula
+# chmod 700 compile_mex_cpu
+# examples :
+# - To build for the function f(x,y,u,v,b) = <u,v>^2*exp(-oos2*|x-y|^2)*b :
+# 		./compile_mex_cpu "using F=Scal<Square<Scalprod<_X<2,4>,_Y<3,4>>>,GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<4,3>>>;"
+# - To build for the gradient of the same function wrt x :
+# 		./compile_mex_cpu "using F = Grad<Scal<Square<Scalprod<_X<2,4>,_Y<3,4>>>,GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<4,3>>>,_X<0,3>,_X<5,3>>;"
+
+# ./compile_mex_cpu "using F=GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<2,3>>;"
+
+MATLABROOT=$(dirname $(dirname $(which matlab)))
+
+MEXC="$MATLABROOT/bin/mex"
+MEXPATH="$MATLABROOT/extern/include"
+
+COPTIMFLAG="-O3" 
+
+# --------- C COMPILATION PARAMETERS: --------- #
+COPTIMFLAG="-O3" 
+
+type=${3:-double}
+(echo "$1" ; echo "$2" ;  cat matlab_bindings/cudaconv.cu) | g++ -O2 -c -x c++ -D __TYPE__=$type -std=c++11 -o /dev/stdout -I$MEXPATH -include $MEXPATH/mex.h -I $PWD -include $PWD/core/CpuConv.cpp -include $PWD/core/autodiff.h -include $PWD/core/newsyntax.h - > "matlab_bindings/build/tmp.o"
+
+$MEXC GCC=$CC COPTIMFLAGS=$COPTIMFLAG -O matlab_bindings/build/tmp.o -output matlab_bindings/build/tmp
+rm matlab_bindings/build/tmp.o
+
+
+
+
+

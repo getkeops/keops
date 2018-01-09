@@ -14,4 +14,9 @@
 
 # Exclude the graphs pdf
 *.pdf
+
+# Jupyter notebooks checkpoints
+*.ipynb_checkpoints*
+
+# MacOS hidden files
 .DS_Store

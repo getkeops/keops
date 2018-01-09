@@ -74,16 +74,17 @@ struct AddImpl {
 	
     // Vars( FA + FB ) = Vars(FA) U Vars(FB), whatever the category
     template < int CAT >
-    using VARS = MergePacks<typename FA::VARS<CAT>,typename FB::VARS<CAT>>;
+    using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = outA[k] + outB[k];
+	}
 
     // To evaluate FA + FB, first evaluate FA, then FB, and then add the result and put it in "out".
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        __TYPE__ outA[DIM], outB[DIM];
-        FA::template Eval<INDS>(params,outA,args...);
-        FB::template Eval<INDS>(params,outB,args...);
-        for(int k=0; k<DIM; k++)
-            out[k] = outA[k] + outB[k];
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        BinaryOp<AddImpl<FA,FB>,FA,FB>::template Eval<INDS>(params,out,args...);
     }
 
     // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin
@@ -154,17 +155,19 @@ struct ScalImpl {
 
     // Vars( A * B ) = Vars(A) U Vars(B)
     template < int CAT >
-    using VARS = MergePacks<typename FA::VARS<CAT>,typename FB::VARS<CAT>>;
+    using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = *outA*outB[k];
+	}
 
     // To evaluate A*B, first evaluate A, then B, then store the pointwise mult. in out.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        __TYPE__ outA[1], outB[DIM];
-        FA::template Eval<INDS>(params,outA,args...);
-        FB::template Eval<INDS>(params,outB,args...);
-        for(int k=0; k<DIM; k++)
-            out[k] = *outA*outB[k];
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        BinaryOp<ScalImpl<FA,FB>,FA,FB>::template Eval<INDS>(params,out,args...);
     }
+
 
     //  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
     // i.e.
@@ -241,14 +244,16 @@ struct Exp {
 
     // Vars(Exp(F)) = Vars(F)
     template < int CAT >
-    using VARS = typename F::VARS<CAT>;
+    using VARS = typename F::template VARS<CAT>;
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+            *out = exp(*outF);
+	}
 
     // To evaluate Exp(F), first evaluate F, then take its exponential...
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        __TYPE__ outF[1];
-        F::template Eval<INDS>(params,outF,args...);
-        *out = exp(*outF);
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        UnaryOp<Exp<F>,F>::template Eval<INDS>(params,out,args...);
     }
 
     // [\partial_V exp(F)].gradin = exp(F) * [\partial_V F].gradin
@@ -283,15 +288,18 @@ struct Pow {
 
     // Vars( F^M ) = Vars( F )
     template < int CAT >
-    using VARS = typename F::VARS<CAT>;
+    using VARS = typename F::template VARS<CAT>;
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+            *out = pow(*outF,M);
+	}
 
     // To compute F^M, first compute F, then use the cmath function pow.
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        __TYPE__ outF[1];
-        F::template Eval<INDS>(params,outF,args...);
-        *out = pow(*outF,M);
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        UnaryOp<Pow<F,M>,F>::template Eval<INDS>(params,out,args...);
     }
+
 
     // [\partial_V F^M].gradin  =  M * (F^(M-1)) * [\partial_V F].gradin
     template < class V, class GRADIN >
@@ -369,13 +377,15 @@ struct Log {
 	using AllTypes = MergePacks<univpack<Log<F>>,typename F::AllTypes>;
 
     template < int CAT >
-    using VARS = typename F::VARS<CAT>;
+    using VARS = typename F::template VARS<CAT>;
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+            *out = log(*outF);
+	}
 
     template < class INDS, typename... ARGS >
-    INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        __TYPE__ outF[1];
-        F::template Eval<INDS>(params,outF,args...);
-        *out = log(*outF);
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        UnaryOp<Log<F>,F>::template Eval<INDS>(params,out,args...);
     }
 
     template < class V, class GRADIN >

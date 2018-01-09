@@ -21,7 +21,7 @@
 #include "../core/GpuConv1D.cu"
 #include "../core/GpuConv2D.cu"
 
-#define __TYPE__ float
+#define __TYPE__ double
 
 #include "../core/autodiff.h"
 
