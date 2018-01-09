@@ -27,7 +27,7 @@ List(APPEND CUDA_NVCC_FLAGS "-O2")
 
 
 add_definitions(-D_FORCE_INLINES)
-add_definitions(-D__TYPE__ float)
+add_definitions(-D__TYPE__=float)
 
 ## --------------------------------COMPILATIONS---------------------------------------------
 
@@ -37,11 +37,10 @@ if(NOT FORMULA)
 endif()
 configure_file(formula.h.in formula.h @ONLY)
 
-
 CUDA_compile(
 	link_autodiff STATIC
-        formula.h
 	${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
+    OPTIONS --pre-include=formula.h
 )
 
 CUDA_compile(
