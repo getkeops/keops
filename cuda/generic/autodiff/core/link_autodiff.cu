@@ -1,4 +1,4 @@
-// use "compile" file for compilation
+#include "formula.h"
 
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
