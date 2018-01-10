@@ -51,15 +51,15 @@ configure_file(template.h.in template.h @ONLY)
 
 ## - create shared lib
 CUDA_add_library(
-    shared_conv SHARED
+    shared_obj SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
     OPTIONS --pre-include=template.h
 )
 
 add_custom_command(
-    TARGET shared_conv POST_BUILD
+    TARGET shared_obj POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename
-    $<TARGET_FILE:shared_conv>
+    $<TARGET_FILE:shared_obj>
     \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX}
 )
 
@@ -67,33 +67,38 @@ add_custom_command(
 ##   The problem is twofold : the cuda module do not define a 
 ##   CUDA_add_object. We then need to use Add_library instead.
 
-CUDA_compile( # generate the string "nvcc -c ..." but do not execute it
-    mex_file SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/matlab_bindings/cudaconv.cu
-    OPTIONS --pre-include=template.h -I${Matlab_INCLUDE_DIRS} -x cu
-)
+if(Matlab_FOUND)
 
-add_custom_target(
-    mex_cuda ALL
-    DEPENDS ${mex_file} # generate the .o as it execute the command made by CUDA_compile
-)
+    CUDA_compile( # generate the string "nvcc -c ..." but do not execute it
+        mex_file SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/matlab_bindings/cudaconv.cu
+        OPTIONS --pre-include=template.h -I${Matlab_INCLUDE_DIRS} -x cu
+    )
 
-matlab_get_mex_suffix( # simply get the extension : almost surely mexa64
-    ${Matlab_ROOT_DIR} 
-    mex_suffix
-)
+    add_custom_target(
+        mex_cuda ALL
+        DEPENDS ${mex_file} # generate the .o as it execute the command made by CUDA_compile
+    )
 
-add_custom_command( # link the .o by running mex compiler
-    TARGET mex_cuda POST_BUILD
-    COMMAND ${Matlab_ROOT_DIR}/bin/mex  -L${CUDA_TOOLKIT_ROOT_DIR}/lib64/ -lcudart -L${Matlab_LIBRARIES} -lmex ${mex_file} -output tmp
-    COMMAND ${CMAKE_COMMAND} -E rename tmp.${mex_suffix} \"${FORMULA}\"_${__TYPE__}.${mex_suffix}
-)
+    matlab_get_mex_suffix( # simply get the extension : almost surely mexa64
+        ${Matlab_ROOT_DIR} 
+        mex_suffix
+    )
 
-set_target_properties( # pass needed options to add_custom_target()
-    mex_cuda
-    PROPERTIES PREFIX "" 
-    LINKER_LANGUAGE CXX
-)
+    add_custom_command( # link the .o by running mex compiler
+        TARGET mex_cuda POST_BUILD
+        COMMAND ${Matlab_ROOT_DIR}/bin/mex  -L${CUDA_TOOLKIT_ROOT_DIR}/lib64/ -lcudart -L${Matlab_LIBRARIES} -lmex ${mex_file} -output tmp
+        COMMAND ${CMAKE_COMMAND} -E rename tmp.${mex_suffix} \"${FORMULA}\"_${__TYPE__}.${mex_suffix}
+    )
+
+    set_target_properties( # pass needed options to add_custom_target()
+        mex_cuda
+        PROPERTIES PREFIX "" 
+        LINKER_LANGUAGE CXX
+    )
+else()
+    message(WARNING "Matlab not found. No mex file produced.")
+endif()
 
 ## - test link
 CUDA_compile(
