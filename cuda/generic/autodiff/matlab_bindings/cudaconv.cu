@@ -1,9 +1,13 @@
+#include <mex.h>
+#include "core/CpuConv.cpp"
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
+#include "core/autodiff.h"
 
+#include "core/newsyntax.h"
 // see compile_mex file for compiling
 
 // F and __TYPE__ are supposed to be set via "using" or "#define" 
-
-using FORMULA = decltype(F);
 
 void ExitFcn(void) {
 	#ifdef __CUDACC__

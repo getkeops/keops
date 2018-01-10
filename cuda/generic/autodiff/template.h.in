@@ -1,0 +1,2 @@
+#cmakedefine FORMULA @FORMULA@
+#cmakedefine __TYPE__ @__TYPE__@
