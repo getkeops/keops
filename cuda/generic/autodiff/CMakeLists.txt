@@ -6,7 +6,7 @@ project(libkp)
 ## Find package
 find_package(CUDA REQUIRED)
 find_package(GTest REQUIRED)
-find_package(Matlab REQUIRED)
+find_package(Matlab)
 
 ## Set Path to sources
 set(SOURCE_FILES
