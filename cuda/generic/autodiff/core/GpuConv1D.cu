@@ -3,9 +3,11 @@
 #include <assert.h>
 #include <cuda.h>
 
-#include "Pack.h"
 
-using namespace std;
+#include "Pack.h"
+#include "reductions/sum.h"
+#include "reductions/log_sum_exp.h"
+
 template < typename TYPE, class FUN, class PARAM >
 __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {
 
