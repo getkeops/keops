@@ -32,7 +32,8 @@ struct LogSumExp {
     // Evaluation is easy : simply fill-up out[-1] with 1, then eval F on out.
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        out[F::DIM] = 1;
+        out[F::DIM] = 1.0f; // This filler may be useless, since the memory should 
+                            // have been initialized properly... But I'd rather not take the risk.
         F::template Eval<INDS>(params, out, args...);
     }
 
