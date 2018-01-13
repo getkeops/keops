@@ -134,11 +134,11 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, build_folder =
 			dll        = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
 			print("Loaded.\n\n")
 			
-		routine_i    = dll.GpuConv
+		routine_i    = dll.GpuConv2D
 		# Arguments :            params,          nx,    ny,    result,                args
 		routine_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
 		
-		routine_j    = dll.GpuTransConv
+		routine_j    = dll.GpuTransConv2D
 		# Arguments :            params,          nx,    ny,    result,                args
 		routine_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
 		
