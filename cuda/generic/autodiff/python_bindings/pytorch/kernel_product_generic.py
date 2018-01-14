@@ -121,6 +121,7 @@ class GenericKernelProduct(torch.autograd.Function):
 		# Actual computation --------------------------------------------------------------------
 		result  = torch.zeros( n,  signature[0][0] ).type(dtype)  # Init the output of the convolution
 		cuda_conv_generic(formula, signature, result.numpy(), *args_conv, # Inplace CUDA routine
+		                  backend   = "GPU_1D_host",
 		                  aliases   = aliases, sum_index   = sum_index,
 		                  cuda_type = "float", grid_scheme = "2D") 
 		result  = result.view( n, signature[0][0] )

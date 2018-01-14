@@ -97,12 +97,18 @@ def compile_generic_routine( aliases, formula, dllname, cuda_type, script_folder
 	                cwd = script_folder)
 
 
-def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, build_folder = None, dll_extension = ".so") :
+def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, 
+                          backend      = "GPU_1D_host",
+                          build_folder = None, dll_extension = ".so") :
 	"""
 	Returns the appropriate CUDA routine, given:
 	- a list of aliases (strings)
 	- a formula         (string)
-	- a cuda_type       ("float" or "double").
+	- a cuda_type       ("float" or "double")
+	- a sum index       ( 0 for a sum over j, result indexed by i, 
+	                      1 for a sum over i, result indexed by j)
+	- a backend         (one of "CPU", "GPU_1D_host",   "GPU_2D_host",
+	                                   "GPU_2D_device", "GPU_2D_device" )
 	
 	If it is not already in __cuda_convs_generic, load it from the appropriate "build" folder.
 	If the .dll/.so cannot be found, compile it on-the-fly (and store it for later use).
@@ -115,7 +121,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, build_folder =
 	dll_name = ",".join(aliases + [formula]) + "_" + cuda_type
 	
 	if dll_name in __cuda_convs_generic : # If this formula has already been loaded in memory...
-		return __cuda_convs_generic[dll_name][sum_index]
+		return __cuda_convs_generic[dll_name][backend][sum_index]
 	else :                                # Otherwise :
 		# Load the DLL --------------------------------------------------------------------------
 		if build_folder is None :
@@ -133,21 +139,45 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, build_folder =
 			print("Done. ", end = '')
 			dll        = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
 			print("Loaded.\n\n")
-			
-		routine_i    = dll.GpuConv2D
-		# Arguments :            params,          nx,    ny,    result,                args
-		routine_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
 		
-		routine_j    = dll.GpuTransConv2D
-		# Arguments :            params,          nx,    ny,    result,                args
-		routine_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-		
-		__cuda_convs_generic[dll_name] = [routine_i, routine_j]  # Add our new functions to the module's dictionnary
-		return __cuda_convs_generic[dll_name][sum_index]         # And return it.
+		# These are all the CUDA routines defined in "link_autodiff.cu" :
+		routine_CPU_i              = dll.CpuConv
+		routine_CPU_j              = dll.CpuTransConv
+		routine_GPU_host_1D_i      = dll.GpuConv1D
+		routine_GPU_host_1D_j      = dll.GpuTransConv1D
+		routine_GPU_host_2D_i      = dll.GpuConv2D
+		routine_GPU_host_2D_j      = dll.GpuTransConv2D
+		routine_GPU_device_1D_i    = dll.GpuConv1D_FromDevice
+		routine_GPU_device_1D_j    = dll.GpuTransConv1D_FromDevice
+		routine_GPU_device_2D_i    = dll.GpuConv2D_FromDevice
+		routine_GPU_device_2D_j    = dll.GpuTransConv2D_FromDevice
+
+		# Arguments :                          params,          nx,    ny,    result,                args
+		routine_CPU_i.argtypes           = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_CPU_j.argtypes           = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_GPU_host_1D_i.argtypes   = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_GPU_host_1D_j.argtypes   = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_GPU_host_2D_i.argtypes   = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_GPU_host_2D_j.argtypes   = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_GPU_device_1D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_GPU_device_1D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_GPU_device_2D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+		routine_GPU_device_2D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+
+		# Add our new functions to the module's dictionnary :
+		__cuda_convs_generic[dll_name] = {
+			"CPU"           : [routine_CPU_i,           routine_CPU_j],
+			"GPU_1D_host"   : [routine_GPU_host_1D_i,   routine_GPU_host_1D_j],
+			"GPU_2D_host"   : [routine_GPU_host_2D_i,   routine_GPU_host_2D_j],
+			"GPU_1D_device" : [routine_GPU_device_1D_i, routine_GPU_device_1D_j],
+			"GPU_2D_device" : [routine_GPU_device_2D_i, routine_GPU_device_2D_j]
+		}
+		return __cuda_convs_generic[dll_name][backend][sum_index]         # And return it.
 
 
 # Ideally, this routine could be implemented by Joan :
 def cuda_conv_generic(formula,  signature, result, *args, 
+                      backend   = "GPU_1D_host",
 	                  aliases   = []     , sum_index   = 0    ,
 	                  cuda_type = "float", grid_scheme = "2D" ):
 	"""
@@ -271,7 +301,7 @@ def cuda_conv_generic(formula,  signature, result, *args,
 	# Let's use our GPU, which works "in place" : -----------------------------------------------
 	# N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",
 	#       which make a summation wrt. 'j' or 'i', indexing the final result with 'i' or 'j'.
-	routine = get_cuda_conv_generic(aliases, formula, cuda_type, sum_index)
+	routine = get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend)
 	routine(params_p, nx, ny, result_p, vars_p )
 	
 
