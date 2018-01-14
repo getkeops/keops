@@ -27,6 +27,13 @@ __global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
      */
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
+    /* As shown below, the code that is used to store the block-wise sum
+      "tmp" in parallel is:
+        if(i<nx)
+            for(int k=0; k<DIMX1; k++)
+                (*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k] = tmp[k];
+    */
+
     /* // This code should be a bit more efficient (more parallel) in the case
        // of a simple "fully parallel" reduction op such as "sum", "max" or "min"
     TYPE res = 0;
@@ -43,10 +50,10 @@ __global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
     TYPE res[DIMVECT];
     InitializeOutput<TYPE,DIMVECT,FUN>()(res); // res = 0
     if(tid < nx) {
-        for (int i = 0; i < sizeY; i++)
-            ReducePair<TYPE,DIMVECT,FUN>()(res, in + (tid+i*nx)*DIMVECT); // res += in[(tid+i*nx) *DIMVECT : +DIMVECT];
+        for (int y = 0; y < sizeY; y++)
+            ReducePair<TYPE,DIMVECT,FUN>()(res, in + (tid+y*nx)*DIMVECT); // res += in[(tid+y*nx) *DIMVECT : +DIMVECT];
         for (int k = 0; k < DIMVECT; k++) // copy to output
-            out[tid+k] = res[k];
+            out[tid*DIMVECT+k] = res[k];
     }
 
 }

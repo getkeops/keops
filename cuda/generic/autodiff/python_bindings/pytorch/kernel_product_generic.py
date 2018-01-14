@@ -343,15 +343,16 @@ if __name__ == "__main__":
 	print('----------------------------------------------------')
 	print("Ham0:") ; print(ham0)
 	
-	grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
-	grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
-	grad_yb = torch.autograd.grad(grad_y,b, torch.ones(grad_y.size()), create_graph = True)[0]
-	
-	print('grad_y   :\n', grad_y.data.numpy())
-	print('grad_b   :\n', grad_b.data.numpy())
-	print('grad_yb  :\n', grad_yb.data.numpy())
-	
-	print('grad_y   :\n', grad_y.data.numpy())
+	if True :
+		grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
+		grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
+		grad_yb = torch.autograd.grad(grad_y,b, torch.ones(grad_y.size()), create_graph = True)[0]
+		
+		print('grad_y   :\n', grad_y.data.numpy())
+		print('grad_b   :\n', grad_b.data.numpy())
+		print('grad_yb  :\n', grad_yb.data.numpy())
+		
+		print('grad_y   :\n', grad_y.data.numpy())
 	
 	if False :
 		def to_check( X, Y, B ):
@@ -373,7 +374,7 @@ if __name__ == "__main__":
 		make_dot(grad_b_sum_b, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_b_'+backend+'.pdf', view=True)
 		print('grad_b_sum_b :\n', grad_b_sum_b.data.numpy())
 	
-	if True :
+	if False :
 		# N.B. : As of October 2017, there's clearly a type problem within pytorch's implementation
 		#        of sum's backward operator - I looks as though they naively pass an array of
 		#        "1" to the backward operator
