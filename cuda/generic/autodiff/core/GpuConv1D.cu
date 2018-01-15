@@ -33,7 +33,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     // get the value of variable (index with i)
     TYPE xi[DIMX] ,tmp[DIMX1];
     if(i<nx) {
-        InitializeOutput<TYPE,DIMX1,FUN>()(tmp); // tmp = 0
+        InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp); // tmp = 0
         load<DIMSX::NEXT>(i,xi+DIMX1,px+1); // load xi variables from global memory to local thread memory
     }
 
@@ -52,7 +52,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
             TYPE* yjrel = yj; // Loop on the columns of the current block.
             for(int jrel = 0; (jrel < blockDim.x) && (jrel<ny-jstart); jrel++, yjrel+=DIMY) {
                 call<DIMSX,DIMSY>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-                ReducePair<TYPE,DIMX1,FUN>()(tmp, xi);     // tmp += xi
+                ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi);     // tmp += xi
             }
         }
 

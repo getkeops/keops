@@ -48,10 +48,10 @@ __global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
     // However, for now, we use a "vectorized" reduction op., 
     // which can also handle non-trivial reductions such as "LogSumExp"
     TYPE res[DIMVECT];
-    InitializeOutput<TYPE,DIMVECT,FUN>()(res); // res = 0
+    InitializeOutput<TYPE,DIMVECT,typename FUN::FORM>()(res); // res = 0
     if(tid < nx) {
         for (int y = 0; y < sizeY; y++)
-            ReducePair<TYPE,DIMVECT,FUN>()(res, in + (tid+y*nx)*DIMVECT); // res += in[(tid+y*nx) *DIMVECT : +DIMVECT];
+            ReducePair<TYPE,DIMVECT,typename FUN::FORM>()(res, in + (tid+y*nx)*DIMVECT); // res += in[(tid+y*nx) *DIMVECT : +DIMVECT];
         for (int k = 0; k < DIMVECT; k++) // copy to output
             out[tid*DIMVECT+k] = res[k];
     }
@@ -98,7 +98,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     TYPE xi[DIMX];
     TYPE tmp[DIMX1];
     if(i<nx) { // we will compute x1i only if i is in the range
-        InitializeOutput<TYPE,DIMX1,FUN>()(tmp); // tmp = 0
+        InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp); // tmp = 0
         // Load xi from device global memory.
         // Remember that we use an interleaved memory scheme where
         // xi = [ x1i, x2i, x3i, ... ].
@@ -129,7 +129,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
         TYPE* yjrel = yj; // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
             call<DIMSX,DIMSY>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-            ReducePair<TYPE,DIMX1,FUN>()(tmp, xi);       // tmp += xi
+            ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi);       // tmp += xi
         }
     }
     __syncthreads();

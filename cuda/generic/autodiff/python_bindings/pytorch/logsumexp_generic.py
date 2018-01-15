@@ -9,88 +9,17 @@ from torch.autograd import Variable
 
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
 # for reference on the forward-backward syntax
-class GenericKernelProduct(torch.autograd.Function):
+class GenericLogSumExp(torch.autograd.Function):
 	""" 
-	Computes a Generic Kernel Product specified by a formula (string) such as :
-	formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
+	Computes a Generic LogSumExp specified by a formula (string) such as the Gaussian kernel:
+	formula = " ScalProduct< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > ,  B> "
+	which will be turned into
+	formula = "LogSumExp<" + formula + ">"
 	"""
 	
 	@staticmethod
 	def forward(ctx, aliases, formula, signature, sum_index, *args):
 		""" 
-		Computes a Generic Kernel Product specified by a formula (string) such as :
-		```
-		formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
-		```
-		i.e.       <U,V>^2 * exp(-C*|X-Y|^2 ) * B 
-		
-		aliases is a list of strings, which specifies "who is who"; for example :
-		```
-		aliases = [ "DIMPOINT = 3", "DIMVECT = 4", "DIMOUT = 5",
-					"C = Param<0>"          ,   # 1st parameter
-					"X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim 3, indexed by i
-					"Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim 3, indexed by j
-					"U = Var<2,DIMVECT ,0>" ,   # 3rd variable, dim 4, indexed by i
-					"V = Var<3,DIMVECT ,1>" ,   # 4th variable, dim 4, indexed by j
-					"B = Var<4,DIMOUT  ,1>" ]   # 5th variable, dim 5, indexed by j
-		```
-		
-		signature is a list of (DIM, CAT) integer pairs allowing the user to specify
-		the respective dimensions of the output (head) and variables (tail of the list).
-		Remember that CAT=0 for "x_i" indexing  variables,
-		              CAT=1 for "y_j" summation variables,
-		              CAT=2 for parameters.
-		For instance,
-		```
-		signature = [ (5,0), (1,2), (3,0), (3,1), (4,0), (4,1), (5,1) ]
-		# stands for:  R_i ,   C  ,  X_i  , Y_j  , U_i  , V_j  , B_j   .
-		```
-		
-		Theoretically, signature could be inferred from formula+aliases...
-		But asking the user to provide it explicitely is a good way to let him double-check
-		his formula, and makes debugging easier.
-		
-		
-		A POINT ABOUT EFFICIENCY :
-			The naive behavior of GenericKernelProduct.backward would be to compute the derivatives
-			with respect to all of its variables, even the ones that are not needed...
-			This would be woefully inefficient!
-			Thankfully, PyTorch provides a nice "ctx.needs_input_grad[index]" which allows
-			the "backward" method to automatically "skip" the computation of gradients
-			that are not needed to answer the current user's request.
-			So no need to worry about this :-)
-			
-		
-		
-		With the values defined above,
-		```
-		genconv = GenericKernelProduct().apply
-		R = genconv( aliases, formula, signature, 0, C, X, Y, U, V, B )
-		```
-		is a legal call, where :
-		- C is a scalar              (torch Variable)
-		- X is a nx-by-3 float array (torch Variable)
-		- Y is a ny-by-3 float array (torch Variable)
-		- U is a nx-by-4 float array (torch Variable)
-		- V is a ny-by-4 float array (torch Variable)
-		- B is a ny-by-5 float array (torch Variable)
-		which outputs:
-		- R, an  nx-by-5 float array (torch Variable)
-		
-		(nx and ny are automatically inferred from the data; 
-		an error is thrown if the lengths of the input arrays are not compatible with each other)
-		
-		Eventually, in this example, we've computed a "Gaussian-CauchyBinet varifold kernel"
-		with a signal B of dimension 4 :
-		
-		R_i = \sum_j <U_i,V_j>^2 * exp(-C*|X_i-Y_j|^2 ) * B_j
-		
-		Its derivatives wrt. X, Y, U, V, B are automatically computed (symbolically, without backprop), 
-		and are accessible using standard PyTorch syntax.
-		
-		N.B.: The data type (float v. double) is inferred automatically from the PyTorch type of args.
-			  The CPU/GPU mode is chosen automatically.
-			  The grid_scheme  (1D v. 2D) is chosen according to heuristic rules.
 		"""
 		# Save everything to compute the gradient -----------------------------------------------
 		# N.B.: relying on the "ctx.saved_variables" attribute is necessary
@@ -111,6 +40,13 @@ class GenericKernelProduct(torch.autograd.Function):
 		if n == -1 and sum_index == 0: raise ValueError("The signature should contain at least one indexing argument x_i.")
 		if n == -1 and sum_index == 1: raise ValueError("The signature should contain at least one indexing argument y_j.")
 		
+		# Conversions between the "(m,s)" (2 scalars) output format of the logsumexp cuda routines
+		# and the "m + log(s)" (1 scalar) format of the pytorch wrapper
+		if not signature[0][0] == 1 : raise ValueError("LogSumExp has only been implemented for scalar-valued formulas.")
+		signature[0] = (2, signature[0][1]) # in the backend, logsumexp results are encoded as pairs of real numbers.
+
+		formula = "LogSumExp<"+formula+">"
+
 		# Actual computation --------------------------------------------------------------------
 		result  = torch.zeros( n,  signature[0][0] ).type(args[0].type())  # Init the output of the convolution
 		cuda_conv_generic(formula, signature, result, *args,               # Inplace CUDA routine
@@ -118,97 +54,15 @@ class GenericKernelProduct(torch.autograd.Function):
 		                  aliases   = aliases, sum_index   = sum_index,
 		                  cuda_type = "float", grid_scheme = "2D") 
 		result  = result.view( n, signature[0][0] )
+
+		print(result)
+		# (m,s) represents exp(m)*s, so that "log((m,s)) = log(exp(m)*s) = m + log(s)"
+		result  = result[:,0] + result[:,1].log()
 		return result
 	
 	@staticmethod
 	def backward(ctx, G):
 		"""
-		Backward scheme.
-		G has the same shape (and thus, dim-cat signature) as the formula's output.
-		
-		Denoting s = i if sum_index == 0,                t = j if sum_index == 0
-		           = j if sum_index == 1,                  = i if sum_index == 1
-		We have designed the forward pass so that
-		
-		R_s = \sum_t F( P^0, ..., X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ... ) .         (*)
-		
-		G, the gradient wrt. the output R, has the same shape as the latter and is thus
-		indexed by "s". 
-		If V is a variable (be it a parameter P, an "i" variable X^n or a "j" variable Y^n), we have:
-		
-		[\partial_V R].G 
-		  = \sum_s [\partial_V R_s].G_s                                   (by definition of the L^2 scalar product)
-		  = \sum_s [\partial_V \sum_t F( P^0, X^0_i, Y^0_j, ...) ].G_s    (formula (*)  )
-		  = \sum_s \sum_t [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s    (linearity of the gradient operator)
-		  
-		  = \sum_i \sum_j [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s    (Fubini theorem : the summation order doesn't matter)
-		  = \sum_j \sum_i [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s    (Fubini theorem : the summation order doesn't matter)
-		
-		Then, there are three cases depending on the CAT(EGORY) of V:
-		
-		- if CAT == 0, i.e. V is an "X^n" : -----------------------------------------------------
-			
-			\sum_j [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s 
-			  =   \sum_j [\partial_{X^n} F( P^0, X^0_i, Y^0_j, ...) ].G_s 
-			  
-			    | 0 ..................................................... 0 |
-			    | 0 ..................................................... 0 |
-			  = | \sum_j [\partial_{X^n_i} F( P^0, X^0_i, Y^0_j, ...) ].G_s |  <- (i-th line)
-			    | 0 ..................................................... 0 |
-			    | 0 ..................................................... 0 |
-			
-			Hence, 
-			[\partial_V R].G  = \sum_i ( \sum_j ... )
-			
-			  | \sum_j [\partial_{X^n_1} F( P^0, X^0_1, Y^0_j, ...) ].G_s |
-			  | \sum_j [\partial_{X^n_2} F( P^0, X^0_2, Y^0_j, ...) ].G_s |
-			= |                              .                            |
-			  |                              .                            |
-			  | \sum_j [\partial_{X^n_I} F( P^0, X^0_I, Y^0_j, ...) ].G_s |
-			  
-			= GenericKernelProduct(  Grad( F, V, G_s ), sum_index = 0 )
-			
-		- if CAT == 1, i.e. V is an "Y^m" : -----------------------------------------------------
-			
-			\sum_i [\partial_V F( P^0, X^0_i, Y^0_j, ...) ].G_s 
-			  =   \sum_i [\partial_{Y^m} F( P^0, X^0_i, Y^0_j, ...) ].G_s 
-			  
-			    | 0 ..................................................... 0 |
-			    | 0 ..................................................... 0 |
-			  = | \sum_i [\partial_{Y^m_j} F( P^0, X^0_i, Y^0_j, ...) ].G_s |  <- (j-th line)
-			    | 0 ..................................................... 0 |
-			    | 0 ..................................................... 0 |
-			    | 0 ..................................................... 0 |
-			
-			Hence, 
-			[\partial_V R].G  = \sum_j ( \sum_i ... )
-			
-			  | \sum_i [\partial_{Y^m_1} F( P^0, X^0_1, Y^0_j, ...) ].G_s |
-			  | \sum_i [\partial_{Y^m_2} F( P^0, X^0_2, Y^0_j, ...) ].G_s |
-			= |                              .                            |
-			  |                              .                            |
-			  |                              .                            |
-			  | \sum_i [\partial_{Y^m_J} F( P^0, X^0_I, Y^0_j, ...) ].G_s |
-			  
-			= GenericKernelProduct(  Grad( F, V, G_s ), sum_index = 1 )
-			
-		- if CAT==2, i.e. V is a parameter P^l: ----------------------------------------------------
-			
-			[\partial_V R].G = \sum_{i,j} \partial_{P^l} F( P^0, X^0_I, Y^0_j, ...) ].G_s
-			
-			That is, the gradient wrt. P^l is the reduction of a convolution product
-				GenericKernelProduct(  Grad( F, V, G ), sum_index = whatever )
-				
-			
-		Bottom line : ---------------------------------------------------------------------------
-			
-			If V.CAT == 0 or 1, the gradient [\partial_V F].G is given by
-			      GenericKernelProduct(  Grad( F, V, G ), sum_index = V.CAT )
-			
-			If V.CAT == 2, the gradient [\partial_V F].G HAS NOT BEEN PROPERLY IMPLEMENTED YET,
-			               and we put it to None until the feature has been implemented in the
-			               CUDA symbolic differentiation engine.
-			
 		"""
 		aliases   = ctx.aliases
 		formula   = ctx.formula
@@ -259,47 +113,48 @@ class GenericKernelProduct(torch.autograd.Function):
 if __name__ == "__main__":
 	
 	# Computation are made in float32
-	dtype = torch.cuda.FloatTensor 
+	dtype = torch.FloatTensor 
 	
 	backend = "libkp" # Other value : 'pytorch'
 	
 	if   backend == "libkp" :
-		def kernel_product(s, x, y, b, kernel) :
-			genconv  = GenericKernelProduct().apply
+		def kernel_product_log(s, x, y, v, kernel) :
+			genconv  = GenericLogSumExp().apply
 			dimpoint = x.size(1) ; dimout = b.size(1)
 			
+			if not dimout == 1 : 
+				raise ValueError("As of today, LogSumExp has only been implemented for scalar-valued functions.")
 			if True :
 				aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
 						    "C = Param<0>"          ,   # 1st parameter
 						    "X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim DIM,    indexed by i
 						    "Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim DIM,    indexed by j
-						    "B = Var<2,DIMOUT  ,1>" ]   # 3rd variable, dim DIMOUT, indexed by j
+						    "V = Var<2,DIMOUT  ,1>" ]   # 3rd variable, dim DIMOUT, indexed by j
 						   
 				# stands for:     R_i   ,   C  ,      X_i    ,      Y_j    ,     B_j    .
 				signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
 				
 				#   R   =        exp(            C    *   -          |         X-Y|^2   )*  B
-				formula = "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B>"
+				formula = "Add< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > ,  V>"
 			
 			else :
 				aliases = []
 				C = "Param<0>"
 				X = "Var<0,"+str(dimpoint)+",0>"
 				Y = "Var<1,"+str(dimpoint)+",1>"
-				B = "Var<2,"+str(dimout  )+",1>"
-				formula = "Scal< Exp< Scal<Constant<"+C+">, Minus<SqNorm2<Subtract<"+X+","+Y+">>> > >,  "+B+">"
-
-
+				V = "Var<2,"+str(dimout  )+",1>"
+				formula = "Add< Scal<Constant<"+C+">, Minus<SqNorm2<Subtract<"+X+","+Y+">>> >,  "+V+">"
+			
 			sum_index = 0 # the output vector is indexed by "i" (CAT=0)
-			return genconv( aliases, formula, signature, sum_index, 1/(s**2), x, y, b )
+			return genconv( aliases, formula, signature, sum_index, 1/(s**2), x, y, v )
 		
 	elif backend == "pytorch" :
-		def kernel_product(s, x, y, b, kernel) :
+		def kernel_product_log(s, x, y, v, kernel) :
 			x_col = x.unsqueeze(1) # (N,D) -> (N,1,D)
 			y_lin = y.unsqueeze(0) # (N,D) -> (1,N,D)
 			sq    = torch.sum( (x_col - y_lin)**2 , 2 )
-			K_xy  = torch.exp( -sq / (s**2))
-			return K_xy @ b
+			K     =  -sq / (s**2) + v.view(1,-1)
+			return K.exp().sum(1).log()
 			
 			
 			
@@ -307,7 +162,7 @@ if __name__ == "__main__":
 	# Init variables to get a minimal working example:
 	#--------------------------------------------------#
 	
-	N = 5 ; M = 15 ; D = 3 ; E = 2
+	N = 5 ; M = 15 ; D = 3 ; E = 1
 	
 	e = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
 	e = torch.autograd.Variable(e, requires_grad = True)
@@ -330,19 +185,19 @@ if __name__ == "__main__":
 	#--------------------------------------------------#
 	# check the class KernelProduct
 	#--------------------------------------------------#
-	Kyy_b = kernel_product(s,y,y,b, "gaussian")
-	print("kernel product : ", Kyy_b)
+	Kyy_b = kernel_product_log(s,y,y,b, "gaussian")
+	print("kernel product (log): ", Kyy_b)
 
-	if True :
+	if False :
 		def Ham(q,p) :
-			Kq_p  = kernel_product(s,q,q,p, "gaussian")
+			Kq_p  = kernel_product_log(s,q,q,p, "gaussian")
 			return torch.dot( p.view(-1), Kq_p.view(-1) )
 		ham0 = Ham(y, b)
 		
 		print('----------------------------------------------------')
 		print("Ham0:") ; print(ham0)
 	
-	if True :
+	if False :
 		grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
 		grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
 		grad_yb = torch.autograd.grad(grad_y,b, torch.ones(grad_y.size()).type(dtype), create_graph = True)[0]

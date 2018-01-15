@@ -23,11 +23,11 @@ int CpuConv_(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {
     TYPE xi[DIMX], yj[DIMY], tmp[DIMX1];
     for(int i=0; i<nx; i++) {
         load<DIMSX>(i,xi,px);
-        InitializeOutput<TYPE,DIMX1,FUN>()(tmp);   // tmp = 0
+        InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp);   // tmp = 0
         for(int j=0; j<ny; j++) {
             load<DIMSY>(j,yj,py);
             call<DIMSX,DIMSY>(fun,xi,yj,param);
-            ReducePair<TYPE,DIMX1,FUN>()(tmp, xi); // tmp += xi
+            ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi); // tmp += xi
         }
         for(int k=0; k<DIMX1; k++)
             px[0][i*DIMX1+k] = tmp[k];

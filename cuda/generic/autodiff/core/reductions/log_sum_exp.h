@@ -32,8 +32,8 @@ struct LogSumExp {
     // Evaluation is easy : simply fill-up out[-1] with 1, then eval F on out.
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        out[F::DIM] = 1.0f; // This filler may be useless, since the memory should 
-                            // have been initialized properly... But I'd rather not take the risk.
+        // The evaluated cell is (m,1) which represents exp(m) * 1
+        out[F::DIM] = 1.0f;
         F::template Eval<INDS>(params, out, args...);
     }
 
@@ -52,9 +52,10 @@ struct LogSumExp {
 template <typename TYPE, int DIM, class G>
 struct InitializeOutput<TYPE,DIM,LogSumExp<G>>{
 HOST_DEVICE INLINE void operator()(TYPE *tmp) {
+    // We fill empty cells with (0,0) = e^0 * 0 = 0
     static_assert(2==DIM,"LogSumExp is only meant to be used with scalars -> pairs (m,s).");
     tmp[0] = 0.0f;
-    tmp[1] = 1.0f;
+    tmp[1] = 0.0f;
 }
 };
 
@@ -63,11 +64,11 @@ template <typename TYPE, int DIM, class G>
 struct ReducePair<TYPE,DIM,LogSumExp<G>>{
 HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
     static_assert(2==DIM,"LogSumExp is only meant to be used with scalars -> pairs (m,s).");
-    // (m,s) + (m',s'), i.e. s*exp(m) + s'*exp(m')
-    if(tmp[0] > xi[0]) { // = (s + exp(m'-m)*s') * exp(m)
+    // (m,s) + (m',s'), i.e. exp(m)*s + *exp(m')*s'
+    if(tmp[0] > xi[0]) { // =  exp(m)  * (s + exp(m'-m)*s')   if m > m'
         tmp[1] += exp( xi[0]-tmp[0] ) * xi[1] ;
     }
-    else {               // = (s' + exp(m-m')*s) * exp(m')
+    else {               // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
         tmp[1] = xi[1] + exp( tmp[0]-xi[0] ) * tmp[1] ;
         tmp[0] = xi[0] ;
     }
