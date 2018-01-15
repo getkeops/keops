@@ -7,6 +7,8 @@ import torch
 import numpy
 from torch.autograd import Variable
 
+from kernel_product_generic import GenericKernelProduct
+
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
 # for reference on the forward-backward syntax
 class GenericLogSumExp(torch.autograd.Function):
@@ -25,7 +27,6 @@ class GenericLogSumExp(torch.autograd.Function):
 		# N.B.: relying on the "ctx.saved_variables" attribute is necessary
 		#       if you want to be able to differentiate the output of the backward
 		#       once again. It helps pytorch to keep track of "who is who".
-		ctx.save_for_backward( *args ) # Call at most once in the "forward".
 		ctx.aliases   = aliases
 		ctx.formula   = formula
 		ctx.signature = signature
@@ -43,7 +44,10 @@ class GenericLogSumExp(torch.autograd.Function):
 		# Conversions between the "(m,s)" (2 scalars) output format of the logsumexp cuda routines
 		# and the "m + log(s)" (1 scalar) format of the pytorch wrapper
 		if not signature[0][0] == 1 : raise ValueError("LogSumExp has only been implemented for scalar-valued formulas.")
-		signature[0] = (2, signature[0][1]) # in the backend, logsumexp results are encoded as pairs of real numbers.
+		
+		# in the backend, logsumexp results are encoded as pairs of real numbers:
+		signature = signature.copy()
+		signature[0] = (2, signature[0][1])
 
 		formula = "LogSumExp<"+formula+">"
 
@@ -55,9 +59,11 @@ class GenericLogSumExp(torch.autograd.Function):
 		                  cuda_type = "float", grid_scheme = "2D") 
 		result  = result.view( n, signature[0][0] )
 
-		print(result)
 		# (m,s) represents exp(m)*s, so that "log((m,s)) = log(exp(m)*s) = m + log(s)"
 		result  = result[:,0] + result[:,1].log()
+		result  = result.view(-1,1)
+
+		ctx.save_for_backward( *(args+(result,)) ) # Call at most once in the "forward"; we'll need the result!
 		return result
 	
 	@staticmethod
@@ -69,16 +75,24 @@ class GenericLogSumExp(torch.autograd.Function):
 		signature = ctx.signature
 		sum_index = ctx.sum_index
 		args      = ctx.saved_variables # Unwrap the saved variables
-		
+		result    = args[ -1]
+		args      = args[:-1]
+
+		#print(args)
+		#print(result)
+		#print(result.grad_fn)
+
 		# Compute the number of arguments which are not parameters
 		nvars = 0 ; 
 		for sig in signature[1:] : 
 			if sig[1] != 2 : nvars += 1
 		
-		# If formula takes 5 variables (numbered from 0 to 4), then the gradient
-		# wrt. the output, G, should be given as a 6-th variable (numbered 5),
-		# with the same dim-cat as the formula's output. 
-		eta     = "Var<"+str(nvars)+","+str(signature[0][0])+","+str(signature[0][1])+">"
+		# If formula takes 5 variables (numbered from 0 to 4), then:
+		# - the previous output should be given as a 6-th variable (numbered 5), 
+		# - the gradient wrt. the output, G, should be given as a 7-th variable (numbered 6),
+		# both with the same dim-cat as the formula's output. 
+		res     = "Var<"+str(nvars)  +","+str(signature[0][0])+","+str(signature[0][1])+">"
+		eta     = "Var<"+str(nvars+1)+","+str(signature[0][0])+","+str(signature[0][1])+">"
 		grads   = []                # list of gradients wrt. args;
 		arg_ind = 3; var_ind = -1;  # current arg index (3 since aliases, ... are in front of the tensors); current Variable index;
 		
@@ -95,12 +109,13 @@ class GenericLogSumExp(torch.autograd.Function):
 					# second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
 					var         = "Var<"+str(var_ind)+","+str(sig[0])+","+str(sig[1])+">" # V
 					formula_g   = "Grad< "+ formula +","+ var +","+ eta +">"              # Grad<F,V,G>
-					signature_g = [ sig ] + signature[1:] + signature[:1]
+					formula_g   = "Scal<Exp<Subtract<" + formula + "," + res + ">>," + formula_g + ">"
+					signature_g = [ sig ] + signature[1:] + signature[:1] + signature[:1]
 					# sumindex is "the index that stays in the end", not "the one in the sum" 
 					# (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
 					#  sense if we were to expand our model to 3D tensors or whatever.)
 					sumindex_g  = sig[1]     # The sum will be "eventually indexed just like V".
-					args_g      = args + (G,) # Don't forget the gradient to backprop !
+					args_g      = args + (result,G) # Don't forget the value & gradient to backprop !
 					
 					# N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
 					genconv = GenericKernelProduct().apply  
@@ -188,79 +203,29 @@ if __name__ == "__main__":
 	Kyy_b = kernel_product_log(s,y,y,b, "gaussian")
 	print("kernel product (log): ", Kyy_b)
 
-	if False :
-		def Ham(q,p) :
-			Kq_p  = kernel_product_log(s,q,q,p, "gaussian")
-			return torch.dot( p.view(-1), Kq_p.view(-1) )
-		ham0 = Ham(y, b)
+	if True :
+		
+		H = (Kyy_b**2).sum()
 		
 		print('----------------------------------------------------')
-		print("Ham0:") ; print(ham0)
+		print("H :") ; print(H)
 	
-	if False :
-		grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
-		grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
-		grad_yb = torch.autograd.grad(grad_y,b, torch.ones(grad_y.size()).type(dtype), create_graph = True)[0]
-		
+	if True :
+		grad_y  = torch.autograd.grad(H,y,create_graph = True)[0]
+		grad_b  = torch.autograd.grad(H,b,create_graph = True)[0]
 		print('grad_y   :\n', grad_y.data.cpu().numpy())
 		print('grad_b   :\n', grad_b.data.cpu().numpy())
-		print('grad_yb  :\n', grad_yb.data.cpu().numpy())
-		
-		print('grad_y   :\n', grad_y.data.cpu().numpy())
-	
-	if False :
+
+	if True :
+		dummy = torch.linspace(0,1,grad_y.numel()).type(dtype).view(grad_y.size())
+		grad_yy = torch.autograd.grad(grad_y,y, dummy, create_graph = True)[0]
+		print('grad_yy  :\n', grad_yy.data.cpu().numpy())
+
+
+	if True :
 		def to_check( X, Y, B ):
-			return kernel_product(s, X, Y, B, "gaussian")
-		gc = torch.autograd.gradcheck(to_check, inputs=(x, y, b) , eps=1e-4, atol=1e-3, rtol=1e-3 )
+			return kernel_product_log(s, X, Y, B, "gaussian")
+
+		gc = torch.autograd.gradcheck(to_check, inputs=(x, y, b) , eps=1e-3, atol=1e-3, rtol=1e-3 )
 		print('Gradcheck for Hamiltonian: ',gc)
 		print('\n')
-
-	#--------------------------------------------------#
-	# check that we are able to compute derivatives with autograd
-	#--------------------------------------------------#
-	
-	if False :
-		grad_b_sum = torch.dot(grad_b.view(-1), grad_b.view(-1))
-		# make_dot(grad_b_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_'+backend+'.pdf', view=True)
-		print('grad_b_sum :\n', grad_b_sum.data.numpy())
-		
-		grad_b_sum_b  = torch.autograd.grad(grad_b_sum,b,create_graph = True)[0]
-		make_dot(grad_b_sum_b, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_b_'+backend+'.pdf', view=True)
-		print('grad_b_sum_b :\n', grad_b_sum_b.data.numpy())
-	
-	if False :
-		# N.B. : As of October 2017, there's clearly a type problem within pytorch's implementation
-		#        of sum's backward operator - I looks as though they naively pass an array of
-		#        "1" to the backward operator
-		# grad_y_sum = grad_y.sum() # backward will be randomish, due to type conversion issues
-		Ones = Variable(torch.ones( grad_y.numel() ).type(dtype))
-		grad_y_sum = torch.dot(grad_y.view(-1), Ones )
-		print('grad_y_sum :\n', grad_y_sum.data.numpy())
-		
-		grad_y_sum_y  = torch.autograd.grad(grad_y_sum,y,create_graph = True)[0]
-		print('grad_y_sum_y :\n', grad_y_sum_y.data.numpy())
-		
-		
-		grad_y_sum_b  = torch.autograd.grad(grad_y_sum,b,create_graph = True)[0]
-		print('grad_y_sum_b :\n', grad_y_sum_b.data.numpy())
-	
-	
-	#--------------------------------------------------#
-	# check that we are able to compute derivatives with autograd
-	#--------------------------------------------------#
-	if False :
-		q1 = .6 * torch.linspace(0,5,n*d).type(dtype).view(n,d)
-		q1 = torch.autograd.Variable(q1, requires_grad = True)
-
-		p1 = .5 * torch.linspace(-.2,.2,n*d).type(dtype).view(n,d)
-		p1 = torch.autograd.Variable(p1, requires_grad = True)
-		sh = torch.sin(ham)
-
-		gsh = torch.autograd.grad( sh , p1, create_graph = True)[0]
-		print('derivative of sin(ham): ', gsh)
-		print(gsh.volatile)
-
-		ngsh = gsh.sum()
-
-		ggsh = torch.autograd.grad( ngsh , p1)
-		print('derivative of sin(ham): ', ggsh)

@@ -14,7 +14,7 @@ import ctypes
 from ctypes import *
 import os.path
 import re # Regexp for aliases
-
+from hashlib import sha256
 # HARDCODED GAUSSIAN CONVOLUTION (demo) =========================================================
 
 # extract cuda_conv function pointer in the shared object 
@@ -119,8 +119,11 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index,
 	formula  = formula.replace(" ", "")  # Remove spaces
 	aliases  = [ alias.replace(" ", "") for alias in aliases ]
 	
+	# Since the OS prevents us from using arbitrary long file names, an okayish solution is to call
+	# a standard hash function, and hope that we won't fall into a non-injective nightmare case...
 	dll_name = ",".join(aliases + [formula]) + "_" + cuda_type
-	
+	dll_name = sha256(dll_name.encode("utf-8")).hexdigest() 
+
 	if dll_name in __cuda_convs_generic : # If this formula has already been loaded in memory...
 		return __cuda_convs_generic[dll_name][backend][sum_index]
 	else :                                # Otherwise :
@@ -273,7 +276,7 @@ def cuda_conv_generic(formula,  signature, result, *args,
 		def ndims(x) :
 			return len(x.size())
 		def size(x) :
-			return np.prod(x.size())
+			return x.numel()
 		def to_ctype_pointer(x) :
 			assert_contiguous(x)
 			return cast(x.data_ptr(), POINTER(c_float))
