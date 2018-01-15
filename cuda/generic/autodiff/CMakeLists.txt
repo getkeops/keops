@@ -5,8 +5,8 @@ project(libkp)
 
 ## Find package
 find_package(CUDA REQUIRED)
-find_package(GTest REQUIRED)
-find_package(Matlab REQUIRED)
+find_package(GTest)
+find_package(Matlab)
 
 ## Set Path to sources
 set(SOURCE_FILES
@@ -17,7 +17,8 @@ set(SOURCE_FILES
     ${PROJECT_BINARY_DIR}
     )
 
-CUDA_INCLUDE_DIRECTORIES(${SOURCE_FILES})
+Include_Directories(${SOURCE_FILES})
+#CUDA_INCLUDE_DIRECTORIES(${SOURCE_FILES})
 
 
 ## Options for nvcc
@@ -58,7 +59,7 @@ CUDA_add_library(
 
 add_custom_command(
     TARGET shared_obj POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E rename
+    COMMAND ${CMAKE_COMMAND} -E copy
     $<TARGET_FILE:shared_obj>
     \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX}
 )
@@ -92,12 +93,41 @@ if(Matlab_FOUND)
     )
 
     set_target_properties( # pass needed options to add_custom_target()
-        mex_cuda
-        PROPERTIES PREFIX "" 
+        mex_cuda PROPERTIES 
+        PREFIX "" 
         LINKER_LANGUAGE CXX
     )
 else()
     message(WARNING "Matlab not found. No mex file produced.")
+endif()
+
+## - unit test
+if(GTest_FOUND)
+
+    Add_library(
+        testic OBJECT 
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/unit/gpu_conv.cxx
+    )
+
+    Add_executable(
+        test_conv
+        $<TARGET_OBJECTS:testic>
+    )
+
+    target_link_libraries(
+        test_conv
+        shared_obj
+        gtest
+        pthread
+    )
+
+    set_target_properties( # pass needed options to add_executable()
+        test_conv PROPERTIES
+        LINKER_LANGUAGE CXX
+    )
+
+else()
+    message(WARNING "GTest not found. No unit tests build.")
 endif()
 
 ## - test link
