@@ -9,6 +9,7 @@
 # - an array Y_2 (b_j) of dimension M-by-3
 
 import numpy as np
+import torch
 import ctypes
 from ctypes import *
 import os.path
@@ -244,7 +245,47 @@ def cuda_conv_generic(formula,  signature, result, *args,
 	- E is a nx-by-5 float array (same as the output of "formula")
 	
 	"""
+
+	# Infer if we're working with numpy arrays or torch tensors from result's type :
+
+	if hasattr(result, "ctypes") :     # Assume we're working with numpy arrays
+
+		def assert_contiguous(x) :
+			"""Non-contiguous arrays are a mess to work with, 
+			so we require contiguous arrays from the user."""
+			if not x.flags.c_contiguous : raise ValueError("Please provide 'C-contiguous' numpy arrays.")
+		def ndims(x) :
+			return x.ndim
+		def size(x) :
+			return x.size
+		def to_ctype_pointer(x) :
+			assert_contiguous(x)
+			return x.ctypes.data_as(POINTER(c_float))
+		def vect_from_list(l) :
+			return np.hstack(l)
+
+	elif hasattr(result, "data_ptr") : # Assume we're working with torch tensors
+
+		def assert_contiguous(x) :
+			"""Non-contiguous arrays are a mess to work with, 
+			so we require contiguous arrays from the user."""
+			if not x.is_contiguous : raise ValueError("Please provide 'contiguous' torch tensors.")
+		def ndims(x) :
+			return len(x.size())
+		def size(x) :
+			return np.prod(x.size())
+		def to_ctype_pointer(x) :
+			assert_contiguous(x)
+			return cast(x.data_ptr(), POINTER(c_float))
+		def vect_from_list(l) :
+			return torch.cat(l)
+
+	else :
+		raise TypeError("result should either be a numpy array or a torch tensor.")
 	
+
+
+
 	# Check that *args matches the given signature ----------------------------------------------
 	# (Jean :) The way parameters are handled currently (scalar only, etc.) is not really optimal...
 	#          Eventually, they should simply be handled as variables with "CAT=2".
@@ -252,23 +293,23 @@ def cuda_conv_generic(formula,  signature, result, *args,
 	for (arg, sig) in zip(args, signature[1:]) : # Signature = [ Result, *Args]
 		
 		if   sig[1] ==  0: # If the current arg is an "X^n_i" variable
-			if not (arg.ndim == 2) : raise ValueError("Generic CUDA routines require 2D-arrays as variables.")
+			if not (ndims(arg) == 2) :          raise ValueError("Generic CUDA routines require 2D-arrays as variables.")
 			if   nx == -1: nx = arg.shape[0]  # First "X^0_i" variable encountered
 			if not (      nx == arg.shape[0]) : raise ValueError("CAT=0 variables (X_i) lengths are not compatible with each other.")
 			if not (  sig[0] == arg.shape[1]) : raise ValueError("The size of a CAT=0 variable does not match the signature.")
 			variables.append( arg ) # No worries : arg is in fact a pointer, so no copy is done here
 		
 		elif sig[1] ==  1: # If the current arg is an "Y^m_j" variable
-			if not (arg.ndim == 2) : raise ValueError("Generic CUDA routines require 2D-arrays as variables.")
+			if not (ndims(arg) == 2) :          raise ValueError("Generic CUDA routines require 2D-arrays as variables.")
 			if   ny == -1: ny = arg.shape[0]  # First "Y^0_j" variable encountered
 			if not (      ny == arg.shape[0]) : raise ValueError("CAT=1 variables (Y_j) lengths are not compatible with each other.")
 			if not (  sig[0] == arg.shape[1]) : raise ValueError("The size of a CAT=1 variable does not match the signature.")
 			variables.append( arg ) # No worries : arg is in fact a pointer, so no copy is done here
 		
 		elif sig[1] ==  2: # If the current arg is a parameter
-			if not (  sig[0] == 1) : raise ValueError("As of today, only scalar parameters are allowed.")
-			if not (arg.size == 1) : raise ValueError("Parameters should be size=1 arrays.")
-			params.append( arg[0] )
+			if not (   sig[0] == 1) : raise ValueError("As of today, only scalar parameters are allowed.")
+			if not (size(arg) == 1) : raise ValueError("Parameters should be size=1 arrays.")
+			params.append( arg )
 		
 	# Assert that we won't make an "empty" convolution :
 	if not nx > 0 : raise ValueError("There should be at least one (nonempty...) 'X_i' variable as input.")
@@ -276,9 +317,9 @@ def cuda_conv_generic(formula,  signature, result, *args,
 	
 	# Check the result's shape :
 	sig = signature[0]        # Signature = [ Result, *Args]
-	if        sig[1]   == 2 : raise ValueError("Derivatives wrt. parameters have not been implemented yet.")
-	if not result.ndim == 2 : raise ValueError("The result array should be bi-dimensional.")
-	if not    sig[0]   == result.shape[1] : raise ValueError("The width of the result array does not match the signature.")
+	if          sig[1]   == 2 : raise ValueError("Derivatives wrt. parameters have not been implemented yet.")
+	if not ndims(result) == 2 : raise ValueError("The result array should be bi-dimensional.")
+	if not      sig[0]   == result.shape[1] : raise ValueError("The width of the result array does not match the signature.")
 	
 	if sum_index == 0 : # Sum wrt. j, final result index by i
 		if not  sig[1] == 0 : raise ValueError("The result's signature does not indicate an indexation by 'i'...")
@@ -289,14 +330,14 @@ def cuda_conv_generic(formula,  signature, result, *args,
 		if not      ny == result.shape[0] : raise ValueError("The result array does not have the correct number of lines wrt. the 'Y_j' inputs given.")
 	
 	# Stack the parameters into a single array :
-	params = np.array( params )
+	params = vect_from_list( params )
 	
 	# From python to C float pointers and int : -------------------------------------------------
-	vars_p   = tuple(var.ctypes.data_as(POINTER(c_float)) for var in variables)
+	vars_p   = tuple(to_ctype_pointer(var) for var in variables)
 	vars_p   = (POINTER(c_float)*len(vars_p))(*vars_p)
 	
-	result_p = result.ctypes.data_as(POINTER(c_float))
-	params_p = params.ctypes.data_as(POINTER(c_float))
+	result_p = to_ctype_pointer(result)
+	params_p = to_ctype_pointer(params)
 	
 	# Let's use our GPU, which works "in place" : -----------------------------------------------
 	# N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",

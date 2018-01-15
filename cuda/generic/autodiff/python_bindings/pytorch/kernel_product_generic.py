@@ -7,9 +7,6 @@ import torch
 import numpy
 from torch.autograd import Variable
 
-# Computation are made in float32
-dtype = torch.FloatTensor 
-
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
 # for reference on the forward-backward syntax
 class GenericKernelProduct(torch.autograd.Function):
@@ -114,13 +111,9 @@ class GenericKernelProduct(torch.autograd.Function):
 		if n == -1 and sum_index == 0: raise ValueError("The signature should contain at least one indexing argument x_i.")
 		if n == -1 and sum_index == 1: raise ValueError("The signature should contain at least one indexing argument y_j.")
 		
-		# Data Conversion (only CPU via numpy implented at the moment) --------------------------
-		
-		args_conv = [ arg.numpy() for arg in args]
-		
 		# Actual computation --------------------------------------------------------------------
-		result  = torch.zeros( n,  signature[0][0] ).type(dtype)  # Init the output of the convolution
-		cuda_conv_generic(formula, signature, result.numpy(), *args_conv, # Inplace CUDA routine
+		result  = torch.zeros( n,  signature[0][0] ).type(args[0].type())  # Init the output of the convolution
+		cuda_conv_generic(formula, signature, result, *args,               # Inplace CUDA routine
 		                  backend   = "GPU_1D_host",
 		                  aliases   = aliases, sum_index   = sum_index,
 		                  cuda_type = "float", grid_scheme = "2D") 
@@ -264,7 +257,10 @@ class GenericKernelProduct(torch.autograd.Function):
 
 
 if __name__ == "__main__":
-		
+	
+	# Computation are made in float32
+	dtype = torch.cuda.FloatTensor 
+	
 	backend = "libkp" # Other value : 'pytorch'
 	
 	if   backend == "libkp" :
@@ -309,7 +305,6 @@ if __name__ == "__main__":
 	#--------------------------------------------------#
 	# Init variables to get a minimal working example:
 	#--------------------------------------------------#
-	dtype = torch.FloatTensor
 	
 	N = 5 ; M = 15 ; D = 3 ; E = 2
 	
@@ -337,7 +332,6 @@ if __name__ == "__main__":
 	def Ham(q,p) :
 		Kq_p  = kernel_product(s,q,q,p, "gaussian")
 		return torch.dot( p.view(-1), Kq_p.view(-1) )
-	
 	ham0 = Ham(y, b)
 	
 	print('----------------------------------------------------')
@@ -346,13 +340,13 @@ if __name__ == "__main__":
 	if True :
 		grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
 		grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
-		grad_yb = torch.autograd.grad(grad_y,b, torch.ones(grad_y.size()), create_graph = True)[0]
+		grad_yb = torch.autograd.grad(grad_y,b, torch.ones(grad_y.size()).type(dtype), create_graph = True)[0]
 		
-		print('grad_y   :\n', grad_y.data.numpy())
-		print('grad_b   :\n', grad_b.data.numpy())
-		print('grad_yb  :\n', grad_yb.data.numpy())
+		print('grad_y   :\n', grad_y.data.cpu().numpy())
+		print('grad_b   :\n', grad_b.data.cpu().numpy())
+		print('grad_yb  :\n', grad_yb.data.cpu().numpy())
 		
-		print('grad_y   :\n', grad_y.data.numpy())
+		print('grad_y   :\n', grad_y.data.cpu().numpy())
 	
 	if False :
 		def to_check( X, Y, B ):
