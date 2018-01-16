@@ -155,10 +155,11 @@ int GpuConv1D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     const int DIMY = DIMSY::SUM;
-    const int DIMX1 = DIMSX::FIRST;
 
     /* // (Jean :) This portion of code seems to be useless,
     //             forgotten from a GpuConv2D copy-paste
+    const int DIMX1 = DIMSX::FIRST;
+
     TYPE *out;
     cudaMalloc((void**)&out, sizeof(TYPE)*(nx*DIMX1));
     out = px_d[0]; // save the output location

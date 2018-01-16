@@ -272,7 +272,9 @@ def cuda_conv_generic(formula,  signature, result, *args,
 		def assert_contiguous(x) :
 			"""Non-contiguous arrays are a mess to work with, 
 			so we require contiguous arrays from the user."""
-			if not x.is_contiguous : raise ValueError("Please provide 'contiguous' torch tensors.")
+			if not x.is_contiguous() : 
+				print(x)
+				raise ValueError("Please provide 'contiguous' torch tensors.")
 		def ndims(x) :
 			return len(x.size())
 		def size(x) :

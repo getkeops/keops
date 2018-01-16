@@ -1,6 +1,8 @@
 #ifndef REDUCTION_LOGSUMEXP
 #define REDUCTION_LOGSUMEXP
 
+#include <npp.h>
+
 // Pads a "1" in front of a scalar F.
 // This command in *only* meant to be used internally,
 // when computing a Kernel Product as a log-sum-exp operation.
@@ -47,14 +49,29 @@ struct LogSumExp {
     // using DiffT = ...;
 };
 
+template <typename TYPE>
+struct NEG_INFINITY;
+
+template <>
+struct NEG_INFINITY<float> {
+    static constexpr float value = -NPP_MAXABS_32F;
+};
+
+template <>
+struct NEG_INFINITY<double> {
+    static constexpr double value = -NPP_MAXABS_64F;
+};
 
 // Overloads the reduce operations when F is a LogSumExp<G>
 template <typename TYPE, int DIM, class G>
 struct InitializeOutput<TYPE,DIM,LogSumExp<G>>{
 HOST_DEVICE INLINE void operator()(TYPE *tmp) {
-    // We fill empty cells with (0,0) = e^0 * 0 = 0
+    // We fill empty cells with the neutral element of the reduction operation,
+    //                   (-inf,0) = e^{-inf} * 0 = 0
     static_assert(2==DIM,"LogSumExp is only meant to be used with scalars -> pairs (m,s).");
-    tmp[0] = 0.0f;
+    // We should use 0xfff0000000000000 for doubles
+    //-340282346638528859811704183484516925440.0f;//__int_as_float(0xff800000); // -infty, as +infty = 0x7f800000
+    tmp[0] = NEG_INFINITY<TYPE>::value; 
     tmp[1] = 0.0f;
 }
 };

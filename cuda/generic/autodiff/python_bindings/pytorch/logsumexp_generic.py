@@ -7,7 +7,7 @@ import torch
 import numpy
 from torch.autograd import Variable
 
-from kernel_product_generic import GenericKernelProduct
+from .kernel_product_generic import GenericKernelProduct
 
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
 # for reference on the forward-backward syntax
@@ -146,10 +146,10 @@ if __name__ == "__main__":
 						    "Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim DIM,    indexed by j
 						    "V = Var<2,DIMOUT  ,1>" ]   # 3rd variable, dim DIMOUT, indexed by j
 						   
-				# stands for:     R_i   ,   C  ,      X_i    ,      Y_j    ,     B_j    .
+				# stands for:     R_i   ,   C  ,      X_i    ,      Y_j    ,     V_j    .
 				signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
 				
-				#   R   =        exp(            C    *   -          |         X-Y|^2   )*  B
+				#   R   =                     C *   -          |         X-Y|^2   +  V
 				formula = "Add< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > ,  V>"
 			
 			else :
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 			y_lin = y.unsqueeze(0) # (N,D) -> (1,N,D)
 			sq    = torch.sum( (x_col - y_lin)**2 , 2 )
 			K     =  -sq / (s**2) + v.view(1,-1)
-			return K.exp().sum(1).log()
+			return K.exp().sum(1).log().view(-1,1)
 			
 			
 			
@@ -177,7 +177,7 @@ if __name__ == "__main__":
 	# Init variables to get a minimal working example:
 	#--------------------------------------------------#
 	
-	N = 5 ; M = 15 ; D = 3 ; E = 1
+	N = 10000 ; M = 10000 ; D = 3 ; E = 1
 	
 	e = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
 	e = torch.autograd.Variable(e, requires_grad = True)
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 	# check the class KernelProduct
 	#--------------------------------------------------#
 	Kyy_b = kernel_product_log(s,y,y,b, "gaussian")
-	print("kernel product (log): ", Kyy_b)
+	print("kernel product (log) ...: \n", Kyy_b[:10,:].data.cpu().numpy())
 
 	if True :
 		
@@ -212,17 +212,17 @@ if __name__ == "__main__":
 	
 	if True :
 		grad_y  = torch.autograd.grad(H,y,create_graph = True)[0]
+		print('grad_y...   :\n', grad_y[:10,:].data.cpu().numpy())
 		grad_b  = torch.autograd.grad(H,b,create_graph = True)[0]
-		print('grad_y   :\n', grad_y.data.cpu().numpy())
-		print('grad_b   :\n', grad_b.data.cpu().numpy())
+		print('grad_b...   :\n', grad_b[:10,:].data.cpu().numpy())
 
 	if True :
 		dummy = torch.linspace(0,1,grad_y.numel()).type(dtype).view(grad_y.size())
 		grad_yy = torch.autograd.grad(grad_y,y, dummy, create_graph = True)[0]
-		print('grad_yy  :\n', grad_yy.data.cpu().numpy())
+		print('grad_yy...  :\n', grad_yy[:10,:].data.cpu().numpy())
 
 
-	if True :
+	if False :
 		def to_check( X, Y, B ):
 			return kernel_product_log(s, X, Y, B, "gaussian")
 
