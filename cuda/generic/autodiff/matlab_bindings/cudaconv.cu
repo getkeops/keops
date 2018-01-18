@@ -1,13 +1,18 @@
 #include <mex.h>
 #include "core/CpuConv.cpp"
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
+#ifdef __CUDACC__
+    #include "core/GpuConv1D.cu"
+    #include "core/GpuConv2D.cu"
+#endif
 #include "core/autodiff.h"
 
-#include "core/newsyntax.h"
 // see compile_mex file for compiling
+// FORMULA_OBJ (in case using new syntax) and __TYPE__ are supposed to be set via "using" or "#define" 
 
-// F and __TYPE__ are supposed to be set via "using" or "#define" 
+#ifdef USENEWSYNTAX
+    #include "core/newsyntax.h"
+    using FORMULA = decltype(FORMULA_OBJ);
+#endif
 
 void ExitFcn(void) {
 	#ifdef __CUDACC__

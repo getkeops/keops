@@ -33,16 +33,12 @@ function F = Kernel(varargin)
 
 % the follwing adds path settings from the shell before calling external
 % programs; this is used to get nvcc and mex commands in the path
-bashpathcommand = 'source ~/.bash_profile;';
-
-[~,tmp] = mysystemcall([bashpathcommand,'which nvcc']);
-if ~isempty(tmp)
-    compilescript = 'compile_mex';
-    tagcompile = 'cuda';
-else
-    compilescript = 'compile_mex_cpu';
-    tagcompile = 'cpp';
+if exist('~/.bash_profile')
+    bashpathcommand = 'source ~/.bash_profile;';
+elseif exist('~/.profile')
+    bashpathcommand = 'source ~/.profile;';
 end
+
 
 options = struct;
 % tagIJ=0 means sum over j, tagIj=1 means sum over j
@@ -50,6 +46,9 @@ options.tagIJ = 0;
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu,
 % tagCpuGpu=2 means convolution on Gpu from device data
 options.tagCpuGpu = 0;
+% tagUseNvcc=1 means compilation is done using nvcc compiler if possible, 0
+% means use c++ compiler
+options.tagUseNvcc = 0;
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 options.tag1D2D = 1;
 
@@ -66,13 +65,22 @@ if isstruct(varargin{end})
     varargin = varargin(1:Nargin);
 end
 
+[~,tmp] = mysystemcall([bashpathcommand,'which nvcc']);
+if ~isempty(tmp) && options.tagUseNvcc==1
+    compilescript = 'compile_mex';
+    tagcompile = 'cuda';
+else
+    compilescript = 'compile_mex_cpu';
+    tagcompile = 'cpp';
+end
+
 indxy = [-1,-1]; % indxy will be used to calculate nx and ny from input variables
 
 % from the string inputs we form the code which will be added to the source
 % cpp/cu file, and the string used to encode the file name
 formula = varargin{Nargin};
 fname = formula;
-CodeFormula = ['#define F ',formula];
+CodeFormula = ['#define FORMULA_OBJ ',formula];
 CodeVars = '';
 for k=1:Nargin-1
     str = varargin{k};
@@ -102,6 +110,7 @@ else
     md5cmd = 'md5sum';
 end
 [~,fname] = mysystemcall(['echo "',fname,'"|',md5cmd]);
+fname = cleanstring(fname);
 Fname = ['F',fname,'_',tagcompile];
 filename = [Fname,'.',mexext];
 if ~(exist(filename,'file')==3)
@@ -154,5 +163,7 @@ left = str(1:pos-1);
 right = str(pos+1:end);
 end
 
-
+function str = cleanstring(str)
+str = str(((str>='0')&(str<='9'))|((str>='a')&(str<='z')));
+end
 

@@ -1,3 +1,6 @@
+#ifndef CPUCONV
+#define CPUCONV
+
 #include <stdio.h>
 #include <iostream>
 #include <assert.h>
@@ -87,3 +90,5 @@ int CpuConv(FUN fun, PARAM param, int nx, int ny, TYPE* x1, TYPE** args) {
 
     return CpuConv_(fun,param,nx,ny,px,py);
 }
+
+#endif // CPUCONV
