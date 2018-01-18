@@ -368,7 +368,7 @@ struct Factorize
 	__TYPE__ outG[G::DIM];
 	G::template Eval<INDS>(params,outG,args...);
 	// Ffact is the factorized formula
-	using Ffact = typename THIS::FactorizedFormula<INDS>;
+	using Ffact = typename THIS::template FactorizedFormula<INDS>;
 	// new indices for the call to Eval : we add one more index to the list
 	using NEWINDS = ConcatPacks<INDS,pack<INDS::SIZE>>;
 	// call to Eval on the factorized formula, we pass outG as last parameter
