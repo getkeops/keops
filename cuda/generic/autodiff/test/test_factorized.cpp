@@ -4,15 +4,19 @@
 
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test
+// 
+// (Joan) I found that in fact at O2 optimization level, the compiler automatically factorizes out
+// parts of code which are identical (it's called "Common subexpression elimination") which makes the factorization
+// useless, at least for such simple formulas. This is not true at O1 optimization level. On my laptop :
+// at O1 level : original formula runs in 8.6 s, factorized formula in 1.6 s  
+// at O2 level : original and factorized formulas run in about 0.23 s
 
 #include <stdio.h>
 #include <assert.h>
-#include <cuda.h>
 #include <vector>
 #include <ctime>
 #include <algorithm>
 
-#include "../core/GpuConv2D.cu"
 #include "../core/CpuConv.cpp"
 
 #define __TYPE__ float
@@ -43,11 +47,13 @@ int main() {
 
     // symbolic expression of the function ------------------------------------------------------
     
-    // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 where F0 = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    // with the standard implementation it means we will compute 8 times F0 to evaluate F
+    // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 
+    // where F0 = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
+    // with the standard implementation it means we will compute 8 times F0 to evaluate F 
     using F0 = Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
     using F1 = Add<F0,F0>;
-    using F = Add<F1,F1>;
+    using F2 = Add<F1,F1>;
+    using F = Add<F2,F2>;
 
     cout << endl << "Function F : " << endl;
     F::PrintId();
@@ -81,7 +87,7 @@ int main() {
     vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
     vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    vector<__TYPE__> resgpu(Nx*F::DIM), rescpu(Nx*F::DIM);
+    vector<__TYPE__> rescpu1(Nx*F::DIM), rescpu2(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
@@ -90,35 +96,11 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    int deviceID = 0;
-    cudaSetDevice(deviceID);
-    end = clock();
-    cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
-
-    begin = clock();
-    GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
-    end = clock();
-    cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
-
-    begin = clock();
-    GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
-    end = clock();
-    cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
-
-    resgpu = vf;
-
-    begin = clock();
     CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-    rescpu = vf;
-
-    // display mean of errors
-    __TYPE__ s = 0;
-    for(int i=0; i<Nx*F::DIM; i++)
-        s += abs(resgpu[i]-rescpu[i]);
-    cout << "mean abs error =" << s/Nx << endl;
+    rescpu1 = vf;
 
 
 
@@ -128,29 +110,18 @@ int main() {
 
     using FUNCONVFF = typename Generic<FF>::sEval;
 
-    begin = clock();
-    GpuConv2D(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
-    end = clock();
-    cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
-
-    begin = clock();
-    GpuConv2D(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
-    end = clock();
-    cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
-
-    resgpu = vf;
 
     begin = clock();
     CpuConv(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-    rescpu = vf;
+    rescpu2 = vf;
 
     // display mean of errors
-    s = 0;
+    __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
-        s += abs(resgpu[i]-rescpu[i]);
+        s += abs(rescpu1[i]-rescpu2[i]);
     cout << "mean abs error =" << s/Nx << endl;
 
 }
