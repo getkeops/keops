@@ -280,6 +280,13 @@ template < int... NS > struct pack {
         return -1;
     }
 
+    // helpers to print the pack to the standard output
+    static void PrintAll() { }
+    static void PrintComma() { }
+    static void PrintId() {
+        cout << "pack< >";
+    }
+
     // [].append(M) = [M]
     template < int M >
     using PUTLEFT = pack<M>;
@@ -322,6 +329,23 @@ template < int N, int... NS > struct pack<N,NS...> {
             return NEXT::VAL(m-1);
         else
             return FIRST;
+    }
+
+    // helpers to print the pack to the standard output
+    static void PrintComma() {
+        cout << ",";
+    }
+
+    static void PrintAll() {
+        cout << FIRST;
+        NEXT::PrintComma();
+        NEXT::PrintAll();
+    }
+
+    static void PrintId() {
+        cout << "pack<" << endl;
+        PrintAll();
+        cout << ">";
     }
 
     // Operation to append "M" at the head of the list

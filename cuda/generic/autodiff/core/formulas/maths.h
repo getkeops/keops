@@ -54,48 +54,21 @@ using Scal = typename ScalAlias<FA,FB>::type;
 
 
 template < class FA, class FB >
-struct AddImpl {
+struct AddImpl : BinaryOp<AddImpl,FA,FB> {
     // Output dim = FA::DIM = FB::DIM
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Add");
-
-    static void PrintId() {
-        cout << "Add<";
-        FA::PrintId();
-        cout << ",";
-        FB::PrintId();
-        cout << ">";
-    }
-
-    template<class A, class B>
-    using Replace = CondType< B , Add<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,Add<FA,FB>>::val >;
     
-    using AllTypes = MergePacks<univpack<Add<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
-	
-    // Vars( FA + FB ) = Vars(FA) U Vars(FB), whatever the category
-    template < int CAT >
-    using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
+    static void PrintIdString() { cout << "Add"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
             	out[k] = outA[k] + outB[k];
 	}
 
-    // To evaluate FA + FB, first evaluate FA, then FB, and then add the result and put it in "out".
-    template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        BinaryOp<AddImpl<FA,FB>,FA,FB>::template Eval<INDS>(params,out,args...);
-    }
-
     // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin
     template < class V, class GRADIN >
-    using DiffTA = typename FA::template DiffT<V,GRADIN>;
-
-    template < class V, class GRADIN >
-    using DiffTB = typename FB::template DiffT<V,GRADIN>;
-
-    template < class V, class GRADIN >
-    using DiffT = Add < DiffTA<V,GRADIN> , DiffTB<V,GRADIN> >;
+    using DiffT = Add < typename FA::template DiffT<V,GRADIN> , typename FB::template DiffT<V,GRADIN> >;
 
 };
 
@@ -135,39 +108,17 @@ struct AddAlias<Zero<DIM1>,Zero<DIM2>> {
 
 
 template < class FA, class FB >
-struct ScalImpl {
+struct ScalImpl : BinaryOp<ScalImpl,FA,FB> {
     // FB is a vector, Output has the same size, and FA is a scalar
     static const int DIM = FB::DIM;
     static_assert(FA::DIM==1,"Dimension of FA must be 1 for Scal");
 
-    static void PrintId() {
-        cout << "Scal<";
-        FA::PrintId();
-        cout << ",";
-        FB::PrintId();
-        cout << ">";
-    }
+    static void PrintIdString() { cout << "Scal"; }
 
-    template<class A, class B>
-    using Replace = CondType< B , Scal<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,Scal<FA,FB>>::val >;
-    
-	using AllTypes = MergePacks<univpack<Scal<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
-
-    // Vars( A * B ) = Vars(A) U Vars(B)
-    template < int CAT >
-    using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
-    
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
             	out[k] = *outA*outB[k];
 	}
-
-    // To evaluate A*B, first evaluate A, then B, then store the pointwise mult. in out.
-    template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        BinaryOp<ScalImpl<FA,FB>,FA,FB>::template Eval<INDS>(params,out,args...);
-    }
-
 
     //  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
     // i.e.
@@ -177,13 +128,7 @@ struct ScalImpl {
     //
     // [\partial_V A*B] . gradin = [\partial_V A].(<gradin,B>) + A * [\partial_V B].gradin
     template < class V, class GRADIN >
-    using DiffTA = typename FA::template DiffT<V,GRADIN>;
-
-    template < class V, class GRADIN >
-    using DiffTB = typename FB::template DiffT<V,GRADIN>;
-
-    template < class V, class GRADIN >
-    using DiffT = Add < DiffTA<V,Scalprod<GRADIN,FB>> , Scal < FA, DiffTB<V,GRADIN> > >;
+    using DiffT = Add < typename FA::template DiffT<V,Scalprod<GRADIN,FB>> , Scal < FA, typename FB::template DiffT<V,GRADIN> > >;
 
 };
 
@@ -226,42 +171,20 @@ struct ScalAlias<Zero<DIM1>,Zero<DIM2>> {
 //////////////////////////////////////////////////////////////
 
 template < class F >
-struct Exp {
+struct Exp : UnaryOp<Exp,F> {
     // The exponential goes from R^1 to R^1
     static const int DIM = 1;
-    static_assert(F::DIM==1,"Dimension of input must be one for exp function");
+    static_assert(F::DIM==1,"Dimension of input must be one for Exp function");
 
-    static void PrintId() {
-        cout << "Exp<";
-        F::PrintId();
-        cout << ">";
-    }
-
-    template<class A, class B>
-    using Replace = CondType< B , Exp<typename F::template Replace<A,B>> , IsSameType<A,Exp<F>>::val >;
-    
-	using AllTypes = MergePacks<univpack<Exp<F>>,typename F::AllTypes>;
-
-    // Vars(Exp(F)) = Vars(F)
-    template < int CAT >
-    using VARS = typename F::template VARS<CAT>;
-    
+    static void PrintIdString() { cout << "Exp"; }
+	
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
             *out = exp(*outF);
 	}
 
-    // To evaluate Exp(F), first evaluate F, then take its exponential...
-    template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        UnaryOp<Exp<F>,F>::template Eval<INDS>(params,out,args...);
-    }
-
     // [\partial_V exp(F)].gradin = exp(F) * [\partial_V F].gradin
     template < class V, class GRADIN >
-    using DiffTF = typename F::template DiffT<V,GRADIN>;
-
-    template < class V, class GRADIN >
-    using DiffT = Scal<Exp<F>,DiffTF<V,GRADIN>>;
+    using DiffT = Scal<Exp<F>,typename F::template DiffT<V,GRADIN>>;
 
 };
 
@@ -270,36 +193,16 @@ struct Exp {
 //////////////////////////////////////////////////////////////
 
 template < class F, int M >
-struct Pow {
+struct Pow : UnaryOp<Pow,F,M>  {
     // Pow goes from R^1 to R^1
     static const int DIM = 1;
-    static_assert(F::DIM==1,"Dimension of input must be one for exp function");
+    static_assert(F::DIM==1,"Dimension of input must be one for Pow function");
 
-    static void PrintId() {
-        cout << "Pow<";
-        F::PrintId();
-        cout << "," << M << ">";
-    }
-
-    template<class A, class B>
-    using Replace = CondType< B , Pow<typename F::template Replace<A,B>,M> , IsSameType<A,Pow<F,M>>::val >;
-    
-	using AllTypes = MergePacks<univpack<Pow<F,M>>,typename F::AllTypes>;
-
-    // Vars( F^M ) = Vars( F )
-    template < int CAT >
-    using VARS = typename F::template VARS<CAT>;
+    static void PrintIdString() { cout << "Pow"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
             *out = pow(*outF,M);
 	}
-
-    // To compute F^M, first compute F, then use the cmath function pow.
-    template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        UnaryOp<Pow<F,M>,F>::template Eval<INDS>(params,out,args...);
-    }
-
 
     // [\partial_V F^M].gradin  =  M * (F^(M-1)) * [\partial_V F].gradin
     template < class V, class GRADIN >
@@ -361,32 +264,13 @@ using Divide = Scal<FA,Inv<FB>>;
 //////////////////////////////////////////////////////////////
 
 template < class F >
-struct Log {
+struct Log : UnaryOp<Log,F> {
     static const int DIM = 1;
     static_assert(F::DIM==1,"Dimension of input must be one for exp function");
-
-    static void PrintId() {
-        cout << "Log<";
-        F::PrintId();
-        cout << ">";
-    }
-
-    template<class A, class B>
-    using Replace = CondType< B , Log<typename F::template Replace<A,B>> , IsSameType<A,Log<F>>::val >;
-    
-	using AllTypes = MergePacks<univpack<Log<F>>,typename F::AllTypes>;
-
-    template < int CAT >
-    using VARS = typename F::template VARS<CAT>;
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
             *out = log(*outF);
 	}
-
-    template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        UnaryOp<Log<F>,F>::template Eval<INDS>(params,out,args...);
-    }
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;

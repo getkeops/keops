@@ -19,29 +19,13 @@
 
 
 template < class FA, class FB >
-struct ScalprodImpl {
+struct ScalprodImpl : BinaryOp<ScalprodImpl,FA,FB> {
     // Output dimension = 1, provided that FA::DIM = FB::DIM
     static const int DIMIN = FA::DIM;
     static_assert(DIMIN==FB::DIM,"Dimensions must be the same for Scalprod");
     static const int DIM = 1;
 
-    static void PrintId() {
-        cout << "Scalprod<";
-        FA::PrintId();
-        cout << ",";
-        FB::PrintId();
-        cout << ">";
-    }
-
-    template<class A, class B>
-    using Replace = CondType< B , Scalprod<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,Scalprod<FA,FB>>::val >;
-    
-	using AllTypes = MergePacks<univpack<Scalprod<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
-
-    // Vars( A + B ) = Vars(A) U Vars(B), whatever the category
-    // Vars(<A,B>) = Vars(A) U Vars(B)
-    template < int CAT >
-    using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
+    static void PrintIdString() { cout << "Scalprod"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
     		*out = 0;
@@ -49,24 +33,10 @@ struct ScalprodImpl {
             	*out += outA[k]*outB[k];
 	}
 
-    // To evaluate the scalar <A,B>, first evaluate A, then B, then proceed to the summation.
-    template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        BinaryOp<ScalprodImpl<FA,FB>,FA,FB>::template Eval<INDS>(params,out,args...);
-    }
-
-
-
     // <A,B> is scalar-valued, so that gradin is necessarily a scalar.
     // [\partial_V <A,B>].gradin = gradin * ( [\partial_V A].B + [\partial_V B].A )
     template < class V, class GRADIN >
-    using DiffTA = typename FA::template DiffT<V,GRADIN>;
-
-    template < class V, class GRADIN >
-    using DiffTB = typename FB::template DiffT<V,GRADIN>;
-
-    template < class V, class GRADIN >
-    using DiffT = Scal < GRADIN , Add < DiffTA<V,FB> , DiffTB<V,FA> > >;
+    using DiffT = Scal < GRADIN , Add < typename FA::template DiffT<V,FB> , typename FB::template DiffT<V,FA> > >;
 };
 
 
