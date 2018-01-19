@@ -3,9 +3,11 @@
 #include <assert.h>
 #include <cuda.h>
 
-#include "Pack.h"
 
-using namespace std;
+#include "Pack.h"
+#include "reductions/sum.h"
+#include "reductions/log_sum_exp.h"
+
 template < typename TYPE, class FUN, class PARAM >
 __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {
 
@@ -31,9 +33,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     // get the value of variable (index with i)
     TYPE xi[DIMX] ,tmp[DIMX1];
     if(i<nx) {
-        for(int k=0; k<DIMX1; k++)
-            tmp[k] = 0.0f; // initialize output
-
+        InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp); // tmp = 0
         load<DIMSX::NEXT>(i,xi+DIMX1,px+1); // load xi variables from global memory to local thread memory
     }
 
@@ -52,8 +52,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
             TYPE* yjrel = yj; // Loop on the columns of the current block.
             for(int jrel = 0; (jrel < blockDim.x) && (jrel<ny-jstart); jrel++, yjrel+=DIMY) {
                 call<DIMSX,DIMSY>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-                for(int k=0; k<DIMX1; k++)
-                    tmp[k] += xi[k];
+                ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi);     // tmp += xi
             }
         }
 
@@ -156,12 +155,15 @@ int GpuConv1D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     const int DIMY = DIMSY::SUM;
+
+    /* // (Jean :) This portion of code seems to be useless,
+    //             forgotten from a GpuConv2D copy-paste
     const int DIMX1 = DIMSX::FIRST;
 
     TYPE *out;
-
     cudaMalloc((void**)&out, sizeof(TYPE)*(nx*DIMX1));
     out = px_d[0]; // save the output location
+    */
 
     // Compute on device : grid and block are both 1d
     dim3 blockSize;

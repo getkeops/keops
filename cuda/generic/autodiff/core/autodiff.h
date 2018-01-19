@@ -60,9 +60,13 @@
 	#define INLINE __forceinline__
 	#include <thrust/tuple.h>
 	#define TUPLE_VERSION thrust
+	#define INFINITY_FLOAT NPP_MAXABS_32F
+	#define INFINITY_DOUBLE NPP_MAXABS_64F
 #else
 	#define INLINE inline
 	#define TUPLE_VERSION std
+	#define INFINITY_FLOAT std::numeric_limits<float>::infinity()
+	#define INFINITY_DOUBLE std::numeric_limits<double>::infinity()
 #endif
 
 #include <tuple>
@@ -80,12 +84,13 @@ class Generic {
     static const int tagJ = 1-tagI;
 
   public :
-
     struct sEval { // static wrapper
         using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
         using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
         using DIMSX = typename GetDims<VARSI>::template PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
         using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
+
+        using FORM  = F;  // We need a way to access the actual function being used
 
         using INDSI = GetInds<VARSI>;
         using INDSJ = GetInds<VARSJ>;

@@ -5,8 +5,8 @@
 #include <cuda.h>
 
 #include "Pack.h"
-
-using namespace std;
+#include "reductions/sum.h"
+#include "reductions/log_sum_exp.h"
 
 
 template <typename T>
@@ -14,8 +14,8 @@ __device__ static constexpr T static_max_device(T a, T b) {
     return a < b ? b : a;
 }
 
-template <typename TYPE, int DIMVECT>
-__global__ void reduce0(TYPE* in, TYPE* out, int sizeY,int nx) {
+template <typename TYPE, int DIMVECT, class FUN>
+__global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
     /* Function used as a final reduction pass in the 2D scheme,
      * once the block reductions have been made.
      * Takes as input:
@@ -25,22 +25,38 @@ __global__ void reduce0(TYPE* in, TYPE* out, int sizeY,int nx) {
      * Computes, in parallel, the "columnwise"-sum (which correspond to lines of blocks)
      * of *in and stores the result in out.
      */
-    TYPE res = 0;
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    /* As shown below, the code that is used to store the block-wise sum
+      "tmp" in parallel is:
+        if(i<nx)
+            for(int k=0; k<DIMX1; k++)
+                (*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k] = tmp[k];
+    */
+
+    /* // This code should be a bit more efficient (more parallel) in the case
+       // of a simple "fully parallel" reduction op such as "sum", "max" or "min"
+    TYPE res = 0;
     if(tid < nx*DIMVECT) {
         for (int i = 0; i < sizeY; i++)
             res += in[tid + i*nx*DIMVECT]; // We use "+=" as a reduction op. But it could be anything, really!
-        /*res = in[tid+ nx* DIMVECT];*/
+        // res = in[tid+ nx* DIMVECT];
         out[tid] = res;
     }
+    */
+
+    // However, for now, we use a "vectorized" reduction op., 
+    // which can also handle non-trivial reductions such as "LogSumExp"
+    TYPE res[DIMVECT];
+    InitializeOutput<TYPE,DIMVECT,typename FUN::FORM>()(res); // res = 0
+    if(tid < nx) {
+        for (int y = 0; y < sizeY; y++)
+            ReducePair<TYPE,DIMVECT,typename FUN::FORM>()(res, in + (tid+y*nx)*DIMVECT); // res += in[(tid+y*nx) *DIMVECT : +DIMVECT];
+        for (int k = 0; k < DIMVECT; k++) // copy to output
+            out[tid*DIMVECT+k] = res[k];
+    }
+
 }
-
-
-
-
-
-
-
 
 // thread kernel: computation of x1i = sum_j k(x2i,x3i,...,y1j,y2j,...) for index i given by thread id.
 // N.B.: This routine by itself is generic, and does not specifically refer to the "sum" operation.
@@ -82,8 +98,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     TYPE xi[DIMX];
     TYPE tmp[DIMX1];
     if(i<nx) { // we will compute x1i only if i is in the range
-        for(int k=0; k<DIMX1; k++)
-            tmp[k] = 0.0f; // initialize output
+        InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp); // tmp = 0
         // Load xi from device global memory.
         // Remember that we use an interleaved memory scheme where
         // xi = [ x1i, x2i, x3i, ... ].
@@ -114,8 +129,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
         TYPE* yjrel = yj; // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
             call<DIMSX,DIMSY>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-            for(int k=0; k<DIMX1; k++)
-                tmp[k] += xi[k];
+            ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi);       // tmp += xi
         }
     }
     __syncthreads();
@@ -220,7 +234,7 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
 
     // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
     // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMX1 ) to (nx, DIMX1)
-    reduce0<TYPE,DIMX1><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
+    reduce2D<TYPE,DIMX1,FUN><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
 
     // block until the device has completed
     cudaThreadSynchronize();
@@ -270,7 +284,7 @@ int GpuConv2D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
 
     // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
     // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMX1 ) to (nx, DIMX1)
-    reduce0<TYPE,DIMX1><<<gridSize2, blockSize2>>>(x1B, out, gridSize.y,nx);
+    reduce2D<TYPE,DIMX1,FUN><<<gridSize2, blockSize2>>>(x1B, out, gridSize.y,nx);
 
     // block until the device has completed
     cudaThreadSynchronize();
