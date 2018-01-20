@@ -1,7 +1,7 @@
 ## --------------------------------HEADERS-----------------------------------------------
 cmake_minimum_required(VERSION 2.8)
 
-project(libkp)
+project(libkp LANGUAGES CXX)
 
 ## Find package
 find_package(CUDA REQUIRED)
@@ -42,7 +42,7 @@ add_definitions(-D_FORCE_INLINES)
 
 # - type for computation (float or double)
 if(NOT __TYPE__)
-    Set(__TYPE__ double)
+    Set(__TYPE__ float)
 endif()
 
 ## Declare the templates formula. We should generate a file to avoid parsing problem with shell
@@ -67,9 +67,9 @@ add_custom_command(
     \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX}
 )
 
-## - mexfiles : generate a working mexfile is painful with cmake. 
-##   The problem is twofold : the cuda module do not define a 
-##   CUDA_add_object. We then need to use Add_library instead.
+### - mexfiles : generate a working mexfile is painful with cmake. 
+    ##   The problem is twofold : the cuda module do not define a 
+    ##   CUDA_add_object. We then need to use Add_library instead.
 
 if(Matlab_FOUND)
 
@@ -104,7 +104,7 @@ else()
     message(WARNING "Matlab not found. No mex file produced.")
 endif()
 
-## - unit test
+### - unit test
 if(GTest_FOUND)
 
     Add_library(
@@ -133,17 +133,14 @@ else()
     message(WARNING "GTest not found. No unit tests build.")
 endif()
 
-## - test link
-CUDA_compile(
-    link_autodiff STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
-    OPTIONS --pre-include=template.h
-)
+### - test link
 
-CUDA_compile(
-    test_link STATIC
+CUDA_add_executable(test_link_conv #${test_link})
     ${CMAKE_CURRENT_SOURCE_DIR}/test/test_link.cu
     OPTIONS -D_MWAITXINTRIN_H_INCLUDED
 )
 
-CUDA_add_executable(test_link_conv ${test_link} ${link_autodiff})
+target_link_libraries(
+    test_link_conv
+    shared_obj
+)
