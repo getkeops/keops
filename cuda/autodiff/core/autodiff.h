@@ -412,15 +412,18 @@ using _P = Param<N>;
 // the computation of G, meaning that if G appears several times inside the
 // formula F, we will compute it once only
 
+template < class F, class G > struct FactorizeAlias;
+template < class F, class G > using Factorize = typename FactorizeAlias<F,G>::type;
+
 template < class F, class G >
-struct Factorize : BinaryOp<Factorize,F,G>
+struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
 {
 
     static const int DIM = F::DIM;
     
     static void PrintIdString() { cout << "Factorize"; }
     
-    using THIS = Factorize<F,G>;    
+    using THIS = FactorizeImpl<F,G>;    
 
     using Factor = G;
 
@@ -446,6 +449,17 @@ struct Factorize : BinaryOp<Factorize,F,G>
     
 };
 
+template < class F, class G >
+struct FactorizeAlias {
+    using type = FactorizeImpl<F,G>;
+};
+
+// specialization in case G is of type Var : in this case there is no need for copying a Var into another Var,
+// so we replace Factorize<F,Var> simply by F. This is usefull to avoid factorizing several times the same sub-formula
+template < class F, int N, int DIM, int CAT >
+struct FactorizeAlias<F,Var<N,DIM,CAT>> {
+    using type = F;
+};
 
 
 //////////////////////////////////////////////////////////////
