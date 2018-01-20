@@ -63,6 +63,7 @@
 	#define INFINITY_FLOAT NPP_MAXABS_32F
 	#define INFINITY_DOUBLE NPP_MAXABS_64F
 #else
+        #include <limits>
 	#define INLINE inline
 	#define TUPLE_VERSION std
 	#define INFINITY_FLOAT std::numeric_limits<float>::infinity()

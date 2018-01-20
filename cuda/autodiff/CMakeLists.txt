@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 project(libkp LANGUAGES CXX)
 
 ## Find package
-find_package(CUDA REQUIRED)
+find_package(CUDA)
 find_package(GTest)
 find_package(Matlab)
 
@@ -21,8 +21,10 @@ set(SOURCE_FILES
     )
 
 Include_Directories(${SOURCE_FILES})
-#CUDA_INCLUDE_DIRECTORIES(${SOURCE_FILES})
 
+set (CMAKE_CXX_FLAGS "--std=c++11 -O3")
+
+set (CUDA_PROPAGATE_HOST_FLAGS ON)
 
 ## Options for nvcc
 if(CUDA_VERSION_MAJOR LESS 9)
@@ -34,8 +36,6 @@ endif()
 List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_35,code=sm_35")
 List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
 List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
-List(APPEND CUDA_NVCC_FLAGS "-std=c++11")
-List(APPEND CUDA_NVCC_FLAGS "-O2")
 
 ## Template macros
 add_definitions(-D_FORCE_INLINES)
@@ -52,13 +52,26 @@ endif()
 
 configure_file(template.h.in template.h @ONLY)
 ## --------------------------------COMPILATIONS---------------------------------------------
-
+    
 ## - create shared lib
-CUDA_add_library(
-    shared_obj SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
-    OPTIONS --pre-include=template.h
+
+if(CUDA_FOUND)
+    CUDA_add_library(
+        shared_obj SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
+        OPTIONS --pre-include=template.h
+    )
+endif()
+
+add_library(
+    shared_obj_cpp SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
 )
+target_compile_options(
+    shared_obj_cpp BEFORE
+    PRIVATE -include template.h
+)
+
 
 add_custom_command(
     TARGET shared_obj POST_BUILD
