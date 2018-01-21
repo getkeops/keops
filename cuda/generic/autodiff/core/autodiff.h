@@ -57,9 +57,13 @@
 	#define INLINE __forceinline__
 	#include <thrust/tuple.h>
 	#define TUPLE_VERSION thrust
+	#define INFINITY_FLOAT NPP_MAXABS_32F
+	#define INFINITY_DOUBLE NPP_MAXABS_64F
 #else
 	#define INLINE inline
 	#define TUPLE_VERSION std
+	#define INFINITY_FLOAT std::numeric_limits<float>::infinity()
+	#define INFINITY_DOUBLE std::numeric_limits<double>::infinity()
 #endif
 
 #include <tuple>

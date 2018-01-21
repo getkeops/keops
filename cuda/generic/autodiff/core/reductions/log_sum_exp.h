@@ -54,12 +54,12 @@ struct NEG_INFINITY;
 
 template <>
 struct NEG_INFINITY<float> {
-    static constexpr float value = -NPP_MAXABS_32F;
+    static constexpr float value = - INFINITY_FLOAT;
 };
 
 template <>
 struct NEG_INFINITY<double> {
-    static constexpr double value = -NPP_MAXABS_64F;
+    static constexpr double value = - INFINITY_DOUBLE;
 };
 
 // Overloads the reduce operations when F is a LogSumExp<G>
