@@ -34,12 +34,12 @@ dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=100)
-Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=100)
+Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=1000)
+Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=1000)
 
-s_def = .2
-s_att = .25
-backend = "CPU"
+s_def = .015
+s_att = .05
+backend = "auto"
 def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
 
@@ -48,7 +48,7 @@ params = {
 	"weight_data_attachment": 1.,               # MANDATORY
 
 	"deformation_model" : {
-		"name"  : "gaussian",                   # MANDATORY
+		"name"  : "energy",                   # MANDATORY
 		"gamma" : scal_to_var(1/s_def**2),      # MANDATORY
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"normalize"          : False,           # optional  ([False], True)
@@ -59,7 +59,7 @@ params = {
 		"features"           : "locations",     # optional  (["locations"], "locations+normals")
 
 		# Kernel-specific parameters:
-		"name"       : "gaussian",              # MANDATORY (if "formula"=="kernel")
+		"name"       : "energy",              # MANDATORY (if "formula"=="kernel")
 		"gamma"      : scal_to_var(1/s_att**2), # MANDATORY (if "formula"=="kernel")
 		"backend"    : backend,                  # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"kernel_heatmap_range" : (-2,2,100),    # optional

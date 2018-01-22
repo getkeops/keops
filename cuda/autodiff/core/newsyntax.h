@@ -15,7 +15,7 @@
 
 #define Grad(F,V,GRADIN)  Grad<decltype(F),decltype(V),decltype(GRADIN)>()
 
-#define IntCst(N) IntConstant<N>
+#define IntCst(N) IntConstant<N>()
 #define Cst(p) Constant<decltype(p)>()
 
 template < class FA, class FB >
@@ -50,7 +50,7 @@ Subtract<FA,FB> operator-(FA fa, FB fb)
 
 #define Inv(f) Inv<decltype(f)>()
 
-#define IntInv(f) IntInv<decltype(f)>()
+#define IntInv(N) IntInv<N>()
 
 template < class FA, class FB >
 Divide<FA,FB> operator/(FA fa, FB fb)
