@@ -77,13 +77,14 @@ params = {
 	},
 
 	"optimization" : {                          # optional
-		"method"             : "Adam",          # optional
+		"method"             : "L-BFGS",        # optional
 		"nits"               : 100,             # optional
 		"nlogs"              : 10,              # optional
 		"tol"                : 1e-7,            # optional
 
 		"lr"                 : .001,            # optional
-		"eps"                : .01,             # optional
+		"eps"                : .01,             # optional (Adam)
+		"maxcor"             : 10,              # optional (L-BFGS)
 	},
 
 	"display" : {                               # optional
