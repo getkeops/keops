@@ -1,11 +1,11 @@
 
 import torch
-from torch.autograd import Variable
+from   torch.autograd import Variable
 import os.path
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) \
 				+os.path.sep+'..'+os.path.sep+'..'+os.path.sep+'..'+os.path.sep+'..')
-from libkp.cuda.generic.autodiff.python_bindings.pytorch.kernels import StandardKernelProduct
+from libkp.torch.kernels import StandardKernelProduct
 
 
 

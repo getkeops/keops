@@ -34,12 +34,12 @@ dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=1000)
-Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=1000)
+Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=100)
+Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=100)
 
 s_def = .2
 s_att = .25
-backend = "GPU_1D"
+backend = "CPU"
 def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
 

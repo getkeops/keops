@@ -101,6 +101,8 @@ class GenericKernelProduct(torch.autograd.Function):
 		ctx.formula   = formula
 		ctx.signature = signature
 		ctx.sum_index = sum_index
+		backend = "auto"
+		ctx.backend   = backend
 		
 		# Get the size nx by looping on the signature until we've found an "x_i" ----------------
 		n = -1
@@ -114,7 +116,7 @@ class GenericKernelProduct(torch.autograd.Function):
 		# Actual computation --------------------------------------------------------------------
 		result  = torch.zeros( n,  signature[0][0] ).type(args[0].type())  # Init the output of the convolution
 		cuda_conv_generic(formula, signature, result, *args,               # Inplace CUDA routine
-		                  backend   = "GPU_1D_host",
+		                  backend   = backend,
 		                  aliases   = aliases, sum_index   = sum_index,
 		                  cuda_type = "float", grid_scheme = "2D") 
 		result  = result.view( n, signature[0][0] )
@@ -214,6 +216,7 @@ class GenericKernelProduct(torch.autograd.Function):
 		formula   = ctx.formula
 		signature = ctx.signature
 		sum_index = ctx.sum_index
+		backend   = "auto"
 		args      = ctx.saved_variables # Unwrap the saved variables
 		
 		# Compute the number of arguments which are not parameters
@@ -252,8 +255,8 @@ class GenericKernelProduct(torch.autograd.Function):
 					genconv = GenericKernelProduct().apply  
 					grads.append( genconv( aliases, formula_g, signature_g, sumindex_g, *args_g )  )
 		
-		# Grads wrt. aliases, formula, signature, sum_index, *args
-		return      (   None,    None,      None,      None, *grads )
+		# Grads wrt.  backend, aliases, formula, signature, sum_index, *args
+		return      (      None,    None,      None,      None, *grads )
 
 
 if __name__ == "__main__":

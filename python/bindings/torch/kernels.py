@@ -83,7 +83,7 @@ def GaussianKernel( gamma, x, y, b, mode = "sum", backend = "auto") :
 """
 
 
-def StandardKernelProduct(gamma, x,y,b, name, mode, backend) :
+def StandardKernelProduct(gamma, x,y,b, name, mode, backend = "auto") :
     """
     Convenience function, providing the standard formulas implemented
     in the libkp library.

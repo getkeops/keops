@@ -77,7 +77,8 @@ __cuda_convs_generic = {}
 def compile_generic_routine( aliases, formula, dllname, cuda_type, script_folder = None, script_name = None ) :
 	if script_folder is None :
 		script_folder = os.path.dirname(os.path.abspath(__file__)) \
-		              + os.path.sep + '..' + os.path.sep
+		              + os.path.sep + ('..' + os.path.sep)*2+"cuda"+os.path.sep+"autodiff"+os.path.sep
+		print(script_folder)
 	if script_name   is None :
 		script_name   = '.' + os.path.sep + 'compile_with_aliases'
 	
@@ -98,9 +99,8 @@ def compile_generic_routine( aliases, formula, dllname, cuda_type, script_folder
 	                cwd = script_folder)
 
 
-def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, 
-                          backend      = "GPU_1D_host",
-                          build_folder = None, dll_extension = ".so") :
+def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend,
+                          build_folder = None, dll_extension = ".so" ) :
 	"""
 	Returns the appropriate CUDA routine, given:
 	- a list of aliases (strings)
@@ -129,8 +129,9 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index,
 	else :                                # Otherwise :
 		# Load the DLL --------------------------------------------------------------------------
 		if build_folder is None :
-			build_folder = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep \
-						 + 'build' + os.path.sep
+			build_folder = os.path.dirname(os.path.abspath(__file__)) \
+						 + os.path.sep + ('..' + os.path.sep)*2 \
+						+ "cuda"+os.path.sep+"autodiff"+os.path.sep+"build"+os.path.sep
 		dllabspath = build_folder + dll_name + dll_extension
 		
 		
@@ -181,11 +182,15 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index,
 
 # Ideally, this routine could be implemented by Joan :
 def cuda_conv_generic(formula,  signature, result, *args, 
-                      backend   = "GPU_1D_host",
+                      backend   = "auto",
 	                  aliases   = []     , sum_index   = 0    ,
 	                  cuda_type = "float", grid_scheme = "2D" ):
 	"""
-	Executes the "autodiff" kernel associated to "formula". 
+	Executes the "autodiff" kernel associated to "formula".
+	Backend is one of "auto", "CPU", "GPU_1D",        "GPU_2D", 
+	                                 "GPU_1D_host",   "GPU_2D_host", 
+									 "GPU_1D_device", "GPU_2D_device".
+
 	Aliases can be given as a list of strings.
 	sum_index specifies whether the summation should be done over "I/X" (sum_index=1) or "J/Y" (sum_index=0).
 	The arguments are given as :
@@ -248,11 +253,11 @@ def cuda_conv_generic(formula,  signature, result, *args,
 	- E is a nx-by-5 float array (same as the output of "formula")
 	
 	"""
-
 	# Infer if we're working with numpy arrays or torch tensors from result's type :
 
 	if hasattr(result, "ctypes") :     # Assume we're working with numpy arrays
-
+		
+		device = "CPU"
 		def assert_contiguous(x) :
 			"""Non-contiguous arrays are a mess to work with, 
 			so we require contiguous arrays from the user."""
@@ -269,6 +274,7 @@ def cuda_conv_generic(formula,  signature, result, *args,
 
 	elif hasattr(result, "data_ptr") : # Assume we're working with torch tensors
 
+		device = "GPU" if result.is_cuda else "CPU"
 		def assert_contiguous(x) :
 			"""Non-contiguous arrays are a mess to work with, 
 			so we require contiguous arrays from the user."""
@@ -344,6 +350,24 @@ def cuda_conv_generic(formula,  signature, result, *args,
 	result_p = to_ctype_pointer(result)
 	params_p = to_ctype_pointer(params)
 	
+	# Try to make a good guess for the backend...
+	# Note that as of today, the "_device" routines have not been tested.
+	if backend == "auto" :
+		if not torch.cuda.is_available() :
+			backend = "CPU"
+		else :
+			if True : # device == "CPU"
+				backend = "GPU_1D_host"   if True else "GPU_2D_host"
+			else :
+				backend = "GPU_1D_device" if True else "GPU_2D_device"
+
+	elif backend == "GPU_1D" :
+		backend = "GPU_1D_host" if True else "GPU_1D_device"
+	elif backend == "GPU_2D" :
+		backend = "GPU_2D_host" if True else "GPU_2D_device"
+
+	print(backend +', ', end='')
+
 	# Let's use our GPU, which works "in place" : -----------------------------------------------
 	# N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",
 	#       which make a summation wrt. 'j' or 'i', indexing the final result with 'i' or 'j'.
