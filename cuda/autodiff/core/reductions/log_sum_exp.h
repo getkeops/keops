@@ -1,7 +1,9 @@
 #ifndef REDUCTION_LOGSUMEXP
 #define REDUCTION_LOGSUMEXP
 
-#include <npp.h>
+#ifdef __CUDACC__
+	#include <npp.h>
+#endif
 
 // Pads a "1" in front of a scalar F.
 // This command in *only* meant to be used internally,
