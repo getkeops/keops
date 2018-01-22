@@ -9,4 +9,5 @@
 #include "core/autodiff.h"
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
+#include "core/newsyntax.h"
 

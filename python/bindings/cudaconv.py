@@ -87,7 +87,7 @@ def compile_generic_routine( aliases, formula, dllname, cuda_type, script_folder
 		if match is not None : # alias is of the form
 			return "#define " + match.group(1) + " " + match.group(2) # "#define DIMPOINT 3"
 		else :
-			return "using " + str(alias) + "; "
+			return "auto " + str(alias) + "; "
 		
 	alias_string = "\n".join( [ process_alias(alias) for alias in aliases] )
 	

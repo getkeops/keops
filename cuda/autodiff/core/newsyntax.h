@@ -1,11 +1,15 @@
 #ifndef NEWSYNTAX
 #define NEWSYNTAX
 
+#define Var(N,DIM, CAT) Var<N,DIM,CAT>()
+
 #define Vx(N,DIM) _X<N,DIM>()
 
 #define Vy(N,DIM) _Y<N,DIM>()
 
 #define Pm(N) _P<N>()
+
+#define LogSumExp(f) LogSumExp<decltype(f)>()
 
 #define Factorize(F,G) Factorize<decltype(F),decltype(G)>()
 

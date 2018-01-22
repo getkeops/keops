@@ -50,7 +50,7 @@ class GenericLogSumExp(torch.autograd.Function):
 		signature = signature.copy()
 		signature[0] = (2, signature[0][1])
 
-		formula = "LogSumExp<"+formula+">"
+		formula = "LogSumExp("+formula+")"
 
 		# Actual computation --------------------------------------------------------------------
 		result  = torch.zeros( n,  signature[0][0] ).type(args[0].type())  # Init the output of the convolution
@@ -93,8 +93,8 @@ class GenericLogSumExp(torch.autograd.Function):
 		# - the previous output should be given as a 6-th variable (numbered 5), 
 		# - the gradient wrt. the output, G, should be given as a 7-th variable (numbered 6),
 		# both with the same dim-cat as the formula's output. 
-		res     = "Var<"+str(nvars)  +","+str(signature[0][0])+","+str(signature[0][1])+">"
-		eta     = "Var<"+str(nvars+1)+","+str(signature[0][0])+","+str(signature[0][1])+">"
+		res     = "Var("+str(nvars)  +","+str(signature[0][0])+","+str(signature[0][1])+")"
+		eta     = "Var("+str(nvars+1)+","+str(signature[0][0])+","+str(signature[0][1])+")"
 		grads   = []                # list of gradients wrt. args;
 		arg_ind = 4; var_ind = -1;  # current arg index (4 since backend, ... are in front of the tensors); current Variable index;
 		
@@ -109,9 +109,9 @@ class GenericLogSumExp(torch.autograd.Function):
 				else :                                  # Otherwise, the current gradient is really needed by the user:
 					# adding new aliases is waaaaay too dangerous if we want to compute
 					# second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
-					var         = "Var<"+str(var_ind)+","+str(sig[0])+","+str(sig[1])+">" # V
-					formula_g   = "Grad< "+ formula +","+ var +","+ eta +">"              # Grad<F,V,G>
-					formula_g   = "Scal<Exp<Subtract<" + formula + "," + res + ">>," + formula_g + ">"
+					var         = "Var("+str(var_ind)+","+str(sig[0])+","+str(sig[1])+")" # V
+					formula_g   = "Grad("+ formula + "," + var +","+ eta +")"             # Grad<F,V,G>
+					formula_g   = "Exp(" + formula + "-" + res + ") * " + formula_g
 					signature_g = [ sig ] + signature[1:] + signature[:1] + signature[:1]
 					# sumindex is "the index that stays in the end", not "the one in the sum" 
 					# (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
@@ -126,108 +126,3 @@ class GenericLogSumExp(torch.autograd.Function):
 		# Grads wrt.  backend, aliases, formula, signature, sum_index, *args
 		return      (   None,   None,    None,      None,      None, *grads )
 
-
-if __name__ == "__main__":
-	
-	# Computation are made in float32
-	dtype = torch.FloatTensor 
-	
-	backend = "libkp" # Other value : 'pytorch'
-	
-	if   backend == "libkp" :
-		def kernel_product_log(s, x, y, v, kernel) :
-			genconv  = GenericLogSumExp().apply
-			dimpoint = x.size(1) ; dimout = b.size(1)
-			
-			if not dimout == 1 : 
-				raise ValueError("As of today, LogSumExp has only been implemented for scalar-valued functions.")
-			if True :
-				aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
-						    "C = Param<0>"          ,   # 1st parameter
-						    "X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim DIM,    indexed by i
-						    "Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim DIM,    indexed by j
-						    "V = Var<2,DIMOUT  ,1>" ]   # 3rd variable, dim DIMOUT, indexed by j
-						   
-				# stands for:     R_i   ,   C  ,      X_i    ,      Y_j    ,     V_j    .
-				signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
-				
-				#   R   =                     C *   -          |         X-Y|^2   +  V
-				formula = "Add< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > ,  V>"
-			
-			else :
-				aliases = []
-				C = "Param<0>"
-				X = "Var<0,"+str(dimpoint)+",0>"
-				Y = "Var<1,"+str(dimpoint)+",1>"
-				V = "Var<2,"+str(dimout  )+",1>"
-				formula = "Add< Scal<Constant<"+C+">, Minus<SqNorm2<Subtract<"+X+","+Y+">>> >,  "+V+">"
-			
-			sum_index = 0 # the output vector is indexed by "i" (CAT=0)
-			return genconv( aliases, formula, signature, sum_index, 1/(s**2), x, y, v )
-		
-	elif backend == "pytorch" :
-		def kernel_product_log(s, x, y, v, kernel) :
-			x_col = x.unsqueeze(1) # (N,D) -> (N,1,D)
-			y_lin = y.unsqueeze(0) # (N,D) -> (1,N,D)
-			sq    = torch.sum( (x_col - y_lin)**2 , 2 )
-			K     =  -sq / (s**2) + v.view(1,-1)
-			return K.exp().sum(1).log().view(-1,1)
-			
-			
-			
-	#--------------------------------------------------#
-	# Init variables to get a minimal working example:
-	#--------------------------------------------------#
-	
-	N = 10000 ; M = 10000 ; D = 3 ; E = 1
-	
-	e = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
-	e = torch.autograd.Variable(e, requires_grad = True)
-	
-	a = .6 * torch.linspace(  0, 5,N*E).type(dtype).view(N,E)
-	a = torch.autograd.Variable(a, requires_grad = True)
-	
-	x = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
-	x = torch.autograd.Variable(x, requires_grad = True)
-	
-	y = .2 * torch.linspace(  0, 5,M*D).type(dtype).view(M,D)
-	y = torch.autograd.Variable(y, requires_grad = True)
-	
-	b = .6 * torch.linspace(-.2,.2,M*E).type(dtype).view(M,E)
-	b = torch.autograd.Variable(b, requires_grad = True)
-	
-	s = torch.Tensor([2.5]).type(dtype)
-	s = torch.autograd.Variable(s, requires_grad = False)
-	
-	#--------------------------------------------------#
-	# check the class KernelProduct
-	#--------------------------------------------------#
-	Kyy_b = kernel_product_log(s,y,y,b, "gaussian")
-	print("kernel product (log) ...: \n", Kyy_b[:10,:].data.cpu().numpy())
-
-	if True :
-		
-		H = (Kyy_b**2).sum()
-		
-		print('----------------------------------------------------')
-		print("H :") ; print(H)
-	
-	if True :
-		grad_y  = torch.autograd.grad(H,y,create_graph = True)[0]
-		print('grad_y...   :\n', grad_y[:10,:].data.cpu().numpy())
-		grad_b  = torch.autograd.grad(H,b,create_graph = True)[0]
-		print('grad_b...   :\n', grad_b[:10,:].data.cpu().numpy())
-
-	if True :
-		dummy = torch.linspace(0,1,grad_y.numel()).type(dtype).view(grad_y.size())
-		grad_yy = torch.autograd.grad(grad_y,y, dummy, create_graph = True)[0]
-		print('grad_yy...  :\n', grad_yy[:10,:].data.cpu().numpy())
-
-
-	if False :
-		def to_check( X, Y, B ):
-			return kernel_product_log(s, X, Y, B, "gaussian")
-
-		gc = torch.autograd.gradcheck(to_check, inputs=(x, y, b) , eps=1e-3, atol=1e-3, rtol=1e-3 )
-		print('Gradcheck for Hamiltonian: ',gc)
-		print('\n')

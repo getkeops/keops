@@ -226,7 +226,7 @@ class GenericKernelProduct(torch.autograd.Function):
 		# If formula takes 5 variables (numbered from 0 to 4), then the gradient
 		# wrt. the output, G, should be given as a 6-th variable (numbered 5),
 		# with the same dim-cat as the formula's output. 
-		eta     = "Var<"+str(nvars)+","+str(signature[0][0])+","+str(signature[0][1])+">"
+		eta     = "Var("+str(nvars)+","+str(signature[0][0])+","+str(signature[0][1])+")"
 		grads   = []                # list of gradients wrt. args;
 		arg_ind = 4; var_ind = -1;  # current arg index (4 since backend, ... are in front of the tensors); current Variable index;
 		
@@ -241,8 +241,8 @@ class GenericKernelProduct(torch.autograd.Function):
 				else :                                  # Otherwise, the current gradient is really needed by the user:
 					# adding new aliases is waaaaay too dangerous if we want to compute
 					# second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
-					var         = "Var<"+str(var_ind)+","+str(sig[0])+","+str(sig[1])+">" # V
-					formula_g   = "Grad< "+ formula +","+ var +","+ eta +">"              # Grad<F,V,G>
+					var         = "Var("+str(var_ind)+","+str(sig[0])+","+str(sig[1])+")" # V
+					formula_g   = "Grad("+ formula +","+ var +","+ eta +")"              # Grad<F,V,G>
 					signature_g = [ sig ] + signature[1:] + signature[:1]
 					# sumindex is "the index that stays in the end", not "the one in the sum" 
 					# (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
@@ -257,157 +257,3 @@ class GenericKernelProduct(torch.autograd.Function):
 		# Grads wrt.  backend, aliases, formula, signature, sum_index, *args
 		return      (   None,   None,    None,      None,      None, *grads )
 
-
-if __name__ == "__main__":
-	
-	# Computation are made in float32
-	dtype = torch.cuda.FloatTensor 
-	
-	backend = "libkp" # Other value : 'pytorch'
-	
-	if   backend == "libkp" :
-		def kernel_product(s, x, y, b, kernel) :
-			genconv  = GenericKernelProduct().apply
-			dimpoint = x.size(1) ; dimout = b.size(1)
-			
-			if True :
-				aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
-						    "C = Param<0>"          ,   # 1st parameter
-						    "X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim DIM,    indexed by i
-						    "Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim DIM,    indexed by j
-						    "B = Var<2,DIMOUT  ,1>" ]   # 3rd variable, dim DIMOUT, indexed by j
-						   
-				# stands for:     R_i   ,   C  ,      X_i    ,      Y_j    ,     B_j    .
-				signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
-				
-				#   R   =        exp(            C    *   -          |         X-Y|^2   )*  B
-				formula = "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B>"
-			
-			else :
-				aliases = []
-				C = "Param<0>"
-				X = "Var<0,"+str(dimpoint)+",0>"
-				Y = "Var<1,"+str(dimpoint)+",1>"
-				B = "Var<2,"+str(dimout  )+",1>"
-				formula = "Scal< Exp< Scal<Constant<"+C+">, Minus<SqNorm2<Subtract<"+X+","+Y+">>> > >,  "+B+">"
-
-
-			sum_index = 0 # the output vector is indexed by "i" (CAT=0)
-			return genconv( aliases, formula, signature, sum_index, 1/(s**2), x, y, b )
-		
-	elif backend == "pytorch" :
-		def kernel_product(s, x, y, b, kernel) :
-			x_col = x.unsqueeze(1) # (N,D) -> (N,1,D)
-			y_lin = y.unsqueeze(0) # (N,D) -> (1,N,D)
-			sq    = torch.sum( (x_col - y_lin)**2 , 2 )
-			K_xy  = torch.exp( -sq / (s**2))
-			return K_xy @ b
-			
-			
-			
-	#--------------------------------------------------#
-	# Init variables to get a minimal working example:
-	#--------------------------------------------------#
-	
-	N = 5 ; M = 15 ; D = 3 ; E = 2
-	
-	e = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
-	e = torch.autograd.Variable(e, requires_grad = True)
-	
-	a = .6 * torch.linspace(  0, 5,N*E).type(dtype).view(N,E)
-	a = torch.autograd.Variable(a, requires_grad = True)
-	
-	x = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
-	x = torch.autograd.Variable(x, requires_grad = True)
-	
-	y = .2 * torch.linspace(  0, 5,M*D).type(dtype).view(M,D)
-	y = torch.autograd.Variable(y, requires_grad = True)
-	
-	b = .6 * torch.linspace(-.2,.2,M*E).type(dtype).view(M,E)
-	b = torch.autograd.Variable(b, requires_grad = True)
-	
-	s = torch.Tensor([2.5]).type(dtype)
-	s = torch.autograd.Variable(s, requires_grad = False)
-	
-	#--------------------------------------------------#
-	# check the class KernelProduct
-	#--------------------------------------------------#
-	Kyy_b = kernel_product(s,y,y,b, "gaussian")
-	print("kernel product : ", Kyy_b)
-
-	if True :
-		def Ham(q,p) :
-			Kq_p  = kernel_product(s,q,q,p, "gaussian")
-			return torch.dot( p.view(-1), Kq_p.view(-1) )
-		ham0 = Ham(y, b)
-		
-		print('----------------------------------------------------')
-		print("Ham0:") ; print(ham0)
-	
-	if True :
-		grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
-		grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
-		grad_yb = torch.autograd.grad(grad_y,b, torch.ones(grad_y.size()).type(dtype), create_graph = True)[0]
-		
-		print('grad_y   :\n', grad_y.data.cpu().numpy())
-		print('grad_b   :\n', grad_b.data.cpu().numpy())
-		print('grad_yb  :\n', grad_yb.data.cpu().numpy())
-		
-		print('grad_y   :\n', grad_y.data.cpu().numpy())
-	
-	if False :
-		def to_check( X, Y, B ):
-			return kernel_product(s, X, Y, B, "gaussian")
-		gc = torch.autograd.gradcheck(to_check, inputs=(x, y, b) , eps=1e-4, atol=1e-3, rtol=1e-3 )
-		print('Gradcheck for Hamiltonian: ',gc)
-		print('\n')
-
-	#--------------------------------------------------#
-	# check that we are able to compute derivatives with autograd
-	#--------------------------------------------------#
-	
-	if False :
-		grad_b_sum = torch.dot(grad_b.view(-1), grad_b.view(-1))
-		# make_dot(grad_b_sum, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_'+backend+'.pdf', view=True)
-		print('grad_b_sum :\n', grad_b_sum.data.numpy())
-		
-		grad_b_sum_b  = torch.autograd.grad(grad_b_sum,b,create_graph = True)[0]
-		make_dot(grad_b_sum_b, {'y':y, 'b':b, 's':s}).render('graphs/grad_b_sum_b_'+backend+'.pdf', view=True)
-		print('grad_b_sum_b :\n', grad_b_sum_b.data.numpy())
-	
-	if False :
-		# N.B. : As of October 2017, there's clearly a type problem within pytorch's implementation
-		#        of sum's backward operator - I looks as though they naively pass an array of
-		#        "1" to the backward operator
-		# grad_y_sum = grad_y.sum() # backward will be randomish, due to type conversion issues
-		Ones = Variable(torch.ones( grad_y.numel() ).type(dtype))
-		grad_y_sum = torch.dot(grad_y.view(-1), Ones )
-		print('grad_y_sum :\n', grad_y_sum.data.numpy())
-		
-		grad_y_sum_y  = torch.autograd.grad(grad_y_sum,y,create_graph = True)[0]
-		print('grad_y_sum_y :\n', grad_y_sum_y.data.numpy())
-		
-		
-		grad_y_sum_b  = torch.autograd.grad(grad_y_sum,b,create_graph = True)[0]
-		print('grad_y_sum_b :\n', grad_y_sum_b.data.numpy())
-	
-	
-	#--------------------------------------------------#
-	# check that we are able to compute derivatives with autograd
-	#--------------------------------------------------#
-	if False :
-		q1 = .6 * torch.linspace(0,5,n*d).type(dtype).view(n,d)
-		q1 = torch.autograd.Variable(q1, requires_grad = True)
-
-		p1 = .5 * torch.linspace(-.2,.2,n*d).type(dtype).view(n,d)
-		p1 = torch.autograd.Variable(p1, requires_grad = True)
-		sh = torch.sin(ham)
-
-		gsh = torch.autograd.grad( sh , p1, create_graph = True)[0]
-		print('derivative of sin(ham): ', gsh)
-		print(gsh.volatile)
-
-		ngsh = gsh.sum()
-
-		ggsh = torch.autograd.grad( ngsh , p1)
-		print('derivative of sin(ham): ', ggsh)

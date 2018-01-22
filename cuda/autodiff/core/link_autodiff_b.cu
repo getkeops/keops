@@ -1,10 +1,5 @@
 
-#ifdef USENEWSYNTAX
-	#include "core/newsyntax.h"
-	using F = decltype(FORMULA);
-#else
-	using F = FORMULA;
-#endif
+using F = decltype(FORMULA);
 
 ///////////////////////////////////////////////
 // Convolutions on Gpu device from host data //
