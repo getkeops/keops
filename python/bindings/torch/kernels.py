@@ -58,7 +58,7 @@ def RadialKernel( formula, routine, gamma, x, y, b, mode = "sum", backend="auto"
         # stands for:     R_i   ,   G  ,      X_i    ,      Y_j    ,     B_j    .
         signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
         sum_index = 0 # the output vector is indexed by "i" (CAT=0)
-        return genconv( aliases, formula, signature, sum_index, gamma, x, y, b )
+        return genconv( backend, aliases, formula, signature, sum_index, gamma, x, y, b )
     
 
 def GaussianKernel( gamma, x, y, b, mode = "sum", backend = "auto") :

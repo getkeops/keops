@@ -366,8 +366,6 @@ def cuda_conv_generic(formula,  signature, result, *args,
 	elif backend == "GPU_2D" :
 		backend = "GPU_2D_host" if True else "GPU_2D_device"
 
-	print(backend +', ', end='')
-
 	# Let's use our GPU, which works "in place" : -----------------------------------------------
 	# N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",
 	#       which make a summation wrt. 'j' or 'i', indexing the final result with 'i' or 'j'.

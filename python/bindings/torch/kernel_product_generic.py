@@ -16,7 +16,7 @@ class GenericKernelProduct(torch.autograd.Function):
 	"""
 	
 	@staticmethod
-	def forward(ctx, aliases, formula, signature, sum_index, *args):
+	def forward(ctx, backend, aliases, formula, signature, sum_index, *args):
 		""" 
 		Computes a Generic Kernel Product specified by a formula (string) such as :
 		```
@@ -97,12 +97,11 @@ class GenericKernelProduct(torch.autograd.Function):
 		#       if you want to be able to differentiate the output of the backward
 		#       once again. It helps pytorch to keep track of "who is who".
 		ctx.save_for_backward( *args ) # Call at most once in the "forward".
+		ctx.backend   = backend
 		ctx.aliases   = aliases
 		ctx.formula   = formula
 		ctx.signature = signature
 		ctx.sum_index = sum_index
-		backend = "auto"
-		ctx.backend   = backend
 		
 		# Get the size nx by looping on the signature until we've found an "x_i" ----------------
 		n = -1
@@ -212,11 +211,11 @@ class GenericKernelProduct(torch.autograd.Function):
 			               CUDA symbolic differentiation engine.
 			
 		"""
+		backend   = ctx.backend
 		aliases   = ctx.aliases
 		formula   = ctx.formula
 		signature = ctx.signature
 		sum_index = ctx.sum_index
-		backend   = "auto"
 		args      = ctx.saved_variables # Unwrap the saved variables
 		
 		# Compute the number of arguments which are not parameters
@@ -229,7 +228,7 @@ class GenericKernelProduct(torch.autograd.Function):
 		# with the same dim-cat as the formula's output. 
 		eta     = "Var<"+str(nvars)+","+str(signature[0][0])+","+str(signature[0][1])+">"
 		grads   = []                # list of gradients wrt. args;
-		arg_ind = 3; var_ind = -1;  # current arg index (3 since aliases, ... are in front of the tensors); current Variable index;
+		arg_ind = 4; var_ind = -1;  # current arg index (4 since backend, ... are in front of the tensors); current Variable index;
 		
 		for sig in signature[1:] : # Run through the actual parameters, given in *args in the forward.
 			arg_ind += 1
@@ -253,10 +252,10 @@ class GenericKernelProduct(torch.autograd.Function):
 					
 					# N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
 					genconv = GenericKernelProduct().apply  
-					grads.append( genconv( aliases, formula_g, signature_g, sumindex_g, *args_g )  )
+					grads.append( genconv( backend, aliases, formula_g, signature_g, sumindex_g, *args_g )  )
 		
 		# Grads wrt.  backend, aliases, formula, signature, sum_index, *args
-		return      (      None,    None,      None,      None, *grads )
+		return      (   None,   None,    None,      None,      None, *grads )
 
 
 if __name__ == "__main__":

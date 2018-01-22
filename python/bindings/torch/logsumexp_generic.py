@@ -96,7 +96,7 @@ class GenericLogSumExp(torch.autograd.Function):
 		res     = "Var<"+str(nvars)  +","+str(signature[0][0])+","+str(signature[0][1])+">"
 		eta     = "Var<"+str(nvars+1)+","+str(signature[0][0])+","+str(signature[0][1])+">"
 		grads   = []                # list of gradients wrt. args;
-		arg_ind = 3; var_ind = -1;  # current arg index (3 since aliases, ... are in front of the tensors); current Variable index;
+		arg_ind = 4; var_ind = -1;  # current arg index (4 since backend, ... are in front of the tensors); current Variable index;
 		
 		for sig in signature[1:] : # Run through the actual parameters, given in *args in the forward.
 			arg_ind += 1
