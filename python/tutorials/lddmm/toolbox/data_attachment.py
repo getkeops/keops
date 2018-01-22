@@ -89,7 +89,8 @@ def _sinkhorn_loop(Mu, Nu, params) :
     #       OT problem, so we do not provide default value for epsilon.
     eps    = params["epsilon"]  
     kernel = params.get("kernel", {"name"  : "gaussian" ,
-                                   "gamma" :  1 / eps   } )
+                                   "gamma" :  1 / eps,
+                                   "backend": "auto"   } )
 
     rho    = params.get("rho",  -1)    # Use unbalanced transport?
     tau    = params.get("tau",  0.)    # Use inter/extra-polation?
@@ -97,7 +98,7 @@ def _sinkhorn_loop(Mu, Nu, params) :
     tol    = params.get("tol",  1e-5)  # When shall we stop?
 
     # Compute the exponent for the unbalanced Optimal Transport update
-    lam = 1. if rho < 0 else rho / (rho + epsilon)
+    lam = 1. if rho < 0 else rho / (rho + eps)
 
     # precompute the log-weights, as column vectors
     log_mu  = Mu[0].log().view(-1,1)

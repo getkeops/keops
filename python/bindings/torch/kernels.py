@@ -1,4 +1,4 @@
-from .scalar_radial_kernels import GaussianKernel, EnergyKernel
+from .scalar_radial_kernels import GaussianKernel, EnergyKernel, ExponentialKernel
 
 def StandardKernelProduct(gamma, x,y,b, name, mode, backend = "auto") :
     """
@@ -49,7 +49,8 @@ def StandardKernelProduct(gamma, x,y,b, name, mode, backend = "auto") :
     """
 
     point_kernels           = { "gaussian"         : GaussianKernel,
-                                "energy"           : EnergyKernel  }
+                                "energy"           : EnergyKernel  ,
+                                "exponential"      : ExponentialKernel}
     point_direction_kernels = { }#"gaussian current" : GaussianCurrentKernel} 
 
     if   name in point_kernels :
