@@ -37,48 +37,35 @@ template < class V > void fillrandom(V& v) {
 
 int main() {
 
-    // In this part we define the symbolic variables of the function
+
+	// symbolic variables of the function
     using X = Var<0,3,0>; 	// X is the first variable and represents a 3D vector
     using Y = Var<1,3,1>; 	// Y is the second variable and represents a 3D vector
-    using U = Var<2,4,0>; 	// U is the third variable and represents a 4D vector
-    using V = Var<3,4,1>; 	// V is the fourth variable and represents a 4D vector
-    using Beta = Var<4,3,1>;	// Beta is the fifth variable and represents a 3D vector
+    using Beta = Var<2,3,1>;	// Beta is the fifth variable and represents a 3D vector
+    using U = Var<3,3,0>;
+    using V = Var<4,3,1>; 
     using C = Param<0>;		// C is the first extra parameter
 
-    // symbolic expression of the function ------------------------------------------------------
-    
-    // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 
-    // where F0 = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    // with the standard implementation it means we will compute 8 times F0 to evaluate F 
-    using F0 = Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
-    using F1 = Add<F0,F0>;
-    using F2 = Add<F1,F1>;
-    using F = Add<F2,F2>;
-
+	// symbolic expression of the function : 3rd order gradient with respect to X, X and Y of the Gauss kernel
+	using F = Grad<Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>,Y,V>;
+	
     cout << endl << "Function F : " << endl;
-    F::PrintId();
+    PrintFormula<F>();
     cout << endl << endl;
-
-    // now we factorize F0 from F : new formula FF computes the same as F but will evaluate first F0 once and then just does three vector additions
-    using FF = Factorize < F, F0 >;
+     
+    using FF = AutoFactorize<F>;
     
-    cout << "Function FF = factorized version of F :" << endl;
-    cout << "Factor = " << endl;
-    FF::Factor::PrintId();
-    cout << endl << "Factorized Formula = " << endl;
-    using INDS = pack<0,1,2,3,4>; // just to print the formula we define a dummy INDS...
-    FF::FactorizedFormula<INDS>::PrintId();
-    cout << endl << endl;
-
+    cout << "Function FF = factorized version of F :" << endl;    
+    PrintFormula<FF>();
 
     using FUNCONVF = typename Generic<F>::sEval;
-
+	using FUNCONVFF = typename Generic<FF>::sEval;
 
     // now we test ------------------------------------------------------------------------------
 
-    cout << endl << "Testing F" << endl;
+    cout << endl << endl << "Testing F" << endl;
 
-    int Nx=5000, Ny=2000;
+    int Nx=500, Ny=200;
 
     vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
     vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
@@ -96,7 +83,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, b, u, v);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -108,21 +95,26 @@ int main() {
 
     cout << endl << endl << "Testing FF" << endl;
 
-    using FUNCONVFF = typename Generic<FF>::sEval;
-
-
     begin = clock();
-    CpuConv(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
+    CpuConv(FUNCONVFF(), params, Nx, Ny, f, x, y, b, u, v);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     rescpu2 = vf;
-
+    
+    // display values
+    cout << "rescpu1 = ";
+    for(int i=0; i<5; i++)
+		cout << rescpu1[i] << " ";
+    cout << endl << "rescpu2 = ";
+    	for(int i=0; i<5; i++)
+		cout << rescpu2[i] << " ";
+		
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(rescpu1[i]-rescpu2[i]);
-    cout << "mean abs error =" << s/Nx << endl;
+    cout << endl << "mean abs error =" << s/Nx << endl;
 
 }
 

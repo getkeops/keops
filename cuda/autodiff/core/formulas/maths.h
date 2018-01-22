@@ -33,6 +33,10 @@
 // Since the gradients of these operations are "bootstrapped", we need to be a little bit
 // careful with the declaration order, and therefore use three "typenames" per operation:
 // OpAlias, OpImpl and Op (proper).
+template < class FA, class FB > struct AddImpl;
+template < class FA, class FB > struct ScalprodImpl;
+template < class FA, class FB > struct ScalImpl;
+
 template < class FA, class FB > struct AddAlias;
 template < class FA, class FB > struct ScalprodAlias;
 template < class FA, class FB > struct ScalAlias;
@@ -47,6 +51,13 @@ using Scalprod = typename ScalprodAlias<FA,FB>::type;
 template < class FA, class FB >
 using Scal = typename ScalAlias<FA,FB>::type;
 
+//////////////////////////////////////////////////////////////
+////               MINUS OPERATOR : Minus< F >            ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+using Minus = Scal<IntConstant<-1>,F>;
+
 
 //////////////////////////////////////////////////////////////
 ////               ADDITION : Add< FA,FB >                ////
@@ -59,7 +70,7 @@ struct AddImpl : BinaryOp<AddImpl,FA,FB> {
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Add");
     
-    static void PrintIdString() { cout << "Add"; }
+    static void PrintIdString() { cout << "+"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
@@ -73,8 +84,48 @@ struct AddImpl : BinaryOp<AddImpl,FA,FB> {
 };
 
 template < class FA, class FB >
-struct AddAlias {
+struct AddAlias0 {
     using type = AddImpl<FA,FB>;
+};
+
+// A + A = 2A
+template < class F >
+struct AddAlias0<F,F> {
+    using type = Scal<IntConstant<2>,F>;
+};
+
+// A + B*A = (1+B)*A
+template < class F, class G >
+struct AddAlias0<F,ScalImpl<G,F>> {
+    using type = Scal<Add<IntConstant<1>,G>,F>;
+};
+
+// B*A + A = (1+B)*A
+template < class F, class G >
+struct AddAlias0<ScalImpl<G,F>,F> {
+    using type = Scal<Add<IntConstant<1>,G>,F>;
+};
+
+template < class FA, class FB >
+struct AddAlias1 {
+    using type = typename AddAlias0<FA,FB>::type;
+};
+
+// B*A + C*A = (B+C)*A
+template < class F, class G, class H >
+struct AddAlias1<ScalImpl<G,F>,ScalImpl<H,F>> {
+    using type = Scal<Add<G,H>,F>;
+};
+
+// A+n = n+A (brings integers constants to the left)
+template < int N, class F >
+struct AddAlias1<F,IntConstant<N>> {
+    using type = Add<IntConstant<N>,F>;
+};
+
+template < class FA, class FB >
+struct AddAlias {
+    using type = typename AddAlias1<FA,FB>::type;
 };
 
 // Constants, etc. will lead to the creation of *many* zero vectors when computing the gradient.
@@ -102,6 +153,12 @@ struct AddAlias<Zero<DIM1>,Zero<DIM2>> {
     using type = Zero<DIM1>;
 };
 
+// m+n = m+n
+template < int M, int N >
+struct AddAlias<IntConstant<M>,IntConstant<N>> {
+    using type = IntConstant<M+N>;
+};
+
 //////////////////////////////////////////////////////////////
 ////      Scal*Vector Multiplication : Scal< FA,FB>       ////
 //////////////////////////////////////////////////////////////
@@ -113,7 +170,7 @@ struct ScalImpl : BinaryOp<ScalImpl,FA,FB> {
     static const int DIM = FB::DIM;
     static_assert(FA::DIM==1,"Dimension of FA must be 1 for Scal");
 
-    static void PrintIdString() { cout << "Scal"; }
+    static void PrintIdString() { cout << "*"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
@@ -134,8 +191,28 @@ struct ScalImpl : BinaryOp<ScalImpl,FA,FB> {
 
 
 template < class FA, class FB >
-struct ScalAlias {
+struct ScalAlias0 {
     using type = ScalImpl<FA,FB>;
+};
+
+template < class FA, class F, class G >
+struct ScalAlias0<FA,ScalImpl<F,G>> {
+    using type = Scal<Scal<FA,F>,G>;
+};
+
+template < int M, int N >
+struct ScalAlias0<IntConstant<M>,IntConstant<N>> {
+    using type = IntConstant<M*N>;
+};
+
+template < class FA, int N >
+struct ScalAlias0<FA,IntConstant<N>> {
+    using type = Scal<IntConstant<N>,FA>;
+};
+
+template < class FA, class FB >
+struct ScalAlias {
+    using type = typename ScalAlias0<FA,FB>::type;
 };
 
 
@@ -164,7 +241,12 @@ struct ScalAlias<Zero<DIM1>,Zero<DIM2>> {
     using type = Zero<DIM2>;
 };
 
+//////////////////////////////////////////////////////////////
+////             SUBTRACT : F-G		                      ////
+//////////////////////////////////////////////////////////////
 
+template < class FA, class FB >
+using Subtract = Add<FA,Minus<FB>>;
 
 //////////////////////////////////////////////////////////////
 ////             EXPONENTIAL : Exp< F >                   ////
@@ -198,7 +280,7 @@ struct Pow : UnaryOp<Pow,F,M>  {
     static const int DIM = 1;
     static_assert(F::DIM==1,"Dimension of input must be one for Pow function");
 
-    static void PrintIdString() { cout << "Pow"; }
+    static void PrintId() { cout << "Pow"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
             *out = pow(*outF,M);
@@ -219,21 +301,6 @@ struct Pow : UnaryOp<Pow,F,M>  {
 
 template < class F >
 using Square = Pow<F,2>;
-
-//////////////////////////////////////////////////////////////
-////               MINUS OPERATOR : Minus< F >            ////
-//////////////////////////////////////////////////////////////
-
-template < class F >
-using Minus = Scal<IntConstant<-1>,F>;
-
-//////////////////////////////////////////////////////////////
-////               SUBTRACTION  : Subtract< A,B >         ////
-//////////////////////////////////////////////////////////////
-
-template < class FA, class FB >
-using Subtract = Add<FA,Minus<FB>>;
-
 
 //////////////////////////////////////////////////////////////
 ////      INVERSE : Inv<F>                                ////
@@ -267,6 +334,8 @@ template < class F >
 struct Log : UnaryOp<Log,F> {
     static const int DIM = 1;
     static_assert(F::DIM==1,"Dimension of input must be one for exp function");
+
+    static void PrintId() { cout << "Log"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
             *out = log(*outF);

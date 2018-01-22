@@ -15,7 +15,7 @@ struct Zero {
     static const int DIM = _DIM;
 
     static void PrintId() {
-        cout << "Zero<" << DIM << ">";
+        cout << "0";
     }
 
     template<class A, class B>
@@ -38,13 +38,13 @@ struct Zero {
     using DiffT = Zero<V::DIM>;
 };
 
-// A constant integer value, defined using the     IntConstant<N>    syntax.
+// A constant integer value, defined using the IntConstant<N> syntax.
 template < int N >
 struct IntConstant {
     static const int DIM = 1;
 
     static void PrintId() {
-        cout << "IntConstant<" << N << ">";
+        cout << N;
     }
 
     template<class A, class B>
@@ -73,9 +73,7 @@ struct Constant {
     static const int DIM = 1; // Scalar-valued parameters only.
 
     static void PrintId() {
-        cout << "Constant<";
         PRM::PrintId();
-        cout << ">";
     }
 
     template<class A, class B>

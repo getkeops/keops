@@ -151,7 +151,13 @@ struct Var
 
     static void PrintId() 
     {
-    	cout << "Var<" << N << "," << DIM << "," << CAT << ">";
+    	if(CAT==0)
+    		cout << "x";
+    	else if(CAT==1)
+    		cout << "y";
+    	else
+    		cout << "z";
+    	cout << N;
     }
     
     template<class A, class B>
@@ -161,7 +167,6 @@ struct Var
 
     template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
     using VARS = CondType<univpack<Var<N,DIM,CAT>>,univpack<>,CAT==CAT_>;
-
 
     // Evaluate a variable given a list of arguments:
     //
@@ -206,13 +211,13 @@ struct UnaryOp_base {
 	
     static void PrintId() {
         THIS::PrintIdString();
-        cout << "<";
+        cout << "(";
         F::PrintId();
         pack<NS...>::PrintComma();
         pack<NS...>::PrintAll();
-        cout << ">";
+        cout << ")";
     }
-
+    
 	using AllTypes = MergePacks<univpack<THIS>,typename F::AllTypes>;
 	
     template<class A, class B>
@@ -265,15 +270,16 @@ struct BinaryOp_base {
 	
 	using THIS = OP<FA,FB>;
 	
-    static void PrintId() {
-        THIS::PrintIdString();
-        cout << "<";
+    static void PrintId() {        
+        cout << "(";
         FA::PrintId();
-        cout << ",";
+        THIS::PrintIdString();
         FB::PrintId();
-        cout << ">";
+        cout << ")";
     }
 
+	static void PrintFactorized() { PrintId(); }
+	
 	using AllTypes = MergePacks<univpack<OP<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
 	
     template<class A, class B>
@@ -360,6 +366,37 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
 };
 
 
+// helper for counting the number of occurrences of a subformula in a formula
+
+template<class F, class G>
+struct CountIn_ {
+    static const int val = 0;
+};
+	
+template<class F>
+struct CountIn_<F,F> {
+    static const int val = 1;
+};
+
+template<class F, class G>
+struct CountIn {
+    static const int val = CountIn_<F,G>::val;
+};
+		
+template<template<class,int...> class OP, class F, class G, int... NS>
+struct CountIn<OP<F,NS...>,G> {
+    static const int val = CountIn_<OP<F,NS...>,G>::val + CountIn<F,G>::val;
+};
+	
+template<template<class,class> class OP, class FA, class FB, class G>
+struct CountIn<OP<FA,FB>,G> {
+    static const int val = CountIn_<OP<FA,FB>,G>::val + CountIn<FA,G>::val + CountIn<FB,G>::val;
+};
+	
+
+
+
+
 //////////////////////////////////////////////////////////////
 ////             N-th PARAMETER  : Param< N >             ////
 //////////////////////////////////////////////////////////////
@@ -373,7 +410,7 @@ struct Param {
     using VARS = CondType<univpack<Param<N>>,univpack<>,CAT==3>;
     
     static void PrintId() {
-        cout << "Param<" << N << ">";
+        cout << "Pm(" << N << ")";
     }
 };
 
@@ -405,69 +442,32 @@ template < int N >
 using _P = Param<N>;
 
 
-//////////////////////////////////////////////////////////////
-////      FACTORIZE OPERATOR  : Factorize< F,G >          ////
-//////////////////////////////////////////////////////////////
+// Print formula to standard output
 
-// Factorize< F,G > is the same as F, but when evaluating we factorize
-// the computation of G, meaning that if G appears several times inside the
-// formula F, we will compute it once only
-
-template < class F, class G > struct FactorizeAlias;
-template < class F, class G > using Factorize = typename FactorizeAlias<F,G>::type;
-
-template < class F, class G >
-struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
-{
-
-    static const int DIM = F::DIM;
-    
-    static void PrintIdString() { cout << "Factorize"; }
-    
-    using THIS = FactorizeImpl<F,G>;    
-
-    using Factor = G;
-
-    // we define a new formula from F (called factorized formula), replacing G inside by a new variable ; this is used in function Eval()
-    template < class INDS >
-    using FactorizedFormula = typename F::template Replace<G,Var<INDS::SIZE,G::DIM,3>>;	// means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
-
-    template < class INDS, typename ...ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-		// First we compute G
-		__TYPE__ outG[G::DIM];
-		G::template Eval<INDS>(params,outG,args...);
-		// Ffact is the factorized formula
-		using Ffact = typename THIS::template FactorizedFormula<INDS>;
-		// new indices for the call to Eval : we add one more index to the list
-		using NEWINDS = ConcatPacks<INDS,pack<INDS::SIZE>>;
-		// call to Eval on the factorized formula, we pass outG as last parameter
-		Ffact::template Eval<NEWINDS>(params,out,args...,outG);
-    }
-    
-    template < class V, class GRADIN >
-    using DiffT = Factorize<typename F::template DiffT<V,GRADIN>,G>;
-    
-};
-
-template < class F, class G >
-struct FactorizeAlias {
-    using type = FactorizeImpl<F,G>;
-};
-
-// specialization in case G is of type Var : in this case there is no need for copying a Var into another Var,
-// so we replace Factorize<F,Var> simply by F. This is usefull to avoid factorizing several times the same sub-formula
-template < class F, int N, int DIM, int CAT >
-struct FactorizeAlias<F,Var<N,DIM,CAT>> {
-    using type = F;
-};
-
+template < class F >
+void PrintFormula() {
+	cout << "Variables : ";
+	using Vars0 = typename F::template VARS<0>;
+	using Dims0 = GetDims<Vars0>;
+	using Inds0 = GetInds<Vars0>;
+	for(int k=0; k<Vars0::SIZE; k++)
+		cout << "x" << Inds0::VAL(k) << " (dim=" << Dims0::VAL(k) << "), ";
+	using Vars1 = typename F::template VARS<1>;
+	using Dims1 = GetDims<Vars1>;
+	using Inds1 = GetInds<Vars1>;
+	for(int k=0; k<Vars1::SIZE; k++)
+		cout << "y" << Inds1::VAL(k) << " (dim=" << Dims1::VAL(k) << "), ";
+	cout << endl;
+	cout << "Formula = ";
+	F::PrintId();
+}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 #include "formulas/constants.h"
 #include "formulas/maths.h"
 #include "formulas/norms.h"
+#include "formulas/factorize.h"
 #include "formulas/kernels.h"
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

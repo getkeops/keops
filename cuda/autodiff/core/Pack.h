@@ -121,7 +121,7 @@ struct univpack<C,Args...> {
 
 // OPERATIONS ON PACKS AND UNIVPACKS ============================================================
 // Once again, a convoluted syntax to write the "concatenation" of two lists. -------------------
-// ConcatPacks<[...],[...]> = [..., ...]  (for packs)
+// ConcatPacks<[...],[...]> = [..., ...]  (for packs or univpacks)
 template < class PACK1, class PACK2 >
 struct ConcatPacksAlias {
     using type = int;
@@ -132,9 +132,64 @@ struct ConcatPacksAlias<pack<IS...>,pack<JS...>> {
     using type = pack<IS...,JS...>;
 };
 
+template < typename... Args1, typename... Args2 >
+struct ConcatPacksAlias<univpack<Args1...>,univpack<Args2...>> {
+    using type = univpack<Args1...,Args2...>;
+};
+
 template < class PACK1, class PACK2 >
 using ConcatPacks = typename ConcatPacksAlias<PACK1,PACK2>::type;
 
+
+// count number of occurrences of a type in a univpack 
+
+template < class C, class PACK >
+struct CountInPackAlias {
+    static const int N = 0;
+};
+
+template < class C, typename... Args >
+struct CountInPackAlias<C,univpack<C,Args...>> { // CountIn( C, [C, ...] )
+	static const int N = 1+CountInPackAlias<C,univpack<Args...>>::N;
+};
+
+template < class C, class D, typename... Args >
+struct CountInPackAlias<C,univpack<D,Args...>> { // CountIn( C, [D, ...] )
+	static const int N = CountInPackAlias<C,univpack<Args...>>::N;
+};
+
+template < class C >
+struct CountInPackAlias<C,univpack<>> {        // CountIn( C, [] )
+    static const int N = 0;
+}; 
+
+//template < class C, class PACK >
+//static const int CountInPack() { return CountInPackAlias<C,PACK>::N; }
+
+
+// Remove an element from a univpack
+
+template < class C, class PACK >
+struct RemoveFromPackAlias;
+
+template < class C >
+struct RemoveFromPackAlias<C,univpack<>> { // RemoveFrom( C, [] )
+    using type = univpack<>;    // []
+};
+
+template < class C, class D, typename... Args >
+struct RemoveFromPackAlias<C,univpack<D,Args...>> { // RemoveFrom( C, [D, ...] )
+	using tmp = typename RemoveFromPackAlias<C,univpack<Args...>>::type;
+    using type = typename tmp::template PUTLEFT<D>;     // = [D] + RemoveFrom( C, [...] ) 
+};
+
+template < class C, typename... Args >
+struct RemoveFromPackAlias<C,univpack<C,Args...>> { // RemoveFrom( C, [C, ...] )
+    using type = typename RemoveFromPackAlias<C,univpack<Args...>>::type;
+};       
+
+//template < class C, class PACK >
+//using RemoveFromPack = typename RemoveFromPackAlias<C,PACK>::type;
 
 // Merge operation for univpacks. ---------------------------------------------------------------
 // MergePacks<[...],[...]> = {...} : a "merged" list, without preservation of ordering
@@ -142,44 +197,18 @@ using ConcatPacks = typename ConcatPacksAlias<PACK1,PACK2>::type;
 // Basically, this operator concatenates two LISTS and sees the result as a SET.
 // (Jean :) the syntax becomes *really* convoluted here. I may have made a mistake when commenting.
 
-// First step : MergeIn, which "adds" an element C to a set PACK
-template < class C, class PACK >
-struct MergeInPackAlias {
-    using type = int;
-};
-
-template < class C, class D, typename... Args >
-struct MergeInPackAlias<C,univpack<D,Args...>> { // MergeIn( C, [D, ...] )
-    using tmp = typename MergeInPackAlias<C,univpack<Args...>>::type;
-    using type = typename tmp::template PUTLEFT<D>;     // = [D] + MergeIn( C, [...] ) (ordering is not preserved !)
-};
-
-template < class C, typename... Args >
-struct MergeInPackAlias<C,univpack<C,Args...>> { // MergeIn( C, [C, ...] )
-    using type = univpack<C,Args...>;
-};       // = [C, ...] (without repetition of C !)
-
-template < class C >
-struct MergeInPackAlias<C,univpack<>> {        // MergeIn( C, [] )
-    using type = univpack<C>;
-};               // = [C]
-
-//template < class C, class PACK >
-//using MergeInPack = typename MergeInPackAlias<C,PACK>::type;
-
-// Second step : merging two sets by "eating-up" the first one and applying MergeIn.
 template < class PACK1, class PACK2 >
 struct MergePacksAlias;
 
-template < typename... Args1, class C, typename... Args2 >
-struct MergePacksAlias<univpack<C,Args1...>,univpack<Args2...>> {         // Merge([C,...], [...])
-    using tmp = typename MergeInPackAlias<C,univpack<Args2...>>::type;
-    using type = typename MergePacksAlias<univpack<Args1...>,tmp>::type;  // = Merge([...], MergeIn(C, [...]))
+template < class C, typename... Args1, typename... Args2 >
+struct MergePacksAlias<univpack<Args1...>,univpack<C,Args2...>> {         // Merge([...], [C,...])
+	using tmp = typename RemoveFromPackAlias<C,univpack<Args1...>>::type;
+	using type = typename MergePacksAlias<ConcatPacks<tmp,univpack<C>>,univpack<Args2...>>::type;
 };
 
-template < typename... Args2 >
-struct MergePacksAlias<univpack<>,univpack<Args2...>> {                   // Merge( [], [...])
-    using type = univpack<Args2...>;
+template < typename... Args1 >
+struct MergePacksAlias<univpack<Args1...>,univpack<>> {                   // Merge( [], [...])
+    using type = univpack<Args1...>;
 };                                   // = [...]
 
 template < class PACK1, class PACK2 >
