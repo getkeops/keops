@@ -13,13 +13,17 @@ import torch
 from   torch          import Tensor
 from   torch.autograd import Variable
 
-import os
+import os, sys
 FOLDER = os.path.dirname(os.path.abspath(__file__))+os.path.sep
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) +(os.path.sep+'..')*4)
+from libkp.torch.kernels    import Kernel
 
 from .toolbox               import shapes
 from .toolbox.shapes        import Curve
 from .toolbox.matching      import GeodesicMatching
 from .toolbox.model_fitting import FitModel
+
 
 import matplotlib.pyplot as plt
 plt.ion()
@@ -33,8 +37,8 @@ dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=1000)
-Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=1000)
+Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=300)
+Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=300)
 
 s_def = .015
 s_att = .05
@@ -47,7 +51,7 @@ params = {
 	"weight_data_attachment": 1.,               # MANDATORY
 
 	"deformation_model" : {
-		"name"  : "energy",                     # MANDATORY
+		"id"    : Kernel("energy(x,y)"),      # MANDATORY
 		"gamma" : scal_to_var(1/s_def**2),      # MANDATORY
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"normalize"          : False,           # optional  ([False], True)
@@ -55,18 +59,18 @@ params = {
 
 	"data_attachment"   : {
 		"formula"            : "kernel",        # MANDATORY ("L2", "kernel", "wasserstein", "sinkhorn")
-		"features"           : "locations",     # optional  (["locations"], "locations+normals")
+		"features"           : "locations+directions",     # MANDATORY (["locations"], "locations+directions")
 
 		# Kernel-specific parameters:
-		"name"       : "energy",                # MANDATORY (if "formula"=="kernel")
-		"gamma"      : scal_to_var(1/s_att**2), # MANDATORY (if "formula"=="kernel")
+		"id"         : Kernel("energy(x,y)* linear(u,v)**2"),   # MANDATORY (if "formula"=="kernel")
+		"gamma"      : (scal_to_var(1/s_att**2),None), # MANDATORY (if "formula"=="kernel")
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"kernel_heatmap_range" : (-2,2,100),    # optional
 
 		# Wasserstein+Sinkhorn -specific parameters:
 		"epsilon"       : scal_to_var(1/.5**2), # MANDATORY (if "formula"=="wasserstein" or "sinkhorn")
 		"kernel"        : {                     # optional
-			"name"  : "gaussian" ,              #     ...
+			"id"    : Kernel("gaussian(x,y)") , #     ...
 			"gamma" : 1/scal_to_var(1/.5**2),   #     ...
 			"backend": backend },               #     ...
 		"rho"                : -1,              # optional

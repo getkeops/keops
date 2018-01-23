@@ -47,15 +47,15 @@ params = {
 	"weight_data_attachment": 1.,               # MANDATORY
 
 	"deformation_model" : {
-		"name"  : "energy",                     # MANDATORY
+		"name"  : Kernel("energy(x,y)"),        # MANDATORY
 		"gamma" : scal_to_var(1/s_def**2),      # MANDATORY
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"normalize"          : False,           # optional  ([False], True)
 	},
 
 	"data_attachment"   : {
-		"formula"            : "wasserstein",      # MANDATORY
-		"features"           : "locations",     # MANDATORY
+		"formula"            : "wasserstein",   # MANDATORY
+		"features"           : "locations",     # MANDATORY  (["locations"], "locations+normals")
 
 		"epsilon"            : scal_to_var(1/s_att**2),
 		"rho"                : 10,
