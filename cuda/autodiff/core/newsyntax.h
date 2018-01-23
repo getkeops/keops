@@ -13,6 +13,8 @@
 
 #define Factorize(F,G) Factorize<decltype(F),decltype(G)>()
 
+#define AutoFactorize(F) AutoFactorize<decltype(F)>()
+
 #define Grad(F,V,GRADIN)  Grad<decltype(F),decltype(V),decltype(GRADIN)>()
 
 #define IntCst(N) IntConstant<N>()

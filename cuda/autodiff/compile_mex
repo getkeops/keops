@@ -2,19 +2,33 @@
 # chmod 700 compile_mex
 # examples :
 # - To build for the function f(x,y,u,v,b) = <u,v>^2*exp(-oos2*|x-y|^2)*b :
-# 		./compile_mex "#define FORMULA_OBJ Square((Vx(2,4),Vy(3,4)))*Exp(-Cst(Pm(0))*SqNorm2(Vx(0,3)-Vy(1,3)))*Vy(2,3)"
+# 		./compile_mex "" "#define FORMULA_OBJ Square((Vx(2,4),Vy(3,4)))*Exp(-Cst(Pm(0))*SqNorm2(Vx(0,3)-Vy(1,3)))*Vy(4,3)"
+# or using alias :
+#		./compile_mex "auto x=Vx(0,3); auto y=Vy(1,3); auto u=Vx(2,4); auto v=Vy(3,4); auto b=Vy(4,3); auto p=Pm(0);" "#define FORMULA_OBJ Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b"
+#
 # - To build for the gradient of the same function wrt x :
-# 		./compile_mex "#define FORMULA_OBJ Grad(Square((Vx(2,4),Vy(3,4)))*Exp(-Cst(Pm(0))*SqNorm2(Vx(0,3)-Vy(1,3)))*Vy(2,3),Vx(0,3),Vx(5,3))"
+# 		./compile_mex "" "#define FORMULA_OBJ Grad(Square((Vx(2,4),Vy(3,4)))*Exp(-Cst(Pm(0))*SqNorm2(Vx(0,3)-Vy(1,3)))*Vy(4,3),Vx(0,3),Vx(5,3))"
+# 		./compile_mex "auto x=Vx(0,3); auto y=Vy(1,3); auto u=Vx(2,4); auto v=Vy(3,4); auto b=Vy(4,3); auto p=Pm(0); auto e=Vx(5,3);" "#define FORMULA_OBJ Grad(Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b,x,e)"
 
-MATLABROOT=$(dirname $(dirname $(readlink "$( which matlab )"))) 
-#MATLABROOT=/usr/local/MATLAB/R2014a
+$(readlink "$( which matlab )")
+if [ $? == 0 ]
+then
+	MATLABROOT=$(dirname $(dirname $(readlink "$( which matlab )")))
+else
+	MATLABROOT=$(dirname $(dirname $( which matlab )))
+fi
 
 MEXC="$MATLABROOT/bin/mex"
 MEXPATH="$MATLABROOT/extern/include"
 
-CUDAROOT=$(dirname $(dirname $(readlink "$( which nvcc )"))) 
+$(readlink "$( which nvcc )")
+if [ $? == 0 ]
+then
+	CUDAROOT=$(dirname $(dirname $(readlink "$( which nvcc )"))) 
+else
+	CUDAROOT=$(dirname $(dirname $(which nvcc )))
+fi
 
-COPTIMFLAG="-O3" 
 CC="gcc"
 
 # --------- C COMPILATION PARAMETERS: --------- #
@@ -23,7 +37,7 @@ CLIB="-L$CUDAROOT/lib/ -L$CUDAROOT/lib64/ -lcudart"
 
 
 type=${3:-double}
-(echo "$1" ; echo "$2" ;  cat matlab_bindings/cudaconv.cu) | nvcc -Wno-deprecated-gpu-targets -O2 -c -x cu -DUSENEWSYNTAX -D_FORCE_INLINES -D __TYPE__=$type -std=c++11 -Xcompiler -fPIC -o /dev/stdout -I$MEXPATH -I$PWD - > "matlab_bindings/build/tmp.o"
+(echo "$1" ; echo "$2" ;  cat matlab_bindings/cudaconv.cu) | nvcc -Wno-deprecated-gpu-targets -O2 -c -x cu -DUSENEWSYNTAX -D_FORCE_INLINES -D __TYPE__=$type -std=c++11 -Xcompiler -fPIC -o /dev/stdout -I$MEXPATH -I$PWD -include $PWD/core/CpuConv.cpp -include $PWD/core/autodiff.h -include $PWD/core/newsyntax.h - > "matlab_bindings/build/tmp.o"
 
 $MEXC GCC=$CC $CLIB COPTIMFLAGS=$COPTIMFLAG -O matlab_bindings/build/tmp.o -output matlab_bindings/build/tmp
 rm matlab_bindings/build/tmp.o
