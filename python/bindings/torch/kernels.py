@@ -1,12 +1,124 @@
-from .scalar_radial_kernels import GaussianKernel, EnergyKernel, ExponentialKernel
+import math
+import re
 
-def StandardKernelProduct(gamma, x,y,b, name, mode, backend = "auto") :
+from .utils                               import Formula
+from .locations_kernels                   import LocationsKP
+from .locations_directions_kernels        import LocationsDirectionsKP
+#from .locations_directions_values_kernels import LocationsDirectionsValuesKP
+
+
+# Define the standard kernel building blocks. 
+# They will be concatenated depending on the "name" argument of Kernel.__init__
+# Feel free to add your own "pet formula" at run-time, 
+# using for instance :
+#  " kernels.locations_formulas["mykernel"] = utils.Formula( ... ) "
+
+# The "formula_*" attributes are the ones that will be used by the
+# C++/CUDA "libkp" routines - backend == "auto", "CPU", "GPU_1D", "GPU_2D".
+# They can rely on the following aliases :
+# "G", "X", "Y",
+# "H", "U", "V",
+# "I", "S", "T"
+
+# The "routine_*" ones are used if backend == "pytorch",
+# and allow you to check independently the correctness of the C++ code.
+# These pytorch routines can make use of
+# "g", "x", "y" and "xmy2" (= |x-y|_2^2),
+# "h", "u", "v" and "usv"  (= <u,v>_2  ),
+# "i", "s", "t" and "smt2" (= |s-t|_2^2).
+
+# Formulas in "x_i" and "y_j", with parameters "g" (=1/sigma^2, for instance)
+locations_formulas = {
+    "gaussian" :      Formula( # Standard RBF kernel
+        formula_sum =                          "Exp( -(Cst(G) * SqDist(X,Y)) )",
+        routine_sum = lambda g=None, xmy2=None, **kwargs : (-g*xmy2).exp(),
+        formula_log =                             "( -(Cst(G) * SqDist(X,Y)) )",
+        routine_log = lambda g=None, xmy2=None, **kwargs :  -g*xmy2,
+    ),
+    "exponential" :   Formula( # Pointy kernel
+        formula_sum =                      "Exp( - Sqrt(Cst(G) * SqDist(X,Y)) )",
+        routine_sum = lambda g=None, xmy2=None, **kwargs : (-(g*xmy2).sqrt()).exp(),
+        formula_log =                         "( - Sqrt(Cst(G) * SqDist(X,Y)) )",
+        routine_log = lambda g=None, xmy2=None, **kwargs :  -(g*xmy2).sqrt(),
+    ),
+    "energy" :        Formula( # Heavy tail kernel
+        formula_sum =   "Powf( IntCst(1) + Cst(G) * SqDist(X,Y) , IntInv(-4) )",
+        routine_sum = lambda g=None, xmy2=None, **kwargs : torch.pow( 1 + g * xmy2, -.25 ),
+        formula_log =       "( IntInv(-4) * Log(IntCst(1) + Cst(G) * SqDist(X,Y)) )",
+        routine_log = lambda g=None, xmy2=None, **kwargs :  -.25 * (1 + g * xmy2).log(),
+    ),
+}
+
+# Formulas in "u_i" and "v_j", with parameters "h" (=1/sigma^2, for instance)
+directions_formulas = {
+    "linear" :        Formula( # Linear kernel wrt. directions aka. "currents"
+        formula_sum =                           "(U,V)",
+        routine_sum = lambda usv=None, **kwargs : usv,
+        formula_log =                      "Log( (U,V) )",
+        routine_log = lambda usv=None, **kwargs : usv.log()
+    ),
+}
+
+# Formulas in "s_i" and "t_j", with parameters "i" (=1/sigma^2, for instance)
+values_formulas = {
+    "gaussian" :    Formula( # Standard RBF kernel
+        formula_sum =                          "Exp( -(Cst(I) * SqDist(S,T)) )",
+        routine_sum = lambda i=None, smt2=None, **kwargs : (-i*smt2).exp(),
+        formula_log =                             "( -(Cst(I) * SqDist(S,T)) )",
+        routine_log = lambda i=None, smt2=None, **kwargs :  -i*smt2,
+    ),
+}
+
+
+class Kernel :
+    def __init__(self, name) :
+        """
+        Examples of valid names :
+            " gaussian(x,y) * linear(u,v)**2 * gaussian(s,t)"
+            " gaussian(x,y) * (1 + linear(u,v)**2 ) "
+        """
+        # Determine the features type from the formula : ------------------------------------------------
+        locations  = "(x,y)" in name
+        directions = "(u,v)" in name
+        values     = "(s,t)" in name
+
+        if   locations and not directions and not values :
+            self.features    = "locations"
+        elif locations and     directions and not values :
+            self.features    = "locations+directions"
+        elif locations and     directions and     values :
+            self.features    = "locations+directions+values"
+        else :
+            raise ValueError( "This combination of features is not supported (yet) : \n" \
+                            + "locations : "+str(locations) + ", directions : " + str(directions) \
+                            + ", values : " + str(values) +".")
+
+        # Regexp matching ---------------------------------------------------------------------------------
+        # Replace, say, " gaussian(x,y) " with " locations_formulas["gaussian"] "
+        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(x,y\)',  r'locations_formulas["\1"]', name)
+        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(u,v\)', r'directions_formulas["\1"]', name)
+        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(s,t\)',     r'values_formulas["\1"]', name)
+        # Replace int values "N" with "Formula(intvalue=N)"
+        name = re.sub(r'([0-9]+)',     r'Formula(intvalue=\1)', name)
+
+        print(name)
+        # Final result : ----------------------------------------------------------------------------------
+        kernel = eval(name)
+        
+        self.formula_sum = kernel.formula_sum
+        self.routine_sum = kernel.routine_sum
+        self.formula_log = kernel.formula_log
+        self.routine_log = kernel.routine_log
+
+        print(self.formula_sum)
+
+
+def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto") :
     """
-    Convenience function, providing the standard formulas implemented
-    in the libkp library.
+    Convenience function.
 
     Computes K(x_i,y_j) @ nu_j = \sum_j k(x_i-y_j) * nu_j
-    where k is a kernel function specified by "name".
+    where k is a kernel function specified by "kernel", a 'Kernel' object.
 
     In the simplest cases, the signature of our function is as follow:
     Args:
@@ -22,7 +134,7 @@ def StandardKernelProduct(gamma, x,y,b, name, mode, backend = "auto") :
         v ( (N,E) torch Variable) : sampled vector field 
                                     (or its coordinate-wise logarithm, if mode=="log")
 
-    However, if, say, params["formula"]=="gaussian currents",
+    However, if, say, kernel.features = "locations+directions",
     we use a kernel function parametrized by locations
     X_i, Y_j AND directions U_i, V_j.
     The argument "x" is then a pair (X,U) of (N,D) torch Variables,
@@ -48,20 +160,18 @@ def StandardKernelProduct(gamma, x,y,b, name, mode, backend = "auto") :
     use a suitable one depending on your configuration + the dimensions of x, y and b.
     """
 
-    point_kernels           = { "gaussian"         : GaussianKernel,
-                                "energy"           : EnergyKernel  ,
-                                "exponential"      : ExponentialKernel}
-    point_direction_kernels = { }#"gaussian current" : GaussianCurrentKernel} 
-
-    if   name in point_kernels :
-        return point_kernels[name]( gamma, x, y, b, mode = mode, backend = backend)
-    elif name in point_direction_kernels :
-        X,U = x; Y,V = y
-        return point_direction_kernels[name]( gamma, X, Y, U, V, b, mode = mode, backend = backend)
+    if   kernel.features == "locations" :
+        return                 LocationsKP( kernel, gamma, x, y,               b, mode = mode, backend = backend)
+    elif kernel.features == "locations+directions" :
+        G,H   = gamma; X,U   = x; Y,V   = y
+        return       LocationsDirectionsKP( kernel, G, X, Y, H, U, V,          b, mode = mode, backend = backend)
+    elif kernel.features == "locations+directions+values" :
+        G,H,I = gamma; X,U,S = x; Y,V,T = y
+        return LocationsDirectionsValuesKP( kernel, G, X, Y, H, U, V, I, S, T, b, mode = mode, backend = backend)
     else :
-        raise NotImplementedError("Kernel name '"+name+"'. "\
-                                 +'Available values are "' + '", "'.join(point_kernels.keys()) \
-                                 + '", "' + '", "'.join(point_direction_kernels.keys())+'".' )
+        raise NotImplementedError("Kernel features '"+kernel.features+"'. "\
+                                 +'Available values are "locations", "locations+directions" ' \
+                                 +'and "locations+directions+values".' )
 
 
 
