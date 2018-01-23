@@ -133,7 +133,7 @@ class Curve :
         a,b = self.to_segments()
         lengths    =   ((a-b)**2).sum(1).sqrt()
         centers    = .5*(a+b)
-        directions =    (a-b) / (lengths + 1e-5)
+        directions =    (a-b) / (lengths.view(-1,1) + 1e-5)
         return lengths, (centers, directions)
     
     # Output routines -------------------------------------------------------------------------

@@ -61,7 +61,7 @@ def _kernel_distance(Mu, Nu, params, info = False) :
            - 2*_kernel_scalar_product(Mu,Nu,params) )
     
     kernel_heatmap = None
-    if info :
+    if False :#info :
         # Create a uniform grid on the [-2,+2]x[-2,+2] square:
         xmin,xmax,res  = params.get("kernel_heatmap_range", (-2,2,100))
         ticks  = np.linspace( xmin, xmax, res + 1)[:-1] + 1/(2*res) 
@@ -192,12 +192,12 @@ def _data_attachment(source, target, params, info=False) :
     if   embedding == "locations" :
         Mu = source.to_measure()
         Nu = target.to_measure()
-    elif embedding == "locations+normals" :
+    elif embedding == "locations+directions" :
         Mu = source.to_current()
         Nu = target.to_current()
     else :
         raise NotImplementedError('Unknown features type : "'+embedding+'". ' \
-                                  'Available values are "locations" and "locations+normals".')
+                                  'Available values are "locations" and "locations+directions".')
 
     attachment_type = params["formula"]
     routines = { "L2"          : _L2_distance,
