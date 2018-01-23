@@ -51,7 +51,7 @@ params = {
 	"weight_data_attachment": 1.,               # MANDATORY
 
 	"deformation_model" : {
-		"id"    : Kernel("gaussian(x,y)"),        # MANDATORY
+		"id"    : Kernel("gaussian(x,y)"),      # MANDATORY
 		"gamma" : scal_to_var(1/s_def**2),      # MANDATORY
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"normalize"          : False,           # optional  ([False], True)

@@ -34,10 +34,10 @@ def LocationsKP( kernel, g, x, y, b, mode = "sum", backend="auto") :
     else :
         if   mode == "sum" : 
             genconv  = GenericKernelProduct().apply
-            formula  = "(" + kernel.formula_sum + ") * B"
+            formula  = "("+kernel.formula_sum + " * B)"
         elif mode == "log" :
             genconv  = GenericLogSumExp().apply
-            formula  = "(" + kernel.formula_log + ") + B"
+            formula  = "("+kernel.formula_log + " + B)"
         else : raise ValueError('"mode" should either be "sum" or "log".')
         
         dimpoint = x.size(1) ; dimout = b.size(1)

@@ -43,23 +43,23 @@ class Formula :
             self.routine_log = lambda **x : math.log(intvalue)
     
     def __add__(self, other) :
-        return Formula( formula_sum =           "("+self.formula_sum  + ")+(" + other.formula_sum +")",
+        return Formula( formula_sum =           "("+self.formula_sum  + " + " + other.formula_sum +")",
                         routine_sum = lambda **x :  self.routine_sum(**x) +     other.routine_sum(**x) ,
-                        formula_log =      "Log( ("+self.formula_sum  + ")+(" + other.formula_sum+") )",
+                        formula_log =      "Log( ("+self.formula_sum  + " + " + other.formula_sum+") )",
                         routine_log = lambda **x : (self.routine_sum(**x) +     other.routine_sum(**x)).log() ,
                 )
 
     def __mul__(self, other) :
-        return Formula( formula_sum =           "("+self.formula_sum  + ")*(" + other.formula_sum + ")" ,
+        return Formula( formula_sum =           "("+self.formula_sum  + " * " + other.formula_sum + ")" ,
                         routine_sum = lambda **x :  self.routine_sum(**x) *     other.routine_sum(**x) ,
-                        formula_log =           "("+self.formula_log  + ")+(" + other.formula_log + ")",
+                        formula_log =           "("+self.formula_log  + " + " + other.formula_log + ")",
                         routine_log = lambda **x : (self.routine_log(**x) +     other.routine_log(**x)) ,
                 )
 
     def __pow__(self, other) :
         return Formula( formula_sum =        "Pow("+self.formula_sum+   ","+other.formula_sum+")" ,
                         routine_sum = lambda **x :  self.routine_sum(**x)**(other.routine_sum(**x) ),
-                        formula_log =          "("+other.formula_sum+   ")*("+self.formula_log + ")",
+                        formula_log =          "("+other.formula_sum+   " * "+self.formula_log + ")",
                         routine_log = lambda **x : other.routine_sum(**x) *   self.routine_log(**x) ,
                 )
 

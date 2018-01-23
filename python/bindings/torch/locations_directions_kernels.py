@@ -34,10 +34,10 @@ def LocationsDirectionsKP( kernel, g, x, y, h, u, v, b, mode = "sum", backend="a
     else :
         if   mode == "sum" : 
             genconv  = GenericKernelProduct().apply
-            formula  = "(" + kernel.formula_sum + ") * B"
+            formula  = "("+kernel.formula_sum + " * B)"
         elif mode == "log" :
             genconv  = GenericLogSumExp().apply
-            formula  = "(" + kernel.formula_log + ") + B"
+            formula  = "("+kernel.formula_log + " + B)"
         else : raise ValueError('"mode" should either be "sum" or "log".')
         
         dimpoint = x.size(1) ; dimout = b.size(1)

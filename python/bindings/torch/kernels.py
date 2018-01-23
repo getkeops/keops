@@ -38,13 +38,13 @@ locations_formulas = {
     "exponential" :   Formula( # Pointy kernel
         formula_sum =                      "Exp( - Sqrt(Cst(G) * SqDist(X,Y)) )",
         routine_sum = lambda g=None, xmy2=None, **kwargs : (-(g*xmy2).sqrt()).exp(),
-        formula_log =                         "( - Sqrt(Cst(G) * SqDist(X,Y)) )",
+        formula_log =                         "(  - Sqrt(Cst(G) * SqDist(X,Y)) )",
         routine_log = lambda g=None, xmy2=None, **kwargs :  -(g*xmy2).sqrt(),
     ),
     "energy" :        Formula( # Heavy tail kernel
         formula_sum =   "Powf( IntCst(1) + Cst(G) * SqDist(X,Y) , IntInv(-4) )",
         routine_sum = lambda g=None, xmy2=None, **kwargs : torch.pow( 1 + g * xmy2, -.25 ),
-        formula_log =       "( IntInv(-4) * Log(IntCst(1) + Cst(G) * SqDist(X,Y)) )",
+        formula_log =       "(  IntInv(-4) * Log(IntCst(1) + Cst(G) * SqDist(X,Y)) ) ",
         routine_log = lambda g=None, xmy2=None, **kwargs :  -.25 * (1 + g * xmy2).log(),
     ),
 }
