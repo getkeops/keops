@@ -41,6 +41,7 @@ class Formula :
             self.routine_sum = lambda **x :   intvalue
             self.formula_log =  "Log(IntCst("+str(intvalue)+")"
             self.routine_log = lambda **x : math.log(intvalue)
+            self.intvalue    = intvalue
     
     def __add__(self, other) :
         return Formula( formula_sum =           "("+self.formula_sum  + " + " + other.formula_sum +")",
@@ -57,8 +58,9 @@ class Formula :
                 )
 
     def __pow__(self, other) :
-        return Formula( formula_sum =        "Pow("+self.formula_sum+   ","+other.formula_sum+")" ,
-                        routine_sum = lambda **x :  self.routine_sum(**x)**(other.routine_sum(**x) ),
+        "N.B.: other should be a Formula(intvalue=N)."
+        return Formula( formula_sum =        "Pow("+self.formula_sum+   ","+str(other.intvalue)+")" ,
+                        routine_sum = lambda **x :  self.routine_sum(**x)**(    other.intvalue ),
                         formula_log =          "("+other.formula_sum+   " * "+self.formula_log + ")",
                         routine_log = lambda **x : other.routine_sum(**x) *   self.routine_log(**x) ,
                 )
