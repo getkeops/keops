@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from   matplotlib.collections  import LineCollection
 
+from pyvtk import PolyData, PointData, Scalars, VtkData
+
 
 use_cuda = torch.cuda.is_available()
 dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
@@ -74,9 +76,6 @@ def level_curves(fname, npoints = 200, smoothing = 10, level = 0.5) :
 
 
 
-# from '.vtk' to Curves objects  ----------------------------------------------------------------
-from pyvtk import PolyData, VtkData
-
 class Curve :
     "Encodes a 2D/3D curve as an array of float coordinates + a connectivity list."
     def __init__(self, points, connectivity, values=None) :
@@ -103,6 +102,8 @@ class Curve :
               If you're reading a 3D vtk file (say, tractography fibers),
               please set "dim=3" when calling this method !
         """
+
+        values = None 
         if   fname[-4:] == '.png' :
             (points, connec) = level_curves(fname, *args, **kwargs)
         elif fname[-4:] == '.vtk' :
@@ -110,8 +111,8 @@ class Curve :
             points = np.array(data.structure.points)[:,0:dim]
             connec = np.array(data.structure.polygons)
             try :
-                values = np.array( data.point_data.data[0].scalar )
-                values = Variable(torch.from_numpy( values )).type(dtype)
+                values = np.array( data.point_data.data[0].scalars )
+                values = Variable(torch.from_numpy( values ).view(-1,1) ).type(dtype)
             except :
                 values = None 
         else :
@@ -204,7 +205,11 @@ class Curve :
     def save(self, filename, ext = ".vtk") :
         structure = PolyData(points  =      self.points.data.cpu().numpy(),
                              polygons=self.connectivity.data.cpu().numpy())
-        vtk = VtkData(structure)
+        if self.values is not None :
+            values = PointData( Scalars(self.values.data.cpu().numpy()) )
+            vtk    = VtkData(structure, values)
+        else :
+            vtk = VtkData(structure)
         fname = filename + ext ; os.makedirs(os.path.dirname(fname), exist_ok=True)
         vtk.tofile( fname )
 
@@ -235,13 +240,14 @@ class Surface :
         """
         Creates a curve object from a '.vtk' file.
         """
+        values = None 
         if fname[-4:] == '.vtk' :
             data = VtkData(fname)
             points = np.array(data.structure.points)
             connec = np.array(data.structure.polygons)
             try :
-                values = np.array( data.point_data.data[0].scalar )
-                values = Variable(torch.from_numpy( values )).type(dtype)
+                values = np.array( data.point_data.data[0].scalars )
+                values = Variable(torch.from_numpy( values ).view(-1,1)).type(dtype)
             except :
                 values = None 
         else :
@@ -277,9 +283,11 @@ class Surface :
         """
         a,b,c = self.to_triangles()
         u  = b-a ; v = c-a
-        ux = u[:,0].view(-1,1) ; uy = u[:,1].view(-1,1) ; uz = u[:,2].view(-1,1)
-        vx = v[:,0].view(-1,1) ; vy = v[:,1].view(-1,1) ; vz = v[:,2].view(-1,1)
-        normals   = .5 * torch.cat( (uy*vz-uz*vy, uz*vx-ux*vz, ux*vy-uy*vx), dim=1 ).contiguous()
+
+        ux = u[:,0] ; uy = u[:,1] ; uz = u[:,2]
+        vx = v[:,0] ; vy = v[:,1] ; vz = v[:,2]
+        normals   = .5 * torch.stack( (uy*vz-uz*vy, uz*vx-ux*vz, ux*vy-uy*vx) ).t().contiguous()
+        print(normals.size())
         areas     =  (normals**2).sum(1).sqrt()
         centers   =  (a+b+c)/3
         normals_u =    normals / (areas.view(-1,1) + 1e-5)
@@ -299,7 +307,13 @@ class Surface :
     def save(self, filename, ext = ".vtk") :
         structure = PolyData(points  =      self.points.data.cpu().numpy(),
                              polygons=self.connectivity.data.cpu().numpy())
-        vtk = VtkData(structure)
+
+        if self.values is not None :
+            values = PointData( Scalars(self.values.data.cpu().numpy()) )
+            vtk    = VtkData(structure, values)
+        else :
+            vtk = VtkData(structure)
+
         fname = filename + ext ; os.makedirs(os.path.dirname(fname), exist_ok=True)
         vtk.tofile( fname )
 

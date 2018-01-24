@@ -6,6 +6,8 @@ from math import isnan
 import numpy as np
 from scipy.optimize import minimize
 
+import warnings
+warnings.filterwarnings("ignore",".*GUI is implemented.*") # annoying warning with pyplot and pause...
 
 def model_to_numpy(model, grad=False) :
     """

@@ -23,9 +23,9 @@ class GeodesicMatching(nn.Module) :
         """
         Shoots.
         """
-        model        = copy(self.template)
-        model.points = _HamiltonianShooting(model.points, self.p0, params_def, self.weights)[0]
-        return model
+        q1        = copy(self.template)
+        q1.points = _HamiltonianShooting(q1.points, self.p0, params_def, self.weights)[0]
+        return q1
     
     def cost(self, params, target, info=False) :
         """
@@ -60,7 +60,7 @@ class GeodesicMatching(nn.Module) :
         # Create a new grid:
         dim         = self.template.points.size(1)
         par_plot    =   params.get("display",    {})
-        grid_ticks  = par_plot.get("grid_ticks", ((-1,1,11),)*dim)
+        grid_ticks  = par_plot.get("grid_ticks", ((0,1,11),)*dim)
         grid        = new_grid(grid_ticks)
 
         # "Shoot" the grid, alongside the template. We may as well store the whole

@@ -20,7 +20,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) +(os.path.sep+'..')*4
 from libkp.torch.kernels    import Kernel
 
 from .toolbox               import shapes
-from .toolbox.shapes        import Curve
+from .toolbox.shapes        import Curve, Surface
 from .toolbox.matching      import GeodesicMatching
 from .toolbox.model_fitting import FitModel
 
@@ -37,8 +37,8 @@ dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=300)
-Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=300)
+Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=3000)
+Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=3000)
 
 s_def = .015
 s_att = .05
@@ -51,7 +51,7 @@ params = {
 	"weight_data_attachment": 1.,               # MANDATORY
 
 	"deformation_model" : {
-		"id"    : Kernel("energy(x,y)"),      # MANDATORY
+		"id"    : Kernel("gaussian(x,y)"),      # MANDATORY
 		"gamma" : scal_to_var(1/s_def**2),      # MANDATORY
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"normalize"          : False,           # optional  ([False], True)
@@ -59,11 +59,11 @@ params = {
 
 	"data_attachment"   : {
 		"formula"            : "kernel",        # MANDATORY ("L2", "kernel", "wasserstein", "sinkhorn")
-		"features"           : "locations+directions",     # MANDATORY (["locations"], "locations+directions")
+		"features"           : "locations",     # MANDATORY (["locations"], "locations+directions")
 
 		# Kernel-specific parameters:
-		"id"         : Kernel("energy(x,y)* linear(u,v)**2"),   # MANDATORY (if "formula"=="kernel")
-		"gamma"      : (scal_to_var(1/s_att**2),None), # MANDATORY (if "formula"=="kernel")
+		"id"         : Kernel("gaussian(x,y)"),   # MANDATORY (if "formula"=="kernel")
+		"gamma"      : (scal_to_var(1/s_att**2)), # MANDATORY (if "formula"=="kernel")
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"kernel_heatmap_range" : (-2,2,100),    # optional
 

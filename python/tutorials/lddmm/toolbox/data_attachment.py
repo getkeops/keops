@@ -156,10 +156,19 @@ def _wasserstein_distance(Mu, Nu, params, info = False) :
     
     transport_plan = None
     if info :
-        None
-        #eps   = params["epsilon"]
-        #C = ((Mu[1].unsqueeze(1) - Nu[1].unsqueeze(0) )**2).sum(2)
-        #transport_plan = ( U.view(-1,1)+V.view(1,-1) - C/eps ).exp()
+        mode = params.get("transport_plan", "none")
+        if mode   == "none" :
+            None
+        elif mode == "minimal" :
+            None
+        elif mode == "full" :
+            eps   = params["epsilon"]
+            C = ((Mu[1].unsqueeze(1) - Nu[1].unsqueeze(0) )**2).sum(2)
+            transport_plan = ( U.view(-1,1)+V.view(1,-1) - C/eps ).exp()
+        else :
+            raise ValueError('params["transport_plan"] has incorrect value : ' \
+                             + str(params["transport_plan"]) + ".\nCorrect values are " \
+                             + '"none", "minimal" and "full".'                               )
     return D2, transport_plan
 
 def _sinkhorn_distance(Mu, Nu, params, info = False) :

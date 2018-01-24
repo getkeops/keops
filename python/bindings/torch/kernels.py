@@ -1,6 +1,8 @@
 import math
 import re
 
+import torch
+
 from .utils                               import Formula
 from .locations_kernels                   import LocationsKP
 from .locations_directions_kernels        import LocationsDirectionsKP
@@ -36,10 +38,10 @@ locations_formulas = {
         routine_log = lambda g=None, xmy2=None, **kwargs :  -g*xmy2,
     ),
     "exponential" :   Formula( # Pointy kernel
-        formula_sum =                      "Exp( - Sqrt(Cst(G) * SqDist(X,Y)) )",
-        routine_sum = lambda g=None, xmy2=None, **kwargs : (-(g*xmy2).sqrt()).exp(),
-        formula_log =                         "(  - Sqrt(Cst(G) * SqDist(X,Y)) )",
-        routine_log = lambda g=None, xmy2=None, **kwargs :  -(g*xmy2).sqrt(),
+        formula_sum =                      "Exp( - Sqrt(Cst(G) * SqDist(X,Y)  + IntInv(10000) ) )",
+        routine_sum = lambda g=None, xmy2=None, **kwargs : (-(g*xmy2+.0001).sqrt()).exp(),
+        formula_log =                         "(  - Sqrt(Cst(G) * SqDist(X,Y) + IntInv(10000) ) )",
+        routine_log = lambda g=None, xmy2=None, **kwargs :  -(g*xmy2+.0001).sqrt(),
     ),
     "energy" :        Formula( # Heavy tail kernel
         formula_sum =   "Powf( IntCst(1) + Cst(G) * SqDist(X,Y) , IntInv(-4) )",
@@ -101,7 +103,6 @@ class Kernel :
         # Replace int values "N" with "Formula(intvalue=N)"
         name = re.sub(r'([0-9]+)',     r'Formula(intvalue=\1)', name)
 
-        print(name)
         # Final result : ----------------------------------------------------------------------------------
         kernel = eval(name)
         
@@ -110,7 +111,6 @@ class Kernel :
         self.formula_log = kernel.formula_log
         self.routine_log = kernel.routine_log
 
-        print(self.formula_sum)
 
 
 def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto") :
