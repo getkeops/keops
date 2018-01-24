@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 from   torch.autograd import Variable
-from   .kernel_product import _kernel_product
+from   .kernel_product import _kernel_product, Kernel
 
 
 # L2 DISTANCE (for testing purposes) ==========================================================
@@ -88,8 +88,8 @@ def _sinkhorn_loop(Mu, Nu, params) :
     # N.B.: The user should be aware that this routine solves a *regularized*
     #       OT problem, so we do not provide default value for epsilon.
     eps    = params["epsilon"]  
-    kernel = params.get("kernel", {"name"  : "gaussian" ,
-                                   "gamma" :  1 / eps,
+    kernel = params.get("kernel", {"id"     : Kernel("gaussian(x,y)") ,
+                                   "gamma"  :  1 / eps,
                                    "backend": "auto"   } )
 
     rho    = params.get("rho",  -1)    # Use unbalanced transport?
@@ -113,8 +113,8 @@ def _sinkhorn_loop(Mu, Nu, params) :
 
         # Kernel products + pointwise divisions, combined with an extrapolating scheme if tau<0
         # Mathematically speaking, we're alternating Kullback-Leibler projections.
-        U = tau*U + (1-tau)*lam*( log_mu - _kernel_product(Mu[1], Nu[1], V, kernel, mode="log") ) 
         V = tau*V + (1-tau)*lam*( log_nu - _kernel_product(Nu[1], Mu[1], U, kernel, mode="log") )
+        U = tau*U + (1-tau)*lam*( log_mu - _kernel_product(Mu[1], Nu[1], V, kernel, mode="log") ) 
 
         # Compute the L1 norm of the update wrt. U. If it's small enough... break the loop!
         err = (eps * (U-U_prev).abs().mean()).data.cpu().numpy()
