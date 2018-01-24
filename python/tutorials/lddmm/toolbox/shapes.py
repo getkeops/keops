@@ -78,24 +78,30 @@ def level_curves(fname, npoints = 200, smoothing = 10, level = 0.5) :
 from pyvtk import PolyData, VtkData
 
 class Curve :
-    "Encodes a 2D curve as an array of float coordinates + a connectivity list."
-    def __init__(self, points, connectivity) :
+    "Encodes a 2D/3D curve as an array of float coordinates + a connectivity list."
+    def __init__(self, points, connectivity, values=None) :
         """
         Creates a curve object from explicit numerical values.
 
         Args:
             points       ( (N,D) torch Variable) : the vertices of the curve
-            connectivity ( (N,2) torch Variable) : connectivity matrix.
+            connectivity ( (M,2) torch Variable) : connectivity matrix : one line = one segment.
                                                    Its type should either be torch.LongTensor
                                                    or torch.cuda.LongTensor, depending on points.type().
+            values       ( (M,E) torch Variable) : a signal of arbitrary dimension, 
+                                                   supported by the segments of the curve.
         """ 
         self.points       = points
         self.connectivity = connectivity
+        self.values       = values
     
     @staticmethod
     def from_file(fname, *args, dim=2, **kwargs) :
         """
         Creates a curve object from a filename, either a ".png" or a ".vtk".
+        N.B.: By default, curves are assumed to be of dimension 2.
+              If you're reading a 3D vtk file (say, tractography fibers),
+              please set "dim=3" when calling this method !
         """
         if   fname[-4:] == '.png' :
             (points, connec) = level_curves(fname, *args, **kwargs)
@@ -103,6 +109,11 @@ class Curve :
             data = VtkData(fname)
             points = np.array(data.structure.points)[:,0:dim]
             connec = np.array(data.structure.polygons)
+            try :
+                values = np.array( data.point_data.data[0].scalar )
+                values = Variable(torch.from_numpy( values )).type(dtype)
+            except :
+                values = None 
         else :
             raise NotImplementedError('Filetype not supported : "'+str(fname)+'". ' \
                                       'Please load either ".vtk" or ".png" files.')
@@ -110,7 +121,7 @@ class Curve :
         # Convert the convenient numpy arrays to efficient torch tensors, and build the Curve object:
         points = Variable(torch.from_numpy( points ), requires_grad=True).type(dtype)
         connec = Variable(torch.from_numpy( connec )).type(dtypeint)
-        return Curve( points, connec) 
+        return Curve( points, connec, values=values) 
 
     def to_segments(self) :
         return self.points[self.connectivity[:,0],:], self.points[self.connectivity[:,1],:]
@@ -127,14 +138,21 @@ class Curve :
         centers = .5*(a+b)
         return lengths, centers
     
-    def to_current(self) :
+    def to_varifold(self) :
         """
         """
         a,b = self.to_segments()
-        lengths    =   ((a-b)**2).sum(1).sqrt()
+        u          =    (a-b)
+        lengths    =   (  u**2).sum(1).sqrt()
         centers    = .5*(a+b)
-        directions =    (a-b) / (lengths.view(-1,1) + 1e-5)
+        directions =      u / (lengths.view(-1,1) + 1e-5)
         return lengths, (centers, directions)
+
+    def to_fvarifold(self) :
+        """
+        """
+        lengths, (centers, directions) = self.to_varifold()
+        return lengths, (centers, directions, self.values)
     
     # Output routines -------------------------------------------------------------------------
 
@@ -147,6 +165,13 @@ class Curve :
         b   = b.data.cpu().numpy() # a pyplot-friendly format.
         segs = [ [a_i,b_i] for (a_i,b_i) in zip(a,b)]
 
+        if isinstance(color, str) and self.values is not None : # Plot the signal
+            if color == 'rainbow' : color = 'hsv' # override the non-pyplot default value...
+            values     = self.values.data.cpu().numpy()
+            maxval     = abs(values).max()
+            cNorm      = colors.Normalize(vmin=-maxval, vmax=maxval)
+            scalarMap  = cm.ScalarMappable(norm=cNorm, cmap=plt.get_cmap(color) )
+            seg_colors = [ scalarMap.to_rgba( v ) for v in values ]
         if color == 'rainbow' :   # rainbow color scheme to see pointwise displacements
             ncycles    = 5
             cNorm      = colors.Normalize(vmin=0, vmax=(len(segs)-1)/ncycles)
@@ -175,6 +200,101 @@ class Curve :
                 s = 4*9*(linewidth**2)*connectivity,
                 c = dot_colors)
         """
+        
+    def save(self, filename, ext = ".vtk") :
+        structure = PolyData(points  =      self.points.data.cpu().numpy(),
+                             polygons=self.connectivity.data.cpu().numpy())
+        vtk = VtkData(structure)
+        fname = filename + ext ; os.makedirs(os.path.dirname(fname), exist_ok=True)
+        vtk.tofile( fname )
+
+
+# Surfaces ============================================================================================================
+
+
+class Surface :
+    "Encodes a 3D surface as an array of float coordinates + a connectivity list."
+    def __init__(self, points, connectivity, values=None) :
+        """
+        Creates a curve object from explicit numerical values.
+
+        Args:
+            points       ( (N,D) torch Variable) : the vertices of the curve
+            connectivity ( (M,2) torch Variable) : connectivity matrix : one line = one segment.
+                                                   Its type should either be torch.LongTensor
+                                                   or torch.cuda.LongTensor, depending on points.type().
+            values       ( (M,E) torch Variable) : a signal of arbitrary dimension, 
+                                                   supported by the segments of the curve.
+        """ 
+        self.points       = points
+        self.connectivity = connectivity
+        self.values       = values
+    
+    @staticmethod
+    def from_file(fname, *args, **kwargs) :
+        """
+        Creates a curve object from a '.vtk' file.
+        """
+        if fname[-4:] == '.vtk' :
+            data = VtkData(fname)
+            points = np.array(data.structure.points)
+            connec = np.array(data.structure.polygons)
+            try :
+                values = np.array( data.point_data.data[0].scalar )
+                values = Variable(torch.from_numpy( values )).type(dtype)
+            except :
+                values = None 
+        else :
+            raise NotImplementedError('Filetype not supported : "'+str(fname)+'". ' \
+                                      'Please load ".vtk" files.')
+        
+        # Convert the convenient numpy arrays to efficient torch tensors, and build the Curve object:
+        points = Variable(torch.from_numpy( points ), requires_grad=True).type(dtype)
+        connec = Variable(torch.from_numpy( connec )).type(dtypeint)
+        return Surface( points, connec, values=values) 
+
+    def to_triangles(self) :
+        return self.points[self.connectivity[:,0],:], self.points[self.connectivity[:,1],:], self.points[self.connectivity[:,2],:]
+
+    def to_measure(self) :
+        """
+        Outputs the sum-of-diracs measure associated to the curve.
+        Each triangle from the connectivity matrix self.connectivity
+        is represented as a weighted dirac located at its center,
+        with weight equal to the triangle area.
+        """
+        a,b,c   = self.to_triangles()
+        u  = b-a ; v = c-a
+        ux = u[:,0].view(-1,1) ; uy = u[:,1].view(-1,1) ; uz = u[:,2].view(-1,1)
+        vx = v[:,0].view(-1,1) ; vy = v[:,1].view(-1,1) ; vz = v[:,2].view(-1,1)
+        normals   = .5 * torch.cat( (uy*vz-uz*vy, uz*vx-ux*vz, ux*vy-uy*vx), dim=1 ).contiguous()
+        areas     = (normals**2).sum(1).sqrt()
+        centers =   (a+b+c)/3
+        return areas, centers
+    
+    def to_varifold(self) :
+        """
+        """
+        a,b,c = self.to_triangles()
+        u  = b-a ; v = c-a
+        ux = u[:,0].view(-1,1) ; uy = u[:,1].view(-1,1) ; uz = u[:,2].view(-1,1)
+        vx = v[:,0].view(-1,1) ; vy = v[:,1].view(-1,1) ; vz = v[:,2].view(-1,1)
+        normals   = .5 * torch.cat( (uy*vz-uz*vy, uz*vx-ux*vz, ux*vy-uy*vx), dim=1 ).contiguous()
+        areas     =  (normals**2).sum(1).sqrt()
+        centers   =  (a+b+c)/3
+        normals_u =    normals / (areas.view(-1,1) + 1e-5)
+        return areas, (centers, normals_u)
+
+    def to_fvarifold(self) :
+        """
+        """
+        areas, (centers, normals_u) = self.to_varifold()
+        return areas, (centers, normals_u, self.values)
+    
+    # Output routines -------------------------------------------------------------------------
+
+    def plot(self, ax, color = 'rainbow', linewidth = 3) :
+        raise Warning("3D plot is not supported. Please use vtk export + paraview !")
         
     def save(self, filename, ext = ".vtk") :
         structure = PolyData(points  =      self.points.data.cpu().numpy(),

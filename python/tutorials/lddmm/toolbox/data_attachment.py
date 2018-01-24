@@ -189,12 +189,15 @@ def _data_attachment(source, target, params, info=False) :
     """Given two shapes and a dict of parameters, returns a cost."""
 
     embedding = params.get("features", "locations")
-    if   embedding == "locations" :
+    if   embedding == "locations" :                    # one dirac = one vector x_i or y_j
         Mu = source.to_measure()
         Nu = target.to_measure()
-    elif embedding == "locations+directions" :
-        Mu = source.to_current()
-        Nu = target.to_current()
+    elif embedding == "locations+directions" :         # one dirac = (x_i,u_i)     or (y_j,v_j)
+        Mu = source.to_varifold()                      # N.B.: u_i and v_j 's norms are equal to 1 !
+        Nu = target.to_varifold()
+    elif embedding == "locations+directions+values" :  # one dirac = (x_i,u_i,s_i) or (y_j,v_j,t_j)
+        Mu = source.to_fvarifold() # "functional varifolds": (terminology 
+        Nu = target.to_fvarifold() # introduced in the PhD thesis of Nicolas Charon)
     else :
         raise NotImplementedError('Unknown features type : "'+embedding+'". ' \
                                   'Available values are "locations" and "locations+directions".')

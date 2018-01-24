@@ -27,8 +27,8 @@ def LocationsDirectionsKP( kernel, g, x, y, h, u, v, b, mode = "sum", backend="a
     if h is None : h = g  # Shameful HACK until I properly implement parameters for the pytorch backend!!!
 
     if backend == "pytorch" :
-        if   mode == "sum" : return     _locations_directions_kernel(kernel.routine_sum, g, x, y, b)
-        elif mode == "log" : return _locations_directions_kernel_log(kernel.routine_log, g, x, y, b)
+        if   mode == "sum" : return     _locations_directions_kernel(kernel.routine_sum, g,x,y, h,u,v, b)
+        elif mode == "log" : return _locations_directions_kernel_log(kernel.routine_log, g,x,y, h,u,v, b)
         else : raise ValueError('"mode" should either be "sum" or "log".')
 
     else :
@@ -51,8 +51,12 @@ def LocationsDirectionsKP( kernel, g, x, y, h, u, v, b, mode = "sum", backend="a
                     "V = Vy(3,DIMPOINT)" ,   # 4th variable, dim DIM,    indexed by j
                     "B = Vy(4,DIMOUT  )" ]   # 5th variable, dim DIMOUT, indexed by j
 
-        # stands for:     R_i   ,   G  ,      X_i    ,      Y_j    ,   H  ,      U_i    ,      V_j    ,     B_j    .
-        signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
+        # stands for:     R_i   ,   G  ,       X_i    ,       Y_j    ,
+        signature = [ (dimout,0), (1,2),  (dimpoint,0),  (dimpoint,1), \
+        #                           H  ,       U_i    ,       V_j    ,
+                                  (1,2),  (dimpoint,0),  (dimpoint,1), \
+        #                              B_j    .
+                                  (dimout,1) ]
         sum_index = 0 # the output vector is indexed by "i" (CAT=0)
-        return genconv( backend, aliases, formula, signature, sum_index, g, x, y, h, u, v, b )
+        return genconv( backend, aliases, formula, signature, sum_index, g,x,y, h,u,v, b )
         
