@@ -8,7 +8,7 @@ import matplotlib.colors as colors
 from   matplotlib.collections  import LineCollection
 
 from .       import shapes
-from .shapes import Curve
+from .shapes import Curve, Surface
 
 # Pyplot Output =================================================================================
 
@@ -58,39 +58,12 @@ def save_momentum(filename, q, p, q_mu=None) :
 	None # I've forgotten the best way to store this...
 
 
-def transport_to_curve( Mu, Nu, Gamma ) :
-	"""
-	Turns a transport plan into a figurative Curve object.
-	"""
-	points = [] ; connectivity = [] ; curr_id = 0
-	mu,x = Mu   ;  nu,y = Nu
-	for (xi, mui, gi) in zip(x, mu, Gamma) :
-		gi = gi / mui # gi[j] = fraction of the mass from "a" which goes to xtpoints[j]
-		for (yj, gij) in zip(y, gi) :
-			mass_per_line = 0.05
-			if gij >= mass_per_line :
-				nlines = np.floor(gij / mass_per_line)
-				ts     = np.linspace(.35, .65, nlines)
-				for t in ts :
-					b = yj 
-					points += [xi, b]; connectivity += [[curr_id, curr_id + 1]]; curr_id += 2
-
-	if len(connectivity) > 0 :
-		points = Variable(torch.Tensor( points ), requires_grad=True).type(shapes.dtype)
-		connec = Variable(torch.Tensor( connec )                    ).type(shapes.dtypeint)
-		Plan   = Curve( points, connec)
-		return Plan
-		# Plan.plot(ax, color = (.6,.8,1.), linewidth = 1)
-	else :
-		raise ValueError("Looks like your transport plan is *really* far away from convergence, or too diffuse to plot.")
-
 def save_info(filename, model, target, info, params_att) :
 	if info is not None :
 		formula = params_att["formula"]
 
-		if   formula == "wasserstein" :
-			Gamma = transport_to_curve(model.to_measure(), target.to_measure(), info)
-			Gamma.save(filename)
+		if isinstance(info,(Curve, Surface)) :
+			info.save(filename)
 
 		elif formula == "kernel" :
 			"""ax.imshow(info, interpolation='bilinear', origin='lower', 
@@ -99,7 +72,7 @@ def save_info(filename, model, target, info, params_att) :
 			None
 		else :
 			raise NotImplementedError('I can\'t save the "info" provided by the attachment formula "'+formula+'". '\
-			                         +'So far, only "wasserstein" has been implemented.')
+			                         +'So far, only shapes output have been implemented.')
 
 
 

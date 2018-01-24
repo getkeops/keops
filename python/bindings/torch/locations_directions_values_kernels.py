@@ -7,23 +7,23 @@ from .logsumexp_generic      import GenericLogSumExp
 from .utils import _scalar_products, _squared_distances, _log_sum_exp
 
 
-def _locations_directions_values_kernel(routine, g, x, y, h, u, v, i, s, t, b) :
+def _locations_directions_values_kernel(routine, g,x,y, h,u,v, i,s,t, b, matrix=False) :
     """
     """
     K = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y), \
                 h=h, u=u, v=v, usv  =   _scalar_products(u,v), \
                 i=i, s=s, t=t, smt  = _squared_distances(s,t)  )
-    return K @ b  # Matrix product between the Kernel operator and the source field b
+    return K @ b  if not matrix else K
 
-def _locations_directions_values_kernel_log(routine, g, x, y, h, u, v, i, s, t, b_log) :
+def _locations_directions_values_kernel_log(routine, g,x,y, h,u,v, i,s,t, b_log) :
     """
     """
     C = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y), \
                 h=h, u=u, v=v, usv  =   _scalar_products(u,v), \
                 i=i, s=s, t=t, smt  = _squared_distances(s,t)  )
-    return _log_sum_exp( C + b_log.view(1,-1) , 1 ).view(-1,1) 
+    return _log_sum_exp( C + b_log.view(1,-1) , 1 ).view(-1,1)  if not matrix else C
 
-def LocationsDirectionsValuesKP( kernel, g, x, y, h, u, v, b, i, s, t, mode = "sum", backend="auto") :
+def LocationsDirectionsValuesKP( kernel, g,x,y, h,u,v, b,i,s, t, mode = "sum", backend="auto") :
     """
     """
     if h is None : h = g  # Shameful HACK until I properly implement parameters for the pytorch backend!!!
@@ -31,6 +31,10 @@ def LocationsDirectionsValuesKP( kernel, g, x, y, h, u, v, b, i, s, t, mode = "s
     if backend == "pytorch" :
         if   mode == "sum" : return     _locations_directions_values_kernel(kernel.routine_sum, g,x,y, h,u,v, i,s,t, b)
         elif mode == "log" : return _locations_directions_values_kernel_log(kernel.routine_log, g,x,y, h,u,v, i,s,t, b)
+        else : raise ValueError('"mode" should either be "sum" or "log".')
+    elif backend == "matrix" :
+        if   mode == "sum" : return     _locations_directions_values_kernel(kernel.routine_sum, g,x,y, h,u,v, i,s,t, b, matrix=True)
+        elif mode == "log" : return _locations_directions_values_kernel_log(kernel.routine_log, g,x,y, h,u,v, i,s,t, b, matrix=True)
         else : raise ValueError('"mode" should either be "sum" or "log".')
 
     else :

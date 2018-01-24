@@ -77,6 +77,7 @@ params = {
 		"tau"                : 0.,              # optional
 		"nits"               : 1000,            # optional
 		"tol"                : 1e-5,            # optional
+		"transport_plan"     : "extra",         # kind of display ("extra", "full", "minimal", ["none"])
 	},
 
 	"optimization" : {                          # optional
@@ -100,6 +101,10 @@ params = {
 		"template"           : False,           # optional
 		"template_color"     : "b",             # optional
 		"template_linewidth" : 2,               # optional
+
+		"info"               : True,            # optional
+		"info_color"         : (.8, .9, 1., .2),# optional
+		"info_linewidth"     : 1,               # optional
 
 		"target"             : True,            # optional
 		"target_color"       : (.76, .29, 1.),  # optional

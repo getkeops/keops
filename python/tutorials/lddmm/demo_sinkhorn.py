@@ -35,44 +35,50 @@ dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=1000)
-Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=1000)
+Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=200)
+Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=200)
 
-s_def = .05
-s_att = .01
-backend = "auto"
+
 def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
+
+s_def = .1
+s_att = .01
+eps   = scal_to_var(s_att**2)
+backend = "auto"
 
 params = {
 	"weight_regularization" : .1,               # MANDATORY
 	"weight_data_attachment": 1.,               # MANDATORY
 
 	"deformation_model" : {
-		"id"         : Kernel("energy(x,y)"),        # MANDATORY
+		"id"         : Kernel("gaussian(x,y)"),        # MANDATORY
 		"gamma"      : scal_to_var(1/s_def**2),      # MANDATORY
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"normalize"  : False,           # optional  ([False], True)
 	},
 
 	"data_attachment"   : {
-		"formula"            : "wasserstein",   # MANDATORY
-		"features"           : "locations",     # MANDATORY  (["locations"], "locations+normals")
-
-		"epsilon"            : scal_to_var(s_att**2),
+		"formula"            : "wasserstein",
+		"features"           : "locations",
+		"kernel" : {"id"     : Kernel("gaussian(x,y)") ,
+					"gamma"  :  1/eps,
+					"backend": backend                 },
+		"epsilon"            : eps,
 		"rho"                : -1,
-		"tau"                : -.3,
-		"nits"               : 30,
-		"tol"                : 1e-5,
+		"tau"                : -.8,
+		"nits"               : 20,
+		"tol"                : 1e-7,
+		"transport_plan"     : "extra",
 	},
 
 	"optimization" : {                          # optional
 		"method"             : "L-BFGS",        # optional
 		"nits"               : 100,             # optional
-		"nlogs"              : 10,              # optional
+		"nlogs"              : 1,              # optional
 		"tol"                : 1e-7,            # optional
 
-		"lr"                 : .01,             # optional
+		"lr"                 : .001,            # optional
 		"maxcor"             : 10,              # optional (L-BFGS)
 	},
 

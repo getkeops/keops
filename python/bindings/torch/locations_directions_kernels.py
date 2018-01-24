@@ -7,21 +7,21 @@ from .logsumexp_generic      import GenericLogSumExp
 from .utils import _scalar_products, _squared_distances, _log_sum_exp
 
 
-def _locations_directions_kernel(routine, g, x, y, h, u, v, b) :
+def _locations_directions_kernel(routine, g,x,y, h,u,v, b, matrix=False) :
     """
     """
     K = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y), \
                 h=h, u=u, v=v, usv  =   _scalar_products(u,v)  )
-    return K @ b  # Matrix product between the Kernel operator and the source field b
+    return K @ b if not matrix else K
 
-def _locations_directions_kernel_log(routine, g, x, y, h, u, v, b_log) :
+def _locations_directions_kernel_log(routine, g,x,y, h,u,v, b_log, matrix=False) :
     """
     """
     C = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y), \
                 h=h, u=u, v=v, usv  =   _scalar_products(u,v)  )
-    return _log_sum_exp( C + b_log.view(1,-1) , 1 ).view(-1,1) 
+    return _log_sum_exp( C + b_log.view(1,-1) , 1 ).view(-1,1) if not matrix else C
 
-def LocationsDirectionsKP( kernel, g, x, y, h, u, v, b, mode = "sum", backend="auto") :
+def LocationsDirectionsKP( kernel, g,x,y, h,u,v, b, mode = "sum", backend="auto") :
     """
     """
     if h is None : h = g  # Shameful HACK until I properly implement parameters for the pytorch backend!!!
@@ -29,6 +29,10 @@ def LocationsDirectionsKP( kernel, g, x, y, h, u, v, b, mode = "sum", backend="a
     if backend == "pytorch" :
         if   mode == "sum" : return     _locations_directions_kernel(kernel.routine_sum, g,x,y, h,u,v, b)
         elif mode == "log" : return _locations_directions_kernel_log(kernel.routine_log, g,x,y, h,u,v, b)
+        else : raise ValueError('"mode" should either be "sum" or "log".')
+    elif backend == "matrix" :
+        if   mode == "sum" : return     _locations_directions_kernel(kernel.routine_sum, g,x,y, h,u,v, b, matrix=True)
+        elif mode == "log" : return _locations_directions_kernel_log(kernel.routine_log, g,x,y, h,u,v, b, matrix=True)
         else : raise ValueError('"mode" should either be "sum" or "log".')
 
     else :

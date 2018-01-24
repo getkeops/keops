@@ -89,7 +89,7 @@ def FitModel(params, Model, target) :
         FitModel.nit += 1 ; it = FitModel.nit
         # Minimization loop --------------------------------------------------------------------
         optimizer.zero_grad()                      # Reset the gradients (PyTorch syntax...).
-        cost = Model.cost(params, target)[0]
+        cost,info,model = Model.cost(params, target, info=(it%nlogs==0) )
         costs.append(cost.data.cpu().numpy()[0])   # Store the "cost" for plotting.
         cost.backward(retain_graph=True)           # Backpropagate to compute the gradient.
         
@@ -99,10 +99,9 @@ def FitModel(params, Model, target) :
 
         if it % nlogs == 0: # Display the current model ----------------------------------------
             print("Iteration ",it,", Cost = ", costs[-1])
-
             if "display" in params : # Real-time display:
                 ax_model.clear()
-                Model.plot(ax_model, params, target)
+                Model.plot(ax_model, params, target=target, info=info)
                 ax_model.axis(params["display"]["limits"]) ; ax_model.set_aspect('equal') ; plt.draw() ; plt.pause(0.01)
 
                 if "save" in params :
@@ -111,7 +110,7 @@ def FitModel(params, Model, target) :
                     fig_model.savefig( screenshot_filename )
                     
             if "save" in params : # Save for later use:
-                Model.save(params, target, it=it)
+                Model.save(params, target, it=it, info=info, model=model)
         return cost
     
     # Scipy-friendly wrapper ------------------------------------------------------------------------------------------------

@@ -6,21 +6,21 @@ from .logsumexp_generic      import GenericLogSumExp
 
 from .utils import _squared_distances, _log_sum_exp
 
-def _locations_kernel(routine, g, x, y, b) :
+def _locations_kernel(routine, g, x, y, b, matrix=False) :
     """
     Computes (\sum_j k(x_i-y_j) * b_j)_i as a simple matrix product,
     where k is a kernel function specified by "routine".
     """
     K = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y))
-    return K @ b  # Matrix product between the Kernel operator and the source field b
+    return K @ b  if not matrix else K
 
-def _locations_kernel_log(routine, g, x, y, b_log) :
+def _locations_kernel_log(routine, g, x, y, b_log, matrix=False) :
     """
     Computes log( K(x_i,y_j) @ b_j) = log( \sum_j k(x_i-y_j) * b_j) in the log domain,
     where k is a kernel function specified by "routine".
     """
     C = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y))
-    return _log_sum_exp( C + b_log.view(1,-1) , 1 ).view(-1,1) 
+    return _log_sum_exp( C + b_log.view(1,-1) , 1 ).view(-1,1) if not matrix else C
 
 def LocationsKP( kernel, g, x, y, b, mode = "sum", backend="auto") :
     """
@@ -29,6 +29,10 @@ def LocationsKP( kernel, g, x, y, b, mode = "sum", backend="auto") :
     if backend == "pytorch" :
         if   mode == "sum" : return     _locations_kernel(kernel.routine_sum, g, x, y, b)
         elif mode == "log" : return _locations_kernel_log(kernel.routine_log, g, x, y, b)
+        else : raise ValueError('"mode" should either be "sum" or "log".')
+    elif backend == "matrix" : # Provided for convenience in visualization codes, etc: output K instead of K@b
+        if   mode == "sum" : return     _locations_kernel(kernel.routine_sum, g, x, y, b, matrix=True)
+        elif mode == "log" : return _locations_kernel_log(kernel.routine_log, g, x, y, b, matrix=True)
         else : raise ValueError('"mode" should either be "sum" or "log".')
 
     else :

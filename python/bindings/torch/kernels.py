@@ -56,8 +56,8 @@ directions_formulas = {
     "linear" :        Formula( # Linear kernel wrt. directions aka. "currents"
         formula_sum =                           "(U,V)",
         routine_sum = lambda usv=None, **kwargs : usv,
-        formula_log =                      "Log( (U,V) )",
-        routine_log = lambda usv=None, **kwargs : usv.log()
+        formula_log =                      "(IntInv(2) * Log( (U,V)**2 + IntInv(10000) ))",
+        routine_log = lambda usv=None, **kwargs : .5 * (usv**2 + .0001).log()
     ),
 }
 
