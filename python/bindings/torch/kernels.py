@@ -3,10 +3,8 @@ import re
 
 import torch
 
-from .utils                               import Formula
-from .locations_kernels                   import LocationsKP
-from .locations_directions_kernels        import LocationsDirectionsKP
-from .locations_directions_values_kernels import LocationsDirectionsValuesKP
+from .utils            import Formula
+from .features_kernels import FeaturesKP
 
 
 # Define the standard kernel building blocks. 
@@ -168,13 +166,14 @@ def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto") :
     """
 
     if   kernel.features == "locations" :
-        return                 LocationsKP( kernel, gamma, x, y,         b, mode = mode, backend = backend)
+        G     = gamma; X     = x; Y     = y
+        return FeaturesKP( kernel, G,X,Y,               b, mode = mode, backend = backend)
     elif kernel.features == "locations+directions" :
         G,H   = gamma; X,U   = x; Y,V   = y
-        return       LocationsDirectionsKP( kernel, G,X,Y, H,U,V,        b, mode = mode, backend = backend)
+        return FeaturesKP( kernel, G,X,Y, H,U,V,        b, mode = mode, backend = backend)
     elif kernel.features == "locations+directions+values" :
         G,H,I = gamma; X,U,S = x; Y,V,T = y
-        return LocationsDirectionsValuesKP( kernel, G,X,Y, H,U,V, I,S,T, b, mode = mode, backend = backend)
+        return FeaturesKP( kernel, G,X,Y, H,U,V, I,S,T, b, mode = mode, backend = backend)
     else :
         raise NotImplementedError("Kernel features '"+kernel.features+"'. "\
                                  +'Available values are "locations" (measures), "locations+directions" (shapes)' \
