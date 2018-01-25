@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from   matplotlib.collections  import LineCollection
 
-from pyvtk import PolyData, PointData, Scalars, VtkData
+from pyvtk import PolyData, PointData, CellData, Scalars, VtkData
 
 
 use_cuda = torch.cuda.is_available()
@@ -78,7 +78,7 @@ def level_curves(fname, npoints = 200, smoothing = 10, level = 0.5) :
 
 class Curve :
     "Encodes a 2D/3D curve as an array of float coordinates + a connectivity list."
-    def __init__(self, points, connectivity, values=None) :
+    def __init__(self, points, connectivity, values=None, values_name=None) :
         """
         Creates a curve object from explicit numerical values.
 
@@ -93,6 +93,7 @@ class Curve :
         self.points       = points
         self.connectivity = connectivity
         self.values       = values
+        self.values_name  = values_name
     
     @staticmethod
     def from_file(fname, *args, dim=2, **kwargs) :
@@ -111,10 +112,21 @@ class Curve :
             points = np.array(data.structure.points)[:,0:dim]
             connec = np.array(data.structure.polygons)
             try :
-                values = np.array( data.point_data.data[0].scalars )
-                values = Variable(torch.from_numpy( values ).view(-1,1) ).type(dtype)
+                values_name = data.cell_data.data[0].name
+                values      = np.array( data.cell_data.data[0].scalars )
+                values      = Variable(torch.from_numpy( values ).view(-1,1) ).type(dtype)
             except :
-                values = None 
+                try :
+                    values_name = data.point_data.data[0].name
+                    values      = np.array( data.point_data.data[0].scalars )
+                    if dim == 2 :
+                        values = (values[connec[:,0]] + values[connec[:,1]])/2
+                    elif dim == 3:
+                        values = (values[connec[:,0]] + values[connec[:,1]] + values[connec[:,2]])/3
+                    values      = Variable(torch.from_numpy( values ).view(-1,1) ).type(dtype)
+                except :
+                    values      = None 
+                    values_name = None
         else :
             raise NotImplementedError('Filetype not supported : "'+str(fname)+'". ' \
                                       'Please load either ".vtk" or ".png" files.')
@@ -122,7 +134,7 @@ class Curve :
         # Convert the convenient numpy arrays to efficient torch tensors, and build the Curve object:
         points = Variable(torch.from_numpy( points ), requires_grad=True).type(dtype)
         connec = Variable(torch.from_numpy( connec )).type(dtypeint)
-        return Curve( points, connec, values=values) 
+        return Curve( points, connec, values=values, values_name=values_name) 
 
     def to_segments(self) :
         return self.points[self.connectivity[:,0],:], self.points[self.connectivity[:,1],:]
@@ -206,7 +218,7 @@ class Curve :
         structure = PolyData(points  =      self.points.data.cpu().numpy(),
                              polygons=self.connectivity.data.cpu().numpy())
         if self.values is not None :
-            values = PointData( Scalars(self.values.data.cpu().numpy()) )
+            values = CellData( Scalars(self.values.data.cpu().numpy(), name=self.values_name) )
             vtk    = VtkData(structure, values)
         else :
             vtk = VtkData(structure)
@@ -219,7 +231,7 @@ class Curve :
 
 class Surface :
     "Encodes a 3D surface as an array of float coordinates + a connectivity list."
-    def __init__(self, points, connectivity, values=None) :
+    def __init__(self, points, connectivity, values=None, values_name=None) :
         """
         Creates a curve object from explicit numerical values.
 
@@ -234,6 +246,7 @@ class Surface :
         self.points       = points
         self.connectivity = connectivity
         self.values       = values
+        self.values_name  = values_name
     
     @staticmethod
     def from_file(fname, *args, **kwargs) :
@@ -245,11 +258,20 @@ class Surface :
             data = VtkData(fname)
             points = np.array(data.structure.points)
             connec = np.array(data.structure.polygons)
+
             try :
-                values = np.array( data.point_data.data[0].scalars )
-                values = Variable(torch.from_numpy( values ).view(-1,1)).type(dtype)
+                values_name = data.cell_data.data[0].name
+                values      = np.array( data.cell_data.data[0].scalars )
+                values      = Variable(torch.from_numpy( values ).view(-1,1) ).type(dtype)
             except :
-                values = None 
+                try :
+                    values_name = data.point_data.data[0].name
+                    values = np.array( data.point_data.data[0].scalars )
+                    values = (values[connec[:,0]] + values[connec[:,1]] + values[connec[:,2]])/3
+                    values = Variable(torch.from_numpy( values ).view(-1,1)).type(dtype)
+                except :
+                    values      = None 
+                    values_name = None
         else :
             raise NotImplementedError('Filetype not supported : "'+str(fname)+'". ' \
                                       'Please load ".vtk" files.')
@@ -257,7 +279,7 @@ class Surface :
         # Convert the convenient numpy arrays to efficient torch tensors, and build the Curve object:
         points = Variable(torch.from_numpy( points ), requires_grad=True).type(dtype)
         connec = Variable(torch.from_numpy( connec )).type(dtypeint)
-        return Surface( points, connec, values=values) 
+        return Surface( points, connec, values=values, values_name=values_name) 
 
     def to_triangles(self) :
         return self.points[self.connectivity[:,0],:], self.points[self.connectivity[:,1],:], self.points[self.connectivity[:,2],:]
@@ -271,9 +293,9 @@ class Surface :
         """
         a,b,c   = self.to_triangles()
         u  = b-a ; v = c-a
-        ux = u[:,0].view(-1,1) ; uy = u[:,1].view(-1,1) ; uz = u[:,2].view(-1,1)
-        vx = v[:,0].view(-1,1) ; vy = v[:,1].view(-1,1) ; vz = v[:,2].view(-1,1)
-        normals   = .5 * torch.cat( (uy*vz-uz*vy, uz*vx-ux*vz, ux*vy-uy*vx), dim=1 ).contiguous()
+        ux = u[:,0] ; uy = u[:,1] ; uz = u[:,2]
+        vx = v[:,0] ; vy = v[:,1] ; vz = v[:,2]
+        normals   = .5 * torch.stack( (uy*vz-uz*vy, uz*vx-ux*vz, ux*vy-uy*vx) ).t().contiguous()
         areas     = (normals**2).sum(1).sqrt()
         centers =   (a+b+c)/3
         return areas, centers
@@ -287,7 +309,6 @@ class Surface :
         ux = u[:,0] ; uy = u[:,1] ; uz = u[:,2]
         vx = v[:,0] ; vy = v[:,1] ; vz = v[:,2]
         normals   = .5 * torch.stack( (uy*vz-uz*vy, uz*vx-ux*vz, ux*vy-uy*vx) ).t().contiguous()
-        print(normals.size())
         areas     =  (normals**2).sum(1).sqrt()
         centers   =  (a+b+c)/3
         normals_u =    normals / (areas.view(-1,1) + 1e-5)
@@ -309,7 +330,7 @@ class Surface :
                              polygons=self.connectivity.data.cpu().numpy())
 
         if self.values is not None :
-            values = PointData( Scalars(self.values.data.cpu().numpy()) )
+            values = CellData( Scalars(self.values.data.cpu().numpy(), name=self.values_name ))
             vtk    = VtkData(structure, values)
         else :
             vtk = VtkData(structure)

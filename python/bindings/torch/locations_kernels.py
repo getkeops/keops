@@ -6,7 +6,7 @@ from .logsumexp_generic      import GenericLogSumExp
 
 from .utils import _squared_distances, _log_sum_exp
 
-def _locations_kernel(routine, g, x, y, b, matrix=False) :
+def _locations_kernel(routine, g,x,y, b, matrix=False) :
     """
     Computes (\sum_j k(x_i-y_j) * b_j)_i as a simple matrix product,
     where k is a kernel function specified by "routine".
@@ -14,7 +14,7 @@ def _locations_kernel(routine, g, x, y, b, matrix=False) :
     K = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y))
     return K @ b  if not matrix else K
 
-def _locations_kernel_log(routine, g, x, y, b_log, matrix=False) :
+def _locations_kernel_log(routine, g,x,y, b_log, matrix=False) :
     """
     Computes log( K(x_i,y_j) @ b_j) = log( \sum_j k(x_i-y_j) * b_j) in the log domain,
     where k is a kernel function specified by "routine".
@@ -22,7 +22,7 @@ def _locations_kernel_log(routine, g, x, y, b_log, matrix=False) :
     C = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y))
     return _log_sum_exp( C + b_log.view(1,-1) , 1 ).view(-1,1) if not matrix else C
 
-def LocationsKP( kernel, g, x, y, b, mode = "sum", backend="auto") :
+def LocationsKP( kernel, g,x,y, b, mode = "sum", backend="auto") :
     """
     """
 

@@ -17,7 +17,7 @@ import os
 FOLDER = os.path.dirname(os.path.abspath(__file__))+os.path.sep
 
 from .toolbox                import shapes
-from .toolbox.shapes         import Curve
+from .toolbox.shapes         import Curve, Surface
 from .toolbox.matching       import GeodesicMatching
 from .toolbox.model_fitting  import FitModel
 from .toolbox.kernel_product import Kernel
@@ -35,17 +35,50 @@ dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=200)
-Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=200)
-
+if False :
+	Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=200)
+	Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=200)
+else :
+	Source = Surface.from_file(FOLDER+"data/venus_1.vtk")
+	Target = Surface.from_file(FOLDER+"data/venus_4.vtk")
+	#Target.points.data[:,2] += 1. # Let's shift the target a little bit...
 
 def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
 
 s_def = .1
-s_att = .01
+s_att = .1
 eps   = scal_to_var(s_att**2)
 backend = "auto"
+
+
+G  = 1/eps
+H  = scal_to_var(.1)
+I  = scal_to_var(.1)
+
+features = "locations+directions"
+
+# Create a custom kernel, purely in log-domain, for the Wasserstein/Sinkhorn cost.
+# formula_log = libkp backend, routine_log = pytorch backend : a good "safety check" against typo errors !
+if   features == "locations":
+	kernel              = Kernel("gaussian(x,y)")
+	params_kernel       = G
+
+elif features == "locations+directions" :
+	kernel              = Kernel()
+	kernel.features     = "locations+directions"
+	kernel.formula_log  = "( -Cst(G)*SqDist(X,Y) * (IntCst(1) + Cst(H)*(IntCst(1)-Pow((U,V),2) ) + Cst(I)*SqDist(S,T) ) )"
+	kernel.routine_log  = lambda g=None, xmy2=None, h=None, usv=None, i=None, smt2=None, **kwargs :\
+										-g*xmy2        * (    1     +      h*(1-usv**2)           +      i*smt2        )
+	params_kernel       = (G,H)
+
+elif features == "locations+directions+values" :
+	kernel             = Kernel()
+	kernel.features    = "locations+directions+values"
+	kernel.formula_log = "( -Cst(G)*SqDist(X,Y) * (IntCst(1) + Cst(H)*(IntCst(1)-Pow((U,V),2) ) + Cst(I)*SqDist(S,T) ) )"
+	kernel.routine_log = lambda g=None, xmy2=None, h=None, usv=None, i=None, smt2=None, **kwargs :\
+										-g*xmy2        * (    1     +      h*(1-usv**2)           +      i*smt2        )
+	params_kernel       = (G,H,I)
 
 params = {
 	"weight_regularization" : .1,               # MANDATORY
@@ -60,16 +93,16 @@ params = {
 
 	"data_attachment"   : {
 		"formula"            : "wasserstein",
-		"features"           : "locations",
-		"kernel" : {"id"     : Kernel("gaussian(x,y)") ,
-					"gamma"  :  1/eps,
+		"features"           : kernel.features,
+		"kernel" : {"id"     : kernel ,
+					"gamma"  : params_kernel ,
 					"backend": backend                 },
 		"epsilon"            : eps,
 		"rho"                : -1,
 		"tau"                : -.8,
 		"nits"               : 20,
 		"tol"                : 1e-7,
-		"transport_plan"     : "extra",
+		"transport_plan"     : "none",
 	},
 
 	"optimization" : {                          # optional
@@ -78,15 +111,15 @@ params = {
 		"nlogs"              : 1,              # optional
 		"tol"                : 1e-7,            # optional
 
-		"lr"                 : .001,            # optional
+		"lr"                 : .01,            # optional
 		"maxcor"             : 10,              # optional (L-BFGS)
 	},
 
-	"display" : {
-		"limits"             : [0,1,0,1],
-		"grid_ticks"         : ((0,1,11),)*2,
-		"template"           : False,
-	},
+	#"display" : {
+	#	"limits"             : [0,1,0,1],
+	#	"grid_ticks"         : ((0,1,11),)*2,
+	#	"template"           : False,
+	#},
 	"save" : {                                  # MANDATORY
 		"output_directory"   : FOLDER+"output/sinkhorn/",# MANDATORY
 	}

@@ -73,43 +73,50 @@ values_formulas = {
 
 
 class Kernel :
-    def __init__(self, name) :
+    def __init__(self, name=None) :
         """
         Examples of valid names :
             " gaussian(x,y) * linear(u,v)**2 * gaussian(s,t)"
             " gaussian(x,y) * (1 + linear(u,v)**2 ) "
         """
-        # Determine the features type from the formula : ------------------------------------------------
-        locations  = "(x,y)" in name
-        directions = "(u,v)" in name
-        values     = "(s,t)" in name
+        if name is not None :
+            # Determine the features type from the formula : ------------------------------------------------
+            locations  = "(x,y)" in name
+            directions = "(u,v)" in name
+            values     = "(s,t)" in name
 
-        if   locations and not directions and not values :
-            self.features    = "locations"
-        elif locations and     directions and not values :
-            self.features    = "locations+directions"
-        elif locations and     directions and     values :
-            self.features    = "locations+directions+values"
+            if   locations and not directions and not values :
+                self.features    = "locations"
+            elif locations and     directions and not values :
+                self.features    = "locations+directions"
+            elif locations and     directions and     values :
+                self.features    = "locations+directions+values"
+            else :
+                raise ValueError( "This combination of features is not supported (yet) : \n" \
+                                + "locations : "+str(locations) + ", directions : " + str(directions) \
+                                + ", values : " + str(values) +".")
+
+            # Regexp matching ---------------------------------------------------------------------------------
+            # Replace, say, " gaussian(x,y) " with " locations_formulas["gaussian"] "
+            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(x,y\)',  r'locations_formulas["\1"]', name)
+            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(u,v\)', r'directions_formulas["\1"]', name)
+            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(s,t\)',     r'values_formulas["\1"]', name)
+            # Replace int values "N" with "Formula(intvalue=N)"
+            name = re.sub(r'([0-9]+)',     r'Formula(intvalue=\1)', name)
+
+            # Final result : ----------------------------------------------------------------------------------
+            kernel = eval(name)
+            
+            self.formula_sum = kernel.formula_sum
+            self.routine_sum = kernel.routine_sum
+            self.formula_log = kernel.formula_log
+            self.routine_log = kernel.routine_log
         else :
-            raise ValueError( "This combination of features is not supported (yet) : \n" \
-                            + "locations : "+str(locations) + ", directions : " + str(directions) \
-                            + ", values : " + str(values) +".")
-
-        # Regexp matching ---------------------------------------------------------------------------------
-        # Replace, say, " gaussian(x,y) " with " locations_formulas["gaussian"] "
-        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(x,y\)',  r'locations_formulas["\1"]', name)
-        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(u,v\)', r'directions_formulas["\1"]', name)
-        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(s,t\)',     r'values_formulas["\1"]', name)
-        # Replace int values "N" with "Formula(intvalue=N)"
-        name = re.sub(r'([0-9]+)',     r'Formula(intvalue=\1)', name)
-
-        # Final result : ----------------------------------------------------------------------------------
-        kernel = eval(name)
-        
-        self.formula_sum = kernel.formula_sum
-        self.routine_sum = kernel.routine_sum
-        self.formula_log = kernel.formula_log
-        self.routine_log = kernel.routine_log
+            self.features    = None
+            self.formula_sum = None
+            self.routine_sum = None
+            self.formula_log = None
+            self.routine_log = None
 
 
 

@@ -12,18 +12,18 @@ def _locations_directions_values_kernel(routine, g,x,y, h,u,v, i,s,t, b, matrix=
     """
     K = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y), \
                 h=h, u=u, v=v, usv  =   _scalar_products(u,v), \
-                i=i, s=s, t=t, smt  = _squared_distances(s,t)  )
+                i=i, s=s, t=t, smt2 = _squared_distances(s,t)  )
     return K @ b  if not matrix else K
 
-def _locations_directions_values_kernel_log(routine, g,x,y, h,u,v, i,s,t, b_log) :
+def _locations_directions_values_kernel_log(routine, g,x,y, h,u,v, i,s,t, b_log, matrix=False) :
     """
     """
     C = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y), \
                 h=h, u=u, v=v, usv  =   _scalar_products(u,v), \
-                i=i, s=s, t=t, smt  = _squared_distances(s,t)  )
+                i=i, s=s, t=t, smt2 = _squared_distances(s,t)  )
     return _log_sum_exp( C + b_log.view(1,-1) , 1 ).view(-1,1)  if not matrix else C
 
-def LocationsDirectionsValuesKP( kernel, g,x,y, h,u,v, b,i,s, t, mode = "sum", backend="auto") :
+def LocationsDirectionsValuesKP( kernel, g,x,y, h,u,v, i,s,t, b, mode = "sum", backend="auto") :
     """
     """
     if h is None : h = g  # Shameful HACK until I properly implement parameters for the pytorch backend!!!
@@ -45,7 +45,6 @@ def LocationsDirectionsValuesKP( kernel, g,x,y, h,u,v, b,i,s, t, mode = "sum", b
             genconv  = GenericLogSumExp().apply
             formula  = "("+kernel.formula_log + " + B)"
         else : raise ValueError('"mode" should either be "sum" or "log".')
-        
         dimpoint = x.size(1) ; dimout = b.size(1) ; dimsignal = s.size(1)
         
         aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout), "DIMSIGNAL = "+str(dimsignal),
