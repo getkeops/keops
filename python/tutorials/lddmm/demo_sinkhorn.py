@@ -41,7 +41,7 @@ if False :
 else :
 	Source = Surface.from_file(FOLDER+"data/venus_1.vtk")
 	Target = Surface.from_file(FOLDER+"data/venus_4.vtk")
-	#Target.points.data[:,2] += 1. # Let's shift the target a little bit...
+	Target.points.data[:,2] += 1.5 # Let's shift the target a little bit...
 
 def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
@@ -56,7 +56,7 @@ G  = 1/eps
 H  = scal_to_var(.1)
 I  = scal_to_var(.1)
 
-features = "locations+directions"
+features = "locations"
 
 # Create a custom kernel, purely in log-domain, for the Wasserstein/Sinkhorn cost.
 # formula_log = libkp backend, routine_log = pytorch backend : a good "safety check" against typo errors !
@@ -85,24 +85,31 @@ params = {
 	"weight_data_attachment": 1.,               # MANDATORY
 
 	"deformation_model" : {
-		"id"         : Kernel("gaussian(x,y)"),        # MANDATORY
+		"id"         : Kernel("energy(x,y)"),        # MANDATORY
 		"gamma"      : scal_to_var(1/s_def**2),      # MANDATORY
 		"backend"    : backend,                 # optional  (["auto"], "pytorch", "CPU", "GPU_1D", "GPU_2D")
 		"normalize"  : False,           # optional  ([False], True)
 	},
 
 	"data_attachment"   : {
+		#"formula"            : "kernel",
 		"formula"            : "wasserstein",
+		#"formula"            : "sinkhorn",
+
+		"id"     : kernel ,
+		"gamma"  : params_kernel ,
+		"backend": backend,
+
 		"features"           : kernel.features,
 		"kernel" : {"id"     : kernel ,
 					"gamma"  : params_kernel ,
 					"backend": backend                 },
 		"epsilon"            : eps,
 		"rho"                : -1,
-		"tau"                : -.8,
+		"tau"                : 0.,
 		"nits"               : 20,
 		"tol"                : 1e-7,
-		"transport_plan"     : "none",
+		"transport_plan"     : "minimal",
 	},
 
 	"optimization" : {                          # optional
@@ -111,7 +118,7 @@ params = {
 		"nlogs"              : 1,              # optional
 		"tol"                : 1e-7,            # optional
 
-		"lr"                 : .01,            # optional
+		"lr"                 : .001,            # optional
 		"maxcor"             : 10,              # optional (L-BFGS)
 	},
 
@@ -121,7 +128,7 @@ params = {
 	#	"template"           : False,
 	#},
 	"save" : {                                  # MANDATORY
-		"output_directory"   : FOLDER+"output/sinkhorn/",# MANDATORY
+		"output_directory"   : FOLDER+"output/wasserstein_d/",# MANDATORY
 	}
 }
 

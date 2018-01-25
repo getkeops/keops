@@ -118,7 +118,7 @@ class Kernel :
 
 
 
-def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto") :
+def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto", bonus_args=None) :
     """
     Convenience function.
 
@@ -167,13 +167,18 @@ def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto") :
 
     if   kernel.features == "locations" :
         G     = gamma; X     = x; Y     = y
-        return FeaturesKP( kernel, G,X,Y,               b, mode = mode, backend = backend)
+        return FeaturesKP( kernel, G,X,Y,               b, 
+                           mode = mode, backend = backend, bonus_args=bonus_args)
+                           
     elif kernel.features == "locations+directions" :
         G,H   = gamma; X,U   = x; Y,V   = y
-        return FeaturesKP( kernel, G,X,Y, H,U,V,        b, mode = mode, backend = backend)
+        return FeaturesKP( kernel, G,X,Y, H,U,V,        b,
+                           mode = mode, backend = backend, bonus_args=bonus_args)
+
     elif kernel.features == "locations+directions+values" :
         G,H,I = gamma; X,U,S = x; Y,V,T = y
-        return FeaturesKP( kernel, G,X,Y, H,U,V, I,S,T, b, mode = mode, backend = backend)
+        return FeaturesKP( kernel, G,X,Y, H,U,V, I,S,T, b, 
+                           mode = mode, backend = backend, bonus_args=bonus_args)
     else :
         raise NotImplementedError("Kernel features '"+kernel.features+"'. "\
                                  +'Available values are "locations" (measures), "locations+directions" (shapes)' \

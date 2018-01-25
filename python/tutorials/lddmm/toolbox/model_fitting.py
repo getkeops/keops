@@ -92,7 +92,6 @@ def FitModel(params, Model, target) :
         cost,info,model = Model.cost(params, target, info=(it%nlogs==0) )
         costs.append(cost.data.cpu().numpy()[0])   # Store the "cost" for plotting.
         cost.backward(retain_graph=True)           # Backpropagate to compute the gradient.
-        
         # Break the loop if the cost's variation is below the tolerance param:
         if ( len(costs)>1 and abs(costs[-1]-costs[-2]) < tol ) :
             FitModel.breakloop = True

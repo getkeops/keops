@@ -17,7 +17,7 @@ class GeodesicMatching(nn.Module) :
         super(GeodesicMatching, self).__init__()
         
         self.template = template
-        self.weights  = weights
+        if weights is None : self.weights  = self.template.points_weights()
         self.p0       = Parameter(torch.zeros_like(template.points.data))
 
     def forward(self, params_def) :

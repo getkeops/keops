@@ -124,12 +124,26 @@ def transport_to_curve( Mu, Nu, Gamma, extra=False, fracmass_per_line = .05 ) :
         return None
 
 def sinkhorn_info(params, Mu, Nu, U, V) :
+    
     mode = params.get("transport_plan", "none")
     frac_mass_per_line = params.get("frac_mass_per_line", .05)
     if mode   == "none" :
         return None
+
     elif mode == "minimal" :
-        return None
+        kernel = params.get("kernel", wasserstein_kernel(params) )
+        X = Mu[1][0] if isinstance(Mu[1], tuple) else Mu[1]
+        Y = Nu[1][0] if isinstance(Nu[1], tuple) else Nu[1]
+        X_targets = _kernel_product(Mu[1],Nu[1], Y, kernel, mode="log_scaled", bonus_args = (U,V)) / Mu[0].view(-1,1)
+        Y_targets = _kernel_product(Nu[1],Mu[1], X, kernel, mode="log_scaled", bonus_args = (V,U)) / Nu[0].view(-1,1)
+        nx,ny  = len(X),len(Y) 
+        points = torch.cat( (X, X_targets, Y, Y_targets) ).contiguous()
+        connec = torch.cat( (
+            torch.stack( ( torch.arange(   0,   nx   ), torch.arange(     nx, 2*nx     ) ) , dim=1),
+            torch.stack( ( torch.arange(2*nx, 2*nx+ny), torch.arange(2*nx+ny, 2*nx+2*ny) ) , dim=1)
+        )).contiguous().type(shapes.dtypeint)
+        return Curve( points, Variable(connec) )
+
     elif mode == "full" or mode == "extra" :
         kernel = params.get("kernel", wasserstein_kernel(params) ).copy()
         # We use a "secret" backend, which outputs the matrix K or C instead of a kernel product

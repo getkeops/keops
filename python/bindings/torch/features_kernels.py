@@ -52,31 +52,44 @@ def _features_kernel_log(features, routine, *args, matrix=False) :
 
     return K_log if matrix else _log_sum_exp( K_log + b_log.view(1,-1) , 1 ).view(-1,1)
 
+def _features_kernel_log_scaled(features, routines, *args, matrix=False) :
+    a_log, b_log = args[-2:] # scaling coefficients, typically given as output of the Sinkhorn loop
+    K_log        = _features_kernel_log(features, routine, *args[:-2], matrix=True)
+    aKb_log      = (a_log.view(-1,1) + b_log.view(1,-1)) + K_log
+    return aKb_log if matrix else _log_sum_exp( aKb_log + args[-3].view(1,-1) , 1 ).view(-1,1)
 
 
-def FeaturesKP( kernel, *args, mode = "sum", backend="auto") :
+def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
     """
     *args = g,x,y, h,u,v, i,s,t, b
     """
+    if bonus_args is not None :     args += tuple(bonus_args)
+
     if backend == "pytorch" :
-        if   mode == "sum" : return _features_kernel(     kernel.features, kernel.routine_sum, *args)
-        elif mode == "log" : return _features_kernel_log( kernel.features, kernel.routine_log, *args)
+        if   mode == "sum"        : return _features_kernel(            kernel.features, kernel.routine_sum, *args)
+        elif mode == "log"        : return _features_kernel_log(        kernel.features, kernel.routine_log, *args)
+        elif mode == "log_scaled" : return _features_kernel_log_scaled( kernel.features, kernel.routine_log, *args)
         else : raise ValueError('"mode" should either be "sum" or "log".')
     elif backend == "matrix" :
-        if   mode == "sum" : return _features_kernel(     kernel.features, kernel.routine_sum, *args, matrix=True)
-        elif mode == "log" : return _features_kernel_log( kernel.features, kernel.routine_log, *args, matrix=True)
+        if   mode == "sum"        : return _features_kernel(            kernel.features, kernel.routine_sum, *args, matrix=True)
+        elif mode == "log"        : return _features_kernel_log(        kernel.features, kernel.routine_log, *args, matrix=True)
+        elif mode == "log_scaled" : return _features_kernel_log_scaled( kernel.features, kernel.routine_log, *args, matrix=True)
         else : raise ValueError('"mode" should either be "sum" or "log".')
 
     else :
-        if   mode == "sum" : 
+        if   mode == "sum" :
             genconv  = GenericKernelProduct().apply
             formula  = "("+kernel.formula_sum + " * B)"
         elif mode == "log" :
             genconv  = GenericLogSumExp().apply
             formula  = "("+kernel.formula_log + " + B)"
+        elif mode == "log_scaled" :
+            genconv  = GenericKernelProduct().apply
+            formula  = "( Exp("+kernel.formula_log + "+ A_LOG + B_LOG) * B)"
         else : raise ValueError('"mode" should either be "sum" or "log".')
         
         if   kernel.features == "locations" :
+            nvars    = 3
             dimpoint = args[1].size(1) ; dimout = args[3].size(1)
             aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
                         "G = Pm(0)"          ,   # 1st parameter
@@ -87,6 +100,7 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto") :
             signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
 
         elif kernel.features == "locations+directions" :
+            nvars    = 5
             dimpoint = args[1].size(1) ; dimout = args[6].size(1)
         
             aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
@@ -105,6 +119,7 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto") :
                                       (dimout,1) ]
 
         elif kernel.features == "locations+directions+values" :
+            nvars    = 7
             dimpoint = args[1].size(1) ; dimout = args[9].size(1) ; dimsignal = args[7].size(1)
             aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout), "DIMSIGNAL = "+str(dimsignal),
                         "G = Pm(0)"           ,   # 1st parameter
@@ -126,6 +141,11 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto") :
             #                              B_j    .
                                       (dimout,1) ]
 
+        if mode == "log_scaled" :
+            aliases += ["A_LOG = Vx("+str(nvars  )+",1)",
+                        "B_LOG = Vy("+str(nvars+1)+",1)"]
+            #               A_LOG_i , B_LOG_j
+            signature += [   (1,0)  , (1,1)   ]
         sum_index = 0 # the output vector is indexed by "i" (CAT=0)
         return genconv( backend, aliases, formula, signature, sum_index, *args )
         

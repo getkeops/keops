@@ -167,6 +167,17 @@ class Curve :
         lengths, (centers, directions) = self.to_varifold()
         return lengths, (centers, directions, self.values)
     
+    def points_weights(self) :
+        Mu, _   = self.to_measure()
+        weights = np.zeros( len(self.points) )
+        mu      =                Mu.data.cpu().numpy()
+        connec  = self.connectivity.data.cpu().numpy()
+        d       = connec.shape[1]
+        for (i,c) in enumerate(connec) :
+            for j in c :
+                weights[j] += mu[i] / d
+        return Variable(torch.from_numpy( weights )).type_as(Mu)
+    
     # Output routines -------------------------------------------------------------------------
 
     def plot(self, ax, color = 'rainbow', linewidth = 3) :
@@ -320,6 +331,17 @@ class Surface :
         areas, (centers, normals_u) = self.to_varifold()
         return areas, (centers, normals_u, self.values)
     
+    def points_weights(self) :
+        Mu, _   = self.to_measure()
+        weights = np.zeros( len(self.points) )
+        mu      =                Mu.data.cpu().numpy()
+        connec  = self.connectivity.data.cpu().numpy()
+        d       = connec.shape[1]
+        for (i,c) in enumerate(connec) :
+            for j in c :
+                weights[j] += mu[i] / d
+        return Variable(torch.from_numpy( weights )).type_as(Mu)
+
     # Output routines -------------------------------------------------------------------------
 
     def plot(self, ax, color = 'rainbow', linewidth = 3) :

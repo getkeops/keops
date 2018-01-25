@@ -9,7 +9,7 @@ from libkp.torch.kernels import KernelProduct, Kernel
 
 
 
-def _kernel_product(x,y,b, params, mode = "sum") :
+def _kernel_product(x,y,b, params, mode = "sum", bonus_args = None) :
 	"""
 	Simple wrapper around the convenient 'KernelProduct' libkp routine.
 	Feel free to implement your own (non-standard) ideas here!
@@ -19,5 +19,5 @@ def _kernel_product(x,y,b, params, mode = "sum") :
 	# gamma should have been generated along the lines of "Variable(torch.Tensor([1/(s**2)])).type(dtype)"
 	gamma   = params["gamma"]
 	
-	return KernelProduct(gamma, x,y,b, kernel, mode, backend)
+	return KernelProduct(gamma, x,y,b, kernel, mode, backend, bonus_args = bonus_args)
 
