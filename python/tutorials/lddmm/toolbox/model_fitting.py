@@ -96,8 +96,8 @@ def FitModel(params, Model, target) :
         if ( len(costs)>1 and abs(costs[-1]-costs[-2]) < tol ) :
             FitModel.breakloop = True
 
+        print("Iteration ",it,", Cost = ", costs[-1])
         if it % nlogs == 0: # Display the current model ----------------------------------------
-            print("Iteration ",it,", Cost = ", costs[-1])
             if "display" in params : # Real-time display:
                 ax_model.clear()
                 Model.plot(ax_model, params, target=target, info=info)

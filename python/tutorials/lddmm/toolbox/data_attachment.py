@@ -130,18 +130,25 @@ def sinkhorn_info(params, Mu, Nu, U, V) :
     if mode   == "none" :
         return None
 
-    elif mode == "minimal" :
+    elif mode in ("minimal", "minimal_symmetric") :
         kernel = params.get("kernel", wasserstein_kernel(params) )
         X = Mu[1][0] if isinstance(Mu[1], tuple) else Mu[1]
         Y = Nu[1][0] if isinstance(Nu[1], tuple) else Nu[1]
         X_targets = _kernel_product(Mu[1],Nu[1], Y, kernel, mode="log_scaled", bonus_args = (U,V)) / Mu[0].view(-1,1)
-        Y_targets = _kernel_product(Nu[1],Mu[1], X, kernel, mode="log_scaled", bonus_args = (V,U)) / Nu[0].view(-1,1)
         nx,ny  = len(X),len(Y) 
-        points = torch.cat( (X, X_targets, Y, Y_targets) ).contiguous()
-        connec = torch.cat( (
-            torch.stack( ( torch.arange(   0,   nx   ), torch.arange(     nx, 2*nx     ) ) , dim=1),
-            torch.stack( ( torch.arange(2*nx, 2*nx+ny), torch.arange(2*nx+ny, 2*nx+2*ny) ) , dim=1)
-        )).contiguous().type(shapes.dtypeint)
+
+        if mode == "minimal" :
+            points = torch.cat( (X, X_targets) ).contiguous()
+            connec = torch.stack( ( torch.arange( 0,nx ), torch.arange(nx, 2*nx) ) , dim=1).contiguous().type(shapes.dtypeint)
+            
+        elif mode == "minimal_symmetric" :
+            Y_targets = _kernel_product(Nu[1],Mu[1], X, kernel, mode="log_scaled", bonus_args = (V,U)) / Nu[0].view(-1,1)
+            points = torch.cat( (X, X_targets, Y, Y_targets) ).contiguous()
+            connec = torch.cat( (
+                torch.stack( ( torch.arange(   0,   nx   ), torch.arange(     nx, 2*nx     ) ) , dim=1),
+                torch.stack( ( torch.arange(2*nx, 2*nx+ny), torch.arange(2*nx+ny, 2*nx+2*ny) ) , dim=1)
+            )).contiguous().type(shapes.dtypeint)
+
         return Curve( points, Variable(connec) )
 
     elif mode == "full" or mode == "extra" :
@@ -170,6 +177,7 @@ def _sinkhorn_loop(Mu, Nu, params) :
     tau    = params.get("tau",  0.)    # Use inter/extra-polation?
     nits   = params.get("nits", 1000)  # When shall we stop?
     tol    = params.get("tol",  1e-5)  # When shall we stop?
+    cost   = params.get("cost", "primal") # "primal" or "dual" ?
 
     # Compute the exponent for the unbalanced Optimal Transport update
     lam = 1. if rho < 0 else rho / (rho + eps)
@@ -187,6 +195,9 @@ def _sinkhorn_loop(Mu, Nu, params) :
 
         # Kernel products + pointwise divisions, combined with an extrapolating scheme if tau<0
         # Mathematically speaking, we're alternating Kullback-Leibler projections.
+        # N.B.: By convention, U is the deformable source and V is the fixed target. 
+        #       If we break before convergence, it is thus important to finish
+        #       with a "projection on the mu-constraint"!
         V = tau*V + (1-tau)*lam*( log_nu - _kernel_product(Nu[1], Mu[1], U, kernel, mode="log") )
         U = tau*U + (1-tau)*lam*( log_mu - _kernel_product(Mu[1], Nu[1], V, kernel, mode="log") ) 
 
@@ -194,11 +205,16 @@ def _sinkhorn_loop(Mu, Nu, params) :
         err = (eps * (U-U_prev).abs().mean()).data.cpu().numpy()
         if err < tol : break
     
-    # Straightforward expression of the dual cost:
-    D2 = eps * ( torch.dot(Mu[0].view(-1), U.view(-1)) \
-               + torch.dot(Nu[0].view(-1), V.view(-1)) )
+    if   cost == "dual" :   D2 = eps * ( torch.dot(Mu[0].view(-1), U.view(-1)) \
+                                       + torch.dot(Nu[0].view(-1), V.view(-1)) )
+    elif cost == "primal" : 
+        D2 = _kernel_product(Mu[1],Nu[1], V, kernel, mode="log_cost", bonus_args = (U,V)) # The first 'V' is a dummy argument...
+        # torch.sum.backward introduces non-contiguous arrays... We have to emulate it using a scalar product.
+        D2 = D2.view(-1)
+        D2 = torch.dot( D2, torch.ones_like(D2))
+    else : raise ValueError('Unexpected value of the "cost" parameter : '+str(cost)+'. Correct values are "primal" and "dual".')
     
-    # Return the cost alongside the dual variables, as they may come handy
+    # Return the cost alongside the dual variables, as they may come handy for visualization
     return D2, U, V
 
 def _wasserstein_distance(Mu, Nu, params, info = False) :
