@@ -4,6 +4,7 @@ import torch.nn as nn
 from   torch.nn import Parameter
 
 from copy  import copy, deepcopy
+from .shapes            import Curve
 from .data_attachment   import _data_attachment
 from .geodesic_shooting import _Hqp, _HamiltonianShooting, _HamiltonianCarrying
 from .input_output      import save_info, save_momentum, new_grid
@@ -16,16 +17,16 @@ class GeodesicMatching(nn.Module) :
         super(GeodesicMatching, self).__init__()
         
         self.template = template
-        self.weights  = weights
+        if weights is None : self.weights  = self.template.points_weights()
         self.p0       = Parameter(torch.zeros_like(template.points.data))
 
     def forward(self, params_def) :
         """
         Shoots.
         """
-        model        = copy(self.template)
-        model.points = _HamiltonianShooting(model.points, self.p0, params_def, self.weights)[0]
-        return model
+        q1        = copy(self.template)
+        q1.points = _HamiltonianShooting(q1.points, self.p0, params_def, self.weights)[0]
+        return q1
     
     def cost(self, params, target, info=False) :
         """
@@ -60,7 +61,7 @@ class GeodesicMatching(nn.Module) :
         # Create a new grid:
         dim         = self.template.points.size(1)
         par_plot    =   params.get("display",    {})
-        grid_ticks  = par_plot.get("grid_ticks", ((-1,1,11),)*dim)
+        grid_ticks  = par_plot.get("grid_ticks", ((0,1,11),)*dim)
         grid        = new_grid(grid_ticks)
 
         # "Shoot" the grid, alongside the template. We may as well store the whole
@@ -77,7 +78,7 @@ class GeodesicMatching(nn.Module) :
         if trajectory : return Qts,     pts,     Gts
         else :          return Qts[-1], pts[-1], Gts[-1]  # only return the final state
 
-    def plot(self, axis, params, target=None) :
+    def plot(self, axis, params, info=None, target=None) :
         """
         Displays the model+target in a matplotlib figure.
 
@@ -104,6 +105,12 @@ class GeodesicMatching(nn.Module) :
             self.template.plot(axis, color=color, linewidth=lw)
 
         # Display the target:
+        if par_plot.get("info",   True) and isinstance(info, Curve) :
+            color = par_plot.get("info_color",    (.8, .9, 1., .3))
+            lw    = par_plot.get("info_linewidth", 1 )
+            info.plot(axis, color=color, linewidth=lw)
+
+        # Display the target:
         if par_plot.get("target",   True) :
             color = par_plot.get("target_color",    (.76, .29, 1.))
             lw    = par_plot.get("target_linewidth", 2 )
@@ -116,11 +123,10 @@ class GeodesicMatching(nn.Module) :
             model.plot(axis, color=color, linewidth=lw)
         
     
-    def save(self, params, target, it=None) :
+    def save(self, params, target, info=None, it=None, model=None) :
         
         par_save =   params.get("save", {})
         prefix   = par_save.get("output_directory", "output/")
-        cost,info,model = self.cost(params, target, info=True)
 
         # Save the template, model and target (in case the latter changes with iterations)
         if par_save.get("template", True) : self.template.save( prefix + 'templates/template_'+str(it))

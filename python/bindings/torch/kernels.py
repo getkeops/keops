@@ -1,10 +1,10 @@
 import math
 import re
 
-from .utils                               import Formula
-from .locations_kernels                   import LocationsKP
-from .locations_directions_kernels        import LocationsDirectionsKP
-#from .locations_directions_values_kernels import LocationsDirectionsValuesKP
+import torch
+
+from .utils            import Formula
+from .features_kernels import FeaturesKP
 
 
 # Define the standard kernel building blocks. 
@@ -36,10 +36,10 @@ locations_formulas = {
         routine_log = lambda g=None, xmy2=None, **kwargs :  -g*xmy2,
     ),
     "exponential" :   Formula( # Pointy kernel
-        formula_sum =                      "Exp( - Sqrt(Cst(G) * SqDist(X,Y)) )",
-        routine_sum = lambda g=None, xmy2=None, **kwargs : (-(g*xmy2).sqrt()).exp(),
-        formula_log =                         "(  - Sqrt(Cst(G) * SqDist(X,Y)) )",
-        routine_log = lambda g=None, xmy2=None, **kwargs :  -(g*xmy2).sqrt(),
+        formula_sum =                      "Exp( - Sqrt(Cst(G) * SqDist(X,Y)  + IntInv(10000) ) )",
+        routine_sum = lambda g=None, xmy2=None, **kwargs : (-(g*xmy2+.0001).sqrt()).exp(),
+        formula_log =                         "(  - Sqrt(Cst(G) * SqDist(X,Y) + IntInv(10000) ) )",
+        routine_log = lambda g=None, xmy2=None, **kwargs :  -(g*xmy2+.0001).sqrt(),
     ),
     "energy" :        Formula( # Heavy tail kernel
         formula_sum =   "Powf( IntCst(1) + Cst(G) * SqDist(X,Y) , IntInv(-4) )",
@@ -54,8 +54,8 @@ directions_formulas = {
     "linear" :        Formula( # Linear kernel wrt. directions aka. "currents"
         formula_sum =                           "(U,V)",
         routine_sum = lambda usv=None, **kwargs : usv,
-        formula_log =                      "Log( (U,V) )",
-        routine_log = lambda usv=None, **kwargs : usv.log()
+        formula_log =                      "(IntInv(2) * Log( (U,V)**2 + IntInv(10000) ))",
+        routine_log = lambda usv=None, **kwargs : .5 * (usv**2 + .0001).log()
     ),
 }
 
@@ -71,49 +71,54 @@ values_formulas = {
 
 
 class Kernel :
-    def __init__(self, name) :
+    def __init__(self, name=None) :
         """
         Examples of valid names :
             " gaussian(x,y) * linear(u,v)**2 * gaussian(s,t)"
             " gaussian(x,y) * (1 + linear(u,v)**2 ) "
         """
-        # Determine the features type from the formula : ------------------------------------------------
-        locations  = "(x,y)" in name
-        directions = "(u,v)" in name
-        values     = "(s,t)" in name
+        if name is not None :
+            # Determine the features type from the formula : ------------------------------------------------
+            locations  = "(x,y)" in name
+            directions = "(u,v)" in name
+            values     = "(s,t)" in name
 
-        if   locations and not directions and not values :
-            self.features    = "locations"
-        elif locations and     directions and not values :
-            self.features    = "locations+directions"
-        elif locations and     directions and     values :
-            self.features    = "locations+directions+values"
+            if   locations and not directions and not values :
+                self.features    = "locations"
+            elif locations and     directions and not values :
+                self.features    = "locations+directions"
+            elif locations and     directions and     values :
+                self.features    = "locations+directions+values"
+            else :
+                raise ValueError( "This combination of features is not supported (yet) : \n" \
+                                + "locations : "+str(locations) + ", directions : " + str(directions) \
+                                + ", values : " + str(values) +".")
+
+            # Regexp matching ---------------------------------------------------------------------------------
+            # Replace, say, " gaussian(x,y) " with " locations_formulas["gaussian"] "
+            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(x,y\)',  r'locations_formulas["\1"]', name)
+            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(u,v\)', r'directions_formulas["\1"]', name)
+            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(s,t\)',     r'values_formulas["\1"]', name)
+            # Replace int values "N" with "Formula(intvalue=N)"
+            name = re.sub(r'([0-9]+)',     r'Formula(intvalue=\1)', name)
+
+            # Final result : ----------------------------------------------------------------------------------
+            kernel = eval(name)
+            
+            self.formula_sum = kernel.formula_sum
+            self.routine_sum = kernel.routine_sum
+            self.formula_log = kernel.formula_log
+            self.routine_log = kernel.routine_log
         else :
-            raise ValueError( "This combination of features is not supported (yet) : \n" \
-                            + "locations : "+str(locations) + ", directions : " + str(directions) \
-                            + ", values : " + str(values) +".")
-
-        # Regexp matching ---------------------------------------------------------------------------------
-        # Replace, say, " gaussian(x,y) " with " locations_formulas["gaussian"] "
-        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(x,y\)',  r'locations_formulas["\1"]', name)
-        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(u,v\)', r'directions_formulas["\1"]', name)
-        name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(s,t\)',     r'values_formulas["\1"]', name)
-        # Replace int values "N" with "Formula(intvalue=N)"
-        name = re.sub(r'([0-9]+)',     r'Formula(intvalue=\1)', name)
-
-        print(name)
-        # Final result : ----------------------------------------------------------------------------------
-        kernel = eval(name)
-        
-        self.formula_sum = kernel.formula_sum
-        self.routine_sum = kernel.routine_sum
-        self.formula_log = kernel.formula_log
-        self.routine_log = kernel.routine_log
-
-        print(self.formula_sum)
+            self.features    = None
+            self.formula_sum = None
+            self.routine_sum = None
+            self.formula_log = None
+            self.routine_log = None
 
 
-def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto") :
+
+def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto", bonus_args=None) :
     """
     Convenience function.
 
@@ -161,17 +166,23 @@ def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto") :
     """
 
     if   kernel.features == "locations" :
-        return                 LocationsKP( kernel, gamma, x, y,               b, mode = mode, backend = backend)
+        G     = gamma; X     = x; Y     = y
+        return FeaturesKP( kernel, G,X,Y,               b, 
+                           mode = mode, backend = backend, bonus_args=bonus_args)
+                           
     elif kernel.features == "locations+directions" :
         G,H   = gamma; X,U   = x; Y,V   = y
-        return       LocationsDirectionsKP( kernel, G, X, Y, H, U, V,          b, mode = mode, backend = backend)
+        return FeaturesKP( kernel, G,X,Y, H,U,V,        b,
+                           mode = mode, backend = backend, bonus_args=bonus_args)
+
     elif kernel.features == "locations+directions+values" :
         G,H,I = gamma; X,U,S = x; Y,V,T = y
-        return LocationsDirectionsValuesKP( kernel, G, X, Y, H, U, V, I, S, T, b, mode = mode, backend = backend)
+        return FeaturesKP( kernel, G,X,Y, H,U,V, I,S,T, b, 
+                           mode = mode, backend = backend, bonus_args=bonus_args)
     else :
         raise NotImplementedError("Kernel features '"+kernel.features+"'. "\
-                                 +'Available values are "locations", "locations+directions" ' \
-                                 +'and "locations+directions+values".' )
+                                 +'Available values are "locations" (measures), "locations+directions" (shapes)' \
+                                 +'and "locations+directions+values" (fshapes).' )
 
 
 

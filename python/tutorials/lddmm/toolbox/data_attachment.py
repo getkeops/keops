@@ -2,7 +2,9 @@
 import numpy as np
 import torch
 from   torch.autograd import Variable
-from   .kernel_product import _kernel_product
+from . import shapes
+from   .shapes         import Curve
+from   .kernel_product import _kernel_product, Kernel
 
 
 # L2 DISTANCE (for testing purposes) ==========================================================
@@ -81,6 +83,87 @@ def _kernel_distance(Mu, Nu, params, info = False) :
 
 # OPTIMAL TRANSPORT DISTANCES ========================================================================
 
+def wasserstein_kernel(params) :
+    eps    = params["epsilon"]  
+    return {"id"     : Kernel("gaussian(x,y)") ,
+            "gamma"  :  1 / eps,
+            "backend": "auto"                  }
+
+
+
+def transport_to_curve( Mu, Nu, Gamma, extra=False, fracmass_per_line = .05 ) :
+    """
+    Turns a transport plan into a figurative Curve object.
+    """
+
+    points = [] ; connec = [] ; curr_id = 0
+    mu,x = Mu   ;  nu,y = Nu
+    R_90 = torch.autograd.Variable(torch.Tensor( [[0.,1.], [-1.,0.]] )).type_as(mu)
+    Gamma  = Gamma.data.cpu().numpy()
+    mu     =    mu.data.cpu().numpy()
+    if isinstance(x, (tuple, list)) : x = x[0]  # in case Mu is a varifold object, an fshape...
+    if isinstance(y, (tuple, list)) : y = y[0]  # in case Nu is a varifold object, an fshape...
+    for (xi, mui, gi) in zip(x, mu, Gamma) :
+        gi = gi / mui # gi[j] = fraction of the mass from "a" which goes to xtpoints[j]
+        for (yj, gij) in zip(y, gi) :
+            if gij >= fracmass_per_line :
+                nlines = np.floor(gij / fracmass_per_line) if extra else 1
+                ts     = np.linspace(-.05, .05, nlines) if nlines > 1 else [0.]
+                for t in ts :
+                    b = yj + float(t) * (R_90 @ (yj-xi))
+                    points += [xi, b]; connec += [[curr_id, curr_id + 1]]; curr_id += 2
+
+    if len(connec) > 0 :
+        points = torch.stack( points ).contiguous().type(shapes.dtype)
+        connec = Variable(torch.Tensor( connec )                    ).type(shapes.dtypeint)
+        Plan   = Curve( points, connec)
+        return Plan
+        # Plan.plot(ax, color = (.6,.8,1.), linewidth = 1)
+    else :
+        #raise ValueError("Looks like your transport plan is *really* far away from convergence, or too diffuse to plot.")
+        return None
+
+def sinkhorn_info(params, Mu, Nu, U, V) :
+    
+    mode = params.get("transport_plan", "none")
+    frac_mass_per_line = params.get("frac_mass_per_line", .05)
+    if mode   == "none" :
+        return None
+
+    elif mode in ("minimal", "minimal_symmetric") :
+        kernel = params.get("kernel", wasserstein_kernel(params) )
+        X = Mu[1][0] if isinstance(Mu[1], tuple) else Mu[1]
+        Y = Nu[1][0] if isinstance(Nu[1], tuple) else Nu[1]
+        X_targets = _kernel_product(Mu[1],Nu[1], Y, kernel, mode="log_scaled", bonus_args = (U,V)) / Mu[0].view(-1,1)
+        nx,ny  = len(X),len(Y) 
+
+        if mode == "minimal" :
+            points = torch.cat( (X, X_targets) ).contiguous()
+            connec = torch.stack( ( torch.arange( 0,nx ), torch.arange(nx, 2*nx) ) , dim=1).contiguous().type(shapes.dtypeint)
+            
+        elif mode == "minimal_symmetric" :
+            Y_targets = _kernel_product(Nu[1],Mu[1], X, kernel, mode="log_scaled", bonus_args = (V,U)) / Nu[0].view(-1,1)
+            points = torch.cat( (X, X_targets, Y, Y_targets) ).contiguous()
+            connec = torch.cat( (
+                torch.stack( ( torch.arange(   0,   nx   ), torch.arange(     nx, 2*nx     ) ) , dim=1),
+                torch.stack( ( torch.arange(2*nx, 2*nx+ny), torch.arange(2*nx+ny, 2*nx+2*ny) ) , dim=1)
+            )).contiguous().type(shapes.dtypeint)
+
+        return Curve( points, Variable(connec) )
+
+    elif mode == "full" or mode == "extra" :
+        kernel = params.get("kernel", wasserstein_kernel(params) ).copy()
+        # We use a "secret" backend, which outputs the matrix K or C instead of a kernel product
+        kernel["backend"] = "matrix" 
+        minus_C = _kernel_product(Mu[1],Nu[1],None, kernel, mode = "log") 
+        transport_plan = ( U.view(-1,1) + V.view(1,-1) + minus_C ).exp()
+        # Turn our big matrix into a nice Curve object to plot...
+        return transport_to_curve(Mu, Nu, transport_plan, 
+                                  extra = (mode=="extra"), fracmass_per_line = frac_mass_per_line )
+    else :
+        raise ValueError('params["transport_plan"] has incorrect value : ' \
+                            + str(params["transport_plan"]) + ".\nCorrect values are " \
+                            + '"none", "minimal", "full" and "extra".'                               )
 
 def _sinkhorn_loop(Mu, Nu, params) :
 
@@ -88,14 +171,13 @@ def _sinkhorn_loop(Mu, Nu, params) :
     # N.B.: The user should be aware that this routine solves a *regularized*
     #       OT problem, so we do not provide default value for epsilon.
     eps    = params["epsilon"]  
-    kernel = params.get("kernel", {"name"  : "gaussian" ,
-                                   "gamma" :  1 / eps,
-                                   "backend": "auto"   } )
+    kernel = params.get("kernel", wasserstein_kernel(params) )
 
     rho    = params.get("rho",  -1)    # Use unbalanced transport?
     tau    = params.get("tau",  0.)    # Use inter/extra-polation?
     nits   = params.get("nits", 1000)  # When shall we stop?
     tol    = params.get("tol",  1e-5)  # When shall we stop?
+    cost   = params.get("cost", "primal") # "primal" or "dual" ?
 
     # Compute the exponent for the unbalanced Optimal Transport update
     lam = 1. if rho < 0 else rho / (rho + eps)
@@ -113,18 +195,26 @@ def _sinkhorn_loop(Mu, Nu, params) :
 
         # Kernel products + pointwise divisions, combined with an extrapolating scheme if tau<0
         # Mathematically speaking, we're alternating Kullback-Leibler projections.
-        U = tau*U + (1-tau)*lam*( log_mu - _kernel_product(Mu[1], Nu[1], V, kernel, mode="log") ) 
+        # N.B.: By convention, U is the deformable source and V is the fixed target. 
+        #       If we break before convergence, it is thus important to finish
+        #       with a "projection on the mu-constraint"!
         V = tau*V + (1-tau)*lam*( log_nu - _kernel_product(Nu[1], Mu[1], U, kernel, mode="log") )
+        U = tau*U + (1-tau)*lam*( log_mu - _kernel_product(Mu[1], Nu[1], V, kernel, mode="log") ) 
 
         # Compute the L1 norm of the update wrt. U. If it's small enough... break the loop!
         err = (eps * (U-U_prev).abs().mean()).data.cpu().numpy()
         if err < tol : break
     
-    # Straightforward expression of the dual cost:
-    D2 = eps * ( torch.dot(Mu[0].view(-1), U.view(-1)) \
-               + torch.dot(Nu[0].view(-1), V.view(-1)) )
+    if   cost == "dual" :   D2 = eps * ( torch.dot(Mu[0].view(-1), U.view(-1)) \
+                                       + torch.dot(Nu[0].view(-1), V.view(-1)) )
+    elif cost == "primal" : 
+        D2 = _kernel_product(Mu[1],Nu[1], V, kernel, mode="log_cost", bonus_args = (U,V)) # The first 'V' is a dummy argument...
+        # torch.sum.backward introduces non-contiguous arrays... We have to emulate it using a scalar product.
+        D2 = D2.view(-1)
+        D2 = torch.dot( D2, torch.ones_like(D2))
+    else : raise ValueError('Unexpected value of the "cost" parameter : '+str(cost)+'. Correct values are "primal" and "dual".')
     
-    # Return the cost alongside the dual variables, as they may come handy
+    # Return the cost alongside the dual variables, as they may come handy for visualization
     return D2, U, V
 
 def _wasserstein_distance(Mu, Nu, params, info = False) :
@@ -156,10 +246,7 @@ def _wasserstein_distance(Mu, Nu, params, info = False) :
     
     transport_plan = None
     if info :
-        None
-        #eps   = params["epsilon"]
-        #C = ((Mu[1].unsqueeze(1) - Nu[1].unsqueeze(0) )**2).sum(2)
-        #transport_plan = ( U.view(-1,1)+V.view(1,-1) - C/eps ).exp()
+        transport_plan = sinkhorn_info(params, Mu, Nu, U, V)
     return D2, transport_plan
 
 def _sinkhorn_distance(Mu, Nu, params, info = False) :
@@ -173,12 +260,14 @@ def _sinkhorn_distance(Mu, Nu, params, info = False) :
     
     This formula uses the "dual" Sinkhorn cost and has not been documented anywhere: 
     it is a mere experiment, a compromise between the mathematical theory of OT
-    and algorithmic efficiency. As such, it lacks a proper interpretation
-    and we prefer not to output any misleading 'informative' transport plan.
+    and algorithmic efficiency. As such, it lacks a proper interpretation...
     """
-    Loss = 2*_sinkhorn_loop(Mu,Nu, params)[0] \
-           - _sinkhorn_loop(Mu,Mu, params)[0] - _sinkhorn_loop(Nu,Nu, params)[0]
+    D2, U, V = _sinkhorn_loop(Mu,Nu, params)
+    Loss = 2* D2 - _sinkhorn_loop(Mu,Mu, params)[0] - _sinkhorn_loop(Nu,Nu, params)[0]
+
     transport_plan = None
+    if info :
+        transport_plan = sinkhorn_info(params, Mu, Nu, U, V)
     return Loss, transport_plan
 
 
@@ -189,12 +278,15 @@ def _data_attachment(source, target, params, info=False) :
     """Given two shapes and a dict of parameters, returns a cost."""
 
     embedding = params.get("features", "locations")
-    if   embedding == "locations" :
+    if   embedding == "locations" :                    # one dirac = one vector x_i or y_j
         Mu = source.to_measure()
         Nu = target.to_measure()
-    elif embedding == "locations+directions" :
-        Mu = source.to_current()
-        Nu = target.to_current()
+    elif embedding == "locations+directions" :         # one dirac = (x_i,u_i)     or (y_j,v_j)
+        Mu = source.to_varifold()                      # N.B.: u_i and v_j 's norms are equal to 1 !
+        Nu = target.to_varifold()
+    elif embedding == "locations+directions+values" :  # one dirac = (x_i,u_i,s_i) or (y_j,v_j,t_j)
+        Mu = source.to_fvarifold() # "functional varifolds": (terminology 
+        Nu = target.to_fvarifold() # introduced in the PhD thesis of Nicolas Charon)
     else :
         raise NotImplementedError('Unknown features type : "'+embedding+'". ' \
                                   'Available values are "locations" and "locations+directions".')
