@@ -5,11 +5,6 @@
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test
 // 
-// (Joan) I found that in fact at O2 optimization level, the compiler automatically factorizes out
-// parts of code which are identical (it's called "Common subexpression elimination") which makes the factorization
-// useless, at least for such simple formulas. This is not true at O1 optimization level. On my laptop :
-// at O1 level : original formula runs in 8.6 s, factorized formula in 1.6 s  
-// at O2 level : original and factorized formulas run in about 0.23 s
 
 #include <stdio.h>
 #include <assert.h>
@@ -53,7 +48,7 @@ int main() {
     cout << endl << "Function F : " << endl;
     PrintFormula<F>();
     cout << endl << endl;
-     
+
     using FF = AutoFactorize<F>;
     
     cout << "Function FF = factorized version of F :" << endl;    

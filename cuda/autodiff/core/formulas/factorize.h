@@ -100,6 +100,7 @@ struct FactorizeAlias<F,univpack<GS...>> {
 };
 
 // then specialization when there is at least one element in the pack
+// we use CondFactorize to factorize only when the type is present at least twice in the formula
 template < class F, class G, class... GS >
 struct FactorizeAlias<F,univpack<G,GS...>> {
     using type = Factorize<CondFactorize<F,G>,univpack<GS...>>;
