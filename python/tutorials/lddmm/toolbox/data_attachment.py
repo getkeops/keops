@@ -211,7 +211,7 @@ def _sinkhorn_loop(Mu, Nu, params) :
         D2 = _kernel_product(Mu[1],Nu[1], V, kernel, mode="log_cost", bonus_args = (U,V)) # The first 'V' is a dummy argument...
         # torch.sum.backward introduces non-contiguous arrays... We have to emulate it using a scalar product.
         D2 = D2.view(-1)
-        D2 = torch.dot( D2, torch.ones_like(D2))
+        D2 = eps * torch.dot( D2, torch.ones_like(D2))
     else : raise ValueError('Unexpected value of the "cost" parameter : '+str(cost)+'. Correct values are "primal" and "dual".')
     
     # Return the cost alongside the dual variables, as they may come handy for visualization
@@ -278,7 +278,10 @@ def _data_attachment(source, target, params, info=False) :
     """Given two shapes and a dict of parameters, returns a cost."""
 
     embedding = params.get("features", "locations")
-    if   embedding == "locations" :                    # one dirac = one vector x_i or y_j
+    if   embedding == "none" :                         # the data was given as raw tensors, typically for testing
+        Mu = source
+        Nu = target
+    elif embedding == "locations" :                    # one dirac = one vector x_i or y_j
         Mu = source.to_measure()
         Nu = target.to_measure()
     elif embedding == "locations+directions" :         # one dirac = (x_i,u_i)     or (y_j,v_j)
@@ -289,7 +292,8 @@ def _data_attachment(source, target, params, info=False) :
         Nu = target.to_fvarifold() # introduced in the PhD thesis of Nicolas Charon)
     else :
         raise NotImplementedError('Unknown features type : "'+embedding+'". ' \
-                                  'Available values are "locations" and "locations+directions".')
+                                  'Available values are "none", "locations", "locations+directions" '\
+                                  'and "locations+directions+values".')
 
     attachment_type = params["formula"]
     routines = { "L2"          : _L2_distance,

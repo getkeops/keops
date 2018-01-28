@@ -11,6 +11,8 @@ from   matplotlib.collections  import LineCollection
 
 from pyvtk import PolyData, PointData, CellData, Scalars, VtkData
 
+import warnings
+warnings.filterwarnings("ignore",".*is not in VTK 2.*")
 
 use_cuda = torch.cuda.is_available()
 dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor

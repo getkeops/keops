@@ -41,7 +41,7 @@ if False : # (Jean:) I don't have any fshape curve at hand to test, so this may 
 else :
 	Source = Surface.from_file(FOLDER+"data/venus_1.vtk")
 	Target = Surface.from_file(FOLDER+"data/venus_4.vtk")
-	Target.points.data[:,2] += 1.5 # Let's shift the target a little bit...
+	Target.points.data[:,2] += 4 # Let's shift the target a little bit...
 
 def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
@@ -141,7 +141,7 @@ params = {
 	#	"template"           : False,
 	#},
 	"save" : {                                  # MANDATORY
-		"output_directory"   : FOLDER+"output/wasserstein_measure/",# MANDATORY
+		"output_directory"   : FOLDER+"output/wasserstein_measure_2/",# MANDATORY
 	}
 }
 

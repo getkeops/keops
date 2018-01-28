@@ -52,13 +52,13 @@ def _features_kernel_log(features, routine, *args, matrix=False) :
 
     return K_log if matrix else _log_sum_exp( K_log + b_log.view(1,-1) , 1 ).view(-1,1)
 
-def _features_kernel_log_scaled(features, routines, *args, matrix=False) :
+def _features_kernel_log_scaled(features, routine, *args, matrix=False) :
     a_log, b_log = args[-2:] # scaling coefficients, typically given as output of the Sinkhorn loop
     K_log        = _features_kernel_log(features, routine, *args[:-2], matrix=True)
     aKb_log      = (a_log.view(-1,1) + b_log.view(1,-1)) + K_log
     return aKb_log if matrix else _log_sum_exp( aKb_log + args[-3].view(1,-1) , 1 ).view(-1,1)
 
-def _features_kernel_log_cost(features, routines, *args, matrix=False) :
+def _features_kernel_log_cost(features, routine, *args, matrix=False) :
     a_log, b_log = args[-2:] # scaling coefficients, typically given as output of the Sinkhorn loop
     K_log        = _features_kernel_log(features, routine, *args[:-2], matrix=True)
     aKb_log      = (a_log.view(-1,1) + b_log.view(1,-1)) + K_log
