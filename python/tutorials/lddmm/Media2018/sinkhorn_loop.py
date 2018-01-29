@@ -23,6 +23,8 @@ from ..toolbox.model_fitting  import FitModel
 from ..toolbox.kernel_product import Kernel
 from ..toolbox.data_attachment import _data_attachment
 
+
+from matplotlib2tikz import save as tikz_save
 import matplotlib.pyplot as plt
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
@@ -51,8 +53,8 @@ backend = "pytorch"
 Mu = Source.to_measure()
 Nu = Source.to_measure()
 
-#Mu = (Mu[0]/Mu[0].sum(), Mu[1])
-#Nu = (Nu[0]/Nu[0].sum(), Nu[1])
+Mu = (Mu[0]/Mu[0].sum(), Mu[1])
+Nu = (Nu[0]/Nu[0].sum(), Nu[1])
 
 
 params_att = {
@@ -65,10 +67,10 @@ params_att = {
 				"gamma"  : G ,
 				"backend": backend                 },
 	"epsilon"            : eps,
-	"rho"                : 10.,            # < 0 -> no unbalanced transport
+	"rho"                : -1.,            # < 0 -> no unbalanced transport
 	"tau"                : 0.,              # Using acceleration with nits < ~40 leads to *very* unstable transport plans
 	"nits"               : 100,
-	"tol"                : 1e-10,
+	"tol"                : 0.,
 	"transport_plan"     : "full",
 }
 
@@ -79,7 +81,7 @@ params_att = {
 def cost(formula, nits, tau=0., s_att= .01) :
 	params_att["cost"] = formula
 	params_att["nits"] = nits
-	params_att["tau"]  = 0.
+	params_att["tau"]  = tau
 
 	eps   = scal_to_var(s_att**2)
 	G     = 1/eps
@@ -87,20 +89,71 @@ def cost(formula, nits, tau=0., s_att= .01) :
 	params_att["kernel"]["epsilon"] = eps
 	return _data_attachment(Mu, Nu, params_att)[0].data.cpu().numpy()[0]
 
-primal_costs = np.array( [cost("primal", n, tau=0., s_att=.1) for n in range(1,50) ]  )
-spring_costs = np.array( [cost("spring", n, tau=0., s_att=.1) for n in range(1,50) ]  )
-dual_costs   = np.array( [cost("dual",   n, tau=0., s_att=.1) for n in range(1,50) ]  )
+iters = [ i for i in range(1,51)]
 
-print(primal_costs[-1], spring_costs[-1],  dual_costs[-1])
-plt.figure()
+if False :
+	# CONVERGENCE OF THE SINKHORN ALGORITHM
+	plt.figure()
 
-plt.plot(primal_costs)
-plt.plot(spring_costs)
-plt.plot(dual_costs)
+	primal_costs = np.array( [cost("primal", n, s_att=.1) for n in iters ]  )
+	dual_costs   = np.array( [cost("dual",   n, s_att=.1) for n in iters ]  )
+
+	plt.plot(iters, primal_costs, label="Primal cost")
+	plt.plot(iters, dual_costs,   label="Dual cost")
+	#ax1.set_xlabel('Sinkhorn iterations')
+	#ax1.set_ylabel('Primal cost', color='b')
+	#ax1.tick_params('y', colors='b')
+
+	#ax2 = ax1.twinx()
+	#ax2.plot(iters, dual_costs, 'r')
+	#ax2.set_ylabel('Dual cost', color='r')
+	#ax2.tick_params('y', colors='r')
+
+	plt.legend(loc='upper right')
+
+	plt.xlabel("Sinkhorn iterations")
+	plt.ylabel("Optimal Transport cost")
+	plt.xlim(1, 50)
+	plt.draw()
+
+	tikz_save(FOLDER+'/output/sinkhorn/convergence_primal_dual.tex', figurewidth='12cm', figureheight='12cm')
 
 
-plt.figure()
+if True :
+	# INFLUENCE OF EPSILON ON THE CONVERGENCE SPEED
+	plt.figure()
+	for (scale_att,label) in [(0.5, "0.5"), (0.4, "0.4"), (0.3, "0.3"), (0.2, "0.2"), (0.1, "0.1"), (0.05, "0.05")] :
+		primal_costs = np.array( [cost("primal", n, s_att=scale_att) for n in iters ]  )
+		dual_costs   = np.array( [cost("dual",   n, s_att=scale_att) for n in iters ]  )
+		plt.plot(iters, np.maximum(primal_costs - dual_costs, 1e-10*np.ones( len(iters)) ), 
+		         label = "$\\sqrt{\\varepsilon} = "+label+"$")
+		print(primal_costs[-1],  dual_costs[-1])
 
-plt.plot(primal_costs - dual_costs)
-plt.semilogy()
+	plt.xlabel("Sinkhorn iterations")
+	plt.xlim(1, 50)
+	plt.ylabel("Duality gap")
+	plt.semilogy()
+	plt.legend(loc='upper right')
+	plt.draw()
+
+	tikz_save(FOLDER+'/output/sinkhorn/influence_of_epsilon.tex', figurewidth='12cm', figureheight='12cm')
+
+if False :
+	# INFLUENCE OF TAU ON THE CONVERGENCE SPEED
+	params_att["rho"] = 10 # this figure will come after the unbalanced transport, so we may as well use it...
+	plt.figure()
+	for (tau,label) in [ (.5, "+0.5"), (0., "\\,\\,0"), (-.3, "-0.3"), (-.5, "-0.5"), (-.8, "-0.8") ] :
+		primal_costs = np.array( [cost("primal", n, tau=tau, s_att=.1) for n in iters ]  )
+		dual_costs   = np.array( [cost("dual",   n, tau=tau, s_att=.1) for n in iters ]  )
+		plt.plot(iters, primal_costs - dual_costs, label = "$\\tau = "+label+"$")
+		print(primal_costs[-1],  dual_costs[-1])
+
+	plt.xlabel("Sinkhorn iterations")
+	plt.xlim(1, 50)
+	plt.ylabel("Duality gap")
+	plt.semilogy()
+	plt.legend(loc='upper right')
+	plt.draw()
+
+	tikz_save(FOLDER+'/output/sinkhorn/influence_of_tau.tex', figurewidth='12cm', figureheight='12cm')
 plt.show()

@@ -39,7 +39,7 @@ params_kernel = {
 		"formula"  : "kernel",
 		"features" : "none",
 		"id"     : kernel ,
-		"gamma"  : scal_to_var(1/.05**2) ,
+		"gamma"  : scal_to_var(1/.1**2) ,
 		"backend": backend,
 }
 
@@ -103,10 +103,10 @@ plt.plot(T, costs_ot_rho_05, label='OT, $\\rho=.5$')
 plt.axis([-6,6,0,10])
 plt.gca().set_aspect('equal', adjustable='box')
 
-plt.legend(loc='lower left')
+plt.legend(loc='upper right')
 plt.draw()
 from matplotlib2tikz import save as tikz_save
-tikz_save(FOLDER+'/output/curve_unbalanced.tex', figurewidth='20cm', figureheight='12cm')
+tikz_save(FOLDER+'/output/unbalanced/curve_unbalanced.tex', figurewidth='12cm', figureheight='12cm')
 plt.show() 
 
 
