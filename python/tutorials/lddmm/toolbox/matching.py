@@ -107,12 +107,22 @@ class GeodesicMatching(nn.Module) :
             lw    = par_plot.get("template_linewidth", 2 )
             self.template.plot(axis, color=color, linewidth=lw)
 
-        # Display the transport plan or kernel heatmap:
+        # Display the transport plan:
         if   par_plot.get("info", True) and isinstance(info, Curve) :
             color = par_plot.get("info_color",    (.8, .9, 1., .3))
             lw    = par_plot.get("info_linewidth", 1 )
             info.plot(axis, color=color, linewidth=lw)
 
+        # Display the two transport plans, from Mu to Nu and vice-versa:
+        if   par_plot.get("info", True) and isinstance(info, tuple) \
+            and isinstance(info[0], Curve) and isinstance(info[1], Curve)  :
+            color_mu2nu = par_plot.get("info_color_a",    (.8, .4, .4, .15))
+            color_nu2mu = par_plot.get("info_color_b",    (.4, .4, .8, .15))
+            lw          = par_plot.get("info_linewidth", 1 )
+            info[0].plot(axis, color=color_mu2nu, linewidth=lw)
+            info[1].plot(axis, color=color_nu2mu, linewidth=lw)
+
+        # Display the kernel heatmap:
         elif par_plot.get("info", True) and isinstance(info, np.ndarray) :
             coords = params.get("data_attachment", {}).get("kernel_heatmap_range", (-2,2,100))
             scale_attach = params["display"].get("kernel_heatmap_max", None)
@@ -137,11 +147,16 @@ class GeodesicMatching(nn.Module) :
         # Display the gradient field driving the model:
         if par_plot.get("model_gradient", True) :
             color = par_plot.get("model_gradient_color",    "k")
-            lw    = par_plot.get("model_gradient_linewidth", .002 )
+            lw    = par_plot.get("model_gradient_linewidth", .004 )
+            scale = par_plot.get("model_gradient_scale", 1. )
             points =   self.last_model.points.data.cpu().numpy()
             grads  = - self.last_model.points.grad.data.cpu().numpy()
+
+            if scale < 0. :
+                median_length = np.median(np.sqrt(np.sum(grads**2, 1)))
+                scale = -scale *median_length #/ (.001 + median_length)
             axis.quiver( points[:,0], points[:,1], grads[:,0], grads[:,1] , 
-                         angles='xy', scale_units='xy', scale=2., width=lw, 
+                         angles='xy', scale_units='xy', scale=scale, width=lw, 
                          units = 'width', zorder = 2.)
         
     

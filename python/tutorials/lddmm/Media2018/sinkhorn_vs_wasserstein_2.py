@@ -35,23 +35,23 @@ dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=500)
-Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=500)
+Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=100)
+Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=100)
 
 def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
 
 s_def = .1
-s_att = .1 # Choose it small, then large
+s_att = .1
 eps   = scal_to_var(s_att**2)
 backend = "pytorch"
 
 
 G  = 1/eps           # "gamma" of the gaussian
 
-features      = "locations"
-kernel        = Kernel("gaussian(x,y)")
-params_kernel = G
+features = "locations"
+kernel              = Kernel("gaussian(x,y)")
+params_kernel       = G
 
 
 params = {
@@ -66,22 +66,30 @@ params = {
 	},
 
 	"data_attachment"   : {
-		"formula"            : "sinkhorn", # Choose sinkhorn, then wasserstein
+		"formula"            : "sinkhorn",
+
+		# Just in case you intend to use a kernel fidelity:
+		"id"     : kernel ,
+		"gamma"  : params_kernel ,
+		"backend": backend,
+		"kernel_heatmap_range" : (0,1,100),
 
 		# Parameters for OT:
 		"cost"               : "dual",
-		"features"           : kernel.features,
+		"features"           : features,
 		"kernel" : {"id"     : kernel ,
 					"gamma"  : params_kernel ,
 					"backend": backend                 },
 		"epsilon"            : eps,
-		"rho"                : 10.,   # < 0 -> no unbalanced transport
-		"tau"                : 0.,    # Using acceleration with nits < ~40 leads to *very* unstable transport plans
+		"rho"                : -1.,            # < 0 -> no unbalanced transport
+		"tau"                : 0.,              # Using acceleration with nits < ~40 leads to *very* unstable transport plans
 		"nits"               : 20,
 		"tol"                : 1e-7,
-		"transport_plan"     : "minimal",
+		"transport_plan"     : "full",
+		"frac_mass_per_line" : 0.05,
 	},
 	"optimization" : {
+		"nits"               : 100, # We're not here to bother with LDDMM matching...
 		"nlogs"              : 1,
 	},
 	"display" : {
@@ -90,12 +98,12 @@ params = {
 		"template"           : False,
 		"target_color"       :   (0.,0.,.8),
 		"model_color"        :   (.8,0.,0.),
-		"info_color"         : (.8, .9, 1.,.3),
-		"info_linewidth"     : 1.,
+		"info_color"         : (.8, .9, 1.,.5),
+		"info_linewidth"     : 4.,
 		"show_axis"          : False,
 	},
 	"save" : {                                  # MANDATORY
-		"output_directory"   : FOLDER+"output/sinkhorn_vs_wasserstein/01",# MANDATORY
+		"output_directory"   : FOLDER+"output/sinkhorn_plan/",# MANDATORY
 	}
 }
 

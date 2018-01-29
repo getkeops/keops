@@ -138,19 +138,19 @@ def sinkhorn_info(params, Mu, Nu, U, V) :
         X_targets = _kernel_product(Mu[1],Nu[1], Y, kernel, mode="log_scaled", bonus_args = (U,V)) / Mu[0].view(-1,1)
         nx,ny  = len(X),len(Y) 
 
+        points = torch.cat( (X, X_targets) ).contiguous()
+        connec = torch.stack( ( torch.arange( 0,nx ), torch.arange(nx, 2*nx) ) , dim=1).contiguous().type(shapes.dtypeint)
+        mu2nu  = Curve( points, Variable(connec) )
+
         if mode == "minimal" :
-            points = torch.cat( (X, X_targets) ).contiguous()
-            connec = torch.stack( ( torch.arange( 0,nx ), torch.arange(nx, 2*nx) ) , dim=1).contiguous().type(shapes.dtypeint)
-            
+            return mu2nu
+
         elif mode == "minimal_symmetric" :
             Y_targets = _kernel_product(Nu[1],Mu[1], X, kernel, mode="log_scaled", bonus_args = (V,U)) / Nu[0].view(-1,1)
-            points = torch.cat( (X, X_targets, Y, Y_targets) ).contiguous()
-            connec = torch.cat( (
-                torch.stack( ( torch.arange(   0,   nx   ), torch.arange(     nx, 2*nx     ) ) , dim=1),
-                torch.stack( ( torch.arange(2*nx, 2*nx+ny), torch.arange(2*nx+ny, 2*nx+2*ny) ) , dim=1)
-            )).contiguous().type(shapes.dtypeint)
-
-        return Curve( points, Variable(connec) )
+            points = torch.cat( (Y, Y_targets) ).contiguous()
+            connec = torch.stack( ( torch.arange( 0,ny ), torch.arange(ny, 2*ny) ) , dim=1).contiguous().type(shapes.dtypeint)
+            nu2mu  = Curve(points, Variable(connec))
+            return mu2nu, nu2mu
 
     elif mode == "full" or mode == "extra" :
         kernel = params.get("kernel", wasserstein_kernel(params) ).copy()
@@ -180,6 +180,9 @@ def _sinkhorn_loop(Mu, Nu, params) :
     tol    = params.get("tol",  1e-5)  # When shall we stop?
     cost   = params.get("cost", "primal") # "primal" or "dual" ?
 
+    # Shall we end with a projection on the Nu constraint, instead of Mu ?
+    end_on_target = params.get("end_on_target", False) 
+
     # Compute the exponent for the unbalanced Optimal Transport update
     lam = 1. if rho < 0 else rho / (rho + eps)
 
@@ -206,6 +209,8 @@ def _sinkhorn_loop(Mu, Nu, params) :
         err = (eps * (U-U_prev).abs().mean()).data.cpu().numpy()
         if err < tol : break
     
+    if end_on_target : # Add "half a step"
+        V = tau*V + (1-tau)*lam*( log_nu - _kernel_product(Nu[1], Mu[1], U, kernel, mode="log") )
 
     if   cost == "dual" :
         # The dual cost, which *increases* with Sinkhorn iterations:
@@ -320,6 +325,10 @@ def _data_attachment(source, target, params, info=False) :
         raise NotImplementedError('Unknown features type : "'+embedding+'". ' \
                                   'Available values are "none", "locations", "locations+directions" '\
                                   'and "locations+directions+values".')
+
+    if params.get("normalize", False) :
+        Mu = (Mu[0]/Mu[0].sum(), Mu[1])
+        Nu = (Nu[0]/Nu[0].sum(), Nu[1])
 
     attachment_type = params["formula"]
     routines = { "L2"          : _L2_distance,

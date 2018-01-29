@@ -119,7 +119,7 @@ if False :
 	tikz_save(FOLDER+'/output/sinkhorn/convergence_primal_dual.tex', figurewidth='12cm', figureheight='12cm')
 
 
-if True :
+if False :
 	# INFLUENCE OF EPSILON ON THE CONVERGENCE SPEED
 	plt.figure()
 	for (scale_att,label) in [(0.5, "0.5"), (0.4, "0.4"), (0.3, "0.3"), (0.2, "0.2"), (0.1, "0.1"), (0.05, "0.05")] :
@@ -156,4 +156,6 @@ if False :
 	plt.draw()
 
 	tikz_save(FOLDER+'/output/sinkhorn/influence_of_tau.tex', figurewidth='12cm', figureheight='12cm')
+
+
 plt.show()
