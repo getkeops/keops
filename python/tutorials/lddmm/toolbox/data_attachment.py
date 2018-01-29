@@ -63,19 +63,20 @@ def _kernel_distance(Mu, Nu, params, info = False) :
            - 2*_kernel_scalar_product(Mu,Nu,params) )
     
     kernel_heatmap = None
-    if False :#info :
+    if info :
         # Create a uniform grid on the [-2,+2]x[-2,+2] square:
         xmin,xmax,res  = params.get("kernel_heatmap_range", (-2,2,100))
         ticks  = np.linspace( xmin, xmax, res + 1)[:-1] + 1/(2*res) 
         X,Y    = np.meshgrid( ticks, ticks )
 
         dtype = Mu[0].data.type()
-        points = Variable(torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype), requires_grad=False)
+        points = Variable(torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype), 
+                          requires_grad=False )
         
         # Sample "k \star (Mu-Nu)" on this grid:
         kernel_heatmap   = _kernel_product(points, Mu[1], Mu[0].view(-1,1), params) \
                          - _kernel_product(points, Nu[1], Nu[0].view(-1,1), params)
-        kernel_heatmap   = kernel_heatmap.view(res,res) # reshape as a "background" image
+        kernel_heatmap   = kernel_heatmap.view(res,res).data.cpu().numpy() # reshape as a "background" image
 
     return D2, kernel_heatmap
 
@@ -205,13 +206,38 @@ def _sinkhorn_loop(Mu, Nu, params) :
         err = (eps * (U-U_prev).abs().mean()).data.cpu().numpy()
         if err < tol : break
     
-    if   cost == "dual" :   D2 = eps * ( torch.dot(Mu[0].view(-1), U.view(-1)) \
-                                       + torch.dot(Nu[0].view(-1), V.view(-1)) )
-    elif cost == "primal" : 
-        D2 = _kernel_product(Mu[1],Nu[1], V, kernel, mode="log_cost", bonus_args = (U,V)) # The first 'V' is a dummy argument...
+
+    if   cost == "dual" :
+        # The dual cost, which *increases* with Sinkhorn iterations:
+        # D2 = eps * sum( exp( u_i+v_j - c_ij/eps ))
+        D2 = _kernel_product(Mu[1],Nu[1], torch.ones_like(V) , kernel, mode="log_scaled", bonus_args = (U,V))
+        D2 = - eps * torch.dot( D2.view(-1), torch.ones_like(D2).view(-1))
+        if rho > 0. :
+            D2 -= rho * ( torch.dot(Mu[0].view(-1), (-eps * U.view(-1) / rho).exp() - 1.) \
+                        + torch.dot(Nu[0].view(-1), (-eps * V.view(-1) / rho).exp() - 1.) )
+        else : # "rho = +inf, -rho*(exp(-eps*u/tho) - 1 ) = eps * u"
+            D2 += eps * ( torch.dot(Mu[0].view(-1), U.view(-1)) \
+                        + torch.dot(Nu[0].view(-1), V.view(-1)) )
+
+    elif cost in ("primal", "spring") : 
+        if   cost == "primal" : # The primal cost, which *decreases* with Sinkhorn iterations:
+            D2 = _kernel_product(Mu[1],Nu[1], V, kernel, mode="log_primal", bonus_args = (U,V)) # The first 'V' is a dummy argument...
+        elif cost == "spring" : # The spring energy "hack" : a nonnegative approximation of the primal cost:
+            D2 = _kernel_product(Mu[1],Nu[1], V, kernel, mode="log_cost",   bonus_args = (U,V)) # The first 'V' is a dummy argument...
         # torch.sum.backward introduces non-contiguous arrays... We have to emulate it using a scalar product.
         D2 = D2.view(-1)
         D2 = eps * torch.dot( D2, torch.ones_like(D2))
+
+        if rho > 0. : # Add the Kullback-Leibler divergences wrt. the constraints
+            Gamma_1_log  = _kernel_product(Mu[1],Nu[1], torch.zeros_like(V) , kernel, mode="log_scaled_log", bonus_args = (U,V)).view(-1)
+            GammaT_1_log = _kernel_product(Nu[1],Mu[1], torch.zeros_like(U) , kernel, mode="log_scaled_log", bonus_args = (V,U)).view(-1)
+            Gamma_1      = Gamma_1_log.exp()
+            GammaT_1     = GammaT_1_log.exp()
+            
+            D2 += rho * ( torch.dot( Gamma_1 * (Gamma_1_log  - Mu[0].log()) - Gamma_1 + Mu[0], torch.ones_like(Gamma_1)  ) \
+                        + torch.dot( GammaT_1* (GammaT_1_log - Nu[0].log()) - GammaT_1+ Nu[0], torch.ones_like(GammaT_1) ) )
+
+
     else : raise ValueError('Unexpected value of the "cost" parameter : '+str(cost)+'. Correct values are "primal" and "dual".')
     
     # Return the cost alongside the dual variables, as they may come handy for visualization

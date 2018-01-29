@@ -109,6 +109,8 @@ class Curve :
         values = None 
         if   fname[-4:] == '.png' :
             (points, connec) = level_curves(fname, *args, **kwargs)
+            values      = None 
+            values_name = None
         elif fname[-4:] == '.vtk' :
             data = VtkData(fname)
             points = np.array(data.structure.points)[:,0:dim]

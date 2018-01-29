@@ -101,12 +101,14 @@ def FitModel(params, Model, target) :
             if "display" in params : # Real-time display:
                 ax_model.clear()
                 Model.plot(ax_model, params, target=target, info=info)
-                ax_model.axis(params["display"]["limits"]) ; ax_model.set_aspect('equal') ; plt.draw() ; plt.pause(0.01)
+                ax_model.axis(params["display"]["limits"]) ; ax_model.set_aspect('equal') ; 
+                if not params["display"].get("show_axis", True) : ax_model.axis('off')
+                plt.draw() ; plt.pause(0.01)
 
                 if "save" in params :
                     screenshot_filename = params["save"]["output_directory"]+"descent/plot_"+str(it)+'.png'
                     os.makedirs(os.path.dirname(screenshot_filename), exist_ok=True)
-                    fig_model.savefig( screenshot_filename )
+                    fig_model.savefig( screenshot_filename, bbox_inches='tight' )
                     
             if "save" in params : # Save for later use:
                 Model.save(params, target, it=it, info=info, model=model)

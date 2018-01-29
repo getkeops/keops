@@ -8,8 +8,8 @@ from   torch.autograd import Variable
 import os
 FOLDER = os.path.dirname(os.path.abspath(__file__))+os.path.sep
 
-from .toolbox.data_attachment import _data_attachment
-from .toolbox.kernel_product  import Kernel
+from ..toolbox.data_attachment import _data_attachment
+from ..toolbox.kernel_product  import Kernel
 import matplotlib.pyplot as plt
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
@@ -43,11 +43,12 @@ params_kernel = {
 		"backend": backend,
 }
 
-eps           = scal_to_var(.1**2)
+epsilon = .05**2
+eps     = scal_to_var(epsilon)
 params_ot = {
 		"formula"            : "wasserstein",
 
-		"cost"               : "primal",
+		"cost"               : "dual",
 		"features"           : "none",
 		"kernel" : {"id"     : Kernel("gaussian(x,y)") ,
 					"gamma"  : 1/eps ,
@@ -69,41 +70,44 @@ def translate_cost(params, t) :
     return _data_attachment(Mu, Nu, params)[0].data.cpu().numpy()[0]
 
 
-T = np.linspace(-5,5,101)
+T = np.linspace(-6,6,1201)
 
 costs_kernel = np.array( [translate_cost(params_kernel, t) for t in T] )
 costs_ot     = np.array( [translate_cost(params_ot    , t) for t in T] )
 
-params_ot['nits'] = 1
-costs_ot_1   = np.array( [translate_cost(params_ot    , t) for t in T] )
-params_ot['nits'] = 2
-costs_ot_2   = np.array( [translate_cost(params_ot    , t) for t in T] )
+if False : # This example is so simple that we converge in one iteration...
+	params_ot['nits'] = 1
+	costs_ot_1   = np.array( [translate_cost(params_ot    , t) for t in T] )
+	params_ot['nits'] = 2
+	costs_ot_2   = np.array( [translate_cost(params_ot    , t) for t in T] )
 
-params_ot['nits'] = 10
-params_ot['rho']  = .1
-costs_ot_rho_01   = np.array( [translate_cost(params_ot    , t) for t in T] )
+params_ot['nits'] = 100
+params_ot['rho']  = .5
+costs_ot_rho_05   = np.array( [translate_cost(params_ot    , t) for t in T] )
 params_ot['rho']  = 1.
-costs_ot_rho_1   = np.array( [translate_cost(params_ot    , t) for t in T] )
+costs_ot_rho_1    = np.array( [translate_cost(params_ot    , t) for t in T] )
 params_ot['rho']  = 2.
-costs_ot_rho_2   = np.array( [translate_cost(params_ot    , t) for t in T] )
+costs_ot_rho_2    = np.array( [translate_cost(params_ot    , t) for t in T] )
 
+
+#plt.ion()
 
 plt.figure()
-plt.plot(T, costs_kernel, label = 'kernel distance')
-plt.plot(T, costs_ot, label='Optimal Transport')
-plt.plot(T, costs_ot_1)
-plt.plot(T, costs_ot_2)
-plt.plot(T, costs_ot_rho_01)
-plt.plot(T, costs_ot_rho_1)
-plt.plot(T, costs_ot_rho_2)
-plt.axis([-5,5,0,5])
+plt.plot(T, costs_kernel, label = 'Kernel distance')
+plt.plot(T, costs_ot,     label='OT, $\\rho = +\\infty$')
+#plt.plot(T, costs_ot_1,   label='One iteration')
+#plt.plot(T, costs_ot_2,   label='Two iterations')
+plt.plot(T, costs_ot_rho_2, label='OT, $\\rho=2$')
+plt.plot(T, costs_ot_rho_1, label='OT, $\\rho=1$')
+plt.plot(T, costs_ot_rho_05, label='OT, $\\rho=.5$')
+plt.axis([-6,6,0,10])
 plt.gca().set_aspect('equal', adjustable='box')
 
-plt.legend()
+plt.legend(loc='lower left')
 plt.draw()
-plt.show()
-
-
+from matplotlib2tikz import save as tikz_save
+tikz_save(FOLDER+'/output/curve_unbalanced.tex', figurewidth='20cm', figureheight='12cm')
+plt.show() 
 
 
 

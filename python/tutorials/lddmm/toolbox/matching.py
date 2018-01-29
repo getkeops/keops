@@ -1,4 +1,6 @@
 
+import numpy as  np
+import matplotlib.cm as cm
 import torch
 import torch.nn as nn
 from   torch.nn import Parameter
@@ -38,15 +40,16 @@ class GeodesicMatching(nn.Module) :
 
         # Compute the data attachment term between the shooted model and the target,
         # which can be identified with a "squared distance" from the model to the target.
-        model     =     self.forward(                params["deformation_model"]      )
-        cost,info = _data_attachment( model, target, params["data_attachment"],  info )
+        self.last_model =     self.forward(                params["deformation_model"]      )
+        self.last_model.points.retain_grad()
+        cost,info = _data_attachment( self.last_model, target, params["data_attachment"],  info )
 
         # The final cost is a linear combination of the previous two terms:
         # the optimal model can be thought of as a "pseudo-Fréchet" mean
         # between the template and the target.
         cost      = params["weight_regularization"]  * reg \
                   + params["weight_data_attachment"] * cost
-        return cost, info, model
+        return cost, info, self.last_model
 
 
 
@@ -104,11 +107,20 @@ class GeodesicMatching(nn.Module) :
             lw    = par_plot.get("template_linewidth", 2 )
             self.template.plot(axis, color=color, linewidth=lw)
 
-        # Display the target:
-        if par_plot.get("info",   True) and isinstance(info, Curve) :
+        # Display the transport plan or kernel heatmap:
+        if   par_plot.get("info", True) and isinstance(info, Curve) :
             color = par_plot.get("info_color",    (.8, .9, 1., .3))
             lw    = par_plot.get("info_linewidth", 1 )
             info.plot(axis, color=color, linewidth=lw)
+
+        elif par_plot.get("info", True) and isinstance(info, np.ndarray) :
+            coords = params.get("data_attachment", {}).get("kernel_heatmap_range", (-2,2,100))
+            scale_attach = params["display"].get("kernel_heatmap_max", None)
+            if scale_attach  is None :
+                scale_attach = 1.5 * np.amax( np.abs(info[:]) )
+            axis.imshow(-info, interpolation='bilinear', origin='lower', 
+                        vmin = -scale_attach, vmax = scale_attach, cmap=cm.RdBu, 
+                        extent=(coords[0],coords[1],coords[0],coords[1])) 
 
         # Display the target:
         if par_plot.get("target",   True) :
@@ -121,6 +133,16 @@ class GeodesicMatching(nn.Module) :
             color = par_plot.get("model_color",    "rainbow")
             lw    = par_plot.get("model_linewidth", 2 )
             model.plot(axis, color=color, linewidth=lw)
+
+        # Display the gradient field driving the model:
+        if par_plot.get("model_gradient", True) :
+            color = par_plot.get("model_gradient_color",    "k")
+            lw    = par_plot.get("model_gradient_linewidth", .002 )
+            points =   self.last_model.points.data.cpu().numpy()
+            grads  = - self.last_model.points.grad.data.cpu().numpy()
+            axis.quiver( points[:,0], points[:,1], grads[:,0], grads[:,1] , 
+                         angles='xy', scale_units='xy', scale=2., width=lw, 
+                         units = 'width', zorder = 2.)
         
     
     def save(self, params, target, info=None, it=None, model=None) :
