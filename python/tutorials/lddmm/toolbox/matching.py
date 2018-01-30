@@ -91,6 +91,7 @@ class GeodesicMatching(nn.Module) :
             target (Shape, optional)      : the target to which the model was fitted
         """
 
+        attach_type = params["data_attachment"]["formula"]
         par_plot = params.get("display", {})
 
         model, p1, grid = self.diffeomorphism_info(params)
@@ -123,13 +124,38 @@ class GeodesicMatching(nn.Module) :
             info[1].plot(axis, color=color_nu2mu, linewidth=lw)
 
         # Display the kernel heatmap:
-        elif par_plot.get("info", True) and isinstance(info, np.ndarray) :
+        elif par_plot.get("info", True) and attach_type == "kernel" :
             coords = params.get("data_attachment", {}).get("kernel_heatmap_range", (-2,2,100))
             scale_attach = params["display"].get("kernel_heatmap_max", None)
             if scale_attach  is None :
-                scale_attach = 1.5 * np.amax( np.abs(info[:]) )
+                scale_attach = 1.2 * np.amax( np.abs(info[:]) )
             axis.imshow(-info, interpolation='bilinear', origin='lower', 
                         vmin = -scale_attach, vmax = scale_attach, cmap=cm.RdBu, 
+                        extent=(coords[0],coords[1],coords[0],coords[1])) 
+
+        # Display the log-kernel heatmap using a contour plot:
+        elif par_plot.get("info", True) and \
+            attach_type in ("likelihood_source_wrt_target", "likelihood_target_wrt_source") :
+            
+            scale_attach = np.amax( np.abs(info[:]) )
+            levels = np.linspace(-scale_attach, scale_attach, 40)
+
+            coords = params.get("data_attachment", {}).get("kernel_heatmap_range", (-2,2,100))
+            axis.contour(info, origin='lower', linewidths = 1., colors = "#646464",
+                        levels = levels,
+                        extent=(coords[0],coords[1],coords[0],coords[1])) 
+
+        elif par_plot.get("info", True) and attach_type == "likelihood_symmetric" :
+
+            scale_attach = max( np.amax( np.abs( info[0][:]) ), np.amax( np.abs( info[1][:]) ))
+            levels = np.linspace(-scale_attach, scale_attach, 40)
+
+            coords = params.get("data_attachment", {}).get("kernel_heatmap_range", (-2,2,100))
+            axis.contour(info[0], origin='lower', linewidths = 1., colors = "#6464C8",
+                        levels = levels,
+                        extent=(coords[0],coords[1],coords[0],coords[1])) 
+            axis.contour(info[1], origin='lower', linewidths = 1., colors = "#C86464",
+                        levels = levels,
                         extent=(coords[0],coords[1],coords[0],coords[1])) 
 
         # Display the target:

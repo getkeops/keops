@@ -44,7 +44,7 @@ def scal_to_var(x) :
 s_def = .1
 s_att = .1
 eps   = scal_to_var(s_att**2)
-backend = "pytorch"
+backend = "auto"
 
 
 G  = 1/eps           # "gamma" of the gaussian
@@ -101,6 +101,8 @@ params = {
 		"model_color"        :   (.8,0.,0.),
 		"info_color"         : (.8, .9, 1.,.5),
 		"info_linewidth"     : 2.,
+		"target_linewidth"    : 4.,
+		"model_linewidth"     : 4.,
 		"show_axis"          : False,
 	},
 	"save" : {                                  # MANDATORY
@@ -111,6 +113,8 @@ params = {
 fig_model = plt.figure(figsize=(10,10), dpi=100)
 ax_model  = plt.subplot(1,1,1)
 ax_model.autoscale(tight=True)
+
+
 for (normalize, rho, scale) in [(True, -1, 1), (False, 1., 2)] :
 	params["data_attachment"]["normalize"]  = normalize
 	params["data_attachment"]["rho"]        = rho

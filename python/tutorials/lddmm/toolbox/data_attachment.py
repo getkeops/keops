@@ -81,6 +81,63 @@ def _kernel_distance(Mu, Nu, params, info = False) :
     return D2, kernel_heatmap
 
 
+# MAXIMUM LIKELIHOOD "DISTANCES" ==============================================================================
+
+def _kernel_neglog_likelihood_Nu_wrt_Mu(Mu, Nu, params, info = False) :
+    """
+    Returns the negative log likelihood of the sampled measure Nu,
+    assuming an i.i.d. sampling from the density Mu convolved with
+    a kernel specified by params.
+    
+    The summation is done in the log-domain, for increased numerical stability.
+    
+    N.B.: for computational efficiency, kernel computations are "raw",
+          not normalized to have unit mass on R^d.
+          Hence, this log-likelihood can not be rigorously interpreted
+          as the log of a density function of total mass 1.
+          This can be fixed by adding the correct normalization constant
+          in front of the log-result, which is useful if one wants
+          to optimize on the kernel's parameters.
+    
+    If 'info' is True, kernel_heatmap is a background image, displaying
+    the real-valued field
+       log( d(k*mu)/dl ) (y) = log( sum_i k(y-x_i)*mu_i ) 
+    """
+    loglikelihoods = _kernel_product(Nu[1], Mu[1], Mu[0].log().view(-1,1), params, mode="log").view(-1)
+    
+    nu = Nu[0].view(-1)
+    if False :
+        dMuNu          = - torch.dot( loglikelihoods  , nu )
+    else :
+        # "KL(nu, k \star mu)" computed with "densities" wrt. the counting measure on Nu[1] = supp(nu)
+        dMuNu          = torch.dot( (nu.log()-loglikelihoods)*nu  - nu + loglikelihoods.exp(), 
+                                    torch.ones_like(nu) )
+    
+    kernel_heatmap = None
+    if info :
+        # Create a uniform grid on the [-2,+2]x[-2,+2] square:
+        xmin,xmax,res  = params.get("kernel_heatmap_range", (-2,2,100))
+        ticks  = np.linspace( xmin, xmax, res + 1)[:-1] + 1/(2*res) 
+        X,Y    = np.meshgrid( ticks, ticks )
+
+        dtype = Mu[0].data.type()
+        points = Variable(torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype), 
+                          requires_grad=False )
+
+        # Sample the log-likelihood on this grid:
+        kernel_heatmap   = _kernel_product(points, Mu[1], Mu[0].log().view(-1,1), params, mode="log")
+        kernel_heatmap   = kernel_heatmap.view(res,res).data.cpu().numpy() # reshape as a "background" image
+
+    return dMuNu, kernel_heatmap
+
+def _kernel_neglog_likelihood_Mu_wrt_Nu(Mu, Nu, params, info = False) :
+    return _kernel_neglog_likelihood_Nu_wrt_Mu(Nu, Mu, params, info)
+
+def _kernel_neglog_likelihood_symmetric(Mu, Nu, params, info = False) :
+    mu_wrt_nu = _kernel_neglog_likelihood_Mu_wrt_Nu(Mu, Nu, params, info)
+    nu_wrt_mu = _kernel_neglog_likelihood_Nu_wrt_Mu(Mu, Nu, params, info)
+    return ( .5*(mu_wrt_nu[0]+nu_wrt_mu[0]) , (mu_wrt_nu[1] , nu_wrt_mu[1]) )
+
 
 # OPTIMAL TRANSPORT DISTANCES ========================================================================
 
@@ -331,10 +388,14 @@ def _data_attachment(source, target, params, info=False) :
         Nu = (Nu[0]/Nu[0].sum(), Nu[1])
 
     attachment_type = params["formula"]
-    routines = { "L2"          : _L2_distance,
-                 "kernel"      : _kernel_distance,
-                 "wasserstein" : _wasserstein_distance,
-                 "sinkhorn"    : _sinkhorn_distance    }
+    routines = { "L2"                           : _L2_distance,
+                 "kernel"                       : _kernel_distance,
+                 "wasserstein"                  : _wasserstein_distance,
+                 "sinkhorn"                     : _sinkhorn_distance   ,
+                 "likelihood_symmetric"         : _kernel_neglog_likelihood_symmetric,
+                 "likelihood_source_wrt_target" : _kernel_neglog_likelihood_Mu_wrt_Nu,
+                 "likelihood_target_wrt_source" : _kernel_neglog_likelihood_Nu_wrt_Mu,
+                }
 
     if   attachment_type in routines :
         return routines[attachment_type](Mu, Nu, params, info)

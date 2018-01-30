@@ -42,15 +42,13 @@ def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
 
 s_def = .1
-s_att = .01
+s_att = .1
 eps   = scal_to_var(s_att**2)
 backend = "auto"
 
 
 G  = 1/eps           # "gamma" of the gaussian
 H  = scal_to_var(2.) # weight in front of (u,v)    (orientations)
-
-features      = "locations"
 
 features = "locations+directions"
 
@@ -82,7 +80,7 @@ params = {
 	},
 
 	"data_attachment"   : {
-		"formula"            : "sinkhorn", # Choose sinkhorn, then wasserstein
+		"formula"            : "wasserstein", # Choose sinkhorn, then wasserstein
 
 		# Parameters for OT:
 		"cost"               : "dual",
@@ -93,34 +91,43 @@ params = {
 		"epsilon"            : eps,
 		"rho"                : 1.,   # < 0 -> no unbalanced transport
 		"tau"                : 0.,   # Using acceleration with nits < ~40 leads to *very* unstable transport plans
-		"nits"               : 20,
+		"nits"               : 50,
 		"tol"                : 1e-7,
-		"transport_plan"     : "minimal",
+		"transport_plan"     : "minimal_symmetric",
 	},
 	"optimization" : {
 		"nlogs"              : 1,
+		"tol"                : 1e-6,
 	},
 	"display" : {
 		"limits"             : [0,1,0,1],
 		"grid"               : False,
 		"grid_ticks"         : ((0,1,21),(0,1,21)),
 		"template"           : False,
-		"target_color"       : (0.,0.,.8),
+		"target_color"       : (0.,0.,.8, .5),
 		"model_color"        : (.8,0.,0.),
+		"model_linewidth"    : 3,
 		"info_color"         : (.8, .9, 1.,1.),
-		"info_linewidth"     : 1.,
+		"info_color_a"       : (.8, .4, .4, .2),
+		"info_color_b"       : (.4, .4, .8, .2),
 		"show_axis"          : False,
 		"model_gradient"     : False,
 	},
 	"save" : {                                  # MANDATORY
-		"output_directory"   : FOLDER+"output/sinkhorn_vs_wasserstein/001/",# MANDATORY
+		"output_directory"   : FOLDER+"output/sinkhorn_vs_wasserstein/wasserstein_01/",# MANDATORY
 	}
 }
 
-# Define our (simplistic) matching model
-Model = GeodesicMatching(Source)
 
-# Train it
-FitModel(params, Model, Target)
+for (scale_att, suffix) in [ (0.1, "01"), (0.05, "005"), (0.01,"001"), (0.5, "05")] :	
+	for mode in ["sinkhorn", "wasserstein"] :
+		params["save"]["output_directory"] = FOLDER+"output/sinkhorn_vs_wasserstein_long/"+mode+"_"+suffix+"/"
+		params["data_attachment"]["formula"] = mode
+		eps   = scal_to_var(scale_att**2)
+		G  = 1/eps
+		params["data_attachment"]["epsilon"] = eps
+		params["data_attachment"]["kernel"]["gamma"] = (G,H)
+		Model = GeodesicMatching(Source)
+		FitModel(params, Model, Target)
 
 # That's it :-)

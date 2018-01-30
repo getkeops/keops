@@ -64,11 +64,16 @@ def save_info(filename, model, target, info, params_att) :
 
 		if isinstance(info,(Curve, Surface)) :
 			info.save(filename)
+		elif isinstance(info, tuple) and isinstance(info[0], (Curve,Surface)) :
+			info[0].save(filename+"_mu2nu")
+			info[1].save(filename+"_nu2mu")
 
 		elif formula == "kernel" :
 			"""ax.imshow(info, interpolation='bilinear', origin='lower', 
 					vmin = -scale_attach, vmax = scale_attach, cmap=cm.RdBu, 
 					extent=(0,1, 0, 1)) """
+			None
+		elif formula in ["likelihood_symmetric", "likelihood_source_wrt_target", "likelihood_target_wrt_source"] :
 			None
 		else :
 			raise NotImplementedError('I can\'t save the "info" provided by the attachment formula "'+formula+'". '\

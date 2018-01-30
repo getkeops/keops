@@ -28,14 +28,14 @@ plt.ion()
 plt.show()
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-use_cuda = torch.cuda.is_available()
+use_cuda = False # torch.cuda.is_available()
 dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-if True :
+if False :
 	Source = Curve.from_file(FOLDER+"data/shape_left_2.png", npoints=15)
 	Target = Curve.from_file(FOLDER+"data/shape_left_2.png", npoints=15)
 	Target.points.data += torch.Tensor([.6,0.]).type(dtype)
@@ -80,7 +80,7 @@ params = {
 		"id"     : Kernel("energy(x,y)") ,
 		"gamma"  : scal_to_var(1/.01**2) ,
 		"backend": backend,
-		"kernel_heatmap_range" : (0,1,100),
+		"kernel_heatmap_range" : (-0.3,1.3,300),
 
 		# Parameters for OT:
 		"cost"               : "dual",
@@ -96,28 +96,41 @@ params = {
 		"transport_plan"     : "full",
 	},
 	"optimization" : {
+		"method"             : "Adam",
 		"nlogs"              : 1,
+		"nits"               : 1,
 	},
 	"display" : {
-		"limits"             : [0,1,.3,.72],
+		"limits"             : [-.3,1.3,-.3,1.3],
 		"grid"               : False,
 		"template"           : False,
 		"target_color"       :   (0.,0.,.8),
 		"model_color"        :   (.8,0.,0.),
 		"info_color"         : (.8, .9, 1.,.5),
+		"target_linewidth"   : 4,
+		"model_linewidth"    : 4,
 		"info_linewidth"     : 4.,
 		"show_axis"          : False,
-		"model_gradient_scale" : -30, # Renormalize stuff with a "negative" scale
+		"model_gradient"     : False, # Renormalize stuff with a "negative" scale
 	},
 	"save" : {                                  # MANDATORY
 		"output_directory"   : FOLDER+"output/data_attachment_gradients/OT/",# MANDATORY
 	}
 }
 
-# Define our (simplistic) matching model
-Model = GeodesicMatching(Source)
+if True :
+	settings = [("gaussian(x,y)", .01, "_empty", 1000),
+				("energy(x,y)",   .01,  "_heavy", .25),
+				("gaussian(x,y)", .02, "_small", None), 
+				("gaussian(x,y)", .2,  "_large", None)]
 
-# Train it
-FitModel(params, Model, Target)
+for formula in ["kernel", "likelihood_symmetric"] :
+	for (name, scale, suffix, maxval) in settings :
+		params["data_attachment"]["formula"] = formula
+		params["data_attachment"]["id"]      = Kernel(name)
+		params["data_attachment"]["gamma"]   = scal_to_var(1/scale**2)
+		params["display"]["kernel_heatmap_max"] = maxval
 
-# That's it :-)
+		params["save"]["output_directory"] = FOLDER+"output/data_attachment_display/"+formula+suffix+"/"
+		Model = GeodesicMatching(Source)
+		FitModel(params, Model, Target)
