@@ -42,20 +42,36 @@ def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
 
 s_def = .1
-s_att = .1 # Choose it small, then large
+s_att = .01
 eps   = scal_to_var(s_att**2)
-backend = "pytorch"
+backend = "auto"
 
 
 G  = 1/eps           # "gamma" of the gaussian
+H  = scal_to_var(2.) # weight in front of (u,v)    (orientations)
 
 features      = "locations"
-kernel        = Kernel("gaussian(x,y)")
-params_kernel = G
+
+features = "locations+directions"
+
+# Create a custom kernel, purely in log-domain, for the Wasserstein/Sinkhorn cost.
+# formula_log = libkp backend, routine_log = pytorch backend : a good "safety check" against typo errors !
+# N.B.: the shorter the formula, the faster the kernel...
+if   features == "locations": # Fast as hell kernel, to compute a regular Wasserstein distance (the "mathematical" one)
+	kernel              = Kernel("gaussian(x,y)")
+	params_kernel       = G
+
+elif features == "locations+directions" : # Generalization to varifolds - Cf eq.(11) of the MICCAI paper
+	kernel              = Kernel()
+	kernel.features     = "locations+directions"
+	kernel.formula_log  = "( -Cst(G)*SqDist(X,Y) * (IntCst(1) + Cst(H)*(IntCst(1)-Pow((U,V),2) ) ) )"
+	kernel.routine_log  = lambda g=None, xmy2=None, h=None, usv=None, i=None, smt2=None, **kwargs :\
+								  -g*xmy2        * (    1     +      h*(1-usv**2)   )
+	params_kernel       = (G,H)
 
 
 params = {
-	"weight_regularization" : .00001,
+	"weight_regularization" : .01,
 	"weight_data_attachment": 1.,
 
 	"deformation_model" : {
@@ -75,8 +91,8 @@ params = {
 					"gamma"  : params_kernel ,
 					"backend": backend                 },
 		"epsilon"            : eps,
-		"rho"                : 10.,   # < 0 -> no unbalanced transport
-		"tau"                : 0.,    # Using acceleration with nits < ~40 leads to *very* unstable transport plans
+		"rho"                : 1.,   # < 0 -> no unbalanced transport
+		"tau"                : 0.,   # Using acceleration with nits < ~40 leads to *very* unstable transport plans
 		"nits"               : 20,
 		"tol"                : 1e-7,
 		"transport_plan"     : "minimal",
@@ -87,15 +103,17 @@ params = {
 	"display" : {
 		"limits"             : [0,1,0,1],
 		"grid"               : False,
+		"grid_ticks"         : ((0,1,21),(0,1,21)),
 		"template"           : False,
-		"target_color"       :   (0.,0.,.8),
-		"model_color"        :   (.8,0.,0.),
-		"info_color"         : (.8, .9, 1.,.3),
+		"target_color"       : (0.,0.,.8),
+		"model_color"        : (.8,0.,0.),
+		"info_color"         : (.8, .9, 1.,1.),
 		"info_linewidth"     : 1.,
 		"show_axis"          : False,
+		"model_gradient"     : False,
 	},
 	"save" : {                                  # MANDATORY
-		"output_directory"   : FOLDER+"output/sinkhorn_vs_wasserstein/01",# MANDATORY
+		"output_directory"   : FOLDER+"output/sinkhorn_vs_wasserstein/001/",# MANDATORY
 	}
 }
 
