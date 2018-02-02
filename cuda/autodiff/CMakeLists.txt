@@ -18,7 +18,7 @@ set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/test
     ${CMAKE_CURRENT_SOURCE_DIR}/test/unit
     ${PROJECT_BINARY_DIR}
-    )
+)
 
 Include_Directories(${SOURCE_FILES})
 
@@ -45,12 +45,17 @@ if(NOT __TYPE__)
     Set(__TYPE__ float)
 endif()
 
-## Declare the templates formula. We should generate a file to avoid parsing problem with shell
+# - Declare the templates formula. We should generate a file to avoid parsing problem with shell
 if(NOT FORMULA)
-	Set(FORMULA Scal<Square<Scalprod<_X<1,4>,_Y<3,4>>>,GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<4,3>>>)
+    Set(FORMULA Grad<GaussKernel<_P<0>,_X<0,3>,_Y<0,3>,_Y<1,3>>,_X<0,3>,_X<1,3>>)
+endif()
+
+if(NOT USENEWSYNTAX)
+    set(USENEWSYNTAX FALSE)
 endif()
 
 configure_file(template.h.in template.h @ONLY)
+
 ## --------------------------------COMPILATIONS---------------------------------------------
     
 ## - create shared lib
@@ -67,18 +72,23 @@ add_library(
     shared_obj_cpp SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
 )
+
 target_compile_options(
     shared_obj_cpp BEFORE
     PRIVATE -include template.h
 )
 
 
-add_custom_command(
-    TARGET shared_obj POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    $<TARGET_FILE:shared_obj>
-    \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX}
-)
+# shared_lib can be rename if the variable share_lib_name is provided.
+if(shared_obj_name)
+    #Set(shared_lib_name \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX})
+    add_custom_command(
+        TARGET shared_obj POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E rename
+        $<TARGET_FILE:shared_obj>
+        ${shared_obj_name}    
+    )
+endif()
 
 ### - mexfiles : generate a working mexfile is painful with cmake. 
     ##   The problem is twofold : the cuda module do not define a 
@@ -112,6 +122,7 @@ if(Matlab_FOUND)
         mex_cuda PROPERTIES 
         PREFIX "" 
         LINKER_LANGUAGE CXX
+        EXCLUDE_FROM_ALL TRUE
     )
 else()
     message(WARNING "Matlab not found. No mex file produced.")
@@ -157,3 +168,35 @@ target_link_libraries(
     test_link_conv
     shared_obj
 )
+
+
+
+### - Benchmark
+    if(${__TYPE__} EQUAL double)
+        Set(USE_DOUBLE 1)
+    else()
+        Set(USE_DOUBLE 0)
+    endif()
+
+    CUDA_add_executable(
+        bench
+        ${CMAKE_CURRENT_SOURCE_DIR}/test/bench.cu
+    )
+
+    target_link_libraries(
+        bench
+        shared_obj
+        shared_specific
+        benchmark 
+    )
+    
+    CUDA_add_library(
+        shared_specific SHARED
+        "../convolutions/cuda_grad1conv.cu"
+        OPTIONS -D "CUDA_BLOCK_SIZE=192" --pre-include=template.h
+    )
+
+    set_target_properties( # pass needed options to add_executable()
+        bench PROPERTIES
+        LINKER_LANGUAGE CXX
+    )

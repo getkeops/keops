@@ -15,7 +15,7 @@ echo 'bench is compiled...'
 
 # Second: create the shared objects that you want to compare:
 ./compile $FUN
-$NVCC -D "USE_DOUBLE_PRECISION=0" -D "CUDA_BLOCK_SIZE=192" $NVCCFLAGS -I../../convolutions/ -o "build/"$SPECIFIC".so"   "../../convolutions/"$SPECIFIC".cu"
+$NVCC -D "USE_DOUBLE_PRECISION=0" -D "CUDA_BLOCK_SIZE=192" $NVCCFLAGS -I../convolutions/ -o "build/"$SPECIFIC".so"   "../convolutions/"$SPECIFIC".cu"
 echo 'generic is compiled...'
 
 # Third: link all together

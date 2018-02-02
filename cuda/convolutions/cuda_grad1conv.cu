@@ -8,7 +8,6 @@
 #include "radial_kernels.cx"
 #include "cuda_grad1conv.cx"
 
-#define UseCudaOnDoubles USE_DOUBLE_PRECISION
 
 
 //////////////////////////////////////////////////////
@@ -96,41 +95,27 @@ int KernelGpuGrad1Conv(TYPE ooSigma2,
 
 // Couldn't find a clean way to give a name to an explicit instantiation :-(
 
-#if !(UseCudaOnDoubles)
 
 // This instantiation bypass the function KernelGpuEvalConv as the pointers contain a address directly on the device
 /*
- *extern "C" int GaussGpuGrad1Conv_onDevice(float ooSigma2, float* alpha_d, float* x_d, float* y_d, float* beta_d, float* gamma_d, int dimPoint, int dimVect, int nx, int ny) {
+ *extern "C" int GaussGpuGrad1Conv_onDevice(__TYPE__ ooSigma2, __TYPE__* alpha_d, __TYPE__* x_d, __TYPE__* y_d, __TYPE__* beta_d, __TYPE__* gamma_d, int dimPoint, int dimVect, int nx, int ny) {
  *    dim3 blockSize (CUDA_BLOCK_SIZE,1,1); // number of threads in each block
  *    dim3 gridSize (nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1));
  *
- *    KernelGpuGrad1Conv<float,3,3,GaussFp><<<gridSize,blockSize,blockSize.x*(3+3)*sizeof(float)>>>
+ *    KernelGpuGrad1Conv<__TYPE__,3,3,GaussFp><<<gridSize,blockSize,blockSize.x*(3+3)*sizeof(__TYPE__)>>>
  *    (ooSigma2, x_d, y_d, beta_d, gamma_d, nx, ny);
  *    return 0;
  *}
  */
-extern "C" int GaussGpuGrad1Conv(float ooSigma2, float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGrad1Conv<float,GaussFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+extern "C" int GaussGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGrad1Conv<__TYPE__,GaussFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-extern "C" int LaplaceGpuGrad1Conv(float ooSigma2, float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGrad1Conv<float,LaplaceFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+extern "C" int LaplaceGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGrad1Conv<__TYPE__,LaplaceFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-extern "C" int EnergyGpuGrad1Conv(float ooSigma2, float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGrad1Conv<float,EnergyFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+extern "C" int EnergyGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGrad1Conv<__TYPE__,EnergyFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-
-#else
-extern "C" int GaussGpuGrad1Conv(double ooSigma2, double* alpha_h, double* x_h, double* y_h, double* beta_h, double* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGrad1Conv<double,GaussFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
-}
-extern "C" int LaplaceGpuGrad1Conv(double ooSigma2, double* alpha_h, double* x_h, double* y_h, double* beta_h, double* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGrad1Conv<double,LaplaceFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
-}
-extern "C" int EnergyGpuGrad1Conv(double ooSigma2, double* alpha_h, double* x_h, double* y_h, double* beta_h, double* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGrad1Conv<double,EnergyFp>(ooSigma2, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
-}
-
-#endif
 
 
 
