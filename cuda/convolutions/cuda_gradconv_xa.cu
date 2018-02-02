@@ -30,8 +30,6 @@
 #include "radial_kernels.cx"
 #include "cuda_gradconv_xa.cx"
 
-#define UseCudaOnDoubles USE_DOUBLE_PRECISION
-
 //////////////////////////////////////////////////////
 /////////// CPU -> GPU -> CPU routines ///////////////
 //////////////////////////////////////////////////////
@@ -126,28 +124,15 @@ int KernelGpuGradConvXA(TYPE ooSigma2,               // 1 / sigma^2
 
 // Couldn't find a clean way to give a name to an explicit instantiation :-(
 
-#if !(UseCudaOnDoubles)
-extern "C" int GaussGpuGradConvXA(float ooSigma2, float* e_h, float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGradConvXA<float,GaussFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+extern "C" int GaussGpuGradConvXA(__TYPE__ ooSigma2, __TYPE__* e_h, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXA<__TYPE__,GaussFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-extern "C" int LaplaceGpuGradConvXA(float ooSigma2, float* e_h, float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGradConvXA<float,LaplaceFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+extern "C" int LaplaceGpuGradConvXA(__TYPE__ ooSigma2, __TYPE__* e_h, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXA<__TYPE__,LaplaceFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-extern "C" int EnergyGpuGradConvXA(float ooSigma2, float* e_h, float* alpha_h, float* x_h, float* y_h, float* beta_h, float* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGradConvXA<float,EnergyFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+extern "C" int EnergyGpuGradConvXA(__TYPE__ ooSigma2, __TYPE__* e_h, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXA<__TYPE__,EnergyFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-
-#else
-extern "C" int GaussGpuGradConvXA(double ooSigma2, double* e_h, double* alpha_h, double* x_h, double* y_h, double* beta_h, double* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGradConvXA<double,GaussFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
-}
-extern "C" int LaplaceGpuGradConvXA(double ooSigma2, double* e_h, double* alpha_h, double* x_h, double* y_h, double* beta_h, double* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGradConvXA<double,LaplaceFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
-}
-extern "C" int EnergyGpuGradConvXA(double ooSigma2, double* e_h, double* alpha_h, double* x_h, double* y_h, double* beta_h, double* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGradConvXA<double,EnergyFp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
-}
-#endif
 
 void ExitFcn(void) {
     cudaDeviceReset();

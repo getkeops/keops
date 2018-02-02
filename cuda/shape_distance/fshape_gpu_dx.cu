@@ -8,8 +8,6 @@
 #include "kernels.cx"
 #include "fshape_gpu_dx.cx"
 
-#define UseCudaOnDoubles USE_DOUBLE_PRECISION
-
 template <typename TYPE>
 int fshape_gpu_dx(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
                   TYPE* x_h, TYPE* y_h,
@@ -97,19 +95,9 @@ int fshape_gpu_dx(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
 
 // Couldn't find a clean way to give a name to an explicit instantiation :-(
 
-#if !(UseCudaOnDoubles)
-
-extern "C" int cudafshape_dx(float ooSigmax2,float ooSigmaf2, float ooSigmaXi2, float* x_h, float* y_h, float* f_h, float* g_h, float* alpha_h, float* beta_h, float* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny) {
-    return fshape_gpu_dx<float>(ooSigmax2,ooSigmaf2,ooSigmaXi2, x_h, y_h, f_h, g_h, alpha_h, beta_h, gamma_h, dimPoint, dimSig, dimVect, nx, ny);
+extern "C" int cudafshape_dx(__TYPE__ ooSigmax2,__TYPE__ ooSigmaf2, __TYPE__ ooSigmaXi2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* f_h, __TYPE__* g_h, __TYPE__* alpha_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny) {
+    return fshape_gpu_dx<__TYPE__>(ooSigmax2,ooSigmaf2,ooSigmaXi2, x_h, y_h, f_h, g_h, alpha_h, beta_h, gamma_h, dimPoint, dimSig, dimVect, nx, ny);
 }
-
-#else
-
-extern "C" int cudafshape_dx(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2, double* x_h, double* y_h, double* f_h, double* g_h, double* alpha_h, double* beta_h, double* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny) {
-    return fshape_gpu_dx<double>(ooSigmax2,ooSigmaf2,ooSigmaXi2, x_h, y_h, f_h, g_h, alpha_h, beta_h, gamma_h, dimPoint, dimSig, dimVect, nx, ny);
-}
-
-#endif
 
 void ExitFcn(void) {
     cudaDeviceReset();
