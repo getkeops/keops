@@ -35,21 +35,24 @@ dtypeint = torch.cuda.LongTensor  if use_cuda else torch.LongTensor
 # Make sure that everybody's on the same wavelength:
 shapes.dtype = dtype ; shapes.dtypeint = dtypeint
 
-dataset_name = "elegans"
+dataset_name = "blobs"
 
 if dataset_name == "amoeba" :
 	Source = Curve.from_file(FOLDER+"data/amoeba_1.png", npoints=100)
 	Target = Curve.from_file(FOLDER+"data/amoeba_2.png", npoints=100)
-if dataset_name == "elegans" :
+elif dataset_name == "elegans" :
 	Source = Curve.from_file(FOLDER+"data/elegans_1.png", npoints=100)
 	Target = Curve.from_file(FOLDER+"data/elegans_2.png", npoints=100)
+elif dataset_name == "blobs" :
+	Source = Curve.from_file(FOLDER+"data/blobs_1.png", npoints=100)
+	Target = Curve.from_file(FOLDER+"data/blobs_2.png", npoints=100)
 
 def scal_to_var(x) :
 	return Variable(Tensor([x])).type(dtype)
 
 s_def = .1
 s_att = .01
-scale_suff = "001b"
+scale_suff = "001"
 eps   = scal_to_var(s_att**2)
 backend = "auto"
 
@@ -177,7 +180,8 @@ for (normalize, rho, scale) in [(False, 1., -30)] :
 		plt.xlim(1, np.amax(iters))
 		plt.draw()
 
-		tikz_save(foldername + "/primal_dual.tex", figurewidth='12cm', figureheight='12cm')
+		plt.savefig( foldername + "/primal_dual.png", bbox_inches='tight' )
+		tikz_save(   foldername + "/primal_dual.tex", figurewidth='12cm', figureheight='12cm')
 
 		plt.figure()
 		plt.plot(iters, np.maximum(primal_costs - dual_costs, 1e-10*np.ones( len(iters)) ) )
@@ -190,7 +194,8 @@ for (normalize, rho, scale) in [(False, 1., -30)] :
 		plt.legend(loc='upper right')
 		plt.draw()
 
-		tikz_save(foldername + "/duality_gap.tex", figurewidth='12cm', figureheight='12cm')
+		plt.savefig( foldername + "/duality_gap.png", bbox_inches='tight' )
+		tikz_save(   foldername + "/duality_gap.tex", figurewidth='12cm', figureheight='12cm')
 
 plt.show(block=True)
 
