@@ -168,30 +168,95 @@ def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto", bonus_args=None)
     if   kernel.features == "locations" :
         G     = gamma; X     = x; Y     = y
         return FeaturesKP( kernel, G,X,Y,               b, 
-                           mode = mode, backend = backend, bonus_args=bonus_args)
-                           
+                        mode = mode, backend = backend, bonus_args=bonus_args)
+                        
     elif kernel.features == "locations+directions" :
         G,H   = gamma; X,U   = x; Y,V   = y
         return FeaturesKP( kernel, G,X,Y, H,U,V,        b,
-                           mode = mode, backend = backend, bonus_args=bonus_args)
+                        mode = mode, backend = backend, bonus_args=bonus_args)
 
     elif kernel.features == "locations+directions+values" :
         G,H,I = gamma; X,U,S = x; Y,V,T = y
         return FeaturesKP( kernel, G,X,Y, H,U,V, I,S,T, b, 
-                           mode = mode, backend = backend, bonus_args=bonus_args)
+                        mode = mode, backend = backend, bonus_args=bonus_args)
     else :
         raise NotImplementedError("Kernel features '"+kernel.features+"'. "\
-                                 +'Available values are "locations" (measures), "locations+directions" (shapes)' \
-                                 +'and "locations+directions+values" (fshapes).' )
+                                +'Available values are "locations" (measures), "locations+directions" (shapes)' \
+                                +'and "locations+directions+values" (fshapes).' )
 
 
 
+def kernel_product(x,y,b, params, mode = "sum", bonus_args = None) :
+    """
+    Just a simple wrapper around the KernelProduct operation,
+    with a user-friendly "dict" of parameters.
+    It allows you to compute kernel dot products (aka. as discrete convolutions)
+    with arbitrary formulas, using a "sum" or a "log-sum-exp" reduction operation.
+
+    Returns: ---------------------------------------------------------------------
+    - v (Variable of size (N,E)).
+
+    If mode == "sum", we have :
+        v_i =     \sum_j k(x_i, y_j) b_j
+
+    Otherwise, if mode == "log", we have :
+        v_i = log \sum_j exp( c(x_i, y_j) + b_j )
+    where c(x_i,y_j) = log( k(x_i,y_j) )  -- computed with improved numerical accuracy.
+
+    Args: -------------------------------------------------------------------------
+    - x   (Variable, or a F-tuple of Variables) : 
+            The "F" features of the points (x_i), 1 <= i <= N.
+            All the Variables should be 2d-tensors, with the same size "N"
+            along dimension 0.
+    - y   (Variable, or a F-tuple of Variables) : 
+            The "F" features of the points (y_j), 1 <= j <= M.
+            All the Variables should be 2d-tensors, with the same size "M"
+            along dimension 0.
+    - b   (Variable of size (M,E)) :
+            The vectors associated to the points y_j.
+    - params :
+            A dictionnary, which describes the kernel being used.
+            It should have the following attributes :
+            - "id"      : a libkp.torch.kernels.Kernel object,
+                        which describes the formulas for "k", "c" and the number of features
+                        ("locations", "location+directions", etc.) being used.
+            - "backend" : "auto",    to use libkp's CPU or CUDA routines (default option).
+                        "pytorch", to fall back on a reference matrix implementation.
+            - "gamma"   : a F-tuple of scalar Variables.
+                        Typically, something along the lines of
+                        "(1/sigma**2, 1/tau**2, 1/kappa**2)" ...
+                        
+    Typical examples of use are given in the tutorials.
 
 
+    BONUS MODES : -----------------------------------------------------------------
+    on top of the "normal" kernel products, we provide additionnal
+    operations, related to the Sinkhorn scaling algorithm.
+    These operations require two additional parameters,
+    referred to as "bonus_args = (Alog,Blog)",
+    Variables of size (N,1) and (M,1) respectively,
+    which encode the logarithms of the scaling coefficients.
 
+    If       mode == "log_scaled", we have :
+        v_i =     \sum_j exp( c(x_i,y_j) + Alog_i + Blog_j ) * b_j
 
+    Else, if mode == "log_scaled_log", we have :
+        v_i = log \sum_j exp( c(x_i,y_j) + Alog_i + Blog_j + b_j )
 
+    Else, if mode == "log_primal", we have :
+        v_i = \sum_j (Alog_i+Blog_j-1) * exp( c(x_i,y_j) + Alog_i + Blog_j )
+        (b_j is not used)
 
+    Else, if mode == "log_cost", we have :
+        v_i = \sum_j -c(x_i,y_j) * exp( c(x_i,y_j) + Alog_i + Blog_j )
+        (b_j is not used)
+    """
+    kernel  = params["id"]
+    backend = params.get("backend", "auto")
+    # gamma should have been generated along the lines of "Variable(torch.Tensor([1/(s**2)])).type(dtype)"
+    gamma   = params["gamma"]
+    
+    return KernelProduct(gamma, x,y,b, kernel, mode, backend, bonus_args = bonus_args)
 
 
 

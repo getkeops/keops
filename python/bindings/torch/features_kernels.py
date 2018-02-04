@@ -7,9 +7,8 @@ from .logsumexp_generic      import GenericLogSumExp
 from .utils import _scalar_products, _squared_distances, _log_sum_exp
 
 
-def _features_kernel(features, routine, *args, matrix=False) :
-    """
-    """
+def apply_routine(features, routine, *args) :
+    """PyTorch bindings."""
     if   features == "locations" :
         g,x,y, b = args
         K = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y))
@@ -26,30 +25,18 @@ def _features_kernel(features, routine, *args, matrix=False) :
                     i=i, s=s, t=t, smt2 = _squared_distances(s,t)  )
     else :
         raise ValueError("This number of arguments is not supported!")
+    return K
 
+
+
+def _features_kernel(features, routine, *args, matrix=False) :
+    K = apply_routine(features, routine, *args)
+    b = args[-1]
     return K if matrix else K @ b
 
-
 def _features_kernel_log(features, routine, *args, matrix=False) :
-    """
-    """
-    if   features == "locations" :
-        g,x,y, b_log = args
-        K_log = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y))
-
-    elif features == "locations+directions" :
-        g,x,y, h,u,v, b_log = args
-        K_log = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y), \
-                        h=h, u=u, v=v, usv  =   _scalar_products(u,v)  )
-
-    elif features == "locations+directions+values" :
-        g,x,y, h,u,v, i,s,t, b_log = args
-        K_log = routine(g=g, x=x, y=y, xmy2 = _squared_distances(x,y), \
-                        h=h, u=u, v=v, usv  =   _scalar_products(u,v), \
-                        i=i, s=s, t=t, smt2 = _squared_distances(s,t)  )
-    else :
-        raise ValueError("This number of arguments is not supported!")
-
+    K_log = apply_routine(features, routine, *args)
+    b_log = args[-1]
     return K_log if matrix else _log_sum_exp( K_log + b_log.view(1,-1) , 1 ).view(-1,1)
 
 def _features_kernel_log_scaled(features, routine, *args, matrix=False) :
@@ -65,10 +52,10 @@ def _features_kernel_log_scaled_log(features, routine, *args, matrix=False) :
     return aKb_log if matrix else _log_sum_exp( aKb_log + args[-3].view(1,-1) , 1 ).view(-1,1)
 
 def _features_kernel_log_primal(features, routine, *args, matrix=False) :
-    a_log, b_log = args[-2:] # scaling coefficients, typically given as output of the Sinkhorn loop
-    K_log        = _features_kernel_log(features, routine, *args[:-2], matrix=True)
+    a_log, b_log, u, v = args[-4:] # scaling coefficients, typically given as output of the Sinkhorn loop
+    K_log        = _features_kernel_log(features, routine, *args[:-4], matrix=True)
     aKb_log      = (a_log.view(-1,1) + b_log.view(1,-1)) + K_log
-    minus_CGamma = (a_log.view(-1,1) + b_log.view(1,-1) - 1.) * aKb_log.exp()
+    minus_CGamma = (u.view(-1,1) + v.view(1,-1) - 1.) * aKb_log.exp()
     return minus_CGamma if matrix else minus_CGamma.sum(1).view(-1,1)
 
 def _features_kernel_log_cost(features, routine, *args, matrix=False) :
@@ -78,6 +65,12 @@ def _features_kernel_log_cost(features, routine, *args, matrix=False) :
     minus_CGamma = - K_log * aKb_log.exp()
     return minus_CGamma if matrix else minus_CGamma.sum(1).view(-1,1)
 
+def _features_kernel_log_barycenter(features, routine, *args, matrix=False) :
+    a_log, b_log, b2 = args[-3:] # scaling coefficients, typically given as output of the Sinkhorn loop
+    K_log        = _features_kernel_log(features, routine, *args[:-3], matrix=True)
+    aKb_log      = (a_log.view(-1,1) + b_log.view(1,-1)) + K_log
+    raise NotImplementedError
+    return aKb_log if matrix else aKb_log.exp() @ args[-4]
 
 def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
     """
@@ -92,6 +85,7 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
         elif mode == "log_scaled_log" : return _features_kernel_log_scaled_log( kernel.features, kernel.routine_log, *args)
         elif mode == "log_primal"     : return _features_kernel_log_primal(     kernel.features, kernel.routine_log, *args)
         elif mode == "log_cost"       : return _features_kernel_log_cost(       kernel.features, kernel.routine_log, *args)
+        elif mode == "log_barycenter" : return _features_kernel_log_barycenter( kernel.features, kernel.routine_log, *args)
         else : raise ValueError('"mode" should either be "sum" or "log".')
     elif backend == "matrix" :
         if   mode == "sum"            : return _features_kernel(                kernel.features, kernel.routine_sum, *args, matrix=True)
@@ -100,6 +94,7 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
         elif mode == "log_scaled_log" : return _features_kernel_log_scaled_log( kernel.features, kernel.routine_log, *args, matrix=True)
         elif mode == "log_primal"     : return _features_kernel_log_primal(     kernel.features, kernel.routine_log, *args, matrix=True)
         elif mode == "log_cost"       : return _features_kernel_log_cost(       kernel.features, kernel.routine_log, *args, matrix=True)
+        elif mode == "log_barycenter" : return _features_kernel_log_barycenter( kernel.features, kernel.routine_log, *args, matrix=True)
         else : raise ValueError('"mode" should either be "sum" or "log".')
 
     else :
@@ -117,10 +112,13 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
             formula  = "("+kernel.formula_log + "+ A_LOG + B_LOG + B)"
         elif mode == "log_primal" :
             genconv  = GenericKernelProduct().apply
-            formula  = "( (A_LOG + B_LOG - IntCst(1)) * Exp("+kernel.formula_log + "+ A_LOG + B_LOG) )"
+            formula  = "( (A_LOG2 + B_LOG2 - IntCst(1)) * Exp("+kernel.formula_log + "+ A_LOG + B_LOG) )"
         elif mode == "log_cost" :
             genconv  = GenericKernelProduct().apply
             formula  = "( (-"+kernel.formula_log+") * Exp("+kernel.formula_log + "+ A_LOG + B_LOG) )"
+        elif mode == "log_barycenter" :
+            genconv  = GenericKernelProduct().apply
+            formula  = "( Exp("+kernel.formula_log + "+ A_LOG + B_LOG) * (B-B2))"
         else : raise ValueError('"mode" should either be "sum" or "log".')
         
         if   kernel.features == "locations" :
@@ -176,11 +174,22 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
             #                              B_j    .
                                       (dimout,1) ]
 
-        if mode in ("log_scaled", "log_scaled_log", "log_primal", "log_cost") :
+        if mode in ("log_scaled", "log_scaled_log", "log_primal", "log_cost", "log_barycenter") :
             aliases += ["A_LOG = Vx("+str(nvars  )+",1)",
                         "B_LOG = Vy("+str(nvars+1)+",1)"]
             #               A_LOG_i , B_LOG_j
             signature += [   (1,0)  , (1,1)   ]
+        if mode == "log_primal" :
+            aliases += ["A_LOG2 = Vx("+str(nvars+2)+",1)",
+                        "B_LOG2 = Vy("+str(nvars+3)+",1)"]
+            #               A_LOG2_i , B_LOG2_j
+            signature += [   (1,0)  ,  (1,1)   ]
+        if mode == "log_barycenter" :
+            aliases += ["B2 = Vx("+str(nvars+2)+",DIMOUT)"]
+            #                  B2_i
+            signature += [  (dimout,0)  ]
+
+
         sum_index = 0 # the output vector is indexed by "i" (CAT=0)
         return genconv( backend, aliases, formula, signature, sum_index, *args )
         
