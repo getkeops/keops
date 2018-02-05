@@ -69,8 +69,8 @@ def _features_kernel_log_barycenter(features, routine, *args, matrix=False) :
     a_log, b_log, b2 = args[-3:] # scaling coefficients, typically given as output of the Sinkhorn loop
     K_log        = _features_kernel_log(features, routine, *args[:-3], matrix=True)
     aKb_log      = (a_log.view(-1,1) + b_log.view(1,-1)) + K_log
-    raise NotImplementedError
-    return aKb_log if matrix else aKb_log.exp() @ args[-4]
+    aKb          = aKb_log.exp()
+    return aKb_log if matrix else ( (aKb @ args[-4]) - (aKb.sum(1).view(-1,1) * b2 ) ).contiguous()
 
 def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
     """
