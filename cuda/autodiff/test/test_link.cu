@@ -86,6 +86,7 @@ int main() {
     cout << "time for GPU computation (1D) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
 
+    fillrandom(vf);
     resgpu1D = vf;
 
     begin = clock();
@@ -93,6 +94,7 @@ int main() {
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
+    fillrandom(vf);
     rescpu = vf;
 
     // display mean of errors
