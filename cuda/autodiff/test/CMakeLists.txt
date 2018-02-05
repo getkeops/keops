@@ -5,7 +5,7 @@ if(GTest_FOUND)
 
     Add_library(
         testic OBJECT 
-        ${CMAKE_CURRENT_SOURCE_DIR}/test/unit/gpu_conv.cxx
+        ${CMAKE_CURRENT_SOURCE_DIR}/unit/gpu_conv.cxx
     )
 
     Add_executable(

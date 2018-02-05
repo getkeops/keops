@@ -8,7 +8,7 @@ if(Matlab_FOUND)
 
     CUDA_compile( # generate the string "nvcc -c ..." but do not execute it
         mex_file SHARED
-        ${CMAKE_CURRENT_SOURCE_DIR}/matlab_bindings/cudaconv.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/cudaconv.cu
         OPTIONS --pre-include=template.h -I${Matlab_INCLUDE_DIRS} -x cu
     )
 

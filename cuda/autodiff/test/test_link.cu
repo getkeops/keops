@@ -80,21 +80,20 @@ int main() {
 
     resgpu2D = vf;
 
+    fillrandom(vf);
     begin = clock();
     GpuConv1D(params, Nx, Ny, f, args);
     end = clock();
     cout << "time for GPU computation (1D) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-
-    fillrandom(vf);
     resgpu1D = vf;
 
+    fillrandom(vf);
     begin = clock();
     CpuConv(params, Nx, Ny, f, args);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-    fillrandom(vf);
     rescpu = vf;
 
     // display mean of errors
