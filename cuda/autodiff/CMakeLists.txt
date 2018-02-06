@@ -24,15 +24,73 @@ set (CMAKE_CXX_FLAGS "--std=c++11 -O3")
 
 set (CUDA_PROPAGATE_HOST_FLAGS ON)
 
-## Options for nvcc
-if(CUDA_VERSION_MAJOR LESS 9)
-    List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_20,code=sm_20")
+
+
+
+
+
+#--------------------------------find GPUs------------------------------------
+# A function for automatic detection of GPUs installed  (if autodetection is enabled)
+# Usage:
+#   caffe_detect_installed_gpus(out_variable)
+# source: caffe git repo.
+
+function(caffe_detect_installed_gpus out_variable)
+    if(NOT CUDA_gpu_detect_output)
+        set(__cufile ${PROJECT_BINARY_DIR}/detect_cuda_archs.cu)
+
+        file(WRITE ${__cufile} ""
+            "#include <cstdio>\n"
+            "int main()\n"
+            "{\n"
+            "  int count = 0;\n"
+            "  if (cudaSuccess != cudaGetDeviceCount(&count)) return -1;\n"
+            "  if (count == 0) return -1;\n"
+            "  for (int device = 0; device < count; ++device)\n"
+            "  {\n"
+            "    cudaDeviceProp prop;\n"
+            "    if (cudaSuccess == cudaGetDeviceProperties(&prop, device))\n"
+            "      std::printf(\"%d.%d \", prop.major, prop.minor);\n"
+            "  }\n"
+            "  return 0;\n"
+            "}\n")
+
+        execute_process(COMMAND "${CUDA_NVCC_EXECUTABLE}" "--run" "${__cufile}"
+            WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/CMakeFiles/"
+            RESULT_VARIABLE __nvcc_res OUTPUT_VARIABLE __nvcc_out
+            ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+        if(__nvcc_res EQUAL 0)
+            string(REPLACE "2.1" "2.1(2.0)" __nvcc_out "${__nvcc_out}")
+            set(CUDA_gpu_detect_output ${__nvcc_out} CACHE INTERNAL "Returned GPU architetures from caffe_detect_gpus tool" FORCE)
+        endif()
+    endif()
+
+    if(NOT CUDA_gpu_detect_output)
+        message(STATUS "Automatic GPU detection failed. Building for all known architectures.")
+        set(${out_variable} ${Caffe_known_gpu_archs} PARENT_SCOPE)
+    else()
+        set(${out_variable} ${CUDA_gpu_detect_output} PARENT_SCOPE)
+    endif()
+endfunction()
+
+# run the detection 
+if(NOT gpu_compute_capability)
+    caffe_detect_installed_gpus(gpu_compute_capability)
+    message("-- Found GPU: compute capability ${gpu_compute_capability}")
+    # remove dots and convert to lists
+    string(REGEX REPLACE "\\." "" __cuda_arch_bin "${gpu_compute_capability}")
 endif()
+
+
+
+
+
+## Options for nvcc
 if(CUDA_VERSION_MAJOR EQUAL 8)
     List(APPEND CUDA_INCLUDE_DIRECTORIES "-Wno-deprecated-gpu-targets")
 endif()
-List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_35,code=sm_35")
-List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_60,code=sm_60")
+List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${gpu_compute_capability},code=sm_${gpu_compute_capability}")
 List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
 List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
 
