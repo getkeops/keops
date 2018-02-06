@@ -84,7 +84,7 @@ if(NOT gpu_compute_capability)
     string(REGEX MATCHALL "[0-9()]+" gpu_compute_capability "${gpu_compute_capability}")
     List(REMOVE_DUPLICATES gpu_compute_capability)
 
-    message(STATUS "Found GPU: compute capability ${gpu_compute_capability}")
+    message(STATUS "Compute capability automatically set to: ${gpu_compute_capability}")
 else()
 
     message(STATUS "Compute capability manually set to ${gpu_compute_capability}")
@@ -94,7 +94,7 @@ endif()
 
 
 
-## Options for nvcc
+##-------------------------------------------- Options for nvcc--------------------------------------------
 if(CUDA_VERSION_MAJOR EQUAL 8)
     List(APPEND CUDA_INCLUDE_DIRECTORIES "-Wno-deprecated-gpu-targets")
 endif()
@@ -121,17 +121,54 @@ endif()
 
 configure_file(template.h.in template.h @ONLY)
 
+
+
+
 ## --------------------------------COMPILATIONS---------------------------------------------
     
-## - create shared lib
 
 if(CUDA_FOUND)
+
+### - create shared lib
     CUDA_add_library(
         shared_obj SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
         OPTIONS --pre-include=template.h
     )
+
+
+    # shared_lib can be rename if the variable share_lib_name is provided.
+    if(shared_obj_name)
+        #Set(shared_lib_name \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX})
+        add_custom_command(
+            TARGET shared_obj POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E rename
+            $<TARGET_FILE:shared_obj>
+            ${shared_obj_name}    
+        )
+    endif()
+
+### - test link
+
+    CUDA_add_executable(test_link_conv #${test_link})
+        ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_link.cu
+        OPTIONS -D_MWAITXINTRIN_H_INCLUDED
+    )
+
+    target_link_libraries(
+        test_link_conv
+        shared_obj
+    )
+
+### - various targets
+
+    add_subdirectory(bench)
+    add_subdirectory(test)
+    add_subdirectory(matlab_bindings)
+
 endif()
+
+### CPUs Targets
 
 add_library(
     shared_obj_cpp SHARED
@@ -143,31 +180,3 @@ target_compile_options(
     PRIVATE -include template.h
 )
 
-
-# shared_lib can be rename if the variable share_lib_name is provided.
-if(shared_obj_name)
-    #Set(shared_lib_name \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX})
-    add_custom_command(
-        TARGET shared_obj POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rename
-        $<TARGET_FILE:shared_obj>
-        ${shared_obj_name}    
-    )
-endif()
-
-### - test link
-
-CUDA_add_executable(test_link_conv #${test_link})
-    ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_link.cu
-    OPTIONS -D_MWAITXINTRIN_H_INCLUDED
-)
-
-target_link_libraries(
-    test_link_conv
-    shared_obj
-)
-
-
-add_subdirectory(bench)
-add_subdirectory(test)
-add_subdirectory(matlab_bindings)
