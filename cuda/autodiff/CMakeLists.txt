@@ -14,7 +14,7 @@ set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/core/formulas
     ${CMAKE_CURRENT_SOURCE_DIR}/core/reductions
     ${CMAKE_CURRENT_SOURCE_DIR}/test
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/unit
+    ${CMAKE_CURRENT_SOURCE_DIR}/sandbox
     ${PROJECT_BINARY_DIR}
 )
 
@@ -68,18 +68,26 @@ function(caffe_detect_installed_gpus out_variable)
 
     if(NOT CUDA_gpu_detect_output)
         message(STATUS "Automatic GPU detection failed. Building for all known architectures.")
-        set(${out_variable} ${Caffe_known_gpu_archs} PARENT_SCOPE)
+        set(${out_variable}  "20 21(20) 30 35 50 60 61" PARENT_SCOPE)
     else()
         set(${out_variable} ${CUDA_gpu_detect_output} PARENT_SCOPE)
     endif()
 endfunction()
 
+
 # run the detection 
 if(NOT gpu_compute_capability)
     caffe_detect_installed_gpus(gpu_compute_capability)
-    message("-- Found GPU: compute capability ${gpu_compute_capability}")
+
     # remove dots and convert to lists
-    string(REGEX REPLACE "\\." "" __cuda_arch_bin "${gpu_compute_capability}")
+    string(REGEX REPLACE "\\." "" gpu_compute_capability "${gpu_compute_capability}")
+    string(REGEX MATCHALL "[0-9()]+" gpu_compute_capability "${gpu_compute_capability}")
+    List(REMOVE_DUPLICATES gpu_compute_capability)
+
+    message(STATUS "Found GPU: compute capability ${gpu_compute_capability}")
+else()
+
+    message(STATUS "Compute capability manually set to ${gpu_compute_capability}")
 endif()
 
 
@@ -150,7 +158,7 @@ endif()
 ### - test link
 
 CUDA_add_executable(test_link_conv #${test_link})
-    ${CMAKE_CURRENT_SOURCE_DIR}/test/test_link.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_link.cu
     OPTIONS -D_MWAITXINTRIN_H_INCLUDED
 )
 

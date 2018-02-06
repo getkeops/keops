@@ -1,0 +1,8 @@
+g++ ./gpu_conv.cxx -lgtest -lpthread -c
+g++ gpu_conv.o ../../build/libG.so -o unit -lgtest -lpthread
+
+
+# g++ gpu_conv.o ../../build/GaussKernel\<_P\<0\>\,_X\<0\,3\>\,_Y\<0\,3\>\,_Y\<1\,3\>\>_float.so -o unit -lgtest -lpthread
+#g++ gpu_conv.cxx "../../build/GaussKernel<_P<0>,_X<0,3>,_Y<0,3>,_Y<1,3>>_float.so" -o unit -lgtest -lpthread
+#/*GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<4,3>>_float.so*/
+#/*GaussKernel<_P<0>,_X<0,3>,_Y<0,3>,_Y<1,3>>_float.so*/

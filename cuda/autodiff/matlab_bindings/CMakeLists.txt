@@ -35,7 +35,7 @@ if(Matlab_FOUND)
         EXCLUDE_FROM_ALL TRUE
     )
 else()
-    message(WARNING "Matlab not found. No mex file will be build.")
+    message(STATUS "   ==> No mex file can be build.")
 endif()
 
 

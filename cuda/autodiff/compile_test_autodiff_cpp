@@ -1,1 +1,1 @@
-g++ -std=c++11 -O2 -o build/test_autodiff_cpp test/test_autodiff.cpp
+g++ -std=c++11 -O2 -o build/test_autodiff_cpp sandbox/test_autodiff.cpp

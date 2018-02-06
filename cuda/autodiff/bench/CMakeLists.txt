@@ -59,5 +59,5 @@ if (Benchmark_FOUND)
     )
 
 else()
-    message(WARNING "Benchmark not found. No bench file will be produced.")
+    message(STATUS  "   ==>  No bench file can be build.")
 endif()

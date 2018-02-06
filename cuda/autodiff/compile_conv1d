@@ -6,7 +6,7 @@ NVCCFLAGS="-ccbin=$CC -Xcompiler -fPIC -shared"
 FUN="GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<2,3>>"
 SPECIFIC="cuda_conv"
 
-$NVCC -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -c -O3 test/conv1d_generic.cu -o build/conv1d_generic.o
+$NVCC -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -c -O3 sandbox/conv1d_generic.cu -o build/conv1d_generic.o
 echo 'conv1d_generic is compiled...'
 
 # Second: create the shared objects
@@ -19,7 +19,7 @@ echo 'linking done'
 
 
 
-$NVCC -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -lbenchmark -O3 -c test/conv1d_specific.cu -o build/conv1d_specific.o
+$NVCC -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -std=c++11 -lbenchmark -O3 -c sandbox/conv1d_specific.cu -o build/conv1d_specific.o
 echo 'conv1d_specific is compiled...'
 
 # Second: create the shared objects

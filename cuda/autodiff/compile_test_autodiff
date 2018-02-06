@@ -1,1 +1,1 @@
-nvcc -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -Wno-deprecated-gpu-targets -D__TYPE__=double -std=c++11 -O2 -o build/test_autodiff test/test_autodiff.cu
+nvcc -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -Wno-deprecated-gpu-targets -D__TYPE__=double -std=c++11 -O2 -o build/test_autodiff sandbox/test_autodiff.cu

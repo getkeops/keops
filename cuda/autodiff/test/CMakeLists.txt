@@ -26,6 +26,6 @@ if(GTest_FOUND)
     )
 
 else()
-    message(WARNING "GTest not found. No unit tests will be build.")
+    message(STATUS "   ==> No unit tests can be build.")
 endif()
 
