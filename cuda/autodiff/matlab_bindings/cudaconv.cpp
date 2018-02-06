@@ -10,8 +10,8 @@
 // FORMULA_OBJ (in case using new syntax) and __TYPE__ are supposed to be set via "using" or "#define" 
 
 #ifdef USENEWSYNTAX
-    #include "core/newsyntax.h"
-    using FORMULA = decltype(FORMULA_OBJ);
+    //#include "core/newsyntax.h"
+    //using FORMULA = decltype(FORMULA_OBJ);
 #endif
 
 void ExitFcn(void) {

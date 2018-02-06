@@ -19,8 +19,6 @@
 
 #include <iostream>
 
-#define __TYPE__ double
-
 using namespace std;
 
 #include "../core/autodiff.h"

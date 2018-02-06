@@ -95,9 +95,6 @@ endif()
 
 
 ##-------------------------------------------- Options for nvcc--------------------------------------------
-if(CUDA_VERSION_MAJOR EQUAL 8)
-    List(APPEND CUDA_INCLUDE_DIRECTORIES "-Wno-deprecated-gpu-targets")
-endif()
 List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${gpu_compute_capability},code=sm_${gpu_compute_capability}")
 List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
 List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
@@ -137,7 +134,7 @@ if(CUDA_FOUND)
     )
 
 
-    # shared_lib can be rename if the variable share_lib_name is provided.
+    # shared_lib can be rename if the variable shared_lib_name is provided.
     if(shared_obj_name)
         #Set(shared_lib_name \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX})
         add_custom_command(
@@ -164,11 +161,12 @@ if(CUDA_FOUND)
 
     add_subdirectory(bench)
     add_subdirectory(test)
-    add_subdirectory(matlab_bindings)
 
 endif()
 
-### CPUs Targets
+add_subdirectory(matlab_bindings)
+
+#----------------------------------------CPUs Targets--------------------------------
 
 add_library(
     shared_obj_cpp SHARED
@@ -180,3 +178,24 @@ target_compile_options(
     PRIVATE -include template.h
 )
 
+# equivalent code to compile_test_autodiff_cpp
+add_executable(
+    test_autodiff_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_autodiff.cpp
+    )
+
+target_compile_options(
+    test_autodiff_cpp BEFORE
+    PRIVATE -include template.h
+)
+
+# equivalent code to compile_test_factorized_cpp
+add_executable(
+    test_factorized_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_factorized.cpp
+    )
+
+target_compile_options(
+    test_factorized_cpp BEFORE
+    PRIVATE -include template.h
+)

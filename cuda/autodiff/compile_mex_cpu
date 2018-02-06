@@ -18,6 +18,7 @@ then
 else
 	MATLABROOT=$(dirname $(dirname $( which matlab )))
 fi
+#MATLABROOT="/usr/local/MATLAB/R2017b"
 
 MEXC="$MATLABROOT/bin/mex"
 MEXPATH="$MATLABROOT/extern/include"
@@ -26,7 +27,7 @@ MEXPATH="$MATLABROOT/extern/include"
 COPTIMFLAG="-O3" 
 
 type=${3:-double}
-(echo "$1" ; echo "$2" ;  cat matlab_bindings/cudaconv.cu) | g++ -O2 -c -x c++ -DUSENEWSYNTAX -D __TYPE__=$type -std=c++11 -o /dev/stdout -I$MEXPATH -fPIC -include $MEXPATH/mex.h -I $PWD -include $PWD/core/CpuConv.cpp -include $PWD/core/autodiff.h -include $PWD/core/newsyntax.h - > "matlab_bindings/build/tmp.o"
+(echo "$1" ; echo "$2" ;  cat matlab_bindings/cudaconv.cpp) | g++ -O2 -c -x c++ -DUSENEWSYNTAX -D __TYPE__=$type -std=c++11 -o /dev/stdout -I$MEXPATH -fPIC -include $MEXPATH/mex.h -I $PWD -include $PWD/core/CpuConv.cpp -include $PWD/core/autodiff.h -include $PWD/core/newsyntax.h - > "matlab_bindings/build/tmp.o"
 
 $MEXC COPTIMFLAGS=$COPTIMFLAG -O matlab_bindings/build/tmp.o -output matlab_bindings/build/tmp
 rm matlab_bindings/build/tmp.o

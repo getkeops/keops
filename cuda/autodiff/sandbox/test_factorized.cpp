@@ -13,8 +13,6 @@
 #include <algorithm>
 #include <iostream>
 
-#define __TYPE__ float
-
 #include "../core/autodiff.h"
 
 #include "../core/CpuConv.cpp"
