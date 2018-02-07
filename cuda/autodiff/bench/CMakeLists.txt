@@ -1,3 +1,7 @@
+#------------------------------------------------------------------------------------#
+#-----------------------------FIND GOOGLE BENCHMARK----------------------------------#
+#------------------------------------------------------------------------------------#
+
 # Try to find the Google Benchmark library and headers.
 #  Benchmark_FOUND        - system has benchmark lib
 #  Benchmark_INCLUDE_DIRS - the benchmark include directory
@@ -26,9 +30,13 @@ find_package_handle_standard_args(Benchmark
 
 mark_as_advanced(Benchmark_FOUND)
 
+#------------------------------------------------------------------------------------#
+#----------------------------------COMPILATIONS--------------------------------------#
+#------------------------------------------------------------------------------------#
 
-### - Benchmark
-if (Benchmark_FOUND)
+if (Benchmark_FOUND AND CUDA_FOUND)
+
+# ----------------- Benchmark
     if(${__TYPE__} EQUAL double)
         Set(USE_DOUBLE 1)
     else()
@@ -59,5 +67,5 @@ if (Benchmark_FOUND)
     )
 
 else()
-    message(STATUS  "   ==>  No bench file can be build.")
+    message(STATUS  "   ==> No bench file can be built.")
 endif()

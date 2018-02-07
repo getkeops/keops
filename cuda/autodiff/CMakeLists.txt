@@ -1,10 +1,10 @@
-## --------------------------------HEADERS-----------------------------------------------
+#------------------------------------------------------------------------------------#
+#------------------------------------HEADERS-----------------------------------------#
+#------------------------------------------------------------------------------------#
+
 cmake_minimum_required(VERSION 2.8)
 
 project(libkp LANGUAGES CXX)
-
-## Find package
-find_package(CUDA)
 
 ## Set Path to sources
 set(SOURCE_FILES
@@ -27,14 +27,13 @@ set (CUDA_PROPAGATE_HOST_FLAGS ON)
 
 
 
+#------------------------------------------------------------------------------------#
+#------------------------------FIND CUDA AND GPUs------------------------------------#
+#------------------------------------------------------------------------------------#
 
+find_package(CUDA)
 
-#--------------------------------find GPUs------------------------------------
-# A function for automatic detection of GPUs installed  (if autodetection is enabled)
-# Usage:
-#   caffe_detect_installed_gpus(out_variable)
-# source: caffe git repo.
-
+# A function for automatic detection of GPUs installed (source: caffe git repo).
 function(caffe_detect_installed_gpus out_variable)
     if(NOT CUDA_gpu_detect_output)
         set(__cufile ${PROJECT_BINARY_DIR}/detect_cuda_archs.cu)
@@ -90,43 +89,69 @@ else()
     message(STATUS "Compute capability manually set to ${gpu_compute_capability}")
 endif()
 
-
-
-
-
-##-------------------------------------------- Options for nvcc--------------------------------------------
+# Options for nvcc
 List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${gpu_compute_capability},code=sm_${gpu_compute_capability}")
 List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
 List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
 
-## Template macros
+
+
+
+
+#------------------------------------------------------------------------------------#
+#--------------------------------Programm Options------------------------------------#
+#------------------------------------------------------------------------------------#
+
+# Template macros.
 add_definitions(-D_FORCE_INLINES)
 
-# - type for computation (float or double)
+# - type for computation. The CACHE option enable to see it in ccmake.
 if(NOT __TYPE__)
-    Set(__TYPE__ float)
+    Set(__TYPE__ float CACHE STRING "Precision type of the computations (float or double)")
 endif()
 
-# - Declare the templates formula. We should generate a file to avoid parsing problem with shell
 
+# - Declare the templates formula if not provided by the user
 if(NOT USENEWSYNTAX)
+
     if(NOT FORMULA)
-        Set(FORMULA GaussKernel<_P<0>,_X<0,3>,_Y<0,3>,_Y<1,3>>)
+        Set(FORMULA "GaussKernel<_P<0>,_X<0,3>,_Y<0,3>,_Y<1,3>>" CACHE STRING "Template formula to be instantiate")
     endif()
+    unset(FORMULA_OBJ CACHE)
+
+else()
+    
+    if(NOT FORMULA_OBJ)
+        Set(VAR_ALIASES "auto x=Vx(0,3); auto y=Vy(1,3); auto u=Vx(2,4); auto v=Vy(3,4); auto b=Vy(4,3); auto p=Pm(0);")
+        Set(FORMULA_OBJ "Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b")
+    endif()
+    unset(FORMULA CACHE)
+
 endif()
 
+# We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
 configure_file(template.h.in template.h @ONLY)
 
+# unset all options to prevent cache problem: the configure_file will be rebuild every time
+unset(USENEWSYNTAX CACHE)
+unset(FORMULA CACHE)
+unset(FORMULA_OBJ CACHE)
+unset(__TYPE__ CACHE)
+unset(VAR_ALIASES CACHE)
 
 
 
-## --------------------------------COMPILATIONS---------------------------------------------
+
+#------------------------------------------------------------------------------------#
+#----------------------------------COMPILATIONS--------------------------------------#
+#------------------------------------------------------------------------------------#
+
     
+# ----------------- create shared lib (cuda)
 
 if(CUDA_FOUND)
-
-### - create shared lib
-    CUDA_add_library(
+  
+CUDA_add_library(
         shared_obj SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
         OPTIONS --pre-include=template.h
@@ -143,7 +168,28 @@ if(CUDA_FOUND)
         )
     endif()
 
-### - test link
+endif()
+
+
+
+# ----------------- create shared lib (cpp)
+
+add_library(
+    shared_obj_cpp SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
+)
+
+target_compile_options(
+    shared_obj_cpp BEFORE
+    PRIVATE -include template.h
+)
+
+
+
+
+
+# ----------------- test link
+if (CUDA_FOUND)
 
     CUDA_add_executable(test_link_conv #${test_link})
         ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_link.cu
@@ -156,45 +202,13 @@ if(CUDA_FOUND)
         shared_obj
     )
 
-### - various targets
-
-    add_subdirectory(bench)
-    add_subdirectory(test)
-
 endif()
 
+# ----------------- various targets
+
+add_subdirectory(bench)
+add_subdirectory(test)
 add_subdirectory(matlab_bindings)
+add_subdirectory(sandbox)
 
-#----------------------------------------CPUs Targets--------------------------------
 
-add_library(
-    shared_obj_cpp SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
-)
-
-target_compile_options(
-    shared_obj_cpp BEFORE
-    PRIVATE -include template.h
-)
-
-# equivalent code to compile_test_autodiff_cpp
-add_executable(
-    test_autodiff_cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_autodiff.cpp
-    )
-
-target_compile_options(
-    test_autodiff_cpp BEFORE
-    PRIVATE -include template.h
-)
-
-# equivalent code to compile_test_factorized_cpp
-add_executable(
-    test_factorized_cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_factorized.cpp
-    )
-
-target_compile_options(
-    test_factorized_cpp BEFORE
-    PRIVATE -include template.h
-)

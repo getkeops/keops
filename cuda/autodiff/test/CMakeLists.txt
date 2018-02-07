@@ -1,7 +1,7 @@
 find_package(GTest)
 
 ### - unit test
-if(GTest_FOUND)
+if(GTest_FOUND AND CUDA_FOUND)
 
     Add_library(
         testic OBJECT 
@@ -11,7 +11,7 @@ if(GTest_FOUND)
     target_compile_options(
         testic BEFORE
         PRIVATE -include template.h
-        )
+    )
 
     Add_executable(
         test_conv
@@ -31,6 +31,6 @@ if(GTest_FOUND)
     )
 
 else()
-    message(STATUS "   ==> No unit tests can be build.")
+    message(STATUS "   ==> No unit tests can be built.")
 endif()
 
