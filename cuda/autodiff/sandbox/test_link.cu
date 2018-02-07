@@ -27,31 +27,44 @@ template < class V > void fillrandom(V& v) {
     generate(v.begin(), v.end(), __TYPE__rand);    // fills vector with random values
 }
 
+
+__TYPE__ __TYPE__ones() {
+    return (__TYPE__)1.0;
+}
+template < class V > void fillones(V& v) {
+    generate(v.begin(), v.end(), __TYPE__ones );    // fills vector with random values
+}
+
 int main() {
 
-    int Nx=5000, Ny=2000;
+    int Nx=5000, Ny=20000;
 
     vector<__TYPE__> vf(Nx*3);
     fillrandom(vf);
     __TYPE__ *f = vf.data();
+
     vector<__TYPE__> vx(Nx*3);
     fillrandom(vx);
     __TYPE__ *x = vx.data();
+    
     vector<__TYPE__> vy(Ny*3);
     fillrandom(vy);
     __TYPE__ *y = vy.data();
+    
     vector<__TYPE__> vu(Nx*4);
     fillrandom(vu);
     __TYPE__ *u = vu.data();
+    
     vector<__TYPE__> vv(Ny*4);
     fillrandom(vv);
     __TYPE__ *v = vv.data();
+    
     vector<__TYPE__> vb(Ny*3);
-    fillrandom(vb);
+    fillones(vb);
     __TYPE__ *b = vb.data();
 
     vector<__TYPE__*> vargs(5);
-    vargs[0] = x;
+    vargs[0]=x;
     vargs[1]=y;
     vargs[2]=u;
     vargs[3]=v;
@@ -72,27 +85,30 @@ int main() {
     end = clock();
     cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-    cout << "testing function" << endl;
-    begin = clock();
-    GpuConv2D(params, Nx, Ny, f, args);
-    end = clock();
-    cout << "time for GPU computation (2D) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << endl;
 
-    resgpu2D = vf;
+    cout << "testing convolution with sizes :" << "nx=" << Nx <<" and ny=" << Ny <<endl << endl;
 
-    fillrandom(vf);
     begin = clock();
     GpuConv1D(params, Nx, Ny, f, args);
     end = clock();
     cout << "time for GPU computation (1D) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu1D = vf;
+    fillones(vf);
 
+    begin = clock();
+    GpuConv2D(params, Nx, Ny, f, args);
+    end = clock();
+    cout << "time for GPU computation (2D) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+
+    resgpu2D = vf;
     fillrandom(vf);
+
     begin = clock();
     CpuConv(params, Nx, Ny, f, args);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl << endl;
 
     rescpu = vf;
 
@@ -108,7 +124,22 @@ int main() {
         s += abs(resgpu1D[i]-rescpu[i]);
     cout << "mean abs error 1D =" << s/Nx << endl;
 
+    
+    // display some values
+    cout << endl << "Check visually the results : "<< endl;
 
+    cout << "resgpu2D :" ;
+    for (int i=0; i<10; i++)
+        cout << resgpu2D[i] << " ";
+    cout << "..." << endl;
+    cout << "resgpu1D :" ;
+    for (int i=0; i<10; i++)
+        cout << resgpu1D[i] << " ";
+    cout << "..." << endl;
+    cout << "rescpu   :" ;
+    for (int i=0; i<10; i++)
+        cout << rescpu[i] << " ";
+    cout << "..." << endl;
 
 
 

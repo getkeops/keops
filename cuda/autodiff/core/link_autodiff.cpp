@@ -1,17 +1,4 @@
-#include <iostream>
-#include <stdarg.h>
-#include <stdio.h>
-
 #include "core/autodiff.h"
-
-
-#ifdef USENEWSYNTAX
-	#include "core/newsyntax.h"
-	using F = decltype(FORMULA);
-#else
-	using F = FORMULA;
-#endif
-
 
 
 

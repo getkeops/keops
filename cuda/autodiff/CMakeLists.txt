@@ -115,7 +115,7 @@ endif()
 if(NOT USENEWSYNTAX)
 
     if(NOT FORMULA)
-        Set(FORMULA "GaussKernel<_P<0>,_X<0,3>,_Y<0,3>,_Y<1,3>>" CACHE STRING "Template formula to be instantiate")
+        Set(FORMULA "Scal<Square<Scalprod<_X<2,4>,_Y<3,4>>>,GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<4,3>>>" CACHE STRING "Template formula to be instantiate")
     endif()
     unset(FORMULA_OBJ CACHE)
 
@@ -123,7 +123,8 @@ else()
     
     if(NOT FORMULA_OBJ)
         Set(VAR_ALIASES "auto x=Vx(0,3); auto y=Vy(1,3); auto u=Vx(2,4); auto v=Vy(3,4); auto b=Vy(4,3); auto p=Pm(0);")
-        Set(FORMULA_OBJ "Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b")
+        #Set(FORMULA_OBJ "Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b")
+        Set(FORMULA_OBJ "Square(SqNorm2(u-v))*Exp(-Cst(p)*SqNorm2(x-y))*b")
     endif()
     unset(FORMULA CACHE)
 
@@ -133,11 +134,11 @@ endif()
 configure_file(template.h.in template.h @ONLY)
 
 # unset all options to prevent cache problem: the configure_file will be rebuild every time
-unset(USENEWSYNTAX CACHE)
-unset(FORMULA CACHE)
-unset(FORMULA_OBJ CACHE)
-unset(__TYPE__ CACHE)
-unset(VAR_ALIASES CACHE)
+#unset(USENEWSYNTAX CACHE)
+#unset(FORMULA CACHE)
+#unset(FORMULA_OBJ CACHE)
+#unset(__TYPE__ CACHE)
+#unset(VAR_ALIASES CACHE)
 
 
 
@@ -193,7 +194,7 @@ if (CUDA_FOUND)
 
     CUDA_add_executable(test_link_conv #${test_link})
         ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_link.cu
-        OPTIONS -D_MWAITXINTRIN_H_INCLUDED
+        #OPTIONS -D_MWAITXINTRIN_H_INCLUDED
         OPTIONS --pre-include=template.h
     )
 

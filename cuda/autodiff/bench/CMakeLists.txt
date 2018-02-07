@@ -34,13 +34,19 @@ mark_as_advanced(Benchmark_FOUND)
 #----------------------------------COMPILATIONS--------------------------------------#
 #------------------------------------------------------------------------------------#
 
-if (Benchmark_FOUND AND CUDA_FOUND)
+if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
 
 # ----------------- Benchmark
 
-    CUDA_add_executable(
+    add_executable(
         bench
-        ${CMAKE_CURRENT_SOURCE_DIR}/bench.cu
+        ${CMAKE_CURRENT_SOURCE_DIR}/bench.cpp
+        #OPTIONS --pre-include=template.h
+    )
+
+    target_compile_options(
+        bench BEFORE
+        PRIVATE -include template.h
     )
     
     target_link_libraries(
@@ -50,17 +56,17 @@ if (Benchmark_FOUND AND CUDA_FOUND)
         benchmark 
     )
     
+    set_target_properties( # pass needed options to add_executable()
+        bench PROPERTIES
+        LINKER_LANGUAGE CXX
+    )
+
     CUDA_add_library(
         shared_specific SHARED
         "${CMAKE_CURRENT_SOURCE_DIR}/../../convolutions/cuda_grad1conv.cu"
         OPTIONS -D "CUDA_BLOCK_SIZE=192" --pre-include=template.h
     )
     
-    set_target_properties( # pass needed options to add_executable()
-        bench PROPERTIES
-        LINKER_LANGUAGE CXX
-    )
-
 else()
     message(STATUS  "   ==> No bench file can be built.")
 endif()

@@ -1,11 +1,12 @@
+#pragma once
+
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#ifndef NEWSYNTAX
-#define NEWSYNTAX
+
 
 #define Var(N,DIM, CAT) Var<N,DIM,CAT>()
 
@@ -47,13 +48,13 @@ Scal<FA,FB> operator*(FA fa, FB fb)
 template < class F >
 Minus<F> operator-(F f)
 {
-	return Minus<F>();
+        return Minus<F>();
 }
 
 template < class FA, class FB >
 Subtract<FA,FB> operator-(FA fa, FB fb)
 {
-	return Subtract<FA,FB>();
+        return Subtract<FA,FB>();
 }
 
 #define Inv(f) Inv<decltype(f)>()
@@ -63,7 +64,7 @@ Subtract<FA,FB> operator-(FA fa, FB fb)
 template < class FA, class FB >
 Divide<FA,FB> operator/(FA fa, FB fb)
 {
-	return Divide<FA,FB>();
+        return Divide<FA,FB>();
 }
 
 #define Log(f) Log<decltype(f)>()
@@ -75,7 +76,7 @@ Divide<FA,FB> operator/(FA fa, FB fb)
 template < class FA, class FB >
 Scalprod<FA,FB> operator,(FA fa, FB fb)
 {
-	return Scalprod<FA,FB>();
+        return Scalprod<FA,FB>();
 }
 
 #define SqNorm2(f) SqNorm2<decltype(f)>()
@@ -93,5 +94,3 @@ Scalprod<FA,FB> operator,(FA fa, FB fb)
 #define DivFreeGaussKernel(DIM) DivFreeGaussKernel<DIM>()
 #define CurlFreeGaussKernel(DIM) CurlFreeGaussKernel<DIM>()
 #define TRIGaussKernel(DIM) TRIGaussKernel<DIM>()
-
-#endif // NEWSYNTAX

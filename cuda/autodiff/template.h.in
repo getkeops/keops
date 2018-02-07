@@ -1,7 +1,22 @@
 #cmakedefine __TYPE__ @__TYPE__@
 #cmakedefine USENEWSYNTAX @USENEWSYNTAX@
-#cmakedefine FORMULA @FORMULA@
 
-#include "core/newsyntax.h"
-@VAR_ALIASES@
-#cmakedefine FORMULA_OBJ @FORMULA_OBJ@
+#ifdef USENEWSYNTAX
+    #include "core/newsyntax.h"
+
+    //@VAR_ALIASES@
+    //#cmakedefine FORMULA_OBJ @FORMULA_OBJ@
+    //using F = decltype(FORMULA_OBJ);
+#else
+
+    #include "core/formulas/constants.h"
+    #include "core/formulas/maths.h"
+    #include "core/formulas/kernels.h"
+    #include "core/formulas/norms.h"
+    #include "core/formulas/factorize.h"
+    
+    #cmakedefine FORMULA @FORMULA@
+
+    using F = FORMULA;
+
+#endif

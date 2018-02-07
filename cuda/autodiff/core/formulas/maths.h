@@ -1,9 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <assert.h>
 
 #include "core/Pack.h"
-
 #include "core/autodiff.h"
 
 #include "core/formulas/constants.h"

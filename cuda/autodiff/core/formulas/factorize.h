@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "core/Pack.h"
+#include "core/autodiff.h"
 
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"

@@ -1,20 +1,7 @@
-#include <iostream>
-#include <stdarg.h>
-#include <stdio.h>
-#include <assert.h>
-#include <cuda.h>
-
 #include "core/autodiff.h"
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 
-
-#ifdef USENEWSYNTAX
-        #include "core/newsyntax.h"
-        using F = decltype(FORMULA);
-#else
-	using F = FORMULA;
-#endif
 
 ///////////////////////////////////////////////
 // Convolutions on Gpu device from host data //

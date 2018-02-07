@@ -70,7 +70,8 @@ class Generic {
 
     static const int tagJ = 1-tagI;
 
-  public :
+    public :
+    
     struct sEval { // static wrapper
         using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
         using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
@@ -254,7 +255,7 @@ struct UnaryOp<OP,Var<N,DIM,CAT>,NS...>  : UnaryOp_base<OP,Var<N,DIM,CAT>,NS...>
 template < template<class,class> class OP, class FA, class FB >
 struct BinaryOp_base {
 	
-	using THIS = OP<FA,FB>;
+    using THIS = OP<FA,FB>;
 	
     static void PrintId() {        
         cout << "(";
@@ -264,7 +265,7 @@ struct BinaryOp_base {
         cout << ")";
     }
 
-	static void PrintFactorized() { PrintId(); }
+    static void PrintFactorized() { PrintId(); }
 	
 	using AllTypes = MergePacks<univpack<OP<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
 	
