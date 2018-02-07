@@ -44,7 +44,7 @@ if(Matlab_FOUND)
              mex_cuda PROPERTIES 
             PREFIX "" 
             LINKER_LANGUAGE CXX
-            EXCLUDE_FROM_ALL TRUE
+            EXCLUDE_FROM_ALL FALSE
         )
 
         # solution using FindMatlab seems to be broken...
@@ -83,7 +83,7 @@ if(Matlab_FOUND)
         mex_cpp PROPERTIES 
         PREFIX "" 
         LINKER_LANGUAGE CXX
-        EXCLUDE_FROM_ALL TRUE
+        EXCLUDE_FROM_ALL FALSE
     )
 
 

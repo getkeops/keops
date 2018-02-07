@@ -37,12 +37,7 @@ mark_as_advanced(Benchmark_FOUND)
 if (Benchmark_FOUND AND CUDA_FOUND)
 
 # ----------------- Benchmark
-    if(${__TYPE__} EQUAL double)
-        Set(USE_DOUBLE 1)
-    else()
-        Set(USE_DOUBLE 0)
-    endif()
-    
+
     CUDA_add_executable(
         bench
         ${CMAKE_CURRENT_SOURCE_DIR}/bench.cu
