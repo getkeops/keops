@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "autodiff.h"
+#include "core/autodiff.h"
 
 using namespace std;
 

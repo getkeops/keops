@@ -66,18 +66,10 @@ if(Matlab_FOUND)
         PRIVATE -include template.h -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
-
-
     add_custom_target(
         mex_cpp
         DEPENDS mex_file_cpp # ensure obj file is created before using mex for linking
-        #COMMAND ${Matlab_ROOT_DIR}/bin/mex -Itemplate.h ${CMAKE_CURRENT_SOURCE_DIR}/cudaconv.cpp -output tmp
-    )
-
-    add_custom_command( # link the .o by running mex compiler
-        TARGET mex_cpp POST_BUILD
-        COMMAND ${Matlab_ROOT_DIR}/bin/mex ${mex_file_cpp} -output tmp
-        #COMMAND ${Matlab_ROOT_DIR}/bin/mex $<TARGET_FILE:mex_f> -output tmp
+        COMMAND ${Matlab_ROOT_DIR}/bin/mex $<TARGET_OBJECTS:mex_file_cpp> -output tmp # only since cmake 3.9
     )
 
     if(mex_name)
@@ -87,48 +79,32 @@ if(Matlab_FOUND)
         )
     endif()
 
-
-
-
-
-
-
-
-
-
-
     set_target_properties( # pass needed options to add_custom_target()
         mex_cpp PROPERTIES 
         PREFIX "" 
         LINKER_LANGUAGE CXX
         EXCLUDE_FROM_ALL TRUE
-        )
+    )
 
 
 
+    #matlab_add_mex(
+        #NAME mex_cpp2
+        #SRC ${CMAKE_CURRENT_SOURCE_DIR}/cudaconv.cpp
+        #OUTPUT_NAME ${mex_name}_cpp
+        #)
 
+    #target_compile_options(
+        #mex_cpp2 BEFORE
+        #PRIVATE -include template.h 
+        #)
 
-
-
-
-
-    matlab_add_mex(
-        NAME mex_cpp2
-        SRC ${CMAKE_CURRENT_SOURCE_DIR}/cudaconv.cpp
-        OUTPUT_NAME ${mex_name}_cpp
-        )
-
-    target_compile_options(
-        mex_cpp2 BEFORE
-        PRIVATE -include template.h 
-        )
-
-    set_target_properties( # pass needed options to add_custom_target()
-        mex_cpp2 PROPERTIES 
-        PREFIX "" 
-        LINKER_LANGUAGE CXX
-        EXCLUDE_FROM_ALL TRUE
-        )
+    #set_target_properties( # pass needed options to add_custom_target()
+        #mex_cpp2 PROPERTIES 
+        #PREFIX "" 
+        #LINKER_LANGUAGE CXX
+        #EXCLUDE_FROM_ALL TRUE
+        #)
 else()
     message(STATUS "   ==> No mex file can be build.")
 endif()

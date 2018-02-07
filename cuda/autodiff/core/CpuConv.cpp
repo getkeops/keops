@@ -5,9 +5,9 @@
 #include <assert.h>
 #include <vector>
 
-#include "Pack.h"
-#include "reductions/sum.h"
-#include "reductions/log_sum_exp.h"
+#include "core/Pack.h"
+#include "core/reductions/sum.h"
+#include "core/reductions/log_sum_exp.h"
 
 using namespace std;
 

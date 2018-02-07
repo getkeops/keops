@@ -19,6 +19,7 @@
 	#MATLABROOT=$(dirname $(dirname $( which matlab )))
 #fi
 MATLABROOT="/usr/local/MATLAB/R2014a"
+MATLABROOT="/usr/local/MATLAB/R2017b"
 
 MEXC="$MATLABROOT/bin/mex"
 MEXPATH="$MATLABROOT/extern/include"

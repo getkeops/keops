@@ -4,9 +4,9 @@
 #include <cuda.h>
 
 
-#include "Pack.h"
-#include "reductions/sum.h"
-#include "reductions/log_sum_exp.h"
+#include "core/Pack.h"
+#include "core/reductions/sum.h"
+#include "core/reductions/log_sum_exp.h"
 
 template < typename TYPE, class FUN, class PARAM >
 __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {

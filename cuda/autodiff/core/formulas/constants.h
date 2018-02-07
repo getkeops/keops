@@ -2,8 +2,7 @@
 
 #include <iostream>
 
-#include "Pack.h"
-
+#include "core/Pack.h"
 #include "core/autodiff.h"
 
 /*
