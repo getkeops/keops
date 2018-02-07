@@ -1,9 +1,9 @@
 #include <iostream>
+#include <stdarg.h>
+#include <stdio.h>
 
 #include "core/autodiff.h"
 
-#include <stdarg.h>
-#include <stdio.h>
 
 #ifdef USENEWSYNTAX
 	#include "core/newsyntax.h"
@@ -11,9 +11,6 @@
 #else
 	using F = FORMULA;
 #endif
-
-
-
 
 
 

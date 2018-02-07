@@ -1,5 +1,13 @@
-#ifndef FACTORIZE
-#define FACTORIZE
+#pragma once
+
+#include <iostream>
+
+#include "core/Pack.h"
+
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+#include "core/formulas/norms.h"
+#include "core/formulas/kernels.h"
 
 //////////////////////////////////////////////////////////////
 ////      FACTORIZE OPERATOR  : Factorize< F,G >          ////
@@ -116,4 +124,3 @@ struct CountIn<FactorizeImpl<F,G>,H> {
 template < class F >
 using AutoFactorize = Factorize<F,typename F::AllTypes>;
 
-#endif // FACTORIZE

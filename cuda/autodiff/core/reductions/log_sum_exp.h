@@ -1,5 +1,10 @@
-#ifndef REDUCTION_LOGSUMEXP
-#define REDUCTION_LOGSUMEXP
+#pragma once 
+
+#include <iostream>
+
+#include "core/Pack.h"
+
+#include "core/autodiff.h"
 
 #ifdef __CUDACC__
 	#include <npp.h>
@@ -94,6 +99,3 @@ HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
 }
 };
 
-
-
-#endif

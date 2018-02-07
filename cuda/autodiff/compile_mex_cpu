@@ -11,14 +11,14 @@
 # or using alias :
 # 		./compile_mex_cpu "auto x=Vx(0,3); auto y=Vy(1,3); auto u=Vx(2,4); auto v=Vy(3,4); auto b=Vy(4,3); auto p=Pm(0); auto e=Vx(5,3);" "#define FORMULA_OBJ Grad(Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b,x,e)"
 
-$(readlink "$( which matlab )")
-if [ $? == 0 ]
-then
-	MATLABROOT=$(dirname $(dirname $(readlink "$( which matlab )")))
-else
-	MATLABROOT=$(dirname $(dirname $( which matlab )))
-fi
-#MATLABROOT="/usr/local/MATLAB/R2017b"
+#$(readlink "$( which matlab )")
+#if [ $? == 0 ]
+#then
+	#MATLABROOT=$(dirname $(dirname $(readlink "$( which matlab )")))
+#else
+	#MATLABROOT=$(dirname $(dirname $( which matlab )))
+#fi
+MATLABROOT="/usr/local/MATLAB/R2014a"
 
 MEXC="$MATLABROOT/bin/mex"
 MEXPATH="$MATLABROOT/extern/include"

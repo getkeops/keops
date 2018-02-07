@@ -1,3 +1,11 @@
+#pragma once
+
+#include <iostream>
+
+#include "Pack.h"
+
+#include "core/autodiff.h"
+
 /*
  * The file where the elementary constants are defined.
  * Available constants are :

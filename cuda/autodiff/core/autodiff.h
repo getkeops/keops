@@ -51,13 +51,13 @@
  *
  */
 
-#ifndef AUTODIFF
-#define AUTODIFF
+#pragma once
 
-#include "Pack.h"
-
+#include <iostream>
 #include <tuple>
 #include <cmath>
+
+#include "Pack.h"
 
 using namespace std;
 
@@ -448,16 +448,4 @@ void PrintFormula() {
 	F::PrintId();
 }
 
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-#include "formulas/constants.h"
-#include "formulas/maths.h"
-#include "formulas/norms.h"
-#include "formulas/factorize.h"
-#include "formulas/kernels.h"
-//////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////
-
-
-#endif // AUTODIFF
 

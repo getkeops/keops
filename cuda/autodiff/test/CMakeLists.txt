@@ -5,8 +5,13 @@ if(GTest_FOUND)
 
     Add_library(
         testic OBJECT 
-        ${CMAKE_CURRENT_SOURCE_DIR}/unit/gpu_conv.cxx
+        ${CMAKE_CURRENT_SOURCE_DIR}/gpu_conv.cxx
     )
+
+    target_compile_options(
+        testic BEFORE
+        PRIVATE -include template.h
+        )
 
     Add_executable(
         test_conv

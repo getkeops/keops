@@ -1,3 +1,14 @@
+#pragma once
+
+#include <iostream>
+
+#include "core/Pack.h"
+
+#include "core/autodiff.h"
+
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+
 /*
  * The file where the elementary norm-related operators are defined.
  * Available norms and scalar products are :

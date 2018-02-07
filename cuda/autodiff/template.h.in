@@ -1,3 +1,7 @@
-#cmakedefine FORMULA @FORMULA@
 #cmakedefine __TYPE__ @__TYPE__@
 #cmakedefine USENEWSYNTAX @USENEWSYNTAX@
+#cmakedefine FORMULA @FORMULA@
+
+#include "core/newsyntax.h"
+@VAR_ALIASES@
+#cmakedefine FORMULA_OBJ @FORMULA_OBJ@

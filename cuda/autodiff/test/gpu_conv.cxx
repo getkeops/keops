@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <assert.h>
 #include <vector>
@@ -8,20 +7,20 @@
 #include "gtest/gtest.h"
 
 
-extern "C" int GpuConv1D(float*, int, int, float*, float**);
-extern "C" int GpuConv2D(float*, int, int, float*, float**);
-extern "C" int CpuConv(float*, int, int, float*, float**);
+extern "C" int GpuConv1D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv2D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int CpuConv(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
 
-float floatrand() {
-    return ((float)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+__TYPE__ __TYPE__rand() {
+    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
-    generate(v.begin(), v.end(), floatrand);    // fills vector with random values
+    generate(v.begin(), v.end(), __TYPE__rand);    // fills vector with random values
 }
 
-float one() {
-    return ((float) 1.0); 
+__TYPE__ one() {
+    return ((__TYPE__) 1.0); 
 }
 
 template < class V > void fillones(V& v) {
@@ -29,43 +28,43 @@ template < class V > void fillones(V& v) {
 }
 
 struct vuple{
-    std::vector<float> rescpu;
-    std::vector<float> resgpu1D;
-    std::vector<float> resgpu2D;
+    std::vector<__TYPE__> rescpu;
+    std::vector<__TYPE__> resgpu1D;
+    std::vector<__TYPE__> resgpu2D;
 };
 
 vuple compute_convs(int Nx, int Ny){
-    std::vector<float> vf(Nx*3);
+    std::vector<__TYPE__> vf(Nx*3);
     fillrandom(vf);
-    float *f = vf.data();
-    std::vector<float> vx(Nx*3);
+    __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vx(Nx*3);
     fillrandom(vx);
-    float *x = vx.data();
-    std::vector<float> vy(Ny*3);
+    __TYPE__ *x = vx.data();
+    std::vector<__TYPE__> vy(Ny*3);
     fillrandom(vy);
-    float *y = vy.data();
-    std::vector<float> vu(Nx*3);
+    __TYPE__ *y = vy.data();
+    std::vector<__TYPE__> vu(Nx*3);
     fillones(vu);
-    float *u = vu.data();
-    std::vector<float> vv(Ny*3);
+    __TYPE__ *u = vu.data();
+    std::vector<__TYPE__> vv(Ny*3);
     fillones(vv);
-    float *v = vv.data();
-    std::vector<float> vb(Ny*3);
+    __TYPE__ *v = vv.data();
+    std::vector<__TYPE__> vb(Ny*3);
     fillrandom(vb);
-    float *b = vb.data();
+    __TYPE__ *b = vb.data();
 
-    std::vector<float*> vargs(3);
+    std::vector<__TYPE__*> vargs(3);
     vargs[0] = x;
     vargs[1]=y;
     vargs[2]=u;
     /*vargs[3]=v;*/
     /*vargs[4]=b;*/
-    float **args = vargs.data();
+    __TYPE__ **args = vargs.data();
 
-    std::vector<float> resgpu2D(Nx*3), resgpu1D(Nx*3), rescpu(Nx*3);
+    std::vector<__TYPE__> resgpu2D(Nx*3), resgpu1D(Nx*3), rescpu(Nx*3);
 
-    float params[1];
-    float Sigma = .0000000001;
+    __TYPE__ params[1];
+    __TYPE__ Sigma = .0000000001;
     params[0] = 1.0/(Sigma*Sigma);
 
     GpuConv2D(params, Nx, Ny, f, args);
@@ -91,11 +90,11 @@ TEST(GpuConv, medium){
     std::cout << "Checks : " << std::endl;
     vuple res_conv = compute_convs(Nx, Ny);
 
-    float s2d = 0;
+    __TYPE__ s2d = 0;
     for(int i=0; i<Nx*3; i++)
         s2d += abs(res_conv.resgpu2D[i]-res_conv.rescpu[i]);
 
-    float s1d = 0;
+    __TYPE__ s1d = 0;
     for(int i=0; i<Nx*3; i++)
         s1d += abs(res_conv.resgpu1D[i]-res_conv.rescpu[i]);
 
@@ -111,19 +110,19 @@ TEST(GpuConv, medium){
         /*std::cout << "Checks : " << res_conv.resgpu2D[i] << " " << res_conv.resgpu1D[i] << " " << res_conv.rescpu[i] << " : " << i << std::endl;*/
     /*}*/
 
-    /*float s2d = 0;*/
+    /*__TYPE__ s2d = 0;*/
     /*for(int i=0; i<Nx*3; i++){*/
-        /*float t = abs(res_conv.resgpu2D[i]-res_conv.rescpu[i]);*/
+        /*__TYPE__ t = abs(res_conv.resgpu2D[i]-res_conv.rescpu[i]);*/
         /*s2d += t;*/
         /*if (t > 5e-5) */
             /*std::cout << res_conv.resgpu2D[i] << " " << res_conv.rescpu[i] << " : " << i << std::endl;*/
     /*}*/
 
-    /*float s1d = 0;*/
+    /*__TYPE__ s1d = 0;*/
     /*for(int i=0; i<Nx*3; i++)*/
         /*s1d += abs(res_conv.resgpu1D[i]-res_conv.rescpu[i]);*/
 
-    /*float s21d = 0;*/
+    /*__TYPE__ s21d = 0;*/
     /*for(int i=0; i<Nx*3; i++)*/
         /*s21d += abs(res_conv.resgpu1D[i]-res_conv.resgpu2D[i]);*/
 

@@ -1,6 +1,9 @@
+#pragma once
 
-#ifndef REDUCTION_SUM
-#define REDUCTION_SUM
+#include "core/Pack.h"
+
+#include "core/autodiff.h"
+
 
 // Implements the default reduction operation: the summation.
 
@@ -26,5 +29,3 @@ HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
 }
 };
 
-
-#endif

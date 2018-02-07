@@ -1,3 +1,12 @@
+#pragma once
+
+#include <iostream>
+
+#include "core/Pack.h"
+
+#include "core/autodiff.h"
+
+#include "core/formulas/constants.h"
 /*
  * The file where the elementary math operators are defined.
  * Available math operations are :

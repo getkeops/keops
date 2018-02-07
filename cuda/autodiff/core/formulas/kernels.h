@@ -1,3 +1,16 @@
+#pragma once
+
+#include <iostream>
+
+#include "core/Pack.h"
+
+#include "core/autodiff.h"
+
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+#include "core/formulas/norms.h"
+#include "core/formulas/factorize.h"
+
 /*
  * The file where the most useful kernel-related operators are defined.
  *

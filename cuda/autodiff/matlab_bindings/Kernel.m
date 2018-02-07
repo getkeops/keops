@@ -70,7 +70,7 @@ if ~isempty(tmp) && options.tagUseNvcc==1
     compilescript = 'compile_mex';
     tagcompile = 'cuda';
 else
-    compilescript = 'compile_mex_cpu';
+    compilescript = 'compile_mex_cpu'
     tagcompile = 'cpp';
 end
 
@@ -115,7 +115,7 @@ Fname = ['F',fname,'_',tagcompile];
 filename = [Fname,'.',mexext];
 if ~(exist(filename,'file')==3)
     disp('Formula is not compiled yet ; compiling...')
-    TestBuild = buildFormula(CodeVars,CodeFormula,filename);
+    TestBuild = buildFormula(CodeVars,CodeFormula,filename)
     if TestBuild
         disp('Compilation succeeded')
     else
@@ -136,7 +136,8 @@ F = @Eval;
 
     function testbuild = buildFormula(code1,code2,filename)
         cd ..
-        mysystemcall(['./',compilescript,' "',code1,'" "',code2,'"']);
+        ['./',compilescript,' "',code1,'" "',code2,'"']
+        mysystemcall(['./',compilescript,' "',code1,'" "',code2,'"'])
         cd matlab_bindings
         testbuild = exist(['build/tmp.',mexext],'file');
         if testbuild
@@ -145,7 +146,7 @@ F = @Eval;
     end
 
     function [status,cmdout] = mysystemcall(command)
-        [status,cmdout] = system([bashpathcommand,command]);
+        [status,cmdout] = system([command])
         if cmdout(end)==char(10) || cmdout(end)==char(13)
             cmdout = cmdout(1:end-1);
         end

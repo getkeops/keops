@@ -108,12 +108,11 @@ if(NOT __TYPE__)
 endif()
 
 # - Declare the templates formula. We should generate a file to avoid parsing problem with shell
-if(NOT FORMULA)
-    Set(FORMULA Grad<GaussKernel<_P<0>,_X<0,3>,_Y<0,3>,_Y<1,3>>,_X<0,3>,_X<1,3>>)
-endif()
 
 if(NOT USENEWSYNTAX)
-    set(USENEWSYNTAX FALSE)
+    if(NOT FORMULA)
+        Set(FORMULA GaussKernel<_P<0>,_X<0,3>,_Y<0,3>,_Y<1,3>>)
+    endif()
 endif()
 
 configure_file(template.h.in template.h @ONLY)
@@ -136,7 +135,6 @@ if(CUDA_FOUND)
 
     # shared_lib can be rename if the variable shared_lib_name is provided.
     if(shared_obj_name)
-        #Set(shared_lib_name \"${FORMULA}\"_${__TYPE__}${CMAKE_SHARED_LIBRARY_SUFFIX})
         add_custom_command(
             TARGET shared_obj POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E rename
@@ -150,6 +148,7 @@ if(CUDA_FOUND)
     CUDA_add_executable(test_link_conv #${test_link})
         ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_link.cu
         OPTIONS -D_MWAITXINTRIN_H_INCLUDED
+        OPTIONS --pre-include=template.h
     )
 
     target_link_libraries(

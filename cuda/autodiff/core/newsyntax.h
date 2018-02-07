@@ -1,3 +1,9 @@
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+#include "core/formulas/kernels.h"
+#include "core/formulas/norms.h"
+#include "core/formulas/factorize.h"
+
 #ifndef NEWSYNTAX
 #define NEWSYNTAX
 

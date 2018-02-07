@@ -1,6 +1,6 @@
+#include <iostream>
 #include <stdarg.h>
 #include <stdio.h>
-#include <iostream>
 #include <assert.h>
 #include <cuda.h>
 
@@ -10,8 +10,8 @@
 
 
 #ifdef USENEWSYNTAX
-	#include "core/newsyntax.h"
-	using F = decltype(FORMULA);
+        #include "core/newsyntax.h"
+        using F = decltype(FORMULA);
 #else
 	using F = FORMULA;
 #endif
