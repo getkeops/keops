@@ -67,7 +67,7 @@ function(caffe_detect_installed_gpus out_variable)
 
     if(NOT CUDA_gpu_detect_output)
         message(STATUS "Automatic GPU detection failed. Building for all known architectures.")
-        if(CUDA_VERSION_MAJOR GREATER 8)
+        if(CUDA_VERSION_MAJOR GREATER 8) # cuda does not support 20 arch after cuda 9
             set(${out_variable}  "30 35 50 60 61" PARENT_SCOPE)
         else()
             set(${out_variable}  "20 21(20) 30 35 50 60 61" PARENT_SCOPE)
@@ -76,7 +76,6 @@ function(caffe_detect_installed_gpus out_variable)
         set(${out_variable} ${CUDA_gpu_detect_output} PARENT_SCOPE)
     endif()
 endfunction()
-
 
 # run the detection 
 if(NOT gpu_compute_capability)
@@ -109,7 +108,9 @@ List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
 List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
 
 
-
+if(CUDA_VERSION_MAJOR EQUAL 7) # cuda 7 want gcc4.9 
+    List(APPEND CUDA_NVCC_FLAGS -ccbin gcc-4.9)
+endif()
 
 
 #------------------------------------------------------------------------------------#
