@@ -67,7 +67,11 @@ function(caffe_detect_installed_gpus out_variable)
 
     if(NOT CUDA_gpu_detect_output)
         message(STATUS "Automatic GPU detection failed. Building for all known architectures.")
-        set(${out_variable}  "20 21(20) 30 35 50 60 61" PARENT_SCOPE)
+        if(CUDA_VERSION_MAJOR GREATER 8)
+            set(${out_variable}  "30 35 50 60 61" PARENT_SCOPE)
+        else()
+            set(${out_variable}  "20 21(20) 30 35 50 60 61" PARENT_SCOPE)
+        endif()
     else()
         set(${out_variable} ${CUDA_gpu_detect_output} PARENT_SCOPE)
     endif()
@@ -90,7 +94,17 @@ else()
 endif()
 
 # Options for nvcc
-List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${gpu_compute_capability},code=sm_${gpu_compute_capability}")
+# Tell NVCC to add binaries for the specified GPUs
+foreach(__arch ${gpu_compute_capability})
+    if(__arch MATCHES "([0-9]+)\\(([0-9]+)\\)")
+        # User explicitly specified PTX for the concrete BIN
+        List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${CMAKE_MATCH_2},code=sm_${CMAKE_MATCH_1}")
+    else()
+        # User didn't explicitly specify PTX for the concrete BIN, we assume PTX=BIN
+        List(APPEND CUDA_NVCC_FLAGS "-gencode=arch=compute_${__arch},code=sm_${__arch}")
+    endif()
+endforeach()
+
 List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
 List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
 
@@ -123,8 +137,7 @@ else()
     
     if(NOT FORMULA_OBJ)
         Set(VAR_ALIASES "auto x=Vx(0,3); auto y=Vy(1,3); auto u=Vx(2,4); auto v=Vy(3,4); auto b=Vy(4,3); auto p=Pm(0);")
-        #Set(FORMULA_OBJ "Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b")
-        Set(FORMULA_OBJ "Square(SqNorm2(u-v))*Exp(-Cst(p)*SqNorm2(x-y))*b")
+        Set(FORMULA_OBJ "Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b")
     endif()
     unset(FORMULA CACHE)
 
