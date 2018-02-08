@@ -10,7 +10,7 @@ if(GTest_FOUND AND CUDA_FOUND)
 
     target_compile_options(
         testic BEFORE
-        PRIVATE -include template.h
+        PRIVATE -include formula.h
     )
 
     Add_executable(

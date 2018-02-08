@@ -1,4 +1,18 @@
 
+# ----------------- test link
+if (CUDA_FOUND)
+
+    CUDA_add_executable(
+        test_link_conv
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_link.cu
+        OPTIONS --pre-include=formula.h
+    )
+
+    target_link_libraries(
+        test_link_conv
+        shared_obj
+    )
+endif()
 # ----------------- equivalent code to compile_test_autodiff_cpp
 
 add_executable(
@@ -8,7 +22,7 @@ add_executable(
 
 target_compile_options(
     test_autodiff_cpp BEFORE
-    PRIVATE -include template.h
+    PRIVATE -include formula.h
 )
 
 
@@ -23,6 +37,6 @@ add_executable(
 
 target_compile_options(
     test_factorized_cpp BEFORE
-    PRIVATE -include template.h
+    PRIVATE -include formula.h
 )
 

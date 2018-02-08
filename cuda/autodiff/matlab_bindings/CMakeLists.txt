@@ -4,7 +4,7 @@ find_package(Matlab)
 ##   The problem is twofold : the cuda module do not define a 
 ##   CUDA_add_object. We then need to use Add_library instead.
 
-if(Matlab_FOUND)
+if(Matlab_FOUND AND ${CMAKE_VERSION} GREATER 3.9)
 
     if(NOT mex_name)
         Set(mex_name mex_binding)
@@ -20,7 +20,7 @@ if(Matlab_FOUND)
         CUDA_compile( # generate the string "nvcc -c ..." but do not execute it
             mex_file_cuda SHARED
             ${CMAKE_CURRENT_SOURCE_DIR}/cudaconv.cu
-            OPTIONS --pre-include=template.h -I${Matlab_INCLUDE_DIRS}
+            OPTIONS --pre-include=formula.h -I${Matlab_INCLUDE_DIRS}
         )
 
         add_custom_target(
@@ -63,7 +63,7 @@ if(Matlab_FOUND)
 
     target_compile_options(
         mex_file_cpp BEFORE
-        PRIVATE -include template.h -I${Matlab_INCLUDE_DIRS} -fPIC
+        PRIVATE -include formula.h -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
     add_custom_target(
@@ -96,7 +96,7 @@ if(Matlab_FOUND)
 
     #target_compile_options(
         #mex_cpp2 BEFORE
-        #PRIVATE -include template.h 
+        #PRIVATE -include formula.h 
         #)
 
     #set_target_properties( # pass needed options to add_custom_target()

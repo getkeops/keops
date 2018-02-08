@@ -41,12 +41,12 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
     add_executable(
         bench
         ${CMAKE_CURRENT_SOURCE_DIR}/bench.cpp
-        #OPTIONS --pre-include=template.h
+        #OPTIONS --pre-include=formula.h
     )
 
     target_compile_options(
         bench BEFORE
-        PRIVATE -include template.h
+        PRIVATE -include formula.h
     )
     
     target_link_libraries(
@@ -64,7 +64,7 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
     CUDA_add_library(
         shared_specific SHARED
         "${CMAKE_CURRENT_SOURCE_DIR}/../../convolutions/cuda_grad1conv.cu"
-        OPTIONS -D "CUDA_BLOCK_SIZE=192" --pre-include=template.h
+        OPTIONS -D "CUDA_BLOCK_SIZE=192" --pre-include=formula.h
     )
     
 else()

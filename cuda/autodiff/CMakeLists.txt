@@ -2,7 +2,7 @@
 #------------------------------------HEADERS-----------------------------------------#
 #------------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 2.8)
 
 project(libkp LANGUAGES CXX)
 
@@ -109,7 +109,7 @@ add_definitions(-D_FORCE_INLINES)
 if(NOT __TYPE__)
     Set(__TYPE__ float CACHE STRING "Precision type of the computations (float or double)")
 endif()
-
+add_definitions(-D__TYPE__=${__TYPE__})
 
 # - Declare the templates formula if not provided by the user
 if(NOT USENEWSYNTAX)
@@ -131,16 +131,7 @@ else()
 endif()
 
 # We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
-configure_file(template.h.in template.h @ONLY)
-
-# unset all options to prevent cache problem: the configure_file will be rebuild every time
-#unset(USENEWSYNTAX CACHE)
-#unset(FORMULA CACHE)
-#unset(FORMULA_OBJ CACHE)
-#unset(__TYPE__ CACHE)
-#unset(VAR_ALIASES CACHE)
-
-
+configure_file(formula.h.in formula.h @ONLY)
 
 
 #------------------------------------------------------------------------------------#
@@ -155,7 +146,7 @@ if(CUDA_FOUND)
 CUDA_add_library(
         shared_obj SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
-        OPTIONS --pre-include=template.h
+        OPTIONS --pre-include=formula.h
     )
 
 
@@ -182,28 +173,9 @@ add_library(
 
 target_compile_options(
     shared_obj_cpp BEFORE
-    PRIVATE -include template.h
+    PRIVATE -include formula.h
 )
 
-
-
-
-
-# ----------------- test link
-if (CUDA_FOUND)
-
-    CUDA_add_executable(test_link_conv #${test_link})
-        ${CMAKE_CURRENT_SOURCE_DIR}/sandbox/test_link.cu
-        #OPTIONS -D_MWAITXINTRIN_H_INCLUDED
-        OPTIONS --pre-include=template.h
-    )
-
-    target_link_libraries(
-        test_link_conv
-        shared_obj
-    )
-
-endif()
 
 # ----------------- various targets
 

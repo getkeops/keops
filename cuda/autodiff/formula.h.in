@@ -1,0 +1,29 @@
+// This file contains a header automatically completed by cmake with either the user options or default options.
+// It define the template F containing a formula to be intentiate. The formula may be defined in two possible ways: 
+//          1) with the user friendly "new syntax"  in FORMULA_OBJ variable with possibly aliases in the variable VAR_ALIASES
+//          2) with the machine friendly templated syntax in a variable FORMULA  where the operation are template separated by < >
+
+
+#cmakedefine USENEWSYNTAX @USENEWSYNTAX@
+
+#ifdef USENEWSYNTAX
+    
+    #include "core/newsyntax.h"
+
+    @VAR_ALIASES@
+    #cmakedefine FORMULA_OBJ @FORMULA_OBJ@
+    using F = decltype(FORMULA_OBJ);
+    
+#else
+
+    #include "core/formulas/constants.h"
+    #include "core/formulas/maths.h"
+    #include "core/formulas/kernels.h"
+    #include "core/formulas/norms.h"
+    #include "core/formulas/factorize.h"
+    
+    #cmakedefine FORMULA @FORMULA@
+
+    using F = FORMULA;
+
+#endif
