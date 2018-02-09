@@ -4,7 +4,7 @@ find_package(Matlab)
 ##   The problem is twofold : the cuda module do not define a 
 ##   CUDA_add_object. We then need to use Add_library instead.
 
-if(${__TYPE__} EQUAL "double" AND Matlab_FOUND AND NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
+if(${__TYPE__} STREQUAL "double" AND Matlab_FOUND AND NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
 
     if(NOT mex_name)
         Set(mex_name mex_binding)
