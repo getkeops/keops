@@ -66,14 +66,20 @@ using CondType = typename CondTypeAlias<A,B,TEST>::type;
 
 
 // IsSameType<A,B> = false and IsSameType<A,A> = true
-template < class A, class B > 
-struct IsSameTypeAlias { static const bool val = false; };
+template < class A, class B >
+struct IsSameTypeAlias {
+    static const bool val = false;
+};
 
 template < class A >
-struct IsSameTypeAlias<A,A> { static const bool val = true; };
+struct IsSameTypeAlias<A,A> {
+    static const bool val = true;
+};
 
-template < class A, class B > 
-struct IsSameType { static const bool val = IsSameTypeAlias<A,B>::val; };
+template < class A, class B >
+struct IsSameType {
+    static const bool val = IsSameTypeAlias<A,B>::val;
+};
 
 
 // "univpack" is a minimal "templating list", defined recursively. ------------------------------
@@ -152,7 +158,7 @@ template < class PACK1, class PACK2 >
 using ConcatPacks = typename ConcatPacksAlias<PACK1,PACK2>::type;
 
 
-// count number of occurrences of a type in a univpack 
+// count number of occurrences of a type in a univpack
 
 template < class C, class PACK >
 struct CountInPackAlias {
@@ -161,18 +167,18 @@ struct CountInPackAlias {
 
 template < class C, typename... Args >
 struct CountInPackAlias<C,univpack<C,Args...>> { // CountIn( C, [C, ...] )
-	static const int N = 1+CountInPackAlias<C,univpack<Args...>>::N;
+    static const int N = 1+CountInPackAlias<C,univpack<Args...>>::N;
 };
 
 template < class C, class D, typename... Args >
 struct CountInPackAlias<C,univpack<D,Args...>> { // CountIn( C, [D, ...] )
-	static const int N = CountInPackAlias<C,univpack<Args...>>::N;
+    static const int N = CountInPackAlias<C,univpack<Args...>>::N;
 };
 
 template < class C >
 struct CountInPackAlias<C,univpack<>> {        // CountIn( C, [] )
     static const int N = 0;
-}; 
+};
 
 //template < class C, class PACK >
 //static const int CountInPack() { return CountInPackAlias<C,PACK>::N; }
@@ -190,14 +196,14 @@ struct RemoveFromPackAlias<C,univpack<>> { // RemoveFrom( C, [] )
 
 template < class C, class D, typename... Args >
 struct RemoveFromPackAlias<C,univpack<D,Args...>> { // RemoveFrom( C, [D, ...] )
-	using tmp = typename RemoveFromPackAlias<C,univpack<Args...>>::type;
-    using type = typename tmp::template PUTLEFT<D>;     // = [D] + RemoveFrom( C, [...] ) 
+    using tmp = typename RemoveFromPackAlias<C,univpack<Args...>>::type;
+    using type = typename tmp::template PUTLEFT<D>;     // = [D] + RemoveFrom( C, [...] )
 };
 
 template < class C, typename... Args >
 struct RemoveFromPackAlias<C,univpack<C,Args...>> { // RemoveFrom( C, [C, ...] )
     using type = typename RemoveFromPackAlias<C,univpack<Args...>>::type;
-};       
+};
 
 //template < class C, class PACK >
 //using RemoveFromPack = typename RemoveFromPackAlias<C,PACK>::type;
@@ -213,8 +219,8 @@ struct MergePacksAlias;
 
 template < class C, typename... Args1, typename... Args2 >
 struct MergePacksAlias<univpack<Args1...>,univpack<C,Args2...>> {         // Merge([...], [C,...])
-	using tmp = typename RemoveFromPackAlias<C,univpack<Args1...>>::type;
-	using type = typename MergePacksAlias<ConcatPacks<tmp,univpack<C>>,univpack<Args2...>>::type;
+    using tmp = typename RemoveFromPackAlias<C,univpack<Args1...>>::type;
+    using type = typename MergePacksAlias<ConcatPacks<tmp,univpack<C>>,univpack<Args2...>>::type;
 };
 
 template < typename... Args1 >

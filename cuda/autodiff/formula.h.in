@@ -8,7 +8,7 @@
 
 #ifdef USENEWSYNTAX
     
-    #include "core/newsyntax.h"
+    #include "core/formulas/newsyntax.h"
 
     @VAR_ALIASES@
     #cmakedefine FORMULA_OBJ @FORMULA_OBJ@

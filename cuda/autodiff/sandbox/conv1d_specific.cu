@@ -33,15 +33,15 @@ int main() {
     vector<float> vx(Nx*dimPoint);
     fillrandom(vx);
     float *x = vx.data();
-    
+
     vector<float> vy(Ny*dimPoint);
     fillrandom(vy);
     float *y = vy.data();
-    
+
     vector<float> vv(Ny*dimVect);
     fillrandom(vv);
     float *v = vv.data();
-    
+
     float Sigma =1;
     float ooSigma2 = 1.0/(Sigma*Sigma);
 

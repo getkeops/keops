@@ -12,20 +12,20 @@
 //                 F = LogSumExp<G>.
 
 template <typename TYPE, int DIM, class F>
-struct InitializeOutput{
-HOST_DEVICE INLINE void operator()(TYPE *tmp) {
-    for(int k=0; k<DIM; k++)
-        tmp[k] = 0.0f; // initialize output
-}
+struct InitializeOutput {
+    HOST_DEVICE INLINE void operator()(TYPE *tmp) {
+        for(int k=0; k<DIM; k++)
+            tmp[k] = 0.0f; // initialize output
+    }
 };
 
 // equivalent of the += operation
 template <typename TYPE, int DIM, class F>
-struct ReducePair{
-HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
-    for(int k=0; k<DIM; k++) { 
-        tmp[k] += xi[k];
+struct ReducePair {
+    HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+        for(int k=0; k<DIM; k++) {
+            tmp[k] += xi[k];
+        }
     }
-}
 };
 

@@ -45,7 +45,7 @@ __global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
     }
     */
 
-    // However, for now, we use a "vectorized" reduction op., 
+    // However, for now, we use a "vectorized" reduction op.,
     // which can also handle non-trivial reductions such as "LogSumExp"
     TYPE res[DIMVECT];
     InitializeOutput<TYPE,DIMVECT,typename FUN::FORM>()(res); // res = 0
@@ -344,7 +344,7 @@ int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, TYPE** args) {
         px_h[i] = args[INDSI::VAL(i-1)];
     for(int i=0; i<SIZEJ; i++)
         py_h[i] = args[INDSJ::VAL(i)];
-        
+
     return GpuConv2D_FromHost(fun,param,nx,ny,px_h,py_h);
 
 }

@@ -39,29 +39,12 @@ int main() {
 
     int Nx=5000, Ny=20000;
 
-    vector<__TYPE__> vf(Nx*3);
-    fillrandom(vf);
-    __TYPE__ *f = vf.data();
-
-    vector<__TYPE__> vx(Nx*3);
-    fillrandom(vx);
-    __TYPE__ *x = vx.data();
-    
-    vector<__TYPE__> vy(Ny*3);
-    fillrandom(vy);
-    __TYPE__ *y = vy.data();
-    
-    vector<__TYPE__> vu(Nx*4);
-    fillrandom(vu);
-    __TYPE__ *u = vu.data();
-    
-    vector<__TYPE__> vv(Ny*4);
-    fillrandom(vv);
-    __TYPE__ *v = vv.data();
-    
-    vector<__TYPE__> vb(Ny*3);
-    fillones(vb);
-    __TYPE__ *b = vb.data();
+    vector<__TYPE__> vf(Nx*3); fillrandom(vf); __TYPE__ *f = vf.data();
+    vector<__TYPE__> vx(Nx*3); fillrandom(vx); __TYPE__ *x = vx.data();
+    vector<__TYPE__> vy(Ny*3); fillrandom(vy); __TYPE__ *y = vy.data();
+    vector<__TYPE__> vu(Nx*4); fillrandom(vu); __TYPE__ *u = vu.data();
+    vector<__TYPE__> vv(Ny*4); fillrandom(vv); __TYPE__ *v = vv.data();
+    vector<__TYPE__> vb(Ny*3); fillones(vb); __TYPE__ *b = vb.data();
 
     vector<__TYPE__*> vargs(5);
     vargs[0]=x;
@@ -124,7 +107,7 @@ int main() {
         s += abs(resgpu1D[i]-rescpu[i]);
     cout << "mean abs error 1D =" << s/Nx << endl;
 
-    
+
     // display some values
     cout << endl << "Check visually the results : "<< endl;
 

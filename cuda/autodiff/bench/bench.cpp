@@ -39,15 +39,15 @@ void main_generic_2D(int Nx) {
     vector<__TYPE__> vx(Nx*dimPoint);
     fillrandom(vx);
     __TYPE__ *x = vx.data();
-    
+
     vector<__TYPE__> vy(Ny*dimPoint);
     fillrandom(vy);
     __TYPE__ *y = vy.data();
-    
+
     vector<__TYPE__> vu(Nx*dimVect);
     fillrandom(vu);
     __TYPE__ *u = vu.data();
-    
+
     vector<__TYPE__> vv(Ny*dimVect);
     fillrandom(vv);
     __TYPE__ *v = vv.data();
@@ -90,15 +90,15 @@ void main_generic_1D(int Nx) {
     vector<__TYPE__> vx(Nx*dimPoint);
     fillrandom(vx);
     __TYPE__ *x = vx.data();
-    
+
     vector<__TYPE__> vy(Ny*dimPoint);
     fillrandom(vy);
     __TYPE__ *y = vy.data();
-    
+
     vector<__TYPE__> vu(Nx*dimVect);
     fillrandom(vu);
     __TYPE__ *u = vu.data();
-    
+
     vector<__TYPE__> vv(Ny*dimVect);
     fillrandom(vv);
     __TYPE__ *v = vv.data();
@@ -140,15 +140,15 @@ void main_specific(int Nx) {
     vector<__TYPE__> vx(Nx*dimPoint);
     fillrandom(vx);
     __TYPE__ *x = vx.data();
-    
+
     vector<__TYPE__> vy(Ny*dimPoint);
     fillrandom(vy);
     __TYPE__ *y = vy.data();
-    
+
     vector<__TYPE__> vu(Nx*dimVect);
     fillrandom(vu);
     __TYPE__ *u = vu.data();
-    
+
     vector<__TYPE__> vv(Ny*dimVect);
     fillrandom(vv);
     __TYPE__ *v = vv.data();
@@ -183,18 +183,18 @@ static void cuda_specific(benchmark::State& state) {
     for (auto _ : state) {
         auto start = chrono::high_resolution_clock::now();
         //----------- the function to be benchmarked ------------//
-        main_specific(Nx); 
+        main_specific(Nx);
         //------------------------------------------------------//
         auto end   = chrono::high_resolution_clock::now();
 
-        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start); 
+        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start);
         state.SetIterationTime(elapsed_seconds.count());
     }
 }
 // set range of the parameter to be tested : [ 8, 64, 512, 4k, 8k ]
 BENCHMARK(cuda_specific)->Range(8, 8<<10)->UseManualTime();// Register the function as a benchmark
 
-// A second one: 
+// A second one:
 static void cuda_generic_2D(benchmark::State& state) {
     int Nx = state.range(0);
 
@@ -205,7 +205,7 @@ static void cuda_generic_2D(benchmark::State& state) {
         //------------------------------------------------------//
         auto end   = chrono::high_resolution_clock::now();
 
-        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start); 
+        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start);
         state.SetIterationTime(elapsed_seconds.count());
     }
 }
@@ -223,7 +223,7 @@ static void cuda_generic_1D(benchmark::State& state) {
         //------------------------------------------------------//
         auto end   = chrono::high_resolution_clock::now();
 
-        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start); 
+        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start);
         state.SetIterationTime(elapsed_seconds.count());
     }
 }

@@ -42,7 +42,7 @@ int main() {
     using C = Param<0>;		// C is the first extra parameter
 
     // symbolic expression of the function ------------------------------------------------------
-    
+
     // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 where F0 = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
     // with the standard implementation it means we will compute 8 times F0 to evaluate F
     using F0 = Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
@@ -55,7 +55,7 @@ int main() {
 
     // now we factorize F0 from F : new formula FF computes the same as F but will evaluate first F0 once and then just does three vector additions
     using FF = Factorize < F, F0 >;
-    
+
     cout << "Function FF = factorized version of F :" << endl;
     cout << "Factor = " << endl;
     FF::Factor::PrintId();
@@ -108,20 +108,19 @@ int main() {
 
     resgpu1 = vf;
 
-    if(Nx*Ny<1e8)
-    {
-    	begin = clock();
-    	CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
-    	end = clock();
-    	cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    if(Nx*Ny<1e8) {
+        begin = clock();
+        CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+        end = clock();
+        cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-    	rescpu = vf;
+        rescpu = vf;
 
-    	// display mean of errors
-    	s = 0;
-    	for(int i=0; i<Nx*F::DIM; i++)
-        	s += abs(resgpu1[i]-rescpu[i]);
-    	cout << "mean abs error (cpu vs gpu1) =" << s/Nx << endl;
+        // display mean of errors
+        s = 0;
+        for(int i=0; i<Nx*F::DIM; i++)
+            s += abs(resgpu1[i]-rescpu[i]);
+        cout << "mean abs error (cpu vs gpu1) =" << s/Nx << endl;
     }
 
 
@@ -143,20 +142,19 @@ int main() {
 
     resgpu2 = vf;
 
-    if(Nx*Ny<1e8)
-    {
-    	begin = clock();
-    	CpuConv(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
-    	end = clock();
-    	cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    if(Nx*Ny<1e8) {
+        begin = clock();
+        CpuConv(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
+        end = clock();
+        cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-    	rescpu = vf;
+        rescpu = vf;
 
-    	// display mean of errors
-    	s = 0;
-    	for(int i=0; i<Nx*F::DIM; i++)
-        	s += abs(resgpu2[i]-rescpu[i]);
-    	cout << "mean abs error (cpu vs gpu2) =" << s/Nx << endl;
+        // display mean of errors
+        s = 0;
+        for(int i=0; i<Nx*F::DIM; i++)
+            s += abs(resgpu2[i]-rescpu[i]);
+        cout << "mean abs error (cpu vs gpu2) =" << s/Nx << endl;
     }
     // display mean of errors
     s = 0;

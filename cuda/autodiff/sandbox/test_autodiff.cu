@@ -49,7 +49,7 @@ int main() {
     using C = Param<0>;		// C is the first extra parameter
 
     // symbolic expression of the function ------------------------------------------------------
-    
+
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
     using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
@@ -58,60 +58,60 @@ int main() {
     // gradient with respect to X ---------------------------------------------------------------
     using Eta = Var<5,F::DIM,0>; // new variable is in sixth position and is input of gradient
     using GX = Grad<F,X,Eta>;
-    
+
     /*
      * Using GX = Grad<F,X,Eta> = (\partial_X F).Eta in a convolution sum (Generic<...>) makes sense.
      * Indeed, we know that
-     * 
+     *
      *      FUNCONVF_i = \sum_j F( P, X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ... ).
-     * 
+     *
      * Then, since FUNCONVF_i only depends on the i-th line of X^n,
-     * 
+     *
      * (\partial_{X^n} FUNCONVF).Eta = \sum_i (\partial_{X^n  } FUNCONVF_i).Eta_i       (definition of the L2 scalar product)
-     * 
+     *
      *                                        | 0 0 ................................. 0 |
      *                                        | 0 0 ................................. 0 |
      *                               = \sum_i |  (\partial_{X^n_i} FUNCONVF_i).Eta_i    | <- (on the i-th line).
      *                                        | 0 0 ................................. 0 |
      *                                        | 0 0 ................................. 0 |
      *                                        | 0 0 ................................. 0 |
-     * 
+     *
      *                                        |  (\partial_{X^n_0} FUNCONVF_0).Eta_0    |
      *                                        |  (\partial_{X^n_1} FUNCONVF_1).Eta_1    |
-     *                               =        |                    .                    | 
+     *                               =        |                    .                    |
      *                                        |                    .                    |
      *                                        |                    .                    |
      *                                        |  (\partial_{X^n_I} FUNCONVF_I).Eta_I    |
-     * 
+     *
      * But then, by linearity of the gradient operator,
-     * 
+     *
      * (\partial_{X^n_i} FUNCONVF_i).Eta_i = \sum_j (\partial_{X^n} F( P, X^0_i, ..., Y^0_j, ... )).Eta_i
-     * 
+     *
      * (\partial_{X^n} FUNCONVF).Eta is therefore equal to the "generic kernel product" with
      * summation on j, with the summation term being
-     * 
+     *
      *    (\partial_{X^n_i} F( P, X^0_i, ..., Y^0_j, ... )).Eta_i  = Grad<F,X^n,Eta>
-     * 
+     *
      */
     using FUNCONVGX = typename Generic<GX>::sEval;
 
     // gradient with respect to Y  --------------------------------------------------------------
     using GY = Grad<F,Y,Eta>;
-    
+
     /*
      * Using GY = Grad<F,Y,Eta> = (\partial_Y F).Eta in a convolution sum (Generic<...>) makes sense...
      * IF YOU CHANGE THE SUMMATION VARIABLE FROM j TO i !
      * Indeed, we know that
-     * 
+     *
      *      FUNCONVF_i = \sum_j F( P, X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ... ).
-     * 
+     *
      * Hence, doing the computations :
-     * 
-     * (\partial_{Y^m} FUNCONVF).Eta 
+     *
+     * (\partial_{Y^m} FUNCONVF).Eta
      *    = \sum_i    (\partial_{Y^m  } FUNCONVF_i).Eta_i                          (definition of the L2 scalar product)
      *    = \sum_i    (\partial_{Y^m  } \sum_j F(P,X^0_i, ...,Y^0_j,...) ).Eta_i   (FUNCONVF_i = ...)
      *    = \sum_j    \sum_i (\partial_{Y^m  } F(P,X^0_i, ...,Y^0_j,...) ).Eta_i   (Fubini theorem + linearity of \partial_{Y^M})
-     * 
+     *
      *              | 0 0 .................................................... 0 | (the summation term only depends on Y^m_j)
      *              | 0 0 .................................................... 0 |
      *    = \sum_j  | \sum_i (\partial_{Y^m_j} F(P,X^0_i, ...,Y^0_j,...) ).Eta_i | <- (on the j-th line)
@@ -119,23 +119,23 @@ int main() {
      *              | 0 0 .................................................... 0 |
      *              | 0 0 .................................................... 0 |
      *              | 0 0 .................................................... 0 |
-     * 
+     *
      *              | \sum_i (\partial_{Y^m_0} F(P,X^0_i, ...,Y^0_0,...) ).Eta_i |
      *              | \sum_i (\partial_{Y^m_1} F(P,X^0_i, ...,Y^0_1,...) ).Eta_i |
-     *    =         |                               .                            | 
-     *              |                               .                            | 
-     *              |                               .                            | 
-     *              |                               .                            | 
+     *    =         |                               .                            |
+     *              |                               .                            |
+     *              |                               .                            |
+     *              |                               .                            |
      *              | \sum_i (\partial_{Y^m_J} F(P,X^0_i, ...,Y^0_J,...) ).Eta_i |
-     * 
-     * 
+     *
+     *
      * (\partial_{Y^m} FUNCONVF).Eta is therefore equal to the "generic kernel product" with
      * summation on i (and not j !), with the summation term being
-     * 
+     *
      *    (\partial_{Y^m_j} F( P, X^0_i, ..., Y^0_j, ... )).Eta_i  = Grad<F,Y^m,Eta>
-     * 
+     *
      */
-    // parameter 1 after GY means i and j variables must be swapped, 
+    // parameter 1 after GY means i and j variables must be swapped,
     // i.e. we do a summation on "i" using a code which is hardcoded for summation wrt. "j" :
     using FUNCONVGY = typename Generic<GY,1>::sEval;
 
@@ -245,7 +245,9 @@ int main() {
 
     // gradient wrt Y, which is a "j" variable.
 
-    rescpu.resize(Ny*GY::DIM); resgpu2D.resize(Ny*GY::DIM); resgpu1D.resize(Ny*GY::DIM);
+    rescpu.resize(Ny*GY::DIM);
+    resgpu2D.resize(Ny*GY::DIM);
+    resgpu1D.resize(Ny*GY::DIM);
     vf.resize(Ny*GY::DIM);
     f = vf.data();
 

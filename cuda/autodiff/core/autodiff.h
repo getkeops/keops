@@ -70,8 +70,8 @@ class Generic {
 
     static const int tagJ = 1-tagI;
 
-    public :
-    
+  public :
+
     struct sEval { // static wrapper
         using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
         using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
@@ -130,26 +130,24 @@ using IdOrZero = typename IdOrZeroAlias<Vref,V,FUN>::type;
  *                   equal to 1 if Var is "a summation variable" yj.
  */
 template < int _N, int _DIM, int _CAT=0 >
-struct Var
-{
+struct Var {
     static const int N   = _N;   // The index and dimension of Var, formally specified using the
     static const int DIM = _DIM; // templating syntax, are accessible using Var::N, Var::DIM.
     static const int CAT = _CAT;
 
-    static void PrintId() 
-    {
-    	if(CAT==0)
-    		cout << "x";
-    	else if(CAT==1)
-    		cout << "y";
-    	else
-    		cout << "z";
-    	cout << N;
+    static void PrintId() {
+        if(CAT==0)
+            cout << "x";
+        else if(CAT==1)
+            cout << "y";
+        else
+            cout << "z";
+        cout << N;
     }
-    
+
     template<class A, class B>
     using Replace = Var<N,DIM,CAT>;
-    
+
     using AllTypes = univpack<Var<N,DIM,CAT>>;
 
     template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
@@ -183,7 +181,7 @@ struct Var
 ////                      Unary and Binary operations wrappers                                ////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Unary and Binary structures for defining common methods for the math operations 
+// Unary and Binary structures for defining common methods for the math operations
 // (Add, Scal, Scalprod, Exp, etc., see files math.h and norms.h)
 // we define common methods in a base class
 // and then define a derived class to be able to specialize the evaluation method
@@ -193,9 +191,9 @@ struct Var
 // unary operator base class : common methods
 template < template<class,int...> class OP, class F, int... NS >
 struct UnaryOp_base {
-	
-	using THIS = OP<F,NS...>;
-	
+
+    using THIS = OP<F,NS...>;
+
     static void PrintId() {
         THIS::PrintIdString();
         cout << "(";
@@ -204,9 +202,9 @@ struct UnaryOp_base {
         pack<NS...>::PrintAll();
         cout << ")";
     }
-    
-	using AllTypes = MergePacks<univpack<THIS>,typename F::AllTypes>;
-	
+
+    using AllTypes = MergePacks<univpack<THIS>,typename F::AllTypes>;
+
     template<class A, class B>
     using Replace = CondType< B , OP<typename F::template Replace<A,B>,NS...> , IsSameType<A,THIS>::val >;
 
@@ -216,15 +214,15 @@ struct UnaryOp_base {
 
 };
 
-// unary operator class : default Eval method 
-template < template<class,int...> class OP, class F, int... NS > 
-struct UnaryOp : UnaryOp_base<OP,F,NS...> { 
-	
-	using THIS = OP<F,NS...>;
-	
-	template < class INDS, typename... ARGS >
-	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-		// we create a vector of size F::DIM
+// unary operator class : default Eval method
+template < template<class,int...> class OP, class F, int... NS >
+struct UnaryOp : UnaryOp_base<OP,F,NS...> {
+
+    using THIS = OP<F,NS...>;
+
+    template < class INDS, typename... ARGS >
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        // we create a vector of size F::DIM
         __TYPE__ outA[F::DIM];
         // then we call the Eval function of F
         F::template Eval<INDS>(params,outA,args...);
@@ -236,13 +234,13 @@ struct UnaryOp : UnaryOp_base<OP,F,NS...> {
 // specialization when template F is of type Var
 template < template<class,int...> class OP, int N, int DIM, int CAT, int... NS >
 struct UnaryOp<OP,Var<N,DIM,CAT>,NS...>  : UnaryOp_base<OP,Var<N,DIM,CAT>,NS...> {
-	
-	using THIS = OP<Var<N,DIM,CAT>,NS...>;
-	
-	template < class INDS, typename... ARGS >
-	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-		// we do not need to create a vector ; just access the Nth argument of args
-        auto t = TUPLE_VERSION::make_tuple(args...); 
+
+    using THIS = OP<Var<N,DIM,CAT>,NS...>;
+
+    template < class INDS, typename... ARGS >
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        // we do not need to create a vector ; just access the Nth argument of args
+        auto t = TUPLE_VERSION::make_tuple(args...);
         __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
         // then we call the Operation function
         THIS::Operation(out,outA);
@@ -254,10 +252,10 @@ struct UnaryOp<OP,Var<N,DIM,CAT>,NS...>  : UnaryOp_base<OP,Var<N,DIM,CAT>,NS...>
 // binary operator class : common methods
 template < template<class,class> class OP, class FA, class FB >
 struct BinaryOp_base {
-	
+
     using THIS = OP<FA,FB>;
-	
-    static void PrintId() {        
+
+    static void PrintId() {
         cout << "(";
         FA::PrintId();
         THIS::PrintIdString();
@@ -265,13 +263,15 @@ struct BinaryOp_base {
         cout << ")";
     }
 
-    static void PrintFactorized() { PrintId(); }
-	
-	using AllTypes = MergePacks<univpack<OP<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
-	
+    static void PrintFactorized() {
+        PrintId();
+    }
+
+    using AllTypes = MergePacks<univpack<OP<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
+
     template<class A, class B>
     using Replace = CondType< B , OP<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,THIS>::val >;
-    
+
     // Vars( OP<FA,FB> ) = Vars(FA) U Vars(FB), whatever the category
     template < int CAT >
     using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
@@ -279,15 +279,15 @@ struct BinaryOp_base {
 };
 
 
-// binary operator class : default Eval method 
-template < template<class,class> class OP, class FA, class FB > 
-struct BinaryOp : BinaryOp_base<OP,FA,FB> { 
-	
-	using THIS = OP<FA,FB>;
-	
-	template < class INDS, typename... ARGS >
-	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-		// we create vectors of sizes FA::DIM and FB::DIM
+// binary operator class : default Eval method
+template < template<class,class> class OP, class FA, class FB >
+struct BinaryOp : BinaryOp_base<OP,FA,FB> {
+
+    using THIS = OP<FA,FB>;
+
+    template < class INDS, typename... ARGS >
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        // we create vectors of sizes FA::DIM and FB::DIM
         __TYPE__ outA[FA::DIM], outB[FB::DIM];
         // then we call the Eval function of FA and FB
         FA::template Eval<INDS>(params,outA,args...);
@@ -300,12 +300,12 @@ struct BinaryOp : BinaryOp_base<OP,FA,FB> {
 // specialization when left template is of type Var
 template < template<class,class> class OP, int N, int DIM, int CAT, class FB >
 struct BinaryOp<OP,Var<N,DIM,CAT>,FB>  : BinaryOp_base<OP,Var<N,DIM,CAT>,FB> {
-	
-	using THIS = OP<Var<N,DIM,CAT>,FB>;
 
-	template < class INDS, typename... ARGS >
-	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-		// we create a vector and call Eval only for FB
+    using THIS = OP<Var<N,DIM,CAT>,FB>;
+
+    template < class INDS, typename... ARGS >
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        // we create a vector and call Eval only for FB
         __TYPE__ outB[FB::DIM];
         FB::template Eval<INDS>(params,outB,args...);
         // access the Nth argument of args
@@ -315,20 +315,20 @@ struct BinaryOp<OP,Var<N,DIM,CAT>,FB>  : BinaryOp_base<OP,Var<N,DIM,CAT>,FB> {
         THIS::Operation(out,outA,outB);
     }
 };
- 
+
 // specialization when right template is of type Var
 template < template<class,class> class OP, class FA, int N, int DIM, int CAT >
 struct BinaryOp<OP,FA,Var<N,DIM,CAT>>  : BinaryOp_base<OP,FA,Var<N,DIM,CAT>> {
-	
-	using THIS = OP<FA,Var<N,DIM,CAT>>;
 
-	template < class INDS, typename... ARGS >
-	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    using THIS = OP<FA,Var<N,DIM,CAT>>;
+
+    template < class INDS, typename... ARGS >
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
         // we create a vector and call Eval only for FA
         __TYPE__ outA[FA::DIM];
         FA::template Eval<INDS>(params,outA,args...);
         // access the Nth argument of args
-        auto t = TUPLE_VERSION::make_tuple(args...); 
+        auto t = TUPLE_VERSION::make_tuple(args...);
         __TYPE__* outB = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outB = the "ind"-th argument.
         // then we call the Operation function
         THIS::Operation(out,outA,outB);
@@ -338,12 +338,12 @@ struct BinaryOp<OP,FA,Var<N,DIM,CAT>>  : BinaryOp_base<OP,FA,Var<N,DIM,CAT>> {
 // specialization when both templates are of type Var
 template < template<class,class> class OP, int NA, int DIMA, int CATA, int NB, int DIMB, int CATB >
 struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>> {
-	
-	using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>;
 
-	template < class INDS, typename... ARGS >
-	static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-	 	// we access the NAth and NBth arguments of args
+    using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>;
+
+    template < class INDS, typename... ARGS >
+    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+        // we access the NAth and NBth arguments of args
         auto t = TUPLE_VERSION::make_tuple(args...);
         __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,NA>::ind>(t);
         __TYPE__* outB = TUPLE_VERSION::get<IndValAlias<INDS,NB>::ind>(t);
@@ -359,7 +359,7 @@ template<class F, class G>
 struct CountIn_ {
     static const int val = 0;
 };
-	
+
 template<class F>
 struct CountIn_<F,F> {
     static const int val = 1;
@@ -369,17 +369,17 @@ template<class F, class G>
 struct CountIn {
     static const int val = CountIn_<F,G>::val;
 };
-		
+
 template<template<class,int...> class OP, class F, class G, int... NS>
 struct CountIn<OP<F,NS...>,G> {
     static const int val = CountIn_<OP<F,NS...>,G>::val + CountIn<F,G>::val;
 };
-	
+
 template<template<class,class> class OP, class FA, class FB, class G>
 struct CountIn<OP<FA,FB>,G> {
     static const int val = CountIn_<OP<FA,FB>,G>::val + CountIn<FA,G>::val + CountIn<FB,G>::val;
 };
-	
+
 
 
 
@@ -392,10 +392,10 @@ template < int N >
 struct Param {
     static const int INDEX = N;
     static const int DIM = 1;
-    
-	template < int CAT >
+
+    template < int CAT >
     using VARS = CondType<univpack<Param<N>>,univpack<>,CAT==3>;
-    
+
     static void PrintId() {
         cout << "Pm(" << N << ")";
     }
@@ -433,20 +433,20 @@ using _P = Param<N>;
 
 template < class F >
 void PrintFormula() {
-	cout << "Variables : ";
-	using Vars0 = typename F::template VARS<0>;
-	using Dims0 = GetDims<Vars0>;
-	using Inds0 = GetInds<Vars0>;
-	for(int k=0; k<Vars0::SIZE; k++)
-		cout << "x" << Inds0::VAL(k) << " (dim=" << Dims0::VAL(k) << "), ";
-	using Vars1 = typename F::template VARS<1>;
-	using Dims1 = GetDims<Vars1>;
-	using Inds1 = GetInds<Vars1>;
-	for(int k=0; k<Vars1::SIZE; k++)
-		cout << "y" << Inds1::VAL(k) << " (dim=" << Dims1::VAL(k) << "), ";
-	cout << endl;
-	cout << "Formula = ";
-	F::PrintId();
+    cout << "Variables : ";
+    using Vars0 = typename F::template VARS<0>;
+    using Dims0 = GetDims<Vars0>;
+    using Inds0 = GetInds<Vars0>;
+    for(int k=0; k<Vars0::SIZE; k++)
+        cout << "x" << Inds0::VAL(k) << " (dim=" << Dims0::VAL(k) << "), ";
+    using Vars1 = typename F::template VARS<1>;
+    using Dims1 = GetDims<Vars1>;
+    using Inds1 = GetInds<Vars1>;
+    for(int k=0; k<Vars1::SIZE; k++)
+        cout << "y" << Inds1::VAL(k) << " (dim=" << Dims1::VAL(k) << "), ";
+    cout << endl;
+    cout << "Formula = ";
+    F::PrintId();
 }
 
 

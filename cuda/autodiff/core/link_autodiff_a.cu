@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <cuda.h>
 
-#include "core/autodiff.h"
+#include "core/formulas/autodiff.h"
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/newsyntax.h"

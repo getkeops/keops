@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <iostream>
 
@@ -16,7 +16,7 @@
 // It allows us to turn a real number F into a pair
 // (m,s) = (F,1) which encodes the number s * exp(F).
 // Declared using the   LogSumExp<F>   syntax.
-// 
+//
 // Giving a "LogSumExp" to a Conv1D/2D routine will automatically
 // result in it using a numerically stable reduce operation.
 template < class F >
@@ -32,7 +32,7 @@ struct LogSumExp {
 
     template<class A, class B>
     using Replace = CondType< B , LogSumExp<typename F::template Replace<A,B>> , IsSameType<A,LogSumExp<F>>::val >;
-    
+
     using AllTypes = MergePacks<univpack<LogSumExp<F>>,typename F::AllTypes>;
 
     template < int CAT >
@@ -71,31 +71,30 @@ struct NEG_INFINITY<double> {
 
 // Overloads the reduce operations when F is a LogSumExp<G>
 template <typename TYPE, int DIM, class G>
-struct InitializeOutput<TYPE,DIM,LogSumExp<G>>{
-HOST_DEVICE INLINE void operator()(TYPE *tmp) {
-    // We fill empty cells with the neutral element of the reduction operation,
-    //                   (-inf,0) = e^{-inf} * 0 = 0
-    static_assert(2==DIM,"LogSumExp is only meant to be used with scalars -> pairs (m,s).");
-    // We should use 0xfff0000000000000 for doubles
-    //-340282346638528859811704183484516925440.0f;//__int_as_float(0xff800000); // -infty, as +infty = 0x7f800000
-    tmp[0] = NEG_INFINITY<TYPE>::value; 
-    tmp[1] = 0.0f;
-}
+struct InitializeOutput<TYPE,DIM,LogSumExp<G>> {
+    HOST_DEVICE INLINE void operator()(TYPE *tmp) {
+        // We fill empty cells with the neutral element of the reduction operation,
+        //                   (-inf,0) = e^{-inf} * 0 = 0
+        static_assert(2==DIM,"LogSumExp is only meant to be used with scalars -> pairs (m,s).");
+        // We should use 0xfff0000000000000 for doubles
+        //-340282346638528859811704183484516925440.0f;//__int_as_float(0xff800000); // -infty, as +infty = 0x7f800000
+        tmp[0] = NEG_INFINITY<TYPE>::value;
+        tmp[1] = 0.0f;
+    }
 };
 
 // equivalent of the += operation
 template <typename TYPE, int DIM, class G>
-struct ReducePair<TYPE,DIM,LogSumExp<G>>{
-HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
-    static_assert(2==DIM,"LogSumExp is only meant to be used with scalars -> pairs (m,s).");
-    // (m,s) + (m',s'), i.e. exp(m)*s + *exp(m')*s'
-    if(tmp[0] > xi[0]) { // =  exp(m)  * (s + exp(m'-m)*s')   if m > m'
-        tmp[1] += exp( xi[0]-tmp[0] ) * xi[1] ;
+struct ReducePair<TYPE,DIM,LogSumExp<G>> {
+    HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+        static_assert(2==DIM,"LogSumExp is only meant to be used with scalars -> pairs (m,s).");
+        // (m,s) + (m',s'), i.e. exp(m)*s + *exp(m')*s'
+        if(tmp[0] > xi[0]) { // =  exp(m)  * (s + exp(m'-m)*s')   if m > m'
+            tmp[1] += exp( xi[0]-tmp[0] ) * xi[1] ;
+        } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+            tmp[1] = xi[1] + exp( tmp[0]-xi[0] ) * tmp[1] ;
+            tmp[0] = xi[0] ;
+        }
     }
-    else {               // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
-        tmp[1] = xi[1] + exp( tmp[0]-xi[0] ) * tmp[1] ;
-        tmp[0] = xi[0] ;
-    }
-}
 };
 

@@ -28,15 +28,13 @@
 #define Cst(p) Constant<decltype(p)>()
 
 template < class FA, class FB >
-Add<FA,FB> operator+(FA fa, FB fb)
-{
-	return Add<FA,FB>();
+Add<FA,FB> operator+(FA fa, FB fb) {
+    return Add<FA,FB>();
 }
 
 template < class FA, class FB >
-Scal<FA,FB> operator*(FA fa, FB fb)
-{
-	return Scal<FA,FB>();
+Scal<FA,FB> operator*(FA fa, FB fb) {
+    return Scal<FA,FB>();
 }
 
 #define Exp(f) Exp<decltype(f)>()
@@ -46,15 +44,13 @@ Scal<FA,FB> operator*(FA fa, FB fb)
 #define Square(f) Square<decltype(f)>()
 
 template < class F >
-Minus<F> operator-(F f)
-{
-        return Minus<F>();
+Minus<F> operator-(F f) {
+    return Minus<F>();
 }
 
 template < class FA, class FB >
-Subtract<FA,FB> operator-(FA fa, FB fb)
-{
-        return Subtract<FA,FB>();
+Subtract<FA,FB> operator-(FA fa, FB fb) {
+    return Subtract<FA,FB>();
 }
 
 #define Inv(f) Inv<decltype(f)>()
@@ -62,9 +58,8 @@ Subtract<FA,FB> operator-(FA fa, FB fb)
 #define IntInv(N) IntInv<N>()
 
 template < class FA, class FB >
-Divide<FA,FB> operator/(FA fa, FB fb)
-{
-        return Divide<FA,FB>();
+Divide<FA,FB> operator/(FA fa, FB fb) {
+    return Divide<FA,FB>();
 }
 
 #define Log(f) Log<decltype(f)>()
@@ -74,9 +69,8 @@ Divide<FA,FB> operator/(FA fa, FB fb)
 #define Sqrt(f) Sqrt<decltype(f)>()
 
 template < class FA, class FB >
-Scalprod<FA,FB> operator,(FA fa, FB fb)
-{
-        return Scalprod<FA,FB>();
+Scalprod<FA,FB> operator,(FA fa, FB fb) {
+    return Scalprod<FA,FB>();
 }
 
 #define SqNorm2(f) SqNorm2<decltype(f)>()
