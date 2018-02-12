@@ -124,11 +124,10 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
         if   kernel.features == "locations" :
             nvars    = 3
             dimpoint = args[1].size(1) ; dimout = args[3].size(1)
-            aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
-                        "G = Pm(0)"          ,   # 1st parameter
-                        "X = Vx(0,DIMPOINT)" ,   # 1st variable, dim DIM,    indexed by i
-                        "Y = Vy(1,DIMPOINT)" ,   # 2nd variable, dim DIM,    indexed by j
-                        "B = Vy(2,DIMOUT  )" ]   # 3rd variable, dim DIMOUT, indexed by j
+            aliases  = ["G = Pm(0)",   # 1st parameter
+                        "X = Vx(0,"+str(dimpoint)+") " ,   # 1st variable, dim DIM,    indexed by i
+                        "Y = Vy(1,"+str(dimpoint)+") " ,   # 2nd variable, dim DIM,    indexed by j
+                        "B = Vy(2,"+str(dimout)+") " ]   # 3rd variable, dim DIMOUT, indexed by j
             # stands for:     R_i   ,   G  ,      X_i    ,      Y_j    ,     B_j    .
             signature = [ (dimout,0), (1,2), (dimpoint,0), (dimpoint,1), (dimout,1) ]
 
@@ -136,14 +135,13 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
             nvars    = 5
             dimpoint = args[1].size(1) ; dimout = args[6].size(1)
         
-            aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout),
-                        "G = Pm(0)"          ,   # 1st parameter
+            aliases  = ["G = Pm(0)"          ,   # 1st parameter
                         "H = Pm(1)"          ,   # 2nd parameter
-                        "X = Vx(0,DIMPOINT)" ,   # 1st variable, dim DIM,    indexed by i
-                        "Y = Vy(1,DIMPOINT)" ,   # 2nd variable, dim DIM,    indexed by j
-                        "U = Vx(2,DIMPOINT)" ,   # 3rd variable, dim DIM,    indexed by i
-                        "V = Vy(3,DIMPOINT)" ,   # 4th variable, dim DIM,    indexed by j
-                        "B = Vy(4,DIMOUT  )" ]   # 5th variable, dim DIMOUT, indexed by j
+                        "X = Vx(0,"+str(dimpoint)+") ",   # 1st variable, dim DIM,    indexed by i
+                        "Y = Vy(1,"+str(dimpoint)+") ",   # 2nd variable, dim DIM,    indexed by j
+                        "U = Vx(2,"+str(dimpoint)+") ",   # 3rd variable, dim DIM,    indexed by i
+                        "V = Vy(3,"+str(dimpoint)+") ",   # 4th variable, dim DIM,    indexed by j
+                        "B = Vy(4,"+str(dimout)+") " ]   # 5th variable, dim DIMOUT, indexed by j
             # stands for:     R_i   ,   G  ,       X_i    ,       Y_j    ,
             signature = [ (dimout,0), (1,2),  (dimpoint,0),  (dimpoint,1), \
             #                           H  ,       U_i    ,       V_j    ,
@@ -154,17 +152,16 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
         elif kernel.features == "locations+directions+values" :
             nvars    = 7
             dimpoint = args[1].size(1) ; dimout = args[9].size(1) ; dimsignal = args[7].size(1)
-            aliases  = ["DIMPOINT = "+str(dimpoint), "DIMOUT = "+str(dimout), "DIMSIGNAL = "+str(dimsignal),
-                        "G = Pm(0)"           ,   # 1st parameter
+            aliases  = ["G = Pm(0)"           ,   # 1st parameter
                         "H = Pm(1)"           ,   # 2nd parameter
                         "I = Pm(2)"           ,   # 3rd parameter
-                        "X = Vx(0,DIMPOINT) " ,   # 1st variable, dim DIMPOINT,    indexed by i
-                        "Y = Vy(1,DIMPOINT) " ,   # 2nd variable, dim DIMPOINT,    indexed by j
-                        "U = Vx(2,DIMPOINT) " ,   # 3rd variable, dim DIMPOINT,    indexed by i
-                        "V = Vy(3,DIMPOINT) " ,   # 4th variable, dim DIMPOINT,    indexed by j
-                        "S = Vx(4,DIMSIGNAL)" ,   # 5th variable, dim DIMSIGNAL,   indexed by i
-                        "T = Vy(5,DIMSIGNAL)" ,   # 6th variable, dim DIMSIGNAL,   indexed by j
-                        "B = Vy(6,DIMOUT  ) " ]   # 7th variable, dim DIMOUT,      indexed by j
+                        "X = Vx(0,"+str(dimpoint)+") " ,   # 1st variable, dim DIMPOINT,    indexed by i
+                        "Y = Vy(1,"+str(dimpoint)+") " ,   # 2nd variable, dim DIMPOINT,    indexed by j
+                        "U = Vx(2,"+str(dimpoint)+") " ,   # 3rd variable, dim DIMPOINT,    indexed by i
+                        "V = Vy(3,"+str(dimpoint)+") " ,   # 4th variable, dim DIMPOINT,    indexed by j
+                        "S = Vx(4,"+str(dimsignal)+") " ,   # 5th variable, dim DIMSIGNAL,   indexed by i
+                        "T = Vy(5,"+str(dimsignal)+")" ,   # 6th variable, dim DIMSIGNAL,   indexed by j
+                        "B = Vy(6,"+str(dimout)+") " ]   # 7th variable, dim DIMOUT,      indexed by j
             # stands for:     R_i   ,   G  ,       X_i    ,       Y_j    ,
             signature = [ (dimout,0), (1,2),  (dimpoint,0),  (dimpoint,1), \
             #                           H  ,       U_i    ,       V_j    ,
@@ -185,7 +182,7 @@ def FeaturesKP( kernel, *args, mode = "sum", backend="auto", bonus_args=None) :
             #               A_LOG2_i , B_LOG2_j
             signature += [   (1,0)  ,  (1,1)   ]
         if mode == "log_barycenter" :
-            aliases += ["B2 = Vx("+str(nvars+2)+",DIMOUT)"]
+            aliases += ["B2 = Vx("+str(nvars+2)+","+str(dimout)+")"]
             #                  B2_i
             signature += [  (dimout,0)  ]
 

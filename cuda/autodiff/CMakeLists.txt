@@ -190,6 +190,14 @@ target_compile_options(
     PRIVATE -include formula.h
 )
 
+if(shared_obj_name)
+    add_custom_command(
+        TARGET shared_obj_cpp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E rename
+        $<TARGET_FILE:shared_obj_cpp>
+        ${shared_obj_name}    
+    )
+endif()
 
 # ----------------- various targets
 
