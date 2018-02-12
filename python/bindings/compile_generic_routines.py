@@ -16,12 +16,12 @@ def compile_generic_routine(aliases, formula, dllname, cuda_type, script_folder=
 
     target = "shared_obj"
 
-    print("\n\n")
+    print("\n")
     print(alias_string)
     print("Compiling formula = " + formula + " ... ", end='', flush=True)
     subprocess.run(["cmake", script_folder,"-DUSENEWSYNTAX=TRUE" , "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], \
-                   cwd=script_folder+"build", stdout=subprocess.PIPE)
+                   cwd=script_folder+"build")
     subprocess.run(["make", target], \
-                   cwd=script_folder+"build", stdout=subprocess.PIPE)
+                   cwd=script_folder+"build")
     print("Done. ", end='')
 

@@ -33,7 +33,7 @@ else : # Custom kernel, defined using the naming conventions of the libkp
     # Symbolic formula, for the libkp backend
     kernel.formula_sum  = "( -Cst(G)*SqDist(X,Y) )"
     # Pytorch routine, for the pytorch backend
-    kernel.routine_sum  = lambda g=None, xmy2=None, **kwargs :
+    kernel.routine_sum  = lambda g=None, xmy2=None, **kwargs : \
                                   -g*xmy2
 
 # Wrap it (and its parameters) into a JSON dict structure
