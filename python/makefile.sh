@@ -3,7 +3,7 @@
 # --------- # PATH: --------- #
 
 CUDAROOT="/usr/local/cuda"
-NVCC="nvcc"
+NVCC="/usr/local/cuda/bin/nvcc"
 CC="/usr/bin/gcc"
 LIBKPROOT=".."
 

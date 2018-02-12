@@ -301,7 +301,7 @@ if __name__ == "__main__":
 	#--------------------------------------------------#
 	dtype = torch.FloatTensor
 	
-	N = 10 ; M = 15 ; D = 3 ; E = 3
+	N = 10 ; M = 15 ; D = 3 ; E = 1
 	
 	e = .6 * torch.linspace(  0, 5,N*D).type(dtype).view(N,D)
 	e = torch.autograd.Variable(e, requires_grad = True)
@@ -343,16 +343,20 @@ if __name__ == "__main__":
 	def Ham(q,p) :
 		Kq_p  = kernel_product(s,q,q,p, "gaussian")
 		# make_dot(Kq_p, {'q':q, 'p':p, 's':s}).render('graphs/Kqp_'+backend+'.pdf', view=True)
-		return torch.dot( p.view(-1), Kq_p.view(-1) )
+		# return torch.dot( p.view(-1), Kq_p.view(-1) )
+		return Kq_p
 	
-	ham0   = Ham(y, b)
+	ham0   = Ham(x, b)
 	# make_dot(ham0, {'y':y, 'b':b, 's':s}).render('graphs/ham0_'+backend+'.pdf', view=True)
 	
 	print('----------------------------------------------------')
 	print("Ham0:")
 	print(ham0)
 	
-	grad_y = torch.autograd.grad(ham0,y,create_graph = True)[0]
+	print(x)
+	print(b)
+	grad_y = torch.autograd.grad(ham0,x,torch.ones(N,1),create_graph = True)[0]
+	print(grad_y)
 	grad_b = torch.autograd.grad(ham0,b,create_graph = True)[0]
 	
 	print('grad_y  :\n', grad_y.data.numpy())

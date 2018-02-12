@@ -12,12 +12,12 @@
 // see compile_mex file for compiling
 // FORMULA_OBJ (in case using new syntax) and __TYPE__ are supposed to be set via "using" or "#define"
 
-#ifdef USENEWSYNTAX
-    #include "core/newsyntax.h"
-    using F = decltype(FORMULA_OBJ);
-#else
-    using F = FORMULA;
-#endif
+//#ifdef USENEWSYNTAX
+    //#include "core/newsyntax.h"
+    //using F = decltype(FORMULA_OBJ);
+//#else
+    //using F = FORMULA;
+//#endif
 
 void ExitFcn(void) {
 #ifdef __CUDACC__
@@ -150,11 +150,26 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     }
     argu += NARGS;
 
-    double *params;
+    auto castedFun = [&] (double* double_ptr, const mxArray *dd)  -> __TYPE__* {
+        /*  get the dimensions */
+        int n = mxGetNumberOfElements(dd); //nrows
+#ifndef  USE_DOUBLE
+        __TYPE__ *__type__ptr = new __TYPE__[n];
+        std::copy(double_ptr,double_ptr+n,__type__ptr);
+#endif
+    };
+
+
+
+    double*params;
+    __TYPE__ *castedparams ;
     if(DIMPARAM) {
         //----- the next input argument: params--------------//
         /*  create a pointer to the input vector */
         params = mxGetPr(prhs[argu]);
+
+        castedparams = castedFun(params,prhs[argu]);
+
         /*  get the dimensions of the input targets */
         int mp = mxGetM(prhs[argu]); //nrows
         int np = mxGetN(prhs[argu]); //ncols
@@ -178,6 +193,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     /*  create a C pointer to a copy of the output result(vector)*/
     double *gamma = mxGetPr(plhs[0]);
+    __TYPE__*castedgamma = castedFun(gamma,plhs[0]); 
 
     //////////////////////////////////////////////////////////////
     // Call Cuda codes
@@ -189,41 +205,46 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     if(tagCpuGpu==0) {
         if(tagIJ==0)
-            CpuConv(Generic<F,0>::sEval(), params, n[0], n[1], gamma, args);
+            CpuConv(Generic<F,0>::sEval(), castedparams, n[0], n[1], castedgamma, args);
         else
-            CpuConv(Generic<F,1>::sEval(), params, n[1], n[0], gamma, args);
+            CpuConv(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, args);
     }
 #ifdef __CUDACC__
     else if(tagCpuGpu==1) {
         if(tagIJ==0) {
             if(tag1D2D==0)
-                GpuConv1D(Generic<F,0>::sEval(), params, n[0], n[1], gamma, args);
+                GpuConv1D(Generic<F,0>::sEval(), castedparams, n[0], n[1], castedgamma, args);
             else
-                GpuConv2D(Generic<F,0>::sEval(), params, n[0], n[1], gamma, args);
+                GpuConv2D(Generic<F,0>::sEval(), castedparams, n[0], n[1], castedgamma, args);
         } else {
             if(tag1D2D==0)
-                GpuConv1D(Generic<F,1>::sEval(), params, n[1], n[0], gamma, args);
+                GpuConv1D(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, args);
             else
-                GpuConv2D(Generic<F,1>::sEval(), params, n[1], n[0], gamma, args);
+                GpuConv2D(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, args);
         }
     } else {
         if(tagIJ==0) {
             if(tag1D2D==0)
-                GpuConv1D_FromDevice(Generic<F,0>::sEval(), params, n[0], n[1-0], gamma, args);
+                GpuConv1D_FromDevice(Generic<F,0>::sEval(), castedparams, n[0], n[1-0], castedgamma, args);
             else
-                GpuConv2D_FromDevice(Generic<F,0>::sEval(), params, n[0], n[1-0], gamma, args);
+                GpuConv2D_FromDevice(Generic<F,0>::sEval(), castedparams, n[0], n[1-0], castedgamma, args);
         } else {
             if(tag1D2D==0)
-                GpuConv1D_FromDevice(Generic<F,1>::sEval(), params, n[1], n[0], gamma, args);
+                GpuConv1D_FromDevice(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, args);
             else
-                GpuConv2D_FromDevice(Generic<F,1>::sEval(), params, n[1], n[0], gamma, args);
+                GpuConv2D_FromDevice(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, args);
         }
     }
 #endif
 
+
+
     delete[] args;
     delete[] typeargs;
     delete[] dimargs;
-
+#ifndef USE_DOUBLE
+    delete[] castedparams;
+    delete[] castedgamma;
+#endif
 
 }
