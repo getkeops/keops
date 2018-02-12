@@ -10,6 +10,7 @@ from bindings.torch.kernels import Kernel, kernel_product
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 use_cuda = torch.cuda.is_available()
+use_cuda = False
 dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 # Convenience functions
