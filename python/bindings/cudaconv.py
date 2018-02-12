@@ -9,45 +9,21 @@
 # - an array Y_2 (b_j) of dimension M-by-3
 
 import numpy as np
+
 import torch
+
 import ctypes
 from ctypes import *
+
 import os.path
-import re  # Regexp for aliases
+
 from hashlib import sha256
 
+from compile_generic_routines import *
 
 # GENERIC FORMULAS DLLs =========================================================================
 
 __cuda_convs_generic = {}
-
-
-def compile_generic_routine(aliases, formula, dllname, cuda_type, script_folder=None, script_name=None):
-    if script_folder is None:
-        script_folder = os.path.dirname(os.path.abspath(__file__)) \
-                        + os.path.sep + ('..' + os.path.sep) * 2 + "cuda" + os.path.sep + "autodiff" + os.path.sep
-        print(script_folder)
-    if script_name is None:
-        script_name = '.' + os.path.sep + 'compile_with_aliases'
-        script_name = 'cmake'
-
-    def process_alias(alias):
-        match = re.fullmatch("(.+)=[ ]*([0-9]+)[ ]*", alias)  # example : "DIMPOINT = 3"
-        if match is not None:  # alias is of the form
-            return "#define " + match.group(1) + " " + match.group(2)  # "#define DIMPOINT 3"
-        else:
-            return "auto " + str(alias) + "; "
-
-    alias_string = "\n".join([process_alias(alias) for alias in aliases])
-
-    import subprocess
-    print("\n\n")
-    print(alias_string)
-    print("Compiled formula = " + formula + ". ", end='', flush=True)
-    subprocess.run([script_name, script_folder,"-DUSENEWSYNTAX=TRUE" , "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], \
-                   cwd=script_folder+"build", stdout=subprocess.PIPE)
-    subprocess.run(["make", "shared_obj"], \
-                   cwd=script_folder+"build", stdout=subprocess.PIPE)
 
 
 def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend,
@@ -88,10 +64,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend,
         try:
             dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
         except OSError:
-            print('Tried to load ' + dllabspath + ", ", end='')
-            print("but could not find the DLL. Compiling it... ", end='')
             compile_generic_routine(aliases, formula, dll_name + dll_extension, cuda_type)
-            print("Done. ", end='')
             dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
             print("Loaded.\n\n")
 
