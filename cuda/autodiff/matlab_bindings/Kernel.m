@@ -33,7 +33,7 @@ function [F,fname] = Kernel(varargin)
 
 build_dir = '../build/';
 cur_dir = pwd;
-
+precision = 'float';
 
 Nargin = nargin;
 
@@ -48,7 +48,7 @@ end
 % tagIJ=0 means sum over j, tagIj=1 means sum over j
 options = setoptions(options,'tagIJ',0);
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
-options = setoptions(options,'tagCpuGpu',0);
+options = setoptions(options,'tagCpuGpu',1);
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 options = setoptions(options,'tag1D2D',1);
 
@@ -59,11 +59,11 @@ formula = varargin{Nargin};
 [CodeVars,indxy ] = format_var_aliase(varargin(1:(Nargin-1)));
 
 % we use a hash to shorten string and avoid special characters in the filename
-Fname = string2hash(lower([CodeVars,formula]));
+Fname = string2hash(lower([CodeVars,formula,precision]));
 mex_name = [Fname,'.',mexext];
 
 if ~(exist(mex_name,'file')==3)
-    buildFormula(CodeVars,formula,Fname,mex_name,build_dir,cur_dir)
+    buildFormula(CodeVars,formula,Fname,precision,build_dir,cur_dir)
 end
 
 % return function handler
@@ -121,23 +121,25 @@ end
 end
 
 
-function testbuild = buildFormula(code1, code2, filename, mex_name, build_dir, cur_dir)
+function testbuild = buildFormula(code1, code2, filename, precision, build_dir, cur_dir)
 
     disp('Formula is not compiled yet ; compiling...')
 
     % I do not have a better option to set working dir...
     cd(build_dir)
+    cmdline = ['~/src/cmake-3.10.1/bin/cmake ../.. -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
+    fprintf(cmdline)
     try
-        [~,out0] =mysystemcall(['/usr/bin/cmake ../.. -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=float -Dmex_name="../',filename,'"' ])
+        [~,out0] =mysystemcall(cmdline)
         [~,out1] = mysystemcall(['make mex_cpp'])
     catch
-        warning('comp pb')
+        error('Compilation  Failed')
     end
     % ...comming back to curent directory
     cd(cur_dir)
 
 
-    if (exist(mex_name,'file')==3)
+    if (exist([filename,'.',mexext],'file')==3)
         disp('Compilation succeeded')
     else
         error('Compilation failed')

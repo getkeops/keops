@@ -157,20 +157,17 @@ configure_file(formula.h.in formula.h @ONLY)
 
 if(CUDA_FOUND)
   
-CUDA_add_library(
+    CUDA_add_library(
         shared_obj SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
         OPTIONS --pre-include=formula.h
     )
 
-
     # shared_lib can be rename if the variable shared_lib_name is provided.
     if(shared_obj_name)
-        add_custom_command(
-            TARGET shared_obj POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rename
-            $<TARGET_FILE:shared_obj>
-            ${shared_obj_name}    
+        set_target_properties(shared_obj PROPERTIES
+                LIBRARY_OUTPUT_NAME  ${shared_obj_name}
+                PREFIX ""
         )
     endif()
 
@@ -193,9 +190,7 @@ target_compile_options(
 if(shared_obj_name)
     add_custom_command(
         TARGET shared_obj_cpp POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rename
-        $<TARGET_FILE:shared_obj_cpp>
-        ${shared_obj_name}    
+        COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:shared_obj_cpp> ${shared_obj_name}    
     )
 endif()
 

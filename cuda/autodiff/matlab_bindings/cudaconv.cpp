@@ -5,38 +5,38 @@
 
 extern "C" int CpuConv(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
 
-#ifdef __CUDACC__
+#ifdef USE_CUDA
 extern "C" int GpuConv1D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv1D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv2D_FromDevice(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv1D_FromDevice(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv2D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuConv2D_FromDevice(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
 #endif
 
 void ExitFcn(void) {
-#ifdef __CUDACC__
-    cudaDeviceReset();
-#endif
+//#ifdef USE_CUDA
+    //cudaDeviceReset();
+//#endif
 }
 
 // uncomment the following block of code to redirect stdout to matlab console
 /*
-class mystream : public std::streambuf
-{
-protected:
-virtual std::streamsize xsputn(const char *s, std::streamsize n) { mexPrintf("%.*s", n, s); return n; }
-virtual int overflow(int c=EOF) { if (c != EOF) { mexPrintf("%.1s", &c); } return 1; }
-};
-class scoped_redirect_cout
-{
-public:
-	scoped_redirect_cout() { old_buf = std::cout.rdbuf(); std::cout.rdbuf(&mout); }
-	~scoped_redirect_cout() { std::cout.rdbuf(old_buf); }
-private:
-	mystream mout;
-	std::streambuf *old_buf;
-};
-static scoped_redirect_cout mycout_redirect;
-*/
+   class mystream : public std::streambuf
+   {
+   protected:
+   virtual std::streamsize xsputn(const char *s, std::streamsize n) { mexPrintf("%.*s", n, s); return n; }
+   virtual int overflow(int c=EOF) { if (c != EOF) { mexPrintf("%.1s", &c); } return 1; }
+   };
+   class scoped_redirect_cout
+   {
+   public:
+   scoped_redirect_cout() { old_buf = std::cout.rdbuf(); std::cout.rdbuf(&mout); }
+   ~scoped_redirect_cout() { std::cout.rdbuf(old_buf); }
+   private:
+   mystream mout;
+   std::streambuf *old_buf;
+   };
+   static scoped_redirect_cout mycout_redirect;
+   */
 
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
@@ -78,14 +78,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     auto castedFun = [] (double* double_ptr, const mxArray *dd)  -> __TYPE__* {
         /*  get the dimensions */
         int n = mxGetNumberOfElements(dd); //nrows
-#ifndef  USE_DOUBLE
+#if  USE_DOUBLE
+        return double_ptr;
+#else
         __TYPE__ *__type__ptr = new __TYPE__[n];
         std::copy(double_ptr,double_ptr+n,__type__ptr);
 
         return __type__ptr;
-#else
-
-        return double__ptr;
 #endif
     };
 
@@ -208,46 +207,57 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 
     if(tagCpuGpu==0) {
-        if(tagIJ==0)
-            CpuConv( castedparams, n[0], n[1], castedgamma, castedargs);
-        else
-            CpuConv( castedparams, n[1], n[0], castedgamma, castedargs);
+        if(tagIJ==0){
+            //CpuConv( castedparams, n[0], n[1], castedgamma, castedargs);
+        } else{
+            //CpuConv( castedparams, n[1], n[0], castedgamma, castedargs);
+        } 
     }
-#ifdef __CUDACC__
+#ifdef USE_CUDA
     else if(tagCpuGpu==1) {
         if(tagIJ==0) {
-            if(tag1D2D==0)
+            if(tag1D2D==0) {
                 GpuConv1D( castedparams, n[0], n[1], castedgamma, castedargs);
-            else
+            } else {
                 GpuConv2D( castedparams, n[0], n[1], castedgamma, castedargs);
+            }
         } else {
-            if(tag1D2D==0)
+            if(tag1D2D==0){
                 GpuConv1D( castedparams, n[1], n[0], castedgamma, castedargs);
-            else
+            } else {
                 GpuConv2D( castedparams, n[1], n[0], castedgamma, castedargs);
+            }
         }
-    } else {
+    } 
+    else {
         if(tagIJ==0) {
-            if(tag1D2D==0)
+            if(tag1D2D==0){
                 GpuConv1D_FromDevice( castedparams, n[0], n[1-0], castedgamma, castedargs);
-            else
+            } else {
                 GpuConv2D_FromDevice( castedparams, n[0], n[1-0], castedgamma, castedargs);
+            }
         } else {
-            if(tag1D2D==0)
+            if(tag1D2D==0){
                 GpuConv1D_FromDevice( castedparams, n[1], n[0], castedgamma, castedargs);
-            else
+            } else{
                 GpuConv2D_FromDevice( castedparams, n[1], n[0], castedgamma, castedargs);
+            }
         }
     }
 #endif
 
-
+#if not USE_DOUBLE
+    // copyt the casted results in double 
+    int ngamma =mxGetNumberOfElements(plhs[0]);
+    std::copy(castedgamma,castedgamma+ngamma,gamma);
 
     delete[] castedparams;
     delete[] castedgamma;
     for(int k=0; k<NARGS; k++)
-        delete[] castedargs[k];
+       delete[] castedargs[k];
     delete[] castedargs;
+#endif
+
     delete[] args;
     delete[] typeargs;
     delete[] dimargs;
