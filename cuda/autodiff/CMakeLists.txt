@@ -163,6 +163,22 @@ if(CUDA_FOUND)
         OPTIONS --pre-include=formula.h
     )
 
+else()
+
+# ----------------- create shared lib (cpp)
+
+add_library(
+    shared_obj SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
+)
+
+target_compile_options(
+    shared_obj BEFORE
+    PRIVATE -include formula.h
+)
+
+endif()
+
     # shared_lib can be rename if the variable shared_lib_name is provided.
     if(shared_obj_name)
         set_target_properties(shared_obj PROPERTIES
@@ -170,30 +186,6 @@ if(CUDA_FOUND)
                 PREFIX ""
         )
     endif()
-
-endif()
-
-
-
-# ----------------- create shared lib (cpp)
-
-add_library(
-    shared_obj_cpp SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
-)
-
-target_compile_options(
-    shared_obj_cpp BEFORE
-    PRIVATE -include formula.h
-)
-
-if(shared_obj_name)
-    add_custom_command(
-        TARGET shared_obj_cpp POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:shared_obj_cpp> ${shared_obj_name}    
-    )
-endif()
-
 # ----------------- various targets
 
 add_subdirectory(bench)

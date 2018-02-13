@@ -208,9 +208,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     if(tagCpuGpu==0) {
         if(tagIJ==0){
-            //CpuConv( castedparams, n[0], n[1], castedgamma, castedargs);
+            CpuConv( castedparams, n[0], n[1], castedgamma, castedargs);
         } else{
-            //CpuConv( castedparams, n[1], n[0], castedgamma, castedargs);
+            CpuConv( castedparams, n[1], n[0], castedgamma, castedargs);
         } 
     }
 #ifdef USE_CUDA

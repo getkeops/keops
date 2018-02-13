@@ -48,7 +48,7 @@ end
 % tagIJ=0 means sum over j, tagIj=1 means sum over j
 options = setoptions(options,'tagIJ',0);
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
-options = setoptions(options,'tagCpuGpu',1);
+options = setoptions(options,'tagCpuGpu',0);
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 options = setoptions(options,'tag1D2D',1);
 
@@ -127,7 +127,7 @@ function testbuild = buildFormula(code1, code2, filename, precision, build_dir, 
 
     % I do not have a better option to set working dir...
     cd(build_dir)
-    cmdline = ['~/src/cmake-3.10.1/bin/cmake ../.. -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
+    cmdline = ['cmake ../.. -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
     fprintf(cmdline)
     try
         [~,out0] =mysystemcall(cmdline)

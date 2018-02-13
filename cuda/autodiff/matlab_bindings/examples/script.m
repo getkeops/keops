@@ -1,8 +1,8 @@
 addpath('..')
 addpath('../build')
 
-Nx = 5000;
-Ny = 2000;
+Nx = 50;
+Ny = 20;
 x = randn(3,Nx);
 y = randn(3,Ny);
 b = randn(3,Ny);
