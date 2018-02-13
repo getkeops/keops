@@ -63,7 +63,7 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
 
     CUDA_add_library(
         shared_specific SHARED
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../convolutions/cuda_grad1conv.cu"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../specific/convolutions/cuda_grad1conv.cu"
         OPTIONS -D "CUDA_BLOCK_SIZE=192" --pre-include=formula.h
     )
     

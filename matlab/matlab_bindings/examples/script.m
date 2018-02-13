@@ -1,5 +1,5 @@
 addpath('..')
-addpath('../build')
+addpath('../../../build')
 
 Nx = 50;
 Ny = 20;

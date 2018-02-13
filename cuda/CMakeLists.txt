@@ -190,7 +190,7 @@ endif()
 
 add_subdirectory(bench)
 add_subdirectory(test)
-add_subdirectory(matlab_bindings)
+add_subdirectory(mex)
 add_subdirectory(sandbox)
 
 

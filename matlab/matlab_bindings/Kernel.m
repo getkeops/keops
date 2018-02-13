@@ -31,7 +31,7 @@ function [F,fname] = Kernel(varargin)
 % lambda = .25;
 % res = F(x,y,beta,eta,lambda);
 
-build_dir = '../build/';
+build_dir = [fileparts([mfilename('fullpath')]),'/../../build/'];
 cur_dir = pwd;
 precision = 'float';
 
@@ -127,7 +127,8 @@ function testbuild = buildFormula(code1, code2, filename, precision, build_dir, 
 
     % I do not have a better option to set working dir...
     cd(build_dir)
-    cmdline = ['cmake ../.. -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
+    %cmdline = ['~/src/cmake-3.10.1/bin/cmake ../cuda -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
+    cmdline = ['cmake ../cuda -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
     fprintf(cmdline)
     try
         [~,out0] =mysystemcall(cmdline)
