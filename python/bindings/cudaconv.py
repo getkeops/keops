@@ -62,9 +62,9 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend,
         dllabspath = build_folder + dll_name + dll_extension
 
         try:
-            dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
+            dll = ctypes.CDLL(dllabspath , mode=ctypes.RTLD_GLOBAL)
         except OSError:
-            compile_generic_routine(aliases, formula, dll_name + dll_extension, cuda_type)
+            compile_generic_routine(aliases, formula, dll_name, cuda_type)
             dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
             print("Loaded.\n\n")
 
