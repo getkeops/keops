@@ -41,7 +41,7 @@ if(Matlab_FOUND AND NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
         if(mex_name)
         add_custom_command(
             TARGET mex_cuda POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/tmp.${mex_suffix} ${CMAKE_CURRENT_BINARY_DIR}/${mex_name}_cuda.${mex_suffix}
+            COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/tmp.${mex_suffix} ${mex_name}.${mex_suffix}
         )
         endif()
 
@@ -80,7 +80,7 @@ if(Matlab_FOUND AND NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
     if(mex_name)
         add_custom_command(
             TARGET mex_cpp POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/tmp.${mex_suffix} ${CMAKE_CURRENT_BINARY_DIR}/${mex_name}_cpp.${mex_suffix}
+            COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/tmp.${mex_suffix} ${mex_name}.${mex_suffix}
         )
     endif()
 

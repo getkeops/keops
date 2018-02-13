@@ -1,4 +1,4 @@
-function F = Kernel(varargin)
+function [F,fname] = Kernel(varargin)
 % Defines a kernel convolution function based on a formula
 % arguments are strings defining variables and formula
 %
@@ -31,64 +31,81 @@ function F = Kernel(varargin)
 % lambda = .25;
 % res = F(x,y,beta,eta,lambda);
 
-% the follwing adds path settings from the shell before calling external
-% programs; this is used to get nvcc and mex commands in the path
-if exist('~/.bash_profile')
-    bashpathcommand = 'source ~/.bash_profile;';
-elseif exist('~/.profile')
-    bashpathcommand = 'source ~/.profile;';
-end
+build_dir = '../build/';
+cur_dir = pwd;
 
-
-options = struct;
-% tagIJ=0 means sum over j, tagIj=1 means sum over j
-options.tagIJ = 0;
-% tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu,
-% tagCpuGpu=2 means convolution on Gpu from device data
-options.tagCpuGpu = 0;
-% tagUseNvcc=1 means compilation is done using nvcc compiler if possible, 0
-% means use c++ compiler
-options.tagUseNvcc = 0;
-% tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
-options.tag1D2D = 1;
 
 Nargin = nargin;
 
+% last arg is optional structure to override default tags
 if isstruct(varargin{end})
-    % last arg is optional structure to override default tags
-    s = varargin{end};
-    option = fieldnames(s);
-    for k=1:length(option)
-        eval(['options.',option{k},'=s.',option{k},';'])
-    end  
+    options = varargin{end};
     Nargin = Nargin-1;
     varargin = varargin(1:Nargin);
-end
-
-[~,tmp] = mysystemcall([bashpathcommand,'which nvcc']);
-if ~isempty(tmp) && options.tagUseNvcc==1
-    compilescript = 'compile_mex';
-    tagcompile = 'cuda';
 else
-    compilescript = 'compile_mex_cpu'
-    tagcompile = 'cpp';
+    options=struct;
+end
+% tagIJ=0 means sum over j, tagIj=1 means sum over j
+options = setoptions(options,'tagIJ',0);
+% tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
+options = setoptions(options,'tagCpuGpu',0);
+% tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
+options = setoptions(options,'tag1D2D',1);
+
+
+
+% from the string inputs we form the code which will be added to the source cpp/cu file, and the string used to encode the file name
+formula = varargin{Nargin};
+[CodeVars,indxy ] = format_var_aliase(varargin(1:(Nargin-1)));
+
+% we use a hash to shorten string and avoid special characters in the filename
+Fname = string2hash(lower([CodeVars,formula]));
+mex_name = [Fname,'.',mexext];
+
+if ~(exist(mex_name,'file')==3)
+    buildFormula(CodeVars,formula,Fname,mex_name,build_dir,cur_dir)
 end
 
+% return function handler
+F = @Eval;
+
+% the evaluation function
+function out = Eval(varargin)
+    nx = size(varargin{indxy(1)},2);
+    ny = size(varargin{indxy(2)},2);
+    out = feval(Fname,nx,ny,options.tagIJ,options.tagCpuGpu,...
+        options.tag1D2D,varargin{:});
+end
+
+end
+
+
+
+function [left,right] = sepeqstr(str)
+% get string before and after equal sign
+pos = find(str=='=');
+if isempty(pos)
+    pos = 0;
+end
+left = str(1:pos-1);
+right = str(pos+1:end);
+end
+
+
+
+
+function [var_aliases,indxy] =format_var_aliase(var_options)
+% format var_aliases to pass option to cmake
+var_aliases = '';
 indxy = [-1,-1]; % indxy will be used to calculate nx and ny from input variables
 
-% from the string inputs we form the code which will be added to the source
-% cpp/cu file, and the string used to encode the file name
-formula = varargin{Nargin};
-fname = formula;
-CodeFormula = ['#define FORMULA_OBJ ',formula];
-CodeVars = '';
-for k=1:Nargin-1
-    str = varargin{k};
-    fname = [str,';',fname];
-    [varname,vartype] = sepeqstr(str);
+for k=1:length(var_options)
+
+    [varname,vartype] = sepeqstr(var_options{k});
     if ~isempty(varname)
-        CodeVars = [CodeVars,'decltype(',vartype,') ',varname,';'];
+        var_aliases = [var_aliases,'decltype(',vartype,') ',varname,';'];
     end
+    
     % analysing vartype : ex 'Vx(2,4)' means variable of type x
     % at position 2 and with dimension 4. Here we are
     % interested in the type and position, so 2nd and 4th
@@ -101,70 +118,35 @@ for k=1:Nargin-1
         indxy(2) = str2num(pos)+1;
     end
 end
-% we use md5 hash to shorten string and avoid special characters in the
-% filename
-[~,sysid] = mysystemcall(['uname']);
-if strcmp(sysid,'Darwin')
-    md5cmd = 'md5';
-else
-    md5cmd = 'md5sum';
 end
-[~,fname] = mysystemcall(['echo "',fname,'"|',md5cmd]);
-fname = cleanstring(fname);
-Fname = ['F',fname,'_',tagcompile];
-filename = [Fname,'.',mexext];
-if ~(exist(filename,'file')==3)
+
+
+function testbuild = buildFormula(code1, code2, filename, mex_name, build_dir, cur_dir)
+
     disp('Formula is not compiled yet ; compiling...')
-    TestBuild = buildFormula(CodeVars,CodeFormula,filename)
-    if TestBuild
+
+    % I do not have a better option to set working dir...
+    cd(build_dir)
+    try
+        [~,out0] =mysystemcall(['~/usr/bin/cmake ../.. -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=float -Dmex_name="../',filename,'"' ])
+        [~,out1] = mysystemcall(['make mex_cuda'])
+    catch
+        warning('comp pb')
+    end
+    % ...comming back to curent directory
+    cd(cur_dir)
+
+
+    if (exist(mex_name,'file')==3)
         disp('Compilation succeeded')
     else
         error('Compilation failed')
     end
-else
-    TestBuild = 1;
 end
 
-% the evaluation function
-    function out = Eval(varargin)
-        nx = size(varargin{indxy(1)},2);
-        ny = size(varargin{indxy(2)},2);
-        out = feval(Fname,nx,ny,options.tagIJ,options.tagCpuGpu,...
-            options.tag1D2D,varargin{:});
+function [status,cmdout] = mysystemcall(command)
+    [status,cmdout] = system([command])
+    if cmdout(end)==char(10) || cmdout(end)==char(13)
+        cmdout = cmdout(1:end-1);
     end
-F = @Eval;
-
-    function testbuild = buildFormula(code1,code2,filename)
-        cd ..
-        ['./',compilescript,' "',code1,'" "',code2,'"']
-        mysystemcall(['./',compilescript,' "',code1,'" "',code2,'"'])
-        cd matlab_bindings
-        testbuild = exist(['build/tmp.',mexext],'file');
-        if testbuild
-            eval(['!mv build/tmp.',mexext,' "build/',filename,'"'])
-        end
-    end
-
-    function [status,cmdout] = mysystemcall(command)
-        [status,cmdout] = system([command])
-        if cmdout(end)==char(10) || cmdout(end)==char(13)
-            cmdout = cmdout(1:end-1);
-        end
-    end
-
 end
-
-function [left,right] = sepeqstr(str)
-% get string before and after equal sign
-pos = find(str=='=');
-if isempty(pos)
-    pos = 0;
-end
-left = str(1:pos-1);
-right = str(pos+1:end);
-end
-
-function str = cleanstring(str)
-str = str(((str>='0')&(str<='9'))|((str>='a')&(str<='z')));
-end
-

@@ -9,16 +9,6 @@
     #include "core/GpuConv2D.cu"
 #endif
 
-// see compile_mex file for compiling
-// FORMULA_OBJ (in case using new syntax) and __TYPE__ are supposed to be set via "using" or "#define"
-
-//#ifdef USENEWSYNTAX
-    //#include "core/newsyntax.h"
-    //using F = decltype(FORMULA_OBJ);
-//#else
-    //using F = FORMULA;
-//#endif
-
 void ExitFcn(void) {
 #ifdef __CUDACC__
     cudaDeviceReset();
@@ -156,7 +146,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         /*  input sources */
         args[k] = mxGetPr(prhs[argu+k]);
         castedargs[k] = castedFun(args[k],prhs[argu+k]);
-        
+
         // checking dimensions
         if(dimargs[k]!=-1) { // we care only if the current variable is used in formula
             int dimk = mxGetM(prhs[argu+k]);
@@ -173,13 +163,12 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     }
     argu += NARGS;
 
-    double*params;
+    double *params;
     __TYPE__ *castedparams ;
     if(DIMPARAM) {
         //----- the next input argument: params--------------//
         /*  create a pointer to the input vector */
         params = mxGetPr(prhs[argu]);
-
         castedparams = castedFun(params,prhs[argu]);
 
         /*  get the dimensions of the input targets */
@@ -205,7 +194,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     /*  create a C pointer to a copy of the output result(vector)*/
     double *gamma = mxGetPr(plhs[0]);
-    __TYPE__*castedgamma = castedFun(gamma,plhs[0]); 
+    __TYPE__*castedgamma = castedFun(gamma,plhs[0]);
 
     //////////////////////////////////////////////////////////////
     // Call Cuda codes
