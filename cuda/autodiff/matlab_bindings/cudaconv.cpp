@@ -3,10 +3,13 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 
-#include "core/CpuConv.cpp"
+extern "C" int CpuConv(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+
 #ifdef __CUDACC__
-    #include "core/GpuConv1D.cu"
-    #include "core/GpuConv2D.cu"
+extern "C" int GpuConv1D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv1D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv2D_FromDevice(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv2D_FromDevice(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
 #endif
 
 void ExitFcn(void) {
@@ -206,34 +209,34 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     if(tagCpuGpu==0) {
         if(tagIJ==0)
-            CpuConv(Generic<F,0>::sEval(), castedparams, n[0], n[1], castedgamma, castedargs);
+            CpuConv( castedparams, n[0], n[1], castedgamma, castedargs);
         else
-            CpuConv(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, castedargs);
+            CpuConv( castedparams, n[1], n[0], castedgamma, castedargs);
     }
 #ifdef __CUDACC__
     else if(tagCpuGpu==1) {
         if(tagIJ==0) {
             if(tag1D2D==0)
-                GpuConv1D(Generic<F,0>::sEval(), castedparams, n[0], n[1], castedgamma, castedargs);
+                GpuConv1D( castedparams, n[0], n[1], castedgamma, castedargs);
             else
-                GpuConv2D(Generic<F,0>::sEval(), castedparams, n[0], n[1], castedgamma, castedargs);
+                GpuConv2D( castedparams, n[0], n[1], castedgamma, castedargs);
         } else {
             if(tag1D2D==0)
-                GpuConv1D(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, castedargs);
+                GpuConv1D( castedparams, n[1], n[0], castedgamma, castedargs);
             else
-                GpuConv2D(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, castedargs);
+                GpuConv2D( castedparams, n[1], n[0], castedgamma, castedargs);
         }
     } else {
         if(tagIJ==0) {
             if(tag1D2D==0)
-                GpuConv1D_FromDevice(Generic<F,0>::sEval(), castedparams, n[0], n[1-0], castedgamma, castedargs);
+                GpuConv1D_FromDevice( castedparams, n[0], n[1-0], castedgamma, castedargs);
             else
-                GpuConv2D_FromDevice(Generic<F,0>::sEval(), castedparams, n[0], n[1-0], castedgamma, castedargs);
+                GpuConv2D_FromDevice( castedparams, n[0], n[1-0], castedgamma, castedargs);
         } else {
             if(tag1D2D==0)
-                GpuConv1D_FromDevice(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, castedargs);
+                GpuConv1D_FromDevice( castedparams, n[1], n[0], castedgamma, castedargs);
             else
-                GpuConv2D_FromDevice(Generic<F,1>::sEval(), castedparams, n[1], n[0], castedgamma, castedargs);
+                GpuConv2D_FromDevice( castedparams, n[1], n[0], castedgamma, castedargs);
         }
     }
 #endif

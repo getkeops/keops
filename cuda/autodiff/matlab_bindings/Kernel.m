@@ -128,8 +128,8 @@ function testbuild = buildFormula(code1, code2, filename, mex_name, build_dir, c
     % I do not have a better option to set working dir...
     cd(build_dir)
     try
-        [~,out0] =mysystemcall(['~/usr/bin/cmake ../.. -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=float -Dmex_name="../',filename,'"' ])
-        [~,out1] = mysystemcall(['make mex_cuda'])
+        [~,out0] =mysystemcall(['/usr/bin/cmake ../.. -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=float -Dmex_name="../',filename,'"' ])
+        [~,out1] = mysystemcall(['make mex_cpp'])
     catch
         warning('comp pb')
     end

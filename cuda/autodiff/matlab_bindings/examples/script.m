@@ -1,4 +1,5 @@
-addpath build
+addpath('..')
+addpath('../build')
 
 Nx = 5000;
 Ny = 2000;
