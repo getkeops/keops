@@ -56,15 +56,14 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend,
     else:  # Otherwise :
         # Load the DLL --------------------------------------------------------------------------
         if build_folder is None:
-            build_folder = os.path.dirname(os.path.abspath(__file__)) \
-                           + os.path.sep + ('..' + os.path.sep) * 2 \
-                           + "cuda" + os.path.sep + "autodiff" + os.path.sep + "build" + os.path.sep
+            build_folder = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + ('..' + os.path.sep) * 2 + "build" + os.path.sep
+
         dllabspath = build_folder + dll_name + dll_extension
 
         try:
             dll = ctypes.CDLL(dllabspath , mode=ctypes.RTLD_GLOBAL)
         except OSError:
-            compile_generic_routine(aliases, formula, dll_name, cuda_type)
+            compile_generic_routine(aliases, formula, dll_name, cuda_type,build_folder)
             dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
             print("Loaded.\n\n")
 
