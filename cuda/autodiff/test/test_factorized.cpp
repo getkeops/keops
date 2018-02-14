@@ -43,12 +43,18 @@ int main() {
     using C = Param<0>;		// C is the first extra parameter
 
 	// symbolic expression of the function : 3rd order gradient with respect to X, X and Y of the Gauss kernel
-	using F = Grad<Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>,Y,V>;
+	//using F = Grad<Grad<Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>,Y,V>,Y,V>;
+	//using F = Grad<Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>,Y,V>;
+	using F = Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>;
 	
     cout << endl << "Function F : " << endl;
     PrintFormula<F>();
     cout << endl << endl;
 
+	//using FFF = typename F::template Replace<Subtract<X,Y>,Var<0,3,3>>;
+	//using FFF = Replace<F,Subtract<X,Y>,Var<0,3,3>>;
+	//FFF::PrintId();
+	
     using FF = AutoFactorize<F>;
     
     cout << "Function FF = factorized version of F :" << endl;    

@@ -4,9 +4,9 @@
  *
  *   +, *, - :
  *      Add<FA,FB>					: adds FA and FB functions
+ *      Subtract<FA,FB>				: subtracts FA and FB functions
  *      Scal<FA,FB>					: product of FA (scalar valued) with FB
  *      Minus<F>					: alias for Scal<IntConstant<-1>,F>
- *      Subtract<FA,FB>				: alias for Add<FA,Minus<FB>>
  *
  *   /, ^, ^2, ^-1, ^(1/2) :
  *      Divide<FA,FB>				: alias for Scal<FA,Inv<FB>>
@@ -28,22 +28,28 @@
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-// Addition, Scalar product and "Scalar*Vector product" symbolic operators.
+// Addition, Subtraction, Scalar product and "Scalar*Vector product" symbolic operators.
 // The actual implementation can be found below.
 // Since the gradients of these operations are "bootstrapped", we need to be a little bit
 // careful with the declaration order, and therefore use three "typenames" per operation:
 // OpAlias, OpImpl and Op (proper).
 template < class FA, class FB > struct AddImpl;
+template < class FA, class FB > struct SubtractImpl;
 template < class FA, class FB > struct ScalprodImpl;
 template < class FA, class FB > struct ScalImpl;
+template < class F > struct Exp;
 
 template < class FA, class FB > struct AddAlias;
-template < class FA, class FB > struct ScalprodAlias;
+template < class FA, class FB > struct SubtractAlias;
+template < class FA, class FB, bool test = (FA::DIM!=1) > struct ScalprodAlias;
 template < class FA, class FB > struct ScalAlias;
 template < class F > struct Norm2Alias;
 
 template < class FA, class FB >
 using Add = typename AddAlias<FA,FB>::type;
+
+template < class FA, class FB >
+using Subtract = typename SubtractAlias<FA,FB>::type;
 
 template < class FA, class FB >
 using Scalprod = typename ScalprodAlias<FA,FB>::type;
@@ -83,32 +89,34 @@ struct AddImpl : BinaryOp<AddImpl,FA,FB> {
 
 };
 
-template < class FA, class FB >
-struct AddAlias0 {
-    using type = AddImpl<FA,FB>;
-};
 
-// A + A = 2A
-template < class F >
-struct AddAlias0<F,F> {
-    using type = Scal<IntConstant<2>,F>;
+template < class FA, class FB >
+struct AddAlias1 {
+    using type = AddImpl<FA,FB>;
 };
 
 // A + B*A = (1+B)*A
 template < class F, class G >
-struct AddAlias0<F,ScalImpl<G,F>> {
+struct AddAlias1<F,ScalImpl<G,F>> {
     using type = Scal<Add<IntConstant<1>,G>,F>;
+};
+
+// A + A*B = A*(1+B)
+template < class F, class G >
+struct AddAlias1<F,ScalImpl<F,G>> {
+    using type = Scal<F,Add<IntConstant<1>,G>>;
 };
 
 // B*A + A = (1+B)*A
 template < class F, class G >
-struct AddAlias0<ScalImpl<G,F>,F> {
+struct AddAlias1<ScalImpl<G,F>,F> {
     using type = Scal<Add<IntConstant<1>,G>,F>;
 };
 
-template < class FA, class FB >
-struct AddAlias1 {
-    using type = typename AddAlias0<FA,FB>::type;
+// A*B + A = A*(1+B)
+template < class F, class G >
+struct AddAlias1<ScalImpl<F,G>,F> {
+    using type = Scal<F,Add<IntConstant<1>,G>>;
 };
 
 // B*A + C*A = (B+C)*A
@@ -117,15 +125,38 @@ struct AddAlias1<ScalImpl<G,F>,ScalImpl<H,F>> {
     using type = Scal<Add<G,H>,F>;
 };
 
+// A*B + A*C = A*(B+C)
+template < class F, class G, class H >
+struct AddAlias1<ScalImpl<F,G>,ScalImpl<F,H>> {
+    using type = Scal<F,Add<G,H>>;
+};
+
 // A+n = n+A (brings integers constants to the left)
 template < int N, class F >
 struct AddAlias1<F,IntConstant<N>> {
     using type = Add<IntConstant<N>,F>;
 };
 
+// (m+(n+A)) = (m+n)+A
+template < int M, int N, class F >
+struct AddAlias1<IntConstant<M>,AddImpl<IntConstant<N>,F>> {
+    using type = Add<IntConstant<M+N>,F>;
+};
+
+template < class FA, class FB >
+struct AddAlias0 {
+    using type = typename AddAlias1<FA,FB>::type;
+};
+
+// A + A = 2A
+template < class F >
+struct AddAlias0<F,F> {
+    using type = Scal<IntConstant<2>,F>;
+};
+
 template < class FA, class FB >
 struct AddAlias {
-    using type = typename AddAlias1<FA,FB>::type;
+    using type = typename AddAlias0<FA,FB>::type;
 };
 
 // Constants, etc. will lead to the creation of *many* zero vectors when computing the gradient.
@@ -157,6 +188,124 @@ struct AddAlias<Zero<DIM1>,Zero<DIM2>> {
 template < int M, int N >
 struct AddAlias<IntConstant<M>,IntConstant<N>> {
     using type = IntConstant<M+N>;
+};
+
+//////////////////////////////////////////////////////////////
+////               SUBTRACTION : Subtract< FA,FB >        ////
+//////////////////////////////////////////////////////////////
+
+
+template < class FA, class FB >
+struct SubtractImpl : BinaryOp<SubtractImpl,FA,FB> {
+    // Output dim = FA::DIM = FB::DIM
+    static const int DIM = FA::DIM;
+    static_assert(DIM==FB::DIM,"Dimensions must be the same for Subtract");
+    
+    static void PrintIdString() { cout << "-"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = outA[k] - outB[k];
+	}
+
+    // [\partial_V (A - B) ] . gradin = [\partial_V A ] . gradin  - [\partial_V B ] . gradin
+    template < class V, class GRADIN >
+    using DiffT = Subtract < typename FA::template DiffT<V,GRADIN> , typename FB::template DiffT<V,GRADIN> >;
+
+};
+
+template < class FA, class FB >
+struct SubtractAlias1 {
+    using type = SubtractImpl<FA,FB>;
+};
+
+// A - B*A = (1-B)*A
+template < class F, class G >
+struct SubtractAlias1<F,ScalImpl<G,F>> {
+    using type = Scal<Subtract<IntConstant<1>,G>,F>;
+};
+
+// A - A*B = A*(1-B)
+template < class F, class G >
+struct SubtractAlias1<F,ScalImpl<F,G>> {
+    using type = Scal<F,Subtract<IntConstant<1>,G>>;
+};
+
+// B*A - A = (B-1)*A
+template < class F, class G >
+struct SubtractAlias1<ScalImpl<G,F>,F> {
+    using type = Scal<Subtract<G,IntConstant<1>>,F>;
+};
+
+// A*B - A = A*(B-1)
+template < class F, class G >
+struct SubtractAlias1<ScalImpl<F,G>,F> {
+    using type = Scal<F,Subtract<G,IntConstant<1>>>;
+};
+
+// B*A - C*A = (B-C)*A
+template < class F, class G, class H >
+struct SubtractAlias1<ScalImpl<G,F>,ScalImpl<H,F>> {
+    using type = Scal<Subtract<G,H>,F>;
+};
+
+// A*B - A*C = A*(B-C)
+template < class F, class G, class H >
+struct SubtractAlias1<ScalImpl<F,G>,ScalImpl<F,H>> {
+    using type = Scal<F,Subtract<G,H>>;
+};
+
+// A-n = -n+A (brings integers constants to the left)
+template < int N, class F >
+struct SubtractAlias1<F,IntConstant<N>> {
+    using type = Add<IntConstant<-N>,F>;
+};
+
+template < class FA, class FB >
+struct SubtractAlias0 {
+    using type = typename SubtractAlias1<FA,FB>::type;
+};
+
+// A - A = 0
+template < class F >
+struct SubtractAlias0<F,F> {
+    using type = Zero<F::DIM>;
+};
+
+template < class FA, class FB >
+struct SubtractAlias {
+    using type = typename SubtractAlias0<FA,FB>::type;
+};
+
+// Constants, etc. will lead to the creation of *many* zero vectors when computing the gradient.
+// Even though this backpropagation engine makes few optimizations,
+// this is definitely the one that should not be forgotten.
+
+// A - 0 = A
+template < class FA, int DIM >
+struct SubtractAlias<FA,Zero<DIM>> {
+    static_assert(DIM==FA::DIM,"Dimensions must be the same for Subtract");
+    using type = FA;
+};
+
+// 0 - B = -B
+template < class FB, int DIM >
+struct SubtractAlias<Zero<DIM>,FB> {
+    static_assert(DIM==FB::DIM,"Dimensions must be the same for Subtract");
+    using type = Minus<FB>;
+};
+
+// 0 - 0 = la tete a Toto
+template < int DIM1, int DIM2 >
+struct SubtractAlias<Zero<DIM1>,Zero<DIM2>> {
+    static_assert(DIM1==DIM2,"Dimensions must be the same for Subtract");
+    using type = Zero<DIM1>;
+};
+
+// m-n = m-n
+template < int M, int N >
+struct SubtractAlias<IntConstant<M>,IntConstant<N>> {
+    using type = IntConstant<M-N>;
 };
 
 //////////////////////////////////////////////////////////////
@@ -200,6 +349,16 @@ struct ScalAlias0<FA,ScalImpl<F,G>> {
     using type = Scal<Scal<FA,F>,G>;
 };
 
+template < class FA, class F, class G, class H >
+struct ScalAlias0<ScalImpl<ScalImpl<FA,F>,G>,H> {
+    using type = ScalImpl<FA,Scal<Scal<F,G>,H>>;
+};
+
+template < class FA, class F, class G, class HA, class HB >
+struct ScalAlias0<ScalImpl<ScalImpl<FA,F>,G>,ScalImpl<HA,HB>> {
+    using type = ScalImpl<FA,Scal<Scal<F,G>,Scal<HA,HB>>>;
+};
+
 template < int M, int N >
 struct ScalAlias0<IntConstant<M>,IntConstant<N>> {
     using type = IntConstant<M*N>;
@@ -211,8 +370,28 @@ struct ScalAlias0<FA,IntConstant<N>> {
 };
 
 template < class FA, class FB >
-struct ScalAlias {
+struct ScalAlias1 {
     using type = typename ScalAlias0<FA,FB>::type;
+};
+
+template < class FA, class G >
+struct ScalAlias1<FA,Exp<G>> {
+    using type = Scal<Exp<G>,FA>;
+};
+
+template < int N, class G >
+struct ScalAlias1<IntConstant<N>,Exp<G>> {
+    using type = typename ScalAlias0<IntConstant<N>,Exp<G>>::type;
+};
+
+template < class F, class G >
+struct ScalAlias1<Exp<F>,Exp<G>> {
+    using type = Exp<Add<F,G>>;
+};
+
+template < class FA, class FB >
+struct ScalAlias {
+    using type = typename ScalAlias1<FA,FB>::type;
 };
 
 
@@ -240,13 +419,6 @@ struct ScalAlias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==1,"Dimension of FA must be 1 for Scal");
     using type = Zero<DIM2>;
 };
-
-//////////////////////////////////////////////////////////////
-////             SUBTRACT : F-G		                      ////
-//////////////////////////////////////////////////////////////
-
-template < class FA, class FB >
-using Subtract = Add<FA,Minus<FB>>;
 
 //////////////////////////////////////////////////////////////
 ////             EXPONENTIAL : Exp< F >                   ////

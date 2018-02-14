@@ -41,7 +41,7 @@ struct ScalprodImpl : BinaryOp<ScalprodImpl,FA,FB> {
 
 
 template < class FA, class FB >
-struct ScalprodAlias {
+struct ScalprodAlias0 {
     using type = ScalprodImpl<FA,FB>;
 };
 
@@ -49,27 +49,35 @@ struct ScalprodAlias {
 
 // <A,0> = 0
 template < class FA, int DIM >
-struct ScalprodAlias<FA,Zero<DIM>> {
+struct ScalprodAlias0<FA,Zero<DIM>> {
     static_assert(DIM==FA::DIM,"Dimensions must be the same for Scalprod");
     using type = Zero<1>;
 };
 
 // <0,B> = 0
 template < class FB, int DIM >
-struct ScalprodAlias<Zero<DIM>,FB> {
+struct ScalprodAlias0<Zero<DIM>,FB> {
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Scalprod");
     using type = Zero<1>;
 };
 
 // <0,0> = 0
 template < int DIM1, int DIM2 >
-struct ScalprodAlias<Zero<DIM1>,Zero<DIM2>> {
+struct ScalprodAlias0<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==DIM2,"Dimensions must be the same for Scalprod");
     using type = Zero<1>;
 };
 
 
+template < class FA, class FB, bool test >
+struct ScalprodAlias {
+    using type = typename ScalprodAlias0<FA,FB>::type;
+};
 
+template < class FA, class FB >
+struct ScalprodAlias<FA,FB,false> {
+    using type = Scal<FA,FB>;
+};
 
 //////////////////////////////////////////////////////////////
 ////         SQUARED L2 NORM : SqNorm2< F >               ////

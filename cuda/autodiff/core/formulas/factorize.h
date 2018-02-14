@@ -11,8 +11,6 @@
 
 template < class F, class G > struct FactorizeAlias;
 template < class F, class G > using Factorize = typename FactorizeAlias<F,G>::type;
-template < class F, class G >
-using CondFactorize = CondType<Factorize<F,G>,F,(CountIn<F,G>::val > 1)>;
 
 template < class F, class G >
 struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
@@ -40,7 +38,8 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
 
     // we define a new formula from F (called factorized formula), replacing G inside by a new variable ; this is used in function Eval()
     template < class INDS >
-    using FactorizedFormula = typename F::template Replace<G,Var<INDS::MAX+1,G::DIM,3>>;	// means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
+    //using FactorizedFormula = typename F::template Replace<G,Var<INDS::MAX+1,G::DIM,3>>;	// means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
+    using FactorizedFormula = Replace<F,G,Var<INDS::MAX+1,G::DIM,3>>;	// means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
 
     template < class INDS, typename ...ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
@@ -60,10 +59,20 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
     
 };
 
+// specializing CountInSub
+template<class F, class G, class H>
+struct CountInSub<FactorizeImpl<F,G>,H> {
+    static const int val = CountIn<F,H>::val - CountIn<G,H>::val * CountIn<F,G>::val + CountIn<G,H>::val;
+};
+
+// allow factorization only if subformula appears at least twice in the formula
+template < class F, class G >
+using CondFactorize = CondType<FactorizeImpl<F,G>,F,(CountIn<F,G>::val > 1)>;
+
 
 template < class F, class G >
 struct FactorizeAlias {
-    using type = FactorizeImpl<F,G>;
+    using type = CondFactorize<F,G>;
 };
 
 // specialization in case G is of type Var : in this case there is no need for copying a Var into another Var,
@@ -91,29 +100,24 @@ struct FactorizeAlias<F,F> {
     using type = F;
 };
 
-// specializations in case G is a pack of types : we recursively factorize F by each subformula in the pack
 
-// first default specialization, used only when the pack is empty (termination case)
-template < class F, class... GS >
-struct FactorizeAlias<F,univpack<GS...>> {
+
+// factorize several times given a univpack of subformulas :
+
+// default : no factorization (termination case)
+template < class F, class PACK >
+struct FactorizeList {
     using type = F;
 };
 
 // then specialization when there is at least one element in the pack
-// we use CondFactorize to factorize only when the type is present at least twice in the formula
 template < class F, class G, class... GS >
-struct FactorizeAlias<F,univpack<G,GS...>> {
-    using type = Factorize<CondFactorize<F,G>,univpack<GS...>>;
-};
-
-// specializing CountIn 
-template<class F, class G, class H>
-struct CountIn<FactorizeImpl<F,G>,H> {
-    static const int val = CountIn_<FactorizeImpl<F,G>,H>::val + CountIn<F,H>::val - CountIn<G,H>::val * CountIn<F,G>::val + CountIn<G,H>::val;
+struct FactorizeList<F,univpack<G,GS...>> {
+    using type = typename FactorizeList<Factorize<F,G>,univpack<GS...>>::type;
 };
 
 // Auto factorization : factorize F by each of its subformulas
 template < class F >
-using AutoFactorize = Factorize<F,typename F::AllTypes>;
+using AutoFactorize = typename FactorizeList<F,typename F::AllTypes>::type;
 
 #endif // FACTORIZE

@@ -352,32 +352,72 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
 };
 
 
+
+
+template<class F, class A, class B> struct ReplaceImpl;
+template<class F, class A, class B> 
+using Replace = typename ReplaceImpl<F,A,B>::type;
+
+template<class F, class A, class B>
+struct ReplaceSub {
+	using type = F;
+};
+
+template<template<class,int...> class OP, class F, int... NS, class A, class B>
+struct ReplaceSub<UnaryOp_base<OP,F,NS...>,A,B> {
+	using type = OP<Replace<F,A,B>,NS...>;
+};
+
+template<template<class,class> class OP, class F, class G, class A, class B>
+struct ReplaceSub<BinaryOp_base<OP,F,G>,A,B> {
+	using type = OP<Replace<F,A,B>,Replace<G,A,B>>;
+};
+
+template<class F, class A, class B>
+struct ReplaceImpl {
+	using type = typename ReplaceSub<F,A,B>::type;
+};
+
+template<class F, class B>
+struct ReplaceImpl<F,F,B> {
+	using type = B;
+};
+
+
+
+
+
+
 // helper for counting the number of occurrences of a subformula in a formula
 
 template<class F, class G>
-struct CountIn_ {
-    static const int val = 0;
-};
-	
-template<class F>
-struct CountIn_<F,F> {
-    static const int val = 1;
-};
+struct CountInSub;
 
 template<class F, class G>
 struct CountIn {
-    static const int val = CountIn_<F,G>::val;
+    static const int val = CountInSub<F,G>::val;
 };
 		
+template< class F >
+struct CountIn<F,F> {
+    static const int val = 1;
+};
+		
+template<class F, class G>
+struct CountInSub {
+    static const int val = 0;
+};
+	
 template<template<class,int...> class OP, class F, class G, int... NS>
-struct CountIn<OP<F,NS...>,G> {
-    static const int val = CountIn_<OP<F,NS...>,G>::val + CountIn<F,G>::val;
+struct CountInSub<OP<F,NS...>,G> {
+    static const int val = CountIn<F,G>::val;
 };
 	
 template<template<class,class> class OP, class FA, class FB, class G>
-struct CountIn<OP<FA,FB>,G> {
-    static const int val = CountIn_<OP<FA,FB>,G>::val + CountIn<FA,G>::val + CountIn<FB,G>::val;
+struct CountInSub<OP<FA,FB>,G> {
+    static const int val = CountIn<FA,G>::val + CountIn<FB,G>::val;
 };
+
 	
 
 
