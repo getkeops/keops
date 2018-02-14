@@ -119,6 +119,7 @@ endif()
 
 # Template macros.
 add_definitions(-D_FORCE_INLINES)
+add_definitions(-DCUDA_BLOCK_SIZE=192)
 
 # - type for computation. The CACHE option enable to see it in ccmake.
 if(NOT __TYPE__)
@@ -192,5 +193,6 @@ add_subdirectory(bench)
 add_subdirectory(test)
 add_subdirectory(mex)
 add_subdirectory(sandbox)
+add_subdirectory(specific)
 
 

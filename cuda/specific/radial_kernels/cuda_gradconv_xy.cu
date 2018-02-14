@@ -29,8 +29,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <cuda.h>
-#include "radial_kernels.cx"
-#include "cuda_gradconv_xy.cx"
+
+#include "specific/radial_kernels/radial_kernels.h"
+#include "specific/radial_kernels/cuda_gradconv_xy.cx"
 
 
 //////////////////////////////////////////////////////

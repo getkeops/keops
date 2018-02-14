@@ -1,12 +1,9 @@
-/*
-   This file is part of the libds by b. Charlier and J. Glaunes
-*/
-
 #include <stdio.h>
 #include <assert.h>
 #include <cuda.h>
-#include "radial_kernels.cx"
-#include "cuda_conv.cx"
+
+#include "specific/radial_kernels/radial_kernels.h"
+#include "specific/radial_kernels/cuda_conv.cx"
 
 
 //////////////////////////////////////////////////////
