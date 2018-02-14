@@ -29,7 +29,9 @@ set (CMAKE_CXX_FLAGS "--std=c++11 -O3")
 
 set (CUDA_PROPAGATE_HOST_FLAGS ON)
 
-
+if(APPLE)
+    set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
+endif(APPLE)
 
 
 #------------------------------------------------------------------------------------#
