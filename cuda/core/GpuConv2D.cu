@@ -162,14 +162,14 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
 
     // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
-    blockSize.x = 192; // number of threads in each block
+    blockSize.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
     gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
 
     // Reduce  : grid and block are both 1d
     dim3 blockSize2;
-    blockSize2.x = 192; // number of threads in each block
+    blockSize2.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize2;
     gridSize2.x =  (nx*DIMX1) / blockSize2.x + ((nx*DIMX1)%blockSize2.x==0 ? 0 : 1);
 
@@ -264,14 +264,14 @@ int GpuConv2D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
 
     // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
-    blockSize.x = 192; // number of threads in each block
+    blockSize.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
     gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
 
     // Reduce : grid and block are both 1d
     dim3 blockSize2;
-    blockSize2.x = 192; // number of threads in each block
+    blockSize2.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize2;
     gridSize2.x =  (nx*DIMX1) / blockSize2.x + ((nx*DIMX1)%blockSize2.x==0 ? 0 : 1);
 

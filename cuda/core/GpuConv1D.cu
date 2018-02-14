@@ -3,10 +3,10 @@
 #include <assert.h>
 #include <cuda.h>
 
-
 #include "core/Pack.h"
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
+
 
 template < typename TYPE, class FUN, class PARAM >
 __global__ void GpuConv1DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {
@@ -130,7 +130,7 @@ int GpuConv1D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
 
     // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
-    blockSize.x = 192; // number of threads in each block
+    blockSize.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
@@ -156,18 +156,9 @@ int GpuConv1D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
     typedef typename FUN::DIMSY DIMSY;
     const int DIMY = DIMSY::SUM;
 
-    /* // (Jean :) This portion of code seems to be useless,
-    //             forgotten from a GpuConv2D copy-paste
-    const int DIMX1 = DIMSX::FIRST;
-
-    TYPE *out;
-    cudaMalloc((void**)&out, sizeof(TYPE)*(nx*DIMX1));
-    out = px_d[0]; // save the output location
-    */
-
     // Compute on device : grid and block are both 1d
     dim3 blockSize;
-    blockSize.x = 192; // number of threads in each block
+    blockSize.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
