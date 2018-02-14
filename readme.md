@@ -43,6 +43,21 @@ Two steps:
 
 2) Run the out-of-the-box working examples `./matlab/example/convolution.m`
 
+### known issues
+
+if an error involving libstdc++.so.6 occurs like 
+```
+cmake: /usr/local/MATLAB/R2017b/sys/os/glnxa64/libstdc++.so.6: version `CXXABI_1.3.9' not found (required by cmake)
+cmake: /usr/local/MATLAB/R2017b/sys/os/glnxa64/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by cmake)
+cmake: /usr/local/MATLAB/R2017b/sys/os/glnxa64/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1)
+```
+try to load matlab with the following linking variable :
+
+```bash
+$ export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6;matlab
+```
+
+
 ## R user
 
 To do.
