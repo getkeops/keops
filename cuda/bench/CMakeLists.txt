@@ -41,7 +41,6 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
     add_executable(
         bench
         ${CMAKE_CURRENT_SOURCE_DIR}/bench.cpp
-        #OPTIONS --pre-include=formula.h
     )
 
     target_compile_options(
@@ -52,7 +51,7 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
     target_link_libraries(
         bench
         shared_obj
-        shared_specific
+        radial_kernels_grad1conv
         benchmark 
     )
     
@@ -61,11 +60,6 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
         LINKER_LANGUAGE CXX
     )
 
-    CUDA_add_library(
-        shared_specific SHARED
-        "${CMAKE_CURRENT_SOURCE_DIR}/../specific/radial_kernels/cuda_grad1conv.cu"
-    )
-    
 else()
     message(STATUS  "   ==> No bench file can be built.")
 endif()
