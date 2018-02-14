@@ -36,7 +36,7 @@ if(Matlab_FOUND AND NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
 
     target_compile_options(
         mex_file_cpp BEFORE
-        PRIVATE -include formula.h -I${Matlab_INCLUDE_DIRS} -fPIC
+        PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
     if(NOT mex_name)
@@ -44,13 +44,17 @@ if(Matlab_FOUND AND NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
     endif()
 
 
-    set(rpat LDFLAGS=\"-Wl,-rpath=\\\\\\$$ORIGIN\")
+    set(rpat LDFLAGS=\"-Wl,-rpath,\\\\\\$$ORIGIN\")
     add_custom_target(
         mex_cpp
         DEPENDS shared_obj mex_file_cpp # ensure obj file is created before using mex for linking
         COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:shared_obj> $<TARGET_OBJECTS:mex_file_cpp>  -output ${mex_name} # only since cmake 3.9 
     )
 
+    add_dependencies(
+        mex_cpp
+        shared_obj
+    )
 
     set_target_properties( # pass needed options to add_custom_target()
         mex_cpp PROPERTIES 

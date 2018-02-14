@@ -63,7 +63,7 @@ Fname = string2hash(lower([CodeVars,formula,precision]));
 mex_name = [Fname,'.',mexext];
 
 if ~(exist(mex_name,'file')==3)
-    buildFormula(CodeVars,formula,Fname,precision,build_dir,cur_dir)
+    buildFormula(CodeVars,formula,Fname,precision,build_dir,cur_dir);
 end
 
 % return function handler
@@ -131,25 +131,18 @@ function testbuild = buildFormula(code1, code2, filename, precision, build_dir, 
     cmdline = ['cmake ../cuda -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
     fprintf(cmdline)
     try
-        [~,out0] =mysystemcall(cmdline)
-        [~,out1] = mysystemcall(['make mex_cpp'])
+        [~,prebuild_output] = system(cmdline)
+        [~,build_output]  = system(['make mex_cpp'])
     catch
         error('Compilation  Failed')
     end
     % ...comming back to curent directory
     cd(cur_dir)
 
-
-    if (exist([filename,'.',mexext],'file')==3)
+    testbuild = (exist([filename,'.',mexext],'file')==3);
+    if  testbuild
         disp('Compilation succeeded')
     else
-        error('Compilation failed')
-    end
-end
-
-function [status,cmdout] = mysystemcall(command)
-    [status,cmdout] = system([command])
-    if cmdout(end)==char(10) || cmdout(end)==char(13)
-        cmdout = cmdout(1:end-1);
+        error(['File "',filename,'.',mexext, '" not found!'])
     end
 end

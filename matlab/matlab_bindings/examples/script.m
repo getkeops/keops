@@ -1,5 +1,7 @@
-addpath('..')
-addpath('../../../build')
+path_to_lib = '..';
+path_to_bin = '../../../build';
+addpath(path_to_lib)
+addpath(path_to_bin)
 
 Nx = 50;
 Ny = 20;
@@ -15,20 +17,14 @@ F = Kernel('x=Vx(0,3)','y=Vy(1,3)','u=Vx(2,4)','v=Vy(3,4)','b=Vy(4,3)', 'p=Pm(0)
 
 tic
 g = F(x,y,u,v,b,p);
-toc
+fprintf('Time for libkp computation : %f s.\n', toc)
+
+
+squmatrix_distance = @(x,y) sum( (repmat(reshape(x,size(x,1),1,size(x,2)),1,size(y,1),1)  - repmat(reshape(y,1,size(y,1),size(y,2)),size(x,1),1,1)) .^2,3);
 
 tic
-ox = ones(Nx,1);
-oy = ones(Ny,1);
-r2=0;
-for k=1:3
-    xmy = ox*y(k,:)-(oy*x(k,:))';
-    r2 = r2 + xmy.^2;
-end
-
-
 uv = u' * v;
-g0 = ((uv .^2 .* exp(-p*r2)) *b')';
-toc
+g0 = ((uv .^2 .* exp(-p*squmatrix_distance(x',y'))) *b')';
+fprintf('Time for pure matlab computation : %f s.\n', toc)
 
-norm(g-g0)
+fprintf('\nAbsolute error: %g\n', norm(g-g0))

@@ -1,5 +1,7 @@
 #include <mex.h>
 
+#include "formula.h"
+
 #include "core/Pack.h"
 #include "core/autodiff.h"
 
@@ -156,8 +158,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             int nk = mxGetN(prhs[argu+k]);
             int typek = typeargs[k];
             // we check dimension here from the formula
-            if(dimk!=dimargs[k])
-                mexErrMsgTxt("wrong dimension for input");
+            if(dimk!=dimargs[k]) {
+                mexErrMsgTxt("wrong dimension for input args");
+                //cout << "For argument: dimension of " << k << " is " << dimargs[k] << " but should be " << dimk << endl;
+            }
             if(n[typek]!=nk) {
                 mexErrMsgTxt("inconsistent input sizes");
             }
@@ -180,8 +184,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         if( min(mp,np)!=1 )
             mexErrMsgTxt("Input params must be a 1D array.");
         np = max(mp,np);
-        if(np!=DIMPARAM)
-            mexErrMsgTxt("wrong dimension for input");
+        if(np!=DIMPARAM) {
+            mexErrMsgTxt("wrong dimension for input params.");
+            //cout << "For param: dimension is " << np << " but should be " << DIMPARAM << endl;
+        }
         argu++;
     }
 
