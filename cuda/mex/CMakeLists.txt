@@ -1,10 +1,14 @@
+set(MATLAB_ADDITIONAL_VERSIONS
+    "R2007b=7.5"
+    "R2007a=7.4"
+)
 find_package(Matlab)
 
 ### - mexfiles : generate a working mexfile is painful with cmake. 
 ##   The problem is twofold : the cuda module do not define a 
 ##   CUDA_add_object. We then need to use Add_library instead.
 
-if(Matlab_FOUND AND NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
+if(Matlab_FOUND)
 
     # this dummy flag is used to cast the input array of Matlab
     if (${__TYPE__} STREQUAL "double")
@@ -39,17 +43,21 @@ if(Matlab_FOUND AND NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
         PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
-    if(NOT mex_name)
-        Set(mex_name last_mex) 
-    endif()
-
-
     set(rpat LDFLAGS=\"-Wl,-rpath,\\\\\\$$ORIGIN\")
-    add_custom_target(
-        mex_cpp
-        DEPENDS shared_obj mex_file_cpp # ensure obj file is created before using mex for linking
-        COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:shared_obj> $<TARGET_OBJECTS:mex_file_cpp>  -output ${mex_name} # only since cmake 3.9 
-    )
+
+    if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
+        add_custom_target(
+            mex_cpp
+            DEPENDS shared_obj mex_file_cpp # ensure obj file is created before using mex for linking
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:shared_obj> $<TARGET_OBJECTS:mex_file_cpp>  -output ${mex_name} # only since cmake 3.9 
+        )
+    else()
+        add_custom_target(
+            mex_cpp
+            DEPENDS shared_obj mex_file_cpp # ensure obj file is created before using mex for linking
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:shared_obj> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_cpp.dir/cudaconv.cpp.o -output ${mex_name} 
+        )
+    endif()
 
     add_dependencies(
         mex_cpp
