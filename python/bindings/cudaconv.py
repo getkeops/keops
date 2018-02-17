@@ -13,7 +13,7 @@ import numpy as np
 import torch
 
 import ctypes
-from ctypes import *
+from ctypes import POINTER, c_float, c_int,cast
 
 import os.path
 

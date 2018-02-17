@@ -2,7 +2,7 @@
 - [ ] Python tutorials
 - [x] generic cuda codes
 - [x] baseline CPU implementation
-- [ ] compile without Cuda
+- [x] compile without Cuda
 - [x] support pointer in device global mem
 - [x] implement non-scalar kernels (Glaunès & Michelli)
 - [x] everybody knows how to use Git !
@@ -22,10 +22,12 @@ Benjamin :
 - [x] 1D scheme for the generic code
 - [ ] R bindings
 - [ ] Check the limits of the GPU device, gridsizes
-- [ ] Rules for choosing 1D/2D
+- [ ] Rules for choosing 1D/2D: this should be made at the c++ level ! 
+- [ ] CMake shoul be specific to each binding to avoid overhead
+
 
 Joan :
 - [ ] Full on-device : fix bug in FromDevice 
 - [ ] Speed benchmarks; Symbolic Diff vs. Hardcoded vs. PyTorch
-- [ ] Adapt mex files to cmake compilation
+- [x] Adapt mex files to cmake compilation
 
