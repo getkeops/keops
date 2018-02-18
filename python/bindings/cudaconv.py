@@ -67,38 +67,45 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend,
             dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
             print("Loaded.\n\n")
 
-        # These are all the CUDA routines defined in "link_autodiff.cu" :
+        # These are all the C++ routines defined in "link_autodiff.cu" :
         routine_CPU_i = dll.CpuConv
         routine_CPU_j = dll.CpuTransConv
-        routine_GPU_host_1D_i = dll.GpuConv1D
-        routine_GPU_host_1D_j = dll.GpuTransConv1D
-        routine_GPU_host_2D_i = dll.GpuConv2D
-        routine_GPU_host_2D_j = dll.GpuTransConv2D
-        routine_GPU_device_1D_i = dll.GpuConv1D_FromDevice
-        routine_GPU_device_1D_j = dll.GpuTransConv1D_FromDevice
-        routine_GPU_device_2D_i = dll.GpuConv2D_FromDevice
-        routine_GPU_device_2D_j = dll.GpuTransConv2D_FromDevice
 
-        # Arguments :                          params,          nx,    ny,    result,                args
         routine_CPU_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
         routine_CPU_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_GPU_host_1D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_GPU_host_1D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_GPU_host_2D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_GPU_host_2D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_GPU_device_1D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_GPU_device_1D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_GPU_device_2D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_GPU_device_2D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
 
         # Add our new functions to the module's dictionnary :
-        __cuda_convs_generic[dll_name] = {
-            "CPU": [routine_CPU_i, routine_CPU_j],
-            "GPU_1D_host": [routine_GPU_host_1D_i, routine_GPU_host_1D_j],
-            "GPU_2D_host": [routine_GPU_host_2D_i, routine_GPU_host_2D_j],
-            "GPU_1D_device": [routine_GPU_device_1D_i, routine_GPU_device_1D_j],
-            "GPU_2D_device": [routine_GPU_device_2D_i, routine_GPU_device_2D_j]
-        }
+        __cuda_convs_generic[dll_name] = {"CPU": [routine_CPU_i, routine_CPU_j]}
+
+        # Avoid error if the lib was not compile with cuda
+        try: 
+            # These are all the CUDA routines defined in "link_autodiff.cu" :
+            routine_GPU_host_1D_i = dll.GpuConv1D
+            routine_GPU_host_1D_j = dll.GpuTransConv1D
+            routine_GPU_host_2D_i = dll.GpuConv2D
+            routine_GPU_host_2D_j = dll.GpuTransConv2D
+            routine_GPU_device_1D_i = dll.GpuConv1D_FromDevice
+            routine_GPU_device_1D_j = dll.GpuTransConv1D_FromDevice
+            routine_GPU_device_2D_i = dll.GpuConv2D_FromDevice
+            routine_GPU_device_2D_j = dll.GpuTransConv2D_FromDevice
+            
+            routine_GPU_host_1D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_host_1D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_host_2D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_host_2D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_device_1D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_device_1D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_device_2D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_device_2D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+
+            __cuda_convs_generic[dll_name].update({
+                 "GPU_1D_host": [routine_GPU_host_1D_i, routine_GPU_host_1D_j],
+                 "GPU_2D_host": [routine_GPU_host_2D_i, routine_GPU_host_2D_j],
+                 "GPU_1D_device": [routine_GPU_device_1D_i, routine_GPU_device_1D_j],
+                 "GPU_2D_device": [routine_GPU_device_2D_i, routine_GPU_device_2D_j] })
+        except AttributeError:
+            print('Compilation done without cuda. USe CPU only')
+
         return __cuda_convs_generic[dll_name][backend][sum_index]  # And return it.
 
 

@@ -175,25 +175,32 @@ else()
 
 # ----------------- create shared lib (cpp)
 
-add_library(
-    shared_obj SHARED
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
-)
+    add_library(
+        shared_obj SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
+    )
 
-target_compile_options(
-    shared_obj BEFORE
-    PRIVATE -include formula.h
-)
+    target_compile_options(
+        shared_obj BEFORE
+        PRIVATE -include formula.h
+    )
+
+    # tell Cmake to explicitly add the dependency: shared_obj is recompiled as soon as formula.h changes.
+    set_source_files_properties(
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp PROPERTIES
+        OBJECT_DEPENDS formula.h
+    )
 
 endif()
 
-    # shared_lib can be rename if the variable shared_lib_name is provided.
-    if(shared_obj_name)
-        set_target_properties(shared_obj PROPERTIES
-                LIBRARY_OUTPUT_NAME  ${shared_obj_name}
-                PREFIX ""
-        )
-    endif()
+# shared_lib can be rename if the variable shared_lib_name is provided.
+if(shared_obj_name)
+    set_target_properties(shared_obj PROPERTIES
+        LIBRARY_OUTPUT_NAME  ${shared_obj_name}
+        PREFIX ""
+    )
+endif()
+
 # ----------------- various targets
 
 add_subdirectory(bench)
