@@ -18,8 +18,8 @@ BLOCKSIZE=192
 # --------- # NVCC PARAMETERS: --------- #
 
 NVCCFLAGS="-ccbin=$CC -arch=sm_$COMPUTECAPABILITY -Xcompiler -fPIC -shared"
-LIBKPPATH_CONV="$LIBKPROOT/cuda/convolutions"
-LIBKPPATH_DIST="$LIBKPROOT/cuda/shape_distance"
+LIBKPPATH_CONV="$LIBKPROOT/cuda/specific/radial_kernels"
+LIBKPPATH_DIST="$LIBKPROOT/cuda/specific/shape_distance"
 
 # --------- FSHAPES DISTANCES PARAMETERS: --------- #
 KGEOM=("gaussian" "cauchy")
@@ -35,17 +35,17 @@ rm -f $INSTALL_DIR/*.so
 
 #create shared object with nvcc
 echo "Compiling $LIBKPPATH_CONV/cuda_conv.cu..."
-$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_conv.so"        "$LIBKPPATH_CONV/cuda_conv.cu"
+$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPROOT/cuda -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_conv.so"        "$LIBKPPATH_CONV/cuda_conv.cu"
 echo "Compiling $LIBKPPATH_CONV/cuda_grad1conv.cu..."
-$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_grad1conv.so"   "$LIBKPPATH_CONV/cuda_grad1conv.cu"
+$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPROOT/cuda -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_grad1conv.so"   "$LIBKPPATH_CONV/cuda_grad1conv.cu"
 echo "Compiling $LIBKPPATH_CONV/cuda_gradconv_xa.cu..."
-$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_gradconv_xa.so" "$LIBKPPATH_CONV/cuda_gradconv_xa.cu"
+$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPROOT/cuda -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_gradconv_xa.so" "$LIBKPPATH_CONV/cuda_gradconv_xa.cu"
 echo "Compiling $LIBKPPATH_CONV/cuda_gradconv_xx.cu..."
-$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_gradconv_xx.so" "$LIBKPPATH_CONV/cuda_gradconv_xx.cu"
+$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPROOT/cuda -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_gradconv_xx.so" "$LIBKPPATH_CONV/cuda_gradconv_xx.cu"
 echo "Compiling $LIBKPPATH_CONV/cuda_gradconv_xy.cu..."
-$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_gradconv_xy.so" "$LIBKPPATH_CONV/cuda_gradconv_xy.cu"
+$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPROOT/cuda -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_gradconv_xy.so" "$LIBKPPATH_CONV/cuda_gradconv_xy.cu"
 echo "Compiling $LIBKPPATH_CONV/cuda_gradconv_xb.cu..."
-$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_gradconv_xb.so" "$LIBKPPATH_CONV/cuda_gradconv_xb.cu"
+$NVCC -D "__TYPE__=$TYPE" -D "CUDA_BLOCK_SIZE=$BLOCKSIZE" $NVCCFLAGS -I$LIBKPROOT/cuda -I$LIBKPPATH_CONV -o "$INSTALL_DIR/cuda_gradconv_xb.so" "$LIBKPPATH_CONV/cuda_gradconv_xb.cu"
 
 for i in ${KERNEL_GEOM[@]}; do 
     for j in ${KERNEL_SIG[@]}; do
