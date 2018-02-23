@@ -60,6 +60,9 @@ int KernelGpuGrad1Conv(TYPE ooSigma2,
     else if(dimPoint==3 && dimVect==3)
         KernelGpuGrad1ConvOnDevice<TYPE,3,3,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
         (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
+    else if(dimPoint==3 && dimVect==4)
+        KernelGpuGrad1ConvOnDevice<TYPE,4,4,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
+        (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);
     else if(dimPoint==4 && dimVect==4)
         KernelGpuGrad1ConvOnDevice<TYPE,4,4,KernelFp><<<gridSize,blockSize,blockSize.x*(dimPoint+dimVect)*sizeof(TYPE)>>>
         (ooSigma2, alpha_d, x_d, y_d, beta_d, gamma_d, nx, ny);

@@ -195,10 +195,12 @@ endif()
 
 # shared_lib can be rename if the variable shared_lib_name is provided.
 if(shared_obj_name)
+
     set_target_properties(shared_obj PROPERTIES
         LIBRARY_OUTPUT_NAME  ${shared_obj_name}
         PREFIX ""
     )
+
 endif()
 
 # ----------------- various targets
@@ -208,5 +210,3 @@ add_subdirectory(test)
 add_subdirectory(mex)
 add_subdirectory(sandbox)
 add_subdirectory(specific)
-
-

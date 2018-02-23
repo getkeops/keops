@@ -12,10 +12,15 @@
 #include <ctime>
 #include <algorithm>
 
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+#include "core/formulas/kernels.h"
+#include "core/formulas/norms.h"
+#include "core/formulas/factorize.h"
+
+#include "../core/GpuConv1D.cu"
 #include "../core/GpuConv2D.cu"
 #include "../core/CpuConv.cpp"
-
-#define __TYPE__ float
 
 #include "../core/autodiff.h"
 
@@ -72,7 +77,7 @@ int main() {
 
     cout << endl << "Testing F" << endl;
 
-    int Nx=50000, Ny=20000;
+    int Nx=211, Ny=201;
     __TYPE__ s;
 
     vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
@@ -97,17 +102,21 @@ int main() {
     cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     begin = clock();
-    GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv1D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+
+    resgpu1 = vf;
+    fillrandom(vf);
 
     begin = clock();
     GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-    resgpu1 = vf;
-
+    resgpu2 = vf;
+    fillrandom(vf);
+    
     if(Nx*Ny<1e8) {
         begin = clock();
         CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
@@ -115,13 +124,36 @@ int main() {
         cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
         rescpu = vf;
+        fillrandom(vf);
+
+        // display values
+        cout << endl << "resgpu1 = ";
+        for(int i=0; i<5; i++)
+                    cout << resgpu1[i] << " ";
+        cout << endl << "resgpu2 = ";
+        for(int i=0; i<5; i++)
+                    cout << resgpu2[i] << " ";
+        cout << endl << "rescpu  = ";
+            for(int i=0; i<5; i++)
+                    cout << rescpu[i] << " ";
 
         // display mean of errors
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
             s += abs(resgpu1[i]-rescpu[i]);
-        cout << "mean abs error (cpu vs gpu1) =" << s/Nx << endl;
+        cout << endl << "mean abs error (cpu vs gpu1) =" << s/Nx << endl;
+        s = 0;
+        for(int i=0; i<Nx*F::DIM; i++)
+            s += abs(resgpu2[i]-rescpu[i]);
+        cout << "mean abs error (cpu vs gpu2) =" << s/Nx << endl;
     }
+
+    // display mean of errors
+    s = 0;
+    for(int i=0; i<Nx*F::DIM; i++)
+        s += abs(resgpu1[i]-resgpu2[i]);
+    cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << endl;
+
 
 
 /// testing FF
@@ -131,9 +163,12 @@ int main() {
     using FUNCONVFF = typename Generic<FF>::sEval;
 
     begin = clock();
-    GpuConv2D(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv1D(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+
+    resgpu1 = vf;
+    fillrandom(vf);
 
     begin = clock();
     GpuConv2D(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
@@ -141,6 +176,7 @@ int main() {
     cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu2 = vf;
+    fillrandom(vf);
 
     if(Nx*Ny<1e8) {
         begin = clock();
@@ -149,13 +185,31 @@ int main() {
         cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
         rescpu = vf;
+        fillrandom(vf);
+
+        // display values
+        cout << endl << "resgpu1 = ";
+        for(int i=0; i<5; i++)
+                    cout << resgpu1[i] << " ";
+        cout << endl << "resgpu2 = ";
+        for(int i=0; i<5; i++)
+                    cout << resgpu2[i] << " ";
+        cout << endl << "rescpu  = ";
+            for(int i=0; i<5; i++)
+                    cout << rescpu[i] << " ";
+
 
         // display mean of errors
+        s = 0;
+        for(int i=0; i<Nx*F::DIM; i++)
+            s += abs(resgpu1[i]-rescpu[i]);
+        cout << endl << "mean abs error (cpu vs gpu1) =" << s/Nx << endl;
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
             s += abs(resgpu2[i]-rescpu[i]);
         cout << "mean abs error (cpu vs gpu2) =" << s/Nx << endl;
     }
+
     // display mean of errors
     s = 0;
     for(int i=0; i<Nx*F::DIM; i++)

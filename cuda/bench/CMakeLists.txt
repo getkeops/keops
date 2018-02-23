@@ -38,19 +38,23 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
 
 # ----------------- Benchmark
 
+    Set(FORMULA "Grad<GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<2,3>>,_X<0,3>,_X<3,3>>")
+    configure_file(../formula.h.in ${PROJECT_BINARY_DIR}/formula_bench.h @ONLY)
+
+    CUDA_add_library(
+        shared_obj_bench SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/../core/link_autodiff.cu
+        OPTIONS --pre-include=formula_bench.h
+    )
+
     add_executable(
         bench
         ${CMAKE_CURRENT_SOURCE_DIR}/bench.cpp
     )
 
-    target_compile_options(
-        bench BEFORE
-        PRIVATE -include formula.h
-    )
-    
     target_link_libraries(
         bench
-        shared_obj
+        shared_obj_bench
         radial_kernels_grad1conv
         benchmark 
     )
