@@ -36,6 +36,17 @@ mark_as_advanced(Benchmark_FOUND)
 
 if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
 
+    CUDA_add_executable(
+        bench_grad1conv
+        ${CMAKE_CURRENT_SOURCE_DIR}/bench_grad1conv.cu
+    )
+
+    target_link_libraries(
+        bench_grad1conv
+        radial_kernels_grad1conv
+        benchmark 
+    )
+
 # ----------------- Benchmark
 
     Set(FORMULA "Grad<GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<2,3>>,_X<0,3>,_X<3,3>>")
