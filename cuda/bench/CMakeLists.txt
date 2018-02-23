@@ -55,7 +55,7 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
     CUDA_add_library(
         shared_obj_bench SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/../core/link_autodiff.cu
-        OPTIONS --pre-include=formula_bench.h
+        OPTIONS --pre-include=formula_bench.h -g
     )
 
     add_executable(
@@ -72,6 +72,23 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
     
     set_target_properties( # pass needed options to add_executable()
         bench PROPERTIES
+        LINKER_LANGUAGE CXX
+    )
+# --------------------------------------------------------------------------------------------
+
+    add_executable(
+        test_segfault
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_segfault.cpp
+    )
+
+    target_link_libraries(
+        test_segfault
+        shared_obj_bench
+        radial_kernels_grad1conv
+    )
+    
+    set_target_properties( # pass needed options to add_executable()
+        test_segfault PROPERTIES
         LINKER_LANGUAGE CXX
     )
 
