@@ -84,7 +84,6 @@ if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
     target_link_libraries(
         test_segfault
         shared_obj_bench
-        radial_kernels_grad1conv
     )
     
     set_target_properties( # pass needed options to add_executable()

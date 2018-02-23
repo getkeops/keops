@@ -1,7 +1,7 @@
-#include <cuda.h>
-#include <vector>
-#include <algorithm>
+#include <iostream>
 #include <benchmark/benchmark.h>
+
+#include "bench/generate_data.h"
 
 // use manual timing for GPU based functions
 #include <chrono>
@@ -13,153 +13,28 @@ using namespace std;
 //                      The function to be benchmarked                            //
 /////////////////////////////////////////////////////////////////////////////////////
 
-// Some convenient functions
-__TYPE__ __TYPE__rand() {
-    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
-}
-
-template < class V > void fillrandom(V& v) {
-    generate(v.begin(), v.end(), __TYPE__rand);    // fills vector with random values
-}
-
 // Signature of the generic function:
 extern "C" int GpuConv2D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
 
 void main_generic_2D(int Nx) {
-
-    int Ny= Nx /2 ;
-
-    int dimPoint = 3;
-    int dimVect = 4;
-
-    vector<__TYPE__> vf(Nx*dimPoint);
-    fillrandom(vf);
-    __TYPE__ *f = vf.data();
-
-    vector<__TYPE__> vx(Nx*dimPoint);
-    fillrandom(vx);
-    __TYPE__ *x = vx.data();
-
-    vector<__TYPE__> vy(Ny*dimPoint);
-    fillrandom(vy);
-    __TYPE__ *y = vy.data();
-
-    vector<__TYPE__> vu(Nx*dimVect);
-    fillrandom(vu);
-    __TYPE__ *u = vu.data();
-
-    vector<__TYPE__> vv(Ny*dimVect);
-    fillrandom(vv);
-    __TYPE__ *v = vv.data();
-
-    std::vector<__TYPE__> vb(Ny*3);
-    fillrandom(vb);
-    __TYPE__ *b = vb.data();
-
-    // wrap variables
-    vector<__TYPE__*> vargs(5);
-    vargs[0]=x;
-    vargs[1]=y;
-    vargs[2]=u;
-    vargs[3]=v;
-    vargs[4]=b;
-    __TYPE__ **args = vargs.data();
-
-    __TYPE__ params[1];
-    __TYPE__ Sigma = 1;
-    params[0] = 1.0/(Sigma*Sigma);
-
-    GpuConv2D(params, Nx, Ny, f, args);
-
+    data<__TYPE__> data1(Nx);
+    GpuConv2D(data1.params, data1.Nx, data1.Ny, data1.f, data1.args);
 }
 
 // Signature of the generic function:
 extern "C" int GpuConv1D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
 
 void main_generic_1D(int Nx) {
-
-    int Ny= Nx /2 ;
-
-    int dimPoint = 3;
-    int dimVect = 4;
-
-    vector<__TYPE__> vf(Nx*dimPoint);
-    fillrandom(vf);
-    __TYPE__ *f = vf.data();
-
-    vector<__TYPE__> vx(Nx*dimPoint);
-    fillrandom(vx);
-    __TYPE__ *x = vx.data();
-
-    vector<__TYPE__> vy(Ny*dimPoint);
-    fillrandom(vy);
-    __TYPE__ *y = vy.data();
-
-    vector<__TYPE__> vu(Nx*dimVect);
-    fillrandom(vu);
-    __TYPE__ *u = vu.data();
-
-    vector<__TYPE__> vv(Ny*dimVect);
-    fillrandom(vv);
-    __TYPE__ *v = vv.data();
-
-    std::vector<__TYPE__> vb(Ny*3);
-    fillrandom(vb);
-    __TYPE__ *b = vb.data();
-
-    // wrap variables
-    vector<__TYPE__*> vargs(5);
-    vargs[0]=x;
-    vargs[1]=y;
-    vargs[2]=u;
-    vargs[3]=v;
-    vargs[4]=b;
-    __TYPE__ **args = vargs.data();
-
-    __TYPE__ params[1];
-    __TYPE__ Sigma = 1;
-    params[0] = 1.0/(Sigma*Sigma);
-
-    GpuConv1D(params, Nx, Ny, f, args);
-
+    data<__TYPE__> data1(Nx);
+    GpuConv1D(data1.params, data1.Nx, data1.Ny, data1.f, data1.args);
 }
 
-//extern "C" int GaussGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
+extern "C" int GaussGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 
 void main_specific(int Nx) {
-
-    int Ny= Nx /2 ;
-
-    int dimPoint = 3;
-    int dimVect = 3;
-
-    vector<__TYPE__> vf(Nx*dimPoint);
-    fillrandom(vf);
-    __TYPE__ *f = vf.data();
-
-    vector<__TYPE__> vx(Nx*dimPoint);
-    fillrandom(vx);
-    __TYPE__ *x = vx.data();
-
-    vector<__TYPE__> vy(Ny*dimPoint);
-    fillrandom(vy);
-    __TYPE__ *y = vy.data();
-
-    vector<__TYPE__> vu(Nx*dimVect);
-    fillrandom(vu);
-    __TYPE__ *u = vu.data();
-
-    vector<__TYPE__> vv(Ny*dimVect);
-    fillrandom(vv);
-    __TYPE__ *v = vv.data();
-
-    __TYPE__ Sigma = 1;
-
-    //GaussGpuGrad1Conv(1.0/(Sigma*Sigma), u, x, y, v, f, 3,3,Nx,Ny);
-
+    data<__TYPE__> data1(Nx);
+    GaussGpuGrad1Conv(data1.params[0], data1.u, data1.x, data1.y, data1.v, data1.f, data1.dimPoint,data1.dimVect,data1.Nx,data1.Ny); 
 }
-
-
 
 
 
@@ -170,8 +45,26 @@ void main_specific(int Nx) {
 
 // The zeroth benchmark : simply to avoid warm up the GPU...
 static void BM_dummy(benchmark::State& state) {
-    for (auto _ : state)
-        main_generic_2D(1000);
+    for (auto _ : state) {
+        int Nx =100;
+        
+        data<__TYPE__> data1(Nx);
+
+        vector<__TYPE__>  vf(Nx*data1.dimPoint);  __TYPE__ *f1 = vf.data(); 
+        vector<__TYPE__> vf2(Nx*data1.dimPoint);  __TYPE__ *f2 = vf2.data(); 
+        vector<__TYPE__> vf3(Nx*data1.dimPoint);  __TYPE__ *f3 = vf3.data(); 
+
+        GaussGpuGrad1Conv(data1.params[0], data1.u, data1.x, data1.y, data1.v, f3, data1.dimPoint,data1.dimVect,Nx,data1.Ny); 
+        GpuConv2D(data1.params, data1.Nx, data1.Ny, f2, data1.args);
+        GpuConv1D(data1.params, data1.Nx, data1.Ny, f1, data1.args);
+
+
+        __TYPE__ e=0;
+        for (int i=0; i<Nx*data1.dimPoint; i++){
+            e+= abs(f2[i] - f1[i]) ;
+        }
+        cout << "Erreur : " << e << endl;
+    }
 }
 BENCHMARK(BM_dummy);// Register the function as a benchmark
 
