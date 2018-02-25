@@ -25,6 +25,7 @@ class data {
   public:
 
     data (int);
+    data() = default;
     
     // dimensions
     int Nx, Ny, dimPoint, dimVect;

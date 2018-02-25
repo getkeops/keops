@@ -34,36 +34,16 @@ struct vuple{
 };
 
 vuple compute_convs(int Nx, int Ny){
-    std::vector<__TYPE__> vf(Nx*3);
-    fillrandom(vf);
-    __TYPE__ *f = vf.data();
-
-    std::vector<__TYPE__> vx(Nx*3);
-    fillrandom(vx);
-    __TYPE__ *x = vx.data();
-    
-    std::vector<__TYPE__> vy(Ny*3);
-    fillrandom(vy);
-    __TYPE__ *y = vy.data();
-    
-    std::vector<__TYPE__> vu(Nx*3);
-    fillrandom(vu);
-    __TYPE__ *u = vu.data();
-    
-    std::vector<__TYPE__> vv(Ny*3);
-    fillrandom(vv);
-    __TYPE__ *v = vv.data();
-    
-    std::vector<__TYPE__> vb(Ny*3);
-    fillrandom(vb);
-    __TYPE__ *b = vb.data();
+    std::vector<__TYPE__> vf(Nx*3); fillrandom(vf); __TYPE__ *f = vf.data(); 
+    std::vector<__TYPE__> vx(Nx*3); fillrandom(vx); __TYPE__ *x = vx.data(); 
+    std::vector<__TYPE__> vy(Ny*3); fillrandom(vy); __TYPE__ *y = vy.data(); 
+    std::vector<__TYPE__> vu(Nx*3); fillrandom(vu); __TYPE__ *u = vu.data(); 
+    std::vector<__TYPE__> vv(Ny*3); fillrandom(vv); __TYPE__ *v = vv.data(); 
+    std::vector<__TYPE__> vb(Ny*3); fillrandom(vb); __TYPE__ *b = vb.data(); 
 
     std::vector<__TYPE__*> vargs(5);
-    vargs[0]=x;
-    vargs[1]=y;
-    vargs[2]=u;
-    vargs[3]=v;
-    vargs[4]=b;
+    vargs[0]=x; vargs[1]=y; vargs[2]=u; vargs[3]=v; vargs[4]=b;
+    
     __TYPE__ **args = vargs.data();
 
     std::vector<__TYPE__> resgpu2D(Nx*3), resgpu1D(Nx*3), rescpu(Nx*3);
@@ -72,17 +52,13 @@ vuple compute_convs(int Nx, int Ny){
     __TYPE__ Sigma = .1;
     params[0] = 1.0/(Sigma*Sigma);
 
-    GpuConv2D(params, Nx, Ny, f, args);
-    resgpu2D = vf;
+    GpuConv2D(params, Nx, Ny, f, args); resgpu2D = vf;
 
     fillones(vf);
-    GpuConv1D(params, Nx, Ny, f, args);
-    resgpu1D = vf;
+    GpuConv1D(params, Nx, Ny, f, args); resgpu1D = vf; 
 
     fillones(vf);
-    CpuConv(params, Nx, Ny, f, args);
-    rescpu = vf;
-
+    CpuConv(params, Nx, Ny, f, args); rescpu = vf; 
     vuple res = {rescpu,resgpu1D,resgpu2D};
 
     return res;

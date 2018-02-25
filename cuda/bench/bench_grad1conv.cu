@@ -38,65 +38,6 @@ extern "C" int GaussGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__*
 //                                The Bench                                        //
 /////////////////////////////////////////////////////////////////////////////////////
 
-
-// The zeroth benchmark : simply to avoid to warm up the GPU...
-static void BM_dummy(benchmark::State& state) {
-    for (auto _ : state) {
-        int Nx =100;
-        
-        data<__TYPE__> data1(Nx);
-
-        vector<__TYPE__> vf0(Nx*data1.dimPoint);  __TYPE__ *rescpu  = vf0.data(); 
-        vector<__TYPE__> vf2(Nx*data1.dimPoint);  __TYPE__ *resgrad2 = vf2.data(); 
-        vector<__TYPE__> vf3(Nx*data1.dimPoint);  __TYPE__ *resgrad1 = vf3.data(); 
-        vector<__TYPE__> vf4(Nx*data1.dimPoint);  __TYPE__ *resgpu2 = vf4.data(); 
-        vector<__TYPE__> vf5(Nx*data1.dimPoint);  __TYPE__ *resgpu1 = vf5.data(); 
-
-        GaussGpuGrad1Conv(data1.params[0], data1.u, data1.x, data1.y, data1.v, rescpu, data1.dimPoint,data1.dimVect,data1.Nx,data1.Ny); 
-        GpuConv2D(FUN0(), data1.params, data1.Nx, data1.Ny, resgrad2, data1.x, data1.y, data1.v, data1.u);
-        GpuConv1D(FUN0(), data1.params, data1.Nx, data1.Ny, resgrad1, data1.x, data1.y, data1.v, data1.u);
-        GpuConv2D(FUN1(), data1.params, data1.Nx, data1.Ny, resgpu2, data1.x, data1.y, data1.v, data1.u);
-        GpuConv1D(FUN1(), data1.params, data1.Nx, data1.Ny, resgpu1, data1.x, data1.y, data1.v, data1.u);
-
-        // display values
-        cout << endl << "specific  = ";
-        for(int i=0; i<10; i++)
-            cout << rescpu[i] << " ";
-        cout << endl << "gpugrad2d = ";
-        for(int i=0; i<10; i++)
-            cout << resgrad2[i] << " ";
-        cout << endl << "gpugrad1d = ";
-        for(int i=0; i<10; i++)
-            cout << resgrad1[i] << " ";
-        cout << endl << "gpugen2d = ";
-        for(int i=0; i<10; i++)
-            cout << resgpu2[i] << " ";
-        cout << endl << "gpugen1d = ";
-        for(int i=0; i<10; i++)
-            cout << resgpu1[i] << " ";
-
-        __TYPE__ e=0;
-        for (int i=0; i<Nx*data1.dimPoint; i++){
-            e+= abs(rescpu[i] - resgrad1[i]) ;
-        }
-        cout << endl << "Erreur (specific vs gpugrad1d) : " << e << endl;
-
-        e=0;
-        for (int i=0; i<Nx*data1.dimPoint; i++){
-            e+= abs(resgrad2[i] - rescpu[i]) ;
-        }
-        cout << "Erreur (specific vs gpugrad2d) : " << e << endl;
-        
-        e=0;
-        for (int i=0; i<Nx*data1.dimPoint; i++){
-            e+= abs(resgrad2[i] - resgrad1[i]) ;
-        }
-        cout << "Erreur (gpugrad1d vs gpugrad2d) : " << e << endl << endl;
-    }
-}
-BENCHMARK(BM_dummy);// Register the function as a benchmark
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void main_grad_1D(int Nx) {
     data<__TYPE__> data1(Nx);
