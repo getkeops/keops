@@ -60,7 +60,6 @@ using FUN0 = typename Generic<F0>::sEval;
 
 extern "C" int GaussGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 
-//typedef template < typename TYPE, class FUN, class PARAM >int(*OP)(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, TYPE** args);
 typedef int(*OP)(FUN0,__TYPE__*, int, int, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*);
 template <typename T, OP op>
 class test_grad1conv {
@@ -74,9 +73,7 @@ class test_grad1conv {
 };
 
 template <typename T, OP op>
-test_grad1conv<T,op>::test_grad1conv(int Nx){
-
-        data<T> data3(Nx); data1 = data3;
+test_grad1conv<T,op>::test_grad1conv(int Nx):data1(data<T>(Nx)){
 
         vresgpu.resize(Nx*data1.dimPoint);  resgpu = vresgpu.data(); 
         vresgrad.resize(Nx*data1.dimPoint); resgrad = vresgrad.data(); 
