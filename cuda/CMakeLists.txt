@@ -9,24 +9,12 @@ project(libkp LANGUAGES CXX)
 ## Set Path to sources
 set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/bench
-    ${CMAKE_CURRENT_SOURCE_DIR}/core
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/formulas
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/reductions
-    ${CMAKE_CURRENT_SOURCE_DIR}/mex
-    ${CMAKE_CURRENT_SOURCE_DIR}/sandbox
-    ${CMAKE_CURRENT_SOURCE_DIR}/specific
-    ${CMAKE_CURRENT_SOURCE_DIR}/specific/radial_kernels
-    ${CMAKE_CURRENT_SOURCE_DIR}/specific/shape_distance
-    ${CMAKE_CURRENT_SOURCE_DIR}/test
     ${PROJECT_BINARY_DIR}
 )
 
 Include_Directories(${SOURCE_FILES})
 
 set (CMAKE_CXX_FLAGS "--std=c++11 -O3")
-
 set (CUDA_PROPAGATE_HOST_FLAGS ON)
 
 if(APPLE)
