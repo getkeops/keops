@@ -90,10 +90,12 @@ setup(
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #packages=find_packages(exclude=['matlab','matlab.*','R','R.*','build.*'], include=['python','cuda','cuda.core.*','cuda.core','cuda.specific.*']),  # Required
-    packages=find_packages(include=[
-            'pykeops','pykeops.*',
-            'keops','keops.core','keops.core.*','keops.specific.*'
-            ]),  # Required
+    packages=['pykeops',
+              'pykeops.common',
+              'pykeops.numpy',
+              'pykeops.gpu',
+              'pykeops.torch',
+            ],  # Required
 
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
@@ -101,11 +103,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=[
-            'os',
-            'subprocess',
-            'numpy',
-    ],  # Optional
+    install_requires=[ 'numpy' ],  # Optional
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
@@ -125,7 +123,7 @@ setup(
     # If using Python 2.6 or earlier, then these have to be included in
     # MANIFEST.in as well.
     # package_data={  # Optional
-        # 'sample': ['package_data.dat'],
+    #     'sample': ['package_data.dat'],
     # },
 
     # Although 'package_data' is the preferred approach, in some case you may
@@ -133,8 +131,53 @@ setup(
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files
     #
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    # data_files=[('my_data', ['data/data_file'])],  # Optional
+    data_files=[('keops', [
+      'keops/CMakeLists.txt',
+      'keops/formula.h.in',
+      'keops/core/autodiff.h',
+      'keops/core/reductions/sum.h',
+      'keops/core/reductions/log_sum_exp.h',
+      'keops/core/GpuConv1D.cu',
+      'keops/core/link_autodiff.cpp',
+      'keops/core/Pack.h',
+      'keops/core/GpuConv2D.cu',
+      'keops/core/CpuConv.cpp',
+      'keops/core/formulas/maths.h',
+      'keops/core/formulas/factorize.h',
+      'keops/core/formulas/norms.h',
+      'keops/core/formulas/kernels.h',
+      'keops/core/formulas/constants.h',
+      'keops/core/formulas/newsyntax.h',
+      'keops/core/link_autodiff.cu',
+      'keops/specific/shape_distance/kernels.cx',
+      'keops/specific/shape_distance/fshape_gpu_dxi.cx',
+      'keops/specific/shape_distance/fshape_gpu_dxi.cu',
+      'keops/specific/shape_distance/fshape_gpu.cx',
+      'keops/specific/shape_distance/fshape_gpu.cu',
+      'keops/specific/shape_distance/fshape_gpu_df.cu',
+      'keops/specific/shape_distance/fsimplex_gpu_dx.cu',
+      'keops/specific/shape_distance/fshape_gpu_dx.cx',
+      'keops/specific/shape_distance/fshape_gpu_df.cx',
+      'keops/specific/shape_distance/fshape_gpu_dx.cu',
+      'keops/specific/shape_distance/fsimplex_gpu_dxi.cu',
+      'keops/specific/shape_distance/fsimplex_gpu_df.cu',
+      'keops/specific/shape_distance/fsimplex_gpu.cu',
+      'keops/specific/CMakeLists.txt',
+      'keops/specific/radial_kernels/cuda_gradconv_xx.cu',
+      'keops/specific/radial_kernels/cuda_gradconv_xy.cu',
+      'keops/specific/radial_kernels/cuda_gradconv_xa.cu',
+      'keops/specific/radial_kernels/cuda_gradconv_xb.cx',
+      'keops/specific/radial_kernels/cuda_gradconv_xy.cx',
+      'keops/specific/radial_kernels/cuda_conv.cx',
+      'keops/specific/radial_kernels/cuda_gradconv_xb.cu',
+      'keops/specific/radial_kernels/cuda_gradconv_xa.cx',
+      'keops/specific/radial_kernels/cuda_grad1conv.cu',
+      'keops/specific/radial_kernels/cuda_conv.cu',
+      'keops/specific/radial_kernels/cuda_grad1conv.cx',
+      'keops/specific/radial_kernels/cuda_gradconv_xx.cx',
+      'keops/specific/radial_kernels/radial_kernels.h'])],  # Optional
 
+    include_package_data=True,
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # `pip` to create the appropriate form of executable for the target

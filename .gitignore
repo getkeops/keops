@@ -1,11 +1,13 @@
+# temporaries from editors
 *.vscode*
 *.idea*
-*__pycache__*
 *~
+*.swp
+
+# Build junk
 *build*
 *output*
 !*input_output.py
-*.swp
 
 # Exclude mex files
 *mexa64
@@ -21,3 +23,14 @@
 
 # MacOS hidden files
 .DS_Store
+
+# Compiled python modules.
+*__pycache__*
+*.pyc
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+/*.egg
