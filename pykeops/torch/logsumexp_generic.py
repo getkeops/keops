@@ -1,13 +1,7 @@
-import os.path
-import sys
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
-
-from cudaconv import cuda_conv_generic
 import torch
 
 from .kernel_product_generic import GenericKernelProduct
-
+from ..common.cudaconv import cuda_conv_generic
 
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
 # for reference on the forward-backward syntax

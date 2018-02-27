@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project(libkp LANGUAGES CXX)
+project(KeOps LANGUAGES CXX)
 
 ## Set Path to sources
 set(SOURCE_FILES

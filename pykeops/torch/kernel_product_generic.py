@@ -3,7 +3,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
 
-from cudaconv import cuda_conv_generic
+from ..common.cudaconv import cuda_conv_generic
 import torch
 
 

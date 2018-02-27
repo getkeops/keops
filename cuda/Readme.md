@@ -1,1 +1,0 @@
-Warning : ctype is not compatible with cpp templated function as it does not support name mangling (ie it need a fixed name for each function). Template are made by copy/paste code. See :  https://stackoverflow.com/questions/9084111/is-wrapping-c-library-with-ctypes-a-bad-idea

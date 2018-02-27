@@ -6,7 +6,7 @@ def compile_generic_routine(aliases, formula, dllname, cuda_type, build_folder=N
     print('Tried to load ' + dllname + ", ", end='')
     print("but could not find the DLL. Compiling it... ", end='')
 
-    script_folder =  os.path.dirname(os.path.abspath(__file__)) + os.path.sep + ('..' + os.path.sep) * 2 + "cuda"
+    script_folder =  os.path.dirname(os.path.abspath(__file__)) + os.path.sep + ('..' + os.path.sep) * 2 + "keops"
 
     def process_alias(alias):
         return "auto " + str(alias) + "; "

@@ -1,6 +1,6 @@
 import numpy as np
 import ctypes
-from ctypes import *
+from ctypes import POINTER, c_int, c_float
 import os.path
 
 #nvcc -D "USE_DOUBLE_PRECISION=OFF" -D "CUDA_BLOCK_SIZE=192"  -Xcompiler -fPIC -shared -o cuda_conv.so cuda_conv.cu

@@ -1,12 +1,12 @@
 import os.path
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 # Standard imports
 import torch
 from torch          import Tensor
 from torch.autograd import Variable, grad
-from bindings.torch.kernels import Kernel, kernel_product
+from pykeops.torch.kernels import Kernel, kernel_product
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 use_cuda = torch.cuda.is_available()

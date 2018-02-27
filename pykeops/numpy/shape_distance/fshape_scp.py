@@ -1,7 +1,7 @@
-import numpy as np
 import ctypes
-from ctypes import *
+from ctypes import POINTER, c_int, c_float
 import os.path
+
 
 # extract cuda_fshape_scp function pointer in the shared object cuda_fshape_scp_*.so
 def get_cuda_fshape_scp(name_geom , name_sig , name_var):
@@ -17,6 +17,7 @@ def get_cuda_fshape_scp(name_geom , name_sig , name_var):
     # Arguments :     1/sx^2,   1/sf^2, 1/st^2,     x,               y,                f,                  g,              alpha,            beta,             result,           dim-xy, dim-fg,  dim-beta, nx,   ny
     func.argtypes = [c_float, c_float, c_float, POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int, c_int,   c_int,     c_int, c_int]
     return func
+
 
 # convenient python wrapper for __cuda_fshape_scp it does all job with types convertation from python ones to C++ ones 
 def cuda_shape_scp(x, y, f, g, alpha, beta, result, sigma_geom, sigma_sig, sigma_var = 1, kernel_geom = "gaussian", kernel_sig ="gaussian", kernel_var = "binet"):
@@ -59,6 +60,8 @@ if __name__ == '__main__':
     """
     testing the cuda kernel with a python  implementation
     """
+    import numpy as np
+    
     np.set_printoptions(linewidth=200)
 
     sizeX    = int(4)

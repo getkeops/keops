@@ -19,7 +19,7 @@ import os.path
 
 from hashlib import sha256
 
-from compile_generic_routines import *
+from .compile_generic_routines import *
 
 # GENERIC FORMULAS DLLs =========================================================================
 
