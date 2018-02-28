@@ -21,7 +21,7 @@ cp -R keops pykeops/
 python3 setup.py bdist_wheel --python-tag py3 --dist-dir build/wheel #--plat-name manylinux1_x86_64
 
 # undo ugly trick
-mv pykeops/__init__.py pykeops/__init__py.wheel
+mv pykeops/__init__.py pykeops/__init__.py.wheel
 mv pykeops/__init__.py.src pykeops/__init__.py
 rm -rf pykeops/keops
 
