@@ -26,8 +26,7 @@ from .compile_generic_routines import *
 __cuda_convs_generic = {}
 
 
-def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend,
-                          build_folder=None, dll_extension=".so"):
+def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
     """
     Returns the appropriate CUDA routine, given:
     - a list of aliases (strings)
@@ -55,15 +54,13 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend,
         return __cuda_convs_generic[dll_name][backend][sum_index]
     else:  # Otherwise :
         # Load the DLL --------------------------------------------------------------------------
-        if build_folder is None:
-            build_folder = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + ('..' + os.path.sep) * 2 + "build" + os.path.sep
 
-        dllabspath = build_folder + dll_name + dll_extension
+        dllabspath = build_folder + dll_name + '.so'
 
         try:
             dll = ctypes.CDLL(dllabspath , mode=ctypes.RTLD_GLOBAL)
         except OSError:
-            compile_generic_routine(aliases, formula, dll_name, cuda_type,build_folder)
+            compile_generic_routine(aliases, formula, dll_name, cuda_type)
             dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
             print("Loaded.\n\n")
 
