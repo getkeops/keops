@@ -16,17 +16,20 @@
 #include <vector>
 #include <ctime>
 #include <algorithm>
-
 #include <iostream>
 
-using namespace std;
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+#include "core/formulas/kernels.h"
+#include "core/formulas/norms.h"
+#include "core/formulas/factorize.h"
 
 #include "../core/autodiff.h"
 
 #include "../core/CpuConv.cpp"
 
 
-
+using namespace std;
 
 
 __TYPE__ floatrand() {

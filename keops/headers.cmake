@@ -18,7 +18,7 @@ endif(APPLE)
 find_package(CUDA)
 
 if(NOT DEFINED USE_CUDA)
-    Set(USE_CUDA TRUE)
+    Set(USE_CUDA ${CUDA_FOUND})
 endif()
 
 if(CUDA_FOUND AND USE_CUDA)

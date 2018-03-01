@@ -13,6 +13,12 @@
 #include <algorithm>
 #include <iostream>
 
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+#include "core/formulas/kernels.h"
+#include "core/formulas/norms.h"
+#include "core/formulas/factorize.h"
+
 #include "../core/autodiff.h"
 
 #include "../core/CpuConv.cpp"
@@ -32,7 +38,7 @@ template < class V > void fillrandom(V& v) {
 int main() {
 
 
-	// symbolic variables of the function
+    // symbolic variables of the function
     using X = Var<0,3,0>; 	// X is the first variable and represents a 3D vector
     using Y = Var<1,3,1>; 	// Y is the second variable and represents a 3D vector
     using Beta = Var<2,3,1>;	// Beta is the fifth variable and represents a 3D vector
@@ -40,20 +46,20 @@ int main() {
     using V = Var<4,3,1>; 
     using C = Param<0>;		// C is the first extra parameter
 
-	// symbolic expression of the function : 3rd order gradient with respect to X, X and Y of the Gauss kernel
-	using F = Grad<Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>,Y,V>;
-	
+    // symbolic expression of the function : 3rd order gradient with respect to X, X and Y of the Gauss kernel
+    using F = Grad<Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>,Y,V>;
+
     cout << endl << "Function F : " << endl;
     PrintFormula<F>();
     cout << endl << endl;
 
     using FF = AutoFactorize<F>;
-    
+
     cout << "Function FF = factorized version of F :" << endl;    
     PrintFormula<FF>();
 
     using FUNCONVF = typename Generic<F>::sEval;
-	using FUNCONVFF = typename Generic<FF>::sEval;
+    using FUNCONVFF = typename Generic<FF>::sEval;
 
     // now we test ------------------------------------------------------------------------------
 
@@ -85,7 +91,7 @@ int main() {
 
 
 
-/// testing FF
+    /// testing FF
 
     cout << endl << endl << "Testing FF" << endl;
 
@@ -95,15 +101,15 @@ int main() {
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     rescpu2 = vf;
-    
+
     // display values
     cout << "rescpu1 = ";
     for(int i=0; i<5; i++)
-		cout << rescpu1[i] << " ";
+        cout << rescpu1[i] << " ";
     cout << endl << "rescpu2 = ";
-    	for(int i=0; i<5; i++)
-		cout << rescpu2[i] << " ";
-		
+    for(int i=0; i<5; i++)
+        cout << rescpu2[i] << " ";
+
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
