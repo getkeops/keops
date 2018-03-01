@@ -1,4 +1,5 @@
 import os.path
+import tempfile
 
 script_folder = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + "keops"
-build_folder  = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + "build" + os.path.sep
+build_folder  = tempfile.mkdtemp(prefix="pykeops-") + os.path.sep
