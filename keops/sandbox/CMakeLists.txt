@@ -1,6 +1,6 @@
 
 # ----------------- test link
-if (CUDA_FOUND)
+if (USE_CUDA)
 
     CUDA_add_executable(
         test_link_conv
@@ -10,7 +10,7 @@ if (CUDA_FOUND)
 
     target_link_libraries(
         test_link_conv
-        shared_obj
+        keops
     )
 endif()
 
@@ -26,7 +26,7 @@ target_compile_options(
     PRIVATE -include formula.h
 )
 
-# tell Cmake to explicitly add the dependency: shared_obj is recompiled as soon as formula.h changes.
+# tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
 set_source_files_properties(
     ${CMAKE_CURRENT_SOURCE_DIR}/test_autodiff.cpp PROPERTIES
     OBJECT_DEPENDS formula.h
@@ -35,7 +35,7 @@ set_source_files_properties(
 
 
 # ----------------- equivalent code to compile_test_factorized
-if (CUDA_FOUND)
+if (USE_CUDA)
 
     CUDA_add_executable(
         test_factorized
@@ -55,7 +55,7 @@ target_compile_options(
     PRIVATE -include formula.h
 )
 
-# tell Cmake to explicitly add the dependency: shared_obj is recompiled as soon as formula.h changes.
+# tell Cmake to explicitly add the dependency: library is recompiled as soon as formula.h changes.
 set_source_files_properties(
     ${CMAKE_CURRENT_SOURCE_DIR}/test_factorized.cpp PROPERTIES
     OBJECT_DEPENDS formula.h

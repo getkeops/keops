@@ -30,11 +30,47 @@ find_package_handle_standard_args(Benchmark
 
 mark_as_advanced(Benchmark_FOUND)
 
+# Use ExternalProject to get the missig benchmark lib
+if (NOT Benchmark_FOUND)
+    # Enable ExternalProject CMake module
+    INCLUDE(ExternalProject)
+
+    # Set default ExternalProject root directory
+    SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/third_party)
+
+    ExternalProject_Add(
+        goolebenchmark
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        INSTALL_COMMAND ""
+        CMAKE_ARGS "-DBENCHMARK_ENABLE_GTEST_TESTS=OFF"
+        # Wrap download, configure and build steps in a script to log output
+        LOG_DOWNLOAD ON
+        LOG_CONFIGURE ON
+        LOG_BUILD ON
+    )
+
+    ExternalProject_Get_Property(goolebenchmark source_dir)
+    set(Benchmark_INCLUDE_DIRS ${source_dir}/include)
+    Include_Directories(${Benchmark_INCLUDE_DIRS})
+
+    ExternalProject_Get_Property(goolebenchmark binary_dir)
+    set(Benchmark_LIBRARIES ${binary_dir}/src/${CMAKE_FIND_LIBRARY_PREFIXES}benchmark.a)
+    set(Benchmark_LIBRARY benchmark)
+    add_library(${Benchmark_LIBRARY} UNKNOWN IMPORTED)
+    set_target_properties(${Benchmark_LIBRARY} PROPERTIES
+        IMPORTED_LOCATION ${Benchmark_LIBRARIES}
+        IMPORTED_LINK_INTERFACE_LIBRARIES ${CMAKE_THREAD_LIBS_INIT}
+    )
+
+    add_dependencies(${Benchmark_LIBRARY} goolebenchmark)
+    
+endif()
+
 #------------------------------------------------------------------------------------#
 #----------------------------------COMPILATIONS--------------------------------------#
 #------------------------------------------------------------------------------------#
 
-if (Benchmark_FOUND AND CUDA_FOUND AND NOT USENEWSYNTAX)
+if (USE_CUDA AND NOT USENEWSYNTAX)
 
     CUDA_add_executable(
         bench_grad1conv

@@ -1,5 +1,5 @@
 
-if (CUDA_FOUND)
+if (USE_CUDA)
 
     CUDA_add_library(
         radial_kernels_conv SHARED

@@ -1,6 +1,5 @@
 find_package(GTest)
 
-### - unit test
 if(NOT GTest_FOUND)
     # Enable ExternalProject CMake module
     INCLUDE(ExternalProject)
@@ -46,7 +45,9 @@ if(NOT GTest_FOUND)
 
 endif()
 
-if (CUDA_FOUND)
+
+### - unit test
+if (USE_CUDA)
     CUDA_add_executable(
         test_grad1conv
         ${CMAKE_CURRENT_SOURCE_DIR}/test_grad1conv.cu
@@ -77,7 +78,7 @@ if (CUDA_FOUND)
 
     target_link_libraries(
         test_conv
-        shared_obj
+        keops
         gtest
         pthread
     )
