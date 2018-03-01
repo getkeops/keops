@@ -15,16 +15,8 @@ if(Matlab_FOUND)
         add_definitions(-DUSE_DOUBLE)
     endif()
 
-    if (CUDA_FOUND)
-        add_definitions(-DUSE_CUDA)
-    endif()
-
-    if(NOT mex_name)
+    if(NOT DEFINED mex_name)
         Set(mex_name mex_binding)
-    endif()
-
-    if(shared_obj_name)
-
     endif()
 
     matlab_get_mex_suffix( # simply get the extension : almost surely mexa64
@@ -48,20 +40,20 @@ if(Matlab_FOUND)
     if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
         add_custom_target(
             mex_cpp
-            DEPENDS shared_obj mex_file_cpp # ensure obj file is created before using mex for linking
-            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:shared_obj> $<TARGET_OBJECTS:mex_file_cpp>  -output ${mex_name} # only since cmake 3.9 
+            DEPENDS keops mex_file_cpp # ensure obj file is created before using mex for linking
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops> $<TARGET_OBJECTS:mex_file_cpp>  -output ${mex_name} # only since cmake 3.9 
         )
     else()
         add_custom_target(
             mex_cpp
-            DEPENDS shared_obj mex_file_cpp # ensure obj file is created before using mex for linking
-            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:shared_obj> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_cpp.dir/cudaconv.cpp.o -output ${mex_name} 
+            DEPENDS keops mex_file_cpp # ensure obj file is created before using mex for linking
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_cpp.dir/cudaconv.cpp.o -output ${mex_name} 
         )
     endif()
 
     add_dependencies(
         mex_cpp
-        shared_obj
+        keops
     )
 
     set_target_properties( # pass needed options to add_custom_target()
