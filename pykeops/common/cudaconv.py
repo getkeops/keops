@@ -101,7 +101,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
                  "GPU_1D_device": [routine_GPU_device_1D_i, routine_GPU_device_1D_j],
                  "GPU_2D_device": [routine_GPU_device_2D_i, routine_GPU_device_2D_j] })
         except AttributeError:
-            print('Compilation done without cuda. USe CPU only')
+            print('Compilation done without cuda. Use CPU only')
 
         return __cuda_convs_generic[dll_name][backend][sum_index]  # And return it.
 

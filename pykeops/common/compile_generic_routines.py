@@ -11,11 +11,11 @@ def compile_generic_routine(aliases, formula, dllname, cuda_type):
 
     alias_string = "\n".join([process_alias(alias) for alias in aliases])
 
-    target = "shared_obj"
+    target = "keops"
 
     print("\n")
     print(alias_string)
-    print("Compiling formula = " + formula + " ... ", end='', flush=True)
+    print("Compiling formula = " + formula + " ... ")
     subprocess.run(["cmake", script_folder, "-DPYTHON_LIB=TRUE", "-DUSENEWSYNTAX=TRUE" , "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], \
                    cwd=build_folder)
     subprocess.run(["make", target], \
