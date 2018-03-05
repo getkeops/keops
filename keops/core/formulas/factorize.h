@@ -52,16 +52,16 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
     using FactorizedFormula = typename F::template Replace<G,Var<INDS::MAX+1,G::DIM,3>>;	// means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
 
     template < class INDS, typename ...ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
 		// First we compute G
 		__TYPE__ outG[G::DIM];
-		G::template Eval<INDS>(params,outG,args...);
+		G::template Eval<INDS>(outG,args...);
 		// Ffact is the factorized formula
 		using Ffact = typename THIS::template FactorizedFormula<INDS>;
 		// new indices for the call to Eval : we add one more index to the list
 		using NEWINDS = ConcatPacks<INDS,pack<INDS::MAX+1>>;
 		// call to Eval on the factorized formula, we pass outG as last parameter
-		Ffact::template Eval<NEWINDS>(params,out,args...,outG);
+		Ffact::template Eval<NEWINDS>(out,args...,outG);
     }
     
     template < class V, class GRADIN >
@@ -85,12 +85,6 @@ struct FactorizeAlias<F,Var<N,DIM,CAT>> {
 // specialization in case G is of type IntConstant : again such a factorization is not interesting
 template < class F, int N >
 struct FactorizeAlias<F,IntConstant<N>> {
-    using type = F;
-};
-
-// specialization in case G is of type Constant<Param<N>> : not interesting either
-template < class F, int N >
-struct FactorizeAlias<F,Constant<Param<N>>> {
     using type = F;
 };
 
