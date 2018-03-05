@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		g++ -std=c++11 -O2 -o build/test_autodiff test_autodiff.cpp
+//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_autodiff test_autodiff.cpp
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the CPU, then get its gradient and test again the convolution
