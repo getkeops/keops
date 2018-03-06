@@ -69,16 +69,6 @@ int CpuConv(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
     getlist<INDSJ>(py,args...);
     getlist<INDSP>(params,args...);
 
- cout << "SIZEI = " << SIZEI << endl;
- cout << "SIZEJ = " << SIZEJ << endl;
- cout << "SIZEP = " << SIZEP << endl;
-cout << "DIMSX = "; DIMSX::PrintId(); cout << endl;
-cout << "DIMSY = "; DIMSY::PrintId(); cout << endl;
-cout << "DIMSP = "; DIMSP::PrintId(); cout << endl;
-cout << "INDSI = "; INDSI::PrintId(); cout << endl;
-cout << "INDSJ = "; INDSJ::PrintId(); cout << endl;
-cout << "INDSP = "; INDSP::PrintId(); cout << endl;
-
     return CpuConv_(fun,params,nx,ny,px,py);
 }
 

@@ -33,7 +33,7 @@ using namespace std;
 
 
 __TYPE__ floatrand() {
-    return 1.0;//((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
@@ -168,8 +168,6 @@ int main() {
 
     rescpu = vf;
 
-cout << "vf = " << vf[0] << ", " << vf[1] << ", " << vf[2] << endl;
-
     vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
 
     cout << "testing function GX" << endl;
@@ -180,8 +178,6 @@ cout << "vf = " << vf[0] << ", " << vf[1] << ", " << vf[2] << endl;
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     rescpu = vf;
-
-cout << "vf = " << vf[0] << ", " << vf[1] << ", " << vf[2] << endl;
 
     // gradient wrt Y, which is a "j" variable.
 
@@ -197,8 +193,6 @@ cout << "vf = " << vf[0] << ", " << vf[1] << ", " << vf[2] << endl;
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     rescpu = vf;
-
-cout << "vf = " << vf[0] << ", " << vf[1] << ", " << vf[2] << endl;
 
 }
 
