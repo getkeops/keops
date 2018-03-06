@@ -103,5 +103,5 @@ int CpuConv(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
     for(int i=0; i<SIZEP; i++)
         params[i] = args[INDSP::VAL(i)];
 
-    return CpuConv_(fun,param,nx,ny,px,py);
+    return CpuConv_(fun,params,nx,ny,px,py);
 }

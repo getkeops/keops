@@ -87,7 +87,7 @@ class Generic {
         using INDSJ = GetInds<VARSJ>;
         using INDSP = GetInds<VARSP>;
 
-        using INDS = ConcatPacks<INDSI,INDSJ,INDSP>;  // indices of variables
+        using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;  // indices of variables
 
         template < typename... Args >
         HOST_DEVICE INLINE void operator()(Args... args) {
@@ -361,6 +361,8 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
 //////////////////////////////////////////////////////////////
 ////     ELEMENT EXTRACTION : Elem<F,M>                   ////
 //////////////////////////////////////////////////////////////
+
+template < class F, int N, int M > struct ElemT;
 
 template < class F, int M >
 struct Elem : UnaryOp<Elem,F,M> {

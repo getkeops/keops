@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		g++ -std=c++11 -O2 -o build/test_autodiff test_autodiff.cpp
+//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_autodiff test_autodiff.cpp 
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the CPU, then get its gradient and test again the convolution
@@ -47,17 +47,17 @@ int main() {
     using U = Var<2,4,0>; 	// U is the third variable and represents a 4D vector
     using V = Var<3,4,1>; 	// V is the fourth variable and represents a 4D vector
     using Beta = Var<4,3,1>;	// Beta is the fifth variable and represents a 3D vector
-    using C = Param<0>;		// C is the first extra parameter
+    using C = Param<5,1>;		// C is the first extra parameter
 
     // symbolic expression of the function ------------------------------------------------------
     
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
+    using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
     using FUNCONVF = typename Generic<F>::sEval;
 
     // gradient with respect to X ---------------------------------------------------------------
-    using Eta = Var<5,F::DIM,0>; // new variable is in sixth position and is input of gradient
+    using Eta = Var<6,F::DIM,0>; // new variable is in sixth position and is input of gradient
     using GX = Grad<F,X,Eta>;
     
     /*
@@ -163,7 +163,7 @@ int main() {
     cout << "testing function F" << endl;
 
     begin = clock();
-    CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    CpuConv(FUNCONVF(), Nx, Ny, f, x, y, u, v, b, params);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -176,7 +176,7 @@ int main() {
     cout << "testing function GX" << endl;
 
     begin = clock();
-    CpuConv(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e);
+    CpuConv(FUNCONVGX(), Nx, Ny, f, x, y, u, v, b, params, e);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -192,7 +192,7 @@ int main() {
     cout << "testing function GY" << endl;
 
     begin = clock();
-    CpuConv(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e);
+    CpuConv(FUNCONVGY(), Ny, Nx, f, x, y, u, v, b, params, e);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
