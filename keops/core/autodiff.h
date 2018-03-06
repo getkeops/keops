@@ -6,16 +6,15 @@
  *      Var<N,DIM,CAT>				: the N-th variable, a vector of dimension DIM,
  *                                    with CAT = 0 (i-variable), 1 (j-variable) or 2 (parameter)
  *      Grad<F,V,GRADIN>			: gradient (in fact transpose of diff op) of F with respect to variable V, applied to GRADIN
- *      P<N>, or Param<N>			: the N-th parameter variable
- *      X<N,DIM>					: the N-th variable, vector of dimension DIM, CAT = 0
- *      Y<N,DIM>					: the N-th variable, vector of dimension DIM, CAT = 1
+ *      _P<N>, or Param<N>			: the N-th parameter variable
+ *      _X<N,DIM>				: the N-th variable, vector of dimension DIM, CAT = 0
+ *      _Y<N,DIM>				: the N-th variable, vector of dimension DIM, CAT = 1
  *
  *
  * Available constants are :
  *
  *      Zero<DIM>					: zero-valued vector of dimension DIM
  *      IntConstant<N>				: constant integer function with value N
- *      Constant<PRM>				: constant function with value given by parameter PRM (ex : Constant<C> here)
  *
  * Available math operations are :
  *
@@ -75,18 +74,19 @@ class Generic {
     struct sEval { // static wrapper
         using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
         using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
+        using VARSP = typename F::template VARS<2>;
+
         using DIMSX = typename GetDims<VARSI>::template PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
         using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
+        using DIMSP = GetDims<VARSP>;                           // dimensions of parameters variables
 
         using FORM  = F;  // We need a way to access the actual function being used
 
         using INDSI = GetInds<VARSI>;
         using INDSJ = GetInds<VARSJ>;
+        using INDSP = GetInds<VARSP>;
 
-        using INDS = ConcatPacks<INDSI,INDSJ>;  // indices of variables
-
-        using tmp = typename F::template VARS<2>;
-        static const int DIMPARAM = tmp::SIZE;
+        using INDS = ConcatPacks<INDSI,INDSJ,INDSP>;  // indices of variables
 
         template < typename... Args >
         HOST_DEVICE INLINE void operator()(Args... args) {
@@ -140,7 +140,9 @@ struct Var {
             cout << "x";
         else if(CAT==1)
             cout << "y";
-        else
+        else if(CAT==2)
+	    cout << "p";
+	else
             cout << "z";
         cout << N;
     }
@@ -155,12 +157,12 @@ struct Var {
 
     // Evaluate a variable given a list of arguments:
     //
-    // Var( 5, DIM )::Eval< [ 2, 5, 0 ], type2, type5, type0 >( params, out, var2, var5, var0 )
+    // Var( 5, DIM )::Eval< [ 2, 5, 0 ], type2, type5, type0 >( out, var2, var5, var0 )
     //
     // will see that the index 1 is targeted,
     // assume that "var5" is of size DIM, and copy its value in "out".
     template < class INDS, typename ...ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         auto t = TUPLE_VERSION::make_tuple(args...); // let us access the args using indexing syntax
         // IndValAlias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
         __TYPE__* xi = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
@@ -221,11 +223,11 @@ struct UnaryOp : UnaryOp_base<OP,F,NS...> {
     using THIS = OP<F,NS...>;
 
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we create a vector of size F::DIM
         __TYPE__ outA[F::DIM];
         // then we call the Eval function of F
-        F::template Eval<INDS>(params,outA,args...);
+        F::template Eval<INDS>(outA,args...);
         // then we call the Operation function
         THIS::Operation(out,outA);
     }
@@ -238,7 +240,7 @@ struct UnaryOp<OP,Var<N,DIM,CAT>,NS...>  : UnaryOp_base<OP,Var<N,DIM,CAT>,NS...>
     using THIS = OP<Var<N,DIM,CAT>,NS...>;
 
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we do not need to create a vector ; just access the Nth argument of args
         auto t = TUPLE_VERSION::make_tuple(args...);
         __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
@@ -286,12 +288,12 @@ struct BinaryOp : BinaryOp_base<OP,FA,FB> {
     using THIS = OP<FA,FB>;
 
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we create vectors of sizes FA::DIM and FB::DIM
         __TYPE__ outA[FA::DIM], outB[FB::DIM];
         // then we call the Eval function of FA and FB
-        FA::template Eval<INDS>(params,outA,args...);
-        FB::template Eval<INDS>(params,outB,args...);
+        FA::template Eval<INDS>(outA,args...);
+        FB::template Eval<INDS>(outB,args...);
         // then we call the Operation function
         THIS::Operation(out,outA,outB);
     }
@@ -304,10 +306,10 @@ struct BinaryOp<OP,Var<N,DIM,CAT>,FB>  : BinaryOp_base<OP,Var<N,DIM,CAT>,FB> {
     using THIS = OP<Var<N,DIM,CAT>,FB>;
 
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we create a vector and call Eval only for FB
         __TYPE__ outB[FB::DIM];
-        FB::template Eval<INDS>(params,outB,args...);
+        FB::template Eval<INDS>(outB,args...);
         // access the Nth argument of args
         auto t = TUPLE_VERSION::make_tuple(args...);
         __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
@@ -323,10 +325,10 @@ struct BinaryOp<OP,FA,Var<N,DIM,CAT>>  : BinaryOp_base<OP,FA,Var<N,DIM,CAT>> {
     using THIS = OP<FA,Var<N,DIM,CAT>>;
 
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we create a vector and call Eval only for FA
         __TYPE__ outA[FA::DIM];
-        FA::template Eval<INDS>(params,outA,args...);
+        FA::template Eval<INDS>(outA,args...);
         // access the Nth argument of args
         auto t = TUPLE_VERSION::make_tuple(args...);
         __TYPE__* outB = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outB = the "ind"-th argument.
@@ -342,7 +344,7 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
     using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>;
 
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we access the NAth and NBth arguments of args
         auto t = TUPLE_VERSION::make_tuple(args...);
         __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,NA>::ind>(t);
@@ -382,25 +384,6 @@ struct CountIn<OP<FA,FB>,G> {
 
 
 
-
-
-//////////////////////////////////////////////////////////////
-////             N-th PARAMETER  : Param< N >             ////
-//////////////////////////////////////////////////////////////
-
-template < int N >
-struct Param {
-    static const int INDEX = N;
-    static const int DIM = 1;
-
-    template < int CAT >
-    using VARS = CondType<univpack<Param<N>>,univpack<>,CAT==3>;
-
-    static void PrintId() {
-        cout << "Pm(" << N << ")";
-    }
-};
-
 //////////////////////////////////////////////////////////////
 ////      GRADIENT OPERATOR  : Grad< F, V, Gradin >       ////
 //////////////////////////////////////////////////////////////
@@ -425,8 +408,11 @@ using _X = Var<N,DIM,0>;
 template < int N, int DIM >
 using _Y = Var<N,DIM,1>;
 
-template < int N >
-using _P = Param<N>;
+template < int N, int DIM >
+using Param = Var<N,DIM,2>;
+
+template < int N, int DIM >
+using _P = Param<N,DIM>;
 
 
 // Print formula to standard output
@@ -444,6 +430,11 @@ void PrintFormula() {
     using Inds1 = GetInds<Vars1>;
     for(int k=0; k<Vars1::SIZE; k++)
         cout << "y" << Inds1::VAL(k) << " (dim=" << Dims1::VAL(k) << "), ";
+    using Vars2 = typename F::template VARS<2>;
+    using Dims2 = GetDims<Vars2>;
+    using Inds2 = GetInds<Vars2>;
+    for(int k=0; k<Vars2::SIZE; k++)
+        cout << "p" << Inds2::VAL(k) << " (dim=" << Dims2::VAL(k) << "), ";
     cout << endl;
     cout << "Formula = ";
     F::PrintId();

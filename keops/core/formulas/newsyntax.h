@@ -14,7 +14,7 @@
 
 #define Vy(N,DIM) _Y<N,DIM>()
 
-#define Pm(N) _P<N>()
+#define Pm(N,DIM) _P<N,DIM>()
 
 #define LogSumExp(f) LogSumExp<decltype(f)>()
 
@@ -25,7 +25,8 @@
 #define Grad(F,V,GRADIN)  Grad<decltype(F),decltype(V),decltype(GRADIN)>()
 
 #define IntCst(N) IntConstant<N>()
-#define Cst(p) Constant<decltype(p)>()
+
+#define Elem(p,k) Elem<decltype(p),k>()
 
 template < class FA, class FB >
 Add<FA,FB> operator+(FA fa, FB fb) {

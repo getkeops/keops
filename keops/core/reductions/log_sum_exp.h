@@ -40,10 +40,10 @@ struct LogSumExp {
 
     // Evaluation is easy : simply fill-up out[-1] with 1, then eval F on out.
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // The evaluated cell is (m,1) which represents exp(m) * 1
         out[F::DIM] = 1.0f;
-        F::template Eval<INDS>(params, out, args...);
+        F::template Eval<INDS>(out, args...);
     }
 
     // LogSumExp is a utility function related to a numerically stable reduction operation.
