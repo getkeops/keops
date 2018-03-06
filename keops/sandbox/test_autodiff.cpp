@@ -33,7 +33,7 @@ using namespace std;
 
 
 __TYPE__ floatrand() {
-    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return 1.0;//((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
@@ -98,10 +98,6 @@ int main() {
 
     // gradient with respect to Y  --------------------------------------------------------------
     using GY = Grad<F,Y,Eta>;
-cout << "GY = ";
-GY::PrintId();
-cout << endl;
-    
     /*
      * Using GY = Grad<F,Y,Eta> = (\partial_Y F).Eta in a convolution sum (Generic<...>) makes sense...
      * IF YOU CHANGE THE SUMMATION VARIABLE FROM j TO i !
@@ -153,15 +149,15 @@ cout << endl;
     vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
     vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
     vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
-
+    
     vector<__TYPE__> rescpu(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
     params[0] = 1.0/(Sigma*Sigma);
 
+    
     clock_t begin, end;
-
 
     cout << "testing function F" << endl;
 

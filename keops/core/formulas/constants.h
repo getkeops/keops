@@ -63,7 +63,7 @@ struct IntConstant {
 
     // Evaluation is easy : simply fill *out = out[0] with N.
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         *out = N;
     }
 
