@@ -98,6 +98,9 @@ int main() {
 
     // gradient with respect to Y  --------------------------------------------------------------
     using GY = Grad<F,Y,Eta>;
+cout << "GY = ";
+GY::PrintId();
+cout << endl;
     
     /*
      * Using GY = Grad<F,Y,Eta> = (\partial_Y F).Eta in a convolution sum (Generic<...>) makes sense...

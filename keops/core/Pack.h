@@ -358,6 +358,12 @@ template < int... NS > struct pack {
         DIMS::call(fun,args...);
     }
 
+    // ... idem ...
+    template < class DIMS1, class DIMS2, typename TYPE, class FUN, typename... Args  >
+    HOST_DEVICE static void call3(FUN fun, TYPE* x, Args... args) {
+        DIMS1::template call2<DIMS2>(fun,args...);
+    }
+
     // ... does not have anything to give to a list of variables.
     template < typename TYPE, typename... Args  >
     static void getlist(TYPE** px, Args... args) { }
@@ -389,7 +395,7 @@ template < int N, int... NS > struct pack<N,NS...> {
     }
 
     static void PrintId() {
-        cout << "pack<" << endl;
+        cout << "pack<" ;
         PrintAll();
         cout << ">";
     }
@@ -435,6 +441,13 @@ template < int N, int... NS > struct pack<N,NS...> {
         NEXT::template call2<DIMS>(fun,x+FIRST,args...,x);
     }
 
+    // Idem, with a double template on DIMS. This allows you to call fun with
+    // three "packed" variables
+    template < class DIMS1, class DIMS2, typename TYPE, class FUN, typename... Args  >
+    HOST_DEVICE static void call3(FUN fun, TYPE* x, Args... args) {
+        NEXT::template call3<DIMS1,DIMS2>(fun,x+FIRST,args...,x);
+    }
+
     // Out of a long  list of pointers, extract the ones which "belong" to the current pack
     // and put them into a pointer array px.
     // Since we use the std container "tuple", treatment of the list of arguments args is straightforward
@@ -450,9 +463,9 @@ template < int N, int... NS > struct pack<N,NS...> {
 // USEFUL METHODS ===================================================================================
 
 // Templated call
-template < class DIMSX, class DIMSY, typename TYPE, class FUN, typename... Args  >
+template < class DIMSX, class DIMSY, class DIMSP, typename TYPE, class FUN, typename... Args  >
 HOST_DEVICE void call(FUN fun, TYPE* x, Args... args) {
-    DIMSX:: template call2<DIMSY>(fun,x,args...);
+    DIMSX:: template call3<DIMSY,DIMSP>(fun,x,args...);
 }
 
 template < class INDS, typename TYPE, typename... Args >

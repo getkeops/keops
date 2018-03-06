@@ -31,7 +31,7 @@ int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
         InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp);   // tmp = 0
         for(int j=0; j<ny; j++) {
             load<DIMSY>(j,yj,py);
-            call<DIMSX,DIMSY>(fun,xi,yj,pp);
+            call<DIMSX,DIMSY,DIMSP>(fun,xi,yj,pp);
             ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi); // tmp += xi
         }
         for(int k=0; k<DIMX1; k++)
@@ -68,6 +68,16 @@ int CpuConv(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
     getlist<INDSI>(px+1,args...);
     getlist<INDSJ>(py,args...);
     getlist<INDSP>(params,args...);
+
+ cout << "SIZEI = " << SIZEI << endl;
+ cout << "SIZEJ = " << SIZEJ << endl;
+ cout << "SIZEP = " << SIZEP << endl;
+cout << "DIMSX = "; DIMSX::PrintId(); cout << endl;
+cout << "DIMSY = "; DIMSY::PrintId(); cout << endl;
+cout << "DIMSP = "; DIMSP::PrintId(); cout << endl;
+cout << "INDSI = "; INDSI::PrintId(); cout << endl;
+cout << "INDSJ = "; INDSJ::PrintId(); cout << endl;
+cout << "INDSP = "; INDSP::PrintId(); cout << endl;
 
     return CpuConv_(fun,params,nx,ny,px,py);
 }
