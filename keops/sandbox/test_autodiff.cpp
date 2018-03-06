@@ -5,11 +5,11 @@
 // we define an arbitrary function using available blocks,
 // then test its convolution on the CPU, then get its gradient and test again the convolution
 
-// Here we build the function F(x,y,u,v,beta) = <u,v>^2 * exp(-C*|x-y|^2) * beta
-// where x, y, beta are 3D vectors, and u, v are 4D vectors
-// and the convolution is gamma_i = sum_j F(x_i,y_j,u_i,v_j,beta_j)
-// then we define G(x,y,u,v,beta,eta) = gradient of F with respect to x, with new input variable eta (3D)
-// and the new convolution is gamma_i = sum_j G(x_i,y_j,u_i,v_j,beta_j,eta_i)
+// Here we build the function F(x,y,u,v,beta,C) = <u,v>^2 * exp(-C*|x-y|^2) * beta
+// where x, y, beta are 3D vectors, and u, v are 4D vectors, C is a scalar parameter
+// and the convolution is gamma_i = sum_j F(x_i,y_j,u_i,v_j,beta_j,C)
+// then we define G(x,y,u,v,beta,C,eta) = gradient of F with respect to x, with new input variable eta (3D)
+// and the new convolution is gamma_i = sum_j G(x_i,y_j,u_i,v_j,beta_j,C,eta_i)
 
 #include <stdio.h>
 #include <assert.h>
@@ -47,7 +47,7 @@ int main() {
     using U = Var<2,4,0>; 	// U is the third variable and represents a 4D vector
     using V = Var<3,4,1>; 	// V is the fourth variable and represents a 4D vector
     using Beta = Var<4,3,1>;	// Beta is the fifth variable and represents a 3D vector
-    using C = Param<5,1>;		// C is the first extra parameter
+    using C = Param<5,1>;	// C is the sixth variable and represents a scalar (1D vector)
 
     // symbolic expression of the function ------------------------------------------------------
     
@@ -57,14 +57,14 @@ int main() {
     using FUNCONVF = typename Generic<F>::sEval;
 
     // gradient with respect to X ---------------------------------------------------------------
-    using Eta = Var<6,F::DIM,0>; // new variable is in sixth position and is input of gradient
+    using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
     using GX = Grad<F,X,Eta>;
     
     /*
      * Using GX = Grad<F,X,Eta> = (\partial_X F).Eta in a convolution sum (Generic<...>) makes sense.
      * Indeed, we know that
      * 
-     *      FUNCONVF_i = \sum_j F( P, X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ... ).
+     *      FUNCONVF_i = \sum_j F( X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ..., P ).
      * 
      * Then, since FUNCONVF_i only depends on the i-th line of X^n,
      * 
@@ -86,12 +86,12 @@ int main() {
      * 
      * But then, by linearity of the gradient operator,
      * 
-     * (\partial_{X^n_i} FUNCONVF_i).Eta_i = \sum_j (\partial_{X^n} F( P, X^0_i, ..., Y^0_j, ... )).Eta_i
+     * (\partial_{X^n_i} FUNCONVF_i).Eta_i = \sum_j (\partial_{X^n} F( X^0_i, ..., Y^0_j, ..., P )).Eta_i
      * 
      * (\partial_{X^n} FUNCONVF).Eta is therefore equal to the "generic kernel product" with
      * summation on j, with the summation term being
      * 
-     *    (\partial_{X^n_i} F( P, X^0_i, ..., Y^0_j, ... )).Eta_i  = Grad<F,X^n,Eta>
+     *    (\partial_{X^n_i} F( X^0_i, ..., Y^0_j, ..., P )).Eta_i  = Grad<F,X^n,Eta>
      * 
      */
     using FUNCONVGX = typename Generic<GX>::sEval;
@@ -104,36 +104,36 @@ int main() {
      * IF YOU CHANGE THE SUMMATION VARIABLE FROM j TO i !
      * Indeed, we know that
      * 
-     *      FUNCONVF_i = \sum_j F( P, X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ... ).
+     *      FUNCONVF_i = \sum_j F( X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ..., P ).
      * 
      * Hence, doing the computations :
      * 
      * (\partial_{Y^m} FUNCONVF).Eta 
      *    = \sum_i    (\partial_{Y^m  } FUNCONVF_i).Eta_i                          (definition of the L2 scalar product)
-     *    = \sum_i    (\partial_{Y^m  } \sum_j F(P,X^0_i, ...,Y^0_j,...) ).Eta_i   (FUNCONVF_i = ...)
-     *    = \sum_j    \sum_i (\partial_{Y^m  } F(P,X^0_i, ...,Y^0_j,...) ).Eta_i   (Fubini theorem + linearity of \partial_{Y^M})
+     *    = \sum_i    (\partial_{Y^m  } \sum_j F(X^0_i, ...,Y^0_j,...,P) ).Eta_i   (FUNCONVF_i = ...)
+     *    = \sum_j    \sum_i (\partial_{Y^m  } F(X^0_i, ...,Y^0_j,...,P) ).Eta_i   (Fubini theorem + linearity of \partial_{Y^M})
      * 
      *              | 0 0 .................................................... 0 | (the summation term only depends on Y^m_j)
      *              | 0 0 .................................................... 0 |
-     *    = \sum_j  | \sum_i (\partial_{Y^m_j} F(P,X^0_i, ...,Y^0_j,...) ).Eta_i | <- (on the j-th line)
+     *    = \sum_j  | \sum_i (\partial_{Y^m_j} F(X^0_i, ...,Y^0_j,...,P) ).Eta_i | <- (on the j-th line)
      *              | 0 0 .................................................... 0 |
      *              | 0 0 .................................................... 0 |
      *              | 0 0 .................................................... 0 |
      *              | 0 0 .................................................... 0 |
      * 
-     *              | \sum_i (\partial_{Y^m_0} F(P,X^0_i, ...,Y^0_0,...) ).Eta_i |
-     *              | \sum_i (\partial_{Y^m_1} F(P,X^0_i, ...,Y^0_1,...) ).Eta_i |
+     *              | \sum_i (\partial_{Y^m_0} F(X^0_i, ...,Y^0_0,...,P) ).Eta_i |
+     *              | \sum_i (\partial_{Y^m_1} F(X^0_i, ...,Y^0_1,...,P) ).Eta_i |
      *    =         |                               .                            | 
      *              |                               .                            | 
      *              |                               .                            | 
      *              |                               .                            | 
-     *              | \sum_i (\partial_{Y^m_J} F(P,X^0_i, ...,Y^0_J,...) ).Eta_i |
+     *              | \sum_i (\partial_{Y^m_J} F(X^0_i, ...,Y^0_J,...,P) ).Eta_i |
      * 
      * 
      * (\partial_{Y^m} FUNCONVF).Eta is therefore equal to the "generic kernel product" with
      * summation on i (and not j !), with the summation term being
      * 
-     *    (\partial_{Y^m_j} F( P, X^0_i, ..., Y^0_j, ... )).Eta_i  = Grad<F,Y^m,Eta>
+     *    (\partial_{Y^m_j} F( X^0_i, ..., Y^0_j, ..., P )).Eta_i  = Grad<F,Y^m,Eta>
      * 
      */
     // parameter 1 after GY means i and j variables must be swapped, 
@@ -169,7 +169,7 @@ int main() {
 
     rescpu = vf;
 
-
+cout << "vf = " << vf[0] << ", " << vf[1] << ", " << vf[2] << endl;
 
     vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
 
@@ -182,6 +182,7 @@ int main() {
 
     rescpu = vf;
 
+cout << "vf = " << vf[0] << ", " << vf[1] << ", " << vf[2] << endl;
 
     // gradient wrt Y, which is a "j" variable.
 
@@ -198,7 +199,7 @@ int main() {
 
     rescpu = vf;
 
-
+cout << "vf = " << vf[0] << ", " << vf[1] << ", " << vf[2] << endl;
 
 }
 
