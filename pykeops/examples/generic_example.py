@@ -50,10 +50,10 @@ npoints_y = 700
 dimpoints = 3
 dimsignal = 2
 
-a = Variable(torch.randn(npoints_x,dimsignal), requires_grad=True)
-x = Variable(torch.randn(npoints_x,dimpoints), requires_grad=True)
-y = Variable(torch.randn(npoints_y,dimpoints), requires_grad=True)
-b = Variable(torch.randn(npoints_y,dimsignal), requires_grad=True)
+a = Variable(torch.randn(npoints_x,dimsignal), requires_grad=True).type(dtype)
+x = Variable(torch.randn(npoints_x,dimpoints), requires_grad=True).type(dtype)
+y = Variable(torch.randn(npoints_y,dimpoints), requires_grad=True).type(dtype)
+b = Variable(torch.randn(npoints_y,dimsignal), requires_grad=True).type(dtype)
 
 # Test, using a pytorch or libkp backend
 for backend in ["pytorch", "auto"] :
