@@ -1,7 +1,7 @@
-# KErnel OPerationS for GPUs
+# KErnel OPerationS, with autodiff and without memory overflows
 
 ```
-          88          oooo    oooo             .oooooo.                                  88
+          88           oooo    oooo             .oooooo.                                 88
         .8'`8.         `888   .8P'             d8P'  `Y8b                              .8'`8.
        .8'  `8.         888  d8'     .ooooo.  888      888 oo.ooooo.   .oooo.o        .8'  `8.
       .8'    `8.        88888[      d88' `88b 888      888  888' `88b d88(  "8       .8'    `8.
@@ -20,7 +20,7 @@ The KeOps library allows you to compute efficiently expressions of the form
 \gamma_i = \text{Reduction}_j \big[ f(x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big]
 ```
 
-and their derivatives, where $i$ goes from $1$ to $N$ and $j$ form $1$ to $M$.
+and their derivatives, where $`i`$ goes from $`1`$ to $`N`$ and $`j`$ form $`1`$ to $`M`$.
 
 The basic example is the Gaussian convolution on a non regular grid in $`\mathbb R^3`$ (aka. **RBF kernel product**). Given :
 
