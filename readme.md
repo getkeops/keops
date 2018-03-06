@@ -1,4 +1,4 @@
-# KErnel OPerationS, with autodiff and without memory overflows
+# KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows
 
 ```
           88           oooo    oooo             .oooooo.                                 88
@@ -17,10 +17,10 @@
 The KeOps library allows you to compute efficiently expressions of the form
 
 ```math
-\gamma_i = \text{Reduction}_j \big[ f(x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big]
+\alpha_i = \text{Reduction}_j \big[ f(x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big]
 ```
 
-and their derivatives, where $`i`$ goes from $`1`$ to $`N`$ and $`j`$ form $`1`$ to $`M`$.
+and their derivatives, where $`i`$ goes from $`1`$ to $`N`$ and $`j`$ from $`1`$ to $`M`$.
 
 The basic example is the Gaussian convolution on a non regular grid in $`\mathbb R^3`$ (aka. **RBF kernel product**). Given :
 
@@ -28,13 +28,13 @@ The basic example is the Gaussian convolution on a non regular grid in $`\mathbb
 - a source point cloud $`(y_j)_{j=1}^M \in  \mathbb R^{M \times 3}`$;
 - a signal or vector field $`(\beta_j)_{j=1}^M \in  \mathbb R^{M \times D}`$ attached to the $`y_j`$'s
 
-KeOps may computes $`(\gamma_i)_{i=1}^N \in  \mathbb R^{N \times D}`$ given by
+KeOps allows you to compute efficiently the array $`(\alpha_i)_{i=1}^N \in  \mathbb R^{N \times D}`$ given by
 
 ```math
- \gamma_i =  \sum_j K(x_i,y_j) \beta_j,  \qquad i=1,\cdots,N
+ \alpha_i =  \sum_j K(x_i,y_j) \beta_j,  \qquad i=1,\cdots,N
 ```
 
-where $`K(x_i,y_j) = \exp(-|x_i - y_j|^2 / \sigma^2)`$.
+where $`K(x_i,y_j) = \exp(-\|x_i - y_j\|^2 / \sigma^2)`$.
 
 ## Usage
 
@@ -60,9 +60,9 @@ params = {
     "gamma"   : 1./sigma**2,
 }
 
-# Depending on the input's types, Kxy_b is a CPU or a GPU variable.
+# Depending on the inputs' types, a is a CPU or a GPU variable.
 # It can be differentiated wrt. x, y, b and (soon!) sigma.
-Kxy_b  = kernel_product( x, y, b, params)
+a  = kernel_product( x, y, b, params)
 ```
 
 We support:
