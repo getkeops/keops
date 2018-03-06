@@ -9,6 +9,7 @@
  *      _P<N>, or Param<N>			: the N-th parameter variable
  *      _X<N,DIM>				: the N-th variable, vector of dimension DIM, CAT = 0
  *      _Y<N,DIM>				: the N-th variable, vector of dimension DIM, CAT = 1
+ *	Elem<F,N>				: Extract Nth element of F
  *
  *
  * Available constants are :
@@ -353,6 +354,60 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
         THIS::Operation(out,outA,outB);
     }
 };
+
+
+
+
+//////////////////////////////////////////////////////////////
+////     ELEMENT EXTRACTION : Elem<F,M>                   ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int M >
+struct Elem : UnaryOp<Elem,F,M> {
+    static const int DIM = 1;
+    static_assert(F::DIM>M,"Index out of bound in Elem");
+
+    static void PrintId() { cout << "Elem"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+            *out = outF[M];
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = DiffTF<V,ElemT<GRADIN,F::DIM,M>>;
+};
+
+
+
+//////////////////////////////////////////////////////////////
+////     ELEMENT "INJECTION" : ElemT<F,N,M>               ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int N, int M >
+struct ElemT : UnaryOp<Elem,F,N,M> {
+    static const int DIM = N;
+    static_assert(F::DIM==1,"Input of ElemT should be a scalar");
+
+    static void PrintId() { cout << "ElemT"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+	    for(int k=0; k<DIM; k++)
+            	out[k] = 0.0;
+	    out[M] = *outF;
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = DiffTF<V,Elem<GRADIN,M>>;
+};
+
+
+
 
 
 // helper for counting the number of occurrences of a subformula in a formula
