@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		nvcc -std=c++11 -O2 -o build/test_autodiff test_autodiff.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -std=c++11 -O2 -o build/test_autodiff test_autodiff.cu
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the GPU, then get its gradient and test again the convolution
@@ -18,14 +18,20 @@
 #include <ctime>
 #include <algorithm>
 
-#include "../core/GpuConv1D.cu"
-#include "../core/GpuConv2D.cu"
-
 #define __TYPE__ double
 
-#include "../core/autodiff.h"
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
 
-#include "../core/CpuConv.cpp"
+#include "core/autodiff.h"
+
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+#include "core/formulas/kernels.h"
+#include "core/formulas/norms.h"
+#include "core/formulas/factorize.h"
+
+#include "core/CpuConv.cpp"
 
 using namespace std;
 
@@ -41,22 +47,22 @@ template < class V > void fillrandom(V& v) {
 
 int main() {
     // In this part we define the symbolic variables of the function
-    using X = Var<0,3,0>; 	// X is the first variable and represents a 3D vector
-    using Y = Var<1,3,1>; 	// Y is the second variable and represents a 3D vector
-    using U = Var<2,4,0>; 	// U is the third variable and represents a 4D vector
-    using V = Var<3,4,1>; 	// V is the fourth variable and represents a 4D vector
-    using Beta = Var<4,3,1>;	// Beta is the fifth variable and represents a 3D vector
-    using C = Param<0>;		// C is the first extra parameter
+    using X = Var<1,3,0>; 	// X is the second variable and represents a 3D vector
+    using Y = Var<2,3,1>; 	// Y is the third variable and represents a 3D vector
+    using U = Var<3,4,0>; 	// U is the fourth variable and represents a 4D vector
+    using V = Var<4,4,1>; 	// V is the fifth variable and represents a 4D vector
+    using Beta = Var<5,3,1>;	// Beta is the sixth variable and represents a 3D vector
+    using C = Param<0,1>;		// C is the first variable and is a scalar parameter
 
     // symbolic expression of the function ------------------------------------------------------
 
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
+    using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
     using FUNCONVF = typename Generic<F>::sEval;
 
     // gradient with respect to X ---------------------------------------------------------------
-    using Eta = Var<5,F::DIM,0>; // new variable is in sixth position and is input of gradient
+    using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
     using GX = Grad<F,X,Eta>;
 
     /*
@@ -166,27 +172,27 @@ int main() {
 
     cout << "blank run" << endl;
     begin = clock();
-    GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     cout << "time for blank run : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     cout << "testing function F" << endl;
     begin = clock();
-    GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    GpuConv1D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv1D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -210,21 +216,21 @@ int main() {
 
     cout << "testing function GX" << endl;
     begin = clock();
-    GpuConv2D(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e);
+    GpuConv2D(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    GpuConv1D(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e);
+    GpuConv1D(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    CpuConv(FUNCONVGX(), params, Nx, Ny, f, x, y, u, v, b, e);
+    CpuConv(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -253,21 +259,21 @@ int main() {
 
     cout << "testing function GY" << endl;
     begin = clock();
-    GpuConv2D(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e);
+    GpuConv2D(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    GpuConv1D(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e);
+    GpuConv1D(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    CpuConv(FUNCONVGY(), params, Ny, Nx, f, x, y, u, v, b, e);
+    CpuConv(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 

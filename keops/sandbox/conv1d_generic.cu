@@ -20,7 +20,7 @@ template < class V > void fillrandom(V& v) {
 
 
 // Signature of the generic function:
-extern "C" int GpuConv1D(float*, int, int, float*, float**);
+extern "C" int GpuConv1D(int, int, float*, float**);
 
 
 
@@ -48,18 +48,19 @@ int main() {
     fillrandom(vv);
     float *v = vv.data();
 
-    // wrap variables
-    vector<float*> vargs(3);
-    vargs[0]=x;
-    vargs[1]=y;
-    vargs[2]=v;
-    float **args = vargs.data();
-
     float params[1];
     float Sigma = 1;
     params[0] = 1.0/(Sigma*Sigma);
 
-    GpuConv1D(params, Nx, Ny, f, args);
+    // wrap variables
+    vector<float*> vargs(4);
+    vargs[0]=params;
+    vargs[1]=x;
+    vargs[2]=y;
+    vargs[3]=v;
+    float **args = vargs.data();
+
+    GpuConv1D(Nx, Ny, f, args);
 
     return 0;
 }

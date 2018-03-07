@@ -1,6 +1,6 @@
 // test convolution using factorized formula
 // compile with
-//		nvcc -std=c++11 -O2 -o build/test_factorized test_factorized.cu
+//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_factorized test_factorized.cpp
 
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test
@@ -19,9 +19,9 @@
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "../core/autodiff.h"
+#include "core/autodiff.h"
 
-#include "../core/CpuConv.cpp"
+#include "core/CpuConv.cpp"
 
 using namespace std;
 
@@ -39,12 +39,12 @@ int main() {
 
 
     // symbolic variables of the function
-    using X = Var<0,3,0>; 	// X is the first variable and represents a 3D vector
-    using Y = Var<1,3,1>; 	// Y is the second variable and represents a 3D vector
-    using Beta = Var<2,3,1>;	// Beta is the fifth variable and represents a 3D vector
-    using U = Var<3,3,0>;
-    using V = Var<4,3,1>; 
-    using C = Param<0>;		// C is the first extra parameter
+    using X = Var<1,3,0>; 	// X is the first variable and represents a 3D vector
+    using Y = Var<2,3,1>; 	// Y is the second variable and represents a 3D vector
+    using Beta = Var<3,3,1>;	// Beta is the fifth variable and represents a 3D vector
+    using U = Var<4,3,0>;
+    using V = Var<5,3,1>;
+    using C = Param<0,1>;		// C is the first extra parameter
 
     // symbolic expression of the function : 3rd order gradient with respect to X, X and Y of the Gauss kernel
     using F = Grad<Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>,Y,V>;
@@ -83,7 +83,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, b, u, v);
+    CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, b, u, v);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -96,7 +96,7 @@ int main() {
     cout << endl << endl << "Testing FF" << endl;
 
     begin = clock();
-    CpuConv(FUNCONVFF(), params, Nx, Ny, f, x, y, b, u, v);
+    CpuConv(FUNCONVFF(), Nx, Ny, f, params, x, y, b, u, v);
     end = clock();
     cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 

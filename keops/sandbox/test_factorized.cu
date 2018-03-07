@@ -1,6 +1,6 @@
 // test convolution using factorized formula
 // compile with
-//		nvcc -std=c++11 -O2 -o build/test_factorized test_factorized.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -D__TYPE__=float -std=c++11 -O2 -o build/test_factorized test_factorized.cu
 
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test
@@ -18,11 +18,11 @@
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "../core/GpuConv1D.cu"
-#include "../core/GpuConv2D.cu"
-#include "../core/CpuConv.cpp"
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
+#include "core/CpuConv.cpp"
 
-#include "../core/autodiff.h"
+#include "core/autodiff.h"
 
 using namespace std;
 
@@ -39,18 +39,18 @@ template < class V > void fillrandom(V& v) {
 int main() {
 
     // In this part we define the symbolic variables of the function
-    using X = Var<0,3,0>; 	// X is the first variable and represents a 3D vector
-    using Y = Var<1,3,1>; 	// Y is the second variable and represents a 3D vector
-    using U = Var<2,4,0>; 	// U is the third variable and represents a 4D vector
-    using V = Var<3,4,1>; 	// V is the fourth variable and represents a 4D vector
-    using Beta = Var<4,3,1>;	// Beta is the fifth variable and represents a 3D vector
-    using C = Param<0>;		// C is the first extra parameter
+    using X = Var<1,3,0>; 	// X is the second variable and represents a 3D vector
+    using Y = Var<2,3,1>; 	// Y is the third variable and represents a 3D vector
+    using U = Var<3,4,0>; 	// U is the fourth variable and represents a 4D vector
+    using V = Var<4,4,1>; 	// V is the fifth variable and represents a 4D vector
+    using Beta = Var<5,3,1>;	// Beta is the sixth variable and represents a 3D vector
+    using C = Param<0,1>;		// C is the first variable and is a scalar parameter
 
     // symbolic expression of the function ------------------------------------------------------
 
     // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 where F0 = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
     // with the standard implementation it means we will compute 8 times F0 to evaluate F
-    using F0 = Scal<Exp<Scal<Constant<C>,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
+    using F0 = Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
     using F1 = Add<F0,F0>;
     using F = Add<F1,F1>;
 
@@ -65,7 +65,7 @@ int main() {
     cout << "Factor = " << endl;
     FF::Factor::PrintId();
     cout << endl << "Factorized Formula = " << endl;
-    using INDS = pack<0,1,2,3,4>; // just to print the formula we define a dummy INDS...
+    using INDS = pack<0,1,2,3,4,5>; // just to print the formula we define a dummy INDS...
     FF::FactorizedFormula<INDS>::PrintId();
     cout << endl << endl;
 
@@ -102,7 +102,7 @@ int main() {
     cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
     begin = clock();
-    GpuConv1D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv1D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -110,7 +110,7 @@ int main() {
     fillrandom(vf);
 
     begin = clock();
-    GpuConv2D(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -119,7 +119,7 @@ int main() {
     
     if(Nx*Ny<1e8) {
         begin = clock();
-        CpuConv(FUNCONVF(), params, Nx, Ny, f, x, y, u, v, b);
+        CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
         end = clock();
         cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -163,7 +163,7 @@ int main() {
     using FUNCONVFF = typename Generic<FF>::sEval;
 
     begin = clock();
-    GpuConv1D(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv1D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -171,7 +171,7 @@ int main() {
     fillrandom(vf);
 
     begin = clock();
-    GpuConv2D(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
+    GpuConv2D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -180,7 +180,7 @@ int main() {
 
     if(Nx*Ny<1e8) {
         begin = clock();
-        CpuConv(FUNCONVFF(), params, Nx, Ny, f, x, y, u, v, b);
+        CpuConv(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
         end = clock();
         cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 

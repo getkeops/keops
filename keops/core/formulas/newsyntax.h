@@ -28,6 +28,8 @@
 
 #define Elem(p,k) Elem<decltype(p),k>()
 
+#define ElemT(p,k) ElemT<decltype(p),k>()
+
 template < class FA, class FB >
 Add<FA,FB> operator+(FA fa, FB fb) {
     return Add<FA,FB>();

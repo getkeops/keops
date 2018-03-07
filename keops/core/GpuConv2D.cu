@@ -61,11 +61,11 @@ __global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
 // thread kernel: computation of x1i = sum_j k(x2i,x3i,...,y1j,y2j,...) for index i given by thread id.
 // N.B.: This routine by itself is generic, and does not specifically refer to the "sum" operation.
 //       It can be used for any Map-Reduce operation, provided that "fun" is well-understood.
-template < typename TYPE, class FUN, class PARAM >
-__global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** px, TYPE** py) {
+template < typename TYPE, class FUN >
+__global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py, TYPE** pp) {
     /*
-     * px and py are pointers to the device global memory.
-     * both are arrays of arrays with the relevant size: for instance,
+     * px, py and pp are pointers to the device global memory.
+     * They are arrays of arrays with the relevant size: for instance,
      * px[1] is a TYPE array of size ( nx * DIMSX::VAL(1) ).
      *
      * (*px) = px[0] is the output array, of size (nx * DIMSX::FIRST).
@@ -74,21 +74,20 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     // gets dimensions and number of variables of inputs of function FUN
     using DIMSX = typename FUN::DIMSX;  // DIMSX is a "vector" of templates giving dimensions of xi variables
     using DIMSY = typename FUN::DIMSY;  // DIMSY is a "vector" of templates giving dimensions of yj variables
-    const int DIMPARAM = FUN::DIMPARAM; // DIMPARAM is the total size of the param vector
+    using DIMSP = typename FUN::DIMSP;  // DIMSP is a "vector" of templates giving dimensions of parameters variables
     const int DIMX = DIMSX::SUM;        // DIMX  is sum of dimensions for xi variables
     const int DIMY = DIMSY::SUM;        // DIMY  is sum of dimensions for yj variables
+    const int DIMP = DIMSP::SUM;        // DIMP  is sum of dimensions for parameters variables
     const int DIMX1 = DIMSX::FIRST;     // DIMX1 is dimension of output variable
 
     // Load the parameter vector in the Thread Memory, for improved efficiency
-    //TYPE param_loc[static_max_device(DIMPARAM,1)];
+    //TYPE param_loc[static_max_device(DIMP,1)];
     // (Jean :) Direct inlining to compile on Ubuntu 16.04 with nvcc7.5,
     //          which is a standard config in research. For whatever reason, I can't make
     //          it work an other way... Is it bad practice/performance?
-    TYPE param_loc[DIMPARAM < 1 ? 1 : DIMPARAM];
-
-    for(int k=0; k<DIMPARAM; k++)
-        param_loc[k] = param[k];
-
+    TYPE param_loc[DIMP < 1 ? 1 : DIMP];
+	load<DIMSP>(0,param_loc,pp); // load parameters variables from global memory to local thread memory
+    
     // Weird syntax to create a pointer in shared memory.
     extern __shared__ char yj_char[];
     TYPE* const yj = reinterpret_cast<TYPE*>(yj_char);
@@ -128,7 +127,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
     if(i<nx) { // we compute x1i only if needed
         TYPE* yjrel = yj; // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
-            call<DIMSX,DIMSY>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
+            call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
             ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi);       // tmp += xi
         }
     }
@@ -148,17 +147,19 @@ __global__ void GpuConv2DOnDevice(FUN fun, PARAM param, int nx, int ny, TYPE** p
 ///////////////////////////////////////////////////
 
 
-template < typename TYPE, class FUN, class PARAM >
-int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE** py_h) {
+template < typename TYPE, class FUN >
+int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h) {
 
     using DIMSX = typename FUN::DIMSX;
     using DIMSY = typename FUN::DIMSY;
-    const int DIMPARAM = FUN::DIMPARAM;
+    using DIMSP = typename FUN::DIMSP;
     const int DIMX = DIMSX::SUM;
     const int DIMY = DIMSY::SUM;
+    const int DIMP = DIMSP::SUM;
     const int DIMX1 = DIMSX::FIRST;
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
+    const int SIZEP = DIMSP::SIZE;
 
     // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
@@ -179,20 +180,22 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     TYPE *x1B, *x_d, *y_d, *param_d;
 
     // device arrays of pointers to device data
-    TYPE **px_d, **py_d;
+    TYPE **px_d, **py_d, **pp_d;
 
     // single cudaMalloc
     void **p_data;
-    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ)+sizeof(TYPE)*(DIMPARAM+nx*DIMX+ny*DIMY+nx*DIMX1*gridSize.y));
+    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ)+sizeof(TYPE)*(DIMP+nx*DIMX+ny*DIMY+nx*DIMX1*gridSize.y));
 
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;
     p_data_a += SIZEI;
     py_d = p_data_a;
     p_data_a += SIZEJ;
+    pp_d = p_data_a;
+    p_data_a += SIZEP;
     TYPE *p_data_b = (TYPE*)p_data_a;
     param_d = p_data_b;
-    p_data_b += DIMPARAM;
+    p_data_b += DIMP;
     x_d = p_data_b;
     p_data_b += nx*DIMX;
     y_d = p_data_b;
@@ -202,11 +205,17 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     // host arrays of pointers to device data
     TYPE *phx_d[SIZEI];
     TYPE *phy_d[SIZEJ];
+    TYPE *php_d[SIZEP];
 
     // Send data from host to device.
-    cudaMemcpy(param_d, param_h, sizeof(TYPE)*DIMPARAM, cudaMemcpyHostToDevice);
-
     int nvals;
+    php_d[0] = param_d;
+    nvals = DIMSP::VAL(0);
+    for(int k=1; k<SIZEP; k++) {
+        php_d[k] = php_d[k-1] + nvals;
+        nvals = DIMSP::VAL(k);
+        cudaMemcpy(php_d[k], pp_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    }
     phx_d[0] = x_d;
     nvals = nx*DIMSX::VAL(0);
     for(int k=1; k<SIZEI; k++) {
@@ -228,9 +237,10 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
     // copy arrays of pointers
     cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice);
     cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice);
+    cudaMemcpy(pp_d, php_d, SIZEP*sizeof(TYPE*), cudaMemcpyHostToDevice);
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
-    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,param_d,nx,ny,px_d,py_d);
+    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
 
     // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
     // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMX1 ) to (nx, DIMX1)
@@ -250,11 +260,12 @@ int GpuConv2D_FromHost(FUN fun, PARAM param_h, int nx, int ny, TYPE** px_h, TYPE
 
 
 
-template < typename TYPE, class FUN, class PARAM >
-int GpuConv2D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TYPE** py_d) {
+template < typename TYPE, class FUN >
+int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** px_d, TYPE** py_d, TYPE** pp_d) {
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
+    typedef typename FUN::DIMSP DIMSP;
     const int DIMY = DIMSY::SUM;
     const int DIMX1 = DIMSX::FIRST;
 
@@ -280,7 +291,7 @@ int GpuConv2D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
     px_d[0] = x1B;
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
-    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,param_d,nx,ny,px_d,py_d);
+    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
 
     // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
     // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMX1 ) to (nx, DIMX1)
@@ -295,112 +306,138 @@ int GpuConv2D_FromDevice(FUN fun, PARAM param_d, int nx, int ny, TYPE** px_d, TY
 
 // Wrapper around GpuConv2D, which takes lists of arrays *x1, *x2, ..., *y1, *y2, ...
 // and use getlist to enroll them into "pointers arrays" px and py.
-template < typename TYPE, class FUN, class PARAM, typename... Args >
-int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, Args... args) {
+template < typename TYPE, class FUN, typename... Args >
+int GpuConv2D(FUN fun, int nx, int ny, TYPE* x1_h, Args... args) {
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
 
     const int SIZEI = VARSI::SIZE+1;
     const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
 
     using DIMSX = GetDims<VARSI>;
     using DIMSY = GetDims<VARSJ>;
+    using DIMSP = GetDims<VARSP>;
 
     using INDSI = GetInds<VARSI>;
     using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
 
     TYPE *px_h[SIZEI];
     TYPE *py_h[SIZEJ];
+    TYPE *pp_h[SIZEP];
 
     px_h[0] = x1_h;
     getlist<INDSI>(px_h+1,args...);
     getlist<INDSJ>(py_h,args...);
+    getlist<INDSP>(pp_h,args...);
 
-    return GpuConv2D_FromHost(fun,param,nx,ny,px_h,py_h);
+    return GpuConv2D_FromHost(fun,nx,ny,px_h,py_h,pp_h);
 
 }
 
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays
-template < typename TYPE, class FUN, class PARAM >
-int GpuConv2D(FUN fun, PARAM param, int nx, int ny, TYPE* x1_h, TYPE** args) {
+template < typename TYPE, class FUN >
+int GpuConv2D(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args) {
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
 
     const int SIZEI = VARSI::SIZE+1;
     const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
 
     using DIMSX = GetDims<VARSI>;
     using DIMSY = GetDims<VARSJ>;
+    using DIMSP = GetDims<VARSP>;
 
     using INDSI = GetInds<VARSI>;
     using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
 
     TYPE *px_h[SIZEI];
     TYPE *py_h[SIZEJ];
+    TYPE *pp_h[SIZEP];
 
     px_h[0] = x1_h;
     for(int i=1; i<SIZEI; i++)
         px_h[i] = args[INDSI::VAL(i-1)];
     for(int i=0; i<SIZEJ; i++)
         py_h[i] = args[INDSJ::VAL(i)];
+    for(int i=0; i<SIZEP; i++)
+        pp_h[i] = args[INDSP::VAL(i)];
 
-    return GpuConv2D_FromHost(fun,param,nx,ny,px_h,py_h);
+    return GpuConv2D_FromHost(fun,nx,ny,px_h,py_h,pp_h);
 
 }
 
 
 // Same wrappers, but for data located on the device
-template < typename TYPE, class FUN, class PARAM, typename... Args >
-int GpuConv2D_FromDevice(FUN fun, PARAM param, int nx, int ny, TYPE* x1_d, Args... args) {
+template < typename TYPE, class FUN, typename... Args >
+int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
 
     const int SIZEI = VARSI::SIZE+1;
     const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
 
     using DIMSX = GetDims<VARSI>;
     using DIMSY = GetDims<VARSJ>;
+    using DIMSP = GetDims<VARSP>;
 
     using INDSI = GetInds<VARSI>;
     using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
 
     TYPE *px_d[SIZEI];
     TYPE *py_d[SIZEJ];
+    TYPE *pp_d[SIZEP];
 
     px_d[0] = x1_d;
     getlist<INDSI>(px_d+1,args...);
     getlist<INDSJ>(py_d,args...);
+    getlist<INDSP>(pp_d,args...);
 
-    return GpuConv2D_FromDevice(fun,param,nx,ny,px_d,py_d);
+    return GpuConv2D_FromDevice(fun,nx,ny,px_d,py_d,pp_d);
 
 }
 
-template < typename TYPE, class FUN, class PARAM >
-int GpuConv2D_FromDevice(FUN fun, PARAM param, int nx, int ny, TYPE* x1_d, TYPE** args) {
+template < typename TYPE, class FUN >
+int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
 
     const int SIZEI = VARSI::SIZE+1;
     const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
 
     using DIMSX = GetDims<VARSI>;
     using DIMSY = GetDims<VARSJ>;
+    using DIMSP = GetDims<VARSP>;
 
     using INDSI = GetInds<VARSI>;
     using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
 
     TYPE *px_d[SIZEI];
     TYPE *py_d[SIZEJ];
+    TYPE *pp_d[SIZEP];
 
     px_d[0] = x1_d;
     for(int i=1; i<SIZEI; i++)
         px_d[i] = args[INDSI::VAL(i-1)];
     for(int i=0; i<SIZEJ; i++)
         py_d[i] = args[INDSJ::VAL(i)];
+    for(int i=0; i<SIZEP; i++)
+        pp_d[i] = args[INDSP::VAL(i)];
 
-    return GpuConv2D_FromDevice(fun,param,nx,ny,px_d,py_d);
+    return GpuConv2D_FromDevice(fun,nx,ny,px_d,py_d,pp_d);
 
 }
 

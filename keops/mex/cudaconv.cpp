@@ -5,13 +5,13 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 
-extern "C" int CpuConv(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 
 #ifdef USE_CUDA
-extern "C" int GpuConv1D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv1D_FromDevice(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv2D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv2D_FromDevice(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 #endif
 
 void ExitFcn(void) {
@@ -52,22 +52,38 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     using VARSI = typename F::template VARS<0>;	// list variables of type I used in formula F
     using VARSJ = typename F::template VARS<1>; // list variables of type J used in formula F
+    using VARSP = typename F::template VARS<2>; // list variables of type parameter used in formula F
 
     using DIMSX = GetDims<VARSI>;
     using DIMSY = GetDims<VARSJ>;
-
-    using PARAMS = typename F::VARS<2>;
-    static const int DIMPARAM = PARAMS::SIZE;
+    using DIMSP = GetDims<VARSP>;
 
     using INDSI = GetInds<VARSI>;
     using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
 
-    using INDS = ConcatPacks<INDSI,INDSJ>;
+    using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;
 
     const int NARGSI = VARSI::SIZE; // number of I variables used in formula F
     const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
+    const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
 
-    int NARGS = nrhs-5-(DIMPARAM?1:0);
+
+
+
+
+
+
+//// stoppé ici
+
+
+
+
+
+
+
+
+    int NARGS = nrhs-5-(DIMP?1:0);
 
     if(nlhs != 1)
         mexErrMsgTxt("One output required.");
