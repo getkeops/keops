@@ -1,4 +1,4 @@
-// nvcc -I.. -DCUDA_BLOCK_SIZE=192 -D__TYPE__=float -std=c++11 -Xcompiler -fPIC -shared -o build/simple_autodiff.so simple_autodiff.cu
+// nvcc -I.. -Wno-deprecated-gpu-targets -DCUDA_BLOCK_SIZE=192 -D__TYPE__=float -std=c++11 -Xcompiler -fPIC -shared -o build/simple_autodiff.so simple_autodiff.cu
 
 
 #include "core/GpuConv2D.cu"

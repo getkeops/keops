@@ -1,6 +1,6 @@
 // test convolution using factorized formula
 // compile with
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -D__TYPE__=float -std=c++11 -O2 -o build/test_factorized test_factorized.cu
+//		nvcc -I.. -Wno-deprecated-gpu-targets -DCUDA_BLOCK_SIZE=192 -D__TYPE__=float -std=c++11 -O2 -o build/test_factorized test_factorized.cu
 
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test
