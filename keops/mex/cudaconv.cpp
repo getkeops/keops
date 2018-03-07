@@ -97,7 +97,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     //////////////////////////////////////////////////////////////
 
     int argu = 0;
-    int n[2];
+    int n[3];
     //----- the first input arguments: nx--------------//
     if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
         mexErrMsgTxt("first arg should be scalar nx");
@@ -109,6 +109,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         mexErrMsgTxt("second arg should be scalar ny");
     n[1] = *mxGetPr(prhs[argu]);
     argu++;
+
+    n[2] = 1;
 
     //----- the next input arguments: tagIJ--------------//
     if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
@@ -130,6 +132,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     int *typeargs = new int[NARGS];
     int *dimargs = new int[NARGS];
+
     for(int k=0; k<NARGS; k++) {
         typeargs[k] = -1;
         dimargs[k] = -1;
