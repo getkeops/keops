@@ -1,6 +1,7 @@
 function testShooting
 
-addpath('build')
+addpath('../build')
+addpath('..')
 
 q0 = rand(2,15)*2-1;
 p0 = 3*randn(size(q0));

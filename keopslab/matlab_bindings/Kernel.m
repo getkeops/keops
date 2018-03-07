@@ -112,12 +112,12 @@ for k=1:length(var_options)
     % characters
     type = vartype(2);
     pos = vartype(4);
-    if type=='x' && indxy(1)==-1
-        indxy(1) = str2num(pos)+1;
-    elseif type=='y' && indxy(2)==-1
-        indxy(2) = str2num(pos)+1;
-    elseif type=='m' && indxy(3)==-1
-        indxy(3) = str2num(pos)+1;
+    if type=='x' && indxyp(1)==-1
+        indxyp(1) = str2num(pos)+1;
+    elseif type=='y' && indxyp(2)==-1
+        indxyp(2) = str2num(pos)+1;
+    elseif type=='m' && indxyp(3)==-1
+        indxyp(3) = str2num(pos)+1;
     end
 end
 end
