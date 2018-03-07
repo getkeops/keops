@@ -127,12 +127,13 @@ function testbuild = buildFormula(code1, code2, filename, precision, build_dir, 
 
     % I do not have a better option to set working dir...
     cd(build_dir)
+    cmd_ld_preload = 'export LD_PRELOAD=/usr/lib/x86_64-linux-gu/libstdc++.so.6;';
     %cmdline = ['~/src/cmake-3.10.1/bin/cmake ../cuda -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
-    cmdline = ['cmake ../cuda -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
+    cmdline = [cmd_ld_preload,'cmake ../cuda -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     fprintf(cmdline)
     try
         [~,prebuild_output] = system(cmdline)
-        [~,build_output]  = system(['make mex_cpp'])
+        [~,build_output]  = system([cmd_ld_preload,'make mex_cpp'])
     catch
         error('Compilation  Failed')
     end
