@@ -165,7 +165,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    int deviceID = 0;
+    int deviceID = 1;
     cudaSetDevice(deviceID);
     end = clock();
     cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
