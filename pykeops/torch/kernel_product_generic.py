@@ -12,7 +12,7 @@ import torch
 class GenericKernelProduct(torch.autograd.Function):
     """
     Computes a Generic Kernel Product specified by a formula (string) such as :
-    formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
+    formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<C, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
     """
 
     @staticmethod
@@ -20,19 +20,19 @@ class GenericKernelProduct(torch.autograd.Function):
         """
         Computes a Generic Kernel Product specified by a formula (string) such as :
         ```
-        formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
+        formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<C, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
         ```
         i.e.       <U,V>^2 * exp(-C*|X-Y|^2 ) * B
 
         aliases is a list of strings, which specifies "who is who"; for example :
         ```
         aliases = [ "DIMPOINT = 3", "DIMVECT = 4", "DIMOUT = 5",
-                    "C = Param<0>"          ,   # 1st parameter
-                    "X = Var<0,DIMPOINT,0>" ,   # 1st variable, dim 3, indexed by i
-                    "Y = Var<1,DIMPOINT,1>" ,   # 2nd variable, dim 3, indexed by j
-                    "U = Var<2,DIMVECT ,0>" ,   # 3rd variable, dim 4, indexed by i
-                    "V = Var<3,DIMVECT ,1>" ,   # 4th variable, dim 4, indexed by j
-                    "B = Var<4,DIMOUT  ,1>" ]   # 5th variable, dim 5, indexed by j
+                    "C = Param<0,1>"          ,   # 1st parameter
+                    "X = Var<1,DIMPOINT,0>" ,   # 1st variable, dim 3, indexed by i
+                    "Y = Var<2,DIMPOINT,1>" ,   # 2nd variable, dim 3, indexed by j
+                    "U = Var<3,DIMVECT ,0>" ,   # 3rd variable, dim 4, indexed by i
+                    "V = Var<4,DIMVECT ,1>" ,   # 4th variable, dim 4, indexed by j
+                    "B = Var<5,DIMOUT  ,1>" ]   # 5th variable, dim 5, indexed by j
         ```
 
         signature is a list of (DIM, CAT) integer pairs allowing the user to specify
@@ -220,10 +220,10 @@ class GenericKernelProduct(torch.autograd.Function):
         sum_index = ctx.sum_index
         args = ctx.saved_variables  # Unwrap the saved variables
 
-        # Compute the number of arguments which are not parameters
+        # number of arguments (including parameters)
         nvars = 0;
         for sig in signature[1:]:
-            if sig[1] != 2: nvars += 1
+            nvars += 1
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
@@ -236,6 +236,7 @@ class GenericKernelProduct(torch.autograd.Function):
         for sig in signature[1:]:  # Run through the actual parameters, given in *args in the forward.
             arg_ind += 1
             if sig[1] == 2:  # we're referring to a parameter
+                var_ind += 1  # increment the Variable count
                 grads.append(None)  # Not implemented yet
             else:
                 var_ind += 1  # increment the Variable count

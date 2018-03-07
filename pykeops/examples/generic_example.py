@@ -31,7 +31,7 @@ else : # Custom kernel, defined using the naming conventions of the libkp
     kernel              = Kernel()
     kernel.features     = "locations" # we could also use "locations+directions", etc.
     # Symbolic formula, for the libkp backend
-    kernel.formula_sum  = "( -Cst(G)*SqDist(X,Y) )"
+    kernel.formula_sum  = "( -G*SqDist(X,Y) )"
     # Pytorch routine, for the pytorch backend
     kernel.routine_sum  = lambda g=None, xmy2=None, **kwargs : \
                                   -g*xmy2

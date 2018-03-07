@@ -8,7 +8,7 @@ from ..common.cudaconv import cuda_conv_generic
 class GenericLogSumExp(torch.autograd.Function):
     """
     Computes a Generic LogSumExp specified by a formula (string) such as the Gaussian kernel:
-    formula = " ScalProduct< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > ,  B> "
+    formula = " ScalProduct< Scal<C, Minus<SqNorm2<Subtract<X,Y>>> > ,  B> "
     which will be turned into
     formula = "LogSumExp<" + formula + ">"
     """
@@ -80,10 +80,10 @@ class GenericLogSumExp(torch.autograd.Function):
         # print(result)
         # print(result.grad_fn)
 
-        # Compute the number of arguments which are not parameters
+        # Compute the number of arguments (including parameters)
         nvars = 0;
         for sig in signature[1:]:
-            if sig[1] != 2: nvars += 1
+            nvars += 1
 
         # If formula takes 5 variables (numbered from 0 to 4), then:
         # - the previous output should be given as a 6-th variable (numbered 5),
