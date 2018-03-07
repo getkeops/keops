@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		nvcc -std=c++11 -O2 -o build/test_autodiff test_autodiff.cu
+//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_autodiff test_autodiff.cu 
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the GPU, then get its gradient and test again the convolution
@@ -18,14 +18,21 @@
 #include <ctime>
 #include <algorithm>
 
-#include "../core/GpuConv1D.cu"
-#include "../core/GpuConv2D.cu"
-
 #define __TYPE__ double
+#define CUDA_BLOCK_SIZE 192
 
-#include "../core/autodiff.h"
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
 
-#include "../core/CpuConv.cpp"
+#include "core/autodiff.h"
+
+#include "core/formulas/constants.h"
+#include "core/formulas/maths.h"
+#include "core/formulas/kernels.h"
+#include "core/formulas/norms.h"
+#include "core/formulas/factorize.h"
+
+#include "core/CpuConv.cpp"
 
 using namespace std;
 

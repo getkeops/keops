@@ -12,17 +12,19 @@
 #include <ctime>
 #include <algorithm>
 
+#define __TYPE__ double
+
+#include "core/autodiff.h"
+
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "../core/GpuConv1D.cu"
-#include "../core/GpuConv2D.cu"
-#include "../core/CpuConv.cpp"
-
-#include "../core/autodiff.h"
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
+#include "core/CpuConv.cpp"
 
 using namespace std;
 
