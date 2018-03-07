@@ -8,8 +8,8 @@ function G = GradKernel(F,var,newvar)
 % to the graident in the convolution
 % Example : define a Gaussian kernel convolution, then take its gradient
 % with respect to the first variable and test
-% F = Kernel('x=Vx(0,3)','y=Vy(1,3)','GaussKernel_(3,3)');
-% G = GradKernel(F,'x','c=Vx(3,3)');
+% F = Kernel('x=Vx(1,3)','y=Vy(2,3)','GaussKernel_(3,3)');
+% G = GradKernel(F,'x','c=Vx(4,3)');
 % Nx = 5000;
 % Ny = 2000;
 % x = randn(3,Nx);
@@ -17,7 +17,7 @@ function G = GradKernel(F,var,newvar)
 % b = randn(3,Ny);
 % c = randn(3,Nx);
 % p = .25;
-% res = G(x,y,b,c,p);
+% res = G(p,x,y,b,c);
 
 % we get the arguments (variables and formula) from the original call to 
 % the Kernel function in the nested function F

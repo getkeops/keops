@@ -68,22 +68,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
     const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
 
-
-
-
-
-
-
-//// stoppé ici
-
-
-
-
-
-
-
-
-    int NARGS = nrhs-5-(DIMP?1:0);
+    int NARGS = nrhs-5;
 
     if(nlhs != 1)
         mexErrMsgTxt("One output required.");
@@ -139,7 +124,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     //----- the next input arguments: tag1D2D--------------//
     if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
-        mexErrMsgTxt("fifth arg should be scalar tagID2D");
+        mexErrMsgTxt("fifth arg should be scalar tag1D2D");
     int tag1D2D = *mxGetPr(prhs[argu]);
     argu++;
 
@@ -156,6 +141,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     for(int k=0; k<NARGSJ; k++) {
         typeargs[INDSJ::VAL(k)] = 1;
         dimargs[INDSJ::VAL(k)] = DIMSY::VAL(k);
+    }
+    for(int k=0; k<NARGSP; k++) {
+        typeargs[INDSP::VAL(k)] = 2;
+        dimargs[INDSP::VAL(k)] = DIMSP::VAL(k);
     }
 
     //----- the next input arguments: args--------------//
@@ -185,27 +174,6 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     }
     argu += NARGS;
 
-    double *params;
-    __TYPE__ *castedparams ;
-    if(DIMPARAM) {
-        //----- the next input argument: params--------------//
-        /*  create a pointer to the input vector */
-        params = mxGetPr(prhs[argu]);
-        castedparams = castedFun(params,prhs[argu]);
-
-        /*  get the dimensions of the input targets */
-        int mp = mxGetM(prhs[argu]); //nrows
-        int np = mxGetN(prhs[argu]); //ncols
-        /* check to make sure the array is 1D */
-        if( min(mp,np)!=1 )
-            mexErrMsgTxt("Input params must be a 1D array.");
-        np = max(mp,np);
-        if(np!=DIMPARAM) {
-            mexErrMsgTxt("wrong dimension for input params.");
-            //cout << "For param: dimension is " << np << " but should be " << DIMPARAM << endl;
-        }
-        argu++;
-    }
 
     //////////////////////////////////////////////////////////////
     // Output arguments
@@ -230,39 +198,39 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     if(tagCpuGpu==0) {
         if(tagIJ==0){
-            CpuConv( castedparams, n[0], n[1], castedgamma, castedargs);
+            CpuConv( n[0], n[1], castedgamma, castedargs);
         } else{
-            CpuConv( castedparams, n[1], n[0], castedgamma, castedargs);
+            CpuConv( n[1], n[0], castedgamma, castedargs);
         } 
     }
 #ifdef USE_CUDA
     else if(tagCpuGpu==1) {
         if(tagIJ==0) {
             if(tag1D2D==0) {
-                GpuConv1D( castedparams, n[0], n[1], castedgamma, castedargs);
+                GpuConv1D( n[0], n[1], castedgamma, castedargs);
             } else {
-                GpuConv2D( castedparams, n[0], n[1], castedgamma, castedargs);
+                GpuConv2D( n[0], n[1], castedgamma, castedargs);
             }
         } else {
             if(tag1D2D==0){
-                GpuConv1D( castedparams, n[1], n[0], castedgamma, castedargs);
+                GpuConv1D( n[1], n[0], castedgamma, castedargs);
             } else {
-                GpuConv2D( castedparams, n[1], n[0], castedgamma, castedargs);
+                GpuConv2D( n[1], n[0], castedgamma, castedargs);
             }
         }
     } 
     else {
         if(tagIJ==0) {
             if(tag1D2D==0){
-                GpuConv1D_FromDevice( castedparams, n[0], n[1-0], castedgamma, castedargs);
+                GpuConv1D_FromDevice( n[0], n[1-0], castedgamma, castedargs);
             } else {
-                GpuConv2D_FromDevice( castedparams, n[0], n[1-0], castedgamma, castedargs);
+                GpuConv2D_FromDevice( n[0], n[1-0], castedgamma, castedargs);
             }
         } else {
             if(tag1D2D==0){
-                GpuConv1D_FromDevice( castedparams, n[1], n[0], castedgamma, castedargs);
+                GpuConv1D_FromDevice( n[1], n[0], castedgamma, castedargs);
             } else{
-                GpuConv2D_FromDevice( castedparams, n[1], n[0], castedgamma, castedargs);
+                GpuConv2D_FromDevice( n[1], n[0], castedgamma, castedargs);
             }
         }
     }
@@ -273,7 +241,6 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     int ngamma =mxGetNumberOfElements(plhs[0]);
     std::copy(castedgamma,castedgamma+ngamma,gamma);
 
-    delete[] castedparams;
     delete[] castedgamma;
     for(int k=0; k<NARGS; k++)
        delete[] castedargs[k];

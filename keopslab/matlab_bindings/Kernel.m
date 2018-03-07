@@ -13,7 +13,7 @@ function [F,fname] = Kernel(varargin)
 %
 % - Define and test the convolution with a Gauss kernel i.e. the sum
 % over j of e^(lambda*||xi-yj||^2)beta_j (xi,yj, beta_j 3d vectors):
-% F = Kernel('x=Vx(0,3)','y=Vy(1,3)','beta=Vy(2,3)','lambda=Pm(0)','Exp(Cst(lambda)*SqNorm2(x-y))*beta');
+% F = Kernel('x=Vx(0,3)','y=Vy(1,3)','beta=Vy(2,3)','lambda=Pm(3,1)','Exp(lambda*SqNorm2(x-y))*beta');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % beta = rand(3,5000);
@@ -22,7 +22,7 @@ function [F,fname] = Kernel(varargin)
 %
 % - Define and test the gradient of the previous function with respect
 % to the xi :
-% F = Kernel('x=Vx(0,3)','y=Vy(1,3)','beta=Vy(2,3)','eta=Vx(3,3)','lambda=Pm(0)',...
+% F = Kernel('x=Vx(0,3)','y=Vy(1,3)','beta=Vy(2,3)','eta=Vx(3,3)','lambda=Pm(4,1)',...
 %           'Grad(Exp(Cst(lambda)*SqNorm2(x-y))*beta,x,eta)');
 % x = rand(3,2000);
 % y = rand(3,5000);
@@ -94,10 +94,10 @@ end
 
 
 
-function [var_aliases,indxy] =format_var_aliase(var_options)
+function [var_aliases,indxyp] =format_var_aliase(var_options)
 % format var_aliases to pass option to cmake
 var_aliases = '';
-indxy = [-1,-1]; % indxy will be used to calculate nx and ny from input variables
+indxyp = [-1,-1,-1]; % indxyp will be used to calculate nx, ny and np from input variables
 
 for k=1:length(var_options)
 
@@ -116,6 +116,8 @@ for k=1:length(var_options)
         indxy(1) = str2num(pos)+1;
     elseif type=='y' && indxy(2)==-1
         indxy(2) = str2num(pos)+1;
+    elseif type=='m' && indxy(3)==-1
+        indxy(3) = str2num(pos)+1;
     end
 end
 end
