@@ -53,11 +53,12 @@ data<T>::data(int a) {
     vu.resize(Nx*dimVect); fillrandom(vu); u = vu.data();
     vv.resize(Ny*dimVect); fillrandom(vv); v = vv.data();
 
-    vargs.resize(4);
-    vargs[0]=x; vargs[1]=y; vargs[2]=v; vargs[3]=u;
-    args = vargs.data();
-
     T Sigma = 1;
     params[0] = 1.0/(Sigma*Sigma);
+
+    vargs.resize(5);
+    vargs[0]=params; vargs[1]=x; vargs[2]=y; vargs[3]=v; vargs[4]=u;
+    args = vargs.data();
+
 }
 

@@ -7,9 +7,9 @@
 #include "gtest/gtest.h"
 
 
-extern "C" int GpuConv1D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv2D(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
-extern "C" int CpuConv(__TYPE__*, int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
+extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 
 __TYPE__ __TYPE__rand() {
     return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
@@ -41,24 +41,24 @@ vuple compute_convs(int Nx, int Ny){
     std::vector<__TYPE__> vv(Ny*3); fillrandom(vv); __TYPE__ *v = vv.data(); 
     std::vector<__TYPE__> vb(Ny*3); fillrandom(vb); __TYPE__ *b = vb.data(); 
 
-    std::vector<__TYPE__*> vargs(5);
-    vargs[0]=x; vargs[1]=y; vargs[2]=u; vargs[3]=v; vargs[4]=b;
+    __TYPE__ params[1];
+    __TYPE__ Sigma = .1;
+    params[0] = 1.0/(Sigma*Sigma);
+
+    std::vector<__TYPE__*> vargs(6);
+    vargs[0]=params; vargs[1]=x; vargs[2]=y; vargs[3]=u; vargs[4]=v; vargs[5]=b;
     
     __TYPE__ **args = vargs.data();
 
     std::vector<__TYPE__> resgpu2D(Nx*3), resgpu1D(Nx*3), rescpu(Nx*3);
 
-    __TYPE__ params[1];
-    __TYPE__ Sigma = .1;
-    params[0] = 1.0/(Sigma*Sigma);
-
-    GpuConv2D(params, Nx, Ny, f, args); resgpu2D = vf;
+    GpuConv2D(Nx, Ny, f, args); resgpu2D = vf;
 
     fillones(vf);
-    GpuConv1D(params, Nx, Ny, f, args); resgpu1D = vf; 
+    GpuConv1D(Nx, Ny, f, args); resgpu1D = vf;
 
     fillones(vf);
-    CpuConv(params, Nx, Ny, f, args); rescpu = vf; 
+    CpuConv(Nx, Ny, f, args); rescpu = vf; 
     vuple res = {rescpu,resgpu1D,resgpu2D};
 
     return res;

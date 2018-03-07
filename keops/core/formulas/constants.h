@@ -11,7 +11,6 @@
  *
  *      Zero<DIM>					: zero-valued vector of dimension DIM
  *      IntConstant<N>				: constant integer function with value N
- *      Constant<PRM>				: constant function with value given by parameter PRM (ex : Constant<C> here)
  *
  */
 
@@ -64,7 +63,7 @@ struct IntConstant {
 
     // Evaluation is easy : simply fill *out = out[0] with N.
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         *out = N;
     }
 
@@ -74,34 +73,7 @@ struct IntConstant {
 };
 
 
-// A constant parameter value, a scalar (but we may use a pointer ?)
-template < class PRM >
-struct Constant {
-    static const int DIM = 1; // Scalar-valued parameters only.
 
-    static void PrintId() {
-        PRM::PrintId();
-    }
-
-    template<class A, class B>
-    using Replace = Constant<PRM>;
-    
-    using AllTypes = univpack<Constant<PRM>>;
-
-    // A parameter is a variable of category "2" ( 0 = Xi, 1 = Yj, 3 for factorized variables )
-    template < int CAT >
-    using VARS = CondType<univpack<PRM>,univpack<>,CAT==2>;
-
-    // "returns" the appropriate value in the params array.
-    template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
-        *out = params[PRM::INDEX];
-    }
-
-    // Derivative of a constant iz zero, except if we take the derivative with respect to the constant !
-    template < class V, class GRADIN >
-    using DiffT = IdOrZero<PRM,V,GRADIN>;
-};
 
 
 

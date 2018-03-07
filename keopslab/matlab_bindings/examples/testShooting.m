@@ -1,6 +1,7 @@
 function testShooting
 
-addpath('build')
+addpath('../../../build')
+addpath('..')
 
 q0 = rand(2,15)*2-1;
 p0 = 3*randn(size(q0));
@@ -9,11 +10,11 @@ sigma = .5;
 oos2 = 1/sigma^2;
 [d,n] = size(q0);
 
-K = Kernel('Vx(0,2)','Vy(1,2)','DivFreeGaussKernel(2)');
-%K = Kernel('Vx(0,2)','Vy(1,2)','CurlFreeGaussKernel(2)');
-%K = Kernel('Vx(0,2)','Vy(1,2)','GaussKernel_(2,2)');
+K = Kernel('Vx(1,2)','Vy(2,2)','DivFreeGaussKernel(2)');
+%K = Kernel('Vx(1,2)','Vy(2,2)','CurlFreeGaussKernel(2)');
+%K = Kernel('Vx(1,2)','Vy(2,2)','GaussKernel_(2,2)');
 
-GK = GradKernel(K,'Vx(0,2)','Vx(3,2)');
+GK = GradKernel(K,'Vx(1,2)','Vx(4,2)');
 
 ng = 50;
 [x1,x2] = ndgrid(linspace(-1,1,ng));
@@ -46,12 +47,12 @@ end
 
     function dotpq = GeodEq(t,pq)
         [p,q] = split(pq);
-        dotpq = join(-GK(q,q,p,p,oos2),K(q,q,p,oos2));
+        dotpq = join(-GK(oos2,q,q,p,p),K(oos2,q,q,p));
     end
 
     function dotpqx = FlowEq(t,pqx)
         [p,q,x] = split(pqx);
-        dotpqx = join(-GK(q,q,p,p,oos2),K(q,q,p,oos2),K(x,q,p,oos2));
+        dotpqx = join(-GK(oos2,q,q,p,p),K(oos2,q,q,p),K(oos2,x,q,p));
     end
 
     function [p,q,x] = split(pqx)

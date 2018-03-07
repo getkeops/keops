@@ -145,10 +145,10 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             nvars = 3
             dimpoint = args[1].size(1);
             dimout = args[3].size(1)
-            aliases = ["G = Pm(0)",  # 1st parameter
-                       "X = Vx(0," + str(dimpoint) + ") ",  # 1st variable, dim DIM,    indexed by i
-                       "Y = Vy(1," + str(dimpoint) + ") ",  # 2nd variable, dim DIM,    indexed by j
-                       "B = Vy(2," + str(dimout) + ") "]  # 3rd variable, dim DIMOUT, indexed by j
+            aliases = ["G = Pm(0,1)",  # 1st parameter
+                       "X = Vx(1," + str(dimpoint) + ") ",  # 1st variable, dim DIM,    indexed by i
+                       "Y = Vy(2," + str(dimpoint) + ") ",  # 2nd variable, dim DIM,    indexed by j
+                       "B = Vy(3," + str(dimout) + ") "]  # 3rd variable, dim DIMOUT, indexed by j
             # stands for:     R_i   ,   G  ,      X_i    ,      Y_j    ,     B_j    .
             signature = [(dimout, 0), (1, 2), (dimpoint, 0), (dimpoint, 1), (dimout, 1)]
 
@@ -157,13 +157,13 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             dimpoint = args[1].size(1);
             dimout = args[6].size(1)
 
-            aliases = ["G = Pm(0)",  # 1st parameter
-                       "H = Pm(1)",  # 2nd parameter
-                       "X = Vx(0," + str(dimpoint) + ") ",  # 1st variable, dim DIM,    indexed by i
-                       "Y = Vy(1," + str(dimpoint) + ") ",  # 2nd variable, dim DIM,    indexed by j
-                       "U = Vx(2," + str(dimpoint) + ") ",  # 3rd variable, dim DIM,    indexed by i
-                       "V = Vy(3," + str(dimpoint) + ") ",  # 4th variable, dim DIM,    indexed by j
-                       "B = Vy(4," + str(dimout) + ") "]  # 5th variable, dim DIMOUT, indexed by j
+            aliases = ["G = Pm(0,1)",  # 1st parameter
+                       "X = Vx(1," + str(dimpoint) + ") ",  # 1st variable, dim DIM,    indexed by i
+                       "Y = Vy(2," + str(dimpoint) + ") ",  # 2nd variable, dim DIM,    indexed by j
+                       "H = Pm(3,1)",  # 2nd parameter
+                       "U = Vx(4," + str(dimpoint) + ") ",  # 3rd variable, dim DIM,    indexed by i
+                       "V = Vy(5," + str(dimpoint) + ") ",  # 4th variable, dim DIM,    indexed by j
+                       "B = Vy(6," + str(dimout) + ") "]  # 5th variable, dim DIMOUT, indexed by j
             # stands for:     R_i   ,   G  ,       X_i    ,       Y_j    ,
             signature = [(dimout, 0), (1, 2), (dimpoint, 0), (dimpoint, 1), \
                          #                           H  ,       U_i    ,       V_j    ,
@@ -176,16 +176,16 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             dimpoint = args[1].size(1);
             dimout = args[9].size(1);
             dimsignal = args[7].size(1)
-            aliases = ["G = Pm(0)",  # 1st parameter
-                       "H = Pm(1)",  # 2nd parameter
-                       "I = Pm(2)",  # 3rd parameter
-                       "X = Vx(0," + str(dimpoint) + ") ",  # 1st variable, dim DIMPOINT,    indexed by i
-                       "Y = Vy(1," + str(dimpoint) + ") ",  # 2nd variable, dim DIMPOINT,    indexed by j
-                       "U = Vx(2," + str(dimpoint) + ") ",  # 3rd variable, dim DIMPOINT,    indexed by i
-                       "V = Vy(3," + str(dimpoint) + ") ",  # 4th variable, dim DIMPOINT,    indexed by j
-                       "S = Vx(4," + str(dimsignal) + ") ",  # 5th variable, dim DIMSIGNAL,   indexed by i
-                       "T = Vy(5," + str(dimsignal) + ")",  # 6th variable, dim DIMSIGNAL,   indexed by j
-                       "B = Vy(6," + str(dimout) + ") "]  # 7th variable, dim DIMOUT,      indexed by j
+            aliases = ["G = Pm(0,1)",  # 1st parameter
+                       "X = Vx(1," + str(dimpoint) + ") ",  # 1st variable, dim DIMPOINT,    indexed by i
+                       "Y = Vy(2," + str(dimpoint) + ") ",  # 2nd variable, dim DIMPOINT,    indexed by j
+                       "H = Pm(3,1)",  # 2nd parameter
+                       "U = Vx(4," + str(dimpoint) + ") ",  # 3rd variable, dim DIMPOINT,    indexed by i
+                       "V = Vy(5," + str(dimpoint) + ") ",  # 4th variable, dim DIMPOINT,    indexed by j
+                       "I = Pm(6,1)",  # 3rd parameter
+                       "S = Vx(7," + str(dimsignal) + ") ",  # 5th variable, dim DIMSIGNAL,   indexed by i
+                       "T = Vy(8," + str(dimsignal) + ")",  # 6th variable, dim DIMSIGNAL,   indexed by j
+                       "B = Vy(9," + str(dimout) + ") "]  # 7th variable, dim DIMOUT,      indexed by j
             # stands for:     R_i   ,   G  ,       X_i    ,       Y_j    ,
             signature = [(dimout, 0), (1, 2), (dimpoint, 0), (dimpoint, 1), \
                          #                           H  ,       U_i    ,       V_j    ,

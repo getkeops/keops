@@ -25,7 +25,7 @@ using namespace std;
 //                      The function to be benchmarked                            //
 /////////////////////////////////////////////////////////////////////////////////////
 
-#define F0 Grad<GaussKernel<_P<0>,_X<0,3>,_Y<1,3>,_Y<2,3>>,_X<0,3>,_X<3,3>>
+#define F0 Grad<GaussKernel<_P<0,1>,_X<1,3>,_Y<2,3>,_Y<3,3>>,_X<1,3>,_X<4,3>>
 using FUN0 = typename Generic<F0>::sEval;
 #define F1 F0
 using FUN1 = typename Generic<F1>::sEval;
@@ -41,7 +41,7 @@ extern "C" int GaussGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__*
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void main_grad_1D(int Nx) {
     data<__TYPE__> data1(Nx);
-    GpuConv1D(FUN0(), data1.params, data1.Nx, data1.Ny, data1.f, data1.x, data1.y, data1.v, data1.u);
+    GpuConv1D(FUN0(), data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 
 static void cuda_grad_1D(benchmark::State& state) {
@@ -67,7 +67,7 @@ BENCHMARK(cuda_grad_1D)->Range(8, 8<<10)->UseManualTime();// Register the functi
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void main_grad_2D(int Nx) {
     data<__TYPE__> data1(Nx);
-    GpuConv2D(FUN0(), data1.params, data1.Nx, data1.Ny, data1.f, data1.x, data1.y, data1.v, data1.u);
+    GpuConv2D(FUN0(), data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 
 static void cuda_grad_2D(benchmark::State& state) {
@@ -93,7 +93,7 @@ BENCHMARK(cuda_grad_2D)->Range(8, 8<<10)->UseManualTime();// Register the functi
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void main_generic_1D(int Nx) {
     data<__TYPE__> data1(Nx);
-    GpuConv1D(FUN1(), data1.params, data1.Nx, data1.Ny, data1.f, data1.x, data1.y, data1.v, data1.u);
+    GpuConv1D(FUN1(), data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 
 static void cuda_generic_1D(benchmark::State& state) {
@@ -119,7 +119,7 @@ BENCHMARK(cuda_generic_1D)->Range(8, 8<<10)->UseManualTime();// Register the fun
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void main_generic_2D(int Nx) {
     data<__TYPE__> data1(Nx);
-    GpuConv2D(FUN1(), data1.params, data1.Nx, data1.Ny, data1.f, data1.x, data1.y, data1.v, data1.u);
+    GpuConv2D(FUN1(), data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 
 static void cuda_generic_2D(benchmark::State& state) {

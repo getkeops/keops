@@ -289,7 +289,7 @@ struct Pow : UnaryOp<Pow,F,M>  {
     static const int DIM = 1;
     static_assert(F::DIM==1,"Dimension of input must be one for Pow function");
 
-    static void PrintId() { cout << "Pow"; }
+    static void PrintIdString() { cout << "Pow"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
             *out = pow(*outF,M);
@@ -342,7 +342,7 @@ using Divide = Scal<FA,Inv<FB>>;
 template < class F >
 struct Log : UnaryOp<Log,F> {
     static const int DIM = 1;
-    static_assert(F::DIM==1,"Dimension of input must be one for exp function");
+    static_assert(F::DIM==1,"Dimension of input must be one for log function");
 
     static void PrintId() { cout << "Log"; }
 

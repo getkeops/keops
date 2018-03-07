@@ -1,12 +1,12 @@
 # To test, first compile the kernel via :
-# ./compile "GaussKernel<P<0>,X<0,3>,Y<1,3>,Y<2,3>>"
+# ./compile "GaussKernel<P<0,1>,X<1,3>,Y<2,3>,Y<3,3>>"
 #
 # This will compile the isotropic Gaussian kernel in dimension 3,
 # which takes as input :
-# - a scalar parameter P<0>, inverse of the variance
-# - an array X_0 (x_i) of dimension N-by-3
-# - an array Y_1 (y_j) of dimension M-by-3
-# - an array Y_2 (b_j) of dimension M-by-3
+# - a scalar parameter P<0,1>, inverse of the variance
+# - an array X_1 (x_i) of dimension N-by-3
+# - an array Y_2 (y_j) of dimension M-by-3
+# - an array Y_3 (b_j) of dimension M-by-3
 
 import numpy as np
 
@@ -68,8 +68,8 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
         routine_CPU_i = dll.CpuConv
         routine_CPU_j = dll.CpuTransConv
 
-        routine_CPU_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-        routine_CPU_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+        routine_CPU_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+        routine_CPU_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
 
         # Add our new functions to the module's dictionnary :
         __cuda_convs_generic[dll_name] = {"CPU": [routine_CPU_i, routine_CPU_j]}
@@ -86,14 +86,14 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
             routine_GPU_device_2D_i = dll.GpuConv2D_FromDevice
             routine_GPU_device_2D_j = dll.GpuTransConv2D_FromDevice
             
-            routine_GPU_host_1D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_host_1D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_host_2D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_host_2D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_device_1D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_device_1D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_device_2D_i.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_device_2D_j.argtypes = [POINTER(c_float), c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_host_1D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_host_1D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_host_2D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_host_2D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_device_1D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_device_1D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_device_2D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_device_2D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
 
             __cuda_convs_generic[dll_name].update({
                  "GPU_1D_host": [routine_GPU_host_1D_i, routine_GPU_host_1D_j],
@@ -120,18 +120,18 @@ def cuda_conv_generic(formula, signature, result, *args,
     Aliases can be given as a list of strings.
     sum_index specifies whether the summation should be done over "I/X" (sum_index=1) or "J/Y" (sum_index=0).
     The arguments are given as :
-        params, then variables, sorted in the order specified by the "Var<index,dimension,I-or-J>" syntax.
+        variables, sorted in the order specified by the "Var<index,dimension,I-or-J-or-P>" syntax.
     For instance,
         ```
         aliases = [ "DIMPOINT = 3", "DIMVECT = 4", "DIMOUT = 5",
-                    "X = Var<0,DIMPOINT,0>" ,
-                    "Y = Var<1,DIMPOINT,1>" ,
-                    "U = Var<2,DIMVECT ,0>" ,
-                    "V = Var<3,DIMVECT ,1>" ,
-                    "B = Var<4,DIMOUT  ,1>" ,
-                    "C = Param<0>"          ]
+                    "X = Var<1,DIMPOINT,0>" ,
+                    "Y = Var<2,DIMPOINT,1>" ,
+                    "U = Var<3,DIMVECT ,0>" ,
+                    "V = Var<4,DIMVECT ,1>" ,
+                    "B = Var<5,DIMOUT  ,1>" ,
+                    "C = Param<0,1>"          ]
         formula = "Scal< Square<Scalprod<U,V>>, " \
-                + "Scal< Exp< Scal<Constant<C>, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
+                + "Scal< Exp< Scal<C, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
         cuda_conv_generic( formula, signature,
                            R, C, X, Y, U, V, B,
                            aliases = aliases )
@@ -231,9 +231,6 @@ def cuda_conv_generic(formula, signature, result, *args,
         raise TypeError("result should either be a numpy array or a torch tensor.")
 
     # Check that *args matches the given signature ----------------------------------------------
-    # (Jean :) The way parameters are handled currently (scalar only, etc.) is not really optimal...
-    #          Eventually, they should simply be handled as variables with "CAT=2".
-    params = [];
     variables = [];
     nx = -1;
     ny = -1
@@ -258,9 +255,9 @@ def cuda_conv_generic(formula, signature, result, *args,
             variables.append(arg)  # No worries : arg is in fact a pointer, so no copy is done here
 
         elif sig[1] == 2:  # If the current arg is a parameter
-            if not (sig[0] == 1): raise ValueError("As of today, only scalar parameters are allowed.")
-            if not (size(arg) == 1): raise ValueError("Parameters should be size=1 arrays.")
-            params.append(arg)
+            if not (sig[0] == arg.shape[0]): raise ValueError(
+                "The size of a CAT=2 variable does not match the signature.")
+            variables.append(arg)
 
     # Assert that we won't make an "empty" convolution :
     if not nx > 0: raise ValueError("There should be at least one (nonempty...) 'X_i' variable as input.")
@@ -282,15 +279,11 @@ def cuda_conv_generic(formula, signature, result, *args,
         if not ny == result.shape[0]: raise ValueError(
             "The result array does not have the correct number of lines wrt. the 'Y_j' inputs given.")
 
-    # Stack the parameters into a single array :
-    params = vect_from_list(params)
-
     # From python to C float pointers and int : -------------------------------------------------
     vars_p = tuple(to_ctype_pointer(var) for var in variables)
     vars_p = (POINTER(c_float) * len(vars_p))(*vars_p)
 
     result_p = to_ctype_pointer(result)
-    params_p = to_ctype_pointer(params)
 
     # Try to make a good guess for the backend...
     # Note that as of today, the "_device" routines have not been tested.
@@ -312,7 +305,7 @@ def cuda_conv_generic(formula, signature, result, *args,
     # N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",
     #       which make a summation wrt. 'j' or 'i', indexing the final result with 'i' or 'j'.
     routine = get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend)
-    routine(params_p, nx, ny, result_p, vars_p)
+    routine(nx, ny, result_p, vars_p)
 
 
 if __name__ == '__main__':

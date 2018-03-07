@@ -30,21 +30,21 @@ from .features_kernels import FeaturesKP
 # Formulas in "x_i" and "y_j", with parameters "g" (=1/sigma^2, for instance)
 locations_formulas = {
     "gaussian" :      Formula( # Standard RBF kernel
-        formula_sum =                          "Exp( -(Cst(G) * SqDist(X,Y)) )",
+        formula_sum =                          "Exp( -(G * SqDist(X,Y)) )",
         routine_sum = lambda g=None, xmy2=None, **kwargs : (-g*xmy2).exp(),
-        formula_log =                             "( -(Cst(G) * SqDist(X,Y)) )",
+        formula_log =                             "( -(G * SqDist(X,Y)) )",
         routine_log = lambda g=None, xmy2=None, **kwargs :  -g*xmy2,
     ),
     "exponential" :   Formula( # Pointy kernel
-        formula_sum =                      "Exp( - Sqrt(Cst(G) * SqDist(X,Y)  + IntInv(10000) ) )",
+        formula_sum =                      "Exp( - Sqrt(G * SqDist(X,Y)  + IntInv(10000) ) )",
         routine_sum = lambda g=None, xmy2=None, **kwargs : (-(g*xmy2+.0001).sqrt()).exp(),
-        formula_log =                         "(  - Sqrt(Cst(G) * SqDist(X,Y) + IntInv(10000) ) )",
+        formula_log =                         "(  - Sqrt(G * SqDist(X,Y) + IntInv(10000) ) )",
         routine_log = lambda g=None, xmy2=None, **kwargs :  -(g*xmy2+.0001).sqrt(),
     ),
     "energy" :        Formula( # Heavy tail kernel
-        formula_sum =   "Powf( IntCst(1) + Cst(G) * SqDist(X,Y) , IntInv(-4) )",
+        formula_sum =   "Powf( IntCst(1) + G * SqDist(X,Y) , IntInv(-4) )",
         routine_sum = lambda g=None, xmy2=None, **kwargs : torch.pow( 1 + g * xmy2, -.25 ),
-        formula_log =       "(  IntInv(-4) * Log(IntCst(1) + Cst(G) * SqDist(X,Y)) ) ",
+        formula_log =       "(  IntInv(-4) * Log(IntCst(1) + G * SqDist(X,Y)) ) ",
         routine_log = lambda g=None, xmy2=None, **kwargs :  -.25 * (1 + g * xmy2).log(),
     ),
 }
@@ -62,9 +62,9 @@ directions_formulas = {
 # Formulas in "s_i" and "t_j", with parameters "i" (=1/sigma^2, for instance)
 values_formulas = {
     "gaussian" :    Formula( # Standard RBF kernel
-        formula_sum =                          "Exp( -(Cst(I) * SqDist(S,T)) )",
+        formula_sum =                          "Exp( -(I * SqDist(S,T)) )",
         routine_sum = lambda i=None, smt2=None, **kwargs : (-i*smt2).exp(),
-        formula_log =                             "( -(Cst(I) * SqDist(S,T)) )",
+        formula_log =                             "( -(I * SqDist(S,T)) )",
         routine_log = lambda i=None, smt2=None, **kwargs :  -i*smt2,
     ),
 }

@@ -12,8 +12,8 @@ u = randn(4,Nx);
 v = randn(4,Ny);
 p = .25;
 
-%F = Kernel('Vx(0,3)','Vy(1,3)','GaussKernel_(x,y)');
-F = Kernel('x=Vx(0,3)','y=Vy(1,3)','u=Vx(2,4)','v=Vy(3,4)','b=Vy(4,3)', 'p=Pm(0)', 'Square((u,v))*Exp(-Cst(p)*SqNorm2(x-y))*b');
+%F = Kernel('Vx(1,3)','Vy(2,3)','GaussKernel_(x,y)');
+F = Kernel('x=Vx(0,3)','y=Vy(1,3)','u=Vx(2,4)','v=Vy(3,4)','b=Vy(4,3)', 'p=Pm(5,1)', 'Square((u,v))*Exp(-p*SqNorm2(x-y))*b');
 
 tic
 g = F(x,y,u,v,b,p);
