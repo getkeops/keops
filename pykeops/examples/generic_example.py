@@ -10,7 +10,6 @@ from pykeops.torch.kernels import Kernel, kernel_product
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 use_cuda = torch.cuda.is_available()
-use_cuda = False
 dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 
@@ -48,36 +47,40 @@ params = {
 npoints_x = 100
 npoints_y = 700
 dimpoints = 3
-dimsignal = 2
+dimsignal = 1
 
 a = Variable(torch.randn(npoints_x,dimsignal), requires_grad=True).type(dtype)
 x = Variable(torch.randn(npoints_x,dimpoints), requires_grad=True).type(dtype)
 y = Variable(torch.randn(npoints_y,dimpoints), requires_grad=True).type(dtype)
 b = Variable(torch.randn(npoints_y,dimsignal), requires_grad=True).type(dtype)
 
+# N.B.: "sum" is default, "log" is for "log-sum-exp"
+modes = ["sum", "log"] if dimsignal==1 else ["sum"]
 # Test, using a pytorch or libkp backend
-for backend in ["pytorch", "auto"] :
-    params["backend"] = backend
-    print("Backend :", backend, "--------------------------")
-    Kxy_b  = kernel_product( x,y,b, params)
-    aKxy_b = scalprod(a, Kxy_b)
+for mode in modes : 
+    print("Mode :", mode, "========================================")
+    for backend in ["pytorch", "auto"] :
+        params["backend"] = backend
+        print("Backend :", backend, "--------------------------")
+        Kxy_b  = kernel_product( x,y,b, params, mode=mode)
+        aKxy_b = scalprod(a, Kxy_b)
 
-    # Computing a gradient is that easy - we can also use the "aKxy_b.backward()" syntax. 
-    # Notice the "create_graph=True", which will allow us to compute
-    # higher order derivatives.
-    [grad_x, grad_y, grad_s]   = grad(aKxy_b, [x, y, sigma], create_graph=True)
+        # Computing a gradient is that easy - we can also use the "aKxy_b.backward()" syntax. 
+        # Notice the "create_graph=True", which will allow us to compute
+        # higher order derivatives.
+        [grad_x, grad_y, grad_s]   = grad(aKxy_b, [x, y, sigma], create_graph=True)
 
-    grad_x_norm        = scalprod(grad_x, grad_x)
-    [grad_xx, grad_xy] = grad(grad_x_norm, [x,y], create_graph=True)
+        grad_x_norm        = scalprod(grad_x, grad_x)
+        [grad_xx, grad_xy] = grad(grad_x_norm, [x,y], create_graph=True)
 
-    grad_s_norm        = scalprod(grad_s, grad_s)
-    [grad_sx, grad_ss] = grad(grad_s_norm, [x,sigma], create_graph=True)
+        grad_s_norm        = scalprod(grad_s, grad_s)
+        [grad_sx, grad_ss] = grad(grad_s_norm, [x,sigma], create_graph=True)
 
-    print("Kernel dot product  : ", aKxy_b )
-    print("Gradient wrt. x     : ", grad_x[:2,:] )
-    print("Gradient wrt. y     : ", grad_y[:2,:] )
-    print("Gradient wrt. s     : ", grad_s       )
-    print("Arbitrary formula 1 : ", grad_xx[:2,:] )
-    print("Arbitrary formula 2 : ", grad_xy[:2,:] )
-    print("Arbitrary formula 3 : ", grad_sx[:2,:] )
-    print("Arbitrary formula 4 : ", grad_ss       )
+        print("Kernel dot product  : ", aKxy_b )
+        print("Gradient wrt. x     : ", grad_x[:2,:] )
+        print("Gradient wrt. y     : ", grad_y[:2,:] )
+        print("Gradient wrt. s     : ", grad_s       )
+        print("Arbitrary formula 1 : ", grad_xx[:2,:] )
+        print("Arbitrary formula 2 : ", grad_xy[:2,:] )
+        print("Arbitrary formula 3 : ", grad_sx[:2,:] )
+        print("Arbitrary formula 4 : ", grad_ss       )
