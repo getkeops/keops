@@ -2,10 +2,8 @@ import os.path
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
-from pykeops.torch.kernels import *
-from pykeops.numpy.convolutions.radial_kernels import *
-
 import numpy as np
+from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
 
 import torch
 
@@ -39,36 +37,29 @@ def torch_kernel(x, y, s, kernel) :
 
 
 ##############################
-# Gaussian kernel
+# Benchmark
 ##############################
 
 enable_GC = False # Garbage collection?
 GC = 'gc.enable();' if enable_GC else 'pass;'
 LOOPS = 200
 print("Time to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
+print("\n",end="")
+
 for k in (["gaussian", "laplacian", "energy"]):
     print(k, " kernel:")
     
-    # For a 100% fair assessment, we make a dry run first.
     # cuda pytorch
     g0 = torch.mm(torch_kernel(xc,yc,sc,kernel=k),bc)#.cpu().numpy()
-    T = time.time() ; print(T)
-    speed_pytorch = timeit.Timer('g0 = torch.mm(torch_kernel(xc,yc,sc,kernel=k),bc)#.cpu().numpy()', 
-                                 GC, globals = globals(),
-                                 timer = time.time).timeit(LOOPS)
-    T = time.time() - T
-    print("Time for Pytorch/cuda: {:.4f}s, {:.4f}s".format(speed_pytorch, T))
+    speed_pytorch = timeit.Timer('g0 = torch.mm(torch_kernel(xc,yc,sc,kernel=k),bc)#.cpu().numpy()', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+    print("Time for Pytorch/cuda: {:.4f}s".format(speed_pytorch))
     
     
     # cuda tiled implementation
     g1 = np.zeros([N,E]).astype('float32') ; radial_kernels_conv(x, y, b, g1, s, kernel=k)
     g1 = np.zeros([N,E]).astype('float32')
-    T = time.time() ; print(T)
-    speed_libkp = timeit.Timer('radial_kernels_conv(x, y, b, g1, s, kernel=k)', 
-                               GC, globals = globals(),
-                                timer = time.time).timeit(LOOPS)
-    T = time.time() - T
-    print("Time for cuda:         {:.4f}s, {:.4f}s".format(speed_libkp, T))
+    speed_pykeops = timeit.Timer('radial_kernels_conv(x, y, b, g1, s, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+    print("Time for cuda:         {:.4f}s".format(speed_pykeops))
     
 
     # pure numpy

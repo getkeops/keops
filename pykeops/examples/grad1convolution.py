@@ -1,32 +1,27 @@
 import os.path
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
-import time
-
-from pykp.convolutions import cudagrad1conv
 import numpy as np
+from pykeops.numpy.convolutions.radial_kernels_grad1 import radial_kernels_grad1conv
 
-N = 5000 ; M = 12000; D = 3; E = 3
+import time, timeit
 
+N = 500 ; M = 300; D = 3; E = 3
+
+# declare numpy 
 a = np.random.rand(N,E).astype('float32')
 x = np.random.rand(N,D).astype('float32')
 y = np.random.rand(M,D).astype('float32')
 b = np.random.rand(M,E).astype('float32')
 s = np.array([2.4]).astype('float32')
 
-def dgaussian(r2,s):
-    return - np.exp(-r2/s**2) / (s **2)
+def grad_np_kernel(x, y, s, kernel) :
+    sq = np.sum( (x[:,np.newaxis,:] - y[np.newaxis,:,:]) **2, axis=2)
+    if   kernel == "gaussian"  : return - np.exp(-sq/s**2) / (s **2)
+    elif kernel == "laplacian" : t = -np.sqrt(sq + s**2) ; return  np.exp(t) / (2*t)
+    elif kernel == "energy"    : return -.25 / (sq + s**2) **(1.25) 
 
-def dlaplacian(r2,s):
-    t = -np.sqrt(r2 + s**2)
-    return np.exp(t) / (2*t)
-    
-def denergy(r2,s):
-    return -.25 / (r2 + s**2) **(1.25)
-
-def squdistance_matrix(ax,by):
-    return np.sum( (x[:,np.newaxis,:] - y[np.newaxis,:,:]) **2, axis=2)
     
 def chain_rules(q,ax,by,Aa,p):
     res = np.zeros(ax.shape).astype('float32')
@@ -37,64 +32,28 @@ def chain_rules(q,ax,by,Aa,p):
     return res
 
 
-#dry run to initialize GPU
-g = np.zeros(x.shape).astype('float32')
-cudagrad1conv.cuda_grad1conv(a, x, y, b, g, s)
-#end of dry run
-
 ##############################
-# Gaussian kernel
+# Benchmark
 ##############################
-print("\n ---- Gaussian kernel  ")
 
-start = time.perf_counter()
-g = np.zeros(x.shape).astype('float32')
-cudagrad1conv.cuda_grad1conv(a, x, y, b, g, s)
-#print("Cuda:\n", g)
-print("Time for cuda:   ", time.perf_counter() - start)
+enable_GC = False # Garbage collection?
+GC = 'gc.enable();' if enable_GC else 'pass;'
+LOOPS = 200
+print("Time to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
+print("\n",end="")
 
-start = time.perf_counter()
-A =  dgaussian(squdistance_matrix(x,y),s) 
-g2 = chain_rules(a,x,y,A,b)
-#print("Python:\n", g)
-print("Time for python: ", time.perf_counter() - start)
-
-print("absolute error: ", np.max(np.abs( (g - g2)))) 
-
-
-##############################
-# Laplace kernel
-##############################
-print("\n ---- Laplace kernel  ")
-
-start = time.perf_counter()
-g = np.zeros(x.shape).astype('float32')
-cudagrad1conv.cuda_grad1conv(a, x, y, b, g, s, kernel = "laplacian")
-print("Time for cuda:   ", time.perf_counter() - start)
-
-start = time.perf_counter()
-A =  dlaplacian(squdistance_matrix(x,y),s) 
-g2 = chain_rules(a,x,y,A,b)
-print("Time for python: ", time.perf_counter() - start)
-
-print("Absolute error: ", np.max(np.abs( (g - g2))))
+for k in (["gaussian", "laplacian", "energy"]):
+    print(k, " kernel:")
+    # cuda tiled implementation
+    g1 = np.zeros([N,E]).astype('float32') ; radial_kernels_grad1conv(a, x, y, b, g1, s, kernel=k)
+    g1 = np.zeros([N,E]).astype('float32')
+    speed_pykeops = timeit.Timer('radial_kernels_grad1conv(a, x, y, b, g1, s, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+    print("Time for cuda:         {:.4f}s".format(speed_pykeops))
 
 
-##############################
-# Energy kernel
-##############################
-print("\n ---- Energy kernel  ")
+    # pure numpy
+    g2 = chain_rules(a,x,y,grad_np_kernel(x,y,s,kernel=k),b)
 
-start = time.perf_counter()
-g = np.zeros(x.shape).astype('float32')
-cudagrad1conv.cuda_grad1conv(a, x, y, b, g, s, kernel = "energy")
-print("Time for cuda:   ", time.perf_counter() - start)
-
-start = time.perf_counter()
-A =  denergy(squdistance_matrix(x,y),s) 
-g2 = chain_rules(a,x,y,A,b)
-print("Time for python: ", time.perf_counter() - start)
-
-print("Absolute error: ", np.max(np.abs( (g - g2))))
-
-
+    speed_numpy = timeit.Timer('g2 = chain_rules(a,x,y,grad_np_kernel(x,y,s,kernel=k),b)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+    print("Time for Python:       {:.4f}s".format(speed_numpy))
+    print("Absolute error:       ", np.max(np.abs (g1 - g2)), "\n")

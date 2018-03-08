@@ -1,66 +1,52 @@
 import numpy as np
 import ctypes
 from ctypes import POINTER, c_int, c_float
+
+from pykeops.numpy.get_specific import get_specific_lib
+from pykeops.common.compile_routines import compile_specific_routine
+
 import os.path
 
-#nvcc -D "USE_DOUBLE_PRECISION=OFF" -D "CUDA_BLOCK_SIZE=192"  -Xcompiler -fPIC -shared -o cuda_conv.so cuda_conv.cu
-
-# extract cuda_grad1conv function pointer in the shared object cuda_grad1conv.so
-def get_cuda_grad1convs():
-	"""
-	Loads the gradient of the convolution routine from the compiled .so file.
-	"""
-	dll_name = 'cuda_grad1conv.so'
-	dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + 'build' + os.path.sep + dll_name
-	dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
-	
-	func_dict = {}
-	for (name, routine) in [("gaussian",  dll.GaussGpuGrad1Conv), 
-	                        ("laplacian", dll.LaplaceGpuGrad1Conv), 
-	                        ("energy",    dll.EnergyGpuGrad1Conv) ] :
-		func = routine
-		# Arguments :          1/s^2,
-		func.argtypes = [     c_float, 
-		#                      alpha,              x,                y,              beta,             result,
-						 POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), 
-		#                 dim-xy,  dim-beta,   nx,    ny
-						  c_int,    c_int,   c_int, c_int  ]
-		func_dict[name] = routine
-	return func_dict
 
 # create __cuda_grad1conv function with get_cuda_grad1conv()
-__cuda_grad1convs = get_cuda_grad1convs()
+signature=[     c_float, POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int,    c_int,   c_int, c_int  ]
+
+__radial_kernels_grad1convs = get_specific_lib('radial_kernels_grad1conv',signature)
 
 # convenient python wrapper for __cuda_grad1conv it does all job with types convertation from python ones to C++ ones 
-def cuda_grad1conv(alpha,x, y, beta, result, sigma, kernel = "gaussian"):
-	"""
-	Implements the operation :
-	
-	(alpha_i, x_i, y_j, beta_j)  ->  (\partial_{x_i} < alpha_i | ( \sum_j k(x_i,y_j) beta_j )_i >)_i ,
-	
-	where k is a kernel function of parameter "sigma".
-	Unlike a naive pytorch implementation, this code won't store in memory the matrix
-	k(x_i,y_j) : it is therefore possible to use it when len(x) and len(y) are both large
-	without getting a "memory overflow".
-	
-	N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p". 
-	"""
-	# From python to C float pointers and int :
-	alpha_p  =  alpha.ctypes.data_as(POINTER(c_float))
-	x_p      =      x.ctypes.data_as(POINTER(c_float))
-	y_p      =      y.ctypes.data_as(POINTER(c_float))
-	beta_p   =   beta.ctypes.data_as(POINTER(c_float))
-	result_p = result.ctypes.data_as(POINTER(c_float))
-	
-	nx = x.shape[0] ; ny = y.shape[0]
-	
-	dimPoint = x.shape[1]
-	dimVect = beta.shape[1]
-	
-	ooSigma2 = float(1/ (sigma*sigma))  # Compute this once and for all
-	
-	# Let's use our GPU, which works "in place" :
-	__cuda_grad1convs[kernel](ooSigma2, alpha_p, x_p, y_p, beta_p, result_p, dimPoint, dimVect, nx, ny )
+def radial_kernels_grad1conv(alpha,x, y, beta, result, sigma, kernel = "gaussian"):
+    """
+    Implements the operation :
+
+    (alpha_i, x_i, y_j, beta_j)  ->  (\partial_{x_i} < alpha_i | ( \sum_j k(x_i,y_j) beta_j )_i >)_i ,
+
+    where k is a kernel function of parameter "sigma".
+    Unlike a naive pytorch implementation, this code won't store in memory the matrix
+    k(x_i,y_j) : it is therefore possible to use it when len(x) and len(y) are both large
+    without getting a "memory overflow".
+
+    N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p". 
+    """
+    # From python to C float pointers and int :
+    alpha_p  =  alpha.ctypes.data_as(POINTER(c_float))
+    x_p      =      x.ctypes.data_as(POINTER(c_float))
+    y_p      =      y.ctypes.data_as(POINTER(c_float))
+    beta_p   =   beta.ctypes.data_as(POINTER(c_float))
+    result_p = result.ctypes.data_as(POINTER(c_float))
+
+    nx       =    x.shape[0]
+    ny       =    y.shape[0]
+    dimPoint =    x.shape[1]
+    dimVect  = beta.shape[1]
+
+    ooSigma2 = float(1/ (sigma*sigma))  # Compute this once and for all
+
+    # Let's use our GPU, which works "in place" :
+    __radial_kernels_grad1convs[kernel](ooSigma2, alpha_p, x_p, y_p, beta_p, result_p, dimPoint, dimVect, nx, ny )
+
+
+
+
 
 # testing, benchmark grad1convolution with a naive python implementation of the Gaussian convolution
 if __name__ == '__main__':

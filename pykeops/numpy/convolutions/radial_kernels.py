@@ -2,38 +2,14 @@ import numpy as np
 import ctypes
 from ctypes import POINTER, c_int, c_float
 
-from pykeops import build_folder, script_folder, dll_prefix, dll_ext
+from pykeops.numpy.get_specific import get_specific_lib
 from pykeops.common.compile_routines import compile_specific_routine
 
 import os.path
 
-# extract radial_kernels_conv function pointer in the shared object radial_kernels_conv.so
-def get_radials_kernels_convs():
-    """
-    Loads the convolution routine from the compiled .so file.
-    """
-    target = 'radial_kernels_conv'
-    dllabspath = build_folder + os.path.sep + 'specific' + os.path.sep +  dll_prefix + target + dll_ext
-
-    try:
-        dll = ctypes.CDLL(dllabspath , mode=ctypes.RTLD_GLOBAL)
-    except OSError:
-        compile_specific_routine(dllname=target, cuda_type="float" )
-        dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
-        print("Loaded.\n\n")
-
-    func_dict = {}
-    for (name, routine) in [("gaussian",  dll.GaussGpuEvalConv), ("laplacian", dll.LaplaceGpuEvalConv), ("energy",    dll.EnergyGpuEvalConv) ] :
-        func = routine
-        # Arguments :     1/s^2,         x,                y,              beta,             result,
-        func.argtypes = [c_float, POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float),
-                    #                dim-xy,  dim-beta,   nx,    ny
-                    c_int,   c_int,     c_int, c_int]
-        func_dict[name] = func
-    return func_dict
-
 # create __cuda_conv function with get_cuda_conv()
-__radial_kernels_convs = get_radials_kernels_convs()
+signature=[c_float, POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int,c_int,c_int,c_int]
+__radial_kernels_convs = get_specific_lib('radial_kernels_conv',signature)
 
 # convenient python wrapper for __cuda_conv it does all job with types convertation from python ones to C++ ones 
 def radial_kernels_conv(x, y, beta, result, sigma, kernel = "gaussian"):
@@ -43,7 +19,7 @@ def radial_kernels_conv(x, y, beta, result, sigma, kernel = "gaussian"):
     (x_i, y_j, beta_j)  ->  ( \sum_j k(x_i,y_j) beta_j )_i ,
 
     where k is a kernel function of parameter "sigma".
-    Unlike a naive pytorch implementation, this code won't store in memory the matrix
+    Unlike a naive implementation, this code won't store in memory the matrix
     k(x_i,y_j) : it is therefore possible to use it when len(x) and len(y) are both large
     without getting a "memory overflow".
 
@@ -55,8 +31,8 @@ def radial_kernels_conv(x, y, beta, result, sigma, kernel = "gaussian"):
     beta_p   =   beta.ctypes.data_as(POINTER(c_float))
     result_p = result.ctypes.data_as(POINTER(c_float))
 
-    nx = x.shape[0] ; ny = y.shape[0]
-
+    nx       =    x.shape[0]
+    ny       =    y.shape[0]
     dimPoint =    x.shape[1]
     dimVect  = beta.shape[1]
 

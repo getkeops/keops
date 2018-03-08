@@ -88,7 +88,7 @@ int KernelGpuEvalConv(TYPE ooSigma2,
 // Couldn't find a clean way to give a name to an explicit instantiation :-(
 
 // This instantiation bypass the function KernelGpuEvalConv as the pointers contain a address directly on the device
-extern "C" int GaussGpuEvalConv_onDevice(__TYPE__ ooSigma2, __TYPE__* x_d, __TYPE__* y_d, __TYPE__* beta_d, __TYPE__* gamma_d, int dimPoint, int dimVect, int nx, int ny) {
+extern "C" int GaussGpuEval_onDevice(__TYPE__ ooSigma2, __TYPE__* x_d, __TYPE__* y_d, __TYPE__* beta_d, __TYPE__* gamma_d, int dimPoint, int dimVect, int nx, int ny) {
     dim3 blockSize (CUDA_BLOCK_SIZE,1,1); // number of threads in each block
     dim3 gridSize (nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1));
 
@@ -97,13 +97,13 @@ extern "C" int GaussGpuEvalConv_onDevice(__TYPE__ ooSigma2, __TYPE__* x_d, __TYP
     return 0;
 }
 
-extern "C" int GaussGpuEvalConv(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
     return KernelGpuEvalConv<__TYPE__,GaussF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-extern "C" int LaplaceGpuEvalConv(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+extern "C" int LaplaceGpuEval(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
     return KernelGpuEvalConv<__TYPE__,LaplaceF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-extern "C" int EnergyGpuEvalConv(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+extern "C" int EnergyGpuEval(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
     return KernelGpuEvalConv<__TYPE__,EnergyF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
 

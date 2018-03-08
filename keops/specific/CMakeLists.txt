@@ -1,4 +1,3 @@
-
 if (USE_CUDA)
 
     CUDA_add_library(
@@ -30,4 +29,5 @@ if (USE_CUDA)
         radial_kernels_gradconv_xy SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/radial_kernels/cuda_gradconv_xy.cu
     )
+
 endif()
