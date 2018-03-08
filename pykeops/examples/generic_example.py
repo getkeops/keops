@@ -17,7 +17,7 @@ dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 # Convenience functions
 def scal_to_var(x) :
     "Turns a float into a torch variable."
-    return Variable(Tensor([x])).type(dtype)
+    return Variable(Tensor([x]), requires_grad=True).type(dtype)
 
 
 def scalprod(x, y) :
@@ -65,13 +65,19 @@ for backend in ["pytorch", "auto"] :
     # Computing a gradient is that easy - we can also use the "aKxy_b.backward()" syntax. 
     # Notice the "create_graph=True", which will allow us to compute
     # higher order derivatives.
-    [grad_x, grad_y]   = grad(aKxy_b, [x, y], create_graph=True)
+    [grad_x, grad_y, grad_s]   = grad(aKxy_b, [x, y, sigma], create_graph=True)
 
     grad_x_norm        = scalprod(grad_x, grad_x)
-    [grad_xx, grad_xy] = grad(grad_x_norm, [x,y])
+    [grad_xx, grad_xy] = grad(grad_x_norm, [x,y], create_graph=True)
+
+    grad_s_norm        = scalprod(grad_s, grad_s)
+    [grad_sx, grad_ss] = grad(grad_s_norm, [x,sigma], create_graph=True)
 
     print("Kernel dot product  : ", aKxy_b )
-    print("Gradient wrt. x     : ", grad_x[:3,:] )
-    print("Gradient wrt. y     : ", grad_y[:3,:] )
-    print("Arbitrary formula 1 : ", grad_xx[:3,:] )
-    print("Arbitrary formula 2 : ", grad_xy[:3,:] )
+    print("Gradient wrt. x     : ", grad_x[:2,:] )
+    print("Gradient wrt. y     : ", grad_y[:2,:] )
+    print("Gradient wrt. s     : ", grad_s       )
+    print("Arbitrary formula 1 : ", grad_xx[:2,:] )
+    print("Arbitrary formula 2 : ", grad_xy[:2,:] )
+    print("Arbitrary formula 3 : ", grad_sx[:2,:] )
+    print("Arbitrary formula 4 : ", grad_ss       )
