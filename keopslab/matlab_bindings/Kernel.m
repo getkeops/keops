@@ -23,7 +23,7 @@ function [F,fname] = Kernel(varargin)
 % - Define and test the gradient of the previous function with respect
 % to the xi :
 % F = Kernel('x=Vx(0,3)','y=Vy(1,3)','beta=Vy(2,3)','eta=Vx(3,3)','lambda=Pm(4,1)',...
-%           'Grad(Exp(Cst(lambda)*SqNorm2(x-y))*beta,x,eta)');
+%           'Grad(Exp(lambda*SqNorm2(x-y))*beta,x,eta)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % beta = rand(3,5000);

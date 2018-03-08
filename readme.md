@@ -71,7 +71,7 @@ a = kernel_product( x, y, b, params)
 We support:
 
 - Summation and (numerically stable) LogSumExp reductions.
-- User-defined formulas, using a simple string format (`"gaussian(x,y) * (1+linear(u,v)**2)"`) or a custom low-level syntax (`"Exp(-Cst(G)*SqDist(X,Y))"`).
+- User-defined formulas, using a simple string format (`"gaussian(x,y) * (1+linear(u,v)**2)"`) or a custom low-level syntax (`"Exp(-G*SqDist(X,Y))"`).
 - Simple syntax for kernels on feature spaces (say, locations+orientations varifold kernels in shape analysis).
 - High-order derivatives.
 
