@@ -13,13 +13,13 @@ import numpy as np
 import torch
 
 import ctypes
-from ctypes import POINTER, c_float, c_int,cast
+from ctypes import POINTER, c_float, c_int, cast
 
 import os.path
 
 from hashlib import sha256
 
-from .compile_generic_routines import *
+from .compile_routines import *
 
 # GENERIC FORMULAS DLLs =========================================================================
 

@@ -65,10 +65,11 @@ endif()
 
 # ----------------- various targets
 
+add_subdirectory(specific)
+
 if(NOT PYTHON_LIB)
     add_subdirectory(bench)
     add_subdirectory(test)
     add_subdirectory(mex)
     add_subdirectory(sandbox)
-    add_subdirectory(specific)
 endif()
