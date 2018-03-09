@@ -13,7 +13,8 @@
  *
  *   +, *, - :
  *      Add<FA,FB>					: adds FA and FB functions
- *      Scal<FA,FB>					: product of FA (scalar valued) with FB
+ *      Scal<FA,FB>                 : product of FA (scalar valued) with FB
+ *      Mult<FA,FB>                 : element-wise multiplication of FA and FB
  *      Minus<F>					: alias for Scal<IntConstant<-1>,F>
  *      Subtract<FA,FB>				: alias for Add<FA,Minus<FB>>
  *
@@ -289,9 +290,8 @@ struct MultImpl : BinaryOp<MultImpl,FA,FB> {
 
 template < class FA, class FB >
 struct MultAlias {
-    using type = typename MultImpl<FA,FB>;
+    using type = MultImpl<FA,FB>;
 };
-
 
 // Constants, etc. will lead to the creation of *many* zero vectors when computing the gradient.
 // Even though this backpropagation engine makes few optimizations,
@@ -313,7 +313,7 @@ struct MultAlias<Zero<DIM>,FB> {
 
 // 0 * 0 = 0
 template < int DIM1, int DIM2 >
-struct ScalAlias<Zero<DIM1>,Zero<DIM2>> {
+struct MultAlias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==DIM2,"Dimensions of FA and FB must be the same for Mult");
     using type = Zero<DIM1>;
 };
@@ -423,7 +423,7 @@ struct Log : UnaryOp<Log,F> {
     using DiffTF = typename F::template DiffT<V,GRADIN>;
 
     template < class V, class GRADIN >
-    using DiffT = DiffTF<V,Mult<Inv<F>,GRADIN>>
+    using DiffT = DiffTF<V,Mult<Inv<F>,GRADIN>>;
 };
 
 //////////////////////////////////////////////////////////////

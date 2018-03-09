@@ -70,7 +70,7 @@ template < int DIMPOINT, int DIMVECT >
 using EnergyKernel = ScalarRadialKernel<EnergyFunction,DIMPOINT,DIMVECT>;
 
 template < int DIMPOINT, int DIMVECT, int N >
-using SumGaussKernel = Scal<Scalprod<_P<1,N>,Exp<Minus<Scal<SqDist<_X<2,DIMPOINT>,_Y<3,DIMPOINT>>,_P<0,N>>>>,_Y<4,DIMVECT>>;
+using SumGaussKernel = Scal<Scalprod<_P<1,N>,Exp<Minus<Scal<SqDist<_X<2,DIMPOINT>,_Y<3,DIMPOINT>>,_P<0,N>>>>>,_Y<4,DIMVECT>>;
 
 //////////////////////////////////////////////////////////////
 ////                 FACTORIZED GAUSS KERNEL              ////
