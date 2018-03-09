@@ -1,7 +1,7 @@
 import torch
 from torch.autograd import Variable
 
-from .kernel_product_generic import GenericKernelProduct
+from .generic_sum import GenericSum
 from ..common.cudaconv import cuda_conv_generic
 
 
@@ -113,7 +113,7 @@ class GenericLogSumExp(torch.autograd.Function):
                 args_g = args + (result, G)  # Don't forget the value & gradient to backprop !
 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                genconv = GenericKernelProduct().apply
+                genconv = GenericSum().apply
 
                 if sig[1] == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     sumindex_g  = 1  # The first sum will be done wrt 'i'
@@ -121,7 +121,7 @@ class GenericLogSumExp(torch.autograd.Function):
                     grad = genconv(backend, aliases, formula_g, signature_g, sumindex_g, *args_g)
                     # Then, sum 'grad' wrt 'j' :
                     # I think that ".sum"'s backward introduces non-contiguous arrays,
-                    # and is thus non-compatible with KernelProduct:
+                    # and is thus non-compatible with GenericSum:
                     # grad = grad.sum(0) 
                     # We replace it with a "handmade hack" :
                     grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad

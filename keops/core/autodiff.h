@@ -9,7 +9,7 @@
  *      _P<N>, or Param<N>			: the N-th parameter variable
  *      _X<N,DIM>				: the N-th variable, vector of dimension DIM, CAT = 0
  *      _Y<N,DIM>				: the N-th variable, vector of dimension DIM, CAT = 1
- *	Elem<F,N>				: Extract Nth element of F
+ *      Elem<F,N>				: Extract Nth element of F
  *
  *
  * Available constants are :

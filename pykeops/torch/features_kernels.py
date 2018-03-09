@@ -1,5 +1,5 @@
-from .kernel_product_generic import GenericKernelProduct
-from .logsumexp_generic import GenericLogSumExp
+from .generic_sum       import GenericSum
+from .generic_logsumexp import GenericLogSumExp
 
 from .utils import _scalar_products, _squared_distances, _log_sum_exp
 
@@ -118,25 +118,25 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
 
     else:
         if mode == "sum":
-            genconv = GenericKernelProduct().apply
+            genconv = GenericSum().apply
             formula = "(" + kernel.formula_sum + " * B)"
         elif mode == "log":
             genconv = GenericLogSumExp().apply
             formula = "(" + kernel.formula_log + " + B)"
         elif mode == "log_scaled":
-            genconv = GenericKernelProduct().apply
+            genconv = GenericSum().apply
             formula = "( Exp(" + kernel.formula_log + "+ A_LOG + B_LOG) * B)"
         elif mode == "log_scaled_log":
             genconv = GenericLogSumExp().apply
             formula = "(" + kernel.formula_log + "+ A_LOG + B_LOG + B)"
         elif mode == "log_primal":
-            genconv = GenericKernelProduct().apply
+            genconv = GenericSum().apply
             formula = "( (A_LOG2 + B_LOG2 - IntCst(1)) * Exp(" + kernel.formula_log + "+ A_LOG + B_LOG) )"
         elif mode == "log_cost":
-            genconv = GenericKernelProduct().apply
+            genconv = GenericSum().apply
             formula = "( (-" + kernel.formula_log + ") * Exp(" + kernel.formula_log + "+ A_LOG + B_LOG) )"
         elif mode == "log_barycenter":
-            genconv = GenericKernelProduct().apply
+            genconv = GenericSum().apply
             formula = "( Exp(" + kernel.formula_log + "+ A_LOG + B_LOG) * (B-B2))"
         else:
             raise ValueError('"mode" should either be "sum" or "log".')

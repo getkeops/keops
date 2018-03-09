@@ -8,18 +8,14 @@ import torch
 from torch.autograd import Variable
 
 
-# See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
-# for reference on the forward-backward syntax
-class GenericKernelProduct(torch.autograd.Function):
+class GenericSum(torch.autograd.Function):
     """
-    Computes a Generic Kernel Product specified by a formula (string) such as :
-    formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<C, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
     """
 
     @staticmethod
     def forward(ctx, backend, aliases, formula, signature, sum_index, *args):
         """
-        Computes a Generic Kernel Product specified by a formula (string) such as :
+        Computes a Generic Summation specified by a formula (string) such as :
         ```
         formula = "Scal< Square<Scalprod<U,V>>, Scal< Exp< Scal<C, Minus<SqNorm2<Subtract<X,Y>>> > >,  B> >"
         ```
@@ -65,7 +61,7 @@ class GenericKernelProduct(torch.autograd.Function):
 
         With the values defined above,
         ```
-        genconv = GenericKernelProduct().apply
+        genconv = GenericSum().apply
         R = genconv( aliases, formula, signature, 0, C, X, Y, U, V, B )
         ```
         is a legal call, where :
@@ -170,7 +166,7 @@ class GenericKernelProduct(torch.autograd.Function):
               |                              .                            |
               | \sum_j [\partial_{X^n_I} F( P^0, X^0_I, Y^0_j, ...) ].G_s |
 
-            = GenericKernelProduct(  Grad( F, V, G_s ), sum_index = 0 )
+            = GenericSum(  Grad( F, V, G_s ), sum_index = 0 )
 
         - if CAT == 1, i.e. V is an "Y^m" : -----------------------------------------------------
 
@@ -194,25 +190,24 @@ class GenericKernelProduct(torch.autograd.Function):
               |                              .                            |
               | \sum_i [\partial_{Y^m_J} F( P^0, X^0_I, Y^0_j, ...) ].G_s |
 
-            = GenericKernelProduct(  Grad( F, V, G_s ), sum_index = 1 )
+            = GenericSum(  Grad( F, V, G_s ), sum_index = 1 )
 
         - if CAT==2, i.e. V is a parameter P^l: ----------------------------------------------------
 
             [\partial_V R].G = \sum_{i,j} \partial_{P^l} F( P^0, X^0_I, Y^0_j, ...) ].G_s
 
             That is, the gradient wrt. P^l is the reduction of a convolution product
-                GenericKernelProduct(  Grad( F, V, G ), sum_index = whatever )
+                GenericSum(  Grad( F, V, G ), sum_index = whatever )
 
 
         Bottom line : ---------------------------------------------------------------------------
 
             If V.CAT == 0 or 1, the gradient [\partial_V F].G is given by
-                  GenericKernelProduct(  Grad( F, V, G ), sum_index = V.CAT )
+                  GenericSum(  Grad( F, V, G ), sum_index = V.CAT )
 
-            If V.CAT == 2, the gradient [\partial_V F].G HAS NOT BEEN PROPERLY IMPLEMENTED YET,
-                           and we put it to None until the feature has been implemented in the
-                           CUDA symbolic differentiation engine.
-
+            If V.CAT == 2, the gradient [\partial_V F].G is given by
+                  GenericSum(  Grad( F, V, G ), sum_index = 1 ).sum(0)
+                = GenericSum(  Grad( F, V, G ), sum_index = 0 ).sum(0)
         """
         backend = ctx.backend
         aliases = ctx.aliases
@@ -245,7 +240,7 @@ class GenericKernelProduct(torch.autograd.Function):
                 args_g = args + (G,)  # Don't forget the gradient to backprop !
 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                genconv = GenericKernelProduct().apply
+                genconv = GenericSum().apply
 
                 if sig[1] == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     sumindex_g  = 1  # The first sum will be done wrt 'i'
@@ -253,7 +248,7 @@ class GenericKernelProduct(torch.autograd.Function):
                     grad = genconv(backend, aliases, formula_g, signature_g, sumindex_g, *args_g)
                     # Then, sum 'grad' wrt 'j' :
                     # I think that ".sum"'s backward introduces non-contiguous arrays,
-                    # and is thus non-compatible with KernelProduct:
+                    # and is thus non-compatible with GenericSum:
                     # grad = grad.sum(0) 
                     # We replace it with a "handmade hack" :
                     grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad
