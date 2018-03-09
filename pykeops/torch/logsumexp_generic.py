@@ -1,7 +1,9 @@
 import torch
+from torch.autograd import Variable
 
 from .kernel_product_generic import GenericKernelProduct
 from ..common.cudaconv import cuda_conv_generic
+
 
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
 # for reference on the forward-backward syntax
@@ -97,28 +99,40 @@ class GenericLogSumExp(torch.autograd.Function):
 
         for sig in signature[1:]:  # Run through the actual parameters, given in *args in the forward.
             arg_ind += 1
-            if sig[1] == 2:  # we're referring to a parameter
-                grads.append(None)  # Not implemented yet
-            else:
-                var_ind += 1  # increment the Variable count
-                if not ctx.needs_input_grad[arg_ind]:  # If the current gradient is to be discarded immediatly...
-                    grads.append(None)  # Don't waste time computing it.
-                else:  # Otherwise, the current gradient is really needed by the user:
-                    # adding new aliases is waaaaay too dangerous if we want to compute
-                    # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
-                    var = "Var(" + str(var_ind) + "," + str(sig[0]) + "," + str(sig[1]) + ")"  # V
-                    formula_g = "Grad(" + formula + "," + var + "," + eta + ")"  # Grad<F,V,G>
-                    formula_g = "Exp(" + formula + "-" + res + ") * " + formula_g
-                    signature_g = [sig] + signature[1:] + signature[:1] + signature[:1]
+            var_ind += 1  # increment the Variable count
+
+                
+            if not ctx.needs_input_grad[arg_ind]:  # If the current gradient is to be discarded immediatly...
+                grads.append(None)  # Don't waste time computing it.
+            else:  # Otherwise, the current gradient is really needed by the user:
+                # adding new aliases is waaaaay too dangerous if we want to compute
+                # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
+                var = "Var(" + str(var_ind) + "," + str(sig[0]) + "," + str(sig[1]) + ")"  # V
+                formula_g = "Grad(" + formula + "," + var + "," + eta + ")"  # Grad<F,V,G>
+                formula_g = "Exp(" + formula + "-" + res + ") * " + formula_g
+                args_g = args + (result, G)  # Don't forget the value & gradient to backprop !
+
+                # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
+                genconv = GenericKernelProduct().apply
+
+                if sig[1] == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
+                    sumindex_g  = 1  # The first sum will be done wrt 'i'
+                    signature_g = [ [sig[0],1] ] + signature[1:] + signature[:1] + signature[:1]
+                    grad = genconv(backend, aliases, formula_g, signature_g, sumindex_g, *args_g)
+                    # Then, sum 'grad' wrt 'j' :
+                    # I think that ".sum"'s backward introduces non-contiguous arrays,
+                    # and is thus non-compatible with KernelProduct:
+                    # grad = grad.sum(0) 
+                    # We replace it with a "handmade hack" :
+                    grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad
+                else :
                     # sumindex is "the index that stays in the end", not "the one in the sum"
                     # (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
                     #  sense if we were to expand our model to 3D tensors or whatever.)
-                    sumindex_g = sig[1]  # The sum will be "eventually indexed just like V".
-                    args_g = args + (result, G)  # Don't forget the value & gradient to backprop !
-
-                    # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                    genconv = GenericKernelProduct().apply
-                    grads.append(genconv(backend, aliases, formula_g, signature_g, sumindex_g, *args_g))
+                    sumindex_g  = sig[1]  # The sum will be "eventually indexed just like V".
+                    signature_g = [sig] + signature[1:] + signature[:1] + signature[:1]
+                    grad = genconv(backend, aliases, formula_g, signature_g, sumindex_g, *args_g)
+                grads.append(grad)
 
         # Grads wrt.  backend, aliases, formula, signature, sum_index, *args
         return (None, None, None, None, None, *grads)

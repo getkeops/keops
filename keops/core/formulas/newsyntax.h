@@ -6,6 +6,9 @@
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
+#include "core/reductions/sum.h"
+#include "core/reductions/log_sum_exp.h"
+
 
 
 #define Var(N,DIM, CAT) Var<N,DIM,CAT>()
