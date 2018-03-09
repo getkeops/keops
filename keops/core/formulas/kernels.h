@@ -33,50 +33,48 @@
  *
  */
 
-// Legacy
-
-template < class OOS2, class X, class Y, class Beta >
-using GaussKernel = Scal<Exp<Scal<OOS2,Minus<SqDist<X,Y>>>>,Beta>;
-
 //////////////////////////////////////////////////////////////
 ////             STANDARD RADIAL FUNCTIONS                ////
 //////////////////////////////////////////////////////////////
 
-template < class OOS2, class R2 >
-using GaussFunction = Exp<Scal<OOS2,Minus<R2>>>;
+template < class R2, class C >
+using GaussFunction = Exp<Scal<C,Minus<R2>>>;
 
-template < class OOS2, class R2 >
-using LaplaceFunction = Exp<Minus<Sqrt<Add<Inv<OOS2>,R2>>>>;
+template < class R2, class C >
+using LaplaceFunction = Exp<Minus<Sqrt<Add<Inv<C>,R2>>>>;
 
-template < class OOS2, class R2 >
-using EnergyFunction = Inv<Powf<Add<Inv<OOS2>,R2>,IntInv<4>>>;
+template < class R2, class C >
+using EnergyFunction = Inv<Powf<Add<Inv<C>,R2>,IntInv<4>>>;
+
+template < class R2, class C, class W >
+using SumGaussFunction = Scalprod<W,Exp<Scal<Minus<R2>,C>>>;
 
 //////////////////////////////////////////////////////////////
 ////                 SCALAR RADIAL KERNELS                ////
 //////////////////////////////////////////////////////////////
 
 // Utility function
-template < template<class,class> class F, int DIMPOINT, int DIMVECT >
-using ScalarRadialKernel = Scal<F<_P<0,1>,SqDist<_X<1,DIMPOINT>,_Y<2,DIMPOINT>>>,_Y<3,DIMVECT>>;
+template < class X, class Y, class B, template<class,class...> class F, class... PARAMS >
+using ScalarRadialKernel = Scal<F<SqDist<X,Y>,PARAMS...>,B>;
 
 // Utility aliases :
-template < int DIMPOINT, int DIMVECT >
-using GaussKernel_ = ScalarRadialKernel<GaussFunction,DIMPOINT,DIMVECT>;
+template < class C, class X, class Y, class B >
+using GaussKernel = ScalarRadialKernel<X,Y,B,GaussFunction,C>;
 
-template < int DIMPOINT, int DIMVECT >
-using LaplaceKernel = ScalarRadialKernel<LaplaceFunction,DIMPOINT,DIMVECT>;
+template < class C, class X, class Y, class B >
+using LaplaceKernel = ScalarRadialKernel<X,Y,B,LaplaceFunction,C>;
 
-template < int DIMPOINT, int DIMVECT >
-using EnergyKernel = ScalarRadialKernel<EnergyFunction,DIMPOINT,DIMVECT>;
+template < class C, class X, class Y, class B >
+using EnergyKernel = ScalarRadialKernel<X,Y,B,EnergyFunction,C>;
 
-template < int DIMPOINT, int DIMVECT, int N >
-using SumGaussKernel = Scal<Scalprod<_P<1,N>,Exp<Minus<Scal<SqDist<_X<2,DIMPOINT>,_Y<3,DIMPOINT>>,_P<0,N>>>>>,_Y<4,DIMVECT>>;
+template < class C, class W, class X, class Y, class B >
+using SumGaussKernel = ScalarRadialKernel<X,Y,B,SumGaussFunction,C,W>;
 
 //////////////////////////////////////////////////////////////
 ////                 FACTORIZED GAUSS KERNEL              ////
 //////////////////////////////////////////////////////////////
-template < int DIMPOINT, int DIMVECT >
-using GaussKernel_Factorized = Factorize< GaussKernel_<DIMPOINT,DIMVECT> , Subtract<_X<1,DIMPOINT>,_Y<2,DIMPOINT>> >;
+template < class C, class X, class Y, class B >
+using GaussKernel_Factorized = Factorize< GaussKernel<C,X,Y,B> , Subtract<X,Y> >;
 
 
 //////////////////////////////////////////////////////////////
@@ -86,32 +84,40 @@ using GaussKernel_Factorized = Factorize< GaussKernel_<DIMPOINT,DIMVECT> , Subtr
 
 // specific implementation of the gaussian kernel and its gradient wrt to X
 
-template < int DIMPOINT, int DIMVECT > struct GaussKernel_specific;
-template < int DIMPOINT, int DIMVECT, class V, class GRADIN > struct GradGaussKernel_specific;
+template < class C, class X, class Y, class B > struct GaussKernel_specific;
+template < class C, class X, class Y, class B, class V, class GRADIN > struct GradGaussKernel_specific;
 
-template < int DIMPOINT, int DIMVECT >
+template < class C, class X, class Y, class B >
 struct GaussKernel_specific {
-    using GenericVersion = GaussKernel_<DIMPOINT,DIMVECT>;
+
+    static_assert(C::DIM==1,"First template argument must be a of dimension 1 for GaussKernel_specific");
+    static_assert(C::CAT==2,"First template argument must be a parameter variable (CAT=2) for GaussKernel_specific");
+    static_assert(X::CAT!=Y::CAT,"Second and third template arguments must not be of the same category for GaussKernel_specific");
+    static_assert(Y::CAT==B::CAT,"Third and fourth template arguments must be of the same category for GaussKernel_specific");
+
+    using GenericVersion = GaussKernel<C,X,Y,B>;
 
     static const int DIM = GenericVersion::DIM;
-	
-	template < int CAT >
-	using VARS = typename GenericVersion::template VARS<CAT>;
+    static const int DIMPOINT = X::DIM;
+    static const int DIMVECT = DIM;
 
-    using THIS = GaussKernel_specific<DIMPOINT,DIMVECT>;
+    template < int CAT >
+    using VARS = typename GenericVersion::template VARS<CAT>;
+
+    using THIS = GaussKernel_specific<C,X,Y,B>;
 		
-    template<class A, class B>
-    using Replace = CondType< B, THIS, IsSameType<A,THIS>::val >;
+    template<class U, class V>
+    using Replace = CondType< V, THIS, IsSameType<U,THIS>::val >;
     
     using AllTypes = univpack<THIS>;
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
         auto t = TUPLE_VERSION::make_tuple(args...);
-        __TYPE__*& params = TUPLE_VERSION::get<IndValAlias<INDS,0>::ind>(t);
-        __TYPE__*& xi = TUPLE_VERSION::get<IndValAlias<INDS,1>::ind>(t);
-        __TYPE__*& yj = TUPLE_VERSION::get<IndValAlias<INDS,2>::ind>(t);
-        __TYPE__*& betaj = TUPLE_VERSION::get<IndValAlias<INDS,3>::ind>(t);
+        __TYPE__*& params = TUPLE_VERSION::get<IndValAlias<INDS,C::IND>::ind>(t);
+        __TYPE__*& xi = TUPLE_VERSION::get<IndValAlias<INDS,X::IND>::ind>(t);
+        __TYPE__*& yj = TUPLE_VERSION::get<IndValAlias<INDS,Y::IND>::ind>(t);
+        __TYPE__*& betaj = TUPLE_VERSION::get<IndValAlias<INDS,B::IND>::ind>(t);
 
         __TYPE__ r2 = 0.0f;
         __TYPE__ temp;
@@ -125,24 +131,26 @@ struct GaussKernel_specific {
     }
 
     template < class V, class GRADIN >
-    using DiffT = GradGaussKernel_specific<DIMPOINT,DIMVECT,V,GRADIN>;
+    using DiffT = GradGaussKernel_specific<C,X,Y,B,V,GRADIN>;
 
 };
 
 // by default we link to the standard autodiff versions of the gradients
-template < int DIMPOINT, int DIMVECT, class V, class GRADIN >
+template < class C, class X, class Y, class B, class V, class GRADIN >
 struct GradGaussKernel_specific {
-    using GenericVersion = Grad<GaussKernel_<DIMPOINT,DIMVECT>,V,GRADIN>;
+    using GenericVersion = Grad<GaussKernel<C,X,Y,B>,V,GRADIN>;
 
     static const int DIM = GenericVersion::DIM;
+    static const int DIMPOINT = X::DIM;
+    static const int DIMVECT = DIM;
 	
 	template < int CAT >
 	using VARS = typename GenericVersion::template VARS<CAT>;
 		
-    using THIS = GradGaussKernel_specific<DIMPOINT,DIMVECT,V,GRADIN>;
+    using THIS = GradGaussKernel_specific<C,X,Y,B,V,GRADIN>;
 		
-    template<class A, class B>
-    using Replace = CondType< B, GradGaussKernel_specific<DIMPOINT,DIMVECT,V,typename GRADIN::template Replace<A,B>>, IsSameType<A,THIS>::val >;
+    template<class E, class F>
+    using Replace = CondType< F, GradGaussKernel_specific<C,X,Y,B,V,typename GRADIN::template Replace<E,F>>, IsSameType<E,THIS>::val >;
     
     using AllTypes = MergePacks < univpack<THIS,V> , typename GRADIN::AllTypes >;
 
@@ -157,29 +165,31 @@ struct GradGaussKernel_specific {
 };
 
 // specific implementation of gradient wrt X
-template < int DIMPOINT, int DIMVECT, class GRADIN >
-struct GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<1,DIMPOINT>,GRADIN> {
-    using GenericVersion = Grad<GaussKernel_<DIMPOINT,DIMVECT>,_X<1,DIMPOINT>,GRADIN>;
+template < class C, class X, class Y, class B, class GRADIN >
+struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
+    using GenericVersion = Grad<GaussKernel<C,X,Y,B>,X,GRADIN>;
 
     static const int DIM = GenericVersion::DIM;
+    static const int DIMPOINT = X::DIM;
+    static const int DIMVECT = DIM;
 	
 	template < int CAT >
 	using VARS = typename GenericVersion::template VARS<CAT>;
 		
-    using THIS = GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<1,DIMPOINT>,GRADIN>;
+    using THIS = GradGaussKernel_specific<C,X,Y,B,X,GRADIN>;
 		
-    template<class A, class B>
-    using Replace = CondType< B, GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<1,DIMPOINT>,typename GRADIN::template Replace<A,B>>, IsSameType<A,THIS>::val >;
+    template<class U, class V>
+    using Replace = CondType< V, GradGaussKernel_specific<C,X,Y,B,X,typename GRADIN::template Replace<U,V>>, IsSameType<U,THIS>::val >;
     
-    using AllTypes = MergePacks < univpack<THIS,_X<1,DIMPOINT>> , typename GRADIN::AllTypes >;
+    using AllTypes = MergePacks < univpack<THIS,X> , typename GRADIN::AllTypes >;
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
         auto t = TUPLE_VERSION::make_tuple(args...);
-        __TYPE__*& params = TUPLE_VERSION::get<IndValAlias<INDS,0>::ind>(t);
-        __TYPE__*& xi = TUPLE_VERSION::get<IndValAlias<INDS,1>::ind>(t);
-        __TYPE__*& yj = TUPLE_VERSION::get<IndValAlias<INDS,2>::ind>(t);
-        __TYPE__*& betaj = TUPLE_VERSION::get<IndValAlias<INDS,3>::ind>(t);
+        __TYPE__*& params = TUPLE_VERSION::get<IndValAlias<INDS,C::IND>::ind>(t);
+        __TYPE__*& xi = TUPLE_VERSION::get<IndValAlias<INDS,X::IND>::ind>(t);
+        __TYPE__*& yj = TUPLE_VERSION::get<IndValAlias<INDS,Y::IND>::ind>(t);
+        __TYPE__*& betaj = TUPLE_VERSION::get<IndValAlias<INDS,B::IND>::ind>(t);
         __TYPE__ alphai[GRADIN::DIM];
         GRADIN::template Eval<INDS>(alphai,args...);
 
@@ -215,23 +225,24 @@ struct GradGaussKernel_specific<DIMPOINT,DIMVECT,_X<1,DIMPOINT>,GRADIN> {
 // which gives the formula below. 
 
 // we construct the formula step by step (we use a struct just as a namespace, to avoid defining these temporary alias in the global scope)
-template < template<class,class> class FORTHO, template<class,class> class FTILDE, int DIM >
+template < template<class,class...> class FORTHO, template<class,class...> class FTILDE, class X, class Y, class B, class... PARAMS >
 struct TRI_Kernel_helper
 {
-	using R2 = SqDist<_X<1,DIM>,_Y<2,DIM>>; 			// r2=|x-y|^2	
-	using KORTHOR2 = FORTHO<Elem<_P<0,2>,0>,R2>;			// k_ortho(r2)
-	using B = _Y<3,DIM>;						// b
-	using KTILDER2 = FTILDE<Elem<_P<0,2>,1>,R2>;			// k_tilde(r2)
-	using XMY = Subtract<_X<1,DIM>,_Y<2,DIM>>;			// x-y
-	using BDOTXMY = Scalprod<_Y<3,DIM>,XMY>;			// <b,x-y>
-	using C = Scalprod<BDOTXMY,XMY>;				// <b,x-y>(x-y)
-	using type = Add<Scal<KORTHOR2,B>,Scal<KTILDER2,C>>;		// final formula 
+    static_assert(X::CAT!=Y::CAT,"Second and third template arguments must not be of the same category for TRI_Kernel");
+    static_assert(Y::CAT==B::CAT,"Third and fourth template arguments must be of the same category for TRI_Kernel");
+	using R2 = SqDist<X,Y>; 			// r2=|x-y|^2	
+	using KORTHOR2 = FORTHO<R2,PARAMS...>;			// k_ortho(r2)
+	using KTILDER2 = FTILDE<R2,PARAMS...>;			// k_tilde(r2)
+	using XMY = Subtract<X,Y>;			// x-y
+	using BDOTXMY = Scalprod<B,XMY>;			// <b,x-y>
+	using D = Scalprod<BDOTXMY,XMY>;				// <b,x-y>(x-y)
+	using type = Add<Scal<KORTHOR2,B>,Scal<KTILDER2,D>>;		// final formula 
 	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y
 };
 
 // final definition is here
-template < template<class,class> class FORTHO, template<class,class> class FTILDE, int DIM >
-using TRI_Kernel = typename TRI_Kernel_helper<FORTHO,FTILDE,DIM>::factorized_type;
+template < template<class,class...> class FORTHO, template<class,class...> class FTILDE, class X, class Y, class B, class... PARAMS >
+using TRI_Kernel = typename TRI_Kernel_helper<FORTHO,FTILDE,X,Y,B,PARAMS...>::factorized_type;
 
 // Div-free and curl-free kernel with gaussian functions.
 // k_df(x,y)b = exp(-r^2/s2)*(((d-1)/(2c)-r^2)b + <b,x-y>(x-y))
@@ -239,63 +250,80 @@ using TRI_Kernel = typename TRI_Kernel_helper<FORTHO,FTILDE,DIM>::factorized_typ
 // The value of 1/s2 must be given as first parameter (_P<0,1>) when calling Eval()
 // We do not use the previous template because exp(-r^2/s2) is factorized
 
-template < int DIM >
+template < class C, class X, class Y, class B >
 struct DivFreeGaussKernel_helper
 {
-	using R2 = SqDist<_X<1,DIM>,_Y<2,DIM>>; 			// r2=|x-y|^2
-	using XMY = Subtract<_X<1,DIM>,_Y<2,DIM>>;			// x-y
-	using G = GaussFunction<_P<0,1>,R2>;				// exp(-r^2/s2)
-	using TWOC = Scal<IntConstant<2>,_P<0,1>>;		 	// 2c
-	using C1 = Divide<IntConstant<DIM-1>,TWOC>;			// (d-1)/(2c)
-	using B = _Y<3,DIM>;						// b
-	using C2 = Scal<Subtract<C1,R2>,B>;				// ((d-1)/(2c)-r^2)b
+    static_assert(C::DIM==1,"First template argument must be a of dimension 1 for DivFreeGaussKernel");
+    static_assert(C::CAT==2,"First template argument must be a parameter variable (CAT=2) for DivFreeGaussKernel");
+    static_assert(X::CAT!=Y::CAT,"Second and third template arguments must not be of the same category for DivFreeGaussKernel");
+    static_assert(X::DIM==Y::DIM,"Second and third template arguments must have the same dimensions for DivFreeGaussKernel");
+    static_assert(Y::CAT==B::CAT,"Third and fourth template arguments must be of the same category for DivFreeGaussKernel");
+    static const int DIM = X::DIM;
+	using R2 = SqDist<X,Y>; 			// r2=|x-y|^2
+	using XMY = Subtract<X,Y>;			// x-y
+	using G = GaussFunction<R2,C>;				// exp(-r^2/s2)
+	using TWOC = Scal<IntConstant<2>,C>;		 	// 2c
+	using D1 = Divide<IntConstant<DIM-1>,TWOC>;			// (d-1)/(2c)
+	using D2 = Scal<Subtract<D1,R2>,B>;				// ((d-1)/(2c)-r^2)b
 	using BDOTXMY = Scalprod<B,XMY>;				// <b,x-y>
-	using C = Scal<BDOTXMY,XMY>;					// <b,x-y>(x-y)
-	using type = Scal<G,Add<C2,C>>;					// final formula
+	using D = Scal<BDOTXMY,XMY>;					// <b,x-y>(x-y)
+	using type = Scal<G,Add<D2,D>>;					// final formula
 	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y
 };
 
-template < int DIM >
-using DivFreeGaussKernel = typename DivFreeGaussKernel_helper<DIM>::factorized_type;
+template < class C, class X, class Y, class B >
+using DivFreeGaussKernel = typename DivFreeGaussKernel_helper<C,X,Y,B>::factorized_type;
 
-template < int DIM >
+template < class C, class X, class Y, class B >
 struct CurlFreeGaussKernel_helper
 {
-	using R2 = SqDist<_X<1,DIM>,_Y<2,DIM>>; 			// r2=|x-y|^2
-	using XMY = Subtract<_X<1,DIM>,_Y<2,DIM>>;			// x-y
-	using G = GaussFunction<_P<0,1>,R2>;				// exp(-r^2/s2)
-	using TWOC = Scal<IntConstant<2>,_P<0,1>>;		 	// 2c
-	using C1 = Divide<IntConstant<1>,TWOC>;				// 1/(2c)
-	using B = _Y<3,DIM>;						// b
-	using C2 = Scal<C1,B>;						// (1/(2c))b
+    static_assert(C::DIM==1,"First template argument must be a of dimension 1 for CurlFreeGaussKernel");
+    static_assert(C::CAT==2,"First template argument must be a parameter variable (CAT=2) for CurlFreeGaussKernel");
+    static_assert(X::CAT!=Y::CAT,"Second and third template arguments must not be of the same category for CurlFreeGaussKernel");
+    static_assert(X::DIM==Y::DIM,"Second and third template arguments must have the same dimensions for CurlFreeGaussKernel");
+    static_assert(Y::CAT==B::CAT,"Third and fourth template arguments must be of the same category for CurlFreeGaussKernel");
+    static const int DIM = X::DIM;
+	using R2 = SqDist<X,Y>; 			// r2=|x-y|^2
+	using XMY = Subtract<X,Y>;			// x-y
+	using G = GaussFunction<R2,C>;				// exp(-r^2/s2)
+	using TWOC = Scal<IntConstant<2>,C>;		 	// 2c
+	using D1 = Divide<IntConstant<1>,TWOC>;			// 1/(2c)
+	using D2 = Scal<D1,B>;						// (1/(2c))b
 	using BDOTXMY = Scalprod<B,XMY>;				// <b,x-y>
-	using C = Scal<BDOTXMY,XMY>;					// <b,x-y>(x-y)
-	using type = Scal<G,Subtract<C2,C>>;				// final formula
+	using D = Scal<BDOTXMY,XMY>;					// <b,x-y>(x-y)
+	using type = Scal<G,Subtract<D2,D>>;				// final formula
 	using factorized_type = Factorize<Factorize<type,R2>,XMY>;	// formula, factorized by r2 and x-y
 };
 
-template < int DIM >
-using CurlFreeGaussKernel = typename CurlFreeGaussKernel_helper<DIM>::factorized_type;
+template < class C, class X, class Y, class B >
+using CurlFreeGaussKernel = typename CurlFreeGaussKernel_helper<C,X,Y,B>::factorized_type;
 
 // Weighted combination of the two previous kernels, which gives a Translation and Rotation Invariant kernel with gaussian base function.
 // k_tri(x,y)b = lambda * k_df(x,y)b + (1-lambda) * k_cf(x,y)b
 // The weight lambda must be specified as the second parameter (_P<1>) when calling Eval()
 
-template < int DIM >
+template < class L, class C, class X, class Y, class B >
 struct TRIGaussKernel_helper
 {
-	using L = _P<4,1>;								// lambda
+    static_assert(L::DIM==1,"First template argument must be a of dimension 1 for TRIGaussKernel");
+    static_assert(L::CAT==2,"First template argument must be a parameter variable (CAT=2) for TRIGaussKernel");
+    static_assert(C::DIM==1,"Second template argument must be a of dimension 1 for TRIGaussKernel");
+    static_assert(C::CAT==2,"Second template argument must be a parameter variable (CAT=2) for TRIGaussKernel");
+    static_assert(X::CAT!=Y::CAT,"Third and fourth template arguments must not be of the same category for TRIGaussKernel");
+    static_assert(X::DIM==Y::DIM,"Third and fourth template arguments must have the same dimensions for TRIGaussKernel");
+    static_assert(Y::CAT==B::CAT,"Fourth and fifth template arguments must be of the same category for TRIGaussKernel");
+    static const int DIM = X::DIM;
 	using OML = Subtract<IntConstant<1>,L>;					// 1-lambda
-	using DF = DivFreeGaussKernel_helper<DIM>;				// k_df(x,y)b (the helper struct, because we need it below)
-	using CF = CurlFreeGaussKernel_helper<DIM>;				// k_cf(x,y)b (the helper struct, because we need it below)
+	using DF = DivFreeGaussKernel_helper<C,X,Y,B>;				// k_df(x,y)b (the helper struct, because we need it below)
+	using CF = CurlFreeGaussKernel_helper<C,X,Y,B>;				// k_cf(x,y)b (the helper struct, because we need it below)
 	using type =  Add<Scal<L,typename DF::type>,Scal<OML,typename CF::type>>;	// final formula (not factorized)
 	// here we can factorize a lot ; we look at common expressions in Div Free and Curl Free kernels:
 	using G = typename DF::G;							// exp(-r^2/s2) can be factorized
-	using C = typename DF::C;							// <b,x-y>(x-y) can be factorized
+	using D = typename DF::D;							// <b,x-y>(x-y) can be factorized
 	using XMY = typename DF::XMY;						// x-y can be factorized
 	using R2 = typename DF::R2;							// r^2 can be factorized
-	using factorized_type = Factorize<Factorize<Factorize<Factorize<type,G>,C>,R2>,XMY>;
+	using factorized_type = Factorize<Factorize<Factorize<Factorize<type,G>,D>,R2>,XMY>;
 };
 	
-template < int DIM >
-using TRIGaussKernel = typename TRIGaussKernel_helper<DIM>::factorized_type;
+template < class L, class C, class X, class Y, class B >
+using TRIGaussKernel = typename TRIGaussKernel_helper<L,C,X,Y,B>::factorized_type;

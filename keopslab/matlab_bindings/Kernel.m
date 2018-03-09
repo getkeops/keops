@@ -131,7 +131,7 @@ function testbuild = buildFormula(code1, code2, filename, precision, build_dir, 
     cd(build_dir)
     %cmdline = ['~/src/cmake-3.10.1/bin/cmake ../cuda -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
     cmdline = ['cmake ../keops -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
-    fprintf(cmdline)
+    fprintf([cmdline,'\n'])
     try
         [~,prebuild_output] = system(cmdline)
         [~,build_output]  = system(['make mex_cpp'])

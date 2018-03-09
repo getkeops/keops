@@ -10,11 +10,11 @@ sigma = .5;
 oos2 = 1/sigma^2;
 [d,n] = size(q0);
 
-K = Kernel('Vx(1,2)','Vy(2,2)','DivFreeGaussKernel(2)');
-%K = Kernel('Vx(1,2)','Vy(2,2)','CurlFreeGaussKernel(2)');
-%K = Kernel('Vx(1,2)','Vy(2,2)','GaussKernel_(2,2)');
+K = Kernel('c=Pm(0,1)','x=Vx(1,2)','y=Vy(2,2)','b=Vy(3,2)','DivFreeGaussKernel(c,x,y,b)');
+%K = Kernel('c=Pm(0,1)','x=Vx(1,2)','y=Vy(2,2)','b=Vy(3,2)','CurlFreeGaussKernel(c,x,y,b)');
+%K = Kernel('c=Pm(0,1)','x=Vx(1,2)','y=Vy(2,2)','b=Vy(3,2)','GaussKernel(c,x,y,b)');
 
-GK = GradKernel(K,'Vx(1,2)','Vx(4,2)');
+GK = GradKernel(K,'x','e=Vx(4,2)');
 
 ng = 50;
 [x1,x2] = ndgrid(linspace(-1,1,ng));

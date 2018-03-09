@@ -38,8 +38,12 @@ template < class V > void fillrandom(V& v) {
 int main() {
 
     // symbolic expression of the function : linear combination of 4 gaussians
-    // F(Cs,Ws,X,Y,B) où Cs, Ws paramètres (vecteurs de taille 4)
-    using F = SumGaussKernel<DIMPOINT,DIMVECT,4>;
+    using C = _P<0,4>;
+    using W = _P<1,4>;
+    using X = _X<2,DIMPOINT>;
+    using Y = _Y<3,DIMPOINT>;
+    using B = _Y<4,DIMVECT>;
+    using F = SumGaussKernel<C,W,X,Y,B>;
 
     cout << endl << "Function F : " << endl;
     PrintFormula<F>();
@@ -81,7 +85,11 @@ int main() {
     
     // compare with combination of 4 convolutions
     cout << "Comparing with combination of 4 convolutions" << endl;
-    using F0 = GaussKernel_<DIMPOINT,DIMVECT>;
+    using C0 = _P<0,1>;
+    using X0 = _X<1,DIMPOINT>;
+    using Y0 = _Y<2,DIMPOINT>;
+    using B0 = _Y<3,DIMVECT>;
+    using F0 = GaussKernel<C0,X0,Y0,B0>;
     using FUNCONVF0 = typename Generic<F0>::sEval;
     vector<__TYPE__> vf0(Nx*F::DIM);    fillrandom(vf0); __TYPE__ *f0 = vf0.data();
     vector<__TYPE__> vf1(Nx*F::DIM);    fillrandom(vf1); __TYPE__ *f1 = vf1.data();
@@ -116,7 +124,8 @@ int main() {
     
     cout << "Testing Gradient of F" << endl;
     
-    using G = Grad<SumGaussKernel<DIMPOINT,DIMVECT,4>,Var<2,DIMPOINT,0>,Var<5,DIMVECT,0>>;
+    using E = _X<5,DIMVECT>;
+    using G = Grad<F,X,E>;
 
     cout << endl << "Function G : " << endl;
     PrintFormula<G>();
@@ -139,7 +148,8 @@ int main() {
     cout << "..." << endl << endl;
     
     cout << "Comparing with combination of 4 convolutions" << endl;
-    using G0 = Grad<GaussKernel_<DIMPOINT,DIMVECT>,Var<1,DIMPOINT,0>,Var<4,DIMVECT,0>>;
+    using E0 = _X<4,DIMVECT>;
+    using G0 = Grad<F0,X0,E0>;
     using FUNCONVG0 = typename Generic<G0>::sEval;
     vector<__TYPE__> vg0(Nx*G0::DIM);    fillrandom(vg0); __TYPE__ *g0 = vg0.data();
     vector<__TYPE__> vg1(Nx*G0::DIM);    fillrandom(vg1); __TYPE__ *g1 = vg1.data();

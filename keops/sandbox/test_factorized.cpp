@@ -41,13 +41,13 @@ int main() {
     // symbolic variables of the function
     using X = Var<1,3,0>; 	// X is the first variable and represents a 3D vector
     using Y = Var<2,3,1>; 	// Y is the second variable and represents a 3D vector
-    using Beta = Var<3,3,1>;	// Beta is the fifth variable and represents a 3D vector
+    using B = Var<3,3,1>;	// Beta is the fifth variable and represents a 3D vector
     using U = Var<4,3,0>;
     using V = Var<5,3,1>;
     using C = Param<0,1>;		// C is the first extra parameter
 
     // symbolic expression of the function : 3rd order gradient with respect to X, X and Y of the Gauss kernel
-    using F = Grad<Grad<Grad<GaussKernel_<3,3>,X,U>,X,U>,Y,V>;
+    using F = Grad<Grad<Grad<GaussKernel<C,X,Y,B>,X,U>,X,U>,Y,V>;
 
     cout << endl << "Function F : " << endl;
     PrintFormula<F>();

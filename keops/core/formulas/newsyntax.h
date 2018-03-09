@@ -85,12 +85,12 @@ Scalprod<FA,FB> operator,(FA fa, FB fb) {
 
 
 
-#define GaussKernel(OOS2,X,Y,Beta) GaussKernel<decltype(OOS2),decltype(X),decltype(Y),decltype(Beta)>()
+#define GaussKernel(C,X,Y,B) GaussKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
+#define LaplaceKernel(C,X,Y,B) LaplaceKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
+#define EnergyKernel(C,X,Y,B) EnergyKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
+#define SumGaussKernel(C,W,X,Y,B) SumGaussKernel<decltype(C),decltype(W),decltype(X),decltype(Y),decltype(B)>()
 
-#define GaussKernel_(DIMPOINT,DIMVECT) GaussKernel_<DIMPOINT,DIMVECT>()
-#define LaplaceKernel(DIMPOINT,DIMVECT) LaplaceKernel<DIMPOINT,DIMVECT>()
-#define EnergyKernel(DIMPOINT,DIMVECT) EnergyKernel<DIMPOINT,DIMVECT>()
+#define DivFreeGaussKernel(C,X,Y,B) DivFreeGaussKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
+#define CurlFreeGaussKernel(C,X,Y,B) CurlFreeGaussKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
+#define TRIGaussKernel(L,C,X,Y,B) TRIGaussKernel<decltype(L),decltype(C),decltype(X),decltype(Y),decltype(B)>()
 
-#define DivFreeGaussKernel(DIM) DivFreeGaussKernel<DIM>()
-#define CurlFreeGaussKernel(DIM) CurlFreeGaussKernel<DIM>()
-#define TRIGaussKernel(DIM) TRIGaussKernel<DIM>()

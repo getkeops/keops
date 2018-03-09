@@ -168,7 +168,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             // we check dimension here from the formula
             if(dimk!=dimargs[k]) {
                 mexErrMsgTxt("wrong dimension for input args");
-                //cout << "For argument: dimension of " << k << " is " << dimargs[k] << " but should be " << dimk << endl;
+                cout << "For argument: dimension of " << k << " is " << dimargs[k] << " but should be " << dimk << endl;
             }
             if(n[typek]!=nk) {
                 mexErrMsgTxt("inconsistent input sizes");
