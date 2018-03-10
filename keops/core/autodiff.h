@@ -389,7 +389,7 @@ struct Elem : UnaryOp<Elem,F,M> {
 //////////////////////////////////////////////////////////////
 
 template < class F, int N, int M >
-struct ElemT : UnaryOp<Elem,F,N,M> {
+struct ElemT : UnaryOp<ElemT,F,N,M> {
     static const int DIM = N;
     static_assert(F::DIM==1,"Input of ElemT should be a scalar");
 
