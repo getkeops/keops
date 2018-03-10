@@ -125,6 +125,7 @@ class GenericLogSumExp(torch.autograd.Function):
                     # grad = grad.sum(0) 
                     # We replace it with a "handmade hack" :
                     grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad
+                    grad = grad.view(-1)
                 else :
                     # sumindex is "the index that stays in the end", not "the one in the sum"
                     # (It's ambiguous, I know... But it's the convention chosen by Joan, which makes
