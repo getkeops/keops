@@ -174,12 +174,12 @@ struct SqNormFull : BinaryOp<SqNormFull,FS,FA> {
 
     // sum_i s_i*a_i*a_i is scalar-valued, so that gradin is necessarily a scalar.
     // [\partial_V ...].gradin = gradin * ( 2*[\partial_V A].(S*A) + [\partial_V S].(A*A) )
-    /*template < class V, class GRADIN >
+    template < class V, class GRADIN >
     using DiffT = Scal < GRADIN , 
-                         Add < Scal< IntCst<2>, typename FA::template DiffT<V,Mult<FS,FA>> >, 
+                         Add < Scal< IntConstant<2>, typename FA::template DiffT<V,Mult<FS,FA>> >, 
                                typename FS::template DiffT<V, Mult<FA,FA> > 
                              > 
-                        >;*/
+                        >;
 };
 
 template < class FS, class FA >
