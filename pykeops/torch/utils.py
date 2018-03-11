@@ -5,6 +5,44 @@ def _squared_distances(x, y) :
     y_j = y.unsqueeze(0)         # Shape (M,D) -> Shape (1,M,D)
     return ((x_i-y_j)**2).sum(2) # N-by-M matrix, xmy[i,j] = |x_i-y_j|^2
 
+def _weighted_squared_distances(g, x, y) :
+    x_i = x.unsqueeze(1)         # Shape (N,D) -> Shape (N,1,D)
+    y_j = y.unsqueeze(0)         # Shape (M,D) -> Shape (1,M,D)
+
+    D = x.shape[1]
+    if   len(g.shape) == 1 : # g is a parameter
+
+        if   g.shape[0] == 1 : # g is a scalar
+            return g * ((x_i-y_j)**2).sum(2) # N-by-M matrix, xmy[i,j] = g * |x_i-y_j|^2
+
+        elif g.shape[0] == D : # g is a diagonal matrix
+            g_d = g.unsqueeze(0).unsqueeze(1) # Shape (D) -> Shape (1,1,D)
+            return (g_d * (x_i-y_j)**2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_d * (x_i,d-y_j,d)^2
+            
+        elif 2 * g.shape[0] == D * (D+1) :    # g is a symmetric matrix
+            raise NotImplementedError
+        else :
+            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D*(D+1)/2) metrics.")
+
+
+    elif len(g.shape) == 2 : # g is a 'j' variable
+        
+        if g.shape[1] == 1 : # g_j is scalar
+            return g * ((x_i-y_j)**2).sum(2) # N-by-M matrix, xmy[i,j] = g_j * |x_i-y_j|^2
+
+        elif g.shape[1] == D : # g_j is a diagonal matrix
+            g_d = g.unsqueeze(0) # Shape (M,D) -> Shape (1,M,D)
+            return (g_d * (x_i-y_j)**2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_j,d * (x_i,d-y_j,d)^2
+
+        elif 2 * g.shape[1] == D * (D+1) :    # g_j is a symmetric matrix
+            raise NotImplementedError
+        else :
+            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D*(D+1)/2) metrics.")
+
+    else :
+        raise ValueError("A metric parameter should either be a vector or a 2d-tensor.")
+
+
 def _scalar_products(u, v) :
     u_i = u.unsqueeze(1)         # Shape (N,D) -> Shape (N,1,D)
     v_j = v.unsqueeze(0)         # Shape (M,D) -> Shape (1,M,D)

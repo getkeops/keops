@@ -183,9 +183,9 @@ struct SqNormFull : BinaryOp<SqNormFull,FS,FA> {
 };
 
 template < class FS, class FA >
-using SqNorm = CondType< SqNormIso<FS,FA> ,  
-                         CondType< SqNormDiag<FS,FA>, SqNormFull<FS,FA>, FS::DIM==FA::DIM > , 
-                         FS::DIM == 1  >;
+using WeightedSqNorm = CondType< SqNormIso<FS,FA> ,  
+                                 CondType< SqNormDiag<FS,FA>, SqNormFull<FS,FA>, FS::DIM==FA::DIM > , 
+                                 FS::DIM == 1  >;
 
 
 
@@ -201,5 +201,11 @@ template < class X, class Y >
 using SqDist = SqNorm2<Subtract<X,Y>>;
 
 
+//////////////////////////////////////////////////////////////
+////   WEIGHTED SQUARED DISTANCE : WeightedSqDist<S,A,B>  ////
+//////////////////////////////////////////////////////////////
+
+template < class S, class X, class Y >
+using WeightedSqDist = WeightedSqNorm< S, Subtract<X,Y>>;
 
 

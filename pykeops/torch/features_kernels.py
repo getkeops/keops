@@ -1,25 +1,44 @@
 from .generic_sum       import GenericSum
 from .generic_logsumexp import GenericLogSumExp
 
-from .utils import _scalar_products, _squared_distances, _log_sum_exp
+from .utils import _scalar_products, _weighted_squared_distances, _log_sum_exp
+
+def extract_metric_parameters(G) :
+    """
+    From the shape of the Variable G, infers if it is supposed
+    to be used as a fixed parameter or as a "j" variable,
+    and whether it represents a scalar, a diagonal matrix
+    or a full symmetric matrix.
+    """
+    if len(G.shape) == 1 :
+        G_cat = 2
+        G_dim = G.shape[0]
+    elif len(G.shape) == 2 :
+        G_cat = 1
+        G_dim = G.shape[1]
+    else :
+        raise ValueError("A 'metric' parameter is expected to be of dimension 1 or 2.")
+
+    G_str = ["Vx", "Vy", "Pm"][G_cat]
+    return G_dim, G_cat, G_str
 
 
 def apply_routine(features, routine, *args):
     """PyTorch bindings."""
     if features == "locations":
         g, x, y, b = args
-        K = routine(g=g, x=x, y=y, xmy2=_squared_distances(x, y))
+        K = routine(g=g, x=x, y=y, gxmy2=_weighted_squared_distances(g, x, y))
 
     elif features == "locations+directions":
         g, x, y, h, u, v, b = args
-        K = routine(g=g, x=x, y=y, xmy2=_squared_distances(x, y), \
+        K = routine(g=g, x=x, y=y, gxmy2=_weighted_squared_distances(g, x, y), \
                     h=h, u=u, v=v, usv=_scalar_products(u, v))
 
     elif features == "locations+directions+values":
         g, x, y, h, u, v, i, s, t, b = args
-        K = routine(g=g, x=x, y=y, xmy2=_squared_distances(x, y), \
-                    h=h, u=u, v=v, usv=_scalar_products(u, v), \
-                    i=i, s=s, t=t, smt2=_squared_distances(s, t))
+        K = routine(g=g, x=x, y=y, gxmy2=_weighted_squared_distances(g, x, y), \
+                    h=h, u=u, v=v,  usv=_scalar_products(u, v), \
+                    i=i, s=s, t=t, ismt2=_weighted_squared_distances(i, s, t))
     else:
         raise ValueError("This number of arguments is not supported!")
     return K
@@ -142,58 +161,69 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             raise ValueError('"mode" should either be "sum" or "log".')
 
         if kernel.features == "locations":
-            nvars = 3
-            dimpoint = args[1].size(1);
-            dimout = args[3].size(1)
-            aliases = ["G = Pm(0,1)",  # 1st parameter
-                       "X = Vx(1," + str(dimpoint) + ") ",  # 1st variable, dim DIM,    indexed by i
-                       "Y = Vy(2," + str(dimpoint) + ") ",  # 2nd variable, dim DIM,    indexed by j
-                       "B = Vy(3," + str(dimout) + ") "]  # 3rd variable, dim DIMOUT, indexed by j
-            # stands for:     R_i   ,   G  ,      X_i    ,      Y_j    ,     B_j    .
-            signature = [(dimout, 0), (1, 2), (dimpoint, 0), (dimpoint, 1), (dimout, 1)]
+            (G,X,Y,B) = args
+            dimpoint = X.size(1)
+            dimout   = B.size(1)
+            G_dim, G_cat, G_str = extract_metric_parameters(G)
+            nvars = 4
+
+            aliases = ["G = "+G_str+"(0,"+str(G_dim)+") ",  # parameter/j-variable
+                       "X = Vx(1," + str(dimpoint) + ") ",  # variable, dim DIM,    indexed by i
+                       "Y = Vy(2," + str(dimpoint) + ") ",  # variable, dim DIM,    indexed by j
+                       "B = Vy(3," + str(dimout)   + ") "]  # variable, dim DIMOUT, indexed by j
+            # stands for:     R_i   ,        G      ,       X_i    ,      Y_j    ,     B_j    .
+            signature = [(dimout, 0), (G_dim, G_cat), (dimpoint, 0), (dimpoint, 1), (dimout, 1)]
 
         elif kernel.features == "locations+directions":
-            nvars = 5
-            dimpoint = args[1].size(1);
-            dimout = args[6].size(1)
+            (G,X,Y,H,U,V,B) = args
+            dimpoint = X.size(1)
+            dimout   = B.size(1)
+            G_dim, G_cat, G_str = extract_metric_parameters(G)
+            H_dim, H_cat, H_str = extract_metric_parameters(H)
+            nvars = 7
 
-            aliases = ["G = Pm(0,1)",  # 1st parameter
-                       "X = Vx(1," + str(dimpoint) + ") ",  # 1st variable, dim DIM,    indexed by i
-                       "Y = Vy(2," + str(dimpoint) + ") ",  # 2nd variable, dim DIM,    indexed by j
-                       "H = Pm(3,1)",  # 2nd parameter
-                       "U = Vx(4," + str(dimpoint) + ") ",  # 3rd variable, dim DIM,    indexed by i
-                       "V = Vy(5," + str(dimpoint) + ") ",  # 4th variable, dim DIM,    indexed by j
-                       "B = Vy(6," + str(dimout) + ") "]  # 5th variable, dim DIMOUT, indexed by j
-            # stands for:     R_i   ,   G  ,       X_i    ,       Y_j    ,
-            signature = [(dimout, 0), (1, 2), (dimpoint, 0), (dimpoint, 1), \
-                         #                           H  ,       U_i    ,       V_j    ,
-                         (1, 2), (dimpoint, 0), (dimpoint, 1), \
-                         #                              B_j    .
-                         (dimout, 1)]
+            aliases = ["G = "+G_str+"(0,"+str(G_dim)+") ",  # parameter/j-variable
+                       "X = Vx(1," + str(dimpoint) + ") ",  # variable, dim DIM,    indexed by i
+                       "Y = Vy(2," + str(dimpoint) + ") ",  # variable, dim DIM,    indexed by j
+                       "H = "+H_str+"(3,"+str(H_dim)+") ",  # parameter/j-variable
+                       "U = Vx(4," + str(dimpoint) + ") ",  # variable, dim DIM,    indexed by i
+                       "V = Vy(5," + str(dimpoint) + ") ",  # variable, dim DIM,    indexed by j
+                       "B = Vy(6," + str(dimout)   + ") "]  # variable, dim DIMOUT, indexed by j
+            # stands for:     R_i   ,       G       ,       X_i    ,       Y_j    ,
+            signature = [(dimout, 0), (G_dim, G_cat), (dimpoint, 0), (dimpoint, 1), \
+                         #                  H       ,       U_i    ,       V_j    ,
+                                      (H_dim, H_cat), (dimpoint, 0), (dimpoint, 1), \
+                         #                 B_j      .
+                                    (dimout, 1)]
 
         elif kernel.features == "locations+directions+values":
-            nvars = 7
-            dimpoint = args[1].size(1);
-            dimout = args[9].size(1);
-            dimsignal = args[7].size(1)
-            aliases = ["G = Pm(0,1)",  # 1st parameter
-                       "X = Vx(1," + str(dimpoint) + ") ",  # 1st variable, dim DIMPOINT,    indexed by i
-                       "Y = Vy(2," + str(dimpoint) + ") ",  # 2nd variable, dim DIMPOINT,    indexed by j
-                       "H = Pm(3,1)",  # 2nd parameter
-                       "U = Vx(4," + str(dimpoint) + ") ",  # 3rd variable, dim DIMPOINT,    indexed by i
-                       "V = Vy(5," + str(dimpoint) + ") ",  # 4th variable, dim DIMPOINT,    indexed by j
-                       "I = Pm(6,1)",  # 3rd parameter
-                       "S = Vx(7," + str(dimsignal) + ") ",  # 5th variable, dim DIMSIGNAL,   indexed by i
-                       "T = Vy(8," + str(dimsignal) + ")",  # 6th variable, dim DIMSIGNAL,   indexed by j
-                       "B = Vy(9," + str(dimout) + ") "]  # 7th variable, dim DIMOUT,      indexed by j
-            # stands for:     R_i   ,   G  ,       X_i    ,       Y_j    ,
-            signature = [(dimout, 0), (1, 2), (dimpoint, 0), (dimpoint, 1), \
-                         #                           H  ,       U_i    ,       V_j    ,
-                         (1, 2), (dimpoint, 0), (dimpoint, 1), \
-                         #                           I  ,       S_i    ,       T_j    ,
-                         (1, 2), (dimsignal, 0), (dimsignal, 1), \
-                         #                              B_j    .
-                         (dimout, 1)]
+            (G,X,Y,H,U,V,I,S,T,B) = args
+            dimpoint  = X.size(1)
+            dimsignal = S.size(1)
+            dimout    = B.size(1)
+            G_dim, G_cat, G_str = extract_metric_parameters(G)
+            H_dim, H_cat, H_str = extract_metric_parameters(H)
+            I_dim, I_cat, I_str = extract_metric_parameters(I)
+            nvars = 10
+
+            aliases = ["G = "+G_str+"(0,"+str(G_dim)+") ",  # parameter/j-variable
+                       "X = Vx(1," + str(dimpoint) + ") ",  # variable, dim DIMPOINT,    indexed by i
+                       "Y = Vy(2," + str(dimpoint) + ") ",  # variable, dim DIMPOINT,    indexed by j
+                       "H = "+H_str+"(3,"+str(H_dim)+") ",  # parameter/j-variable
+                       "U = Vx(4," + str(dimpoint) + ") ",  # variable, dim DIMPOINT,    indexed by i
+                       "V = Vy(5," + str(dimpoint) + ") ",  # variable, dim DIMPOINT,    indexed by j
+                       "I = "+I_str+"(6,"+str(I_dim)+") ",  # parameter/j-variable
+                       "S = Vx(7," + str(dimsignal)+ ") ",  # variable, dim DIMSIGNAL,   indexed by i
+                       "T = Vy(8," + str(dimsignal)+ ")",   # variable, dim DIMSIGNAL,   indexed by j
+                       "B = Vy(9," + str(dimout)   + ") "]  # variable, dim DIMOUT,      indexed by j
+            # stands for:     R_i   ,       G       ,       X_i    ,       Y_j    ,
+            signature = [(dimout, 0), (G_dim, G_cat), (dimpoint, 0), (dimpoint, 1), \
+                         #                  H       ,       U_i    ,       V_j    ,
+                                      (H_dim, H_cat), (dimpoint, 0), (dimpoint, 1), \
+                         #                  I       ,       S_i    ,       T_j    ,
+                                      (I_dim, I_cat), (dimsignal, 0), (dimsignal, 1), \
+                         #                  B_j    .
+                                      (dimout, 1)]
 
         if mode in ("log_scaled", "log_scaled_log", "log_primal", "log_cost", "log_barycenter"):
             aliases += ["A_LOG = Vx(" + str(nvars) + ",1)",
