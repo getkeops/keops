@@ -90,6 +90,109 @@ struct ScalprodAlias<Zero<DIM1>,Zero<DIM2>> {
 template < class F >
 using SqNorm2 = Scalprod<F,F>;
 
+
+
+
+//////////////////////////////////////////////////////////////
+////           ANISOTROPIC NORM :   SqNorm< S,A >         ////
+//////////////////////////////////////////////////////////////
+
+// Isotropic norm, if S is a scalar:
+// SqNormIso<S,A> = S * <A,A> = S * sum_i a_i*a_i
+template < class FS, class FA >
+struct SqNormIso : BinaryOp<SqNormIso,FS,FA> {
+    // Output dimension = 1, provided that FS::DIM = 1
+    static const int DIMIN = FA::DIM;
+    static_assert(FS::DIM==1,"Isotropic square norm expects a scalar parameter.");
+    static const int DIM = 1;
+
+    static void PrintIdString() { cout << "SqNormIso"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
+    		*out = 0;
+            for(int k=0; k<DIMIN; k++)
+            	*out += outA[k]*outA[k];
+            *out *= *outS;
+	}
+
+    // S*<A,A> is scalar-valued, so that gradin is necessarily a scalar.
+    // [\partial_V S*<A,A>].gradin = gradin * ( 2*S*[\partial_V A].A + [\partial_V S].<A,A> )
+    template < class V, class GRADIN >
+    using DiffT = Scal < GRADIN , 
+                         Add < Scal< Scal<IntConstant<2>,FS>, typename FA::template DiffT<V,FA> >, 
+                               typename FS::template DiffT<V, SqNorm2<FA> > 
+                             > 
+                        >;
+};
+
+
+// Anisotropic (but diagonal) norm, if S::DIM == A::DIM:
+// SqNormDiag<S,A> = sum_i s_i*a_i*a_i
+template < class FS, class FA >
+struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
+    // Output dimension = 1, provided that FS::DIM = FA::DIM
+    static const int DIMIN = FA::DIM;
+    static_assert(FS::DIM==FA::DIM,"Diagonal square norm expects a vector of parameters of dimension FA::DIM.");
+    static const int DIM = 1;
+
+    static void PrintIdString() { cout << "SqNormDiag"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
+    		*out = 0;
+            for(int k=0; k<DIMIN; k++)
+            	*out += outS[k]*outA[k]*outA[k];
+	}
+
+    // sum_i s_i*a_i*a_i is scalar-valued, so that gradin is necessarily a scalar.
+    // [\partial_V ...].gradin = gradin * ( 2*[\partial_V A].(S*A) + [\partial_V S].(A*A) )
+    template < class V, class GRADIN >
+    using DiffT = Scal < GRADIN , 
+                         Add < Scal< IntConstant<2>, typename FA::template DiffT<V,Mult<FS,FA>> >, 
+                               typename FS::template DiffT<V, Mult<FA,FA> > 
+                             > 
+                        >;
+};
+
+// Fully anisotropic norm, if S::DIM == A::DIM * (A::DIM+1) / 2:
+// SqNormFull<S,A> = sum_{i<=j} s_ij * a_i*a_j
+template < class FS, class FA >
+struct SqNormFull : BinaryOp<SqNormFull,FS,FA> {
+    // Output dimension = 1, provided that FS::DIM = 1
+    static const int DIMIN = FA::DIM;
+    static_assert(2 * FS::DIM == FA::DIM * (FA::DIM + 1), "Anisotropic square norm expects a vector of parameters of dimension FA::DIM * (FA::DIM+1) / 2.");
+    static const int DIM = 1;
+
+    static void PrintIdString() { cout << "SqNormFull"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
+    		*out = 0;
+            for(int k=0; k<DIMIN; k++) {
+                for(int l=0; l <= k; l++)
+                    *out += outS[ k*(k+1)/2 + l ] * outA[k]*outA[l];
+            }
+	}
+
+    // sum_i s_i*a_i*a_i is scalar-valued, so that gradin is necessarily a scalar.
+    // [\partial_V ...].gradin = gradin * ( 2*[\partial_V A].(S*A) + [\partial_V S].(A*A) )
+    /*template < class V, class GRADIN >
+    using DiffT = Scal < GRADIN , 
+                         Add < Scal< IntCst<2>, typename FA::template DiffT<V,Mult<FS,FA>> >, 
+                               typename FS::template DiffT<V, Mult<FA,FA> > 
+                             > 
+                        >;*/
+};
+
+template < class FS, class FA >
+using SqNorm = CondType< SqNormIso<FS,FA> ,  
+                         CondType< SqNormDiag<FS,FA>, SqNormFull<FS,FA>, FS::DIM==FA::DIM > , 
+                         FS::DIM == 1  >;
+
+
+
+
+
+
+
 //////////////////////////////////////////////////////////////
 ////      SQUARED DISTANCE : SqDist<A,B>                  ////
 //////////////////////////////////////////////////////////////
