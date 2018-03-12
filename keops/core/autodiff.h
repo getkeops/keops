@@ -88,6 +88,7 @@ class Generic {
         using INDSP = GetInds<VARSP>;
 
         using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;  // indices of variables
+        static_assert(CheckAllDistinct<INDS>::val,"Incorrect formula : at least two distinct variables have the same position index.");
 
         template < typename... Args >
         HOST_DEVICE INLINE void operator()(Args... args) {

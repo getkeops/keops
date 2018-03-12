@@ -133,7 +133,10 @@ struct univpack<C,Args...> {
     using PUTLEFT = univpack<D, C, Args...>;
 
     using NEXT = univpack<Args...>; // [C, ...].tail() = [...]
+
 };
+
+
 
 
 // OPERATIONS ON PACKS AND UNIVPACKS ============================================================
@@ -459,6 +462,80 @@ template < int N, int... NS > struct pack<N,NS...> {
     }
 
 };
+
+
+
+// create pack of arbitrary size filled with zero value
+
+template < int N >
+struct ZeroPackAlias {
+    using type = typename ZeroPackAlias<N-1>::type::template PUTLEFT<0>;
+};
+
+template < >
+struct ZeroPackAlias<0> {
+    using type = pack<>;
+};
+
+template < int N >
+using ZeroPack = typename ZeroPackAlias<N>::type;
+
+
+
+// Replace a value at position N in pack
+
+
+template < class P, int V, int N > 
+struct ReplaceInPackAlias {
+    using NEXTPACK = typename P::NEXT;
+    using type = typename ReplaceInPackAlias<NEXTPACK,V,N-1>::type::template PUTLEFT<P::FIRST>;
+};
+
+
+template < class P, int V >
+struct ReplaceInPackAlias<P,V,0> {
+    using type = typename P::NEXT::template PUTLEFT<V>;
+};
+
+template < class P, int V, int N >
+using ReplaceInPack = typename ReplaceInPackAlias<P,V,N>::type;
+
+
+// get the value at position N from a pack of ints
+
+template < class P, int N > 
+struct PackVal {
+    using type = typename PackVal<typename P::NEXT,N-1>::type;
+};
+
+template < class P >
+struct PackVal<P,0> {
+    using type = PackVal<P,0>;
+    static const int Val = P::FIRST;
+};
+
+// Check that all values in a pack of ints are unique
+// here we count the number of times each value appears, then
+// test if the sum is > 1 (which is not an optimal algorithm, it could be improved...)
+template < class P, class TAB = ZeroPack<P::MAX+1> > 
+struct CheckAllDistinct_BuildTab {
+    static const int VAL = PackVal<TAB,P::FIRST>::type::Val;
+    using NEWTAB = ReplaceInPack<TAB,VAL+1,P::FIRST>;
+    using type = typename CheckAllDistinct_BuildTab<typename P::NEXT,NEWTAB>::type;
+};
+
+template < class TAB > 
+struct CheckAllDistinct_BuildTab<pack<>,TAB> {
+    using type = TAB;
+};
+
+template < class P > 
+struct CheckAllDistinct {
+    using TAB = typename CheckAllDistinct_BuildTab<P>::type;
+    static const bool val = TAB::MAX<2;
+};
+
+
 
 // USEFUL METHODS ===================================================================================
 
