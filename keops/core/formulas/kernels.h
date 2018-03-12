@@ -113,11 +113,10 @@ struct GaussKernel_specific {
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
-        auto t = TUPLE_VERSION::make_tuple(args...);
-        __TYPE__*& params = TUPLE_VERSION::get<IndValAlias<INDS,C::IND>::ind>(t);
-        __TYPE__*& xi = TUPLE_VERSION::get<IndValAlias<INDS,X::IND>::ind>(t);
-        __TYPE__*& yj = TUPLE_VERSION::get<IndValAlias<INDS,Y::IND>::ind>(t);
-        __TYPE__*& betaj = TUPLE_VERSION::get<IndValAlias<INDS,B::IND>::ind>(t);
+        __TYPE__*& params = Get<IndValAlias<INDS,C::IND>::ind>(args...);
+        __TYPE__*& xi = Get<IndValAlias<INDS,X::IND>::ind>(args...);
+        __TYPE__*& yj = Get<IndValAlias<INDS,Y::IND>::ind>(args...);
+        __TYPE__*& betaj = Get<IndValAlias<INDS,B::IND>::ind>(args...);
 
         __TYPE__ r2 = 0.0f;
         __TYPE__ temp;
@@ -185,11 +184,10 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
-        auto t = TUPLE_VERSION::make_tuple(args...);
-        __TYPE__*& params = TUPLE_VERSION::get<IndValAlias<INDS,C::IND>::ind>(t);
-        __TYPE__*& xi = TUPLE_VERSION::get<IndValAlias<INDS,X::IND>::ind>(t);
-        __TYPE__*& yj = TUPLE_VERSION::get<IndValAlias<INDS,Y::IND>::ind>(t);
-        __TYPE__*& betaj = TUPLE_VERSION::get<IndValAlias<INDS,B::IND>::ind>(t);
+        __TYPE__*& params = Get<IndValAlias<INDS,C::IND>::ind>(args...);
+        __TYPE__*& xi = Get<IndValAlias<INDS,X::IND>::ind>(args...);
+        __TYPE__*& yj = Get<IndValAlias<INDS,Y::IND>::ind>(args...);
+        __TYPE__*& betaj = Get<IndValAlias<INDS,B::IND>::ind>(args...);
         __TYPE__ alphai[GRADIN::DIM];
         GRADIN::template Eval<INDS>(alphai,args...);
 
