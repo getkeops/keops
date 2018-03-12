@@ -101,7 +101,7 @@ We're currently investigating the possibility of developing a third backend, tha
 
 Two steps:
 
-1) Run the out-of-the-box working examples [`./pykeops/examples/convolution.py`](./pykeops/examples/convolution.py) and [`./pykeops/examples/generic_example.py`](./pykeops/examples/generic_example.py).
+1) Run the out-of-the-box working example [`./pykeops/examples/generic_example.py`](./pykeops/examples/generic_example.py).
 
 2) If you are already familiar with the LDDMM theory and want to get started quickly, please check the shapes toolboxes: [plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox](https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox) and [plmlab.math.cnrs.fr/jeanfeydy/lddmm_pytorch](https://plmlab.math.cnrs.fr/jeanfeydy/lddmm_pytorch).
 
