@@ -156,7 +156,7 @@ struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
 // ------------------------------------------------------------------------------
 // Fully anisotropic norm, if S::DIM == A::DIM * A::DIM:
 // ------------------------------------------------------------------------------
-template < class A, class X > struct SymTwoDot<A,X>;
+template < class A, class X > struct SymTwoDot;
 
 // SymTwoOuterProduct<X,Y> = X @ Y^T + Y @ X^T
 template < class X, class Y >
@@ -169,16 +169,17 @@ struct SymTwoOuterProduct : BinaryOp<SymTwoOuterProduct,X,Y> {
     static void PrintIdString() { cout << "SymTwoOuterProduct"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX, __TYPE__ *outY) {
-            for(int k=0; k<DIMIN; k++) {
+            for(int k=0; k < DIMIN; k++) {
                 for(int l=0; l < DIMIN; l++)
-                    out[ k*DIMIN + l ] = outX[ k ] * outY[ l ] + outX[ l ] * outY[ k ] ;
+                    out[ k*DIMIN + l ] = outX[k] * outY[l] + outX[l] * outY[k] ;
             }
 	}
 
     // [\partial_V (X @ Y^T + Y @ X^T)].A = [\partial_V X].(2*A@Y) + [\partial_V Y].(2*A@X)
     template < class V, class GRADIN >
-    using DiffT = Add< typename X::template DiffT<V, SymTwoDot< GRADIN, Y > ,
-                       typename Y::template DiffT<V, SymTwoDot< GRADIN, X > >;
+    using DiffT = Add< typename X::template DiffT<V, SymTwoDot< GRADIN, Y > >,
+                       typename Y::template DiffT<V, SymTwoDot< GRADIN, X > > 
+                     >;
 };
 
 
@@ -193,7 +194,7 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
     static void PrintIdString() { cout << "SymTwoDot"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
-            for(int k=0; k<DIMIN; k++) {
+            for(int k=0; k < DIMIN; k++) {
                 out[k] = 0;
                 for(int l=0; l < DIMIN; l++) {
                     out[ k ] += outA[ k*DIMIN + l ] * outX[ l ];
@@ -205,26 +206,28 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
     // ASSUMING THAT "A" IS A SYMMETRIC MATRIX,
     // [\partial_V 2A@X].gradin = [\partial_V X].(2*A@gradin) + [\partial_V A].(X @ gradin^T + gradin^T @ X)
     template < class V, class GRADIN >
-    using DiffT = Add< typename X::template DiffT<V, SymTwoDot< A, GRADIN > ,
-                       typename A::template DiffT<V, SymTwoOuterProduct< X, GRADIN >  >;
+    using DiffT = Add< typename X::template DiffT<V, SymTwoDot< A, GRADIN > >,
+                       typename A::template DiffT<V, SymTwoOuterProduct< X, GRADIN > > 
+                     >;
 };
 
 // SymOuterProduct<X> = X * X^T
 template < class X >
 struct SymOuterProduct : UnaryOp<SymOuterProduct,X> {
-    // Output dimension = X::DIM**2, provided that FS::DIM = 1
+    // Output dimension = X::DIM**2
     static const int DIMIN = X::DIM;
     static const int DIM = DIMIN * DIMIN;
 
     static void PrintIdString() { cout << "SymOuterProduct"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX) {
-            for(int k=0; k<DIMIN; k++) {
+            for(int k=0; k < DIMIN; k++) {
                 for(int l=0; l < DIMIN; l++)
                     out[ k*DIMIN + l ] = outX[ k ] * outX[ l ];
             }
 	}
 
+    // ASSUMING THAT "A" IS A SYMMETRIC MATRIX,
     // [\partial_V X*X^T].A = [\partial_V X].(2*A@X)
     template < class V, class GRADIN >
     using DiffT = typename X::template DiffT<V, SymTwoDot< GRADIN, X > >;
@@ -233,38 +236,38 @@ struct SymOuterProduct : UnaryOp<SymOuterProduct,X> {
 
 
 
-// SymNorm<S,A> = sum_{i<=j} s_ij * a_i*a_j
-template < class FS, class FA >
-struct SymNorm : BinaryOp<SymNorm,FS,FA> {
-    // Output dimension = 1, provided that FS::DIM = 1
-    static const int DIMIN = FA::DIM;
-    static_assert( FS::DIM == FA::DIM * FA::DIM, "Anisotropic square norm expects a vector of parameters of dimension FA::DIM * FA::DIM.");
+// SymSqNorm<A,X> = sum_{ij} a_ij * x_i*x_j
+template < class A, class X >
+struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
+    // Output dimension = 1, provided that A::DIM = X::DIM**2
+    static const int DIMIN = X::DIM;
+    static_assert( A::DIM == X::DIM * X::DIM, "Anisotropic square norm expects a vector of parameters of dimension FA::DIM * FA::DIM.");
     static const int DIM = 1;
 
-    static void PrintIdString() { cout << "SymNorm"; }
+    static void PrintIdString() { cout << "SymSqNorm"; }
     
-    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
     		*out = 0;
-            for(int k=0; k<DIMIN; k++) {
+            for(int k=0; k < DIMIN; k++) {
                 for(int l=0; l < DIMIN; l++)
-                    *out += outS[ k*DIMIN + l ] * outA[k]*outA[l];
+                    *out += outA[ k*DIMIN + l ] * outX[k]*outX[l];
             }
 	}
 
     // ASSUMING THAT "A" IS A SYMMETRIC MATRIX,
-    // sum_ij s_ij*a_i*a_j is scalar-valued, so that gradin is necessarily a scalar.
+    // sum_ij a_ij*x_i*x_j is scalar-valued, so that gradin is necessarily a scalar.
     // [\partial_V X^T @ A @ X].gradin = gradin * ( [\partial_V A].(X @ X^T) + [\partial_V X].(2*A@X) )
     template < class V, class GRADIN >
     using DiffT = Scal < GRADIN,
-                        Add< typename A::template DiffT<V, SymOuterProduct< X > ,
-                             typename X::template DiffT<V, SymTwoDot< A, X >   >
-                        >;
+                        Add< typename A::template DiffT<V, SymOuterProduct< X > > ,
+                             typename X::template DiffT<V, SymTwoDot<    A, X > >   > >;
+
 };
 
-template < class FS, class FA >
-using WeightedSqNorm = CondType< SqNormIso<FS,FA> ,  
-                                 CondType< SqNormDiag<FS,FA>, SymNorm<FS,FA>, FS::DIM==FA::DIM > , 
-                                 FS::DIM == 1  >;
+template < class A, class X >
+using WeightedSqNorm = CondType< SqNormIso<A,X> ,  
+                                 CondType< SqNormDiag<A,X>, SymSqNorm<A,X>, A::DIM==X::DIM > , 
+                                 A::DIM == 1  >;
 
 
 
