@@ -54,7 +54,6 @@
 #pragma once
 
 #include <iostream>
-#include <tuple>
 #include <cmath>
 
 #include "core/Pack.h"
@@ -165,9 +164,8 @@ struct Var {
     // assume that "var5" is of size DIM, and copy its value in "out".
     template < class INDS, typename ...ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
-        auto t = TUPLE_VERSION::make_tuple(args...); // let us access the args using indexing syntax
         // IndValAlias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
-        __TYPE__* xi = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // xi = the "ind"-th argument.
+        __TYPE__* xi = Get<IndValAlias<INDS,N>::ind>(args...); // xi = the "ind"-th argument.
         for(int k=0; k<DIM; k++) // Assume that xi and out are of size DIM,
             out[k] = xi[k];      // and copy xi into out.
     }
@@ -244,8 +242,7 @@ struct UnaryOp<OP,Var<N,DIM,CAT>,NS...>  : UnaryOp_base<OP,Var<N,DIM,CAT>,NS...>
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we do not need to create a vector ; just access the Nth argument of args
-        auto t = TUPLE_VERSION::make_tuple(args...);
-        __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
+        __TYPE__* outA = Get<IndValAlias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
         // then we call the Operation function
         THIS::Operation(out,outA);
     }
@@ -313,8 +310,7 @@ struct BinaryOp<OP,Var<N,DIM,CAT>,FB>  : BinaryOp_base<OP,Var<N,DIM,CAT>,FB> {
         __TYPE__ outB[FB::DIM];
         FB::template Eval<INDS>(outB,args...);
         // access the Nth argument of args
-        auto t = TUPLE_VERSION::make_tuple(args...);
-        __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outA = the "ind"-th argument.
+        __TYPE__* outA = Get<IndValAlias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
         // then we call the Operation function
         THIS::Operation(out,outA,outB);
     }
@@ -332,8 +328,7 @@ struct BinaryOp<OP,FA,Var<N,DIM,CAT>>  : BinaryOp_base<OP,FA,Var<N,DIM,CAT>> {
         __TYPE__ outA[FA::DIM];
         FA::template Eval<INDS>(outA,args...);
         // access the Nth argument of args
-        auto t = TUPLE_VERSION::make_tuple(args...);
-        __TYPE__* outB = TUPLE_VERSION::get<IndValAlias<INDS,N>::ind>(t); // outB = the "ind"-th argument.
+        __TYPE__* outB = Get<IndValAlias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
         // then we call the Operation function
         THIS::Operation(out,outA,outB);
     }
@@ -348,9 +343,8 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we access the NAth and NBth arguments of args
-        auto t = TUPLE_VERSION::make_tuple(args...);
-        __TYPE__* outA = TUPLE_VERSION::get<IndValAlias<INDS,NA>::ind>(t);
-        __TYPE__* outB = TUPLE_VERSION::get<IndValAlias<INDS,NB>::ind>(t);
+        __TYPE__* outA = Get<IndValAlias<INDS,NA>::ind>(args...);
+        __TYPE__* outB = Get<IndValAlias<INDS,NB>::ind>(args...);
         // then we call the Operation function
         THIS::Operation(out,outA,outB);
     }

@@ -21,20 +21,15 @@
 #ifdef __CUDACC__
 	#define HOST_DEVICE __host__ __device__
 	#define INLINE __forceinline__
-	#include <thrust/tuple.h>
-	#define TUPLE_VERSION thrust
 	#define INFINITY_FLOAT NPP_MAXABS_32F
 	#define INFINITY_DOUBLE NPP_MAXABS_64F
 #else
         #define HOST_DEVICE 
 	#include <limits>
 	#define INLINE inline
-	#define TUPLE_VERSION std
 	#define INFINITY_FLOAT std::numeric_limits<float>::infinity()
 	#define INFINITY_DOUBLE std::numeric_limits<double>::infinity()
 #endif
-
-#include <tuple>
 
 using namespace std;
 
@@ -44,6 +39,30 @@ static constexpr T static_max(T a, T b) {
     return a < b ? b : a;
 }
 
+// custom implementation of tuple "get" function, to avoid the use of thrust/tuple
+// which is limited to 10 arguments. This function works only when all arguments
+// have same type
+
+template < int N, typename TYPE >
+struct GetHelper {
+    template < typename... ARGS >
+    static HOST_DEVICE INLINE TYPE Eval(TYPE arg0, ARGS... args) {
+        return GetHelper<N-1,TYPE>::Eval(args...);
+    }
+};
+
+template < typename TYPE >
+struct GetHelper<0,TYPE> {
+    template < typename... ARGS >
+    static HOST_DEVICE INLINE TYPE Eval(TYPE arg0, ARGS... args) {
+        return arg0;
+    }
+};
+
+template < int N, typename TYPE, typename... ARGS >
+static HOST_DEVICE INLINE TYPE Get(TYPE arg0, ARGS... args) {
+    return GetHelper<N,TYPE>::Eval(arg0, args...);
+}
 
 // Conditional type, a templating emulator of a conditional statement. --------------------------
 // This convoluted syntax allows us to write
@@ -453,11 +472,9 @@ template < int N, int... NS > struct pack<N,NS...> {
 
     // Out of a long  list of pointers, extract the ones which "belong" to the current pack
     // and put them into a pointer array px.
-    // Since we use the std container "tuple", treatment of the list of arguments args is straightforward
     template < typename TYPE, typename... Args  >
     static void getlist(TYPE** px, Args... args) {
-        auto t = make_tuple(args...);
-        *px = get<FIRST>(t);
+        *px = Get<FIRST>(args...);
         NEXT::getlist(px+1,args...);
     }
 
