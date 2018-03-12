@@ -39,8 +39,8 @@ Add<FA,FB> operator+(FA fa, FB fb) {
 }
 
 template < class FA, class FB >
-Scal<FA,FB> operator*(FA fa, FB fb) {
-    return Scal<FA,FB>();
+ScalOrMult<FA,FB> operator*(FA fa, FB fb) {
+    return ScalOrMult<FA,FB>();
 }
 
 #define Exp(f) Exp<decltype(f)>()

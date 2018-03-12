@@ -319,6 +319,12 @@ struct MultAlias<Zero<DIM1>,Zero<DIM2>> {
 };
 
 
+// small hack to be able to use the * operator for both 
+// Scal and Mult depending on dimension in the new syntax
+
+template < class FA, class FB >
+using ScalOrMult = CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>;
+
 //////////////////////////////////////////////////////////////
 ////             SUBTRACT : F-G		                      ////
 //////////////////////////////////////////////////////////////

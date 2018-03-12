@@ -11,12 +11,15 @@ x = randn(3,Nx);
 y = randn(3,Ny);
 b = randn(2,Ny);
 
-%F = Kernel('c=Pm(0,4)','w=Pm(1,4)','x=Vx(2,3)','y=Vy(3,3)','b=Vy(4,3)','(w,Exp(-SqDist(x,y)*c))*b');
+% the two following formulas are equivalent
+%F = Kernel('c=Pm(0,4)','w=Pm(1,4)','x=Vx(2,3)','y=Vy(3,3)','b=Vy(4,2)','(w,Exp(-SqDist(x,y)*c))*b');
 F = Kernel('c=Pm(0,4)','w=Pm(1,4)','x=Vx(2,3)','y=Vy(3,3)','b=Vy(4,2)','SumGaussKernel(c,w,x,y,b)');
+
 f = F(c,w,x,y,b);
 f(:,1:10)
 
-%G = Kernel('c=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,3)','Exp(-SqDist(x,y)*c)*b');
+% the two following formulas are equivalent
+%G = Kernel('c=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,2)','Exp(-SqDist(x,y)*c)*b');
 G = Kernel('c=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,2)','GaussKernel(c,x,y,b)');
 f1 = G(c(1),x,y,b);
 f2 = G(c(2),x,y,b);
