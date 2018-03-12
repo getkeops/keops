@@ -19,10 +19,14 @@ def _weighted_squared_distances(g, x, y) :
             g_d = g.unsqueeze(0).unsqueeze(1) # Shape (D) -> Shape (1,1,D)
             return (g_d * (x_i-y_j)**2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_d * (x_i,d-y_j,d)^2
             
-        elif 2 * g.shape[0] == D * (D+1) :    # g is a symmetric matrix
-            raise NotImplementedError
+        elif g.shape[0] == D**2 :    # G is a symmetric matrix
+            G    = g.view(1,1,D,D)    # Shape (D**2) -> Shape (1,1,D,D)
+            xmy  = x_i - y_j          # Shape (N,M,D)
+            xmy_ = xmy.unsqueeze(2)   # Shape (N,M,1,D)
+            Gxmy = (G * xmy_).sum(3)  # Shape (N,M,D,D) -> (N,M,D)
+            return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G (x_i-y_j) >
         else :
-            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D*(D+1)/2) metrics.")
+            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
 
 
     elif len(g.shape) == 2 : # g is a 'j' variable
@@ -34,10 +38,15 @@ def _weighted_squared_distances(g, x, y) :
             g_d = g.unsqueeze(0) # Shape (M,D) -> Shape (1,M,D)
             return (g_d * (x_i-y_j)**2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_j,d * (x_i,d-y_j,d)^2
 
-        elif 2 * g.shape[1] == D * (D+1) :    # g_j is a symmetric matrix
-            raise NotImplementedError
+        elif g.shape[1] == D**2 :       # G_j is a symmetric matrix
+            G_j  = g.view(1,-1,D,D)     # Shape (M,D**2) -> Shape (1,M,D,D)
+            xmy  = x_i - y_j            # Shape (N,M,D)
+            xmy_ = xmy.unsqueeze(2)     # Shape (N,M,1,D)
+            Gxmy = (G_j * xmy_).sum(3)  # Shape (N,M,D,D) -> (N,M,D)
+            return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_j (x_i-y_j) >
+
         else :
-            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D*(D+1)/2) metrics.")
+            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
 
     else :
         raise ValueError("A metric parameter should either be a vector or a 2d-tensor.")
