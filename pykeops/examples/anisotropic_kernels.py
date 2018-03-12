@@ -91,24 +91,24 @@ sigma = Variable(torch.Tensor( [
 params["gamma"] = 1./sigma**2
 showcase_params(params, "Isotropic Variable kernel", 4)
 
-# Anisotropic, Uniform kernel ---------------------------------------------------------
+# Diagonal, Uniform kernel ---------------------------------------------------------
 sigma = Variable(torch.Tensor( [0.2, 0.1] )).type(dtype)
 params["gamma"] = 1./sigma**2
-showcase_params(params, "Anisotropic Uniform kernel", 2)
+showcase_params(params, "Diagonal Uniform kernel", 2)
 
-# Anisotropic, Variable kernel --------------------------------------------------------
+# Diagonal, Variable kernel --------------------------------------------------------
 sigma = Variable(torch.Tensor( [ 
     [0.2, 0.1], 
     [.05, .15], 
     [.2,  .2] 
     ] )).type(dtype)
 params["gamma"] = 1./sigma**2
-showcase_params(params, "Anisotropic Variable kernel", 5)
+showcase_params(params, "Diagonal Variable kernel", 5)
 
 # Fully-Anisotropic, Uniform kernel ---------------------------------------------------
 Sigma = Variable(torch.Tensor( [1/0.2**2, 1/.25**2, 1/.25**2, 1/0.1**2 ] )).type(dtype)
 params["gamma"]   = Sigma
-params["backend"] = "pytorch"
+#params["backend"] = "pytorch"
 showcase_params(params, "Fully-Anisotropic Uniform kernel", 3)
 
 # Fully-Anisotropic, Variable kernel --------------------------------------------------
