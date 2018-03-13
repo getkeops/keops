@@ -80,8 +80,10 @@ Scalprod<FA,FB> operator,(FA fa, FB fb) {
 }
 
 #define SqNorm2(f) SqNorm2<decltype(f)>()
-
 #define SqDist(f,g) SqDist<decltype(f),decltype(g)>()
+
+#define WeightedSqNorm(s,f)   WeightedSqNorm<decltype(s), decltype(f)>()
+#define WeightedSqDist(s,f,g) WeightedSqDist<decltype(s), decltype(f),decltype(g)>()
 
 
 
