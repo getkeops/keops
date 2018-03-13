@@ -18,21 +18,36 @@ def scal_to_var(x) :
     "Turns a float into a torch variable."
     return Variable(Tensor([x]), requires_grad=True).type(dtype)
 
+
 def scalprod(x, y) :
     "Simple L2 scalar product."
     return torch.dot(x.view(-1), y.view(-1))
 
+# Define our kernel
+if True : # Standard kernel
+    kernel = Kernel("gaussian(x,y)")
+else : # Custom kernel, defined using the naming conventions of the libkp
+    kernel              = Kernel()
+    kernel.features     = "locations" # we could also use "locations+directions", etc.
+    # Symbolic formula, for the libkp backend
+    kernel.formula_sum  = "( -G*SqDist(X,Y) )"
+    # Pytorch routine, for the pytorch backend
+    kernel.routine_sum  = lambda g=None, xmy2=None, **kwargs : \
+                                  -g*xmy2
 
-# Wrap the kernel's parameters into a JSON dict structure
+# Wrap it (and its parameters) into a JSON dict structure
 sigma = scal_to_var(0.5)
 params = {
-    "id"      : Kernel("gaussian(x,y)"),
-    "gamma"   : 1./sigma**2
+    "id"      : kernel,
+    "gamma"   : 1./sigma**2,
+    "backend" : "auto",
 }
 
 # Define our dataset
-npoints_x = 100 ; npoints_y = 700
-dimpoints = 3   ; dimsignal = 1
+npoints_x = 100
+npoints_y = 700
+dimpoints = 3
+dimsignal = 1
 
 a = Variable(torch.randn(npoints_x,dimsignal), requires_grad=True).type(dtype)
 x = Variable(torch.randn(npoints_x,dimpoints), requires_grad=True).type(dtype)
@@ -41,7 +56,6 @@ b = Variable(torch.randn(npoints_y,dimsignal), requires_grad=True).type(dtype)
 
 # N.B.: "sum" is default, "log" is for "log-sum-exp"
 modes = ["sum", "log"] if dimsignal==1 else ["sum"]
-
 # Test, using a pytorch or libkp backend
 for mode in modes : 
     print("Mode :", mode, "========================================")
