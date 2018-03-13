@@ -19,7 +19,8 @@ import os.path
 
 from hashlib import sha256
 
-from .compile_routines import *
+from pykeops.common.compile_routines import compile_generic_routine
+from pykeops import build_folder, script_folder, dll_prefix, dll_ext
 
 # GENERIC FORMULAS DLLs =========================================================================
 
@@ -55,7 +56,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
     else:  # Otherwise :
         # Load the DLL --------------------------------------------------------------------------
 
-        dllabspath = build_folder + dll_name + '.so'
+        dllabspath = build_folder + dll_name + dll_ext
 
         try:
             dll = ctypes.CDLL(dllabspath , mode=ctypes.RTLD_GLOBAL)

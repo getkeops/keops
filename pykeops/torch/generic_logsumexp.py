@@ -1,8 +1,8 @@
 import torch
 from torch.autograd import Variable
 
-from .generic_sum import GenericSum
-from ..common.cudaconv import cuda_conv_generic
+from pykeops.torch.generic_sum import GenericSum
+from pykeops.common.cudaconv import cuda_conv_generic
 
 
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html

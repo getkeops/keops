@@ -1,9 +1,5 @@
-import os.path
-import sys
+from pykeops.common.cudaconv import cuda_conv_generic
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..')
-
-from ..common.cudaconv import cuda_conv_generic
 import torch
 from torch.autograd import Variable
 

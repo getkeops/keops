@@ -1,7 +1,7 @@
-from .generic_sum       import GenericSum
-from .generic_logsumexp import GenericLogSumExp
+from pykeops.torch.generic_sum       import GenericSum
+from pykeops.torch.generic_logsumexp import GenericLogSumExp
 
-from .utils import _scalar_products, _squared_distances, _log_sum_exp
+from pykeops.torch.utils import _scalar_products, _squared_distances, _log_sum_exp
 
 
 def apply_routine(features, routine, *args):

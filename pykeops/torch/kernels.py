@@ -3,8 +3,8 @@ import re
 
 import torch
 
-from .utils            import Formula
-from .features_kernels import FeaturesKP
+from pykeops.torch.utils            import Formula
+from pykeops.torch.features_kernels import FeaturesKP
 
 
 # Define the standard kernel building blocks. 

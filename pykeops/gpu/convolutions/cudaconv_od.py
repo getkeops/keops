@@ -55,8 +55,8 @@ def cuda_conv_od(x, y, beta, result, sigma, kernel = "gaussian"):
 
 if __name__ == '__main__':
     """
-        testing, benchmark convolution with two naive python implementations of the Gaussian convolution
-        """
+    testing, benchmark convolution with two naive python implementations of the Gaussian convolution
+    """
     import torch
 
     N = 900 ; M = 120; D = 3; E = 3
