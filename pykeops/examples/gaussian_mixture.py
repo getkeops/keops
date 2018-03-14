@@ -128,7 +128,7 @@ plt.figure(figsize=(10,10))
 model     = GaussianMixture(8, sparsity=500)
 optimizer = torch.optim.Adam( model.parameters() )
 
-for it in range(10000) :
+for it in range(10001) :
     optimizer.zero_grad()             # Reset the gradients (PyTorch syntax...).
     cost = model.neglog_likelihood(x) # Cost to minimize
     cost.backward()                   # Backpropagate to compute the gradient.
@@ -139,4 +139,5 @@ for it in range(10000) :
         model.plot(x)
         plt.pause(.1)
 
+print("Done.")
 plt.show(block=True)
