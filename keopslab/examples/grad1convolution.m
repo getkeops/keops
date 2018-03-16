@@ -1,5 +1,5 @@
-% 
-addpath(genpath('../'))
+path_to_lib = '..';
+addpath(genpath(path_to_lib))
 
 n=5000; m=12000; d=3;
 

@@ -1,7 +1,5 @@
-
-addpath('..')
-addpath('../../../build')
-setenv('LD_LIBRARY_PATH','')
+path_to_lib = '..';
+addpath(genpath(path_to_lib))
 
 Nx = 5000;
 Ny = 2000;

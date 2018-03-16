@@ -1,3 +1,30 @@
+#------------------------------------------------------------------------------------#
+#------------------------------------HEADERS-----------------------------------------#
+#------------------------------------------------------------------------------------#
+
+cmake_minimum_required(VERSION 2.8)
+
+project(KeOpsLab LANGUAGES CXX)
+
+## Set Path to sources
+set(PROJECT_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
+
+set(SOURCE_FILES
+    ${PROJECT_SRC}
+    ${PROJECT_BINARY_DIR}
+)
+
+Include_Directories(${SOURCE_FILES})
+
+include(${PROJECT_SRC}/headers.cmake)
+
+#------------------------------------------------------------------------------------#
+#----------------------------------COMPILATIONS--------------------------------------#
+#------------------------------------------------------------------------------------#
+
+
+
+
 set(MATLAB_ADDITIONAL_VERSIONS
     "R2007b=7.5"
     "R2007a=7.4"
@@ -9,6 +36,50 @@ find_package(Matlab)
 ##   CUDA_add_object. We then need to use Add_library instead.
 
 if(Matlab_FOUND)
+
+# ----------------- create shared lib (cuda)
+
+    if(USE_CUDA)
+      
+        CUDA_add_library(
+            keops SHARED
+            ${PROJECT_SRC}/core/link_autodiff.cu
+            OPTIONS --pre-include=formula.h
+        )
+
+    else()
+
+# ----------------- create shared lib (cpp)
+
+        add_library(
+            keops SHARED
+            ${PROJECT_SRC}/core/link_autodiff.cpp
+        )
+
+        target_compile_options(
+            keops BEFORE
+            PRIVATE -include formula.h
+        )
+
+        # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+        set_source_files_properties(
+            ${PROJECT_SRC}/core/link_autodiff.cpp PROPERTIES
+            OBJECT_DEPENDS formula.h
+        )
+
+    endif()
+
+# shared_lib can be rename if the variable shared_lib_name is provided.
+    if(shared_obj_name)
+
+        set_target_properties(keops PROPERTIES
+            LIBRARY_OUTPUT_NAME  ${shared_obj_name}
+            PREFIX ""
+        )
+
+    endif()
+
+
 
     # this dummy flag is used to cast the input array of Matlab
     if (${__TYPE__} STREQUAL "double")
@@ -27,7 +98,7 @@ if(Matlab_FOUND)
 
     Add_library( # generate the string "g++ -c ..." but do not execute it
         mex_file_cpp OBJECT
-        ${CMAKE_CURRENT_SOURCE_DIR}/cudaconv.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/generic/cudaconv.cpp
     )
 
     target_compile_options(
@@ -47,7 +118,7 @@ if(Matlab_FOUND)
         add_custom_target(
             mex_cpp
             DEPENDS keops mex_file_cpp # ensure obj file is created before using mex for linking
-            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_cpp.dir/cudaconv.cpp.o -output ${mex_name} 
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_cpp.dir/generic/cudaconv.cpp.o -output ${mex_name} 
         )
     endif()
 
