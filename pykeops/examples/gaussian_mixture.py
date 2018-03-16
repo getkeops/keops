@@ -44,11 +44,11 @@ class GaussianMixture(Module) :
 
         # Let's use a mixture of "gaussian" kernels, i.e.
         #        k(x_i,y_j) = exp( - WeightedSquaredNorm(gamma, x_i-y_j ) )
-        self.params    = { "id"     : Kernel("gaussian(x,y)") }
-        self.mu        = Parameter(   torch.rand(  M,2 )   ).type(dtype)
-        self.sigma_log = Parameter(-2*torch.ones(  M,2 )   ).type(dtype)
-        self.theta     = Parameter(   torch.zeros( M   )   ).type(dtype)
-        self.w         = Parameter(   torch.ones(  M,1 )/M ).type(dtype)
+        self.params    = { "id"     : Kernel("gaussian(x,y)") , "backend" : "pytorch" }
+        self.mu        = Parameter(   torch.rand(  M,2 ).type(dtype)   )
+        self.sigma_log = Parameter(-2*torch.ones(  M,2 ).type(dtype)   )
+        self.theta     = Parameter(   torch.zeros( M   ).type(dtype)   )
+        self.w         = Parameter(   torch.ones(  M,1 ).type(dtype)/M )
         self.sparsity  = sparsity
 
     def update_covariances(self) :
