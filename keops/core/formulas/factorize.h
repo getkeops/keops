@@ -94,11 +94,17 @@ struct FactorizeAlias<F,F> {
     using type = F;
 };
 
+// avoid specialization conflict..
+template < int N, int DIM, int CAT >
+struct FactorizeAlias<Var<N,DIM,CAT>,Var<N,DIM,CAT>> {
+    using type = Var<N,DIM,CAT>;
+};
+
 // specializations in case G is a pack of types : we recursively factorize F by each subformula in the pack
 
-// first default specialization, used only when the pack is empty (termination case)
-template < class F, class... GS >
-struct FactorizeAlias<F,univpack<GS...>> {
+// first specialization, when the pack is empty (termination case)
+template < class F >
+struct FactorizeAlias<F,univpack<>> {
     using type = F;
 };
 
