@@ -84,6 +84,7 @@ using GaussKernel_Factorized = Factorize< GaussKernel<C,X,Y,B> , Subtract<X,Y> >
 
 // specific implementation of the gaussian kernel and its gradient wrt to X
 
+/*
 template < class C, class X, class Y, class B > struct GaussKernel_specific;
 template < class C, class X, class Y, class B, class V, class GRADIN > struct GradGaussKernel_specific;
 
@@ -210,7 +211,7 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 
 };
 
-
+*/
 
 //////////////////////////////////////////////////////////////
 ////                 MATRIX-VALUED KERNELS                ////
