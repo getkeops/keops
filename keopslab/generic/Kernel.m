@@ -1,4 +1,4 @@
-function [F,fname] = Kernel(varargin)
+function [F,Fname] = Kernel(varargin)
 % Defines a kernel convolution function based on a formula
 % arguments are strings defining variables and formula
 %
@@ -31,10 +31,7 @@ function [F,fname] = Kernel(varargin)
 % lambda = .25;
 % res = F(x,y,beta,eta,lambda);
 
-src_dir = '..';
-build_dir = [fileparts([mfilename('fullpath')]),'/../build/'];
 cur_dir = pwd;
-precision = 'float';
 
 Nargin = nargin;
 
@@ -60,11 +57,11 @@ formula = varargin{Nargin};
 [CodeVars,indxy ] = format_var_aliase(varargin(1:(Nargin-1)));
 
 % we use a hash to shorten string and avoid special characters in the filename
-Fname = string2hash(lower([CodeVars,formula,precision]));
+Fname = string2hash(lower([CodeVars,formula]));
 mex_name = [Fname,'.',mexext];
 
 if ~(exist(mex_name,'file')==3)
-    buildFormula(CodeVars,formula,Fname,precision,src_dir,build_dir,cur_dir);
+    buildFormula(CodeVars,formula,Fname);
 end
 
 % return function handler
@@ -124,14 +121,16 @@ end
 end
 
 
-function testbuild = buildFormula(code1, code2, filename, precision, src_dir, build_dir, cur_dir)
+function testbuild = buildFormula(code1, code2, filename)
 
     disp('Formula is not compiled yet ; compiling...')
+    
+    [src_dir,build_dir,precision] = default_options();
     
     % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
     setenv('LD_LIBRARY_PATH','') 
     % I do not have a better option to set working dir...
-    cd(build_dir) 
+    cur_dir= pwd; cd(build_dir) ;
     % cmake command:
     cmdline = ['cmake ', src_dir , ' -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     fprintf([cmdline,'\n'])
