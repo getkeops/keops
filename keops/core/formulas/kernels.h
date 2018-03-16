@@ -54,21 +54,31 @@ using SumGaussFunction = Scalprod<W,Exp<Scal<Minus<R2>,C>>>;
 //////////////////////////////////////////////////////////////
 
 // Utility function
-template < class X, class Y, class B, template<class,class...> class F, class... PARAMS >
-using ScalarRadialKernel = Scal<F<SqDist<X,Y>,PARAMS...>,B>;
+
+// for some reason the following variadic template version shoudl work but the nvcc compiler does not like it :
+//template < class X, class Y, class B, template<class,class...> class F, class... PARAMS >
+//using ScalarRadialKernel = Scal<F<SqDist<X,Y>,PARAMS...>,B>;
+
+// so we use two distinct ScalarRadialKernel aliases, depending on the number of parameters :
+
+template < class X, class Y, class B, template<class,class> class F, class PARAMS >
+using ScalarRadialKernel_1 = Scal<F<SqDist<X,Y>,PARAMS>,B>;
+
+template < class X, class Y, class B, template<class,class,class> class F, class PARAMS1, class PARAMS2 >
+using ScalarRadialKernel_2 = Scal<F<SqDist<X,Y>,PARAMS1,PARAMS2>,B>;
 
 // Utility aliases :
 template < class C, class X, class Y, class B >
-using GaussKernel = ScalarRadialKernel<X,Y,B,GaussFunction,C>;
+using GaussKernel = ScalarRadialKernel_1<X,Y,B,GaussFunction,C>;
 
 template < class C, class X, class Y, class B >
-using LaplaceKernel = ScalarRadialKernel<X,Y,B,LaplaceFunction,C>;
+using LaplaceKernel = ScalarRadialKernel_1<X,Y,B,LaplaceFunction,C>;
 
 template < class C, class X, class Y, class B >
-using EnergyKernel = ScalarRadialKernel<X,Y,B,EnergyFunction,C>;
+using EnergyKernel = ScalarRadialKernel_1<X,Y,B,EnergyFunction,C>;
 
 template < class C, class W, class X, class Y, class B >
-using SumGaussKernel = ScalarRadialKernel<X,Y,B,SumGaussFunction,C,W>;
+using SumGaussKernel = ScalarRadialKernel_2<X,Y,B,SumGaussFunction,C,W>;
 
 //////////////////////////////////////////////////////////////
 ////                 FACTORIZED GAUSS KERNEL              ////
@@ -102,6 +112,18 @@ struct GaussKernel_specific {
     static const int DIMPOINT = X::DIM;
     static const int DIMVECT = DIM;
 
+    static void PrintId() {
+        cout << "GaussKernel_specific<";
+        C::PrintId();
+        cout << ",";
+        X::PrintId();
+        cout << ",";
+        Y::PrintId();
+        cout << ",";
+        B::PrintId();
+        cout << ">";
+    }
+    
     template < int CAT >
     using VARS = typename GenericVersion::template VARS<CAT>;
 
@@ -147,6 +169,22 @@ struct GradGaussKernel_specific {
 	template < int CAT >
 	using VARS = typename GenericVersion::template VARS<CAT>;
 		
+    static void PrintId() {
+        cout << "GradGaussKernel_specific<";
+        C::PrintId();
+        cout << ",";
+        X::PrintId();
+        cout << ",";
+        Y::PrintId();
+        cout << ",";
+        B::PrintId();
+        cout << ",";
+        V::PrintId();
+        cout << ",";
+        GRADIN::PrintId();
+        cout << ">";
+    }
+    
     using THIS = GradGaussKernel_specific<C,X,Y,B,V,GRADIN>;
 		
     template<class E, class F>
@@ -178,6 +216,22 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 		
     using THIS = GradGaussKernel_specific<C,X,Y,B,X,GRADIN>;
 		
+    static void PrintId() {
+        cout << "GradGaussKernel_specific<";
+        C::PrintId();
+        cout << ",";
+        X::PrintId();
+        cout << ",";
+        Y::PrintId();
+        cout << ",";
+        B::PrintId();
+        cout << ",";
+        X::PrintId();
+        cout << ",";
+        GRADIN::PrintId();
+        cout << ">";
+    }
+    
     template<class U, class V>
     using Replace = CondType< V, GradGaussKernel_specific<C,X,Y,B,X,typename GRADIN::template Replace<U,V>>, IsSameType<U,THIS>::val >;
     

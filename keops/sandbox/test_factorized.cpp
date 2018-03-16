@@ -41,7 +41,7 @@ int main() {
     // symbolic variables of the function
     using X = Var<1,3,0>; 	// X is the first variable and represents a 3D vector
     using Y = Var<2,3,1>; 	// Y is the second variable and represents a 3D vector
-    using B = Var<3,3,1>;	// Beta is the fifth variable and represents a 3D vector
+    using B = Var<3,3,1>;	// B is the fifth variable and represents a 3D vector
     using U = Var<4,3,0>;
     using V = Var<5,3,1>;
     using C = Param<0,1>;		// C is the first extra parameter
@@ -72,7 +72,7 @@ int main() {
     vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
     vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
     vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
-    vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
+    vector<__TYPE__> vb(Ny*B::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
 
     vector<__TYPE__> rescpu1(Nx*F::DIM), rescpu2(Nx*F::DIM);
 
