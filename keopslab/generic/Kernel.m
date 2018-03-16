@@ -31,7 +31,8 @@ function [F,fname] = Kernel(varargin)
 % lambda = .25;
 % res = F(x,y,beta,eta,lambda);
 
-build_dir = [fileparts([mfilename('fullpath')]),'/../../build/'];
+src_dir = '..';
+build_dir = [fileparts([mfilename('fullpath')]),'/../build/'];
 cur_dir = pwd;
 precision = 'float';
 
@@ -63,7 +64,7 @@ Fname = string2hash(lower([CodeVars,formula,precision]));
 mex_name = [Fname,'.',mexext];
 
 if ~(exist(mex_name,'file')==3)
-    buildFormula(CodeVars,formula,Fname,precision,build_dir,cur_dir);
+    buildFormula(CodeVars,formula,Fname,precision,src_dir,build_dir,cur_dir);
 end
 
 % return function handler
@@ -123,19 +124,22 @@ end
 end
 
 
-function testbuild = buildFormula(code1, code2, filename, precision, build_dir, cur_dir)
+function testbuild = buildFormula(code1, code2, filename, precision, src_dir, build_dir, cur_dir)
 
     disp('Formula is not compiled yet ; compiling...')
-
+    
+    % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
+    setenv('LD_LIBRARY_PATH','') 
     % I do not have a better option to set working dir...
-    cd(build_dir)
-    %cmdline = ['~/src/cmake-3.10.1/bin/cmake ../cuda -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'"' ];
-    cmdline = ['cmake ../keops -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="../',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
+    cd(build_dir) 
+    % cmake command:
+    cmdline = ['cmake ', src_dir , ' -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     fprintf([cmdline,'\n'])
     try
         [~,prebuild_output] = system(cmdline)
         [~,build_output]  = system(['make mex_cpp'])
     catch
+        cd(cur_dir)
         error('Compilation  Failed')
     end
     % ...comming back to curent directory

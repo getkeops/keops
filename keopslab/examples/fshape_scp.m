@@ -1,3 +1,6 @@
+path_to_lib = '..';
+addpath(genpath(path_to_lib))
+
 nx = 4; d= 3; ny = 5;
 
 if 0

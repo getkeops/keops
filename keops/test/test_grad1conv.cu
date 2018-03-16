@@ -58,7 +58,7 @@ void EXPECT_NONZEROS(const vector<T> X) {
 #define F0 Grad<GaussKernel<_P<0,1>,_X<1,3>,_Y<2,3>,_Y<3,3>>,_X<1,3>,_X<4,3>>
 using FUN0 = typename Generic<F0>::sEval;
 
-extern "C" int GaussGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
+extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 
 typedef int(*OP)(FUN0,int, int, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*);
 template <typename T, OP op>
@@ -78,7 +78,7 @@ test_grad1conv<T,op>::test_grad1conv(int Nx):data1(data<T>(Nx)){
         vresgpu.resize(Nx*data1.dimPoint);  resgpu = vresgpu.data(); 
         vresgrad.resize(Nx*data1.dimPoint); resgrad = vresgrad.data(); 
 
-        GaussGpuGrad1Conv(data1.params[0], data1.u, data1.x, data1.y, data1.v, resgpu, data1.dimPoint,data1.dimVect,data1.Nx,data1.Ny); 
+        GaussGpuEval(data1.params[0], data1.u, data1.x, data1.y, data1.v, resgpu, data1.dimPoint,data1.dimVect,data1.Nx,data1.Ny); 
         op(FUN0(), data1.Nx, data1.Ny, resgrad, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 

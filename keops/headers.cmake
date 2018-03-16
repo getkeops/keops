@@ -143,4 +143,4 @@ else()
 endif()
 
 # We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
-configure_file(formula.h.in formula.h @ONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/formula.h.in formula.h @ONLY)

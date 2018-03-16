@@ -1,7 +1,5 @@
 path_to_lib = '..';
-path_to_bin = '../../../build';
-addpath(path_to_lib)
-addpath(path_to_bin)
+addpath(genpath(path_to_lib))
 
 Nx = 50;
 Ny = 20;
