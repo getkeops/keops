@@ -1,5 +1,5 @@
 #include <mex.h>
-#include "fshape_gpu.cu"
+#include "specific/shape_distance/fshape_gpu.cu"
 
 #define UseCudaOnDoubles USE_DOUBLE_PRECISION
 

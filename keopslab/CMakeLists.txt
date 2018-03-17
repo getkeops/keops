@@ -37,7 +37,23 @@ find_package(Matlab)
 
 if(Matlab_FOUND)
 
-# ----------------- create shared lib (cuda)
+    # ----------------- get some env variables
+
+    # this dummy flag is used to cast the input array of Matlab
+    if (${__TYPE__} STREQUAL "double")
+        add_definitions(-DUSE_DOUBLE)
+    endif()
+
+    if(NOT DEFINED mex_name)
+        Set(mex_name mex_binding)
+    endif()
+
+    matlab_get_mex_suffix( # simply get the extension : almost surely mexa64
+        ${Matlab_ROOT_DIR} 
+        mex_suffix
+    )
+
+    # ----------------- create shared lib (cuda)
 
     if(USE_CUDA)
       
@@ -49,7 +65,7 @@ if(Matlab_FOUND)
 
     else()
 
-# ----------------- create shared lib (cpp)
+    # ----------------- create shared lib (cpp)
 
         add_library(
             keops SHARED
@@ -69,7 +85,7 @@ if(Matlab_FOUND)
 
     endif()
 
-# shared_lib can be rename if the variable shared_lib_name is provided.
+    # shared_lib can be rename if the variable shared_lib_name is provided.
     if(shared_obj_name)
 
         set_target_properties(keops PROPERTIES
@@ -81,20 +97,7 @@ if(Matlab_FOUND)
 
 
 
-    # this dummy flag is used to cast the input array of Matlab
-    if (${__TYPE__} STREQUAL "double")
-        add_definitions(-DUSE_DOUBLE)
-    endif()
-
-    if(NOT DEFINED mex_name)
-        Set(mex_name mex_binding)
-    endif()
-
-    matlab_get_mex_suffix( # simply get the extension : almost surely mexa64
-        ${Matlab_ROOT_DIR} 
-        mex_suffix
-    )
-
+    # ----------------- create mex files generic
 
     Add_library( # generate the string "g++ -c ..." but do not execute it
         mex_file_cpp OBJECT
@@ -135,24 +138,25 @@ if(Matlab_FOUND)
     )
 
 
+    # ----------------- create mex files generic
 
-    #matlab_add_mex(
-        #NAME mex_cpp2
-        #SRC ${CMAKE_CURRENT_SOURCE_DIR}/cudaconv.cpp
-        #OUTPUT_NAME ${mex_name}_cpp
-        #)
+    matlab_add_mex(
+        NAME mex_specific
+        SRC ${CMAKE_CURRENT_SOURCE_DIR}/specific/shape_distance/cudafshape.cpp
+        OUTPUT_NAME ${mex_name}
+        )
 
     #target_compile_options(
         #mex_cpp2 BEFORE
         #PRIVATE -include formula.h 
         #)
 
-    #set_target_properties( # pass needed options to add_custom_target()
-        #mex_cpp2 PROPERTIES 
-        #PREFIX "" 
-        #LINKER_LANGUAGE CXX
-        #EXCLUDE_FROM_ALL TRUE
-        #)
+    set_target_properties( # pass needed options to add_custom_target()
+        mex_specific PROPERTIES 
+        PREFIX "" 
+        LINKER_LANGUAGE CXX
+        EXCLUDE_FROM_ALL TRUE
+        )
 else()
     message(STATUS "   ==> No mex file can be built.")
 endif()
