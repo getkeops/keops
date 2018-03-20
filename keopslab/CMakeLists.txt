@@ -115,7 +115,7 @@ if(Matlab_FOUND)
         add_custom_target(
             mex_cpp
             DEPENDS keops mex_file_cpp # ensure obj file is created before using mex for linking
-            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops> $<TARGET_OBJECTS:mex_file_cpp>  -output ${mex_name} # only since cmake 3.9 
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops> $<TARGET_OBJECTS:mex_file_cpp> -output ${mex_name} # only since cmake 3.9 
         )
     else()
         add_custom_target(
@@ -138,25 +138,133 @@ if(Matlab_FOUND)
     )
 
 
-    # ----------------- create mex files generic
+    # ----------------- create mex files specific
+    if(USE_CUDA)
+      
+        if(NOT KERNEL_GEOM OR (KERNEL_GEOM STREQUAL "gaussian"))
+            SET(KERNEL_GEOM_TYPE 0)
+        elseif(KERNEL_GEOM STREQUAL "cauchy")
+            SET(KERNEL_GEOM_TYPE 1)
+        else()
+            message(FATAL_ERROR "Set KERNEL_GEOM type to gaussian or cauchy.")
+        endif()
+        add_definitions(-DKERNEL_GEOM_TYPE=${KERNEL_GEOM_TYPE})
 
-    matlab_add_mex(
-        NAME mex_specific
-        SRC ${CMAKE_CURRENT_SOURCE_DIR}/specific/shape_distance/cudafshape.cpp
-        OUTPUT_NAME ${mex_name}
-        )
+        message(${KERNEL_SIG})
 
-    #target_compile_options(
-        #mex_cpp2 BEFORE
-        #PRIVATE -include formula.h 
+        if(NOT KERNEL_SIG OR (KERNEL_SIG STREQUAL gaussian))
+            SET(KERNEL_SIG_TYPE 0)
+        elseif(KERNEL_SIG STREQUAL cauchy)
+            SET(KERNEL_SIG_TYPE 1)
+        else()
+            message(FATAL_ERROR "Set KERNEL_SIG type to gaussian or cauchy.")
+        endif()
+        add_definitions(-DKERNEL_SIG_TYPE=${KERNEL_SIG_TYPE})
+
+        if(NOT KERNEL_SPHERE OR (KERNEL_SPHERE STREQUAL gaussian_unoriented))
+            SET(KERNEL_SPHERE_TYPE 0)
+        elseif(KERNEL_SPHERE STREQUAL binet)
+            SET(KERNEL_SPHERE_TYPE 1)
+        elseif(KERNEL_SPHERE STREQUAL gaussian_oriented)
+            SET(KERNEL_SPHERE_TYPE 2)
+        elseif(KERNEL_SPHERE STREQUAL linear)
+            SET(KERNEL_SPHERE_TYPE 3)
+        else()
+            message(FATAL_ERROR "Set KERNEL_SPHERE type to gaussian_unoriented, binet, gaussian_oriented or linear.")
+        endif()
+        add_definitions(-DKERNEL_SPHERE_TYPE=${KERNEL_SPHERE_TYPE})
+
+        # ----------------- fshape_scp
+        #SET(mex_fshape_scp_name cuda_fshape_scp_${KERNEL_GEOM_TYPE}${KERNEL_SIG_TYPE}${KERNEL_SPHERE_TYPE})
+
+        #CUDA_add_library(
+            #fshape_gpu SHARED
+            #${PROJECT_SRC}/specific/shape_distance/fshape_gpu.cu
+        #)
+        #set_target_properties(fshape_gpu PROPERTIES
+            #LIBRARY_OUTPUT_NAME ${mex_fshape_scp_name}
+            #PREFIX ""
         #)
 
-    set_target_properties( # pass needed options to add_custom_target()
-        mex_specific PROPERTIES 
-        PREFIX "" 
-        LINKER_LANGUAGE CXX
-        EXCLUDE_FROM_ALL TRUE
-        )
+        #Add_library( # generate the string "g++ -c ..." but do not execute it
+            #cudafshape_cpp OBJECT
+            #${CMAKE_CURRENT_SOURCE_DIR}/specific/shape_distance/cudafshape.cpp
+        #)
+        #target_compile_options(
+            #cudafshape_cpp BEFORE
+            #PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
+        #)
+
+        #if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
+            #add_custom_target(
+                #mex_fshape_scp
+                #DEPENDS fshape_gpu cudafshape_cpp# ensure obj file is created before using mex for linking
+                #COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:fshape_gpu> $<TARGET_OBJECTS:cudafshape_cpp> -output ${mex_fshape_scp_name} # only since cmake 3.9 
+            #)
+        #else()
+            #add_custom_target(
+                #mex_fshape_scp
+                #DEPENDS fshape_gpu cudafshape_cpp# ensure obj file is created before using mex for linking
+                #COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:fshape_gpu> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/cudafshape_cpp.dir/specific/shape_distance/cudafshape.cpp.o -output ${mex_fshape_scp_name}
+            #)
+        #endif()
+
+        #set_target_properties( # pass needed options to add_custom_target()
+            #mex_fshape_scp PROPERTIES 
+            #PREFIX "" 
+            #LINKER_LANGUAGE CXX
+            #EXCLUDE_FROM_ALL TRUE
+            #)
+
+        # ----------------- fshape_scp_dx
+        foreach(ext_name "" "_dx" "_df" "_dxi")
+
+            SET(mex_fshape_scp_name cuda_fshape_scp${ext_name}_${KERNEL_GEOM}${KERNEL_SIG}${KERNEL_SPHERE})
+
+            SET(name1 fshape_gpu${ext_name})
+            CUDA_add_library(
+                ${name1} SHARED
+                ${PROJECT_SRC}/specific/shape_distance/${name1}.cu
+            )
+            set_target_properties(${name1} PROPERTIES
+                LIBRARY_OUTPUT_NAME ${mex_fshape_scp_name}
+                PREFIX ""
+            )
+
+            SET(name2 cudafshape${ext_name})
+            Add_library( # generate the string "g++ -c ..." but do not execute it
+                ${name2} OBJECT
+                ${CMAKE_CURRENT_SOURCE_DIR}/specific/shape_distance/${name2}.cpp
+            )
+            target_compile_options(
+                ${name2} BEFORE
+                PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
+            )
+
+            SET(name3 mex_fshape_scp${ext_name})
+            if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
+                add_custom_target(
+                    ${name3}
+                    DEPENDS ${name1} ${name2}# ensure obj file is created before using mex for linking
+                    COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:${name1}> $<TARGET_OBJECTS:${name2}> -output ${mex_fshape_scp_name} # only since cmake 3.9 
+                )
+            else()
+                add_custom_target(
+                    ${name3}
+                    DEPENDS ${name1} ${name2}# ensure obj file is created before using mex for linking
+                    COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:${name1}> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${name2}.dir/specific/shape_distance/cudafshape${ext_name}.cpp.o -output ${mex_fshape_scp_name}
+                )
+            endif()
+
+            set_target_properties( # pass needed options to add_custom_target()
+                ${name3} PROPERTIES 
+                PREFIX "" 
+                LINKER_LANGUAGE CXX
+                EXCLUDE_FROM_ALL TRUE
+                )
+    endforeach()
+
+    endif()
 else()
     message(STATUS "   ==> No mex file can be built.")
 endif()

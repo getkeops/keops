@@ -1,11 +1,12 @@
 #include <mex.h>
-#include "fshape_gpu_dxi.cu"
 
-#define UseCudaOnDoubles USE_DOUBLE_PRECISION
+
+extern "C" int cudafshape_dxi(__TYPE__, __TYPE__, __TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int, int);
 
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
 //////////////////////////////////////////////////////////////////
+void ExitFcn(void) {}
 
  
  /* the gateway function */
@@ -144,8 +145,8 @@
    /*  create a C pointer to a copy of the output result(vector)*/
    double *gamma = mxGetPr(plhs[0]);
    
-#if UseCudaOnDoubles   
-   fshape_gpu_dxi<double>(oosigmax2,oosigmaf2,oosigmaXi2,x,y,f,g,alpha,beta,gamma,dimpoint,dimsig,dimvect,nx,ny);
+#if USE_DOUBLE
+   cudafshape_dxi(oosigmax2,oosigmaf2,oosigmaXi2,x,y,f,g,alpha,beta,gamma,dimpoint,dimsig,dimvect,nx,ny);
 #else
    // convert to float
    
@@ -176,7 +177,7 @@
    
    // function calls;
    float *gamma_f = new float[nx*dimvect];
-   fshape_gpu_dxi<float>(oosigmax2,oosigmaf2,oosigmaXi2,x_f,y_f,f_f,g_f,alpha_f,beta_f,gamma_f,dimpoint,dimsig,dimvect,nx,ny);
+   cudafshape_dxi(oosigmax2,oosigmaf2,oosigmaXi2,x_f,y_f,f_f,g_f,alpha_f,beta_f,gamma_f,dimpoint,dimsig,dimvect,nx,ny);
  
    for(int i=0; i<nx*dimvect; i++)
        gamma[i] = gamma_f[i];
