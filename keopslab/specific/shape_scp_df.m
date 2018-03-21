@@ -1,8 +1,8 @@
-function [res] = shape_scp(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt)
-% This function computes the (oriented) varifold scalar product 
+function [res] = shape_scp_df(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt)
+% This function computes the derivative wrt center_faceX of (oriented) varifold scalar product 
 % between two fshapes as docummented in [Kaltenmark, Charlier, Charon - CVPR2017].
 % Basically it computes 
-%  sum(sum(...
+%  \partiel_{signalX} sum(sum(...
 %          kernel_geom(  |center_faceX - center_faceY|^2 / kernel_size_geom ) ...
 %        * kernel_sig(   |signalX - signalY|^2 )  ...
 %        * kernel_sphere(<unit_normalX, unit_normalsY>) ...
@@ -25,13 +25,13 @@ function [res] = shape_scp(center_faceX,center_faceY,signalX,signalY,normalsX,no
 %        Note: for binet and linear kernel, the value of kernel_sphere is not used (should be anything)
 %
 % Output
-%   res : a real number
+%   res : a (nx x 1) matrix
 %
 
-if ~(exist(CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'',mexext),'file')==3)
-    buildRoutine_shape_dist(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'')
+if ~(exist(CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'_df',mexext),'file')==3)
+    buildRoutine_shape_dist(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'_df')
 end
 
-eval(['res = sum(', CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,''),'(center_faceX'',center_faceY'',signalX'',signalY'',normalsX'',normalsY'',kernel_size_geom,kernel_size_signal,kernel_size_sphere));']);
+eval(['res = ', CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'_df'),'(center_faceX'',center_faceY'',signalX'',signalY'',normalsX'',normalsY'',kernel_size_geom,kernel_size_signal,kernel_size_sphere)'';']);
 
 end

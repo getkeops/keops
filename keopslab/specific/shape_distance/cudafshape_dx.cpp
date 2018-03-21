@@ -10,12 +10,10 @@ void ExitFcn(void) {}
  
  /* the gateway function */
  void mexFunction( int nlhs, mxArray *plhs[],
-                   int nrhs, const mxArray *prhs[])
+                   int nrhs, const mxArray *prhs[]) {
  //plhs: double *gamma
  //prhs: double *x, double *y, double* f, double* g, double *alpha, double *beta, double sigmax, double sigmaf, double sigmaXi
  
- { 
-
    // register an exit function to prevent crash at matlab exit or recompiling
    mexAtExit(ExitFcn);
 

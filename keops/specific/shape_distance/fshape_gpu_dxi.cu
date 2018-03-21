@@ -99,7 +99,7 @@ int fshape_gpu_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
 
 // Couldn't find a clean way to give a name to an explicit instantiation :-(
 
-extern "C" int cudafshape_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* f_h, __TYPE__* g_h, __TYPE__* alpha_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny) {
+extern "C" int cudafshape_dxi(__TYPE__ ooSigmax2,__TYPE__ ooSigmaf2, __TYPE__ ooSigmaXi2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* f_h, __TYPE__* g_h, __TYPE__* alpha_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimSig, int dimVect, int nx, int ny) {
     return fshape_gpu_dxi<__TYPE__>(ooSigmax2,ooSigmaf2,ooSigmaXi2,x_h,y_h,f_h,g_h,alpha_h,beta_h,gamma_h,dimPoint,dimSig,dimVect,nx,ny);
 }
 
