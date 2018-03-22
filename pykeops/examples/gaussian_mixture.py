@@ -16,7 +16,7 @@ from pykeops.torch.kernels import Kernel, kernel_product
 plt.ion()
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-use_cuda = False # torch.cuda.is_available()
+use_cuda = torch.cuda.is_available()
 dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 
