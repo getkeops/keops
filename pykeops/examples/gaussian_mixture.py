@@ -39,37 +39,37 @@ grid = Variable(torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguo
 # Define our Gaussian Mixture Model =======================================================
 
 class GaussianMixture(Module) :
-    def __init__(self, M, sparsity = 0) :
+    def __init__(self, M, sparsity = 0, D = 2) :
         super(GaussianMixture, self).__init__()
 
         # Let's use a mixture of "gaussian" kernels, i.e.
         #        k(x_i,y_j) = exp( - WeightedSquaredNorm(gamma, x_i-y_j ) )
-        self.params    = { "id"     : Kernel("gaussian(x,y)") , "backend" : "pytorch" }
-        self.mu        = Parameter(   torch.rand(  M,2 ).type(dtype)   )
-        self.sigma_log = Parameter(-2*torch.ones(  M,2 ).type(dtype)   )
-        self.theta     = Parameter(   torch.zeros( M   ).type(dtype)   )
-        self.w         = Parameter(   torch.ones(  M,1 ).type(dtype)/M )
+        self.params    = { "id"     : Kernel("gaussian(x,y)")  }
+        self.mu        = Parameter( torch.rand(  M,D   ).type(dtype) )
+        self.A         = 10* torch.ones(M,1,1) * torch.eye(D,D).view(1,D,D)
+        self.A         = Parameter( ( self.A ).type(dtype).contiguous() )
+        self.w         = Parameter( torch.ones(  M,1   ).type(dtype) )
         self.sparsity  = sparsity
 
     def update_covariances(self) :
         """Computes the full covariance matrices from the model's parameters."""
-        sig2 = (-2*self.sigma_log).exp()
-        a, b     = sig2[:,0], sig2[:,1]
-        cos, sin = self.theta.cos(), self.theta.sin()
-        self.params["gamma"] = torch.stack( (
-            a * cos**2 + b * sin**2 ,
-            (a-b) * cos * sin,
-            (a-b) * cos * sin,
-            a * sin**2 + b * cos**2
-        ), 1)
+        (M,D,_) = self.A.shape
+        self.params["gamma"] = (self.A @ self.A.transpose(1,2)).view(M, D*D)
+
+    def covariances_determinants(self) :
+        """Computes the determinants of the covariance matrices."""
+        S = self.params["gamma"]
+        if S.shape[1] == 2*2: dets = S[:,0]*S[:,3] - S[:,1]*S[:,2]
+        else :                raise NotImplementedError
+        return dets.view(-1,1)
 
     def weights(self) :
         """Scalar factor in front of the exponential, in the density formula."""
-        return     softmax(self.w, 0) * (-self.sigma_log.sum(1).view(-1,1)).exp()
+        return     softmax(self.w, 0) * self.covariances_determinants().sqrt()
 
     def weights_log(self) :
         """Logarithm of the scalar factor, in front of the exponential."""
-        return log_softmax(self.w, 0) - self.sigma_log.sum(1).view(-1,1)
+        return log_softmax(self.w, 0) + .5 * self.covariances_determinants().log()
 
     def likelihoods( self, sample) :
         """Samples the density on a given point cloud."""
@@ -125,7 +125,7 @@ class GaussianMixture(Module) :
 
 plt.figure(figsize=(10,10))
 
-model     = GaussianMixture(8, sparsity=500)
+model     = GaussianMixture(10, sparsity=200)
 optimizer = torch.optim.Adam( model.parameters() )
 
 for it in range(10001) :

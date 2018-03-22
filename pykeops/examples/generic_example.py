@@ -56,16 +56,17 @@ for mode in modes :
         # higher order derivatives.
         [grad_x, grad_y, grad_s]   = grad(aKxy_b, [x, y, sigma], create_graph=True)
 
+        print("Kernel dot product  : ", aKxy_b )
+        print("Gradient wrt. x     : ", grad_x[:2,:] )
+        print("Gradient wrt. y     : ", grad_y[:2,:] )
+        print("Gradient wrt. s     : ", grad_s       )
+
         grad_x_norm        = scalprod(grad_x, grad_x)
         [grad_xx, grad_xy] = grad(grad_x_norm, [x,y], create_graph=True)
 
         grad_s_norm        = scalprod(grad_s, grad_s)
         [grad_sx, grad_ss] = grad(grad_s_norm, [x,sigma], create_graph=True)
 
-        print("Kernel dot product  : ", aKxy_b )
-        print("Gradient wrt. x     : ", grad_x[:2,:] )
-        print("Gradient wrt. y     : ", grad_y[:2,:] )
-        print("Gradient wrt. s     : ", grad_s       )
         print("Arbitrary formula 1 : ", grad_xx[:2,:] )
         print("Arbitrary formula 2 : ", grad_xy[:2,:] )
         print("Arbitrary formula 3 : ", grad_sx[:2,:] )
