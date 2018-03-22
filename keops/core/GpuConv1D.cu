@@ -113,12 +113,16 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     int nvals;    
     php_d[0] = param_d;
     nvals = DIMSP::VAL(0);
-    cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    // if DIMSP is empty (i.e. no parameter), nvals = -1 which could result in a segfault
+    if(nvals >= 0){ 
+        cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    }
     for(int k=1; k<SIZEP; k++) {
         php_d[k] = php_d[k-1] + nvals;
         nvals = DIMSP::VAL(k);
         cudaMemcpy(php_d[k], pp_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     }    
+
     phx_d[0] = x_d;
     nvals = nx*DIMSX::VAL(0);
     for(int k=1; k<SIZEI; k++) {
@@ -126,6 +130,7 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
         nvals = nx*DIMSX::VAL(k);
         cudaMemcpy(phx_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     }
+
     phy_d[0] = y_d;
     nvals = ny*DIMSY::VAL(0);
     cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);

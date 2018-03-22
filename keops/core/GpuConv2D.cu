@@ -211,7 +211,10 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     int nvals;
     php_d[0] = param_d;
     nvals = DIMSP::VAL(0);
-    cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    // if DIMSP is empty (i.e. no parameter), nvals = -1 which could result in a segfault
+    if(nvals >= 0){ 
+        cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    }
     for(int k=1; k<SIZEP; k++) {
         php_d[k] = php_d[k-1] + nvals;
         nvals = DIMSP::VAL(k);
