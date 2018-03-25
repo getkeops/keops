@@ -60,6 +60,32 @@ def GaussLinKernel(sigma):
         return (Kxy*Sxy)@b
     return f
 
+def GaussLinKernelKeops(sigma):
+    def f(x,y,vx,vy,b):
+        params = {
+            "id"      : Kernel("gaussian(x,y) * linear(u,v)**2"),
+            "gamma"   : (Variable(torch.FloatTensor([1/sigma**2])),Variable(torch.FloatTensor([0]))),
+            "backend" : "auto"
+        }
+        return kernel_product( (x,vx),(y,vy),b, params)
+    return f
+#
+def GaussLinKernelKeopsGeneric(sigma):
+    def f(x,y,vx,vy,b):
+        dp = x.shape[1]
+        df = vx.shape[1]
+        dv = b.shape[1]
+        aliases = ["P = Pm(0,1)",
+                   "X=Vx(1,"+str(dp)+")","Y=Vy(2,"+str(dp)+")",
+                   "U=Vx(3,"+str(df)+")","V=Vy(4,"+str(df)+")",
+                   "B=Vy(5,"+str(dv)+")"]
+        formula = "Exp(-P*SqDist(X,Y))*Square((U,V))*B"
+        signature   =   [ (dv, 0), (1, 2), (dp, 0), (dp, 1), (df, 0), (df, 1), (dv, 1) ]
+        sum_index   = 0 # the result is indexed by "i"; for "j", use "1"
+        oos2 = Variable(torch.FloatTensor([1/sigma**2]))
+        return GenericSum.apply("auto",aliases,formula,signature,sum_index,oos2,x,y,vx,vy,b)
+    return f
+
 def HeunsIntegrator(nt=10):
     def f(ODESystem,x0,deltat=1.0):
         x = tuple(map(lambda x:x.clone(),x0))
@@ -118,12 +144,12 @@ def CpuOrGpu(x):
             x = tuple(map(lambda x:x.cuda(),x))
     return x
 
-VS,FS,VT,FT = CpuOrGpu(torch.load('data/hippos_reduc.pt'))
+VS,FS,VT,FT = CpuOrGpu(torch.load('data/hippos_reduc_reduc.pt'))
 
 q0 = VS = Variable(VS,requires_grad=True)
 VT, FS, FT = Variable(VT), Variable(FS), Variable(FT)
 
-lossData = lossVarifoldSurf(FS,VT,FT,GaussLinKernel(sigma=20))
+lossData = lossVarifoldSurf(FS,VT,FT,GaussLinKernelKeopsGeneric(sigma=20))
 
 n,d = q0.shape
 p0 = Variable(CpuOrGpu(torch.zeros(n,d)), requires_grad=True)
