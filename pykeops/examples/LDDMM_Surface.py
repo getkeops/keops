@@ -118,7 +118,7 @@ def CpuOrGpu(x):
             x = tuple(map(lambda x:x.cuda(),x))
     return x
 
-VS,FS,VT,FT = CpuOrGpu(torch.load('data/hippos_reduc_reduc.pt'))
+VS,FS,VT,FT = CpuOrGpu(torch.load('data/hippos_reduc.pt'))
 
 q0 = VS = Variable(VS,requires_grad=True)
 VT, FS, FT = Variable(VT), Variable(FS), Variable(FT)
@@ -130,7 +130,12 @@ p0 = Variable(CpuOrGpu(torch.zeros(n,d)), requires_grad=True)
 
 optimizer = torch.optim.LBFGS([p0])
 
+#%%
+
 Kv = GaussKernelKeopsGeneric(sigma=20)
+
+
+
 loss = LDDMMloss(Kv,lossData)
 
 N = 5

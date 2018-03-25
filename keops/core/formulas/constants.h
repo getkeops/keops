@@ -34,7 +34,7 @@ struct Zero {
 
     // Evaluation is easy : simply fill-up *out with zeros.
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* params, __TYPE__* out, ARGS... args) {
+    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         for(int k=0; k<DIM; k++)
             out[k] = 0;
     }
