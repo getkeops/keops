@@ -108,7 +108,10 @@ class GenericSum(torch.autograd.Function):
             "The signature should contain at least one indexing argument y_j.")
 
         # Actual computation --------------------------------------------------------------------
-        result = torch.zeros(n, signature[0][0]).type(args[0].type())  # Init the output of the convolution
+        if args[0].is_cuda:
+            result = torch.cuda.FloatTensor(n,signature[0][0]).fill_(0)
+        else:
+            result = torch.zeros(n, signature[0][0])  # Init the output of the convolution
         cuda_conv_generic(formula, signature, result, *args,  # Inplace CUDA routine
                           backend=backend,
                           aliases=aliases, sum_index=sum_index,
