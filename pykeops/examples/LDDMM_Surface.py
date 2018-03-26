@@ -162,6 +162,7 @@ def RunExample(datafile=datafile,kernel_lib="keops"):
     # perform optimization
     optimizer = torch.optim.LBFGS([p0])
     N = 5
+    print('performing optimization...')
     start = time.time()
     for i in range(N):
         def closure():
@@ -191,4 +192,6 @@ if use_cuda:
 else:
     RunExample(datafile,kernel_lib)
 
+print("Done.")
+plt.show(block=True)
 
