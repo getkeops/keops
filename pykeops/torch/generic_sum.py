@@ -112,6 +112,7 @@ class GenericSum(torch.autograd.Function):
             result = torch.cuda.FloatTensor(n,signature[0][0]).fill_(0)
         else:
             result = torch.zeros(n, signature[0][0])  # Init the output of the convolution
+            
         cuda_conv_generic(formula, signature, result, *args,  # Inplace CUDA routine
                           backend=backend,
                           aliases=aliases, sum_index=sum_index,
