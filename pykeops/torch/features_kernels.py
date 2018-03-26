@@ -1,26 +1,8 @@
 from pykeops.torch.generic_sum       import GenericSum
 from pykeops.torch.generic_logsumexp import GenericLogSumExp
 
-from pykeops.torch.utils import _scalar_products, _squared_distances, _log_sum_exp, _weighted_squared_distances
+from pykeops.torch.utils import extract_metric_parameters, _scalar_products, _squared_distances, _log_sum_exp, _weighted_squared_distances
 
-def extract_metric_parameters(G) :
-    """
-    From the shape of the Variable G, infers if it is supposed
-    to be used as a fixed parameter or as a "j" variable,
-    and whether it represents a scalar, a diagonal matrix
-    or a full symmetric matrix.
-    """
-    if len(G.shape) == 1 :
-        G_cat = 2
-        G_dim = G.shape[0]
-    elif len(G.shape) == 2 :
-        G_cat = 1
-        G_dim = G.shape[1]
-    else :
-        raise ValueError("A 'metric' parameter is expected to be of dimension 1 or 2.")
-
-    G_str = ["Vx", "Vy", "Pm"][G_cat]
-    return G_dim, G_cat, G_str
 
 
 def apply_routine(features, routine, *args):
@@ -98,40 +80,41 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
     """
     *args = g,x,y, h,u,v, i,s,t, b
     """
-    if bonus_args is not None:     args += tuple(bonus_args)
+    full_args = args
+    if bonus_args is not None:     full_args += tuple(bonus_args)
 
     if backend == "pytorch":
         if mode == "sum":
-            return _features_kernel(kernel.features, kernel.routine_sum, *args)
+            return _features_kernel(kernel.features, kernel.routine_sum, *full_args)
         elif mode == "log":
-            return _features_kernel_log(kernel.features, kernel.routine_log, *args)
+            return _features_kernel_log(kernel.features, kernel.routine_log, *full_args)
         elif mode == "log_scaled":
-            return _features_kernel_log_scaled(kernel.features, kernel.routine_log, *args)
+            return _features_kernel_log_scaled(kernel.features, kernel.routine_log, *full_args)
         elif mode == "log_scaled_log":
-            return _features_kernel_log_scaled_log(kernel.features, kernel.routine_log, *args)
+            return _features_kernel_log_scaled_log(kernel.features, kernel.routine_log, *full_args)
         elif mode == "log_primal":
-            return _features_kernel_log_primal(kernel.features, kernel.routine_log, *args)
+            return _features_kernel_log_primal(kernel.features, kernel.routine_log, *full_args)
         elif mode == "log_cost":
-            return _features_kernel_log_cost(kernel.features, kernel.routine_log, *args)
+            return _features_kernel_log_cost(kernel.features, kernel.routine_log, *full_args)
         elif mode == "log_barycenter":
-            return _features_kernel_log_barycenter(kernel.features, kernel.routine_log, *args)
+            return _features_kernel_log_barycenter(kernel.features, kernel.routine_log, *full_args)
         else:
             raise ValueError('"mode" should either be "sum" or "log".')
     elif backend == "matrix":
         if mode == "sum":
-            return _features_kernel(kernel.features, kernel.routine_sum, *args, matrix=True)
+            return _features_kernel(kernel.features, kernel.routine_sum, *full_args, matrix=True)
         elif mode == "log":
-            return _features_kernel_log(kernel.features, kernel.routine_log, *args, matrix=True)
+            return _features_kernel_log(kernel.features, kernel.routine_log, *full_args, matrix=True)
         elif mode == "log_scaled":
-            return _features_kernel_log_scaled(kernel.features, kernel.routine_log, *args, matrix=True)
+            return _features_kernel_log_scaled(kernel.features, kernel.routine_log, *full_args, matrix=True)
         elif mode == "log_scaled_log":
-            return _features_kernel_log_scaled_log(kernel.features, kernel.routine_log, *args, matrix=True)
+            return _features_kernel_log_scaled_log(kernel.features, kernel.routine_log, *full_args, matrix=True)
         elif mode == "log_primal":
-            return _features_kernel_log_primal(kernel.features, kernel.routine_log, *args, matrix=True)
+            return _features_kernel_log_primal(kernel.features, kernel.routine_log, *full_args, matrix=True)
         elif mode == "log_cost":
-            return _features_kernel_log_cost(kernel.features, kernel.routine_log, *args, matrix=True)
+            return _features_kernel_log_cost(kernel.features, kernel.routine_log, *full_args, matrix=True)
         elif mode == "log_barycenter":
-            return _features_kernel_log_barycenter(kernel.features, kernel.routine_log, *args, matrix=True)
+            return _features_kernel_log_barycenter(kernel.features, kernel.routine_log, *full_args, matrix=True)
         else:
             raise ValueError('"mode" should either be "sum" or "log".')
 
@@ -157,6 +140,9 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
         elif mode == "log_barycenter":
             genconv = GenericSum().apply
             formula = "( Exp(" + kernel.formula_log + "+ A_LOG + B_LOG) * (B-B2))"
+        elif mode == "log_mult":
+            genconv = GenericLogSumExp().apply
+            formula = "( ((A_i*A_j) * " + kernel.formula_log + ") + B)"
         else:
             raise ValueError('"mode" should either be "sum" or "log".')
 
@@ -164,8 +150,10 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             (G,X,Y,B) = args
             dimpoint = X.size(1)
             dimout   = B.size(1)
-            G_dim, G_cat, G_str = extract_metric_parameters(G)
-            nvars = 4
+            G_var, G_dim, G_cat, G_str = extract_metric_parameters(G)
+
+            args  = (G_var,X,Y, B)
+            nvars = len(args)
 
             aliases = ["G = "+G_str+"(0,"+str(G_dim)+") ",  # parameter/j-variable
                        "X = Vx(1," + str(dimpoint) + ") ",  # variable, dim DIM,    indexed by i
@@ -178,9 +166,11 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             (G,X,Y,H,U,V,B) = args
             dimpoint = X.size(1)
             dimout   = B.size(1)
-            G_dim, G_cat, G_str = extract_metric_parameters(G)
-            H_dim, H_cat, H_str = extract_metric_parameters(H)
-            nvars = 7
+            G_var, G_dim, G_cat, G_str = extract_metric_parameters(G)
+            H_var, H_dim, H_cat, H_str = extract_metric_parameters(H)
+            
+            args  = (G_var,X,Y, H_var,U,V, B)
+            nvars = len(args)
 
             aliases = ["G = "+G_str+"(0,"+str(G_dim)+") ",  # parameter/j-variable
                        "X = Vx(1," + str(dimpoint) + ") ",  # variable, dim DIM,    indexed by i
@@ -201,10 +191,12 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             dimpoint  = X.size(1)
             dimsignal = S.size(1)
             dimout    = B.size(1)
-            G_dim, G_cat, G_str = extract_metric_parameters(G)
-            H_dim, H_cat, H_str = extract_metric_parameters(H)
-            I_dim, I_cat, I_str = extract_metric_parameters(I)
-            nvars = 10
+            G_var, G_dim, G_cat, G_str = extract_metric_parameters(G)
+            H_var, H_dim, H_cat, H_str = extract_metric_parameters(H)
+            I_var, I_dim, I_cat, I_str = extract_metric_parameters(I)
+
+            args  = (G_var,X,Y, H_var,U,V, I_var,S,T, B)
+            nvars = len(args)
 
             aliases = ["G = "+G_str+"(0,"+str(G_dim)+") ",  # parameter/j-variable
                        "X = Vx(1," + str(dimpoint) + ") ",  # variable, dim DIMPOINT,    indexed by i
@@ -240,5 +232,14 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             #                  B2_i
             signature += [(dimout, 0)]
 
+        if mode == "log_mult":
+            aliases += ["A_i = Vx(" + str(nvars  ) + ",1)",
+                        "A_j = Vy(" + str(nvars+1) + ",1)"]
+            #               A_i,    A_j
+            signature += [(1, 0), (1, 1)]
+        
+        full_args = args
+        if bonus_args is not None:     full_args += tuple(bonus_args)
+            
         sum_index = 0  # the output vector is indexed by "i" (CAT=0)
-        return genconv(backend, aliases, formula, signature, sum_index, *args)
+        return genconv(backend, aliases, formula, signature, sum_index, *full_args)

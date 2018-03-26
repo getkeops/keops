@@ -45,18 +45,19 @@ modes = ["sum", "log"] if dimsignal==1 else ["sum"]
 # Test, using a pytorch or libkp backend
 for mode in modes : 
     print("Mode :", mode, "========================================")
-    for backend in ["pytorch", "auto"] :
+    for backend in ["auto"] :
         params["backend"] = backend
         print("Backend :", backend, "--------------------------")
         Kxy_b  = kernel_product( x,y,b, params, mode=mode)
         aKxy_b = scalprod(a, Kxy_b)
+
+        print("Kernel dot product  : ", aKxy_b )
 
         # Computing a gradient is that easy - we can also use the "aKxy_b.backward()" syntax. 
         # Notice the "create_graph=True", which will allow us to compute
         # higher order derivatives.
         [grad_x, grad_y, grad_s]   = grad(aKxy_b, [x, y, sigma], create_graph=True)
 
-        print("Kernel dot product  : ", aKxy_b )
         print("Gradient wrt. x     : ", grad_x[:2,:] )
         print("Gradient wrt. y     : ", grad_y[:2,:] )
         print("Gradient wrt. s     : ", grad_s       )
@@ -64,10 +65,11 @@ for mode in modes :
         grad_x_norm        = scalprod(grad_x, grad_x)
         [grad_xx, grad_xy] = grad(grad_x_norm, [x,y], create_graph=True)
 
+        print("Arbitrary formula 1 : ", grad_xx[:2,:] )
+        print("Arbitrary formula 2 : ", grad_xy[:2,:] )
+        
         grad_s_norm        = scalprod(grad_s, grad_s)
         [grad_sx, grad_ss] = grad(grad_s_norm, [x,sigma], create_graph=True)
 
-        print("Arbitrary formula 1 : ", grad_xx[:2,:] )
-        print("Arbitrary formula 2 : ", grad_xy[:2,:] )
         print("Arbitrary formula 3 : ", grad_sx[:2,:] )
         print("Arbitrary formula 4 : ", grad_ss       )

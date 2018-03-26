@@ -1,5 +1,37 @@
 import torch
 
+
+def extract_metric_parameters(G) :
+    """
+    From the shape of the Variable G, infers if it is supposed
+    to be used as a fixed parameter or as a "j" variable,
+    and whether it represents a scalar, a diagonal matrix
+    or a full symmetric matrix.
+
+    If G is a tuple, it can also encode an "i" variable.
+    """
+    if   type(G) == tuple and G[0] == "i" : # i-variable
+        G_var = G[1]
+        G_cat = 0
+        G_dim = G_var.shape[1]
+
+    elif (type(G) == tuple and G[0] == "j") or len(G.shape) == 2 : # j-variable
+        G_var = G
+        G_cat = 1
+        G_dim = G.shape[1]
+
+    elif len(G.shape) == 1 : # Parameter
+        G_var = G
+        G_cat = 2
+        G_dim = G.shape[0]
+    else :
+        raise ValueError("A 'metric' parameter is expected to be of dimension 1 or 2.")
+
+    G_str = ["Vx", "Vy", "Pm"][G_cat]
+    return G_var, G_dim, G_cat, G_str
+
+
+
 def _squared_distances(x, y) :
     x_i = x.unsqueeze(1)         # Shape (N,D) -> Shape (N,1,D)
     y_j = y.unsqueeze(0)         # Shape (M,D) -> Shape (1,M,D)
@@ -10,16 +42,19 @@ def _weighted_squared_distances(g, x, y) :
     y_j = y.unsqueeze(0)         # Shape (M,D) -> Shape (1,M,D)
 
     D = x.shape[1]
-    if   len(g.shape) == 1 : # g is a parameter
+    
+    g, g_dim, g_cat, g_str = extract_metric_parameters(g)
 
-        if   g.shape[0] == 1 : # g is a scalar
+    if   g_cat == 2 : # g is a parameter
+
+        if   g_dim == 1 : # g is a scalar
             return g * ((x_i-y_j)**2).sum(2) # N-by-M matrix, xmy[i,j] = g * |x_i-y_j|^2
 
-        elif g.shape[0] == D : # g is a diagonal matrix
+        elif g_dim == D : # g is a diagonal matrix
             g_d = g.unsqueeze(0).unsqueeze(1) # Shape (D) -> Shape (1,1,D)
             return (g_d * (x_i-y_j)**2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_d * (x_i,d-y_j,d)^2
             
-        elif g.shape[0] == D**2 :    # G is a symmetric matrix
+        elif g_dim == D**2 :    # G is a symmetric matrix
             G    = g.view(1,1,D,D)    # Shape (D**2) -> Shape (1,1,D,D)
             xmy  = x_i - y_j          # Shape (N,M,D)
             xmy_ = xmy.unsqueeze(2)   # Shape (N,M,1,D)
@@ -29,16 +64,36 @@ def _weighted_squared_distances(g, x, y) :
             raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
 
 
-    elif len(g.shape) == 2 : # g is a 'j' variable
+    elif g_cat == 0 : # g is a 'i' variable
         
-        if g.shape[1] == 1 : # g_j is scalar
-            return g * ((x_i-y_j)**2).sum(2) # N-by-M matrix, xmy[i,j] = g_j * |x_i-y_j|^2
+        if   g_dim == 1 : # g_i is scalar
+            return g.view(-1,1) * ((x_i-y_j)**2).sum(2) # N-by-M matrix, xmy[i,j] = g_i * |x_i-y_j|^2
 
-        elif g.shape[1] == D : # g_j is a diagonal matrix
+        elif g_dim == D : # g_i is a diagonal matrix
+            g_d = g.unsqueeze(1) # Shape (N,D) -> Shape (N,1,D)
+            return (g_d * (x_i-y_j)**2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_i,d * (x_i,d-y_j,d)^2
+
+        elif g_dim == D**2 :       # G_i is a symmetric matrix
+            G_i  = g.view(-1,1,D,D)     # Shape (N,D**2) -> Shape (N,1,D,D)
+            xmy  = x_i - y_j            # Shape (N,M,D)
+            xmy_ = xmy.unsqueeze(2)     # Shape (N,M,1,D)
+            Gxmy = (G_i * xmy_).sum(3)  # Shape (N,M,D,D) -> (N,M,D)
+            return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_i (x_i-y_j) >
+
+        else :
+            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
+
+
+    elif g_cat == 1 : # g is a 'j' variable
+        
+        if   g_dim == 1 : # g_j is scalar
+            return g.view(1,-1) * ((x_i-y_j)**2).sum(2) # N-by-M matrix, xmy[i,j] = g_j * |x_i-y_j|^2
+
+        elif g_dim == D : # g_j is a diagonal matrix
             g_d = g.unsqueeze(0) # Shape (M,D) -> Shape (1,M,D)
             return (g_d * (x_i-y_j)**2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_j,d * (x_i,d-y_j,d)^2
 
-        elif g.shape[1] == D**2 :       # G_j is a symmetric matrix
+        elif g_dim == D**2 :       # G_j is a symmetric matrix
             G_j  = g.view(1,-1,D,D)     # Shape (M,D**2) -> Shape (1,M,D,D)
             xmy  = x_i - y_j            # Shape (N,M,D)
             xmy_ = xmy.unsqueeze(2)     # Shape (N,M,1,D)
