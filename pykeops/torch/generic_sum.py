@@ -112,6 +112,7 @@ class GenericSum(torch.autograd.Function):
             result = torch.cuda.FloatTensor(n,signature[0][0]).fill_(0)
         else:
             result = torch.zeros(n, signature[0][0])  # Init the output of the convolution
+            
         cuda_conv_generic(formula, signature, result, *args,  # Inplace CUDA routine
                           backend=backend,
                           aliases=aliases, sum_index=sum_index,
@@ -237,7 +238,7 @@ class GenericSum(torch.autograd.Function):
                 var = "Var(" + str(var_ind) + "," + str(sig[0]) + "," + str(sig[1]) + ")"  # V
                 formula_g = "Grad(" + formula + "," + var + "," + eta + ")"  # Grad<F,V,G>
                 args_g = args + (G,)  # Don't forget the gradient to backprop !
-
+                
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
                 genconv = GenericSum().apply
 
