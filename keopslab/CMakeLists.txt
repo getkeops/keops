@@ -174,47 +174,6 @@ if(Matlab_FOUND)
         endif()
         add_definitions(-DKERNEL_SPHERE_TYPE=${KERNEL_SPHERE_TYPE})
 
-        # ----------------- fshape_scp
-        #SET(mex_fshape_scp_name cuda_fshape_scp_${KERNEL_GEOM_TYPE}${KERNEL_SIG_TYPE}${KERNEL_SPHERE_TYPE})
-
-        #CUDA_add_library(
-            #fshape_gpu SHARED
-            #${PROJECT_SRC}/specific/shape_distance/fshape_gpu.cu
-        #)
-        #set_target_properties(fshape_gpu PROPERTIES
-            #LIBRARY_OUTPUT_NAME ${mex_fshape_scp_name}
-            #PREFIX ""
-        #)
-
-        #Add_library( # generate the string "g++ -c ..." but do not execute it
-            #cudafshape_cpp OBJECT
-            #${CMAKE_CURRENT_SOURCE_DIR}/specific/shape_distance/cudafshape.cpp
-        #)
-        #target_compile_options(
-            #cudafshape_cpp BEFORE
-            #PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
-        #)
-
-        #if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
-            #add_custom_target(
-                #mex_fshape_scp
-                #DEPENDS fshape_gpu cudafshape_cpp# ensure obj file is created before using mex for linking
-                #COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:fshape_gpu> $<TARGET_OBJECTS:cudafshape_cpp> -output ${mex_fshape_scp_name} # only since cmake 3.9 
-            #)
-        #else()
-            #add_custom_target(
-                #mex_fshape_scp
-                #DEPENDS fshape_gpu cudafshape_cpp# ensure obj file is created before using mex for linking
-                #COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:fshape_gpu> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/cudafshape_cpp.dir/specific/shape_distance/cudafshape.cpp.o -output ${mex_fshape_scp_name}
-            #)
-        #endif()
-
-        #set_target_properties( # pass needed options to add_custom_target()
-            #mex_fshape_scp PROPERTIES 
-            #PREFIX "" 
-            #LINKER_LANGUAGE CXX
-            #EXCLUDE_FROM_ALL TRUE
-            #)
 
         # ----------------- fshape_scp_dx
         foreach(ext_name "" "_dx" "_df" "_dxi")
