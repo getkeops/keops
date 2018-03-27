@@ -1,30 +1,41 @@
+import os.path
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*3)
+
 import numpy as np
 import ctypes
-from ctypes import *
+from ctypes import POINTER, c_int, c_float
+
+from pykeops import build_folder, script_folder, dll_prefix, dll_ext
+from pykeops.numpy.get_specific import get_specific_lib
+from pykeops.common.compile_routines import compile_specific_routine
+
 import os.path
 
 #nvcc -D "USE_DOUBLE_PRECISION=OFF" -D "CUDA_BLOCK_SIZE=192"  -Xcompiler -fPIC -shared -o cuda_conv.so cuda_conv.cu
 
 # extract cuda_conv function pointer in the shared object cuda_conv.so
-def get_cuda_convs_od():
+def get_radial_kernel_conv_od():
     """
     Loads the convolution routine from the compiled .so file.
     """
-    dll_name = 'cuda_conv.so'
-    dllabspath = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + 'build' + os.path.sep + dll_name
-    dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
+    target = 'radial_kernels_conv'
+    dllabspath = build_folder + os.path.sep + 'specific' + os.path.sep +  dll_prefix + target + dll_ext
+    try:
+        dll = ctypes.CDLL(dllabspath , mode=ctypes.RTLD_GLOBAL)
+    except OSError:
+        compile_specific_routine(dllname=target, cuda_type="float" )
+        dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
+        print("Loaded.\n\n")
 
-    func = dll.GaussGpuEvalConv_onDevice
-
-
-    #(float ooSigma2, float* x_d, float* y_d, float* beta_d, float* gamma_d, int dimPoint, int dimVect, int nx, int ny)	
+    func = dll.GaussGpuEval_onDevice
     func.argtypes = [c_float, POINTER(c_float), POINTER(c_float), POINTER(c_float), POINTER(c_float), c_int,   c_int,     c_int, c_int]
     return func
 
 # create __cuda_conv function with get_cuda_conv()
-__cuda_convs_od = get_cuda_convs_od()
+__cuda_convs_od = get_radial_kernel_conv_od()
 
-def cuda_conv_od(x, y, beta, result, sigma, kernel = "gaussian"):
+def radial_kernels_conv_od(x, y, beta, result, sigma, kernel = "gaussian"):
     """
     Implements the operation :
 
@@ -91,7 +102,7 @@ if __name__ == '__main__':
     g0 = torch.mm(torch_kernel(xc,yc,sc,kernel=k),bc).cpu().numpy()
     
     g1 = torch.from_numpy(np.zeros([N*E]).astype('float32')).cuda()
-    cuda_conv_od(xc, yc, bc, g1, s, kernel=k)
+    radial_kernels_conv_od(xc, yc, bc, g1, s, kernel=k)
     
     print(g0)
     print(g1.cpu().view(N,E))
