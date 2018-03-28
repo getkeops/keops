@@ -23,7 +23,8 @@ import time
 from pykeops.torch.kernels import Kernel, kernel_product
 
 use_cuda = torch.cuda.is_available()
-
+backend_keops = "GPU_1D_device" if use_cuda else "GPU_1D_host"
+print("backend for keops is set to :", backend_keops)
 
 ###### main settings for this example ############################
 kernel_lib = "keops"     # "pytorch" or "keops"
@@ -62,7 +63,7 @@ def GaussKernel(sigma,lib="keops"):
             params = {
                 "id"      : Kernel("gaussian(x,y)"),
                 "gamma"   : Variable(CpuOrGpu(torch.FloatTensor([1/sigma**2]))),
-                "backend" : "auto"
+                "backend" : backend_keops
             }
             return kernel_product( x,y,b, params)
         return K
