@@ -162,29 +162,29 @@ def RunExample(datafile=datafile,kernel_lib="keops"):
 
     # perform optimization
     optimizer = torch.optim.LBFGS([p0])
-    N = 5
     print('performing optimization...')
     start = time.time()
-    for i in range(N):
-        def closure():
-            optimizer.zero_grad()
-            L = loss(p0,q0)
-            L.backward()
-            return L
-        optimizer.step(closure)
+    def closure():
+        optimizer.zero_grad()
+        L = loss(p0,q0)
+        L.backward()
+        return L
+    optimizer.step(closure)
     print('Optimization time : ',round(time.time()-start,2),' seconds')
 
     # display output    
     fig = plt.figure();
     plt.title('LDDMM matching example')  
     p,q = Shooting(p0,q0,Kv)
+
     q0np, qnp, FSnp = q0.data.cpu().numpy(), q.data.cpu().numpy(), FS.data.cpu().numpy()
     VTnp, FTnp = VT.data.cpu().numpy(), FT.data.cpu().numpy()    
     ax = Axes3D(fig)
     ax.axis('equal')
-    ax.plot_trisurf(q0np[:,0],q0np[:,1],q0np[:,2],triangles=FSnp,alpha=.5)
-    ax.plot_trisurf(qnp[:,0],qnp[:,1],qnp[:,2],triangles=FSnp,alpha=.5)
-    ax.plot_trisurf(VTnp[:,0],VTnp[:,1],VTnp[:,2],triangles=FTnp,alpha=.5)
+    ax.plot_trisurf(q0np[:,0],q0np[:,1],q0np[:,2],triangles=FSnp, color=(1,0,0,.5), edgecolor=(1,1,1,.3), linewidth=1)
+    ax.plot_trisurf(qnp[:,0],qnp[:,1],qnp[:,2],triangles=FSnp, color=(1,1,0,.5), edgecolor=(1,1,1,.3), linewidth=1)
+    #ax.plot_trisurf(VTnp[:,0],VTnp[:,1],VTnp[:,2],triangles=FTnp, color=(0,0,0,0), edgecolor='Blue')
+    ax.plot_trisurf(VTnp[:,0],VTnp[:,1],VTnp[:,2],triangles=FTnp, color=(0,0,0,0), edgecolor=(0,0,1,.3), linewidth=1)
 
 # run the example
 if use_cuda:
