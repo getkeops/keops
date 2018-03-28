@@ -328,6 +328,8 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
     // block until the device has completed
     cudaThreadSynchronize();
 
+    cudaFree(p_data);
+
     return 0;
 }
 
