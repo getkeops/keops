@@ -1,7 +1,9 @@
 #include <mex.h>
-#include "cuda_grad1conv.cu"
 
-#define UseCudaOnDoubles USE_DOUBLE_PRECISION
+
+extern "C" int GaussGpuEval  (__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
+extern "C" int LaplaceGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
+extern "C" int EnergyGpuEval (__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
 
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
@@ -107,7 +109,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /*  create a C pointer to a copy of the output result(vector)*/
     double *gamma = mxGetPr(plhs[0]);
 
-#if UseCudaOnDoubles
+#if USE_DOUBLE
     if (strcmp(kernel_type,"gaussian") == 0)
         GaussGpuGrad1Conv(oosigma2,alpha,x,y,beta,gamma,dimpoint,dimvect,nx,ny);  
     else if (strcmp(kernel_type,"laplacian") == 0)
