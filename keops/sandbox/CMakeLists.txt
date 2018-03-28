@@ -30,6 +30,10 @@ if (USE_CUDA)
         ${CMAKE_CURRENT_SOURCE_DIR}/test_factorized.cu
     )
 
+    CUDA_add_executable(
+        test_fromdevice
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_fromdevice.cu
+    )
 endif()
 
 # ----------------- equivalent code to compile_test_factorized_cpp
