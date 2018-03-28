@@ -12,7 +12,7 @@
 #include <ctime>
 #include <algorithm>
 
-#define __TYPE__ double
+#define __TYPE__ float
 #define CUDA_BLOCK_SIZE 192 
 
 #include "core/GpuConv1D.cu"
@@ -31,9 +31,21 @@
 
 using namespace std;
 
+__TYPE__ floatrand() {
+    return 1.0;//((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+}
+
+template < class V > void fillrandom(V& v) {
+    generate(v.begin(), v.end(), floatrand);    // fills vector with random values
+}
+
 
 
 int main() {
+
+    int deviceID = 1;
+    cudaSetDevice(deviceID);
+
     // In this part we define the symbolic variables of the function
     using X = Var<1,3,0>; 	// X is the second variable and represents a 3D vector
     using Y = Var<2,3,1>; 	// Y is the third variable and represents a 3D vector
@@ -50,10 +62,21 @@ int main() {
 
     // now we test ------------------------------------------------------------------------------
 
-    int Nx=5000, Ny=2000;
-    
+    int Nx=400, Ny=600;
+
+/*
+    vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
+    vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
+    vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
+
+    __TYPE__ params[1];
+    params[0] = floatrand();
+*/   
     __TYPE__ *f_d;
     cudaMalloc(&f_d, sizeof(__TYPE__)*(Nx*F::DIM));
+	thrust::device_ptr<__TYPE__> f_d_thrust(f_d);
+    thrust::fill(f_d_thrust, f_d_thrust + Nx*F::DIM, 3.4);
     
     __TYPE__ *param_d;
     cudaMalloc(&param_d, sizeof(__TYPE__)*C::DIM);
@@ -78,8 +101,6 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    int deviceID = 1;
-    cudaSetDevice(deviceID);
     end = clock();
     cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
@@ -91,26 +112,47 @@ int main() {
 
     cout << "testing function F" << endl;
     begin = clock();
-    GpuConv2D_FromDevice(FUNCONVF(), Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+    for(int i=0; i<200; i++)
+        GpuConv2D_FromDevice(FUNCONVF(), Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
-    cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for 200 GPU computations (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-	vector<__TYPE__> resgpu2D(Nx*F::DIM);
-    cudaMemcpy(f_d, resgpu2D.data(), Nx*F::DIM*sizeof(__TYPE__*), cudaMemcpyDeviceToHost);
+	vector<__TYPE__> resgpu2D(Nx*F::DIM);     fill(resgpu2D.begin(),resgpu2D.end(),2.5);
+    cudaMemcpy(resgpu2D.data(), f_d, Nx*F::DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
+
+    // display output
+    cout << endl << "resgpu2D =";
+    for(int i=0; i<10; i++)
+      cout << " " << resgpu2D[i];
+    cout << " ..." << endl;
 
     begin = clock();
-    GpuConv1D_FromDevice(FUNCONVF(), Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+    for(int i=0; i<200; i++)
+        GpuConv1D_FromDevice(FUNCONVF(), Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
-    cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    cout << "time for 200 GPU computations (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
 
-	vector<__TYPE__> resgpu1D(Nx*F::DIM);
-    cudaMemcpy(f_d, resgpu1D.data(), Nx*F::DIM*sizeof(__TYPE__*), cudaMemcpyDeviceToHost);
+	vector<__TYPE__> resgpu1D(Nx*F::DIM);     fill(resgpu1D.begin(),resgpu1D.end(),3.4);
+    cudaMemcpy(resgpu1D.data(), f_d, Nx*F::DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
+
+    // display output
+    cout << endl << "resgpu1D =";
+    for(int i=0; i<10; i++)
+      cout << " " << resgpu1D[i];
+    cout << " ..." << endl;
 
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(resgpu1D[i]-resgpu2D[i]);
     cout << "mean abs error 1D/2D =" << s/Nx << endl;
+
+
+    cudaFree(f_d);
+    cudaFree(param_d);
+    cudaFree(x_d);
+    cudaFree(y_d);
+    cudaFree(b_d);
 
 
 

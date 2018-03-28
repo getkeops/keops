@@ -26,8 +26,6 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     const int DIMP = DIMSP::SUM;        // DIMP  is sum of dimensions for parameters variables
     const int DIMX1 = DIMSX::FIRST;     // DIMX1 is dimension of output variable
 
-
-
     // load parameter(s)
     TYPE param_loc[DIMP < 1 ? 1 : DIMP];
 	load<DIMSP>(0,param_loc,pp); // load parameters variables from global memory to local thread memory
@@ -47,7 +45,6 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         if(j<ny) { // we load yj from device global memory only if j<ny
             load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load yj variables from global memory to shared memory
         }
-
         __syncthreads();
 
         if(i<nx) { // we compute x1i only if needed
@@ -57,14 +54,13 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
                 ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi);     // tmp += xi
             }
         }
-
         __syncthreads();
     }
-
     if(i<nx) {
         for(int k=0; k<DIMX1; k++)
             (*px)[i*DIMX1+k] = tmp[k];
     }
+
 }
 
 template < typename TYPE, class FUN >
@@ -167,12 +163,33 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
 }
 
 template < typename TYPE, class FUN >
-int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE** px_d, TYPE** py_d, TYPE** pp_d) {
+int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php_d) {
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
     const int DIMY = DIMSY::SUM;
+    const int SIZEI = DIMSX::SIZE;
+    const int SIZEJ = DIMSY::SIZE;
+    const int SIZEP = DIMSP::SIZE;
+
+    // device arrays of pointers to device data
+    TYPE **px_d, **py_d, **pp_d;
+
+    // single cudaMalloc
+    void **p_data;
+    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP));
+
+    TYPE **p_data_a = (TYPE**)p_data;
+    px_d = p_data_a;
+    p_data_a += SIZEI;
+    py_d = p_data_a;
+    p_data_a += SIZEJ;
+    pp_d = p_data_a;
+
+    cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice);
+    cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice);
+    cudaMemcpy(pp_d, php_d, SIZEP*sizeof(TYPE*), cudaMemcpyHostToDevice);
 
     // Compute on device : grid and block are both 1d
     dim3 blockSize;
@@ -185,6 +202,8 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE** px_d, TYPE** py_d, TYPE
 
     // block until the device has completed
     cudaThreadSynchronize();
+
+    cudaFree(p_data);
 
     return 0;
 }
@@ -277,16 +296,17 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
     using INDSJ = GetInds<VARSJ>;
     using INDSP = GetInds<VARSP>;
 
-    TYPE *px_d[SIZEI];
-    TYPE *py_d[SIZEJ];
-    TYPE *pp_d[SIZEP];
+    TYPE *phx_d[SIZEI];
+    TYPE *phy_d[SIZEJ];
+    TYPE *php_d[SIZEP];
 
-    px_d[0] = x1_d;
-    getlist<INDSI>(px_d+1,args...);
-    getlist<INDSJ>(py_d,args...);
-    getlist<INDSP>(pp_d,args...);
+    phx_d[0] = x1_d;
 
-    return GpuConv1D_FromDevice(fun,nx,ny,px_d,py_d,pp_d);
+    getlist<INDSI>(phx_d+1,args...);
+    getlist<INDSJ>(phy_d,args...);
+    getlist<INDSP>(php_d,args...);
+
+    return GpuConv1D_FromDevice(fun,nx,ny,phx_d,phy_d,php_d);
 
 }
 

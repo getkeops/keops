@@ -265,17 +265,23 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
 
 
 template < typename TYPE, class FUN >
-int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** px_d, TYPE** py_d, TYPE** pp_d) {
+int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php_d) {
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
     const int DIMY = DIMSY::SUM;
     const int DIMX1 = DIMSX::FIRST;
+    const int SIZEI = DIMSX::SIZE;
+    const int SIZEJ = DIMSY::SIZE;
+    const int SIZEP = DIMSP::SIZE;
 
     // Data on the device. We need an "inflated" x1B, which contains gridSize.y "copies" of x_d
     // that will be reduced in the final pass.
     TYPE *x1B, *out;
+
+    // device arrays of pointers to device data
+    TYPE **px_d, **py_d, **pp_d;
 
     // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
@@ -290,9 +296,27 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** px_d, TYPE** py_d, TYPE
     dim3 gridSize2;
     gridSize2.x =  (nx*DIMX1) / blockSize2.x + ((nx*DIMX1)%blockSize2.x==0 ? 0 : 1);
 
-    cudaMalloc((void**)&x1B, sizeof(TYPE)*(nx*DIMX1*gridSize.y));
-    out = px_d[0]; // save the output location
-    px_d[0] = x1B;
+    // single cudaMalloc
+    void **p_data;
+
+	cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(nx*DIMX1*gridSize.y));
+
+    TYPE **p_data_a = (TYPE**)p_data;
+    px_d = p_data_a;
+    p_data_a += SIZEI;
+    py_d = p_data_a;
+    p_data_a += SIZEJ;
+    pp_d = p_data_a;
+    p_data_a += SIZEP;
+    x1B = (TYPE*)p_data_a;
+
+    out = phx_d[0]; // save the output location
+
+    phx_d[0] = x1B;
+
+	cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice);
+	cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice);
+	cudaMemcpy(pp_d, php_d, SIZEP*sizeof(TYPE*), cudaMemcpyHostToDevice);
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
@@ -408,7 +432,6 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
     getlist<INDSP>(pp_d,args...);
 
     return GpuConv2D_FromDevice(fun,nx,ny,px_d,py_d,pp_d);
-
 }
 
 template < typename TYPE, class FUN >
@@ -429,19 +452,19 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
     using INDSJ = GetInds<VARSJ>;
     using INDSP = GetInds<VARSP>;
 
-    TYPE *px_d[SIZEI];
-    TYPE *py_d[SIZEJ];
-    TYPE *pp_d[SIZEP];
+    TYPE *phx_d[SIZEI];
+    TYPE *phy_d[SIZEJ];
+    TYPE *php_d[SIZEP];
 
-    px_d[0] = x1_d;
+    phx_d[0] = x1_d;
     for(int i=1; i<SIZEI; i++)
-        px_d[i] = args[INDSI::VAL(i-1)];
+        phx_d[i] = args[INDSI::VAL(i-1)];
     for(int i=0; i<SIZEJ; i++)
-        py_d[i] = args[INDSJ::VAL(i)];
+        phy_d[i] = args[INDSJ::VAL(i)];
     for(int i=0; i<SIZEP; i++)
-        pp_d[i] = args[INDSP::VAL(i)];
+        php_d[i] = args[INDSP::VAL(i)];
 
-    return GpuConv2D_FromDevice(fun,nx,ny,px_d,py_d,pp_d);
+    return GpuConv2D_FromDevice(fun,nx,ny,phx_d,phy_d,php_d);
 
 }
 
