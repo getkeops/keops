@@ -32,7 +32,7 @@
 using namespace std;
 
 __TYPE__ floatrand() {
-    return 1.0;//((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
@@ -43,7 +43,7 @@ template < class V > void fillrandom(V& v) {
 
 int main() {
 
-    int deviceID = 1;
+    int deviceID = 0;
     cudaSetDevice(deviceID);
 
     // In this part we define the symbolic variables of the function
@@ -64,15 +64,6 @@ int main() {
 
     int Nx=400, Ny=600;
 
-/*
-    vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
-    vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
-    vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
-    vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
-
-    __TYPE__ params[1];
-    params[0] = floatrand();
-*/   
     __TYPE__ *f_d;
     cudaMalloc(&f_d, sizeof(__TYPE__)*(Nx*F::DIM));
 	thrust::device_ptr<__TYPE__> f_d_thrust(f_d);
