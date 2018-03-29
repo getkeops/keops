@@ -116,9 +116,9 @@ def cuda_conv_generic(formula, signature, result, *args,
                       cuda_type="float", grid_scheme="2D"):
     """
     Executes the "autodiff" kernel associated to "formula".
-    Backend is one of "auto", "CPU", "GPU_1D",        "GPU_2D",
-                                     "GPU_1D_host",   "GPU_2D_host",
-                                     "GPU_1D_device", "GPU_2D_device".
+    Backend is one of "auto", "GPU_1D" or "GPU_2D",
+        and will be reassigned to "CPU", "GPU_1D_host",   "GPU_2D_host",
+        "GPU_1D_device", "GPU_2D_device", depending on input data (see below)
 
     Aliases can be given as a list of strings.
     sum_index specifies whether the summation should be done over "I/X" (sum_index=1) or "J/Y" (sum_index=0).
