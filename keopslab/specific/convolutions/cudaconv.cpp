@@ -2,7 +2,8 @@
  
 extern "C" int GaussGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
 extern "C" int LaplaceGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
-extern "C" int EnergyGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
+extern "C" int MultiquadricGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
+extern "C" int CauchyGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
 
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
@@ -105,11 +106,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 
 #if  USE_DOUBLE
     if (strcmp(kernel_type,"gaussian") == 0)
-        GaussGpuEvalConv(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
+        GaussGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
     else if (strcmp(kernel_type,"laplacian") == 0)
-        LaplaceGpuEvalConv(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
-    else if (strcmp(kernel_type,"energy") == 0)
-        EnergyGpuEvalConv(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
+        LaplaceGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"multiquadric") == 0)
+        MultiquadricGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"cauchy") == 0)
+        CauchyGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
     else
         mexErrMsgTxt("kernel_type is not implemented");
 #else
@@ -129,11 +132,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     // function calls;
     
     if (strcmp(kernel_type,"gaussian") == 0)
-        GaussGpuEvalConv(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+        GaussGpuEval(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
     else if (strcmp(kernel_type,"laplacian") == 0)
-        LaplaceGpuEvalConv(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
-    else if (strcmp(kernel_type,"energy") == 0)
-        EnergyGpuEvalConv(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+        LaplaceGpuEval(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"cauchy") == 0)
+        CauchyGpuEval(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"multiquadric") == 0)
+        MultiquadricGpuEval(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
     else
         mexErrMsgTxt("kernel_type is not implemented");
 

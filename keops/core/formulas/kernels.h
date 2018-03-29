@@ -15,9 +15,10 @@
  *
  * Available kernel-related routines are :
  *   Radial functions :
- *      GaussFunction<C,R2>						: = exp( - C * R2 )
- *      LaplaceFunction<C,R2>					: = exp( - sqrt( 1/C + R2 ) )
- *      EnergyFunction<C,R2>					: = (1/C + R2)^(-1/4)
+ *      GaussFunction<R2,C>						: = exp( - C * R2 )
+ *      CauchyFunction<R2,C>					: = 1/( 1 +  R2 * C )
+ *      LaplaceFunction<R2,C>					: = exp( - sqrt( C * R2 ) )
+ *      MultiquadricFunction<R2,C>				: = (1/C + R2)^(-1/2)
  *
  *   Utility functions :
  *      ScalarRadialKernel<F,DIMPOINT,DIMVECT>	: which builds a function
@@ -28,8 +29,9 @@
  *
  *   Radial Kernel operators : inline expressions w.r.t. x_i = X_0, y_j = Y_1, b_j = Y_2
  *      GaussKernel<DIMPOINT,DIMVECT>			: uses GaussFunction
+ *      CauchyKernel<DIMPOINT,DIMVECT>			: uses CauchyFunction
  *      LaplaceKernel<DIMPOINT,DIMVECT>			: uses LaplaceFunction
- *      EnergyKernel<DIMPOINT,DIMVECT>			: uses EnergyFunction
+ *      MultiquadricKernel<DIMPOINT,DIMVECT>	: uses MultiquadricFunction
  *
  */
 
@@ -41,10 +43,13 @@ template < class R2, class C >
 using GaussFunction = Exp<Scal<C,Minus<R2>>>;
 
 template < class R2, class C >
-using LaplaceFunction = Exp<Minus<Sqrt<Add<Inv<C>,R2>>>>;
+using CauchyFunction = Inv<Add<IntConstant<1>,Scal<C,R2>>>;
 
 template < class R2, class C >
-using EnergyFunction = Inv<Powf<Add<Inv<C>,R2>,IntInv<4>>>;
+using LaplaceFunction = Exp<Minus< Scal<C,Sqrt<R2>>>>;
+
+template < class R2, class C >
+using MultiquadricFunction = Inv<Sqrt<Add< Inv<C>,R2>>>;
 
 template < class R2, class C, class W >
 using SumGaussFunction = Scalprod<W,Exp<Scal<Minus<R2>,C>>>;
@@ -72,10 +77,13 @@ template < class C, class X, class Y, class B >
 using GaussKernel = ScalarRadialKernel_1<X,Y,B,GaussFunction,C>;
 
 template < class C, class X, class Y, class B >
+using CauchyKernel = ScalarRadialKernel_1<X,Y,B,CauchyFunction,C>;
+
+template < class C, class X, class Y, class B >
 using LaplaceKernel = ScalarRadialKernel_1<X,Y,B,LaplaceFunction,C>;
 
 template < class C, class X, class Y, class B >
-using EnergyKernel = ScalarRadialKernel_1<X,Y,B,EnergyFunction,C>;
+using MultiquadricKernel = ScalarRadialKernel_1<X,Y,B,MultiquadricFunction,C>;
 
 template < class C, class W, class X, class Y, class B >
 using SumGaussKernel = ScalarRadialKernel_2<X,Y,B,SumGaussFunction,C,W>;

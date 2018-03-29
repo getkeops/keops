@@ -32,44 +32,68 @@ __device__ TYPE GaussFpp(TYPE r2, TYPE ooSigma2) {
 template < typename TYPE >
 __device__ TYPE LaplaceF(TYPE r2, TYPE ooSigma2) {
     // Laplace radial kernel - takes as input the squared norm r2
-    return exp(- sqrt( 1.0f/ooSigma2 + r2));
+    return exp(- sqrt( r2 * ooSigma2));
 }
 
 template < typename TYPE >
 __device__ TYPE LaplaceFp(TYPE r2, TYPE ooSigma2) {
     // Laplace radial kernel - 1st derivative
-    TYPE s = sqrt( 1.0f/ooSigma2 + r2);
-    return - exp(- s ) / (2.0f * s );
+    TYPE s = sqrt( r2 * ooSigma2);
+    return - ooSigma2 *  exp(- s ) / (2.0f * s );
 }
 
 template < typename TYPE >
 __device__ TYPE LaplaceFpp(TYPE r2, TYPE ooSigma2) {
     // Laplace radial kernel - 2nd derivative
-    TYPE s = sqrt( 1.0f/ooSigma2 + r2);
-    return .25f * (1.0f/(s*s*s) + 1.0f/s) * exp(- s);
+    TYPE s = sqrt( r2 * ooSigma2);
+    return  exp(- s) * ( ooSigma2 * s + ooSigma2 ) /(4.0f * r2 * s);
 }
 
 
 ///////////////////////
-//   Energy  Kernel  //
+//   Cauchy  Kernel  //
 ///////////////////////
 
 template < typename TYPE >
-__device__ TYPE EnergyF(TYPE r2, TYPE ooSigma2) {
-    // Energy radial kernel - takes as input the squared norm r2
-    return 1.0f / powf( 1.0f/ooSigma2 + r2, .25f);
+__device__ TYPE CauchyF(TYPE r2, TYPE ooSigma2) {
+    // Cauchy radial kernel - takes as input the squared norm r2
+    return 1.0f / ( 1.0f + r2 * ooSigma2);
 }
 
 template < typename TYPE >
-__device__ TYPE EnergyFp(TYPE r2, TYPE ooSigma2) {
-    // Energy radial kernel - 1st derivative
-    return -.25f / powf( 1.0f/ooSigma2 + r2, 1.25f);
+__device__ TYPE CauchyFp(TYPE r2, TYPE ooSigma2) {
+    // Cauchy radial kernel - 1st derivative
+    TYPE c =( 1.0f + r2 * ooSigma2) ;
+    return -ooSigma2 /( c * c );
 }
 
 template < typename TYPE >
-__device__ TYPE EnergyFpp(TYPE r2, TYPE ooSigma2) {
-    // Energy radial kernel - 2nd derivative
-    return .3125f / powf( 1.0f/ooSigma2 + r2, 2.25f);
+__device__ TYPE CauchyFpp(TYPE r2, TYPE ooSigma2) {
+    // Cauchy radial kernel - 2nd derivative
+    TYPE c =( 1.0f + r2 * ooSigma2) ;
+    return 2 * ooSigma2 * ooSigma2 /( c * c *c );
+}
+
+/////////////////////////////
+//   Multiquadric  Kernel  //
+/////////////////////////////
+
+template < typename TYPE >
+__device__ TYPE MultiquadricF(TYPE r2, TYPE ooSigma2) {
+    // Multiquadric radial kernel - takes as input the squared norm r2
+    return 1.0f / sqrt( 1.0f/ooSigma2 + r2);
+}
+
+template < typename TYPE >
+__device__ TYPE MultiquadricFp(TYPE r2, TYPE ooSigma2) {
+    // Multiquadric radial kernel - 1st derivative
+    return -.5f * powf( 1.0f/ooSigma2 + r2,-1.5f);
+}
+
+template < typename TYPE >
+__device__ TYPE MultiquadricFpp(TYPE r2, TYPE ooSigma2) {
+    // Multiquadric radial kernel - 2nd derivative
+    return .25f / powf( 1.0f/ooSigma2 + r2, 2.5f);
 }
 
 
