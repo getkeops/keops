@@ -75,7 +75,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
         # Add our new functions to the module's dictionnary :
         __cuda_convs_generic[dll_name] = {"CPU": [routine_CPU_i, routine_CPU_j]}
 
-        # Avoid error if the lib was not compile with cuda
+        # Avoid error if the lib was not compiled with cuda
         try: 
             # These are all the CUDA routines defined in "link_autodiff.cu" :
             routine_GPU_host_1D_i = dll.GpuConv1D
@@ -102,8 +102,10 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
                  "GPU_1D_device": [routine_GPU_device_1D_i, routine_GPU_device_1D_j],
                  "GPU_2D_device": [routine_GPU_device_2D_i, routine_GPU_device_2D_j] })
         except AttributeError:
-            print('Compilation done without cuda. Use CPU only')
-
+            # we do not have the Cuda routines, this is ok only if the backend is "CPU"
+            if backend != "CPU":
+                raise ValueError('Cuda routines are not available.')
+            
         return __cuda_convs_generic[dll_name][backend][sum_index]  # And return it.
 
 
@@ -285,22 +287,43 @@ def cuda_conv_generic(formula, signature, result, *args,
     vars_p = (POINTER(c_float) * len(vars_p))(*vars_p)
 
     result_p = to_ctype_pointer(result)
-
+    
+    
+    
     # Try to make a good guess for the backend...
-    # Note that as of today, the "_device" routines have not been tested.
+    # available methods are: (host means Cpu, device means Gpu)
+    #   CPU : computations performed with the host from host arrays
+    #   GPU_1D_device : computations performed on the device from device arrays, using the 1D scheme
+    #   GPU_2D_device : computations performed on the device from device arrays, using the 2D scheme
+    #   GPU_1D_host : computations performed on the device from host arrays, using the 1D scheme
+    #   GPU_2D_host : computations performed on the device from host data, using the 2D scheme
+    
+    # first determine where is located the data ; all arrays should be on the host or all on the device  
+    VarsAreOnGpu = tuple(map(lambda x:x.is_cuda,(result,)+tuple(variables))) 
+    if all(VarsAreOnGpu):
+        MemType = "device"
+    elif not any(VarsAreOnGpu):
+        MemType = "host"
+    else:
+        raise ValueError("At least two input variables have different memory locations (Cpu/Gpu).")
+    
+    # rules in this part:
+    #  - data on the host will be processed on the host, unless GPU is specified
+    #  - default scheme for GPU is the 1D scheme
     if backend == "auto":
-        if not torch.cuda.is_available():
-            backend = "CPU"
+        if MemType == "host":
+            backend = "CPU" 
+        else: 
+            backend = "GPU_1D_device"
+    elif backend == "GPU":
+        if MemType == "host":
+            backend = "GPU_1D_host" 
         else:
-            if True:  # device == "CPU"
-                backend = "GPU_1D_host" if True else "GPU_2D_host"
-            else:
-                backend = "GPU_1D_device" if True else "GPU_2D_device"
-
-    elif backend == "GPU_1D":
-        backend = "GPU_1D_host" if True else "GPU_1D_device"
-    elif backend == "GPU_2D":
-        backend = "GPU_2D_host" if True else "GPU_2D_device"
+            backend = "GPU_1D_device"
+    elif backend == "GPU_1D" or backend == "GPU_2D":
+        backend += "_" + MemType # gives GPU_1D_host, GPU_1D_device, GPU_2D_host, GPU_2D_device
+    else:
+        raise ValueError('Invalid backend specified. Should be one of "auto", "GPU", "GPU_1D", "GPU_2D"')
 
     # Let's use our GPU, which works "in place" : -----------------------------------------------
     # N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",

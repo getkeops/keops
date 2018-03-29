@@ -99,7 +99,7 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
         elif mode == "log_barycenter":
             return _features_kernel_log_barycenter(kernel.features, kernel.routine_log, *full_args)
         else:
-            raise ValueError('"mode" should either be "sum" or "log".')
+            raise ValueError('unknown convolution mode.')
     elif backend == "matrix":
         if mode == "sum":
             return _features_kernel(kernel.features, kernel.routine_sum, *full_args, matrix=True)
@@ -116,7 +116,7 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
         elif mode == "log_barycenter":
             return _features_kernel_log_barycenter(kernel.features, kernel.routine_log, *full_args, matrix=True)
         else:
-            raise ValueError('"mode" should either be "sum" or "log".')
+            raise ValueError('unknown convolution mode.')
 
     else:
         if mode == "sum":
@@ -144,7 +144,7 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             genconv = GenericLogSumExp().apply
             formula = "( ((A_i*A_j) * " + kernel.formula_log + ") + B)"
         else:
-            raise ValueError('"mode" should either be "sum" or "log".')
+            raise ValueError('unknown convolution mode.')
 
         if kernel.features == "locations":
             (G,X,Y,B) = args

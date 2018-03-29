@@ -3,9 +3,6 @@
 """
 Example of diffeomorphic matching of surfaces using varifolds metrics
 We perform LDDMM matching of two meshes using the geodesic shooting algorithm
-expected times of computation with default settings : 
-    on Cpu (small size example)  : 11 s
-    on Gpu (medium size example) : 27 s
 """
 
 import os.path
@@ -23,8 +20,6 @@ import time
 from pykeops.torch.kernels import Kernel, kernel_product
 
 use_cuda = torch.cuda.is_available()
-backend_keops = "GPU_1D_device" if use_cuda else "GPU_1D_host"
-print("backend for keops is set to :", backend_keops)
 
 ###### main settings for this example ############################
 kernel_lib = "keops"     # "pytorch" or "keops"
@@ -35,11 +30,12 @@ deviceId = 0             # id of Gpu device (in case Gpu is  used)
 #   "hippos_reduc.pt" : further reduced (662 vertices), 
 #   "hippos_reduc_reduc.pt" : further reduced (68 vertices)
 if use_cuda:
-    datafile = 'data/hippos_reduc.pt'
+    datafile = 'data/hippos_red.pt'
 else:
     datafile = 'data/hippos_reduc_reduc.pt'
 ##################################################################
 
+backend_keops = "auto"
 
 # function to transfer data on Gpu only if we use the Gpu
 def CpuOrGpu(x):
@@ -77,12 +73,12 @@ def GaussLinKernel(sigma,lib="keops"):
             Sxy = torch.sum(u[:,None,:]*v[None,:,:],dim=2)**2
             return (Kxy*Sxy)@b
         return K
-    elif lib=="keops":
+    elif lib=="keops": 
         def K(x,y,u,v,b):
             params = {
                 "id"      : Kernel("gaussian(x,y) * linear(u,v)**2"),
                 "gamma"   : (Variable(CpuOrGpu(torch.FloatTensor([1/sigma**2]))),Variable(CpuOrGpu(torch.FloatTensor([0])))),
-                "backend" : "auto"
+                "backend" : backend_keops
             }
             return kernel_product( (x,u),(y,v),b, params)
         return K
