@@ -18,9 +18,10 @@ s = np.array([2.4]).astype('float32')
 
 def grad_np_kernel(x, y, s, kernel) :
     sq = np.sum( (x[:,np.newaxis,:] - y[np.newaxis,:,:]) **2, axis=2)
-    if   kernel == "gaussian"  : return - np.exp(-sq/s**2) / (s **2)
-    elif kernel == "laplacian" : t = -np.sqrt(sq + s**2) ; return  np.exp(t) / (2*t)
-    elif kernel == "energy"    : return -.25 / (sq + s**2) **(1.25) 
+    if   kernel == "gaussian"  : return - np.exp(-sq/s*s) / (s*s)
+    elif kernel == "laplacian" : t = -np.sqrt(sq / (s*s)) ; return  np.exp(t) / (2*s*s*t)
+    elif kernel == "cauchy"    : return -1. / (s * (sq/(s*s) + 1) )**2 
+    elif kernel == "multiquadric"    : return -.5 / (sq + s**2) **1.5 
 
     
 def chain_rules(q,ax,by,Aa,p):
@@ -42,7 +43,7 @@ LOOPS = 200
 print("Time to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
 print("\n",end="")
 
-for k in (["gaussian", "laplacian", "energy"]):
+for k in (["gaussian", "laplacian", "cauchy", "multiquadric"]):
     print(k, " kernel:")
     # cuda tiled implementation
     g1 = np.zeros([N,E]).astype('float32') ; radial_kernels_grad1conv(a, x, y, b, g1, s, kernel=k)
