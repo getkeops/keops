@@ -30,7 +30,7 @@ using FUN0 = typename Generic<F0>::sEval;
 #define F1 F0
 using FUN1 = typename Generic<F1>::sEval;
 
-extern "C" int GaussGpuGrad1Conv(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
+extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 
 
 
@@ -146,7 +146,7 @@ BENCHMARK(cuda_generic_2D)->Range(8, 8<<10)->UseManualTime();// Register the fun
 
 void main_specific(int Nx) {
     data<__TYPE__> data1(Nx);
-    GaussGpuGrad1Conv(data1.params[0], data1.u, data1.x, data1.y, data1.v, data1.f, data1.dimPoint,data1.dimVect,data1.Nx,data1.Ny); 
+    GaussGpuEval(data1.params[0], data1.u, data1.x, data1.y, data1.v, data1.f, data1.dimPoint,data1.dimVect,data1.Nx,data1.Ny); 
 }
 
 static void cuda_specific(benchmark::State& state) {
