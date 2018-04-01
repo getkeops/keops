@@ -7,14 +7,14 @@ KeOps uses a low-level syntax written in C++/Cuda to define virtually any reduct
 ```
 
 where "Reduction" can be the summation or LogSumExp operation. 
-Each of the variables $x^k_{\iota_k}$ is specified by its positional index $k$, its category $\iota_k\in\{i,j,\emptyset\}$ (meaning that the variable is indexed by i, by j, or is a fixed parameter) and its dimension $d_k$. These three characteristics are entered as follows :
+Each of the variables $`x^k_{\iota_k}`$ is specified by its positional index $`k`$, its category $`\iota_k\in\{i,j,\emptyset\}`$ (meaning that the variable is indexed by i, by j, or is a fixed parameter) and its dimension $`d_k`$. These three characteristics are entered as follows :
 
 - category is entered via the keywords "Vx", "Vy", "Pm" (meaning respectively: "variable indexed by i", "variable indexed by j", and "parameter")
-- positional index $k$ and dimension $d_k$ are entered as two integer parameters put into parenthesis after the previous keyword. 
+- positional index $`k`$ and dimension $`d_k`$ are entered as two integer parameters put into parenthesis after the previous keyword. 
 
 Hence for example Vx(2,4) specifies a 4-dimensional variable which will be given as the third (k=2) input in the function call, and is indexed by i.
 
-Of course, using the same index $k$ for two different variables is not allowed and will be rejected by the compiler.
+Of course, using the same index $`k`$ for two different variables is not allowed and will be rejected by the compiler.
 
 From these variables expressions, one can build the function $f$ using usual mathematical operations, such as for example
 
