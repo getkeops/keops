@@ -75,6 +75,12 @@ def _features_kernel_log_barycenter(features, routine, *args, matrix=False):
     aKb = aKb_log.exp()
     return aKb_log if matrix else ((aKb @ args[-4]) - (aKb.sum(1).view(-1, 1) * b2)).contiguous()
 
+def _features_kernel_log_mult_i(features, routine, *args, matrix=False):
+    a_i   = args[-1]  # scaling coefficient
+    K_log = _features_kernel_log(features, routine, *args[:-1], matrix=True)
+    K_log = a_i.view(-1,1) * K_log
+    b_log = args[-2]
+    return K_log if matrix else _log_sum_exp(K_log + b_log.view(1, -1), 1).view(-1, 1)
 
 def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
     """
@@ -98,6 +104,8 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             return _features_kernel_log_cost(kernel.features, kernel.routine_log, *full_args)
         elif mode == "log_barycenter":
             return _features_kernel_log_barycenter(kernel.features, kernel.routine_log, *full_args)
+        elif mode == "log_mult_i":
+            return _features_kernel_log_mult_i(kernel.features, kernel.routine_log, *full_args)
         else:
             raise ValueError('"mode" should either be "sum" or "log".')
     elif backend == "matrix":
@@ -115,6 +123,8 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             return _features_kernel_log_cost(kernel.features, kernel.routine_log, *full_args, matrix=True)
         elif mode == "log_barycenter":
             return _features_kernel_log_barycenter(kernel.features, kernel.routine_log, *full_args, matrix=True)
+        elif mode == "log_mult_i":
+            return _features_kernel_log_mult_i(kernel.features, kernel.routine_log, *full_args, matrix=True)
         else:
             raise ValueError('"mode" should either be "sum" or "log".')
 
@@ -140,9 +150,9 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
         elif mode == "log_barycenter":
             genconv = GenericSum().apply
             formula = "( Exp(" + kernel.formula_log + "+ A_LOG + B_LOG) * (B-B2))"
-        elif mode == "log_mult":
+        elif mode == "log_mult_i":
             genconv = GenericLogSumExp().apply
-            formula = "( ((A_i*A_j) * " + kernel.formula_log + ") + B)"
+            formula = "( (A_i * " + kernel.formula_log + ") + B)"
         else:
             raise ValueError('"mode" should either be "sum" or "log".')
 
@@ -232,11 +242,10 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
             #                  B2_i
             signature += [(dimout, 0)]
 
-        if mode == "log_mult":
-            aliases += ["A_i = Vx(" + str(nvars  ) + ",1)",
-                        "A_j = Vy(" + str(nvars+1) + ",1)"]
-            #               A_i,    A_j
-            signature += [(1, 0), (1, 1)]
+        if mode == "log_mult_i":
+            aliases += ["A_i = Vx(" + str(nvars) + ",1)"]
+            #                A_i
+            signature += [ (1, 0) ]
         
         full_args = args
         if bonus_args is not None:     full_args += tuple(bonus_args)

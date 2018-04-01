@@ -292,7 +292,7 @@ def cuda_conv_generic(formula, signature, result, *args,
         if not torch.cuda.is_available():
             backend = "CPU"
         else:
-            if True:  # device == "CPU"
+            if device == "CPU" :
                 backend = "GPU_1D_host" if True else "GPU_2D_host"
             else:
                 backend = "GPU_1D_device" if True else "GPU_2D_device"
