@@ -20,8 +20,6 @@ def get_cuda_gradconvs_xa_xx_xy_xb():
                                                'GaussGpuGradConvXY',   'GaussGpuGradConvXB']), 
                                 ("laplacian", ['LaplaceGpuGradConvXA', 'LaplaceGpuGradConvXX',
                                                'LaplaceGpuGradConvXY', 'LaplaceGpuGradConvXB']), 
-                                ("energy",    ['EnergyGpuGradConvXA',  'EnergyGpuGradConvXX',
-                                               'EnergyGpuGradConvXY',  'EnergyGpuGradConvXB']) ] :
             func = getattr(dll, routines[n])
             # Arguments :          1/s^2,              e,
             func.argtypes = [     c_float,     POINTER(c_float),

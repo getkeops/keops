@@ -1,19 +1,22 @@
 #include <mex.h>
-#include "fshape_gpu_df.cu"
 
-#define UseCudaOnDoubles USE_DOUBLE_PRECISION
+
+extern "C" int cudafshape_dxi(__TYPE__, __TYPE__, __TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int, int);
 
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
 //////////////////////////////////////////////////////////////////
+void ExitFcn(void) {}
 
  
  /* the gateway function */
  void mexFunction( int nlhs, mxArray *plhs[],
-                   int nrhs, const mxArray *prhs[]){
+                   int nrhs, const mxArray *prhs[])
  //plhs: double *gamma
  //prhs: double *x, double *y, double* f, double* g, double *alpha, double *beta, double sigmax, double sigmaf, double sigmaXi
  
+ { 
+
    // register an exit function to prevent crash at matlab exit or recompiling
    mexAtExit(ExitFcn);
 
@@ -137,13 +140,13 @@
    // Output arguments
    //////////////////////////////////////////////////////////////
    /*  set the output pointer to the output result(vector) */
-   plhs[0] = mxCreateDoubleMatrix(dimsig,nx,mxREAL);
+   plhs[0] = mxCreateDoubleMatrix(dimvect,nx,mxREAL);
    
    /*  create a C pointer to a copy of the output result(vector)*/
    double *gamma = mxGetPr(plhs[0]);
    
-#if UseCudaOnDoubles   
-   fshape_gpu_df<double>(oosigmax2,oosigmaf2,oosigmaXi2,x,y,f,g,alpha,beta,gamma,dimpoint,dimsig,dimvect,nx,ny);
+#if USE_DOUBLE
+   cudafshape_dxi(oosigmax2,oosigmaf2,oosigmaXi2,x,y,f,g,alpha,beta,gamma,dimpoint,dimsig,dimvect,nx,ny);
 #else
    // convert to float
    
@@ -173,10 +176,10 @@
  
    
    // function calls;
-   float *gamma_f = new float[nx*dimsig];
-   fshape_gpu_df<float>(oosigmax2,oosigmaf2,oosigmaXi2,x_f,y_f,f_f,g_f,alpha_f,beta_f,gamma_f,dimpoint,dimsig,dimvect,nx,ny);
+   float *gamma_f = new float[nx*dimvect];
+   cudafshape_dxi(oosigmax2,oosigmaf2,oosigmaXi2,x_f,y_f,f_f,g_f,alpha_f,beta_f,gamma_f,dimpoint,dimsig,dimvect,nx,ny);
  
-   for(int i=0; i<nx*dimsig; i++)
+   for(int i=0; i<nx*dimvect; i++)
        gamma[i] = gamma_f[i];
 
    delete [] x_f;
@@ -191,3 +194,7 @@
    return;
    
  }
+
+
+
+

@@ -86,16 +86,12 @@ if __name__ == '__main__':
     def np_kernel(x, y, s, kernel) :
         sq = np.sum( (x[:,np.newaxis,:] - y[np.newaxis,:,:]) **2, axis=2)
         if   kernel == "gaussian"  : return np.exp( -sq / (s*s))
-        elif kernel == "laplacian" : return np.exp( -np.sqrt(sq + s*s))
-        elif kernel == "energy"    : return 1. / ( s*s + sq ) **.25 
     
     # declare the torch counterpart
     
     def torch_kernel(x, y, s, kernel) :
         sq = torch.sum( (x[:,None]-y[None])**2 , 2 ) 
         if   kernel == "gaussian"  : return torch.exp( -sq / (s*s))
-        elif kernel == "laplacian" : return torch.exp( -torch.sqrt(sq + s*s))
-        elif kernel == "energy"    : return torch.pow( 1. / ( s*s + sq ), .25 )
     
     k='gaussian'
     

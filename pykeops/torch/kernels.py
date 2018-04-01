@@ -30,22 +30,28 @@ from pykeops.torch.features_kernels import FeaturesKP
 # Formulas in "x_i" and "y_j", with parameters "g" (=1/sigma^2, for instance)
 locations_formulas = {
     "gaussian" :      Formula( # Standard RBF kernel
-        formula_sum =                          "Exp( -(WeightedSqDist(G,X,Y)) )",
+        formula_sum = "Exp( -(WeightedSqDist(G,X,Y)) )",
         routine_sum = lambda gxmy2=None, **kwargs : (-gxmy2).exp(),
-        formula_log =                             "( -(WeightedSqDist(G,X,Y)) )",
+        formula_log = "( -(WeightedSqDist(G,X,Y)) )",
         routine_log = lambda gxmy2=None, **kwargs :  -gxmy2,
     ),
-    "exponential" :   Formula( # Pointy kernel
-        formula_sum =                      "Exp( - Sqrt(WeightedSqDist(G,X,Y) + IntInv(10000) ) )",
-        routine_sum = lambda gxmy2=None, **kwargs : (-(gxmy2+.0001).sqrt()).exp(),
-        formula_log =                         "( - Sqrt(WeightedSqDist(G,X,Y) + IntInv(10000) ) )",
-        routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2+.0001).sqrt(),
+    "cauchy" :        Formula( # Heavy tail kernel
+        formula_sum =  "Inv( IntCst(1) + WeightedSqDist(G,X,Y)  )",
+        routine_sum = lambda gxmy2=None, **kwargs : 1. / ( 1 + gxmy2),
+        formula_log =  "(  IntInv(-1) * Log(IntCst(1) + WeightedSqDist(G,X,Y)) ) ",
+        routine_log = lambda gxmy2=None, **kwargs : -(1+gxmy2).log(),
     ),
-    "energy" :        Formula( # Heavy tail kernel
-        formula_sum =   "Powf( IntCst(1) + WeightedSqDist(G,X,Y) , IntInv(-4) )",
-        routine_sum = lambda gxmy2=None, **kwargs : torch.pow( 1 + gxmy2, -.25 ),
-        formula_log =       "(  IntInv(-4) * Log(IntCst(1) + WeightedSqDist(G,X,Y)) ) ",
-        routine_log = lambda gxmy2=None, **kwargs :   -.25 * ( 1 + gxmy2).log(),
+    "laplacian" :   Formula( # Pointy kernel
+        formula_sum = "Exp(-Sqrt(WeightedSqDist(G,X,Y)))",
+        routine_sum = lambda gxmy2=None, **kwargs : (-(gxmy2).sqrt()).exp(),
+        formula_log = "(-Sqrt(WeightedSqDist(G,X,Y)))",
+        routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2).sqrt(),
+    ),
+    "multiquadric" :  Formula( # Heavy tail kernel
+        formula_sum =  "Inv(Sqrt( Inv(G) + SqDist(X,Y) ) )",
+        routine_sum = lambda gxmy2=None, **kwargs : 1. / torch.sqrt( 1 + gxmy2),
+        formula_log =  "(IntInv(-2) * Log(Inv(G) + SqDist(X,Y)) ) ",
+        routine_log = lambda gxmy2=None, **kwargs :   -.5 * ( 1 + gxmy2).log(),
     ),
 }
 
