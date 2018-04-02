@@ -19,11 +19,11 @@ Of course, using the same index $`k`$ for two different variables is not allowed
 From these variables expressions, one can build the function $f$ using usual mathematical operations, such as for example
 
 ```cpp
-Pm(0,1)*Vy(1,3)*Exp(Vx(2,3)+Vy(3,3))
+Square(Pm(0,1)-Vy(1,1))*Exp(Vx(2,3)+Vy(3,3))
 ```
 
-in which the + operation denotes usual addition of vectors, Exp is the (element-wise) exponential function, the
-first * sign denotes scalar-vector multiplication, and the second * sign is element-wise multiplication of two vectors.
+in which the + and - operations denotes usual addition of vectors, Exp is the (element-wise) exponential function, and the
+* sign denotes scalar-vector multiplication.
 
 Here are the operations available:
 
@@ -42,10 +42,10 @@ Grad(a,x,e) : gradient of a with respect to x, and input e
 ```
 
 Variables can be given aliases to get a more readable expression of the formula. For example, one may define 
-p=Pm(0,1), y=Vy(1,3), alpha=Vx(2,3), beta=Vy(3,3), and then write the previous expression as 
+p=Pm(0,1), a=Vy(1,1), x=Vx(2,3), y=Vy(3,3), and then write the previous expression as 
 
 ```cpp
-p*y*Exp(a+b)
+Square(p-a)*Exp(x+y)
 ```
 
 **Using the syntax in C++/Cuda code**
@@ -54,10 +54,10 @@ All these previous expressions and variables correspond to specific C++ types of
 
 ```cpp
 auto p = Pm(0,1);
-auto y = Vy(1,3);
-auto a = Vx(2,3);
-auto b = Vy(3,3);
-auto f = p*y*Exp(a+b);
+auto a = Vy(1,1);
+auto x = Vx(2,3);
+auto y = Vy(3,3);
+auto f = Square(p-y)*Exp(x+y);
 ```
 The f variable defined here only represents the symbolic expression of the formula and as a C++ object is in fact completely useless. The only important information is precisely its type, which we get with the "decltype" keyword :
 
@@ -67,17 +67,17 @@ using F = decltype(f);
 Finally, the convolution operation is performed using one of these calls :
 
 ```cpp
-CpuConv(Generic<F>::sEval(), Nx, Ny, pc, pp, py, pa, pb);
-GpuConv1D(Generic<F>::sEval(), Nx, Ny, pc, pp, py, pa, pb);
-GpuConv2D(Generic<F>::sEval(), Nx, Ny, pc, pp, py, pa, pb);
+CpuConv(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
+GpuConv1D(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
+GpuConv2D(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 ```
-where pc, pp, py, pa, and pb are pointers to their respective arrays in (Cpu) memory, pc denoting the output. These three functions correspond to computations performed repectively on the Cpu, on the Gpu with a "1D" tiling algorithm, and with a "2D" tiling algorithm. 
+where pc, pp, pa, px, and py are pointers to their respective arrays in (Cpu) memory, pc denoting the output. These three functions correspond to computations performed repectively on the Cpu, on the Gpu with a "1D" tiling algorithm, and with a "2D" tiling algorithm. 
 
 If data arrays are directly located in Gpu memory, one can call the more direct functions :
 
 ```cpp
-GpuConv1D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, py, pa, pb);
-GpuConv2D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, py, pa, pb);
+GpuConv1D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
+GpuConv2D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 ```
 
 **Using the syntax in the PyTorch bindings**
@@ -85,15 +85,15 @@ GpuConv2D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, py, pa, pb);
 The Python reduction operations GenericSum.apply and GenericLogSumExp.apply require to input the defined variables and formula as character strings :
 
 ```python
-aliases = ["p=Pm(0,1)","y=Vy(1,3)","a=Vx(2,3)","b=Vy(3,3)"]
-formula = "p*y*Exp(a+b)"
+aliases = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)"]
+formula = "Square(p-a)*Exp(x+y)"
 ```
 Furthermore, one needs to input the following "signature" of the formula giving dimension and category (0 for i, 1 for j, 2 for $\emptyset$) for the output and each variable in the correct order (note that these could be infered from the aliases but as for now it is required, and enforce the user to be carefull with the sizes of inputs and output) :
 
 ```python
-signature   =   [ (3, 0), (1, 2), (3, 1), (3, 0), (3, 1) ]
+signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]
 ```
-give (dimension,category) for the output c and variables p, y, a, b
+give (dimension,category) for the output c and variables p, a, x, y
 Next one needs to specify wether reduction will be performed on the $j$ index with output variables indexed by $i$, or conversely. 
 
 ```python
@@ -103,15 +103,15 @@ sum_index   = 0		# 0 means summation over j, 1 means over i
 Finally one can call the reduction operation on PyTorch variables (torch.autograd.Variable) :
 
 ```python
-c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,y,a,b)
+c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,a,x,y)
 ```
 
-where p, y, a and b correspond to PyTorch Variables with compatible sizes : in this example,
+where p, a, x and y correspond to PyTorch Variables with compatible sizes : in this example,
 
 - p must be a scalar variable
-- y must be a variable of size n*3, where n can be any positive integer,
-- a must be a variable of size m*3, where m can be any positive integer,
-- b must be a variable of size n*3.
+- a must be a variable of size n*1, where n can be any positive integer,
+- x must be a variable of size m*3, where m can be any positive integer,
+- y must be a variable of size n*3.
 - output c will be a variable of size m*3
 
 If this formula has never been used by the user, the previous call will first perform an on-the-fly compilation of the required dll file, prior to the computation.
@@ -130,24 +130,24 @@ Note that internally, KeOps infers the formula of the gradient, which will requi
 The Matlab bindings provide a function Kernel which can be used to define the corresponding convolution operations. Following the previous example, one may write
 
 ```matlab
-f = Kernel('p=Pm(0,1)','y=Vy(1,3)','a=Vx(2,3)','b=Vy(3,3)','p*y*Exp(a+b)');
+f = Kernel('p=Pm(0,1)','a=Vy(1,3)','x=Vx(2,3)','y=Vy(3,3)','Square(p-a)*Exp(x+y)');
 ```
 which defines a Matlab function f which can be used to perform a sum reduction for this formula :
 
 ```matlab
-c = f(p,y,a,b);
+c = f(p,a,x,y);
 ```
 
-where p, y, a, b must be arrays with compatible dimensions as previously explained. A gradient function GradKernel is also provided. For example, to get the gradient with respect to y of the previously defined function f, one needs to write :
+where p, a, x, y must be arrays with compatible dimensions as previously explained. A gradient function GradKernel is also provided. For example, to get the gradient with respect to y of the previously defined function f, one needs to write :
 
 ```matlab
-Gfy = GradKernel(f,'x','e=Vx(4,3)');
+Gfy = GradKernel(f,'y','e=Vx(4,3)');
 ```
 
 which returns a new function that can be used as follows :
 
 ```matlab
-Gfy(p,y,a,b,e)
+Gfy(p,a,x,y,e)
 ```
 
 where e is the input gradient array.
