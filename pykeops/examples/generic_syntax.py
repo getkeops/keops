@@ -20,11 +20,11 @@ from pykeops.torch.generic_sum import GenericSum
 # this example computes the following tensor operation :
 # inputs :
 #   p   : a scalar (antered as a 1x1 tensor)
-#   a   : a 1000x1 tensor, with entries denoted a_j 
-#   x   : a 1500x3 tensor, with entries denoted x_i^u
-#   y   : a 1000x3 tensor, with entries denoted y_j^u
+#   a   : a 5000x1 tensor, with entries denoted a_j 
+#   x   : a 3000x3 tensor, with entries denoted x_i^u
+#   y   : a 5000x3 tensor, with entries denoted y_j^u
 # output :
-#   c   : a 1500x3 tensor, with entries denoted c_i^u, such that
+#   c   : a 3000x3 tensor, with entries denoted c_i^u, such that
 #   c_i^u = sum_j (p-y_j)^2 exp(a_i^u+b_j^u)
 
 
@@ -34,16 +34,14 @@ signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]
 sum_index = 0       # 0 means summation over j, 1 means over i 
 
 p = Variable(torch.randn(1,1), requires_grad=True)
-a = Variable(torch.randn(1000,1), requires_grad=True)
-x = Variable(torch.randn(1500,3), requires_grad=True)
-y = Variable(torch.randn(1000,3), requires_grad=True)
+a = Variable(torch.randn(5000,1), requires_grad=True)
+x = Variable(torch.randn(3000,3), requires_grad=True)
+y = Variable(torch.randn(5000,3), requires_grad=True)
 
 start = time.time()
 c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,a,x,y)
 
 print("time to compute c on cpu : ",round(time.time()-start,2)," seconds")
-print("c =",c)
-
 
 # testing the gradient : we take the gradient with respect to y. In fact since 
 # c is not scalar valued, "gradient" means in fact the adjoint of the differential
@@ -51,14 +49,13 @@ print("c =",c)
 # size as c and outputs a tensor with same size as y
 
 # new variable of size 1500x3 used as input of the gradient
-e = Variable(torch.randn(1500,3), requires_grad=True)
+e = Variable(torch.randn(3000,3), requires_grad=True)
 # call to the gradient
 start = time.time()
 d = grad(c,y,e)[0]
 # remark : grad(c,y,e) alone outputs a length 1 tuple, hence the need for [0] at the end.
 
 print("time to compute d on cpu : ",round(time.time()-start,2)," seconds")
-print("grad(c,y,e)=",d)
 
 
 # same operations performed on the Gpu. (this will of course only work if you have a Gpu)
@@ -69,7 +66,5 @@ p,a,x,y,e = p.cuda(), a.cuda(), x.cuda(), y.cuda(), e.cuda()
 start = time.time()
 c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,a,x,y)
 print("time to compute c on gpu : ",round(time.time()-start,2)," seconds")
-print("c =",c)
 d = grad(c,y,e)[0]
 print("time to compute d on gpu : ",round(time.time()-start,2)," seconds")
-print("grad(c,y,e)=",d)
