@@ -22,7 +22,10 @@ def get_specific_lib(target,signature):
         print("Loaded.\n\n")
 
     func_dict = {}
-    for (name, routine) in [("gaussian",  dll.GaussGpuEval), ("laplacian", dll.LaplaceGpuEval), ("cauchy",    dll.CauchyGpuEval), ("multiquadric",    dll.MultiquadricGpuEval) ] :
+    for (name, routine) in [("gaussian",  dll.GaussGpuEval), 
+                            ("laplacian", dll.LaplaceGpuEval), 
+                            ("cauchy",    dll.CauchyGpuEval), 
+                            ("inverse_multiquadric",    dll.InverseMultiquadricGpuEval) ] :
         func = routine
         func.argtypes = signature
         func_dict[name] = func

@@ -41,16 +41,16 @@ locations_formulas = {
         formula_log =  "(  IntInv(-1) * Log(IntCst(1) + WeightedSqDist(G,X,Y)) ) ",
         routine_log = lambda gxmy2=None, **kwargs : -(1+gxmy2).log(),
     ),
-    "laplacian" :   Formula( # Pointy kernel
-        formula_sum = "Exp(-Sqrt(WeightedSqDist(G,X,Y)))",
-        routine_sum = lambda gxmy2=None, **kwargs : (-(gxmy2).sqrt()).exp(),
-        formula_log = "(-Sqrt(WeightedSqDist(G,X,Y)))",
-        routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2).sqrt(),
+    "laplacian" :     Formula( # Pointy kernel
+        formula_sum = "Exp(-Sqrt( IntInv(100000)+WeightedSqDist(G,X,Y) ))",
+        routine_sum = lambda gxmy2=None, **kwargs : (-(.00001+gxmy2).sqrt()).exp(),
+        formula_log = "(-Sqrt( IntInv(100000)+WeightedSqDist(G,X,Y) ))",
+        routine_log = lambda gxmy2=None, **kwargs :  -(.00001+gxmy2).sqrt(),
     ),
-    "multiquadric" :  Formula( # Heavy tail kernel
-        formula_sum =  "Inv(Sqrt( Inv(G) + SqDist(X,Y) ) )",
-        routine_sum = lambda gxmy2=None, **kwargs : 1. / torch.sqrt( 1 + gxmy2),
-        formula_log =  "(IntInv(-2) * Log(Inv(G) + SqDist(X,Y)) ) ",
+    "inverse_multiquadric" :  Formula( # Heavy tail kernel
+        formula_sum =  "Inv(Sqrt( IntCst(1) + WeightedSqDist(G,X,Y) ) )",
+        routine_sum = lambda gxmy2=None, **kwargs :  torch.rsqrt( 1 + gxmy2),
+        formula_log =  "(IntInv(-2) * Log(IntCst(1) + WeightedSqDist(G,X,Y)) ) ",
         routine_log = lambda gxmy2=None, **kwargs :   -.5 * ( 1 + gxmy2).log(),
     ),
 }

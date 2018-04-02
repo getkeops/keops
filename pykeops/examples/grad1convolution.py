@@ -21,7 +21,7 @@ def grad_np_kernel(x, y, s, kernel) :
     if   kernel == "gaussian"  : return - np.exp(-sq/s*s) / (s*s)
     elif kernel == "laplacian" : t = -np.sqrt(sq / (s*s)) ; return  np.exp(t) / (2*s*s*t)
     elif kernel == "cauchy"    : return -1. / (s * (sq/(s*s) + 1) )**2 
-    elif kernel == "multiquadric"    : return -.5 / (sq + s**2) **1.5 
+    elif kernel == "inverse_multiquadric"    : return -.5 / (sq + s**2) **1.5 
 
     
 def chain_rules(q,ax,by,Aa,p):
@@ -43,7 +43,7 @@ LOOPS = 200
 print("Time to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
 print("\n",end="")
 
-for k in (["gaussian", "laplacian", "cauchy", "multiquadric"]):
+for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
     print(k, " kernel:")
     # cuda tiled implementation
     g1 = np.zeros([N,E]).astype('float32') ; radial_kernels_grad1conv(a, x, y, b, g1, s, kernel=k)

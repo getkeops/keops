@@ -21,7 +21,7 @@ def np_kernel(x, y, s, kernel) :
     if   kernel == "gaussian"  : return np.exp( -sq / (s*s))
     elif kernel == "laplacian" : return np.exp( -np.sqrt(sq) / s)
     elif kernel == "cauchy"    : return  1. / ( 1 + sq / (s*s) )
-    elif kernel == "multiquadric" : return np.sqrt(  1. / ( s*s + sq ) )
+    elif kernel == "inverse_multiquadric" : return np.sqrt(  1. / ( s*s + sq ) )
 
 # declare the torch counterpart
 try:
@@ -37,7 +37,7 @@ try:
         if   kernel == "gaussian"  : return torch.exp( -sq / (s*s))
         elif kernel == "laplacian" : return torch.exp( -torch.sqrt(sq) /s)
         elif kernel == "cauchy"    : return  1. / ( 1 + sq / (s*s) )
-        elif kernel == "multiquadric"    : return torch.sqrt(  1. / ( s*s + sq ) )
+        elif kernel == "inverse_multiquadric"    : return torch.sqrt(  1. / ( s*s + sq ) )
 except:
     pass
 
@@ -56,7 +56,7 @@ LOOPS = 200
 print("Time to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
 print("\n",end="")
 
-for k in (["gaussian", "laplacian", "cauchy", "multiquadric"]):
+for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
     print(k, " kernel:")
 
     # cuda pytorch
@@ -72,7 +72,7 @@ for k in (["gaussian", "laplacian", "cauchy", "multiquadric"]):
     params = {
         "id"      : kernel,
         "gamma"   : 1./sigma**2,
-        "backend" : "GPU_1D_device",
+        "backend" : "GPU_1D",
     }
     g11 = kernel_product( xc,yc,bc, params, mode=mode).cpu()
     speed_pykeops_gen = timeit.Timer('g11 = kernel_product( xc,yc,bc, params, mode=mode).cpu()', GC,  globals = globals(), timer = time.time).timeit(LOOPS)
