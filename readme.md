@@ -12,7 +12,7 @@
                                                            o888o
 ```
 
-**N.B.: This library is under development... some keys features have not been implemented yet.**
+**N.B.: This library is under development... some key features have not been implemented yet.**
 
 The KeOps library allows you to compute efficiently expressions of the form
 
@@ -64,9 +64,23 @@ params = {
 }
 
 # Depending on the inputs' types, 'a' is a CPU or a GPU variable.
-# It can be differentiated wrt. x, y, b and (soon!) sigma.
+# It can be differentiated wrt. x, y, b and sigma.
 a = kernel_product( x, y, b, params)
 ```
+Here is an equivalent call using the low-level generic syntax :
+
+```python
+# First define the symbolic variables P, X, Y, B
+aliases = ["P = Pm(0,1)","X=Vx(1,3)","Y=Vy(2,3")","B=Vy(3,2)"]
+# the formula of the gaussian kernel is written explicitely:
+formula = "Exp(-P*SqDist(X,Y))*B"
+signature   =   [ (2, 0), (1, 2), (3, 0), (3, 1), (2, 1) ]
+sum_index   = 0 # the result is indexed by "i"; for "j", use "1"
+oos2 = 1./sigma**2
+a = GenericSum.apply("auto",aliases,formula,signature,sum_index,oos2,x,y,b)
+```
+
+Explanation of the generic syntax and its use is given in the file [generic_syntax.md](generic_syntax.md).
 
 We support:
 
