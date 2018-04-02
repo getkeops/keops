@@ -72,7 +72,7 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
     params = {
         "id"      : kernel,
         "gamma"   : 1./sigma**2,
-        "backend" : "GPU_1D_device",
+        "backend" : "GPU_1D",
     }
     g11 = kernel_product( xc,yc,bc, params, mode=mode).cpu()
     speed_pykeops_gen = timeit.Timer('g11 = kernel_product( xc,yc,bc, params, mode=mode).cpu()', GC,  globals = globals(), timer = time.time).timeit(LOOPS)

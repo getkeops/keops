@@ -45,7 +45,7 @@ modes = ["sum", "log"] if dimsignal==1 else ["sum"]
 # Test, using a pytorch or libkp backend
 for mode in modes : 
     print("Mode :", mode, "========================================")
-    for backend in ["auto"] :
+    for backend in ["pytorch", "auto"] :
         params["backend"] = backend
         print("Backend :", backend, "--------------------------")
         Kxy_b  = kernel_product( x,y,b, params, mode=mode)
