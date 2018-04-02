@@ -2,7 +2,7 @@
  
 extern "C" int GaussGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
 extern "C" int LaplaceGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
-extern "C" int MultiquadricGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
+extern "C" int InverseMultiquadricGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
 extern "C" int CauchyGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
 
 //////////////////////////////////////////////////////////////////
@@ -109,8 +109,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
         GaussGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
     else if (strcmp(kernel_type,"laplacian") == 0)
         LaplaceGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
-    else if (strcmp(kernel_type,"multiquadric") == 0)
-        MultiquadricGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"inverse_multiquadric") == 0)
+        InverseMultiquadricGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
     else if (strcmp(kernel_type,"cauchy") == 0)
         CauchyGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
     else
@@ -137,8 +137,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
         LaplaceGpuEval(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
     else if (strcmp(kernel_type,"cauchy") == 0)
         CauchyGpuEval(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
-    else if (strcmp(kernel_type,"multiquadric") == 0)
-        MultiquadricGpuEval(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
+    else if (strcmp(kernel_type,"inverse_multiquadric") == 0)
+        InverseMultiquadricGpuEval(oosigma2,x_f,y_f,beta_f,gamma_f,dimpoint,dimvect,nx,ny);
     else
         mexErrMsgTxt("kernel_type is not implemented");
 

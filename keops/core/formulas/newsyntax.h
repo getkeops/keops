@@ -90,7 +90,7 @@ Scalprod<FA,FB> operator,(FA fa, FB fb) {
 #define GaussKernel(C,X,Y,B) GaussKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
 #define CauchyKernel(C,X,Y,B) CauchyKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
 #define LaplaceKernel(C,X,Y,B) LaplaceKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
-#define MultiquadricKernel(C,X,Y,B) MultiquadricKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
+#define InverseMultiquadricKernel(C,X,Y,B) InverseMultiquadricKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
 #define SumGaussKernel(C,W,X,Y,B) SumGaussKernel<decltype(C),decltype(W),decltype(X),decltype(Y),decltype(B)>()
 
 #define DivFreeGaussKernel(C,X,Y,B) DivFreeGaussKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()

@@ -103,8 +103,8 @@ extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __T
 extern "C" int LaplaceGpuEval(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
     return KernelGpuEvalConv<__TYPE__,LaplaceF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-extern "C" int MultiquadricGpuEval(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuEvalConv<__TYPE__,MultiquadricF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+extern "C" int InverseMultiquadricGpuEval(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuEvalConv<__TYPE__,InverseMultiquadricF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
 extern "C" int CauchyGpuEval(__TYPE__ ooSigma2, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
     return KernelGpuEvalConv<__TYPE__,CauchyF>(ooSigma2, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);

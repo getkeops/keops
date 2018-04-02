@@ -18,7 +18,7 @@
  *      GaussFunction<R2,C>						: = exp( - C * R2 )
  *      CauchyFunction<R2,C>					: = 1/( 1 +  R2 * C )
  *      LaplaceFunction<R2,C>					: = exp( - sqrt( C * R2 ) )
- *      MultiquadricFunction<R2,C>				: = (1/C + R2)^(-1/2)
+ *      InverseMultiquadricFunction<R2,C>				: = (1/C + R2)^(-1/2)
  *
  *   Utility functions :
  *      ScalarRadialKernel<F,DIMPOINT,DIMVECT>	: which builds a function
@@ -31,7 +31,7 @@
  *      GaussKernel<DIMPOINT,DIMVECT>			: uses GaussFunction
  *      CauchyKernel<DIMPOINT,DIMVECT>			: uses CauchyFunction
  *      LaplaceKernel<DIMPOINT,DIMVECT>			: uses LaplaceFunction
- *      MultiquadricKernel<DIMPOINT,DIMVECT>	: uses MultiquadricFunction
+ *      InverseMultiquadricKernel<DIMPOINT,DIMVECT>	: uses InverseMultiquadricFunction
  *
  */
 
@@ -49,7 +49,7 @@ template < class R2, class C >
 using LaplaceFunction = Exp<Minus< Scal<C,Sqrt<R2>>>>;
 
 template < class R2, class C >
-using MultiquadricFunction = Inv<Sqrt<Add< Inv<C>,R2>>>;
+using InverseMultiquadricFunction = Inv<Sqrt<Add< Inv<C>,R2>>>;
 
 template < class R2, class C, class W >
 using SumGaussFunction = Scalprod<W,Exp<Scal<Minus<R2>,C>>>;
@@ -83,7 +83,7 @@ template < class C, class X, class Y, class B >
 using LaplaceKernel = ScalarRadialKernel_1<X,Y,B,LaplaceFunction,C>;
 
 template < class C, class X, class Y, class B >
-using MultiquadricKernel = ScalarRadialKernel_1<X,Y,B,MultiquadricFunction,C>;
+using InverseMultiquadricKernel = ScalarRadialKernel_1<X,Y,B,InverseMultiquadricFunction,C>;
 
 template < class C, class W, class X, class Y, class B >
 using SumGaussKernel = ScalarRadialKernel_2<X,Y,B,SumGaussFunction,C,W>;
