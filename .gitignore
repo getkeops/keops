@@ -8,6 +8,8 @@
 *build*
 *output*
 !*input_output.py
+/build/*
+!/build/.gitkeep
 
 # Exclude mex files
 *mexa64
