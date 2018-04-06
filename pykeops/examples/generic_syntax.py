@@ -60,11 +60,12 @@ print("time to compute d on cpu : ",round(time.time()-start,2)," seconds")
 
 # same operations performed on the Gpu. (this will of course only work if you have a Gpu)
 
-# first transfer data on gpu
-p,a,x,y,e = p.cuda(), a.cuda(), x.cuda(), y.cuda(), e.cuda()
-# then call the operations
-start = time.time()
-c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,a,x,y)
-print("time to compute c on gpu : ",round(time.time()-start,2)," seconds")
-d = grad(c,y,e)[0]
-print("time to compute d on gpu : ",round(time.time()-start,2)," seconds")
+if torch.cuda.is_available():
+	# first transfer data on gpu
+	p,a,x,y,e = p.cuda(), a.cuda(), x.cuda(), y.cuda(), e.cuda()
+	# then call the operations
+	start = time.time()
+	c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,a,x,y)
+	print("time to compute c on gpu : ",round(time.time()-start,2)," seconds")
+	d = grad(c,y,e)[0]
+	print("time to compute d on gpu : ",round(time.time()-start,2)," seconds")
