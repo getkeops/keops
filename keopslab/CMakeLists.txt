@@ -150,7 +150,8 @@ if(Matlab_FOUND)
         endif()
         add_definitions(-DKERNEL_GEOM_TYPE=${KERNEL_GEOM_TYPE})
 
-        message(${KERNEL_SIG})
+				# enlevé la ligne suivante car ça crée une erreur sur une de mes machines ("message called with incorrect number of arguments")
+        #message(${KERNEL_SIG})
 
         if(NOT KERNEL_SIG OR (KERNEL_SIG STREQUAL gaussian))
             SET(KERNEL_SIG_TYPE 0)
