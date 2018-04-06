@@ -133,7 +133,7 @@ for it in range(10001) :
     cost.backward()                   # Backpropagate to compute the gradient.
     optimizer.step()
 
-    if it % 10  == 0 : print("Iteration ",it,", Cost = ", cost.data.cpu().numpy()[0])
+    if it % 10  == 0 : print("Iteration ",it,", Cost = ", cost.data.cpu().numpy())
     if it % 500 == 0 :       
         plt.gcf().set_size_inches(10,10)
         model.plot(x)
