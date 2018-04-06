@@ -50,7 +50,7 @@ def showcase_params( params , title, ind) :
                 extent=(0,1,0,1)) 
     plt.title(title, fontsize=20)
 
-plt.figure(figsize=(30,20))
+plt.figure()
 
 # TEST ===================================================================================
 # Let's use a "gaussian" kernel, i.e.
@@ -120,5 +120,5 @@ Sigma = Variable(torch.Tensor( [
 params["gamma"] = Sigma
 showcase_params(params, "Fully-Anisotropic Variable kernel", 6)
 
-
+plt.gcf().set_size_inches(15,10)
 plt.show(block=True)
