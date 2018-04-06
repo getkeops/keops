@@ -117,13 +117,12 @@ class GaussianMixture(Module) :
         xy = sample.data.cpu().numpy()
         plt.scatter( xy[:,0], xy[:,1], 4, color='k' )
 
-        # Title
-        plt.title("Density", fontsize=20)
+       
 
 
 # Optimization ================================================================================
 
-plt.figure(figsize=(10,10))
+plt.figure()
 
 model     = GaussianMixture(10, sparsity=200)
 optimizer = torch.optim.Adam( model.parameters() )
@@ -135,9 +134,12 @@ for it in range(10001) :
     optimizer.step()
 
     if it % 10  == 0 : print("Iteration ",it,", Cost = ", cost.data.cpu().numpy()[0])
-    if it % 500 == 0 :
+    if it % 500 == 0 :       
+        plt.gcf().set_size_inches(10,10)
         model.plot(x)
-        plt.pause(.1)
+        plt.title("Density, iteration "+str(it), fontsize=20)
+        plt.pause(.2)
+        
 
 print("Done.")
 plt.show(block=True)
