@@ -3,8 +3,11 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 import numpy as np
-from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
 from pykeops.torch.kernels import Kernel, kernel_product
+try:
+    from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
+except:
+    pass
 
 import time, timeit
 
@@ -27,10 +30,13 @@ def np_kernel(x, y, s, kernel) :
 try:
     import torch
 
-    xc = torch.from_numpy(x.copy()).cuda()
-    yc = torch.from_numpy(y.copy()).cuda()
-    bc = torch.from_numpy(b.copy()).cuda()
-    sc = torch.from_numpy(s.copy()).cuda()
+    use_cuda = torch.cuda.is_available()
+    dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+
+    xc = torch.from_numpy(x.copy()).type(dtype)
+    yc = torch.from_numpy(y.copy()).type(dtype)
+    bc = torch.from_numpy(b.copy()).type(dtype)
+    sc = torch.from_numpy(s.copy()).type(dtype)
 
     def torch_kernel(x, y, s, kernel) :
         sq = torch.sum( (x[:,None]-y[None])**2 , 2 ) 
@@ -43,7 +49,7 @@ except:
 
 # Define a kernel:
 # Wrap it (and its parameters) into a JSON dict structure
-sigma = torch.autograd.Variable(torch.Tensor([2.4]), requires_grad=False).type(torch.cuda.FloatTensor)
+sigma = torch.autograd.Variable(torch.Tensor([2.4]), requires_grad=False).type(dtype)
 mode = "sum"
 
 ##############################
@@ -57,39 +63,44 @@ print("Time to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
 print("\n",end="")
 
 for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
-    print(k, " kernel:")
-
-    # cuda pytorch
-    try:
-        g0 = torch.mm(torch_kernel(xc,yc,sc,kernel=k),bc).cpu().numpy()
-        speed_pytorch = timeit.Timer('g0 = torch.mm(torch_kernel(xc,yc,sc,kernel=k),bc)#.cpu().numpy()', GC, globals = globals(), timer = time.time).timeit(LOOPS)
-        print("Time for Pytorch/cuda: {:.4f}s".format(speed_pytorch))
-    except:
-        pass
+    print(k, " kernel: -----------------------------------")
 
     # generic tiled implementation
     kernel = Kernel(k+"(x,y)")
     params = {
         "id"      : kernel,
         "gamma"   : 1./sigma**2,
-        "backend" : "GPU_1D",
+        "backend" : "auto",
     }
-    g11 = kernel_product( xc,yc,bc, params, mode=mode).cpu()
-    speed_pykeops_gen = timeit.Timer('g11 = kernel_product( xc,yc,bc, params, mode=mode).cpu()', GC,  globals = globals(), timer = time.time).timeit(LOOPS)
-    print("Time for cuda generic: {:.4f}s".format(speed_pykeops_gen))
+    g1 = kernel_product( xc,yc,bc, params, mode=mode).cpu()
+    speed_pykeops_gen = timeit.Timer('g1 = kernel_product( xc,yc,bc, params, mode=mode).cpu()', GC,  globals = globals(), timer = time.time).timeit(LOOPS)
+    print("Time for keops generic: {:.4f}s".format(speed_pykeops_gen))
     
-    # cuda tiled implementation
-    g1 = np.zeros([N,E]).astype('float32') ; radial_kernels_conv(x, y, b, g1, s, kernel=k)
-    g1 = np.zeros([N,E]).astype('float32')
-    speed_pykeops = timeit.Timer('radial_kernels_conv(x, y, b, g1, s, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
-    print("Time for cuda specific: {:.4f}s".format(speed_pykeops))
-
     # pure numpy
-    g2 =  np_kernel(x,y,s,kernel=k) @ b
-    speed_numpy = timeit.Timer('g2 =  np_kernel(x,y,s,kernel=k) @ b', 
+    g3 =  np_kernel(x,y,s,kernel=k) @ b
+    speed_numpy = timeit.Timer('g3 =  np_kernel(x,y,s,kernel=k) @ b', 
             GC, globals = globals(),
             timer = time.time).timeit(LOOPS)
     print("Time for Python:       {:.4f}s".format(speed_numpy))
-    print("Absolute error:       ", np.max(np.abs(g1 - g2)), "\n")
-    print("Absolute error:       ", np.max(np.abs(g11.data.numpy() - g2)), "\n")
+    print("Absolute error:       ", np.max(np.abs(g1.data.numpy() - g3)), "\n")
+
+    # pytorch (with cuda if available else uses cpu)
+    try:
+        g0 = torch.mm(torch_kernel(xc,yc,sc,kernel=k),bc).cpu().numpy()
+        speed_pytorch = timeit.Timer('g0 = torch.mm(torch_kernel(xc,yc,sc,kernel=k),bc)#.cpu().numpy()', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+        print("Time for Pytorch: {:.4f}s".format(speed_pytorch))
+        print("Absolute error:       ", np.max(np.abs(g0 - g3)),"\n")
+    except:
+        pass
+
+    # cuda tiled implementation (if cuda is available)
+    try:
+        g2 = np.zeros([N,E]).astype('float32') ; radial_kernels_conv(x, y, b, g2, s, kernel=k)
+        g2 = np.zeros([N,E]).astype('float32')
+        speed_pykeops = timeit.Timer('radial_kernels_conv(x, y, b, g2, s, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+        print("Time for keops cuda specific: {:.4f}s".format(speed_pykeops))
+        print("Absolute error:       ", np.max(np.abs(g2 - g3)),"\n")
+    except:
+        pass
+
 
