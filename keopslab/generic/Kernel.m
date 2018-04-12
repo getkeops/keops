@@ -131,8 +131,10 @@ function testbuild = buildFormula(code1, code2, filename)
     setenv('LD_LIBRARY_PATH','') 
     % I do not have a better option to set working dir...
     cur_dir= pwd; cd(build_dir) ;
+    % find cmake :
+    cmake = getcmake();
     % cmake command:
-    cmdline = ['cmake ', src_dir , ' -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
+    cmdline = [cmake,' ', src_dir , ' -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     fprintf([cmdline,'\n'])
     try
         [~,prebuild_output] = system(cmdline)
@@ -150,4 +152,37 @@ function testbuild = buildFormula(code1, code2, filename)
     else
         error(['File "',filename,'.',mexext, '" not found!'])
     end
+end
+
+function cmake = getcmake()
+    % check wether cmake is available from Matlab. Since matlab overrides
+    % default search path, we may need to ask the user to enter its 
+    % location manually the first time and then save the path in a local file
+    S = dbstack('-completenames');
+    pathtocmakefile = [fileparts(S(1).file),'/pathtocmake'];
+    if exist(pathtocmakefile,'file')
+        fid = fopen(pathtocmakefile);
+        pathtocmake = fgetl(fid);
+        fclose(fid);
+    else
+        pathtocmake = '';
+    end
+    [testcmake,~]=system([pathtocmake,'cmake']);
+    if testcmake~=0
+        pathtocmake = input('cmake command is required but was not found. Enter path to cmake command here : ','s');
+        if length(pathtocmake)>4 && strcmp(pathtocmake(end-4:end),'cmake')
+            pathtocmake = pathtocmake(1:end-5);
+        end
+        if ~isempty(pathtocmake) && pathtocmake(end)~='/'
+            pathtocmake = [pathtocmake,'/'];
+        end
+        [testcmake,~]=system([pathtocmake,'cmake']);
+        if testcmake~=0
+            error('cmake command not found.')
+        end
+        fid = fopen(pathtocmakefile,'w');
+        fprintf(fid,pathtocmake);
+        fclose(fid);
+    end
+    cmake = [pathtocmake,'cmake'];
 end
