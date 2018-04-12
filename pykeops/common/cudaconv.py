@@ -63,7 +63,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
         except OSError:
             compile_generic_routine(aliases, formula, dll_name, cuda_type)
             dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
-            print("Loaded.\n\n")
+            print("Loaded.")
 
         # These are all the C++ routines defined in "link_autodiff.cu" :
         routine_CPU_i = dll.CpuConv
