@@ -59,7 +59,7 @@ mode = "sum"
 enable_GC = False # Garbage collection?
 GC = 'gc.enable();' if enable_GC else 'pass;'
 LOOPS = 200
-print("Time to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
+print("Times to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
 print("\n",end="")
 
 for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):

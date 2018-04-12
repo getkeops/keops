@@ -121,4 +121,6 @@ params["gamma"] = Sigma
 showcase_params(params, "Fully-Anisotropic Variable kernel", 6)
 
 plt.gcf().set_size_inches(15,10)
+
+print("Done. Close the figure to exit.")
 plt.show(block=True)

@@ -189,6 +189,6 @@ if use_cuda:
 else:
     RunExample(datafile,kernel_lib)
 
-print("Done.")
+print("Done. Close the figure to exit.")
 plt.show(block=True)
 

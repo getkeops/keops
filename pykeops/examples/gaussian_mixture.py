@@ -135,11 +135,11 @@ for it in range(10001) :
 
     if it % 10  == 0 : print("Iteration ",it,", Cost = ", cost.data.cpu().numpy())
     if it % 500 == 0 :       
-        plt.gcf().set_size_inches(10,10)
+        plt.gcf()
         model.plot(x)
         plt.title("Density, iteration "+str(it), fontsize=20)
         plt.pause(.2)
         
 
-print("Done.")
+print("Done. Close the figure to exit.")
 plt.show(block=True)
