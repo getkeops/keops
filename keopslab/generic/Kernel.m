@@ -123,7 +123,7 @@ end
 
 function testbuild = buildFormula(code1, code2, filename)
 
-    disp('Formula is not compiled yet ; compiling...')
+    disp(['Compiling formula ',code2,' with ',code1,' ...'])
     
     [src_dir,build_dir,precision] = default_options();
     
@@ -135,10 +135,10 @@ function testbuild = buildFormula(code1, code2, filename)
     cmake = getcmake();
     % cmake command:
     cmdline = [cmake,' ', src_dir , ' -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
-    fprintf([cmdline,'\n'])
+    %fprintf([cmdline,'\n'])
     try
-        [~,prebuild_output] = system(cmdline)
-        [~,build_output]  = system(['make mex_cpp'])
+        [~,prebuild_output] = system(cmdline);
+        [~,build_output]  = system(['make mex_cpp']);
     catch
         cd(cur_dir)
         error('Compilation  Failed')
