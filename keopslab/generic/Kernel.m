@@ -169,20 +169,28 @@ function cmake = getcmake()
     end
     [testcmake,~]=system([pathtocmake,'cmake']);
     if testcmake~=0
-        pathtocmake = input('cmake command is required but was not found. Enter path to cmake command here : ','s');
-        if length(pathtocmake)>4 && strcmp(pathtocmake(end-4:end),'cmake')
-            pathtocmake = pathtocmake(1:end-5);
+        system(['rm -f ',pathtocmakefile]);
+        [testcmake,~]=system('cmake');
+        if testcmake==0
+            pathtocmake = '';
+        else
+            pathtocmake = input('cmake command is required but was not found. Enter path to cmake command here : ','s');
+            if length(pathtocmake)>4 && strcmp(pathtocmake(end-4:end),'cmake')
+                pathtocmake = pathtocmake(1:end-5);
+            end
+            if ~isempty(pathtocmake) && pathtocmake(end)~='/'
+                pathtocmake = [pathtocmake,'/'];
+            end
+            [testcmake,~]=system([pathtocmake,'cmake']);
+            if testcmake~=0
+                error('cmake command not found.')
+            end
+            if ~isempty(pathtocmake)
+                fid = fopen(pathtocmakefile,'w');
+                fprintf(fid,pathtocmake);
+                fclose(fid);
+            end
         end
-        if ~isempty(pathtocmake) && pathtocmake(end)~='/'
-            pathtocmake = [pathtocmake,'/'];
-        end
-        [testcmake,~]=system([pathtocmake,'cmake']);
-        if testcmake~=0
-            error('cmake command not found.')
-        end
-        fid = fopen(pathtocmakefile,'w');
-        fprintf(fid,pathtocmake);
-        fclose(fid);
     end
     cmake = [pathtocmake,'cmake'];
 end
