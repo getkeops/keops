@@ -1,0 +1,3 @@
+before_script:
+    - pwd
+    - git checkout master
