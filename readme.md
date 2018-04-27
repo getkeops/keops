@@ -1,4 +1,4 @@
-# KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows 
+# KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows
 
 ```
           88           oooo    oooo             .oooooo.                                 88
