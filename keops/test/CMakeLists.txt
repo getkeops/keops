@@ -1,3 +1,4 @@
+find_package(Threads)
 find_package(GTest)
 
 if(NOT GTest_FOUND)
