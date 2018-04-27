@@ -1,3 +1,4 @@
+[![Build Status](https://ci.inria.fr/keops/buildStatus/icon?job=keops_runner_test)](https://ci.inria.fr/keops/job/keops_runner_test/)
 # KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows
 
 ```
