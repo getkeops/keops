@@ -12,8 +12,6 @@
 #include <ctime>
 #include <algorithm>
 
-#define __TYPE__ double
-
 #include "core/autodiff.h"
 
 #include "core/formulas/constants.h"

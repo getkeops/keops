@@ -137,8 +137,8 @@ extern "C" int CauchyGpuGradConvXX(__TYPE__ ooSigma2, __TYPE__* e_h, __TYPE__* a
 extern "C" int LaplaceGpuGradConvXX(__TYPE__ ooSigma2, __TYPE__* e_h, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
     return KernelGpuGradConvXX<__TYPE__,LaplaceFp,LaplaceFpp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
-extern "C" int MultiquadricGpuGradConvXX(__TYPE__ ooSigma2, __TYPE__* e_h, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
-    return KernelGpuGradConvXX<__TYPE__,MultiquadricFp,MultiquadricFpp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
+extern "C" int InverseMultiquadricGpuGradConvXX(__TYPE__ ooSigma2, __TYPE__* e_h, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) {
+    return KernelGpuGradConvXX<__TYPE__,InverseMultiquadricFp,InverseMultiquadricFpp>(ooSigma2, e_h, alpha_h, x_h, y_h, beta_h, gamma_h, dimPoint, dimVect, nx, ny);
 }
 
 void ExitFcn(void) {
