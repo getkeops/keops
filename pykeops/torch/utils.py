@@ -1,5 +1,11 @@
 import torch
 
+def torch_kernel(x, y, s, kernel) :
+    sq = torch.sum( (x[:,None]-y[None])**2 , 2 ) 
+    if   kernel == "gaussian"  : return torch.exp( -sq / (s*s))
+    elif kernel == "laplacian" : return torch.exp( -torch.sqrt(sq) /s)
+    elif kernel == "cauchy"    : return  1. / ( 1 + sq / (s*s) )
+    elif kernel == "inverse_multiquadric"    : return torch.sqrt(  1. / ( s*s + sq ) )
 
 def extract_metric_parameters(G) :
     """

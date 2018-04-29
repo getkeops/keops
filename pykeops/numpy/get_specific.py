@@ -19,7 +19,7 @@ def get_specific_lib(target,signature):
     except OSError:
         compile_specific_routine(dllname=target, cuda_type="float" )
         dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
-        print("Loaded.\n\n")
+        print("Loaded.")
 
     func_dict = {}
     for (name, routine) in [("gaussian",  dll.GaussGpuEval), 

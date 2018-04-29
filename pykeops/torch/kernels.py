@@ -6,6 +6,7 @@ import torch
 from pykeops.torch.utils            import Formula
 from pykeops.torch.features_kernels import FeaturesKP
 
+from pykeops.torch.utils import _squared_distances
 
 # Define the standard kernel building blocks. 
 # They will be concatenated depending on the "name" argument of Kernel.__init__
@@ -42,16 +43,16 @@ locations_formulas = {
         routine_log = lambda gxmy2=None, **kwargs : -(1+gxmy2).log(),
     ),
     "laplacian" :     Formula( # Pointy kernel
-        formula_sum = "Exp(-Sqrt( IntInv(100000)+WeightedSqDist(G,X,Y) ))",
-        routine_sum = lambda gxmy2=None, **kwargs : (-(.00001+gxmy2).sqrt()).exp(),
-        formula_log = "(-Sqrt( IntInv(100000)+WeightedSqDist(G,X,Y) ))",
-        routine_log = lambda gxmy2=None, **kwargs :  -(.00001+gxmy2).sqrt(),
+        formula_sum = "Exp(-Sqrt( WeightedSqDist(G,X,Y) ))",
+        routine_sum = lambda gxmy2=None, **kwargs : (-(gxmy2).sqrt()).exp(),
+        formula_log = "(-Sqrt( WeightedSqDist(G,X,Y) ))",
+        routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2).sqrt(),
     ),
     "inverse_multiquadric" :  Formula( # Heavy tail kernel
-        formula_sum =  "Inv(Sqrt( IntCst(1) + WeightedSqDist(G,X,Y) ) )",
-        routine_sum = lambda gxmy2=None, **kwargs :  torch.rsqrt( 1 + gxmy2),
-        formula_log =  "(IntInv(-2) * Log(IntCst(1) + WeightedSqDist(G,X,Y)) ) ",
-        routine_log = lambda gxmy2=None, **kwargs :   -.5 * ( 1 + gxmy2).log(),
+        formula_sum =  "Inv(Sqrt( Inv(G) + SqDist(X,Y) ) )",
+        routine_sum = lambda g=None,x=None,y=None, **kwargs :  torch.rsqrt( 1/g + _squared_distances(x,y)),
+        formula_log =  "(IntInv(-2) * Log( Inv(G) + SqDist(X,Y)) ) ",
+        routine_log = lambda g=None,xmy2=None, **kwargs :   -.5 * ( 1/g + xmy2).log(),
     ),
 }
 
