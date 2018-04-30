@@ -6,14 +6,13 @@ import unittest
 import itertools
 import numpy as np
 
-import torch
-from torch.autograd import Variable, grad
-
 from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances
 from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
 from pykeops.numpy.convolutions.radial_kernels_grad1 import radial_kernels_grad1conv
 
+from pykeops import torch_found
 
+@unittest.skipIf(not torch_found,"Pytorch was not found on your system. Skip tests.")
 class PytorchUnitTestCase(unittest.TestCase):
 
     N    = int(6)
@@ -27,6 +26,9 @@ class PytorchUnitTestCase(unittest.TestCase):
     f = np.random.rand(M,1).astype('float32')
     b = np.random.rand(M,E).astype('float32')
     sigma = np.array([0.4]).astype('float32')
+
+    import torch
+    from torch.autograd import Variable
 
     use_cuda = torch.cuda.is_available()
     dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
@@ -62,6 +64,8 @@ class PytorchUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_grad1conv_kernels_feature(self):
 #--------------------------------------------------------------------------------------
+        import torch
+        from torch.autograd import grad
         from pykeops.torch.kernels import Kernel, kernel_product
         mode = "sum"
         params = {
