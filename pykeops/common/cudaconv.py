@@ -1,16 +1,4 @@
-# To test, first compile the kernel via :
-# ./compile "GaussKernel<P<0,1>,X<1,3>,Y<2,3>,Y<3,3>>"
-#
-# This will compile the isotropic Gaussian kernel in dimension 3,
-# which takes as input :
-# - a scalar parameter P<0,1>, inverse of the variance
-# - an array X_1 (x_i) of dimension N-by-3
-# - an array Y_2 (y_j) of dimension M-by-3
-# - an array Y_3 (b_j) of dimension M-by-3
-
 import numpy as np
-
-import torch
 
 import ctypes
 from ctypes import POINTER, c_float, c_int, cast
@@ -19,6 +7,7 @@ import os.path
 
 from hashlib import sha256
 
+from pykeops.common.get_options import get_backend, default_cuda_type
 from pykeops.common.compile_routines import compile_generic_routine
 from pykeops import build_folder, script_folder, dll_prefix, dll_ext
 
@@ -113,12 +102,12 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
 def cuda_conv_generic(formula, signature, result, *args,
                       backend="auto",
                       aliases=[], sum_index=0,
-                      cuda_type="float", grid_scheme="2D"):
+                      cuda_type=default_cuda_type):
     """
     Executes the "autodiff" kernel associated to "formula".
-    Backend is one of "auto", "GPU_1D" or "GPU_2D",
+    Backend is one of "auto", "CPU", "GPU", "GPU_1D" or "GPU_2D",
         and will be reassigned to "CPU", "GPU_1D_host",   "GPU_2D_host",
-        "GPU_1D_device", "GPU_2D_device", depending on input data (see below)
+        "GPU_1D_device", "GPU_2D_device", depending on input data (see get_options.py)
 
     Aliases can be given as a list of strings.
     sum_index specifies whether the summation should be done over "I/X" (sum_index=1) or "J/Y" (sum_index=0).
@@ -183,59 +172,17 @@ def cuda_conv_generic(formula, signature, result, *args,
 
     """
     # Infer if we're working with numpy arrays or torch tensors from result's type :
-
     if hasattr(result, "ctypes"):  # Assume we're working with numpy arrays
-
-        device = "CPU"
-
-        def assert_contiguous(x):
-            """Non-contiguous arrays are a mess to work with,
-            so we require contiguous arrays from the user."""
-            if not x.flags.c_contiguous: raise ValueError("Please provide 'C-contiguous' numpy arrays.")
-
-        def ndims(x):
-            return x.ndim
-
-        def size(x):
-            return x.size
-
-        def to_ctype_pointer(x):
-            assert_contiguous(x)
-            return x.ctypes.data_as(POINTER(c_float))
-
-        def vect_from_list(l):
-            return np.hstack(l)
-
+        from pykeops.numpy.utils import ndims, to_ctype_pointer, is_on_device
+        
     elif hasattr(result, "data_ptr"):  # Assume we're working with torch tensors
-
-        device = "GPU" if result.is_cuda else "CPU"
-
-        def assert_contiguous(x):
-            """Non-contiguous arrays are a mess to work with,
-            so we require contiguous arrays from the user."""
-            if not x.is_contiguous():
-                print(x)
-                raise ValueError("Please provide 'contiguous' torch tensors.")
-
-        def ndims(x):
-            return len(x.size())
-
-        def size(x):
-            return x.numel()
-
-        def to_ctype_pointer(x):
-            assert_contiguous(x)
-            return cast(x.data_ptr(), POINTER(c_float))
-
-        def vect_from_list(l):
-            return torch.cat(l)
-
+        from pykeops.torch.utils import ndims, to_ctype_pointer, is_on_device
     else:
         raise TypeError("result should either be a numpy array or a torch tensor.")
 
     # Check that *args matches the given signature ----------------------------------------------
-    variables = [];
-    nx = -1;
+    variables = []
+    nx = -1
     ny = -1
     for (arg, sig) in zip(args, signature[1:]):  # Signature = [ Result, *Args]
 
@@ -288,109 +235,10 @@ def cuda_conv_generic(formula, signature, result, *args,
 
     result_p = to_ctype_pointer(result)
     
-    
-    
-    # Try to make a good guess for the backend...
-    # available methods are: (host means Cpu, device means Gpu)
-    #   CPU : computations performed with the host from host arrays
-    #   GPU_1D_device : computations performed on the device from device arrays, using the 1D scheme
-    #   GPU_2D_device : computations performed on the device from device arrays, using the 2D scheme
-    #   GPU_1D_host : computations performed on the device from host arrays, using the 1D scheme
-    #   GPU_2D_host : computations performed on the device from host data, using the 2D scheme
-    
-    # first determine where is located the data ; all arrays should be on the host or all on the device  
-    VarsAreOnGpu = tuple(map(lambda x:x.is_cuda,(result,)+tuple(variables))) 
-    if all(VarsAreOnGpu):
-        MemType = "device"
-    elif not any(VarsAreOnGpu):
-        MemType = "host"
-    else:
-        raise ValueError("At least two input variables have different memory locations (Cpu/Gpu).")
-    
-    # rules in this part:
-    #  - data on the host will be processed on the host, unless GPU is specified
-    #  - default scheme for GPU is the 1D scheme
-    if backend == "auto":
-        if MemType == "host":
-            backend = "CPU" 
-        else: 
-            backend = "GPU_1D_device"
-    elif backend == "GPU":
-        if MemType == "host":
-            backend = "GPU_1D_host" 
-        else:
-            backend = "GPU_1D_device"
-    elif backend == "GPU_1D" or backend == "GPU_2D":
-        backend += "_" + MemType # gives GPU_1D_host, GPU_1D_device, GPU_2D_host, GPU_2D_device
-    else:
-        raise ValueError('Invalid backend specified. Should be one of "auto", "GPU", "GPU_1D", "GPU_2D"')
+    backend = get_backend(backend,result,variables) 
 
     # Let's use our GPU, which works "in place" : -----------------------------------------------
     # N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",
     #       which make a summation wrt. 'j' or 'i', indexing the final result with 'i' or 'j'.
     routine = get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend)
     routine(nx, ny, result_p, vars_p)
-
-
-if __name__ == '__main__':
-    """
-    testing, benchmark convolution with two naive python implementations of the Gaussian convolution
-    """
-    np.set_printoptions(linewidth=200)
-
-    sizeX = int(500)
-    sizeY = int(100)
-    dimPoint = int(3)
-    dimVect = int(3)
-    sigma = float(2)
-
-    if True:  # Random test
-        x = np.random.rand(sizeX, dimPoint).astype('float32')
-        y = np.random.rand(sizeY, dimPoint).astype('float32')
-        beta = np.random.rand(sizeY, dimVect).astype('float32')
-    else:  # Deterministic one
-        x = np.ones((sizeX, dimPoint)).astype('float32')
-        y = np.ones((sizeY, dimPoint)).astype('float32')
-        beta = np.ones((sizeY, dimVect)).astype('float32')
-
-    ooSigma2 = np.array([float(1 / (sigma * sigma))]).astype('float32')  # Compute this once and for all
-    # Call cuda kernel
-    gamma = np.zeros(dimVect * sizeX).astype('float32')
-    cuda_conv(x, y, beta, gamma, ooSigma2)  # In place, gamma_i = k(x_i,y_j) @ beta_j
-    gamma = gamma.reshape((sizeX, dimVect))
-
-    # A first implementation, with (shock horror !) a bunch of "for" loops
-    oosigma2 = 1 / (sigma * sigma)
-    gamma_py = np.zeros((sizeX, dimVect)).astype('float32')
-
-    for i in range(sizeX):
-        for j in range(sizeY):
-            rij2 = 0.
-            for k in range(dimPoint):
-                rij2 += (x[i, k] - y[j, k]) ** 2
-            for l in range(dimVect):
-                gamma_py[i, l] += np.exp(-rij2 * oosigma2) * beta[j, l]
-
-    # A second implementation, a bit more efficient
-    r2 = np.zeros((sizeX, sizeY)).astype('float32')
-    for i in range(sizeX):
-        for j in range(sizeY):
-            for k in range(dimPoint):
-                r2[i, j] += (x[i, k] - y[j, k]) ** 2
-
-    K = np.exp(-r2 * oosigma2)
-    gamma_py2 = np.dot(K, beta)
-
-    # compare output
-    print("\nCuda convolution :")
-    print(gamma)
-
-    print("\nPython convolution 1 :")
-    print(gamma_py)
-
-    print("\nPython convolution 2 :")
-    print(gamma_py2)
-
-    print("\nIs everything okay ? ")
-    print(np.allclose(gamma, gamma_py))
-    print(np.allclose(gamma, gamma_py2))

@@ -172,3 +172,26 @@ class Formula :
                         routine_log = lambda **x : other.routine_sum(**x) *   self.routine_log(**x) ,
                 )
 
+def assert_contiguous(x):
+    """Non-contiguous arrays are a mess to work with,
+    so we require contiguous arrays from the user."""
+    if not x.is_contiguous():
+        print(x)
+        raise ValueError("Please provide 'contiguous' torch tensors.")
+
+def ndims(x):
+    return len(x.size())
+
+def size(x):
+    return x.numel()
+
+def to_ctype_pointer(x):
+    from ctypes import POINTER, c_float, cast
+    assert_contiguous(x)
+    return cast(x.data_ptr(), POINTER(c_float))
+
+def vect_from_list(l):
+    return torch.cat(l)
+
+def is_on_device(x):
+    return x.is_cuda

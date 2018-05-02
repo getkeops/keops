@@ -28,3 +28,25 @@ def chain_rules(q,ax,by,Aa,p):
         ximyj = (np.tile(ax[:,i],[by.shape[0],1]).T - np.tile(by[:,i],[ax.shape[0],1])) 
         res[:,i] = np.sum(q * ((2 * ximyj * Aa) @ p),axis=1)
     return res
+
+def assert_contiguous(x):
+    """Non-contiguous arrays are a mess to work with,
+    so we require contiguous arrays from the user."""
+    if not x.flags.c_contiguous: raise ValueError("Please provide 'C-contiguous' numpy arrays.")
+
+def ndims(x):
+    return x.ndim
+
+def size(x):
+    return x.size
+
+def to_ctype_pointer(x):
+    from ctypes import POINTER, c_float
+    assert_contiguous(x)
+    return x.ctypes.data_as(POINTER(c_float))
+
+def vect_from_list(l):
+    return np.hstack(l)
+
+def is_on_device(x):
+    return False

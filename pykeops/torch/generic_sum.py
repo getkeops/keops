@@ -83,7 +83,6 @@ class GenericSum(torch.autograd.Function):
 
         N.B.: The data type (float v. double) is inferred automatically from the PyTorch type of args.
               The CPU/GPU mode is chosen automatically.
-              The grid_scheme  (1D v. 2D) is chosen according to heuristic rules.
         """
         # Save everything to compute the gradient -----------------------------------------------
         # N.B.: relying on the "ctx.saved_variables" attribute is necessary
@@ -115,8 +114,8 @@ class GenericSum(torch.autograd.Function):
             
         cuda_conv_generic(formula, signature, result, *args,  # Inplace CUDA routine
                           backend=backend,
-                          aliases=aliases, sum_index=sum_index,
-                          cuda_type="float", grid_scheme="2D")
+                          aliases=aliases, sum_index=sum_index
+                          )
         result = result.view(n, signature[0][0])
         return result
 

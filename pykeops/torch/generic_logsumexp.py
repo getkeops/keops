@@ -58,8 +58,8 @@ class GenericLogSumExp(torch.autograd.Function):
             
         cuda_conv_generic(formula, signature, result, *args,  # Inplace CUDA routine
                           backend=backend,
-                          aliases=aliases, sum_index=sum_index,
-                          cuda_type="float", grid_scheme="2D")
+                          aliases=aliases, sum_index=sum_index
+                          )
         result = result.view(n, signature[0][0])
 
         # (m,s) represents exp(m)*s, so that "log((m,s)) = log(exp(m)*s) = m + log(s)"

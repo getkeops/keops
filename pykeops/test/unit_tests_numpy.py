@@ -9,9 +9,9 @@ from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_
 from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
 from pykeops.numpy.convolutions.radial_kernels_grad1 import radial_kernels_grad1conv
 
-from pykeops import gpu_number
+from pykeops import gpu_available
 
-@unittest.skipIf(gpu_number,"No GPU detected. Skip tests.")
+@unittest.skipIf(not gpu_available,"No GPU detected. Skip tests.")
 class NumpyUnitTestCase(unittest.TestCase):
 
     sizeX    = int(60)

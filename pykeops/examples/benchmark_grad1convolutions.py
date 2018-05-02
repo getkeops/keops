@@ -84,20 +84,20 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
         pass
 
     # vanilla pytorch (with cuda if available else uses cpu)
-    # try:
-    # Define a kernel: Wrap it (and its parameters) into a JSON dict structure
-    mode = "sum"
-    kernel = Kernel(k+"(x,y)")
-    params = {
-        "id"      : kernel,
-        "gamma"   : 1./sigmac**2,
-        "backend" : "pytorch",
-    }
+    try:
+        # Define a kernel: Wrap it (and its parameters) into a JSON dict structure
+        mode = "sum"
+        kernel = Kernel(k+"(x,y)")
+        params = {
+            "id"      : kernel,
+            "gamma"   : 1./sigmac**2,
+            "backend" : "pytorch",
+        }
 
-    aKxy_b = torch.dot(ac.view(-1), kernel_product( xc,yc,bc, params, mode=mode).view(-1))
-    g3   = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
-    speed_keops = timeit.Timer('g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product( xc,yc,bc, params, mode=mode).view(-1)), xc, create_graph=False)[0]', GC, globals = globals(), timer = time.time).timeit(LOOPS)
-    print("Time for vanilla pytorch:  {:.4f}s".format(speed_keops),end="")
-    print("   (absolute error:       ", np.max(np.abs(g3.data.numpy() - gnumpy)), ")")
-    # except:
-        # pass
+        aKxy_b = torch.dot(ac.view(-1), kernel_product( xc,yc,bc, params, mode=mode).view(-1))
+        g3   = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
+        speed_keops = timeit.Timer('g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product( xc,yc,bc, params, mode=mode).view(-1)), xc, create_graph=False)[0]', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+        print("Time for vanilla pytorch:  {:.4f}s".format(speed_keops),end="")
+        print("   (absolute error:       ", np.max(np.abs(g3.data.numpy() - gnumpy)), ")")
+    except:
+        pass
