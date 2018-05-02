@@ -1,6 +1,7 @@
 """
 Example of keops reduction using the generic syntax. This example corresponds
-to the one described in the documentation file generic_syntax.md . It use pure numpy framework (no pytorch).
+to the one described in the documentation file generic_syntax.md . It uses
+pure numpy framework (no pytorch).
 
 # this example computes the following tensor operation :
 # inputs :
