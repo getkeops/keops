@@ -6,8 +6,6 @@ import unittest
 import numpy as np
 
 from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances
-from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
-from pykeops.numpy.convolutions.radial_kernels_grad1 import radial_kernels_grad1conv
 
 from pykeops import gpu_available
 
@@ -26,6 +24,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     beta  = np.random.rand(sizeY,dimVect ).astype('float32')
 
     def test_gaussian_conv_specific(self):
+        from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
         for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
             with self.subTest(k=k):
                 # Call cuda kernel
@@ -39,6 +38,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                 self.assertTrue( np.allclose(gamma, gamma_py.ravel(),atol=1e-6))
 
     def test_gaussian_grad1conv_specific(self):
+        from pykeops.numpy.convolutions.radial_kernels_grad1 import radial_kernels_grad1conv
         for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
             with self.subTest(k=k):
                 # Call cuda kernel

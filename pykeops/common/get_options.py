@@ -67,7 +67,7 @@ class pykeops_backend():
             dev_type = self._find_dev()
             grid_type = self._find_grid()
             mem_type = self._find_mem(result,variables)
-            return dev_type+'_'+grid_type+'_'+mem_type
+            return dev_type+'_'+grid_type+'_'+mem_type if dev_type == 'GPU' else dev_type
 
         splitted_backend = re.split('_',backend)
 
