@@ -113,7 +113,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         else:
             backend_to_test = ['auto']
 
-        for b in ['auto']:
+        for b in backend_to_test:
             with self.subTest(b=b):
 
                 # Call cuda kernel
