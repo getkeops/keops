@@ -20,6 +20,6 @@ def GenericSum_np(backend, aliases, formula, signature, sum_index, *args):
         cuda_conv_generic(formula, signature, result, *args,  # Inplace CUDA routine
                           backend=backend,
                           aliases=aliases, sum_index=sum_index,
-                          cuda_type="float", grid_scheme="2D")
+                          )
         result = result.reshape(n, signature[0][0])
         return result

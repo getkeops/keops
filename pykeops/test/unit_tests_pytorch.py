@@ -27,24 +27,27 @@ class PytorchUnitTestCase(unittest.TestCase):
     b = np.random.rand(M,E).astype('float32')
     sigma = np.array([0.4]).astype('float32')
 
-    import torch
-    from torch.autograd import Variable
+    try:
+       import torch
+       from torch.autograd import Variable
 
-    use_cuda = torch.cuda.is_available()
-    dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+       use_cuda = torch.cuda.is_available()
+       dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
-    ac = Variable(torch.from_numpy(a.copy()).type(dtype), requires_grad=True).type(dtype)
-    xc = Variable(torch.from_numpy(x.copy()).type(dtype), requires_grad=True).type(dtype)
-    yc = Variable(torch.from_numpy(y.copy()).type(dtype), requires_grad=True).type(dtype)
-    fc = Variable(torch.from_numpy(f.copy()).type(dtype), requires_grad=True).type(dtype)
-    bc = Variable(torch.from_numpy(b.copy()).type(dtype), requires_grad=True).type(dtype)
-    sigmac = torch.autograd.Variable(torch.from_numpy(sigma.copy()).type(dtype), requires_grad=False).type(dtype)
+       ac = Variable(torch.from_numpy(a.copy()).type(dtype), requires_grad=True).type(dtype)
+       xc = Variable(torch.from_numpy(x.copy()).type(dtype), requires_grad=True).type(dtype)
+       yc = Variable(torch.from_numpy(y.copy()).type(dtype), requires_grad=True).type(dtype)
+       fc = Variable(torch.from_numpy(f.copy()).type(dtype), requires_grad=True).type(dtype)
+       bc = Variable(torch.from_numpy(b.copy()).type(dtype), requires_grad=True).type(dtype)
+       sigmac = torch.autograd.Variable(torch.from_numpy(sigma.copy()).type(dtype), requires_grad=False).type(dtype)
+    except:
+        pass
 
 #--------------------------------------------------------------------------------------
     def test_conv_kernels_feature(self):
 #--------------------------------------------------------------------------------------
         from pykeops.torch.kernels import Kernel, kernel_product
-        mode = "sum"
+        mode = 'sum'
         params = {
             "gamma"   : 1./self.sigmac**2,
         }
@@ -110,6 +113,26 @@ class PytorchUnitTestCase(unittest.TestCase):
                 # compare output
                 self.assertTrue( np.allclose(gamma_keops.cpu().data.numpy(), gamma_py , atol=1e-6))
 
+#--------------------------------------------------------------------------------------
+    def test_logSumExp_kernels_feature(self):
+#--------------------------------------------------------------------------------------
+        from pykeops.torch.kernels import Kernel, kernel_product
+        params = {
+            "gamma"   : 1./self.sigmac**2,
+        }
+        mode = 'log'
+        for k,b in itertools.product(["gaussian", "laplacian", "cauchy", "inverse_multiquadric"],['auto','GPU_1D','GPU_2D','pytorch']):
+            with self.subTest(k=k,b=b):
+                params["id"] = Kernel(k+"(x,y)")
+                params["backend"] = b
+                # Call cuda kernel
+                gamma = kernel_product( self.xc,self.yc,self.fc, params, mode=mode).cpu()
+
+                # Numpy version    
+                gamma_py = np.exp(np.sum(-np.log( np_kernel(self.x, self.y,self.sigma,kernel=k)) * self.f.T,axis=1))
+
+                # compare output
+                self.assertTrue( np.allclose(gamma.data.numpy().ravel(), gamma_py))
 
 if __name__ == '__main__':
     """
