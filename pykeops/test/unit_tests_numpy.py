@@ -11,17 +11,17 @@ from pykeops import gpu_available
 
 class NumpyUnitTestCase(unittest.TestCase):
 
-    sizeX    = int(60)
-    sizeY    = int(10)
-    dimPoint = int(3)
-    dimVect  = int(3)
+    N    = int(6)
+    M    = int(10)
+    D = int(3)
+    E  = int(3)
 
-    sigma = np.random.rand(1,1)
-    alpha = np.random.rand(sizeX,dimVect ).astype('float32')
-    x     = np.random.rand(sizeX,dimPoint).astype('float32')
-    y     = np.random.rand(sizeY,dimPoint).astype('float32')
-    f     = np.random.rand(sizeY,1 ).astype('float32')
-    beta  = np.random.rand(sizeY,dimVect ).astype('float32')
+    a = np.random.rand(N,E).astype('float32')
+    x = np.random.rand(N,D).astype('float32')
+    y = np.random.rand(M,D).astype('float32')
+    f = np.random.rand(M,1).astype('float32')
+    b = np.random.rand(M,E).astype('float32')
+    sigma = np.array([0.4]).astype('float32')
 
     @unittest.skipIf(not gpu_available,"No GPU detected. Skip tests.")
 #--------------------------------------------------------------------------------------
@@ -31,11 +31,11 @@ class NumpyUnitTestCase(unittest.TestCase):
         for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
             with self.subTest(k=k):
                 # Call cuda kernel
-                gamma = np.zeros(self.dimVect*self.sizeX).astype('float32')
-                radial_kernels_conv(self.x, self.y, self.beta, gamma, self.sigma,kernel=k)
+                gamma = np.zeros(self.E*self.N).astype('float32')
+                radial_kernels_conv(self.x, self.y, self.b, gamma, self.sigma,kernel=k)
 
                 # Numpy version    
-                gamma_py = np.matmul(np_kernel(self.x, self.y,self.sigma,kernel=k), self.beta)
+                gamma_py = np.matmul(np_kernel(self.x, self.y,self.sigma,kernel=k), self.b)
 
                 # compare output
                 self.assertTrue( np.allclose(gamma, gamma_py.ravel(),atol=1e-6))
@@ -48,17 +48,16 @@ class NumpyUnitTestCase(unittest.TestCase):
         for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
             with self.subTest(k=k):
                 # Call cuda kernel
-                gamma = np.zeros(self.dimPoint*self.sizeX).astype('float32')
-                radial_kernels_grad1conv(self.alpha,self.x, self.y, self.beta, gamma, self.sigma,kernel=k) # In place, gamma_i = k(x_i,y_j) @ beta_j
+                gamma = np.zeros(self.D*self.N).astype('float32')
+                radial_kernels_grad1conv(self.a,self.x, self.y, self.b, gamma, self.sigma,kernel=k) # In place, gamma_i = k(x_i,y_j) @ beta_j
 
                 # Numpy version
                 A = differences(self.x, self.y) * grad_np_kernel(self.x,self.y,self.sigma,kernel=k)
-                gamma_py = 2*(np.sum( self.alpha * (np.matmul(A,self.beta)),axis=2) ).T
+                gamma_py = 2*(np.sum( self.a * (np.matmul(A,self.b)),axis=2) ).T
 
                 # compare output
                 self.assertTrue( np.allclose(gamma, gamma_py.ravel(),atol=1e-6))
 
-    @unittest.expectedFailure
 #--------------------------------------------------------------------------------------
     def test_generic_syntax(self):
 #--------------------------------------------------------------------------------------
@@ -83,8 +82,6 @@ class NumpyUnitTestCase(unittest.TestCase):
                 gamma_py = np.sum((self.sigma - self.f)**2 *np.exp( (self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
 
                 # compare output
-                print(gamma_keops)
-                print(gamma_py)
                 self.assertTrue( np.allclose(gamma_keops, gamma_py , atol=1e-6))
 
 
