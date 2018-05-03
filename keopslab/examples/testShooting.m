@@ -1,11 +1,21 @@
+% this function demonstrate how to compute LDDMM with a divergence/curl free
+% kernel
+
 function testShooting
 
 path_to_lib = '..';
 addpath(genpath(path_to_lib))
 
+% control points
 q0 = rand(2,15)*2-1;
 p0 = 3*randn(size(q0));
 
+% grid to be deformed
+ng = 50;
+[x1,x2] = ndgrid(linspace(-1,1,ng));
+x = [x1(:)';x2(:)'];
+
+% kernel parameters
 sigma = .5;
 oos2 = 1/sigma^2;
 [d,n] = size(q0);
@@ -16,35 +26,7 @@ K = Kernel('c=Pm(0,1)','x=Vx(1,2)','y=Vy(2,2)','b=Vy(3,2)','DivFreeGaussKernel(c
 
 GK = GradKernel(K,'x','e=Vx(4,2)');
 
-ng = 50;
-[x1,x2] = ndgrid(linspace(-1,1,ng));
-x = [x1(:)';x2(:)'];
-[~,PQX] = ode45(@FlowEq,linspace(0,1,100),join(p0,q0,x));
-[~,Q,X] = split(PQX');
-clf
-hold on
-axis equal
-axis off
-h = [];
-h1 = [];
-h2 = [];
-ax = [min(min(X(1,:,:))),max(max(X(1,:,:))),...
-    min(min(X(2,:,:))),max(max(X(2,:,:)))];
-while 1
-for k=2:size(X,3)
-    x1 = reshape(X(1,:,k),ng,ng);
-    x2 = reshape(X(2,:,k),ng,ng);
-    delete(h)
-    h = plot(squeeze(Q(1,:,1:k))',squeeze(Q(2,:,1:k))','r','Linewidth',3);
-    delete(h1)
-    h1 = plot(x1,x2,'b');
-    delete(h2)
-    h2 = plot(x1',x2','b');
-    axis(ax)
-    shg
-end
-end
-
+% Hamiltonian dynamic
     function dotpq = GeodEq(t,pq)
         [p,q] = split(pq);
         dotpq = join(-GK(oos2,q,q,p,p),K(oos2,q,q,p));
@@ -55,6 +37,34 @@ end
         dotpqx = join(-GK(oos2,q,q,p,p),K(oos2,q,q,p),K(oos2,x,q,p));
     end
 
+% time integration
+[~,PQX] = ode45(@FlowEq,linspace(0,1,100),join(p0,q0,x));
+[~,Q,X] = split(PQX');
+
+% display
+clf
+hold on
+axis equal
+axis off
+h = []; h1 = []; h2 = [];
+ax = [min(min(X(1,:,:))),max(max(X(1,:,:))),...
+    min(min(X(2,:,:))),max(max(X(2,:,:)))];
+while 1
+    for t=2:size(X,3)
+        x1 = reshape(X(1,:,t),ng,ng);
+        x2 = reshape(X(2,:,t),ng,ng);
+        delete(h)
+        h = plot(squeeze(Q(1,:,1:t))',squeeze(Q(2,:,1:t))','r','Linewidth',3);
+        delete(h1)
+        h1 = plot(x1,x2,'b');
+        delete(h2)
+        h2 = plot(x1',x2','b');
+        axis(ax)
+        shg
+    end
+end
+
+% two convenience functions for i/o of ODE45
     function [p,q,x] = split(pqx)
         nt = size(pqx,2);
         nx = size(pqx,1)/d-2*n;
