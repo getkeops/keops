@@ -15,7 +15,7 @@ with open(path.join(here, 'readme.md'), encoding='utf-8') as f:
 
 setup(
     name='pykeops',
-    version='0.1',
+    version=???,
 
     description='General Kernel computation with GPU',  # Required
     long_description=long_description,
@@ -31,7 +31,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 3 - Beta',
 
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering',
@@ -47,63 +47,44 @@ setup(
     packages=[
         'pykeops',
         'pykeops.common',
+        'pykeops.examples',
         'pykeops.numpy',
-        'pykeops.gpu',
+        'pykeops.test',
         'pykeops.torch',
+        'pykeops.tutorials',
     ],
     package_data={
         'pykeops': [
-            'build/.gitkeep',
             'keops/CMakeLists.txt',
             'keops/formula.h.in',
+            'keops/headers.cmake',
             'keops/core/autodiff.h',
+            'keops/core/CpuConv.cpp',
+            'keops/core/GpuConv1D.cu',
+            'keops/core/GpuConv2D.cu',
+            'keops/core/link_autodiff.cpp',
+            'keops/core/link_autodiff.cu',
+            'keops/core/Pack.h',
+            'keops/core/formulas/constants.h',
+            'keops/core/formulas/factorize.h',
+            'keops/core/formulas/kernels.h',
+            'keops/core/formulas/maths.h',
+            'keops/core/formulas/newsyntax.h',
+            'keops/core/formulas/norms.h',
             'keops/core/reductions/sum.h',
             'keops/core/reductions/log_sum_exp.h',
-            'keops/core/GpuConv1D.cu',
-            'keops/core/link_autodiff.cpp',
-            'keops/core/Pack.h',
-            'keops/core/GpuConv2D.cu',
-            'keops/core/CpuConv.cpp',
-            'keops/core/formulas/maths.h',
-            'keops/core/formulas/factorize.h',
-            'keops/core/formulas/norms.h',
-            'keops/core/formulas/kernels.h',
-            'keops/core/formulas/constants.h',
-            'keops/core/formulas/newsyntax.h',
-            'keops/core/link_autodiff.cu',
-            'keops/specific/shape_distance/kernels.cx',
-            'keops/specific/shape_distance/fshape_gpu_dxi.cx',
-            'keops/specific/shape_distance/fshape_gpu_dxi.cu',
-            'keops/specific/shape_distance/fshape_gpu.cx',
-            'keops/specific/shape_distance/fshape_gpu.cu',
-            'keops/specific/shape_distance/fshape_gpu_df.cu',
-            'keops/specific/shape_distance/fsimplex_gpu_dx.cu',
-            'keops/specific/shape_distance/fshape_gpu_dx.cx',
-            'keops/specific/shape_distance/fshape_gpu_df.cx',
-            'keops/specific/shape_distance/fshape_gpu_dx.cu',
-            'keops/specific/shape_distance/fsimplex_gpu_dxi.cu',
-            'keops/specific/shape_distance/fsimplex_gpu_df.cu',
-            'keops/specific/shape_distance/fsimplex_gpu.cu',
             'keops/specific/CMakeLists.txt',
-            'keops/specific/radial_kernels/cuda_gradconv_xx.cu',
-            'keops/specific/radial_kernels/cuda_gradconv_xy.cu',
-            'keops/specific/radial_kernels/cuda_gradconv_xa.cu',
-            'keops/specific/radial_kernels/cuda_gradconv_xb.cx',
-            'keops/specific/radial_kernels/cuda_gradconv_xy.cx',
-            'keops/specific/radial_kernels/cuda_conv.cx',
-            'keops/specific/radial_kernels/cuda_gradconv_xb.cu',
-            'keops/specific/radial_kernels/cuda_gradconv_xa.cx',
-            'keops/specific/radial_kernels/cuda_grad1conv.cu',
             'keops/specific/radial_kernels/cuda_conv.cu',
+            'keops/specific/radial_kernels/cuda_conv.cx',
+            'keops/specific/radial_kernels/cuda_grad1conv.cu',
             'keops/specific/radial_kernels/cuda_grad1conv.cx',
-            'keops/specific/radial_kernels/cuda_gradconv_xx.cx',
             'keops/specific/radial_kernels/radial_kernels.h',
         ]
     },
 
     install_requires=[
-#            'numpy',
-#            'torch'
+            'numpy',
+            'GPUtil'
     ],
 
 #    extras_require={'torch': ['torch'] },
