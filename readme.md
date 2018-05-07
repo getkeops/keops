@@ -114,6 +114,11 @@ We're currently investigating the possibility of developing a third backend, tha
 
 ### Python users
 
+Requirements:
+- a unix-like system (typically Linux or Mac Os X)
+- Python 3 with packages  : numpy, gputil (install via pip)
+- optional : Cuda, PyTorch
+
 Two steps:
 
 1) Run the out-of-the-box working example [`./pykeops/examples/generic_example.py`](./pykeops/examples/generic_example.py).
