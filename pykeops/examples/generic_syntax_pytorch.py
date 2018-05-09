@@ -1,6 +1,6 @@
 """
-Example of keops reduction using the generic syntax. This example corresponds
-to the one described in the documentation file generic_syntax.md
+Example of KeOps reduction using the generic syntax. This example corresponds
+to the one described in the documentation file generic_syntax.md. 
 
 # this example computes the following tensor operation :
 # inputs :
@@ -50,7 +50,7 @@ sum_index = 0       # 0 means summation over j, 1 means over i
 start = time.time()
 c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,a,x,y)
 
-print("time to compute c on cpu : ",round(time.time()-start,2)," seconds")
+print("time to compute convolution operation on cpu : ",round(time.time()-start,2)," seconds")
 
 
 #--------------------------------------------------------------#
@@ -69,7 +69,7 @@ start = time.time()
 d = grad(c,y,e)[0]
 # remark : grad(c,y,e) alone outputs a length 1 tuple, hence the need for [0] at the end.
 
-print("time to compute d on cpu : ",round(time.time()-start,2)," seconds")
+print("time to compute gradient of convolution operation on cpu : ",round(time.time()-start,2)," seconds")
 
 
 
@@ -85,6 +85,6 @@ if torch.cuda.is_available():
 	# then call the operations
 	start = time.time()
 	c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,a,x,y)
-	print("time to compute c on gpu : ",round(time.time()-start,2)," seconds")
+	print("time to compute convolution operation on gpu : ",round(time.time()-start,2)," seconds")
 	d = grad(c,y,e)[0]
-	print("time to compute d on gpu : ",round(time.time()-start,2)," seconds")
+	print("time to compute gradient of convolution operation on gpu : ",round(time.time()-start,2)," seconds")

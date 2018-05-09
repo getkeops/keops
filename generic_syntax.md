@@ -82,6 +82,9 @@ GpuConv2D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 
 **Using the syntax in the PyTorch bindings**
 
+The example described below is implemented in the example Python script generic_syntax_pytorch.py located in pykeops/examples. Python bindings that do not use
+PyTorch are also implemented ; see the script generic_syntax_numpy.py for the corresponding example.
+
 The Python reduction operations GenericSum.apply and GenericLogSumExp.apply require to input the defined variables and formula as character strings :
 
 ```python
