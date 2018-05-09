@@ -33,9 +33,9 @@ from pykeops.torch.generic_sum import GenericSum
 #                   Define our dataset                         #
 #--------------------------------------------------------------#
 
-p = Variable(torch.randn(1,1), requires_grad=True)
-a = Variable(torch.randn(5000,1), requires_grad=True)
-x = Variable(torch.randn(3000,3), requires_grad=True)
+p = Variable(torch.randn(1,1), requires_grad=False)
+a = Variable(torch.randn(5000,1), requires_grad=False)
+x = Variable(torch.randn(3000,3), requires_grad=False)
 y = Variable(torch.randn(5000,3), requires_grad=True)
 
 
