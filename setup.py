@@ -15,7 +15,7 @@ with open(path.join(here, 'readme.md'), encoding='utf-8') as f:
 
 setup(
     name='pykeops',
-    version=???,
+    version='???',
 
     description='General Kernel computation with GPU',  # Required
     long_description=long_description,
