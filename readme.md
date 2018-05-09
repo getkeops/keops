@@ -54,9 +54,9 @@ from torch.autograd  import Variable
 from pykeops.torch.kernels import Kernel, kernel_product
 
 # Generate the data as pytorch Variables
-x = Variable(torch.randn(1e3,3), requires_grad=True)
-y = Variable(torch.randn(2e3,3), requires_grad=True)
-b = Variable(torch.randn(2e3,2), requires_grad=True)
+x = Variable(torch.randn(1000,3), requires_grad=True)
+y = Variable(torch.randn(2000,3), requires_grad=True)
+b = Variable(torch.randn(2000,2), requires_grad=True)
 
 # Pre-defined kernel: using custom expressions is also possible!
 sigma  = Variable(Tensor([.5]))
@@ -72,8 +72,9 @@ a = kernel_product( x, y, b, params)
 Here is an equivalent call using the low-level generic syntax :
 
 ```python
+from pykeops.torch.generic_sum import GenericSum
 # First define the symbolic variables P, X, Y, B
-aliases = ["P = Pm(0,1)","X=Vx(1,3)","Y=Vy(2,3")","B=Vy(3,2)"]
+aliases = ["P = Pm(0,1)","X=Vx(1,3)","Y=Vy(2,3)","B=Vy(3,2)"]
 # the formula of the gaussian kernel is written explicitely:
 formula = "Exp(-P*SqDist(X,Y))*B"
 signature   =   [ (2, 0), (1, 2), (3, 0), (3, 1), (2, 1) ]
