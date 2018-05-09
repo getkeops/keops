@@ -92,7 +92,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
                  "GPU_2D_device": [routine_GPU_device_2D_i, routine_GPU_device_2D_j] })
         except AttributeError:
             # we do not have the Cuda routines, this is ok only if the backend is "CPU"
-            if backend != "CPU":
+            if backend not in ["auto","CPU"]:
                 raise ValueError('Cuda routines are not available.')
             
         return __cuda_convs_generic[dll_name][backend][sum_index]  # And return it.

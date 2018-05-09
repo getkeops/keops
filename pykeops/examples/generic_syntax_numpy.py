@@ -1,6 +1,7 @@
 """
 Example of keops reduction using the generic syntax. This example corresponds
-to the one described in the documentation file generic_syntax.md . It use pure numpy framework (no pytorch).
+to the one described in the documentation file generic_syntax.md . It uses
+pure numpy framework (no pytorch).
 
 # this example computes the following tensor operation :
 # inputs :
@@ -31,10 +32,10 @@ from pykeops.numpy.generic_sum import GenericSum_np
 #                   Define our dataset                         #
 #--------------------------------------------------------------#
 
-p = np.random.randn(1,1)
-a = np.random.randn(5000,1)
-x = np.random.randn(3000,3)
-y = np.random.randn(5000,3)
+p = np.random.randn(1,1).astype('float32')
+a = np.random.randn(5000,1).astype('float32')
+x = np.random.randn(3000,3).astype('float32')
+y = np.random.randn(5000,3).astype('float32')
 
 
 #--------------------------------------------------------------#
@@ -61,7 +62,7 @@ print("time to compute c on cpu : ",round(time.time()-start,2)," seconds")
 # size as c and outputs a tensor with same size as y
 
 # new variable of size 3000x3 used as input of the gradient
-e = np.random.randn(3000,3)
+e = np.random.randn(3000,3).astype('float32')
 
 
 aliases_grad = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)","e=Vx(4,3)"]

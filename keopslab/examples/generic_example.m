@@ -1,6 +1,10 @@
 path_to_lib = '..';
 addpath(genpath(path_to_lib))
 
+%--------------------------------------%
+%         create dataset               %
+%--------------------------------------%
+
 Nx = 50;
 Ny = 20;
 x = randn(3,Nx);
@@ -10,12 +14,21 @@ u = randn(4,Nx);
 v = randn(4,Ny);
 p = .25;
 
-F = Kernel('x=Vx(0,3)','y=Vy(1,3)','u=Vx(2,4)','v=Vy(3,4)','b=Vy(4,3)', 'p=Pm(5,1)', 'Square((u,v))*Exp(-p*SqNorm2(x-y))*b');
+
+%-----------------------------------------%
+%           Kernel with KeOps             %
+%-----------------------------------------%
+
+F = Kernel('x=Vx(0,3)','y=Vy(1,3)','u=Vx(2,4)','v=Vy(3,4)','b=Vy(4,3)', 'p=Pm(5,1)',...
+           'Square((u,v))*Exp(-p*SqNorm2(x-y))*b');
 
 tic
 g = F(x,y,u,v,b,p);
 fprintf('Time for libkp computation : %f s.\n', toc)
 
+%-----------------------------------------%
+%            Compare with matlab          %
+%-----------------------------------------%
 
 squmatrix_distance = @(x,y) sum( (repmat(reshape(x,size(x,1),1,size(x,2)),1,size(y,1),1)  - repmat(reshape(y,1,size(y,1),size(y,2)),size(x,1),1,1)) .^2,3);
 

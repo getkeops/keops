@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Example of diffeomorphic matching of surfaces using varifolds metrics
 We perform LDDMM matching of two meshes using the geodesic shooting algorithm
 """
-
 import os.path
 import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*3)
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
