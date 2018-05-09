@@ -1,8 +1,13 @@
-import os.path
-import tempfile
+__version__="???"
 
-script_folder = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + "keops"
-build_folder  = tempfile.mkdtemp(prefix="pykeops-") + os.path.sep
+import os.path
+from os.path import expanduser
+
+script_folder = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + "keops"+ os.path.sep 
+build_folder = expanduser("~") + os.path.sep + ".cache" + os.path.sep + "pykeops-" + __version__+ os.path.sep 
+os.makedirs(build_folder, exist_ok=True)
+
+
 
 """
 get some infos about the system

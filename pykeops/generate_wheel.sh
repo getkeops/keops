@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #this script creates the wheel package for pykeops. Use at your own risk.
-VERSION='0.0.1'
+VERSION='0.0.2'
 
 CURRENT_DIR=$(pwd)
 echo $CURRENT_DIR
@@ -19,7 +19,7 @@ find -name *__pycache__* -exec rm {} \-rf \;
 # ugly trick to set right relative path in wheel package 
 mv pykeops/__init__.py pykeops/__init__.py.src
 mv pykeops/__init__.py.wheel pykeops/__init__.py
-echo "__version__='$VERSION'" >> pykeops/__init__.py
+sed -i.bak "s/???/$VERSION/" pykeops/__init__.py
 sed -i.bak "s/???/$VERSION/" setup.py
 
 cp -R keops pykeops/
@@ -28,8 +28,7 @@ cp -R keops pykeops/
 python3 setup.py bdist_wheel --python-tag py3 --dist-dir build/wheel #--plat-name manylinux1_x86_64
 
 # undo ugly trick
-sed -i '/__version__=*/d' pykeops/__init__.py
-mv pykeops/__init__.py pykeops/__init__.py.wheel
+mv pykeops/__init__.py.bak pykeops/__init__.py.wheel
 mv pykeops/__init__.py.src pykeops/__init__.py
 rm -rf pykeops/keops
 mv setup.py.bak setup.py
