@@ -49,13 +49,14 @@ one simply needs to type:
 
 ```python
 import torch
+from torch import Tensor
 from torch.autograd  import Variable
 from pykeops.torch.kernels import Kernel, kernel_product
 
 # Generate the data as pytorch Variables
-x = Variable(torch.randn(100000,3), requires_grad=True)
-y = Variable(torch.randn(200000,3), requires_grad=True)
-b = Variable(torch.randn(200000,2), requires_grad=True)
+x = Variable(torch.randn(1e3,3), requires_grad=True)
+y = Variable(torch.randn(2e3,3), requires_grad=True)
+b = Variable(torch.randn(2e3,2), requires_grad=True)
 
 # Pre-defined kernel: using custom expressions is also possible!
 sigma  = Variable(Tensor([.5]))
