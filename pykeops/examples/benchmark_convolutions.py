@@ -5,10 +5,16 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 import numpy as np
 import time, timeit
 
+# is there a working GPU around ?
+import GPUtil
+try:
+    gpu_available = len(GPUtil.getGPUs()) > 0
+except:
+    gpu_available = False
 
 N = 2000 ; M = 300; D = 3; E = 3
 
-# declare numpy 
+# declare numpy variables 
 from pykeops.numpy.utils import np_kernel
 x = np.random.randn(N,D).astype('float32')
 y = np.random.randn(M,D).astype('float32')
@@ -16,7 +22,7 @@ b = np.random.randn(M,E).astype('float32')
 sigma = np.array([2.4]).astype('float32')
 
 
-# declare the torch counterpart
+# declare their torch counterparts
 try:
     import torch
     from pykeops.torch.utils import torch_kernel
@@ -81,15 +87,17 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
     except:
         pass
 
-    # cuda tiled implementation (if cuda is available)
-    try:
-        from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
-        g2 = np.zeros([N,E]).astype('float32') ; radial_kernels_conv(x, y, b, g2, sigma, kernel=k)
-        g2 = np.zeros([N,E]).astype('float32')
-        speed_pykeops = timeit.Timer('radial_kernels_conv(x, y, b, g2, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
-        print("Time for keops cuda specific: {:.4f}s".format(speed_pykeops),end="")
-        print("   (absolute error:       ", np.max(np.abs(g2 - gnumpy)),")")
-    except:
-        pass
-
+    # specific cuda tiled implementation (if cuda is available)
+    if gpu_available:
+        try:
+            from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
+            g2 = np.zeros([N,E]).astype('float32') ; radial_kernels_conv(x, y, b, g2, sigma, kernel=k)
+            g2 = np.zeros([N,E]).astype('float32')
+            speed_pykeops = timeit.Timer('radial_kernels_conv(x, y, b, g2, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+            print("Time for keops cuda specific: {:.4f}s".format(speed_pykeops),end="")
+            print("   (absolute error:       ", np.max(np.abs(g2 - gnumpy)),")")
+        except:
+            pass
+    else:
+        print("No Gpu detetcted ; skipping 'specific' KeOps computation.")
 
