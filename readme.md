@@ -123,17 +123,23 @@ Requirements:
 
 Two steps:
 
-1) Run the out-of-the-box working example [`./pykeops/examples/generic_example.py`](./pykeops/examples/generic_example.py).
+1) Install pykeops package.
 
-2) If you are already familiar with the LDDMM theory and want to get started quickly, please check the shapes toolboxes: [plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox](https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox) and [plmlab.math.cnrs.fr/jeanfeydy/lddmm_pytorch](https://plmlab.math.cnrs.fr/jeanfeydy/lddmm_pytorch).
+2) Run the out-of-the-box working examples located in [`./pykeops/examples/`](./pykeops/examples/) and [`./pykeops/tutorials/`](./pykeops/tutorials/).
+
+If you are already familiar with the LDDMM theory and want to get started quickly, please check the shapes toolboxes: [plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox](https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox) and [plmlab.math.cnrs.fr/jeanfeydy/lddmm_pytorch](https://plmlab.math.cnrs.fr/jeanfeydy/lddmm_pytorch).
 
 ### Matlab users
 
-Two steps:
+Three steps:
 
-1) Compilation of the cuda codes. The subdirectory `./matlab` contains a shell script `makefile.sh`. The user needs to custom the paths contained in this file. The script produces mex files callable from any matlab script.
+1) Download keops library and unzip it at a location of your choice. Note that temporary files will be written into keopslab/build folder, so that this directory must hhave write permissions.
 
-2) Run the out-of-the-box working examples `./matlab/example/convolution.m`
+2) Within Matlab, run the out-of-the-box working examples located in `./matlab/examples/`
+
+3) To use keops in your own Matlab codes, set the Matlab path to include "keopslab" folder and all its subfolders.
+
+N.B. Everytime you need to update or reinstall the library, make sure you replace the full directory keopslab, so that temporary files will be erased.
 
 #### known issues
 

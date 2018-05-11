@@ -5,7 +5,7 @@ function G = GradKernel(F,var,newvar)
 % var is a string identifying the variable with respect
 % to which the gradient must be taken
 % newvar is a string identifying the new variable which will be the input
-% to the graident in the convolution
+% to the gradient in the convolution
 % Example : define a Gaussian kernel convolution, then take its gradient
 % with respect to the first variable and test
 % F = Kernel('p=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,3)','GaussKernel(p,x,y,b)');
