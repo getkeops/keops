@@ -28,6 +28,12 @@ import time
 
 from pykeops.torch.generic_sum import GenericSum
 
+#--------------------------------------------------------------#
+#   Please use the "verbose" compilation mode for debugging    #
+#--------------------------------------------------------------#
+
+import pykeops
+pykeops.common.compile_routines.verbose = True
 
 #--------------------------------------------------------------#
 #                   Define our dataset                         #
