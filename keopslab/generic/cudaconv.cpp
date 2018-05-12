@@ -6,12 +6,17 @@
 #include "core/autodiff.h"
 
 extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
+extern "C" int CpuTransConv(int, int, __TYPE__*, __TYPE__**);
 
 #ifdef USE_CUDA
 extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuTransConv1D(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuTransConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuTransConv2D(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuTransConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 #endif
 
 void ExitFcn(void) {
@@ -167,10 +172,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             int typek = typeargs[k];
             // we check dimension here from the formula
             if(dimk!=dimargs[k]) {
-                mexErrMsgTxt("wrong dimension for input args");
-                cout << "For argument: dimension of " << k << " is " << dimargs[k] << " but should be " << dimk << endl;
+                mexPrintf("For argument #%d : dimension (=number of columns) is %d but should be %d.\n",k,dimk,dimargs[k]);
+                mexErrMsgTxt("Wrong dimension for input argument.");
             }
             if(n[typek]!=nk) {
+                mexPrintf("For argument #%d : size (=number of rows) is %d but should be %d.\n",k,nk,n[typek]);
                 mexErrMsgTxt("inconsistent input sizes");
             }
         }
@@ -203,7 +209,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         if(tagIJ==0){
             CpuConv( n[0], n[1], castedgamma, castedargs);
         } else{
-            CpuConv( n[1], n[0], castedgamma, castedargs);
+            CpuTransConv( n[0], n[1], castedgamma, castedargs);
         } 
     }
 #ifdef USE_CUDA
@@ -216,24 +222,24 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             }
         } else {
             if(tag1D2D==0){
-                GpuConv1D( n[1], n[0], castedgamma, castedargs);
+                GpuTransConv1D( n[0], n[1], castedgamma, castedargs);
             } else {
-                GpuConv2D( n[1], n[0], castedgamma, castedargs);
+                GpuTransConv2D( n[0], n[1], castedgamma, castedargs);
             }
         }
     } 
     else {
         if(tagIJ==0) {
             if(tag1D2D==0){
-                GpuConv1D_FromDevice( n[0], n[1-0], castedgamma, castedargs);
+                GpuConv1D_FromDevice( n[0], n[1], castedgamma, castedargs);
             } else {
-                GpuConv2D_FromDevice( n[0], n[1-0], castedgamma, castedargs);
+                GpuConv2D_FromDevice( n[0], n[1], castedgamma, castedargs);
             }
         } else {
             if(tag1D2D==0){
-                GpuConv1D_FromDevice( n[1], n[0], castedgamma, castedargs);
+                GpuTransConv1D_FromDevice( n[0], n[1], castedgamma, castedargs);
             } else{
-                GpuConv2D_FromDevice( n[1], n[0], castedgamma, castedargs);
+                GpuTransConv2D_FromDevice( n[0], n[1], castedgamma, castedargs);
             }
         }
     }
