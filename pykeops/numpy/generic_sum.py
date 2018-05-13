@@ -1,6 +1,15 @@
 import numpy as np
 
 from pykeops.common.cudaconv import cuda_conv_generic
+from pykeops.common.parse_types import parse_types
+
+class generic_sum_np :
+    def __init__(self, formula, *types) :
+        self.formula = formula
+        self.aliases, self.signature, self.sum_index = parse_types( types )
+        
+    def __call__(self, *args, backend = "auto") :
+        return GenericSum_np(backend, self.aliases, self.formula, self.signature, self.sum_index, *args)
 
 def GenericSum_np(backend, aliases, formula, signature, sum_index, *args):
         # Get the size nx by looping on the signature until we've found an "x_i" ----------------
