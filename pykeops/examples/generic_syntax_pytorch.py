@@ -21,10 +21,9 @@ import os.path
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
+import time
 import torch
 from torch.autograd import grad
-
-import time
 
 from pykeops.torch.generic_sum import generic_sum
 
@@ -53,7 +52,7 @@ y = torch.randn(M,3, requires_grad=True )
 #--------------------------------------------------------------#
 
 formula =  "Square(p-a)*Exp(x+y)"
-aliases = ["output = Vx(3)",  # The result is indexed by "i", of size 3.
+types   = ["output = Vx(3)",  # The result is indexed by "i", of size 3.
                 "p = Pm(1)",  # First  arg : Parameter,  of size 1 (scalar)
 				"a = Vy(1)",  # Second arg : j-variable, of size 1 (scalar)
 				"x = Vx(3)",  # Third  arg : i-variable, of size 3
@@ -61,7 +60,7 @@ aliases = ["output = Vx(3)",  # The result is indexed by "i", of size 3.
 
 start = time.time()
 
-my_routine = generic_sum(formula, *aliases)
+my_routine = generic_sum(formula, *types)
 c = my_routine(p, a, x, y, backend="CPU")
 
 # N.B.: If CUDA is available + backend="auto" (or not specified) + the arrays are large enough,
@@ -70,7 +69,7 @@ c = my_routine(p, a, x, y, backend="CPU")
 #       By specifying backend="CPU", we make sure that the result is computed
 #       using a simple C++ for loop.
 
-print("Time to compute the convolution operation on the cpu : ",round(time.time()-start,2)," seconds")
+print("Time to compute the convolution operation on the cpu : ",round(time.time()-start,2),"s")
 
 
 #--------------------------------------------------------------#
@@ -85,13 +84,13 @@ print("Time to compute the convolution operation on the cpu : ",round(time.time(
 #    < dc.δy , e >_2  =  < g , δy >_2  =  < δy , dc*.e >_2
 
 # New variable of size Nx3 used as input of the gradient
-e = torch.randn(N,3, requires_grad=True)
+e = torch.randn(N,3, requires_grad=False)
 # Call the gradient op:
 start = time.time()
 g = grad(c,y,e)[0]
 # PyTorch remark : grad(c,y,e) alone outputs a length 1 tuple, hence the need for [0] at the end.
 
-print("time to compute gradient of convolution operation on the cpu : ",round(time.time()-start,2)," seconds")
+print("time to compute gradient of convolution operation on the cpu : ",round(time.time()-start,2),"s")
 
 
 
@@ -107,7 +106,7 @@ if torch.cuda.is_available():
 	# then call the operations
 	start = time.time()
 	c = my_routine(p, a, x, y)
-	print("time to compute convolution operation on gpu : ",round(time.time()-start,2)," seconds")
+	print("time to compute convolution operation on gpu : ",round(time.time()-start,2),"s")
 	start = time.time()
 	g = grad(c,y,e)[0]
-	print("time to compute gradient of convolution operation on gpu : ",round(time.time()-start,2)," seconds")
+	print("time to compute gradient of convolution operation on gpu : ",round(time.time()-start,2),"s")
