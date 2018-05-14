@@ -49,17 +49,15 @@ one simply needs to type:
 
 ```python
 import torch
-from torch import Tensor
-from torch.autograd  import Variable
 from pykeops.torch.kernels import Kernel, kernel_product
 
 # Generate the data as pytorch Variables
-x = Variable(torch.randn(1000,3), requires_grad=True)
-y = Variable(torch.randn(2000,3), requires_grad=True)
-b = Variable(torch.randn(2000,2), requires_grad=True)
+x = torch.randn(1000,3, requires_grad=True)
+y = torch.randn(2000,3, requires_grad=True)
+b = torch.randn(2000,2, requires_grad=True)
 
 # Pre-defined kernel: using custom expressions is also possible!
-sigma  = Variable(Tensor([.5]))
+sigma  = torch.tensor([.5], requires_grad=True)
 params = {
     "id"      : Kernel("gaussian(x,y)"),
     "gamma"   : 1./sigma**2,
@@ -67,20 +65,21 @@ params = {
 
 # Depending on the inputs' types, 'a' is a CPU or a GPU variable.
 # It can be differentiated wrt. x, y, b and sigma.
-a = kernel_product( x, y, b, params)
+a = kernel_product(params, x, y, b)
 ```
+
 Here is an equivalent call using the low-level generic syntax :
 
 ```python
-from pykeops.torch.generic_sum import GenericSum
-# First define the symbolic variables P, X, Y, B
-aliases = ["P = Pm(0,1)","X=Vx(1,3)","Y=Vy(2,3)","B=Vy(3,2)"]
-# the formula of the gaussian kernel is written explicitely:
-formula = "Exp(-P*SqDist(X,Y))*B"
-signature   =   [ (2, 0), (1, 2), (3, 0), (3, 1), (2, 1) ]
-sum_index   = 0 # the result is indexed by "i"; for "j", use "1"
-oos2 = 1./sigma**2
-a = GenericSum.apply("auto",aliases,formula,signature,sum_index,oos2,x,y,b)
+from pykeops.torch.generic_sum import generic_sum
+
+gaussian_conv = generic_sum("Exp(-G*SqDist(X,Y)) * B",
+                            "A = Vx(2)",  # The output is indexed by "i", of dim 2
+                            "G = Pm(1)",  # First arg  is a parameter,    of dim 1
+                            "X = Vx(3)",  # Second arg is indexed by "i", of dim 3
+                            "Y = Vy(3)",  # Third arg  is indexed by "j", of dim 3
+                            "B = Vy(2)" ) # Fourth arg is indexed by "j", of dim 2
+a = gaussian_conv( 1./sigma**2, x,y,b)
 ```
 
 Explanation of the generic syntax and its use is given in the file [generic_syntax.md](generic_syntax.md).
@@ -90,11 +89,7 @@ We support:
 - Summation and (numerically stable) LogSumExp reductions.
 - User-defined formulas, using a simple string format (`"gaussian(x,y) * (1+linear(u,v)**2)"`) or a custom low-level syntax (`"Exp(-G*SqDist(X,Y))"`).
 - Simple syntax for kernels on feature spaces (say, locations+orientations varifold kernels in shape analysis).
-- High-order derivatives.
-
-In version 0.2, we will support:
-
-- Derivatives with respect to the kernels' parameters.
+- High-order derivatives with respect to all parameters and variables.
 - Non-radial kernels.
 
 ## Performances
@@ -119,7 +114,7 @@ We're currently investigating the possibility of developing a third backend, tha
 Requirements:
 - a unix-like system (typically Linux or Mac Os X)
 - Python 3 with packages  : numpy, gputil (install via pip)
-- optional : Cuda, PyTorch
+- optional : Cuda (>=9.0 is recommended), PyTorch>=0.4
 
 Two steps:
 
@@ -143,7 +138,21 @@ N.B. Everytime you need to update or reinstall the library, make sure you replac
 
 #### known issues
 
-if an error involving libstdc++.so.6 occurs like
+First of all, make sure that you are using a recent C/C++ compiler (say, gcc/g++-7);
+otherwise, CUDA compilation may fail in unexpected ways.
+On Linux, this can be done simply by using [update-alternatives](https://askubuntu.com/questions/26498/choose-gcc-and-g-version).
+
+Note that you can activate a "verbose" compilation mode by adding these lines *after* your KeOps imports:
+
+```python
+import pykeops
+pykeops.common.compile_routines.verbose = True
+```
+
+Then, if you installed from source and recently updated KeOps, make sure that your
+`keops/build/` folder (the cache of already-compiled formulas) has been emptied.
+
+If an error involving libstdc++.so.6 occurs like
 
 ```
 cmake: /usr/local/MATLAB/R2017b/sys/os/glnxa64/libstdc++.so.6: version `CXXABI_1.3.9' not found (required by cmake)
@@ -156,6 +165,7 @@ try to load matlab with the following linking variable :
 ```bash
 export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6;matlab
 ```
+
 
 ### R users
 
