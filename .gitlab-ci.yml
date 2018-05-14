@@ -1,0 +1,30 @@
+stages:
+    - build
+    - test
+    - deploy
+
+compile_ubuntu:
+    stage: build
+    script:
+        - cd build
+        - cmake ../keops
+        - make VERBOSE=1
+    tags:
+        - ubuntu16.04
+        
+test_ubuntu:
+    stage: test
+    script:
+        - cd pykeops/test
+        - python3 unit_tests_pytorch.py
+    tags:
+        - ubuntu16.04
+        
+compile_macos:
+    stage: build
+    script:
+        - cd build
+        - cmake ../keops
+        - make -j2 VERBOSE=1
+    tags:
+        - macos10-12
