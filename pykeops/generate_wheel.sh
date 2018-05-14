@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #this script creates the wheel package for pykeops. Use at your own risk.
-VERSION='0.0.2'
+VERSION='0.0.3'
 
 CURRENT_DIR=$(pwd)
 echo $CURRENT_DIR
@@ -25,6 +25,7 @@ sed -i.bak "s/???/$VERSION/" setup.py
 cp -R keops pykeops/
 
 # generate wheel
+python3 setup.py sdist --dist-dir build/dist
 python3 setup.py bdist_wheel --python-tag py3 --dist-dir build/wheel #--plat-name manylinux1_x86_64
 
 # undo ugly trick

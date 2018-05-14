@@ -17,8 +17,9 @@ setup(
     name='pykeops',
     version='???',
 
-    description='General Kernel computation with GPU',  # Required
+    description='Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows',  # Required
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='',
     project_urls={
         'Bug Reports': 'https://plmlab.math.cnrs.fr/benjamin.charlier/libkp/issues',
@@ -31,12 +32,12 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Beta',
+        'Development Status :: 4 - Beta',
 
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering',
 
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)'
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
 
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
