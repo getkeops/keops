@@ -12,6 +12,14 @@ compile_ubuntu:
     tags:
         - ubuntu16.04
         
+test_ubuntu:
+    stage: test
+    script:
+        - cd pykeops/test
+        - python3 unit_tests_pytorch.py
+    tags:
+        - ubuntu16.04
+        
 compile_macos:
     stage: build
     script:
