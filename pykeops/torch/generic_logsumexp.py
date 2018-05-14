@@ -88,7 +88,7 @@ class GenericLogSumExp(torch.autograd.Function):
         signature = ctx.signature
         sum_index = ctx.sum_index
         backend = ctx.backend
-        args = ctx.saved_variables  # Unwrap the saved variables
+        args = ctx.saved_tensors  # Unwrap the saved variables
         result = args[-1]
         args = args[:-1]
 

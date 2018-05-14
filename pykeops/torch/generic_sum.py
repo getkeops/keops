@@ -222,7 +222,7 @@ class GenericSum(torch.autograd.Function):
         formula = ctx.formula
         signature = ctx.signature
         sum_index = ctx.sum_index
-        args = ctx.saved_variables  # Unwrap the saved variables
+        args = ctx.saved_tensors  # Unwrap the saved variables
 
         # number of arguments (including parameters)
         nvars = 0;

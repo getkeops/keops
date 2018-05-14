@@ -49,10 +49,10 @@ locations_formulas = {
         routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2).sqrt(),
     ),
     "inverse_multiquadric" :  Formula( # Heavy tail kernel
-        formula_sum =  "Inv(Sqrt( Inv(G) + SqDist(X,Y) ) )",
-        routine_sum = lambda g=None,x=None,y=None, **kwargs :  torch.rsqrt( 1/g + _squared_distances(x,y)),
-        formula_log =  "(IntInv(-2) * Log( Inv(G) + SqDist(X,Y)) ) ",
-        routine_log = lambda g=None,xmy2=None, **kwargs :   -.5 * ( 1/g + xmy2).log(),
+        formula_sum =  "Inv(Sqrt( IntCst(1) + WeightedSqDist(G,X,Y) ) )",
+        routine_sum = lambda gxmy2=None, **kwargs :  torch.rsqrt( 1 + gxmy2 ),
+        formula_log =  "(IntInv(-2) * Log( IntCst(1) + WeightedSqDist(G,X,Y) ) ) ",
+        routine_log = lambda gxmy2=None, **kwargs :   -.5 * ( 1 + gxmy2 ).log(),
     ),
 }
 
