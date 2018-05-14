@@ -10,8 +10,8 @@ compile_ubuntu:
         - cmake ../keops
         - make VERBOSE=1
     tags:
-        - ubuntu16.04, miniconda
-
+        - ubuntu16.04
+        
 compile_macos:
     stage: build
     script:
@@ -19,4 +19,4 @@ compile_macos:
         - cmake ../keops
         - make -j2 VERBOSE=1
     tags:
-        - macos10-12, miniconda
+        - macos10-12
