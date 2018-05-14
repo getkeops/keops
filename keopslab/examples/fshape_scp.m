@@ -44,7 +44,7 @@ opt.kernel_sphere = 'gaussian_oriented';
         
 %prs(x,y) =
 res_cuda = shape_scp(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt);
-res_cuda_dx = shape_scp_dx(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt)
+res_cuda_dx = shape_scp_dx(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt);
 res_cuda_dxi = shape_scp_dxi(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt);
 res_cuda_df = shape_scp_df(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt);
 
@@ -98,7 +98,7 @@ res_matlab_dxi =  repmat(mXY * norm_normalsY  - (MXY .* oriented_angle_normalsXY
 
 res_matlab_df = 2 * sum( (repmat(signalX,1,ny) - repmat(signalY',nx,1)) .* (norm_normalsX * norm_normalsY') .* Kernel_geomXY .* dKernel_signalXY .* Kernel_sphereXY, 2);
 
-fprintf('Relative errror between cuda and matlab version: %g\n',abs( (res_matlab - res_cuda) ./ res_matlab ))
-fprintf('Relative errror between cuda and matlab version: %g\n',sum(sum(abs( (res_matlab_dx - res_cuda_dx) ./ res_matlab_dx ))))
-fprintf('Relative errror between cuda and matlab version: %g\n',sum(sum(abs( (res_matlab_dxi - res_cuda_dxi) ./ res_matlab_dxi ))))
-fprintf('Relative errror between cuda and matlab version: %g\n',sum(sum(abs( (res_matlab_df - res_cuda_df) ./ res_matlab_df ))))
+fprintf('Relative error between cuda and matlab version: %g\n',abs( (res_matlab - res_cuda) ./ res_matlab ))
+fprintf('Relative error between cuda and matlab version: %g\n',sum(sum(abs( (res_matlab_dx - res_cuda_dx) ./ res_matlab_dx ))))
+fprintf('Relative error between cuda and matlab version: %g\n',sum(sum(abs( (res_matlab_dxi - res_cuda_dxi) ./ res_matlab_dxi ))))
+fprintf('Relative error between cuda and matlab version: %g\n',sum(sum(abs( (res_matlab_df - res_cuda_df) ./ res_matlab_df ))))

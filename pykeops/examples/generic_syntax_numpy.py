@@ -1,7 +1,7 @@
 """
-Example of keops reduction using the generic syntax. This example corresponds
-to the one described in the documentation file generic_syntax.md . It uses
-pure numpy framework (no pytorch).
+Example of KeOps reduction using the generic syntax. This example corresponds
+to the one described in the documentation file generic_syntax.md, using
+pure numpy framework (without Pytorch).
 
 # this example computes the following tensor operation :
 # inputs :
@@ -50,7 +50,7 @@ sum_index = 0       # 0 means summation over j, 1 means over i
 start = time.time()
 c = GenericSum_np("auto",aliases,formula,signature,sum_index,p,a,x,y)
 
-print("time to compute c on cpu : ",round(time.time()-start,2)," seconds")
+print("time to compute convolution operation on cpu : ",round(time.time()-start,2)," seconds")
 
 #--------------------------------------------------------------#
 #                        Gradient                              #
@@ -74,4 +74,4 @@ sum_index = 1       # 0 means summation over j, 1 means over i
 # call to the gradient
 start = time.time()
 d = GenericSum_np("auto",aliases_grad,formula_grad,signature_grad,sum_index,p,a,x,y,e)
-print("time to compute d on cpu : ",round(time.time()-start,2)," seconds")
+print("time to compute gradient of convolution operation on cpu : ",round(time.time()-start,2)," seconds")

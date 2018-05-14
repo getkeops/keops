@@ -82,6 +82,9 @@ GpuConv2D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 
 **Using the syntax in the PyTorch bindings**
 
+The example described below is implemented in the example Python script generic_syntax_pytorch.py located in pykeops/examples. Python bindings that do not use
+PyTorch are also implemented ; see the script generic_syntax_numpy.py for the corresponding example.
+
 The Python reduction operations GenericSum.apply and GenericLogSumExp.apply require to input the defined variables and formula as character strings :
 
 ```python
@@ -123,14 +126,16 @@ grad(c,y,e)
 ```
 
 where e is a new variable giving the input of the gradient (with same size as c).
-Note that internally, KeOps infers the formula of the gradient, which will require a new compilation (performed again on-the-fly) if the user has never used it before.
+Note that internally, KeOps infers the formula of the gradient, which will require a new compilation (performed again on-the-fly) if the user has never called it before.
 
 **Using the syntax in the Matlab bindings**
+
+The example described below is implemented in the example Matlab script script_generic_syntax.m located in keopslab/examples. 
 
 The Matlab bindings provide a function Kernel which can be used to define the corresponding convolution operations. Following the previous example, one may write
 
 ```matlab
-f = Kernel('p=Pm(0,1)','a=Vy(1,3)','x=Vx(2,3)','y=Vy(3,3)','Square(p-a)*Exp(x+y)');
+f = Kernel('p=Pm(0,1)','a=Vy(1,1)','x=Vx(2,3)','y=Vy(3,3)','Square(p-a)*Exp(x+y)');
 ```
 which defines a Matlab function f which can be used to perform a sum reduction for this formula :
 
@@ -151,3 +156,5 @@ Gfy(p,a,x,y,e)
 ```
 
 where e is the input gradient array.
+
+

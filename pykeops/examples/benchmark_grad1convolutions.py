@@ -5,6 +5,13 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 import numpy as np
 import time, timeit
 
+# is there a working GPU around ?
+import GPUtil
+try:
+    gpu_available = len(GPUtil.getGPUs()) > 0
+except:
+    gpu_available = False
+
 N = 1500 ; M = 300; D = 3; E = 3
 
 # declare numpy 
@@ -53,16 +60,19 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
     print("Time for numpy:            {:.4f}s".format(speed_numpy))
 
     # cuda tiled implementation (if cuda is available)
-    try:
-        from pykeops.numpy.convolutions.radial_kernels_grad1 import radial_kernels_grad1conv
+    if gpu_available:
+        try:
+            from pykeops.numpy.convolutions.radial_kernels_grad1 import radial_kernels_grad1conv
 
-        g1 = np.zeros([N,E]).astype('float32') ; radial_kernels_grad1conv(a, x, y, b, g1, sigma, kernel=k)
-        g11 = np.zeros([N,E]).astype('float32')
-        speed_pykeops = timeit.Timer('radial_kernels_grad1conv(a, x, y, b, g11, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
-        print("Time for keops specific:   {:.4f}s".format(speed_pykeops),end="")
-        print("   (absolute error:       ", np.max(np.abs (g1 - gnumpy)), ")")
-    except:
-        pass
+            g1 = np.zeros([N,E]).astype('float32') ; radial_kernels_grad1conv(a, x, y, b, g1, sigma, kernel=k)
+            g11 = np.zeros([N,E]).astype('float32')
+            speed_pykeops = timeit.Timer('radial_kernels_grad1conv(a, x, y, b, g11, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+            print("Time for keops specific:   {:.4f}s".format(speed_pykeops),end="")
+            print("   (absolute error:       ", np.max(np.abs (g1 - gnumpy)), ")")
+        except:
+            pass
+    else:
+        print("No Gpu detetcted ; skipping 'specific' KeOps computation.")
 
     # keops + pytorch : generic tiled implementation (with cuda if available else uses cpu)
     try:
