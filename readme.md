@@ -1,4 +1,3 @@
-[![Build Status](https://ci.inria.fr/keops/buildStatus/icon?job=keops_runner_test)](https://ci.inria.fr/keops/job/keops_runner_test/)
 # KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows
 
 ```
@@ -18,10 +17,10 @@
 The KeOps library allows you to compute efficiently expressions of the form
 
 ```math
-\alpha_i = \text{Reduction}_j \big[ f(x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big]
+\alpha_i = \text{Reduction}_j \big[ f(p^1, p^2, ..., x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big]
 ```
 
-and their derivatives, where $`i`$ goes from $`1`$ to $`N`$ and $`j`$ from $`1`$ to $`M`$.
+and their derivatives with respects to all variables, where $`i`$ goes from $`1`$ to $`N`$ and $`j`$ from $`1`$ to $`M`$.
 
 The basic example is the Gaussian convolution on a non regular grid in $`\mathbb R^3`$ (aka. **RBF kernel product**). Given :
 
@@ -37,15 +36,15 @@ KeOps allows you to compute efficiently the array $`(\alpha_i)_{i=1}^N \in  \mat
 
 where $`K(x_i,y_j) = \exp(-\|x_i - y_j\|^2 / \sigma^2)`$.
 
-The library comes with various examples ranging from lddmm (non rigid deformations) to kernel density estimations (non parametric statistics).
+The library comes with various examples ranging from lddmm theory (non rigid deformations) to kernel density estimations (non parametric statistics).
 A **reference paper** will soon be put on Arxiv.
 
 ## Usage
 
 We provide bindings in python (both numpy and pytorch complient),  Matlab and R.
 
-In order to compute a fully differentiable torch Variable for the Gaussian-RBF kernel product,
-one simply needs to type:
+Using PyTorch, we can compute a fully differentiable Gaussian-RBF kernel product
+by typing:
 
 ```python
 import torch
@@ -68,7 +67,7 @@ params = {
 a = kernel_product(params, x, y, b)
 ```
 
-Here is an equivalent call using the low-level generic syntax :
+Using the low-level generic syntax, an equivalent call would be:
 
 ```python
 from pykeops.torch.generic_sum import generic_sum
@@ -82,13 +81,13 @@ gaussian_conv = generic_sum("Exp(-G*SqDist(X,Y)) * B",
 a = gaussian_conv( 1./sigma**2, x,y,b)
 ```
 
-Explanation of the generic syntax and its use is given in the file [generic_syntax.md](generic_syntax.md).
+Details about the generic syntax can be found in the file [generic_syntax.md](generic_syntax.md).
 
-We support:
+As of today, we support:
 
-- Summation and (numerically stable) LogSumExp reductions.
+- Summation and (online, numerically stable) LogSumExp reductions.
 - User-defined formulas, using a simple string format (`"gaussian(x,y) * (1+linear(u,v)**2)"`) or a custom low-level syntax (`"Exp(-G*SqDist(X,Y))"`).
-- Simple syntax for kernels on feature spaces (say, locations+orientations varifold kernels in shape analysis).
+- Simple syntax for kernels on feature spaces (say, locations+orientations varifold kernels used in shape analysis).
 - High-order derivatives with respect to all parameters and variables.
 - Non-radial kernels.
 
