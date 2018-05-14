@@ -6,26 +6,26 @@ KeOps uses a low-level syntax written in C++/Cuda to define virtually any reduct
 \alpha_i = \text{Reduction}_j \big[ f(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
 ```
 
-where "Reduction" can be the summation or LogSumExp operation. 
-Each of the variables $`x^k_{\iota_k}`$ is specified by its positional index $`k`$, its category $`\iota_k\in\{i,j,\emptyset\}`$ (meaning that the variable is indexed by i, by j, or is a fixed parameter across indices) and its dimension $`d_k`$. These three characteristics are entered as follows :
+where "Reduction" can be the Sum or the LogSumExp operation.
+Each of the variables $`x^k_{\iota_k}`$ is specified by its positional index $`k`$, its category $`\iota_k\in\{i,j,\emptyset\}`$ (meaning that the variable is indexed by i, by j, or is a fixed parameter across indices) and its dimension $`d_k`$. These three characteristics are encoded as follows :
 
-- category is entered via the keywords "Vx", "Vy", "Pm" (meaning respectively: "variable indexed by i", "variable indexed by j", and "parameter")
-- positional index $`k`$ and dimension $`d_k`$ are entered as two integer parameters put into parenthesis after the previous keyword.
+- category is given via the keywords "Vx", "Vy", "Pm" (meaning respectively: "variable indexed by i", "variable indexed by j", and "parameter")
+- positional index $`k`$ and dimension $`d_k`$ are given as two integer parameters put into parenthesis after the category-specifier keyword.
 
-Hence for example Vx(2,4) specifies a 4-dimensional variable which will be given as the third (k=2) input in the function call, and is indexed by i.
+For instance, `Vx(2,4)` specifies a variable indexed by "i", given as the third (k=2) input in the function call, and representing a vector of dimension 4.
 
 Of course, using the same index $`k`$ for two different variables is not allowed and will be rejected by the compiler.
 
-From these variables expressions, one can build the function $f$ using usual mathematical operations, such as for example
+From these "variables" symbolic placeholders, one can build the function $`f`$ using standard mathematical operations, say
 
 ```cpp
 Square(Pm(0,1)-Vy(1,1))*Exp(Vx(2,3)+Vy(3,3))
 ```
 
-in which the + and - operations denotes the usual addition of vectors, Exp is the (element-wise) exponential function, 
-and the * sign denotes scalar-vector multiplication.
+in which `+` and `-` denote the usual addition of vectors, `Exp` is the (element-wise) exponential function
+and `*` denotes scalar-vector multiplication.
 
-Here are the operations available:
+The operations available are listed below:
 
 ```cpp
 a*b : scalar-vector multiplication (if a is scalar) or vector-vector element-wise multiplication
@@ -41,8 +41,8 @@ Square(a) : alias for Pow(a,2)
 Grad(a,x,e) : gradient of a with respect to the variable x, with e as the "grad_output" to backpropagate
 ```
 
-Variables can be given aliases to get a more readable expression of the formula. For example, one may define
-p=Pm(0,1), a=Vy(1,1), x=Vx(2,3), y=Vy(3,3), and then write the previous expression as
+Variables can be given aliases, allowing us to write human-readable expressions for our formula. For example, one may define
+`p=Pm(0,1)`, `a=Vy(1,1)`, `x=Vx(2,3)`, `y=Vy(3,3)`, and write the previous computation as
 
 ```cpp
 Square(p-a)*Exp(x+y)
@@ -50,7 +50,7 @@ Square(p-a)*Exp(x+y)
 
 ## Using the syntax in C++/Cuda code
 
-The expressions and variables presented above all correspond to specific C++ types of variables defined by the KeOps library. 
+The expressions and variables presented above all correspond to specific C++ types of variables defined by the KeOps library.
 The C++ keyword "auto" allows us to define them without having to worry about explicit type naming:
 
 ```cpp

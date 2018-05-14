@@ -81,7 +81,7 @@ gaussian_conv = generic_sum("Exp(-G*SqDist(X,Y)) * B",
 a = gaussian_conv( 1./sigma**2, x,y,b)
 ```
 
-Details about the generic syntax can be found in the file [generic_syntax.md](generic_syntax.md).
+Details about the generic syntax can be found in the docfile [generic_syntax.md](generic_syntax.md).
 
 As of today, we support:
 
@@ -135,7 +135,11 @@ Three steps:
 
 N.B. Everytime you need to update or reinstall the library, make sure you replace the full directory keopslab, so that temporary files will be erased.
 
-#### known issues
+### R users
+
+To do.
+
+## Known issues
 
 First of all, make sure that you are using a recent C/C++ compiler (say, gcc/g++-7);
 otherwise, CUDA compilation may fail in unexpected ways.
@@ -164,11 +168,6 @@ try to load matlab with the following linking variable :
 ```bash
 export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6;matlab
 ```
-
-
-### R users
-
-To do.
 
 ......
 authors : [Benjamin Charlier](http://www.math.univ-montp2.fr/~charlier/), [Jean Feydy](http://www.math.ens.fr/~feydy/), [Joan Alexis Glaunès](http://www.mi.parisdescartes.fr/~glaunes/)
