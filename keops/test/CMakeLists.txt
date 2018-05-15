@@ -75,6 +75,11 @@ if(Threads_FOUND) # skip test if pthread is not found
             PRIVATE -include formula.h
         )
     
+        Add_dependencies(
+            testic
+            gtest
+        )
+
         Add_executable(
             test_conv
             $<TARGET_OBJECTS:testic>
