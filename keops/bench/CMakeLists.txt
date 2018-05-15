@@ -78,7 +78,7 @@ if(Threads_FOUND) # skip bench if pthread is not found
     #----------------------------------COMPILATIONS--------------------------------------#
     #------------------------------------------------------------------------------------#
     
-    if (USE_CUDA AND NOT USENEWSYNTAX)
+    if (USE_CUDA)
     
         CUDA_add_executable(
             bench_grad1conv
