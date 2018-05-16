@@ -12,21 +12,21 @@ def np_kernel(x, y, s, kernel) :
     if   kernel == "gaussian"  : return np.exp( -sq / (s*s))
     elif kernel == "laplacian" : return np.exp( -np.sqrt(sq) / s)
     elif kernel == "cauchy"    : return  1. / ( 1 + sq / (s*s) )
-    elif kernel == "inverse_multiquadric" : return np.sqrt(  1. / ( s*s + sq ) )
+    elif kernel == "inverse_multiquadric" : return np.sqrt(  1. / ( 1 + sq/(s*s) ) )
 
 def log_np_kernel(x, y, s, kernel) :
     sq = squared_distances(x, y)
     if   kernel == "gaussian"  : return -sq / (s*s)
     elif kernel == "laplacian" : return -np.sqrt(sq) / s
     elif kernel == "cauchy"    : return -np.log( 1 + sq / (s*s) )
-    elif kernel == "inverse_multiquadric" : return -.5*np.log( (s*s)+ sq )
+    elif kernel == "inverse_multiquadric" : return -.5*np.log(1. + sq / (s*s) )
 
 def grad_np_kernel(x, y, s, kernel) :
     sq = squared_distances(x, y)
     if   kernel == "gaussian"  : return - np.exp(-sq / (s*s)) / (s*s)
     elif kernel == "laplacian" : t = -np.sqrt(sq / (s*s)) ; return  np.exp(t) / (2*s*s*t)
     elif kernel == "cauchy"    : return -1. / (s * (sq/(s*s) + 1) )**2 
-    elif kernel == "inverse_multiquadric"    : return -.5  / ( (sq + (s*s) )**1.5)
+    elif kernel == "inverse_multiquadric"    : return -.5 / ((s**2) * ( (sq/(s*s) + 1)**1.5) )
 
 def chain_rules(q,ax,by,Aa,p):
     res = np.zeros(ax.shape).astype('float32')
