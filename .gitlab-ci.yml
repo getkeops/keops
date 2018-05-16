@@ -3,15 +3,28 @@ stages:
     - test
     - deploy
 
+# ---------------- Partial Test on macOs10.12 ----------------
+
+compile_macos:
+    stage: build
+    script:
+        - cd build
+        - cmake ../keops
+        - make -j2 VERBOSE=0
+    tags:
+        - macos10-12
+
+
+# ---------------- Partial Test on Ubuntu16.04 ----------------
 compile_ubuntu:
     stage: build
     script:
         - cd build
         - cmake ../keops
-        - make VERBOSE=1
+        - make VERBOSE=0
     tags:
         - ubuntu16.04
-        
+
 test_ubuntu:
     stage: test
     script:
@@ -19,12 +32,25 @@ test_ubuntu:
         - python3 unit_tests_pytorch.py
     tags:
         - ubuntu16.04
-        
-compile_macos:
+
+
+# ---------------- Full Test on Ubuntu16.04 ----------------
+compile_ubuntu_cuda:
     stage: build
     script:
         - cd build
         - cmake ../keops
-        - make -j2 VERBOSE=1
+        - make VERBOSE=0
     tags:
-        - macos10-12
+        - cuda
+        - ubuntu16.04
+                
+          
+test_ubuntu_cuda:
+    stage: test
+    script:
+        - cd pykeops/test
+        - python3 unit_tests_pytorch.py
+    tags:
+        - cuda
+        - ubuntu16.04
