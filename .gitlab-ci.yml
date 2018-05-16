@@ -16,21 +16,24 @@ compile_macos:
 
 
 # ---------------- Partial Test on Ubuntu16.04 ----------------
-compile_ubuntu:
+compile_ubuntu_gcc:
     stage: build
     script:
         - cd build
         - cmake ../keops
         - make VERBOSE=0
     tags:
+        - gcc
         - ubuntu16.04
 
-test_ubuntu:
+test_ubuntu_gcc:
     stage: test
     script:
         - cd pykeops/test
         - python3 unit_tests_pytorch.py
     tags:
+        - gcc
+        - python3
         - ubuntu16.04
 
 
@@ -42,7 +45,7 @@ compile_ubuntu_cuda:
         - cmake ../keops
         - make VERBOSE=0
     tags:
-        - cuda
+        - nvcc
         - ubuntu16.04
                 
           
@@ -51,6 +54,11 @@ test_ubuntu_cuda:
     script:
         - cd pykeops/test
         - python3 unit_tests_pytorch.py
+        - python3 unit_tests_numpy.py
+        - cd ../../keopslab/test
+        - matlabnd -r "r=runtests('generic_test.m');exit(sum([r(:).Failed]))"
     tags:
-        - cuda
+        - matlab
+        - nvcc
+        - python3
         - ubuntu16.04
