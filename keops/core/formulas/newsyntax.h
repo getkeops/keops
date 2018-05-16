@@ -98,4 +98,6 @@ namespace newsyntax_ops {
         return Scalprod<FA,FB>();
     }
 }
+using namespace newsyntax_ops;
+
 

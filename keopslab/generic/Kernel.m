@@ -134,7 +134,7 @@ function testbuild = buildFormula(code1, code2, filename)
     % find cmake :
     cmake = getcmake();
     % cmake command:
-    cmdline = [cmake,' ', src_dir , ' -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
+    cmdline = [cmake,' ', src_dir , ' -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     %fprintf([cmdline,'\n'])
     try
         [~,prebuild_output] = system(cmdline);

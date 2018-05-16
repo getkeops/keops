@@ -19,6 +19,8 @@
 
 #include "core/autodiff.h"
 
+#include "core/formulas/newsyntax.h"
+
 #define ATOL 1e-3
 #define RTOL 1e-4
 
@@ -55,7 +57,9 @@ void EXPECT_NONZEROS(const vector<T> X) {
 //                      The function to be benchmarked                            //
 /////////////////////////////////////////////////////////////////////////////////////
 
-#define F0 Grad<GaussKernel<_P<0,1>,_X<1,3>,_Y<2,3>,_Y<3,3>>,_X<1,3>,_X<4,3>>
+auto formula0 = Grad((Vx(1,3),Vy(2,3))*GaussKernel(Pm(0,1),Vx(1,3),Vy(2,3),Vy(3,3)),Vx(1,3),Vx(4,3));
+using F0 = decltype(formula0);
+
 using FUN0 = typename Generic<F0>::sEval;
 
 extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
