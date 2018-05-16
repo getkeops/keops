@@ -56,7 +56,7 @@ test_ubuntu_cuda:
         - python3 unit_tests_pytorch.py
         - python3 unit_tests_numpy.py
         - cd ../../keopslab/test
-        - matlabnd -r "r=runtests('generic_test.m');exit(sum([r(:).Failed]))"
+        - matlab -nodisplay -r "r=runtests('generic_test.m'),exit(sum([r(:).Failed]))"
     tags:
         - matlab
         - nvcc
