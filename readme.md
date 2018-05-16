@@ -168,7 +168,7 @@ The convention is that:
   - a (dummy) name;
   - a *category*, either `Vx` or `Vy` which indicates whether the output shall be indexed by i (with reduction over j) or vice-versa;
   - an integer dimension.
-- The strings coming thereafter specify the *input*'s types using:
+- The strings coming thereafter specify the *inputs*' types using:
   - an alphanumerical name, used in the *formula*;
   - a *category*, either `Vx` (indexation by i), `Vy` (indexation by j) or `Pm` (no indexation, the input tensor is a *vector* and not a 2D array);
   - an integer dimension.
