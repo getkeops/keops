@@ -32,8 +32,8 @@ test_ubuntu_gcc:
         - cd pykeops/test
         - python3 unit_tests_pytorch.py
     tags:
-        - python3
         - gcc
+        - python3
         - ubuntu16.04
 
 
@@ -58,7 +58,7 @@ test_ubuntu_cuda:
         - cd ../../keopslab/test
         - matlabnd -r "r=runtests('generic_test.m');exit(sum([r(:).Failed]))"
     tags:
-        - python3
         - matlab
         - nvcc
+        - python3
         - ubuntu16.04
