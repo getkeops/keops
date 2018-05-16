@@ -88,7 +88,7 @@ and the y's as *y-variables*,
 the KeOps library allows you to compute efficiently *any* expression $`a_i`$ of the form
 
 ```math
-\forall i = 1..N, ~ a_i = \text{Reduction}_{j=1..M} \big[ f(p^1, p^2, ..., x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big],
+a_i = \text{Reduction}_{j=1..M} \big[ f(p^1, p^2, ..., x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big], \qquad i=1,\cdots,N
 ```
 
 alongside its derivatives with respect to *all* the variables and parameters.
@@ -137,6 +137,7 @@ y = torch.randn(2000,3, requires_grad=True)
 b = torch.randn(2000,2, requires_grad=True)
 
 # Pre-defined kernel: using custom expressions is also possible!
+# Notice that the parameter sigma is a dim-1 vector, *not* a scalar:
 sigma  = torch.tensor([.5], requires_grad=True)
 params = {
     "id"      : Kernel("gaussian(x,y)"),
@@ -151,14 +152,14 @@ a = kernel_product(params, x, y, b)
 ### Generic formulas
 
 On top of the `kernel_product` operation (that covers
-most the typical use cases), we also provide a generic
+most of the typical use cases), we also provide a generic
 low-level interface: it allows users to define
 custom operations and reduce them using either
 a summation or a log-sum-exp
 (we plan to introduce max and min reductions in the future).
 
-The `generic_sum` and `generic_log_sumexp` operators take
-as input a list of strings specifying the computation,
+The `generic_sum` and `generic_logsumexp` operators take
+as input a list of strings specifying the computation
 and return a python function, callable on torch tensors.
 The convention is that:
 
@@ -200,69 +201,6 @@ As of today, KeOps provides two backends:
 
 We're currently investigating the possibility of developing a third backend, that would rely on a genuine CUDA library such as [Tensor Comprehensions](http://facebookresearch.github.io/TensorComprehensions/introduction.html).
 
-## Quick start
+------
 
-### Python users
-
-Requirements:
-
-- a unix-like system (typically Linux or Mac Os X)
-- Python 3 with packages  : numpy, gputil (install via pip)
-- optional : Cuda (>=9.0 is recommended), PyTorch>=0.4
-
-Two steps:
-
-1) Install pykeops package.
-
-2) Run the out-of-the-box working examples located in [`./pykeops/examples/`](./pykeops/examples/) and [`./pykeops/tutorials/`](./pykeops/tutorials/).
-
-If you are already familiar with the LDDMM theory and want to get started quickly, please check the shapes toolboxes: [plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox](https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox) and [plmlab.math.cnrs.fr/jeanfeydy/lddmm_pytorch](https://plmlab.math.cnrs.fr/jeanfeydy/lddmm_pytorch).
-
-### Matlab users
-
-Three steps:
-
-1) Download keops library and unzip it at a location of your choice. Note that temporary files will be written into keopslab/build folder, so that this directory must hhave write permissions.
-
-2) Within Matlab, run the out-of-the-box working examples located in `./matlab/examples/`
-
-3) To use keops in your own Matlab codes, set the Matlab path to include "keopslab" folder and all its subfolders.
-
-N.B. Everytime you need to update or reinstall the library, make sure you replace the full directory keopslab, so that temporary files will be erased.
-
-### R users
-
-To do.
-
-## Known issues
-
-First of all, make sure that you are using a recent C/C++ compiler (say, gcc/g++-7);
-otherwise, CUDA compilation may fail in unexpected ways.
-On Linux, this can be done simply by using [update-alternatives](https://askubuntu.com/questions/26498/choose-gcc-and-g-version).
-
-Note that you can activate a "verbose" compilation mode by adding these lines *after* your KeOps imports:
-
-```python
-import pykeops
-pykeops.common.compile_routines.verbose = True
-```
-
-Then, if you installed from source and recently updated KeOps, make sure that your
-`keops/build/` folder (the cache of already-compiled formulas) has been emptied.
-
-If an error involving libstdc++.so.6 occurs like
-
-```
-cmake: /usr/local/MATLAB/R2017b/sys/os/glnxa64/libstdc++.so.6: version `CXXABI_1.3.9' not found (required by cmake)
-cmake: /usr/local/MATLAB/R2017b/sys/os/glnxa64/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by cmake)
-cmake: /usr/local/MATLAB/R2017b/sys/os/glnxa64/libstdc++.so.6: version `GLIBCXX_3.4.21' not found (required by /usr/lib/x86_64-linux-gnu/libjsoncpp.so.1)
-```
-
-try to load matlab with the following linking variable :
-
-```bash
-export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6;matlab
-```
-
-......
-authors : [Benjamin Charlier](http://www.math.univ-montp2.fr/~charlier/), [Jean Feydy](http://www.math.ens.fr/~feydy/), [Joan Alexis Glaunès](http://www.mi.parisdescartes.fr/~glaunes/)
+Authors : [Benjamin Charlier](http://www.math.univ-montp2.fr/~charlier/), [Jean Feydy](http://www.math.ens.fr/~feydy/), [Joan Alexis Glaunès](http://www.mi.parisdescartes.fr/~glaunes/)
