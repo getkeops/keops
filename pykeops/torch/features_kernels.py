@@ -92,7 +92,7 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
     if backend == "pytorch":
         if mode == "sum":
             return _features_kernel(kernel.features, kernel.routine_sum, *full_args)
-        elif mode == "log":
+        elif mode == "lse":
             return _features_kernel_log(kernel.features, kernel.routine_log, *full_args)
         elif mode == "log_scaled":
             return _features_kernel_log_scaled(kernel.features, kernel.routine_log, *full_args)
@@ -111,7 +111,7 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
     elif backend == "matrix":
         if mode == "sum":
             return _features_kernel(kernel.features, kernel.routine_sum, *full_args, matrix=True)
-        elif mode == "log":
+        elif mode == "lse":
             return _features_kernel_log(kernel.features, kernel.routine_log, *full_args, matrix=True)
         elif mode == "log_scaled":
             return _features_kernel_log_scaled(kernel.features, kernel.routine_log, *full_args, matrix=True)
@@ -132,7 +132,7 @@ def FeaturesKP(kernel, *args, mode="sum", backend="auto", bonus_args=None):
         if mode == "sum":
             genconv = GenericSum().apply
             formula = "(" + kernel.formula_sum + " * B)"
-        elif mode == "log":
+        elif mode == "lse":
             genconv = GenericLogSumExp().apply
             formula = "(" + kernel.formula_log + " + B)"
         elif mode == "log_scaled":

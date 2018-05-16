@@ -3,6 +3,16 @@ from torch.autograd import Variable
 
 from pykeops.torch.generic_sum import GenericSum
 from pykeops.common.cudaconv import cuda_conv_generic
+from pykeops.common.parse_types import parse_types
+
+
+class generic_logsumexp :
+    def __init__(self, formula, *types) :
+        self.formula = formula
+        self.aliases, self.signature, self.sum_index = parse_types( types )
+        
+    def __call__(self, *args, backend = "auto") :
+        return GenericLogSumExp.apply(backend, self.aliases, self.formula, self.signature, self.sum_index, *args)
 
 
 # See github.com/pytorch/pytorch/pull/1016 , pytorch.org/docs/0.2.0/notes/extending.html
@@ -78,7 +88,7 @@ class GenericLogSumExp(torch.autograd.Function):
         signature = ctx.signature
         sum_index = ctx.sum_index
         backend = ctx.backend
-        args = ctx.saved_variables  # Unwrap the saved variables
+        args = ctx.saved_tensors  # Unwrap the saved variables
         result = args[-1]
         args = args[:-1]
 

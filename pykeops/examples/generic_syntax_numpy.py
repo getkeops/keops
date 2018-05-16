@@ -25,53 +25,74 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 import time
 import numpy as np
 
-from pykeops.numpy.generic_sum import GenericSum_np
+from pykeops.numpy.generic_sum import generic_sum_np
 
 
 #--------------------------------------------------------------#
 #                   Define our dataset                         #
 #--------------------------------------------------------------#
 
+N = 3000
+M = 5000
+
 p = np.random.randn(1,1).astype('float32')
-a = np.random.randn(5000,1).astype('float32')
-x = np.random.randn(3000,3).astype('float32')
-y = np.random.randn(5000,3).astype('float32')
+a = np.random.randn(M,1).astype('float32')
+x = np.random.randn(N,3).astype('float32')
+y = np.random.randn(M,3).astype('float32')
 
 
 #--------------------------------------------------------------#
 #                        Kernel                                #
 #--------------------------------------------------------------#
 
-aliases = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)"]
-formula = "Square(p-a)*Exp(x+y)"
-signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]
-sum_index = 0       # 0 means summation over j, 1 means over i 
+formula =  "Square(p-a)*Exp(x+y)"
+types   = ["output = Vx(3)",  # The result is indexed by "i", of size 3.
+                "p = Pm(1)",  # First  arg : Parameter,  of size 1 (scalar)
+				"a = Vy(1)",  # Second arg : j-variable, of size 1 (scalar)
+				"x = Vx(3)",  # Third  arg : i-variable, of size 3
+				"y = Vy(3)" ] # Fourth arg : j-variable, of size 3
+
 
 start = time.time()
-c = GenericSum_np("auto",aliases,formula,signature,sum_index,p,a,x,y)
 
-print("time to compute convolution operation on cpu : ",round(time.time()-start,2)," seconds")
+my_routine = generic_sum_np(formula, *types)
+c = my_routine(p,a,x,y, backend="auto")
+
+# N.B.: If CUDA is available + backend="auto" (or not specified) + the arrays are large enough,
+#       KeOps will load the data on the GPU + compute + unload the result back to the CPU,
+#       as it is assumed to be more efficient.
+#       By specifying backend="CPU", you can make sure that the result is computed
+#       using a simple C++ for loop
+
+print("Time to compute the convolution operation: ",round(time.time()-start,2),"s")
 
 #--------------------------------------------------------------#
 #                        Gradient                              #
 #--------------------------------------------------------------#
 
-# testing the gradient : we take the gradient with respect to y. In fact since 
-# c is not scalar valued, "gradient" means in fact the adjoint of the differential
-# operator, which is a linear operation that takes as input a new tensor with same
-# size as c and outputs a tensor with same size as y
+# Now, let's compute the gradient of "c" with respect to y. 
+# Note that since "c" is not scalar valued, its "gradient" should be understood as 
+# the adjoint of the differential operator, i.e. as the linear operator that takes as input 
+# a new tensor "e" with same size as "c" and outputs a tensor "g" with same size as "y"
+# such that for all variation δy of y :
+#    < dc.δy , e >_2  =  < g , δy >_2  =  < δy , dc*.e >_2
 
-# new variable of size 3000x3 used as input of the gradient
-e = np.random.randn(3000,3).astype('float32')
+# New variable of size Nx3 used as input of the gradient
+e = np.random.randn(N,3).astype('float32')
 
+# Thankfully, KeOps provides an autodiff engine for formulas !
+formula =  "Grad( Square(p-a)*Exp(x+y), y, e)"
 
-aliases_grad = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)","e=Vx(4,3)"]
-formula_grad = "Grad(Square(p-a)*Exp(x+y),y,e)"
-signature_grad   =   [ (3, 1), (1, 2), (1, 1), (3, 0), (3, 1) , (3, 0) ]
-sum_index = 1       # 0 means summation over j, 1 means over i 
+# However, without PyTorch's autodiff engine, we need to specify the Grad's signature by hand:
+types   = ["output = Vy(3)",  # The result is indexed by "j", of size 3... Just like "y" !
+                "p = Pm(1)",  # First  arg : Parameter,  of size 1 (scalar)
+				"a = Vy(1)",  # Second arg : j-variable, of size 1 (scalar)
+				"x = Vx(3)",  # Third  arg : i-variable, of size 3
+				"y = Vy(3)",  # Fourth arg : j-variable, of size 3
+                "e = Vx(3)" ] # Fifth  arg : i-variable, of size 3 ... Just like "c" !
 
+my_grad = generic_sum_np(formula, *types)
 
-# call to the gradient
 start = time.time()
-d = GenericSum_np("auto",aliases_grad,formula_grad,signature_grad,sum_index,p,a,x,y,e)
-print("time to compute gradient of convolution operation on cpu : ",round(time.time()-start,2)," seconds")
+d = my_grad( p,a,x,y,e )
+print("Time to compute the gradient of the convolution operation : ",round(time.time()-start,2),"s")

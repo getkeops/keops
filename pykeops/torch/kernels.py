@@ -49,10 +49,10 @@ locations_formulas = {
         routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2).sqrt(),
     ),
     "inverse_multiquadric" :  Formula( # Heavy tail kernel
-        formula_sum =  "Inv(Sqrt( Inv(G) + SqDist(X,Y) ) )",
-        routine_sum = lambda g=None,x=None,y=None, **kwargs :  torch.rsqrt( 1/g + _squared_distances(x,y)),
-        formula_log =  "(IntInv(-2) * Log( Inv(G) + SqDist(X,Y)) ) ",
-        routine_log = lambda g=None,xmy2=None, **kwargs :   -.5 * ( 1/g + xmy2).log(),
+        formula_sum =  "Inv(Sqrt( IntCst(1) + WeightedSqDist(G,X,Y) ) )",
+        routine_sum = lambda gxmy2=None, **kwargs :  torch.rsqrt( 1 + gxmy2 ),
+        formula_log =  "(IntInv(-2) * Log( IntCst(1) + WeightedSqDist(G,X,Y) ) ) ",
+        routine_log = lambda gxmy2=None, **kwargs :   -.5 * ( 1 + gxmy2 ).log(),
     ),
 }
 
@@ -193,7 +193,7 @@ def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto", bonus_args=None)
 
 
 
-def kernel_product(x,y,b, params, mode = "sum", bonus_args = None) :
+def kernel_product(params, x,y,b, *bonus_args) :
     """
     Just a simple wrapper around the KernelProduct operation,
     with a user-friendly "dict" of parameters.
@@ -203,10 +203,10 @@ def kernel_product(x,y,b, params, mode = "sum", bonus_args = None) :
     Returns: ---------------------------------------------------------------------
     - v (Variable of size (N,E)).
 
-    If mode == "sum", we have :
+    If params["mode"] == "sum" (default), we have :
         v_i =     \sum_j k(x_i, y_j) b_j
 
-    Otherwise, if mode == "log", we have :
+    Otherwise, if params["mode"] == "lse", we have :
         v_i = log \sum_j exp( c(x_i, y_j) + b_j )
     where c(x_i,y_j) = log( k(x_i,y_j) )  -- computed with improved numerical accuracy.
 
@@ -232,6 +232,7 @@ def kernel_product(x,y,b, params, mode = "sum", bonus_args = None) :
             - "gamma"   : a F-tuple of scalar Variables.
                         Typically, something along the lines of
                         "(1/sigma**2, 1/tau**2, 1/kappa**2)" ...
+            - "mode"    : one of "sum" or "lse"
                         
     Typical examples of use are given in the tutorials.
 
@@ -259,6 +260,7 @@ def kernel_product(x,y,b, params, mode = "sum", bonus_args = None) :
         (b_j is not used)
     """
     kernel  = params["id"]
+    mode    = params.get("mode",    "sum")
     backend = params.get("backend", "auto")
     # gamma should have been generated along the lines of "Variable(torch.Tensor([1/(s**2)])).type(dtype)"
     gamma   = params["gamma"]

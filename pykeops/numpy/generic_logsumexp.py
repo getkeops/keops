@@ -3,15 +3,15 @@ import numpy as np
 from pykeops.common.cudaconv import cuda_conv_generic
 from pykeops.common.parse_types import parse_types
 
-class generic_sum_np :
+class generic_logsumexp_np :
     def __init__(self, formula, *types) :
         self.formula = formula
         self.aliases, self.signature, self.sum_index = parse_types( types )
         
     def __call__(self, *args, backend = "auto") :
-        return GenericSum_np(backend, self.aliases, self.formula, self.signature, self.sum_index, *args)
+        return GenericLogSumExp_np(backend, self.aliases, self.formula, self.signature, self.sum_index, *args)
 
-def GenericSum_np(backend, aliases, formula, signature, sum_index, *args):
+def GenericLogSumExp_np(backend, aliases, formula, signature, sum_index, *args):
         # Get the size nx by looping on the signature until we've found an "x_i" ----------------
         n = -1
         for (index, sig) in enumerate(signature[1:]):  # Omit the output
@@ -25,6 +25,7 @@ def GenericSum_np(backend, aliases, formula, signature, sum_index, *args):
 
         # Actual computation --------------------------------------------------------------------
         result = np.zeros((n, signature[0][0]), dtype='float32')  # Init the output of the convolution
+        formula = "LogSumExp(" + formula + ")"
             
         cuda_conv_generic(formula, signature, result, *args,  # Inplace CUDA routine
                           backend=backend,

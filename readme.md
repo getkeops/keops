@@ -1,4 +1,3 @@
-[![Build Status](https://ci.inria.fr/keops/buildStatus/icon?job=keops_runner_test)](https://ci.inria.fr/keops/job/keops_runner_test/)
 # KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows
 
 ```
@@ -18,10 +17,10 @@
 The KeOps library allows you to compute efficiently expressions of the form
 
 ```math
-\alpha_i = \text{Reduction}_j \big[ f(x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big]
+\alpha_i = \text{Reduction}_j \big[ f(p^1, p^2, ..., x^1_i, x^2_i, ..., y^1_j, y^2_j, ...)  \big]
 ```
 
-and their derivatives, where $`i`$ goes from $`1`$ to $`N`$ and $`j`$ from $`1`$ to $`M`$.
+and their derivatives with respects to all variables, where $`i`$ goes from $`1`$ to $`N`$ and $`j`$ from $`1`$ to $`M`$.
 
 The basic example is the Gaussian convolution on a non regular grid in $`\mathbb R^3`$ (aka. **RBF kernel product**). Given :
 
@@ -37,29 +36,27 @@ KeOps allows you to compute efficiently the array $`(\alpha_i)_{i=1}^N \in  \mat
 
 where $`K(x_i,y_j) = \exp(-\|x_i - y_j\|^2 / \sigma^2)`$.
 
-The library comes with various examples ranging from lddmm (non rigid deformations) to kernel density estimations (non parametric statistics).
+The library comes with various examples ranging from lddmm theory (non rigid deformations) to kernel density estimations (non parametric statistics).
 A **reference paper** will soon be put on Arxiv.
 
 ## Usage
 
 We provide bindings in python (both numpy and pytorch complient),  Matlab and R.
 
-In order to compute a fully differentiable torch Variable for the Gaussian-RBF kernel product,
-one simply needs to type:
+Using PyTorch, we can compute a fully differentiable Gaussian-RBF kernel product
+by typing:
 
 ```python
 import torch
-from torch import Tensor
-from torch.autograd  import Variable
 from pykeops.torch.kernels import Kernel, kernel_product
 
 # Generate the data as pytorch Variables
-x = Variable(torch.randn(1000,3), requires_grad=True)
-y = Variable(torch.randn(2000,3), requires_grad=True)
-b = Variable(torch.randn(2000,2), requires_grad=True)
+x = torch.randn(1000,3, requires_grad=True)
+y = torch.randn(2000,3, requires_grad=True)
+b = torch.randn(2000,2, requires_grad=True)
 
 # Pre-defined kernel: using custom expressions is also possible!
-sigma  = Variable(Tensor([.5]))
+sigma  = torch.tensor([.5], requires_grad=True)
 params = {
     "id"      : Kernel("gaussian(x,y)"),
     "gamma"   : 1./sigma**2,
@@ -67,34 +64,31 @@ params = {
 
 # Depending on the inputs' types, 'a' is a CPU or a GPU variable.
 # It can be differentiated wrt. x, y, b and sigma.
-a = kernel_product( x, y, b, params)
+a = kernel_product(params, x, y, b)
 ```
-Here is an equivalent call using the low-level generic syntax :
+
+Using the low-level generic syntax, an equivalent call would be:
 
 ```python
-from pykeops.torch.generic_sum import GenericSum
-# First define the symbolic variables P, X, Y, B
-aliases = ["P = Pm(0,1)","X=Vx(1,3)","Y=Vy(2,3)","B=Vy(3,2)"]
-# the formula of the gaussian kernel is written explicitely:
-formula = "Exp(-P*SqDist(X,Y))*B"
-signature   =   [ (2, 0), (1, 2), (3, 0), (3, 1), (2, 1) ]
-sum_index   = 0 # the result is indexed by "i"; for "j", use "1"
-oos2 = 1./sigma**2
-a = GenericSum.apply("auto",aliases,formula,signature,sum_index,oos2,x,y,b)
+from pykeops.torch.generic_sum import generic_sum
+
+gaussian_conv = generic_sum("Exp(-G*SqDist(X,Y)) * B",
+                            "A = Vx(2)",  # The output is indexed by "i", of dim 2
+                            "G = Pm(1)",  # First arg  is a parameter,    of dim 1
+                            "X = Vx(3)",  # Second arg is indexed by "i", of dim 3
+                            "Y = Vy(3)",  # Third arg  is indexed by "j", of dim 3
+                            "B = Vy(2)" ) # Fourth arg is indexed by "j", of dim 2
+a = gaussian_conv( 1./sigma**2, x,y,b)
 ```
 
-Explanation of the generic syntax and its use is given in the file [generic_syntax.md](generic_syntax.md).
+Details about the generic syntax can be found in the docfile [generic_syntax.md](generic_syntax.md).
 
-We support:
+As of today, we support:
 
-- Summation and (numerically stable) LogSumExp reductions.
+- Summation and (online, numerically stable) LogSumExp reductions.
 - User-defined formulas, using a simple string format (`"gaussian(x,y) * (1+linear(u,v)**2)"`) or a custom low-level syntax (`"Exp(-G*SqDist(X,Y))"`).
-- Simple syntax for kernels on feature spaces (say, locations+orientations varifold kernels in shape analysis).
-- High-order derivatives.
-
-In version 0.2, we will support:
-
-- Derivatives with respect to the kernels' parameters.
+- Simple syntax for kernels on feature spaces (say, locations+orientations varifold kernels used in shape analysis).
+- High-order derivatives with respect to all parameters and variables.
 - Non-radial kernels.
 
 ## Performances
@@ -119,7 +113,7 @@ We're currently investigating the possibility of developing a third backend, tha
 Requirements:
 - a unix-like system (typically Linux or Mac Os X)
 - Python 3 with packages  : numpy, gputil (install via pip)
-- optional : Cuda, PyTorch
+- optional : Cuda (>=9.0 is recommended), PyTorch>=0.4
 
 Two steps:
 
@@ -141,9 +135,27 @@ Three steps:
 
 N.B. Everytime you need to update or reinstall the library, make sure you replace the full directory keopslab, so that temporary files will be erased.
 
-#### known issues
+### R users
 
-if an error involving libstdc++.so.6 occurs like
+To do.
+
+## Known issues
+
+First of all, make sure that you are using a recent C/C++ compiler (say, gcc/g++-7);
+otherwise, CUDA compilation may fail in unexpected ways.
+On Linux, this can be done simply by using [update-alternatives](https://askubuntu.com/questions/26498/choose-gcc-and-g-version).
+
+Note that you can activate a "verbose" compilation mode by adding these lines *after* your KeOps imports:
+
+```python
+import pykeops
+pykeops.common.compile_routines.verbose = True
+```
+
+Then, if you installed from source and recently updated KeOps, make sure that your
+`keops/build/` folder (the cache of already-compiled formulas) has been emptied.
+
+If an error involving libstdc++.so.6 occurs like
 
 ```
 cmake: /usr/local/MATLAB/R2017b/sys/os/glnxa64/libstdc++.so.6: version `CXXABI_1.3.9' not found (required by cmake)
@@ -156,10 +168,6 @@ try to load matlab with the following linking variable :
 ```bash
 export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6;matlab
 ```
-
-### R users
-
-To do.
 
 ......
 authors : [Benjamin Charlier](http://www.math.univ-montp2.fr/~charlier/), [Jean Feydy](http://www.math.ens.fr/~feydy/), [Joan Alexis Glaunès](http://www.mi.parisdescartes.fr/~glaunes/)

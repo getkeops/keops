@@ -6,26 +6,26 @@ KeOps uses a low-level syntax written in C++/Cuda to define virtually any reduct
 \alpha_i = \text{Reduction}_j \big[ f(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
 ```
 
-where "Reduction" can be the summation or LogSumExp operation. 
-Each of the variables $`x^k_{\iota_k}`$ is specified by its positional index $`k`$, its category $`\iota_k\in\{i,j,\emptyset\}`$ (meaning that the variable is indexed by i, by j, or is a fixed parameter) and its dimension $`d_k`$. These three characteristics are entered as follows :
+where "Reduction" can be the Sum or the LogSumExp operation.
+Each of the variables $`x^k_{\iota_k}`$ is specified by its positional index $`k`$, its category $`\iota_k\in\{i,j,\emptyset\}`$ (meaning that the variable is indexed by i, by j, or is a fixed parameter across indices) and its dimension $`d_k`$. These three characteristics are encoded as follows :
 
-- category is entered via the keywords "Vx", "Vy", "Pm" (meaning respectively: "variable indexed by i", "variable indexed by j", and "parameter")
-- positional index $`k`$ and dimension $`d_k`$ are entered as two integer parameters put into parenthesis after the previous keyword. 
+- category is given via the keywords "Vx", "Vy", "Pm" (meaning respectively: "variable indexed by i", "variable indexed by j", and "parameter")
+- positional index $`k`$ and dimension $`d_k`$ are given as two integer parameters put into parenthesis after the category-specifier keyword.
 
-Hence for example Vx(2,4) specifies a 4-dimensional variable which will be given as the third (k=2) input in the function call, and is indexed by i.
+For instance, `Vx(2,4)` specifies a variable indexed by "i", given as the third (k=2) input in the function call, and representing a vector of dimension 4.
 
 Of course, using the same index $`k`$ for two different variables is not allowed and will be rejected by the compiler.
 
-From these variables expressions, one can build the function $f$ using usual mathematical operations, such as for example
+From these "variables" symbolic placeholders, one can build the function $`f`$ using standard mathematical operations, say
 
 ```cpp
 Square(Pm(0,1)-Vy(1,1))*Exp(Vx(2,3)+Vy(3,3))
 ```
 
-in which the + and - operations denotes usual addition of vectors, Exp is the (element-wise) exponential function, and the
-* sign denotes scalar-vector multiplication.
+in which `+` and `-` denote the usual addition of vectors, `Exp` is the (element-wise) exponential function
+and `*` denotes scalar-vector multiplication.
 
-Here are the operations available:
+The operations available are listed below:
 
 ```cpp
 a*b : scalar-vector multiplication (if a is scalar) or vector-vector element-wise multiplication
@@ -38,19 +38,20 @@ Log(a) : natural logarithm (element-wise)
 Pow(a,N) : N-th power of a (element-wise), where N is a fixed-size integer
 Pow(a,b) : power operation - alias for Exp(b*Log(a))
 Square(a) : alias for Pow(a,2)
-Grad(a,x,e) : gradient of a with respect to x, and input e
+Grad(a,x,e) : gradient of a with respect to the variable x, with e as the "grad_output" to backpropagate
 ```
 
-Variables can be given aliases to get a more readable expression of the formula. For example, one may define 
-p=Pm(0,1), a=Vy(1,1), x=Vx(2,3), y=Vy(3,3), and then write the previous expression as 
+Variables can be given aliases, allowing us to write human-readable expressions for our formula. For example, one may define
+`p=Pm(0,1)`, `a=Vy(1,1)`, `x=Vx(2,3)`, `y=Vy(3,3)`, and write the previous computation as
 
 ```cpp
 Square(p-a)*Exp(x+y)
 ```
 
-**Using the syntax in C++/Cuda code**
+## Using the syntax in C++/Cuda code
 
-All these previous expressions and variables correspond to specific C++ types of variables defined in the KeOps library. The C++ keyword "auto" allows to define them without worrying about naming explicitely their type:
+The expressions and variables presented above all correspond to specific C++ types of variables defined by the KeOps library.
+The C++ keyword "auto" allows us to define them without having to worry about explicit type naming:
 
 ```cpp
 auto p = Pm(0,1);
@@ -59,11 +60,14 @@ auto x = Vx(2,3);
 auto y = Vy(3,3);
 auto f = Square(p-y)*Exp(x+y);
 ```
-The f variable defined here only represents the symbolic expression of the formula and as a C++ object is in fact completely useless. The only important information is precisely its type, which we get with the "decltype" keyword :
+
+Here, the `f` variable represents a symbolic computation; as a C++ object, it is completely useless.
+However, we can retrieve its *type* -- which contains all the relevant information -- using the `decltype` keyword :
 
 ```cpp
 using F = decltype(f);
 ```
+
 Finally, the convolution operation is performed using one of these calls :
 
 ```cpp
@@ -71,7 +75,8 @@ CpuConv(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 GpuConv1D(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 GpuConv2D(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 ```
-where pc, pp, pa, px, and py are pointers to their respective arrays in (Cpu) memory, pc denoting the output. These three functions correspond to computations performed repectively on the Cpu, on the Gpu with a "1D" tiling algorithm, and with a "2D" tiling algorithm. 
+
+where `pc`, `pp`, `pa`, `px`, and `py` are pointers to their respective arrays in (Cpu) memory, `pc` denoting the output. These three functions correspond to computations performed repectively on the Cpu, on the Gpu with a "1D" tiling algorithm, and with a "2D" tiling algorithm.
 
 If data arrays are directly located in Gpu memory, one can call the more direct functions :
 
@@ -80,55 +85,51 @@ GpuConv1D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 GpuConv2D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
 ```
 
-**Using the syntax in the PyTorch bindings**
+## Using the syntax in the PyTorch bindings
 
-The example described below is implemented in the example Python script generic_syntax_pytorch.py located in pykeops/examples. Python bindings that do not use
-PyTorch are also implemented ; see the script generic_syntax_numpy.py for the corresponding example.
+The example described below is implemented in the example Python script [`generic_syntax_pytorch.py`](./pykeops/examples/generic_syntax_pytorch.py) located in [`./pykeops/examples/`](./pykeops/examples/). 
+We also provide a PyTorch-free binding, showcased in [`generic_syntax_numpy.py`](./pykeops/examples/generic_syntax_numpy.py).
 
-The Python reduction operations GenericSum.apply and GenericLogSumExp.apply require to input the defined variables and formula as character strings :
+The Python helper functions `generic_sum` and `generic_logsumexp` take as input the formula and aliases `str` objects:
 
 ```python
-aliases = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)"]
+from pykeops.torch.generic_sum       import generic_sum
+from pykeops.torch.generic_logsumexp import generic_logsumexp
+
 formula = "Square(p-a)*Exp(x+y)"
+types   = ["output = Vx(3)", "p = Pm(1)","a = Vy(1)","x = Vx(3)","y = Vy(3)"]
+routine = generic_sum(formula, *types)
 ```
-Furthermore, one needs to input the following "signature" of the formula giving dimension and category (0 for i, 1 for j, 2 for $\emptyset$) for the output and each variable in the correct order (note that these could be infered from the aliases but as for now it is required, and enforce the user to be carefull with the sizes of inputs and output) :
+
+Notice that the variables' indices are inferred from their positions in the list of types:
+output first, then the arguments one after the other.
+Having defined our symbolic reduction operation, we can then apply it
+on arbitrary torch tensors, just like any other (fully-differentiable) PyTorch function:
 
 ```python
-signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]
-```
-give (dimension,category) for the output c and variables p, a, x, y
-Next one needs to specify wether reduction will be performed on the $j$ index with output variables indexed by $i$, or conversely. 
-
-```python
-sum_index   = 0		# 0 means summation over j, 1 means over i 
+c = routine(p,a,x,y)
 ```
 
-Finally one can call the reduction operation on PyTorch variables (torch.autograd.Variable) :
+In this example, `p`, `a`, `x` and `y` should correspond to tensors with compatible sizes :
 
-```python
-c = GenericSum.apply("auto",aliases,formula,signature,sum_index,p,a,x,y)
-```
+- `p` must be a vector of size 1 - with torch.Size([1]), not torch.Size([]) or torch.Size([1,1]).
+- `a` must be a "list" of 1-vectors, i.e. a variable of size n*1, where n can be any positive integer,
+- `x` must be a "list" of 3-vectors, i.e. a variable of size m*3, where m can be any positive integer,
+- `y` must be a "list" of 3-vectors, i.e. a variable of size n*3.
+- output `c` will be a "list" of 3-vectors, i.e. a variable of size m*3.
 
-where p, a, x and y correspond to PyTorch Variables with compatible sizes : in this example,
+If the required formula has not been used on the current machine since the last KeOps update,
+the previous call will first perform an on-the-fly compilation, producing (and storing) the appropriate .dll/.so file.
+Otherwise, the CUDA kernel will simply be loaded into RAM memory.
 
-- p must be a scalar variable
-- a must be a variable of size n*1, where n can be any positive integer,
-- x must be a variable of size m*3, where m can be any positive integer,
-- y must be a variable of size n*3.
-- output c will be a variable of size m*3
+**Autodiff engine.**
+KeOps has an internal automatic differentiation engine for symbolic formulas
+-- compatible with the PyTorch autograd package -- that allows
+us to "bootstrap" all the derivatives required by the user (including gradients of gradients, etc.).
+Feel free to use the output of `kernel_product`, `generic_sum` or `generic_logsumexp`
+as any other torch tensor!
 
-If this formula has never been used by the user, the previous call will first perform an on-the-fly compilation of the required dll file, prior to the computation.
-
-KeOps implements its own automatic differentiation of formulas, which allows to make it compatible with PyTorch autograd package. Given the above definition of variable c for example, one gets its gradient with respect to y with the call 
-
-```python
-grad(c,y,e)
-```
-
-where e is a new variable giving the input of the gradient (with same size as c).
-Note that internally, KeOps infers the formula of the gradient, which will require a new compilation (performed again on-the-fly) if the user has never called it before.
-
-**Using the syntax in the Matlab bindings**
+## Using the syntax in the Matlab bindings
 
 The example described below is implemented in the example Matlab script script_generic_syntax.m located in keopslab/examples. 
 
@@ -156,5 +157,3 @@ Gfy(p,a,x,y,e)
 ```
 
 where e is the input gradient array.
-
-

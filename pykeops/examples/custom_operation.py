@@ -1,6 +1,6 @@
 # In this demo, we show how to write a (completely) new formula with KeOps.
 #
-# Using the low-level "GenericSum/LogSumExp/Max" operators, one can compute
+# Using the low-level "generic_sum/logsumexp/max" operators, one can compute
 # (with autodiff, without memory overflows) any formula written as :
 #
 #      a_i = Reduction_j( f( p^1,p^2,..., x^1_i,x^2_i,..., y^1_j,y^2_j,...) )
@@ -9,12 +9,12 @@
 # Where:
 # - the p^k   's are vector parameters
 # - the x^k_i 's are vector variables, indexed by "i"
-# - the x^k_i 's are vector variables, indexed by "i"
+# - the y^k_j 's are vector variables, indexed by "j"
 # - f is an arbitrary function, defined using the "./keops/core" syntax.
 # - Reduction is one of :
-#   - Sum         (GenericSum)
-#   - log-Sum-exp (GenericLogSumExp)
-#   - Max         (GenericMax)
+#   - Sum         (generic_sum)
+#   - log-Sum-exp (generic_logsumexp)
+#   - Max         (generic_max)
 #
 #
 # In this demo file, given:
@@ -37,14 +37,12 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 
 # Standard imports
 import torch
-from torch          import Tensor
-from torch.autograd import Variable, grad
-from pykeops.torch.generic_sum       import GenericSum
-from pykeops.torch.generic_logsumexp import GenericLogSumExp
+from torch.autograd import grad
+from pykeops.torch.generic_sum       import generic_sum
+from pykeops.torch.generic_logsumexp import generic_logsumexp
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-use_cuda = torch.cuda.is_available()
-dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def my_formula(p, x, y, backend = "auto") :
@@ -68,30 +66,17 @@ def my_formula(p, x, y, backend = "auto") :
         #
         # First of all, we must define a "who's who" list of the variables used,
         # by specifying their categories, index in the arguments' list, and dimensions:
-        aliases = [ "P = Pm(0,2)",                         #  a parameter, 1st argument, dim 2. 
-                    "X = Vx(1," + str(x.shape[1]) + ") ",  # indexed by i, 2nd argument, dim D.
-                    "Y = Vy(2," + str(y.shape[1]) + ") ",  # indexed by j, 3rd argument, dim D.
-                  ]
+        types = [ "A = Vx(" + str(x.shape[1]) + ") ",  # output,       indexed by i, dim D.
+                  "P = Pm(2)",                         # 1st argument,  a parameter, dim 2. 
+                  "X = Vx(" + str(x.shape[1]) + ") ",  # 2nd argument, indexed by i, dim D.
+                  "Y = Vy(" + str(y.shape[1]) + ") "]  # 3rd argument, indexed by j, dim D.
 
         # The actual formula:
         # a_i   =   (<x_i,y_j>**2) * (       p[0]*x_i  +       p[1]*y_j )
         formula = "Pow( (X,Y) , 2) * ( (Elem(P,0) * X) + (Elem(P,1) * Y) )"
 
-        # KeOps expects from the low-level hacker an explicit "signature"
-        # that specifies the dimensions and categories of the variables
-        # used by the custom formula.
-        # (strong typing should help debugging)
-        #
-        # In practice, we provide a list of (dimension,category) integer pairs,
-        # sorted in the [ output,  arg_0,  arg_1,   ...  ] order.
-        # Here, we use:     a_i ,    p  ,   x_i ,   y_j  .
-        signature   =   [ (D, 0), (2, 2), (D, 0), (D, 1) ]
-
-        # Finally, we specify if the reduction should be done wrt. "i" or "j".
-        sum_index   = 0 # the result is indexed by "i"; for "j", use "1"
-
-        genconv = GenericSum.apply
-        a  = genconv( backend, aliases, formula, signature, sum_index, p, x, y)
+        my_routine = generic_sum(formula, *types)
+        a  = my_routine(p, x, y, backend=backend)
         return a
 
 
@@ -102,12 +87,12 @@ N = 1000 ; M = 2000 ; D = 3
 #              actually compute a gradient wrt. said variable "x".
 #              Given this info, PyTorch (+ KeOps) is smart enough to
 #              skip the computation of unneeded gradients.
-p = Variable(torch.randn(  2  ), requires_grad=True ).type(dtype)
-x = Variable(torch.randn( N,D ), requires_grad=False).type(dtype)
-y = Variable(torch.randn( M,D ), requires_grad=True ).type(dtype)
+p = torch.randn(  2  , requires_grad=True , device=device)
+x = torch.randn( N,D , requires_grad=False, device=device)
+y = torch.randn( M,D , requires_grad=True , device=device)
 
 # + some random gradient to backprop:
-g = Variable(torch.randn( N,D ), requires_grad=True ).type(dtype)
+g = torch.randn( N,D , requires_grad=True , device=device)
 
 for backend in ["pytorch", "auto"] :
     print("Backend :", backend, "============================" )

@@ -1,8 +1,17 @@
-from pykeops.common.cudaconv import cuda_conv_generic
-
 import torch
 from torch.autograd import Variable
 
+from pykeops.common.cudaconv import cuda_conv_generic
+from pykeops.common.parse_types import parse_types
+
+
+class generic_sum :
+    def __init__(self, formula, *types) :
+        self.formula = formula
+        self.aliases, self.signature, self.sum_index = parse_types( types )
+        
+    def __call__(self, *args, backend = "auto") :
+        return GenericSum.apply(backend, self.aliases, self.formula, self.signature, self.sum_index, *args)
 
 class GenericSum(torch.autograd.Function):
     """
@@ -213,7 +222,7 @@ class GenericSum(torch.autograd.Function):
         formula = ctx.formula
         signature = ctx.signature
         sum_index = ctx.sum_index
-        args = ctx.saved_variables  # Unwrap the saved variables
+        args = ctx.saved_tensors  # Unwrap the saved variables
 
         # number of arguments (including parameters)
         nvars = 0;

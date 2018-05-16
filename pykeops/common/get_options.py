@@ -71,7 +71,7 @@ class pykeops_backend():
 
         splitted_backend = re.split('_',backend)
 
-        if len(splitted_backend) == 1: # GPU_1D ot GPU_2D
+        if len(splitted_backend) == 1: # GPU_1D or GPU_2D
             grid_type = self._find_grid()
             mem_type = self._find_mem(result,variables)
             return backend+'_'+grid_type+'_'+mem_type
