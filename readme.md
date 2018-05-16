@@ -60,8 +60,7 @@ where $`K(x_i,y_j) = \exp(-\|x_i - y_j\|^2 / \sigma^2)`$.
 
 A standard way of doing so in array-centric frameworks is to
 create and store in memory the full M-by-N kernel matrix $`K_{i,j}=K(x_i,y_j)`$,
-before computing $`(a_i)`$ as the dot product between $`(K_ij)`$ and $`(b_j)`$
-
+before computing $`(a_i)`$ as the dot product between $`(K_{i,j})`$ and $`(b_j)`$.
 This is all good for many users...
 But as soon as we try to scale this method
 to large datasets or point clouds (say, M and N >= 100,000),
@@ -74,16 +73,6 @@ As we provide a simple `kernel_product` operator (+ a flexible, low-level `gener
 we hope that more and more researchers will come to enjoy the benefits of automatic differentiation.
 
 ![Benchmark](./benchmark.png)
-
-
-----
-
-{:.no_toc}
-
-- TOC
-{:toc}
-
-----
 
 
 ## What we provide
