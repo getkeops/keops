@@ -81,13 +81,14 @@ __device__ TYPE CauchyFpp(TYPE r2, TYPE ooSigma2) {
 template < typename TYPE >
 __device__ TYPE InverseMultiquadricF(TYPE r2, TYPE ooSigma2) {
     // Multiquadric radial kernel - takes as input the squared norm r2
-    return 1.0f / sqrt( 1.0f/ooSigma2 + r2);
+    return rsqrt( 1.0f/ooSigma2 + r2);
 }
 
 template < typename TYPE >
 __device__ TYPE InverseMultiquadricFp(TYPE r2, TYPE ooSigma2) {
     // Multiquadric radial kernel - 1st derivative
-    return -.5f * powf( 1.0f/ooSigma2 + r2,-1.5f);
+    TYPE temp =  rsqrt(1.0f/ooSigma2 + r2);
+    return -.5f * temp * temp * temp;
 }
 
 template < typename TYPE >
