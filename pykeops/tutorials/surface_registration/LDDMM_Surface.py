@@ -1,6 +1,13 @@
 """
-Example of diffeomorphic matching of surfaces using varifolds metrics
-We perform LDDMM matching of two meshes using the geodesic shooting algorithm
+Example of a diffeomorphic matching of surfaces using varifolds metrics:
+We perform an LDDMM matching of two meshes using the geodesic shooting algorithm.
+
+Note that this minimimalistic tutorial is intended to showcase,
+within a single python script, the KeOps syntax in a complex use-case.
+It is not meant to provide a solid basis for further extensions.
+
+Going further, you may thus be interested in the cleaner and modular
+"shape" toolbox whose address can be found in the "pykeops/pykeops.md" readme file.
 """
 import os.path
 import sys
@@ -10,7 +17,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 import torch
-from torch.autograd import Variable, grad
+from torch.autograd import grad
 
 import time
 
@@ -55,10 +62,10 @@ def GaussKernel(sigma,lib="keops"):
         def K(x,y,b):
             params = {
                 "id"      : Kernel("gaussian(x,y)"),
-                "gamma"   : Variable(CpuOrGpu(torch.FloatTensor([1/sigma**2]))),
+                "gamma"   : CpuOrGpu(torch.FloatTensor([1/sigma**2])),
                 "backend" : backend_keops
             }
-            return kernel_product( x,y,b, params)
+            return kernel_product( params,x,y,b)
         return K
 
 # define "Gaussian-CauchyBinet" kernel (K(x,y,u,v)b)_i = sum_j exp(-|xi-yj|^2) <ui,vj>^2 bj
@@ -74,10 +81,10 @@ def GaussLinKernel(sigma,lib="keops"):
         def K(x,y,u,v,b):
             params = {
                 "id"      : Kernel("gaussian(x,y) * linear(u,v)**2"),
-                "gamma"   : (Variable(CpuOrGpu(torch.FloatTensor([1/sigma**2]))),Variable(CpuOrGpu(torch.FloatTensor([0])))),
+                "gamma"   : (CpuOrGpu(torch.FloatTensor([1/sigma**2])),CpuOrGpu(torch.FloatTensor([0]))),
                 "backend" : backend_keops
             }
-            return kernel_product( (x,u),(y,v),b, params)
+            return kernel_product( params, (x,u),(y,v),b )
         return K
 
 # custom ODE solver, for ODE systems which are defined on tuples
@@ -142,8 +149,7 @@ def lossVarifoldSurf(FS,VT,FT,K):
 def RunExample(datafile=datafile,kernel_lib="keops"):
     # load dataset
     VS,FS,VT,FT = CpuOrGpu(torch.load(datafile))
-    q0 = VS = Variable(VS,requires_grad=True)
-    VT, FS, FT = Variable(VT), Variable(FS), Variable(FT)
+    q0 = VS.requires_grad_()
 
     # define data attachment and LDDMM functional
     dataloss = lossVarifoldSurf(FS,VT,FT,GaussLinKernel(sigma=20,lib=kernel_lib))
@@ -151,7 +157,7 @@ def RunExample(datafile=datafile,kernel_lib="keops"):
     loss = LDDMMloss(Kv,dataloss)
 
     # initialize momentum vectors
-    p0 = Variable(CpuOrGpu(torch.zeros(q0.shape)), requires_grad=True)
+    p0 = CpuOrGpu(torch.zeros(q0.shape)).requires_grad_()
 
     # perform optimization
     optimizer = torch.optim.LBFGS([p0])
@@ -163,15 +169,15 @@ def RunExample(datafile=datafile,kernel_lib="keops"):
         L.backward()
         return L
     optimizer.step(closure)
-    print('Optimization time : ',round(time.time()-start,2),' seconds')
+    print('Optimization time (one L-BFGS step): ',round(time.time()-start,2),' seconds')
 
     # display output    
     fig = plt.figure();
     plt.title('LDDMM matching example')  
     p,q = Shooting(p0,q0,Kv)
 
-    q0np, qnp, FSnp = q0.data.cpu().numpy(), q.data.cpu().numpy(), FS.data.cpu().numpy()
-    VTnp, FTnp = VT.data.cpu().numpy(), FT.data.cpu().numpy()    
+    q0np, qnp, FSnp = q0.detach().cpu().numpy(), q.detach().cpu().numpy(), FS.detach().cpu().numpy()
+    VTnp, FTnp = VT.detach().cpu().numpy(), FT.detach().cpu().numpy()    
     ax = Axes3D(fig)
     ax.axis('equal')
     ax.plot_trisurf(q0np[:,0],q0np[:,1],q0np[:,2],triangles=FSnp, color=(1,0,0,.5), edgecolor=(1,1,1,.3), linewidth=1)
