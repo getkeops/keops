@@ -7,8 +7,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 import torch
-from torch          import Tensor
-from torch.autograd import Variable, grad
+from torch.autograd import grad
 from torch.nn       import Module, Parameter
 from torch.nn.functional import softmax, log_softmax
 from pykeops.torch.kernels import Kernel, kernel_product
@@ -16,8 +15,7 @@ from pykeops.torch.kernels import Kernel, kernel_product
 plt.ion()
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-use_cuda = torch.cuda.is_available()
-dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 
 # Define our Dataset =====================================================================
@@ -25,7 +23,8 @@ N = 500
 t = torch.linspace(0, 2*np.pi, N+1)[:-1]
 x = torch.stack( (.5 + .4*(t/7)*t.cos(), .5+.3*t.sin()), 1)
 x = x + .02*torch.randn(x.shape)
-x = Variable(x, requires_grad=True).type(dtype)
+x = x.type(dtype)
+x.requires_grad = True
 
 
 # Display ================================================================================
@@ -34,7 +33,7 @@ res = 200
 ticks  = np.linspace( 0, 1, res+1)[:-1] + .5 / res 
 X,Y    = np.meshgrid( ticks, ticks )
 
-grid = Variable(torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype) )
+grid = torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype)
 
 # Define our Gaussian Mixture Model =======================================================
 
@@ -74,12 +73,14 @@ class GaussianMixture(Module) :
     def likelihoods( self, sample) :
         """Samples the density on a given point cloud."""
         self.update_covariances()
-        return kernel_product( sample, self.mu, self.weights(), self.params)
+        self.params["mode"] = "sum"
+        return kernel_product(self.params, sample, self.mu, self.weights())
 
     def log_likelihoods( self, sample) :
         """Log-density, sampled on a given point cloud."""
         self.update_covariances()
-        return kernel_product( sample, self.mu, self.weights_log(), self.params, mode="log")
+        self.params["mode"] = "lse"
+        return kernel_product(self.params, sample, self.mu, self.weights_log())
 
     def neglog_likelihood( self, sample ) :
         """Returns -log(likelihood(sample)) up to an additive factor."""
