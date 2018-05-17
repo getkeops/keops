@@ -35,11 +35,11 @@ mark_as_advanced(Benchmark_FOUND)
     
 if(Threads_FOUND) # skip bench if pthread is not found
 
-    # Use ExternalProject to get the missig benchmark lib
+    # Use ExternalProject to get the missing benchmark lib
     if (NOT Benchmark_FOUND)
 
         # Tell the user we are going to d/l Benchmark
-        message(STATUS "Use ExternalProject to get the missig Benchmark lib. It may increase compilation time.")
+        message(STATUS "Use ExternalProject to get the missing Benchmark lib. It may increase compilation time.")
        
         # Enable ExternalProject CMake module
         INCLUDE(ExternalProject)
@@ -48,7 +48,7 @@ if(Threads_FOUND) # skip bench if pthread is not found
         SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/third_party)
     
         ExternalProject_Add(
-            goolebenchmark
+            googlebenchmark
             GIT_REPOSITORY https://github.com/google/benchmark.git
             INSTALL_COMMAND ""
             CMAKE_ARGS "-DBENCHMARK_ENABLE_GTEST_TESTS=OFF"
@@ -58,11 +58,11 @@ if(Threads_FOUND) # skip bench if pthread is not found
             LOG_BUILD ON
         )
     
-        ExternalProject_Get_Property(goolebenchmark source_dir)
+        ExternalProject_Get_Property(googlebenchmark source_dir)
         set(Benchmark_INCLUDE_DIRS ${source_dir}/include)
         Include_Directories(${Benchmark_INCLUDE_DIRS})
     
-        ExternalProject_Get_Property(goolebenchmark binary_dir)
+        ExternalProject_Get_Property(googlebenchmark binary_dir)
         set(Benchmark_LIBRARIES ${binary_dir}/src/${CMAKE_FIND_LIBRARY_PREFIXES}benchmark.a)
         set(Benchmark_LIBRARY benchmark)
         add_library(${Benchmark_LIBRARY} UNKNOWN IMPORTED)
@@ -70,7 +70,7 @@ if(Threads_FOUND) # skip bench if pthread is not found
             IMPORTED_LOCATION ${Benchmark_LIBRARIES}
         )
     
-        add_dependencies(${Benchmark_LIBRARY} goolebenchmark)
+        add_dependencies(${Benchmark_LIBRARY} googlebenchmark)
         
     endif()
     

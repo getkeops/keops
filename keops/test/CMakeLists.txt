@@ -5,7 +5,7 @@ if(Threads_FOUND) # skip test if pthread is not found
     if(NOT GTest_FOUND)
 
         # Tell the user we are going to d/l GTest
-        message(STATUS "Use ExternalProject to get the missig GTest lib. It may increase compilation time.")
+        message(STATUS "Use ExternalProject to get the missing GTest lib. It may increase compilation time.")
 
         # Enable ExternalProject CMake module
         INCLUDE(ExternalProject)
