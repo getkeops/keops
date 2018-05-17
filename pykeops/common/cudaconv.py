@@ -173,18 +173,23 @@ def cuda_conv_generic(formula, signature, result, *args,
     """
     # Infer if we're working with numpy arrays or torch tensors from result's type :
     if hasattr(result, "ctypes"):  # Assume we're working with numpy arrays
-        from pykeops.numpy.utils import ndims, to_ctype_pointer, is_on_device
+        from pykeops.numpy.utils import ndims, to_ctype_pointer, is_on_device, dtype
         
     elif hasattr(result, "data_ptr"):  # Assume we're working with torch tensors
-        from pykeops.torch.utils import ndims, to_ctype_pointer, is_on_device
+        from pykeops.torch.utils import ndims, to_ctype_pointer, is_on_device, dtype
     else:
         raise TypeError("result should either be a numpy array or a torch tensor.")
 
     # Check that *args matches the given signature ----------------------------------------------
     variables = []
-    nx = -1
-    ny = -1
-    for (arg, sig) in zip(args, signature[1:]):  # Signature = [ Result, *Args]
+    # Float32 ? Float64 ? The inputs' dtypes should be compatible with each other, and the output:
+    out_dtype = dtype(result)
+    nx = -1 # Length of the "i" variables
+    ny = -1 # Length of the "j" variables
+    for (var_id, (arg, sig)) in enumerate(zip(args, signature[1:])):  # Signature = [ Result, *Args]
+        if not (dtype(arg) == out_dtype) : raise TypeError(
+            "The dtype of the {:d}th input does not match that of the output tensor: {:s} vs {:s}.".format(
+                var_id, str(dtype(arg)), str(out_dtype)) )
 
         if sig[1] == 0:  # If the current arg is an "X^n_i" variable
             if not (ndims(arg) == 2):          raise ValueError("Generic CUDA routines require 2D-arrays as variables.")

@@ -182,6 +182,9 @@ def assert_contiguous(x):
 def ndims(x):
     return len(x.size())
 
+def dtype(x):
+    return x.dtype
+
 def size(x):
     return x.numel()
 

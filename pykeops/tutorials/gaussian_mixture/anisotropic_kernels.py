@@ -7,29 +7,28 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 import torch
-from torch          import Tensor
-from torch.autograd import Variable, grad
+from torch.autograd import grad
 from pykeops.torch.kernels import Kernel, kernel_product
 
 plt.ion()
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
-use_cuda = torch.cuda.is_available()
-dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 
 # Define our dataset =====================================================================
 # Three points in the plane R^2
-y = Variable(torch.Tensor( [
+y = torch.tensor( [
     [ .2, .7],
     [ .5, .3],
     [ .7, .5]
-    ])).type(dtype)
+    ]).type(dtype)
 # Three scalar weights
-b = Variable(torch.Tensor([
+b = torch.tensor([
     1., 1., .5
-])).type(dtype)
-b = b.view(-1,1) # Remember : b is not a vector, but a "list of unidimensional vectors"!
+    ]).type(dtype)
+# Remember : b is not a vector, but a "list of unidimensional vectors"!
+b = b.view(-1,1) 
 
 # DISPLAY ================================================================================
 # Create a uniform grid on the unit square:
@@ -37,13 +36,16 @@ res = 100
 ticks  = np.linspace( 0, 1, res+1)[:-1] + .5 / res 
 X,Y    = np.meshgrid( ticks, ticks )
 
-x = Variable(torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype) )
+# Beware! By default, numpy uses float64 precision whereas pytorch uses float32.
+# If you don't convert explicitely your data to compatible dtypes,
+# PyTorch or Keops will throw an error.
+x = torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype)
 
 def showcase_params( params , title, ind) :
     """Samples "x -> ∑_j b_j * k_j(x - y_j)" on the grid, and displays it as a heatmap."""
-    heatmap   = kernel_product(x, y, b, params)
-    heatmap   = heatmap.view(res,res).data.cpu().numpy() # reshape as a "background" image
-
+    heatmap   = kernel_product(params, x, y, b)
+    heatmap   = heatmap.view(res,res).cpu().numpy() # reshape as a "background" image
+    
     plt.subplot(2,3,ind)
     plt.imshow(  -heatmap, interpolation='bilinear', origin='lower', 
                 vmin = -1, vmax = 1, cmap=cm.RdBu, 
@@ -78,45 +80,45 @@ params = {
 # N.B.: Beware of Shape([D]) != Shape([1,D]) confusions !
 
 # Isotropic, uniform kernel -----------------------------------------------------------
-sigma = Variable(torch.Tensor( [0.1] )).type(dtype)
+sigma = torch.tensor( [0.1] ).type(dtype)
 params["gamma"] = 1./sigma**2
 showcase_params(params, "Isotropic Uniform kernel", 1)
 
 # Isotropic, Variable kernel ----------------------------------------------------------
-sigma = Variable(torch.Tensor( [ 
+sigma = torch.tensor( [ 
     [0.15], 
     [0.07], 
     [0.3] 
-] )).type(dtype)
+    ]).type(dtype)
 params["gamma"] = 1./sigma**2
 showcase_params(params, "Isotropic Variable kernel", 4)
 
 # Diagonal, Uniform kernel ---------------------------------------------------------
-sigma = Variable(torch.Tensor( [0.2, 0.1] )).type(dtype)
+sigma = torch.tensor( [0.2, 0.1] ).type(dtype)
 params["gamma"] = 1./sigma**2
 showcase_params(params, "Diagonal Uniform kernel", 2)
 
 # Diagonal, Variable kernel --------------------------------------------------------
-sigma = Variable(torch.Tensor( [ 
+sigma = torch.tensor( [ 
     [0.2, 0.1], 
     [.05, .15], 
     [.2,  .2] 
-    ] )).type(dtype)
+    ] ).type(dtype)
 params["gamma"] = 1./sigma**2
 showcase_params(params, "Diagonal Variable kernel", 5)
 
 # Fully-Anisotropic, Uniform kernel ---------------------------------------------------
-Sigma = Variable(torch.Tensor( [1/0.2**2, 1/.25**2, 1/.25**2, 1/0.1**2 ] )).type(dtype)
+Sigma = torch.tensor( [1/0.2**2, 1/.25**2, 1/.25**2, 1/0.1**2 ] ).type(dtype)
 params["gamma"]   = Sigma
 #params["backend"] = "pytorch"
 showcase_params(params, "Fully-Anisotropic Uniform kernel", 3)
 
 # Fully-Anisotropic, Variable kernel --------------------------------------------------
-Sigma = Variable(torch.Tensor( [ 
+Sigma = torch.tensor( [ 
     [1/0.2**2, 1/.25**2, 1/.25**2, 1/0.1**2  ] ,
     [1/0.1**2,     0,       0,     1/0.12**2 ] ,
     [1/0.3**2,-1/.25**2,-1/.25**2, 1/0.12**2 ] ,
-    ] )).type(dtype)
+    ] ).type(dtype)
 params["gamma"] = Sigma
 showcase_params(params, "Fully-Anisotropic Variable kernel", 6)
 
