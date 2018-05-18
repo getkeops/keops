@@ -6,6 +6,7 @@ from os.path import expanduser
 script_folder = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + "keops"+ os.path.sep 
 build_folder = expanduser("~") + os.path.sep + ".cache" + os.path.sep + "pykeops-" + __version__+ os.path.sep 
 os.makedirs(build_folder, exist_ok=True)
+verbose = False # display output of compilations
 
 
 
