@@ -439,10 +439,95 @@ struct Log : UnaryOp<Log,F> {
 template < class FA, class FB >
 using Powf = Exp<Scal<FB,Log<FA>>>;
 
+
 //////////////////////////////////////////////////////////////
-////             SQUARE ROOT : Sqrt< F >                  ////
+////       SQUARE ROOT : Sqrt< F >                        ////
 //////////////////////////////////////////////////////////////
 
+template < class F > struct SqrtImpl; 
+template < class F > struct SqrtAlias; 
+template < class F > 
+using Sqrt = typename SqrtAlias<F>::type; 
+
+template < class F > struct RsqrtImpl; 
+template < class F > struct RsqrtAlias; 
+template < class F > 
+using Rsqrt = typename RsqrtAlias<F>::type; 
+
 template < class F >
-using Sqrt = Powf<F,IntInv<2>>;
+struct SqrtImpl : UnaryOp<SqrtImpl,F> {
+    static const int DIM = F::DIM;
+
+    static void PrintId() { cout << "Sqrt"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+        for(int k=0; k<DIM; k++) 
+            out[k] = sqrt(outF[k]);
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = DiffTF<V,Mult< Scal<IntInv<2>,Rsqrt<F>> ,GRADIN>>;
+};
+
+
+template < class F > 
+struct SqrtAlias { 
+    using type = SqrtImpl<F>; 
+}; 
+ 
+// One simple optimization : 
+ 
+// Sqrt(0) = 0 
+template < int DIM > 
+struct SqrtAlias<Zero<DIM>> { 
+    using type = Zero<DIM>; 
+}; 
+
+
+
+
+//////////////////////////////////////////////////////////////
+////       INVERSE SQUARE ROOT : Rsqrt< F >               ////
+//////////////////////////////////////////////////////////////
+
+
+template < class F >
+struct RsqrtImpl : UnaryOp<RsqrtImpl,F> {
+    static const int DIM = F::DIM;
+
+    static void PrintId() { cout << "Rsqrt"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+        for(int k=0; k<DIM; k++) 
+            if(outF[k]==0)
+		out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
+	    else
+                out[k] = 1.0/sqrt(outF[k]); // should use specific rsqrt implementation
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = DiffTF<V,Mult< Scal<IntInv<-2>,Pow<Rsqrt<F>,3>> ,GRADIN>>;
+};
+
+
+template < class F > 
+struct RsqrtAlias { 
+    using type = RsqrtImpl<F>; 
+}; 
+ 
+// One simple optimization : 
+ 
+// Rsqrt(0) = 0   // warning !! Rsqrt(0) should be Inf but we put 0 instead. This is intentional...
+template < int DIM > 
+struct RsqrtAlias<Zero<DIM>> { 
+    using type = Zero<DIM>; 
+}; 
+
+
 
