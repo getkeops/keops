@@ -109,7 +109,7 @@ if(Matlab_FOUND)
         PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
-    set(rpat LDFLAGS=\"-Wl,-rpath,\\\\\\$$ORIGIN\")
+    set(rpat LDFLAGS=\"$$LDFLAGS -Wl,-rpath,\\\\\\$$ORIGIN\")
 
     if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
         add_custom_target(
