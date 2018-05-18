@@ -44,6 +44,9 @@ def assert_contiguous(x):
 def ndims(x):
     return x.ndim
 
+def dtype(x):
+    return x.dtype
+
 def size(x):
     return x.size
 

@@ -193,7 +193,7 @@ def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto", bonus_args=None)
 
 
 
-def kernel_product(params, x,y,b, *bonus_args) :
+def kernel_product(params, x,y,b, *bonus_args, mode=None) :
     """
     Just a simple wrapper around the KernelProduct operation,
     with a user-friendly "dict" of parameters.
@@ -260,7 +260,7 @@ def kernel_product(params, x,y,b, *bonus_args) :
         (b_j is not used)
     """
     kernel  = params["id"]
-    mode    = params.get("mode",    "sum")
+    if mode is None : mode = params.get("mode", "sum")
     backend = params.get("backend", "auto")
     # gamma should have been generated along the lines of "Variable(torch.Tensor([1/(s**2)])).type(dtype)"
     gamma   = params["gamma"]
