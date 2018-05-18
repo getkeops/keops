@@ -52,7 +52,7 @@ int main() {
     // symbolic expression of the function ------------------------------------------------------
     
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
+    using F = Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>;
 
     using FUNCONVF = typename Generic<F>::sEval;
 

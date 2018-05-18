@@ -271,6 +271,102 @@ using WeightedSqNorm = CondType< SqNormIso<A,X> ,
 
 
 
+//////////////////////////////////////////////////////////////
+////           L2 NORM :   ||F||  (with gradient 0 at 0)  ////
+//////////////////////////////////////////////////////////////
+
+template < class F > struct Norm2Impl;
+template < class F > struct Norm2Alias;
+template < class F >
+using Norm2 = typename Norm2Alias<F>::type;
+
+template < class F > struct NormalizeImpl;
+template < class F > struct NormalizeAlias;
+template < class F >
+using Normalize = typename NormalizeAlias<F>::type;
+
+template < class F >
+struct Norm2Impl : UnaryOp<Norm2Impl,F> {
+    // Output dimension = 1
+    static const int DIMIN = F::DIM;
+    static const int DIM = 1;
+
+    static void PrintIdString() { cout << "Norm2"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+    		*out = 0;
+            for(int k=0; k<DIMIN; k++)
+            	*out += outF[k]*outF[k];
+            *out = sqrt(*out);
+	}
+
+    // ||F|| is scalar-valued, so that gradin is necessarily a scalar.
+    template < class V, class GRADIN >
+    using DiffT = Scal < GRADIN , typename F::template DiffT<V,Normalize<F>> >;
+};
+
+
+template < class F >
+struct Norm2Alias {
+    using type = Norm2Impl<F>;
+};
+
+// One simple optimization :
+
+// ||0|| = 0
+template < int DIM >
+struct Norm2Alias<Zero<DIM>> {
+    using type = Zero<1>;
+};
+
+
+
+
+//////////////////////////////////////////////////////////////
+////       NORMALIZE :   F / ||F||  (with value 0 at 0)   ////
+//////////////////////////////////////////////////////////////
+
+
+
+template < class F >
+struct NormalizeImpl : UnaryOp<NormalizeImpl,F> {
+    // Output dimension = input dimension
+    static const int DIMIN = F::DIM;
+    static const int DIM = DIMIN;
+
+    static void PrintIdString() { cout << "Normalize"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+    	    __TYPE__ tmp = 0;
+            for(int k=0; k<DIMIN; k++)
+            	tmp += outF[k]*outF[k];
+            if(tmp!=0)
+                tmp = 1.0/sqrt(tmp);
+            for(int k=0; k<DIMIN; k++)
+                out[k] = tmp*outF[k];            
+	}
+
+    // for derivatives we come back to the original formula (with undefined values at 0)
+    using Forg = Divide<F,Norm2<F>>;
+    template < class V, class GRADIN >
+    using DiffT = typename Forg::template DiffT<V,GRADIN>;
+};
+
+
+template < class F >
+struct NormalizeAlias {
+    using type = NormalizeImpl<F>;
+};
+
+// 0/||0|| = 0
+template < int DIM >
+struct NormalizeAlias<Zero<DIM>> {
+    using type = Zero<DIM>;
+};
+
+
+
+
 
 
 
