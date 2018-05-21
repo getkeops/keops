@@ -14,7 +14,7 @@ tensor    = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.Float
 # ================================================================================================
 
 # Parameters of our optimal transport cost -------------------------------------------------------
-a = 2 # Use a cost function  "C(x,y) = |x-y|^a"
+a = 1 # Use a cost function  "C(x,y) = |x-y|^a"
 # The Sinkhorn algorithm relies on a kernel "k(x,y) = exp(-C(x,y))" :
 kernel_names = { 1 : "laplacian" ,   # exp(-|x|),   Earth-mover distance
                  2 : "gaussian"    } # exp(-|x|^2), Quadratic "Wasserstein" distance

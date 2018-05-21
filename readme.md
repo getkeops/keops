@@ -109,11 +109,10 @@ and implement heuristics / search algorithms for optimized compilation parameter
 The library comes with various examples ranging from LDDMM theory (non rigid deformations) to kernel density estimations (non parametric statistics).
 A **reference paper** will soon be put on Arxiv.
 
-## Usage
+## <a name="usage"></a> Usage
 
 We provide bindings in [python](./pykeops/pykeops.md)
-(both [numpy](./pykeops/numpy/numpy_keops.md) and
-[pytorch](./pykeops/torch/torch_keops.md) compliant),
+(both numpy and pytorch compliant),
 [Matlab](./keopslab/keopslab.md) and R (soon).
 By clicking on those links, you will get access to
 your favorite binding's **install instructions**
@@ -129,7 +128,7 @@ by typing:
 
 ```python
 import torch
-from pykeops.torch.kernels import Kernel, kernel_product
+from pykeops.torch import Kernel, kernel_product
 
 # Generate the data as pytorch tensors
 x = torch.randn(1000,3, requires_grad=True)
@@ -177,7 +176,7 @@ Hence, using the low-level generic syntax, computing
 a Gaussian-RBF kernel product can be done with:
 
 ```python
-from pykeops.torch.generic_sum import generic_sum
+from pykeops.torch import generic_sum
 
 gaussian_conv = generic_sum("Exp(-G*SqDist(X,Y)) * B", # f(g,x,y,b) = exp( -g*|x-y|^2 ) * b
                             "A = Vx(2)",  # The output is indexed by "i", of dim 2 -> summation over "j"

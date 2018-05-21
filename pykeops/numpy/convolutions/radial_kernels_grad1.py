@@ -15,7 +15,7 @@ __radial_kernels_grad1convs = get_specific_lib('radial_kernels_grad1conv',signat
 
 # convenient python wrapper for __cuda_grad1conv it does all job with types convertation from python ones to C++ ones 
 def radial_kernels_grad1conv(alpha,x, y, beta, result, sigma, kernel = "gaussian"):
-    """
+    r"""
     Implements the operation :
 
     (alpha_i, x_i, y_j, beta_j)  ->  (\partial_{x_i} < alpha_i | ( \sum_j k(x_i,y_j) beta_j )_i >)_i ,
