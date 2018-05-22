@@ -192,7 +192,7 @@ def cuda_conv_generic(formula, signature, result, *args,
                 var_id, str(dtype(arg)), str(out_dtype)) )
 
         if sig[1] == 0:  # If the current arg is an "X^n_i" variable
-            if not (ndims(arg) == 2):          raise ValueError("Generic CUDA routines require 2D-arrays as variables.")
+            if not (ndims(arg) == 2):          raise ValueError("Generic routines require 2D-arrays as variables.")
             if nx == -1: nx = arg.shape[0]  # First "X^0_i" variable encountered
             if not (nx == arg.shape[0]): raise ValueError(
                 "CAT=0 variables (X_i) lengths are not compatible with each other.")
@@ -201,7 +201,7 @@ def cuda_conv_generic(formula, signature, result, *args,
             variables.append(arg)  # No worries : arg is in fact a pointer, so no copy is done here
 
         elif sig[1] == 1:  # If the current arg is an "Y^m_j" variable
-            if not (ndims(arg) == 2):          raise ValueError("Generic CUDA routines require 2D-arrays as variables.")
+            if not (ndims(arg) == 2):          raise ValueError("Generic routines require 2D-arrays as variables.")
             if ny == -1: ny = arg.shape[0]  # First "Y^0_j" variable encountered
             if not (ny == arg.shape[0]): raise ValueError(
                 "CAT=1 variables (Y_j) lengths are not compatible with each other.")
