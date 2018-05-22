@@ -24,12 +24,12 @@ The core of KeOps relies on a set of **C++/CUDA routines**. for which we provide
 - **Python**: [installation instructions](./pykeops/pykeops.md) and [examples](./pykeops/examples)
   + **numpy**: [doc](./pykeops/numpy/numpy_keops.md)
   + **pytorch**: [doc](./pykeops/torch/torch_keops.md) and [tutorials](./pykeops/tutorials)
-- **MATLAB**:  [installation instructions](./keopslab/keopslab.md) or [examples](./keopslab/examples)
+- **MATLAB**:  [installation instructions](./keopslab/keopslab.md) and [examples](./keopslab/examples)
 - **R**: coming soon...
 
 # Why using KeOps?
 
-## Scalable computations kernel operations
+## Scalable kernel operations
 
 The very first motivation for KeOps was to compute fast and scalable Gaussian convolutions (aka. **RBF kernel product**). Given:
 
@@ -52,7 +52,7 @@ where $`K(x_i,y_j) = \exp(-\|x_i - y_j\|^2 / \sigma^2)`$. Another useful quantit
 where $`K'(x_i,y_j) = \partial_x \exp(-\|x_i - y_j\|^2 / \sigma^2)`$. KeOps allows you to compute
 both $`a_i`$ and $`a_i'`$ efficiently with its automatic differentiation module - that is, without needing to code explicitly the formula $`K'(x_i,y_j) = -2(x_i - y_j) \exp(-\|x_i - y_j\|^2 / \sigma^2)`$.
 
-Today, KeOps can be used on a **broad class of formulas** as explained [below](#abcd).
+**Today, KeOps can be used on a broad class of formulas** as explained [below](#abcd).
 
 ## High performances
 
@@ -106,7 +106,7 @@ alongside its *derivatives* with respect to all the variables and parameters.
 As of today, we support:
 
 - Summation and (online, numerically stable) LogSumExp reductions.
-- Custom high-level (`"gaussian(x,y) * (1+linear(u,v)**2)"`) and low-level syntaxes (`"Exp(-G*SqDist(X,Y)) * ( IntCst(1) + Pow((U,V), 2) )"`) to compute general formulas.
+- Custom high-level (`"gaussian(x,y) * (1+linear(u,v)**2)"`) and low-levels (`"Exp(-G*SqDist(X,Y)) * ( IntCst(1) + Pow((U,V), 2) )"`) syntaxes to compute general formulas.
 - High-order derivatives with respect to all parameters and variables.
 - Non-radial kernels.
 
