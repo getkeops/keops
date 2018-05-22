@@ -178,9 +178,6 @@ a = gaussian_conv( 1./sigma**2, x,y,b, backend="GPU_2D")
 The list of supported *generic syntax* operations
 can be found in the docfile [generic_syntax.md](../generic_syntax.md).
 
-
-
-
 ## The convenient `kernel_product` helper - pytorch only
 
 On top of the low-level syntax, we also provide
@@ -194,6 +191,36 @@ from pykeops.torch import Kernel, kernel_product
 
 - `Kernel` is the name parser: it turns a string identifier (say, `"gaussian(x,y) * (1 + linear(u,v)**2 )"`) into a set of KeOps formulas.
 - `kernel_product` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
+
+### Gaussian convolution on a vector space
+
+Coming back to the equations presented above,
+we can compute a *fully differentiable* Gaussian-RBF kernel product
+by typing:
+
+```python
+import torch
+from pykeops.torch import Kernel, kernel_product
+
+# Generate the data as pytorch tensors
+x = torch.randn(1000,3, requires_grad=True)
+y = torch.randn(2000,3, requires_grad=True)
+b = torch.randn(2000,2, requires_grad=True)
+
+# Pre-defined kernel: using custom expressions is also possible!
+# Notice that the parameter sigma is a dim-1 vector, *not* a scalar:
+sigma  = torch.tensor([.5], requires_grad=True)
+params = {
+    "id"      : Kernel("gaussian(x,y)"),
+    "gamma"   : 1./sigma**2,
+}
+
+# Depending on the inputs' types, 'a' is a CPU or a GPU variable.
+# It can be differentiated wrt. x, y, b and sigma.
+a = kernel_product(params, x, y, b)
+```
+
+### (Gaussian * Cauchy-Binet) varifold kernel on a product space
 
 Before going into details, let's showcase a typical example: the computation of
 a **Cauchy-Binet varifold kernel** on the space of points+orientations.
