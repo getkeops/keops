@@ -1,13 +1,12 @@
 ```
-                        oooo    oooo             .oooooo.                                88
-                        `888   .8P'             d8P'  `Y8b                             .8'`8.
- oo.ooooo.  oooo    ooo  888  d8'     .ooooo.  888      888 oo.ooooo.   .oooo.o       .8'  `8.
-  888' `88b  `88.  .8'   88888[      d88' `88b 888      888  888' `88b d88(  "8      .8'    `8.
-  888   888   `88..8'    888`88b.    888ooo888 888      888  888   888 `"Y88b.      .8'      `8.
-  888   888    `888'     888  `88b.  888    .o `88b    d88'  888   888 o.  )88b    .8'        `8.
-  888bod8P'     .8'     o888o  o888o `Y8bod8P'  `Y8bood8P'   888bod8P' 8""888P'    88oooooooooo88
-  888       .o..P'                                           888
- o888o      `Y8P'                                           o888o
+ _____                 _  __     ____
+ \__  )               | |/ /    / __ \                 /\
+   / /     _ __  _   _| ' / ___| |  | |_ __  ___      /  \
+  / /     | '_ \| | | |  < / _ \ |  | | '_ \/ __|    / /\ \
+ | |__    | |_) | |_| | . \  __/ |__| | |_) \__ \   / /__\ \
+  \__ \   | .__/ \__, |_|\_\___|\____/| .__/|___/  /________\
+     ) )  | |     __/ |               | |
+    (_/   |_|    |___/                |_|
 ```
 
 # Installation
@@ -22,61 +21,109 @@
 
 ## Using pip (recommended)
 
-A good starting point is to check your python and pip path.
-In a terminal carefully verify the **consistency** of the output of the following commands `which python`,
-`python --version`, `which pip` and `pip --version`.
-Then, check that cmake is working on your system by running in a terminal:
-`cmake --version`. If needed, please run
+1. Just in case: in a terminal, verify the **consistency** of the outputs of the commands `which python`, `python --version`, `which pip` and `pip --version`.
 
-```bash
-pip install cmake
-```
+2. In a terminal
 
-to get a proper version of cmake.
-Finally, simply run
+    ```bash
+    pip install pykeops
+    ```
 
-```bash
-pip install pykeops
-```
+    Note that your compiled .dll/.so routines will be stored into the folder `~/.cache/libkeops/$version`, where ```~``` is the path to your home folder and ```$version``` is the package version number).
 
-## From source
+3. Test your installation: [as explained below](#test)
 
-Warning: we assume here that cmake is working properly.
+## From source using git
 
-- Clone the git repo.
-- Manually add the directory `/path/to/libkeops/` to you python path.
+1. Clone keops library repo at a location of your choice (here denoted as ```/path/to```)
 
-This can be done once and for all, by adding
+    ```bash
+    git clone https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops.git /path/to/libkeops
+    ```
 
-```bash
-export PYTHONPATH=$PYTHONPATH:/path/to/libkeops/
-```
+    Note that your compiled .dll/.so routines will be stored into the folder `/path/to/libkeops/build` : this directory must have **write permission**.
 
-to your `~/.bashrc`. Otherwise, you can add the following line to the
-beginning of your python scripts:
-
-```python
-import os.path
-import sys
-sys.path.append('/path/to/libkeops/')
-```
+2. Manually add the directory `/path/to/libkeops` (and **not** `/path/to/libkeops/pykeops/`) to your python path.
+    - This can be done once and for all, by adding the path to to your `~/.bashrc`. In a terminal,
+        ```bash
+        echo "export PYTHONPATH=$PYTHONPATH:/path/to/libkeops/" >> ~/.bashrc
+        ```
+    - Otherwise, you can add the following lines to the beginning of your python scripts:
+        ```python
+        import os.path
+        import sys
+        sys.path.append('/path/to/libkeops')
+        ```
 
 ## Testing your installation
 
-Go in your `/path/to/libkeops/pykeops/test/` folder and run
+# Testing everything goes fine <A name='test'></A>
 
-```bash
-python unit_tests_numpy.py
-python unit_tests_pytorch.py # if needed
-```
+1. In a python terminal,
+    ```python
+    import numpy as np
+    from pykeops.numpy import generic_sum_np
 
-Hopefully, we find a cleaner way to do this soon!
+    x = np.arange(0,3).reshape(1,-1)
+    y = np.arange(2,5).reshape(1,-1)
+    b = np.arange(3,0,-1).reshape(1,-1)
+    p = np.array([0.4]).reshape(1,-1)
+
+    my_conv = generic_sum_np("Exp(-p*SqNorm2(x-y))*b",
+                             "output = Vx(3)",
+                                  "p = Pm(1)",
+                                  "x = Vx(3)",
+                                  "y = Vy(3)",
+                                  "b = Vy(3)" )
+    print(my_conv(p.astype('float32'),x.astype('float32'),y.astype('float32'),b.astype('float32')))
+    ```
+
+    should return
+
+    ```python
+    [[ 0.02468924  0.01645949  0.00822975]]
+    ```
+
+2. If you use pytorch, the following code:
+
+    ```python
+    import torch
+    from pykeops.torch import generic_sum
+
+    x = torch.arange(0,3).view(1,-1)
+    y = torch.arange(2,5).view(1,-1)
+    b = torch.arange(3,0,-1).view(1,-1)
+    p = torch.tensor([.4])
+
+    my_conv = generic_sum("Exp(-p*SqNorm2(x-y))*b",
+                          "output = Vx(3)",
+                               "p = Pm(1)",
+                               "x = Vx(3)",
+                               "y = Vy(3)",
+                               "b = Vy(3)" )
+
+    print(my_conv(p,x,y,b))
+    ```
+
+    should return
+
+    ```python
+    tensor(1.00000e-02 *
+          [[ 2.4689,  1.6459,  0.8230]])
+    ```
+
+3. (Optional:) Go in your `/path/to/libkeops/pykeops/test/` folder and run
+
+    ```bash
+    python unit_tests_numpy.py
+    python unit_tests_pytorch.py # if needed
+    ```
+
+    Hopefully, we find a cleaner way to do this soon!
 
 # Usage
 
-Having assumed that the reader is already familiar with
-**the syntax showcased in the [readme/usage](../readme.md#usage) section**,
-we now fully document the public interface of the pykeops module.
+We now fully document the public interface of the pykeops module.
 A set of minimal [examples](./examples/) and more complex [tutorials](./tutorials/)
 are provided in the pykeops folder. Feel free to run them and
 inspect their codes!
@@ -178,9 +225,6 @@ a = gaussian_conv( 1./sigma**2, x,y,b, backend="GPU_2D")
 The list of supported *generic syntax* operations
 can be found in the docfile [generic_syntax.md](../generic_syntax.md).
 
-
-
-
 ## The convenient `kernel_product` helper - pytorch only
 
 On top of the low-level syntax, we also provide
@@ -194,6 +238,36 @@ from pykeops.torch import Kernel, kernel_product
 
 - `Kernel` is the name parser: it turns a string identifier (say, `"gaussian(x,y) * (1 + linear(u,v)**2 )"`) into a set of KeOps formulas.
 - `kernel_product` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
+
+### Gaussian convolution on a vector space
+
+Coming back to the equations presented above,
+we can compute a *fully differentiable* Gaussian-RBF kernel product
+by typing:
+
+```python
+import torch
+from pykeops.torch import Kernel, kernel_product
+
+# Generate the data as pytorch tensors
+x = torch.randn(1000,3, requires_grad=True)
+y = torch.randn(2000,3, requires_grad=True)
+b = torch.randn(2000,2, requires_grad=True)
+
+# Pre-defined kernel: using custom expressions is also possible!
+# Notice that the parameter sigma is a dim-1 vector, *not* a scalar:
+sigma  = torch.tensor([.5], requires_grad=True)
+params = {
+    "id"      : Kernel("gaussian(x,y)"),
+    "gamma"   : 1./sigma**2,
+}
+
+# Depending on the inputs' types, 'a' is a CPU or a GPU variable.
+# It can be differentiated wrt. x, y, b and sigma.
+a = kernel_product(params, x, y, b)
+```
+
+### (Gaussian * Cauchy-Binet) varifold kernel on a product space
 
 Before going into details, let's showcase a typical example: the computation of
 a **Cauchy-Binet varifold kernel** on the space of points+orientations.
