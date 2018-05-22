@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 import torch
 from torch          import Tensor
 from torch.autograd import grad
-from pykeops.torch.kernels import Kernel, kernel_product
+from pykeops.torch  import Kernel, kernel_product
 
 #--------------------------------------------------------------#
 #                   Convenience functions                      #

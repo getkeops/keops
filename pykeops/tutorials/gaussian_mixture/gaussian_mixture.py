@@ -10,7 +10,7 @@ import torch
 from torch.autograd import grad
 from torch.nn       import Module, Parameter
 from torch.nn.functional import softmax, log_softmax
-from pykeops.torch.kernels import Kernel, kernel_product
+from pykeops.torch  import Kernel, kernel_product
 
 plt.ion()
 
@@ -123,7 +123,7 @@ class GaussianMixture(Module) :
 
 # Optimization ================================================================================
 
-plt.figure()
+plt.figure(figsize=(10,10))
 
 model     = GaussianMixture(10, sparsity=200)
 optimizer = torch.optim.Adam( model.parameters() )
@@ -141,6 +141,10 @@ for it in range(10001) :
         plt.title("Density, iteration "+str(it), fontsize=20)
         plt.pause(.2)
         
+import os
+fname = "output/gaussian_mixture.png"
+os.makedirs(os.path.dirname(fname), exist_ok=True)
+plt.savefig( fname, bbox_inches='tight' )
 
 print("Done. Close the figure to exit.")
 plt.show(block=True)

@@ -26,7 +26,7 @@ sigma = np.array([2.4]).astype('float32')
 try:
     import torch
     from pykeops.torch.utils import torch_kernel
-    from pykeops.torch.kernels import Kernel, kernel_product
+    from pykeops.torch import Kernel, kernel_product
 
     use_cuda = torch.cuda.is_available()
     dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor

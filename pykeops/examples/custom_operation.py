@@ -38,8 +38,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 # Standard imports
 import torch
 from torch.autograd import grad
-from pykeops.torch.generic_sum       import generic_sum
-from pykeops.torch.generic_logsumexp import generic_logsumexp
+from pykeops.torch  import generic_sum, generic_logsumexp
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

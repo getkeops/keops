@@ -25,7 +25,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 import time
 import numpy as np
 
-from pykeops.numpy.generic_sum import generic_sum_np
+from pykeops.numpy import generic_sum_np
 
 
 #--------------------------------------------------------------#

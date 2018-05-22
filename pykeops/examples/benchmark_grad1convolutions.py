@@ -26,7 +26,7 @@ sigma = np.array([0.4]).astype('float32')
 try:
     import torch
     from torch.autograd import Variable, grad
-    from pykeops.torch.kernels import Kernel, kernel_product
+    from pykeops.torch import Kernel, kernel_product
 
     use_cuda = torch.cuda.is_available()
     dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
@@ -46,7 +46,8 @@ except:
 
 enable_GC = False # Garbage collection?
 GC = 'gc.enable();' if enable_GC else 'pass;'
-LOOPS = 1
+LOOPS = 100
+print("Times to compute ", LOOPS, " grad-convolutions of size {}x{}:".format(N,M))
 print("\n",end="")
 
 for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
@@ -85,9 +86,9 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
             "backend" : "auto",
         }
 
-        aKxy_b = torch.dot(ac.view(-1), kernel_product( xc,yc,bc, params, mode=mode).view(-1))
+        aKxy_b = torch.dot(ac.view(-1), kernel_product( params, xc,yc,bc, mode=mode).view(-1))
         g3   = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
-        speed_keops = timeit.Timer('g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product( xc,yc,bc, params, mode=mode).view(-1)), xc, create_graph=False)[0]', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+        speed_keops = timeit.Timer('g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product( params, xc,yc,bc, mode=mode).view(-1)), xc, create_graph=False)[0]', GC, globals = globals(), timer = time.time).timeit(LOOPS)
         print("Time for Keops+pytorch:    {:.4f}s".format(speed_keops),end="")
         print("   (absolute error:       ", np.max(np.abs(g3.data.numpy() - gnumpy)), ")")
     except:
@@ -104,9 +105,9 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
             "backend" : "pytorch",
         }
 
-        aKxy_b = torch.dot(ac.view(-1), kernel_product( xc,yc,bc, params, mode=mode).view(-1))
+        aKxy_b = torch.dot(ac.view(-1), kernel_product( params, xc,yc,bc, mode=mode).view(-1))
         g3   = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
-        speed_keops = timeit.Timer('g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product( xc,yc,bc, params, mode=mode).view(-1)), xc, create_graph=False)[0]', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+        speed_keops = timeit.Timer('g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product( params, xc,yc,bc, mode=mode).view(-1)), xc, create_graph=False)[0]', GC, globals = globals(), timer = time.time).timeit(LOOPS)
         print("Time for vanilla pytorch:  {:.4f}s".format(speed_keops),end="")
         print("   (absolute error:       ", np.max(np.abs(g3.data.numpy() - gnumpy)), ")")
     except:

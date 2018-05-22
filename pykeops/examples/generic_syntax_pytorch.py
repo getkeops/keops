@@ -25,7 +25,7 @@ import time
 import torch
 from torch.autograd import grad
 
-from pykeops.torch.generic_sum import generic_sum
+from pykeops.torch  import generic_sum
 
 #--------------------------------------------------------------#
 #   Please use the "verbose" compilation mode for debugging    #

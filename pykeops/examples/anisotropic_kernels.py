@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 import torch
 from torch.autograd import grad
-from pykeops.torch.kernels import Kernel, kernel_product
+from pykeops.torch  import Kernel, kernel_product
 
 plt.ion()
 
@@ -122,7 +122,14 @@ Sigma = torch.tensor( [
 params["gamma"] = Sigma
 showcase_params(params, "Fully-Anisotropic Variable kernel", 6)
 
-plt.gcf().set_size_inches(15,10)
+plt.gcf().set_size_inches(18,12)
+
+import os
+fname = "output/anisotropic_kernels.png"
+os.makedirs(os.path.dirname(fname), exist_ok=True)
+plt.savefig( fname, bbox_inches='tight' )
+
 
 print("Done. Close the figure to exit.")
 plt.show(block=True)
+

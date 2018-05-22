@@ -21,7 +21,7 @@ from torch.autograd import grad
 
 import time
 
-from pykeops.torch.kernels import Kernel, kernel_product
+from pykeops.torch import Kernel, kernel_product
 
 use_cuda = torch.cuda.is_available()
 
@@ -191,6 +191,12 @@ if use_cuda:
         RunExample(datafile,kernel_lib)
 else:
     RunExample(datafile,kernel_lib)
+
+import os
+fname = "output/LDDMM_surface.png"
+os.makedirs(os.path.dirname(fname), exist_ok=True)
+plt.savefig( fname, bbox_inches='tight' )
+
 
 print("Done. Close the figure to exit.")
 plt.show(block=True)

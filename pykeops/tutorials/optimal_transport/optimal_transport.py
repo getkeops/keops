@@ -1,6 +1,6 @@
 import torch
-from torch.autograd        import grad
-from pykeops.torch.kernels import Kernel, kernel_product
+from torch.autograd import grad
+from pykeops.torch  import Kernel, kernel_product
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -156,5 +156,11 @@ X,Y   = np.meshgrid( np.linspace(0, 1, grad_plot.shape[0]+1)[:-1] + .5/(sample*g
 scale = (grad_src[:,:,1]**2 + grad_src[:,:,0]**2).sqrt().mean().item()
 plt.quiver( X, Y, grad_plot[:,:,1], grad_plot[:,:,0], 
             scale = .25*scale, scale_units="dots", color="#438B2A")
+
+
+import os
+fname = "output/optimal_transport.png"
+os.makedirs(os.path.dirname(fname), exist_ok=True)
+plt.savefig( fname, bbox_inches='tight' )
 
 plt.show()
