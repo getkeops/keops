@@ -95,7 +95,7 @@ Do not worry: this work is done **once and for all** as KeOps stores the resulti
 We provide a set of **four** low-level generic operations
 (two for numpy and two for pytorch), that allow users to
 **define and reduce** custom operations using either
-a **summation** or a **log-sum-exp**:
+a **summation** or a **log-sum-exp** reduction:
 
 ```python
 from pykeops.numpy import generic_sum_np, generic_logsumexp_np
@@ -111,7 +111,7 @@ from pykeops.numpy import generic_sum_np as gensum
 
 ### Basic usage
 
-These operators:
+These four operators:
 
 - take as input a list of **strings** specifying the computation;
 - return a python **function**, callable on torch tensors or numpy arrays.
@@ -139,7 +139,7 @@ Supported values are:
 - `"CPU"`, run a [for loop](../keops/core/CpuConv.cpp) on a single CPU core. Very inefficient!
 - `"GPU_1D"`, use a [simple multithreading scheme](../keops/core/GpuConv1D.cu) on the GPU - basically, one thread per value of the output index.
 - `"GPU_2D"`, use a more sophisticated [2D parallelization scheme](../keops/core/GpuConv2D.cu) on the GPU.
-- `"GPU"`, let KeOps decide which one of `GPU_1D` or `GPU_2D` will run faster on the given input.
+- `"GPU"`, let KeOps decide which one of `GPU_1D` or `GPU_2D` will run faster on the given input. Note that if your data is already located on the GPU, KeOps won't have to load it "by hand".
 
 **N.B.:** Going forward, we will put as much effort as we can in the backend choice
 and the compilation options.
@@ -156,10 +156,11 @@ from pykeops.torch.generic_sum import generic_sum
 
 # Notice that the parameter sigma is a dim-1 vector, *not* a scalar:
 sigma  = torch.tensor([.5], requires_grad=True)
-# Generate the data as pytorch tensors
-x = torch.randn(1000,3, requires_grad=True) # X and Y are point clouds
-y = torch.randn(2000,3, requires_grad=True) # in a 3-dimensional space
-b = torch.randn(2000,2, requires_grad=True) # B is a collection of 2D vectors.
+# Generate the data as pytorch tensors.
+# If you intend to compute gradients, don't forget the `requires_grad` flag!
+x = torch.randn(1000,3, requires_grad=True) # `x` and `y` are point clouds
+y = torch.randn(2000,3, requires_grad=True) #     in a 3-dimensional space.
+b = torch.randn(2000,2, requires_grad=True) # `b` is a collection of 2D vectors.
 
 gaussian_conv = generic_sum("Exp(-G*SqDist(X,Y)) * B", # f(g,x,y,b) = exp( -g*|x-y|^2 ) * b
                             "A = Vx(2)",  # The output is indexed by "i", of dim 2 -> summation over "j"
@@ -168,7 +169,7 @@ gaussian_conv = generic_sum("Exp(-G*SqDist(X,Y)) * B", # f(g,x,y,b) = exp( -g*|x
                             "Y = Vy(3)",  # Third arg  is indexed by "j", of dim 3
                             "B = Vy(2)" ) # Fourth arg is indexed by "j", of dim 2
 
-# By explicitely specifying the backend, you can try to reduce the computation time
+# By explicitely specifying the backend, you can try to optimize your pipeline:
 a = gaussian_conv( 1./sigma**2, x,y,b) # "auto" backend
 a = gaussian_conv( 1./sigma**2, x,y,b, backend="CPU")
 a = gaussian_conv( 1./sigma**2, x,y,b, backend="GPU_2D")
@@ -177,18 +178,80 @@ a = gaussian_conv( 1./sigma**2, x,y,b, backend="GPU_2D")
 The list of supported *generic syntax* operations
 can be found in the docfile [generic_syntax.md](../generic_syntax.md).
 
+
+
+
 ## The convenient `kernel_product` helper - pytorch only
 
 On top of the low-level syntax, we also provide
-a **kernel name parser** that can help you to quickly define and work with
-common kernel products used in shape analysis.
+a **kernel name parser** that lets you quickly define and work with
+most of the kernel products used in shape analysis.
 This high-level interface relies on two operators:
 
 ```python
 from pykeops.torch import Kernel, kernel_product
 ```
 
-- `Kernel` is the 
+- `Kernel` is the name parser: it turns a string identifier (say, `"gaussian(x,y) * (1 + linear(u,v)**2 )"`) into a set of KeOps formulas.
+- `kernel_product` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
+
+Before going into details, let's showcase a typical example: the computation of
+a **Cauchy-Binet varifold kernel** on the space of points+orientations.
+Given:
+
+- a set $`(x_i)`$ of target points in $`\mathbb{R}^3`$;
+- a set $`(u_i)`$ of target orientations in $`\mathbb{S}^1`$, encoded as unit-norm vectors in $`\mathbb{R}^3`$;
+- a set $`(y_j)`$ of source points in $`\mathbb{R}^3`$;
+- a set $`(v_j)`$ of source orientations in $`\mathbb{S}^1`$, encoded as unit-norm vectors in $`\mathbb{R}^3`$;
+- a set $`(b_j)`$ of source signal values in $`\mathbb{R}^4`$;
+
+we will compute the "target" signal values
+
+```math
+ a_i ~=~  \sum_j K(\,x_i,u_i\,;\,y_j,v_j\,) b_j ~=~ \sum_j k(x_i,y_j)\cdot \langle u_i, v_j\rangle^2 \cdot b_j,
+```
+
+where $`k(x_i,y_j) = \exp(-\|x_i - y_j\|^2 / \sigma^2)`$.
+
+```python
+import torch
+import torch.nn.functional as F
+from pykeops.torch import Kernel, kernel_product
+
+N, M = 1000, 2000 # number of "i" and "j" indices
+# Generate the data as pytorch tensors.
+
+# First, the "i" variables:
+x = torch.randn(N,3) # Positions,    in R^3
+u = torch.randn(N,2) # Orientations, in R^2 (for example)
+
+# Then, the "j" ones:
+y = torch.randn(M,3) # Positions,    in R^3
+v = torch.randn(M,2) # Orientations, in R^2
+
+# The signal b_j, supported by the (y_j,v_j)'s
+b = torch.randn(M,4)
+
+# Pre-defined kernel: using custom expressions is also possible!
+# Notice that the parameter sigma is a dim-1 vector, *not* a scalar:
+sigma  = torch.tensor([.5])
+params = {
+    # The "id" is defined using a set of special variable names and functions
+    "id"      : Kernel("gaussian(x,y) * (linear(u,v)**2) "),
+    # gaussian(x,y) requires a standard deviation; linear(u,v) requires no parameter
+    "gamma"   : ( 1./sigma**2 , None ) ,
+}
+
+# Don't forget to normalize the orientations:
+u = F.normalize(u, p=2, dim=1)
+v = F.normalize(v, p=2, dim=1)
+
+# We're good to go! Notice how we grouped together the "i" and "j" features:
+a = kernel_product(params, (x,u), (y,v), b)
+```
+
+### The `Kernel` parser
+
 
 
 # Troubleshooting
