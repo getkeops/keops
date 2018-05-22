@@ -12,4 +12,4 @@
 For a full documentation you may read the wiki:
 
 - [Installation](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Installation)
-- [documentation](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Documentation)
+- [Documentation](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Documentation)
