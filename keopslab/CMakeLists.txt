@@ -18,11 +18,10 @@ Include_Directories(${SOURCE_FILES})
 
 include(${PROJECT_SRC}/headers.cmake)
 
+
 #------------------------------------------------------------------------------------#
 #----------------------------------COMPILATIONS--------------------------------------#
 #------------------------------------------------------------------------------------#
-
-
 
 
 set(MATLAB_ADDITIONAL_VERSIONS
@@ -109,12 +108,12 @@ if(Matlab_FOUND)
         PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
-	if(APPLE)
-		set(rpat LDBUNDLE=\"-bundle -Wl,-rpath,@loader_path/.\")
-	else()
-    	set(rpat LDFLAGS=\"-Wl,-rpath,\\\\\\$$ORIGIN\")
-	endif()
-	
+    if(APPLE)
+        set(rpat LDBUNDLE=\"-bundle -Wl,-rpath,@loader_path/.\")
+    else()
+        set(rpat LDFLAGS=\"-Wl,-rpath,\\\\\\$$ORIGIN\")
+    endif()
+
     if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
         add_custom_target(
             mex_cpp
@@ -153,9 +152,6 @@ if(Matlab_FOUND)
             message(FATAL_ERROR "Set KERNEL_GEOM type to gaussian or cauchy.")
         endif()
         add_definitions(-DKERNEL_GEOM_TYPE=${KERNEL_GEOM_TYPE})
-
-				# enlevé la ligne suivante car ça crée une erreur sur une de mes machines ("message called with incorrect number of arguments")
-        #message(${KERNEL_SIG})
 
         if(NOT KERNEL_SIG OR (KERNEL_SIG STREQUAL gaussian))
             SET(KERNEL_SIG_TYPE 0)
@@ -226,7 +222,7 @@ if(Matlab_FOUND)
                 LINKER_LANGUAGE CXX
                 EXCLUDE_FROM_ALL TRUE
                 )
-    endforeach()
+        endforeach()
 
     endif()
 else()

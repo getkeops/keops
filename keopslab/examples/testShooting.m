@@ -20,11 +20,11 @@ sigma = .5;
 oos2 = 1/sigma^2;
 [d,n] = size(q0);
 
-K = Kernel('c=Pm(0,1)','x=Vx(1,2)','y=Vy(2,2)','b=Vy(3,2)','DivFreeGaussKernel(c,x,y,b)');
-%K = Kernel('c=Pm(0,1)','x=Vx(1,2)','y=Vy(2,2)','b=Vy(3,2)','CurlFreeGaussKernel(c,x,y,b)');
-%K = Kernel('c=Pm(0,1)','x=Vx(1,2)','y=Vy(2,2)','b=Vy(3,2)','GaussKernel(c,x,y,b)');
+K = Kernel('c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)','DivFreeGaussKernel(c,x,y,b)');
+%K = Kernel('c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)','CurlFreeGaussKernel(c,x,y,b)');
+%K = Kernel('c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)','GaussKernel(c,x,y,b)');
 
-GK = GradKernel(K,'x','e=Vx(4,2)');
+GK = GradKernel(K,'x','e=Vx(2)');
 
 % Hamiltonian dynamic
     function dotpq = GeodEq(t,pq)

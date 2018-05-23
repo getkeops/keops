@@ -21,7 +21,7 @@ p = .25;
 %-----------------------------------------%
 
 % compile the cpp/cuda routine
-F = Kernel('x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)','a=Vx(3,3)', 'p=Pm(4,1)',...
+F = Kernel('x=Vx(3)','y=Vy(3)','b=Vy(3)','a=Vx(3)', 'p=Pm(1)',...
            'Grad(Exp(-p*SqNorm2(x-y))*b,x,a)');
 
 % compute the operation
@@ -49,8 +49,8 @@ x8 = ones(3,Nx); x9 = ones(3,Nx);
 %           Autodiff with KeOps           %
 %-----------------------------------------%
 
-F = Kernel('x0=Vx(0,3)','x1=Vx(1,3)','x2=Vx(2,3)','x3=Vx(3,3)',...
-    'y4=Vy(4,3)','y5=Vy(5,3)','y6=Vy(6,3)','y7=Vy(7,3)','x8=Vx(8,3)','x9=Vx(9,3)',...
+F = Kernel('x0=Vx(3)','x1=Vx(3)','x2=Vx(3)','x3=Vx(3)',...
+    'y4=Vy(3)','y5=Vy(3)','y6=Vy(3)','y7=Vy(3)','x8=Vx(3)','x9=Vx(3)',...
     'Grad(x0+x1+x2+x3+y4+y5+y6+y7,x0,x8)');
 tic
 g = F(x0,x1,x2,x3,y4,y5,y6,y7,x8,x9);

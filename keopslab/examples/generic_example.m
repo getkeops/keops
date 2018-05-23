@@ -19,7 +19,7 @@ p = .25;
 %           Kernel with KeOps             %
 %-----------------------------------------%
 
-F = Kernel('x=Vx(0,3)','y=Vy(1,3)','u=Vx(2,4)','v=Vy(3,4)','b=Vy(4,3)', 'p=Pm(5,1)',...
+F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)',...
            'Square((u,v))*Exp(-p*SqNorm2(x-y))*b');
 
 tic
