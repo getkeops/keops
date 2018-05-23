@@ -38,3 +38,5 @@
 /*.egg
 
 keopslab/generic/pathtocmake
+
+keopslab/common/pathtocmake

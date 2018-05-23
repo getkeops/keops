@@ -21,8 +21,8 @@ b = randn(2,Ny);
 % note here that the parameter w is a vector
 
 % the two following formulas are equivalent
-%F = Kernel('c=Pm(0,4)','w=Pm(1,4)','x=Vx(2,3)','y=Vy(3,3)','b=Vy(4,2)','(w,Exp(-SqDist(x,y)*c))*b');
-F = Kernel('c=Pm(4)','w=Pm(4)','x=Vx(3)','y=Vy(3)','b=Vy(2)','SumGaussKernel(c,w,x,y,b)');
+%F = Kernel('(w,Exp(-SqDist(x,y)*c))*b','c=Pm(0,4)','w=Pm(1,4)','x=Vx(2,3)','y=Vy(3,3)','b=Vy(4,2)');
+F = Kernel('SumGaussKernel(c,w,x,y,b)','c=Pm(4)','w=Pm(4)','x=Vx(3)','y=Vy(3)','b=Vy(2)');
 f = F(c,w,x,y,b);
 
 % display part of the result

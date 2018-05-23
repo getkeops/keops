@@ -20,9 +20,9 @@ sigma = .5;
 oos2 = 1/sigma^2;
 [d,n] = size(q0);
 
-K = Kernel('c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)','DivFreeGaussKernel(c,x,y,b)');
-%K = Kernel('c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)','CurlFreeGaussKernel(c,x,y,b)');
-%K = Kernel('c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)','GaussKernel(c,x,y,b)');
+K = Kernel('DivFreeGaussKernel(c,x,y,b)','c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)');
+%K = Kernel('CurlFreeGaussKernel(c,x,y,b)','c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)');
+%K = Kernel('GaussKernel(c,x,y,b)','c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)');
 
 GK = GradKernel(K,'x','e=Vx(2)');
 

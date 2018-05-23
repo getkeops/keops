@@ -1,4 +1,4 @@
-% Example script to understand the generic syntax oof KeOps and its use
+% Example script to understand the generic syntax of KeOps and its use
 % with Matlab bindings. Please read file generic_syntax.md at the root of
 % the library for explanations.
 
@@ -6,7 +6,7 @@ path_to_lib = '..';
 addpath(genpath(path_to_lib))
 
 % defining the kernel operation
-f = Kernel('p=Pm(1)','a=Vy(1)','x=Vx(3)','y=Vy(3)','Square(p-a)*Exp(x+y)');
+f = Kernel('Square(p-a)*Exp(x+y)','p=Pm(1)','a=Vy(1)','x=Vx(3)','y=Vy(3)');
 
 % defining input variables
 n = 30;

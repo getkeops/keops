@@ -50,11 +50,22 @@ options = setoptions(options,'tagCpuGpu',0);
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 options = setoptions(options,'tag1D2D',1);
 
-
+% detect formula and aliases from inputs. Formula should be the only string
+% without '=' character.
+if isempty(strfind(varargin{Nargin},'='))
+    % formula is in last position, after the list of aliases
+    formula = varargin{Nargin};
+    aliases = varargin(1:(Nargin-1));
+elseif isempty(strfind(varargin{1},'='))
+    % formula is in first position, before the list of aliases
+    formula = varargin{1};
+    aliases = varargin(2:Nargin);
+else
+    error('Incorrect inputs')
+end
 
 % from the string inputs we form the code which will be added to the source cpp/cu file, and the string used to encode the file name
-formula = varargin{Nargin};
-[CodeVars,indxy ] = format_var_aliase(varargin(1:(Nargin-1)));
+[CodeVars,indxy ] = format_var_aliase(aliases);
 
 % we use a hash to shorten string and avoid special characters in the filename
 Fname = string2hash(lower([CodeVars,formula]));

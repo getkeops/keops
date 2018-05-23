@@ -21,8 +21,8 @@ p = .25;
 %-----------------------------------------%
 
 % compile the cpp/cuda routine
-F = Kernel('x=Vx(3)','y=Vy(3)','b=Vy(3)','a=Vx(3)', 'p=Pm(1)',...
-           'Grad(Exp(-p*SqNorm2(x-y))*b,x,a)');
+F = Kernel('Grad(Exp(-p*SqNorm2(x-y))*b,x,a)',...
+    'x=Vx(3)','y=Vy(3)','b=Vy(3)','a=Vx(3)', 'p=Pm(1)');
 
 % compute the operation
 tic
