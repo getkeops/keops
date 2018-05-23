@@ -6,14 +6,14 @@ function [F,Fname] = Kernel(varargin)
 %
 % - Define and test a function that computes for each i the sum over j
 % of the square of the scalar products of xi and yj (both 3d vectors)
-% F = Kernel('x=Vx(0,3)','y=Vy(1,3)','Square((x,y))');
+% F = Kernel('x=Vx(3)','y=Vy(3)','Square((x,y))');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % res = F(x,y);
 %
 % - Define and test the convolution with a Gauss kernel i.e. the sum
 % over j of e^(lambda*||xi-yj||^2)beta_j (xi,yj, beta_j 3d vectors):
-% F = Kernel('x=Vx(0,3)','y=Vy(1,3)','beta=Vy(2,3)','lambda=Pm(3,1)','Exp(lambda*SqNorm2(x-y))*beta');
+% F = Kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','lambda=Pm(1)','Exp(lambda*SqNorm2(x-y))*beta');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % beta = rand(3,5000);
@@ -22,7 +22,7 @@ function [F,Fname] = Kernel(varargin)
 %
 % - Define and test the gradient of the previous function with respect
 % to the xi :
-% F = Kernel('x=Vx(0,3)','y=Vy(1,3)','beta=Vy(2,3)','eta=Vx(3,3)','lambda=Pm(4,1)',...
+% F = Kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','eta=Vx(3)','lambda=Pm(1)',...
 %           'Grad(Exp(lambda*SqNorm2(x-y))*beta,x,eta)');
 % x = rand(3,2000);
 % y = rand(3,5000);
@@ -61,7 +61,7 @@ Fname = string2hash(lower([CodeVars,formula]));
 mex_name = [Fname,'.',mexext];
 
 if ~(exist(mex_name,'file')==3)
-    buildFormula(CodeVars,formula,Fname);
+    compile_formula(CodeVars,formula,Fname);
 end
 
 % return function handler
