@@ -81,7 +81,7 @@ def GaussLinKernel(sigma,lib="keops"):
         def K(x,y,u,v,b):
             params = {
                 "id"      : Kernel("gaussian(x,y) * linear(u,v)**2"),
-                "gamma"   : (CpuOrGpu(torch.FloatTensor([1/sigma**2])),CpuOrGpu(torch.FloatTensor([0]))),
+                "gamma"   : (CpuOrGpu(torch.FloatTensor([1/sigma**2])), None),
                 "backend" : backend_keops
             }
             return kernel_product( params, (x,u),(y,v),b )

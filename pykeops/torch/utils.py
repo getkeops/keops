@@ -149,6 +149,8 @@ class Formula :
             self.formula_log =  "Log(IntCst("+str(intvalue)+")"
             self.routine_log = lambda **x : math.log(intvalue)
             self.intvalue    = intvalue
+        self.n_params = 1
+        self.n_vars   = 2
     
     def __add__(self, other) :
         return Formula( formula_sum =           "("+self.formula_sum  + " + " + other.formula_sum +")",

@@ -90,16 +90,23 @@ for mode in modes :
 #--------------------------------------------------------------#
 #                   A second, custom Kernel                    #
 #--------------------------------------------------------------#
-kernel              = Kernel()
-kernel.features     = "locations" # we could also use "locations+directions", etc.
-# Symbolic formula, for the KeOps backend
-kernel.formula_sum  =   "( G*SqDist(X,Y) )"
-kernel.formula_log  = "Log( G*SqDist(X,Y) )"
-# Pytorch routine, for the "pure pytorch" backend
-kernel.routine_sum  = lambda gxmy2=None, **kwargs : \
-                             gxmy2
-kernel.routine_log  = lambda gxmy2=None, **kwargs : \
-                             gxmy2.log()
+
+from pykeops.torch import Formula, kernel_formulas
+#from pykeops.torch import kernels
+
+print("Formulas supported out-of-the-box: ", kernel_formulas.keys())
+
+kernel_formulas["my_formula"] = Formula( # Standard RBF kernel
+    # Symbolic formulas, for the KeOps backend
+    formula_sum = "Exp( ({X},{Y}) - WeightedSqDist({G},{X},{Y}) )",
+    formula_log =    "( ({X},{Y}) - WeightedSqDist({G},{X},{Y}) )",
+    # Pytorch routines, for the "pure pytorch" backend
+    routine_sum = lambda gxmy2=None, xsy=None, **kwargs : (xsy-gxmy2).exp(),
+    routine_log = lambda gxmy2=None, xsy=None, **kwargs :  xsy-gxmy2,
+)
+
+print("After a dynamic addition: ", kernel_formulas.keys())
+kernel = Kernel("my_formula(x,y)")
 
 # Wrap it (and its parameters) into a JSON dict structure
 sigma = scal_to_var(0.5)

@@ -73,14 +73,12 @@ class GaussianMixture(Module) :
     def likelihoods( self, sample) :
         """Samples the density on a given point cloud."""
         self.update_covariances()
-        self.params["mode"] = "sum"
-        return kernel_product(self.params, sample, self.mu, self.weights())
+        return kernel_product(self.params, sample, self.mu, self.weights(), mode="sum")
 
     def log_likelihoods( self, sample) :
         """Log-density, sampled on a given point cloud."""
         self.update_covariances()
-        self.params["mode"] = "lse"
-        return kernel_product(self.params, sample, self.mu, self.weights_log())
+        return kernel_product(self.params, sample, self.mu, self.weights_log(), mode="lse")
 
     def neglog_likelihood( self, sample ) :
         """Returns -log(likelihood(sample)) up to an additive factor."""

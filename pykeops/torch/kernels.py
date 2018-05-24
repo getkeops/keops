@@ -1,5 +1,6 @@
 import math
 import re
+import inspect
 
 import torch
 
@@ -29,53 +30,74 @@ from pykeops.torch.utils import _squared_distances
 # "i", "s", "t" and "smt2" (= |s-t|_2^2).
 
 # Formulas in "x_i" and "y_j", with parameters "g" (=1/sigma^2, for instance)
-locations_formulas = {
+kernel_formulas =  {
+    "linear" :        Formula( # Linear kernel wrt. directions aka. "currents"
+        formula_sum =                           "({X},{Y})",
+        routine_sum = lambda xsy=None, **kwargs : xsy,
+        formula_log =                      "(IntInv(2) * Log( ({X},{Y})**2 + IntInv(10000) ))",
+        routine_log = lambda xsy=None, **kwargs : .5 * (xsy**2 + .0001).log()
+    ),
     "gaussian" :      Formula( # Standard RBF kernel
-        formula_sum = "Exp( -(WeightedSqDist(G,X,Y)) )",
+        formula_sum = "Exp( -(WeightedSqDist({G},{X},{Y})) )",
         routine_sum = lambda gxmy2=None, **kwargs : (-gxmy2).exp(),
-        formula_log = "( -(WeightedSqDist(G,X,Y)) )",
+        formula_log = "( -(WeightedSqDist({G},{X},{Y})) )",
         routine_log = lambda gxmy2=None, **kwargs :  -gxmy2,
     ),
     "cauchy" :        Formula( # Heavy tail kernel
-        formula_sum =  "Inv( IntCst(1) + WeightedSqDist(G,X,Y)  )",
+        formula_sum =  "Inv( IntCst(1) + WeightedSqDist({G},{X},{Y})  )",
         routine_sum = lambda gxmy2=None, **kwargs : 1. / ( 1 + gxmy2),
-        formula_log =  "(  IntInv(-1) * Log(IntCst(1) + WeightedSqDist(G,X,Y)) ) ",
+        formula_log =  "(  IntInv(-1) * Log(IntCst(1) + WeightedSqDist({G},{X},{Y})) ) ",
         routine_log = lambda gxmy2=None, **kwargs : -(1+gxmy2).log(),
     ),
     "laplacian" :     Formula( # Pointy kernel
-        formula_sum = "Exp(-Sqrt( WeightedSqDist(G,X,Y) ))",
+        formula_sum = "Exp(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
         routine_sum = lambda gxmy2=None, **kwargs : (-(gxmy2).sqrt()).exp(),
-        formula_log = "(-Sqrt( WeightedSqDist(G,X,Y) ))",
+        formula_log = "(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
         routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2).sqrt(),
     ),
     "inverse_multiquadric" :  Formula( # Heavy tail kernel
-        formula_sum =  "Inv(Sqrt( IntCst(1) + WeightedSqDist(G,X,Y) ) )",
+        formula_sum =  "Inv(Sqrt( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) )",
         routine_sum = lambda gxmy2=None, **kwargs :  torch.rsqrt( 1 + gxmy2 ),
-        formula_log =  "(IntInv(-2) * Log( IntCst(1) + WeightedSqDist(G,X,Y) ) ) ",
+        formula_log =  "(IntInv(-2) * Log( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) ) ",
         routine_log = lambda gxmy2=None, **kwargs :   -.5 * ( 1 + gxmy2 ).log(),
     ),
 }
 
-# Formulas in "u_i" and "v_j", with parameters "h" (=1/sigma^2, for instance)
-directions_formulas = {
-    "linear" :        Formula( # Linear kernel wrt. directions aka. "currents"
-        formula_sum =                           "(U,V)",
-        routine_sum = lambda usv=None, **kwargs : usv,
-        formula_log =                      "(IntInv(2) * Log( (U,V)**2 + IntInv(10000) ))",
-        routine_log = lambda usv=None, **kwargs : .5 * (usv**2 + .0001).log()
-    ),
-}
+def set_indices(formula, f_ind, v_ind) :
+    """
+    Modify the patterns stored in kernel_formulas, taking into account the fact that
+    the current formula is the f_ind-th, working with the v_ind-th pair of variables.
+    """
 
-# Formulas in "s_i" and "t_j", with parameters "i" (=1/sigma^2, for instance)
-values_formulas = {
-    "gaussian" :    Formula( # Standard RBF kernel
-        formula_sum =                          "Exp( -(WeightedSqDist(I,S,T)) )",
-        routine_sum = lambda ismt2=None, **kwargs : (-ismt2).exp(),
-        formula_log =                             "( -(WeightedSqDist(I,S,T)) )",
-        routine_log = lambda ismt2=None, **kwargs :  -ismt2,
-    ),
-}
+    # KeOps backend -------------------------------------------------------------------------
+    n_params = formula.n_params
+    n_vars   = formula.n_vars
 
+    if n_params == 1 : G_str = "G_"+str(f_ind+1)
+    else :             G_str = None
+
+    if n_vars   == 2 : X_str, Y_str = "X_"+str(v_ind+1), "Y_"+str(v_ind+1)
+    else :             X_str, Y_str = None, None
+
+    formula.formula_sum = formula.formula_sum.format(G = G_str, X = X_str, Y = Y_str)
+    formula.formula_log = formula.formula_log.format(G = G_str, X = X_str, Y = Y_str)
+
+    # Vanilla PyTorch backend -------------------------------------------------------------------
+    # Guess which quantities will be needed by the vanilla pytorch binding:
+    params_sum = inspect.signature(formula.routine_sum).parameters
+    needs_x_y_gxmy2_xsy_sum = (v_ind, 'x' in params_sum, 'y' in params_sum, 'gxmy2' in params_sum, 'xsy' in params_sum)
+    formula.subroutine_sum = formula.routine_sum
+    formula.routine_sum = lambda x=None, y=None, gxmy2=None, xsy=None : \
+                          formula.subroutine_sum(x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind])
+    
+    params_log = inspect.signature(formula.routine_log).parameters
+    needs_x_y_gxmy2_xsy_log = (v_ind, 'x' in params_log, 'y' in params_log, 'gxmy2' in params_log, 'xsy' in params_log)
+    formula.subroutine_log = formula.routine_log
+    formula.routine_log = lambda x=None, y=None, gxmy2=None, xsy=None : \
+                          formula.subroutine_log(x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind])
+
+
+    return formula, f_ind+n_params, needs_x_y_gxmy2_xsy_sum, needs_x_y_gxmy2_xsy_log
 
 class Kernel :
     def __init__(self, name=None) :
@@ -85,29 +107,35 @@ class Kernel :
             " gaussian(x,y) * (1 + linear(u,v)**2 ) "
         """
         if name is not None :
+            # in the comments, let's suppose that name="gaussian(x,y) + laplacian(x,y) * linear(u,v)**2"
             # Determine the features type from the formula : ------------------------------------------------
-            locations  = "(x,y)" in name
-            directions = "(u,v)" in name
-            values     = "(s,t)" in name
+            variables = re.findall(r'(\([a-z],[a-z]\))', name) # ['(x,y)', '(x,y)', '(u,v)']
+            used = set()
+            variables = [x for x in variables if x not in used and (used.add(x) or True)]
+            #         = ordered, "unique" list of pairs "(x,y)", "(u,v)", etc. used
+            #         = ['(x,y)', '(u,v)']
+            var_to_ind = { k : i for (i,k) in enumerate(variables)}
+            #          = {'(x,y)': 0, '(u,v)': 1}
 
-            if   locations and not directions and not values :
-                self.features    = "locations"
-            elif locations and     directions and not values :
-                self.features    = "locations+directions"
-            elif locations and     directions and     values :
-                self.features    = "locations+directions+values"
-            else :
-                raise ValueError( "This combination of features is not supported (yet) : \n" \
-                                + "locations : "+str(locations) + ", directions : " + str(directions) \
-                                + ", values : " + str(values) +".")
+            subformulas_str = re.findall(r'([a-zA-Z_][a-zA-Z_0-9]*)(\([a-z],[a-z]\))', name)
+            #               = [('gaussian', '(x,y)'), ('laplacian', '(x,y)'), ('linear', '(u,v)')]
 
-            # Regexp matching ---------------------------------------------------------------------------------
-            # Replace, say, " gaussian(x,y) " with " locations_formulas["gaussian"] "
-            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(x,y\)',  r'locations_formulas["\1"]', name)
-            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(u,v\)', r'directions_formulas["\1"]', name)
-            name = re.sub(r'([a-zA-Z_][a-zA-Z_0-9]*)\(s,t\)',     r'values_formulas["\1"]', name)
-            # Replace int values "N" with "Formula(intvalue=N)"
-            name = re.sub(r'([0-9]+)',     r'Formula(intvalue=\1)', name)
+            f_ind, subformulas, vars_needed_sum, vars_needed_log = 0, [], [], []
+            for formula_str, var_str in subformulas_str :
+                formula = kernel_formulas[formula_str] # = Formula(...)
+                formula, f_ind, need_sum, need_log = set_indices(formula, f_ind, var_to_ind[var_str])
+                subformulas.append(formula)
+                vars_needed_sum.append(need_sum)
+                vars_needed_log.append(need_log)
+                
+            # ...
+
+            for (i,_) in enumerate(subformulas) :
+                name = re.sub(r'[a-zA-Z_][a-zA-Z_0-9]*\([a-z],[a-z]\)',  r'subformulas[{}]'.format(i), name, count=1)
+
+            # Replace int values "N" with "Formula(intvalue=N) (except the indices of subformulas)"
+            
+            name = re.sub(r'(?<!subformulas\[)([0-9]+)', r'Formula(intvalue=\1)', name)
 
             # Final result : ----------------------------------------------------------------------------------
             kernel = eval(name)
@@ -116,8 +144,10 @@ class Kernel :
             self.routine_sum = kernel.routine_sum
             self.formula_log = kernel.formula_log
             self.routine_log = kernel.routine_log
+            # Two lists, needed by the vanilla torch binding
+            self.routine_sum.vars_needed = vars_needed_sum
+            self.routine_log.vars_needed = vars_needed_log
         else :
-            self.features    = None
             self.formula_sum = None
             self.routine_sum = None
             self.formula_log = None
@@ -172,28 +202,12 @@ def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto", bonus_args=None)
     use a suitable one depending on your configuration + the dimensions of x, y and b.
     """
 
-    if   kernel.features == "locations" :
-        G     = gamma; X     = x; Y     = y
-        return FeaturesKP( kernel, G,X,Y,               b, 
-                        mode = mode, backend = backend, bonus_args=bonus_args)
-                        
-    elif kernel.features == "locations+directions" :
-        G,H   = gamma; X,U   = x; Y,V   = y
-        return FeaturesKP( kernel, G,X,Y, H,U,V,        b,
-                        mode = mode, backend = backend, bonus_args=bonus_args)
-
-    elif kernel.features == "locations+directions+values" :
-        G,H,I = gamma; X,U,S = x; Y,V,T = y
-        return FeaturesKP( kernel, G,X,Y, H,U,V, I,S,T, b, 
-                        mode = mode, backend = backend, bonus_args=bonus_args)
-    else :
-        raise NotImplementedError("Kernel features '"+kernel.features+"'. "\
-                                +'Available values are "locations" (measures), "locations+directions" (shapes)' \
-                                +'and "locations+directions+values" (fshapes).' )
+    return FeaturesKP( kernel, gamma, x, y, b, 
+                       mode = mode, backend = backend, bonus_args=bonus_args)
 
 
 
-def kernel_product(params, x,y,b, *bonus_args, mode=None) :
+def kernel_product(params, x,y, *bs, mode=None) :
     """
     Just a simple wrapper around the KernelProduct operation,
     with a user-friendly "dict" of parameters.
@@ -264,8 +278,12 @@ def kernel_product(params, x,y,b, *bonus_args, mode=None) :
     backend = params.get("backend", "auto")
     # gamma should have been generated along the lines of "Variable(torch.Tensor([1/(s**2)])).type(dtype)"
     gamma   = params["gamma"]
-    
-    return KernelProduct(gamma, x,y,b, kernel, mode, backend, bonus_args = bonus_args)
+
+    if not gamma.__class__ in [tuple, list] : gamma = (gamma,)
+    if not     x.__class__ in [tuple, list] :     x = (x,)
+    if not     y.__class__ in [tuple, list] :     y = (y,)
+
+    return FeaturesKP( kernel, gamma, x, y, bs, mode = mode, backend = backend)
 
 
 
