@@ -32,7 +32,7 @@ from pykeops.torch  import generic_sum
 #--------------------------------------------------------------#
 
 import pykeops
-pykeops.common.compile_routines.verbose = True
+pykeops.verbose = True
 
 #--------------------------------------------------------------#
 #                   Define our dataset                         #
