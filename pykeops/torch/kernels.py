@@ -14,29 +14,21 @@ from pykeops.torch.utils import _squared_distances
 # They will be concatenated depending on the "name" argument of Kernel.__init__
 # Feel free to add your own "pet formula" at run-time, 
 # using for instance :
-#  " kernels.locations_formulas["mykernel"] = utils.Formula( ... ) "
+#  " kernel_formulas["mykernel"] = Formula( ... ) "
 
-# The "formula_*" attributes are the ones that will be used by the
-# C++/CUDA "libkp" routines - backend == "auto", "CPU", "GPU_1D", "GPU_2D".
-# They can rely on the following aliases :
-# "G", "X", "Y",
-# "H", "U", "V",
-# "I", "S", "T"
-
-# The "routine_*" ones are used if backend == "pytorch",
-# and allow you to check independently the correctness of the C++ code.
-# These pytorch routines can make use of
-# "g", "x", "y" and "xmy2" (= |x-y|_2^2),
-# "h", "u", "v" and "usv"  (= <u,v>_2  ),
-# "i", "s", "t" and "smt2" (= |s-t|_2^2).
+# In some cases, due to PyTorch's behavior mainly, we have to add a small
+# epsilon in front of square roots and logs. As for KeOps code,
+# note that [dSqrt(x)/dx](x=0) has been conventionally set to 0.
+Epsilon = "IntInv(100000000)"
+epsilon = 1e-8
 
 # Formulas in "x_i" and "y_j", with parameters "g" (=1/sigma^2, for instance)
 kernel_formulas =  {
-    "linear" :        Formula( # Linear kernel wrt. directions aka. "currents"
+    "linear" :        Formula( # Linear kernel
         formula_sum =                           "({X},{Y})",
         routine_sum = lambda xsy=None, **kwargs : xsy,
-        formula_log =                      "(IntInv(2) * Log( ({X},{Y})**2 + IntInv(10000) ))",
-        routine_log = lambda xsy=None, **kwargs : .5 * (xsy**2 + .0001).log()
+        formula_log =                      "(IntInv(2) * Log( ({X},{Y})**2 + "+Epsilon+" ))",
+        routine_log = lambda xsy=None, **kwargs : .5 * (xsy**2 + epsilon).log()
     ),
     "gaussian" :      Formula( # Standard RBF kernel
         formula_sum = "Exp( -(WeightedSqDist({G},{X},{Y})) )",
@@ -52,9 +44,9 @@ kernel_formulas =  {
     ),
     "laplacian" :     Formula( # Pointy kernel
         formula_sum = "Exp(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
-        routine_sum = lambda gxmy2=None, **kwargs : (-(gxmy2).sqrt()).exp(),
+        routine_sum = lambda gxmy2=None, **kwargs : (-(gxmy2+epsilon).sqrt()).exp(),
         formula_log = "(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
-        routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2).sqrt(),
+        routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2+epsilon).sqrt(),
     ),
     "inverse_multiquadric" :  Formula( # Heavy tail kernel
         formula_sum =  "Inv(Sqrt( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) )",
@@ -98,118 +90,66 @@ def set_indices(formula, f_ind, v_ind) :
                           formula.subroutine_log(x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind])
 
 
-    return formula, f_ind+n_params, needs_x_y_gxmy2_xsy_sum, needs_x_y_gxmy2_xsy_log
+    return formula, f_ind+1, needs_x_y_gxmy2_xsy_sum, needs_x_y_gxmy2_xsy_log
 
 class Kernel :
-    def __init__(self, name=None) :
+    def __init__(self, name) :
         """
         Examples of valid names :
             " gaussian(x,y) * linear(u,v)**2 * gaussian(s,t)"
             " gaussian(x,y) * (1 + linear(u,v)**2 ) "
         """
-        if name is not None :
-            # in the comments, let's suppose that name="gaussian(x,y) + laplacian(x,y) * linear(u,v)**2"
-            # Determine the features type from the formula : ------------------------------------------------
-            variables = re.findall(r'(\([a-z],[a-z]\))', name) # ['(x,y)', '(x,y)', '(u,v)']
-            used = set()
-            variables = [x for x in variables if x not in used and (used.add(x) or True)]
-            #         = ordered, "unique" list of pairs "(x,y)", "(u,v)", etc. used
-            #         = ['(x,y)', '(u,v)']
-            var_to_ind = { k : i for (i,k) in enumerate(variables)}
-            #          = {'(x,y)': 0, '(u,v)': 1}
+        # in the comments, let's suppose that name="gaussian(x,y) + laplacian(x,y) * linear(u,v)**2"
+        # Determine the features type from the formula : ------------------------------------------------
+        variables = re.findall(r'(\([a-z],[a-z]\))', name) # ['(x,y)', '(x,y)', '(u,v)']
+        used = set()
+        variables = [x for x in variables if x not in used and (used.add(x) or True)]
+        #         = ordered, "unique" list of pairs "(x,y)", "(u,v)", etc. used
+        #         = ['(x,y)', '(u,v)']
+        var_to_ind = { k : i for (i,k) in enumerate(variables)}
+        #          = {'(x,y)': 0, '(u,v)': 1}
 
-            subformulas_str = re.findall(r'([a-zA-Z_][a-zA-Z_0-9]*)(\([a-z],[a-z]\))', name)
-            #               = [('gaussian', '(x,y)'), ('laplacian', '(x,y)'), ('linear', '(u,v)')]
+        subformulas_str = re.findall(r'([a-zA-Z_][a-zA-Z_0-9]*)(\([a-z],[a-z]\))', name)
+        #               = [('gaussian', '(x,y)'), ('laplacian', '(x,y)'), ('linear', '(u,v)')]
 
-            f_ind, subformulas, vars_needed_sum, vars_needed_log = 0, [], [], []
-            for formula_str, var_str in subformulas_str :
-                formula = copy.copy( kernel_formulas[formula_str] ) # = Formula(...)
-                formula, f_ind, need_sum, need_log = set_indices(formula, f_ind, var_to_ind[var_str])
-                subformulas.append(formula)
-                vars_needed_sum.append(need_sum)
-                vars_needed_log.append(need_log)
-                
-            # ...
-
-            for (i,_) in enumerate(subformulas) :
-                name = re.sub(r'[a-zA-Z_][a-zA-Z_0-9]*\([a-z],[a-z]\)',  r'subformulas[{}]'.format(i), name, count=1)
-
-            # Replace int values "N" with "Formula(intvalue=N) (except the indices of subformulas)"
+        # f_ind = index of the current formula
+        # subformulas = list of formulas used in the kernel_product
+        # vars_needed_sum and vars_needed_log keep in mind the symbolic pre-computations
+        # |x-y|^2 and <x,y> that may be needed by the Vanilla PyTorch backend.
+        f_ind, subformulas, vars_needed_sum, vars_needed_log = 0, [], [], []
+        for formula_str, var_str in subformulas_str :
+            # Don't forget the copy! This code should have no side effect on kernel_formulas!
+            formula = copy.copy( kernel_formulas[formula_str] ) # = Formula(...)
+            # Modify the symbolic "formula" to let it take into account the formula and variable indices:
+            formula, f_ind, need_sum, need_log = set_indices(formula, f_ind, var_to_ind[var_str])
+            # Store everyone for later use and substitution:
+            subformulas.append(formula)
+            vars_needed_sum.append(need_sum)
+            vars_needed_log.append(need_log)
             
-            name = re.sub(r'(?<!subformulas\[)([0-9]+)', r'Formula(intvalue=\1)', name)
+        # One after another, replace the symbolic "name(x,y)" by references to our list of "index-aware" formulas
+        for (i,_) in enumerate(subformulas) :
+            name = re.sub(r'[a-zA-Z_][a-zA-Z_0-9]*\([a-z],[a-z]\)',  r'subformulas[{}]'.format(i), name, count=1)
+        #        = "subformulas[0] + subformulas[1] * subformulas[2]**2"
 
-            # Final result : ----------------------------------------------------------------------------------
-            kernel = eval(name)
-            
-            self.formula_sum = kernel.formula_sum
-            self.routine_sum = kernel.routine_sum
-            self.formula_log = kernel.formula_log
-            self.routine_log = kernel.routine_log
-            # Two lists, needed by the vanilla torch binding
-            self.routine_sum.vars_needed = vars_needed_sum
-            self.routine_log.vars_needed = vars_needed_log
-        else :
-            self.formula_sum = None
-            self.routine_sum = None
-            self.formula_log = None
-            self.routine_log = None
+        # Replace int values "N" with "Formula(intvalue=N)"" (except the indices of subformulas!)
+        name = re.sub(r'(?<!subformulas\[)([0-9]+)', r'Formula(intvalue=\1)', name)
 
-
-
-def KernelProduct(gamma, x,y,b, kernel, mode, backend = "auto", bonus_args=None) :
-    """
-    Convenience function.
-
-    Computes K(x_i,y_j) @ nu_j = \sum_j k(x_i-y_j) * nu_j
-    where k is a kernel function specified by "kernel", a 'Kernel' object.
-
-    In the simplest cases, the signature of our function is as follow:
-    Args:
-        x ( (N,D) torch Variable) : sampling point cloud 
-        y ( (M,D) torch Variable) : source point cloud
-        b ( (M,E) torch Variable) : source vector field, supported by y
-        params (dict)			  : convenient way of storing the kernel's parameters
-        mode   (string)			  : either "sum" (for classical summation) 
-                                    or "log" (outputs the 'log' of "sum", computed in a
-                                    numerically robust way)
-
-    Returns:
-        v ( (N,E) torch Variable) : sampled vector field 
-                                    (or its coordinate-wise logarithm, if mode=="log")
-
-    However, if, say, kernel.features = "locations+directions",
-    we use a kernel function parametrized by locations
-    X_i, Y_j AND directions U_i, V_j.
-    The argument "x" is then a pair (X,U) of (N,D) torch Variables,
-    while        "y" is      a pair (Y,V) of (M,E) torch Variables.
-
-    Possible values for "name" are:
-        - "gaussian"
-
-    N.B.: The backend is specified in params["backend"], and its value
-        may have a critical influence on performance:
-    - "pytorch" means that we use a naive "matrix-like", full-pytorch formula.
-                It does not scale well as soon as N or M > 5,000.
-    - "CPU"     means that we use a CPU implementation of the libkp C++ routines.
-                It performs okay-ish, but cannot rival GPU implementations.
-    - "GPU_2D"  means that we use a GPU implementation of the libkp C++/CUDA routines,
-                with a 2-dimensional job distribution scheme. 
-                It may come useful if, for instance, N < 200 and 10,000 < M. 
-    - "GPU_1D"  means that we use a GPU implementation of the libkp C++/CUDA routines,
-                with a 1-dimensional distribution scheme (one thread = one line of x).
-                If you own an Nvidia GPU, this is the go-to method for large point clouds. 
-
-    If the backend is not specified or "auto", the libkp routines will try to
-    use a suitable one depending on your configuration + the dimensions of x, y and b.
-    """
-
-    return FeaturesKP( kernel, gamma, x, y, b, 
-                       mode = mode, backend = backend, bonus_args=bonus_args)
-
+        # Final result : ----------------------------------------------------------------------------------
+        kernel = eval(name) # It's a bit dirty... Please forgive me !
+        
+        # Store the required info
+        self.formula_sum = kernel.formula_sum
+        self.routine_sum = kernel.routine_sum
+        self.formula_log = kernel.formula_log
+        self.routine_log = kernel.routine_log
+        # Two lists, needed by the vanilla torch binding
+        self.routine_sum.vars_needed = vars_needed_sum
+        self.routine_log.vars_needed = vars_needed_log
 
 
 def kernel_product(params, x,y, *bs, mode=None) :
-    """
+    r"""
     Just a simple wrapper around the KernelProduct operation,
     with a user-friendly "dict" of parameters.
     It allows you to compute kernel dot products (aka. as discrete convolutions)
