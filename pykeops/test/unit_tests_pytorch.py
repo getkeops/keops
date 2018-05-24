@@ -57,7 +57,7 @@ class PytorchUnitTestCase(unittest.TestCase):
             backend_to_test = ['auto','GPU_1D','GPU_2D','pytorch']
         else:
             backend_to_test = ['auto','pytorch']
-
+        
         for k,b in itertools.product(["gaussian", "laplacian", "cauchy", "inverse_multiquadric"],backend_to_test):
             with self.subTest(k=k,b=b):
                 params["id"] = Kernel(k+"(x,y)")

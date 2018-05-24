@@ -1,6 +1,7 @@
 import math
 import re
 import inspect
+import copy
 
 import torch
 
@@ -122,7 +123,7 @@ class Kernel :
 
             f_ind, subformulas, vars_needed_sum, vars_needed_log = 0, [], [], []
             for formula_str, var_str in subformulas_str :
-                formula = kernel_formulas[formula_str] # = Formula(...)
+                formula = copy.copy( kernel_formulas[formula_str] ) # = Formula(...)
                 formula, f_ind, need_sum, need_log = set_indices(formula, f_ind, var_to_ind[var_str])
                 subformulas.append(formula)
                 vars_needed_sum.append(need_sum)
