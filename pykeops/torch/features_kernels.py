@@ -36,7 +36,7 @@ def _features_kernel_log_scaled( routine, gs, xs, ys, bs, matrix=False):
     return aKb_log if matrix else aKb_log.exp() @ b
 
 
-def _features_kernel_log_scaled_log( routine, gs, xs, ys, bs, matrix=False):
+def _features_kernel_log_scaled_lse( routine, gs, xs, ys, bs, matrix=False):
     b_log, A_log, B_log = bs  # scaling coefficients, typically given as output of the Sinkhorn loop
     K_log = _features_kernel_log( routine, gs, xs, ys, (b_log,), matrix=True)
     aKb_log = (A_log.view(-1, 1) + B_log.view(1, -1)) + K_log
@@ -79,7 +79,7 @@ pytorch_routines = {
     "sum"            : ( "sum", _features_kernel ),
     "lse"            : ( "log", _features_kernel_log ),
     "log_scaled"     : ( "log", _features_kernel_log_scaled ),
-    "log_scaled_log" : ( "log", _features_kernel_log_scaled_log ),
+    "log_scaled_lse" : ( "log", _features_kernel_log_scaled_lse ),
     "log_primal"     : ( "log", _features_kernel_log_primal ),
     "log_cost"       : ( "log", _features_kernel_log_cost ),
     "log_barycenter" : ( "log", _features_kernel_log_barycenter ),
@@ -90,7 +90,7 @@ keops_routines = {
     "sum"            : ( "sum", "( {f_sum} * B_1 )", [1] ),
     "lse"            : ( "lse", "( {f_log} + B_1 )", [1] ),
     "log_scaled"     : ( "sum", "( Exp( {f_log} + B_2 + B_3) * B_1)", [1, 0, 1] ),
-    "log_scaled_log" : ( "lse", "( {f_log} + B_2 + B_3 + B_1)", [1, 0, 1] ),
+    "log_scaled_lse" : ( "lse", "( {f_log} + B_2 + B_3 + B_1)", [1, 0, 1] ),
     "log_primal"     : ( "sum", "( (B_4 + B_5 - IntCst(1)) * Exp( {f_log} + B_2 + B_3) )", [1, 0, 1, 0, 1] ),
     "log_cost"       : ( "sum", "( (- {f_log} ) * Exp( {f_log} + B_2 + B_3) )", [1, 0, 1] ),
     "log_barycenter" : ( "sum", "( Exp( {f_log} + B_2 + B_3) * (B_1-B_4))", [1, 0, 1, 0] ),
