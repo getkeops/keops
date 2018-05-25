@@ -12,7 +12,7 @@
 
 # What is KeOps?
 
-KeOps is a [cpp/cuda library](./keops) that comes with bindings in [python](./pykeops/pykeops.md) ([numpy](./pykeops/numpy/numpy_keops.md) and [pytorch](./pykeops/torch/torch_keops.md)), [Matlab](./keopslab/keopslab.md) or R (coming soon). KeOps computes efficiently **Kernel dot products**, **their derivatives** and **other similar operations** on the GPU. It provides good performances and linear (instead of quadratic) memory footprint through
+KeOps is a [cpp/cuda library](./keops) that comes with bindings in [python](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Documentation) (numpy and pytorch), [Matlab](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/matlab/generic-syntax) or R (coming soon). KeOps computes efficiently **Kernel dot products**, **their derivatives** and **other similar operations** on the GPU. It provides good performances and linear (instead of quadratic) memory footprint through
 a minimal interface: the `kernel_product` and `generic_sum` operations.
 
 In short: *KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows*.
@@ -21,10 +21,10 @@ In short: *KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory
 
 The core of KeOps relies on a set of **C++/CUDA routines**. for which we provide bindings in the following languages
 
-- **Python**: [installation instructions](./pykeops/pykeops.md) and [examples](./pykeops/examples)
-  + **numpy**: [doc](./pykeops/numpy/numpy_keops.md)
-  + **pytorch**: [doc](./pykeops/torch/torch_keops.md) and [tutorials](./pykeops/tutorials)
-- **MATLAB**:  [installation instructions](./keopslab/keopslab.md) and [examples](./keopslab/examples)
+- **Python**: [installation instructions](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Installation) and [examples](./pykeops/examples)
+  + **numpy**: [doc](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Documentation)
+  + **pytorch**: [doc](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Documentation) and [tutorials](./pykeops/tutorials)
+- **MATLAB**:  [installation instructions](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/matlab/Installation) and [examples](./keopslab/examples)
 - **R**: coming soon...
 
 # Why using KeOps?
