@@ -148,7 +148,7 @@ class Formula :
             self.routine_sum = lambda **x :   intvalue
             self.formula_log =  "Log(IntCst("+str(intvalue)+")"
             self.routine_log = lambda **x : math.log(intvalue)
-            self.intvalue    = intvalue
+        self.intvalue    = intvalue
         self.n_params = 1
         self.n_vars   = 2
     

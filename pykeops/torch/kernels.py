@@ -66,10 +66,10 @@ def set_indices(formula, f_ind, v_ind) :
     n_params = formula.n_params
     n_vars   = formula.n_vars
 
-    if n_params == 1 : G_str = "G_"+str(f_ind+1)
+    if n_params == 1 : G_str = "G_"+str(f_ind)
     else :             G_str = None
 
-    if n_vars   == 2 : X_str, Y_str = "X_"+str(v_ind+1), "Y_"+str(v_ind+1)
+    if n_vars   == 2 : X_str, Y_str = "X_"+str(v_ind), "Y_"+str(v_ind)
     else :             X_str, Y_str = None, None
 
     formula.formula_sum = formula.formula_sum.format(G = G_str, X = X_str, Y = Y_str)
@@ -93,59 +93,67 @@ def set_indices(formula, f_ind, v_ind) :
     return formula, f_ind+1, needs_x_y_gxmy2_xsy_sum, needs_x_y_gxmy2_xsy_log
 
 class Kernel :
-    def __init__(self, name) :
+    def __init__(self, name = None, formula_sum=None, routine_sum=None,
+                                    formula_log=None, routine_log=None ) :
         """
         Examples of valid names :
             " gaussian(x,y) * linear(u,v)**2 * gaussian(s,t)"
             " gaussian(x,y) * (1 + linear(u,v)**2 ) "
         """
-        # in the comments, let's suppose that name="gaussian(x,y) + laplacian(x,y) * linear(u,v)**2"
-        # Determine the features type from the formula : ------------------------------------------------
-        variables = re.findall(r'(\([a-z],[a-z]\))', name) # ['(x,y)', '(x,y)', '(u,v)']
-        used = set()
-        variables = [x for x in variables if x not in used and (used.add(x) or True)]
-        #         = ordered, "unique" list of pairs "(x,y)", "(u,v)", etc. used
-        #         = ['(x,y)', '(u,v)']
-        var_to_ind = { k : i for (i,k) in enumerate(variables)}
-        #          = {'(x,y)': 0, '(u,v)': 1}
+        if name is not None :
+            # in the comments, let's suppose that name="gaussian(x,y) + laplacian(x,y) * linear(u,v)**2"
+            # Determine the features type from the formula : ------------------------------------------------
+            variables = re.findall(r'(\([a-z],[a-z]\))', name) # ['(x,y)', '(x,y)', '(u,v)']
+            used = set()
+            variables = [x for x in variables if x not in used and (used.add(x) or True)]
+            #         = ordered, "unique" list of pairs "(x,y)", "(u,v)", etc. used
+            #         = ['(x,y)', '(u,v)']
+            var_to_ind = { k : i for (i,k) in enumerate(variables)}
+            #          = {'(x,y)': 0, '(u,v)': 1}
 
-        subformulas_str = re.findall(r'([a-zA-Z_][a-zA-Z_0-9]*)(\([a-z],[a-z]\))', name)
-        #               = [('gaussian', '(x,y)'), ('laplacian', '(x,y)'), ('linear', '(u,v)')]
+            subformulas_str = re.findall(r'([a-zA-Z_][a-zA-Z_0-9]*)(\([a-z],[a-z]\))', name)
+            #               = [('gaussian', '(x,y)'), ('laplacian', '(x,y)'), ('linear', '(u,v)')]
 
-        # f_ind = index of the current formula
-        # subformulas = list of formulas used in the kernel_product
-        # vars_needed_sum and vars_needed_log keep in mind the symbolic pre-computations
-        # |x-y|^2 and <x,y> that may be needed by the Vanilla PyTorch backend.
-        f_ind, subformulas, vars_needed_sum, vars_needed_log = 0, [], [], []
-        for formula_str, var_str in subformulas_str :
-            # Don't forget the copy! This code should have no side effect on kernel_formulas!
-            formula = copy.copy( kernel_formulas[formula_str] ) # = Formula(...)
-            # Modify the symbolic "formula" to let it take into account the formula and variable indices:
-            formula, f_ind, need_sum, need_log = set_indices(formula, f_ind, var_to_ind[var_str])
-            # Store everyone for later use and substitution:
-            subformulas.append(formula)
-            vars_needed_sum.append(need_sum)
-            vars_needed_log.append(need_log)
+            # f_ind = index of the current formula
+            # subformulas = list of formulas used in the kernel_product
+            # vars_needed_sum and vars_needed_log keep in mind the symbolic pre-computations
+            # |x-y|^2 and <x,y> that may be needed by the Vanilla PyTorch backend.
+            f_ind, subformulas, vars_needed_sum, vars_needed_log = 0, [], [], []
+            for formula_str, var_str in subformulas_str :
+                # Don't forget the copy! This code should have no side effect on kernel_formulas!
+                formula = copy.copy( kernel_formulas[formula_str] ) # = Formula(...)
+                # Modify the symbolic "formula" to let it take into account the formula and variable indices:
+                formula, f_ind, need_sum, need_log = set_indices(formula, f_ind, var_to_ind[var_str])
+                # Store everyone for later use and substitution:
+                subformulas.append(formula)
+                vars_needed_sum.append(need_sum)
+                vars_needed_log.append(need_log)
+                
+            # One after another, replace the symbolic "name(x,y)" by references to our list of "index-aware" formulas
+            for (i,_) in enumerate(subformulas) :
+                name = re.sub(r'[a-zA-Z_][a-zA-Z_0-9]*\([a-z],[a-z]\)',  r'subformulas[{}]'.format(i), name, count=1)
+            #        = "subformulas[0] + subformulas[1] * subformulas[2]**2"
+
+            # Replace int values "N" with "Formula(intvalue=N)"" (except the indices of subformulas!)
+            name = re.sub(r'(?<!subformulas\[)([0-9]+)', r'Formula(intvalue=\1)', name)
+
+            # Final result : ----------------------------------------------------------------------------------
+            kernel = eval(name) # It's a bit dirty... Please forgive me !
             
-        # One after another, replace the symbolic "name(x,y)" by references to our list of "index-aware" formulas
-        for (i,_) in enumerate(subformulas) :
-            name = re.sub(r'[a-zA-Z_][a-zA-Z_0-9]*\([a-z],[a-z]\)',  r'subformulas[{}]'.format(i), name, count=1)
-        #        = "subformulas[0] + subformulas[1] * subformulas[2]**2"
+            # Store the required info
+            self.formula_sum = kernel.formula_sum
+            self.routine_sum = kernel.routine_sum
+            self.formula_log = kernel.formula_log
+            self.routine_log = kernel.routine_log
+            # Two lists, needed by the vanilla torch binding
+            self.routine_sum.vars_needed = vars_needed_sum
+            self.routine_log.vars_needed = vars_needed_log
 
-        # Replace int values "N" with "Formula(intvalue=N)"" (except the indices of subformulas!)
-        name = re.sub(r'(?<!subformulas\[)([0-9]+)', r'Formula(intvalue=\1)', name)
-
-        # Final result : ----------------------------------------------------------------------------------
-        kernel = eval(name) # It's a bit dirty... Please forgive me !
-        
-        # Store the required info
-        self.formula_sum = kernel.formula_sum
-        self.routine_sum = kernel.routine_sum
-        self.formula_log = kernel.formula_log
-        self.routine_log = kernel.routine_log
-        # Two lists, needed by the vanilla torch binding
-        self.routine_sum.vars_needed = vars_needed_sum
-        self.routine_log.vars_needed = vars_needed_log
+        else :
+            self.formula_sum = formula_sum
+            self.routine_sum = routine_sum
+            self.formula_log = formula_log
+            self.routine_log = routine_log
 
 
 def kernel_product(params, x,y, *bs, mode=None) :
