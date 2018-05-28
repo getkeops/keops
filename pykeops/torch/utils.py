@@ -179,7 +179,10 @@ def assert_contiguous(x):
     so we require contiguous arrays from the user."""
     if not x.is_contiguous():
         print(x)
-        raise ValueError("Please provide 'contiguous' torch tensors.")
+        raise ValueError("Please provide 'contiguous' torch tensors, as KeOps does not support strides. " 
+                       + "If you're getting this error in the 'backward' pass of a code using torch.sum() on the output of a KeOps routine, "
+                       + "you should consider replacing 'a.sum()' with 'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. "
+                       + "Apologies for the inconvenience :-/")
 
 def ndims(x):
     return len(x.size())

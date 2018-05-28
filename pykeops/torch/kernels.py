@@ -80,13 +80,13 @@ def set_indices(formula, f_ind, v_ind) :
     params_sum = inspect.signature(formula.routine_sum).parameters
     needs_x_y_gxmy2_xsy_sum = (v_ind, 'x' in params_sum, 'y' in params_sum, 'gxmy2' in params_sum, 'xsy' in params_sum)
     formula.subroutine_sum = formula.routine_sum
-    formula.routine_sum = lambda x=None, y=None, gxmy2=None, xsy=None : \
+    formula.routine_sum = lambda x=None, y=None, g=None, gxmy2=None, xsy=None : \
                           formula.subroutine_sum(x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind])
     
     params_log = inspect.signature(formula.routine_log).parameters
     needs_x_y_gxmy2_xsy_log = (v_ind, 'x' in params_log, 'y' in params_log, 'gxmy2' in params_log, 'xsy' in params_log)
     formula.subroutine_log = formula.routine_log
-    formula.routine_log = lambda x=None, y=None, gxmy2=None, xsy=None : \
+    formula.routine_log = lambda x=None, y=None, g=None, gxmy2=None, xsy=None : \
                           formula.subroutine_log(x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind])
 
 
