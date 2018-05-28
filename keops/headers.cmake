@@ -125,6 +125,9 @@ endif()
 add_definitions(-D__TYPE__=${__TYPE__})
 
 # - Declare the templates formula if not provided by the user
+if(NOT DEFINED USENEWSYNTAX)
+    Set(USENEWSYNTAX TRUE)
+endif()
 if(NOT USENEWSYNTAX)
 
     if(NOT FORMULA)

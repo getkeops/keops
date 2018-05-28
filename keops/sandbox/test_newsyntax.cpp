@@ -31,6 +31,7 @@
 
 using namespace std;
 
+using namespace newsyntax_ops;
 
 __TYPE__ floatrand() {
     return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5

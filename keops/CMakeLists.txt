@@ -71,6 +71,6 @@ if(NOT PYTHON_LIB)
     if ((NOT APPLE) AND (NOT(${CMAKE_VERSION} VERSION_LESS 3.6.0))) # workaround for https://github.com/google/benchmark/issues/603
         add_subdirectory(bench)
         add_subdirectory(test)
-    endif()
         add_subdirectory(sandbox)
+    endif()
 endif()
