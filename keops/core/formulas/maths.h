@@ -85,7 +85,7 @@ struct AddImpl : BinaryOp<AddImpl,FA,FB> {
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Add");
     
-    static void PrintIdString() { cout << "+"; }
+    static void PrintIdString() { std::cout << "+"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
@@ -185,7 +185,7 @@ struct ScalImpl : BinaryOp<ScalImpl,FA,FB> {
     static const int DIM = FB::DIM;
     static_assert(FA::DIM==1,"Dimension of FA must be 1 for Scal");
 
-    static void PrintIdString() { cout << "*"; }
+    static void PrintIdString() { std::cout << "*"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
@@ -268,7 +268,7 @@ struct MultImpl : BinaryOp<MultImpl,FA,FB> {
     static const int DIM = FA::DIM;
     static_assert(FA::DIM==DIM,"Dimensions of FA and FB must be the same for Mult");
     
-    static void PrintIdString() { cout << "*"; }
+    static void PrintIdString() { std::cout << "*"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
         for(int k=0; k<DIM; k++)
@@ -341,7 +341,7 @@ struct Exp : UnaryOp<Exp,F> {
     
     static const int DIM = F::DIM;
 
-    static void PrintIdString() { cout << "Exp"; }
+    static void PrintIdString() { std::cout << "Exp"; }
 	
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
          for(int k=0; k<DIM; k++)
@@ -363,7 +363,7 @@ struct Pow : UnaryOp<Pow,F,M>  {
     
     static const int DIM = F::DIM;
 
-    static void PrintIdString() { cout << "Pow"; }
+    static void PrintIdString() { std::cout << "Pow"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
@@ -383,15 +383,62 @@ struct Pow : UnaryOp<Pow,F,M>  {
 ////             SQUARED OPERATOR : Square< F >           ////
 //////////////////////////////////////////////////////////////
 
+//template < class F >
+//using Square = Pow<F,2>;
+
 template < class F >
-using Square = Pow<F,2>;
+struct Square : UnaryOp<Square,F> {
+    
+    static const int DIM = F::DIM;
+
+    static void PrintIdString() { std::cout << "Square"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++) {
+             __TYPE__ temp = outF[k];
+             out[k] = temp*temp;
+         }
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    // [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
+    template < class V, class GRADIN >
+    using DiffT = Scal<IntConstant<2>,DiffTF<V,Mult<F,GRADIN>>> ;
+
+};
 
 //////////////////////////////////////////////////////////////
 ////      INVERSE : Inv<F>                                ////
 //////////////////////////////////////////////////////////////
 
+//template < class F >
+//using Inv = Pow<F,-1>;
+
 template < class F >
-using Inv = Pow<F,-1>;
+struct Inv : UnaryOp<Inv,F> {
+    
+    static const int DIM = F::DIM;
+
+    static void PrintIdString() { std::cout << "Inv"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++) {
+             out[k] = 1 / outF[k];
+         }
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    // [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
+    template < class V, class GRADIN >
+    using DiffT = Scal<IntConstant<-1>,DiffTF<V,Mult<  Square<Inv<F>>  ,GRADIN>>> ;
+
+};
+
+
 
 //////////////////////////////////////////////////////////////
 ////      INVERSE OF INTEGER CONSTANT : Inv<N> is 1/N     ////
@@ -418,7 +465,7 @@ template < class F >
 struct Log : UnaryOp<Log,F> {
     static const int DIM = F::DIM;
 
-    static void PrintId() { cout << "Log"; }
+    static void PrintId() { std::cout << "Log"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
@@ -458,7 +505,7 @@ template < class F >
 struct SqrtImpl : UnaryOp<SqrtImpl,F> {
     static const int DIM = F::DIM;
 
-    static void PrintId() { cout << "Sqrt"; }
+    static void PrintId() { std::cout << "Sqrt"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++) 
@@ -498,7 +545,7 @@ template < class F >
 struct RsqrtImpl : UnaryOp<RsqrtImpl,F> {
     static const int DIM = F::DIM;
 
-    static void PrintId() { cout << "Rsqrt"; }
+    static void PrintId() { std::cout << "Rsqrt"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++) 
