@@ -8,7 +8,7 @@ here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
 #with open(path.join(here, 'readme.md'), encoding='utf-8') as f:
-with open(path.join(here, 'pykeops','readme.md'), encoding='utf-8') as f:
+with open(path.join(here, 'pykeops','pykeops.md'), encoding='utf-8') as f:
      long_description = f.read()
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
@@ -85,10 +85,10 @@ setup(
         ]
     },
 
-    install_requires=[
-            'numpy',
-            'GPUtil'
-    ],
+    # install_requires=[
+            # 'numpy',
+            # 'GPUtil'
+    # ],
 
 #    extras_require={'torch': ['torch'] },
 )

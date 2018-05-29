@@ -8,6 +8,8 @@
      ) )  | |     __/ |               | |
     (_/   |_|    |___/                |_|
 ```
+PyKeOps contains the python bindings (numpy and pytorch) for the cpp/cuda library [KeOps](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/home). It provides
+standard python functions that can be used in any **python 3** codes.
 
 For a full documentation you may read the wiki:
 
