@@ -5,7 +5,7 @@ def torch_kernel(x, y, s, kernel) :
     if   kernel == "gaussian"  : return torch.exp( -sq / (s*s))
     elif kernel == "laplacian" : return torch.exp( -torch.sqrt(sq) /s)
     elif kernel == "cauchy"    : return  1. / ( 1 + sq / (s*s) )
-    elif kernel == "inverse_multiquadric"    : return torch.sqrt(  1. / ( s*s + sq ) )
+    elif kernel == "inverse_multiquadric"    : return torch.rsqrt( 1 + sq /(s*s) )
 
 def extract_metric_parameters(G) :
     """
