@@ -21,10 +21,10 @@ setup(
     description='Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows',  # Required
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='',
+    url='https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/home',
     project_urls={
-        'Bug Reports': 'https://plmlab.math.cnrs.fr/benjamin.charlier/libkp/issues',
-        'Source': 'https://plmlab.math.cnrs.fr/benjamin.charlier/libkp/',
+        'Bug Reports': 'https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/issues',
+        'Source': 'https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops',
     },
     author='B. Charlier, J. Feydy, J. Glaunes',
     author_email='benjamin.charlier@umontpellier.fr, jfeydy@ens.fr, alexis.glaunes@parisdescartes.fr',
@@ -38,11 +38,13 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering',
 
-        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+        'License :: OSI Approved :: MIT License',
 
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS :: MacOS X',
+
+        'Programming Language :: C++',
+        'Programming Language :: Python :: 3 :: Only',
     ],
     keywords='kernels gpu autodiff',
 
@@ -51,12 +53,21 @@ setup(
         'pykeops.common',
         'pykeops.examples',
         'pykeops.numpy',
+        'pykeops.numpy.convolutions',
+        'pykeops.numpy.shape_distance',
         'pykeops.test',
         'pykeops.torch',
         'pykeops.tutorials',
+        'pykeops.tutorials.gaussian_mixture',
+        'pykeops.tutorials.machine_learning',
+        'pykeops.tutorials.optimal_transport',
+        'pykeops.tutorials.optimal_transport.data',
+        'pykeops.tutorials.surface_registration',
+        'pykeops.tutorials.surface_registration.data',
     ],
     package_data={
         'pykeops': [
+            'pykeops.md',
             'readme.md',
             'keops/CMakeLists.txt',
             'keops/formula.h.in',
@@ -82,6 +93,12 @@ setup(
             'keops/specific/radial_kernels/cuda_grad1conv.cu',
             'keops/specific/radial_kernels/cuda_grad1conv.cx',
             'keops/specific/radial_kernels/radial_kernels.h',
+            'tutorials/surface_registration/data/hippos.pt',
+            'tutorials/surface_registration/data/hippos_red.pt',
+            'tutorials/surface_registration/data/hippos_reduc.pt',
+            'tutorials/surface_registration/data/hippos_reduc_reduc.pt',
+            'tutorials/optimal_transport/data/amoeba_1.png',
+            'tutorials/optimal_transport/data/amoeba_2.png',
         ]
     },
 
