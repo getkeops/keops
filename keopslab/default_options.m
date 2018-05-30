@@ -5,6 +5,6 @@ function [src_dir,build_dir,precision,verbosity] = default_options()
 build_dir = [fileparts([mfilename('fullpath')]),'/build/'];
 src_dir = fileparts([mfilename('fullpath')]);
 precision = 'float';
-verbosity = 1;
+verbosity = 0;
 
 end
