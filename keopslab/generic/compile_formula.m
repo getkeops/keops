@@ -2,7 +2,7 @@ function testbuild = compile_formula(code1, code2, filename)
 
     disp(['Compiling formula ',code2,' with ',code1,' ...'])
     
-    [src_dir,build_dir,precision] = default_options();
+    [src_dir,build_dir,precision,verbosity] = default_options();
     
     % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
     setenv('LD_LIBRARY_PATH','') 
@@ -16,6 +16,16 @@ function testbuild = compile_formula(code1, code2, filename)
     try
         [~,prebuild_output] = system(cmdline);
         [~,build_output]  = system(['make mex_cpp']);
+        if verbosity ==1
+            disp(' ')
+            disp('------------------------------------  DEBUG ------------------------------------------')
+            disp(' ')
+            disp(prebuild_output)
+            disp(build_output)
+            disp(' ')
+            disp('---------------------------------- END  DEBUG ----------------------------------------')
+            disp(' ')
+        end
     catch
         cd(cur_dir)
         error('Compilation  Failed')
