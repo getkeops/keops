@@ -12,7 +12,7 @@ extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
 extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 
 __TYPE__ __TYPE__rand() {
-    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {

@@ -29,12 +29,10 @@
 #include "core/formulas/newsyntax.h"
 
 
-using namespace std;
-
 using namespace newsyntax_ops;
 
 __TYPE__ floatrand() {
-    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
@@ -78,14 +76,14 @@ int main() {
     
     clock_t begin, end;
 
-    cout << "testing function F : ";
+    std::cout << "testing function F : ";
     F::PrintId();
-    cout << endl;
+    std::cout << std::endl;
 
     begin = clock();
     CpuConv(FUNCONVF(), Nx, Ny, f, x, y, u, v, b, params);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu = vf;
 

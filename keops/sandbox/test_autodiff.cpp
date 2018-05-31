@@ -10,6 +10,7 @@
 // and the convolution is gamma_i = sum_j F(x_i,y_j,u_i,v_j,beta_j,C)
 // then we define G(x,y,u,v,beta,C,eta) = gradient of F with respect to x, with new input variable eta (3D)
 // and the new convolution is gamma_i = sum_j G(x_i,y_j,u_i,v_j,beta_j,C,eta_i)
+#include <cstdlib>
 
 #include <stdio.h>
 #include <assert.h>
@@ -29,11 +30,12 @@
 #include "../core/CpuConv.cpp"
 
 
-using namespace std;
+using namespace std::cout;
+using namespace std::endl;
 
 
 __TYPE__ floatrand() {
-    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((__TYPE__)std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
@@ -159,23 +161,23 @@ int main() {
     
     clock_t begin, end;
 
-    cout << "testing function F" << endl;
+    std::cout << "testing function F" << std::endl;
 
     begin = clock();
     CpuConv(FUNCONVF(), Nx, Ny, f, x, y, u, v, b, params);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu = vf;
 
     vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
 
-    cout << "testing function GX" << endl;
+    std::cout << "testing function GX" << std::endl;
 
     begin = clock();
     CpuConv(FUNCONVGX(), Nx, Ny, f, x, y, u, v, b, params, e);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu = vf;
 
@@ -185,12 +187,12 @@ int main() {
     vf.resize(Ny*GY::DIM);
     f = vf.data();
 
-    cout << "testing function GY" << endl;
+    std::cout << "testing function GY" << std::endl;
 
     begin = clock();
     CpuConv(FUNCONVGY(), Ny, Nx, f, x, y, u, v, b, params, e);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu = vf;
 

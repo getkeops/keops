@@ -20,7 +20,7 @@ extern "C" int GpuTransConv2D(float*, int, int, float*, float**);
 extern "C" int CpuTransConv(float*, int, int, float*, float**);
 
 float floatrand() {
-    return ((float)rand())/RAND_MAX-.5; // random value between -.5 and .5
+    return ((float) std::rand())/RAND_MAX-.5; // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {

@@ -3,7 +3,7 @@
 
 // Some convenient functions
 __TYPE__ generate_rand() {
-    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
@@ -15,7 +15,7 @@ class data {
   private:
 
     inline  static T generate_rand() {
-        return ((T)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+        return ((T) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
     }
 
     inline void fillrandom(std::vector<T>& v) {

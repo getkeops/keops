@@ -3,13 +3,13 @@
 #include <cuda.h>
 #include <vector>
 #include <algorithm>
-
-using namespace std;
+#include <random>
 
 
 // Some convenient functions
 float floatrand() {
-    return ((float)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((float)std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
+
 }
 
 template < class V > void fillrandom(V& v) {

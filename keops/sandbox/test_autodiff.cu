@@ -18,9 +18,6 @@
 #include <ctime>
 #include <algorithm>
 
-#define __TYPE__ double
-#define CUDA_BLOCK_SIZE 192 
-
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 
@@ -34,12 +31,12 @@
 
 #include "core/CpuConv.cpp"
 
-using namespace std;
-
+using namespace std::cout;
+using namespace std::endl;
 
 
 __TYPE__ floatrand() {
-    return ((__TYPE__)rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
