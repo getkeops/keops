@@ -84,7 +84,7 @@ struct FactorizeAlias<F,Var<N,DIM,CAT>> {
 
 // specialization in case G is of type IntConstant : again such a factorization is not interesting
 template < class F, int N >
-struct FactorizeAlias<F,IntConstant<N>> {
+struct FactorizeAlias<F,IntConstantImpl<N>> {
     using type = F;
 };
 
