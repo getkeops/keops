@@ -58,8 +58,6 @@
 
 #include "core/Pack.h"
 
-using namespace std;
-
 // Generic function, created from a formula F, and a tag which is equal:
 // - to 0 if you do the summation over j (with i the index of the output vector),
 // - to 1 if you do the summation over i (with j the index of the output vector).
@@ -138,14 +136,14 @@ struct Var {
 
     static void PrintId() {
         if(CAT==0)
-            cout << "x";
+           std::cout << "x";
         else if(CAT==1)
-            cout << "y";
+            std::cout << "y";
         else if(CAT==2)
-	    cout << "p";
+	    std::cout << "p";
 	else
-            cout << "z";
-        cout << N;
+            std::cout << "z";
+    std::cout << N;
     }
 
     template<class A, class B>
@@ -198,11 +196,11 @@ struct UnaryOp_base {
 
     static void PrintId() {
         THIS::PrintIdString();
-        cout << "(";
+        std::cout << "(";
         F::PrintId();
         pack<NS...>::PrintComma();
         pack<NS...>::PrintAll();
-        cout << ")";
+        std::cout << ")";
     }
 
     using AllTypes = MergePacks<univpack<THIS>,typename F::AllTypes>;
@@ -257,11 +255,11 @@ struct BinaryOp_base {
     using THIS = OP<FA,FB>;
 
     static void PrintId() {
-        cout << "(";
+        std::cout << "(";
         FA::PrintId();
         THIS::PrintIdString();
         FB::PrintId();
-        cout << ")";
+        std::cout << ")";
     }
 
     static void PrintFactorized() {
@@ -364,7 +362,7 @@ struct Elem : UnaryOp<Elem,F,M> {
     static const int DIM = 1;
     static_assert(F::DIM>M,"Index out of bound in Elem");
 
-    static void PrintId() { cout << "Elem"; }
+    static void PrintId() { std::cout << "Elem"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
             *out = outF[M];
@@ -388,7 +386,7 @@ struct ElemT : UnaryOp<ElemT,F,N,M> {
     static const int DIM = N;
     static_assert(F::DIM==1,"Input of ElemT should be a scalar");
 
-    static void PrintId() { cout << "ElemT"; }
+    static void PrintId() { std::cout << "ElemT"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 	    for(int k=0; k<DIM; k++)
@@ -471,24 +469,24 @@ using _P = Param<N,DIM>;
 
 template < class F >
 void PrintFormula() {
-    cout << "Variables : ";
+    std::cout << "Variables : ";
     using Vars0 = typename F::template VARS<0>;
     using Dims0 = GetDims<Vars0>;
     using Inds0 = GetInds<Vars0>;
     for(int k=0; k<Vars0::SIZE; k++)
-        cout << "x" << Inds0::VAL(k) << " (dim=" << Dims0::VAL(k) << "), ";
+        std::cout << "x" << Inds0::VAL(k) << " (dim=" << Dims0::VAL(k) << "), ";
     using Vars1 = typename F::template VARS<1>;
     using Dims1 = GetDims<Vars1>;
     using Inds1 = GetInds<Vars1>;
     for(int k=0; k<Vars1::SIZE; k++)
-        cout << "y" << Inds1::VAL(k) << " (dim=" << Dims1::VAL(k) << "), ";
+        std::cout << "y" << Inds1::VAL(k) << " (dim=" << Dims1::VAL(k) << "), ";
     using Vars2 = typename F::template VARS<2>;
     using Dims2 = GetDims<Vars2>;
     using Inds2 = GetInds<Vars2>;
     for(int k=0; k<Vars2::SIZE; k++)
-        cout << "p" << Inds2::VAL(k) << " (dim=" << Dims2::VAL(k) << "), ";
-    cout << endl;
-    cout << "Formula = ";
+        std::cout << "p" << Inds2::VAL(k) << " (dim=" << Dims2::VAL(k) << "), ";
+    std::cout << std::endl;
+    std::cout << "Formula = ";
     F::PrintId();
 }
 

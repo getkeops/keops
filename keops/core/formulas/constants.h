@@ -21,7 +21,7 @@ struct Zero {
     static const int DIM = _DIM;
 
     static void PrintId() {
-        cout << "0";
+        std::cout << "0";
     }
 
     template<class A, class B>
@@ -50,7 +50,7 @@ struct IntConstant {
     static const int DIM = 1;
 
     static void PrintId() {
-        cout << N;
+        std::cout << N;
     }
 
     template<class A, class B>

@@ -11,12 +11,9 @@
  *
  */
 
+#pragma once
 
-
-
-#ifndef PACK
-#define PACK
-
+#include <iostream>
 
 #ifdef __CUDACC__
 	#define HOST_DEVICE __host__ __device__
@@ -30,8 +27,6 @@
 	#define INFINITY_FLOAT std::numeric_limits<float>::infinity()
 	#define INFINITY_DOUBLE std::numeric_limits<double>::infinity()
 #endif
-
-using namespace std;
 
 // At compilation time, detect the maximum between two values (typically, dimensions)
 template <typename T>
@@ -116,7 +111,7 @@ struct univpack {
     static void PrintAll() { }
     static void PrintComma() { }
     static void PrintId() {
-        cout << "univpack< >";
+        std::cout << "univpack< >";
     }
 
     template < class D >        // [].append_first(D) = [D]
@@ -133,7 +128,7 @@ struct univpack<C,Args...> {
 
     // helpers to print the univpack to the standard output
     static void PrintComma() {
-        cout << " ," << endl;
+        std::cout << " ," << std::endl;
     }
 
     static void PrintAll() {
@@ -143,9 +138,9 @@ struct univpack<C,Args...> {
     }
 
     static void PrintId() {
-        cout << "univpack< " << endl;
+        std::cout << "univpack< " << std::endl;
         PrintAll();
-        cout << " >";
+        std::cout << " >";
     }
 
     template < class D >         // [C, ...].append_first(D) = [D, C, ...]
@@ -352,7 +347,7 @@ template < int... NS > struct pack {
     static void PrintAll() { }
     static void PrintComma() { }
     static void PrintId() {
-        cout << "pack< >";
+        std::cout << "pack< >";
     }
 
     // [].append(M) = [M]
@@ -407,19 +402,19 @@ template < int N, int... NS > struct pack<N,NS...> {
 
     // helpers to print the pack to the standard output
     static void PrintComma() {
-        cout << ",";
+        std::cout << ",";
     }
 
     static void PrintAll() {
-        cout << FIRST;
+        std::cout << FIRST;
         NEXT::PrintComma();
         NEXT::PrintAll();
     }
 
     static void PrintId() {
-        cout << "pack<" ;
+        std::cout << "pack<" ;
         PrintAll();
-        cout << ">";
+        std::cout << ">";
     }
 
     // Operation to append "M" at the head of the list
@@ -573,4 +568,3 @@ HOST_DEVICE void load(int i, TYPE* xi, TYPE** px) {
     DIMS::load(i,xi,px);
 }
 
-#endif

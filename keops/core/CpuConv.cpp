@@ -9,8 +9,6 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
 
-using namespace std;
-
 // Host implementation of the convolution, for comparison
 
 

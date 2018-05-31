@@ -34,13 +34,13 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
     	static const int dummyPos = 1+IndsTempVars::MAX;
     	using dummyVar = Var<dummyPos,G::DIM,3>;
     	using Ffact = typename F::template Replace<G,dummyVar>;
-        cout << "[";
+        std::cout << "[";
         dummyVar::PrintId();
-        cout << "=";
+        std::cout << "=";
         G::PrintId();
-        cout << ";";
+        std::cout << ";";
         Ffact::PrintId();
-        cout << "]";
+        std::cout << "]";
     }
 
     using THIS = FactorizeImpl<F,G>;    

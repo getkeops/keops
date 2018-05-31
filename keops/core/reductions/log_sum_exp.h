@@ -25,9 +25,9 @@ struct LogSumExp {
     static_assert(1==F::DIM,"LogSumExp is only meant to be used with scalars.");
 
     static void PrintId() {
-        cout << "LogSumExp<";
+        std::cout << "LogSumExp<";
         F::PrintId();
-        cout << ">";
+        std::cout << ">";
     }
 
     template<class A, class B>
