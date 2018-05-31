@@ -16,6 +16,8 @@
 
 // A "zero" vector of size _DIM
 // Declared using the   Zero<DIM>   syntax.
+namespace keops {
+
 template < int _DIM >
 struct Zero {
     static const int DIM = _DIM;
@@ -73,7 +75,4 @@ struct IntConstant {
 };
 
 
-
-
-
-
+}

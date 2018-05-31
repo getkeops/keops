@@ -19,6 +19,8 @@
 //
 // Giving a "LogSumExp" to a Conv1D/2D routine will automatically
 // result in it using a numerically stable reduce operation.
+namespace keops {
+
 template < class F >
 struct LogSumExp {
     static const int DIM = 1 + F::DIM;
@@ -98,3 +100,4 @@ struct ReducePair<TYPE,DIM,LogSumExp<G>> {
     }
 };
 
+}

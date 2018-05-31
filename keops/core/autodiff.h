@@ -57,6 +57,7 @@
 #include <cmath>
 
 #include "core/Pack.h"
+namespace keops {
 
 // Generic function, created from a formula F, and a tag which is equal:
 // - to 0 if you do the summation over j (with i the index of the output vector),
@@ -490,4 +491,4 @@ void PrintFormula() {
     F::PrintId();
 }
 
-
+}

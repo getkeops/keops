@@ -8,7 +8,7 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
 
-
+namespace keops {
 template <typename T>
 __device__ static constexpr T static_max_device(T a, T b) {
     return a < b ? b : a;
@@ -472,4 +472,4 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
 
 
 
-
+}

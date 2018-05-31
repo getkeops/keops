@@ -11,7 +11,7 @@
 
 // Host implementation of the convolution, for comparison
 
-
+namespace keops {
 template < typename TYPE, class FUN >
 int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
     typedef typename FUN::DIMSX DIMSX; // dimensions of "i" indexed variables
@@ -102,4 +102,6 @@ int CpuConv(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
         params[i] = args[INDSP::VAL(i)];
 
     return CpuConv_(fun,params,nx,ny,px,py);
+}
+
 }

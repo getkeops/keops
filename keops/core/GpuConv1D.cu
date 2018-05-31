@@ -7,7 +7,7 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
 
-
+namespace keops {
 template < typename TYPE, class FUN >
 __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py, TYPE** pp) {
 
@@ -341,5 +341,7 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
         pp_d[i] = args[INDSP::VAL(i)];
 
     return GpuConv1D_FromDevice(fun,nx,ny,px_d,py_d,pp_d);
+
+}
 
 }

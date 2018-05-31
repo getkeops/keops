@@ -4,7 +4,7 @@
 
 #include "core/autodiff.h"
 
-
+namespace keops {
 // Implements the default reduction operation: the summation.
 
 // Sum is the generic template, with arbitrary formula F.
@@ -29,3 +29,4 @@ struct ReducePair {
     }
 };
 
+}

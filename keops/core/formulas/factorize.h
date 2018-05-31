@@ -17,6 +17,7 @@
 // Factorize< F,G > is the same as F, but when evaluating we factorize
 // the computation of G, meaning that if G appears several times inside the
 // formula F, we will compute it once only
+namespace keops {
 
 template < class F, class G > struct FactorizeAlias;
 template < class F, class G > using Factorize = typename FactorizeAlias<F,G>::type;
@@ -125,3 +126,4 @@ struct CountIn<FactorizeImpl<F,G>,H> {
 template < class F >
 using AutoFactorize = Factorize<F,typename F::AllTypes>;
 
+}

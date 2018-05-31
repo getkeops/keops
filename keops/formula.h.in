@@ -3,6 +3,8 @@
 //          1) with the user friendly "new syntax"  in FORMULA_OBJ variable with possibly aliases in the variable VAR_ALIASES
 //          2) with the machine friendly templated syntax in a variable FORMULA  where the operation are template separated by < >
 
+#pragma once
+namespace keops {
 
 #cmakedefine USENEWSYNTAX @USENEWSYNTAX@
 
@@ -10,9 +12,11 @@
     
     #include "core/formulas/newsyntax.h"
 
+    namespace newsyntax_ops{
     @VAR_ALIASES@
     #cmakedefine FORMULA_OBJ @FORMULA_OBJ@
     using F = decltype(FORMULA_OBJ);
+    }
     
 #else
 
@@ -27,3 +31,4 @@
     using F = FORMULA;
 
 #endif
+}

@@ -9,7 +9,7 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
 
-
+namespace keops {
 
 #define Var(N,DIM, CAT) Var<N,DIM,CAT>()
 
@@ -98,6 +98,5 @@ namespace newsyntax_ops {
         return Scalprod<FA,FB>();
     }
 }
-using namespace newsyntax_ops;
 
-
+}

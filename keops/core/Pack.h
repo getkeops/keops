@@ -27,7 +27,7 @@
 	#define INFINITY_FLOAT std::numeric_limits<float>::infinity()
 	#define INFINITY_DOUBLE std::numeric_limits<double>::infinity()
 #endif
-
+namespace keops {
 // At compilation time, detect the maximum between two values (typically, dimensions)
 template <typename T>
 static constexpr T static_max(T a, T b) {
@@ -568,3 +568,4 @@ HOST_DEVICE void load(int i, TYPE* xi, TYPE** px) {
     DIMS::load(i,xi,px);
 }
 
+}

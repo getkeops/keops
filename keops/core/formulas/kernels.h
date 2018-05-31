@@ -38,7 +38,7 @@
 //////////////////////////////////////////////////////////////
 ////             STANDARD RADIAL FUNCTIONS                ////
 //////////////////////////////////////////////////////////////
-
+namespace keops {
 template < class R2, class C >
 using GaussFunction = Exp<Scal<C,Minus<R2>>>;
 
@@ -388,3 +388,4 @@ struct TRIGaussKernel_helper
 	
 template < class L, class C, class X, class Y, class B >
 using TRIGaussKernel = typename TRIGaussKernel_helper<L,C,X,Y,B>::factorized_type;
+}

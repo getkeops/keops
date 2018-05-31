@@ -27,7 +27,7 @@
 ////           SCALAR PRODUCT :   Scalprod< A,B >         ////
 //////////////////////////////////////////////////////////////
 
-
+namespace keops {
 
 template < class FA, class FB >
 struct ScalprodImpl : BinaryOp<ScalprodImpl,FA,FB> {
@@ -304,4 +304,4 @@ using SqDist = SqNorm2<Subtract<X,Y>>;
 template < class S, class X, class Y >
 using WeightedSqDist = WeightedSqNorm< S, Subtract<X,Y>>;
 
-
+}
