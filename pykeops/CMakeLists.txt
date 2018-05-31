@@ -12,6 +12,7 @@ set(PROJECT_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
 set(SOURCE_FILES
     ${PROJECT_SRC}
     ${PROJECT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/pybind11
 )
 
 Include_Directories(${SOURCE_FILES})

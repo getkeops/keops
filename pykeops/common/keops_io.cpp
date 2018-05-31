@@ -1,5 +1,5 @@
-#include </home/bcharlier/src/pybind11/include/pybind11/pybind11.h>
-#include </home/bcharlier/src/pybind11/include/pybind11/numpy.h>
+#include <include/pybind11/pybind11.h>
+#include <include/pybind11/numpy.h>
 
 #include <vector>
 #include "formula.h"
@@ -224,6 +224,8 @@ PYBIND11_MODULE(pykeops_module, m) {
     m.doc() = "keops io through pybind11"; // optional module docstring
 
     m.def("gen_red", &generic_red, "A function...");
+
+    //m.attr(_FORMULA,);
 }
 
 
