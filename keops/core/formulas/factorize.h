@@ -29,7 +29,7 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
 {
 
     static const int DIM = F::DIM;
-    
+
     static void PrintId() {
     	using IndsTempVars = GetInds<typename F::template VARS<3>>;
     	static const int dummyPos = 1+IndsTempVars::MAX;
@@ -44,7 +44,7 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
         std::cout << "]";
     }
 
-    using THIS = FactorizeImpl<F,G>;    
+    using THIS = FactorizeImpl<F,G>;
 
     using Factor = G;
 
@@ -64,10 +64,10 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
 		// call to Eval on the factorized formula, we pass outG as last parameter
 		Ffact::template Eval<NEWINDS>(out,args...,outG);
     }
-    
+
     template < class V, class GRADIN >
     using DiffT = Factorize<typename F::template DiffT<V,GRADIN>,G>;
-    
+
 };
 
 

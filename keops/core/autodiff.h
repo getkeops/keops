@@ -57,6 +57,8 @@
 #include <cmath>
 
 #include "core/Pack.h"
+#include "formula.h"
+
 namespace keops {
 
 // Generic function, created from a formula F, and a tag which is equal:
@@ -204,7 +206,7 @@ struct UnaryOp_base {
         std::cout << ")";
     }
 
-    using AllTypes = MergePacks<univpack<THIS>,typename F::AllTypes>;
+    using AllTypes = MergePacks<univpack<THIS>, typename F::AllTypes>;
 
     template<class A, class B>
     using Replace = CondType< B , OP<typename F::template Replace<A,B>,NS...> , IsSameType<A,THIS>::val >;

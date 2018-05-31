@@ -4,20 +4,18 @@
 //          2) with the machine friendly templated syntax in a variable FORMULA  where the operation are template separated by < >
 
 #pragma once
-namespace keops {
 
 #cmakedefine USENEWSYNTAX @USENEWSYNTAX@
-
 #ifdef USENEWSYNTAX
-    
+
     #include "core/formulas/newsyntax.h"
 
-    namespace newsyntax_ops{
+namespace keops {
     @VAR_ALIASES@
     #cmakedefine FORMULA_OBJ @FORMULA_OBJ@
     using F = decltype(FORMULA_OBJ);
-    }
-    
+}
+
 #else
 
     #include "core/formulas/constants.h"
@@ -26,9 +24,9 @@ namespace keops {
     #include "core/formulas/norms.h"
     #include "core/formulas/factorize.h"
     
+namespace keops {
     #cmakedefine FORMULA @FORMULA@
-
     using F = FORMULA;
-
-#endif
 }
+#endif
+

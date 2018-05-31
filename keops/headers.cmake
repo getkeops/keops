@@ -139,7 +139,7 @@ else()
     
     if(NOT FORMULA_OBJ)
         Set(VAR_ALIASES "auto x=Vx(1,3); auto y=Vy(2,3); auto u=Vx(3,4); auto v=Vy(4,4); auto b=Vy(5,3); auto p=Pm(0,1);")
-        Set(FORMULA_OBJ "Square((u,v))*Exp(-p*SqNorm2(x-y))*b")
+        Set(FORMULA_OBJ "Square((u|v))*Exp(-p*SqNorm2(x-y))*b")
     endif()
     unset(FORMULA CACHE)
 
