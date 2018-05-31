@@ -62,7 +62,7 @@ int main() {
 
     // now we test ------------------------------------------------------------------------------
 
-    int Nx=400, Ny=600;
+    int Nx=4000, Ny=60000;
 
     __TYPE__ *f_d;
     cudaMalloc(&f_d, sizeof(__TYPE__)*(Nx*F::DIM));
