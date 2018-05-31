@@ -27,7 +27,7 @@ kernel_formulas =  {
     "linear" :        Formula( # Linear kernel
         formula_sum =                           "({X},{Y})",
         routine_sum = lambda xsy=None, **kwargs : xsy,
-        formula_log =                      "(IntInv(2) * Log( ({X},{Y})**2 + "+Epsilon+" ))",
+        formula_log =                      "(IntInv(2) * Square(Log( ({X},{Y})) + "+Epsilon+" ))",
         routine_log = lambda xsy=None, **kwargs : .5 * (xsy**2 + epsilon).log()
     ),
     "gaussian" :      Formula( # Standard RBF kernel

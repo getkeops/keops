@@ -329,8 +329,36 @@ using ScalOrMult = CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>;
 ////             SUBTRACT : F-G		                      ////
 //////////////////////////////////////////////////////////////
 
+//template < class FA, class FB >
+//using Subtract = Add<FA,Minus<FB>>;
+
 template < class FA, class FB >
-using Subtract = Add<FA,Minus<FB>>;
+struct Subtract : BinaryOp<Subtract,FA,FB> {
+    // FA and FB are vectors with same size, Output has the same size
+    static const int DIM = FA::DIM;
+    static_assert(FA::DIM==DIM,"Dimensions of FA and FB must be the same for Subtract");
+    
+    static void PrintIdString() { std::cout << "-"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+        for(int k=0; k<DIM; k++)
+            out[k] = outA[k]-outB[k];
+    }
+    
+    // [\partial_V (A - B) ] . gradin = [\partial_V A ] . gradin  - [\partial_V B ] . gradin
+    template < class V, class GRADIN >
+    using DiffT = Subtract < typename FA::template DiffT<V,GRADIN> , typename FB::template DiffT<V,GRADIN> >;
+
+};
+
+
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////
 ////             EXPONENTIAL : Exp< F >                   ////
