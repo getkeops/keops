@@ -7,6 +7,7 @@
 #include "core/autodiff.h"
 
 #include "core/formulas/constants.h"
+
 /*
  * The file where the elementary math operators are defined.
  * Available math operations are :
@@ -550,10 +551,14 @@ struct RsqrtImpl : UnaryOp<RsqrtImpl,F> {
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++) 
             if(outF[k]==0)
-		out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
-	    else
-                out[k] = 1.0/sqrt(outF[k]); // should use specific rsqrt implementation
-	}
+                out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
+            else
+#ifdef USE_CUDA
+                out[k] = rsqrt(outF[k]); 
+#else
+                out[k] = 1.0/sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
+#endif
+    }
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
