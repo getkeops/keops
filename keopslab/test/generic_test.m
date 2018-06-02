@@ -30,7 +30,7 @@ function test_standard_expression(testCase)
     p = .25;
 
     % Kernel with KeOps
-    F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)', 'Square((u,v))*Exp(-p*SqNorm2(x-y))*b');
+    F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)', 'Square((u|v))*Exp(-p*SqNorm2(x-y))*b');
     g = F(x,y,u,v,b,p);
     
     % Compare with matlab

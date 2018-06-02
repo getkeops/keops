@@ -25,9 +25,9 @@ epsilon = 1e-8
 # Formulas in "x_i" and "y_j", with parameters "g" (=1/sigma^2, for instance)
 kernel_formulas =  {
     "linear" :        Formula( # Linear kernel
-        formula_sum =                           "({X},{Y})",
+        formula_sum =                           "({X}|{Y})",
         routine_sum = lambda xsy=None, **kwargs : xsy,
-        formula_log =                      "(IntInv(2) * Log( Square(({X},{Y})) + "+Epsilon+" ))",
+        formula_log =                      "(IntInv(2) * Log( Square(({X}|{Y})) + "+Epsilon+" ))",
         routine_log = lambda xsy=None, **kwargs : .5 * (xsy**2 + epsilon).log()
     ),
     "gaussian" :      Formula( # Standard RBF kernel

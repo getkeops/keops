@@ -72,7 +72,7 @@ def my_formula(p, x, y, backend = "auto") :
 
         # The actual formula:
         # a_i   =   (<x_i,y_j>**2) * (       p[0]*x_i  +       p[1]*y_j )
-        formula = "Pow( (X,Y) , 2) * ( (Elem(P,0) * X) + (Elem(P,1) * Y) )"
+        formula = "Pow( (X|Y) , 2) * ( (Elem(P,0) * X) + (Elem(P,1) * Y) )"
 
         my_routine = generic_sum(formula, *types)
         a  = my_routine(p, x, y, backend=backend)

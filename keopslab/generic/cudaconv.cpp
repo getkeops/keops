@@ -1,9 +1,7 @@
 #include <mex.h>
 
 #include "formula.h"
-
 #include "core/Pack.h"
-#include "core/autodiff.h"
 
 extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 extern "C" int CpuTransConv(int, int, __TYPE__*, __TYPE__**);
@@ -18,6 +16,8 @@ extern "C" int GpuTransConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuTransConv2D(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuTransConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 #endif
+
+using namespace keops;
 
 void ExitFcn(void) {
 //#ifdef USE_CUDA
@@ -48,7 +48,6 @@ void ExitFcn(void) {
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
 //////////////////////////////////////////////////////////////////
-
 
 /* the gateway function */
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
