@@ -19,14 +19,9 @@
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "core/autodiff.h"
-
 #include "core/CpuConv.cpp"
 
-using namespace std::cout;
-using namespace std::endl;
-
-
+using namespace keops;
 
 __TYPE__ floatrand() {
     return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
@@ -37,7 +32,7 @@ template < class V > void fillrandom(V& v) {
 }
 
 int main() {
-
+    using namespace keops;
 
     // symbolic variables of the function
     using X = Var<1,3,0>; 	// X is the first variable and represents a 3D vector
@@ -50,13 +45,13 @@ int main() {
     // symbolic expression of the function : 3rd order gradient with respect to X, X and Y of the Gauss kernel
     using F = Grad<Grad<Grad<GaussKernel<C,X,Y,B>,X,U>,X,U>,Y,V>;
 
-    cout << endl << "Function F : " << endl;
+    std::cout << std::endl << "Function F : " << std::endl;
     PrintFormula<F>();
-    cout << endl << endl;
+    std::cout << std::endl << std::endl;
 
     using FF = AutoFactorize<F>;
 
-    cout << "Function FF = factorized version of F :" << endl;    
+    std::cout << "Function FF = factorized version of F :" << std::endl;    
     PrintFormula<FF>();
 
     using FUNCONVF = typename Generic<F>::sEval;
@@ -64,18 +59,18 @@ int main() {
 
     // now we test ------------------------------------------------------------------------------
 
-    cout << endl << endl << "Testing F" << endl;
+    std::cout << std::endl << std::endl << "Testing F" << std::endl;
 
     int Nx=500, Ny=200;
 
-    vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
-    vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
-    vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
-    vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
-    vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
-    vector<__TYPE__> vb(Ny*B::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
+    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
+    std::vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
+    std::vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
+    std::vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
+    std::vector<__TYPE__> vb(Ny*B::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    vector<__TYPE__> rescpu1(Nx*F::DIM), rescpu2(Nx*F::DIM);
+    std::vector<__TYPE__> rescpu1(Nx*F::DIM), rescpu2(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
@@ -86,7 +81,7 @@ int main() {
     begin = clock();
     CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, b, u, v);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu1 = vf;
 
@@ -94,30 +89,29 @@ int main() {
 
     /// testing FF
 
-    cout << endl << endl << "Testing FF" << endl;
+    std::cout << std::endl << std::endl << "Testing FF" << std::endl;
 
     begin = clock();
     CpuConv(FUNCONVFF(), Nx, Ny, f, params, x, y, b, u, v);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu2 = vf;
 
     // display values
-    cout << "rescpu1 = ";
+    std::cout << "rescpu1 = ";
     for(int i=0; i<5; i++)
-        cout << rescpu1[i] << " ";
-    cout << endl << "rescpu2 = ";
+        std::cout << rescpu1[i] << " ";
+    std::cout << std::endl << "rescpu2 = ";
     for(int i=0; i<5; i++)
-        cout << rescpu2[i] << " ";
+        std::cout << rescpu2[i] << " ";
 
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(rescpu1[i]-rescpu2[i]);
-    cout << endl << "mean abs error =" << s/Nx << endl;
+    std::cout << std::endl << "mean abs error =" << s/Nx << std::endl;
 
 }
-
 
 

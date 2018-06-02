@@ -57,7 +57,6 @@
 #include <cmath>
 
 #include "core/Pack.h"
-#include "formula.h"
 
 namespace keops {
 
