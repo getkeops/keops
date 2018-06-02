@@ -2,7 +2,7 @@ function testbuild = compile_formula(code1, code2, filename)
 
     disp(['Compiling formula ',code2,' with ',code1,' ...'])
     
-    [src_dir,build_dir,precision] = default_options();
+    [src_dir,build_dir,precision,verbosity] = default_options();
     
     % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
     setenv('LD_LIBRARY_PATH','') 
@@ -14,8 +14,18 @@ function testbuild = compile_formula(code1, code2, filename)
     cmdline = [cmake,' ', src_dir , ' -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     %fprintf([cmdline,'\n'])
     try
-        [~,prebuild_output] = system(cmdline);
-        [~,build_output]  = system(['make mex_cpp']);
+        [prebuild_status,prebuild_output] = system(cmdline);
+        [build_status,build_output]  = system(['make mex_cpp']);
+        if (verbosity ==1) || (prebuild_status ~=0) || (build_status ~= 0)
+            disp(' ')
+            disp('------------------------------------  DEBUG ------------------------------------------')
+            disp(' ')
+            disp(prebuild_output)
+            disp(build_output)
+            disp(' ')
+            disp('---------------------------------- END  DEBUG ----------------------------------------')
+            disp(' ')
+        end
     catch
         cd(cur_dir)
         error('Compilation  Failed')

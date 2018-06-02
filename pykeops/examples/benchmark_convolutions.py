@@ -67,12 +67,11 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
         kernel = Kernel(k+"(x,y)")
         params = {
             "id"      : kernel,
-            "gamma"   : 1./torch.autograd.Variable(sigmac, requires_grad=False).type(dtype)
-**2,
+            "gamma"   : 1./torch.autograd.Variable(sigmac, requires_grad=False).type(dtype)**2,
             "backend" : "auto",
         }
-        g1 = kernel_product( xc,yc,bc, params, mode=mode).cpu()
-        speed_pykeops_gen = timeit.Timer('g1 = kernel_product( xc,yc,bc, params, mode=mode).cpu()', GC,  globals = globals(), timer = time.time).timeit(LOOPS)
+        g1 = kernel_product( params,xc,yc,bc,  mode=mode).cpu()
+        speed_pykeops_gen = timeit.Timer('g1 = kernel_product( params,xc,yc,bc,  mode=mode).cpu()', GC,  globals = globals(), timer = time.time).timeit(LOOPS)
         print("Time for keops generic:       {:.4f}s".format(speed_pykeops_gen),end="")
         print("   (absolute error:       ", np.max(np.abs(g1.data.numpy() - gnumpy)), ")")
     except:

@@ -16,7 +16,7 @@ def compile_generic_routine(aliases, formula, dllname, cuda_type):
     target = "keops"
 
     print("Compiling formula : " + formula + " with " + alias_disp_string + " ... ", end='', flush=True)
-    subprocess.run(["cmake", script_folder, "-DPYTHON_LIB=TRUE", "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], \
+    subprocess.run(["cmake", script_folder, "-DCMAKE_BUILD_TYPE=Release -DPYTHON_LIB=TRUE", "-DUSENEWSYNTAX=TRUE" , "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], \
                    cwd=build_folder,stdout=stdout)
     subprocess.run(["make", target], \
                    cwd=build_folder,stdout=stdout)

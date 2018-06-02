@@ -5,7 +5,7 @@ def torch_kernel(x, y, s, kernel) :
     if   kernel == "gaussian"  : return torch.exp( -sq / (s*s))
     elif kernel == "laplacian" : return torch.exp( -torch.sqrt(sq) /s)
     elif kernel == "cauchy"    : return  1. / ( 1 + sq / (s*s) )
-    elif kernel == "inverse_multiquadric"    : return torch.sqrt(  1. / ( s*s + sq ) )
+    elif kernel == "inverse_multiquadric"    : return torch.rsqrt( 1 + sq /(s*s) )
 
 def extract_metric_parameters(G) :
     """
@@ -148,7 +148,7 @@ class Formula :
             self.routine_sum = lambda **x :   intvalue
             self.formula_log =  "Log(IntCst("+str(intvalue)+")"
             self.routine_log = lambda **x : math.log(intvalue)
-            self.intvalue    = intvalue
+        self.intvalue    = intvalue
         self.n_params = 1
         self.n_vars   = 2
     
@@ -179,7 +179,10 @@ def assert_contiguous(x):
     so we require contiguous arrays from the user."""
     if not x.is_contiguous():
         print(x)
-        raise ValueError("Please provide 'contiguous' torch tensors.")
+        raise ValueError("Please provide 'contiguous' torch tensors, as KeOps does not support strides. " 
+                       + "If you're getting this error in the 'backward' pass of a code using torch.sum() on the output of a KeOps routine, "
+                       + "you should consider replacing 'a.sum()' with 'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. "
+                       + "Apologies for the inconvenience :-/")
 
 def ndims(x):
     return len(x.size())

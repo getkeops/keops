@@ -12,8 +12,7 @@
 
 # What is KeOps?
 
-KeOps is a [cpp/cuda library](./keops) that comes with bindings in [python](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Documentation) (numpy and pytorch), [Matlab](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/matlab/generic-syntax) or R (coming soon). KeOps computes efficiently **Kernel dot products**, **their derivatives** and **other similar operations** on the GPU. It provides good performances and linear (instead of quadratic) memory footprint through
-a minimal interface: the `kernel_product` and `generic_sum` operations.
+KeOps is a [cpp/cuda library](./keops) that comes with bindings in [python](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/python/Documentation) (numpy and pytorch), [Matlab](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/matlab/generic-syntax) or R (coming soon). KeOps computes efficiently **Kernel dot products**, **their derivatives** and **other similar operations** on the GPU. It provides good performances and linear (instead of quadratic) memory footprint through a minimal interface.
 
 In short: *KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows*.
 

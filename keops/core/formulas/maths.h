@@ -383,15 +383,62 @@ struct Pow : UnaryOp<Pow,F,M>  {
 ////             SQUARED OPERATOR : Square< F >           ////
 //////////////////////////////////////////////////////////////
 
+//template < class F >
+//using Square = Pow<F,2>;
+
 template < class F >
-using Square = Pow<F,2>;
+struct Square : UnaryOp<Square,F> {
+    
+    static const int DIM = F::DIM;
+
+    static void PrintIdString() { std::cout << "Square"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++) {
+             __TYPE__ temp = outF[k];
+             out[k] = temp*temp;
+         }
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    // [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
+    template < class V, class GRADIN >
+    using DiffT = Scal<IntConstant<2>,DiffTF<V,Mult<F,GRADIN>>> ;
+
+};
 
 //////////////////////////////////////////////////////////////
 ////      INVERSE : Inv<F>                                ////
 //////////////////////////////////////////////////////////////
 
+//template < class F >
+//using Inv = Pow<F,-1>;
+
 template < class F >
-using Inv = Pow<F,-1>;
+struct Inv : UnaryOp<Inv,F> {
+    
+    static const int DIM = F::DIM;
+
+    static void PrintIdString() { std::cout << "Inv"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++) {
+             out[k] = 1 / outF[k];
+         }
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    // [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
+    template < class V, class GRADIN >
+    using DiffT = Scal<IntConstant<-1>,DiffTF<V,Mult<  Square<Inv<F>>  ,GRADIN>>> ;
+
+};
+
+
 
 //////////////////////////////////////////////////////////////
 ////      INVERSE OF INTEGER CONSTANT : Inv<N> is 1/N     ////

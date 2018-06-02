@@ -71,8 +71,11 @@ end
 Fname = string2hash(lower([CodeVars,formula]));
 mex_name = [Fname,'.',mexext];
 
-if ~(exist(mex_name,'file')==3)
-    compile_formula(CodeVars,formula,Fname);
+% get verbosity level to force compilation
+[~,~,~,verbosity] = default_options();
+
+if ~(exist(mex_name,'file')==3) || (verbosity == 1)
+     compile_formula(CodeVars,formula,Fname);
 end
 
 % return function handler
