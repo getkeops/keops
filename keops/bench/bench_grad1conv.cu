@@ -5,30 +5,20 @@
 #include <chrono>
 #include <ctime>
 
+#include "core/formulas/newsyntax.h"
+
 #include "bench/generate_data.h"
 
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms.h"
-#include "core/formulas/factorize.h"
-
-#include "core/autodiff.h"
-
-#include "core/formulas/newsyntax.h"
-
-
-using namespace std;
+using namespace keops;
 
 /////////////////////////////////////////////////////////////////////////////////////
 //                      The function to be benchmarked                             //
 /////////////////////////////////////////////////////////////////////////////////////
-
-auto formula0 = Grad((Vx(1,3),Vy(2,3))*GaussKernel(Pm(0,1),Vx(1,3),Vy(2,3),Vy(3,3)),Vx(1,3),Vx(4,3));
+auto formula0 = Grad(GaussKernel(Pm(0,1),Vx(1,3),Vy(2,3),Vy(3,3)),Vx(1,3),Vx(4,3));
 using F0 = decltype(formula0);
 using F1 = F0;
 
@@ -36,7 +26,6 @@ using FUN0 = typename Generic<F0>::sEval;
 using FUN1 = typename Generic<F1>::sEval;
 
 extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -53,13 +42,13 @@ static void cuda_grad_1D(benchmark::State& state) {
     int Nx = state.range(0);
 
     for (auto _ : state) {
-        auto start = chrono::high_resolution_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
         //----------- the function to be benchmarked ------------//
         main_grad_1D(Nx);
         //------------------------------------------------------//
-        auto end   = chrono::high_resolution_clock::now();
+        auto end   = std::chrono::high_resolution_clock::now();
 
-        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start);
+        auto elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>( end - start);
         state.SetIterationTime(elapsed_seconds.count());
     }
 }
@@ -79,13 +68,13 @@ static void cuda_grad_2D(benchmark::State& state) {
     int Nx = state.range(0);
 
     for (auto _ : state) {
-        auto start = chrono::high_resolution_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
         //----------- the function to be benchmarked ------------//
         main_grad_2D(Nx);
         //------------------------------------------------------//
-        auto end   = chrono::high_resolution_clock::now();
+        auto end   = std::chrono::high_resolution_clock::now();
 
-        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start);
+        auto elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>( end - start);
         state.SetIterationTime(elapsed_seconds.count());
     }
 }
@@ -105,13 +94,13 @@ static void cuda_generic_1D(benchmark::State& state) {
     int Nx = state.range(0);
 
     for (auto _ : state) {
-        auto start = chrono::high_resolution_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
         //----------- the function to be benchmarked ------------//
         main_generic_1D(Nx);
         //------------------------------------------------------//
-        auto end   = chrono::high_resolution_clock::now();
+        auto end   = std::chrono::high_resolution_clock::now();
 
-        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start);
+        auto elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>( end - start);
         state.SetIterationTime(elapsed_seconds.count());
     }
 }
@@ -131,13 +120,13 @@ static void cuda_generic_2D(benchmark::State& state) {
     int Nx = state.range(0);
 
     for (auto _ : state) {
-        auto start = chrono::high_resolution_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
         //----------- the function to be benchmarked ------------//
         main_generic_2D(Nx);
         //------------------------------------------------------//
-        auto end   = chrono::high_resolution_clock::now();
+        auto end   = std::chrono::high_resolution_clock::now();
 
-        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start);
+        auto elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>( end - start);
         state.SetIterationTime(elapsed_seconds.count());
     }
 }
@@ -158,13 +147,13 @@ static void cuda_specific(benchmark::State& state) {
     int Nx = state.range(0);
 
     for (auto _ : state) {
-        auto start = chrono::high_resolution_clock::now();
+        auto start = std::chrono::high_resolution_clock::now();
         //----------- the function to be benchmarked ------------//
         main_specific(Nx);
         //------------------------------------------------------//
-        auto end   = chrono::high_resolution_clock::now();
+        auto end   = std::chrono::high_resolution_clock::now();
 
-        auto elapsed_seconds = chrono::duration_cast<chrono::duration<double>>( end - start);
+        auto elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>( end - start);
         state.SetIterationTime(elapsed_seconds.count());
     }
 }
@@ -172,6 +161,5 @@ static void cuda_specific(benchmark::State& state) {
 BENCHMARK(cuda_specific)->Range(8, 8<<10)->UseManualTime();// Register the function as a benchmark
 
 
-
-
 BENCHMARK_MAIN();// generate the benchmarks
+
