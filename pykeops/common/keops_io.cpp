@@ -1,6 +1,5 @@
-
-
 #include <vector>
+#include <string>
 #include "formula.h"
 
 #include <include/pybind11/pybind11.h>
@@ -76,7 +75,9 @@ py::array_t<__TYPE__> generic_red(int nx, int ny,
         dimargs[INDSP::VAL(k)] = DIMSP::VAL(k);
     }
 
-    assert(py_args.size() == NARGS);
+    if (py_args.size() != NARGS)
+        throw std::runtime_error("Wrong number of args : is " + std::to_string(py_args.size()) + " but should be " +std::to_string(NARGS)) ;
+    
 
     __TYPE__ **castedargs = new __TYPE__ *[NARGS];
     // Seems to be necessary to store every pointer in an array to keep in memory
@@ -86,8 +87,11 @@ py::array_t<__TYPE__> generic_red(int nx, int ny,
         obj_ptr[i] = py::cast<py::array_t<__TYPE__>>(py_args[i]);
 
         // check the dimension :
-        assert(obj_ptr[i].shape(0) == typeargs[i]);
-        assert(obj_ptr[i].shape(1) == dimargs[i]);
+        if (obj_ptr[i].shape(0) != typeargs[i])
+            throw std::runtime_error("Wrong number of rows for args number " +  std::to_string(i) + " : is " + std::to_string(obj_ptr[i].shape(0)) + " but should be " +std::to_string(typeargs[i])) ;
+            
+        if (obj_ptr[i].shape(1) != dimargs[i])
+            throw std::runtime_error("Wrong number of column for args number " +  std::to_string(i) + " : is " + std::to_string(obj_ptr[i].shape(1)) + " but should be " +std::to_string(dimargs[i])) ;
 
         castedargs[i] = (__TYPE__ *) obj_ptr[i].data();
     }
@@ -157,7 +161,11 @@ PYBIND11_MODULE(pykeops_module, m) {
 
     m.def("gen_red", &generic_red, "A function...");
 
-    //m.attr(_FORMULA,);
+    m.def("print_formula", &PrintFormula<F>, "Print formula");
+    //std::string f =  PrintFormula2<F>();
+    //m.attr("formula") = f ;
+    //std::string g = F::IdString();
+    //m.attr("formula2") = g;
 }
 
 }

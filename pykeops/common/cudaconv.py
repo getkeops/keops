@@ -9,7 +9,7 @@ from hashlib import sha256
 
 from pykeops.common.get_options import get_backend, default_cuda_type
 from pykeops.common.compile_routines import compile_generic_routine
-from pykeops import build_folder, script_folder, dll_prefix, dll_ext
+from pykeops import build_folder, script_folder, dll_prefix, dll_ext, build_type
 
 # GENERIC FORMULAS DLLs =========================================================================
 
@@ -49,7 +49,11 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
 
         try:
             dll = ctypes.CDLL(dllabspath , mode=ctypes.RTLD_GLOBAL)
+            compile= (build_type == 'Debug')
         except OSError:
+            compile=True
+        
+        if compile:
             compile_generic_routine(aliases, formula, dll_name, cuda_type)
             dll = ctypes.CDLL(dllabspath, mode=ctypes.RTLD_GLOBAL)
             print("Loaded.")

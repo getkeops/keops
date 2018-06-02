@@ -1,6 +1,7 @@
 import numpy as np
 
 import os.path
+import importlib
 
 from hashlib import sha256
 
@@ -18,7 +19,7 @@ def get_generic_reduction(aliases, formula, cuda_type, sum_index, backend):
 
     compile_generic_routine2(aliases, formula, dll_name, cuda_type)
 
-    import dll_name
+    importlib.import_module(dll_name)
 
     return dll_name.gen_red
 
@@ -39,15 +40,11 @@ def generic_reduction(formula, signature, result, *args,
     else:
         raise TypeError("result should either be a numpy array or a torch tensor.")
 
-    # From python to C float pointers and int : -----------------------------------
-    vars_p = tuple(to_ctype_pointer(var) for var in variables)
-    vars_p = (POINTER(c_float) * len(vars_p))(*vars_p)
-    
     backend = get_backend(backend,result,variables) 
 
     # Let's use our GPU, which works "in place" : ---------------------------------
-    routine = get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend)
-    result = get_generic_reduction(nx, ny, args)
+    routine = get_generic_reduction(aliases, formula, cuda_type, sum_index, backend)
+    result = routine(nx, ny, 1, 1, args)
 
 
 
