@@ -1,14 +1,14 @@
 // nvcc -I.. -Wno-deprecated-gpu-targets -DCUDA_BLOCK_SIZE=192 -D__TYPE__=float -std=c++11 -Xcompiler -fPIC -shared -o build/simple_autodiff.so simple_autodiff.cu
 
-
-#include "core/GpuConv2D.cu"
-#include "core/autodiff.h"
-
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
+
+#include "core/GpuConv2D.cu"
+
+using namespace keops;
 
 
 // define variables

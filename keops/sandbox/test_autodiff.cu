@@ -18,22 +18,17 @@
 #include <ctime>
 #include <algorithm>
 
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
-
-#include "core/autodiff.h"
-
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
 
-using namespace std::cout;
-using namespace std::endl;
-
+using namespace keops;
 
 __TYPE__ floatrand() {
     return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
@@ -147,14 +142,14 @@ int main() {
 
     int Nx=5000, Ny=2000;
 
-    vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
-    vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
-    vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
-    vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
-    vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
-    vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
+    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
+    std::vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
+    std::vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
+    std::vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
+    std::vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    vector<__TYPE__> resgpu2D(Nx*F::DIM), resgpu1D(Nx*F::DIM), rescpu(Nx*F::DIM);
+    std::vector<__TYPE__> resgpu2D(Nx*F::DIM), resgpu1D(Nx*F::DIM), rescpu(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 4.0;
@@ -166,33 +161,33 @@ int main() {
     int deviceID = 1;
     cudaSetDevice(deviceID);
     end = clock();
-    cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    cout << "blank run" << endl;
+    std::cout << "blank run" << std::endl;
     begin = clock();
     GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
-    cout << "time for blank run : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for blank run : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    cout << "testing function F" << endl;
+    std::cout << "testing function F" << std::endl;
     begin = clock();
     GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
-    cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
     GpuConv1D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
-    cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
     CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu = vf;
 
@@ -200,37 +195,37 @@ int main() {
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(resgpu2D[i]-rescpu[i]);
-    cout << "mean abs error 2D =" << s/Nx << endl;
+    std::cout << "mean abs error 2D =" << s/Nx << std::endl;
 
     s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(resgpu1D[i]-rescpu[i]);
-    cout << "mean abs error 1D =" << s/Nx << endl;
+    std::cout << "mean abs error 1D =" << s/Nx << std::endl;
 
 
 
 
-    vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
+    std::vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
 
-    cout << "testing function GX" << endl;
+    std::cout << "testing function GX" << std::endl;
     begin = clock();
     GpuConv2D(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
-    cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
     GpuConv1D(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
-    cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
     CpuConv(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu = vf;
 
@@ -238,12 +233,12 @@ int main() {
     s = 0;
     for(int i=0; i<Nx*GX::DIM; i++)
         s += abs(resgpu2D[i]-rescpu[i]);
-    cout << "mean abs error 2D =" << s/Nx << endl;
+    std::cout << "mean abs error 2D =" << s/Nx << std::endl;
 
     s = 0;
     for(int i=0; i<Nx*GX::DIM; i++)
         s += abs(resgpu1D[i]-rescpu[i]);
-    cout << "mean abs error 1D =" << s/Nx << endl;
+    std::cout << "mean abs error 1D =" << s/Nx << std::endl;
 
 
 
@@ -255,25 +250,25 @@ int main() {
     vf.resize(Ny*GY::DIM);
     f = vf.data();
 
-    cout << "testing function GY" << endl;
+    std::cout << "testing function GY" << std::endl;
     begin = clock();
     GpuConv2D(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
-    cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
     GpuConv1D(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
-    cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
     CpuConv(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu = vf;
 
@@ -281,12 +276,12 @@ int main() {
     s = 0;
     for(int i=0; i<Ny*GY::DIM; i++)
         s += abs(resgpu2D[i]-rescpu[i]);
-    cout << "mean abs error 2D=" << s/Ny << endl;
+    std::cout << "mean abs error 2D=" << s/Ny << std::endl;
 
     s = 0;
     for(int i=0; i<Ny*GY::DIM; i++)
         s += abs(resgpu1D[i]-rescpu[i]);
-    cout << "mean abs error 1D=" << s/Ny << endl;
+    std::cout << "mean abs error 1D=" << s/Ny << std::endl;
 
 
 

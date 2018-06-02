@@ -32,7 +32,6 @@ template < class V > void fillrandom(V& v) {
 }
 
 int main() {
-    using namespace keops;
 
     // symbolic variables of the function
     using X = Var<1,3,0>; 	// X is the first variable and represents a 3D vector

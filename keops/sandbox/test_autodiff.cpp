@@ -25,14 +25,10 @@
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "../core/autodiff.h"
-
 #include "../core/CpuConv.cpp"
 
 
-using namespace std::cout;
-using namespace std::endl;
-
+using namespace keops;
 
 __TYPE__ floatrand() {
     return ((__TYPE__)std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
@@ -145,14 +141,14 @@ int main() {
 
     int Nx=5000, Ny=2000;
 
-    vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
-    vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
-    vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
-    vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
-    vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
-    vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
+    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
+    std::vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
+    std::vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
+    std::vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
+    std::vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
     
-    vector<__TYPE__> rescpu(Nx*F::DIM);
+    std::vector<__TYPE__> rescpu(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
@@ -170,7 +166,7 @@ int main() {
 
     rescpu = vf;
 
-    vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
+    std::vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
 
     std::cout << "testing function GX" << std::endl;
 

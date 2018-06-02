@@ -16,14 +16,9 @@
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "core/autodiff.h"
-
 #include "core/CpuConv.cpp"
 
-using namespace std::cout;
-using namespace std::endl;
-
-
+using namespace keops;
 
 __TYPE__ floatrand() {
     return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
@@ -46,24 +41,24 @@ int main() {
     using B = _Y<4,DIMVECT>;
     using F = SumGaussKernel<C,W,X,Y,B>;
 
-    cout << endl << "Function F : " << endl;
+    std::cout << std::endl << "Function F : " << std::endl;
     PrintFormula<F>();
-    cout << endl << endl;
+    std::cout << std::endl << std::endl;
 
     using FUNCONVF = typename Generic<F>::sEval;
 
     // now we test ------------------------------------------------------------------------------
 
-    cout << "Testing F" << endl;
+    std::cout << "Testing F" << std::endl;
 
     int Nx=5000, Ny=2000;
         
-    vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
-    vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();
-    vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *y = vy.data();
-    vector<__TYPE__> vb(Ny*DIMVECT); fillrandom(vb); __TYPE__ *b = vb.data();
+    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();
+    std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *y = vy.data();
+    std::vector<__TYPE__> vb(Ny*DIMVECT); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    vector<__TYPE__> rescpu1(Nx*F::DIM);
+    std::vector<__TYPE__> rescpu1(Nx*F::DIM);
 
     __TYPE__ oos2s[4] = {.5,.25,.1,1.0};
     __TYPE__ weights[4] = {1.0,-2.0,-.5,3.2};
@@ -73,30 +68,30 @@ int main() {
     begin = clock();
     CpuConv(FUNCONVF(), Nx, Ny, f, oos2s, weights, x, y, b);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu1 = vf;
 
 
     // display values
-    cout << "rescpu1 = ";
+    std::cout << "rescpu1 = ";
     for(int i=0; i<5; i++)
-        cout << rescpu1[i] << " ";
-    cout << "..." << endl << endl;
+        std::cout << rescpu1[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
     
     // compare with combination of 4 convolutions
-    cout << "Comparing with combination of 4 convolutions" << endl;
+    std::cout << "Comparing with combination of 4 convolutions" << std::endl;
     using C0 = _P<0,1>;
     using X0 = _X<1,DIMPOINT>;
     using Y0 = _Y<2,DIMPOINT>;
     using B0 = _Y<3,DIMVECT>;
     using F0 = GaussKernel<C0,X0,Y0,B0>;
     using FUNCONVF0 = typename Generic<F0>::sEval;
-    vector<__TYPE__> vf0(Nx*F::DIM);    fillrandom(vf0); __TYPE__ *f0 = vf0.data();
-    vector<__TYPE__> vf1(Nx*F::DIM);    fillrandom(vf1); __TYPE__ *f1 = vf1.data();
-    vector<__TYPE__> vf2(Nx*F::DIM);    fillrandom(vf2); __TYPE__ *f2 = vf2.data();
-    vector<__TYPE__> vf3(Nx*F::DIM);    fillrandom(vf3); __TYPE__ *f3 = vf3.data();
-	vector<__TYPE__> rescpu2(Nx*F::DIM);
+    std::vector<__TYPE__> vf0(Nx*F::DIM);    fillrandom(vf0); __TYPE__ *f0 = vf0.data();
+    std::vector<__TYPE__> vf1(Nx*F::DIM);    fillrandom(vf1); __TYPE__ *f1 = vf1.data();
+    std::vector<__TYPE__> vf2(Nx*F::DIM);    fillrandom(vf2); __TYPE__ *f2 = vf2.data();
+    std::vector<__TYPE__> vf3(Nx*F::DIM);    fillrandom(vf3); __TYPE__ *f3 = vf3.data();
+    std::vector<__TYPE__> rescpu2(Nx*F::DIM);
     begin = clock();
     CpuConv(FUNCONVF0(), Nx, Ny, f0, oos2s, x, y, b);
     CpuConv(FUNCONVF0(), Nx, Ny, f1, oos2s+1, x, y, b);
@@ -105,57 +100,57 @@ int main() {
     for(int i=0; i<Nx*F::DIM; i++)
         f[i] = weights[0]*f0[i]+weights[1]*f1[i]+weights[2]*f2[i]+weights[3]*f3[i];
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     rescpu2 = vf;
 
     // display values
-    cout << "rescpu2 = ";
+    std::cout << "rescpu2 = ";
     for(int i=0; i<5; i++)
-        cout << rescpu2[i] << " ";
-    cout << "..." << endl;
+        std::cout << rescpu2[i] << " ";
+    std::cout << "..." << std::endl;
 
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(rescpu1[i]-rescpu2[i]);
-    cout << endl << "mean abs error = " << s/Nx << endl << endl;
+    std::cout << std::endl << "mean abs error = " << s/Nx << std::endl << std::endl;
 
     
     
     
-    cout << "Testing Gradient of F" << endl;
+    std::cout << "Testing Gradient of F" << std::endl;
     
     using E = _X<5,DIMVECT>;
     using G = Grad<F,X,E>;
 
-    cout << endl << "Function G : " << endl;
+    std::cout << std::endl << "Function G : " << std::endl;
     PrintFormula<G>();
-    cout << endl << endl;
+    std::cout << std::endl << std::endl;
 
-    vector<__TYPE__> vg(Nx*G::DIM);    fillrandom(vg); __TYPE__ *g = vg.data();
-    vector<__TYPE__> ve(Nx*DIMVECT);    fillrandom(ve); __TYPE__ *e = ve.data();
+    std::vector<__TYPE__> vg(Nx*G::DIM);    fillrandom(vg); __TYPE__ *g = vg.data();
+    std::vector<__TYPE__> ve(Nx*DIMVECT);    fillrandom(ve); __TYPE__ *e = ve.data();
 
     using FUNCONVG = typename Generic<G>::sEval;
     begin = clock();
     CpuConv(FUNCONVG(), Nx, Ny, g, oos2s, weights, x, y, b, e);
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     
     rescpu1 = vg;
     // display values
-    cout << "rescpu1 = ";
+    std::cout << "rescpu1 = ";
     for(int i=0; i<5; i++)
-        cout << rescpu1[i] << " ";
-    cout << "..." << endl << endl;
+        std::cout << rescpu1[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
     
-    cout << "Comparing with combination of 4 convolutions" << endl;
+    std::cout << "Comparing with combination of 4 convolutions" << std::endl;
     using E0 = _X<4,DIMVECT>;
     using G0 = Grad<F0,X0,E0>;
     using FUNCONVG0 = typename Generic<G0>::sEval;
-    vector<__TYPE__> vg0(Nx*G0::DIM);    fillrandom(vg0); __TYPE__ *g0 = vg0.data();
-    vector<__TYPE__> vg1(Nx*G0::DIM);    fillrandom(vg1); __TYPE__ *g1 = vg1.data();
-    vector<__TYPE__> vg2(Nx*G0::DIM);    fillrandom(vg2); __TYPE__ *g2 = vg2.data();
-    vector<__TYPE__> vg3(Nx*G0::DIM);    fillrandom(vg3); __TYPE__ *g3 = vg3.data();
+    std::vector<__TYPE__> vg0(Nx*G0::DIM);    fillrandom(vg0); __TYPE__ *g0 = vg0.data();
+    std::vector<__TYPE__> vg1(Nx*G0::DIM);    fillrandom(vg1); __TYPE__ *g1 = vg1.data();
+    std::vector<__TYPE__> vg2(Nx*G0::DIM);    fillrandom(vg2); __TYPE__ *g2 = vg2.data();
+    std::vector<__TYPE__> vg3(Nx*G0::DIM);    fillrandom(vg3); __TYPE__ *g3 = vg3.data();
     begin = clock();
     CpuConv(FUNCONVG0(), Nx, Ny, g0, oos2s, x, y, b, e);
     CpuConv(FUNCONVG0(), Nx, Ny, g1, oos2s+1, x, y, b, e);
@@ -164,20 +159,20 @@ int main() {
     for(int i=0; i<Nx*G0::DIM; i++)
         g[i] = weights[0]*g0[i]+weights[1]*g1[i]+weights[2]*g2[i]+weights[3]*g3[i];
     end = clock();
-    cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     rescpu2 = vg;
     
     // display values
-    cout << "rescpu2 = ";
+    std::cout << "rescpu2 = ";
     for(int i=0; i<5; i++)
-        cout << rescpu2[i] << " ";
-    cout << "..." << endl;
+        std::cout << rescpu2[i] << " ";
+    std::cout << "..." << std::endl;
     
     // display mean of errors
     s = 0;
     for(int i=0; i<Nx*G::DIM; i++)
         s += abs(rescpu1[i]-rescpu2[i]);
-    cout << endl << "mean abs error = " << s/Nx << endl << endl;
+    std::cout << std::endl << "mean abs error = " << s/Nx << std::endl << std::endl;
 }
 
 

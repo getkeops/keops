@@ -12,8 +12,6 @@
 #include <ctime>
 #include <algorithm>
 
-#include "core/autodiff.h"
-
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
@@ -24,10 +22,7 @@
 #include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
 
-using namespace std::cout;
-using namespace std::endl;
-
-
+using namespace keops;
 
 __TYPE__ floatrand() {
     return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
@@ -55,20 +50,20 @@ int main() {
     using F1 = Add<F0,F0>;
     using F = Add<F1,F1>;
 
-    cout << endl << "Function F : " << endl;
+    std::cout << std::endl << "Function F : " << std::endl;
     F::PrintId();
-    cout << endl << endl;
+    std::cout << std::endl << std::endl;
 
     // now we factorize F0 from F : new formula FF computes the same as F but will evaluate first F0 once and then just does three vector additions
     using FF = Factorize < F, F0 >;
 
-    cout << "Function FF = factorized version of F :" << endl;
-    cout << "Factor = " << endl;
+    std::cout << "Function FF = factorized version of F :" << std::endl;
+    std::cout << "Factor = " << std::endl;
     FF::Factor::PrintId();
-    cout << endl << "Factorized Formula = " << endl;
+    std::cout << std::endl << "Factorized Formula = " << std::endl;
     using INDS = pack<0,1,2,3,4,5>; // just to print the formula we define a dummy INDS...
     FF::FactorizedFormula<INDS>::PrintId();
-    cout << endl << endl;
+    std::cout << std::endl << std::endl;
 
 
     using FUNCONVF = typename Generic<F>::sEval;
@@ -76,19 +71,19 @@ int main() {
 
     // now we test ------------------------------------------------------------------------------
 
-    cout << endl << "Testing F" << endl;
+    std::cout << std::endl << "Testing F" << std::endl;
 
     int Nx=211, Ny=201;
     __TYPE__ s;
 
-    vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
-    vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
-    vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
-    vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
-    vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
-    vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
+    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
+    std::vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
+    std::vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
+    std::vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
+    std::vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    vector<__TYPE__> resgpu1(Nx*F::DIM), resgpu2(Nx*F::DIM), rescpu(Nx*F::DIM);
+    std::vector<__TYPE__> resgpu1(Nx*F::DIM), resgpu2(Nx*F::DIM), rescpu(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
@@ -100,12 +95,12 @@ int main() {
     int deviceID = 0;
     cudaSetDevice(deviceID);
     end = clock();
-    cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     begin = clock();
     GpuConv1D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
-    cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1 = vf;
     fillrandom(vf);
@@ -113,7 +108,7 @@ int main() {
     begin = clock();
     GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
-    cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2 = vf;
     fillrandom(vf);
@@ -122,51 +117,51 @@ int main() {
         begin = clock();
         CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
         end = clock();
-        cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+        std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
         rescpu = vf;
         fillrandom(vf);
 
         // display values
-        cout << endl << "resgpu1 = ";
+        std::cout << std::endl << "resgpu1 = ";
         for(int i=0; i<5; i++)
-                    cout << resgpu1[i] << " ";
-        cout << endl << "resgpu2 = ";
+                    std::cout << resgpu1[i] << " ";
+        std::cout << std::endl << "resgpu2 = ";
         for(int i=0; i<5; i++)
-                    cout << resgpu2[i] << " ";
-        cout << endl << "rescpu  = ";
+                    std::cout << resgpu2[i] << " ";
+        std::cout << std::endl << "rescpu  = ";
             for(int i=0; i<5; i++)
-                    cout << rescpu[i] << " ";
+                    std::cout << rescpu[i] << " ";
 
         // display mean of errors
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
             s += abs(resgpu1[i]-rescpu[i]);
-        cout << endl << "mean abs error (cpu vs gpu1) =" << s/Nx << endl;
+        std::cout << std::endl << "mean abs error (cpu vs gpu1) =" << s/Nx << std::endl;
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
             s += abs(resgpu2[i]-rescpu[i]);
-        cout << "mean abs error (cpu vs gpu2) =" << s/Nx << endl;
+        std::cout << "mean abs error (cpu vs gpu2) =" << s/Nx << std::endl;
     }
 
     // display mean of errors
     s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(resgpu1[i]-resgpu2[i]);
-    cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << endl;
+    std::cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << std::endl;
 
 
 
 /// testing FF
 
-    cout << endl << endl << "Testing FF" << endl;
+    std::cout << std::endl << std::endl << "Testing FF" << std::endl;
 
     using FUNCONVFF = typename Generic<FF>::sEval;
 
     begin = clock();
     GpuConv1D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
-    cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1 = vf;
     fillrandom(vf);
@@ -174,7 +169,7 @@ int main() {
     begin = clock();
     GpuConv2D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
-    cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+    std::cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2 = vf;
     fillrandom(vf);
@@ -183,39 +178,39 @@ int main() {
         begin = clock();
         CpuConv(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
         end = clock();
-        cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << endl;
+        std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
         rescpu = vf;
         fillrandom(vf);
 
         // display values
-        cout << endl << "resgpu1 = ";
+        std::cout << std::endl << "resgpu1 = ";
         for(int i=0; i<5; i++)
-                    cout << resgpu1[i] << " ";
-        cout << endl << "resgpu2 = ";
+                    std::cout << resgpu1[i] << " ";
+        std::cout << std::endl << "resgpu2 = ";
         for(int i=0; i<5; i++)
-                    cout << resgpu2[i] << " ";
-        cout << endl << "rescpu  = ";
+                    std::cout << resgpu2[i] << " ";
+        std::cout << std::endl << "rescpu  = ";
             for(int i=0; i<5; i++)
-                    cout << rescpu[i] << " ";
+                    std::cout << rescpu[i] << " ";
 
 
         // display mean of errors
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
             s += abs(resgpu1[i]-rescpu[i]);
-        cout << endl << "mean abs error (cpu vs gpu1) =" << s/Nx << endl;
+        std::cout << std::endl << "mean abs error (cpu vs gpu1) =" << s/Nx << std::endl;
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
             s += abs(resgpu2[i]-rescpu[i]);
-        cout << "mean abs error (cpu vs gpu2) =" << s/Nx << endl;
+        std::cout << "mean abs error (cpu vs gpu2) =" << s/Nx << std::endl;
     }
 
     // display mean of errors
     s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(resgpu1[i]-resgpu2[i]);
-    cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << endl;
+    std::cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << std::endl;
 
 }
 

@@ -16,20 +16,13 @@
 #include <algorithm>
 #include <iostream>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms.h"
-#include "core/formulas/factorize.h"
-
-#include "core/autodiff.h"
+#include "core/formulas/newsyntax.h"
 
 #include "core/CpuConv.cpp"
 
-#include "core/formulas/newsyntax.h"
 
 
-using namespace newsyntax_ops;
+using namespace keops;
 
 __TYPE__ floatrand() {
     return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
@@ -38,6 +31,7 @@ __TYPE__ floatrand() {
 template < class V > void fillrandom(V& v) {
     generate(v.begin(), v.end(), floatrand);    // fills vector with random values
 }
+
 
 int main() {
     // In this part we define the symbolic variables of the function
@@ -51,7 +45,7 @@ int main() {
     // symbolic expression of the function ------------------------------------------------------
     
     // here we define F = <u,v>^2 * exp(-c*|x-y|^2) * b in usual notations
-    auto formula = Square((U,V))*Exp(-C*SqDist(X,Y))*(B*B);
+    auto formula = Square((U|V))*Exp(-C*SqDist(X,Y))*(B*B);
     using F = decltype(formula);
 
     using FUNCONVF = typename Generic<F>::sEval;
@@ -60,14 +54,14 @@ int main() {
 
     int Nx=5000, Ny=2000;
 
-    vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
-    vector<__TYPE__> vx(Nx*X.DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
-    vector<__TYPE__> vy(Ny*Y.DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
-    vector<__TYPE__> vu(Nx*U.DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
-    vector<__TYPE__> vv(Ny*V.DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
-    vector<__TYPE__> vb(Ny*B.DIM); fillrandom(vb); __TYPE__ *b = vb.data();
+    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vx(Nx*X.DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
+    std::vector<__TYPE__> vy(Ny*Y.DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
+    std::vector<__TYPE__> vu(Nx*U.DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
+    std::vector<__TYPE__> vv(Ny*V.DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
+    std::vector<__TYPE__> vb(Ny*B.DIM); fillrandom(vb); __TYPE__ *b = vb.data();
     
-    vector<__TYPE__> rescpu(Nx*F::DIM);
+    std::vector<__TYPE__> rescpu(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
