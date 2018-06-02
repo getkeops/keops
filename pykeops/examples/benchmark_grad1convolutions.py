@@ -31,10 +31,10 @@ try:
     use_cuda = torch.cuda.is_available()
     dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
-    ac = Variable(torch.from_numpy(a.copy()).type(dtype), requires_grad=True).type(dtype)
+    ac = Variable(torch.from_numpy(a.copy()).type(dtype), requires_grad=False).type(dtype)
     xc = Variable(torch.from_numpy(x.copy()).type(dtype), requires_grad=True).type(dtype)
-    yc = Variable(torch.from_numpy(y.copy()).type(dtype), requires_grad=True).type(dtype)
-    bc = Variable(torch.from_numpy(b.copy()).type(dtype), requires_grad=True).type(dtype)
+    yc = Variable(torch.from_numpy(y.copy()).type(dtype), requires_grad=False).type(dtype)
+    bc = Variable(torch.from_numpy(b.copy()).type(dtype), requires_grad=False).type(dtype)
     sigmac = torch.autograd.Variable(torch.from_numpy(sigma.copy()).type(dtype), requires_grad=False).type(dtype)
 
 except:
@@ -47,10 +47,12 @@ except:
 enable_GC = False # Garbage collection?
 GC = 'gc.enable();' if enable_GC else 'pass;'
 LOOPS = 100
-print("Times to compute ", LOOPS, " grad-convolutions of size {}x{}:".format(N,M))
 print("\n",end="")
+print("Times to compute ", LOOPS, " grad-convolutions of size {}x{}:".format(N,M))
+
 
 for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
+    print("\n",end="")
     print(k, " kernel: -----------------------------------")
 
     # pure numpy
@@ -73,7 +75,7 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
         except:
             pass
     else:
-        print("No Gpu detetcted ; skipping 'specific' KeOps computation.")
+        print("Time for keops specific:   skipping (no Gpu detected)")
 
     # keops + pytorch : generic tiled implementation (with cuda if available else uses cpu)
     try:

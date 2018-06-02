@@ -14,10 +14,10 @@
  *
  *   +, *, - :
  *      Add<FA,FB>					: adds FA and FB functions
+ *      Subtract<FA,FB>					: subtractss FA and FB functions
  *      Scal<FA,FB>                 : product of FA (scalar valued) with FB
  *      Mult<FA,FB>                 : element-wise multiplication of FA and FB
  *      Minus<F>					: alias for Scal<IntConstant<-1>,F>
- *      Subtract<FA,FB>				: alias for Add<FA,Minus<FB>>
  *
  *   /, ^, ^2, ^-1, ^(1/2) :
  *      Divide<FA,FB>				: alias for Scal<FA,Inv<FB>>
@@ -39,17 +39,19 @@ namespace keops {
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-// Addition, Scalar product and "Scalar*Vector product" symbolic operators.
+// Addition, Subtraction, Scalar product and "Scalar*Vector product" symbolic operators.
 // The actual implementation can be found below.
 // Since the gradients of these operations are "bootstrapped", we need to be a little bit
 // careful with the declaration order, and therefore use three "typenames" per operation:
 // OpAlias, OpImpl and Op (proper).
 template < class FA, class FB > struct AddImpl;
+template < class FA, class FB > struct SubtractImpl;
 template < class FA, class FB > struct ScalprodImpl;
 template < class FA, class FB > struct ScalImpl;
 template < class FA, class FB > struct MultImpl;
 
 template < class FA, class FB > struct AddAlias;
+template < class FA, class FB > struct SubtractAlias;
 template < class FA, class FB > struct ScalprodAlias;
 template < class FA, class FB > struct ScalAlias;
 template < class FA, class FB > struct MultAlias;
@@ -57,6 +59,9 @@ template < class F > struct Norm2Alias;
 
 template < class FA, class FB >
 using Add = typename AddAlias<FA,FB>::type;
+
+template < class FA, class FB >
+using Subtract = typename SubtractAlias<FA,FB>::type;
 
 template < class FA, class FB >
 using Scalprod = typename ScalprodAlias<FA,FB>::type;
@@ -73,7 +78,6 @@ using Mult = typename MultAlias<FA,FB>::type;
 
 template < class F >
 using Minus = Scal<IntConstant<-1>,F>;
-
 
 //////////////////////////////////////////////////////////////
 ////               ADDITION : Add< FA,FB >                ////
@@ -99,6 +103,13 @@ struct AddImpl : BinaryOp<AddImpl,FA,FB> {
 
 };
 
+// Simplification rules
+// We have to divide rules into several stages
+// to avoid conflicts
+
+// third stage
+
+// base class : this redirects to the implementation
 template < class FA, class FB >
 struct AddAlias0 {
     using type = AddImpl<FA,FB>;
@@ -122,6 +133,9 @@ struct AddAlias0<ScalImpl<G,F>,F> {
     using type = Scal<Add<IntConstant<1>,G>,F>;
 };
 
+// second stage
+
+// base class : this redirects to the third stage
 template < class FA, class FB >
 struct AddAlias1 {
     using type = typename AddAlias0<FA,FB>::type;
@@ -135,18 +149,17 @@ struct AddAlias1<ScalImpl<G,F>,ScalImpl<H,F>> {
 
 // A+n = n+A (brings integers constants to the left)
 template < int N, class F >
-struct AddAlias1<F,IntConstant<N>> {
+struct AddAlias1<F,IntConstantImpl<N>> {
     using type = Add<IntConstant<N>,F>;
 };
 
+// first stage
+
+// base class : this redirects to the second stage
 template < class FA, class FB >
 struct AddAlias {
     using type = typename AddAlias1<FA,FB>::type;
 };
-
-// Constants, etc. will lead to the creation of *many* zero vectors when computing the gradient.
-// Even though this backpropagation engine makes few optimizations,
-// this is definitely the one that should not be forgotten.
 
 // A + 0 = A
 template < class FA, int DIM >
@@ -171,7 +184,7 @@ struct AddAlias<Zero<DIM1>,Zero<DIM2>> {
 
 // m+n = m+n
 template < int M, int N >
-struct AddAlias<IntConstant<M>,IntConstant<N>> {
+struct AddAlias<IntConstantImpl<M>,IntConstantImpl<N>> {
     using type = IntConstant<M+N>;
 };
 
@@ -205,36 +218,43 @@ struct ScalImpl : BinaryOp<ScalImpl,FA,FB> {
 
 };
 
+// Simplification rules
+// We have to divide rules into several stages
+// to avoid conflicts
 
+// second stage
+
+// base class : this redirects to the implementation
 template < class FA, class FB >
 struct ScalAlias0 {
     using type = ScalImpl<FA,FB>;
 };
 
+// a*(b*c) = (a*b)*c
 template < class FA, class F, class G >
 struct ScalAlias0<FA,ScalImpl<F,G>> {
     using type = Scal<Scal<FA,F>,G>;
 };
 
+// m*n = m*n
 template < int M, int N >
-struct ScalAlias0<IntConstant<M>,IntConstant<N>> {
+struct ScalAlias0<IntConstantImpl<M>,IntConstantImpl<N>> {
     using type = IntConstant<M*N>;
 };
 
+// a*n = n*a
 template < class FA, int N >
-struct ScalAlias0<FA,IntConstant<N>> {
+struct ScalAlias0<FA,IntConstantImpl<N>> {
     using type = Scal<IntConstant<N>,FA>;
 };
 
+// first stage
+
+// base class : this redirects to the second stage
 template < class FA, class FB >
 struct ScalAlias {
     using type = typename ScalAlias0<FA,FB>::type;
 };
-
-
-// Constants, etc. will lead to the creation of *many* zero vectors when computing the gradient.
-// Even though this backpropagation engine makes few optimizations,
-// this is definitely the one that should not be forgotten.
 
 // A * 0 = 0
 template < class FA, int DIM >
@@ -250,7 +270,7 @@ struct ScalAlias<Zero<DIM>,FB> {
     using type = Zero<FB::DIM>;
 };
 
-// 0 * 0 = 0
+// 0 * 0 = 0 (we have to specify it otherwise there is a conflict between A*0 and 0*B)
 template < int DIM1, int DIM2 >
 struct ScalAlias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==1,"Dimension of FA must be 1 for Scal");
@@ -288,15 +308,13 @@ struct MultImpl : BinaryOp<MultImpl,FA,FB> {
     
 };
 
+// Simplification rules
 
+// base class : this redirects to the implementation
 template < class FA, class FB >
 struct MultAlias {
     using type = MultImpl<FA,FB>;
 };
-
-// Constants, etc. will lead to the creation of *many* zero vectors when computing the gradient.
-// Even though this backpropagation engine makes few optimizations,
-// this is definitely the one that should not be forgotten.
 
 // A * 0 = 0
 template < class FA, int DIM >
@@ -312,7 +330,7 @@ struct MultAlias<Zero<DIM>,FB> {
     using type = Zero<DIM>;
 };
 
-// 0 * 0 = 0
+// 0 * 0 = 0 (we have to specify it otherwise there is a conflict between A*0 and 0*B)
 template < int DIM1, int DIM2 >
 struct MultAlias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==DIM2,"Dimensions of FA and FB must be the same for Mult");
@@ -330,8 +348,110 @@ using ScalOrMult = CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>;
 ////             SUBTRACT : F-G		                      ////
 //////////////////////////////////////////////////////////////
 
+
 template < class FA, class FB >
-using Subtract = Add<FA,Minus<FB>>;
+struct SubtractImpl : BinaryOp<SubtractImpl,FA,FB> {
+    // Output dim = FA::DIM = FB::DIM
+    static const int DIM = FA::DIM;
+    static_assert(DIM==FB::DIM,"Dimensions must be the same for Subtract");
+    
+    static void PrintIdString() { std::cout << "-"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = outA[k] - outB[k];
+	}
+
+    // [\partial_V (A - B) ] . gradin = [\partial_V A ] . gradin  - [\partial_V B ] . gradin
+    template < class V, class GRADIN >
+    using DiffT = Subtract < typename FA::template DiffT<V,GRADIN> , typename FB::template DiffT<V,GRADIN> >;
+
+};
+
+// Simplification rules
+
+// third stage
+
+// base class : this redirects to the implementation
+template < class FA, class FB >
+struct SubtractAlias0 {
+    using type = SubtractImpl<FA,FB>;
+};
+
+// A - A = 0
+template < class F >
+struct SubtractAlias0<F,F> {
+    using type = Zero<F::DIM>;
+};
+
+// A - B*A = (1-B)*A
+template < class F, class G >
+struct SubtractAlias0<F,ScalImpl<G,F>> {
+    using type = Scal<Subtract<IntConstant<1>,G>,F>;
+};
+
+// B*A - A = (-1+B)*A
+template < class F, class G >
+struct SubtractAlias0<ScalImpl<G,F>,F> {
+    using type = Scal<Add<IntConstant<-1>,G>,F>;
+};
+
+// second stage
+
+// base class : this redirects to third stage
+template < class FA, class FB >
+struct SubtractAlias1 {
+    using type = typename SubtractAlias0<FA,FB>::type;
+};
+
+// B*A - C*A = (B-C)*A
+template < class F, class G, class H >
+struct SubtractAlias1<ScalImpl<G,F>,ScalImpl<H,F>> {
+    using type = Scal<Subtract<G,H>,F>;
+};
+
+// A-n = -n+A (brings integers constants to the left)
+template < int N, class F >
+struct SubtractAlias1<F,IntConstantImpl<N>> {
+    using type = Add<IntConstant<-N>,F>;
+};
+
+// first stage
+
+// base class, redirects to second stage
+template < class FA, class FB >
+struct SubtractAlias {
+    using type = typename SubtractAlias1<FA,FB>::type;
+};
+
+// A - 0 = A
+template < class FA, int DIM >
+struct SubtractAlias<FA,Zero<DIM>> {
+    static_assert(DIM==FA::DIM,"Dimensions must be the same for Subtract");
+    using type = FA;
+};
+
+// 0 - B = -B
+template < class FB, int DIM >
+struct SubtractAlias<Zero<DIM>,FB> {
+    static_assert(DIM==FB::DIM,"Dimensions must be the same for Subtract");
+    using type = Minus<FB>;
+};
+
+// 0 - 0 = la tete a Toto
+template < int DIM1, int DIM2 >
+struct SubtractAlias<Zero<DIM1>,Zero<DIM2>> {
+    static_assert(DIM1==DIM2,"Dimensions must be the same for Subtract");
+    using type = Zero<DIM1>;
+};
+
+// m-n = m-n
+template < int M, int N >
+struct SubtractAlias<IntConstantImpl<M>,IntConstantImpl<N>> {
+    using type = IntConstant<M-N>;
+};
+
+
 
 //////////////////////////////////////////////////////////////
 ////             EXPONENTIAL : Exp< F >                   ////
@@ -520,13 +640,13 @@ struct SqrtImpl : UnaryOp<SqrtImpl,F> {
     using DiffT = DiffTF<V,Mult< Scal<IntInv<2>,Rsqrt<F>> ,GRADIN>>;
 };
 
+// Simplification rule
 
+// base class, redirects to implementation
 template < class F > 
 struct SqrtAlias { 
     using type = SqrtImpl<F>; 
 }; 
- 
-// One simple optimization : 
  
 // Sqrt(0) = 0 
 template < int DIM > 
@@ -567,13 +687,13 @@ struct RsqrtImpl : UnaryOp<RsqrtImpl,F> {
     using DiffT = DiffTF<V,Mult< Scal<IntInv<-2>,Pow<Rsqrt<F>,3>> ,GRADIN>>;
 };
 
-
+// Simplification rule
+ 
+// base class, redirects to implementation
 template < class F > 
 struct RsqrtAlias { 
     using type = RsqrtImpl<F>; 
 }; 
- 
-// One simple optimization : 
  
 // Rsqrt(0) = 0   // warning !! Rsqrt(0) should be Inf but we put 0 instead. This is intentional...
 template < int DIM > 

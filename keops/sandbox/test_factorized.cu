@@ -12,11 +12,7 @@
 #include <ctime>
 #include <algorithm>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms.h"
-#include "core/formulas/factorize.h"
+#include "core/formulas/newsyntax.h"
 
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
@@ -46,22 +42,23 @@ int main() {
 
     // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 where F0 = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
     // with the standard implementation it means we will compute 8 times F0 to evaluate F
-    using F0 = Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
+    using F0 = decltype(  Inv( IntCst(1) + C()* SqNorm2(X()-Y()))  );//Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
     using F1 = Add<F0,F0>;
-    using F = Add<F1,F1>;
+    using F = Grad<F0, X, Var<6,3,0>>;
 
     std::cout << std::endl << "Function F : " << std::endl;
     F::PrintId();
     std::cout << std::endl << std::endl;
 
     // now we factorize F0 from F : new formula FF computes the same as F but will evaluate first F0 once and then just does three vector additions
-    using FF = Factorize < F, F0 >;
+    using FF = AutoFactorize < F >;
 
     std::cout << "Function FF = factorized version of F :" << std::endl;
     std::cout << "Factor = " << std::endl;
     FF::Factor::PrintId();
     std::cout << std::endl << "Factorized Formula = " << std::endl;
-    using INDS = pack<0,1,2,3,4,5>; // just to print the formula we define a dummy INDS...
+    //using INDS = pack<0,1,2,3,4,5>; // just to print the formula we define a dummy INDS...
+    using INDS = pack<0,1,2,3,4,5,6>; // just to print the formula we define a dummy INDS...
     FF::FactorizedFormula<INDS>::PrintId();
     std::cout << std::endl << std::endl;
 
@@ -73,7 +70,7 @@ int main() {
 
     std::cout << std::endl << "Testing F" << std::endl;
 
-    int Nx=211, Ny=201;
+    int Nx=1511, Ny=1001;
     __TYPE__ s;
 
     std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
@@ -98,7 +95,7 @@ int main() {
     std::cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     begin = clock();
-    GpuConv1D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
+    GpuConv1D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -106,7 +103,7 @@ int main() {
     fillrandom(vf);
 
     begin = clock();
-    GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
+    GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -115,7 +112,7 @@ int main() {
     
     if(Nx*Ny<1e8) {
         begin = clock();
-        CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
+        CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b, x);
         end = clock();
         std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -142,10 +139,9 @@ int main() {
         for(int i=0; i<Nx*F::DIM; i++)
             s += abs(resgpu2[i]-rescpu[i]);
         std::cout << "mean abs error (cpu vs gpu2) =" << s/Nx << std::endl;
+        s = 0;
     }
 
-    // display mean of errors
-    s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(resgpu1[i]-resgpu2[i]);
     std::cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << std::endl;
@@ -159,7 +155,7 @@ int main() {
     using FUNCONVFF = typename Generic<FF>::sEval;
 
     begin = clock();
-    GpuConv1D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
+    GpuConv1D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -167,7 +163,7 @@ int main() {
     fillrandom(vf);
 
     begin = clock();
-    GpuConv2D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
+    GpuConv2D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -176,7 +172,7 @@ int main() {
 
     if(Nx*Ny<1e8) {
         begin = clock();
-        CpuConv(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b);
+        CpuConv(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b, x);
         end = clock();
         std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -205,13 +201,12 @@ int main() {
             s += abs(resgpu2[i]-rescpu[i]);
         std::cout << "mean abs error (cpu vs gpu2) =" << s/Nx << std::endl;
     }
-
-    // display mean of errors
     s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
         s += abs(resgpu1[i]-resgpu2[i]);
     std::cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << std::endl;
 
+    return 0 ;
 }
 
 
