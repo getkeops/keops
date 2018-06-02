@@ -44,7 +44,7 @@ add_executable(
 # ----------------- equivalent code to compile_test_factorized
 if (USE_CUDA)
 
-    CUDA_add_executable(
+    CUDA_add_library(
         simple_autodiff
         ${CMAKE_CURRENT_SOURCE_DIR}/simple_autodiff.cu
     )
