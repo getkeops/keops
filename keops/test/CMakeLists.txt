@@ -53,12 +53,12 @@ if(Threads_FOUND) # skip test if pthread is not found
     ### - unit test
     if (USE_CUDA)
         CUDA_add_executable(
-            test_grad1conv
-            ${CMAKE_CURRENT_SOURCE_DIR}/test_grad1conv.cu
+            gtest_grad1conv
+            ${CMAKE_CURRENT_SOURCE_DIR}/gtest_grad1conv.cu
         )
     
         target_link_libraries(
-            test_grad1conv
+            gtest_grad1conv
             radial_kernels_grad1conv
             gtest
             pthread
@@ -67,7 +67,7 @@ if(Threads_FOUND) # skip test if pthread is not found
         #--------------------------------------------------------
         Add_library(
             testic OBJECT 
-            ${CMAKE_CURRENT_SOURCE_DIR}/gpu_conv.cxx
+            ${CMAKE_CURRENT_SOURCE_DIR}/gtest_conv.cpp
         )
     
         target_compile_options(
@@ -81,19 +81,19 @@ if(Threads_FOUND) # skip test if pthread is not found
         )
 
         Add_executable(
-            test_conv
+            gtest_conv
             $<TARGET_OBJECTS:testic>
         )
     
         target_link_libraries(
-            test_conv
+            gtest_conv
             keops
             gtest
             pthread
         )
     
         set_target_properties( # pass needed options to add_executable()
-            test_conv PROPERTIES
+            gtest_conv PROPERTIES
             LINKER_LANGUAGE CXX
         )
     

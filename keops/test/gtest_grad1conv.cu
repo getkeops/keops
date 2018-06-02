@@ -7,27 +7,24 @@
 
 #include "bench/generate_data.h"
 
+#include "core/formulas/newsyntax.h"
+
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms.h"
-#include "core/formulas/factorize.h"
-
-#include "core/autodiff.h"
-
-#include "core/formulas/newsyntax.h"
-
 #define ATOL 1e-3
 #define RTOL 1e-4
 
-using namespace std;
+#define TEST_SIZE_SMALL 2001
+#define TEST_SIZE_MEDIUM 20001
+#define TEST_SIZE_LARGE 200001
+#define TEST_SIZE_VERY_LARGE 700001 
+
+using namespace keops;
 
 template <typename T>
-void EXPECT_AllCLOSE(const vector<T> X, const vector<T> Y, const T atol, const T rtol) {
+void EXPECT_AllCLOSE(const std::vector<T> X, const std::vector<T> Y, const T atol, const T rtol) {
     ASSERT_EQ(X.size(), Y.size());
 
     int count = 0;
@@ -43,7 +40,7 @@ void EXPECT_AllCLOSE(const vector<T> X, const vector<T> Y, const T atol, const T
 
 
 template <typename T>
-void EXPECT_NONZEROS(const vector<T> X) {
+void EXPECT_NONZEROS(const std::vector<T> X) {
 
     int nb_of_zeros = 0;
     for (int i = 0; i < X.size(); ++i) {
@@ -57,7 +54,7 @@ void EXPECT_NONZEROS(const vector<T> X) {
 //                      The function to be benchmarked                            //
 /////////////////////////////////////////////////////////////////////////////////////
 
-auto formula0 = Grad((Vx(1,3),Vy(2,3))*GaussKernel(Pm(0,1),Vx(1,3),Vy(2,3),Vy(3,3)),Vx(1,3),Vx(4,3));
+auto formula0 = Grad(GaussKernel(Pm(0,1),Vx(1,3),Vy(2,3),Vy(3,3)),Vx(1,3),Vx(4,3));
 using F0 = decltype(formula0);
 
 using FUN0 = typename Generic<F0>::sEval;
@@ -71,7 +68,7 @@ class test_grad1conv {
     public:
     test_grad1conv(int);
 
-    vector<T> vresgpu, vresgrad;
+    std::vector<T> vresgpu, vresgrad;
     T *resgpu, *resgrad;
     data<T> data1;
 };
@@ -90,7 +87,7 @@ test_grad1conv<T,op>::test_grad1conv(int Nx):data1(data<T>(Nx)){
 namespace {
     TEST(grad1conv_1D, small){
 
-        test_grad1conv<__TYPE__,GpuConv1D> test_small(2001);
+        test_grad1conv<__TYPE__,GpuConv1D> test_small(TEST_SIZE_SMALL);
 
         EXPECT_AllCLOSE<__TYPE__>(test_small.vresgrad,test_small.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_small.vresgrad);
@@ -99,7 +96,7 @@ namespace {
 
     TEST(grad1conv_1D, medium){
 
-        test_grad1conv<__TYPE__,GpuConv1D> test_medium(20001);
+        test_grad1conv<__TYPE__,GpuConv1D> test_medium(TEST_SIZE_MEDIUM);
 
         EXPECT_AllCLOSE<__TYPE__>(test_medium.vresgrad,test_medium.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_medium.vresgrad);
@@ -108,7 +105,7 @@ namespace {
 
 
     TEST(grad1conv_1D, large){
-        test_grad1conv<__TYPE__,GpuConv1D> test_large(200001);
+        test_grad1conv<__TYPE__,GpuConv1D> test_large(TEST_SIZE_LARGE);
 
         EXPECT_AllCLOSE<__TYPE__>(test_large.vresgrad,test_large.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_large.vresgrad);
@@ -117,7 +114,7 @@ namespace {
 
 
     TEST(grad1conv_1D, verylarge){
-        test_grad1conv<__TYPE__,GpuConv1D> test_verylarge(700001);
+        test_grad1conv<__TYPE__,GpuConv1D> test_verylarge(TEST_SIZE_VERY_LARGE);
 
         EXPECT_AllCLOSE<__TYPE__>(test_verylarge.vresgrad,test_verylarge.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_verylarge.vresgrad);
@@ -126,7 +123,7 @@ namespace {
 
     TEST(grad1conv_2D, small){
 
-        test_grad1conv<__TYPE__,GpuConv2D> test_small(2001);
+        test_grad1conv<__TYPE__,GpuConv2D> test_small(TEST_SIZE_SMALL);
 
         EXPECT_AllCLOSE<__TYPE__>(test_small.vresgrad,test_small.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_small.vresgrad);
@@ -135,7 +132,7 @@ namespace {
 
     TEST(grad1conv_2D, medium){
 
-        test_grad1conv<__TYPE__,GpuConv2D> test_medium(20001);
+        test_grad1conv<__TYPE__,GpuConv2D> test_medium(TEST_SIZE_MEDIUM);
 
         EXPECT_AllCLOSE<__TYPE__>(test_medium.vresgrad,test_medium.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_medium.vresgrad);
@@ -144,7 +141,7 @@ namespace {
 
 
     TEST(grad1conv_2D, large){
-        test_grad1conv<__TYPE__,GpuConv2D> test_large(200001);
+        test_grad1conv<__TYPE__,GpuConv2D> test_large(TEST_SIZE_LARGE);
 
         EXPECT_AllCLOSE<__TYPE__>(test_large.vresgrad,test_large.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_large.vresgrad);
@@ -153,7 +150,7 @@ namespace {
 
 
     TEST(grad1conv_2D, verylarge){
-        test_grad1conv<__TYPE__,GpuConv2D> test_verylarge(700001);
+        test_grad1conv<__TYPE__,GpuConv2D> test_verylarge(TEST_SIZE_VERY_LARGE);
 
         EXPECT_AllCLOSE<__TYPE__>(test_verylarge.vresgrad,test_verylarge.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_verylarge.vresgrad);
