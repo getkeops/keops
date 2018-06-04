@@ -52,6 +52,12 @@ if(Matlab_FOUND)
         mex_suffix
     )
 
+    if(APPLE)
+        set(rpat LDBUNDLE=\"-bundle -Wl,-rpath,@loader_path/.\")
+    else()
+        set(rpat LDFLAGS=\"-Wl,-rpath,\\\\\\$$ORIGIN\")
+    endif()
+
     # ----------------- create shared lib (cuda)
 
     if(USE_CUDA)
@@ -108,12 +114,6 @@ if(Matlab_FOUND)
         PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
-    if(APPLE)
-        set(rpat LDBUNDLE=\"-bundle -Wl,-rpath,@loader_path/.\")
-    else()
-        set(rpat LDFLAGS=\"-Wl,-rpath,\\\\\\$$ORIGIN\")
-    endif()
-
     if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
         add_custom_target(
             mex_cpp
@@ -143,7 +143,52 @@ if(Matlab_FOUND)
 
     # ----------------- create mex files specific
     if(USE_CUDA)
+
+        # --------------------------- radial kernel conv
+        CUDA_add_library(
+            radial_kernels_conv SHARED
+            ${PROJECT_SRC}/specific/radial_kernels/cuda_conv.cu
+        )
       
+        Add_library( # generate the string "g++ -c ..." but do not execute it
+            mex_file_conv OBJECT
+            ${CMAKE_CURRENT_SOURCE_DIR}/specific/convolutions/cudaconv.cpp
+        )
+
+        target_compile_options(
+            mex_file_conv BEFORE
+            PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
+        )
+
+        if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
+            add_custom_target(
+                mex_conv
+                DEPENDS radial_kernels_conv mex_file_conv # ensure obj file is created before using mex for linking
+                COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:radial_kernels_conv> $<TARGET_OBJECTS:mex_file_conv> -output conv # only since cmake 3.9 
+            )
+        else()
+            add_custom_target(
+                mex_conv
+                DEPENDS radial_kernels_conv mex_file_conv # ensure obj file is created before using mex for linking
+                COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:radial_kernels_conv> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_conv.dir/specific/convolutions/cudaconv.cpp.o -output conv
+            )
+        endif()
+
+        add_dependencies(
+            mex_conv
+            radial_kernels_conv
+        )
+
+        set_target_properties( # pass needed options to add_custom_target()
+            mex_conv PROPERTIES 
+            PREFIX "" 
+            LINKER_LANGUAGE CXX
+            EXCLUDE_FROM_ALL FALSE
+        )
+   
+
+
+        # ----------------------------   fshape scp
         if(NOT KERNEL_GEOM OR (KERNEL_GEOM STREQUAL "gaussian"))
             SET(KERNEL_GEOM_TYPE 0)
         elseif(KERNEL_GEOM STREQUAL "cauchy")

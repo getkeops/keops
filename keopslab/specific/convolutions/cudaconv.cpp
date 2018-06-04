@@ -1,4 +1,5 @@
 #include <mex.h>
+#include <string.h>
  
 extern "C" int GaussGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
 extern "C" int LaplaceGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
@@ -8,7 +9,7 @@ extern "C" int CauchyGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
 //////////////////////////////////////////////////////////////////
-
+void ExitFcn(void) {}
 
 /* the gateway function */
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
@@ -105,13 +106,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     //////////////////////////////////////////////////////////////
 
 #if  USE_DOUBLE
-    if (strcmp(kernel_type,"gaussian") == 0)
+    if (std::strcmp(kernel_type,"gaussian") == 0)
         GaussGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
-    else if (strcmp(kernel_type,"laplacian") == 0)
+    else if (std::strcmp(kernel_type,"laplacian") == 0)
         LaplaceGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
-    else if (strcmp(kernel_type,"inverse_multiquadric") == 0)
+    else if (std::strcmp(kernel_type,"inverse_multiquadric") == 0)
         InverseMultiquadricGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
-    else if (strcmp(kernel_type,"cauchy") == 0)
+    else if (std::strcmp(kernel_type,"cauchy") == 0)
         CauchyGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
     else
         mexErrMsgTxt("kernel_type is not implemented");
