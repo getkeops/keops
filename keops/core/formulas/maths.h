@@ -90,7 +90,13 @@ struct AddImpl : BinaryOp<AddImpl,FA,FB> {
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Add");
     
-    static void PrintIdString() { std::cout << "+"; }
+    // in c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view id ="+";
+    static const std::string& IdString(){
+        static const std::string str = "+";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
@@ -199,7 +205,13 @@ struct ScalImpl : BinaryOp<ScalImpl,FA,FB> {
     static const int DIM = FB::DIM;
     static_assert(FA::DIM==1,"Dimension of FA must be 1 for Scal");
 
-    static void PrintIdString() { std::cout << "*"; }
+    // in c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view id ="*";
+    static const std::string& IdString(){
+        static const std::string str = "*";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
@@ -289,7 +301,13 @@ struct MultImpl : BinaryOp<MultImpl,FA,FB> {
     static const int DIM = FA::DIM;
     static_assert(FA::DIM==DIM,"Dimensions of FA and FB must be the same for Mult");
     
-    static void PrintIdString() { std::cout << "*"; }
+    // in c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view id ="*";
+    static const std::string& IdString(){
+        static const std::string str = "*";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
         for(int k=0; k<DIM; k++)
@@ -355,7 +373,13 @@ struct SubtractImpl : BinaryOp<SubtractImpl,FA,FB> {
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Subtract");
     
-    static void PrintIdString() { std::cout << "-"; }
+    // In c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view Id ="-";
+    static const std::string& IdString(){
+        static const std::string str = "-";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
             for(int k=0; k<DIM; k++)
@@ -462,7 +486,13 @@ struct Exp : UnaryOp<Exp,F> {
     
     static const int DIM = F::DIM;
 
-    static void PrintIdString() { std::cout << "Exp"; }
+    // In c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view Id ="Exp";
+    static const std::string& IdString(){
+        static const std::string str = "Exp";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
 	
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
          for(int k=0; k<DIM; k++)
@@ -484,7 +514,13 @@ struct Pow : UnaryOp<Pow,F,M>  {
     
     static const int DIM = F::DIM;
 
-    static void PrintIdString() { std::cout << "Pow"; }
+    // In c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view Id ="Pow";
+    static const std::string& IdString(){
+        static const std::string str = "Pow";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
@@ -512,7 +548,13 @@ struct Square : UnaryOp<Square,F> {
     
     static const int DIM = F::DIM;
 
-    static void PrintIdString() { std::cout << "Square"; }
+    // in c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view id ="Square";
+    static const std::string& IdString(){
+        static const std::string str = "Square";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
 	
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
          for(int k=0; k<DIM; k++) {
@@ -542,7 +584,13 @@ struct Inv : UnaryOp<Inv,F> {
     
     static const int DIM = F::DIM;
 
-    static void PrintIdString() { std::cout << "Inv"; }
+    // in c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view id ="Inv";
+    static const std::string& IdString(){
+        static const std::string str = "Inv";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
 	
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
          for(int k=0; k<DIM; k++) {
@@ -586,7 +634,13 @@ template < class F >
 struct Log : UnaryOp<Log,F> {
     static const int DIM = F::DIM;
 
-    static void PrintId() { std::cout << "Log"; }
+    // In c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view Id ="Log";
+    static const std::string& IdString(){
+        static const std::string str = "Log";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
@@ -626,7 +680,13 @@ template < class F >
 struct SqrtImpl : UnaryOp<SqrtImpl,F> {
     static const int DIM = F::DIM;
 
-    static void PrintId() { std::cout << "Sqrt"; }
+    // In c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view Id ="Sqrt";
+    static const std::string& IdString(){
+        static const std::string str = "Sqrt";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++) 
@@ -666,7 +726,13 @@ template < class F >
 struct RsqrtImpl : UnaryOp<RsqrtImpl,F> {
     static const int DIM = F::DIM;
 
-    static void PrintId() { std::cout << "Rsqrt"; }
+    // In c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view Id ="Rsqrt";
+    static const std::string& IdString(){
+        static const std::string str = "Rsqrt";
+        return str;
+    }
+    static void PrintIdString() { std::cout << IdString(); }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++) 
