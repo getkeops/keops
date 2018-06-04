@@ -106,13 +106,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
     //////////////////////////////////////////////////////////////
 
 #if  USE_DOUBLE
-    if (std::strcmp(kernel_type,"gaussian") == 0)
+    if (strcmp(kernel_type,"gaussian") == 0)
         GaussGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
-    else if (std::strcmp(kernel_type,"laplacian") == 0)
+    else if (strcmp(kernel_type,"laplacian") == 0)
         LaplaceGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
-    else if (std::strcmp(kernel_type,"inverse_multiquadric") == 0)
+    else if (strcmp(kernel_type,"inverse_multiquadric") == 0)
         InverseMultiquadricGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
-    else if (std::strcmp(kernel_type,"cauchy") == 0)
+    else if (strcmp(kernel_type,"cauchy") == 0)
         CauchyGpuEval(oosigma2,x,y,beta,gamma,dimpoint,dimvect,nx,ny);
     else
         mexErrMsgTxt("kernel_type is not implemented");
