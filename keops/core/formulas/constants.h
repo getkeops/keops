@@ -22,9 +22,13 @@ template < int _DIM >
 struct Zero {
     static const int DIM = _DIM;
 
-    static void PrintId() {
-        std::cout << "0";
+    // in c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view id ="0";
+    static const std::string& IdString(){
+        static const std::string str = "0";
+        return str;
     }
+    static void PrintId() { std::cout << IdString(); }
 
     template<class A, class B>
     using Replace = Zero<DIM>;
@@ -59,9 +63,14 @@ template < int N >
 struct IntConstantImpl {
     static const int DIM = 1;
 
-    static void PrintId() {
-        std::cout << N;
+    // in c++17 the IdString() function could be replaced by:
+    //constexpr std::string_view id = std::to_string(N);
+    static const std::string& IdString(){
+        static const std::string str = std::to_string(N);
+        return str;
     }
+
+    static void PrintId() { std::cout << IdString(); }
 
     template<class A, class B>
     using Replace = IntConstant<N>;
