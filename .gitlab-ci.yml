@@ -14,6 +14,16 @@ compile_macos:
     tags:
         - macos10-12
 
+test_macos_clang:
+    stage: test
+    script:
+        - cd pykeops/test
+        - /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py
+    tags:
+        - clang
+        - macos10-12
+        - python3
+    allow_failure: true
 
 # ---------------- Partial Test on Ubuntu16.04 ----------------
 compile_ubuntu_gcc:
