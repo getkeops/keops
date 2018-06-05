@@ -739,7 +739,7 @@ struct RsqrtImpl : UnaryOp<RsqrtImpl,F> {
             if(outF[k]==0)
                 out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
             else
-#ifdef USE_CUDA
+#ifdef __NVCC__
                 out[k] = rsqrt(outF[k]); 
 #else
                 out[k] = 1.0/sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
