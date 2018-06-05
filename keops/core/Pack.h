@@ -430,6 +430,8 @@ template < int N, int... NS > struct pack<N,NS...> {
     // to the "array" xi.
     template < typename TYPE >
     HOST_DEVICE static void load(int i, TYPE* xi, TYPE** px) {
+        assert(xi != nullptr);
+        assert(px != nullptr);
         /*
          * px is an "array" of pointers to data arrays of appropriate sizes.
          * That is, px[0] = *px     is a pointer to a TYPE array of size Ni * FIRST
@@ -439,8 +441,10 @@ template < int N, int... NS > struct pack<N,NS...> {
          * Obviously, we do not make any sanity check... so beware of illicit memory accesses !
          */
         // Using pythonic syntax, we can describe our loading procedure as follows :
-        for(int k=0; k<FIRST; k++)
-            xi[k] = (*px)[i*FIRST+k];  // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
+        for(int k=0; k<FIRST; k++){
+            assert(&((*px)[i*FIRST+k]) != nullptr);
+            xi[k] = (*px)[i*FIRST+k];// First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
+        }
         NEXT::load(i,xi+FIRST,px+1);   // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
     }
 
