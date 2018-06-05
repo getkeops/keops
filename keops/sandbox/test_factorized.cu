@@ -133,17 +133,17 @@ int main() {
         // display mean of errors
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
-            s += abs(resgpu1[i]-rescpu[i]);
+            s += std::abs(resgpu1[i]-rescpu[i]);
         std::cout << std::endl << "mean abs error (cpu vs gpu1) =" << s/Nx << std::endl;
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
-            s += abs(resgpu2[i]-rescpu[i]);
+            s += std::abs(resgpu2[i]-rescpu[i]);
         std::cout << "mean abs error (cpu vs gpu2) =" << s/Nx << std::endl;
         s = 0;
     }
 
     for(int i=0; i<Nx*F::DIM; i++)
-        s += abs(resgpu1[i]-resgpu2[i]);
+        s += std::abs(resgpu1[i]-resgpu2[i]);
     std::cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << std::endl;
 
 
@@ -194,16 +194,16 @@ int main() {
         // display mean of errors
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
-            s += abs(resgpu1[i]-rescpu[i]);
+            s += std::abs(resgpu1[i]-rescpu[i]);
         std::cout << std::endl << "mean abs error (cpu vs gpu1) =" << s/Nx << std::endl;
         s = 0;
         for(int i=0; i<Nx*F::DIM; i++)
-            s += abs(resgpu2[i]-rescpu[i]);
+            s += std::abs(resgpu2[i]-rescpu[i]);
         std::cout << "mean abs error (cpu vs gpu2) =" << s/Nx << std::endl;
     }
     s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
-        s += abs(resgpu1[i]-resgpu2[i]);
+        s += std::abs(resgpu1[i]-resgpu2[i]);
     std::cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << std::endl;
 
     return 0 ;

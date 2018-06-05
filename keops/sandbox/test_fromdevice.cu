@@ -128,7 +128,7 @@ int main() {
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
-        s += abs(resgpu1D[i]-resgpu2D[i]);
+        s += std::abs(resgpu1D[i]-resgpu2D[i]);
     std::cout << "mean abs error 1D/2D =" << s/Nx << std::endl;
 
 

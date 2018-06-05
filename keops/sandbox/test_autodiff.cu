@@ -194,12 +194,12 @@ int main() {
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
-        s += abs(resgpu2D[i]-rescpu[i]);
+        s += std::abs(resgpu2D[i]-rescpu[i]);
     std::cout << "mean abs error 2D =" << s/Nx << std::endl;
 
     s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
-        s += abs(resgpu1D[i]-rescpu[i]);
+        s += std::abs(resgpu1D[i]-rescpu[i]);
     std::cout << "mean abs error 1D =" << s/Nx << std::endl;
 
 
@@ -232,12 +232,12 @@ int main() {
     // display mean of errors
     s = 0;
     for(int i=0; i<Nx*GX::DIM; i++)
-        s += abs(resgpu2D[i]-rescpu[i]);
+        s += std::abs(resgpu2D[i]-rescpu[i]);
     std::cout << "mean abs error 2D =" << s/Nx << std::endl;
 
     s = 0;
     for(int i=0; i<Nx*GX::DIM; i++)
-        s += abs(resgpu1D[i]-rescpu[i]);
+        s += std::abs(resgpu1D[i]-rescpu[i]);
     std::cout << "mean abs error 1D =" << s/Nx << std::endl;
 
 
@@ -275,12 +275,12 @@ int main() {
     // display mean of errors
     s = 0;
     for(int i=0; i<Ny*GY::DIM; i++)
-        s += abs(resgpu2D[i]-rescpu[i]);
+        s += std::abs(resgpu2D[i]-rescpu[i]);
     std::cout << "mean abs error 2D=" << s/Ny << std::endl;
 
     s = 0;
     for(int i=0; i<Ny*GY::DIM; i++)
-        s += abs(resgpu1D[i]-rescpu[i]);
+        s += std::abs(resgpu1D[i]-rescpu[i]);
     std::cout << "mean abs error 1D=" << s/Ny << std::endl;
 
 

@@ -108,7 +108,7 @@ int main() {
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
-        s += abs(rescpu1[i]-rescpu2[i]);
+        s += std::abs(rescpu1[i]-rescpu2[i]);
     std::cout << std::endl << "mean abs error =" << s/Nx << std::endl;
 
 }
