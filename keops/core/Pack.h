@@ -14,6 +14,7 @@
 #pragma once
 
 #include <iostream>
+#include <assert.h>
 
 #ifdef __CUDACC__
 	#define HOST_DEVICE __host__ __device__
