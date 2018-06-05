@@ -35,6 +35,9 @@ cur_dir = pwd;
 
 Nargin = nargin;
 
+% get verbosity level to force compilation
+[~,~,~,verbosity,use_cuda_if_possible] = default_options();
+
 % last arg is optional structure to override default tags
 if isstruct(varargin{end})
     options = varargin{end};
@@ -46,9 +49,9 @@ end
 % tagIJ=0 means sum over j, tagIj=1 means sum over j
 options = setoptions(options,'tagIJ',0);
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
-options = setoptions(options,'tagCpuGpu',0);
+options = setoptions(options,'tagCpuGpu',1);
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
-options = setoptions(options,'tag1D2D',1);
+options = setoptions(options,'tag1D2D',0);
 
 % detect formula and aliases from inputs. Formula should be the only string
 % without '=' character.
@@ -70,9 +73,6 @@ end
 % we use a hash to shorten string and avoid special characters in the filename
 Fname = string2hash(lower([CodeVars,formula]));
 mex_name = [Fname,'.',mexext];
-
-% get verbosity level to force compilation
-[~,~,~,verbosity] = default_options();
 
 if ~(exist(mex_name,'file')==3) || (verbosity == 1)
      compile_formula(CodeVars,formula,Fname);
