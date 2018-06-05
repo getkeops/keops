@@ -200,10 +200,12 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // Call Cuda codes
     //////////////////////////////////////////////////////////////
 
-    // tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
     // tagIJ=0 means sum over j, tagIJ=1 means sum over j
+    // tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
     // tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 
+
+#ifdef USE_CUDA
     if(tagCpuGpu==0) {
         if(tagIJ==0){
             CpuConv( n[0], n[1], castedgamma, castedargs);
@@ -211,7 +213,6 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             CpuTransConv( n[0], n[1], castedgamma, castedargs);
         } 
     }
-#ifdef USE_CUDA
     else if(tagCpuGpu==1) {
         if(tagIJ==0) {
             if(tag1D2D==0) {
@@ -242,6 +243,16 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
             }
         }
     }
+#else
+    if(tagCpuGpu != 0) {
+        mexWarnMsgTxt("CPU Routine are used. To suppress this warning set tagCpuGpu to 0.");
+    }
+
+    if(tagIJ==0){
+        CpuConv( n[0], n[1], castedgamma, castedargs);
+    } else{
+        CpuTransConv( n[0], n[1], castedgamma, castedargs);
+    } 
 #endif
 
 #if not USE_DOUBLE

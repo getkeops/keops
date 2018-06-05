@@ -29,7 +29,7 @@ function [res] = shape_scp(center_faceX,center_faceY,signalX,signalY,normalsX,no
 %
 
 if ~(exist(CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'',mexext),'file')==3)
-    buildRoutine_shape_dist(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'')
+    compile_routine_shape_dist(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'')
 end
 
 eval(['res = sum(', CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,''),'(center_faceX'',center_faceY'',signalX'',signalY'',normalsX'',normalsY'',kernel_size_geom,kernel_size_signal,kernel_size_sphere));']);

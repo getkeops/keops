@@ -1,6 +1,8 @@
-function testbuild = compile_formula(code1, code2, filename)
+function compile_routine_conv(conv_type)
+% This function call cmake to compile the specific cuda code
+% that compute the shapes scalar product.
 
-    disp(['Compiling formula ',code2,' with ',code1,' ...'])
+    disp('Formula is not compiled yet ; compiling...')
     
     [src_dir,build_dir,precision,verbosity] = default_options();
     
@@ -11,11 +13,11 @@ function testbuild = compile_formula(code1, code2, filename)
     % find cmake :
     cmake = getcmake();
     % cmake command:
-    cmdline = [cmake,' ', src_dir , ' -DCMAKE_BUILD_TYPE=Release -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
+    cmdline = ['cmake ', src_dir , ' -D__TYPE__="', precision, '" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     %fprintf([cmdline,'\n'])
     try
         [prebuild_status,prebuild_output] = system(cmdline);
-        [build_status,build_output]  = system(['make mex_cpp']);
+        [build_status,build_output]  = system(['make mex_conv',conv_type,' VERBOSE=1']);
         if (verbosity ==1) || (prebuild_status ~=0) || (build_status ~= 0)
             disp(' ')
             disp('------------------------------------  DEBUG ------------------------------------------')
@@ -33,12 +35,12 @@ function testbuild = compile_formula(code1, code2, filename)
     % ...comming back to curent directory
     cd(cur_dir)
 
-    testbuild = (exist([filename,'.',mexext],'file')==3);
+    fname = ['conv.',mexext];
+    testbuild = (exist(fname,'file')==3);
     if  testbuild
         disp('Compilation succeeded')
     else
-        error(['File "',filename,'.',mexext, '" not found!'])
+        error(['File "', fname, '" not found!'])
     end
 end
-
 

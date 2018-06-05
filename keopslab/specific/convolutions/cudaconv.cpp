@@ -1,4 +1,5 @@
 #include <mex.h>
+#include <string.h>
  
 extern "C" int GaussGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
 extern "C" int LaplaceGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int, int, int, int);
@@ -8,7 +9,7 @@ extern "C" int CauchyGpuEval(__TYPE__, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
 //////////////////////////////////////////////////////////////////
-
+void ExitFcn(void) {}
 
 /* the gateway function */
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
