@@ -38,11 +38,6 @@ if(Matlab_FOUND)
 
     # ----------------- get some env variables
 
-    # this dummy flag is used to compile cuda routines
-    if (USE_CUDA)
-        add_definitions(-DUSE_CUDA)
-    endif()
-
     # this dummy flag is used to cast the input array of Matlab
     if (${__TYPE__} STREQUAL "double")
         add_definitions(-DUSE_DOUBLE)

@@ -20,6 +20,8 @@ find_package(CUDA)
 if(NOT DEFINED USE_CUDA)
     Set(USE_CUDA ${CUDA_FOUND})
 endif()
+    
+add_definitions(-DUSE_CUDA=${USE_CUDA}) # this flag is used in pragma    
 
 if(CUDA_FOUND AND USE_CUDA)
 
