@@ -9,6 +9,7 @@ os.makedirs(build_folder, exist_ok=True)
 verbose = False # display output of compilations
 build_type = "Release" # 'Release' or 'Debug'
 
+sys.path.append(build_folder)
 
 
 """

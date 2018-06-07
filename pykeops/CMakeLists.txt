@@ -56,28 +56,30 @@ else()
 
 endif()
 
+if(NOT shared_obj_name)
+    SET(shared_obj_name pykeops_module)
+endif()
+
+add_definitions(-DMODULE_NAME=${shared_obj_name})
 
 add_subdirectory(pybind11)
-pybind11_add_module(pykeops_module
+pybind11_add_module(${shared_obj_name}
     ${CMAKE_CURRENT_SOURCE_DIR}/common/keops_io.cpp
     )
 
 target_link_libraries(
-    pykeops_module PUBLIC
+    ${shared_obj_name} PUBLIC
     keops
 )
 
 
-# shared_lib can be rename if the variable shared_lib_name is provided.
-if(shared_obj_name)
+# set name 
+set_target_properties(keops PROPERTIES
+    LIBRARY_OUTPUT_NAME  ${shared_obj_name}
+    PREFIX ""
+)
 
-    set_target_properties(keops PROPERTIES
-        LIBRARY_OUTPUT_NAME  ${shared_obj_name}
-        PREFIX ""
-    )
+set_target_properties(${shared_obj_name} PROPERTIES
+    LIBRARY_OUTPUT_NAME  ${shared_obj_name}
+)
 
-    set_target_properties(pykeops_module PROPERTIES
-        LIBRARY_OUTPUT_NAME  ${shared_obj_name}
-    )
-
-endif()

@@ -16,7 +16,7 @@ def compile_generic_routine(aliases, formula, dllname, cuda_type):
     target = "keops"
 
     print("Compiling formula : " + formula + " with " + alias_disp_string + " ... ", end='', flush=True)
-    subprocess.run(["cmake", script_folder, "-DCMAKE_BUILD_TYPE="+build_type, "-DPYTHON_LIB=TRUE", "-DUSENEWSYNTAX=TRUE" , "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], \
+    subprocess.run(["cmake", script_folder, "-DCMAKE_BUILD_TYPE="+build_type, "-DUSENEWSYNTAX=TRUE" , "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], \
                    cwd=build_folder,stdout=stdout)
     subprocess.run(["make", target], \
                    cwd=build_folder,stdout=stdout)
@@ -35,11 +35,10 @@ def compile_generic_routine2(aliases, formula, dllname, cuda_type):
     alias_string = "".join([process_alias(alias) for alias in aliases])
     alias_disp_string = "".join([process_disp_alias(alias) for alias in aliases])
 
-    target = "pykeops_module"
-    script_folder2 = '/home/bcharlier/libkp/pykeops'
-
+    target = dllname
+    
     print("Compiling formula : " + formula + " with " + alias_disp_string + " ... ", end='', flush=True)
-    subprocess.run(["cmake", script_folder2, "-DCMAKE_BUILD_TYPE="+build_type, "-DUSENEWSYNTAX=TRUE" , "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], cwd=build_folder,stdout=stdout)
+    subprocess.run(["cmake", script_folder, "-DCMAKE_BUILD_TYPE="+build_type, "-DUSENEWSYNTAX=TRUE" , "-DFORMULA_OBJ="+formula, "-DVAR_ALIASES="+alias_string, "-Dshared_obj_name="+dllname, "-D__TYPE__="+cuda_type], cwd=build_folder,stdout=stdout)
     subprocess.run(["make", target], cwd=build_folder,stdout=stdout)
     print("Done. ", end='', flush=True)
 
