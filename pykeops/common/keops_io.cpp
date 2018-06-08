@@ -24,11 +24,6 @@ namespace pykeops {
 using namespace keops;
 namespace py = pybind11;
 
-py::array_t<__TYPE__> generic_red(int tagIJ,
-                                  int tagCpuGpu,
-                                  int tag1D2D,
-                                  py::args py_args) {
-
     // ------ get the dimension from formula -----//
     using VARSI = typename F::template VARS<0>;    // list variables of type I
     using VARSJ = typename F::template VARS<1>; // list variables of type J
@@ -49,6 +44,13 @@ py::array_t<__TYPE__> generic_red(int tagIJ,
     const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
 
     const int NARGS = NARGSI + NARGSJ + NARGSP;
+
+py::array_t<__TYPE__> generic_red(int tagIJ,
+                                  int tagCpuGpu,
+                                  int tag1D2D,
+                                  py::args py_args) {
+
+
 
     // ------ check the dimensions ------------//
     int *typeargs = new int[NARGS];
@@ -75,17 +77,17 @@ py::array_t<__TYPE__> generic_red(int tagIJ,
         throw std::runtime_error("Wrong number of args : is " + std::to_string(py_args.size()) + " but should be " +std::to_string(NARGS)) ;
 
 
+    std::array< py::array_t<__TYPE__>, NARGS > obj_ptr;
     __TYPE__ **castedargs = new __TYPE__ *[NARGS];
     // Seems to be necessary to store every pointer in an array to keep in memory
     // the right address
-    py::array_t<__TYPE__> *obj_ptr = new py::array_t<__TYPE__>[NARGS];
     for (size_t i = 0; i < NARGS; i++) {
         obj_ptr[i] = py::cast<py::array_t<__TYPE__>>(py_args[i]);
     }
 
     int nx = 0;
     int ny = 0;
-    for (int i = 0; i < NARGS; i++) {
+    for (size_t i = 0; i < NARGS; i++) {
         // check the dimension :
         if (typeargs[i] == 0) {
             if (nx == 0 ) {
@@ -127,16 +129,26 @@ py::array_t<__TYPE__> generic_red(int tagIJ,
 
     // dimension Output
     int dimout = F::DIM;
-    int nout = nx;
-    auto result_array = py::array_t<__TYPE__>(nx * dimout);
+    int nout;
+    if (tagIJ == 0) {
+        nout = nx;
+    }
+    else {
+        nout = ny;
+    }
+    auto result_array = py::array_t<__TYPE__>({nout,dimout});
     __TYPE__ *result = (__TYPE__ *) result_array.data();
+
+    //auto buf3 = result_array.request();
+    //__TYPE__ *result = (__TYPE__ *) buf3.ptr;
+
 
     //////////////////////////////////////////////////////////////
     // Call Cuda codes
     //////////////////////////////////////////////////////////////
 
-    // tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
     // tagIJ=0 means sum over j, tagIJ=1 means sum over j
+    // tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
     // tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 
     if (tagCpuGpu == 0) {
@@ -179,7 +191,6 @@ py::array_t<__TYPE__> generic_red(int tagIJ,
 #endif
 
     delete[] castedargs;
-    delete[] obj_ptr;
 
     return result_array;
 }

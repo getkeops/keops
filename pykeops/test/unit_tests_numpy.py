@@ -61,7 +61,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_generic_syntax(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.numpy.generic_sum import GenericSum_np
+        from pykeops.numpy.generic_red import GenericSum_np
         aliases = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(x+y)"
         signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]

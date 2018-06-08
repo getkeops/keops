@@ -25,7 +25,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 import time
 import numpy as np
 
-from pykeops.numpy import generic_sum_np
+from pykeops.numpy.generic_red import generic_sum_np
 
 
 #--------------------------------------------------------------#
@@ -48,9 +48,9 @@ y = np.random.randn(M,3).astype('float32')
 formula =  "Square(p-a)*Exp(x+y)"
 types   = ["output = Vx(3)",  # The result is indexed by "i", of size 3.
                 "p = Pm(1)",  # First  arg : Parameter,  of size 1 (scalar)
-				"a = Vy(1)",  # Second arg : j-variable, of size 1 (scalar)
-				"x = Vx(3)",  # Third  arg : i-variable, of size 3
-				"y = Vy(3)" ] # Fourth arg : j-variable, of size 3
+                "a = Vy(1)",  # Second arg : j-variable, of size 1 (scalar)
+                "x = Vx(3)",  # Third  arg : i-variable, of size 3
+                "y = Vy(3)" ] # Fourth arg : j-variable, of size 3
 
 
 start = time.time()
@@ -86,9 +86,9 @@ formula =  "Grad( Square(p-a)*Exp(x+y), y, e)"
 # However, without PyTorch's autodiff engine, we need to specify the Grad's signature by hand:
 types   = ["output = Vy(3)",  # The result is indexed by "j", of size 3... Just like "y" !
                 "p = Pm(1)",  # First  arg : Parameter,  of size 1 (scalar)
-				"a = Vy(1)",  # Second arg : j-variable, of size 1 (scalar)
-				"x = Vx(3)",  # Third  arg : i-variable, of size 3
-				"y = Vy(3)",  # Fourth arg : j-variable, of size 3
+                "a = Vy(1)",  # Second arg : j-variable, of size 1 (scalar)
+                "x = Vx(3)",  # Third  arg : i-variable, of size 3
+                "y = Vy(3)",  # Fourth arg : j-variable, of size 3
                 "e = Vx(3)" ] # Fifth  arg : i-variable, of size 3 ... Just like "c" !
 
 my_grad = generic_sum_np(formula, *types)

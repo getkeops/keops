@@ -1,2 +1,1 @@
-from .generic_sum       import generic_sum_np
-from .generic_logsumexp import generic_logsumexp_np
+from .generic_red import generic_sum_np, generic_logsumexp_np
