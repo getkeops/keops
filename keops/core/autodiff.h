@@ -128,31 +128,45 @@ using IdOrZero = typename IdOrZeroAlias<Vref,V,FUN>::type;
  * - an index number _N (is it x1i, x2i, x3i or ... ?)
  * - a dimension _DIM of the vector
  * - a category CAT, equal to 0 if Var is "a  parallel variable" xi,
- *                   equal to 1 if Var is "a summation variable" yj.
+ *                   equal to 1 if Var is "a summation variable" yj,
+ *					 equal to 2 if Var is "a parameter variable" p,
  */
 template < int _N, int _DIM, int _CAT=0 >
 struct Var {
     static const int N   = _N;   // The index and dimension of Var, formally specified using the
     static const int DIM = _DIM; // templating syntax, are accessible using Var::N, Var::DIM.
     static const int CAT = _CAT;
+    
+    using THIS = Var<N,DIM,CAT>;
 
+	// prints the variable as a string
+	// we just print e.g. x0, y2, p1 to simplify reading, forgetting about dimensions
     static void PrintId() {
         if(CAT==0)
            std::cout << "x";
         else if(CAT==1)
             std::cout << "y";
         else if(CAT==2)
-	    std::cout << "p";
-	else
-            std::cout << "z";
-    std::cout << N;
+	    	std::cout << "p";
+		else
+            std::cout << "z";	// "z" is used for intermediate variables, which are used in "Factorize" (see factorize.h)
+    	std::cout << N;		
     }
 
+	// "Replace" can be used to replace any occurrence of a sub-formula in a formula
+	// It must be recursively implemented but here we are in a terminal case, 
+	// because Var types do not depend on other sub-formulas
+	// So here we just replace THIS by B if A=THIS, otherwise we keep THIS
     template<class A, class B>
-    using Replace = Var<N,DIM,CAT>;
+    using Replace = CondType< B , THIS , IsSameType<A,THIS>::val >;
 
+	// AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
+	// here there is just one type in the Var type : itself
+	// because it does not depend on other sub-formula
     using AllTypes = univpack<Var<N,DIM,CAT>>;
 
+	// VARS gives the list of all Vars of a given category in a formula
+	// Here we add the current Var to the list if it is of the requested category, otherwise nothing
     template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
     using VARS = CondType<univpack<Var<N,DIM,CAT>>,univpack<>,CAT==CAT_>;
 
@@ -191,26 +205,34 @@ struct Var {
 // in order to avoid the use of Eval member function of the Var class which does a useless vector copy.
 
 // unary operator base class : common methods
-template < template<class,int...> class OP, class F, int... NS >
+// unary operators are of the type OP<F,NS..> : for example Exp<F>, Log<F>, Pow<F,N>
+// There template parameters are : one subformula F, plus optionally some integers 
+template < template<class,int...> class OP, class F, int... NS > 
 struct UnaryOp_base {
 
     using THIS = OP<F,NS...>;
 
+	// recursive function to print the formula as a string
     static void PrintId() {
-        THIS::PrintIdString();
-        std::cout << "(";
-        F::PrintId();
-        pack<NS...>::PrintComma();
-        pack<NS...>::PrintAll();
-        std::cout << ")";
+        THIS::PrintIdString();		// prints the id string of the operator : "Exp", "Log", "Pow",...
+        std::cout << "(";			// prints "("
+        F::PrintId();				// prints the formula F
+        pack<NS...>::PrintComma();	// prints a "," if there is at least one integer in NS..., otherwise nothing
+        pack<NS...>::PrintAll();	// prints the integers, with commas between them
+        std::cout << ")";			// prints ")"
     }
 
+	// AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
+	// for example Exp<Pow<Var<0,1,0>,3>>::AllTypes is univpack< Exp<Pow<Var<0,1,0>,3>> , Pow<Var<0,1,0>,3> , Var<0,1,0> >
     using AllTypes = MergePacks<univpack<THIS>, typename F::AllTypes>;
 
+	// "Replace" can be used to replace any occurrence of a sub-formula in a formula
+	// For example Exp<Pow<Var<0,1,0>,3>>::Replace<Var<0,1,0>,Var<2,1,0>> will be Exp<Pow<Var<2,1,0>,3>>
     template<class A, class B>
     using Replace = CondType< B , OP<typename F::template Replace<A,B>,NS...> , IsSameType<A,THIS>::val >;
 
-    // Vars(OP(F)) = Vars(F)
+	// VARS gives the list of all "Vars" of a given category inside a formula
+    // Here it is simple : the variables inside the formula OP<F,NS..> are the variables in F
     template < int CAT >
     using VARS = typename F::template VARS<CAT>;
 
@@ -251,29 +273,38 @@ struct UnaryOp<OP,Var<N,DIM,CAT>,NS...>  : UnaryOp_base<OP,Var<N,DIM,CAT>,NS...>
 
 
 // binary operator class : common methods
+// unary operators are of the type OP<F,G> : for example Add<F,G>, Mult<F,G>
+// There template parameters are two sub-formulas FA and FB
 template < template<class,class> class OP, class FA, class FB >
 struct BinaryOp_base {
 
     using THIS = OP<FA,FB>;
 
+    // recursive function to print the formula as a string
     static void PrintId() {
-        std::cout << "(";
-        FA::PrintId();
-        THIS::PrintIdString();
-        FB::PrintId();
-        std::cout << ")";
+        std::cout << "(";			// prints "("
+        FA::PrintId();				// prints the formula FA
+        THIS::PrintIdString();		// prints the id string of the operator : "+", "*", ...
+        FB::PrintId();				// prints the formula FB
+        std::cout << ")";			// prints ")"
     }
 
     static void PrintFactorized() {
         PrintId();
     }
 
+	// AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
+	// for example Add<Var<0,2,0>,Var<1,2,1>>::AllTypes is :
+	// univpack< Add<Var<0,2,0>,Var<1,2,1>> , Var<0,2,0> , Var<1,2,2> >
     using AllTypes = MergePacks<univpack<OP<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
 
+	// "Replace" can be used to replace any occurrence of a sub-formula in a formula
+	// For example Add<Var<0,2,0>,Var<1,2,1>>::Replace<Var<1,2,1>,Var<1,2,0>> will be Add<Var<0,2,0>,Var<1,2,0>>	
     template<class A, class B>
     using Replace = CondType< B , OP<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,THIS>::val >;
 
-    // Vars( OP<FA,FB> ) = Vars(FA) U Vars(FB), whatever the category
+    // VARS gives the list of all "Vars" of a given category inside a formula
+    // Here we must take the union of Vars that are inside FA and Vars that are inside FB
     template < int CAT >
     using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
 
