@@ -42,7 +42,7 @@ int main() {
     using F = SumGaussKernel<C,W,X,Y,B>;
 
     std::cout << std::endl << "Function F : " << std::endl;
-    PrintFormula<F>();
+    std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
     using FUNCONVF = typename Generic<F>::sEval;
@@ -124,7 +124,7 @@ int main() {
     using G = Grad<F,X,E>;
 
     std::cout << std::endl << "Function G : " << std::endl;
-    PrintFormula<G>();
+    std::cout << PrintFormula<G>();
     std::cout << std::endl << std::endl;
 
     std::vector<__TYPE__> vg(Nx*G::DIM);    fillrandom(vg); __TYPE__ *g = vg.data();

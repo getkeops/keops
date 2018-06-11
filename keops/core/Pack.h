@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <sstream>
 #include <assert.h>
 
 #ifdef __CUDACC__
@@ -109,10 +109,10 @@ struct univpack {
     static const int SIZE = 0;  // len([])   = 0
 
     // helpers to print the univpack to the standard output
-    static void PrintAll() { }
-    static void PrintComma() { }
-    static void PrintId() {
-        std::cout << "univpack< >";
+    static void PrintAll(std::stringstream& str) { }
+    static void PrintComma(std::stringstream& str) { }
+    static void PrintId(std::stringstream& str) {
+        str << "univpack< >";
     }
 
     template < class D >        // [].append_first(D) = [D]
@@ -128,20 +128,20 @@ struct univpack<C,Args...> {
     static const int SIZE = 1+sizeof...(Args); // len([C, ...]) = 1 + len([...])
 
     // helpers to print the univpack to the standard output
-    static void PrintComma() {
-        std::cout << " ," << std::endl;
+    static void PrintComma(std::stringstream& str) {
+        str << " ," << std::endl;
     }
 
-    static void PrintAll() {
-        FIRST::PrintId();
-        NEXT::PrintComma();
-        NEXT::PrintAll();
+    static void PrintAll(std::stringstream& str) {
+        FIRST::PrintId(str);
+        NEXT::PrintComma(str);
+        NEXT::PrintAll(str);
     }
 
-    static void PrintId() {
-        std::cout << "univpack< " << std::endl;
-        PrintAll();
-        std::cout << " >";
+    static void PrintId(std::stringstream& str) {
+        str << "univpack< " << std::endl;
+        PrintAll(str);
+        str << " >";
     }
 
     template < class D >         // [C, ...].append_first(D) = [D, C, ...]
@@ -345,10 +345,10 @@ template < int... NS > struct pack {
     }
 
     // helpers to print the pack to the standard output
-    static void PrintAll() { }
-    static void PrintComma() { }
-    static void PrintId() {
-        std::cout << "pack< >";
+    static void PrintAll(std::stringstream& str) { }
+    static void PrintComma(std::stringstream& str) { }
+    static void PrintId(std::stringstream& str) {
+        str << "pack< >";
     }
 
     // [].append(M) = [M]
@@ -402,20 +402,20 @@ template < int N, int... NS > struct pack<N,NS...> {
     }
 
     // helpers to print the pack to the standard output
-    static void PrintComma() {
-        std::cout << ",";
+    static void PrintComma(std::stringstream& str) {
+        str << ",";
     }
 
-    static void PrintAll() {
-        std::cout << FIRST;
-        NEXT::PrintComma();
-        NEXT::PrintAll();
+    static void PrintAll(std::stringstream& str) {
+        str << FIRST;
+        NEXT::PrintComma(str);
+        NEXT::PrintAll(str);
     }
 
-    static void PrintId() {
-        std::cout << "pack<" ;
-        PrintAll();
-        std::cout << ">";
+    static void PrintId(std::stringstream& str) {
+        str << "pack<" ;
+        PrintAll(str);
+        str << ">";
     }
 
     // Operation to append "M" at the head of the list

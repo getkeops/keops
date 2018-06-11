@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <sstream>
 #include <assert.h>
 
 #include "core/Pack.h"
@@ -36,13 +36,7 @@ struct ScalprodImpl : BinaryOp<ScalprodImpl,FA,FB> {
     static_assert(DIMIN==FB::DIM,"Dimensions must be the same for Scalprod");
     static const int DIM = 1;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id ="|";
-    static const std::string& IdString(){
-        static const std::string str = "|";
-        return str;
-    }
-    static void PrintIdString() { std::cout << IdString(); }
+    static void PrintIdString(std::stringstream& str) { str << "|"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
     		*out = 0;
@@ -112,13 +106,7 @@ struct SqNormIso : BinaryOp<SqNormIso,FS,FA> {
     static_assert(FS::DIM==1,"Isotropic square norm expects a scalar parameter.");
     static const int DIM = 1;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id ="SqNormIso";
-    static const std::string& IdString(){
-        static const std::string str = "SqNormIso";
-        return str;
-    }
-    static void PrintIdString() { std::cout << IdString(); }
+    static void PrintIdString(std::stringstream& str) { str << "SqNormIso"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
     		*out = 0;
@@ -147,13 +135,7 @@ struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
     static_assert(FS::DIM==FA::DIM,"Diagonal square norm expects a vector of parameters of dimension FA::DIM.");
     static const int DIM = 1;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id ="SqNormDiag";
-    static const std::string& IdString(){
-        static const std::string str = "SqNormDiag";
-        return str;
-    }
-    static void PrintIdString() { std::cout << IdString(); }
+    static void PrintIdString(std::stringstream& str) { str << "SqNormDiag"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
     		*out = 0;
@@ -184,13 +166,7 @@ struct SymTwoOuterProduct : BinaryOp<SymTwoOuterProduct,X,Y> {
     static_assert( Y::DIM == DIMIN, "A symmetric outer product can only be done with two vectors sharing the same length.");
     static const int DIM = DIMIN * DIMIN;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id ="SymTwoOuterProduct";
-    static const std::string& IdString(){
-        static const std::string str = "SymTwoOuterProduct";
-        return str;
-    }
-    static void PrintIdString() { std::cout << IdString(); }
+    static void PrintIdString(std::stringstream& str) { str << "SymTwoOuterProduct"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX, __TYPE__ *outY) {
             for(int k=0; k < DIMIN; k++) {
@@ -215,13 +191,7 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
     static_assert( A::DIM == DIMIN*DIMIN, "A symmetric matrix on a space of dim D should be encoded as a vector of size D*D.");
     static const int DIM = DIMIN;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id ="SymTwoDot";
-    static const std::string& IdString(){
-        static const std::string str = "SymTwoDot";
-        return str;
-    }
-    static void PrintIdString() { std::cout << IdString(); }
+    static void PrintIdString(std::stringstream& str) { str << "SymTwoDot"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
             for(int k=0; k < DIMIN; k++) {
@@ -248,13 +218,7 @@ struct SymOuterProduct : UnaryOp<SymOuterProduct,X> {
     static const int DIMIN = X::DIM;
     static const int DIM = DIMIN * DIMIN;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id ="SymOuterProduct";
-    static const std::string& IdString(){
-        static const std::string str = "SymOuterProduct";
-        return str;
-    }
-    static void PrintIdString() { std::cout << IdString(); }
+    static void PrintIdString(std::stringstream& str) { str << "SymOuterProduct"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX) {
             for(int k=0; k < DIMIN; k++) {
@@ -280,13 +244,7 @@ struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
     static_assert( A::DIM == X::DIM * X::DIM, "Anisotropic square norm expects a vector of parameters of dimension FA::DIM * FA::DIM.");
     static const int DIM = 1;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id ="SymSqNorm";
-    static const std::string& IdString(){
-        static const std::string str = "SymSqNorm";
-        return str;
-    }
-    static void PrintIdString() { std::cout << IdString(); }
+    static void PrintIdString(std::stringstream& str) { str << "SymSqNorm"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
     		*out = 0;

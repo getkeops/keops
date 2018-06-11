@@ -204,10 +204,9 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
     m.def("gen_red", &generic_red, "A function...");
 
     m.def("print_formula", &PrintFormula<F>, "Print formula");
-    //std::string f =  PrintFormula2<F>();
-    //m.attr("formula") = f ;
-    //std::string g = F::IdString();
-    //m.attr("formula2") = g;
-}
+    std::string f =  PrintFormula<F>();
+    m.attr("formula") = f ;
+    
+    }
 
 }

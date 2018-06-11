@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <sstream>
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
@@ -30,18 +30,18 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
 
     static const int DIM = F::DIM;
 
-    static void PrintId() {
+    static void PrintId(std::stringstream& str) {
     	using IndsTempVars = GetInds<typename F::template VARS<3>>;
     	static const int dummyPos = 1+IndsTempVars::MAX;
     	using dummyVar = Var<dummyPos,G::DIM,3>;
     	using Ffact = typename F::template Replace<G,dummyVar>;
-        std::cout << "[";
-        dummyVar::PrintId();
-        std::cout << "=";
-        G::PrintId();
-        std::cout << ";";
-        Ffact::PrintId();
-        std::cout << "]";
+        str << "[";
+        dummyVar::PrintId(str);
+        str << "=";
+        G::PrintId(str);
+        str << ";";
+        Ffact::PrintId(str);
+        str << "]";
     }
 
     using THIS = FactorizeImpl<F,G>;
