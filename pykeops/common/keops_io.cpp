@@ -8,7 +8,7 @@
 extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 extern "C" int CpuTransConv(int, int, __TYPE__*, __TYPE__**);
 
-#ifdef USE_CUDA
+#if USE_CUDA
 extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
@@ -158,7 +158,7 @@ py::array_t<__TYPE__> generic_red(int tagIJ,
             CpuTransConv(nx, ny, result, castedargs);
         }
     }
-#ifdef USE_CUDA
+#if USE_CUDA
     else if(tagCpuGpu==1) {
         if(tagIJ==0) {
             if(tag1D2D==0) {
