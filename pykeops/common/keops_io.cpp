@@ -12,9 +12,9 @@ extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 extern "C" int CpuTransConv(int, int, __TYPE__*, __TYPE__**);
 
 #ifdef USE_CUDA
-
-// Forward declare cuda functions
-int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+extern "C" {
+    int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+};
 
 //extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
 //extern "C" int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
@@ -198,97 +198,105 @@ at::Tensor generic_red_from_device(int tagIJ,
                                   int tag1D2D,
                                   py::args py_args) {
 
+//    std::cout << ">>>>>>> generic_red_from_device() : tagIJ=" << tagIJ << ", tagCpuGpu=" << tagCpuGpu << ", tag1D2D=" << tag1D2D << ", py_args=" << py_args << std::endl;
+
     // ------ check the dimensions ------------//
-    int *typeargs = new int[NARGS];
-    int *dimargs = new int[NARGS];
+//    int *typeargs = new int[NARGS];
+//    int *dimargs = new int[NARGS];
+//
+//    for (int k = 0; k < NARGS; k++) {
+//        typeargs[k] = -1;
+//        dimargs[k] = -1;
+//    }
+//    for (int k = 0; k < NARGSI; k++) {
+//        typeargs[INDSI::VAL(k)] = 0;
+//        dimargs[INDSI::VAL(k)] = DIMSX::VAL(k);
+//    }
+//    for (int k = 0; k < NARGSJ; k++) {
+//        typeargs[INDSJ::VAL(k)] = 1;
+//        dimargs[INDSJ::VAL(k)] = DIMSY::VAL(k);
+//    }
+//    for (int k = 0; k < NARGSP; k++) {
+//        typeargs[INDSP::VAL(k)] = 2;
+//        dimargs[INDSP::VAL(k)] = DIMSP::VAL(k);
+//    }
+//
+//    if (py_args.size() != NARGS)
+//        throw std::runtime_error("Wrong number of args : is " + std::to_string(py_args.size()) + " but should be " +std::to_string(NARGS)) ;
 
-    for (int k = 0; k < NARGS; k++) {
-        typeargs[k] = -1;
-        dimargs[k] = -1;
-    }
-    for (int k = 0; k < NARGSI; k++) {
-        typeargs[INDSI::VAL(k)] = 0;
-        dimargs[INDSI::VAL(k)] = DIMSX::VAL(k);
-    }
-    for (int k = 0; k < NARGSJ; k++) {
-        typeargs[INDSJ::VAL(k)] = 1;
-        dimargs[INDSJ::VAL(k)] = DIMSY::VAL(k);
-    }
-    for (int k = 0; k < NARGSP; k++) {
-        typeargs[INDSP::VAL(k)] = 2;
-        dimargs[INDSP::VAL(k)] = DIMSP::VAL(k);
-    }
+    auto castedargs = py::cast<std::vector<at::Tensor>>(py_args);
 
-    if (py_args.size() != NARGS)
-        throw std::runtime_error("Wrong number of args : is " + std::to_string(py_args.size()) + " but should be " +std::to_string(NARGS)) ;
+//    for(auto i : castedargs) {
+////        std::cout << "i=" << i << std::endl;
+//        std::cout << "i.data_ptr()=" << i.data_ptr() << std::endl;
+//    }
 
-
-    std::array< py::array_t<__TYPE__>, NARGS > obj_ptr;
-    __TYPE__ **castedargs = new __TYPE__ *[NARGS];
-    // Seems to be necessary to store every pointer in an array to keep in memory
-    // the right address
-    for (size_t i = 0; i < NARGS; i++) {
-//        obj_ptr[i] = py::cast<at::Tensor>(py_args[i]);
-        obj_ptr[i] = py::cast<py::array_t<__TYPE__>>(py_args[i]);
-    }
+//    std::array< py::array_t<__TYPE__>, NARGS > obj_ptr;
+//    __TYPE__ **castedargs = new __TYPE__ *[NARGS];
+//    // Seems to be necessary to store every pointer in an array to keep in memory
+//    // the right address
+//    for (size_t i = 0; i < NARGS; i++) {
+//        std::cout << "i=" << i << std::endl;
+////        obj_ptr[i] = py::cast<at::Tensor>(py_args[i]);
+//        obj_ptr[i] = py::cast<py::array_t<__TYPE__>>(py_args[i]);
+//    }
 
     int nx = 0;
     int ny = 0;
-    for (size_t i = 0; i < NARGS; i++) {
-        // check the dimension :
-        if (typeargs[i] == 0) {
-            if (nx == 0 ) {
-                nx = obj_ptr[i].shape(0) ; // get nx
-            } else if (nx != obj_ptr[i].shape(0) ) {
-                throw std::runtime_error("Wrong number of rows for args number " +  std::to_string(i) + " : is " +
-                        std::to_string(obj_ptr[i].shape(0)) + " but should be " +std::to_string(nx)) ;
-            }
-
-            // column
-            if (obj_ptr[i].shape(1) != dimargs[i]) {
-                throw std::runtime_error("Wrong number of column for args number " +  std::to_string(i) + " : is "
-                        + std::to_string(obj_ptr[i].shape(1)) + " but should be " +std::to_string(dimargs[i])) ;
-            }
-        } else if (typeargs[i] == 1) {
-            if (ny == 0 ) {
-                ny = obj_ptr[i].shape(0) ; // get ny
-            } else if (ny != obj_ptr[i].shape(0) ) {
-                throw std::runtime_error("Wrong number of rows for args number " +  std::to_string(i) + " : is "
-                        + std::to_string(obj_ptr[i].shape(0)) + " but should be " +std::to_string(ny) );
-            }
-            // column
-            if (obj_ptr[i].shape(1) != dimargs[i]) {
-                throw std::runtime_error("Wrong number of column for args number " +  std::to_string(i) + " : is " 
-                        + std::to_string(obj_ptr[i].shape(1)) + " but should be " +std::to_string(dimargs[i])) ;
-            }
-
-        } else if (typeargs[i] == 2) {
-
-            if (obj_ptr[i].shape(0) != dimargs[i]) {
-                throw std::runtime_error("Wrong number of elements for args number " +  std::to_string(i) + " : is " 
-                        + std::to_string(obj_ptr[i].shape(0)) + " but should be " +std::to_string(dimargs[i])) ;
-            }
-        }
-
-        // get memory address
-//        castedargs[i] = (__TYPE__ *) obj_ptr[i].data_ptr();
-        castedargs[i] = (__TYPE__ *) obj_ptr[i].data();
-    }
+//    for (size_t i = 0; i < NARGS; i++) {
+//        // check the dimension :
+//        if (typeargs[i] == 0) {
+//            if (nx == 0 ) {
+//                nx = obj_ptr[i].shape(0) ; // get nx
+//            } else if (nx != obj_ptr[i].shape(0) ) {
+//                throw std::runtime_error("Wrong number of rows for args number " +  std::to_string(i) + " : is " +
+//                        std::to_string(obj_ptr[i].shape(0)) + " but should be " +std::to_string(nx)) ;
+//            }
+//
+//            // column
+//            if (obj_ptr[i].shape(1) != dimargs[i]) {
+//                throw std::runtime_error("Wrong number of column for args number " +  std::to_string(i) + " : is "
+//                        + std::to_string(obj_ptr[i].shape(1)) + " but should be " +std::to_string(dimargs[i])) ;
+//            }
+//        } else if (typeargs[i] == 1) {
+//            if (ny == 0 ) {
+//                ny = obj_ptr[i].shape(0) ; // get ny
+//            } else if (ny != obj_ptr[i].shape(0) ) {
+//                throw std::runtime_error("Wrong number of rows for args number " +  std::to_string(i) + " : is "
+//                        + std::to_string(obj_ptr[i].shape(0)) + " but should be " +std::to_string(ny) );
+//            }
+//            // column
+//            if (obj_ptr[i].shape(1) != dimargs[i]) {
+//                throw std::runtime_error("Wrong number of column for args number " +  std::to_string(i) + " : is "
+//                        + std::to_string(obj_ptr[i].shape(1)) + " but should be " +std::to_string(dimargs[i])) ;
+//            }
+//
+//        } else if (typeargs[i] == 2) {
+//
+//            if (obj_ptr[i].shape(0) != dimargs[i]) {
+//                throw std::runtime_error("Wrong number of elements for args number " +  std::to_string(i) + " : is "
+//                        + std::to_string(obj_ptr[i].shape(0)) + " but should be " +std::to_string(dimargs[i])) ;
+//            }
+//        }
+//
+//        // get memory address
+////        castedargs[i] = (__TYPE__ *) obj_ptr[i].data_ptr();
+////        castedargs[i] = (__TYPE__ *) obj_ptr[i].data();
+//    }
 
     // dimension Output
     int dimout = F::DIM;
     int nout;
     if (tagIJ == 0) {
         nout = nx;
-    }
-    else {
+    } else {
         nout = ny;
     }
 
     //auto result_array = at::Tensor(nout*dimout);
     //at::Tensor result_array = at::CUDA(at::kFloat).zeros({nout,dimout});
     at::Tensor result_array = at::zeros(torch::CUDA(at::kFloat), {nout, dimout});
-    __TYPE__ *result = (__TYPE__ *) result_array.data_ptr();
+//    __TYPE__ *result = (__TYPE__ *) result_array.data_ptr();
 
     //////////////////////////////////////////////////////////////
     // Call Cuda codes
@@ -297,7 +305,7 @@ at::Tensor generic_red_from_device(int tagIJ,
     // tagIJ=0 means sum over j, tagIJ=1 means sum over j
     // tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 
-//    GpuConv1D_FromDevice(nx, ny, result, castedargs);
+    GpuConv1D_FromDevice(nx, ny, reinterpret_cast<__TYPE__*>(result_array.data_ptr()), reinterpret_cast<__TYPE__**>(castedargs.data()));
 
 /*
     if(tagIJ==0) {
@@ -315,7 +323,7 @@ at::Tensor generic_red_from_device(int tagIJ,
         }
     }
 */
-    delete[] castedargs;
+//    delete[] castedargs;
     return result_array;
 
 //    return at::ones(torch::CUDA(at::kFloat), {3, 4});
