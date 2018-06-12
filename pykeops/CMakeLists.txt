@@ -14,6 +14,8 @@ set(SOURCE_FILES
     ${PROJECT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/pybind11
     /home/bcharlier/.local/lib/python3.5/site-packages/torch/lib/include/
+    /Users/benoit.martin/miniconda3/pkgs/pytorch-0.4.0-py36_cuda0.0_cudnn0.0_1/lib/python3.6/site-packages/torch/lib/include
+    /home/benoit.martin/.conda/pkgs/pytorch-0.4.0-py36_cuda8.0.61_cudnn7.1.2_1/lib/python3.6/site-packages/torch/lib/include
 )
 
 Include_Directories(${SOURCE_FILES})
@@ -26,7 +28,6 @@ include(${PROJECT_SRC}/headers.cmake)
 #------------------------------------------------------------------------------------#
 
 # ----------------- create shared lib (cuda)
-
 if(USE_CUDA)
   
     CUDA_add_library(

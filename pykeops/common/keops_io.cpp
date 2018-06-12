@@ -11,15 +11,19 @@
 extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 extern "C" int CpuTransConv(int, int, __TYPE__*, __TYPE__**);
 
-#if USE_CUDA
-extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuTransConv1D(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuTransConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuTransConv2D(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuTransConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+#ifdef USE_CUDA
+
+// Forward declare cuda functions
+int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+
+//extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
+//extern "C" int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+//extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
+//extern "C" int GpuConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+//extern "C" int GpuTransConv1D(int, int, __TYPE__*, __TYPE__**);
+//extern "C" int GpuTransConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+//extern "C" int GpuTransConv2D(int, int, __TYPE__*, __TYPE__**);
+//extern "C" int GpuTransConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 #endif
 
 namespace pykeops {
@@ -188,6 +192,7 @@ py::array_t<__TYPE__> generic_red(int tagIJ,
         //,int tagIJ,
                               //int tag1D2D,
                               //py::args py_args) {
+
 at::Tensor generic_red_from_device(int tagIJ,
                                   int tagCpuGpu,
                                   int tag1D2D,
@@ -223,7 +228,8 @@ at::Tensor generic_red_from_device(int tagIJ,
     // Seems to be necessary to store every pointer in an array to keep in memory
     // the right address
     for (size_t i = 0; i < NARGS; i++) {
-        obj_ptr[i] = py::cast<at::Tensor>(py_args[i]);
+//        obj_ptr[i] = py::cast<at::Tensor>(py_args[i]);
+        obj_ptr[i] = py::cast<py::array_t<__TYPE__>>(py_args[i]);
     }
 
     int nx = 0;
@@ -265,7 +271,8 @@ at::Tensor generic_red_from_device(int tagIJ,
         }
 
         // get memory address
-        castedargs[i] = (__TYPE__ *) obj_ptr[i].data_ptr();
+//        castedargs[i] = (__TYPE__ *) obj_ptr[i].data_ptr();
+        castedargs[i] = (__TYPE__ *) obj_ptr[i].data();
     }
 
     // dimension Output
@@ -279,7 +286,8 @@ at::Tensor generic_red_from_device(int tagIJ,
     }
 
     //auto result_array = at::Tensor(nout*dimout);
-    at::Tensor result_array = at::CUDA(at::kFloat).zeros({nout,dimout});
+    //at::Tensor result_array = at::CUDA(at::kFloat).zeros({nout,dimout});
+    at::Tensor result_array = at::zeros(torch::CUDA(at::kFloat), {nout, dimout});
     __TYPE__ *result = (__TYPE__ *) result_array.data_ptr();
 
     //////////////////////////////////////////////////////////////
@@ -289,24 +297,31 @@ at::Tensor generic_red_from_device(int tagIJ,
     // tagIJ=0 means sum over j, tagIJ=1 means sum over j
     // tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 
-        if(tagIJ==0) {
-            if(tag1D2D==0) {
-                GpuConv1D( nx, ny, result, castedargs);
-                //GpuConv1D_FromDevice( nx, ny, result, castedargs);
-            } else {
-                GpuConv2D_FromDevice( nx, ny, result, castedargs);
-            }
-        } else {
-            if(tag1D2D==0) {
-                GpuTransConv1D_FromDevice( nx, ny, result, castedargs);
-            } else {
-                GpuTransConv2D_FromDevice( nx, ny, result, castedargs);
-            }
-        }
+//    GpuConv1D_FromDevice(nx, ny, result, castedargs);
 
+/*
+    if(tagIJ==0) {
+        if(tag1D2D==0) {
+            //GpuConv1D( nx, ny, result, castedargs);
+            GpuConv1D_FromDevice(nx, ny, result, castedargs);
+        } else {
+            GpuConv2D_FromDevice(nx, ny, result, castedargs);
+        }
+    } else {
+        if(tag1D2D==0) {
+            GpuTransConv1D_FromDevice(nx, ny, result, castedargs);
+        } else {
+            GpuTransConv2D_FromDevice(nx, ny, result, castedargs);
+        }
+    }
+*/
     delete[] castedargs;
     return result_array;
+
+//    return at::ones(torch::CUDA(at::kFloat), {3, 4});
 }
+
+
 // the following macro force the compilator to change MODULE_NAME to its value
 #define VALUE_OF(x) x
 
@@ -316,9 +331,9 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
     m.def("gen_red", &generic_red, "A function...");
     m.def("gen_red_from_device", &generic_red_from_device, "A function...");
 
-    m.def("print_formula", &PrintFormula<F>, "Print formula");
-    std::string f =  PrintFormula<F>();
-    m.attr("formula") = f ;
+//    m.def("print_formula", &PrintFormula<F>, "Print formula");
+//    std::string f =  PrintFormula<F>();
+//    m.attr("formula") = f ;
     
     }
 
