@@ -71,8 +71,8 @@ int main() {
     
     clock_t begin, end;
 
-    std::cout << "testing function F : ";
-    F::PrintId();
+    std::cout << "testing function F : " << std::endl;
+    std::cout << PrintFormula<F>();
     std::cout << std::endl;
 
     begin = clock();

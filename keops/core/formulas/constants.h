@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <sstream>
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
@@ -22,13 +22,7 @@ template < int _DIM >
 struct Zero {
     static const int DIM = _DIM;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id ="0";
-    static const std::string& IdString(){
-        static const std::string str = "0";
-        return str;
-    }
-    static void PrintId() { std::cout << IdString(); }
+    static void PrintId(std::stringstream& str) { str << "0"; }
 
     template<class A, class B>
     using Replace = Zero<DIM>;
@@ -63,14 +57,7 @@ template < int N >
 struct IntConstantImpl {
     static const int DIM = 1;
 
-    // in c++17 the IdString() function could be replaced by:
-    //constexpr std::string_view id = std::to_string(N);
-    static const std::string& IdString(){
-        static const std::string str = std::to_string(N);
-        return str;
-    }
-
-    static void PrintId() { std::cout << IdString(); }
+    static void PrintId(std::stringstream& str) { str << N; }
 
     template<class A, class B>
     using Replace = IntConstant<N>;

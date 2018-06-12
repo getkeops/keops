@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <sstream>
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
@@ -120,16 +120,16 @@ struct GaussKernel_specific {
     static const int DIMPOINT = X::DIM;
     static const int DIMVECT = DIM;
 
-    static void PrintId() {
-        cout << "GaussKernel_specific<";
-        C::PrintId();
-        cout << ",";
-        X::PrintId();
-        cout << ",";
-        Y::PrintId();
-        cout << ",";
-        B::PrintId();
-        cout << ">";
+    static void PrintId(std::stringstream& str) {
+        str << "GaussKernel_specific(";
+        C::PrintId(str);
+        str << ",";
+        X::PrintId(str);
+        str << ",";
+        Y::PrintId(str);
+        str << ",";
+        B::PrintId(str);
+        str << ")";
     }
     
     template < int CAT >
@@ -177,20 +177,20 @@ struct GradGaussKernel_specific {
 	template < int CAT >
 	using VARS = typename GenericVersion::template VARS<CAT>;
 		
-    static void PrintId() {
-        cout << "GradGaussKernel_specific<";
-        C::PrintId();
-        cout << ",";
-        X::PrintId();
-        cout << ",";
-        Y::PrintId();
-        cout << ",";
-        B::PrintId();
-        cout << ",";
-        V::PrintId();
-        cout << ",";
-        GRADIN::PrintId();
-        cout << ">";
+    static void PrintId(std::stringstream& str) {
+        str << "GradGaussKernel_specific(";
+        C::PrintId(str);
+        str << ",";
+        X::PrintId(str);
+        str << ",";
+        Y::PrintId(str);
+        str << ",";
+        B::PrintId(str);
+        str << ",";
+        V::PrintId(str);
+        str << ",";
+        GRADIN::PrintId(str);
+        str << ")";
     }
     
     using THIS = GradGaussKernel_specific<C,X,Y,B,V,GRADIN>;
@@ -224,20 +224,20 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 		
     using THIS = GradGaussKernel_specific<C,X,Y,B,X,GRADIN>;
 		
-    static void PrintId() {
-        cout << "GradGaussKernel_specific<";
-        C::PrintId();
-        cout << ",";
-        X::PrintId();
-        cout << ",";
-        Y::PrintId();
-        cout << ",";
-        B::PrintId();
-        cout << ",";
-        X::PrintId();
-        cout << ",";
-        GRADIN::PrintId();
-        cout << ">";
+    static void PrintId(std::stringstream& str) {
+        str << "GradGaussKernel_specific(";
+        C::PrintId(str);
+        str << ",";
+        X::PrintId(str);
+        str << ",";
+        Y::PrintId(str);
+        str << ",";
+        B::PrintId(str);
+        str << ",";
+        X::PrintId(str);
+        str << ",";
+        GRADIN::PrintId(str);
+        str << ")";
     }
     
     template<class U, class V>

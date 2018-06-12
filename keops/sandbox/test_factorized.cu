@@ -47,7 +47,7 @@ int main() {
     using F = Grad<F0, X, Var<6,3,0>>;
 
     std::cout << std::endl << "Function F : " << std::endl;
-    F::PrintId();
+    std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
     // now we factorize F0 from F : new formula FF computes the same as F but will evaluate first F0 once and then just does three vector additions
@@ -55,11 +55,11 @@ int main() {
 
     std::cout << "Function FF = factorized version of F :" << std::endl;
     std::cout << "Factor = " << std::endl;
-    FF::Factor::PrintId();
+    std::cout << PrintFormula<FF::Factor>();
     std::cout << std::endl << "Factorized Formula = " << std::endl;
     //using INDS = pack<0,1,2,3,4,5>; // just to print the formula we define a dummy INDS...
     using INDS = pack<0,1,2,3,4,5,6>; // just to print the formula we define a dummy INDS...
-    FF::FactorizedFormula<INDS>::PrintId();
+    std::cout << PrintFormula<FF::FactorizedFormula<INDS>>();
     std::cout << std::endl << std::endl;
 
 

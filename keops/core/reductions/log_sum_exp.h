@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <sstream>
 
 #include "core/Pack.h"
 
@@ -26,10 +26,10 @@ struct LogSumExp {
     static const int DIM = 1 + F::DIM;
     static_assert(1==F::DIM,"LogSumExp is only meant to be used with scalars.");
 
-    static void PrintId() {
-        std::cout << "LogSumExp<";
-        F::PrintId();
-        std::cout << ">";
+    static void PrintId(std::stringstream& str) {
+        str << "LogSumExp(";
+        F::PrintId(str);
+        str << ")";
     }
 
     template<class A, class B>

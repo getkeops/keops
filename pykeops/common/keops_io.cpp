@@ -8,7 +8,7 @@
 extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 extern "C" int CpuTransConv(int, int, __TYPE__*, __TYPE__**);
 
-#ifdef USE_CUDA
+#if USE_CUDA
 extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
@@ -158,7 +158,7 @@ py::array_t<__TYPE__> generic_red(int tagIJ,
             CpuTransConv(nx, ny, result, castedargs);
         }
     }
-#ifdef USE_CUDA
+#if USE_CUDA
     else if(tagCpuGpu==1) {
         if(tagIJ==0) {
             if(tag1D2D==0) {
@@ -204,10 +204,9 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
     m.def("gen_red", &generic_red, "A function...");
 
     m.def("print_formula", &PrintFormula<F>, "Print formula");
-    //std::string f =  PrintFormula2<F>();
-    //m.attr("formula") = f ;
-    //std::string g = F::IdString();
-    //m.attr("formula2") = g;
-}
+    std::string f =  PrintFormula<F>();
+    m.attr("formula") = f ;
+    
+    }
 
 }

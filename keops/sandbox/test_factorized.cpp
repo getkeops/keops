@@ -45,13 +45,13 @@ int main() {
     using F = Grad<Grad<Grad<GaussKernel<C,X,Y,B>,X,U>,X,U>,Y,V>;
 
     std::cout << std::endl << "Function F : " << std::endl;
-    PrintFormula<F>();
+    std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
     using FF = AutoFactorize<F>;
 
     std::cout << "Function FF = factorized version of F :" << std::endl;    
-    PrintFormula<FF>();
+    std::cout << PrintFormula<FF>();
 
     using FUNCONVF = typename Generic<F>::sEval;
     using FUNCONVFF = typename Generic<FF>::sEval;
