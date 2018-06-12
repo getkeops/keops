@@ -13,6 +13,7 @@ set(SOURCE_FILES
     ${PROJECT_SRC}
     ${PROJECT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/pybind11
+    /home/bcharlier/.local/lib/python3.5/site-packages/torch/lib/include/
 )
 
 Include_Directories(${SOURCE_FILES})
