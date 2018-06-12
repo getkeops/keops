@@ -1,9 +1,9 @@
 import torch
 from torch.autograd import Variable
 
-from pykeops.numpy.generic_red import GenericRed_np
-from pykeops.common.parse_type_old import parse_types
 from pykeops import default_cuda_type
+from pykeops.common.parse_type_old import parse_types
+from pykeops.common.generic_reduction import genred
 
 class generic_sum :
     def __init__(self, formula, *types) :
@@ -33,21 +33,9 @@ class GenericSum(torch.autograd.Function):
         if args[0].is_cuda:
             raise MemoryError("tensor on device is not supported yet")
             
-        from pykeops.common.utils import create_name
-        dll_name = create_name(formula,aliases,default_cuda_type)
-        from pykeops.common.compile_routines import compile_generic_routine2
-        compile_generic_routine2(aliases, formula, dll_name, default_cuda_type)
-        import importlib
-        myconv = importlib.import_module(dll_name)
-        
-        # Perform computation using KeOps
-        tagIJ = 0;# tagIJ=0 means sum over j, tagIJ=1 means sum over j
-        tagCpuGpu = 0;# tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
-        tag1D2D = 0;# tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
-        vars_p = tuple(var.data.numpy() for var in args) # no copy!
-
-        result = myconv.gen_red(tagIJ, tagCpuGpu, tag1D2D, *vars_p)
-        result = torch.from_numpy(result)
+        else:
+            vars_p = tuple(var.data.numpy() for var in args) # no copy!
+            result = torch.from_numpy(genred( formula, aliases, *vars_p, sum_index= sum_index, backend = backend))
         return result
 
     @staticmethod
