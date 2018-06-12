@@ -98,8 +98,8 @@ print("Formulas supported out-of-the-box: ", kernel_formulas.keys())
 
 kernel_formulas["my_formula"] = Formula( # Standard RBF kernel
     # Symbolic formulas, for the KeOps backend
-    formula_sum = "Exp( ({X},{Y}) - WeightedSqDist({G},{X},{Y}) )",
-    formula_log =    "( ({X},{Y}) - WeightedSqDist({G},{X},{Y}) )",
+    formula_sum = "Exp( ({X}|{Y}) - WeightedSqDist({G},{X},{Y}) )",
+    formula_log =    "( ({X}|{Y}) - WeightedSqDist({G},{X},{Y}) )",
     # Pytorch routines, for the "pure pytorch" backend
     routine_sum = lambda gxmy2=None, xsy=None, **kwargs : (xsy-gxmy2).exp(),
     routine_log = lambda gxmy2=None, xsy=None, **kwargs :  xsy-gxmy2,
