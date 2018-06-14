@@ -271,7 +271,6 @@ at::Tensor generic_red_from_device(int tagIJ,
     if (tagIJ == 0) { nout = nx; } else { nout = ny; }
 
     at::Tensor result_array = at::empty(torch::CUDA(at::kFloat), {nout,dimout});
-    __TYPE__ *result = (__TYPE__ *) result_array.data_ptr();
 
     //////////////////////////////////////////////////////////////
     // Call Cuda codes
@@ -282,16 +281,16 @@ at::Tensor generic_red_from_device(int tagIJ,
 
     if(tagIJ==0) {
         if(tag1D2D==0) {
-            //GpuConv1D_FromDevice(nx, ny, reinterpret_cast<__TYPE__*>(result_array.data_ptr()), reinterpret_cast<__TYPE__**>(castedargs.data()));
-            GpuConv1D_FromDevice(nx, ny, result, castedargs);
+            //    __TYPE__ *result = (__TYPE__ *) result_array.data_ptr();  == result_array.data<__TYPE__>()
+            GpuConv1D_FromDevice(nx, ny, result_array.data<__TYPE__>(), castedargs);
         } else {
-            GpuConv2D_FromDevice(nx, ny, result, castedargs);
+            GpuConv2D_FromDevice(nx, ny, result_array.data<__TYPE__>(), castedargs);
         }
     } else {
         if(tag1D2D==0) {
-            GpuTransConv1D_FromDevice(nx, ny, result, castedargs);
+            GpuTransConv1D_FromDevice(nx, ny, result_array.data<__TYPE__>(), castedargs);
         } else {
-            GpuTransConv2D_FromDevice(nx, ny, result, castedargs);
+            GpuTransConv2D_FromDevice(nx, ny, result_array.data<__TYPE__>(), castedargs);
         }
     }
 
