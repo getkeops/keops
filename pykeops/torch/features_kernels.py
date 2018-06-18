@@ -1,5 +1,4 @@
-from pykeops.torch.generic_sum       import GenericSum
-from pykeops.torch.generic_logsumexp import GenericLogSumExp
+from pykeops.torch.generic_red       import GenericSum, GenericLogSumExp
 
 from pykeops.torch.utils import extract_metric_parameters, _scalar_products, _squared_distances, _log_sum_exp, _weighted_squared_distances
 

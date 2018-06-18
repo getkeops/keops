@@ -3,7 +3,7 @@ from torch.autograd import Variable
 
 from pykeops import default_cuda_type
 from pykeops.common.parse_type_old import parse_types
-from pykeops.common.generic_reduction import genred
+from pykeops.common.generic_reduction import genred, genred_fromdevice
 
 class generic_sum :
     def __init__(self, formula, *types) :
@@ -11,14 +11,24 @@ class generic_sum :
         self.aliases, self.signature, self.sum_index = parse_types( types )
         
     def __call__(self, *args, backend = "auto") :
-        return GenericSum.apply(backend, self.aliases, self.formula, self.signature, self.sum_index, *args)
+        return pytorch_genred.apply(self.formula, self.aliases, self.signature, *args, self.sum_index, backend)
 
-class GenericSum(torch.autograd.Function):
+
+class generic_logsumexp :
+    def __init__(self, formula, *types) :
+        self.formula = "LogSumExp(" + formula + ")"
+        self.aliases, self.signature, self.sum_index = parse_types( types )
+        
+    def __call__(self, *args, backend = "auto") :
+        return pytorch_genred.apply(self.formula, self.aliases, self.signature, *args, self.sum_index, backend)
+
+
+class pytorch_genred(torch.autograd.Function):
     """
     """
 
     @staticmethod
-    def forward(ctx, backend, aliases, formula, signature, sum_index, *args):
+    def forward(ctx, formula, aliases, signature, *args, sum_index, backend):
         # Save everything to compute the gradient -----------------------------------------------
         # N.B.: relying on the "ctx.saved_variables" attribute is necessary
         #       if you want to be able to differentiate the output of the backward
@@ -31,8 +41,7 @@ class GenericSum(torch.autograd.Function):
         ctx.sum_index = sum_index
 
         if args[0].is_cuda:
-            raise MemoryError("tensor on device is not supported yet")
-            
+            genred_fromdevice( formula, aliases, *vars_p, sum_index= sum_index, backend = backend)
         else:
             vars_p = tuple(var.data.numpy() for var in args) # no copy!
             result = torch.from_numpy(genred( formula, aliases, *vars_p, sum_index= sum_index, backend = backend))
@@ -71,7 +80,7 @@ class GenericSum(torch.autograd.Function):
                 args_g = args + (G,)  # Don't forget the gradient to backprop !
                 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
-                genconv = GenericSum().apply
+                genconv = pytorch_genred().apply
 
                 if sig[1] == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     sumindex_g  = 1  # The first sum will be done wrt 'i'
@@ -79,7 +88,7 @@ class GenericSum(torch.autograd.Function):
                     grad = genconv(backend, aliases, formula_g, signature_g, sumindex_g, *args_g)
                     # Then, sum 'grad' wrt 'j' :
                     # I think that ".sum"'s backward introduces non-contiguous arrays,
-                    # and is thus non-compatible with GenericSum:
+                    # and is thus non-compatible with pytorch_genred:
                     # grad = grad.sum(0) 
                     # We replace it with a "handmade hack" :
                     grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad

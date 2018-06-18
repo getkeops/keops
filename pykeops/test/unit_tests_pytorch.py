@@ -106,7 +106,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_generic_syntax(self):
 #--------------------------------------------------------------------------------------
         from pykeops.torch.kernels import Kernel
-        from pykeops.torch.generic_sum import GenericSum
+        from pykeops.torch.generic_red import generic_sum
         aliases = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(x+y)"
         signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]
@@ -121,7 +121,7 @@ class PytorchUnitTestCase(unittest.TestCase):
             with self.subTest(b=b):
 
                 # Call cuda kernel
-                gamma_keops = GenericSum.apply(b,aliases,formula,signature,sum_index,self.sigmac,self.fc,self.xc,self.yc)
+                gamma_keops = generic_red.apply(formula,aliases,signature,self.sigmac,self.fc,self.xc,self.yc,sum_index,b)
 
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.f)**2 *np.exp( (self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
@@ -134,7 +134,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_generic_syntax_simple(self):
 #--------------------------------------------------------------------------------------
         from pykeops.torch.kernels import Kernel
-        from pykeops.torch.generic_sum import generic_sum
+        from pykeops.torch.generic_red import generic_sum
 
         types = [ "A = Vx(" + str(self.xc.shape[1]) + ") ",  # output,       indexed by i, dim D.
                     "P = Pm(2)",                               # 1st argument,  a parameter, dim 2. 

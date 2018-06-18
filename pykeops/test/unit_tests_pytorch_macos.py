@@ -49,7 +49,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_generic_syntax(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.torch.generic_sum import GenericSum
+        from pykeops.torch.generic_red import GenericSum
         aliases = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(x+y)"
         signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]
@@ -76,7 +76,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_generic_syntax_simple(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.torch.generic_sum import generic_sum
+        from pykeops.torch.generic_red import generic_sum
 
         types = [ "A = Vx(" + str(self.xc.shape[1]) + ") ",  # output,       indexed by i, dim D.
                     "P = Pm(2)",                               # 1st argument,  a parameter, dim 2. 

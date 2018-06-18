@@ -61,7 +61,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_generic_syntax(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.numpy.generic_red import GenericSum_np
+        from pykeops.numpy.generic_red import generic_sum_np
         aliases = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(x+y)"
         signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]
@@ -76,7 +76,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b):
 
                 # Call cuda kernel
-                gamma_keops = GenericSum_np(b,aliases,formula,signature,sum_index,self.sigma,self.f,self.x,self.y)
+                gamma_keops = generic_sum_np(formula, aliases, signature, self.sigma, self.f, self.x, self.y, sum_index, b)
 
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.f)**2 *np.exp( (self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
