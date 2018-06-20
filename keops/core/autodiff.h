@@ -91,8 +91,8 @@ class Generic {
         using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;  // indices of variables
         static_assert(CheckAllDistinct<INDS>::val,"Incorrect formula : at least two distinct variables have the same position index.");
         
-        using NARGS = INDS::MAX; // number of arguments when calling the formula. N.B. this can be greater than the number
-        // of variables that actually appear in the formula.
+        static const int NARGS = INDS::MAX; // number of arguments when calling the formula. 
+        // N.B. this can be greater than the number of variables that actually appear in the formula.
 
         template < typename... Args >
         HOST_DEVICE INLINE void operator()(Args... args) {
