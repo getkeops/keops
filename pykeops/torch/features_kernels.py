@@ -1,6 +1,6 @@
-from pykeops.torch.generic_red       import GenericSum, GenericLogSumExp
+from pykeops.torch.generic_red import generic_sum, generic_logsumexp
 
-from pykeops.torch.utils import extract_metric_parameters, _scalar_products, _squared_distances, _log_sum_exp, _weighted_squared_distances
+from pykeops.torch.utils import extract_metric_parameters, _scalar_products, _log_sum_exp, _weighted_squared_distances
 
 
 
@@ -11,7 +11,7 @@ def apply_routine( routine, gs, xs, ys):
         for ( i, (g, (v_ind, x_, y_, gxmy2_, xsy_)) ) in enumerate( zip(gs, routine.vars_needed) ) :
             gxmy2s.append( _weighted_squared_distances(g, xs[v_ind], ys[v_ind]) if gxmy2_ else None )
             xsys.append(                _scalar_products( xs[v_ind], ys[v_ind]) if xsy_   else None )
-    except AttributeError : 
+    except AttributeError :
         # The user has provided a handmade routine:
         gxmy2s, xsys = None
 
@@ -101,27 +101,19 @@ keops_routines = {
 }
 
 def FeaturesKP(kernel, gs, xs, ys, bs, mode="sum", backend="auto"):
-
     if backend in ["pytorch", "matrix"] :
-
         domain, torch_map  = pytorch_routines[mode]
-        if   domain == "sum" : routine = kernel.routine_sum
-        elif domain == "log" : routine = kernel.routine_log
+        if   domain == "sum": routine = kernel.routine_sum
+        elif domain == "log": routine = kernel.routine_log
 
-        return torch_map( routine, gs, xs, ys, bs, matrix = (backend=="matrix") )
+        return torch_map(routine, gs, xs, ys, bs, matrix=(backend=="matrix"))
 
     else:
         red, formula, bs_cat = keops_routines[mode]
-        if   red == "sum" : genconv = GenericSum().apply
-        elif red == "lse" : genconv = GenericLogSumExp().apply
-        formula = formula.format( f_sum = kernel.formula_sum, f_log = kernel.formula_log )
 
-        # Given the output sizes, we must generate the appropriate 
-        # list of aliases and signature:
+        formula = formula.format(f_sum = kernel.formula_sum, f_log = kernel.formula_log)
 
-        # First, compute the size of the output - by convention, the same as that of bs[0]:
-        dimout   = bs[0].size(1)
-        signature = [(dimout, 0)] # output is a cat=0 ("i") variable, of dim=dimout
+        # Given the output sizes, we must generate the appropriate list of aliases
 
         # We will store the arguments as follow :
         # [ G_0, G_1, ..., X_0, X_1, Y_0, Y_1, ...]
@@ -132,18 +124,16 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode="sum", backend="auto"):
             if g is not None :
                 g_var, g_dim, g_cat, g_str = extract_metric_parameters(g) # example : Tensor(...), 3, 0, "Vx"
                 aliases.append(  "G_{g_ind} = {g_str}({index}, {g_dim})".format(
-                                g_ind=i, g_str=g_str, index=index, g_dim=g_dim )  ) 
-                signature.append( (g_dim, g_cat) )
+                                g_ind=i, g_str=g_str, index=index, g_dim=g_dim )  )
                 full_args.append( g_var )
                 index += 1
-        
+
         # Then, the X_i's
         for (i,x) in enumerate(xs) :
             x_dim = x.size(1)
             aliases.append( "X_{x_ind} = Vx({index}, {x_dim})".format(
                              x_ind=i, index=index, x_dim=x_dim
             ))
-            signature.append( (x_dim, 0) )
             full_args.append(x)
             index += 1
 
@@ -153,7 +143,6 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode="sum", backend="auto"):
             aliases.append( "Y_{y_ind} = Vy({index}, {y_dim})".format(
                              y_ind=j, index=index, y_dim=y_dim
             ))
-            signature.append( (y_dim, 1) )
             full_args.append(y)
             index += 1
 
@@ -164,12 +153,15 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode="sum", backend="auto"):
         for (i, (b, b_cat)) in enumerate(zip(bs, bs_cat)) :
             b_dim = b.size(1)
             b_str = ["Vx", "Vy", "Pm"][b_cat]
-            aliases.append( "B_{b_ind} = {b_str}({index}, {b_dim})".format(
-                             b_ind=i, b_str=b_str, index=index, b_dim=b_dim
+            aliases.append("B_{b_ind} = {b_str}({index}, {b_dim})".format(
+                            b_ind=i, b_str=b_str, index=index, b_dim=b_dim
             ))
-            signature.append( (b_dim, b_cat) )
             full_args.append(b)
             index += 1
 
-        sum_index = 0  # the output vector is indexed by "i" (CAT=0)
-        return genconv(backend, aliases, formula, signature, sum_index, *full_args)
+        axis = 1  # the output vector is indexed by "i" (CAT=0)
+        if red == "sum":
+            genconv = generic_sum(formula, aliases, axis=axis, backend=backend)
+        elif red == "lse":
+            genconv = generic_logsumexp(formula, aliases, axis=axis, backend=backend)
+        return genconv(*full_args)

@@ -1,6 +1,3 @@
-import numpy as np
-
-from pykeops.common.utils import parse_types, create_name
 from pykeops.common.generic_reduction import genred
 
 class generic_sum_np :

@@ -1,6 +1,4 @@
-import numpy as np
 import ctypes
-from ctypes import POINTER, c_int, c_float
 
 from pykeops import build_folder, script_folder, dll_prefix, dll_ext
 from pykeops.common.compile_routines import compile_specific_routine

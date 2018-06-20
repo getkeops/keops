@@ -88,19 +88,18 @@ def set_indices(formula, f_ind, v_ind) :
     formula.subroutine_log = formula.routine_log
     formula.routine_log = lambda x=None, y=None, g=None, gxmy2=None, xsy=None : \
                           formula.subroutine_log(x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind])
-
-
     return formula, f_ind+1, needs_x_y_gxmy2_xsy_sum, needs_x_y_gxmy2_xsy_log
 
-class Kernel :
+
+class Kernel:
     def __init__(self, name = None, formula_sum=None, routine_sum=None,
-                                    formula_log=None, routine_log=None ) :
+                                    formula_log=None, routine_log=None ):
         """
         Examples of valid names :
             " gaussian(x,y) * linear(u,v)**2 * gaussian(s,t)"
             " gaussian(x,y) * (1 + linear(u,v)**2 ) "
         """
-        if name is not None :
+        if name is not None:
             # in the comments, let's suppose that name="gaussian(x,y) + laplacian(x,y) * linear(u,v)**2"
             # Determine the features type from the formula : ------------------------------------------------
             variables = re.findall(r'(\([a-z],[a-z]\))', name) # ['(x,y)', '(x,y)', '(u,v)']
@@ -156,8 +155,8 @@ class Kernel :
             self.routine_log = routine_log
 
 
-def kernel_product(params, x,y, *bs, mode=None) :
-    r"""
+def kernel_product(params, x, y, *bs, mode=None):
+    """
     Just a simple wrapper around the KernelProduct operation,
     with a user-friendly "dict" of parameters.
     It allows you to compute kernel dot products (aka. as discrete convolutions)
@@ -228,13 +227,8 @@ def kernel_product(params, x,y, *bs, mode=None) :
     # gamma should have been generated along the lines of "Variable(torch.Tensor([1/(s**2)])).type(dtype)"
     gamma   = params["gamma"]
 
-    if not gamma.__class__ in [tuple, list] : gamma = (gamma,)
-    if not     x.__class__ in [tuple, list] :     x = (x,)
-    if not     y.__class__ in [tuple, list] :     y = (y,)
+    if not gamma.__class__ in [tuple, list]: gamma = (gamma,)
+    if not     x.__class__ in [tuple, list]:     x = (x,)
+    if not     y.__class__ in [tuple, list]:     y = (y,)
 
-    return FeaturesKP( kernel, gamma, x, y, bs, mode = mode, backend = backend)
-
-
-
-
-
+    return FeaturesKP(kernel, gamma, x, y, bs, mode=mode, backend=backend)

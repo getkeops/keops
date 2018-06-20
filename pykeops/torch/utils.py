@@ -118,6 +118,7 @@ def _scalar_products(u, v) :
     v_j = v.unsqueeze(0)         # Shape (M,D) -> Shape (1,M,D)
     return (u_i*v_j).sum(2) # N-by-M matrix, usv[i,j] = <u_i,v_j>
 
+
 def _log_sum_exp(mat, dim):
     """
     Computes the log-sum-exp of a matrix with a numerically stable scheme, 
@@ -133,9 +134,8 @@ def _log_sum_exp(mat, dim):
     return max_rc + torch.log(torch.sum(torch.exp(mat - max_rc.unsqueeze(dim)), dim))
 
 
+class Formula:
 
-
-class Formula :
     def __init__(self, formula_sum=None, routine_sum=None, 
                        formula_log=None, routine_log=None, intvalue = None):
         if intvalue is None :
@@ -144,6 +144,8 @@ class Formula :
             self.formula_log = formula_log
             self.routine_log = routine_log
         else :
+            import math
+
             self.formula_sum =  "IntCst("+str(intvalue)+")"
             self.routine_sum = lambda **x :   intvalue
             self.formula_log =  "Log(IntCst("+str(intvalue)+")"
@@ -151,28 +153,32 @@ class Formula :
         self.intvalue    = intvalue
         self.n_params = 1
         self.n_vars   = 2
-    
+
+
     def __add__(self, other) :
-        return Formula( formula_sum =           "("+self.formula_sum  + " + " + other.formula_sum +")",
-                        routine_sum = lambda **x :  self.routine_sum(**x) +     other.routine_sum(**x) ,
-                        formula_log =      "Log( ("+self.formula_sum  + " + " + other.formula_sum+") )",
-                        routine_log = lambda **x : (self.routine_sum(**x) +     other.routine_sum(**x)).log() ,
+        return Formula(formula_sum =           "("+self.formula_sum  + " + " + other.formula_sum +")",
+                       routine_sum = lambda **x :  self.routine_sum(**x) +     other.routine_sum(**x) ,
+                       formula_log =      "Log( ("+self.formula_sum  + " + " + other.formula_sum+") )",
+                       routine_log = lambda **x : (self.routine_sum(**x) +     other.routine_sum(**x)).log() ,
                 )
 
+
     def __mul__(self, other) :
-        return Formula( formula_sum =           "("+self.formula_sum  + " * " + other.formula_sum + ")" ,
-                        routine_sum = lambda **x :  self.routine_sum(**x) *     other.routine_sum(**x) ,
-                        formula_log =           "("+self.formula_log  + " + " + other.formula_log + ")",
-                        routine_log = lambda **x : (self.routine_log(**x) +     other.routine_log(**x)) ,
+        return Formula(formula_sum =           "("+self.formula_sum  + " * " + other.formula_sum + ")" ,
+                       routine_sum = lambda **x :  self.routine_sum(**x) *     other.routine_sum(**x) ,
+                       formula_log =           "("+self.formula_log  + " + " + other.formula_log + ")",
+                       foutine_log = lambda **x : (self.routine_log(**x) +     other.routine_log(**x)) ,
                 )
+
 
     def __pow__(self, other) :
         "N.B.: other should be a Formula(intvalue=N)."
-        return Formula( formula_sum =        "Pow("+self.formula_sum+   ","+str(other.intvalue)+")" ,
-                        routine_sum = lambda **x :  self.routine_sum(**x)**(    other.intvalue ),
-                        formula_log =          "("+other.formula_sum+   " * "+self.formula_log + ")",
-                        routine_log = lambda **x : other.routine_sum(**x) *   self.routine_log(**x) ,
+        return Formula(formula_sum =        "Pow("+self.formula_sum+   ","+str(other.intvalue)+")" ,
+                       routine_sum = lambda **x :  self.routine_sum(**x)**(    other.intvalue ),
+                       formula_log =          "("+other.formula_sum+   " * "+self.formula_log + ")",
+                       routine_log = lambda **x : other.routine_sum(**x) *   self.routine_log(**x) ,
                 )
+
 
 def assert_contiguous(x):
     """Non-contiguous arrays are a mess to work with,
@@ -184,22 +190,28 @@ def assert_contiguous(x):
                        + "you should consider replacing 'a.sum()' with 'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. "
                        + "Apologies for the inconvenience :-/")
 
+
 def ndims(x):
     return len(x.size())
+
 
 def dtype(x):
     return x.dtype
 
+
 def size(x):
     return x.numel()
+
 
 def to_ctype_pointer(x):
     from ctypes import POINTER, c_float, cast
     assert_contiguous(x)
     return cast(x.data_ptr(), POINTER(c_float))
 
+
 def vect_from_list(l):
     return torch.cat(l)
+
 
 def is_on_device(x):
     return x.is_cuda
