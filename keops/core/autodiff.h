@@ -80,14 +80,19 @@ class Generic {
         using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
         using DIMSP = GetDims<VARSP>;                           // dimensions of parameters variables
 
-        using FORM  = F;  // We need a way to access the actual function being used
-
+        using FORM  = F;  // We need a way to access the actual function being used. 
+        // using FORM  = AutoFactorize<F>;  // alternative : auto-factorize the formula (see factorize.h file)
+        // remark : using auto-factorize should be the best to do but it may slow down the compiler a lot..
+        
         using INDSI = GetInds<VARSI>;
         using INDSJ = GetInds<VARSJ>;
         using INDSP = GetInds<VARSP>;
 
         using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;  // indices of variables
         static_assert(CheckAllDistinct<INDS>::val,"Incorrect formula : at least two distinct variables have the same position index.");
+        
+        using NARGS = INDS::MAX; // number of arguments when calling the formula. N.B. this can be greater than the number
+        // of variables that actually appear in the formula.
 
         template < typename... Args >
         HOST_DEVICE INLINE void operator()(Args... args) {
