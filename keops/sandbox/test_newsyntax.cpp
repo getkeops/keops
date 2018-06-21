@@ -75,6 +75,10 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl;
 
+    std::cout << "minimal number of arguments : " << std::endl;
+    std::cout << FUNCONVF::NMINARGS;
+    std::cout << std::endl;
+
     begin = clock();
     CpuConv(FUNCONVF(), Nx, Ny, f, x, y, u, v, b, params);
     end = clock();
