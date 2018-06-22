@@ -1,5 +1,4 @@
 import re
-
 from collections import OrderedDict
 
 categories = OrderedDict([

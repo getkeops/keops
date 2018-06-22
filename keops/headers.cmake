@@ -24,7 +24,12 @@ if(NOT DEFINED USE_CUDA)
     Set(USE_CUDA ${CUDA_FOUND})
 endif()
     
-add_definitions(-DUSE_CUDA=${USE_CUDA}) # this flag is used in pragma    
+# this flag is used in pragma
+if(USE_CUDA)
+    add_definitions(-DUSE_CUDA=1)
+else()
+    add_definitions(-DUSE_CUDA=0)
+endif()
 
 if(CUDA_FOUND AND USE_CUDA)
 

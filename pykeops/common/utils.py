@@ -15,8 +15,21 @@ def create_name(formula, aliases,cuda_type):
 
 
 def axis2cat(axis):
+    """
+    Axis is the dimension to sum (the pythonic way). Cat is the dimension that
+    remains at the end (the Keops way).
+    :param axis: 0 or 1
+    :return: cat: 1 or 0
+    """
     return (axis + 1)%2
 
 
 def cat2axis(cat):
+    """
+    Axis is the dimension to sum (the pythonic way). Cat is the dimension that
+    remains at the end (the Keops way).
+    :param cat: 0 or 1
+    :return: axis: 1 or 0
+    """
+
     return (cat + 1)%2
