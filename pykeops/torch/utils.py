@@ -165,6 +165,13 @@ class Formula :
                         formula_log =           "("+self.formula_log  + " + " + other.formula_log + ")",
                         routine_log = lambda **x : (self.routine_log(**x) +     other.routine_log(**x)) ,
                 )
+    
+    def __neg__(self) :
+        return Formula( formula_sum =            "(-"+self.formula_sum + ")" ,
+                        routine_sum = lambda **x :  - self.routine_sum(**x),
+                        formula_log = None,
+                        routine_log = lambda **x : None,
+                )
 
     def __pow__(self, other) :
         "N.B.: other should be a Formula(intvalue=N)."
