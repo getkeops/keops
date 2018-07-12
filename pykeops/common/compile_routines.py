@@ -1,6 +1,7 @@
 import subprocess
 from pykeops import build_folder, script_folder, verbose, build_type
 
+
 def compile_generic_routine(aliases, formula, dllname, cuda_type):
     stdout = subprocess.DEVNULL if ((not verbose) and (build_type=='Release')) else None
 
