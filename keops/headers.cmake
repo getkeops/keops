@@ -119,6 +119,8 @@ if(NOT shared_obj_name)
     set(shared_obj_name keops)
 endif()
 
+message(STATUS "Using shared_obj_name: ${shared_obj_name}")
+
 # Template macros.
 add_definitions(-D_FORCE_INLINES)
 add_definitions(-DCUDA_BLOCK_SIZE=192)
