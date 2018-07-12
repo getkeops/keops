@@ -4,6 +4,9 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
+
 project(KeOps LANGUAGES CXX)
 
 ## Set Path to sources
@@ -27,7 +30,6 @@ add_subdirectory(lib/gtest)
 #----------------------------------COMPILATIONS--------------------------------------#
 #------------------------------------------------------------------------------------#
 
-#file(LOCK ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 
 # ----------------- create shared lib (cuda)
 

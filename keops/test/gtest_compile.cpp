@@ -6,9 +6,9 @@
 
 #include <gtest/gtest.h>
 
-static constexpr const char* CMAKE_PATH = "/usr/local/bin/cmake";
+static constexpr const char* CMAKE_PATH = "cmake";
 static constexpr const char* TMP_BUILD_DIR = "tmp_build";
-static constexpr size_t NB_THREADS = 1;
+static constexpr size_t NB_THREADS = 3;
 
 
 class CompileFixture : public ::testing::Test {
@@ -50,7 +50,7 @@ public:
         ss << "cd " << TMP_BUILD_DIR << " && "
            << CMAKE_PATH << " -DCMAKE_BUILD_TYPE=Debug ../../keops -DFORMULA_OBJ=\"" << std::get<0>(formulas[i % formulas.size()])
            << "\" -DVAR_ALIASES=\"" << std::get<1>(formulas[i % formulas.size()]) << "\" "
-           << std::get<2>(formulas[i % formulas.size()]) << "&& make -j1 keops";
+           << std::get<2>(formulas[i % formulas.size()]) << "&& make -j1 keops" << std::to_string(i);
         int status = run(ss);
         std::cout << "status=" << status << std::endl;
         ASSERT_EQ(0, status);
