@@ -48,9 +48,11 @@ public:
 
         std::stringstream ss;
         ss << "cd " << TMP_BUILD_DIR << " && "
-           << CMAKE_PATH << " -DCMAKE_BUILD_TYPE=Debug ../../keops -DFORMULA_OBJ=\"" << std::get<0>(formulas[i % formulas.size()])
-           << "\" -DVAR_ALIASES=\"" << std::get<1>(formulas[i % formulas.size()]) << "\" "
-           << std::get<2>(formulas[i % formulas.size()]) << "&& make -j1 keops" << std::to_string(i);
+           << CMAKE_PATH << " -DCMAKE_BUILD_TYPE=Debug ../../keops -DFORMULA_OBJ=\"" << std::get<0>(formulas[i % formulas.size()]) << "\" "
+           << "-DVAR_ALIASES=\"" << std::get<1>(formulas[i % formulas.size()]) << "\" "
+           << "-D__TYPE__=\"" << std::get<2>(formulas[i % formulas.size()]) << "\" "
+           << "-Dshared_obj_name=\"keops" << std::to_string(i % formulas.size()) << "\" "
+           << "&& make -j1 keops" << std::to_string(i % formulas.size());
         int status = run(ss);
         std::cout << "status=" << status << std::endl;
         ASSERT_EQ(0, status);
@@ -64,12 +66,12 @@ public:
 private:
     using myTuple = std::tuple<const char*, const char*, const char*>;
     const std::vector<myTuple> formulas = {
-            myTuple("Exp(-p*SqNorm2(x-y))", "auto p=Pm(0,1); auto x=Vx(1,3); auto y=Vy(2,3);", "-D__TYPE__=float -Dshared_obj_name=keops0"),
-            myTuple("Exp(-p*SqNorm2(x-y))", "auto p=Pm(0,1); auto x=Vx(1,3); auto y=Vy(2,3);", "-D__TYPE__=double -Dshared_obj_name=keops1"),
-            myTuple("Square(p-a)*Exp(x+y)", "auto p=Pm(0,1); auto a=Vy(1,1); auto x=Vx(2,3); auto y=Vy(3,3);", "-D__TYPE__=float -Dshared_obj_name=keops2"),
-            myTuple("Square(p-a)*Exp(x+y)", "auto p=Pm(0,1); auto a=Vy(1,1); auto x=Vx(2,3); auto y=Vy(3,3);", "-D__TYPE__=double -Dshared_obj_name=keops3"),
-            myTuple("Exp(-G*SqDist(X,Y)) * P", "auto G=Pm(0,1); auto X=Vx(1,3); auto Y=Vy(2,3); auto P=Vy(3,3);", "-D__TYPE__=float -Dshared_obj_name=keops4"),
-            myTuple("Exp(-G*SqDist(X,Y)) * P", "auto G=Pm(0,1); auto X=Vx(1,3); auto Y=Vy(2,3); auto P=Vy(3,3);", "-D__TYPE__=double -Dshared_obj_name=keops5")
+            myTuple("Exp(-p*SqNorm2(x-y))", "auto p=Pm(0,1); auto x=Vx(1,3); auto y=Vy(2,3);", "float"),
+            myTuple("Exp(-p*SqNorm2(x-y))", "auto p=Pm(0,1); auto x=Vx(1,3); auto y=Vy(2,3);", "double"),
+            myTuple("Square(p-a)*Exp(x+y)", "auto p=Pm(0,1); auto a=Vy(1,1); auto x=Vx(2,3); auto y=Vy(3,3);", "float"),
+            myTuple("Square(p-a)*Exp(x+y)", "auto p=Pm(0,1); auto a=Vy(1,1); auto x=Vx(2,3); auto y=Vy(3,3);", "double"),
+            myTuple("Exp(-G*SqDist(X,Y)) * P", "auto G=Pm(0,1); auto X=Vx(1,3); auto Y=Vy(2,3); auto P=Vy(3,3);", "float"),
+            myTuple("Exp(-G*SqDist(X,Y)) * P", "auto G=Pm(0,1); auto X=Vx(1,3); auto Y=Vy(2,3); auto P=Vy(3,3);", "double")
     };
     std::mutex mutex;
 
@@ -77,8 +79,6 @@ private:
         return system(ss.str().c_str());
     }
 };
-
-
 
 
 
