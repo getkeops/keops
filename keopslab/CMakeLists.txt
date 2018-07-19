@@ -4,6 +4,9 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
+
 project(KeOpsLab LANGUAGES CXX)
 
 ## Set Path to sources
