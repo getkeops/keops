@@ -38,7 +38,7 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
     # Since the OS prevents us from using arbitrary long file names, an okayish solution is to call
     # a standard hash function, and hope that we won't fall into a non-injective nightmare case...
     dll_name = ",".join(aliases + [formula]) + "_" + cuda_type
-    dll_name = sha256(dll_name.encode("utf-8")).hexdigest()
+    dll_name = "KeOpsLib" + sha256(dll_name.encode("utf-8")).hexdigest()[:15]
 
     if dll_name in __cuda_convs_generic:  # If this formula has already been loaded in memory...
         return __cuda_convs_generic[dll_name][backend][sum_index]

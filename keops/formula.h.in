@@ -5,6 +5,8 @@
 
 #pragma once
 
+// specify type for md5 uniqueness: @__TYPE__@
+
 #cmakedefine USENEWSYNTAX @USENEWSYNTAX@
 #ifdef USENEWSYNTAX
 

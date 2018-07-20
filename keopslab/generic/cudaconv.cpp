@@ -1,6 +1,6 @@
 #include <mex.h>
 
-#include "formula.h"
+// #include "formula.h" made in cmake
 #include "core/Pack.h"
 
 extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
