@@ -16,14 +16,8 @@ def compile_generic_routine(aliases, formula, dllname, cuda_type):
 
     target = dllname
 
-    print(["cmake", script_folder, "-DCMAKE_BUILD_TYPE=" + build_type,
-        "-DPYTHON_LIB=TRUE",
-        "-DUSENEWSYNTAX=TRUE" ,
-        "-DFORMULA_OBJ=" + formula,
-        "-DVAR_ALIASES=" + alias_string,
-        "-Dshared_obj_name=" + dllname, 
-        "-D__TYPE__=" + cuda_type])
-    subprocess.run(["cmake", script_folder, "-DCMAKE_BUILD_TYPE=" + build_type,
+    subprocess.run(["cmake", script_folder, 
+        "-DCMAKE_BUILD_TYPE=" + build_type,
         "-DPYTHON_LIB=TRUE",
         "-DUSENEWSYNTAX=TRUE" ,
         "-DFORMULA_OBJ=" + formula,
