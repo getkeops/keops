@@ -65,7 +65,7 @@ endif()
 
 # shared_lib can be rename if the variable shared_lib_name is provided.
 set_target_properties(${shared_obj_name} PROPERTIES
-#    LIBRARY_OUTPUT_NAME ${shared_obj_name}
+    LIBRARY_OUTPUT_NAME ${shared_obj_name}
     PREFIX ""
 )
 
