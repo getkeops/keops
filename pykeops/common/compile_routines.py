@@ -16,7 +16,6 @@ def compile_generic_routine(aliases, formula, dllname, cuda_type):
 
     target = dllname
 
-    print("Compiling formula : " + formula + " with " + alias_disp_string + " ... ", end='', flush=True)
     print(["cmake", script_folder, "-DCMAKE_BUILD_TYPE=" + build_type,
         "-DPYTHON_LIB=TRUE",
         "-DUSENEWSYNTAX=TRUE" ,
