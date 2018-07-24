@@ -1,6 +1,6 @@
 #include <vector>
 #include <string>
-#include "formula.h"
+// #include "formula.h" done by cmake
 
 #include <torch/torch.h>
 #include <pybind11/pybind11.h>
@@ -53,6 +53,7 @@ const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
 const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
 
 const int NARGS = Generic<F>::sEval::NMINARGS;
+const int DIMOUT = F::DIM;
 
 const std::string f =  PrintFormula<F>();
 
@@ -70,11 +71,11 @@ int get_size(at::Tensor obj_ptri, int l){
 }
 
 
-__TYPE__* cast_data(py::array_t<__TYPE__, py::array::c_style> obj_ptri){
+__TYPE__* get_data(py::array_t<__TYPE__, py::array::c_style> obj_ptri){
     return (__TYPE__ *) obj_ptri.data();
 }
 
-__TYPE__* cast_data(at::Tensor obj_ptri){
+__TYPE__* get_data(at::Tensor obj_ptri){
     return obj_ptri.data<__TYPE__>();
 }
 
@@ -181,9 +182,9 @@ py::array_t< __TYPE__, py::array::c_style > launch_keops(int tagIJ, int tag1D2D,
     if (tagCpuGpu == 0) {
 
         if (tagIJ == 0) {
-            CpuConv(nx, ny,  cast_data(result_array), castedargs);
+            CpuConv(nx, ny,  get_data(result_array), castedargs);
         } else if (tagIJ == 1) {
-            CpuTransConv(nx, ny, cast_data(result_array), castedargs);
+            CpuTransConv(nx, ny, get_data(result_array), castedargs);
         }
 
     } else if (tagCpuGpu == 1) {
@@ -191,15 +192,15 @@ py::array_t< __TYPE__, py::array::c_style > launch_keops(int tagIJ, int tag1D2D,
 #if USE_CUDA
         if (tagIJ == 0) {
             if (tag1D2D == 0) {
-                GpuConv1D( nx, ny, cast_data(result_array), castedargs);
+                GpuConv1D( nx, ny, get_data(result_array), castedargs);
             } else if (tag1D2D == 1) {
-                GpuConv2D( nx, ny, cast_data(result_array), castedargs);
+                GpuConv2D( nx, ny, get_data(result_array), castedargs);
             }
         } else if (tagIJ == 1) {
             if (tag1D2D == 0) {
-                GpuTransConv1D( nx, ny, cast_data(result_array), castedargs);
+                GpuTransConv1D( nx, ny, get_data(result_array), castedargs);
             } else if (tag1D2D == 1) {
-                GpuTransConv2D( nx, ny, cast_data(result_array), castedargs);
+                GpuTransConv2D( nx, ny, get_data(result_array), castedargs);
             }
         }
 #else
@@ -210,6 +211,11 @@ py::array_t< __TYPE__, py::array::c_style > launch_keops(int tagIJ, int tag1D2D,
     return result_array;
 }
 
+#if USE_DOUBLE
+    #define AT_TYPE at::kDouble
+#else
+    #define AT_TYPE at::kFloat
+#endif
 
 template <>
 at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice,
@@ -218,27 +224,27 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
 
     if(tagHostDevice == 0) {
 
-        at::Tensor result_array = at::empty(torch::CPU(at::kFloat), {nout,dimout});
+        at::Tensor result_array = at::empty(torch::CPU(AT_TYPE), {nout,dimout});
 
         if (tagCpuGpu == 0) {
             if (tagIJ == 0) {
-                CpuConv(nx, ny, cast_data(result_array), castedargs);
+                CpuConv(nx, ny, get_data(result_array), castedargs);
             } else if (tagIJ == 0) {
-                CpuTransConv(nx, ny, cast_data(result_array), castedargs);
+                CpuTransConv(nx, ny, get_data(result_array), castedargs);
             }
         } else if(tagCpuGpu==1) {
 #if USE_CUDA
             if(tagIJ==0) {
                 if(tag1D2D==0) {
-                    GpuConv1D( nx, ny, cast_data(result_array), castedargs);
+                    GpuConv1D( nx, ny, get_data(result_array), castedargs);
                 } else if(tag1D2D==1) {
-                    GpuConv2D( nx, ny, cast_data(result_array), castedargs);
+                    GpuConv2D( nx, ny, get_data(result_array), castedargs);
                 }
             } else if(tagIJ==0) {
                 if(tag1D2D==0) {
-                    GpuTransConv1D( nx, ny, cast_data(result_array), castedargs);
+                    GpuTransConv1D( nx, ny, get_data(result_array), castedargs);
                 } else if(tag1D2D==1) {
-                    GpuTransConv2D( nx, ny, cast_data(result_array), castedargs);
+                    GpuTransConv2D( nx, ny, get_data(result_array), castedargs);
                 }
             }
         }
@@ -250,19 +256,19 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
     } else if(tagHostDevice == 1) {
 
 #if USE_CUDA
-        at::Tensor result_array = at::empty(torch::CUDA(at::kFloat), {nout,dimout});
+        at::Tensor result_array = at::empty(torch::CUDA(AT_TYPE), {nout,dimout});
 
         if(tagIJ==0) {
             if(tag1D2D==0) {
-                GpuConv1D_FromDevice(nx, ny, cast_data(result_array), castedargs);
+                GpuConv1D_FromDevice(nx, ny, get_data(result_array), castedargs);
             } else if(tag1D2D==1) {
-                GpuConv2D_FromDevice(nx, ny, cast_data(result_array), castedargs);
+                GpuConv2D_FromDevice(nx, ny, get_data(result_array), castedargs);
             }
         } else if(tagIJ==1) {
             if(tag1D2D==0) {
-                GpuTransConv1D_FromDevice(nx, ny, cast_data(result_array), castedargs);
+                GpuTransConv1D_FromDevice(nx, ny, get_data(result_array), castedargs);
             } else if(tag1D2D==1){
-                GpuTransConv2D_FromDevice(nx, ny, cast_data(result_array), castedargs);
+                GpuTransConv2D_FromDevice(nx, ny, get_data(result_array), castedargs);
             }
         }
         return result_array;
@@ -271,6 +277,8 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
 #endif
 
     }
+
+    throw std::runtime_error("[KeOps] Meooooooooooooooooow...");
 }
 
 
@@ -310,7 +318,7 @@ array_t generic_red(int tagIJ,            // tagIJ=0         means sum over j,  
     // get the pointers to data to avoid a copy
     __TYPE__ **castedargs = new __TYPE__ *[NARGS];
     for(auto i=0; i<NARGS; i++)
-        castedargs[i] = cast_data(obj_ptr[i]);
+        castedargs[i] = get_data(obj_ptr[i]);
 
     // Check all the dimensions
     std::pair<int,int> n = check_args<array_t>(obj_ptr);  // int nx = n.first; int ny = n.second;
@@ -344,7 +352,7 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
 
     // <__TYPE__, py::array::c_style>  ensures 2 things whatever is the arguments:
     //  1) the precision used is __TYPE__ (float or double typically) on the device,
-    //  2) everything is casted as contiguous before being loaded in memory
+    //  2) everything is convert as contiguous before being loaded in memory
     // this is maybe not the best in term of performance... but at least it is safe.
     m.def("genred_numpy",
           &generic_red<py::array_t<__TYPE__, py::array::c_style>>,
@@ -355,8 +363,8 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
           "Entry point to keops - pytorch version.");
 
     m.attr("nargs") = NARGS;
-    m.attr("dimout") = F::DIM;
-    m.attr("formula") = f ;
+    m.attr("dimout") = DIMOUT;
+    m.attr("formula") = f;
 }
 
 }

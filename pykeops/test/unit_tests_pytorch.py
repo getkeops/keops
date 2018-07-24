@@ -10,6 +10,7 @@ from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differ
 
 from pykeops import torch_found, gpu_available
 
+
 @unittest.skipIf(not torch_found,"Pytorch was not found on your system. Skip tests.")
 class PytorchUnitTestCase(unittest.TestCase):
 
@@ -18,28 +19,39 @@ class PytorchUnitTestCase(unittest.TestCase):
     D = int(3)
     E = int(3)
 
-    a = np.random.rand(M,E).astype('float32')
-    x = np.random.rand(M,D).astype('float32')
-    y = np.random.rand(N,D).astype('float32')
-    f = np.random.rand(N,1).astype('float32')
-    b = np.random.rand(N,E).astype('float32')
-    p = np.random.rand(2).astype('float32')
-    sigma = np.array([0.4]).astype('float32')
+    a = np.random.rand(M,E)
+    x = np.random.rand(M,D)
+    y = np.random.rand(N,D)
+    f = np.random.rand(N,1)
+    b = np.random.rand(N,E)
+    p = np.random.rand(2)
+    sigma = np.array([0.4])
 
     try:
         import torch
         from torch.autograd import Variable
 
         use_cuda = torch.cuda.is_available()
-        dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
+        device   = 'cuda' if use_cuda else 'cpu'
 
-        ac = Variable(torch.from_numpy(a.copy()).type(dtype), requires_grad=True).type(dtype)
-        xc = Variable(torch.from_numpy(x.copy()).type(dtype), requires_grad=True).type(dtype)
-        yc = Variable(torch.from_numpy(y.copy()).type(dtype), requires_grad=True).type(dtype)
-        fc = Variable(torch.from_numpy(f.copy()).type(dtype), requires_grad=True).type(dtype)
-        bc = Variable(torch.from_numpy(b.copy()).type(dtype), requires_grad=True).type(dtype)
-        pc = Variable(torch.from_numpy(p.copy()).type(dtype), requires_grad=True).type(dtype)
-        sigmac = torch.autograd.Variable(torch.from_numpy(sigma.copy()).type(dtype), requires_grad=False).type(dtype)
+        type = torch.float32
+        ac = torch.tensor(a, dtype=type, device=device, requires_grad=True)
+        xc = torch.tensor(x, dtype=type, device=device, requires_grad=True)
+        yc = torch.tensor(y, dtype=type, device=device, requires_grad=True)
+        fc = torch.tensor(f, dtype=type, device=device, requires_grad=True)
+        bc = torch.tensor(b, dtype=type, device=device, requires_grad=True)
+        pc = torch.tensor(p, dtype=type, device=device, requires_grad=True)
+        sigmac = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
+
+        type = torch.float64
+        acd = torch.tensor(a, dtype=type, device=device, requires_grad=True)
+        xcd = torch.tensor(x, dtype=type, device=device, requires_grad=True)
+        ycd = torch.tensor(y, dtype=type, device=device, requires_grad=True)
+        fcd = torch.tensor(f, dtype=type, device=device, requires_grad=True)
+        bcd = torch.tensor(b, dtype=type, device=device, requires_grad=True)
+        pcd = torch.tensor(p, dtype=type, device=device, requires_grad=True)
+        sigmacd = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
+
         print("Running Pytorch tests.")
     except:
         print("Pytorch could not be loaded.")
@@ -85,6 +97,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 #             backend_to_test = ['auto','GPU_1D','GPU_2D','pytorch']
 #         else:
 #             backend_to_test = ['auto','pytorch']
+#
 #         for k,b in itertools.product(["gaussian", "laplacian", "cauchy", "inverse_multiquadric"],backend_to_test):
 #             with self.subTest(k=k,b=b):
 #                 params["id"] = Kernel(k+"(x,y)")
@@ -102,7 +115,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 #                 self.assertTrue( np.allclose(gamma_keops.cpu().data.numpy(), gamma_py , atol=1e-6))
 #
 # ############################################################
-#     def test_generic_syntax(self):
+#     def test_generic_syntax_float(self):
 # ############################################################
 #         from pykeops.torch.generic_red import pytorch_genred
 #         aliases = ["p=Pm(1)","a=Vy(1)","x=Vx(3)","y=Vy(3)"]
@@ -112,19 +125,37 @@ class PytorchUnitTestCase(unittest.TestCase):
 #             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
 #         else:
 #             backend_to_test = ["auto"]
-#         type_to_test = ["float"]  #, "double"]
 #
 #         for b in backend_to_test:
-#             for t in type_to_test:
-#                 with self.subTest(t=t,b=b):
-#                     # Call cuda kernel
-#                     gamma_keops = pytorch_genred.apply(formula, aliases, axis, b, t, self.sigmac, self.fc, self.xc, self.yc)
+#             with self.subTest(b=b):
+#                 # Call cuda kernel
+#                 gamma_keops = pytorch_genred.apply(formula, aliases, axis, b, "float32", self.sigmac, self.fc, self.xc, self.yc)
+#                 # Numpy version
+#                 gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
+#                 # compare output
+#                 self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
 #
-#                     # Numpy version
-#                     gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
 #
-#                     # compare output
-#                     self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
+# ############################################################
+#     def test_generic_syntax_double(self):
+# ############################################################
+#         from pykeops.torch.generic_red import pytorch_genred
+#         aliases = ["p=Pm(1)","a=Vy(1)","x=Vx(3)","y=Vy(3)"]
+#         formula = "Square(p-a)*Exp(x+y)"
+#         axis = 1       # the index we sum on: 0 means sum over i, 1 means sum over j
+#         if gpu_available:
+#             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
+#         else:
+#             backend_to_test = ["auto"]
+#
+#         for b in backend_to_test:
+#             with self.subTest(b=b):
+#                 # Call cuda kernel
+#                 gamma_keops = pytorch_genred.apply(formula, aliases, axis, b, "float64", self.sigmacd, self.fcd, self.xcd, self.ycd)
+#                 # Numpy version
+#                 gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
+#                 # compare output
+#                 self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
 #
 #
 # ############################################################
@@ -157,7 +188,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 #                 # compare output
 #                 self.assertTrue( np.allclose(gamma_keops.cpu().data.numpy(), gamma_py , atol=1e-6))
 #
-#
+# #    @unittest.expectedFailure()
 # ############################################################
 #     def test_logSumExp_kernels_feature(self):
 # ############################################################
@@ -177,6 +208,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 #                 params["backend"] = b
 #                 # Call cuda kernel
 #                 gamma = kernel_product(params, self.xc,self.yc,self.fc).cpu()
+#                 GAMMA = np.log(gamma.data.numpy()[:,1])
 #
 #                 # Numpy version
 #                 log_K  = log_np_kernel(self.x, self.y,self.sigma,kernel=k)

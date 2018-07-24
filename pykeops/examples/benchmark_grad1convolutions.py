@@ -65,7 +65,7 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
     # cuda tiled implementation (if cuda is available)
     if gpu_available:
         try:
-            from pykeops.numpy.convolutions.radial_kernels_grad1 import radial_kernels_grad1conv
+            from pykeops.numpy.convolutions.radial_kernel import radial_kernels_grad1conv
 
             g1 = np.zeros([N,E]).astype('float32') ; radial_kernels_grad1conv(a, x, y, b, g1, sigma, kernel=k)
             g11 = np.zeros([N,E]).astype('float32')

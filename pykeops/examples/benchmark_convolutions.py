@@ -89,7 +89,7 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
     # specific cuda tiled implementation (if cuda is available)
     if gpu_available:
         try:
-            from pykeops.numpy.convolutions.radial_kernels import radial_kernels_conv
+            from pykeops.numpy.convolutions.radial_kernel import radial_kernels_conv
             g2 = np.zeros([N,E]).astype('float32') ; radial_kernels_conv(x, y, b, g2, sigma, kernel=k)
             g2 = np.zeros([N,E]).astype('float32')
             speed_pykeops = timeit.Timer('radial_kernels_conv(x, y, b, g2, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)

@@ -14,8 +14,11 @@ try:
     import torch
     torch_found = True
     gpu_available = torch.cuda.is_available() # if torch is found, we use it to detect the gpu
+    from torch.utils import cpp_extension
+    torch_include_path = torch.utils.cpp_extension.include_paths()[0]
 except:
     torch_found = False
+    torch_include_path = "0"
 
 ############################################################
 #     define backend
