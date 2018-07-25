@@ -15,7 +15,8 @@ def compile_generic_routine(aliases, formula, dllname, cuda_type):
     alias_disp_string = "".join([process_disp_alias(alias) for alias in aliases])
 
     target = dllname
-
+    
+    print("Compiling formula : " + formula + " with " + alias_disp_string + " ... ", end='', flush=True)
     subprocess.run(["cmake", script_folder, 
         "-DCMAKE_BUILD_TYPE=" + build_type,
         "-DPYTHON_LIB=TRUE",
