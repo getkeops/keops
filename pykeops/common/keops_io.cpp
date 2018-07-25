@@ -328,7 +328,7 @@ array_t generic_red(int tagIJ,            // tagIJ=0         means sum over j,  
 
     return result;
 
-
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////
