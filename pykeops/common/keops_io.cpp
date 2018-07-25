@@ -232,6 +232,9 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
             } else if (tagIJ == 0) {
                 CpuTransConv(nx, ny, get_data(result_array), castedargs);
             }
+
+            return result_array;
+
         } else if(tagCpuGpu==1) {
 #if USE_CUDA
             if(tagIJ==0) {
@@ -270,12 +273,12 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
                 GpuTransConv2D_FromDevice(nx, ny, get_data(result_array), castedargs);
             }
         }
-
         return result_array;
 #else
         throw std::runtime_error("[KeOps] No cuda device detected... try to set tagHostDevice to 0.");
 #endif
     }
+
     throw std::runtime_error("[KeOps] Meooooooooooooooooow...");
 }
 
