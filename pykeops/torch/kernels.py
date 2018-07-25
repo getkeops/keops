@@ -30,6 +30,12 @@ kernel_formulas =  {
         formula_log =                      "(IntInv(2) * Log( Square(({X}|{Y})) + "+Epsilon+" ))",
         routine_log = lambda xsy=None, **kwargs : .5 * (xsy**2 + epsilon).log()
     ),
+    "distance" :      Formula( # -1* Energy distance kernel
+        formula_sum =                     "Sqrt(WeightedSqDist({G},{X},{Y}))",
+        routine_sum = lambda gxmy2=None, **kwargs : gxmy2.sqrt(),
+        formula_log =                      "(IntInv(2) * Log( WeightedSqDist({G},{X},{Y})) + "+Epsilon+" ))",
+        routine_log = lambda gxmy2=None, **kwargs : .5 * (gxmy2**2 + epsilon).log()
+    ),
     "gaussian" :      Formula( # Standard RBF kernel
         formula_sum = "Exp( -(WeightedSqDist({G},{X},{Y})) )",
         routine_sum = lambda gxmy2=None, **kwargs : (-gxmy2).exp(),

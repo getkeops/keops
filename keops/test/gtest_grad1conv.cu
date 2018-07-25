@@ -27,9 +27,9 @@ template <typename T>
 void EXPECT_AllCLOSE(const std::vector<T> X, const std::vector<T> Y, const T atol, const T rtol) {
     ASSERT_EQ(X.size(), Y.size());
 
-    int count = 0;
+    unsigned int count = 0;
     T l1norm = 0.0;
-    for (int i = 0; i < X.size(); ++i) {
+    for (unsigned int i = 0; i < X.size(); ++i) {
         if (std::abs(X[i] - Y[i])> atol + rtol * (std::abs(Y[i]) + std::abs(X[i])))
             count +=1;
         l1norm +=  std::abs(X[i] - Y[i]);
@@ -42,8 +42,8 @@ void EXPECT_AllCLOSE(const std::vector<T> X, const std::vector<T> Y, const T ato
 template <typename T>
 void EXPECT_NONZEROS(const std::vector<T> X) {
 
-    int nb_of_zeros = 0;
-    for (int i = 0; i < X.size(); ++i) {
+    unsigned int nb_of_zeros = 0;
+    for (unsigned int i = 0; i < X.size(); ++i) {
         if (std::abs(X[i]) == 0)
             nb_of_zeros +=1;
     }
@@ -54,7 +54,7 @@ void EXPECT_NONZEROS(const std::vector<T> X) {
 //                      The function to be benchmarked                            //
 /////////////////////////////////////////////////////////////////////////////////////
 
-auto formula0 = Grad(GaussKernel(Pm(0,1),Vx(1,3),Vy(2,3),Vy(3,3)),Vx(1,3),Vx(4,3));
+auto formula0 = Grad(GaussKernel(Pm(0,1), Vx(1,3), Vy(2,3), Vy(3,3)), Vx(1,3), Vx(4,3));
 using F0 = decltype(formula0);
 
 using FUN0 = typename Generic<F0>::sEval;
@@ -85,6 +85,10 @@ test_grad1conv<T,op>::test_grad1conv(int Nx):data1(data<T>(Nx)){
 
 
 namespace {
+
+// ----- the following pragma suppress "function was declared but never referenced warning" : it is no longer needed with nvcc >=9.2
+#pragma diag_suppress 177 // https://stackoverflow.com/questions/49836419/how-to-hide-nvccs-function-was-declared-but-never-referenced-warnings
+
     TEST(grad1conv_1D, small){
 
         test_grad1conv<__TYPE__,GpuConv1D> test_small(TEST_SIZE_SMALL);

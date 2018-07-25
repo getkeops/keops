@@ -8,6 +8,7 @@ stages:
 compile_macos:
     stage: build
     script:
+        - git submodule update --init
         - cd build
         - cmake ../keops
         - make -j2 VERBOSE=0
@@ -31,6 +32,7 @@ test_macos_clang:
 compile_ubuntu_gcc:
     stage: build
     script:
+        - git submodule update --init
         - cd build
         - cmake ../keops
         - make VERBOSE=0
@@ -55,6 +57,7 @@ test_ubuntu_gcc:
 compile_ubuntu_cuda:
     stage: build
     script:
+        - git submodule update --init
         - cd build
         - cmake ../keops
         - make VERBOSE=0

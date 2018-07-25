@@ -38,6 +38,7 @@ opt.kernel_geom = 'cauchy';
 opt.kernel_signal = 'gaussian';
 opt.kernel_sphere = 'gaussian_oriented';
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                  CUDA                                       %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -47,6 +48,7 @@ res_cuda = shape_scp(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY
 res_cuda_dx = shape_scp_dx(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt);
 res_cuda_dxi = shape_scp_dxi(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt);
 res_cuda_df = shape_scp_df(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                MATLAB                                       %

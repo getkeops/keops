@@ -23,7 +23,7 @@ find_package(CUDA)
 if(NOT DEFINED USE_CUDA)
     Set(USE_CUDA ${CUDA_FOUND})
 endif()
-    
+
 # this flag is used in pragma
 if(USE_CUDA)
     add_definitions(-DUSE_CUDA=1)
@@ -68,11 +68,11 @@ if(CUDA_FOUND AND USE_CUDA)
         if(NOT CUDA_gpu_detect_output)
             set(${out_variable} FALSE PARENT_SCOPE)
 
-            if(CUDA_VERSION_MAJOR GREATER 8) # cuda does not support 20 arch after cuda 9
-                set(${out_variable}  "30 35 50 60 61" PARENT_SCOPE)
-            else()
-                set(${out_variable}  "20 21(20) 30 35 50 60 61" PARENT_SCOPE)
-            endif()
+            #if(CUDA_VERSION_MAJOR GREATER 8) # cuda does not support 20 arch after cuda 9
+                #set(${out_variable}  "30 35 50 60 61" PARENT_SCOPE)
+            #else()
+                #set(${out_variable}  "20 21(20) 30 35 50 60 61" PARENT_SCOPE)
+            #endif()
         else()
             set(${out_variable} ${CUDA_gpu_detect_output} PARENT_SCOPE)
         endif()

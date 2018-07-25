@@ -10,6 +10,7 @@ function setupOnce(testCase)  % do not change function name
     
 end
 
+
 function res= allclose(a,b)
 
     atol = 1e-6;
@@ -20,9 +21,11 @@ end
 function res = squmatrix_distance(x,y) 
     res = sum( (repmat(reshape(x,size(x,1),1,size(x,2)),1,size(y,1),1)  - repmat(reshape(y,1,size(y,1),size(y,2)),size(x,1),1,1)) .^2,3);
 end
-%--------------------------------------%
+
+
+%-----------------------------------------------%
 %   Test 1: standard expression
-%--------------------------------------%
+%-----------------------------------------------%
 function test_standard_expression(testCase)
 
     Nx = 50; Ny = 20;
@@ -85,4 +88,108 @@ function test_gradient(testCase)
 end
 
 
+%-----------------------------------------------%
+%   Test 4: fshape scp
+%-----------------------------------------------%
+function test_fshape_scp(testCase)
+    nx = 15; d= 3; ny = 51;
 
+    center_faceX = randn(nx,d); signalX = randn(nx,1); normalsX = 1+0*randn(nx,d);
+    center_faceY = randn(ny,d); signalY = randn(ny,1); normalsY = randn(ny,d);
+
+    kernel_size_geom = 1.23124;
+    kernel_size_signal = 1.232;
+    kernel_size_sphere =pi;
+
+    opt.kernel_geom = 'cauchy';
+    opt.kernel_signal = 'gaussian';
+    opt.kernel_sphere = 'gaussian_oriented';
+
+    res_cuda = shape_scp(center_faceX, center_faceY, signalX, signalY, normalsX, normalsY, kernel_size_geom, kernel_size_signal, kernel_size_sphere, opt)
+
+    % Compare with matlab
+    kernel_gaussian = @(r2,s) exp(-r2 / s^2);
+    kernel_cauchy = @(r2,s)  1 ./ (1 + (r2/s^2));
+    kernel_gaussian_oriented = @(prs,s)  exp( (-2 + 2*prs) / s^2);
+
+    norm_normalsX = sqrt(sum(normalsX .^2,2));
+    norm_normalsY = sqrt(sum(normalsY .^2,2));
+
+    unit_normalsX = normalsX ./  repmat(norm_normalsX,1,size(normalsX,2));
+    unit_normalsY = normalsY ./  repmat(norm_normalsY,1,size(normalsY,2));
+
+    distance_signalXY = (repmat(signalX,1,ny)-repmat(signalY',nx,1)).^2;
+    distance_center_faceXY=zeros(nx,ny);
+    oriented_angle_normalsXY = zeros(nx,ny);
+
+    for l=1:d
+        distance_center_faceXY = distance_center_faceXY + (repmat(center_faceX(:,l),1,ny) - repmat(center_faceY(:,l)',nx,1)).^2;
+        oriented_angle_normalsXY = oriented_angle_normalsXY + (repmat(unit_normalsX(:,l),1,ny).*repmat(unit_normalsY(:,l)',nx,1));
+    end
+
+    eval(['radial_function_geom=kernel_', lower(opt.kernel_geom), ';']);
+    Kernel_geomXY = radial_function_geom(distance_center_faceXY, kernel_size_geom);
+    eval(['radial_function_signal=kernel_', lower(opt.kernel_signal), ';']);
+    Kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
+    eval(['radial_function_sphere=kernel_', lower(opt.kernel_sphere) , ';']);
+    Kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY, kernel_size_sphere);
+
+    res_matlab = sum(sum((norm_normalsX * norm_normalsY') .* Kernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY))
+
+    assert( allclose(res_cuda,res_matlab)==1 )
+end
+
+
+
+%-----------------------------------------------%
+%   Test 5: fshape scp dx
+%-----------------------------------------------%
+function test_fshape_scp_dx(testCase)
+    nx = 15; d= 3; ny = 51;
+
+    center_faceX = randn(nx,d); signalX = randn(nx,1); normalsX = 1+0*randn(nx,d);
+    center_faceY = randn(ny,d); signalY = randn(ny,1); normalsY = randn(ny,d);
+
+    kernel_size_geom = 1.23124;
+    kernel_size_signal = 1.232;
+    kernel_size_sphere =pi;
+
+    opt.kernel_geom = 'cauchy';
+    opt.kernel_signal = 'gaussian';
+    opt.kernel_sphere = 'gaussian_oriented';
+
+    res_cuda_dx = shape_scp_dx(center_faceX,center_faceY,signalX,signalY,normalsX,normalsY,kernel_size_geom,kernel_size_signal,kernel_size_sphere,opt);
+
+    % Compare with matlab
+    kernel_gaussian = @(r2,s) exp(-r2 / s^2);
+    dkernel_cauchy = @(r2,s) -1 ./ (s^2 * (1 + (r2/s^2)) .^2);
+    kernel_gaussian_oriented = @(prs,s)  exp( (-2 + 2*prs) / s^2);
+
+    norm_normalsX = sqrt(sum(normalsX .^2,2));
+    norm_normalsY = sqrt(sum(normalsY .^2,2));
+
+    unit_normalsX = normalsX ./  repmat(norm_normalsX,1,size(normalsX,2));
+    unit_normalsY = normalsY ./  repmat(norm_normalsY,1,size(normalsY,2));
+
+    distance_signalXY = (repmat(signalX,1,ny)-repmat(signalY',nx,1)).^2;
+    distance_center_faceXY=zeros(nx,ny);
+    oriented_angle_normalsXY = zeros(nx,ny);
+
+    for l=1:d
+        distance_center_faceXY = distance_center_faceXY + (repmat(center_faceX(:,l),1,ny) - repmat(center_faceY(:,l)',nx,1)).^2;
+        oriented_angle_normalsXY = oriented_angle_normalsXY + (repmat(unit_normalsX(:,l),1,ny).*repmat(unit_normalsY(:,l)',nx,1));
+    end
+
+    eval(['dradial_function_geom = dkernel_', lower(opt.kernel_geom), ';']);
+    dKernel_geomXY = dradial_function_geom(distance_center_faceXY,kernel_size_geom);
+    eval(['radial_function_signal = kernel_', lower(opt.kernel_signal), ';']);
+    Kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
+    eval(['radial_function_sphere = kernel_', lower(opt.kernel_sphere) , ';']);
+    Kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY, kernel_size_sphere);
+
+    for l=1:d
+        res_matlab_dx(:,l) = 2* sum( (repmat(center_faceX(:,l),1,ny)-repmat(center_faceY(:,l)',nx,1)) .* (norm_normalsX * norm_normalsY') .* dKernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY,2);
+    end
+
+    assert( allclose(res_cuda_dx,res_matlab_dx)==1 )
+end

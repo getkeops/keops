@@ -4,6 +4,9 @@
 
 cmake_minimum_required(VERSION 2.8)
 
+file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
+
 project(KeOpsLab LANGUAGES CXX)
 
 ## Set Path to sources
@@ -63,9 +66,9 @@ if(Matlab_FOUND)
     if(USE_CUDA)
       
         CUDA_add_library(
-            keops SHARED
+            ${shared_obj_name} SHARED
             ${PROJECT_SRC}/core/link_autodiff.cu
-            OPTIONS --pre-include=formula.h
+            OPTIONS --pre-include=${shared_obj_name}.h
         )
 
     else()
@@ -73,28 +76,28 @@ if(Matlab_FOUND)
     # ----------------- create shared lib (cpp)
 
         add_library(
-            keops SHARED
+            ${shared_obj_name} SHARED
             ${PROJECT_SRC}/core/link_autodiff.cpp
         )
 
         target_compile_options(
-            keops BEFORE
-            PRIVATE -include formula.h
+            ${shared_obj_name}    BEFORE
+            PRIVATE -include ${shared_obj_name}.h
         )
 
         # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
         set_source_files_properties(
             ${PROJECT_SRC}/core/link_autodiff.cpp PROPERTIES
-            OBJECT_DEPENDS formula.h
+            OBJECT_DEPENDS ${shared_obj_name}.h
         )
 
     endif()
 
-    # shared_lib can be rename if the variable shared_lib_name is provided.
+    # shared_obj can be rename if the variable shared_obj_name is provided.
     if(shared_obj_name)
 
-        set_target_properties(keops PROPERTIES
-            LIBRARY_OUTPUT_NAME  ${shared_obj_name}
+        set_target_properties(${shared_obj_name} PROPERTIES
+            # LIBRARY_OUTPUT_NAME  ${shared_obj_name}
             PREFIX ""
         )
 
@@ -111,26 +114,26 @@ if(Matlab_FOUND)
 
     target_compile_options(
         mex_file_cpp BEFORE
-        PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
+        PRIVATE  -include ${shared_obj_name}.h -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
     if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
         add_custom_target(
             mex_cpp
-            DEPENDS keops mex_file_cpp # ensure obj file is created before using mex for linking
-            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops> $<TARGET_OBJECTS:mex_file_cpp> -output ${mex_name} # only since cmake 3.9 
+            DEPENDS ${shared_obj_name} mex_file_cpp # ensure obj file is created before using mex for linking
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:${shared_obj_name}> $<TARGET_OBJECTS:mex_file_cpp> -output ${mex_name} # only since cmake 3.9 
         )
     else()
         add_custom_target(
             mex_cpp
-            DEPENDS keops mex_file_cpp # ensure obj file is created before using mex for linking
-            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_cpp.dir/generic/cudaconv.cpp.o -output ${mex_name} 
+            DEPENDS ${shared_obj_name} mex_file_cpp # ensure obj file is created before using mex for linking
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:${shared_obj_name}> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_cpp.dir/generic/cudaconv.cpp.o -output ${mex_name} 
         )
     endif()
 
     add_dependencies(
         mex_cpp
-        keops
+        ${shared_obj_name}
     )
 
     set_target_properties( # pass needed options to add_custom_target()
