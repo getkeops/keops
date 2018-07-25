@@ -204,7 +204,7 @@ py::array_t< __TYPE__, py::array::c_style > launch_keops(int tagIJ, int tag1D2D,
             }
         }
 #else
-        throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.")
+        throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");
 #endif
 
     }
@@ -247,12 +247,11 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
                     GpuTransConv2D( nx, ny, get_data(result_array), castedargs);
                 }
             }
-        }
+            return result_array;
 #else
-         throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.")
+            throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");
 #endif
-        return result_array;
-
+        }
     } else if(tagHostDevice == 1) {
 
 #if USE_CUDA
@@ -271,13 +270,12 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
                 GpuTransConv2D_FromDevice(nx, ny, get_data(result_array), castedargs);
             }
         }
+
         return result_array;
 #else
-         throw std::runtime_error("[KeOps] No cuda device detected... try to set tagHostDevice to 0.")
+        throw std::runtime_error("[KeOps] No cuda device detected... try to set tagHostDevice to 0.");
 #endif
-
     }
-
     throw std::runtime_error("[KeOps] Meooooooooooooooooow...");
 }
 
@@ -285,12 +283,6 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
 /////////////////////////////////////////////////////////////////////////////////
 //                    Main function
 /////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
 
 template < typename array_t >
 array_t generic_red(int tagIJ,            // tagIJ=0         means sum over j,         tagIJ=1         means sum over j
@@ -336,7 +328,7 @@ array_t generic_red(int tagIJ,            // tagIJ=0         means sum over j,  
 
     return result;
 
-}
+
 
 
 /////////////////////////////////////////////////////////////////////////////////

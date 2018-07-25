@@ -50,10 +50,6 @@ int CpuConv(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
     const int SIZEJ = VARSJ::SIZE;
     const int SIZEP = VARSP::SIZE;
 
-    using DIMSX = GetDims<VARSI>;
-    using DIMSY = GetDims<VARSJ>;
-    using DIMSP = GetDims<VARSP>;
-
     using INDSI = GetInds<VARSI>;
     using INDSJ = GetInds<VARSJ>;
     using INDSP = GetInds<VARSP>;
@@ -80,10 +76,6 @@ int CpuConv(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
     const int SIZEI = VARSI::SIZE+1;
     const int SIZEJ = VARSJ::SIZE;
     const int SIZEP = VARSP::SIZE;
-
-    using DIMSX = GetDims<VARSI>;
-    using DIMSY = GetDims<VARSJ>;
-    using DIMSP = GetDims<VARSP>;
 
     using INDSI = GetInds<VARSI>;
     using INDSJ = GetInds<VARSJ>;

@@ -18,8 +18,7 @@ compile_macos:
 test_macos_clang:
     stage: test
     script:
-        - git submodule init
-        - git submodule update
+        - git submodule update --init
         - cd pykeops/test
         - /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py
     tags:
@@ -43,8 +42,7 @@ compile_ubuntu_gcc:
 test_ubuntu_gcc:
     stage: test
     script:
-        - git submodule init
-        - git submodule update
+        - git submodule update --init
         - cd pykeops/test
         - python3 unit_tests_pytorch.py
     tags:
@@ -69,8 +67,7 @@ compile_ubuntu_cuda:
 test_ubuntu_cuda:
     stage: test
     script:
-        - git submodule init
-        - git submodule update
+        - git submodule update --init
         - cd pykeops/test
         - python3 unit_tests_pytorch.py
         - python3 unit_tests_numpy.py
