@@ -21,6 +21,7 @@ test_macos_clang:
         - git submodule update --init
         - cd pykeops/test
         - /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py
+        - /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py
     tags:
         - clang
         - macos10-12
@@ -45,6 +46,7 @@ test_ubuntu_gcc:
         - git submodule update --init
         - cd pykeops/test
         - python3 unit_tests_pytorch.py
+        - python3 unit_tests_numpy.py
     tags:
         - gcc
         - python3
