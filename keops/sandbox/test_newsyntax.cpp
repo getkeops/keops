@@ -49,7 +49,7 @@ int main() {
     using F = decltype(g);
     //using F = decltype(g-g+IntCst(2)*g-g-g);
 
-    using FUNCONVF = typename Generic<F>::sEval;
+    using FUNCONVF = typename SumReduction<F>::sEval;
 
    // now we test ------------------------------------------------------------------------------
 

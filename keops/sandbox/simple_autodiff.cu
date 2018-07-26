@@ -22,7 +22,7 @@ using C = Param<0,1>;	// C is the first variable and is a scalar parameter
 // define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
 using F = Scal<Square<Scalprod<U,V>>,Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
-using FUNCONVF = typename Generic<F>::sEval;
+using FUNCONVF = typename SumReduction<F>::sEval;
 
 extern "C" int FConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* gamma, int nx, int ny) {
     float params[1];
@@ -33,9 +33,8 @@ extern "C" int FConv(float ooSigma2, float* x, float* y, float* u, float* v, flo
 
 // now define the gradient wrt XX
 using Eta = Var<6,F::DIM>;	// new variable is in seventh position and is input of gradient
-using GX = Grad<F,X,Eta>;
 
-using FUNCONVGX = typename Generic<GX>::sEval;
+using FUNCONVGX = Grad<FUNCONVF,X,Eta>;
 
 extern "C" int GXConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) {
     float params[1];
@@ -45,10 +44,8 @@ extern "C" int GXConv(float ooSigma2, float* x, float* y, float* u, float* v, fl
 
 
 // now define the gradient wrt Y. 
-using GY = Grad<F,Y,Eta>;
 
-// since Y is a j variable, all i variables become j variables and conversely : this is why we put 1 as second template argument after GY :
-using FUNCONVGY = typename Generic<GY,1>::sEval;
+using FUNCONVGY = Grad<FUNCONVF,Y,Eta>;
 
 extern "C" int GYConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) {
     float params[1];

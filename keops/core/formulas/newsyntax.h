@@ -98,4 +98,11 @@ Scalprod<FA,FB> operator|(FA fa, FB fb) {
     return Scalprod<FA,FB>();
 }
 
+// reductions
+
+#define SumReduction(F) SumReduction<F>
+#define SumReduction(F,I) SumReduction<F,I>
+#define LogSumExpReduction(F) LogSumExpReduction<F>
+#define LogSumExpReduction(F,I) LogSumExpReduction<F,I>
+
 }

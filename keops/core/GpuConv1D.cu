@@ -6,6 +6,7 @@
 #include "core/Pack.h"
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
+#include "core/reductions/argmin.h"
 
 namespace keops {
 template < typename TYPE, class FUN >
@@ -33,7 +34,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     // get the value of variable (index with i)
     TYPE xi[DIMX < 1 ? 1 : DIMX] ,tmp[DIMX1];
     if(i<nx) {
-        InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp); // tmp = 0
+        typename FUN::template InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp); // tmp = 0
         load<DIMSX::NEXT>(i,xi+DIMX1,px+1); // load xi variables from global memory to local thread memory
     }
 
@@ -51,14 +52,13 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
             TYPE* yjrel = yj; // Loop on the columns of the current block.
             for(int jrel = 0; (jrel < blockDim.x) && (jrel<ny-jstart); jrel++, yjrel+=DIMY) {
                 call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-                ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi);     // tmp += xi
+                typename FUN::template ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi, j);     // tmp += xi
             }
         }
         __syncthreads();
     }
     if(i<nx) {
-        for(int k=0; k<DIMX1; k++)
-            (*px)[i*DIMX1+k] = tmp[k];
+    	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMX1);
     }
 
 }

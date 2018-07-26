@@ -53,8 +53,8 @@ int main() {
     std::cout << "Function FF = factorized version of F :" << std::endl;    
     std::cout << PrintFormula<FF>();
 
-    using FUNCONVF = typename Generic<F>::sEval;
-    using FUNCONVFF = typename Generic<FF>::sEval;
+    using FUNCONVF = typename SumReduction<F>::sEval;
+    using FUNCONVFF = typename SumReduction<FF>::sEval;
 
     // now we test ------------------------------------------------------------------------------
 

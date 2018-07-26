@@ -13,7 +13,7 @@ def get_type(type_str):
 
     :param type_str: is a string of the form "var = Vx(dim)" or "var = Vy(pos,dim)"
 
-    :return: name : a sting (here "var"), cat : an int (0,1 or 2), dim : an int
+    :return: name : a string (here "var"), cat : an int (0,1 or 2), dim : an int
     """
     m = re.match('([a-zA-Z_][a-zA-Z_0-9]*)=(Vx|Vy|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
 
