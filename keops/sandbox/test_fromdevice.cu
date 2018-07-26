@@ -50,7 +50,7 @@ int main() {
     // here we define F = exp(-C*|X-Y|^2) * Beta in usual notations
     using F = Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
 
-    using FUNCONVF = typename Generic<F>::sEval;
+    using FUNCONVF = typename SumReduction<F>::sEval;
 
 
     // now we test ------------------------------------------------------------------------------

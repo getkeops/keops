@@ -8,6 +8,7 @@
 #include "core/Pack.h"
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
+#include "core/reductions/argmin.h"
 
 // Host implementation of the convolution, for comparison
 
@@ -22,18 +23,17 @@ int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
     const int DIMP = DIMSP::SUM; // total size of parameters variables
     const int DIMX1 = DIMSX::FIRST; // dimension of output variable
 
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMX1];
+    TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[FUN::DIMTMP];
     load<DIMSP>(0,pp,param);
     for(int i=0; i<nx; i++) {
         load<DIMSX>(i,xi,px);
-        InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp);   // tmp = 0
+        typename FUN::template InitializeOutput<TYPE>()(tmp);   // tmp = 0
         for(int j=0; j<ny; j++) {
             load<DIMSY>(j,yj,py);
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yj,pp);
-            ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi); // tmp += xi
+            typename FUN::template ReducePair<TYPE>()(tmp, xi, j); // tmp += xi
         }
-        for(int k=0; k<DIMX1; k++)
-            px[0][i*DIMX1+k] = tmp[k];
+        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMX1);
     }
 
     return 0;

@@ -63,7 +63,7 @@ int main() {
     std::cout << std::endl << std::endl;
 
 
-    using FUNCONVF = typename Generic<F>::sEval;
+    using FUNCONVF = typename SumReduction<F>::sEval;
 
 
     // now we test ------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ int main() {
 
     std::cout << std::endl << std::endl << "Testing FF" << std::endl;
 
-    using FUNCONVFF = typename Generic<FF>::sEval;
+    using FUNCONVFF = typename SumReduction<FF>::sEval;
 
     begin = clock();
     GpuConv1D(FUNCONVFF(), Nx, Ny, f, params, x, y, u, v, b, x);

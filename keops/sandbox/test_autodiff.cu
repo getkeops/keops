@@ -52,14 +52,13 @@ int main() {
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
     using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
-    using FUNCONVF = typename Generic<F>::sEval;
+    using FUNCONVF = typename SumReduction<F>::sEval;
 
     // gradient with respect to X ---------------------------------------------------------------
     using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
-    using GX = Grad<F,X,Eta>;
 
     /*
-     * Using GX = Grad<F,X,Eta> = (\partial_X F).Eta in a convolution sum (Generic<...>) makes sense.
+     * Using GX = Grad<F,X,Eta> = (\partial_X F).Eta in a convolution sum (SumReduction<...>) makes sense.
      * Indeed, we know that
      *
      *      FUNCONVF_i = \sum_j F( P, X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ... ).
@@ -92,13 +91,12 @@ int main() {
      *    (\partial_{X^n_i} F( P, X^0_i, ..., Y^0_j, ... )).Eta_i  = Grad<F,X^n,Eta>
      *
      */
-    using FUNCONVGX = typename Generic<GX>::sEval;
+    using FUNCONVGX = Grad<FUNCOVNF,X,Eta>;
 
     // gradient with respect to Y  --------------------------------------------------------------
-    using GY = Grad<F,Y,Eta>;
 
     /*
-     * Using GY = Grad<F,Y,Eta> = (\partial_Y F).Eta in a convolution sum (Generic<...>) makes sense...
+     * Using GY = Grad<F,Y,Eta> = (\partial_Y F).Eta in a convolution sum (SumReduction<...>) makes sense...
      * IF YOU CHANGE THE SUMMATION VARIABLE FROM j TO i !
      * Indeed, we know that
      *
@@ -136,7 +134,7 @@ int main() {
      */
     // parameter 1 after GY means i and j variables must be swapped,
     // i.e. we do a summation on "i" using a code which is hardcoded for summation wrt. "j" :
-    using FUNCONVGY = typename Generic<GY,1>::sEval;
+    using FUNCONVGY = Grad<FUNCONVF,Y,Eta>;
 
     // now we test ------------------------------------------------------------------------------
 
