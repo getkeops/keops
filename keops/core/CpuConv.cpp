@@ -21,19 +21,21 @@ int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
     const int DIMX = DIMSX::SUM; // total size of "i" indexed variables
     const int DIMY = DIMSY::SUM; // total size of "j" indexed variables
     const int DIMP = DIMSP::SUM; // total size of parameters variables
-    const int DIMX1 = DIMSX::FIRST; // dimension of output variable
+    const int DIMOUT = FUN::DIM; // dimension of output variable
+    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
+    const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
 
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[FUN::DIMTMP];
+    TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
     load<DIMSP>(0,pp,param);
     for(int i=0; i<nx; i++) {
-        load<DIMSX>(i,xi,px);
-        typename FUN::template InitializeOutput<TYPE>()(tmp);   // tmp = 0
+        load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1);
+        typename FUN::template InitializeReduction<TYPE>()(tmp);   // tmp = 0
         for(int j=0; j<ny; j++) {
             load<DIMSY>(j,yj,py);
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yj,pp);
             typename FUN::template ReducePair<TYPE>()(tmp, xi, j); // tmp += xi
         }
-        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMX1);
+        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT);
     }
 
     return 0;

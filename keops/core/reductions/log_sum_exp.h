@@ -52,7 +52,7 @@ class LogSumExpReduction {
 		
 		static_assert(1==DIM,"LogSumExp is only implemented for scalars.");
 		
-		static const int DIMTMP = 2 * DIM;									// dimension of temporary variable for reduction
+		static const int DIMRED = 2 * DIM;									// dimension of temporary variable for reduction
 		
         using FORM  = F;  // We need a way to access the actual function being used. 
         // using FORM  = AutoFactorize<F>;  // alternative : auto-factorize the formula (see factorize.h file)
@@ -68,7 +68,7 @@ class LogSumExpReduction {
         static const int NMINARGS = 1+INDS::MAX; // minimal number of arguments when calling the formula. 
 
 		template < typename TYPE >
-		struct InitializeOutput {
+		struct InitializeReduction {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp) {
 				// We fill empty cells with the neutral element of the reduction operation,
 				//                   (-inf,0) = e^{-inf} * 0 = 0
