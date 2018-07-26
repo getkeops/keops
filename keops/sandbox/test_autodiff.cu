@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_autodiff test_autodiff.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -D__TYPE__=float -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_autodiff test_autodiff.cu
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the GPU, then get its gradient and test again the convolution
@@ -91,7 +91,7 @@ int main() {
      *    (\partial_{X^n_i} F( P, X^0_i, ..., Y^0_j, ... )).Eta_i  = Grad<F,X^n,Eta>
      *
      */
-    using FUNCONVGX = Grad<FUNCOVNF,X,Eta>;
+    using FUNCONVGX = Grad<FUNCONVF,X,Eta>;
 
     // gradient with respect to Y  --------------------------------------------------------------
 
@@ -205,7 +205,7 @@ int main() {
 
     std::vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
 
-    std::cout << "testing function GX" << std::endl;
+    std::cout << "testing gradient wrt X" << std::endl;
     begin = clock();
     GpuConv2D(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
@@ -229,12 +229,12 @@ int main() {
 
     // display mean of errors
     s = 0;
-    for(int i=0; i<Nx*GX::DIM; i++)
+    for(int i=0; i<Nx*FUNCONVGX::DIM; i++)
         s += std::abs(resgpu2D[i]-rescpu[i]);
     std::cout << "mean abs error 2D =" << s/Nx << std::endl;
 
     s = 0;
-    for(int i=0; i<Nx*GX::DIM; i++)
+    for(int i=0; i<Nx*FUNCONVGX::DIM; i++)
         s += std::abs(resgpu1D[i]-rescpu[i]);
     std::cout << "mean abs error 1D =" << s/Nx << std::endl;
 
@@ -242,13 +242,13 @@ int main() {
 
     // gradient wrt Y, which is a "j" variable.
 
-    rescpu.resize(Ny*GY::DIM);
-    resgpu2D.resize(Ny*GY::DIM);
-    resgpu1D.resize(Ny*GY::DIM);
-    vf.resize(Ny*GY::DIM);
+    rescpu.resize(Ny*FUNCONVGY::DIM);
+    resgpu2D.resize(Ny*FUNCONVGY::DIM);
+    resgpu1D.resize(Ny*FUNCONVGY::DIM);
+    vf.resize(Ny*FUNCONVGY::DIM);
     f = vf.data();
 
-    std::cout << "testing function GY" << std::endl;
+    std::cout << "testing gradient wrt Y" << std::endl;
     begin = clock();
     GpuConv2D(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
@@ -272,12 +272,12 @@ int main() {
 
     // display mean of errors
     s = 0;
-    for(int i=0; i<Ny*GY::DIM; i++)
+    for(int i=0; i<Ny*FUNCONVGY::DIM; i++)
         s += std::abs(resgpu2D[i]-rescpu[i]);
     std::cout << "mean abs error 2D=" << s/Ny << std::endl;
 
     s = 0;
-    for(int i=0; i<Ny*GY::DIM; i++)
+    for(int i=0; i<Ny*FUNCONVGY::DIM; i++)
         s += std::abs(resgpu1D[i]-rescpu[i]);
     std::cout << "mean abs error 1D=" << s/Ny << std::endl;
 

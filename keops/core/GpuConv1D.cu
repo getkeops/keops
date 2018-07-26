@@ -75,7 +75,6 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     const int DIMY = DIMSY::SUM;
     const int DIMP = DIMSP::SUM;
     const int DIMOUT = FUN::DIM; // dimension of output variable
-    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
@@ -172,9 +171,6 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
-    const int DIMOUT = FUN::DIM; // dimension of output variable
-    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
-    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
     const int DIMY = DIMSY::SUM;
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
