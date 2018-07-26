@@ -25,17 +25,19 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     const int DIMX = DIMSX::SUM;        // DIMX  is sum of dimensions for xi variables
     const int DIMY = DIMSY::SUM;        // DIMY  is sum of dimensions for yj variables
     const int DIMP = DIMSP::SUM;        // DIMP  is sum of dimensions for parameters variables
-    const int DIMX1 = DIMSX::FIRST;     // DIMX1 is dimension of output variable
+    const int DIMOUT = FUN::DIM; // dimension of output variable
+    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
+    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
 
     // load parameter(s)
     TYPE param_loc[DIMP < 1 ? 1 : DIMP];
 	load<DIMSP>(0,param_loc,pp); // load parameters variables from global memory to local thread memory
 
     // get the value of variable (index with i)
-    TYPE xi[DIMX < 1 ? 1 : DIMX] ,tmp[DIMX1];
+    TYPE xi[DIMX < 1 ? 1 : DIMX] ,tmp[DIMRED];
     if(i<nx) {
-        typename FUN::template InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp); // tmp = 0
-        load<DIMSX::NEXT>(i,xi+DIMX1,px+1); // load xi variables from global memory to local thread memory
+        typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
+        load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1); // load xi variables from global memory to local thread memory
     }
 
     for(int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {
@@ -52,13 +54,13 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
             TYPE* yjrel = yj; // Loop on the columns of the current block.
             for(int jrel = 0; (jrel < blockDim.x) && (jrel<ny-jstart); jrel++, yjrel+=DIMY) {
                 call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-                typename FUN::template ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi, j);     // tmp += xi
+                typename FUN::template ReducePair<TYPE>()(tmp, xi, j);     // tmp += xi
             }
         }
         __syncthreads();
     }
     if(i<nx) {
-    	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMX1);
+    	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT);
     }
 
 }
@@ -72,7 +74,9 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     const int DIMX = DIMSX::SUM;
     const int DIMY = DIMSY::SUM;
     const int DIMP = DIMSP::SUM;
-    const int DIMX1 = DIMSX::FIRST;
+    const int DIMOUT = FUN::DIM; // dimension of output variable
+    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
+    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
@@ -85,7 +89,7 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
 
     // single cudaMalloc
     void **p_data;
-    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(DIMP+nx*DIMX+ny*DIMY));
+    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(DIMP+nx*(DIMX-DIMFOUT+DIMOUT)+ny*DIMY));
 
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;
@@ -98,7 +102,7 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     param_d = p_data_b;
     p_data_b += DIMP;
     x_d = p_data_b;
-    p_data_b += nx*DIMX;
+    p_data_b += nx*(DIMX-DIMFOUT+DIMOUT);
     y_d = p_data_b;
 
     // host arrays of pointers to device data
@@ -120,7 +124,7 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     }    
 
     phx_d[0] = x_d;
-    nvals = nx*DIMSX::VAL(0);
+    nvals = nx*DIMOUT;
     for(int k=1; k<SIZEI; k++) {
         phx_d[k] = phx_d[k-1] + nvals;
         nvals = nx*DIMSX::VAL(k);
@@ -154,7 +158,7 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     cudaThreadSynchronize();
 
     // Send data from device to host.
-    cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMX1),cudaMemcpyDeviceToHost);
+    cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMOUT),cudaMemcpyDeviceToHost);
 
     // Free memory.
     cudaFree(p_data);
@@ -168,6 +172,9 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
+    const int DIMOUT = FUN::DIM; // dimension of output variable
+    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
+    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
     const int DIMY = DIMSY::SUM;
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;

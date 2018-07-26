@@ -26,9 +26,9 @@ class SumReduction {
         using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
         using DIMSP = GetDims<VARSP>;                           // dimensions of parameters variables
         
-        static const int DIM = F::DIM;
+        static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a sum reduction it is equal to the dimension of output of formula
 
-		static const int DIMTMP = DIM;									// dimension of temporary variable for reduction
+	static const int DIMRED = DIM;		// dimension of temporary variable for reduction
 		
         using FORM  = F;  // We need a way to access the actual function being used. 
         // using FORM  = AutoFactorize<F>;  // alternative : auto-factorize the formula (see factorize.h file)
@@ -44,7 +44,7 @@ class SumReduction {
         static const int NMINARGS = 1+INDS::MAX; // minimal number of arguments when calling the formula. 
 
 		template < typename TYPE >
-		struct InitializeOutput {
+		struct InitializeReduction {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp) {
 				for(int k=0; k<DIM; k++)
 					tmp[k] = 0.0f; // initialize output
@@ -70,7 +70,7 @@ class SumReduction {
 		struct FinalizeOutput {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out) {
 				for(int k=0; k<DIM; k++)
-            		out[k] = tmp[k];
+            				out[k] = tmp[k];
 			}
 		};
 		
