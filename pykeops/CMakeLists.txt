@@ -7,10 +7,11 @@ cmake_minimum_required(VERSION 2.8)
 project(PyKeOps LANGUAGES CXX)
 
 ## Set Path to sources
-set(PROJECT_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
+set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
 
 set(SOURCE_FILES
-    ${PROJECT_SRC}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${KEOPS_SRC}
     ${PROJECT_BINARY_DIR}
 )
 
@@ -20,7 +21,7 @@ endif()
 
 Include_Directories(${SOURCE_FILES})
 
-include(${PROJECT_SRC}/headers.cmake)
+include(${KEOPS_SRC}/headers.cmake)
 
 
 ########################################################################################################
@@ -29,6 +30,7 @@ include(${PROJECT_SRC}/headers.cmake)
 
 add_subdirectory(pybind11)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
+
 ########################################################################################################
 #                                        Generic                                                       #
 ########################################################################################################
@@ -46,7 +48,7 @@ if(USE_CUDA)
   
     CUDA_add_library(
         keops${shared_obj_name} SHARED
-        ${PROJECT_SRC}/core/link_autodiff.cu
+        ${KEOPS_SRC}/core/link_autodiff.cu
         OPTIONS --pre-include=${shared_obj_name}.h
     )
 
@@ -55,7 +57,7 @@ else()
 
     add_library(
         keops${shared_obj_name} SHARED
-        ${PROJECT_SRC}/core/link_autodiff.cpp
+        ${KEOPS_SRC}/core/link_autodiff.cpp
     )
 
     target_compile_options(
@@ -65,7 +67,7 @@ else()
 
     # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
     set_source_files_properties(
-        ${PROJECT_SRC}/core/link_autodiff.cpp PROPERTIES
+        ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
         OBJECT_DEPENDS ${shared_obj_name}.h
     )
 
@@ -73,12 +75,14 @@ endif()
 
 # set name
 set_target_properties(keops${shared_obj_name} PROPERTIES
-    LIBRARY_OUTPUT_NAME  keops${shared_obj_name}
+    LIBRARY_OUTPUT_NAME  ${shared_obj_name}
     PREFIX ""
 )
 
+# -------------------- Pybind11
+
 pybind11_add_module(${shared_obj_name}
-    ${CMAKE_CURRENT_SOURCE_DIR}/common/keops_io.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PYTHON_LANG}/generic_red.cpp
     )
 
 target_compile_options(
@@ -102,7 +106,7 @@ if (USE_CUDA)
     #---------------------------------------------------------------------------------------------------
     CUDA_add_library(
         radial_kernel_conv_cuda SHARED
-        ${PROJECT_SRC}/specific/radial_kernels/cuda_conv.cu
+        ${KEOPS_SRC}/specific/radial_kernels/cuda_conv.cu
     )
 
     pybind11_add_module(radial_kernel_conv
@@ -122,7 +126,7 @@ if (USE_CUDA)
     #---------------------------------------------------------------------------------------------------
     CUDA_add_library(
         radial_kernel_grad1conv_cuda SHARED
-        ${PROJECT_SRC}/specific/radial_kernels/cuda_grad1conv.cu
+        ${KEOPS_SRC}/specific/radial_kernels/cuda_grad1conv.cu
     )
 
     pybind11_add_module(radial_kernel_grad1conv
@@ -182,7 +186,7 @@ if (USE_CUDA)
         SET(name1 fshape_gpu${ext_name})
         CUDA_add_library(
             ${name1} SHARED
-            ${PROJECT_SRC}/specific/shape_distance/${name1}.cu
+            ${KEOPS_SRC}/specific/shape_distance/${name1}.cu
         )
         set_target_properties(${name1} PROPERTIES
             LIBRARY_OUTPUT_NAME ${fshape_scp_name}

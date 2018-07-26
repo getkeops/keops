@@ -4,8 +4,8 @@ from torch.autograd import Variable
 from pykeops import default_cuda_type
 from pykeops.common.utils import axis2cat, cat2axis
 from pykeops.common.parse_type import get_type
-from pykeops.common.generic_reduction import genred_pytorch, nargs, dimout
-
+from pykeops.common.get_options import get_tag_backend
+from pykeops.common.keops_io import load_keops
 
 class generic_sum:
     def __init__(self, formula, aliases, axis=0, backend = "auto", cuda_type=default_cuda_type) :
@@ -36,8 +36,6 @@ class pytorch_genred(torch.autograd.Function):
     """
     This class
     """
-
-
     @staticmethod
     def forward(ctx, formula, aliases, axis, backend, cuda_type, *args):
         # Context variables: save everything to compute the gradient:
@@ -50,7 +48,7 @@ class pytorch_genred(torch.autograd.Function):
         #  of the backward once again. It helps pytorch to keep track of "who is who".
         ctx.save_for_backward(*args)
 
-        result = genred_pytorch(formula, aliases, *args, axis=axis, backend=backend, cuda_type=cuda_type)
+        result = genred(formula, aliases, *args, axis=axis, backend=backend, cuda_type=cuda_type)
         return result
 
     @staticmethod
@@ -104,3 +102,32 @@ class pytorch_genred(torch.autograd.Function):
 
         # Grads wrt. formula, aliases, axis, backend, *args
         return (None, None, None, None, None, *grads)
+
+
+
+def genred(formula, aliases, *args, axis=0, backend="auto", cuda_type=default_cuda_type):
+    myconv = load_keops(formula, aliases, cuda_type, 'torch')
+
+    tagIJ = axis2cat(axis)  # tagIJ=0 means sum over j, tagIJ=1 means sum over j
+    tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+
+    # Perform computation using KeOps
+    # print('\n======   DEBUG   ==========')
+    # print('Compiled formula :', myconv.formula)
+    # print('Called formula : ', formula)
+    # print('Nbr of args in : ', myconv.nargs)
+    # print('Dim of Output : ', myconv.dimout)
+    # print('tagHostDevice : ', tagHostDevice)
+    # print('\n=======   DEBUG   =========')
+    result = myconv.genred_pytorch(tagIJ, tag1D2D, tagCPUGPU, tagHostDevice, *args)
+    return result
+
+
+def nargs(formula, aliases, cuda_type):
+    myconv = load_keops(formula, aliases, cuda_type, 'torch')
+    return myconv.nargs
+
+
+def dimout(formula, aliases, cuda_type):
+    myconv = load_keops(formula, aliases, cuda_type, 'torch')
+    return myconv.dimout

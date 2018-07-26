@@ -3,7 +3,7 @@ from hashlib import sha256
 c_type = dict(float32="float", float64="double", float="float", double="double")
 
 
-def create_name(formula, aliases,cuda_type):
+def create_name(formula, aliases,cuda_type, lang):
     """
     Compose the shared object name
     """
@@ -13,7 +13,7 @@ def create_name(formula, aliases,cuda_type):
     # Since the OS prevents us from using arbitrary long file names, an okayish solution is to call
     # a standard hash function, and hope that we won't fall into a non-injective nightmare case...
     dll_name = ",".join(aliases + [formula]) + "_" + cuda_type
-    dll_name = "libKeOps" + sha256(dll_name.encode("utf-8")).hexdigest()[:10]
+    dll_name = "libKeOps" + lang + sha256(dll_name.encode("utf-8")).hexdigest()[:10]
     return dll_name
 
 
