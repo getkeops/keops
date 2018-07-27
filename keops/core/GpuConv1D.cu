@@ -7,6 +7,7 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
 #include "core/reductions/argmin.h"
+#include "core/reductions/minargmin.h"
 
 namespace keops {
 template < typename TYPE, class FUN >

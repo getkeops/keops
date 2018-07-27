@@ -8,6 +8,7 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
 #include "core/reductions/argmin.h" 
+#include "core/reductions/minargmin.h"
 
 namespace keops {
 template <typename T>
@@ -78,7 +79,6 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     const int DIMX = DIMSX::SUM;        // DIMX  is sum of dimensions for xi variables
     const int DIMY = DIMSY::SUM;        // DIMY  is sum of dimensions for yj variables
     const int DIMP = DIMSP::SUM;        // DIMP  is sum of dimensions for parameters variables
-    const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
 
@@ -130,7 +130,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         TYPE* yjrel = yj; // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-            typename FUN::template ReducePair<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
+            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, blockDim.x*blockIdx.y+jrel);     // tmp += xi
         }
     }
     __syncthreads();
@@ -276,7 +276,6 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
     typedef typename FUN::DIMSP DIMSP;
     const int DIMY = DIMSY::SUM;
     const int DIMOUT = FUN::DIM; // dimension of output variable
-    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
