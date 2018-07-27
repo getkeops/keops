@@ -54,7 +54,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
             TYPE* yjrel = yj; // Loop on the columns of the current block.
             for(int jrel = 0; (jrel < blockDim.x) && (jrel<ny-jstart); jrel++, yjrel+=DIMY) {
                 call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-                typename FUN::template ReducePair<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
+                typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
             }
         }
         __syncthreads();

@@ -33,7 +33,7 @@ int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
         for(int j=0; j<ny; j++) {
             load<DIMSY>(j,yj,py);
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yj,pp);
-            typename FUN::template ReducePair<TYPE>()(tmp, xi, j); // tmp += xi
+            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j); // tmp += xi
         }
         typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT);
     }
