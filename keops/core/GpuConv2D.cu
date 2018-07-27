@@ -7,6 +7,7 @@
 #include "core/Pack.h"
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
+#include "core/reductions/argmin.h" 
 
 namespace keops {
 template <typename T>
@@ -14,15 +15,15 @@ __device__ static constexpr T static_max_device(T a, T b) {
     return a < b ? b : a;
 }
 
-template <typename TYPE, int DIMVECT, class FUN>
+template <typename TYPE, int DIMIN, int DIMOUT, class FUN>
 __global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
     /* Function used as a final reduction pass in the 2D scheme,
      * once the block reductions have been made.
      * Takes as input:
-     * - in,  a  sizeY * (nx * DIMVECT ) array
-     * - out, an          nx * DIMVECT   array
+     * - in,  a  sizeY * (nx * DIMIN ) array
+     * - out, an          nx * DIMOUT   array
      *
-     * Computes, in parallel, the "columnwise"-sum (which correspond to lines of blocks)
+     * Computes, in parallel, the "columnwise"-reduction (which correspond to lines of blocks)
      * of *in and stores the result in out.
      */
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -47,11 +48,12 @@ __global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
 
     // However, for now, we use a "vectorized" reduction op.,
     // which can also handle non-trivial reductions such as "LogSumExp"
-    TYPE res[DIMVECT];
-    InitializeOutput<TYPE,DIMVECT,typename FUN::FORM>()(res); // res = 0
+    TYPE tmp[DIMIN];
+    typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
     if(tid < nx) {
         for (int y = 0; y < sizeY; y++)
             ReducePair<TYPE,DIMVECT,typename FUN::FORM>()(res, in + (tid+y*nx)*DIMVECT); // res += in[(tid+y*nx) *DIMVECT : +DIMVECT];
+            typename FUN::template ReducePair<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
         for (int k = 0; k < DIMVECT; k++) // copy to output
             out[tid*DIMVECT+k] = res[k];
     }
@@ -68,7 +70,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
      * They are arrays of arrays with the relevant size: for instance,
      * px[1] is a TYPE array of size ( nx * DIMSX::VAL(1) ).
      *
-     * (*px) = px[0] is the output array, of size (nx * DIMSX::FIRST).
+     * (*px) = px[0] is the output array, of size (nx * DIMRED).
      *
      */
     // gets dimensions and number of variables of inputs of function FUN
@@ -78,7 +80,9 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     const int DIMX = DIMSX::SUM;        // DIMX  is sum of dimensions for xi variables
     const int DIMY = DIMSY::SUM;        // DIMY  is sum of dimensions for yj variables
     const int DIMP = DIMSP::SUM;        // DIMP  is sum of dimensions for parameters variables
-    const int DIMX1 = DIMSX::FIRST;     // DIMX1 is dimension of output variable
+    const int DIMOUT = FUN::DIM; // dimension of output variable
+    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
+    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
 
     // Load the parameter vector in the Thread Memory, for improved efficiency
     //TYPE param_loc[static_max_device(DIMP,1)];
@@ -94,17 +98,17 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
 
     // Step 1 : Load in Thread Memory the information needed in the current line ---------------------------
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    TYPE xi[DIMX];
-    TYPE tmp[DIMX1];
+    TYPE xi[DIMX < 1 ? 1 : DIMX];
+    TYPE tmp[DIMRED];
     if(i<nx) { // we will compute x1i only if i is in the range
-        InitializeOutput<TYPE,DIMX1,typename FUN::FORM>()(tmp); // tmp = 0
+        typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
         // Load xi from device global memory.
         // Remember that we use an interleaved memory scheme where
         // xi = [ x1i, x2i, x3i, ... ].
         // Since we do not want to erase x1i, and only load x2i, x3i, etc.,
         // we add a small offset to the pointer given as an argument to the loading routine,
         // and ask it to only load "DIMSX::NEXT" bits of memory.
-        load<DIMSX::NEXT>(i,xi+DIMX1,px+1); // load xi variables from global memory to local thread memory
+	load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1); // load xi variables from global memory to local thread memory
     }
 
     // Step 2 : Load in Shared Memory the information needed in the current block of the product -----------
@@ -128,7 +132,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         TYPE* yjrel = yj; // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-            ReducePair<TYPE,DIMX1,typename FUN::FORM>()(tmp, xi);       // tmp += xi
+            typename FUN::template ReducePair<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
         }
     }
     __syncthreads();
@@ -138,11 +142,11 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     // matrix, which corresponds to KP[ blockIdx.x * blockDim.x : (blockIdx.x+1) * blockDim.x ,
     //                                  blockIdx.y * blockDim.x : (blockIdx.y+1) * blockDim.x ]
     // We accumulate it in the output array (*px) = px[0], which has in fact gridSize.y * nx
-    // lines of size DIMX1. The final reduction, which "sums over the block lines",
+    // lines of size DIMRED. The final reduction, which "sums over the block lines",
     // shall be done in a later step.
     if(i<nx)
-        for(int k=0; k<DIMX1; k++)
-            (*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k] = tmp[k];
+        for(int k=0; k<DIMRED; k++)
+            (*px)[blockIdx.y*DIMRED*nx+i*DIMRED+k] = tmp[k];
 }
 ///////////////////////////////////////////////////
 
@@ -156,7 +160,8 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     const int DIMX = DIMSX::SUM;
     const int DIMY = DIMSY::SUM;
     const int DIMP = DIMSP::SUM;
-    const int DIMX1 = DIMSX::FIRST;
+    const int DIMOUT = FUN::DIM; // dimension of output variable
+    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
@@ -184,7 +189,7 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
 
     // single cudaMalloc
     void **p_data;
-    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(DIMP+nx*DIMX+ny*DIMY+nx*DIMX1*gridSize.y));
+    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(DIMP+nx*(DIMX-DIMFOUT+DIMOUT)+ny*DIMY+nx*DIMRED*gridSize.y));
 
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;
@@ -197,7 +202,7 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     param_d = p_data_b;
     p_data_b += DIMP;
     x_d = p_data_b;
-    p_data_b += nx*DIMX;
+    p_data_b += nx*(DIMX-DIMFOUT+DIMOUT);
     y_d = p_data_b;
     p_data_b += ny*DIMY;
     x1B = p_data_b;
@@ -221,7 +226,7 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
         cudaMemcpy(php_d[k], pp_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
     }
     phx_d[0] = x_d;
-    nvals = nx*DIMSX::VAL(0);
+    nvals = nx*DIMOUT;
     for(int k=1; k<SIZEI; k++) {
         phx_d[k] = phx_d[k-1] + nvals;
         nvals = nx*DIMSX::VAL(k);
