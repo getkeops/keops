@@ -54,7 +54,7 @@ int main() {
 
     std::cout << "Testing ArgMin reduction" << std::endl;
 
-    int Nx=5, Ny=10;
+    int Nx=10000, Ny=10000;
         
     std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
     std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();
