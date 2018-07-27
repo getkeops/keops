@@ -1,6 +1,6 @@
 // test convolution
 // compile with
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O2 -o build/test_argmin test_argmin.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O2 -o build/test_minargmin test_minargmin.cu
 // 
 
 
@@ -48,15 +48,15 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = typename ArgMinReduction<F>::sEval;
+    using FUNCONVF = typename MinArgMinReduction<F>::sEval;
 
     // now we test ------------------------------------------------------------------------------
 
-    std::cout << "Testing ArgMin reduction" << std::endl;
+    std::cout << "Testing MinArgMin reduction" << std::endl;
 
-    int Nx=10000, Ny=10000;
+    int Nx=5000, Ny=2000;
         
-    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vf(Nx*FUNCONVF::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
     std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();
     std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *y = vy.data();
     std::vector<__TYPE__> vb(Ny*DIMVECT); fillrandom(vb); __TYPE__ *b = vb.data();
@@ -76,7 +76,7 @@ int main() {
 
     // display values
     std::cout << "rescpu = ";
-    for(int i=0; i<5; i++)
+    for(int i=0; i<10; i++)
         std::cout << rescpu[i] << " ";
     std::cout << "..." << std::endl << std::endl;
 
@@ -87,12 +87,12 @@ int main() {
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::vector<__TYPE__> resgpu1(Nx*F::DIM);
+    std::vector<__TYPE__> resgpu1(Nx*FUNCONVF::DIM);
     resgpu1 = vf;
 
     // display values
     std::cout << "resgpu1 = ";
-    for(int i=0; i<5; i++)
+    for(int i=0; i<10; i++)
         std::cout << resgpu1[i] << " ";
     std::cout << "..." << std::endl << std::endl;
     
@@ -101,12 +101,12 @@ int main() {
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::vector<__TYPE__> resgpu2(Nx*F::DIM);
+    std::vector<__TYPE__> resgpu2(Nx*FUNCONVF::DIM);
     resgpu2 = vf;
 
     // display values
     std::cout << "resgpu2 = ";
-    for(int i=0; i<5; i++)
+    for(int i=0; i<10; i++)
         std::cout << resgpu2[i] << " ";
     std::cout << "..." << std::endl << std::endl;
     

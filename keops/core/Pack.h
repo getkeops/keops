@@ -17,6 +17,7 @@
 #include <assert.h>
 
 #ifdef __CUDACC__
+	#include <npp.h>
 	#define HOST_DEVICE __host__ __device__
 	#define INLINE __forceinline__
 	#define INFINITY_FLOAT NPP_MAXABS_32F
@@ -28,7 +29,36 @@
 	#define INFINITY_FLOAT std::numeric_limits<float>::infinity()
 	#define INFINITY_DOUBLE std::numeric_limits<double>::infinity()
 #endif
+
 namespace keops {
+
+// templated plus and minus infinity
+template <typename TYPE>
+struct PLUS_INFINITY;
+
+template <>
+struct PLUS_INFINITY<float> {
+    static constexpr float value = INFINITY_FLOAT;
+};
+
+template <>
+struct PLUS_INFINITY<double> {
+    static constexpr double value = INFINITY_DOUBLE;
+};
+
+template <typename TYPE>
+struct NEG_INFINITY;
+
+template <>
+struct NEG_INFINITY<float> {
+    static constexpr float value = - INFINITY_FLOAT;
+};
+
+template <>
+struct NEG_INFINITY<double> {
+    static constexpr double value = - INFINITY_DOUBLE;
+};
+
 // At compilation time, detect the maximum between two values (typically, dimensions)
 template <typename T>
 static constexpr T static_max(T a, T b) {

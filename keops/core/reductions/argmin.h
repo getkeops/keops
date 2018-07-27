@@ -13,19 +13,6 @@ namespace keops {
 // - to 1 if you do the reduction over i (with j the index of the output vector).
 //
 
-template <typename TYPE>
-struct PLUS_INFINITY;
-
-template <>
-struct PLUS_INFINITY<float> {
-    static constexpr float value = INFINITY_FLOAT;
-};
-
-template <>
-struct PLUS_INFINITY<double> {
-    static constexpr double value = INFINITY_DOUBLE;
-};
-
 template < class F, int tagI=0 >
 class ArgMinReduction {
 

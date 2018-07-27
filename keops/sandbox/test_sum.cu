@@ -18,7 +18,7 @@
 #include "core/formulas/factorize.h"
 
 #include "core/GpuConv1D.cu"
-//#include "core/GpuConv2D.cu"
+#include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
 
 using namespace keops;
@@ -80,6 +80,8 @@ int main() {
         std::cout << rescpu[i] << " ";
     std::cout << "..." << std::endl << std::endl;
 
+    GpuConv1D(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
+
     begin = clock();
     GpuConv1D(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
     end = clock();
@@ -93,6 +95,20 @@ int main() {
     std::cout << "resgpu1 = ";
     for(int i=0; i<5; i++)
         std::cout << resgpu1[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
+    
+    begin = clock();
+    GpuConv2D(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
+    end = clock();
+    std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+
+    std::vector<__TYPE__> resgpu2(Nx*F::DIM);
+    resgpu2 = vf;
+
+    // display values
+    std::cout << "resgpu2 = ";
+    for(int i=0; i<5; i++)
+        std::cout << resgpu2[i] << " ";
     std::cout << "..." << std::endl << std::endl;
     
 }
