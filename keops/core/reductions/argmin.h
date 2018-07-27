@@ -76,12 +76,25 @@ class ArgMinReduction {
         
 		// equivalent of the += operation
 		template < typename TYPE >
-		struct ReducePair {
+		struct ReducePairShort {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
 				for(int k=0; k<DIM; k++) {
 					if(xi[k]<tmp[k]) {
 						tmp[k] = xi[k];
 						tmp[DIM+k] = j;
+					}
+				}
+			}
+		};
+        
+		// equivalent of the += operation
+		template < typename TYPE >
+		struct ReducePair {
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+				for(int k=0; k<DIM; k++) {
+					if(xi[k]<tmp[k]) {
+						tmp[k] = xi[k];
+						tmp[DIM+k] = xi[DIM+k];
 					}
 				}
 			}

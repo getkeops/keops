@@ -52,10 +52,8 @@ __global__ void reduce2D(TYPE* in, TYPE* out, int sizeY,int nx) {
     typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
     if(tid < nx) {
         for (int y = 0; y < sizeY; y++)
-            ReducePair<TYPE,DIMVECT,typename FUN::FORM>()(res, in + (tid+y*nx)*DIMVECT); // res += in[(tid+y*nx) *DIMVECT : +DIMVECT];
-            typename FUN::template ReducePair<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
-        for (int k = 0; k < DIMVECT; k++) // copy to output
-            out[tid*DIMVECT+k] = res[k];
+            typename FUN::template ReducePair<TYPE>()(tmp, in + (tid+y*nx)*DIMIN);     // tmp += in[(tid+y*nx) *DIMVECT : +DIMVECT];
+        typename FUN::template FinalizeOutput<TYPE>()(tmp, out+tid*DIMOUT);
     }
 
 }
@@ -162,6 +160,7 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     const int DIMP = DIMSP::SUM;
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
+    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
@@ -177,7 +176,7 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     dim3 blockSize2;
     blockSize2.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize2;
-    gridSize2.x =  (nx*DIMX1) / blockSize2.x + ((nx*DIMX1)%blockSize2.x==0 ? 0 : 1);
+    gridSize2.x =  (nx*DIMRED) / blockSize2.x + ((nx*DIMRED)%blockSize2.x==0 ? 0 : 1);
 
 
     // Data on the device. We need an "inflated" x1B, which contains gridSize.y "copies" of x_d
@@ -252,14 +251,14 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
 
     // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
-    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMX1 ) to (nx, DIMX1)
-    reduce2D<TYPE,DIMX1,FUN><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
+    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMRED ) to (nx, DIMOUT)
+    reduce2D<TYPE,DIMRED,DIMOUT,FUN><<<gridSize2, blockSize2>>>(x1B, x_d, gridSize.y,nx);
 
     // block until the device has completed
     cudaThreadSynchronize();
 
     // Send data from device to host.
-    cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMX1),cudaMemcpyDeviceToHost);
+    cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMOUT),cudaMemcpyDeviceToHost);
 
     // Free memory.
     cudaFree(p_data);
@@ -276,7 +275,9 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
     const int DIMY = DIMSY::SUM;
-    const int DIMX1 = DIMSX::FIRST;
+    const int DIMOUT = FUN::DIM; // dimension of output variable
+    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
+    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
@@ -299,12 +300,12 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
     dim3 blockSize2;
     blockSize2.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize2;
-    gridSize2.x =  (nx*DIMX1) / blockSize2.x + ((nx*DIMX1)%blockSize2.x==0 ? 0 : 1);
+    gridSize2.x =  (nx*DIMRED) / blockSize2.x + ((nx*DIMRED)%blockSize2.x==0 ? 0 : 1);
 
     // single cudaMalloc
     void **p_data;
 
-	cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(nx*DIMX1*gridSize.y));
+	cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(nx*DIMRED*gridSize.y));
 
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;
@@ -327,8 +328,8 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
 
     // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
-    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMX1 ) to (nx, DIMX1)
-    reduce2D<TYPE,DIMX1,FUN><<<gridSize2, blockSize2>>>(x1B, out, gridSize.y,nx);
+    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMRED ) to (nx, DIMOUT)
+    reduce2D<TYPE,DIMRED,DIMOUT,FUN><<<gridSize2, blockSize2>>>(x1B, out, gridSize.y,nx);
 
     // block until the device has completed
     cudaThreadSynchronize();

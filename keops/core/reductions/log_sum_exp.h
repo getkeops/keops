@@ -87,13 +87,27 @@ class LogSumExpReduction {
         
 		// equivalent of the += operation
 		template < typename TYPE >
-		struct ReducePair {
+		struct ReducePairShort {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
 				// (m,s) + (m',1), i.e. exp(m)*s + exp(m')
 				if(tmp[0] > xi[0]) { // =  exp(m)  * (s + exp(m'-m))   if m > m'
 					tmp[1] += exp( xi[0]-tmp[0] ) ;
 				} else {             // =  exp(m') * (1 + exp(m-m')*s)   if m <= m'
 					tmp[1] = 1.0 + exp( tmp[0]-xi[0] ) * tmp[1] ;
+					tmp[0] = xi[0] ;
+				}
+			}
+		};
+        
+		// equivalent of the += operation
+		template < typename TYPE >
+		struct ReducePair {
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+				// (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+				if(tmp[0] > xi[0]) { // =  exp(m)  * (s + exp(m'-m)*s')   if m > m'
+					tmp[1] += exp( xi[0]-tmp[0] ) * xi[1] ;
+				} else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+					tmp[1] = xi[1] + exp( tmp[0]-xi[0] ) * tmp[1] ;
 					tmp[0] = xi[0] ;
 				}
 			}
