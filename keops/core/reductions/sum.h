@@ -13,11 +13,10 @@ namespace keops {
 template < class F, int tagI=0 >
 class SumReduction {
 
-    static const int tagJ = 1-tagI;
-
   public :
+  
+      static const int tagJ = 1-tagI;
 
-    struct sEval { // static wrapper
         using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
         using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
         using VARSP = typename F::template VARS<2>;
@@ -42,6 +41,8 @@ class SumReduction {
         static_assert(CheckAllDistinct<INDS>::val,"Incorrect formula : at least two distinct variables have the same position index.");
         
         static const int NMINARGS = 1+INDS::MAX; // minimal number of arguments when calling the formula. 
+
+//    struct sEval { // static wrapper
 
 		template < typename TYPE >
 		struct InitializeReduction {
@@ -84,11 +85,11 @@ class SumReduction {
 			}
 		};
 		
-		template < class V, class GRADIN >
-		using DiffT = typename SumReduction<Grad<F,V,GRADIN>,V::CAT>::sEval;
-        
-    };
+//    };
 
+		template < class V, class GRADIN >
+		using DiffT = SumReduction<Grad<F,V,GRADIN>,V::CAT>;
+        
 };
 
 }

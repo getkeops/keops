@@ -50,9 +50,10 @@ int main() {
     // symbolic expression of the function ------------------------------------------------------
     
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>;
+    using F = Beta;//Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>;
 
-    using FUNCONVF = typename SumReduction<F>::sEval;
+    //using FUNCONVF = typename SumReduction<F>::sEval;
+    using FUNCONVF = SumReduction<F>;
 
     // gradient with respect to X ---------------------------------------------------------------
     using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
@@ -178,8 +179,8 @@ int main() {
 
     // gradient wrt Y, which is a "j" variable.
 
-    rescpu.resize(Ny*GY::DIM); 
-    vf.resize(Ny*GY::DIM);
+    rescpu.resize(Ny*FUNCONVGY::DIM); 
+    vf.resize(Ny*FUNCONVGY::DIM);
     f = vf.data();
 
     std::cout << "testing function GY" << std::endl;
