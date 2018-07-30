@@ -14,8 +14,10 @@
 // Host implementation of the convolution, for comparison
 
 namespace keops {
+
+struct CpuConv {
 template < typename TYPE, class FUN >
-int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
+static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
     typedef typename FUN::DIMSX DIMSX; // dimensions of "i" indexed variables
     typedef typename FUN::DIMSY DIMSY; // dimensions of "j" indexed variables
     typedef typename FUN::DIMSP DIMSP; // dimensions of parameters variables
@@ -34,9 +36,9 @@ int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
         for(int j=0; j<ny; j++) {
             load<DIMSY>(j,yj,py);
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yj,pp);
-            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j); // tmp += xi
+            typename FUN::template ReducePair<TYPE>()(tmp, xi, j); // tmp += xi
         }
-        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT);
+        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px+1);
     }
 
     return 0;
@@ -44,7 +46,7 @@ int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py) {
 
 // Wrapper with an user-friendly input format for px and py.
 template < typename TYPE, class FUN, typename... Args >
-int CpuConv(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
+static int Eval(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;
@@ -75,7 +77,7 @@ int CpuConv(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
 
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays.
 template < typename TYPE, class FUN >
-int CpuConv(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
+static int Eval(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;
@@ -106,5 +108,5 @@ int CpuConv(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
 
     return CpuConv_(fun,params,nx,ny,px,py);
 }
-
+};
 }

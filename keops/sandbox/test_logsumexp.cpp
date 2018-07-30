@@ -39,21 +39,21 @@ int main() {
     using Y = _Y<2,DIMPOINT>;
     using B = _Y<3,DIMVECT>;
     
-    using F = GaussKernel<C,X,Y,B>;
+    using F = B;//GaussKernel<C,X,Y,B>;
 
     std::cout << std::endl << "Function F : " << std::endl;
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = typename LogSumExpReduction<F>::sEval;
-
+    using LOGSUMEXPF = LogSumExpReduction<F>;
+    
     using ExpF = Exp<F>;
 
     std::cout << std::endl << "Function ExpF : " << std::endl;
     std::cout << PrintFormula<ExpF>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVEXPF = typename SumReduction<ExpF>::sEval;
+    using SUMEXPF = SumReduction<ExpF>;
 
     // now we test ------------------------------------------------------------------------------
 
@@ -73,7 +73,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    CpuConv(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
+    LOGSUMEXPF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -91,7 +91,7 @@ int main() {
     std::vector<__TYPE__> rescpu2(Nx*F::DIM);
 
     begin = clock();
-    CpuConv(FUNCONVEXPF(), Nx, Ny, f, oos2, x, y, b);
+    SUMEXPF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
     for(int i=0; i<vf.size(); i++)
     	vf[i] = log(vf[i]);
     end = clock();
@@ -115,9 +115,38 @@ int main() {
 
     std::cout << "Testing Gradient of LogSumExp reduction" << std::endl;
 
-    using E = _X<5,DIMVECT>;
-    using G = Grad<F,X,E>;
+    using E = _X<4,DIMVECT>;
+    using GX = Grad<LOGSUMEXPF,X,E>;
+    
+    std::vector<__TYPE__> ve(Nx*DIMVECT); fillrandom(ve); __TYPE__ *e = ve.data();
+    
+    begin = clock();
+    GX::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b, e);
+    end = clock();
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
+    rescpu1 = vf;
+
+    std::cout << "rescpu1 = ";
+    for(int i=0; i<5; i++)
+        std::cout << rescpu1[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
+
+    std::cout << "Testing Gradient of Log of Sum reduction of Exp" << std::endl;
+	using GX2 = Grad<SUMEXPF,X,E>;
+    begin = clock();
+	GX2::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b, e);
+    for(int i=0; i<vf.size(); i++)
+    	vf[i] = vf[i]/rescpu2[i];
+    end = clock();
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+
+    rescpu2 = vf;
+    std::cout << "rescpu2 = ";
+    for(int i=0; i<5; i++)
+        std::cout << rescpu2[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
+	
 }
 
 

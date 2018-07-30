@@ -344,8 +344,20 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
     }
 };
 
+// iterate binary operator
 
+template < template<class,class> class OP, class PACK >
+struct IterBinaryOpImpl {
+	using type = OP<typename PACK::FIRST,typename IterBinaryOpImpl<OP,typename PACK::NEXT>::type>;
+};
 
+template < template<class,class> class OP, class F >
+struct IterBinaryOpImpl<OP,univpack<F>> {
+	using type = F;
+};
+
+template < template<class,class> class OP, class PACK >
+using IterBinaryOp = typename IterBinaryOpImpl<OP,PACK>::type;
 
 //////////////////////////////////////////////////////////////
 ////     ELEMENT EXTRACTION : Elem<F,M>                   ////
@@ -358,7 +370,7 @@ struct Elem : UnaryOp<Elem,F,M> {
     static const int DIM = 1;
     static_assert(F::DIM>M,"Index out of bound in Elem");
 
-    static void PrintId(std::stringstream& str) { str << "Elem"; }
+    static void PrintIdString(std::stringstream& str) { str << "Elem"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
             *out = outF[M];
@@ -382,7 +394,7 @@ struct ElemT : UnaryOp<ElemT,F,N,M> {
     static const int DIM = N;
     static_assert(F::DIM==1,"Input of ElemT should be a scalar");
 
-    static void PrintId(std::stringstream& str) { str << "ElemT"; }
+    static void PrintIdString(std::stringstream& str) { str << "ElemT"; }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 	    for(int k=0; k<DIM; k++)
@@ -398,7 +410,63 @@ struct ElemT : UnaryOp<ElemT,F,N,M> {
 };
 
 
+//////////////////////////////////////////////////////////////
+////     VECTOR EXTRACTION : Extract<F,START,DIM>         ////
+//////////////////////////////////////////////////////////////
 
+template < class F, int START, int DIM_ > struct ExtractT;
+
+template < class F, int START, int DIM_ >
+struct Extract : UnaryOp<Extract,F,START,DIM_> {
+    static const int DIM = DIM_;
+    
+    static_assert(F::DIM>=START+DIM,"Index out of bound in Extract");
+    static_assert(START>=0,"Index out of bound in Extract");
+
+    static void PrintIdString(std::stringstream& str) { str << "Extract"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = outF[START+k];
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = DiffTF<V,ExtractT<GRADIN,START,F::DIM>>;
+};
+
+
+
+//////////////////////////////////////////////////////////////
+////     VECTOR "INJECTION" : ExtractT<F,START,DIM>       ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int START, int DIM_ >
+struct ExtractT : UnaryOp<ExtractT,F,START,DIM_> {
+    static const int DIM = DIM_;
+    
+    static_assert(START+F::DIM<=DIM,"Index out of bound in ExtractT");
+    static_assert(START>=0,"Index out of bound in ExtractT");
+
+    static void PrintIdString(std::stringstream& str) { str << "ExtractT"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+	    for(int k=0; k<START; k++)
+            	out[k] = 0.0;
+	    for(int k=START; k<F::DIM; k++)
+            	out[k] = outF[k];
+	    for(int k=F::DIM; k<DIM; k++)
+            	out[k] = 0.0;
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = DiffTF<V,Extract<GRADIN,START,F::DIM>>;
+};
 
 
 // helper for counting the number of occurrences of a subformula in a formula

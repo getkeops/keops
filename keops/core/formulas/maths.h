@@ -188,6 +188,35 @@ struct AddAlias<IntConstantImpl<M>,IntConstantImpl<N>> {
     using type = IntConstant<M+N>;
 };
 
+
+//////////////////////////////////////////////////////////////
+////     VECTOR CONCATENATION : Concat<F,G>               ////
+//////////////////////////////////////////////////////////////
+
+template < class F, class G >
+struct Concat : BinaryOp<Concat,F,G> {
+    static const int DIM = F::DIM+G::DIM;
+    
+    static void PrintId(std::stringstream& str) { str << "Concat"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF, __TYPE__ *outG) {
+	    for(int k=0; k<F::DIM; k++)
+            	out[k] = outF[k];
+	    for(int k=0; k<G::DIM; k++)
+            	out[k+F::DIM] = outG[k];
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffTG = typename G::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = Add<DiffTF<V,Extract<GRADIN,0,F::DIM>>,DiffTG<V,Extract<GRADIN,F::DIM,DIM>>>;
+};
+
+
 //////////////////////////////////////////////////////////////
 ////      Scal*Vector Multiplication : Scal< FA,FB>       ////
 //////////////////////////////////////////////////////////////
@@ -343,6 +372,9 @@ struct MultAlias<Zero<DIM1>,Zero<DIM2>> {
 
 template < class FA, class FB >
 using ScalOrMult = CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>;
+
+
+
 
 //////////////////////////////////////////////////////////////
 ////             SUBTRACT : F-G		                      ////
@@ -700,6 +732,171 @@ template < int DIM >
 struct RsqrtAlias<Zero<DIM>> { 
     using type = Zero<DIM>; 
 }; 
+
+
+
+/////////////////////////////////////////////////////////////////////////
+////      Matrix-vector product      A x b                           ////
+/////////////////////////////////////////////////////////////////////////
+
+template < class A, class B > struct TensorProd;
+template < class A, class B > struct VecMatMult;
+
+template < class A, class B >
+struct MatVecMult : BinaryOp<MatVecMult,A,B> {
+    // A is vector of size n*p, interpreted as matrix (column major), B is vector of size p, interpreted as column vector
+	// output is vector of size n
+	
+    static_assert(A::DIM % B::DIM == 0,"Dimensions of A and B are not compatible for matrix-vector product");
+
+    static const int DIM = A::DIM / B::DIM;
+    
+    static void PrintIdString(std::stringstream& str) { str << "x"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+        for(int k=0; k<DIM; k++) {
+        	out[k] = 0;
+        	for(int l=0; l<B::DIM; l++)
+            	out[k] += outA[l*DIM+k] * outB[l];
+        }
+    }
+    
+    template < class V, class GRADIN >
+    using DiffTA = typename A::template DiffT<V,GRADIN>;
+    
+    template < class V, class GRADIN >
+    using DiffTB = typename B::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = Add<DiffTA<V,TensorProd<GRADIN,B>>,DiffTB<V,VecMatMult<GRADIN,A>>>;
+    
+};
+
+
+/////////////////////////////////////////////////////////////////////////
+////     Vector-matrix product           b x A                       ////
+/////////////////////////////////////////////////////////////////////////
+
+template < class B, class A >
+struct VecMatMult : BinaryOp<VecMatMult,B,A> {
+    // A is vector of size n*p, interpreted as matrix (column major), B is vector of size n, interpreted as row vector
+	// output is vector of size p
+	
+    static_assert(A::DIM % B::DIM == 0,"Dimensions of A and B are not compatible for matrix-vector product");
+
+    static const int DIM = A::DIM / B::DIM;
+    
+    static void PrintIdString(std::stringstream& str) { str << "x"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+        int q = 0;
+        for(int k=0; k<DIM; k++) {
+        	out[k] = 0;
+        	for(int l=0; l<B::DIM; l++, q++)
+            	out[k] += outA[q] * outB[l];
+        }
+    }
+    
+    template < class V, class GRADIN >
+    using DiffTA = typename A::template DiffT<V,GRADIN>;
+    
+    template < class V, class GRADIN >
+    using DiffTB = typename B::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = Add<DiffTA<V,TensorProd<B,GRADIN>>,DiffTB<V,MatVecMult<A,GRADIN>>>;
+    
+};
+
+
+/////////////////////////////////////////////////////////////////////////
+////      Tensor product      a x b^T                                ////
+/////////////////////////////////////////////////////////////////////////
+
+template < class A, class B >
+struct TensorProd : BinaryOp<TensorProd,A,B> {
+    // A is vector of size n, B is vector of size p, 
+	// output is vector of size n*p
+	
+    static const int DIM = A::DIM * B::DIM;
+    
+    static void PrintIdString(std::stringstream& str) { str << "⊗"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+        int q = 0;
+        for(int k=0; k<A::DIM; k++) {
+        	for(int l=0; l<B::DIM; l++, q++)
+            	out[q] = outA[k] * outB[l];
+        }
+    }
+    
+    template < class V, class GRADIN >
+    using DiffTA = typename A::template DiffT<V,GRADIN>;
+    
+    template < class V, class GRADIN >
+    using DiffTB = typename B::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = Add<DiffTA<V,MatVecMult<GRADIN,B>>,DiffTB<V,VecMatMult<A,GRADIN>>>;
+    
+};
+
+
+
+
+
+// iterate replace operator (should be put somewhere else)
+
+template < class F, class G, class PACK >
+struct IterReplaceImpl {
+	using CURR = typename F::template Replace<G,typename PACK::FIRST>;
+	using type = typename IterReplaceImpl<F,G,typename PACK::NEXT>::type::template PUTLEFT<CURR>;
+};
+
+template < class F, class G >
+struct IterReplaceImpl<F,G,univpack<>> {
+	using type = univpack<>;
+};
+
+template < class F, class G, class PACK >
+using IterReplace = typename IterReplaceImpl<F,G,PACK>::type;
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+////      Standard basis of R^DIM : < (1,0,0,...) , (0,1,0,...) , ... , (0,...,0,1) >     ////
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+template < int DIM, int I=0 >
+struct StandardBasisImpl {
+	using EI = ElemT<IntConstant<1>,DIM,I>;
+	using type = typename StandardBasisImpl<DIM,I+1>::type::template PUTLEFT<EI>;
+};
+
+template < int DIM >
+struct StandardBasisImpl<DIM,DIM> {
+	using type = univpack<>;
+};
+
+template < int DIM >
+using StandardBasis = typename StandardBasisImpl<DIM>::type;
+
+/////////////////////////////////////////////////////////////////////////
+////      Matrix of gradient operator (=transpose of jacobian)       ////
+/////////////////////////////////////////////////////////////////////////
+
+
+template < class F, class V >
+struct GradMatrixImpl {
+	using IndsTempVars = GetInds<typename F::template VARS<3>>;
+	using GRADIN = Var<1+IndsTempVars::MAX,F::DIM,3>;
+ 	using packGrads = IterReplace< Grad<F,V,GRADIN> , GRADIN , StandardBasis<F::DIM> >;
+ 	using type = IterBinaryOp<Concat,packGrads>;
+};
+
+template < class F, class V >
+using GradMatrix = typename GradMatrixImpl<F,V>::type;
+
+
 
 
 }
