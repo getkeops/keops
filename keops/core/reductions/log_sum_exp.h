@@ -6,6 +6,8 @@
 
 #include "core/autodiff.h"
 
+#include "core/reductions/reduction.h"
+
 // Implements the LogSumExp reduction operation
 // tagI is equal:
 // - to 0 if you do the summation over j (with i the index of the output vector),
@@ -15,41 +17,28 @@
 
 namespace keops {
 
-template < class F, int tagI=0 >
-class LogSumExpReduction {
+template < int DIM >
+using LSEFIN = Add<_X<0,1>,Log<_X<1,DIM>>>;
 
-    static const int tagJ = 1-tagI;
+template < class F, class G_=IntConstant<1>, class FIN_=LSEFIN<G_::DIM>, int INDGRADIN=0, int tagI=0 >
+class LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
 
   public :
+  
+  		using G = G_;
+  		using FIN = FIN_;
 
-    struct sEval { // static wrapper
-        using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
-        using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
-        using VARSP = typename F::template VARS<2>;
-
-        using DIMSX = typename GetDims<VARSI>::template PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
-        using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
-        using DIMSP = GetDims<VARSP>;                           // dimensions of parameters variables
-
-		static const int DIM = F::DIM;
+		static const int DIM = FIN::DIM;
 		
-		static_assert(1==DIM,"LogSumExp is only implemented for scalars.");
+		static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
 		
-		static const int DIMRED = 2 * DIM;									// dimension of temporary variable for reduction
+		static const int DIMRED = DIM + F::DIM;				// dimension of temporary variable for reduction
 		
-        using FORM  = F;  // We need a way to access the actual function being used. 
-        // using FORM  = AutoFactorize<F>;  // alternative : auto-factorize the formula (see factorize.h file)
-        // remark : using auto-factorize should be the best to do but it may slow down the compiler a lot..
-        
-        using INDSI = GetInds<VARSI>;
-        using INDSJ = GetInds<VARSJ>;
-        using INDSP = GetInds<VARSP>;
-
-        using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;  // indices of variables
-        static_assert(CheckAllDistinct<INDS>::val,"Incorrect formula : at least two distinct variables have the same position index.");
-        
-        static const int NMINARGS = 1+INDS::MAX; // minimal number of arguments when calling the formula. 
-
+        template < class CONV, typename... Args >
+        static void Eval(Args... args) {
+        	CONV::Eval(LogSumExpReduction<F,G,FIN,INDGRADIN,tagI>(),args...);
+        }
+                
 		template < typename TYPE >
 		struct InitializeReduction {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp) {
@@ -59,55 +48,53 @@ class LogSumExpReduction {
 				// We should use 0xfff0000000000000 for doubles
 				//-340282346638528859811704183484516925440.0f;//__int_as_float(0xff800000); // -infty, as +infty = 0x7f800000
 				tmp[0] = NEG_INFINITY<TYPE>::value;
-				tmp[1] = 0.0f;
+				for(int k=1; k<DIMRED; k++)
+					tmp[k] = 0.0f;
 			}
 		};
 
-        template < typename... Args >
-        HOST_DEVICE INLINE void operator()(Args... args) {
-            F::template Eval<INDS>(args...);
-        }
-        
-		// equivalent of the += operation
-		template < typename TYPE >
-		struct ReducePairShort {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
-				// (m,s) + (m',1), i.e. exp(m)*s + exp(m')
-				if(tmp[0] > xi[0]) { // =  exp(m)  * (s + exp(m'-m))   if m > m'
-					tmp[1] += exp( xi[0]-tmp[0] ) ;
-				} else {             // =  exp(m') * (1 + exp(m-m')*s)   if m <= m'
-					tmp[1] = 1.0 + exp( tmp[0]-xi[0] ) * tmp[1] ;
-					tmp[0] = xi[0] ;
-				}
-			}
-		};
-        
 		// equivalent of the += operation
 		template < typename TYPE >
 		struct ReducePair {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
-				// (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
-				if(tmp[0] > xi[0]) { // =  exp(m)  * (s + exp(m'-m)*s')   if m > m'
-					tmp[1] += exp( xi[0]-tmp[0] ) * xi[1] ;
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+				// (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
+				TYPE tmpexp;
+				if(tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+					tmpexp = exp( xi[0]-tmp[0] );
+					for(int k=1; k<DIMRED; k++)
+						tmp[k] += xi[k]*tmpexp ;
 				} else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
-					tmp[1] = xi[1] + exp( tmp[0]-xi[0] ) * tmp[1] ;
+					tmpexp = exp( tmp[0]-xi[0] );
+					for(int k=1; k<DIMRED; k++)
+						tmp[k] = xi[k] + tmpexp * tmp[k] ;
 					tmp[0] = xi[0] ;
 				}
 			}
 		};
-        
+                
 		template < typename TYPE >
 		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out) {
-            		out[0] = tmp[0] + log(tmp[1]);
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px) {
+					TYPE *tmp2 = px[INDGRADIN];
+            		FIN::template Eval<pack<0,1,2>>(out,tmp,tmp+1,tmp2);
 			}
 		};
         
+        template < class GRADIN >
+		using A = Grad<FIN,_X<1,G::DIM>,GRADIN>;
+		
 		template < class V, class GRADIN >
-		using DiffT = typename SumReduction<Grad<F,V,GRADIN>,V::CAT>::sEval;
-        
-    };
-
+		using B = typename A<GRADIN>::template Replace<_X<1,G::DIM>,Extract<_X<1,(1+V::DIM)*G::DIM>,0,G::DIM>>;
+		
+		template < class V, class GRADIN >
+		using C = MatVecMult<Extract<_X<1,(1+V::DIM)*G::DIM>,G::DIM,V::DIM*G::DIM>,B<V,GRADIN>>;
+				
+		template < class V >
+		using D = Add< TensorProd<GradMatrix<F,V>,G> , GradMatrix<G,V> > ;		
+		
+		template < class V, class GRADIN >
+		using DiffT = LogSumExpReduction<F,Concat<G,D<V>>,C<V,_X<2,GRADIN::DIM>>,GRADIN::N,V::CAT>;
+		
 };
 
 

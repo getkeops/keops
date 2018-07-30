@@ -45,7 +45,7 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = typename ArgMinReduction<F>::sEval;
+    using FUNCONVF = ArgMinReduction<F>;
 
     // now we test ------------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    CpuConv(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
+    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

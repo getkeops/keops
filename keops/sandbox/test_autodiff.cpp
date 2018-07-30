@@ -50,92 +50,14 @@ int main() {
     // symbolic expression of the function ------------------------------------------------------
     
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = Beta;//Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>;
-
-    //using FUNCONVF = typename SumReduction<F>::sEval;
-    using FUNCONVF = SumReduction<F>;
+    using F = SumReduction<Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>>;
 
     // gradient with respect to X ---------------------------------------------------------------
     using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
     
-    /*
-     * Using GX = Grad<F,X,Eta> = (\partial_X F).Eta in a convolution sum (Generic<...>) makes sense.
-     * Indeed, we know that
-     * 
-     *      FUNCONVF_i = \sum_j F( X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ..., P ).
-     * 
-     * Then, since FUNCONVF_i only depends on the i-th line of X^n,
-     * 
-     * (\partial_{X^n} FUNCONVF).Eta = \sum_i (\partial_{X^n  } FUNCONVF_i).Eta_i       (definition of the L2 scalar product)
-     * 
-     *                                        | 0 0 ................................. 0 |
-     *                                        | 0 0 ................................. 0 |
-     *                               = \sum_i |  (\partial_{X^n_i} FUNCONVF_i).Eta_i    | <- (on the i-th line).
-     *                                        | 0 0 ................................. 0 |
-     *                                        | 0 0 ................................. 0 |
-     *                                        | 0 0 ................................. 0 |
-     * 
-     *                                        |  (\partial_{X^n_0} FUNCONVF_0).Eta_0    |
-     *                                        |  (\partial_{X^n_1} FUNCONVF_1).Eta_1    |
-     *                               =        |                    .                    | 
-     *                                        |                    .                    |
-     *                                        |                    .                    |
-     *                                        |  (\partial_{X^n_I} FUNCONVF_I).Eta_I    |
-     * 
-     * But then, by linearity of the gradient operator,
-     * 
-     * (\partial_{X^n_i} FUNCONVF_i).Eta_i = \sum_j (\partial_{X^n} F( X^0_i, ..., Y^0_j, ..., P )).Eta_i
-     * 
-     * (\partial_{X^n} FUNCONVF).Eta is therefore equal to the "generic kernel product" with
-     * summation on j, with the summation term being
-     * 
-     *    (\partial_{X^n_i} F( X^0_i, ..., Y^0_j, ..., P )).Eta_i  = Grad<F,X^n,Eta>
-     * 
-     */
+    using GX = Grad<F,X,Eta>;
 
-    using FUNCONVGX = Grad<FUNCONVF,X,Eta>;
-
-    // gradient with respect to Y  --------------------------------------------------------------
-    /*
-     * Using GY = Grad<F,Y,Eta> = (\partial_Y F).Eta in a convolution sum (Generic<...>) makes sense...
-     * IF YOU CHANGE THE SUMMATION VARIABLE FROM j TO i !
-     * Indeed, we know that
-     * 
-     *      FUNCONVF_i = \sum_j F( X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ..., P ).
-     * 
-     * Hence, doing the computations :
-     * 
-     * (\partial_{Y^m} FUNCONVF).Eta 
-     *    = \sum_i    (\partial_{Y^m  } FUNCONVF_i).Eta_i                          (definition of the L2 scalar product)
-     *    = \sum_i    (\partial_{Y^m  } \sum_j F(X^0_i, ...,Y^0_j,...,P) ).Eta_i   (FUNCONVF_i = ...)
-     *    = \sum_j    \sum_i (\partial_{Y^m  } F(X^0_i, ...,Y^0_j,...,P) ).Eta_i   (Fubini theorem + linearity of \partial_{Y^M})
-     * 
-     *              | 0 0 .................................................... 0 | (the summation term only depends on Y^m_j)
-     *              | 0 0 .................................................... 0 |
-     *    = \sum_j  | \sum_i (\partial_{Y^m_j} F(X^0_i, ...,Y^0_j,...,P) ).Eta_i | <- (on the j-th line)
-     *              | 0 0 .................................................... 0 |
-     *              | 0 0 .................................................... 0 |
-     *              | 0 0 .................................................... 0 |
-     *              | 0 0 .................................................... 0 |
-     * 
-     *              | \sum_i (\partial_{Y^m_0} F(X^0_i, ...,Y^0_0,...,P) ).Eta_i |
-     *              | \sum_i (\partial_{Y^m_1} F(X^0_i, ...,Y^0_1,...,P) ).Eta_i |
-     *    =         |                               .                            | 
-     *              |                               .                            | 
-     *              |                               .                            | 
-     *              |                               .                            | 
-     *              | \sum_i (\partial_{Y^m_J} F(X^0_i, ...,Y^0_J,...,P) ).Eta_i |
-     * 
-     * 
-     * (\partial_{Y^m} FUNCONVF).Eta is therefore equal to the "generic kernel product" with
-     * summation on i (and not j !), with the summation term being
-     * 
-     *    (\partial_{Y^m_j} F( X^0_i, ..., Y^0_j, ..., P )).Eta_i  = Grad<F,Y^m,Eta>
-     * 
-     */
-    // parameter 1 after GY means i and j variables must be swapped, 
-    // i.e. we do a summation on "i" using a code which is hardcoded for summation wrt. "j" :
-    using FUNCONVGY = Grad<FUNCONVF,Y,Eta>;
+    using GY = Grad<F,Y,Eta>;
 
     // now we test ------------------------------------------------------------------------------
 
@@ -153,14 +75,13 @@ int main() {
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
     params[0] = 1.0/(Sigma*Sigma);
-
-    
+  
     clock_t begin, end;
 
     std::cout << "testing function F" << std::endl;
 
     begin = clock();
-    CpuConv(FUNCONVF(), Nx, Ny, f, x, y, u, v, b, params);
+    F::Eval<CpuConv>(Nx, Ny, f, x, y, u, v, b, params);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -171,7 +92,7 @@ int main() {
     std::cout << "testing function GX" << std::endl;
 
     begin = clock();
-    CpuConv(FUNCONVGX(), Nx, Ny, f, x, y, u, v, b, params, e);
+    GX::Eval<CpuConv>(Nx, Ny, f, x, y, u, v, b, params, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -179,14 +100,14 @@ int main() {
 
     // gradient wrt Y, which is a "j" variable.
 
-    rescpu.resize(Ny*FUNCONVGY::DIM); 
-    vf.resize(Ny*FUNCONVGY::DIM);
+    rescpu.resize(Ny*GY::DIM); 
+    vf.resize(Ny*GY::DIM);
     f = vf.data();
 
     std::cout << "testing function GY" << std::endl;
 
     begin = clock();
-    CpuConv(FUNCONVGY(), Ny, Nx, f, x, y, u, v, b, params, e);
+    GY::Eval<CpuConv>(Nx, Ny, f, x, y, u, v, b, params, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
