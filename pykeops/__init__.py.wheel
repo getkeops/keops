@@ -1,7 +1,9 @@
-__version__="???"
-
+import sys
 import os.path
 from os.path import expanduser
+
+
+__version__="???"
 
 ###########################################################
 #              Compilation options

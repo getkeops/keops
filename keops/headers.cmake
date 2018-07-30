@@ -29,13 +29,6 @@ if(NOT DEFINED USE_CUDA)
     Set(USE_CUDA ${CUDA_FOUND})
 endif()
 
-# this flag is used in pragma
-if(USE_CUDA)
-    add_definitions(-DUSE_CUDA=1)
-else()
-    add_definitions(-DUSE_CUDA=0)
-endif()
-
 if(CUDA_FOUND AND USE_CUDA)
 
     # A function for automatic detection of GPUs installed (source: caffe git repo).
@@ -124,6 +117,12 @@ if(CUDA_FOUND AND USE_CUDA)
 
 endif()
 
+# this flag is used in pragma
+if(USE_CUDA)
+    add_definitions(-DUSE_CUDA=1)
+else()
+    add_definitions(-DUSE_CUDA=0)
+endif()
 
 #------------------------------------------------------------------------------------#
 #----------------------------------- KeOps OPTS -------------------------------------#
@@ -150,6 +149,7 @@ add_definitions(-D__TYPE__=${__TYPE__})
 if(NOT DEFINED USENEWSYNTAX)
     Set(USENEWSYNTAX TRUE)
 endif()
+
 if(NOT USENEWSYNTAX)
 
     if(NOT FORMULA)

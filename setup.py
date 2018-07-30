@@ -7,12 +7,40 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-#with open(path.join(here, 'readme.md'), encoding='utf-8') as f:
 with open(path.join(here, 'pykeops','pykeops.md'), encoding='utf-8') as f:
      long_description = f.read()
 
-# Arguments marked as "Required" below must be included for upload to PyPI.
-# Fields marked as "Optional" may be commented out.
+# List file from Pybind11 sources
+pybind11_files = [
+    'pybind11/include/pybind11/detail/class.h',
+    'pybind11/include/pybind11/detail/common.h',
+    'pybind11/include/pybind11/detail/descr.h',
+    'pybind11/include/pybind11/detail/init.h',
+    'pybind11/include/pybind11/detail/internals.h',
+    'pybind11/include/pybind11/detail/typeid.h',
+    'pybind11/include/pybind11/attr.h',
+    'pybind11/include/pybind11/buffer_info.h',
+    'pybind11/include/pybind11/cast.h',
+    'pybind11/include/pybind11/chrono.h',
+    'pybind11/include/pybind11/common.h',
+    'pybind11/include/pybind11/complex.h',
+    'pybind11/include/pybind11/eigen.h',
+    'pybind11/include/pybind11/embed.h',
+    'pybind11/include/pybind11/eval.h',
+    'pybind11/include/pybind11/functional.h',
+    'pybind11/include/pybind11/iostream.h',
+    'pybind11/include/pybind11/numpy.h',
+    'pybind11/include/pybind11/operators.h',
+    'pybind11/include/pybind11/options.h',
+    'pybind11/include/pybind11/pybind11.h',
+    'pybind11/include/pybind11/pytypes.h',
+    'pybind11/include/pybind11/stl.h',
+    'pybind11/include/pybind11/stl_bind.h',
+    'pybind11/CMakeLists.txt',
+    'pybind11/tools/FindPythonLibsNew.cmake',
+    'pybind11/tools/pybind11Tools.cmake',
+    'pybind11/tools/pybind11Config.cmake.in',
+]
 
 setup(
     name='pykeops',
@@ -51,25 +79,21 @@ setup(
     packages=[
         'pykeops',
         'pykeops.common',
-        'pykeops.examples',
         'pykeops.numpy',
         'pykeops.numpy.convolutions',
         'pykeops.numpy.shape_distance',
         'pykeops.test',
         'pykeops.torch',
-        'pykeops.tutorials',
-        'pykeops.tutorials.gaussian_mixture',
-        'pykeops.tutorials.machine_learning',
-        'pykeops.tutorials.optimal_transport',
-        'pykeops.tutorials.optimal_transport.data',
-        'pykeops.tutorials.surface_registration',
-        'pykeops.tutorials.surface_registration.data',
     ],
+
     package_data={
         'pykeops': [
             'pykeops.md',
             'readme.md',
-            'keops/CMakeLists.txt',
+            'CMakeLists.txt',
+            'numpy/generic_red.cpp',
+            'torch/generic_red.cpp',
+            'common/keops_io.h',
             'keops/formula.h.in',
             'keops/headers.cmake',
             'keops/core/autodiff.h',
@@ -93,13 +117,7 @@ setup(
             'keops/specific/radial_kernels/cuda_grad1conv.cu',
             'keops/specific/radial_kernels/cuda_grad1conv.cx',
             'keops/specific/radial_kernels/radial_kernels.h',
-            'tutorials/surface_registration/data/hippos.pt',
-            'tutorials/surface_registration/data/hippos_red.pt',
-            'tutorials/surface_registration/data/hippos_reduc.pt',
-            'tutorials/surface_registration/data/hippos_reduc_reduc.pt',
-            'tutorials/optimal_transport/data/amoeba_1.png',
-            'tutorials/optimal_transport/data/amoeba_2.png',
-        ]
+        ] + pybind11_files
     },
 
     # install_requires=[
