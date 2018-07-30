@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 2.8)
 project(PyKeOps LANGUAGES CXX)
 
 ## Set Path to sources
-set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/keops)
+set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
 
 set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}
