@@ -580,7 +580,7 @@ struct Inv : UnaryOp<Inv,F> {
          for(int k=0; k<DIM; k++) {
              out[k] = 1 / outF[k];
          }
-	}
+}
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
@@ -820,7 +820,7 @@ struct TensorProd : BinaryOp<TensorProd,A,B> {
 	
     static const int DIM = A::DIM * B::DIM;
     
-    static void PrintIdString(std::stringstream& str) { str << "⊗"; }
+    static void PrintIdString(std::stringstream& str) { str << "(x)"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
         int q = 0;
