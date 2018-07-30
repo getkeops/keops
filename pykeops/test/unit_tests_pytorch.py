@@ -155,7 +155,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_simple(self):
     ############################################################
-        from pykeops.torch.generic_red import generic_sum, generic_sum2
+        from pykeops.torch.generic_red import generic_sum
 
         aliases = ['P = Pm(2)',                               # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -173,9 +173,6 @@ class PytorchUnitTestCase(unittest.TestCase):
 
                 my_routine  = generic_sum(formula, aliases, axis=1, backend=b)
                 gamma_keops = my_routine(self.pc, self.xc, self.yc)
-
-                my_routine2 = generic_sum2(formula, aliases, axis=1, backend=b)
-                gamma_keops2 = my_routine2(self.pc, self.xc, self.yc)
 
                 # Numpy version
                 scals = (self.x @ self.y.T)**2 # Memory-intensive computation!
