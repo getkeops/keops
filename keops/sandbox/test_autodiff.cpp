@@ -50,7 +50,8 @@ int main() {
     // symbolic expression of the function ------------------------------------------------------
     
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = SumReduction<Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>>;
+    //using F = SumReduction<Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>>;
+    using F = SumReduction<U>;
 
     // gradient with respect to X ---------------------------------------------------------------
     using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
@@ -86,6 +87,16 @@ int main() {
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu = vf;
+
+    // display values
+    std::cout << "Ny*vu = ";
+    for(int i=0; i<5; i++)
+        std::cout << Ny*vu[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
+    std::cout << "rescpu = ";
+    for(int i=0; i<5; i++)
+        std::cout << rescpu[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
 
     std::vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
 

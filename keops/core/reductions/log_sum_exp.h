@@ -28,6 +28,8 @@ class LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
   		using G = G_;
   		using FIN = FIN_;
 
+		using PARENT = Reduction<Concat<F,G_>,tagI>;
+
 		static const int DIM = FIN::DIM;
 		
 		static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
@@ -75,12 +77,18 @@ class LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
 		template < typename TYPE >
 		struct FinalizeOutput {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px) {
-					TYPE *tmp2 = px[INDGRADIN];
+std::cout << "INDGRADIN=" << INDGRADIN << std::endl;
+std::cout << "IndVal<typename PARENT::INDSI,INDGRADIN>()=" << IndVal<typename PARENT::INDSI,INDGRADIN>() << std::endl;
+			TYPE *tmp2 = px[IndVal<typename PARENT::INDSI,INDGRADIN>()];
             		FIN::template Eval<pack<0,1,2>>(out,tmp,tmp+1,tmp2);
+std::cout << "tmp[0]=" << tmp[0] << std::endl;
+std::cout << "tmp2[0]=" << tmp2[0] << std::endl;
+std::cout << "(tmp*tmp2)_2[1]=" << tmp[1]*tmp2[0] << std::endl;
+std::cout << "out[0]=" << out[0] << std::endl;
 			}
 		};
         
-        template < class GRADIN >
+        	template < class GRADIN >
 		using A = Grad<FIN,_X<1,G::DIM>,GRADIN>;
 		
 		template < class V, class GRADIN >

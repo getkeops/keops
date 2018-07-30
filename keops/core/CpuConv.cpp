@@ -30,6 +30,7 @@ static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py)
 
     TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
     load<DIMSP>(0,pp,param);
+
     for(int i=0; i<nx; i++) {
         load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1);
         typename FUN::template InitializeReduction<TYPE>()(tmp);   // tmp = 0
@@ -44,7 +45,7 @@ static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py)
     return 0;
 }
 
-// Wrapper with an user-friendly input format for px and py.
+// Wrapper with an user-fristd::endly input format for px and py.
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
     typedef typename FUN::VARSI VARSI;
@@ -66,9 +67,24 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
     TYPE *px[SIZEI];
     TYPE *py[SIZEJ];
     TYPE *params[SIZEP];
-
+/*
+std::stringstream str;
+str << "VARSI=" ; VARSI::PrintId(str) ; str << std::endl;
+str << "VARSJ=" ; VARSJ::PrintId(str) ; str << std::endl;
+str << "VARSP=" ; VARSP::PrintId(str) ; str << std::endl;
+str << "INDSI=" ; INDSI::PrintId(str) ; str << std::endl;
+str << "INDSJ=" ; INDSJ::PrintId(str) ; str << std::endl;
+str << "INDSP=" ; INDSP::PrintId(str) ; str << std::endl;
+std::cout << str.str() << std::endl;
+*/
     px[0] = x1;
     getlist<INDSI>(px+1,args...);
+/*
+for(int i=1; i<SIZEI; i++) {
+std::cout << "INDSI(" << i-1 << ")=" << INDSI::VAL(i-1) << std::endl;
+std::cout << "px[" << i << "][0]=" << px[i][0] << std::endl;
+}
+*/
     getlist<INDSJ>(py,args...);
     getlist<INDSP>(params,args...);
 
