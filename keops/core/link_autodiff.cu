@@ -1,6 +1,10 @@
 #include "core/autodiff.h"
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
+#include "core/reductions/sum.h"
+#include "core/reductions/min.h"
+#include "core/reductions/kmin.h"
+#include "core/reductions/log_sum_exp.h"
 
 using namespace keops;
 
@@ -8,55 +12,25 @@ using namespace keops;
 // Convolutions on Gpu device from host data //
 ///////////////////////////////////////////////
 
-// sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv2D(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F>::template Eval<GpuConv2D_FromHost>(nx, ny, gamma, args);
+extern "C" int GpuReduc1D(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
+    return Eval<F,GpuConv1D_FromHost>::Run(nx, ny, gamma, args);
 }
 
-// sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv2D(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F,1>::template Eval<GpuConv2D_FromHost>(ny, nx, gamma, args);
-}
-
-// sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv1D(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F>::template Eval<GpuConv1D_FromHost>(nx, ny, gamma, args);
-}
-
-// sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv1D(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F,1>::template Eval<GpuConv1D_FromHost>(ny, nx, gamma, args);
+extern "C" int GpuReduc2D(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
+    return Eval<F,GpuConv2D_FromHost>::Run(nx, ny, gamma, args);
 }
 
 //////////////////////////////////////////////////////////
 // Convolutions on Gpu device directly from device data //
 //////////////////////////////////////////////////////////
 
-// sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F>::template Eval<GpuConv2D_FromDevice>(nx, ny, gamma, args);
+extern "C" int GpuReduc1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
+    return Eval<F,GpuConv1D_FromDevice>::Run(nx, ny, gamma, args);
 }
 
-// sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F,1>::template Eval<GpuConv2D_FromDevice>(ny, nx, gamma, args);
+extern "C" int GpuReduc2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
+    return Eval<F,GpuConv2D_FromDevice>::Run(nx, ny, gamma, args);
 }
-
-
-// sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F>::template Eval<GpuConv1D_FromDevice>(nx, ny, gamma, args);
-}
-
-// sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F,1>::template Eval<GpuConv1D_FromDevice>(ny, nx, gamma, args);
-}
-
-
-
-
-
 
 /////////////////////////
 // Convolutions on Cpu //
@@ -64,13 +38,7 @@ extern "C" int GpuTransConv1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE
 
 #include "core/CpuConv.cpp"
 
-// sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int CpuConv(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F>::Eval<CpuConv>(nx, ny, gamma, args);
-}
-
-// sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int CpuTransConv(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return SumReduction<F,1>::Eval<CpuConv>(ny, nx, gamma, args);
+extern "C" int CpuReduc(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
+    return Eval<F,CpuConv>::Run(nx, ny, gamma, args);
 }
 

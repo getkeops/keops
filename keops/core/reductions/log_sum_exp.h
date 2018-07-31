@@ -9,9 +9,6 @@
 #include "core/reductions/reduction.h"
 
 // Implements the LogSumExp reduction operation
-// tagI is equal:
-// - to 0 if you do the summation over j (with i the index of the output vector),
-// - to 1 if you do the summation over i (with j the index of the output vector).
 // Giving a "LogSumExp" to a Conv1D/2D routine will automatically
 // result in it using a numerically stable reduce operation.
 
@@ -20,10 +17,8 @@ namespace keops {
 template < int DIM >
 using LSEFIN = Add<_X<0,1>,Log<_X<1,DIM>>>;
 
-template < class F, class G_=IntConstant<1>, class FIN_=LSEFIN<G_::DIM>, class GRADIN_=Dummy, int tagI=0 >
-class LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> {
-
-  public :
+template < class F, int tagI=0, class G_=IntConstant<1>, class FIN_=LSEFIN<G_::DIM>, class GRADIN_=Dummy >
+struct LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> {
   
   		using G = G_;
   		using FIN = FIN_;
@@ -37,12 +32,7 @@ class LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> {
 		static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
 		
 		static const int DIMRED = G::DIM + F::DIM;				// dimension of temporary variable for reduction
-		
-        template < class CONV, typename... Args >
-        static int Eval(Args... args) {
-        	return CONV::Eval(LogSumExpReduction<F,G,FIN,GRADIN_,tagI>(),args...);
-        }
-                
+		                
 		template < typename TYPE >
 		struct InitializeReduction {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp) {
@@ -118,7 +108,7 @@ class LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> {
 		using D = Add< TensorProd<GradMatrix<F,V>,G> , GradMatrix<G,V> > ;		
 		
 		template < class V, class GRADIN >
-		using DiffT = LogSumExpReduction<F,Concat<G,D<V>>,C<V,_X<2,GRADIN::DIM>>,GRADIN,V::CAT>;
+		using DiffT = LogSumExpReduction<F,V::CAT,Concat<G,D<V>>,C<V,_X<2,GRADIN::DIM>>,GRADIN>;
 		
 };
 

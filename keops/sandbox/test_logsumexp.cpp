@@ -17,6 +17,8 @@
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"
+#include "core/reductions/sum.h"
+#include "core/reductions/log_sum_exp.h"
 
 using namespace keops;
 
@@ -81,7 +83,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    LOGSUMEXPF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
+    Eval<LOGSUMEXPF,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -99,7 +101,7 @@ int main() {
     std::vector<__TYPE__> rescpu2(Nx*F::DIM);
 
     begin = clock();
-    SUMEXPF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
+    Eval<SUMEXPF,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     for(int i=0; i<vf.size(); i++)
     	vf[i] = log(vf[i]);
     end = clock();
@@ -134,7 +136,7 @@ int main() {
 
     
     begin = clock();
-    GX::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b, e);
+    Eval<GX,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -148,7 +150,7 @@ int main() {
     std::cout << "Testing Gradient of Log of Sum reduction of Exp" << std::endl;
 	using GX2 = Grad<SUMEXPF,X,E>;
     begin = clock();
-	GX2::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b, e);
+	Eval<GX2,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b, e);
     for(int i=0; i<vf.size(); i++)
     	vf[i] = vf[i]/exp(rescpu2[i/GX::DIM]);
     end = clock();

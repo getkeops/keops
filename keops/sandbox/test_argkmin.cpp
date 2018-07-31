@@ -1,6 +1,6 @@
 // test convolution
 // compile with
-//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_argkmin test_argkmin.cpp
+//		g++ -I.. -D__TYPE__=float -std=c++11 -O3 -o build/test_argkmin test_argkmin.cpp
 // 
 
 #include <stdio.h>
@@ -17,6 +17,7 @@
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"
+#include "core/reductions/kmin.h"
 
 using namespace keops;
 
@@ -65,7 +66,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
 
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;

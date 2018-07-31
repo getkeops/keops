@@ -23,6 +23,7 @@
 
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
+#include "core/reductions/sum.h"
 
 using namespace keops;
 
@@ -86,20 +87,20 @@ int main() {
 
     std::cout << "blank run 1" << std::endl;
     begin = clock();
-    FUNCONVF::Eval<GpuConv2D_FromDevice>(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+    Eval<FUNCONVF,GpuConv2D_FromDevice>::Run(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for blank run 1 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     std::cout << "blank run 2" << std::endl;
     begin = clock();
-    FUNCONVF::Eval<GpuConv2D_FromDevice>(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+    Eval<FUNCONVF,GpuConv2D_FromDevice>::Run(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for blank run 2 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     std::cout << "testing function F" << std::endl;
     begin = clock();
     for(int i=0; i<200; i++)
-        FUNCONVF::Eval<GpuConv2D_FromDevice>(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+        Eval<FUNCONVF,GpuConv2D_FromDevice>::Run(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for 200 GPU computations (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -114,7 +115,7 @@ int main() {
 
     begin = clock();
     for(int i=0; i<200; i++)
-        FUNCONVF::Eval<GpuConv1D_FromDevice>(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+        Eval<FUNCONVF,GpuConv1D_FromDevice>::Run(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for 200 GPU computations (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

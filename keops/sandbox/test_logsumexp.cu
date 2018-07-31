@@ -20,6 +20,7 @@
 #include "core/CpuConv.cpp"
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
+#include "core/reductions/logsumexp.h"
 
 using namespace keops;
 
@@ -76,7 +77,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -94,7 +95,7 @@ int main() {
     std::vector<__TYPE__> rescpu2(Nx*FUNCONVEXPF::DIM);
 
     begin = clock();
-    FUNCONVEXPF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
+    FUNCONVEXPEval<F,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     for(int i=0; i<vf.size(); i++)
     	vf[i] = log(vf[i]);
     end = clock();
@@ -115,10 +116,10 @@ int main() {
         s += std::abs(rescpu1[i]-rescpu2[i]);
     std::cout << std::endl << "mean abs error = " << s/Nx << std::endl << std::endl;
 
-    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
+    Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
 
     begin = clock();
-    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -132,7 +133,7 @@ int main() {
     std::cout << "..." << std::endl << std::endl;
     
     begin = clock();
-    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVF,GpuConv2D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -158,7 +159,7 @@ int main() {
     f = vf.data();
    
     begin = clock();
-    GX::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b, e);
+    Eval<GX,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -172,7 +173,7 @@ int main() {
     resgpu1.resize(Nx*GX::DIM); 
    
     begin = clock();
-    GX::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b, e);
+    Eval<GX,GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b, e);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -188,7 +189,7 @@ int main() {
     f = vf.data();
    
     begin = clock();
-    GX::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b, e);
+    Eval<GX,GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b, e);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -202,7 +203,7 @@ int main() {
     std::cout << "Testing Gradient of Log of Sum reduction of Exp" << std::endl;
 	using GX2 = Grad<FUNCONVEXPF,X,E>;
     begin = clock();
-	GX2::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b, e);
+	GX2::Eval<GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b, e);
     for(int i=0; i<vf.size(); i++)
     	vf[i] = vf[i]/exp(rescpu2[i/GX::DIM]);
     end = clock();

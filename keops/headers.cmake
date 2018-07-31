@@ -153,7 +153,7 @@ endif()
 if(NOT USENEWSYNTAX)
 
     if(NOT FORMULA)
-        Set(FORMULA "Scal<Square<Scalprod<_X<3,4>,_Y<4,4>>>,GaussKernel<_P<0,1>,_X<1,3>,_Y<2,3>,_Y<5,3>>>" CACHE STRING "Template formula to be instantiate")
+        Set(FORMULA "SumReduction<Scal<Square<Scalprod<_X<3,4>,_Y<4,4>>>,GaussKernel<_P<0,1>,_X<1,3>,_Y<2,3>,_Y<5,3>>>>" CACHE STRING "Template formula to be instantiated")
     endif()
     unset(FORMULA_OBJ CACHE)
 
@@ -161,7 +161,7 @@ else()
     
     if(NOT FORMULA_OBJ)
         Set(VAR_ALIASES "auto x=Vx(1,3); auto y=Vy(2,3); auto u=Vx(3,4); auto v=Vy(4,4); auto b=Vy(5,3); auto p=Pm(0,1);")
-        Set(FORMULA_OBJ "Square((u|v))*Exp(-p*SqNorm2(x-y))*b")
+        Set(FORMULA_OBJ "SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)")
     endif()
     unset(FORMULA CACHE)
 

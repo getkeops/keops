@@ -20,6 +20,7 @@
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"
+#include "core/reductions/sum.h"
 
 using namespace keops;
 
@@ -78,7 +79,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, params, x, y, b, u, v);
+    Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, params, x, y, b, u, v);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -91,7 +92,7 @@ int main() {
     std::cout << std::endl << std::endl << "Testing FF" << std::endl;
 
     begin = clock();
-    FUNCONVFF::Eval<CpuConv>(Nx, Ny, f, params, x, y, b, u, v);
+    Eval<FUNCONVFF,CpuConv>::Run(Nx, Ny, f, params, x, y, b, u, v);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

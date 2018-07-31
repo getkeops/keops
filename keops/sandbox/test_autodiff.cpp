@@ -25,8 +25,8 @@
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "../core/CpuConv.cpp"
-
+#include "core/CpuConv.cpp"
+#include "core/reductions/sum.h"
 
 using namespace keops;
 
@@ -50,8 +50,7 @@ int main() {
     // symbolic expression of the function ------------------------------------------------------
     
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    //using F = SumReduction<Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>>;
-    using F = SumReduction<U>;
+    using F = SumReduction<Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>>;
 
     // gradient with respect to X ---------------------------------------------------------------
     using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
@@ -82,7 +81,7 @@ int main() {
     std::cout << "testing function F" << std::endl;
 
     begin = clock();
-    F::Eval<CpuConv>(Nx, Ny, f, x, y, u, v, b, params);
+    Eval<F,CpuConv>::Run(Nx, Ny, f, x, y, u, v, b, params);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -103,7 +102,7 @@ int main() {
     std::cout << "testing function GX" << std::endl;
 
     begin = clock();
-    GX::Eval<CpuConv>(Nx, Ny, f, x, y, u, v, b, params, e);
+    Eval<GX,CpuConv>::Run(Nx, Ny, f, x, y, u, v, b, params, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -118,7 +117,7 @@ int main() {
     std::cout << "testing function GY" << std::endl;
 
     begin = clock();
-    GY::Eval<CpuConv>(Nx, Ny, f, x, y, u, v, b, params, e);
+    Eval<GY,CpuConv>::Run(Nx, Ny, f, x, y, u, v, b, params, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

@@ -3,35 +3,26 @@
 #include "core/Pack.h"
 
 #include "core/autodiff.h"
+#include "core/reductions/zero.h"
 
 namespace keops {
+
 // Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij anbd its index
 // operation is vectorized: if Fij is vector-valued, min+argmin is computed for each dimension.
-// tagI is equal:
-// - to 0 if you do the reduction over j (with i the index of the output vector),
-// - to 1 if you do the reduction over i (with j the index of the output vector).
-//
 
 template < class F, int tagI=0 >
-class MinArgMinReduction : public Reduction<F,tagI> {
-
-  public :
+struct MinArgMinReduction : public Reduction<F,tagI> {
 
         static const int DIM = 2*F::DIM;		// DIM is dimension of output of convolution ; for a min-argmin reduction it is equal to 2 times the dimension of output of formula
 
 	static const int DIMRED = DIM;	// dimension of temporary variable for reduction
 		
-        template < class CONV, typename... Args >
-        static int Eval(Args... args) {
-        	return CONV::Eval(MinArgMinReduction<F,tagI>(),args...);
-        }
-                
 		template < typename TYPE >
 		struct InitializeReduction {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp) {
 				for(int k=0; k<F::DIM; k++)
 					tmp[k] = PLUS_INFINITY<TYPE>::value; // initialize output
-				for(int k=F::DIM; k<DIM; k++)
+				for(int k=F::DIM; k<2*F::DIM; k++)
 					tmp[k] = 0; // initialize output
 			}
 		};
@@ -71,6 +62,49 @@ class MinArgMinReduction : public Reduction<F,tagI> {
 		};
 		
 		// no gradient implemented here		
+
+};
+
+// Implements the argmin reduction operation : for each i or each j, find the index of the
+// minimal value of Fij
+// operation is vectorized: if Fij is vector-valued, argmin is computed for each dimension.
+
+template < class F, int tagI=0 >
+struct ArgMinReduction : public MinArgMinReduction<F,tagI> {
+        
+        static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmin reduction it is equal to the dimension of output of formula
+		
+		template < typename TYPE >
+		struct FinalizeOutput {
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+				for(int k=0; k<F::DIM; k++)
+            		out[k] = tmp[F::DIM+k];
+			}
+		};
+		
+		template < class V, class GRADIN >
+		using DiffT = ZeroReduction<V::DIM,V::CAT>;
+
+};
+
+// Implements the min reduction operation : for each i or each j, find the 
+// minimal value of Fij
+// operation is vectorized: if Fij is vector-valued, argmin is computed for each dimension.
+
+template < class F, int tagI=0 >
+struct MinReduction : public MinArgMinReduction<F,tagI> {
+        
+        static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmin reduction it is equal to the dimension of output of formula
+		
+		template < typename TYPE >
+		struct FinalizeOutput {
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+				for(int k=0; k<F::DIM; k++)
+            		out[k] = tmp[k];
+			}
+		};
+		
+		// no gradient implemented here	
 
 };
 

@@ -19,8 +19,7 @@
 #include "core/formulas/newsyntax.h"
 
 #include "core/CpuConv.cpp"
-
-
+#include "core/reductions/sum.h"
 
 using namespace keops;
 
@@ -49,7 +48,7 @@ int main() {
     using F = decltype(g);
     //using F = decltype(g-g+IntCst(2)*g-g-g);
 
-    using FUNCONVF = typename SumReduction<F>::sEval;
+    using FUNCONVF = SumReduction<F>;
 
    // now we test ------------------------------------------------------------------------------
 
@@ -80,7 +79,7 @@ int main() {
     std::cout << std::endl;
 
     begin = clock();
-    CpuConv(FUNCONVF(), Nx, Ny, f, x, y, u, v, b, params);
+    Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, x, y, u, v, b, params);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

@@ -17,6 +17,7 @@
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
+#include "core/reductions/sum.h"
 
 using namespace keops;
 
@@ -95,7 +96,7 @@ int main() {
     std::cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     begin = clock();
-    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, params, x, y, u, v, b, x);
+    Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -103,7 +104,7 @@ int main() {
     fillrandom(vf);
 
     begin = clock();
-    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, params, x, y, u, v, b, x);
+    Eval<FUNCONVF,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -112,7 +113,7 @@ int main() {
     
     if(Nx*Ny<1e8) {
         begin = clock();
-        FUNCONVF::Eval<CpuConv>(Nx, Ny, f, params, x, y, u, v, b, x);
+        Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
         end = clock();
         std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -155,7 +156,7 @@ int main() {
     using FUNCONVFF = SumReduction<FF>;
 
     begin = clock();
-    FUNCONVFF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, params, x, y, u, v, b, x);
+    Eval<F,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -163,7 +164,7 @@ int main() {
     fillrandom(vf);
 
     begin = clock();
-    FUNCONVFF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, params, x, y, u, v, b, x);
+    Eval<F,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -172,7 +173,7 @@ int main() {
 
     if(Nx*Ny<1e8) {
         begin = clock();
-        FUNCONVFF::Eval<CpuConv>(Nx, Ny, f, params, x, y, u, v, b, x);
+        Eval<F,CpuConv>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
         end = clock();
         std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

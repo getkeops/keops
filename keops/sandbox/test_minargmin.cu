@@ -20,6 +20,7 @@
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
+#include "core/reductions/minargmin.h"
 
 using namespace keops;
 
@@ -68,7 +69,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -80,10 +81,10 @@ int main() {
         std::cout << rescpu[i] << " ";
     std::cout << "..." << std::endl << std::endl;
 
-    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
+    Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
 
     begin = clock();
-    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -97,7 +98,7 @@ int main() {
     std::cout << "..." << std::endl << std::endl;
     
     begin = clock();
-    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVF,GpuConv2D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

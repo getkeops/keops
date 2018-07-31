@@ -14,20 +14,23 @@ namespace keops {
 // - to 1 if you do the summation over i (with j the index of the output vector).
 //
 template < int DIM, int tagI=0 >
-class ZeroReduction : public Reduction<Zero<DIM>,tagI> {
+struct ZeroReduction : public Reduction<Zero<DIM>,tagI> {
+	
+	template < class V, class GRADIN >
+	using DiffT = ZeroReduction<V::DIM,V::CAT>;
+                
+};
 
-  public :
-          		
-        template < class CONV, typename TYPE, typename... Args >
-        static int Eval(int nx, int ny, TYPE *out, Args... args) {
+// specialized evaluation : no need to call a reduction operation for filling zeros
+
+template < int DIM, int tagI, class MODE >
+struct Eval<ZeroReduction<DIM,tagI>,MODE> {
+	template < typename TYPE, typename... Args >
+	static int Run(int nx, int ny, TYPE *out, Args... args) {
         	for(int k=0; k<(tagI==0?nx:ny)*DIM; k++)
         		 out[k] = 0;
 		return 0;
-        }
-                
-		template < class V, class GRADIN >
-		using DiffT = ZeroReduction<V::DIM,V::CAT>;
-                
+	}
 };
 
 }

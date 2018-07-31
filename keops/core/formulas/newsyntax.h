@@ -98,7 +98,7 @@ Scalprod<FA,FB> operator|(FA fa, FB fb) {
 
 // reductions
 
-#define SumReduction(F,I) SumReduction<F,I>
-#define LogSumExpReduction(F,I) LogSumExpReduction<F,I>
+#define SumReduction(F,I) SumReduction<decltype(F),I>()
+#define LogSumExpReduction(F,I) LogSumExpReduction<decltype(F),I>()
 
 }

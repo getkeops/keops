@@ -14,13 +14,6 @@
     #)
 #endif()
 
-
-add_executable(
-    test_cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/test.cpp
-)
-
-
 add_executable(
     test_autodiff_cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/test_autodiff.cpp
@@ -39,6 +32,31 @@ add_executable(
 add_executable(
     test_sumgauss_cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/test_sumgauss.cpp
+)
+
+add_executable(
+    test_argmin_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_argmin.cpp
+)
+
+add_executable(
+    test_argkmin_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_argkmin.cpp
+)
+
+add_executable(
+    test_kminargkmin_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_kminargkmin.cpp
+)
+
+add_executable(
+    test_minargmin_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_minargmin.cpp
+)
+
+add_executable(
+    test_logsumexp_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_logsumexp.cpp
 )
 
 # ----------------- equivalent code to compile_test_factorized
@@ -63,5 +81,26 @@ if (USE_CUDA)
         test_fromdevice
         ${CMAKE_CURRENT_SOURCE_DIR}/test_fromdevice.cu
     )
+
+    CUDA_add_executable(
+        test_sum
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_sum.cu
+    )
+
+    CUDA_add_executable(
+        test_argmin
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_argmin.cu
+    )
+
+    CUDA_add_executable(
+        test_minargmin
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_minargmin.cu
+    )
+
+    CUDA_add_executable(
+        test_logsumexp
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_logsumexp.cu
+    )
+
 endif()
 

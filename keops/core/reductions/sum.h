@@ -9,14 +9,9 @@
 namespace keops {
 
 // Implements the summation reduction operation
-// tagI is equal:
-// - to 0 if you do the summation over j (with i the index of the output vector),
-// - to 1 if you do the summation over i (with j the index of the output vector).
-//
-template < class F, int tagI=0 >
-class SumReduction : public Reduction<F,tagI> {
 
-  public :
+template < class F, int tagI=0 >
+struct SumReduction : public Reduction<F,tagI> {
           
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a sum reduction it is equal to the dimension of output of formula
 
@@ -30,11 +25,6 @@ class SumReduction : public Reduction<F,tagI> {
 			}
 		};
 
-        template < class CONV, typename... Args >
-        static int Eval(Args... args) {
-        	return CONV::Eval(SumReduction<F,tagI>(),args...);
-        }
-                
 		// equivalent of the += operation
 		template < typename TYPE >
 		struct ReducePairShort {

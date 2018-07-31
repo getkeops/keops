@@ -17,6 +17,7 @@
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"
+#include "core/reductions/kmin.h"
 
 using namespace keops;
 
@@ -65,7 +66,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
 
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;

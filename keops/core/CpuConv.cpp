@@ -6,12 +6,6 @@
 #include <vector>
 
 #include "core/Pack.h"
-#include "core/reductions/sum.h"
-#include "core/reductions/log_sum_exp.h"
-#include "core/reductions/argmin.h"
-#include "core/reductions/minargmin.h"
-#include "core/reductions/argkmin.h"
-#include "core/reductions/kminargkmin.h"
 
 // Host implementation of the convolution, for comparison
 

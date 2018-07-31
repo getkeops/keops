@@ -27,6 +27,7 @@
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
+#include "core/reductions/sum.h"
 
 using namespace keops;
 
@@ -163,27 +164,27 @@ int main() {
 
     std::cout << "blank run" << std::endl;
     begin = clock();
-    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, params, x, y, u, v, b);
+    Eval<FUNCONVF,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     std::cout << "time for blank run : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     std::cout << "testing function F" << std::endl;
     begin = clock();
-    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, params, x, y, u, v, b);
+    Eval<FUNCONVF,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, params, x, y, u, v, b);
+    Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, params, x, y, u, v, b);
+    Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -212,21 +213,21 @@ int main() {
 
     std::cout << "testing gradient wrt X" << std::endl;
     begin = clock();
-    FUNCONVGX::Eval<GpuConv2D_FromHost>(Nx, Ny, f, params, x, y, u, v, b, e);
+    FUNCONVEval<GX,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    FUNCONVGX::Eval<GpuConv1D_FromHost>(Nx, Ny, f, params, x, y, u, v, b, e);
+    FUNCONVEval<GX,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    FUNCONVGX::Eval<CpuConv>(Nx, Ny, f, params, x, y, u, v, b, e);
+    FUNCONVEval<GX,CpuConv>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -255,21 +256,21 @@ int main() {
 
     std::cout << "testing gradient wrt Y" << std::endl;
     begin = clock();
-    FUNCONVGY::Eval<GpuConv2D_FromHost>(Ny, Nx, f, params, x, y, u, v, b, e);
+    FUNCONVEval<GY,GpuConv2D_FromHost>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    FUNCONVGY::Eval<GpuConv1D_FromHost>(Ny, Nx, f, params, x, y, u, v, b, e);
+    FUNCONVEval<GY,GpuConv1D_FromHost>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    FUNCONVGY::Eval<CpuConv>(Ny, Nx, f, params, x, y, u, v, b, e);
+    FUNCONVEval<GY,CpuConv>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
