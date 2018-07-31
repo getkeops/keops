@@ -52,10 +52,10 @@ int main() {
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
     using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
-    using FUNCONVF = typename SumReduction<F>::sEval;
+    using FUNCONVF = SumReduction<F>;
 
     // gradient with respect to X ---------------------------------------------------------------
-    using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
+    using Eta = Var<6,FUNCONVF::DIM,0>; // new variable is in seventh position and is input of gradient
 
     /*
      * Using GX = Grad<F,X,Eta> = (\partial_X F).Eta in a convolution sum (SumReduction<...>) makes sense.
@@ -140,14 +140,14 @@ int main() {
 
     int Nx=5000, Ny=2000;
 
-    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vf(Nx*FUNCONVF::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
     std::vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
     std::vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
     std::vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
     std::vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
     std::vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    std::vector<__TYPE__> resgpu2D(Nx*F::DIM), resgpu1D(Nx*F::DIM), rescpu(Nx*F::DIM);
+    std::vector<__TYPE__> resgpu2D(Nx*FUNCONVF::DIM), resgpu1D(Nx*FUNCONVF::DIM), rescpu(Nx*FUNCONVF::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 4.0;
@@ -163,27 +163,27 @@ int main() {
 
     std::cout << "blank run" << std::endl;
     begin = clock();
-    GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
+    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     std::cout << "time for blank run : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     std::cout << "testing function F" << std::endl;
     begin = clock();
-    GpuConv2D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
+    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    GpuConv1D(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
+    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, u, v, b);
+    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, params, x, y, u, v, b);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -191,37 +191,42 @@ int main() {
 
     // display mean of errors
     __TYPE__ s = 0;
-    for(int i=0; i<Nx*F::DIM; i++)
+    for(int i=0; i<Nx*FUNCONVF::DIM; i++)
         s += std::abs(resgpu2D[i]-rescpu[i]);
     std::cout << "mean abs error 2D =" << s/Nx << std::endl;
 
     s = 0;
-    for(int i=0; i<Nx*F::DIM; i++)
+    for(int i=0; i<Nx*FUNCONVF::DIM; i++)
         s += std::abs(resgpu1D[i]-rescpu[i]);
     std::cout << "mean abs error 1D =" << s/Nx << std::endl;
 
 
 
+    rescpu.resize(Nx*FUNCONVGX::DIM);
+    resgpu2D.resize(Nx*FUNCONVGX::DIM);
+    resgpu1D.resize(Nx*FUNCONVGX::DIM);
+    vf.resize(Nx*FUNCONVGX::DIM);
+    f = vf.data();
 
     std::vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
 
     std::cout << "testing gradient wrt X" << std::endl;
     begin = clock();
-    GpuConv2D(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
+    FUNCONVGX::Eval<GpuConv2D_FromHost>(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    GpuConv1D(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
+    FUNCONVGX::Eval<GpuConv1D_FromHost>(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    CpuConv(FUNCONVGX(), Nx, Ny, f, params, x, y, u, v, b, e);
+    FUNCONVGX::Eval<CpuConv>(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -250,21 +255,21 @@ int main() {
 
     std::cout << "testing gradient wrt Y" << std::endl;
     begin = clock();
-    GpuConv2D(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
+    FUNCONVGY::Eval<GpuConv2D_FromHost>(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    GpuConv1D(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
+    FUNCONVGY::Eval<GpuConv1D_FromHost>(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    CpuConv(FUNCONVGY(), Ny, Nx, f, params, x, y, u, v, b, e);
+    FUNCONVGY::Eval<CpuConv>(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

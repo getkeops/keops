@@ -25,8 +25,8 @@ class ArgKMinReduction : public Reduction<F,tagI> {
 	static const int DIMRED = 2*DIM;	// dimension of temporary variable for reduction
 		
         template < class CONV, typename... Args >
-        static void Eval(Args... args) {
-        	CONV::Eval(ArgKMinReduction<F,K,tagI>(),args...);
+        static int Eval(Args... args) {
+        	return CONV::Eval(ArgKMinReduction<F,K,tagI>(),args...);
         }
                 
 		template < typename TYPE >
@@ -67,7 +67,6 @@ class ArgKMinReduction : public Reduction<F,tagI> {
 		template < typename TYPE >
 		struct FinalizeOutput {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-				int l;
 				for(int k=0; k<F::DIM; k++) 
 					for(int p=k, l=k; l<K*2*F::DIM+k; p+=F::DIM, l+=2*F::DIM) 
             			out[p] = tmp[l+F::DIM];

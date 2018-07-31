@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_fromdevice test_fromdevice.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -D__TYPE__=float -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_fromdevice test_fromdevice.cu
 
 // testing "from device" convolution, i.e. convolution which is performed on the device
 // directly from device data
@@ -50,7 +50,7 @@ int main() {
     // here we define F = exp(-C*|X-Y|^2) * Beta in usual notations
     using F = Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
 
-    using FUNCONVF = typename SumReduction<F>::sEval;
+    using FUNCONVF = SumReduction<F>;
 
 
     // now we test ------------------------------------------------------------------------------
@@ -58,9 +58,9 @@ int main() {
     int Nx=4000, Ny=60000;
 
     __TYPE__ *f_d;
-    cudaMalloc(&f_d, sizeof(__TYPE__)*(Nx*F::DIM));
+    cudaMalloc(&f_d, sizeof(__TYPE__)*(Nx*FUNCONVF::DIM));
 	thrust::device_ptr<__TYPE__> f_d_thrust(f_d);
-    thrust::fill(f_d_thrust, f_d_thrust + Nx*F::DIM, 3.4);
+    thrust::fill(f_d_thrust, f_d_thrust + Nx*FUNCONVF::DIM, 3.4);
     
     __TYPE__ *param_d;
     cudaMalloc(&param_d, sizeof(__TYPE__)*C::DIM);
@@ -84,25 +84,27 @@ int main() {
     
     clock_t begin, end;
 
+    std::cout << "blank run 1" << std::endl;
     begin = clock();
+    FUNCONVF::Eval<GpuConv2D_FromDevice>(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
-    std::cout << "time for GPU initialization : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    std::cout << "time for blank run 1 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::cout << "blank run" << std::endl;
+    std::cout << "blank run 2" << std::endl;
     begin = clock();
-    GpuConv2D_FromDevice(FUNCONVF(), Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+    FUNCONVF::Eval<GpuConv2D_FromDevice>(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
-    std::cout << "time for blank run : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    std::cout << "time for blank run 2 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     std::cout << "testing function F" << std::endl;
     begin = clock();
     for(int i=0; i<200; i++)
-        GpuConv2D_FromDevice(FUNCONVF(), Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+        FUNCONVF::Eval<GpuConv2D_FromDevice>(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for 200 GPU computations (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::vector<__TYPE__> resgpu2D(Nx*F::DIM);     fill(resgpu2D.begin(),resgpu2D.end(),2.5);
-    cudaMemcpy(resgpu2D.data(), f_d, Nx*F::DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
+    std::vector<__TYPE__> resgpu2D(Nx*FUNCONVF::DIM);     fill(resgpu2D.begin(),resgpu2D.end(),2.5);
+    cudaMemcpy(resgpu2D.data(), f_d, Nx*FUNCONVF::DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
 
     // display output
     std::cout << std::endl << "resgpu2D =";
@@ -112,12 +114,12 @@ int main() {
 
     begin = clock();
     for(int i=0; i<200; i++)
-        GpuConv1D_FromDevice(FUNCONVF(), Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+        FUNCONVF::Eval<GpuConv1D_FromDevice>(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for 200 GPU computations (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::vector<__TYPE__> resgpu1D(Nx*F::DIM);     fill(resgpu1D.begin(),resgpu1D.end(),3.4);
-    cudaMemcpy(resgpu1D.data(), f_d, Nx*F::DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
+    std::vector<__TYPE__> resgpu1D(Nx*FUNCONVF::DIM);     fill(resgpu1D.begin(),resgpu1D.end(),3.4);
+    cudaMemcpy(resgpu1D.data(), f_d, Nx*FUNCONVF::DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
 
     // display output
     std::cout << std::endl << "resgpu1D =";
@@ -127,7 +129,7 @@ int main() {
 
     // display mean of errors
     __TYPE__ s = 0;
-    for(int i=0; i<Nx*F::DIM; i++)
+    for(int i=0; i<Nx*FUNCONVF::DIM; i++)
         s += std::abs(resgpu1D[i]-resgpu2D[i]);
     std::cout << "mean abs error 1D/2D =" << s/Nx << std::endl;
 

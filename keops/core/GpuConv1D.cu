@@ -8,8 +8,11 @@
 #include "core/reductions/log_sum_exp.h"
 #include "core/reductions/argmin.h"
 #include "core/reductions/minargmin.h"
+#include "core/reductions/argkmin.h"
+#include "core/reductions/kminargkmin.h"
 
 namespace keops {
+
 template < typename TYPE, class FUN >
 __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py, TYPE** pp) {
 
@@ -61,13 +64,16 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         __syncthreads();
     }
     if(i<nx) {
-    	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT);
+    	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
     }
 
 }
 
+
+struct GpuConv1D_FromHost {
+
 template < typename TYPE, class FUN >
-int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h) {
+static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h) {
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
@@ -166,8 +172,82 @@ int GpuConv1D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
     return 0;
 }
 
+
+// and use getlist to enroll them into "pointers arrays" px and py.
+template < typename TYPE, class FUN, typename... Args >
+static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, Args... args) {
+
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
+
+    const int SIZEI = VARSI::SIZE+1;
+    const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
+
+    using DIMSX = GetDims<VARSI>;
+    using DIMSY = GetDims<VARSJ>;
+    using DIMSP = GetDims<VARSP>;
+
+    using INDSI = GetInds<VARSI>;
+    using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
+
+    TYPE *px_h[SIZEI];
+    TYPE *py_h[SIZEJ];
+    TYPE *pp_h[SIZEP];
+
+    px_h[0] = x1_h;
+    getlist<INDSI>(px_h+1,args...);
+    getlist<INDSJ>(py_h,args...);
+    getlist<INDSP>(pp_h,args...);
+
+    return Eval_(fun,nx,ny,px_h,py_h,pp_h);
+
+}
+
+// Idem, but with args given as an array of arrays, instead of an explicit list of arrays
 template < typename TYPE, class FUN >
-int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php_d) {
+int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args) {
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
+
+    const int SIZEI = VARSI::SIZE+1;
+    const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
+
+    using DIMSX = GetDims<VARSI>;
+    using DIMSY = GetDims<VARSJ>;
+    using DIMSP = GetDims<VARSP>;
+
+    using INDSI = GetInds<VARSI>;
+    using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
+
+    TYPE *px_h[SIZEI];
+    TYPE *py_h[SIZEJ];
+    TYPE *pp_h[SIZEP];
+
+    px_h[0] = x1_h;
+    for(int i=1; i<SIZEI; i++)
+        px_h[i] = args[INDSI::VAL(i-1)];
+    for(int i=0; i<SIZEJ; i++)
+        py_h[i] = args[INDSJ::VAL(i)];
+    for(int i=0; i<SIZEP; i++)
+        pp_h[i] = args[INDSP::VAL(i)];
+
+    return Eval_(fun,nx,ny,px_h,py_h,pp_h);
+
+}
+
+
+};
+
+
+struct GpuConv1D_FromDevice {
+template < typename TYPE, class FUN >
+static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php_d) {
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
@@ -212,77 +292,9 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
     return 0;
 }
 
-// and use getlist to enroll them into "pointers arrays" px and py.
-template < typename TYPE, class FUN, typename... Args >
-int GpuConv1D(FUN fun, int nx, int ny, TYPE* x1_h, Args... args) {
-
-    typedef typename FUN::VARSI VARSI;
-    typedef typename FUN::VARSJ VARSJ;
-    typedef typename FUN::VARSP VARSP;
-
-    const int SIZEI = VARSI::SIZE+1;
-    const int SIZEJ = VARSJ::SIZE;
-    const int SIZEP = VARSP::SIZE;
-
-    using DIMSX = GetDims<VARSI>;
-    using DIMSY = GetDims<VARSJ>;
-    using DIMSP = GetDims<VARSP>;
-
-    using INDSI = GetInds<VARSI>;
-    using INDSJ = GetInds<VARSJ>;
-    using INDSP = GetInds<VARSP>;
-
-    TYPE *px_h[SIZEI];
-    TYPE *py_h[SIZEJ];
-    TYPE *pp_h[SIZEP];
-
-    px_h[0] = x1_h;
-    getlist<INDSI>(px_h+1,args...);
-    getlist<INDSJ>(py_h,args...);
-    getlist<INDSP>(pp_h,args...);
-
-    return GpuConv1D_FromHost(fun,nx,ny,px_h,py_h,pp_h);
-
-}
-
-// Idem, but with args given as an array of arrays, instead of an explicit list of arrays
-template < typename TYPE, class FUN >
-int GpuConv1D(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args) {
-    typedef typename FUN::VARSI VARSI;
-    typedef typename FUN::VARSJ VARSJ;
-    typedef typename FUN::VARSP VARSP;
-
-    const int SIZEI = VARSI::SIZE+1;
-    const int SIZEJ = VARSJ::SIZE;
-    const int SIZEP = VARSP::SIZE;
-
-    using DIMSX = GetDims<VARSI>;
-    using DIMSY = GetDims<VARSJ>;
-    using DIMSP = GetDims<VARSP>;
-
-    using INDSI = GetInds<VARSI>;
-    using INDSJ = GetInds<VARSJ>;
-    using INDSP = GetInds<VARSP>;
-
-    TYPE *px_h[SIZEI];
-    TYPE *py_h[SIZEJ];
-    TYPE *pp_h[SIZEP];
-
-    px_h[0] = x1_h;
-    for(int i=1; i<SIZEI; i++)
-        px_h[i] = args[INDSI::VAL(i-1)];
-    for(int i=0; i<SIZEJ; i++)
-        py_h[i] = args[INDSJ::VAL(i)];
-    for(int i=0; i<SIZEP; i++)
-        pp_h[i] = args[INDSP::VAL(i)];
-
-    return GpuConv1D_FromHost(fun,nx,ny,px_h,py_h,pp_h);
-
-}
-
 // Same wrappers, but for data located on the device
 template < typename TYPE, class FUN, typename... Args >
-int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
+static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
@@ -310,12 +322,12 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
     getlist<INDSJ>(phy_d,args...);
     getlist<INDSP>(php_d,args...);
 
-    return GpuConv1D_FromDevice(fun,nx,ny,phx_d,phy_d,php_d);
+    return Eval_(fun,nx,ny,phx_d,phy_d,php_d);
 
 }
 
 template < typename TYPE, class FUN >
-int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
+static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;
@@ -344,8 +356,10 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
     for(int i=0; i<SIZEP; i++)
         pp_d[i] = args[INDSP::VAL(i)];
 
-    return GpuConv1D_FromDevice(fun,nx,ny,px_d,py_d,pp_d);
+    return Eval_(fun,nx,ny,px_d,py_d,pp_d);
 
 }
+
+};
 
 }

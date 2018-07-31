@@ -31,8 +31,8 @@ class SumReduction : public Reduction<F,tagI> {
 		};
 
         template < class CONV, typename... Args >
-        static void Eval(Args... args) {
-        	CONV::Eval(SumReduction<F,tagI>(),args...);
+        static int Eval(Args... args) {
+        	return CONV::Eval(SumReduction<F,tagI>(),args...);
         }
                 
 		// equivalent of the += operation

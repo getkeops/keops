@@ -19,9 +19,10 @@ class ZeroReduction : public Reduction<Zero<DIM>,tagI> {
   public :
           		
         template < class CONV, typename TYPE, typename... Args >
-        static void Eval(int nx, int ny, TYPE *out, Args... args) {
+        static int Eval(int nx, int ny, TYPE *out, Args... args) {
         	for(int k=0; k<(tagI==0?nx:ny)*DIM; k++)
         		 out[k] = 0;
+		return 0;
         }
                 
 		template < class V, class GRADIN >

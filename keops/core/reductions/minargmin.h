@@ -22,8 +22,8 @@ class MinArgMinReduction : public Reduction<F,tagI> {
 	static const int DIMRED = DIM;	// dimension of temporary variable for reduction
 		
         template < class CONV, typename... Args >
-        static void Eval(Args... args) {
-        	CONV::Eval(MinArgMinReduction<F,tagI>(),args...);
+        static int Eval(Args... args) {
+        	return CONV::Eval(MinArgMinReduction<F,tagI>(),args...);
         }
                 
 		template < typename TYPE >

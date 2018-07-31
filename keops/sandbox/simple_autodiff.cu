@@ -22,24 +22,24 @@ using C = Param<0,1>;	// C is the first variable and is a scalar parameter
 // define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
 using F = Scal<Square<Scalprod<U,V>>,Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
-using FUNCONVF = typename SumReduction<F>::sEval;
+using FUNCONVF = SumReduction<F>;
 
 extern "C" int FConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* gamma, int nx, int ny) {
     float params[1];
     params[0] = ooSigma2;
-    return GpuConv2D(FUNCONVF(), nx, ny, gamma, params, x, y, u, v, beta);
+    return FUNCONVF::Eval<GpuConv2D_FromHost>(nx, ny, gamma, params, x, y, u, v, beta);
 }
 
 
 // now define the gradient wrt XX
-using Eta = Var<6,F::DIM>;	// new variable is in seventh position and is input of gradient
+using Eta = Var<6,FUNCONVF::DIM>;	// new variable is in seventh position and is input of gradient
 
 using FUNCONVGX = Grad<FUNCONVF,X,Eta>;
 
 extern "C" int GXConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) {
     float params[1];
     params[0] = ooSigma2;
-    return GpuConv2D(FUNCONVGX(), nx, ny, gamma, params, x, y, u, v, beta, eta);
+    return FUNCONVGX::Eval<GpuConv2D_FromHost>(nx, ny, gamma, params, x, y, u, v, beta, eta);
 }
 
 
@@ -50,7 +50,7 @@ using FUNCONVGY = Grad<FUNCONVF,Y,Eta>;
 extern "C" int GYConv(float ooSigma2, float* x, float* y, float* u, float* v, float* beta, float* eta, float* gamma, int nx, int ny) {
     float params[1];
     params[0] = ooSigma2;
-    return GpuConv2D(FUNCONVGY(), ny, nx, params, gamma, x, y, u, v, beta, eta);
+    return FUNCONVGY::Eval<GpuConv2D_FromHost>(ny, nx, params, gamma, x, y, u, v, beta, eta);
 }
 
 

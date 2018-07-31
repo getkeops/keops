@@ -19,8 +19,6 @@ namespace keops {
 
 #define Pm(N,DIM) _P<N,DIM>()
 
-#define LogSumExp(f) LogSumExp<decltype(f)>()
-
 #define Factorize(F,G) Factorize<decltype(F),decltype(G)>()
 
 #define AutoFactorize(F) AutoFactorize<decltype(F)>()
@@ -100,9 +98,7 @@ Scalprod<FA,FB> operator|(FA fa, FB fb) {
 
 // reductions
 
-#define SumReduction(F) SumReduction<F>
 #define SumReduction(F,I) SumReduction<F,I>
-#define LogSumExpReduction(F) LogSumExpReduction<F>
 #define LogSumExpReduction(F,I) LogSumExpReduction<F,I>
 
 }

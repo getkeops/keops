@@ -25,8 +25,8 @@ class KMinArgKMinReduction : public Reduction<F,tagI> {
 	static const int DIMRED = DIM;	// dimension of temporary variable for reduction
 		
         template < class CONV, typename... Args >
-        static void Eval(Args... args) {
-        	CONV::Eval(KMinArgKMinReduction<F,K,tagI>(),args...);
+        static int Eval(Args... args) {
+        	return CONV::Eval(KMinArgKMinReduction<F,K,tagI>(),args...);
         }
                 
 		template < typename TYPE >
