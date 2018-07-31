@@ -67,27 +67,12 @@ int main() {
 
     std::cout << "Testing LogSumExp reduction" << std::endl;
 
-    int Nx=5, Ny=4;
+    int Nx=5000, Ny=2000;
         
     std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
     std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();
     std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *y = vy.data();
     std::vector<__TYPE__> vb(Ny*DIMVECT); fillrandom(vb); __TYPE__ *b = vb.data();
-
-    std::cout << "vx = ";
-    for(int i=0; i<5; i++)
-        std::cout << vx[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
-
-    std::cout << "vy = ";
-    for(int i=0; i<2; i++)
-        std::cout << vy[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
-
-    std::cout << "vb = ";
-    for(int i=0; i<2; i++)
-        std::cout << vb[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
 
     std::vector<__TYPE__> rescpu1(Nx*F::DIM);
 
@@ -145,11 +130,7 @@ int main() {
     vf.resize(Nx*GX::DIM);
     f = vf.data();
 
-    std::vector<__TYPE__> ve(Nx*DIMPOINT); fillones(ve); __TYPE__ *e = ve.data();
-    std::cout << "ve = ";
-    for(int i=0; i<5; i++)
-        std::cout << ve[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
+    std::vector<__TYPE__> ve(Nx*DIMPOINT); fillrandom(ve); __TYPE__ *e = ve.data();
 
     
     begin = clock();
@@ -168,17 +149,8 @@ int main() {
 	using GX2 = Grad<SUMEXPF,X,E>;
     begin = clock();
 	GX2::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b, e);
-
-    std::cout << "rescpu2 = ";
-    for(int i=0; i<5; i++)
-        std::cout << rescpu2[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
-    std::cout << "vf = ";
-    for(int i=0; i<5; i++)
-        std::cout << vf[i] << " ";
-
     for(int i=0; i<vf.size(); i++)
-    	vf[i] = vf[i]/rescpu2[i/GX::DIM];
+    	vf[i] = vf[i]/exp(rescpu2[i/GX::DIM]);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -187,11 +159,11 @@ int main() {
     for(int i=0; i<5; i++)
         std::cout << rescpu2[i] << " ";
     std::cout << "..." << std::endl << std::endl;
-    std::cout << "vf = ";
-    for(int i=0; i<5; i++)
-        std::cout << vf[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
-	
+
+    // display mean of errors
+    for(int i=0; i<Nx*GX::DIM; i++)
+        s += std::abs(rescpu1[i]-rescpu2[i]);
+    std::cout << std::endl << "mean abs error = " << s/Nx << std::endl << std::endl;
 
 }
 

@@ -37,8 +37,18 @@ class SumReduction : public Reduction<F,tagI> {
                 
 		// equivalent of the += operation
 		template < typename TYPE >
-		struct ReducePair {
+		struct ReducePairShort {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+				for(int k=0; k<DIM; k++) {
+					tmp[k] += xi[k];
+				}
+			}
+		};
+        
+		// equivalent of the += operation
+		template < typename TYPE >
+		struct ReducePair {
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
 				for(int k=0; k<DIM; k++) {
 					tmp[k] += xi[k];
 				}
@@ -47,7 +57,7 @@ class SumReduction : public Reduction<F,tagI> {
         
 		template < typename TYPE >
 		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px) {
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
 				for(int k=0; k<DIM; k++)
             				out[k] = tmp[k];
 			}

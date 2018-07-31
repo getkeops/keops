@@ -53,8 +53,8 @@ int main() {
     std::cout << "Function FF = factorized version of F :" << std::endl;    
     std::cout << PrintFormula<FF>();
 
-    using FUNCONVF = typename SumReduction<F>::sEval;
-    using FUNCONVFF = typename SumReduction<FF>::sEval;
+    using FUNCONVF = SumReduction<F>;
+    using FUNCONVFF = SumReduction<FF>;
 
     // now we test ------------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ int main() {
     clock_t begin, end;
 
     begin = clock();
-    CpuConv(FUNCONVF(), Nx, Ny, f, params, x, y, b, u, v);
+    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, params, x, y, b, u, v);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -91,7 +91,7 @@ int main() {
     std::cout << std::endl << std::endl << "Testing FF" << std::endl;
 
     begin = clock();
-    CpuConv(FUNCONVFF(), Nx, Ny, f, params, x, y, b, u, v);
+    FUNCONVFF::Eval<CpuConv>(Nx, Ny, f, params, x, y, b, u, v);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

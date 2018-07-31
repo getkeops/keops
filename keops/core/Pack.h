@@ -65,6 +65,12 @@ static constexpr T static_max(T a, T b) {
     return a < b ? b : a;
 }
 
+// At compilation time, detect the minimum between two values (typically, dimensions)
+template <typename T>
+static constexpr T static_min(T a, T b) {
+    return a < b ? a : b;
+}
+
 // custom implementation of tuple "get" function, to avoid the use of thrust/tuple
 // which is limited to 10 arguments. This function works only when all arguments
 // have same type
