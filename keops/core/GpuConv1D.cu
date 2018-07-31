@@ -202,7 +202,7 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, Args... args) {
 
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays
 template < typename TYPE, class FUN >
-int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args) {
+static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args) {
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;

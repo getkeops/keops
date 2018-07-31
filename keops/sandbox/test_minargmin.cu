@@ -20,7 +20,7 @@
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
-#include "core/reductions/minargmin.h"
+#include "core/reductions/min.h"
 
 using namespace keops;
 

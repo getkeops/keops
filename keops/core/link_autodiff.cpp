@@ -13,7 +13,7 @@ using namespace keops;
 // Convolutions on Cpu //
 /////////////////////////
 
-extern "C" int CpuReduction(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
+extern "C" int CpuReduc(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
     return Eval<F,CpuConv>::Run(nx, ny, gamma, args);
 }
 

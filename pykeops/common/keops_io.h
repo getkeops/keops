@@ -4,20 +4,15 @@
 
 
 extern "C" {
-    int CpuConv(int, int, __TYPE__*, __TYPE__**);
-    int CpuTransConv(int, int, __TYPE__*, __TYPE__**);
+    int CpuReduc(int, int, __TYPE__*, __TYPE__**);
 };
 
 #if USE_CUDA
 extern "C" {
-    int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
-    int GpuConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
-    int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
-    int GpuConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
-    int GpuTransConv1D(int, int, __TYPE__*, __TYPE__**);
-    int GpuTransConv1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
-    int GpuTransConv2D(int, int, __TYPE__*, __TYPE__**);
-    int GpuTransConv2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+    int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**);
+    int GpuReduc1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+    int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**);
+    int GpuReduc2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 };
 #endif
 
@@ -30,9 +25,10 @@ namespace py = pybind11;
 //                           Keops
 /////////////////////////////////////////////////////////////////////////////////
 
-using VARSI = typename F::template VARS<0>;    // list variables of type I
-using VARSJ = typename F::template VARS<1>;    // list variables of type J
-using VARSP = typename F::template VARS<2>;    // list variables of type parameter
+
+using VARSI = F::VARSI;    // list variables of type I
+using VARSJ = F::VARSJ;    // list variables of type J
+using VARSP = F::VARSP;    // list variables of type parameter
 
 using DIMSX = GetDims<VARSI>;
 using DIMSY = GetDims<VARSJ>;
@@ -48,8 +44,10 @@ const int NARGSI = VARSI::SIZE; // number of I variables used in formula F
 const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
 const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
 
-const int NARGS = Generic<F>::sEval::NMINARGS;
+const int NARGS = F::NMINARGS;
 const int DIMOUT = F::DIM;
+
+const int tagIJ = F::tagI
 
 const std::string f =  PrintFormula<F>();
 
@@ -153,7 +151,7 @@ std::pair<int,int> check_args(std::vector<array_t> obj_ptr) {
 
 
 template < typename array_t >
-array_t launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice,
+array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
                         int nx, int ny, int nout, int dimout,
                         __TYPE__ ** castedargs);
 
@@ -163,9 +161,8 @@ array_t launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice,
 /////////////////////////////////////////////////////////////////////////////////
 
 template < typename array_t >
-array_t generic_red(int tagIJ,            // tagIJ=0         means sum over j,         tagIJ=1         means sum over j
-                    int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
-                    int tagCpuGpu,        // tagCpuGpu=0     means convolution on Cpu, tagCpuGpu=1     means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
+array_t generic_red(int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
+                    int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1     means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
                     int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means no suffix
                     py::args py_args) {
 
@@ -177,7 +174,6 @@ array_t generic_red(int tagIJ,            // tagIJ=0         means sum over j,  
         + " in " + f
         );
 
-    check_tag(tagIJ, "IJ");
     check_tag(tag1D2D, "1D2D");
     check_tag(tagCpuGpu, "CpuGpu");
     check_tag(tagHostDevice, "HostDevice");
@@ -200,7 +196,7 @@ array_t generic_red(int tagIJ,            // tagIJ=0         means sum over j,  
     int nout = (tagIJ == 0)? n.first : n.second;
 
     // Call Cuda codes
-    array_t result = launch_keops<array_t>(tagIJ, tag1D2D, tagCpuGpu, tagHostDevice,
+    array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice,
                             n.first, n.second, // nx, ny
                             nout, F::DIM,      // dimout, nout
                             castedargs);

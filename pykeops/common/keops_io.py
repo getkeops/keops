@@ -6,7 +6,7 @@ from pykeops.common.compile_routines import compile_generic_routine
 
 
 def load_keops(formula, aliases, cuda_type, lang):
-    # create the name from formula, alisas and cuda_type.
+    # create the name from formula, aliases and cuda_type.
     dll_name = create_name(formula, aliases, cuda_type, lang)
     
     # Import and compile

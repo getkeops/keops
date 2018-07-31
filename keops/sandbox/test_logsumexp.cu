@@ -20,7 +20,8 @@
 #include "core/CpuConv.cpp"
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
-#include "core/reductions/logsumexp.h"
+#include "core/reductions/log_sum_exp.h"
+#include "core/reductions/sum.h"
 
 using namespace keops;
 
@@ -95,7 +96,7 @@ int main() {
     std::vector<__TYPE__> rescpu2(Nx*FUNCONVEXPF::DIM);
 
     begin = clock();
-    FUNCONVEXPEval<F,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
+    Eval<FUNCONVEXPF,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     for(int i=0; i<vf.size(); i++)
     	vf[i] = log(vf[i]);
     end = clock();
@@ -203,7 +204,7 @@ int main() {
     std::cout << "Testing Gradient of Log of Sum reduction of Exp" << std::endl;
 	using GX2 = Grad<FUNCONVEXPF,X,E>;
     begin = clock();
-	GX2::Eval<GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b, e);
+	Eval<GX2,GpuConv1D_FromHost>::Run(Nx, Ny, f, oos2, x, y, b, e);
     for(int i=0; i<vf.size(); i++)
     	vf[i] = vf[i]/exp(rescpu2[i/GX::DIM]);
     end = clock();

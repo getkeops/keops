@@ -30,40 +30,25 @@ __TYPE__* get_data(py::array_t<__TYPE__, py::array::c_style> obj_ptri){
 
 
 template <>
-py::array_t< __TYPE__, py::array::c_style > launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice,
+py::array_t< __TYPE__, py::array::c_style > launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
                         int nx, int ny, int nout, int dimout,
                         __TYPE__ ** castedargs){
 
     auto result_array = py::array_t<__TYPE__, py::array::c_style>({nout,dimout});
-    if (tagCpuGpu == 0) {
-
-        if (tagIJ == 0) {
-            CpuConv(nx, ny,  get_data(result_array), castedargs);
-        } else if (tagIJ == 1) {
-            CpuTransConv(nx, ny, get_data(result_array), castedargs);
-        }
-
-    } else if (tagCpuGpu == 1) {
-
+    if (tagCpuGpu == 0) 
+        CpuReduc(nx, ny,  get_data(result_array), castedargs);
+    else if (tagCpuGpu == 1)
 #if USE_CUDA
-        if (tagIJ == 0) {
-            if (tag1D2D == 0) {
-                GpuConv1D( nx, ny, get_data(result_array), castedargs);
-            } else if (tag1D2D == 1) {
-                GpuConv2D( nx, ny, get_data(result_array), castedargs);
-            }
-        } else if (tagIJ == 1) {
-            if (tag1D2D == 0) {
-                GpuTransConv1D( nx, ny, get_data(result_array), castedargs);
-            } else if (tag1D2D == 1) {
-                GpuTransConv2D( nx, ny, get_data(result_array), castedargs);
-            }
-        }
+        if (tagHostDevice==0)
+            if (tag1D2D == 0)
+                GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs);
+            else if (tag1D2D == 1)
+                GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs);
+        else if (tagHostDevice==1)
+            throw std::runtime_error("[KeOps] Gpu computations with Numpy are performed from host data... try to set tagHostDevice to 0.");
 #else
         throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");
 #endif
-
-    }
     return result_array;
 }
 

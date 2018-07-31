@@ -213,21 +213,21 @@ int main() {
 
     std::cout << "testing gradient wrt X" << std::endl;
     begin = clock();
-    FUNCONVEval<GX,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
+    Eval<FUNCONVGX,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    FUNCONVEval<GX,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
+    Eval<FUNCONVGX,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    FUNCONVEval<GX,CpuConv>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
+    Eval<FUNCONVGX,CpuConv>::Run(Nx, Ny, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -256,21 +256,21 @@ int main() {
 
     std::cout << "testing gradient wrt Y" << std::endl;
     begin = clock();
-    FUNCONVEval<GY,GpuConv2D_FromHost>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
+    Eval<FUNCONVGY,GpuConv2D_FromHost>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu2D = vf;
 
     begin = clock();
-    FUNCONVEval<GY,GpuConv1D_FromHost>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
+    Eval<FUNCONVGY,GpuConv1D_FromHost>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     resgpu1D = vf;
 
     begin = clock();
-    FUNCONVEval<GY,CpuConv>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
+    Eval<FUNCONVGY,CpuConv>::Run(Ny, Nx, f, params, x, y, u, v, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

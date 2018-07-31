@@ -156,7 +156,7 @@ int main() {
     using FUNCONVFF = SumReduction<FF>;
 
     begin = clock();
-    Eval<F,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
+    Eval<FUNCONVFF,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (first run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -164,7 +164,7 @@ int main() {
     fillrandom(vf);
 
     begin = clock();
-    Eval<F,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
+    Eval<FUNCONVFF,GpuConv2D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
     end = clock();
     std::cout << "time for GPU computation (second run) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -173,7 +173,7 @@ int main() {
 
     if(Nx*Ny<1e8) {
         begin = clock();
-        Eval<F,CpuConv>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
+        Eval<FUNCONVFF,CpuConv>::Run(Nx, Ny, f, params, x, y, u, v, b, x);
         end = clock();
         std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

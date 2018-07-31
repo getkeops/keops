@@ -36,7 +36,7 @@ __TYPE__* get_data(at::Tensor obj_ptri){
 #endif
 
 template <>
-at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice,
+at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
                         int nx, int ny, int nout, int dimout,
                         __TYPE__ ** castedargs){
 
@@ -45,58 +45,31 @@ at::Tensor launch_keops(int tagIJ, int tag1D2D, int tagCpuGpu, int tagHostDevice
         at::Tensor result_array = at::empty(torch::CPU(AT_TYPE), {nout,dimout});
 
         if (tagCpuGpu == 0) {
-            if (tagIJ == 0) {
-                CpuConv(nx, ny, get_data(result_array), castedargs);
-            } else if (tagIJ == 0) {
-                CpuTransConv(nx, ny, get_data(result_array), castedargs);
-            }
-
+            CpuReduc(nx, ny, get_data(result_array), castedargs);
             return result_array;
-
         } else if(tagCpuGpu==1) {
 #if USE_CUDA
-            if(tagIJ==0) {
-                if(tag1D2D==0) {
-                    GpuConv1D( nx, ny, get_data(result_array), castedargs);
-                } else if(tag1D2D==1) {
-                    GpuConv2D( nx, ny, get_data(result_array), castedargs);
-                }
-            } else if(tagIJ==0) {
-                if(tag1D2D==0) {
-                    GpuTransConv1D( nx, ny, get_data(result_array), castedargs);
-                } else if(tag1D2D==1) {
-                    GpuTransConv2D( nx, ny, get_data(result_array), castedargs);
-                }
-            }
+            if(tag1D2D==0) 
+                GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs);
+            else if(tag1D2D==1)
+                GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs);
             return result_array;
 #else
             throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");
 #endif
         }
     } else if(tagHostDevice == 1) {
-
 #if USE_CUDA
         at::Tensor result_array = at::empty(torch::CUDA(AT_TYPE), {nout,dimout});
-
-        if(tagIJ==0) {
-            if(tag1D2D==0) {
-                GpuConv1D_FromDevice(nx, ny, get_data(result_array), castedargs);
-            } else if(tag1D2D==1) {
-                GpuConv2D_FromDevice(nx, ny, get_data(result_array), castedargs);
-            }
-        } else if(tagIJ==1) {
-            if(tag1D2D==0) {
-                GpuTransConv1D_FromDevice(nx, ny, get_data(result_array), castedargs);
-            } else if(tag1D2D==1){
-                GpuTransConv2D_FromDevice(nx, ny, get_data(result_array), castedargs);
-            }
-        }
+        if(tag1D2D==0)
+            GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs);
+        else if(tag1D2D==1)
+            GpuReduc2D_FromDevice(nx, ny, get_data(result_array), castedargs);
         return result_array;
 #else
         throw std::runtime_error("[KeOps] No cuda device detected... try to set tagHostDevice to 0.");
 #endif
     }
-
     throw std::runtime_error("[KeOps] Meooooooooooooooooow...");
 }
 
