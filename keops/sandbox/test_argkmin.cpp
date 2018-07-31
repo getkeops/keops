@@ -1,15 +1,14 @@
 // test convolution
 // compile with
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O2 -o build/test_minargmin test_minargmin.cu
+//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_argkmin test_argkmin.cpp
 // 
-
 
 #include <stdio.h>
 #include <assert.h>
-#include <cuda.h>
 #include <vector>
 #include <ctime>
 #include <algorithm>
+#include <iostream>
 
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
@@ -17,8 +16,6 @@
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
 
 using namespace keops;
@@ -48,11 +45,11 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = typename MinArgMinReduction<F>::sEval;
+    using FUNCONVF = ArgKMinReduction<F,3>;
 
     // now we test ------------------------------------------------------------------------------
 
-    std::cout << "Testing MinArgMin reduction" << std::endl;
+    std::cout << "Testing ArgKMin reduction" << std::endl;
 
     int Nx=5000, Ny=2000;
         
@@ -61,7 +58,7 @@ int main() {
     std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *y = vy.data();
     std::vector<__TYPE__> vb(Ny*DIMVECT); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    std::vector<__TYPE__> rescpu(Nx*FUNCONVF::DIM);
+    std::vector<__TYPE__> rescpu1(Nx*FUNCONVF::DIM);
 
     __TYPE__ oos2[1] = {.5};
 
@@ -70,44 +67,15 @@ int main() {
     begin = clock();
     FUNCONVF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
     end = clock();
+
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    rescpu = vf;
+    rescpu1 = vf;
 
     // display values
-    std::cout << "rescpu = ";
-    for(int i=0; i<10; i++)
-        std::cout << rescpu[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
-
-    FUNCONVF::Eval<GpuConv1D>(Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
-
-    begin = clock();
-    GpuConv1D(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
-    end = clock();
-    std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
-    std::vector<__TYPE__> resgpu1(Nx*FUNCONVF::DIM);
-    resgpu1 = vf;
-
-    // display values
-    std::cout << "resgpu1 = ";
-    for(int i=0; i<10; i++)
-        std::cout << resgpu1[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
-    
-    begin = clock();
-    FUNCONVF::Eval<GpuConv2D>(Nx, Ny, f, oos2, x, y, b);
-    end = clock();
-    std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
-    std::vector<__TYPE__> resgpu2(Nx*FUNCONVF::DIM);
-    resgpu2 = vf;
-
-    // display values
-    std::cout << "resgpu2 = ";
-    for(int i=0; i<10; i++)
-        std::cout << resgpu2[i] << " ";
+    std::cout << "rescpu1 = ";
+    for(int i=0; i<5; i++)
+        std::cout << rescpu1[i] << " ";
     std::cout << "..." << std::endl << std::endl;
     
 }

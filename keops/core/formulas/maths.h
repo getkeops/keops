@@ -194,7 +194,7 @@ struct AddAlias<IntConstantImpl<M>,IntConstantImpl<N>> {
 //////////////////////////////////////////////////////////////
 
 template < class F, class G >
-struct Concat : BinaryOp<Concat,F,G> {
+struct ConcatImpl : BinaryOp<ConcatImpl,F,G> {
     static const int DIM = F::DIM+G::DIM;
     
     static void PrintId(std::stringstream& str) { str << "Concat"; }
@@ -216,6 +216,24 @@ struct Concat : BinaryOp<Concat,F,G> {
     using DiffT = Add<DiffTF<V,Extract<GRADIN,0,F::DIM>>,DiffTG<V,Extract<GRADIN,F::DIM,DIM>>>;
 };
 
+template < class F, class G >
+struct ConcatAlias {
+	using type = ConcatImpl<F,G>;
+};
+
+// ugly stuff to make logsumexp reduction work
+struct Dummy {
+	static const int N = 0;
+	static const int DIM = 0;
+};
+
+template < class F >
+struct ConcatAlias<F,Dummy> {
+	using type = F;
+};
+
+template < class F, class G >
+using Concat = typename ConcatAlias<F,G>::type;
 
 //////////////////////////////////////////////////////////////
 ////      Scal*Vector Multiplication : Scal< FA,FB>       ////

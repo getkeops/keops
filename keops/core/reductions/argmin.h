@@ -5,6 +5,7 @@
 #include "core/autodiff.h"
 
 #include "core/reductions/reduction.h"
+#include "core/reductions/zero.h"
 
 namespace keops {
 // Implements the argmin reduction operation : for each i or each j, find the index of the
@@ -67,14 +68,14 @@ class ArgMinReduction : public Reduction<F,tagI> {
         
 		template < typename TYPE >
 		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out) {
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
 				for(int k=0; k<DIM; k++)
             		out[k] = tmp[DIM+k];
 			}
 		};
 		
 		template < class V, class GRADIN >
-		using DiffT = Zero<V::DIM>;
+		using DiffT = ZeroReduction<V::DIM,V::CAT>;
         
 
 };

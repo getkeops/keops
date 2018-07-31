@@ -20,25 +20,27 @@ namespace keops {
 template < int DIM >
 using LSEFIN = Add<_X<0,1>,Log<_X<1,DIM>>>;
 
-template < class F, class G_=IntConstant<1>, class FIN_=LSEFIN<G_::DIM>, int INDGRADIN=0, int tagI=0 >
-class LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
+template < class F, class G_=IntConstant<1>, class FIN_=LSEFIN<G_::DIM>, class GRADIN_=Dummy, int tagI=0 >
+class LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> {
 
   public :
   
   		using G = G_;
   		using FIN = FIN_;
+  		
+  		static const int INDGRADIN = GRADIN_::N;
 
-		using PARENT = Reduction<Concat<F,G_>,tagI>;
+		using PARENT = Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI>;
 
 		static const int DIM = FIN::DIM;
 		
 		static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
 		
-		static const int DIMRED = DIM + F::DIM;				// dimension of temporary variable for reduction
+		static const int DIMRED = G::DIM + F::DIM;				// dimension of temporary variable for reduction
 		
         template < class CONV, typename... Args >
         static void Eval(Args... args) {
-        	CONV::Eval(LogSumExpReduction<F,G,FIN,INDGRADIN,tagI>(),args...);
+        	CONV::Eval(LogSumExpReduction<F,G,FIN,GRADIN_,tagI>(),args...);
         }
                 
 		template < typename TYPE >
@@ -57,8 +59,27 @@ class LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
 
 		// equivalent of the += operation
 		template < typename TYPE >
-		struct ReducePair {
+		struct ReducePairShort {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+				// (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
+				TYPE tmpexp;
+				if(tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+					tmpexp = exp( xi[0]-tmp[0] );
+					for(int k=1; k<DIMRED; k++)
+						tmp[k] += xi[k]*tmpexp ;
+				} else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+					tmpexp = exp( tmp[0]-xi[0] );
+					for(int k=1; k<DIMRED; k++)
+						tmp[k] = xi[k] + tmpexp * tmp[k] ;
+					tmp[0] = xi[0] ;
+				}
+			}
+		};
+                
+		// equivalent of the += operation
+		template < typename TYPE >
+		struct ReducePair {
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
 				// (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
 				TYPE tmpexp;
 				if(tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
@@ -76,15 +97,9 @@ class LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
                 
 		template < typename TYPE >
 		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px) {
-std::cout << "INDGRADIN=" << INDGRADIN << std::endl;
-std::cout << "IndVal<typename PARENT::INDSI,INDGRADIN>()=" << IndVal<typename PARENT::INDSI,INDGRADIN>() << std::endl;
-			TYPE *tmp2 = px[IndVal<typename PARENT::INDSI,INDGRADIN>()];
-            		FIN::template Eval<pack<0,1,2>>(out,tmp,tmp+1,tmp2);
-std::cout << "tmp[0]=" << tmp[0] << std::endl;
-std::cout << "tmp2[0]=" << tmp2[0] << std::endl;
-std::cout << "(tmp*tmp2)_2[1]=" << tmp[1]*tmp2[0] << std::endl;
-std::cout << "out[0]=" << out[0] << std::endl;
+			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+			TYPE *tmp2 = px[1+static_min(IndVal<typename PARENT::INDSI,INDGRADIN>(),PARENT::INDSI::SIZE-1)];
+            		FIN::template Eval<pack<0,1,2>>(out,tmp,tmp+1,tmp2+i*GRADIN_::DIM);
 			}
 		};
         
@@ -101,7 +116,7 @@ std::cout << "out[0]=" << out[0] << std::endl;
 		using D = Add< TensorProd<GradMatrix<F,V>,G> , GradMatrix<G,V> > ;		
 		
 		template < class V, class GRADIN >
-		using DiffT = LogSumExpReduction<F,Concat<G,D<V>>,C<V,_X<2,GRADIN::DIM>>,GRADIN::N,V::CAT>;
+		using DiffT = LogSumExpReduction<F,Concat<G,D<V>>,C<V,_X<2,GRADIN::DIM>>,GRADIN,V::CAT>;
 		
 };
 

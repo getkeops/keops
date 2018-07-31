@@ -10,6 +10,8 @@
 #include "core/reductions/log_sum_exp.h"
 #include "core/reductions/argmin.h"
 #include "core/reductions/minargmin.h"
+#include "core/reductions/argkmin.h"
+#include "core/reductions/kminargkmin.h"
 
 // Host implementation of the convolution, for comparison
 
@@ -37,11 +39,10 @@ static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py)
         for(int j=0; j<ny; j++) {
             load<DIMSY>(j,yj,py);
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yj,pp);
-            typename FUN::template ReducePair<TYPE>()(tmp, xi, j); // tmp += xi
+            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j); // tmp += xi
         }
-        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px+1);
+        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
     }
-
     return 0;
 }
 
@@ -67,24 +68,8 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
     TYPE *px[SIZEI];
     TYPE *py[SIZEJ];
     TYPE *params[SIZEP];
-/*
-std::stringstream str;
-str << "VARSI=" ; VARSI::PrintId(str) ; str << std::endl;
-str << "VARSJ=" ; VARSJ::PrintId(str) ; str << std::endl;
-str << "VARSP=" ; VARSP::PrintId(str) ; str << std::endl;
-str << "INDSI=" ; INDSI::PrintId(str) ; str << std::endl;
-str << "INDSJ=" ; INDSJ::PrintId(str) ; str << std::endl;
-str << "INDSP=" ; INDSP::PrintId(str) ; str << std::endl;
-std::cout << str.str() << std::endl;
-*/
     px[0] = x1;
     getlist<INDSI>(px+1,args...);
-/*
-for(int i=1; i<SIZEI; i++) {
-std::cout << "INDSI(" << i-1 << ")=" << INDSI::VAL(i-1) << std::endl;
-std::cout << "px[" << i << "][0]=" << px[i][0] << std::endl;
-}
-*/
     getlist<INDSJ>(py,args...);
     getlist<INDSP>(params,args...);
 
