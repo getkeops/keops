@@ -48,7 +48,7 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = typename SumReduction<F>::sEval;
+    using FUNCONVF = SumReduction<F>;
 
     // now we test ------------------------------------------------------------------------------
 
@@ -56,19 +56,19 @@ int main() {
 
     int Nx=5000, Ny=2000;
         
-    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vf(Nx*FUNCONVF::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
     std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();
     std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *y = vy.data();
     std::vector<__TYPE__> vb(Ny*DIMVECT); fillrandom(vb); __TYPE__ *b = vb.data();
 
-    std::vector<__TYPE__> rescpu(Nx*F::DIM);
+    std::vector<__TYPE__> rescpu(Nx*FUNCONVF::DIM);
 
     __TYPE__ oos2[1] = {.5};
 
     clock_t begin, end;
 
     begin = clock();
-    CpuConv(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
+    FUNCONVF::Eval<CpuConv>(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -80,14 +80,14 @@ int main() {
         std::cout << rescpu[i] << " ";
     std::cout << "..." << std::endl << std::endl;
 
-    GpuConv1D(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
+    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
 
     begin = clock();
-    GpuConv1D(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
+    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for GPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::vector<__TYPE__> resgpu1(Nx*F::DIM);
+    std::vector<__TYPE__> resgpu1(Nx*FUNCONVF::DIM);
     resgpu1 = vf;
 
 
@@ -98,11 +98,11 @@ int main() {
     std::cout << "..." << std::endl << std::endl;
     
     begin = clock();
-    GpuConv2D(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
+    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::vector<__TYPE__> resgpu2(Nx*F::DIM);
+    std::vector<__TYPE__> resgpu2(Nx*FUNCONVF::DIM);
     resgpu2 = vf;
 
     // display values

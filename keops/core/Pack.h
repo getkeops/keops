@@ -71,6 +71,17 @@ static constexpr T static_min(T a, T b) {
     return a < b ? a : b;
 }
 
+// same but for integers only and defining classes to avoid constexpr (because nvcc does not allow it in device functions)
+template <int M, int N>
+struct INTMAX {
+    static const int value = M < N ? N : M;
+};
+
+template <int M, int N>
+struct INTMIN {
+    static const int value = M < N ? M : N;
+};
+
 // custom implementation of tuple "get" function, to avoid the use of thrust/tuple
 // which is limited to 10 arguments. This function works only when all arguments
 // have same type
@@ -321,8 +332,8 @@ template < class UPACK >
 using GetInds = typename GetIndsAlias<UPACK>::type;
 
 
-// Search in a univpack -------------------------------------------------------------------------
-// IndVal( [ x0, x1, x2, ...], x2 ) = 2
+// Search position in a pack -------------------------------------------------------------------------
+// IndVal( [ 1, 4, 2, 0,...], 2 ) = 3
 template < class INTPACK, int N >    // IndVal( [C, ...], N)     ( C != N )
 struct IndValAlias {                 // = 1 + IndVal( [...], N)
     static const int ind = 1+IndValAlias<typename INTPACK::NEXT,N>::ind;
@@ -339,9 +350,9 @@ struct IndValAlias< pack<>, N > {       // IndVal( [], N )
 };        // = 0
 
 template < class INTPACK, int N >
-static int IndVal() {                   // Use as IndVal<Intpack, N>()
-    return IndValAlias<INTPACK,N>::ind;
-}
+struct IndVal {				// Use as IndVal<Intpack, N>::value
+    static const int value = IndValAlias<INTPACK,N>::ind;
+};
 
 // Access the n-th element of an univpack -------------------------------------------------------
 // Val( [ x0, x1, x2, ...], i ) = xi

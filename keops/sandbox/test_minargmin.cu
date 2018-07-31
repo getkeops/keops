@@ -48,7 +48,7 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = typename MinArgMinReduction<F>::sEval;
+    using FUNCONVF = MinArgMinReduction<F>;
 
     // now we test ------------------------------------------------------------------------------
 
@@ -80,10 +80,10 @@ int main() {
         std::cout << rescpu[i] << " ";
     std::cout << "..." << std::endl << std::endl;
 
-    FUNCONVF::Eval<GpuConv1D>(Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
+    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b);	// first dummy call to Gpu
 
     begin = clock();
-    GpuConv1D(FUNCONVF(), Nx, Ny, f, oos2, x, y, b);
+    FUNCONVF::Eval<GpuConv1D_FromHost>(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
@@ -97,7 +97,7 @@ int main() {
     std::cout << "..." << std::endl << std::endl;
     
     begin = clock();
-    FUNCONVF::Eval<GpuConv2D>(Nx, Ny, f, oos2, x, y, b);
+    FUNCONVF::Eval<GpuConv2D_FromHost>(Nx, Ny, f, oos2, x, y, b);
     end = clock();
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 

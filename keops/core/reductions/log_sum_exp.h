@@ -39,8 +39,8 @@ class LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> {
 		static const int DIMRED = G::DIM + F::DIM;				// dimension of temporary variable for reduction
 		
         template < class CONV, typename... Args >
-        static void Eval(Args... args) {
-        	CONV::Eval(LogSumExpReduction<F,G,FIN,GRADIN_,tagI>(),args...);
+        static int Eval(Args... args) {
+        	return CONV::Eval(LogSumExpReduction<F,G,FIN,GRADIN_,tagI>(),args...);
         }
                 
 		template < typename TYPE >
@@ -94,11 +94,13 @@ class LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> {
 				}
 			}
 		};
+
+		static const int LOCINDGRADIN = 1+INTMIN<IndVal<typename PARENT::INDSI,INDGRADIN>::value,PARENT::INDSI::SIZE-1>::value;
                 
 		template < typename TYPE >
 		struct FinalizeOutput {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-			TYPE *tmp2 = px[1+static_min(IndVal<typename PARENT::INDSI,INDGRADIN>(),PARENT::INDSI::SIZE-1)];
+			TYPE *tmp2 = px[LOCINDGRADIN];
             		FIN::template Eval<pack<0,1,2>>(out,tmp,tmp+1,tmp2+i*GRADIN_::DIM);
 			}
 		};
