@@ -105,7 +105,7 @@ KeopsNS<Scalprod<FA,FB>> operator|(KeopsNS<FA> fa, KeopsNS<FB> fb) {
 
 // reductions
 
-#define SumReduction(F,I) SumReduction<decltype(F),I>()
-#define LogSumExpReduction(F,I) LogSumExpReduction<decltype(F),I>()
+#define SumReduction(F,I) SumReduction<decltype(InvKeopsNS(F)),I>()
+#define LogSumExpReduction(F,I) LogSumExpReduction<decltype(InvKeopsNS(F)),I>()
 
 }

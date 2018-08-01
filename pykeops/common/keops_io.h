@@ -47,7 +47,7 @@ const int NARGSP = VARSP::SIZE; // number of parameters variables used in formul
 const int NARGS = F::NMINARGS;
 const int DIMOUT = F::DIM;
 
-const int tagIJ = F::tagI
+const int tagIJ = F::tagI;
 
 const std::string f =  PrintFormula<F>();
 
