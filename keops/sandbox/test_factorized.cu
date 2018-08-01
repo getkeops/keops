@@ -42,7 +42,7 @@ int main() {
 
     // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 where F0 = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
     // with the standard implementation it means we will compute 8 times F0 to evaluate F
-    using F0 = decltype(  Inv( IntCst(1) + C()* SqNorm2(X()-Y()))  );//Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
+    using F0 = decltype(InvKeopsNS(  Inv( IntCst(1) + C()* SqNorm2(X()-Y())))  );//Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
     using F1 = Add<F0,F0>;
     using F = Grad<F0, X, Var<6,3,0>>;
 

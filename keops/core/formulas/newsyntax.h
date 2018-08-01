@@ -11,91 +11,96 @@
 
 namespace keops {
 
-#define Var(N,DIM, CAT) Var<N,DIM,CAT>()
+template < class F > struct KeopsNS : public F { };
 
-#define Vx(N,DIM) _X<N,DIM>()
+template < class F >
+F InvKeopsNS(KeopsNS<F> kf) {
+	return F();
+}
 
-#define Vy(N,DIM) _Y<N,DIM>()
+#define Var(N,DIM, CAT) KeopsNS<Var<N,DIM,CAT>>()
 
-#define Pm(N,DIM) _P<N,DIM>()
+#define Vx(N,DIM) KeopsNS<_X<N,DIM>>()
 
-#define LogSumExp(f) LogSumExp<decltype(f)>()
+#define Vy(N,DIM) KeopsNS<_Y<N,DIM>>()
 
-#define Factorize(F,G) Factorize<decltype(F),decltype(G)>()
+#define Pm(N,DIM) KeopsNS<_P<N,DIM>>()
 
-#define AutoFactorize(F) AutoFactorize<decltype(F)>()
+#define Factorize(F,G) KeopsNS<Factorize<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(G))>()
 
-#define Grad(F,V,GRADIN)  Grad<decltype(F),decltype(V),decltype(GRADIN)>()
+#define AutoFactorize(F) KeopsNS<AutoFactorize<decltype(InvKeopsNS(F))>>()
 
-#define IntCst(N) IntConstant<N>()
+#define Grad(F,V,GRADIN)  KeopsNS<Grad<decltype(InvKeopsNS(F)),InvKeopsNS(V),decltype(InvKeopsNS(GRADIN))>>()
 
-#define Elem(p,k) Elem<decltype(p),k>()
+#define IntCst(N) KeopsNS<IntConstant<N>>()
 
-#define ElemT(p,k) ElemT<decltype(p),k>()
+#define Elem(p,k) KeopsNS<Elem<decltype(InvKeopsNS(p)),k>>()
 
-#define Exp(f) Exp<decltype(f)>()
+#define ElemT(p,k) KeopsNS<ElemT<decltype(InvKeopsNS(p)),k>>()
 
-#define Pow(f,M) Pow<decltype(f),M>()
+#define Exp(f) KeopsNS<Exp<decltype(InvKeopsNS(f))>>()
 
-#define Square(f) Square<decltype(f)>()
+#define Pow(f,M) KeopsNS<Pow<decltype(InvKeopsNS(f)),M>>()
 
-#define Inv(f) Inv<decltype(f)>()
+#define Square(f) KeopsNS<Square<decltype(InvKeopsNS(f))>>()
 
-#define IntInv(N) IntInv<N>()
+#define Inv(f) KeopsNS<Inv<decltype(InvKeopsNS(f))>>()
 
-#define Log(f) Log<decltype(f)>()
+#define IntInv(N) KeopsNS<IntInv<N>>()
 
-#define Powf(fa,fb) Powf<decltype(fa),decltype(fb)>()
+#define Log(f) KeopsNS<Log<decltype(InvKeopsNS(f))>>()
 
-#define Sqrt(f) Sqrt<decltype(f)>()
+#define Powf(fa,fb) KeopsNS<Powf<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
 
-#define SqNorm2(f) SqNorm2<decltype(f)>()
-#define SqDist(f,g) SqDist<decltype(f),decltype(g)>()
+#define Sqrt(f) KeopsNS<Sqrt<decltype(InvKeopsNS(f))>>()
 
-#define WeightedSqNorm(s,f)   WeightedSqNorm<decltype(s), decltype(f)>()
-#define WeightedSqDist(s,f,g) WeightedSqDist<decltype(s), decltype(f),decltype(g)>()
+#define SqNorm2(f) KeopsNS<SqNorm2<decltype(InvKeopsNS(f))>>()
+#define SqDist(f,g) KeopsNS<SqDist<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+
+#define WeightedSqNorm(s,f)   KeopsNS<WeightedSqNorm<decltype(InvKeopsNS(s)), decltype(InvKeopsNS(f))>>()
+#define WeightedSqDist(s,f,g) KeopsNS<WeightedSqDist<decltype(InvKeopsNS(s)), decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
 
 
-#define GaussKernel(C,X,Y,B) GaussKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
-#define CauchyKernel(C,X,Y,B) CauchyKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
-#define LaplaceKernel(C,X,Y,B) LaplaceKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
-#define InverseMultiquadricKernel(C,X,Y,B) InverseMultiquadricKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
-#define SumGaussKernel(C,W,X,Y,B) SumGaussKernel<decltype(C),decltype(W),decltype(X),decltype(Y),decltype(B)>()
+#define GaussKernel(C,X,Y,B) KeopsNS<GaussKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
+#define CauchyKernel(C,X,Y,B) KeopsNS<CauchyKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
+#define LaplaceKernel(C,X,Y,B) KeopsNS<LaplaceKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
+#define InverseMultiquadricKernel(C,X,Y,B) KeopsNS<InverseMultiquadricKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
+#define SumGaussKernel(C,W,X,Y,B) KeopsNS<SumGaussKernel<InvKeopsNS(C),InvKeopsNS(W),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
 
-#define DivFreeGaussKernel(C,X,Y,B) DivFreeGaussKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
-#define CurlFreeGaussKernel(C,X,Y,B) CurlFreeGaussKernel<decltype(C),decltype(X),decltype(Y),decltype(B)>()
-#define TRIGaussKernel(L,C,X,Y,B) TRIGaussKernel<decltype(L),decltype(C),decltype(X),decltype(Y),decltype(B)>()
+#define DivFreeGaussKernel(C,X,Y,B) KeopsNS<DivFreeGaussKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
+#define CurlFreeGaussKernel(C,X,Y,B) KeopsNS<CurlFreeGaussKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
+#define TRIGaussKernel(L,C,X,Y,B) KeopsNS<TRIGaussKernel<InvKeopsNS(L),InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
 
 
 template < class FA, class FB >
-Add<FA,FB> operator+(FA fa, FB fb) {
-    return Add<FA,FB>();
+KeopsNS<Add<FA,FB>> operator+(KeopsNS<FA> fa, KeopsNS<FB> fb) {
+    return KeopsNS<Add<FA,FB>>();
 }
 
 template < class FA, class FB >
-ScalOrMult<FA,FB> operator*(FA fa, FB fb) {
-    return ScalOrMult<FA,FB>();
+KeopsNS<ScalOrMult<FA,FB>> operator*(KeopsNS<FA> fa, KeopsNS<FB> fb) {
+    return KeopsNS<ScalOrMult<FA,FB>>();
 }
 
 template < class F >
-Minus<F> operator-(F f) {
-    return Minus<F>();
+KeopsNS<Minus<F>> operator-(KeopsNS<F> f) {
+    return KeopsNS<Minus<F>>();
 }
 
 template < class FA, class FB >
-Subtract<FA,FB> operator-(FA fa, FB fb) {
-    return Subtract<FA,FB>();
+KeopsNS<Subtract<FA,FB>> operator-(KeopsNS<FA> fa, KeopsNS<FB> fb) {
+    return KeopsNS<Subtract<FA,FB>>();
 }
 
 template < class FA, class FB >
-Divide<FA,FB> operator/(FA fa, FB fb) {
-    return Divide<FA,FB>();
+KeopsNS<Divide<FA,FB>> operator/(KeopsNS<FA> fa, KeopsNS<FB> fb) {
+    return KeopsNS<Divide<FA,FB>>();
 }
 
 template < class FA, class FB >
-Scalprod<FA,FB> operator|(FA fa, FB fb) {
-    return Scalprod<FA,FB>();
+KeopsNS<Scalprod<FA,FB>> operator|(KeopsNS<FA> fa, KeopsNS<FB> fb) {
+    return KeopsNS<Scalprod<FA,FB>>();
 }
 
 }
