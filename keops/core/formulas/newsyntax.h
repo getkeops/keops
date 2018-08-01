@@ -62,15 +62,15 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 
 
-#define GaussKernel(C,X,Y,B) KeopsNS<GaussKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
-#define CauchyKernel(C,X,Y,B) KeopsNS<CauchyKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
-#define LaplaceKernel(C,X,Y,B) KeopsNS<LaplaceKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
-#define InverseMultiquadricKernel(C,X,Y,B) KeopsNS<InverseMultiquadricKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
-#define SumGaussKernel(C,W,X,Y,B) KeopsNS<SumGaussKernel<InvKeopsNS(C),InvKeopsNS(W),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
+#define GaussKernel(C,X,Y,B) KeopsNS<GaussKernel<decltype(InvKeopsNS(C)),decltype(InvKeopsNS(X)),decltype(InvKeopsNS(Y)),decltype(InvKeopsNS(B))>>()
+#define CauchyKernel(C,X,Y,B) KeopsNS<CauchyKernel<decltype(InvKeopsNS(C)),decltype(InvKeopsNS(X)),decltype(InvKeopsNS(Y)),decltype(InvKeopsNS(B))>>()
+#define LaplaceKernel(C,X,Y,B) KeopsNS<LaplaceKernel<decltype(InvKeopsNS(C)),decltype(InvKeopsNS(X)),decltype(InvKeopsNS(Y)),decltype(InvKeopsNS(B))>>()
+#define InverseMultiquadricKernel(C,X,Y,B) KeopsNS<InverseMultiquadricKernel<decltype(InvKeopsNS(C)),decltype(InvKeopsNS(X)),decltype(InvKeopsNS(Y)),decltype(InvKeopsNS(B))>>()
+#define SumGaussKernel(C,W,X,Y,B) KeopsNS<SumGaussKernel<decltype(InvKeopsNS(C)),decltype(InvKeopsNS(W)),decltype(InvKeopsNS(X)),decltype(InvKeopsNS(Y)),decltype(InvKeopsNS(B))>>()
 
-#define DivFreeGaussKernel(C,X,Y,B) KeopsNS<DivFreeGaussKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
-#define CurlFreeGaussKernel(C,X,Y,B) KeopsNS<CurlFreeGaussKernel<InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
-#define TRIGaussKernel(L,C,X,Y,B) KeopsNS<TRIGaussKernel<InvKeopsNS(L),InvKeopsNS(C),InvKeopsNS(X),InvKeopsNS(Y),InvKeopsNS(B)>>()
+#define DivFreeGaussKernel(C,X,Y,B) KeopsNS<DivFreeGaussKernel<decltype(InvKeopsNS(C)),decltype(InvKeopsNS(X)),decltype(InvKeopsNS(Y)),decltype(InvKeopsNS(B))>>()
+#define CurlFreeGaussKernel(C,X,Y,B) KeopsNS<CurlFreeGaussKernel<decltype(InvKeopsNS(C)),decltype(InvKeopsNS(X)),decltype(InvKeopsNS(Y)),decltype(InvKeopsNS(B))>>()
+#define TRIGaussKernel(L,C,X,Y,B) KeopsNS<TRIGaussKernel<decltype(InvKeopsNS(L)),decltype(InvKeopsNS(C)),decltype(InvKeopsNS(X)),decltype(InvKeopsNS(Y)),decltype(InvKeopsNS(B))>>()
 
 
 template < class FA, class FB >
