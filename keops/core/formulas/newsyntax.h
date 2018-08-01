@@ -30,7 +30,7 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define AutoFactorize(F) KeopsNS<AutoFactorize<decltype(InvKeopsNS(F))>>()
 
-#define Grad(F,V,GRADIN)  KeopsNS<Grad<decltype(InvKeopsNS(F)),InvKeopsNS(V),decltype(InvKeopsNS(GRADIN))>>()
+#define Grad(F,V,GRADIN)  KeopsNS<Grad<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(V)),decltype(InvKeopsNS(GRADIN))>>()
 
 #define IntCst(N) KeopsNS<IntConstant<N>>()
 
