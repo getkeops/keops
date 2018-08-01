@@ -58,7 +58,7 @@ vuple compute_convs(int Nx, int Ny){
     GpuReduc1D_FromHost(Nx, Ny, f, args); resgpu1D = vf;
 
     fillones(vf);
-    CpuConv(Nx, Ny, f, args); rescpu = vf; 
+    CpuReduc(Nx, Ny, f, args); rescpu = vf; 
     vuple res = {rescpu,resgpu1D,resgpu2D};
 
     return res;
