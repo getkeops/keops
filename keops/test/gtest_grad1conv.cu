@@ -27,7 +27,7 @@ template <typename T>
 void EXPECT_AllCLOSE(const std::vector<T> X, const std::vector<T> Y, const T atol, const T rtol) {
     ASSERT_EQ(X.size(), Y.size());
 
-    unsigned int count = 0;
+    int count = 0;
     T l1norm = 0.0;
     for (unsigned int i = 0; i < X.size(); ++i) {
         if (std::abs(X[i] - Y[i])> atol + rtol * (std::abs(Y[i]) + std::abs(X[i])))
@@ -55,7 +55,7 @@ void EXPECT_NONZEROS(const std::vector<T> X) {
 /////////////////////////////////////////////////////////////////////////////////////
 
 auto formula0 = Grad(GaussKernel(Pm(0,1), Vx(1,3), Vy(2,3), Vy(3,3)), Vx(1,3), Vx(4,3));
-using F0 = decltype(formula0);
+using F0 = decltype(InvKeopsNS(formula0));
 
 using FUN0 = SumReduction<F0>;
 

@@ -182,35 +182,35 @@ class PytorchUnitTestCase(unittest.TestCase):
                 # compare output
                 self.assertTrue( np.allclose(gamma_keops.cpu().data.numpy(), gamma_py , atol=1e-6))
 
-    @unittest.expectedFailure
-    ############################################################
-    def test_logSumExp_kernels_feature(self):
-    ############################################################
-        from pykeops.torch.kernels import Kernel, kernel_product
-        params = {
-            'gamma' : 1./self.sigmac**2,
-            'mode'  : 'lse',
-        }
-        if gpu_available:
-            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
-        else:
-            backend_to_test = ['auto', 'pytorch']
-
-        for k,b in itertools.product(['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric'], backend_to_test):
-            with self.subTest(k=k,b=b):
-                params['id'] = Kernel(k + '(x,y)')
-                params['backend'] = b
-                # Call cuda kernel
-                gamma = kernel_product(params, self.xc, self.yc, self.fc).cpu()
-
-                # Numpy version
-                log_K  = log_np_kernel(self.x, self.y, self.sigma, kernel=k)
-                log_KP = log_K + self.f.T
-                maxexp = np.amax(log_KP, axis=1)
-                gamma_py = maxexp + np.log(np.sum(np.exp(log_KP - maxexp.reshape(-1,1)), axis=1))
-
-                # compare output
-                self.assertTrue(np.allclose(gamma.data.numpy().ravel(), gamma_py))
+#    @unittest.expectedFailure
+#    ############################################################
+#    def test_logSumExp_kernels_feature(self):
+#    ############################################################
+#        from pykeops.torch.kernels import Kernel, kernel_product
+#        params = {
+#            'gamma' : 1./self.sigmac**2,
+#            'mode'  : 'lse',
+#        }
+#        if gpu_available:
+#            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
+#        else:
+#            backend_to_test = ['auto', 'pytorch']
+#
+#        for k,b in itertools.product(['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric'], backend_to_test):
+#            with self.subTest(k=k,b=b):
+#                params['id'] = Kernel(k + '(x,y)')
+#                params['backend'] = b
+#                # Call cuda kernel
+#                gamma = kernel_product(params, self.xc, self.yc, self.fc).cpu()
+#
+#                # Numpy version
+#                log_K  = log_np_kernel(self.x, self.y, self.sigma, kernel=k)
+#                log_KP = log_K + self.f.T
+#                maxexp = np.amax(log_KP, axis=1)
+#                gamma_py = maxexp + np.log(np.sum(np.exp(log_KP - maxexp.reshape(-1,1)), axis=1))
+#
+#                # compare output
+#                self.assertTrue(np.allclose(gamma.data.numpy().ravel(), gamma_py))
 
 
 if __name__ == '__main__':

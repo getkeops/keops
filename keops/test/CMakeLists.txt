@@ -1,3 +1,5 @@
+enable_testing()
+
 find_package(Threads)
 
 function(add_test_helper test_name source_file)
@@ -34,7 +36,7 @@ if (USE_CUDA)
 
         target_compile_options(
             testic BEFORE
-            PRIVATE -include keops.h
+            PRIVATE -include ${shared_obj_name}.h
         )
 
         Add_dependencies(
@@ -49,7 +51,7 @@ if (USE_CUDA)
 
         target_link_libraries(
             unit_test_conv
-            keops
+            ${shared_obj_name}
             gtest
             pthread
         )

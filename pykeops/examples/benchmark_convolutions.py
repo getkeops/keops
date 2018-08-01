@@ -5,22 +5,16 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 import numpy as np
 import time, timeit
 
-# is there a working GPU around ?
-import GPUtil
-try:
-    gpu_available = len(GPUtil.getGPUs()) > 0
-except:
-    gpu_available = False
+from pykeops.numpy.utils import np_kernel
 
+# size of the test
 N = 2000 ; M = 300; D = 3; E = 3
 
 # declare numpy variables 
-from pykeops.numpy.utils import np_kernel
 x = np.random.randn(N,D).astype('float32')
 y = np.random.randn(M,D).astype('float32')
 b = np.random.randn(M,E).astype('float32')
 sigma = np.array([2.4]).astype('float32')
-
 
 # declare their torch counterparts
 try:
@@ -51,7 +45,7 @@ print("Times to compute ", LOOPS, " convolutions of size {}x{}:".format(N,M))
 print("\n",end="")
 
 for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
-    print(k, " kernel: -----------------------------------")
+    print('----------------------------------- kernel: ' + k)
     
     # pure numpy
     gnumpy =  np_kernel(x,y,sigma,kernel=k) @ b
@@ -70,12 +64,12 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
             "gamma"   : 1./torch.autograd.Variable(sigmac, requires_grad=False).type(dtype)**2,
             "backend" : "auto",
         }
-        g1 = kernel_product( params,xc,yc,bc,  mode=mode).cpu()
+        g1 = kernel_product(params,xc,yc,bc,  mode=mode).cpu()
         speed_pykeops_gen = timeit.Timer('g1 = kernel_product( params,xc,yc,bc,  mode=mode).cpu()', GC,  globals = globals(), timer = time.time).timeit(LOOPS)
         print("Time for keops generic:       {:.4f}s".format(speed_pykeops_gen),end="")
         print("   (absolute error:       ", np.max(np.abs(g1.data.numpy() - gnumpy)), ")")
     except:
-        pass
+        print('Time for keops generic:       Not Done')
 
     # vanilla pytorch (with cuda if available else uses cpu)
     try:
@@ -84,19 +78,14 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
         print("Time for Pytorch:             {:.4f}s".format(speed_pytorch),end="")
         print("   (absolute error:       ", np.max(np.abs(g0 - gnumpy)),")")
     except:
-        pass
+        print('Time for Pytorch:             Not Done')
 
     # specific cuda tiled implementation (if cuda is available)
-    if gpu_available:
-        try:
-            from pykeops.numpy.convolutions.radial_kernel import radial_kernels_conv
-            g2 = np.zeros([N,E]).astype('float32') ; radial_kernels_conv(x, y, b, g2, sigma, kernel=k)
-            g2 = np.zeros([N,E]).astype('float32')
-            speed_pykeops = timeit.Timer('radial_kernels_conv(x, y, b, g2, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
-            print("Time for keops cuda specific: {:.4f}s".format(speed_pykeops),end="")
-            print("   (absolute error:       ", np.max(np.abs(g2 - gnumpy)),")")
-        except:
-            pass
-    else:
-        print("No Gpu detetcted ; skipping 'specific' KeOps computation.")
-
+    try:
+        from pykeops.numpy.convolutions.radial_kernel import radial_kernel_conv
+        g2 = radial_kernel_conv(x, y, b, sigma, kernel=k)
+        speed_pykeops = timeit.Timer('g2 = radial_kernels_conv(x, y, b, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+        print("Time for keops cuda specific: {:.4f}s".format(speed_pykeops),end="")
+        print("   (absolute error:       ", np.max(np.abs(g2 - gnumpy)),")")
+    except:
+        print("Time for keops cuda specific: Not Done")

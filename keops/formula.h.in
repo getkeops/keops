@@ -15,7 +15,7 @@
 namespace keops {
     @VAR_ALIASES@
     #cmakedefine FORMULA_OBJ @FORMULA_OBJ@
-    using F = decltype(FORMULA_OBJ);
+    using F = decltype(InvKeopsNS(FORMULA_OBJ));
 }
 
 #else

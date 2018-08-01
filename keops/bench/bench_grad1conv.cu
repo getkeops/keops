@@ -19,7 +19,7 @@ namespace keops{
 //                      The function to be benchmarked                             //
 /////////////////////////////////////////////////////////////////////////////////////
 auto formula0 = Grad(GaussKernel(Pm(0,1),Vx(1,3),Vy(2,3),Vy(3,3)),Vx(1,3),Vx(4,3));
-using F0 = decltype(formula0);
+using F0 = decltype(InvKeopsNS(formula0));
 using F1 = F0;
 
 using FUN0 = typename Generic<F0>::sEval;

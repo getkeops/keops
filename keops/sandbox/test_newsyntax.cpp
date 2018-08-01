@@ -45,8 +45,8 @@ int main() {
     
     // here we define F = <u,v>^2 * exp(-c*|x-y|^2) * b in usual notations
     auto g = Square((U|V))*Exp(-C*SqDist(X,Y))*B;
-    using F = decltype(g);
-    //using F = decltype(g-g+IntCst(2)*g-g-g);
+    using F = decltype(InvKeopsNS(g));
+    //using F = decltype(InvKeopsNS(g-g+IntCst(2)*g-g-g));
 
     using FUNCONVF = SumReduction<F>;
 
