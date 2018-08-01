@@ -14,19 +14,23 @@ class pytorch_genred(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, axis, backend, cuda_type, *args):
+    def forward(ctx, formula, aliases, backend, cuda_type, *args):
+
+        myconv = load_keops(formula, aliases, cuda_type, 'torch')
+
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
         ctx.aliases = aliases
-        ctx.axis = axis
+        ctx.axis = cat2axis(myconv.tagIJ)
         ctx.backend = backend
         ctx.cuda_type = cuda_type
+        ctx.myconv = myconv
+                       
+        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+        result = myconv.genred_pytorch(tag1D2D, tagCPUGPU, tagHostDevice, *args)
+		
         #relying on the "ctx.saved_variables" attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of "who is who".
-        #ctx.save_for_backward(*args)
-
-        result = genred(formula, aliases, *args, axis=axis, backend=backend, cuda_type=cuda_type)
-
         ctx.save_for_backward(*args)
 
         return result
@@ -38,13 +42,14 @@ class pytorch_genred(torch.autograd.Function):
         axis = ctx.axis
         backend = ctx.backend
         cuda_type = ctx.cuda_type
+        myconv = ctx.myconv
         args = ctx.saved_tensors  # Unwrap the saved variables
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
-        eta = "Var(" + str(nargs(formula,aliases,cuda_type)) + "," \
-              + str(dimout(formula,aliases,cuda_type)) + "," \
+        eta = "Var(" + str(myconv.nargs) + "," \
+              + str(myconv.dimout) + "," \
               + str(axis2cat(axis)) + ")"
 
         grads = []  # list of gradients wrt. args;
@@ -75,39 +80,36 @@ class pytorch_genred(torch.autograd.Function):
                     grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad
                     grad = grad.view(-1)
                 else:
-                    # axis is the index in the sum
-                    grad = genconv(formula_g, aliases, cat2axis(cat), backend, cuda_type, *args_g)
+                    grad = genconv(formula_g, aliases, backend, cuda_type, *args_g)
                 grads.append(grad)
 
 
-        # Grads wrt. formula, aliases, axis, backend, *args
-        return (None, None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, backend, *args
+        return (None, None, None, None, *grads)
 
 
 class generic_sum(pytorch_genred):
-    def __init__(self, formula, aliases, axis=0, backend = "auto", cuda_type=default_cuda_type) :
-        self.formula = formula
+    def __init__(self, formula, aliases, axis=1, backend = "auto", cuda_type=default_cuda_type) :
+        self.formula = "SumReduction(" + formula + "," + str(axis2cat(axis)) + ")"
         self.aliases = aliases
-        self.axis = axis
         self.backend = backend
         self.cuda_type = cuda_type
 
     def __call__(self, *args):
-        return self.apply(self.formula, self.aliases, self.axis, self.backend, self.cuda_type, *args)
+        return self.apply(self.formula, self.aliases, self.backend, self.cuda_type, *args)
 
 
 
 
 class generic_logsumexp(pytorch_genred):
-    def __init__(self, formula, aliases, axis=0, backend = "auto", cuda_type=default_cuda_type) :
-        self.formula = "LogSumExpReduction(" + formula + "," + axis2cat(axis) + ")"
+    def __init__(self, formula, aliases, axis=1, backend = "auto", cuda_type=default_cuda_type) :
+        self.formula = "LogSumExpReduction(" + formula + "," + str(axis2cat(axis)) + ")"
         self.aliases = aliases
-        self.axis = axis
         self.backend = backend
         self.cuda_type = cuda_type
 
     def __call__(self, *args):
-        return self.apply(self.formula, self.aliases, self.axis, self.backend, self.cuda_type, *args)
+        return self.apply(self.formula, self.aliases, self.backend, self.cuda_type, *args)
 
     # @staticmethod
     # def finalize_fw(result):
@@ -122,31 +124,3 @@ class generic_logsumexp(pytorch_genred):
     # def formula_bw(self):
     #     return
 
-
-
-
-def genred(formula, aliases, *args, backend="auto", cuda_type=default_cuda_type):
-    myconv = load_keops(formula, aliases, cuda_type, 'torch')
-
-    tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
-
-    # Perform computation using KeOps
-    # print('\n======   DEBUG   ==========')
-    # print('Compiled formula :', myconv.formula)
-    # print('Called formula : ', formula)
-    # print('Nbr of args in : ', myconv.nargs)
-    # print('Dim of Output : ', myconv.dimout)
-    # print('tagHostDevice : ', tagHostDevice)
-    # print('\n=======   DEBUG   =========')
-    result = myconv.genred_pytorch(tag1D2D, tagCPUGPU, tagHostDevice, *args)
-    return result
-
-
-def nargs(formula, aliases, cuda_type):
-    myconv = load_keops(formula, aliases, cuda_type, 'torch')
-    return myconv.nargs
-
-
-def dimout(formula, aliases, cuda_type):
-    myconv = load_keops(formula, aliases, cuda_type, 'torch')
-    return myconv.dimout

@@ -49,7 +49,7 @@ const int DIMOUT = F::DIM;
 
 const int tagIJ = F::tagI;
 
-const std::string f =  PrintFormula<F>();
+const std::string f =  PrintFormula<F::F>();
 
 /////////////////////////////////////////////////////////////////////////////////
 //                             Utils

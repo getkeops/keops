@@ -12,9 +12,10 @@ namespace keops {
 // - to 0 if you do the reduction over j (with i the index of the output vector),
 // - to 1 if you do the reduction over i (with j the index of the output vector).
 
-template < class F, int tagI_=0 >
+template < class F_, int tagI_=0 >
 struct Reduction {
 
+	using F = F_;
   	static const int tagI = tagI_;
       	static const int tagJ = 1-tagI;
 

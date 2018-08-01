@@ -49,11 +49,11 @@ class PytorchUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_generic_syntax(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.torch.generic_red import GenericSum
+        from pykeops.torch.generic_red import generic_sum, generic_logsumexp
         aliases = ["p=Pm(0,1)","a=Vy(1,1)","x=Vx(2,3)","y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(x+y)"
         signature   =   [ (3, 0), (1, 2), (1, 1), (3, 0), (3, 1) ]
-        sum_index = 0       # 0 means summation over j, 1 means over i 
+        axis = 1       
 
         if gpu_available:
             backend_to_test = ['auto','GPU_1D','GPU_2D','GPU']
@@ -62,10 +62,10 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         for b in backend_to_test:
             with self.subTest(b=b):
-
+                
                 # Call cuda kernel
-                gamma_keops = GenericSum.apply(b,aliases,formula,signature,sum_index,self.sigmac,self.fc,self.xc,self.yc)
-
+                my_routine = generic_sum(formula=formula,aliases=aliases,axis=axis,backend=b)
+                gamma_keops = my_routine(self.sigmac,self.fc,self.xc,self.yc)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.f)**2 *np.exp( (self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
 
@@ -78,10 +78,13 @@ class PytorchUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
         from pykeops.torch.generic_red import generic_sum
 
-        types = [ "A = Vx(" + str(self.xc.shape[1]) + ") ",  # output,       indexed by i, dim D.
-                    "P = Pm(2)",                               # 1st argument,  a parameter, dim 2. 
-                    "X = Vx(" + str(self.xc.shape[1]) + ") ",  # 2nd argument, indexed by i, dim D.
-                    "Y = Vy(" + str(self.yc.shape[1]) + ") "]  # 3rd argument, indexed by j, dim D.
+#        aliases = [ "A = Vx(" + str(self.xc.shape[1]) + ") ",  # output,       indexed by i, dim D.
+#                    "P = Pm(2)",                               # 1st argument,  a parameter, dim 2. 
+#                    "X = Vx(" + str(self.xc.shape[1]) + ") ",  # 2nd argument, indexed by i, dim D.
+#                    "Y = Vy(" + str(self.yc.shape[1]) + ") "]  # 3rd argument, indexed by j, dim D.
+        aliases = [ "P = Pm(0,2)",                               # 1st argument,  a parameter, dim 2. 
+                    "X = Vx(1," + str(self.xc.shape[1]) + ") ",  # 2nd argument, indexed by i, dim D.
+                    "Y = Vy(2," + str(self.yc.shape[1]) + ") "]  # 3rd argument, indexed by j, dim D.
         # The actual formula:
         # a_i   =   (<x_i,y_j>**2) * (       p[0]*x_i  +       p[1]*y_j )
         formula = "Pow( (X|Y) , 2) * ( (Elem(P,0) * X) + (Elem(P,1) * Y) )"
@@ -94,8 +97,8 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
 
-                my_routine  = generic_sum(formula, *types)
-                gamma_keops = my_routine(self.pc, self.xc, self.yc, backend=b)
+                my_routine = generic_sum(formula, aliases, backend=b)
+                gamma_keops = my_routine(self.pc, self.xc, self.yc)
         
                 # Numpy version
                 scals = (self.x @ self.y.T)**2 # Memory-intensive computation!

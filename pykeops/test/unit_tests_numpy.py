@@ -100,7 +100,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_generic_syntax(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.numpy.generic_red import generic_sum
+        from pykeops.numpy.generic_red import generic_red
         aliases = ["p=Pm(0,1)", "a=Vy(1,1)", "x=Vx(2,3)", "y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(x+y)"
         axis = 1       # 0 means summation over i, 1 means over j
@@ -114,7 +114,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myconv = generic_sum(formula, aliases, axis=axis, backend=b, cuda_type=t)
+                myconv = generic_red(formula, aliases, reduction_op="Sum", axis=axis, backend=b, cuda_type=t)
                 gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t))
 
                 # Numpy version

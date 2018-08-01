@@ -74,6 +74,7 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
           "Entry point to keops - numpy version.");
 
     m.attr("nargs") = NARGS;
+    m.attr("tagIJ") = tagIJ;
     m.attr("dimout") = DIMOUT;
     m.attr("formula") = f;
 }
