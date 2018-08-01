@@ -9,8 +9,8 @@
 
 #include "core/formulas/newsyntax.h"
 
-#include "core/GpuReduc1D_FromHost.cu"
-#include "core/GpuReduc2D_FromHost.cu"
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
 #include "core/CpuConv.cpp"
 
 #define ATOL 1e-3
