@@ -100,7 +100,7 @@ class generic_sum(pytorch_genred):
 
 class generic_logsumexp(pytorch_genred):
     def __init__(self, formula, aliases, axis=0, backend = "auto", cuda_type=default_cuda_type) :
-        self.formula = "LogSumExp(" + formula + ")"
+        self.formula = "LogSumExpReduction(" + formula + "," + axis2cat(axis) + ")"
         self.aliases = aliases
         self.axis = axis
         self.backend = backend
@@ -125,10 +125,9 @@ class generic_logsumexp(pytorch_genred):
 
 
 
-def genred(formula, aliases, *args, axis=0, backend="auto", cuda_type=default_cuda_type):
+def genred(formula, aliases, *args, backend="auto", cuda_type=default_cuda_type):
     myconv = load_keops(formula, aliases, cuda_type, 'torch')
 
-    tagIJ = axis2cat(axis)  # tagIJ=0 means sum over j, tagIJ=1 means sum over j
     tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
     # Perform computation using KeOps
@@ -139,7 +138,7 @@ def genred(formula, aliases, *args, axis=0, backend="auto", cuda_type=default_cu
     # print('Dim of Output : ', myconv.dimout)
     # print('tagHostDevice : ', tagHostDevice)
     # print('\n=======   DEBUG   =========')
-    result = myconv.genred_pytorch(tagIJ, tag1D2D, tagCPUGPU, tagHostDevice, *args)
+    result = myconv.genred_pytorch(tag1D2D, tagCPUGPU, tagHostDevice, *args)
     return result
 
 

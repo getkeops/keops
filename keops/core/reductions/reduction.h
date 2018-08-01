@@ -9,8 +9,8 @@ namespace keops {
 
 // Default class for the reduction operation. Only derived classes can do something.
 // tagI is equal:
-// - to 0 if you do the summation over j (with i the index of the output vector),
-// - to 1 if you do the summation over i (with j the index of the output vector).
+// - to 0 if you do the reduction over j (with i the index of the output vector),
+// - to 1 if you do the reduction over i (with j the index of the output vector).
 
 template < class F, int tagI_=0 >
 struct Reduction {
