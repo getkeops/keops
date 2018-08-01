@@ -22,8 +22,8 @@ auto formula0 = Grad(GaussKernel(Pm(0,1),Vx(1,3),Vy(2,3),Vy(3,3)),Vx(1,3),Vx(4,3
 using F0 = decltype(InvKeopsNS(formula0));
 using F1 = F0;
 
-using FUN0 = typename Generic<F0>::sEval;
-using FUN1 = typename Generic<F1>::sEval;
+using FUN0 = SumReduction<F0>;
+using FUN1 = SumReduction<F1>;
 }
 extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 
@@ -36,7 +36,7 @@ extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h,
 void main_grad_1D(int Nx) {
     using namespace keops;
     data<__TYPE__> data1(Nx);
-    GpuConv1D(FUN0(), data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
+    Eval<FUN0,GpuConv1D_FromHost>::Run(data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 
 static void cuda_grad_1D(benchmark::State& state) {
@@ -63,7 +63,7 @@ BENCHMARK(cuda_grad_1D)->Range(8, 8<<10)->UseManualTime();// Register the functi
 void main_grad_2D(int Nx) {
     using namespace keops;
     data<__TYPE__> data1(Nx);
-    GpuConv2D(FUN0(), data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
+    Eval<FUN0,GpuConv2D_FromHost>::Run(data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 
 static void cuda_grad_2D(benchmark::State& state) {
@@ -90,7 +90,7 @@ BENCHMARK(cuda_grad_2D)->Range(8, 8<<10)->UseManualTime();// Register the functi
 void main_generic_1D(int Nx) {
     using namespace keops;
     data<__TYPE__> data1(Nx);
-    GpuConv1D(FUN1(), data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
+    Eval<FUN1,GpuConv1D_FromHost>::Run(data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 
 static void cuda_generic_1D(benchmark::State& state) {
@@ -117,7 +117,7 @@ BENCHMARK(cuda_generic_1D)->Range(8, 8<<10)->UseManualTime();// Register the fun
 void main_generic_2D(int Nx) {
     using namespace keops;
     data<__TYPE__> data1(Nx);
-    GpuConv2D(FUN1(), data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
+    Eval<FUN1,GpuConv2D_FromHost>::Run(data1.Nx, data1.Ny, data1.f, data1.params, data1.x, data1.y, data1.v, data1.u);
 }
 
 static void cuda_generic_2D(benchmark::State& state) {
