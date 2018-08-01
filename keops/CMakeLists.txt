@@ -67,17 +67,17 @@ set_target_properties(${shared_obj_name} PROPERTIES
 
 add_subdirectory(specific)
 
-if(NOT PYTHON_LIB)
+add_subdirectory(sandbox)
+
+if (NOT(${CMAKE_VERSION} VERSION_LESS 3.6.0)) # workaround for https://github.com/google/benchmark/issues/603
+
+    add_subdirectory(lib/gtest)
+    add_subdirectory(bench)
+
+
+    add_subdirectory(lib/benchmark)
     add_subdirectory(test)
 
-    if ((NOT APPLE) AND (NOT(${CMAKE_VERSION} VERSION_LESS 3.6.0))) # workaround for https://github.com/google/benchmark/issues/603
-        add_subdirectory(bench)
-        add_subdirectory(sandbox)
-    endif()
 
-    #------------------------------------------------------------------------------------#
-    #-----------------------------------UNIT TESTS---------------------------------------#
-    #------------------------------------------------------------------------------------#
-    enable_testing()
-    add_subdirectory(lib/gtest)
 endif()
+

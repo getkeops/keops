@@ -27,7 +27,7 @@ template <typename T>
 void EXPECT_AllCLOSE(const std::vector<T> X, const std::vector<T> Y, const T atol, const T rtol) {
     ASSERT_EQ(X.size(), Y.size());
 
-    unsigned int count = 0;
+    int count = 0;
     T l1norm = 0.0;
     for (unsigned int i = 0; i < X.size(); ++i) {
         if (std::abs(X[i] - Y[i])> atol + rtol * (std::abs(Y[i]) + std::abs(X[i])))

@@ -1,3 +1,7 @@
+import re
+import numpy as np
+from collections import OrderedDict
+
 ############################################################
 #              Search for GPU
 ############################################################
@@ -23,9 +27,7 @@ except:
 ############################################################
 #     define backend
 ############################################################
-import re
-import numpy as np
-from collections import OrderedDict
+
 class pykeops_backend():
     """
     This class is  used to centralized the options used in PyKeops.
@@ -41,7 +43,6 @@ class pykeops_backend():
                              "GPU_1D", "GPU_1D_device", "GPU_1D_host",
                              "GPU_2D", "GPU_2D_device", "GPU_2D_host"
                              ]
-
 
     def define_tag_backend(self, backend, variables):
         """
@@ -63,7 +64,7 @@ class pykeops_backend():
 
         # auto : infer everything
         if backend == "auto":
-            return self._find_dev(), self._find_grid(), self._find_mem(variables)
+            return int(gpu_available), self._find_grid(), self._find_mem(variables)
 
         split_backend = re.split('_',backend)
         if len(split_backend) == 1:     # CPU or GPU
@@ -77,11 +78,12 @@ class pykeops_backend():
         tagCPUGPU, tag1D2D, tagHostDevice  = self.define_tag_backend(backend, variables)
         return self.dev[tagCPUGPU], self.grid[tag1D2D], self.memtype[tagHostDevice]
 
-    def _find_dev(self):
-            from pykeops import gpu_available
-            return 1 if gpu_available else 0
+    @staticmethod
+    def _find_dev():
+            return int(gpu_available)
 
-    def _find_mem(self, variables):
+    @staticmethod
+    def _find_mem( variables):
         if all([type(var) is np.ndarray for var in variables ]): # Infer if we're working with numpy arrays or torch tensors:
             MemType = 0
         elif torch_found and all([type(var) is torch.Tensor for var in variables ]):
@@ -100,7 +102,8 @@ class pykeops_backend():
 
         return MemType
 
-    def _find_grid(self):
+    @staticmethod
+    def _find_grid():
         return 0
 
 
