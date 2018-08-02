@@ -36,7 +36,7 @@ if (USE_CUDA)
 
         target_compile_options(
             testic BEFORE
-            PRIVATE -include ${shared_obj_name}.h
+            PRIVATE ${IncludePrefix} ${shared_obj_name}.h
         )
 
         Add_dependencies(

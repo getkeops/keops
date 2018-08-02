@@ -2,14 +2,19 @@
 #------------------------------- COMPILATOR OPTS ------------------------------------#
 #------------------------------------------------------------------------------------#
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -Wall -ferror-limit=2")
+if (NOT(MSVC))
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -Wall -ferror-limit=2")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -Wall -fmax-errors=2")
+    endif()
+
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -Wall -fmax-errors=2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14")
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 set (CUDA_PROPAGATE_HOST_FLAGS ON)
 
@@ -18,6 +23,15 @@ if(APPLE)
     set(CMAKE_MACOSX_RPATH TRUE)
 endif(APPLE)
 
+if(MSVC)
+    set(IncludePrefix /FI)
+    else()
+    set(IncludePrefix -include)
+endif()
+
+if(WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 1)
+endif()
 
 #------------------------------------------------------------------------------------#
 #------------------------------FIND CUDA AND GPUs------------------------------------#

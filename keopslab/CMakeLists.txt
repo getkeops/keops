@@ -82,7 +82,7 @@ if(Matlab_FOUND)
 
         target_compile_options(
             ${shared_obj_name}    BEFORE
-            PRIVATE -include ${shared_obj_name}.h
+            PRIVATE ${IncludePrefix} ${shared_obj_name}.h
         )
 
         # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
@@ -114,7 +114,7 @@ if(Matlab_FOUND)
 
     target_compile_options(
         mex_file_cpp BEFORE
-        PRIVATE  -include ${shared_obj_name}.h -I${Matlab_INCLUDE_DIRS} -fPIC
+        PRIVATE  ${IncludePrefix} ${shared_obj_name}.h -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
     if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))

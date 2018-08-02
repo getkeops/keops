@@ -4,6 +4,7 @@ from pykeops.common.utils import c_type
 from pykeops.common.parse_type import check_aliases_list
 from pykeops.common.get_options import torch_include_path
 
+import locale
 
 def run_and_display(args, msg=''):
     """
@@ -20,7 +21,7 @@ def run_and_display(args, msg=''):
     except subprocess.CalledProcessError as e:
         print('\n--------------------- ' + msg + ' DEBUG -----------------')
         print(e)
-        print(e.stdout.decode("utf-8"))
+        print(e.stdout.decode(locale.getpreferredencoding()))
         print('--------------------- ----------- -----------------')
 
 
@@ -42,6 +43,7 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
 
     run_and_display(['cmake', script_folder,
                      '-DCMAKE_BUILD_TYPE=' + build_type,
+                     '-GNinja',
                      '-DFORMULA_OBJ=' + formula,
                      '-DVAR_ALIASES=' + alias_string,
                      '-Dshared_obj_name=' + dllname,
@@ -51,7 +53,8 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
                      ],
                     msg = 'CMAKE')
 
-    run_and_display(['make', target, 'VERBOSE=' + str(int(verbose))], msg='MAKE')
+    # run_and_display(['make', target, 'VERBOSE=' + str(int(verbose))], msg='MAKE')
+    run_and_display(['cmake', '--build', '.', '--target',target], msg='MAKE')
 
     print("Done. ", end='', flush=False)
 

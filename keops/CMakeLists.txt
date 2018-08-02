@@ -46,7 +46,7 @@ else()
 
     target_compile_options(
         ${shared_obj_name} BEFORE
-        PRIVATE -include ${shared_obj_name}.h
+        PRIVATE ${IncludePrefix} ${shared_obj_name}.h
     )
 
     # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
@@ -57,7 +57,7 @@ else()
 
 endif()
 
-# shared_lib can be rename if the variable shared_lib_name is provided.
+# shared_lib can be renamed if the variable shared_lib_name is provided.
 set_target_properties(${shared_obj_name} PROPERTIES
     LIBRARY_OUTPUT_NAME ${shared_obj_name}
     PREFIX ""
@@ -69,12 +69,14 @@ add_subdirectory(specific)
 
 add_subdirectory(sandbox)
 
-add_subdirectory(lib/gtest)
-add_subdirectory(bench)
+if (NOT(WIN32))
+    add_subdirectory(lib/gtest)
+    add_subdirectory(bench)
+endif()
 
 if (NOT(${CMAKE_VERSION} VERSION_LESS 3.6.0)) # workaround for https://github.com/google/benchmark/issues/603
 
-    if(NOT(APPLE))
+    if(NOT(APPLE) AND NOT(WIN32))
         add_subdirectory(lib/benchmark)
         add_subdirectory(test)
     endif()

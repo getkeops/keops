@@ -62,7 +62,7 @@ else()
 
     target_compile_options(
         keops${shared_obj_name} BEFORE
-        PRIVATE -include ${shared_obj_name}.h
+        PRIVATE ${IncludePrefix} ${shared_obj_name}.h
     )
 
     # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
@@ -87,7 +87,7 @@ pybind11_add_module(${shared_obj_name}
 
 target_compile_options(
         ${shared_obj_name} BEFORE
-        PRIVATE  -include ${shared_obj_name}.h
+        PRIVATE  ${IncludePrefix} ${shared_obj_name}.h
     )
 
 target_link_libraries(
@@ -115,7 +115,7 @@ if (USE_CUDA)
 
     target_compile_options(
         radial_kernel_conv BEFORE
-        PRIVATE  -include ${shared_obj_name}.h
+        PRIVATE  ${IncludePrefix} ${shared_obj_name}.h
     )
 
     target_link_libraries(
@@ -135,7 +135,7 @@ if (USE_CUDA)
 
     target_compile_options(
         radial_kernel_grad1conv BEFORE
-        PRIVATE  -include ${shared_obj_name}.h
+        PRIVATE  ${IncludePrefix} ${shared_obj_name}.h
     )
 
     target_link_libraries(
@@ -202,7 +202,7 @@ if (USE_CUDA)
 
         target_compile_options(
             ${fshape_scp_name} BEFORE
-            PRIVATE  -include ${shared_obj_name}.h
+            PRIVATE  ${IncludePrefix} ${shared_obj_name}.h
         )
 
         target_link_libraries(
