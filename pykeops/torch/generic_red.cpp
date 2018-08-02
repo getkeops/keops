@@ -90,7 +90,7 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
           "Entry point to keops - pytorch version.");
 
     m.attr("nargs") = NARGS;
-    m.attr("tagIJ") = tagIJ;
+    m.attr("tagIJ") = TAGIJ;
     m.attr("dimout") = DIMOUT;
     m.attr("formula") = f;
 }
