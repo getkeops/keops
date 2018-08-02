@@ -16,7 +16,9 @@ template < class F_, int tagI_=0 >
 struct Reduction {
 
 	using F = F_;
+
   	static const int tagI = tagI_;
+	static_assert(tagI==0 || tagI==1, "tagI should be 0 or 1 in for reduction operation.");
       	static const int tagJ = 1-tagI;
 
         using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
