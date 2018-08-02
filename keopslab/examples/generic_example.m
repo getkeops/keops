@@ -20,11 +20,11 @@ p = .25;
 %-----------------------------------------%
 
 F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)',...
-           'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)',options);
+           'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
 
 tic
 g = F(x,y,u,v,b,p);
-fprintf('Time for libkp computation : %f s.\n', toc)
+fprintf('Time for keops computation : %f s.\n', toc)
 
 %-----------------------------------------%
 %            Compare with matlab          %

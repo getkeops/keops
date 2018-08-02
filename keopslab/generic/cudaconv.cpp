@@ -73,7 +73,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // minimal number of input arrays required for the formula to be evaluated :
     const int NMINARGS = F::NMINARGS-1;	
 
-    if(nargs>=NMINARGS)
+    if(nargs<NMINARGS)
         mexErrMsgTxt("Formula requires more input arrays to be evaluated");
 
     const int tagIJ = F::tagI;
