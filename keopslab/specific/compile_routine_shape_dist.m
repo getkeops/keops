@@ -4,7 +4,7 @@ function compile_routine_shape_dist(kernel_geom,kernel_sig,kernel_sphere,ext_nam
 
     disp('Formula is not compiled yet ; compiling...')
     
-    [src_dir,build_dir,precision,verbosity] = default_options();
+    [src_dir,build_dir,precision,verbosity,use_cuda_if_possible] = default_options();
     
     % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
     setenv('LD_LIBRARY_PATH','') 
@@ -13,7 +13,7 @@ function compile_routine_shape_dist(kernel_geom,kernel_sig,kernel_sphere,ext_nam
     % find cmake :
     cmake = getcmake();
     % cmake command:
-    cmdline = ['cmake ', src_dir , ' -D__TYPE__="', precision, '" -DKERNEL_GEOM="',lower(kernel_geom), '" -DKERNEL_SIG="', lower(kernel_sig),'" -DKERNEL_SPHERE="', lower(kernel_sphere) ,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
+    cmdline = ['cmake ', src_dir , ' -DUSE_CUDA=',num2str(use_cuda_if_possible), ' -D__TYPE__="', precision, '" -DKERNEL_GEOM="',lower(kernel_geom), '" -DKERNEL_SIG="', lower(kernel_sig),'" -DKERNEL_SPHERE="', lower(kernel_sphere) ,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     %fprintf([cmdline,'\n'])
     try
         [prebuild_status,prebuild_output] = system(cmdline);

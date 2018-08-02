@@ -2,7 +2,7 @@ function testbuild = compile_formula(code1, code2, filename)
 
     disp(['Compiling formula ',code2,' with ',code1,' ...'])
     
-    [src_dir,build_dir,precision,verbosity] = default_options();
+    [src_dir,build_dir,precision,verbosity,use_cuda_if_possible] = default_options();
     
     % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
     setenv('LD_LIBRARY_PATH','') 
@@ -11,7 +11,7 @@ function testbuild = compile_formula(code1, code2, filename)
     % find cmake :
     cmake = getcmake();
     % cmake command:
-    cmdline = [cmake,' ', src_dir , ' -DCMAKE_BUILD_TYPE=Release -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
+    cmdline = [cmake,' ', src_dir , ' -DUSE_CUDA=',num2str(use_cuda_if_possible),' -DCMAKE_BUILD_TYPE=Release -DVAR_ALIASES="',code1,'" -DFORMULA_OBJ="',code2,'" -DUSENEWSYNTAX=TRUE -D__TYPE__=',precision,' -Dmex_name="',filename,'" -Dshared_obj_name="',filename,'" -DMatlab_ROOT_DIR="',matlabroot,'"' ];
     %fprintf([cmdline,'\n'])
     try
         [prebuild_status,prebuild_output] = system(cmdline);

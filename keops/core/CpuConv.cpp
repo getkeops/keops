@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdio.h>
-#include <iostream>
 #include <assert.h>
 #include <vector>
 
@@ -23,7 +22,6 @@ static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py)
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
-
     TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
     load<DIMSP>(0,pp,param);
 
@@ -37,6 +35,7 @@ static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py)
         }
         typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
     }
+
     return 0;
 }
 
@@ -92,7 +91,6 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
         py[i] = args[INDSJ::VAL(i)];
     for(int i=0; i<SIZEP; i++)
         params[i] = args[INDSP::VAL(i)];
-
     return CpuConv_(fun,params,nx,ny,px,py);
 }
 };

@@ -5,26 +5,25 @@ addpath(genpath(path_to_lib))
 %         create dataset               %
 %--------------------------------------%
 
-Nx = 50;
-Ny = 20;
+Nx = 5000;
+Ny = 2000;
 x = randn(3,Nx);
 y = randn(3,Ny);
-b = randn(3,Ny);
 u = randn(4,Nx);
 v = randn(4,Ny);
+b = randn(3,Ny);
 p = .25;
-
 
 %-----------------------------------------%
 %           Kernel with KeOps             %
 %-----------------------------------------%
 
 F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)',...
-           'Square((u|v))*Exp(-p*SqNorm2(x-y))*b');
+           'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
 
 tic
 g = F(x,y,u,v,b,p);
-fprintf('Time for libkp computation : %f s.\n', toc)
+fprintf('Time for keops computation : %f s.\n', toc)
 
 %-----------------------------------------%
 %            Compare with matlab          %
