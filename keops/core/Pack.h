@@ -15,7 +15,6 @@
 
 #include <sstream>
 #include <assert.h>
-#include <iostream>
 
 #ifdef __CUDACC__
 	#include <npp.h>
@@ -490,13 +489,8 @@ template < int N, int... NS > struct pack<N,NS...> {
          * Obviously, we do not make any sanity check... so beware of illicit memory accesses !
          */
         // Using pythonic syntax, we can describe our loading procedure as follows :
-std::cout << std::endl << "In load begin, FIRST=" << FIRST << std::endl;
         for(int k=0; k<FIRST; k++){
-std::cout << "before assert, k=" << k << std::endl;
             assert(&((*px)[i*FIRST+k]) != nullptr);
-std::cout << "after assert, k=" << k << ", i=" << i << std::endl;
-std::cout << "after assert, xi[k]=" << xi[k] << std::endl;
-std::cout << "after assert, (*px)[i*FIRST+k]=" << (*px)[i*FIRST+k] << std::endl;
             xi[k] = (*px)[i*FIRST+k];// First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
         }
         NEXT::load(i,xi+FIRST,px+1);   // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)

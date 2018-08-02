@@ -71,7 +71,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     int nargs = nrhs-4;	
 
     // minimal number of input arrays required for the formula to be evaluated :
-    const int NMINARGS = F::NMINARGS-1;	
+    const int NMINARGS = F::NMINARGS;	
 
     if(nargs<NMINARGS)
         mexErrMsgTxt("Formula requires more input arrays to be evaluated");
@@ -202,8 +202,6 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // tagCpuGpu=0 means reduction on Cpu, tagCpuGpu=1 means reduction on Gpu from host data, tagCpuGpu=2 means reduction on Gpu from device data
     // tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 
-mexPrintf("just before comput");
-
 #if USE_CUDA
     if(tagCpuGpu==0) 
         CpuReduc( n[0], n[1], castedgamma, castedargs);
@@ -218,11 +216,9 @@ mexPrintf("just before comput");
         else
             GpuReduc2D_FromDevice( n[0], n[1], castedgamma, castedargs);
 #else
-    mexPrintf("we are here");
     if(tagCpuGpu != 0)
         mexWarnMsgTxt("CPU Routine are used. To suppress this warning set tagCpuGpu to 0.");
     CpuReduc( n[0], n[1], castedgamma, castedargs);
-mexPrintf("after compute");
 #endif
 
 #if not USE_DOUBLE

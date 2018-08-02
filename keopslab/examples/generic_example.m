@@ -5,15 +5,14 @@ addpath(genpath(path_to_lib))
 %         create dataset               %
 %--------------------------------------%
 
-Nx = 50;
-Ny = 20;
+Nx = 5000;
+Ny = 2000;
 x = randn(3,Nx);
 y = randn(3,Ny);
-b = randn(3,Ny);
 u = randn(4,Nx);
 v = randn(4,Ny);
+b = randn(3,Ny);
 p = .25;
-
 
 %-----------------------------------------%
 %           Kernel with KeOps             %

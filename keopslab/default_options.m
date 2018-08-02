@@ -6,6 +6,6 @@ build_dir = [fileparts([mfilename('fullpath')]),'/build/'];
 src_dir = fileparts([mfilename('fullpath')]);
 precision = 'float';
 verbosity = 0;
-use_cuda_if_possible = 0; % 0 to force computation on CPU
+use_cuda_if_possible = 1; % 0 to force computation on CPU
 
 end

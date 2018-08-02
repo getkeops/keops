@@ -83,7 +83,6 @@ F = @Eval;
 function out = Eval(varargin)
     nx = size(varargin{indxy(1)},2);
     ny = size(varargin{indxy(2)},2);
-    options.tagCpuGpu = 0
     out = feval(Fname,nx,ny,options.tagCpuGpu,...
         options.tag1D2D,varargin{:});
 end

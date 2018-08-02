@@ -5,8 +5,6 @@
 #include "core/autodiff.h"
 #include "core/formulas/maths.h"
 
-#include <iostream>
-
 namespace keops {
 
 // Default class for the reduction operation. Only derived classes can do something.
@@ -56,12 +54,10 @@ template < class RED, class MODE >
 struct Eval {
 	template < typename... Args >
 	static int Run(int nx, int ny, Args... args) {
-std::cout << std::endl << "In Eval begin, RED::tagI=" << RED::tagI << std::endl;
 		if(RED::tagI==0)
        			return MODE::Eval(RED(),nx,ny,args...);
 		else
        			return MODE::Eval(RED(),ny,nx,args...);
-std::cout << std::endl << "In Evale end" << std::endl;
 	}
 };
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdio.h>
-#include <iostream>
 #include <assert.h>
 #include <vector>
 
@@ -23,12 +22,8 @@ static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py)
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
-std::cout << std::endl << "In CpuConv_ begin" << std::endl;
     TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
-std::cout << std::endl << "In CpuConv_ before load" << std::endl;
     load<DIMSP>(0,pp,param);
-std::cout << std::endl << "In CpuConv_ after load" << std::endl;
-
 
     for(int i=0; i<nx; i++) {
         load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1);
@@ -40,7 +35,7 @@ std::cout << std::endl << "In CpuConv_ after load" << std::endl;
         }
         typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
     }
-std::cout << std::endl << "In CpuConv_ end" << std::endl;
+
     return 0;
 }
 
@@ -96,7 +91,6 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
         py[i] = args[INDSJ::VAL(i)];
     for(int i=0; i<SIZEP; i++)
         params[i] = args[INDSP::VAL(i)];
-std::cout << std::endl << "In CpuConv Eval begin" << std::endl;
     return CpuConv_(fun,params,nx,ny,px,py);
 }
 };
