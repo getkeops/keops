@@ -5,7 +5,7 @@
 
 extern "C" int CpuReduc(int, int, __TYPE__*, __TYPE__**);
 
-#ifdef USE_CUDA
+#if USE_CUDA 
 extern "C" int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuReduc1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 extern "C" int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**);
@@ -15,7 +15,7 @@ extern "C" int GpuReduc2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 using namespace keops;
 
 void ExitFcn(void) {
-//#ifdef USE_CUDA
+//#ifdef USE_CUDA && USE_CUDA==1
     //cudaDeviceReset();
 //#endif
 }
@@ -202,8 +202,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // tagCpuGpu=0 means reduction on Cpu, tagCpuGpu=1 means reduction on Gpu from host data, tagCpuGpu=2 means reduction on Gpu from device data
     // tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 
+mexPrintf("just before comput");
 
-#ifdef USE_CUDA
+#if USE_CUDA
     if(tagCpuGpu==0) 
         CpuReduc( n[0], n[1], castedgamma, castedargs);
     else if(tagCpuGpu==1) 
@@ -217,9 +218,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
         else
             GpuReduc2D_FromDevice( n[0], n[1], castedgamma, castedargs);
 #else
+    mexPrintf("we are here");
     if(tagCpuGpu != 0)
         mexWarnMsgTxt("CPU Routine are used. To suppress this warning set tagCpuGpu to 0.");
     CpuReduc( n[0], n[1], castedgamma, castedargs);
+mexPrintf("after compute");
 #endif
 
 #if not USE_DOUBLE
