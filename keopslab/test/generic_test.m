@@ -33,7 +33,7 @@ function test_standard_expression(testCase)
     p = .25;
 
     % Kernel with KeOps
-    F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)', 'Square((u|v))*Exp(-p*SqNorm2(x-y))*b');
+    F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)', 'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
     g = F(x,y,u,v,b,p);
     
     % Compare with matlab
@@ -52,7 +52,7 @@ function test_standard_expression_gradient(testCase)
     x = randn(3,Nx); y = randn(3,Ny); a = randn(3,Nx); b = randn(3,Ny);
     p = .25;
     % Kernel with KeOps
-    F1 = Kernel('x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)','a=Vx(3,3)', 'p=Pm(4,1)', 'Grad(Exp(-p*SqNorm2(x-y))*b,x,a)');
+    F1 = Kernel('x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)','a=Vx(3,3)', 'p=Pm(4,1)', 'SumReduction(Grad(Exp(-p*SqNorm2(x-y))*b,x,a),0)');
     g1 = F1(x,y,b,a,p);
     
     % Compare with matlab
@@ -73,7 +73,7 @@ function test_gradient(testCase)
     a = randn(3,Nx); x = randn(3,Nx); y = randn(3,Ny); b = randn(3,Ny);
     p = .25;
 
-    F0 = Kernel('x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)', 'p=Pm(3,1)', 'Exp(-p*SqNorm2(x-y))*b');
+    F0 = Kernel('x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)', 'p=Pm(3,1)', 'SumReduction(Exp(-p*SqNorm2(x-y))*b,0)');
 
     GF0x = GradKernel(F0,'x','e=Vx(4,3)');
     g3= GF0x(x,y,b,p,a);

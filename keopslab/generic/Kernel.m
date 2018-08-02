@@ -6,14 +6,14 @@ function [F,Fname] = Kernel(varargin)
 %
 % - Define and test a function that computes for each i the sum over j
 % of the square of the scalar products of xi and yj (both 3d vectors)
-% F = Kernel('x=Vx(3)','y=Vy(3)','Square((x,y))');
+% F = Kernel('x=Vx(3)','y=Vy(3)','SumReduction(Square((x,y)),0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % res = F(x,y);
 %
 % - Define and test the convolution with a Gauss kernel i.e. the sum
 % over j of e^(lambda*||xi-yj||^2)beta_j (xi,yj, beta_j 3d vectors):
-% F = Kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','lambda=Pm(1)','Exp(lambda*SqNorm2(x-y))*beta');
+% F = Kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','lambda=Pm(1)','SumReduction(Exp(lambda*SqNorm2(x-y))*beta,0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % beta = rand(3,5000);
@@ -23,7 +23,7 @@ function [F,Fname] = Kernel(varargin)
 % - Define and test the gradient of the previous function with respect
 % to the xi :
 % F = Kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','eta=Vx(3)','lambda=Pm(1)',...
-%           'Grad(Exp(lambda*SqNorm2(x-y))*beta,x,eta)');
+%           'SumReduction(Grad(Exp(lambda*SqNorm2(x-y))*beta,x,eta),0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % beta = rand(3,5000);
@@ -46,8 +46,6 @@ if isstruct(varargin{end})
 else
     options=struct;
 end
-% tagIJ=0 means sum over j, tagIj=1 means sum over j
-options = setoptions(options,'tagIJ',0);
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
 options = setoptions(options,'tagCpuGpu',1);
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
@@ -85,7 +83,7 @@ F = @Eval;
 function out = Eval(varargin)
     nx = size(varargin{indxy(1)},2);
     ny = size(varargin{indxy(2)},2);
-    out = feval(Fname,nx,ny,options.tagIJ,options.tagCpuGpu,...
+    out = feval(Fname,nx,ny,options.tagCpuGpu,...
         options.tag1D2D,varargin{:});
 end
 
