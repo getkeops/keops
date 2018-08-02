@@ -6,7 +6,7 @@ import unittest
 import itertools
 import numpy as np
 
-from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances
+from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances, log_sum_exp
 
 from pykeops import gpu_available, default_cuda_type
 
@@ -98,7 +98,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                 self.assertTrue( np.allclose(gamma, gamma_py,atol=1e-6))
 
 #--------------------------------------------------------------------------------------
-    def test_generic_syntax(self):
+    def test_generic_syntax_sum(self):
 #--------------------------------------------------------------------------------------
         from pykeops.numpy.generic_red import generic_red
         aliases = ["p=Pm(0,1)", "a=Vy(1,1)", "x=Vx(2,3)", "y=Vy(3,3)"]
@@ -122,6 +122,32 @@ class NumpyUnitTestCase(unittest.TestCase):
 
                 # compare output
                 self.assertTrue( np.allclose(gamma_keops, gamma_py , atol=1e-6))
+
+#--------------------------------------------------------------------------------------
+    def test_generic_syntax_lse(self):
+#--------------------------------------------------------------------------------------
+        from pykeops.numpy.generic_red import generic_red
+        aliases = ["p=Pm(0,1)", "a=Vy(1,1)", "x=Vx(2,3)", "y=Vy(3,3)"]
+        formula = "Square(p-a)*Exp(-SqNorm2(y-x))"
+        axis = 1       # 0 means summation over i, 1 means over j
+
+        if gpu_available:
+            backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
+        else:
+            backend_to_test = ["auto"]
+
+        for b,t in itertools.product(backend_to_test, self.type_to_test):
+            with self.subTest(b=b, t=t):
+
+                # Call cuda kernel
+                myconv = generic_red(formula, aliases, reduction_op="LogSumExp", axis=axis, backend=b, cuda_type=t)
+                gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t))
+
+                # Numpy version
+                gamma_py = log_sum_exp((self.sigma - self.g)**2 *np.exp(-squared_distances(self.y, self.x)), axis=axis)
+
+                # compare output
+                self.assertTrue( np.allclose(gamma_keops.ravel(), gamma_py , atol=1e-6))
 
 
 if __name__ == '__main__':

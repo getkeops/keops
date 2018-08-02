@@ -5,7 +5,7 @@ from pykeops.common.utils import axis2cat
 
 
 class generic_red:
-    def __init__(self, formula, aliases, reduction_op="Sum", axis=1, backend = "auto", cuda_type=default_cuda_type):
+    def __init__(self, formula, aliases, reduction_op="Sum", axis=0, backend = "auto", cuda_type=default_cuda_type):
         self.formula = reduction_op + "Reduction(" + formula + "," + str(axis2cat(axis)) + ")"
         self.aliases = aliases
         self.backend = backend

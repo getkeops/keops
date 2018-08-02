@@ -47,7 +47,7 @@ const int NARGSP = VARSP::SIZE; // number of parameters variables used in formul
 const int NARGS = F::NMINARGS;
 const int DIMOUT = F::DIM;
 
-const int tagIJ = F::tagI;
+const int TAGIJ = F::tagI;
 
 const std::string f =  PrintFormula<F::F>();
 
@@ -193,7 +193,7 @@ array_t generic_red(int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme
     std::pair<int,int> n = check_args<array_t>(obj_ptr);  // int nx = n.first; int ny = n.second;
 
     // dimension Output : nout is the nbr of rows of the result
-    int nout = (tagIJ == 0)? n.first : n.second;
+    int nout = (TAGIJ == 0)? n.first : n.second;
 
     // Call Cuda codes
     array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice,

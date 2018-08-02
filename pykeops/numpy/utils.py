@@ -1,5 +1,7 @@
 import numpy as np
 
+from pykeops.common.utils import axis2cat
+
 
 def squared_distances(x, y):
     return np.sum((x[:,np.newaxis,:] - y[np.newaxis,:,:]) ** 2, axis=2)
@@ -48,6 +50,21 @@ def chain_rules(q,ax,by,Aa,p):
         ximyj = (np.tile(ax[:,i],[by.shape[0],1]).T - np.tile(by[:,i],[ax.shape[0],1])) 
         res[:,i] = np.sum(q * ((2 * ximyj * Aa) @ p),axis=1)
     return res
+
+
+def log_sum_exp(mat, axis=0):
+    """
+    Computes the log-sum-exp of a matrix with a numerically stable scheme,
+    in the user-defined summation dimension: exp is never applied
+    to a number >= 0, and in each summation row, there is at least
+    one "exp(0)" to stabilize the sum.
+
+    For instance, if dim = 1 and mat is a 2d array, we output
+                log( sum_j exp( mat[i,j] ))
+    by factoring out the row-wise maximas.
+    """
+    max_rc = mat.max(axis=axis2cat(axis))
+    return max_rc + np.log(np.sum(np.exp(mat -  np.expand_dims(max_rc, axis=axis2cat(axis))), axis=axis2cat(axis)))
 
 
 def assert_contiguous(x):
