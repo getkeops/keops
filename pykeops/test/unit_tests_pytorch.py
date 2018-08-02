@@ -114,8 +114,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
         from pykeops.torch.generic_red import pytorch_genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
-        formula = 'Square(p-a)*Exp(x+y)'
-        axis = 1       # the index we sum on: 0 means sum over i, 1 means sum over j
+        formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
         if gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
@@ -124,7 +123,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = pytorch_genred.apply(formula, aliases, axis, b, 'float32', self.sigmac, self.fc, self.xc, self.yc)
+                gamma_keops = pytorch_genred.apply(formula, aliases, b, 'float32', self.sigmac, self.fc, self.xc, self.yc)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
                 # compare output
@@ -135,8 +134,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
         from pykeops.torch.generic_red import pytorch_genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
-        formula = 'Square(p-a)*Exp(x+y)'
-        axis = 1       # the index we sum on: 0 means sum over i, 1 means sum over j
+        formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
         if gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
@@ -145,7 +143,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = pytorch_genred.apply(formula, aliases, axis, b, 'float64', self.sigmacd, self.fcd, self.xcd, self.ycd)
+                gamma_keops = pytorch_genred.apply(formula, aliases, b, 'float64', self.sigmacd, self.fcd, self.xcd, self.ycd)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
                 # compare output

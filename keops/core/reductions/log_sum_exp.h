@@ -108,7 +108,9 @@ struct LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> 
 		using D = Add< TensorProd<GradMatrix<F,V>,G> , GradMatrix<G,V> > ;		
 		
 		template < class V, class GRADIN >
-		using DiffT = LogSumExpReduction<F,V::CAT,Concat<G,D<V>>,C<V,_X<2,GRADIN::DIM>>,GRADIN>;
+		using DiffT = LogSumExpReduction<F,(V::CAT)%2,Concat<G,D<V>>,C<V,_X<2,GRADIN::DIM>>,GRADIN>;
+ 		// remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j. 
+		// In this case there is a summation left to be done by the user.
 		
 };
 

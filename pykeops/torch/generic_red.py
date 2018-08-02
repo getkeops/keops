@@ -56,7 +56,7 @@ class pytorch_genred(torch.autograd.Function):
 
         for (var_ind, sig) in enumerate(ctx.aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 5]:   # because of (formula, aliases, axis, backend, cuda_type)
+            if not ctx.needs_input_grad[var_ind + 4]:   # because of (formula, aliases, backend, cuda_type)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -71,9 +71,10 @@ class pytorch_genred(torch.autograd.Function):
                 genconv = pytorch_genred().apply
 
                 if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
-                    # TODO : Check sum_index !!!!!!
-                    grad = genconv(formula_g, aliases, 0, backend, cuda_type, *args_g)
-                    # Then, sum 'grad' wrt 'j' :
+                    # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/reductions
+		    # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i 
+                    grad = genconv(formula_g, aliases, backend, cuda_type, *args_g)
+                    # Then, sum 'grad' wrt 'i' :
                     # I think that ".sum"'s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with pytorch_genred: grad = grad.sum(0)
                     # We replace it with a "handmade hack" :
