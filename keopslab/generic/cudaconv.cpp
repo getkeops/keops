@@ -48,10 +48,12 @@ void ExitFcn(void) {
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // register an exit function to prevent crash at matlab exit or recompiling
     mexAtExit(ExitFcn);
+    
+    using FF = F::F; // F::F is formula inside reduction (ex if F is SumReduction<Form> then F::F is Form)
 
-    using VARSI = F::VARSI;    // list variables of type I used in formula F
-    using VARSJ = F::VARSJ;    // list variables of type J used in formula F
-    using VARSP = F::VARSP;    // list variables of type parameter used in formula F
+    using VARSI = typename FF::template VARS<0>;    // list variables of type I used in formula F
+    using VARSJ = typename FF::template VARS<1>;    // list variables of type J used in formula F
+    using VARSP = typename FF::template VARS<2>;    // list variables of type parameter used in formula F
 
     using DIMSX = GetDims<VARSI>;
     using DIMSY = GetDims<VARSJ>;
@@ -67,7 +69,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
     const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
 
-    // number of input arrays of the matlab function. The "-4" is because there are 4 parameter inputs before the list of arrays : nx, ny, tagCpuGpu, tagID2D
+    // number of input arrays of the matlab function. 
+    // The "-4" is because there are 4 parameter inputs before the list of arrays : nx, ny, tagCpuGpu, tagID2D
     int nargs = nrhs-4;	
 
     // minimal number of input arrays required for the formula to be evaluated :

@@ -18,8 +18,10 @@ struct Reduction {
 	using F = F_;
 
   	static const int tagI = tagI_;
-	static_assert(tagI==0 || tagI==1, "tagI should be 0 or 1 in for reduction operation.");
-      	static const int tagJ = 1-tagI;
+ 	static_assert(tagI==0 || tagI==1, "tagI should be 0 or 1 in for reduction operation.");
+    static const int tagJ = 1-tagI;
+    
+  	static const int CAT = tagI; // category of the output vector (used in alias GradFromPos, see autodiff.h)
 
         using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
         using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable

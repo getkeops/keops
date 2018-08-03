@@ -502,12 +502,19 @@ struct CountIn<OP<FA,FB>,G> {
 ////      GRADIENT OPERATOR  : Grad< F, V, Gradin >       ////
 //////////////////////////////////////////////////////////////
 
-// Computes [\partial_V F].gradin
+// Defines [\partial_V F].gradin function
 // Symbolic differentiation is a straightforward recursive operation,
 // provided that the operators have implemented their DiffT "compiler methods":
 template < class F, class V, class GRADIN >
 using Grad = typename F::template DiffT<V,GRADIN>;
 
+// Defines [\partial_V F].gradin with gradin defined as a new variable with correct
+// category, dimension and index position. 
+// This will work only when taking gradients of reduction operations (otherwise F::CAT
+// is not defined so it will not compile). The position is the only information which 
+// is not available in the C++ code, so it needs to be provided by the user.
+template < class F, class V, int I >
+using GradFromPos = Grad<F,V,Var<I,F::DIM,F::CAT>>;
 
 //////////////////////////////////////////////////////////////
 ////    STANDARD VARIABLES :_X<N,DIM>,_Y<N,DIM>,_P<N>     ////

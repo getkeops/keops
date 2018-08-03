@@ -30,7 +30,7 @@ function testbuild = compile_formula(code1, code2, filename)
         cd(cur_dir)
         error('Compilation  Failed')
     end
-    % ...comming back to curent directory
+    % ...coming back to current directory
     cd(cur_dir)
 
     testbuild = (exist([filename,'.',mexext],'file')==3);

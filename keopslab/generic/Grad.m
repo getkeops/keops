@@ -1,21 +1,19 @@
-function G = GradKernel(F,var,newvar)
+function G = Grad(F,var)
 
 % defines the gradient of a kernel convolution
 % F is the output of a call to Kernel function
 % var is a string identifying the variable with respect
 % to which the gradient must be taken
-% newvar is a string identifying the new variable which will be the input
-% to the gradient in the convolution
 % Example : define a Gaussian kernel convolution, then take its gradient
 % with respect to the first variable and test
 % F = Kernel('GaussKernel(p,x,y,b)','p=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,3)');
-% G = GradKernel(F,'x','c=Vx(4,3)');
+% G = Grad(F,'x');
 % Nx = 5000;
 % Ny = 2000;
 % x = randn(3,Nx);
 % y = randn(3,Ny);
 % b = randn(3,Ny);
-% c = randn(3,Nx);
+% c = randn(3,Nx); % we need to input a new array with correct size
 % p = .25;
 % res = G(p,x,y,b,c);
 
@@ -26,19 +24,17 @@ vars = s.workspace{1}.aliases;
 formula = s.workspace{1}.formula;
 options = s.workspace{1}.options;
 
-% we analyse the "newvar" string argument : the string can be either of the form
-% 'name=type' or simply 'type'
-[newvarname,newvarid] = sepeqstr(newvar);
-if isempty(newvarname) % simple 'type' form
-    newvarname = newvar; % because newvarname will be the string inserted in the gradient formula
-    newvar = {};
-end
+% get index position of new variable to feed in the gradient
+% since indices in C++ code start at 0, the new index equals the number of
+% variables
+posnewvar = options.numvars;
 
-% we analyse the "var" string argument : if variable is of type Vy, we must
-% perform convolution with respect to j instead of i
-% first if var is entered as a name, we must retrieve the corresponding
-% type
-if length(var)<2 || (~strcmp(var(1:2),'Vx') && ~strcmp(var(1:2),'Vx'))
+% number of variables for gradient function
+options.numvars = options.numvars+1;
+
+% we analyse the "var" string argument. If var is entered as a name, 
+% we must retrieve the corresponding type
+if length(var)<3 || (~strcmp(var(1:3),'Vx(') && ~strcmp(var(1:3),'Vy(') && ~strcmp(var(1:3),'Pm('))
     for k=1:length(vars)
         [vkname,vkid] = sepeqstr(vars{k});
         if strcmp(vkname,var)
@@ -49,13 +45,14 @@ else
     vartype = var;
 end
 
-% vartype is of the form 'Vx(...' or 'Vy(...' so we look at the 2nd character :
-if vartype(2)=='y' 
-    options.tagIJ = 1;
+% if we take the gradient with respect to a parameter Pm(...),
+% then we must further sum the output with respect to i index
+if vartype(2)=='m' 
+    options.sumoutput = 1;
 end
 
 % finally we call the Kernel function with the new formula
-args = [vars,newvar,['Grad(',formula,',',var,',',newvarname,')']];
+args = [vars,['GradFromPos(',formula,',',var,',',num2str(posnewvar),')']];
 G = Kernel(args{:},options);
 
 end

@@ -37,3 +37,4 @@ g0 = ((uv .^2 .* exp(-p*squmatrix_distance(x',y'))) *b')';
 fprintf('Time for pure matlab computation : %f s.\n', toc)
 
 fprintf('\nAbsolute error: %g\n', norm(g-g0))
+fprintf('\nRelative error: %g\n', norm(g-g0)/norm(g0))

@@ -26,9 +26,11 @@ namespace py = pybind11;
 /////////////////////////////////////////////////////////////////////////////////
 
 
-using VARSI = F::VARSI;    // list variables of type I
-using VARSJ = F::VARSJ;    // list variables of type J
-using VARSP = F::VARSP;    // list variables of type parameter
+using FF = F::F; // F::F is formula inside reduction (ex if F is SumReduction<Form> then F::F is Form)
+
+using VARSI = typename FF::template VARS<0>;    // list variables of type I used in formula F
+using VARSJ = typename FF::template VARS<1>;    // list variables of type J used in formula F
+using VARSP = typename FF::template VARS<2>;    // list variables of type parameter used in formula F
 
 using DIMSX = GetDims<VARSI>;
 using DIMSY = GetDims<VARSJ>;
@@ -49,7 +51,7 @@ const int DIMOUT = F::DIM;
 
 const int TAGIJ = F::tagI;
 
-const std::string f =  PrintFormula<F::F>();
+const std::string f =  PrintFormula<FF>();
 
 /////////////////////////////////////////////////////////////////////////////////
 //                             Utils

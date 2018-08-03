@@ -19,17 +19,6 @@ function [F,Fname] = Kernel(varargin)
 % beta = rand(3,5000);
 % lambda = .25;
 % res = F(x,y,beta,lambda);
-%
-% - Define and test the gradient of the previous function with respect
-% to the xi :
-% F = Kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','eta=Vx(3)','lambda=Pm(1)',...
-%           'SumReduction(Grad(Exp(lambda*SqNorm2(x-y))*beta,x,eta),0)');
-% x = rand(3,2000);
-% y = rand(3,5000);
-% beta = rand(3,5000);
-% eta = rand(3,2000);
-% lambda = .25;
-% res = F(x,y,beta,eta,lambda);
 
 cur_dir = pwd;
 
@@ -65,6 +54,18 @@ else
     error('Incorrect inputs')
 end
 
+% numvars is the number of input arguments of the formula. Normally it
+% equals the number of aliases, but one can use more variables in the
+% formula without defining aliases. This option is used by function
+% Grad because taking gradients introduces new variables whose
+% dimensions are unknown at the matlab level.
+options = setoptions(options,'numvars',length(aliases));
+
+% sumoutput is an optional tag (0 or 1) to tell wether we must further sum the
+% output in the end. This is used when taking derivatives with respect to
+% parameter variables (see Grad function)
+options = setoptions(options,'sumoutput',0);
+
 % from the string inputs we form the code which will be added to the source cpp/cu file, and the string used to encode the file name
 [CodeVars,indxy ] = format_var_aliase(aliases);
 
@@ -83,8 +84,10 @@ F = @Eval;
 function out = Eval(varargin)
     nx = size(varargin{indxy(1)},2);
     ny = size(varargin{indxy(2)},2);
-    out = feval(Fname,nx,ny,options.tagCpuGpu,...
-        options.tag1D2D,varargin{:});
+    out = feval(Fname,nx,ny,options.tagCpuGpu,options.tag1D2D,varargin{:});
+    if options.sumoutput
+        out = sum(out,2); % '2' because we sum with respect to index, not dimension !
+    end
 end
 
 end
