@@ -7,7 +7,7 @@ import itertools
 import numpy as np
 
 from pykeops import torch_found, gpu_available
-from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differences
+from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
 
 class PytorchUnitTestCase(unittest.TestCase):
 
@@ -112,7 +112,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_float(self):
     ############################################################
-        from pykeops.torch.generic_red import pytorch_genred
+        from pykeops.torch.generic_red import Genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
         formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
         if gpu_available:
@@ -123,7 +123,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = pytorch_genred.apply(formula, aliases, b, 'float32', self.sigmac, self.fc, self.xc, self.yc)
+                gamma_keops = Genred.apply(formula, aliases, b, 'float32', self.sigmac, self.fc, self.xc, self.yc)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
                 # compare output
@@ -132,7 +132,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_double(self):
     ############################################################
-        from pykeops.torch.generic_red import pytorch_genred
+        from pykeops.torch.generic_red import Genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
         formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
         if gpu_available:
@@ -143,17 +143,16 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = pytorch_genred.apply(formula, aliases, b, 'float64', self.sigmacd, self.fcd, self.xcd, self.ycd)
+                gamma_keops = Genred.apply(formula, aliases, b, 'float64', self.sigmacd, self.fcd, self.xcd, self.ycd)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
                 # compare output
                 self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
 
-
     ############################################################
     def test_generic_syntax_simple(self):
     ############################################################
-        from pykeops.torch.generic_red import generic_sum
+        from pykeops.torch.generic_red import Sum
 
         aliases = ['P = Pm(2)',                               # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -169,46 +168,40 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
 
-                my_routine  = generic_sum(formula, aliases, axis=1, backend=b)
+                my_routine  = Sum(formula, aliases, axis=1, backend=b)
                 gamma_keops = my_routine(self.pc, self.xc, self.yc)
 
                 # Numpy version
                 scals = (self.x @ self.y.T)**2 # Memory-intensive computation!
-                gamma_py = self.p[0] * scals.sum(1).reshape(-1,1) * self.x \
-                         + self.p[1] * (scals @ self.y)
+                gamma_py = self.p[0] * scals.sum(1).reshape(-1,1) * self.x + self.p[1] * (scals @ self.y)
 
                 # compare output
                 self.assertTrue( np.allclose(gamma_keops.cpu().data.numpy(), gamma_py , atol=1e-6))
 
-#    @unittest.expectedFailure
-#    ############################################################
-#    def test_logSumExp_kernels_feature(self):
-#    ############################################################
-#        from pykeops.torch.kernels import Kernel, kernel_product
-#        params = {
-#            'gamma' : 1./self.sigmac**2,
-#            'mode'  : 'lse',
-#        }
-#        if gpu_available:
-#            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
-#        else:
-#            backend_to_test = ['auto', 'pytorch']
-#
-#        for k,b in itertools.product(['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric'], backend_to_test):
-#            with self.subTest(k=k,b=b):
-#                params['id'] = Kernel(k + '(x,y)')
-#                params['backend'] = b
-#                # Call cuda kernel
-#                gamma = kernel_product(params, self.xc, self.yc, self.fc).cpu()
-#
-#                # Numpy version
-#                log_K  = log_np_kernel(self.x, self.y, self.sigma, kernel=k)
-#                log_KP = log_K + self.f.T
-#                maxexp = np.amax(log_KP, axis=1)
-#                gamma_py = maxexp + np.log(np.sum(np.exp(log_KP - maxexp.reshape(-1,1)), axis=1))
-#
-#                # compare output
-#                self.assertTrue(np.allclose(gamma.data.numpy().ravel(), gamma_py))
+    ############################################################
+    def test_logSumExp_kernels_feature(self):
+    ############################################################
+        from pykeops.torch.kernels import Kernel, kernel_product
+        params = {'gamma': 1./self.sigmac**2, 'mode': 'lse'}
+        if gpu_available:
+            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
+        else:
+            backend_to_test = ['auto', 'pytorch']
+
+        for k,b in itertools.product(['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric'], backend_to_test):
+            with self.subTest(k=k,b=b):
+                params['id'] = Kernel(k + '(x,y)')
+                params['backend'] = b
+                # Call cuda kernel
+                gamma = kernel_product(params, self.xc, self.yc, self.fc).cpu()
+
+                # Numpy version
+                log_K  = log_np_kernel(self.x, self.y, self.sigma, kernel=k)
+                log_KP = log_K + self.f.T
+                gamma_py = log_sum_exp(log_KP, axis=0)
+
+                # compare output
+                self.assertTrue(np.allclose(gamma.data.numpy().ravel(), gamma_py))
 
 
 if __name__ == '__main__':

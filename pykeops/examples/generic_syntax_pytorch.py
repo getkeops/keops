@@ -25,7 +25,7 @@ import time
 import torch
 from torch.autograd import grad
 
-from pykeops.torch  import generic_sum
+from pykeops.torch  import Sum
 
 #--------------------------------------------------------------#
 #   Please use the "verbose" compilation mode for debugging    #
@@ -60,7 +60,7 @@ types   = ["output = Vx(3)",  # The result is indexed by "i", of size 3.
 
 start = time.time()
 
-my_routine = generic_sum(formula, *types)
+my_routine = Sum(formula, *types)
 c = my_routine(p, a, x, y, backend="CPU")
 
 # N.B.: If CUDA is available + backend="auto" (or not specified) + the arrays are large enough,

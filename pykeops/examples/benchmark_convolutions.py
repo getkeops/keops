@@ -10,17 +10,16 @@ from pykeops.numpy.utils import np_kernel
 # size of the test
 N = 2000 ; M = 300; D = 3; E = 3
 
+type = 'float32'
 # declare numpy variables 
-x = np.random.randn(N,D).astype('float32')
-y = np.random.randn(M,D).astype('float32')
-b = np.random.randn(M,E).astype('float32')
-sigma = np.array([2.4]).astype('float32')
+x = np.random.randn(N,D).astype(type)
+y = np.random.randn(M,D).astype(type)
+b = np.random.randn(M,E).astype(type)
+sigma = np.array([2.4]).astype(type)
 
 # declare their torch counterparts
 try:
     import torch
-    from pykeops.torch.utils import torch_kernel
-    from pykeops.torch import Kernel, kernel_product
 
     use_cuda = torch.cuda.is_available()
     dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
@@ -56,16 +55,16 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
 
     # keops + pytorch : generic tiled implementation (with cuda if available else uses cpu)
     try:
-        # Define a kernel: Wrap it (and its parameters) into a JSON dict structure
-        mode = "sum"
-        kernel = Kernel(k+"(x,y)")
+        from pykeops.torch.utils import torch_kernel
+        from pykeops.torch import Kernel, kernel_product
+
         params = {
-            "id"      : kernel,
+            "id"      : Kernel(k+"(x,y)"),
             "gamma"   : 1./torch.autograd.Variable(sigmac, requires_grad=False).type(dtype)**2,
             "backend" : "auto",
         }
-        g1 = kernel_product(params,xc,yc,bc,  mode=mode).cpu()
-        speed_pykeops_gen = timeit.Timer('g1 = kernel_product( params,xc,yc,bc,  mode=mode).cpu()', GC,  globals = globals(), timer = time.time).timeit(LOOPS)
+        g1 = kernel_product(params,xc,yc,bc,  mode='sum').cpu()
+        speed_pykeops_gen = timeit.Timer("g1 = kernel_product( params,xc,yc,bc,  mode='sum').cpu()", GC,  globals = globals(), timer = time.time).timeit(LOOPS)
         print("Time for keops generic:       {:.4f}s".format(speed_pykeops_gen),end="")
         print("   (absolute error:       ", np.max(np.abs(g1.data.numpy() - gnumpy)), ")")
     except:
@@ -82,9 +81,10 @@ for k in (["gaussian", "laplacian", "cauchy", "inverse_multiquadric"]):
 
     # specific cuda tiled implementation (if cuda is available)
     try:
-        from pykeops.numpy.convolutions.radial_kernel import radial_kernel_conv
-        g2 = radial_kernel_conv(x, y, b, sigma, kernel=k)
-        speed_pykeops = timeit.Timer('g2 = radial_kernels_conv(x, y, b, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
+        from pykeops.numpy.convolutions.radial_kernel import RadialKernelConv
+        my_conv = RadialKernelConv(type)
+        g2 = my_conv(x, y, b, sigma, kernel=k)
+        speed_pykeops = timeit.Timer('g2 = my_conv(x, y, b, sigma, kernel=k)', GC, globals = globals(), timer = time.time).timeit(LOOPS)
         print("Time for keops cuda specific: {:.4f}s".format(speed_pykeops),end="")
         print("   (absolute error:       ", np.max(np.abs(g2 - gnumpy)),")")
     except:

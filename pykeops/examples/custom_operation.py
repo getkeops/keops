@@ -1,6 +1,6 @@
 # In this demo, we show how to write a (completely) new formula with KeOps.
 #
-# Using the low-level "generic_sum/logsumexp/max" operators, one can compute
+# Using the low-level "Sum/logsumexp/max" operators, one can compute
 # (with autodiff, without memory overflows) any formula written as :
 #
 #      a_i = Reduction_j( f( p^1,p^2,..., x^1_i,x^2_i,..., y^1_j,y^2_j,...) )
@@ -12,8 +12,8 @@
 # - the y^k_j 's are vector variables, indexed by "j"
 # - f is an arbitrary function, defined using the "./keops/core" syntax.
 # - Reduction is one of :
-#   - Sum         (generic_sum)
-#   - log-Sum-exp (generic_logsumexp)
+#   - Sum         (Sum)
+#   - log-Sum-exp (LogSumExp)
 #   - Max         (generic_max)
 #
 #
@@ -38,7 +38,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 # Standard imports
 import torch
 from torch.autograd import grad
-from pykeops.torch  import generic_sum, generic_logsumexp
+from pykeops.torch  import Sum, LogSumExp
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -74,7 +74,7 @@ def my_formula(p, x, y, backend = "auto") :
         # a_i   =   (<x_i,y_j>**2) * (       p[0]*x_i  +       p[1]*y_j )
         formula = "Pow( (X|Y) , 2) * ( (Elem(P,0) * X) + (Elem(P,1) * Y) )"
 
-        my_routine = generic_sum(formula, *types)
+        my_routine = Sum(formula, *types)
         a  = my_routine(p, x, y, backend=backend)
         return a
 

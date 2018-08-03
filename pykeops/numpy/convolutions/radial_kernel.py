@@ -1,8 +1,10 @@
-from pykeops.numpy.specific_conv import load_keops
-from pykeops import default_cuda_type
+import importlib
+
+from pykeops import build_type, default_cuda_type
+from pykeops.common.compile_routines import compile_specific_conv_routine
 
 
-def radial_kernel_conv(x, y, beta, sigma, kernel = "gaussian", cuda_type=default_cuda_type):
+class RadialKernelConv:
     """
     Implements the operation :
 
@@ -15,11 +17,15 @@ def radial_kernel_conv(x, y, beta, sigma, kernel = "gaussian", cuda_type=default
 
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p". 
     """
-    myconv = load_keops("radial_kernel_conv", cuda_type=cuda_type)
-    return myconv.specific_conv(x, y, beta, sigma, kernel)
+
+    def __init__(self, cuda_type=default_cuda_type):
+        self.myconv = load_keops("radial_kernel_conv", cuda_type)
+
+    def __call__(self, x, y, beta, sigma, kernel="gaussian"):
+        return self.myconv.specific_conv(x, y, beta, sigma, kernel)
 
 
-def radial_kernel_grad1conv(a, x, y, beta, sigma, kernel = "gaussian", cuda_type=default_cuda_type):
+class RadialKernelGrad1conv:
     """
     Implements the operation :
 
@@ -32,5 +38,25 @@ def radial_kernel_grad1conv(a, x, y, beta, sigma, kernel = "gaussian", cuda_type
 
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
-    myconv = load_keops("radial_kernel_grad1conv", cuda_type=cuda_type)
-    return myconv.specific_grad1conv(a, x, y, beta, sigma, kernel)
+    def __init__(self, cuda_type=default_cuda_type):
+        self.myconv = load_keops("radial_kernel_grad1conv", cuda_type)
+
+    def __call__(self, a, x, y, beta, sigma, kernel ="gaussian"):
+        return self.myconv.specific_grad1conv(a, x, y, beta, sigma, kernel)
+
+
+def load_keops(target, cuda_type=default_cuda_type):
+    # Import and compile
+    compile = (build_type == 'Debug')
+
+    if not compile:
+        try:
+            myconv = importlib.import_module(target)
+        except ImportError:
+            compile = True
+
+    if compile:
+        compile_specific_conv_routine(target, cuda_type)
+        myconv = importlib.import_module(target)
+        print("Loaded.")
+    return myconv

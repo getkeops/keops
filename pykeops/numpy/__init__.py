@@ -1,1 +1,1 @@
-from .generic_red import generic_red
+from .generic_red import Genred

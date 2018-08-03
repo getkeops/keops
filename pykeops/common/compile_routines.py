@@ -15,7 +15,7 @@ def run_and_display(args, msg=''):
     try:
         proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
         if verbose:
-            print(proc.stdout)
+            print(proc.stdout.decode("utf-8"))
 
     except subprocess.CalledProcessError as e:
         print('\n--------------------- ' + msg + ' DEBUG -----------------')

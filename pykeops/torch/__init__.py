@@ -1,3 +1,3 @@
-from .generic_red import generic_sum, generic_logsumexp
+from .generic_red import Sum, LogSumExp
 from .kernels import Kernel, kernel_product, kernel_formulas
 from .utils import Formula

@@ -161,8 +161,8 @@ array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
 /////////////////////////////////////////////////////////////////////////////////
 
 template < typename array_t >
-array_t generic_red(int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
-                    int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1     means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
+array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
+                    int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
                     int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means no suffix
                     py::args py_args) {
 

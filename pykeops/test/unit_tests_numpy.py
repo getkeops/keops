@@ -6,7 +6,7 @@ import unittest
 import itertools
 import numpy as np
 
-from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances, log_sum_exp
+from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances, log_sum_exp, np_kernel_sphere
 
 from pykeops import gpu_available, default_cuda_type
 
@@ -32,8 +32,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     # --------------------------------------------------------------------------------------
     def test_fshape_scp_specific(self):
     # --------------------------------------------------------------------------------------
-        from pykeops.numpy.shape_distance import fshape_scp
-        from pykeops.numpy.utils import np_kernel_sphere
+        from pykeops.numpy.shape_distance import FshapeScp
         for k, t in itertools.product(["gaussian", "cauchy"], self.type_to_test):
             # Call cuda kernel
             kgeom = k
@@ -45,9 +44,11 @@ class NumpyUnitTestCase(unittest.TestCase):
             sigma_sphere = np.pi / 2
 
             # Call cuda kernel
-            gamma = fshape_scp(self.x.astype(t), self.y.astype(t), self.f.astype(t), self.g.astype(t), self.a.astype(t), self.b.astype(t),
-                               sigma_geom=sigma_geom, sigma_sig=sigma_sig, sigma_sphere=sigma_sphere,
-                               kernel_geom=kgeom, kernel_sig=ksig, kernel_sphere=ksphere, cuda_type=t).ravel()
+            my_fshape_scp = FshapeScp(kernel_geom=kgeom, kernel_sig=ksig, kernel_sphere=ksphere, cuda_type=t)
+            gamma = my_fshape_scp(self.x.astype(t), self.y.astype(t),
+                                self.f.astype(t), self.g.astype(t),
+                                self.a.astype(t), self.b.astype(t),
+                                sigma_geom=sigma_geom, sigma_sig=sigma_sig, sigma_sphere=sigma_sphere).ravel()
 
             # Python version
             areaa = np.linalg.norm(self.a, axis=1)
@@ -68,11 +69,12 @@ class NumpyUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_gaussian_conv_specific(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.numpy.convolutions.radial_kernel import radial_kernel_conv
+        from pykeops.numpy.convolutions.radial_kernel import RadialKernelConv
         for k,t in itertools.product(["gaussian", "laplacian", "cauchy", "inverse_multiquadric"], self.type_to_test):
             with self.subTest(k=k):
                 # Call cuda kernel
-                gamma = radial_kernel_conv(self.x.astype(t), self.y.astype(t), self.b.astype(t), self.sigma.astype(t), kernel=k, cuda_type=t)
+                my_radial_conv = RadialKernelConv(t)
+                gamma = my_radial_conv(self.x.astype(t), self.y.astype(t), self.b.astype(t), self.sigma.astype(t), kernel = k)
 
                 # Numpy version
                 gamma_py = np.matmul(np_kernel(self.x, self.y,self.sigma,kernel=k), self.b)
@@ -84,11 +86,12 @@ class NumpyUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_gaussian_grad1conv_specific(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.numpy.convolutions.radial_kernel import radial_kernel_grad1conv
+        from pykeops.numpy.convolutions.radial_kernel import RadialKernelGrad1conv
         for k,t in itertools.product(["gaussian", "laplacian", "cauchy", "inverse_multiquadric"], self.type_to_test):
             with self.subTest(k=k, t=t):
                 # Call cuda kernel
-                gamma = radial_kernel_grad1conv(self.a.astype(t), self.x.astype(t), self.y.astype(t), self.b.astype(t), self.sigma.astype(t), kernel=k)
+                my_radial_conv = RadialKernelGrad1conv(t)
+                gamma = my_radial_conv(self.a.astype(t), self.x.astype(t), self.y.astype(t), self.b.astype(t), self.sigma.astype(t), kernel=k)
 
                 # Numpy version
                 A = differences(self.x, self.y) * grad_np_kernel(self.x,self.y,self.sigma,kernel=k)
@@ -100,7 +103,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_generic_syntax_sum(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.numpy.generic_red import generic_red
+        from pykeops.numpy.generic_red import Genred
         aliases = ["p=Pm(0,1)", "a=Vy(1,1)", "x=Vx(2,3)", "y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(x+y)"
         axis = 1       # 0 means summation over i, 1 means over j
@@ -114,7 +117,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myconv = generic_red(formula, aliases, reduction_op="Sum", axis=axis, backend=b, cuda_type=t)
+                myconv = Genred(formula, aliases, reduction_op="Sum", axis=axis, backend=b, cuda_type=t)
                 gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t))
 
                 # Numpy version
@@ -126,7 +129,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 #--------------------------------------------------------------------------------------
     def test_generic_syntax_lse(self):
 #--------------------------------------------------------------------------------------
-        from pykeops.numpy.generic_red import generic_red
+        from pykeops.numpy.generic_red import Genred
         aliases = ["p=Pm(0,1)", "a=Vy(1,1)", "x=Vx(2,3)", "y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(-SqNorm2(y-x))"
         axis = 1       # 0 means summation over i, 1 means over j
@@ -140,7 +143,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myconv = generic_red(formula, aliases, reduction_op="LogSumExp", axis=axis, backend=b, cuda_type=t)
+                myconv = Genred(formula, aliases, reduction_op="LogSumExp", axis=axis, backend=b, cuda_type=t)
                 gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t))
 
                 # Numpy version

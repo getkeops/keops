@@ -1,4 +1,4 @@
-from pykeops.torch.generic_red import generic_sum, generic_logsumexp
+from pykeops.torch.generic_red import Sum, LogSumExp
 
 from pykeops.torch.utils import extract_metric_parameters, _scalar_products, _log_sum_exp, _weighted_squared_distances
 
@@ -161,7 +161,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode="sum", backend="auto"):
 
         axis = 1  # the output vector is indexed by "i" (CAT=0)
         if red == "sum":
-            genconv = generic_sum(formula, aliases, axis=axis, backend=backend)
+            genconv = Sum(formula, aliases, axis=axis, backend=backend)
         elif red == "lse":
-            genconv = generic_logsumexp(formula, aliases, axis=axis, backend=backend)
+            genconv = LogSumExp(formula, aliases, axis=axis, backend=backend)
         return genconv(*full_args)

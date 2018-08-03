@@ -64,7 +64,7 @@ def OT_distance(params, Mu, Nu) :
         U = - kernel_product(params, x_i, y_j, nu_log+V, mode="lse" )
 
     # To compute the full mass of the regularized transport plan (used in the corrective term), 
-    # we use a "bonus" kernel_product mode, "log_scaled". Using generic_sum would have been possible too.
+    # we use a "bonus" kernel_product mode, "log_scaled". Using Sum would have been possible too.
     Gamma1 =  kernel_product(params, x_i, y_j, torch.ones_like(V), mu_log+U, nu_log+V, mode="log_scaled")
 
     # The Sinkhorn cost is homogeneous to C(x,y)

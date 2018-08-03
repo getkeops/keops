@@ -30,7 +30,9 @@ include(${KEOPS_SRC}/headers.cmake)
 
 add_subdirectory(pybind11)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
-
+if(NOT PYTHON_LANG)
+    Set(PYTHON_LANG numpy)
+endif()
 ########################################################################################################
 #                                        Generic                                                       #
 ########################################################################################################
@@ -80,7 +82,6 @@ set_target_properties(keops${shared_obj_name} PROPERTIES
 )
 
 # -------------------- Pybind11
-
 pybind11_add_module(${shared_obj_name}
     ${CMAKE_CURRENT_SOURCE_DIR}/${PYTHON_LANG}/generic_red.cpp
     )

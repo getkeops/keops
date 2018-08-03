@@ -55,7 +55,7 @@ class pykeops_backend():
 
         :param backend (str), variables (tuple)
 
-        :return (tagIJ, tagCPUGPU, tagHostDevice)
+        :return (tagCPUGPU, tag1D2D, tagHostDevice)
         """
 
         # check that the option is valid
