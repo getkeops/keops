@@ -73,9 +73,9 @@ function test_gradient(testCase)
     a = randn(3,Nx); x = randn(3,Nx); y = randn(3,Ny); b = randn(3,Ny);
     p = .25;
 
-    F0 = Kernel('x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)', 'p=Pm(3,1)', 'SumReduction(Exp(-p*SqNorm2(x-y))*b,0)');
+    F0 = Kernel('x=Vx(3)','y=Vy(3)','b=Vy(3)', 'p=Pm(1)', 'SumReduction(Exp(-p*SqNorm2(x-y))*b,0)');
 
-    GF0x = GradKernel(F0,'x','e=Vx(4,3)');
+    GF0x = Grad(F0,'x');
     g3= GF0x(x,y,b,p,a);
     
     % Compare with matlab
