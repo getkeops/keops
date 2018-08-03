@@ -8,6 +8,8 @@
 
 #include "core/reductions/sum.h"
 #include "core/reductions/log_sum_exp.h"
+#include "core/reductions/min.h"
+#include "core/reductions/kmin.h"
 
 namespace keops {
 
@@ -31,6 +33,8 @@ F InvKeopsNS(KeopsNS<F> kf) {
 #define AutoFactorize(F) KeopsNS<AutoFactorize<decltype(InvKeopsNS(F))>>()
 
 #define Grad(F,V,GRADIN)  KeopsNS<Grad<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(V)),decltype(InvKeopsNS(GRADIN))>>()
+
+#define GradFromPos(F,V,I)  KeopsNS<GradFromPos<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(V)),I>>()
 
 #define IntCst(N) KeopsNS<IntConstant<N>>()
 
@@ -107,5 +111,11 @@ KeopsNS<Scalprod<FA,FB>> operator|(KeopsNS<FA> fa, KeopsNS<FB> fb) {
 
 #define SumReduction(F,I) KeopsNS<SumReduction<decltype(InvKeopsNS(F)),I>>()
 #define LogSumExpReduction(F,I) KeopsNS<LogSumExpReduction<decltype(InvKeopsNS(F)),I>>()
+#define MinArgMinReduction(F,I) KeopsNS<MinArgMinReduction<decltype(InvKeopsNS(F)),I>>()
+#define ArgMinReduction(F,I) KeopsNS<ArgMinReduction<decltype(InvKeopsNS(F)),I>>()
+#define MinReduction(F,I) KeopsNS<MinReduction<decltype(InvKeopsNS(F)),I>>()
+#define KMinArgKMinReduction(F,K,I) KeopsNS<KMinArgKMinReduction<decltype(InvKeopsNS(F)),K,I>>()
+#define ArgKMinReduction(F,K,I) KeopsNS<ArgKMinReduction<decltype(InvKeopsNS(F)),K,I>>()
+#define KMinReduction(F,K,I) KeopsNS<KMinReduction<decltype(InvKeopsNS(F)),K,I>>()
 
 }
