@@ -59,7 +59,9 @@ struct Eval {
 		if(RED::tagI==0)
        			return MODE::Eval(RED(),nx,ny,args...);
 		else
+		else if(RED::tagI==1)
        			return MODE::Eval(RED(),ny,nx,args...);
+       	else return -1;
 	}
 };
 
