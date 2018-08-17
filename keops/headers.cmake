@@ -25,7 +25,7 @@ endif(APPLE)
 
 find_package(CUDA QUIET)
 if(${CUDA_FOUND})
-    message(STATUS "Found Cuda: ${CUDA_BIN_PATH}")
+    message(STATUS "Found Cuda: ${CUDA_TOOLKIT_ROOT_DIR}")
 else()
     message(STATUS "Found Cuda: FALSE")
 endif()
