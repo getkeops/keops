@@ -61,7 +61,8 @@ using FUN0 = SumReduction<F0>;
 
 extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 
-typedef int(*OP)(FUN0,int, int, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*);
+typedef int(*OP)(FUN0, int, int, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*);
+
 template <typename T, OP op>
 class test_grad1conv {
 
@@ -91,7 +92,7 @@ namespace {
 
     TEST(grad1conv_1D, small){
 
-        test_grad1conv<__TYPE__,GpuReduc1D_FromHost> test_small(TEST_SIZE_SMALL);
+        test_grad1conv<__TYPE__, keops::GpuConv1D_FromHost::Eval> test_small(TEST_SIZE_SMALL);
 
         EXPECT_AllCLOSE<__TYPE__>(test_small.vresgrad,test_small.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_small.vresgrad);
@@ -100,7 +101,7 @@ namespace {
 
     TEST(grad1conv_1D, medium){
 
-        test_grad1conv<__TYPE__,GpuReduc1D_FromHost> test_medium(TEST_SIZE_MEDIUM);
+        test_grad1conv<__TYPE__, keops::GpuConv1D_FromHost::Eval> test_medium(TEST_SIZE_MEDIUM);
 
         EXPECT_AllCLOSE<__TYPE__>(test_medium.vresgrad,test_medium.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_medium.vresgrad);
@@ -109,7 +110,7 @@ namespace {
 
 
     TEST(grad1conv_1D, large){
-        test_grad1conv<__TYPE__,GpuReduc1D_FromHost> test_large(TEST_SIZE_LARGE);
+        test_grad1conv<__TYPE__, keops::GpuConv1D_FromHost::Eval> test_large(TEST_SIZE_LARGE);
 
         EXPECT_AllCLOSE<__TYPE__>(test_large.vresgrad,test_large.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_large.vresgrad);
@@ -118,7 +119,7 @@ namespace {
 
 
     TEST(grad1conv_1D, verylarge){
-        test_grad1conv<__TYPE__,GpuReduc1D_FromHost> test_verylarge(TEST_SIZE_VERY_LARGE);
+        test_grad1conv<__TYPE__, keops::GpuConv1D_FromHost::Eval> test_verylarge(TEST_SIZE_VERY_LARGE);
 
         EXPECT_AllCLOSE<__TYPE__>(test_verylarge.vresgrad,test_verylarge.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_verylarge.vresgrad);
@@ -127,7 +128,7 @@ namespace {
 
     TEST(grad1conv_2D, small){
 
-        test_grad1conv<__TYPE__,GpuReduc2D_FromHost> test_small(TEST_SIZE_SMALL);
+        test_grad1conv<__TYPE__, keops::GpuConv2D_FromHost::Eval> test_small(TEST_SIZE_SMALL);
 
         EXPECT_AllCLOSE<__TYPE__>(test_small.vresgrad,test_small.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_small.vresgrad);
@@ -136,7 +137,7 @@ namespace {
 
     TEST(grad1conv_2D, medium){
 
-        test_grad1conv<__TYPE__,GpuReduc2D_FromHost> test_medium(TEST_SIZE_MEDIUM);
+        test_grad1conv<__TYPE__, keops::GpuConv2D_FromHost::Eval> test_medium(TEST_SIZE_MEDIUM);
 
         EXPECT_AllCLOSE<__TYPE__>(test_medium.vresgrad,test_medium.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_medium.vresgrad);
@@ -145,7 +146,7 @@ namespace {
 
 
     TEST(grad1conv_2D, large){
-        test_grad1conv<__TYPE__,GpuReduc2D_FromHost> test_large(TEST_SIZE_LARGE);
+        test_grad1conv<__TYPE__, keops::GpuConv2D_FromHost::Eval> test_large(TEST_SIZE_LARGE);
 
         EXPECT_AllCLOSE<__TYPE__>(test_large.vresgrad,test_large.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_large.vresgrad);
@@ -154,7 +155,7 @@ namespace {
 
 
     TEST(grad1conv_2D, verylarge){
-        test_grad1conv<__TYPE__,GpuReduc2D_FromHost> test_verylarge(TEST_SIZE_VERY_LARGE);
+        test_grad1conv<__TYPE__, keops::GpuConv2D_FromHost::Eval> test_verylarge(TEST_SIZE_VERY_LARGE);
 
         EXPECT_AllCLOSE<__TYPE__>(test_verylarge.vresgrad,test_verylarge.vresgpu, ATOL, RTOL);
         EXPECT_NONZEROS<__TYPE__>(test_verylarge.vresgrad);
