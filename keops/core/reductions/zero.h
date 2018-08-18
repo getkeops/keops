@@ -15,24 +15,24 @@ namespace keops {
 //
 template < int DIM, int tagI=0 >
 struct ZeroReduction : public Reduction<Zero<DIM>,tagI> {
-	
-	template < class V, class GRADIN >
-	using DiffT = ZeroReduction<V::DIM,(V::CAT)%2>;
- 	// remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j. 
-	// In this case there is a summation left to be done by the user.
-                
+
+    template < class V, class GRADIN >
+    using DiffT = ZeroReduction<V::DIM,(V::CAT)%2>;
+    // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
+    // In this case there is a summation left to be done by the user.
+
 };
 
 // specialized evaluation : no need to call a reduction operation for filling zeros
 
 template < int DIM, int tagI, class MODE >
 struct Eval<ZeroReduction<DIM,tagI>,MODE> {
-	template < typename TYPE, typename... Args >
-	static int Run(int nx, int ny, TYPE *out, Args... args) {
-        	for(int k=0; k<(tagI==0?nx:ny)*DIM; k++)
-        		 out[k] = 0;
-		return 0;
-	}
+    template < typename TYPE, typename... Args >
+    static int Run(int nx, int ny, TYPE *out, Args... args) {
+        for(int k=0; k<(tagI==0?nx:ny)*DIM; k++)
+            out[k] = 0;
+        return 0;
+    }
 };
 
 }
