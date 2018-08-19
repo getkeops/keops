@@ -276,13 +276,15 @@ class PytorchUnitTestCase(unittest.TestCase):
                 print(gamma_py[1] / gamma_keops[1].cpu().data.numpy().ravel())
 
                 print(np.exp(log_sum_exp(tmp, axis=1)))
-                res = 0
-                for i in range(10):
-                    a=0
-                    for j in range(6):
-                        a += np.exp(self.p[0] * self.g[i] + self.p[1] * self.f[j])
-                    print('a[' + str(i) + ']' + '=' + str(a))
-                    res += (np.exp(self.p[0] * self.g[i] + self.p[1] * self.f[0]) * self.p[1]) / a
+
+                res = np.zeros(6)
+                for JJ in range(6):
+                    for i in range(10):
+                        a=0
+                        for j in range(6):
+                            a += np.exp(self.p[0] * self.g[i] + self.p[1] * self.f[j])
+                        # print('a[' + str(i) + ']' + '=' + str(a))
+                        res[JJ] += (np.exp(self.p[0] * self.g[i] + self.p[1] * self.f[JJ]) * self.p[1]) / a
 
                 print(res)
 
