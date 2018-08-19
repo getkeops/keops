@@ -61,7 +61,6 @@ class Genred(torch.autograd.Function):
                 # adding new aliases is way too dangerous if we want to compute
                 # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
-                print(var_ind)
                 var = "Var(" + str(pos) + "," + str(dim) + "," + str(cat) + ")"  # V
                 formula_g = "Grad(" + formula + "," + var + "," + eta + ")"  # Grad<F,V,G>
                 args_g = args + (G,)  # Don't forget the gradient to backprop !
