@@ -133,6 +133,7 @@ std::pair<int,int> check_args(std::vector<array_t> obj_ptr) {
                         + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(dimargs[i])) ;
             }
         }
+        // TODO : Add an error if var are not contiguous 
         //bool a = obj_ptr[i].flags().c_contiguous();
         //std::cout << a << std::endl;
         //if (!(obj_ptr[i].flags.c_contiguous()))
