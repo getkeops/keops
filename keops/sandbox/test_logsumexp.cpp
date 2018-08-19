@@ -123,7 +123,8 @@ int main() {
     std::cout << std::endl << "mean abs error = " << s/Nx << std::endl << std::endl;
 
 
-    std::cout << "Testing Gradient of LogSumExp reduction" << std::endl;
+    std::cout << "---------------------------------------------" << std::endl;
+    std::cout << "Testing Gradient wrt X of LogSumExp reduction" << std::endl;
 
     using E = _X<4,DIMPOINT>;
     using GX = Grad<LOGSUMEXPF,X,E>;
@@ -167,6 +168,46 @@ int main() {
         s += std::abs(rescpu1[i]-rescpu2[i]);
     std::cout << std::endl << "mean abs error = " << s/Nx << std::endl << std::endl;
 
+    std::cout << "---------------------------------------------" << std::endl;
+    std::cout << "Testing Gradient wrt Y of LogSumExp reduction" << std::endl;
+
+    using GY = Grad<LOGSUMEXPF,Y,E>;
+
+    rescpu1.resize(Ny*GY::DIM); 
+    vf.resize(Ny*GY::DIM);
+    f = vf.data();
+
+    begin = clock();
+    Eval<GY,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b, e);
+    end = clock();
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+
+    rescpu1 = vf;
+
+    std::cout << "rescpu1 = ";
+    for(size_t i=0; i<5; i++)
+        std::cout << rescpu1[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
+
+    std::cout << "Testing Gradient of Log of Sum reduction of Exp" << std::endl;
+	using GY2 = Grad<SUMEXPF,Y,E>;
+    begin = clock();
+	Eval<GY2,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b, e);
+    for(size_t i=0; i<vf.size(); i++)
+    	vf[i] = vf[i]/exp(rescpu2[i/GY::DIM]);
+    end = clock();
+    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+
+    rescpu2 = vf;
+    std::cout << "rescpu2 = ";
+    for(size_t i=0; i<5; i++)
+        std::cout << rescpu2[i] << " ";
+    std::cout << "..." << std::endl << std::endl;
+
+    // display mean of errors
+    for(size_t i=0; i<Ny*GY::DIM; i++)
+        s += std::abs(rescpu1[i]-rescpu2[i]);
+    std::cout << std::endl << "mean abs error = " << s/Ny << std::endl << std::endl;
 }
 
 
