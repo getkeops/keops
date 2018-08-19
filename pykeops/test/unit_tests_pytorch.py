@@ -253,24 +253,38 @@ class PytorchUnitTestCase(unittest.TestCase):
 
                 my_routine  = LogSumExp(formula, aliases, axis=1, backend=b)
                 # gamma_keops = my_routine(self.pc, self.gc, self.fc)
-                res = my_routine(self.pc, self.gc, self.fc).sum() 
-                gamma_keops = torch.autograd.grad(res, self.gc, create_graph=False)
-
-                # Numpy version
-                # gamma_py = log_sum_exp( (self.p[0] * self.g) + (self.p[1] *  self.f.T), axis=1)
-
-                tmp = self.p[0] * self.g + self.p[1] *  self.f.T
-                res_py =  log_sum_exp(tmp, axis=1)
-                
-                dres_py = self.p[0] * np.exp(self.p[0] * self.g + self.p[1] *  self.f)
-                tmp2 = np.exp(tmp* dres_py - res_py.reshape(-1,1))
-                gamma_py = np.sum( tmp2 , axis=1 )
+                # res = my_routine(self.pc, self.gc, self.fc).sum() 
+                tmp = my_routine(self.pc, self.gc, self.fc) 
+                res = torch.dot(torch.ones_like(tmp).view(-1),tmp.view(-1))
+                gamma_keops = torch.autograd.grad(res, [self.gc, self.fc], create_graph=False)
 
                 print(gamma_keops)
+                # Numpy version
+                # gamma_py = log_sum_exp( (self.p[0] * self.g) + (self.p[1] *  self.f.T), axis=1)
+                 
+                tmp = self.p[0] * self.g + self.p[1] *  self.f.T # (10,6)
+                
+                res_py = (np.exp(tmp)).sum(axis=1) # (10,1)
+
+                # dres_py = self.p[0] * np.exp(self.p[0] * self.g + self.p[1] *  self.f)
+                tmp2 = np.exp( tmp.T )  / res_py.reshape(1,-1)
+
+                gamma_py = [np.ones(self.M) * self.p[0], self.p[1] * tmp2.T.sum(axis=0)  ]
+
                 print(gamma_py)
-                print(tmp2)
-                print(res_py)
-                print(dres_py)
+                print(self.p)
+                print(gamma_py[1] / gamma_keops[1].cpu().data.numpy().ravel())
+
+                print(np.exp(log_sum_exp(tmp, axis=1)))
+                res = 0
+                for i in range(10):
+                    a=0
+                    for j in range(6):
+                        a += np.exp(self.p[0] * self.g[i] + self.p[1] * self.f[j])
+                    print('a[' + str(i) + ']' + '=' + str(a))
+                    res += (np.exp(self.p[0] * self.g[i] + self.p[1] * self.f[0]) * self.p[1]) / a
+
+                print(res)
 
 if __name__ == '__main__':
     """
