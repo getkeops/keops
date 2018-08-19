@@ -7,11 +7,13 @@ categories = OrderedDict([
         ("Pm", 2)
         ])
 
-def get_type(type_str):
+def get_type(type_str, position_in_list=None):
     """
     Get the type of the variable declared in type_str.
 
     :param type_str: is a string of the form "var = Vx(dim)" or "var = Vy(pos,dim)"
+    :param position_in_list: an optional integer used if the position is not given
+                             in the alias (ie is of the form "var = Vx(dim)") 
 
     :return: name : a string (here "var"), cat : an int (0,1 or 2), dim : an int
     """
@@ -19,9 +21,10 @@ def get_type(type_str):
 
     if m is None:
         raise ValueError(type_str + " alias do not match the 'var = [Vx|Vy|Pm](dim)' or 'var = [Vx|Vy|Pm](pos,dim)'  format: "+type_str)
-    else:
-        #      varname   ,   cat                 ,     dim        ,     pos
-        return m.group(1), categories[m.group(2)], int(m.group(4)), int(m.group(3)) if m.group(3) else None
+    pos = int(m.group(3)) if m.group(3) else int(position_in_list)
+
+    #      varname   ,   cat                 ,     dim        ,     pos
+    return m.group(1), categories[m.group(2)], int(m.group(4)), pos
 
 
 def check_aliases_list(types_list):

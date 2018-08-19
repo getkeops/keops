@@ -63,8 +63,8 @@ def log_sum_exp(mat, axis=0):
                 log( sum_j exp( mat[i,j] ))
     by factoring out the row-wise maximas.
     """
-    max_rc = mat.max(axis=axis2cat(axis))
-    return max_rc + np.log(np.sum(np.exp(mat -  np.expand_dims(max_rc, axis=axis2cat(axis))), axis=axis2cat(axis)))
+    max_rc = mat.max(axis=axis)
+    return max_rc + np.log(np.sum(np.exp(mat -  np.expand_dims(max_rc, axis=axis)), axis=axis))
 
 
 def assert_contiguous(x):
