@@ -13,16 +13,17 @@ from pykeops import torch_found, gpu_available
 @unittest.skipIf(not torch_found,"Pytorch was not found on your system. Skip tests.")
 class PytorchUnitTestCase(unittest.TestCase):
 
-    N    = int(6)
-    M    = int(10)
+    M = int(10)
+    N = int(6)
     D = int(3)
-    E  = int(3)
+    E = int(3)
 
-    a = np.random.rand(N,E).astype('float32')
-    x = np.random.rand(N,D).astype('float32')
-    y = np.random.rand(M,D).astype('float32')
-    f = np.random.rand(M,1).astype('float32')
-    b = np.random.rand(M,E).astype('float32')
+    a = np.random.rand(M,E).astype('float32')
+    g = np.random.rand(M,1).astype('float32')
+    x = np.random.rand(M,D).astype('float32')
+    y = np.random.rand(N,D).astype('float32')
+    f = np.random.rand(N,1).astype('float32')
+    b = np.random.rand(N,E).astype('float32')
     p = np.random.rand(2).astype('float32')
     sigma = np.array([0.4]).astype('float32')
 
@@ -34,6 +35,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         dtype    = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
         ac = Variable(torch.from_numpy(a.copy()).type(dtype), requires_grad=True).type(dtype)
+        gc = Variable(torch.from_numpy(g.copy()).type(dtype), requires_grad=True).type(dtype)
         xc = Variable(torch.from_numpy(x.copy()).type(dtype), requires_grad=True).type(dtype)
         yc = Variable(torch.from_numpy(y.copy()).type(dtype), requires_grad=True).type(dtype)
         fc = Variable(torch.from_numpy(f.copy()).type(dtype), requires_grad=True).type(dtype)
@@ -192,6 +194,43 @@ class PytorchUnitTestCase(unittest.TestCase):
                 gamma_py = maxexp + np.log(np.sum(np.exp( log_KP - maxexp.reshape(-1,1) ), axis=1))
                 # compare output
                 self.assertTrue( np.allclose(gamma.data.numpy().ravel(), gamma_py))
+
+    ############################################################
+    def test_logSumExp_gradient_kernels_feature(self):
+    ############################################################
+        import torch
+        from pykeops.torch.generic_logsumexp import generic_logsumexp #LogSumExp
+        aliases = ['Output = Vx(1)',
+                   'P = Pm(2)',
+                   'X = Vx(' + str(self.fc.shape[1]) + ') ',
+                   'Y = Vy(' + str(self.gc.shape[1]) + ') ']
+
+        formula = '(Elem(P,0) * X) + (Elem(P,1) * Y)'
+
+        if gpu_available:
+            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
+        else:
+            backend_to_test = ['auto']
+
+        for b in backend_to_test:
+            with self.subTest(b=b):
+
+
+                my_routine  = generic_logsumexp(formula, *aliases)
+                res = torch.ones(1,self.M).type(self.dtype) @ my_routine(self.pc, self.gc, self.fc) 
+
+                gamma_keops = torch.autograd.grad(res, [self.gc, self.fc], create_graph=False)
+
+                # Numpy version
+                tmp = self.p[0] * self.g + self.p[1] *  self.f.T
+                res_py = (np.exp(tmp)).sum(axis=1)
+                tmp2 = np.exp( tmp.T )  / res_py.reshape(1,-1)
+
+                gamma_py = [np.ones(self.M) * self.p[0], self.p[1] * tmp2.T.sum(axis=0)  ]
+
+                # compare output
+                self.assertTrue(np.allclose(gamma_keops[0].cpu().data.numpy().ravel(), gamma_py[0] , atol=1e-6))
+                self.assertTrue(np.allclose(gamma_keops[1].cpu().data.numpy().ravel(), gamma_py[1] , atol=1e-6))
 
 if __name__ == '__main__':
     """
