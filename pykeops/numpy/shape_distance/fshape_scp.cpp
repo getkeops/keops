@@ -22,33 +22,38 @@ namespace pykeops {
 using namespace keops;
 namespace py = pybind11;
 
+// <__TYPE__, py::array::c_style>  ensures 2 things whatever is the arguments:
+//  1) the precision used is __TYPE__ (float or double typically) on the device,
+//  2) everything is convert as contiguous before being loaded in memory
+// this is maybe not the best in term of performance... but at least it is safe.
+using __NUMPYARRAY__ = py::array_t<__TYPE__, py::array::c_style>;
+
 /////////////////////////////////////////////////////////////////////////////////
 //                          Main functions
 /////////////////////////////////////////////////////////////////////////////////
 
-py::array_t<__TYPE__, py::array::c_style> specific_fshape_scp(py::array_t<__TYPE__> x_py,
-                                                        py::array_t<__TYPE__> y_py,
-                                                        py::array_t<__TYPE__> f_py,
-                                                        py::array_t<__TYPE__> g_py,
-                                                        py::array_t<__TYPE__> alpha_py,
-                                                        py::array_t<__TYPE__> beta_py,
-                                                        __TYPE__ sigmax,
-                                                        __TYPE__ sigmaf,
-                                                        __TYPE__ sigmaXi
-                                                        ){
+__NUMPYARRAY__ specific_fshape_scp(py::array_t<__TYPE__> x_py,
+                                   py::array_t<__TYPE__> y_py,
+                                   py::array_t<__TYPE__> f_py,
+                                   py::array_t<__TYPE__> g_py,
+                                   py::array_t<__TYPE__> alpha_py,
+                                   py::array_t<__TYPE__> beta_py,
+                                   __TYPE__ sigmax,
+                                   __TYPE__ sigmaf,
+                                   __TYPE__ sigmaXi){
 
     // Get address of args
-    auto x = py::cast< py::array_t<__TYPE__, py::array::c_style> >(x_py);
+    auto x = py::cast< __NUMPYARRAY__ >(x_py);
     __TYPE__ * x_data = (__TYPE__ *) x.data();
-    auto y = py::cast< py::array_t<__TYPE__, py::array::c_style> >(y_py);
+    auto y = py::cast< __NUMPYARRAY__ >(y_py);
     __TYPE__ * y_data = (__TYPE__ *) y.data();
-    auto f = py::cast< py::array_t<__TYPE__, py::array::c_style> >(f_py);
+    auto f = py::cast< __NUMPYARRAY__ >(f_py);
     __TYPE__ * f_data = (__TYPE__ *) f.data();
-    auto g = py::cast< py::array_t<__TYPE__, py::array::c_style> >(g_py);
+    auto g = py::cast< __NUMPYARRAY__ >(g_py);
     __TYPE__ * g_data = (__TYPE__ *) g.data();
-    auto alpha = py::cast< py::array_t<__TYPE__, py::array::c_style> >(alpha_py);
+    auto alpha = py::cast< __NUMPYARRAY__ >(alpha_py);
     __TYPE__ * alpha_data = (__TYPE__ *) alpha.data();
-    auto beta = py::cast< py::array_t<__TYPE__, py::array::c_style> >(beta_py);
+    auto beta = py::cast< __NUMPYARRAY__ >(beta_py);
     __TYPE__ * beta_data = (__TYPE__ *) beta.data();
 
     __TYPE__ casted_sigmax = (__TYPE__) sigmax;
@@ -95,7 +100,7 @@ py::array_t<__TYPE__, py::array::c_style> specific_fshape_scp(py::array_t<__TYPE
 
 
     // Declare Output
-    auto result_array = py::array_t<__TYPE__, py::array::c_style>({nx,dimSig});
+    auto result_array = __NUMPYARRAY__({nx,dimSig});
     __TYPE__ * result_data = (__TYPE__ *) result_array.data();
 
     cudafshape(ooSigmax2, ooSigmaf2, ooSigmaXi2, x_data, y_data, f_data, g_data, alpha_data, beta_data, result_data, dimPoint, dimSig, dimVect, nx, ny);

@@ -6,7 +6,7 @@ import unittest
 import itertools
 import numpy as np
 
-from pykeops import torch_found, gpu_available
+from pykeops import gpu_available
 from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
 
 class PytorchUnitTestCase(unittest.TestCase):
@@ -16,12 +16,12 @@ class PytorchUnitTestCase(unittest.TestCase):
     D = int(3)
     E = int(3)
 
-    a = np.random.rand(M,E)
     x = np.random.rand(M,D)
-    g = np.random.rand(M,1)
+    a = np.random.rand(M,E)
+    f = np.random.rand(M,1)
     y = np.random.rand(N,D)
-    f = np.random.rand(N,1)
     b = np.random.rand(N,E)
+    g = np.random.rand(N,1)
     p = np.random.rand(2)
     sigma = np.array([0.4])
 
@@ -32,22 +32,22 @@ class PytorchUnitTestCase(unittest.TestCase):
         device   = 'cuda' if use_cuda else 'cpu'
 
         type = torch.float32
-        ac = torch.tensor(a, dtype=type, device=device, requires_grad=True)
         xc = torch.tensor(x, dtype=type, device=device, requires_grad=True)
-        gc = torch.tensor(g, dtype=type, device=device, requires_grad=True)
-        yc = torch.tensor(y, dtype=type, device=device, requires_grad=True)
+        ac = torch.tensor(a, dtype=type, device=device, requires_grad=True)
         fc = torch.tensor(f, dtype=type, device=device, requires_grad=True)
+        yc = torch.tensor(y, dtype=type, device=device, requires_grad=True)
         bc = torch.tensor(b, dtype=type, device=device, requires_grad=True)
+        gc = torch.tensor(g, dtype=type, device=device, requires_grad=True)
         pc = torch.tensor(p, dtype=type, device=device, requires_grad=True)
         sigmac = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
 
         type = torch.float64
-        acd = torch.tensor(a, dtype=type, device=device, requires_grad=True)
         xcd = torch.tensor(x, dtype=type, device=device, requires_grad=True)
-        gcd = torch.tensor(g, dtype=type, device=device, requires_grad=True)
-        ycd = torch.tensor(y, dtype=type, device=device, requires_grad=True)
+        acd = torch.tensor(a, dtype=type, device=device, requires_grad=True)
         fcd = torch.tensor(f, dtype=type, device=device, requires_grad=True)
+        ycd = torch.tensor(y, dtype=type, device=device, requires_grad=True)
         bcd = torch.tensor(b, dtype=type, device=device, requires_grad=True)
+        gcd = torch.tensor(g, dtype=type, device=device, requires_grad=True)
         pcd = torch.tensor(p, dtype=type, device=device, requires_grad=True)
         sigmacd = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
 
@@ -126,9 +126,9 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = Genred.apply(formula, aliases, b, 'float32', self.sigmac, self.fc, self.xc, self.yc)
+                gamma_keops = Genred.apply(formula, aliases, b, 'float32', self.sigmac, self.gc, self.xc, self.yc)
                 # Numpy version
-                gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
+                gamma_py = np.sum((self.sigma - self.g) ** 2 * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
                 # compare output
                 self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
 
@@ -146,9 +146,9 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = Genred.apply(formula, aliases, b, 'float64', self.sigmacd, self.fcd, self.xcd, self.ycd)
+                gamma_keops = Genred.apply(formula, aliases, b, 'float64', self.sigmacd, self.gcd, self.xcd, self.ycd)
                 # Numpy version
-                gamma_py = np.sum((self.sigma - self.f)**2 * np.exp((self.y.T[:,:,np.newaxis] + self.x.T[:,np.newaxis,:])),axis=1).T
+                gamma_py = np.sum((self.sigma - self.g) ** 2 * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
                 # compare output
                 self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
 
@@ -196,11 +196,11 @@ class PytorchUnitTestCase(unittest.TestCase):
                 params['id'] = Kernel(k + '(x,y)')
                 params['backend'] = b
                 # Call cuda kernel
-                gamma = kernel_product(params, self.xc, self.yc, self.fc).cpu()
+                gamma = kernel_product(params, self.xc, self.yc, self.gc).cpu()
 
                 # Numpy version
                 log_K  = log_np_kernel(self.x, self.y, self.sigma, kernel=k)
-                log_KP = log_K + self.f.T
+                log_KP = log_K + self.g.T
                 gamma_py = log_sum_exp(log_KP, axis=1)
 
                 # compare output
@@ -212,37 +212,47 @@ class PytorchUnitTestCase(unittest.TestCase):
         import torch
         from pykeops.torch.generic_red import LogSumExp
 
-        aliases = ['P = Pm(2)',                               # 1st argument,  a parameter, dim 2.
-                   'X = Vx(' + str(self.fc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
-                   'Y = Vy(' + str(self.gc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
+        aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
+                   'X = Vx(' + str(self.gc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
+                   'Y = Vy(' + str(self.fc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
 
         formula = '(Elem(P,0) * X) + (Elem(P,1) * Y)'
 
-        if gpu_available:
-            # backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
-            backend_to_test = ['auto']
-        else:
-            backend_to_test = ['auto']
+        # Pytorch version
+        my_routine  = LogSumExp(formula, aliases, axis=1, backend='auto')
+        tmp = my_routine(self.pc, self.fc, self.gc)
+        res = torch.dot(torch.ones_like(tmp).view(-1),tmp.view(-1)) # equivalent to tmp.sum() but avoiding contiguity pb
+        gamma_keops = torch.autograd.grad(res, [self.fc, self.gc], create_graph=False)
 
-        for b in backend_to_test:
-            with self.subTest(b=b):
+        # Numpy version
+        tmp = self.p[0] * self.f + self.p[1] * self.g.T
+        res_py = (np.exp(tmp)).sum(axis=1)
+        tmp2 = np.exp( tmp.T )  / res_py.reshape(1,-1)
+        gamma_py = [np.ones(self.M) * self.p[0], self.p[1] * tmp2.T.sum(axis=0)]
 
-                # Pytorch version
-                my_routine  = LogSumExp(formula, aliases, axis=1, backend=b)
-                tmp = my_routine(self.pc, self.gc, self.fc) 
-                res = torch.dot(torch.ones_like(tmp).view(-1),tmp.view(-1))
-                gamma_keops = torch.autograd.grad(res, [self.gc, self.fc], create_graph=False)
+        # compare output
+        self.assertTrue(np.allclose(gamma_keops[0].cpu().data.numpy().ravel(), gamma_py[0] , atol=1e-6))
+        self.assertTrue(np.allclose(gamma_keops[1].cpu().data.numpy().ravel(), gamma_py[1] , atol=1e-6))
 
-                # Numpy version
-                tmp = self.p[0] * self.g + self.p[1] *  self.f.T
-                res_py = (np.exp(tmp)).sum(axis=1)
-                tmp2 = np.exp( tmp.T )  / res_py.reshape(1,-1)
+    ############################################################
+    def test_non_contiguity(self):
+    ############################################################
+        from pykeops.torch.generic_red import Sum
 
-                gamma_py = [np.ones(self.M) * self.p[0], self.p[1] * tmp2.T.sum(axis=0)]
+        aliases = ['P = Pm(2)',                               # 1st argument,  a parameter, dim 2.
+                   'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
+                   'Y = Vy(' + str(self.yc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
 
-                # compare output
-                self.assertTrue(np.allclose(gamma_keops[0].cpu().data.numpy().ravel(), gamma_py[0] , atol=1e-6))
-                self.assertTrue(np.allclose(gamma_keops[1].cpu().data.numpy().ravel(), gamma_py[1] , atol=1e-6))
+        formula = 'Pow((X|Y),2) * ((Elem(P,0) * X) + (Elem(P,1) * Y))'
+
+        my_routine  = Sum(formula, aliases, axis=1, backend='auto')
+        yc_tmp = self.yc.t().contiguous().t() # create a non contiguous copy
+    
+        # check output
+        self.assertFalse(yc_tmp.is_contiguous())
+        with self.assertRaises(RuntimeError):
+            my_routine(self.pc, self.xc, yc_tmp)
+
 
 if __name__ == '__main__':
     """

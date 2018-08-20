@@ -114,7 +114,7 @@ def _scalar_products(u, v):
     return (u_i * v_j).sum(2)  # N-by-M matrix, usv[i,j] = <u_i,v_j>
 
 
-def _log_sum_exp(mat, dim):
+def _log_sum_exp(mat, axis=0):
     """
     Computes the log-sum-exp of a matrix with a numerically stable scheme, 
     in the user-defined summation dimension: exp is never applied
@@ -125,8 +125,8 @@ def _log_sum_exp(mat, dim):
                 log( sum_j exp( mat[i,j] )) 
     by factoring out the row-wise maximas.
     """
-    max_rc = torch.max(mat, dim)[0]
-    return max_rc + torch.log(torch.sum(torch.exp(mat - max_rc.unsqueeze(dim)), dim))
+    max_rc = mat.max(dim=axis)[0]
+    return max_rc + torch.log(torch.sum(torch.exp(mat - max_rc.unsqueeze(dim=axis)), dim=axis))
 
 
 class Formula:
@@ -179,40 +179,6 @@ class Formula:
                        formula_log="(" + other.formula_sum + " * " + self.formula_log + ")",
                        routine_log=lambda **x: other.routine_sum(**x) * self.routine_log(**x),
                        )
-
-
-def assert_contiguous(x):
-    """
-    Non-contiguous arrays are a mess to work with, so we require contiguous arrays from the user.
-    """
-    if not x.is_contiguous():
-        print(x)
-        raise ValueError("Please provide 'contiguous' torch tensors, as KeOps does not support strides. "
-                         + "If you're getting this error in the 'backward' pass of a code using torch.sum() on the output of a KeOps routine, "
-                         + "you should consider replacing 'a.sum()' with 'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. "
-                         + "Apologies for the inconvenience :-/")
-
-
-def ndims(x):
-    return len(x.size())
-
-
-def dtype(x):
-    return x.dtype
-
-
-def size(x):
-    return x.numel()
-
-
-def to_ctype_pointer(x):
-    from ctypes import POINTER, c_float, cast
-    assert_contiguous(x)
-    return cast(x.data_ptr(), POINTER(c_float))
-
-
-def vect_from_list(l):
-    return torch.cat(l)
 
 
 def is_on_device(x):

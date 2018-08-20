@@ -63,6 +63,9 @@ int get_size(array_t obj_ptri, int l);
 template< typename array_t >
 __TYPE__* get_data(array_t obj_ptri);
 
+template< typename array_t >
+bool is_contiguous(array_t obj_ptri);
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    Sanity checks on args
@@ -133,12 +136,13 @@ std::pair<int,int> check_args(std::vector<array_t> obj_ptr) {
                         + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(dimargs[i])) ;
             }
         }
-        // TODO : Add an error if var are not contiguous 
-        //bool a = obj_ptr[i].flags().c_contiguous();
-        //std::cout << a << std::endl;
-        //if (!(obj_ptr[i].flags.c_contiguous()))
-        //    throw std::runtime_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. Abort.") ;
 
+        if (!is_contiguous(obj_ptr[i]))
+            throw std::runtime_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. "
+                                     + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
+                                     + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
+                                     + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
+                                     + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
     }
 
     delete[] dimargs;

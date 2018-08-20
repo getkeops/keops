@@ -23,11 +23,15 @@ __TYPE__* get_data(at::Tensor obj_ptri){
     return obj_ptri.data<__TYPE__>();
 }
 
+template <>
+bool is_contiguous(at::Tensor obj_ptri){
+    return obj_ptri.is_contiguous();
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    Call Cuda functions
 /////////////////////////////////////////////////////////////////////////////////
-
 
 #if USE_DOUBLE
     #define AT_TYPE at::kDouble

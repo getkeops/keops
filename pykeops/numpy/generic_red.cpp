@@ -8,21 +8,30 @@ namespace pykeops {
 using namespace keops;
 namespace py = pybind11;
 
+// <__TYPE__, py::array::c_style>  ensures 2 things whatever is the arguments:
+//  1) the precision used is __TYPE__ (float or double typically) on the device,
+//  2) everything is convert as contiguous before being loaded in memory
+// this is maybe not the best in term of performance... but at least it is safe.
+using __NUMPYARRAY__ = py::array_t<__TYPE__, py::array::c_style>;
 
 /////////////////////////////////////////////////////////////////////////////////
 //                             Utils
 /////////////////////////////////////////////////////////////////////////////////
 
 template <>
-int get_size(py::array_t<__TYPE__, py::array::c_style> obj_ptri, int l){
+int get_size(__NUMPYARRAY__ obj_ptri, int l){
     return obj_ptri.shape(l);
 }
 
 template <>
-__TYPE__* get_data(py::array_t<__TYPE__, py::array::c_style> obj_ptri){
+__TYPE__* get_data(__NUMPYARRAY__ obj_ptri){
     return (__TYPE__ *) obj_ptri.data();
 }
 
+template <>
+bool is_contiguous(__NUMPYARRAY__ obj_ptri){
+    return obj_ptri.c_style;  // always true because of py::array::c_style
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    Call Cuda functions
@@ -30,11 +39,11 @@ __TYPE__* get_data(py::array_t<__TYPE__, py::array::c_style> obj_ptri){
 
 
 template <>
-py::array_t< __TYPE__, py::array::c_style > launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
+__NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
                         int nx, int ny, int nout, int dimout,
                         __TYPE__ ** castedargs){
 
-    auto result_array = py::array_t<__TYPE__, py::array::c_style>({nout,dimout});
+    auto result_array = __NUMPYARRAY__({nout,dimout});
     if (tagCpuGpu == 0) 
         CpuReduc(nx, ny,  get_data(result_array), castedargs);
     else if (tagCpuGpu == 1) {
@@ -67,12 +76,8 @@ py::array_t< __TYPE__, py::array::c_style > launch_keops(int tag1D2D, int tagCpu
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
     m.doc() = "keops io through pybind11"; // optional module docstring
 
-    // <__TYPE__, py::array::c_style>  ensures 2 things whatever is the arguments:
-    //  1) the precision used is __TYPE__ (float or double typically) on the device,
-    //  2) everything is convert as contiguous before being loaded in memory
-    // this is maybe not the best in term of performance... but at least it is safe.
     m.def("genred_numpy",
-          &generic_red<py::array_t<__TYPE__, py::array::c_style>>,
+          &generic_red<__NUMPYARRAY__>,
           "Entry point to keops - numpy version.");
 
     m.attr("nargs") = NARGS;

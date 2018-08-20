@@ -19,6 +19,12 @@ namespace pykeops {
 using namespace keops;
 namespace py = pybind11;
 
+// <__TYPE__, py::array::c_style>  ensures 2 things whatever is the arguments:
+//  1) the precision used is __TYPE__ (float or double typically) on the device,
+//  2) everything is convert as contiguous before being loaded in memory
+// this is maybe not the best in term of performance... but at least it is safe.
+using __NUMPYARRAY__ = py::array_t<__TYPE__, py::array::c_style>;
+
 /////////////////////////////////////////////////////////////////////////////////
 //                          Main functions
 /////////////////////////////////////////////////////////////////////////////////
@@ -30,11 +36,11 @@ py::array_t< __TYPE__, py::array::c_style > specific_conv(py::array_t<__TYPE__> 
                                                         std::string kernel){
 
     // Get address of args
-    auto x = py::cast< py::array_t< __TYPE__, py::array::c_style > >(x_py);
+    auto x = py::cast<__NUMPYARRAY__>(x_py);
     __TYPE__ * x_data = (__TYPE__ *) x.data();
-    auto y = py::cast< py::array_t< __TYPE__, py::array::c_style > >(y_py);
+    auto y = py::cast<__NUMPYARRAY__>(y_py);
     __TYPE__ * y_data = (__TYPE__ *) y.data();
-    auto b = py::cast< py::array_t< __TYPE__, py::array::c_style > >(b_py);
+    auto b = py::cast<__NUMPYARRAY__>(b_py);
     __TYPE__ * b_data = (__TYPE__ *) b.data();
 
     __TYPE__ casted_sigma = (__TYPE__) sigma;
@@ -56,7 +62,7 @@ py::array_t< __TYPE__, py::array::c_style > specific_conv(py::array_t<__TYPE__> 
 
 
     // Declare output
-    auto result_array = py::array_t<__TYPE__, py::array::c_style>({nx,dimVect});
+    auto result_array = __NUMPYARRAY__({nx,dimVect});
     __TYPE__ * result_data = (__TYPE__ *) result_array.data();
 
     if (kernel.compare("gaussian") == 0) {

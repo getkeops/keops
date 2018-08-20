@@ -12,26 +12,25 @@ from pykeops import gpu_available, default_cuda_type
 
 class NumpyUnitTestCase(unittest.TestCase):
 
-    N = int(6)
     M = int(10)
-    O = int(1)
+    N = int(6)
     D = int(3)
     E = int(3)
 
-    x = np.random.rand(N,D)
-    y = np.random.rand(M,D)
-    f = np.random.rand(N,O)
-    g = np.random.rand(M,O)
-    a = np.random.rand(N,E)
-    b = np.random.rand(M,E)
+    x = np.random.rand(M,D)
+    a = np.random.rand(M,E)
+    f = np.random.rand(M,1)
+    y = np.random.rand(N,D)
+    b = np.random.rand(N,E)
+    g = np.random.rand(N,1)
     sigma = np.array([0.4])
 
     type_to_test = ["float32", "float64"]
 
     @unittest.skipIf(not gpu_available, "No GPU detected. Skip tests.")
-    # --------------------------------------------------------------------------------------
+    ############################################################
     def test_fshape_scp_specific(self):
-    # --------------------------------------------------------------------------------------
+    ############################################################
         from pykeops.numpy.shape_distance import FshapeScp
         for k, t in itertools.product(["gaussian", "cauchy"], self.type_to_test):
             # Call cuda kernel
@@ -66,9 +65,9 @@ class NumpyUnitTestCase(unittest.TestCase):
             self.assertTrue(np.allclose(gamma, gamma_py, atol=1e-6))
 
     @unittest.skipIf(not gpu_available,"No GPU detected. Skip tests.")
-#--------------------------------------------------------------------------------------
+    ############################################################
     def test_gaussian_conv_specific(self):
-#--------------------------------------------------------------------------------------
+    ############################################################
         from pykeops.numpy.convolutions.radial_kernel import RadialKernelConv
         for k,t in itertools.product(["gaussian", "laplacian", "cauchy", "inverse_multiquadric"], self.type_to_test):
             with self.subTest(k=k):
@@ -83,9 +82,9 @@ class NumpyUnitTestCase(unittest.TestCase):
                 self.assertTrue(np.allclose(gamma, gamma_py,atol=1e-6))
 
     @unittest.skipIf(not gpu_available,"No GPU detected. Skip tests.")
-#--------------------------------------------------------------------------------------
+    ############################################################
     def test_gaussian_grad1conv_specific(self):
-#--------------------------------------------------------------------------------------
+    ############################################################
         from pykeops.numpy.convolutions.radial_kernel import RadialKernelGrad1conv
         for k,t in itertools.product(["gaussian", "laplacian", "cauchy", "inverse_multiquadric"], self.type_to_test):
             with self.subTest(k=k, t=t):
@@ -100,9 +99,9 @@ class NumpyUnitTestCase(unittest.TestCase):
                 # compare output
                 self.assertTrue( np.allclose(gamma, gamma_py,atol=1e-6))
 
-#--------------------------------------------------------------------------------------
+    ############################################################
     def test_generic_syntax_sum(self):
-#--------------------------------------------------------------------------------------
+    ############################################################
         from pykeops.numpy.generic_red import Genred
         aliases = ["p=Pm(0,1)", "a=Vy(1,1)", "x=Vx(2,3)", "y=Vy(3,3)"]
         formula = "Square(p-a)*Exp(x+y)"
@@ -126,13 +125,12 @@ class NumpyUnitTestCase(unittest.TestCase):
                 # compare output
                 self.assertTrue( np.allclose(gamma_keops, gamma_py , atol=1e-6))
 
-#--------------------------------------------------------------------------------------
+    ############################################################
     def test_generic_syntax_lse(self):
-#--------------------------------------------------------------------------------------
+    ############################################################
         from pykeops.numpy.generic_red import Genred
         aliases = ["p=Pm(0,1)", "a=Vy(1,1)", "x=Vx(2,3)", "y=Vy(3,3)"]
-        formula = "Square(p-a)*Exp(-SqNorm2(y-x))"
-        axis = 1       # 0 means summation over i, 1 means over j
+        formula = "Square(p-a)*Exp(-SqNorm2(x-y))"
 
         if gpu_available:
             backend_to_test = ["auto", "GPU_1D", "GPU_2D", "GPU"]
@@ -143,15 +141,34 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myconv = Genred(formula, aliases, reduction_op="LogSumExp", axis=axis, backend=b, cuda_type=t)
+                myconv = Genred(formula, aliases, reduction_op="LogSumExp", axis=1, backend=b, cuda_type=t)
                 gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t))
 
                 # Numpy version
-                gamma_py = log_sum_exp((self.sigma - self.g)**2 *np.exp(-squared_distances(self.y, self.x)), axis=axis)
-
+                gamma_py = log_sum_exp((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), axis=1)
+                
                 # compare output
-                self.assertTrue( np.allclose(gamma_keops.ravel(), gamma_py , atol=1e-6))
+                self.assertTrue( np.allclose(gamma_keops.ravel(), gamma_py, atol=1e-6))
+            
+    ############################################################
+    def test_non_contiguity(self):
+    ############################################################
+        from pykeops.numpy.generic_red import Genred
+        
+        t = self.type_to_test[0]
 
+        aliases = ["p=Pm(0,1)", "a=Vy(1,1)", "x=Vx(2,3)", "y=Vy(3,3)"]
+        formula = "Square(p-a)*Exp(-SqNorm2(y-x))"
+
+        my_routine = Genred(formula, aliases, reduction_op="Sum", axis=1, backend='auto')
+        gamma_keops1 = my_routine(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t))
+        
+        yc_tmp = np.ascontiguousarray(self.y.T).T # create a non contiguous copy
+        gamma_keops2 = my_routine(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), yc_tmp.astype(t))
+
+        # check output
+        self.assertFalse(yc_tmp.flags.c_contiguous)
+        self.assertTrue(np.allclose(gamma_keops1, gamma_keops2))
 
 if __name__ == '__main__':
     unittest.main()

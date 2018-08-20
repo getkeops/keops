@@ -80,7 +80,7 @@ class pykeops_backend():
 
     @staticmethod
     def _find_dev():
-            return int(gpu_available)
+        return int(gpu_available)
 
     @staticmethod
     def _find_mem( variables):
