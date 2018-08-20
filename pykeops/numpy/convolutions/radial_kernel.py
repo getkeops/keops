@@ -19,9 +19,9 @@ class RadialKernelConv:
     """
 
     def __init__(self, cuda_type=default_cuda_type):
-        self.myconv = load_keops("radial_kernel_conv", cuda_type)
+        self.myconv = load_keops('radial_kernel_conv', cuda_type)
 
-    def __call__(self, x, y, beta, sigma, kernel="gaussian"):
+    def __call__(self, x, y, beta, sigma, kernel='gaussian'):
         return self.myconv.specific_conv(x, y, beta, sigma, kernel)
 
 
@@ -39,9 +39,9 @@ class RadialKernelGrad1conv:
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
     def __init__(self, cuda_type=default_cuda_type):
-        self.myconv = load_keops("radial_kernel_grad1conv", cuda_type)
+        self.myconv = load_keops('radial_kernel_grad1conv', cuda_type)
 
-    def __call__(self, a, x, y, beta, sigma, kernel ="gaussian"):
+    def __call__(self, a, x, y, beta, sigma, kernel='gaussian'):
         return self.myconv.specific_grad1conv(a, x, y, beta, sigma, kernel)
 
 
@@ -58,5 +58,5 @@ def load_keops(target, cuda_type=default_cuda_type):
     if compile:
         compile_specific_conv_routine(target, cuda_type)
         myconv = importlib.import_module(target)
-        print("Loaded.")
+        print('Loaded.')
     return myconv
