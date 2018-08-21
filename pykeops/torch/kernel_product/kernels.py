@@ -168,17 +168,17 @@ def kernel_product(params, x, y, *bs, mode=None):
     with a user-friendly "dict" of parameters.
     It allows you to compute kernel dot products (aka. as discrete convolutions)
     with arbitrary formulas, using a "sum" or a "log-sum-exp" reduction operation.
-
+    
     Returns: ---------------------------------------------------------------------
     - v (Variable of size (N,E)).
-
+    
     If params["mode"] == "sum" (default), we have :
         v_i =     \sum_j k(x_i, y_j) b_j
-
+    
     Otherwise, if params["mode"] == "lse", we have :
         v_i = log \sum_j exp( c(x_i, y_j) + b_j )
     where c(x_i,y_j) = log( k(x_i,y_j) )  -- computed with improved numerical accuracy.
-
+    
     Args: -------------------------------------------------------------------------
     - x   (Variable, or a F-tuple of Variables) : 
             The "F" features of the points (x_i), 1 <= i <= N.
@@ -204,8 +204,7 @@ def kernel_product(params, x, y, *bs, mode=None):
             - "mode"    : one of "sum" or "lse"
                         
     Typical examples of use are given in the tutorials.
-
-
+   
     BONUS MODES : -----------------------------------------------------------------
     on top of the "normal" kernel products, we provide additionnal
     operations, related to the Sinkhorn scaling algorithm.
@@ -213,22 +212,21 @@ def kernel_product(params, x, y, *bs, mode=None):
     referred to as "bonus_args = (Alog,Blog)",
     Variables of size (N,1) and (M,1) respectively,
     which encode the logarithms of the scaling coefficients.
-
+    
     If       mode == "log_scaled", we have :
         v_i =     \sum_j exp( c(x_i,y_j) + Alog_i + Blog_j ) * b_j
-
+    
     Else, if mode == "log_scaled_log", we have :
         v_i = log \sum_j exp( c(x_i,y_j) + Alog_i + Blog_j + b_j )
-
+    
     Else, if mode == "log_primal", we have :
         v_i = \sum_j (Alog_i+Blog_j-1) * exp( c(x_i,y_j) + Alog_i + Blog_j )
         (b_j is not used)
-
+    
     Else, if mode == "log_cost", we have :
         v_i = \sum_j -c(x_i,y_j) * exp( c(x_i,y_j) + Alog_i + Blog_j )
         (b_j is not used)
-    """
-    
+    """ 
     kernel  = params["id"]
     if mode is None : mode = params.get("mode", "sum")
     backend = params.get("backend", "auto")
