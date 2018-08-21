@@ -106,14 +106,15 @@ __NUMPYARRAY__ specific_fshape_scp(py::array_t<__TYPE__> x_py,
     cudafshape(ooSigmax2, ooSigmaf2, ooSigmaXi2, x_data, y_data, f_data, g_data, alpha_data, beta_data, result_data, dimPoint, dimSig, dimVect, nx, ny);
 
 
-return result_array;
-
+    return result_array;
 }
+
+
 /////////////////////////////////////////////////////////////////////////////////
 //                    PyBind11 entry point
 /////////////////////////////////////////////////////////////////////////////////
 
-// the following macro force the compilator to change MODULE_NAME to its value
+// the following macro force the compiler to change MODULE_NAME to its value
 #define VALUE_OF(x) x
 
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME_FSHAPE_SCP), m) {

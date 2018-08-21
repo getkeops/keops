@@ -83,7 +83,7 @@ set_target_properties(keops${shared_obj_name} PROPERTIES
 
 # -------------------- Pybind11
 pybind11_add_module(${shared_obj_name}
-    ${CMAKE_CURRENT_SOURCE_DIR}/${PYTHON_LANG}/generic_red.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PYTHON_LANG}/generic/generic_red.cpp
     )
 
 target_compile_options(

@@ -83,7 +83,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
 /////////////////////////////////////////////////////////////////////////////////
 
 
-// the following macro force the compilator to change MODULE_NAME to its value
+// the following macro force the compiler to change MODULE_NAME to its value
 #define VALUE_OF(x) x
 
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {

@@ -15,7 +15,7 @@ def run_and_display(args, msg=''):
     try:
         proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
         if verbose:
-            print(proc.stdout.decode("utf-8"))
+            print(proc.stdout.decode('utf-8'))
 
     except subprocess.CalledProcessError as e:
         print('\n--------------------- ' + msg + ' DEBUG -----------------')
@@ -28,10 +28,10 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
     aliases = check_aliases_list(aliases)
 
     def process_alias(alias):
-        return "auto " + str(alias) + "; "
+        return 'auto ' + str(alias) + '; '
 
     def process_disp_alias(alias):
-        return str(alias) + "; "
+        return str(alias) + '; '
 
     alias_string = "".join([process_alias(alias) for alias in aliases])
     alias_disp_string = "".join([process_disp_alias(alias) for alias in aliases])
@@ -49,19 +49,19 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
                      '-DPYTHON_LANG=' + lang,
                      '-DPYTORCH_INCLUDE_DIR=' + torch_include_path,
                      ],
-                    msg = 'CMAKE')
+                    msg='CMAKE')
 
     run_and_display(['make', target, 'VERBOSE=' + str(int(verbose))], msg='MAKE')
 
-    print("Done. ", end='')
+    print('Done. ', end='')
 
 
 def compile_specific_conv_routine(target, cuda_type):
     print('Compiling ' + target + ' using ' + cuda_type + '... ', end='', flush=False)
     run_and_display(['cmake', script_folder,
-                    '-DCMAKE_BUILD_TYPE=' + build_type,
-                    '-Ushared_obj_name',
-                    '-D__TYPE__=' + c_type[cuda_type],
+                     '-DCMAKE_BUILD_TYPE=' + build_type,
+                     '-Ushared_obj_name',
+                     '-D__TYPE__=' + c_type[cuda_type],
                     ],
                     msg='CMAKE')
     run_and_display(['make', target], msg='MAKE')
@@ -71,12 +71,12 @@ def compile_specific_conv_routine(target, cuda_type):
 def compile_specific_fshape_scp_routine(target, kernel_geom, kernel_sig, kernel_sphere, cuda_type):
     print('Compiling ' + target + ' using ' + cuda_type + '... ', end='', flush=False)
     run_and_display(['cmake', script_folder,
-                    '-DCMAKE_BUILD_TYPE=' + build_type,
-                    '-Ushared_obj_name',
-                    '-DKERNEL_GEOM=' + kernel_geom,
-                    '-DKERNEL_SIG=' + kernel_sig,
-                    '-DKERNEL_SPHERE=' + kernel_sphere,
-                    '-D__TYPE__=' + c_type[cuda_type],
+                     '-DCMAKE_BUILD_TYPE=' + build_type,
+                     '-Ushared_obj_name',
+                     '-DKERNEL_GEOM=' + kernel_geom,
+                     '-DKERNEL_SIG=' + kernel_sig,
+                     '-DKERNEL_SPHERE=' + kernel_sphere,
+                     '-D__TYPE__=' + c_type[cuda_type],
                     ],
                     msg='CMAKE')
     run_and_display(['make', target], msg='MAKE')
