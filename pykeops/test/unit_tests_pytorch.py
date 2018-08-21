@@ -59,8 +59,8 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_conv_kernels_feature(self):
-        ############################################################
-        from pykeops.torch.kernels import Kernel, kernel_product
+    ############################################################
+        from pykeops.torch.kernel_product.kernels import Kernel, kernel_product
         params = {
             'gamma': 1. / self.sigmac ** 2,
             'mode': 'sum',
@@ -85,9 +85,9 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_grad1conv_kernels_feature(self):
-        ############################################################
+    ############################################################
         import torch
-        from pykeops.torch.kernels import Kernel, kernel_product
+        from pykeops.torch.kernel_product.kernels import Kernel, kernel_product
         params = {
             'gamma': 1. / self.sigmac ** 2,
             'mode': 'sum',
@@ -115,8 +115,8 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_generic_syntax_float(self):
-        ############################################################
-        from pykeops.torch.generic_red import GenredAutograd
+    ############################################################
+        from pykeops.torch.generic.generic_red import GenredAutograd
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
         formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
         if gpu_available:
@@ -136,8 +136,8 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_generic_syntax_double(self):
-        ############################################################
-        from pykeops.torch.generic_red import GenredAutograd
+    ############################################################
+        from pykeops.torch.generic.generic_red import GenredAutograd
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
         formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
         if gpu_available:
@@ -157,8 +157,8 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_generic_syntax_simple(self):
-        ############################################################
-        from pykeops.torch.generic_red import Genred
+    ############################################################
+        from pykeops.torch.generic.generic_red import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -185,8 +185,8 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_logSumExp_kernels_feature(self):
-        ############################################################
-        from pykeops.torch.kernels import Kernel, kernel_product
+    ############################################################
+        from pykeops.torch.kernel_product.kernels import Kernel, kernel_product
         params = {'gamma': 1. / self.sigmac ** 2, 'mode': 'lse'}
         if gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
@@ -210,9 +210,9 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_logSumExp_gradient_kernels_feature(self):
-        ############################################################
+    ############################################################
         import torch
-        from pykeops.torch.generic_red import Genred
+        from pykeops.torch.generic.generic_red import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.gc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -239,8 +239,8 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_non_contiguity(self):
-        ############################################################
-        from pykeops.torch.generic_red import Genred
+    ############################################################
+        from pykeops.torch.generic.generic_red import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.

@@ -103,7 +103,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_sum(self):
     ############################################################
-        from pykeops.numpy.generic_red import Genred
+        from pykeops.numpy.generic.generic_red import Genred
         aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
         formula = 'Square(p-a)*Exp(x+y)'
         axis = 1  # 0 means summation over i, 1 means over j
@@ -130,7 +130,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_lse(self):
     ############################################################
-        from pykeops.numpy.generic_red import Genred
+        from pykeops.numpy.generic.generic_red import Genred
         aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
 
@@ -155,7 +155,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_non_contiguity(self):
     ############################################################
-        from pykeops.numpy.generic_red import Genred
+        from pykeops.numpy.generic.generic_red import Genred
         
         t = self.type_to_test[0]
 

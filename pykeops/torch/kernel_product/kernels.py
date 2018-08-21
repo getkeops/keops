@@ -1,16 +1,13 @@
-import math
 import re
 import inspect
 import copy
 
 import torch
 
-from pykeops.torch.utils            import Formula
-from pykeops.torch.features_kernels import FeaturesKP
+from pykeops.torch.kernel_product.formula import Formula
+from pykeops.torch.kernel_product.features_kernels import FeaturesKP
 
-from pykeops.torch.utils import _squared_distances
-
-# Define the standard kernel building blocks. 
+# Define the standard kernel building blocks.
 # They will be concatenated depending on the "name" argument of Kernel.__init__
 # Feel free to add your own "pet formula" at run-time, 
 # using for instance :
@@ -19,48 +16,49 @@ from pykeops.torch.utils import _squared_distances
 # In some cases, due to PyTorch's behavior mainly, we have to add a small
 # epsilon in front of square roots and logs. As for KeOps code,
 # note that [dSqrt(x)/dx](x=0) has been conventionally set to 0.
+
 Epsilon = "IntInv(100000000)"
 epsilon = 1e-8
 
 # Formulas in "x_i" and "y_j", with parameters "g" (=1/sigma^2, for instance)
-kernel_formulas =  {
-    "linear" :        Formula( # Linear kernel
-        formula_sum =                           "({X}|{Y})",
-        routine_sum = lambda xsy=None, **kwargs : xsy,
-        formula_log =                      "(IntInv(2) * Log( Square(({X}|{Y})) + "+Epsilon+" ))",
-        routine_log = lambda xsy=None, **kwargs : .5 * (xsy**2 + epsilon).log()
+kernel_formulas = dict(
+    linear=Formula(  # Linear kernel
+        formula_sum="({X}|{Y})",
+        routine_sum=lambda xsy=None, **kwargs: xsy,
+        formula_log="(IntInv(2) * Log( Square(({X}|{Y})) + " + Epsilon + " ))",
+        routine_log=lambda xsy=None, **kwargs: .5 * (xsy ** 2 + epsilon).log()
     ),
-    "distance" :      Formula( # -1* Energy distance kernel
-        formula_sum =                     "Sqrt(WeightedSqDist({G},{X},{Y}))",
-        routine_sum = lambda gxmy2=None, **kwargs : gxmy2.sqrt(),
-        formula_log =                      "(IntInv(2) * Log( WeightedSqDist({G},{X},{Y})) + "+Epsilon+" ))",
-        routine_log = lambda gxmy2=None, **kwargs : .5 * (gxmy2**2 + epsilon).log()
+    distance=Formula(  # -1* Energy distance kernel
+        formula_sum="Sqrt(WeightedSqDist({G},{X},{Y}))",
+        routine_sum=lambda gxmy2=None, **kwargs: gxmy2.sqrt(),
+        formula_log="(IntInv(2) * Log( WeightedSqDist({G},{X},{Y})) + " + Epsilon + " ))",
+        routine_log=lambda gxmy2=None, **kwargs: .5 * (gxmy2 ** 2 + epsilon).log()
     ),
-    "gaussian" :      Formula( # Standard RBF kernel
-        formula_sum = "Exp( -(WeightedSqDist({G},{X},{Y})) )",
-        routine_sum = lambda gxmy2=None, **kwargs : (-gxmy2).exp(),
-        formula_log = "( -(WeightedSqDist({G},{X},{Y})) )",
-        routine_log = lambda gxmy2=None, **kwargs :  -gxmy2,
+    gaussian=Formula(  # Standard RBF kernel
+        formula_sum="Exp( -(WeightedSqDist({G},{X},{Y})) )",
+        routine_sum=lambda gxmy2=None, **kwargs: (-gxmy2).exp(),
+        formula_log="( -(WeightedSqDist({G},{X},{Y})) )",
+        routine_log=lambda gxmy2=None, **kwargs: -gxmy2,
     ),
-    "cauchy" :        Formula( # Heavy tail kernel
-        formula_sum =  "Inv( IntCst(1) + WeightedSqDist({G},{X},{Y})  )",
-        routine_sum = lambda gxmy2=None, **kwargs : 1. / ( 1 + gxmy2),
-        formula_log =  "(  IntInv(-1) * Log(IntCst(1) + WeightedSqDist({G},{X},{Y})) ) ",
-        routine_log = lambda gxmy2=None, **kwargs : -(1+gxmy2).log(),
+    cauchy=Formula(  # Heavy tail kernel
+        formula_sum="Inv( IntCst(1) + WeightedSqDist({G},{X},{Y})  )",
+        routine_sum=lambda gxmy2=None, **kwargs: 1. / (1 + gxmy2),
+        formula_log="(  IntInv(-1) * Log(IntCst(1) + WeightedSqDist({G},{X},{Y})) ) ",
+        routine_log=lambda gxmy2=None, **kwargs: -(1 + gxmy2).log(),
     ),
-    "laplacian" :     Formula( # Pointy kernel
-        formula_sum = "Exp(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
-        routine_sum = lambda gxmy2=None, **kwargs : (-(gxmy2+epsilon).sqrt()).exp(),
-        formula_log = "(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
-        routine_log = lambda gxmy2=None, **kwargs :  -(gxmy2+epsilon).sqrt(),
+    laplacian=Formula(  # Pointy kernel
+        formula_sum="Exp(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
+        routine_sum=lambda gxmy2=None, **kwargs: (-(gxmy2 + epsilon).sqrt()).exp(),
+        formula_log="(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
+        routine_log=lambda gxmy2=None, **kwargs: -(gxmy2 + epsilon).sqrt(),
     ),
-    "inverse_multiquadric" :  Formula( # Heavy tail kernel
-        formula_sum =  "Inv(Sqrt( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) )",
-        routine_sum = lambda gxmy2=None, **kwargs :  torch.rsqrt( 1 + gxmy2 ),
-        formula_log =  "(IntInv(-2) * Log( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) ) ",
-        routine_log = lambda gxmy2=None, **kwargs :   -.5 * ( 1 + gxmy2 ).log(),
-    ),
-}
+    inverse_multiquadric=Formula(  # Heavy tail kernel
+        formula_sum="Inv(Sqrt( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) )",
+        routine_sum=lambda gxmy2=None, **kwargs: torch.rsqrt(1 + gxmy2),
+        formula_log="(IntInv(-2) * Log( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) ) ",
+        routine_log=lambda gxmy2=None, **kwargs: -.5 * (1 + gxmy2).log(),
+    ))
+
 
 def set_indices(formula, f_ind, v_ind) :
     """
@@ -70,13 +68,17 @@ def set_indices(formula, f_ind, v_ind) :
 
     # KeOps backend -------------------------------------------------------------------------
     n_params = formula.n_params
-    n_vars   = formula.n_vars
+    n_vars = formula.n_vars
 
-    if n_params == 1 : G_str = "G_"+str(f_ind)
-    else :             G_str = None
+    if n_params == 1:
+        G_str = "G_"+str(f_ind)
+    else:
+        G_str = None
 
-    if n_vars   == 2 : X_str, Y_str = "X_"+str(v_ind), "Y_"+str(v_ind)
-    else :             X_str, Y_str = None, None
+    if n_vars == 2:
+        X_str, Y_str = "X_" + str(v_ind), "Y_" + str(v_ind)
+    else:
+        X_str, Y_str = None, None
 
     formula.formula_sum = formula.formula_sum.format(G = G_str, X = X_str, Y = Y_str)
     formula.formula_log = formula.formula_log.format(G = G_str, X = X_str, Y = Y_str)
@@ -98,8 +100,7 @@ def set_indices(formula, f_ind, v_ind) :
 
 
 class Kernel:
-    def __init__(self, name = None, formula_sum=None, routine_sum=None,
-                                    formula_log=None, routine_log=None ):
+    def __init__(self, name=None, formula_sum=None, routine_sum=None, formula_log=None, routine_log=None):
         """
         Examples of valid names :
             " gaussian(x,y) * linear(u,v)**2 * gaussian(s,t)"
@@ -113,7 +114,7 @@ class Kernel:
             variables = [x for x in variables if x not in used and (used.add(x) or True)]
             #         = ordered, "unique" list of pairs "(x,y)", "(u,v)", etc. used
             #         = ['(x,y)', '(u,v)']
-            var_to_ind = { k : i for (i,k) in enumerate(variables)}
+            var_to_ind = {k: i for (i, k) in enumerate(variables)}
             #          = {'(x,y)': 0, '(u,v)': 1}
 
             subformulas_str = re.findall(r'([a-zA-Z_][a-zA-Z_0-9]*)(\([a-z],[a-z]\))', name)
@@ -124,9 +125,9 @@ class Kernel:
             # vars_needed_sum and vars_needed_log keep in mind the symbolic pre-computations
             # |x-y|^2 and <x,y> that may be needed by the Vanilla PyTorch backend.
             f_ind, subformulas, vars_needed_sum, vars_needed_log = 0, [], [], []
-            for formula_str, var_str in subformulas_str :
+            for formula_str, var_str in subformulas_str:
                 # Don't forget the copy! This code should have no side effect on kernel_formulas!
-                formula = copy.copy( kernel_formulas[formula_str] ) # = Formula(...)
+                formula = copy.copy(kernel_formulas[formula_str]) # = Formula(...)
                 # Modify the symbolic "formula" to let it take into account the formula and variable indices:
                 formula, f_ind, need_sum, need_log = set_indices(formula, f_ind, var_to_ind[var_str])
                 # Store everyone for later use and substitution:
@@ -135,7 +136,7 @@ class Kernel:
                 vars_needed_log.append(need_log)
                 
             # One after another, replace the symbolic "name(x,y)" by references to our list of "index-aware" formulas
-            for (i,_) in enumerate(subformulas) :
+            for (i, _) in enumerate(subformulas):
                 name = re.sub(r'[a-zA-Z_][a-zA-Z_0-9]*\([a-z],[a-z]\)',  r'subformulas[{}]'.format(i), name, count=1)
             #        = "subformulas[0] + subformulas[1] * subformulas[2]**2"
 
@@ -227,6 +228,7 @@ def kernel_product(params, x, y, *bs, mode=None):
         v_i = \sum_j -c(x_i,y_j) * exp( c(x_i,y_j) + Alog_i + Blog_j )
         (b_j is not used)
     """
+    
     kernel  = params["id"]
     if mode is None : mode = params.get("mode", "sum")
     backend = params.get("backend", "auto")

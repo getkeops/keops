@@ -79,8 +79,8 @@ for k in (['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']):
     
     # vanilla pytorch (with cuda if available else uses cpu)
     try:
-        # Define a kernel: Wrap it (and its parameters) into a JSON dict structure
-        kernel = Kernel(k + '(x,y)')
+        from pykeops.torch import Kernel, kernel_product
+
         params = {
             'id': Kernel(k + '(x,y)'),
             'gamma': 1. / (sigmac * sigmac),

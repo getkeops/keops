@@ -50,9 +50,9 @@ for k in (['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']):
     
     # pure numpy
     gnumpy =  np_kernel(x,y,sigma,kernel=k) @ b
-    speed_numpy = timeit.Timer('gnumpy =  np_kernel(x,y,sigma,kernel=k) @ b', 
-                               GC, globals = globals(),
-                               timer = time.time).timeit(LOOPS)
+    speed_numpy = timeit.Timer('gnumpy = np_kernel(x,y,sigma,kernel=k) @ b',
+                               GC, globals=globals(),
+                               timer=time.time).timeit(LOOPS)
     print('Time for Python:              {:.4f}s'.format(speed_numpy))
 
     # keops + pytorch : generic tiled implementation (with cuda if available else uses cpu)
@@ -66,8 +66,8 @@ for k in (['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']):
         }
         g1 = kernel_product(params, xc, yc, bc,  mode='sum').cpu()
         speed_pykeops_gen = timeit.Timer("g1 = kernel_product(params, xc, yc, bc, mode='sum').cpu()",
-                                         GC,  globals = globals(),
-                                         timer = time.time).timeit(LOOPS)
+                                         GC, globals=globals(),
+                                         timer=time.time).timeit(LOOPS)
         print('Time for keops generic:       {:.4f}s'.format(speed_pykeops_gen),end='')
         print('   (absolute error:       ', np.max(np.abs(g1.data.numpy() - gnumpy)), ')')
     except:
@@ -75,14 +75,20 @@ for k in (['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']):
 
     # vanilla pytorch (with cuda if available else uses cpu)
     try:
-        from pykeops.torch.utils import torch_kernel
-
-        g0 = torch.mm(torch_kernel(xc, yc, sigmac, kernel=k), bc).cpu().numpy()
-        speed_pytorch = timeit.Timer('g0 = torch.mm(torch_kernel(xc, yc, sigmac, kernel=k), bc).cpu().numpy()',
-                                     GC, globals = globals(),
-                                     timer = time.time).timeit(LOOPS)
+        from pykeops.torch import Kernel, kernel_product
+    
+        params = {
+            'id': Kernel(k + '(x,y)'),
+            'gamma': 1. / (sigmac * sigmac),
+            'backend': 'pytorch',
+        }
+        
+        g0 = kernel_product(params, xc, yc, bc, mode='sum')
+        speed_pytorch = timeit.Timer("g0 = kernel_product(params, xc, yc, bc, mode='sum')",
+                                     GC, globals=globals(),
+                                     timer=time.time).timeit(LOOPS)
         print('Time for Pytorch:             {:.4f}s'.format(speed_pytorch),end='')
-        print('   (absolute error:       ', np.max(np.abs(g0 - gnumpy)),')')
+        print('   (absolute error:       ', np.max(np.abs(g0.cpu().numpy() - gnumpy)),')')
     except:
         print('Time for Pytorch:             Not Done')
 
@@ -92,8 +98,8 @@ for k in (['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']):
         my_conv = RadialKernelConv(type)
         g2 = my_conv(x, y, b, sigma, kernel=k)
         speed_pykeops = timeit.Timer('g2 = my_conv(x, y, b, sigma, kernel=k)',
-                                     GC, globals = globals(),
-                                     timer = time.time).timeit(LOOPS)
+                                     GC, globals=globals(),
+                                     timer=time.time).timeit(LOOPS)
         print('Time for keops cuda specific: {:.4f}s'.format(speed_pykeops), end='')
         print('   (absolute error:       ', np.max(np.abs(g2 - gnumpy)),')')
     except:
