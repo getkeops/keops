@@ -11,7 +11,7 @@ compile_macos:
         - git submodule update --init
         - cd keops/build
         - cmake ..
-        - make -j2 VERBOSE=0
+        - make VERBOSE=0
     tags:
         - macos10-12
 
@@ -26,7 +26,7 @@ test_macos_clang:
         - clang
         - macos10-12
         - python3
-    allow_failure: true
+    allow_failure: false
 
 # ---------------- Partial Test on Ubuntu16.04 ----------------
 compile_ubuntu_gcc:
@@ -58,7 +58,7 @@ compile_ubuntu_cuda:
     stage: build
     script:
         - git submodule update --init
-        - cd build/keops
+        - cd keops/build
         - cmake ..
         - make VERBOSE=0
     tags:
@@ -74,7 +74,7 @@ test_ubuntu_cuda:
         - python3 unit_tests_pytorch.py
         - python3 unit_tests_numpy.py
         - cd ../../keopslab/test
-        - export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6;matlab -nodisplay -r "r=runtests('generic_test.m'),exit(sum([r(:).Failed]))"
+        - export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6; matlab -nodisplay -r "r=runtests('generic_test.m'),exit(sum([r(:).Failed]))"
     tags:
         - matlab
         - nvcc
