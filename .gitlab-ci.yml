@@ -9,8 +9,8 @@ compile_macos:
     stage: build
     script:
         - git submodule update --init
-        - cd build
-        - cmake ../keops
+        - cd keops/build
+        - cmake ..
         - make -j2 VERBOSE=0
     tags:
         - macos10-12
@@ -33,9 +33,9 @@ compile_ubuntu_gcc:
     stage: build
     script:
         - git submodule update --init
-        - cd build
-        - cmake ../keops
-        - make VERBOSE=0
+        - cd keops/build
+        - cmake ..
+        - make -j2 VERBOSE=0
     tags:
         - gcc
         - ubuntu16.04
@@ -58,8 +58,8 @@ compile_ubuntu_cuda:
     stage: build
     script:
         - git submodule update --init
-        - cd build
-        - cmake ../keops
+        - cd build/keops
+        - cmake ..
         - make VERBOSE=0
     tags:
         - nvcc
