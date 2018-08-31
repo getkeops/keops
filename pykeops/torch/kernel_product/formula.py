@@ -14,9 +14,10 @@ def torch_kernel(x, y, s, kernel):
 
 
 def _squared_distances(x, y):
-    x_i = x.unsqueeze(1)  # Shape (N,D) -> Shape (N,1,D)
-    y_j = y.unsqueeze(0)  # Shape (M,D) -> Shape (1,M,D)
-    return ((x_i - y_j) ** 2).sum(dim=2)  # N-by-M matrix, xmy[i,j] = |x_i-y_j|^2
+    x_norm = (x ** 2).sum(1).view(-1, 1)
+    y_norm = (y ** 2).sum(1).view(1, -1)
+    dist = x_norm + y_norm - 2.0 * torch.mm(x, torch.transpose(y, 0, 1))
+    return dist
 
 
 def _scalar_products(u, v):
