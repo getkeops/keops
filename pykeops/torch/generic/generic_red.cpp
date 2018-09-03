@@ -23,11 +23,15 @@ __TYPE__* get_data(at::Tensor obj_ptri){
     return obj_ptri.data<__TYPE__>();
 }
 
+template <>
+bool is_contiguous(at::Tensor obj_ptri){
+    return obj_ptri.is_contiguous();
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    Call Cuda functions
 /////////////////////////////////////////////////////////////////////////////////
-
 
 #if USE_DOUBLE
     #define AT_TYPE at::kDouble
@@ -79,7 +83,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
 /////////////////////////////////////////////////////////////////////////////////
 
 
-// the following macro force the compilator to change MODULE_NAME to its value
+// the following macro force the compiler to change MODULE_NAME to its value
 #define VALUE_OF(x) x
 
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {

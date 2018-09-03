@@ -19,25 +19,31 @@ namespace pykeops {
 using namespace keops;
 namespace py = pybind11;
 
+// <__TYPE__, py::array::c_style>  ensures 2 things whatever is the arguments:
+//  1) the precision used is __TYPE__ (float or double typically) on the device,
+//  2) everything is convert as contiguous before being loaded in memory
+// this is maybe not the best in term of performance... but at least it is safe.
+using __NUMPYARRAY__ = py::array_t<__TYPE__, py::array::c_style>;
+
 /////////////////////////////////////////////////////////////////////////////////
 //                          Main functions
 /////////////////////////////////////////////////////////////////////////////////
 
-py::array_t<__TYPE__, py::array::c_style> specific_grad1conv(py::array_t<__TYPE__> a_py,
-                                                        py::array_t<__TYPE__> x_py,
-                                                        py::array_t<__TYPE__> y_py,
-                                                        py::array_t<__TYPE__> b_py,
-                                                        __TYPE__ sigma,
-                                                        std::string kernel         ){
+__NUMPYARRAY__ specific_grad1conv(py::array_t<__TYPE__> a_py,
+                                  py::array_t<__TYPE__> x_py,
+                                  py::array_t<__TYPE__> y_py,
+                                  py::array_t<__TYPE__> b_py,
+                                  __TYPE__ sigma,
+                                  std::string kernel){
 
     // Get address of args
-    auto a = py::cast< py::array_t<__TYPE__, py::array::c_style> >(a_py);
+    auto a = py::cast< __NUMPYARRAY__ >(a_py);
     __TYPE__ * a_data = (__TYPE__ *) a.data();
-    auto x = py::cast< py::array_t<__TYPE__, py::array::c_style> >(x_py);
+    auto x = py::cast< __NUMPYARRAY__ >(x_py);
     __TYPE__ * x_data = (__TYPE__ *) x.data();
-    auto y = py::cast< py::array_t<__TYPE__, py::array::c_style> >(y_py);
+    auto y = py::cast< __NUMPYARRAY__ >(y_py);
     __TYPE__ * y_data = (__TYPE__ *) y.data();
-    auto b = py::cast< py::array_t<__TYPE__, py::array::c_style> >(b_py);
+    auto b = py::cast< __NUMPYARRAY__ >(b_py);
     __TYPE__ * b_data = (__TYPE__ *) b.data();
 
     __TYPE__ casted_sigma = (__TYPE__) sigma;
@@ -66,7 +72,7 @@ py::array_t<__TYPE__, py::array::c_style> specific_grad1conv(py::array_t<__TYPE_
 
 
     // Declare output
-    auto result_array = py::array_t<__TYPE__, py::array::c_style>({nx,dimVect});
+    auto result_array = __NUMPYARRAY__({nx,dimVect});
     __TYPE__ * result_data = (__TYPE__ *) result_array.data();
 
     if (kernel.compare("gaussian") == 0) {

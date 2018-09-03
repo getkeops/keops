@@ -5,15 +5,14 @@ from pykeops.common.utils import axis2cat
 
 
 class Genred:
-    def __init__(self, formula, aliases, reduction_op="Sum", axis=1, backend = "auto", cuda_type=default_cuda_type):
-        self.formula = reduction_op + "Reduction(" + formula + "," + str(axis2cat(axis)) + ")"
+    def __init__(self, formula, aliases, reduction_op='Sum', axis=1, cuda_type=default_cuda_type):
+        self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = aliases
-        self.backend = backend
         self.cuda_type = cuda_type
         self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
 
-    def __call__(self, *args):
+    def __call__(self, *args, backend='auto'):
         # Get tags
-        tagCpuGpu, tag1D2D, _ = get_tag_backend(self.backend, args)
+        tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
 
         return self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, *args) # the extra zeros is mandatory but has no effect

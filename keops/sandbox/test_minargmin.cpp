@@ -54,7 +54,7 @@ int main() {
 
     int Nx=5000, Ny=2000;
         
-    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
+    std::vector<__TYPE__> vf(Nx*FUNCONVF::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
     std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();
     std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *y = vy.data();
     std::vector<__TYPE__> vb(Ny*DIMVECT); fillrandom(vb); __TYPE__ *b = vb.data();
@@ -68,10 +68,10 @@ int main() {
     begin = clock();
     Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, oos2, x, y, b);
     end = clock();
+
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     rescpu1 = vf;
-
 
     // display values
     std::cout << "rescpu1 = ";

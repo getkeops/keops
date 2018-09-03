@@ -63,37 +63,9 @@ def log_sum_exp(mat, axis=0):
                 log( sum_j exp( mat[i,j] ))
     by factoring out the row-wise maximas.
     """
-    max_rc = mat.max(axis=axis2cat(axis))
-    return max_rc + np.log(np.sum(np.exp(mat -  np.expand_dims(max_rc, axis=axis2cat(axis))), axis=axis2cat(axis)))
+    max_rc = mat.max(axis=axis)
+    return max_rc + np.log(np.sum(np.exp(mat - np.expand_dims(max_rc, axis=axis)), axis=axis))
 
 
-def assert_contiguous(x):
-    """Non-contiguous arrays are a mess to work with,
-    so we require contiguous arrays from the user."""
-    if not x.flags.c_contiguous: raise ValueError("Please provide 'C-contiguous' numpy arrays.")
 
 
-def ndims(x):
-    return x.ndim
-
-
-def dtype(x):
-    return x.dtype
-
-
-def size(x):
-    return x.size
-
-
-def to_ctype_pointer(x):
-    from ctypes import POINTER, c_float
-    assert_contiguous(x)
-    return x.ctypes.data_as(POINTER(c_float))
-
-
-def vect_from_list(l):
-    return np.hstack(l)
-
-
-def is_on_device(x):
-    return False
