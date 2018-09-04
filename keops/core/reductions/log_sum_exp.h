@@ -14,24 +14,18 @@
 
 namespace keops {
 
-template < int DIM >
-using LSEFIN = Add<_X<0,1>,Log<_X<1,DIM>>>;
-
-template < class F, int tagI=0, class G_=IntConstant<1>, class FIN_=LSEFIN<G_::DIM>, class GRADIN_=Dummy >
-struct LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> {
+template < class F, int tagI=0, class G_=IntConstant<1> >
+struct LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
 
     using G = G_;
-    using FIN = FIN_;
 
-    static const int INDGRADIN = GRADIN_::N;
-
-    using PARENT = Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI>;
-
-    static const int DIM = FIN::DIM;
-
-    static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
+    using PARENT = Reduction<Concat<F,G_>,tagI>;
 
     static const int DIMRED = G::DIM + F::DIM;				// dimension of temporary variable for reduction
+
+    static const int DIM = DIMRED;
+
+    static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
 
     template < typename TYPE >
     struct InitializeReduction {
@@ -85,30 +79,23 @@ struct LogSumExpReduction : public Reduction<Concat<Concat<F,G_>,GRADIN_>,tagI> 
         }
     };
 
-    static const int LOCINDGRADIN = 1+INTMIN<IndVal<typename PARENT::INDSI,INDGRADIN>::value,PARENT::INDSI::SIZE-1>::value;
-
     template < typename TYPE >
     struct FinalizeOutput {
         HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-            TYPE *tmp2 = px[LOCINDGRADIN];
-            FIN::template Eval<pack<0,1,2>>(out,tmp,tmp+1,tmp2+i*GRADIN_::DIM);
+            for(int k=0; k<DIM; k++)
+                out[k] = tmp[k];
         }
     };
+    
+    template < class MS >
+    using M = Extract<MS,0,F::DIM>;
+    
+    template < class MS >
+    using S = Extract<MS,F::DIM,G::DIM>;    
 
-    template < class GRADIN >
-    using A = Grad<FIN,_X<1,G::DIM>,GRADIN>;
-
-    template < class V, class GRADIN >
-    using B = typename A<GRADIN>::template Replace<_X<1,G::DIM>,Extract<_X<1,(1+V::DIM)*G::DIM>,0,G::DIM>>;
-
-    template < class V, class GRADIN >
-    using C = MatVecMult<Extract<_X<1,(1+V::DIM)*G::DIM>,G::DIM,V::DIM*G::DIM>,B<V,GRADIN>>;
-
-    template < class V >
-    using D = Add< TensorProd<GradMatrix<F,V>,G> , GradMatrix<G,V> > ;
-
-    template < class V, class GRADIN >
-    using DiffT = LogSumExpReduction<F,(V::CAT)%2,Concat<G,D<V>>,C<V,_X<2,GRADIN::DIM>>,GRADIN>;
+    template < class V, class GRADIN, class MS >
+    using DiffT_WithSavedForward = Grad<SumReduction<Scal<Exp<Subtract<F,M<MS>>>,G>,tagI>,V,S<GRADIN>>;
+    
     // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
     // In this case there is a summation left to be done by the user.
 

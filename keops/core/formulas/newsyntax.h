@@ -36,6 +36,8 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define GradFromPos(F,V,I)  KeopsNS<GradFromPos<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(V)),I>>()
 
+#define Grad_WithSavedForward_FromPos(F,V,I)  KeopsNS<Grad_WithSavedForward_FromPos<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(V)),I>>()
+
 #define IntCst(N) KeopsNS<IntConstant<N>>()
 
 #define Elem(p,k) KeopsNS<Elem<decltype(InvKeopsNS(p)),k>>()

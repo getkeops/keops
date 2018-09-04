@@ -65,16 +65,6 @@ struct MinArgMinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<MinA
         str << "MinArgMinReduction";
     }
         
-		template < typename TYPE >
-		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-				for(int k=0; k<DIM; k++)
-            		out[k] = tmp[k];
-			}
-		};
-		
-		// no gradient implemented here		
-
     // equivalent of the += operation
     template < typename TYPE >
     struct ReducePairShort {
@@ -126,21 +116,6 @@ struct ArgMinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<ArgMinR
         str << "ArgMinReduction";
     }
 
-		template < typename TYPE >
-		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-				for(int k=0; k<F::DIM; k++)
-            		out[k] = tmp[F::DIM+k];
-			}
-		};
-		
-		template < class V, class GRADIN >
-		using DiffT = ZeroReduction<V::DIM,(V::CAT)%2>;
- 		// remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j. 
-		// In this case there is a summation left to be done by the user.
-
-    static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmin reduction it is equal to the dimension of output of formula
-
     template < typename TYPE >
     struct FinalizeOutput {
         HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
@@ -168,18 +143,6 @@ struct MinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<MinReducti
     static void PrintIdString(std::stringstream& str) {
         str << "MinReduction";
     }
-
-		template < typename TYPE >
-		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-				for(int k=0; k<F::DIM; k++)
-            		out[k] = tmp[k];
-			}
-		};
-		
-		// no gradient implemented here	
-
-    static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmin reduction it is equal to the dimension of output of formula
 
     template < typename TYPE >
     struct FinalizeOutput {

@@ -24,19 +24,6 @@ struct KMinArgKMinReduction : public Reduction<F,tagI> {
         str << "," << K << "," << tagI << ")";
     }
 
-		template < typename TYPE >
-		struct InitializeReduction {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp) {
-				for(int k=0; k<F::DIM; k++) {
-					for(int l=k; l<K*2*F::DIM+k; l+=2*F::DIM) {
-						tmp[l] = PLUS_INFINITY<TYPE>::value; // initialize output
-						tmp[l+F::DIM] = 0; // initialize output
-					}
-				}
-			}
-		};
-		
-
     template < typename TYPE >
     struct InitializeReduction {
         HOST_DEVICE INLINE void operator()(TYPE *tmp) {
@@ -100,21 +87,6 @@ struct ArgKMinReduction : public KMinArgKMinReduction<F,K,tagI> {
         str << "," << K << "," << tagI << ")";
     }
                   
-		template < typename TYPE >
-		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-				for(int k=0; k<F::DIM; k++) 
-					for(int p=k, l=k; l<K*2*F::DIM+k; p+=F::DIM, l+=2*F::DIM) 
-            			out[p] = tmp[l+F::DIM];
-			}
-		};
-		
-		template < class V, class GRADIN >
-		using DiffT = ZeroReduction<V::DIM,(V::CAT)%2>;
- 		// remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j. 
-		// In this case there is a summation left to be done by the user.
-       
-
     template < typename TYPE >
     struct FinalizeOutput {
         HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
@@ -147,18 +119,6 @@ struct KMinReduction : public KMinArgKMinReduction<F,K,tagI> {
         F::PrintId(str);				// prints the formula F
         str << "," << K << "," << tagI << ")";
     }
-
-		template < typename TYPE >
-		struct FinalizeOutput {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-				for(int k=0; k<F::DIM; k++) 
-					for(int p=k, l=k; l<K*2*F::DIM+k; p+=F::DIM, l+=2*F::DIM) 
-            			out[p] = tmp[l];
-			}
-		};
-		
-		// no gradient implemented here		        
-        
 
     template < typename TYPE >
     struct FinalizeOutput {
