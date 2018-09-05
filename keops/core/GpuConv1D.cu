@@ -243,7 +243,7 @@ int GpuConv1D(FUN fun, int nx, int ny, TYPE* x1_h, int device_index, Args... arg
     getlist<INDSJ>(py_h,args...);
     getlist<INDSP>(pp_h,args...);
 
-    return GpuConv1D_FromHost(fun,nx,ny,px_h,py_h,pp_h);
+    return GpuConv1D_FromHost(fun,nx,ny,px_h,py_h,pp_h,device_index);
 
 }
 
@@ -279,7 +279,7 @@ int GpuConv1D(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_index
     for(int i=0; i<SIZEP; i++)
         pp_h[i] = args[INDSP::VAL(i)];
 
-    return GpuConv1D_FromHost(fun,nx,ny,px_h,py_h,pp_h);
+    return GpuConv1D_FromHost(fun,nx,ny,px_h,py_h,pp_h,device_index);
 
 }
 
@@ -313,7 +313,7 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, int device_index, 
     getlist<INDSJ>(phy_d,args...);
     getlist<INDSP>(php_d,args...);
 
-    return GpuConv1D_FromDevice(fun,nx,ny,phx_d,phy_d,php_d);
+    return GpuConv1D_FromDevice(fun,nx,ny,phx_d,phy_d,php_d,device_index);
 
 }
 
@@ -348,7 +348,7 @@ int GpuConv1D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args, int d
     for(int i=0; i<SIZEP; i++)
         pp_d[i] = args[INDSP::VAL(i)];
 
-    return GpuConv1D_FromDevice(fun,nx,ny,px_d,py_d,pp_d);
+    return GpuConv1D_FromDevice(fun,nx,ny,px_d,py_d,pp_d,device_index);
 
 }
 
