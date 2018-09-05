@@ -6,10 +6,9 @@
 
 #include "gtest/gtest.h"
 
+#include "../core/link_autodiff.cu"
+#include "../core/link_autodiff.cpp"
 
-extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
-extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 
 __TYPE__ __TYPE__rand() {
     return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
