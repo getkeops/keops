@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <assert.h>
+#include <cuda_runtime.h>
 #include <cuda.h>
 
 #include "core/Pack.h"
