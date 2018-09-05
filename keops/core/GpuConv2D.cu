@@ -148,7 +148,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
 
 
 template < typename TYPE, class FUN >
-int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h, int device_index) {
+int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h, int device_index=0) {
 
     using DIMSX = typename FUN::DIMSX;
     using DIMSY = typename FUN::DIMSY;
@@ -268,7 +268,7 @@ int GpuConv2D_FromHost(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE**
 
 
 template < typename TYPE, class FUN >
-int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php_d, int device_index) {
+int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php_d, int device_index=0) {
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
@@ -342,7 +342,7 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TY
 // Wrapper around GpuConv2D, which takes lists of arrays *x1, *x2, ..., *y1, *y2, ...
 // and use getlist to enroll them into "pointers arrays" px and py.
 template < typename TYPE, class FUN, typename... Args >
-int GpuConv2D(FUN fun, int nx, int ny, TYPE* x1_h, int device_index, Args... args) {
+int GpuConv2D(FUN fun, int nx, int ny, TYPE* x1_h, Args... args, int device_index=0) {
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
@@ -375,7 +375,7 @@ int GpuConv2D(FUN fun, int nx, int ny, TYPE* x1_h, int device_index, Args... arg
 
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays
 template < typename TYPE, class FUN >
-int GpuConv2D(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_index) {
+int GpuConv2D(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_index=0) {
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;
@@ -411,7 +411,7 @@ int GpuConv2D(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_index
 
 // Same wrappers, but for data located on the device
 template < typename TYPE, class FUN, typename... Args >
-int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, int device_index, Args... args) {
+int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, Args... args, int device_index=0) {
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
@@ -442,7 +442,7 @@ int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, int device_index, 
 }
 
 template < typename TYPE, class FUN >
-int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args, int device_index) {
+int GpuConv2D_FromDevice(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args, int device_index=0) {
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;
