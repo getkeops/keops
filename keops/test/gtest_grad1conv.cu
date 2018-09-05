@@ -80,7 +80,7 @@ test_grad1conv<T,op>::test_grad1conv(int Nx):data1(data<T>(Nx)){
         vresgrad.resize(Nx*data1.dimPoint); resgrad = vresgrad.data(); 
 
         GaussGpuEval(data1.params[0], data1.u, data1.x, data1.y, data1.v, resgpu, data1.dimPoint,data1.dimVect,data1.Nx,data1.Ny); 
-        op(FUN0(), data1.Nx, data1.Ny, resgrad, data1.params, data1.x, data1.y, data1.v, data1.u);
+        op(FUN0(), data1.Nx, data1.Ny, resgrad, data1.params, data1.x, data1.y, data1.v, data1.u, 0);
 }
 
 
