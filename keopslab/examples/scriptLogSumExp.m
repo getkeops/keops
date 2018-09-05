@@ -49,7 +49,7 @@ disp('Testing gradient of LogSumExp reduction')
 a = randn(1,Nx);
 
 % defining gradient reduction operation :
-G = Grad_WithSavedForward(F,'x');
+G = Grad(F,'x');
 
 tic
 g = G(x,y,b,p,[rand(1,Nx);a],ms);
@@ -81,7 +81,7 @@ disp('Testing gradient wrt y of LogSumExp reduction')
 a = randn(1,Nx);
 
 % defining gradient reduction operation :
-G = Grad_WithSavedForward(F,'y');
+G = Grad(F,'y');
 
 tic
 g = G(x,y,b,p,[rand(1,Nx);a./ms(2,:)],ms);

@@ -29,9 +29,6 @@ options = s.workspace{1}.options;
 % variables
 posnewvar = options.numvars;
 
-% number of variables for gradient function
-options.numvars = options.numvars+1;
-
 % we analyse the "var" string argument. If var is entered as a name, 
 % we must retrieve the corresponding type
 if length(var)<3 || (~strcmp(var(1:3),'Vx(') && ~strcmp(var(1:3),'Vy(') && ~strcmp(var(1:3),'Pm('))

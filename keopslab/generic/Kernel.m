@@ -54,12 +54,17 @@ else
     error('Incorrect inputs')
 end
 
-% numvars is the number of input arguments of the formula. Normally it
-% equals the number of aliases, but one can use more variables in the
-% formula without defining aliases. This option is used by function
-% Grad because taking gradients introduces new variables whose
-% dimensions are unknown at the matlab level.
-options = setoptions(options,'numvars',length(aliases));
+% for backward compability : if formula does not specify the type of
+% reduction, we assume the user uses the old syntax where only summation was possible
+% and summation over i or j was specified via an optional flag
+if isempty(strfind(formula,'Reduction('))
+    if isfield(options,'tagIJ')
+        tagIJ = options.tagIJ;
+    else
+        tagIJ = 0;
+    end
+    formula = ['SumReduction(',formula,',',num2str(tagIJ),')'];
+end        
 
 % sumoutput is an optional tag (0 or 1) to tell wether we must further sum the
 % output in the end. This is used when taking derivatives with respect to
@@ -82,12 +87,25 @@ F = @Eval;
 
 % the evaluation function
 function out = Eval(varargin)
+    if nargin==0
+        out = feval(Fname);
+    else
     nx = size(varargin{indxy(1)},2);
     ny = size(varargin{indxy(2)},2);
     out = feval(Fname,nx,ny,options.tagCpuGpu,options.tag1D2D,varargin{:});
     if options.sumoutput
         out = sum(out,2); % '2' because we sum with respect to index, not dimension !
     end
+    end
 end
+
+% numvars is the number of input arguments of the formula. 
+% numvars is used by function Grad because taking gradients introduces new 
+% variables whose dimensions are unknown at the matlab level.
+% Here we guess the value of numvars from the number of aliases and the
+% number of variables actually present in the formula (which is obtained by 
+% calling the formula with no argument). In some special
+% cases this is not correct and the value must be manually set.
+options = setoptions(options,'numvars',max(length(aliases),F()));
 
 end

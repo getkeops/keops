@@ -94,7 +94,7 @@ struct LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
     using S = Extract<MS,F::DIM,G::DIM>;    
 
     template < class V, class GRADIN, class MS >
-    using DiffT_WithSavedForward = Grad<SumReduction<Scal<Exp<Subtract<F,M<MS>>>,G>,tagI>,V,S<GRADIN>>;
+    using DiffT = Grad<SumReduction<Scal<Exp<Subtract<F,M<MS>>>,G>,tagI>,V,S<GRADIN>>;
     
     // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
     // In this case there is a summation left to be done by the user.
