@@ -80,14 +80,14 @@ def get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend):
             routine_GPU_device_2D_i = dll.GpuConv2D_FromDevice
             routine_GPU_device_2D_j = dll.GpuTransConv2D_FromDevice
             
-            routine_GPU_host_1D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_host_1D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_host_2D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_host_2D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_device_1D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_device_1D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_device_2D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-            routine_GPU_device_2D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
+            routine_GPU_host_1D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float)), c_int]
+            routine_GPU_host_1D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float)), c_int]
+            routine_GPU_host_2D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float)), c_int]
+            routine_GPU_host_2D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float)), c_int]
+            routine_GPU_device_1D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float)), c_int]
+            routine_GPU_device_1D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float)), c_int]
+            routine_GPU_device_2D_i.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float)), c_int]
+            routine_GPU_device_2D_j.argtypes = [c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float)), c_int]
 
             __cuda_convs_generic[dll_name].update({
                  "GPU_1D_host": [routine_GPU_host_1D_i, routine_GPU_host_1D_j],
@@ -190,6 +190,9 @@ def cuda_conv_generic(formula, signature, result, *args,
     out_dtype = dtype(result)
     nx = -1 # Length of the "i" variables
     ny = -1 # Length of the "j" variables
+
+    device_index = None
+
     for (var_id, (arg, sig)) in enumerate(zip(args, signature[1:])):  # Signature = [ Result, *Args]
         if not (dtype(arg) == out_dtype) : raise TypeError(
             "The dtype of the {:d}th input does not match that of the output tensor: {:s} vs {:s}.".format(
@@ -217,6 +220,11 @@ def cuda_conv_generic(formula, signature, result, *args,
             if not (sig[0] == arg.shape[0]): raise ValueError(
                 "The size of a CAT=2 variable does not match the signature.")
             variables.append(arg)
+
+        # if cuda tensors, check that they are all on the same device
+        if device_index is not None and arg.device.index != device_index:
+            raise ValueError("Generic routines requires that given tensors are located on the same device.")
+        device_index = arg.device.index
 
     # Assert that we won't make an "empty" convolution :
     if not nx > 0: raise ValueError("There should be at least one (nonempty...) 'X_i' variable as input.")
@@ -250,4 +258,9 @@ def cuda_conv_generic(formula, signature, result, *args,
     # N.B.: depending on sum_index, we're going to load "GpuConv" or "GpuTransConv",
     #       which make a summation wrt. 'j' or 'i', indexing the final result with 'i' or 'j'.
     routine = get_cuda_conv_generic(aliases, formula, cuda_type, sum_index, backend)
-    routine(nx, ny, result_p, vars_p)
+
+    if device_index is not None:
+        # cpu routine does not have device_index parameter
+        routine(nx, ny, result_p, vars_p, device_index)
+    else:
+        routine(nx, ny, result_p, vars_p)

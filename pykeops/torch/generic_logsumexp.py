@@ -62,9 +62,9 @@ class GenericLogSumExp(torch.autograd.Function):
 
         # Actual computation --------------------------------------------------------------------
         if args[0].is_cuda:
-            result = torch.cuda.FloatTensor(n,signature[0][0]).fill_(0)
+            result = torch.cuda.FloatTensor(n, signature[0][0], device=args[0].device).fill_(0)
         else:
-            result = torch.zeros(n, signature[0][0])  # Init the output of the convolution
+            result = torch.zeros(n, signature[0][0], device=args[0].device)  # Init the output of the convolution
             
         cuda_conv_generic(formula, signature, result, *args,  # Inplace CUDA routine
                           backend=backend,

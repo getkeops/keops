@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..'
 import unittest
 import itertools
 import numpy as np
+import torch
 
 from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differences
 
@@ -231,6 +232,33 @@ class PytorchUnitTestCase(unittest.TestCase):
                 # compare output
                 self.assertTrue(np.allclose(gamma_keops[0].cpu().data.numpy().ravel(), gamma_py[0] , atol=1e-6))
                 self.assertTrue(np.allclose(gamma_keops[1].cpu().data.numpy().ravel(), gamma_py[1] , atol=1e-6))
+
+    @unittest.skipIf(not torch.cuda.is_available(), 'cuda is not available')
+    @unittest.skipIf(not torch.cuda.device_count() > 1, 'cuda device 1 is not available')
+    def test_generic_sum_on_cuda_1(self):
+        from pykeops.torch.generic_sum import generic_sum
+
+        device = 'cuda:1'
+        types = ["A = Vx(" + str(self.xc.shape[1]) + ") ",  # output,       indexed by i, dim D.
+                 "P = Pm(2)",                               # 1st argument,  a parameter, dim 2.
+                 "X = Vx(" + str(self.xc.shape[1]) + ") ",  # 2nd argument, indexed by i, dim D.
+                 "Y = Vy(" + str(self.yc.shape[1]) + ") "]  # 3rd argument, indexed by j, dim D.
+        # The actual formula:
+        formula = "Pow( (X|Y) , 2) * ( (Elem(P,0) * X) + (Elem(P,1) * Y) )"
+
+        my_routine = generic_sum(formula, *types)
+        gamma_keops = my_routine(self.pc.to(device), self.xc.to(device), self.yc.to(device), backend='GPU')
+
+        # check that result device
+        self.assertEqual(gamma_keops.device, torch.device(device))
+
+        # Numpy version
+        scals = (self.x @ self.y.T)**2 # Memory-intensive computation!
+        gamma_py = self.p[0] * scals.sum(1).reshape(-1, 1) * self.x + self.p[1] * (scals @ self.y)
+
+        # compare output
+        self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
+
 
 if __name__ == '__main__':
     """
