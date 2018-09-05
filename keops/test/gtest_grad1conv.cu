@@ -61,7 +61,7 @@ using FUN0 = typename Generic<F0>::sEval;
 
 extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 
-typedef int(*OP)(FUN0,int, int, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*);
+typedef int(*OP)(FUN0,int, int, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, __TYPE__*, int);
 template <typename T, OP op>
 class test_grad1conv {
 
