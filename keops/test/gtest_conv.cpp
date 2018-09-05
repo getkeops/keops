@@ -7,8 +7,8 @@
 #include "gtest/gtest.h"
 
 
-extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**, int);
-extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**, int);
+extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**);
 extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 
 __TYPE__ __TYPE__rand() {

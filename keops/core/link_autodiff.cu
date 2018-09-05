@@ -9,22 +9,22 @@ using namespace keops;
 ///////////////////////////////////////////////
 
 // sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv2D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index) {
+extern "C" int GpuConv2D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index=0) {
     return GpuConv2D(Generic<F>::sEval(), nx, ny, gamma, args, device_index);
 }
 
 // sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv2D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index) {
+extern "C" int GpuTransConv2D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index=0) {
     return GpuConv2D(Generic<F,1>::sEval(), ny, nx, gamma, args, device_index);
 }
 
 // sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv1D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index) {
+extern "C" int GpuConv1D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index=0) {
     return GpuConv1D(Generic<F>::sEval(), nx, ny, gamma, args, device_index);
 }
 
 // sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv1D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index) {
+extern "C" int GpuTransConv1D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index=0) {
     return GpuConv1D(Generic<F,1>::sEval(), ny, nx, gamma, args, device_index);
 }
 
@@ -33,23 +33,23 @@ extern "C" int GpuTransConv1D(int nx, int ny, __TYPE__* gamma, __TYPE__** args, 
 //////////////////////////////////////////////////////////
 
 // sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index) {
+extern "C" int GpuConv2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index=0) {
     return GpuConv2D_FromDevice(Generic<F>::sEval(), nx, ny, gamma, args, device_index);
 }
 
 // sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index) {
+extern "C" int GpuTransConv2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index=0) {
     return GpuConv2D_FromDevice(Generic<F,1>::sEval(), ny, nx, gamma, args, device_index);
 }
 
 
 // sum over j : gamma_i = sum_j F(X_i,Y_j)
-extern "C" int GpuConv1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index) {
+extern "C" int GpuConv1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index=0) {
     return GpuConv1D_FromDevice(Generic<F>::sEval(), nx, ny, gamma, args, device_index);
 }
 
 // sum over i : gamma_j = sum_i F(X_i,Y_j)
-extern "C" int GpuTransConv1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index) {
+extern "C" int GpuTransConv1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_index=0) {
     return GpuConv1D_FromDevice(Generic<F,1>::sEval(), ny, nx, gamma, args, device_index);
 }
 
