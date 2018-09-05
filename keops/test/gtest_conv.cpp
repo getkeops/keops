@@ -6,9 +6,10 @@
 
 #include "gtest/gtest.h"
 
-#include "../core/link_autodiff.cu"
-#include "../core/link_autodiff.cpp"
 
+extern "C" int GpuConv1D(int, int, __TYPE__*, __TYPE__**, int);
+extern "C" int GpuConv2D(int, int, __TYPE__*, __TYPE__**, int);
+extern "C" int CpuConv(int, int, __TYPE__*, __TYPE__**);
 
 __TYPE__ __TYPE__rand() {
     return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
@@ -51,10 +52,10 @@ vuple compute_convs(int Nx, int Ny){
 
     std::vector<__TYPE__> resgpu2D(Nx*3), resgpu1D(Nx*3), rescpu(Nx*3);
 
-    GpuConv2D(Nx, Ny, f, args); resgpu2D = vf;
+    GpuConv2D(Nx, Ny, f, args, 0); resgpu2D = vf;
 
     fillones(vf);
-    GpuConv1D(Nx, Ny, f, args); resgpu1D = vf;
+    GpuConv1D(Nx, Ny, f, args, 0); resgpu1D = vf;
 
     fillones(vf);
     CpuConv(Nx, Ny, f, args); rescpu = vf; 
