@@ -204,6 +204,7 @@ class PytorchUnitTestCase(unittest.TestCase):
                 log_K = log_np_kernel(self.x, self.y, self.sigma, kernel=k)
                 log_KP = log_K + self.g.T
                 gamma_py = log_sum_exp(log_KP, axis=1)
+                print(gamma_py)
                 
                 # compare output
                 self.assertTrue(np.allclose(gamma.data.numpy().ravel(), gamma_py, atol=1e-6))
@@ -223,6 +224,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         # Pytorch version
         my_routine = Genred(formula, aliases, reduction_op='LogSumExp', axis=1)
         tmp = my_routine(self.pc, self.fc, self.gc, backend='auto')
+        tmp = tmp[:,0,None]+tmp[:,1,None].log()
         res = torch.dot(torch.ones_like(tmp).view(-1),
                         tmp.view(-1))  # equivalent to tmp.sum() but avoiding contiguity pb
         gamma_keops = torch.autograd.grad(res, [self.fc, self.gc], create_graph=False)
