@@ -24,7 +24,7 @@ K = Kernel('DivFreeGaussKernel(c,x,y,b)','c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)'
 %K = Kernel('CurlFreeGaussKernel(c,x,y,b)','c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)');
 %K = Kernel('GaussKernel(c,x,y,b)','c=Pm(1)','x=Vx(2)','y=Vy(2)','b=Vy(2)');
 
-GK = GradKernel(K,'x','e=Vx(2)');
+GK = Grad(K,'x');
 
 % Hamiltonian dynamic
     function dotpq = GeodEq(t,pq)
