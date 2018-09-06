@@ -145,6 +145,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                 # Call cuda kernel
                 myconv = Genred(formula, aliases, reduction_op='LogSumExp', axis=1, cuda_type=t)
                 gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
+                gamma_keops = gamma_keops[:,0,None] + np.log(gamma_keops[:,1,None])
 
                 # Numpy version
                 gamma_py = log_sum_exp((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), axis=1)
