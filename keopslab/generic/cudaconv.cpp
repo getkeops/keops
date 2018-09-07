@@ -69,20 +69,30 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
     const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
 
+    // minimal number of input arrays required for the formula to be evaluated :
+    const int NMINARGS = F::NMINARGS;	
+
+    if(nlhs != 1)
+        mexErrMsgTxt("One output required.");
+
+// in case function is called without any input, we output an array containing information about the formula. Currently only the minimal number of arguments is returned
+if(nrhs==0)
+{
+plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
+double *info = mxGetPr(plhs[0]);
+info[0] = NMINARGS;
+}
+else
+{
     // number of input arrays of the matlab function. 
     // The "-4" is because there are 4 parameter inputs before the list of arrays : nx, ny, tagCpuGpu, tagID2D
     int nargs = nrhs-4;	
-
-    // minimal number of input arrays required for the formula to be evaluated :
-    const int NMINARGS = F::NMINARGS;	
 
     if(nargs<NMINARGS)
         mexErrMsgTxt("Formula requires more input arrays to be evaluated");
 
     const int tagIJ = F::tagI;
 
-    if(nlhs != 1)
-        mexErrMsgTxt("One output required.");
 
 
     //////////////////////////////////////////////////////////////
@@ -238,5 +248,5 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     delete[] args;
     delete[] typeargs;
     delete[] dimargs;
-
+}
 }

@@ -11,12 +11,18 @@ namespace keops {
 // k minimal values of Fij
 // operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
 
-template < class F, int K, int tagI_=0 >
-struct KMinArgKMinReduction : public Reduction<F,tagI_> {
+template < class F, int K, int tagI=0 >
+struct KMinArgKMinReduction : public Reduction<F,tagI> {
 
     static const int DIM = 2*K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
 
-    static const int DIMRED = DIM;	// dimension of temporary variable for reduction
+	static const int DIMRED = DIM;	// dimension of temporary variable for reduction
+		
+    static void PrintId(std::stringstream& str) {
+        str << "KMinArgKMinReduction(";			// prints "("
+        F::PrintId(str);				// prints the formula F
+        str << "," << K << "," << tagI << ")";
+    }
 
     template < typename TYPE >
     struct InitializeReduction {
@@ -75,7 +81,12 @@ struct ArgKMinReduction : public KMinArgKMinReduction<F,K,tagI> {
 
     static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
 
-
+    static void PrintId(std::stringstream& str) {
+        str << "ArgKMinReduction(";			// prints "("
+        F::PrintId(str);				// prints the formula F
+        str << "," << K << "," << tagI << ")";
+    }
+                  
     template < typename TYPE >
     struct FinalizeOutput {
         HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
@@ -101,7 +112,13 @@ template < class F, int K, int tagI=0 >
 struct KMinReduction : public KMinArgKMinReduction<F,K,tagI> {
 
 
-    static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
+        static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
+                 
+    static void PrintId(std::stringstream& str) {
+        str << "KMinReduction(";			// prints "("
+        F::PrintId(str);				// prints the formula F
+        str << "," << K << "," << tagI << ")";
+    }
 
     template < typename TYPE >
     struct FinalizeOutput {

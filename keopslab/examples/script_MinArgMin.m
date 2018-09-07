@@ -15,8 +15,7 @@ b = randn(2,Ny);
 p = .25;
 
 % defining reduction operation :
-F = Kernel('MinReduction(Exp(-p*SqNorm2(x-y))*b,0)',...
-    'x=Vx(3)','y=Vy(3)','b=Vy(2)','p=Pm(1)');
+F = Kernel('MinReduction(Exp(-p*SqNorm2(x-y))*b,0)','x=Vx(3)','y=Vy(3)','b=Vy(2)','p=Pm(1)');
 
 % performing computation and timing it
 tic

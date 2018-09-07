@@ -53,7 +53,7 @@ struct SumReduction : public Reduction<F,tagI> {
         }
     };
 
-    template < class V, class GRADIN >
+    template < class V, class GRADIN, class FO=void >
     using DiffT = SumReduction<Grad<F,V,GRADIN>,(V::CAT)%2>;
     // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
     // In this case there is a summation left to be done by the user.
