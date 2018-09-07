@@ -1,6 +1,4 @@
-import os.path
-import sys
-
+import sys, os.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..') * 2)
 
 import unittest
@@ -204,7 +202,6 @@ class PytorchUnitTestCase(unittest.TestCase):
                 log_K = log_np_kernel(self.x, self.y, self.sigma, kernel=k)
                 log_KP = log_K + self.g.T
                 gamma_py = log_sum_exp(log_KP, axis=1)
-                print(gamma_py)
                 
                 # compare output
                 self.assertTrue(np.allclose(gamma.data.numpy().ravel(), gamma_py, atol=1e-6))

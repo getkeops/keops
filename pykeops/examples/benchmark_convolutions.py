@@ -1,8 +1,9 @@
+import sys, os.path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+
 import numpy as np
 import time, timeit
 
-import os.path, sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 from pykeops.numpy.utils import np_kernel
 
 # size of the test

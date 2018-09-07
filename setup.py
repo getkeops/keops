@@ -57,10 +57,6 @@ setup(
     author='B. Charlier, J. Feydy, J. Glaunes',
     author_email='benjamin.charlier@umontpellier.fr, jfeydy@ens.fr, alexis.glaunes@parisdescartes.fr',
     classifiers=[
-        # How mature is this project? Common values are
-        #   3 - Alpha
-        #   4 - Beta
-        #   5 - Production/Stable
         'Development Status :: 4 - Beta',
 
         'Intended Audience :: Developers',
@@ -81,9 +77,11 @@ setup(
         'pykeops.common',
         'pykeops.numpy',
         'pykeops.numpy.convolutions',
+        'pykeops.numpy.generic',
         'pykeops.numpy.shape_distance',
-        'pykeops.test',
         'pykeops.torch',
+        'pykeops.torch.generic',
+        'pykeops.torch.kernel_product',
     ],
 
     package_data={
@@ -91,8 +89,12 @@ setup(
             'pykeops.md',
             'readme.md',
             'CMakeLists.txt',
-            'numpy/generic_red.cpp',
-            'torch/generic_red.cpp',
+            'numpy/convolutions/radial_kernel_conv.cpp',
+            'numpy/convolutions/radial_kernel_grad1conv.cpp',
+            'numpy/generic/generic_red.cpp',
+            'numpy/shape_distance/fshape_scp.cpp',
+            'torch/generic/generic_red.cpp',
+            'torch/generic/generic_red.cpp',
             'common/keops_io.h',
             'keops/formula.h.in',
             'keops/headers.cmake',
@@ -109,14 +111,21 @@ setup(
             'keops/core/formulas/maths.h',
             'keops/core/formulas/newsyntax.h',
             'keops/core/formulas/norms.h',
-            'keops/core/reductions/sum.h',
+            'keops/core/reductions/kmin.h',
             'keops/core/reductions/log_sum_exp.h',
+            'keops/core/reductions/min.h',
+            'keops/core/reductions/reduction.h',
+            'keops/core/reductions/sum.h',
+            'keops/core/reductions/zero.h',
             'keops/specific/CMakeLists.txt',
             'keops/specific/radial_kernels/cuda_conv.cu',
             'keops/specific/radial_kernels/cuda_conv.cx',
             'keops/specific/radial_kernels/cuda_grad1conv.cu',
             'keops/specific/radial_kernels/cuda_grad1conv.cx',
             'keops/specific/radial_kernels/radial_kernels.h',
+            'keops/specific/shape_distance/fshape_gpu.cu',
+            'keops/specific/shape_distance/fshape_gpu.cx',
+            'keops/specific/shape_distance/kernels.cx',
         ] + pybind11_files
     },
 

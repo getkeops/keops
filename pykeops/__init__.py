@@ -11,8 +11,6 @@ verbose = False # display output of compilations
 build_type = "Release" # 'Release' or 'Debug'
 
 default_cuda_type = 'float'
-dll_prefix = "lib"
-dll_ext = ".so"
 
 sys.path.append(build_folder)
 
