@@ -54,11 +54,6 @@ add_executable(
     ${CMAKE_CURRENT_SOURCE_DIR}/test_minargmin.cpp
 )
 
-add_executable(
-    test_logsumexp_cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/test_logsumexp.cpp
-)
-
 # ----------------- equivalent code to compile_test_factorized
 if (USE_CUDA)
 
@@ -90,11 +85,6 @@ if (USE_CUDA)
     CUDA_add_executable(
         test_minargmin
         ${CMAKE_CURRENT_SOURCE_DIR}/test_minargmin.cu
-    )
-
-    CUDA_add_executable(
-        test_logsumexp
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_logsumexp.cu
     )
 
 endif()

@@ -30,7 +30,7 @@ class GenredAutograd(torch.autograd.Function):
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
-        ctx.save_for_backward(*args)
+        ctx.save_for_backward(*args,result)
 
         return result
 
@@ -41,13 +41,17 @@ class GenredAutograd(torch.autograd.Function):
         backend = ctx.backend
         cuda_type = ctx.cuda_type
         myconv = ctx.myconv
-        args = ctx.saved_tensors  # Unwrap the saved variables
+        args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
+        result = ctx.saved_tensors[-1]
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
         eta = 'Var(' + str(myconv.nargs) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
 
+        # there is also a new variable for the formula's output
+        resvar = 'Var(' + str(myconv.nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
+        
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(ctx.aliases):  # Run through the arguments
@@ -60,8 +64,8 @@ class GenredAutograd(torch.autograd.Function):
                 # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
-                formula_g = 'Grad(' + formula + ',' + var + ',' + eta + ')'  # Grad<F,V,G>
-                args_g = args + (G,)  # Don't forget the gradient to backprop !
+                formula_g = 'Grad_WithSavedForward(' + formula + ',' + var + ',' + eta + ',' + resvar + ')'  # Grad<F,V,G,R>
+                args_g = args + (G,) + (result,)  # Don't forget the gradient to backprop !
 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
                 genconv = GenredAutograd().apply

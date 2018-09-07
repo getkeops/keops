@@ -54,13 +54,14 @@ struct Reduction {
 // default evaluation by calling Cpu/Gpu reduction engine, taking care of axis of reduction
 template < class RED, class MODE >
 struct Eval {
-    template < typename... Args >
-    static int Run(int nx, int ny, Args... args) {
-        if(RED::tagI==0)
-            return MODE::Eval(RED(),nx,ny,args...);
-        else
-            return MODE::Eval(RED(),ny,nx,args...);
-    }
+	template < typename... Args >
+	static int Run(int nx, int ny, Args... args) {
+		if(RED::tagI==0)
+       			return MODE::Eval(RED(),nx,ny,args...);
+		else if(RED::tagI==1)
+       			return MODE::Eval(RED(),ny,nx,args...);
+       	else return -1;
+	}
 };
 
 }
