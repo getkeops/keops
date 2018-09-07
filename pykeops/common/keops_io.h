@@ -73,8 +73,9 @@ bool is_contiguous(array_t obj_ptri);
 
 
 void check_tag(int tag, std::string msg){
-    if ((tag < 0) || (tag > 1))
+    if ((tag < 0) || (tag > 1)) {
         throw std::runtime_error("[Keops] tag" + msg + " should be (0 or 1) but is " + std::to_string(tag));
+    }
 }
 
 template<typename array_t>
@@ -137,12 +138,13 @@ std::pair<int,int> check_args(std::vector<array_t> obj_ptr) {
             }
         }
 
-        if (!is_contiguous(obj_ptr[i]))
+        if (!is_contiguous(obj_ptr[i])) {
             throw std::runtime_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. "
                                      + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
                                      + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
                                      + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
                                      + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
+        }
     }
 
     delete[] dimargs;
@@ -174,12 +176,13 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
                     py::args py_args) {
 
     // Checks
-    if (py_args.size() < NARGS)
+    if (py_args.size() < NARGS) {
         throw std::runtime_error(
         "[Keops] Wrong number of args : is " + std::to_string(py_args.size())
         + " but should be at least " + std::to_string(NARGS)
         + " in " + f
         );
+    }
 
     check_tag(tag1D2D, "1D2D");
     check_tag(tagCpuGpu, "CpuGpu");

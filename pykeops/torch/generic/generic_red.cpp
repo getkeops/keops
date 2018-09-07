@@ -1,6 +1,5 @@
 #include <torch/torch.h>
 #include <pybind11/pybind11.h>
-//#include <pybind11/numpy.h>
 
 #include "common/keops_io.h"
 
@@ -43,9 +42,16 @@ template <>
 at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
                         int nx, int ny, int nout, int dimout,
                         __TYPE__ ** castedargs){
+    
+    // Options to create the tensor storing the output
+    // at::TensorOptions opt;
+    // opt.dtype(AT_TYPE); // set type
+    // opt.requires_grad(); // set type
 
     if(tagHostDevice == 0) {
 
+        // opt.device(at::kCPU); // set device
+        // at::Tensor result_array = at::empty({nout,dimout},opt);
         at::Tensor result_array = at::empty(torch::CPU(AT_TYPE), {nout,dimout});
 
         if (tagCpuGpu == 0) {
@@ -64,6 +70,9 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
         }
     } else if(tagHostDevice == 1) {
 #if USE_CUDA
+        // opt.device(at::device({at::kCUDA,0})); // set device and device number
+        // at::Tensor result_array = at::empty({nout,dimout}, opt);
+
         at::Tensor result_array = at::empty(torch::CUDA(AT_TYPE), {nout,dimout});
         if(tag1D2D==0)
             GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs);
