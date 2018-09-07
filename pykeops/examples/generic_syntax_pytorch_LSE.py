@@ -62,18 +62,17 @@ start = time.time()
 my_routine = Genred(formula, variables, reduction_op='LogSumExp', axis=1, cuda_type=type)
 tmp = my_routine(x, y, a, p, backend='CPU')
 # in fact the log-sum-exp operation in Keops computes pairs (m,s) such that the LSE is m+log(s)
-c = tmp[:,0]+torch.log(tmp[:,1])
+c = tmp[:,0] + torch.log(tmp[:,1])
 
 # N.B.: By specifying backend='CPU', we make sure that the result is computed
 #       using a simple C++ for loop.
-
-print('Time to compute the convolution operation on the cpu: ', round(time.time()-start,5), 's')
+print('Time to compute the convolution operation on the cpu: ', round(time.time()-start,5), 's', end=' ')
 
 
 # We compare with Log of Sum of Exp :
 my_routine2 = Genred('Exp('+formula+')', variables, reduction_op='Sum', axis=1, cuda_type=type)
 c2 = torch.log(my_routine2(x, y, a, p, backend='CPU'))[:,0]
-print("relative error when comparing with Log of Sum of Exp : ",((c2-c).norm()/c.norm()).item())
+print('(relative error: ',((c2-c).norm()/c.norm()).item(), ')')
 
 #--------------------------------------------------------------#
 #                        Gradient                              #
@@ -92,11 +91,11 @@ start = time.time()
 g = grad(c, y, e)[0]
 # PyTorch remark : grad(c, y, e) alone outputs a length 1 tuple, hence the need for [0] at the end.
 
-print('Time to compute gradient of convolution operation on the cpu: ', round(time.time()-start,5), 's')
+print('Time to compute gradient of convolution operation on the cpu: ', round(time.time()-start,5), 's', end=' ')
 
 # We compare with gradient of Log of Sum of Exp :
 g2 = grad(c2, y, e)[0]
-print("relative error when comparing with gradient of Log of Sum of Exp : ",((g2-g).norm()/g.norm()).item())
+print('(relative error: ',((g2-g).norm()/g.norm()).item(), ')')
 
 
 #--------------------------------------------------------------#
@@ -106,13 +105,15 @@ print("relative error when comparing with gradient of Log of Sum of Exp : ",((g2
 
 if torch.cuda.is_available():
     # first transfer data on gpu
-    p,a,x,y,e = p.cuda(), a.cuda(), x.cuda(), y.cuda(), e.cuda()
+    pc, ac, xc, yc, ec = p.cuda(), a.cuda(), x.cuda(), y.cuda(), e.cuda()
     # then call the operations
     start = time.time()
-    c2 = my_routine(x, y, a, p, backend='GPU')
+    c3 = my_routine(xc, yc, ac, pc, backend='GPU')
+    c3 = c3[:,0] + torch.log(c3[:,1])
     print('Time to compute convolution operation on gpu:',round(time.time()-start,5), 's ', end='')
-    print('(relative error:', float(torch.abs((c - c2.cpu()) / c).mean()), ')')
+    print('(relative error:', float(torch.abs((c2 - c3.cpu()) / c2).mean()), ')')
     start = time.time()
-    g2 = grad(c2, y, e)[0]
+    g3 = grad(c3, yc, ec)[0]
     print('Time to compute gradient of convolution operation on gpu:', round(time.time()-start,5), 's ', end='')
-    print('(relative error:', float(torch.abs((g - g2.cpu()) / g).mean()), ')')
+    print('(relative error:', float(torch.abs((g2 - g3.cpu()) / g2).mean()), ')')
+
