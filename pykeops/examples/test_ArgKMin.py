@@ -42,12 +42,13 @@ formula = 'SqDist(x,y)'
 variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
              'y = Vy('+str(D)+')']  # Second arg  : j-variable, of size D
 
-start = time.time()
-
 # The parameter reduction_op='ArgKMin' together with axis=1 means that the reduction operation
 # is a sum over the second dimension j. Thence the results will be an i-variable.
 my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, cuda_type=type, opt_arg=K)
 
+my_routine(x[:10], x[:10], backend="auto") # dummy first call for accurate timing
+
+start = time.time()
 c = my_routine(x, x, backend="auto").astype(int)
 
 # N.B.: If CUDA is available + backend="auto" (or not specified),
@@ -60,3 +61,4 @@ print("Time to compute the convolution operation: ",round(time.time()-start,5),"
 
 print("Output values :")
 print(c)
+

@@ -67,7 +67,7 @@ struct KMinArgKMinReduction : public Reduction<F,tagI> {
 			for(int k=0; k<F::DIM; k++) {
 			    int p = k;
 			    int q = k;
-			    for(int l=0; l<K; l++) {
+			    for(int l=k; l<DIMRED; l+=2*F::DIM) {
 			        if(xi[p]<tmp[q]) {
 					    out[l] = xi[p];
 					    out[F::DIM+l] = xi[F::DIM+p];
