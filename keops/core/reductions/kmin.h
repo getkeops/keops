@@ -59,6 +59,32 @@ struct KMinArgKMinReduction : public Reduction<F,tagI> {
         }
     };
 
+	// equivalent of the += operation
+	template < typename TYPE >
+	struct ReducePair {
+		HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+		    TYPE out[DIMRED];
+			for(int k=0; k<F::DIM; k++) {
+			    int p = k;
+			    int q = k;
+			    for(int l=0; l<K; l++) {
+			        if(xi[p]<tmp[q]) {
+					    out[l] = xi[p];
+					    out[F::DIM+l] = xi[F::DIM+p];
+					    p += 2*F::DIM;
+					}
+					else {
+					    out[l] = tmp[q];
+					    out[F::DIM+l] = tmp[F::DIM+q];
+					    q += 2*F::DIM;
+					}  
+				}
+			}
+			for(int k=0; k<DIMRED; k++)
+			    tmp[k] = out[k];
+		}
+	};
+        
     template < typename TYPE >
     struct FinalizeOutput {
         HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
