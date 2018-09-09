@@ -30,6 +30,7 @@ N = 5000
 D = 2
 K = 50
 Niter = 10
+print("k-means example with "+str(N)+" points in "+str(D)+"-D, and K="+str(K))
 
 type = 'float32'  # May be 'float32' or 'float64'
 
@@ -47,27 +48,23 @@ variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
 my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
 
 start = time.time()
-
 # x is dataset, 
 # c are centers, 
 # cl is class index for each point in x
 c = np.copy(x[:K,:])
-Ncl = np.zeros(K).astype(type)
 for i in range(Niter):
-    cl = my_routine(x,c,backend="auto").astype(int)
+    cl = my_routine(x,c,backend="auto").astype(int).reshape(N)
     c[:] = 0
-    Ncl[:] = 0
-    for j in range(N):
-        ind = cl[j]
-        c[ind,:] += x[j,:]
-        Ncl[ind] += 1
+    Ncl = np.bincount(cl).astype(type)
+    for d in range(D):
+        c[:,d] = np.bincount(cl,weights=x[:,d])
     c = (c.transpose()/Ncl).transpose()
-
-print("Time to perform k-means (10 iterations): ",round(time.time()-start,5),"s")
+end = time.time()
+print("Time to perform "+str(Niter)+" iterations of k-means: ",round(end-start,5),"s")
 
 plt.ion()
 plt.clf()
-plt.scatter(x[:,0],x[:,1],c=cl[:,0],s=10)
+plt.scatter(x[:,0],x[:,1],c=cl,s=10)
 plt.scatter(c[:,0],c[:,1],c="black",s=50,alpha=.5)
 
 
