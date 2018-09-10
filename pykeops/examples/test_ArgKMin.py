@@ -46,7 +46,8 @@ variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
 # is a sum over the second dimension j. Thence the results will be an i-variable.
 my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, cuda_type=type, opt_arg=K)
 
-my_routine(x[:10], x[:10], backend="auto") # dummy first call for accurate timing
+# dummy first call for accurate timing in case of GPU use
+my_routine(np.random.rand(10,D).astype(type),np.random.rand(10,D).astype(type), backend="auto")
 
 start = time.time()
 c = my_routine(x, x, backend="auto").astype(int)

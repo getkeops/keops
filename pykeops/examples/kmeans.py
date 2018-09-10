@@ -47,6 +47,9 @@ variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
 # is a sum over the second dimension j. Thence the results will be an i-variable.
 my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
 
+# dummy first call for accurate timing in case of GPU use
+my_routine(np.random.rand(10,D).astype(type),np.random.rand(10,D).astype(type), backend="auto")
+
 start = time.time()
 # x is dataset, 
 # c are centers, 
@@ -60,13 +63,13 @@ for i in range(Niter):
         c[:,d] = np.bincount(cl,weights=x[:,d])
     c = (c.transpose()/Ncl).transpose()
 end = time.time()
-print("Time to perform "+str(Niter)+" iterations of k-means: ",round(end-start,5),"s")
+print("Time to perform",str(Niter),"iterations of k-means:",round(end-start,5),"s")
+print("Time per iteration :",round((end-start)/Niter,5),"s")
 
-plt.ion()
-plt.clf()
-plt.scatter(x[:,0],x[:,1],c=cl,s=10)
-plt.scatter(c[:,0],c[:,1],c="black",s=50,alpha=.5)
-
-
-print("Done. Close the figure to exit.")
-plt.show(block=True)
+if D==2 & N<100000:
+    plt.ion()
+    plt.clf()
+    plt.scatter(x[:,0],x[:,1],c=cl,s=10)
+    plt.scatter(c[:,0],c[:,1],c="black",s=50,alpha=.5)
+    print("Done. Close the figure to exit.")
+    plt.show(block=True)
