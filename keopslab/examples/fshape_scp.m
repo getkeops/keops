@@ -1,3 +1,8 @@
+% This example script provide a comparison between various version of Cuda
+% code used to compute distance between shapes. The script works only with 
+% a GPU.
+
+
 path_to_lib = '..';
 addpath(genpath(path_to_lib))
 

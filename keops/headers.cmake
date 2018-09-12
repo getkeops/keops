@@ -120,6 +120,8 @@ if(CUDA_FOUND AND USE_CUDA)
         endif()
     endif()
 
+else()
+    set(USE_CUDA 0)
 endif()
 
 # this flag is used in pragma
