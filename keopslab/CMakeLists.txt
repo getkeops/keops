@@ -26,11 +26,6 @@ include(${PROJECT_SRC}/headers.cmake)
 #----------------------------------COMPILATIONS--------------------------------------#
 #------------------------------------------------------------------------------------#
 
-
-set(MATLAB_ADDITIONAL_VERSIONS
-    "R2007b=7.5"
-    "R2007a=7.4"
-)
 find_package(Matlab)
 
 ### - mexfiles : generate a working mexfile is painful with cmake. 
@@ -274,6 +269,6 @@ if(Matlab_FOUND)
 
     endif()
 else()
-    message(STATUS "   ==> No mex file can be built.")
+    message(STATUS "Matlab not found. No mex file can be built.")
 endif()
 
