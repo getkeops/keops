@@ -102,7 +102,6 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
           &generic_red<at::Tensor>,
           "Entry point to keops - pytorch version.");
 
-    m.attr("nargs") = NARGS;
     m.attr("tagIJ") = TAGIJ;
     m.attr("dimout") = DIMOUT;
     m.attr("formula") = f;

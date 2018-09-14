@@ -42,15 +42,16 @@ class GenredAutograd(torch.autograd.Function):
         cuda_type = ctx.cuda_type
         myconv = ctx.myconv
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
+        nargs = len(args)
         result = ctx.saved_tensors[-1]
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
-        eta = 'Var(' + str(myconv.nargs) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
+        eta = 'Var(' + str(nargs) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
 
         # there is also a new variable for the formula's output
-        resvar = 'Var(' + str(myconv.nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
+        resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         grads = []  # list of gradients wrt. args;
 
