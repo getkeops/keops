@@ -55,7 +55,7 @@ class GenredAutograd(torch.autograd.Function):
         
         grads = []  # list of gradients wrt. args;
 
-        for (var_ind, sig) in enumerate(ctx.aliases):  # Run through the arguments
+        for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[var_ind + 4]:  # because of (formula, aliases, backend, cuda_type)
                 grads.append(None)  # Don't waste time computing it.
@@ -84,7 +84,10 @@ class GenredAutograd(torch.autograd.Function):
                 else:
                     grad = genconv(formula_g, aliases, backend, cuda_type, *args_g)
                 grads.append(grad)
-
+         
+        # append None gradients for extra variables coming for previous differentiations (G and results)
+        grads += [None]*(nargs-len(aliases))
+        
         # Grads wrt. formula, aliases, backend, *args
         return (None, None, None, None, *grads)
 
