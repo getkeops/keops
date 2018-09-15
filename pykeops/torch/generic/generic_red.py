@@ -89,11 +89,7 @@ class GenredAutograd(torch.autograd.Function):
                     grad = genconv(formula_g, aliases_g, backend, cuda_type, *args_g)
                 grads.append(grad)
          
-        # append None gradients for extra variables coming for previous differentiations (G and results)
-        grads += [None]*(nargs-len(aliases))
-        
         # Grads wrt. formula, aliases, backend, *args
-        print(grads)
         return (None, None, None, None, *grads)
 
 
