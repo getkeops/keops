@@ -43,7 +43,7 @@ class GenredAutograd(torch.autograd.Function):
         myconv = ctx.myconv
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
-        result = ctx.saved_tensors[-1]
+        result = ctx.saved_tensors[-1].detach()
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
@@ -63,9 +63,13 @@ class GenredAutograd(torch.autograd.Function):
             else:  # Otherwise, the current gradient is really needed by the user:
                 # adding new aliases is way too dangerous if we want to compute
                 # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
+                # New here (Joan) : we still add the new variables to the list of "aliases" (without giving new aliases for them)
+                # these will not be used in the C++ code, 
+                # but are useful to keep track of the actual variables used in the formula
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
                 formula_g = 'Grad_WithSavedForward(' + formula + ',' + var + ',' + eta + ',' + resvar + ')'  # Grad<F,V,G,R>
+                aliases_g = aliases + [eta,resvar]
                 args_g = args + (G,) + (result,)  # Don't forget the gradient to backprop !
 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
@@ -74,7 +78,7 @@ class GenredAutograd(torch.autograd.Function):
                 if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad = genconv(formula_g, aliases, backend, cuda_type, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, cuda_type, *args_g)
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -82,13 +86,14 @@ class GenredAutograd(torch.autograd.Function):
                     grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad
                     grad = grad.view(-1)
                 else:
-                    grad = genconv(formula_g, aliases, backend, cuda_type, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, cuda_type, *args_g)
                 grads.append(grad)
          
         # append None gradients for extra variables coming for previous differentiations (G and results)
         grads += [None]*(nargs-len(aliases))
         
         # Grads wrt. formula, aliases, backend, *args
+        print(grads)
         return (None, None, None, None, *grads)
 
 
