@@ -24,7 +24,10 @@ def axis2cat(axis):
     :param axis: 0 or 1
     :return: cat: 1 or 0
     """
-    return (axis + 1)%2
+    if axis in [0,1] :
+        return (axis + 1)%2  
+    else :
+        raise ValueError("Axis should be 0 or 1.")
 
 
 def cat2axis(cat):
@@ -34,5 +37,7 @@ def cat2axis(cat):
     :param cat: 0 or 1
     :return: axis: 1 or 0
     """
-
-    return (cat + 1)%2
+    if cat in [0,1] :
+        return (cat + 1)%2
+    else :
+        raise ValueError("Category should be Vx or Vy.")

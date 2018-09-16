@@ -96,7 +96,7 @@ class GenredAutograd(torch.autograd.Function):
 class Genred(GenredAutograd):
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
         self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
-        self.aliases = aliases
+        self.aliases = list(aliases) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
     def __call__(self, *args, backend='auto'):
