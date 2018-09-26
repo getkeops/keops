@@ -79,7 +79,7 @@ void check_tag(int tag, std::string msg){
 }
 
 template<typename array_t>
-std::pair<int,int> check_args(std::vector<array_t> obj_ptr) {
+void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 // ------ check the dimensions ------------//
     int *typeargs = new int[NARGS];
     int *dimargs = new int[NARGS];
@@ -102,13 +102,9 @@ std::pair<int,int> check_args(std::vector<array_t> obj_ptr) {
     }
 
     // check  the dimension :
-    int nx = 0;
-    int ny = 0;
     for (size_t i = 0; i < NARGS; i++) {
         if (typeargs[i] == 0) {
-            if (nx == 0 ) {
-                nx = get_size(obj_ptr[i],0); // get nx
-            } else if (nx != get_size(obj_ptr[i],0)) {
+            if (nx != get_size(obj_ptr[i],0)) {
                 throw std::runtime_error("[Keops] Wrong number of rows for arg number " + std::to_string(i) + " : is "
                         + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(nx));
             }
@@ -119,9 +115,7 @@ std::pair<int,int> check_args(std::vector<array_t> obj_ptr) {
                         + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
             }
         } else if (typeargs[i] == 1) {
-            if (ny == 0 ) {
-                ny = get_size(obj_ptr[i],0) ; // get ny
-            } else if (ny != get_size(obj_ptr[i],0) ) {
+            if (ny != get_size(obj_ptr[i],0) ) {
                 throw std::runtime_error("[Keops] Wrong number of rows for arg number " + std::to_string(i) + " : is "
                         + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(ny));
             }
@@ -150,7 +144,6 @@ std::pair<int,int> check_args(std::vector<array_t> obj_ptr) {
     delete[] dimargs;
     delete[] typeargs;
 
-    return std::make_pair(nx,ny);
 }
 
 
@@ -170,7 +163,8 @@ array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
 /////////////////////////////////////////////////////////////////////////////////
 
 template < typename array_t >
-array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
+array_t generic_red(int nx, int ny,
+                    int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
                     int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
                     int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means no suffix
                     py::args py_args) {
@@ -200,14 +194,14 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
         castedargs[i] = get_data(obj_ptr[i]);
 
     // Check all the dimensions
-    std::pair<int,int> n = check_args<array_t>(obj_ptr);  // int nx = n.first; int ny = n.second;
+    check_args<array_t>(nx, ny, obj_ptr);
 
     // dimension Output : nout is the nbr of rows of the result
-    int nout = (TAGIJ == 0)? n.first : n.second;
+    int nout = (TAGIJ == 0)? nx : ny;
 
     // Call Cuda codes
     array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice,
-                            n.first, n.second, // nx, ny
+                            nx, ny, // nx, ny
                             nout, F::DIM,      // dimout, nout
                             castedargs);
 
