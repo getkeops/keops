@@ -106,7 +106,7 @@ struct SqNormIso : BinaryOp<SqNormIso,FS,FA> {
     static_assert(FS::DIM==1,"Isotropic square norm expects a scalar parameter.");
     static const int DIM = 1;
 
-    static void PrintIdString(std::stringstream& str) { str << "SqNormIso"; }
+    static void PrintIdString(std::stringstream& str) { str << "<SqNormIso>"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
     		*out = 0;
@@ -135,7 +135,7 @@ struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
     static_assert(FS::DIM==FA::DIM,"Diagonal square norm expects a vector of parameters of dimension FA::DIM.");
     static const int DIM = 1;
 
-    static void PrintIdString(std::stringstream& str) { str << "SqNormDiag"; }
+    static void PrintIdString(std::stringstream& str) { str << "<SqNormDiag>"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
     		*out = 0;
@@ -166,7 +166,7 @@ struct SymTwoOuterProduct : BinaryOp<SymTwoOuterProduct,X,Y> {
     static_assert( Y::DIM == DIMIN, "A symmetric outer product can only be done with two vectors sharing the same length.");
     static const int DIM = DIMIN * DIMIN;
 
-    static void PrintIdString(std::stringstream& str) { str << "SymTwoOuterProduct"; }
+    static void PrintIdString(std::stringstream& str) { str << "<SymTwoOuterProduct>"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX, __TYPE__ *outY) {
             for(int k=0; k < DIMIN; k++) {
@@ -191,7 +191,7 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
     static_assert( A::DIM == DIMIN*DIMIN, "A symmetric matrix on a space of dim D should be encoded as a vector of size D*D.");
     static const int DIM = DIMIN;
 
-    static void PrintIdString(std::stringstream& str) { str << "SymTwoDot"; }
+    static void PrintIdString(std::stringstream& str) { str << "<SymTwoDot>"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
             for(int k=0; k < DIMIN; k++) {
@@ -244,7 +244,7 @@ struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
     static_assert( A::DIM == X::DIM * X::DIM, "Anisotropic square norm expects a vector of parameters of dimension FA::DIM * FA::DIM.");
     static const int DIM = 1;
 
-    static void PrintIdString(std::stringstream& str) { str << "SymSqNorm"; }
+    static void PrintIdString(std::stringstream& str) { str << "<SymSqNorm>"; }
     
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
     		*out = 0;

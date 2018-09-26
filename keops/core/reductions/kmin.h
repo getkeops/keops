@@ -21,7 +21,7 @@ struct KMinArgKMinReduction : public Reduction<F,tagI> {
     static void PrintId(std::stringstream& str) {
         str << "KMinArgKMinReduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
-        str << "," << K << "," << tagI << ")";
+        str << ",K=" << K << ",tagI=" << tagI << ")";
     }
 
     template < typename TYPE >
@@ -110,7 +110,7 @@ struct ArgKMinReduction : public KMinArgKMinReduction<F,K,tagI> {
     static void PrintId(std::stringstream& str) {
         str << "ArgKMinReduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
-        str << "," << K << "," << tagI << ")";
+        str << ",K=" << K << ",tagI=" << tagI << ")";
     }
                   
     template < typename TYPE >
@@ -143,7 +143,7 @@ struct KMinReduction : public KMinArgKMinReduction<F,K,tagI> {
     static void PrintId(std::stringstream& str) {
         str << "KMinReduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
-        str << "," << K << "," << tagI << ")";
+        str << ",K=" << K << ",tagI=" << tagI << ")";
     }
 
     template < typename TYPE >
