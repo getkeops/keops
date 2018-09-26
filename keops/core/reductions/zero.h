@@ -13,8 +13,14 @@ namespace keops {
 // - to 0 if you do the summation over j (with i the index of the output vector),
 // - to 1 if you do the summation over i (with j the index of the output vector).
 //
-template < int DIM, int tagI=0 >
-struct ZeroReduction : public Reduction<Zero<DIM>,tagI> {
+template < int DIM_, int tagI=0 >
+struct ZeroReduction : public Reduction<Zero<DIM_>,tagI> {
+
+    static const int DIM = DIM_;	
+
+    static void PrintId(std::stringstream& str) {
+        str << "ZeroReduction(DIM=" << DIM << ",tagI=" << tagI << ")";
+    }
 
     template < class V, class GRADIN >
     using DiffT = ZeroReduction<V::DIM,(V::CAT)%2>;

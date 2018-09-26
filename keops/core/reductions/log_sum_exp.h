@@ -27,6 +27,14 @@ struct LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
 
     static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
 
+    static void PrintId(std::stringstream& str) {
+        str << "LogSumExpReduction(F=";			// prints "("
+        F::PrintId(str);				// prints the formula F
+        str << ",tagI=" << tagI << ",G=";
+        G::PrintId(str);
+        str << ")";
+    }
+
     template < typename TYPE >
     struct InitializeReduction {
         HOST_DEVICE INLINE void operator()(TYPE *tmp) {

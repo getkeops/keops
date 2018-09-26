@@ -22,7 +22,7 @@ template < int _DIM >
 struct Zero {
     static const int DIM = _DIM;
 
-    static void PrintId(std::stringstream& str) { str << "0"; }
+    static void PrintId(std::stringstream& str) { str << "0(DIM=" << DIM << ")"; }
 
     template<class A, class B>
     using Replace = Zero<DIM>;
