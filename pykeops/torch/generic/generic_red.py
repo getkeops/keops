@@ -69,7 +69,7 @@ class GenredAutograd(torch.autograd.Function):
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
                 formula_g = 'Grad_WithSavedForward(' + formula + ',' + var + ',' + eta + ',' + resvar + ')'  # Grad<F,V,G,R>
-                aliases_g = aliases + [eta,resvar]
+                aliases_g = aliases + [eta, resvar]
                 args_g = args + (G,) + (result,)  # Don't forget the gradient to backprop !
 
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
