@@ -17,7 +17,7 @@ def get_sizes(aliases, *args):
         elif cat == 1:
             indy = pos
             
-        if (indx and indy):
+        if (not(indx==[]) and not(indy==[])):
             return args[indx].shape[0], args[indy].shape[0]
         
     raise ValueError('Cannot determine the size of variables. Please check the aliases.')
