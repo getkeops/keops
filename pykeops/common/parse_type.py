@@ -15,8 +15,8 @@ def get_sizes(aliases,*args):
 			indxy[0] = pos
 		elif(cat==1 & indxy[1]==-1):
 			indxy[1] = pos
-	nx = args[indxy[0]].size(0)
-	ny = args[indxy[1]].size(0)
+	nx = args[indxy[0]].shape[0]
+	ny = args[indxy[1]].shape[0]
 	return nx, ny
 	
 

@@ -1,6 +1,7 @@
 from pykeops import default_cuda_type
 from pykeops.common.keops_io import load_keops
 from pykeops.common.get_options import get_tag_backend
+from pykeops.common.parse_type import get_sizes
 from pykeops.common.utils import axis2cat
 
 
@@ -18,4 +19,5 @@ class Genred:
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
 
-        return self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, *args) # the extra zeros is mandatory but has no effect
+        nx, ny = get_sizes(self.aliases, *args)
+        return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, *args) # the extra zeros is mandatory but has no effect

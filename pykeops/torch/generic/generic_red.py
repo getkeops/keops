@@ -25,7 +25,7 @@ class GenredAutograd(torch.autograd.Function):
         ctx.cuda_type = cuda_type
         ctx.myconv = myconv
         
-        nx, ny = get_sizes(aliases,*args)
+        nx, ny = get_sizes(aliases, *args)
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
         result = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, *args)
