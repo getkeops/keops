@@ -80,70 +80,72 @@ void check_tag(int tag, std::string msg){
 
 template<typename array_t>
 void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
-// ------ check the dimensions ------------//
-    int *typeargs = new int[NARGS];
-    int *dimargs = new int[NARGS];
 
-    for (int k = 0; k < NARGS; k++) {
-        typeargs[k] = -1;
-        dimargs[k] = -1;
-    }
-    for (int k = 0; k < NARGSI; k++) {
-        typeargs[INDSI::VAL(k)] = 0;
-        dimargs[INDSI::VAL(k)] = DIMSX::VAL(k);
-    }
-    for (int k = 0; k < NARGSJ; k++) {
-        typeargs[INDSJ::VAL(k)] = 1;
-        dimargs[INDSJ::VAL(k)] = DIMSY::VAL(k);
-    }
-    for (int k = 0; k < NARGSP; k++) {
-        typeargs[INDSP::VAL(k)] = 2;
-        dimargs[INDSP::VAL(k)] = DIMSP::VAL(k);
-    }
+    if (NARGS > 0) {
+    // ------ check the dimensions ------------//
+        int *typeargs = new int[NARGS];
+        int *dimargs = new int[NARGS];
 
-    // check  the dimension :
-    for (size_t i = 0; i < NARGS; i++) {
-        if (typeargs[i] == 0) {
-            if (nx != get_size(obj_ptr[i],0)) {
-                throw std::runtime_error("[Keops] Wrong number of rows for arg number " + std::to_string(i) + " : is "
-                        + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(nx));
+        for (int k = 0; k < NARGS; k++) {
+            typeargs[k] = -1;
+            dimargs[k] = -1;
+        }
+        for (int k = 0; k < NARGSI; k++) {
+            typeargs[INDSI::VAL(k)] = 0;
+            dimargs[INDSI::VAL(k)] = DIMSX::VAL(k);
+        }
+        for (int k = 0; k < NARGSJ; k++) {
+            typeargs[INDSJ::VAL(k)] = 1;
+            dimargs[INDSJ::VAL(k)] = DIMSY::VAL(k);
+        }
+        for (int k = 0; k < NARGSP; k++) {
+            typeargs[INDSP::VAL(k)] = 2;
+            dimargs[INDSP::VAL(k)] = DIMSP::VAL(k);
+        }
+
+        // check  the dimension :
+        for (size_t i = 0; i < NARGS; i++) {
+            if (typeargs[i] == 0) {
+                if (nx != get_size(obj_ptr[i],0)) {
+                    throw std::runtime_error("[Keops] Wrong number of rows for arg number " + std::to_string(i) + " : is "
+                            + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(nx));
+                }
+
+                // column
+                if (get_size(obj_ptr[i],1) != dimargs[i]) {
+                    throw std::runtime_error("[Keops] Wrong number of column for arg number " + std::to_string(i) + " : is "
+                            + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
+                }
+            } else if (typeargs[i] == 1) {
+                if (ny != get_size(obj_ptr[i],0) ) {
+                    throw std::runtime_error("[Keops] Wrong number of rows for arg number " + std::to_string(i) + " : is "
+                            + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(ny));
+                }
+                // column
+                if (get_size(obj_ptr[i],1) != dimargs[i]) {
+                    throw std::runtime_error("[Keops] Wrong number of column for arg number " + std::to_string(i) + " : is "
+                            + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
+                }
+
+            } else if (typeargs[i] == 2) {
+                if (get_size(obj_ptr[i],0) != dimargs[i]) {
+                    throw std::runtime_error("[Keops] Wrong number of elements for arg number " + std::to_string(i) + " : is "
+                            + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(dimargs[i])) ;
+                }
             }
 
-            // column
-            if (get_size(obj_ptr[i],1) != dimargs[i]) {
-                throw std::runtime_error("[Keops] Wrong number of column for arg number " + std::to_string(i) + " : is "
-                        + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
-            }
-        } else if (typeargs[i] == 1) {
-            if (ny != get_size(obj_ptr[i],0) ) {
-                throw std::runtime_error("[Keops] Wrong number of rows for arg number " + std::to_string(i) + " : is "
-                        + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(ny));
-            }
-            // column
-            if (get_size(obj_ptr[i],1) != dimargs[i]) {
-                throw std::runtime_error("[Keops] Wrong number of column for arg number " + std::to_string(i) + " : is "
-                        + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
-            }
-
-        } else if (typeargs[i] == 2) {
-            if (get_size(obj_ptr[i],0) != dimargs[i]) {
-                throw std::runtime_error("[Keops] Wrong number of elements for arg number " + std::to_string(i) + " : is "
-                        + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(dimargs[i])) ;
+            if (!is_contiguous(obj_ptr[i])) {
+                throw std::runtime_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. "
+                                         + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
+                                         + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
+                                         + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
+                                         + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
             }
         }
 
-        if (!is_contiguous(obj_ptr[i])) {
-            throw std::runtime_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. "
-                                     + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
-                                     + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
-                                     + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
-                                     + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
-        }
+        delete[] dimargs;
+        delete[] typeargs;
     }
-
-    delete[] dimargs;
-    delete[] typeargs;
-
 }
 
 
@@ -201,7 +203,7 @@ array_t generic_red(int nx, int ny,
 
     // Call Cuda codes
     array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice,
-                            nx, ny, // nx, ny
+                            nx, ny,
                             nout, F::DIM,      // dimout, nout
                             castedargs);
 

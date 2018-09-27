@@ -7,6 +7,9 @@
 
 // specify type for md5 uniqueness: @__TYPE__@
 
+#define FORMULA_OBJ_STR "@FORMULA_OBJ@"
+#define VAR_ALIASES_STR "@VAR_ALIASES@"
+
 #cmakedefine USENEWSYNTAX @USENEWSYNTAX@
 #ifdef USENEWSYNTAX
 

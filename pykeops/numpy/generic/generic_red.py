@@ -10,7 +10,7 @@ class Genred:
         if opt_arg:
             self.formula = reduction_op + 'Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
         else:
-    	    self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+            self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = aliases
         self.cuda_type = cuda_type
         self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
@@ -18,6 +18,5 @@ class Genred:
     def __call__(self, *args, backend='auto'):
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
-
         nx, ny = get_sizes(self.aliases, *args)
         return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, *args) # the extra zeros is mandatory but has no effect

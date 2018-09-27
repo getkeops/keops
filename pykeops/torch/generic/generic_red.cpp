@@ -95,6 +95,9 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
 // the following macro force the compiler to change MODULE_NAME to its value
 #define VALUE_OF(x) x
 
+#define xstr(s) str(s)
+#define str(s) #s
+
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
     m.doc() = "keops for pytorch through pybind11"; // optional module docstring
 
@@ -105,6 +108,8 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
     m.attr("tagIJ") = TAGIJ;
     m.attr("dimout") = DIMOUT;
     m.attr("formula") = f;
+    m.attr("compiled_formula") = xstr(FORMULA_OBJ_STR);
+    m.attr("compiled_aliases") = xstr(VAR_ALIASES_STR);
 }
 
 }
