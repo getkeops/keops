@@ -6,6 +6,19 @@ categories = OrderedDict([
         ("Vy", 1),
         ("Pm", 2)
         ])
+        
+def get_sizes(aliases,*args):
+	indxy = [-1,-1]
+	for (var_ind, sig) in enumerate(aliases):
+		_, cat, dim, pos = get_type(sig, position_in_list=var_ind) 
+		if(cat==0 & indxy[0]==-1):
+			indxy[0] = pos
+		elif(cat==1 & indxy[1]==-1):
+			indxy[1] = pos
+	nx = args[indxy[0]].shape[0]
+	ny = args[indxy[1]].shape[0]
+	return nx, ny
+	
 
 def get_type(type_str, position_in_list=None):
     """

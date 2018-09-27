@@ -3,7 +3,7 @@ from torch.autograd import Variable
 
 from pykeops import default_cuda_type
 from pykeops.common.utils import axis2cat, cat2axis
-from pykeops.common.parse_type import get_type
+from pykeops.common.parse_type import get_type, get_sizes
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
@@ -24,9 +24,11 @@ class GenredAutograd(torch.autograd.Function):
         ctx.backend = backend
         ctx.cuda_type = cuda_type
         ctx.myconv = myconv
+        
+        nx, ny = get_sizes(aliases, *args)
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
-        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, *args)
+        result = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
