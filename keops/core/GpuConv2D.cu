@@ -253,7 +253,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     reduce2D<TYPE,DIMRED,DIMOUT,FUN><<<gridSize2, blockSize2>>>(x1B, x_d, px_d, gridSize.y,nx);
 
     // block until the device has completed
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     // Send data from device to host.
     cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMOUT),cudaMemcpyDeviceToHost);
@@ -403,7 +403,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
     reduce2D<TYPE,DIMRED,DIMOUT,FUN><<<gridSize2, blockSize2>>>(x1B, out, px_d, gridSize.y,nx);
 
     // block until the device has completed
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     cudaFree(p_data);
 

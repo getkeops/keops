@@ -81,7 +81,7 @@ int fshape_gpu_dxi(double ooSigmax2,double ooSigmaf2, double ooSigmaXi2,
     }
 
     // block until the device has completed
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     // Send data from device to host.
     cudaMemcpy(gamma_h, gamma_d, sizeof(TYPE)*nx*dimVect,cudaMemcpyDeviceToHost);

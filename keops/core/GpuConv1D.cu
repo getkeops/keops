@@ -155,7 +155,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     GpuConv1DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
 
     // block until the device has completed
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     // Send data from device to host.
     cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMOUT),cudaMemcpyDeviceToHost);
@@ -279,7 +279,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
     GpuConv1DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
 
     // block until the device has completed
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     cudaFree(p_data);
 

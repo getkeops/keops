@@ -108,7 +108,7 @@ int KernelGpuGradConvXA(TYPE ooSigma2,               // 1 / sigma^2
     }
 
     // block until the device has completed
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     // Send data from device to host.
     cudaMemcpy(gamma_h, gamma_d, sizeof(TYPE)*(nx*dimVect),cudaMemcpyDeviceToHost); // Output: N-by-E (same as alpha)

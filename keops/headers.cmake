@@ -23,7 +23,7 @@ endif(APPLE)
 #------------------------------FIND CUDA AND GPUs------------------------------------#
 #------------------------------------------------------------------------------------#
 
-find_package(CUDA QUIET)
+find_package(CUDA)
 if(${CUDA_FOUND})
     message(STATUS "Found Cuda: ${CUDA_TOOLKIT_ROOT_DIR}")
 else()

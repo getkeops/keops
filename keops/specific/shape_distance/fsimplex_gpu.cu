@@ -153,7 +153,7 @@ int fsimplex(TYPE ooSigmax2,TYPE ooSigmaf2,
     }
 
     // block until the device has completed
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
 
     // Send data from device to host.
     cudaMemcpy(gamma_h, gamma_d, sizeof(TYPE)*nx,cudaMemcpyDeviceToHost);
