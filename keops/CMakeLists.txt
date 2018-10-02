@@ -71,10 +71,10 @@ add_subdirectory(sandbox)
 if (NOT(${CMAKE_VERSION} VERSION_LESS 3.6.0)) # workaround for https://github.com/google/benchmark/issues/603
 
     if(NOT(APPLE))
-        add_subdirectory(lib/benchmark)
-        add_subdirectory(bench)
         add_subdirectory(lib/gtest)
         add_subdirectory(test)
+        #add_subdirectory(lib/benchmark)
+        #add_subdirectory(bench)
     endif()
 
 endif()
