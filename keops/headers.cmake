@@ -57,7 +57,7 @@ if(CUDA_FOUND AND USE_CUDA)
                 "  return 0;\n"
                 "}\n")
 
-            execute_process(COMMAND "${CUDA_NVCC_EXECUTABLE}" "--run" "${__cufile}"
+            execute_process(COMMAND "${CUDA_NVCC_EXECUTABLE}" "-ccbin" "${CMAKE_CXX_COMPILER}" "--run" "${__cufile}"
                 WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/CMakeFiles/"
                 RESULT_VARIABLE __nvcc_res OUTPUT_VARIABLE __nvcc_out
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -114,10 +114,12 @@ if(CUDA_FOUND AND USE_CUDA)
         List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
         List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
 
-
-        if(CUDA_VERSION_MAJOR EQUAL 7) # cuda 7 want gcc4.9 
+        if(CUDA_VERSION_MAJOR EQUAL 7) # cuda 7 wants gcc4.9 
             List(APPEND CUDA_NVCC_FLAGS -ccbin gcc-4.9)
+        else()
+            List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CXX_COMPILER}")
         endif()
+
     endif()
 
 else()
