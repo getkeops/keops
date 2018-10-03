@@ -2,7 +2,7 @@
 #------------------------------------HEADERS-----------------------------------------#
 #------------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
 message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
@@ -10,16 +10,18 @@ message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
 project(KeOpsLab LANGUAGES CXX)
 
 ## Set Path to sources
-set(PROJECT_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
+set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
+
+include(${KEOPS_SRC}/cuda.cmake)
 
 set(SOURCE_FILES
-    ${PROJECT_SRC}
+    ${KEOPS_SRC}
     ${PROJECT_BINARY_DIR}
 )
 
 Include_Directories(${SOURCE_FILES})
 
-include(${PROJECT_SRC}/headers.cmake)
+include(${KEOPS_SRC}/headers.cmake)
 
 
 #------------------------------------------------------------------------------------#
@@ -62,7 +64,7 @@ if(Matlab_FOUND)
       
         CUDA_add_library(
             ${shared_obj_name} SHARED
-            ${PROJECT_SRC}/core/link_autodiff.cu
+            ${KEOPS_SRC}/core/link_autodiff.cu
             OPTIONS --pre-include=${shared_obj_name}.h
         )
 
@@ -72,7 +74,7 @@ if(Matlab_FOUND)
 
         add_library(
             ${shared_obj_name} SHARED
-            ${PROJECT_SRC}/core/link_autodiff.cpp
+            ${KEOPS_SRC}/core/link_autodiff.cpp
         )
 
         target_compile_options(
@@ -82,7 +84,7 @@ if(Matlab_FOUND)
 
         # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
         set_source_files_properties(
-            ${PROJECT_SRC}/core/link_autodiff.cpp PROPERTIES
+            ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
             OBJECT_DEPENDS ${shared_obj_name}.h
         )
 
@@ -145,7 +147,7 @@ if(Matlab_FOUND)
         # --------------------------- radial kernel conv
         CUDA_add_library(
             radial_kernels_conv SHARED
-            ${PROJECT_SRC}/specific/radial_kernels/cuda_conv.cu
+            ${KEOPS_SRC}/specific/radial_kernels/cuda_conv.cu
         )
       
         Add_library( # generate the string "g++ -c ..." but do not execute it
@@ -227,7 +229,7 @@ if(Matlab_FOUND)
             SET(name1 fshape_gpu${ext_name})
             CUDA_add_library(
                 ${name1} SHARED
-                ${PROJECT_SRC}/specific/shape_distance/${name1}.cu
+                ${KEOPS_SRC}/specific/shape_distance/${name1}.cu
             )
             set_target_properties(${name1} PROPERTIES
                 LIBRARY_OUTPUT_NAME ${mex_fshape_scp_name}

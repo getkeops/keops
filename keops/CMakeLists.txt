@@ -2,16 +2,20 @@
 #------------------------------------HEADERS-----------------------------------------#
 #------------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
 message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
 
 project(KeOps LANGUAGES CXX)
 
+set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR})
+
+include(${KEOPS_SRC}/cuda.cmake)
+
 ## Set Path to sources
 set(SOURCE_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${KEOPS_SRC}
     ${PROJECT_BINARY_DIR}
 )
 
