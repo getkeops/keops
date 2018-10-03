@@ -79,7 +79,7 @@ class PytorchUnitTestCase(unittest.TestCase):
                 gamma_py = np.matmul(np_kernel(self.x, self.y, self.sigma, kernel=k), self.b)
                 
                 # compare output
-                self.assertTrue(np.allclose(gamma.data.numpy(), gamma_py))
+                self.assertTrue(np.allclose(gamma.cpu().data.numpy(), gamma_py))
     
     ############################################################
     def test_grad1conv_kernels_feature(self):
@@ -254,6 +254,25 @@ class PytorchUnitTestCase(unittest.TestCase):
         self.assertFalse(yc_tmp.is_contiguous())
         with self.assertRaises(RuntimeError):
             my_routine(self.pc, self.xc, yc_tmp, backend='auto')
+
+    ############################################################
+    def test_heterogeneous_var_aliases(self):
+    ############################################################
+        from pykeops.torch.generic.generic_red import Genred
+        from pykeops.numpy.utils import squared_distances
+        
+        aliases = ['p=Pm(0,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        formula = 'Square(p-Var(1,1,1))*Exp(-SqNorm2(y-x))'
+        
+        # Call cuda kernel
+        myconv = Genred(formula, aliases, reduction_op='Sum', axis=1, cuda_type='float32' )
+        gamma_keops= myconv(self.sigmac, self.gc, self.xc, self.yc, backend='auto')
+
+        # Numpy version
+        gamma_py = np.sum((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), axis=1)
+        
+        # compare output
+        self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy().ravel(), gamma_py.ravel(), atol=1e-6))
 
 
 if __name__ == '__main__':

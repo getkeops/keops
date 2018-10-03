@@ -23,7 +23,6 @@ Include_Directories(${SOURCE_FILES})
 
 include(${KEOPS_SRC}/headers.cmake)
 
-
 ########################################################################################################
 #                                             PYBIND11                                                 #
 ########################################################################################################
@@ -75,6 +74,11 @@ else()
     )
 
 endif()
+# skip the full RPATH for the build tree. We append $ORIGIN later
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+SET(CMAKE_INSTALL_RPATH "")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 # set name
 set_target_properties(keops${shared_obj_name} PROPERTIES
@@ -91,6 +95,13 @@ target_compile_options(
         ${shared_obj_name} BEFORE
         PRIVATE  -include ${shared_obj_name}.h
     )
+
+# Ensure the shared lib look for the other .so in its own dir.
+if(APPLE)
+    set_target_properties(${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
+else()
+    set_target_properties(${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
+endif()
 
 target_link_libraries(
     ${shared_obj_name} PUBLIC

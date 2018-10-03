@@ -7,6 +7,21 @@ categories = OrderedDict([
     ("Pm", 2)
 ])
 
+def complete_aliases(formula, aliases):
+    """ 
+        This function parse formula (a string) to find pattern like 'Var(x,x,x)'.
+        It then append to aliases (list of strings), the extra 'Var(x,x,x)'.
+    """
+    def unique(sequence):
+        """ 
+            find unique element of list. Keeping order. 
+            Source : http://www.martinbroadhurst.com/removing-duplicates-from-a-list-while-preserving-order-in-python.html
+        """
+        seen = set()
+        return [x for x in sequence if not (x in seen or seen.add(x))]
+    
+    m = re.findall(r"Var\([0-9]{1,},[0-9]{1,},[0-9]{1,}\)", formula.replace(" ", ""))
+    return unique(aliases + m)   
 
 def get_sizes(aliases, *args):
     indx, indy = [], []
@@ -19,7 +34,7 @@ def get_sizes(aliases, *args):
             
         if (not(indx==[]) and not(indy==[])):
             return args[indx].shape[0], args[indy].shape[0]
-        
+    
     raise ValueError('Cannot determine the size of variables. Please check the aliases.')
 
 
@@ -46,7 +61,7 @@ def get_type(type_str, position_in_list=None):
                     type_str + " type_str does not match the 'var = [Vx|Vy|Pm](dim)' or 'var = [Vx|Vy|Pm](pos,dim) or '[Vx|Vy|Pm](dim) or '[Vx|Vy|Pm](pos,dim) or Var(pos,dim,cat)'  format: " + type_str)
             else:
                 # output: varname,          cat          ,     dim        , pos
-                return None, m.group(3), int(m.group(2)), int(m.group(1))
+                return None, int(m.group(3)), int(m.group(2)), int(m.group(1))
         else:
             # Try to infer position
             if m.group(2):

@@ -3,7 +3,7 @@ from torch.autograd import Variable
 
 from pykeops import default_cuda_type
 from pykeops.common.utils import axis2cat, cat2axis
-from pykeops.common.parse_type import get_type, get_sizes
+from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
@@ -98,7 +98,7 @@ class GenredAutograd(torch.autograd.Function):
 class Genred(GenredAutograd):
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
         self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
-        self.aliases = list(aliases) # just in case the user provided a tuple
+        self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
     def __call__(self, *args, backend='auto'):
