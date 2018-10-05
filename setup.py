@@ -56,6 +56,9 @@ setup(
     },
     author='B. Charlier, J. Feydy, J. Glaunes',
     author_email='benjamin.charlier@umontpellier.fr, jfeydy@ens.fr, alexis.glaunes@parisdescartes.fr',
+
+    python_requires='>=3',
+
     classifiers=[
         'Development Status :: 4 - Beta',
 
