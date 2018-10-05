@@ -97,6 +97,7 @@ setup(
             'torch/generic/generic_red.cpp',
             'common/keops_io.h',
             'keops/formula.h.in',
+            'keops/cuda.cmake',
             'keops/headers.cmake',
             'keops/core/autodiff.h',
             'keops/core/CpuConv.cpp',

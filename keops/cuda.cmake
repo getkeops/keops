@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------------#
 
 # As of now, we use an ugly mix of old and new cmake methods to properly detect cuda, nvcc and the gpu arch...
-find_package(CUDA)
+find_package(CUDA QUIET)
 
 if(NOT DEFINED USE_CUDA)
     Set(USE_CUDA ${CUDA_FOUND})
