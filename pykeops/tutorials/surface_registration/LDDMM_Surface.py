@@ -24,7 +24,7 @@ import time
 
 from pykeops.torch import Kernel, kernel_product
 
-use_cuda = torch.cuda.is_available()
+use_cuda = False; # torch.cuda.is_available()
 
 ###### main settings for this example ############################
 kernel_lib = 'keops'  # 'pytorch' or 'keops'
@@ -35,9 +35,9 @@ deviceId = 0  # id of Gpu device (in case Gpu is  used)
 #   "hippos_reduc.pt" : further reduced (662 vertices), 
 #   "hippos_reduc_reduc.pt" : further reduced (68 vertices)
 if use_cuda:
-    datafile = 'data/hippos_reduc.pt'
+    datafile = 'data/hippos.pt'
 else:
-    datafile = 'data/hippos_reduc_reduc.pt'
+    datafile = 'data/hippos_reduc.pt'
 ##################################################################
 
 backend_keops = "auto"
@@ -116,17 +116,14 @@ def RalstonIntegrator(nt=10):
 def Hamiltonian(K):
     def H(p, q):
         return .5 * (p * K(q, q, p)).sum()
-    
     return H
 
 
 def HamiltonianSystem(K):
     H = Hamiltonian(K)
-    
     def HS(p, q):
         Gp, Gq = grad(H(p, q), (p, q), create_graph=True)
         return -Gq, Gp
-    
     return HS
 
 
@@ -136,16 +133,15 @@ def Shooting(p0, q0, K, deltat=1.0, Integrator=RalstonIntegrator()):
 
 def Flow(x0, p0, q0, K, deltat=1.0, Integrator=RalstonIntegrator()):
     HS = HamiltonianSystem(K)
-    
     def FlowEq(x, p, q):
         return (K(x, q, p),) + HS(p, q)
-    
     return Integrator(FlowEq, (x0, p0, q0), deltat)[0]
 
-def LDDMMloss(K,dataloss,gamma=0):
-    def loss(p0,q0):
-        p,q = Shooting(p0,q0,K)
-        return gamma * Hamiltonian(K)(p0,q0) + dataloss(q)
+
+def LDDMMloss(K, dataloss, gamma=0):
+    def loss(p0, q0):
+        p,q = Shooting(p0, q0, K)
+        return gamma * Hamiltonian(K)(p0, q0) + dataloss(q)
     return loss
 
 
@@ -205,14 +201,15 @@ def RunExample(datafile=datafile, kernel_lib="keops"):
     q0np, qnp, FSnp = q0.detach().cpu().numpy(), q.detach().cpu().numpy(), FS.detach().cpu().numpy()
     VTnp, FTnp = VT.detach().cpu().numpy(), FT.detach().cpu().numpy()
     ax = Axes3D(fig)
+    ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(1, 0, 0, .5), edgecolor=(1, 1, 1, .3), linewidth=1)
+    ax.plot_trisurf(qnp[:, 0], qnp[:, 1], qnp[:, 2], triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3), linewidth=1)
+    ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0), edgecolor=(0, 0, 1, .3), linewidth=1)
     ax.axis('equal')
-    ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(1, 0, 0, .5), edgecolor=(1, 1, 1, .3),
-                    linewidth=1)
-    ax.plot_trisurf(qnp[:, 0], qnp[:, 1], qnp[:, 2], triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3),
-                    linewidth=1)
-    # ax.plot_trisurf(VTnp[:,0],VTnp[:,1],VTnp[:,2],triangles=FTnp, color=(0,0,0,0), edgecolor='Blue')
-    ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0), edgecolor=(0, 0, 1, .3),
-                    linewidth=1)
+    
+    blue_proxy = plt.Rectangle((0, 0), 1, 1, fc="r")
+    red_proxy = plt.Rectangle((0, 0), 1, 1, fc="y")
+    yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
+    ax.legend([blue_proxy, red_proxy, yellow_proxy],['source', 'deformed', 'target'])
 
 
 # run the example
