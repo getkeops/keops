@@ -65,32 +65,6 @@ struct MinArgMinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<MinA
         str << "MinArgMinReduction";
     }
         
-    // equivalent of the += operation
-    template < typename TYPE >
-    struct ReducePairShort {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
-            for(int k=0; k<F::DIM; k++) {
-                if(xi[k]<tmp[k]) {
-                    tmp[k] = xi[k];
-                    tmp[F::DIM+k] = j;
-                }
-            }
-        }
-    };
-
-    // equivalent of the += operation
-    template < typename TYPE >
-    struct ReducePair {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
-            for(int k=0; k<F::DIM; k++) {
-                if(xi[k]<tmp[k]) {
-                    tmp[k] = xi[k];
-                    tmp[F::DIM+k] = xi[F::DIM+k];
-                }
-            }
-        }
-    };
-
     template < typename TYPE >
     struct FinalizeOutput {
         HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {

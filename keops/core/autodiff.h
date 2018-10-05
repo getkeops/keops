@@ -568,4 +568,13 @@ std::string PrintFormula() {
     return str.str();
 }
 
+// Print reduction to string
+
+template < class F >
+std::string PrintReduction() {
+	std::stringstream str;
+    F::PrintId(str);
+    return str.str();
+}
+
 }

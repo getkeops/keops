@@ -28,7 +28,10 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
     aliases = check_aliases_list(aliases)
 
     def process_alias(alias):
-        return 'auto ' + str(alias) + '; '
+        if alias.find("=") == -1:
+            return '' # because in this case it is not really an alias, the variable is just named
+        else:
+            return 'auto ' + str(alias) + '; '
 
     def process_disp_alias(alias):
         return str(alias) + '; '

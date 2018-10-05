@@ -56,6 +56,9 @@ setup(
     },
     author='B. Charlier, J. Feydy, J. Glaunes',
     author_email='benjamin.charlier@umontpellier.fr, jfeydy@ens.fr, alexis.glaunes@parisdescartes.fr',
+
+    python_requires='>=3',
+
     classifiers=[
         'Development Status :: 4 - Beta',
 
@@ -97,6 +100,7 @@ setup(
             'torch/generic/generic_red.cpp',
             'common/keops_io.h',
             'keops/formula.h.in',
+            'keops/cuda.cmake',
             'keops/headers.cmake',
             'keops/core/autodiff.h',
             'keops/core/CpuConv.cpp',

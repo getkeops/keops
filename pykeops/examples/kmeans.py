@@ -16,8 +16,8 @@ from matplotlib import pyplot as plt
 #--------------------------------------------------------------#
 #   Please use the "verbose" compilation mode for debugging    #
 #--------------------------------------------------------------#
-#import sys, os.path
-#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+# import sys, os.path
+# sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 from pykeops.numpy import Genred
 
@@ -67,7 +67,7 @@ end = time.time()
 print("Time to perform",str(Niter),"iterations of k-means:",round(end-start,5),"s")
 print("Time per iteration :",round((end-start)/Niter,5),"s")
 
-if D==2 and N<100000:
+if (D==2) and (N<100000):
     plt.ion()
     plt.clf()
     plt.scatter(x[:,0],x[:,1],c=cl,s=10)

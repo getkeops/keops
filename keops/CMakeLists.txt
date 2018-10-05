@@ -2,16 +2,20 @@
 #------------------------------------HEADERS-----------------------------------------#
 #------------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10)
 
 file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
 message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
 
 project(KeOps LANGUAGES CXX)
 
+set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR})
+
+include(${KEOPS_SRC}/cuda.cmake)
+
 ## Set Path to sources
 set(SOURCE_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${KEOPS_SRC}
     ${PROJECT_BINARY_DIR}
 )
 
@@ -71,10 +75,16 @@ add_subdirectory(sandbox)
 if (NOT(${CMAKE_VERSION} VERSION_LESS 3.6.0)) # workaround for https://github.com/google/benchmark/issues/603
 
     if(NOT(APPLE))
-        add_subdirectory(lib/benchmark)
-        add_subdirectory(bench)
         add_subdirectory(lib/gtest)
         add_subdirectory(test)
+
+        #add_definitions(-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON)
+        #add_definitions(-DBENCHMARK_ENABLE_GTEST_TESTS=OFF)
+        set(BENCHMARK_ENABLE_GTEST_TESTS 0  CACHE INTERNAL "")
+
+        #find_package(gtest PATHS ${CMAKE_CURRENT_SOURCE_DIR}/lib/gtest/)
+        add_subdirectory(lib/benchmark)
+        add_subdirectory(bench)
     endif()
 
 endif()

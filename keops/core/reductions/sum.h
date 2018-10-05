@@ -10,12 +10,23 @@ namespace keops {
 
 // Implements the summation reduction operation
 
-template < class F, int tagI=0 >
-struct SumReduction : public Reduction<F,tagI> {
+template < class F, int tagI > struct SumReductionAlias;
+
+template < class F, int tagI=0 > 
+using SumReduction = typename SumReductionAlias<F,tagI>::type; 
+
+template < class F, int tagI >
+struct SumReductionImpl : public Reduction<F,tagI> {
 
     static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a sum reduction it is equal to the dimension of output of formula
 
     static const int DIMRED = DIM;		// dimension of temporary variable for reduction
+
+	// recursive function to print the formula as a string 
+    static void PrintId(std::stringstream& str) {
+        str << "SumReduction (with tagI=" << tagI << ") of :" << std::endl;
+        str << PrintFormula<F>();				// prints the formula F
+    }
 
     template < typename TYPE >
     struct InitializeReduction {
@@ -59,5 +70,18 @@ struct SumReduction : public Reduction<F,tagI> {
     // In this case there is a summation left to be done by the user.
 
 };
+
+template < class F, int tagI >
+struct SumReductionAlias {
+    using type = SumReductionImpl<F,tagI>;
+};
+
+template < int DIM, int tagI > struct ZeroReduction;
+
+template < int DIM, int tagI >
+struct SumReductionAlias<Zero<DIM>,tagI> {
+    using type = ZeroReduction<DIM,tagI>;
+};
+
 
 }

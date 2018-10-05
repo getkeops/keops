@@ -1,10 +1,10 @@
 #include <iostream>
+#include <gtest/gtest.h>
+
 #include <assert.h>
 #include <vector>
 #include <ctime>
 #include <algorithm>
-
-#include "gtest/gtest.h"
 
 
 extern "C" int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**);
