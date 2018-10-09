@@ -40,6 +40,32 @@ static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py)
 }
 
 // Wrapper with an user-friendly input format for px and py.
+template < typename TYPE, class FUN, typename... Args >
+static int Eval(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
+
+    const int SIZEI = VARSI::SIZE+1;
+    const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
+
+    using INDSI = GetInds<VARSI>;
+    using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
+
+    TYPE *px[SIZEI];
+    TYPE *py[SIZEJ];
+    TYPE *params[SIZEP];
+    px[0] = x1;
+    getlist<INDSI>(px+1,args...);
+    getlist<INDSJ>(py,args...);
+    getlist<INDSP>(params,args...);
+
+    return CpuConv_(fun,params,nx,ny,px,py);
+}
+
+// Idem, but with args given as an array of arrays, instead of an explicit list of arrays.
 template < typename TYPE, class FUN >
 static int Eval(FUN fun, int nx, int ny, TYPE* x1, TYPE** args) {
     typedef typename FUN::VARSI VARSI;
