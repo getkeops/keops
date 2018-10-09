@@ -58,7 +58,7 @@ sphinx_gallery_conf = {
      'gallery_dirs': 'auto_examples',
 }
 
-#mathjax_path = 'MathJax/MathJax.js'
+mathjax_path = 'MathJax/MathJax.js'
 
 imgmath_dvipng_args = ['-gamma', '1.5', '-D', '100', '-bg', 'Transparent'] 
 imgmath_font_size = 14
@@ -143,9 +143,9 @@ html_theme_options = {
     'navbar_sidebarrel': False,
     'bootstrap_version': "3",
     'navbar_links': [
-                     ("Gallery", "examples/index"),
-                     ("Tutorial", "tutorial"),
-                     ("API", "api"),
+                     ("Python", "python/index"),
+                     ("Matlab", "matlab/index"),
+                     ("Keops API", "api/index"),
                      ],
 
     }

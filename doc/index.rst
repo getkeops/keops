@@ -65,7 +65,7 @@ KErnel OPerationS, with autodiff, without memory overflows
      <div class="row">
        <div class="col-md-6">
 
-KeOps is a `cpp/cuda library <./cpp/generic-syntax>`_ that comes with bindings in `python <./python/Installation>`_ (numpy and pytorch), `Matlab <./matlab/Installation>`_ or R (coming soon). KeOps computes efficiently **Kernel dot products**, **their derivatives** and **other similar operations** on the GPU. It provides good performances and linear (instead of quadratic) memory footprint through a minimal interface: the `kernel_product` and `generic_sum` operations.
+KeOps is a `cpp/cuda library <./cpp/generic-syntax>`_ that comes with bindings in `python <./python/Installation>`_ (numpy and pytorch), `Matlab <./matlab/Installation>`_ or R (coming soon). KeOps computes efficiently **Kernel dot products**, **their derivatives** and **other similar operations** on the GPU. It provides good performances and linear (instead of quadratic) memory footprint through a minimal interface.
 
 
 .. raw:: html
@@ -82,8 +82,8 @@ KeOps is a `cpp/cuda library <./cpp/generic-syntax>`_ that comes with bindings i
    :titlesonly:
 
    home
-   generic-syntax
-   math-operations
+   api/generic-syntax
+   api/math-operations
    python/Installation
    python/Documentation
    matlab/Installation
