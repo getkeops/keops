@@ -12,12 +12,12 @@ using namespace keops;
 // Convolutions on Gpu device from host data //
 ///////////////////////////////////////////////
 
-extern "C" int GpuReduc1D_FromHost(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return Eval<F,GpuConv1D_FromHost>::Run(nx, ny, gamma, args);
+extern "C" int GpuReduc1D_FromHost(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_id=-1) {
+    return Eval<F,GpuConv1D_FromHost>::Run(nx, ny, gamma, args, device_id);
 }
 
-extern "C" int GpuReduc2D_FromHost(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return Eval<F,GpuConv2D_FromHost>::Run(nx, ny, gamma, args);
+extern "C" int GpuReduc2D_FromHost(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_id=-1) {
+    return Eval<F,GpuConv2D_FromHost>::Run(nx, ny, gamma, args, device_id);
 }
 
 //////////////////////////////////////////////////////////
