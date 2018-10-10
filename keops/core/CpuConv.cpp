@@ -39,7 +39,7 @@ static int CpuConv_(FUN fun, TYPE** param, int nx, int ny, TYPE** px, TYPE** py)
     return 0;
 }
 
-// Wrapper with an user-fristd::endly input format for px and py.
+// Wrapper with an user-friendly input format for px and py.
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, TYPE* x1, Args... args) {
     typedef typename FUN::VARSI VARSI;

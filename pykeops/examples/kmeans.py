@@ -27,9 +27,9 @@ from pykeops.numpy import Genred
 #--------------------------------------------------------------#
 #                   Define our dataset                         #
 #--------------------------------------------------------------#
-N = 5000
-D = 2
-K = 50
+N = 500000
+D = 20
+K = 5000
 Niter = 10
 print("k-means example with "+str(N)+" points in "+str(D)+"-D, and K="+str(K))
 
@@ -49,7 +49,7 @@ variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
 my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
 
 # dummy first call for accurate timing in case of GPU use
-my_routine(np.random.rand(10,D).astype(type),np.random.rand(10,D).astype(type), backend="auto")
+my_routine(np.random.rand(10,D).astype(type),np.random.rand(10,D).astype(type), backend="auto", device_id=1)
 
 start = time.time()
 # x is dataset, 
@@ -57,7 +57,7 @@ start = time.time()
 # cl is class index for each point in x
 c = np.copy(x[:K,:])
 for i in range(Niter):
-    cl = my_routine(x,c,backend="auto").astype(int).reshape(N)
+    cl = my_routine(x,c,backend="auto",device_id=1).astype(int).reshape(N)
     c[:] = 0
     Ncl = np.bincount(cl).astype(type)
     for d in range(D):

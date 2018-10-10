@@ -169,8 +169,12 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 
 // and use getlist to enroll them into "pointers arrays" px and py.
 template < typename TYPE, class FUN, typename... Args >
-static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, Args... args) {
+static int Eval(FUN fun, int nx, int ny, int device_id, TYPE* x1_h, Args... args) {
 
+    // We set the GPU device on which computations will be performed
+    // note: default value -1 will simply make this command to have no effect
+    cudaSetDevice(device_id);
+    
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;
@@ -200,9 +204,20 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, Args... args) {
 
 }
 
+// same without the device_id argument
+template < typename TYPE, class FUN, typename... Args >
+static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, Args... args) {
+    return Eval(fun, nx, ny, -1, x1_h, args...);
+}
+
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays
 template < typename TYPE, class FUN >
-static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args) {
+static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_id=-1) {
+
+    // We set the GPU device on which computations will be performed
+    // note: default value -1 will simply make this command to have no effect
+    cudaSetDevice(device_id);
+    
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;
@@ -290,6 +305,14 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
 
+    // We set the GPU device on which computations will be performed
+    // to be the GPU on which data is located.
+    // NB. we only check location of x1_d which is the output vector
+    // so we assume that input data is on the same GPU
+    cudaPointerAttributes attributes;
+    cudaPointerGetAttributes(&attributes,x1_d);
+    cudaSetDevice(attributes.device);
+
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;
@@ -322,6 +345,15 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
 
 template < typename TYPE, class FUN >
 static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
+
+    // We set the GPU device on which computations will be performed
+    // to be the GPU on which data is located.
+    // NB. we only check location of x1_d which is the output vector
+    // so we assume that input data is on the same GPU
+    cudaPointerAttributes attributes;
+    cudaPointerGetAttributes(&attributes,x1_d);
+    cudaSetDevice(attributes.device);
+
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
     typedef typename FUN::VARSP VARSP;

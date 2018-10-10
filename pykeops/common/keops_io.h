@@ -9,9 +9,9 @@ extern "C" {
 
 #if USE_CUDA
 extern "C" {
-    int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**);
+    int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**, int);
     int GpuReduc1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
-    int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**);
+    int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**, int);
     int GpuReduc2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
 };
 #endif
@@ -155,7 +155,7 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
 
 template < typename array_t >
-array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
+array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
                         int nx, int ny, int nout, int dimout,
                         __TYPE__ ** castedargs);
 
@@ -168,7 +168,8 @@ template < typename array_t >
 array_t generic_red(int nx, int ny,
                     int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
                     int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
-                    int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means no suffix
+                    int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means _fromHost suffix
+                    int Device_Id,    // id of GPU device
                     py::args py_args) {
 
     // Checks
@@ -202,7 +203,7 @@ array_t generic_red(int nx, int ny,
     int nout = (TAGIJ == 0)? nx : ny;
 
     // Call Cuda codes
-    array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice,
+    array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id,
                             nx, ny,
                             nout, F::DIM,      // dimout, nout
                             castedargs);

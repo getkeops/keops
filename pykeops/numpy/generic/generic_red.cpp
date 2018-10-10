@@ -39,7 +39,7 @@ bool is_contiguous(__NUMPYARRAY__ obj_ptri){
 
 
 template <>
-__NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
+__NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
                         int nx, int ny, int nout, int dimout,
                         __TYPE__ ** castedargs){
 
@@ -50,9 +50,9 @@ __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
 #if USE_CUDA
         if (tagHostDevice == 0) {
             if (tag1D2D == 0)
-                GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs);
+                GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
             else if (tag1D2D == 1)
-                GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs);
+                GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
         } else if (tagHostDevice==1)
             throw std::runtime_error("[KeOps] Gpu computations with Numpy are performed from host data... try to set tagHostDevice to 0.");
 #else
