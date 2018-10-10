@@ -4,59 +4,83 @@ operation will be performed, on systems having several devices.
 
 """
 
-# This example will run only when at least two Gpus are available.
-# By default we assume their ids are 0 and 1, but this can be changed here :
-gpu0 = 0
-gpu1 = 1
-
-import time
-import torch
-from torch.autograd import grad
-
-
 import sys, os.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
-
-from pykeops.torch import Genred
 
 # import pykeops
 # pykeops.verbose = False
 
+
+# Define the list of gpu ids to be tested
+# By default we assume we have two Gpus available, labeled 0 and 1
+gpuids = [0,1]
+
+
 #--------------------------------------------------------------#
-#                   Define our example,                        #
-# we use the same example as in generic_syntax_**.py examples  #
+#                  Tests with numpy bindings                   #
+#  we use the same example as in generic_syntax_numpy.py       #
 #--------------------------------------------------------------#
-M = 300000
-N = 500000
 
-type = 'float32' # Could be 'float32' or 'float64'
-torchtype = torch.float32 if type == 'float32' else torch.float64
+import numpy as np
+from pykeops.numpy import Genred
 
-x = torch.randn(M, 3, dtype=torchtype)
-y = torch.randn(N, 3, dtype=torchtype, requires_grad=True)
-a = torch.randn(N, 1, dtype=torchtype)
-p = torch.randn(1, 1, dtype=torchtype)
-
-
-
+# formula :
 formula = 'Square(p-a)*Exp(x+y)'
 variables = ['x = Vx(3)','y = Vy(3)','a = Vy(1)','p = Pm(1)']
-my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+my_routine = Genred(formula, variables, reduction_op='Sum', axis=1)
 
-# start = time.time()
-# c = my_routine(x, y, a, p, backend='CPU')
-# print('Time to compute the convolution operation on the cpu: ', round(time.time()-start,5), 's')
+# We first use KeOps numpy bindings
+# arrays are created as regular numpy arrays, hence data is on Cpu (host) memory
+M = 3000
+N = 5000
+x = np.random.randn(M,3)
+y = np.random.randn(N,3)
+a = np.random.randn(N,1)
+p = np.random.randn(1,1)
 
-start = time.time()
-c = my_routine(x, y, a, p, backend='GPU', device_id=0)
-print('Time to compute convolution operation on gpu on device:',round(time.time()-start,5), 's ')
+# call to KeOps on Cpu for reference
+c = my_routine(x, y, a, p, backend='CPU')
 
-with torch.cuda.device(1):
-    # we transfer data on gpu
-    p,a,x,y = p.cuda(), a.cuda(), x.cuda(), y.cuda()
-    # then call the operations
-    start = time.time()
-    c = my_routine(x, y, a, p, backend='GPU')
-    print('Time to compute convolution operation on gpu:',round(time.time()-start,5), 's ')
+# Internally data is first copied to the selected device memory, operation is performed on selected device,
+# and then output data is copied back to Cpu memory (this is what we call the FromHost mode)
+for gpuid in gpuids:
+    d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
+    print('Convolution operation (numpy bindings, FromHost mode) on gpu device ',gpuid,' :',end='')
+    print('(relative error:', float(torch.abs((c - d) / c).mean()), ')')
+
+
+
+#--------------------------------------------------------------#
+#                Tests with pytorch bindings                   #
+#--------------------------------------------------------------#
+
+import torch
+from pykeops.numpy import Genred
+my_routine = Genred(formula, variables, reduction_op='Sum', axis=1)
+
+# First we simply make aliases of numpy variables as pytorch tensors, so data is still
+# on Cpu memory, thus we still use FromHost mode
+x = torch.from_numpy(x)
+y = torch.from_numpy(y)
+a = torch.from_numpy(a)
+p = torch.from_numpy(p)
+
+for gpuid in gpuids:
+    d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
+    print('Convolution operation (pytorch bindings, FromHost mode) on gpu device ',gpuid,' :',end='')
+    print('(relative error:', float(torch.abs((c - d) / c).mean()), ')')
+
+# last tests, still using Pytorch bindings, but this time we will use KeOps directly on arrays
+# which are already located on Gpu device memory (FromDevice mode)
+for gpuid in gpuids:
+    # a simple way to select gpu device with Pytorch is via the torch.cuda.device context
+    with torch.cuda.device(gpuid):
+        # we transfer data on gpu
+        p,a,x,y = p.cuda(), a.cuda(), x.cuda(), y.cuda()
+        # then call the operation, so it will be performed on the corresponding gpu device
+        d = my_routine(x, y, a, p, backend='GPU')
+        print('Convolution operation (pytorch bindings, FromHost mode) on gpu device ',gpuid,' :',end='')
+        print('(relative error:', float(torch.abs((c - d.cpu()) / c).mean()), ')')
+
 
 
