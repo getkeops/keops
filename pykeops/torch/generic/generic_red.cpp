@@ -39,7 +39,7 @@ bool is_contiguous(at::Tensor obj_ptri){
 #endif
 
 template <>
-at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
+at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
                         int nx, int ny, int nout, int dimout,
                         __TYPE__ ** castedargs){
     
@@ -54,9 +54,9 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
         } else if(tagCpuGpu==1) {
 #if USE_CUDA
             if(tag1D2D==0) 
-                GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs);
+                GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
             else if(tag1D2D==1)
-                GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs);
+                GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
             return result_array;
 #else
             throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");
@@ -64,8 +64,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice,
         }
     } else if(tagHostDevice == 1) {
 #if USE_CUDA
-
-        at::Tensor result_array = at::empty({nout,dimout}, torch::CUDA(AT_TYPE));
+       at::Tensor result_array = at::empty({nout,dimout}, torch::CUDA(AT_TYPE));
         torch::set_requires_grad(result_array, true);
 
         if(tag1D2D==0)
