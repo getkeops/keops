@@ -1,6 +1,33 @@
 import re
+import os.path
 import numpy as np
 from collections import OrderedDict
+from pykeops import __version__, torch_version_required
+
+
+###########################################################
+#             Set build_folder
+###########################################################
+
+def set_build_folder():
+    """
+    This function set a default build folder that contains the python module compiled
+    by pykeops.
+    """
+    bf_source = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + 'build' + os.path.sep
+    bf_home = os.path.expanduser('~')
+
+    if os.path.isdir(bf_source): # assume we are loading from source
+        build_folder  = bf_source
+    elif os.path.isdir(bf_home): # assume we are ussing wheel and home is accessible
+       build_folder = bf_home + os.path.sep + '.cache' + os.path.sep + 'pykeops-' + __version__ + os.path.sep 
+    else: 
+        import tempfile
+        build_folder = tempfile.mkdtemp(prefix='pykeops-' + __version__) + os.path.sep
+
+    return build_folder
+
+
 
 ############################################################
 #              Search for GPU
@@ -16,10 +43,18 @@ except:
 # is torch installed ?
 try:
     import torch
-    torch_found = True
-    gpu_available = torch.cuda.is_available() # if torch is found, we use it to detect the gpu
     from torch.utils import cpp_extension
+
+    if torch.__version__ < torch_version_required:
+        raise ImportError('The pytorch version should be ==' + torch_version_required)
+
     torch_include_path = torch.utils.cpp_extension.include_paths()[0]
+    gpu_available = torch.cuda.is_available() # use torch to detect gpu
+    torch_found = True
+except ImportError as e: # if 
+    print('ImportError: pykeops is not compatible with your version of Pytorch.', e)
+    torch_found = False
+    torch_include_path = "0"
 except:
     torch_found = False
     torch_include_path = "0"

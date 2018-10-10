@@ -226,7 +226,8 @@ def kernel_product(params, x, y, *bs, mode=None):
     Else, if mode == "log_cost", we have :
         v_i = \sum_j -c(x_i,y_j) * exp( c(x_i,y_j) + Alog_i + Blog_j )
         (b_j is not used)
-    """ 
+    """
+
     kernel  = params["id"]
     if mode is None : mode = params.get("mode", "sum")
     backend = params.get("backend", "auto")

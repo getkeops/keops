@@ -1,5 +1,5 @@
 import subprocess
-from pykeops import build_folder, script_folder, verbose, build_type, torch_found
+from pykeops import build_folder, script_folder, verbose, build_type
 from pykeops.common.utils import c_type
 from pykeops.common.parse_type import check_aliases_list
 from pykeops.common.get_options import torch_include_path
