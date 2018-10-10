@@ -1,3 +1,8 @@
+"""
+Create a new formula with KeOps
+===================================================
+"""
+
 # In this demo, we show how to write a (completely) new formula with KeOps.
 #
 # Using the low-level 'Sum/logsumexp/max' operators, one can compute
@@ -31,8 +36,8 @@
 
 
 # Add pykeops to the path
-import sys, os.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+#import sys, os.path
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 # Standard imports
 import torch

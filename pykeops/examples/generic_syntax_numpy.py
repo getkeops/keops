@@ -1,6 +1,8 @@
 """
-Example of KeOps reduction using the generic syntax. This example
-uses a pure numpy framework (without Pytorch).
+Example of KeOps reduction using the generic syntax. 
+=====================================================
+
+This example uses a pure numpy framework (without Pytorch).
 
 # this example computes the following tensor operation :
 # inputs :
@@ -24,8 +26,8 @@ import numpy as np
 #--------------------------------------------------------------#
 #   Please use the "verbose" compilation mode for debugging    #
 #--------------------------------------------------------------#
-import sys, os.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+#import sys, os.path
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 from pykeops.numpy import Genred
 

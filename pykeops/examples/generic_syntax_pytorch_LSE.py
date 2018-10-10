@@ -1,6 +1,8 @@
 """
-Example of LSE KeOps reduction using the generic syntax. This example
-uses the pyTorch framework.
+Example of LSE KeOps reduction using the generic syntax. 
+==========================================================
+
+This example uses the pyTorch framework.
 
 # this example computes the following tensor operation :
 # inputs :
@@ -25,8 +27,8 @@ from torch.autograd import grad
 #--------------------------------------------------------------#
 #   Please use the "verbose" compilation mode for debugging    #
 #--------------------------------------------------------------#
-import sys, os.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+#import sys, os.path
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 from pykeops.torch import Genred
 

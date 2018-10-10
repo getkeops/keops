@@ -7,7 +7,7 @@ import numpy as np
 
 from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances, log_sum_exp, np_kernel_sphere
 
-from pykeops import gpu_available
+from pykeops.common.get_options import gpu_available
 
 
 class NumpyUnitTestCase(unittest.TestCase):

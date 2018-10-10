@@ -1,5 +1,11 @@
-import sys, os.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+"""
+Benchmark KeOps vs pytorch on convolution gradients
+===================================================
+"""
+
+
+#import sys, os.path
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 import numpy as np
 import time, timeit

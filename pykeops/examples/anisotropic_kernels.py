@@ -1,5 +1,10 @@
-import sys, os.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+"""
+Using variable, anisotropic kernels
+===================================
+"""
+
+#import sys, os.path
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 # Standard imports
 import numpy as np

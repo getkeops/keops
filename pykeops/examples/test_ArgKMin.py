@@ -1,9 +1,10 @@
 """
 Example of KeOps arg-k-min reduction using the generic syntax. 
+==================================================================
+
 We define a dataset of N points in R^D, then compute for each
 point the indices of its K nearest neighbours (including itself).
 This example uses a pure numpy framework (without Pytorch).
-
 """
 
 #--------------------------------------------------------------#
@@ -16,8 +17,8 @@ import numpy as np
 #--------------------------------------------------------------#
 #   Please use the "verbose" compilation mode for debugging    #
 #--------------------------------------------------------------#
-import sys, os.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+#import sys, os.path
+#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 from pykeops.numpy import Genred
 

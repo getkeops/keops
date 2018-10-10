@@ -1,8 +1,9 @@
 """
 Example of KeOps k-means algorithm using the generic syntax. 
+==============================================================
+
 We define a dataset of N points in R^D, then apply a simple k-means algorithm.
 This example uses a pure numpy framework (without Pytorch).
-
 """
 
 #--------------------------------------------------------------#
@@ -15,8 +16,8 @@ from matplotlib import pyplot as plt
 #--------------------------------------------------------------#
 #   Please use the "verbose" compilation mode for debugging    #
 #--------------------------------------------------------------#
-import sys, os.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+# import sys, os.path
+# sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 from pykeops.numpy import Genred
 
@@ -66,10 +67,10 @@ end = time.time()
 print("Time to perform",str(Niter),"iterations of k-means:",round(end-start,5),"s")
 print("Time per iteration :",round((end-start)/Niter,5),"s")
 
-if (D==2) & (N<100000):
+if (D==2) and (N<100000):
     plt.ion()
     plt.clf()
     plt.scatter(x[:,0],x[:,1],c=cl,s=10)
     plt.scatter(c[:,0],c[:,1],c="black",s=50,alpha=.5)
     print("Done. Close the figure to exit.")
-    plt.show(block=True)
+    plt.show(block=(__name__=="__main__"))

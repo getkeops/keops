@@ -5,7 +5,7 @@ import unittest
 import itertools
 import numpy as np
 
-from pykeops import gpu_available
+from pykeops.common.get_options import gpu_available
 from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
 
 
