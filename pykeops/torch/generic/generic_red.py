@@ -14,7 +14,7 @@ class GenredAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, backend, cuda_type, *args):
+    def forward(ctx, formula, aliases, backend, cuda_type, device_id, *args):
 
         myconv = load_keops(formula, aliases, cuda_type, 'torch')
 
@@ -23,12 +23,13 @@ class GenredAutograd(torch.autograd.Function):
         ctx.aliases = aliases
         ctx.backend = backend
         ctx.cuda_type = cuda_type
+        ctx.device_id = device_id
         ctx.myconv = myconv
         
         nx, ny = get_sizes(aliases, *args)
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
-        result = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, *args)
+        result = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
@@ -42,6 +43,7 @@ class GenredAutograd(torch.autograd.Function):
         aliases = ctx.aliases
         backend = ctx.backend
         cuda_type = ctx.cuda_type
+        device_id = ctx.device_id
         myconv = ctx.myconv
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
@@ -59,7 +61,7 @@ class GenredAutograd(torch.autograd.Function):
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 4]:  # because of (formula, aliases, backend, cuda_type)
+            if not ctx.needs_input_grad[var_ind + 5]:  # because of (formula, aliases, backend, cuda_type, device_id)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -80,7 +82,7 @@ class GenredAutograd(torch.autograd.Function):
                 if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad = genconv(formula_g, aliases_g, backend, cuda_type, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, *args_g)
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -88,11 +90,11 @@ class GenredAutograd(torch.autograd.Function):
                     grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad
                     grad = grad.view(-1)
                 else:
-                    grad = genconv(formula_g, aliases_g, backend, cuda_type, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, *args_g)
                 grads.append(grad)
          
-        # Grads wrt. formula, aliases, backend, *args
-        return (None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, backend, cuda_type, device_id, *args
+        return (None, None, None, None, None, *grads)
 
 
 class Genred(GenredAutograd):
@@ -101,5 +103,5 @@ class Genred(GenredAutograd):
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
-    def __call__(self, *args, backend='auto'):
-        return self.apply(self.formula, self.aliases, backend, self.cuda_type, *args)
+    def __call__(self, *args, backend='auto', device_id=-1):
+        return self.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, *args)

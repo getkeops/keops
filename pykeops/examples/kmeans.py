@@ -48,7 +48,7 @@ variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
 my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
 
 # dummy first call for accurate timing in case of GPU use
-my_routine(np.random.rand(10,D).astype(type),np.random.rand(10,D).astype(type), backend="auto")
+my_routine(np.random.rand(10,D).astype(type),np.random.rand(10,D).astype(type), backend="auto", device_id=0)
 
 start = time.time()
 # x is dataset, 
