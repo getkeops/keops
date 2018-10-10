@@ -19,8 +19,6 @@ find -name *.pyc* -exec rm {} \-rf \;
 
 # ugly trick to set right relative path in wheel package 
 cp readme.md pykeops/readme.md
-mv pykeops/__init__.py pykeops/__init__.py.src
-mv pykeops/__init__.py.wheel pykeops/__init__.py
 sed -i.bak "s/???/$VERSION/" pykeops/__init__.py
 sed -i.bak "s/???/$VERSION/" setup.py
 sed -i.bak "s/\${CMAKE_CURRENT_SOURCE_DIR}\/\.\.\/keops/\${CMAKE_CURRENT_SOURCE_DIR}\/keops/" pykeops/CMakeLists.txt
@@ -33,8 +31,7 @@ python3 setup.py bdist_wheel --python-tag py3 --dist-dir build/wheel #--plat-nam
 
 # undo ugly trick
 rm pykeops/readme.md
-mv pykeops/__init__.py.bak pykeops/__init__.py.wheel
-mv pykeops/__init__.py.src pykeops/__init__.py
+mv pykeops/__init__.py.bak pykeops/__init__.py
 mv pykeops/CMakeLists.txt.bak pykeops/CMakeLists.txt
 rm -rf pykeops/keops
 mv setup.py.bak setup.py
