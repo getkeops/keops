@@ -125,7 +125,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = GenredAutograd.apply(formula, aliases, b, 'float32', self.sigmac, self.gc, self.xc, self.yc)
+                gamma_keops = GenredAutograd.apply(formula, aliases, b, 'float32', -1, self.sigmac, self.gc, self.xc, self.yc)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
@@ -146,7 +146,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = GenredAutograd.apply(formula, aliases, b, 'float64', self.sigmacd, self.gcd, self.xcd, self.ycd)
+                gamma_keops = GenredAutograd.apply(formula, aliases, b, 'float64', -1, self.sigmacd, self.gcd, self.xcd, self.ycd)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
