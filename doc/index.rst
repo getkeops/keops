@@ -84,9 +84,12 @@ KeOps is a `cpp/cuda library <./cpp/generic-syntax>`_ that comes with bindings i
    home
    api/generic-syntax
    api/math-operations
-   python/Installation
-   python/Documentation
-   matlab/Installation
+   cpp/generic-syntax
+   python/index
+   python/installation
+   python/generic-syntax
+   matlab/index
+   matlab/installation
    matlab/generic-syntax
    auto_examples/index
    road-map
