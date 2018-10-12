@@ -129,7 +129,6 @@ Feel free to contact us for any bug report or feature request:
    api/why_using_keops
    api/road-map
    api/math-operations
-   api/generic-syntax2
    auto_examples/index
 
 .. toctree::

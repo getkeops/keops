@@ -44,8 +44,9 @@ except:
 
 
 ############################################################
-#                       Benchmark
-############################################################
+#  Start Benchmarks
+#
+#
 
 enable_GC = False # Garbage collection?
 GC = 'gc.enable();' if enable_GC else 'pass;'
