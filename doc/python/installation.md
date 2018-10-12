@@ -1,18 +1,9 @@
-```
- _____                 _  __     ____
- \__  )               | |/ /    / __ \                 /\
-   / /     _ __  _   _| ' / ___| |  | |_ __  ___      /  \
-  / /     | '_ \| | | |  < / _ \ |  | | '_ \/ __|    / /\ \
- | |__    | |_) | |_| | . \  __/ |__| | |_) \__ \   / /__\ \
-  \__ \   | .__/ \__, |_|\_\___|\____/| .__/|___/  /________\
-     ) )  | |     __/ |               | |
-    (_/   |_|    |___/                |_|
-```
+# Python Install
 
 PyKeOps contains the python 3 bindings for the cpp/cuda library KeOps. It provides 
 standard python functions that can be used in any python 3 code.
 
-**Requirements:**
+## Requirements
 
 - A unix-like system: typically Linux or MacOs X 
 - A C++ compiler: gcc>=5, clang
@@ -22,7 +13,6 @@ standard python functions that can be used in any python 3 code.
 - Cuda (Optional): version >=9.0 is recommended but it works with older version. Warning: check the compatibility of C++ compiler
 - PyTorch (Optional): version >=0.4.1
 
-# Python Install
 
 ## Using pip (recommended)
 
@@ -131,7 +121,7 @@ import pykeops
 pykeops.verbose = True
 ```
 
-### Clean build cache
+### Clean build cache <div id=cache_dir></div>
 
 If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to flush the build folder (the cache of already-compiled formulas). To get the directory name:
 

@@ -1,45 +1,40 @@
 """
-Example of KeOps k-means algorithm using the generic syntax. 
-==============================================================
+==========================================
+K-means algorithm using the generic syntax
+==========================================
 
 We define a dataset of N points in R^D, then apply a simple k-means algorithm.
 This example uses a pure numpy framework (without Pytorch).
 """
 
-#--------------------------------------------------------------#
-#                     Standard imports                         #
-#--------------------------------------------------------------#
+#############################
+#  Standard imports
+#
+
 import time
 import numpy as np
-from matplotlib import pyplot as plt
-
-#--------------------------------------------------------------#
-#   Please use the "verbose" compilation mode for debugging    #
-#--------------------------------------------------------------#
-# import sys, os.path
-# sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
-
 from pykeops.numpy import Genred
 
-# import pykeops
-# pykeops.verbose = False
+from matplotlib import pyplot as plt
 
-#--------------------------------------------------------------#
-#                   Define our dataset                         #
-#--------------------------------------------------------------#
-N = 500000
-D = 20
-K = 5000
+#####################
+# Define our dataset
+#
+
+N = 5000
+D = 2
+K = 15
 Niter = 10
-print("k-means example with "+str(N)+" points in "+str(D)+"-D, and K="+str(K))
+print('k-means example with ' + str(N) + ' points in ' + str(D) + '-D, and K=' + str(K))
 
 type = 'float32'  # May be 'float32' or 'float64'
 
 x = np.random.rand(N,D).astype(type)
 
-#--------------------------------------------------------------#
-#                        Kernel                                #
-#--------------------------------------------------------------#
+#######################
+# Define the kernel
+#
+
 formula = 'SqDist(x,y)'
 variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
              'y = Vy('+str(D)+')']  # Second arg  : j-variable, of size D
@@ -47,6 +42,10 @@ variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
 # The parameter reduction_op='ArgMin' together with axis=1 means that the reduction operation
 # is a sum over the second dimension j. Thence the results will be an i-variable.
 my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
+
+##########################
+# Perform the computations
+#
 
 # dummy first call for accurate timing in case of GPU use
 my_routine(np.random.rand(10,D).astype(type),np.random.rand(10,D).astype(type), backend="auto", device_id=1)

@@ -1,4 +1,8 @@
 """
+====================
+Surface registration
+====================
+
 Example of a diffeomorphic matching of surfaces using varifolds metrics:
 We perform an LDDMM matching of two meshes using the geodesic shooting algorithm.
 

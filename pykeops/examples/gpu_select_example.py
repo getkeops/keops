@@ -1,25 +1,30 @@
 """
+=========
+Multi GPU 
+=========
+
 This example shows how to select the Gpu device on which a KeOps 
 operation will be performed, on systems having several devices.
 
 """
 
-import sys, os.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+# import sys, os.path
+# sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
-# import pykeops
-# pykeops.verbose = False
+import pykeops
+pykeops.verbose = False
 
 
 # Define the list of gpu ids to be tested
 # By default we assume we have two Gpus available, labeled 0 and 1
 gpuids = [0,1]
 
-
-#--------------------------------------------------------------#
-#                  Tests with numpy bindings                   #
-#  we use the same example as in generic_syntax_numpy.py       #
-#--------------------------------------------------------------#
+###############################################################
+#  -------------------------
+#  Tests with numpy bindings                   
+#  -------------------------
+#  we use the same example as in generic_syntax_numpy.py       
+#
 
 import numpy as np
 from pykeops.numpy import Genred
@@ -43,8 +48,9 @@ p = np.random.randn(1,1).astype(type)
 # call to KeOps on Cpu for reference
 c = my_routine(x, y, a, p, backend='CPU')
 
-# Internally data is first copied to the selected device memory, operation is performed on selected device,
-# and then output data is copied back to Cpu memory (this is what we call the FromHost mode)
+# Internally data is first copied to the selected device memory, 
+# operation is performed on selected device, and then output data 
+# is copied back to Cpu memory (this is what we call the FromHost mode)
 for gpuid in gpuids:
     d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
     print('Convolution operation (numpy bindings, FromHost mode) on gpu device',gpuid,end=' ')
@@ -52,9 +58,10 @@ for gpuid in gpuids:
 
 
 
-#--------------------------------------------------------------#
-#                Tests with pytorch bindings                   #
-#--------------------------------------------------------------#
+###############################################################
+# ---------------------------
+# Tests with pytorch bindings                   
+# ---------------------------
 
 import torch
 from pykeops.torch import Genred
