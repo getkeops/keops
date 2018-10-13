@@ -130,22 +130,22 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
 html_theme = 'bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#
 html_theme_options = {
     'source_link_position': "footer",
-    'bootswatch_theme': "paper",
+    'bootswatch_theme': "sandstone",
+    'navbar_pagenav': False,
     'navbar_sidebarrel': False,
     'bootstrap_version': "3",
     'navbar_links': [
                      ("Python", "python/index"),
                      ("Matlab", "matlab/index"),
-                     ("C++ API", "api/index"),
+                     ("C++", "cpp/index"),
+                     ("Syntax", "api/index"),
                      ],
 
     }
@@ -155,10 +155,10 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = None
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = None
+html_short_title = "KeOps documentation"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -183,7 +183,8 @@ html_static_path = ['_static']
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
 html_sidebars = {
     '**': [
-        'relations.html',  # needs 'show_related': True theme option to display
+        # 'localtoc.html',
+        'globaltoc2.html',
         'searchbox.html',
     ]
 }
@@ -199,19 +200,15 @@ htmlhelp_basename = 'KeOpsdoc'
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    #
     # 'papersize': 'letterpaper',
 
     # The font size ('10pt', '11pt' or '12pt').
-    #
     # 'pointsize': '10pt',
 
     # Additional stuff for the LaTeX preamble.
-    #
     # 'preamble': '',
 
     # Latex figure (float) alignment
-    #
     # 'figure_align': 'htbp',
 }
 
