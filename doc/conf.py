@@ -43,12 +43,13 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
-    'sphinx.ext.imgmath',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.viewcode',
     'sphinx_gallery.gen_gallery',
+    'sphinxcontrib.httpdomain',
+    'sphinx.ext.mathjax',
 ]
 
 sphinx_gallery_conf = {
@@ -57,11 +58,6 @@ sphinx_gallery_conf = {
      # path where to save gallery generated examples
      'gallery_dirs': 'auto_examples',
 }
-
-mathjax_path = 'MathJax/MathJax.js'
-
-imgmath_dvipng_args = ['-gamma', '1.5', '-D', '100', '-bg', 'Transparent'] 
-imgmath_font_size = 14
 
 # Generate the API documentation when building
 autosummary_generate = True
@@ -130,39 +126,41 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'bootstrap'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {
-    'source_link_position': "footer",
-    'bootswatch_theme': "sandstone",
-    'navbar_pagenav': False,
-    'navbar_sidebarrel': False,
-    'bootstrap_version': "3",
-    'navbar_links': [
-                     ("Python", "python/index"),
-                     ("Matlab", "matlab/index"),
-                     ("C++", "cpp/index"),
-                     ("Syntax", "api/index"),
-                     ],
 
-    }
+html_theme_options = {
+    'canonical_url': '',
+    'analytics_id': '',
+    'logo_only': False,
+    'display_version': True,
+    'prev_next_buttons_location': 'bottom',
+    'style_external_links': False,
+    'vcs_pageview_mode': '',
+    # Toc options
+    'collapse_navigation': True,
+    'sticky_navigation': True,
+    'navigation_depth': 4,
+    'includehidden': True,
+    'titles_only': False
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = None
+html_title = "KeOps"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 html_short_title = "KeOps documentation"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = '_static/logo/logo.ico'
+html_logo = '_static/logo/logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -174,20 +172,6 @@ html_favicon = "_static/logo/logo.ico"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# This is required for the alabaster theme
-# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_sidebars = {
-    '**': [
-        # 'localtoc.html',
-        'globaltoc2.html',
-        'searchbox.html',
-    ]
-}
 
 
 # -- Options for HTMLHelp output ------------------------------------------

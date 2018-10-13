@@ -1,44 +1,30 @@
-.. raw:: html
-
-    <style type="text/css">
-    .thumbnail {{
-        position: relative;
-        float: left;
-        margin: 30px;
-        width: 180px;
-        height: 200px;
-    }}
-
-    .thumbnail img {{
-        position: absolute;
-        display: inline;
-        left: 0;
-        width: 170px;
-        height: 170px;
-    }}
-
-    </style>
-
 .. figure:: _static/logo/keops_logo.png
-   :height: 200px
+   :width: 100% 
    :alt: Keops logo
 
 Presentation
 ------------
 
-KeOps is a library that computes on a GPU **generic reductions** of 2d arrays whose entries may be computed through a mathematical formula. We provide an autodiff engine to generate effortlessly the formula of the derivative. For instance, KeOps can compute **Kernel dot products**, **their derivatives**.
-::
-    from pykeops import Genred
+KeOps is a library that computes on a GPU **generic reductions** of 2d arrays whose entries may be computed through a mathematical formula. We provide an autodiff engine to generate effortlessly the formula of the derivative. For instance, KeOps can compute **Kernel dot products** and **their derivatives**. 
 
-    # compile the function computing the derivative of a gaussian convolution
-    my_conv = Genred(formula='Grad(Exp(SqNorm2(x-y)/2), x, b)',
-                     alias=['x = Vx(3)', 'y = Vy(3)', 'b = Vx(3)']
-                     red_type='Sum')
+A typical sample of code looks like
+
+.. code-block:: python
+
+    from pykeops import Genred
     
-    # ... aply it to some data. Get the result in an array
+    # create the function computing the derivative of a Gaussian convolution
+    my_conv = Genred(reduction='Sum',
+                     formula='Grad(Exp(SqNorm2(x-y) / Cst(2)), x, b)',
+                     alias=['x = Vx(3)', 'y = Vy(3)', 'b = Vx(3)'])
+    
+    # ... apply it to some big arrays x, y, b
     result = my_conv(x,y,b)
 
-It provides good performances and linear (instead of quadratic) memory footprint. It handles multi GPU. More details are provided in :doc:`here <api/why_using_keops>`.
+KeOps provides good performances and linear (instead of quadratic) memory footprint. It handles multi GPU. More details are provided here:
+
+* :doc:`Documentation <api/why_using_keops>`.
+* :doc:`Example gallery <auto_examples/index>`
 
 Installation
 ------------
@@ -48,48 +34,6 @@ The core of KeOps relies on a set of C++/CUDA routines for which we provide bind
 * :doc:`Python (numpy or pytorch) <python/installation>`
 * :doc:`Matlab <matlab/installation>`
 * :doc:`C++ API <cpp/generic-syntax>`
-
-Tutorial and examples
----------------------
-
-.. raw:: html
-
-    <div style="clear: both"></div>
-    <div class="container-fluid hidden-xs hidden-sm">
-      <div class="row">
-        <a href="auto_examples/index.html">
-          <div class="col-md-2 thumbnail">
-            <img src="_static/thumbs/gaussian_mixture.png">
-          </div>
-        </a>
-        <a href="auto_examples/kmeans.html">
-          <div class="col-md-2 thumbnail">
-            <img src="_static/thumbs/kmeans.png">
-          </div>
-        </a>
-        <a href="auto_examples/index.html">
-          <div class="col-md-2 thumbnail">
-            <img src="_static/thumbs/LDDMM_surface.png">
-          </div>
-        </a>
-        <a href="auto_examples/index.html">
-          <div class="col-md-2 thumbnail">
-            <img src="_static/thumbs/optimal_transport.png">
-          </div>
-        </a>
-        <a href="auto_examples/index.html">
-          <div class="col-md-2 thumbnail">
-            <img src="_static/thumbs/wasserstein_150.png">
-          </div>
-        </a>
-      </div>
-    </div>
-    <br>
-
-   <div class="container-fluid">
-     <div class="row">
-       <div class="col-md-6">
-
 
 Project using KeOps
 -------------------
@@ -112,19 +56,12 @@ Feel free to contact us for any bug report or feature request:
 - `Jean Feydy <http://www.math.ens.fr/~feydy/>`_
 - `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_ 
 
-.. raw:: html
-
-       </div>
-       <div class="col-md-6">
-         <div class="panel panel-default">   
-           <div class="panel-heading">
-             <h3 class="panel-title">Pages</h3>
-           </div>
-       <div class="panel-body">
+Table of content
+----------------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Presentation
+   :caption: KeOps
 
    api/why_using_keops
    api/road-map
@@ -150,16 +87,6 @@ Feel free to contact us for any bug report or feature request:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Keops
+   :caption: Keops++
 
    cpp/generic-syntax
-
-
-.. raw:: html
-
-       </div>
-     </div>
-   </div>
-   
-   </div>
-   </div>

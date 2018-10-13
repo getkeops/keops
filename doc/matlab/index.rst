@@ -1,6 +1,6 @@
 
 .. figure:: ../_static/logo/keopslab_logo.png
-   :height: 200px
+   :width: 100%
    :alt: KeopsLab logo
 
 ------------------------

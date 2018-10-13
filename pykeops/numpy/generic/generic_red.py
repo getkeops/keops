@@ -6,7 +6,7 @@ from pykeops.common.utils import axis2cat
 
 
 class Genred:
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=1, cuda_type=default_cuda_type, opt_arg=None):
+    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None):
         if opt_arg:
             self.formula = reduction_op + 'Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
         else:
