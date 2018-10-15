@@ -3,9 +3,9 @@
    :width: 100%
    :alt: KeopsLab logo
 
--------------------------
+=========================
 Python bindings for Keops
--------------------------
+=========================
 
 We now fully document the public interface of the pykeops module.
 

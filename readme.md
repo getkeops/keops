@@ -1,14 +1,5 @@
-```
-      88         oooo    oooo             .oooooo.                               88
-    .8'`8.       `888   .8P'             d8P'  `Y8b                            .8'`8.
-   .8'  `8.       888  d8'     .ooooo.  888      888 oo.ooooo.   .oooo.o      .8'  `8.
-  .8'    `8.      88888[      d88' `88b 888      888  888' `88b d88(  "8     .8'    `8.
- .8'      `8.     888`88b.    888ooo888 888      888  888   888 `"Y88b.     .8'      `8.
-.8'        `8.    888  `88b.  888    .o `88b    d88'  888   888 o.  )88b   .8'        `8.
-88oooooooooo88   o888o  o888o `Y8bod8P'  `Y8bood8P'   888bod8P' 8""888P'   88oooooooooo88
-                                                       888
-                                                      o888o
-```
+![benchmark](./doc/_logo/keops_logo.png)
+
 
 # What is KeOps?
 
@@ -82,7 +73,7 @@ Unfortunately, for large datasets (say, $`M,N \geqslant 10,000`$), this becomes 
 
 The purpose of KeOps, simply put, is to **let users break through this memory bottleneck** by computing *online sum reductions*:
 
-![benchmark](./benchmark.png)
+![benchmark](./doc/_static/benchmark.png)
 
 ## A generic framework that fits your needs <a name="abcd"></a>
 

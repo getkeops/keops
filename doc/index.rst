@@ -24,7 +24,7 @@ A typical sample of code looks like
 KeOps provides good performances and linear (instead of quadratic) memory footprint. It handles multi GPU. More details are provided here:
 
 * :doc:`Documentation <api/why_using_keops>`.
-* :doc:`Example gallery <auto_examples/index>`
+* :doc:`Example gallery <_auto_examples/index>`
 
 Installation
 ------------
@@ -66,7 +66,7 @@ Table of content
    api/why_using_keops
    api/road-map
    api/math-operations
-   auto_examples/index
+   _auto_examples/index
 
 .. toctree::
    :maxdepth: 2

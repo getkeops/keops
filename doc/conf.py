@@ -22,8 +22,8 @@
 # sys.path.insert(0, os.path.abspath('.'))
 
 import sys, os
-import sphinx_bootstrap_theme
 import matplotlib as mpl
+import sphinx_gallery
 from recommonmark.transform import AutoStructify
 
 
@@ -43,20 +43,21 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.viewcode',
-    'sphinx_gallery.gen_gallery',
     'sphinxcontrib.httpdomain',
-    'sphinx.ext.mathjax',
+    'sphinx_gallery.gen_gallery',
 ]
 
 sphinx_gallery_conf = {
      # path to your examples scripts
-     'examples_dirs': ['../pykeops/examples', '../pykeops/tutorials/surface_registration'],
+     'examples_dirs': '../pykeops/examples',
      # path where to save gallery generated examples
-     'gallery_dirs': 'auto_examples',
+     'gallery_dirs': './_auto_examples',
+     # 'image_scrapers': ('matplotlib',)
 }
 
 # Generate the API documentation when building
@@ -64,10 +65,10 @@ autosummary_generate = True
 numpydoc_show_class_members = False
 
 # Include the example source for plots in API docs
-plot_include_source = True
-plot_formats = [("png", 90)]
-plot_html_show_formats = False
-plot_html_show_source_link = False
+# plot_include_source = True
+# plot_formats = [("png", 90)]
+# plot_html_show_formats = False
+# plot_html_show_source_link = False
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -139,7 +140,6 @@ html_theme_options = {
     'display_version': True,
     'prev_next_buttons_location': 'bottom',
     'style_external_links': False,
-    'vcs_pageview_mode': '',
     # Toc options
     'collapse_navigation': True,
     'sticky_navigation': True,
@@ -147,9 +147,6 @@ html_theme_options = {
     'includehidden': True,
     'titles_only': False
 }
-
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -227,12 +224,5 @@ texinfo_documents = [
 ]
 
 def setup(app):
-    app.add_javascript('copybutton.js')
-    app.add_stylesheet('style.css')
-
-    app.add_config_value('recommonmark_config', {
-            'auto_toc_tree_section': 'Contents',
-            }, True)
-    app.add_transform(AutoStructify)
-
+    app.add_stylesheet('theme_override.css')
 
