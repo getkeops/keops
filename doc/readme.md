@@ -2,7 +2,7 @@
 # Documentation for KeOps
 
 This folder contains source files used to build the KeOps documentation webpage. As a regular user of KeOps, you do not need to use files in this folder, you can get KeOps documentation through the following link:
-[KeOps online website](www.kernel-operations.io)
+[KeOps online website](https://www.kernel-operations.io)
 
 If you want to rebuild KeOps documentation, here are the steps : first install required packages via pip :
 ```bash
