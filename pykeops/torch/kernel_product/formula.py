@@ -1,18 +1,6 @@
 import torch
 
 
-def torch_kernel(x, y, s, kernel):
-    sq = torch.sum((x[:, None] - y[None]) ** 2, 2)
-    if kernel == "gaussian":
-        return torch.exp(-sq / (s * s))
-    elif kernel == "laplacian":
-        return torch.exp(-torch.sqrt(sq) / s)
-    elif kernel == "cauchy":
-        return 1. / (1 + sq / (s * s))
-    elif kernel == "inverse_multiquadric":
-        return torch.rsqrt(1 + sq / (s * s))
-
-
 def _squared_distances(x, y):
     x_norm = (x ** 2).sum(1).view(-1, 1)
     y_norm = (y ** 2).sum(1).view(1, -1)
@@ -24,6 +12,18 @@ def _scalar_products(u, v):
     u_i = u.unsqueeze(1)  # Shape (N,D) -> Shape (N,1,D)
     v_j = v.unsqueeze(0)  # Shape (M,D) -> Shape (1,M,D)
     return (u_i * v_j).sum(dim=2)  # N-by-M matrix, usv[i,j] = <u_i,v_j>
+
+
+def torch_kernel(x, y, s, kernel):
+    sq = _squared_distances(x, y)
+    if kernel == "gaussian":
+        return torch.exp(-sq / (s * s))
+    elif kernel == "laplacian":
+        return torch.exp(-torch.sqrt(sq) / s)
+    elif kernel == "cauchy":
+        return 1. / (1 + sq / (s * s))
+    elif kernel == "inverse_multiquadric":
+        return torch.rsqrt(1 + sq / (s * s))
 
 
 def _log_sum_exp(mat, axis=0):

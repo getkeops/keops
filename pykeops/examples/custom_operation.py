@@ -3,43 +3,48 @@ Create a new formula with KeOps
 ===================================================
 """
 
+####################################################################
 # In this demo, we show how to write a (completely) new formula with KeOps.
 #
 # Using the low-level 'Sum/logsumexp/max' operators, one can compute
 # (with autodiff, without memory overflows) any formula written as :
 #
-#      a_i = Reduction_j( f( p^1,p^2,..., x^1_i,x^2_i,..., y^1_j,y^2_j,...) )
-# or   b_j = Reduction_i( f( p^1,p^2,..., x^1_i,x^2_i,..., y^1_j,y^2_j,...) )
+# .. math::
+#
+#      a_i =\text{Reduction}_j(f(p^1, p^2, \cdots, x^1_i, x^2_i, \cdots, y^1_j, y^2_j, \cdots) )
+#
+# or
+#
+# .. math::
+#
+#      b_j = \text{Reduction}_i(f(p^1, p^2, \cdots, x^1_i, x^2_i, \cdots, y^1_j, y^2_j, \cdots) )
 #
 # Where:
-# - the p^k   's are vector parameters
-# - the x^k_i 's are vector variables, indexed by 'i'
-# - the y^k_j 's are vector variables, indexed by 'j'
-# - f is an arbitrary function, defined using the './keops/core' syntax.
-# - Reduction is one of :
-#   - Sum         (Sum)
-#   - log-Sum-exp (LogSumExp)
-#   - Max         (generic_max)
 #
+# - the :math:`p^k`   's are vector parameters
+# - the :math:`x^k_i` 's are vector variables, indexed by ``i``
+# - the :math:`y^k_j` 's are vector variables, indexed by ``j``
+# - :math:`f` is an arbitrary function, defined using the :doc:`syntax <../api/math-operations>`
+# - Reduction is one of: ``Sum``, ``lse``(LogSumExp) or ``max`` (generic_max). See :doc:`here <../api/math-operations>`
 #
 # In this demo file, given:
-# - p,   a vector of size 2
-# - x_i, an N-by-D array
-# - y_j, an M-by-D array
 #
-# We will compute (a_i), an N-by-D array given by:
+# - :math:`p`,   a vector of size 2
+# - :math:`x_i`, an N-by-D array
+# - :math:`y_j`, an M-by-D array
 #
-#   a_i = sum_{j=1}^M (<x_i,y_j>**2) * ( p[0]*x_i + p[1]*y_j ) 
+# We will compute :math:`(a_i)`, an N-by-D array given by:
+#
+# .. math::
+#
+#   a_i = \sum_{j=1}^M (\langle x_i,y_j \rangle^2) (p_0 x_i + p_1 y_j) 
 # 
-# N.B.: if you are just interested in writing a new 'kernel' formula,
-#       you may use the (more convenient) syntax showcased in custom_kernel.py
+# N.B.: if you are just interested in writing a new 'kernel' formula, you may use the (more convenient) syntax showcased in :doc:`custom_kernel.py <../_auto_examples/plot_generic_syntax_pytorch>`.
 
 
-# Add pykeops to the path
-#import sys, os.path
-#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
-
+####################################################################
 # Standard imports
+
 import torch
 from torch.autograd import grad
 from pykeops.torch import Genred
@@ -56,8 +61,8 @@ def my_formula(p, x, y, backend = 'auto') :
     """
     # Vanilla PyTorch implementation
     if backend == 'pytorch':
-        scals = (x @ y.t())**2 # Memory-intensive computation!
-        a = p[0] * scals.sum(dim=1).view(-1,1) * x + p[1] * (scals @ y)
+        scals = (torch.mm(x, y.t()))**2 # Memory-intensive computation!
+        a = p[0] * scals.sum(dim=1).view(-1,1) * x + p[1] * (torch.mm(scals, y))
         return a
     
     # KeOps implementation
@@ -82,10 +87,10 @@ def my_formula(p, x, y, backend = 'auto') :
         a = my_routine(p, x, y, backend=backend)
         return a
 
-
-# Test ========================================================================
-
+####################################################################
 # Define our dataset
+# ------------------
+
 N = 1000
 M = 2000
 D = 3
@@ -101,12 +106,16 @@ y = torch.randn(M, D, requires_grad=True , device=device)
 # + some random gradient to backprop:
 g = torch.randn(N, D, requires_grad=True, device=device)
 
+####################################################################
+# Perform the tests
+# -----------------
+
 for backend in ['pytorch', 'auto'] :
     print('Backend :', backend, '============================' )
     a = my_formula(p, x, y, backend=backend)
 
     # We can compute gradients wrt all Variables - just like with 
-    # any other PyTorch operator, really.
+    # any other PyTorch operator.
     # Notice the 'create_graph=True', which allows us to compute
     # higher order derivatives if needed.
     [grad_p, grad_y] = grad(a, [p, y], g, create_graph=True)

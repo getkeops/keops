@@ -1,8 +1,12 @@
-import os.path
-import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*3)
+"""
+Gaussian mixture
+================
 
+"""
+
+####################################################################
 # Standard imports
+
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
@@ -12,13 +16,13 @@ from torch.nn       import Module, Parameter
 from torch.nn.functional import softmax, log_softmax
 from pykeops.torch  import Kernel, kernel_product
 
-plt.ion()
-
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 
-# Define our Dataset =====================================================================
+####################################################################
+# Define our Dataset 
+
 N = 500
 t = torch.linspace(0, 2*np.pi, N+1)[:-1]
 x = torch.stack( (.5 + .4*(t/7)*t.cos(), .5+.3*t.sin()), 1)
@@ -27,7 +31,9 @@ x = x.type(dtype)
 x.requires_grad = True
 
 
-# Display ================================================================================
+####################################################################
+# Display 
+
 # Create a uniform grid on the unit square:
 res = 200
 ticks  = np.linspace( 0, 1, res+1)[:-1] + .5 / res 
@@ -35,7 +41,8 @@ X,Y    = np.meshgrid( ticks, ticks )
 
 grid = torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype)
 
-# Define our Gaussian Mixture Model =======================================================
+####################################################################
+# Define our Gaussian Mixture Model 
 
 class GaussianMixture(Module) :
     def __init__(self, M, sparsity = 0, D = 2) :
@@ -118,8 +125,8 @@ class GaussianMixture(Module) :
 
        
 
-
-# Optimization ================================================================================
+####################################################################
+# Optimization 
 
 plt.figure(figsize=(10,10))
 

@@ -10,7 +10,8 @@
 !*input_output.py
 /build/*
 !/build/.gitkeep
-*auto_examples*
+*_auto_examples*
+*_auto_tutorials*
 
 # Exclude mex files
 *mexa64

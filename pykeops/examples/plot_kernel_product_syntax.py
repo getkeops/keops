@@ -1,21 +1,22 @@
-# import sys, os.path
-# sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..') * 2)
 """
-A title
-===========================
+``kernel_product`` syntax
+=========================
 """
-# --------------------------------------------------------------#
-#                     Standard imports                         #
-# --------------------------------------------------------------#
+
+####################################################################
+# Define our dataset
+# ------------------
+#
+# Standard imports
+
 import torch
 from torch import Tensor
 from torch.autograd import grad
 from pykeops.torch import Kernel, kernel_product
 
+####################################################################
+# Define convenient functions
 
-# --------------------------------------------------------------#
-#                   Convenience functions                      #
-# --------------------------------------------------------------#
 def scal_to_var(x):
     """Turns a float into a length-1 tensor, that can be used as a parameter."""
     return torch.tensor([x], requires_grad=True, device=device)
@@ -31,9 +32,9 @@ def disp(x):
     return x.detach().cpu().numpy()
 
 
-# --------------------------------------------------------------#
-#                   Define our dataset                         #
-# --------------------------------------------------------------#
+#####################################################################
+# Declare random inputs
+
 npoints_x, npoints_y = 100, 700
 dimpoints, dimsignal = 3, 1
 
@@ -46,9 +47,10 @@ x = torch.randn(npoints_x, dimpoints, requires_grad=True, device=device)
 y = torch.randn(npoints_y, dimpoints, requires_grad=True, device=device)
 b = torch.randn(npoints_y, dimsignal, requires_grad=True, device=device)
 
-# --------------------------------------------------------------#
-#                    A first Kernel                            #
-# --------------------------------------------------------------#
+####################################################################
+# A Gaussian convolution
+# ----------------------
+
 # N.B.: 'sum' is default, 'lse' is for 'log-sum-exp'
 modes = ['sum', 'lse'] if dimsignal == 1 else ['sum']
 
@@ -60,7 +62,9 @@ params = {
     'mode': 'sum',
 }
 
+####################################################################
 # Test, using a pytorch or keops
+
 for mode in modes:
     params['mode'] = mode
     print('Mode :', mode, '========================================')
@@ -90,13 +94,12 @@ for mode in modes:
         print('Arbitrary formula 3: \n', disp(grad_sx[:2, :]))
         print('Arbitrary formula 4: \n', disp(grad_ss))
 
-# --------------------------------------------------------------#
-#                   A second, custom Kernel                    #
-# --------------------------------------------------------------#
+
+####################################################################
+# Define the kernel
+# -----------------
 
 from pykeops.torch import Formula, kernel_formulas
-
-# from pykeops.torch import kernels
 
 print('Formulas supported out-of-the-box: ', kernel_formulas.keys())
 
@@ -121,7 +124,9 @@ params = {
     'mode': 'sum',
 }
 
+####################################################################
 # Test, using a pytorch or keops
+
 for mode in modes:
     params['mode'] = mode
     print('Mode :', mode, '========================================')

@@ -1,6 +1,7 @@
-import os.path
-import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*3)
+"""
+Entropy regularized optimal transport 
+=====================================
+"""
 
 import torch
 from torch.autograd import grad
@@ -13,11 +14,14 @@ from time  import time
 
 tensor    = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor 
 
-# ================================================================================================
-# ================================  The Sinkhorn algorithm  ======================================
-# ================================================================================================
+####################################################################
+# The Sinkhorn algorithm 
+# ----------------------
 
-# Parameters of our optimal transport cost -------------------------------------------------------
+####################################################################
+# Parameters of our optimal transport cost
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 a = 1 # Use a cost function  "C(x,y) = |x-y|^a"
 # The Sinkhorn algorithm relies on a kernel "k(x,y) = exp(-C(x,y))" :
 kernel_names = { 1 : "laplacian" ,   # exp(-|x|),   Earth-mover distance
@@ -30,7 +34,10 @@ params = {
     "epsilon"     : tensor([ .05**a ]), # Regularization strength, homogeneous to C(x,y)
 }
 
-# The Sinkhorn loop ------------------------------------------------------------------------------
+####################################################################
+# The Sinkhorn loop
+# ^^^^^^^^^^^^^^^^^
+
 dot = lambda a,b : torch.dot(a.view(-1), b.view(-1))
 def OT_distance(params, Mu, Nu) :
     """
@@ -73,9 +80,9 @@ def OT_distance(params, Mu, Nu) :
 
 
 
-# ================================================================================================
-# =====================   .png <-> Point clouds conversion routines    ===========================
-# ================================================================================================
+####################################################################
+# Image to Point clouds conversion routines 
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 def LoadImage(fname) :
     img = misc.imread(fname, flatten = True) # Grayscale
@@ -119,11 +126,13 @@ def sparse_distance_bmp(params, A, B) :
 
 
 
-# ================================================================================================
-# ======================================   Demo    ===============================================
-# ================================================================================================
+####################################################################
+# Demo 
+# ----
 
-
+####################################################################
+# Load data
+# ^^^^^^^^^
 source = LoadImage("data/amoeba_1.png")
 target = LoadImage("data/amoeba_2.png")
 
@@ -136,8 +145,10 @@ t_1 = time()
 print("Nits = {:2d}, {:.2f}s, cost : {:.6f}".format(params["nits"], t_1-t_0, cost.data.cpu().item() ))
 
 
+####################################################################
+# Display 
+# ^^^^^^^
 
-# Display ==================================================================================
 grad_src = - grad_src # N.B.: We want to visualize a descent direction, not the opposite!
 
 # Source + Target :
@@ -160,11 +171,5 @@ X,Y   = np.meshgrid( np.linspace(0, 1, grad_plot.shape[0]+1)[:-1] + .5/(sample*g
 scale = (grad_src[:,:,1]**2 + grad_src[:,:,0]**2).sqrt().mean().item()
 plt.quiver( X, Y, grad_plot[:,:,1], grad_plot[:,:,0], 
             scale = .25*scale, scale_units="dots", color="#438B2A")
-
-
-import os
-fname = "output/optimal_transport.png"
-os.makedirs(os.path.dirname(fname), exist_ok=True)
-plt.savefig( fname, bbox_inches='tight' )
 
 plt.show()

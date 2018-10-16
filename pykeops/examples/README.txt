@@ -1,5 +1,5 @@
-==================
-This is my gallery
-==================
+================
+Examples Gallery
+================
 
-Below is a gallery of examples
+Below is a gallery of examples illustrating pyKeOps implemented features

@@ -24,7 +24,8 @@ A typical sample of code looks like
 KeOps provides good performances and linear (instead of quadratic) memory footprint. It handles multi GPU. More details are provided here:
 
 * :doc:`Documentation <api/why_using_keops>`.
-* :doc:`Example gallery <_auto_examples/index>`
+* :doc:`Learning KeOps syntax with examples <_auto_examples/index>`
+* :doc:`Tutorials gallery <_auto_tutorials/index>`
 
 Installation
 ------------
@@ -76,6 +77,7 @@ Table of content
    python/installation
    python/generic-syntax
    python/kernel-product
+   _auto_tutorials/index
 
 .. toctree::
    :maxdepth: 2

@@ -3,9 +3,9 @@ Benchmark KeOps vs pytorch on simple convolutions
 =================================================
 """
 
-
-#import sys, os.path
-#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
+#####################################################################
+# Generate our dataset
+# --------------------
 
 import numpy as np
 import time, timeit
@@ -43,22 +43,26 @@ except:
     pass
 
 
-############################################################
-#  Start Benchmarks
-#
-#
+####################################################################
+# Start Benchmarks
+# ----------------
+# 
+# Define the parameters
 
 enable_GC = False # Garbage collection?
 GC = 'gc.enable();' if enable_GC else 'pass;'
 LOOPS = 200
 print('Times to compute ', LOOPS, ' convolutions of size {}x{}:'.format(M, N), end='\n')
 
+####################################################################
+# loop over various cases
+
 for k in (['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']):
-    print('----------------------------------- kernel: ' + k)
+    print('kernel: ' + k)
     
     # pure numpy
-    gnumpy =  np_kernel(x,y,sigma,kernel=k) @ b
-    speed_numpy = timeit.Timer('gnumpy = np_kernel(x,y,sigma,kernel=k) @ b',
+    gnumpy =  np.mm(np_kernel(x,y,sigma,kernel=k),b)
+    speed_numpy = timeit.Timer('gnumpy = np.mm(np_kernel(x,y,sigma,kernel=k),b)',
                                GC, globals=globals(),
                                timer=time.time).timeit(LOOPS)
     print('Time for Python:              {:.4f}s'.format(speed_numpy))
