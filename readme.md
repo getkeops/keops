@@ -1,4 +1,4 @@
-![benchmark](./doc/_logo/keops_logo.png)
+![logo](./doc/_static/logo/keops_logo.png)
 
 
 # What is KeOps?
