@@ -43,10 +43,13 @@ KeOpsdtype = torchdtype.__str__().split('.')[1]  # 'float32'
 
 ####################################################################
 # Import data file, one of :
-#   "hippos.pt" : original data (6611 vertices), 
-#   "hippos_red.pt" : reduced size (1654 vertices), 
-#   "hippos_reduc.pt" : further reduced (662 vertices), 
-#   "hippos_reduc_reduc.pt" : further reduced (68 vertices)
+#
+# *  "hippos.pt" : original data (6611 vertices),
+# *  "hippos_red.pt" : reduced size (1654 vertices),
+# *  "hippos_reduc.pt" : further reduced (662 vertices),
+# *  "hippos_reduc_reduc.pt" : further reduced (68 vertices)
+
+
 if use_cuda:
     datafile = 'data/hippos.pt'
 else:
@@ -55,8 +58,7 @@ else:
 ##################################################################
 # Define the kernels
 # ------------------
-
-###################################################################
+#
 # Define Gaussian kernel :math:`(K(x,y)b)_i = \sum_j \exp(-\|x_i-y_j\|^2)b_j`
 
 def GaussKernel(sigma):
@@ -76,9 +78,9 @@ def GaussKernel(sigma):
 def GaussLinKernel(sigma):
     def K(x, y, u, v, b):
         params = {
-            "id": Kernel("gaussian(x,y) * linear(u,v)**2"),
-            "gamma": 1 / (sigma * sigma),
-            "backend": 'auto'
+            'id': Kernel('gaussian(x,y) * linear(u,v)**2'),
+            'gamma': torch.tensor([1 / sigma * sigma], device=torchdeviceId, dtype=torchdtype),
+            'backend': 'auto'
         }
         return kernel_product(params, (x, u), (y, v), b)
     return K

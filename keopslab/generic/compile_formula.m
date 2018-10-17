@@ -1,9 +1,9 @@
 function testbuild = compile_formula(code1, code2, filename)
 
-    disp(['Compiling formula ',code2,' with ',code1,' ...'])
-    
     [src_dir,build_dir,precision,verbosity,use_cuda_if_possible] = default_options();
     
+    fprintf(['Compiling ', filename, ' in ', build_dir, ':\n        Formula: ',code2,'\n        aliases: ',code1, '\n        dtype: ', precision, '\n ... '])
+
     % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
     setenv('LD_LIBRARY_PATH','') 
     % I do not have a better option to set working dir...
@@ -18,12 +18,12 @@ function testbuild = compile_formula(code1, code2, filename)
         [build_status,build_output]  = system(['make mex_cpp']);
         if (verbosity ==1) || (prebuild_status ~=0) || (build_status ~= 0)
             disp(' ')
-            disp('------------------------------------  DEBUG ------------------------------------------')
+            disp('-------------------------------------  DEBUG  ------------------------------------------')
             disp(' ')
             disp(prebuild_output)
             disp(build_output)
             disp(' ')
-            disp('---------------------------------- END  DEBUG ----------------------------------------')
+            disp('-----------------------------------  END DEBUG  ----------------------------------------')
             disp(' ')
         end
     catch
@@ -35,7 +35,7 @@ function testbuild = compile_formula(code1, code2, filename)
 
     testbuild = (exist([filename,'.',mexext],'file')==3);
     if  testbuild
-        disp('Compilation succeeded')
+        fprintf('Done.\n')
     else
         error(['File "',filename,'.',mexext, '" not found!'])
     end

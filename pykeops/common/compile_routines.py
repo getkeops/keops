@@ -20,7 +20,7 @@ def run_and_display(args, msg=''):
     except subprocess.CalledProcessError as e:
         print('\n--------------------- ' + msg + ' DEBUG -----------------')
         print(e)
-        print(e.stdout.decode("utf-8"))
+        print(e.stdout.decode('utf-8'))
         print('--------------------- ----------- -----------------')
 
 
@@ -36,12 +36,12 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
     def process_disp_alias(alias):
         return str(alias) + '; '
 
-    alias_string = "".join([process_alias(alias) for alias in aliases])
-    alias_disp_string = "".join([process_disp_alias(alias) for alias in aliases])
+    alias_string = ''.join([process_alias(alias) for alias in aliases])
+    alias_disp_string = ''.join([process_disp_alias(alias) for alias in aliases])
 
     target = dllname
     
-    print('Compiling formula : ' + formula + ' with ' + alias_disp_string + 'using ' + cuda_type + '... ', end='', flush=True)
+    print('Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype: ' + cuda_type + '\n... ', end='', flush=True)
 
     run_and_display(['cmake', script_folder,
                      '-GNinja',
