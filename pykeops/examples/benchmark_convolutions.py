@@ -61,8 +61,8 @@ for k in (['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']):
     print('kernel: ' + k)
     
     # pure numpy
-    gnumpy =  np.mm(np_kernel(x,y,sigma,kernel=k),b)
-    speed_numpy = timeit.Timer('gnumpy = np.mm(np_kernel(x,y,sigma,kernel=k),b)',
+    gnumpy =  np.matmul(np_kernel(x,y,sigma,kernel=k),b)
+    speed_numpy = timeit.Timer('gnumpy = np.matmul(np_kernel(x,y,sigma,kernel=k),b)',
                                GC, globals=globals(),
                                timer=time.time).timeit(LOOPS)
     print('Time for Python:              {:.4f}s'.format(speed_numpy))
