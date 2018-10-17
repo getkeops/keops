@@ -24,6 +24,8 @@ def set_build_folder():
     else: 
         import tempfile
         build_folder = tempfile.mkdtemp(prefix='pykeops-' + __version__) + os.path.sep
+        
+    os.makedirs(build_folder, exist_ok=True)
 
     return build_folder
 

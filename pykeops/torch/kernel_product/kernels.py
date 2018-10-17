@@ -162,7 +162,7 @@ class Kernel:
             self.routine_log = routine_log
 
 
-def kernel_product(params, x, y, *bs, mode=None):
+def kernel_product(params, x, y, *bs, mode=None, cuda_type='float32'):
     """
     Just a simple wrapper around the KernelProduct operation,
     with a user-friendly "dict" of parameters.
@@ -238,4 +238,4 @@ def kernel_product(params, x, y, *bs, mode=None):
     if not     x.__class__ in [tuple, list]:     x = (x,)
     if not     y.__class__ in [tuple, list]:     y = (y,)
 
-    return FeaturesKP(kernel, gamma, x, y, bs, mode=mode, backend=backend)
+    return FeaturesKP(kernel, gamma, x, y, bs, mode=mode, backend=backend, cuda_type=cuda_type)
