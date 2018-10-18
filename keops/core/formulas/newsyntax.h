@@ -44,6 +44,12 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define ElemT(p,k) KeopsNS<ElemT<decltype(InvKeopsNS(p)),k>>()
 
+#define Extract(p,k,n) KeopsNS<Extract<decltype(InvKeopsNS(p)),k,n>>()
+
+#define ExtractT(p,k,n) KeopsNS<ExtractT<decltype(InvKeopsNS(p)),k,n>>()
+
+#define Concat(f,g) KeopsNS<Concat<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+
 #define Exp(f) KeopsNS<Exp<decltype(InvKeopsNS(f))>>()
 
 #define Pow(f,M) KeopsNS<Pow<decltype(InvKeopsNS(f)),M>>()
@@ -60,7 +66,22 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define Sqrt(f) KeopsNS<Sqrt<decltype(InvKeopsNS(f))>>()
 
+#define Rsqrt(f) KeopsNS<Rsqrt<decltype(InvKeopsNS(f))>>()
+
+#define MatVecMult(f,g) KeopsNS<MatVecMult<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+
+#define VecMatMult(f,g) KeopsNS<VecMatMult<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+
+#define TensorProd(f,g) KeopsNS<TensorProd<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+
+#define GradMatrix(f,v) KeopsNS<GradMatrix<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+
 #define SqNorm2(f) KeopsNS<SqNorm2<decltype(InvKeopsNS(f))>>()
+
+#define Norm2(f) KeopsNS<Norm2<decltype(InvKeopsNS(f))>>()
+
+#define Normalize(f) KeopsNS<Normalize<decltype(InvKeopsNS(f))>>()
+
 #define SqDist(f,g) KeopsNS<SqDist<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
 #define WeightedSqNorm(s,f)   KeopsNS<WeightedSqNorm<decltype(InvKeopsNS(s)), decltype(InvKeopsNS(f))>>()

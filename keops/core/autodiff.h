@@ -508,7 +508,7 @@ struct CountIn<OP<FA,FB>,G> {
 template < class F, class V, class GRADIN >
 using Grad = typename F::template DiffT<V,GRADIN>;
 
-// same with additional saved forward variable
+// same with additional saved forward variable. This is only used for taking gradients of reductions operations.
 template < class F, class V, class GRADIN, class FO >
 using Grad_WithSavedForward = typename F::template DiffT<V,GRADIN,FO>;
 

@@ -8,21 +8,37 @@ Math operators
 
 Here is a list of the implemented operations that can be used in formulas:
 
-============   ======================================================================
-a*b            scalar-vector multiplication (if a is scalar) or vector-vector element-wise multiplication
-a+b            addition of two vectors
-a-b            difference between two vectors or minus sign
-a/b            element-wise division
-(a|b)          scalar product between vectors
-Exp(a)         element-wise exponential function
-Log(a)         element-wise natural logarithm
-Pow(a,N)       N-th power of a (element-wise), where N is a fixed-size integer
-Pow(a,b)       power operation - alias for Exp(b*Log(a))
-Square(a)      element-wise square
-Grad(a,x,e)    gradient of a with respect to the variable x, with e as the "grad_output" to backpropagate
-ConstInt       integer constant
-Inv            element-wise inverse (1/b)
-============   ======================================================================
+===============   ===========================================================================================
+f*g               scalar-vector multiplication (if f is scalar) or vector-vector element-wise multiplication
+f+g               addition of two vectors
+f-g               difference between two vectors or minus sign
+f/g               element-wise division
+(f|g)             scalar product between vectors
+Exp(f)            element-wise exponential function
+Log(f)            element-wise natural logarithm
+Pow(f,N)          N-th power of f (element-wise), where N is a fixed-size integer
+Powf(f,g)         power operation - alias for Exp(g*Log(f))
+Square(f)         element-wise square
+Sqrt(f)           element-wise square root
+Rsqrt(f)          element-wise inverse square root
+SqNorm2(f)        squared L2 norm, same as (f|f)
+Norm2(f)          L2 norm, same as Sqrt((f|f))
+Normalize(f)      normalize vector, same as Rsqrt(SqNorm2(f))*f
+Grad(f,x,e)       gradient of f with respect to the variable x, with e as the "grad_output" to backpropagate
+IntCst(N)         integer constant N
+Zero(N)           vector of zeros of size N
+Inv(f)            element-wise inverse (1./f)
+IntInv(N)         alias for Inv(IntCst(N)) : 1/N
+Elem(f,M)         extract M-th element of vector f
+ElemT(f,N,M)      insert scalar value f at position M in a vector of zeros of length N
+Extract(f,M,D)    extract sub-vector from vector f (M is starting index, D is dimension of sub-vector)
+ExtractT(f,M,D)   insert vector f in a larger vector of zeros (M is starting index, D is dimension of output)
+Concat(f,g)       concatenation of vectors f and g
+MatVecMult(f,g)   matrix-vector product f x g : f is vector interpreted as matrix (column-major), g is vector
+VecMatMult(f,g)   vector-matrix product f x g : f is vector, g is vector interpreted as matrix (column-major)
+TensorProd(f,g)   tensor product f x g^T : f and g are vectors os sizes m and n, output is of size mn.
+GradMatrix(f,v)   matrix of gradient (i.e. transpose of the jacobian matrix)
+===============   ===========================================================================================
 
 
 .. _`part.reduction`:
@@ -33,10 +49,10 @@ Reductions
 Here is a list of the implemented operations that can be used reduce an array:
 
 ==========       ===========      ==================================
-sum               summation         :math:`\sum \cdot`
-LogSumExp         log-sum-exp       :math:`\log\sum \exp(\cdot)`
-Min               min               :math:`\min \cot`
-Max               max               :math:`\max \cot`
+sum              summation         :math:`\sum(\cdots)`
+LogSumExp        log-sum-exp       :math:`\log\left(\sum\exp(\cdots)\right)`
+Min              min               :math:`\min(\cdots)`
+Max              max               :math:`\max(\cdots)`
 ==========       ===========      ==================================
 
 

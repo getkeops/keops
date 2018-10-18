@@ -286,7 +286,7 @@ using Norm2 = Sqrt<Scalprod<F,F>>;
 
 // Simple alias
 template < class F >
-using Normalize = Scal<Rsqrt<F>,F>;
+using Normalize = Scal<Rsqrt<SqNorm2<F>>,F>;
 
 
 //////////////////////////////////////////////////////////////
