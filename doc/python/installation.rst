@@ -1,5 +1,5 @@
-Install
-=======
+Python install
+==============
 
 PyKeOps contains the python 3 bindings for the cpp/cuda library KeOps. It provides 
 standard python functions that can be used in any python 3 code.
@@ -13,7 +13,7 @@ Requirements
 - Ninja 
 - **Python 3** with packages: numpy, GPUtil (installed via pip or conda)
 - Cuda (Optional): version >=9.0 is recommended but it works with older version. Warning: check the compatibility of C++ compiler
-- PyTorch (Optional): version >=0.4.1
+- PyTorch (Optional): version ==0.4.1
 
 
 Using pip (recommended)
@@ -21,7 +21,7 @@ Using pip (recommended)
 
 1. Just in case: in a terminal, verify the **consistency** of the outputs of the commands ``which python``, ``python --version``, ``which pip`` and ``pip --version``. You can then install the dependencies with:
 
-.. code-block:: console
+.. code-block:: bash
 
     pip install numpy
     pip install GPUtil
@@ -30,7 +30,7 @@ Using pip (recommended)
 
 2. In a terminal
 
-.. code-block:: console
+.. code-block:: bash
 
     pip install pykeops
 
@@ -135,10 +135,10 @@ Note that you can activate a "verbose" compilation mode by adding these lines *a
     pykeops.verbose = True
 
 
-.. _`part.cacheFlush`:
+.. _`part.cache`:
 
-Clean build cache
-^^^^^^^^^^^^^^^^^
+Cache directory
+^^^^^^^^^^^^^^^
 
 If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to flush the build folder (the cache of already-compiled formulas). To get the directory name:
 

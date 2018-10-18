@@ -7,18 +7,18 @@ Presentation
 
 KeOps is a library that computes on a GPU **generic reductions** of 2d arrays whose entries may be computed through a mathematical formula. We provide an autodiff engine to generate effortlessly the formula of the derivative. For instance, KeOps can compute **Kernel dot products** and **their derivatives**. 
 
-A typical sample of code looks like
+A typical sample of (pseudo) code looks like
 
 .. code-block:: python
 
-    from pykeops import Genred
+    from keops import Genred
     
     # create the function computing the derivative of a Gaussian convolution
     my_conv = Genred(reduction='Sum',
                      formula='Grad(Exp(SqNorm2(x-y) / Cst(2)), x, b)',
-                     alias=['x = Vx(3)', 'y = Vy(3)', 'b = Vx(3)'])
+                     alias=['x=Vx(3)', 'y=Vy(3)', 'b=Vx(3)'])
     
-    # ... apply it to some big arrays x, y, b
+    # ... apply it to the 2d array x, y, b with 3 columns and a (huge) number of lines
     result = my_conv(x,y,b)
 
 KeOps provides good performances and linear (instead of quadratic) memory footprint. It handles multi GPU. More details are provided here:
@@ -67,7 +67,7 @@ Table of content
    api/why_using_keops
    api/road-map
    api/math-operations
-   _auto_examples/index
+   api/autodiff
 
 .. toctree::
    :maxdepth: 2
@@ -77,6 +77,7 @@ Table of content
    python/installation
    python/generic-syntax
    python/kernel-product
+   _auto_examples/index
    _auto_tutorials/index
 
 .. toctree::
@@ -91,4 +92,5 @@ Table of content
    :maxdepth: 2
    :caption: Keops++
 
+   cpp/index
    cpp/generic-syntax

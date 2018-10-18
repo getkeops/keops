@@ -56,10 +56,10 @@ try:
 except ImportError as e: # if 
     print('ImportError: pykeops is not compatible with your version of Pytorch.', e)
     torch_found = False
-    torch_include_path = "0"
+    torch_include_path = '0'
 except:
     torch_found = False
-    torch_include_path = "0"
+    torch_include_path = '0'
 
 ############################################################
 #     define backend
@@ -70,15 +70,15 @@ class pykeops_backend():
     This class is  used to centralized the options used in PyKeops.
     """
 
-    dev = OrderedDict([("CPU",0),("GPU",1)])
-    grid = OrderedDict([("1D",0),("2D",1)])
-    memtype = OrderedDict([("host",0), ("device",1)])
+    dev = OrderedDict([('CPU',0),('GPU',1)])
+    grid = OrderedDict([('1D',0),('2D',1)])
+    memtype = OrderedDict([('host',0), ('device',1)])
 
-    possible_options_list = ["auto",
-                             "CPU",
-                             "GPU",
-                             "GPU_1D", "GPU_1D_device", "GPU_1D_host",
-                             "GPU_2D", "GPU_2D_device", "GPU_2D_host"
+    possible_options_list = ['auto',
+                             'CPU',
+                             'GPU',
+                             'GPU_1D', 'GPU_1D_device', 'GPU_1D_host',
+                             'GPU_2D', 'GPU_2D_device', 'GPU_2D_host'
                              ]
 
     def define_tag_backend(self, backend, variables):
@@ -100,7 +100,7 @@ class pykeops_backend():
             raise ValueError('Invalid backend. Should be one of ', self.possible_options_list)
 
         # auto : infer everything
-        if backend == "auto":
+        if backend == 'auto':
             return int(gpu_available), self._find_grid(), self._find_mem(variables)
 
         split_backend = re.split('_',backend)
@@ -120,10 +120,10 @@ class pykeops_backend():
         return int(gpu_available)
 
     @staticmethod
-    def _find_mem( variables):
+    def _find_mem(variables):
         if all([type(var) is np.ndarray for var in variables ]): # Infer if we're working with numpy arrays or torch tensors:
             MemType = 0
-        elif torch_found and all([type(var) is torch.Tensor for var in variables ]):
+        elif torch_found and all([type(var) in [torch.Tensor, torch.nn.parameter.Parameter] for var in variables ]):
 
             from pykeops.torch.utils import is_on_device
             VarsAreOnGpu = tuple(map(is_on_device, tuple(variables)))
@@ -133,9 +133,9 @@ class pykeops_backend():
             elif not any(VarsAreOnGpu):
                 MemType = 0
             else:
-                raise ValueError("At least two input variables have different memory locations (Cpu/Gpu).")
+                raise ValueError('At least two input variables have different memory locations (Cpu/Gpu).')
         else:
-            raise TypeError("All variables should either be numpy arrays or torch tensors.")
+            raise TypeError('All variables should either be numpy arrays or torch tensors.')
 
         return MemType
 

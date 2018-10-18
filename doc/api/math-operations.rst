@@ -24,17 +24,23 @@ ConstInt       integer constant
 Inv            element-wise inverse (1/b)
 ============   ======================================================================
 
+
+.. _`part.reduction`:
+
 Reductions
 ----------
 
 Here is a list of the implemented operations that can be used reduce an array:
 
-==========       ===========
-Sum               summation
-LogSumExp         log
-Min
-Max
-==========       ===========
+==========       ===========      ==================================
+sum               summation         :math:`\sum \cdot`
+LogSumExp         log-sum-exp       :math:`\log\sum \exp(\cdot)`
+Min               min               :math:`\min \cot`
+Max               max               :math:`\max \cot`
+==========       ===========      ==================================
+
+
+.. _`part.varCategory`:
 
 Variables category
 ------------------

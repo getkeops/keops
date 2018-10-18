@@ -39,7 +39,7 @@ y = torch.tensor( [
 b = torch.tensor([
     1., 1., .5
     ]).type(dtype)
-# Remember : b is not a vector, but a "list of unidimensional vectors"!
+# Remember : b is not a vector, but a 'list of unidimensional vectors'!
 b = b.view(-1,1) 
 
 # Create a uniform grid on the unit square:
@@ -53,9 +53,9 @@ X,Y    = np.meshgrid( ticks, ticks )
 x = torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dtype)
 
 def plot_kernel(params) :
-     """ Samples "x -> ∑_j b_j * k_j(x - y_j)" on the grid, and displays it as a heatmap. """
+     """ Samples 'x -> ∑_j b_j * k_j(x - y_j)' on the grid, and displays it as a heatmap. """
      heatmap   = kernel_product(params, x, y, b)
-     heatmap   = heatmap.view(res,res).cpu().numpy() # reshape as a "background" image
+     heatmap   = heatmap.view(res,res).cpu().numpy() # reshape as a 'background' image
      plt.imshow(-heatmap, interpolation='bilinear', origin='lower',
                 vmin = -1, vmax = 1, cmap=cm.RdBu,
                 extent=(0,1,0,1))
@@ -64,7 +64,7 @@ def plot_kernel(params) :
 ###############################################
 # Kernel definition
 # ^^^^^^^^^^^^^^^^^
-# Let's use a "Gaussian" kernel, i.e.
+# Let's use a 'Gaussian' kernel, i.e.
 #
 # .. math::
 #
@@ -72,10 +72,10 @@ def plot_kernel(params) :
 # 
 # which is equivalent to the KeOps formula ``exp(-WeightedSquareNorm(gamma, x_i-y_j ))``. But it can also be easily defined with :doc:`kernel_product wrapper <../python/kernel-product>` :
 
-params = {"id" : Kernel("gaussian(x,y)")}
+params = {'id' : Kernel('gaussian(x,y)')}
 
 ###############################################
-# We now have to define the extra entry ``gamma`` in the ``params`` dictionary. It is used as a "metric multiplier". Denoting ``D == x.shape[1] == y.shape[1]`` the size of the feature space, the integer ``K`` can be ``1``, ``D`` or ``D*D``. Rules are: 
+# We now have to define the extra entry ``gamma`` in the ``params`` dictionary. It is used as a 'metric multiplier'. Denoting ``D == x.shape[1] == y.shape[1]`` the size of the feature space, the integer ``K`` can be ``1``, ``D`` or ``D*D``. Rules are: 
 # 
 # - if ``gamma`` is a vector    (``gamma.shape = [K]``),   it is seen as a fixed parameter
 # - if ``gamma`` is a 2d-tensor (``gamma.shape = [M,K]``), it is seen as a ``j``-variable
@@ -101,7 +101,7 @@ params = {"id" : Kernel("gaussian(x,y)")}
 # Providing a single scalar we get uniform kernels
 
 sigma = torch.tensor( [0.1] ).type(dtype)
-params["gamma"] = 1./sigma**2
+params['gamma'] = 1./sigma**2
 plt.plot()
 plot_kernel(params)
 
@@ -117,7 +117,7 @@ sigma = torch.tensor( [
     [0.07], 
     [0.3] 
     ]).type(dtype)
-params["gamma"] = 1./sigma**2
+params['gamma'] = 1./sigma**2
 plot_kernel(params)
 
 
@@ -138,7 +138,7 @@ plot_kernel(params)
 # Providing a single vector we get uniform kernels
 
 sigma = torch.tensor( [0.2, 0.1] ).type(dtype)
-params["gamma"] = 1./sigma**2
+params['gamma'] = 1./sigma**2
 plot_kernel(params)
 
 ###############################################
@@ -152,7 +152,7 @@ sigma = torch.tensor( [
     [.05, .15], 
     [.2,  .2] 
     ] ).type(dtype)
-params["gamma"] = 1./sigma**2
+params['gamma'] = 1./sigma**2
 plot_kernel(params)
 
 
@@ -174,7 +174,7 @@ plot_kernel(params)
 # Providing a single vector we get uniform kernels
 
 Sigma = torch.tensor( [1/0.2**2, 1/.25**2, 1/.25**2, 1/0.1**2 ] ).type(dtype)
-params["gamma"] = Sigma
+params['gamma'] = Sigma
 plot_kernel(params)
 
 ###############################################
@@ -189,7 +189,7 @@ Sigma = torch.tensor( [
     [1/0.3**2,-1/.25**2,-1/.25**2, 1/0.12**2 ] ,
     ] ).type(dtype)
 
-params["gamma"] = Sigma
+params['gamma'] = Sigma
 # sphinx_gallery_thumbnail_number = 6
 plot_kernel(params)
 
