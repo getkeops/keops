@@ -2,8 +2,8 @@
    :width: 100% 
    :alt: Keops logo
 
-Presentation
-------------
+KeOps library
+-------------
 
 KeOps is a library that computes on a GPU **generic reductions** of 2d arrays whose entries may be computed through a mathematical formula. We provide an autodiff engine to generate effortlessly the formula of the derivative. For instance, KeOps can compute **Kernel dot products** and **their derivatives**. 
 

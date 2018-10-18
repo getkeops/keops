@@ -89,10 +89,10 @@ master_doc = 'index'
 project = 'KeOps'
 
 #import time
-#copyright = '2018-{}, Benjamin Charlier, Jean Feydy, Joan A. Glaunes'.format(time.strftime("%Y"))
+#copyright = '2018-{}, Benjamin Charlier, Jean Feydy, Joan A. Glaunès'.format(time.strftime("%Y"))
 
-copyright = '2018, Benjamin Charlier, Jean Feydy, Joan A. Glaunes'
-author = 'Benjamin Charlier, Jean Feydy, Joan A. Glaunes'
+copyright = '2018, Benjamin Charlier, Jean Feydy, Joan A. Glaunès'
+author = 'Benjamin Charlier, Jean Feydy, Joan A. Glaunès'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -197,7 +197,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'KeOps.tex', 'KeOps Documentation',
-     'Benjamin Charlier, Jean Feydy, Joan A. Glaunes', 'manual'),
+     'Benjamin Charlier, Jean Feydy, Joan A. Glaunès', 'manual'),
 ]
 
 
