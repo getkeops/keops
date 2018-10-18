@@ -79,7 +79,7 @@ def GaussLinKernel(sigma):
     def K(x, y, u, v, b):
         params = {
             'id': Kernel('gaussian(x,y) * linear(u,v)**2'),
-            'gamma': torch.tensor([1 / sigma * sigma], device=torchdeviceId, dtype=torchdtype),
+            'gamma': (1 / (sigma * sigma), None),
             'backend': 'auto'
         }
         return kernel_product(params, (x, u), (y, v), b)
@@ -180,15 +180,16 @@ def lossVarifoldSurf(FS, VT, FT, K):
 # load dataset
 
 VS, FS, VT, FT = torch.load(datafile)
-VS = torch.tensor(VS, dtype=torchdtype, device=torchdeviceId)
+q0 = torch.tensor(VS, dtype=torchdtype, device=torchdeviceId, requires_grad=True)
 VT = torch.tensor(VT, dtype=torchdtype, device=torchdeviceId)
 FS = torch.tensor(FS, dtype=torch.long, device=torchdeviceId)
 FT = torch.tensor(FT, dtype=torch.long, device=torchdeviceId)
-q0 = VS.requires_grad_()
+
 sigma = torch.tensor([20], dtype=torchdtype, device=torchdeviceId)
 
 #####################################################################
 # define data attachment and LDDMM functional
+
 dataloss = lossVarifoldSurf(FS, VT, FT, GaussLinKernel(sigma=sigma))
 Kv = GaussKernel(sigma=sigma)
 loss = LDDMMloss(Kv, dataloss)
@@ -208,6 +209,7 @@ def closure():
     L = loss(p0, q0)
     L.backward()
     return L
+
 
 optimizer.step(closure)
 print('Optimization time (one L-BFGS step): ', round(time.time() - start, 2), ' seconds')
