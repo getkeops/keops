@@ -41,4 +41,28 @@ struct Eval<ZeroReduction<DIM,tagI>,MODE> {
     }
 };
 
+#ifdef __CUDACC__
+// specializations in case of device data
+struct GpuConv1D_FromDevice;
+struct GpuConv2D_FromDevice;
+
+template < int DIM, int tagI >
+struct Eval<ZeroReduction<DIM,tagI>,GpuConv1D_FromDevice> {
+    template < typename TYPE, typename... Args >
+    static int Run(int nx, int ny, TYPE *out, Args... args) {
+        cudaMemset(out, 0, (tagI==0?nx:ny)*DIM*sizeof(TYPE));
+        return 0;
+    }
+};
+
+template < int DIM, int tagI >
+struct Eval<ZeroReduction<DIM,tagI>,GpuConv2D_FromDevice> {
+    template < typename TYPE, typename... Args >
+    static int Run(int nx, int ny, TYPE *out, Args... args) {
+        cudaMemset(out, 0, (tagI==0?nx:ny)*DIM*sizeof(TYPE));
+        return 0;
+    }
+};
+#endif
+
 }

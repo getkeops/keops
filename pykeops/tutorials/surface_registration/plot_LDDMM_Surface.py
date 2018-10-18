@@ -65,7 +65,7 @@ def GaussKernel(sigma):
     def K(x, y, b):
         params = {
             'id': Kernel('gaussian(x,y)'),
-            'gamma': torch.tensor([1 / sigma * sigma], device=torchdeviceId, dtype=torchdtype),
+            'gamma': 1 / (sigma * sigma),
             'backend': 'auto'
         }
         return kernel_product(params, x, y, b)
