@@ -1,5 +1,5 @@
 """
-Example of KeOps reduction using the generic syntax.
+Writing arbitrary formula with the generic syntax (PyTorch bindings)
 ====================================================
 
 This example uses the pyTorch framework.

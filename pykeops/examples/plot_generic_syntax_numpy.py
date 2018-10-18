@@ -1,5 +1,5 @@
 """
-KeOps autodiff using the generic syntax
+Writing arbitrary formula with the generic syntax (NumPy bindings)
 =======================================
 
 This example uses a pure numpy framework. 
