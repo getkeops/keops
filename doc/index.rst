@@ -74,9 +74,6 @@ Table of content
    :caption: PyKeops
 
    python/index
-   python/installation
-   python/generic-syntax
-   python/kernel-product
    _auto_examples/index
    _auto_tutorials/index
 
@@ -85,12 +82,10 @@ Table of content
    :caption: KeopsLab
 
    matlab/index
-   matlab/installation
-   matlab/generic-syntax
 
 .. toctree::
    :maxdepth: 2
    :caption: Keops++
 
    cpp/index
-   cpp/generic-syntax
+

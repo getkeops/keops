@@ -21,7 +21,4 @@ We now fully document the public interface of the pykeops module. In a nutshell,
    installation
    generic-syntax
    kernel-product
-   ../_auto_examples/index
-   ../_auto_tutorials/index
-
 
