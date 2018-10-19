@@ -122,7 +122,8 @@ Troubleshooting
 
 Compilation issues
 ^^^^^^^^^^^^^^^^^^
-First of all, make sure that you are using a C++ compiler which is compatible with your nvcc (CUDA) compiler may fail in unexpected ways. On Debian based Linux distros, this can be done simply by using `update-alternatives <https://askubuntu.com/questions/26498/choose-gcc-and-g-version>`_.
+First of all, make sure that you are using a C++ compiler which is compatible with your nvcc (CUDA) compiler, or compilations
+of formulas may fail in unexpected ways. On Debian based Linux distros, this can be done simply by using `update-alternatives <https://askubuntu.com/questions/26498/choose-gcc-and-g-version>`_.
 
 Verbosity level
 ^^^^^^^^^^^^^^^

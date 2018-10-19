@@ -1,6 +1,55 @@
 Formulas
 ========
 
+.. _`part.varCategory`:
+
+Variables category
+------------------
+
+KeOps uses a low-level syntax written in C++/Cuda to define virtually any reduction operation of the form
+
+.. math::
+
+   \alpha_i = \text{Reduction}_j \big[ f(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
+
+where "Reduction" can be the Sum, LogSumExp, min,... operations (see :ref:`part.reduction` for the full list)
+
+
+Each of the variables :math:`x^k_{\iota_k}` is specified by its positional index ``k``, its category :math:`\iota_k\in\{i,j,\emptyset\}` (meaning that the variable is indexed by ``i``, by ``j``, or is a fixed parameter across indices) and its dimension :math:`d_k`. These three characteristics are encoded as follows :
+
+* category is given via the keywords ``Vx``, ``Vy``, ``Pm`` (meaning respectively: "variable indexed by ``i``", "variable indexed by ``j``", and "parameter")
+* positional index ``k`` and dimension :math:`d_k` are given as two integer parameters put into parenthesis after the category-specifier keyword.
+
+For instance, ``Vx(2,4)`` specifies a variable indexed by ``i``, given as the third (``k=2``) input in the function call, and representing a vector of dimension 4.
+
+Of course, using the same index ``k`` for two different variables is not allowed and will be rejected by the compiler.
+
+An example
+----------
+
+Asume we want to compute the following sum
+
+.. math::
+
+  f(p,x,y,\beta)_i = \left(\sum_{j=1}^M (p -\beta_j )^2 \exp(x_i^u + y_j^u) \right)_{u=1,2,3} \in \mathbb R^3
+
+
+where :math:`p \in \mathbb R` is a constant, :math:`x \in \mathbb R^{N\times 3}`, :math:`y \in \mathbb R^{M\times 3}`, :math:`\beta \in \mathbb R^M`. From the "variables" symbolic placeholders, one can build the function ``f`` using the syntax 
+
+.. code-block:: cpp
+
+    Square(Pm(0,1)-Vy(3,1))*Exp(Vx(1,3)+Vy(2,3))
+
+in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
+
+The operations available are listed :ref:`part.mathOperation`.
+
+Variables can be given aliases, allowing us to write human-readable expressions for our formula. For example, one may define ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``beta=Vy(3,1)``, and write the previous computation as
+
+.. code-block:: cpp
+
+    Square(p-beta)*Exp(x+y)
+
 .. _`part.mathOperation`:
 
 Math operators
@@ -36,7 +85,7 @@ ExtractT(f,M,D)   insert vector f in a larger vector of zeros (M is starting ind
 Concat(f,g)       concatenation of vectors f and g
 MatVecMult(f,g)   matrix-vector product f x g : f is vector interpreted as matrix (column-major), g is vector
 VecMatMult(f,g)   vector-matrix product f x g : f is vector, g is vector interpreted as matrix (column-major)
-TensorProd(f,g)   tensor product f x g^T : f and g are vectors os sizes m and n, output is of size mn.
+TensorProd(f,g)   tensor product f x g^T : f and g are vectors of sizes m and n, output is of size mn.
 GradMatrix(f,v)   matrix of gradient (i.e. transpose of the jacobian matrix)
 ===============   ===========================================================================================
 
@@ -46,61 +95,20 @@ GradMatrix(f,v)   matrix of gradient (i.e. transpose of the jacobian matrix)
 Reductions
 ----------
 
-Here is a list of the implemented operations that can be used reduce an array:
+Here is a list of the implemented operations that can be used to reduce an array:
 
-==========       ===========      ==================================
-sum              summation         :math:`\sum(\cdots)`
-LogSumExp        log-sum-exp       :math:`\log\left(\sum\exp(\cdots)\right)`
-Min              min               :math:`\min(\cdots)`
-Max              max               :math:`\max(\cdots)`
-==========       ===========      ==================================
-
-
-.. _`part.varCategory`:
-
-Variables category
-------------------
-
-KeOps uses a low-level syntax written in C++/Cuda to define virtually any reduction operation of the form
-
-.. math::
-
-   \alpha_i = \text{Reduction}_j \big[ f(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
-
-where "Reduction" can be the Sum, LogSumExp, min, max operation.
+===========      ===========================      ============================================
+Sum              summation                        :math:`\sum(\cdots)`
+LogSumExp        log-sum-exp                      :math:`\log\left(\sum\exp(\cdots)\right)`
+Min              min                              :math:`\min(\cdots)`
+ArgMin           argmin                           :math:`\text{argmin}(\cdots)`
+MinArgMin        minargmin                        :math:`(\min(...),\text{argmin}(\cdots))`
+Max              max                              :math:`\max(\cdots)`
+ArgMax           argmax                           :math:`\text{argmax}(\cdots)`
+MaxArgMax        maxargmax                        :math:`(\max(...),\text{argmax}(\cdots))`
+KMin             K first order statistics         :math:`(\cdots)_{(1)},\ldots,(\cdots)_{(K)}`
+ArgKMin          indices of order statistics      :math:`(1),\ldots,(K)`
+KMinArgKMin      (KMin,ArgKMin)                   :math:`\left((\cdots)_{(1)},\ldots,(\cdots)_{(K)},(1),\ldots,(K)\right)`
+===========      ===========================      ============================================
 
 
-Each of the variables :math:`x^k_{\iota_k}` is specified by its positional index ``k``, its category :math:`\iota_k\in\{i,j,\emptyset\}` (meaning that the variable is indexed by ``i``, by ``j``, or is a fixed parameter across indices) and its dimension :math:`d_k`. These three characteristics are encoded as follows :
-
-* category is given via the keywords ``Vx``, ``Vy``, ``Pm`` (meaning respectively: "variable indexed by ``i``", "variable indexed by ``j``", and "parameter")
-* positional index ``k`` and dimension :math:`d_k` are given as two integer parameters put into parenthesis after the category-specifier keyword.
-
-For instance, ``Vx(2,4)`` specifies a variable indexed by ``i``, given as the third (``k=2``) input in the function call, and representing a vector of dimension 4.
-
-Of course, using the same index ``k`` for two different variables is not allowed and will be rejected by the compiler.
-
-An example
-----------
-
-Asume we want to compute the following sum
-
-.. math::
-
-  f(x,y) = \left(\sum_j (p -y_j^u )^2 \exp(x_i^u + y_j^u) \right)_{u=1,2,3} \in \mathbb R^3
-
-
-where :math:`p \in \mathbb R` is a constant, :math:`x \in \mathbb R^{N\times 3}`, :math:`y \in \mathbb R^{M\times 3}`. From the "variables" symbolic placeholders, one can build the function ``f`` using the syntax 
-
-.. code-block:: cpp
-
-    Square(Pm(0,1)-Vy(1,1))*Exp(Vx(2,3)+Vy(3,3))
-
-in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
-
-The operations available are listed :ref:`part.mathOperation`.
-
-Variables can be given aliases, allowing us to write human-readable expressions for our formula. For example, one may define ``p=Pm(0,1)``, ``a=Vy(1,1)``, ``x=Vx(2,3)``, ``y=Vy(3,3)``, and write the previous computation as
-
-.. code-block:: cpp
-
-    Square(p-a)*Exp(x+y)

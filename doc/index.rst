@@ -27,15 +27,6 @@ KeOps provides good performances and linear (instead of quadratic) memory footpr
 * :doc:`Learning KeOps syntax with examples <_auto_examples/index>`
 * :doc:`Tutorials gallery <_auto_tutorials/index>`
 
-Installation
-------------
-
-The core of KeOps relies on a set of C++/CUDA routines for which we provide bindings in the following languages:
-
-* :doc:`Python (numpy or pytorch) <python/installation>`
-* :doc:`Matlab <matlab/installation>`
-* :doc:`C++ API <cpp/generic-syntax>`
-
 Project using KeOps
 -------------------
 
@@ -65,6 +56,7 @@ Table of content
    :caption: KeOps
 
    api/why_using_keops
+   api/installation
    api/road-map
    api/math-operations
    api/autodiff
