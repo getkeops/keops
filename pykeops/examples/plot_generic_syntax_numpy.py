@@ -1,6 +1,6 @@
 """
-Writing arbitrary formula with the generic syntax (NumPy bindings)
-==================================================================
+Writing arbitrary formula with the generic syntax (NumPy)
+=========================================================
 
 This example uses a pure numpy framework. 
 

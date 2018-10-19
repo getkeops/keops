@@ -1,6 +1,6 @@
 """
-Writing arbitrary formula with the generic syntax (PyTorch bindings)
-====================================================================
+Writing arbitrary formula with the generic syntax (PyTorch)
+===========================================================
 
 This example uses the pyTorch framework.
 """
