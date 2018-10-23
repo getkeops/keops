@@ -16,8 +16,8 @@ from matplotlib import pyplot as plt
 from pykeops.numpy.utils import np_kernel
 
 # size of the test
-M = 2000
-N = 300
+M = 20
+N = 20
 D = 3
 E = 3
 
