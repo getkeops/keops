@@ -41,7 +41,7 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
 
     target = dllname
     
-    print('Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype: ' + cuda_type + '\n... ', end='', flush=True)
+    print('Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + cuda_type + '\n... ', end='', flush=True)
 
     run_and_display(['cmake', script_folder,
                      '-GNinja',
@@ -56,7 +56,6 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
                     msg='CMAKE')
 
     run_and_display(['cmake', '--build', '.', '--target', target], msg='MAKE')
-
     print('Done. ', end='\n', flush=True)
 
 

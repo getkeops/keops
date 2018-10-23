@@ -1,6 +1,6 @@
 from hashlib import sha256
 
-c_type = dict(float32="float", float64="double", float="float", double="double")
+c_type = dict(float32="float", float64="double")
 
 
 def create_name(formula, aliases,cuda_type, lang):
