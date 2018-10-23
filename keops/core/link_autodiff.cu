@@ -24,12 +24,12 @@ extern "C" int GpuReduc2D_FromHost(int nx, int ny, __TYPE__* gamma, __TYPE__** a
 // Convolutions on Gpu device directly from device data //
 //////////////////////////////////////////////////////////
 
-extern "C" int GpuReduc1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return Eval<F,GpuConv1D_FromDevice>::Run(nx, ny, gamma, args);
+extern "C" int GpuReduc1D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_id=-1) {
+    return Eval<F,GpuConv1D_FromDevice>::Run(nx, ny, gamma, args, device_id);
 }
 
-extern "C" int GpuReduc2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return Eval<F,GpuConv2D_FromDevice>::Run(nx, ny, gamma, args);
+extern "C" int GpuReduc2D_FromDevice(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_id=-1) {
+    return Eval<F,GpuConv2D_FromDevice>::Run(nx, ny, gamma, args, device_id);
 }
 
 /////////////////////////

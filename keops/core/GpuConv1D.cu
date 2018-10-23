@@ -4,6 +4,7 @@
 #include <cuda.h>
 
 #include "core/Pack.h"
+#include "core/CudaErrorCheck.cu"
 
 namespace keops {
 
@@ -303,15 +304,11 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 
 // Same wrappers, but for data located on the device
 template < typename TYPE, class FUN, typename... Args >
-static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
+static int Eval(FUN fun, int nx, int ny, int device_id, TYPE* x1_d, Args... args) {
 
-    // We set the GPU device on which computations will be performed
-    // to be the GPU on which data is located.
-    // NB. we only check location of x1_d which is the output vector
-    // so we assume that input data is on the same GPU
-    cudaPointerAttributes attributes;
-    cudaPointerGetAttributes(&attributes,x1_d);
-    cudaSetDevice(attributes.device);
+    // device_id is provided, so we set the GPU device accordingly
+    // Warning : is has to be consistent with location of data
+    cudaSetDevice(device_id);
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
@@ -343,16 +340,37 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
 
 }
 
-template < typename TYPE, class FUN >
-static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args) {
-
+// same without the device_id argument
+template < typename TYPE, class FUN, typename... Args >
+static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
     // We set the GPU device on which computations will be performed
     // to be the GPU on which data is located.
     // NB. we only check location of x1_d which is the output vector
     // so we assume that input data is on the same GPU
+    // note : cudaPointerGetAttributes has a strange behaviour:
+    // it looks like it makes a copy of the vector on the default GPU device (0) !!! 
+    // So we prefer to avoid this and provide directly the device_id as input (first function above)
     cudaPointerAttributes attributes;
     cudaPointerGetAttributes(&attributes,x1_d);
-    cudaSetDevice(attributes.device);
+    return Eval(fun, nx, ny, attributes.device, x1_d, args...);
+}
+
+template < typename TYPE, class FUN >
+static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args, int device_id=-1) {
+
+    if(device_id==-1) {
+        // We set the GPU device on which computations will be performed
+        // to be the GPU on which data is located.
+        // NB. we only check location of x1_d which is the output vector
+        // so we assume that input data is on the same GPU
+        // note : cudaPointerGetAttributes has a strange behaviour:
+        // it looks like it makes a copy of the vector on the default GPU device (0) !!! 
+	// So we prefer to avoid this and provide directly the device_id as input (else statement below)
+        cudaPointerAttributes attributes;
+        cudaPointerGetAttributes(&attributes,x1_d);
+        cudaSetDevice(attributes.device);
+    } else // device_id is provided, so we use it. Warning : is has to be consistent with location of data
+        cudaSetDevice(device_id);
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
