@@ -29,6 +29,10 @@ class GenredAutograd(torch.autograd.Function):
         nx, ny = get_sizes(aliases, *args)
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+
+        if tagHostDevice==1:
+            device_id = args[0].device.index
+
         result = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output

@@ -34,11 +34,11 @@ template < class V > void fillrandom(V& v) {
 }
 
 #define DIMPOINT 3
-#define DIMVECT 1
+#define DIMVECT 3
 
 int main() {
 
-    // symbolic expression of the function : linear combination of 4 gaussians
+    // symbolic expression of the function : gaussian kernel
     using C = _P<0,1>;
     using X = _X<1,DIMPOINT>;
     using Y = _Y<2,DIMPOINT>;
