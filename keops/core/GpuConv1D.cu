@@ -146,9 +146,16 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     CudaSafeCall(cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice));
     CudaSafeCall(cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice));
 
-    // Compute on device : grid is 2d and block is 1d
+    // Compute on device : grid and block are both 1d
+    cudaDeviceProp deviceProp;
+    int dev = -1;
+    CudaSafeCall(cudaGetDevice(&dev));
+    CudaSafeCall(cudaGetDeviceProperties(&deviceProp, dev));
+
     dim3 blockSize;
-    blockSize.x = CUDA_BLOCK_SIZE; // number of threads in each block
+    // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE;, currently CUDA_BLOCK_SIZE value is ignored
+    blockSize.x = min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE)))); // number of threads in each block
+
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
@@ -287,14 +294,15 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 
     // Compute on device : grid and block are both 1d
 
-    //cudaDeviceProp deviceProp;
-    //int *dev;
-    //cudaGetDevice(&dev);
-    //cudaGetDeviceProperties(&deviceProp, *dev);
-    //deviceProp.sharedMemPerBlock
+    cudaDeviceProp deviceProp;
+    int dev = -1;
+    CudaSafeCall(cudaGetDevice(&dev));
+    CudaSafeCall(cudaGetDeviceProperties(&deviceProp, dev));
 
     dim3 blockSize;
-    blockSize.x = CUDA_BLOCK_SIZE; // number of threads in each block
+    // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE;, currently CUDA_BLOCK_SIZE value is ignored
+    blockSize.x = min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE)))); // number of threads in each block
+
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
