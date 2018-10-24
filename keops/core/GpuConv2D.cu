@@ -271,8 +271,8 @@ template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, int device_id, TYPE* x1_h, Args... args) {
 
     // We set the GPU device on which computations will be performed
-    // note: default value -1 will simply make this command to have no effect
-    cudaSetDevice(device_id);
+    if(device_id!=-1)
+        cudaSetDevice(device_id);
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
@@ -314,8 +314,8 @@ template < typename TYPE, class FUN >
 static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_id=-1) {
 
     // We set the GPU device on which computations will be performed
-    // note: default value -1 will simply make this command to have no effect
-    cudaSetDevice(device_id);
+    if(device_id!=-1)
+        cudaSetDevice(device_id);
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;

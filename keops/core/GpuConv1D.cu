@@ -90,7 +90,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 
     // single cudaMalloc
     void **p_data;
-    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(DIMP+nx*(DIMX-DIMFOUT+DIMOUT)+ny*DIMY));
+    CudaSafeCall(cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(DIMP+nx*(DIMX-DIMFOUT+DIMOUT)+ny*DIMY)));
 
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;
@@ -116,12 +116,12 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     nvals = DIMSP::VAL(0);
     // if DIMSP is empty (i.e. no parameter), nvals = -1 which could result in a segfault
     if(nvals >= 0){ 
-        cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+        CudaSafeCall(cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     }
     for(int k=1; k<SIZEP; k++) {
         php_d[k] = php_d[k-1] + nvals;
         nvals = DIMSP::VAL(k);
-        cudaMemcpy(php_d[k], pp_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+        CudaSafeCall(cudaMemcpy(php_d[k], pp_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     }    
 
     phx_d[0] = x_d;
@@ -129,22 +129,22 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     for(int k=1; k<SIZEI; k++) {
         phx_d[k] = phx_d[k-1] + nvals;
         nvals = nx*DIMSX::VAL(k);
-        cudaMemcpy(phx_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+        CudaSafeCall(cudaMemcpy(phx_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     }
 
     phy_d[0] = y_d;
     nvals = ny*DIMSY::VAL(0);
-    cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+    CudaSafeCall(cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     for(int k=1; k<SIZEJ; k++) {
         phy_d[k] = phy_d[k-1] + nvals;
         nvals = ny*DIMSY::VAL(k);
-        cudaMemcpy(phy_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice);
+        CudaSafeCall(cudaMemcpy(phy_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     }
 
     // copy arrays of pointers
-    cudaMemcpy(pp_d, php_d, SIZEP*sizeof(TYPE*), cudaMemcpyHostToDevice);
-    cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice);
-    cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice);
+    CudaSafeCall(cudaMemcpy(pp_d, php_d, SIZEP*sizeof(TYPE*), cudaMemcpyHostToDevice));
+    CudaSafeCall(cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice));
+    CudaSafeCall(cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice));
 
     // Compute on device : grid is 2d and block is 1d
     dim3 blockSize;
@@ -154,15 +154,16 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv1DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
-
+    
     // block until the device has completed
-    cudaDeviceSynchronize();
+    CudaSafeCall(cudaDeviceSynchronize());
+    CudaCheckError();
 
     // Send data from device to host.
-    cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMOUT),cudaMemcpyDeviceToHost);
+    CudaSafeCall(cudaMemcpy(*px_h, x_d, sizeof(TYPE)*(nx*DIMOUT),cudaMemcpyDeviceToHost));
 
     // Free memory.
-    cudaFree(p_data);
+    CudaSafeCall(cudaFree(p_data));
 
     return 0;
 }
@@ -172,9 +173,8 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, int device_id, TYPE* x1_h, Args... args) {
 
-    // We set the GPU device on which computations will be performed
-    // note: default value -1 will simply make this command to have no effect
-    cudaSetDevice(device_id);
+    if(device_id!=-1)
+        CudaSafeCall(cudaSetDevice(device_id));
     
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
@@ -216,8 +216,8 @@ template < typename TYPE, class FUN >
 static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_id=-1) {
 
     // We set the GPU device on which computations will be performed
-    // note: default value -1 will simply make this command to have no effect
-    cudaSetDevice(device_id);
+    if(device_id!=-1)
+        CudaSafeCall(cudaSetDevice(device_id));
     
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
@@ -272,7 +272,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 
     // single cudaMalloc
     void **p_data;
-    cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP));
+    CudaSafeCall(cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)));
 
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;
@@ -281,11 +281,18 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
     p_data_a += SIZEJ;
     pp_d = p_data_a;
 
-    cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice);
-    cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice);
-    cudaMemcpy(pp_d, php_d, SIZEP*sizeof(TYPE*), cudaMemcpyHostToDevice);
+    CudaSafeCall(cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice));
+    CudaSafeCall(cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice));
+    CudaSafeCall(cudaMemcpy(pp_d, php_d, SIZEP*sizeof(TYPE*), cudaMemcpyHostToDevice));
 
     // Compute on device : grid and block are both 1d
+
+    //cudaDeviceProp deviceProp;
+    //int *dev;
+    //cudaGetDevice(&dev);
+    //cudaGetDeviceProperties(&deviceProp, *dev);
+    //deviceProp.sharedMemPerBlock
+
     dim3 blockSize;
     blockSize.x = CUDA_BLOCK_SIZE; // number of threads in each block
     dim3 gridSize;
@@ -295,9 +302,10 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
     GpuConv1DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
 
     // block until the device has completed
-    cudaDeviceSynchronize();
+    CudaSafeCall(cudaDeviceSynchronize());
+    CudaCheckError();
 
-    cudaFree(p_data);
+    CudaSafeCall(cudaFree(p_data));
 
     return 0;
 }
@@ -308,7 +316,7 @@ static int Eval(FUN fun, int nx, int ny, int device_id, TYPE* x1_d, Args... args
 
     // device_id is provided, so we set the GPU device accordingly
     // Warning : is has to be consistent with location of data
-    cudaSetDevice(device_id);
+    CudaSafeCall(cudaSetDevice(device_id));
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
@@ -351,7 +359,7 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, Args... args) {
     // it looks like it makes a copy of the vector on the default GPU device (0) !!! 
     // So we prefer to avoid this and provide directly the device_id as input (first function above)
     cudaPointerAttributes attributes;
-    cudaPointerGetAttributes(&attributes,x1_d);
+    CudaSafeCall(cudaPointerGetAttributes(&attributes,x1_d));
     return Eval(fun, nx, ny, attributes.device, x1_d, args...);
 }
 
@@ -367,10 +375,10 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args, int device_id=
         // it looks like it makes a copy of the vector on the default GPU device (0) !!! 
 	// So we prefer to avoid this and provide directly the device_id as input (else statement below)
         cudaPointerAttributes attributes;
-        cudaPointerGetAttributes(&attributes,x1_d);
-        cudaSetDevice(attributes.device);
+        CudaSafeCall(cudaPointerGetAttributes(&attributes,x1_d));
+        CudaSafeCall(cudaSetDevice(attributes.device));
     } else // device_id is provided, so we use it. Warning : is has to be consistent with location of data
-        cudaSetDevice(device_id);
+        CudaSafeCall(cudaSetDevice(device_id));
 
     typedef typename FUN::VARSI VARSI;
     typedef typename FUN::VARSJ VARSJ;
