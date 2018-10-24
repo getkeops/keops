@@ -1,31 +1,11 @@
 """
-Create a new formula with KeOps
-===================================================
+Using advanced syntax in formula
+================================
 """
 
 ####################################################################
-# In this demo, we show how to write a (completely) new formula with KeOps.
+# In this demo, we show how to write formulas using advanced syntax with KeOps.
 #
-# Using the low-level 'Sum/logsumexp/max' operators, one can compute
-# (with autodiff, without memory overflows) any formula written as :
-#
-# .. math::
-#
-#      a_i =\text{Reduction}_j(f(p^1, p^2, \cdots, x^1_i, x^2_i, \cdots, y^1_j, y^2_j, \cdots) )
-#
-# or
-#
-# .. math::
-#
-#      b_j = \text{Reduction}_i(f(p^1, p^2, \cdots, x^1_i, x^2_i, \cdots, y^1_j, y^2_j, \cdots) )
-#
-# Where:
-#
-# - the :math:`p^k`   's are vector parameters
-# - the :math:`x^k_i` 's are vector variables, indexed by ``i``
-# - the :math:`y^k_j` 's are vector variables, indexed by ``j``
-# - :math:`f` is an arbitrary function, defined using the :doc:`syntax <../api/math-operations>`
-# - Reduction is one of: ``Sum``, ``lse``(LogSumExp) or ``max`` (generic_max). See :doc:`here <../api/math-operations>`
 #
 # In this demo file, given:
 #

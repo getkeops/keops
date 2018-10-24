@@ -27,17 +27,12 @@ KeOps provides good performances and linear (instead of quadratic) memory footpr
 * :doc:`Learning KeOps syntax with examples <_auto_examples/index>`
 * :doc:`Tutorials gallery <_auto_tutorials/index>`
 
-Project using KeOps
--------------------
+Projects using KeOps
+--------------------
 
 * `Deformetrica <http://www.deformetrica.org>`_ 
 * `FshapesTk <https://plmlab.math.cnrs.fr/benjamin.charlier/fshapesTk>`_
 * `Shapes toolbox <https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox>`_
-
-Related project
----------------
-
-You may also be interrested in `Tensor Comprehensions <https://facebookresearch.github.io/TensorComprehensions/introduction.html>`_.
 
 Authors
 -------
@@ -46,7 +41,12 @@ Feel free to contact us for any bug report or feature request:
 
 - `Benjamin Charlier <http://imag.umontpellier.fr/~charlier/>`_
 - `Jean Feydy <http://www.math.ens.fr/~feydy/>`_
-- `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_ 
+- `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_
+
+Related project
+---------------
+
+You may also be interrested in `Tensor Comprehensions <https://facebookresearch.github.io/TensorComprehensions/introduction.html>`_.
 
 Table of content
 ----------------
