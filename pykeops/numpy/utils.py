@@ -1,11 +1,11 @@
 import numpy as np
 
-from pykeops.common.utils import axis2cat
-
 
 def squared_distances(x, y):
-    return np.sum((x[:,np.newaxis,:] - y[np.newaxis,:,:]) ** 2, axis=2)
-
+    x_norm = (x ** 2).sum(1).reshape(-1, 1)
+    y_norm = (y ** 2).sum(1).reshape(1, -1)
+    dist = x_norm + y_norm - 2.0 * np.matmul(x, y.T)
+    return dist
 
 def differences(x, y):
     return (x.T[:,:,np.newaxis] - y.T[:,np.newaxis,:])

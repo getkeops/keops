@@ -34,6 +34,7 @@ import time
 import torch
 from torch.autograd import grad
 from pykeops.torch import Genred
+import matplotlib.pyplot as plt
 
 #####################################################################
 # Declare random inputs
@@ -65,12 +66,8 @@ start = time.time()
 # The parameter ``reduction_op='Sum'`` together with ``axis=1`` means that the reduction operation is a sum over the second dimension ``j``. Thence the results will be an ``i``-variable.
 
 my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
-c = my_routine(x, y, a, p, backend='CPU')
+c = my_routine(x, y, a, p)
 
-# N.B.: By specifying backend='CPU', we make sure that the result is computed
-#       using a simple C++ for loop.
-
-print('Time to compute the convolution operation on the cpu: ', round(time.time()-start,5), 's')
 
 ####################################################################
 # Define the gradient
@@ -84,31 +81,25 @@ print('Time to compute the convolution operation on the cpu: ', round(time.time(
 
 # Declare a new variable of size Mx3 used as input of the gradient
 e = torch.rand_like(c)
+
 # Call the gradient op:
 start = time.time()
-g = grad(c, y, e)[0]
+
 # PyTorch remark : grad(c, y, e) alone outputs a length 1 tuple, hence the need for [0] at the end.
+g = grad(c, y, e)[0]
 
-print('Time to compute gradient of convolution operation on the cpu: ', round(time.time()-start,5), 's')
-
-
+print('Time to compute gradient of convolution operation with KeOps: ', round(time.time()-start,5), 's')
 
 ####################################################################
-# Same operations performed on the Gpu
-# ------------------------------------
-#
-# This will of course only work if you have a Gpu...
+# the equivalent code with a "vanilla" pytorch implementation
+
+g_torch = ((p - a.transpose(0, 1))[:, None] **2 * torch.exp(x.transpose(0, 1)[:, :, None] + y.transpose(0, 1)[:, None, :]) * e.transpose(0, 1)[:, :, None] ).sum(dim=1).transpose(0, 1)
 
 
-if torch.cuda.is_available():
-    # first transfer data on gpu
-    p,a,x,y,e = p.cuda(), a.cuda(), x.cuda(), y.cuda(), e.cuda()
-    # then call the operations
-    start = time.time()
-    c2 = my_routine(x, y, a, p, backend='GPU')
-    print('Time to compute convolution operation on gpu:',round(time.time()-start,5), 's ', end='')
-    print('(relative error:', float(torch.abs((c - c2.cpu()) / c).mean()), ')')
-    start = time.time()
-    g2 = grad(c2, y, e)[0]
-    print('Time to compute gradient of convolution operation on gpu:', round(time.time()-start,5), 's ', end='')
-    print('(relative error:', float(torch.abs((g - g2.cpu()) / g).mean()), ')')
+# compare the results by plotting some values
+for i in range(3):
+    plt.subplot(1, 3, i+1)
+    plt.plot(g.detach().numpy()[:40,i], '-', label='keops')
+    plt.plot(g_torch.detach().numpy()[:40,i], '--', label='numpy')
+    plt.legend(loc='upper center')
+plt.show()

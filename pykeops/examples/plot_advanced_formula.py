@@ -1,75 +1,29 @@
 """
-Using advanced syntax in formula
-================================
+Using advanced syntax in formulas
+=================================
+
+In this demo, we show how to write generic formulas using KeOps syntax.
 """
 
 ####################################################################
-# In this demo, we show how to write formulas using advanced syntax with KeOps.
-#
+# Standard imports
+
+import torch
+from pykeops.torch import Genred
+import matplotlib.pyplot as plt
+
+# Choose the storage place for our data : CPU (host) or GPU (device) memory.
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+####################################################################
+# Define our dataset
+# ------------------
 #
 # In this demo file, given:
 #
 # - :math:`p`,   a vector of size 2
 # - :math:`x_i`, an N-by-D array
 # - :math:`y_j`, an M-by-D array
-#
-# We will compute :math:`(a_i)`, an N-by-D array given by:
-#
-# .. math::
-#
-#   a_i = \sum_{j=1}^M (\langle x_i,y_j \rangle^2) (p_0 x_i + p_1 y_j) 
-# 
-# N.B.: if you are just interested in writing a new 'kernel' formula, you may use the (more convenient) syntax showcased in :doc:`custom_kernel.py <../_auto_examples/plot_generic_syntax_pytorch>`.
-
-
-####################################################################
-# Standard imports
-
-import torch
-from torch.autograd import grad
-from pykeops.torch import Genred
-
-# Choose the storage place for our data : CPU (host) or GPU (device) memory.
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-
-def my_formula(p, x, y, backend = 'auto') :
-    """
-    Applies a custom formula on the torch variables P, X and Y.
-    Two backends are provided, so that we can check the correctness
-    of both implementations.
-    """
-    # Vanilla PyTorch implementation
-    if backend == 'pytorch':
-        scals = (torch.mm(x, y.t()))**2 # Memory-intensive computation!
-        a = p[0] * scals.sum(dim=1).view(-1,1) * x + p[1] * (torch.mm(scals, y))
-        return a
-    
-    # KeOps implementation
-    else:
-        # We now expose the low-level syntax of KeOps.
-        # The library relies on vector 'Variables' which can be either:
-        # - indexed by 'i' ('x' variables, category 0)
-        # - indexed by 'j' ('y' variables, category 1)
-        # - constant across the reduction ('parameters', category 2)
-        #
-        # First of all, we must define a 'who's who' list of the variables used,
-        # by specifying their categories, index in the arguments' list, and dimensions:
-        variables = ['P = Pm(2)',                        # 1st argument,  a parameter, dim 2.
-                     'X = Vx(' + str(x.shape[1]) + ')',  # 2nd argument, indexed by i, dim D.
-                     'Y = Vy(' + str(y.shape[1]) + ')']  # 3rd argument, indexed by j, dim D.
-
-        # The actual formula:
-        # a_i   =   (<x_i,y_j>**2) * (       p[0]*x_i  +       p[1]*y_j )
-        formula = 'Pow( (X|Y) , 2) * ( (Elem(P,0) * X) + (Elem(P,1) * Y) )'
-
-        my_routine = Genred(formula, variables, reduction_op='Sum', axis=1)
-        a = my_routine(p, x, y, backend=backend)
-        return a
-
-####################################################################
-# Define our dataset
-# ------------------
 
 N = 1000
 M = 2000
@@ -86,20 +40,36 @@ y = torch.randn(M, D, requires_grad=True , device=device)
 # + some random gradient to backprop:
 g = torch.randn(N, D, requires_grad=True, device=device)
 
+
 ####################################################################
-# Perform the tests
-# -----------------
+# Accessing a coordinate of a parameter
+# -------------------------------------
+#
+# We will compute :math:`(a_i)`, an N-by-D array given by:
+#
+# .. math::
+#
+#   a_i = \sum_{j=1}^M (\langle x_i,y_j \rangle^2) (p_0 x_i + p_1 y_j)
+#
+# where the two real parameters are stored in a 2-vector :math:`p=(p_0,p_1)`
 
-for backend in ['pytorch', 'auto'] :
-    print('Backend :', backend, '============================' )
-    a = my_formula(p, x, y, backend=backend)
+# Keops implementation
+formula = 'Pow((X|Y), 2) * ((Elem(P, 0) * X) + (Elem(P, 1) * Y))'
+variables = ['P = Pm(2)',                        # 1st argument,  a parameter, dim 2.
+             'X = Vx(3)',  # 2nd argument, indexed by i, dim D.
+             'Y = Vy(3)']  # 3rd argument, indexed by j, dim D.
 
-    # We can compute gradients wrt all Variables - just like with 
-    # any other PyTorch operator.
-    # Notice the 'create_graph=True', which allows us to compute
-    # higher order derivatives if needed.
-    [grad_p, grad_y] = grad(a, [p, y], g, create_graph=True)
+my_routine = Genred(formula, variables, reduction_op='Sum', axis=1)
+a_keops = my_routine(p, x, y)
 
-    print('(a_i) :', a[:3,:])
-    print('(∂_p a).g :', grad_p )
-    print('(∂_y a).g :', grad_y[:3,:])
+# Vanilla PyTorch implementation
+scals = (torch.mm(x, y.t())) ** 2  # Memory-intensive computation!
+a_pytorch = p[0] * scals.sum(dim=1).view(-1, 1) * x + p[1] * (torch.mm(scals, y))
+
+# Check the results
+for i in range(3):
+    plt.subplot(1, 3, i+1)
+    plt.plot(a_keops[:40, i], '-')
+    plt.plot(a_pytorch[:40, i], '--')
+plt.legend()
+plt.show()

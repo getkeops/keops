@@ -42,14 +42,14 @@ Of course, using the same index ``k`` for two different variables is not allowed
 An example
 ----------
 
-Asume we want to compute the following sum
+Assume we want to compute the following sum
 
 .. math::
 
   f(p,x,y,\beta)_i = \left(\sum_{j=1}^M (p -\beta_j )^2 \exp(x_i^u + y_j^u) \right)_{u=1,2,3} \in \mathbb R^3
 
 
-where :math:`p \in \mathbb R` is a constant, :math:`x \in \mathbb R^{N\times 3}`, :math:`y \in \mathbb R^{M\times 3}`, :math:`\beta \in \mathbb R^M`. From the "variables" symbolic placeholders, one can build the function ``f`` using the syntax 
+where :math:`p \in \mathbb R` is a constant, :math:`x \in \mathbb R^{N\times 3}`, :math:`y \in \mathbb R^{M\times 3}`, :math:`\beta \in \mathbb R^M`. In this case, we have :math:`\iota_0 = \emptyset` since :math:`p` is a parameter,  :math:`\iota_1 = i` since :math:`x` is a variable indexed by ``i`` and   :math:`\iota_2 = j` as :math:`y` is a variable indexed by ``j``. From the "variables" symbolic placeholders, one can build the function ``f`` using the syntax
 
 .. code-block:: cpp
 
