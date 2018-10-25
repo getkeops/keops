@@ -6,10 +6,10 @@
 extern "C" int CpuReduc(int, int, __TYPE__*, __TYPE__**);
 
 #if USE_CUDA 
-extern "C" int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuReduc1D_FromDevice(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuReduc2D_FromDevice(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**, int);
+extern "C" int GpuReduc1D_FromDevice(int, int, __TYPE__*, __TYPE__**, int);
+extern "C" int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**, int);
+extern "C" int GpuReduc2D_FromDevice(int, int, __TYPE__*, __TYPE__**, int);
 #endif
 
 using namespace keops;
@@ -220,14 +220,14 @@ else
         CpuReduc( n[0], n[1], castedgamma, castedargs);
     else if(tagCpuGpu==1) 
         if(tag1D2D==0)
-            GpuReduc1D_FromHost( n[0], n[1], castedgamma, castedargs);
+            GpuReduc1D_FromHost( n[0], n[1], castedgamma, castedargs, -1);
         else
-            GpuReduc2D_FromHost( n[0], n[1], castedgamma, castedargs);
+            GpuReduc2D_FromHost( n[0], n[1], castedgamma, castedargs, -1);
     else if(tagCpuGpu==2)
         if(tag1D2D==0)
-            GpuReduc1D_FromDevice( n[0], n[1], castedgamma, castedargs);
+            GpuReduc1D_FromDevice( n[0], n[1], castedgamma, castedargs, -1);
         else
-            GpuReduc2D_FromDevice( n[0], n[1], castedgamma, castedargs);
+            GpuReduc2D_FromDevice( n[0], n[1], castedgamma, castedargs, -1);
 #else
     if(tagCpuGpu != 0)
         mexWarnMsgTxt("CPU Routine are used. To suppress this warning set tagCpuGpu to 0.");
