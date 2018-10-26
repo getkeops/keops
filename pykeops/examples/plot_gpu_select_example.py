@@ -14,10 +14,11 @@ operation will be performed, on systems having several devices.
 import pykeops
 pykeops.verbose = False
 
+import torch
 
 # Define the list of gpu ids to be tested
 # By default we assume we have two Gpus available, labeled 0 and 1
-gpuids = [0,1]
+gpuids = [0,1] if torch.cuda.device_count() > 1 else [0]
 
 ###############################################################
 #  -------------------------

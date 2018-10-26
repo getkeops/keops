@@ -69,7 +69,7 @@ a_pytorch = p[0] * scals.sum(dim=1).view(-1, 1) * x + p[1] * (torch.mm(scals, y)
 # Check the results
 for i in range(3):
     plt.subplot(1, 3, i+1)
-    plt.plot(a_keops[:40, i], '-')
-    plt.plot(a_pytorch[:40, i], '--')
+    plt.plot(a_keops[:40, i].detach().cpu().numpy(), '-')
+    plt.plot(a_pytorch[:40, i].detach().cpu().numpy(), '--')
 plt.legend()
 plt.show()
