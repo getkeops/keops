@@ -39,6 +39,8 @@ end
 options = setoptions(options,'tagCpuGpu',1);
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 options = setoptions(options,'tag1D2D',0);
+% device_id is id of GPU device in case several GPUs can be used
+options = setoptions(options,'device_id',0);
 
 % detect formula and aliases from inputs. Formula should be the only string
 % without '=' character.
@@ -92,7 +94,7 @@ function out = Eval(varargin)
     else
     nx = size(varargin{indxy(1)},2);
     ny = size(varargin{indxy(2)},2);
-    out = feval(Fname,nx,ny,options.tagCpuGpu,options.tag1D2D,varargin{:});
+    out = feval(Fname,nx,ny,options.tagCpuGpu,options.tag1D2D,options.device_id,varargin{:});
     if options.sumoutput
         out = sum(out,2); % '2' because we sum with respect to index, not dimension !
     end

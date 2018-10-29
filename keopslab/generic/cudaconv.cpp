@@ -85,8 +85,8 @@ info[0] = NMINARGS;
 else
 {
     // number of input arrays of the matlab function. 
-    // The "-4" is because there are 4 parameter inputs before the list of arrays : nx, ny, tagCpuGpu, tagID2D
-    int nargs = nrhs-4;	
+    // The "-5" is because there are 4 parameter inputs before the list of arrays : nx, ny, tagCpuGpu, tagID2D, device_id
+    int nargs = nrhs-5;	
 
     if(nargs<NMINARGS)
         mexErrMsgTxt("Formula requires more input arrays to be evaluated");
@@ -135,14 +135,20 @@ else
 
     //----- the next input arguments: tagCpuGpu--------------//
     if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
-        mexErrMsgTxt("fourth arg should be scalar tagCpuGpu");
+        mexErrMsgTxt("third arg should be scalar tagCpuGpu");
     int tagCpuGpu = *mxGetPr(prhs[argu]);
     argu++;
 
     //----- the next input arguments: tag1D2D--------------//
     if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
-        mexErrMsgTxt("fifth arg should be scalar tag1D2D");
+        mexErrMsgTxt("fourth arg should be scalar tag1D2D");
     int tag1D2D = *mxGetPr(prhs[argu]);
+    argu++;
+
+    //----- the next input arguments: device_id--------------//
+    if(mxGetM(prhs[argu])!=1 || mxGetN(prhs[argu])!=1)
+        mexErrMsgTxt("fifth arg should be scalar device_id");
+    int device_id = *mxGetPr(prhs[argu]);
     argu++;
 
     int *typeargs = new int[NMINARGS];
@@ -220,14 +226,14 @@ else
         CpuReduc( n[0], n[1], castedgamma, castedargs);
     else if(tagCpuGpu==1) 
         if(tag1D2D==0)
-            GpuReduc1D_FromHost( n[0], n[1], castedgamma, castedargs, -1);
+            GpuReduc1D_FromHost( n[0], n[1], castedgamma, castedargs, device_id);
         else
-            GpuReduc2D_FromHost( n[0], n[1], castedgamma, castedargs, -1);
+            GpuReduc2D_FromHost( n[0], n[1], castedgamma, castedargs, device_id);
     else if(tagCpuGpu==2)
         if(tag1D2D==0)
-            GpuReduc1D_FromDevice( n[0], n[1], castedgamma, castedargs, -1);
+            GpuReduc1D_FromDevice( n[0], n[1], castedgamma, castedargs, device_id);
         else
-            GpuReduc2D_FromDevice( n[0], n[1], castedgamma, castedargs, -1);
+            GpuReduc2D_FromDevice( n[0], n[1], castedgamma, castedargs, device_id);
 #else
     if(tagCpuGpu != 0)
         mexWarnMsgTxt("CPU Routine are used. To suppress this warning set tagCpuGpu to 0.");

@@ -65,7 +65,7 @@ def extract_metric_parameters(G):
         G_cat = 2
         G_dim = G.shape[0]
     else:
-        raise ValueError("A 'metric' parameter is expected to be of dimension 1 or 2.")
+        raise ValueError("[KeOps] A 'metric' parameter is expected to be of dimension 1 or 2.")
 
     G_str = ["Vx", "Vy", "Pm"][G_cat]
     return G_var, G_dim, G_cat, G_str
@@ -94,7 +94,7 @@ def _weighted_squared_distances(g, x, y):
             Gxmy = (G * xmy_).sum(3)  #  Shape (N,M,D,D) -> (N,M,D)
             return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G (x_i-y_j) >
         else:
-            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
+            raise ValueError("[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
 
     elif g_cat == 0:  # g is a 'i' variable
         if g_dim == 1:  # g_i is scalar
@@ -112,7 +112,7 @@ def _weighted_squared_distances(g, x, y):
             return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_i (x_i-y_j) >
 
         else:
-            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
+            raise ValueError("[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
 
     elif g_cat == 1:  # g is a 'j' variable
         if g_dim == 1:  # g_j is scalar
@@ -130,10 +130,10 @@ def _weighted_squared_distances(g, x, y):
             return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_j (x_i-y_j) >
 
         else:
-            raise ValueError("We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
+            raise ValueError("[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
 
     else:
-        raise ValueError("A metric parameter should either be a vector or a 2d-tensor.")
+        raise ValueError("[KeOps] A metric parameter should either be a vector or a 2d-tensor.")
     
 
 
