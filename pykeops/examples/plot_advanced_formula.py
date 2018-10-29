@@ -64,12 +64,12 @@ a_keops = my_routine(p, x, y)
 
 # Vanilla PyTorch implementation
 scals = (torch.mm(x, y.t())) ** 2  # Memory-intensive computation!
-a_pytorch = p[0] * scals.sum(dim=1).view(-1, 1) * x + p[1] * (torch.mm(scals, y))
+a_pytorch = p[0] * scals.sum(1).view(-1, 1) * x + p[1] * (torch.mm(scals, y))
 
 # Check the results
 for i in range(3):
     plt.subplot(1, 3, i+1)
-    plt.plot(a_keops[:40, i], '-')
-    plt.plot(a_pytorch[:40, i], '--')
+    plt.plot(a_keops.detach().cpu().numpy()[:40, i], '-')
+    plt.plot(a_pytorch.detach().cpu().numpy()[:40, i], '--')
 plt.legend()
 plt.show()

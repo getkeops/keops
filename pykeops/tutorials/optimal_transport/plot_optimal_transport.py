@@ -8,8 +8,8 @@ from torch.autograd import grad
 from pykeops.torch import Kernel, kernel_product
 
 import numpy as np
+import imageio
 from matplotlib import pyplot as plt
-from scipy import misc
 from time import time
 
 tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
@@ -86,7 +86,7 @@ def OT_distance(params, Mu, Nu):
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 def LoadImage(fname):
-    img = misc.imread(fname, flatten=True)  # Grayscale
+    img = imageio.imread(fname, as_gray=True)  # Grayscale
     img = (img[::-1, :]) / 255.  # [0,1] range
     return tensor(1 - img)  # Black = 1, White = no mass
 

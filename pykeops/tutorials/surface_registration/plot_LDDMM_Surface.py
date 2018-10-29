@@ -212,10 +212,11 @@ def closure():
 
 
 optimizer.step(closure)
-print('Optimization time (one L-BFGS step): ', round(time.time() - start, 2), ' seconds')
+print('Optimization (L-BFGS) time: ', round(time.time() - start, 2), ' seconds')
 
 ####################################################################
 # display output
+# --------------
 
 fig = plt.figure()
 plt.title('LDDMM matching example')
@@ -224,7 +225,7 @@ p, q = Shooting(p0, q0, Kv)
 q0np, qnp, FSnp = q0.detach().cpu().numpy(), q.detach().cpu().numpy(), FS.detach().cpu().numpy()
 VTnp, FTnp = VT.detach().cpu().numpy(), FT.detach().cpu().numpy()
 ax = Axes3D(fig)
-ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(1, 0, 0, .5), edgecolor=(1, 1, 1, .3), linewidth=1)
+ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(0, 0, 0, 0), edgecolor=(1, 0, 0, .08), linewidth=1)
 ax.plot_trisurf(qnp[:, 0], qnp[:, 1], qnp[:, 2], triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3), linewidth=1)
 ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0), edgecolor=(0, 0, 1, .3), linewidth=1)
 ax.axis('equal')

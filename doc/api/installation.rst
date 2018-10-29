@@ -1,5 +1,5 @@
-How to install KeOps?
-=====================
+Installation
+============
 
 The core of KeOps relies on a set of C++/CUDA routines for which we provide bindings in the following languages:
 

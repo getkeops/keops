@@ -63,7 +63,7 @@ alongside its **derivatives** with respect to all the variables and parameters.
 
 As of today, we support:
 
-- Various reduction operations: Summation, (online, numerically stable) :doc:`LogSumExp reduction <../_auto_examples/plot_generic_syntax_pytorch_LSE>`, :doc:`min <../_auto_tutorials/kmeans/plot_kmeans>`, max, ...
+- Various reduction operations: Summation, (online, numerically stable) :doc:`LogSumExp reduction <../_auto_examples/plot_generic_syntax_pytorch_LSE>`, :doc:`min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, max, ...
 - Custom high-level (``'gaussian(x,y) * (1+linear(u,v)**2)'``) and low-levels (``'Exp(-G*SqDist(X,Y)) * ( IntCst(1) + Pow((U|V), 2) )'``) syntaxes to compute general formulas
 - :doc:`High-order derivatives with respect to all parameters and variables <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>`
 - :doc:`Non-radial kernels <../_auto_examples/plot_anisotropic_kernels>`

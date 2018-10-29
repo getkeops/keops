@@ -42,13 +42,16 @@ import matplotlib.pyplot as plt
 M = 3000
 N = 5000
 
+# Choose the storage place for our data : CPU (host) or GPU (device) memory.
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 type = 'float32' # Could be 'float32' or 'float64'
 torchtype = torch.float32 if type == 'float32' else torch.float64
 
-x = torch.randn(M, 3, dtype=torchtype)
-y = torch.randn(N, 3, dtype=torchtype, requires_grad=True)
-a = torch.randn(N, 1, dtype=torchtype)
-p = torch.randn(1, 1, dtype=torchtype)
+x = torch.randn(M, 3, dtype=torchtype, device=device)
+y = torch.randn(N, 3, dtype=torchtype, device=device, requires_grad=True)
+a = torch.randn(N, 1, dtype=torchtype, device=device)
+p = torch.randn(1, 1, dtype=torchtype, device=device)
 
 ####################################################################
 # Define the kernel
@@ -99,7 +102,7 @@ g_torch = ((p - a.transpose(0, 1))[:, None] **2 * torch.exp(x.transpose(0, 1)[:,
 # compare the results by plotting some values
 for i in range(3):
     plt.subplot(1, 3, i+1)
-    plt.plot(g.detach().numpy()[:40,i], '-', label='keops')
-    plt.plot(g_torch.detach().numpy()[:40,i], '--', label='numpy')
+    plt.plot(g.detach().cpu().numpy()[:40,i], '-', label='keops')
+    plt.plot(g_torch.detach().cpu().numpy()[:40,i], '--', label='numpy')
     plt.legend(loc='upper center')
 plt.show()

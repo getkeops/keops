@@ -53,13 +53,17 @@ Table of content
 
 .. toctree::
    :maxdepth: 2
+
+   api/installation
+   api/why_using_keops
+
+.. toctree::
+   :maxdepth: 2
    :caption: KeOps
 
-   api/why_using_keops
-   api/installation
-   api/road-map
    api/math-operations
    api/autodiff
+   api/road-map
 
 .. toctree::
    :maxdepth: 2

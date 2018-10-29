@@ -10,13 +10,14 @@ Benchmark KeOps vs pytorch on convolution gradients
 
 import numpy as np
 import timeit
+import matplotlib
 from matplotlib import pyplot as plt
 
 from pykeops.numpy.utils import grad_np_kernel, chain_rules
 
 # size of the test
-M = 2000
-N = 2000
+M = 10000
+N = 10000
 D = 3
 E = 3
 
@@ -50,7 +51,7 @@ except:
 ####################################################################
 # Start Benchmarks
 # ----------------
-#
+# 
 # Define the parameters
 
 print('Times to compute convolutions of size {}x{}:'.format(M, N), end='\n')
@@ -64,13 +65,13 @@ speed_pykeops = {i:np.nan for i in kernel_to_test}
 speed_pytorch = {i:np.nan for i in kernel_to_test}
 speed_pykeops_specific = {i:np.nan for i in kernel_to_test}
 
-for k in  kernel_to_test:
+for k in kernel_to_test:
     print('kernel: ' + k)
 
     # pure numpy
     gnumpy = chain_rules(a, x, y, grad_np_kernel(x, y, sigma, kernel=k), b)
-    speed_numpy[k] = timeit.Timer('gnumpy = chain_rules(a, x, y, grad_np_kernel(x, y, sigma, kernel=k), b)', globals=globals()).timeit(5)/5
-    print('Time for numpy:            {:.4f}s'.format(speed_numpy[k]))
+    speed_numpy[k] = timeit.repeat('gnumpy = chain_rules(a, x, y, grad_np_kernel(x, y, sigma, kernel=k), b)', globals=globals(), repeat=5, number=1)
+    print('Time for numpy:               {:.4f}s'.format(np.median(speed_numpy[k])))
     
     
     
@@ -86,8 +87,8 @@ for k in  kernel_to_test:
     
         aKxy_b = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))
         g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
-        speed_pykeops[k] = timeit.Timer("g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1)), xc, create_graph=False)[0]", globals=globals()).timeit(200)/200
-        print('Time for Keops+pytorch:    {:.4f}s'.format(speed_pykeops[k]),end='')
+        speed_pykeops[k] =  np.array(timeit.repeat("g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1)), xc, create_graph=False)[0]", globals=globals(), repeat=100, number=4)) / 4
+        print('Time for keops generic:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
         print('   (absolute error:       ', np.max(np.abs(g3.data.numpy() - gnumpy)), ')')
     except:
         print('Time for keops generic:       Not Done')
@@ -98,17 +99,17 @@ for k in  kernel_to_test:
     # vanilla pytorch (with cuda if available else uses cpu)
     try:
         from pykeops.torch import Kernel, kernel_product
-
+        
         params = {
             'id': Kernel(k + '(x,y)'),
             'gamma': 1. / (sigmac * sigmac),
             'backend': 'pytorch',
         }
-
+        
         aKxy_b = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))
         g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
-        speed_pytorch[k] = timeit.Timer("g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1)), xc, create_graph=False)[0]", globals=globals()).timeit(200)/200
-        print('Time for Pytorch:          {:.4f}s'.format(speed_pytorch[k]),end='')
+        speed_pytorch[k] =  np.array(timeit.repeat("g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1)), xc, create_graph=False)[0]", globals=globals(), repeat=100, number=4)) / 4
+        print('Time for Pytorch:             {:.4f}s'.format(np.median(speed_pytorch[k])), end='')
         print('   (absolute error:       ', np.max(np.abs(g3.data.numpy() - gnumpy)), ')')
     except:
         print('Time for Pytorch:             Not Done')
@@ -121,23 +122,45 @@ for k in  kernel_to_test:
         my_conv = RadialKernelGrad1conv(type)
         g1 = my_conv(a, x, y, b, sigma, kernel=k)
         
-        speed_pykeops_specific[k] = timeit.Timer('g1 = my_conv(a, x, y, b, sigma, kernel=k)', globals=globals()).timeit(200)/200
-        print('Time for keops specific:   {:.4f}s'.format(speed_pykeops_specific[k]),end="")
+        speed_pykeops_specific[k] =  np.array(timeit.repeat('g1 = my_conv(a, x, y, b, sigma, kernel=k)', globals=globals(), repeat=100, number=4))/4
+        print('Time for keops cuda specific: {:.4f}s'.format(np.median(speed_pykeops_specific[k])), end='')
         print('   (absolute error:       ', np.max(np.abs (g1 - gnumpy)), ')')
     except:
         print('Time for keops cuda specific: Not Done')
 
 
-
 ####################################################################
 # display results
 
-plt.plot(kernel_to_test, speed_numpy.values(), linestyle='--', marker='s', color='green', markersize=15, label='numpy')
-plt.plot(kernel_to_test, speed_pykeops.values(), linestyle='--', marker='*', color='red', markersize=15, label='pykeops')
-plt.plot(kernel_to_test, speed_pykeops_specific.values(), linestyle='None', marker='d', color='orange', markersize=15, label='pykeops specific routines')
-plt.plot(kernel_to_test, speed_pytorch.values(), linestyle='None', marker='p', color='blue', markersize=15, label='pytorch')
+# plot violin plot
+plt.violinplot(list(speed_numpy.values()),
+               showmeans=False,
+               showmedians=True,
+               )
+plt.violinplot(list(speed_pytorch.values()),
+               showmeans=False,
+               showmedians=True,
+               )
+plt.violinplot(list(speed_pykeops.values()),
+               showmeans=False,
+               showmedians=True,
+               )
+plt.violinplot(list(speed_pykeops_specific.values()),
+               showmeans=False,
+               showmedians=True,
+               )
 
+plt.xticks([1, 2, 3, 4], kernel_to_test)
 plt.yscale('log')
+# plt.ylim((0, .01))
+
 plt.grid(True)
-plt.legend(loc='best')
+plt.xlabel('kernel type')
+plt.ylabel('time in s.')
+
+cmap = plt.get_cmap("tab10")
+fake_handles = [matplotlib.patches.Patch(color=cmap(i)) for i in range(4)]
+
+plt.legend(fake_handles, ['numpy', 'pytorch', 'pykeops', 'pykeos specific'], loc='best')
+
 plt.show()
