@@ -2,26 +2,47 @@
    :width: 100% 
    :alt: Keops logo
 
-KeOps library
--------------
+Kernel Operations on the GPU, with autodiff, without memory overflows
+---------------------------------------------------------------------
 
-KeOps is a library that computes on a GPU **generic reductions** of 2d arrays whose entries may be computed through a mathematical formula. We provide an autodiff engine to generate effortlessly the formula of the derivative. For instance, KeOps can compute **Kernel dot products** and **their derivatives**. 
+The KeOps library lets you compute generic reductions of **large 2d arrays** whose entries are given by a mathematical formula. It combines a tiled reduction scheme with a symbolic differentiation engine, and can be used through Matlab, NumPy or PyTorch backends.
+It is perfectly suited to the computation of **Kernel dot products**
+and the associated gradients,
+even when the full kernel matrix does *not* fit into the GPU memory.
 
-A typical sample of (pseudo) code looks like
+Using the PyTorch backend, a typical sample of code looks like:
 
 .. code-block:: python
 
-    from keops import Genred
-    
-    # create the function computing the derivative of a Gaussian convolution
-    my_conv = Genred(reduction='Sum',
-                     formula='Grad(Exp(SqNorm2(x-y) / Cst(2)), x, b)',
-                     alias=['x=Vx(3)', 'y=Vy(3)', 'b=Vx(3)'])
-    
-    # ... apply it to the 2d array x, y, b with 3 columns and a (huge) number of lines
-    result = my_conv(x,y,b)
+    import torch
+    from pykeops.torch import generic_sum
 
-KeOps provides good performances and linear (instead of quadratic) memory footprint. It handles multi GPU. More details are provided here:
+    # Gaussian convolution between point clouds in R^3
+    my_conv = generic_sum( 'Exp( -SqNorm2(x-y) )',    # formula
+                           'a = Vx(1)',  # output:    1 scalar per line
+                           'x = Vx(3)',  # 1st input: dim-3 vector per line
+                           'y = Vy(3)')  # 2nd input: dim-3 vector per column
+
+    # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
+    x = torch.randn( 1000000, 3, requires_grad=True).cuda()
+    y = torch.randn( 2000000, 3).cuda()
+    out = my_conv(x,y) # shape (1000000, 1)
+    out.logsumexp(dim=0).backward()  # KeOps supports autodiff!
+
+KeOps allows you to leverage your GPU without compromising on usability.
+It provides:
+
+* Linear (instead of quadratic) memory footprint for Kernel operations.
+* Support for a wide range of mathematical formulas.
+* Seamless computation of derivatives, up to arbitrary orders.
+* Sum, LogSumExp, Min, Max but also ArgMin, ArgMax or K-min reductions.
+* Support for multi GPU.
+
+KeOps can thus be used in a wide variety of settings, 
+from shape analysis (LDDMM, optimal transport...)
+to machine learning (kernel methods, k-means...)
+or kriging (aka. Gaussian process regression).
+More details are provided here:
 
 * :doc:`Documentation <api/why_using_keops>`.
 * `Source code <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops>`_
@@ -47,7 +68,7 @@ Feel free to contact us for any bug report or feature request:
 Related project
 ---------------
 
-You may also be interrested in `Tensor Comprehensions <https://facebookresearch.github.io/TensorComprehensions/introduction.html>`_.
+You may also be interested in `Tensor Comprehensions <https://facebookresearch.github.io/TensorComprehensions/introduction.html>`_.
 
 Table of content
 ----------------
