@@ -94,10 +94,9 @@ g = grad(c, y, e)[0]
 print('Time to compute gradient of convolution operation with KeOps: ', round(time.time()-start,5), 's')
 
 ####################################################################
-# the equivalent code with a "vanilla" pytorch implementation
+# The equivalent code with a "vanilla" pytorch implementation
 
 g_torch = ((p - a.transpose(0, 1))[:, None] **2 * torch.exp(x.transpose(0, 1)[:, :, None] + y.transpose(0, 1)[:, None, :]) * e.transpose(0, 1)[:, :, None] ).sum(dim=1).transpose(0, 1)
-
 
 # compare the results by plotting some values
 for i in range(3):

@@ -39,6 +39,8 @@ For instance, ``Vx(2,4)`` specifies a variable indexed by ``i``, given as the th
 
 Of course, using the same index ``k`` for two different variables is not allowed and will be rejected by the compiler.
 
+.. _`formula.example`:
+
 An example
 ----------
 
@@ -46,10 +48,10 @@ Assume we want to compute the following sum
 
 .. math::
 
-  f(p,x,y,\beta)_i = \left(\sum_{j=1}^M (p -\beta_j )^2 \exp(x_i^u + y_j^u) \right)_{u=1,2,3} \in \mathbb R^3
+  f(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{u=1,2,3} \in \mathbb R^3
 
 
-where :math:`p \in \mathbb R` is a constant, :math:`x \in \mathbb R^{N\times 3}`, :math:`y \in \mathbb R^{M\times 3}`, :math:`\beta \in \mathbb R^M`. In this case, we have :math:`\iota_0 = \emptyset` since :math:`p` is a parameter,  :math:`\iota_1 = i` since :math:`x` is a variable indexed by ``i`` and   :math:`\iota_2 = j` as :math:`y` is a variable indexed by ``j``. From the "variables" symbolic placeholders, one can build the function ``f`` using the syntax
+where :math:`p \in \mathbb R` is a constant, :math:`x \in \mathbb R^{M\times 3}`, :math:`y \in \mathbb R^{N\times 3}`, :math:`a \in \mathbb R^N`. In this case, we have :math:`\iota_0 = \emptyset` since :math:`p` is a parameter,  :math:`\iota_1 = i` since :math:`x` is a variable indexed by ``i`` and   :math:`\iota_2 = j` as :math:`y` is a variable indexed by ``j``. From the "variables" symbolic placeholders, one can build the function ``f`` using the syntax
 
 .. code-block:: cpp
 
@@ -59,11 +61,11 @@ in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (e
 
 The operations available are listed :ref:`part.mathOperation`.
 
-Variables can be given aliases, allowing us to write human-readable expressions for our formula. For example, one may define ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``beta=Vy(3,1)``, and write the previous computation as
+Variables can be given aliases, allowing us to write human-readable expressions for our formula. For example, one may define ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``a=Vy(3,1)``, and write the previous computation as
 
 .. code-block:: cpp
 
-    Square(p-beta)*Exp(x+y)
+    Square(p - a) * Exp(x + y)
 
 .. _`part.mathOperation`:
 
@@ -88,11 +90,11 @@ Here is a list of the implemented operations that can be used in formulas:
 ``SqNorm2(f)``            squared L2 norm, same as ``(f|f)``
 ``Norm2(f)``              L2 norm, same as ``Sqrt((f|f))``
 ``Normalize(f)``          normalize vector, same as ``Rsqrt(SqNorm2(f)) * f``
-``Grad(f,x,e)``           gradient of ``f`` with respect to the variable ``x``, with ``e`` as the "grad_output" to backpropagate
+``Grad(f,x,e)``           gradient of ``f`` with respect to the variable ``x``, with ``e`` as the "grad_input" to backpropagate
 ``IntCst(N)``             integer constant N
 ``Zero(N)``               vector of zeros of size N
 ``Inv(f)``                element-wise inverse (1 ./ f)
-``IntInv(N)``             alias for ``Inv(IntCst(N)) : 1/N``
+``IntInv(N)``             alias for ``Inv(IntCst(N))`` : 1/N
 ``Elem(f, M)``            extract M-th element of vector ``f``
 ``ElemT(f, N, M)``        insert scalar value ``f`` at position M in a vector of zeros of length N
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)

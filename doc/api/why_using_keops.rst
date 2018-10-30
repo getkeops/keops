@@ -6,20 +6,20 @@ Scalable computations kernel operations
 
 The very first motivation of KeOps was to compute fast and scalable Gaussian convolutions (aka. **RBF kernel product**). Given:
 
-- a target point cloud :math:`(x_i)_{i=1}^N \in  \mathbb R^{N \times D}`
-- a source point cloud :math:`(y_j)_{j=1}^M \in  \mathbb R^{M \times D}`
-- a signal or vector field :math:`(b_j)_{j=1}^M \in  \mathbb R^{M \times E}` attached to the :math:`y_j`'s
+- a target point cloud :math:`(x_i)_{i=1}^M \in  \mathbb R^{M \times D}`
+- a source point cloud :math:`(y_j)_{j=1}^N \in  \mathbb R^{N \times D}`
+- a signal or vector field :math:`(b_j)_{j=1}^N \in  \mathbb R^{N \times E}` attached to the :math:`y_j`'s
 
-we strive to compute efficiently the array :math:`(a_i)_{i=1}^N \in  \mathbb R^{N \times E}` given by
+we strive to compute efficiently the array :math:`(a_i)_{i=1}^M \in  \mathbb R^{M \times E}` given by
 
 .. math::
-    a_i =  \sum_j K(x_i,y_j) b_j,  \qquad i=1,\cdots,N
+    a_i =  \sum_j K(x_i,y_j) b_j,  \qquad i=1,\cdots,M
 
 
 where :math:`K(x_i,y_j) = \exp(-\|x_i - y_j\|^2 / \sigma^2)`. Another useful quantity that we need to compute is the derivative of :math:`a_i` with respect to the :math:`x_i`'s,
 
 .. math::
-   a_i' =  \sum_j K'(x_i,y_j) b_j,  \qquad i=1,\cdots,N
+   a_i' =  \sum_j K'(x_i,y_j) b_j,  \qquad i=1,\cdots,M
 
 where :math:`K'(x_i,y_j) = \partial_x \exp(-\|x_i - y_j\|^2 / \sigma^2)`. KeOps allows you to compute both :math:`a_i` and :math:`a_i'` efficiently with its automatic differentiation module - that is, without needing to code explicitly the formula :math:`K'(x_i,y_j) = -2(x_i - y_j) \exp(-\|x_i - y_j\|^2 / \sigma^2)`.
 
@@ -57,7 +57,7 @@ Let's say that you have at hand:
 Then, referring to the :math:`p`'s as **parameters**, the :math:`x`'s as **x-variables** and the :math:`y`'s as **y-variables**, the KeOps library allows you to compute efficiently *any* expression :math:`a_i` of the form
 
 .. math::
-    a_i = \text{Reduction}_{j=1,...,M} \big[ f(p^1, p^2,..., x^1_i, x^2_i,..., y^1_j, y^2_j, ...)  \big], \qquad i=1,\cdots,N
+    a_i = \operatorname{Reduction}_{j=1,\cdots,N}\limits \big[ f(p^1, p^2,..., x^1_i, x^2_i,..., y^1_j, y^2_j, ...)  \big], \qquad i=1,\cdots,M
 
 alongside its **derivatives** with respect to all the variables and parameters.
 
