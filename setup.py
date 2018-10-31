@@ -49,7 +49,7 @@ setup(
     description='Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows',  # Required
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/home',
+    url='http://www.kernel-operations.io/',
     project_urls={
         'Bug Reports': 'https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/issues',
         'Source': 'https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops',
@@ -60,7 +60,7 @@ setup(
     python_requires='>=3',
 
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering',
@@ -133,10 +133,10 @@ setup(
         ] + pybind11_files
     },
 
-    # install_requires=[
-            # 'numpy',
-            # 'GPUtil'
-    # ],
+    install_requires=[
+            'numpy',
+            'GPUtil',
+    ],
 
 #    extras_require={'torch': ['torch'] },
 )
