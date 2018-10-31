@@ -104,6 +104,7 @@ setup(
             'keops/headers.cmake',
             'keops/core/autodiff.h',
             'keops/core/CpuConv.cpp',
+            'keops/core/CudaErrorCheck.cu',
             'keops/core/GpuConv1D.cu',
             'keops/core/GpuConv2D.cu',
             'keops/core/link_autodiff.cpp',
