@@ -39,7 +39,7 @@ Unfortunately, though, *no magic* is involved: in the backyard, optimised CUDA c
 In array-centric frameworks, a standard way of computing Gaussian convolutions is thus to create and store in memory the full :math:`M`-by-:math:`N` kernel matrix :math:`K_{i,j}=K(x_i,y_j)`, before computing :math:`(a_i) = (K_{i,j}) (b_j)` as a matrix product.  
 But for large datasets (say, :math:`M,N \geqslant 10,000`), this is not realistic: **large matrices just don't fit in GPU memories**.
 
-This is where we fit in: KeOps is all about **letting researchers break through the memory bottleneck**. Relying on an **online map-reduce scheme**, we provide CUDA 
+Fortunately, KeOps is all about **letting researchers break through this memory bottleneck**. Relying on an **online map-reduce scheme**, we provide CUDA 
 routines that "sum" the coefficients :math:`K_{i,j}\cdot b_j` as they are computed,
 without ever storing the full matrix :math:`K` in memory.
 

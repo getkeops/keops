@@ -148,7 +148,7 @@ can be done with:
                             'Y = Vy(3)',          # Third arg  is indexed by "j", of dim 3
                             'B = Vy(2)'],         # Fourth arg is indexed by "j", of dim 2
                            reduction_op='sum',
-                           axis=0)
+                           axis=1)
 
     # By explicitely specifying the backend, you can try to optimize your pipeline:
     a = gaussian_conv(sigma, x, y, b)

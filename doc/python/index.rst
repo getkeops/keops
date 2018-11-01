@@ -7,11 +7,13 @@
 Python bindings for Keops
 =========================
 
-We now fully document the public interface of the pykeops module. In a nutshell, pykeops is a numpy or pytorch frontend to the KeOps C++/Cuda routine. It contains two sets of instruction:
+We now fully document the public interface of the pykeops module, which is a NumPy or PyTorch frontend to the KeOps C++/Cuda library. It contains three sets of instructions:
 
-1. :doc:`Generic reduction <generic-syntax>`: the generic syntax compatible with both numpy and pytorch. This syntax allows you to make everything that is possible with pyKeops.
+1. :doc:`The Genred module <generic-syntax>`: our low-level pythonic syntax, compatible with NumPy and PyTorch.
 
-2. :doc:`Kernel-product <kernel-product>`: a specific syntax with convenient aliases for formula corresponding to operations in kernel spaces. It is compatible with pytorch only.
+2. :doc:`The generic_reduction functions <generic-reduction>`: a math-friendly set of helper routines for the Genred module.
+
+3. :doc:`Kernel-product <kernel-product>`: a specific syntax with convenient aliases for operations in kernel spaces. It is only compatible with PyTorch.
 
 
 .. toctree::
@@ -20,5 +22,6 @@ We now fully document the public interface of the pykeops module. In a nutshell,
 
    installation
    generic-syntax
+   generic-reduction
    kernel-product
 
