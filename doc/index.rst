@@ -5,7 +5,7 @@
 Kernel Operations on the GPU, with autodiff, without memory overflows
 ---------------------------------------------------------------------
 
-The KeOps library lets you compute generic reductions of **large 2d arrays** whose entries are given by a mathematical formula. It combines a tiled reduction scheme with a symbolic differentiation engine, and can be used through Matlab, NumPy or PyTorch backends.
+The KeOps library lets you compute generic reductions of **large 2d arrays** whose entries are given by a mathematical formula. It combines a tiled reduction scheme with an automatic differentiation engine, and can be used through Matlab, NumPy or PyTorch backends.
 It is perfectly suited to the computation of **Kernel dot products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
@@ -17,17 +17,17 @@ Using the PyTorch backend, a typical sample of code looks like:
     import torch
     from pykeops.torch import generic_sum
 
-    # Gaussian convolution between point clouds in R^3
+    # Kernel density estimator between point clouds in R^3
     my_conv = generic_sum( 'Exp( -SqNorm2(x-y) )',    # formula
-                           'a = Vx(1)',  # output:    1 scalar per line
-                           'x = Vx(3)',  # 1st input: dim-3 vector per line
-                           'y = Vy(3)')  # 2nd input: dim-3 vector per column
+                            'a = Vx(1)',  # output:    1 scalar per line
+                            'x = Vx(3)',  # 1st input: dim-3 vector per line
+                            'y = Vy(3)')  # 2nd input: dim-3 vector per column
 
     # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
     x = torch.randn( 1000000, 3, requires_grad=True).cuda()
     y = torch.randn( 2000000, 3).cuda()
-    out = my_conv(x,y) # shape (1000000, 1)
-    out.logsumexp(dim=0).backward()  # KeOps supports autodiff!
+    a = my_conv(x,y) # shape (1000000, 1), a_i = sum_j exp(-|x_i-y_j|^2)
+    g_x = torch.autograd.grad((a**2).sum(), [x])  # KeOps supports autodiff!
 
 KeOps allows you to leverage your GPU without compromising on usability.
 It provides:
@@ -42,7 +42,7 @@ KeOps can thus be used in a wide variety of settings,
 from shape analysis (LDDMM, optimal transport...)
 to machine learning (kernel methods, k-means...)
 or kriging (aka. Gaussian process regression).
-More details are provided here:
+More details are provided below:
 
 * :doc:`Documentation <api/why_using_keops>`.
 * `Source code <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops>`_
