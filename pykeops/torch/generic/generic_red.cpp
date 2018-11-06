@@ -54,9 +54,9 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Devic
         } else if(tagCpuGpu==1) {
 #if USE_CUDA
             if(tag1D2D==0) 
-                GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
+                GpuReduc1D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
             else if(tag1D2D==1)
-                GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
+                GpuReduc2D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
             return result_array;
 #else
             throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");

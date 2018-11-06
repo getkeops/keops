@@ -15,19 +15,20 @@ Using the PyTorch backend, a typical sample of code looks like:
 .. code-block:: python
 
     import torch
-    from pykeops.torch import generic_sum
+    from pykeops.torch import Genred
 
     # Kernel density estimator between point clouds in R^3
-    my_conv = generic_sum( 'Exp( -SqNorm2(x-y) )',    # formula
-                            'a = Vx(1)',  # output:    1 scalar per line
-                            'x = Vx(3)',  # 1st input: dim-3 vector per line
-                            'y = Vy(3)')  # 2nd input: dim-3 vector per column
+    my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
+                     ['x = Vx(3)',            # 1st input: dim-3 vector per line
+                      'y = Vy(3)'],           # 2nd input: dim-3 vector per column
+                     reduction_op='Sum',
+                     axis=1)
 
     # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
-    x = torch.randn( 1000000, 3, requires_grad=True).cuda()
-    y = torch.randn( 2000000, 3).cuda()
-    a = my_conv(x,y) # shape (1000000, 1), a_i = sum_j exp(-|x_i-y_j|^2)
-    g_x = torch.autograd.grad((a**2).sum(), [x])  # KeOps supports autodiff!
+    x = torch.randn(1000000, 3, requires_grad=True).cuda()
+    y = torch.randn(2000000, 3).cuda()
+    a = my_conv(x, y)                               # shape (1000000, 1), a_i = sum_j exp(-|x_i-y_j|^2)
+    g_x = torch.autograd.grad((a ** 2).sum(), [x])  # KeOps supports autodiff!
 
 KeOps allows you to leverage your GPU without compromising on usability.
 It provides:

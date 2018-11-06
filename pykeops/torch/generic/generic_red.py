@@ -79,7 +79,7 @@ class GenredAutograd(torch.autograd.Function):
                 # but are useful to keep track of the actual variables used in the formula
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
-                formula_g = 'Grad_WithSavedForward(' + formula + ',' + var + ',' + eta + ',' + resvar + ')'  # Grad<F,V,G,R>
+                formula_g = 'Grad_WithSavedForward(' + formula + ', ' + var + ', ' + eta + ', ' + resvar + ')'  # Grad<F,V,G,R>
                 aliases_g = aliases + [eta, resvar]
                 args_g = args + (G,) + (result,)  # Don't forget the gradient to backprop !
 
@@ -109,7 +109,7 @@ class Genred:
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
-        self.formula = reduction_op.capitalize() + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+        self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 

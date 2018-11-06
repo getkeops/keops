@@ -66,7 +66,7 @@ Details may also be found here: :ref:`part.varCategory`.
 ``reduction_op`` (keyword arg)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This is a string giving the reduction type. **Default** is ``reduction_op='sum'``. See :doc:`../api/math-operations`.
+This is a string giving the reduction type. **Default** is ``reduction_op='Sum'``. See :doc:`../api/math-operations`.
 
 
 ``axis``  (keyword arg)

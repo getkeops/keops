@@ -73,24 +73,6 @@ for k in kernel_to_test:
 
 
 
-    # keops + pytorch : generic tiled implementation (with cuda if available else uses cpu)
-    try:
-        from pykeops.torch import Kernel, kernel_product
-    
-        params = {
-            'id': Kernel(k + '(x,y)'),
-            'gamma': 1. / (sigmac * sigmac),
-            'backend': 'auto',
-        }
-        g1 = kernel_product(params, xc, yc, bc,  mode='sum').cpu()
-        speed_pykeops[k] = np.array(timeit.repeat("g1 = kernel_product(params, xc, yc, bc, mode='sum')", globals=globals(), repeat=100, number=4)) / 4
-        print('Time for keops generic:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
-        print('   (absolute error:       ', np.max(np.abs(g1.data.numpy() - gnumpy)), ')')
-    except:
-        print('Time for keops generic:       Not Done')
-    
-    
-    
     # vanilla pytorch (with cuda if available else uses cpu)
     try:
         from pykeops.torch import Kernel, kernel_product
@@ -107,6 +89,24 @@ for k in kernel_to_test:
         print('   (absolute error:       ', np.max(np.abs(g0.numpy() - gnumpy)),')')
     except:
         print('Time for Pytorch:             Not Done')
+    
+    
+    
+    # keops + pytorch : generic tiled implementation (with cuda if available else uses cpu)
+    try:
+        from pykeops.torch import Kernel, kernel_product
+    
+        params = {
+            'id': Kernel(k + '(x,y)'),
+            'gamma': 1. / (sigmac * sigmac),
+            'backend': 'auto',
+        }
+        g1 = kernel_product(params, xc, yc, bc,  mode='sum').cpu()
+        speed_pykeops[k] = np.array(timeit.repeat("g1 = kernel_product(params, xc, yc, bc, mode='sum')", globals=globals(), repeat=1000, number=4)) / 4
+        print('Time for keops generic:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
+        print('   (absolute error:       ', np.max(np.abs(g1.data.numpy() - gnumpy)), ')')
+    except:
+        print('Time for keops generic:       Not Done')
     
     
     

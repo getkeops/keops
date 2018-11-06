@@ -8,7 +8,7 @@ def apply_routine(routine, gs, xs, ys):
     """
     gxmy2s, xsys = [], []
     try :
-        for (i, (g, (v_ind, x_, y_, gxmy2_, xsy_))) in enumerate( zip(gs, routine.vars_needed)):
+        for (i, (g, (v_ind, x_, y_, gxmy2_, xsy_))) in enumerate(zip(gs, routine.vars_needed)):
             gxmy2s.append(_weighted_squared_distances(g, xs[v_ind], ys[v_ind]) if gxmy2_ else None)
             xsys.append(_scalar_products(xs[v_ind], ys[v_ind]) if xsy_ else None)
     except AttributeError :
@@ -31,7 +31,7 @@ def _features_kernel_log(routine, gs, xs, ys, bs, matrix=False):
 
 
 # BONUS MODES (not documented in this version) ===================================================
-def _features_kernel_log_scaled( routine, gs, xs, ys, bs, matrix=False):
+def _features_kernel_log_scaled(routine, gs, xs, ys, bs, matrix=False):
     b, A_log, B_log = bs  # scaling coefficients, typically given as output of the Sinkhorn loop
     K_log = _features_kernel_log(routine, gs, xs, ys, (b,), matrix=True)
     aKb_log = (A_log.view(-1, 1) + B_log.view(1, -1)) + K_log
@@ -94,9 +94,9 @@ keops_routines = {
     'lse'                  : ('LogSumExp', '({f_log} + B_0)',                                                [1]),
     'log_scaled'           : ('Sum'      , '(Exp({f_log} + B_1 + B_2) * B_0)',                         [1, 0, 1]),
     'log_scaled_lse'       : ('LogSumExp', '({f_log} + B_1 + B_2 + B_0)',                              [1, 0, 1]),
-    'log_scaled_barycenter': ('Sum'      , '(Exp( {f_log} + B_1 + B_2) * (B_0-B_3))',               [1, 0, 1, 0]),
+    'log_scaled_barycenter': ('Sum'      , '(Exp({f_log} + B_1 + B_2) * (B_0-B_3))',               [1, 0, 1, 0]),
     'lse_mult_i'           : ('LogSumExp', '((B_1 * {f_log}) + B_0)',                                     [1, 0]),
-    'sinkhorn_primal'      : ('Sum'      , '((B_2 + B_3 - IntCst(1)) * Exp( {f_log} + B_0 + B_1))', [0, 1, 0, 1]),
+    'sinkhorn_primal'      : ('Sum'      , '((B_2 + B_3 - IntCst(1)) * Exp({f_log} + B_0 + B_1))', [0, 1, 0, 1]),
     'sinkhorn_cost'        : ('Sum'      , '((- {f_log}) * Exp({f_log} + B_0 + B_1))',                    [0, 1]),
 }
 
@@ -134,7 +134,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         # Then, the X_i's
         for (i, x) in enumerate(xs):
             x_dim = x.size(1)
-            aliases.append( 'X_{x_ind} = Vx({index}, {x_dim})'.format(
+            aliases.append('X_{x_ind} = Vx({index}, {x_dim})'.format(
                              x_ind=i, index=index, x_dim=x_dim))
             full_args.append(x)
             index += 1
@@ -142,7 +142,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         # Then, the Y_j's
         for (j, y) in enumerate(ys):
             y_dim = y.size(1)
-            aliases.append( 'Y_{y_ind} = Vy({index}, {y_dim})'.format(
+            aliases.append('Y_{y_ind} = Vy({index}, {y_dim})'.format(
                              y_ind=j, index=index, y_dim=y_dim))
             full_args.append(y)
             index += 1

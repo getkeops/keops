@@ -34,7 +34,7 @@ def _log_sum_exp(mat, axis=0):
     one "exp(0)" to stabilize the sum.
 
     For instance, if dim = 1 and mat is a 2d array, we output
-                log( sum_j exp( mat[i,j] ))
+                log(sum_j exp(mat[i,j] ))
     by factoring out the row-wise maximas.
     """
     max_rc = mat.max(dim=axis)[0]
@@ -160,7 +160,7 @@ class Formula:
     def __add__(self, other):
         return Formula(formula_sum="(" + self.formula_sum + " + " + other.formula_sum + ")",
                        routine_sum=lambda **x: self.routine_sum(**x) + other.routine_sum(**x),
-                       formula_log="Log( (" + self.formula_sum + " + " + other.formula_sum + ") )",
+                       formula_log="Log((" + self.formula_sum + " + " + other.formula_sum + ") )",
                        routine_log=lambda **x: (self.routine_sum(**x) + other.routine_sum(**x)).log(),
                        )
 

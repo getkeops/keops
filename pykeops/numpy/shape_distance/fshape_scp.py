@@ -10,16 +10,17 @@ from pykeops.common.compile_routines import compile_specific_fshape_scp_routine
 class FshapeScp:
     """
     Implements the operation :
-
-    (x_i, y_j, beta_j)  ->  ( \sum_j k(x_i,y_j) beta_j )_i ,
-
+    
+    (x_i, y_j, beta_j)  ->  ( sum_j k(x_i,y_j) beta_j )_i ,
+    
     where k is a kernel function of parameter "sigma".
     Unlike a naive implementation, this code won't store in memory the matrix
     k(x_i,y_j) : it is therefore possible to use it when len(x) and len(y) are both large
     without getting a "memory overflow".
-
+    
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
+    
     def __init__(self, kernel_geom="gaussian", kernel_sig="gaussian", kernel_sphere="binet", cuda_type=default_cuda_type):
         self.kernel_geom = kernel_geom
         self.kernel_sig = kernel_sig

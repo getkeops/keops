@@ -11,7 +11,7 @@ from pykeops.torch.kernel_product.features_kernels import FeaturesKP
 # They will be concatenated depending on the "name" argument of Kernel.__init__
 # Feel free to add your own "pet formula" at run-time, 
 # using for instance :
-#  " kernel_formulas["mykernel"] = Formula( ... ) "
+#  " kernel_formulas["mykernel"] = Formula(... ) "
 
 # In some cases, due to PyTorch's behavior mainly, we have to add a small
 # epsilon in front of square roots and logs. As for KeOps code,
@@ -25,37 +25,37 @@ kernel_formulas = dict(
     linear=Formula(  # Linear kernel
         formula_sum="({X}|{Y})",
         routine_sum=lambda xsy=None, **kwargs: xsy,
-        formula_log="(IntInv(2) * Log( Square(({X}|{Y})) + " + Epsilon + " ))",
+        formula_log="(IntInv(2) * Log(Square(({X}|{Y})) + " + Epsilon + "))",
         routine_log=lambda xsy=None, **kwargs: .5 * (xsy ** 2 + epsilon).log()
     ),
     distance=Formula(  # -1* Energy distance kernel
         formula_sum="Sqrt(WeightedSqDist({G},{X},{Y}))",
         routine_sum=lambda gxmy2=None, **kwargs: gxmy2.sqrt(),
-        formula_log="(IntInv(2) * Log( WeightedSqDist({G},{X},{Y})) + " + Epsilon + " ))",
+        formula_log="(IntInv(2) * Log(WeightedSqDist({G},{X},{Y})) + " + Epsilon + "))",
         routine_log=lambda gxmy2=None, **kwargs: .5 * (gxmy2 ** 2 + epsilon).log()
     ),
     gaussian=Formula(  # Standard RBF kernel
-        formula_sum="Exp( -(WeightedSqDist({G},{X},{Y})) )",
+        formula_sum="Exp( -(WeightedSqDist({G},{X},{Y})))",
         routine_sum=lambda gxmy2=None, **kwargs: (-gxmy2).exp(),
-        formula_log="( -(WeightedSqDist({G},{X},{Y})) )",
+        formula_log="(-(WeightedSqDist({G},{X},{Y})))",
         routine_log=lambda gxmy2=None, **kwargs: -gxmy2,
     ),
     cauchy=Formula(  # Heavy tail kernel
-        formula_sum="Inv( IntCst(1) + WeightedSqDist({G},{X},{Y})  )",
+        formula_sum="Inv( IntCst(1) + WeightedSqDist({G},{X},{Y}))",
         routine_sum=lambda gxmy2=None, **kwargs: 1. / (1 + gxmy2),
-        formula_log="(  IntInv(-1) * Log(IntCst(1) + WeightedSqDist({G},{X},{Y})) ) ",
+        formula_log="(IntInv(-1) * Log(IntCst(1) + WeightedSqDist({G},{X},{Y})))",
         routine_log=lambda gxmy2=None, **kwargs: -(1 + gxmy2).log(),
     ),
     laplacian=Formula(  # Pointy kernel
-        formula_sum="Exp(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
+        formula_sum="Exp(-Sqrt( WeightedSqDist({G},{X},{Y})))",
         routine_sum=lambda gxmy2=None, **kwargs: (-(gxmy2 + epsilon).sqrt()).exp(),
-        formula_log="(-Sqrt( WeightedSqDist({G},{X},{Y}) ))",
+        formula_log="(-Sqrt(WeightedSqDist({G},{X},{Y})))",
         routine_log=lambda gxmy2=None, **kwargs: -(gxmy2 + epsilon).sqrt(),
     ),
     inverse_multiquadric=Formula(  # Heavy tail kernel
-        formula_sum="Inv(Sqrt( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) )",
+        formula_sum="Inv(Sqrt(IntCst(1) + WeightedSqDist({G},{X},{Y})))",
         routine_sum=lambda gxmy2=None, **kwargs: torch.rsqrt(1 + gxmy2),
-        formula_log="(IntInv(-2) * Log( IntCst(1) + WeightedSqDist({G},{X},{Y}) ) ) ",
+        formula_log="(IntInv(-2) * Log(IntCst(1) + WeightedSqDist({G},{X},{Y})))",
         routine_log=lambda gxmy2=None, **kwargs: -.5 * (1 + gxmy2).log(),
     ))
 
@@ -176,8 +176,8 @@ def kernel_product(params, x, y, *bs, mode=None, cuda_type='float32'):
         v_i =     \sum_j k(x_i, y_j) b_j
     
     Otherwise, if params["mode"] == "lse", we have :
-        v_i = log \sum_j exp( c(x_i, y_j) + b_j )
-    where c(x_i,y_j) = log( k(x_i,y_j) )  -- computed with improved numerical accuracy.
+        v_i = log \sum_j exp(c(x_i, y_j) + b_j )
+    where c(x_i,y_j) = log(k(x_i,y_j) )  -- computed with improved numerical accuracy.
     
     Args: -------------------------------------------------------------------------
     - x   (Variable, or a F-tuple of Variables) : 
@@ -214,17 +214,17 @@ def kernel_product(params, x, y, *bs, mode=None, cuda_type='float32'):
     which encode the logarithms of the scaling coefficients.
     
     If       mode == "log_scaled", we have :
-        v_i =     \sum_j exp( c(x_i,y_j) + Alog_i + Blog_j ) * b_j
+        v_i =     \sum_j exp(c(x_i,y_j) + Alog_i + Blog_j ) * b_j
     
     Else, if mode == "log_scaled_log", we have :
-        v_i = log \sum_j exp( c(x_i,y_j) + Alog_i + Blog_j + b_j )
+        v_i = log \sum_j exp(c(x_i,y_j) + Alog_i + Blog_j + b_j )
     
     Else, if mode == "log_primal", we have :
-        v_i = \sum_j (Alog_i+Blog_j-1) * exp( c(x_i,y_j) + Alog_i + Blog_j )
+        v_i = \sum_j (Alog_i+Blog_j-1) * exp(c(x_i,y_j) + Alog_i + Blog_j )
         (b_j is not used)
     
     Else, if mode == "log_cost", we have :
-        v_i = \sum_j -c(x_i,y_j) * exp( c(x_i,y_j) + Alog_i + Blog_j )
+        v_i = \sum_j -c(x_i,y_j) * exp(c(x_i,y_j) + Alog_i + Blog_j )
         (b_j is not used)
     """
 
