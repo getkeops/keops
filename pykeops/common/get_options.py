@@ -2,7 +2,7 @@ import re
 import os.path
 import numpy as np
 from collections import OrderedDict
-from pykeops import __version__, torch_version_required
+import pykeops
 
 
 ###########################################################
@@ -20,46 +20,16 @@ def set_build_folder():
     if os.path.isdir(bf_source): # assume we are loading from source
         build_folder  = bf_source
     elif os.path.isdir(bf_home): # assume we are ussing wheel and home is accessible
-       build_folder = bf_home + os.path.sep + '.cache' + os.path.sep + 'pykeops-' + __version__ + os.path.sep 
+       build_folder = bf_home + os.path.sep + '.cache' + os.path.sep + 'pykeops-' + pykeops.__version__ + os.path.sep 
     else: 
         import tempfile
-        build_folder = tempfile.mkdtemp(prefix='pykeops-' + __version__) + os.path.sep
+        build_folder = tempfile.mkdtemp(prefix='pykeops-' + pykeops.__version__) + os.path.sep
         
     os.makedirs(build_folder, exist_ok=True)
 
     return build_folder
 
 
-
-############################################################
-#              Search for GPU
-############################################################
-
-# is there a working GPU around ?
-import GPUtil
-try:
-    gpu_available = len(GPUtil.getGPUs()) > 0
-except:
-    gpu_available = False
-
-# is torch installed ?
-try:
-    import torch
-    from torch.utils import cpp_extension
-
-    if torch.__version__ < torch_version_required:
-        raise ImportError('The pytorch version should be ==' + torch_version_required)
-
-    torch_include_path = torch.utils.cpp_extension.include_paths()[0]
-    gpu_available = torch.cuda.is_available() # use torch to detect gpu
-    torch_found = True
-except ImportError as e: # if 
-    print('ImportError: pykeops is not compatible with your version of Pytorch.', e)
-    torch_found = False
-    torch_include_path = '0'
-except:
-    torch_found = False
-    torch_include_path = '0'
 
 ############################################################
 #     define backend
@@ -101,7 +71,7 @@ class pykeops_backend():
 
         # auto : infer everything
         if backend == 'auto':
-            return int(gpu_available), self._find_grid(), self._find_mem(variables)
+            return int(pykeops.gpu_available), self._find_grid(), self._find_mem(variables)
 
         split_backend = re.split('_',backend)
         if len(split_backend) == 1:     # CPU or GPU
@@ -117,23 +87,27 @@ class pykeops_backend():
 
     @staticmethod
     def _find_dev():
-        return int(gpu_available)
+        return int(pykeops.gpu_available)
 
     @staticmethod
     def _find_mem(variables):
         if all([type(var) is np.ndarray for var in variables ]): # Infer if we're working with numpy arrays or torch tensors:
             MemType = 0
-        elif torch_found and all([type(var) in [torch.Tensor, torch.nn.parameter.Parameter] for var in variables ]):
+        elif pykeops.torch_found: 
+            
+            import torch
 
-            from pykeops.torch.utils import is_on_device
-            VarsAreOnGpu = tuple(map(is_on_device, tuple(variables)))
+            if all([type(var) in [torch.Tensor, torch.nn.parameter.Parameter] for var in variables]):
 
-            if all(VarsAreOnGpu):
-                MemType = 1
-            elif not any(VarsAreOnGpu):
-                MemType = 0
-            else:
-                raise ValueError('At least two input variables have different memory locations (Cpu/Gpu).')
+                from pykeops.torch.utils import is_on_device
+                VarsAreOnGpu = tuple(map(is_on_device, tuple(variables)))
+
+                if all(VarsAreOnGpu):
+                    MemType = 1
+                elif not any(VarsAreOnGpu):
+                    MemType = 0
+                else:
+                    raise ValueError('At least two input variables have different memory locations (Cpu/Gpu).')
         else:
             raise TypeError('All variables should either be numpy arrays or torch tensors.')
 

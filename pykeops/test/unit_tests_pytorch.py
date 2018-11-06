@@ -5,7 +5,7 @@ import unittest
 import itertools
 import numpy as np
 
-from pykeops.common.get_options import gpu_available
+import pykeops
 from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
 
 
@@ -63,7 +63,7 @@ class PytorchUnitTestCase(unittest.TestCase):
             'gamma': 1. / self.sigmac ** 2,
             'mode': 'sum',
         }
-        if gpu_available:
+        if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
         else:
             backend_to_test = ['auto', 'pytorch']
@@ -85,12 +85,13 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_grad1conv_kernels_feature(self):
     ############################################################
         import torch
-        from pykeops.torch.kernel_product.kernels import Kernel, kernel_product
+        from pykeops.torch import Kernel, kernel_product
+
         params = {
             'gamma': 1. / self.sigmac ** 2,
             'mode': 'sum',
         }
-        if gpu_available:
+        if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
         else:
             backend_to_test = ['auto', 'pytorch']
@@ -117,7 +118,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch.generic.generic_red import GenredAutograd
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
         formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
-        if gpu_available:
+        if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -138,7 +139,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch.generic.generic_red import GenredAutograd
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
         formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
-        if gpu_available:
+        if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -156,7 +157,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_simple(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import Genred
+        from pykeops.torch import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -164,7 +165,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         
         formula = 'Pow((X|Y),2) * ((Elem(P,0) * X) + (Elem(P,1) * Y))'
         
-        if gpu_available:
+        if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -184,9 +185,10 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_logSumExp_kernels_feature(self):
     ############################################################
-        from pykeops.torch.kernel_product.kernels import Kernel, kernel_product
+        from pykeops.torch import Kernel, kernel_product
+
         params = {'gamma': 1. / self.sigmac ** 2, 'mode': 'lse'}
-        if gpu_available:
+        if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
         else:
             backend_to_test = ['auto', 'pytorch']

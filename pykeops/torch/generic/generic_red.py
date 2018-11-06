@@ -1,5 +1,4 @@
 import torch
-from torch.autograd import Variable
 
 from pykeops import default_cuda_type
 from pykeops.common.utils import axis2cat, cat2axis
@@ -7,6 +6,7 @@ from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
+include_dirs = torch.utils.cpp_extension.include_paths()[0]
 
 class GenredAutograd(torch.autograd.Function):
     """
@@ -16,7 +16,7 @@ class GenredAutograd(torch.autograd.Function):
     @staticmethod
     def forward(ctx, formula, aliases, backend, cuda_type, device_id, *args):
 
-        myconv = load_keops(formula, aliases, cuda_type, 'torch')
+        myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + include_dirs])
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
@@ -94,7 +94,7 @@ class GenredAutograd(torch.autograd.Function):
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
                     # We replace it with a 'handmade hack' :
-                    grad = Variable(torch.ones(1, grad.shape[0]).type_as(grad.data)) @ grad
+                    grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                     grad = grad.view(-1)
                 else:
                     grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, *args_g)
@@ -109,7 +109,7 @@ class Genred:
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
-        self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+        self.formula = reduction_op.capitalize() + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 

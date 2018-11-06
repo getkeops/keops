@@ -8,7 +8,7 @@ def apply_routine(routine, gs, xs, ys):
     """
     gxmy2s, xsys = [], []
     try :
-        for ( i, (g, (v_ind, x_, y_, gxmy2_, xsy_)) ) in enumerate( zip(gs, routine.vars_needed)):
+        for (i, (g, (v_ind, x_, y_, gxmy2_, xsy_))) in enumerate( zip(gs, routine.vars_needed)):
             gxmy2s.append(_weighted_squared_distances(g, xs[v_ind], ys[v_ind]) if gxmy2_ else None)
             xsys.append(_scalar_products(xs[v_ind], ys[v_ind]) if xsy_ else None)
     except AttributeError :
@@ -90,14 +90,14 @@ pytorch_routines = {
 
 
 keops_routines = {
-    'sum'                  : ('Sum'      , '( {f_sum} * B_0 )',                                                [1]),
-    'lse'                  : ('LogSumExp', '( {f_log} + B_0 )',                                                [1]),
-    'log_scaled'           : ('Sum'      , '( Exp( {f_log} + B_1 + B_2) * B_0)',                         [1, 0, 1]),
-    'log_scaled_lse'       : ('LogSumExp', '( {f_log} + B_1 + B_2 + B_0)',                               [1, 0, 1]),
-    'log_scaled_barycenter': ('Sum'      , '( Exp( {f_log} + B_1 + B_2) * (B_0-B_3))',                [1, 0, 1, 0]),
-    'lse_mult_i'           : ('LogSumExp', '( (B_1 * {f_log} ) + B_0)',                                     [1, 0]),
-    'sinkhorn_primal'      : ('Sum'      , '( (B_2 + B_3 - IntCst(1)) * Exp( {f_log} + B_0 + B_1) )', [0, 1, 0, 1]),
-    'sinkhorn_cost'        : ('Sum'      , '( (- {f_log} ) * Exp( {f_log} + B_0 + B_1) )',                  [0, 1]),
+    'sum'                  : ('Sum'      , '({f_sum} * B_0)',                                                [1]),
+    'lse'                  : ('LogSumExp', '({f_log} + B_0)',                                                [1]),
+    'log_scaled'           : ('Sum'      , '(Exp({f_log} + B_1 + B_2) * B_0)',                         [1, 0, 1]),
+    'log_scaled_lse'       : ('LogSumExp', '({f_log} + B_1 + B_2 + B_0)',                              [1, 0, 1]),
+    'log_scaled_barycenter': ('Sum'      , '(Exp( {f_log} + B_1 + B_2) * (B_0-B_3))',               [1, 0, 1, 0]),
+    'lse_mult_i'           : ('LogSumExp', '((B_1 * {f_log}) + B_0)',                                     [1, 0]),
+    'sinkhorn_primal'      : ('Sum'      , '((B_2 + B_3 - IntCst(1)) * Exp( {f_log} + B_0 + B_1))', [0, 1, 0, 1]),
+    'sinkhorn_cost'        : ('Sum'      , '((- {f_log}) * Exp({f_log} + B_0 + B_1))',                    [0, 1]),
 }
 
 
@@ -123,7 +123,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         full_args, aliases, index = [], [], 0  # tensor list, string list, current input arg
 
         # First, the G_i's
-        for (i,g) in enumerate(gs):
+        for (i, g) in enumerate(gs):
             if g is not None:
                 g_var, g_dim, g_cat, g_str = extract_metric_parameters(g) # example : Tensor(...), 3, 0, 'Vx'
                 aliases.append('G_{g_ind} = {g_str}({index}, {g_dim})'.format(
@@ -132,7 +132,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
                 index += 1
 
         # Then, the X_i's
-        for (i,x) in enumerate(xs):
+        for (i, x) in enumerate(xs):
             x_dim = x.size(1)
             aliases.append( 'X_{x_ind} = Vx({index}, {x_dim})'.format(
                              x_ind=i, index=index, x_dim=x_dim))
@@ -140,7 +140,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
             index += 1
 
         # Then, the Y_j's
-        for (j,y) in enumerate(ys):
+        for (j, y) in enumerate(ys):
             y_dim = y.size(1)
             aliases.append( 'Y_{y_ind} = Vy({index}, {y_dim})'.format(
                              y_ind=j, index=index, y_dim=y_dim))
@@ -148,7 +148,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
             index += 1
 
         if not len(xs) == len(ys):
-            raise ValueError("""Kernel_product works with pairs of variables. The 'x'-list of features should thus have the same length as the 'y' one.""")
+            raise ValueError("Kernel_product works with pairs of variables. The 'x'-list of features should thus have the same length as the 'y' one.")
 
         # Then, the B_i/j's
         for (i, (b, b_cat)) in enumerate(zip(bs, bs_cat)):
@@ -163,6 +163,6 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         genconv = Genred(formula, aliases, reduction_op=red, axis=axis, cuda_type=cuda_type)
 
         res = genconv(*full_args, backend=backend)
-        if red=="LogSumExp":
-            res = res[:,0,None]+res[:,1,None].log()
+        if red == "LogSumExp":
+            res = res[:,0,None] + res[:,1,None].log()
         return res 

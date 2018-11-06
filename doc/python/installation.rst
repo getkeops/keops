@@ -8,10 +8,12 @@ Requirements
 ------------
 
 - A unix-like system: typically Linux or MacOs X 
-- A C++ compiler: gcc>=5, clang
-- Cmake>=3.10
-- Ninja 
 - **Python 3** with packages: numpy, GPUtil (installed via pip or conda)
+
+- A C++ compiler: g++ version >=5, clang++
+- Cmake version >=3.10
+- Ninja 
+
 - Cuda (Optional): version >=9.0 is recommended but it works with older version. Warning: check the compatibility of C++ compiler
 - PyTorch (Optional): version ==0.4.1
 

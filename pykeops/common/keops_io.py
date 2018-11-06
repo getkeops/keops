@@ -5,7 +5,7 @@ from pykeops.common.utils import create_name
 from pykeops.common.compile_routines import compile_generic_routine
 
 
-def load_keops(formula, aliases, cuda_type, lang):
+def load_keops(formula, aliases, cuda_type, lang, optional_flags=[]):
     # create the name from formula, aliases and cuda_type.
     dll_name = create_name(formula, aliases, cuda_type, lang)
     
@@ -19,7 +19,7 @@ def load_keops(formula, aliases, cuda_type, lang):
             compile_module = True
     
     if compile_module:
-        compile_generic_routine(formula, aliases, dll_name, cuda_type, lang)
+        compile_generic_routine(formula, aliases, dll_name, cuda_type, lang, optional_flags)
         myconv = importlib.import_module(dll_name)
         print("Loaded.")
 

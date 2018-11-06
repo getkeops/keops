@@ -2,7 +2,6 @@ import subprocess
 from pykeops import build_folder, script_folder, verbose, build_type
 from pykeops.common.utils import c_type
 from pykeops.common.parse_type import check_aliases_list
-from pykeops.common.get_options import torch_include_path
 
 
 def run_and_display(args, msg=''):
@@ -24,7 +23,7 @@ def run_and_display(args, msg=''):
         print('--------------------- ----------- -----------------')
 
 
-def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
+def compile_generic_routine(formula, aliases, dllname, cuda_type, lang, optional_flags):
     aliases = check_aliases_list(aliases)
 
     def process_alias(alias):
@@ -51,8 +50,7 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang):
                      '-Dshared_obj_name=' + dllname,
                      '-D__TYPE__=' + c_type[cuda_type],
                      '-DPYTHON_LANG=' + lang,
-                     '-DPYTORCH_INCLUDE_DIR=' + torch_include_path,
-                     ],
+                     ] + optional_flags,
                     msg='CMAKE')
 
     run_and_display(['cmake', '--build', '.', '--target', target], msg='MAKE')

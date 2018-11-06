@@ -142,12 +142,12 @@ can be done with:
     y = torch.randn(2000,3)
     b = torch.randn(2000,2)
     
-    gaussian_conv = Genred('Exp(-S*SqDist(X,Y))', # f(g,x,y,b) = exp( -g*|x-y|^2 ) * b
+    gaussian_conv = Genred('Exp(-S * SqDist(X,Y)) * B', # f(g,x,y,b) = exp( -g*|x-y|^2 ) * b
                            ['S = Pm(1)',          # First arg  is a parameter,    of dim 1
                             'X = Vx(3)',          # Second arg is indexed by "i", of dim 3
                             'Y = Vy(3)',          # Third arg  is indexed by "j", of dim 3
                             'B = Vy(2)'],         # Fourth arg is indexed by "j", of dim 2
-                           reduction_op='sum',
+                           reduction_op='Sum',
                            axis=1)
 
     # By explicitely specifying the backend, you can try to optimize your pipeline:
