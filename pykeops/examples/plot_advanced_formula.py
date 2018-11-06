@@ -71,5 +71,5 @@ for i in range(3):
     plt.subplot(1, 3, i+1)
     plt.plot(a_keops.detach().cpu().numpy()[:40, i], '-', label='keops')
     plt.plot(a_pytorch.detach().cpu().numpy()[:40, i], '--', label='numpy')
-plt.legend(loc='upper center')
+    plt.legend(loc='upper center')
 plt.show()

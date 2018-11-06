@@ -3,7 +3,7 @@
 K-means algorithm using the generic syntax (NumPy bindings)
 ===========================================================
 
-We define a dataset of N points in R^D, then apply a simple k-means algorithm.
+We define a dataset of :math:`N` points in :math:`\mathbb R^D`, then apply a simple k-means algorithm.
 This example uses a pure NumPy framework (without Pytorch).
 See :ref:`here<sphx_glr__auto_tutorials_kmeans_plot_kmeans_pytorch.py>` for the equivalent script using PyTorch bindings.
 """

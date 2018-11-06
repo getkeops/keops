@@ -84,7 +84,7 @@ for k in kernel_to_test:
         }
         
         g0 = kernel_product(params, xc, yc, bc, mode='sum').cpu()
-        speed_pytorch[k] = np.array(timeit.repeat("g0 = kernel_product(params, xc, yc, bc, mode='sum')", globals=globals(), repeat=100, number=4)) / 4
+        speed_pytorch[k] = np.array(timeit.repeat("g0 = kernel_product(params, xc, yc, bc, mode='sum')", globals=globals(), repeat=1000, number=4)) / 4
         print('Time for Pytorch:             {:.4f}s'.format(np.median(speed_pytorch[k])), end='')
         print('   (absolute error:       ', np.max(np.abs(g0.numpy() - gnumpy)),')')
     except:
@@ -102,7 +102,7 @@ for k in kernel_to_test:
             'backend': 'auto',
         }
         g1 = kernel_product(params, xc, yc, bc,  mode='sum').cpu()
-        speed_pykeops[k] = np.array(timeit.repeat("g1 = kernel_product(params, xc, yc, bc, mode='sum')", globals=globals(), repeat=1000, number=4)) / 4
+        speed_pykeops[k] = np.array(timeit.repeat("g1 = kernel_product(params, xc, yc, bc, mode='sum')", globals=globals(), repeat=100, number=4)) / 4
         print('Time for keops generic:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
         print('   (absolute error:       ', np.max(np.abs(g1.data.numpy() - gnumpy)), ')')
     except:

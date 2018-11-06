@@ -12,7 +12,7 @@ When :math:`x\mapsto F(x)` is not scalar valued, its "gradient" should be unders
 
  .. math::
 
-    \langle [dF(x)](\delta x), e \rangle_{\mathbb R^d}  =  \langle g , \delta x \rangle_{\mathbb R^d}  =  \langle \delta x , [dF^*(x)](e) \rangle_{\mathbb R^n}
+    \langle [dF(x)](\delta x), e \rangle_{\mathbb R^d}  =  \langle \delta x, g \rangle_{\mathbb R^n}  =  \langle \delta x , [dF^*(x)](e) \rangle_{\mathbb R^n}
 
 
 
@@ -36,7 +36,7 @@ Backpropagating through a computational graph to compute the value of the gradie
 
    to compute the actual value of :math:`F`: 
 
-   .. figure:: ../_static/AD.svg
+   .. figure:: ../_static/AD_forward.svg
       :width: 100% 
       :alt: Reverse AD
 
@@ -50,7 +50,7 @@ Backpropagating through a computational graph to compute the value of the gradie
     
    to compute the value of the (adjopint of the)  gradient of :math:`F`: 
 
-   .. figure:: ../_static/reverseAD.svg
+   .. figure:: ../_static/AD_backward.svg
        :width: 100% 
        :alt: Reverse AD
 

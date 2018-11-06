@@ -73,19 +73,18 @@ Testing everything goes fine
 
 .. code-block:: matlab
 
-    x = 1:3; y = 3:5; b = 3:-1:1; p = .25;
+    x = reshape(1:9,3,[]); y = reshape(3:8,3,[]);
 
-    my_conv = Kernel('Exp(-p*SqNorm2(x-y))*b','x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)', 'p=Pm(3,1)');
-    my_conv(x',y',b',p)
+    my_conv = Kernel('SumReduction(SqNorm2(x-y),1)','x=Vx(0,3)','y=Vy(1,3)');
+    my_conv(x,y)'
 
 It should return
 
 .. code-block:: matlab
 
     ans =
-        0.1494
-        0.0996
-        0.0498
+        63
+        90
 
 
 Troubleshooting

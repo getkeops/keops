@@ -3,7 +3,7 @@
 K-means algorithm using the generic syntax (PyTorch bindings)
 =============================================================
 
-We define a dataset of N points in R^D, then apply a simple k-means algorithm.
+We define a dataset of :math:`N` points in :math:`\mathbb R^D`, then apply a simple k-means algorithm.
 This example uses KeOps PyTorch bindings. 
 See :ref:`here<sphx_glr__auto_tutorials_kmeans_plot_kmeans_numpy.py>` for the equivalent script using NumPy bindings.
 
@@ -33,7 +33,7 @@ else:
     torchdeviceId = torch.device('cpu')
     
 #######################################
-#  We wrap this example into a functionz+
+#  We wrap this example into a function
 #
 
 def KMeansExample(N,D,K,Niter=10):
