@@ -36,7 +36,7 @@ Backpropagating through a computational graph to compute the value of the gradie
 
    to compute the actual value of :math:`F`: 
 
-   .. figure:: ../_static/AD_forward.svg
+   .. figure:: ../_static/forward.svg
       :width: 100% 
       :alt: Reverse AD
 
@@ -50,7 +50,7 @@ Backpropagating through a computational graph to compute the value of the gradie
     
    to compute the value of the (adjopint of the)  gradient of :math:`F`: 
 
-   .. figure:: ../_static/AD_backward.svg
+   .. figure:: ../_static/backward.svg
        :width: 100% 
        :alt: Reverse AD
 
