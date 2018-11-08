@@ -4,7 +4,7 @@
    :alt: KeopsLab logo
 
 =========================
-Python bindings for Keops
+Python bindings for KeOps
 =========================
 
 We now fully document the public interface of the pykeops module, which is a NumPy or PyTorch frontend to the KeOps C++/Cuda library. It contains three sets of instructions:

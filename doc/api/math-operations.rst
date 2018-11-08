@@ -6,17 +6,20 @@ KeOps lets you define any reduction operation of the form
 
 .. math::
 
-   \alpha_i = \operatorname{Reduction}_j \big[ f(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
+   \alpha_i = \operatorname{Reduction}_j \big[ F(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
 
 or
 
 .. math::
 
-   \beta_j = \operatorname{Reduction}_i \big[ f(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
+   \beta_j = \operatorname{Reduction}_i \big[ F(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
 
-where :math:`f` is a symbolic formula, the :math:`x^k_{\iota_k}`'s are vector variables
+where :math:`F` is a symbolic formula, the :math:`x^k_{\iota_k}`'s are vector variables
 and 
 :math:`\text{Reduction}` is a Sum, LogSumExp or any other standard operation (see :ref:`part.reduction` for the full list of supported reductions).
+
+Let us now describe our symbolic syntax,
+which can be used through the various high-level bindings.
 
 .. _`part.varCategory`:
 
@@ -39,7 +42,7 @@ In practice, the category :math:`\iota_k` is given through a keyword
 followed by a :math:`(k,d_k)` or (index,dimension) pair of integers.
 For instance, ``Vx(2,4)`` specifies a variable indexed by :math:`i`, given as the third (:math:`k=2`) input in the function call, and representing a vector of dimension :math:`d_k=4`.
 
-**N.B.:** using the same index ``k`` for two different variables is not allowed and will be rejected by the compiler.
+**N.B.:** using the same index ``k`` for two variables with different dimensions or categories is not allowed and will be rejected by the compiler.
 
 .. _`formula.example`:
 
@@ -50,7 +53,7 @@ Assume we want to compute the sum
 
 .. math::
 
-  f(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1..M, u=1,2,3} \in \mathbb R^{M\times 3}
+  F(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1..M, u=1,2,3} \in \mathbb R^{M\times 3}
 
 
 where:
@@ -62,7 +65,7 @@ where:
 
 Using the **variable placeholders** detailed above and the
 mathematical operations listed in :ref:`part.mathOperation`,
-we can now define ``f`` as a **symbolic string**
+we can now define ``F`` as a **symbolic string**
 
 .. code-block:: cpp
 
@@ -71,7 +74,8 @@ we can now define ``f`` as a **symbolic string**
 in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
 
 
-Variables can be given aliases, allowing us to write human-readable expressions for our formula. For example, one may define ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``a=Vy(3,1)``, and write the previous computation as
+Note that in all bindings, variables can be defined through **aliases**.
+In this example, we may write ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``a=Vy(3,1)`` and thus give ``F`` through a much friendlier expression:
 
 .. code-block:: cpp
 
@@ -118,8 +122,8 @@ Constants and padding/concatenation operations:
 
 ======================   =========================================================================================================
 ``IntCst(N)``             integer constant N
-``Zero(N)``               vector of zeros of size N
 ``IntInv(N)``             alias for ``Inv(IntCst(N))`` : 1/N
+``Zero(N)``               vector of zeros of size N
 ``Elem(f, M)``            extract M-th element of vector ``f``
 ``ElemT(f, N, M)``        insert scalar value ``f`` at position M in a vector of zeros of length N
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)

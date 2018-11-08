@@ -1,29 +1,49 @@
 Autodiff engine
 ===============
 
-KeOps has an internal Automatic Differentiation (AD) engine for symbolic formulas. 
+KeOps provides a simple Automatic Differentiation (AD) engine for generic formulas.
+This feature can be used seamlessly through the ``Grad`` instruction
+or the PyTorch backend: users don't have to understand backpropagation
+to enjoy our "free" gradients.
 
-Derivative of vector valued function
-------------------------------------
+Nevertheless, for the sake of completeness, here is
+a short introduction to the inner workings of KeOps.
 
-Let :math:`n,d\in\mathbb N` and assume that we need to compute the variations of a function :math:`F:\mathbb R^n \to \mathbb R^d` at some point :math:`x \in \mathbb R^n`. These variations are encoded in a linear application :math:`dF(x):\mathbb R^n \to \mathbb R^d` called the differential. When :math:`F` is scalar valued (ie :math:`d=1`) the (adjoint of the) differential is precisely the gradient.
+Backprop 101: Gradient of a vector valued function
+-----------------------------------------------------
 
-When :math:`x\mapsto F(x)` is not scalar valued, its "gradient" should be understood as the adjoint of the differential operator :math:`dF^*(x): \mathbb R^d \to \mathbb R^n`, i.e. as the linear operator that takes as input a new variable :math:`e \in \mathbb R^d`  and outputs a variable :math:`g = [dF^*(x)](e) \in \mathbb R^n` such that for all variation :math:`\delta x \in \mathbb R^n` of :math:`x \in \mathbb R^n` we have:
+Let :math:`F:\mathbb R^n \to \mathbb R^d` be a smooth function of which we study the variations.
+Around any given point :math:`x \in \mathbb R^n`, these are encoded in a linear application :math:`\text{d}F(x):\mathbb R^n \to \mathbb R^d` called the **differential**
+of :math:`F`.
 
- .. math::
+Equivalently, we can define the **gradient** of :math:`F` at :math:`x`
+as the adjoint of :math:`\text{d}F(x)`: it is the unique application
+:math:`\partial_x F(x)=\text{d}F(x)^*:\mathbb R^d \to \mathbb R^n` such that
+for all vector :math:`e \in \mathbb R^d` and
+variation :math:`\delta x \in \mathbb R^n` of :math:`x`, we have:
 
-    \langle [dF(x)](\delta x), e \rangle_{\mathbb R^d}  =  \langle \delta x, g \rangle_{\mathbb R^n}  =  \langle \delta x , [dF^*(x)](e) \rangle_{\mathbb R^n}
+.. math::
+   \langle ~[\partial_x F(x)](e) \,,\, \delta x ~\rangle_{\mathbb R^n}
+   ~=~ \langle ~e \,,\, [\text{d}F(x)](\delta x) ~\rangle_{\mathbb R^d},
+
+where :math:`\langle\,\cdot\,,\,\cdot\,\rangle` denotes the standard scalar product.
+
+When :math:`F` is scalar valued (i.e. when :math:`d=1`), 
+the gradient is a linear application
+from :math:`\mathbb{R}` to :math:`\mathbb{R}^n`:
+it is best understood as the vector of partial derivatives of :math:`F`.
+In the general case, its matrix in the canonical basis
+is given by the *transpose* of the Jacobian.
 
 
 
-Reverse mode AD == backpropagating == chain rules
--------------------------------------------------
 
-In what follows, :math:`E_i` denotes a finite dimensional real vector space (i.e :math:`\mathbb R^{d_i}` with :math:`d_i\in \mathbb N`). 
+Reverse mode AD = backpropagation = chain rule
+----------------------------------------------
 
-Assume now that the function :math:`F:\mathbb R^n \to \mathbb R^d` is written as a composition :math:`F =F_p \circ \cdots \circ F_2 \circ F_1` of :math:`p` functions :math:`F_i:E_{i-1} \to E_{i}`. Note that, in this case, :math:`d_0 = n`  and :math:`d_p = d`.  
+Now, let's assume that the function :math:`F:\mathbb R^n \to \mathbb R^d` can be written as a composition :math:`F =F_p \circ \cdots \circ F_2 \circ F_1` of :math:`p` functions :math:`F_i:E_{i-1} \to E_{i}`, where :math:`E_i=\mathbb{R}^{d_i}`. With these notations :math:`d_0 = n`  and :math:`d_p = d`.  
 
-Backpropagating through a computational graph to compute the value of the gradient requires:
+Evaluating the gradient of :math:`F` with the **backpropagation algorithm** requires:
 
 1. A **Forward pass** to evaluate the functions
 
@@ -34,7 +54,7 @@ Backpropagating through a computational graph to compute the value of the gradie
              &      & x & \mapsto & F_i(x)
         \end{array}    
 
-   to compute the actual value of :math:`F`: 
+   and thus compute the *value* :math:`F(x)` : 
 
    .. figure:: ../_static/forward.svg
       :width: 100% 
@@ -44,11 +64,12 @@ Backpropagating through a computational graph to compute the value of the gradie
 
    .. math::
         \begin{array}{ccccl}
-	            \partial_x F_i^* & : & E_{i-1}\times E_{i} & \to & E_{i-1} \\
-	             & & (x_0,a) & \mapsto & [\partial_x F_i^*(x_0)](a)
+	            \partial_x F_i & : & E_{i-1}\times E_{i} & \to & E_{i-1} \\
+	             & & (x_0,a) & \mapsto & [\text{d} F_i^*(x_0)](a)
          \end{array}
     
-   to compute the value of the (adjopint of the)  gradient of :math:`F`: 
+   and evaluate the *gradient* of :math:`F` at location :math:`x`, applied to an arbitrary
+   input :math:`e` : 
 
    .. figure:: ../_static/backward.svg
        :width: 100% 
