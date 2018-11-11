@@ -1,5 +1,5 @@
-Formulas
-========
+Generic formulas
+================
 
 
 KeOps lets you define any reduction operation of the form
@@ -18,8 +18,8 @@ where :math:`F` is a symbolic formula, the :math:`x^k_{\iota_k}`'s are vector va
 and 
 :math:`\text{Reduction}` is a Sum, LogSumExp or any other standard operation (see :ref:`part.reduction` for the full list of supported reductions).
 
-Let us now describe our symbolic syntax,
-which can be used through the various high-level bindings.
+We now describe the symbolic syntax that 
+can be used through KeOps' bindings.
 
 .. _`part.varCategory`:
 
@@ -27,7 +27,7 @@ Variables: category, index and dimension
 ----------------------------------------
 
 
-At a low level, every variable :math:`x^k_{\iota_k}` is specified by its *category* :math:`\iota_k\in\{i,j,\emptyset\}` (meaning that the variable is indexed by :math:`i`, by :math:`j`, or is a fixed parameter across indices), its *positional index* :math:`k` and its *dimension* :math:`d_k`. 
+At a low level, every variable :math:`x^k_{\iota_k}` is specified by its **category** :math:`\iota_k\in\{i,j,\emptyset\}` (meaning that the variable is indexed by :math:`i`, by :math:`j`, or is a fixed parameter across indices), its **positional index** :math:`k` and its **dimension** :math:`d_k`. 
 
 In practice, the category :math:`\iota_k` is given through a keyword
 
@@ -63,23 +63,25 @@ where:
 - :math:`y \in \mathbb R^{N\times 3}` is an **y-variable** indexed by :math:`j`, 
 - :math:`a \in \mathbb R^N` is an **y-variable** indexed by :math:`j`.
 
-Using the **variable placeholders** detailed above and the
+Using the **variable placeholders** presented above and the
 mathematical operations listed in :ref:`part.mathOperation`,
-we can now define ``F`` as a **symbolic string**
+we can define ``F`` as a **symbolic string**
 
 .. code-block:: cpp
 
-    Square( Pm(0,1) - Vy(3,1) )  *  Exp( Vx(1,3) + Vy(2,3) )
+    SumReduction( Square( Pm(0,1) - Vy(3,1) )  *  Exp( Vx(1,3) + Vy(2,3) ), 1 )
 
 in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
-
+The second argument ``1`` of the ``SumReduction`` operator
+indicates that the summation is performed with respect to the :math:`j`
+index: a ``0`` would have been associated to an :math:`i`-reduction.
 
 Note that in all bindings, variables can be defined through **aliases**.
 In this example, we may write ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``a=Vy(3,1)`` and thus give ``F`` through a much friendlier expression:
 
 .. code-block:: cpp
 
-    Square(p - a) * Exp(x + y)
+    SumReduction( Square(p - a) * Exp(x + y), 1 )
 
 .. _`part.mathOperation`:
 
