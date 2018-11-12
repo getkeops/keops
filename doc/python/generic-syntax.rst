@@ -25,8 +25,8 @@ In both cases, ``Genred`` is a class with no methods: its instantiation simply r
     result = my_red( arg_1, arg_2, ..., arg_p, backend='auto', device_id=-1)
 
 
-Examples are given :ref:`below <part.example>` and in the :doc:`gallery <../_auto_examples/index>`:
-let us now fully document the syntax at :ref:`instantiation <part.instantiation>` and :ref:`call <part.call>` times.
+Examples are given :ref:`below <part.example>` and in the :doc:`gallery <../_auto_examples/index>`.
+We now fully document the syntax at :ref:`instantiation <part.instantiation>` and :ref:`call <part.call>` times.
 
 .. _`part.instantiation`:
 
@@ -93,7 +93,7 @@ Its arguments are:
 
 3. ``device_id`` (optional, default value = ``-1``): an *integer* that specifies the GPU that should be used to perform the computation; a negative value lets your system choose the default GPU. This argument is only useful if your system has access to several GPUs.
 
-The output of a KeOps call is always a **2d-tensor** with :math:`M` or `N` lines (if ``axis=1`` or ``axis=0`` respectively) and a number of columns that is inferred from the ``formula``.
+The output of a KeOps call is always a **2d-tensor** with :math:`M` or :math:`N` lines (if ``axis=1`` or ``axis=0``, respectively) and a number of columns that is inferred from the ``formula``.
 
 .. _`part.example`:
 
