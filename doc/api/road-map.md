@@ -2,8 +2,8 @@ Road map
 ========
 
 In future releases, we will focus on **performances**
-and implement heuristics / search algorithms for optimized compilation parameters.
-
+and implement heuristics, search algorithms for optimized compilation parameters.
+To-do list:
 
 - Put **reference paper** on Arxiv.
 - R bindings.
