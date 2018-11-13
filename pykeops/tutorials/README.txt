@@ -1,8 +1,8 @@
-=================
-Tutorials gallery
-=================
+=========================
+Tutorials, applications
+=========================
 
-This page contains tutorials using KeOps.
+These longer examples present real use cases of the ``pykeops`` module.
 
-**N.B.:** If you run a KeOps script for the first time, the internal engine may take a **few minutes** to compile all the relevant formulas.  Do not worry: this work is done **once and for all** as KeOps stores the resulting shared object files ('.so') files in a :ref:`cache directory <part.cache>`.
+**N.B.:** If you run a KeOps script for the first time, the internal engine may take a **few minutes** to compile all the relevant formulas.  Do not worry: this work is done **once and for all** as KeOps stores the resulting *shared object* files ('.so') in a :ref:`cache directory <part.cache>`.
 

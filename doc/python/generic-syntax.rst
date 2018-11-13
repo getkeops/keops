@@ -53,6 +53,7 @@ Instantiation: create a new KeOps routine
   Crucially, unlike in our :ref:`C++ interface <part.varCategory>`, you don't have to specify by hand the *indices* of each variable: they are implicitly encoded in the ordering of the list of aliases.
 
 3. ``reduction_op`` (optional, default value = ``"Sum"``): a *string* that specifies the reduction used on the formula. The first column of the :ref:`table of reductions <part.reduction>` lists the possible values.
+  **N.B.:** As of today, vector-valued output is only supported for the ``"Sum"`` reduction. All the other reductions expect the ``formula`` to be scalar-valued.
 
 
 4. ``axis``  (optional, default value = ``0``): an *integer* that specifies the dimension of the "kernel matrix" that is reduced. Possible values are:

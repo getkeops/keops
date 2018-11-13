@@ -170,4 +170,4 @@ ArgKMin          indices of order statistics      :math:`(1),\ldots,(K)`
 KMinArgKMin      (KMin,ArgKMin)                   :math:`\left((\cdots)_{(1)},\ldots,(\cdots)_{(K)},(1),\ldots,(K)\right)`
 ===========      ===========================      ============================================
 
-
+**N.B.:** As of today, vector-valued output is only supported for the `Sum` reduction. All the other reductions expect the formula :math:`F` to be scalar-valued.

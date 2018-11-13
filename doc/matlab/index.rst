@@ -4,11 +4,11 @@
    :alt: KeopsLab logo
 
 ========================
-Matlab binding for Keops
+Matlab binding for KeOps
 ========================
 
-KeOpsLab contains the matlab bindings for the cpp/cuda library KeOps. It provides
-standard matlab functions that can be used in any matlab codes.
+KeOpsLab is a Matlab front-end for the KeOps C++/Cuda library. It provides
+standard functions that can be used in any Matlab code.
 
 .. toctree::
    :maxdepth: 2

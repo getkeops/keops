@@ -7,7 +7,7 @@
 Python bindings for KeOps
 =========================
 
-We now fully document the public interface of the ``pykeops`` module, which is a NumPy or PyTorch frontend to the KeOps C++/Cuda library. It contains three sets of instructions:
+We now fully document the public interface of the ``pykeops`` module, which is a NumPy or PyTorch front-end for the KeOps C++/Cuda library. It contains three sets of instructions:
 
 1. :doc:`The Genred module <generic-syntax>`: our low-level pythonic syntax, compatible with NumPy and PyTorch.
 

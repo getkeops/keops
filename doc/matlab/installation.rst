@@ -12,24 +12,25 @@ Requirements
 Packaged version (recommended)
 ------------------------------
 
-1. Download and unzip KeOps library at a location of your choice (here denoted as ``/path/to``)
+1. Download and unzip the KeOps library at a location of your choice (denoted here by ``/path/to``):
 
 .. code-block:: bash
 
+    cd /path/to
     wget https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/-/archive/master/libkeops-master.zip
     unzip libkeops-master.zip
 
 
-Note that temporary files will be written into ``/path/to/libkeops/keopslab/build`` folder, so that this directory must have write permissions.
+Note that temporary files will be written into the ``/path/to/libkeops/keopslab/build`` folder: this directory must have write permissions.
 
-2. Manually add the directory ``/path/to/libkeops`` to you matlab path, see :ref:`part.path`
+2. Manually add the directory ``/path/to/libkeops`` to you Matlab path, as documented :ref:`below <part.path>`.
 
-3. Test your installation :ref:`part.test`
+3. :ref:`Test your installation <part.test>`.
 
 From source using git
 ---------------------
 
-1. clone keops library repo at a location of your choice (here denoted as ``/path/to``)
+1. Clone the KeOps repository at a location of your choice (denoted here by ``/path/to``):
     
 
 .. code-block:: bash
@@ -37,27 +38,27 @@ From source using git
     git clone https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops.git /path/to/libkeops
 
 
-Note that temporary files will be written into ``./libkeops/keopslab/build`` folder, so that this directory must have write permissions.
+Note that temporary files will be written into the ``./libkeops/keopslab/build`` folder: this directory must have write permissions.
 
 2. Manually add the directory ``/path/to/libkeops`` to you matlab path: see :ref:`part.path`
 
-3. :ref:`part.test`
+3. :ref:`Test your installation <part.test>`.
 
 .. _part.path:
 
 Set the path
 ------------
 
-There is two ways to tell matlab where is KeOpsLab:
+There are two ways to tell Matlab that KeOpsLab is now available in ``/path/to/libkeops``:
 
-+ This can be done once and for all, by adding the path to to your matlab. In matlab,  
++ You can add this folder to your Matlab path once and for all: in the Matlab prompt, type  
 
 .. code-block:: matlab
 
     addpath(genpath('/path/to/libkeops'))
     savepath
 
-+ Otherwise, you can add the following line to the beginning of your matlab scripts:
++ Otherwise, please add the following line to the beginning of your scripts:
 
 .. code-block:: matlab
 
@@ -66,10 +67,10 @@ There is two ways to tell matlab where is KeOpsLab:
 
 .. _part.test:
 
-Testing everything goes fine
-----------------------------
+Test that everything goes fine
+------------------------------
 
-:ref:`part.path` and execute the following piece of code in a matlab terminal
+:ref:`part.path` and execute the following piece of code in a Matlab terminal:
 
 .. code-block:: matlab
 
@@ -78,7 +79,7 @@ Testing everything goes fine
     my_conv = Kernel('SumReduction(SqNorm2(x-y),1)','x=Vx(0,3)','y=Vy(1,3)');
     my_conv(x,y)'
 
-It should return
+It should return:
 
 .. code-block:: matlab
 
@@ -93,7 +94,7 @@ Troubleshooting
 Verbosity
 ^^^^^^^^^
 
- You can force the verbosity level of the compilation by setting the variable
+For debugging purposes, you can force a "verbose" compilation mode by setting
 
 .. code-block:: matlab
 
@@ -104,16 +105,18 @@ in the file `/path/to/keops/keopslab/default_options.m <https://plmlab.math.cnrs
 Old versions of Cuda
 ^^^^^^^^^^^^^^^^^^^^
 
-When using KeOps with Cuda version 8 or earlier, the compilation phase for complicated formulas (typically second order gradient or higher derivatives, or even first order gradient for non-standard formulas) may be extremely slow, on the order of several minutes. Typically this happens when running "testShooting" example script. This is due to intensive use of template programming in the code, for which Cuda nvcc compiler prior to version 9 was not optimized. We strongly recommend upgrading to Cuda 9. However Cuda 9 is not anymore compatible with "old" Nvidia cards with compute capability 1 or 2 ; hence the only solution with such cards is to keep Cuda version 8.
+When using KeOps with Cuda version 8 or earlier, the compilation of complex formulas may take a very long time (several minutes). This typically happens when computing the derivative or second-order derivatives of a non-trivial function, as in the ``testShooting.m`` example script. 
+
+This delay is mainly due to the intensive use of modern C++11 templating features, for which the old (<=8) versions of the Cuda ``nvcc`` compiler were not optimized. Consequently, if you own a GPU with a compute capability >=3.0, **we strongly recommend upgrading to Cuda>=9**.
 
 Cmake is not found
 ^^^^^^^^^^^^^^^^^^
 
-If an error involving ``cmake`` appears, it may be due to incorrect ``libstdc++`` linking. Try the following: exit matlab, then in a terminal type
+If an error involving ``cmake`` appears, it may be due to an incorrect linking of ``libstdc++``. Try the following: exit Matlab, then type in a terminal 
 
 .. code-block:: bash
 
     export LD_PRELOAD=$(ldd $( which cmake ) | grep libstdc++ | tr ' ' '\n' | grep /)
     matlab
 
-This will reload matlab with hopefully the correct linking for ``cmake``.
+This will reload Matlab with, hopefully, a correct linking for ``cmake``.

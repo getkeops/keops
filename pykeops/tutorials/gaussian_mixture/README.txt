@@ -1,5 +1,5 @@
 Gaussian mixture
 ----------------
 
-A tutorial on how using KeOps for Gaussian mixture.
+Using KeOps to fit a Gaussian Mixture Model.
 

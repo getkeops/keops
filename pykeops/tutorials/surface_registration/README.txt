@@ -1,4 +1,4 @@
-Surfaces registration
+Surface registration
 ---------------------
 
-A tutorial on how using KeOps for computing diffeomorphic deformations of surfaces based on LDDMM.
+Diffeomorphic registration of meshes with the LDDMM framework.

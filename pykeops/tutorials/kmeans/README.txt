@@ -1,4 +1,4 @@
 K-means
 -------
 
-A tutorial on how using KeOps for computing K-means.
+A competitive implementation of the K-means algorithm on the GPU.

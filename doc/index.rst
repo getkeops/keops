@@ -47,8 +47,10 @@ More details are provided below:
 
 * :doc:`Documentation <api/why_using_keops>`.
 * `Source code <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops>`_
-* :doc:`Learning KeOps syntax with examples <_auto_examples/index>`
-* :doc:`Tutorials gallery <_auto_tutorials/index>`
+* :doc:`Learning KeOps with examples <_auto_examples/index>`
+* :doc:`Gallery of tutorials <_auto_tutorials/index>`
+
+**KeOps is licensed** under the `MIT license <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/licence.txt>`_.
 
 Projects using KeOps
 --------------------
