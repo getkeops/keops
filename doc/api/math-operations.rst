@@ -1,3 +1,5 @@
+.. _`part.generic_formulas`:
+
 Generic formulas
 ================
 
