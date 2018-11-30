@@ -2,11 +2,13 @@
 Using advanced syntax in formulas
 =================================
 
-In this demo, we show how to write generic formulas using KeOps syntax.
+Let's write generic formulas using the KeOps syntax.
 """
 
 ####################################################################
-# Standard imports
+# Setup
+# ------------------
+# First, the standard imports:
 
 import torch
 from pykeops.torch import Genred
@@ -16,14 +18,11 @@ import matplotlib.pyplot as plt
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 ####################################################################
-# Define our dataset
-# ------------------
+# Then, the definition of our dataset:
 #
-# In this demo file, given:
-#
-# - :math:`p`,   a vector of size 2
-# - :math:`x_i`, an N-by-D array
-# - :math:`y_j`, an M-by-D array
+# - :math:`p`,   a vector of size 2.
+# - :math:`x = (x_i)`, an N-by-D array.
+# - :math:`y = (y_j)`, an M-by-D array.
 
 N = 1000
 M = 2000
@@ -42,20 +41,22 @@ g = torch.randn(N, D, requires_grad=True, device=device)
 
 
 ####################################################################
-# Accessing a coordinate of a parameter
+# Computing an arbitrary formula
 # -------------------------------------
 #
-# We will compute :math:`(a_i)`, an N-by-D array given by:
+# Thanks to the `Elem` operator,
+# we can now compute :math:`(a_i)`, an N-by-D array given by:
 #
 # .. math::
 #
 #   a_i = \sum_{j=1}^M (\langle x_i,y_j \rangle^2) (p_0 x_i + p_1 y_j)
 #
-# where the two real parameters are stored in a 2-vector :math:`p=(p_0,p_1)`
+# where the two real parameters are stored in a 2-vector :math:`p=(p_0,p_1)`.
 
-# Keops implementation
-formula = 'Pow((X|Y), 2) * ((Elem(P, 0) * X) + (Elem(P, 1) * Y))'
-variables = ['P = Pm(2)',                        # 1st argument,  a parameter, dim 2.
+# Keops implementation. 
+# Note that Square(...) is more efficient than Pow(...,2)
+formula = 'Square((X|Y)) * ((Elem(P, 0) * X) + (Elem(P, 1) * Y))'
+variables = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
              'X = Vx(3)',  # 2nd argument, indexed by i, dim D.
              'Y = Vy(3)']  # 3rd argument, indexed by j, dim D.
 
@@ -67,9 +68,9 @@ scals = (torch.mm(x, y.t())) ** 2  # Memory-intensive computation!
 a_pytorch = p[0] * scals.sum(1).view(-1, 1) * x + p[1] * (torch.mm(scals, y))
 
 # Check the results
-for i in range(3):
-    plt.subplot(1, 3, i+1)
+for i in range(D):
+    plt.subplot(D, 1, i+1)
     plt.plot(a_keops.detach().cpu().numpy()[:40, i], '-', label='keops')
     plt.plot(a_pytorch.detach().cpu().numpy()[:40, i], '--', label='numpy')
-    plt.legend(loc='upper center')
+    plt.legend(loc='lower right')
 plt.show()

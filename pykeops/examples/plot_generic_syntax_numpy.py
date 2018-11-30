@@ -1,43 +1,35 @@
 """
-Writing arbitrary formula with the generic syntax (NumPy)
-=========================================================
-
-This example uses a pure numpy framework. 
-
+Custom formulas with the NumPy backend
+===========================================================
 """
+
 ####################################################################
-# It computes the following tensor operation :
+# Let's compute the (3000,3) tensor :math:`c` whose entries
+# :math:`c_i^u` are given by:
 #    
 # .. math::
-#
 #   c_i^u = \sum_j (p-a_j)^2 \exp(x_i^u+y_j^u)
 # 
 # where 
 # 
-# * :math:`x`   : a 3000x3 tensor, with entries denoted :math:`x_i^u`
-# * :math:`y`   : a 5000x3 tensor, with entries denoted :math:`y_j^u`
-# * :math:`a`   : a 5000x1 tensor, with entries denoted :math:`a_j`
-# * :math:`p`   : a scalar (entered as a 1x1 tensor)
+# * :math:`x` is a (3000,3) tensor, with entries :math:`x_i^u`.
+# * :math:`y` is a (5000,3) tensor, with entries :math:`y_j^u`.
+# * :math:`a` is a (5000,1) tensor, with entries :math:`a_j`.
+# * :math:`p` is a scalar, encoded as a vector of size (1,).
 #
-# and the results
-#
-# * :math:`c`   : a 3000x3 tensor, with entries denoted :math:`c_i^u`
-#
-# and its gradient (see below).
-
 
 ####################################################################
-# Define our dataset
+# Setup
 # ------------------
 #
-# Standard imports
+# Standard imports:
 
 import numpy as np
 from pykeops.numpy import Genred
 import matplotlib.pyplot as plt
 
 #####################################################################
-# Declare random inputs
+# Declare random inputs:
 
 M = 3000
 N = 5000
@@ -51,8 +43,8 @@ p = np.random.randn(1,1).astype(type)
 
 
 ####################################################################
-# Define the kernel
-# -----------------
+# Define a custom formula
+# -------------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
 variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
@@ -61,7 +53,9 @@ variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
              'p = Pm(1)']  # Fourth  arg : Parameter,  of size 1 (scalar)
 
 ####################################################################
-# The parameter ``reduction_op='Sum'`` together with ``axis=1`` means that the reduction operation is a sum over the second dimension ``j``. Thence the results will be an ``i``-variable.
+# Our sum reduction is performed over the index :math:`j`,
+# i.e. on the axis ``1`` of the kernel matrix.
+# The output c is an :math:`x`-variable indexed by :math:`i`.
 
 my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
 c = my_routine(x, y, a, p, backend='auto')
@@ -72,52 +66,66 @@ c_np = ((p - a.T)[:,np.newaxis] **2 * np.exp(x.T[:,:,np.newaxis] + y.T[:,np.newa
 
 # compare the results by plotting them
 for i in range(3):
-    plt.subplot(1, 3, i+1)
+    plt.subplot(3, 1, i+1)
     plt.plot(c[:40,i], '-', label='keops')
     plt.plot(c_np[:40,i], '--', label='numpy')
-    plt.legend(loc='upper center')
+    plt.legend(loc='lower right')
 plt.show()
 
+
 ####################################################################
-# Define the gradient
+# Compute the gradient
 # -------------------
-# Now, let's compute the gradient of :math:`c` with respect to :math:`y`. Note that since :math:`c` is not scalar valued, its "gradient" should be understood as the adjoint of the differential operator, i.e. as the linear operator that takes as input a new tensor :math:`e` with same size as :math:`c` and outputs a tensor :math:`g` with same size as :math:`y` such that for all variation :math:`\delta y` of :math:`y` we have:
+# Now, let's compute the gradient of :math:`c` with 
+# respect to :math:`y`. Since :math:`c` is not scalar valued, 
+# its "gradient" :math:`\partial c` should be understood as the adjoint of the 
+# differential operator, i.e. as the linear operator that:
+#
+# - takes as input a new tensor :math:`e` with the shape of :math:`c`
+# - outputs a tensor :math:`g` with the shape of :math:`y` 
+# 
+# such that for all variation :math:`\delta y` of :math:`y` we have:
 #
 # .. math::
 #
-#    \langle dc \cdot \delta y , e \rangle  =  \langle g , \delta y \rangle  =  \langle \delta y , dc^* \cdot e \rangle
+#    \langle \text{d} c . \delta y , e \rangle  =  \langle g , \delta y \rangle  =  \langle \delta y , \partial c . e \rangle
 #
+# Backpropagation is all about computing the tensor :math:`g=\partial c . e` efficiently, for arbitrary values of :math:`e`:
 
-# Declare a new variable of size Mx3 used as input of the gradient
+
+# Declare a new tensor of shape (M,3) used as the input of the gradient operator.
+# It can be understood as a "gradient with respect to the output c"
+# and is thus called "grad_output" in the documentation of PyTorch.
 e = np.random.randn(M, 3).astype(type)
 
 ####################################################################
-# Thankfully, KeOps provides an autodiff engine for formulas. Nevertheless, we need to specify some informations by hand: add the gradient operator around formula: ``Grad(formula , variable_to_differentiate, input_of_the_gradient)``
+# KeOps provides an autodiff engine for formulas. Unfortunately though, as NumPy does not provide any support for backpropagation, we need to specify some informations by hand and add the gradient operator around the formula: ``Grad(formula , variable_to_differentiate, input_of_the_gradient)``
 formula_grad =  'Grad(' + formula + ', y, e)'
 
-# This new formula has an a new variable (namely the input variable e)
-variables_grad = variables + ['e = Vx(3)'] # Fifth arg: i-variable, of size 3... Just like "c"!
+# This new formula makes use of a new variable (the input tensor e)
+variables_grad = variables + ['e = Vx(3)'] # Fifth arg: an i-variable of size 3... Just like "c"!
 
-# Note here that the summation  is with respect to the first component (axis=0) in order to get a 'j'-variable
+# The summation is done with respect to the 'i' index (axis=0) in order to get a 'j'-variable
 my_grad = Genred(formula_grad, variables_grad, reduction_op='Sum', axis=0, cuda_type=type)
 
-d = my_grad(x, y, a, p, e)
+g = my_grad(x, y, a, p, e)
 
 ####################################################################
-# to generate the equivalent code in numpy: we have to compute explicitly the adjoint of the differential (a.k.a. the derivative). To do so, let see :math:`c^i_u` as a function of :math:`y_j`:
+# To generate an equivalent code in numpy, we muse compute explicitly the adjoint of the differential (a.k.a. the derivative). To do so, let see :math:`c^i_u` as a function of :math:`y_j`:
 #
 # .. math::
 #
-#   d_j^u = [(\partial_{y} c^u(y))^* e^u]_j = \sum_{i} (p-a_j)^2 \exp(x_i^u+y_j^u) * e_i^u
+#   g_j^u = [(\partial_{y} c^u(y)) . e^u]_j = \sum_{i} (p-a_j)^2 \exp(x_i^u+y_j^u) \cdot e_i^u
 #
 # and implement the formula:
 
-d_np = ((p - a.T)[:, np.newaxis, :] **2 * np.exp(x.T[:, :, np.newaxis] + y.T[:, np.newaxis, :]) * e.T[:, :, np.newaxis]).sum(1).T
+g_np = ((p - a.T)[:, np.newaxis, :] **2 * np.exp(x.T[:, :, np.newaxis] \
+     + y.T[:, np.newaxis, :]) * e.T[:, :, np.newaxis]).sum(1).T
 
 # compare the results by plotting:
 for i in range(3):
-    plt.subplot(1, 3, i+1)
-    plt.plot(d[:40,i], '-', label='keops')
-    plt.plot(d_np[:40,i], '--', label='numpy')
-    plt.legend(loc='upper center')
+    plt.subplot(3, 1, i+1)
+    plt.plot(g[:40,i], '-', label='keops')
+    plt.plot(g_np[:40,i], '--', label='numpy')
+    plt.legend(loc='lower right')
 plt.show()
