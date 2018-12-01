@@ -139,11 +139,11 @@ class GaussianMixture(Module):
 
 
 model = GaussianMixture(10, sparsity=200)
-optimizer = torch.optim.Adam(model.parameters())
+optimizer = torch.optim.Adam(model.parameters(), lr=.1)
 
-loss = np.zeros(10001)
+loss = np.zeros(501)
 
-for it in range(10001):
+for it in range(501):
     optimizer.zero_grad()  # Reset the gradients (PyTorch syntax...).
     cost = model.neglog_likelihood(x)  # Cost to minimize
     cost.backward()  # Backpropagate to compute the gradient.
@@ -151,11 +151,13 @@ for it in range(10001):
     
     loss[it] = cost.data.cpu().numpy()
     
-    # sphinx_gallery_thumbnail_number = 7
-    if it in [0, 10, 100, 150, 250, 5000, 10000]:
+    # sphinx_gallery_thumbnail_number = 5
+    if it in [0, 10, 100, 150, 250, 500]:
+        plt.pause(.01)
         plt.figure()
         model.plot(x)
         plt.title('Density, iteration ' + str(it), fontsize=20)
+        plt.pause(.01)
 
 
 
@@ -163,5 +165,4 @@ for it in range(10001):
 # Functional values during optimization process
 plt.figure()
 plt.plot(loss)
-
 

@@ -64,9 +64,7 @@ start = time.time()
 
 my_routine = Genred(formula, variables, 
                     reduction_op='LogSumExp', axis=1, cuda_type=type)
-tmp = my_routine(x, y, a, p, backend='CPU')
-# in fact the log-sum-exp operation in Keops computes pairs (m,s) such that the LSE is m+log(s)
-c = tmp[:,0] + torch.log(tmp[:,1])
+c = my_routine(x, y, a, p, backend='CPU')
 
 # N.B.: By specifying backend='CPU', we can make sure that the result is computed using a simple C++ for loop.
 print('Time to compute the convolution operation on the cpu: ', round(time.time()-start,5), 's', end=' ')
@@ -75,7 +73,7 @@ print('Time to compute the convolution operation on the cpu: ', round(time.time(
 # We compare with the unstable, naive computation "Log of Sum of Exp":
 
 my_routine2 = Genred('Exp('+formula+')', variables, reduction_op='Sum', axis=1, cuda_type=type)
-c2 = torch.log(my_routine2(x, y, a, p, backend='CPU'))[:,0]
+c2 = torch.log(my_routine2(x, y, a, p, backend='CPU'))
 print('(relative error: ',((c2-c).norm()/c.norm()).item(), ')')
 
 
@@ -128,7 +126,6 @@ if torch.cuda.is_available():
     # then call the operations
     start = time.time()
     c3 = my_routine(xc, yc, ac, pc, backend='GPU')
-    c3 = c3[:,0] + torch.log(c3[:,1])
     print('Time to compute convolution operation on the gpu:',round(time.time()-start,5), 's ', end='')
     print('(relative error:', float(torch.abs((c2 - c3.cpu()) / c2).mean()), ')')
     start = time.time()

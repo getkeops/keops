@@ -1,3 +1,4 @@
+import numpy as np
 from pykeops import default_cuda_type
 from pykeops.common.keops_io import load_keops
 from pykeops.common.get_options import get_tag_backend
@@ -11,6 +12,7 @@ class Genred:
             self.formula = reduction_op + 'Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
         else:
             self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+        self.reduction_op = reduction_op
         self.aliases = complete_aliases(formula, aliases)
         self.cuda_type = cuda_type
         self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
@@ -19,4 +21,11 @@ class Genred:
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         nx, ny = get_sizes(self.aliases, *args)
-        return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, *args) 
+        result = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, *args) 
+        if self.reduction_op == "LogSumExp" : 
+            # KeOps core returns pairs of floats (M,S), such that the result
+            # is equal to  M+log(S)...
+            # Users shouldn't have to bother with that!
+            return (result[:,0] + np.log(result[:,1]) )[:,None]
+        else :
+            return result

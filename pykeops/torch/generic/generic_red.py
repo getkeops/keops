@@ -109,9 +109,18 @@ class Genred:
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
+        self.reduction_op = reduction_op
         self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
     def __call__(self, *args, backend='auto', device_id=-1):
-        return GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, *args)
+        result = GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, *args)
+
+        if self.reduction_op == "LogSumExp" : 
+            # KeOps core returns pairs of floats (M,S), such that the result
+            # is equal to  M+log(S)...
+            # Users shouldn't have to bother with that!
+            return (result[:,0] + result[:,1].log()).view(-1,1)
+        else :
+            return result
