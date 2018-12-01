@@ -8,9 +8,9 @@
 
 #include "core/reductions/reduction.h"
 
-// Implements the LogSumExp reduction operation
-// Giving a "LogSumExp" to a Conv1D/2D routine will automatically
-// result in it using a numerically stable reduce operation.
+// Implements the LogSumExp reduction operation in a numerically stable way.
+// As of today, this reduction op. is not vectorized:
+// we only support scalar-valued formulas.
 
 namespace keops {
 
@@ -94,6 +94,13 @@ struct LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
                 out[k] = tmp[k];
         }
     };
+    
+    // Beware: the formula that we use for the gradient is *only* valid
+    // if the output [M,S] = LogSumExp(F) has been flattened through a
+    // L = M + log(S)
+    // operation (as done by the Python bindings), and if 
+    // GRADIN = [Grad(L), Grad(L)/S ]
+    // has been backpropagated from L.
     
     template < class MS >
     using M = Extract<MS,0,F::DIM>;

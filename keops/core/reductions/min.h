@@ -12,6 +12,7 @@ namespace keops {
 template < class F, int tagI=0 >
 struct MinArgMinReduction_Base : public Reduction<F,tagI> {
 
+    // We work with a (values,indices) vector
 	static const int DIMRED = 2*F::DIM;	// dimension of temporary variable for reduction
 		
 		template < typename TYPE >
