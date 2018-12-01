@@ -108,19 +108,33 @@ Elementary functions:
 ``Log(f)``                element-wise natural logarithm
 ``Pow(f, P)``             P-th power of ``f`` (element-wise), where P is a fixed integer
 ``Powf(f, g)``            power operation, alias for ``Exp(g*Log(f))``
-``Square(f)``             element-wise square
-``Sqrt(f)``               element-wise square root
-``Rsqrt(f)``              element-wise inverse square root
+``Square(f)``             element-wise square, faster than Pow(f,2)
+``Sqrt(f)``               element-wise square root, faster than Powf(f,.5)
+``Rsqrt(f)``              element-wise inverse square root, faster than Powf(f,-.5)
 ======================   =========================================================================================================
 
 
 Simple vector operations:
 
-======================   =========================================================================================================
-``SqNorm2(f)``            squared L2 norm, same as ``(f|f)``
-``Norm2(f)``              L2 norm, same as ``Sqrt((f|f))``
-``Normalize(f)``          normalize vector, same as ``Rsqrt(SqNorm2(f)) * f``
-======================   =========================================================================================================
+=========================   =============================================================================================================
+``SqNorm2(f)``               squared L2 norm, same as ``(f|f)``
+``Norm2(f)``                 L2 norm, same as ``Sqrt((f|f))``
+``Normalize(f)``             normalize vector, same as ``Rsqrt(SqNorm2(f)) * f``
+``SqDist(f,g)``              squared L2 distance, same as ``SqNorm2(f-g)``
+=========================   =============================================================================================================
+
+Generic squared euclidean norms, with support for scalar, diagonal and full (symmetric)
+matrices. If ``f`` is a vector of size `N`, depending on the size of
+``s``, ``WeightedSqNorm(s,f)`` may refer to:
+
+- a weighted L2 norm :math:`s[0]\cdot\sum_{1\leqslant i \leqslant N} f[i-1]^2`  if ``s`` is a vector of size 1.
+- a separable norm :math:`\sum_{1\leqslant i \leqslant N} s[i-1]\cdot f[i-1]^2`  if ``s`` is a vector of size `N`.
+- a full anisotropic norm :math:`\sum_{1\leqslant i,j\leqslant N} s[N\cdot i+j-1]\cdot f[i-1] f[j-1]`  if ``s`` is a vector of size `N*N` such that ``s[N*i+j-1]=s[N*j+i-1]``.
+
+=========================   =============================================================================================================
+``WeightedSqNorm(s,f)``      generic squared euclidean norm
+``WeightedSqDist(s,f,g)``    generic squared distance, same as ``WeightedSqNorm(s,f-g)``
+=========================   =============================================================================================================
 
 Constants and padding/concatenation operations:
 
