@@ -29,6 +29,11 @@ __TYPE__* get_data(__NUMPYARRAY__ obj_ptri){
 }
 
 template <>
+__INDEX__* get_rangedata(__NUMPYARRAY__ obj_ptri){
+    return (__INDEX__ *) obj_ptri.data();
+}
+
+template <>
 bool is_contiguous(__NUMPYARRAY__ obj_ptri){
     return obj_ptri.c_style;  // always true because of py::array::c_style
 }
@@ -41,6 +46,7 @@ bool is_contiguous(__NUMPYARRAY__ obj_ptri){
 template <>
 __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
                         int nx, int ny, int nout, int dimout,
+                        int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs){
 
     auto result_array = __NUMPYARRAY__({nout,dimout});

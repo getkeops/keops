@@ -23,6 +23,11 @@ __TYPE__* get_data(at::Tensor obj_ptri){
 }
 
 template <>
+__INDEX__* get_rangedata(at::Tensor obj_ptri){
+    return obj_ptri.data<__INDEX__>();
+}
+
+template <>
 bool is_contiguous(at::Tensor obj_ptri){
     return obj_ptri.is_contiguous();
 }
@@ -41,6 +46,7 @@ bool is_contiguous(at::Tensor obj_ptri){
 template <>
 at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
                         int nx, int ny, int nout, int dimout,
+                        int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs){
     
     if(tagHostDevice == 0) {

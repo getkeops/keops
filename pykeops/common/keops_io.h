@@ -2,6 +2,7 @@
 #include <string>
 // #include "formula.h" done by cmake
 
+#define __INDEX__ int32_t // use int instead of double
 
 extern "C" {
     int CpuReduc(int, int, __TYPE__*, __TYPE__**);
@@ -62,6 +63,9 @@ int get_size(array_t obj_ptri, int l);
 
 template< typename array_t >
 __TYPE__* get_data(array_t obj_ptri);
+
+template< typename array_t >
+__INDEX__* get_rangedata(array_t obj_ptri);
 
 template< typename array_t >
 bool is_contiguous(array_t obj_ptri);
@@ -153,10 +157,11 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 //                    Call Cuda functions
 /////////////////////////////////////////////////////////////////////////////////
 
-
+// Implemented by pykeops/torch/generic_red.cpp or pykeops/numpy/generic_red.cpp
 template < typename array_t >
 array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
                         int nx, int ny, int nout, int dimout,
+                        int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs);
 
 
@@ -169,7 +174,11 @@ array_t generic_red(int nx, int ny,
                     int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
                     int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
                     int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means _fromHost suffix
-                    int Device_Id,    // id of GPU device
+                    int Device_Id,        // id of GPU device
+                    py::tuple ranges,     // () if no "sparsity" ranges are given (default behavior)
+                                          // Otherwise, ranges is a 6-uple of (integer) array_t
+                                          // ranges = (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
+                                          // as documented in the doc on sparstiy and clustering.
                     py::args py_args) {
 
     // Checks
@@ -202,10 +211,44 @@ array_t generic_red(int nx, int ny,
     // dimension Output : nout is the nbr of rows of the result
     int nout = (TAGIJ == 0)? nx : ny;
 
+
+    int tagRanges, nranges_x, nranges_y ;
+    __INDEX__ **castedranges;
+
+    // Sparsity: should we handle ranges?
+    if(ranges.size() == 0) {
+        tagRanges = 0; nranges_x = 0; nranges_y = 0 ;
+        castedranges = new __INDEX__ *[1];
+    }
+    else if(ranges.size() == 6) {
+        // Cast the six integer arrays
+        std::vector<array_t> ranges_ptr(ranges.size());
+        for (size_t i = 0; i < ranges.size(); i++)
+            ranges_ptr[i] = py::cast<array_t> (ranges[i]);
+        
+        // get the pointers to data to avoid a copy
+        castedranges = new __INDEX__ *[ranges.size()];
+        for(auto i=0; i<ranges.size(); i++)
+            castedranges[i] = get_rangedata(ranges_ptr[i]);
+
+        tagRanges = 1;
+        nranges_x = get_size(ranges_ptr[0], 0) ;
+        nranges_y = get_size(ranges_ptr[3], 0) ;
+    }
+    else {
+        throw std::runtime_error(
+            "[Keops] the 'ranges' argument should be a tuple of size 0 or 6, "
+            "but is of size " + std::to_string(ranges.size()) + "."
+        );
+    }
+
+
+
     // Call Cuda codes
     array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id,
                             nx, ny,
                             nout, F::DIM,      // dimout, nout
+                            tagRanges, nranges_x, nranges_y, castedranges,
                             castedargs);
 
     delete[] castedargs;
