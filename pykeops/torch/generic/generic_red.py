@@ -71,7 +71,7 @@ class GenredAutograd(torch.autograd.Function):
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 5]:  # because of (formula, aliases, backend, cuda_type, device_id)
+            if not ctx.needs_input_grad[var_ind + 6]:  # because of (formula, aliases, backend, cuda_type, device_id, ranges)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -102,7 +102,7 @@ class GenredAutograd(torch.autograd.Function):
                 else:
                     grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, ranges, *args_g)
                 grads.append(grad)
-         
+        
         # Grads wrt. formula, aliases, backend, cuda_type, device_id, ranges, *args
         return (None, None, None, None, None, None, *grads)
 
