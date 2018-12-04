@@ -50,8 +50,13 @@ __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int D
                         __TYPE__ ** castedargs){
 
     auto result_array = __NUMPYARRAY__({nout,dimout});
-    if (tagCpuGpu == 0) 
-        CpuReduc(nx, ny,  get_data(result_array), castedargs);
+    if (tagCpuGpu == 0) {
+        if (tagRanges == 0) { // Full M-by-N computation
+            CpuReduc(nx, ny, get_data(result_array), castedargs);
+        } else if( tagRanges == 1) { // Block sparsity
+            CpuReduc_ranges(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
+        }
+    }
     else if (tagCpuGpu == 1) {
 #if USE_CUDA
         if (tagHostDevice == 0) {

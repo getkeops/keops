@@ -41,6 +41,23 @@ struct Eval<ZeroReduction<DIM,tagI>,MODE> {
     }
 };
 
+// The signature of CpuConv_ranges is slightly different...
+
+struct CpuConv_ranges;
+
+template < int DIM, int tagI >
+struct Eval<ZeroReduction<DIM,tagI>,CpuConv_ranges> {
+    template < typename TYPE, typename... Args >
+    static int Run(int nx, int ny, 
+                int nranges_x, int nranges_y, __INDEX__ **ranges,
+                TYPE *out, Args... args) {
+        for(int k=0; k<(tagI==0?nx:ny)*DIM; k++)
+            out[k] = 0;
+        return 0;
+    }
+};
+
+
 #ifdef __CUDACC__
 // specializations in case of device data
 struct GpuConv1D_FromDevice;
