@@ -49,39 +49,48 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Devic
                         int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs){
     
-    if(tagHostDevice == 0) {
+    if(tagHostDevice == 0) { // Data is located on Host
 
+        // The output will be on the "CPU", too
         at::Tensor result_array = at::empty({nout,dimout},torch::CPU(AT_TYPE));
         torch::set_requires_grad(result_array, true);
 
-        if (tagCpuGpu == 0) {
-            CpuReduc(nx, ny, get_data(result_array), castedargs);
-            return result_array;
-        } else if(tagCpuGpu==1) {
+        if (tagCpuGpu == 0) { // backend == "CPU"
+            if (tagRanges == 0) { // Full M-by-N computation
+                CpuReduc(nx, ny, get_data(result_array), castedargs);
+                return result_array;
+            } else if( tagRanges == 1) { // Block sparsity
+                CpuReduc_ranges(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
+                return result_array;
+            }
+        } else if(tagCpuGpu==1) { // backend == "GPU", "GPU_1D", "GPU_2D"
 #if USE_CUDA
-            if(tag1D2D==0) 
+            if(tag1D2D==0) // "GPU_1D"
                 GpuReduc1D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
-            else if(tag1D2D==1)
+            else if(tag1D2D==1) // "GPU_2D"
                 GpuReduc2D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
             return result_array;
 #else
             throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");
 #endif
         }
-    } else if(tagHostDevice == 1) {
+    } else if(tagHostDevice == 1) { // Data is on the device
 #if USE_CUDA       
-       at::Tensor result_array = at::empty({nout,dimout}, {torch::CUDA(AT_TYPE),Device_Id});
-       torch::set_requires_grad(result_array, true);
-        if(tag1D2D==0)
+
+        // The output will be on the device too
+        at::Tensor result_array = at::empty({nout,dimout}, {torch::CUDA(AT_TYPE),Device_Id});
+        torch::set_requires_grad(result_array, true);
+
+        if(tag1D2D==0) // "GPU_1D"
             GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
-        else if(tag1D2D==1)
+        else if(tag1D2D==1) // "GPU_2D"
             GpuReduc2D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
         return result_array;
 #else
         throw std::runtime_error("[KeOps] No cuda device detected... try to set tagHostDevice to 0.");
 #endif
     }
-    throw std::runtime_error("[KeOps] Meooooooooooooooooow...");
+    throw std::runtime_error("[KeOps] Meooooooooooooooooow..."); // Data is either on Host or Device...
 }
 
 

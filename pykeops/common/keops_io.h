@@ -2,10 +2,9 @@
 #include <string>
 // #include "formula.h" done by cmake
 
-#define __INDEX__ int32_t // use int instead of double
-
 extern "C" {
     int CpuReduc(int, int, __TYPE__*, __TYPE__**);
+    int CpuReduc_ranges(int, int, int, int, __INDEX__**, __TYPE__*, __TYPE__**);
 };
 
 #if USE_CUDA

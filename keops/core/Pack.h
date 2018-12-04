@@ -30,6 +30,8 @@
 	#define INFINITY_DOUBLE std::numeric_limits<double>::infinity()
 #endif
 
+#define __INDEX__ int32_t // use int instead of double
+
 namespace keops {
 
 // templated plus and minus infinity

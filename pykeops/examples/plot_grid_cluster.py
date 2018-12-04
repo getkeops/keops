@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #############################
 #  Standard imports
 #
@@ -17,7 +18,7 @@ dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 #####################
 # Define our dataset
 #
-M, N = 200000, 200000
+M, N = 2000, 2000
 
 t = torch.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = torch.stack((.5 + .4 * (t / 7) * t.cos(), .5 + .3 * t.sin()), 1)
@@ -94,28 +95,32 @@ my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",
                   "B = Vy(1)"], 
                   axis = 1 )     # Reduction wrt. y
 
-backends = ["GPU"] if use_cuda else ["CPU"]
+backends = ["CPU", "GPU"] if use_cuda else ["CPU"]
 for backend in backends :
-    if backend == "CPU" : g_, x_, y_, b_ = g.cpu(), x.cpu(), y.cpu(), b.cpu()
-    else :                g_, x_, y_, b_ = g, x, y, b
+    if backend == "CPU" : 
+        g_, x_, y_, b_ = g.cpu(), x.cpu(), y.cpu(), b.cpu()
+        ranges_ij_ = tuple(r.cpu() for r in ranges_ij)
+    else :                
+        g_, x_, y_, b_ = g, x, y, b
     
     # Warm-up
     a = my_conv(g_, x_, y_, b_, backend=backend)
 
     start = time.time()
-    a = my_conv(g_, x_, y_, b_, backend=backend)
+    a_full = my_conv(g_, x_, y_, b_, backend=backend)
     end = time.time()
     t_full = end-start
     print(" Full  convolution, {} backend: {:2.4f}s".format(backend, end-start))
 
     start = time.time()
-    a = my_conv(g_, x_, y_, b_, backend=backend, ranges=ranges_ij )
+    a_sparse = my_conv(g_, x_, y_, b_, backend=backend, ranges=ranges_ij_ )
     end = time.time()
     t_sparse = end-start
     print("Sparse convolution, {} backend: {:2.4f}s".format(backend, end-start) )
     print("Relative time : {:3d}% ({:3d}% including clustering), ".format(
         int(100*t_sparse/t_full),
         int(100*(t_sparse+t_cluster)/t_full)))
+    print("Relative error:   {:3.4f}%".format( 100* (a_sparse-a_full).abs().sum() / a_full.abs().sum() ))
     print("")
 
 ####################################################################
