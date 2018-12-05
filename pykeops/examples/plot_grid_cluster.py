@@ -102,6 +102,7 @@ for backend in backends :
         ranges_ij_ = tuple(r.cpu() for r in ranges_ij)
     else :                
         g_, x_, y_, b_ = g, x, y, b
+        ranges_ij_ = ranges_ij
     
     # Warm-up
     a = my_conv(g_, x_, y_, b_, backend=backend)

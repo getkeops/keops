@@ -313,17 +313,78 @@ static int Eval_(FUN fun, int nx, int ny,
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
     blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
+
+    // Ranges pre-processing... ==================================================================
+    
+    // N.B.: In the following code, we assume that the x-ranges do not overlap.
+    //       Otherwise, we'd have to assume that DIMRED == DIMOUT
+    //       or allocate a buffer of size nx * DIMRED. This may be done in the future.
+    // Cf. reduction.h: 
+    //    FUN::tagJ = 1 for a reduction over j, result indexed by i
+    //    FUN::tagJ = 0 for a reduction over i, result indexed by j
+
+    int nranges = FUN::tagJ ? nranges_x : nranges_y ;
+    __INDEX__ *ranges_x = FUN::tagJ ? ranges[0] : ranges[3] ;
+    __INDEX__ *slices_x = FUN::tagJ ? ranges[1] : ranges[4] ;
+    __INDEX__ *ranges_y = FUN::tagJ ? ranges[2] : ranges[5] ;
+
+    __INDEX__ cumsum = 0;
+    std::cout << "\nCoucou !!\n";
+
+    __INDEX__* ranges_x_h = NULL;
+    ranges_x_h = new __INDEX__[2*nranges] ;
+    // Send data from device to host.
+    CudaSafeCall(cudaMemcpy(ranges_x_h, ranges_x, sizeof(__INDEX__)*2*nranges, cudaMemcpyDeviceToHost));
+
+    // Computes the number of blocks needed ---------------------------------------------
+    int nblocks = 0, len_range = 0;
+    for(int i=0; i<nranges ; i++){
+        len_range = ranges_x_h[2*i+1] - ranges_x_h[2*i] ;
+        nblocks += (len_range/blockSize.x) + (len_range%blockSize.x==0 ? 0 : 1) ;
+    }
+
+    // Create a lookup table for the blocks --------------------------------------------
+    __INDEX__ *lookup_h = NULL;
+    lookup_h = new __INDEX__[3*nblocks] ;
+    int index = 0;
+    for(int i=0; i<nranges ; i++){
+        len_range = ranges_x_h[2*i+1] - ranges_x_h[2*i] ;
+        for(int j=0; j<len_range ; j+=blockSize.x) {
+            lookup_h[3*index]   = i;
+            lookup_h[3*index+1] = ranges_x_h[2*i] + j;
+            lookup_h[3*index+2] = ranges_x_h[2*i] + j + std::min((int) blockSize.x, len_range-j ) ;
+
+            index++;
+        }
+    }
+
+    // Load the table on the device -----------------------------------------------------
+    void **lookup_d = NULL;
+    CudaSafeCall(cudaMalloc((void**)&lookup_d, sizeof(__INDEX__)*3*nblocks));
+    CudaSafeCall(cudaMemcpy(lookup_d, lookup_h, sizeof(__INDEX__)*3*nblocks, cudaMemcpyHostToDevice));
+
+    std::cout << "Diff : " << index << "-" << nblocks << "\n" ;
+
+    // ============================================================================================
+
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
-    GpuConv1DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
+    GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
 
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
     CudaCheckError();
 
     CudaSafeCall(cudaFree(p_data));
+
+    // Free the block lookup table :
+    delete [] ranges_x_h;
+    delete [] lookup_h;
+    CudaSafeCall(cudaFree(lookup_d));
+    //CudaSafeCall(cudaFree(ranges_x_h));
+
 
     return 0;
 }
