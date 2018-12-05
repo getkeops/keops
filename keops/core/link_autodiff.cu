@@ -53,3 +53,22 @@ extern "C" int CpuReduc_ranges(int nx, int ny, int nranges_x, int nranges_y, __I
     return Eval<F,CpuConv_ranges>::Run(nx, ny, nranges_x, nranges_y, castedranges, gamma, args);
 }
 
+
+//////////////////////////////////////
+// Convolutions on GPU, with ranges //
+//////////////////////////////////////
+
+#include "core/GpuConv1D_ranges.cu"
+
+extern "C" int GpuReduc1D_ranges_FromHost(int nx, int ny, 
+                                         int nranges_x, int nranges_y, __INDEX__ **castedranges, 
+                                         __TYPE__* gamma, __TYPE__** args, int device_id=-1) {
+    return Eval<F,GpuConv1D_ranges_FromHost>::Run(nx, ny, nranges_x, nranges_y, castedranges, gamma, args, device_id);
+}
+
+extern "C" int GpuReduc1D_ranges_FromDevice(int nx, int ny, 
+                                           int nranges_x, int nranges_y, __INDEX__ **castedranges, 
+                                           __TYPE__* gamma, __TYPE__** args, int device_id=-1) {
+return Eval<F,GpuConv1D_ranges_FromDevice>::Run(nx, ny, nranges_x, nranges_y, castedranges, gamma, args, device_id);
+}
+
