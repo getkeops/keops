@@ -27,6 +27,16 @@ static int CpuConv_ranges_(FUN fun, TYPE** param, int nx, int ny,
     TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
     load<DIMSP>(0,pp,param);
 
+
+    // Set the output to zero, as the ranges may not cover the full output
+    for(int i=0; i<nx; i++) {
+        typename FUN::template InitializeReduction<TYPE>()(tmp); 
+        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
+    }
+
+    // N.B.: In the following code, we assume that the x-ranges do not overlap.
+    //       Otherwise, we'd have to assume that DIMRED == DIMOUT
+    //       or allocate a buffer of size nx * DIMRED. This may be done in the future.
     // Cf. reduction.h: 
     //    FUN::tagJ = 1 for a reduction over j, result indexed by i
     //    FUN::tagJ = 0 for a reduction over i, result indexed by j
@@ -40,7 +50,7 @@ static int CpuConv_ranges_(FUN fun, TYPE** param, int nx, int ny,
         __INDEX__ start_x = ranges_x[2*range_index] ;
         __INDEX__ end_x   = ranges_x[2*range_index + 1] ;
 
-        __INDEX__ start_slice = (range_index < 0) ? 0 : slices_x[range_index-1] ;
+        __INDEX__ start_slice = (range_index < 1) ? 0 : slices_x[range_index-1] ;
         __INDEX__ end_slice   = slices_x[range_index] ;
 
         for(__INDEX__ i = start_x; i < end_x; i++) {
