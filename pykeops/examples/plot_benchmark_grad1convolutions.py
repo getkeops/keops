@@ -20,6 +20,9 @@ M = 10000
 N = 10000
 D = 3
 E = 3
+REPEAT = 10
+use_numpy = True
+use_vanilla = True
 
 type = 'float32'
 
@@ -69,25 +72,30 @@ for k in kernel_to_test:
     print('kernel: ' + k)
 
     # pure numpy
-    gnumpy = chain_rules(a, x, y, grad_np_kernel(x, y, sigma, kernel=k), b)
-    speed_numpy[k] = timeit.repeat('gnumpy = chain_rules(a, x, y, grad_np_kernel(x, y, sigma, kernel=k), b)', globals=globals(), repeat=5, number=1)
-    print('Time for numpy:               {:.4f}s'.format(np.median(speed_numpy[k])))
-    
-    
+    if use_numpy :
+        gnumpy = chain_rules(a, x, y, grad_np_kernel(x, y, sigma, kernel=k), b)
+        speed_numpy[k] = timeit.repeat('gnumpy = chain_rules(a, x, y, grad_np_kernel(x, y, sigma, kernel=k), b)', 
+            globals=globals(), repeat=3, number=1)
+        print('Time for numpy:               {:.4f}s'.format(np.median(speed_numpy[k])))
+    else :
+        gnumpy = torch.zeros_like(xc).data.cpu().numpy()
     
     # keops + pytorch : generic tiled implementation (with cuda if available else uses cpu)
     try:
         from pykeops.torch import Kernel, kernel_product
-    
+
         params = {
             'id': Kernel(k + '(x,y)'),
             'gamma': 1. / (sigmac * sigmac),
             'backend': 'auto',
         }
-    
+
         aKxy_b = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))
         g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
-        speed_pykeops[k] =  np.array(timeit.repeat("g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1)), xc, create_graph=False)[0]", globals=globals(), repeat=100, number=4)) / 4
+        speed_pykeops[k] =  np.array(timeit.repeat(
+            setup = "cost = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))",
+            stmt  = "g3 = torch.autograd.grad(cost, xc, create_graph=False)[0]", 
+            globals=globals(), repeat=REPEAT, number=1))
         print('Time for keops generic:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
         print('   (absolute error:       ', np.max(np.abs(g3.data.numpy() - gnumpy)), ')')
     except:
@@ -97,22 +105,26 @@ for k in kernel_to_test:
     
     
     # vanilla pytorch (with cuda if available else uses cpu)
-    try:
-        from pykeops.torch import Kernel, kernel_product
-        
-        params = {
-            'id': Kernel(k + '(x,y)'),
-            'gamma': 1. / (sigmac * sigmac),
-            'backend': 'pytorch',
-        }
-        
-        aKxy_b = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))
-        g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
-        speed_pytorch[k] =  np.array(timeit.repeat("g3 = torch.autograd.grad(torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1)), xc, create_graph=False)[0]", globals=globals(), repeat=100, number=4)) / 4
-        print('Time for Pytorch:             {:.4f}s'.format(np.median(speed_pytorch[k])), end='')
-        print('   (absolute error:       ', np.max(np.abs(g3.data.numpy() - gnumpy)), ')')
-    except:
-        print('Time for Pytorch:             Not Done')
+    if use_vanilla :
+        try:
+            from pykeops.torch import Kernel, kernel_product
+            
+            params = {
+                'id': Kernel(k + '(x,y)'),
+                'gamma': 1. / (sigmac * sigmac),
+                'backend': 'pytorch',
+            }
+            
+            aKxy_b = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))
+            g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
+            speed_pytorch[k] =  np.array(timeit.repeat(
+                setup = "cost = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))",
+                stmt  = "g3 = torch.autograd.grad(cost, xc, create_graph=False)[0]",
+                globals=globals(), repeat=REPEAT, number=1))
+            print('Time for Pytorch:             {:.4f}s'.format(np.median(speed_pytorch[k])), end='')
+            print('   (absolute error:       ', np.max(np.abs(g3.data.numpy() - gnumpy)), ')')
+        except:
+            print('Time for Pytorch:             Not Done')
     
     
     
@@ -122,7 +134,9 @@ for k in kernel_to_test:
         my_conv = RadialKernelGrad1conv(type)
         g1 = my_conv(a, x, y, b, sigma, kernel=k)
         
-        speed_pykeops_specific[k] =  np.array(timeit.repeat('g1 = my_conv(a, x, y, b, sigma, kernel=k)', globals=globals(), repeat=100, number=4))/4
+        speed_pykeops_specific[k] =  np.array(timeit.repeat(
+            'g1 = my_conv(a, x, y, b, sigma, kernel=k)', 
+            globals=globals(), repeat=REPEAT, number=1))
         print('Time for keops cuda specific: {:.4f}s'.format(np.median(speed_pykeops_specific[k])), end='')
         print('   (absolute error:       ', np.max(np.abs (g1 - gnumpy)), ')')
     except:
