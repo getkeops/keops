@@ -15,6 +15,9 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
     __INDEX__ range_id= (lookup_d)[3*blockIdx.x] ;
     __INDEX__ start_x = (lookup_d)[3*blockIdx.x+1] ;
     __INDEX__ end_x   = (lookup_d)[3*blockIdx.x+2] ;
+    
+    __INDEX__ start_slice = range_id < 1 ? 0 : slices_x[range_id-1];
+    __INDEX__ end_slice   = slices_x[range_id];
 
     // get the index of the current thread
     int i = start_x + threadIdx.x;
@@ -44,24 +47,36 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
         load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1); // load xi variables from global memory to local thread memory
     }
 
-    for(int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {
+    __INDEX__ start_y = ranges_y[2*start_slice], end_y = 0;
+    for( __INDEX__ index = start_slice ; index < end_slice ; index++ ) {
+        if( (index+1 >= end_slice) || (ranges_y[2*index+2] != ranges_y[2*index+1]) ) {
+            //start_y = ranges_y[2*index] ;
+            end_y = ranges_y[2*index+1];
+            //printf("%d,%d.", start_y, end_y) ;
+            for(int jstart = start_y, tile = 0; jstart < end_y; jstart += blockDim.x, tile++) {
 
-        // get the current column
-        int j = tile * blockDim.x + threadIdx.x;
+                // get the current column
+                int j = jstart + threadIdx.x;
 
-        if(j<ny) { // we load yj from device global memory only if j<ny
-            load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load yj variables from global memory to shared memory
-        }
-        __syncthreads();
+                if(j<end_y) { // we load yj from device global memory only if j<end_y
+                    load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load yj variables from global memory to shared memory
+                }
+                __syncthreads();
 
-        if(i<end_x) { // we compute x1i only if needed
-            TYPE* yjrel = yj; // Loop on the columns of the current block.
-            for(int jrel = 0; (jrel < blockDim.x) && (jrel<ny-jstart); jrel++, yjrel+=DIMY) {
-                call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-                typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
+                if(i<end_x) { // we compute x1i only if needed
+                    TYPE* yjrel = yj; // Loop on the columns of the current block.
+                    for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {
+                        call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
+                        typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
+                    }
+                }
+                __syncthreads();
+            }
+
+            if(index+1 < end_slice) {
+                start_y = ranges_y[2*index+2] ;
             }
         }
-        __syncthreads();
     }
     if(i<end_x) {
     	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
@@ -333,8 +348,6 @@ static int Eval_(FUN fun, int nx, int ny,
     __INDEX__ *slices_x = FUN::tagJ ? ranges[1] : ranges[4] ;
     __INDEX__ *ranges_y = FUN::tagJ ? ranges[2] : ranges[5] ;
 
-    std::cout << "\nCoucou !!\n";
-
     __INDEX__* ranges_x_h = NULL;
     ranges_x_h = new __INDEX__[2*nranges] ;
     // Send data from device to host.
@@ -361,17 +374,11 @@ static int Eval_(FUN fun, int nx, int ny,
             index++;
         }
     }
-    std::cout << "\n" ;
-    for(int i=0; i<nblocks; i++){
-        std::cout << lookup_h[3*i] << "," << lookup_h[3*i+1] << "," << lookup_h[3*i+2] << "\n";
-    }
 
     // Load the table on the device -----------------------------------------------------
     __INDEX__ *lookup_d = NULL;
     CudaSafeCall(cudaMalloc((__INDEX__**)&lookup_d, sizeof(__INDEX__)*3*nblocks));
     CudaSafeCall(cudaMemcpy(lookup_d, lookup_h, sizeof(__INDEX__)*3*nblocks, cudaMemcpyHostToDevice));
-
-    std::cout << "Diff : " << index << "-" << nblocks << "\n" ;
 
     // ============================================================================================
 

@@ -95,7 +95,7 @@ my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",
                   "B = Vy(1)"], 
                   axis = 1 )     # Reduction wrt. y
 
-backends = ["CPU", "GPU"] if use_cuda else ["CPU"]
+backends = (["CPU", "GPU"] if M*N<4e8 else ["GPU"]) if use_cuda else ["CPU"]
 for backend in backends :
     if backend == "CPU" : 
         g_, x_, y_, b_ = g.cpu(), x.cpu(), y.cpu(), b.cpu()
@@ -133,7 +133,7 @@ if M + N <= 5000 :
     start_i, end_i = ranges_i[clust_i]
     start,end = slices_j[clust_i-1], slices_j[clust_i]
 
-    print(redranges_j[start:end])
+    #print(redranges_j[start:end])
     keep = nump(keep.float())
     keep[clust_i] += 2
 
