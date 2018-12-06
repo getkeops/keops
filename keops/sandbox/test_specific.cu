@@ -1,6 +1,6 @@
 // test convolution using specific formula for Gauss kernel
 // compile with
-//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_specific test_specific.cpp
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O2 -o build/test_specific test_specific.cu
 
 // we compare a generic implementation of the Gauss kernel vs the specific
 // 
@@ -12,13 +12,16 @@
 #include <algorithm>
 #include <iostream>
 
+#include <cuda.h>
+
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
 
-#include "core/CpuConv.cpp"
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
 #include "core/reductions/sum.h"
 
 using namespace keops;
@@ -73,44 +76,47 @@ int main() {
     std::vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
     std::vector<__TYPE__> vb(Ny*B::DIM);    fillrandom(vb); __TYPE__ *b = vb.data();
 
-    std::vector<__TYPE__> rescpu1(Nx*F::DIM), rescpu2(Nx*F::DIM);
+    std::vector<__TYPE__> resgpu1(Nx*F::DIM), resgpu2(Nx*F::DIM);
 
     __TYPE__ params[1];
     __TYPE__ Sigma = 1;
     params[0] = 1.0/(Sigma*Sigma);
 
+	Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, b);	// first dummy call to Gpu
+	Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, b);	// second dummy call to Gpu
+
     clock_t begin, end;
 
     begin = clock();
-    Eval<FUNCONVF,CpuConv>::Run(Nx, Ny, f, params, x, y, b);
+    Eval<FUNCONVF,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, b);
     end = clock();
-    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    std::cout << "time for GPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    rescpu1 = vf;
+    resgpu1 = vf;
 
     /// testing SF
 
     std::cout << std::endl << std::endl << "Testing SF" << std::endl;
 
     begin = clock();
-    Eval<FUNCONVSF,CpuConv>::Run(Nx, Ny, f, params, x, y, b);
+    Eval<FUNCONVSF,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, b);
     end = clock();
-    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    std::cout << "time for GPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    rescpu2 = vf;
+    resgpu2 = vf;
 
     // display values
-    std::cout << "rescpu1 = ";
+    std::cout << "resgpu1 = ";
     for(int i=0; i<5; i++)
-        std::cout << rescpu1[i] << " ";
-    std::cout << std::endl << "rescpu2 = ";
+        std::cout << resgpu1[i] << " ";
+    std::cout << std::endl << "resgpu2 = ";
     for(int i=0; i<5; i++)
-        std::cout << rescpu2[i] << " ";
+        std::cout << resgpu2[i] << " ";
 
     // display mean of errors
     __TYPE__ s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
-        s += std::abs(rescpu1[i]-rescpu2[i]);
+        s += std::abs(resgpu1[i]-resgpu2[i]);
     std::cout << std::endl << "mean abs error =" << s/Nx << std::endl;
 
     // gradient with respect to X ---------------------------------------------------------------
@@ -122,33 +128,33 @@ int main() {
     std::cout << "testing gradient wrt X of F" << std::endl;
 
     begin = clock();
-    Eval<FUNCONVGX,CpuConv>::Run(Nx, Ny, f, params, x, y, b, e);
+    Eval<FUNCONVGX,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    rescpu1 = vf;
+    resgpu1 = vf;
 
     std::cout << "testing gradient wrt X of SF" << std::endl;
 
     begin = clock();
-    Eval<FUNCONVSGX,CpuConv>::Run(Nx, Ny, f, params, x, y, b, e);
+    Eval<FUNCONVSGX,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, b, e);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    rescpu2 = vf;
+    resgpu2 = vf;
 
     // display values
-    std::cout << "rescpu1 = ";
+    std::cout << "resgpu1 = ";
     for(int i=0; i<5; i++)
-        std::cout << rescpu1[i] << " ";
-    std::cout << std::endl << "rescpu2 = ";
+        std::cout << resgpu1[i] << " ";
+    std::cout << std::endl << "resgpu2 = ";
     for(int i=0; i<5; i++)
-        std::cout << rescpu2[i] << " ";
+        std::cout << resgpu2[i] << " ";
 
     // display mean of errors
     s = 0;
     for(int i=0; i<Nx*F::DIM; i++)
-        s += std::abs(rescpu1[i]-rescpu2[i]);
+        s += std::abs(resgpu1[i]-resgpu2[i]);
     std::cout << std::endl << "mean abs error =" << s/Nx << std::endl;
 
 	

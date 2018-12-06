@@ -246,12 +246,11 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
-        __TYPE__*& params = Get<IndValAlias<INDS,C::IND>::ind>(args...);
-        __TYPE__*& xi = Get<IndValAlias<INDS,X::IND>::ind>(args...);
-        __TYPE__*& yj = Get<IndValAlias<INDS,Y::IND>::ind>(args...);
-        __TYPE__*& betaj = Get<IndValAlias<INDS,B::IND>::ind>(args...);
-        __TYPE__ alphai[GRADIN::DIM];
-        GRADIN::template Eval<INDS>(alphai,args...);
+        __TYPE__* params = Get<IndValAlias<INDS,C::N>::ind>(args...);
+        __TYPE__* xi = Get<IndValAlias<INDS,X::N>::ind>(args...);
+        __TYPE__* yj = Get<IndValAlias<INDS,Y::N>::ind>(args...);
+        __TYPE__* betaj = Get<IndValAlias<INDS,B::N>::ind>(args...);
+        __TYPE__* etai = Get<IndValAlias<INDS,GRADIN::N>::ind>(args...);
 
         __TYPE__ r2 = 0.0f, sga = 0.0f;          // Don't forget to initialize at 0.0
         __TYPE__ xmy[DIMPOINT];
@@ -260,10 +259,10 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
             r2 += xmy[k]*xmy[k];
         }
         for(int k=0; k<DIMVECT; k++)         // Compute the L2 dot product <a_i, b_j>
-            sga += betaj[k]*alphai[k];
+            sga += betaj[k]*etai[k];
         __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
         for(int k=0; k<DIMPOINT; k++)        // Increment the output vector gammai - which is a POINT
-            gammai[k] += s * xmy[k];
+            gammai[k] = s * xmy[k];
     }
 
     // direct implementation stops here, so we link back to the usual autodiff module
