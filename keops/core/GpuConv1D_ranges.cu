@@ -9,10 +9,15 @@ namespace keops {
 
 template < typename TYPE, class FUN >
 __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
+    __INDEX__* lookup_d, __INDEX__* slices_x, __INDEX__* ranges_y,
     TYPE** px, TYPE** py, TYPE** pp) {
 
+    __INDEX__ range_id= (lookup_d)[3*blockIdx.x] ;
+    __INDEX__ start_x = (lookup_d)[3*blockIdx.x+1] ;
+    __INDEX__ end_x   = (lookup_d)[3*blockIdx.x+2] ;
+
     // get the index of the current thread
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = start_x + threadIdx.x;
 
     // declare shared mem
     extern __shared__ TYPE yj[];
@@ -34,7 +39,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
 
     // get the value of variable (index with i)
     TYPE xi[DIMX < 1 ? 1 : DIMX] ,tmp[DIMRED];
-    if(i<nx) {
+    if(i<end_x) {
         typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
         load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1); // load xi variables from global memory to local thread memory
     }
@@ -49,7 +54,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
         }
         __syncthreads();
 
-        if(i<nx) { // we compute x1i only if needed
+        if(i<end_x) { // we compute x1i only if needed
             TYPE* yjrel = yj; // Loop on the columns of the current block.
             for(int jrel = 0; (jrel < blockDim.x) && (jrel<ny-jstart); jrel++, yjrel+=DIMY) {
                 call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
@@ -58,7 +63,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
         }
         __syncthreads();
     }
-    if(i<nx) {
+    if(i<end_x) {
     	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
     }
 
@@ -328,7 +333,6 @@ static int Eval_(FUN fun, int nx, int ny,
     __INDEX__ *slices_x = FUN::tagJ ? ranges[1] : ranges[4] ;
     __INDEX__ *ranges_y = FUN::tagJ ? ranges[2] : ranges[5] ;
 
-    __INDEX__ cumsum = 0;
     std::cout << "\nCoucou !!\n";
 
     __INDEX__* ranges_x_h = NULL;
@@ -357,10 +361,14 @@ static int Eval_(FUN fun, int nx, int ny,
             index++;
         }
     }
+    std::cout << "\n" ;
+    for(int i=0; i<nblocks; i++){
+        std::cout << lookup_h[3*i] << "," << lookup_h[3*i+1] << "," << lookup_h[3*i+2] << "\n";
+    }
 
     // Load the table on the device -----------------------------------------------------
-    void **lookup_d = NULL;
-    CudaSafeCall(cudaMalloc((void**)&lookup_d, sizeof(__INDEX__)*3*nblocks));
+    __INDEX__ *lookup_d = NULL;
+    CudaSafeCall(cudaMalloc((__INDEX__**)&lookup_d, sizeof(__INDEX__)*3*nblocks));
     CudaSafeCall(cudaMemcpy(lookup_d, lookup_h, sizeof(__INDEX__)*3*nblocks, cudaMemcpyHostToDevice));
 
     std::cout << "Diff : " << index << "-" << nblocks << "\n" ;
@@ -368,10 +376,12 @@ static int Eval_(FUN fun, int nx, int ny,
     // ============================================================================================
 
     dim3 gridSize;
-    gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
+    gridSize.x =  nblocks ; //nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
-    GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
+    GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,
+        lookup_d,slices_x,ranges_y,
+        px_d,py_d,pp_d);
 
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
