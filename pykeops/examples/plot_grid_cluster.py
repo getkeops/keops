@@ -38,6 +38,7 @@ Start  = time.time()
 start  = time.time()
 x_labels = grid_cluster(x, eps)  # class labels
 y_labels = grid_cluster(y, eps)  # class labels
+if use_cuda : torch.cuda.synchronize()
 end = time.time()
 print("Perform clustering       : {:.4f}s".format(end-start))
 
@@ -45,12 +46,14 @@ print("Perform clustering       : {:.4f}s".format(end-start))
 start = time.time()
 x_ranges, x_centroids  = cluster_ranges_centroids(x, x_labels)
 y_ranges, y_centroids  = cluster_ranges_centroids(y, y_labels)
+if use_cuda : torch.cuda.synchronize()
 end = time.time()
 print("Compute ranges+centroids : {:.4f}s".format(end-start))
 
 start = time.time()
 x, x_labels = sort_clusters(x, x_labels)
 y, y_labels = sort_clusters(y, y_labels)
+if use_cuda : torch.cuda.synchronize()
 end = time.time()
 print("Sort the points          : {:.4f}s".format(end-start))
 
@@ -64,6 +67,7 @@ start = time.time()
 D = ((x_centroids[:,None,:] - y_centroids[None,:,:])**2).sum(2)
 keep = D < (4*sigma)**2
 ranges_ij = from_matrix(x_ranges, y_ranges, keep)
+if use_cuda : torch.cuda.synchronize()
 end = time.time()
 print("Process the ranges       : {:.4f}s".format(end-start))
 
