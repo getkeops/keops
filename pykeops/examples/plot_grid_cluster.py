@@ -32,6 +32,8 @@ y = y/10 + dtype([.7,.6])
 # Voxelization 
 #
 
+if use_cuda : torch.cuda.synchronize()
+    
 eps = .05
 
 Start  = time.time()

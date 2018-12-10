@@ -34,7 +34,7 @@ def grid_cluster( x, size ) :
     into cubic bins of size L.
     """
     with torch.no_grad() :
-        if True :
+        if False :
             lab = grid_label(x, size)
         else :
             # Quantize the points' positions
