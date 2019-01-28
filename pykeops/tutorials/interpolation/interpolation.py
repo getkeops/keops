@@ -18,7 +18,7 @@ from matplotlib import pyplot as plt
 
 type = 'float64'  # May be 'float32' or 'float64'
 
-def ConjugateGradientSolver(linop,b,eps=1e-10):
+def ConjugateGradientSolver(linop,b,eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
@@ -33,14 +33,12 @@ def ConjugateGradientSolver(linop,b,eps=1e-10):
         a += alpha*p
         r -= alpha*Mp
         nr2new = (r**2).sum()
-        #print(nr2new)
         if nr2new < eps**2:
             break
         p = r + (nr2new/nr2)*p
         nr2 = nr2new
         k += 1
-    if eps==1e-6:
-        print('k=',k)
+    print('k=',k)
     return a
 
 def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
@@ -50,7 +48,7 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
     # invprecondop is linear operation corresponding to the inverse of the preconditioner matrix
     a = 0
     r = np.copy(b)
-    z = invprecondop(r,eps)
+    z = invprecondop(r)
     p = np.copy(z)
     rz = (r*z).sum()
     k = 0
@@ -60,7 +58,7 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
         r -= alpha*linop(p)
         if (r**2).sum() < eps**2:
             break
-        z = invprecondop(r,eps)
+        z = invprecondop(r)
         rznew = (r*z).sum()
         p = z + (rznew/rz)*p
         rz = rznew
@@ -69,16 +67,15 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
     return a
 
 def NystromInversePreconditioner(K,x,lmbda):
-    N = x.shape[0]
-    ind = np.random.choice(range(N),int(np.sqrt(N)))
+    N,D = x.shape
+    m = int(np.sqrt(N))
+    ind = np.random.choice(range(N),m,replace=False)
     u = x[ind,:]
-    def f(a):
-        return lmbda*K(u,u,a)+K(u,x,K(x,u,a))
-    def invprecondop(r,eps=1e-8):
-        ru = K(u,x,r)
-        ru = ConjugateGradientSolver(f,ru,eps)
-        z = (r - K(x,u,ru))/lmbda
-        return z
+    M = np.zeros((m,m))
+    for j in range(m):
+        M[:,j] = (K(u,u[j,:].reshape((1,D)),np.ones((1,1))) + K(u,x,K(x,u[j,:].reshape((1,D)),np.ones((1,1))))).flatten()
+    def invprecondop(r):
+        return (r - K(x,u,np.linalg.solve(M,K(u,x,r))))/lmbda
     return invprecondop
                
 
@@ -87,7 +84,7 @@ def NystromInversePreconditioner(K,x,lmbda):
 #  We wrap this example into a function
 #
 
-def InterpolationExample(N,D,sigma,lmbda):
+def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
     print("")
     print('Interpolation example with ' + str(N) + ' points in ' + str(D) + '-D, sigma=' + str(sigma) + ', and lmbda=' + str(lmbda))
 
@@ -131,19 +128,19 @@ def InterpolationExample(N,D,sigma,lmbda):
     my_routine(dum,dum,dum2,np.array([1.0]).astype(type))
     
     start = time.time()
-    a = ConjugateGradientSolver(KernelLinOp,b)
+    a = ConjugateGradientSolver(KernelLinOp,b,eps)
     end = time.time()
     
     print('Time to perform:', round(end - start, 5), 's')
     print('accuracy:', np.linalg.norm(KernelLinOp(a)-b))
     
-    #start = time.time()
-    #invprecondop = NystromInversePreconditioner(K,x,lmbda)
-    #a = PreconditionedConjugateGradientSolver(KernelLinOp,b,invprecondop)
-    #end = time.time()
+    start = time.time()
+    invprecondop = NystromInversePreconditioner(K,x,lmbda)
+    a = PreconditionedConjugateGradientSolver(KernelLinOp,b,invprecondop,eps)
+    end = time.time()
     
-    #print('Time to perform:', round(end - start, 5), 's')
-    #print('accuracy:', np.linalg.norm(KernelLinOp(a)-b))
+    print('Time to perform:', round(end - start, 5), 's')
+    print('accuracy:', np.linalg.norm(KernelLinOp(a)-b))
     
     if (D == 1):
         plt.ion()
@@ -166,7 +163,7 @@ InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1)
 # (only when GPU is available)
 #
 
-#import GPUtil
-#if len(GPUtil.getGPUs())>0:
-#    KMeansExample(N=500000,D=60,sigma=.1,lmbda=1.0)
+import GPUtil
+if len(GPUtil.getGPUs())>0:
+    InterpolationExample(N=10000,D=1,sigma=.1,lmbda=.1)
 print("Done.")
