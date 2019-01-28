@@ -64,11 +64,28 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
         k += 1
     return a
 
+def Kmeans(x,K,Niter=2):
+    N,D = x.shape
+    formula = 'SqDist(x,y)'
+    variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
+                 'y = Vy(' + str(D) + ')']  # Second arg  : j-variable, of size D
+    my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
+    c = np.copy(x[:K, :])
+    for i in range(Niter):
+        cl = my_routine(x,c).astype(int).reshape(N)
+        c[:] = 0
+        Ncl = np.bincount(cl).astype(type)
+        for d in range(D):
+            c[:, d] = np.bincount(cl, weights=x[:, d])
+        c = (c.transpose() / Ncl).transpose()
+    return c
+
 def NystromInversePreconditioner(K,x,lmbda):
     N,D = x.shape
     m = int(np.sqrt(N))
     ind = np.random.choice(range(N),m,replace=False)
     u = x[ind,:]
+    #u = Kmeans(x,m)
     M = np.zeros((m,m)).astype(type)
     for j in range(m):
         M[:,j] = (K(u,u[j,:].reshape((1,D)),np.ones((1,1)).astype(type)) + K(u,x,K(x,u[j,:].reshape((1,D)),np.ones((1,1)).astype(type)))).flatten()
@@ -93,8 +110,9 @@ def GaussKernel(D,sigma):
                  'b = Vy(' + str(1) + ')',  # Third arg  : j-variable, of size 1
                  'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
     my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+    oos2 = np.array([1.0/sigma**2]).astype(type)
     def K(x,y,b):
-        return my_routine(x,y,b,np.array([1.0/sigma**2]).astype(type))
+        return my_routine(x,y,b,oos2)
     return K
 
 def WarmUpGpu():
@@ -110,7 +128,6 @@ def WarmUpGpu():
     my_routine(dum,dum,dum2,np.array([1.0]).astype(type))
     my_routine(dum,dum,dum2,np.array([1.0]).astype(type))
   
-               
 #######################################
 #  We wrap this example into a function
 #
@@ -158,12 +175,13 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
         print('Close the figure to continue.')
         plt.show(block=(__name__ == '__main__'))
  
- 
+
+eps = 1e-10
 try:
     import GPUtil
     if len(GPUtil.getGPUs())>0:
         WarmUpGpu()
-        InterpolationExample(N=10000,D=1,sigma=.1,lmbda=.1)   
+        InterpolationExample(N=10000,D=1,sigma=.1,lmbda=.1,eps=eps)   
 except:
-    InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1)
+    InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1,eps=eps)
 print("Done.")
