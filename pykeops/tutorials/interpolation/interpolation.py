@@ -18,7 +18,7 @@ from matplotlib import pyplot as plt
 
 type = 'float64'  # May be 'float32' or 'float64'
 
-def ConjugateGradientSolver(linop,b,eps=1e-6):
+def ConjugateGradientSolver(linop,b,eps=1e-10):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
@@ -68,6 +68,21 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
     print('k=',k)
     return a
 
+def NystromInversePreconditioner(K,x,lmbda):
+    N = x.shape[0]
+    ind = np.random.choice(range(N),int(np.sqrt(N)))
+    u = x[ind,:]
+    def f(a):
+        return lmbda*K(u,u,a)+K(u,x,K(x,u,a))
+    def invprecondop(r,eps=1e-8):
+        ru = K(u,x,r)
+        ru = ConjugateGradientSolver(f,ru,eps)
+        z = (r - K(x,u,ru))/lmbda
+        return z
+    return invprecondop
+               
+
+
 #######################################
 #  We wrap this example into a function
 #
@@ -83,10 +98,13 @@ def InterpolationExample(N,D,sigma,lmbda):
     rx = np.reshape(np.sqrt((x**2).sum(axis=1)),[N,1])
     b = rx+.5*np.sin(6*rx)+.1*np.random.rand(N, 1).astype(type)
 
+    #x = np.linspace(0,1,30)[:,None]
+    #b = np.cos(6*x) + .05*np.random.randn(30,1)
+
     #######################
     # Define the kernel
     #
-    formula = 'Inv(oos2)*Exp(-IntInv(2)*oos2*SqDist(x,y))*b'
+    formula = 'Exp(-oos2*SqDist(x,y))*b'
     variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
                  'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
                  'b = Vy(' + str(1) + ')',  # Third arg  : j-variable, of size 1
@@ -101,17 +119,7 @@ def InterpolationExample(N,D,sigma,lmbda):
         
     def KernelLinOp(a):
         return K(x,x,a) + lmbda*a
-
-    ind = np.random.choice(range(N),int(np.sqrt(N)))
-    u = x[ind,:]
-    def f(a):
-        return lmbda*K(u,u,a)+K(u,x,K(x,u,a))
-    def NystromInversePreconditioner(r,eps=1e-8):
-        ru = K(u,x,r)
-        ru = ConjugateGradientSolver(f,ru,eps)
-        z = (r - K(x,u,ru))/lmbda
-        return z
-               
+    
     ##########################
     # Perform the computations
     #
@@ -129,12 +137,13 @@ def InterpolationExample(N,D,sigma,lmbda):
     print('Time to perform:', round(end - start, 5), 's')
     print('accuracy:', np.linalg.norm(KernelLinOp(a)-b))
     
-#    start = time.time()
-#    a = PreconditionedConjugateGradientSolver(KernelLinOp,b,NystromInversePreconditioner)
-#    end = time.time()
+    #start = time.time()
+    #invprecondop = NystromInversePreconditioner(K,x,lmbda)
+    #a = PreconditionedConjugateGradientSolver(KernelLinOp,b,invprecondop)
+    #end = time.time()
     
-#    print('Time to perform:', round(end - start, 5), 's')
-#    print('accuracy:', np.linalg.norm(KernelLinOp(a)-b))
+    #print('Time to perform:', round(end - start, 5), 's')
+    #print('accuracy:', np.linalg.norm(KernelLinOp(a)-b))
     
     if (D == 1):
         plt.ion()
@@ -150,7 +159,7 @@ def InterpolationExample(N,D,sigma,lmbda):
 # First experiment with 5000 points, dimension 2
 #
 
-InterpolationExample(N=500,D=1,sigma=.1,lmbda=.1)
+InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1)
 
 ####################################################################
 # Second experiment with 500000 points, dimension 60 and 5000 classes
