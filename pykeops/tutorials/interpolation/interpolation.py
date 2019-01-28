@@ -38,7 +38,6 @@ def ConjugateGradientSolver(linop,b,eps=1e-6):
         p = r + (nr2new/nr2)*p
         nr2 = nr2new
         k += 1
-    print('k=',k)
     return a
 
 def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
@@ -63,7 +62,6 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
         p = z + (rznew/rz)*p
         rz = rznew
         k += 1
-    print('k=',k)
     return a
 
 def NystromInversePreconditioner(K,x,lmbda):
@@ -71,15 +69,48 @@ def NystromInversePreconditioner(K,x,lmbda):
     m = int(np.sqrt(N))
     ind = np.random.choice(range(N),m,replace=False)
     u = x[ind,:]
-    M = np.zeros((m,m))
+    M = np.zeros((m,m)).astype(type)
     for j in range(m):
-        M[:,j] = (K(u,u[j,:].reshape((1,D)),np.ones((1,1))) + K(u,x,K(x,u[j,:].reshape((1,D)),np.ones((1,1))))).flatten()
+        M[:,j] = (K(u,u[j,:].reshape((1,D)),np.ones((1,1)).astype(type)) + K(u,x,K(x,u[j,:].reshape((1,D)),np.ones((1,1)).astype(type)))).flatten()
     def invprecondop(r):
         return (r - K(x,u,np.linalg.solve(M,K(u,x,r))))/lmbda
     return invprecondop
+    
+def KernelLinsolve(K,x,b,lmbda=0,eps=1e-6,precond=False):
+    def KernelLinOp(a):
+        return K(x,x,a) + lmbda*a
+    if precond:
+        invprecondop = NystromInversePreconditioner(K,x,lmbda)
+        a = PreconditionedConjugateGradientSolver(KernelLinOp,b,invprecondop,eps)
+    else:
+        a = ConjugateGradientSolver(KernelLinOp,b,eps)
+    return a
+
+def GaussKernel(D,sigma):
+    formula = 'Exp(-oos2*SqDist(x,y))*b'
+    variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
+                 'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
+                 'b = Vy(' + str(1) + ')',  # Third arg  : j-variable, of size 1
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+    def K(x,y,b):
+        return my_routine(x,y,b,np.array([1.0/sigma**2]).astype(type))
+    return K
+
+def WarmUpGpu():
+    # dummy first calls for accurate timing in case of GPU use
+    formula = 'Exp(-oos2*SqDist(x,y))*b'
+    variables = ['x = Vx(' + str(1) + ')',  # First arg   : i-variable, of size D
+                 'y = Vy(' + str(1) + ')',  # Second arg  : j-variable, of size D
+                 'b = Vy(' + str(1) + ')',  # Third arg  : j-variable, of size 1
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+    dum = np.random.rand(10,1).astype(type)
+    dum2 = np.random.rand(10,1).astype(type)
+    my_routine(dum,dum,dum2,np.array([1.0]).astype(type))
+    my_routine(dum,dum,dum2,np.array([1.0]).astype(type))
+  
                
-
-
 #######################################
 #  We wrap this example into a function
 #
@@ -95,75 +126,44 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
     rx = np.reshape(np.sqrt((x**2).sum(axis=1)),[N,1])
     b = rx+.5*np.sin(6*rx)+.1*np.random.rand(N, 1).astype(type)
 
-    #x = np.linspace(0,1,30)[:,None]
-    #b = np.cos(6*x) + .05*np.random.randn(30,1)
-
     #######################
     # Define the kernel
     #
-    formula = 'Exp(-oos2*SqDist(x,y))*b'
-    variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
-                 'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
-                 'b = Vy(' + str(1) + ')',  # Third arg  : j-variable, of size 1
-                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-
-    # The parameter reduction_op='Sum' together with axis=1 means that the reduction operation
-    # is a sum over the second dimension j. Thence the results will be an i-variable.
-    my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
-    
-    def K(x,y,b):
-        return my_routine(x,y,b,np.array([1.0/sigma**2]).astype(type))
-        
-    def KernelLinOp(a):
-        return K(x,x,a) + lmbda*a
+    K = GaussKernel(D,sigma)
     
     ##########################
     # Perform the computations
-    #
-    
-    # dummy first calls for accurate timing in case of GPU use
-    dum = np.random.rand(10,D).astype(type)
-    dum2 = np.random.rand(10,1).astype(type)
-    my_routine(dum,dum,dum2,np.array([1.0]).astype(type))
-    my_routine(dum,dum,dum2,np.array([1.0]).astype(type))
-    
+    #       
     start = time.time()
-    a = ConjugateGradientSolver(KernelLinOp,b,eps)
+    a = KernelLinsolve(K,x,b,lmbda,eps,precond=False)
     end = time.time()
     
-    print('Time to perform:', round(end - start, 5), 's')
-    print('accuracy:', np.linalg.norm(KernelLinOp(a)-b))
+    print('Time to perform (conjugate gradient solver):', round(end - start, 5), 's')
+    print('L2 norm of the residual:', np.linalg.norm(K(x,x,a)+lmbda*a-b))
     
     start = time.time()
-    invprecondop = NystromInversePreconditioner(K,x,lmbda)
-    a = PreconditionedConjugateGradientSolver(KernelLinOp,b,invprecondop,eps)
+    a = KernelLinsolve(K,x,b,lmbda,eps,precond=True)
     end = time.time()
     
-    print('Time to perform:', round(end - start, 5), 's')
-    print('accuracy:', np.linalg.norm(KernelLinOp(a)-b))
+    print('Time to perform (preconditioned conjugate gradient solver):', round(end - start, 5), 's')
+    print('L2 norm of the residual:', np.linalg.norm(K(x,x,a)+lmbda*a-b))
     
     if (D == 1):
         plt.ion()
         plt.clf()
         plt.scatter(x[:, 0], b[:, 0], s=10)
-        t = np.reshape(np.linspace(0,1,1000),[1000,1])
+        t = np.reshape(np.linspace(0,1,1000),[1000,1]).astype(type)
         xt = K(t,x,a)
         plt.plot(t,xt,"r")
         print('Close the figure to continue.')
         plt.show(block=(__name__ == '__main__'))
  
-################################################
-# First experiment with 5000 points, dimension 2
-#
-
-InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1)
-
-####################################################################
-# Second experiment with 500000 points, dimension 60 and 5000 classes
-# (only when GPU is available)
-#
-
-import GPUtil
-if len(GPUtil.getGPUs())>0:
-    InterpolationExample(N=10000,D=1,sigma=.1,lmbda=.1)
+ 
+try:
+    import GPUtil
+    if len(GPUtil.getGPUs())>0:
+        WarmUpGpu()
+        InterpolationExample(N=10000,D=1,sigma=.1,lmbda=.1)   
+except:
+    InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1)
 print("Done.")
