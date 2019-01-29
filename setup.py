@@ -92,6 +92,7 @@ setup(
             'pykeops.md',
             'readme.md',
             'CMakeLists.txt',
+            'torch_headers.h',
             'numpy/convolutions/radial_kernel_conv.cpp',
             'numpy/convolutions/radial_kernel_grad1conv.cpp',
             'numpy/generic/generic_red.cpp',
