@@ -11,11 +11,11 @@ Requirements
 - **Python 3** with packages: numpy, GPUtil (installed via pip or conda)
 
 - A C++ compiler: g++ version >=5, clang++
-- Cmake version >=3.10
+- Cmake version >= 3.12
 - Ninja 
 
 - Cuda (Optional): version >=9.0 is recommended but KeOps should also work with older versions. Warning: check the compatibility of C++ compiler.
-- PyTorch (Optional): version ==0.4.1
+- PyTorch (Optional): version == 1.0.0
 
 
 Using pip (recommended)

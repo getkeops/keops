@@ -2,7 +2,7 @@
 #------------------------------------HEADERS-----------------------------------------#
 #------------------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
 message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
