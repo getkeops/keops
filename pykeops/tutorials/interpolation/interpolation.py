@@ -83,12 +83,19 @@ def Kmeans(x,K,Niter=2):
 def NystromInversePreconditioner(K,x,lmbda):
     N,D = x.shape
     m = int(np.sqrt(N))
+
     ind = np.random.choice(range(N),m,replace=False)
     u = x[ind,:]
+    
     #u = Kmeans(x,m)
+    
+    start = time.time()
     M = np.zeros((m,m)).astype(type)
     for j in range(m):
         M[:,j] = (K(u,u[j,:].reshape((1,D)),np.ones((1,1)).astype(type)) + K(u,x,K(x,u[j,:].reshape((1,D)),np.ones((1,1)).astype(type)))).flatten()
+    end = time.time()    
+    print('Time for init:', round(end - start, 5), 's')
+
     def invprecondop(r):
         return (r - K(x,u,np.linalg.solve(M,K(u,x,r))))/lmbda
     return invprecondop
