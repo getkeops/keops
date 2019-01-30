@@ -1,19 +1,15 @@
-
-```
- ___  ____           ___                    _____            __        
-|_  ||_  _|        .'   `.                 |_   _|          [  |       
-  | |_/ /   .---. /  .-.  \ _ .--.   .--.    | |      ,--.   | |.--.   
-  |  __'.  / /__\\| |   | |[ '/'`\ \( (`\]   | |   _ `'_\ :  | '/'`\ \ 
- _| |  \ \_| \__.,\  `-'  / | \__/ | `'.'.  _| |__/ |// | |, |  \__/ | 
-|____||____|'.__.' `.___.'  | ;.__/ [\__) )|________|\'-;__/[__;.__.'  
-                           [__|                                        
-```
+![logo pykeops](http://www.kernel-operations.io/_images/keopslab_logo.png)
 
 KeOpsLab contains the matlab bindings for the cpp/cuda library KeOps. It provides
 standard matlab functions that can be used in any matlab codes.
 
-For a full documentation you may read the wiki:
+For a full documentation you may read:
 
-- [Installation](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/matlab/Installation)
-- [Documentation](https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/wikis/matlab/Documentation)
+* [Installation](https://www.kernel-operations.io/api/installation.html)
+* [Documentation](https://www.kernel-operations.io/matlab/index.html)
 
+# Authors
+
+- [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
+- [Jean Feydy](https://www.math.ens.fr/~feydy/)
+- [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)

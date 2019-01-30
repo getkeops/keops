@@ -1,4 +1,4 @@
-function [F,Fname] = Kernel(varargin)
+function [F,Fname] = keops_kernel(varargin)
 % Defines a kernel convolution function based on a formula
 % arguments are strings defining variables and formula
 %
@@ -6,21 +6,19 @@ function [F,Fname] = Kernel(varargin)
 %
 % - Define and test a function that computes for each i the sum over j
 % of the square of the scalar products of xi and yj (both 3d vectors)
-% F = Kernel('x=Vx(3)','y=Vy(3)','SumReduction(Square((x,y)),0)');
+% F = keops_kernel('x=Vx(3)','y=Vy(3)','SumReduction(Square((x,y)),0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % res = F(x,y);
 %
 % - Define and test the convolution with a Gauss kernel i.e. the sum
 % over j of e^(lambda*||xi-yj||^2)beta_j (xi,yj, beta_j 3d vectors):
-% F = Kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','lambda=Pm(1)','SumReduction(Exp(lambda*SqNorm2(x-y))*beta,0)');
+% F = keops_kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','lambda=Pm(1)','SumReduction(Exp(lambda*SqNorm2(x-y))*beta,0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % beta = rand(3,5000);
 % lambda = .25;
 % res = F(x,y,beta,lambda);
-
-cur_dir = pwd;
 
 Nargin = nargin;
 
@@ -70,18 +68,19 @@ end
 
 % sumoutput is an optional tag (0 or 1) to tell wether we must further sum the
 % output in the end. This is used when taking derivatives with respect to
-% parameter variables (see Grad function)
+% parameter variables (see grad function)
 options = setoptions(options,'sumoutput',0);
 
 % from the string inputs we form the code which will be added to the source cpp/cu file, and the string used to encode the file name
-[CodeVars,indxy ] = format_var_aliase(aliases);
+[CodeVars, indxy] = format_var_aliase(aliases);
 
 % we use a hash to shorten string and avoid special characters in the filename
-Fname = string2hash(lower([CodeVars,formula]));
-mex_name = [Fname,'.',mexext];
+hash = string2hash(lower([CodeVars,formula]));
+Fname = ['keops', hash];
+mex_name = [Fname, '.', mexext];
 
-if ~(exist(mex_name,'file')==3) || (verbosity == 1)
-     compile_formula(CodeVars,formula,Fname);
+if ~(exist(mex_name,'file') == 3) || (verbosity == 1)
+     compile_formula(CodeVars, formula, hash);
 end
 
 % return function handler
@@ -94,7 +93,7 @@ function out = Eval(varargin)
     else
     nx = size(varargin{indxy(1)},2);
     ny = size(varargin{indxy(2)},2);
-    out = feval(Fname,nx,ny,options.tagCpuGpu,options.tag1D2D,options.device_id,varargin{:});
+    out = feval(Fname, nx, ny, options.tagCpuGpu, options.tag1D2D, options.device_id,varargin{:});
     if options.sumoutput
         out = sum(out,2); % '2' because we sum with respect to index, not dimension !
     end

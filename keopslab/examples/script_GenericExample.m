@@ -2,7 +2,7 @@ path_to_lib = '..';
 addpath(genpath(path_to_lib))
 
 %--------------------------------------%
-%         create dataset               %
+%         Create dataset               %
 %--------------------------------------%
 
 Nx = 5000;
@@ -18,7 +18,7 @@ p = .25;
 %           Kernel with KeOps             %
 %-----------------------------------------%
 
-F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)',...
+F = keops_kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)',...
            'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
 
 tic

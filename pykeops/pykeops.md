@@ -10,9 +10,8 @@ For a full documentation you may read:
 * [Learning KeOps syntax with examples](https://www.kernel-operations.io/_auto_examples/index.html)
 * [Tutorials gallery](https://www.kernel-operations.io/_auto_tutorials/index.html)
 
-
 # Authors
 
-- [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/index.php?page=index&lang=en)
+- [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
 - [Jean Feydy](https://www.math.ens.fr/~feydy/)
 - [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
