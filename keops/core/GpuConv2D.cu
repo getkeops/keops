@@ -5,25 +5,14 @@
 #include <cuda.h>
 
 #include "core/Pack.h"
+#include "core/CudaErrorCheck.cu"
 
 namespace keops {
+
 template <typename T>
 __device__ static constexpr T static_max_device(T a, T b) {
     return a < b ? b : a;
 }
-
-// global variables maxThreadsPerBlock and sharedMemPerBlock may depend on the device, so we will set them at each call using
-// predefined GPU0_MAXTHREADSPERBLOCK, GPU0_SHAREDMEMPERBLOCK, GPU1_MAXTHREADSPERBLOCK, GPU1_SHAREDMEMPERBLOCK, etc.
-// through the function SetGpuProps
-int maxThreadsPerBlock, sharedMemPerBlock;
-#define SET_GPU_PROPS_MACRO(n, _) \
-    if(device==n) { \
-		maxThreadsPerBlock = MAXTHREADSPERBLOCK ## n; \
-		sharedMemPerBlock = SHAREDMEMPERBLOCK ## n; \
-	}
-void SetGpuProps(int device) { REPEATMACRO(SET_GPU_PROPS_MACRO,MAXIDGPU) }
-
-
 
 template <typename TYPE, int DIMIN, int DIMOUT, class FUN>
 __global__ void reduce2D(TYPE *in, TYPE *out, TYPE ** px, int sizeY,int nx) {
@@ -184,7 +173,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
+    blockSize.x = min(CUDA_BLOCK_SIZE,min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
@@ -407,7 +396,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
+    blockSize.x = min(CUDA_BLOCK_SIZE,min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
