@@ -45,13 +45,10 @@ else()
     add_definitions(-DUSE_CUDA=0)
 endif()
 
-
-
-
 if(CUDA_FOUND AND USE_CUDA)
     # A function for automatic detection of GPUs installed (source: caffe git repo).
     function(caffe_detect_installed_gpus out_variable)
-        if(NOT CUDA_gpu_detect_output)
+        if(NOT CUDA_gpu_detect_props)
             set(__cufile ${PROJECT_BINARY_DIR}/detect_cuda_props.cu)
 
             file(WRITE ${__cufile} ""
@@ -65,26 +62,25 @@ if(CUDA_FOUND AND USE_CUDA)
                 "  {\n"
                 "    cudaDeviceProp prop;\n"
                 "    if (cudaSuccess == cudaGetDeviceProperties(&prop, device))\n"
-                "      std::printf(\"%d %d %d \", device, prop.maxThreadsPerBlock, prop.sharedMemPerBlock);\n"
+                "      std::printf(\"-DGPU%d_MAXTHREADSPERBLOCK=%d -DGPU%d_SHAREDMEMPERBLOCK=%d \", device, (int)prop.maxThreadsPerBlock, device, (int)prop.sharedMemPerBlock);\n"
                 "  }\n"
                 "  return 0;\n"
                 "}\n")
 
-            execute_process(COMMAND "${CUDA_NVCC_EXECUTABLE}" "-ccbin" "${CMAKE_CXX_COMPILER}" "--run" "${__cufile}"
+            execute_process(COMMAND "${CUDA_NVCC_EXECUTABLE}" "--run" "${__cufile}"
                 WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/CMakeFiles/"
                 RESULT_VARIABLE __nvcc_res OUTPUT_VARIABLE __nvcc_out
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
             if(__nvcc_res EQUAL 0)
-                string(REPLACE "2.1" "2.1(2.0)" __nvcc_out "${__nvcc_out}")
-                set(CUDA_gpu_detect_output ${__nvcc_out} CACHE INTERNAL "Returned GPU architetures from caffe_detect_gpus tool" FORCE)
+                set(CUDA_gpu_detect_props ${__nvcc_out} CACHE INTERNAL "Returned GPU architetures from caffe_detect_gpus tool" FORCE)
             endif()
         endif()
 
-        if(NOT CUDA_gpu_detect_output)
+        if(NOT CUDA_gpu_detect_props)
             set(${out_variable} FALSE PARENT_SCOPE)
         else()
-            set(${out_variable} ${CUDA_gpu_detect_output} PARENT_SCOPE)
+            set(${out_variable} ${CUDA_gpu_detect_props} PARENT_SCOPE)
         endif()
     endfunction()
 
@@ -95,10 +91,6 @@ if(CUDA_FOUND AND USE_CUDA)
             set(USE_CUDA FALSE)
             message(STATUS "No GPU detected. USE_CUDA set to FALSE.")
         else()
-            # remove dots and convert to lists
-            #string(REGEX REPLACE "\\." "" gpu_compute_capability "${gpu_compute_capability}")
-            #string(REGEX MATCHALL "[0-9()]+" gpu_compute_capability "${gpu_compute_capability}")
-            #List(REMOVE_DUPLICATES gpu_compute_capability)
             message(STATUS "Compute properties automatically set to: ${gpu_compute_props}")
         endif()
     else()
