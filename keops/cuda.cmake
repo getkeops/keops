@@ -46,7 +46,7 @@ else()
 endif()
 
 if(CUDA_FOUND AND USE_CUDA)
-    # A function for automatic detection of GPUs installed (source: caffe git repo).
+    # getting some properties of GPUs to pass them as "-D..." options at compilation (adapted from caffe git repo).
     function(caffe_detect_installed_gpus out_variable)
         if(NOT CUDA_gpu_detect_props)
             set(__cufile ${PROJECT_BINARY_DIR}/detect_cuda_props.cu)
@@ -58,11 +58,12 @@ if(CUDA_FOUND AND USE_CUDA)
                 "  int count = 0;\n"
                 "  if (cudaSuccess != cudaGetDeviceCount(&count)) return -1;\n"
                 "  if (count == 0) return -1;\n"
+                "  std::printf(\"-DMAXIDGPU=%d \",count-1);\n"
                 "  for (int device = 0; device < count; ++device)\n"
                 "  {\n"
                 "    cudaDeviceProp prop;\n"
                 "    if (cudaSuccess == cudaGetDeviceProperties(&prop, device))\n"
-                "      std::printf(\"-DGPU%d_MAXTHREADSPERBLOCK=%d -DGPU%d_SHAREDMEMPERBLOCK=%d \", device, (int)prop.maxThreadsPerBlock, device, (int)prop.sharedMemPerBlock);\n"
+                "      std::printf(\"-DMAXTHREADSPERBLOCK%d=%d -DSHAREDMEMPERBLOCK%d=%d \", device, (int)prop.maxThreadsPerBlock, device, (int)prop.sharedMemPerBlock);\n"
                 "  }\n"
                 "  return 0;\n"
                 "}\n")
@@ -96,5 +97,7 @@ if(CUDA_FOUND AND USE_CUDA)
     else()
         message(STATUS "Compute properties manually set to ${gpu_compute_props}")
     endif()
+
+    List(APPEND CUDA_NVCC_FLAGS "${gpu_compute_props}")
 
 endif()
