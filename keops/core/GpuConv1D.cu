@@ -7,6 +7,19 @@
 #include "core/CudaErrorCheck.cu"
 
 namespace keops {
+	
+// global variables maxThreadsPerBlock and sharedMemPerBlock may depend on the device, so we will set them at each call using
+// predefined GPU0_MAXTHREADSPERBLOCK, GPU0_SHAREDMEMPERBLOCK, GPU1_MAXTHREADSPERBLOCK, GPU1_SHAREDMEMPERBLOCK, etc.
+// through the macro SET_GPU_PROPS
+int maxThreadsPerBlock, sharedMemPerBlock;
+#define SET_GPU_PROPS_REC(device,n) \
+    if(device==n) { \
+		maxThreadsPerBlock = GPU ## n ## _MAXTHREADSPERBLOCK; \
+		sharedMemPerBlock = GPU ## n ## _SHAREDMEMPERBLOCK; \ 
+	} \
+	else
+		SET_GPU_PROPS_REC(device,n-1)
+#define SET_GPU_PROPS(device) SET_GPU_PROPS_REC(device,NUM_GPU-1)
 
 template < typename TYPE, class FUN >
 __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py, TYPE** pp) {
@@ -154,18 +167,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 
     dim3 blockSize;
 
-int maxThreadsPerBlock, sharedMemPerBlock;
-#define SET_GPU_PROPS(a,b) if(a==b) { maxThreadsPerBlock=GPU ## b ## _MAXTHREADSPERBLOCK; sharedMemPerBlock=GPU ## b ## _SHAREDMEMPERBLOCK; }
-#ifdef GPU0_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,0) #endif
-#ifdef GPU1_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,1) #endif
-#ifdef GPU2_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,2) #endif
-#ifdef GPU3_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,3) #endif
-#ifdef GPU4_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,4) #endif
-#ifdef GPU5_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,5) #endif
-#ifdef GPU6_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,6) #endif
-#ifdef GPU7_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,7) #endif
-#ifdef GPU8_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,8) #endif
-#ifdef GPU9_MAXTHREADSPERBLOCK SET_GPU_PROPS(dev,9) #endif
+    SET_GPU_PROPS(dev)
 
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
     blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
