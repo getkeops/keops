@@ -17,6 +17,16 @@ from pykeops.numpy import Genred
 from matplotlib import pyplot as plt
 
 type = 'float64'  # May be 'float32' or 'float64'
+useGPU = "auto"   # may be True, False or "auto"
+
+# testing availability of Gpu: 
+if (useGPU!="False"):
+    try:
+        import GPUtil
+        useGpu = len(GPUtil.getGPUs())>0
+    except:
+        useGpu = False
+
 
 def ConjugateGradientSolver(linop,b,eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
@@ -177,11 +187,9 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
  
 
 eps = 1e-10
-try:
-    import GPUtil
-    if len(GPUtil.getGPUs())>0:
-        WarmUpGpu()
-        InterpolationExample(N=10000,D=1,sigma=.1,lmbda=.1,eps=eps)   
-except:
+if useGpu:
+    WarmUpGpu()
+    InterpolationExample(N=10000,D=1,sigma=.1,lmbda=.1,eps=eps)   
+else:
     InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1,eps=eps)
 print("Done.")
