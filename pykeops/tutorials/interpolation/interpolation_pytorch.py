@@ -12,29 +12,27 @@ Example of interpolation
 
 import time
 import numpy as np
-from pykeops.numpy import Genred
+import torch
+from pykeops.torch import Genred
 
 from matplotlib import pyplot as plt
 
 type = 'float64'  # May be 'float32' or 'float64'
+torchtype = torch.float32 if type == 'float32' else torch.float64
+
 useGPU = "auto"   # may be True, False or "auto"
 
 # testing availability of Gpu: 
 if (useGPU!="False"):
-    try:
-        import GPUtil
-        useGpu = len(GPUtil.getGPUs())>0
-    except:
-        useGpu = False
-
+    useGpu = torch.cuda.is_available()
 
 def ConjugateGradientSolver(linop,b,eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
     a = 0
-    r = np.copy(b)
-    p = np.copy(r)
+    r = b.clone()
+    p = r.clone()
     nr2 = (r**2).sum()
     k = 0
     while True:
@@ -48,7 +46,6 @@ def ConjugateGradientSolver(linop,b,eps=1e-6):
         p = r + (nr2new/nr2)*p
         nr2 = nr2new
         k += 1
-    print("numiters=",k)
     return a
 
 def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
@@ -57,9 +54,9 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
     # to a symmetric and positive definite matrix
     # invprecondop is linear operation corresponding to the inverse of the preconditioner matrix
     a = 0
-    r = np.copy(b)
+    r = b.clone()
     z = invprecondop(r)
-    p = np.copy(z)
+    p = z.clone()
     rz = (r*z).sum()
     k = 0
     while True:    
@@ -73,28 +70,44 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
         p = z + (rznew/rz)*p
         rz = rznew
         k += 1
-    print("numiters=",k)
     return a
+
+def Kmeans(x,K,Niter=2):
+    N,D = x.shape
+    formula = 'SqDist(x,y)'
+    variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
+                 'y = Vy(' + str(D) + ')']  # Second arg  : j-variable, of size D
+    my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
+    c = x[:K, :].clone()
+    for i in range(Niter):
+        cl = my_routine(x,c).astype(int).reshape(N)
+        c[:] = 0
+        Ncl = torch.bincount(cl).float()
+        for d in range(D):
+            c[:, d] = torch.bincount(cl, weights=x[:, d]) / Ncl
+    return c
 
 def NystromInversePreconditioner(K,x,lmbda):
     N,D = x.shape
-    m = int(np.sqrt(N)/D)*D
+    m = int(np.sqrt(N))
+
     ind = np.random.choice(range(N),m,replace=False)
     u = x[ind,:]
+    
+    #u = Kmeans(x,m)
+    
     start = time.time()
-    M = K(u,u)
-    one = np.ones((1,1)).astype(type)
-    j = 0
-    print(m/D)
-    for j in range(m//D):
-        indj = range(D*j,D*j+D)
-        Kxuj = K(x,u[indj,:].resize((1,D)),one)
-        M[:,indj] = K(u,x,Kxuj)
+    M = torch.zeros(m,m,dtype=torchtype,device=torchdeviceId)
+    one = torch.ones(1,1,dtype=torchtype,device=torchdeviceId)
+    for j in range(m):
+        Kuuj = K(u,u[j,:].reshape((1,D)),one)
+        Kxuj = K(x,u[j,:].reshape((1,D)),one)
+        M[:,j] = (Kuuj + K(u,x,Kxuj)).flatten()
     end = time.time()    
     print('Time for init:', round(end - start, 5), 's')
+
     def invprecondop(r):
-        a = np.linalg.solve(M,K(u,x,r))
-        return (r - K(x,u,a))/lmbda
+        return (r - K(x,u,np.linalg.solve(M,K(u,x,r))))/lmbda
     return invprecondop
     
 def KernelLinsolve(K,x,b,lmbda=0,eps=1e-6,precond=False):
@@ -111,40 +124,20 @@ def GaussKernel(D,sigma):
     formula = 'Exp(-oos2*SqDist(x,y))*b'
     variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
                  'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
-                 'b = Vy(' + str(D) + ')',  # Third arg  : j-variable, of size D
+                 'b = Vy(' + str(1) + ')',  # Third arg  : j-variable, of size 1
                  'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
     my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
     oos2 = np.array([1.0/sigma**2]).astype(type)
-    KernelMatrix = GaussKernelMatrix(sigma)
-    def K(x,y,b=None):
-        if b is None:
-            return KernelMatrix(x,y)
-        else:
-            print(x,y,b,oos2)
-            return my_routine(x,y,b,oos2)
+    def K(x,y,b):
+        return my_routine(x,y,b,oos2)
     return K
-
-def GaussKernelMatrix(sigma):
-    oos2 = 1.0/sigma**2
-    def f(x,y):
-        D = x.shape[1]
-        sqdist = 0
-        for k in range(D):
-            sqdist += (x[:,k][:,None]-y[:,k][:,None].T)**2
-        return np.exp(-oos2*sqdist)
-    return f
-
-def NumpyLinsolve(K,x,b,lmbda=0):
-    N = x.shape[0]
-    K = K(x,x) + lmbda*np.eye(N)
-    return np.linalg.solve(K,b)
 
 def WarmUpGpu():
     # dummy first calls for accurate timing in case of GPU use
     formula = 'Exp(-oos2*SqDist(x,y))*b'
-    variables = ['x = Vx(1)',  # First arg   : i-variable, of size 1
-                 'y = Vy(1)',  # Second arg  : j-variable, of size 1
-                 'b = Vy(1)',  # Third arg  : j-variable, of size 1
+    variables = ['x = Vx(' + str(1) + ')',  # First arg   : i-variable, of size D
+                 'y = Vy(' + str(1) + ')',  # Second arg  : j-variable, of size D
+                 'b = Vy(' + str(1) + ')',  # Third arg  : j-variable, of size 1
                  'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
     my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
     dum = np.random.rand(10,1).astype(type)
@@ -164,11 +157,9 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
     # Define our dataset
     #
     x = np.random.rand(N, D).astype(type)
-    if D==1:
-        rx = np.reshape(np.sqrt((x**2).sum(axis=1)),[N,1])
-        bb = rx+.5*np.sin(6*rx)+.1*np.random.rand(N, 1).astype(type)
-    else:
-        bb = np.random.rand(N, D).astype(type)
+    rx = np.reshape(np.sqrt((x**2).sum(axis=1)),[N,1])
+    b = rx+.5*np.sin(6*rx)+.1*np.random.rand(N, 1).astype(type)
+
     #######################
     # Define the kernel
     #
@@ -178,30 +169,23 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
     # Perform the computations
     #       
     start = time.time()
-    a = KernelLinsolve(K,x,bb,lmbda,eps,precond=False)
+    a = KernelLinsolve(K,x,b,lmbda,eps,precond=False)
     end = time.time()
     
     print('Time to perform (conjugate gradient solver):', round(end - start, 5), 's')
-    print('L2 norm of the residual:', np.linalg.norm(K(x,x,a)+lmbda*a-bb))
+    print('L2 norm of the residual:', np.linalg.norm(K(x,x,a)+lmbda*a-b))
     
     start = time.time()
-    a = KernelLinsolve(K,x,bb,lmbda,eps,precond=True)
+    a = KernelLinsolve(K,x,b,lmbda,eps,precond=True)
     end = time.time()
     
     print('Time to perform (preconditioned conjugate gradient solver):', round(end - start, 5), 's')
-    print('L2 norm of the residual:', np.linalg.norm(K(x,x,a)+lmbda*a-bb))
-    
-    start = time.time()
-    a = NumpyLinsolve(K,x,bb,lmbda)
-    end = time.time()
-    
-    print('Time to perform (numpy, no keops):', round(end - start, 5), 's')
-    print('L2 norm of the residual:', np.linalg.norm(K(x,x,a)+lmbda*a-bb))
+    print('L2 norm of the residual:', np.linalg.norm(K(x,x,a)+lmbda*a-b))
     
     if (D == 1):
         plt.ion()
         plt.clf()
-        plt.scatter(x[:, 0], bb[:, 0], s=10)
+        plt.scatter(x[:, 0], b[:, 0], s=10)
         t = np.reshape(np.linspace(0,1,1000),[1000,1]).astype(type)
         xt = K(t,x,a)
         plt.plot(t,xt,"r")
@@ -212,7 +196,7 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
 eps = 1e-10
 if useGpu:
     WarmUpGpu()
-    InterpolationExample(N=10000,D=3,sigma=.1,lmbda=.1,eps=eps)   
+    InterpolationExample(N=10000,D=1,sigma=.1,lmbda=.0001,eps=eps)   
 else:
     InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1,eps=eps)
 print("Done.")
