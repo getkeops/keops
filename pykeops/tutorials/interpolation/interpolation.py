@@ -76,20 +76,13 @@ def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
     print("numiters=",k)
     return a
 
-def NystromInversePreconditioner(K,x,lmbda):
+def NystromInversePreconditioner(K,Kspec,x,lmbda):
     N,D = x.shape
-    m = int(np.sqrt(N)/D)*D
+    m = int(np.sqrt(N))
     ind = np.random.choice(range(N),m,replace=False)
     u = x[ind,:]
     start = time.time()
-    M = K(u,u)
-    one = np.ones((1,1)).astype(type)
-    j = 0
-    print(m/D)
-    for j in range(m//D):
-        indj = range(D*j,D*j+D)
-        Kxuj = K(x,u[indj,:].resize((1,D)),one)
-        M[:,indj] = K(u,x,Kxuj)
+    M = K(u,u) + Kspec(np.resize(u,(m*m,D)),np.repeat(u,m,axis=0),x).reshape(m,m)
     end = time.time()    
     print('Time for init:', round(end - start, 5), 's')
     def invprecondop(r):
@@ -97,11 +90,11 @@ def NystromInversePreconditioner(K,x,lmbda):
         return (r - K(x,u,a))/lmbda
     return invprecondop
     
-def KernelLinsolve(K,x,b,lmbda=0,eps=1e-6,precond=False):
+def KernelLinsolve(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
     def KernelLinOp(a):
         return K(x,x,a) + lmbda*a
     if precond:
-        invprecondop = NystromInversePreconditioner(K,x,lmbda)
+        invprecondop = NystromInversePreconditioner(K,precondKernel,x,lmbda)
         a = PreconditionedConjugateGradientSolver(KernelLinOp,b,invprecondop,eps)
     else:
         a = ConjugateGradientSolver(KernelLinOp,b,eps)
@@ -120,8 +113,20 @@ def GaussKernel(D,sigma):
         if b is None:
             return KernelMatrix(x,y)
         else:
-            print(x,y,b,oos2)
             return my_routine(x,y,b,oos2)
+    return K
+
+def GaussKernelNystromPrecond(D,sigma):
+    formula = 'Exp(-oos2*(SqDist(u,x)+SqDist(v,x)))'
+    variables = ['u = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
+                 'v = Vx(' + str(D) + ')',  # Second arg  : i-variable, of size D
+                 'x = Vy(' + str(D) + ')',  # Third arg  : j-variable, of size D
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+    oos2 = np.array([1.0/sigma**2]).astype(type)
+    KernelMatrix = GaussKernelMatrix(sigma)
+    def K(u,v,x):
+        return my_routine(u,v,x,oos2)
     return K
 
 def GaussKernelMatrix(sigma):
@@ -168,7 +173,7 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
         rx = np.reshape(np.sqrt((x**2).sum(axis=1)),[N,1])
         bb = rx+.5*np.sin(6*rx)+.1*np.random.rand(N, 1).astype(type)
     else:
-        bb = np.random.rand(N, D).astype(type)
+        bb = np.random.randn(N, D).astype(type)
     #######################
     # Define the kernel
     #
@@ -185,7 +190,7 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
     print('L2 norm of the residual:', np.linalg.norm(K(x,x,a)+lmbda*a-bb))
     
     start = time.time()
-    a = KernelLinsolve(K,x,bb,lmbda,eps,precond=True)
+    a = KernelLinsolve(K,x,bb,lmbda,eps,precond=True,precondKernel=GaussKernelNystromPrecond(D,sigma))
     end = time.time()
     
     print('Time to perform (preconditioned conjugate gradient solver):', round(end - start, 5), 's')
@@ -214,5 +219,5 @@ if useGpu:
     WarmUpGpu()
     InterpolationExample(N=10000,D=3,sigma=.1,lmbda=.1,eps=eps)   
 else:
-    InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.1,eps=eps)
+    InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.0001,eps=eps)
 print("Done.")
