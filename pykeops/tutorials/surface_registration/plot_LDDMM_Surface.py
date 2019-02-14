@@ -180,7 +180,7 @@ def lossVarifoldSurf(FS, VT, FT, K):
 # load dataset
 
 VS, FS, VT, FT = torch.load(datafile)
-q0 = torch.tensor(VS, dtype=torchdtype, device=torchdeviceId, requires_grad=True)
+q0 = torch.tensor(VS, dtype=torchdtype, device=torchdeviceId)
 VT = torch.tensor(VT, dtype=torchdtype, device=torchdeviceId)
 FS = torch.tensor(FS, dtype=torch.long, device=torchdeviceId)
 FT = torch.tensor(FT, dtype=torch.long, device=torchdeviceId)

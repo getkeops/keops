@@ -116,6 +116,24 @@ def GaussKernel(D,sigma):
             return my_routine(x,y,b,oos2)
     return K
 
+def GaussKernel_alt(D,sigma):
+    formula = 'Exp(oos2*(x,y))*b'
+    variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
+                 'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
+                 'b = Vy(' + str(D) + ')',  # Third arg  : j-variable, of size D
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+    oos2 = np.array([1.0/sigma**2]).astype(type)
+    KernelMatrix = GaussKernelMatrix(sigma)
+    def K(x,y,b=None):
+        if b is None:
+            return KernelMatrix(x,y)
+        else:
+            sqx = np.exp(-oos2*(x**2).sum(axis=1))[:,np.newaxis]
+            sqy = np.exp(-oos2*(y**2).sum(axis=1))[:,np.newaxis]
+            return sqx*my_routine(x,y,sqy*b,2*oos2)
+    return K
+
 def GaussKernelNystromPrecond(D,sigma):
     formula = 'Exp(-oos2*(SqDist(u,x)+SqDist(v,x)))'
     variables = ['u = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
@@ -217,7 +235,7 @@ def InterpolationExample(N,D,sigma,lmbda,eps=1e-6):
 eps = 1e-10
 if useGpu:
     WarmUpGpu()
-    InterpolationExample(N=10000,D=3,sigma=.1,lmbda=.1,eps=eps)   
+    InterpolationExample(N=20000,D=3,sigma=.1,lmbda=.1,eps=eps)   
 else:
     InterpolationExample(N=1000,D=1,sigma=.1,lmbda=.0001,eps=eps)
 print("Done.")
