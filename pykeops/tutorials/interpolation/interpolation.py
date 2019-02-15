@@ -364,7 +364,7 @@ def InterpolationExample(N,D,Dv,sigma,lmbda,eps=1e-6):
     end = time.time()
     
     print('Time to perform (usual matrix solver, no keops):', round(end - start, 5), 's')
-    print('L2 norm of the residual:', np.linalg.norm(numpy(K(_x,_x,_a)+lmbda*_a-_b)))
+    print('L2 norm of the residual:', np.linalg.norm(GaussKernelMatrix(sigma)(_x,_x)@_a+lmbda*_a-_b))
     
     if (D == 1):
         plt.ion()
