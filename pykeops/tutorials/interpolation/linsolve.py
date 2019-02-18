@@ -30,16 +30,51 @@ def ConjugateGradientSolver(linop,b,eps=1e-6):
     print("numiters=",k)
     return a
 
-class InvLinOp(torch.autograd.Function):
+class InvLinOp_Impl(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, linop, b):
-        a = ConjugateGradientSolver(linop,b,eps=1e-6)
+    def forward(ctx, linop, b, *args):
+        # solves b=linop(a) where linop is a linear operation
+        # args is optional and used only in backward : it gives the variables
+        # wrt which we will compute the gradient
+        ctx.linop = linop
+        ctx.args = args
+        a = ConjugateGradientSolver(linop,b.data,eps=1e-16)
         ctx.save_for_backward(a)
         return a
     @staticmethod
     def backward(ctx, grad_output):
+        # gradients of a wrt variables b and *args
+        linop = ctx.linop
+        args = ctx.args
         a, = ctx.saved_tensors
-        return -linop(grad_output)
+        e = InvLinOp(linop,grad_output) # this gives gradient wrt b
+        #with torch.enable_grad():
+        #    grads = torch.autograd.grad(linop(a.data),args,-e,create_graph=True)
+        abar = torch.tensor(a.data, requires_grad=True)
+        grads = []
+        with torch.enable_grad():
+            for x in args:
+                grads.append(specfun(torch.autograd.grad(linop(abar),x,-e,create_graph=True)[0],abar,a))
+        return (None, e, *grads)
+
+class specfun_Impl(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx,f,abar,a):
+        print("in specfun forward")
+        ctx.save_for_backward(f,abar,a)
+        return f.data
+    @staticmethod
+    def backward(ctx, grad_output):
+        print("in specfun backward")
+        f,abar,a = ctx.saved_tensors
+        print("f=",f)
+        with torch.enable_grad():
+            gfa = specfun(torch.autograd.grad(f,abar,grad_output,create_graph=True)[0],abar,a)
+            print("gfa=",gfa)
+        return grad_output, gfa, gfa
+
+InvLinOp = InvLinOp_Impl.apply
+specfun = specfun_Impl.apply
 
 def KernelLinearSolver(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
 
@@ -65,7 +100,7 @@ def KernelLinearSolver(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
         backend = torch
         torchdtype = x.dtype
         dtype = 'float32' if torchdtype==torch.float32 else 'float64'
-        torchdeviceId = torch.device('cuda:0') if useGpu else 'cpu'
+        torchdeviceId = b.device
         KeOpsdeviceId = torchdeviceId.index  # id of Gpu device (in case Gpu is  used)
         copy = torch.clone
         tile = torch.Tensor.repeat

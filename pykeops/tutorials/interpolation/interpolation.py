@@ -22,7 +22,7 @@ from matplotlib import pyplot as plt
 
 dtype = 'float64'  # May be 'float32' or 'float64'
 useGpu = "auto"   # may be True, False or "auto"
-backend = np   # np or torch
+backend = torch   # np or torch
 
 if backend==np:
     Genred = GenredNumpy
