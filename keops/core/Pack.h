@@ -621,7 +621,7 @@ HOST_DEVICE void load(int i, TYPE* xi, TYPE** px) {
 }
 
 // global variables maxThreadsPerBlock and sharedMemPerBlock may depend on the device, so we will set them at each call using
-// predefined GPU0_MAXTHREADSPERBLOCK, GPU0_SHAREDMEMPERBLOCK, GPU1_MAXTHREADSPERBLOCK, GPU1_SHAREDMEMPERBLOCK, etc.
+// predefined MAXTHREADSPERBLOCK0, SHAREDMEMPERBLOCK0, MAXTHREADSPERBLOCK1, SHAREDMEMPERBLOCK1, etc.
 // through the function SetGpuProps
 int maxThreadsPerBlock, sharedMemPerBlock;
 #define SET_GPU_PROPS_MACRO(n) \
