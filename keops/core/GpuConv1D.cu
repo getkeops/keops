@@ -4,7 +4,6 @@
 #include <cuda.h>
 
 #include "core/Pack.h"
-#include "core/SetGpusProps.h"
 #include "core/CudaErrorCheck.cu"
 
 namespace keops {
