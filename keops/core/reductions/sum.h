@@ -12,7 +12,7 @@ namespace keops {
 
 template < class F, int tagI > struct SumReductionAlias;
 
-template < class F, int tagI=0 > 
+template < class F, int tagI=0 >  // This syntaxic sugar will allow us to simplify sum(0) = 0
 using SumReduction = typename SumReductionAlias<F,tagI>::type; 
 
 template < class F, int tagI >
@@ -78,7 +78,7 @@ struct SumReductionAlias {
 
 template < int DIM, int tagI > struct ZeroReduction;
 
-template < int DIM, int tagI >
+template < int DIM, int tagI > // Simplification rule: sum(0) = 0
 struct SumReductionAlias<Zero<DIM>,tagI> {
     using type = ZeroReduction<DIM,tagI>;
 };

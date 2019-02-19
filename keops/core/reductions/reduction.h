@@ -25,7 +25,7 @@ struct Reduction {
 
     using VARSI = typename F::template VARS<tagI>; // Use the tag to select the "parallel"  variable
     using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
-    using VARSP = typename F::template VARS<2>;
+    using VARSP = typename F::template VARS<2>;    // Parameters
 
     using DIMSX = typename GetDims<VARSI>::template PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
     using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables

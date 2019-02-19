@@ -6,7 +6,7 @@ path_to_lib = '..';
 addpath(genpath(path_to_lib))
 
 % defining the kernel operation
-f = Kernel('Square(p-a)*Exp(x+y)','p=Pm(1)','a=Vy(1)','x=Vx(3)','y=Vy(3)');
+f = keops_kernel('Square(p-a)*Exp(x+y)','p=Pm(1)','a=Vy(1)','x=Vx(3)','y=Vy(3)');
 
 % defining input variables
 n = 30;
@@ -20,11 +20,10 @@ y = randn(3,n);
 c = f(p,a,x,y)
 
 % defining the gradient of the kernel operation
-Gfy = GradKernel(f,'y','e=Vx(3)');
+Gfy = keops_grad(f,'y');
 
 % defining new input variable
 e = randn(3,m);
 
 % computing gradient
 Gfy(p,a,x,y,e)
-

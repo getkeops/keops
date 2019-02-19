@@ -1,4 +1,4 @@
-Entropy based regularization of Optimal transport
+Optimal Transport and Sinkhorn divergences
 -------------------------------------------------
 
-A tutorial on how using KeOps for computing regularized OT with Sinkhorn iterations.
+Using KeOps to compute Optimal Transport plans between millions of points.

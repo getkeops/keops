@@ -58,7 +58,6 @@ otherwise
     error('string_hash:inputs','unknown type');
 end
 
-% put a leading F in order to get a valid file name
-hash = num2str(hash,'F%020.0f');
+hash = num2str(hash,'%020.0f');
 
 end

@@ -1,35 +1,30 @@
 """
-Writing arbitrary formula with the generic syntax (PyTorch)
+Custom formulas with the Pytorch backend
 ===========================================================
-
-This example uses the pyTorch framework.
 """
 
 ####################################################################
-# It computes the following tensor operation :
+# Let's compute the (3000,3) tensor :math:`c` whose entries
+# :math:`c_i^u` are given by:
 #    
 # .. math::
 #   c_i^u = \sum_j (p-a_j)^2 \exp(x_i^u+y_j^u)
 # 
 # where 
 # 
-# * :math:`x`   : a 3000x3 tensor, with entries denoted :math:`x_i^u`
-# * :math:`y`   : a 5000x3 tensor, with entries denoted :math:`y_j^u`
-# * :math:`a`   : a 5000x1 tensor, with entries denoted :math:`a_j`
-# * :math:`p`   : a scalar (entered as a 1x1 tensor)
-#
-# and the results
-#
-# * :math:`c`   : a 3000x3 tensor, with entries denoted :math:`c_i^u`
+# * :math:`x` is a (3000,3) tensor, with entries :math:`x_i^u`.
+# * :math:`y` is a (5000,3) tensor, with entries :math:`y_j^u`.
+# * :math:`a` is a (5000,1) tensor, with entries :math:`a_j`.
+# * :math:`p` is a scalar, encoded as a vector of size (1,).
 #
 
 
 
 ####################################################################
-# Define our dataset
+# Setup
 # ------------------
 #
-# Standard imports
+# Standard imports:
 import time
 import torch
 from torch.autograd import grad
@@ -37,7 +32,7 @@ from pykeops.torch import Genred
 import matplotlib.pyplot as plt
 
 #####################################################################
-# Declare random inputs
+# Declare random inputs:
 
 M = 3000
 N = 5000
@@ -54,8 +49,8 @@ a = torch.randn(N, 1, dtype=torchtype, device=device)
 p = torch.randn(1, 1, dtype=torchtype, device=device)
 
 ####################################################################
-# Define the kernel
-# -----------------
+# Define a custom formula
+# -------------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
 variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
@@ -63,33 +58,45 @@ variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
              'a = Vy(1)',  # Third arg   : j-variable, of size 1 (scalar)
              'p = Pm(1)']  # Fourth  arg : Parameter,  of size 1 (scalar)
          
-start = time.time()
-
 ####################################################################
-# The parameter ``reduction_op='Sum'`` together with ``axis=1`` means that the reduction operation is a sum over the second dimension ``j``. Thence the results will be an ``i``-variable.
+# Our sum reduction is performed over the index :math:`j`,
+# i.e. on the axis ``1`` of the kernel matrix.
+# The output c is an :math:`x`-variable indexed by :math:`i`.
 
-my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+my_routine = Genred(formula, variables, 
+                    reduction_op='Sum', axis=1, cuda_type=type)
 c = my_routine(x, y, a, p)
 
 
 ####################################################################
-# Define the gradient
+# Compute the gradient
 # -------------------
-# Now, let's compute the gradient of :math:`c` with respect to :math:`y`. Note that since :math:`c` is not scalar valued, its "gradient" should be understood as the adjoint of the differential operator, i.e. as the linear operator that takes as input a new tensor :math:`e` with same size as :math:`c` and outputs a tensor :math:`g` with same size as :math:`y` such that for all variation :math:`\delta y` of :math:`y` we have:
+# Now, let's compute the gradient of :math:`c` with 
+# respect to :math:`y`. Since :math:`c` is not scalar valued, 
+# its "gradient" :math:`\partial c` should be understood as the adjoint of the 
+# differential operator, i.e. as the linear operator that:
+#
+# - takes as input a new tensor :math:`e` with the shape of :math:`c`
+# - outputs a tensor :math:`g` with the shape of :math:`y` 
+# 
+# such that for all variation :math:`\delta y` of :math:`y` we have:
 #
 # .. math::
 #
-#    \langle dc \cdot \delta y , e \rangle  =  \langle g , \delta y \rangle  =  \langle \delta y , dc^* \cdot e \rangle
+#    \langle \text{d} c . \delta y , e \rangle  =  \langle g , \delta y \rangle  =  \langle \delta y , \partial c . e \rangle
 #
+# Backpropagation is all about computing the tensor :math:`g=\partial c . e` efficiently, for arbitrary values of :math:`e`:
 
-# Declare a new variable of size Mx3 used as input of the gradient
+# Declare a new tensor of shape (M,3) used as the input of the gradient operator.
+# It can be understood as a "gradient with respect to the output c"
+# and is thus called "grad_output" in the documentation of PyTorch.
 e = torch.rand_like(c)
 
 # Call the gradient op:
 start = time.time()
 
-# PyTorch remark : grad(c, y, e) alone outputs a length 1 tuple, hence the need for [0] at the end.
-g = grad(c, y, e)[0]
+# PyTorch remark : grad(c, y, e) alone outputs a length 1 tuple, hence the need for [0].
+g = grad(c, y, e)[0] # g = [∂_y c].e
 
 print('Time to compute gradient of convolution operation with KeOps: ', round(time.time()-start,5), 's')
 
@@ -100,8 +107,8 @@ g_torch = ((p - a.transpose(0, 1))[:, None] **2 * torch.exp(x.transpose(0, 1)[:,
 
 # compare the results by plotting some values
 for i in range(3):
-    plt.subplot(1, 3, i+1)
+    plt.subplot(3, 1, i+1)
     plt.plot(g.detach().cpu().numpy()[:40,i], '-', label='keops')
     plt.plot(g_torch.detach().cpu().numpy()[:40,i], '--', label='numpy')
-    plt.legend(loc='upper center')
+    plt.legend(loc='lower right')
 plt.show()

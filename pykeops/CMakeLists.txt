@@ -34,10 +34,14 @@ include(${KEOPS_SRC}/headers.cmake)
 
 add_subdirectory(pybind11)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
-add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0) #  fix for pytorch 0.4.1 : https://discuss.pytorch.org/t/pytorch-0-4-1-undefined-symbol-at-import-of-a-cpp-extension/24420 and https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0) #  fix for pytorch: https://discuss.pytorch.org/t/pytorch-0-4-1-undefined-symbol-at-import-of-a-cpp-extension/24420 and https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
 if(NOT PYTHON_LANG)
     Set(PYTHON_LANG numpy)
 endif()
+
+# We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/torch_headers.h.in ${CMAKE_CURRENT_BINARY_DIR}/torch_headers.h @ONLY)
+
 ########################################################################################################
 #                                        Generic                                                       #
 ########################################################################################################
@@ -79,6 +83,7 @@ else()
     )
 
 endif()
+
 # skip the full RPATH for the build tree. We append $ORIGIN later
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
@@ -94,12 +99,26 @@ set_target_properties(keops${shared_obj_name} PROPERTIES
 # -------------------- Pybind11
 pybind11_add_module(${shared_obj_name}
     ${CMAKE_CURRENT_SOURCE_DIR}/${PYTHON_LANG}/generic/generic_red.cpp
+)
+
+if(${PYTHON_LANG} STREQUAL "torch")
+     set_source_files_properties(
+            ${CMAKE_CURRENT_SOURCE_DIR}/${PYTHON_LANG}/generic/generic_red.cpp
+            OBJECT_DEPENDS torch_headers.h
     )
 
-target_compile_options(
-        ${shared_obj_name} BEFORE
-        PRIVATE  -include ${shared_obj_name}.h
+    target_compile_options(
+            ${shared_obj_name} BEFORE
+            PRIVATE -include torch_headers.h
     )
+else() # assuming numpy
+
+    target_compile_options(
+            ${shared_obj_name} BEFORE
+            PRIVATE -include ${shared_obj_name}.h
+    )
+
+endif()
 
 # Ensure the shared lib look for the other .so in its own dir.
 if(APPLE)

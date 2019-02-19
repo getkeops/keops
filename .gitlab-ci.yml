@@ -25,7 +25,7 @@ test_macos_clang:
     tags:
         - clang
         - macos10-12
-        - python3
+        - python3.6
     allow_failure: false
 
 # ---------------- Partial Test on Ubuntu16.04 ----------------
@@ -49,11 +49,11 @@ test_ubuntu_gcc:
         - python3 unit_tests_numpy.py
     tags:
         - gcc
-        - python3
+        - python3.5
         - ubuntu16.04
 
 
-# ---------------- Full Test on Ubuntu16.04 ----------------
+# ---------------- Full Test on Ubuntu18.04 ----------------
 compile_ubuntu_cuda:
     stage: build
     script:
@@ -63,7 +63,7 @@ compile_ubuntu_cuda:
         - make VERBOSE=0
     tags:
         - nvcc
-        - ubuntu16.04
+        - ubuntu18.04
                 
           
 test_ubuntu_cuda:
@@ -78,5 +78,5 @@ test_ubuntu_cuda:
     tags:
         - matlab
         - nvcc
-        - python3
-        - ubuntu16.04
+        - python3.6
+        - ubuntu18.04

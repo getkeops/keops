@@ -7,8 +7,8 @@
 #include <algorithm>
 
 
-extern "C" int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**);
-extern "C" int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**);
+extern "C" int GpuReduc1D_FromHost(int, int, __TYPE__*, __TYPE__**, int);
+extern "C" int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**, int);
 extern "C" int CpuReduc(int, int, __TYPE__*, __TYPE__**);
 
 __TYPE__ __TYPE__rand() {
@@ -52,10 +52,10 @@ vuple compute_convs(int Nx, int Ny){
 
     std::vector<__TYPE__> resgpu2D(Nx*3), resgpu1D(Nx*3), rescpu(Nx*3);
 
-    GpuReduc2D_FromHost(Nx, Ny, f, args); resgpu2D = vf;
+    GpuReduc2D_FromHost(Nx, Ny, f, args, -1); resgpu2D = vf;
 
     fillones(vf);
-    GpuReduc1D_FromHost(Nx, Ny, f, args); resgpu1D = vf;
+    GpuReduc1D_FromHost(Nx, Ny, f, args, -1); resgpu1D = vf;
 
     fillones(vf);
     CpuReduc(Nx, Ny, f, args); rescpu = vf; 

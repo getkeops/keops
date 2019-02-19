@@ -23,8 +23,8 @@
  *      Divide<FA,FB>				: alias for Scal<FA,Inv<FB>>
  *      Pow<F,M>					: Mth power of F (vectorized) ; M is an integer
  *      Powf<A,B>					: alias for Exp<Scal<FB,Log<FA>>>
- *      Square<F>					: alias for Pow<F,2>
- *      Inv<F>						: alias for Pow<F,-1>
+ *      Square<F>					: Pointwise square, more efficient than Pow<F,2>
+ *      Inv<F>						: Pointwise inverse, more efficient than Pow<F,-1>
  *      IntInv<N>					: alias for Inv<IntConstant<N>>
  *      Sqrt<F>						: alias for Powf<F,IntInv<2>>
  *

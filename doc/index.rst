@@ -21,8 +21,8 @@ Using the PyTorch backend, a typical sample of code looks like:
     my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
                      ['x = Vx(3)',            # 1st input: dim-3 vector per line
                       'y = Vy(3)'],           # 2nd input: dim-3 vector per column
-                     reduction_op='Sum',
-                     axis=1)
+                     reduction_op='Sum',      # we also support LogSumExp, Min, etc.
+                     axis=1)                  # reduce along the lines of the kernel matrix
 
     # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
     x = torch.randn(1000000, 3, requires_grad=True).cuda()
@@ -47,8 +47,10 @@ More details are provided below:
 
 * :doc:`Documentation <api/why_using_keops>`.
 * `Source code <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops>`_
-* :doc:`Learning KeOps syntax with examples <_auto_examples/index>`
-* :doc:`Tutorials gallery <_auto_tutorials/index>`
+* :doc:`Learning KeOps with examples <_auto_examples/index>`
+* :doc:`Gallery of tutorials <_auto_tutorials/index>`
+
+**KeOps is licensed** under the `MIT license <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/licence.txt>`_.
 
 Projects using KeOps
 --------------------

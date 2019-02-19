@@ -1,8 +1,8 @@
 Python install
 ==============
 
-PyKeOps contains the python 3 bindings for the cpp/cuda library KeOps. It provides 
-standard python functions that can be used in any python 3 code.
+PyKeOps is a Python 3 binding for the low-level KeOps library, which is written in c++/cuda. 
+It provides functions that can be used in any NumPy or PyTorch code.
 
 Requirements
 ------------
@@ -11,17 +11,17 @@ Requirements
 - **Python 3** with packages: numpy, GPUtil (installed via pip or conda)
 
 - A C++ compiler: g++ version >=5, clang++
-- Cmake version >=3.10
+- Cmake version >= 3.10
 - Ninja 
 
-- Cuda (Optional): version >=9.0 is recommended but it works with older version. Warning: check the compatibility of C++ compiler
-- PyTorch (Optional): version ==0.4.1
+- Cuda (Optional): version >=9.0 is recommended but KeOps should also work with older versions. Warning: check the compatibility of C++ compiler.
+- PyTorch (Optional): version == 1.0.0
 
 
 Using pip (recommended)
 -----------------------
 
-1. Just in case: in a terminal, verify the **consistency** of the outputs of the commands ``which python``, ``python --version``, ``which pip`` and ``pip --version``. You can then install the dependencies with:
+1. Just in case: in a terminal, check the **consistency** of the outputs of the commands ``which python``, ``python --version``, ``which pip`` and ``pip --version``. You can then install the dependencies with:
 
 .. code-block:: bash
 
@@ -43,13 +43,13 @@ Note that the compiled shared objects (``*.so`` files) will be stored into the f
 From source using git
 ---------------------
 
-1. Clone keops library repo at a location of your choice (here denoted as ``/path/to``)
+1. Clone the KeOps repo at a location of your choice (denoted here as ``/path/to``)
 
     .. code-block:: console
 
         git clone https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops.git /path/to/libkeops
 
-    Note that your compiled .so routines will be stored into the folder ``/path/to/libkeops/build``: this directory must have **write permission**. 
+    Note that your compiled .so routines will be stored into the folder ``/path/to/libkeops/pykeops/build``: this directory must have **write permission**. 
 
 
 2. Manually add the directory ``/path/to/libkeops`` (and **not** ``/path/to/libkeops/pykeops/``) to your python path.
@@ -89,7 +89,16 @@ Testing your installation
         my_conv = pknp.Genred('SqNorm2(x - y)', ['x = Vx(3)', 'y = Vy(3)'])
         print(my_conv(x, y))
         
-    should return
+    should return:
+
+    .. code-block:: console
+
+        Compiling libKeOpsnumpy40ae98a6da in /home/..../build/:
+        formula: SumReduction(SqNorm2(x - y),1)
+        aliases: x = Vx(0,3); y = Vy(1,3); 
+        dtype  : float32
+        ... Done. 
+        Loaded.
 
     .. code-block:: python
 
@@ -111,7 +120,16 @@ Testing your installation
         my_conv = pktorch.Genred('SqNorm2(x-y)', ['x = Vx(3)', 'y = Vy(3)'])
         print(my_conv(x, y))
 
-    should return
+    should return:
+
+    .. code-block:: console
+
+        Compiling libKeOpstorch40ae98a6da in /home/..../build/:
+            formula: SumReduction(SqNorm2(x-y),1)
+            aliases: x = Vx(0,3); y = Vy(1,3); 
+            dtype  : float32
+        ... Done. 
+        Loaded.
 
     .. code-block:: python
 
@@ -127,15 +145,15 @@ Compilation issues
 
 First of all, make sure that you are using a C++ compiler which is compatible with the C++11 revision and/or your nvcc (CUDA) compiler. Otherwise, compilations of formulas may fail in unexpected ways. Depending on your system, you can:
 
-1. Installing a compiler system wide: for instance, on Debian based Linux distros, this can be done simply by installing g++ with apt and then using `update-alternatives <https://askubuntu.com/questions/26498/choose-gcc-and-g-version>`_ to choose the right compiler.
+1. Install a compiler **system-wide**: for instance, on Debian based Linux distros, this can be done by installing g++ with apt and then using `update-alternatives <https://askubuntu.com/questions/26498/choose-gcc-and-g-version>`_ to choose the right compiler.
 
-2. Installing a compiler locally: if you are using a conda environment, you can install a new instance of gcc and g++ by following the `documentation of conda <https://conda.io/docs/user-guide/tasks/build-packages/compiler-tools.html>`_.
+2. Install a compiler **locally**: if you are using a conda environment, you can install a new instance of gcc and g++ by following the `documentation of conda <https://conda.io/docs/user-guide/tasks/build-packages/compiler-tools.html>`_.
 
 
 Verbosity level
 ^^^^^^^^^^^^^^^
 
-Note that you can activate a "verbose" compilation mode by adding these lines *after* your KeOps imports:
+To help debugging, you can activate a "verbose" compilation mode by adding these lines *after* your KeOps imports:
 
 .. code-block:: python
 
@@ -148,7 +166,7 @@ Note that you can activate a "verbose" compilation mode by adding these lines *a
 Cache directory
 ^^^^^^^^^^^^^^^
 
-If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to flush the build folder (the cache of already-compiled formulas). To get the directory name:
+If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to flush the *build* folder (i.e. the cache of already-compiled formulas). To get the directory name:
 
 .. code-block:: python
 

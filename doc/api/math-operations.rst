@@ -1,78 +1,96 @@
-Formulas
-========
+.. _`part.generic_formulas`:
 
-.. _`part.varCategory`:
+Generic formulas
+================
 
-Variables category
-------------------
 
-KeOps uses a low-level syntax written in C++/Cuda to define virtually any reduction operation of the form
+KeOps lets you define any reduction operation of the form
 
 .. math::
 
-   \alpha_i = \operatorname{Reduction}_j \big[ f(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
+   \alpha_i = \operatorname{Reduction}_j \big[ F(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
 
 or
 
 .. math::
 
-   \beta_j = \operatorname{Reduction}_i \big[ f(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
+   \beta_j = \operatorname{Reduction}_i \big[ F(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
 
-where "Reduction" can be the Sum, LogSumExp, min,... operations (see :ref:`part.reduction` for the full list)
+where :math:`F` is a symbolic formula, the :math:`x^k_{\iota_k}`'s are vector variables
+and 
+:math:`\text{Reduction}` is a Sum, LogSumExp or any other standard operation (see :ref:`part.reduction` for the full list of supported reductions).
+
+We now describe the symbolic syntax that 
+can be used through KeOps' bindings.
+
+.. _`part.varCategory`:
+
+Variables: category, index and dimension
+----------------------------------------
 
 
-Each of the variables :math:`x^k_{\iota_k}` is specified by its positional index ``k``, its category :math:`\iota_k\in\{i,j,\emptyset\}` (meaning that the variable is indexed by ``i``, by ``j``, or is a fixed parameter across indices) and its dimension :math:`d_k`. These three characteristics are encoded as follows :
+At a low level, every variable :math:`x^k_{\iota_k}` is specified by its **category** :math:`\iota_k\in\{i,j,\emptyset\}` (meaning that the variable is indexed by :math:`i`, by :math:`j`, or is a fixed parameter across indices), its **positional index** :math:`k` and its **dimension** :math:`d_k`. 
 
-* category is given via the keywords
+In practice, the category :math:`\iota_k` is given through a keyword
 
 =========  ============================
- keyword    meanning
+ keyword    meaning
 =========  ============================
- ``Vx``     variable indexed by ``i``
- ``Vy``     variable indexed by ``j``
+ ``Vx``     variable indexed by :math:`i`
+ ``Vy``     variable indexed by :math:`j`
  ``Pm``     parameter
 =========  ============================
 
-* positional index ``k`` and dimension :math:`d_k` are given as two integer parameters put into parenthesis after the category-specifier keyword.
+followed by a :math:`(k,d_k)` or (index,dimension) pair of integers.
+For instance, ``Vx(2,4)`` specifies a variable indexed by :math:`i`, given as the third (:math:`k=2`) input in the function call, and representing a vector of dimension :math:`d_k=4`.
 
-For instance, ``Vx(2,4)`` specifies a variable indexed by ``i``, given as the third (``k=2``) input in the function call, and representing a vector of dimension 4.
-
-Of course, using the same index ``k`` for two different variables is not allowed and will be rejected by the compiler.
+**N.B.:** using the same index ``k`` for two variables with different dimensions or categories is not allowed and will be rejected by the compiler.
 
 .. _`formula.example`:
 
-An example
-----------
+An example, with aliases
+------------------------
 
-Assume we want to compute the following sum
+Assume we want to compute the sum
 
 .. math::
 
-  f(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{u=1,2,3} \in \mathbb R^3
+  F(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1..M, u=1,2,3} \in \mathbb R^{M\times 3}
 
 
-where :math:`p \in \mathbb R` is a constant, :math:`x \in \mathbb R^{M\times 3}`, :math:`y \in \mathbb R^{N\times 3}`, :math:`a \in \mathbb R^N`. In this case, we have :math:`\iota_0 = \emptyset` since :math:`p` is a parameter,  :math:`\iota_1 = i` since :math:`x` is a variable indexed by ``i`` and   :math:`\iota_2 = j` as :math:`y` is a variable indexed by ``j``. From the "variables" symbolic placeholders, one can build the function ``f`` using the syntax
+where:
+
+- :math:`p \in \mathbb R` is a **parameter**, 
+- :math:`x \in \mathbb R^{M\times 3}` is an **x-variable** indexed by :math:`i`, 
+- :math:`y \in \mathbb R^{N\times 3}` is an **y-variable** indexed by :math:`j`, 
+- :math:`a \in \mathbb R^N` is an **y-variable** indexed by :math:`j`.
+
+Using the **variable placeholders** presented above and the
+mathematical operations listed in :ref:`part.mathOperation`,
+we can define ``F`` as a **symbolic string**
 
 .. code-block:: cpp
 
-    Square(Pm(0,1)-Vy(3,1))*Exp(Vx(1,3)+Vy(2,3))
+    SumReduction( Square( Pm(0,1) - Vy(3,1) )  *  Exp( Vx(1,3) + Vy(2,3) ), 1 )
 
 in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
+The second argument ``1`` of the ``SumReduction`` operator
+indicates that the summation is performed with respect to the :math:`j`
+index: a ``0`` would have been associated to an :math:`i`-reduction.
 
-The operations available are listed :ref:`part.mathOperation`.
-
-Variables can be given aliases, allowing us to write human-readable expressions for our formula. For example, one may define ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``a=Vy(3,1)``, and write the previous computation as
+Note that in all bindings, variables can be defined through **aliases**.
+In this example, we may write ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``a=Vy(3,1)`` and thus give ``F`` through a much friendlier expression:
 
 .. code-block:: cpp
 
-    Square(p - a) * Exp(x + y)
+    SumReduction( Square(p - a) * Exp(x + y), 1 )
 
 .. _`part.mathOperation`:
 
 Math operators
 --------------
 
-Here is a list of the implemented operations that can be used in formulas:
+To define formulas with KeOps, you can use simple arithmetics:
 
 ======================   =========================================================================================================
 ``f * g``                 scalar-vector multiplication (if ``f`` is scalar) or vector-vector element-wise multiplication
@@ -80,29 +98,69 @@ Here is a list of the implemented operations that can be used in formulas:
 ``f - g``                 difference between two vectors or minus sign
 ``f / g``                 element-wise division
 ``(f | g)``               scalar product between vectors
+======================   =========================================================================================================
+
+Elementary functions:
+
+======================   =========================================================================================================
+``Inv(f)``                element-wise inverse (1 ./ f)
 ``Exp(f)``                element-wise exponential function
 ``Log(f)``                element-wise natural logarithm
-``Pow(f, N)``             N-th power of ``f`` (element-wise), where N is a fixed-size integer
-``Powf(f, g)``            power operation ``-`` alias for ``Exp(g*Log(f))``
-``Square(f)``             element-wise square
-``Sqrt(f)``               element-wise square root
-``Rsqrt(f)``              element-wise inverse square root
-``SqNorm2(f)``            squared L2 norm, same as ``(f|f)``
-``Norm2(f)``              L2 norm, same as ``Sqrt((f|f))``
-``Normalize(f)``          normalize vector, same as ``Rsqrt(SqNorm2(f)) * f``
-``Grad(f,x,e)``           gradient of ``f`` with respect to the variable ``x``, with ``e`` as the "grad_input" to backpropagate
+``Pow(f, P)``             P-th power of ``f`` (element-wise), where P is a fixed integer
+``Powf(f, g)``            power operation, alias for ``Exp(g*Log(f))``
+``Square(f)``             element-wise square, faster than Pow(f,2)
+``Sqrt(f)``               element-wise square root, faster than Powf(f,.5)
+``Rsqrt(f)``              element-wise inverse square root, faster than Powf(f,-.5)
+======================   =========================================================================================================
+
+
+Simple vector operations:
+
+=========================   =============================================================================================================
+``SqNorm2(f)``               squared L2 norm, same as ``(f|f)``
+``Norm2(f)``                 L2 norm, same as ``Sqrt((f|f))``
+``Normalize(f)``             normalize vector, same as ``Rsqrt(SqNorm2(f)) * f``
+``SqDist(f,g)``              squared L2 distance, same as ``SqNorm2(f-g)``
+=========================   =============================================================================================================
+
+Generic squared euclidean norms, with support for scalar, diagonal and full (symmetric)
+matrices. If ``f`` is a vector of size `N`, depending on the size of
+``s``, ``WeightedSqNorm(s,f)`` may refer to:
+
+- a weighted L2 norm :math:`s[0]\cdot\sum_{1\leqslant i \leqslant N} f[i-1]^2`  if ``s`` is a vector of size 1.
+- a separable norm :math:`\sum_{1\leqslant i \leqslant N} s[i-1]\cdot f[i-1]^2`  if ``s`` is a vector of size `N`.
+- a full anisotropic norm :math:`\sum_{1\leqslant i,j\leqslant N} s[N\cdot i+j-1]\cdot f[i-1] f[j-1]`  if ``s`` is a vector of size `N*N` such that ``s[N*i+j-1]=s[N*j+i-1]``.
+
+=========================   =============================================================================================================
+``WeightedSqNorm(s,f)``      generic squared euclidean norm
+``WeightedSqDist(s,f,g)``    generic squared distance, same as ``WeightedSqNorm(s,f-g)``
+=========================   =============================================================================================================
+
+Constants and padding/concatenation operations:
+
+======================   =========================================================================================================
 ``IntCst(N)``             integer constant N
-``Zero(N)``               vector of zeros of size N
-``Inv(f)``                element-wise inverse (1 ./ f)
 ``IntInv(N)``             alias for ``Inv(IntCst(N))`` : 1/N
+``Zero(N)``               vector of zeros of size N
 ``Elem(f, M)``            extract M-th element of vector ``f``
 ``ElemT(f, N, M)``        insert scalar value ``f`` at position M in a vector of zeros of length N
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)
 ``ExtractT(f, M, D)``     insert vector ``f`` in a larger vector of zeros (M is starting index, D is dimension of output)
 ``Concat(f, g)``          concatenation of vectors ``f`` and ``g``
+======================   =========================================================================================================
+
+Elementary dot products:
+
+======================   =========================================================================================================
 ``MatVecMult(f, g)``      matrix-vector product ``f x g``: ``f`` is vector interpreted as matrix (column-major), ``g`` is vector
 ``VecMatMult(f, g)``      vector-matrix product ``f x g``: ``f`` is vector, ``g`` is vector interpreted as matrix (column-major)
-``TensorProd(f, g)``      tensor product ``f x g^T`` : ``f`` and ``g`` are vectors of sizes m and n, output is of size mn.
+``TensorProd(f, g)``      tensor product ``f x g^T`` : ``f`` and ``g`` are vectors of sizes M and N, output is of size MN.
+======================   =========================================================================================================
+
+Symbolic gradients:
+
+======================   =========================================================================================================
+``Grad(f,x,e)``           gradient of ``f`` with respect to the variable ``x``, with ``e`` as the "grad_input" to backpropagate
 ``GradMatrix(f, v)``      matrix of gradient (i.e. transpose of the jacobian matrix)
 ======================   =========================================================================================================
 
@@ -112,7 +170,7 @@ Here is a list of the implemented operations that can be used in formulas:
 Reductions
 ----------
 
-Here is a list of the implemented operations that can be used to reduce an array:
+The operations that can be used to reduce an array are:
 
 ===========      ===========================      ============================================
 Sum              summation                        :math:`\sum(\cdots)`
@@ -128,4 +186,4 @@ ArgKMin          indices of order statistics      :math:`(1),\ldots,(K)`
 KMinArgKMin      (KMin,ArgKMin)                   :math:`\left((\cdots)_{(1)},\ldots,(\cdots)_{(K)},(1),\ldots,(K)\right)`
 ===========      ===========================      ============================================
 
-
+**N.B.:** As of today, vector-valued output is only supported for the `Sum` reduction. All the other reductions expect the formula :math:`F` to be scalar-valued.

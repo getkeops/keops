@@ -36,10 +36,10 @@ In recent years, Deep Learning frameworks such as `PyTorch  <http://pytorch.org>
 Unfortunately, though, *no magic* is involved: in the backyard, optimised CUDA codes still have to be written for every operation provided to end-users. Supporting all the standard mathematical routines thus comes at a **huge engineering cost** for the developers of the main frameworks.  As of 2018, this effort has been mostly restricted to the operations needed to implement Convolutional Neural Networks: linear algebra routines and convolutions on *grids*. 
 
 
-In array-centric frameworks, a standard way of computing Gaussian convolutions is thus to create and store in memory the full :math:`M`-by-:math:`N` kernel matrix :math:`K_{i,j}=K(x_i,y_j)`, before computing :math:`(a_i) = (K_{i,j}) (b_j)` as a matrix product.  
+Consequently, in array-centric frameworks, a standard way of computing Gaussian convolutions is to create and store in memory the full :math:`M`-by-:math:`N` kernel matrix :math:`K_{i,j}=K(x_i,y_j)`, before computing :math:`(a_i) = (K_{i,j}) (b_j)` as a matrix product.  
 But for large datasets (say, :math:`M,N \geqslant 10,000`), this is not realistic: **large matrices just don't fit in GPU memories**.
 
-Fortunately, KeOps is all about **letting researchers break through this memory bottleneck**. Relying on an **online map-reduce scheme**, we provide CUDA 
+KeOps is all about **letting researchers break through this memory bottleneck**. Relying on an **online map-reduce scheme**, we provide CUDA 
 routines that "sum" the coefficients :math:`K_{i,j}\cdot b_j` as they are computed,
 without ever storing the full matrix :math:`K` in memory.
 

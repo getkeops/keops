@@ -1,35 +1,30 @@
 """
-LSE KeOps reduction using the generic syntax 
-============================================
-
-This example uses the pyTorch framework.
+Custom LogSumExp reductions with the Pytorch backend
+===========================================================
 """
 
 ####################################################################
-# It computes the following tensor operation :
+# Let's compute the (3000,1) tensor :math:`c` whose entries
+# :math:`c_i` are given by:
 #    
 # .. math::
-#   c_i^u = \log \left[ \sum_j \exp\left( (p-a_j)^2 \exp(x_i^u+y_j^u) \right) \right]
+#   c_i = \log \left[ \sum_j \exp\left( (p-a_j)^2 \exp(x_i+y_j) \right) \right]
 # 
 # where 
 # 
-# * :math:`x`   : a 3000x3 tensor, with entries denoted :math:`x_i^u`
-# * :math:`y`   : a 5000x3 tensor, with entries denoted :math:`y_j^u`
-# * :math:`a`   : a 5000x1 tensor, with entries denoted :math:`a_j`
-# * :math:`p`   : a scalar (entered as a 1x1 tensor)
-#
-# and the results
-#
-# * :math:`c`   : a 3000x3 tensor, with entries denoted :math:`c_i^u`
+# * :math:`x` is a (3000,1) tensor, with entries :math:`x_i`.
+# * :math:`y` is a (5000,1) tensor, with entries :math:`y_j`.
+# * :math:`a` is a (5000,1) tensor, with entries :math:`a_j`.
+# * :math:`p` is a scalar, encoded as a vector of size (1,).
 #
 
 
 
 ####################################################################
-# Define our dataset
+# Setup
 # ------------------
 #
-# Standard imports
+# Standard imports:
 
 import time
 import torch
@@ -37,7 +32,7 @@ from torch.autograd import grad
 from pykeops.torch import Genred
 
 #####################################################################
-# Declare random inputs
+# Declare random inputs:
 
 M = 3000
 N = 5000
@@ -51,8 +46,8 @@ a = torch.rand(N, 1, dtype=torchtype)
 p = torch.rand(1, 1, dtype=torchtype)
 
 ####################################################################
-# Define the kernel
-# -----------------
+# Define a custom formula
+# -------------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
 variables = ['x = Vx(1)',  # First arg   : i-variable, of size 3
@@ -63,35 +58,49 @@ variables = ['x = Vx(1)',  # First arg   : i-variable, of size 3
 start = time.time()
 
 ####################################################################
-# The parameter ``reduction_op='LogSumExp'`` together with ``axis=1`` means that the reduction operation is a log-sum-exp over the second dimension ``j``. Thence the results will be an ``i``-variable.
+# Our log-sum-exp reduction is performed over the index :math:`j`,
+# i.e. on the axis ``1`` of the kernel matrix.
+# The output c is an :math:`x`-variable indexed by :math:`i`.
 
-my_routine = Genred(formula, variables, reduction_op='LogSumExp', axis=1, cuda_type=type)
+my_routine = Genred(formula, variables, 
+                    reduction_op='LogSumExp', axis=1, cuda_type=type)
 tmp = my_routine(x, y, a, p, backend='CPU')
 # in fact the log-sum-exp operation in Keops computes pairs (m,s) such that the LSE is m+log(s)
 c = tmp[:,0] + torch.log(tmp[:,1])
 
-# N.B.: By specifying backend='CPU', we make sure that the result is computed
-#       using a simple C++ for loop.
+# N.B.: By specifying backend='CPU', we can make sure that the result is computed using a simple C++ for loop.
 print('Time to compute the convolution operation on the cpu: ', round(time.time()-start,5), 's', end=' ')
 
-####################################################################
-# We compare with Log of Sum of Exp:
+#######################################################################
+# We compare with the unstable, naive computation "Log of Sum of Exp":
 
 my_routine2 = Genred('Exp('+formula+')', variables, reduction_op='Sum', axis=1, cuda_type=type)
 c2 = torch.log(my_routine2(x, y, a, p, backend='CPU'))[:,0]
 print('(relative error: ',((c2-c).norm()/c.norm()).item(), ')')
 
+
 ####################################################################
-# Define the gradient
+# Compute the gradient
 # -------------------
-# Now, let's compute the gradient of :math:`c` with respect to :math:`y`. Note that since :math:`c` is not scalar valued, its "gradient" should be understood as the adjoint of the differential operator, i.e. as the linear operator that takes as input a new tensor :math:`e` with same size as :math:`c` and outputs a tensor :math:`g` with same size as :math:`y` such that for all variation :math:`\delta y` of :math:`y` we have:
+# Now, let's compute the gradient of :math:`c` with 
+# respect to :math:`y`. Since :math:`c` is not scalar valued, 
+# its "gradient" :math:`\partial c` should be understood as the adjoint of the 
+# differential operator, i.e. as the linear operator that:
+#
+# - takes as input a new tensor :math:`e` with the shape of :math:`c`
+# - outputs a tensor :math:`g` with the shape of :math:`y` 
+# 
+# such that for all variation :math:`\delta y` of :math:`y` we have:
 #
 # .. math::
 #
-#    \langle dc \cdot \delta y , e \rangle  =  \langle g , \delta y \rangle  =  \langle \delta y , dc^* \cdot e \rangle
+#    \langle \text{d} c . \delta y , e \rangle  =  \langle g , \delta y \rangle  =  \langle \delta y , \partial c . e \rangle
 #
+# Backpropagation is all about computing the tensor :math:`g=\partial c . e` efficiently, for arbitrary values of :math:`e`:
 
-# Declare a new variable of size Mx1 used as input of the gradient
+# Declare a new tensor of shape (M,1) used as the input of the gradient operator.
+# It can be understood as a "gradient with respect to the output c"
+# and is thus called "grad_output" in the documentation of PyTorch.
 e = torch.rand_like(c)
 # Call the gradient op:
 start = time.time()
@@ -111,7 +120,7 @@ print('(relative error: ',((g2-g).norm()/g.norm()).item(), ')')
 # Same operations performed on the Gpu
 # ------------------------------------
 #
-# This will of course only work if you have a Gpu...
+# Of course, this will only work if you own a Gpu...
 
 if torch.cuda.is_available():
     # first transfer data on gpu
@@ -120,10 +129,10 @@ if torch.cuda.is_available():
     start = time.time()
     c3 = my_routine(xc, yc, ac, pc, backend='GPU')
     c3 = c3[:,0] + torch.log(c3[:,1])
-    print('Time to compute convolution operation on gpu:',round(time.time()-start,5), 's ', end='')
+    print('Time to compute convolution operation on the gpu:',round(time.time()-start,5), 's ', end='')
     print('(relative error:', float(torch.abs((c2 - c3.cpu()) / c2).mean()), ')')
     start = time.time()
     g3 = grad(c3, yc, ec)[0]
-    print('Time to compute gradient of convolution operation on gpu:', round(time.time()-start,5), 's ', end='')
+    print('Time to compute gradient of convolution operation on the gpu:', round(time.time()-start,5), 's ', end='')
     print('(relative error:', float(torch.abs((g2 - g3.cpu()) / g2).mean()), ')')
 

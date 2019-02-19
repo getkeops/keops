@@ -28,10 +28,10 @@ function [res] = shape_scp(center_faceX,center_faceY,signalX,signalY,normalsX,no
 %   res : a real number
 %
 
-if ~(exist(CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'',mexext),'file')==3)
+if ~(exist(create_mex_name(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'',mexext),'file')==3)
     compile_routine_shape_dist(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'')
 end
 
-eval(['res = sum(', CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,''),'(center_faceX'',center_faceY'',signalX'',signalY'',normalsX'',normalsY'',kernel_size_geom,kernel_size_signal,kernel_size_sphere));']);
+eval(['res = sum(', create_mex_name(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,''),'(center_faceX'',center_faceY'',signalX'',signalY'',normalsX'',normalsY'',kernel_size_geom,kernel_size_signal,kernel_size_sphere));']);
 
 end

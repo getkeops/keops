@@ -1,5 +1,5 @@
-================
-Examples Gallery
-================
+====================
+Gallery of examples
+====================
 
-Below is a gallery of examples illustrating pyKeOps implemented features
+These short examples showcase the features of the ``pykeops`` module.
