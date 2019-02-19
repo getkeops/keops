@@ -38,7 +38,8 @@ def grid_cluster( x, size ) :
             lab = grid_label(x, size)
         else :
             # Quantize the points' positions
-            if   x.shape[1]==2 : weights = torch.IntTensor( [ 2**10, 1] ,      ).to(x.device)
+            if   x.shape[1]==1 : weights = torch.IntTensor( [ 1 ] ,            ).to(x.device)
+            elif x.shape[1]==2 : weights = torch.IntTensor( [ 2**10, 1] ,      ).to(x.device)
             elif x.shape[1]==3 : weights = torch.IntTensor( [ 2**20, 2**10, 1] ).to(x.device)
             x_  = ( x / size ).floor().int()
             x_ *= weights
