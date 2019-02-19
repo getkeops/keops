@@ -77,7 +77,7 @@ for l=1:d
     oriented_angle_normalsXY = oriented_angle_normalsXY + (repmat(unit_normalsX(:,l),1,ny).*repmat(unit_normalsY(:,l)',nx,1));
 end
 
-% Kernels
+% kernels
 eval(['radial_function_geom=kernel_',lower(opt.kernel_geom)  ,';']);
 eval(['dradial_function_geom=dkernel_',lower(opt.kernel_geom)  ,';']);
 eval(['radial_function_signal=kernel_',lower(opt.kernel_signal),';']);
@@ -85,25 +85,25 @@ eval(['dradial_function_signal=dkernel_',lower(opt.kernel_signal),';']);
 eval(['radial_function_sphere=kernel_',lower(opt.kernel_sphere) ,';']);
 eval(['dradial_function_sphere=dkernel_',lower(opt.kernel_sphere) ,';']);
 
-Kernel_geomXY = radial_function_geom(distance_center_faceXY,kernel_size_geom);
-dKernel_geomXY = dradial_function_geom(distance_center_faceXY,kernel_size_geom);
-Kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
-dKernel_signalXY = dradial_function_signal(distance_signalXY,kernel_size_signal);
-Kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY,kernel_size_sphere);
-dKernel_sphereXY = dradial_function_sphere(oriented_angle_normalsXY,kernel_size_sphere);
+kernel_geomXY = radial_function_geom(distance_center_faceXY,kernel_size_geom);
+dkernel_geomXY = dradial_function_geom(distance_center_faceXY,kernel_size_geom);
+kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
+dkernel_signalXY = dradial_function_signal(distance_signalXY,kernel_size_signal);
+kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY,kernel_size_sphere);
+dkernel_sphereXY = dradial_function_sphere(oriented_angle_normalsXY,kernel_size_sphere);
 
 %prs(x,y) =
-%sum((norm_normalsX * norm_normalsY') .* Kernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY,2)'
-res_matlab = sum(sum((norm_normalsX * norm_normalsY') .* Kernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY));
+%sum((norm_normalsX * norm_normalsY') .* kernel_geomXY .* kernel_signalXY .* kernel_sphereXY,2)'
+res_matlab = sum(sum((norm_normalsX * norm_normalsY') .* kernel_geomXY .* kernel_signalXY .* kernel_sphereXY));
 for l=1:d 
-    res_matlab_dx(:,l) = 2* sum( (repmat(center_faceX(:,l),1,ny)-repmat(center_faceY(:,l)',nx,1)) .* (norm_normalsX * norm_normalsY') .* dKernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY,2);
+    res_matlab_dx(:,l) = 2* sum( (repmat(center_faceX(:,l),1,ny)-repmat(center_faceY(:,l)',nx,1)) .* (norm_normalsX * norm_normalsY') .* dkernel_geomXY .* kernel_signalXY .* kernel_sphereXY,2);
 end
 
-MXY = Kernel_geomXY .* Kernel_signalXY .* dKernel_sphereXY;
-mXY = Kernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY;
+MXY = kernel_geomXY .* kernel_signalXY .* dkernel_sphereXY;
+mXY = kernel_geomXY .* kernel_signalXY .* kernel_sphereXY;
 res_matlab_dxi =  repmat(mXY * norm_normalsY  - (MXY .* oriented_angle_normalsXY  ) * norm_normalsY,1,d) .* unit_normalsX + MXY * normalsY;
 
-res_matlab_df = 2 * sum( (repmat(signalX,1,ny) - repmat(signalY',nx,1)) .* (norm_normalsX * norm_normalsY') .* Kernel_geomXY .* dKernel_signalXY .* Kernel_sphereXY, 2);
+res_matlab_df = 2 * sum( (repmat(signalX,1,ny) - repmat(signalY',nx,1)) .* (norm_normalsX * norm_normalsY') .* kernel_geomXY .* dkernel_signalXY .* kernel_sphereXY, 2);
 
 fprintf('Relative error between cuda and matlab version: %g\n',abs( (res_matlab - res_cuda) ./ res_matlab ))
 fprintf('Relative error between cuda and matlab version: %g\n',sum(sum(abs( (res_matlab_dx - res_cuda_dx) ./ res_matlab_dx ))))

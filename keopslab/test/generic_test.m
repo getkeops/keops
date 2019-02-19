@@ -33,7 +33,7 @@ function test_standard_expression(testCase)
     p = .25;
 
     % Kernel with KeOps
-    F = Kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)', 'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
+    F = keops_kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)', 'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
     g = F(x,y,u,v,b,p);
     
     % Compare with matlab
@@ -52,14 +52,14 @@ function test_standard_expression_gradient(testCase)
     x = randn(3,Nx); y = randn(3,Ny); a = randn(3,Nx); b = randn(3,Ny);
     p = .25;
     % Kernel with KeOps
-    F1 = Kernel('x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)','a=Vx(3,3)', 'p=Pm(4,1)', 'SumReduction(Grad(Exp(-p*SqNorm2(x-y))*b,x,a),0)');
+    F1 = keops_kernel('x=Vx(0,3)','y=Vy(1,3)','b=Vy(2,3)','a=Vx(3,3)', 'p=Pm(4,1)', 'SumReduction(Grad(Exp(-p*SqNorm2(x-y))*b,x,a),0)');
     g1 = F1(x,y,b,a,p);
     
     % Compare with matlab
     g2 = zeros(3,Nx);
-    dKernel_geomXY = - exp(-p*squmatrix_distance(x',y')) * p;
+    dkernel_geomXY = - exp(-p*squmatrix_distance(x',y')) * p;
     for l=1:3 
-        g2(l,:) = 2 * sum( a .* ( b * ( (repmat(x(l,:)',1,Ny)-repmat(y(l,:),Nx,1))  .* dKernel_geomXY)' ),1) ;
+        g2(l,:) = 2 * sum( a .* ( b * ( (repmat(x(l,:)',1,Ny)-repmat(y(l,:),Nx,1))  .* dkernel_geomXY)' ),1) ;
     end
     
     assert( allclose(g1,g2)==1 )
@@ -73,16 +73,16 @@ function test_gradient(testCase)
     a = randn(3,Nx); x = randn(3,Nx); y = randn(3,Ny); b = randn(3,Ny);
     p = .25;
 
-    F0 = Kernel('x=Vx(3)','y=Vy(3)','b=Vy(3)', 'p=Pm(1)', 'SumReduction(Exp(-p*SqNorm2(x-y))*b,0)');
+    F0 = keops_kernel('x=Vx(3)','y=Vy(3)','b=Vy(3)', 'p=Pm(1)', 'SumReduction(Exp(-p*SqNorm2(x-y))*b,0)');
 
-    GF0x = Grad(F0,'x');
+    GF0x = keops_grad(F0,'x');
     g3= GF0x(x,y,b,p,a);
     
     % Compare with matlab
     g2 = zeros(3,Nx);
-    dKernel_geomXY = - exp(-p*squmatrix_distance(x',y')) * p;
+    dkernel_geomXY = - exp(-p*squmatrix_distance(x',y')) * p;
     for l=1:3 
-        g2(l,:) = 2 * sum( a .* ( b * ( (repmat(x(l,:)',1,Ny)-repmat(y(l,:),Nx,1))  .* dKernel_geomXY)' ),1) ;
+        g2(l,:) = 2 * sum( a .* ( b * ( (repmat(x(l,:)',1,Ny)-repmat(y(l,:),Nx,1))  .* dkernel_geomXY)' ),1) ;
     end
     assert( allclose(g2,g3)==1 )
 end
@@ -128,13 +128,13 @@ function test_fshape_scp(testCase)
     end
 
     eval(['radial_function_geom=kernel_', lower(opt.kernel_geom), ';']);
-    Kernel_geomXY = radial_function_geom(distance_center_faceXY, kernel_size_geom);
+    kernel_geomXY = radial_function_geom(distance_center_faceXY, kernel_size_geom);
     eval(['radial_function_signal=kernel_', lower(opt.kernel_signal), ';']);
-    Kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
+    kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
     eval(['radial_function_sphere=kernel_', lower(opt.kernel_sphere) , ';']);
-    Kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY, kernel_size_sphere);
+    kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY, kernel_size_sphere);
 
-    res_matlab = sum(sum((norm_normalsX * norm_normalsY') .* Kernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY))
+    res_matlab = sum(sum((norm_normalsX * norm_normalsY') .* kernel_geomXY .* kernel_signalXY .* kernel_sphereXY))
 
     assert( allclose(res_cuda,res_matlab)==1 )
 end
@@ -181,14 +181,14 @@ function test_fshape_scp_dx(testCase)
     end
 
     eval(['dradial_function_geom = dkernel_', lower(opt.kernel_geom), ';']);
-    dKernel_geomXY = dradial_function_geom(distance_center_faceXY,kernel_size_geom);
+    dkernel_geomXY = dradial_function_geom(distance_center_faceXY,kernel_size_geom);
     eval(['radial_function_signal = kernel_', lower(opt.kernel_signal), ';']);
-    Kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
+    kernel_signalXY = radial_function_signal(distance_signalXY,kernel_size_signal);
     eval(['radial_function_sphere = kernel_', lower(opt.kernel_sphere) , ';']);
-    Kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY, kernel_size_sphere);
+    kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY, kernel_size_sphere);
 
     for l=1:d
-        res_matlab_dx(:,l) = 2* sum( (repmat(center_faceX(:,l),1,ny)-repmat(center_faceY(:,l)',nx,1)) .* (norm_normalsX * norm_normalsY') .* dKernel_geomXY .* Kernel_signalXY .* Kernel_sphereXY,2);
+        res_matlab_dx(:,l) = 2* sum( (repmat(center_faceX(:,l),1,ny)-repmat(center_faceY(:,l)',nx,1)) .* (norm_normalsX * norm_normalsY') .* dkernel_geomXY .* kernel_signalXY .* kernel_sphereXY,2);
     end
 
     assert( allclose(res_cuda_dx,res_matlab_dx)==1 )

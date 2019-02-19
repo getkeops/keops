@@ -1,21 +1,24 @@
-function G = Grad(F,var)
-
-% defines the gradient of a kernel convolution
-% F is the output of a call to Kernel function
-% var is a string identifying the variable with respect
-% to which the gradient must be taken
+function G = keops_grad(F,var)
+%
+% defines the gradient of a kernel convolution.
+%
+% Inputs:
+%   F is the output of a call to Kernel function
+%   var is a string identifying the variable with respect to which the gradient must be taken
+%
 % Example : define a Gaussian kernel convolution, then take its gradient
 % with respect to the first variable and test
-% F = Kernel('GaussKernel(p,x,y,b)','p=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,3)');
-% G = Grad(F,'x');
+% F = keops_kernel('GaussKernel(p,x,y,b)','p=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,3)');
+% G = keops_grad(F,'x');
 % Nx = 5000;
 % Ny = 2000;
 % x = randn(3,Nx);
 % y = randn(3,Ny);
 % b = randn(3,Ny);
-% c = randn(3,Nx); % we need to input a new array with correct size
+% c = randn(3,Nx); % we need to input a new array with correct size (same as output of F)
 % p = .25;
 % res = G(p,x,y,b,c);
+%
 
 % we get the arguments (variables and formula) from the original call to 
 % the Kernel function in the nested function F
@@ -50,6 +53,6 @@ end
 
 % finally we call the Kernel function with the new formula
 args = [vars,['GradFromPos(',formula,',',var,',',num2str(posnewvar),')']];
-G = Kernel(args{:},options);
+G = keops_kernel(args{:},options);
 
 end

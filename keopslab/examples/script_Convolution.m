@@ -6,7 +6,7 @@ path_to_lib = '..';
 addpath(genpath(path_to_lib))
 
 % defining the kernel operation
-F = Kernel('Exp(-SqDist(x,y)*g)*b','x=Vx(3)','y=Vy(3)','b=Vy(3)','g=Pm(1)');
+F = keops_kernel('Exp(-SqDist(x,y)*g)*b','x=Vx(3)','y=Vy(3)','b=Vy(3)','g=Pm(1)');
 
 % defining input variables
 n = 30;

@@ -43,8 +43,8 @@ if(Matlab_FOUND)
         add_definitions(-DUSE_DOUBLE)
     endif()
 
-    if(NOT DEFINED mex_name)
-        Set(mex_name mex_binding)
+    if(NOT DEFINED shared_obj_name)
+        Set(shared_obj_name mex_binding)
     endif()
 
     matlab_get_mex_suffix( # simply get the extension : almost surely mexa64
@@ -63,7 +63,7 @@ if(Matlab_FOUND)
     if(USE_CUDA)
       
         CUDA_add_library(
-            ${shared_obj_name} SHARED
+            keops${shared_obj_name} SHARED
             ${KEOPS_SRC}/core/link_autodiff.cu
             OPTIONS --pre-include=${shared_obj_name}.h
         )
@@ -73,12 +73,12 @@ if(Matlab_FOUND)
     # ----------------- create shared lib (cpp)
 
         add_library(
-            ${shared_obj_name} SHARED
+            keops${shared_obj_name} SHARED
             ${KEOPS_SRC}/core/link_autodiff.cpp
         )
 
         target_compile_options(
-            ${shared_obj_name}    BEFORE
+            keops${shared_obj_name}    BEFORE
             PRIVATE -include ${shared_obj_name}.h
         )
 
@@ -90,15 +90,12 @@ if(Matlab_FOUND)
 
     endif()
 
-    # shared_obj can be rename if the variable shared_obj_name is provided.
-    if(shared_obj_name)
+    # set name
+    set_target_properties(keops${shared_obj_name} PROPERTIES
+        # LIBRARY_OUTPUT_NAME  ${shared_obj_name}
+        PREFIX ""
+    )
 
-        set_target_properties(${shared_obj_name} PROPERTIES
-            # LIBRARY_OUTPUT_NAME  ${shared_obj_name}
-            PREFIX ""
-        )
-
-    endif()
 
 
 
@@ -106,7 +103,7 @@ if(Matlab_FOUND)
 
     Add_library( # generate the string "g++ -c ..." but do not execute it
         mex_file_cpp OBJECT
-        ${CMAKE_CURRENT_SOURCE_DIR}/generic/cudaconv.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/generic/generic_red.cpp
     )
 
     target_compile_options(
@@ -114,23 +111,15 @@ if(Matlab_FOUND)
         PRIVATE  -include ${shared_obj_name}.h -I${Matlab_INCLUDE_DIRS} -fPIC
     )
 
-    if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
-        add_custom_target(
-            mex_cpp
-            DEPENDS ${shared_obj_name} mex_file_cpp # ensure obj file is created before using mex for linking
-            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:${shared_obj_name}> $<TARGET_OBJECTS:mex_file_cpp> -output ${mex_name} # only since cmake 3.9 
-        )
-    else()
-        add_custom_target(
-            mex_cpp
-            DEPENDS ${shared_obj_name} mex_file_cpp # ensure obj file is created before using mex for linking
-            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:${shared_obj_name}> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_cpp.dir/generic/cudaconv.cpp.o -output ${mex_name} 
-        )
-    endif()
+    add_custom_target(
+        mex_cpp
+        DEPENDS keops${shared_obj_name} mex_file_cpp # ensure obj file is created before using mex for linking
+        COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:keops${shared_obj_name}> $<TARGET_OBJECTS:mex_file_cpp> -output keops${shared_obj_name} # only since cmake 3.9 
+    )
 
     add_dependencies(
         mex_cpp
-        ${shared_obj_name}
+        keops${shared_obj_name}
     )
 
     set_target_properties( # pass needed options to add_custom_target()
@@ -152,7 +141,7 @@ if(Matlab_FOUND)
       
         Add_library( # generate the string "g++ -c ..." but do not execute it
             mex_file_conv OBJECT
-            ${CMAKE_CURRENT_SOURCE_DIR}/specific/convolutions/cudaconv.cpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/specific/convolutions/radial_kernel_conv.cpp
         )
 
         target_compile_options(
@@ -160,19 +149,11 @@ if(Matlab_FOUND)
             PRIVATE -I${Matlab_INCLUDE_DIRS} -fPIC
         )
 
-        if(NOT(${CMAKE_VERSION} VERSION_LESS 3.8.0))
-            add_custom_target(
-                mex_conv
-                DEPENDS radial_kernels_conv mex_file_conv # ensure obj file is created before using mex for linking
-                COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:radial_kernels_conv> $<TARGET_OBJECTS:mex_file_conv> -output conv # only since cmake 3.9 
-            )
-        else()
-            add_custom_target(
-                mex_conv
-                DEPENDS radial_kernels_conv mex_file_conv # ensure obj file is created before using mex for linking
-                COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:radial_kernels_conv> ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/mex_file_conv.dir/specific/convolutions/cudaconv.cpp.o -output conv
-            )
-        endif()
+        add_custom_target(
+            mex_conv
+            DEPENDS radial_kernels_conv mex_file_conv # ensure obj file is created before using mex for linking
+            COMMAND ${Matlab_ROOT_DIR}/bin/mex ${rpat} $<TARGET_FILE:radial_kernels_conv> $<TARGET_OBJECTS:mex_file_conv> -output conv # only since cmake 3.9 
+        )
 
         add_dependencies(
             mex_conv
@@ -224,7 +205,7 @@ if(Matlab_FOUND)
         # ----------------- fshape_scp_dx
         foreach(ext_name "" "_dx" "_df" "_dxi")
 
-            SET(mex_fshape_scp_name cuda_fshape_scp${ext_name}_${KERNEL_GEOM}${KERNEL_SIG}${KERNEL_SPHERE})
+            SET(mex_fshape_scp_name keops_fshape_scp${ext_name}_${KERNEL_GEOM}${KERNEL_SIG}${KERNEL_SPHERE})
 
             SET(name1 fshape_gpu${ext_name})
             CUDA_add_library(

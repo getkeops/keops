@@ -6,7 +6,8 @@ from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
-include_dirs = torch.utils.cpp_extension.include_paths()[0]
+from torch.utils.cpp_extension import include_paths
+include_dirs = include_paths()[0:2]
 
 class GenredAutograd(torch.autograd.Function):
     """
@@ -16,7 +17,7 @@ class GenredAutograd(torch.autograd.Function):
     @staticmethod
     def forward(ctx, formula, aliases, backend, cuda_type, device_id, ranges, *args):
 
-        myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + include_dirs])
+        myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula

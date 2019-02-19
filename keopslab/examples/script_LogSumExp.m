@@ -15,7 +15,7 @@ b = randn(1,Ny);
 p = .25;
 
 % defining reduction operation :
-F = Kernel('LogSumExpReduction(Exp(-p*SqNorm2(x-y))*b,0)',...
+F = keops_kernel('LogSumExpReduction(Exp(-p*SqNorm2(x-y))*b,0)',...
     'x=Vx(3)','y=Vy(3)','b=Vy(1)','p=Pm(1)');
 
 % performing computation and timing it
@@ -28,7 +28,7 @@ disp('first output values :')
 f(:,1:5)
 
 % comparing with Log of Sum of Exp
-F2 = Kernel('SumReduction(Exp(Exp(-p*SqNorm2(x-y))*b),0)',...
+F2 = keops_kernel('SumReduction(Exp(Exp(-p*SqNorm2(x-y))*b),0)',...
     'x=Vx(3)','y=Vy(3)','b=Vy(1)','p=Pm(1)');
 disp('Testing Log of Sum reduction of Exp')
 tic
@@ -49,7 +49,7 @@ disp('Testing gradient of LogSumExp reduction')
 a = randn(1,Nx);
 
 % defining gradient reduction operation :
-G = Grad(F,'x');
+G = keops_grad(F,'x');
 
 tic
 g = G(x,y,b,p,[rand(1,Nx);a],ms);
@@ -61,7 +61,7 @@ g(:,1:5)
 
 % comparing with hand-made gradient of Log of Sum of Exp :
 disp('Testing gradient of Log of Sum reduction of Exp')
-G2 = Grad(F2,'x');
+G2 = keops_grad(F2,'x');
 tic
 g2 = G2(x,y,b,p,a)./repmat(exp(f),size(x,1),1);
 toc
@@ -81,7 +81,7 @@ disp('Testing gradient wrt y of LogSumExp reduction')
 a = randn(1,Nx);
 
 % defining gradient reduction operation :
-G = Grad(F,'y');
+G = keops_grad(F,'y');
 
 tic
 g = G(x,y,b,p,[rand(1,Nx);a./ms(2,:)],ms);
@@ -92,7 +92,7 @@ g(:,1:5)
 
 % comparing with hand-made gradient of Log of Sum of Exp :
 disp('Testing gradient of Log of Sum reduction of Exp')
-G2 = Grad(F2,'y');
+G2 = keops_grad(F2,'y');
 tic
 g2 = G2(x,y,b,p,a./exp(f));
 toc

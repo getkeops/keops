@@ -28,10 +28,10 @@ function [res] = shape_scp_df(center_faceX,center_faceY,signalX,signalY,normalsX
 %   res : a (nx x 1) matrix
 %
 
-if ~(exist(CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'_df',mexext),'file')==3)
+if ~(exist(create_mex_name(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'_df',mexext),'file')==3)
     compile_routine_shape_dist(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'_df')
 end
 
-eval(['res = ', CreateMexName(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'_df'),'(center_faceX'',center_faceY'',signalX'',signalY'',normalsX'',normalsY'',kernel_size_geom,kernel_size_signal,kernel_size_sphere)'';']);
+eval(['res = ', create_mex_name(opt.kernel_geom,opt.kernel_signal,opt.kernel_sphere,'_df'),'(center_faceX'',center_faceY'',signalX'',signalY'',normalsX'',normalsY'',kernel_size_geom,kernel_size_signal,kernel_size_sphere)'';']);
 
 end

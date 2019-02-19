@@ -15,7 +15,7 @@ b = randn(2,Ny);
 p = .25;
 
 % defining reduction operation :
-F = Kernel('KMinReduction(Exp(-p*SqNorm2(x-y))*b,3,0)',...
+F = keops_kernel('KMinReduction(Exp(-p*SqNorm2(x-y))*b,3,0)',...
     'x=Vx(3)','y=Vy(3)','b=Vy(2)','p=Pm(1)');
 
 % performing computation and timing it
@@ -35,7 +35,7 @@ f(5:6,1:5)
 disp('Testing ArgMin reduction')
 
 % defining reduction operation :
-F = Kernel('ArgKMinReduction(Exp(-p*SqNorm2(x-y))*b,3,0)',...
+F = keops_kernel('ArgKMinReduction(Exp(-p*SqNorm2(x-y))*b,3,0)',...
     'x=Vx(3)','y=Vy(3)','b=Vy(2)','p=Pm(1)');
 
 % performing computation and timing it
@@ -50,7 +50,7 @@ f(:,1:5)
 disp('Testing KMinArgKMin reduction')
 
 % defining reduction operation :
-F = Kernel('KMinArgKMinReduction(Exp(-p*SqNorm2(x-y))*b,3,0)',...
+F = keops_kernel('KMinArgKMinReduction(Exp(-p*SqNorm2(x-y))*b,3,0)',...
     'x=Vx(3)','y=Vy(3)','b=Vy(2)','p=Pm(1)');
 
 % performing computation and timing it
