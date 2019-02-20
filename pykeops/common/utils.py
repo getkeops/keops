@@ -1,9 +1,11 @@
+import functools
 from hashlib import sha256
+import fcntl
 
 c_type = dict(float32="float", float64="double")
 
 
-def create_name(formula, aliases,cuda_type, lang):
+def create_name(formula, aliases, cuda_type, lang):
     """
     Compose the shared object name
     """
@@ -41,3 +43,27 @@ def cat2axis(cat):
         return (cat + 1)%2
     else :
         raise ValueError("Category should be Vx or Vy.")
+
+
+class FileLock:
+    def __init__(self, fd, op=fcntl.LOCK_EX):
+        self.fd = fd
+        self.op = op
+
+    def __enter__(self):
+        fcntl.flock(self.fd, self.op)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        fcntl.flock(self.fd, fcntl.LOCK_UN)
+
+
+def filelock(build_folder, lock_file_name='pykeops.lock'):
+    def wrapper(func):
+        @functools.wraps(func)
+        def wrapper_filelock(*args, **kwargs):
+            with open(build_folder + '/' + lock_file_name, 'w') as f:
+                with FileLock(f):
+                    return func(*args, **kwargs)
+        return wrapper_filelock
+    return wrapper
