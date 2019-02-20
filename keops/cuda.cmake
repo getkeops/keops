@@ -63,7 +63,7 @@ if(CUDA_FOUND AND USE_CUDA)
                 "  {\n"
                 "    cudaDeviceProp prop;\n"
                 "    if (cudaSuccess == cudaGetDeviceProperties(&prop, device))\n"
-                "      std::printf(\"-DMAXTHREADSPERBLOCK%d=%d\;-DSHAREDMEMPERBLOCK%d=%d\;\", device, (int)prop.maxThreadsPerBlock, device, (int)prop.sharedMemPerBlock);\n"
+                "      std::printf(\"-DMAXTHREADSPERBLOCK%d=%d;-DSHAREDMEMPERBLOCK%d=%d;\", device, (int)prop.maxThreadsPerBlock, device, (int)prop.sharedMemPerBlock);\n"
                 "  }\n"
                 "  return 0;\n"
                 "}\n")
