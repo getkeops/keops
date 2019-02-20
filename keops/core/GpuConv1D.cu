@@ -7,7 +7,7 @@
 #include "core/CudaErrorCheck.cu"
 
 namespace keops {
-
+	
 template < typename TYPE, class FUN >
 __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py, TYPE** pp) {
 
@@ -147,14 +147,15 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     CudaSafeCall(cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice));
 
     // Compute on device : grid and block are both 1d
-    cudaDeviceProp deviceProp;
     int dev = -1;
     CudaSafeCall(cudaGetDevice(&dev));
-    CudaSafeCall(cudaGetDeviceProperties(&deviceProp, dev));
 
     dim3 blockSize;
+
+    SetGpuProps(dev);
+
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
+    blockSize.x = min(CUDA_BLOCK_SIZE,min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
@@ -294,14 +295,14 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 
     // Compute on device : grid and block are both 1d
 
-    cudaDeviceProp deviceProp;
     int dev = -1;
     CudaSafeCall(cudaGetDevice(&dev));
-    CudaSafeCall(cudaGetDeviceProperties(&deviceProp, dev));
+
+    SetGpuProps(dev);
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
+    blockSize.x = min(CUDA_BLOCK_SIZE,min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);

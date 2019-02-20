@@ -620,5 +620,55 @@ HOST_DEVICE void load(int i, TYPE* xi, TYPE** px) {
     DIMS::load(i,xi,px);
 }
 
+// global variables maxThreadsPerBlock and sharedMemPerBlock may depend on the device, so we will set them at each call using
+// predefined MAXTHREADSPERBLOCK0, SHAREDMEMPERBLOCK0, MAXTHREADSPERBLOCK1, SHAREDMEMPERBLOCK1, etc.
+// through the function SetGpuProps
+int maxThreadsPerBlock, sharedMemPerBlock;
+#define SET_GPU_PROPS_MACRO(n) \
+    if(device==n) { \
+		maxThreadsPerBlock = MAXTHREADSPERBLOCK ## n; \
+		sharedMemPerBlock = SHAREDMEMPERBLOCK ## n; \
+                return; \
+	}
+
+// I have not managed to use a "recursive macro" hack, it was not compiling on all systems.
+// This assumes the number of Gpus is <= 10 ; feel free to add more lines if needed !
+void SetGpuProps(int device) {
+    #if defined(__CUDACC__) && MAXIDGPU >= 0 
+        SET_GPU_PROPS_MACRO(0)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 1 
+        SET_GPU_PROPS_MACRO(1)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 2 
+        SET_GPU_PROPS_MACRO(2)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 3 
+        SET_GPU_PROPS_MACRO(3)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 4 
+        SET_GPU_PROPS_MACRO(4)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 5 
+        SET_GPU_PROPS_MACRO(5)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 6 
+        SET_GPU_PROPS_MACRO(6)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 7 
+        SET_GPU_PROPS_MACRO(7)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 8 
+        SET_GPU_PROPS_MACRO(8)
+    #endif
+    #if defined(__CUDACC__) && MAXIDGPU >= 9 
+        SET_GPU_PROPS_MACRO(9)
+    #endif
+    fprintf( stderr, "invalid Gpu device number. If the number of available Gpus is >= 10, add required lines at the end of function SetGpuProps and recompile.\n");
+    exit( -1 );
 
 }
+
+}
+
+
