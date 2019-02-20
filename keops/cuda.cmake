@@ -58,12 +58,12 @@ if(CUDA_FOUND AND USE_CUDA)
                 "  int count = 0;\n"
                 "  if (cudaSuccess != cudaGetDeviceCount(&count)) return -1;\n"
                 "  if (count == 0) return -1;\n"
-                "  std::printf(\"-DMAXIDGPU=%d \",count-1);\n"
+                "  std::printf(\"-DMAXIDGPU=%d;\",count-1);\n"
                 "  for (int device = 0; device < count; ++device)\n"
                 "  {\n"
                 "    cudaDeviceProp prop;\n"
                 "    if (cudaSuccess == cudaGetDeviceProperties(&prop, device))\n"
-                "      std::printf(\"-DMAXTHREADSPERBLOCK%d=%d -DSHAREDMEMPERBLOCK%d=%d \", device, (int)prop.maxThreadsPerBlock, device, (int)prop.sharedMemPerBlock);\n"
+                "      std::printf(\"-DMAXTHREADSPERBLOCK%d=%d\;-DSHAREDMEMPERBLOCK%d=%d\;\", device, (int)prop.maxThreadsPerBlock, device, (int)prop.sharedMemPerBlock);\n"
                 "  }\n"
                 "  return 0;\n"
                 "}\n")
@@ -98,6 +98,10 @@ if(CUDA_FOUND AND USE_CUDA)
         message(STATUS "Compute properties manually set to ${gpu_compute_props}")
     endif()
 
-    List(APPEND CUDA_NVCC_FLAGS "${gpu_compute_props}")
+    # Template macros.
+    add_definitions(-D_FORCE_INLINES)
+    add_definitions(-DCUDA_BLOCK_SIZE=192)
+    
+    add_definitions(${gpu_compute_props})
 
 endif()
