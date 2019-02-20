@@ -26,12 +26,10 @@ def load_keops(formula, aliases, cuda_type, lang, optional_flags=[]):
         # check if previously compiled by other thread/process
         try:
             # already compiled, just load
-            ret = importlib.import_module(dll_name)
-            print(dll_name + " already compiled !")
-            return ret
+            return importlib.import_module(dll_name)
         except ImportError:
             # not yet compiled, compile and load
-            print(dll_name + " not found")
+            # print(dll_name + " not found")
             compile_generic_routine(formula, aliases, dll_name, cuda_type, lang, optional_flags)
             return importlib.import_module(dll_name)
 
