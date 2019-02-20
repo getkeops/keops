@@ -1,6 +1,6 @@
 
-import torch
 import numpy as np
+import torch
 grad = torch.autograd.grad
 
 def ConjugateGradientSolver(linop,b,eps=1e-6):
@@ -30,13 +30,10 @@ def ConjugateGradientSolver(linop,b,eps=1e-6):
     #print("numiters=",k)
     return a
 
-def f(x,a):
-    return a*x**3
-
 class g_Impl(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, x, b):
-        a = b/x**3
+    def forward(ctx, linop, b, x):
+        a = ConjugateGradientSolver(linop,b)
         ctx.save_for_backward(a,x)
         return a
     @staticmethod
@@ -44,21 +41,21 @@ class g_Impl(torch.autograd.Function):
         a,x = ctx.saved_tensors
         abar = torch.tensor(a.data,requires_grad=True)
         with torch.enable_grad():
-            e = g(x,grad_output)
-            gfx = grad(f(x,abar),x,create_graph=True)[0]
-            return link(-e*gfx,abar,a), e
+            gb = g(linop,grad_output,x)
+            gfx = grad(linop(abar),x,-gb,create_graph=True)[0]
+            return None, gb, link(gfx,x,abar,a)
 
 class link_Impl(torch.autograd.Function):
     @staticmethod
-    def forward(ctx,f,abar,a):
-        ctx.save_for_backward(f,abar,a)
+    def forward(ctx,f,x,abar,a):
+        ctx.save_for_backward(f,x,abar,a)
         return f
     @staticmethod
     def backward(ctx, grad_output):
-        f,abar,a = ctx.saved_tensors
+        f,x,abar,a = ctx.saved_tensors
         with torch.enable_grad():
-            ga = grad(f,abar,grad_output,create_graph=True,allow_unused=True)[0]
-        return link(grad_output,abar,a), None, link(ga,abar,a)
+            gx, ga = grad(f,[x,abar],grad_output,create_graph=True,allow_unused=True)
+        return None, link(gx,x,abar,a), None, link(ga,x,abar,a)
 
 g = g_Impl.apply
 def link(*args):
@@ -67,10 +64,21 @@ def link(*args):
     else:
         return link_Impl.apply(*args)
 
-x = torch.randn(1,requires_grad=True)
-b = torch.randn(1)
+def f(x):
+    def linop(a):
+        return a*x**3
+    return linop
 
-gx = grad(g(x,b),x,create_graph=True)[0]
+
+x = torch.ones(1,requires_grad=True)
+linop = f(x)
+b = torch.ones(1)
+
+val = g(linop,b,x)
+print("val = ",val.data)
+print("b/x**3 = ",b/x.data**3)
+
+gx = grad(val,x,create_graph=True)[0]
 print("gx = ",gx.data)
 print("-3b/x**4 = ",-3*b/x.data**4)
 

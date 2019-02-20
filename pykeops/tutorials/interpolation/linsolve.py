@@ -13,8 +13,10 @@ def ConjugateGradientSolver(linop,b,eps=1e-6):
     copy = np.copy if arraytype == np.ndarray else torch.clone
     a = 0
     r = copy(b)
-    p = copy(r)
     nr2 = (r**2).sum()
+    if nr2 < eps**2:
+        return 0*r
+    p = copy(r)
     k = 0
     while True:
         Mp = linop(p)
@@ -30,23 +32,52 @@ def ConjugateGradientSolver(linop,b,eps=1e-6):
     print("numiters=",k)
     return a
 
+class InvKernelOp_Impl(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, self, varalias, var, backend='auto', device_id=-1):
+        ctx.routine = self.routine
+        tmp = routine.aliases
+        for (i,s) in enumerate(tmp):
+            tmp[i] = s[:s.find("=")].strip()
+        varpos = tmp.index(varalias)
+        ctx.linop = lambda var : routine(*(self.args[:varpos]+var+self.args[varpos:]))
+        a = ConjugateGradientSolver(ctx.linop,var.data,eps=1e-16)
+        ctx.save_for_backward(a)
+        return a
+    @staticmethod
+    def backward(ctx, grad_output):
+        a,*args = ctx.saved_tensors
+        e = InvLinOp(linop,grad_output)
+        abar = torch.tensor(a.data, requires_grad=True)
+        
+        
+        
+
+class InvKernelOp:
+    def __init__(self,formula, variables, *args):
+        self.formula = formula
+        self.variables = variables
+        self.args = args   
+        self.routine = Genred(formula, variables, reduction_op='Sum', axis=1)
+    def __call__(self, varalias, var, backend='auto', device_id=-1):
+        return InvKernelOp_Impl(self,varalias,var, backend, device_id)
+        
 class InvLinOp_Impl(torch.autograd.Function):
     @staticmethod
     def forward(ctx, linop, b, *args):
+        print("InvLinOp_Impl forward 1")
         # solves b=linop(a) where linop is a linear operation
         # args is optional and used only in backward : it gives the variables
         # wrt which we will compute the gradient
         ctx.linop = linop
-        ctx.args = args
         a = ConjugateGradientSolver(linop,b.data,eps=1e-16)
-        ctx.save_for_backward(a)
+        ctx.save_for_backward(a,*args)
         return a
     @staticmethod
     def backward(ctx, grad_output):
         # gradients of a wrt variables b and *args
         linop = ctx.linop
-        args = ctx.args
-        a, = ctx.saved_tensors
+        a,*args = ctx.saved_tensors
         e = InvLinOp(linop,grad_output) # this gives gradient wrt b
         #with torch.enable_grad():
         #    grads = torch.autograd.grad(linop(a.data),args,-e,create_graph=True)
@@ -60,18 +91,14 @@ class InvLinOp_Impl(torch.autograd.Function):
 class specfun_Impl(torch.autograd.Function):
     @staticmethod
     def forward(ctx,f,abar,a):
-        print("in specfun forward")
         ctx.save_for_backward(f,abar,a)
         return f.data
     @staticmethod
     def backward(ctx, grad_output):
-        print("in specfun backward")
         f,abar,a = ctx.saved_tensors
-        print("f=",f)
         with torch.enable_grad():
             gfa = specfun(torch.autograd.grad(f,abar,grad_output,create_graph=True)[0],abar,a)
-            print("gfa=",gfa)
-        return grad_output, gfa, gfa
+        return grad_output, None, gfa
 
 InvLinOp = InvLinOp_Impl.apply
 specfun = specfun_Impl.apply

@@ -40,11 +40,16 @@ D = 2
 N = 4
 sigma = .1
 x = torch.rand(N, D, requires_grad=True)
-b = torch.rand(N, D, requires_grad=True)
+b = torch.rand(N, D)
 K = GaussKernel(D,D,sigma)
-def Kinv(x,b):
+def Kinv_org(x,b):
     def KernelLinOp(a):
         return K(x,x,a)
+    return InvLinOp(KernelLinOp,b,x)
+def Kinv(x,b):
+    M = GaussKernelMatrix(sigma)(x,x)
+    def KernelLinOp(a):
+        return M@a
     return InvLinOp(KernelLinOp,b,x)
 c = Kinv(x,b)
 s = arraysum(c*c)
@@ -90,17 +95,23 @@ print("uuuu=",uuuu)
 
 print("2nd order derivative")
 
+print("a")
 e = torch.randn(N,D)
-v = grad(u,x,e)
+print("b")
+print("u=",u)
+v = grad(u,x,e,create_graph=True)[0]
+print("c")
 print("v=",v)
 
 ee = e.clone()
-vv = grad(uu,xx,ee)
+vv = grad(uu,xx,ee)[0]
 print("vv=",vv)
 
 eee = e.clone()
-vvv = grad(uuu,xxx,eee)
+vvv = grad(uuu,xxx,eee)[0]
 print("vvv=",vvv)
+print(torch.norm(v-vv))
+print(torch.norm(vv-vvv))
 
 # s=|c|^2=|Mib|^2
 # ds = 2<Mib,dMi b>
