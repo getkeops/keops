@@ -97,6 +97,7 @@ Having created our kernel-id, and with a few torch tensors at hand, we can feed 
   - ``"gamma" = (G_0, G_1, ..., G_(F-1))`` - **mandatory**: a list or tuple of formula parameters - one per formula. As documented above, each of them can be either ``None``, a torch vector or a torch 2D tensor. Note that if F=1, we also accept the use of ``"gamma" = G_0`` instead of ``(G_0,)``.
   - ``"backend" = ["auto"] | "pytorch" | "CPU" | "GPU" | "GPU_1D" | "GPU_2D"`` - optional: the same set of options as in ``Genred``, with an additionnal **pure-vanilla-pytorch** backend that does *not* rely on the KeOps engine.
   - ``"mode"`` - optional, default value = ``"sum"`` : the **operation** performed on the data. The possible values are documented :ref:`below <part.kernel_modes>`.
+  
 2. A tuple ``(X_0, ..., X_(V-1))`` of torch tensors, with the same size `M` along the dimension 0. Note that if V=1, we also accept ``X_0`` in place of ``(X_0,)``.
 3. A tuple ``(Y_0, ..., Y_(V-1))`` of torch tensors, with the same size `N` along the dimension 0. We should have ``X_k.size(1) == Y_k.size(1)`` for ``0 <= k <= V-1``. Note that if ``V=1``, we also accept ``Y_0`` in place of ``(Y_0,)``.
 4. A torch tensor ``B`` of shape `N`-by-`E`, with `N` lines and an arbitrary number `E` of columns.

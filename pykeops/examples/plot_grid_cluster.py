@@ -1,4 +1,12 @@
-#!/usr/bin/env python3
+"""
+Grid clustering
+================
+
+This script showcases the use of the optional 'ranges' argument
+to compute block-sparse kernel products.
+
+"""
+
 #############################
 #  Standard imports
 #

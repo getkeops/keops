@@ -75,7 +75,7 @@ plt.show()
 
 ####################################################################
 # Compute the gradient
-# -------------------
+# ---------------------
 # Now, let's compute the gradient of :math:`c` with 
 # respect to :math:`y`. Since :math:`c` is not scalar valued, 
 # its "gradient" :math:`\partial c` should be understood as the adjoint of the 
