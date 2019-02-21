@@ -1,4 +1,4 @@
-Sparsity
-==========
+Block-sparse reductions
+=========================
 
 Blabla

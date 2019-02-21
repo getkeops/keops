@@ -64,6 +64,14 @@ autosummary_generate = True
 numpydoc_show_class_members = False
 autodoc_member_order = 'alphabetical'
 
+def skip(app, what, name, obj, would_skip, options):
+    if name == "__call__":
+        return False
+    return would_skip
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
+
 # Include the example source for plots in API docs
 # plot_include_source = True
 # plot_formats = [("png", 90)]

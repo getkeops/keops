@@ -110,15 +110,16 @@ class GenredAutograd(torch.autograd.Function):
 
 class Genred:
     """
-    Note: Class should not inherit from GenredAutograd due to pickling errors
+    Creates a new generic operation.
     """
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
+    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):        
         self.reduction_op = reduction_op
         self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
+        """Applies the routine on arbitrary torch Tensors."""
         result = GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, ranges, *args)
 
         if self.reduction_op == "LogSumExp" : 
