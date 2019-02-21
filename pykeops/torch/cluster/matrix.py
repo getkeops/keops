@@ -40,10 +40,10 @@ def from_matrix( ranges_i, ranges_j, keep ) :
     used by KeOps to schedule computations on the GPU.
 
     Args:
-        ranges_i ((M,2) LongTensor): List of :math:`[\text{start}_k,\text{end}_k)` indices.
+        ranges_i ((M,2) IntTensor): List of :math:`[\text{start}_k,\text{end}_k)` indices.
             For :math:`k \in [0,M)`, the :math:`k`-th cluster of ":math:`i`" variables is
             given by ``x_i[ ranges_i[k,0]:ranges_i[k,1], : ]``, etc.
-        ranges_j ((N,2) LongTensor): List of :math:`[\text{start}_l,\text{end}_l)` indices.
+        ranges_j ((N,2) IntTensor): List of :math:`[\text{start}_l,\text{end}_l)` indices.
             For :math:`l \in [0,N)`, the :math:`l`-th cluster of ":math:`j`" variables is
             given by ``y_j[ ranges_j[l,0]:ranges_j[l,1], : ]``, etc.
         keep ((M,N) BoolTensor): 
@@ -70,12 +70,12 @@ def from_matrix( ranges_i, ranges_j, keep ) :
         --> (ranges_i,slices_i,redranges_j) will be used for reductions with respect to "j" (axis=1)
         --> (ranges_j,slices_j,redranges_i) will be used for reductions with respect to "i" (axis=0)
 
-        Information relevant if axis=1:
+        Information relevant if ``axis=1``:
 
         >>> print(ranges_i)  # = r_i
         tensor([[ 2,  5],
                 [ 7, 12]], dtype=torch.int32)
-        --> Two "target" clusters in a reduction wrt. i
+        --> Two "target" clusters in a reduction wrt. j
         >>> print(slices_i)  
         tensor([2, 3], dtype=torch.int32)
         --> X[0] is associated to redranges_j[0:2]
@@ -88,13 +88,13 @@ def from_matrix( ranges_i, ranges_j, keep ) :
         --> For X[1], i in [7,8,9,10,11], we'll reduce over j in [4,5,6,7,8]
 
 
-        Information relevant if axis=0:
+        Information relevant if ``axis=0``:
 
         >>> print(ranges_j)
         tensor([[ 1,  4],
                 [ 4,  9],
                 [20, 30]], dtype=torch.int32)
-        --> Three "target" clusters in a reduction wrt. j
+        --> Three "target" clusters in a reduction wrt. i
         >>> print(slices_j)
         tensor([1, 3, 3], dtype=torch.int32)
         --> Y[0] is associated to redranges_i[0:1]
