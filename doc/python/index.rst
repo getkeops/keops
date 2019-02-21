@@ -25,5 +25,6 @@ We now fully document the public interface of the ``pykeops`` module, which is a
    generic-reduction
    kernel-product
    sparsity
-   api
+   numpy-api
+   pytorch-api
 
