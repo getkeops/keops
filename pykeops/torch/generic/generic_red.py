@@ -180,6 +180,9 @@ class Genred:
               - ``cuda_type = "float32"`` or ``"float"``.
               - ``cuda_type = "float64"`` or ``"double"``.
 
+        opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
+            this argument allows you to specify the number ``K`` of neighbors to consider.
+
 
 
     Example:
@@ -199,10 +202,15 @@ class Genred:
         torch.Size([1000000, 3]) 
 
     """
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):        
+    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None):        
         """Creates a new generic operation."""
         self.reduction_op = reduction_op
-        self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+
+        if opt_arg:
+            self.formula = reduction_op + 'Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
+        else:
+            self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+        
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
