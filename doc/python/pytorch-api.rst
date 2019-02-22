@@ -1,7 +1,7 @@
 PyTorch API
 ============
 
-:mod:`pykeops.torch` - Generic reductions, with full support of PyTorch's ``autograd`` engine:
+:mod:`pykeops.torch` - :doc:`Generic reductions <generic-syntax>`, with full support of PyTorch's ``autograd`` engine:
 
 .. currentmodule:: pykeops.torch
 .. autosummary:: 
@@ -9,7 +9,7 @@ PyTorch API
     Genred
     Genred.__call__
 
-:mod:`pykeops.torch` - Math-friendly aliases:
+:mod:`pykeops.torch` - :doc:`Math-friendly <generic-reduction>` aliases:
 
 .. currentmodule:: pykeops.torch
 .. autosummary:: 
@@ -18,7 +18,7 @@ PyTorch API
     generic_argmin
     generic_argkmin
     
-:mod:`pykeops.torch` - The ``kernel_product`` helper:
+:mod:`pykeops.torch` - The :doc:`kernel_product <kernel-product>` helper:
 
 .. currentmodule:: pykeops.torch
 .. autosummary:: 
@@ -28,7 +28,7 @@ PyTorch API
     kernel_formulas
     Formula
 
-:mod:`pykeops.torch.cluster` - Block-sparse reductions, allowing you to go beyond the baseline quadratic complexity of kernel operations with the optional ``ranges`` argument:
+:mod:`pykeops.torch.cluster` - :doc:`Block-sparse reductions <sparsity>`, allowing you to go beyond the baseline quadratic complexity of kernel operations with the optional ``ranges`` argument:
 
 .. currentmodule:: pykeops.torch.cluster
 .. autosummary:: 

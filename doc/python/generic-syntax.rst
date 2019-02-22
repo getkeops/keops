@@ -93,6 +93,8 @@ Its arguments are:
 
 3. ``device_id`` (optional, default value = ``-1``): an *integer* that specifies the GPU that should be used to perform the computation; a negative value lets your system choose the default GPU. This argument is only useful if your system has access to several GPUs.
 
+4. ``ranges`` (optional, default value = None = full reduction): a 6-uple of integer tensors that specifies a **block-sparse** reduction mask, thus allowing you to **skip useless computations** as often as possible. Its use is described in a :doc:`dedicated page of the documentation <sparsity>`.
+
 The output of a KeOps call is always a **2d-tensor** with :math:`M` or :math:`N` lines (if ``axis=1`` or ``axis=0``, respectively) and a number of columns that is inferred from the ``formula``.
 
 .. _`part.example`:

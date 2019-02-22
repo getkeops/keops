@@ -111,15 +111,121 @@ class GenredAutograd(torch.autograd.Function):
 class Genred:
     """
     Creates a new generic operation.
+
+    This 
     """
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):        
+        """Creates a new generic operation."""
         self.reduction_op = reduction_op
         self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
-        """Applies the routine on arbitrary torch Tensors."""
+        """Applies the routine on arbitrary torch Tensors.
+        
+        Note:
+            ``Genred`` is fully compatible with PyTorch's ``autograd`` engine:
+            You can **backprop** through a KeOps ``__call__`` just
+            as if it was a vanilla PyTorch operation.
+
+        Warning:
+            Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
+            for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
+            as 2d Tensors of size ``(M,dim)``. For instance,
+            ``a.view(-1,1)`` should be used to turn a vector of weights
+            into a *list of scalar values*.
+        
+        Args:
+            *args (2d Tensors (variables ``Vx(..)``, ``Vy(..)``) and 1d Tensors (parameters ``Pm(..)``)): The input numerical arrays, 
+                which should all have the same ``dtype``, be **contiguous** and be stored on 
+                the **same device**. KeOps expects one array per alias, 
+                with the following compatibility rules:
+  
+                  - All ``Vx(Dim_k)`` variables are encoded as **2d-tensors** with the same number :math:`M` of lines and ``Dim_k`` columns.
+                  - All ``Vy(Dim_k)`` variables are encoded as **2d-tensors** with the same number :math:`N` of lines and ``Dim_k`` columns.
+                  - All ``Pm(Dim_k)`` variables are encoded as **1d-tensors** (vectors) of size ``Dim_k``.
+
+        Keyword Args:
+            backend (string): Specifies the map-reduce scheme.
+                The supported values are:
+
+                  - ``"auto"`` (default): let KeOps decide which backend is best suited to your data, based on the tensors' shapes. ``"GPU_1D"`` will be chosen in most cases.
+                  - ``"CPU"``: use a simple C++ ``for`` loop on a single CPU core.
+                  - ``"GPU_1D"``: use a `simple multithreading scheme <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/keops/core/GpuConv1D.cu>`_ on the GPU - basically, one thread per value of the output index.
+                  - ``"GPU_2D"``: use a more sophisticated `2D parallelization scheme <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/keops/core/GpuConv2D.cu>`_ on the GPU.
+                  - ``"GPU"``: let KeOps decide which one of the ``"GPU_1D"`` or the ``"GPU_2D"`` scheme will run faster on the given input.
+
+            device_id (int, default=-1): Specifies the GPU that should be used 
+                to perform   the computation; a negative value lets your system 
+                choose the default GPU. This parameter is only useful if your 
+                system has access to several GPUs.
+
+            ranges (6-uple of IntTensors, None by default):
+                Ranges of integers that specify a 
+                :doc:`block-sparse reduction scheme <sparsity>`
+                with *Mc clusters along axis 0* and *Nc clusters along axis 1*.
+                If None (default), we simply loop over all indices
+                :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+                
+                **The first three ranges** will be used if ``axis=1``
+                (reduction along the axis of ":math:`j` variables"),
+                and to compute gradients with respect to ``Vx(..)`` variables:
+                
+                  - ``ranges_i``, (Mc,2) IntTensor - slice indices
+                    :math:`[\\text{start}^I_k,\\text{end}^I_k)` in :math:`[0,M]`
+                    that specify our Mc blocks along the axis 0
+                    of ":math:`i` variables". 
+                  - ``slices_i``, (Mc,2) IntTensor - slice indices
+                    :math:`[\\text{start}^S_k,\\text{end}^S_k)`
+                    that specify Mc ranges in ``redranges_j``.
+                  - ``redranges_j``, (Mcc,2) IntTensor - slice indices
+                    :math:`[\\text{start}^J_l,\\text{end}^J_l)` in :math:`[0,N]`
+                    that specify reduction ranges along the axis 1
+                    of ":math:`j` variables".
+
+                If ``axis=1``, 
+                these integer arrays allow us to say
+                that ``for k in range(Mc)``, the output values for 
+                indices ``i in range( ranges_i[k,0], ranges_i[k,1] )``
+                should be computed using a Map-Reduce scheme over
+                indices ``j in Union( range( redranges_j[l, 0], redranges_j[l, 1] ))``
+                for ``l in range( slices_i[k,0], slices_i[k,1] )``.
+
+                **Likewise, the last three ranges** will be used if ``axis=0``
+                (reduction along the axis of ":math:`i` variables"),
+                and to compute gradients with respect to ``Vy(..)`` variables:
+                
+                  - ``ranges_j``, (Nc,2) IntTensor - slice indices
+                    :math:`[\\text{start}^J_k,\\text{end}^J_k)` in :math:`[0,N]`
+                    that specify our Nc blocks along the axis 1
+                    of ":math:`j` variables". 
+                  - ``slices_j``, (Nc,2) IntTensor - slice indices
+                    :math:`[\\text{start}^S_k,\\text{end}^S_k)`
+                    that specify Nc ranges in ``redranges_i``.
+                  - ``redranges_i``, (Ncc,2) IntTensor - slice indices
+                    :math:`[\\text{start}^I_l,\\text{end}^I_l)` in :math:`[0,M]`
+                    that specify reduction ranges along the axis 0
+                    of ":math:`i` variables".
+
+                If ``axis=0``, 
+                these integer arrays allow us to say
+                that ``for k in range(Nc)``, the output values for 
+                indices ``j in range( ranges_j[k,0], ranges_j[k,1] )``
+                should be computed using a Map-Reduce scheme over
+                indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))``
+                for ``l in range( slices_j[k,0], slices_j[k,1] )``.
+
+        Returns:
+            (M,D) or (N,D) Tensor:
+
+            The output of the KeOps reduction, stored on the same device
+            as the input Tensors. The output of a KeOps call is always a 
+            **2d-tensor** with :math:`M` or :math:`N` lines (if ``axis=1`` 
+            or ``axis=0``, respectively) and a number of columns 
+            that is inferred from the ``formula``.
+
+        """
         result = GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, ranges, *args)
 
         if self.reduction_op == "LogSumExp" : 
