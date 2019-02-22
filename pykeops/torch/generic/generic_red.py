@@ -112,7 +112,92 @@ class Genred:
     """
     Creates a new generic operation.
 
-    This 
+    This is KeOps' main class, whose usage is documented in
+    the :doc:`user-guide <generic-syntax>`, 
+    the :doc:`gallery of examples <../_auto_examples/index>` 
+    and the :doc:`high-level tutorials <../_auto_tutorials/index>`.
+    Taking as input a handful of strings and integers that specify
+    a custom Map-Reduce operation, it returns a C++ wrapper
+    that can be called just like any other PyTorch function.
+
+    Note:
+        ``Genred`` relies on CUDA kernels that are compiled on-the-fly, 
+        and stored in ``pykeops.build_folder`` as ".dll" or ".so" files for later use.
+
+    Warning:
+        As of today, vector-valued formulas are only supported by 
+        the ``"Sum"`` reduction. All the 
+        :ref:`other reductions <part.reduction>` expect
+        ``formula`` to be scalar-valued.
+
+    Args:
+        formula (string): The scalar- or vector-valued expression
+            that should be computed and reduced.
+            The correct syntax is described in the :doc:`documentation <generic-syntax>`,
+            using appropriate :doc:`mathematical operations <../api/math-operations>`.
+        aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"`` 
+            that specify the categories and dimensions of the input variables. Here:
+
+              - ``AL`` is an alphanumerical alias, used in the ``formula``.
+              - ``TYPE`` is a *category*. One of:
+
+                - ``Vx``: indexation by :math:`i` along axis 0.
+                - ``Vy``: indexation by :math:`j` along axis 1.
+                - ``Pm``: no indexation, the input tensor is a *vector* and not a 2d array.
+
+              - ``DIM`` is an integer, the dimension of the current variable.
+            
+            As described below, :meth:`__call__` will expect as input Tensors whose
+            shape are compatible with ``aliases``.
+
+    Keyword Args:
+        reduction_op (string, default = ``"Sum"``): Specifies the reduction
+            operation that is applied to reduce the values
+            of ``formula(x_i, y_j, ...)`` along axis 0 or axis 1. 
+            The supported values are:
+
+              - ``"Sum"``: :math:`\sum(\cdots)`.
+              - ``"LogSumExp"``: :math:`\log\left(\sum\exp(\cdots)\\right)`.
+              - ``"Min"``: :math:`\min(\cdots)`.
+              - ``"ArgMin"``: :math:`\\text{argmin}(\cdots)`.
+              - ``"MinArgMin"``: :math:`(\min(...),\\text{argmin}(\cdots))`.
+              - ``"Max"``: :math:`\max(\cdots)`.
+              - ``"ArgMax"``: :math:`\\text{argmax}(\cdots)`.
+              - ``"MaxArgMax"``: :math:`(\max(...),\\text{argmax}(\cdots))`.
+              - ``"KMin"``: :math:`(\cdots)_{(1)},\ldots,(\cdots)_{(K)}`, the K first order statistics.
+              - ``"ArgKMin"``: :math:`(1),\ldots,(K)`, the indices of order statistics.
+              - ``"KMinArgKMin"``: :math:`\left((\cdots)_{(1)},\ldots,(\cdots)_{(K)},(1),\ldots,(K)\\right)`.
+
+        axis (int, default = 0): Specifies the dimension of the "kernel matrix" that is reduced by our routine. 
+            The supported values are:
+
+              - ``axis = 0``: reduction with respect to :math:`i`, outputs a ``Vy`` or ":math:`j`" variable.
+              - ``axis = 1``: reduction with respect to :math:`j`, outputs a ``Vx`` or ":math:`i`" variable.
+
+        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+            The supported values are:
+
+              - ``cuda_type = "float32"`` or ``"float"``.
+              - ``cuda_type = "float64"`` or ``"double"``.
+
+
+
+    Example:
+        >>> my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
+        ...                  ['x = Vx(3)',            # 1st input: dim-3 vector per line
+        ...                   'y = Vy(3)'],           # 2nd input: dim-3 vector per column
+        ...                  reduction_op='Sum',      # we also support LogSumExp, Min, etc.
+        ...                  axis=1)                  # reduce along the lines of the kernel matrix
+        >>> # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
+        >>> x = torch.randn(1000000, 3, requires_grad=True).cuda()
+        >>> y = torch.randn(2000000, 3).cuda()
+        >>> a = my_conv(x, y)  # a_i = sum_j exp(-|x_i-y_j|^2)
+        >>> print(a.shape)
+        torch.Size([1000000, 1])    
+        >>> [g_x] = torch.autograd.grad((a ** 2).sum(), [x])  # KeOps supports autograd!
+        >>> print(g_x.shape)
+        torch.Size([1000000, 3]) 
+
     """
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):        
         """Creates a new generic operation."""
@@ -132,7 +217,7 @@ class Genred:
         Warning:
             Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
             for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
-            as 2d Tensors of size ``(M,dim)``. For instance,
+            as 2d Tensors of size ``(M,dim)``. In practice,
             ``a.view(-1,1)`` should be used to turn a vector of weights
             into a *list of scalar values*.
         
@@ -142,8 +227,8 @@ class Genred:
                 the **same device**. KeOps expects one array per alias, 
                 with the following compatibility rules:
   
-                  - All ``Vx(Dim_k)`` variables are encoded as **2d-tensors** with the same number :math:`M` of lines and ``Dim_k`` columns.
-                  - All ``Vy(Dim_k)`` variables are encoded as **2d-tensors** with the same number :math:`N` of lines and ``Dim_k`` columns.
+                  - All ``Vx(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`M`.
+                  - All ``Vy(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`N`.
                   - All ``Pm(Dim_k)`` variables are encoded as **1d-tensors** (vectors) of size ``Dim_k``.
 
         Keyword Args:
@@ -219,8 +304,8 @@ class Genred:
         Returns:
             (M,D) or (N,D) Tensor:
 
-            The output of the KeOps reduction, stored on the same device
-            as the input Tensors. The output of a KeOps call is always a 
+            The output of the reduction, stored on the same device
+            as the input Tensors. The output of a Genred call is always a 
             **2d-tensor** with :math:`M` or :math:`N` lines (if ``axis=1`` 
             or ``axis=0``, respectively) and a number of columns 
             that is inferred from the ``formula``.
