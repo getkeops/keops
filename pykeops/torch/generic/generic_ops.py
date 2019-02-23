@@ -132,7 +132,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
         Torch tensors, as documented in :meth:`Genred.__call__`.
 
     Example:
-        Bruteforce K-nearest neighbor search in dimension 100:
+        Bruteforce K-nearest neighbors search in dimension 100:
 
         >>> knn = generic_argkmin(
         ...     'SqDist(x, y)',   # Formula

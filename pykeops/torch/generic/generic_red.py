@@ -219,8 +219,22 @@ class Genred:
         
         Note:
             ``Genred`` is fully compatible with PyTorch's ``autograd`` engine:
-            You can **backprop** through a KeOps ``__call__`` just
+            If ``reduction_op`` is **Sum** or **LogSumExp**,
+            you can **backprop** through the KeOps ``__call__`` just
             as if it was a vanilla PyTorch operation.
+
+        Note:
+            On top of the **Sum** and **LogSumExp** reductions, KeOps
+            supports 
+            :ref:`variants of the ArgKMin reduction <part.reduction>` 
+            that can be used
+            to implement k-nearest neighbor search.
+            These routines return indices encoded as **floating point numbers**, and
+            produce no gradient. Fortunately though, you can simply
+            turn them into ``LongTensors`` and use them to index
+            your arrays, as showcased in the documentation
+            of :func:`generic_argmin`, :func:`generic_argkmin` and in the
+            :doc:`K-means tutorial <../_auto_tutorials/kmeans/plot_kmeans_pytorch>`.
 
         Warning:
             Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
