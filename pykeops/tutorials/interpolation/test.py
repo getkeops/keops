@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from pykeops.torch import Genred 
 
-from linsolve import KernelLinearSolver, InvLinOp
+from linsolve import InvKernelOp
 
 dtype = 'float64'  # May be 'float32' or 'float64'
 useGpu = "auto"   # may be True, False or "auto"
@@ -21,6 +21,18 @@ def GaussKernel(D,Dv,sigma):
     def K(x,y,b):
         return my_routine(x,y,b,oos2)
     return K
+
+def InvGaussKernel(D,Dv,sigma):
+    formula = 'Exp(-oos2*SqDist(x,y))*b'
+    variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
+                 'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
+                 'b = Vy(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = InvKernelOp(formula, variables, 'b', axis=1)
+    oos2 = torch.Tensor([1.0/sigma**2])
+    def Kinv(x,b):
+        return my_routine(x,x,b,oos2)
+    return Kinv
 
 def GaussKernelMatrix(sigma):
     oos2 = 1.0/sigma**2
@@ -41,21 +53,17 @@ N = 4
 sigma = .1
 x = torch.rand(N, D, requires_grad=True)
 b = torch.rand(N, D)
-K = GaussKernel(D,D,sigma)
-def Kinv_org(x,b):
-    def KernelLinOp(a):
-        return K(x,x,a)
-    return InvLinOp(KernelLinOp,b,x)
-def Kinv(x,b):
-    M = GaussKernelMatrix(sigma)(x,x)
-    def KernelLinOp(a):
-        return M@a
-    return InvLinOp(KernelLinOp,b,x)
+Kinv = InvGaussKernel(D,D,sigma)
 c = Kinv(x,b)
-s = arraysum(c*c)
-u, = grad(s,x,create_graph=True)
+
+from torchviz import make_dot
+make_dot(c).save("ess.dot")
+
+e = torch.randn(N,D)
+u, = grad(c,x,e,create_graph=True)
 print("u=",u)
 
+make_dot(u).save("ess2.dot")
 
 ###
 
@@ -63,8 +71,7 @@ xx = x.clone()
 bb = b.clone()
 MM = GaussKernelMatrix(sigma)(xx,xx)
 cc = torch.gesv(bb,MM)[0].contiguous()
-ss= arraysum(cc*cc)
-uu, = grad(ss,xx,create_graph=True)
+uu, = grad(cc,xx,e,create_graph=True)
 print("uu=",uu)   
 
  
@@ -77,8 +84,7 @@ bbb = b.clone()
 MMM= GaussKernelMatrix(sigma)(xxx,xxx)
 MMMi = torch.inverse(MMM)
 ccc = MMMi@bbb
-sss = arraysum(ccc*ccc)
-uuu, = grad(sss,xxx,create_graph=True)
+uuu, = grad(ccc,xxx,e,create_graph=True)
 print("uuu=",uuu)  
 
 ###
@@ -88,20 +94,16 @@ bbbb = b.clone()
 MMMM= GaussKernelMatrix(sigma)(xxxx,xxxx)
 MMMMi = torch.inverse(MMMM)
 cccc = MMMMi@bbbb
-eeee = MMMMi@cccc
-uuuu = grad(MMMM@cccc.data,xxxx,-2*eeee)[0]
+uuuu = grad(cccc,xxxx,e)[0]
 print("uuuu=",uuuu)  
 
 
 print("2nd order derivative")
 
-print("a")
 e = torch.randn(N,D)
-print("b")
-print("u=",u)
 v = grad(u,x,e,create_graph=True)[0]
-print("c")
 print("v=",v)
+
 
 ee = e.clone()
 vv = grad(uu,xx,ee)[0]
