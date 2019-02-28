@@ -4,12 +4,8 @@ import numpy as np
 import torch
 from pykeops.torch import Genred 
 
-from linsolve import InvKernelOp
+from pykeops.tutorials.interpolation.torch.linsolve import InvKernelOp
 
-dtype = 'float64'  # May be 'float32' or 'float64'
-useGpu = "auto"   # may be True, False or "auto"
-backend = torch   # np or torch
- 
 def GaussKernel(D,Dv,sigma):
     formula = 'Exp(-oos2*SqDist(x,y))*b'
     variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
@@ -55,6 +51,7 @@ x = torch.rand(N, D, requires_grad=True)
 b = torch.rand(N, D)
 Kinv = InvGaussKernel(D,D,sigma)
 c = Kinv(x,b)
+print("c = ",c)
 
 from torchviz import make_dot
 make_dot(c).save("ess.dot")
@@ -106,41 +103,30 @@ print("v=",v)
 
 
 ee = e.clone()
-vv = grad(uu,xx,ee)[0]
+vv = grad(uu,xx,ee,create_graph=True)[0]
 print("vv=",vv)
 
 eee = e.clone()
-vvv = grad(uuu,xxx,eee)[0]
+vvv = grad(uuu,xxx,eee,create_graph=True)[0]
 print("vvv=",vvv)
 print(torch.norm(v-vv))
 print(torch.norm(vv-vvv))
 
-# s=|c|^2=|Mib|^2
-# ds = 2<Mib,dMi b>
-#   = -2<c,Mi dM Mi b>
-# ds.dx = -2<c,Mi dM.dx Mi b>
-#      = -2<c,Mi d(Mc).dx>
-#      = -2<d(Mc)^T Mi c,dx>
+print("3rd order derivative")
 
 
-# c = Kinv(x,b)
-# M = GaussKernelMatrix(sigma)(x,x)
-# e = torch.gesv(c,M)[0]
-# Mi = torch.inverse(M)
-# cc = Mi@b
-# r = torch.rand(N,D)
-# print("grad(Mi@c)=",grad(Kinv(x,c),x,r))
-# print("grad(Mi@cc)=",grad(Mi@cc,x,r))
-# e = Mi@c
-# print("M@c.data=",M@c.data)
-# print("e=",e)
-# print(grad(M@c.data,x,-2*e)[0])
-#
-# print("2nd order derivative")
-#
-# ss = arraysum(u*u)
-# tt = arraysum(v*v)
-# uu = torch.autograd.grad(ss,x,create_graph=True)
-# vv = torch.autograd.grad(tt,x,create_graph=True)
-# print(uu)
-# print(vv)
+e = torch.randn(N,D)
+w = grad(v,x,e,create_graph=True)[0]
+print("w=",w)
+
+
+ee = e.clone()
+ww = grad(vv,xx,ee)[0]
+print("ww=",ww)
+
+eee = e.clone()
+www = grad(vvv,xxx,eee)[0]
+print("www=",www)
+print(torch.norm(w-ww))
+print(torch.norm(ww-www))
+

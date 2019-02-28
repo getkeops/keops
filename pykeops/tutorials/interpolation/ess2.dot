@@ -1,0 +1,79 @@
+digraph {
+	graph [size="12,12"]
+	node [align=left fontsize=12 height=0.2 ranksep=0.1 shape=box style=filled]
+	4722289632 [label=ThAddBackward fillcolor=darkolivegreen1]
+	4722411008 -> 4722289632
+	4722411008 [label=GenredAutogradBackward]
+	4417186672 -> 4722411008
+	4417186672 [label="
+ (4, 2)" fillcolor=lightblue]
+	4417186672 -> 4722411008
+	4721956840 -> 4722411008
+	4721956840 [label=InvKernelOpAutogradBackward]
+	4417186672 -> 4721956840
+	4417186672 -> 4721956840
+	4722524304 -> 4721956840
+	4722524304 [label="(4, 2)" fillcolor=orange]
+	4722524232 -> 4721956840
+	4722524232 [label="(4, 2)" fillcolor=orange]
+	4722524520 -> 4721956840
+	4722524520 [label="(4, 2)" fillcolor=orange]
+	4722524664 -> 4721956840
+	4722524664 [label="(1)" fillcolor=orange]
+	4722524592 -> 4721956840
+	4722524592 [label="(4, 2)" fillcolor=orange]
+	4722289800 -> 4722411008
+	4722289800 [label=NegBackward]
+	4722410520 -> 4722289800
+	4722410520 [label=InvKernelOpAutogradBackward]
+	4417186672 -> 4722410520
+	4417186672 -> 4722410520
+	4722524808 -> 4722410520
+	4722524808 [label="(4, 2)" fillcolor=orange]
+	4722524736 -> 4722410520
+	4722524736 [label="(4, 2)" fillcolor=orange]
+	4722524880 -> 4722410520
+	4722524880 [label="(4, 2)" fillcolor=orange]
+	4722524952 -> 4722410520
+	4722524952 [label="(1)" fillcolor=orange]
+	4722525024 -> 4722410520
+	4722525024 [label="(4, 2)" fillcolor=orange]
+	4721956840 -> 4722411008
+	4722525096 -> 4722411008
+	4722525096 [label="(4, 2)" fillcolor=orange]
+	4722525168 -> 4722411008
+	4722525168 [label="(4, 2)" fillcolor=orange]
+	4722525240 -> 4722411008
+	4722525240 [label="(4, 2)" fillcolor=orange]
+	4722525312 -> 4722411008
+	4722525312 [label="(1)" fillcolor=orange]
+	4722525384 -> 4722411008
+	4722525384 [label="(4, 2)" fillcolor=orange]
+	4722525456 -> 4722411008
+	4722525456 [label="(4, 2)" fillcolor=orange]
+	4722525528 -> 4722411008
+	4722525528 [label="(4, 2)" fillcolor=orange]
+	4722411496 -> 4722289632
+	4722411496 [label=GenredAutogradBackward]
+	4417186672 -> 4722411496
+	4417186672 -> 4722411496
+	4721956840 -> 4722411496
+	4722333680 -> 4722411496
+	4722333680 [label=NegBackward]
+	4722410520 -> 4722333680
+	4721956840 -> 4722411496
+	4722525672 -> 4722411496
+	4722525672 [label="(4, 2)" fillcolor=orange]
+	4722525600 -> 4722411496
+	4722525600 [label="(4, 2)" fillcolor=orange]
+	4722525744 -> 4722411496
+	4722525744 [label="(4, 2)" fillcolor=orange]
+	4722525816 -> 4722411496
+	4722525816 [label="(1)" fillcolor=orange]
+	4722525888 -> 4722411496
+	4722525888 [label="(4, 2)" fillcolor=orange]
+	4722525960 -> 4722411496
+	4722525960 [label="(4, 2)" fillcolor=orange]
+	4722526032 -> 4722411496
+	4722526032 [label="(4, 2)" fillcolor=orange]
+}

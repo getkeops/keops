@@ -16,7 +16,8 @@ import torch
 from pykeops.numpy import Genred as GenredNumpy
 from pykeops.torch import Genred as GenredTorch
 
-from linsolve import KernelLinearSolver
+from pykeops.tutorials.interpolation.torch.linsolve import InvKernelOp as InvKernelOp_pytorch
+from pykeops.tutorials.interpolation.numpy.linsolve import InvKernelOp as InvKernelOp_numpy
 
 from matplotlib import pyplot as plt
 
@@ -26,8 +27,10 @@ backend = torch   # np or torch
 
 if backend==np:
     Genred = GenredNumpy
+    InvKernelOp = InvKernelOp_numpy
 else:
     Genred = GenredTorch
+    InvKernelOp = InvKernelOp_pytorch
 
 # testing availability of Gpu: 
 if not(useGpu==True):
@@ -55,16 +58,6 @@ def GaussKernel(D,Dv,sigma):
     def K(x,y,b):
         return my_routine(x,y,b,oos2)
     return K
-
-def GaussKernelMatrix(sigma):
-    oos2 = 1.0/sigma**2
-    def f(x,y):
-        D = x.shape[1]
-        sqdist = 0
-        for k in range(D):
-            sqdist += (x[:,k][:,None]-transpose(y[:,k][:,None]))**2
-        return backend.exp(-oos2*sqdist)
-    return f
 
 def LinearSolver(K,x,b,lmbda=0):
     N = x.shape[0]
