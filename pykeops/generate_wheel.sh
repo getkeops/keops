@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #this script creates the wheel package for pykeops. Use at your own risk.
-VERSION='0.1.4'
+VERSION='0.1.5'
 
 CURRENT_DIR=$(pwd)
 echo $CURRENT_DIR
