@@ -4,6 +4,9 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
+message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
+
 project(KeOps LANGUAGES CXX)
 
 set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR})
