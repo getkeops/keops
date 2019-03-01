@@ -17,7 +17,10 @@ from pykeops.numpy import Genred as GenredNumpy
 from pykeops.torch import Genred as GenredTorch
 
 from pykeops.tutorials.interpolation.torch.linsolve import InvKernelOp as InvKernelOp_pytorch
+from pykeops.tutorials.interpolation.torch.linsolve import torchtools
 from pykeops.tutorials.interpolation.numpy.linsolve import InvKernelOp as InvKernelOp_numpy
+from pykeops.tutorials.interpolation.numpy.linsolve import numpytools
+from pykeops.tutorials.interpolation.common.linsolve import KernelLinearSolver
 
 from matplotlib import pyplot as plt
 
@@ -28,9 +31,11 @@ backend = torch   # np or torch
 if backend==np:
     Genred = GenredNumpy
     InvKernelOp = InvKernelOp_numpy
+    tools = numpytools()
 else:
     Genred = GenredTorch
     InvKernelOp = InvKernelOp_pytorch
+    tools = torchtools()
 
 # testing availability of Gpu: 
 if not(useGpu==True):
@@ -58,6 +63,16 @@ def GaussKernel(D,Dv,sigma):
     def K(x,y,b):
         return my_routine(x,y,b,oos2)
     return K
+
+def GaussKernelMatrix(sigma):
+    oos2 = 1.0/sigma**2
+    def f(x,y):
+        D = x.shape[1]
+        sqdist = 0
+        for k in range(D):
+            sqdist += (x[:,k][:,None]-transpose(y[:,k][:,None]))**2
+        return backend.exp(-oos2*sqdist)
+    return f
 
 def LinearSolver(K,x,b,lmbda=0):
     N = x.shape[0]
@@ -140,14 +155,14 @@ def InterpolationExample(N,D,Dv,sigma,lmbda,eps=1e-6):
     _b = array(b)
     
     start = time.time()
-    _a = KernelLinearSolver(K,_x,_b,lmbda,eps,precond=False)
+    _a = KernelLinearSolver(tools,K,_x,_b,lmbda,eps=eps,precond=False)
     end = time.time()
     
     print('Time to perform (conjugate gradient solver):', round(end - start, 5), 's')
     print('L2 norm of the residual:', np.linalg.norm(numpy(K(_x,_x,_a)+lmbda*_a-_b)))
     
     start = time.time()
-    _a = KernelLinearSolver(("gaussian",D,Dv,sigma),_x,_b,lmbda,eps,precond=True)
+    _a = KernelLinearSolver(tools,("gaussian",D,Dv,sigma),_x,_b,lmbda,eps=eps,precond=True)
     end = time.time()
     
     print('Time to perform (preconditioned conjugate gradient solver):', round(end - start, 5), 's')

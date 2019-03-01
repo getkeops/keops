@@ -2,6 +2,7 @@
 import torch
 
 from pykeops.torch.generic.generic_red import GenredAutograd
+from pykeops.torch import Genred as Genred_torch
 
 from pykeops import default_cuda_type
 from pykeops.common.utils import axis2cat, cat2axis
@@ -13,20 +14,28 @@ include_dirs = torch.utils.cpp_extension.include_paths()[0]
 
 from pykeops.tutorials.interpolation.common.linsolve import ConjugateGradientSolver
 
-backend = torch
-copy = torch.clone
-tile = torch.Tensor.repeat
-solve = lambda A, b : torch.gesv(b,A)[0].contiguous()
-norm = torch.norm
-rand = lambda m, n : torch.rand(m,n, dtype=torchdtype, device=torchdeviceId)
-randn = lambda m, n : torch.randn(m,n, dtype=torchdtype, device=torchdeviceId)
-zeros = lambda shape : torch.zeros(shape, dtype=torchdtype, device=torchdeviceId)
-eye = lambda n : torch.eye(n, dtype=torchdtype, device=torchdeviceId)
-array = lambda x : torch.tensor(x, dtype=torchdtype, device=torchdeviceId)
-randn = lambda m, n : torch.randn(m,n, dtype=torchdtype, device=torchdeviceId)
-arraysum = lambda x, axis=None : x.sum() if axis is None else x.sum(dim=axis)
-transpose = lambda x : x.t
-numpy = lambda x : x.cpu().numpy()
+class torchtools :
+    copy = torch.clone
+    exp = torch.exp
+    norm = torch.norm
+    Genred = Genred_torch
+    def __init__(self):
+        self.transpose = lambda x : x.t()
+        self.solve = lambda A, b : torch.gesv(b,A)[0].contiguous()
+        self.arraysum = lambda x, axis=None : x.sum() if axis is None else x.sum(dim=axis)
+        self.numpy = lambda x : x.cpu().numpy()
+        self.tile = lambda *args : torch.Tensor.repeat(*args)
+    def set_types(self,x):
+        self.torchdtype = x.dtype
+        self.torchdeviceId = x.device
+        self.KeOpsdeviceId = self.torchdeviceId.index  # id of Gpu device (in case Gpu is  used)
+        self.dtype = 'float32' if self.torchdtype==torch.float32 else 'float64'    
+        self.rand = lambda self, m, n : torch.rand(m,n, dtype=self.torchdtype, device=self.torchdeviceId)
+        self.randn = lambda m, n : torch.randn(m,n, dtype=self.torchdtype, device=self.torchdeviceId)
+        self.zeros = lambda shape : torch.zeros(shape, dtype=self.torchdtype, device=self.torchdeviceId)
+        self.eye = lambda n : torch.eye(n, dtype=self.torchdtype, device=self.torchdeviceId)
+        self.array = lambda x : torch.tensor(x, dtype=self.torchdtype, device=self.torchdeviceId)
+        self.randn = lambda m, n : torch.randn(m,n, dtype=self.torchdtype, device=self.torchdeviceId)
      
 class InvKernelOpAutograd(torch.autograd.Function):
     """
@@ -68,13 +77,8 @@ class InvKernelOpAutograd(torch.autograd.Function):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
             return myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, *newargs)
 
-        torchdtype = args[0].dtype
-        dtype = 'float32' if torchdtype==torch.float32 else 'float64'
-        torchdeviceId = args[0].device
-        KeOpsdeviceId = torchdeviceId.index  # id of Gpu device (in case Gpu is  used)
-
         global copy
-        result = ConjugateGradientSolver(linop,varinv.data,eps=1e-16)
+        result = ConjugateGradientSolver(torchtools(),linop,varinv.data,eps=1e-16)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.

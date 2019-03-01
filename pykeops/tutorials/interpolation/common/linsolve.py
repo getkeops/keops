@@ -1,16 +1,19 @@
+import numpy as np
+from pykeops.numpy import Genred as Genred_numpy
+
+import time
 
 
-def ConjugateGradientSolver(linop,b,eps=1e-6):
+def ConjugateGradientSolver(tools,linop,b,eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
-    global copy
     a = 0
-    r = copy(b)
+    r = tools.copy(b)
     nr2 = (r**2).sum()
     if nr2 < eps**2:
         return 0*r
-    p = copy(r)
+    p = tools.copy(r)
     k = 0
     while True:
         Mp = linop(p)
@@ -27,17 +30,19 @@ def ConjugateGradientSolver(linop,b,eps=1e-6):
     return a
     
 
-def KernelLinearSolver(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
-
+def KernelLinearSolver(tools,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
+    
+    tools.set_types(x)
+            
     def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
         # Preconditioned conjugate gradient algorithm to solve linear system of the form
         # Ma=b where linop is a linear operation corresponding
         # to a symmetric and positive definite matrix
         # invprecondop is linear operation corresponding to the inverse of the preconditioner matrix
         a = 0
-        r = copy(b)
+        r = tools.copy(b)
         z = invprecondop(r)
-        p = copy(z)
+        p = tools.copy(z)
         rz = (r*z).sum()
         k = 0
         while True:    
@@ -60,11 +65,11 @@ def KernelLinearSolver(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
         ind = np.random.choice(range(N),m,replace=False)
         u = x[ind,:]
         start = time.time()
-        M = K(u,u) + Kspec(tile(u,(m,1)),tile(u,(1,m)).reshape(-1,D),x).reshape(m,m)
+        M = K(u,u) + Kspec(tools.tile(u,(m,1)),tools.tile(u,(1,m)).reshape(-1,D),x).reshape(m,m)
         end = time.time()    
         print('Time for init:', round(end - start, 5), 's')
         def invprecondop(r):
-            a = solve(M,K(u,x,r))
+            a = tools.solve(M,K(u,x,r))
             return (r - K(x,u,a))/lmbda
         return invprecondop
 
@@ -77,8 +82,8 @@ def KernelLinearSolver(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
                      'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
                      'b = Vy(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
                      'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-        my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=dtype)
-        oos2 = array([1.0/sigma**2])
+        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=tools.dtype)
+        oos2 = tools.array([1.0/sigma**2])
         KernelMatrix = GaussKernelMatrix(sigma)
         def K(x,y,b=None):
             if b is None:
@@ -93,8 +98,8 @@ def KernelLinearSolver(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
                      'v = Vx(' + str(D) + ')',  # Second arg  : i-variable, of size D
                      'x = Vy(' + str(D) + ')',  # Third arg  : j-variable, of size D
                      'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-        my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=dtype)
-        oos2 = array([1.0/sigma**2])
+        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=tools.dtype)
+        oos2 = tools.array([1.0/sigma**2])
         KernelMatrix = GaussKernelMatrix(sigma)
         def K(u,v,x):
             return my_routine(u,v,x,oos2)
@@ -106,8 +111,8 @@ def KernelLinearSolver(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
             D = x.shape[1]
             sqdist = 0
             for k in range(D):
-                sqdist += (x[:,k][:,None]-transpose(y[:,k][:,None]))**2
-            return backend.exp(-oos2*sqdist)
+                sqdist += (x[:,k][:,None]-tools.transpose(y[:,k][:,None]))**2
+            return tools.exp(-oos2*sqdist)
         return f
     
     if type(K)==tuple:
@@ -123,6 +128,6 @@ def KernelLinearSolver(K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
         invprecondop = NystromInversePreconditioner(K,precondKernel,x,lmbda)
         a = PreconditionedConjugateGradientSolver(KernelLinOp,b,invprecondop,eps)
     else:
-        a = ConjugateGradientSolver(KernelLinOp,b,eps)
+        a = ConjugateGradientSolver(tools,KernelLinOp,b,eps=eps)
         
     return a

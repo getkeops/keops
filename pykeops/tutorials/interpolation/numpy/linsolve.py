@@ -9,25 +9,26 @@ from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
-include_dirs = torch.utils.cpp_extension.include_paths()[0]
-
 from pykeops.tutorials.interpolation.common.linsolve import ConjugateGradientSolver
-
-backend = np
-copy = np.copy
-tile = np.tile
-solve = np.linalg.solve
-norm = np.linalg.norm
-Genred = GenredNumpy
-rand = lambda m, n : np.random.rand(m,n,dtype=dtype)
-randn = lambda m, n : np.random.randn(m,n,dtype=dtype)
-zeros = lambda shape : np.zeros(shape,dtype=dtype)
-eye = lambda n : np.eye(n,dtype=dtype)
-array = lambda x : np.array(x,dtype=dtype)
-arraysum = np.sum
-transpose = lambda x : x.T
-numpy = lambda x : x
         
+class numpytools :
+    norm = np.linalg.norm
+    arraysum = np.sum
+    Genred = Genred
+    exp = np.exp
+    def __init__(self):
+        self.copy = lambda x : np.copy(x)
+        self.transpose = lambda x : x.T
+        self.numpy = lambda x : x
+        self.tile = lambda *args : np.tile(*args)
+        self.solve = lambda *args : np.linalg.solve(*args)
+    def set_types(self,x):
+        self.dtype = x.dtype.name
+        self.rand = lambda m, n : np.random.rand(m,n,dtype=self.dtype)
+        self.randn = lambda m, n : np.random.randn(m,n,dtype=self.dtype)
+        self.zeros = lambda shape : np.zeros(shape,dtype=self.dtype)
+        self.eye = lambda n : np.eye(n,dtype=self.dtype)
+        self.array = lambda x : np.array(x,dtype=self.dtype)
 
 class InvKernelOp:
     
@@ -50,7 +51,6 @@ class InvKernelOp:
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         nx, ny = get_sizes(self.aliases, *args)
-        dtype = args[0].dtype.name
         varinv = args[varinvpos]      
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
