@@ -9,7 +9,7 @@ from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
-from pykeops.tutorials.interpolation.common.linsolve import ConjugateGradientSolver
+from pykeops.common.linsolve import ConjugateGradientSolver
         
 class numpytools :
     norm = np.linalg.norm
@@ -51,11 +51,11 @@ class InvKernelOp:
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         nx, ny = get_sizes(self.aliases, *args)
-        varinv = args[varinvpos]      
+        varinv = args[self.varinvpos]      
         def linop(var):
-            newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
-            return myconv.genred_numpy(nx, ny, tagCPUGPU, tag1D2D, 0, device_id, *newargs)
-        return ConjugateGradientSolver(linop,varinv,eps=1e-16)
+            newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos+1:]
+            return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, *newargs)
+        return ConjugateGradientSolver(numpytools(),linop,varinv,eps=1e-16)
      
      
      
