@@ -1,13 +1,13 @@
-import numpy as np
-from pykeops.numpy import Genred as Genred_numpy
-
-import time
-
-
-def ConjugateGradientSolver(tools,linop,b,eps=1e-6):
+def ConjugateGradientSolver(backend,linop,b,eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
+    if backend == 'numpy':
+        from pykeops.numpy.utils import numpytools
+        tools = numpytools()
+    elif backend == 'torch':
+        from pykeops.torch.utils import torchtools
+        tools = torchtools()
     a = 0
     r = tools.copy(b)
     nr2 = (r**2).sum()
@@ -56,7 +56,6 @@ def KernelLinearSolver(tools,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=
             p = z + (rznew/rz)*p
             rz = rznew
             k += 1
-        print("numiters=",k)
         return a
 
     def NystromInversePreconditioner(K,Kspec,x,lmbda):
@@ -64,10 +63,7 @@ def KernelLinearSolver(tools,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=
         m = int(np.sqrt(N))
         ind = np.random.choice(range(N),m,replace=False)
         u = x[ind,:]
-        start = time.time()
         M = K(u,u) + Kspec(tools.tile(u,(m,1)),tools.tile(u,(1,m)).reshape(-1,D),x).reshape(m,m)
-        end = time.time()    
-        print('Time for init:', round(end - start, 5), 's')
         def invprecondop(r):
             a = tools.solve(M,K(u,x,r))
             return (r - K(x,u,a))/lmbda

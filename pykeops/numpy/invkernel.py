@@ -11,25 +11,6 @@ from pykeops.common.keops_io import load_keops
 
 from pykeops.common.linsolve import ConjugateGradientSolver
         
-class numpytools :
-    norm = np.linalg.norm
-    arraysum = np.sum
-    Genred = Genred
-    exp = np.exp
-    def __init__(self):
-        self.copy = lambda x : np.copy(x)
-        self.transpose = lambda x : x.T
-        self.numpy = lambda x : x
-        self.tile = lambda *args : np.tile(*args)
-        self.solve = lambda *args : np.linalg.solve(*args)
-    def set_types(self,x):
-        self.dtype = x.dtype.name
-        self.rand = lambda m, n : np.random.rand(m,n,dtype=self.dtype)
-        self.randn = lambda m, n : np.random.randn(m,n,dtype=self.dtype)
-        self.zeros = lambda shape : np.zeros(shape,dtype=self.dtype)
-        self.eye = lambda n : np.eye(n,dtype=self.dtype)
-        self.array = lambda x : np.array(x,dtype=self.dtype)
-
 class InvKernelOp:
     
     def __init__(self, formula, aliases, varinvalias, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None):
@@ -55,7 +36,7 @@ class InvKernelOp:
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos+1:]
             return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, *newargs)
-        return ConjugateGradientSolver(numpytools(),linop,varinv,eps=1e-16)
+        return ConjugateGradientSolver('numpy',linop,varinv,eps=1e-16)
      
      
      

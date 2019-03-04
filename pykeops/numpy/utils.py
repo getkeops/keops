@@ -1,5 +1,24 @@
 import numpy as np
+from pykeops.numpy import Genred
 
+class numpytools :
+    norm = np.linalg.norm
+    arraysum = np.sum
+    Genred = Genred
+    exp = np.exp
+    def __init__(self):
+        self.copy = lambda x : np.copy(x)
+        self.transpose = lambda x : x.T
+        self.numpy = lambda x : x
+        self.tile = lambda *args : np.tile(*args)
+        self.solve = lambda *args : np.linalg.solve(*args)
+    def set_types(self,x):
+        self.dtype = x.dtype.name
+        self.rand = lambda m, n : np.random.rand(m,n,dtype=self.dtype)
+        self.randn = lambda m, n : np.random.randn(m,n,dtype=self.dtype)
+        self.zeros = lambda shape : np.zeros(shape,dtype=self.dtype)
+        self.eye = lambda n : np.eye(n,dtype=self.dtype)
+        self.array = lambda x : np.array(x,dtype=self.dtype)
 
 def squared_distances(x, y):
     x_norm = (x ** 2).sum(1).reshape(-1, 1)

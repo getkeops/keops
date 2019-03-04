@@ -15,29 +15,6 @@ include_dirs = include_paths()[0:2]
 
 from pykeops.common.linsolve import ConjugateGradientSolver
 
-class torchtools :
-    copy = torch.clone
-    exp = torch.exp
-    norm = torch.norm
-    Genred = Genred_torch
-    def __init__(self):
-        self.transpose = lambda x : x.t()
-        self.solve = lambda A, b : torch.gesv(b,A)[0].contiguous()
-        self.arraysum = lambda x, axis=None : x.sum() if axis is None else x.sum(dim=axis)
-        self.numpy = lambda x : x.cpu().numpy()
-        self.tile = lambda *args : torch.Tensor.repeat(*args)
-    def set_types(self,x):
-        self.torchdtype = x.dtype
-        self.torchdeviceId = x.device
-        self.KeOpsdeviceId = self.torchdeviceId.index  # id of Gpu device (in case Gpu is  used)
-        self.dtype = 'float32' if self.torchdtype==torch.float32 else 'float64'    
-        self.rand = lambda self, m, n : torch.rand(m,n, dtype=self.torchdtype, device=self.torchdeviceId)
-        self.randn = lambda m, n : torch.randn(m,n, dtype=self.torchdtype, device=self.torchdeviceId)
-        self.zeros = lambda shape : torch.zeros(shape, dtype=self.torchdtype, device=self.torchdeviceId)
-        self.eye = lambda n : torch.eye(n, dtype=self.torchdtype, device=self.torchdeviceId)
-        self.array = lambda x : torch.tensor(x, dtype=self.torchdtype, device=self.torchdeviceId)
-        self.randn = lambda m, n : torch.randn(m,n, dtype=self.torchdtype, device=self.torchdeviceId)
-     
 class InvKernelOpAutograd(torch.autograd.Function):
     """
     This class is the entry point to pytorch auto grad engine.
@@ -79,7 +56,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
             return myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, *newargs)
 
         global copy
-        result = ConjugateGradientSolver(torchtools(),linop,varinv.data,eps=1e-16)
+        result = ConjugateGradientSolver('torch',linop,varinv.data,eps=1e-16)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
