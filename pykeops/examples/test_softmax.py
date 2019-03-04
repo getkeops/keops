@@ -14,14 +14,14 @@ The following operation is implemented :
 #                     Standard imports                         #
 #--------------------------------------------------------------#
 import time
+from pykeops.common.operations import softmax
 
-backend  = 'torch'  # May be 'numpy' or 'torch'
-dtype = 'float32'  # May be 'float32' or 'float64'
+backend  = 'numpy'  # May be 'numpy' or 'torch'
+dtype = 'float64'  # May be 'float32' or 'float64'
 use_cuda = False
 
 if backend=='numpy':
     import numpy as np
-    from pykeops.numpy import Genred
     rand = lambda m,n : np.random.rand(m,n).astype(dtype)
     randn = lambda m,n : np.random.randn(m,n).astype(dtype)
     exp = np.exp
@@ -31,7 +31,6 @@ if backend=='numpy':
     arraymax = lambda x, axis=0 : np.max(x,axis=axis)
 elif backend=='torch':
     import torch
-    from pykeops.torch import Genred
     torchdtype = torch.float32 if dtype == 'float32' else torch.float64
     use_cuda = torch.cuda.is_available() if use_cuda else False
     device = 'cuda' if use_cuda else 'cpu'
@@ -72,19 +71,6 @@ y = 2*randn(N,D)
 b = rand(N,Dv)
 
 #--------------------------------------------------------------#
-#         Custom function for the softmax operation            #
-#--------------------------------------------------------------#
-
-def softmax(formula,formula_weights,variables):
-    formula2 = 'Concat(IntCst(1),' + formula_weights + ')'
-    my_routine = Genred(formula, variables, reduction_op='LogSumExpVect', axis=1, cuda_type=dtype, formula2=formula2)
-    def f(*args):
-        out = my_routine(*args, backend="auto")
-        out = out[:,2:]/out[:,1][:,None]
-        return out
-    return f
-
-#--------------------------------------------------------------#
 #                        Kernel                                #
 #--------------------------------------------------------------#
 formula = 'SqDist(x,y)'
@@ -93,7 +79,7 @@ variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
              'y = Vy('+str(D)+')',  # Second arg  : j-variable, of size D
              'b = Vy('+str(Dv)+')'] # third arg : j-variable, of size Dv
 
-softmax_op = softmax(formula,formula_weights,variables)
+softmax_op = softmax(formula,formula_weights,variables,backend,dtype)
 
 start = time.time()
 c = softmax_op(x, y, b)
