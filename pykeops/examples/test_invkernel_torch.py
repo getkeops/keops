@@ -1,7 +1,7 @@
 import torch
 from pykeops.torch import Genred 
 
-from pykeops.torch.invkernel import InvKernelOp
+from pykeops.torch.operations import InvKernelOp
 
 D = 2
 Dv = 2

@@ -1,7 +1,7 @@
 import numpy as np
 from pykeops.numpy import Genred 
 
-from pykeops.numpy.invkernel import InvKernelOp
+from pykeops.numpy.operations import InvKernelOp
 
 D = 2
 Dv = 2
