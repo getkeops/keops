@@ -13,15 +13,15 @@ from pykeops.common.linsolve import ConjugateGradientSolver
         
 class InvKernelOp:
     
-    def __init__(self, formula, aliases, varinvalias, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None):
+    def __init__(self, formula, aliases, varinvalias, reduction_op='Sum', axis=0, dtype='float64', opt_arg=None):
         if opt_arg:
             self.formula = reduction_op + 'Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
         else:
             self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
-        self.cuda_type = cuda_type
-        self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
+        self.dtype = dtype
+        self.myconv = load_keops(self.formula,  self.aliases,  self.dtype, 'numpy')
 
         tmp = aliases.copy()
         for (i,s) in enumerate(tmp):

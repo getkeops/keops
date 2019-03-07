@@ -1,13 +1,10 @@
+from pykeops.common.utils import get_tools
+
 def ConjugateGradientSolver(backend,linop,b,eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
-    if backend == 'numpy':
-        from pykeops.numpy.utils import numpytools
-        tools = numpytools()
-    elif backend == 'torch':
-        from pykeops.torch.utils import torchtools
-        tools = torchtools()
+    tools = get_tools(backend)
     a = 0
     r = tools.copy(b)
     nr2 = (r**2).sum()
@@ -26,13 +23,12 @@ def ConjugateGradientSolver(backend,linop,b,eps=1e-6):
         p = r + (nr2new/nr2)*p
         nr2 = nr2new
         k += 1
-    print("numiters=",k)
     return a
     
 
-def KernelLinearSolver(tools,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
+def KernelLinearSolver(backend,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
     
-    tools.set_types(x)
+    tools = get_tools(backend)
             
     def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
         # Preconditioned conjugate gradient algorithm to solve linear system of the form

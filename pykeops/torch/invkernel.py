@@ -21,23 +21,19 @@ class InvKernelOpAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, varinvalias, backend, cuda_type, device_id, *args):
+    def forward(ctx, formula, aliases, varinvpos, backend, cuda_type, device_id, *args):
 
         myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
         
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
         ctx.aliases = aliases
-        ctx.varinvalias = varinvalias
+        ctx.varinvpos = varinvpos
         ctx.backend = backend
         ctx.cuda_type = cuda_type
         ctx.device_id = device_id
         ctx.myconv = myconv
 
-        tmp = aliases.copy()
-        for (i,s) in enumerate(tmp):
-            tmp[i] = s[:s.find("=")].strip()
-        varinvpos = tmp.index(varinvalias)
         varinv = args[varinvpos]
         ctx.varinvpos = varinvpos
 
@@ -68,7 +64,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
     def backward(ctx, G):
         formula = ctx.formula
         aliases = ctx.aliases
-        varinvalias = ctx.varinvalias
+        varinvpos = ctx.varinvpos
         backend = ctx.backend
         cuda_type = ctx.cuda_type
         device_id = ctx.device_id
@@ -139,13 +135,18 @@ class InvKernelOp:
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
     def __init__(self, formula, aliases, varinvalias, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
+        # get the index of 'varinv' in the argument list
+        tmp = aliases.copy()
+        for (i,s) in enumerate(tmp):
+            tmp[i] = s[:s.find("=")].strip()
+        varinvpos = tmp.index(varinvalias)
         self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
-        self.varinvalias = varinvalias
+        self.varinvpos = varinvpos
         self.cuda_type = cuda_type
 
     def __call__(self, *args, backend='auto', device_id=-1):
-        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvalias, backend, self.cuda_type, device_id, *args)
+        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvpos, backend, self.cuda_type, device_id, *args)
 
 
 
