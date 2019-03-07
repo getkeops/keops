@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from pykeops.numpy import Genred
@@ -9,8 +8,12 @@ from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
-from pykeops.common.linsolve import ConjugateGradientSolver
-        
+from pykeops.common.operations import softmax as softmax_common
+def softmax(formula,formula_weights,variables,dtype='float64'):
+    return softmax_common(formula,formula_weights,variables,'numpy',dtype)
+
+
+from pykeops.common.operations import ConjugateGradientSolver        
 class InvKernelOp:
     
     def __init__(self, formula, aliases, varinvalias, reduction_op='Sum', axis=0, dtype='float64', opt_arg=None):

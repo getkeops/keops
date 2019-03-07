@@ -1,4 +1,3 @@
-
 import torch
 
 from pykeops.torch.generic.generic_red import GenredAutograd
@@ -13,8 +12,16 @@ from pykeops.common.keops_io import load_keops
 from torch.utils.cpp_extension import include_paths
 include_dirs = include_paths()[0:2]
 
-from pykeops.common.linsolve import ConjugateGradientSolver
 
+
+
+
+from pykeops.common.operations import softmax as softmax_common
+def softmax(formula,formula_weights,variables,dtype='float32'):
+    return softmax_common(formula,formula_weights,variables,'torch',dtype)
+
+
+from pykeops.common.operations import ConjugateGradientSolver
 class InvKernelOpAutograd(torch.autograd.Function):
     """
     This class is the entry point to pytorch auto grad engine.
@@ -83,7 +90,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvalias, backend, cuda_type, device_id, *newargs)
+        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvpos, backend, cuda_type, device_id, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
