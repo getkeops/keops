@@ -102,6 +102,41 @@ def set_indices(formula, f_ind, v_ind) :
 class Kernel:
     """Defines a new Kernel identifier for :func:`kernel_product`.
     
+    Keyword Args:
+        name (string): 
+
+    Example:
+        >>> M, N = 1000, 2000 # number of "i" and "j" indices
+        >>> # Generate the data as pytorch tensors.
+        >>> #
+        >>> # First, the "i" variables:
+        >>> x = torch.randn(M,3) # Positions,    in R^3
+        >>> u = torch.randn(M,3) # Orientations, in R^3 (for example)
+        >>> #
+        >>> # Then, the "j" ones:
+        >>> y = torch.randn(N,3) # Positions,    in R^3
+        >>> v = torch.randn(N,3) # Orientations, in R^3
+        >>> #
+        >>> # The signal b_j, supported by the (y_j,v_j)'s
+        >>> b = torch.randn(N,4)
+        >>> #
+        >>> # Pre-defined kernel: using custom expressions is also possible!
+        >>> # Notice that the parameter sigma is a dim-1 vector, *not* a scalar:
+        >>> sigma  = torch.tensor([.5])
+        >>> params = {
+        ...     # The "id" is defined using a set of special function names
+        ...     "id"      : Kernel("gaussian(x,y) * (linear(u,v)**2) "),
+        ...     # gaussian(x,y) requires a standard deviation; linear(u,v) requires no parameter
+        ...     "gamma"   : ( 1./sigma**2 , None ) ,
+        ... }
+        >>> #
+        >>> # Don't forget to normalize the orientations:
+        >>> u = torch.nn.functional.normalize(u, p=2, dim=1)
+        >>> v = torch.nn.functional.normalize(v, p=2, dim=1)
+        >>> #
+        >>> # We're good to go! Notice how we grouped together the "i" and "j" features:
+        >>> a = kernel_product(params, (x,u), (y,v), b)  
+        >>> print(a)  
     """
     def __init__(self, name=None, formula_sum=None, routine_sum=None, formula_log=None, routine_log=None):
         """

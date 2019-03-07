@@ -14,13 +14,13 @@ def sort_clusters(x, lab) :
         on the output of this routine!
 
     Args:
-        x ((M,D) Tensor): List of points :math:`x_i \in \mathbb{R}^D`.
+        x ((M,D) Tensor or tuple/list of (M,..) Tensors): List of points :math:`x_i \in \mathbb{R}^D`.
         lab ((M,) IntTensor): Vector of class labels :math:`l_i\in\mathbb{N}`.
 
     Returns:
-        (M,D) Tensor, (M,) IntTensor:
+        (M,D) Tensor or tuple/list of (M,..) Tensors, (M,) IntTensor:
         
-        Sorted **point cloud** and **vector of labels**.
+        Sorted **point cloud(s)** and **vector of labels**.
 
     Example:
         >>> x   = torch.Tensor(   [ [0.], [5.], [.4], [.3], [2.] ])
@@ -36,7 +36,14 @@ def sort_clusters(x, lab) :
         tensor([0, 0, 0, 1, 2], dtype=torch.int32)
     """
     lab, perm = torch.sort(lab.view(-1))
-    return x[perm,:], lab
+    if type(x) is tuple:
+        x_sorted = tuple( a[perm] for a in x )
+    elif type(x) is list:
+        x_sorted =  list( a[perm] for a in x )
+    else:
+        x_sorted = x[perm]
+
+    return x_sorted, lab
 
 def cluster_ranges(lab, Nlab=None) :
     """Computes the ``[start,end)`` indices that specify clusters in a sorted point cloud.
