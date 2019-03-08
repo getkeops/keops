@@ -62,11 +62,11 @@ def InterpolationExample(N,D,Dv,sigma,lmbda):
     if (D == 1):
         plt.ion()
         plt.clf()
-        plt.scatter(x.numpy()[:, 0], b.numpy()[:, 0], s=10)
+        plt.scatter(x.cpu().numpy()[:, 0], b.cpu().numpy()[:, 0], s=10)
         t = torch.reshape(torch.linspace(0,1,1000, dtype=torchdtype, device=torchdeviceId),[1000,1])
         K = Genred(formula, aliases, reduction_op='Sum', axis=1, cuda_type=dtype)
         xt = K(t,x,a,oos2)
-        plt.plot(t.numpy(),xt.numpy(),"r")
+        plt.plot(t.cpu().numpy(),xt.cpu().numpy(),"r")
         print('Close the figure to continue.')
         plt.show(block=(__name__ == '__main__'))
  
