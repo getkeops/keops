@@ -13,9 +13,10 @@ import numpy as np
 import time
 from pykeops.numpy import Genred
 from pykeops.numpy.operations import InvKernelOp
+from pykeops.numpy.utils import autoSetGpu, WarmUpGpu
 from matplotlib import pyplot as plt
 
-useGpu = False
+useGpu = autoSetGpu()
 dtype = 'float64'
 
 #######################################
@@ -32,7 +33,7 @@ def InterpolationExample(N,D,Dv,sigma,lmbda):
     x = np.random.rand(N, D).astype(dtype)
     if D==1 & Dv==1:
         rx = np.reshape(np.sqrt(np.sum(x**2,axis=1)),[N,1])
-        b = rx+.5*np.sin(6*rx)+.1*np.random.rand(N, 1).astype(dtype)
+        b = rx+.5*np.sin(6*rx)+.1*np.sin(20*rx)+.01*np.random.randn(N, 1).astype(dtype)
     else:
         b = np.random.randn(N, Dv).astype(dtype)
     oos2 = np.array([1.0/sigma**2]).astype(dtype)
@@ -69,7 +70,7 @@ def InterpolationExample(N,D,Dv,sigma,lmbda):
  
 if useGpu:
     WarmUpGpu()
-    InterpolationExample(N=1000,D=1,Dv=1,sigma=.1,lmbda=.1)   
+    InterpolationExample(N=10000,D=1,Dv=1,sigma=.1,lmbda=.1)   
 else:
     InterpolationExample(N=100,D=1,Dv=1,sigma=.1,lmbda=.1)
 print("Done.")

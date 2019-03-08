@@ -86,6 +86,26 @@ def log_sum_exp(mat, axis=0):
     max_rc = mat.max(axis=axis)
     return max_rc + np.log(np.sum(np.exp(mat - np.expand_dims(max_rc, axis=axis)), axis=axis))
 
+def autoSetGpu():
+    # testing availability of Gpu: 
+    try:
+        import GPUtil
+        useGpu = len(GPUtil.getGPUs())>0
+    except:
+        useGpu = False
+    return useGpu
 
+def WarmUpGpu():
+    # dummy first calls for accurate timing in case of GPU use
+    formula = 'Exp(-oos2*SqDist(x,y))*b'
+    variables = ['x = Vx(1)',  # First arg   : i-variable, of size 1
+                 'y = Vy(1)',  # Second arg  : j-variable, of size 1
+                 'b = Vy(1)',  # Third arg  : j-variable, of size 1
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type='float64')
+    dum = np.random.rand(10,1)
+    dum2 = np.random.rand(10,1)
+    my_routine(dum,dum,dum2,np.array([1.0]))
+    my_routine(dum,dum,dum2,np.array([1.0]))
 
 
