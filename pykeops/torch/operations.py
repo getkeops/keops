@@ -17,8 +17,8 @@ include_dirs = include_paths()[0:2]
 
 
 from pykeops.common.operations import softmax as softmax_common
-def softmax(formula,formula_weights,variables,dtype='float32'):
-    return softmax_common(formula,formula_weights,variables,'torch',dtype)
+def softmax(formula,formula_weights,aliases,dtype='float32'):
+    return softmax_common(formula,formula_weights,aliases,'torch',dtype)
 
 
 from pykeops.common.operations import ConjugateGradientSolver

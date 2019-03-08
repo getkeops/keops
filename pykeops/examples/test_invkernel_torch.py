@@ -10,14 +10,14 @@ sigma = .1
 
 # define the kernel : here a gaussian kernel
 formula = 'Exp(-oos2*SqDist(x,y))*b'
-variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
+aliases = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
              'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
              'b = Vy(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
              'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
              
 # define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
 lmbda = 0.01
-Kinv = InvKernelOp(formula, variables, 'b', lmbda=lmbda, axis=1)
+Kinv = InvKernelOp(formula, aliases, 'b', lmbda=lmbda, axis=1)
 
 # data
 x = torch.rand(N, D, requires_grad=True)

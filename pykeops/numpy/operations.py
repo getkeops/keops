@@ -9,8 +9,8 @@ from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
 from pykeops.common.operations import softmax as softmax_common
-def softmax(formula,formula_weights,variables,dtype='float64'):
-    return softmax_common(formula,formula_weights,variables,'numpy',dtype)
+def softmax(formula,formula_weights,aliases,dtype='float64'):
+    return softmax_common(formula,formula_weights,aliases,'numpy',dtype)
 
 
 from pykeops.common.operations import ConjugateGradientSolver        

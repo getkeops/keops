@@ -1,23 +1,23 @@
 from pykeops.common.utils import get_tools
 
-def softmax(formula,formula_weights,variables,backend,dtype='float32'):
-    if backend=='numpy':
+def softmax(formula,formula_weights,aliases,binding,dtype):
+    if binding=='numpy':
         from pykeops.numpy import Genred
-    elif backend=='torch':
+    elif binding=='torch':
         from pykeops.torch import Genred
     formula2 = 'Concat(IntCst(1),' + formula_weights + ')'
-    my_routine = Genred(formula, variables, reduction_op='LogSumExpVect', axis=1, cuda_type=dtype, formula2=formula2)
-    def f(*args):
-        out = my_routine(*args, backend="auto")
+    my_routine = Genred(formula, aliases, reduction_op='LogSumExpVect', axis=1, cuda_type=dtype, formula2=formula2)
+    def f(*args,backend='auto'):
+        out = my_routine(*args, backend=backend)
         out = out[:,2:]/out[:,1][:,None]
         return out
     return f
 
-def ConjugateGradientSolver(backend,linop,b,eps=1e-6):
+def ConjugateGradientSolver(binding,linop,b,eps=1e-6):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
-    tools = get_tools(backend)
+    tools = get_tools(binding)
     delta = tools.size(b)*eps**2
     a = 0
     r = tools.copy(b)
@@ -40,9 +40,9 @@ def ConjugateGradientSolver(backend,linop,b,eps=1e-6):
     return a
     
 
-def KernelLinearSolver(backend,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
+def KernelLinearSolver(binding,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
     
-    tools = get_tools(backend)
+    tools = get_tools(binding)
             
     def PreconditionedConjugateGradientSolver(linop,b,invprecondop,eps=1e-6):
         # Preconditioned conjugate gradient algorithm to solve linear system of the form

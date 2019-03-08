@@ -35,11 +35,11 @@ b = np.random.rand(N,Dv)
 #--------------------------------------------------------------#
 formula = 'SqDist(x,y)'
 formula_weights = 'b'
-variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
+aliases = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
              'y = Vy('+str(D)+')',  # Second arg  : j-variable, of size D
              'b = Vy('+str(Dv)+')'] # third arg : j-variable, of size Dv
 
-softmax_op = softmax(formula,formula_weights,variables)
+softmax_op = softmax(formula,formula_weights,aliases)
 
 start = time.time()
 c = softmax_op(x, y, b)
@@ -47,11 +47,7 @@ print("Time to compute the softmax operation (KeOps implementation): ",round(tim
 
 # compare with direct implementation
 start = time.time()
-cc = 0
-for k in range(D):
-    xk = x[:,k][:,None]
-    yk = y[:,k][:,None]
-    cc += (xk-yk.T)**2
+cc = np.sum((x[:,None,:]-y[None,:,:])**2,axis=2)
 cc -= np.max(cc,axis=1)[:,None] # subtract the max for robustness
 cc = np.exp(cc)@b/np.sum(np.exp(cc),axis=1)[:,None]
 print("Time to compute the softmax operation (direct implementation): ",round(time.time()-start,5),"s")

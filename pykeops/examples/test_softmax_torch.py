@@ -35,11 +35,11 @@ b = torch.rand(N,Dv)
 #--------------------------------------------------------------#
 formula = 'SqDist(x,y)'
 formula_weights = 'b'
-variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
+aliases = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
              'y = Vy('+str(D)+')',  # Second arg  : j-variable, of size D
              'b = Vy('+str(Dv)+')'] # third arg : j-variable, of size Dv
 
-softmax_op = softmax(formula,formula_weights,variables)
+softmax_op = softmax(formula,formula_weights,aliases)
 
 start = time.time()
 c = softmax_op(x, y, b)
