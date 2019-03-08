@@ -151,6 +151,35 @@ class NumpyUnitTestCase(unittest.TestCase):
                 self.assertTrue(np.allclose(gamma_keops.ravel(), gamma_py, atol=1e-6))
             
     ############################################################
+    def test_generic_syntax_softmax(self):
+    ############################################################
+        from pykeops.numpy.operations import softmax
+        aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
+        formula_weights = 'y'
+        
+        if pykeops.gpu_available:
+            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
+        else:
+            backend_to_test = ['auto']
+
+        for b, t in itertools.product(backend_to_test, self.type_to_test):
+            with self.subTest(b=b, t=t):
+
+                # Call cuda kernel
+                myop = softmax(formula,formula_weights,aliases,dtype=t)
+                gamma_keops= myop(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
+
+                # Numpy version
+                def np_softmax(x,w):
+                    x -= np.max(x,axis=1)[:,None] # subtract the max for robustness
+                    return np.exp(x)@w/np.sum(np.exp(x),axis=1)[:,None]
+                gamma_py = np_softmax((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), self.y)
+                
+                # compare output
+                self.assertTrue(np.allclose(gamma_keops.ravel(), gamma_py.ravel(), atol=1e-6))
+                        
+    ############################################################
     def test_non_contiguity(self):
     ############################################################
         from pykeops.numpy.generic.generic_red import Genred

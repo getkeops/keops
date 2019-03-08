@@ -109,9 +109,11 @@ class Genred:
     """
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
-        self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
-        self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
+    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None, formula2=None):
+        str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
+        str_formula2 = ',' + formula2 if formula2 else ''     
+        self.formula = reduction_op + 'Reduction(' + formula + str_opt_arg + ',' + str(axis2cat(axis)) + str_formula2 + ')'
+        self.aliases = complete_aliases(self.formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
     def __call__(self, *args, backend='auto', device_id=-1):

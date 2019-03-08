@@ -4,6 +4,28 @@ import fcntl
 
 c_type = dict(float32="float", float64="double")
 
+def WarmUpGpu(backend):
+    tools = get_tools(backend)
+    # dummy first calls for accurate timing in case of GPU use
+    formula = 'Exp(-oos2*SqDist(x,y))*b'
+    variables = ['x = Vx(1)',  # First arg   : i-variable, of size 1
+                 'y = Vy(1)',  # Second arg  : j-variable, of size 1
+                 'b = Vy(1)',  # Third arg  : j-variable, of size 1
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=dtype)
+    dum = rand(10,1)
+    dum2 = rand(10,1)
+    my_routine(dum,dum,dum2,array([1.0]))
+    my_routine(dum,dum,dum2,array([1.0]))
+
+def get_tools(backend):
+    if backend == 'numpy':
+        from pykeops.numpy.utils import numpytools
+        tools = numpytools()
+    elif backend == 'torch':
+        from pykeops.torch.utils import torchtools
+        tools = torchtools()
+    return tools
 
 def create_name(formula, aliases, cuda_type, lang):
     """

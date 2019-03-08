@@ -6,7 +6,7 @@ import itertools
 import numpy as np
 
 import pykeops
-from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
+from pykeops.numpy.utils import squared_distances, np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
 
 
 class PytorchUnitTestCase(unittest.TestCase):
@@ -151,6 +151,32 @@ class PytorchUnitTestCase(unittest.TestCase):
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
+                # compare output
+                self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
+    
+    ############################################################
+    def test_generic_syntax_softmax(self):
+    ############################################################
+        from pykeops.torch.operations import softmax
+        aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
+        formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
+        formula_weights = 'y'
+        if pykeops.gpu_available:
+            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
+        else:
+            backend_to_test = ['auto']
+        
+        for b in backend_to_test:
+            with self.subTest(b=b):
+                # Call cuda kernel
+                myop = softmax(formula,formula_weights,aliases,dtype='float64')
+                gamma_keops = myop(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
+                # Numpy version
+                def np_softmax(x,w):
+                    x -= np.max(x,axis=1)[:,None] # subtract the max for robustness
+                    return np.exp(x)@w/np.sum(np.exp(x),axis=1)[:,None]
+                gamma_py = np_softmax((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), self.y)
+                
                 # compare output
                 self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
     
