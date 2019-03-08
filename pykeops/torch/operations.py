@@ -28,7 +28,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, *args):
+    def forward(ctx, formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, *args):
 
         myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
         
@@ -40,6 +40,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
         ctx.backend = backend
         ctx.cuda_type = cuda_type
         ctx.device_id = device_id
+        ctx.eps = eps
         ctx.myconv = myconv
 
         varinv = args[varinvpos]
@@ -63,7 +64,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
             return res
 
         global copy
-        result = ConjugateGradientSolver('torch',linop,varinv.data,eps=1e-16)
+        result = ConjugateGradientSolver('torch',linop,varinv.data,eps)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
@@ -80,6 +81,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
         lmbda = ctx.lmbda
         cuda_type = ctx.cuda_type
         device_id = ctx.device_id
+        eps = ctx.eps
         myconv = ctx.myconv
         varinvpos = ctx.varinvpos
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
@@ -95,13 +97,13 @@ class InvKernelOpAutograd(torch.autograd.Function):
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, *newargs)
+        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 7]:  # because of (formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id)
+            if not ctx.needs_input_grad[var_ind + 8]:  # because of (formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -137,8 +139,8 @@ class InvKernelOpAutograd(torch.autograd.Function):
                         grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, *args_g)
                     grads.append(grad)
          
-        # Grads wrt. formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, *args
-        return (None, None, None, None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, *args
+        return (None, None, None, None, None, None, None, None, *grads)
 
 
 
@@ -159,8 +161,8 @@ class InvKernelOp:
         self.cuda_type = cuda_type
         self.lmbda = lmbda
 
-    def __call__(self, *args, backend='auto', device_id=-1):
-        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvpos, self.lmbda, backend, self.cuda_type, device_id, *args)
+    def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6):
+        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvpos, self.lmbda, backend, self.cuda_type, device_id, eps, *args)
 
 
 

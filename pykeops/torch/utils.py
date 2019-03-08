@@ -1,5 +1,5 @@
 import torch
-from pykeops.torch import Genred as Genred
+from pykeops.torch import Genred
 
 def is_on_device(x):
     return x.is_cuda
@@ -28,4 +28,17 @@ class torchtools :
         self.array = lambda x : torch.tensor(x, dtype=self.torchdtype, device=self.torchdeviceId)
         self.randn = lambda m, n : torch.randn(m,n, dtype=self.torchdtype, device=self.torchdeviceId)
      
+
+def WarmUpGpu():
+    # dummy first calls for accurate timing in case of GPU use
+    formula = 'Exp(-oos2*SqDist(x,y))*b'
+    aliases = ['x = Vx(1)',  # First arg   : i-variable, of size 1
+                 'y = Vy(1)',  # Second arg  : j-variable, of size 1
+                 'b = Vy(1)',  # Third arg  : j-variable, of size 1
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, cuda_type='float32')
+    dum = torch.rand(10,1)
+    dum2 = torch.rand(10,1)
+    my_routine(dum,dum,dum2,torch.tensor([1.0]))
+    my_routine(dum,dum,dum2,torch.tensor([1.0]))
 
