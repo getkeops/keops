@@ -28,7 +28,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, varinvpos, backend, cuda_type, device_id, *args):
+    def forward(ctx, formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, *args):
 
         myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
         
@@ -36,6 +36,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
         ctx.formula = formula
         ctx.aliases = aliases
         ctx.varinvpos = varinvpos
+        ctx.lmbda = lmbda
         ctx.backend = backend
         ctx.cuda_type = cuda_type
         ctx.device_id = device_id
@@ -56,7 +57,10 @@ class InvKernelOpAutograd(torch.autograd.Function):
 
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
-            return myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, *newargs)
+            res = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, *newargs)
+            if lmbda:
+                res += lmbda*var
+            return res
 
         global copy
         result = ConjugateGradientSolver('torch',linop,varinv.data,eps=1e-16)
@@ -73,6 +77,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
         aliases = ctx.aliases
         varinvpos = ctx.varinvpos
         backend = ctx.backend
+        lmbda = ctx.lmbda
         cuda_type = ctx.cuda_type
         device_id = ctx.device_id
         myconv = ctx.myconv
@@ -90,13 +95,13 @@ class InvKernelOpAutograd(torch.autograd.Function):
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvpos, backend, cuda_type, device_id, *newargs)
+        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 6]:  # because of (formula, aliases, varinvalias, backend, cuda_type, device_id)
+            if not ctx.needs_input_grad[var_ind + 7]:  # because of (formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -132,8 +137,8 @@ class InvKernelOpAutograd(torch.autograd.Function):
                         grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, *args_g)
                     grads.append(grad)
          
-        # Grads wrt. formula, aliases, backend, cuda_type, device_id, *args
-        return (None, None, None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, *args
+        return (None, None, None, None, None, None, None, *grads)
 
 
 
@@ -141,7 +146,8 @@ class InvKernelOp:
     """
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
-    def __init__(self, formula, aliases, varinvalias, reduction_op='Sum', axis=0, cuda_type=default_cuda_type):
+    def __init__(self, formula, aliases, varinvalias, lmbda=0, axis=0, cuda_type=default_cuda_type):
+        reduction_op='Sum'
         # get the index of 'varinv' in the argument list
         tmp = aliases.copy()
         for (i,s) in enumerate(tmp):
@@ -151,9 +157,10 @@ class InvKernelOp:
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.varinvpos = varinvpos
         self.cuda_type = cuda_type
+        self.lmbda = lmbda
 
     def __call__(self, *args, backend='auto', device_id=-1):
-        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvpos, backend, self.cuda_type, device_id, *args)
+        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvpos, self.lmbda, backend, self.cuda_type, device_id, *args)
 
 
 

@@ -15,6 +15,7 @@ class torchtools :
         self.arraysum = lambda x, axis=None : x.sum() if axis is None else x.sum(dim=axis)
         self.numpy = lambda x : x.cpu().numpy()
         self.tile = lambda *args : torch.Tensor.repeat(*args)
+        self.size = lambda x : x.numel()
     def set_types(self,x):
         self.torchdtype = x.dtype
         self.torchdeviceId = x.device

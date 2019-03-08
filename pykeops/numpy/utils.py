@@ -12,6 +12,7 @@ class numpytools :
         self.numpy = lambda x : x
         self.tile = lambda *args : np.tile(*args)
         self.solve = lambda *args : np.linalg.solve(*args)
+        self.size = lambda x : x.size
     def set_types(self,x):
         self.dtype = x.dtype.name
         self.rand = lambda m, n : np.random.rand(m,n,dtype=self.dtype)

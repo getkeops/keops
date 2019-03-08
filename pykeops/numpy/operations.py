@@ -16,16 +16,18 @@ def softmax(formula,formula_weights,variables,dtype='float64'):
 from pykeops.common.operations import ConjugateGradientSolver        
 class InvKernelOp:
     
-    def __init__(self, formula, aliases, varinvalias, reduction_op='Sum', axis=0, dtype='float64', opt_arg=None):
+    def __init__(self, formula, aliases, varinvalias, lmbda=0, axis=0, dtype='float64', eps=1e-6, opt_arg=None):
+        reduction_op='Sum'
         if opt_arg:
             self.formula = reduction_op + 'Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
         else:
             self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+        self.eps = eps
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
         self.myconv = load_keops(self.formula,  self.aliases,  self.dtype, 'numpy')
-
+        self.lmbda = lmbda
         tmp = aliases.copy()
         for (i,s) in enumerate(tmp):
             tmp[i] = s[:s.find("=")].strip()
@@ -38,8 +40,11 @@ class InvKernelOp:
         varinv = args[self.varinvpos]      
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos+1:]
-            return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, *newargs)
-        return ConjugateGradientSolver('numpy',linop,varinv,eps=1e-16)
+            res = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, *newargs)
+            if self.lmbda:
+                res += self.lmbda*var
+            return res
+        return ConjugateGradientSolver('numpy',linop,varinv,eps=self.eps)
      
      
      
