@@ -1,5 +1,6 @@
 import torch
 from pykeops.torch import Genred
+from pykeops.torch.generic.generic_red import Genred_lowlevel
 
 def is_on_device(x):
     return x.is_cuda
@@ -7,8 +8,10 @@ def is_on_device(x):
 class torchtools :
     copy = torch.clone
     exp = torch.exp
+    log = torch.log
     norm = torch.norm
     Genred = Genred
+    Genred_lowlevel = Genred_lowlevel
     def __init__(self):
         self.transpose = lambda x : x.t()
         self.solve = lambda A, b : torch.gesv(b,A)[0].contiguous()
@@ -16,6 +19,7 @@ class torchtools :
         self.numpy = lambda x : x.cpu().numpy()
         self.tile = lambda *args : torch.Tensor.repeat(*args)
         self.size = lambda x : x.numel()
+        self.view = lambda x,s : x.view(s)
     def set_types(self,x):
         self.torchdtype = x.dtype
         self.torchdeviceId = x.device

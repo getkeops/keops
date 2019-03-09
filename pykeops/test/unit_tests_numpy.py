@@ -100,7 +100,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_sum(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
         formula = 'Square(p-a)*Exp(x+y)'
         axis = 1  # 0 means summation over i, 1 means over j
@@ -127,7 +127,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_lse(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
 
@@ -142,7 +142,6 @@ class NumpyUnitTestCase(unittest.TestCase):
                 # Call cuda kernel
                 myconv = Genred(formula, aliases, reduction_op='LogSumExp', axis=1, cuda_type=t)
                 gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
-                gamma_keops = gamma_keops[:,0,None] + np.log(gamma_keops[:,1,None])
 
                 # Numpy version
                 gamma_py = log_sum_exp((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), axis=1)
@@ -153,7 +152,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_softmax(self):
     ############################################################
-        from pykeops.numpy.operations import softmax
+        from pykeops.numpy import Genred
         aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
         formula_weights = 'y'
@@ -167,7 +166,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myop = softmax(formula,formula_weights,aliases,dtype=t)
+                myop = Genred(formula, aliases, reduction_op='SoftMax', axis=1, cuda_type=t, formula2=formula_weights)
                 gamma_keops= myop(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
 
                 # Numpy version
@@ -182,7 +181,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_non_contiguity(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         
         t = self.type_to_test[0]
 
@@ -202,7 +201,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_heterogeneous_var_aliases(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         
         t = self.type_to_test[0]
 
@@ -222,7 +221,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_formula_simplification(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         
         t = self.type_to_test[0]
 

@@ -1,15 +1,24 @@
 from pykeops.common.utils import get_tools
 
-def softmax(formula,formula_weights,aliases,binding,dtype):
-    if binding=='numpy':
-        from pykeops.numpy import Genred
-    elif binding=='torch':
-        from pykeops.torch import Genred
-    formula2 = 'Concat(IntCst(1),' + formula_weights + ')'
-    my_routine = Genred(formula, aliases, reduction_op='LogSumExpVect', axis=1, cuda_type=dtype, formula2=formula2)
-    def f(*args,backend='auto'):
-        out = my_routine(*args, backend=backend)
-        out = out[:,2:]/out[:,1][:,None]
+def Genred_common(binding, formula, aliases, reduction_op, axis, cuda_type, opt_arg, formula2):
+    tools = get_tools(binding)
+    if reduction_op=='SoftMax':
+        reduction_op_internal = 'LogSumExpVect'
+        formula2 = 'Concat(IntCst(1),' + formula2 + ')'
+    elif reduction_op=='LogSumExp' and formula2:
+        reduction_op_internal = 'LogSumExpVect'
+    else:
+        reduction_op_internal = reduction_op        
+    my_routine = tools.Genred_lowlevel(formula, aliases, reduction_op_internal, axis, cuda_type, opt_arg, formula2)
+    def f(*args, backend='auto', device_id=-1):
+        out = my_routine(*args, backend=backend, device_id=device_id)
+        if reduction_op=='SoftMax':
+            out = out[:,2:]/out[:,1][:,None]
+        elif reduction_op=='LogSumExp':
+            if out.shape[1]==2: # means (m,s) with m scalar and s scalar
+                out = tools.view(out[:,0] + tools.log(out[:,1]),(-1,1))
+            else: # here out.shape[1]>2, means (m,s) with m scalar and s vectorial
+                out = out[:,0][:,None] + tools.log(out[:,1:])
         return out
     return f
 
