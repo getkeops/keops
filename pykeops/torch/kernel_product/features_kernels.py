@@ -1,4 +1,4 @@
-from pykeops.torch.generic.generic_red import Genred
+from pykeops.torch import Genred
 from pykeops.torch.kernel_product.formula import extract_metric_parameters, _scalar_products, _log_sum_exp, _weighted_squared_distances
 
 
@@ -163,6 +163,4 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         genconv = Genred(formula, aliases, reduction_op=red, axis=axis, cuda_type=cuda_type)
 
         res = genconv(*full_args, backend=backend)
-        if red == "LogSumExp":
-            res = res[:,0,None] + res[:,1,None].log()
         return res 

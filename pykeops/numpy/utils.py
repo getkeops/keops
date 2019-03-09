@@ -86,7 +86,7 @@ def log_sum_exp(mat, axis=0):
     max_rc = mat.max(axis=axis)
     return max_rc + np.log(np.sum(np.exp(mat - np.expand_dims(max_rc, axis=axis)), axis=axis))
 
-def autoSetGpu():
+def IsGpuAvailable():
     # testing availability of Gpu: 
     try:
         import GPUtil

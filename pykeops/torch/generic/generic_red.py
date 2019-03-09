@@ -1,6 +1,5 @@
 import torch
 
-from pykeops import default_cuda_type
 from pykeops.common.utils import axis2cat, cat2axis
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
@@ -105,16 +104,16 @@ class GenredAutograd(torch.autograd.Function):
         return (None, None, None, None, None, *grads)
 
 
-class Genred:
+class Genred_lowlevel:
     """
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None, formula2=None):
+    def __init__(self, formula, aliases, reduction_op, axis, cuda_type, opt_arg, formula2):
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''     
         self.formula = reduction_op + 'Reduction(' + formula + str_opt_arg + ',' + str(axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
 
-    def __call__(self, *args, backend='auto', device_id=-1):
+    def __call__(self, *args, backend, device_id):
         return GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, *args)

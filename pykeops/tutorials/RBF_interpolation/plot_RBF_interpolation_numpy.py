@@ -13,10 +13,10 @@ import numpy as np
 import time
 from pykeops.numpy import Genred
 from pykeops.numpy.operations import InvKernelOp
-from pykeops.numpy.utils import autoSetGpu, WarmUpGpu
+from pykeops.numpy.utils import IsGpuAvailable, WarmUpGpu
 from matplotlib import pyplot as plt
 
-useGpu = autoSetGpu()
+useGpu = IsGpuAvailable()
 dtype = 'float64'
 
 #######################################

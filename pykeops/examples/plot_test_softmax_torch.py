@@ -16,7 +16,7 @@ This example uses the PyTorch bindings
 #--------------------------------------------------------------#
 import time
 import torch
-from pykeops.torch.operations import softmax
+from pykeops.torch import Genred
     
 #--------------------------------------------------------------#
 #                   Define our dataset                         #
@@ -39,7 +39,7 @@ aliases = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
              'y = Vy('+str(D)+')',  # Second arg  : j-variable, of size D
              'b = Vy('+str(Dv)+')'] # third arg : j-variable, of size Dv
 
-softmax_op = softmax(formula,formula_weights,aliases)
+softmax_op = Genred(formula, aliases, reduction_op='SoftMax', axis=1, formula2=formula_weights)
 
 start = time.time()
 c = softmax_op(x, y, b)

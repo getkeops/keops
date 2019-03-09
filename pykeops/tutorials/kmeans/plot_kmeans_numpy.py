@@ -15,6 +15,7 @@ See :ref:`here<sphx_glr__auto_tutorials_kmeans_plot_kmeans_pytorch.py>` for the 
 import time
 import numpy as np
 from pykeops.numpy import Genred
+from pykeops.numpy.utils import IsGpuAvailable
 
 from matplotlib import pyplot as plt
 
@@ -88,7 +89,6 @@ KMeansExample(N=5000,D=2,K=50)
 # (only when GPU is available)
 #
 
-import GPUtil
-if len(GPUtil.getGPUs())>0:
+if IsGpuAvailable():
     KMeansExample(N=500000,D=60,K=5000)
 print("Done.")

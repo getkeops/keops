@@ -1,9 +1,7 @@
 import torch
 
 from pykeops.torch.generic.generic_red import GenredAutograd
-from pykeops.torch import Genred as Genred_torch
-
-from pykeops import default_cuda_type
+from pykeops.torch import default_cuda_type
 from pykeops.common.utils import axis2cat, cat2axis
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
@@ -16,9 +14,9 @@ include_dirs = include_paths()[0:2]
 
 
 
-from pykeops.common.operations import softmax as softmax_common
-def softmax(formula,formula_weights,aliases,dtype='float32'):
-    return softmax_common(formula,formula_weights,aliases,'torch',dtype)
+from pykeops.common.operations import Genred_common
+def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None, formula2=None):
+    return Genred_common('torch', formula, aliases, reduction_op, axis, cuda_type, opt_arg, formula2)
 
 
 from pykeops.common.operations import ConjugateGradientSolver

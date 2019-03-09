@@ -15,12 +15,12 @@ if torch.__version__ < torch_version_required:
 pykeops.gpu_available = torch.cuda.is_available() # use torch to detect gpu
 pykeops.torch_found = True
 
-
+default_cuda_type = 'float32'
 
 ##########################################################
 # Import pyKeOps routines 
 
-from .generic.generic_red import Genred
+from .operations import Genred
 from .kernel_product.kernels import Kernel, kernel_product, kernel_formulas
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 from .kernel_product.formula import Formula
