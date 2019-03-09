@@ -126,7 +126,6 @@ if torch.cuda.is_available():
     # then call the operations
     start = time.time()
     c3 = my_routine(xc, yc, ac, pc, backend='GPU')
-    c3 = c3[:,0] + torch.log(c3[:,1])
     print('Time to compute convolution operation on the gpu:',round(time.time()-start,5), 's ', end='')
     print('(relative error:', float(torch.abs((c2 - c3.cpu()) / c2).mean()), ')')
     start = time.time()

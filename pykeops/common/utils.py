@@ -18,11 +18,11 @@ def WarmUpGpu(backend):
     my_routine(dum,dum,dum2,array([1.0]))
     my_routine(dum,dum,dum2,array([1.0]))
 
-def get_tools(backend):
-    if backend == 'numpy':
+def get_tools(binding):
+    if binding == 'numpy':
         from pykeops.numpy.utils import numpytools
         tools = numpytools()
-    elif backend == 'torch':
+    elif binding == 'torch':
         from pykeops.torch.utils import torchtools
         tools = torchtools()
     return tools

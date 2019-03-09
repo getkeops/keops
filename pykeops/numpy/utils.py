@@ -1,11 +1,14 @@
 import numpy as np
 from pykeops.numpy import Genred
+from pykeops.numpy.generic.generic_red import Genred_lowlevel
 
 class numpytools :
     norm = np.linalg.norm
     arraysum = np.sum
     Genred = Genred
+    Genred_lowlevel = Genred_lowlevel
     exp = np.exp
+    log = np.log
     def __init__(self):
         self.copy = lambda x : np.copy(x)
         self.transpose = lambda x : x.T
@@ -13,6 +16,7 @@ class numpytools :
         self.tile = lambda *args : np.tile(*args)
         self.solve = lambda *args : np.linalg.solve(*args)
         self.size = lambda x : x.size
+        self.view = lambda x,s : np.reshape(x,s)
     def set_types(self,x):
         self.dtype = x.dtype.name
         self.rand = lambda m, n : np.random.rand(m,n,dtype=self.dtype)

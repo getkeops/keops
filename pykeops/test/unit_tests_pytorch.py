@@ -115,9 +115,9 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_float(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import GenredAutograd
+        from pykeops.torch import Genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
-        formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
+        formula = 'Square(p-a)*Exp(x+y)'
         if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
@@ -126,7 +126,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = GenredAutograd.apply(formula, aliases, b, 'float32', -1, self.sigmac, self.gc, self.xc, self.yc)
+                gamma_keops = Genred(formula,aliases,axis=1,cuda_type='float32')(self.sigmac, self.gc, self.xc, self.yc, backend=b)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
@@ -136,9 +136,9 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_double(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import GenredAutograd
+        from pykeops.torch import Genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
-        formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
+        formula = 'Square(p-a)*Exp(x+y)'
         if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
@@ -147,7 +147,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = GenredAutograd.apply(formula, aliases, b, 'float64', -1, self.sigmacd, self.gcd, self.xcd, self.ycd)
+                gamma_keops = Genred(formula,aliases,axis=1,cuda_type='float64')(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
@@ -157,7 +157,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_softmax(self):
     ############################################################
-        from pykeops.torch.operations import softmax
+        from pykeops.torch import Genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
         formula_weights = 'y'
@@ -169,7 +169,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                myop = softmax(formula,formula_weights,aliases,dtype='float64')
+                myop = Genred(formula,aliases,reduction_op='SoftMax',axis=1,cuda_type='float64',formula2=formula_weights)
                 gamma_keops = myop(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
                 # Numpy version
                 def np_softmax(x,w):
@@ -238,7 +238,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_logSumExp_gradient_kernels_feature(self):
     ############################################################
         import torch
-        from pykeops.torch.generic.generic_red import Genred
+        from pykeops.torch import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.gc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -249,7 +249,6 @@ class PytorchUnitTestCase(unittest.TestCase):
         # Pytorch version
         my_routine = Genred(formula, aliases, reduction_op='LogSumExp', axis=1)
         tmp = my_routine(self.pc, self.fc, self.gc, backend='auto')
-        tmp = tmp[:,0,None]+tmp[:,1,None].log()
         res = torch.dot(torch.ones_like(tmp).view(-1),
                         tmp.view(-1))  # equivalent to tmp.sum() but avoiding contiguity pb
         gamma_keops = torch.autograd.grad(res, [self.fc, self.gc], create_graph=False)
@@ -267,7 +266,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_non_contiguity(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import Genred
+        from pykeops.torch import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -286,7 +285,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_heterogeneous_var_aliases(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import Genred
+        from pykeops.torch import Genred
         from pykeops.numpy.utils import squared_distances
         
         aliases = ['p=Pm(0,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
