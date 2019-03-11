@@ -1,5 +1,5 @@
-====================
-Gallery of examples
-====================
+========
+Examples
+========
 
 These short examples showcase the features of the ``pykeops`` module.

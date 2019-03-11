@@ -10,7 +10,6 @@
 # Standard imports
 
 import torch
-from torch import Tensor
 from torch.autograd import grad
 from pykeops.torch import Kernel, kernel_product
 

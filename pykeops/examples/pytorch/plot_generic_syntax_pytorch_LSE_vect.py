@@ -1,6 +1,6 @@
 """
-Custom LogSumExp reductions with the Pytorch backend - vectorial version
-========================================================================
+LogSumExp reductions - vectorial version (pytorch)
+==================================================
 """
 
 ####################################################################

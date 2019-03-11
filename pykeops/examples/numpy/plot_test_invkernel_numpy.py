@@ -1,6 +1,6 @@
 """
-Invkernel reduction
-===================
+Invkernel reduction (numpy)
+===========================
 """
 
 ###############################################################################
@@ -39,12 +39,12 @@ aliases = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
              
 
 ###############################################################################
-# define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
+# Define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
 lmbda = 0.01
 Kinv = InvKernelOp(formula, aliases, 'b', lmbda=lmbda, axis=1)
 
 ###############################################################################
-# apply to the data
+# Apply to the data
 
 print("Kernel inversion operation with gaussian kernel, ",N," points in dimension ",D)
 start = time.time()
@@ -53,7 +53,7 @@ end = time.time()
 print('Time to perform (KeOps):', round(end - start, 5), 's')
 
 ###############################################################################
-# compare with direct numpy implementation
+# Compare with direct numpy implementation
 start = time.time()
 c_ = np.linalg.solve(lmbda*np.eye(N)+np.exp(-np.sum((x[:,None,:]-x[None,:,:])**2,axis=2)/sigma**2),b)
 end = time.time()

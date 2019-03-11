@@ -8,13 +8,13 @@ Softmax reduction (numpy)
 # 
 # * inputs: 
 #     
-#     - x array of size Mx3 representing M vectors in :math:`\mathbb R^3`
-#     - y array of size Nx3 representing N vectors in :math:`\mathbb R^3`
-#     - b array of size Nx2 representing N vectors in :math:`\mathbb R^2`
+#     - :math:`x` array of size :math:`M\times 3` representing :math:`M` vectors in :math:`\mathbb R^3`
+#     - :math:`y` array of size :math:`N\times 3` representing :math:`N` vectors in :math:`\mathbb R^3`
+#     - :math:`b` array of size :math:`N\times 2` representing :math:`N` vectors in :math:`\mathbb R^2`
 # 
 # * output:
 #     
-#     - z array of size Mx2 representing M vectors in :math:`\mathbb R^2` where 
+#     - :math:`z` array of size :math:`M\times 2` representing :math:`M` vectors in :math:`\mathbb R^2` where
 #     .. math::
 #         
 #         z_i = \sum_j \exp(K(x_i,y_j))b_j / \sum_j \exp(K(x_i,y_j))

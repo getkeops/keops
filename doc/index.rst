@@ -96,6 +96,7 @@ Table of content
 
    python/index
    _auto_examples/index
+   _auto_benchmarks/index
    _auto_tutorials/index
 
 .. toctree::

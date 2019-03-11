@@ -161,7 +161,7 @@ With aliases, this computation simply reads:
 User interface
 --------------
 
-As evidenced by this :doc:`example <../_auto_examples/plot_generic_syntax_numpy>`,
+As evidenced by this :doc:`example <../_auto_examples/numpy/plot_generic_syntax_numpy>`,
 the simple ``Grad`` syntax can relieve you from the burden of differentiating
 symbolic formulas by hand.
 
@@ -171,5 +171,5 @@ feel free to use the output of a ``pykeops.torch`` routine just like any other
 differentiable tensor!
 Thanks to the flexibility of the ``torch.autograd`` engine,
 end-to-end automatic differentiation is at hand: 
-see this :doc:`example <../_auto_examples/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/plot_generic_syntax_pytorch_LSE>`.
+see this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`.
 
