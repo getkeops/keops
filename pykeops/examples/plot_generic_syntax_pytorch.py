@@ -1,6 +1,6 @@
 """
 Custom formulas with the Pytorch backend
-===========================================================
+========================================
 """
 
 ####################################################################
@@ -22,7 +22,7 @@ Custom formulas with the Pytorch backend
 
 ####################################################################
 # Setup
-# ------------------
+# -----
 #
 # Standard imports:
 import time
@@ -50,7 +50,7 @@ p = torch.randn(1, 1, dtype=torchtype, device=device)
 
 ####################################################################
 # Define a custom formula
-# -------------------------
+# -----------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
 variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
@@ -70,7 +70,7 @@ c = my_routine(x, y, a, p)
 
 ####################################################################
 # Compute the gradient
-# -------------------
+# --------------------
 # Now, let's compute the gradient of :math:`c` with 
 # respect to :math:`y`. Since :math:`c` is not scalar valued, 
 # its "gradient" :math:`\partial c` should be understood as the adjoint of the 

@@ -1,26 +1,40 @@
 """
-Example of KeOps softmax reduction using the generic syntax. 
-The following operation is implemented :
-    imputs : x array of size Mx3 representing M vectors in R^3
-             y array of size Nx3 representing N vectors in R^3
-             b array of size Nx2 representing N vectors in R^2
-    output : z array of size Mx2 representing M vectors in R^2
-             where z_i = sum_j exp(K(x_i,y_j))b_j / sum_j exp(K(x_i,y_j))
-             with K(x_i,y_j) = |x_i-y_j|^2
-This example uses the Numpy bindings
-==================================================================
+Softmax reduction (numpy)
+=========================
 """
 
-#--------------------------------------------------------------#
-#                     Standard imports                         #
-#--------------------------------------------------------------#
+###############################################################################
+# The following operation is implemented:
+# 
+# * inputs: 
+#     
+#     - x array of size Mx3 representing M vectors in :math:`\mathbb R^3`
+#     - y array of size Nx3 representing N vectors in :math:`\mathbb R^3`
+#     - b array of size Nx2 representing N vectors in :math:`\mathbb R^2`
+# 
+# * output:
+#     
+#     - z array of size Mx2 representing M vectors in :math:`\mathbb R^2` where 
+#     .. math::
+#         
+#         z_i = \sum_j \exp(K(x_i,y_j))b_j / \sum_j \exp(K(x_i,y_j))
+#     
+#     with :math:`K(x_i,y_j) = |x_i-y_j|^2`.
+#
+# This example uses the Numpy bindings
+
+###############################################################################
+# Standard imports
+# ----------------
+
 import time
 import numpy as np
 from pykeops.numpy import Genred
 
-#--------------------------------------------------------------#
-#                   Define our dataset                         #
-#--------------------------------------------------------------#
+###############################################################################
+# Define our dataset
+# ------------------
+
 M = 500
 N = 400
 D = 3
@@ -30,9 +44,10 @@ x = 2*np.random.randn(M,D)
 y = 2*np.random.randn(N,D)
 b = np.random.rand(N,Dv)
 
-#--------------------------------------------------------------#
-#                        Kernel                                #
-#--------------------------------------------------------------#
+###############################################################################
+# Kernel
+# ------
+
 formula = 'SqDist(x,y)'
 formula_weights = 'b'
 aliases = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D

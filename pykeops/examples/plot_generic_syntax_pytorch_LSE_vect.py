@@ -23,7 +23,7 @@ Custom LogSumExp reductions with the Pytorch backend - vectorial version
 
 ####################################################################
 # Setup
-# ------------------
+# -----
 #
 # Standard imports:
 
@@ -49,7 +49,7 @@ b = torch.rand(N, 3, dtype=torchtype)
 
 ####################################################################
 # Define a custom formula
-# -------------------------
+# -----------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
 formula2 = 'b'
@@ -82,7 +82,7 @@ print('(relative error: ',((c2-c).norm()/c.norm()).item(), ')')
 
 ####################################################################
 # Compute the gradient
-# -------------------
+# --------------------
 # Now, let's compute the gradient of :math:`c` with 
 # respect to :math:`y`. Since :math:`c` is not scalar valued, 
 # its "gradient" :math:`\partial c` should be understood as the adjoint of the 
