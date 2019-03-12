@@ -1,10 +1,10 @@
 """
-=========================================================================
-K Nearest Neighbour algorithm using the generic syntax (PyTorch bindings)
-=========================================================================
+=============================
+K-NN classification (pytorch)
+=============================
 
 We define a dataset of :math:`N` points in :math:`\mathbb R^D` with two classes, 
-then apply a simple k-NN algorithm to evaluate the classifier over a grid.
+then apply a simple k-Nearest Neighbour algorithm to evaluate the classifier over a grid.
 This example uses the PyTorch framework.
 See :ref:`here<sphx_glr__auto_tutorials_KNN_plot_knn_numpy.py>` for the equivalent script using NumPy bindings.
 """

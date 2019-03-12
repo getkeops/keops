@@ -203,7 +203,7 @@ loss = LDDMMloss(Kv, dataloss)
 # initialize momentum vectors
 p0 = torch.zeros(q0.shape, dtype=torchdtype, device=torchdeviceId, requires_grad=True)
 
-optimizer = torch.optim.LBFGS([p0])
+optimizer = torch.optim.LBFGS([p0], max_eval=6)
 print('performing optimization...')
 start = time.time()
 
@@ -224,7 +224,7 @@ print('Optimization (L-BFGS) time: ', round(time.time() - start, 2), ' seconds')
 # Display output
 # --------------
 
-listpq = Shooting(p0, q0, Kv, nt=10)
+listpq = Shooting(p0, q0, Kv, nt=15)
 
 VTnp, FTnp = VT.detach().cpu().numpy(), FT.detach().cpu().numpy()
 q0np, FSnp = q0.detach().cpu().numpy(), FS.detach().cpu().numpy()
@@ -245,14 +245,13 @@ def update(t):
     ax.set_title('LDDMM matching example, step ' + str(t))
     return ax
 
-anim = FuncAnimation(fig, update, frames=np.arange(0, 10), interval=300)
-
+anim = FuncAnimation(fig, update, frames=np.arange(0, 15), interval=300)
 try: # save as a .gif file to display in the doc
     save_folder = '../../../doc/_build/html/_images/'
     os.makedirs(save_folder, exist_ok=True)
     anim.save(save_folder + 'surface_matching.gif', dpi=80, writer='imagemagick')
 except: # run the animation
-    plt.show()
+   plt.show()
 
 
 ################################################################################

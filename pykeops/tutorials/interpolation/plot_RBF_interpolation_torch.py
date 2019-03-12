@@ -1,9 +1,9 @@
 """
-=================
-RBF Interpolation
-=================
+===========================
+RBF Interpolation (pytorch)
+===========================
 
-Example of Radial Basis Function interpolation
+Example of Radial Basis Function interpolation using the generic syntax with pytorch bindings.
 """
 
 #############################

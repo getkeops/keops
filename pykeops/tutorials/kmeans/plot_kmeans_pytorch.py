@@ -1,7 +1,7 @@
 """
-=============================================================
-K-means algorithm using the generic syntax (PyTorch bindings)
-=============================================================
+============================
+K-means clustering (pytorch)
+============================
 
 We define a dataset of :math:`N` points in :math:`\mathbb R^D`, then apply a simple k-means algorithm.
 This example uses KeOps PyTorch bindings. 

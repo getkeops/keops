@@ -1,9 +1,9 @@
 """
-=============
-Interpolation
-=============
+=========================
+RBF Interpolation (numpy)
+=========================
 
-Example of interpolation
+Example of interpolation using the generic syntax with numpy bindings.
 """
 
 #############################

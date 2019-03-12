@@ -1,7 +1,7 @@
 """
-===========================================================
-K-means algorithm using the generic syntax (NumPy bindings)
-===========================================================
+==========================
+K-means clustering (numpy)
+==========================
 
 We define a dataset of :math:`N` points in :math:`\mathbb R^D`, then apply a simple k-means algorithm.
 This example uses a pure NumPy framework (without Pytorch).
