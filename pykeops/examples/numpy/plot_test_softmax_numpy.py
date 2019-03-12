@@ -15,11 +15,11 @@ Softmax reduction (numpy)
 # * output:
 #     
 #     - :math:`z` array of size :math:`M\times 2` representing :math:`M` vectors in :math:`\mathbb R^2` where
-#     .. math::
+#       .. math::
 #         
-#         z_i = \sum_j \exp(K(x_i,y_j))b_j / \sum_j \exp(K(x_i,y_j))
-#     
-#     with :math:`K(x_i,y_j) = |x_i-y_j|^2`.
+#           z_i = \sum_j \exp(K(x_i,y_j))b_j / \sum_j \exp(K(x_i,y_j))
+#       
+#       with :math:`K(x_i,y_j) = |x_i-y_j|^2`.
 #
 # This example uses the Numpy bindings
 
