@@ -238,5 +238,20 @@ class NumpyUnitTestCase(unittest.TestCase):
         # compare output
         self.assertTrue(np.allclose(gamma_keops, gamma_py, atol=1e-6))
 
+    def test_argkmin(self):
+
+        from pykeops.numpy import Genred
+        formula = 'SqDist(x,y)'
+        variables = ['x = Vx('+str(self.D)+')',  # First arg   : i-variable, of size D
+                     'y = Vy('+str(self.D)+')']  # Second arg  : j-variable, of size D
+
+
+        my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, cuda_type=self.type_to_test[1], opt_arg=3)
+
+        c = my_routine(self.x, self.y, backend="auto").astype(int)
+        cnp = np.argsort(np.sum((self.x[:,np.newaxis,:] - self.y[np.newaxis,:,:]) ** 2, axis=2), axis=1)[:,:3]
+        self.assertTrue(np.allclose(c.ravel(),cnp.ravel()))
+
+
 if __name__ == '__main__':
     unittest.main()

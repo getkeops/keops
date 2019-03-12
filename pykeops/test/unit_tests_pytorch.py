@@ -17,12 +17,14 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     x = np.random.rand(M, D)
     a = np.random.rand(M, E)
+    e = np.random.rand(M, E)
     f = np.random.rand(M, 1)
     y = np.random.rand(N, D)
     b = np.random.rand(N, E)
     g = np.random.rand(N, 1)
     p = np.random.rand(2)
     sigma = np.array([0.4])
+    lmbda = np.array([0.1])
     
     try:
         import torch
@@ -33,22 +35,26 @@ class PytorchUnitTestCase(unittest.TestCase):
         type = torch.float32
         xc = torch.tensor(x, dtype=type, device=device, requires_grad=True)
         ac = torch.tensor(a, dtype=type, device=device, requires_grad=True)
+        ec = torch.tensor(e, dtype=type, device=device, requires_grad=True)
         fc = torch.tensor(f, dtype=type, device=device, requires_grad=True)
         yc = torch.tensor(y, dtype=type, device=device, requires_grad=True)
         bc = torch.tensor(b, dtype=type, device=device, requires_grad=True)
         gc = torch.tensor(g, dtype=type, device=device, requires_grad=True)
         pc = torch.tensor(p, dtype=type, device=device, requires_grad=True)
         sigmac = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
+        lmbdac = torch.tensor(lmbda, dtype=type, device=device, requires_grad=False)
         
         type = torch.float64
         xcd = torch.tensor(x, dtype=type, device=device, requires_grad=True)
         acd = torch.tensor(a, dtype=type, device=device, requires_grad=True)
+        ecd = torch.tensor(e, dtype=type, device=device, requires_grad=True)
         fcd = torch.tensor(f, dtype=type, device=device, requires_grad=True)
         ycd = torch.tensor(y, dtype=type, device=device, requires_grad=True)
         bcd = torch.tensor(b, dtype=type, device=device, requires_grad=True)
         gcd = torch.tensor(g, dtype=type, device=device, requires_grad=True)
         pcd = torch.tensor(p, dtype=type, device=device, requires_grad=True)
         sigmacd = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
+        lmbdacd = torch.tensor(lmbda, dtype=type, device=device, requires_grad=False)
         
         print('Running Pytorch tests.')
     except:
@@ -301,6 +307,56 @@ class PytorchUnitTestCase(unittest.TestCase):
         # compare output
         self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy().ravel(), gamma_py.ravel(), atol=1e-6))
 
+
+    ############################################################
+    def test_invkernel(self):
+    ############################################################
+        import torch
+        from pykeops.torch.operations import InvKernelOp
+        formula = 'Exp(-oos2*SqDist(x,y))*b'
+        aliases = ['x = Vx(' + str(self.D) + ')',  # First arg   : i-variable, of size D
+                   'y = Vy(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
+                   'b = Vy(' + str(self.E) + ')',  # Third arg  : j-variable, of size Dv
+                   'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+
+        Kinv = InvKernelOp(formula, aliases, 'b', lmbda=self.lmbdac, axis=1)
+        
+        c = Kinv(self.xc, self.xc ,self.ac ,self.sigmac)
+        c_ = torch.gesv(self.ac, self.lmbdac * torch.eye(self.M, device=self.device) + torch.exp(-torch.sum((self.xc[:,None,:] - self.xc[None,:,:]) ** 2, dim=2) * self.sigmac))[0]
+        
+        self.assertTrue(np.allclose (c.cpu().data.numpy().ravel(), c_.cpu().data.numpy().ravel(), atol=1e-4))
+        
+        u, = torch.autograd.grad(c, self.xc, self.ec)
+        u_, = torch.autograd.grad(c_, self.xc, self.ec)
+        self.assertTrue(np.allclose (u.cpu().data.numpy().ravel(), u_.cpu().data.numpy().ravel(), atol=1e-4))
+    
+    ############################################################
+    def test_softmax(self):
+    ############################################################
+
+        import torch
+        from pykeops.torch import Genred
+
+        formula = 'SqDist(x,y)'
+        formula_weights = 'b'
+        aliases = ['x = Vx(' + str(self.D) + ')',  # First arg   : i-variable, of size D
+                   'y = Vy(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
+                   'b = Vy(' + str(self.E) + ')'] # third arg : j-variable, of size Dv
+
+        softmax_op = Genred(formula, aliases, reduction_op='SoftMax', axis=1, formula2=formula_weights)
+
+        c = softmax_op(self.xc, self.yc, self.bc)
+
+        # compare with direct implementation
+        cc = 0
+        for k in range(self.D):
+            xk = self.xc[:, k][:, None]
+            yk = self.yc[:, k][:, None]
+            cc += (xk - yk.t()) ** 2
+        cc -= torch.max(cc, dim=1)[0][:,None] # subtract the max for robustness
+        cc = torch.exp(cc) @ self.bc / torch.sum(torch.exp(cc), dim=1)[:, None]
+
+        self.assertTrue(np.allclose(c.cpu().data.numpy().ravel(), cc.cpu().data.numpy().ravel(), atol=1e-6))
 
 if __name__ == '__main__':
     """
