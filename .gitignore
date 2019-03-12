@@ -12,6 +12,7 @@
 !/build/.gitkeep
 *_auto_examples*
 *_auto_tutorials*
+*_auto_benchmarks*
 
 # Exclude mex files
 *mexa64
