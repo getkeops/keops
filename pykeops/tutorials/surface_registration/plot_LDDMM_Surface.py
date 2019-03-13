@@ -223,15 +223,30 @@ print('Optimization (L-BFGS) time: ', round(time.time() - start, 2), ' seconds')
 ####################################################################
 # Display output
 # --------------
+# The animated version of the deformation:
 
 listpq = Shooting(p0, q0, Kv, nt=15)
+
+################################################################################
+# .. raw:: html
+#
+#     <img class='sphx-glr-single-img' src='../../_images/surface_matching.gif'/>
+#
+
+
+####################################################################
+# The code to generate the .gif:
+
+import imageio
+import io
+from PIL import Image
 
 VTnp, FTnp = VT.detach().cpu().numpy(), FT.detach().cpu().numpy()
 q0np, FSnp = q0.detach().cpu().numpy(), FS.detach().cpu().numpy()
 
-fig = plt.figure()
-
-def update(t):
+images = []
+for t in range(15):
+    fig = plt.figure()
     qnp = listpq[t][1].detach().cpu().numpy()
     ax = Axes3D(fig)
     ax.axis('equal')
@@ -243,22 +258,12 @@ def update(t):
     yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
     ax.legend([blue_proxy, red_proxy, yellow_proxy], ['source', 'deformed', 'target'])
     ax.set_title('LDDMM matching example, step ' + str(t))
-    return ax
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    images.append(np.array(Image.open(buf)))
+    buf.close()
 
-anim = FuncAnimation(fig, update, frames=np.arange(0, 15), interval=300)
-try: # save as a .gif file to display in the doc
-    save_folder = '../../../doc/_build/html/_images/'
-    os.makedirs(save_folder, exist_ok=True)
-    anim.save(save_folder + 'surface_matching.gif', dpi=80, writer='imagemagick')
-except: # run the animation
-   plt.show()
-
-
-################################################################################
-# The animated version of the deformation:
-
-################################################################################
-# .. raw:: html
-#
-#     <img class='sphx-glr-single-img' src='../../_images/surface_matching.gif'/>
-#
+save_folder = '../../../doc/_build/html/_images/'
+os.makedirs(save_folder, exist_ok=True)
+imageio.mimsave(save_folder + 'surface_matching.gif', images, duration=.5)
