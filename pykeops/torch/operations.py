@@ -26,7 +26,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, *args):
+    def forward(ctx, formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges, *args):
 
         myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
         
@@ -40,7 +40,9 @@ class InvKernelOpAutograd(torch.autograd.Function):
         ctx.device_id = device_id
         ctx.eps = eps
         ctx.myconv = myconv
-
+        ctx.ranges = ranges
+        if ranges is None: ranges = () # To keep the same type
+            
         varinv = args[varinvpos]
         ctx.varinvpos = varinvpos
 
@@ -56,7 +58,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
 
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
-            res = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, *newargs)
+            res = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
             if lmbda:
                 res += lmbda*var
             return res
@@ -82,6 +84,8 @@ class InvKernelOpAutograd(torch.autograd.Function):
         eps = ctx.eps
         myconv = ctx.myconv
         varinvpos = ctx.varinvpos
+        ranges = ctx.ranges
+
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
         result = ctx.saved_tensors[-1]
@@ -95,13 +99,13 @@ class InvKernelOpAutograd(torch.autograd.Function):
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, *newargs)
+        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 8]:  # because of (formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps)
+            if not ctx.needs_input_grad[var_ind + 9]:  # because of (formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -126,7 +130,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
                     if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                         # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/reductions
                         # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                        grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, *args_g)
+                        grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, ranges, *args_g)
                         # Then, sum 'grad' wrt 'i' :
                         # I think that '.sum''s backward introduces non-contiguous arrays,
                         # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -134,11 +138,11 @@ class InvKernelOpAutograd(torch.autograd.Function):
                         grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                         grad = grad.view(-1)
                     else:
-                        grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, *args_g)
+                        grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, ranges, *args_g)
                     grads.append(grad)
          
-        # Grads wrt. formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, *args
-        return (None, None, None, None, None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges, *args
+        return (None, None, None, None, None, None, None, None, None, *grads)
 
 
 
@@ -159,8 +163,8 @@ class InvKernelOp:
         self.cuda_type = cuda_type
         self.lmbda = lmbda
 
-    def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6):
-        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvpos, self.lmbda, backend, self.cuda_type, device_id, eps, *args)
+    def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6, ranges=None):
+        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvpos, self.lmbda, backend, self.cuda_type, device_id, eps, ranges, *args)
 
 
 
