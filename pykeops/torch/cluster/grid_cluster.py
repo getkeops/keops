@@ -1,6 +1,6 @@
 import torch
 
-from pykeops import default_cuda_type
+from pykeops.torch import default_cuda_type
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.gridcluster_io import load_gridcluster

@@ -18,12 +18,6 @@ class Genred_lowlevel:
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         nx, ny = get_sizes(self.aliases, *args)
         if ranges is None : ranges = () # To keep the same type
-        result = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *args) 
         
-        if self.reduction_op == "LogSumExp" : 
-            # KeOps core returns pairs of floats (M,S), such that the result
-            # is equal to  M+log(S)...
-            # Users shouldn't have to bother with that!
-            return (result[:,0] + np.log(result[:,1]) )[:,None]
-        else :
-            return result
+        return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *args) 
+        

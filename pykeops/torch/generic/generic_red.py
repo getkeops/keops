@@ -327,12 +327,4 @@ class Genred_lowlevel:
             that is inferred from the ``formula``.
 
         """
-        result = GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, ranges, *args)
-
-        if self.reduction_op == "LogSumExp" : 
-            # KeOps core returns pairs of floats (M,S), such that the result
-            # is equal to  M+log(S)...
-            # Users shouldn't have to bother with that!
-            return (result[:,0] + result[:,1].log()).view(-1,1)
-        else :
-            return result
+        return GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, ranges, *args)

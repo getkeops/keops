@@ -10,16 +10,22 @@ def Genred_common(binding, formula, aliases, reduction_op, axis, cuda_type, opt_
     else:
         reduction_op_internal = reduction_op        
     my_routine = tools.Genred_lowlevel(formula, aliases, reduction_op_internal, axis, cuda_type, opt_arg, formula2)
-    def f(*args, backend='auto', device_id=-1):
-        out = my_routine(*args, backend=backend, device_id=device_id)
+    
+    def f(*args, backend='auto', device_id=-1, ranges=None):
+        out = my_routine(*args, backend=backend, device_id=device_id, ranges=ranges)
+
+        # Post-processing of the output:
         if reduction_op=='SoftMax':
-            out = out[:,2:]/out[:,1][:,None]
+            out = out[:,2:] / out[:,1][:,None]
+            
         elif reduction_op=='LogSumExp':
             if out.shape[1]==2: # means (m,s) with m scalar and s scalar
                 out = tools.view(out[:,0] + tools.log(out[:,1]),(-1,1))
             else: # here out.shape[1]>2, means (m,s) with m scalar and s vectorial
                 out = out[:,0][:,None] + tools.log(out[:,1:])
+
         return out
+
     return f
 
 def ConjugateGradientSolver(binding,linop,b,eps=1e-6):
