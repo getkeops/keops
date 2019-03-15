@@ -2,7 +2,8 @@ import numpy as np
 
 import importlib
 
-from pykeops import build_type, default_cuda_type
+from pykeops import build_type
+from pykeops.numpy import default_cuda_type
 from pykeops.common.utils import c_type
 from pykeops.common.compile_routines import compile_specific_fshape_scp_routine
 

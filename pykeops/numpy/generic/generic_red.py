@@ -1,19 +1,15 @@
-import numpy as np
-from pykeops import default_cuda_type
 from pykeops.common.keops_io import load_keops
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.parse_type import get_sizes, complete_aliases
 from pykeops.common.utils import axis2cat
 
 
-class Genred:
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None):
-        if opt_arg:
-            self.formula = reduction_op + 'Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
-        else:
-            self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
-        self.reduction_op = reduction_op
-        self.aliases = complete_aliases(formula, aliases)
+class Genred_lowlevel:
+    def __init__(self, formula, aliases, reduction_op, axis, cuda_type, opt_arg, formula2):
+        str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
+        str_formula2 = ',' + formula2 if formula2 else ''     
+        self.formula = reduction_op + 'Reduction(' + formula + str_opt_arg + ',' + str(axis2cat(axis)) + str_formula2 + ')'
+        self.aliases = complete_aliases(self.formula, aliases)
         self.cuda_type = cuda_type
         self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
 

@@ -1,4 +1,4 @@
-from pykeops.torch.generic.generic_red import Genred
+from pykeops.torch import Genred
 from pykeops.torch.kernel_product.formula import extract_metric_parameters, _scalar_products, _log_sum_exp, _weighted_squared_distances
 
 

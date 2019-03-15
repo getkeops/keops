@@ -1,6 +1,6 @@
 """
-Using advanced syntax in formulas
-=================================
+Advanced syntax in formulas
+===========================
 
 Let's write generic formulas using the KeOps syntax.
 """

@@ -6,7 +6,7 @@ import itertools
 import numpy as np
 
 import pykeops
-from pykeops.numpy.utils import np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
+from pykeops.numpy.utils import squared_distances, np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
 
 
 class PytorchUnitTestCase(unittest.TestCase):
@@ -17,12 +17,14 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     x = np.random.rand(M, D)
     a = np.random.rand(M, E)
+    e = np.random.rand(M, E)
     f = np.random.rand(M, 1)
     y = np.random.rand(N, D)
     b = np.random.rand(N, E)
     g = np.random.rand(N, 1)
     p = np.random.rand(2)
     sigma = np.array([0.4])
+    lmbda = np.array([0.1])
     
     try:
         import torch
@@ -33,22 +35,26 @@ class PytorchUnitTestCase(unittest.TestCase):
         type = torch.float32
         xc = torch.tensor(x, dtype=type, device=device, requires_grad=True)
         ac = torch.tensor(a, dtype=type, device=device, requires_grad=True)
+        ec = torch.tensor(e, dtype=type, device=device, requires_grad=True)
         fc = torch.tensor(f, dtype=type, device=device, requires_grad=True)
         yc = torch.tensor(y, dtype=type, device=device, requires_grad=True)
         bc = torch.tensor(b, dtype=type, device=device, requires_grad=True)
         gc = torch.tensor(g, dtype=type, device=device, requires_grad=True)
         pc = torch.tensor(p, dtype=type, device=device, requires_grad=True)
         sigmac = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
+        lmbdac = torch.tensor(lmbda, dtype=type, device=device, requires_grad=False)
         
         type = torch.float64
         xcd = torch.tensor(x, dtype=type, device=device, requires_grad=True)
         acd = torch.tensor(a, dtype=type, device=device, requires_grad=True)
+        ecd = torch.tensor(e, dtype=type, device=device, requires_grad=True)
         fcd = torch.tensor(f, dtype=type, device=device, requires_grad=True)
         ycd = torch.tensor(y, dtype=type, device=device, requires_grad=True)
         bcd = torch.tensor(b, dtype=type, device=device, requires_grad=True)
         gcd = torch.tensor(g, dtype=type, device=device, requires_grad=True)
         pcd = torch.tensor(p, dtype=type, device=device, requires_grad=True)
         sigmacd = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
+        lmbdacd = torch.tensor(lmbda, dtype=type, device=device, requires_grad=False)
         
         print('Running Pytorch tests.')
     except:
@@ -115,9 +121,9 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_float(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import GenredAutograd
+        from pykeops.torch import Genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
-        formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
+        formula = 'Square(p-a)*Exp(x+y)'
         if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
@@ -126,7 +132,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = GenredAutograd.apply(formula, aliases, b, 'float32', -1, (), self.sigmac, self.gc, self.xc, self.yc)
+                gamma_keops = Genred(formula,aliases,axis=1,cuda_type='float32')(self.sigmac, self.gc, self.xc, self.yc, backend=b)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
@@ -136,9 +142,9 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_double(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import GenredAutograd
+        from pykeops.torch import Genred
         aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
-        formula = 'SumReduction(Square(p-a)*Exp(x+y),0)'
+        formula = 'Square(p-a)*Exp(x+y)'
         if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
@@ -147,10 +153,36 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = GenredAutograd.apply(formula, aliases, b, 'float64', -1, (), self.sigmacd, self.gcd, self.xcd, self.ycd)
+                gamma_keops = Genred(formula,aliases,axis=1,cuda_type='float64')(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
+                # compare output
+                self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
+    
+    ############################################################
+    def test_generic_syntax_softmax(self):
+    ############################################################
+        from pykeops.torch import Genred
+        aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
+        formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
+        formula_weights = 'y'
+        if pykeops.gpu_available:
+            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
+        else:
+            backend_to_test = ['auto']
+        
+        for b in backend_to_test:
+            with self.subTest(b=b):
+                # Call cuda kernel
+                myop = Genred(formula,aliases,reduction_op='SoftMax',axis=1,cuda_type='float64',formula2=formula_weights)
+                gamma_keops = myop(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
+                # Numpy version
+                def np_softmax(x,w):
+                    x -= np.max(x,axis=1)[:,None] # subtract the max for robustness
+                    return np.exp(x)@w/np.sum(np.exp(x),axis=1)[:,None]
+                gamma_py = np_softmax((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), self.y)
+                
                 # compare output
                 self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
     
@@ -212,7 +244,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_logSumExp_gradient_kernels_feature(self):
     ############################################################
         import torch
-        from pykeops.torch.generic.generic_red import Genred
+        from pykeops.torch import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.gc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -240,7 +272,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_non_contiguity(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import Genred
+        from pykeops.torch import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
                    'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
@@ -259,7 +291,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_heterogeneous_var_aliases(self):
     ############################################################
-        from pykeops.torch.generic.generic_red import Genred
+        from pykeops.torch import Genred
         from pykeops.numpy.utils import squared_distances
         
         aliases = ['p=Pm(0,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
@@ -275,6 +307,56 @@ class PytorchUnitTestCase(unittest.TestCase):
         # compare output
         self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy().ravel(), gamma_py.ravel(), atol=1e-6))
 
+
+    ############################################################
+    def test_invkernel(self):
+    ############################################################
+        import torch
+        from pykeops.torch.operations import InvKernelOp
+        formula = 'Exp(-oos2*SqDist(x,y))*b'
+        aliases = ['x = Vx(' + str(self.D) + ')',  # First arg   : i-variable, of size D
+                   'y = Vy(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
+                   'b = Vy(' + str(self.E) + ')',  # Third arg  : j-variable, of size Dv
+                   'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+
+        Kinv = InvKernelOp(formula, aliases, 'b', lmbda=self.lmbdac, axis=1)
+        
+        c = Kinv(self.xc, self.xc ,self.ac ,self.sigmac)
+        c_ = torch.gesv(self.ac, self.lmbdac * torch.eye(self.M, device=self.device) + torch.exp(-torch.sum((self.xc[:,None,:] - self.xc[None,:,:]) ** 2, dim=2) * self.sigmac))[0]
+        
+        self.assertTrue(np.allclose (c.cpu().data.numpy().ravel(), c_.cpu().data.numpy().ravel(), atol=1e-4))
+        
+        u, = torch.autograd.grad(c, self.xc, self.ec)
+        u_, = torch.autograd.grad(c_, self.xc, self.ec)
+        self.assertTrue(np.allclose (u.cpu().data.numpy().ravel(), u_.cpu().data.numpy().ravel(), atol=1e-4))
+    
+    ############################################################
+    def test_softmax(self):
+    ############################################################
+
+        import torch
+        from pykeops.torch import Genred
+
+        formula = 'SqDist(x,y)'
+        formula_weights = 'b'
+        aliases = ['x = Vx(' + str(self.D) + ')',  # First arg   : i-variable, of size D
+                   'y = Vy(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
+                   'b = Vy(' + str(self.E) + ')'] # third arg : j-variable, of size Dv
+
+        softmax_op = Genred(formula, aliases, reduction_op='SoftMax', axis=1, formula2=formula_weights)
+
+        c = softmax_op(self.xc, self.yc, self.bc)
+
+        # compare with direct implementation
+        cc = 0
+        for k in range(self.D):
+            xk = self.xc[:, k][:, None]
+            yk = self.yc[:, k][:, None]
+            cc += (xk - yk.t()) ** 2
+        cc -= torch.max(cc, dim=1)[0][:,None] # subtract the max for robustness
+        cc = torch.exp(cc) @ self.bc / torch.sum(torch.exp(cc), dim=1)[:, None]
+
+        self.assertTrue(np.allclose(c.cpu().data.numpy().ravel(), cc.cpu().data.numpy().ravel(), atol=1e-6))
 
 if __name__ == '__main__':
     """

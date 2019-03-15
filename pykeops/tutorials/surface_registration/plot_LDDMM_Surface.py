@@ -18,9 +18,12 @@ Going further, you may thus be interested in the cleaner and modular
 # ------------------
 #
 # Standard imports
+import os
+import numpy as np
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
 
 import torch
 from torch.autograd import grad
@@ -29,7 +32,6 @@ import time
 
 from pykeops.torch import Kernel, kernel_product
 from pykeops.torch.kernel_product.formula import *
-
 
 # torch type and device
 use_cuda = torch.cuda.is_available()
@@ -88,16 +90,18 @@ def GaussLinKernel(sigma):
 
 ####################################################################
 # Custom ODE solver, for ODE systems which are defined on tuples
-def RalstonIntegrator(nt=10):
-    def f(ODESystem, x0, deltat=1.0):
+def RalstonIntegrator():
+    def f(ODESystem, x0, nt, deltat=1.0):
         x = tuple(map(lambda x: x.clone(), x0))
         dt = deltat / nt
+        l = [x]
         for i in range(nt):
             xdot = ODESystem(*x)
             xi = tuple(map(lambda x, xdot: x + (2 * dt / 3) * xdot, x, xdot))
             xdoti = ODESystem(*xi)
             x = tuple(map(lambda x, xdot, xdoti: x + (.25 * dt) * (xdot + 3 * xdoti), x, xdot, xdoti))
-        return x
+            l.append(x)
+        return l
     
     return f
 
@@ -129,8 +133,8 @@ def HamiltonianSystem(K):
 #####################################################################
 # Shooting approach
 
-def Shooting(p0, q0, K, deltat=1.0, Integrator=RalstonIntegrator()):
-    return Integrator(HamiltonianSystem(K), (p0, q0), deltat)
+def Shooting(p0, q0, K, nt=10, Integrator=RalstonIntegrator()):
+    return Integrator(HamiltonianSystem(K), (p0, q0), nt)
 
 
 def Flow(x0, p0, q0, K, deltat=1.0, Integrator=RalstonIntegrator()):
@@ -142,7 +146,7 @@ def Flow(x0, p0, q0, K, deltat=1.0, Integrator=RalstonIntegrator()):
 
 def LDDMMloss(K, dataloss, gamma=0):
     def loss(p0, q0):
-        p,q = Shooting(p0, q0, K)
+        p,q = Shooting(p0, q0, K)[-1]
         return gamma * Hamiltonian(K)(p0, q0) + dataloss(q)
     return loss
 
@@ -177,61 +181,89 @@ def lossVarifoldSurf(FS, VT, FT, K):
 # ------------
 
 ####################################################################
-# load dataset
+# Load the dataset
 
 VS, FS, VT, FT = torch.load(datafile)
-q0 = torch.tensor(VS, dtype=torchdtype, device=torchdeviceId, requires_grad=True)
-VT = torch.tensor(VT, dtype=torchdtype, device=torchdeviceId)
-FS = torch.tensor(FS, dtype=torch.long, device=torchdeviceId)
-FT = torch.tensor(FT, dtype=torch.long, device=torchdeviceId)
-
+q0 = VS.clone().detach().to(dtype=torchdtype, device=torchdeviceId).requires_grad_(True)
+VT = VT.clone().detach().to(dtype=torchdtype, device=torchdeviceId)
+FS = FS.clone().detach().to(dtype=torch.long, device=torchdeviceId)
+FT = FT.clone().detach().to(dtype=torch.long, device=torchdeviceId)
 sigma = torch.tensor([20], dtype=torchdtype, device=torchdeviceId)
 
 #####################################################################
-# define data attachment and LDDMM functional
+# Define data attachment and LDDMM functional
 
 dataloss = lossVarifoldSurf(FS, VT, FT, GaussLinKernel(sigma=sigma))
 Kv = GaussKernel(sigma=sigma)
 loss = LDDMMloss(Kv, dataloss)
 
 ######################################################################
-# perform optimization
+# Perform optimization
 
 # initialize momentum vectors
 p0 = torch.zeros(q0.shape, dtype=torchdtype, device=torchdeviceId, requires_grad=True)
 
-optimizer = torch.optim.LBFGS([p0])
+optimizer = torch.optim.LBFGS([p0], max_eval=6)
 print('performing optimization...')
 start = time.time()
 
 def closure():
     optimizer.zero_grad()
     L = loss(p0, q0)
+    print('loss', L.detach().cpu().numpy())
     L.backward()
     return L
 
-
-optimizer.step(closure)
+for i in range(10):
+    print('it ', i, ': ', end='')
+    optimizer.step(closure)
+    
 print('Optimization (L-BFGS) time: ', round(time.time() - start, 2), ' seconds')
 
 ####################################################################
-# display output
+# Display output
 # --------------
+# The animated version of the deformation:
 
-fig = plt.figure()
-plt.title('LDDMM matching example')
-p, q = Shooting(p0, q0, Kv)
+listpq = Shooting(p0, q0, Kv, nt=15)
 
-q0np, qnp, FSnp = q0.detach().cpu().numpy(), q.detach().cpu().numpy(), FS.detach().cpu().numpy()
+################################################################################
+# .. raw:: html
+#
+#     <img class='sphx-glr-single-img' src='../../_images/surface_matching.gif'/>
+#
+
+
+####################################################################
+# The code to generate the .gif:
+
+import imageio
+import io
+from PIL import Image
+
 VTnp, FTnp = VT.detach().cpu().numpy(), FT.detach().cpu().numpy()
-ax = Axes3D(fig)
-ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(0, 0, 0, 0), edgecolor=(1, 0, 0, .08), linewidth=1)
-ax.plot_trisurf(qnp[:, 0], qnp[:, 1], qnp[:, 2], triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3), linewidth=1)
-ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0), edgecolor=(0, 0, 1, .3), linewidth=1)
-ax.axis('equal')
+q0np, FSnp = q0.detach().cpu().numpy(), FS.detach().cpu().numpy()
 
-blue_proxy = plt.Rectangle((0, 0), 1, 1, fc="r")
-red_proxy = plt.Rectangle((0, 0), 1, 1, fc="y")
-yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
-ax.legend([blue_proxy, red_proxy, yellow_proxy],['source', 'deformed', 'target'])
-plt.show()
+images = []
+for t in range(15):
+    fig = plt.figure()
+    qnp = listpq[t][1].detach().cpu().numpy()
+    ax = Axes3D(fig)
+    ax.axis('equal')
+    ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(0, 0, 0, 0),  edgecolor=(1, 0, 0, .08), linewidth=1)
+    ax.plot_trisurf(qnp[:, 0],  qnp[:, 1],  qnp[:, 2],  triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3),  linewidth=1)
+    ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0),  edgecolor=(0, 0, 1, .3),  linewidth=1)
+    blue_proxy   = plt.Rectangle((0, 0), 1, 1, fc="r")
+    red_proxy    = plt.Rectangle((0, 0), 1, 1, fc="y")
+    yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
+    ax.legend([blue_proxy, red_proxy, yellow_proxy], ['source', 'deformed', 'target'])
+    ax.set_title('LDDMM matching example, step ' + str(t))
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    images.append(np.array(Image.open(buf)))
+    buf.close()
+
+save_folder = '../../../doc/_build/html/_images/'
+os.makedirs(save_folder, exist_ok=True)
+imageio.mimsave(save_folder + 'surface_matching.gif', images, duration=.5)

@@ -68,7 +68,7 @@ As of today, the `pre-defined kernel names <https://plmlab.math.cnrs.fr/benjamin
 ``distance(x,y)``               :math:`\sqrt{\langle x-y, G\, (x-y)\rangle}`              a Euclidean norm
 ==============================  =====================================================     ======================================
 
-**Defining your own formulas** is also possible, and documented in the second part of this :doc:`example <../_auto_examples/kernel_product_syntax>`.
+**Defining your own formulas** is also possible, and documented in the second part of this :doc:`example <../_auto_examples/pytorch/kernel_product_syntax>`.
 
 
 **Parameters.** With the exception of the linear kernel (which accepts ``None`` as its parameter), all these kernels act on arbitrary vectors of dimension `D` and are parametrized by a variable ``G`` that can represent :
@@ -84,7 +84,7 @@ j-varying diagonal matrix                `N`-by-`D` array
 j-varying symmetric `D`-by-`D` matrix    `N`-by-`D*D` array
 =======================================  ===============================
 
-If required by the user, a kernel-id can thus be used to represent non-uniform, non-radial kernels as documented in the :doc:`anisotropic_kernels example <../_auto_examples/plot_anisotropic_kernels>`.
+If required by the user, a kernel-id can thus be used to represent non-uniform, non-radial kernels as documented in the :doc:`anisotropic_kernels example <../_auto_examples/pytorch/plot_anisotropic_kernels>`.
 
 The ``kernel_product`` routine
 ------------------------------

@@ -17,7 +17,7 @@ of :math:`F`: for all variation :math:`\delta x \in \mathbb R^n` of :math:`x`,
 
 .. math::
    F(x+\delta x)
-   ~=~ F(x)\,+\, [\text{d}F(x)](\delta x) \,+\,o(\delta x).
+   = F(x)+ [\text{d}F(x)](\delta x) + o(\delta x).
 
 Going further, we can define the **gradient** of :math:`F` at :math:`x`
 as the adjoint of :math:`\text{d}F(x)`: it is the unique application
@@ -26,8 +26,8 @@ for all vector :math:`e \in \mathbb R^d` and
 variation :math:`\delta x \in \mathbb R^n` of :math:`x`, we have:
 
 .. math::
-   \langle ~[\partial F(x)](e) \,,\, \delta x ~\rangle_{\mathbb R^n}
-   ~=~ \langle ~e \,,\, [\text{d}F(x)](\delta x) ~\rangle_{\mathbb R^d},
+   \langle [\partial F(x)](e) , \delta x \rangle_{\mathbb R^n}
+   = \langle e , [\text{d}F(x)](\delta x) \rangle_{\mathbb R^d},
 
 where :math:`\langle\,\cdot\,,\,\cdot\,\rangle` denotes the standard scalar product.
 
@@ -81,18 +81,18 @@ Evaluating the gradient of :math:`F` with the `backpropagation algorithm <https:
 This method relies on the chain-rule, as
 
 .. math::
-   \text{d}(F_p\circ\cdots\circ F_1)(x_0)~&=~ \text{d}F_p(x_{p-1}) \circ\cdots \circ \text{d} F_1(x_0),\\
-   \text{i.e.} ~~~ \text{d}(F_p\circ\cdots\circ F_1)^*(x_0)
-   ~&=~  \text{d} F_1^*(x_0) \circ\cdots \circ \text{d}F_p^*(x_{p-1}),\\
-   \text{i.e.}~~~~~~~~~~~~~~~~~\big[\partial F(x_0)\big](e)~&=~
-   \big[\partial F_1(x_0)\big]\big( \cdots \big[\partial F_p(x_{p-1})\big](e) \big).
+   \begin{align*}
+    & &\text{d}(F_p\circ\cdots\circ F_1)(x_0) &= \text{d}F_p(x_{p-1}) \circ\cdots \circ \text{d} F_1(x_0),\\
+    &\text{i.e.}& \text{d}(F_p\circ\cdots\circ F_1)^*(x_0) &=  \text{d} F_1^*(x_0) \circ\cdots \circ \text{d}F_p^*(x_{p-1}),\\
+    &\text{i.e.}& \big[\partial F(x_0)\big](e) &= \big[\partial F_1(x_0)\big]\big( \cdots \big[\partial F_p(x_{p-1})\big](e) \big).
+   \end{align*}
 
 
 When :math:`F` is scalar-valued (i.e. :math:`d=1`),
 this algorithm allows us to compute the vector of partial derivatives
 
 .. math::
-    \nabla F(x_0)~=~ \big[\partial F(x_0)\big](1)
+    \nabla F(x_0)= \big[\partial F(x_0)\big](1)
 
 with a mere forward-backward pass through the computational graph of :math:`F`...
 which is much cheaper than the naive evaluation of :math:`n` finite differences of :math:`F`.
@@ -130,7 +130,7 @@ Coming back to our :ref:`previous example <formula.example>` where the formula
 
 .. math::
 
-  F(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1..M, u=1,2,3} \in \mathbb R^{M\times 3}
+  F(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1,\cdots,M, u=1,2,3} \in \mathbb R^{M\times 3}
 
 .. code-block:: cpp
 
@@ -161,7 +161,7 @@ With aliases, this computation simply reads:
 User interface
 --------------
 
-As evidenced by this :doc:`example <../_auto_examples/plot_generic_syntax_numpy>`,
+As evidenced by this :doc:`example <../_auto_examples/numpy/plot_generic_syntax_numpy>`,
 the simple ``Grad`` syntax can relieve you from the burden of differentiating
 symbolic formulas by hand.
 
@@ -171,5 +171,5 @@ feel free to use the output of a ``pykeops.torch`` routine just like any other
 differentiable tensor!
 Thanks to the flexibility of the ``torch.autograd`` engine,
 end-to-end automatic differentiation is at hand: 
-see this :doc:`example <../_auto_examples/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/plot_generic_syntax_pytorch_LSE>`.
+see this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`.
 

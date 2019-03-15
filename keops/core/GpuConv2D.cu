@@ -5,8 +5,10 @@
 #include <cuda.h>
 
 #include "core/Pack.h"
+#include "core/CudaErrorCheck.cu"
 
 namespace keops {
+
 template <typename T>
 __device__ static constexpr T static_max_device(T a, T b) {
     return a < b ? b : a;
@@ -164,14 +166,14 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     const int SIZEP = DIMSP::SIZE;
 
     // Compute on device : grid is 2d and block is 1d
-    cudaDeviceProp deviceProp;
     int dev = -1;
     CudaSafeCall(cudaGetDevice(&dev));
-    CudaSafeCall(cudaGetDeviceProperties(&deviceProp, dev));
+
+    SetGpuProps(dev);
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
+    blockSize.x = min(CUDA_BLOCK_SIZE,min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
@@ -387,14 +389,14 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
     TYPE **px_d, **py_d, **pp_d;
 
     // Compute on device : grid is 2d and block is 1d
-    cudaDeviceProp deviceProp;
     int dev = -1;
     CudaSafeCall(cudaGetDevice(&dev));
-    CudaSafeCall(cudaGetDeviceProperties(&deviceProp, dev));
+
+    SetGpuProps(dev);
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
+    blockSize.x = min(CUDA_BLOCK_SIZE,min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);

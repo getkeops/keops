@@ -1,6 +1,6 @@
 """
-Custom LogSumExp reductions with the Pytorch backend
-===========================================================
+LogSumExp reductions - vectorial version (pytorch)
+==================================================
 """
 
 ####################################################################
@@ -8,7 +8,7 @@ Custom LogSumExp reductions with the Pytorch backend
 # :math:`c_i` are given by:
 #    
 # .. math::
-#   c_i = \log \left[ \sum_j \exp\left( (p-a_j)^2 \exp(x_i+y_j) \right) \right]
+#   c_i = \log \left[ \sum_j \exp\left( (p-a_j)^2 \exp(x_i+y_j) \right) b_j\right]
 # 
 # where 
 # 
@@ -16,13 +16,14 @@ Custom LogSumExp reductions with the Pytorch backend
 # * :math:`y` is a (5000,1) tensor, with entries :math:`y_j`.
 # * :math:`a` is a (5000,1) tensor, with entries :math:`a_j`.
 # * :math:`p` is a scalar, encoded as a vector of size (1,).
+# * :math:`b` is a (5000,3) tensor, with entries :math:`b_j`.
 #
 
 
 
 ####################################################################
 # Setup
-# ------------------
+# -----
 #
 # Standard imports:
 
@@ -44,17 +45,20 @@ x = torch.rand(M, 1, dtype=torchtype)
 y = torch.rand(N, 1, dtype=torchtype, requires_grad=True)
 a = torch.rand(N, 1, dtype=torchtype)
 p = torch.rand(1, 1, dtype=torchtype)
+b = torch.rand(N, 3, dtype=torchtype)
 
 ####################################################################
 # Define a custom formula
-# -------------------------
+# -----------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
-variables = ['x = Vx(1)',  # First arg   : i-variable, of size 3
-             'y = Vy(1)',  # Second arg  : j-variable, of size 3
+formula2 = 'b'
+variables = ['x = Vx(1)',  # First arg   : i-variable, of size 1 (scalar)
+             'y = Vy(1)',  # Second arg  : j-variable, of size 1 (scalar)
              'a = Vy(1)',  # Third arg   : j-variable, of size 1 (scalar)
-             'p = Pm(1)']  # Fourth  arg : Parameter,  of size 1 (scalar)
-         
+             'p = Pm(1)',  # Fourth arg  : Parameter,  of size 1 (scalar)
+             'b = Vy(3)']  # Fifth arg   : j-variable, of size 3 (vector)
+                      
 start = time.time()
 
 ####################################################################
@@ -62,9 +66,8 @@ start = time.time()
 # i.e. on the axis ``1`` of the kernel matrix.
 # The output c is an :math:`x`-variable indexed by :math:`i`.
 
-my_routine = Genred(formula, variables, 
-                    reduction_op='LogSumExp', axis=1, cuda_type=type)
-c = my_routine(x, y, a, p, backend='CPU')
+my_routine = Genred(formula, variables, reduction_op='LogSumExp', axis=1, cuda_type=type, formula2=formula2)
+c = my_routine(x, y, a, p, b, backend='CPU')
 
 # N.B.: By specifying backend='CPU', we can make sure that the result is computed using a simple C++ for loop.
 print('Time to compute the convolution operation on the cpu: ', round(time.time()-start,5), 's', end=' ')
@@ -72,14 +75,14 @@ print('Time to compute the convolution operation on the cpu: ', round(time.time(
 #######################################################################
 # We compare with the unstable, naive computation "Log of Sum of Exp":
 
-my_routine2 = Genred('Exp('+formula+')', variables, reduction_op='Sum', axis=1, cuda_type=type)
-c2 = torch.log(my_routine2(x, y, a, p, backend='CPU'))
+my_routine2 = Genred('Exp('+formula+')*'+formula2, variables, reduction_op='Sum', axis=1, cuda_type=type)
+c2 = torch.log(my_routine2(x, y, a, p, b, backend='CPU'))
 print('(relative error: ',((c2-c).norm()/c.norm()).item(), ')')
 
 
 ####################################################################
 # Compute the gradient
-# ---------------------
+# --------------------
 # Now, let's compute the gradient of :math:`c` with 
 # respect to :math:`y`. Since :math:`c` is not scalar valued, 
 # its "gradient" :math:`\partial c` should be understood as the adjoint of the 
@@ -122,10 +125,10 @@ print('(relative error: ',((g2-g).norm()/g.norm()).item(), ')')
 
 if torch.cuda.is_available():
     # first transfer data on gpu
-    pc, ac, xc, yc, ec = p.cuda(), a.cuda(), x.cuda(), y.cuda(), e.cuda()
+    pc, ac, xc, yc, bc, ec = p.cuda(), a.cuda(), x.cuda(), y.cuda(), b.cuda(), e.cuda()
     # then call the operations
     start = time.time()
-    c3 = my_routine(xc, yc, ac, pc, backend='GPU')
+    c3 = my_routine(xc, yc, ac, pc, bc, backend='GPU')
     print('Time to compute convolution operation on the gpu:',round(time.time()-start,5), 's ', end='')
     print('(relative error:', float(torch.abs((c2 - c3.cpu()) / c2).mean()), ')')
     start = time.time()

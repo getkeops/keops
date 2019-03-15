@@ -70,7 +70,7 @@ def plot_kernel(params) :
 #
 #      k(x_i,y_j) = \exp( -\|x - y\|_{\Gamma}^2) = \exp( -  (x_i - y_j)^t \Gamma (x_i-y_j) )
 # 
-# which is equivalent to the KeOps formula ``exp(-WeightedSquareNorm(gamma, x_i-y_j ))``. But it can also be easily defined with :doc:`kernel_product wrapper <../python/kernel-product>` :
+# which is equivalent to the KeOps formula ``exp(-WeightedSquareNorm(gamma, x_i-y_j ))``. But it can also be easily defined with :doc:`kernel_product wrapper <../../python/kernel-product>` :
 
 params = {'id' : Kernel('gaussian(x,y)')}
 

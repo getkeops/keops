@@ -100,7 +100,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_sum(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
         formula = 'Square(p-a)*Exp(x+y)'
         axis = 1  # 0 means summation over i, 1 means over j
@@ -127,7 +127,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_generic_syntax_lse(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
 
@@ -150,9 +150,38 @@ class NumpyUnitTestCase(unittest.TestCase):
                 self.assertTrue(np.allclose(gamma_keops.ravel(), gamma_py, atol=1e-6))
             
     ############################################################
+    def test_generic_syntax_softmax(self):
+    ############################################################
+        from pykeops.numpy import Genred
+        aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
+        formula_weights = 'y'
+        
+        if pykeops.gpu_available:
+            backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
+        else:
+            backend_to_test = ['auto']
+
+        for b, t in itertools.product(backend_to_test, self.type_to_test):
+            with self.subTest(b=b, t=t):
+
+                # Call cuda kernel
+                myop = Genred(formula, aliases, reduction_op='SoftMax', axis=1, cuda_type=t, formula2=formula_weights)
+                gamma_keops= myop(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
+
+                # Numpy version
+                def np_softmax(x,w):
+                    x -= np.max(x,axis=1)[:,None] # subtract the max for robustness
+                    return np.exp(x)@w/np.sum(np.exp(x),axis=1)[:,None]
+                gamma_py = np_softmax((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), self.y)
+                
+                # compare output
+                self.assertTrue(np.allclose(gamma_keops.ravel(), gamma_py.ravel(), atol=1e-6))
+                        
+    ############################################################
     def test_non_contiguity(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         
         t = self.type_to_test[0]
 
@@ -172,7 +201,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_heterogeneous_var_aliases(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         
         t = self.type_to_test[0]
 
@@ -192,7 +221,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_formula_simplification(self):
     ############################################################
-        from pykeops.numpy.generic.generic_red import Genred
+        from pykeops.numpy import Genred
         
         t = self.type_to_test[0]
 
@@ -208,6 +237,21 @@ class NumpyUnitTestCase(unittest.TestCase):
         
         # compare output
         self.assertTrue(np.allclose(gamma_keops, gamma_py, atol=1e-6))
+
+    def test_argkmin(self):
+
+        from pykeops.numpy import Genred
+        formula = 'SqDist(x,y)'
+        variables = ['x = Vx('+str(self.D)+')',  # First arg   : i-variable, of size D
+                     'y = Vy('+str(self.D)+')']  # Second arg  : j-variable, of size D
+
+
+        my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, cuda_type=self.type_to_test[1], opt_arg=3)
+
+        c = my_routine(self.x, self.y, backend="auto").astype(int)
+        cnp = np.argsort(np.sum((self.x[:,np.newaxis,:] - self.y[np.newaxis,:,:]) ** 2, axis=2), axis=1)[:,:3]
+        self.assertTrue(np.allclose(c.ravel(),cnp.ravel()))
+
 
 if __name__ == '__main__':
     unittest.main()

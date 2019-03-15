@@ -54,9 +54,9 @@ extensions = [
 
 sphinx_gallery_conf = {
      # path to your examples scripts
-     'examples_dirs': ['../pykeops/examples', '../pykeops/tutorials'],
+     'examples_dirs': ['../pykeops/examples', '../pykeops/tutorials', '../pykeops/benchmarks'],
      # path where to save gallery generated examples
-     'gallery_dirs': ['./_auto_examples', '_auto_tutorials'],
+     'gallery_dirs': ['./_auto_examples', '_auto_tutorials', '_auto_benchmarks'],
 }
 
 # Generate the API documentation when building

@@ -75,6 +75,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Devic
         }
     } else if(tagHostDevice == 1) { // Data is on the device
 #if USE_CUDA       
+        assert(Device_Id < std::numeric_limits<c10::DeviceIndex>::max());  // check that int will fit in a c10::DeviceIndex type
        auto result_array = torch::empty({nout, dimout}, at::device({at::kCUDA,Device_Id}).dtype(AT_TYPE).requires_grad(true));
         if (tagRanges == 0) { // Full M-by-N computation
             if(tag1D2D==0) // "GPU_1D"

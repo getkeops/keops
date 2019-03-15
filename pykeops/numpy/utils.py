@@ -1,5 +1,29 @@
 import numpy as np
+from pykeops.numpy import Genred
+from pykeops.numpy.generic.generic_red import Genred_lowlevel
 
+class numpytools :
+    norm = np.linalg.norm
+    arraysum = np.sum
+    Genred = Genred
+    Genred_lowlevel = Genred_lowlevel
+    exp = np.exp
+    log = np.log
+    def __init__(self):
+        self.copy = lambda x : np.copy(x)
+        self.transpose = lambda x : x.T
+        self.numpy = lambda x : x
+        self.tile = lambda *args : np.tile(*args)
+        self.solve = lambda *args : np.linalg.solve(*args)
+        self.size = lambda x : x.size
+        self.view = lambda x,s : np.reshape(x,s)
+    def set_types(self,x):
+        self.dtype = x.dtype.name
+        self.rand = lambda m, n : np.random.rand(m,n,dtype=self.dtype)
+        self.randn = lambda m, n : np.random.randn(m,n,dtype=self.dtype)
+        self.zeros = lambda shape : np.zeros(shape,dtype=self.dtype)
+        self.eye = lambda n : np.eye(n,dtype=self.dtype)
+        self.array = lambda x : np.array(x,dtype=self.dtype)
 
 def squared_distances(x, y):
     x_norm = (x ** 2).sum(1).reshape(-1, 1)
@@ -66,6 +90,26 @@ def log_sum_exp(mat, axis=0):
     max_rc = mat.max(axis=axis)
     return max_rc + np.log(np.sum(np.exp(mat - np.expand_dims(max_rc, axis=axis)), axis=axis))
 
+def IsGpuAvailable():
+    # testing availability of Gpu: 
+    try:
+        import GPUtil
+        useGpu = len(GPUtil.getGPUs())>0
+    except:
+        useGpu = False
+    return useGpu
 
+def WarmUpGpu():
+    # dummy first calls for accurate timing in case of GPU use
+    formula = 'Exp(-oos2*SqDist(x,y))*b'
+    aliases = ['x = Vx(1)',  # First arg   : i-variable, of size 1
+                 'y = Vy(1)',  # Second arg  : j-variable, of size 1
+                 'b = Vy(1)',  # Third arg  : j-variable, of size 1
+                 'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, cuda_type='float64')
+    dum = np.random.rand(10,1)
+    dum2 = np.random.rand(10,1)
+    my_routine(dum,dum,dum2,np.array([1.0]))
+    my_routine(dum,dum,dum2,np.array([1.0]))
 
 

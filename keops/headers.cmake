@@ -28,10 +28,6 @@ endif()
 
 message(STATUS "Using shared_obj_name: ${shared_obj_name}")
 
-# Template macros.
-add_definitions(-D_FORCE_INLINES)
-add_definitions(-DCUDA_BLOCK_SIZE=192)
-
 # - type for computation. The CACHE option enable to see it in ccmake.
 if(NOT __TYPE__)
     Set(__TYPE__ float CACHE STRING "Precision type of the computations (float or double)")

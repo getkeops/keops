@@ -10,10 +10,11 @@ try:
 except:
     pykeops.gpu_available = False
 
+default_cuda_type = 'float64' # 'float32' or 'float64'
 
 ##########################################################
 # Import pyKeOps routines 
 
-from pykeops.numpy.generic.generic_red import Genred
+from .operations import Genred
 from .convolutions.radial_kernel import RadialKernelConv, RadialKernelGrad1conv
 

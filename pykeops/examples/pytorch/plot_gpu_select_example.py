@@ -8,33 +8,36 @@ operation will be performed, on systems having several devices.
 
 """
 
-# import sys, os.path
-# sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
-
-import pykeops
-pykeops.verbose = False
-
+import numpy as np
 import torch
 
-# Define the list of gpu ids to be tested
-# By default we assume we have two Gpus available, labeled 0 and 1
-gpuids = [0,1] if torch.cuda.device_count() > 1 else [0]
+from pykeops.numpy import Genred
 
 ###############################################################
-#  -------------------------
+# GPU selection
+# -------------
+#
+# Define the list of gpu ids to be tested. By default we assume we have two Gpus available, labeled 0 and 1
+
+gpuids = [0,1] if torch.cuda.device_count() > 1 else [0]
+
+
+###############################################################
+# Kernel
+# -------------
+# Formula :
+
+formula = 'Square(p-a)*Exp(x+y)'
+variables = ['x = Vx(3)','y = Vy(3)','a = Vy(1)','p = Pm(1)']
+
+type = 'float32'  # May be 'float32' or 'float64'
+
+###############################################################
 #  Tests with numpy bindings                   
 #  -------------------------
 #  we use the same example as in generic_syntax_numpy.py       
 #
 
-import numpy as np
-from pykeops.numpy import Genred
-
-type = 'float32'  # May be 'float32' or 'float64'
-
-# formula :
-formula = 'Square(p-a)*Exp(x+y)'
-variables = ['x = Vx(3)','y = Vy(3)','a = Vy(1)','p = Pm(1)']
 my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
 
 # We first use KeOps numpy bindings
@@ -58,9 +61,7 @@ for gpuid in gpuids:
     print('(relative error:', float(np.abs((c - d) / c).mean()), ')')
 
 
-
 ###############################################################
-# ---------------------------
 # Tests with pytorch bindings                   
 # ---------------------------
 

@@ -1,6 +1,6 @@
 from pykeops.common.utils import cat2axis
 from pykeops.common.parse_type import get_type
-from pykeops.torch.generic.generic_red import Genred
+from pykeops.torch import Genred
 
 
 def generic_sum(formula, output, *aliases, **kwargs) :
