@@ -2,13 +2,13 @@
 Grid clustering
 ================
 
-This script showcases the use of the optional 'ranges' argument
+This script showcases the use of the optional **ranges** argument
 to compute block-sparse kernel products.
 
 """
 
 #############################
-#  Standard imports
+#  Standard imports:
 #
 
 import time
@@ -24,9 +24,9 @@ use_cuda = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
    
 #####################
-# Define our dataset
+# Define our dataset:
 #
-M, N = (100000, 100000) if use_cuda else (2000, 2000)
+M, N = (5000, 5000) if use_cuda else (2000, 2000)
 
 t = torch.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = torch.stack((.4 + .4 * (t / 7) * t.cos(), .5 + .3 * t.sin()), 1)
@@ -37,7 +37,7 @@ y = torch.randn(N,2).type(dtype)
 y = y/10 + dtype([.6,.6])
 
 ####################################################################
-# Voxelization 
+# Voxelization:
 #
 
 if use_cuda : torch.cuda.synchronize()
@@ -68,7 +68,7 @@ end = time.time()
 print("Sort the points          : {:.4f}s".format(end-start))
 
 ####################################################################
-# Interaction threshold
+# Interaction threshold:
 #
 
 sigma = .05
@@ -96,9 +96,13 @@ print("We keep {:.2e}/{:.2e} = {:2d}% of the original kernel matrix.".format(
 print("")
 
 ####################################################################
-# Benchmark Gaussian convolution
+# Benchmark Gaussian convolution:
 #
-
+# .. note::
+#   The standard KeOps routine are already *very* efficient:
+#   speed-ups with multiscale, block-sparse schemes only start to
+#   kick on around the "20,000 points" mark.
+#
 g = torch.Tensor( [1/(2*sigma**2)] ).type(dtype)
 b = torch.randn(N, 1).type(dtype)
 
@@ -139,10 +143,10 @@ for backend in backends :
     print("")
 
 ####################################################################
-# Display 
+# Display:
 #
 if M + N <= 500000 :
-    clust_i = 75
+    clust_i = 50
     ranges_i, slices_j, redranges_j = ranges_ij[0:3]
     start_i, end_i = ranges_i[clust_i]
     start,end = slices_j[clust_i-1], slices_j[clust_i]

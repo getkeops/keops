@@ -5,9 +5,7 @@ PyTorch API
 
 .. currentmodule:: pykeops.torch
 .. autosummary:: 
-
     Genred
-    Genred.__call__
 
 :mod:`pykeops.torch` - :doc:`Math-friendly <generic-reduction>` aliases:
 
