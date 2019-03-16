@@ -26,7 +26,7 @@ import sphinx_gallery
 from recommonmark.transform import AutoStructify
 
 from pykeops import __version__
-if __version__ == "???" : __version__ = "0.1.2"
+if __version__ == "???" : __version__ = "0.1.7"
 
 # -- General configuration ------------------------------------------------
 
@@ -49,6 +49,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinxcontrib.httpdomain',
     'sphinx_gallery.gen_gallery',
+    'sphinx.ext.napoleon',
 ]
 
 sphinx_gallery_conf = {
@@ -61,6 +62,15 @@ sphinx_gallery_conf = {
 # Generate the API documentation when building
 autosummary_generate = True
 numpydoc_show_class_members = False
+autodoc_member_order = 'alphabetical'
+
+def skip(app, what, name, obj, would_skip, options):
+    if name == "__call__":
+        return False
+    return would_skip
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
 
 # Include the example source for plots in API docs
 # plot_include_source = True

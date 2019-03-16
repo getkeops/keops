@@ -1,4 +1,2 @@
-Example using Numpy
+Numpy API
 -------------------
-
-These short examples showcase the features of the ``pykeops`` module using the numpy backend.

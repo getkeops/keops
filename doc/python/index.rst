@@ -24,4 +24,7 @@ We now fully document the public interface of the ``pykeops`` module, which is a
    generic-syntax
    generic-reduction
    kernel-product
+   sparsity
+   numpy-api
+   pytorch-api
 

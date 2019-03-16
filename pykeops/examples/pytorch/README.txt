@@ -1,4 +1,2 @@
-Example using Pytorch
+Pytorch API
 ---------------------
-
-These short examples showcase the features of the ``pykeops`` module using the pytorch backend.

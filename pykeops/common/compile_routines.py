@@ -84,3 +84,17 @@ def compile_specific_fshape_scp_routine(target, kernel_geom, kernel_sig, kernel_
                     msg='CMAKE')
     run_and_display(['cmake', '--build', '.', '--target', target], msg='MAKE')
     print('Done. ', end='\n', flush=True)
+
+
+def compile_gridcluster(dllname, dimpoints, cuda_type, lang, optional_flags):
+    print('Compiling ' + dllname + ' in ' + build_folder + ':\nGridCluster in dimension ' + str(dimpoints) + ' for ' + lang + ', ' + cuda_type + '... ', end='', flush=True)
+    run_and_display(['cmake', script_folder,
+                     '-GNinja',
+                     '-DCMAKE_BUILD_TYPE=' + build_type,
+                     '-Dshared_obj_name=' + dllname,
+                     '-D__TYPE__=' + c_type[cuda_type],
+                     '-DDIMPOINTS='+str(dimpoints),
+                    ],
+                    msg='CMAKE')
+    run_and_display(['cmake', '--build', '.', '--target', 'gridcluster_'+dllname ], msg='MAKE')
+    print('Done. ', end='\n', flush=True)

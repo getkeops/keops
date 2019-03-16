@@ -247,3 +247,83 @@ if (USE_CUDA)
     endforeach()
 
 endif()
+
+
+########################################################################################################
+#                                        Clustering                                                    #
+########################################################################################################
+
+if (USE_CUDA)
+
+    add_definitions(-DGCMODULE_NAME=gridcluster_${shared_obj_name})
+    CUDA_add_library(
+        gridcluster_cuda_${shared_obj_name} SHARED
+        ${KEOPS_SRC}/cluster/GpuGridLabel.cu
+        OPTIONS --pre-include=${shared_obj_name}.h
+    )
+
+    # set name
+    set_target_properties(gridcluster_cuda_${shared_obj_name} PROPERTIES
+        LIBRARY_OUTPUT_NAME  gridcluster_cuda_${shared_obj_name}
+        PREFIX ""
+    )
+
+
+    # -------------------- Pybind11
+    pybind11_add_module(gridcluster_${shared_obj_name}
+        ${CMAKE_CURRENT_SOURCE_DIR}/torch/cluster/grid_cluster.cpp
+        )
+        
+    # set name
+    set_target_properties(gridcluster_${shared_obj_name} PROPERTIES
+        LIBRARY_OUTPUT_NAME  gridcluster_${shared_obj_name}
+        PREFIX ""
+    )
+
+    target_compile_options(
+            gridcluster_${shared_obj_name} BEFORE
+            PRIVATE  -include ${shared_obj_name}.h
+        )
+
+    # Ensure the shared lib look for the other .so in its own dir.
+    if(APPLE)
+        set_target_properties(gridcluster_${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
+    else()
+        set_target_properties(gridcluster_${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
+    endif()
+
+    target_link_libraries(
+        gridcluster_${shared_obj_name} PUBLIC
+        gridcluster_cuda_${shared_obj_name}
+    )
+
+
+    if(0)
+        #---------------------------------------------------------------------------------------------------
+        CUDA_add_library(
+            gridcluster_cuda SHARED
+            ${KEOPS_SRC}/cluster/GpuGridLabel.cu
+        )
+
+        pybind11_add_module(gridcluster
+            ${CMAKE_CURRENT_SOURCE_DIR}/torch/cluster/grid_cluster.cpp
+        )
+
+        set_target_properties(gridcluster PROPERTIES
+            LIBRARY_OUTPUT_NAME  ${shared_obj_name}
+            PREFIX ""
+        )
+
+        target_compile_options(
+            gridcluster BEFORE
+            PRIVATE  -include ${shared_obj_name}.h
+        )
+
+        target_link_libraries(
+            gridcluster PUBLIC
+            gridcluster_cuda
+        )
+    endif()
+
+    add_definitions(-DDIMPOINTS=${DIMPOINTS})
+endif()
