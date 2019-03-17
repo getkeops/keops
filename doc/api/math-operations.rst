@@ -123,7 +123,7 @@ Simple vector operations:
 ``SqDist(f,g)``              squared L2 distance, same as ``SqNorm2(f-g)``
 =========================   =============================================================================================================
 
-Generic squared euclidean norms, with support for scalar, diagonal and full (symmetric)
+Generic squared Euclidean norms, with support for scalar, diagonal and full (symmetric)
 matrices. If ``f`` is a vector of size `N`, depending on the size of
 ``s``, ``WeightedSqNorm(s,f)`` may refer to:
 
