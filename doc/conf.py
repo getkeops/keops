@@ -100,7 +100,7 @@ project = 'KeOps'
 #import time
 #copyright = '2018-{}, Benjamin Charlier, Jean Feydy, Joan A. Glaunès'.format(time.strftime("%Y"))
 
-copyright = '2018, Benjamin Charlier, Jean Feydy, Joan A. Glaunès'
+copyright = '2018, Benjamin Charlier, Jean Feydy, Joan A. Glaunès.'
 author = 'Benjamin Charlier, Jean Feydy, Joan A. Glaunès.'
 
 # The version info for the project you're documenting, acts as replacement for

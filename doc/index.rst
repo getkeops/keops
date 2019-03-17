@@ -5,7 +5,7 @@
 Kernel Operations on the GPU, with autodiff, without memory overflows
 ---------------------------------------------------------------------
 
-The KeOps library lets you compute generic reductions of **large 2d arrays** whose entries are given by a mathematical formula. It combines a tiled reduction scheme with an automatic differentiation engine, and can be used through Matlab, NumPy or PyTorch backends.
+The KeOps library lets you compute generic reductions of **large 2d arrays** whose entries are given by a mathematical formula. It combines a **tiled reduction scheme** with an **automatic differentiation** engine, and can be used through Matlab, NumPy or PyTorch backends.
 It is perfectly suited to the computation of **Kernel dot products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
@@ -33,11 +33,11 @@ Using the PyTorch backend, a typical sample of code looks like:
 KeOps allows you to leverage your GPU without compromising on usability.
 It provides:
 
-* Linear (instead of quadratic) memory footprint for Kernel operations.
-* Support for a wide range of mathematical formulas.
-* Seamless computation of derivatives, up to arbitrary orders.
-* Sum, LogSumExp, Min, Max but also ArgMin, ArgMax or K-min reductions.
-* Support for multi GPU.
+* **Linear** (instead of quadratic) **memory footprint** for Kernel operations.
+* Support for a wide range of mathematical **formulas**.
+* Seamless computation of **derivatives**, up to arbitrary orders.
+* Sum, LogSumExp, Min, Max but also ArgMin, ArgMax or K-min **reductions**.
+* Support for **multi GPU** configurations.
 
 KeOps can thus be used in a wide variety of settings, 
 from shape analysis (LDDMM, optimal transport...)
@@ -45,19 +45,27 @@ to machine learning (kernel methods, k-means...)
 or kriging (aka. Gaussian process regression).
 More details are provided below:
 
-* :doc:`Documentation <api/why_using_keops>`.
+* :doc:`Documentation <api/why_using_keops>`
 * `Source code <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops>`_
 * :doc:`Learning KeOps with examples <_auto_examples/index>`
 * :doc:`Gallery of tutorials <_auto_tutorials/index>`
+* :doc:`Benchmarks <_auto_benchmarks/index>`
 
 **KeOps is licensed** under the `MIT license <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/licence.txt>`_.
 
 Projects using KeOps
 --------------------
 
-* `Deformetrica <http://www.deformetrica.org>`_ 
-* `FshapesTk <https://plmlab.math.cnrs.fr/benjamin.charlier/fshapesTk>`_
-* `Shapes toolbox <https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox>`_
+As of today, KeOps provides core routines for:
+
+* `Deformetrica <http://www.deformetrica.org>`_, a shape analysis software
+  developed by the `Aramis <https://www.inria.fr/en/teams/aramis>`_ Inria team.
+* `GeomLoss <http://www.kernel-operations.io/geomloss>`_, a multiscale
+  implementation of Kernel and **Wasserstein distances** that scales up to
+  millions of samples on modern hardware.
+* `FshapesTk <https://plmlab.math.cnrs.fr/benjamin.charlier/fshapesTk>`_ and the
+  `Shapes toolbox <https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox>`_,
+  two research-oriented `LDDMM <https://en.wikipedia.org/wiki/Large_deformation_diffeomorphic_metric_mapping>`_ toolkits.
 
 Authors
 -------
@@ -68,10 +76,6 @@ Feel free to contact us for any bug report or feature request:
 - `Jean Feydy <http://www.math.ens.fr/~feydy/>`_
 - `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_
 
-Related project
----------------
-
-You may also be interested in `Tensor Comprehensions <https://facebookresearch.github.io/TensorComprehensions/introduction.html>`_.
 
 Table of content
 ----------------

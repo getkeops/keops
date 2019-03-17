@@ -1,7 +1,7 @@
 Installation
 ============
 
-The core of KeOps relies on a set of C++/CUDA routines for which we provide bindings in several languages. Please click on the link that suits your needs:
+The core of KeOps relies on a set of C++/CUDA routines for which we provide bindings in several languages. Please click on the links below for detailed instructions:
 
 * :doc:`Python (NumPy or PyTorch) <../python/installation>`
 * :doc:`Matlab <../matlab/installation>`
