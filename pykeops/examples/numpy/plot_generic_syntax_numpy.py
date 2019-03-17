@@ -1,5 +1,5 @@
 """
-Sum reduction (numpy)
+Sum reduction 
 =====================
 """
 
@@ -111,7 +111,9 @@ my_grad = Genred(formula_grad, variables_grad, reduction_op='Sum', axis=0, cuda_
 g = my_grad(x, y, a, p, e)
 
 ####################################################################
-# To generate an equivalent code in numpy, we muse compute explicitly the adjoint of the differential (a.k.a. the derivative). To do so, let see :math:`c^i_u` as a function of :math:`y_j`:
+# To generate an equivalent code in numpy, we must compute explicitly the adjoint 
+# of the differential (a.k.a. the derivative). 
+# To do so, let see :math:`c^i_u` as a function of :math:`y_j`:
 #
 # .. math::
 #

@@ -159,16 +159,16 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
             and to compute gradients with respect to ``Vx(..)`` variables:
             
                 - ``ranges_i``, (Mc,2) IntTensor - slice indices
-                :math:`[\\text{start}^I_k,\\text{end}^I_k)` in :math:`[0,M]`
-                that specify our Mc blocks along the axis 0
-                of ":math:`i` variables". 
+                  :math:`[\\text{start}^I_k,\\text{end}^I_k)` in :math:`[0,M]`
+                  that specify our Mc blocks along the axis 0
+                  of ":math:`i` variables". 
                 - ``slices_i``, (Mc,2) IntTensor - slice indices
-                :math:`[\\text{start}^S_k,\\text{end}^S_k)`
-                that specify Mc ranges in ``redranges_j``.
+                  :math:`[\\text{start}^S_k,\\text{end}^S_k)`
+                  that specify Mc ranges in ``redranges_j``.
                 - ``redranges_j``, (Mcc,2) IntTensor - slice indices
-                :math:`[\\text{start}^J_l,\\text{end}^J_l)` in :math:`[0,N]`
-                that specify reduction ranges along the axis 1
-                of ":math:`j` variables".
+                  :math:`[\\text{start}^J_l,\\text{end}^J_l)` in :math:`[0,N]`
+                  that specify reduction ranges along the axis 1
+                  of ":math:`j` variables".
 
             If ``axis=1``, 
             these integer arrays allow us to say
@@ -183,16 +183,16 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
             and to compute gradients with respect to ``Vy(..)`` variables:
             
                 - ``ranges_j``, (Nc,2) IntTensor - slice indices
-                :math:`[\\text{start}^J_k,\\text{end}^J_k)` in :math:`[0,N]`
-                that specify our Nc blocks along the axis 1
-                of ":math:`j` variables". 
+                  :math:`[\\text{start}^J_k,\\text{end}^J_k)` in :math:`[0,N]`
+                  that specify our Nc blocks along the axis 1
+                  of ":math:`j` variables". 
                 - ``slices_j``, (Nc,2) IntTensor - slice indices
-                :math:`[\\text{start}^S_k,\\text{end}^S_k)`
-                that specify Nc ranges in ``redranges_i``.
+                  :math:`[\\text{start}^S_k,\\text{end}^S_k)`
+                  that specify Nc ranges in ``redranges_i``.
                 - ``redranges_i``, (Ncc,2) IntTensor - slice indices
-                :math:`[\\text{start}^I_l,\\text{end}^I_l)` in :math:`[0,M]`
-                that specify reduction ranges along the axis 0
-                of ":math:`i` variables".
+                  :math:`[\\text{start}^I_l,\\text{end}^I_l)` in :math:`[0,M]`
+                  that specify reduction ranges along the axis 0
+                  of ":math:`i` variables".
 
             If ``axis=0``, 
             these integer arrays allow us to say

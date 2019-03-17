@@ -209,7 +209,7 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
     on point clouds.
     
     Its use is explained in the :doc:`documentation <kernel-product>`
-    and showcased in the :doc:`anisotropic kernels <../_auto_examples/plot_anisotropic_kernels>`
+    and showcased in the :doc:`anisotropic kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`
     and :doc:`GMM-fitting <../_auto_tutorials/gaussian_mixture/plot_gaussian_mixture>` tutorials.
 
     Args:

@@ -102,7 +102,7 @@ Having created our kernel-id, and with a few torch tensors at hand, we can feed 
 3. A tuple ``(Y_0, ..., Y_(V-1))`` of torch tensors, with the same size `N` along the dimension 0. We should have ``X_k.size(1) == Y_k.size(1)`` for ``0 <= k <= V-1``. Note that if ``V=1``, we also accept ``Y_0`` in place of ``(Y_0,)``.
 4. A torch tensor ``B`` of shape `N`-by-`E`, with `N` lines and an arbitrary number `E` of columns.
 5. (optional:) A keyword argument ``mode``, a *string* whose value supersedes that of ``parameters["mode"]``.
-5. (optional:) A keyword argument ``backend``, a *string* whose value supersedes that of ``parameters["backend"]``.
+6. (optional:) A keyword argument ``backend``, a *string* whose value supersedes that of ``parameters["backend"]``.
 
 Then, provided that these conditions are satisfied,
 

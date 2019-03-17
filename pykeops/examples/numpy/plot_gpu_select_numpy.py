@@ -63,3 +63,5 @@ for gpuid in gpuids:
     d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
     print('Relative error on gpu {}: {:1.3e}'.format( gpuid, 
             float( np.sum(np.abs(c - d)) / np.sum(np.abs(c)) ) ))
+
+            
