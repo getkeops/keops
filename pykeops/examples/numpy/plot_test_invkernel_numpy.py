@@ -1,62 +1,82 @@
 """
-Invkernel reduction (numpy)
+InvKernel reduction
 ===========================
+
+Let's see how to solve discrete deconvolution problems
+using the **conjugate gradient solver** provided by
+:func:`pykeops.numpy.operations.KernelSolve`.
 """
 
 ###############################################################################
-# Standard imports
+# Setup
 # ----------------
+#
+# Standard imports:
+#
 
 import numpy as np
 import time 
 
-from pykeops.numpy.operations import InvKernelOp
+from pykeops.numpy.operations import KernelSolve
 
 ###############################################################################
-# Define our dataset
-# ------------------
+# Define our dataset:
+#
 
-D = 2
-Dv = 2
-N = 100
-sigma = .1
+N  = 5000   # Number of points
+D  = 2      # Dimension of the ambient space
+Dv = 2      # Dimension of the vectors (= number of linear problems to solve)
+sigma = .1  # Radius of our RBF kernel    
 
-# data
 x = np.random.rand(N, D)
 b = np.random.rand(N, D)
-oos2 = np.array([1.0/sigma**2])
+g = np.array([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 
 ###############################################################################
-# Kernel
-# ------
-# Define the kernel : here a gaussian kernel
+# KeOps kernel
+# ---------------
+#
+# Define a Gaussian RBF kernel:
+#
 
-formula = 'Exp(-oos2*SqDist(x,y))*b'
-aliases = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
-             'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
-             'b = Vy(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
-             'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+formula = 'Exp(- g * SqDist(x,y)) * b'
+aliases = ['x = Vx(' + str(D) + ')',   # First arg:  i-variable of size D
+           'y = Vy(' + str(D) + ')',   # Second arg: j-variable of size D
+           'b = Vy(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
+           'g = Pm(1)']                # Fourth arg: scalar parameter
              
 
 ###############################################################################
-# Define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
-lmbda = 0.01
-Kinv = InvKernelOp(formula, aliases, 'b', lmbda=lmbda, axis=1)
+# Define the inverse kernel operation, with a ridge regularization **alpha**:
+# 
+
+alpha = 0.01
+Kinv = KernelSolve(formula, aliases, "b", lmbda=alpha, axis=1)
 
 ###############################################################################
-# Apply to the data
+# .. note::
+#   This operator uses a conjugate gradient solver and assumes
+#   that **formula** defines a **symmetric**, positive and definite
+#   **linear** reduction with respect to the alias ``"b"``
+#   specified trough the third argument.
+#
+# Apply our solver on arbitrary point clouds:
+#
 
-print("Kernel inversion operation with gaussian kernel, ",N," points in dimension ",D)
+print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
 start = time.time()
-c = Kinv(x,x,b,oos2)
+c = Kinv(x, x, b, g)
 end = time.time()
-print('Time to perform (KeOps):', round(end - start, 5), 's')
+print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
 ###############################################################################
-# Compare with direct numpy implementation
+# Compare with a straightforward Numpy implementation:
+#
+
 start = time.time()
-c_ = np.linalg.solve(lmbda*np.eye(N)+np.exp(-np.sum((x[:,None,:]-x[None,:,:])**2,axis=2)/sigma**2),b)
+K_xx = alpha * np.eye(N) + np.exp( - g * np.sum( (x[:,None,:] - x[None,:,:]) **2, axis=2) )
+c_np = np.linalg.solve( K_xx, b)
 end = time.time()
-print('Time to perform (Numpy):', round(end - start, 5), 's')
-print("relative error = ",np.linalg.norm(c-c_)/np.linalg.norm(c_))
+print('Timing (Numpy implementation):', round(end - start, 5), 's')
+print("Relative error = ", np.linalg.norm(c - c_np) / np.linalg.norm(c_np))
 

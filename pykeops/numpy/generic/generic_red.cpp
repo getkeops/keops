@@ -29,6 +29,11 @@ __TYPE__* get_data(__NUMPYARRAY__ obj_ptri){
 }
 
 template <>
+__INDEX__* get_rangedata(__NUMPYARRAY__ obj_ptri){
+    return (__INDEX__ *) obj_ptri.data();
+}
+
+template <>
 bool is_contiguous(__NUMPYARRAY__ obj_ptri){
     return obj_ptri.c_style;  // always true because of py::array::c_style
 }
@@ -41,18 +46,28 @@ bool is_contiguous(__NUMPYARRAY__ obj_ptri){
 template <>
 __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
                         int nx, int ny, int nout, int dimout,
+                        int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs){
 
     auto result_array = __NUMPYARRAY__({nout,dimout});
-    if (tagCpuGpu == 0) 
-        CpuReduc(nx, ny,  get_data(result_array), castedargs);
+    if (tagCpuGpu == 0) {
+        if (tagRanges == 0) { // Full M-by-N computation
+            CpuReduc(nx, ny, get_data(result_array), castedargs);
+        } else if( tagRanges == 1) { // Block sparsity
+            CpuReduc_ranges(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
+        }
+    }
     else if (tagCpuGpu == 1) {
 #if USE_CUDA
         if (tagHostDevice == 0) {
-            if (tag1D2D == 0)
-                GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
-            else if (tag1D2D == 1)
-                GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
+            if (tagRanges == 0) { // Full M-by-N computation
+                if (tag1D2D == 0)
+                    GpuReduc1D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
+                else if (tag1D2D == 1)
+                    GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
+            } else if( tagRanges == 1) { // Block sparsity
+                GpuReduc1D_ranges_FromHost(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+            }
         } else if (tagHostDevice==1)
             throw std::runtime_error("[KeOps] Gpu computations with Numpy are performed from host data... try to set tagHostDevice to 0.");
 #else

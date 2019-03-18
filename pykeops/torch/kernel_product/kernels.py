@@ -100,6 +100,44 @@ def set_indices(formula, f_ind, v_ind) :
 
 
 class Kernel:
+    """Defines a new Kernel identifier for :func:`kernel_product`.
+    
+    Keyword Args:
+        name (string): 
+
+    Example:
+        >>> M, N = 1000, 2000 # number of "i" and "j" indices
+        >>> # Generate the data as pytorch tensors.
+        >>> #
+        >>> # First, the "i" variables:
+        >>> x = torch.randn(M,3) # Positions,    in R^3
+        >>> u = torch.randn(M,3) # Orientations, in R^3 (for example)
+        >>> #
+        >>> # Then, the "j" ones:
+        >>> y = torch.randn(N,3) # Positions,    in R^3
+        >>> v = torch.randn(N,3) # Orientations, in R^3
+        >>> #
+        >>> # The signal b_j, supported by the (y_j,v_j)'s
+        >>> b = torch.randn(N,4)
+        >>> #
+        >>> # Pre-defined kernel: using custom expressions is also possible!
+        >>> # Notice that the parameter sigma is a dim-1 vector, *not* a scalar:
+        >>> sigma  = torch.tensor([.5])
+        >>> params = {
+        ...     # The "id" is defined using a set of special function names
+        ...     "id"      : Kernel("gaussian(x,y) * (linear(u,v)**2) "),
+        ...     # gaussian(x,y) requires a standard deviation; linear(u,v) requires no parameter
+        ...     "gamma"   : ( 1./sigma**2 , None ) ,
+        ... }
+        >>> #
+        >>> # Don't forget to normalize the orientations:
+        >>> u = torch.nn.functional.normalize(u, p=2, dim=1)
+        >>> v = torch.nn.functional.normalize(v, p=2, dim=1)
+        >>> #
+        >>> # We're good to go! Notice how we grouped together the "i" and "j" features:
+        >>> a = kernel_product(params, (x,u), (y,v), b)  
+        >>> print(a)  
+    """
     def __init__(self, name=None, formula_sum=None, routine_sum=None, formula_log=None, routine_log=None):
         """
         Examples of valid names :
@@ -162,75 +200,140 @@ class Kernel:
             self.routine_log = routine_log
 
 
-def kernel_product(params, x, y, *bs, mode=None, cuda_type='float32'):
-    """
-    Just a simple wrapper around the KernelProduct operation,
-    with a user-friendly "dict" of parameters.
-    It allows you to compute kernel dot products (aka. as discrete convolutions)
-    with arbitrary formulas, using a "sum" or a "log-sum-exp" reduction operation.
+def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float32'):
+    """:doc:`Math-friendly wrapper <kernel-product>` around the :func:`Genred` routine. 
+
+    This routine allows you to compute kernel dot products (aka. as discrete convolutions)
+    with arbitrary formulas, using a **Sum** or a **LogSumExp** reduction operation.
+    It is syntactic sugar, meant to ease the implementation of mixture models
+    on point clouds.
     
-    Returns: ---------------------------------------------------------------------
-    - v (Variable of size (N,E)).
-    
-    If params["mode"] == "sum" (default), we have :
-        v_i =     \sum_j k(x_i, y_j) b_j
-    
-    Otherwise, if params["mode"] == "lse", we have :
-        v_i = log \sum_j exp(c(x_i, y_j) + b_j )
-    where c(x_i,y_j) = log(k(x_i,y_j) )  -- computed with improved numerical accuracy.
-    
-    Args: -------------------------------------------------------------------------
-    - x   (Variable, or a F-tuple of Variables) : 
-            The "F" features of the points (x_i), 1 <= i <= N.
-            All the Variables should be 2d-tensors, with the same size "N"
-            along dimension 0.
-    - y   (Variable, or a F-tuple of Variables) : 
-            The "F" features of the points (y_j), 1 <= j <= M.
-            All the Variables should be 2d-tensors, with the same size "M"
-            along dimension 0.
-    - b   (Variable of size (M,E)) :
-            The vectors associated to the points y_j.
-    - params :
-            A dictionnary, which describes the kernel being used.
+    Its use is explained in the :doc:`documentation <kernel-product>`
+    and showcased in the :doc:`anisotropic kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`
+    and :doc:`GMM-fitting <../_auto_tutorials/gaussian_mixture/plot_gaussian_mixture>` tutorials.
+
+    Args:
+
+        params (dict): Describes the kernel being used.
             It should have the following attributes :
-            - "id"      : a libkp.torch.kernels.Kernel object,
-                        which describes the formulas for "k", "c" and the number of features
-                        ("locations", "location+directions", etc.) being used.
-            - "backend" : "auto",    to use libkp's CPU or CUDA routines (default option).
-                        "pytorch", to fall back on a reference matrix implementation.
-            - "gamma"   : a F-tuple of scalar Variables.
-                        Typically, something along the lines of
-                        "(1/sigma**2, 1/tau**2, 1/kappa**2)" ...
-            - "mode"    : one of "sum" or "lse"
-                        
-    Typical examples of use are given in the tutorials.
-   
-    BONUS MODES : -----------------------------------------------------------------
-    on top of the "normal" kernel products, we provide additionnal
-    operations, related to the Sinkhorn scaling algorithm.
-    These operations require two additional parameters,
-    referred to as "bonus_args = (Alog,Blog)",
-    Variables of size (N,1) and (M,1) respectively,
-    which encode the logarithms of the scaling coefficients.
+
+              - ``"id"`` (:class:`Kernel`): Describes the formulas for 
+                :math:`k(x_i,y_j)`, :math:`c(x_i,y_j)` 
+                and the number of features `F`
+                (locations, location+directions, etc.) being used.
+              - ``"gamma"`` (`tuple of Tensors`): Parameterizes
+                the kernel. Typically, something along the lines of
+                ``(.5/σ**2, .5/τ**2, .5/κ**2)`` for Gaussian or Laplacian kernels...
+
+        x (Tensor, or F-tuple of Tensors): 
+            The `F` features associated to points :math:`x_i`, 
+            for :math:`i\in [0,M)`.
+            All feature Tensors should be 2d, with the
+            same number of lines :math:`M` and an arbitrary number of columns.
+        y (Tensor, or F-tuple of Tensors): 
+            The `F` features associated to points :math:`y_j`, 
+            for :math:`j\in [0,N)`.
+            All feature Tensors should be 2d, with the
+            same number of lines :math:`N` and an arbitrary number of columns,
+            compatible with **x**.
+        b ((N,E) Tensor):
+            The `weights`, or `signal` vectors :math:`b_j` 
+            associated to the points :math:`y_j`.
+        a_log ((M,1) Tensor, optional): If **mode** is one of
+            the ``"log_*"`` reductions, specifies the scalar
+            variable :math:`\\text{Alog}_i`.
+
+        b_log ((N,1) Tensor, optional): If **mode** is one of
+            the ``"log_*"`` reductions, specifies the scalar
+            variable :math:`\\text{Blog}_j`.
+
+    Keyword Args:
+        mode (string): Specifies the reduction operation.
+            The supported values are:
+
+              - ``"sum"`` (default):
+
+                .. math::
+                    v_i =     \sum_j k(x_i, y_j) \cdot b_j
     
-    If       mode == "log_scaled", we have :
-        v_i =     \sum_j exp(c(x_i,y_j) + Alog_i + Blog_j ) * b_j
+              - ``"lse"``:
+
+                .. math::
+                    v_i = \log \sum_j \exp(c(x_i, y_j) + b_j )
+                
+                with :math:`c(x_i,y_j) = \log(k(x_i,y_j) )`
     
-    Else, if mode == "log_scaled_log", we have :
-        v_i = log \sum_j exp(c(x_i,y_j) + Alog_i + Blog_j + b_j )
+              - ``"log_scaled"``:
+
+                .. math::
+                    v_i = \sum_j \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j ) \cdot b_j
+            
+              - ``"log_scaled_log"``:
+
+                .. math::
+                    v_i = \log \sum_j \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j + b_j )
+            
+              -  ``"log_primal"`` (:math:`b_j` is not used):
+
+                .. math::
+                    v_i = \sum_j (\\text{Alog}_i+\\text{Blog}_j-1) \cdot \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j )
+                
+              - ``"log_cost"`` (:math:`b_j` is not used):
+
+                .. math::
+                    v_i = \sum_j -c(x_i,y_j) \cdot \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j )
+        
+        backend (string, default=``"auto"``): Specifies the implementation to run.
+            The supported values are:
+
+            - ``"auto"``: to use libkp's CPU or CUDA routines.
+            - ``"pytorch"``: to fall back on a reference tensorized implementation.
+
+        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` 
+            of the input and output arrays. 
+            The supported values are:
+
+              - ``cuda_type = "float32"`` or ``"float"``.
+              - ``cuda_type = "float64"`` or ``"double"``.
+        
+
+
+    Returns:
+        (M,E) Tensor:
+
+        The output scalar or vector :math:`v_i` sampled on the
+        :math:`x_i`'s.
     
-    Else, if mode == "log_primal", we have :
-        v_i = \sum_j (Alog_i+Blog_j-1) * exp(c(x_i,y_j) + Alog_i + Blog_j )
-        (b_j is not used)
-    
-    Else, if mode == "log_cost", we have :
-        v_i = \sum_j -c(x_i,y_j) * exp(c(x_i,y_j) + Alog_i + Blog_j )
-        (b_j is not used)
+    Example:
+        >>> # Generate the data as pytorch tensors
+        >>> x = torch.randn(1000,3, requires_grad=True)
+        >>> y = torch.randn(2000,3, requires_grad=True)
+        >>> b = torch.randn(2000,2, requires_grad=True)
+        >>> #
+        >>> # Pre-defined kernel: using custom expressions is also possible!
+        >>> # Notice that the parameter sigma is a dim-1 vector, *not* a scalar:
+        >>> sigma  = torch.tensor([.5], requires_grad=True)
+        >>> params = {
+        ...    "id"      : Kernel("gaussian(x,y)"),
+        ...    "gamma"   : .5/sigma**2,
+        ... }
+        >>> #
+        >>> # Depending on the inputs' types, 'a' is a CPU or a GPU variable.
+        >>> # It can be differentiated wrt. x, y, b and sigma.
+        >>> a = kernel_product(params, x, y, b)
+        >>> print(a)
+        tensor([[-0.0898, -0.3760],
+                [-0.8888, -1.3352],
+                [ 1.0236, -1.3245],
+                ...,
+                [ 2.5233, -2.6578],
+                [ 1.3097,  4.3967],
+                [ 0.4095, -0.3039]], grad_fn=<GenredAutogradBackward>)
     """
 
     kernel  = params["id"]
-    if mode is None : mode = params.get("mode", "sum")
-    backend = params.get("backend", "auto")
+    if mode is None:    mode    = params.get("mode", "sum")
+    if backend is None: backend = params.get("backend", "auto")
     # gamma should have been generated along the lines of "Variable(torch.Tensor([1/(s**2)])).type(dtype)"
     gamma   = params["gamma"]
 

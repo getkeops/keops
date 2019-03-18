@@ -12,7 +12,7 @@ Example of interpolation using the generic syntax with numpy bindings.
 import numpy as np
 import time
 from pykeops.numpy import Genred
-from pykeops.numpy.operations import InvKernelOp
+from pykeops.numpy.operations import KernelSolve
 from pykeops.numpy.utils import IsGpuAvailable, WarmUpGpu
 from matplotlib import pyplot as plt
 
@@ -46,7 +46,7 @@ def InterpolationExample(N,D,Dv,sigma,lmbda):
                  'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
              
     # define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
-    Kinv = InvKernelOp(formula, aliases, 'b', lmbda=lmbda, axis=1)
+    Kinv = KernelSolve(formula, aliases, 'b', lmbda=lmbda, axis=1)
     
     ##########################
     # Perform the computations

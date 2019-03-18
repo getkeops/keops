@@ -41,6 +41,36 @@ struct Eval<ZeroReduction<DIM,tagI>,MODE> {
     }
 };
 
+// The signature of *Conv*_ranges is slightly different...
+
+struct CpuConv_ranges;
+struct GpuConv1D_ranges_FromHost;
+
+template < int DIM, int tagI >
+struct Eval<ZeroReduction<DIM,tagI>,CpuConv_ranges> {
+    template < typename TYPE, typename... Args >
+    static int Run(int nx, int ny, 
+                int nranges_x, int nranges_y, __INDEX__ **ranges,
+                TYPE *out, Args... args) {
+        for(int k=0; k<(tagI==0?nx:ny)*DIM; k++)
+            out[k] = 0;
+        return 0;
+    }
+};
+
+template < int DIM, int tagI >
+struct Eval<ZeroReduction<DIM,tagI>,GpuConv1D_ranges_FromHost> {
+    template < typename TYPE, typename... Args >
+    static int Run(int nx, int ny, 
+                int nranges_x, int nranges_y, __INDEX__ **ranges,
+                TYPE *out, Args... args) {
+        for(int k=0; k<(tagI==0?nx:ny)*DIM; k++)
+            out[k] = 0;
+        return 0;
+    }
+};
+
+
 #ifdef __CUDACC__
 // specializations in case of device data
 struct GpuConv1D_FromDevice;
@@ -63,6 +93,23 @@ struct Eval<ZeroReduction<DIM,tagI>,GpuConv2D_FromDevice> {
         return 0;
     }
 };
+
+
+// The signature of *Conv*_ranges is slightly different...
+
+struct GpuConv1D_ranges_FromDevice;
+
+template < int DIM, int tagI >
+struct Eval<ZeroReduction<DIM,tagI>,GpuConv1D_ranges_FromDevice> {
+    template < typename TYPE, typename... Args >
+    static int Run(int nx, int ny, 
+                int nranges_x, int nranges_y, __INDEX__ **ranges,
+                TYPE *out, Args... args) {
+        cudaMemset(out, 0, (tagI==0?nx:ny)*DIM*sizeof(TYPE));
+        return 0;
+    }
+};
+
 #endif
 
 }

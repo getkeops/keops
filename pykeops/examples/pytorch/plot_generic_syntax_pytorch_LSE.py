@@ -1,5 +1,5 @@
 """
-LogSumExp reductions (pytorch)
+LogSumExp reduction
 ==============================
 """
 

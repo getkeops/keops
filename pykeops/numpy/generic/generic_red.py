@@ -13,8 +13,11 @@ class Genred_lowlevel:
         self.cuda_type = cuda_type
         self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
 
-    def __call__(self, *args, backend, device_id):
+    def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         nx, ny = get_sizes(self.aliases, *args)
-        return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, *args) 
+        if ranges is None : ranges = () # To keep the same type
+        
+        return self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *args) 
+        

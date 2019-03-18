@@ -12,7 +12,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
 
 
 from pykeops.common.operations import ConjugateGradientSolver        
-class InvKernelOp:
+class KernelSolve:
     
     def __init__(self, formula, aliases, varinvalias, lmbda=0, axis=0, dtype=default_cuda_type, opt_arg=None):
         reduction_op='Sum'
@@ -30,14 +30,16 @@ class InvKernelOp:
             tmp[i] = s[:s.find("=")].strip()
         self.varinvpos = tmp.index(varinvalias)
 
-    def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6):
+    def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6, ranges=None):
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         nx, ny = get_sizes(self.aliases, *args)
         varinv = args[self.varinvpos]      
+
+        if ranges is None: ranges = ()  # ranges should be encoded as a tuple
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos+1:]
-            res = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, *newargs)
+            res = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
             if self.lmbda:
                 res += self.lmbda*var
             return res

@@ -52,8 +52,7 @@ Instantiation: create a new KeOps routine
 
   Crucially, unlike in our :ref:`C++ interface <part.varCategory>`, you don't have to specify by hand the *indices* of each variable: they are implicitly encoded in the ordering of the list of aliases.
 
-3. ``reduction_op`` (optional, default value = ``"Sum"``): a *string* that specifies the reduction used on the formula. The first column of the :ref:`table of reductions <part.reduction>` lists the possible values.
-  **N.B.:** As of today, vector-valued output is only supported for the ``"Sum"`` reduction. All the other reductions expect the ``formula`` to be scalar-valued.
+3. ``reduction_op`` (optional, default value = ``"Sum"``): a *string* that specifies the reduction used on the formula. The first column of the :ref:`table of reductions <part.reduction>` lists the possible values. **N.B.:** As of today, vector-valued output is only supported for the ``"Sum"`` reduction. All the other reductions expect the ``formula`` to be scalar-valued.
 
 
 4. ``axis``  (optional, default value = ``0``): an *integer* that specifies the dimension of the "kernel matrix" that is reduced. Possible values are:
@@ -93,6 +92,8 @@ Its arguments are:
 
 
 3. ``device_id`` (optional, default value = ``-1``): an *integer* that specifies the GPU that should be used to perform the computation; a negative value lets your system choose the default GPU. This argument is only useful if your system has access to several GPUs.
+
+4. ``ranges`` (optional, default value = None = full reduction): a 6-uple of integer tensors that specifies a **block-sparse** reduction mask, thus allowing you to **skip useless computations** as often as possible. Its use is described in a :doc:`dedicated page of the documentation <sparsity>`.
 
 The output of a KeOps call is always a **2d-tensor** with :math:`M` or :math:`N` lines (if ``axis=1`` or ``axis=0``, respectively) and a number of columns that is inferred from the ``formula``.
 

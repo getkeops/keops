@@ -21,6 +21,11 @@ __TYPE__* get_data(at::Tensor obj_ptri){
 }
 
 template <>
+__INDEX__* get_rangedata(at::Tensor obj_ptri){
+    return obj_ptri.data<__INDEX__>();
+}
+
+template <>
 bool is_contiguous(at::Tensor obj_ptri){
     return obj_ptri.is_contiguous();
 }
@@ -39,41 +44,54 @@ bool is_contiguous(at::Tensor obj_ptri){
 template <>
 at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
                         int nx, int ny, int nout, int dimout,
+                        int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs){
     
-    if(tagHostDevice == 0) {
+    if(tagHostDevice == 0) { // Data is located on Host
 
         auto result_array = torch::empty({nout, dimout}, at::device(at::kCPU).dtype(AT_TYPE).requires_grad(true));
 
-        if (tagCpuGpu == 0) {
-            CpuReduc(nx, ny, get_data(result_array), castedargs);
+        if (tagCpuGpu == 0) { // backend == "CPU"
+            if (tagRanges == 0) { // Full M-by-N computation
+                CpuReduc(nx, ny, get_data(result_array), castedargs);
+            } else if(tagRanges == 1) { // Block sparsity
+                CpuReduc_ranges(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
+            }
             return result_array;
-        } else if(tagCpuGpu==1) {
+        } else if(tagCpuGpu==1) { // backend == "GPU", "GPU_1D", "GPU_2D"
 #if USE_CUDA
-            if(tag1D2D==0) 
-                GpuReduc1D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
-            else if(tag1D2D==1)
-                GpuReduc2D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
+            if (tagRanges == 0) { // Full M-by-N computation
+                if(tag1D2D==0) // "GPU_1D"
+                    GpuReduc1D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
+                else if(tag1D2D==1) // "GPU_2D"
+                    GpuReduc2D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
+            } else if (tagRanges == 1) {// Block sparsity
+                GpuReduc1D_ranges_FromHost(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+            }
             return result_array;
 #else
             throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");
 #endif
         }
-    } else if(tagHostDevice == 1) {
+    } else if(tagHostDevice == 1) { // Data is on the device
 #if USE_CUDA       
-
         assert(Device_Id < std::numeric_limits<c10::DeviceIndex>::max());  // check that int will fit in a c10::DeviceIndex type
-        auto result_array = torch::empty({nout, dimout}, at::device({at::kCUDA, static_cast<c10::DeviceIndex>(Device_Id)}).dtype(AT_TYPE).requires_grad(true));
-        if(tag1D2D==0)
-            GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
-        else if(tag1D2D==1)
-            GpuReduc2D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
+       auto result_array = torch::empty({nout, dimout}, at::device({at::kCUDA,Device_Id}).dtype(AT_TYPE).requires_grad(true));
+        if (tagRanges == 0) { // Full M-by-N computation
+            if(tag1D2D==0) // "GPU_1D"
+                GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
+            else if(tag1D2D==1) // "GPU_2D"
+                GpuReduc2D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
+        } else if (tagRanges == 1) {// Block sparsity
+                GpuReduc1D_ranges_FromDevice(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+        }
         return result_array;
+
 #else
         throw std::runtime_error("[KeOps] No cuda device detected... try to set tagHostDevice to 0.");
 #endif
     }
-    throw std::runtime_error("[KeOps] Meooooooooooooooooow...");
+    throw std::runtime_error("[KeOps] Meooooooooooooooooow..."); // Data is either on Host or Device...
 }
 
 

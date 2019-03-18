@@ -312,14 +312,14 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_invkernel(self):
     ############################################################
         import torch
-        from pykeops.torch.operations import InvKernelOp
+        from pykeops.torch.operations import KernelSolve
         formula = 'Exp(-oos2*SqDist(x,y))*b'
         aliases = ['x = Vx(' + str(self.D) + ')',  # First arg   : i-variable, of size D
                    'y = Vy(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
                    'b = Vy(' + str(self.E) + ')',  # Third arg  : j-variable, of size Dv
                    'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
 
-        Kinv = InvKernelOp(formula, aliases, 'b', lmbda=self.lmbdac, axis=1)
+        Kinv = KernelSolve(formula, aliases, 'b', lmbda=self.lmbdac, axis=1)
         
         c = Kinv(self.xc, self.xc ,self.ac ,self.sigmac)
         c_ = torch.gesv(self.ac, self.lmbdac * torch.eye(self.M, device=self.device) + torch.exp(-torch.sum((self.xc[:,None,:] - self.xc[None,:,:]) ** 2, dim=2) * self.sigmac))[0]
