@@ -98,11 +98,11 @@ Having created our kernel-id, and with a few torch tensors at hand, we can feed 
   - ``"backend" = ["auto"] | "pytorch" | "CPU" | "GPU" | "GPU_1D" | "GPU_2D"`` - optional: the same set of options as in ``Genred``, with an additionnal **pure-vanilla-pytorch** backend that does *not* rely on the KeOps engine.
   - ``"mode"`` - optional, default value = ``"sum"`` : the **operation** performed on the data. The possible values are documented :ref:`below <part.kernel_modes>`.
   
-2. A tuple **(X_0, ..., X_(V-1))** of torch tensors, with the same size `M` along the dimension 0. Note that if V=1, we also accept ``X_0`` in place of ``(X_0,)``.
+2. A tuple ``(X_0, ..., X_(V-1))`` of torch tensors, with the same size `M` along the dimension 0. Note that if V=1, we also accept ``X_0`` in place of ``(X_0,)``.
 3. A tuple ``(Y_0, ..., Y_(V-1))`` of torch tensors, with the same size `N` along the dimension 0. We should have ``X_k.size(1) == Y_k.size(1)`` for ``0 <= k <= V-1``. Note that if ``V=1``, we also accept ``Y_0`` in place of ``(Y_0,)``.
-4. A torch tensor ``B`` of shape `N`-by-`E`, with `N` lines and an arbitrary number `E` of columns.
-5. (optional:) A keyword argument ``mode``, a *string* whose value supersedes that of ``parameters["mode"]``.
-6. (optional:) A keyword argument ``backend``, a *string* whose value supersedes that of ``parameters["backend"]``.
+4. A torch tensor **B** of shape `N`-by-`E`, with `N` lines and an arbitrary number `E` of columns.
+5. (optional:) **mode**, a *string* whose value supersedes that of ``parameters["mode"]``.
+6. (optional:) **backend**, a *string* whose value supersedes that of ``parameters["backend"]``.
 
 Then, provided that these conditions are satisfied,
 
@@ -150,7 +150,7 @@ Kernel computations are not limited to simple kernel products. We thus provide a
 
   a_i =  \log \sum_j \exp \big( \log(K)_{G_0, ...}(\,x^0_i,...\,;\,y^0_j,...\,) \,+\, b_j \big).
 
-- **Scaled Log-Sum-Exp.** If ``mode == 'log_scaled'``, ``kernel_product`` accepts two additional tensor parameters ``U`` (`M`-by-1) and ``V`` (`N`-by-1) :
+- **Scaled Log-Sum-Exp.** If ``mode == 'log_scaled'``, :func:`pykeops.torch.kernel_product` accepts two additional tensor parameters **U** (`M`-by-1) and **V** (`N`-by-1) :
 
 .. code-block:: python
 
@@ -160,7 +160,7 @@ Kernel computations are not limited to simple kernel products. We thus provide a
 
   a_i =  \sum_j \exp \big( \log(K)_{G_0,...}(\,x^0_i,...\,;\,y^0_j,...\,)\,+\,u_i\,+\,v_j\big)\,\cdot\, b_j.
 
-- **Log scaled Log-Sum-Exp.** If ``mode == 'log_scaled_lse'``, ``kernel_product`` accepts two additional tensor parameters ``U`` (`M`-by-1) and ``V`` (`N`-by-1) :
+- **Log scaled Log-Sum-Exp.** If ``mode == 'log_scaled_lse'``, :func:`pykeops.torch.kernel_product` accepts two additional tensor parameters **U** (`M`-by-1) and **V** (`N`-by-1) :
 
 .. code-block:: python
 
@@ -170,7 +170,7 @@ Kernel computations are not limited to simple kernel products. We thus provide a
 
   a_i =  \log \sum_j \exp \big( \log(K)_{G_0,...}(\,x^0_i,...\,;\,y^0_j,...\,)\,+\,u_i\,+\,v_j\,+\, b_j\big).
 
-- **Log scaled barycenter.** If ``mode == 'log_scaled_barycenter'``, ``kernel_product`` accepts three additional tensor parameters ``U`` (`M`-by-1), ``V`` (`N`-by-1) and ``C`` (`M`-by-`E`) :
+- **Log scaled barycenter.** If ``mode == 'log_scaled_barycenter'``, :func:`pykeops.torch.kernel_product` accepts three additional tensor parameters **U** (`M`-by-1), **V** (`N`-by-1) and **C** (`M`-by-`E`) :
 
 .. code-block:: python
 
@@ -180,7 +180,7 @@ Kernel computations are not limited to simple kernel products. We thus provide a
 
   a_i =  \sum_j \exp \big( \log(K)_{G_0,...}(\,x^0_i,...\,;\,y^0_j,...\,)\,+\,u_i\,+\,v_j\big)\,\cdot\, (b_j-c_i).
 
-- **Log-Sum-Exp mult_i.** If ``mode == 'lse_mult_i'``, ``kernel_product`` accepts an additional tensor parameter ``H`` (`M`-by-1) :
+- **Log-Sum-Exp mult_i.** If ``mode == 'lse_mult_i'``, :func:`pykeops.torch.kernel_product` accepts an additional tensor parameter **H** (`M`-by-1) :
 
 .. code-block:: python
 
@@ -190,7 +190,7 @@ Kernel computations are not limited to simple kernel products. We thus provide a
 
   a_i =  \log \sum_j \exp \big( \,h_i\cdot\log(K)_{G_0,...}(\,x^0_i,...\,;\,y^0_j,...\,)\,+\,b_j\big).
 
-- **Sinkhorn cost.** If ``mode == 'sinkhorn_cost'``, ``kernel_product`` accepts two tensor parameters ``S`` (`M`-by-1) and ``T`` (`N`-by-1) **instead** of ``B`` :
+- **Sinkhorn cost.** If ``mode == 'sinkhorn_cost'``, :func:`pykeops.torch.kernel_product` accepts two tensor parameters **S** (`M`-by-1) and **T** (`N`-by-1) **instead** of **B** :
 
 .. code-block:: python
 
@@ -201,7 +201,7 @@ Kernel computations are not limited to simple kernel products. We thus provide a
   a_i =  \sum_j -\log(K)_{G_0,...}(\,x^0_i,...\,;\,y^0_j,...\,) \,\cdot\, \exp \big( \log(K)_{G_0,...}(\,x^0_i,...\,;\,y^0_j,...\,)\,+\,s_i\,+\,t_j\big).
 
 
-- **Sinkhorn primal cost.** If ``mode == 'sinkhorn_primal'``, ``kernel_product`` accepts four tensor parameters ``S`` (`M`-by-1), ``T`` (`N`-by-1), ``U`` (`M`-by-1) and ``V`` (`N`-by-1) **instead** of ``B`` :
+- **Sinkhorn primal cost.** If ``mode == 'sinkhorn_primal'``, :func:`pykeops.torch.kernel_product` accepts four tensor parameters **S** (`M`-by-1), **T** (`N`-by-1), **U** (`M`-by-1) and **V** (`N`-by-1) **instead** of **B** :
 
 .. code-block:: python
 
