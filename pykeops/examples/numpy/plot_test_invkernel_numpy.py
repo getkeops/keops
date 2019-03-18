@@ -4,7 +4,7 @@ InvKernel reduction
 
 Let's see how to solve discrete deconvolution problems
 using the **conjugate gradient solver** provided by
-:func:`pykeops.numpy.operations.InvKernelOp`.
+:func:`pykeops.numpy.operations.KernelSolve`.
 """
 
 ###############################################################################
@@ -17,7 +17,7 @@ using the **conjugate gradient solver** provided by
 import numpy as np
 import time 
 
-from pykeops.numpy.operations import InvKernelOp
+from pykeops.numpy.operations import KernelSolve
 
 ###############################################################################
 # Define our dataset:
@@ -51,7 +51,7 @@ aliases = ['x = Vx(' + str(D) + ')',   # First arg:  i-variable of size D
 # 
 
 alpha = 0.01
-Kinv = InvKernelOp(formula, aliases, "b", lmbda=alpha, axis=1)
+Kinv = KernelSolve(formula, aliases, "b", lmbda=alpha, axis=1)
 
 ###############################################################################
 # .. note::

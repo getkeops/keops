@@ -12,7 +12,7 @@ Example of Radial Basis Function interpolation using the generic syntax with pyt
 import torch
 import time
 from pykeops.torch import Genred
-from pykeops.torch.operations import InvKernelOp
+from pykeops.torch.operations import KernelSolve
 from pykeops.torch.utils import WarmUpGpu
 from matplotlib import pyplot as plt
 
@@ -48,7 +48,7 @@ def InterpolationExample(N,D,Dv,sigma,lmbda):
                  'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
              
     # define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
-    Kinv = InvKernelOp(formula, aliases, 'b', lmbda=lmbda, axis=1, cuda_type=dtype)
+    Kinv = KernelSolve(formula, aliases, 'b', lmbda=lmbda, axis=1, cuda_type=dtype)
     
     ##########################
     # Perform the computations

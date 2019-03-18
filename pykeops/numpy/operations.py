@@ -12,7 +12,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
 
 
 from pykeops.common.operations import ConjugateGradientSolver        
-class InvKernelOp:
+class KernelSolve:
     
     def __init__(self, formula, aliases, varinvalias, lmbda=0, axis=0, dtype=default_cuda_type, opt_arg=None):
         reduction_op='Sum'

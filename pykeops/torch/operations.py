@@ -235,7 +235,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
 
 
 from pykeops.common.operations import ConjugateGradientSolver
-class InvKernelOpAutograd(torch.autograd.Function):
+class KernelSolveAutograd(torch.autograd.Function):
     """
     This class is the entry point to pytorch auto grad engine.
     """
@@ -314,7 +314,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = InvKernelOpAutograd.apply(formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges, *newargs)
+        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
@@ -361,7 +361,7 @@ class InvKernelOpAutograd(torch.autograd.Function):
 
 
 
-class InvKernelOp:
+class KernelSolve:
     """
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
@@ -379,7 +379,7 @@ class InvKernelOp:
         self.lmbda = lmbda
 
     def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6, ranges=None):
-        return InvKernelOpAutograd.apply(self.formula, self.aliases, self.varinvpos, self.lmbda, backend, self.cuda_type, device_id, eps, ranges, *args)
+        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, self.lmbda, backend, self.cuda_type, device_id, eps, ranges, *args)
 
 
 

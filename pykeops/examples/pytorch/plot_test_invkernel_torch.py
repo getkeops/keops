@@ -9,7 +9,7 @@ Invkernel reduction (pytorch)
 import torch
 import time 
 
-from pykeops.torch.operations import InvKernelOp
+from pykeops.torch.operations import KernelSolve
 
 ###############################################################################
 # Define our dataset
@@ -38,7 +38,7 @@ aliases = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
 ###############################################################################
 # Define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
 lmbda = 0.01
-Kinv = InvKernelOp(formula, aliases, 'b', lmbda=lmbda, axis=1)
+Kinv = KernelSolve(formula, aliases, 'b', lmbda=lmbda, axis=1)
 
 ###############################################################################
 # Apply
