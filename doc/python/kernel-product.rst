@@ -1,4 +1,4 @@
-The ``kernel_product`` helper
+The kernel_product helper
 =============================
 
 On top of the low-level operators, we also provide a **kernel name parser** that lets you quickly define and work with most of the kernel products used in shape analysis.  This high-level interface is only compatible with the PyTorch backend and relies on two operators:
@@ -7,8 +7,8 @@ On top of the low-level operators, we also provide a **kernel name parser** that
 
     from pykeops.torch import Kernel, kernel_product
 
-- ``Kernel`` is the name parser: it turns a string identifier (say, ``"gaussian(x,y) * linear(u,v)**2"``) into a set of KeOps formulas.
-- ``kernel_product`` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
+- :mod:`pykeops.torch.Kernel` is the name parser: it turns a string identifier (say, ``"gaussian(x,y) * linear(u,v)**2"``) into a set of KeOps formulas.
+- :func:`pykeops.torch.kernel_product` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
 
 **A quick example:** here is how you can compute a *fully differentiable* Gaussian-RBF kernel product:
 
@@ -27,7 +27,7 @@ On top of the low-level operators, we also provide a **kernel name parser** that
     sigma  = torch.tensor([.5], requires_grad=True)
     params = {
         "id"      : Kernel("gaussian(x,y)"),
-        "gamma"   : 1./sigma**2,
+        "gamma"   : .5 / sigma**2,
     }
 
     # Depending on the inputs' types, 'a' is a CPU or a GPU variable.
@@ -35,17 +35,17 @@ On top of the low-level operators, we also provide a **kernel name parser** that
     a = kernel_product(params, x, y, b)
 
 
-The ``Kernel`` parser
+The Kernel parser
 ---------------------
 
-**Kernel names.** The cornerstone of our high-level syntax is the ``Kernel`` constructor, that takes as input a **string** name and returns a pre-processed kernel identifier. A valid kernel name is built from a small set of atomic formulas, acting on arbitrary pairs of variables and combined using:
+**Kernel names.** The cornerstone of our high-level syntax is the :mod:`pykeops.torch.Kernel` constructor, that takes as input a **string** name and returns a pre-processed kernel identifier. A valid kernel name is built from a small set of atomic formulas, acting on arbitrary pairs of variables and combined using:
 
 - integer constants, 
 - the addition ``+``, 
 - the product ``*``,
 - the integer exponentiation ``**k``.
 
-**Parameters and variables.** Every kernel name is associated to a list of *atomic formulas* (that will require **parameters**) and a list of **pairs of variables**, ordered as they are in the name string. Both *parameters* and *variables* will be required as inputs by ``kernel_product``. A few examples:
+**Parameters and variables.** Every kernel name is associated to a list of *atomic formulas* (that will require **parameters**) and a list of **pairs of variables**, ordered as they are in the name string. Both *parameters* and *variables* will be required as inputs by :func:`pykeops.torch.kernel_product`. A few examples:
 
 - ``"gaussian(x,y)"`` : one formula and one pair of variables.
 - ``"gaussian(x,y) * linear(u,v)**2"`` : two formulas and two pairs of variables.
@@ -86,19 +86,19 @@ j-varying symmetric `D`-by-`D` matrix    `N`-by-`D*D` array
 
 If required by the user, a kernel-id can thus be used to represent non-uniform, non-radial kernels as documented in the :doc:`anisotropic_kernels example <../_auto_examples/pytorch/plot_anisotropic_kernels>`.
 
-The ``kernel_product`` routine
+The kernel_product routine
 ------------------------------
 
-Having created our kernel-id, and with a few torch tensors at hand, we can feed the ``kernel_product`` numerical routine with the appropriate input. More precisely, if ``Kernel("my_kernel_name...")`` defines a kernel with **F formulas** and **V variable pairs**, ``kernel_product`` will accept the following arguments:
+Having created our kernel-id, and with a few torch tensors at hand, we can feed the :func:`pykeops.torch.kernel_product` numerical routine with the appropriate input. More precisely, if :mod:`Kernel("my_kernel_name...")` defines a kernel with **F formulas** and **V variable pairs**, :func:`pykeops.torch.kernel_product` will accept the following arguments:
 
-1. A ``parameters`` dict with the following entries:
+1. A **parameters** dict with the following entries:
 
   - ``"id" = Kernel("my_kernel_name...")`` - **mandatory**: the kernel id, as documented above.
-  - ``"gamma" = (G_0, G_1, ..., G_(F-1))`` - **mandatory**: a list or tuple of formula parameters - one per formula. As documented above, each of them can be either ``None``, a torch vector or a torch 2D tensor. Note that if F=1, we also accept the use of ``"gamma" = G_0`` instead of ``(G_0,)``.
+  - ``"gamma" = (G_0, G_1, ..., G_(F-1))`` - **mandatory**: a list or tuple of formula parameters - one per formula. As documented above, each of them can be either ``None``, a torch vector or a torch 2D tensor. Note that if **F=1**, we also accept the use of ``"gamma" = G_0`` instead of ``(G_0,)``.
   - ``"backend" = ["auto"] | "pytorch" | "CPU" | "GPU" | "GPU_1D" | "GPU_2D"`` - optional: the same set of options as in ``Genred``, with an additionnal **pure-vanilla-pytorch** backend that does *not* rely on the KeOps engine.
   - ``"mode"`` - optional, default value = ``"sum"`` : the **operation** performed on the data. The possible values are documented :ref:`below <part.kernel_modes>`.
   
-2. A tuple ``(X_0, ..., X_(V-1))`` of torch tensors, with the same size `M` along the dimension 0. Note that if V=1, we also accept ``X_0`` in place of ``(X_0,)``.
+2. A tuple **(X_0, ..., X_(V-1))** of torch tensors, with the same size `M` along the dimension 0. Note that if V=1, we also accept ``X_0`` in place of ``(X_0,)``.
 3. A tuple ``(Y_0, ..., Y_(V-1))`` of torch tensors, with the same size `N` along the dimension 0. We should have ``X_k.size(1) == Y_k.size(1)`` for ``0 <= k <= V-1``. Note that if ``V=1``, we also accept ``Y_0`` in place of ``(Y_0,)``.
 4. A torch tensor ``B`` of shape `N`-by-`E`, with `N` lines and an arbitrary number `E` of columns.
 5. (optional:) A keyword argument ``mode``, a *string* whose value supersedes that of ``parameters["mode"]``.

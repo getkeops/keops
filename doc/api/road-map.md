@@ -1,7 +1,8 @@
 Road map
 ========
 
-To-do list:
+To-do list
+-------------
 
 - Put **reference paper** on Arxiv.
 - R bindings.
@@ -10,3 +11,10 @@ To-do list:
   - `Sum<d,V>` operation.
   - `kernel_product` support.
 
+Changelog
+-------------
+
+Version 1.0:
+
+- Added support for block-sparse reductions.
+- Introduced a conjugate gradient solver for Kernel reductions.

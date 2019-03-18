@@ -168,8 +168,8 @@ symbolic formulas by hand.
 
 Going further, our python interface is fully compatible with
 the `PyTorch <https://pytorch.org/>`_ library:
-feel free to use the output of a ``pykeops.torch`` routine **just like any other differentiable tensor**!
-Thanks to the flexibility of the ``torch.autograd`` engine,
+feel free to use the output of a :mod:`pykeops.torch` routine **just like any other differentiable tensor**!
+Thanks to the flexibility of the :mod:`torch.autograd` engine,
 end-to-end automatic differentiation is at hand: 
 see this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`.
 

@@ -1,9 +1,9 @@
 Math-friendly syntax
 ====================
 
-The ``Genred`` operator provides a pythonic interface for the KeOps library.
+The :func:`Genred` operator provides a pythonic interface for the KeOps library.
 To let researchers use our code with maximum efficiency, we also propose
-some math-friendly syntaxic sugar for 
+some math-friendly **syntactic sugar** for 
 `NumPy <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/numpy/generic/generic_ops.py>`_ and
 `PyTorch <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/torch/generic/generic_ops.py>`_:
 
@@ -13,22 +13,22 @@ some math-friendly syntaxic sugar for
     from pykeops.numpy import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
     from pykeops.torch import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 
-These functions are simple wrappers around the ``pykeops.numpy.Genred``
-and ``pykeops.torch.Genred`` modules: they let users
+These functions are simple wrappers around the :func:`pykeops.numpy.Genred`
+and :func:`pykeops.torch.Genred` modules: they let users
 specify the reduction operation and axis with **strings**
 instead of **keyword arguments**.
-They can be used just like the ``Genred(...)`` constructor,
+They can be used just like the :func:`Genred(...)` constructor,
 and accept the following arguments:
 
-1. ``formula`` : a *string*, just as in the :ref:`standard wrapper <part.instantiation>`.
-2. ``output`` : a *string* of the form ``"Out = [Vx|Vy](Dim)"``, where
+1. **formula** : a *string*, just as in the :ref:`standard wrapper <part.instantiation>`.
+2. **output** : a *string* of the form ``"Out = [Vx|Vy](Dim)"``, where
 
     - ``Out`` is a dummy alphanumerical alias.
     - ``Vx`` or ``Vy`` specifies whether the output is indexed by :math:`i` or :math:`j`, with a reduction on the other index.
-    - ``Dim`` is the dimension of the output variable. It should be coherent with ``formula``.
+    - ``Dim`` is the dimension of the output variable. It should be coherent with **formula**.
 
-3. ``*aliases`` : the (unwrapped) list of aliases.
-4. ``cuda_type`` and ``opt_arg``, optional arguments just like in the :ref:`standard wrapper <part.instantiation>`.
+3. ***aliases** : the (unwrapped) list of aliases.
+4. **cuda_type** and **opt_arg**, optional arguments just like in the :ref:`standard wrapper <part.instantiation>`.
 
 Example
 -------
@@ -55,7 +55,7 @@ can be done with:
     b = torch.randn(2000,2)
     
     gaussian_conv = generic_sum(
-        'Exp(-G * SqDist(X,Y)) * B', # F(g,x,y,b) = exp( -g*|x-y|^2 ) * b
+        'Exp(-G * SqDist(X,Y)) * B',  # F(g,x,y,b) = exp( -g*|x-y|^2 ) * b
         'A = Vx(2)',          # Output indexed by "i",        of dim 2
         'G = Pm(1)',          # First arg  is a parameter,    of dim 1
         'X = Vx(3)',          # Second arg is indexed by "i", of dim 3
