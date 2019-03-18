@@ -161,6 +161,6 @@ plt.ylabel('time in s.')
 cmap = plt.get_cmap("tab10")
 fake_handles = [matplotlib.patches.Patch(color=cmap(i)) for i in range(4)]
 
-plt.legend(fake_handles, ['numpy', 'pytorch', 'pykeops', 'pykeos specific'], loc='best')
+plt.legend(fake_handles, ['numpy', 'pytorch', 'pykeops', 'pykeops specific'], loc='best')
 
 plt.show()

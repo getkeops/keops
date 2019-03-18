@@ -8,13 +8,13 @@ KeOps lets you define any reduction operation of the form
 
 .. math::
 
-   \alpha_i = \operatorname{Reduction}_j \big[ F(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
+   \alpha_i = \operatorname{Reduction}_j\limits \big[ F(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
 
 or
 
 .. math::
 
-   \beta_j = \operatorname{Reduction}_i \big[ F(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
+   \beta_j = \operatorname{Reduction}_i\limits \big[ F(x^0_{\iota_0}, ... , x^{n-1}_{\iota_{n-1}})  \big]
 
 where :math:`F` is a symbolic formula, the :math:`x^k_{\iota_k}`'s are vector variables
 and 
