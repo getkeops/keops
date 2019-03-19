@@ -238,7 +238,9 @@ class NumpyUnitTestCase(unittest.TestCase):
         # compare output
         self.assertTrue(np.allclose(gamma_keops, gamma_py, atol=1e-6))
 
+    ############################################################
     def test_argkmin(self):
+    ############################################################
 
         from pykeops.numpy import Genred
         formula = 'SqDist(x,y)'
