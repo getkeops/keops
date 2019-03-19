@@ -37,6 +37,7 @@ It provides:
 * Support for a wide range of mathematical **formulas**.
 * Seamless computation of **derivatives**, up to arbitrary orders.
 * Sum, LogSumExp, Min, Max but also ArgMin, ArgMax or K-min **reductions**.
+* An interface for **block-sparse** and coarse-to-fine strategies.
 * Support for **multi GPU** configurations.
 
 KeOps can thus be used in a wide variety of settings, 
@@ -62,7 +63,7 @@ As of today, KeOps provides core routines for:
   developed by the `Aramis <https://www.inria.fr/en/teams/aramis>`_ Inria team.
 * `GeomLoss <http://www.kernel-operations.io/geomloss>`_, a multiscale
   implementation of Kernel and **Wasserstein distances** that scales up to
-  millions of samples on modern hardware.
+  **millions of samples** on modern hardware.
 * `FshapesTk <https://plmlab.math.cnrs.fr/benjamin.charlier/fshapesTk>`_ and the
   `Shapes toolbox <https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox>`_,
   two research-oriented `LDDMM <https://en.wikipedia.org/wiki/Large_deformation_diffeomorphic_metric_mapping>`_ toolkits.

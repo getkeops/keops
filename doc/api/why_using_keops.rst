@@ -8,9 +8,9 @@ KeOps can now be used on a broad class of problems (:ref:`part.formula`).
 But at heart, the main motivation behind this library is the need to compute fast and scalable Gaussian convolutions (**RBF kernel products**). For
 **very large values** of :math:`M` and :math:`N`, given :
 
-- a target point cloud :math:`(x_i)_{i=1}^M \in  \mathbb R^{M \times D}`,
-- a source point cloud :math:`(y_j)_{j=1}^N \in  \mathbb R^{N \times D}`,
-- a signal :math:`(b_j)_{j=1}^N \in  \mathbb R^{N}` attached to the :math:`y_j`'s,
+- a **target** point cloud :math:`(x_i)_{i=1}^M \in  \mathbb R^{M \times D}`,
+- a **source** point cloud :math:`(y_j)_{j=1}^N \in  \mathbb R^{N \times D}`,
+- a **signal** :math:`(b_j)_{j=1}^N \in  \mathbb R^{N}` attached to the :math:`y_j`'s,
 
 KeOps allows you to compute efficiently
 the array :math:`(a_i)_{i=1}^M \in  \mathbb R^{M}` given by
@@ -26,7 +26,7 @@ you can also get access to the gradient of the :math:`a_i`'s with respect to the
    a_i' =  \sum_j \partial_x K(x_i,y_j) b_j,  \qquad i=1,\cdots,M,
 
 without having to code
-the formula :math:`\partial_x K(x_i,y_j) = -\tfrac{1}{\sigma^2}(x_i - y_j) \exp(-\|x_i - y_j\|^2 / \sigma^2)` !
+the formula :math:`\partial_x K(x_i,y_j) = -\tfrac{1}{\sigma^2}(x_i - y_j) \exp(-\|x_i - y_j\|^2 / 2 \sigma^2)` !
 
 High performances
 -----------------
@@ -34,13 +34,13 @@ High performances
 In recent years, Deep Learning frameworks such as `PyTorch  <http://pytorch.org>`_, `TensorFlow <http://www.tensorflow.org>`_ or `Theano <http://deeplearning.net/software/theano/>`_ have evolved into fully-fledged applied math libraries: with negligible overhead, they bring **automatic differentiation** and **seamless GPU support** to research communities that were used to Matlab, NumPy
 and other tensor-centric frameworks.
 
-Unfortunately, though, *no magic* is involved: optimised CUDA codes still have to be written for every operation provided to end-users. Supporting all the standard mathematical routines thus comes at a **huge engineering cost** for the developers of the main frameworks.  As of 2019, this effort has been mostly restricted to the operations needed to implement **Convolutional Neural Networks**: linear algebra routines and convolutions on *grids*, images and volumes. 
+Unfortunately, though, *no magic* is involved: optimised CUDA codes still have to be written for every single operation provided to end-users. Supporting all the standard mathematical routines thus comes at a **huge engineering cost** for the developers of the main frameworks.  As of 2019, this effort has been mostly restricted to the operations needed to implement **Convolutional Neural Networks**: linear algebra routines and convolutions on *grids*, images and volumes. 
 
 
-Consequently, in array-centric frameworks, a standard way of computing Gaussian convolutions is to create and store in memory the full :math:`M`-by-:math:`N` kernel matrix :math:`K_{i,j}=K(x_i,y_j)`, before computing :math:`(a_i) = (K_{i,j}) (b_j)` as a matrix product.  
+Consequently, in array-centric frameworks, the standard way of computing Gaussian convolutions is to create and store in memory the full :math:`M`-by-:math:`N` kernel matrix :math:`K_{i,j}=K(x_i,y_j)`, before computing :math:`(a_i) = (K_{i,j}) (b_j)` as a matrix product.  
 But for large datasets (say, :math:`M,N \geqslant 10,000`), this is not realistic: **large matrices just don't fit in GPU memories**.
 
-KeOps is all about **letting researchers break through this memory bottleneck**. Relying on an **online map-reduce scheme**, we provide CUDA 
+KeOps is all about **letting researchers break through this memory bottleneck**. Relying on **online map-reduce schemes**, we provide CUDA 
 routines that "sum" the coefficients :math:`K_{i,j}\cdot b_j` as they are computed,
 without ever storing the full matrix :math:`K` in memory.
 
@@ -73,7 +73,7 @@ alongside its **derivatives** with respect to all the variables and parameters.
 
 As of today, we support:
 
-- Most common reduction operations: Summation, (online, numerically stable) :doc:`LogSumExp reduction <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max...
+- Most common reduction operations: Summation, stabilized :doc:`LogSumExp reduction <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max...
 - :doc:`Block-sparse reductions <../_auto_examples/pytorch/plot_grid_cluster>` and kernel matrices.
 - Custom high-level (``'gaussian(x,y) * (1+linear(u,v)**2)'``) and low-level (``'Exp(-G*SqDist(X,Y)) * ( IntCst(1) + Pow((U|V), 2) )'``) syntaxes to compute general formulas.
 - :doc:`High-order derivatives with respect to all parameters and variables <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>`.
