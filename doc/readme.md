@@ -6,14 +6,23 @@ This folder contains source files used to build the KeOps documentation webpage.
 
 If you want to rebuild KeOps documentation, here are the steps: 
 
-* first install required packages via pip:
+
+* first install doxygen
 
 ```
-pip install sphinx sphinx-gallery recommonmark sphinxcontrib-httpdomain sphinx_rtd_theme
+sudo apt install doxygen doxygen-gui doxygen-doc
 ```
+
+* install required packages via pip:
+
+```
+pip install sphinx sphinx-gallery recommonmark sphinxcontrib-httpdomain sphinx_rtd_theme breathe
+```
+
 * Then do
 
 ```
+doxygen Doxyfile
 make html
 ```
 Note that this will run Python examples and tutorials contained in pykeops/examples and pykeops/tutorials, so you should first make sure they run ok on your system.

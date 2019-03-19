@@ -34,6 +34,8 @@ if __version__ == "???" : __version__ = "0.1.7"
 #
 # needs_sphinx = '1.0'
 
+
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
@@ -50,11 +52,14 @@ extensions = [
     'sphinxcontrib.httpdomain',
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.napoleon',
+    'breathe'
 ]
+
+breathe_projects = { "keops_cpp_api": "../xml" }
 
 sphinx_gallery_conf = {
      # path to your examples scripts
-     'examples_dirs': ['../pykeops/examples', '../pykeops/tutorials', '../pykeops/benchmarks'],
+     'examples_dirs': [], #['../../pykeops/examples', '../../pykeops/tutorials', '../../pykeops/benchmarks'],
      # path where to save gallery generated examples
      'gallery_dirs': ['./_auto_examples', '_auto_tutorials', '_auto_benchmarks'],
 }

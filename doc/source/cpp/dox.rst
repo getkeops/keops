@@ -9,8 +9,6 @@ C++ API for Keops
 
 This section documents the use of the KeOps library in C++ codes. We provide many examples in the `./keops/sandbox/ <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/tree/master/keops/sandbox>`_ directory.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Keops++
+.. doxygenindex::
+   :project: keops_cpp_api
 
-   generic-syntax
