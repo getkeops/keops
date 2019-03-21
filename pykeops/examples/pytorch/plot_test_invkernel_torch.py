@@ -1,72 +1,103 @@
 """
-Invkernel reduction (pytorch)
-=============================
+KernelSolve reduction
+===========================
+
+Let's see how to solve discrete deconvolution problems
+using the **conjugate gradient solver** provided by
+:func:`pykeops.torch.KernelSolve`.
 """
+
 ###############################################################################
-# Standard imports
+# Setup
 # ----------------
+#
+# Standard imports:
+#
 
 import torch
 import time 
 
-from pykeops.torch.operations import KernelSolve
+from pykeops.torch import KernelSolve
+
 
 ###############################################################################
-# Define our dataset
-# ------------------
+# Define our dataset:
+#
 
-D = 2
-Dv = 2
-N = 100
-sigma = .1
+N  = 5000   # Number of points
+D  = 2      # Dimension of the ambient space
+Dv = 2      # Dimension of the vectors (= number of linear problems to solve)
+sigma = .1  # Radius of our RBF kernel    
 
-# data
 x = torch.rand(N, D, requires_grad=True)
 b = torch.rand(N, D)
-oos2 = torch.Tensor([1.0/sigma**2])
+g = torch.Tensor([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 
 ###############################################################################
-# Kernel
-# ------
-# define the kernel : here a gaussian kernel
-formula = 'Exp(-oos2*SqDist(x,y))*b'
-aliases = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
-             'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
-             'b = Vy(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
-             'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+# KeOps kernel
+# ---------------
+#
+# Define a Gaussian RBF kernel:
+#
+
+formula = 'Exp(- g * SqDist(x,y)) * b'
+aliases = ['x = Vx(' + str(D) + ')',   # First arg:  i-variable of size D
+           'y = Vy(' + str(D) + ')',   # Second arg: j-variable of size D
+           'b = Vy(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
+           'g = Pm(1)']                # Fourth arg: scalar parameter
+             
 
 ###############################################################################
-# Define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
+# Define the inverse kernel operation, with a ridge regularization **alpha**:
+# 
+
 alpha = 0.01
-Kinv = KernelSolve(formula, aliases, 'b', alpha=alpha, axis=1)
+Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
 
 ###############################################################################
-# Apply
-print("Kernel inversion operation with gaussian kernel, ",N," points in dimension ",D)
+# .. note::
+#   This operator uses a conjugate gradient solver and assumes
+#   that **formula** defines a **symmetric**, positive and definite
+#   **linear** reduction with respect to the alias ``"b"``
+#   specified trough the third argument.
+#
+# Apply our solver on arbitrary point clouds:
+#
+
+print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
 start = time.time()
-c = Kinv(x,x,b,oos2)
+c = Kinv(x, x, b, g)
 end = time.time()
-print('Time to perform (KeOps):', round(end - start, 5), 's')
+print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
 ###############################################################################
-# Compare with direct PyTorch implementation
+# Compare with a straightforward PyTorch implementation:
+#
+
 start = time.time()
-c_ = torch.gesv(b,alpha*torch.eye(N)+torch.exp(-torch.sum((x[:,None,:]-x[None,:,:])**2,dim=2)/sigma**2))[0]
+K_xx = alpha * torch.eye(N) + torch.exp( -torch.sum( (x[:,None,:] - x[None,:,:])**2,dim=2) / (2*sigma**2) )
+c_py = torch.gesv(b, K_xx)[0]
 end = time.time()
-print('Time to perform (PyTorch):', round(end - start, 5), 's')
-print("relative error = ",(torch.norm(c-c_)/torch.norm(c_)).item())
+print('Timing (PyTorch implementation):', round(end - start, 5), 's')
+print("Relative error = ",(torch.norm(c - c_py) / torch.norm(c_py)).item())
+
+
+###############################################################################
+# Compare the derivatives:
+#
+
 
 print("1st order derivative")
 e = torch.randn(N,D)
 start = time.time()
-u, = torch.autograd.grad(c,x,e)
+u, = torch.autograd.grad(c, x, e)
 end = time.time()
-print('Time to perform (KeOps):', round(end - start, 5), 's')
+print('Timing (KeOps derivative):', round(end - start, 5), 's')
 start = time.time()
-u_, = torch.autograd.grad(c_,x,e)
+u_py, = torch.autograd.grad(c_py, x, e)
 end = time.time()
-print('Time to perform (PyTorch):', round(end - start, 5), 's')
-print("relative error = ",(torch.norm(u-u_)/torch.norm(u_)).item())
+print('Timing (PyTorch derivative):', round(end - start, 5), 's')
+print("Relarive error = ",(torch.norm(u - u_py) / torch.norm(u_py)).item())
 
 
 

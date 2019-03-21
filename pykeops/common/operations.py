@@ -43,9 +43,9 @@ def ConjugateGradientSolver(binding,linop,b,eps=1e-6):
     k = 0
     while True:
         Mp = linop(p)
-        alpha = nr2/(p*Mp).sum()
-        a += alpha*p
-        r -= alpha*Mp
+        alp = nr2/(p*Mp).sum()
+        a += alp*p
+        r -= alp*Mp
         nr2new = (r**2).sum()
         if nr2new < delta:
             break
@@ -71,9 +71,9 @@ def KernelLinearSolver(binding,K,x,b,alpha=0,eps=1e-6,precond=False,precondKerne
         rz = (r*z).sum()
         k = 0
         while True:    
-            alpha = rz/(p*linop(p)).sum()
-            a += alpha*p
-            r -= alpha*linop(p)
+            alp = rz/(p*linop(p)).sum()
+            a += alp*p
+            r -= alp*linop(p)
             if (r**2).sum() < eps**2:
                 break
             z = invprecondop(r)

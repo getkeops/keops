@@ -2,19 +2,17 @@
 Anisotropic kernels
 ===================
 
-This example shows how to perform computation with anisotropic 
-kernels.
+Let's see how to encode anisotropic kernels
+with a minimal amount of effort.
 """
 
 
 
 ##############################################
-# Headers
+# Setup
 # -------
-
-
-##############################################
-# Standard import 
+#
+# Standard imports: 
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -23,8 +21,7 @@ import torch
 from pykeops.torch  import Kernel, kernel_product
 
 ##############################################
-# Dataset definition
-# ^^^^^^^^^^^^^^^^^^
+# Dataset:
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
@@ -35,11 +32,14 @@ y = torch.tensor( [
     [ .5, .3],
     [ .7, .5]
     ]).type(dtype)
+
 # Three scalar weights
 b = torch.tensor([
     1., 1., .5
     ]).type(dtype)
-# Remember : b is not a vector, but a 'list of unidimensional vectors'!
+
+# Remember that KeOps is super-picky on the input shapes:
+# b is not a vector, but a 'list of unidimensional vectors'!
 b = b.view(-1,1) 
 
 # Create a uniform grid on the unit square:
@@ -63,24 +63,27 @@ def plot_kernel(params) :
 
 ###############################################
 # Kernel definition
-# ^^^^^^^^^^^^^^^^^
-# Let's use a 'Gaussian' kernel, i.e.
+# ---------------------
+# Let's use a **Gaussian kernel** given  through
 #
 # .. math::
 #
-#      k(x_i,y_j) = \exp( -\|x - y\|_{\Gamma}^2) = \exp( -  (x_i - y_j)^t \Gamma (x_i-y_j) )
+#      k(x_i,y_j) = \exp( -\|x - y\|_{\Gamma}^2) = \exp( -  (x_i - y_j)^t \Gamma (x_i-y_j) ),
 # 
-# which is equivalent to the KeOps formula ``exp(-WeightedSquareNorm(gamma, x_i-y_j ))``. But it can also be easily defined with :doc:`kernel_product wrapper <../../python/kernel-product>` :
+# which is equivalent to the KeOps formula ``exp(-WeightedSquareNorm(gamma, x_i-y_j ))``. 
+# Using the high-level :mod:`pykeops.torch.Kernel`
+# and :func:`pykeops.torch.kernel_product` wrappers, we can simply define:
 
 params = {'id' : Kernel('gaussian(x,y)')}
 
 ###############################################
-# We now have to define the extra entry ``gamma`` in the ``params`` dictionary. It is used as a 'metric multiplier'. Denoting ``D == x.shape[1] == y.shape[1]`` the size of the feature space, the integer ``K`` can be ``1``, ``D`` or ``D*D``. Rules are: 
+# The precise meaning of the computation is then defined through the extra entry ``gamma`` of the ``params`` dictionary, 
+# which will is to be used as a 'metric multiplier'. Denoting ``D == x.shape[1] == y.shape[1]`` the size of the feature space, the integer ``K`` can be ``1``, ``D`` or ``D*D``. Rules are: 
 # 
 # - if ``gamma`` is a vector    (``gamma.shape = [K]``),   it is seen as a fixed parameter
 # - if ``gamma`` is a 2d-tensor (``gamma.shape = [M,K]``), it is seen as a ``j``-variable
 #
-# N.B.: Beware of ``Shape([K]) != Shape([1,K])`` confusions !
+# N.B.: Beware of ``Shape([K]) != Shape([1,K])`` confusions!
 
 
 ###############################################
@@ -88,7 +91,7 @@ params = {'id' : Kernel('gaussian(x,y)')}
 # Isotropic Kernels
 # -----------------
 #
-# If ``K == 1`` (ie ``gamma`` is a float): :math:`\Gamma = \gamma Id_D` is a scalar factor in front of a simple euclidean squared norm. In that case, ``WeightedSquareNorm(gamma, x-y )`` corresponds to 
+# If ``K == 1`` (ie ``gamma`` is a float): :math:`\Gamma = \gamma Id_D` is a scalar factor in front of a simple Euclidean squared norm. In this case, ``WeightedSquareNorm(gamma, x-y )`` corresponds to 
 # 
 # .. math::
 #

@@ -20,9 +20,9 @@ default_cuda_type = 'float32'
 ##########################################################
 # Import pyKeOps routines 
 
-from .operations import Genred
+from .operations import Genred, KernelSolve
 from .kernel_product.kernels import Kernel, kernel_product, kernel_formulas
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 from .kernel_product.formula import Formula
 
-__all__ = sorted(["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin", "Kernel", "kernel_product", "kernel_formulas", "Formula"])
+__all__ = sorted(["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin", "Kernel", "kernel_product", "KernelSolve", "kernel_formulas", "Formula"])
