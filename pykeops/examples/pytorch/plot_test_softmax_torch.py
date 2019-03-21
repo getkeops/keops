@@ -1,75 +1,87 @@
 """
-Softmax reduction (pytorch)
+SoftMax reduction
 ===========================
 """
 
 ###############################################################################
-# The following operation is implemented:
-# 
-# * inputs: 
+# Using the :mod:`pykeops.torch.Genred` API,
+# we show how to perform a computation specified through:
+#  
+# * Its **inputs**: 
 #     
-#     - :math:`x` array of size :math:`M\times 3` representing :math:`M` vectors in :math:`\mathbb R^3`
-#     - :math:`y` array of size :math:`N\times 3` representing :math:`N` vectors in :math:`\mathbb R^3`
-#     - :math:`b` array of size :math:`N\times 2` representing :math:`N` vectors in :math:`\mathbb R^2`
-#
-# * output:
-#
-#     - :math:`z` array of size :math:`M\times 2` representing :math:`M` vectors in :math:`\mathbb R^2` where
+#     - :math:`x`, an array of size :math:`M\times 3` made up of :math:`M` vectors in :math:`\mathbb R^3`,
+#     - :math:`y`, an array of size :math:`N\times 3` made up of :math:`N` vectors in :math:`\mathbb R^3`,
+#     - :math:`b`, an array of size :math:`N\times 2` made up of :math:`N` vectors in :math:`\mathbb R^2`.
+# 
+# * Its **output**:
+#     
+#     - :math:`c`, an array of size :math:`M\times 2` made up of
+#       :math:`M` vectors in :math:`\mathbb R^2` such that
+#       
 #       .. math::
 #         
-#           z_i = \sum_j \exp(K(x_i,y_j))b_j / \sum_j \exp(K(x_i,y_j))
-#     
-#       with :math:`K(x_i,y_j) = |x_i-y_j|^2`.
+#           c_i = \frac{\sum_j \exp(K(x_i,y_j))\,\cdot\,b_j }{\sum_j \exp(K(x_i,y_j))},
+#       
+#       with :math:`K(x_i,y_j) = \|x_i-y_j\|^2`.
 #
-# This example uses the Pytorch bindings
 
 ###############################################################################
-# Standard imports
+# Setup
 # ----------------
+#
+# Standard imports:
 
 import time
 import torch
 from pykeops.torch import Genred
     
 ###############################################################################
-# Define our dataset
-# ------------------
+# Define our dataset:
+#
 
-M = 500
-N = 400
-D = 3
-Dv = 2
+M = 500  # Number of "i" points
+N = 400  # Number of "j" points
+D = 3    # Dimension of the ambient space
+Dv = 2   # Dimension of the vectors
 
 x = 2*torch.randn(M,D)
 y = 2*torch.randn(N,D)
 b = torch.rand(N,Dv)
 
+
 ###############################################################################
-# Kernel
-# ------
+# KeOps kernel
+# ---------------
+# 
+# Create a new generic routine using the :func:`pykeops.numpy.Genred`
+# constructor:
 
 formula = 'SqDist(x,y)'
 formula_weights = 'b'
-aliases = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
-             'y = Vy('+str(D)+')',  # Second arg  : j-variable, of size D
-             'b = Vy('+str(Dv)+')'] # third arg : j-variable, of size Dv
+aliases = ['x = Vx('+str(D)+')',   # First arg:  i-variable of size D
+           'y = Vy('+str(D)+')',   # Second arg: j-variable of size D
+           'b = Vy('+str(Dv)+')']  # Third arg:  j-variable of size Dv
 
-softmax_op = Genred(formula, aliases, reduction_op='SoftMax', axis=1, formula2=formula_weights)
+softmax_op = Genred(formula, aliases, reduction_op='SoftMax', axis=1, 
+                    formula2=formula_weights)
+
+# Dummy first call to warmup the GPU and get accurate timings:
+_ = softmax_op(x, y, b)
+
+###############################################################################
+# Use our new function on arbitrary Numpy arrays:
+#
 
 start = time.time()
 c = softmax_op(x, y, b)
-print("Time to compute the softmax operation (KeOps implementation): ",round(time.time()-start,5),"s")
+print("Timing (KeOps implementation): ",round(time.time()-start,5),"s")
 
 # compare with direct implementation
 start = time.time()
-cc = 0
-for k in range(D):
-    xk = x[:,k][:,None]
-    yk = y[:,k][:,None]
-    cc += (xk-yk.t())**2
+cc  = torch.sum( ( x[:,None,:] - y[None,:,:] ) ** 2, axis=2)
 cc -= torch.max(cc,dim=1)[0][:,None] # subtract the max for robustness
-cc = torch.exp(cc)@b/torch.sum(torch.exp(cc),dim=1)[:,None]
-print("Time to compute the softmax operation (direct implementation): ",round(time.time()-start,5),"s")
+cc  = torch.exp(cc)@b / torch.sum(torch.exp(cc),dim=1)[:,None]
+print("Timing (Numpy implementation): ",round(time.time()-start,5),"s")
 
-print("relative error : ", (torch.norm(c-cc)/torch.norm(c)).item())
+print("Relative error : ", (torch.norm(c - cc) / torch.norm(c)).item())
 

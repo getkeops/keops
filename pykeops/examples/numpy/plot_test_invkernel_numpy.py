@@ -1,5 +1,5 @@
 """
-InvKernel reduction
+KernelSolve reduction
 ===========================
 
 Let's see how to solve discrete deconvolution problems
