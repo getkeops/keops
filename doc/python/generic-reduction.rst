@@ -17,23 +17,7 @@ These functions are simple wrappers around the :func:`pykeops.numpy.Genred`
 and :func:`pykeops.torch.Genred` modules: they let users
 specify the reduction operation and axis with **strings**
 instead of **keyword arguments**.
-They can be used just like the :func:`Genred(...)` constructor,
-and accept the following arguments:
-
-1. **formula** : a *string*, just as in the :ref:`standard wrapper <part.instantiation>`.
-2. **output** : a *string* of the form ``"Out = [Vx|Vy](Dim)"``, where
-
-    - ``Out`` is a dummy alphanumerical alias.
-    - ``Vx`` or ``Vy`` specifies whether the output is indexed by :math:`i` or :math:`j`, with a reduction on the other index.
-    - ``Dim`` is the dimension of the output variable. It should be coherent with **formula**.
-
-3. ***aliases** : the (unwrapped) list of aliases.
-4. **cuda_type** and **opt_arg**, optional arguments just like in the :ref:`standard wrapper <part.instantiation>`.
-
-Example
--------
-
-Coming back to the :ref:`previous example <part.example>`, 
+For instance, coming back to the :ref:`previous example <part.example>`, 
 computing a Gaussian-RBF kernel product
 
 .. math::
@@ -75,14 +59,17 @@ can be done with:
 
 
 
+Full API
+------------
 
 
+.. currentmodule:: pykeops.torch
+.. autosummary:: 
+    generic_sum
+    generic_logsumexp
+    generic_argmin
+    generic_argkmin
 
-
-
-
-
-
-
-
-
+.. automodule:: pykeops.torch
+    :noindex:
+    :members: generic_sum, generic_logsumexp, generic_argmin, generic_argkmin

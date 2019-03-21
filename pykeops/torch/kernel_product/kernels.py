@@ -103,7 +103,82 @@ class Kernel:
     """Defines a new Kernel identifier for :func:`kernel_product`.
     
     Keyword Args:
-        name (string): 
+        name (string): **Computation identifier.**
+            The kernel **name** should be built from a small set 
+            of atomic formulas, acting on arbitrary pairs of variables and **combined** using:
+
+              - integer constants, 
+              - the addition ``+``, 
+              - the product ``*``,
+              - the integer exponentiation ``**k``.
+
+            **Parameters and variables.** Every kernel name is associated to a list of *atomic formulas* (that will require **parameters**) and a list of **pairs of variables**, ordered as they are in the name string. Both **parameters** and **variables** will be required as inputs by :func:`pykeops.torch.kernel_product`. A few examples:
+
+              - ``"gaussian(x,y)"`` : one formula and one pair of variables.
+              - ``"gaussian(x,y) * linear(u,v)**2"`` : two formulas and two pairs of variables.
+              - ``"cauchy(x,y) + gaussian(x,y) * (1 + cauchy(u,v)**2)``: **three** formulas (``cauchy``, ``gaussian`` and ``cauchy`` once again) with **two** pairs of variables (``(x,y)`` first, ``(u,v)`` second)
+
+            Note that by convention, pairs of variables should be denoted by single-letter, non-overlapping duets: ``"gaussian(x',yy)"`` or ``"gaussian(x,y) + cauchy(y,z)"`` are not supported.
+
+            **Atomic formulas.**
+            As of today, the `pre-defined kernel names <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/torch/kernel_product/kernels.py>`_ are:
+
+              - ``linear(x,y)``, the :math:`L^2` scalar product:
+
+                .. math::
+                
+                    k(x,y)~=~\langle x,y\\rangle.   
+            
+              - ``gaussian(x,y)``, the standard RBF kernel:
+
+                .. math::
+
+                    k(x,y)~=~\exp(-\langle x-y, G\, (x-y)\\rangle).
+
+              - ``laplacian(x,y)``, the pointy exponential kernel:
+
+                .. math::
+
+                    k(x,y)~=~\exp(-\sqrt{\langle x-y, G\, (x-y)\\rangle}).
+
+              - ``cauchy(x,y)``, a heavy-tail kernel:
+
+                .. math::
+
+                    k(x,y)~=~1/(1+\langle x-y, G\, (x-y)\\rangle).
+
+              - ``inverse_multiquadric(x,y)``, a very heavy-tail kernel:
+
+                .. math::
+
+                    k(x,y)~=~1/\sqrt{1+\langle x-y, G\, (x-y)\\rangle}.
+
+
+              - ``distance(x,y)``, arbitrary Euclidean norms:
+
+                .. math::
+
+                    k(x,y)~=~\sqrt{\langle x-y, G\, (x-y)\\rangle}.
+
+            **Defining your own formulas** is also possible, and documented in the second part of this :doc:`example <../_auto_examples/pytorch/kernel_product_syntax>`.
+
+
+            **Parameters.** With the exception of the linear kernel (which accepts **None** as its parameter), all these kernels act on arbitrary vectors of dimension `D` and are parametrized by a variable ``G`` that can represent :
+
+            =======================================  ===============================
+            Parameter :math:`G`                      Dimension of the tensor ``G``
+            =======================================  ===============================
+            scalar                                   dim-1 vector
+            diagonal matrix                          dim-`D` vector
+            symmetric `D`-by-`D` matrix              dim-`D*D` vector
+            j-varying scalar                         `N`-by-1 array
+            j-varying diagonal matrix                `N`-by-`D` array
+            j-varying symmetric `D`-by-`D` matrix    `N`-by-`D*D` array
+            =======================================  ===============================
+
+            If required by the user, a kernel-id can thus be used to represent non-uniform, non-radial kernels as documented in the :doc:`anisotropic_kernels example <../_auto_examples/pytorch/plot_anisotropic_kernels>`.
+
+
 
     Example:
         >>> M, N = 1000, 2000 # number of "i" and "j" indices
@@ -139,11 +214,6 @@ class Kernel:
         >>> print(a)  
     """
     def __init__(self, name=None, formula_sum=None, routine_sum=None, formula_log=None, routine_log=None):
-        """
-        Examples of valid names :
-            " gaussian(x,y) * linear(u,v)**2 * gaussian(s,t)"
-            " gaussian(x,y) * (1 + linear(u,v)**2 ) "
-        """
         if name is not None:
             # in the comments, let's suppose that name="gaussian(x,y) + laplacian(x,y) * linear(u,v)**2"
             # Determine the features type from the formula : ------------------------------------------------
@@ -201,7 +271,7 @@ class Kernel:
 
 
 def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float32'):
-    """:doc:`Math-friendly wrapper <kernel-product>` around the :func:`Genred` routine. 
+    """:doc:`Math-friendly wrapper <kernel-product>` around the :func:`Genred` constructor. 
 
     This routine allows you to compute kernel dot products (aka. as discrete convolutions)
     with arbitrary formulas, using a **Sum** or a **LogSumExp** reduction operation.
@@ -211,6 +281,9 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
     Its use is explained in the :doc:`documentation <kernel-product>`
     and showcased in the :doc:`anisotropic kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`
     and :doc:`GMM-fitting <../_auto_tutorials/gaussian_mixture/plot_gaussian_mixture>` tutorials.
+
+
+    Having created a kernel id, and with a few torch tensors at hand, you can feed the :func:`pykeops.torch.kernel_product` numerical routine with the appropriate input. More precisely, if :mod:`Kernel("my_kernel_name...")` defines a kernel with **F formulas** and **V variable pairs**, :func:`pykeops.torch.kernel_product` will accept the following arguments:
 
     Args:
 
@@ -247,9 +320,10 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
             the ``"log_*"`` reductions, specifies the scalar
             variable :math:`\\text{Blog}_j`.
 
+
     Keyword Args:
         mode (string): Specifies the reduction operation.
-            The supported values are:
+            The `supported values <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/torch/kernel_product/features_kernels.py>`_ are:
 
               - ``"sum"`` (default):
 
@@ -268,33 +342,23 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
                 .. math::
                     v_i = \sum_j \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j ) \cdot b_j
             
-              - ``"log_scaled_log"``:
+              - ``"log_scaled_lse"``:
 
                 .. math::
                     v_i = \log \sum_j \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j + b_j )
             
-              -  ``"log_primal"`` (:math:`b_j` is not used):
-
-                .. math::
-                    v_i = \sum_j (\\text{Alog}_i+\\text{Blog}_j-1) \cdot \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j )
-                
-              - ``"log_cost"`` (:math:`b_j` is not used):
-
-                .. math::
-                    v_i = \sum_j -c(x_i,y_j) \cdot \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j )
-        
         backend (string, default=``"auto"``): Specifies the implementation to run.
             The supported values are:
 
             - ``"auto"``: to use libkp's CPU or CUDA routines.
             - ``"pytorch"``: to fall back on a reference tensorized implementation.
 
-        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` 
+        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype**
             of the input and output arrays. 
             The supported values are:
 
-              - ``cuda_type = "float32"`` or ``"float"``.
-              - ``cuda_type = "float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"`` or ``"float"``.
+              - **cuda_type** = ``"float64"`` or ``"double"``.
         
 
 
