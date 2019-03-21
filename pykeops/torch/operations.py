@@ -241,7 +241,7 @@ class KernelSolveAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges, *args):
+    def forward(ctx, formula, aliases, varinvpos, alpha, backend, cuda_type, device_id, eps, ranges, *args):
 
         myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
         
@@ -249,7 +249,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.formula = formula
         ctx.aliases = aliases
         ctx.varinvpos = varinvpos
-        ctx.lmbda = lmbda
+        ctx.alpha = alpha
         ctx.backend = backend
         ctx.cuda_type = cuda_type
         ctx.device_id = device_id
@@ -274,8 +274,8 @@ class KernelSolveAutograd(torch.autograd.Function):
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
             res = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
-            if lmbda:
-                res += lmbda*var
+            if alpha:
+                res += alpha*var
             return res
 
         global copy
@@ -293,7 +293,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         aliases = ctx.aliases
         varinvpos = ctx.varinvpos
         backend = ctx.backend
-        lmbda = ctx.lmbda
+        alpha = ctx.alpha
         cuda_type = ctx.cuda_type
         device_id = ctx.device_id
         eps = ctx.eps
@@ -314,13 +314,13 @@ class KernelSolveAutograd(torch.autograd.Function):
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges, *newargs)
+        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, cuda_type, device_id, eps, ranges, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 9]:  # because of (formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges)
+            if not ctx.needs_input_grad[var_ind + 9]:  # because of (formula, aliases, varinvpos, alpha, backend, cuda_type, device_id, eps, ranges)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -356,7 +356,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                         grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, ranges, *args_g)
                     grads.append(grad)
          
-        # Grads wrt. formula, aliases, varinvpos, lmbda, backend, cuda_type, device_id, eps, ranges, *args
+        # Grads wrt. formula, aliases, varinvpos, alpha, backend, cuda_type, device_id, eps, ranges, *args
         return (None, None, None, None, None, None, None, None, None, *grads)
 
 
@@ -365,7 +365,7 @@ class KernelSolve:
     """
     Note: Class should not inherit from GenredAutograd due to pickling errors
     """
-    def __init__(self, formula, aliases, varinvalias, lmbda=0, axis=0, cuda_type=default_cuda_type):
+    def __init__(self, formula, aliases, varinvalias, alpha=0, axis=0, cuda_type=default_cuda_type):
         reduction_op='Sum'
         # get the index of 'varinv' in the argument list
         tmp = aliases.copy()
@@ -376,10 +376,10 @@ class KernelSolve:
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.varinvpos = varinvpos
         self.cuda_type = cuda_type
-        self.lmbda = lmbda
+        self.alpha = alpha
 
     def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6, ranges=None):
-        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, self.lmbda, backend, self.cuda_type, device_id, eps, ranges, *args)
+        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, self.alpha, backend, self.cuda_type, device_id, eps, ranges, *args)
 
 
 

@@ -37,8 +37,8 @@ aliases = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
 
 ###############################################################################
 # Define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
-lmbda = 0.01
-Kinv = KernelSolve(formula, aliases, 'b', lmbda=lmbda, axis=1)
+alpha = 0.01
+Kinv = KernelSolve(formula, aliases, 'b', alpha=alpha, axis=1)
 
 ###############################################################################
 # Apply
@@ -51,7 +51,7 @@ print('Time to perform (KeOps):', round(end - start, 5), 's')
 ###############################################################################
 # Compare with direct PyTorch implementation
 start = time.time()
-c_ = torch.gesv(b,lmbda*torch.eye(N)+torch.exp(-torch.sum((x[:,None,:]-x[None,:,:])**2,dim=2)/sigma**2))[0]
+c_ = torch.gesv(b,alpha*torch.eye(N)+torch.exp(-torch.sum((x[:,None,:]-x[None,:,:])**2,dim=2)/sigma**2))[0]
 end = time.time()
 print('Time to perform (PyTorch):', round(end - start, 5), 's')
 print("relative error = ",(torch.norm(c-c_)/torch.norm(c_)).item())

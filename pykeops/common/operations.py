@@ -55,7 +55,7 @@ def ConjugateGradientSolver(binding,linop,b,eps=1e-6):
     return a
     
 
-def KernelLinearSolver(binding,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKernel=None):
+def KernelLinearSolver(binding,K,x,b,alpha=0,eps=1e-6,precond=False,precondKernel=None):
     
     tools = get_tools(binding)
             
@@ -83,7 +83,7 @@ def KernelLinearSolver(binding,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKerne
             k += 1
         return a
 
-    def NystromInversePreconditioner(K,Kspec,x,lmbda):
+    def NystromInversePreconditioner(K,Kspec,x,alpha):
         N,D = x.shape
         m = int(np.sqrt(N))
         ind = np.random.choice(range(N),m,replace=False)
@@ -91,11 +91,11 @@ def KernelLinearSolver(binding,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKerne
         M = K(u,u) + Kspec(tools.tile(u,(m,1)),tools.tile(u,(1,m)).reshape(-1,D),x).reshape(m,m)
         def invprecondop(r):
             a = tools.solve(M,K(u,x,r))
-            return (r - K(x,u,a))/lmbda
+            return (r - K(x,u,a))/alpha
         return invprecondop
 
     def KernelLinOp(a):
-        return K(x,x,a) + lmbda*a
+        return K(x,x,a) + alpha*a
         
     def GaussKernel(D,Dv,sigma):
         formula = 'Exp(-oos2*SqDist(x,y))*b'
@@ -146,7 +146,7 @@ def KernelLinearSolver(binding,K,x,b,lmbda=0,eps=1e-6,precond=False,precondKerne
                 precondKernel = GaussKernelNystromPrecond(D,sigma)        
 
     if precond:
-        invprecondop = NystromInversePreconditioner(K,precondKernel,x,lmbda)
+        invprecondop = NystromInversePreconditioner(K,precondKernel,x,alpha)
         a = PreconditionedConjugateGradientSolver(KernelLinOp,b,invprecondop,eps)
     else:
         a = ConjugateGradientSolver(tools,KernelLinOp,b,eps=eps)

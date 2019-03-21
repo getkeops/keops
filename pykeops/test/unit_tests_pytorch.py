@@ -24,7 +24,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     g = np.random.rand(N, 1)
     p = np.random.rand(2)
     sigma = np.array([0.4])
-    lmbda = np.array([0.1])
+    alpha = np.array([0.1])
     
     try:
         import torch
@@ -42,7 +42,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         gc = torch.tensor(g, dtype=type, device=device, requires_grad=True)
         pc = torch.tensor(p, dtype=type, device=device, requires_grad=True)
         sigmac = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
-        lmbdac = torch.tensor(lmbda, dtype=type, device=device, requires_grad=False)
+        alphac = torch.tensor(alpha, dtype=type, device=device, requires_grad=False)
         
         type = torch.float64
         xcd = torch.tensor(x, dtype=type, device=device, requires_grad=True)
@@ -54,7 +54,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         gcd = torch.tensor(g, dtype=type, device=device, requires_grad=True)
         pcd = torch.tensor(p, dtype=type, device=device, requires_grad=True)
         sigmacd = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
-        lmbdacd = torch.tensor(lmbda, dtype=type, device=device, requires_grad=False)
+        alphacd = torch.tensor(alpha, dtype=type, device=device, requires_grad=False)
         
         print('Running Pytorch tests.')
     except:
@@ -319,10 +319,10 @@ class PytorchUnitTestCase(unittest.TestCase):
                    'b = Vy(' + str(self.E) + ')',  # Third arg  : j-variable, of size Dv
                    'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
 
-        Kinv = KernelSolve(formula, aliases, 'b', lmbda=self.lmbdac, axis=1)
+        Kinv = KernelSolve(formula, aliases, 'b', alpha=self.alphac, axis=1)
         
         c = Kinv(self.xc, self.xc ,self.ac ,self.sigmac)
-        c_ = torch.gesv(self.ac, self.lmbdac * torch.eye(self.M, device=self.device) + torch.exp(-torch.sum((self.xc[:,None,:] - self.xc[None,:,:]) ** 2, dim=2) * self.sigmac))[0]
+        c_ = torch.gesv(self.ac, self.alphac * torch.eye(self.M, device=self.device) + torch.exp(-torch.sum((self.xc[:,None,:] - self.xc[None,:,:]) ** 2, dim=2) * self.sigmac))[0]
         
         self.assertTrue(np.allclose (c.cpu().data.numpy().ravel(), c_.cpu().data.numpy().ravel(), atol=1e-4))
         

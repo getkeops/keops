@@ -23,9 +23,9 @@ dtype = 'float64'
 #  We wrap this example into a function
 #
 
-def InterpolationExample(N,D,Dv,sigma,lmbda):
+def InterpolationExample(N,D,Dv,sigma,alpha):
     print("")
-    print('Interpolation example with ' + str(N) + ' points in ' + str(D) + '-D, sigma=' + str(sigma) + ', and lmbda=' + str(lmbda))
+    print('Interpolation example with ' + str(N) + ' points in ' + str(D) + '-D, sigma=' + str(sigma) + ', and alpha=' + str(alpha))
 
     #####################
     # Define our dataset
@@ -46,7 +46,7 @@ def InterpolationExample(N,D,Dv,sigma,lmbda):
                  'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
              
     # define the inverse kernel operation : here the 'b' argument specifies that linearity is with respect to variable b in formula.
-    Kinv = KernelSolve(formula, aliases, 'b', lmbda=lmbda, axis=1)
+    Kinv = KernelSolve(formula, aliases, 'b', alpha=alpha, axis=1)
     
     ##########################
     # Perform the computations
@@ -70,7 +70,7 @@ def InterpolationExample(N,D,Dv,sigma,lmbda):
  
 if useGpu:
     WarmUpGpu()
-    InterpolationExample(N=10000,D=1,Dv=1,sigma=.1,lmbda=.1)   
+    InterpolationExample(N=10000,D=1,Dv=1,sigma=.1,alpha=.1)   
 else:
-    InterpolationExample(N=1000,D=1,Dv=1,sigma=.1,lmbda=.1)
+    InterpolationExample(N=1000,D=1,Dv=1,sigma=.1,alpha=.1)
 print("Done.")

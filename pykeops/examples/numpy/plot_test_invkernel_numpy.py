@@ -51,7 +51,7 @@ aliases = ['x = Vx(' + str(D) + ')',   # First arg:  i-variable of size D
 # 
 
 alpha = 0.01
-Kinv = KernelSolve(formula, aliases, "b", lmbda=alpha, axis=1)
+Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
 
 ###############################################################################
 # .. note::
