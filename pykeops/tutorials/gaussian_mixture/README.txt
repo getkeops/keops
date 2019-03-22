@@ -1,5 +1,5 @@
-Gaussian mixture
-----------------
+Gaussian Mixture Models
+--------------------------
 
-Using KeOps to fit a Gaussian Mixture Model.
+KeOps can be used to fit Mixture Models with custom priors on large datasets.
 

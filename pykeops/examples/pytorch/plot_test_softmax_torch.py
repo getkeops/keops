@@ -78,7 +78,7 @@ print("Timing (KeOps implementation): ",round(time.time()-start,5),"s")
 
 # compare with direct implementation
 start = time.time()
-cc  = torch.sum( ( x[:,None,:] - y[None,:,:] ) ** 2, axis=2)
+cc  = torch.sum( ( x[:,None,:] - y[None,:,:] ) ** 2, 2)
 cc -= torch.max(cc,dim=1)[0][:,None] # subtract the max for robustness
 cc  = torch.exp(cc)@b / torch.sum(torch.exp(cc),dim=1)[:,None]
 print("Timing (Numpy implementation): ",round(time.time()-start,5),"s")

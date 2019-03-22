@@ -26,7 +26,8 @@ from pykeops.torch import Kernel, kernel_product
 
 
 ####################################################################
-# Define our dataset: a spiral in the unit square.
+# Define our dataset: a collection of points :math:`(x_i)_{i\in[1,N]}` which describe a
+# spiral in the unit square.
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
@@ -55,18 +56,53 @@ grid = torch.from_numpy(np.vstack((X.ravel(), Y.ravel())).T).contiguous().type(d
 #
 # In this tutorial, we focus on a Gaussian Mixture Model
 # with varying covariance matrices. For all class indices :math:`j`
-# in :math:`[0,M)`, we denote by 
+# in :math:`[1,M]`, we denote by :math:`w_j` the weight score 
+# of the :math:`j`-th class, i.e. the real number such that
 #
+# .. math::
+#   W_j ~=~ \frac{\exp(w_j)}{\sum_k \exp(w_k)}
+#
+# is the probability assigned to the :math:`j`-th component of the mixture.
+# Then, we encode the (inverse) covariance matrix :math:`\Sigma_j^{-1}` of this component
+# through an arbitrary matrix :math:`A_j`:
+# 
+# .. math::
+#   \Sigma_j^{-1} ~=~ A_j \, A_j^\intercal
+#
+# and can evaluate the likelihood of our model at any point :math:`x` through:
+# 
+# .. math::
+#   \text{likelihood}_{(w_j),(A_j)}(x)~=~ \sum_{j=1}^M W_j\cdot (2\pi)^{-D/2}\cdot\sqrt{\text{det}(A_j \, A_j^\intercal) }
+#      \cdot e^{-\tfrac{1}{2} (x - \mu_j)^\intercal \, A_j A_j^\intercal\, (x - \mu_j)}.
+#
+# The log-likelihood of a sample :math:`(x_i)` with respect to the parameters
+# :math:`(A_j)` and :math:`(w_j)` can thus be computed using a straightforward
+# log-sum-exp reduction, which is most easily implemented through
+# the :func:`pykeops.torch.kernel_product` interface.
+#
+# **Custom sparsity prior.** Going further, we may allow our model
+# to select **adaptively** the number of **active components**
+# by adding a sparsity-inducing penalty on the class weights :math:`W_j`.
+# For instance, we could minimize the cost:
+#
+# .. math::
+#   \text{Cost}_{(x_i)}((w_j),(A_j)) ~=~ - \frac{1}{N}\sum_{i=1}^N \log \text{likelihood}_{(w_j),(A_j)}(x_i)
+#             ~+~ \frac{s}{M} \sum_{j=1}^M \sqrt{W_j},
+#
+# where the sparsity coefficient :math:`s` controls the amount of non-empty clusters.
+# Even though this energy cannot be optimized in closed form
+# through an EM-like algorithm, automatic differentiation allows us
+# to fit this custom model without hassle:
 
 class GaussianMixture(Module):
     def __init__(self, M, sparsity=0, D=2):
         super(GaussianMixture, self).__init__()
         
-        # Let's use a mixture of Gaussian kernels, i.e.
-        #        k(x_i,y_j) = exp( - WeightedSquaredNorm(gamma, x_i-y_j ) )
         self.params = {'id': Kernel('gaussian(x,y)')}
+        # We initialize our model with random blobs scattered across
+        # the unit square, with a small-ish radius:
         self.mu = Parameter(torch.rand(M, D).type(dtype))
-        self.A = 10 * torch.ones(M, 1, 1) * torch.eye(D, D).view(1, D, D)
+        self.A = 15 * torch.ones(M, 1, 1) * torch.eye(D, D).view(1, D, D)
         self.A = Parameter((self.A).type(dtype).contiguous())
         self.w = Parameter(torch.ones(M, 1).type(dtype))
         self.sparsity = sparsity
@@ -75,7 +111,7 @@ class GaussianMixture(Module):
     def update_covariances(self):
         """Computes the full covariance matrices from the model's parameters."""
         (M, D, _) = self.A.shape
-        self.params['gamma'] = (torch.matmul(self.A, self.A.transpose(1, 2))).view(M, D * D)
+        self.params['gamma'] = (torch.matmul(self.A, self.A.transpose(1, 2))).view(M, D * D) / 2
     
     
     def covariances_determinants(self):
@@ -159,8 +195,9 @@ class GaussianMixture(Module):
 # Optimization 
 # ------------
 #
-# In typical :mod:`torch` fashion, we fit our Mixture Model
-# to the data through a stochastic gradient descent on the empiric log-likelihood:
+# In typical PyTorch fashion, we fit our Mixture Model
+# to the data through a stochastic gradient descent on our empiric log-likelihood,
+# with a sparsity-inducing penalty:
 
 
 model = GaussianMixture(30, sparsity=20)
