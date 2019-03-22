@@ -1,5 +1,5 @@
 """
-Benchmark KeOps vs pytorch on convolution gradients
+Benchmark KeOps vs PyTorch on convolution gradients
 ===================================================
 """
 

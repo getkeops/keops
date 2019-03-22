@@ -77,7 +77,7 @@ def gaussianconv_pytorch(x, y, b):
     D_xy = D_xx - 2*D_xy + D_yy
     K_xy = (-D_xy).exp()
 
-    return K_xy @ b.view(-1,1)
+    return K_xy@b.view(-1,1)
 
 ##############################################
 # Define a simple Gaussian RBF product, using an **online** implementation:
