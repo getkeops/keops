@@ -30,7 +30,7 @@ Dv = 2      # Dimension of the vectors (= number of linear problems to solve)
 sigma = .1  # Radius of our RBF kernel    
 
 x = torch.rand(N, D, requires_grad=True)
-b = torch.rand(N, D)
+b = torch.rand(N, Dv)
 g = torch.Tensor([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 
 ###############################################################################

@@ -29,7 +29,7 @@ Dv = 2      # Dimension of the vectors (= number of linear problems to solve)
 sigma = .1  # Radius of our RBF kernel    
 
 x = np.random.rand(N, D)
-b = np.random.rand(N, D)
+b = np.random.rand(N, Dv)
 g = np.array([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 
 ###############################################################################
