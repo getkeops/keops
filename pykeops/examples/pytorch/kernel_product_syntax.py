@@ -1,20 +1,22 @@
 """
-``kernel_product`` syntax
+High-level kernel_product syntax
 =========================
+
+Let's showcase KeOps's high-level interface on 3D point clouds.
 """
 
 ####################################################################
-# Define our dataset
+# Setup
 # ------------------
 #
-# Standard imports
+# Standard imports:
 
 import torch
 from torch.autograd import grad
 from pykeops.torch import Kernel, kernel_product
 
 ####################################################################
-# Define convenient functions
+# Convenience functions:
 
 def scal_to_var(x):
     """Turns a float into a length-1 tensor, that can be used as a parameter."""
@@ -32,7 +34,7 @@ def disp(x):
 
 
 #####################################################################
-# Declare random inputs
+# Declare random inputs:
 
 npoints_x, npoints_y = 100, 700
 dimpoints, dimsignal = 3, 1
@@ -57,12 +59,12 @@ modes = ['sum', 'lse'] if dimsignal == 1 else ['sum']
 sigma = scal_to_var(-1.5)
 params = {
     'id': Kernel('gaussian(x,y)'),
-    'gamma': 1. / sigma ** 2,
+    'gamma': .5 / sigma ** 2,
     'mode': 'sum',
 }
 
 ####################################################################
-# Test, using a pytorch or keops
+# Test, using both **PyTorch** and **KeOps** (online) backends:
 
 for mode in modes:
     params['mode'] = mode
@@ -95,18 +97,28 @@ for mode in modes:
 
 
 ####################################################################
-# Define the kernel
-# -----------------
+# Custom kernel formula
+# -------------------------
+#
+# Through a direct access to :mod:`pykeops.torch.Formula`
+# and the dict :mod:`pykeops.torch.kernel_formulas`,
+# users may add their own formulas to the :mod:`pykeops.torch.Kernel` parser.
+#
+# .. warning::
+#   As of today, this syntax is only **loosely supported**:
+#   the design of KeOps's high-level interface will depend
+#   on user feedbacks, and may evolve in the coming months.
 
 from pykeops.torch import Formula, kernel_formulas
 
 print('Formulas supported out-of-the-box: ', kernel_formulas.keys())
 
-kernel_formulas['my_formula'] = Formula(  # Standard RBF kernel
-    # Symbolic formulas, for the KeOps backend
+kernel_formulas['my_formula'] = Formula( 
+    # Symbolic formulas, for the KeOps backend:
     formula_sum='Exp( ({X}|{Y}) - WeightedSqDist({G},{X},{Y}) )',
     formula_log='( ({X}|{Y}) - WeightedSqDist({G},{X},{Y}) )',
-    # Pytorch routines, for the 'pure pytorch' backend
+
+    # Pytorch routines, for the 'pure pytorch' backend:
     routine_sum=lambda gxmy2=None, xsy=None, **kwargs: (xsy - gxmy2).exp(),
     routine_log=lambda gxmy2=None, xsy=None, **kwargs: xsy - gxmy2,
 )
@@ -118,13 +130,13 @@ kernel = Kernel('my_formula(x,y)')
 sigma = scal_to_var(0.5)
 params = {
     'id': kernel,
-    'gamma': 1. / sigma ** 2,
+    'gamma': .5 / sigma ** 2,
     'backend': 'auto',
     'mode': 'sum',
 }
 
 ####################################################################
-# Test, using a pytorch or keops
+# Test our new kernel, using **PyTorch** and **KeOps** (online) backends:
 
 for mode in modes:
     params['mode'] = mode
