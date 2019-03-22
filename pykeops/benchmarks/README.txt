@@ -2,7 +2,8 @@
 Benchmarks
 ==========
 
-These examples demonstrate the performances of pyKeops.
+These benchmarks showcase the performances of the KeOps routines
+as the number of samples/points grows from 100 to 1,000,000.
 
 .. note::
     If you run a KeOps script for the first time, 

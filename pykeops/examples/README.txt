@@ -2,7 +2,8 @@
 Examples
 ========
 
-These short examples showcase the features of the :mod:`pykeops` module,
+These short examples showcase the features of the :mod:`pykeops.numpy`
+and :mod:`pykeops.torch` modules,
 from automatic differentiation to block-sparse reductions.
 
 

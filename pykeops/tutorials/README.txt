@@ -2,8 +2,9 @@
 Tutorials, applications
 =========================
 
-These longer examples present real use cases of the ``pykeops`` module.
-
+These tutorials present real-life applications of the :mod:`pykeops.numpy`
+and :mod:`pykeops.torch` modules,
+from Gaussian processes to Optimal Transport theory and K-means clustering.
 
 .. note::
     If you run a KeOps script for the first time, 
