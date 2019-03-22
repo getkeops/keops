@@ -10,8 +10,8 @@ as the number of samples grows from 100 to 1,000,000.
     In this demo, we use exact **bruteforce** computations 
     (tensorized for PyTorch and online for KeOps), without leveraging any multiscale
     or low-rank (multipole) decomposition of the Kernel matrix.
-    Please visit the documentation of the `GeomLoss package<https://www.kernel-operations.io/geomloss>`_
-    for a discussion of alternate, scalable schemes.
+    Please visit the documentation of the `GeomLoss package <https://www.kernel-operations.io/geomloss>`_
+    for a discussion of clever, scalable schemes.
 """
 
 
@@ -172,7 +172,7 @@ def full_bench(title, routines) :
                     verticalalignment='bottom')
                 break
 
-    plt.title('Runtime for {} in dimension {}'.format(title, D))
+    plt.title('Runtimes for {} in dimension {}'.format(title, D))
     plt.xlabel('Number of samples')
     plt.ylabel('Seconds')
     plt.yscale('log') ; plt.xscale('log')

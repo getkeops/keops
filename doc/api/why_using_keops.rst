@@ -50,6 +50,7 @@ without ever storing the full matrix :math:`K` in memory.
 .. figure:: ../_static/benchmark.png
    :width: 100% 
    :alt: benchmark keops
+   :target: ../_auto_benchmarks/plot_benchmarks_convolutions_3D.html
 
 .. _part.formula:
 
