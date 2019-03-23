@@ -102,7 +102,7 @@ plt.figure(figsize=(8,6))
 plt.scatter(x.cpu()[:, 0], b.cpu()[:, 0], s = 100 / len(x))  # Noisy samples
 plt.plot(t.cpu().numpy(), xt.cpu().numpy(), "r")
 
-plt.axis([0,1,0,1]) ; plt.tight_layout() ; plt.show()
+plt.axis([0,1,0,1]) ; plt.tight_layout()
  
 
 

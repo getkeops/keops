@@ -1,4 +1,4 @@
 K-means
 -------
 
-A competitive implementation of the K-means algorithm on the GPU.
+A fast implementation of the K-means algorithm on the GPU.

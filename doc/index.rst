@@ -84,8 +84,8 @@ Table of content
 .. toctree::
    :maxdepth: 2
 
-   api/installation
    api/why_using_keops
+   api/installation
 
 .. toctree::
    :maxdepth: 2

@@ -102,7 +102,7 @@ plt.figure(figsize=(8,6))
 plt.scatter(x[:, 0], b[:, 0], s = 100 / len(x))  # Noisy samples
 plt.plot(t, xt, "r")
 
-plt.axis([0,1,0,1]) ; plt.tight_layout() ; plt.show()
+plt.axis([0,1,0,1]) ; plt.tight_layout()
  
 
 
