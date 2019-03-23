@@ -8,8 +8,9 @@ To-do list
 -------------
 
 - Put **reference paper** on Arxiv.
-- R bindings.
-- Sums of kernels:
+- Add support for common ML kernels: Cos, Sin, ReLu, etc.
+- Provide R bindings.
+- Implement a simple high-level syntax for weighted sums of kernels:
   - `Map<F,V>` operation.
   - `Sum<d,V>` operation.
   - `kernel_product` support.
