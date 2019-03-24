@@ -25,8 +25,8 @@ import time
 import numpy as np
 from pykeops.numpy import generic_argmin
 from pykeops.numpy.utils import IsGpuAvailable
-
 from matplotlib import pyplot as plt
+
 dtype = 'float32'  # May be 'float32' or 'float64'
 
 #######################################

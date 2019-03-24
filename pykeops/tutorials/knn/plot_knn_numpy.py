@@ -1,108 +1,83 @@
 """
-============================
-K-NN  classification (numpy)
-============================
+=================================
+K-NN classification - NumPy API
+=================================
 
-We define a dataset of :math:`N` points in :math:`\mathbb R^D` with two classes, 
-then apply a simple k-Nearest Neighbour algorithm to evaluate the classifier over a grid.
-This example uses a pure NumPy framework (without Pytorch).
-See :ref:`here<sphx_glr__auto_tutorials_KNN_plot_knn_torch.py>` for the equivalent script using PyTorch bindings.
+The :func:`pykeops.numpy.generic_argkmin` routine allows us
+to perform **bruteforce k-nearest neighbors search** with four lines of code.
+It can thus be used to implement a **large-scale** 
+`K-NN classifier <https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm>`_,
+**without memory overflows**.
 """
 
 #############################
-#  Standard imports
-#
+# Setup 
+# -----------------
+# Standard imports:
 
 import time
 import numpy as np
-from pykeops.numpy import Genred
-from pykeops.numpy.utils import IsGpuAvailable, WarmUpGpu
-
+from pykeops.numpy import generic_argkmin
+from pykeops.numpy.utils import IsGpuAvailable
 from matplotlib import pyplot as plt
 
-dtype = 'float32'  # May be 'float32' or 'float64'
+dtype = "float32"
+use_cuda = IsGpuAvailable()
 
-#######################################
-#  We wrap this example into a function
+#############################
+# Dataset, in 2D:
+
+N, D = 10000 if use_cuda else 1000, 2  # Number of samples, dimension
+x = np.random.rand(N, D).astype(dtype)  # Random samples on the unit square
+
+# Random-ish class labels:
+def fth(x):
+    return 3*x*(x-.5)*(x-1)+x
+cl = x[:,1] + .1 * np.random.randn(N).astype(dtype) < fth( x[:,0] )
+
+#############################
+# Reference sampling grid, on the unit square:
+
+M = 1000 if use_cuda else 100
+tmp = np.linspace(0, 1, M).astype(dtype)
+g1, g2 = np.meshgrid(tmp,tmp)
+g = np.hstack( (g1.reshape(-1,1), g2.reshape(-1,1)) )
+
+
+#############################
+# K-Nearest Neighbors search
+# ----------------------------
+    
+##############################
+# Peform the K-NN classification, with a fancy display:
 #
 
-def KNN_Example(N,D,Ng,Ktab):
+plt.figure(figsize=(12,8))
+plt.subplot( 2, 3, 1)  
+plt.scatter(x[:, 0], x[:, 1], c=cl, s=2)
+plt.imshow(np.ones((2,2)), extent=(0,1,0,1), alpha=0)
+plt.axis('off') ; plt.axis([0, 1, 0, 1])
+plt.title('{:,} data points,\n{:,} grid points'.format(N, M*M))
 
-    #####################
-    # Define our dataset
-    # cl gives class for each point in x
-    #
-    x = np.random.rand(N, D).astype(dtype)
-    def fth(x):
-        return 3*x*(x-.5)*(x-1)+x
-    cl = (x[:,1]+.03*np.random.randn(N).astype(dtype)) < fth(x[:,0])
+for (i,K) in enumerate( (1, 3, 10, 20, 50) ):
 
-    # building the grid for evaluation
-    tmp = np.linspace(0,1,Ng).astype(dtype)
-    g1, g2 = np.meshgrid(tmp,tmp)
-    g = np.concatenate((g1.reshape(-1,1),g2.reshape(-1,1)),axis=1)
+    # Define our KeOps kernel:
+    knn_search = generic_argkmin( 
+        'SqDist(x,y)',  # A simple squared L2 distance
+        'ind = Vx({})'.format(K),  # The K output indices are indexed by "i"
+        'x = Vx({})'.format(D),    # 1st arg: target points of dimension D, indexed by "i"
+        'y = Vy({})'.format(D),    # 2nd arg: source points of dimension D, indexed by "j"
+        cuda_type = dtype )        # "float32" and "float64" are available
 
-    WarmUpGpu()
-        
-    if D==2:
-        plt.ion()
-        plt.clf()  
-        plt.subplot(np.ceil((len(Ktab)+1)/4),np.min([(len(Ktab)+1),4]),1)  
-        plt.scatter(x[:, 0], x[:, 1], c=cl, s=2)
-        plt.imshow(np.ones((2,2)), extent=(0,1,0,1), alpha=0)
-        plt.axis('off')
-        plt.title('data points')
-    for i in range(len(Ktab)):
-        K = Ktab[i]
-        print("")
-        print('K-NN example with ' + str(N) + ' points in ' + str(D) + '-D, and K=' + str(K))
+    start = time.time()    # Benchmark:
+    indKNN = knn_search(g, x).astype(int)   # Grid <-> Samples
+    clg = np.mean(cl[indKNN], axis=1) > .5  # Classify the Grid points
+    end = time.time()
 
-        #######################
-        # Define the kernel
-        #
-        formula = 'SqDist(x,y)'
-        variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
-                     'y = Vy(' + str(D) + ')']  # Second arg  : j-variable, of size D
+    plt.subplot(2, 3,i+2)  # Fancy display:
+    clg = np.reshape(clg, (M,M))
+    plt.imshow(clg, extent=(0,1,0,1), origin='lower')
+    plt.axis('off') ; plt.axis([0, 1, 0, 1]) ; plt.tight_layout()
+    plt.title('{}-NN classifier,\n t = {:.2f}s'.format(K, end-start))
 
-        # The parameter reduction_op='ArgKMin' together with axis=1 means that the reduction operation
-        # is a sum over the second dimension j. Thence the results will be an i-variable.
-        my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, cuda_type=dtype, opt_arg=K)
-    
-        ##########################
-        # Perform the computations
-        #
-        start = time.time()
-        # calling keops to compute the K nearest neighbours
-        indKNN = my_routine(g,x).astype(int)
-        # classify grid points
-        clg = np.mean(cl[indKNN],axis=1)>.5
-        end = time.time()
-        print('Time to perform K-NN classification over',Ng*Ng,'test points:', round(end - start, 5), 's')
-
-        if D==2:
-            plt.subplot(np.ceil((len(Ktab)+1)/4),np.min([(len(Ktab)+1),4]),i+2)
-            # reshaping grid classes for display as image
-            clg = np.reshape(clg,(Ng,Ng))
-            plt.imshow(clg, extent=(0,1,0,1), origin='lower')
-            plt.axis('off')
-            plt.title(str(K)+'-NN classifier')
-    if D==2:
-        print('Close the figure to continue.')
-        plt.show(block=(__name__ == '__main__'))
-    
-
-
-if IsGpuAvailable():
-    ######################################################
-    # On Gpu : experiment with 10000 points in dimension 2
-    # with evalaution over a grid of size 2000*2000
-    #
-    KNN_Example(N=10000,D=2,Ng=2000,Ktab=(1,3,5,9,15,21,35))
-else:
-    #######################################################
-    # Cpu only : experiment with 1000 points in dimension 2
-    # with evalaution over a grid of size 500*500
-    #
-    KNN_Example(N=1000,D=2,Ng=500,Ktab=(1,3,5,9,15,21,35))
-
-print("Done.")
+plt.show()
