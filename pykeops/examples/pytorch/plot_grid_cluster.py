@@ -177,9 +177,7 @@ if M + N <= 500000 :
     plt.scatter(x_centroids[:,0],x_centroids[:,1],c="black",s=10,alpha=.5)
 
 
-    print("Close the figure to continue.")
+    # sphinx_gallery_thumbnail_number = 2
     plt.axis("equal") ; plt.axis([0,1,0,1])
     plt.tight_layout()
     plt.show(block=(__name__=="__main__"))
-
-    print("Done.")

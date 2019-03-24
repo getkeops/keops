@@ -8,7 +8,7 @@ from pykeops.common.keops_io import load_keops
 
 from pykeops.common.operations import Genred_common
 def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None, formula2=None):
-    return Genred_common('numpy', formula, aliases, reduction_op, axis, cuda_type, opt_arg, formula2)
+    return Genred_common('numpy', formula, list(aliases), reduction_op, axis, cuda_type, opt_arg, formula2)
 
 
 from pykeops.common.operations import ConjugateGradientSolver        

@@ -7,11 +7,11 @@ The :func:`pykeops.numpy.KernelSolve` operator allows you to solve optimization
 problems of the form
 
 .. math::
-    a^{\star}~=~\\arg\min_a \| \,(\\alpha \,\\text{Id}~+~K_{xx})\,a ~-~b\, \|^2_2
+    a^{\star}~=~\\arg\min_a \| \,(\\alpha \,\\text{Id}~+~K_{xx})\,a ~-~b\, \|^2_2,
 
 where :math:`K_{xx}` is a symmetric, positive definite linear operator
 defined through the :ref:`KeOps generic syntax <part.generic_formulas>`
-and :math:`\\alpha` is a nonnegative regularisation parameter.
+and :math:`\\alpha` is a nonnegative regularization parameter.
 It can thus be used
 to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
 (aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_ )
@@ -123,8 +123,8 @@ b[b < .3 **2] = 0
 b[b >=.3 **2] = 1
 b = b + .05 * np.random.randn(N, 1).astype(dtype)
 
-# Add 10% of outliers:
-Nout = N // 10
+# Add 25% of outliers:
+Nout = N // 4
 b[-Nout:] = np.random.rand(Nout, 1).astype(dtype)
 
 #################################

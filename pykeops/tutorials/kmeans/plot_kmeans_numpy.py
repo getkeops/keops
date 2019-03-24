@@ -1,94 +1,96 @@
 """
-==========================
-K-means clustering (numpy)
-==========================
+===============================
+K-means clustering - NumPy API
+===============================
 
 We define a dataset of :math:`N` points in :math:`\mathbb R^D`, then apply a simple k-means algorithm.
 This example uses a pure NumPy framework (without Pytorch).
-See :ref:`here<sphx_glr__auto_tutorials_kmeans_plot_kmeans_pytorch.py>` for the equivalent script using PyTorch bindings.
 """
 
 #############################
-#  Standard imports
-#
+# Setup 
+# -----------------
+# Standard imports:
 
 import time
 import numpy as np
-from pykeops.numpy import Genred
+from pykeops.numpy import generic_argmin
 from pykeops.numpy.utils import IsGpuAvailable
 
 from matplotlib import pyplot as plt
-
 type = 'float32'  # May be 'float32' or 'float64'
 
 #######################################
-#  We wrap this example into a function
-#
+# Simple implementation of the K-means algorithm:
 
-def KMeansExample(N,D,K,Niter=10):
-    print("")
-    print('k-means example with ' + str(N) + ' points in ' + str(D) + '-D, and K=' + str(K))
+def KMeans(x, K=10, Niter=10, verbose=True):
+    N, D = x.shape  # Number of samples, dimension of the ambient space
 
-    #####################
-    # Define our dataset
-    #
-    x = np.random.rand(N, D).astype(type)
-
-    #######################
-    # Define the kernel
-    #
-    formula = 'SqDist(x,y)'
-    variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
-                 'y = Vy(' + str(D) + ')']  # Second arg  : j-variable, of size D
-
-    # The parameter reduction_op='ArgMin' together with axis=1 means that the reduction operation
-    # is a sum over the second dimension j. Thence the results will be an i-variable.
-    my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
+    # Define our KeOps kernel:
+    my_routine = generic_argmin( 
+        'SqDist(x,y)',  # A simple squared L2 distance
+        'ind = Vx(1)',  # The output index is indexed by "i"
+        'x = Vx({})'.format(D),  # 1st arg: target points of dimension D, indexed by "i"
+        'y = Vy({})'.format(D),  # 2nd arg: source points of dimension D, indexed by "j"
+        cuda_type = type )  # "float32" and "float64" are available
     
-    ##########################
-    # Perform the computations
-    #
-    
-    # dummy first calls for accurate timing in case of GPU use
+    # Dummy first call for accurate timing (GPU warmup):
     dum = np.random.rand(10,D).astype(type)
     my_routine(dum,dum)
-    my_routine(dum,dum)
     
+    # K-means loop:
+    # - x  is the point cloud, 
+    # - cl is the vector of class labels
+    # - c  is the cloud of cluster centroids
     start = time.time()
-    # x is dataset, 
-    # c are centers, 
-    # cl is class index for each point in x
-    c = np.copy(x[:K, :])
-    for i in range(Niter):
-        cl = my_routine(x,c).astype(int).reshape(N)
-        c[:] = 0
-        Ncl = np.bincount(cl).astype(type)
-        for d in range(D):
-            c[:, d] = np.bincount(cl, weights=x[:, d])
-        c = (c.transpose() / Ncl).transpose()
-    end = time.time()
-    print('Time to perform', str(Niter), 'iterations of k-means:', round(end - start, 5), 's')
-    print('Time per iteration :', round((end - start) / Niter, 5), 's')
-    
-    if (D == 2):
-        plt.ion()
-        plt.clf()
-        plt.scatter(x[:, 0], x[:, 1], c=cl, s=10)
-        plt.scatter(c[:, 0], c[:, 1], c='black', s=50, alpha=.5)
-        print('Close the figure to continue.')
-        plt.show(block=(__name__ == '__main__'))
- 
-###############################################################
-# First experiment with 5000 points, dimension 2 and 50 classes
-#
+    c = np.copy(x[:K, :])  # Simplistic random initialization
 
-KMeansExample(N=5000,D=2,K=50)
+    for i in range(Niter):
+        cl = my_routine(x,c).astype(int).reshape(N)  # Points -> Nearest cluster
+        Ncl = np.bincount(cl).astype(type)           # Weight of each class   
+        for d in range(D):  # Recompute the cluster centroids with np.bincount...
+            c[:, d] = np.bincount(cl, weights=x[:, d]) / Ncl
+
+    end = time.time()
+
+    if verbose:
+        print("K-means example with {} points in dimension {}, K = {}:".format(N, D, K))
+        print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n'.format( 
+                Niter, end - start, Niter, (end-start) / Niter))
+
+    return cl, c
+        
+
+###############################################################
+# K-means in 2D
+# ----------------------
+# First experiment with 10,000 points in dimension 2, with 50 classes:
+#
+N, D, K = 10000, 2, 50
+
+#####################
+# Define our dataset:
+x = np.random.randn(N, D).astype(type) / 6 + .5
+
+#####################
+# Perform the computation:
+cl, c = KMeans(x, K)
+
+#####################
+# Fancy display:
+
+plt.figure(figsize=(8,8))
+plt.scatter(x[:, 0], x[:, 1], c=cl, s= 30000 / len(x), cmap="tab10")
+plt.scatter(c[:, 0], c[:, 1], c='black', s=50, alpha=.8)
+plt.axis([0,1,0,1]) ; plt.tight_layout() ; plt.show()
+ 
 
 ####################################################################
-# Second experiment with 500000 points, dimension 60 and 5000 classes
-# (only when GPU is available)
-#
+# K-means in dimension 100
+# -------------------------
+# Second experiment with 1,000,000 points in dimension 100, with 1,000 classes:
 
 if IsGpuAvailable():
-    KMeansExample(N=500000,D=60,K=5000)
-print("Done.")
+    N, D, K = 1000000, 100, 1000
+    x = np.random.randn(N, D).astype(type)
+    cl, c = KMeans(x, K)

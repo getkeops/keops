@@ -67,12 +67,12 @@ grid = torch.from_numpy(np.vstack((X.ravel(), Y.ravel())).T).contiguous().type(d
 # through an arbitrary matrix :math:`A_j`:
 # 
 # .. math::
-#   \Sigma_j^{-1} ~=~ A_j \, A_j^\intercal
+#   \Sigma_j^{-1} ~=~ A_j A_j^\intercal
 #
 # and can evaluate the likelihood of our model at any point :math:`x` through:
 # 
 # .. math::
-#   \text{likelihood}_{(w_j),(A_j)}(x)~=~ \sum_{j=1}^M W_j\cdot (2\pi)^{-D/2}\cdot\sqrt{\text{det}(A_j \, A_j^\intercal) }
+#   \text{likelihood}_{(w_j),(A_j)}(x)~=~ \sum_{j=1}^M W_j\cdot (2\pi)^{-D/2}\cdot\sqrt{\text{det}(A_j A_j^\intercal) }
 #      \cdot e^{-\tfrac{1}{2} (x - \mu_j)^\intercal \, A_j A_j^\intercal\, (x - \mu_j)}.
 #
 # The log-likelihood of a sample :math:`(x_i)` with respect to the parameters
@@ -216,10 +216,11 @@ for it in range(501):
     # sphinx_gallery_thumbnail_number = 6
     if it in [0, 10, 100, 150, 250, 500]:
         plt.pause(.01)
-        plt.figure()
+        plt.figure(figsize=(8,8))
         model.plot(x)
         plt.title('Density, iteration ' + str(it), fontsize=20)
-        plt.pause(.01)
+        plt.axis("equal")  ; plt.axis([0,1,0,1])
+        plt.tight_layout() ; plt.pause(.01)
 
 
 
@@ -228,4 +229,6 @@ for it in range(501):
 #
 plt.figure()
 plt.plot(loss)
+plt.tight_layout()
+plt.show()
 
