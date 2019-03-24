@@ -1,109 +1,104 @@
 """
-============================
-K-means clustering (pytorch)
-============================
+================================
+K-means clustering - PyTorch API
+================================
 
-We define a dataset of :math:`N` points in :math:`\mathbb R^D`, then apply a simple k-means algorithm.
-This example uses KeOps PyTorch bindings. 
-See :ref:`here<sphx_glr__auto_tutorials_kmeans_plot_kmeans_numpy.py>` for the equivalent script using NumPy bindings.
+The :func:`pykeops.torch.generic_argmin` routine allows us
+to perform **bruteforce nearest neighbor search** with four lines of code.
+It can thus be used to implement a **large-scale** 
+`K-means clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_,
+**without memory overflows**.
 
-For large and high dimensional datasets and when using the GPU, this script outperforms its NumPy equivalent
-because the full algorithm is processed directly on device data, without
-any transfer between Cpu and Gpu memories.
+.. note::
+    For large and high dimensional datasets, this script 
+    **outperforms its NumPy counterpart**
+    as it avoids transfers between CPU (host) and GPU (device) memories.
 """
 
 #############################
-#  Standard imports
-#
+# Setup 
+# -----------------
+# Standard imports:
 
 import time
 import numpy as np
 import torch
+from pykeops.torch import generic_argmin
 from matplotlib import pyplot as plt
 
-from pykeops.torch import Genred
+use_cuda = torch.cuda.is_available()
+dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
-type = 'float32'  # May be 'float32' or 'float64'
-torchtype = torch.float32 if type == 'float32' else torch.float64
-
-if torch.cuda.is_available():
-    torchdeviceId = torch.device('cuda:0')
-    KeOpsdeviceId = torchdeviceId.index
-else:
-    torchdeviceId = torch.device('cpu')
-    
 #######################################
-#  We wrap this example into a function
-#
+# Simple implementation of the K-means algorithm:
 
-def KMeansExample(N,D,K,Niter=10):
-    print("")
-    print("k-means example with "+str(N)+" points in "+str(D)+"-D, and K="+str(K))
+def KMeans(x, K=10, Niter=10, verbose=True):
+    N, D = x.shape  # Number of samples, dimension of the ambient space
 
-    #####################
-    # Define our dataset
-    #
-    x = torch.rand(N,D,dtype=torchtype,device=torchdeviceId)
-
-    #######################
-    # Define the kernel
-    #
-    formula = 'SqDist(x,y)'
-    variables = ['x = Vx('+str(D)+')',  # First arg   : i-variable, of size D
-                 'y = Vy('+str(D)+')']  # Second arg  : j-variable, of size D
-
-    # The parameter reduction_op='ArgMin' together with axis=1 means that the reduction operation
-    # is a sum over the second dimension j. Thence the results will be an i-variable.
-    my_routine = Genred(formula, variables, reduction_op='ArgMin', axis=1, cuda_type=type)
-
-    ##########################
-    # Perform the computations
-    #
-
-    # dummy first calls for accurate timing in case of GPU use
-    dum = torch.randn(10,D,dtype=torchtype,device=torchdeviceId)
-    my_routine(dum,dum,backend="auto")
-    my_routine(dum,dum,backend="auto")
-
+    # Define our KeOps kernel:
+    nn_search = generic_argmin( 
+        'SqDist(x,y)',  # A simple squared L2 distance
+        'ind = Vx(1)',  # The output index is indexed by "i"
+        'x = Vx({})'.format(D),  # 1st arg: target points of dimension D, indexed by "i"
+        'y = Vy({})'.format(D))  # 2nd arg: source points of dimension D, indexed by "j"
+    
+    # Dummy first call for accurate timing (GPU warmup):
+    dum = torch.rand(10,D).type(dtype)
+    nn_search(dum,dum)
+    
+    # K-means loop:
+    # - x  is the point cloud, 
+    # - cl is the vector of class labels
+    # - c  is the cloud of cluster centroids
     start = time.time()
-    # x is dataset, 
-    # c are centers, 
-    # cl is class index for each point in x
-    c = x[:K,:].clone()
-    for i in range(Niter):
-        cl = my_routine(x,c,backend="auto")
-        cl = cl.int().view(N)
-        c[:] = 0
-        Ncl = torch.bincount(cl).float()
-        for d in range(D):
-            c[:,d] = torch.bincount(cl,weights=x[:,d])
-            c[:,d] /= Ncl
-    end = time.time()
-    print("Time to perform",str(Niter),"iterations of k-means:",round(end-start,5),"s")
-    print("Time per iteration :",round((end-start)/Niter,5),"s")
+    c = x[:K, :].clone()  # Simplistic random initialization
 
-    if (D==2):
-        plt.ion()
-        plt.clf()
-        x = x.cpu().numpy()
-        cl = cl.cpu().numpy()
-        c = c.cpu().numpy()
-        plt.scatter(x[:,0],x[:,1],c=cl,s=10)
-        plt.scatter(c[:,0],c[:,1],c="black",s=50,alpha=.5)
-        print("Close the figure to continue.")
-        plt.show(block=(__name__=="__main__"))
+    for i in range(Niter):
+        cl  = nn_search(x,c).long().view(-1)  # Points -> Nearest cluster
+        Ncl = torch.bincount(cl).type(dtype)  # Class weights
+        for d in range(D):  # Compute the cluster centroids with torch.bincount:
+            c[:, d] = torch.bincount(cl, weights=x[:, d]) / Ncl
+
+    end = time.time()
+
+    if verbose:
+        print("K-means example with {} points in dimension {}, K = {}:".format(N, D, K))
+        print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n'.format( 
+                Niter, end - start, Niter, (end-start) / Niter))
+
+    return cl, c
+        
 
 ###############################################################
-# First experiment with 5000 points, dimension 2 and 50 classes
+# K-means in 2D
+# ----------------------
+# First experiment with 10,000 points in dimension 2, with 50 classes:
 #
+N, D, K = 10000, 2, 50
 
-KMeansExample(N=5000,D=2,K=50)
+#####################
+# Define our dataset:
+x = torch.randn(N, D).type(dtype) / 6 + .5
+
+#####################
+# Perform the computation:
+cl, c = KMeans(x, K)
+
+#####################
+# Fancy display:
+
+plt.figure(figsize=(8,8))
+plt.scatter(x[:, 0].cpu(), x[:, 1].cpu(), c=cl.cpu(), s= 30000 / len(x), cmap="tab10")
+plt.scatter(c[:, 0].cpu(), c[:, 1].cpu(), c='black', s=50, alpha=.8)
+plt.axis([0,1,0,1]) ; plt.tight_layout() ; plt.show()
+ 
 
 ####################################################################
-# Second experiment with 500000 points, dimension 60 and 5000 classes
-# (only when GPU is available)
-#
+# K-means in dimension 100
+# -------------------------
+# Second experiment with 1,000,000 points in dimension 100, with 1,000 classes:
 
-if torch.cuda.is_available():
-    KMeansExample(N=500000,D=60,K=5000)
-print("Done.")
+if use_cuda:
+    N, D, K = 1000000, 100, 1000
+    x = torch.randn(N, D).type(dtype)
+    cl, c = KMeans(x, K)

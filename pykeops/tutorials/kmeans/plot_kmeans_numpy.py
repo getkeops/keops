@@ -3,8 +3,17 @@
 K-means clustering - NumPy API
 ===============================
 
-We define a dataset of :math:`N` points in :math:`\mathbb R^D`, then apply a simple k-means algorithm.
-This example uses a pure NumPy framework (without Pytorch).
+The :func:`pykeops.numpy.generic_argmin` routine allows us
+to perform **bruteforce nearest neighbor search** with four lines of code.
+It can thus be used to implement a **large-scale** 
+`K-means clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_,
+**without memory overflows**.
+
+
+.. note::
+    For large and high dimensional datasets, this script 
+    **is outperformed by its PyTorch counterpart**
+    which avoids transfers between CPU (host) and GPU (device) memories.
 """
 
 #############################
@@ -18,7 +27,7 @@ from pykeops.numpy import generic_argmin
 from pykeops.numpy.utils import IsGpuAvailable
 
 from matplotlib import pyplot as plt
-type = 'float32'  # May be 'float32' or 'float64'
+dtype = 'float32'  # May be 'float32' or 'float64'
 
 #######################################
 # Simple implementation of the K-means algorithm:
@@ -27,16 +36,16 @@ def KMeans(x, K=10, Niter=10, verbose=True):
     N, D = x.shape  # Number of samples, dimension of the ambient space
 
     # Define our KeOps kernel:
-    my_routine = generic_argmin( 
+    nn_search = generic_argmin( 
         'SqDist(x,y)',  # A simple squared L2 distance
         'ind = Vx(1)',  # The output index is indexed by "i"
         'x = Vx({})'.format(D),  # 1st arg: target points of dimension D, indexed by "i"
         'y = Vy({})'.format(D),  # 2nd arg: source points of dimension D, indexed by "j"
-        cuda_type = type )  # "float32" and "float64" are available
+        cuda_type = dtype )  # "float32" and "float64" are available
     
     # Dummy first call for accurate timing (GPU warmup):
-    dum = np.random.rand(10,D).astype(type)
-    my_routine(dum,dum)
+    dum = np.random.rand(10,D).astype(dtype)
+    nn_search(dum,dum)
     
     # K-means loop:
     # - x  is the point cloud, 
@@ -46,9 +55,9 @@ def KMeans(x, K=10, Niter=10, verbose=True):
     c = np.copy(x[:K, :])  # Simplistic random initialization
 
     for i in range(Niter):
-        cl = my_routine(x,c).astype(int).reshape(N)  # Points -> Nearest cluster
-        Ncl = np.bincount(cl).astype(type)           # Weight of each class   
-        for d in range(D):  # Recompute the cluster centroids with np.bincount...
+        cl = nn_search(x,c).astype(int).reshape(N)  # Points -> Nearest cluster
+        Ncl = np.bincount(cl).astype(dtype)         # Class weights
+        for d in range(D):  # Compute the cluster centroids with np.bincount:
             c[:, d] = np.bincount(cl, weights=x[:, d]) / Ncl
 
     end = time.time()
@@ -70,7 +79,7 @@ N, D, K = 10000, 2, 50
 
 #####################
 # Define our dataset:
-x = np.random.randn(N, D).astype(type) / 6 + .5
+x = np.random.randn(N, D).astype(dtype) / 6 + .5
 
 #####################
 # Perform the computation:
@@ -92,5 +101,5 @@ plt.axis([0,1,0,1]) ; plt.tight_layout() ; plt.show()
 
 if IsGpuAvailable():
     N, D, K = 1000000, 100, 1000
-    x = np.random.randn(N, D).astype(type)
+    x = np.random.randn(N, D).astype(dtype)
     cl, c = KMeans(x, K)
