@@ -38,16 +38,16 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
         As of today, vector-valued formulas are only supported by 
         the ``"Sum"`` reduction. All the 
         :ref:`other reductions <part.reduction>` expect
-        ``formula`` to be scalar-valued.
+        **formula** to be scalar-valued.
 
     Note:
         :func:`Genred` relies on CUDA kernels that are compiled on-the-fly, 
         and stored in ``pykeops.build_folder`` as ".dll" or ".so" files for later use.
 
     Note:
-        :func:`Genred` is fully compatible with PyTorch's ``autograd`` engine:
-        If ``reduction_op`` is **Sum** or **LogSumExp**,
-        you can **backprop** through the KeOps ``__call__`` just
+        :func:`Genred` is fully compatible with PyTorch's :mod:`autograd` engine:
+        If **reduction_op** is **Sum** or **LogSumExp**,
+        you can **backprop** through the KeOps :meth:`__call__` just
         as if it was a vanilla PyTorch operation.
 
     Note:
@@ -72,7 +72,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
         aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"`` 
             that specify the categories and dimensions of the input variables. Here:
 
-              - ``AL`` is an alphanumerical alias, used in the ``formula``.
+              - ``AL`` is an alphanumerical alias, used in the **formula**.
               - ``TYPE`` is a *category*. One of:
 
                 - ``Vx``: indexation by :math:`i` along axis 0.
@@ -82,7 +82,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
               - ``DIM`` is an integer, the dimension of the current variable.
             
             As described below, :meth:`__call__` will expect as input Tensors whose
-            shape are compatible with ``aliases``.
+            shape are compatible with **aliases**.
 
     Keyword Args:
         reduction_op (string, default = ``"Sum"``): Specifies the reduction
@@ -105,14 +105,14 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
         axis (int, default = 0): Specifies the dimension of the "kernel matrix" that is reduced by our routine. 
             The supported values are:
 
-              - ``axis = 0``: reduction with respect to :math:`i`, outputs a ``Vy`` or ":math:`j`" variable.
-              - ``axis = 1``: reduction with respect to :math:`j`, outputs a ``Vx`` or ":math:`i`" variable.
+              - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vy`` or ":math:`j`" variable.
+              - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vx`` or ":math:`i`" variable.
 
         cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
             The supported values are:
 
-              - ``cuda_type = "float32"`` or ``"float"``.
-              - ``cuda_type = "float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"`` or ``"float"``.
+              - **cuda_type** = ``"float64"`` or ``"double"``.
 
         opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
             this argument allows you to specify the number ``K`` of neighbors to consider.
@@ -154,7 +154,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
             If None (default), we simply loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
             
-            **The first three ranges** will be used if ``axis=1``
+            **The first three ranges** will be used if **axis** = 1
             (reduction along the axis of ":math:`j` variables"),
             and to compute gradients with respect to ``Vx(..)`` variables:
             
@@ -170,7 +170,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
                   that specify reduction ranges along the axis 1
                   of ":math:`j` variables".
 
-            If ``axis=1``, 
+            If **axis** = 1, 
             these integer arrays allow us to say
             that ``for k in range(Mc)``, the output values for 
             indices ``i in range( ranges_i[k,0], ranges_i[k,1] )``
@@ -178,7 +178,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
             indices ``j in Union( range( redranges_j[l, 0], redranges_j[l, 1] ))``
             for ``l in range( slices_i[k,0], slices_i[k,1] )``.
 
-            **Likewise, the last three ranges** will be used if ``axis=0``
+            **Likewise, the last three ranges** will be used if **axis** = 0
             (reduction along the axis of ":math:`i` variables"),
             and to compute gradients with respect to ``Vy(..)`` variables:
             
@@ -194,7 +194,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
                   that specify reduction ranges along the axis 0
                   of ":math:`i` variables".
 
-            If ``axis=0``, 
+            If **axis** = 0, 
             these integer arrays allow us to say
             that ``for k in range(Nc)``, the output values for 
             indices ``j in range( ranges_j[k,0], ranges_j[k,1] )``
@@ -207,9 +207,9 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
 
         The output of the reduction, stored on the same device
         as the input Tensors. The output of a Genred call is always a 
-        **2d-tensor** with :math:`M` or :math:`N` lines (if ``axis=1`` 
-        or ``axis=0``, respectively) and a number of columns 
-        that is inferred from the ``formula``.
+        **2d-tensor** with :math:`M` or :math:`N` lines (if **axis** = 1 
+        or **axis** = 0, respectively) and a number of columns 
+        that is inferred from the **formula**.
 
     
 

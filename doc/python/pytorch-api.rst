@@ -40,7 +40,6 @@ PyTorch API
 
 .. automodule:: pykeops.torch
     :members:
-    :special-members:
 
 .. automodule:: pykeops.torch.cluster
     :members:
