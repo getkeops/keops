@@ -7,6 +7,13 @@ NumPy API
 .. autosummary:: 
     Genred
 
+
+:mod:`pykeops.numpy` - Conjugate gradient solver for :doc:`Generic linear systems <generic-syntax>`:
+
+.. currentmodule:: pykeops.numpy
+.. autosummary:: 
+    KernelSolve
+
 :mod:`pykeops.numpy` - :doc:`Math-friendly <generic-reduction>` aliases:
 
 .. currentmodule:: pykeops.numpy

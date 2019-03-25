@@ -7,6 +7,13 @@ PyTorch API
 .. autosummary:: 
     Genred
 
+
+:mod:`pykeops.torch` - Conjugate gradient solver for :doc:`Generic linear systems <generic-syntax>`, with full support of PyTorch's :mod:`autograd` engine:
+
+.. currentmodule:: pykeops.torch
+.. autosummary:: 
+    KernelSolve
+
 :mod:`pykeops.torch` - :doc:`Math-friendly <generic-reduction>` aliases:
 
 .. currentmodule:: pykeops.torch
