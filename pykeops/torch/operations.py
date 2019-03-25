@@ -61,7 +61,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
         turn them into ``LongTensors`` and use them to index
         your arrays, as showcased in the documentation
         of :func:`generic_argmin`, :func:`generic_argkmin` and in the
-        :doc:`K-means tutorial <../_auto_tutorials/kmeans/plot_kmeans_pytorch>`.
+        :doc:`K-means tutorial <../_auto_tutorials/kmeans/plot_kmeans_torch>`.
 
 
     Args:
