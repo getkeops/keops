@@ -89,11 +89,6 @@ for mode in modes:
         [grad_xx, grad_xy] = grad(grad_x_norm, [x, y], create_graph=True)
         print('Arbitrary formula 1: \n', disp(grad_xx[:2, :]))
         print('Arbitrary formula 2: \n', disp(grad_xy[:2, :]))
-        
-        grad_s_norm = scalprod(grad_s, grad_s)
-        [grad_sx, grad_ss] = grad(grad_s_norm, [x, sigma], create_graph=True)
-        print('Arbitrary formula 3: \n', disp(grad_sx[:2, :]))
-        print('Arbitrary formula 4: \n', disp(grad_ss))
 
 
 ####################################################################
@@ -154,15 +149,3 @@ for mode in modes:
         # higher order derivatives.
         [grad_x, grad_y, grad_s] = grad(aKxy_b, [x, y, sigma], create_graph=True)
         print('Gradient wrt. x: \n', disp(grad_x[:2, :]))
-        print('Gradient wrt. y: \n', disp(grad_y[:2, :]))
-        print('Gradient wrt. s: \n', disp(grad_s))
-        
-        grad_x_norm = scalprod(grad_x, grad_x)
-        [grad_xx, grad_xy] = grad(grad_x_norm, [x, y], create_graph=True)
-        print('Arbitrary formula 1: \n', disp(grad_xx[:2, :]))
-        print('Arbitrary formula 2: \n', disp(grad_xy[:2, :]))
-        
-        grad_s_norm = scalprod(grad_s, grad_s)
-        [grad_sx, grad_ss] = grad(grad_s_norm, [x, sigma], create_graph=True)
-        print('Arbitrary formula 3: \n', disp(grad_sx[:2, :]))
-        print('Arbitrary formula 4: \n', disp(grad_ss))

@@ -85,3 +85,11 @@ print("Timing (Numpy implementation): ",round(time.time()-start,5),"s")
 
 print("Relative error : ", (torch.norm(c - cc) / torch.norm(c)).item())
 
+
+# Plot the results next to each other:
+for i in range(Dv):
+    plt.subplot(Dv, 1, i+1)
+    plt.plot( c.cpu().detach().numpy()[:40,i],  '-', label='KeOps')
+    plt.plot(cc.cpu().detach().numpy()[:40,i], '--', label='PyTorch')
+    plt.legend(loc='lower right')
+plt.tight_layout() ; plt.show()

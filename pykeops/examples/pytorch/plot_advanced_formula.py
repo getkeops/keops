@@ -67,10 +67,10 @@ a_keops = my_routine(p, x, y)
 scals = (torch.mm(x, y.t())) ** 2  # Memory-intensive computation!
 a_pytorch = p[0] * scals.sum(1).view(-1, 1) * x + p[1] * (torch.mm(scals, y))
 
-# Check the results
+# Plot the results next to each other:
 for i in range(D):
     plt.subplot(D, 1, i+1)
-    plt.plot(a_keops.detach().cpu().numpy()[:40, i], '-', label='keops')
-    plt.plot(a_pytorch.detach().cpu().numpy()[:40, i], '--', label='numpy')
+    plt.plot(a_keops.detach().cpu().numpy()[:40, i], '-', label='KeOps')
+    plt.plot(a_pytorch.detach().cpu().numpy()[:40, i], '--', label='PyTorch')
     plt.legend(loc='lower right')
 plt.show()

@@ -67,8 +67,8 @@ c_np = ((p - a.T)[:,np.newaxis] **2 * np.exp(x.T[:,:,np.newaxis] + y.T[:,np.newa
 # Plot the results next to each other:
 for i in range(3):
     plt.subplot(3, 1, i+1)
-    plt.plot(c[:40,i], '-', label='keops')
-    plt.plot(c_np[:40,i], '--', label='numpy')
+    plt.plot(c[:40,i], '-', label='KeOps')
+    plt.plot(c_np[:40,i], '--', label='NumPy')
     plt.legend(loc='lower right')
 plt.tight_layout() ; plt.show()
 
@@ -127,7 +127,7 @@ g_np = ((p - a.T)[:, np.newaxis, :] **2 * np.exp(x.T[:, :, np.newaxis] \
 # Plot the results next to each other:
 for i in range(3):
     plt.subplot(3, 1, i+1)
-    plt.plot(g[:40,i], '-', label='keops')
-    plt.plot(g_np[:40,i], '--', label='numpy')
+    plt.plot(g[:40,i], '-', label='KeOps')
+    plt.plot(g_np[:40,i], '--', label='NumPy')
     plt.legend(loc='lower right')
 plt.tight_layout() ; plt.show()

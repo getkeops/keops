@@ -103,12 +103,13 @@ print('Time to compute gradient of convolution operation with KeOps: ', round(ti
 ####################################################################
 # The equivalent code with a "vanilla" pytorch implementation
 
-g_torch = ((p - a.transpose(0, 1))[:, None] **2 * torch.exp(x.transpose(0, 1)[:, :, None] + y.transpose(0, 1)[:, None, :]) * e.transpose(0, 1)[:, :, None] ).sum(dim=1).transpose(0, 1)
+g_torch = ((p - a.transpose(0, 1))[:, None] **2 * torch.exp(x.transpose(0, 1)[:, :, None] \
+        + y.transpose(0, 1)[:, None, :]) * e.transpose(0, 1)[:, :, None] ).sum(dim=1).transpose(0, 1)
 
-# compare the results by plotting some values
+# Plot the results next to each other:
 for i in range(3):
     plt.subplot(3, 1, i+1)
-    plt.plot(g.detach().cpu().numpy()[:40,i], '-', label='keops')
-    plt.plot(g_torch.detach().cpu().numpy()[:40,i], '--', label='numpy')
+    plt.plot(g.detach().cpu().numpy()[:40,i], '-', label='KeOps')
+    plt.plot(g_torch.detach().cpu().numpy()[:40,i], '--', label='PyTorch')
     plt.legend(loc='lower right')
 plt.show()

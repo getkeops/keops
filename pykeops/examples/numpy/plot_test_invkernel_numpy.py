@@ -85,7 +85,7 @@ print("Relative error = ", np.linalg.norm(c - c_np) / np.linalg.norm(c_np))
 # Plot the results next to each other:
 for i in range(Dv):
     plt.subplot(Dv, 1, i+1)
-    plt.plot(   c[:40,i],  '-', label='keops')
-    plt.plot(c_np[:40,i], '--', label='numpy')
+    plt.plot(   c[:40,i],  '-', label='KeOps')
+    plt.plot(c_np[:40,i], '--', label='NumPy')
     plt.legend(loc='lower right')
 plt.tight_layout() ; plt.show()

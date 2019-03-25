@@ -75,6 +75,11 @@ my_routine2 = Genred('Exp('+formula+')', variables, reduction_op='Sum', axis=1, 
 c2 = torch.log(my_routine2(x, y, a, p, backend='CPU'))
 print('(relative error: ',((c2-c).norm()/c.norm()).item(), ')')
 
+# Plot the results next to each other:
+plt.plot(c.detach().cpu().numpy()[:40], '-', label='KeOps - Stable')
+plt.plot(c2.detach().cpu().numpy()[:40], '--', label='KeOps - Unstable')
+plt.legend(loc='lower right')
+plt.show()
 
 ####################################################################
 # Compute the gradient
@@ -113,6 +118,12 @@ g2 = grad(c2, y, e)[0]
 print('(relative error: ',((g2-g).norm()/g.norm()).item(), ')')
 
 
+# Plot the results next to each other:
+plt.plot(g.detach().cpu().numpy()[:40], '-', label='KeOps - Stable')
+plt.plot(g2.detach().cpu().numpy()[:40], '--', label='KeOps - Unstable')
+plt.legend(loc='lower right')
+plt.show()
+
 ####################################################################
 # Same operations performed on the Gpu
 # ------------------------------------
@@ -131,4 +142,18 @@ if torch.cuda.is_available():
     g3 = grad(c3, yc, ec)[0]
     print('Time to compute gradient of convolution operation on the gpu:', round(time.time()-start,5), 's ', end='')
     print('(relative error:', float(torch.abs((g2 - g3.cpu()) / g2).mean()), ')')
+
+
+    # Plot the results next to each other:
+    plt.plot(c.detach().cpu().numpy()[:40], '-', label='KeOps - CPU')
+    plt.plot(c3.detach().cpu().numpy()[:40], '--', label='KeOps - GPU')
+    plt.legend(loc='lower right')
+    plt.show()
+
+
+    # Plot the results next to each other:
+    plt.plot(g.detach().cpu().numpy()[:40], '-', label='KeOps - CPU')
+    plt.plot(g3.detach().cpu().numpy()[:40], '--', label='KeOps - GPU')
+    plt.legend(loc='lower right')
+    plt.show()
 

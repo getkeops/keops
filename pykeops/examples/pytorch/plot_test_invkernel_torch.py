@@ -82,6 +82,15 @@ print('Timing (PyTorch implementation):', round(end - start, 5), 's')
 print("Relative error = ",(torch.norm(c - c_py) / torch.norm(c_py)).item())
 
 
+# Plot the results next to each other:
+for i in range(Dv):
+    plt.subplot(Dv, 1, i+1)
+    plt.plot(   c.cpu().detach().numpy()[:40,i],  '-', label='KeOps')
+    plt.plot(c_py.cpu().detach().numpy()[:40,i], '--', label='PyTorch')
+    plt.legend(loc='lower right')
+plt.tight_layout() ; plt.show()
+
+
 ###############################################################################
 # Compare the derivatives:
 #
@@ -101,3 +110,10 @@ print("Relarive error = ",(torch.norm(u - u_py) / torch.norm(u_py)).item())
 
 
 
+# Plot the results next to each other:
+for i in range(Dv):
+    plt.subplot(Dv, 1, i+1)
+    plt.plot(   u.cpu().detach().numpy()[:40,i],  '-', label='KeOps')
+    plt.plot(u_py.cpu().detach().numpy()[:40,i], '--', label='PyTorch')
+    plt.legend(loc='lower right')
+plt.tight_layout() ; plt.show()

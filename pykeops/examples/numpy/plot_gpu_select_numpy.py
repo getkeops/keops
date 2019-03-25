@@ -71,7 +71,7 @@ if IsGpuAvailable():
         # Plot the results next to each other:
         for i in range(3):
             plt.subplot(3, 1, i+1)
-            plt.plot(c[:40,i],  '-', label='keops')
+            plt.plot(c[:40,i],  '-', label='CPU')
             plt.plot(d[:40,i], '--', label='GPU {}'.format(gpuid))
             plt.legend(loc='lower right')
 
