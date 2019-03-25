@@ -54,6 +54,9 @@ help:
 
 clean:
 	rm -rf $(BUILDDIR)/*
+	rm -rf html/
+	rm -rf latex/
+	rm -rf xml/
 	rm -rf _auto_examples/
 	rm -rf _auto_tutorials/
 	rm -rf _auto_benchmarks/
