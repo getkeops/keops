@@ -61,16 +61,16 @@ my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=ty
 c = my_routine(x, y, a, p, backend='auto')
 
 ####################################################################
-# the equivalent code in numpy
+# The equivalent code in NumPy:
 c_np = ((p - a.T)[:,np.newaxis] **2 * np.exp(x.T[:,:,np.newaxis] + y.T[:,np.newaxis,:]) ).sum(2).T
 
-# compare the results by plotting them
+# Plot the results next to each other:
 for i in range(3):
     plt.subplot(3, 1, i+1)
     plt.plot(c[:40,i], '-', label='keops')
     plt.plot(c_np[:40,i], '--', label='numpy')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()
 
 
 ####################################################################
@@ -124,10 +124,10 @@ g = my_grad(x, y, a, p, e)
 g_np = ((p - a.T)[:, np.newaxis, :] **2 * np.exp(x.T[:, :, np.newaxis] \
      + y.T[:, np.newaxis, :]) * e.T[:, :, np.newaxis]).sum(1).T
 
-# compare the results by plotting:
+# Plot the results next to each other:
 for i in range(3):
     plt.subplot(3, 1, i+1)
     plt.plot(g[:40,i], '-', label='keops')
     plt.plot(g_np[:40,i], '--', label='numpy')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()

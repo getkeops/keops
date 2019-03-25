@@ -16,14 +16,16 @@ using the **conjugate gradient solver** provided by
 
 import numpy as np
 import time 
+import matplotlib.pyplot as plt
 
 from pykeops.numpy import KernelSolve
+from pykeops.numpy.utils import IsGpuAvailable
 
 ###############################################################################
 # Define our dataset:
 #
 
-N  = 5000   # Number of points
+N  = 5000 if IsGpuAvailable() else 500  # Number of points
 D  = 2      # Dimension of the ambient space
 Dv = 2      # Dimension of the vectors (= number of linear problems to solve)
 sigma = .1  # Radius of our RBF kernel    
@@ -80,3 +82,10 @@ end = time.time()
 print('Timing (Numpy implementation):', round(end - start, 5), 's')
 print("Relative error = ", np.linalg.norm(c - c_np) / np.linalg.norm(c_np))
 
+# Plot the results next to each other:
+for i in range(Dv):
+    plt.subplot(Dv, 1, i+1)
+    plt.plot(   c[:40,i],  '-', label='keops')
+    plt.plot(c_np[:40,i], '--', label='numpy')
+    plt.legend(loc='lower right')
+plt.tight_layout() ; plt.show()

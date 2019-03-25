@@ -16,7 +16,10 @@ operation will be performed.
 
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
+
 from pykeops.numpy import Genred
+from pykeops.numpy.utils import IsGpuAvailable
 
 ###############################################################
 # Define the list of gpu ids to be tested:
@@ -59,9 +62,18 @@ c = my_routine(x, y, a, p, backend='CPU')
 # And on our GPUs, with copies between 
 # the Host and Device memories:
 #
-for gpuid in gpuids:
-    d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
-    print('Relative error on gpu {}: {:1.3e}'.format( gpuid, 
-            float( np.sum(np.abs(c - d)) / np.sum(np.abs(c)) ) ))
+if IsGpuAvailable():
+    for gpuid in gpuids:
+        d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
+        print('Relative error on gpu {}: {:1.3e}'.format( gpuid, 
+                float( np.sum(np.abs(c - d)) / np.sum(np.abs(c)) ) ))
+    
+        # Plot the results next to each other:
+        for i in range(3):
+            plt.subplot(3, 1, i+1)
+            plt.plot(c[:40,i],  '-', label='keops')
+            plt.plot(d[:40,i], '--', label='GPU {}'.format(gpuid))
+            plt.legend(loc='lower right')
 
-            
+        plt.tight_layout() ; plt.show()
+

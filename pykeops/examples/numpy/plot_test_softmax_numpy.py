@@ -34,6 +34,7 @@ SoftMax reduction
 import time
 import numpy as np
 from pykeops.numpy import Genred
+import matplotlib.pyplot as plt
 
 ###############################################################################
 # Define our dataset:
@@ -84,3 +85,10 @@ print("Timing (Numpy implementation): ",round(time.time()-start,5),"s")
 
 print("Relative error : ", (np.linalg.norm(c - cc) / np.linalg.norm(c)).item())
 
+# Plot the results next to each other:
+for i in range(Dv):
+    plt.subplot(Dv, 1, i+1)
+    plt.plot( c[:40,i],  '-', label='keops')
+    plt.plot(cc[:40,i], '--', label='numpy')
+    plt.legend(loc='lower right')
+plt.tight_layout() ; plt.show()
