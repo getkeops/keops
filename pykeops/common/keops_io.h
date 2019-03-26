@@ -65,8 +65,8 @@ int get_size(array_t obj_ptri, int l);
 template< typename array_t >
 __TYPE__* get_data(array_t obj_ptri);
 
-template< typename array_t >
-__INDEX__* get_rangedata(array_t obj_ptri);
+template< typename index_t >
+__INDEX__* get_rangedata(index_t obj_ptri);
 
 template< typename array_t >
 bool is_contiguous(array_t obj_ptri);
@@ -177,7 +177,7 @@ array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int De
 //                    Main function
 /////////////////////////////////////////////////////////////////////////////////
 
-template < typename array_t >
+template < typename array_t, typename index_t >
 array_t generic_red(int nx, int ny,
                     int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
                     int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
@@ -232,9 +232,9 @@ array_t generic_red(int nx, int ny,
     }
     else if(ranges.size() == 6) {
         // Cast the six integer arrays
-        std::vector<array_t> ranges_ptr(ranges.size());
+        std::vector<index_t> ranges_ptr(ranges.size());
         for (size_t i = 0; i < ranges.size(); i++)
-            ranges_ptr[i] = py::cast<array_t> (ranges[i]);
+            ranges_ptr[i] = py::cast<index_t> (ranges[i]);
         
         // get the pointers to data to avoid a copy
         castedranges = new __INDEX__ *[ranges.size()];

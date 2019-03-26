@@ -110,7 +110,7 @@ PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
     m.doc() = "keops for pytorch through pybind11"; // optional module docstring
 
     m.def("genred_pytorch",
-          &generic_red<at::Tensor>,
+          &generic_red<at::Tensor,at::Tensor>,
           "Entry point to keops - pytorch version.");
 
     m.attr("tagIJ") = TAGIJ;
