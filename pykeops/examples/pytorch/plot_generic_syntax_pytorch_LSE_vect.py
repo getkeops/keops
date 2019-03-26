@@ -85,7 +85,7 @@ for i in range(3):
     plt.plot(c.detach().cpu().numpy()[:40, i], '-', label='KeOps - Stable')
     plt.plot(c2.detach().cpu().numpy()[:40, i], '--', label='KeOps - Unstable')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()
 
 
 ####################################################################
@@ -129,7 +129,7 @@ print('(relative error: ',((g2-g).norm()/g.norm()).item(), ')')
 plt.plot(g.detach().cpu().numpy()[:40], '-', label='KeOps - Stable')
 plt.plot(g2.detach().cpu().numpy()[:40], '--', label='KeOps - Unstable')
 plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()
 
 
 ####################################################################
@@ -157,12 +157,12 @@ if torch.cuda.is_available():
         plt.plot(c.detach().cpu().numpy()[:40, i], '-', label='KeOps - CPU')
         plt.plot(c3.detach().cpu().numpy()[:40, i], '--', label='KeOps - GPU')
         plt.legend(loc='lower right')
-    plt.show()
+    plt.tight_layout() ; plt.show()
 
     # Plot the results next to each other:
     plt.plot(g.detach().cpu().numpy()[:40], '-', label='KeOps - CPU')
     plt.plot(g3.detach().cpu().numpy()[:40], '--', label='KeOps - GPU')
     plt.legend(loc='lower right')
-    plt.show()
+    plt.tight_layout() ; plt.show()
 
 

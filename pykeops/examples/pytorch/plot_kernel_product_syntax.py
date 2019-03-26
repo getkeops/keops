@@ -14,6 +14,7 @@ Let's showcase KeOps's high-level interface on 3D point clouds.
 import torch
 from torch.autograd import grad
 from pykeops.torch import Kernel, kernel_product
+import matplotlib.pyplot as plt
 
 ####################################################################
 # Convenience functions:
@@ -43,52 +44,53 @@ dimpoints, dimsignal = 3, 1
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # N.B.: PyTorch's default dtype is float32
-a = torch.randn(npoints_x, dimsignal, requires_grad=True, device=device)
+a = torch.randn(npoints_x, dimsignal, device=device)
 x = torch.randn(npoints_x, dimpoints, requires_grad=True, device=device)
-y = torch.randn(npoints_y, dimpoints, requires_grad=True, device=device)
-b = torch.randn(npoints_y, dimsignal, requires_grad=True, device=device)
+y = torch.randn(npoints_y, dimpoints, device=device)
+b = torch.randn(npoints_y, dimsignal, device=device)
 
 ####################################################################
 # A Gaussian convolution
 # ----------------------
-
-# N.B.: 'sum' is default, 'lse' is for 'log-sum-exp'
-modes = ['sum', 'lse'] if dimsignal == 1 else ['sum']
 
 # Wrap the kernel's parameters into a JSON dict structure
 sigma = scal_to_var(-1.5)
 params = {
     'id': Kernel('gaussian(x,y)'),
     'gamma': .5 / sigma ** 2,
-    'mode': 'sum',
 }
 
 ####################################################################
 # Test, using both **PyTorch** and **KeOps** (online) backends:
+axes = plt.subplot(2,1,1), plt.subplot(2,1,2)
 
-for mode in modes:
-    params['mode'] = mode
-    print('Mode :', mode, '========================================')
-    for backend in ['pytorch', 'auto']:
-        params['backend'] = backend
-        print('Backend :', backend, '--------------------------')
-        
-        Kxy_b = kernel_product(params, x, y, b)
-        aKxy_b = scalprod(a, Kxy_b)
-        print('Kernel dot product  : ', disp(aKxy_b))
-        
-        # Computing a gradient is that easy - we can also use the 'aKxy_b.backward()' syntax.
-        # Notice the 'create_graph=True', which will allow us to compute
-        # higher order derivatives.
-        [grad_x, grad_y, grad_s] = grad(aKxy_b, [x, y, sigma], create_graph=True)
-        print('Gradient wrt. x: \n', disp(grad_x[:2, :]))
-        print('Gradient wrt. y: \n', disp(grad_y[:2, :]))
-        print('Gradient wrt. s: \n', disp(grad_s))
-        
-        grad_x_norm = scalprod(grad_x, grad_x)
-        [grad_xx, grad_xy] = grad(grad_x_norm, [x, y], create_graph=True)
-        print('Arbitrary formula 1: \n', disp(grad_xx[:2, :]))
-        print('Arbitrary formula 2: \n', disp(grad_xy[:2, :]))
+for backend, linestyle, label in [("auto",    "-", "KeOps"),
+                                  ("pytorch", "--", "PyTorch")]:
+    
+    Kxy_b = kernel_product(params, x, y, b, backend=backend)
+    aKxy_b = scalprod(a, Kxy_b)
+    
+    # Computing a gradient is that easy - we can also use the 'aKxy_b.backward()' syntax.
+    # Notice the 'create_graph=True', which will allow us to compute
+    # higher order derivatives.
+    [grad_x, grad_s] = grad(aKxy_b, [x, sigma], create_graph=True)
+
+    grad_x_norm = scalprod(grad_x, grad_x)
+    [grad_xx] = grad(grad_x_norm, [x], create_graph=True)
+
+    print("Backend = {:^7}:  cost = {:.4f}, grad wrt. s = {:.4f}".format(
+            label, aKxy_b.item(), grad_s.item() ))
+
+
+    # Fancy display: plot the results next to each other.
+    axes[0].plot(grad_x.detach().cpu().numpy()[:40,0], linestyle, label=label)
+    axes[0].legend(loc='lower right')
+
+    axes[1].plot(grad_xx.detach().cpu().numpy()[:40,2], linestyle, label=label)
+    axes[1].legend(loc='lower right')
+
+plt.tight_layout() ; plt.show()
+
 
 
 ####################################################################
@@ -115,37 +117,42 @@ kernel_formulas['my_formula'] = Formula(
 
     # Pytorch routines, for the 'pure pytorch' backend:
     routine_sum=lambda gxmy2=None, xsy=None, **kwargs: (xsy - gxmy2).exp(),
-    routine_log=lambda gxmy2=None, xsy=None, **kwargs: xsy - gxmy2,
+    routine_log=lambda gxmy2=None, xsy=None, **kwargs:  xsy - gxmy2,
 )
 
 print('After a dynamic addition: ', kernel_formulas.keys())
 kernel = Kernel('my_formula(x,y)')
 
+####################################################################
 # Wrap it (and its parameters) into a JSON dict structure
 sigma = scal_to_var(0.5)
 params = {
     'id': kernel,
     'gamma': .5 / sigma ** 2,
-    'backend': 'auto',
-    'mode': 'sum',
 }
 
 ####################################################################
 # Test our new kernel, using **PyTorch** and **KeOps** (online) backends:
 
-for mode in modes:
-    params['mode'] = mode
-    print('Mode :', mode, '========================================')
-    for backend in ['pytorch', 'auto']:
-        params['backend'] = backend
-        print('Backend :', backend, '--------------------------')
-        
-        Kxy_b = kernel_product(params, x, y, b)
-        aKxy_b = scalprod(a, Kxy_b)
-        print('Kernel dot product  : ', disp(aKxy_b))
-        
-        # Computing a gradient is that easy - we can also use the 'aKxy_b.backward()' syntax.
-        # Notice the 'create_graph=True', which will allow us to compute
-        # higher order derivatives.
-        [grad_x, grad_y, grad_s] = grad(aKxy_b, [x, y, sigma], create_graph=True)
-        print('Gradient wrt. x: \n', disp(grad_x[:2, :]))
+
+for backend, linestyle, label in [("auto",    "-", "KeOps"),
+                                  ("pytorch", "--", "PyTorch")]:
+
+    # For a change, let's use the LogSumExp mode:                              
+    Kxy_b = kernel_product(params, x, y, b, backend=backend, mode="lse")
+    aKxy_b = scalprod(a, Kxy_b)
+    
+    # Computing a gradient is that easy - we can also use the 'aKxy_b.backward()' syntax.
+    # Notice the 'create_graph=True', which will allow us to compute
+    # higher order derivatives.
+    [grad_x, grad_s] = grad(aKxy_b, [x, sigma], create_graph=True)
+
+
+    print("Backend = {:^7}:  cost = {:.4f}, grad wrt. s = {:.4f}".format(
+            label, aKxy_b.item(), grad_s.item() ))
+
+    # Fancy display: plot the results next to each other.
+    plt.plot(grad_x.detach().cpu().numpy()[:40,0], linestyle, label=label)
+    plt.legend(loc='lower right')
+
+plt.tight_layout() ; plt.show()

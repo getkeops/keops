@@ -73,4 +73,4 @@ for i in range(D):
     plt.plot(a_keops.detach().cpu().numpy()[:40, i], '-', label='KeOps')
     plt.plot(a_pytorch.detach().cpu().numpy()[:40, i], '--', label='PyTorch')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()

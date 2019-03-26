@@ -112,4 +112,4 @@ for i in range(3):
     plt.plot(g.detach().cpu().numpy()[:40,i], '-', label='KeOps')
     plt.plot(g_torch.detach().cpu().numpy()[:40,i], '--', label='PyTorch')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()
