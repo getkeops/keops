@@ -13,6 +13,7 @@ namespace py = pybind11;
 //  2) everything is convert as contiguous before being loaded in memory
 // this is maybe not the best in term of performance... but at least it is safe.
 using __NUMPYARRAY__ = py::array_t<__TYPE__, py::array::c_style>;
+using __RANGEARRAY__ = py::array_t<__INDEX__, py::array::c_style>;
 
 /////////////////////////////////////////////////////////////////////////////////
 //                             Utils
@@ -29,7 +30,7 @@ __TYPE__* get_data(__NUMPYARRAY__ obj_ptri){
 }
 
 template <>
-__INDEX__* get_rangedata(__NUMPYARRAY__ obj_ptri){
+__INDEX__* get_rangedata(__RANGEARRAY__ obj_ptri){
     return (__INDEX__ *) obj_ptri.data();
 }
 
