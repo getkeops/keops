@@ -229,7 +229,7 @@ array_t generic_red(int nx, int ny,
         
         // get the pointers to data to avoid a copy
         castedranges = new __INDEX__ *[ranges.size()];
-        for(auto i=0; i<ranges.size(); i++)
+        for(size_t i=0; i<ranges.size(); i++)
             castedranges[i] = get_rangedata(ranges_ptr[i]);
 
         tagRanges = 1;
