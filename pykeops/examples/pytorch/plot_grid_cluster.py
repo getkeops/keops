@@ -108,9 +108,9 @@ b = torch.randn(N, 1).type(dtype)
 
 my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",
                  ["G = Pm(1)",
-                  "X = Vx(2)",
-                  "Y = Vy(2)",
-                  "B = Vy(1)"], 
+                  "X = Vi(2)",
+                  "Y = Vj(2)",
+                  "B = Vj(1)"], 
                   axis = 1 )     # Reduction wrt. y
 
 backends = (["CPU", "GPU"] if M*N<4e8 else ["GPU"]) if use_cuda else ["CPU"]

@@ -33,8 +33,8 @@ x = np.random.rand(N,D).astype(type)
 # -------------
 
 formula   =  'SqDist(x,y)'          # Use a simple Euclidean (squared) norm
-variables = ['x = Vx('+str(D)+')',  # First arg : i-variable, of size D
-             'y = Vy('+str(D)+')']  # Second arg: j-variable, of size D
+variables = ['x = Vi('+str(D)+')',  # First arg : i-variable, of size D
+             'y = Vj('+str(D)+')']  # Second arg: j-variable, of size D
 
 # N.B.: The number K is specified as an optional argument `opt_arg`
 my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, 

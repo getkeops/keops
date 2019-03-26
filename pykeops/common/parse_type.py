@@ -2,8 +2,8 @@ import re
 from collections import OrderedDict
 
 categories = OrderedDict([
-    ("Vx", 0),
-    ("Vy", 1),
+    ("Vi", 0),
+    ("Vj", 1),
     ("Pm", 2)
 ])
 
@@ -43,22 +43,22 @@ def get_type(type_str, position_in_list=None):
     Get the type of the variable declared in type_str.
 
     :param type_str: is a string of the form 
-    "var = Xy(dim)" or "var = Xy(pos,dim)" or "Xy(pos,dim)" or "Xy(dim)" with Xy being either Vx, Vy or Pm,
+    "var = Xy(dim)" or "var = Xy(pos,dim)" or "Xy(pos,dim)" or "Xy(dim)" with Xy being either Vi, Vj or Pm,
     or "var = Var(pos,dim,cat)"
     :param position_in_list: an optional integer used if the position is not given
                              in type_str (ie is of the form "var = Xy(dim)" or "Xy(dim)") 
 
     :return: name : a string (here "var"), cat : an int (0,1 or 2), dim : an int
     """
-    m = re.match('([a-zA-Z_][a-zA-Z_0-9]*)=(Vx|Vy|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
+    m = re.match('([a-zA-Z_][a-zA-Z_0-9]*)=(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
     
     if m is None:
-        m = re.match('(Vx|Vy|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
+        m = re.match('(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
         if m is None:
             m = re.match('Var\(([0-9]*?),?([0-9]*),?([0-9]*)\)', type_str.replace(" ", ""))
             if m is None:
                 raise ValueError(
-                    type_str + " type_str does not match the 'var = [Vx|Vy|Pm](dim)' or 'var = [Vx|Vy|Pm](pos,dim) or '[Vx|Vy|Pm](dim) or '[Vx|Vy|Pm](pos,dim) or Var(pos,dim,cat)'  format: " + type_str)
+                    type_str + " type_str does not match the 'var = [Vi|Vj|Pm](dim)' or 'var = [Vi|Vj|Pm](pos,dim) or '[Vi|Vj|Pm](dim) or '[Vi|Vj|Pm](pos,dim) or Var(pos,dim,cat)'  format: " + type_str)
             else:
                 # output: varname,          cat          ,     dim        , pos
                 return None, int(m.group(3)), int(m.group(2)), int(m.group(1))

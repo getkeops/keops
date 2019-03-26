@@ -6,14 +6,14 @@ function [F,Fname] = keops_kernel(varargin)
 %
 % - Define and test a function that computes for each i the sum over j
 % of the square of the scalar products of xi and yj (both 3d vectors)
-% F = keops_kernel('x=Vx(3)','y=Vy(3)','SumReduction(Square((x,y)),0)');
+% F = keops_kernel('x=Vi(3)','y=Vj(3)','SumReduction(Square((x,y)),0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % res = F(x,y);
 %
 % - Define and test the convolution with a Gauss kernel i.e. the sum
 % over j of e^(lambda*||xi-yj||^2)beta_j (xi,yj, beta_j 3d vectors):
-% F = keops_kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','lambda=Pm(1)','SumReduction(Exp(lambda*SqNorm2(x-y))*beta,0)');
+% F = keops_kernel('x=Vi(3)','y=Vj(3)','beta=Vj(3)','lambda=Pm(1)','SumReduction(Exp(lambda*SqNorm2(x-y))*beta,0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % beta = rand(3,5000);

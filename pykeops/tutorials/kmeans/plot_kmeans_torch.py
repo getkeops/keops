@@ -38,9 +38,9 @@ def KMeans(x, K=10, Niter=10, verbose=True):
     # Define our KeOps kernel:
     nn_search = generic_argmin( 
         'SqDist(x,y)',  # A simple squared L2 distance
-        'ind = Vx(1)',  # The output index is indexed by "i"
-        'x = Vx({})'.format(D),  # 1st arg: target points of dimension D, indexed by "i"
-        'y = Vy({})'.format(D))  # 2nd arg: source points of dimension D, indexed by "j"
+        'ind = Vi(1)',  # The output index is indexed by "i"
+        'x = Vi({})'.format(D),  # 1st arg: target points of dimension D, indexed by "i"
+        'y = Vj({})'.format(D))  # 2nd arg: source points of dimension D, indexed by "j"
     
     # Dummy first call for accurate timing (GPU warmup):
     dum = torch.rand(10,D).type(dtype)

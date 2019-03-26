@@ -34,7 +34,7 @@ gpuids = [0,1] if torch.cuda.device_count() > 1 else [0]
 # Define some arbitrary KeOps routine:
 
 formula   =  'Square(p-a) * Exp(x+y)'
-variables = ['x = Vx(3)','y = Vy(3)','a = Vy(1)','p = Pm(1)']
+variables = ['x = Vi(3)','y = Vj(3)','a = Vj(1)','p = Pm(1)']
 
 type = 'float32'  # May be 'float32' or 'float64'
 

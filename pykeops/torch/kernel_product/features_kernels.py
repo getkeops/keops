@@ -125,7 +125,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         # First, the G_i's
         for (i, g) in enumerate(gs):
             if g is not None:
-                g_var, g_dim, g_cat, g_str = extract_metric_parameters(g) # example : Tensor(...), 3, 0, 'Vx'
+                g_var, g_dim, g_cat, g_str = extract_metric_parameters(g) # example : Tensor(...), 3, 0, 'Vi'
                 aliases.append('G_{g_ind} = {g_str}({index}, {g_dim})'.format(
                                 g_ind=i, g_str=g_str, index=index, g_dim=g_dim))
                 full_args.append(g_var)
@@ -134,7 +134,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         # Then, the X_i's
         for (i, x) in enumerate(xs):
             x_dim = x.size(1)
-            aliases.append('X_{x_ind} = Vx({index}, {x_dim})'.format(
+            aliases.append('X_{x_ind} = Vi({index}, {x_dim})'.format(
                              x_ind=i, index=index, x_dim=x_dim))
             full_args.append(x)
             index += 1
@@ -142,7 +142,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         # Then, the Y_j's
         for (j, y) in enumerate(ys):
             y_dim = y.size(1)
-            aliases.append('Y_{y_ind} = Vy({index}, {y_dim})'.format(
+            aliases.append('Y_{y_ind} = Vj({index}, {y_dim})'.format(
                              y_ind=j, index=index, y_dim=y_dim))
             full_args.append(y)
             index += 1
@@ -153,7 +153,7 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
         # Then, the B_i/j's
         for (i, (b, b_cat)) in enumerate(zip(bs, bs_cat)):
             b_dim = b.size(1)
-            b_str = ['Vx', 'Vy', 'Pm'][b_cat]
+            b_str = ['Vi', 'Vj', 'Pm'][b_cat]
             aliases.append('B_{b_ind} = {b_str}({index}, {b_dim})'.format(
                             b_ind=i, b_str=b_str, index=index, b_dim=b_dim))
             full_args.append(b)

@@ -21,8 +21,8 @@ b = randn(2,Ny);
 % note here that the parameter w is a vector
 
 % the two following formulas are equivalent
-%F = keops_kernel('(w,Exp(-SqDist(x,y)*c))*b','c=Pm(0,4)','w=Pm(1,4)','x=Vx(2,3)','y=Vy(3,3)','b=Vy(4,2)');
-F = keops_kernel('SumGaussKernel(c,w,x,y,b)','c=Pm(4)','w=Pm(4)','x=Vx(3)','y=Vy(3)','b=Vy(2)');
+%F = keops_kernel('(w,Exp(-SqDist(x,y)*c))*b','c=Pm(0,4)','w=Pm(1,4)','x=Vi(2,3)','y=Vj(3,3)','b=Vj(4,2)');
+F = keops_kernel('SumGaussKernel(c,w,x,y,b)','c=Pm(4)','w=Pm(4)','x=Vi(3)','y=Vj(3)','b=Vj(2)');
 f = F(c,w,x,y,b);
 
 % display part of the result
@@ -37,8 +37,8 @@ f(:,1:10)
 % several times
 
 % the two following formulas are equivalent
-%G = keops_kernel('c=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,2)','Exp(-SqDist(x,y)*c)*b');
-G = keops_kernel('c=Pm(1)','x=Vx(3)','y=Vy(3)','b=Vy(2)','GaussKernel(c,x,y,b)');
+%G = keops_kernel('c=Pm(0,1)','x=Vi(1,3)','y=Vj(2,3)','b=Vj(3,2)','Exp(-SqDist(x,y)*c)*b');
+G = keops_kernel('c=Pm(1)','x=Vi(3)','y=Vj(3)','b=Vj(2)','GaussKernel(c,x,y,b)');
 f1 = G(c(1),x,y,b);
 f2 = G(c(2),x,y,b);
 f3 = G(c(3),x,y,b);
