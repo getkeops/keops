@@ -101,7 +101,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     def test_generic_syntax_sum(self):
     ############################################################
         from pykeops.numpy import Genred
-        aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        aliases = ['p=Pm(0,1)', 'a=Vj(1,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
         formula = 'Square(p-a)*Exp(x+y)'
         axis = 1  # 0 means summation over i, 1 means over j
 
@@ -128,7 +128,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     def test_generic_syntax_lse(self):
     ############################################################
         from pykeops.numpy import Genred
-        aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        aliases = ['p=Pm(0,1)', 'a=Vj(1,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
 
         if pykeops.gpu_available:
@@ -153,7 +153,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     def test_generic_syntax_softmax(self):
     ############################################################
         from pykeops.numpy import Genred
-        aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        aliases = ['p=Pm(0,1)', 'a=Vj(1,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
         formula_weights = 'y'
         
@@ -185,7 +185,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         
         t = self.type_to_test[0]
 
-        aliases = ['p=Pm(0,1)', 'a=Vy(1,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        aliases = ['p=Pm(0,1)', 'a=Vj(1,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(y-x))'
 
         my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1)
@@ -205,7 +205,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         
         t = self.type_to_test[0]
 
-        aliases = ['p=Pm(0,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        aliases = ['p=Pm(0,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
         formula = 'Square(p-Var(1,1,1))*Exp(-SqNorm2(y-x))'
 
         # Call cuda kernel
@@ -225,7 +225,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         
         t = self.type_to_test[0]
 
-        aliases = ['x=Vx(0,3)']
+        aliases = ['x=Vi(0,3)']
         formula = 'Grad(Grad(x + Var(1,3,1), x, Var(2,3,0)),x, Var(3,3,0))'
 
         # Call cuda kernel
@@ -244,8 +244,8 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         from pykeops.numpy import Genred
         formula = 'SqDist(x,y)'
-        variables = ['x = Vx('+str(self.D)+')',  # First arg   : i-variable, of size D
-                     'y = Vy('+str(self.D)+')']  # Second arg  : j-variable, of size D
+        variables = ['x = Vi('+str(self.D)+')',  # First arg   : i-variable, of size D
+                     'y = Vj('+str(self.D)+')']  # Second arg  : j-variable, of size D
 
 
         my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, cuda_type=self.type_to_test[1], opt_arg=3)

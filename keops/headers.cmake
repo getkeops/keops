@@ -49,7 +49,7 @@ if(NOT USENEWSYNTAX)
 else()
     
     if(NOT FORMULA_OBJ)
-        Set(VAR_ALIASES "auto x=Vx(1,3); auto y=Vy(2,3); auto u=Vx(3,4); auto v=Vy(4,4); auto b=Vy(5,3); auto p=Pm(0,1);")
+        Set(VAR_ALIASES "auto x=Vi(1,3); auto y=Vj(2,3); auto u=Vi(3,4); auto v=Vj(4,4); auto b=Vj(5,3); auto p=Pm(0,1);")
         Set(FORMULA_OBJ "SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)")
     endif()
     unset(FORMULA CACHE)

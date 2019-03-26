@@ -5,9 +5,9 @@ The C++ keyword `auto` allows us to define them without having to worry about ex
 
 ```cpp
 auto p = Pm(0,1);
-auto a = Vy(1,1);
-auto x = Vx(2,3);
-auto y = Vy(3,3);
+auto a = Vj(1,1);
+auto x = Vi(2,3);
+auto y = Vj(3,3);
 auto f = Square(p-y)*Exp(x+y);
 ```
 

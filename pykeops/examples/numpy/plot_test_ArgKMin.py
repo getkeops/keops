@@ -14,26 +14,27 @@ point the indices of its K nearest neighbours (including itself).
 
 import time
 import numpy as np
+import matplotlib.pyplot as plt
 from pykeops.numpy import Genred
 
 ###############################################################
 # Define our dataset:
 
-N = 10000  # Number of points
-D = 2      # Dimension of the ambient space
-K = 3      # Number of neighbors to look for
+N = 1000  # Number of points
+D = 2     # Dimension of the ambient space
+K = 3     # Number of neighbors to look for
 
 type = 'float32'  # May be 'float32' or 'float64'
 
-x = np.random.randn(N,D).astype(type)
+x = np.random.rand(N,D).astype(type)
 
 ###############################################################
 # KeOps Kernel
 # -------------
 
 formula   =  'SqDist(x,y)'          # Use a simple Euclidean (squared) norm
-variables = ['x = Vx('+str(D)+')',  # First arg : i-variable, of size D
-             'y = Vy('+str(D)+')']  # Second arg: j-variable, of size D
+variables = ['x = Vi('+str(D)+')',  # First arg : i-variable, of size D
+             'y = Vj('+str(D)+')']  # Second arg: j-variable, of size D
 
 # N.B.: The number K is specified as an optional argument `opt_arg`
 my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, 
@@ -63,10 +64,19 @@ my_routine( np.random.rand(10,D).astype(type),
 
 # Actually perform our K-nn search:
 start = time.time()
-c = my_routine(x, x, backend="auto").astype(int)
+ind = my_routine(x, x, backend="auto")
 print("Time to perform the K-nn search: ",round(time.time()-start,5),"s")
 
 # The result is now an (N,K) array of integers:
 print("Output values :")
-print(c)
+print(ind)
 
+plt.figure(figsize=(8,8))
+plt.scatter(x[:,0], x[:,1], s= 25*500 / len(x))
+
+for k in range(K):  # Highlight some points and their nearest neighbors
+    plt.scatter(x[ ind[:4,k], 0],x[ ind[:4,k], 1], s= 100)
+    
+
+plt.axis("equal") ; plt.axis([0,1,0,1])
+plt.tight_layout(); plt.show()

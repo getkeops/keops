@@ -53,9 +53,9 @@ p = torch.randn(1, 1, dtype=torchtype, device=device)
 # -----------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
-variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
-             'y = Vy(3)',  # Second arg  : j-variable, of size 3
-             'a = Vy(1)',  # Third arg   : j-variable, of size 1 (scalar)
+variables = ['x = Vi(3)',  # First arg   : i-variable, of size 3
+             'y = Vj(3)',  # Second arg  : j-variable, of size 3
+             'a = Vj(1)',  # Third arg   : j-variable, of size 1 (scalar)
              'p = Pm(1)']  # Fourth  arg : Parameter,  of size 1 (scalar)
          
 ####################################################################
@@ -103,12 +103,13 @@ print('Time to compute gradient of convolution operation with KeOps: ', round(ti
 ####################################################################
 # The equivalent code with a "vanilla" pytorch implementation
 
-g_torch = ((p - a.transpose(0, 1))[:, None] **2 * torch.exp(x.transpose(0, 1)[:, :, None] + y.transpose(0, 1)[:, None, :]) * e.transpose(0, 1)[:, :, None] ).sum(dim=1).transpose(0, 1)
+g_torch = ((p - a.transpose(0, 1))[:, None] **2 * torch.exp(x.transpose(0, 1)[:, :, None] \
+        + y.transpose(0, 1)[:, None, :]) * e.transpose(0, 1)[:, :, None] ).sum(dim=1).transpose(0, 1)
 
-# compare the results by plotting some values
+# Plot the results next to each other:
 for i in range(3):
     plt.subplot(3, 1, i+1)
-    plt.plot(g.detach().cpu().numpy()[:40,i], '-', label='keops')
-    plt.plot(g_torch.detach().cpu().numpy()[:40,i], '--', label='numpy')
+    plt.plot(g.detach().cpu().numpy()[:40,i], '-', label='KeOps')
+    plt.plot(g_torch.detach().cpu().numpy()[:40,i], '--', label='PyTorch')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()

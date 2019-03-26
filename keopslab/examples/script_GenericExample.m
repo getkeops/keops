@@ -18,7 +18,7 @@ p = .25;
 %           Kernel with KeOps             %
 %-----------------------------------------%
 
-F = keops_kernel('x=Vx(3)','y=Vy(3)','u=Vx(4)','v=Vy(4)','b=Vy(3)', 'p=Pm(1)',...
+F = keops_kernel('x=Vi(3)','y=Vj(3)','u=Vi(4)','v=Vj(4)','b=Vj(3)', 'p=Pm(1)',...
            'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
 
 tic

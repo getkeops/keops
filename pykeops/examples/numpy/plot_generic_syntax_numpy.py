@@ -47,9 +47,9 @@ p = np.random.randn(1,1).astype(type)
 # -----------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
-variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
-             'y = Vy(3)',  # Second arg  : j-variable, of size 3
-             'a = Vy(1)',  # Third arg   : j-variable, of size 1 (scalar)
+variables = ['x = Vi(3)',  # First arg   : i-variable, of size 3
+             'y = Vj(3)',  # Second arg  : j-variable, of size 3
+             'a = Vj(1)',  # Third arg   : j-variable, of size 1 (scalar)
              'p = Pm(1)']  # Fourth  arg : Parameter,  of size 1 (scalar)
 
 ####################################################################
@@ -61,16 +61,16 @@ my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=ty
 c = my_routine(x, y, a, p, backend='auto')
 
 ####################################################################
-# the equivalent code in numpy
+# The equivalent code in NumPy:
 c_np = ((p - a.T)[:,np.newaxis] **2 * np.exp(x.T[:,:,np.newaxis] + y.T[:,np.newaxis,:]) ).sum(2).T
 
-# compare the results by plotting them
+# Plot the results next to each other:
 for i in range(3):
     plt.subplot(3, 1, i+1)
-    plt.plot(c[:40,i], '-', label='keops')
-    plt.plot(c_np[:40,i], '--', label='numpy')
+    plt.plot(c[:40,i], '-', label='KeOps')
+    plt.plot(c_np[:40,i], '--', label='NumPy')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()
 
 
 ####################################################################
@@ -103,7 +103,7 @@ e = np.random.randn(M, 3).astype(type)
 formula_grad =  'Grad(' + formula + ', y, e)'
 
 # This new formula makes use of a new variable (the input tensor e)
-variables_grad = variables + ['e = Vx(3)'] # Fifth arg: an i-variable of size 3... Just like "c"!
+variables_grad = variables + ['e = Vi(3)'] # Fifth arg: an i-variable of size 3... Just like "c"!
 
 # The summation is done with respect to the 'i' index (axis=0) in order to get a 'j'-variable
 my_grad = Genred(formula_grad, variables_grad, reduction_op='Sum', axis=0, cuda_type=type)
@@ -124,10 +124,10 @@ g = my_grad(x, y, a, p, e)
 g_np = ((p - a.T)[:, np.newaxis, :] **2 * np.exp(x.T[:, :, np.newaxis] \
      + y.T[:, np.newaxis, :]) * e.T[:, :, np.newaxis]).sum(1).T
 
-# compare the results by plotting:
+# Plot the results next to each other:
 for i in range(3):
     plt.subplot(3, 1, i+1)
-    plt.plot(g[:40,i], '-', label='keops')
-    plt.plot(g_np[:40,i], '--', label='numpy')
+    plt.plot(g[:40,i], '-', label='KeOps')
+    plt.plot(g_np[:40,i], '--', label='NumPy')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()

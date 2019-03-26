@@ -57,8 +57,8 @@ g = torch.randn(N, D, requires_grad=True, device=device)
 # Note that Square(...) is more efficient than Pow(...,2)
 formula = 'Square((X|Y)) * ((Elem(P, 0) * X) + (Elem(P, 1) * Y))'
 variables = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
-             'X = Vx(3)',  # 2nd argument, indexed by i, dim D.
-             'Y = Vy(3)']  # 3rd argument, indexed by j, dim D.
+             'X = Vi(3)',  # 2nd argument, indexed by i, dim D.
+             'Y = Vj(3)']  # 3rd argument, indexed by j, dim D.
 
 my_routine = Genred(formula, variables, reduction_op='Sum', axis=1)
 a_keops = my_routine(p, x, y)
@@ -67,10 +67,10 @@ a_keops = my_routine(p, x, y)
 scals = (torch.mm(x, y.t())) ** 2  # Memory-intensive computation!
 a_pytorch = p[0] * scals.sum(1).view(-1, 1) * x + p[1] * (torch.mm(scals, y))
 
-# Check the results
+# Plot the results next to each other:
 for i in range(D):
     plt.subplot(D, 1, i+1)
-    plt.plot(a_keops.detach().cpu().numpy()[:40, i], '-', label='keops')
-    plt.plot(a_pytorch.detach().cpu().numpy()[:40, i], '--', label='numpy')
+    plt.plot(a_keops.detach().cpu().numpy()[:40, i], '-', label='KeOps')
+    plt.plot(a_pytorch.detach().cpu().numpy()[:40, i], '--', label='PyTorch')
     plt.legend(loc='lower right')
-plt.show()
+plt.tight_layout() ; plt.show()

@@ -160,7 +160,7 @@ class Kernel:
 
                     k(x,y)~=~\sqrt{\langle x-y, G\, (x-y)\\rangle}.
 
-            **Defining your own formulas** is also possible, and documented in the second part of this :doc:`example <../_auto_examples/pytorch/kernel_product_syntax>`.
+            **Defining your own formulas** is also possible, and documented in the second part of this :doc:`example <../_auto_examples/pytorch/plot_kernel_product_syntax>`.
 
 
             **Parameters.** With the exception of the linear kernel (which accepts **None** as its parameter), all these kernels act on arbitrary vectors of dimension `D` and are parametrized by a variable ``G`` that can represent :

@@ -1,4 +1,4 @@
-K-Nearest Neighbour
+K-Nearest Neighbors
 -------------------
 
-K-NN classification using KeOps ArgKMin reduction.
+K-NN classification using the ArgKMin reduction.

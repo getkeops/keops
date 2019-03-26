@@ -1,4 +1,4 @@
-import torch
+import numpy as np
 
 def sort_clusters(x, lab) :
     """Sorts a list of points and labels to make sure that the clusters are contiguous in memory.
@@ -8,34 +8,30 @@ def sort_clusters(x, lab) :
     to each other in memory, this pre-processing routine allows
     KeOps to compute block-sparse reductions with maximum efficiency.
 
-    Warning:
-        For unknown reasons, ``torch.bincount`` is much more efficient
-        on *unsorted* arrays of labels... so make sure not to call ``bincount``
-        on the output of this routine!
-
     Args:
-        x ((M,D) Tensor or tuple/list of (M,..) Tensors): List of points :math:`x_i \in \mathbb{R}^D`.
-        lab ((M,) IntTensor): Vector of class labels :math:`l_i\in\mathbb{N}`.
+        x ((M,D) array or tuple/list of (M,..) arrays): List of points :math:`x_i \in \mathbb{R}^D`.
+        lab ((M,) integer arrays): Vector of class labels :math:`l_i\in\mathbb{N}`.
 
     Returns:
-        (M,D) Tensor or tuple/list of (M,..) Tensors, (M,) IntTensor:
+        (M,D) array or tuple/list of (M,..) arrays, (M,) integer array:
         
         Sorted **point cloud(s)** and **vector of labels**.
 
     Example:
-        >>> x   = torch.Tensor(   [ [0.], [5.], [.4], [.3], [2.] ])
-        >>> lab = torch.IntTensor([  0,    2,    0,    0,    1   ])
+        >>> x   = np.array([ [0.], [5.], [.4], [.3], [2.] ])
+        >>> lab = np.array([  0,    2,    0,    0,    1   ], dtype=int)
         >>> x_sorted, lab_sorted = sort_clusters(x, lab)
         >>> print(x_sorted)
-        tensor([[0.0000],
-                [0.4000],
-                [0.3000],
-                [2.0000],
-                [5.0000]])
+        [[0. ]
+         [0.4]
+         [0.3]
+         [2. ]
+         [5. ]]
         >>> print(lab_sorted)
-        tensor([0, 0, 0, 1, 2], dtype=torch.int32)
+        [0 0 0 1 2]
     """
-    lab, perm = torch.sort(lab.view(-1))
+    perm = np.argsort(lab.ravel())
+    lab  = lab[perm]
     if type(x) is tuple:
         x_sorted = tuple( a[perm] for a in x )
     elif type(x) is list:
@@ -55,44 +51,44 @@ def cluster_ranges(lab, Nlab=None) :
     that correspond to each of those :math:`C` classes.
 
     Args:
-        x ((M,D) Tensor): List of points :math:`x_i \in \mathbb{R}^D`.
-        lab ((M,) IntTensor): Vector of class labels :math:`l_i\in\mathbb{N}`.
+        x ((M,D) array): List of points :math:`x_i \in \mathbb{R}^D`.
+        lab ((M,) integer array): Vector of class labels :math:`l_i\in\mathbb{N}`.
 
     Keyword Args:
-        Nlab ((C,) IntTensor, optional): If you have computed it already,
+        Nlab ((C,) integer array, optional): If you have computed it already,
             you may specify the number of points per class through
             this integer vector of length :math:`C`.
 
     Returns:
-        (C,2) IntTensor:
+        (C,2) integer array:
         
         Stacked array of :math:`[\\text{start}_k,\\text{end}_k)` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`.
 
     Example:
-        >>> x   = torch.Tensor(   [ [0.], [5.], [.4], [.3], [2.] ])
-        >>> lab = torch.IntTensor([  0,    2,    0,    0,    1   ])
+        >>> x   = np.array([ [0.], [5.], [.4], [.3], [2.] ])
+        >>> lab = np.array([  0,    2,    0,    0,    1   ], dtype=int)
         >>> x_sorted, lab_sorted = sort_clusters(x, lab)
         >>> print(x_sorted)
-        tensor([[0.0000],
-                [0.4000],
-                [0.3000],
-                [2.0000],
-                [5.0000]])
+        [[0. ]
+         [0.4]
+         [0.3]
+         [2. ]
+         [5. ]]
         >>> print(lab_sorted)
-        tensor([0, 0, 0, 1, 2], dtype=torch.int32)
+        [0 0 0 1 2]
         >>> ranges_i = cluster_ranges(lab)
         >>> print( ranges_i )
-        tensor([[0, 3],
-                [3, 4],
-                [4, 5]], dtype=torch.int32)
+        [[0 3]
+         [3 4]
+         [4 5]]
         --> cluster 0 = x_sorted[0:3, :]
         --> cluster 1 = x_sorted[3:4, :]
         --> cluster 2 = x_sorted[4:5, :]
     """
-    if Nlab is None : Nlab = torch.bincount(lab).float()
-    pivots = torch.cat( (torch.Tensor([0.]).to(Nlab.device), Nlab.cumsum(0)) )
-    return torch.stack( (pivots[:-1], pivots[1:]) ).t().int()
+    if Nlab is None : Nlab = np.bincount(lab)
+    pivots = np.concatenate( (np.array([0]), np.cumsum(Nlab, axis=0)) )
+    return np.stack( (pivots[:-1], pivots[1:]) ).T.astype(int)
 
 def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
     """Computes the (weighted) centroids of classes specified by a vector of labels.
@@ -107,38 +103,38 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
     where the weights :math:`w_i` are set to 1 by default.
 
     Args:
-        x ((M,D) Tensor): List of points :math:`x_i \in \mathbb{R}^D`.
-        lab ((M,) IntTensor): Vector of class labels :math:`l_i\in\mathbb{N}`.
+        x ((M,D) array): List of points :math:`x_i \in \mathbb{R}^D`.
+        lab ((M,) integer array): Vector of class labels :math:`l_i\in\mathbb{N}`.
 
     Keyword Args:
-        Nlab ((C,) IntTensor): Number of points per class. Recomputed if None.
-        weights ((N,) Tensor): Positive weights :math:`w_i` of each point.
-        weights_c ((C,) Tensor): Total weight of each class. Recomputed if None.
+        Nlab ((C,) integer array): Number of points per class. Recomputed if None.
+        weights ((N,) array): Positive weights :math:`w_i` of each point.
+        weights_c ((C,) array): Total weight of each class. Recomputed if None.
 
     Returns:
-        (C,D) Tensor:
+        (C,D) array:
         
         List of centroids :math:`c_k \in \mathbb{R}^D`.
 
     Example:
-        >>> x = torch.Tensor([     [0.], [1.], [4.], [5.], [6.] ])
-        >>> lab = torch.IntTensor([ 0,    0,    1,    1,    1   ])
-        >>> weights = torch.Tensor([ .5,  .5,   2.,   1.,   1.  ])
+        >>> x = np.array([       [0.], [1.], [4.], [5.], [6.] ])
+        >>> lab = np.array([      0,    0,    1,    1,    1   ])
+        >>> weights = np.array([ .5,   .5,    2.,   1.,   1.  ])
         >>> centroids = cluster_centroids(x, lab, weights=weights)
         >>> print(centroids)
-        tensor([[0.5000],
-                [4.7500]])
+        [[0.5 ]
+         [4.75]]
     """
-    if Nlab is None : Nlab = torch.bincount(lab).float()
+    if Nlab is None : Nlab = np.bincount(lab).astype(float)
     if weights is not None and weights_c is None:
-        weights_c = torch.bincount(lab, weights=weights).view(-1,1)
+        weights_c = np.bincount(lab, weights=weights)[:,None]
 
-    c = torch.zeros( (len(Nlab), x.shape[1]), dtype=x.dtype,device=x.device)
+    c = np.zeros( (len(Nlab), x.shape[1]), dtype=x.dtype)
     for d in range(x.shape[1]):
         if weights is None:
-            c[:,d] = torch.bincount(lab,weights=x[:,d]) / Nlab
+            c[:,d] = np.bincount(lab, weights=x[:,d]) / Nlab
         else :
-            c[:,d] = torch.bincount(lab,weights=x[:,d]*weights.view(-1)) / weights_c.view(-1)
+            c[:,d] = np.bincount(lab, weights=x[:,d]*weights.ravel()) / weights_c.ravel()
     return c
 
 def cluster_ranges_centroids(x, lab, weights=None) :
@@ -161,15 +157,15 @@ def cluster_ranges_centroids(x, lab, weights=None) :
     of size :math:`M`, and are set by default to 1 for all points in the cloud.
 
     Args:
-        x ((M,D) Tensor): List of points :math:`x_i \in \mathbb{R}^D`.
-        lab ((M,) IntTensor): Vector of class labels :math:`l_i\in\mathbb{N}`.
+        x ((M,D) array): List of points :math:`x_i \in \mathbb{R}^D`.
+        lab ((M,) integer array): Vector of class labels :math:`l_i\in\mathbb{N}`.
 
     Keyword Args:
-        weights ((M,) Tensor): Positive weights :math:`w_i` that can be used to compute
+        weights ((M,) array): Positive weights :math:`w_i` that can be used to compute
             our barycenters.
 
     Returns:
-        (C,2) IntTensor, (C,D) Tensor, (C,) Tensor:
+        (C,2) integer array, (C,D) array, (C,) array:
         
         **ranges** - Stacked array of :math:`[\\text{start}_k,\\text{end}_k)` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`, compatible with the :func:`sort_clusters` routine.
@@ -179,36 +175,36 @@ def cluster_ranges_centroids(x, lab, weights=None) :
         **weights_c** - Total weight of each cluster.
 
     Example:
-        >>> x   = torch.Tensor([  [0.], [.5], [1.], [2.], [3.] ])
-        >>> lab = torch.IntTensor([ 0,    0,   1,    1,    1   ])
+        >>> x   = np.array([[0.], [.5], [1.], [2.], [3.] ])
+        >>> lab = np.array([ 0,     0,   1,    1,    1   ], dtype=int)
         >>> ranges, centroids, weights_c = cluster_ranges_centroids(x, lab)
         >>> print(ranges)
-        tensor([[0, 2],
-                [2, 5]], dtype=torch.int32)
+        [[0 2]
+         [2 5]]
         --> cluster 0 = x[0:2, :]
         --> cluster 1 = x[2:5, :]
         >>> print(centroids)
-        tensor([[0.2500],
-                [2.0000]])
+        [[0.25]
+         [2.  ]]
         >>> print(weights_c)
-        tensor([2., 3.])
+        [2. 3.]
 
-        >>> weights = torch.Tensor([ 1.,  .5,  1.,  1.,  10. ])
+        >>> weights = np.array([ 1.,  .5,  1.,  1.,  10. ])
         >>> ranges, centroids, weights_c = cluster_ranges_centroids(x, lab, weights=weights)
         >>> print(ranges)
-        tensor([[0, 2],
-                [2, 5]], dtype=torch.int32)
+        [[0 2]
+         [2 5]]
         --> cluster 0 = x[0:2, :]
         --> cluster 1 = x[2:5, :]
         >>> print(centroids)
-        tensor([[0.1667],
-                [2.7500]])
+        [[0.16666667]
+         [2.75      ]]
         >>> print(weights_c)
-        tensor([1.5000, 12.0000])
+        [ 1.5 12. ]
     """
-    Nlab = torch.bincount(lab).float()
+    Nlab = np.bincount(lab).astype(float)
     if weights is not None :
-        w_c = torch.bincount(lab, weights=weights).view(-1)
+        w_c = np.bincount(lab, weights=weights).ravel()
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab, weights=weights, weights_c=w_c), w_c
     else :
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab), Nlab

@@ -108,9 +108,9 @@ b = torch.randn(N, 1).type(dtype)
 
 my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",
                  ["G = Pm(1)",
-                  "X = Vx(2)",
-                  "Y = Vy(2)",
-                  "B = Vy(1)"], 
+                  "X = Vi(2)",
+                  "Y = Vj(2)",
+                  "B = Vj(1)"], 
                   axis = 1 )     # Reduction wrt. y
 
 backends = (["CPU", "GPU"] if M*N<4e8 else ["GPU"]) if use_cuda else ["CPU"]
@@ -177,9 +177,7 @@ if M + N <= 500000 :
     plt.scatter(x_centroids[:,0],x_centroids[:,1],c="black",s=10,alpha=.5)
 
 
-    print("Close the figure to continue.")
+    # sphinx_gallery_thumbnail_number = 2
     plt.axis("equal") ; plt.axis([0,1,0,1])
     plt.tight_layout()
-    plt.show(block=(__name__=="__main__"))
-
-    print("Done.")
+    plt.show()

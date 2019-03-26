@@ -87,7 +87,7 @@ Testing your installation
     x = np.arange(1, 10).reshape(-1, 3).astype('float32')
     y = np.arange(3, 9).reshape(-1, 3).astype('float32')
     
-    my_conv = pknp.Genred('SqNorm2(x - y)', ['x = Vx(3)', 'y = Vy(3)'])
+    my_conv = pknp.Genred('SqNorm2(x - y)', ['x = Vi(3)', 'y = Vj(3)'])
     print(my_conv(x, y))
         
   should return:
@@ -96,7 +96,7 @@ Testing your installation
 
     Compiling libKeOpsnumpy40ae98a6da in /home/..../build/:
     formula: SumReduction(SqNorm2(x - y),1)
-    aliases: x = Vx(0,3); y = Vy(1,3); 
+    aliases: x = Vi(0,3); y = Vj(1,3); 
     dtype  : float32
     ... Done. 
     Loaded.
@@ -118,7 +118,7 @@ Testing your installation
     x = torch.arange(1, 10, dtype=torch.float32).view(-1, 3)
     y = torch.arange(3, 9, dtype=torch.float32).view(-1, 3)
     
-    my_conv = pktorch.Genred('SqNorm2(x-y)', ['x = Vx(3)', 'y = Vy(3)'])
+    my_conv = pktorch.Genred('SqNorm2(x-y)', ['x = Vi(3)', 'y = Vj(3)'])
     print(my_conv(x, y))
 
   should return:
@@ -127,7 +127,7 @@ Testing your installation
 
     Compiling libKeOpstorch40ae98a6da in /home/..../build/:
         formula: SumReduction(SqNorm2(x-y),1)
-        aliases: x = Vx(0,3); y = Vy(1,3); 
+        aliases: x = Vi(0,3); y = Vj(1,3); 
         dtype  : float32
     ... Done. 
     Loaded.

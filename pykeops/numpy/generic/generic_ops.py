@@ -1,6 +1,6 @@
 from pykeops.common.utils import cat2axis
 from pykeops.common.parse_type import get_type
-from pykeops.torch import Genred
+from pykeops.numpy import Genred
 
 
 def generic_sum(formula, output, *aliases, **kwargs) :
@@ -29,7 +29,7 @@ def generic_sum(formula, output, *aliases, **kwargs) :
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :meth:`Genred.__call__`.
+        NumPy arrays, as documented in :meth:`Genred.__call__`.
 
     Example:
         >>> my_conv = generic_sum(       # Custom Kernel Density Estimator
@@ -38,11 +38,11 @@ def generic_sum(formula, output, *aliases, **kwargs) :
         ...     'x = Vi(3)',             # 1st input: dim-3 vector per line
         ...     'y = Vj(3)')             # 2nd input: dim-3 vector per line
         >>> # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
-        >>> x = torch.randn(1000000, 3, requires_grad=True).cuda()
-        >>> y = torch.randn(2000000, 3).cuda()
+        >>> x = np.random.randn(1000000, 3)
+        >>> y = np.random.randn(2000000, 3)
         >>> a = my_conv(x, y)  # a_i = sum_j exp(-|x_i-y_j|^2)
         >>> print(a.shape)
-        torch.Size([1000000, 1])
+        (1000000, 1)
     """
     _,cat,_,_ = get_type(output)
     axis = cat2axis(cat)
@@ -73,7 +73,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :meth:`Genred.__call__`.
+        NumPy arrays, as documented in :meth:`Genred.__call__`.
 
     Example:
         Log-likelihood of a Gaussian Mixture Model,
@@ -89,14 +89,14 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
         ...     'y = Vj(3)',              # 2nd input: dim-3 vector per line
         ...     'g = Pm(1)',              # 3rd input: vector of size 1
         ...     'b = Vj(1)')              # 4th input: 1 scalar per line
-        >>> x = torch.randn(1000000, 3, requires_grad=True).cuda()
-        >>> y = torch.randn(2000000, 3).cuda()
-        >>> g = torch.Tensor([.5]).cuda()      # Parameter of our GMM
-        >>> b = torch.rand(2000000, 1).cuda()  # Positive weights...
-        >>> b = b / b.sum()                    # Normalized to get a probability measure
-        >>> a = log_likelihood(x, y, g, b.log())  # a_i = log sum_j exp(-g*|x_i-y_j|^2) * b_j
+        >>> x = np.random.randn(1000000, 3)
+        >>> y = np.random.randn(2000000, 3)
+        >>> g = np.array([.5])            # Parameter of our GMM
+        >>> b = np.random.rand(2000000, 1)  # Positive weights...
+        >>> b = b / b.sum()               # Normalized to get a probability measure
+        >>> a = log_likelihood(x, y, g, np.log(b))  # a_i = log sum_j exp(-g*|x_i-y_j|^2) * b_j
         >>> print(a.shape)
-        torch.Size([1000000, 1])
+        (1000000, 1)
     """
     _,cat,_,_ = get_type(output)
     axis = cat2axis(cat)
@@ -129,7 +129,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :meth:`Genred.__call__`.
+        NumPy arrays, as documented in :meth:`Genred.__call__`.
 
     Example:
         Bruteforce K-nearest neighbors search in dimension 100:
@@ -139,21 +139,21 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
         ...     'a = Vi(3)',      # Output: 3 scalars per line
         ...     'x = Vi(100)',    # 1st input: dim-100 vector per line
         ...     'y = Vj(100)')    # 2nd input: dim-100 vector per line
-        >>> x = torch.randn(5,     100)
-        >>> y = torch.randn(20000, 100)
+        >>> x = np.random.randn(5,     100)
+        >>> y = np.random.randn(20000, 100)
         >>> a = knn(x, y)
         >>> print(a)
-        tensor([[ 9054., 11653., 11614.],
-                [13466., 11903., 14180.],
-                [14164.,  8809.,  3799.],
-                [ 2092.,  3323., 18479.],
-                [14433., 11315., 11841.]])
-        >>> print( (x - y[ a[:,0].long() ]).norm(dim=1) )  # Distance to the nearest neighbor
-        tensor([10.7933, 10.3235, 10.1218, 11.4919, 10.5100])
-        >>> print( (x - y[ a[:,1].long() ]).norm(dim=1) )  # Distance to the second neighbor
-        tensor([11.3702, 10.6550, 10.7646, 11.5676, 11.1356])
-        >>> print( (x - y[ a[:,2].long() ]).norm(dim=1) )  # Distance to the third neighbor
-        tensor([11.3820, 10.6725, 10.8510, 11.6071, 11.1968])
+        [[ 9054., 11653., 11614.],
+         [13466., 11903., 14180.],
+         [14164.,  8809.,  3799.],
+         [ 2092.,  3323., 18479.],
+         [14433., 11315., 11841.]]
+        >>> print( np.linalg.norm(x - y[ a[:,0].astype(int) ], axis=1) )  # Distance to the nearest neighbor
+        [10.7933, 10.3235, 10.1218, 11.4919, 10.5100]
+        >>> print( np.linalg.norm(x - y[ a[:,1].astype(int) ], axis=1) )  # Distance to the second neighbor
+        [11.3702, 10.6550, 10.7646, 11.5676, 11.1356]
+        >>> print( np.linalg.norm(x - y[ a[:,2].astype(int) ], axis=1) )  # Distance to the third neighbor
+        [11.3820, 10.6725, 10.8510, 11.6071, 11.1968]
     """
     _,cat,k,_ = get_type(output)
     axis = cat2axis(cat)
@@ -185,7 +185,7 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :meth:`Genred.__call__`.
+        NumPy arrays, as documented in :meth:`Genred.__call__`.
 
     Example:
         Bruteforce nearest neighbor search in dimension 100:
@@ -195,18 +195,18 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
         ...     'a = Vi(1)',      # Output: 1 scalar per line
         ...     'x = Vi(100)',    # 1st input: dim-100 vector per line
         ...     'y = Vj(100)')    # 2nd input: dim-100 vector per line
-        >>> x = torch.randn(5,     100)
-        >>> y = torch.randn(20000, 100)
+        >>> x = np.random.randn(5,     100)
+        >>> y = np.random.randn(20000, 100)
         >>> a = nearest_neighbor(x, y)
         >>> print(a)
-        tensor([[ 8761.],
-                [ 2836.],
-                [  906.],
-                [16130.],
-                [ 3158.]])
-        >>> dists = (x - y[ a.view(-1).long() ] ).norm(dim=1)  # Distance to the nearest neighbor
+        [[ 8761.],
+         [ 2836.],
+         [  906.],
+         [16130.],
+         [ 3158.]]
+        >>> dists = np.linalg.norm(x - y[ a.view(-1).long() ], axis=1)  # Distance to the nearest neighbor
         >>> print(dists)
-        tensor([10.5926, 10.9132,  9.9694, 10.1396, 10.1955])
+        [10.5926, 10.9132,  9.9694, 10.1396, 10.1955]
     """
     _,cat,_,_ = get_type(output)
     axis = cat2axis(cat)

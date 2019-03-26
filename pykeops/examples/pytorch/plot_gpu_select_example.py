@@ -33,7 +33,7 @@ gpuids = [0,1] if torch.cuda.device_count() > 1 else [0]
 # Define some arbitrary KeOps routine:
 
 formula   =  'Square(p-a) * Exp(x+y)'
-variables = ['x = Vx(3)','y = Vy(3)','a = Vy(1)','p = Pm(1)']
+variables = ['x = Vi(3)','y = Vj(3)','a = Vj(1)','p = Pm(1)']
 
 type = 'float32'  # May be 'float32' or 'float64'
 
@@ -66,8 +66,17 @@ c = my_routine(x, y, a, p, backend='CPU')
 #
 for gpuid in gpuids:
     d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
-    print('Convolution operation (numpy bindings, FromHost mode) on gpu device',gpuid,end=' ')
-    print('(relative error:', float(np.abs((c - d) / c).mean()), ')')
+    print('Relative error on gpu {}: {:1.3e}'.format(gpuid, 
+        float(np.mean( np.abs((c - d) / c)))) )
+        
+    # Plot the results next to each other:
+    for i in range(3):
+        plt.subplot(3, 1, i+1)
+        plt.plot(c[:40,i],  '-', label='CPU')
+        plt.plot(d[:40,i], '--', label='GPU {}'.format(gpuid))
+        plt.legend(loc='lower right')
+
+    plt.tight_layout() ; plt.show()
 
 
 ###############################################################
@@ -89,8 +98,18 @@ c = torch.from_numpy(c)
 
 for gpuid in gpuids:
     d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
-    print('Convolution operation (pytorch bindings, FromHost mode) on gpu device',gpuid,end=' ')
-    print('(relative error:', float(torch.abs((c - d) / c).mean()), ')')
+    print('Relative error on gpu {}: {:1.3e}'.format(gpuid, 
+        float(torch.abs((c - d.cpu()) / c).mean())) )
+    
+        
+    # Plot the results next to each other:
+    for i in range(3):
+        plt.subplot(3, 1, i+1)
+        plt.plot(c.cpu().numpy()[:40,i],  '-', label='CPU')
+        plt.plot(d.cpu().numpy()[:40,i], '--', label='GPU {}'.format(gpuid))
+        plt.legend(loc='lower right')
+
+    plt.tight_layout() ; plt.show()
 
 ###########################################
 # Second, we load the data on the GPU (device) of our choice
@@ -107,6 +126,16 @@ for gpuid in gpuids:
         d = my_routine(x, y, a, p, backend='GPU')
         print('Relative error on gpu {}: {:1.3e}'.format(gpuid, 
                 float(torch.abs((c - d.cpu()) / c).mean())) )
+
+        
+        # Plot the results next to each other:
+        for i in range(3):
+            plt.subplot(3, 1, i+1)
+            plt.plot(c.cpu().numpy()[:40,i],  '-', label='CPU')
+            plt.plot(d.cpu().numpy()[:40,i], '--', label='GPU {}'.format(gpuid))
+            plt.legend(loc='lower right')
+
+        plt.tight_layout() ; plt.show()
 
 
 

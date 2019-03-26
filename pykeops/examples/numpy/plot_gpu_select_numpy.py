@@ -16,7 +16,10 @@ operation will be performed.
 
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
+
 from pykeops.numpy import Genred
+from pykeops.numpy.utils import IsGpuAvailable
 
 ###############################################################
 # Define the list of gpu ids to be tested:
@@ -31,7 +34,7 @@ gpuids = [0,1] if torch.cuda.device_count() > 1 else [0]
 # Define some arbitrary KeOps routine:
 
 formula   =  'Square(p-a) * Exp(x+y)'
-variables = ['x = Vx(3)','y = Vy(3)','a = Vy(1)','p = Pm(1)']
+variables = ['x = Vi(3)','y = Vj(3)','a = Vj(1)','p = Pm(1)']
 
 type = 'float32'  # May be 'float32' or 'float64'
 
@@ -59,9 +62,18 @@ c = my_routine(x, y, a, p, backend='CPU')
 # And on our GPUs, with copies between 
 # the Host and Device memories:
 #
-for gpuid in gpuids:
-    d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
-    print('Relative error on gpu {}: {:1.3e}'.format( gpuid, 
-            float( np.sum(np.abs(c - d)) / np.sum(np.abs(c)) ) ))
+if IsGpuAvailable():
+    for gpuid in gpuids:
+        d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
+        print('Relative error on gpu {}: {:1.3e}'.format( gpuid, 
+                float( np.sum(np.abs(c - d)) / np.sum(np.abs(c)) ) ))
+    
+        # Plot the results next to each other:
+        for i in range(3):
+            plt.subplot(3, 1, i+1)
+            plt.plot(c[:40,i],  '-', label='CPU')
+            plt.plot(d[:40,i], '--', label='GPU {}'.format(gpuid))
+            plt.legend(loc='lower right')
 
-            
+        plt.tight_layout() ; plt.show()
+
