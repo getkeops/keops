@@ -1,6 +1,6 @@
 """
-Inverse kernel operation
-========================
+Solving positive definite linear systems
+=========================================
 """
 
 #####################################################################
@@ -10,6 +10,7 @@ Inverse kernel operation
 
 import os
 import numpy as np
+
 import time
 from matplotlib import pyplot as plt
 
@@ -51,19 +52,19 @@ def generate_samples(N, device, lang):
         else:
             torch.manual_seed(1234)
 
-        x  = torch.rand(N, D, device=device)
-        b  = torch.randn(N, Dv, device=device)
-        sigma = torch.ones(1, device=device) * 1 / .01 ** 2   # kernel bandwidth
+        x = torch.rand(N, D, device=device)
+        b = torch.randn(N, Dv, device=device)
+        gamma = torch.ones(1, device=device) * .5 / .01 ** 2  # kernel bandwidth
         alpha = torch.ones(1, device=device) * 0.8  # regularization
     else:
         np.random.seed(1234)
 
         x  = np.random.rand(N, D).astype('float32')
         b  = np.random.randn(N, Dv).astype('float32')
-        sigma = (np.ones(1) * 1 / .01 ** 2).astype('float32')   # kernel bandwidth
+        gamma = (np.ones(1) * 1 / .01 ** 2).astype('float32')   # kernel bandwidth
         alpha = (np.ones(1) * 0.8).astype('float32')  # regularization
 
-    return x, b, sigma, alpha
+    return x, b, gamma, alpha
 
 ###############################################################################
 # KeOps kernel
@@ -81,36 +82,33 @@ aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
 # .. note::
 #   This operator uses a conjugate gradient solver and assumes
 #   that **formula** defines a **symmetric**, positive and definite
-#   **linear** reduction with respect to the alias ``"b"``
+#   **linear** reduction with respect to the alias ``"a"``
 #   specified trough the third argument.
 
 ###############################################################################
-# Define the inverse kernel operation, with a ridge regularization **alpha**:
+# Define the Kernel solver, with a ridge regularization **alpha**:
 # 
 
-def Kinv_keops(x, b, sigma, alpha):
+def Kinv_keops(x, b, gamma, alpha):
     Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
-    res = Kinv(x, x, b, sigma)
+    res = Kinv(x, x, b, gamma)
     return res
 
-def Kinv_keops_numpy(x, b, sigma, alpha):
+def Kinv_keops_numpy(x, b, gamma, alpha):
     Kinv = KernelSolve_np(formula, aliases, "b", alpha=alpha, axis=1, dtype='float32')
-    res = Kinv(x, x, b, sigma)
+    res = Kinv(x, x, b, gamma)
     return res
 
 ###############################################################################
-# Define the same  inverse kernel operation, using a **tensorized** implementation:
+# Define the same Kernel solver, using a **tensorized** implementation:
 #
-def Kinv_pytorch(x, b, sigma, alpha):
-    K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp( - squared_distances(x, x) * sigma) 
+def Kinv_pytorch(x, b, gamma, alpha):
+    K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp( - squared_distances(x, x) * gamma) 
     res = torch.gesv(b, K_xx)[0]
     return res
 
-###############################################################################
-# Define the same  inverse kernel operation, using a **tensorized** implementation:
-#
-def Kinv_numpy(x, b, sigma, alpha):
-    K_xx = alpha * np.eye(x.shape[0]) + np.exp( - sigma * np.sum( (x[:,None,:] - x[None,:,:]) **2, axis=2) )
+def Kinv_numpy(x, b, gamma, alpha):
+    K_xx = alpha * np.eye(x.shape[0]) + np.exp( - gamma * np.sum( (x[:,None,:] - x[None,:,:]) **2, axis=2) )
     res = np.linalg.solve(K_xx, b)
     return res
 
@@ -123,17 +121,17 @@ def benchmark(Routine, dev, N, loops=10, lang='torch') :
 
     importlib.reload(torch)  # In case we had a memory overflow just before...
     device = torch.device(dev)
-    x, b, sigma, alpha = generate_samples(N, device, lang)
+    x, b, gamma, alpha = generate_samples(N, device, lang)
 
     # We simply benchmark a convolution
-    code = "a = Routine(x, b, sigma, alpha)"
+    code = "a = Routine(x, b, gamma, alpha)"
     exec( code, locals() ) # Warmup run, to compile and load everything
+    if use_cuda: torch.cuda.synchronize()
 
     t_0 = time.perf_counter()  # Actual benchmark --------------------
     for i in range(loops):
-        if use_cuda: torch.cuda.synchronize()
         exec( code, locals() )
-        if use_cuda: torch.cuda.synchronize()
+    if use_cuda: torch.cuda.synchronize()
     elapsed = time.perf_counter() - t_0  # ---------------------------
 
     print("{:3} NxN convolution, with N ={:7}: {:3}x{:3.6f}s".format(loops, N, loops, elapsed / loops))
@@ -147,7 +145,7 @@ def bench_config(Routine, backend, dev, l) :
 
     times = []
     try :
-        Nloops = [10, 1]
+        Nloops = [100, 10, 1]
         nloops = Nloops.pop(0)
         for n in NS :
             elapsed = benchmark(Routine, dev, n, loops=nloops, lang=l)
@@ -181,7 +179,7 @@ def full_bench(title, routines) :
 
     # Creates a pyplot figure:
     plt.figure(figsize=(12,8))
-    linestyles = ["o-", "s-", "^-", "x-"]
+    linestyles = ["o-", "s-", "^-", "x-", "<-"]
     for i, backend in enumerate(backends):
         plt.plot( benches[:,0], benches[:,i+1], linestyles[i], 
                   linewidth=2, label='backend = "{}"'.format(backend) )
@@ -202,7 +200,7 @@ def full_bench(title, routines) :
                     verticalalignment='bottom')
                 break
 
-    plt.title('Runtimes for {} in dimension {}'.format(title, D))
+    plt.title('Runtimes for {} in dimension {}\n'.format(title, D))
     plt.xlabel('Number of samples')
     plt.ylabel('Seconds')
     plt.yscale('log') ; plt.xscale('log')
@@ -214,7 +212,7 @@ def full_bench(title, routines) :
     # Save as a .csv to put a nice Tikz figure in the papers:
     header = "Npoints " + " ".join(backends)
     os.makedirs("output", exist_ok=True)
-    np.savetxt("output/benchmark_convolutions_3D.csv", benches, 
+    np.savetxt("output/benchmark_kernelsolve.csv", benches, 
                fmt='%-9.5f', header=header, comments='')
 
 
@@ -222,11 +220,11 @@ def full_bench(title, routines) :
 # Run the benchmark
 # ---------------------
 
-routines = [ (Kinv_keops,   "KeOps_torch", "torch"),
-             (Kinv_pytorch, "PyTorch", "torch"),  
-             (Kinv_keops_numpy, "KeOps_numpy", "numpy"),  
-             (Kinv_numpy, "Numpy", "numpy"),  
+routines = [(Kinv_numpy, "Numpy", "numpy"), 
+            (Kinv_pytorch, "PyTorch", "torch"),  
+            (Kinv_keops_numpy, "KeOps_numpy", "numpy"),  
+            (Kinv_keops,   "KeOps_torch", "torch"),
            ]
-full_bench( "Kernel inverse operation", routines )
+full_bench( "Kriging (Gaussian process regression)", routines )
 
 plt.show()
