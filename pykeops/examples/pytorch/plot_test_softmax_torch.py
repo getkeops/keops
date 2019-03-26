@@ -32,6 +32,8 @@ SoftMax reduction
 # Standard imports:
 
 import time
+from matplotlib import pyplot as plt
+
 import torch
 from pykeops.torch import Genred
     

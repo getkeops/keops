@@ -27,8 +27,11 @@ LogSumExp reduction
 # Standard imports:
 
 import time
+from matplotlib import pyplot as plt
+
 import torch
 from torch.autograd import grad
+
 from pykeops.torch import Genred
 
 #####################################################################
