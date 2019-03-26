@@ -219,10 +219,10 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 
     // Send data from host to device.
     int nvals;
-    php_d[0] = param_d;
     nvals = DIMSP::VAL(0);
     // if DIMSP is empty (i.e. no parameter), nvals = -1 which could result in a segfault
     if(nvals >= 0){ 
+        php_d[0] = param_d;
         CudaSafeCall(cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     }
     for(int k=1; k<SIZEP; k++) {
