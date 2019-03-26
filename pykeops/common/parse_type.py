@@ -43,13 +43,21 @@ def get_type(type_str, position_in_list=None):
     Get the type of the variable declared in type_str.
 
     :param type_str: is a string of the form 
-    "var = Xy(dim)" or "var = Xy(pos,dim)" or "Xy(pos,dim)" or "Xy(dim)" with Xy being either Vi, Vj or Pm,
-    or "var = Var(pos,dim,cat)"
+    "var = Xy(dim)" or "var = Xy(pos,dim)" or "Xy(pos,dim)" or "Xy(dim)" with Xy being either Vi, Vj, Vx, Vy, or Pm,
+    or "var = Var(pos,dim,cat)" (N.B. Vx and Vy are equivalent to resp. Vi and Vj and kept for backward compatibility)
     :param position_in_list: an optional integer used if the position is not given
                              in type_str (ie is of the form "var = Xy(dim)" or "Xy(dim)") 
 
     :return: name : a string (here "var"), cat : an int (0,1 or 2), dim : an int
     """
+    
+    # switch old Vx Vy syntax to Vi Vj
+    if ("Vx" in type_str) or ("Vy" in type_str):
+        type_str = type_str.replace("Vx","Vi")
+        type_str = type_str.replace("Vy","Vj")
+        import warnings
+        warnings.warn("'Vx' and 'Vy' variables types are now renamed 'Vi' and 'Vj'")
+    
     m = re.match('([a-zA-Z_][a-zA-Z_0-9]*)=(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
     
     if m is None:
