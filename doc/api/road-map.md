@@ -8,6 +8,7 @@ To-do list
 -------------
 
 - Put **reference paper** on Arxiv.
+- Fully document the **inner C++ API** and algorithms.
 - Add support for common ML kernels: Cos, Sin, ReLu, etc.
 - Provide R bindings.
 - Implement a simple high-level syntax for weighted sums of kernels:

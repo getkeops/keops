@@ -22,6 +22,7 @@ We now fully document the public interface of the :mod:`pykeops` module, which i
 
    installation
    generic-syntax
+   generic-solver
    generic-reduction
    kernel-product
    sparsity
