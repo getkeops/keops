@@ -66,12 +66,12 @@ public:
 private:
     using myTuple = std::tuple<const char*, const char*, const char*>;
     const std::vector<myTuple> formulas = {
-            myTuple("SumReduction(Exp(-p*SqNorm2(x-y)),0)", "auto p=Pm(0,1); auto x=Vx(1,3); auto y=Vy(2,3);", "float"),
-            myTuple("SumReduction(Exp(-p*SqNorm2(x-y)),0)", "auto p=Pm(0,1); auto x=Vx(1,3); auto y=Vy(2,3);", "double"),
-            myTuple("SumReduction(Square(p-a)*Exp(x+y),0)", "auto p=Pm(0,1); auto a=Vy(1,1); auto x=Vx(2,3); auto y=Vy(3,3);", "float"),
-            myTuple("SumReduction(Square(p-a)*Exp(x+y),0)", "auto p=Pm(0,1); auto a=Vy(1,1); auto x=Vx(2,3); auto y=Vy(3,3);", "double"),
-            myTuple("SumReduction(Exp(-G*SqDist(X,Y)) * P,0)", "auto G=Pm(0,1); auto X=Vx(1,3); auto Y=Vy(2,3); auto P=Vy(3,3);", "float"),
-            myTuple("SumReduction(Exp(-G*SqDist(X,Y)) * P,0)", "auto G=Pm(0,1); auto X=Vx(1,3); auto Y=Vy(2,3); auto P=Vy(3,3);", "double")
+            myTuple("SumReduction(Exp(-p*SqNorm2(x-y)),0)", "auto p=Pm(0,1); auto x=Vi(1,3); auto y=Vj(2,3);", "float"),
+            myTuple("SumReduction(Exp(-p*SqNorm2(x-y)),0)", "auto p=Pm(0,1); auto x=Vi(1,3); auto y=Vj(2,3);", "double"),
+            myTuple("SumReduction(Square(p-a)*Exp(x+y),0)", "auto p=Pm(0,1); auto a=Vj(1,1); auto x=Vi(2,3); auto y=Vj(3,3);", "float"),
+            myTuple("SumReduction(Square(p-a)*Exp(x+y),0)", "auto p=Pm(0,1); auto a=Vj(1,1); auto x=Vi(2,3); auto y=Vj(3,3);", "double"),
+            myTuple("SumReduction(Exp(-G*SqDist(X,Y)) * P,0)", "auto G=Pm(0,1); auto X=Vi(1,3); auto Y=Vj(2,3); auto P=Vj(3,3);", "float"),
+            myTuple("SumReduction(Exp(-G*SqDist(X,Y)) * P,0)", "auto G=Pm(0,1); auto X=Vi(1,3); auto Y=Vj(2,3); auto P=Vj(3,3);", "double")
     };
     std::mutex mutex;
 

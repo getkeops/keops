@@ -53,9 +53,9 @@ p = torch.randn(1, 1, dtype=torchtype, device=device)
 # -----------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
-variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
-             'y = Vy(3)',  # Second arg  : j-variable, of size 3
-             'a = Vy(1)',  # Third arg   : j-variable, of size 1 (scalar)
+variables = ['x = Vi(3)',  # First arg   : i-variable, of size 3
+             'y = Vj(3)',  # Second arg  : j-variable, of size 3
+             'a = Vj(1)',  # Third arg   : j-variable, of size 1 (scalar)
              'p = Pm(1)']  # Fourth  arg : Parameter,  of size 1 (scalar)
          
 ####################################################################

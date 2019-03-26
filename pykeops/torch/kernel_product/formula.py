@@ -67,7 +67,7 @@ def extract_metric_parameters(G):
     else:
         raise ValueError("[KeOps] A 'metric' parameter is expected to be of dimension 1 or 2.")
 
-    G_str = ["Vx", "Vy", "Pm"][G_cat]
+    G_str = ["Vi", "Vj", "Pm"][G_cat]
     return G_var, G_dim, G_cat, G_str
 
 

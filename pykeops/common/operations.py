@@ -17,7 +17,8 @@ def Genred_common(binding, formula, aliases, reduction_op, axis, cuda_type, opt_
         # Post-processing of the output:
         if reduction_op=='SoftMax':
             out = out[:,2:] / out[:,1][:,None]
-            
+        elif reduction_op=='ArgMin' or reduction_op=='ArgKMin':
+            out = tools.long(out)    
         elif reduction_op=='LogSumExp':
             if out.shape[1]==2: # means (m,s) with m scalar and s scalar
                 out = tools.view(out[:,0] + tools.log(out[:,1]),(-1,1))
@@ -99,9 +100,9 @@ def KernelLinearSolver(binding,K,x,b,alpha=0,eps=1e-6,precond=False,precondKerne
         
     def GaussKernel(D,Dv,sigma):
         formula = 'Exp(-oos2*SqDist(x,y))*b'
-        variables = ['x = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
-                     'y = Vy(' + str(D) + ')',  # Second arg  : j-variable, of size D
-                     'b = Vy(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
+        variables = ['x = Vi(' + str(D) + ')',  # First arg   : i-variable, of size D
+                     'y = Vj(' + str(D) + ')',  # Second arg  : j-variable, of size D
+                     'b = Vj(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
                      'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
         my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=tools.dtype)
         oos2 = tools.array([1.0/sigma**2])
@@ -115,9 +116,9 @@ def KernelLinearSolver(binding,K,x,b,alpha=0,eps=1e-6,precond=False,precondKerne
 
     def GaussKernelNystromPrecond(D,sigma):
         formula = 'Exp(-oos2*(SqDist(u,x)+SqDist(v,x)))'
-        variables = ['u = Vx(' + str(D) + ')',  # First arg   : i-variable, of size D
-                     'v = Vx(' + str(D) + ')',  # Second arg  : i-variable, of size D
-                     'x = Vy(' + str(D) + ')',  # Third arg  : j-variable, of size D
+        variables = ['u = Vi(' + str(D) + ')',  # First arg   : i-variable, of size D
+                     'v = Vi(' + str(D) + ')',  # Second arg  : i-variable, of size D
+                     'x = Vj(' + str(D) + ')',  # Third arg  : j-variable, of size D
                      'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
         my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=tools.dtype)
         oos2 = tools.array([1.0/sigma**2])

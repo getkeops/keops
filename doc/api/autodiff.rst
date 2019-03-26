@@ -135,17 +135,17 @@ Coming back to our :ref:`previous example <formula.example>` where the formula
 
 .. code-block:: cpp
 
-    F = "SumReduction(Square(Pm(0,1) - Vy(3,1)) * Exp(Vx(1,3) + Vy(2,3)), 1)"
+    F = "SumReduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1)"
     
 was discussed, the symbolic expression
 
 .. code-block:: cpp
 
-    [∂_a F] = "Grad( SumReduction(Square(Pm(0,1) - Vy(3,1)) * Exp(Vx(1,3) + Vy(2,3)), 1), 
-                     Vy(3,1), Vx(4,3) )"
+    [∂_a F] = "Grad( SumReduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1), 
+                     Vj(3,1), Vi(4,3) )"
 
 
-allows us to compute the gradient of :math:`F` with respect to :math:`(a_j) \in \mathbb R^N` (``= Vy(3,1)``), applied to an arbitrary test vector :math:`e\in\mathbb R^{M\times 3}` given as a fifth input ``Vx(4,3)`` :
+allows us to compute the gradient of :math:`F` with respect to :math:`(a_j) \in \mathbb R^N` (``= Vj(3,1)``), applied to an arbitrary test vector :math:`e\in\mathbb R^{M\times 3}` given as a fifth input ``Vi(4,3)`` :
 
 .. math::
 
@@ -155,7 +155,7 @@ With aliases, this computation simply reads:
 
 .. code-block:: cpp
 
-    p=Pm(0,1), x=Vx(1,3), y=Vy(2,3), a=Vy(3,1), e=Vx(4,3)
+    p=Pm(0,1), x=Vi(1,3), y=Vj(2,3), a=Vj(3,1), e=Vi(4,3)
     [∂_a F](e) = "Grad( SumReduction(Square(p-a)*Exp(x+y), 1), a, e)"
 
 

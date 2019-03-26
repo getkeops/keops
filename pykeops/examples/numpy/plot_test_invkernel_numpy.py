@@ -42,9 +42,9 @@ g = np.array([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 #
 
 formula = 'Exp(- g * SqDist(x,y)) * b'
-aliases = ['x = Vx(' + str(D) + ')',   # First arg:  i-variable of size D
-           'y = Vy(' + str(D) + ')',   # Second arg: j-variable of size D
-           'b = Vy(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
+aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
+           'y = Vj(' + str(D) + ')',   # Second arg: j-variable of size D
+           'b = Vj(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
            'g = Pm(1)']                # Fourth arg: scalar parameter
              
 

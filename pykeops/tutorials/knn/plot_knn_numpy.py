@@ -64,13 +64,13 @@ for (i,K) in enumerate( (1, 3, 10, 20, 50) ):
     # Define our KeOps kernel:
     knn_search = generic_argkmin( 
         'SqDist(x,y)',  # A simple squared L2 distance
-        'ind = Vx({})'.format(K),  # The K output indices are indexed by "i"
-        'x = Vx({})'.format(D),    # 1st arg: target points of dimension D, indexed by "i"
-        'y = Vy({})'.format(D),    # 2nd arg: source points of dimension D, indexed by "j"
+        'ind = Vi({})'.format(K),  # The K output indices are indexed by "i"
+        'x = Vi({})'.format(D),    # 1st arg: target points of dimension D, indexed by "i"
+        'y = Vj({})'.format(D),    # 2nd arg: source points of dimension D, indexed by "j"
         cuda_type = dtype )        # "float32" and "float64" are available
 
     start = time.time()    # Benchmark:
-    indKNN = knn_search(g, x).astype(int)   # Grid <-> Samples
+    indKNN = knn_search(g, x)   # Grid <-> Samples
     clg = np.mean(cl[indKNN], axis=1) > .5  # Classify the Grid points
     end = time.time()
 
