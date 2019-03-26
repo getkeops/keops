@@ -72,7 +72,7 @@ end
 options = setoptions(options,'sumoutput',0);
 
 % from the string inputs we form the code which will be added to the source cpp/cu file, and the string used to encode the file name
-[CodeVars, indxy] = format_var_aliase(aliases);
+[CodeVars, indij] = format_var_aliase(aliases);
 
 % we use a hash to shorten string and avoid special characters in the filename
 hash = string2hash(lower([CodeVars,formula]));
@@ -91,8 +91,8 @@ function out = Eval(varargin)
     if nargin==0
         out = feval(Fname);
     else
-    nx = size(varargin{indxy(1)},2);
-    ny = size(varargin{indxy(2)},2);
+    nx = size(varargin{indij(1)},2);
+    ny = size(varargin{indij(2)},2);
     out = feval(Fname, nx, ny, options.tagCpuGpu, options.tag1D2D, options.device_id,varargin{:});
     if options.sumoutput
         out = sum(out,2); % '2' because we sum with respect to index, not dimension !

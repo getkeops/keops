@@ -1,7 +1,7 @@
-function [var_aliases,indxyp] =format_var_aliase(var_options)
+function [var_aliases,indijp] =format_var_aliase(var_options)
 % format var_aliases to pass option to cmake
 var_aliases = '';
-indxyp = [-1,-1,-1]; % indxyp will be used to calculate nx, ny and np from input variables
+indijp = [-1,-1,-1]; % indijp will be used to calculate nx, ny and np from input variables
 
 for k=1:length(var_options)
 
@@ -11,17 +11,17 @@ for k=1:length(var_options)
         var_aliases = [var_aliases,'decltype(',vartype,') ',varname,';'];
     end
     
-    % analysing vartype : ex 'Vi(4)' means variable of type x
+    % analysing vartype : ex 'Vi(4)' means variable indexed by i
     %  with dimension 4. The position is given by the rank in
     % the function argument. Here we are interested in the type
     % and position, so 2nd and the variable 'pos'
     type = vartype(2);
-    if type=='x' && indxyp(1)==-1
-        indxyp(1) = pos;
-    elseif type=='y' && indxyp(2)==-1
-        indxyp(2) = pos;
-    elseif type=='m' && indxyp(3)==-1
-        indxyp(3) = pos;
+    if (type=='i' || type=='x') && indijp(1)==-1   % we allow Vx instead of Vi for backward compatibility
+        indijp(1) = pos;
+    elseif (type=='j' || type=='y') && indijp(2)==-1   % we allow Vx instead of Vi for backward compatibility
+        indijp(2) = pos;
+    elseif type=='m' && indijp(3)==-1
+        indijp(3) = pos;
     end
 end
 end
