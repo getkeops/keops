@@ -153,7 +153,7 @@ def cluster_ranges_centroids(x, lab, weights=None) :
 
     - Total weights :math:`\sum_{i, l_i=k} w_i`, for :math:`k\in[0,C)`.
 
-    The weights :math:`w_i` can be given through a vector ``weights``
+    The weights :math:`w_i` can be given through a vector **weights**
     of size :math:`M`, and are set by default to 1 for all points in the cloud.
 
     Args:
@@ -210,9 +210,9 @@ def cluster_ranges_centroids(x, lab, weights=None) :
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab), Nlab
 
 def swap_axes(ranges) :
-    """Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional ``ranges`` parameter.
+    """Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional **ranges** parameter.
     
-    This function returns ``None`` if ``ranges`` is ``None``,
+    This function returns **None** if **ranges** is **None**,
     and swaps the :math:`i` and :math:`j` arrays of indices otherwise."""
     if ranges is None :
         return None

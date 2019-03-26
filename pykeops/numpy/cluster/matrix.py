@@ -1,11 +1,11 @@
 import numpy as np
 
 def from_matrix( ranges_i, ranges_j, keep ) :
-    r"""Turns a boolean matrix into a KeOps-friendly ``ranges`` argument.
+    r"""Turns a boolean matrix into a KeOps-friendly **ranges** argument.
 
     This routine is a helper for the **block-sparse** reduction mode of KeOps,
-    allowing you to turn clustering information (``ranges_i``,
-    ``ranges_j``) and a cluster-to-cluster boolean mask (``keep``) 
+    allowing you to turn clustering information (**ranges_i**,
+    **ranges_j**) and a cluster-to-cluster boolean mask (**keep**) 
     into integer tensors of indices that can be used to schedule the KeOps routines.
 
     Suppose that you're working with variables :math:`x_i`  (:math:`i \in [0,10^6)`),
@@ -19,7 +19,7 @@ def from_matrix( ranges_i, ranges_j, keep ) :
     
     1. Compute cluster labels for the :math:`x_i`'s and :math:`y_j`'s, using e.g. 
        the :func:`grid_cluster` method.
-    2. Compute the ranges (``ranges_i``, ``ranges_j``) and centroids associated 
+    2. Compute the ranges (**ranges_i**, **ranges_j**) and centroids associated 
        to each cluster, using e.g. the :func:`cluster_ranges_centroids` method.
     3. Sort the tensors ``x_i`` and ``y_j`` with :func:`sort_clusters` to make sure that the
        clusters are stored contiguously in memory (this step is **critical** for performance on GPUs).
@@ -28,15 +28,15 @@ def from_matrix( ranges_i, ranges_j, keep ) :
         - the :math:`k`-th cluster of :math:`x_i`'s is given by ``x_i[ ranges_i[k,0]:ranges_i[k,1], : ]``, for :math:`k \in [0,M)`, 
         - the :math:`l`-th cluster of :math:`y_j`'s is given by ``y_j[ ranges_j[l,0]:ranges_j[l,1], : ]``, for :math:`l \in [0,N)`.
     
-    4. Compute the :math:`(M,N)` matrix ``dist`` of pairwise distances between cluster centroids.
-    5. Apply a threshold on ``dist`` to generate a boolean matrix ``keep = dist < threshold``.
+    4. Compute the :math:`(M,N)` matrix **dist** of pairwise distances between cluster centroids.
+    5. Apply a threshold on **dist** to generate a boolean matrix ``keep = dist < threshold``.
     6. Define a KeOps reduction ``my_genred = Genred(..., axis = 0 or 1)``, as usual.
     7. Compute the block-sparse reduction through
        ``result = my_genred(x_i, y_j, ranges = from_matrix(ranges_i,ranges_j,keep) )``
 
     :func:`from_matrix` is thus the routine that turns a **high-level description**
     of your block-sparse computation (cluster ranges + boolean matrix)
-    into a set of **integer tensors** (the ``ranges`` optional argument), 
+    into a set of **integer tensors** (the **ranges** optional argument), 
     used by KeOps to schedule computations on the GPU.
 
     Args:
@@ -53,8 +53,8 @@ def from_matrix( ranges_i, ranges_j, keep ) :
             if ``keep[k,l] == 1``.
 
     Returns:
-        A 6-uple of integer arrays that can be used as an optional ``ranges``
-        argument of :func:`Genred`. See the documentation of :func:`Genred` for reference.
+        A 6-uple of integer arrays that can be used as an optional **ranges**
+        argument of :func:`Genred <pykeops.numpy.Genred>`. See the documentation of :func:`Genred <pykeops.numpy.Genred>` for reference.
 
     Example:
         >>> r_i = np.array( [ [2,5], [7,12] ], dtype=int )          # 2 clusters: X[0] = x_i[2:5], X[1] = x_i[7:12]
@@ -70,7 +70,7 @@ def from_matrix( ranges_i, ranges_j, keep ) :
         --> (ranges_i,slices_i,redranges_j) will be used for reductions with respect to "j" (axis=1)
         --> (ranges_j,slices_j,redranges_i) will be used for reductions with respect to "i" (axis=0)
 
-        Information relevant if ``axis=1``:
+        Information relevant if **axis** = 1:
 
         >>> print(ranges_i)  # = r_i
         [[ 2,  5],
@@ -88,7 +88,7 @@ def from_matrix( ranges_i, ranges_j, keep ) :
         --> For X[1], i in [7,8,9,10,11], we'll reduce over j in [4,5,6,7,8]
 
 
-        Information relevant if ``axis=0``:
+        Information relevant if **axis** = 0:
 
         >>> print(ranges_j)
         [[ 1,  4],

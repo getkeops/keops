@@ -1,7 +1,7 @@
 Math-friendly syntax
 ====================
 
-The :func:`Genred` operator provides a pythonic interface for the KeOps library.
+The :func:`Genred <pykeops.torch.Genred>` operator provides a pythonic interface for the KeOps library.
 To let researchers use our code with maximum efficiency, we also propose
 some math-friendly **syntactic sugar** for 
 `NumPy <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/numpy/generic/generic_ops.py>`_ and
