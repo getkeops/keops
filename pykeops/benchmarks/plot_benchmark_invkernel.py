@@ -26,8 +26,8 @@ use_cuda = torch.cuda.is_available()
 # Benchmark specifications:
 # 
 
-D  = 3                        # Let's do this in 3D
-Dv = 2                        # Dimension of the vectors (= number of linear problems to solve)
+D  = 3  # Let's do this in 3D
+Dv = 1  # Dimension of the vectors (= number of linear problems to solve)
 MAXTIME = 10 if use_cuda else 1   # Max number of seconds before we break the loop
 REDTIME = 5  if use_cuda else .2  # Decrease the number of runs if computations take longer than 2s...
 
@@ -72,10 +72,10 @@ def generate_samples(N, device, lang):
 #
 # Define a Gaussian RBF kernel:
 #
-formula = 'Exp(- g * SqDist(x,y)) * b'
+formula = 'Exp(- g * SqDist(x,y)) * a'
 aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
            'y = Vj(' + str(D) + ')',   # Second arg: j-variable of size D
-           'b = Vj(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
+           'a = Vj(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
            'g = Pm(1)']                # Fourth arg: scalar parameter
 
 ###############################################################################
@@ -90,12 +90,12 @@ aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
 # 
 
 def Kinv_keops(x, b, gamma, alpha):
-    Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
+    Kinv = KernelSolve(formula, aliases, "a", alpha=alpha, axis=1)
     res = Kinv(x, x, b, gamma)
     return res
 
 def Kinv_keops_numpy(x, b, gamma, alpha):
-    Kinv = KernelSolve_np(formula, aliases, "b", alpha=alpha, axis=1, dtype='float32')
+    Kinv = KernelSolve_np(formula, aliases, "a", alpha=alpha, axis=1, dtype='float32')
     res = Kinv(x, x, b, gamma)
     return res
 
@@ -200,7 +200,7 @@ def full_bench(title, routines) :
                     verticalalignment='bottom')
                 break
 
-    plt.title('Runtimes for {} in dimension {}\n'.format(title, D))
+    plt.title('Runtimes for {} in dimension {}'.format(title, D))
     plt.xlabel('Number of samples')
     plt.ylabel('Seconds')
     plt.yscale('log') ; plt.xscale('log')
