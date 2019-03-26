@@ -19,8 +19,8 @@ Using the PyTorch backend, a typical sample of code looks like:
 
     # Kernel density estimator between point clouds in R^3
     my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
-                     ['x = Vx(3)',            # 1st input: dim-3 vector per line
-                      'y = Vy(3)'],           # 2nd input: dim-3 vector per column
+                     ['x = Vi(3)',            # 1st input: dim-3 vector per line
+                      'y = Vj(3)'],           # 2nd input: dim-3 vector per column
                      reduction_op='Sum',      # we also support LogSumExp, Min, etc.
                      axis=1)                  # reduce along the lines of the kernel matrix
 

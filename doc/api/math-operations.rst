@@ -36,13 +36,13 @@ In practice, the category :math:`\iota_k` is given through a keyword
 =========  ============================
  keyword    meaning
 =========  ============================
- ``Vx``     variable indexed by :math:`i`
- ``Vy``     variable indexed by :math:`j`
+ ``Vi``     variable indexed by :math:`i`
+ ``Vj``     variable indexed by :math:`j`
  ``Pm``     parameter
 =========  ============================
 
 followed by a :math:`(k,d_k)` or (index,dimension) pair of integers.
-For instance, ``Vx(2,4)`` specifies a variable indexed by :math:`i`, given as the third (:math:`k=2`) input in the function call, and representing a vector of dimension :math:`d_k=4`.
+For instance, ``Vi(2,4)`` specifies a variable indexed by :math:`i`, given as the third (:math:`k=2`) input in the function call, and representing a vector of dimension :math:`d_k=4`.
 
 **N.B.:** Using the same index ``k`` for two variables with different dimensions or categories is not allowed and will be rejected by the compiler.
 
@@ -71,7 +71,7 @@ we can define ``F`` as a **symbolic string**
 
 .. code-block:: cpp
 
-    F = "SumReduction( Square( Pm(0,1) - Vy(3,1) )  *  Exp( Vx(1,3) + Vy(2,3) ), 1 )"
+    F = "SumReduction( Square( Pm(0,1) - Vj(3,1) )  *  Exp( Vi(1,3) + Vj(2,3) ), 1 )"
 
 in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
 The second argument ``1`` of the ``SumReduction`` operator
@@ -79,7 +79,7 @@ indicates that the summation is performed with respect to the :math:`j`
 index: a ``0`` would have been associated with an :math:`i`-reduction.
 
 Note that in all bindings, variables can be defined through **aliases**.
-In this example, we may write ``p=Pm(0,1)``, ``x=Vx(1,3)``, ``y=Vy(2,3)``, ``a=Vy(3,1)`` and thus give ``F`` through a much friendlier expression:
+In this example, we may write ``p=Pm(0,1)``, ``x=Vi(1,3)``, ``y=Vj(2,3)``, ``a=Vj(3,1)`` and thus give ``F`` through a much friendlier expression:
 
 .. code-block:: cpp
 

@@ -122,7 +122,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_generic_syntax_float(self):
     ############################################################
         from pykeops.torch import Genred
-        aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
+        aliases = ['p=Pm(1)', 'a=Vj(1)', 'x=Vi(3)', 'y=Vj(3)']
         formula = 'Square(p-a)*Exp(x+y)'
         if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
@@ -143,7 +143,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_generic_syntax_double(self):
     ############################################################
         from pykeops.torch import Genred
-        aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
+        aliases = ['p=Pm(1)', 'a=Vj(1)', 'x=Vi(3)', 'y=Vj(3)']
         formula = 'Square(p-a)*Exp(x+y)'
         if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
@@ -164,7 +164,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_generic_syntax_softmax(self):
     ############################################################
         from pykeops.torch import Genred
-        aliases = ['p=Pm(1)', 'a=Vy(1)', 'x=Vx(3)', 'y=Vy(3)']
+        aliases = ['p=Pm(1)', 'a=Vj(1)', 'x=Vi(3)', 'y=Vj(3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
         formula_weights = 'y'
         if pykeops.gpu_available:
@@ -192,8 +192,8 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
-                   'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
-                   'Y = Vy(' + str(self.yc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
+                   'X = Vi(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
+                   'Y = Vj(' + str(self.yc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
         
         formula = 'Pow((X|Y),2) * ((Elem(P,0) * X) + (Elem(P,1) * Y))'
         
@@ -247,8 +247,8 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
-                   'X = Vx(' + str(self.gc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
-                   'Y = Vy(' + str(self.fc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
+                   'X = Vi(' + str(self.gc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
+                   'Y = Vj(' + str(self.fc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
         
         formula = '(Elem(P,0) * X) + (Elem(P,1) * Y)'
         
@@ -275,8 +275,8 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch import Genred
         
         aliases = ['P = Pm(2)',  # 1st argument,  a parameter, dim 2.
-                   'X = Vx(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
-                   'Y = Vy(' + str(self.yc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
+                   'X = Vi(' + str(self.xc.shape[1]) + ') ',  # 2nd argument, indexed by i, dim D.
+                   'Y = Vj(' + str(self.yc.shape[1]) + ') ']  # 3rd argument, indexed by j, dim D.
         
         formula = 'Pow((X|Y),2) * ((Elem(P,0) * X) + (Elem(P,1) * Y))'
         
@@ -294,7 +294,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch import Genred
         from pykeops.numpy.utils import squared_distances
         
-        aliases = ['p=Pm(0,1)', 'x=Vx(2,3)', 'y=Vy(3,3)']
+        aliases = ['p=Pm(0,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
         formula = 'Square(p-Var(1,1,1))*Exp(-SqNorm2(y-x))'
         
         # Call cuda kernel
@@ -314,9 +314,9 @@ class PytorchUnitTestCase(unittest.TestCase):
         import torch
         from pykeops.torch.operations import KernelSolve
         formula = 'Exp(-oos2*SqDist(x,y))*b'
-        aliases = ['x = Vx(' + str(self.D) + ')',  # First arg   : i-variable, of size D
-                   'y = Vy(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
-                   'b = Vy(' + str(self.E) + ')',  # Third arg  : j-variable, of size Dv
+        aliases = ['x = Vi(' + str(self.D) + ')',  # First arg   : i-variable, of size D
+                   'y = Vj(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
+                   'b = Vj(' + str(self.E) + ')',  # Third arg  : j-variable, of size Dv
                    'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
 
         Kinv = KernelSolve(formula, aliases, 'b', alpha=self.alphac, axis=1)
@@ -339,9 +339,9 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         formula = 'SqDist(x,y)'
         formula_weights = 'b'
-        aliases = ['x = Vx(' + str(self.D) + ')',  # First arg   : i-variable, of size D
-                   'y = Vy(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
-                   'b = Vy(' + str(self.E) + ')'] # third arg : j-variable, of size Dv
+        aliases = ['x = Vi(' + str(self.D) + ')',  # First arg   : i-variable, of size D
+                   'y = Vj(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
+                   'b = Vj(' + str(self.E) + ')'] # third arg : j-variable, of size Dv
 
         softmax_op = Genred(formula, aliases, reduction_op='SoftMax', axis=1, formula2=formula_weights)
 

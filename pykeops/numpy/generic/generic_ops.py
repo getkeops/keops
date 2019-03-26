@@ -14,8 +14,8 @@ def generic_sum(formula, output, *aliases, **kwargs) :
               - ``AL`` is a dummy alphanumerical name.
               - ``TYPE`` is a *category*. One of:
 
-                - ``Vx``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
-                - ``Vy``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
+                - ``Vi``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
+                - ``Vj``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
 
               - ``DIM`` is an integer, the dimension of the output variable; it should be compatible with ``formula``.
         *aliases (strings): List of identifiers, as in :class:`Genred`.
@@ -34,9 +34,9 @@ def generic_sum(formula, output, *aliases, **kwargs) :
     Example:
         >>> my_conv = generic_sum(       # Custom Kernel Density Estimator
         ...     'Exp(-SqNorm2(x - y))',  # Formula
-        ...     'a = Vx(1)',             # Output: 1 scalar per line
-        ...     'x = Vx(3)',             # 1st input: dim-3 vector per line
-        ...     'y = Vy(3)')             # 2nd input: dim-3 vector per line
+        ...     'a = Vi(1)',             # Output: 1 scalar per line
+        ...     'x = Vi(3)',             # 1st input: dim-3 vector per line
+        ...     'y = Vj(3)')             # 2nd input: dim-3 vector per line
         >>> # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
         >>> x = np.random.randn(1000000, 3)
         >>> y = np.random.randn(2000000, 3)
@@ -59,8 +59,8 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
               - ``AL`` is a dummy alphanumerical name.
               - ``TYPE`` is a *category*. One of:
 
-                - ``Vx``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
-                - ``Vy``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
+                - ``Vi``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
+                - ``Vj``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
 
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
@@ -84,11 +84,11 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
 
         >>> log_likelihood = generic_logsumexp(
         ...     '(-(g * SqNorm2(x - y))) + b', # Formula
-        ...     'a = Vx(1)',              # Output: 1 scalar per line
-        ...     'x = Vx(3)',              # 1st input: dim-3 vector per line
-        ...     'y = Vy(3)',              # 2nd input: dim-3 vector per line
+        ...     'a = Vi(1)',              # Output: 1 scalar per line
+        ...     'x = Vi(3)',              # 1st input: dim-3 vector per line
+        ...     'y = Vj(3)',              # 2nd input: dim-3 vector per line
         ...     'g = Pm(1)',              # 3rd input: vector of size 1
-        ...     'b = Vy(1)')              # 4th input: 1 scalar per line
+        ...     'b = Vj(1)')              # 4th input: 1 scalar per line
         >>> x = np.random.randn(1000000, 3)
         >>> y = np.random.randn(2000000, 3)
         >>> g = np.array([.5])            # Parameter of our GMM
@@ -113,8 +113,8 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
               - ``AL`` is a dummy alphanumerical name.
               - ``TYPE`` is a *category*. One of:
 
-                - ``Vx``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
-                - ``Vy``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
+                - ``Vi``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
+                - ``Vj``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
 
               - ``K`` is an integer, the number of values to extract.
 
@@ -136,9 +136,9 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
 
         >>> knn = generic_argkmin(
         ...     'SqDist(x, y)',   # Formula
-        ...     'a = Vx(3)',      # Output: 3 scalars per line
-        ...     'x = Vx(100)',    # 1st input: dim-100 vector per line
-        ...     'y = Vy(100)')    # 2nd input: dim-100 vector per line
+        ...     'a = Vi(3)',      # Output: 3 scalars per line
+        ...     'x = Vi(100)',    # 1st input: dim-100 vector per line
+        ...     'y = Vj(100)')    # 2nd input: dim-100 vector per line
         >>> x = np.random.randn(5,     100)
         >>> y = np.random.randn(20000, 100)
         >>> a = knn(x, y)
@@ -171,8 +171,8 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
               - ``AL`` is a dummy alphanumerical name.
               - ``TYPE`` is a *category*. One of:
 
-                - ``Vx``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
-                - ``Vy``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
+                - ``Vi``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
+                - ``Vj``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
 
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
@@ -192,9 +192,9 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
 
         >>> nearest_neighbor = generic_argmin(
         ...     'SqDist(x, y)',   # Formula
-        ...     'a = Vx(1)',      # Output: 1 scalar per line
-        ...     'x = Vx(100)',    # 1st input: dim-100 vector per line
-        ...     'y = Vy(100)')    # 2nd input: dim-100 vector per line
+        ...     'a = Vi(1)',      # Output: 1 scalar per line
+        ...     'x = Vi(100)',    # 1st input: dim-100 vector per line
+        ...     'y = Vj(100)')    # 2nd input: dim-100 vector per line
         >>> x = np.random.randn(5,     100)
         >>> y = np.random.randn(20000, 100)
         >>> a = nearest_neighbor(x, y)
