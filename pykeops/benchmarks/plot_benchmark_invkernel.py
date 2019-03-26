@@ -118,7 +118,7 @@ def Kinv_numpy(x, b, gamma, alpha):
 # -----------------------
 
 def benchmark(Routine, dev, N, loops=10, lang='torch') :
-    """Times a convolution on an N-by-N problem."""
+    """Times a routine on an N-by-N problem."""
 
     importlib.reload(torch)  # In case we had a memory overflow just before...
     device = torch.device(dev)
@@ -140,7 +140,7 @@ def benchmark(Routine, dev, N, loops=10, lang='torch') :
 
 
 def bench_config(Routine, backend, dev, l) :
-    """Times a convolution for an increasing number of samples."""
+    """Times a routine for an increasing number of samples."""
 
     print("Backend : {}, Device : {} -------------".format(backend, dev))
 
@@ -165,7 +165,7 @@ def bench_config(Routine, backend, dev, l) :
 
 
 def full_bench(title, routines) :
-    """Benchmarks the varied backends of a geometric loss function."""
+    """Benchmarks a collection of routines."""
 
     backends = [ backend for (_, backend, _) in routines ]
 
@@ -214,10 +214,10 @@ def full_bench(title, routines) :
 # Run the benchmark
 # ---------------------
 
-routines = [(Kinv_numpy, "Numpy", "numpy"), 
+routines = [(Kinv_numpy, "NumPy", "numpy"), 
             (Kinv_pytorch, "PyTorch", "torch"),  
-            (Kinv_keops_numpy, "KeOps_numpy", "numpy"),  
-            (Kinv_keops,   "KeOps_torch", "torch"),
+            (Kinv_keops_numpy, "NumPy + KeOps", "numpy"),  
+            (Kinv_keops,   "PyTorch + KeOps", "torch"),
            ]
 full_bench( "Kriging (Gaussian process regression)", routines )
 
