@@ -154,7 +154,7 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 }
 
 short int cast_Device_Id(int Device_Id){
-  if (Device_Id <std::numeric_limits<c10::DeviceIndex>::max()) {
+  if (Device_Id <std::numeric_limits<short int>::max()) {
     return(Device_Id);
   } else {
     throw std::runtime_error("[keops] Device_Id exceeded short int limit");
