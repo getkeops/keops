@@ -181,8 +181,6 @@ my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",  # A simple Gaussian kernel
 #   make up for the clustering and branching overheads.
 #
 
-ranges_ij = tuple(r.astype("int32") for r in ranges_ij)
-print(ranges_ij)
 backends = (["CPU", "GPU"] if M*N < 4e8 else ["GPU"]) if use_cuda else ["CPU"]
 for backend in backends :
     
