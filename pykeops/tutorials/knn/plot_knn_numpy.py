@@ -70,7 +70,7 @@ for (i,K) in enumerate( (1, 3, 10, 20, 50) ):
         cuda_type = dtype )        # "float32" and "float64" are available
 
     start = time.time()    # Benchmark:
-    indKNN = knn_search(g, x).astype(int)   # Grid <-> Samples
+    indKNN = knn_search(g, x)   # Grid <-> Samples
     clg = np.mean(cl[indKNN], axis=1) > .5  # Classify the Grid points
     end = time.time()
 
