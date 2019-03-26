@@ -153,6 +153,13 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
     }
 }
 
+short int cast_Device_Id(int Device_Id){
+  if (Device_Id <std::numeric_limits<c10::DeviceIndex>::max()) {
+    return(Device_Id);
+  } else {
+    throw std::runtime_error("[keops] Device_Id exceeded short int limit");
+  }
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    Call Cuda functions
@@ -160,7 +167,7 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
 // Implemented by pykeops/torch/generic_red.cpp or pykeops/numpy/generic_red.cpp
 template < typename array_t >
-array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
+array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
                         int nx, int ny, int nout, int dimout,
                         int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs);
@@ -194,6 +201,8 @@ array_t generic_red(int nx, int ny,
     check_tag(tag1D2D, "1D2D");
     check_tag(tagCpuGpu, "CpuGpu");
     check_tag(tagHostDevice, "HostDevice");
+
+    short int Device_Id_s = cast_Device_Id(Device_Id);
 
     // Cast the input variable : It may be a copy here...
     std::vector<array_t> obj_ptr(py_args.size());
@@ -246,7 +255,7 @@ array_t generic_red(int nx, int ny,
 
 
     // Call Cuda codes
-    array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id,
+    array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
                             nx, ny,
                             nout, F::DIM,      // dimout, nout
                             tagRanges, nranges_x, nranges_y, castedranges,

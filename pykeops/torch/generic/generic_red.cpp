@@ -42,7 +42,7 @@ bool is_contiguous(at::Tensor obj_ptri) {
 #endif
 
 template <>
-at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
+at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
                         int nx, int ny, int nout, int dimout,
                         int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs) {
@@ -75,8 +75,8 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Devic
         }
     } else if(tagHostDevice == 1) { // Data is on the device
 #if USE_CUDA
-        assert(Device_Id < std::numeric_limits<c10::DeviceIndex>::max());  // check that int will fit in a c10::DeviceIndex type
-        auto result_array = torch::empty({nout, dimout}, at::device({at::kCUDA,Device_Id}).dtype(AT_TYPE).requires_grad(true));
+        //assert(Device_Id <std::numeric_limits<c10::DeviceIndex>::max());  // check that int will fit in a c10::DeviceIndex type
+        auto result_array = torch::empty({nout, dimout}, at::device({at::kCUDA, Device_Id}).dtype(AT_TYPE).requires_grad(true));
         if (tagRanges == 0) { // Full M-by-N computation
             if(tag1D2D == 0) // "GPU_1D"
                 GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);

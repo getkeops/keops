@@ -44,7 +44,7 @@ bool is_contiguous(__NUMPYARRAY__ obj_ptri){
 
 
 template <>
-__NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, int Device_Id,
+__NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
                         int nx, int ny, int nout, int dimout,
                         int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs){
