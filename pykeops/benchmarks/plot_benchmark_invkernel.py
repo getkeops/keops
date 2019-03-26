@@ -20,23 +20,23 @@ from pykeops.numpy import KernelSolve as KernelSolve_np
 from pykeops.torch import KernelSolve
 from pykeops.torch.utils import squared_distances
 
-use_cuda = torch.cuda.is_available() * 0
+use_cuda = torch.cuda.is_available()
 ##############################################
 # Benchmark specifications:
 # 
 
 D  = 3                        # Let's do this in 3D
 Dv = 2                        # Dimension of the vectors (= number of linear problems to solve)
-MAXTIME = 20 if use_cuda else 1   # Max number of seconds before we break the loop
-REDTIME = 2  if use_cuda else .2  # Decrease the number of runs if computations take longer than 2s...
+MAXTIME = 10 if use_cuda else 1   # Max number of seconds before we break the loop
+REDTIME = 5  if use_cuda else .2  # Decrease the number of runs if computations take longer than 2s...
 
 # Number of samples that we'll loop upon
 NS = [10, 20, 50,
       100, 200, 500, 
       1000, 2000, 5000, 
-      # 10000, 20000, 50000, 
-      # 100000, 200000, 500000,
-      # 1000000
+      10000, 20000, 50000, 
+      100000, 200000, 500000,
+      1000000
       ]
 
 ######################################################################
@@ -58,10 +58,10 @@ def generate_samples(N, device, lang):
     else:
         np.random.seed(1234)
 
-        x  = np.random.rand(N, D)
-        b  = np.random.randn(N, Dv)
-        sigma = np.ones(1) * 1 / .01 ** 2   # kernel bandwidth
-        alpha = np.ones(1) * 0.8  # regularization
+        x  = np.random.rand(N, D).astype('float32')
+        b  = np.random.randn(N, Dv).astype('float32')
+        sigma = (np.ones(1) * 1 / .01 ** 2).astype('float32')   # kernel bandwidth
+        alpha = (np.ones(1) * 0.8).astype('float32')  # regularization
 
     return x, b, sigma, alpha
 
@@ -72,9 +72,9 @@ def generate_samples(N, device, lang):
 # Define a Gaussian RBF kernel:
 #
 formula = 'Exp(- g * SqDist(x,y)) * b'
-aliases = ['x = Vx(' + str(D) + ')',   # First arg:  i-variable of size D
-           'y = Vy(' + str(D) + ')',   # Second arg: j-variable of size D
-           'b = Vy(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
+aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
+           'y = Vj(' + str(D) + ')',   # Second arg: j-variable of size D
+           'b = Vj(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
            'g = Pm(1)']                # Fourth arg: scalar parameter
 
 ###############################################################################
@@ -94,9 +94,10 @@ def Kinv_keops(x, b, sigma, alpha):
     return res
 
 def Kinv_keops_numpy(x, b, sigma, alpha):
-    Kinv = KernelSolve_np(formula, aliases, "b", alpha=alpha, axis=1)
+    Kinv = KernelSolve_np(formula, aliases, "b", alpha=alpha, axis=1, dtype='float32')
     res = Kinv(x, x, b, sigma)
     return res
+
 ###############################################################################
 # Define the same  inverse kernel operation, using a **tensorized** implementation:
 #
@@ -152,16 +153,17 @@ def bench_config(Routine, backend, dev, l) :
             elapsed = benchmark(Routine, dev, n, loops=nloops, lang=l)
 
             times.append( elapsed )
-            if (nloops * elapsed > MAXTIME) \
-            or (nloops * elapsed > REDTIME/10 and len(Nloops) > 0 ) : 
+            if (nloops * elapsed > MAXTIME) or (nloops * elapsed > REDTIME/nloops and len(Nloops) > 0): 
                 nloops = Nloops.pop(0)
 
     except RuntimeError :
         print("**\nMemory overflow !")
+        not_recorded_times = (len(NS)-len(times)) * [np.nan]
     except IndexError :
         print("**\nToo slow !")
+        not_recorded_times = (len(NS)-len(times)) * [np.Infinity]
     
-    return times + (len(NS)-len(times)) * [np.nan]
+    return times + not_recorded_times
 
 
 def full_bench(title, routines) :
@@ -173,7 +175,7 @@ def full_bench(title, routines) :
     
     lines  = [ NS ]
     for routine, backend, lang in routines :
-        lines.append( bench_config(routine, backend, "cuda" if use_cuda else "cpu", lang) )
+        lines.append(bench_config(routine, backend, "cuda" if use_cuda else "cpu", lang) )
 
     benches = np.array(lines).T
 
@@ -192,6 +194,13 @@ def full_bench(title, routines) :
                     horizontalalignment='center',
                     verticalalignment='bottom')
                 break
+            elif np.isinf(val) and j > 0:
+                x, y = benches[j-1,0], benches[j-1,i+1]
+                plt.annotate('Too slow!',
+                    xy=(x, 1.05*y),
+                    horizontalalignment='center',
+                    verticalalignment='bottom')
+                break
 
     plt.title('Runtimes for {} in dimension {}'.format(title, D))
     plt.xlabel('Number of samples')
@@ -200,7 +209,6 @@ def full_bench(title, routines) :
     plt.legend(loc='upper left')
     plt.grid(True, which="major", linestyle="-")
     plt.grid(True, which="minor", linestyle="dotted")
-    plt.axis([ NS[0], NS[-1], 1e-4, MAXTIME ])
     plt.tight_layout()
 
     # Save as a .csv to put a nice Tikz figure in the papers:
