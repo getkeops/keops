@@ -47,3 +47,8 @@ def WarmUpGpu():
     my_routine(dum,dum,dum2,torch.tensor([1.0]))
     my_routine(dum,dum,dum2,torch.tensor([1.0]))
 
+def squared_distances(x, y):
+    x_norm = (x ** 2).sum(1).reshape(-1, 1)
+    y_norm = (y ** 2).sum(1).reshape(1, -1)
+    dist = x_norm + y_norm - 2.0 * torch.matmul(x, torch.transpose(y, 0, 1))
+    return dist
