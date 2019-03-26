@@ -89,3 +89,4 @@ for i in range(Dv):
     plt.plot(c_np[:40,i], '--', label='NumPy')
     plt.legend(loc='lower right')
 plt.tight_layout() ; plt.show()
+
