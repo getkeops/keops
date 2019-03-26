@@ -61,8 +61,8 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
               - ``AL`` is an alphanumerical alias, used in the **formula**.
               - ``TYPE`` is a *category*. One of:
 
-                - ``Vx``: indexation by :math:`i` along axis 0.
-                - ``Vy``: indexation by :math:`j` along axis 1.
+                - ``Vi``: indexation by :math:`i` along axis 0.
+                - ``Vj``: indexation by :math:`j` along axis 1.
                 - ``Pm``: no indexation, the input tensor is a *vector* and not a 2d array.
 
               - ``DIM`` is an integer, the dimension of the current variable.
@@ -91,8 +91,8 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
         axis (int, default = 0): Specifies the dimension of the "kernel matrix" that is reduced by our routine. 
             The supported values are:
 
-              - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vy`` or ":math:`j`" variable.
-              - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vx`` or ":math:`i`" variable.
+              - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
+              - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
         cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
             The supported values are:
@@ -109,13 +109,13 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
         
     
     Args:
-        *args (2d arrays (variables ``Vx(..)``, ``Vy(..)``) and 1d arrays (parameters ``Pm(..)``)): The input numerical arrays, 
+        *args (2d arrays (variables ``Vi(..)``, ``Vj(..)``) and 1d arrays (parameters ``Pm(..)``)): The input numerical arrays, 
             which should all have the same ``dtype``, be **contiguous** and be stored on 
             the **same device**. KeOps expects one array per alias, 
             with the following compatibility rules:
 
-                - All ``Vx(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`M`.
-                - All ``Vy(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`N`.
+                - All ``Vi(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`M`.
+                - All ``Vj(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`N`.
                 - All ``Pm(Dim_k)`` variables are encoded as **1d-arrays** (vectors) of size ``Dim_k``.
 
     Keyword Args:
@@ -142,7 +142,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
             
             **The first three ranges** will be used if **axis** = 1
             (reduction along the axis of ":math:`j` variables"),
-            and to compute gradients with respect to ``Vx(..)`` variables:
+            and to compute gradients with respect to ``Vi(..)`` variables:
             
                 - ``ranges_i``, (Mc,2) integer array - slice indices
                   :math:`[\\text{start}^I_k,\\text{end}^I_k)` in :math:`[0,M]`
@@ -166,7 +166,7 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
 
             **Likewise, the last three ranges** will be used if **axis** = 0
             (reduction along the axis of ":math:`i` variables"),
-            and to compute gradients with respect to ``Vy(..)`` variables:
+            and to compute gradients with respect to ``Vj(..)`` variables:
             
                 - ``ranges_j``, (Nc,2) integer array - slice indices
                   :math:`[\\text{start}^J_k,\\text{end}^J_k)` in :math:`[0,N]`
@@ -200,8 +200,8 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
 
     Example:
         >>> my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
-        ...                  ['x = Vx(3)',            # 1st input: dim-3 vector per line
-        ...                   'y = Vy(3)'],           # 2nd input: dim-3 vector per column
+        ...                  ['x = Vi(3)',            # 1st input: dim-3 vector per line
+        ...                   'y = Vj(3)'],           # 2nd input: dim-3 vector per column
         ...                  reduction_op='Sum',      # we also support LogSumExp, Min, etc.
         ...                  axis=1)                  # reduce along the lines of the kernel matrix
         >>> # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
@@ -254,8 +254,8 @@ class KernelSolve:
               - ``AL`` is an alphanumerical alias, used in the **formula**.
               - ``TYPE`` is a *category*. One of:
 
-                - ``Vx``: indexation by :math:`i` along axis 0.
-                - ``Vy``: indexation by :math:`j` along axis 1.
+                - ``Vi``: indexation by :math:`i` along axis 0.
+                - ``Vj``: indexation by :math:`j` along axis 1.
                 - ``Pm``: no indexation, the input tensor is a *vector* and not a 2d array.
 
               - ``DIM`` is an integer, the dimension of the current variable.
@@ -275,8 +275,8 @@ class KernelSolve:
         axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine. 
             The supported values are:
 
-              - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vy`` or ":math:`j`" variable.
-              - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vx`` or ":math:`i`" variable.
+              - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
+              - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
         cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
             The supported values are:
@@ -288,13 +288,13 @@ class KernelSolve:
         
     
     Args:
-        *args (2d arrays (variables ``Vx(..)``, ``Vy(..)``) and 1d arrays (parameters ``Pm(..)``)): The input numerical arrays, 
+        *args (2d arrays (variables ``Vi(..)``, ``Vj(..)``) and 1d arrays (parameters ``Pm(..)``)): The input numerical arrays, 
             which should all have the same ``dtype``, be **contiguous** and be stored on 
             the **same device**. KeOps expects one array per alias, 
             with the following compatibility rules:
 
-                - All ``Vx(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`M`.
-                - All ``Vy(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`N`.
+                - All ``Vi(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`M`.
+                - All ``Vj(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`N`.
                 - All ``Pm(Dim_k)`` variables are encoded as **1d-arrays** (vectors) of size ``Dim_k``.
 
     Keyword Args:
@@ -330,9 +330,9 @@ class KernelSolve:
 
     Example:
         >>> formula = "Exp(-Norm2(x - y)) * a"  # Exponential kernel
-        >>> aliases =  ["x = Vx(3)",  # 1st input: target points, one dim-3 vector per line
-        ...             "y = Vy(3)",  # 2nd input: source points, one dim-3 vector per column
-        ...             "a = Vy(2)"]  # 3rd input: source signal, one dim-2 vector per column
+        >>> aliases =  ["x = Vi(3)",  # 1st input: target points, one dim-3 vector per line
+        ...             "y = Vj(3)",  # 2nd input: source points, one dim-3 vector per column
+        ...             "a = Vj(2)"]  # 3rd input: source signal, one dim-2 vector per column
         >>> K = Genred(formula, aliases, axis = 1)  # Reduce formula along the lines of the kernel matrix
         >>> K_inv = KernelSolve(formula, aliases, "a",  # The formula above is linear wrt. 'a'
         ...                     axis = 1, alpha = .1)   # Let's try not to overfit the data...

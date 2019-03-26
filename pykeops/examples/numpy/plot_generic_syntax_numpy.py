@@ -47,9 +47,9 @@ p = np.random.randn(1,1).astype(type)
 # -----------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
-variables = ['x = Vx(3)',  # First arg   : i-variable, of size 3
-             'y = Vy(3)',  # Second arg  : j-variable, of size 3
-             'a = Vy(1)',  # Third arg   : j-variable, of size 1 (scalar)
+variables = ['x = Vi(3)',  # First arg   : i-variable, of size 3
+             'y = Vj(3)',  # Second arg  : j-variable, of size 3
+             'a = Vj(1)',  # Third arg   : j-variable, of size 1 (scalar)
              'p = Pm(1)']  # Fourth  arg : Parameter,  of size 1 (scalar)
 
 ####################################################################
@@ -103,7 +103,7 @@ e = np.random.randn(M, 3).astype(type)
 formula_grad =  'Grad(' + formula + ', y, e)'
 
 # This new formula makes use of a new variable (the input tensor e)
-variables_grad = variables + ['e = Vx(3)'] # Fifth arg: an i-variable of size 3... Just like "c"!
+variables_grad = variables + ['e = Vi(3)'] # Fifth arg: an i-variable of size 3... Just like "c"!
 
 # The summation is done with respect to the 'i' index (axis=0) in order to get a 'j'-variable
 my_grad = Genred(formula_grad, variables_grad, reduction_op='Sum', axis=0, cuda_type=type)

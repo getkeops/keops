@@ -8,7 +8,7 @@ function G = keops_grad(F,var)
 %
 % Example : define a Gaussian kernel convolution, then take its gradient
 % with respect to the first variable and test
-% F = keops_kernel('GaussKernel(p,x,y,b)','p=Pm(0,1)','x=Vx(1,3)','y=Vy(2,3)','b=Vy(3,3)');
+% F = keops_kernel('GaussKernel(p,x,y,b)','p=Pm(0,1)','x=Vi(1,3)','y=Vj(2,3)','b=Vj(3,3)');
 % G = keops_grad(F,'x');
 % Nx = 5000;
 % Ny = 2000;
@@ -34,7 +34,7 @@ posnewvar = options.numvars;
 
 % we analyse the "var" string argument. If var is entered as a name, 
 % we must retrieve the corresponding type
-if length(var)<3 || (~strcmp(var(1:3),'Vx(') && ~strcmp(var(1:3),'Vy(') && ~strcmp(var(1:3),'Pm('))
+if length(var)<3 || (~strcmp(var(1:3),'Vi(') && ~strcmp(var(1:3),'Vj(') && ~strcmp(var(1:3),'Pm('))
     for k=1:length(vars)
         [vkname,vkid] = sepeqstr(vars{k});
         if strcmp(vkname,var)

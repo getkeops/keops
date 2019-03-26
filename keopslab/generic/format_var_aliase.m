@@ -11,7 +11,7 @@ for k=1:length(var_options)
         var_aliases = [var_aliases,'decltype(',vartype,') ',varname,';'];
     end
     
-    % analysing vartype : ex 'Vx(4)' means variable of type x
+    % analysing vartype : ex 'Vi(4)' means variable of type x
     %  with dimension 4. The position is given by the rank in
     % the function argument. Here we are interested in the type
     % and position, so 2nd and the variable 'pos'
@@ -30,14 +30,14 @@ end
 function [vartype, pos] = vartype_cpp(str,k)
 % format the var aliases so that it has the
 % form 'VarType(pos,dim)' where Vartype is 
-% 'Pm', 'Vx', 'Vy', pos and dim are integer.
+% 'Pm', 'Vi', 'Vj', pos and dim are integer.
 
 comma = find(str==',');
-if isempty(comma) % assume 1 arg, ie we have Vx(3)
+if isempty(comma) % assume 1 arg, ie we have Vi(3)
     vartype = [str(1:3),num2str(k-1),',',str(4:end)];
     pos = k;
 
-else % assume 2 arg, ie we have Vx(0,3)
+else % assume 2 arg, ie we have Vi(0,3)
     vartype = str;
     pos  = str2num(str(4:(comma-1))) +1; %overwrite the position number
 end

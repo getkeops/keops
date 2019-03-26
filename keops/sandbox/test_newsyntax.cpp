@@ -34,11 +34,11 @@ template < class V > void fillrandom(V& v) {
 
 int main() {
     // In this part we define the symbolic variables of the function
-    auto X = Vx(0,3); 	// X is the first variable and represents a 3D vector
-    auto Y = Vy(1,3); 	// Y is the second variable and represents a 3D vector
-    auto U = Vx(2,4); 	// U is the third variable and represents a 4D vector
-    auto V = Vy(3,4); 	// V is the fourth variable and represents a 4D vector
-    auto B = Vy(4,3);	// B is the fifth variable and represents a 3D vector
+    auto X = Vi(0,3); 	// X is the first variable and represents a 3D vector
+    auto Y = Vj(1,3); 	// Y is the second variable and represents a 3D vector
+    auto U = Vi(2,4); 	// U is the third variable and represents a 4D vector
+    auto V = Vj(3,4); 	// V is the fourth variable and represents a 4D vector
+    auto B = Vj(4,3);	// B is the fifth variable and represents a 3D vector
     auto C = Pm(5,1);	// C is the sixth variable and represents a scalar (1D vector)
 
     // symbolic expression of the function ------------------------------------------------------

@@ -51,9 +51,9 @@ can be done with:
     
     gaussian_conv = Genred('Exp(-G * SqDist(X,Y)) * B', # F(g,x,y,b) = exp( -g*|x-y|^2 ) * b
                            ['G = Pm(1)',          # First arg  is a parameter,    of dim 1
-                            'X = Vx(3)',          # Second arg is indexed by "i", of dim 3
-                            'Y = Vy(3)',          # Third arg  is indexed by "j", of dim 3
-                            'B = Vy(2)'],         # Fourth arg is indexed by "j", of dim 2
+                            'X = Vi(3)',          # Second arg is indexed by "i", of dim 3
+                            'Y = Vj(3)',          # Third arg  is indexed by "j", of dim 3
+                            'B = Vj(2)'],         # Fourth arg is indexed by "j", of dim 2
                            reduction_op='Sum',
                            axis=1)                # Summation over "j"
 

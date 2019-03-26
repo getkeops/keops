@@ -6,7 +6,7 @@ path_to_lib = '..';
 addpath(genpath(path_to_lib))
 
 % defining the kernel operation
-f = keops_kernel('Square(p-a)*Exp(x+y)','p=Pm(1)','a=Vy(1)','x=Vx(3)','y=Vy(3)');
+f = keops_kernel('Square(p-a)*Exp(x+y)','p=Pm(1)','a=Vj(1)','x=Vi(3)','y=Vj(3)');
 
 % defining input variables
 n = 30;

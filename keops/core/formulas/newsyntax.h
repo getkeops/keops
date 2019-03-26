@@ -22,6 +22,10 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define Var(N,DIM, CAT) KeopsNS<Var<N,DIM,CAT>>()
 
+#define Vi(N,DIM) KeopsNS<_X<N,DIM>>()
+
+#define Vj(N,DIM) KeopsNS<_Y<N,DIM>>()
+
 #define Vx(N,DIM) KeopsNS<_X<N,DIM>>()
 
 #define Vy(N,DIM) KeopsNS<_Y<N,DIM>>()

@@ -7,7 +7,7 @@ The Matlab bindings provide a function `keops_kernel <https://plmlab.math.cnrs.f
 
 .. code-block:: matlab
      
-     f = keops_kernel('Square(p-a)*Exp(x+y)','p=Pm(1)','a=Vy(1)','x=Vx(3)','y=Vy(3)');
+     f = keops_kernel('Square(p-a)*Exp(x+y)','p=Pm(1)','a=Vj(1)','x=Vi(3)','y=Vj(3)');
 
 which defines a Matlab function handler ``f`` which can be used to perform a sum reduction for this formula:
 
@@ -28,4 +28,4 @@ which returns a new function that can be used as follows :
 
     Gfy(p, a, x, y, e)
 
-where ``e`` is the input gradient array (here of type ``Vx(3)``).
+where ``e`` is the input gradient array (here of type ``Vi(3)``).
