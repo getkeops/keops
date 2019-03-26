@@ -86,10 +86,10 @@ def gaussianconv_pytorch(x, y, b):
 from pykeops.torch import generic_sum
 
 gaussianconv_keops = generic_sum("Exp(-SqDist(X,Y)) * B",  # Formula
-                                 "A = Vx(1)",              # Output
-                                 "X = Vx({})".format(D),   # 1st argument
-                                 "Y = Vy({})".format(D),   # 2nd argument
-                                 "B = Vy(1)" )             # 3rd argument
+                                 "A = Vi(1)",              # Output
+                                 "X = Vi({})".format(D),   # 1st argument
+                                 "Y = Vj({})".format(D),   # 2nd argument
+                                 "B = Vj(1)" )             # 3rd argument
 
 
 ##############################################

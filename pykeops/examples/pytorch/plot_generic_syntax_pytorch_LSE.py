@@ -50,9 +50,9 @@ p = torch.rand(1, 1, dtype=torchtype)
 # -----------------------
 
 formula = 'Square(p-a)*Exp(x+y)'
-variables = ['x = Vx(1)',  # First arg   : i-variable, of size 1 (scalar)
-             'y = Vy(1)',  # Second arg  : j-variable, of size 1 (scalar)
-             'a = Vy(1)',  # Third arg   : j-variable, of size 1 (scalar)
+variables = ['x = Vi(1)',  # First arg   : i-variable, of size 1 (scalar)
+             'y = Vj(1)',  # Second arg  : j-variable, of size 1 (scalar)
+             'a = Vj(1)',  # Third arg   : j-variable, of size 1 (scalar)
              'p = Pm(1)']  # Fourth  arg : Parameter,  of size 1 (scalar)
                       
 start = time.time()

@@ -54,9 +54,9 @@ b  = x + .5 * (6 * x).sin() + .1 * (20 * x).sin() \
 # Specify our **regression model** - a simple **Gaussian** variogram:
 
 formula =  "Exp(- G * SqDist(X,Y) ) * B"  # Gaussian kernel matrix
-aliases = ["X = Vx(1)",  # 1st arg: target points, i-variable of size 1
-           "Y = Vy(1)",  # 2nd arg: source points, j-variable of size 1
-           "B = Vy(1)",  # 3rd arg: source signal, j-variable of size 1
+aliases = ["X = Vi(1)",  # 1st arg: target points, i-variable of size 1
+           "Y = Vj(1)",  # 2nd arg: source points, j-variable of size 1
+           "B = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
            "G = Pm(1)"]  # 4th arg: scalar parameter, 1/(2*std**2)
 
 ###############################################           
@@ -131,9 +131,9 @@ b[-Nout:] = torch.rand(Nout, 1).type(dtype)
 # Specify our **regression model** - a simple **Exponential** variogram:
 
 formula =  "Exp(- G * Norm2(X-Y) ) * B"  # Laplacian kernel matrix
-aliases = ["X = Vx(2)",  # 1st arg: target points, i-variable of size 2
-           "Y = Vy(2)",  # 2nd arg: source points, j-variable of size 2
-           "B = Vy(1)",  # 3rd arg: source signal, j-variable of size 1
+aliases = ["X = Vi(2)",  # 1st arg: target points, i-variable of size 2
+           "Y = Vj(2)",  # 2nd arg: source points, j-variable of size 2
+           "B = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
            "G = Pm(1)"]  # 4th arg: scalar parameter, 1/std
 
 ###############################################           

@@ -40,11 +40,11 @@ can be done with:
     
     gaussian_conv = generic_sum(
         'Exp(-G * SqDist(X,Y)) * B',  # F(g,x,y,b) = exp( -g*|x-y|^2 ) * b
-        'A = Vx(2)',          # Output indexed by "i",        of dim 2
+        'A = Vi(2)',          # Output indexed by "i",        of dim 2
         'G = Pm(1)',          # First arg  is a parameter,    of dim 1
-        'X = Vx(3)',          # Second arg is indexed by "i", of dim 3
-        'Y = Vy(3)',          # Third arg  is indexed by "j", of dim 3
-        'B = Vy(2)' )         # Fourth arg is indexed by "j", of dim 2
+        'X = Vi(3)',          # Second arg is indexed by "i", of dim 3
+        'Y = Vj(3)',          # Third arg  is indexed by "j", of dim 3
+        'B = Vj(2)' )         # Fourth arg is indexed by "j", of dim 2
 
     # N.B.: a.shape == [1000, 2]
     a = gaussian_conv(gamma, x, y, b)

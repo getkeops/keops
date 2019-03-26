@@ -6,14 +6,14 @@ function [F,Fname] = keops_kernel(varargin)
 %
 % - Define and test a function that computes for each i the sum over j
 % of the square of the scalar products of xi and yj (both 3d vectors)
-% F = keops_kernel('x=Vx(3)','y=Vy(3)','SumReduction(Square((x,y)),0)');
+% F = keops_kernel('x=Vi(3)','y=Vj(3)','SumReduction(Square((x,y)),0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % res = F(x,y);
 %
 % - Define and test the convolution with a Gauss kernel i.e. the sum
 % over j of e^(lambda*||xi-yj||^2)beta_j (xi,yj, beta_j 3d vectors):
-% F = keops_kernel('x=Vx(3)','y=Vy(3)','beta=Vy(3)','lambda=Pm(1)','SumReduction(Exp(lambda*SqNorm2(x-y))*beta,0)');
+% F = keops_kernel('x=Vi(3)','y=Vj(3)','beta=Vj(3)','lambda=Pm(1)','SumReduction(Exp(lambda*SqNorm2(x-y))*beta,0)');
 % x = rand(3,2000);
 % y = rand(3,5000);
 % beta = rand(3,5000);
@@ -72,7 +72,7 @@ end
 options = setoptions(options,'sumoutput',0);
 
 % from the string inputs we form the code which will be added to the source cpp/cu file, and the string used to encode the file name
-[CodeVars, indxy] = format_var_aliase(aliases);
+[CodeVars, indij] = format_var_aliase(aliases);
 
 % we use a hash to shorten string and avoid special characters in the filename
 hash = string2hash(lower([CodeVars,formula]));
@@ -91,8 +91,8 @@ function out = Eval(varargin)
     if nargin==0
         out = feval(Fname);
     else
-    nx = size(varargin{indxy(1)},2);
-    ny = size(varargin{indxy(2)},2);
+    nx = size(varargin{indij(1)},2);
+    ny = size(varargin{indij(2)},2);
     out = feval(Fname, nx, ny, options.tagCpuGpu, options.tag1D2D, options.device_id,varargin{:});
     if options.sumoutput
         out = sum(out,2); % '2' because we sum with respect to index, not dimension !

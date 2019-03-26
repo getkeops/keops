@@ -13,7 +13,7 @@ from keops import Genred
 # create the function computing the derivative of a Gaussian convolution
 my_conv = Genred(reduction='Sum',
                  formula='Grad(Exp(-SqNorm2(x-y) / IntCst(2)), x, b)',
-                 alias=['x=Vx(3)', 'y=Vy(3)', 'b=Vx(3)'])
+                 alias=['x=Vi(3)', 'y=Vj(3)', 'b=Vi(3)'])
 
 # ... apply it to the 2d array x, y, b with 3 columns and a (huge) number of lines
 result = my_conv(x,y,b)
