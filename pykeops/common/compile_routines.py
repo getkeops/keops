@@ -43,7 +43,6 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang, optional
     print('Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + cuda_type + '\n... ', end='', flush=True)
 
     run_and_display(['cmake', script_folder,
-                     '-GNinja',
                      '-DCMAKE_BUILD_TYPE=' + build_type,
                      '-DFORMULA_OBJ=' + formula,
                      '-DVAR_ALIASES=' + alias_string,
@@ -60,7 +59,6 @@ def compile_generic_routine(formula, aliases, dllname, cuda_type, lang, optional
 def compile_specific_conv_routine(target, cuda_type):
     print('Compiling ' + target + ' using ' + cuda_type + '... ', end='', flush=True)
     run_and_display(['cmake', script_folder,
-                     '-GNinja',
                      '-DCMAKE_BUILD_TYPE=' + build_type,
                      '-Ushared_obj_name',
                      '-D__TYPE__=' + c_type[cuda_type],
@@ -73,7 +71,6 @@ def compile_specific_conv_routine(target, cuda_type):
 def compile_specific_fshape_scp_routine(target, kernel_geom, kernel_sig, kernel_sphere, cuda_type):
     print('Compiling ' + target + ' using ' + cuda_type + '... ', end='', flush=True)
     run_and_display(['cmake', script_folder,
-                     '-GNinja',
                      '-DCMAKE_BUILD_TYPE=' + build_type,
                      '-Ushared_obj_name',
                      '-DKERNEL_GEOM=' + kernel_geom,
@@ -85,16 +82,3 @@ def compile_specific_fshape_scp_routine(target, kernel_geom, kernel_sig, kernel_
     run_and_display(['cmake', '--build', '.', '--target', target], msg='MAKE')
     print('Done. ', end='\n', flush=True)
 
-
-def compile_gridcluster(dllname, dimpoints, cuda_type, lang, optional_flags):
-    print('Compiling ' + dllname + ' in ' + build_folder + ':\nGridCluster in dimension ' + str(dimpoints) + ' for ' + lang + ', ' + cuda_type + '... ', end='', flush=True)
-    run_and_display(['cmake', script_folder,
-                     '-GNinja',
-                     '-DCMAKE_BUILD_TYPE=' + build_type,
-                     '-Dshared_obj_name=' + dllname,
-                     '-D__TYPE__=' + c_type[cuda_type],
-                     '-DDIMPOINTS='+str(dimpoints),
-                    ],
-                    msg='CMAKE')
-    run_and_display(['cmake', '--build', '.', '--target', 'gridcluster_'+dllname ], msg='MAKE')
-    print('Done. ', end='\n', flush=True)

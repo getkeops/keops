@@ -10,7 +10,6 @@ Requirements
 - **Python 3** with packages **numpy** and **GPUtil**.
 - A C++ compiler: **g++** version >=5 or **clang++**.
 - The **Cmake** build system, version >= 3.10.
-- The **Ninja** build system.
 - The **Cuda** toolkit, including the **nvcc** compiler (optional): version >=9.0 is recommended. Make sure that your C++ compiler is compatible.
 - **PyTorch** (optional): version >= 1.0.0.
 
@@ -18,11 +17,7 @@ Requirements
 Using pip (recommended)
 -----------------------
 
-1. Just in case: in a terminal, check the **consistency** of the outputs of the commands ``which python``, ``python --version``, ``which pip`` and ``pip --version``. You can then install most dependencies with:
-
-  .. code-block:: bash
-
-    pip install numpy GPUtil cmake ninja
+1. Just in case: in a terminal, check the **consistency** of the outputs of the commands ``which python``, ``python --version``, ``which pip`` and ``pip --version``. 
 
 2. In a terminal
 
@@ -37,12 +32,11 @@ Using pip (recommended)
 On Google Colab
 -----------------------
 
-In a new `Colab notebook <https://colab.research.google.com>`_,
-typing:
+In a new `Colab notebook <https://colab.research.google.com>`_, typing:
 
 .. code-block:: bash
 
-    !pip install numpy GPUtil cmake ninja pykeops > install.log
+    !pip install pykeops[full] > install.log
 
 should allow you to get a working version of KeOps in less than twenty seconds.
 
