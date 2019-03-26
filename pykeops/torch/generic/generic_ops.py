@@ -4,7 +4,7 @@ from pykeops.torch import Genred
 
 
 def generic_sum(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`Genred` with a "Sum" reduction.
+    """Alias for :func:`Genred` with a "Sum" reduction.
 
     Args:
         formula (string): Symbolic KeOps expression, as in :class:`Genred`.
@@ -17,19 +17,19 @@ def generic_sum(formula, output, *aliases, **kwargs) :
                 - ``Vi``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
                 - ``Vj``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
 
-              - ``DIM`` is an integer, the dimension of the output variable; it should be compatible with ``formula``.
+              - ``DIM`` is an integer, the dimension of the output variable; it should be compatible with **formula**.
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
     Keyword Args:
-        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - ``cuda_type = "float32"`` or ``"float"``.
-              - ``cuda_type = "float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"`` or ``"float"``.
+              - **cuda_type** = ``"float64"`` or ``"double"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :meth:`Genred.__call__`.
+        Torch tensors, as documented in :func:`Genred`.
 
     Example:
         >>> my_conv = generic_sum(       # Custom Kernel Density Estimator
@@ -49,7 +49,7 @@ def generic_sum(formula, output, *aliases, **kwargs) :
     return Genred(formula, aliases, reduction_op='Sum', axis=axis, **kwargs)
 
 def generic_logsumexp(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`Genred` with a "LogSumExp" reduction.
+    """Alias for :func:`Genred` with a "LogSumExp" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`Genred`.
@@ -65,15 +65,15 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
     Keyword Args:
-        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - ``cuda_type = "float32"`` or ``"float"``.
-              - ``cuda_type = "float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"`` or ``"float"``.
+              - **cuda_type** = ``"float64"`` or ``"double"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :meth:`Genred.__call__`.
+        Torch tensors, as documented in :func:`Genred`.
 
     Example:
         Log-likelihood of a Gaussian Mixture Model,
@@ -103,7 +103,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
     return Genred(formula, aliases, reduction_op='LogSumExp', axis=axis,  **kwargs)
 
 def generic_argkmin(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`Genred` with an "ArgKMin" reduction.
+    """Alias for :func:`Genred` with an "ArgKMin" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`Genred`.
@@ -121,15 +121,15 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
     Keyword Args:
-        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - ``cuda_type = "float32"`` or ``"float"``.
-              - ``cuda_type = "float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"`` or ``"float"``.
+              - **cuda_type** = ``"float64"`` or ``"double"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :meth:`Genred.__call__`.
+        Torch tensors, as documented in :func:`Genred`.
 
     Example:
         Bruteforce K-nearest neighbors search in dimension 100:
@@ -161,7 +161,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
 
 
 def generic_argmin(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`Genred` with an "ArgMin" reduction.
+    """Alias for :func:`Genred` with an "ArgMin" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`Genred`.
@@ -177,15 +177,15 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
     Keyword Args:
-        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - ``cuda_type = "float32"`` or ``"float"``.
-              - ``cuda_type = "float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"`` or ``"float"``.
+              - **cuda_type** = ``"float64"`` or ``"double"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :meth:`Genred.__call__`.
+        Torch tensors, as documented in :func:`Genred`.
 
     Example:
         Bruteforce nearest neighbor search in dimension 100:
