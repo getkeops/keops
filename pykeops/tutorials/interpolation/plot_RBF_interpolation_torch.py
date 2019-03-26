@@ -53,10 +53,10 @@ b  = x + .5 * (6 * x).sin() + .1 * (20 * x).sin() \
 #
 # Specify our **regression model** - a simple **Gaussian** variogram:
 
-formula =  "Exp(- G * SqDist(X,Y) ) * B"  # Gaussian kernel matrix
+formula =  "Exp(- G * SqDist(X,Y) ) * A"  # Gaussian kernel matrix
 aliases = ["X = Vi(1)",  # 1st arg: target points, i-variable of size 1
            "Y = Vj(1)",  # 2nd arg: source points, j-variable of size 1
-           "B = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
+           "A = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
            "G = Pm(1)"]  # 4th arg: scalar parameter, 1/(2*std**2)
 
 ###############################################           
@@ -64,7 +64,7 @@ aliases = ["X = Vi(1)",  # 1st arg: target points, i-variable of size 1
 # 
 # - The kernel computation through **formula**, **aliases** 
 #   and the **axis** of reduction.
-# - The variable ``B`` with respect to which the computation above is assumed to be **linear**.
+# - The variable ``A`` with respect to which the computation above is assumed to be **linear**.
 # - The ridge regularization parameter **alpha**, which controls the trade-off
 #   between a perfect fit (**alpha** = 0) and a 
 #   smooth interpolation (**alpha** = :math:`+\infty`).
@@ -73,7 +73,7 @@ sigma = .1  # Kernel radius
 alpha = 1.  # Ridge regularization
 
 g = torch.Tensor([ .5 / sigma**2 ]).type(dtype)  # RBF bandwidth parameter
-Kinv = KernelSolve(formula, aliases, "B", alpha=alpha, axis=1)  # KeOps operator
+Kinv = KernelSolve(formula, aliases, "A", alpha=alpha, axis=1)  # KeOps operator
 
 
 #################################
@@ -130,10 +130,10 @@ b[-Nout:] = torch.rand(Nout, 1).type(dtype)
 #################################
 # Specify our **regression model** - a simple **Exponential** variogram:
 
-formula =  "Exp(- G * Norm2(X-Y) ) * B"  # Laplacian kernel matrix
+formula =  "Exp(- G * Norm2(X-Y) ) * A"  # Laplacian kernel matrix
 aliases = ["X = Vi(2)",  # 1st arg: target points, i-variable of size 2
            "Y = Vj(2)",  # 2nd arg: source points, j-variable of size 2
-           "B = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
+           "A = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
            "G = Pm(1)"]  # 4th arg: scalar parameter, 1/std
 
 ###############################################           
@@ -141,7 +141,7 @@ aliases = ["X = Vi(2)",  # 1st arg: target points, i-variable of size 2
 # 
 # - The kernel computation through **formula**, **aliases** 
 #   and the **axis** of reduction.
-# - The variable ``B`` with respect to which the computation above is assumed to be **linear**.
+# - The variable ``A`` with respect to which the computation above is assumed to be **linear**.
 # - The ridge regularization parameter **alpha**, which controls the trade-off
 #   between a perfect fit (**alpha** = 0) and a 
 #   smooth interpolation (**alpha** = :math:`+\infty`).
@@ -150,7 +150,7 @@ sigma = .1  # Kernel radius
 alpha = 10  # Ridge regularization
 
 g = torch.Tensor([ 1. / sigma ]).type(dtype)  # RBF bandwidth parameter
-Kinv = KernelSolve(formula, aliases, "B", alpha=alpha, axis=1)  # KeOps operator
+Kinv = KernelSolve(formula, aliases, "A", alpha=alpha, axis=1)  # KeOps operator
 
 
 #################################
