@@ -65,8 +65,8 @@ int get_size(array_t obj_ptri, int l);
 template< typename array_t >
 __TYPE__* get_data(array_t obj_ptri);
 
-template< typename index_t >
-__INDEX__* get_rangedata(index_t obj_ptri);
+template< typename array_t >
+__INDEX__* get_rangedata(array_t obj_ptri);
 
 template< typename array_t >
 bool is_contiguous(array_t obj_ptri);

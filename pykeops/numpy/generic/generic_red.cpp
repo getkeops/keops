@@ -25,6 +25,11 @@ int get_size(__NUMPYARRAY__ obj_ptri, int l){
 }
 
 template <>
+int get_size(__RANGEARRAY__ obj_ptri, int l){
+    return obj_ptri.shape(l);
+}
+
+template <>
 __TYPE__* get_data(__NUMPYARRAY__ obj_ptri){
     return (__TYPE__ *) obj_ptri.data();
 }
