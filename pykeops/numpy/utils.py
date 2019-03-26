@@ -17,6 +17,7 @@ class numpytools :
         self.solve = lambda *args : np.linalg.solve(*args)
         self.size = lambda x : x.size
         self.view = lambda x,s : np.reshape(x,s)
+        self.long = lambda x : x.astype('int64')
     def set_types(self,x):
         self.dtype = x.dtype.name
         self.rand = lambda m, n : np.random.rand(m,n,dtype=self.dtype)

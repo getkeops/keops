@@ -17,7 +17,8 @@ def Genred_common(binding, formula, aliases, reduction_op, axis, cuda_type, opt_
         # Post-processing of the output:
         if reduction_op=='SoftMax':
             out = out[:,2:] / out[:,1][:,None]
-            
+        elif reduction_op=='ArgMin' or reduction_op=='ArgKMin':
+            out = tools.long(out)    
         elif reduction_op=='LogSumExp':
             if out.shape[1]==2: # means (m,s) with m scalar and s scalar
                 out = tools.view(out[:,0] + tools.log(out[:,1]),(-1,1))
