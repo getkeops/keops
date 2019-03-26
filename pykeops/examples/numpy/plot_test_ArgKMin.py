@@ -64,7 +64,7 @@ my_routine( np.random.rand(10,D).astype(type),
 
 # Actually perform our K-nn search:
 start = time.time()
-ind = my_routine(x, x, backend="auto").astype(int)
+ind = my_routine(x, x, backend="auto")
 print("Time to perform the K-nn search: ",round(time.time()-start,5),"s")
 
 # The result is now an (N,K) array of integers:

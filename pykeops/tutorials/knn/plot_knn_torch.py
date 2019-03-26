@@ -69,7 +69,7 @@ for (i,K) in enumerate( (1, 3, 10, 20, 50) ):
         'y = Vj({})'.format(D))    # 2nd arg: source points of dimension D, indexed by "j"
 
     start = time.time()    # Benchmark:
-    indKNN = knn_search(g, x).long()  # Grid <-> Samples
+    indKNN = knn_search(g, x)  # Grid <-> Samples
     clg = cl[indKNN].float().mean(1) > .5     # Classify the Grid points
     end = time.time()
 

@@ -20,6 +20,7 @@ class torchtools :
         self.tile = lambda *args : torch.Tensor.repeat(*args)
         self.size = lambda x : x.numel()
         self.view = lambda x,s : x.view(s)
+        self.long = lambda x : x.long()
     def set_types(self,x):
         self.torchdtype = x.dtype
         self.torchdeviceId = x.device
