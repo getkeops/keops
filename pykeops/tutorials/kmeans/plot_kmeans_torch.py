@@ -10,9 +10,11 @@ It can thus be used to implement a **large-scale**
 **without memory overflows**.
 
 .. note::
-    For large and high dimensional datasets, this script 
-    **outperforms its NumPy counterpart**
-    as it avoids transfers between CPU (host) and GPU (device) memories.
+  For large and high dimensional datasets, this script 
+  **outperforms its NumPy counterpart**
+  as it avoids transfers between CPU (host) and GPU (device) memories.
+
+  
 """
 
 #############################
