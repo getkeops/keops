@@ -77,7 +77,21 @@ using Mult = typename MultAlias<FA,FB>::type;
 //////////////////////////////////////////////////////////////
 
 template < class F >
-using Minus = Scal<IntConstant<-1>,F>;
+struct Minus : UnaryOp<Minus,F> {
+    
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "Minus"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++)
+             out[k] = -outF[k];
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,Minus<GRADIN>>;
+
+};
 
 //////////////////////////////////////////////////////////////
 ////               ADDITION : Add< FA,FB >                ////
@@ -526,6 +540,47 @@ struct Exp : UnaryOp<Exp,F> {
 };
 
 //////////////////////////////////////////////////////////////
+////        SINE and COSINE : Sin< F >, Cos< F >          ////
+//////////////////////////////////////////////////////////////
+
+template < class F > struct Sin;
+template < class F > struct Cos;
+
+template < class F >
+struct Sin : UnaryOp<Sin,F> {
+    
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "Sin"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++)
+             out[k] = sin(outF[k]);
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,Mult<Cos<F>,GRADIN>>;
+
+};
+
+template < class F >
+struct Cos : UnaryOp<Cos,F> {
+    
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "Cos"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++)
+             out[k] = cos(outF[k]);
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,Minus<Mult<Sin<F>,GRADIN>>>;
+
+};
+
+//////////////////////////////////////////////////////////////
 ////             POWER OPERATOR : Pow< F, M >             ////
 //////////////////////////////////////////////////////////////
 
@@ -648,6 +703,77 @@ struct Log : UnaryOp<Log,F> {
 
     template < class V, class GRADIN >
     using DiffT = DiffTF<V,Mult<Inv<F>,GRADIN>>;
+};
+
+//////////////////////////////////////////////////////////////
+////             SIGN : Sign< F >                         ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+struct Sign : UnaryOp<Sign,F> {
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "Sign"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+        for(int k=0; k<DIM; k++)
+			if(outF[k]<0)
+            	out[k] = -1.0;
+			else if(outF[k]==0)
+				out[k] = 0.0;
+			else
+				out[k] = 1.0;
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = Zero<V::DIM>;
+};
+
+//////////////////////////////////////////////////////////////
+////             STEP : Step< F >                         ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+struct Step : UnaryOp<Step,F> {
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "Step"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+        for(int k=0; k<DIM; k++)
+			if(outF[k]<0)
+            	out[k] = 0.0;
+			else
+				out[k] = 1.0;
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = Zero<V::DIM>;
+};
+
+//////////////////////////////////////////////////////////////
+////             RELU : ReLU< F >                         ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+struct ReLU : UnaryOp<ReLU,F> {
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "ReLU"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+        for(int k=0; k<DIM; k++)
+			if(outF[k]<0)
+            	out[k] = 0.0;
+			else
+				out[k] = outF[k];
+	}
+
+    template < class V, class GRADIN >
+    using DiffTF = typename F::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = DiffTF<V,Mult<Step<F>,GRADIN>>;
 };
 
 //////////////////////////////////////////////////////////////
