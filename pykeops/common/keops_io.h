@@ -1,5 +1,8 @@
 #include <vector>
 #include <string>
+#include <type_traits>
+#include <limits>
+#include <stdexcept>
 // #include "formula.h" done by cmake
 
 extern "C" {
@@ -153,12 +156,14 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
     }
 }
 
-short int cast_Device_Id(int Device_Id){
-  if (Device_Id <std::numeric_limits<short int>::max()) {
-    return(Device_Id);
-  } else {
-    throw std::runtime_error("[keops] Device_Id exceeded short int limit");
-  }
+template<typename _T>
+short int cast_Device_Id(_T Device_Id) {
+    static_assert(std::is_integral<_T>::value, "Device_Id must be of integral type.");
+    if(Device_Id < std::numeric_limits<short int>::max()) {
+        return(static_cast<short int>(Device_Id));
+    } else {
+        throw std::runtime_error("[keops] Device_Id exceeded short int limit");
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
