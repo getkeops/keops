@@ -79,7 +79,7 @@ bool is_contiguous(array_t obj_ptri);
 
 void check_tag(int tag, std::string msg){
     if ((tag < 0) || (tag > 1)) {
-        throw std::runtime_error("[Keops] tag" + msg + " should be (0 or 1) but is " + std::to_string(tag));
+        throw std::runtime_error("[KeOps] tag" + msg + " should be (0 or 1) but is " + std::to_string(tag));
     }
 }
 
@@ -112,35 +112,35 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
         for (size_t i = 0; i < NARGS; i++) {
             if (typeargs[i] == 0) {
                 if (nx != get_size(obj_ptr[i],0)) {
-                    throw std::runtime_error("[Keops] Wrong number of rows for arg number " + std::to_string(i) + " : is "
+                    throw std::runtime_error("[KeOps] Wrong number of rows for arg number " + std::to_string(i) + " : is "
                             + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(nx));
                 }
 
                 // column
                 if (get_size(obj_ptr[i],1) != dimargs[i]) {
-                    throw std::runtime_error("[Keops] Wrong number of column for arg number " + std::to_string(i) + " : is "
+                    throw std::runtime_error("[KeOps] Wrong number of column for arg number " + std::to_string(i) + " : is "
                             + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
                 }
             } else if (typeargs[i] == 1) {
                 if (ny != get_size(obj_ptr[i],0) ) {
-                    throw std::runtime_error("[Keops] Wrong number of rows for arg number " + std::to_string(i) + " : is "
+                    throw std::runtime_error("[KeOps] Wrong number of rows for arg number " + std::to_string(i) + " : is "
                             + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(ny));
                 }
                 // column
                 if (get_size(obj_ptr[i],1) != dimargs[i]) {
-                    throw std::runtime_error("[Keops] Wrong number of column for arg number " + std::to_string(i) + " : is "
+                    throw std::runtime_error("[KeOps] Wrong number of column for arg number " + std::to_string(i) + " : is "
                             + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
                 }
 
             } else if (typeargs[i] == 2) {
                 if (get_size(obj_ptr[i],0) != dimargs[i]) {
-                    throw std::runtime_error("[Keops] Wrong number of elements for arg number " + std::to_string(i) + " : is "
+                    throw std::runtime_error("[KeOps] Wrong number of elements for arg number " + std::to_string(i) + " : is "
                             + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(dimargs[i])) ;
                 }
             }
 
             if (!is_contiguous(obj_ptr[i])) {
-                throw std::runtime_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. "
+                throw std::runtime_error("[KeOps] Arg number " + std::to_string(i) + " : is not contiguous. "
                         + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
                         + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
                         + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
@@ -157,7 +157,7 @@ short int cast_Device_Id(int Device_Id){
   if (Device_Id <std::numeric_limits<short int>::max()) {
     return(Device_Id);
   } else {
-    throw std::runtime_error("[keops] Device_Id exceeded short int limit");
+    throw std::runtime_error("[keOps] Device_Id exceeded short int limit");
   }
 }
 
@@ -192,7 +192,7 @@ array_t generic_red(int nx, int ny,
     // Checks
     if (py_args.size() < NARGS) {
         throw std::runtime_error(
-        "[Keops] Wrong number of args : is " + std::to_string(py_args.size())
+        "[KeOps] Wrong number of args : is " + std::to_string(py_args.size())
         + " but should be at least " + std::to_string(NARGS)
         + " in " + f
         );
@@ -252,7 +252,7 @@ array_t generic_red(int nx, int ny,
     }
     else {
         throw std::runtime_error(
-            "[Keops] the 'ranges' argument should be a tuple of size 0 or 6, "
+            "[KeOps] the 'ranges' argument should be a tuple of size 0 or 6, "
             "but is of size " + std::to_string(ranges.size()) + "."
         );
     }
