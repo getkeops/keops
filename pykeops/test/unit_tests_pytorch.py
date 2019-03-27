@@ -1,4 +1,7 @@
 import sys, os.path
+
+from pykeops.torch import Genred
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..') * 2)
 
 import unittest
@@ -357,6 +360,27 @@ class PytorchUnitTestCase(unittest.TestCase):
         cc = torch.exp(cc) @ self.bc / torch.sum(torch.exp(cc), dim=1)[:, None]
 
         self.assertTrue(np.allclose(c.cpu().data.numpy().ravel(), cc.cpu().data.numpy().ravel(), atol=1e-6))
+
+    def test_pickle(self):
+        import pickle
+
+        dimension = 2
+
+        kernel_instance = Genred(
+            "Exp(-G*SqDist(X,Y)) * P",
+            ["G = Pm(1)",
+             "X = Vx(" + str(dimension) + ")",
+             "Y = Vy(" + str(dimension) + ")",
+             "P = Vy(" + str(dimension) + ")"],
+            reduction_op='Sum', axis=1)
+
+        # serialize/pickle
+        serialized_kernel = pickle.dumps(kernel_instance)
+        # deserialize/unpickle
+        deserialized_kernel = pickle.loads(serialized_kernel)
+
+        self.assertTrue(type(kernel_instance), type(deserialized_kernel))
+
 
 if __name__ == '__main__':
     """
