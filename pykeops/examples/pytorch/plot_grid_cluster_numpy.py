@@ -72,7 +72,7 @@ y_labels = grid_cluster(y, eps)  # class labels
 end = time.time()
 print("Perform clustering       : {:.4f}s".format(end-start))
 
-###############################################
+##########################################################################
 # Once (integer) cluster labels have been computed,
 # we can compute the **centroids** and **memory footprint** of each class:
 
@@ -85,7 +85,7 @@ y_ranges, y_centroids, _  = cluster_ranges_centroids(y, y_labels)
 end = time.time()
 print("Compute ranges+centroids : {:.4f}s".format(end-start))
 
-###############################################
+#########################################################################
 # Finally, we can **sort** our points according to their
 # labels, making sure that **all clusters are stored contiguously in memory**:
 
@@ -121,7 +121,7 @@ start = time.time()
 D = np.sum((x_centroids[:,None,:] - y_centroids[None,:,:])**2, 2)
 keep = D < (4 * sigma)**2  
 
-########################################
+##############################################################################
 # To turn this mask into a set of integer Tensors which
 # is more palatable to KeOps's low-level CUDA API,
 # we then use the :func:`from_matrix <pykeops.numpy.cluster.from_matrix>`
@@ -138,7 +138,7 @@ t_cluster = End-Start
 print("Total time (synchronized): {:.4f}s".format(End-Start))
 print("")
 
-########################################
+###############################################################################
 # And we're done: here is the **ranges** argument that can
 # be fed to the KeOps reduction routines!
 # For large point clouds, we can expect a speed-up that is directly
@@ -170,7 +170,7 @@ my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",  # A simple Gaussian kernel
                   axis = 1,     # Reduction wrt. "j", result indexed by "i"
                   cuda_type=dtype )
 
-#######################################################
+##############################################################################
 # Compare the performances of our **block-sparse** code
 # with those of a **dense** implementation, on both CPU and GPU backends:
 #

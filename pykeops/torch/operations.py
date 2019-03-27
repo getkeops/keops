@@ -16,7 +16,7 @@ include_dirs = include_paths()[0:2]
 
 from pykeops.common.operations import Genred_common
 def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None, formula2=None):
-    """
+    r"""
     Creates a new generic operation.
 
     This is KeOps' main function, whose usage is documented in
@@ -229,7 +229,6 @@ def Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_
         >>> print(g_x.shape)
         torch.Size([1000000, 3]) 
 
-
     """
     return Genred_common('torch', formula, aliases, reduction_op, axis, cuda_type, opt_arg, formula2)
 
@@ -362,7 +361,7 @@ class KernelSolveAutograd(torch.autograd.Function):
 
 
 class KernelSolve:
-    """
+    r"""
     Creates a new conjugate gradient solver.
 
     Supporting the same :ref:`generic syntax <part.generic_formulas>` as :func:`pykeop.torch.Genred`,
@@ -501,7 +500,6 @@ class KernelSolve:
         >>> [g_x] = torch.autograd.grad((a ** 2).sum(), [x])  # KernelSolve supports autograd!
         >>> print(g_x.shape)
         torch.Size([10000, 3]) 
-    
     """
     def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, cuda_type=default_cuda_type):
         reduction_op='Sum'

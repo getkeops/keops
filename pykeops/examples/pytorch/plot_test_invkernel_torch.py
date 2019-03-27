@@ -14,8 +14,10 @@ using the **conjugate gradient solver** provided by
 # Standard imports:
 #
 
-import torch
 import time 
+from matplotlib import pyplot as plt
+
+import torch
 
 from pykeops.torch import KernelSolve
 

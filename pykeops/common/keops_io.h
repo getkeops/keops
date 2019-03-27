@@ -86,8 +86,8 @@ void check_tag(int tag, std::string msg){
 template<typename array_t>
 void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
-    if (NARGS > 0) {
-    // ------ check the dimensions ------------//
+    if (NARGS>0) {
+        // ------ check the dimensions ------------//
         int *typeargs = new int[NARGS];
         int *dimargs = new int[NARGS];
 
@@ -141,10 +141,10 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
             if (!is_contiguous(obj_ptr[i])) {
                 throw std::runtime_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. "
-                                         + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
-                                         + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
-                                         + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
-                                         + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
+                        + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
+                        + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
+                        + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
+                        + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
             }
         }
 
@@ -212,7 +212,7 @@ array_t generic_red(int nx, int ny,
 
     // get the pointers to data to avoid a copy
     __TYPE__ **castedargs = new __TYPE__ *[NARGS];
-    for(auto i=0; i<NARGS; i++)
+    for(size_t i=0; i<NARGS; i++)
         castedargs[i] = get_data(obj_ptr[i]);
 
     // Check all the dimensions
