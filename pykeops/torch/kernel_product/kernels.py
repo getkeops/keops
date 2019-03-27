@@ -100,7 +100,7 @@ def set_indices(formula, f_ind, v_ind) :
 
 
 class Kernel:
-    """Defines a new Kernel identifier for :func:`kernel_product`.
+    r"""Defines a new Kernel identifier for :func:`kernel_product`.
     
     Keyword Args:
         name (string): **Computation identifier.**
@@ -271,7 +271,7 @@ class Kernel:
 
 
 def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float32'):
-    """:doc:`Math-friendly wrapper <kernel-product>` around the :func:`Genred` constructor. 
+    r""":doc:`Math-friendly wrapper <kernel-product>` around the :func:`Genred` constructor. 
 
     This routine allows you to compute kernel dot products (aka. as discrete convolutions)
     with arbitrary formulas, using a **Sum** or a **LogSumExp** reduction operation.

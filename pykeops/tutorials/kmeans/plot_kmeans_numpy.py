@@ -14,6 +14,8 @@ It can thus be used to implement a **large-scale**
     For large and high dimensional datasets, this script 
     **is outperformed by its PyTorch counterpart**
     which avoids transfers between CPU (host) and GPU (device) memories.
+
+ 
 """
 
 #############################

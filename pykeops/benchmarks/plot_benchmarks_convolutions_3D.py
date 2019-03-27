@@ -12,6 +12,8 @@ as the number of samples grows from 100 to 1,000,000.
     or low-rank (multipole) decomposition of the Kernel matrix.
     Please visit the documentation of the `GeomLoss package <https://www.kernel-operations.io/geomloss>`_
     for a discussion of clever, scalable schemes.
+
+ 
 """
 
 
