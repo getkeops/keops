@@ -361,18 +361,20 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         self.assertTrue(np.allclose(c.cpu().data.numpy().ravel(), cc.cpu().data.numpy().ravel(), atol=1e-6))
 
+    ############################################################
+    @unittest.expectedFailure
     def test_pickle(self):
+    ############################################################
+        import torch
+        from pykeops.torch import Genred
         import pickle
 
-        dimension = 2
-
-        kernel_instance = Genred(
-            "Exp(-G*SqDist(X,Y)) * P",
-            ["G = Pm(1)",
-             "X = Vx(" + str(dimension) + ")",
-             "Y = Vy(" + str(dimension) + ")",
-             "P = Vy(" + str(dimension) + ")"],
-            reduction_op='Sum', axis=1)
+        formula = 'SqDist(x,y)'
+        formula_weights = 'b'
+        aliases = ['x = Vi(' + str(self.D) + ')',  # First arg   : i-variable, of size D
+                   'y = Vj(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
+                   'b = Vj(' + str(self.E) + ')'] # third arg : j-variable, of size Dv
+        kernel_instance = Genred(formula, aliases, reduction_op='Sum', axis=1)
 
         # serialize/pickle
         serialized_kernel = pickle.dumps(kernel_instance)
