@@ -7,7 +7,7 @@ to compute block-sparse reductions with **sub-quadratic time complexity**.
 
 """
 
-#############################
+########################################################################
 # Setup
 # ------------
 # Standard imports:
@@ -24,7 +24,7 @@ nump = lambda t : t.cpu().numpy()
 use_cuda = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
    
-#####################
+#########################################################################
 # Define our dataset: two point clouds on the unit square.
 #
 M, N = (5000, 5000) if use_cuda else (2000, 2000)
@@ -49,7 +49,7 @@ y = y/10 + dtype([.6,.6])
 # and all its children.
 #
 # Pre-processing
-# ~~~~~~~~~~~~~~~~~~~
+# ^^^^^^^^^^^^^^
 #
 # To leverage this feature through the :mod:`pykeops.torch` API, 
 # the first step is to **clusterize your data**
@@ -104,7 +104,7 @@ print("Sort the points          : {:.4f}s".format(end-start))
 
 ####################################################################
 # Cluster-Cluster binary mask
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #
 # The key idea behind KeOps's block-sparsity mode
 # is that as soon as data points are sorted, 
