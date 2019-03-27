@@ -111,6 +111,7 @@ def from_matrix( ranges_i, ranges_j, keep ) :
     J, I = np.meshgrid( np.arange(0, keep.shape[1]), np.arange(0,keep.shape[0]) )
     redranges_i = ranges_i[ I.T[keep.T] ]  # Use PyTorch indexing to "stack" copies of ranges_i[...]
     redranges_j = ranges_j[ J[keep] ]
-    slices_i = np.cumsum(np.sum(keep, axis=1), axis=0).astype(int)  # slice indices in the "stacked" array redranges_j
-    slices_j = np.cumsum(np.sum(keep, axis=0), axis=0).astype(int)  # slice indices in the "stacked" array redranges_i
-    return (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
+    slices_i = np.cumsum(np.sum(keep, axis=1), axis=0)  # slice indices in the "stacked" array redranges_j
+    slices_j = np.cumsum(np.sum(keep, axis=0), axis=0)  # slice indices in the "stacked" array redranges_i
+    return (ranges_i.astype("int32"), slices_i.astype("int32"), redranges_j.astype("int32"), \
+            ranges_j.astype("int32"), slices_j.astype("int32"), redranges_i.astype("int32"))

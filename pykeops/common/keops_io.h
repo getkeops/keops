@@ -13,7 +13,7 @@ extern "C" {
     int GpuReduc1D_FromDevice(int, int, __TYPE__*, __TYPE__**, int);
     int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**, int);
     int GpuReduc2D_FromDevice(int, int, __TYPE__*, __TYPE__**, int);
-    int GpuReduc1D_ranges_FromHost(int, int, int, int, __INDEX__**, __TYPE__*, __TYPE__**, int);
+    int GpuReduc1D_ranges_FromHost(int, int, int, int, int, int, __INDEX__**, __TYPE__*, __TYPE__**, int);
     int GpuReduc1D_ranges_FromDevice(int, int, int, int, __INDEX__**, __TYPE__*, __TYPE__**, int);
 };
 #endif
@@ -169,7 +169,7 @@ short int cast_Device_Id(int Device_Id){
 template < typename array_t >
 array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
                         int nx, int ny, int nout, int dimout,
-                        int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
+                        int tagRanges, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs);
 
 
@@ -177,7 +177,7 @@ array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int De
 //                    Main function
 /////////////////////////////////////////////////////////////////////////////////
 
-template < typename array_t >
+template < typename array_t, typename index_t >
 array_t generic_red(int nx, int ny,
                     int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
                     int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
@@ -222,19 +222,21 @@ array_t generic_red(int nx, int ny,
     int nout = (TAGIJ == 0)? nx : ny;
 
 
-    int tagRanges, nranges_x, nranges_y ;
+    int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y ;
     __INDEX__ **castedranges;
 
     // Sparsity: should we handle ranges?
     if(ranges.size() == 0) {
-        tagRanges = 0; nranges_x = 0; nranges_y = 0 ;
+        tagRanges = 0; 
+        nranges_x = 0; nranges_y = 0 ;
+        nredranges_x = 0; nredranges_y = 0 ;
         castedranges = new __INDEX__ *[1];
     }
     else if(ranges.size() == 6) {
         // Cast the six integer arrays
-        std::vector<array_t> ranges_ptr(ranges.size());
+        std::vector<index_t> ranges_ptr(ranges.size());
         for (size_t i = 0; i < ranges.size(); i++)
-            ranges_ptr[i] = py::cast<array_t> (ranges[i]);
+            ranges_ptr[i] = py::cast<index_t> (ranges[i]);
         
         // get the pointers to data to avoid a copy
         castedranges = new __INDEX__ *[ranges.size()];
@@ -244,6 +246,9 @@ array_t generic_red(int nx, int ny,
         tagRanges = 1;
         nranges_x = get_size(ranges_ptr[0], 0) ;
         nranges_y = get_size(ranges_ptr[3], 0) ;
+
+        nredranges_x = get_size(ranges_ptr[5], 0) ;
+        nredranges_y = get_size(ranges_ptr[2], 0) ;
     }
     else {
         throw std::runtime_error(
@@ -258,7 +263,7 @@ array_t generic_red(int nx, int ny,
     array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
                             nx, ny,
                             nout, F::DIM,      // dimout, nout
-                            tagRanges, nranges_x, nranges_y, castedranges,
+                            tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges,
                             castedargs);
 
     delete[] castedargs;

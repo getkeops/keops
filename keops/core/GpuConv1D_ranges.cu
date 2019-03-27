@@ -89,7 +89,7 @@ struct GpuConv1D_ranges_FromHost {
 
 template < typename TYPE, class FUN >
 static int Eval_(FUN fun, int nx, int ny, 
-    int nranges_x, int nranges_y, __INDEX__ **ranges, 
+    int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     TYPE** px_h, TYPE** py_h, TYPE** pp_h) {
 
     typedef typename FUN::DIMSX DIMSX;
@@ -99,7 +99,7 @@ static int Eval_(FUN fun, int nx, int ny,
     const int DIMY = DIMSY::SUM;
     const int DIMP = DIMSP::SUM;
     const int DIMOUT = FUN::DIM; // dimension of output variable
-    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
+    const int DIMFOUT = DIMSX::FIRST; // DIMFOUT is dimension of output variable of inner function
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
@@ -178,11 +178,69 @@ static int Eval_(FUN fun, int nx, int ny,
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
     blockSize.x = min(CUDA_BLOCK_SIZE,min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
+
+    // Ranges pre-processing... ==================================================================
+    
+    // N.B.: In the following code, we assume that the x-ranges do not overlap.
+    //       Otherwise, we'd have to assume that DIMRED == DIMOUT
+    //       or allocate a buffer of size nx * DIMRED. This may be done in the future.
+    // Cf. reduction.h: 
+    //    FUN::tagJ = 1 for a reduction over j, result indexed by i
+    //    FUN::tagJ = 0 for a reduction over i, result indexed by j
+
+    int nranges    = FUN::tagJ ?    nranges_x :    nranges_y ;
+    int nredranges = FUN::tagJ ? nredranges_y : nredranges_x ;
+    __INDEX__ *ranges_x = FUN::tagJ ? ranges[0] : ranges[3] ;
+    __INDEX__ *slices_x = FUN::tagJ ? ranges[1] : ranges[4] ;
+    __INDEX__ *ranges_y = FUN::tagJ ? ranges[2] : ranges[5] ;
+
+    // Computes the number of blocks needed ---------------------------------------------
+    int nblocks = 0, len_range = 0;
+    for(int i=0; i<nranges ; i++){
+        len_range = ranges_x[2*i+1] - ranges_x[2*i] ;
+        nblocks += (len_range/blockSize.x) + (len_range%blockSize.x==0 ? 0 : 1) ;
+    }
+
+    // Create a lookup table for the blocks --------------------------------------------
+    __INDEX__ *lookup_h = NULL;
+    lookup_h = new __INDEX__[3*nblocks] ;
+    int index = 0;
+    for(int i=0; i<nranges ; i++){
+        len_range = ranges_x[2*i+1] - ranges_x[2*i] ;
+        for(int j=0; j<len_range ; j+=blockSize.x) {
+            lookup_h[3*index]   = i;
+            lookup_h[3*index+1] = ranges_x[2*i] + j;
+            lookup_h[3*index+2] = ranges_x[2*i] + j + std::min((int) blockSize.x, len_range-j ) ;
+
+            index++;
+        }
+    }
+
+    // Load the table on the device -----------------------------------------------------
+    __INDEX__ *lookup_d = NULL;
+    CudaSafeCall(cudaMalloc((__INDEX__**)&lookup_d, sizeof(__INDEX__)*3*nblocks));
+    CudaSafeCall(cudaMemcpy(lookup_d, lookup_h, sizeof(__INDEX__)*3*nblocks, cudaMemcpyHostToDevice));
+
+    // Load copies of slices_x and ranges_y on the device:
+    __INDEX__ *slices_x_d = NULL, *ranges_y_d = NULL;
+
+    // Send data from host device:
+    CudaSafeCall(cudaMalloc((__INDEX__**) &slices_x_d, sizeof(__INDEX__)*2*nranges));
+    CudaSafeCall(cudaMemcpy(slices_x_d, slices_x, sizeof(__INDEX__)*2*nranges, cudaMemcpyHostToDevice));
+
+    CudaSafeCall(cudaMalloc((__INDEX__**) &ranges_y_d, sizeof(__INDEX__)*2*nredranges));
+    CudaSafeCall(cudaMemcpy(ranges_y_d, ranges_y, sizeof(__INDEX__)*2*nredranges, cudaMemcpyHostToDevice));
+
+    // ============================================================================================
+
+
     dim3 gridSize;
-    gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
+    gridSize.x =  nblocks; //nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
-    GpuConv1DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
+    GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,
+        lookup_d,slices_x_d,ranges_y_d,
+        px_d,py_d,pp_d);
     
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
@@ -194,6 +252,11 @@ static int Eval_(FUN fun, int nx, int ny,
     // Free memory.
     CudaSafeCall(cudaFree(p_data));
 
+    // Free the block lookup table :
+    CudaSafeCall(cudaFree(lookup_d));
+    CudaSafeCall(cudaFree(slices_x_d));
+    CudaSafeCall(cudaFree(ranges_y_d));
+
     return 0;
 }
 
@@ -201,7 +264,7 @@ static int Eval_(FUN fun, int nx, int ny,
 // and use getlist to enroll them into "pointers arrays" px and py.
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, 
-    int nranges_x, int nranges_y, __INDEX__ **ranges, 
+    int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     int device_id, TYPE* x1_h, Args... args) {
 
     if(device_id!=-1)
@@ -232,22 +295,22 @@ static int Eval(FUN fun, int nx, int ny,
     getlist<INDSJ>(py_h,args...);
     getlist<INDSP>(pp_h,args...);
 
-    return Eval_(fun,nx,ny,nranges_x,nranges_y,ranges,px_h,py_h,pp_h);
+    return Eval_(fun,nx,ny,nranges_x,nranges_y,nredranges_x,nredranges_y,ranges,px_h,py_h,pp_h);
 
 }
 
 // same without the device_id argument
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, 
-    int nranges_x, int nranges_y, __INDEX__ **ranges, 
+    int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     TYPE* x1_h, Args... args) {
-    return Eval(fun, nx, ny, nranges_x, nranges_y, ranges, -1, x1_h, args...);
+    return Eval(fun, nx, ny, nranges_x, nranges_y, nredranges_x, nredranges_y, ranges, -1, x1_h, args...);
 }
 
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays
 template < typename TYPE, class FUN >
 static int Eval(FUN fun, int nx, int ny, 
-    int nranges_x, int nranges_y, __INDEX__ **ranges, 
+    int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     TYPE* x1_h, TYPE** args, int device_id=-1) {
 
     // We set the GPU device on which computations will be performed
@@ -282,7 +345,7 @@ static int Eval(FUN fun, int nx, int ny,
     for(int i=0; i<SIZEP; i++)
         pp_h[i] = args[INDSP::VAL(i)];
 
-    return Eval_(fun,nx,ny,nranges_x,nranges_y,ranges,px_h,py_h,pp_h);
+    return Eval_(fun,nx,ny,nranges_x,nranges_y,nredranges_x,nredranges_y,ranges,px_h,py_h,pp_h);
 
 }
 

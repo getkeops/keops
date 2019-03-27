@@ -62,7 +62,7 @@ template < int DIM, int tagI >
 struct Eval<ZeroReduction<DIM,tagI>,GpuConv1D_ranges_FromHost> {
     template < typename TYPE, typename... Args >
     static int Run(int nx, int ny, 
-                int nranges_x, int nranges_y, __INDEX__ **ranges,
+                int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges,
                 TYPE *out, Args... args) {
         for(int k=0; k<(tagI==0?nx:ny)*DIM; k++)
             out[k] = 0;

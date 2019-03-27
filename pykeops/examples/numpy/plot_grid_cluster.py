@@ -180,6 +180,7 @@ my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",  # A simple Gaussian kernel
 #   kick on around the "20,000 points" mark as the skipped computations
 #   make up for the clustering and branching overheads.
 #
+
 backends = (["CPU", "GPU"] if M*N < 4e8 else ["GPU"]) if use_cuda else ["CPU"]
 for backend in backends :
     
@@ -210,7 +211,7 @@ for backend in backends :
 #
 
 # Find the cluster centroid which is closest to the (.43,.6) point:
-dist_target = np.sum(((x_centroids - np.array([.43,.6]).astype(x_centroids))**2), 1)
+dist_target = np.sum(((x_centroids - np.array([.43,.6]).astype(dtype))**2), axis=1)
 clust_i = np.argmin(dist_target)
 
 if M + N <= 500000 :
@@ -247,4 +248,4 @@ if M + N <= 500000 :
 
     # sphinx_gallery_thumbnail_number = 2
     plt.axis("equal") ; plt.axis([0,1,0,1])
-    plt.tight_layout() ; plt.show()
+    plt.tight_layout() ; plt.show(block=True)
