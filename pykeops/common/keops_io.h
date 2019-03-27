@@ -86,7 +86,7 @@ void check_tag(int tag, std::string msg){
 template<typename array_t>
 void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
-    if (NARGS > 0) {
+#if NARGS
     // ------ check the dimensions ------------//
         int *typeargs = new int[NARGS];
         int *dimargs = new int[NARGS];
@@ -150,7 +150,7 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
         delete[] dimargs;
         delete[] typeargs;
-    }
+#endif
 }
 
 short int cast_Device_Id(int Device_Id){
@@ -190,6 +190,7 @@ array_t generic_red(int nx, int ny,
                     py::args py_args) {
 
     // Checks
+#if NARGS
     if (py_args.size() < NARGS) {
         throw std::runtime_error(
         "[Keops] Wrong number of args : is " + std::to_string(py_args.size())
@@ -197,7 +198,7 @@ array_t generic_red(int nx, int ny,
         + " in " + f
         );
     }
-
+#endif
     check_tag(tag1D2D, "1D2D");
     check_tag(tagCpuGpu, "CpuGpu");
     check_tag(tagHostDevice, "HostDevice");
