@@ -86,8 +86,8 @@ void check_tag(int tag, std::string msg){
 template<typename array_t>
 void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
-#if NARGS
-    // ------ check the dimensions ------------//
+    if (NARGS>0) {
+        // ------ check the dimensions ------------//
         int *typeargs = new int[NARGS];
         int *dimargs = new int[NARGS];
 
@@ -141,16 +141,16 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
             if (!is_contiguous(obj_ptr[i])) {
                 throw std::runtime_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. "
-                                         + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
-                                         + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
-                                         + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
-                                         + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
+                        + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
+                        + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
+                        + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
+                        + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
             }
         }
 
         delete[] dimargs;
         delete[] typeargs;
-#endif
+    }
 }
 
 short int cast_Device_Id(int Device_Id){
@@ -190,7 +190,6 @@ array_t generic_red(int nx, int ny,
                     py::args py_args) {
 
     // Checks
-#if NARGS
     if (py_args.size() < NARGS) {
         throw std::runtime_error(
         "[Keops] Wrong number of args : is " + std::to_string(py_args.size())
@@ -198,7 +197,7 @@ array_t generic_red(int nx, int ny,
         + " in " + f
         );
     }
-#endif
+
     check_tag(tag1D2D, "1D2D");
     check_tag(tagCpuGpu, "CpuGpu");
     check_tag(tagHostDevice, "HostDevice");
@@ -213,7 +212,7 @@ array_t generic_red(int nx, int ny,
 
     // get the pointers to data to avoid a copy
     __TYPE__ **castedargs = new __TYPE__ *[NARGS];
-    for(auto i=0; i<NARGS; i++)
+    for(size_t i=0; i<NARGS; i++)
         castedargs[i] = get_data(obj_ptr[i]);
 
     // Check all the dimensions
