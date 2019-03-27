@@ -706,6 +706,30 @@ struct Log : UnaryOp<Log,F> {
 };
 
 //////////////////////////////////////////////////////////////
+////             SIGN : Sign< F >                         ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+struct Sign : UnaryOp<Sign,F> {
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "Sign"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+        for(int k=0; k<DIM; k++)
+			if(outF[k]<0)
+            	out[k] = -1.0;
+			else if(outF[k]==0)
+				out[k] = 0.0;
+			else
+				out[k] = 1.0;
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = Zero<V::DIM>;
+};
+
+//////////////////////////////////////////////////////////////
 ////             STEP : Step< F >                         ////
 //////////////////////////////////////////////////////////////
 
@@ -720,7 +744,7 @@ struct Step : UnaryOp<Step,F> {
 			if(outF[k]<0)
             	out[k] = 0.0;
 			else
-				out[k] = outF[k];
+				out[k] = 1.0;
 	}
 
     template < class V, class GRADIN >
@@ -742,7 +766,7 @@ struct ReLU : UnaryOp<ReLU,F> {
 			if(outF[k]<0)
             	out[k] = 0.0;
 			else
-				out[k] = 1.0;
+				out[k] = outF[k];
 	}
 
     template < class V, class GRADIN >
