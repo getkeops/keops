@@ -1,7 +1,5 @@
 import sys, os.path
 
-from pykeops.torch import Genred
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..') * 2)
 
 import unittest
