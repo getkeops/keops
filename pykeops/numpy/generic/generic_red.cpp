@@ -52,7 +52,7 @@ bool is_contiguous(__NUMPYARRAY__ obj_ptri){
 template <>
 __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
                         int nx, int ny, int nout, int dimout,
-                        int tagRanges, int nranges_x, int nranges_y, __INDEX__ **castedranges,
+                        int tagRanges, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs){
 
     auto result_array = __NUMPYARRAY__({nout,dimout});
@@ -72,7 +72,8 @@ __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short
                 else if (tag1D2D == 1)
                     GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
             } else if( tagRanges == 1) { // Block sparsity
-                GpuReduc1D_ranges_FromHost(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+                GpuReduc1D_ranges_FromHost(nx, ny, nranges_x, nranges_y, nredranges_x, nredranges_y,
+                    castedranges, get_data(result_array), castedargs, Device_Id);
             }
         } else if (tagHostDevice==1)
             throw std::runtime_error("[KeOps] Gpu computations with Numpy are performed from host data... try to set tagHostDevice to 0.");
