@@ -75,7 +75,7 @@ alongside its **derivatives** with respect to all the variables and parameters.
 As of today, we support:
 
 - Most common reduction operations: Summation, stabilized :doc:`LogSumExp reduction <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max...
-- :doc:`Block-sparse reductions <../_auto_examples/pytorch/plot_grid_cluster_numpy>` and kernel matrices.
+- :doc:`Block-sparse reductions <../python/sparsity>` and kernel matrices.
 - Custom high-level (``'gaussian(x,y) * (1+linear(u,v)**2)'``) and low-level (``'Exp(-G*SqDist(X,Y)) * ( IntCst(1) + Pow((U|V), 2) )'``) syntaxes to compute general formulas.
 - :doc:`High-order derivatives with respect to all parameters and variables <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>`.
 - :doc:`Non-radial kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`.

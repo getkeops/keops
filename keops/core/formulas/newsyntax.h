@@ -56,6 +56,16 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define Exp(f) KeopsNS<Exp<decltype(InvKeopsNS(f))>>()
 
+#define Cos(f) KeopsNS<Cos<decltype(InvKeopsNS(f))>>()
+
+#define Sin(f) KeopsNS<Sin<decltype(InvKeopsNS(f))>>()
+
+#define ReLU(f) KeopsNS<ReLU<decltype(InvKeopsNS(f))>>()
+
+#define Step(f) KeopsNS<Step<decltype(InvKeopsNS(f))>>()
+
+#define Sign(f) KeopsNS<Sign<decltype(InvKeopsNS(f))>>()
+
 #define Pow(f,M) KeopsNS<Pow<decltype(InvKeopsNS(f)),M>>()
 
 #define Square(f) KeopsNS<Square<decltype(InvKeopsNS(f))>>()
