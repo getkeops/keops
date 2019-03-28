@@ -15,7 +15,8 @@ default_cuda_type = 'float64' # 'float32' or 'float64'
 ##########################################################
 # Import pyKeOps routines 
 
-from .operations import Genred, KernelSolve
+from .generic.generic_red import Genred
+from .operations import KernelSolve
 from .convolutions.radial_kernel import RadialKernelConv, RadialKernelGrad1conv
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 

@@ -1,30 +1,58 @@
 import numpy as np
-from pykeops.numpy import Genred
-from pykeops.numpy.generic.generic_red import Genred_lowlevel
 
-class numpytools :
+from pykeops.numpy import Genred, default_cuda_type
+
+
+class numpytools:
     norm = np.linalg.norm
     arraysum = np.sum
-    Genred = Genred
-    Genred_lowlevel = Genred_lowlevel
     exp = np.exp
     log = np.log
-    def __init__(self):
-        self.copy = lambda x : np.copy(x)
-        self.transpose = lambda x : x.T
-        self.numpy = lambda x : x
-        self.tile = lambda *args : np.tile(*args)
-        self.solve = lambda *args : np.linalg.solve(*args)
-        self.size = lambda x : x.size
-        self.view = lambda x,s : np.reshape(x,s)
-        self.long = lambda x : x.astype('int64')
-    def set_types(self,x):
-        self.dtype = x.dtype.name
-        self.rand = lambda m, n : np.random.rand(m,n,dtype=self.dtype)
-        self.randn = lambda m, n : np.random.randn(m,n,dtype=self.dtype)
-        self.zeros = lambda shape : np.zeros(shape,dtype=self.dtype)
-        self.eye = lambda n : np.eye(n,dtype=self.dtype)
-        self.array = lambda x : np.array(x,dtype=self.dtype)
+
+    @staticmethod
+    def copy(x): return np.copy(x)
+
+    @staticmethod
+    def transpose(x): return x.T
+
+    @staticmethod
+    def numpy(x): return x
+
+    @staticmethod
+    def tile(*args): return np.tile(*args)
+
+    @staticmethod
+    def solve(*args): return np.linalg.solve(*args)
+
+    @staticmethod
+    def size(x): return x.size
+
+    @staticmethod
+    def view(x, s): return np.reshape(x, s)
+
+    @staticmethod
+    def long(x): return x.astype('int64')
+
+    @staticmethod
+    def dtype(x): return x.dtype.name
+
+    @staticmethod
+    def rand(m, n, dtype=default_cuda_type): return np.random.rand(m, n).astype(dtype)
+
+    @staticmethod
+    def randn(m, n, dtype=default_cuda_type): return np.random.randn(m, n).astype(dtype)
+
+    @staticmethod
+    def zeros(shape, dtype=default_cuda_type): return np.zeros(shape).astype(dtype)
+
+    @staticmethod
+    def eye(n, dtype=default_cuda_type): return np.eye(n).astype(dtype)
+
+    @staticmethod
+    def array(x, dtype=default_cuda_type): return np.array(x).astype(dtype)
+    
+    
+    
 
 def squared_distances(x, y):
     x_norm = (x ** 2).sum(1).reshape(-1, 1)
