@@ -111,7 +111,7 @@ for reductions with respect to the :math:`j` and :math:`i` indices.
 A **full tutorial** on block-sparse reductions
 is provided in the :doc:`gallery <../_auto_examples/index>`,
 for both :doc:`NumPy <../_auto_examples/numpy/plot_grid_cluster_numpy>`
-and :doc:`PyTorch <../_auto_examples/pytorch/plot_grid_cluster>` APIs.
+and :doc:`PyTorch <../_auto_examples/pytorch/plot_grid_cluster_pytorch>` APIs.
 As you go through these notebooks, you will learn how to:
 
 1. Cluster and sort your data to enforce **contiguity**.
