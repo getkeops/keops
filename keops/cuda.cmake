@@ -3,48 +3,16 @@
 #------------------------------------------------------------------------------------#
 
 # As of now, we use an ugly mix of old and new cmake methods to properly detect cuda, nvcc and the gpu arch...
+
+# first use cmake to detect cuda, this defines a variable CUDA_FOUND 
 find_package(CUDA QUIET)
 
+# set USE_CUDA to CUDA_FOUND, unless USE_CUDA value is enforced
 if(NOT DEFINED USE_CUDA)
     Set(USE_CUDA ${CUDA_FOUND})
 endif()
 
-
-if(CUDA_FOUND AND USE_CUDA)
-   
-    set(CMAKE_CUDA_COMPILER ${CUDA_NVCC_EXECUTABLE})
-    
-    enable_language(CUDA)
-
-    if (CMAKE_CUDA_HOST_COMPILER)
-        message(STATUS "The CUDA Host CXX Compiler: ${CMAKE_CUDA_HOST_COMPILER}")
-    else()
-        message(STATUS "The CUDA Host CXX Compiler: ${CMAKE_CXX_COMPILER}")
-    endif()
-
-
-    # Options for nvcc
-    CUDA_SELECT_NVCC_ARCH_FLAGS(out_variable "Auto")
-    
-    set (CUDA_PROPAGATE_HOST_FLAGS ON)
-    
-    List(APPEND CUDA_NVCC_FLAGS ${out_variable})
-    List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
-    List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
-    if (CMAKE_CUDA_HOST_COMPILER)
-        List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")
-    endif()
-else()
-    set(USE_CUDA 0)
-endif()
-
-# this flag is used in pragma
-if(USE_CUDA)
-    add_definitions(-DUSE_CUDA=1)
-else()
-    add_definitions(-DUSE_CUDA=0)
-endif()
-
+# second : we detect Gpu properties with a home-made script
 if(CUDA_FOUND AND USE_CUDA)
     # getting some properties of GPUs to pass them as "-D..." options at compilation (adapted from caffe git repo).
     function(caffe_detect_installed_gpus out_variable)
@@ -93,15 +61,52 @@ if(CUDA_FOUND AND USE_CUDA)
             message(STATUS "No GPU detected. USE_CUDA set to FALSE.")
         else()
             message(STATUS "Compute properties automatically set to: ${gpu_compute_props}")
+            add_definitions(${gpu_compute_props})
         endif()
     else()
         message(STATUS "Compute properties manually set to ${gpu_compute_props}")
+        add_definitions(${gpu_compute_props})
     endif()
 
+endif()
+
+
+if(CUDA_FOUND AND USE_CUDA)
+   
     # Template macros.
     add_definitions(-D_FORCE_INLINES)
     add_definitions(-DCUDA_BLOCK_SIZE=192)
-    
-    add_definitions(${gpu_compute_props})
 
+    set(CMAKE_CUDA_COMPILER ${CUDA_NVCC_EXECUTABLE})
+    
+    enable_language(CUDA)
+
+    if (CMAKE_CUDA_HOST_COMPILER)
+        message(STATUS "The CUDA Host CXX Compiler: ${CMAKE_CUDA_HOST_COMPILER}")
+    else()
+        message(STATUS "The CUDA Host CXX Compiler: ${CMAKE_CXX_COMPILER}")
+    endif()
+
+
+    # Options for nvcc
+    CUDA_SELECT_NVCC_ARCH_FLAGS(out_variable "Auto")
+    
+    set (CUDA_PROPAGATE_HOST_FLAGS ON)
+    
+    List(APPEND CUDA_NVCC_FLAGS ${out_variable})
+    List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
+    List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
+    if (CMAKE_CUDA_HOST_COMPILER)
+        List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")
+    endif()
+else()
+    set(USE_CUDA 0)
 endif()
+
+# this flag is used in pragma
+if(USE_CUDA)
+    add_definitions(-DUSE_CUDA=1)
+else()
+    add_definitions(-DUSE_CUDA=0)
+endif()
+
