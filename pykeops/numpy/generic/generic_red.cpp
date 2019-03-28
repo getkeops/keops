@@ -78,7 +78,7 @@ __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short
         } else if (tagHostDevice==1)
             throw std::runtime_error("[KeOps] Gpu computations with Numpy are performed from host data... try to set tagHostDevice to 0.");
 #else
-        throw std::runtime_error("[KeOps] No cuda device detected... try to set tagCpuGpu to 0.");
+        throw std::runtime_error(Error_msg_no_cuda);
 #endif
     }
 
