@@ -70,9 +70,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
             }
             return result_array;
 #else
-            throw std::runtime_error("[KeOps] This KeOps shared object has been compiled without cuda support: \n"
-                + "1) to perform computations on CPU, simply set tagHostDevice to 0\n"
-                + "2) to perform computations on GPU, please recompile the formula with a working version of cuda.");
+            throw std::runtime_error("[KeOps] This KeOps shared object has been compiled without cuda support: \n 1) to perform computations on CPU, simply set tagHostDevice to 0\n 2) to perform computations on GPU, please recompile the formula with a working version of cuda.");
 #endif
         }
     } else if(tagHostDevice == 1) { // Data is on the device
