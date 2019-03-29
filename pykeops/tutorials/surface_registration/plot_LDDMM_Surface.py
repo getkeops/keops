@@ -6,8 +6,6 @@ Surface registration
 Example of a diffeomorphic matching of surfaces using varifolds metrics:
 We perform an LDDMM matching of two meshes using the geodesic shooting algorithm.
 
-Note that this minimimalistic tutorial is intended to showcase,
-within a single python script, the KeOps syntax in a complex use-case.
 
 """
 
@@ -182,7 +180,7 @@ def lossVarifoldSurf(FS, VT, FT, K):
 # ------------
 
 ####################################################################
-# Load the dataset
+# Load the dataset and plot it
 
 VS, FS, VT, FT = torch.load(datafile)
 q0 = VS.clone().detach().to(dtype=torchdtype, device=torchdeviceId).requires_grad_(True)
@@ -190,6 +188,26 @@ VT = VT.clone().detach().to(dtype=torchdtype, device=torchdeviceId)
 FS = FS.clone().detach().to(dtype=torch.long, device=torchdeviceId)
 FT = FT.clone().detach().to(dtype=torch.long, device=torchdeviceId)
 sigma = torch.tensor([20], dtype=torchdtype, device=torchdeviceId)
+
+fig = plt.figure()
+ax = Axes3D(fig)
+ax.axis('equal')
+ax.plot_trisurf(q0.detach().cpu().numpy()[:, 0],
+                q0.detach().cpu().numpy()[:, 1],
+                q0.detach().cpu().numpy()[:, 2],
+                triangles=FS.detach().cpu().numpy(),
+                color=(0, 0, 0, 0),  edgecolor=(1, 0, 0, .08), linewidth=1)
+ax.plot_trisurf(VT.detach().cpu().numpy()[:, 0],
+                VT.detach().cpu().numpy()[:, 1],
+                VT.detach().cpu().numpy()[:, 2],
+                triangles=FT.detach().cpu().numpy(),
+                color=(0, 0, 0, 0),  edgecolor=(0, 0, 1, .3),  linewidth=1)
+blue_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
+red_proxy = plt.Rectangle((0, 0), 1, 1, fc="r")
+yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="y")
+ax.legend([red_proxy,  blue_proxy], ['source', 'target'])
+ax.set_title('Data')
+plt.show()
 
 #####################################################################
 # Define data attachment and LDDMM functional
@@ -257,10 +275,8 @@ for t in range(15):
     ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(0, 0, 0, 0),  edgecolor=(1, 0, 0, .08), linewidth=1)
     ax.plot_trisurf(qnp[:, 0],  qnp[:, 1],  qnp[:, 2],  triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3),  linewidth=1)
     ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0),  edgecolor=(0, 0, 1, .3),  linewidth=1)
-    blue_proxy   = plt.Rectangle((0, 0), 1, 1, fc="r")
-    red_proxy    = plt.Rectangle((0, 0), 1, 1, fc="y")
-    yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
-    ax.legend([blue_proxy, red_proxy, yellow_proxy], ['source', 'deformed', 'target'])
+    
+    ax.legend([red_proxy, yellow_proxy, blue_proxy], ['source', 'deformed', 'target'])
     ax.set_title('LDDMM matching example, step ' + str(t))
     
     # draw it!

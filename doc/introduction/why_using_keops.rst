@@ -41,7 +41,7 @@ But for large datasets (say, :math:`M,N \geqslant 10,000`), this is not realisti
 KeOps is all about **letting researchers break through this memory bottleneck**. Relying on **online map-reduce schemes**, we provide CUDA routines that "sum" the coefficients :math:`K_{i,j}\cdot b_j` as they are computed, without ever storing the full matrix :math:`K` in memory.
 
 
-See our :doc:`benchmarks <../_auto_benchmarks/index>`.
+See the :doc:`benchmarks <../_auto_benchmarks/index>`.
 
 .. _part.formula:
 
@@ -62,6 +62,10 @@ Then, referring to the :math:`p`'s as **parameters**, the :math:`x`'s as **x-var
     a_i = \operatorname{Reduction}_{j=1,\cdots,N}\limits \big[ f(p^1, p^2,..., x^1_i, x^2_i,..., y^1_j, y^2_j, ...)  \big], \qquad i=1,\cdots,M
 
 alongside its **derivatives** with respect to all the variables and parameters.
+
+
+See the :doc:`gallery <../_auto_tutorials/index>`.
+
 
 Features
 ========

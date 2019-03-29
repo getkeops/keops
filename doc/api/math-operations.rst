@@ -133,19 +133,19 @@ Reductions
 
 The operations that can be used to reduce an array are:
 
-===========      ===========================      ============================================
-Sum              summation                        :math:`\sum(\cdots)`
-LogSumExp        log-sum-exp                      :math:`\log\left(\sum\exp(\cdots)\right)`
-Min              min                              :math:`\min(\cdots)`
-ArgMin           argmin                           :math:`\text{argmin}(\cdots)`
-MinArgMin        minargmin                        :math:`(\min(...),\text{argmin}(\cdots))`
-Max              max                              :math:`\max(\cdots)`
-ArgMax           argmax                           :math:`\text{argmax}(\cdots)`
-MaxArgMax        maxargmax                        :math:`(\max(...),\text{argmax}(\cdots))`
-KMin             K first order statistics         :math:`(\cdots)_{(1)},\ldots,(\cdots)_{(K)}`
-ArgKMin          indices of order statistics      :math:`(1),\ldots,(K)`
-KMinArgKMin      (KMin,ArgKMin)                   :math:`\left((\cdots)_{(1)},\ldots,(\cdots)_{(K)},(1),\ldots,(K)\right)`
-===========      ===========================      ============================================
+===============      ===========================      ========================================================================
+``Sum``              summation                        :math:`\sum(\cdots)`
+``LogSumExp``        log-sum-exp                      :math:`\log\left(\sum\exp(\cdots)\right)`
+``Min``              min                              :math:`\min(\cdots)`
+``ArgMin``           argmin                           :math:`\text{argmin}(\cdots)`
+``MinArgMin``        minargmin                        :math:`(\min(...),\text{argmin}(\cdots))`
+``Max``              max                              :math:`\max(\cdots)`
+``ArgMax``           argmax                           :math:`\text{argmax}(\cdots)`
+``MaxArgMax``        maxargmax                        :math:`(\max(...),\text{argmax}(\cdots))`
+``KMin``             K first order statistics         :math:`(\cdots)_{(1)},\ldots,(\cdots)_{(K)}`
+``ArgKMin``          indices of order statistics      :math:`(1),\ldots,(K)`
+``KMinArgKMin``      (KMin,ArgKMin)                   :math:`\left((\cdots)_{(1)},\ldots,(\cdots)_{(K)},(1),\ldots,(K)\right)`
+===============      ===========================      ========================================================================
 
 **N.B.:** As of today, vector-valued output is only supported for the `Sum` reduction. All the other reductions expect the formula :math:`F` to be scalar-valued.
 

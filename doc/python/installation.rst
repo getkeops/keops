@@ -10,7 +10,7 @@ Requirements
 - **Python 3** with packages **numpy** and **GPUtil**.
 - A C++ compiler: **g++** version >=5 or **clang++**.
 - The **Cmake** build system, version >= 3.10.
-- The **Cuda** toolkit, including the **nvcc** compiler (optional): version >=9.0 is recommended. Make sure that your C++ compiler is compatible.
+- The **Cuda** toolkit, including the **nvcc** compiler (optional): version >=9.0 is recommended. Make sure that your C++ compiler is compatible with the installed nvcc.
 - **PyTorch** (optional): version >= 1.0.0.
 
 
@@ -171,4 +171,5 @@ If you experience problems with compilation (or numerical inaccuracies after a K
 
 .. code-block:: python
 
+  import pykeops
   print(pykeops.build_folder)
