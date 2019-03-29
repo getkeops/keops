@@ -10,7 +10,7 @@ def sort_clusters(x, lab) :
 
     Args:
         x ((M,D) array or tuple/list of (M,..) arrays): List of points :math:`x_i \in \mathbb{R}^D`.
-        lab ((M,) integer arrays): Vector of class labels :math:`l_i\in\mathbb{N}`.
+        lab ((M,) integer arrays): Vector of class labels :math:`\ell_i\in\mathbb{N}`.
 
     Returns:
         (M,D) array or tuple/list of (M,..) arrays, (M,) integer array:
@@ -44,7 +44,7 @@ def sort_clusters(x, lab) :
 def cluster_ranges(lab, Nlab=None) :
     """Computes the ``[start,end)`` indices that specify clusters in a sorted point cloud.
 
-    If **lab** denotes a vector of labels :math:`l_i\in[0,C)`,
+    If **lab** denotes a vector of labels :math:`\ell_i\in[0,C)`,
     :func:`sort_clusters` allows us to sort our point clouds and make sure
     that points that share the same label are stored next to each other in memory.
     :func:`cluster_ranges` is simply there to give you the **slice indices**
@@ -52,7 +52,7 @@ def cluster_ranges(lab, Nlab=None) :
 
     Args:
         x ((M,D) array): List of points :math:`x_i \in \mathbb{R}^D`.
-        lab ((M,) integer array): Vector of class labels :math:`l_i\in\mathbb{N}`.
+        lab ((M,) integer array): Vector of class labels :math:`\ell_i\in\mathbb{N}`.
 
     Keyword Args:
         Nlab ((C,) integer array, optional): If you have computed it already,
@@ -94,17 +94,17 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
     """Computes the (weighted) centroids of classes specified by a vector of labels.
     
     If points :math:`x_i \in\mathbb{R}^D` are assigned to :math:`C` different classes
-    by the vector of integer labels :math:`l_i \in [0,C)`,
+    by the vector of integer labels :math:`\ell_i \in [0,C)`,
     this function returns a collection of :math:`C` centroids
 
     .. math::
-        c_k ~=~ \\frac{\sum_{i, l_i = k} w_i\cdot x_i}{\sum_{i, l_i=k} w_i},
+        c_k = \\frac{\sum_{i, \ell_i = k} w_i\cdot x_i}{\sum_{i, \ell_i=k} w_i},
     
     where the weights :math:`w_i` are set to 1 by default.
 
     Args:
         x ((M,D) array): List of points :math:`x_i \in \mathbb{R}^D`.
-        lab ((M,) integer array): Vector of class labels :math:`l_i\in\mathbb{N}`.
+        lab ((M,) integer array): Vector of class labels :math:`\ell_i\in\mathbb{N}`.
 
     Keyword Args:
         Nlab ((C,) integer array): Number of points per class. Recomputed if None.
@@ -141,7 +141,7 @@ def cluster_ranges_centroids(x, lab, weights=None) :
     """Computes the cluster indices and centroids of a (weighted) point cloud with labels.
     
     If **x** and **lab** encode a cloud of points :math:`x_i\in\mathbb{R}^D`
-    with labels :math:`l_i\in[0,C)`, for :math:`i\in[0,M)`, this routine returns:
+    with labels :math:`\ell_i\in[0,C)`, for :math:`i\in[0,M)`, this routine returns:
       
     - Ranges :math:`[\\text{start}_k,\\text{end}_k)` compatible with
       :func:`sort_clusters` for :math:`k\in[0,C)`.
@@ -149,16 +149,16 @@ def cluster_ranges_centroids(x, lab, weights=None) :
       using the weights :math:`w_i \in \mathbb{R}_{>0}`:
 
     .. math::
-        c_k ~=~ \\frac{\sum_{i, l_i=k} w_i\cdot l_i}{\sum_{i, l_i=k} w_i}
+        c_k ~=~ \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
 
-    - Total weights :math:`\sum_{i, l_i=k} w_i`, for :math:`k\in[0,C)`.
+    - Total weights :math:`\sum_{i, \ell_i=k} w_i`, for :math:`k\in[0,C)`.
 
     The weights :math:`w_i` can be given through a vector **weights**
     of size :math:`M`, and are set by default to 1 for all points in the cloud.
 
     Args:
         x ((M,D) array): List of points :math:`x_i \in \mathbb{R}^D`.
-        lab ((M,) integer array): Vector of class labels :math:`l_i\in\mathbb{N}`.
+        lab ((M,) integer array): Vector of class labels :math:`\ell_i\in\mathbb{N}`.
 
     Keyword Args:
         weights ((M,) array): Positive weights :math:`w_i` that can be used to compute

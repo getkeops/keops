@@ -142,17 +142,16 @@ class KernelSolve:
     r"""
     Creates a new conjugate gradient solver.
 
-    Supporting the same :ref:`generic syntax <part.generic_formulas>` as :func:`pykeop.torch.Genred`,
+    Supporting the same :ref:`generic syntax <part.generic_formulas>` as :func:`pykeops.numpy.Genred`,
     this module allows you to solve generic optimization problems of
     the form:
 
     .. math::
-        a^{\star}~=~\\arg\min_a &\,\|\, (\\alpha \,\\text{Id}~+~K_{xx})\,a ~-~b\, \|^2_2, \\\\
-        \\text{i.e.}~~~~ a^{\star}~&=~
-        (\\alpha \,\\text{Id}~+~K_{xx})^{-1}  b,
+       & & a^{\star} & =\operatorname*{argmin}_a  \| ( \alpha \operatorname{Id}+K_{xx}) a -b \|^2_2, \\\\
+        &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
 
     where :math:`K_{xx}` is a **symmetric**, **positive** definite **linear** operator
-    and :math:`\\alpha` is a **nonnegative regularization** parameter.
+    and :math:`\alpha` is a **nonnegative regularization** parameter.
 
     
     Warning:

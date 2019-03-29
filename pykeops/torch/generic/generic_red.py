@@ -180,19 +180,7 @@ class Genred():
             reduction_op (string, default = ``"Sum"``): Specifies the reduction
                 operation that is applied to reduce the values
                 of ``formula(x_i, y_j, ...)`` along axis 0 or axis 1.
-                The supported values are:
-
-                  - ``"Sum"``: :math:`\sum(\cdots)`.
-                  - ``"LogSumExp"``: :math:`\log\left(\sum\exp(\cdots)\\right)`.
-                  - ``"Min"``: :math:`\min(\cdots)`.
-                  - ``"ArgMin"``: :math:`\\text{argmin}(\cdots)`.
-                  - ``"MinArgMin"``: :math:`(\min(...),\\text{argmin}(\cdots))`.
-                  - ``"Max"``: :math:`\max(\cdots)`.
-                  - ``"ArgMax"``: :math:`\\text{argmax}(\cdots)`.
-                  - ``"MaxArgMax"``: :math:`(\max(...),\\text{argmax}(\cdots))`.
-                  - ``"KMin"``: :math:`(\cdots)_{(1)},\ldots,(\cdots)_{(K)}`, the K first order statistics.
-                  - ``"ArgKMin"``: :math:`(1),\ldots,(K)`, the indices of order statistics.
-                  - ``"KMinArgKMin"``: :math:`\left((\cdots)_{(1)},\ldots,(\cdots)_{(K)},(1),\ldots,(K)\\right)`.
+                The supported values are one of  :ref:`part.reduction`.
 
             axis (int, default = 0): Specifies the dimension of the "kernel matrix" that is reduced by our routine.
                 The supported values are:
@@ -251,14 +239,14 @@ class Genred():
                 and to compute gradients with respect to ``Vi(..)`` variables:
 
                     - ``ranges_i``, (Mc,2) IntTensor - slice indices
-                      :math:`[\\text{start}^I_k,\\text{end}^I_k)` in :math:`[0,M]`
+                      :math:`[\operatorname{start}^I_k,\operatorname{end}^I_k)` in :math:`[0,M]`
                       that specify our Mc blocks along the axis 0
                       of ":math:`i` variables".
                     - ``slices_i``, (Mc,2) IntTensor - slice indices
-                      :math:`[\\text{start}^S_k,\\text{end}^S_k)`
+                      :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)`
                       that specify Mc ranges in ``redranges_j``.
                     - ``redranges_j``, (Mcc,2) IntTensor - slice indices
-                      :math:`[\\text{start}^J_l,\\text{end}^J_l)` in :math:`[0,N]`
+                      :math:`[\operatorname{start}^J_l,\operatorname{end}^J_l)` in :math:`[0,N]`
                       that specify reduction ranges along the axis 1
                       of ":math:`j` variables".
 
@@ -275,14 +263,14 @@ class Genred():
                 and to compute gradients with respect to ``Vj(..)`` variables:
 
                     - ``ranges_j``, (Nc,2) IntTensor - slice indices
-                      :math:`[\\text{start}^J_k,\\text{end}^J_k)` in :math:`[0,N]`
+                      :math:`[\operatorname{start}^J_k,\operatorname{end}^J_k)` in :math:`[0,N]`
                       that specify our Nc blocks along the axis 1
                       of ":math:`j` variables".
                     - ``slices_j``, (Nc,2) IntTensor - slice indices
-                      :math:`[\\text{start}^S_k,\\text{end}^S_k)`
+                      :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)`
                       that specify Nc ranges in ``redranges_i``.
                     - ``redranges_i``, (Ncc,2) IntTensor - slice indices
-                      :math:`[\\text{start}^I_l,\\text{end}^I_l)` in :math:`[0,M]`
+                      :math:`[\operatorname{start}^I_l,\operatorname{end}^I_l)` in :math:`[0,M]`
                       that specify reduction ranges along the axis 0
                       of ":math:`i` variables".
 

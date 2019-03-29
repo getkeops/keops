@@ -17,12 +17,11 @@ class KernelSolve:
     the form:
 
     .. math::
-        a^{\star}~=~\\arg\min_a &\,\|\, (\\alpha \,\\text{Id}~+~K_{xx})\,a ~-~b\, \|^2_2, \\\\
-        \\text{i.e.}~~~~ a^{\star}~&=~
-        (\\alpha \,\\text{Id}~+~K_{xx})^{-1}  b,
+       & & a^{\star} & =\operatorname*{argmin}_a  \| ( \alpha \operatorname{Id}+K_{xx}) a -b \|^2_2, \\\\
+        &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
 
     where :math:`K_{xx}` is a **symmetric**, **positive** definite **linear** operator
-    and :math:`\\alpha` is a **nonnegative regularization** parameter.
+    and :math:`\alpha` is a **nonnegative regularization** parameter.
 
     
     Warning:

@@ -26,7 +26,7 @@ def from_matrix( ranges_i, ranges_j, keep ) :
 
     At this point:
         - the :math:`k`-th cluster of :math:`x_i`'s is given by ``x_i[ ranges_i[k,0]:ranges_i[k,1], : ]``, for :math:`k \in [0,M)`, 
-        - the :math:`l`-th cluster of :math:`y_j`'s is given by ``y_j[ ranges_j[l,0]:ranges_j[l,1], : ]``, for :math:`l \in [0,N)`.
+        - the :math:`\ell`-th cluster of :math:`y_j`'s is given by ``y_j[ ranges_j[l,0]:ranges_j[l,1], : ]``, for :math:`\ell \in [0,N)`.
     
     4. Compute the :math:`(M,N)` matrix **dist** of pairwise distances between cluster centroids.
     5. Apply a threshold on **dist** to generate a boolean matrix ``keep = dist < threshold``.
@@ -44,12 +44,12 @@ def from_matrix( ranges_i, ranges_j, keep ) :
             For :math:`k \in [0,M)`, the :math:`k`-th cluster of ":math:`i`" variables is
             given by ``x_i[ ranges_i[k,0]:ranges_i[k,1], : ]``, etc.
         ranges_j ((N,2) integer array): List of :math:`[\text{start}_l,\text{end}_l)` indices.
-            For :math:`l \in [0,N)`, the :math:`l`-th cluster of ":math:`j`" variables is
+            For :math:`\ell \in [0,N)`, the :math:`\ell`-th cluster of ":math:`j`" variables is
             given by ``y_j[ ranges_j[l,0]:ranges_j[l,1], : ]``, etc.
         keep ((M,N) boolean array): 
             If the output ``ranges`` of :func:`from_matrix` is used in a KeOps reduction,
             we will only compute and reduce the terms associated to pairs of "points"
-            :math:`x_i`, :math:`y_j` in clusters :math:`k` and :math:`l`
+            :math:`x_i`, :math:`y_j` in clusters :math:`k` and :math:`\ell`
             if ``keep[k,l] == 1``.
 
     Returns:

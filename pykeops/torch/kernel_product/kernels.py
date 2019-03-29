@@ -127,38 +127,38 @@ class Kernel:
 
                 .. math::
                 
-                    k(x,y)~=~\langle x,y\\rangle.   
+                    k(x,y)=\langle x,y\rangle.
             
               - ``gaussian(x,y)``, the standard RBF kernel:
 
                 .. math::
 
-                    k(x,y)~=~\exp(-\langle x-y, G\, (x-y)\\rangle).
+                    k(x,y)=\exp(-\langle x-y, G\, (x-y)\rangle).
 
               - ``laplacian(x,y)``, the pointy exponential kernel:
 
                 .. math::
 
-                    k(x,y)~=~\exp(-\sqrt{\langle x-y, G\, (x-y)\\rangle}).
+                    k(x,y)=\exp(-\sqrt{\langle x-y, G\, (x-y)\rangle}).
 
               - ``cauchy(x,y)``, a heavy-tail kernel:
 
                 .. math::
 
-                    k(x,y)~=~1/(1+\langle x-y, G\, (x-y)\\rangle).
+                    k(x,y)=1/(1+\langle x-y, G\, (x-y)\rangle).
 
               - ``inverse_multiquadric(x,y)``, a very heavy-tail kernel:
 
                 .. math::
 
-                    k(x,y)~=~1/\sqrt{1+\langle x-y, G\, (x-y)\\rangle}.
+                    k(x,y)=1/\sqrt{1+\langle x-y, G\, (x-y)\rangle}.
 
 
               - ``distance(x,y)``, arbitrary Euclidean norms:
 
                 .. math::
 
-                    k(x,y)~=~\sqrt{\langle x-y, G\, (x-y)\\rangle}.
+                    k(x,y)=\sqrt{\langle x-y, G\, (x-y)\rangle}.
 
             **Defining your own formulas** is also possible, and documented in the second part of this :doc:`example <../../../_auto_examples/pytorch/plot_kernel_product_syntax>`.
 
@@ -314,11 +314,11 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
             associated to the points :math:`y_j`.
         a_log ((M,1) Tensor, optional): If **mode** is one of
             the ``"log_*"`` reductions, specifies the scalar
-            variable :math:`\\text{Alog}_i`.
+            variable :math:`\text{Alog}_i`.
 
         b_log ((N,1) Tensor, optional): If **mode** is one of
             the ``"log_*"`` reductions, specifies the scalar
-            variable :math:`\\text{Blog}_j`.
+            variable :math:`\text{Blog}_j`.
 
 
     Keyword Args:
@@ -340,14 +340,14 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
               - ``"log_scaled"``:
 
                 .. math::
-                    v_i = \sum_j \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j ) \cdot b_j
+                    v_i = \sum_j \exp(c(x_i,y_j) + \text{Alog}_i + \text{Blog}_j ) \cdot b_j
             
               - ``"log_scaled_lse"``:
 
                 .. math::
-                    v_i = \log \sum_j \exp(c(x_i,y_j) + \\text{Alog}_i + \\text{Blog}_j + b_j )
+                    v_i = \log \sum_j \exp(c(x_i,y_j) + \text{Alog}_i + \text{Blog}_j + b_j )
             
-        backend (string, default=``"auto"``): Specifies the implementation to run.
+        backend (string, default="auto"): Specifies the implementation to run.
             The supported values are:
 
             - ``"auto"``: to use libkp's CPU or CUDA routines.
@@ -357,8 +357,8 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
             of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"``,
+              - **cuda_type** = ``"float64"``.
         
 
 
