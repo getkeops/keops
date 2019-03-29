@@ -39,11 +39,11 @@ def KMeans(x, K=10, Niter=10, verbose=True):
 
     # Define our KeOps kernel:
     nn_search = generic_argmin( 
-        'SqDist(x,y)',  # A simple squared L2 distance
-        'ind = Vi(1)',  # The output index is indexed by "i"
+        'SqDist(x,y)',           # A simple squared L2 distance
+        'ind = Vi(1)',           # The output index is indexed by "i"
         'x = Vi({})'.format(D),  # 1st arg: target points of dimension D, indexed by "i"
         'y = Vj({})'.format(D),  # 2nd arg: source points of dimension D, indexed by "j"
-        cuda_type = dtype )  # "float32" and "float64" are available
+        cuda_type = dtype )      # "float32" and "float64" are available
     
     # Dummy first call for accurate timing (GPU warmup):
     dum = np.random.rand(10,D).astype(dtype)
@@ -79,15 +79,15 @@ def KMeans(x, K=10, Niter=10, verbose=True):
 #
 N, D, K = 10000, 2, 50
 
-#####################
+###############################################################
 # Define our dataset:
 x = np.random.randn(N, D).astype(dtype) / 6 + .5
 
-#####################
+##############################################################
 # Perform the computation:
 cl, c = KMeans(x, K)
 
-#####################
+##############################################################
 # Fancy display:
 
 plt.figure(figsize=(8,8))

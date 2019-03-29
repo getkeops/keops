@@ -10,21 +10,23 @@ It can thus be used to implement a **large-scale**
 **without memory overflows**.
 """
 
-#############################
+#####################################################################
 # Setup 
 # -----------------
 # Standard imports:
 
 import time
+from matplotlib import pyplot as plt
+
 import numpy as np
 import torch
+
 from pykeops.torch import generic_argkmin
-from matplotlib import pyplot as plt
 
 use_cuda = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
-#############################
+######################################################################
 # Dataset, in 2D:
 
 N, D = 10000 if use_cuda else 1000, 2  # Number of samples, dimension
@@ -35,7 +37,7 @@ def fth(x):
     return 3*x*(x-.5)*(x-1)+x
 cl = x[:,1] + .1 * torch.randn(N).type(dtype) < fth( x[:,0] )
 
-#############################
+#######################################################################
 # Reference sampling grid, on the unit square:
 
 M = 1000 if use_cuda else 100
@@ -44,11 +46,11 @@ g1, g2 = torch.meshgrid(tmp,tmp)
 g = torch.cat( (g1.contiguous().view(-1,1), g2.contiguous().view(-1,1)), dim=1 )
 
 
-#############################
+######################################################################
 # K-Nearest Neighbors search
 # ----------------------------
     
-##############################
+#####################################################################
 # Peform the K-NN classification, with a fancy display:
 #
 
