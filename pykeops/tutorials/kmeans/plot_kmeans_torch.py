@@ -102,5 +102,5 @@ plt.axis([0,1,0,1]) ; plt.tight_layout() ; plt.show()
 
 if use_cuda:
     N, D, K = 1000000, 100, 1000
-    x = torch.randn(N, D, dtype=dtype)
+    x = torch.randn(N, D, dtype=torchtype[dtype])
     cl, c = KMeans(x, K)
