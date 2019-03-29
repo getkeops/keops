@@ -1,7 +1,7 @@
 .. _`part.generic_formulas`:
 
-Generic formulas
-================
+Formulas and syntax
+###################
 
 
 KeOps lets you define any reduction operation of the form
@@ -26,7 +26,7 @@ can be used through KeOps' bindings.
 .. _`part.varCategory`:
 
 Variables: category, index and dimension
-----------------------------------------
+========================================
 
 
 At a low level, every variable :math:`x^k_{\iota_k}` is specified by its **category** :math:`\iota_k\in\{i,j,\emptyset\}` (meaning that the variable is indexed by :math:`i`, by :math:`j`, or is a fixed parameter across indices), its **positional index** :math:`k` and its **dimension** :math:`d_k`. 
@@ -46,49 +46,10 @@ For instance, ``Vi(2,4)`` specifies a variable indexed by :math:`i`, given as th
 
 **N.B.:** Using the same index ``k`` for two variables with different dimensions or categories is not allowed and will be rejected by the compiler.
 
-.. _`formula.example`:
-
-An example, with aliases
-------------------------
-
-Assume we want to compute the sum
-
-.. math::
-
-  F(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1..M, u=1,2,3} \in \mathbb R^{M\times 3}
-
-
-where:
-
-- :math:`p \in \mathbb R` is a **parameter**, 
-- :math:`x \in \mathbb R^{M\times 3}` is an **x-variable** indexed by :math:`i`, 
-- :math:`y \in \mathbb R^{N\times 3}` is an **y-variable** indexed by :math:`j`, 
-- :math:`a \in \mathbb R^N` is an **y-variable** indexed by :math:`j`.
-
-Using the **variable placeholders** presented above and the
-mathematical operations listed in :ref:`part.mathOperation`,
-we can define ``F`` as a **symbolic string**
-
-.. code-block:: cpp
-
-    F = "SumReduction( Square( Pm(0,1) - Vj(3,1) )  *  Exp( Vi(1,3) + Vj(2,3) ), 1 )"
-
-in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
-The second argument ``1`` of the ``SumReduction`` operator
-indicates that the summation is performed with respect to the :math:`j`
-index: a ``0`` would have been associated with an :math:`i`-reduction.
-
-Note that in all bindings, variables can be defined through **aliases**.
-In this example, we may write ``p=Pm(0,1)``, ``x=Vi(1,3)``, ``y=Vj(2,3)``, ``a=Vj(3,1)`` and thus give ``F`` through a much friendlier expression:
-
-.. code-block:: cpp
-
-    F = "SumReduction( Square(p - a) * Exp(x + y), 1 )"
-
 .. _`part.mathOperation`:
 
 Math operators
---------------
+==============
 
 To define formulas with KeOps, you can use simple arithmetics:
 
@@ -168,7 +129,7 @@ Symbolic gradients:
 .. _`part.reduction`:
 
 Reductions
-----------
+==========
 
 The operations that can be used to reduce an array are:
 
@@ -187,3 +148,44 @@ KMinArgKMin      (KMin,ArgKMin)                   :math:`\left((\cdots)_{(1)},\l
 ===========      ===========================      ============================================
 
 **N.B.:** As of today, vector-valued output is only supported for the `Sum` reduction. All the other reductions expect the formula :math:`F` to be scalar-valued.
+
+
+
+.. _`formula.example`:
+
+An example
+==========
+
+Assume we want to compute the sum
+
+.. math::
+
+  F(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1..M, u=1,2,3} \in \mathbb R^{M\times 3}
+
+
+where:
+
+- :math:`p \in \mathbb R` is a **parameter**,
+- :math:`x \in \mathbb R^{M\times 3}` is an **x-variable** indexed by :math:`i`,
+- :math:`y \in \mathbb R^{N\times 3}` is an **y-variable** indexed by :math:`j`,
+- :math:`a \in \mathbb R^N` is an **y-variable** indexed by :math:`j`.
+
+Using the **variable placeholders** presented above and the
+mathematical operations listed in :ref:`part.mathOperation`,
+we can define ``F`` as a **symbolic string**
+
+.. code-block:: cpp
+
+    F = "SumReduction( Square( Pm(0,1) - Vj(3,1) )  *  Exp( Vi(1,3) + Vj(2,3) ), 1 )"
+
+in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
+The second argument ``1`` of the ``SumReduction`` operator
+indicates that the summation is performed with respect to the :math:`j`
+index: a ``0`` would have been associated with an :math:`i`-reduction.
+
+Note that in all bindings, variables can be defined through **aliases**.
+In this example, we may write ``p=Pm(0,1)``, ``x=Vi(1,3)``, ``y=Vj(2,3)``, ``a=Vj(3,1)`` and thus give ``F`` through a much friendlier expression:
+
+.. code-block:: cpp
+
+    F = "SumReduction( Square(p - a) * Exp(x + y), 1 )"

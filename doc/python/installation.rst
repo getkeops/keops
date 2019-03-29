@@ -1,11 +1,11 @@
 Python install
-==============
+##############
 
 PyKeOps is a **Python 3 wrapper** around the low-level KeOps library, which is written in **C++/CUDA**. 
 It provides functions that can be used in any **NumPy** or **PyTorch** script.
 
 Requirements
-------------
+============
 
 - **Python 3** with packages **numpy** and **GPUtil**.
 - A C++ compiler: **g++** version >=5 or **clang++**.
@@ -15,7 +15,7 @@ Requirements
 
 
 Using pip (recommended)
------------------------
+=======================
 
 1. Just in case: in a terminal, check the **consistency** of the outputs of the commands ``which python``, ``python --version``, ``which pip`` and ``pip --version``. 
 
@@ -30,9 +30,9 @@ Using pip (recommended)
 3. Test your installation: :ref:`part.checkPython`
 
 On Google Colab
------------------------
+===============
 
-In a new `Colab notebook <https://colab.research.google.com>`_, typing:
+Google provides free virtual machine able to run KeOps. In a new `Colab notebook <https://colab.research.google.com>`_, typing:
 
 .. code-block:: bash
 
@@ -42,7 +42,7 @@ should allow you to get a working version of KeOps in less than twenty seconds.
 
 
 From source using git
----------------------
+=====================
 
 1. Clone the KeOps repo at a location of your choice (denoted here as ``/path/to``)
 
@@ -75,7 +75,7 @@ From source using git
 .. _`part.checkPython`:
 
 Testing your installation
--------------------------
+=========================
 
 1. In a python terminal,
 
@@ -139,10 +139,10 @@ Testing your installation
 
 
 Troubleshooting
----------------
+===============
 
 Compilation issues
-^^^^^^^^^^^^^^^^^^
+------------------
 
 First of all, make sure that you are using a C++ compiler which is compatible with the **C++11 revision** and/or your **nvcc** (CUDA) compiler. Otherwise, compilation of formulas may fail in unexpected ways. Depending on your system, you can:
 
@@ -152,7 +152,7 @@ First of all, make sure that you are using a C++ compiler which is compatible wi
 
 
 Verbosity level
-^^^^^^^^^^^^^^^
+---------------
 
 To help debugging, you can activate a **verbose** compilation mode by adding a few words **after** your KeOps imports:
 
@@ -165,7 +165,7 @@ To help debugging, you can activate a **verbose** compilation mode by adding a f
 .. _`part.cache`:
 
 Cache directory
-^^^^^^^^^^^^^^^
+---------------
 
 If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to **flush the build folder** (i.e. the cache of already-compiled formulas). To get the directory name:
 

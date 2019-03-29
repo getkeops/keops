@@ -1,5 +1,10 @@
 Generic solver
-==================
+##############
+
+Overview
+========
+
+
 
 On top of the :mod:`Genred` interface, KeOps provides a simple
 `conjugate gradient solver <https://en.wikipedia.org/wiki/Conjugate_gradient_method>`_ 
@@ -28,14 +33,21 @@ In both cases, :mod:`KernelSolve` is a class with no methods: its instantiation 
 
     a = K_inv( arg_1, arg_2, ..., arg_p, backend='auto', device_id=-1, ranges=None)
 
-Example
--------
+
+Documentation
+=============
+
+See the :doc:`pytorch <api/pytorch/KernelSolve>` or :doc:`numpy <api/numpy/KernelSolve>`  api documentation for the the syntax at **instantiation** and **call** times.
+
+
+An example
+==========
 
 Using the generic syntax, solving a ridge regression problem with a Cauchy kernel
 
 .. math::
 
- \text{for } i = 1, \cdots, 10,000, \quad b_i ~=~  0.1 \cdot a_i ~+~\sum_{j=1}^{10,000} \frac{1}{1+\|x_i-x_j\|^2} \,\cdot\, a_j
+ \text{for } i = 1, \cdots, 10 000, \quad b_i =  0.1 \cdot a_i +\sum_{j=1}^{10 000} \frac{1}{1+\|x_i-x_j\|^2}\cdot a_j
 
 with respect to the :math:`a_i`'s can be done with:
 
@@ -62,8 +74,4 @@ with respect to the :math:`a_i`'s can be done with:
 
 
 **More examples** can be found in the :doc:`gallery <../_auto_tutorials/index>`.
-We now fully document the syntax at **instantiation** and **call** times:
 
-.. automodule:: pykeops.torch
-    :noindex:
-    :members: KernelSolve

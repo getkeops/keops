@@ -160,7 +160,7 @@ class Kernel:
 
                     k(x,y)~=~\sqrt{\langle x-y, G\, (x-y)\\rangle}.
 
-            **Defining your own formulas** is also possible, and documented in the second part of this :doc:`example <../_auto_examples/pytorch/plot_kernel_product_syntax>`.
+            **Defining your own formulas** is also possible, and documented in the second part of this :doc:`example <../../../_auto_examples/pytorch/plot_kernel_product_syntax>`.
 
 
             **Parameters.** With the exception of the linear kernel (which accepts **None** as its parameter), all these kernels act on arbitrary vectors of dimension `D` and are parametrized by a variable ``G`` that can represent :
@@ -176,7 +176,7 @@ class Kernel:
             j-varying symmetric `D`-by-`D` matrix    `N`-by-`D*D` array
             =======================================  ===============================
 
-            If required by the user, a kernel-id can thus be used to represent non-uniform, non-radial kernels as documented in the :doc:`anisotropic_kernels example <../_auto_examples/pytorch/plot_anisotropic_kernels>`.
+            If required by the user, a kernel-id can thus be used to represent non-uniform, non-radial kernels as documented in the :doc:`anisotropic_kernels example <../../../_auto_examples/pytorch/plot_anisotropic_kernels>`.
 
 
 
@@ -271,16 +271,16 @@ class Kernel:
 
 
 def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float32'):
-    r""":doc:`Math-friendly wrapper <kernel-product>` around the :func:`Genred` constructor. 
+    r""":doc:`Math-friendly wrapper <../../kernel-product>` around the :func:`Genred` constructor.
 
     This routine allows you to compute kernel dot products (aka. as discrete convolutions)
     with arbitrary formulas, using a **Sum** or a **LogSumExp** reduction operation.
     It is syntactic sugar, meant to ease the implementation of mixture models
     on point clouds.
     
-    Its use is explained in the :doc:`documentation <kernel-product>`
-    and showcased in the :doc:`anisotropic kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`
-    and :doc:`GMM-fitting <../_auto_tutorials/gaussian_mixture/plot_gaussian_mixture>` tutorials.
+    Its use is explained in the :doc:`documentation <../../kernel-product>`
+    and showcased in the :doc:`anisotropic kernels <../../../_auto_examples/pytorch/plot_anisotropic_kernels>`
+    and :doc:`GMM-fitting <../../../_auto_tutorials/gaussian_mixture/plot_gaussian_mixture>` tutorials.
 
 
     Having created a kernel id, and with a few torch tensors at hand, you can feed the :func:`pykeops.torch.kernel_product` numerical routine with the appropriate input. More precisely, if :mod:`Kernel("my_kernel_name...")` defines a kernel with **F formulas** and **V variable pairs**, :func:`pykeops.torch.kernel_product` will accept the following arguments:

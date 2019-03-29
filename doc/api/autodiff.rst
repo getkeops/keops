@@ -1,5 +1,5 @@
 Autodiff engine
-===============
+###############
 
 KeOps provides a simple **Automatic Differentiation** (AD) engine for generic formulas.
 This feature can be used **seamlessly** through the ``Grad`` instruction
@@ -8,8 +8,11 @@ to enjoy our "free" gradients.
 Nevertheless, for the sake of completeness, here is
 a short introduction to the inner workings of KeOps.
 
-Backprop 101: Gradient of a vector valued function
------------------------------------------------------
+Backprop 101
+============
+
+Gradient of a vector valued function
+------------------------------------
 
 Let :math:`F:\mathbb R^n \to \mathbb R^d` be a smooth function.
 Around any given point :math:`x \in \mathbb R^n`, its variations are encoded in a linear application :math:`\text{d}F(x):\mathbb R^n \to \mathbb R^d` called the **differential**
@@ -98,7 +101,7 @@ with a mere **forward-backward pass** through the computational graph of :math:`
 which is much **cheaper** than the naive evaluation of :math:`n` finite differences of :math:`F`.
 
 The KeOps generic engine
-------------------------
+========================
 
 Backpropagation has become the standard way of computing the gradients of
 arbitrary "Loss" functions in imaging and machine learning.
@@ -109,7 +112,7 @@ Crucially, any backprop engine should be able to:
 
 
 The ``Grad`` operator
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 At a low level, KeOps allows you to perform these tasks with the ``Grad`` instruction:
 given a formula :math:`F`, the symbolic expression ``Grad(F, V, E)``
@@ -122,12 +125,24 @@ and can be used directly for gradient descent or **higher-order differentiation*
 operations such as ``Grad(Grad(..,..,..),..,..)`` are fully supported.
 
 
+User interfaces
+---------------
+
+As evidenced by this :doc:`example <../_auto_examples/numpy/plot_generic_syntax_numpy>`, the simple ``Grad`` syntax can relieve you from the burden of differentiating symbolic formulas by hand.
+
+Going further, our python interface is fully compatible with the `PyTorch <https://pytorch.org/>`_ library:
+feel free to use the output of a :mod:`pykeops.torch` routine **just like any other differentiable tensor**!
+Thanks to the flexibility of the :mod:`torch.autograd` engine,
+end-to-end automatic differentiation is at hand: 
+see this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`.
+
+
 .. _`part.example2`:
 
-An example 
-^^^^^^^^^^
+An example
+==========
 
-Coming back to our :ref:`previous example <formula.example>` where the formula 
+Coming back to our :ref:`previous example <formula.example>` where the formula
 
 .. math::
 
@@ -136,12 +151,12 @@ Coming back to our :ref:`previous example <formula.example>` where the formula
 .. code-block:: cpp
 
     F = "SumReduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1)"
-    
+
 was discussed, the symbolic expression
 
 .. code-block:: cpp
 
-    [∂_a F] = "Grad( SumReduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1), 
+    [∂_a F] = "Grad( SumReduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1),
                      Vj(3,1), Vi(4,3) )"
 
 
@@ -157,19 +172,3 @@ With aliases, this computation simply reads:
 
     p=Pm(0,1), x=Vi(1,3), y=Vj(2,3), a=Vj(3,1), e=Vi(4,3)
     [∂_a F](e) = "Grad( SumReduction(Square(p-a)*Exp(x+y), 1), a, e)"
-
-
-User interface
---------------
-
-As evidenced by this :doc:`example <../_auto_examples/numpy/plot_generic_syntax_numpy>`,
-the simple ``Grad`` syntax can relieve you from the burden of differentiating
-symbolic formulas by hand.
-
-Going further, our python interface is fully compatible with
-the `PyTorch <https://pytorch.org/>`_ library:
-feel free to use the output of a :mod:`pykeops.torch` routine **just like any other differentiable tensor**!
-Thanks to the flexibility of the :mod:`torch.autograd` engine,
-end-to-end automatic differentiation is at hand: 
-see this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`.
-

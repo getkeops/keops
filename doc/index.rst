@@ -47,7 +47,7 @@ to machine learning (kernel methods, k-means...)
 or kriging (aka. Gaussian process regression).
 More details are provided below:
 
-* :doc:`Documentation <api/why_using_keops>`
+* :doc:`Documentation <introduction/why_using_keops>`
 * `Source code <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops>`_
 * :doc:`Learning KeOps with examples <_auto_examples/index>`
 * :doc:`Gallery of tutorials <_auto_tutorials/index>`
@@ -85,8 +85,8 @@ Table of content
 .. toctree::
    :maxdepth: 2
 
-   api/why_using_keops
-   api/installation
+   introduction/why_using_keops
+   introduction/installation
 
 .. toctree::
    :maxdepth: 2
@@ -104,6 +104,7 @@ Table of content
    _auto_examples/index
    _auto_benchmarks/index
    _auto_tutorials/index
+   python/api/index
 
 .. toctree::
    :maxdepth: 2

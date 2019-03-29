@@ -174,8 +174,8 @@ class KernelSolve:
     Args:
         formula (string): The scalar- or vector-valued expression
             that should be computed and reduced.
-            The correct syntax is described in the :doc:`documentation <generic-syntax>`,
-            using appropriate :doc:`mathematical operations <../api/math-operations>`.
+            The correct syntax is described in the :doc:`documentation <../../Genred>`,
+            using appropriate :doc:`mathematical operations <../../../api/math-operations>`.
         aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"`` 
             that specify the categories and dimensions of the input variables. Here:
 
@@ -237,7 +237,7 @@ class KernelSolve:
 
         ranges (6-uple of IntTensors, None by default):
             Ranges of integers that specify a 
-            :doc:`block-sparse reduction scheme <sparsity>`
+            :doc:`block-sparse reduction scheme <../../sparsity>`
             with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
             as detailed in the documentation 
             of the :func:`Genred` module.

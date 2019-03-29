@@ -112,9 +112,9 @@ class Genred():
         Creates a new generic operation.
 
         This is KeOps' main function, whose usage is documented in
-        the :doc:`user-guide <generic-syntax>`,
-        the :doc:`gallery of examples <../_auto_examples/index>`
-        and the :doc:`high-level tutorials <../_auto_tutorials/index>`.
+        the :doc:`user-guide <../../Genred>`,
+        the :doc:`gallery of examples <../../../_auto_examples/index>`
+        and the :doc:`high-level tutorials <../../../_auto_tutorials/index>`.
         Taking as input a handful of strings and integers that specify
         a custom Map-Reduce operation, it returns a C++ wrapper
         that can be called just like any other PyTorch function.
@@ -153,14 +153,14 @@ class Genred():
             turn them into ``LongTensors`` and use them to index
             your arrays, as showcased in the documentation
             of :func:`generic_argmin`, :func:`generic_argkmin` and in the
-            :doc:`K-means tutorial <../_auto_tutorials/kmeans/plot_kmeans_torch>`.
+            :doc:`K-means tutorial <../../../_auto_tutorials/kmeans/plot_kmeans_torch>`.
 
 
         Args:
             formula (string): The scalar- or vector-valued expression
                 that should be computed and reduced.
-                The correct syntax is described in the :doc:`documentation <generic-syntax>`,
-                using appropriate :doc:`mathematical operations <../api/math-operations>`.
+                The correct syntax is described in the :doc:`documentation <../../Genred>`,
+                using appropriate :doc:`mathematical operations <../../../api/math-operations>`.
             aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"``
                 that specify the categories and dimensions of the input variables. Here:
 
@@ -241,7 +241,7 @@ class Genred():
 
             ranges (6-uple of IntTensors, None by default):
                 Ranges of integers that specify a
-                :doc:`block-sparse reduction scheme <sparsity>`
+                :doc:`block-sparse reduction scheme <../../sparsity>`
                 with *Mc clusters along axis 0* and *Nc clusters along axis 1*.
                 If None (default), we simply loop over all indices
                 :math:`i\in[0,M)` and :math:`j\in[0,N)`.

@@ -1,5 +1,8 @@
 Generic reductions
-==================
+##################
+
+Overview
+========
 
 The low-level interface of KeOps is the :mod:`Genred` module, which allows users to **define and reduce** generic operations. Depending on your framework, you may import :mod:`Genred` using either:
 
@@ -24,10 +27,18 @@ In both cases, :mod:`Genred` is a class with no methods: its instantiation simpl
     result = my_red( arg_1, arg_2, ..., arg_p, backend='auto', device_id=-1, ranges=None)
 
 
+
+Documentation
+=============
+
+See the :doc:`Genred Numpy <api/numpy/Genred_numpy>` or :doc:`Genred PyTorch<api/pytorch/Genred_torch>` API documentations for a complete description of the syntax at **instantiation** and **call** times.
+
+
+
 .. _`part.example`:
 
-Example
--------
+An example
+==========
 
 Using the generic syntax, computing a Gaussian-RBF kernel product
 
@@ -72,8 +83,3 @@ can be done with:
 
 
 **More examples** can be found in the :doc:`gallery <../_auto_examples/index>`.
-We now fully document the syntax at **instantiation** and **call** times:
-
-.. automodule:: pykeops.torch
-    :noindex:
-    :members: Genred
