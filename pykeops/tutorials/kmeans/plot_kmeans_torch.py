@@ -17,36 +17,36 @@ It can thus be used to implement a **large-scale**
   
 """
 
-#############################
+########################################################################
 # Setup 
 # -----------------
 # Standard imports:
 
 import time
-import numpy as np
+
 import torch
-from pykeops.torch import generic_argmin
 from matplotlib import pyplot as plt
+
+from pykeops.torch import Genred
 
 use_cuda = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
-#######################################
+########################################################################
 # Simple implementation of the K-means algorithm:
+
 
 def KMeans(x, K=10, Niter=10, verbose=True):
     N, D = x.shape  # Number of samples, dimension of the ambient space
 
     # Define our KeOps kernel:
-    nn_search = generic_argmin( 
-        'SqDist(x,y)',  # A simple squared L2 distance
-        'ind = Vi(1)',  # The output index is indexed by "i"
-        'x = Vi({})'.format(D),  # 1st arg: target points of dimension D, indexed by "i"
-        'y = Vj({})'.format(D))  # 2nd arg: source points of dimension D, indexed by "j"
-    
-    # Dummy first call for accurate timing (GPU warmup):
-    dum = torch.rand(10,D).type(dtype)
-    nn_search(dum,dum)
+    nn_search = Genred(
+        'SqDist(x,y)',            # A simple squared L2 distance
+        ['x = Vi({})'.format(D),  # target points of dimension D, indexed by "i"
+         'y = Vj({})'.format(D)], # source points of dimension D, indexed by "j"
+        reduction_op='ArgMin',
+        axis=1,                   # The reduction is performed on the second axis
+        cuda_type=dtype)          # "float32" and "float64" are available
     
     # K-means loop:
     # - x  is the point cloud, 

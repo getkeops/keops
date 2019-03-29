@@ -1,9 +1,9 @@
-from pykeops.common.utils import cat2axis
 from pykeops.common.parse_type import get_type
+from pykeops.common.utils import cat2axis
 from pykeops.numpy import Genred
 
 
-def generic_sum(formula, output, *aliases, **kwargs) :
+def generic_sum(formula, output, *aliases, **kwargs):
     """Alias for :func:`Genred` with a "Sum" reduction.
 
     Args:
@@ -24,8 +24,8 @@ def generic_sum(formula, output, *aliases, **kwargs) :
         cuda_type (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"``,
+              - **cuda_type** = ``"float64"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -44,11 +44,11 @@ def generic_sum(formula, output, *aliases, **kwargs) :
         >>> print(a.shape)
         (1000000, 1)
     """
-    _,cat,_,_ = get_type(output)
-    axis = cat2axis(cat)
-    return Genred(formula, aliases, reduction_op='Sum', axis=axis, **kwargs)
+    _, cat, _, _ = get_type(output)
+    return Genred(formula, list(aliases), reduction_op='Sum', axis=cat2axis(cat), **kwargs)
 
-def generic_logsumexp(formula, output, *aliases, **kwargs) :
+
+def generic_logsumexp(formula, output, *aliases, **kwargs):
     """Alias for :func:`Genred` with a "LogSumExp" reduction.
 
     Args:
@@ -68,8 +68,8 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
         cuda_type (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"``,
+              - **cuda_type** = ``"float64"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -98,11 +98,11 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
         >>> print(a.shape)
         (1000000, 1)
     """
-    _,cat,_,_ = get_type(output)
-    axis = cat2axis(cat)
-    return Genred(formula, aliases, reduction_op='LogSumExp', axis=axis,  **kwargs)
+    _, cat, _, _ = get_type(output)
+    return Genred(formula, list(aliases), reduction_op='LogSumExp', axis=cat2axis(cat), **kwargs)
 
-def generic_argkmin(formula, output, *aliases, **kwargs) :
+
+def generic_argkmin(formula, output, *aliases, **kwargs):
     """Alias for :func:`Genred` with an "ArgKMin" reduction.
 
     Args:
@@ -124,8 +124,8 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
         cuda_type (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"``,
+              - **cuda_type** = ``"float64"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -155,12 +155,11 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
         >>> print( np.linalg.norm(x - y[ a[:,2].astype(int) ], axis=1) )  # Distance to the third neighbor
         [11.3820, 10.6725, 10.8510, 11.6071, 11.1968]
     """
-    _,cat,k,_ = get_type(output)
-    axis = cat2axis(cat)
-    return Genred(formula, aliases, reduction_op='ArgKMin', axis=axis, opt_arg=k, **kwargs)
+    _, cat, k, _ = get_type(output)
+    return Genred(formula, list(aliases), reduction_op='ArgKMin', axis=cat2axis(cat), opt_arg=k, **kwargs)
 
 
-def generic_argmin(formula, output, *aliases, **kwargs) :
+def generic_argmin(formula, output, *aliases, **kwargs):
     """Alias for :func:`Genred` with an "ArgMin" reduction.
 
     Args:
@@ -180,8 +179,8 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
         cuda_type (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **cuda_type** = ``"float32"``,
+              - **cuda_type** = ``"float64"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -208,6 +207,5 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
         >>> print(dists)
         [10.5926, 10.9132,  9.9694, 10.1396, 10.1955]
     """
-    _,cat,_,_ = get_type(output)
-    axis = cat2axis(cat)
-    return Genred(formula, aliases, reduction_op='ArgMin', axis=axis,  **kwargs)
+    _, cat, _, _ = get_type(output)
+    return Genred(formula, list(aliases), reduction_op='ArgMin', axis=cat2axis(cat), **kwargs)

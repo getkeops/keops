@@ -18,7 +18,7 @@ to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_
 problems with a **linear memory footprint**.
 """
 
-#############################
+########################################################################
 # Setup
 # ----------------------
 #
@@ -31,7 +31,7 @@ from pykeops.numpy import KernelSolve
 from pykeops.numpy.utils import IsGpuAvailable
 from matplotlib import pyplot as plt
 
-################################
+#######################################################################
 # Generate some data:
 
 use_cuda = IsGpuAvailable()
@@ -47,7 +47,7 @@ b  = x + .5 * np.sin(6 * x) + .1 * np.sin(20 * x) \
        + .05 * np.random.randn(N, 1).astype(dtype)
 
 
-#################################
+######################################################################
 # Kriging in 1D
 # ---------------
 #
@@ -59,7 +59,7 @@ aliases = ["X = Vi(1)",  # 1st arg: target points, i-variable of size 1
            "A = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
            "G = Pm(1)"]  # 4th arg: scalar parameter, 1/(2*std**2)
 
-###############################################           
+#######################################################################
 # Define an **interpolation problem** by specifying:
 # 
 # - The kernel computation through **formula**, **aliases** 
@@ -76,7 +76,7 @@ g = np.array([ .5 / sigma**2 ]).astype(dtype)  # RBF bandwidth parameter
 Kinv = KernelSolve(formula, aliases, "A", alpha=alpha, axis=1)  # KeOps operator
 
 
-#################################
+#######################################################################
 # Perform the **Kernel interpolation**:
 
 start = time.time()
@@ -87,7 +87,7 @@ print('Time to perform an RBF interpolation with {} samples in 1D: {:.5f}s'.form
        N, end - start) )
 
 
-#################################
+#######################################################################
 # Display the (fitted) model on the unit interval:
 #    
 
@@ -107,7 +107,7 @@ plt.axis([0,1,0,1]) ; plt.tight_layout()
 
 
 
-#################################
+#########################################################################
 # Kriging in 2D
 # ---------------
 #
@@ -127,7 +127,7 @@ b = b + .05 * np.random.randn(N, 1).astype(dtype)
 Nout = N // 4
 b[-Nout:] = np.random.rand(Nout, 1).astype(dtype)
 
-#################################
+########################################################################
 # Specify our **regression model** - a simple **Exponential** variogram:
 
 formula =  "Exp(- G * Norm2(X-Y) ) * A"  # Laplacian kernel matrix
@@ -136,7 +136,7 @@ aliases = ["X = Vi(2)",  # 1st arg: target points, i-variable of size 2
            "A = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
            "G = Pm(1)"]  # 4th arg: scalar parameter, 1/std
 
-###############################################           
+########################################################################
 # Define an **interpolation problem** by specifying:
 # 
 # - The kernel computation through **formula**, **aliases** 
@@ -153,7 +153,7 @@ g = np.array([ 1. / sigma ]).astype(dtype)  # RBF bandwidth parameter
 Kinv = KernelSolve(formula, aliases, "A", alpha=alpha, axis=1)  # KeOps operator
 
 
-#################################
+#########################################################################
 # Perform the **Kernel interpolation**:
 
 start = time.time()
@@ -164,7 +164,7 @@ print('Time to perform an RBF interpolation with {} samples in 2D: {:.5f}s'.form
        N, end - start) )
 
 
-#################################
+########################################################################
 # Display the (fitted) model on the unit square:
 #    
 
