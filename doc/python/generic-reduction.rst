@@ -21,7 +21,7 @@ instead of **keyword arguments**.
 Documentation
 =============
 
-
+See the :doc:`API documentation <api/pytorch/GenericOps>` to get a complete syntax.
 
 An example
 ==========
