@@ -30,8 +30,8 @@ from matplotlib import pyplot as plt
 from pykeops.torch import Genred
 
 use_cuda = torch.cuda.is_available()
-dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
-
+dtype = 'float32' if use_cuda else 'float64'
+torchtype = {'float32': torch.float32, 'float64': torch.float64}
 ########################################################################
 # Simple implementation of the K-means algorithm:
 
@@ -57,7 +57,7 @@ def KMeans(x, K=10, Niter=10, verbose=True):
 
     for i in range(Niter):
         cl  = nn_search(x,c).long().view(-1)  # Points -> Nearest cluster
-        Ncl = torch.bincount(cl).type(dtype)  # Class weights
+        Ncl = torch.bincount(cl).type(torchtype[dtype])  # Class weights
         for d in range(D):  # Compute the cluster centroids with torch.bincount:
             c[:, d] = torch.bincount(cl, weights=x[:, d]) / Ncl
 
@@ -80,7 +80,7 @@ N, D, K = 10000, 2, 50
 
 ###############################################################
 # Define our dataset:
-x = torch.randn(N, D).type(dtype) / 6 + .5
+x = torch.randn(N, D, dtype=torchtype[dtype]) / 6 + .5
 
 ###############################################################
 # Perform the computation:
@@ -102,5 +102,5 @@ plt.axis([0,1,0,1]) ; plt.tight_layout() ; plt.show()
 
 if use_cuda:
     N, D, K = 1000000, 100, 1000
-    x = torch.randn(N, D).type(dtype)
+    x = torch.randn(N, D, dtype=dtype)
     cl, c = KMeans(x, K)
