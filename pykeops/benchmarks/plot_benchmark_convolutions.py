@@ -1,11 +1,20 @@
 """
-Benchmark KeOps vs Pytorch on simple kernel convolutions
-===========================================================
+Radial kernels convolutions
+===========================
+
+This benchmark compares the performances of KeOps versus Numpy and PyTorch on various radial
+kernels convolutions. Namely it computes:
+
+.. math::
+
+   a_i = \sum_{j=1}^N f\Big(\\frac{\|x_i-y_j\|}{\sigma}\Big) b_j, \quad \\text{ for all } i=1,\cdots,M
+
+where :math:`f` is a Gauss or Cauchy or Laplace or inverse multiquadric kernel. See e.g. `wikipedia  <https://en.wikipedia.org/wiki/Radial_basis_function>`_
 """
 
 #####################################################################
 # Setup
-# --------------------
+# -----
 # Standard imports:
 
 import numpy as np
@@ -57,7 +66,7 @@ except:
 
 ####################################################################
 # Convolution Benchmarks
-# -------------------------
+# ----------------------
 # 
 # We loop over four different kernels:
 #
@@ -148,7 +157,8 @@ for k in kernel_to_test:
 
 
 ####################################################################
-# Display results:
+# Display results
+# ---------------
 #
 
 cmap = plt.get_cmap("tab10")

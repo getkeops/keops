@@ -1,11 +1,21 @@
 """
-Benchmark KeOps vs PyTorch on convolution gradients
-===================================================
+Gradient of Radial kernels convolutions
+========================================
+
+This benchmark compares the performances of KeOps versus Numpy and Torch on various gradient of radial
+kernels convolutions. Namely it computes:
+
+.. math::
+
+   c_i^u = \sum_{j=1}^N \partial_{x_i^u} f\Big(\\frac{\|x_i-y_j\|}{\sigma}\Big) \langle b_j,  a_i \\rangle, \quad \\text{ for all } i=1,\cdots,M, \, u=1,\cdots,D
+
+where :math:`f` is a Gauss or Cauchy or Laplace or inverse multiquadric kernel. See e.g. `wikipedia  <https://en.wikipedia.org/wiki/Radial_basis_function>`_
+
 """
 
 #####################################################################
 # Setup
-# --------------------
+# ------
 # Standard imports:
 
 import numpy as np
