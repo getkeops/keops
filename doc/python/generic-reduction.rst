@@ -1,5 +1,5 @@
 Math-friendly syntax
-====================
+####################
 
 The :func:`Genred <pykeops.torch.Genred>` operator provides a pythonic interface for the KeOps library.
 To let researchers use our code with maximum efficiency, we also propose
@@ -17,7 +17,16 @@ These functions are simple wrappers around the :func:`pykeops.numpy.Genred`
 and :func:`pykeops.torch.Genred` modules: they let users
 specify the reduction operation and axis with **strings**
 instead of **keyword arguments**.
-For instance, coming back to the :ref:`previous example <part.example>`, 
+
+Documentation
+=============
+
+
+
+An example
+==========
+
+For instance, coming back to the :ref:`previous example <part.example>`,
 computing a Gaussian-RBF kernel product
 
 .. math::
@@ -52,24 +61,3 @@ can be done with:
     # By explicitly specifying the backend, you can try to optimize your pipeline:
     a = gaussian_conv(gamma, x, y, b, backend='GPU')
     a = gaussian_conv(gamma, x, y, b, backend='CPU')
-
-
-
-
-
-
-
-Full API
-------------
-
-
-.. currentmodule:: pykeops.torch
-.. autosummary:: 
-    generic_sum
-    generic_logsumexp
-    generic_argmin
-    generic_argkmin
-
-.. automodule:: pykeops.torch
-    :noindex:
-    :members: generic_sum, generic_logsumexp, generic_argmin, generic_argkmin

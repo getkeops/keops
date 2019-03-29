@@ -37,7 +37,7 @@ In both cases, :mod:`KernelSolve` is a class with no methods: its instantiation 
 Documentation
 =============
 
-See the :doc:`pytorch <api/pytorch/KernelSolve>` or :doc:`numpy <api/numpy/KernelSolve>`  api documentation for the the syntax at **instantiation** and **call** times.
+See the :doc:`pytorch <api/pytorch/KernelSolve>` or :doc:`numpy <api/numpy/KernelSolve>`  api documentation for the syntax at **instantiation** and **call** times.
 
 
 An example

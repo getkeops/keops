@@ -1,5 +1,5 @@
 The kernel_product helper
-=============================
+==========================
 
 On top of the low-level operators, we also provide a **kernel name parser** that lets you quickly define and work with most of the kernel products used in shape analysis.  This high-level interface is only compatible with the PyTorch backend and relies on two operators:
 
@@ -7,8 +7,8 @@ On top of the low-level operators, we also provide a **kernel name parser** that
 
     from pykeops.torch import Kernel, kernel_product
 
-- :mod:`pykeops.torch.Kernel` is the name parser: it turns a string identifier (say, ``"gaussian(x,y) * linear(u,v)**2"``) into a set of KeOps formulas.
-- :func:`pykeops.torch.kernel_product` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
+- :mod:`pykeops.torch.Kernel  <pykeops.torch.kernel_product.kernels.Kernel>` is the name parser: it turns a string identifier (say, ``"gaussian(x,y) * linear(u,v)**2"``) into a set of KeOps formulas.
+- :func:`pykeops.torch.kernel_product  <pykeops.torch.kernel_product.kernels.kernel_product>` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
 
 **A quick example:** here is how you can compute a *fully differentiable* Gaussian-RBF kernel product:
 
@@ -35,29 +35,15 @@ On top of the low-level operators, we also provide a **kernel name parser** that
     a = kernel_product(params, x, y, b)
 
 
-The Kernel parser
----------------------
+
+Documentation
+=============
+
+See the :doc:`API documentation  <api/pytorch/KernelProduct>` for the syntax of the :func:`Kernel <pykeops.torch.kernel_product.kernels.Kernel>` parser and the :func:`kernel_product  <pykeops.torch.kernel_product.kernels.kernel_product>` routine.
 
 
-.. automodule:: pykeops.torch
-    :noindex:
-    :members: Kernel
-
-
-
-
-
-The kernel_product routine
-------------------------------
-
-
-.. automodule:: pykeops.torch
-    :noindex:
-    :members: kernel_product
-
-
-Example: Varifold kernel on a product space
-------------------------------------------------------------
+An example
+==========
 
 We now showcase the computation of a **Cauchy-Binet varifold kernel** on a product space of (point,orientation) pairs.  Given:
 

@@ -13,8 +13,7 @@ The low-level interface of KeOps is the :mod:`Genred` module, which allows users
     
 In both cases, :mod:`Genred` is a class with no methods: its instantiation simply returns a **numerical function** that can be called at will.
 
-
-1. **Instantiation**: :mod:`Genred(...)` takes as input a bunch of *strings* that specify the desired computation. It returns a **python function** or **PyTorch layer**, callable on numpy arrays or torch tensors. :ref:`The syntax <part.instantiation>` is:
+1. **Instantiation**: :mod:`Genred(...)` takes as input a bunch of *strings* that specify the desired computation. It returns a **python function** or **PyTorch layer**, callable on numpy arrays or torch tensors. The syntax is:
 
   .. code-block:: python
 
@@ -75,11 +74,6 @@ can be done with:
     # By explicitly specifying the backend, you can try to optimize your pipeline:
     a = gaussian_conv(gamma, x, y, b, backend='GPU')
     a = gaussian_conv(gamma, x, y, b, backend='CPU')
-
-
-
-.. _`part.instantiation`:
-.. _`part.call`:
 
 
 **More examples** can be found in the :doc:`gallery <../_auto_examples/index>`.

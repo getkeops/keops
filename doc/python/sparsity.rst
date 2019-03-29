@@ -1,10 +1,10 @@
 Block-sparse reductions
-=========================
+#######################
 .. _`part.sparsity`:
 
 
 Complexity of the KeOps routines
-----------------------------------
+================================
 
 KeOps is built around online map-reduce routines
 which have a **quadratic time complexity**: if :math:`M` and
@@ -26,7 +26,7 @@ when **points** :math:`x_i` **and** :math:`y_j` **are far apart from each other*
 But can we do so **efficiently**?
 
 Sparsity on the CPU
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------
 
 On CPUs, a standard strategy is to use `sparse matrices <https://en.wikipedia.org/wiki/Sparse_matrix>`_,
 encoding our operators through **lists of non-zero coefficients and indices**.
@@ -45,7 +45,7 @@ runs into a major issue: as it relies on **non-contiguous** memory accesses,
 it scales **very poorly** on modern parallel hardware.
 
 Block-sparsity on the GPU
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 As explained on the `NVidia devblog <https://devblogs.nvidia.com/how-access-global-memory-efficiently-cuda-c-kernels/>`_,
 GPUs rely on **coalesced memory operations** which load blocks
@@ -95,9 +95,13 @@ too **coarse**, as negligible coefficients get computed to no avail...
 But in practice, the **GPU speed-ups** on contiguous memory loads
 more than make up for it.
 
+Documentation
+=============
 
-KeOps API, examples
---------------------
+See the :doc:`pytorch <api/pytorch/Cluster>` or :doc:`numpy <api/numpy/Cluster>`  api documentation for the syntax.
+
+Examples
+========
 
 As documented in e.g. the :func:`Genred() <pykeops.torch.Genred>` docstring,
 all KeOps reductions accept an optional **ranges** argument,
@@ -124,19 +128,3 @@ The :mod:`pykeops.numpy.cluster` and :mod:`pykeops.torch.cluster` modules
 provide a set of **helper functions** whose interface is described below.
 Feel free to use and adapt them to **your own setting**,
 beyond the simple case of **Sum** reductions and Gaussian **convolutions**!
-
-
-.. currentmodule:: pykeops.torch.cluster
-.. autosummary:: 
-
-    cluster_centroids
-    cluster_ranges
-    cluster_ranges_centroids
-    from_matrix
-    grid_cluster
-    sort_clusters
-    swap_axes
-
-.. automodule:: pykeops.torch.cluster
-    :noindex:
-    :members:
