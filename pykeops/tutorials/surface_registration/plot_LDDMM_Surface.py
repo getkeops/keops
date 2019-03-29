@@ -9,8 +9,6 @@ We perform an LDDMM matching of two meshes using the geodesic shooting algorithm
 Note that this minimimalistic tutorial is intended to showcase,
 within a single python script, the KeOps syntax in a complex use-case.
 
-Going further, you may thus be interested in the cleaner and modular
-`"shape" toolbox <https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox>`_.
 """
 
 ####################################################################
@@ -18,14 +16,17 @@ Going further, you may thus be interested in the cleaner and modular
 # ------------------
 #
 # Standard imports
+
 import os
 import numpy as np
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.animation import FuncAnimation
 
-import torch
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
+import imageio
+
 from torch.autograd import grad
 
 import time
@@ -237,17 +238,20 @@ listpq = Shooting(p0, q0, Kv, nt=15)
 ####################################################################
 # The code to generate the .gif:
 
-import imageio
-import io
-from PIL import Image
-
 VTnp, FTnp = VT.detach().cpu().numpy(), FT.detach().cpu().numpy()
 q0np, FSnp = q0.detach().cpu().numpy(), FS.detach().cpu().numpy()
 
+
 images = []
 for t in range(15):
-    fig = plt.figure()
     qnp = listpq[t][1].detach().cpu().numpy()
+    
+    # create Figure
+    fig = Figure(figsize=(6, 5), dpi=100)
+    # Link canvas to fig
+    canvas = FigureCanvasAgg(fig)
+    
+    # make the plot
     ax = Axes3D(fig)
     ax.axis('equal')
     ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(0, 0, 0, 0),  edgecolor=(1, 0, 0, .08), linewidth=1)
@@ -258,12 +262,15 @@ for t in range(15):
     yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
     ax.legend([blue_proxy, red_proxy, yellow_proxy], ['source', 'deformed', 'target'])
     ax.set_title('LDDMM matching example, step ' + str(t))
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    images.append(np.array(Image.open(buf)))
-    buf.close()
+    
+    # draw it!
+    canvas.draw()
+    
+    # save plot in a numpy array through buffer
+    s, (width, height) = canvas.print_to_buffer()
+    images.append(np.frombuffer(s, np.uint8).reshape((height, width, 4)))
 
 save_folder = '../../../doc/_build/html/_images/'
 os.makedirs(save_folder, exist_ok=True)
 imageio.mimsave(save_folder + 'surface_matching.gif', images, duration=.5)
+
