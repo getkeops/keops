@@ -133,21 +133,28 @@ Reductions
 
 The operations that can be used to reduce an array are:
 
-===============      ===========================      ========================================================================
-``Sum``              summation                        :math:`\sum(\cdots)`
-``LogSumExp``        log-sum-exp                      :math:`\log\left(\sum\exp(\cdots)\right)`
-``Min``              min                              :math:`\min(\cdots)`
-``ArgMin``           argmin                           :math:`\text{argmin}(\cdots)`
-``MinArgMin``        minargmin                        :math:`(\min(...),\text{argmin}(\cdots))`
-``Max``              max                              :math:`\max(\cdots)`
-``ArgMax``           argmax                           :math:`\text{argmax}(\cdots)`
-``MaxArgMax``        maxargmax                        :math:`(\max(...),\text{argmax}(\cdots))`
-``KMin``             K first order statistics         :math:`(\cdots)_{(1)},\ldots,(\cdots)_{(K)}`
-``ArgKMin``          indices of order statistics      :math:`(1),\ldots,(K)`
-``KMinArgKMin``      (KMin,ArgKMin)                   :math:`\left((\cdots)_{(1)},\ldots,(\cdots)_{(K)},(1),\ldots,(K)\right)`
-===============      ===========================      ========================================================================
+====================    =============      ============================================================================================================================  =======================================================================
+code name               arguments          mathematical expression                                                                                                       remarks
+====================    =============      ============================================================================================================================  =======================================================================
+``Sum``                 f                  :math:`\sum_i f_{ij}`                                                                                        
+``Max_SumShiftExp``     f (scalar), g      :math:`(m_i,s_i)` with :math:`\left\{\begin{array}{l}m_i=\max_i f_{ij}\\s_i=\sum_i\exp(m_i-f_{ij})g_{ij}\end{array}\right.`   - base reduction for logsumexp and softmax reductions. 
+                                                                                                                                                                         - gradient is a pseudo-gradient, should not be used by itself
+``LogSumExp``           f (scalar)         :math:`\log\left(\sum_i\exp(f_{ij})\right)`                                                                                   only in Python bindings
+``LogSumExpWeight``     f (scalar), g      :math:`\log\left(\sum_i\exp(f_{ij})g_{ij}\right)`                                                                             only in Python bindings
+``SumSoftMaxWeight``    f (scalar), g      :math:`\left(\sum_i\exp(f_{ij})g_{ij}\right)/\left(\sum_i\exp(f_{ij})\right)`                                                 only in Python bindings
+``Min``                 f                  :math:`\min_i f_{ij}`                                                                                                         no gradient
+``ArgMin``              f                  :math:`\text{argmin}_if_{ij}`                                                                                    
+``Min_ArgMin``          f                  :math:`\left(\min_i f_{ij} ,\text{argmin}_i f_{ij}\right)`                                                                    no gradient
+``Max``                 f                  :math:`\max_i f_{ij}`                                                                                                         no gradient
+``ArgMax``              f                  :math:`\text{argmax}_i f_{ij}`
+``Max_ArgMax``          f                  :math:`\left(\max_i f_{ij},\text{argmax}_i f_{ij}\right)`                                                                     no gradient
+``KMin``                f                  :math:`\begin{array}{l}\left[\min_i f_{ij},\ldots,\min^{(K)}_if_{ij}\right]
+                                           \\(\min^{(k)}\text{means k-th smallest value})\end{array}`                                      
+``ArgKMin``             f                  :math:`\left[\text{argmin}_if_{ij},\ldots,\text{argmin}^{(K)}_i f_{ij}\right]`    
+``KMin_ArgKMin``        f                  :math:`\left([\min^{(1...K)}_i f_{ij} ],[\text{argmin}^{(1...K)}_i f_{ij}]\right)`                                            no gradient
+====================    =============      ============================================================================================================================  =======================================================================
 
-**N.B.:** As of today, vector-valued output is only supported for the `Sum` reduction. All the other reductions expect the formula :math:`F` to be scalar-valued.
+**N.B.:** All these reductions, except LogSumExp, are vectorized : whenever the input is vector-valued, the output will be vector-valued, with the corresponding reduction applied element-wise to each component.
 
 
 
