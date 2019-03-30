@@ -234,6 +234,13 @@ listpq = Shooting(p0, q0, Kv, nt=15)
 #
 
 
+################################################################################
+# .. raw:: html
+#
+#     <iframe src="../../_images/temp-plot.html" height="600px" width="100%"></iframe>
+#
+
+
 ####################################################################
 # The code to generate the .gif:
 
@@ -267,3 +274,53 @@ for t in range(15):
 save_folder = '../../../doc/_build/html/_images/'
 os.makedirs(save_folder, exist_ok=True)
 imageio.mimsave(save_folder + 'surface_matching.gif', images, duration=.5)
+
+####################################################################
+# The code to generate the plotly figure
+
+listpq = Shooting(p0, q0, Kv, nt=50)
+
+import plotly
+import plotly.plotly as py
+import plotly.graph_objs as go
+import numpy as np
+fig = go.Figure()
+fig.add_mesh3d(x=qnp[:,0], y=qnp[:,1], z=qnp[:,2],
+                    i=FSnp[:,0], j=FSnp[:,1], k=FSnp[:,2])
+
+frames = []
+for i in range(15):
+    qnp = listpq[i][1].detach().cpu().numpy()
+    frames.append(go.Frame(data=[{'type': 'mesh3d', 'x':qnp[:,0], 'y':qnp[:,1], 'z':qnp[:,2]}]))
+
+fig.frames = frames
+
+fig.layout.updatemenus = [
+    {
+        'buttons': [
+            {
+                'args': [None, {'frame': {'duration': 500, 'redraw': False},
+                         'fromcurrent': True, 'transition': {'duration': 300}}],
+                'label': 'Play',
+                'method': 'animate'
+            },
+            {
+                'args': [[None], {'frame': {'duration': 0, 'redraw': False}, 'mode': 'immediate',
+                'transition': {'duration': 0}}],
+                'label': 'Pause',
+                'method': 'animate'
+            }
+        ],
+        'direction': 'left',
+        'pad': {'r': 10, 't': 87},
+        'showactive': False,
+        'type': 'buttons',
+        'x': 0.55,
+        'xanchor': 'right',
+        'y': 0,
+        'yanchor': 'top'
+    }
+]
+
+plotly.offline.plot(fig)
+
