@@ -54,8 +54,8 @@ int main() {
     std::cout << "Function FF = factorized version of F :" << std::endl;    
     std::cout << PrintFormula<FF>();
 
-    using FUNCONVF = SumReduction<F>;
-    using FUNCONVFF = SumReduction<FF>;
+    using FUNCONVF = Sum_Reduction<F>;
+    using FUNCONVFF = Sum_Reduction<FF>;
 
     // now we test ------------------------------------------------------------------------------
 

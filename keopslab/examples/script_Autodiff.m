@@ -18,7 +18,7 @@ a = randn(3,Nx);
 p = .25;
 
 % defining reduction operation F and its gradient G :
-F = keops_kernel('SumReduction(Exp(-p*SqNorm2(x-y))*b,0)',...
+F = keops_kernel('Sum_Reduction(Exp(-p*SqNorm2(x-y))*b,0)',...
     'x=Vi(3)','y=Vj(3)','b=Vj(3)','p=Pm(1)');
 G = keops_grad(F,'x');
 
@@ -40,7 +40,7 @@ x8 = ones(3,Nx);
 
 F = keops_kernel('x0=Vi(3)','x1=Vi(3)','x2=Vi(3)','x3=Vi(3)',...
     'y4=Vj(3)','y5=Vj(3)','y6=Vj(3)','y7=Vj(3)',...
-    'SumReduction(x0+x1+x2+x3+y4+y5+y6+y7,0)');
+    'Sum_Reduction(x0+x1+x2+x3+y4+y5+y6+y7,0)');
 G = keops_grad(F,'y4');
 
 tic
@@ -63,7 +63,7 @@ a = randn(3,Nx);
 p = .25;
 
 % defining reduction operation F and its gradient G :
-F = keops_kernel('SumReduction(Exp(-p*SqNorm2(x-y))*b,0)',...
+F = keops_kernel('Sum_Reduction(Exp(-p*SqNorm2(x-y))*b,0)',...
     'x=Vi(3)','y=Vj(3)','b=Vj(3)','p=Pm(1)');
 G = keops_grad(F,'p');
 

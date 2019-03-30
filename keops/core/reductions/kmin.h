@@ -7,19 +7,19 @@
 #include "core/reductions/zero.h"
 
 namespace keops {
-// Implements the k-min-arg-k-min reduction operation : for each i or each j, find the values and indices of the
+// _Implements the k-min-arg-k-min reduction operation : for each i or each j, find the values and indices of the
 // k minimal values of Fij
 // operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
 
 template < class F, int K, int tagI=0 >
-struct KMinArgKMinReduction : public Reduction<F,tagI> {
+struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 
     static const int DIM = 2*K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
 
 	static const int DIMRED = DIM;	// dimension of temporary variable for reduction
 		
     static void PrintId(std::stringstream& str) {
-        str << "KMinArgKMinReduction(";			// prints "("
+        str << "KMin_ArgKMin_Reduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
         str << ",K=" << K << ",tagI=" << tagI << ")";
     }
@@ -97,18 +97,18 @@ struct KMinArgKMinReduction : public Reduction<F,tagI> {
 
 };
 
-// Implements the arg-k-min reduction operation : for each i or each j, find the indices of the
+// _Implements the arg-k-min reduction operation : for each i or each j, find the indices of the
 // k minimal values of Fij
 // operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
 
 template < class F, int K, int tagI=0 >
-struct ArgKMinReduction : public KMinArgKMinReduction<F,K,tagI> {
+struct ArgKMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 
 
     static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
 
     static void PrintId(std::stringstream& str) {
-        str << "ArgKMinReduction(";			// prints "("
+        str << "ArgKMin_Reduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
         str << ",K=" << K << ",tagI=" << tagI << ")";
     }
@@ -123,25 +123,25 @@ struct ArgKMinReduction : public KMinArgKMinReduction<F,K,tagI> {
     };
 
     template < class V, class GRADIN >
-    using DiffT = ZeroReduction<V::DIM,(V::CAT)%2>;
+    using DiffT = Zero_Reduction<V::DIM,(V::CAT)%2>;
     // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
     // In this case there is a summation left to be done by the user.
 
 
 };
 
-// Implements the k-min reduction operation : for each i or each j, find the
+// _Implements the k-min reduction operation : for each i or each j, find the
 // k minimal values of Fij
 // operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
 
 template < class F, int K, int tagI=0 >
-struct KMinReduction : public KMinArgKMinReduction<F,K,tagI> {
+struct KMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 
 
         static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
                  
     static void PrintId(std::stringstream& str) {
-        str << "KMinReduction(";			// prints "("
+        str << "KMin_Reduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
         str << ",K=" << K << ",tagI=" << tagI << ")";
     }

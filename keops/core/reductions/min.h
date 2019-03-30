@@ -10,7 +10,7 @@ namespace keops {
 // min+argmin reduction : base class
 
 template < class F, int tagI=0 >
-struct MinArgMinReduction_Base : public Reduction<F,tagI> {
+struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 
     // We work with a (values,indices) vector
 	static const int DIMRED = 2*F::DIM;	// dimension of temporary variable for reduction
@@ -54,16 +54,16 @@ struct MinArgMinReduction_Base : public Reduction<F,tagI> {
 };
 
 
-// Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij anbd its index
+// _Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij anbd its index
 // operation is vectorized: if Fij is vector-valued, min+argmin is computed for each dimension.
 
 template < class F, int tagI=0 >
-struct MinArgMinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<MinArgMinReduction,F,tagI> {
+struct Min_ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<Min_ArgMin_Reduction,F,tagI> {
 
         static const int DIM = 2*F::DIM;		// DIM is dimension of output of convolution ; for a min-argmin reduction it is equal to 2 times the dimension of output of formula
 		
     static void PrintIdString(std::stringstream& str) {
-        str << "MinArgMinReduction";
+        str << "Min_ArgMin_Reduction";
     }
         
     template < typename TYPE >
@@ -78,17 +78,17 @@ struct MinArgMinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<MinA
 
 };
 
-// Implements the argmin reduction operation : for each i or each j, find the index of the
+// _Implements the argmin reduction operation : for each i or each j, find the index of the
 // minimal value of Fij
 // operation is vectorized: if Fij is vector-valued, argmin is computed for each dimension.
 
 template < class F, int tagI=0 >
-struct ArgMinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<ArgMinReduction,F,tagI> {
+struct ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<ArgMin_Reduction,F,tagI> {
         
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmin reduction it is equal to the dimension of output of formula
 		
     static void PrintIdString(std::stringstream& str) {
-        str << "ArgMinReduction";
+        str << "ArgMin_Reduction";
     }
 
     template < typename TYPE >
@@ -100,23 +100,23 @@ struct ArgMinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<ArgMinR
     };
 
     template < class V, class GRADIN >
-    using DiffT = ZeroReduction<V::DIM,(V::CAT)%2>;
+    using DiffT = Zero_Reduction<V::DIM,(V::CAT)%2>;
     // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
     // In this case there is a summation left to be done by the user.
 
 };
 
-// Implements the min reduction operation : for each i or each j, find the
+// _Implements the min reduction operation : for each i or each j, find the
 // minimal value of Fij
 // operation is vectorized: if Fij is vector-valued, min is computed for each dimension.
 
 template < class F, int tagI=0 >
-struct MinReduction : public MinArgMinReduction_Base<F,tagI>, UnaryOp<MinReduction,F,tagI> {
+struct Min_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<Min_Reduction,F,tagI> {
         
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a min reduction it is equal to the dimension of output of formula
 		
     static void PrintIdString(std::stringstream& str) {
-        str << "MinReduction";
+        str << "Min_Reduction";
     }
 
     template < typename TYPE >

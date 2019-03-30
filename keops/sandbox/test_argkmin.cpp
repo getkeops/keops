@@ -46,7 +46,7 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = ArgKMinReduction<F,3>;
+    using FUNCONVF = ArgKMin_Reduction<F,3>;
 
     // now we test ------------------------------------------------------------------------------
 

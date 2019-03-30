@@ -60,7 +60,7 @@
 
 namespace keops {
 
-template < int DIM > struct Zero; // Declare Zero in the header, for IdOrZeroAlias. Implementation below.
+template < int DIM > struct Zero; // Declare Zero in the header, for IdOrZero_Alias. _Implementation below.
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -68,17 +68,17 @@ template < int DIM > struct Zero; // Declare Zero in the header, for IdOrZeroAli
 // IdOrZero( Vref, V, Fun ) = FUN                   if Vref == V
 //                            Zero (of size V::DIM) if Vref != V
 template < class Vref, class V, class FUN >
-struct IdOrZeroAlias {
+struct IdOrZero_Alias {
     using type = Zero<V::DIM>;
 };
 
 template < class V, class FUN >
-struct IdOrZeroAlias<V,V,FUN> {
+struct IdOrZero_Alias<V,V,FUN> {
     using type = FUN;
 };
 
 template < class Vref, class V, class FUN >
-using IdOrZero = typename IdOrZeroAlias<Vref,V,FUN>::type;
+using IdOrZero = typename IdOrZero_Alias<Vref,V,FUN>::type;
 
 //////////////////////////////////////////////////////////////
 ////                      VARIABLE                        ////
@@ -141,8 +141,8 @@ struct Var {
     // assume that "var5" is of size DIM, and copy its value in "out".
     template < class INDS, typename ...ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
-        // IndValAlias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
-        __TYPE__* xi = Get<IndValAlias<INDS,N>::ind>(args...); // xi = the "ind"-th argument.
+        // IndVal_Alias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
+        __TYPE__* xi = Get<IndVal_Alias<INDS,N>::ind>(args...); // xi = the "ind"-th argument.
         for(int k=0; k<DIM; k++) // Assume that xi and out are of size DIM,
             out[k] = xi[k];      // and copy xi into out.
     }
@@ -227,7 +227,7 @@ struct UnaryOp<OP,Var<N,DIM,CAT>,NS...>  : UnaryOp_base<OP,Var<N,DIM,CAT>,NS...>
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we do not need to create a vector ; just access the Nth argument of args
-        __TYPE__* outA = Get<IndValAlias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
+        __TYPE__* outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
         // then we call the Operation function
         THIS::Operation(out,outA);
     }
@@ -304,7 +304,7 @@ struct BinaryOp<OP,Var<N,DIM,CAT>,FB>  : BinaryOp_base<OP,Var<N,DIM,CAT>,FB> {
         __TYPE__ outB[FB::DIM];
         FB::template Eval<INDS>(outB,args...);
         // access the Nth argument of args
-        __TYPE__* outA = Get<IndValAlias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
+        __TYPE__* outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
         // then we call the Operation function
         THIS::Operation(out,outA,outB);
     }
@@ -322,7 +322,7 @@ struct BinaryOp<OP,FA,Var<N,DIM,CAT>>  : BinaryOp_base<OP,FA,Var<N,DIM,CAT>> {
         __TYPE__ outA[FA::DIM];
         FA::template Eval<INDS>(outA,args...);
         // access the Nth argument of args
-        __TYPE__* outB = Get<IndValAlias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
+        __TYPE__* outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
         // then we call the Operation function
         THIS::Operation(out,outA,outB);
     }
@@ -337,8 +337,8 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // we access the NAth and NBth arguments of args
-        __TYPE__* outA = Get<IndValAlias<INDS,NA>::ind>(args...);
-        __TYPE__* outB = Get<IndValAlias<INDS,NB>::ind>(args...);
+        __TYPE__* outA = Get<IndVal_Alias<INDS,NA>::ind>(args...);
+        __TYPE__* outB = Get<IndVal_Alias<INDS,NB>::ind>(args...);
         // then we call the Operation function
         THIS::Operation(out,outA,outB);
     }
@@ -347,17 +347,17 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
 // iterate binary operator
 
 template < template<class,class> class OP, class PACK >
-struct IterBinaryOpImpl {
-	using type = OP<typename PACK::FIRST,typename IterBinaryOpImpl<OP,typename PACK::NEXT>::type>;
+struct IterBinaryOp_Impl {
+	using type = OP<typename PACK::FIRST,typename IterBinaryOp_Impl<OP,typename PACK::NEXT>::type>;
 };
 
 template < template<class,class> class OP, class F >
-struct IterBinaryOpImpl<OP,univpack<F>> {
+struct IterBinaryOp_Impl<OP,univpack<F>> {
 	using type = F;
 };
 
 template < template<class,class> class OP, class PACK >
-using IterBinaryOp = typename IterBinaryOpImpl<OP,PACK>::type;
+using IterBinaryOp = typename IterBinaryOp_Impl<OP,PACK>::type;
 
 //////////////////////////////////////////////////////////////
 ////     ELEMENT EXTRACTION : Elem<F,M>                   ////

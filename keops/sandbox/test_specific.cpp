@@ -59,8 +59,8 @@ int main() {
     std::cout << "Function SF = specific Gauss kernel :" << std::endl;    
     std::cout << PrintFormula<SF>();
 
-    using FUNCONVF = SumReduction<F>;
-    using FUNCONVSF = SumReduction<SF>;
+    using FUNCONVF = Sum_Reduction<F>;
+    using FUNCONVSF = Sum_Reduction<SF>;
 
     // now we test ------------------------------------------------------------------------------
 

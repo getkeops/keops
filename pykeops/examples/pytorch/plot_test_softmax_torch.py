@@ -1,5 +1,5 @@
 """
-SoftMax reduction
+SumSoftMaxWeight reduction
 ===========================
 """
 
@@ -64,7 +64,7 @@ aliases = ['x = Vi('+str(D)+')',   # First arg:  i-variable of size D
            'y = Vj('+str(D)+')',   # Second arg: j-variable of size D
            'b = Vj('+str(Dv)+')']  # Third arg:  j-variable of size Dv
 
-softmax_op = Genred(formula, aliases, reduction_op='SoftMax', axis=1, 
+softmax_op = Genred(formula, aliases, reduction_op='SumSoftMaxWeight', axis=1, 
                     formula2=formula_weights)
 
 # Dummy first call to warmup the GPU and get accurate timings:

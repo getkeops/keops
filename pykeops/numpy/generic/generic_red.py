@@ -207,7 +207,7 @@ class Genred():
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
-        self.formula = reduction_op_internal + 'Reduction(' + formula + str_opt_arg + ',' + str(
+        self.formula = reduction_op_internal + '_Reduction(' + formula + str_opt_arg + ',' + str(
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, aliases)
         self.cuda_type = cuda_type
