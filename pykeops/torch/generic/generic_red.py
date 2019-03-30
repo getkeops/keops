@@ -126,35 +126,15 @@ class Genred():
             ``a.view(-1,1)`` should be used to turn a vector of weights
             into a *list of scalar values*.
 
-        Warning:
-            As of today, vector-valued formulas are only supported by
-            the ``"Sum"`` reduction. All the
-            :ref:`other reductions <part.reduction>` expect
-            **formula** to be scalar-valued.
-
         Note:
-            :func:`Genred` relies on CUDA kernels that are compiled on-the-fly,
+            :func:`Genred` relies on C++ or CUDA kernels that are compiled on-the-fly,
             and stored in ``pykeops.build_folder`` as ".dll" or ".so" files for later use.
 
         Note:
             :func:`Genred` is fully compatible with PyTorch's :mod:`autograd` engine:
-            If **reduction_op** is **Sum** or **LogSumExp**,
-            you can **backprop** through the KeOps :meth:`__call__` just
-            as if it was a vanilla PyTorch operation.
-
-        Note:
-            On top of the **Sum** and **LogSumExp** reductions, KeOps
-            supports
-            :ref:`variants of the ArgKMin reduction <part.reduction>`
-            that can be used
-            to implement k-nearest neighbor search.
-            These routines return indices encoded as **floating point numbers**, and
-            produce no gradient. Fortunately though, you can simply
-            turn them into ``LongTensors`` and use them to index
-            your arrays, as showcased in the documentation
-            of :func:`generic_argmin`, :func:`generic_argkmin` and in the
-            :doc:`K-means tutorial <../../../_auto_tutorials/kmeans/plot_kmeans_torch>`.
-
+            You can **backprop** through the KeOps :meth:`__call__` just
+            as if it was a vanilla PyTorch operation (except for Min or Max reduction types,
+            see :ref:`reductions <part.reduction>`)
 
         Args:
             formula (string): The scalar- or vector-valued expression
