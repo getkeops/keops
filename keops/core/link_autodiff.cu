@@ -4,7 +4,7 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/min.h"
 #include "core/reductions/kmin.h"
-#include "core/reductions/log_sum_exp.h"
+#include "core/reductions/max_sumshiftexp.h"
 
 using namespace keops;
 

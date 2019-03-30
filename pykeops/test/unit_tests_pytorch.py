@@ -176,7 +176,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                myop = Genred(formula,aliases,reduction_op='SoftMax',axis=1,cuda_type='float64',formula2=formula_weights)
+                myop = Genred(formula,aliases,reduction_op='SumSoftMaxWeight',axis=1,cuda_type='float64',formula2=formula_weights)
                 gamma_keops = myop(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
                 # Numpy version
                 def np_softmax(x,w):
@@ -344,7 +344,7 @@ class PytorchUnitTestCase(unittest.TestCase):
                    'y = Vj(' + str(self.D) + ')',  # Second arg  : j-variable, of size D
                    'b = Vj(' + str(self.E) + ')'] # third arg : j-variable, of size Dv
 
-        softmax_op = Genred(formula, aliases, reduction_op='SoftMax', axis=1, formula2=formula_weights)
+        softmax_op = Genred(formula, aliases, reduction_op='SumSoftMaxWeight', axis=1, formula2=formula_weights)
 
         c = softmax_op(self.xc, self.yc, self.bc)
 

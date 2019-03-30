@@ -15,7 +15,7 @@ b = randn(1,Ny);
 p = .25;
 
 % defining reduction operation :
-F = keops_kernel('LogSumExpReduction(Exp(-p*SqNorm2(x-y))*b,0)',...
+F = keops_kernel('Max_SumShiftExp_Reduction(Exp(-p*SqNorm2(x-y))*b,0)',...
     'x=Vi(3)','y=Vj(3)','b=Vj(1)','p=Pm(1)');
 
 % performing computation and timing it
@@ -28,7 +28,7 @@ disp('first output values :')
 f(:,1:5)
 
 % comparing with Log of Sum of Exp
-F2 = keops_kernel('SumReduction(Exp(Exp(-p*SqNorm2(x-y))*b),0)',...
+F2 = keops_kernel('Sum_Reduction(Exp(Exp(-p*SqNorm2(x-y))*b),0)',...
     'x=Vi(3)','y=Vj(3)','b=Vj(1)','p=Pm(1)');
 disp('Testing Log of Sum reduction of Exp')
 tic

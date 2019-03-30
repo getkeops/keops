@@ -176,10 +176,10 @@ we can define ``F`` as a **symbolic string**
 
 .. code-block:: cpp
 
-    F = "SumReduction( Square( Pm(0,1) - Vj(3,1) )  *  Exp( Vi(1,3) + Vj(2,3) ), 1 )"
+    F = "Sum_Reduction( Square( Pm(0,1) - Vj(3,1) )  *  Exp( Vi(1,3) + Vj(2,3) ), 1 )"
 
 in which ``+`` and ``-`` denote the usual addition of vectors, ``Exp`` is the (element-wise) exponential function and ``*`` denotes scalar-vector multiplication.
-The second argument ``1`` of the ``SumReduction`` operator
+The second argument ``1`` of the ``Sum_Reduction`` operator
 indicates that the summation is performed with respect to the :math:`j`
 index: a ``0`` would have been associated with an :math:`i`-reduction.
 
@@ -188,4 +188,4 @@ In this example, we may write ``p=Pm(0,1)``, ``x=Vi(1,3)``, ``y=Vj(2,3)``, ``a=V
 
 .. code-block:: cpp
 
-    F = "SumReduction( Square(p - a) * Exp(x + y), 1 )"
+    F = "Sum_Reduction( Square(p - a) * Exp(x + y), 1 )"

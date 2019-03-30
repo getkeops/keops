@@ -143,9 +143,9 @@ class KernelSolve:
     def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype=default_cuda_type, opt_arg=None):
         reduction_op = 'Sum'
         if opt_arg:
-            self.formula = reduction_op + 'Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
+            self.formula = reduction_op + '_Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
         else:
-            self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+            self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype

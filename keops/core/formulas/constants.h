@@ -48,13 +48,13 @@ struct Zero {
 
 // A constant integer value, defined using the IntConstant<N> syntax.
 
-template < int N > struct IntConstantImpl;
-template < int N > struct IntConstantAlias;
+template < int N > struct IntConstant_Impl;
+template < int N > struct IntConstant_Alias;
 template < int N > 
-using IntConstant = typename IntConstantAlias<N>::type; 
+using IntConstant = typename IntConstant_Alias<N>::type; 
 
 template < int N >
-struct IntConstantImpl {
+struct IntConstant_Impl {
     static const int DIM = 1;
 
     static void PrintId(std::stringstream& str) { str << N; }
@@ -82,13 +82,13 @@ struct IntConstantImpl {
 
 // base class, redirects to implementation
 template < int N > 
-struct IntConstantAlias { 
-    using type = IntConstantImpl<N>; 
+struct IntConstant_Alias { 
+    using type = IntConstant_Impl<N>; 
 }; 
  
 // 0 = 0
 template<>
-struct IntConstantAlias<0> { 
+struct IntConstant_Alias<0> { 
     using type = Zero<1>; 
 }; 
 

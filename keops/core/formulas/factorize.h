@@ -19,13 +19,13 @@
 // formula F, we will compute it once only
 namespace keops {
 
-template < class F, class G > struct FactorizeAlias;
-template < class F, class G > using Factorize = typename FactorizeAlias<F,G>::type;
+template < class F, class G > struct Factorize_Alias;
+template < class F, class G > using Factorize = typename Factorize_Alias<F,G>::type;
 template < class F, class G >
 using CondFactorize = CondType<Factorize<F,G>,F,(CountIn<F,G>::val > 1)>;
 
 template < class F, class G >
-struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
+struct Factorize_Impl : BinaryOp<Factorize_Impl,F,G>
 {
 
     static const int DIM = F::DIM;
@@ -44,7 +44,7 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
         str << "]";
     }
 
-    using THIS = FactorizeImpl<F,G>;
+    using THIS = Factorize_Impl<F,G>;
 
     using Factor = G;
 
@@ -72,32 +72,32 @@ struct FactorizeImpl : BinaryOp<FactorizeImpl,F,G>
 
 
 template < class F, class G >
-struct FactorizeAlias {
-    using type = FactorizeImpl<F,G>;
+struct Factorize_Alias {
+    using type = Factorize_Impl<F,G>;
 };
 
 // specialization in case G is of type Var : in this case there is no need for copying a Var into another Var,
 // so we replace Factorize<F,Var> simply by F. This is usefull to avoid factorizing several times the same sub-formula
 template < class F, int N, int DIM, int CAT >
-struct FactorizeAlias<F,Var<N,DIM,CAT>> {
+struct Factorize_Alias<F,Var<N,DIM,CAT>> {
     using type = F;
 };
 
 // specialization in case G is of type IntConstant : again such a factorization is not interesting
 template < class F, int N >
-struct FactorizeAlias<F,IntConstantImpl<N>> {
+struct Factorize_Alias<F,IntConstant_Impl<N>> {
     using type = F;
 };
 
 // specialization in case G = F : not interesting either
 template < class F >
-struct FactorizeAlias<F,F> {
+struct Factorize_Alias<F,F> {
     using type = F;
 };
 
 // avoid specialization conflict..
 template < int N, int DIM, int CAT >
-struct FactorizeAlias<Var<N,DIM,CAT>,Var<N,DIM,CAT>> {
+struct Factorize_Alias<Var<N,DIM,CAT>,Var<N,DIM,CAT>> {
     using type = Var<N,DIM,CAT>;
 };
 
@@ -105,21 +105,21 @@ struct FactorizeAlias<Var<N,DIM,CAT>,Var<N,DIM,CAT>> {
 
 // first specialization, when the pack is empty (termination case)
 template < class F >
-struct FactorizeAlias<F,univpack<>> {
+struct Factorize_Alias<F,univpack<>> {
     using type = F;
 };
 
 // then specialization when there is at least one element in the pack
 // we use CondFactorize to factorize only when the type is present at least twice in the formula
 template < class F, class G, class... GS >
-struct FactorizeAlias<F,univpack<G,GS...>> {
+struct Factorize_Alias<F,univpack<G,GS...>> {
     using type = Factorize<CondFactorize<F,G>,univpack<GS...>>;
 };
 
 // specializing CountIn 
 template<class F, class G, class H>
-struct CountIn<FactorizeImpl<F,G>,H> {
-    static const int val = CountIn_<FactorizeImpl<F,G>,H>::val + CountIn<F,H>::val - CountIn<G,H>::val * CountIn<F,G>::val + CountIn<G,H>::val;
+struct CountIn<Factorize_Impl<F,G>,H> {
+    static const int val = CountIn_<Factorize_Impl<F,G>,H>::val + CountIn<F,H>::val - CountIn<G,H>::val * CountIn<F,G>::val + CountIn<G,H>::val;
 };
 
 // Auto factorization : factorize F by each of its subformulas

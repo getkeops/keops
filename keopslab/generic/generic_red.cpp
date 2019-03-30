@@ -49,7 +49,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     // register an exit function to prevent crash at matlab exit or recompiling
     mexAtExit(ExitFcn);
     
-    using FF = F::F; // F::F is formula inside reduction (ex if F is SumReduction<Form> then F::F is Form)
+    using FF = F::F; // F::F is formula inside reduction (ex if F is Sum_Reduction<Form> then F::F is Form)
 
     using VARSI = typename FF::template VARS<0>;    // list variables of type I used in formula F
     using VARSJ = typename FF::template VARS<1>;    // list variables of type J used in formula F

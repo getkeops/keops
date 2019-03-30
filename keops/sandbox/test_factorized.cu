@@ -64,7 +64,7 @@ int main() {
     std::cout << std::endl << std::endl;
 
 
-    using FUNCONVF = SumReduction<F>;
+    using FUNCONVF = Sum_Reduction<F>;
 
 
     // now we test ------------------------------------------------------------------------------
@@ -153,7 +153,7 @@ int main() {
 
     std::cout << std::endl << std::endl << "Testing FF" << std::endl;
 
-    using FUNCONVFF = SumReduction<FF>;
+    using FUNCONVFF = Sum_Reduction<FF>;
 
     begin = clock();
     Eval<FUNCONVFF,GpuConv1D_FromHost>::Run(Nx, Ny, f, params, x, y, u, v, b, x);

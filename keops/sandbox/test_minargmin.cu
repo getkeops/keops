@@ -49,7 +49,7 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = MinArgMinReduction<F>;
+    using FUNCONVF = Min_ArgMin_Reduction<F>;
 
     // now we test ------------------------------------------------------------------------------
 

@@ -10,7 +10,7 @@ namespace keops {
 // max+argmax reduction : base class
 
 template < class F, int tagI=0 >
-struct MaxArgMaxReduction_Base : public Reduction<F,tagI> {
+struct Max_ArgMax_Reduction_Base : public Reduction<F,tagI> {
 
     // We work with a (values,indices) vector
 	static const int DIMRED = 2*F::DIM;	// dimension of temporary variable for reduction
@@ -54,16 +54,16 @@ struct MaxArgMaxReduction_Base : public Reduction<F,tagI> {
 };
 
 
-// Implements the max+argmax reduction operation : for each i or each j, find the maximal value of Fij anbd its index
+// _Implements the max+argmax reduction operation : for each i or each j, find the maximal value of Fij anbd its index
 // operation is vectorized: if Fij is vector-valued, max+argmax is computed for each dimension.
 
 template < class F, int tagI=0 >
-struct MaxArgMaxReduction : public MaxArgMaxReduction_Base<F,tagI>, UnaryOp<MaxArgMaxReduction,F,tagI> {
+struct Max_ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<Max_ArgMax_Reduction,F,tagI> {
 
         static const int DIM = 2*F::DIM;		// DIM is dimension of output of convolution ; for a max-argmax reduction it is equal to 2 times the dimension of output of formula
 		
     static void PrintIdString(std::stringstream& str) {
-        str << "MaxArgMaxReduction";
+        str << "Max_ArgMax_Reduction";
     }
         
     template < typename TYPE >
@@ -78,17 +78,17 @@ struct MaxArgMaxReduction : public MaxArgMaxReduction_Base<F,tagI>, UnaryOp<MaxA
 
 };
 
-// Implements the argmax reduction operation : for each i or each j, find the index of the
+// _Implements the argmax reduction operation : for each i or each j, find the index of the
 // maximal value of Fij
 // operation is vectorized: if Fij is vector-valued, argmax is computed for each dimension.
 
 template < class F, int tagI=0 >
-struct ArgMaxReduction : public MaxArgMaxReduction_Base<F,tagI>, UnaryOp<ArgMaxReduction,F,tagI> {
+struct ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<ArgMax_Reduction,F,tagI> {
         
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmax reduction it is equal to the dimension of output of formula
 		
     static void PrintIdString(std::stringstream& str) {
-        str << "ArgMaxReduction";
+        str << "ArgMax_Reduction";
     }
 
     template < typename TYPE >
@@ -100,23 +100,23 @@ struct ArgMaxReduction : public MaxArgMaxReduction_Base<F,tagI>, UnaryOp<ArgMaxR
     };
 
     template < class V, class GRADIN >
-    using DiffT = ZeroReduction<V::DIM,(V::CAT)%2>;
+    using DiffT = Zero_Reduction<V::DIM,(V::CAT)%2>;
     // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
     // In this case there is a summation left to be done by the user.
 
 };
 
-// Implements the max reduction operation : for each i or each j, find the
+// _Implements the max reduction operation : for each i or each j, find the
 // maximal value of Fij
 // operation is vectorized: if Fij is vector-valued, max is computed for each dimension.
 
 template < class F, int tagI=0 >
-struct MaxReduction : public MaxArgMaxReduction_Base<F,tagI>, UnaryOp<MaxReduction,F,tagI> {
+struct Max_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<Max_Reduction,F,tagI> {
         
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a max reduction it is equal to the dimension of output of formula
 		
     static void PrintIdString(std::stringstream& str) {
-        str << "MaxReduction";
+        str << "Max_Reduction";
     }
 
     template < typename TYPE >

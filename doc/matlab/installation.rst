@@ -76,7 +76,7 @@ Test that everything goes fine
 
     x = reshape(1:9,3,[]); y = reshape(3:8,3,[]);
 
-    my_conv = Kernel('SumReduction(SqNorm2(x-y),1)','x=Vi(0,3)','y=Vj(1,3)');
+    my_conv = Kernel('Sum_Reduction(SqNorm2(x-y),1)','x=Vi(0,3)','y=Vj(1,3)');
     my_conv(x,y)'
 
 It should return:

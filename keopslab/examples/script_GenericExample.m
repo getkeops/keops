@@ -19,7 +19,7 @@ p = .25;
 %-----------------------------------------%
 
 F = keops_kernel('x=Vi(3)','y=Vj(3)','u=Vi(4)','v=Vj(4)','b=Vj(3)', 'p=Pm(1)',...
-           'SumReduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
+           'Sum_Reduction(Square((u|v))*Exp(-p*SqNorm2(x-y))*b,0)');
 
 tic
 g = F(x,y,u,v,b,p);

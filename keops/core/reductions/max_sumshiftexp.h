@@ -8,14 +8,14 @@
 
 #include "core/reductions/reduction.h"
 
-// Implements the LogSumExp reduction operation in a numerically stable way.
+// _Implements the LogSumExp reduction operation in a numerically stable way.
 // As of today, this reduction op. is not vectorized:
 // we only support scalar-valued formulas.
 
 namespace keops {
 
 template < class F, int tagI=0, class G_=IntConstant<1> >
-struct LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
+struct Max_SumShiftExp_Reduction : public Reduction<Concat<F,G_>,tagI> {
 
     using G = G_;
 
@@ -28,7 +28,7 @@ struct LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
     static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
 
     static void PrintId(std::stringstream& str) {
-        str << "LogSumExpReduction(F=";			// prints "("
+        str << "Max_SumShiftExp_Reduction(F=";			// prints "("
         F::PrintId(str);				// prints the formula F
         str << ",tagI=" << tagI << ",G=";
         G::PrintId(str);
@@ -109,7 +109,7 @@ struct LogSumExpReduction : public Reduction<Concat<F,G_>,tagI> {
     using S = Extract<MS,F::DIM,G::DIM>;    
 
     template < class V, class GRADIN, class MS >
-    using DiffT = Grad<SumReduction<Scal<Exp<Subtract<F,M<MS>>>,G>,tagI>,V,S<GRADIN>>;
+    using DiffT = Grad<Sum_Reduction<Scal<Exp<Subtract<F,M<MS>>>,G>,tagI>,V,S<GRADIN>>;
     
     // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
     // In this case there is a summation left to be done by the user.

@@ -48,7 +48,7 @@ int main() {
     using F = decltype(InvKeopsNS(g));
     //using F = decltype(InvKeopsNS(g-g+IntCst(2)*g-g-g));
 
-    using FUNCONVF = SumReduction<F>;
+    using FUNCONVF = Sum_Reduction<F>;
 
    // now we test ------------------------------------------------------------------------------
 

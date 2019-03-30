@@ -50,7 +50,7 @@ int main() {
     // symbolic expression of the function ------------------------------------------------------
     
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = SumReduction<Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>>;
+    using F = Sum_Reduction<Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>>;
 
     // gradient with respect to X ---------------------------------------------------------------
     using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient

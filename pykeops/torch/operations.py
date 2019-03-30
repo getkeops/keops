@@ -285,7 +285,7 @@ class KernelSolve:
         for (i,s) in enumerate(tmp):
             tmp[i] = s[:s.find("=")].strip()
         varinvpos = tmp.index(varinvalias)
-        self.formula = reduction_op + 'Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+        self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.varinvpos = varinvpos
         self.cuda_type = cuda_type
