@@ -6,7 +6,7 @@ import numpy as np
 def preprocess(reduction_op, formula2):
     reduction_op = reduction_op
     
-    if reduction_op == 'SumSoftMaxWeight':
+    if reduction_op == 'SumSoftMaxWeight' or reduction_op == 'SoftMax':
         reduction_op_internal = 'Max_SumShiftExpWeight'
         formula2 = 'Concat(IntCst(1),' + formula2 + ')'
     elif reduction_op == 'LogSumExp':
@@ -23,7 +23,7 @@ def preprocess(reduction_op, formula2):
 def postprocess(out, binding, reduction_op):
     tools = get_tools(binding)
     # Post-processing of the output:
-    if reduction_op == 'SumSoftMaxWeight':
+    if reduction_op == 'SumSoftMaxWeight' or reduction_op == 'SoftMax':
         out = out[:, 2:] / out[:, 1][:, None]
     elif reduction_op == 'ArgMin' or reduction_op == 'ArgKMin':
         out = tools.long(out)

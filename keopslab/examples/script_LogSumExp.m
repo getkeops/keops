@@ -1,4 +1,11 @@
-%% example of LogSumExp reduction, and its gradient
+%% example of LogSumExp reduction, and its gradient:
+% We compute out_i = log(sum_j exp(F_ij))
+% where F is a formula, then take its gradient with 
+% respect to a variable contained in formula F.
+% N.B. We use the KeOps "Max_SumShiftExp" reduction
+% which outputs (m_i,s_i) where m_i = max_j F_ij
+% and s_i = sum_j exp(m_i-F_ij)), then finalize the 
+% computation as out_i = m_i + log(s_i)
 
 path_to_lib = '..';
 addpath(genpath(path_to_lib))
