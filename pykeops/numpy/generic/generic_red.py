@@ -212,6 +212,8 @@ class Genred():
         self.aliases = complete_aliases(self.formula, aliases)
         self.cuda_type = cuda_type
         self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
+        self.axis = axis
+        self.opt_arg = opt_arg
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
         # Get tags
@@ -221,4 +223,5 @@ class Genred():
 
         out = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
 
-        return postprocess(out, "numpy", self.reduction_op)
+        nout = nx if self.axis==1 else ny
+        return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg)

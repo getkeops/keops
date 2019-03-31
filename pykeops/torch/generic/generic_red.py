@@ -303,7 +303,11 @@ class Genred():
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
+        self.axis = axis
+        self.opt_arg = opt_arg
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, ranges, *args)
-        return postprocess(out, "torch", self.reduction_op)
+        nx, ny = get_sizes(self.aliases, *args)
+        nout = nx if self.axis==1 else ny
+        return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg)
