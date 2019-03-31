@@ -9,6 +9,7 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/max_sumshiftexp.h"
 #include "core/reductions/min.h"
+#include "core/reductions/max.h"
 #include "core/reductions/kmin.h"
 
 namespace keops {

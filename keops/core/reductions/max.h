@@ -19,7 +19,7 @@ struct Max_ArgMax_Reduction_Base : public Reduction<F,tagI> {
 		struct InitializeReduction {
 			HOST_DEVICE INLINE void operator()(TYPE *tmp) {
 				for(int k=0; k<F::DIM; k++)
-					tmp[k] = MINUS_INFINITY<TYPE>::value; // initialize output
+					tmp[k] = NEG_INFINITY<TYPE>::value; // initialize output
 				for(int k=F::DIM; k<2*F::DIM; k++)
 					tmp[k] = 0; // initialize output
 			}
