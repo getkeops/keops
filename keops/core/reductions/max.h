@@ -54,7 +54,7 @@ struct Max_ArgMax_Reduction_Base : public Reduction<F,tagI> {
 };
 
 
-// _Implements the max+argmax reduction operation : for each i or each j, find the maximal value of Fij anbd its index
+// Implements the max+argmax reduction operation : for each i or each j, find the maximal value of Fij anbd its index
 // operation is vectorized: if Fij is vector-valued, max+argmax is computed for each dimension.
 
 template < class F, int tagI=0 >
@@ -78,7 +78,7 @@ struct Max_ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<
 
 };
 
-// _Implements the argmax reduction operation : for each i or each j, find the index of the
+// Implements the argmax reduction operation : for each i or each j, find the index of the
 // maximal value of Fij
 // operation is vectorized: if Fij is vector-valued, argmax is computed for each dimension.
 
@@ -106,7 +106,7 @@ struct ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<ArgM
 
 };
 
-// _Implements the max reduction operation : for each i or each j, find the
+// Implements the max reduction operation : for each i or each j, find the
 // maximal value of Fij
 // operation is vectorized: if Fij is vector-valued, max is computed for each dimension.
 

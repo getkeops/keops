@@ -7,7 +7,7 @@
 #include "core/reductions/zero.h"
 
 namespace keops {
-// _Implements the k-min-arg-k-min reduction operation : for each i or each j, find the values and indices of the
+// Implements the k-min-arg-k-min reduction operation : for each i or each j, find the values and indices of the
 // k minimal values of Fij
 // operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
 
@@ -97,7 +97,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 
 };
 
-// _Implements the arg-k-min reduction operation : for each i or each j, find the indices of the
+// Implements the arg-k-min reduction operation : for each i or each j, find the indices of the
 // k minimal values of Fij
 // operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
 
@@ -130,7 +130,7 @@ struct ArgKMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 
 };
 
-// _Implements the k-min reduction operation : for each i or each j, find the
+// Implements the k-min reduction operation : for each i or each j, find the
 // k minimal values of Fij
 // operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
 

@@ -8,7 +8,7 @@
 
 namespace keops {
 
-// _Implements the summation reduction operation
+// Implements the summation reduction operation
 
 template < class F, int tagI > struct Sum_Reduction_Alias;
 

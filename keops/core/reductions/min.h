@@ -54,7 +54,7 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 };
 
 
-// _Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij anbd its index
+// Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij anbd its index
 // operation is vectorized: if Fij is vector-valued, min+argmin is computed for each dimension.
 
 template < class F, int tagI=0 >
@@ -78,7 +78,7 @@ struct Min_ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<
 
 };
 
-// _Implements the argmin reduction operation : for each i or each j, find the index of the
+// Implements the argmin reduction operation : for each i or each j, find the index of the
 // minimal value of Fij
 // operation is vectorized: if Fij is vector-valued, argmin is computed for each dimension.
 
@@ -106,7 +106,7 @@ struct ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<ArgM
 
 };
 
-// _Implements the min reduction operation : for each i or each j, find the
+// Implements the min reduction operation : for each i or each j, find the
 // minimal value of Fij
 // operation is vectorized: if Fij is vector-valued, min is computed for each dimension.
 

@@ -8,7 +8,7 @@
 
 namespace keops {
 
-// _Implements the zero reduction operation (fills output with zeros)
+// Implements the zero reduction operation (fills output with zeros)
 // tagI is equal:
 // - to 0 if you do the summation over j (with i the index of the output vector),
 // - to 1 if you do the summation over i (with j the index of the output vector).
