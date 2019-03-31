@@ -1,3 +1,4 @@
+.. _`part.cpp_api`:
 
 .. figure:: ../_static/logo/keops++_logo.png
    :width: 100%

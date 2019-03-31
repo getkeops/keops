@@ -1,3 +1,5 @@
+.. _`part.genred`:
+
 Generic reductions
 ##################
 

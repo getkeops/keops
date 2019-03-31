@@ -174,7 +174,7 @@ class Genred():
                   - **cuda_type** = ``"float32"`` or ``"float"``.
                   - **cuda_type** = ``"float64"`` or ``"double"``.
 
-            opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
+            opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMin_ArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
 

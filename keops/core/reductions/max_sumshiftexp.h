@@ -8,9 +8,9 @@
 
 #include "core/reductions/reduction.h"
 
-// _Implements the LogSumExp reduction operation in a numerically stable way.
-// As of today, this reduction op. is not vectorized:
-// we only support scalar-valued formulas.
+// Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(m_i-f_ij) g_ij
+// where f and g are two formulas. f must be scalar-valued.
+// This reduciton is the base for numerically stable computation of log-sum-exp and softmax type reductions.
 
 namespace keops {
 
@@ -96,7 +96,7 @@ struct Max_SumShiftExp_Reduction : public Reduction<Concat<F,G_>,tagI> {
     };
     
     // Beware: the formula that we use for the gradient is *only* valid
-    // if the output [M,S] = LogSumExp(F) has been flattened through a
+    // if the output [M,S] = Max_SumShiftExp(F,G) has been flattened through a
     // L = M + log(S)
     // operation (as done by the Python bindings), and if 
     // GRADIN = [Grad(L), Grad(L)/S ]
