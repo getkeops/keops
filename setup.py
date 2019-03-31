@@ -123,6 +123,7 @@ setup(
             'keops/core/reductions/kmin.h',
             'keops/core/reductions/max_sumshiftexp.h',
             'keops/core/reductions/min.h',
+            'keops/core/reductions/max.h',
             'keops/core/reductions/reduction.h',
             'keops/core/reductions/sum.h',
             'keops/core/reductions/zero.h',
