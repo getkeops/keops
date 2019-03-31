@@ -27,10 +27,23 @@
  *      Inv<F>						: Pointwise inverse, more efficient than Pow<F,-1>
  *      IntInv<N>					: alias for Inv<IntConstant<N>>
  *      Sqrt<F>						: alias for Powf<F,IntInv<2>>
+ *      Rsqrt<F>					: inverse square root
  *
- *   exp, log :
+ *   standard math functions :
  *      Exp<F>						: exponential of F (vectorized)
  *      Log<F>						: logarithm   of F (vectorized)
+ *      Sin<F>						: sine        of F (vectorized)
+ *      Cos<F>						: cosine      of F (vectorized)
+ *      Sign<F>						: sign        of F (vectorized)
+ *      Step<F>						: step        of F (vectorized)
+ *      ReLU<F>						: ReLU        of F (vectorized)
+ *      Sign<F>						: sign        of F (vectorized)
+ *
+ *   concatenation and matrix-vector products:
+ *      Concat<FA,FB>				: concatenation of FB and FB
+ *      MatVecMult<FA,FB>			: matrix-vector product (FA::DIM must be a muliple of FB::DIM)
+ *      VecMatMult<FA,FB>			: vector-matrix product (FB::DIM must be a muliple of FA::DIM)
+ *      TensorProd<FA,FB>			: tensor product (output is of dimension FA::DIM*FB::DIM)
  *
  */
 

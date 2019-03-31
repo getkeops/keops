@@ -67,11 +67,16 @@ Elementary functions:
 ``Inv(f)``                element-wise inverse (1 ./ f)
 ``Exp(f)``                element-wise exponential function
 ``Log(f)``                element-wise natural logarithm
+``Sin(f)``                element-wise sine function
+``Cos(f)``                element-wise cosine function
 ``Pow(f, P)``             P-th power of ``f`` (element-wise), where P is a fixed integer
 ``Powf(f, g)``            power operation, alias for ``Exp(g*Log(f))``
 ``Square(f)``             element-wise square, faster than Pow(f,2)
 ``Sqrt(f)``               element-wise square root, faster than Powf(f,.5)
 ``Rsqrt(f)``              element-wise inverse square root, faster than Powf(f,-.5)
+``Sign(f)``               element-wise sign function (-1 if f<0, 0 if f=0, 1 if f>0)
+``Step(f)``               element-wise step function (0 if f<0, 1 if f>=0)
+``ReLU(f)``               element-wise ReLU function (0 if f<0, f if f>=0)
 ======================   =========================================================================================================
 
 
@@ -146,16 +151,15 @@ code name                    arguments              mathematical expression     
 ``LogSumExpWeight``          ``f`` (scalar), ``g``  :math:`\log\left(\sum_j\exp(f_{ij})g_{ij}\right)`                                                                             only in Python bindings
 ``SumSoftMaxWeight``         ``f`` (scalar), ``g``  :math:`\left(\sum_j\exp(f_{ij})g_{ij}\right)/\left(\sum_j\exp(f_{ij})\right)`                                                 only in Python bindings
 ``Min``                      ``f``                  :math:`\min_j f_{ij}`                                                                                                         no gradient
-``ArgMin``                   ``f``                  :math:`\text{argmin}_jf_{ij}`                                                                                                 gradient returns ``Zero``
+``ArgMin``                   ``f``                  :math:`\text{argmin}_jf_{ij}`                                                                                                 gradient xreturns zeros
 ``Min_ArgMin``               ``f``                  :math:`\left(\min_j f_{ij} ,\text{argmin}_j f_{ij}\right)`                                                                    no gradient
 ``Max``                      ``f``                  :math:`\max_j f_{ij}`                                                                                                         no gradient
-``ArgMax``                   ``f``                  :math:`\text{argmax}_j f_{ij}`                                                                                                gradient returns ``Zero``
+``ArgMax``                   ``f``                  :math:`\text{argmax}_j f_{ij}`                                                                                                gradient returns zeros
 ``Max_ArgMax``               ``f``                  :math:`\left(\max_j f_{ij},\text{argmax}_j f_{ij}\right)`                                                                     no gradient
 ``KMin``                     ``f``, ``K`` (int)     :math:`\begin{array}{l}\left[\min_j f_{ij},\ldots,\min^{(K)}_jf_{ij}\right]                                                   no gradient
                                                     \\(\min^{(k)}\text{means k-th smallest value})\end{array}`                                                                     
-``ArgKMin``                  ``f``, ``K`` (int)     :math:`\left[\text{argmin}_jf_{ij},\ldots,\text{argmin}^{(K)}_j f_{ij}\right]`                                                gradient returns ``Zero``
+``ArgKMin``                  ``f``, ``K`` (int)     :math:`\left[\text{argmin}_jf_{ij},\ldots,\text{argmin}^{(K)}_j f_{ij}\right]`                                                gradient returns zeros
 ``KMin_ArgKMin``             ``f``, ``K`` (int)     :math:`\left([\min^{(1...K)}_j f_{ij} ],[\text{argmin}^{(1...K)}_j f_{ij}]\right)`                                            no gradient
-``Zero``                     ``D`` (int)            :math:`0`                                                                                                                     used internally in KeOps
 =========================    =====================  ============================================================================================================================  =========================================================================
 
 **N.B.:** All these reductions, except ``Max_SumShiftExp`` and ``LogSumExp``, are vectorized : whenever the input ``f`` or ``g`` is vector-valued, the output will be vector-valued, with the corresponding reduction applied element-wise to each component.

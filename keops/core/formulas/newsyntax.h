@@ -44,6 +44,8 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define IntCst(N) KeopsNS<IntConstant<N>>()
 
+#define Zero(D) KeopsNS<Zero<D>>()
+
 #define Elem(p,k) KeopsNS<Elem<decltype(InvKeopsNS(p)),k>>()
 
 #define ElemT(p,k) KeopsNS<ElemT<decltype(InvKeopsNS(p)),k>>()
