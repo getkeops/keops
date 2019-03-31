@@ -47,7 +47,7 @@ def KMeans(x, K=10, Niter=10, verbose=True):
          'y = Vj({})'.format(D)],  # source points of dimension D, indexed by "j"
         reduction_op='ArgMin',
         axis=1,                    # The reduction is performed on the second axis
-        cuda_type=dtype)           # "float32" and "float64" are available
+        dtype=dtype)           # "float32" and "float64" are available
         
     # K-means loop:
     # - x  is the point cloud, 

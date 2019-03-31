@@ -67,7 +67,7 @@ for (i,K) in enumerate( (1, 3, 10, 20, 50) ):
         'ind = Vi({})'.format(K),  # The K output indices are indexed by "i"
         'x = Vi({})'.format(D),    # 1st arg: target points of dimension D, indexed by "i"
         'y = Vj({})'.format(D),    # 2nd arg: source points of dimension D, indexed by "j"
-        cuda_type = dtype )        # "float32" and "float64" are available
+        dtype = dtype )        # "float32" and "float64" are available
 
     start = time.time()    # Benchmark:
     indKNN = knn_search(g, x)   # Grid <-> Samples

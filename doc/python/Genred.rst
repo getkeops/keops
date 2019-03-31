@@ -19,7 +19,7 @@ In both cases, :mod:`Genred` is a class with no methods: its instantiation simpl
 
   .. code-block:: python
 
-    my_red = Genred(formula, aliases, reduction_op='Sum', axis=0, cuda_type='float32')
+    my_red = Genred(formula, aliases, reduction_op='Sum', axis=0, dtype='float32')
 
 2. **Call**: The variable **my_red** now refers to a callable object wrapped around a set of custom Cuda routines. It may be used on any set of arrays (either NumPy arrays or Torch tensors) with the correct shapes, as described in the **aliases** argument:
 

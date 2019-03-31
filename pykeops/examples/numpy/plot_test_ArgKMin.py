@@ -38,7 +38,7 @@ variables = ['x = Vi('+str(D)+')',  # First arg : i-variable, of size D
 
 # N.B.: The number K is specified as an optional argument `opt_arg`
 my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, 
-                    cuda_type=type, opt_arg=K)
+                    dtype=type, opt_arg=K)
 
 
 ###############################################################

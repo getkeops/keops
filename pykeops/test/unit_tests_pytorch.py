@@ -133,7 +133,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = Genred(formula,aliases,axis=1,cuda_type='float32')(self.sigmac, self.gc, self.xc, self.yc, backend=b)
+                gamma_keops = Genred(formula,aliases,axis=1,dtype='float32')(self.sigmac, self.gc, self.xc, self.yc, backend=b)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
@@ -154,7 +154,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                gamma_keops = Genred(formula,aliases,axis=1,cuda_type='float64')(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
+                gamma_keops = Genred(formula,aliases,axis=1,dtype='float64')(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
                 # Numpy version
                 gamma_py = np.sum((self.sigma - self.g) ** 2
                                   * np.exp((self.y.T[:, :, np.newaxis] + self.x.T[:, np.newaxis, :])), axis=1).T
@@ -176,7 +176,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         for b in backend_to_test:
             with self.subTest(b=b):
                 # Call cuda kernel
-                myop = Genred(formula,aliases,reduction_op='SumSoftMaxWeight',axis=1,cuda_type='float64',formula2=formula_weights)
+                myop = Genred(formula,aliases,reduction_op='SumSoftMaxWeight',axis=1,dtype='float64',formula2=formula_weights)
                 gamma_keops = myop(self.sigmacd, self.gcd, self.xcd, self.ycd, backend=b)
                 # Numpy version
                 def np_softmax(x,w):
@@ -299,7 +299,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         formula = 'Square(p-Var(1,1,1))*Exp(-SqNorm2(y-x))'
         
         # Call cuda kernel
-        myconv = Genred(formula, aliases, reduction_op='Sum', axis=1, cuda_type='float32' )
+        myconv = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float32' )
         gamma_keops= myconv(self.sigmac, self.gc, self.xc, self.yc, backend='auto')
 
         # Numpy version

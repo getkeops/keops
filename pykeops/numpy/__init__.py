@@ -10,7 +10,7 @@ try:
 except:
     pykeops.gpu_available = False
 
-default_cuda_type = 'float64' # 'float32' or 'float64'
+default_dtype = 'float64' # 'float32' or 'float64'
 
 ##########################################################
 # Import pyKeOps routines 

@@ -44,7 +44,7 @@ type = 'float32'  # May be 'float32' or 'float64'
 # Tests with the NumPy API
 # ------------------------------
 
-my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, dtype=type)
 
 ###############################################################
 #  Generate some data, stored on the CPU (host) memory:
@@ -87,7 +87,7 @@ for gpuid in gpuids:
 
 import torch
 from pykeops.torch import Genred
-my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, dtype=type)
 
 ###########################################
 # First, we keep the data on the CPU (host) memory:

@@ -101,7 +101,7 @@ keops_routines = {
 }
 
 
-def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='float32'):
+def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', dtype='float32'):
     if backend in ['pytorch', 'matrix']:
         domain, torch_map = pytorch_routines[mode]
         if domain == 'sum':
@@ -160,6 +160,6 @@ def FeaturesKP(kernel, gs, xs, ys, bs, mode='sum', backend='auto', cuda_type='fl
             index += 1
 
         axis = 1  # the output vector is indexed by 'i' (CAT=0)
-        genconv = Genred(formula, aliases, reduction_op=red, axis=axis, cuda_type=cuda_type)
+        genconv = Genred(formula, aliases, reduction_op=red, axis=axis, dtype=dtype)
 
         return genconv(*full_args, backend=backend)

@@ -64,7 +64,7 @@ variables = ['x = Vi(3)',  # First arg   : i-variable, of size 3
 # The output c is an :math:`x`-variable indexed by :math:`i`.
 
 my_routine = Genred(formula, variables, 
-                    reduction_op='Sum', axis=1, cuda_type=type)
+                    reduction_op='Sum', axis=1, dtype=type)
 c = my_routine(x, y, a, p)
 
 

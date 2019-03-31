@@ -168,7 +168,7 @@ my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",  # A simple Gaussian kernel
                   "Y = Vj(2)",  # 3rd arg: one 2d-point per column
                   "B = Vj(1)"], # 4th arg: one 1d-signal per column
                   axis = 1,     # Reduction wrt. "j", result indexed by "i"
-                  cuda_type=dtype )
+                  dtype=dtype )
 
 ##############################################################################
 # Compare the performances of our **block-sparse** code

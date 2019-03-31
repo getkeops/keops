@@ -1,6 +1,6 @@
 import numpy as np
 
-from pykeops.numpy import Genred, default_cuda_type
+from pykeops.numpy import Genred, default_dtype
 
 
 class numpytools:
@@ -37,19 +37,19 @@ class numpytools:
     def dtype(x): return x.dtype.name
     
     @staticmethod
-    def rand(m, n, dtype=default_cuda_type): return np.random.rand(m, n).astype(dtype)
+    def rand(m, n, dtype=default_dtype): return np.random.rand(m, n).astype(dtype)
     
     @staticmethod
-    def randn(m, n, dtype=default_cuda_type): return np.random.randn(m, n).astype(dtype)
+    def randn(m, n, dtype=default_dtype): return np.random.randn(m, n).astype(dtype)
     
     @staticmethod
-    def zeros(shape, dtype=default_cuda_type): return np.zeros(shape).astype(dtype)
+    def zeros(shape, dtype=default_dtype): return np.zeros(shape).astype(dtype)
     
     @staticmethod
-    def eye(n, dtype=default_cuda_type): return np.eye(n).astype(dtype)
+    def eye(n, dtype=default_dtype): return np.eye(n).astype(dtype)
     
     @staticmethod
-    def array(x, dtype=default_cuda_type): return np.array(x).astype(dtype)
+    def array(x, dtype=default_dtype): return np.array(x).astype(dtype)
 
 
 def squared_distances(x, y):
@@ -152,7 +152,7 @@ def WarmUpGpu():
                'y = Vj(1)',  # Second arg  : j-variable, of size 1
                'b = Vj(1)',  # Third arg  : j-variable, of size 1
                'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, cuda_type='float64')
+    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float64')
     dum = np.random.rand(10, 1)
     dum2 = np.random.rand(10, 1)
     my_routine(dum, dum, dum2, np.array([1.0]))

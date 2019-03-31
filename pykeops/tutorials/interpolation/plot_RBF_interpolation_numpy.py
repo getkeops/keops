@@ -93,7 +93,7 @@ print('Time to perform an RBF interpolation with {} samples in 1D: {:.5f}s'.form
 
 # Extrapolate on a uniform sample:
 t = np.reshape(np.linspace(0, 1, 1001), [1001, 1]).astype(dtype)
-K = Genred(formula, aliases, axis=1, cuda_type=dtype)
+K = Genred(formula, aliases, axis=1, dtype=dtype)
 xt = K(t, x, a, g)
 
 # 1D plot:
@@ -167,7 +167,7 @@ print('Time to perform an RBF interpolation with {} samples in 2D: {:.5f}s'.form
 X = Y = np.linspace(0, 1, 101)
 X, Y = np.meshgrid(X, Y)
 t = np.stack((X.ravel(), Y.ravel()), axis=1)
-K = Genred(formula, aliases, axis=1, cuda_type=dtype)
+K = Genred(formula, aliases, axis=1, dtype=dtype)
 xt = K(t, x, a, g).reshape(101, 101)[::-1, :]
 
 # 2D plot: noisy samples and interpolation in the background

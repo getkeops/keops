@@ -5,7 +5,7 @@ from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 from pykeops.common.operations import preprocess, postprocess
-from pykeops.torch import default_cuda_type, include_dirs
+from pykeops.torch import default_dtype, include_dirs
 
 
 class GenredAutograd(torch.autograd.Function):
@@ -14,15 +14,15 @@ class GenredAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, backend, cuda_type, device_id, ranges, *args):
+    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, *args):
 
-        myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
+        myconv = load_keops(formula, aliases, dtype, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
         ctx.aliases = aliases
         ctx.backend = backend
-        ctx.cuda_type = cuda_type
+        ctx.dtype = dtype
         ctx.device_id = device_id
         ctx.ranges = ranges
         ctx.myconv = myconv
@@ -51,7 +51,7 @@ class GenredAutograd(torch.autograd.Function):
         formula = ctx.formula
         aliases = ctx.aliases
         backend = ctx.backend
-        cuda_type = ctx.cuda_type
+        dtype = ctx.dtype
         ranges    = ctx.ranges
         device_id = ctx.device_id
         myconv = ctx.myconv
@@ -71,7 +71,7 @@ class GenredAutograd(torch.autograd.Function):
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 6]:  # because of (formula, aliases, backend, cuda_type, device_id, ranges)
+            if not ctx.needs_input_grad[var_ind + 6]:  # because of (formula, aliases, backend, dtype, device_id, ranges)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -92,7 +92,7 @@ class GenredAutograd(torch.autograd.Function):
                 if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, ranges, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -100,10 +100,10 @@ class GenredAutograd(torch.autograd.Function):
                     grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                     grad = grad.view(-1)
                 else:
-                    grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, ranges, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
                 grads.append(grad)
         
-        # Grads wrt. formula, aliases, backend, cuda_type, device_id, ranges, *args
+        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, *args
         return (None, None, None, None, None, None, *grads)
 
 
@@ -168,11 +168,11 @@ class Genred():
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
+            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
                 The supported values are:
 
-                  - **cuda_type** = ``"float32"`` or ``"float"``.
-                  - **cuda_type** = ``"float64"`` or ``"double"``.
+                  - **dtype** = ``"float32"`` or ``"float"``.
+                  - **dtype** = ``"float64"`` or ``"double"``.
 
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMin_ArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
@@ -291,7 +291,7 @@ class Genred():
 
         """
     
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None,
+    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
                  formula2=None):
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
@@ -302,12 +302,12 @@ class Genred():
         self.formula = reduction_op_internal + '_Reduction(' + formula + str_opt_arg + ',' + str(
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, list(aliases)) # just in case the user provided a tuple
-        self.cuda_type = cuda_type
+        self.dtype = dtype
         self.axis = axis
         self.opt_arg = opt_arg
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
-        out = GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, ranges, *args)
+        out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, device_id, ranges, *args)
         nx, ny = get_sizes(self.aliases, *args)
         nout = nx if self.axis==1 else ny
-        return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, self.cuda_type)
+        return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, self.dtype)

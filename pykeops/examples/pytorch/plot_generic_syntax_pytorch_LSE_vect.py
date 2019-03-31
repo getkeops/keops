@@ -68,7 +68,7 @@ start = time.time()
 # i.e. on the axis ``1`` of the kernel matrix.
 # The output c is an :math:`x`-variable indexed by :math:`i`.
 
-my_routine = Genred(formula, variables, reduction_op='LogSumExp', axis=1, cuda_type=type, formula2=formula2)
+my_routine = Genred(formula, variables, reduction_op='LogSumExp', axis=1, dtype=type, formula2=formula2)
 c = my_routine(x, y, a, p, b, backend='CPU')
 
 # N.B.: By specifying backend='CPU', we can make sure that the result is computed using a simple C++ for loop.
@@ -77,7 +77,7 @@ print('Time to compute the convolution operation on the cpu: ', round(time.time(
 #######################################################################
 # We compare with the unstable, naive computation "Log of Sum of Exp":
 
-my_routine2 = Genred('Exp('+formula+')*'+formula2, variables, reduction_op='Sum', axis=1, cuda_type=type)
+my_routine2 = Genred('Exp('+formula+')*'+formula2, variables, reduction_op='Sum', axis=1, dtype=type)
 c2 = torch.log(my_routine2(x, y, a, p, b, backend='CPU'))
 print('(relative error: ',((c2-c).norm()/c.norm()).item(), ')')
 

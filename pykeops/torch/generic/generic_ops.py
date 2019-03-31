@@ -21,11 +21,11 @@ def generic_sum(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
     Keyword Args:
-        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **dtype** = ``"float32"`` or ``"float"``.
+              - **dtype** = ``"float64"`` or ``"double"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -65,11 +65,11 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
     Keyword Args:
-        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **dtype** = ``"float32"`` or ``"float"``.
+              - **dtype** = ``"float64"`` or ``"double"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -121,11 +121,11 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
     Keyword Args:
-        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **dtype** = ``"float32"`` or ``"float"``.
+              - **dtype** = ``"float64"`` or ``"double"``.
 
     Returns:
         A generic reduction that can be called on arbitrary
@@ -177,11 +177,11 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`Genred`.
 
     Keyword Args:
-        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **dtype** = ``"float32"`` or ``"float"``.
+              - **dtype** = ``"float64"`` or ``"double"``.
 
     Returns:
         A generic reduction that can be called on arbitrary

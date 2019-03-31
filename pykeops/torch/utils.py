@@ -1,6 +1,6 @@
 import torch
 
-from pykeops.torch import Genred, default_cuda_type
+from pykeops.torch import Genred, default_dtype
 
 
 #  from pykeops.torch.generic.generic_red import GenredLowlevel
@@ -47,19 +47,19 @@ class torchtools:
     def dtype(x): return x.dtype
 
     @staticmethod
-    def rand(m, n, dtype=default_cuda_type, device='0'): return torch.rand(m, n, dtype=dtype, device=device)
+    def rand(m, n, dtype=default_dtype, device='0'): return torch.rand(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def randn(m, n, dtype=default_cuda_type, device='0'): return torch.randn(m, n, dtype=dtype, device=device)
+    def randn(m, n, dtype=default_dtype, device='0'): return torch.randn(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def zeros(shape, dtype=default_cuda_type, device='0'): return torch.zeros(shape, dtype=dtype, device=device)
+    def zeros(shape, dtype=default_dtype, device='0'): return torch.zeros(shape, dtype=dtype, device=device)
 
     @staticmethod
-    def eye(n, dtype=default_cuda_type, device='0'): return torch.eye(n, dtype=dtype, device=device)
+    def eye(n, dtype=default_dtype, device='0'): return torch.eye(n, dtype=dtype, device=device)
 
     @staticmethod
-    def array(x, dtype=default_cuda_type, device='0'): return torch.tensor(x, dtype=dtype, device=device)
+    def array(x, dtype=default_dtype, device='0'): return torch.tensor(x, dtype=dtype, device=device)
     
 
 def WarmUpGpu():
@@ -69,7 +69,7 @@ def WarmUpGpu():
                'y = Vj(1)',  # Second arg  : j-variable, of size 1
                'b = Vj(1)',  # Third arg  : j-variable, of size 1
                'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, cuda_type='float32')
+    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float32')
     dum = torch.rand(10, 1)
     dum2 = torch.rand(10, 1)
     my_routine(dum, dum, dum2, torch.tensor([1.0]))

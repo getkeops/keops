@@ -38,7 +38,7 @@ variables = ['x = Vi(3)','y = Vj(3)','a = Vj(1)','p = Pm(1)']
 
 type = 'float32'  # May be 'float32' or 'float64'
 
-my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=type)
+my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, dtype=type)
 
 
 ###############################################################
