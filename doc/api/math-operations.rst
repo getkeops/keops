@@ -159,8 +159,9 @@ code name                    arguments              mathematical expression     
 =========================    =====================  ============================================================================================================================  =========================================================================
 
 **N.B.:** All these reductions, except ``Max_SumShiftExp`` and ``LogSumExp``, are vectorized : whenever the input ``f`` or ``g`` is vector-valued, the output will be vector-valued, with the corresponding reduction applied element-wise to each component.
+
 **N.B.:** All reductions accept an additional optional argument that specifies wether the reduction is performed over the j or the i index.
-(see :ref:`part.cpp_api` and :ref:`part.genred`)
+(see :ref:`part.cppapi` and :ref:`part.genred`)
 
 
 
