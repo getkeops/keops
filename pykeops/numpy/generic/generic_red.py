@@ -224,4 +224,4 @@ class Genred():
         out = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
 
         nout = nx if self.axis==1 else ny
-        return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg)
+        return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg, self.cuda_type)

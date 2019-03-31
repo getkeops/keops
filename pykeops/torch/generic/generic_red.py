@@ -310,4 +310,4 @@ class Genred():
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, ranges, *args)
         nx, ny = get_sizes(self.aliases, *args)
         nout = nx if self.axis==1 else ny
-        return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg)
+        return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, self.cuda_type)
