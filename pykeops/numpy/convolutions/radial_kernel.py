@@ -42,7 +42,7 @@ class RadialKernelGrad1conv:
 
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
-    def __init__(self, dtype=default_dtype), cuda_type=None:
+    def __init__(self, dtype=default_dtype, cuda_type=None):
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
