@@ -40,8 +40,8 @@ N = 5000
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-type = 'float32' # Could be 'float32' or 'float64'
-torchtype = torch.float32 if type == 'float32' else torch.float64
+dtype = 'float32' # Could be 'float32' or 'float64'
+torchtype = torch.float32 if dtype == 'float32' else torch.float64
 
 x = torch.randn(M, 3, dtype=torchtype, device=device)
 y = torch.randn(N, 3, dtype=torchtype, device=device, requires_grad=True)
@@ -64,7 +64,7 @@ variables = ['x = Vi(3)',  # First arg   : i-variable, of size 3
 # The output c is an :math:`x`-variable indexed by :math:`i`.
 
 my_routine = Genred(formula, variables, 
-                    reduction_op='Sum', axis=1, dtype=type)
+                    reduction_op='Sum', axis=1, dtype=dtype)
 c = my_routine(x, y, a, p)
 
 

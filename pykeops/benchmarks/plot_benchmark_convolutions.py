@@ -33,16 +33,16 @@ D = 3      # Dimension of the x_i's and y_j's
 E = 3      # Dimension of the b_j's
 REPEAT = 10  # Number of loops per test
 
-type = 'float32'
+dtype = 'float32'
 
 ######################################################################
 # Create some random input data:
 #
 
-x = np.random.randn(M, D).astype(type)  # Target points
-y = np.random.randn(N, D).astype(type)  # Source points
-b = np.random.randn(N, E).astype(type)  # Source signal
-sigma = np.array([2.4]).astype(type)    # Kernel radius
+x = np.random.randn(M, D).astype(dtype)  # Target points
+y = np.random.randn(N, D).astype(dtype)  # Source points
+b = np.random.randn(N, E).astype(dtype)  # Source signal
+sigma = np.array([2.4]).astype(dtype)    # Kernel radius
 
 ######################################################################
 # And load it as PyTorch variables:
@@ -53,7 +53,7 @@ try:
     
     use_cuda = torch.cuda.is_available()
     device = 'cuda' if use_cuda else 'cpu'
-    torchtype = torch.float32 if type == 'float32' else torch.float64
+    torchtype = torch.float32 if dtype == 'float32' else torch.float64
 
     xc = torch.tensor(x, dtype=torchtype, device=device)
     yc = torch.tensor(y, dtype=torchtype, device=device)
@@ -144,7 +144,7 @@ for k in kernel_to_test:
     # Specific cuda tiled implementation (if cuda is available)
     try:
         from pykeops.numpy import RadialKernelConv
-        my_conv = RadialKernelConv(type)
+        my_conv = RadialKernelConv(dtype)
         g_specific = my_conv(x, y, b, sigma, kernel=k)
         torch.cuda.synchronize()
         speed_pykeops_specific[k] = np.array(timeit.repeat(

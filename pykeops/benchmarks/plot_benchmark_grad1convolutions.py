@@ -39,17 +39,17 @@ REPEAT = 10  # Number of loops per test
 use_numpy = True
 use_vanilla = True
 
-type = 'float32'
+dtype = 'float32'
 
 ######################################################################
 # Create some random input data:
 #
 
-a = np.random.rand(N, E).astype(type)  # Gradient to backprop
-x = np.random.rand(N, D).astype(type)  # Target points
-y = np.random.rand(M, D).astype(type)  # Source points
-b = np.random.rand(M, E).astype(type)  # Source signals
-sigma = np.array([0.4]).astype(type)   # Kernel radius
+a = np.random.rand(N, E).astype(dtype)  # Gradient to backprop
+x = np.random.rand(N, D).astype(dtype)  # Target points
+y = np.random.rand(M, D).astype(dtype)  # Source points
+b = np.random.rand(M, E).astype(dtype)  # Source signals
+sigma = np.array([0.4]).astype(dtype)   # Kernel radius
 
 
 ######################################################################
@@ -60,7 +60,7 @@ try:
     
     use_cuda = torch.cuda.is_available()
     device = 'cuda' if use_cuda else 'cpu'
-    torchtype = torch.float32 if type == 'float32' else torch.float64
+    torchtype = torch.float32 if dtype == 'float32' else torch.float64
 
     ac = torch.tensor(a, dtype=torchtype, device=device)
     xc = torch.tensor(x, dtype=torchtype, device=device, requires_grad=True)
@@ -158,7 +158,7 @@ for k in kernel_to_test:
     # Specific cuda tiled implementation (if cuda is available)
     try:
         from pykeops.numpy import RadialKernelGrad1conv
-        my_conv = RadialKernelGrad1conv(type)
+        my_conv = RadialKernelGrad1conv(dtype)
         g1 = my_conv(a, x, y, b, sigma, kernel=k)
         torch.cuda.synchronize()
         speed_pykeops_specific[k] =  np.array(timeit.repeat(

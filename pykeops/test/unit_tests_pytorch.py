@@ -33,29 +33,29 @@ class PytorchUnitTestCase(unittest.TestCase):
         use_cuda = torch.cuda.is_available()
         device = 'cuda' if use_cuda else 'cpu'
         
-        type = torch.float32
-        xc = torch.tensor(x, dtype=type, device=device, requires_grad=True)
-        ac = torch.tensor(a, dtype=type, device=device, requires_grad=True)
-        ec = torch.tensor(e, dtype=type, device=device, requires_grad=True)
-        fc = torch.tensor(f, dtype=type, device=device, requires_grad=True)
-        yc = torch.tensor(y, dtype=type, device=device, requires_grad=True)
-        bc = torch.tensor(b, dtype=type, device=device, requires_grad=True)
-        gc = torch.tensor(g, dtype=type, device=device, requires_grad=True)
-        pc = torch.tensor(p, dtype=type, device=device, requires_grad=True)
-        sigmac = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
-        alphac = torch.tensor(alpha, dtype=type, device=device, requires_grad=False)
+        dtype = torch.float32
+        xc = torch.tensor(x, dtype=dtype, device=device, requires_grad=True)
+        ac = torch.tensor(a, dtype=dtype, device=device, requires_grad=True)
+        ec = torch.tensor(e, dtype=dtype, device=device, requires_grad=True)
+        fc = torch.tensor(f, dtype=dtype, device=device, requires_grad=True)
+        yc = torch.tensor(y, dtype=dtype, device=device, requires_grad=True)
+        bc = torch.tensor(b, dtype=dtype, device=device, requires_grad=True)
+        gc = torch.tensor(g, dtype=dtype, device=device, requires_grad=True)
+        pc = torch.tensor(p, dtype=dtype, device=device, requires_grad=True)
+        sigmac = torch.tensor(sigma, dtype=dtype, device=device, requires_grad=False)
+        alphac = torch.tensor(alpha, dtype=dtype, device=device, requires_grad=False)
         
-        type = torch.float64
-        xcd = torch.tensor(x, dtype=type, device=device, requires_grad=True)
-        acd = torch.tensor(a, dtype=type, device=device, requires_grad=True)
-        ecd = torch.tensor(e, dtype=type, device=device, requires_grad=True)
-        fcd = torch.tensor(f, dtype=type, device=device, requires_grad=True)
-        ycd = torch.tensor(y, dtype=type, device=device, requires_grad=True)
-        bcd = torch.tensor(b, dtype=type, device=device, requires_grad=True)
-        gcd = torch.tensor(g, dtype=type, device=device, requires_grad=True)
-        pcd = torch.tensor(p, dtype=type, device=device, requires_grad=True)
-        sigmacd = torch.tensor(sigma, dtype=type, device=device, requires_grad=False)
-        alphacd = torch.tensor(alpha, dtype=type, device=device, requires_grad=False)
+        dtype = torch.float64
+        xcd = torch.tensor(x, dtype=dtype, device=device, requires_grad=True)
+        acd = torch.tensor(a, dtype=dtype, device=device, requires_grad=True)
+        ecd = torch.tensor(e, dtype=dtype, device=device, requires_grad=True)
+        fcd = torch.tensor(f, dtype=dtype, device=device, requires_grad=True)
+        ycd = torch.tensor(y, dtype=dtype, device=device, requires_grad=True)
+        bcd = torch.tensor(b, dtype=dtype, device=device, requires_grad=True)
+        gcd = torch.tensor(g, dtype=dtype, device=device, requires_grad=True)
+        pcd = torch.tensor(p, dtype=dtype, device=device, requires_grad=True)
+        sigmacd = torch.tensor(sigma, dtype=dtype, device=device, requires_grad=False)
+        alphacd = torch.tensor(alpha, dtype=dtype, device=device, requires_grad=False)
         
         print('Running Pytorch tests.')
     except:

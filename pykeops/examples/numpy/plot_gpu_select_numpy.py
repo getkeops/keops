@@ -36,9 +36,9 @@ gpuids = [0,1] if torch.cuda.device_count() > 1 else [0]
 formula   =  'Square(p-a) * Exp(x+y)'
 variables = ['x = Vi(3)','y = Vj(3)','a = Vj(1)','p = Pm(1)']
 
-type = 'float32'  # May be 'float32' or 'float64'
+dtype = 'float32'  # May be 'float32' or 'float64'
 
-my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, dtype=type)
+my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, dtype=dtype)
 
 
 ###############################################################
@@ -47,10 +47,10 @@ my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, dtype=type)
 
 M = 1000
 N = 2000
-x = np.random.randn(M,3).astype(type)
-y = np.random.randn(N,3).astype(type)
-a = np.random.randn(N,1).astype(type)
-p = np.random.randn(1,1).astype(type)
+x = np.random.randn(M,3).astype(dtype)
+y = np.random.randn(N,3).astype(dtype)
+a = np.random.randn(N,1).astype(dtype)
+p = np.random.randn(1,1).astype(dtype)
 
 #########################################
 # Launch our routine on the CPU:
