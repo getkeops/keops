@@ -191,6 +191,9 @@ sigma = torch.tensor([20], dtype=torchdtype, device=torchdeviceId)
 
 fig = plt.figure()
 ax = Axes3D(fig)
+ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 ax.axis('equal')
 ax.plot_trisurf(q0.detach().cpu().numpy()[:, 0],
                 q0.detach().cpu().numpy()[:, 1],
@@ -203,8 +206,7 @@ ax.plot_trisurf(VT.detach().cpu().numpy()[:, 0],
                 triangles=FT.detach().cpu().numpy(),
                 color=(0, 0, 0, 0),  edgecolor=(0, 0, 1, .3),  linewidth=1)
 blue_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
-red_proxy = plt.Rectangle((0, 0), 1, 1, fc="r")
-yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="y")
+red_proxy = plt.Rectangle((0, 0), 1, 1, fc=(1, 0, 0, .5))
 ax.legend([red_proxy,  blue_proxy], ['source', 'target'])
 ax.set_title('Data')
 plt.show()
@@ -243,8 +245,8 @@ print('Optimization (L-BFGS) time: ', round(time.time() - start, 2), ' seconds')
 # Display output
 # --------------
 # The animated version of the deformation:
-
-listpq = Shooting(p0, q0, Kv, nt=15)
+nt = 15
+listpq = Shooting(p0, q0, Kv, nt=nt)
 
 ################################################################################
 # .. raw:: html
@@ -261,7 +263,7 @@ q0np, FSnp = q0.detach().cpu().numpy(), FS.detach().cpu().numpy()
 
 
 images = []
-for t in range(15):
+for t in range(nt):
     qnp = listpq[t][1].detach().cpu().numpy()
     
     # create Figure
@@ -272,10 +274,15 @@ for t in range(15):
     # make the plot
     ax = Axes3D(fig)
     ax.axis('equal')
-    ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(0, 0, 0, 0),  edgecolor=(1, 0, 0, .08), linewidth=1)
+    ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
+    ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(0, 0, 0, 0),  edgecolor=(1, 0, 0, .08 * (nt-1-t)/(nt-1)), linewidth=1)
     ax.plot_trisurf(qnp[:, 0],  qnp[:, 1],  qnp[:, 2],  triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3),  linewidth=1)
     ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0),  edgecolor=(0, 0, 1, .3),  linewidth=1)
-    
+
+    yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="y")
+    red_proxy = plt.Rectangle((0, 0), 1, 1, fc=(1, 0, 0, .8 * (nt - 1 - t) / (nt - 1)))
     ax.legend([red_proxy, yellow_proxy, blue_proxy], ['source', 'deformed', 'target'])
     ax.set_title('LDDMM matching example, step ' + str(t))
     
