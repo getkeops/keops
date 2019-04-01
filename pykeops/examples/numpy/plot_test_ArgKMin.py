@@ -24,9 +24,9 @@ N = 1000  # Number of points
 D = 2     # Dimension of the ambient space
 K = 3     # Number of neighbors to look for
 
-type = 'float32'  # May be 'float32' or 'float64'
+dtype = 'float32'  # May be 'float32' or 'float64'
 
-x = np.random.rand(N,D).astype(type)
+x = np.random.rand(N,D).astype(dtype)
 
 ###############################################################
 # KeOps Kernel
@@ -38,7 +38,7 @@ variables = ['x = Vi('+str(D)+')',  # First arg : i-variable, of size D
 
 # N.B.: The number K is specified as an optional argument `opt_arg`
 my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, 
-                    cuda_type=type, opt_arg=K)
+                    dtype=dtype, opt_arg=K)
 
 
 ###############################################################
@@ -59,8 +59,8 @@ my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1,
 #   you can bypass this procedure and use a simple C++ ``for`` loop instead.
 
 # Dummy first call to warm-up the GPU and thus get an accurate timing:
-my_routine( np.random.rand(10,D).astype(type),
-            np.random.rand(10,D).astype(type) )
+my_routine( np.random.rand(10,D).astype(dtype),
+            np.random.rand(10,D).astype(dtype) )
 
 # Actually perform our K-nn search:
 start = time.time()

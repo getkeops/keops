@@ -17,7 +17,7 @@ if torch.__version__ < torch_version_required:
 pykeops.gpu_available = torch.cuda.is_available() # use torch to detect gpu
 pykeops.torch_found = True
 
-default_cuda_type = 'float32'
+default_dtype = 'float32'
 
 ##########################################################
 # Import pyKeOps routines 

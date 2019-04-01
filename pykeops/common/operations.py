@@ -149,7 +149,7 @@ def KernelLinearSolver(binding, K, x, b, alpha=0, eps=1e-6, precond=False, preco
                      'y = Vj(' + str(D) + ')',  # Second arg  : j-variable, of size D
                      'b = Vj(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
                      'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=tools.dtype)
+        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, dtype=tools.dtype)
         oos2 = tools.array([1.0 / sigma ** 2])
         KernelMatrix = GaussKernelMatrix(sigma)
 
@@ -167,7 +167,7 @@ def KernelLinearSolver(binding, K, x, b, alpha=0, eps=1e-6, precond=False, preco
                      'v = Vi(' + str(D) + ')',  # Second arg  : i-variable, of size D
                      'x = Vj(' + str(D) + ')',  # Third arg  : j-variable, of size D
                      'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=tools.dtype)
+        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, dtype=tools.dtype)
         oos2 = tools.array([1.0 / sigma ** 2])
         KernelMatrix = GaussKernelMatrix(sigma)
 

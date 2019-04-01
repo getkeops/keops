@@ -1,7 +1,7 @@
 import torch
 
 from pykeops.torch.generic.generic_red import GenredAutograd
-from pykeops.torch import default_cuda_type
+from pykeops.torch import default_dtype
 from pykeops.common.utils import axis2cat
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.get_options import get_tag_backend
@@ -18,9 +18,9 @@ class KernelSolveAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, varinvpos, alpha, backend, cuda_type, device_id, eps, ranges, *args):
+    def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, *args):
 
-        myconv = load_keops(formula, aliases, cuda_type, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
+        myconv = load_keops(formula, aliases, dtype, 'torch', ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)])
         
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
@@ -28,7 +28,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.varinvpos = varinvpos
         ctx.alpha = alpha
         ctx.backend = backend
-        ctx.cuda_type = cuda_type
+        ctx.dtype = dtype
         ctx.device_id = device_id
         ctx.eps = eps
         ctx.myconv = myconv
@@ -71,7 +71,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         varinvpos = ctx.varinvpos
         backend = ctx.backend
         alpha = ctx.alpha
-        cuda_type = ctx.cuda_type
+        dtype = ctx.dtype
         device_id = ctx.device_id
         eps = ctx.eps
         myconv = ctx.myconv
@@ -91,13 +91,13 @@ class KernelSolveAutograd(torch.autograd.Function):
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, cuda_type, device_id, eps, ranges, *newargs)
+        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 9]:  # because of (formula, aliases, varinvpos, alpha, backend, cuda_type, device_id, eps, ranges)
+            if not ctx.needs_input_grad[var_ind + 9]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -122,7 +122,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                     if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                         # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/reductions
                         # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                        grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, ranges, *args_g)
+                        grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
                         # Then, sum 'grad' wrt 'i' :
                         # I think that '.sum''s backward introduces non-contiguous arrays,
                         # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -130,10 +130,10 @@ class KernelSolveAutograd(torch.autograd.Function):
                         grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                         grad = grad.view(-1)
                     else:
-                        grad = genconv(formula_g, aliases_g, backend, cuda_type, device_id, ranges, *args_g)
+                        grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
                     grads.append(grad)
          
-        # Grads wrt. formula, aliases, varinvpos, alpha, backend, cuda_type, device_id, eps, ranges, *args
+        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, *args
         return (None, None, None, None, None, None, None, None, None, *grads)
 
 
@@ -205,11 +205,11 @@ class KernelSolve:
               - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
               - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **dtype** = ``"float32"`` or ``"float"``.
+              - **dtype** = ``"float64"`` or ``"double"``.
 
     **To apply the routine on arbitrary torch Tensors:**
         
@@ -278,7 +278,7 @@ class KernelSolve:
         >>> print(g_x.shape)
         torch.Size([10000, 3]) 
     """
-    def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, cuda_type=default_cuda_type):
+    def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype=default_dtype):
         reduction_op='Sum'
         # get the index of 'varinv' in the argument list
         tmp = aliases.copy()
@@ -288,11 +288,11 @@ class KernelSolve:
         self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.varinvpos = varinvpos
-        self.cuda_type = cuda_type
+        self.dtype = dtype
         self.alpha = alpha
 
     def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6, ranges=None):
-        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, self.alpha, backend, self.cuda_type, device_id, eps, ranges, *args)
+        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, self.alpha, backend, self.dtype, device_id, eps, ranges, *args)
 
 
 

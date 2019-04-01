@@ -1,7 +1,7 @@
 import importlib
 
 from pykeops import build_type
-from pykeops.numpy import default_cuda_type
+from pykeops.numpy import default_dtype
 from pykeops.common.compile_routines import compile_specific_conv_routine
 
 
@@ -19,8 +19,8 @@ class RadialKernelConv:
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p". 
     """
 
-    def __init__(self, cuda_type=default_cuda_type):
-        self.myconv = load_keops('radial_kernel_conv', cuda_type)
+    def __init__(self, dtype=default_dtype):
+        self.myconv = load_keops('radial_kernel_conv', dtype)
 
     def __call__(self, x, y, beta, sigma, kernel='gaussian'):
         return self.myconv.specific_conv(x, y, beta, sigma, kernel)
@@ -39,14 +39,14 @@ class RadialKernelGrad1conv:
 
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
-    def __init__(self, cuda_type=default_cuda_type):
-        self.myconv = load_keops('radial_kernel_grad1conv', cuda_type)
+    def __init__(self, dtype=default_dtype):
+        self.myconv = load_keops('radial_kernel_grad1conv', dtype)
 
     def __call__(self, a, x, y, beta, sigma, kernel='gaussian'):
         return self.myconv.specific_grad1conv(a, x, y, beta, sigma, kernel)
 
 
-def load_keops(target, cuda_type=default_cuda_type):
+def load_keops(target, dtype=default_dtype):
     # Import and compile
     compile = (build_type == 'Debug')
 
@@ -57,7 +57,7 @@ def load_keops(target, cuda_type=default_cuda_type):
             compile = True
 
     if compile:
-        compile_specific_conv_routine(target, cuda_type)
+        compile_specific_conv_routine(target, dtype)
         myconv = importlib.import_module(target)
         print('Loaded.')
     return myconv

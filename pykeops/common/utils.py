@@ -4,7 +4,7 @@ from hashlib import sha256
 
 c_type = dict(float32="float", float64="double")
 
-def create_name(formula, aliases, cuda_type, lang):
+def create_name(formula, aliases, dtype, lang):
     """
     Compose the shared object name
     """
@@ -13,7 +13,7 @@ def create_name(formula, aliases, cuda_type, lang):
 
     # Since the OS prevents us from using arbitrary long file names, an okayish solution is to call
     # a standard hash function, and hope that we won't fall into a non-injective nightmare case...
-    dll_name = ",".join(aliases + [formula]) + "_" + cuda_type
+    dll_name = ",".join(aliases + [formula]) + "_" + dtype
     dll_name = "libKeOps" + lang + sha256(dll_name.encode("utf-8")).hexdigest()[:10]
     return dll_name
 
@@ -103,7 +103,7 @@ def WarmUpGpu(backend):
                  "b = Vj(1)",  # Third arg : j-variable, of size 1
                  "oos2 = Pm(1)"]  # Fourth arg: scalar parameter
     
-    my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, cuda_type=tools.dtype)
+    my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, dtype=tools.dtype)
     dum = tools.rand(10, 1)
     dum2 = tools.rand(10, 1)
     my_routine(dum, dum, dum2, tools.array([1.0]))

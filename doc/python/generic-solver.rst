@@ -25,7 +25,7 @@ In both cases, :mod:`KernelSolve` is a class with no methods: its instantiation 
 
   .. code-block:: python
 
-    K_inv = KernelSolve(formula, aliases, varinvalias, alpha=1e-10, axis=0, cuda_type='float32')
+    K_inv = KernelSolve(formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype='float32')
 
 2. **Call**: The variable **K_inv** now refers to a callable object wrapped around a set of custom Cuda routines. It may be used on any set of arrays (either NumPy arrays or Torch tensors) with the correct shapes, as described in the **aliases** argument:
 

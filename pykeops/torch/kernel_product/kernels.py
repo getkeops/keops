@@ -270,7 +270,7 @@ class Kernel:
             self.routine_log = routine_log
 
 
-def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float32'):
+def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32'):
     r""":doc:`Math-friendly wrapper <../../kernel-product>` around the :func:`Genred` constructor.
 
     This routine allows you to compute kernel dot products (aka. as discrete convolutions)
@@ -353,12 +353,12 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
             - ``"auto"``: to use libkp's CPU or CUDA routines.
             - ``"pytorch"``: to fall back on a reference tensorized implementation.
 
-        cuda_type (string, default = ``"float32"``): Specifies the numerical **dtype**
+        dtype (string, default = ``"float32"``): Specifies the numerical **dtype**
             of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"``,
-              - **cuda_type** = ``"float64"``.
+              - **dtype** = ``"float32"``,
+              - **dtype** = ``"float64"``.
         
 
 
@@ -405,4 +405,4 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, cuda_type='float3
     if not     x.__class__ in [tuple, list]:     x = (x,)
     if not     y.__class__ in [tuple, list]:     y = (y,)
 
-    return FeaturesKP(kernel, gamma, x, y, bs, mode=mode, backend=backend, cuda_type=cuda_type)
+    return FeaturesKP(kernel, gamma, x, y, bs, mode=mode, backend=backend, dtype=dtype)

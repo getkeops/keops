@@ -2,7 +2,7 @@ from pykeops.common.keops_io import load_keops
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.parse_type import get_sizes, complete_aliases
 from pykeops.common.utils import axis2cat
-from pykeops.numpy import default_cuda_type
+from pykeops.numpy import default_dtype
 from pykeops.common.operations import preprocess, postprocess
 
 
@@ -81,11 +81,11 @@ class Genred():
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
+            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
                 The supported values are:
 
-                  - **cuda_type** = ``"float32"`` or ``"float"``.
-                  - **cuda_type** = ``"float64"`` or ``"double"``.
+                  - **dtype** = ``"float32"`` or ``"float"``.
+                  - **dtype** = ``"float64"`` or ``"double"``.
 
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
@@ -199,8 +199,11 @@ class Genred():
             [1000000, 1]
         """
     
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, cuda_type=default_cuda_type, opt_arg=None,
-                 formula2=None):
+    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
+                 formula2=None, cuda_type=None):
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
         
@@ -210,8 +213,8 @@ class Genred():
         self.formula = reduction_op_internal + '_Reduction(' + formula + str_opt_arg + ',' + str(
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, aliases)
-        self.cuda_type = cuda_type
-        self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
+        self.dtype = dtype
+        self.myconv = load_keops(self.formula,  self.aliases,  self.dtype, 'numpy')
         self.axis = axis
         self.opt_arg = opt_arg
 
@@ -224,4 +227,4 @@ class Genred():
         out = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
 
         nout = nx if self.axis==1 else ny
-        return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg, self.cuda_type)
+        return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg, self.dtype)

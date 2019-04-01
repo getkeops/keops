@@ -5,7 +5,7 @@ from pykeops.common.keops_io import load_keops
 from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases
 from pykeops.common.utils import axis2cat
-from pykeops.numpy import default_cuda_type
+from pykeops.numpy import default_dtype
 
 
 class KernelSolve:
@@ -70,11 +70,11 @@ class KernelSolve:
               - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
               - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-        cuda_type (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
             The supported values are:
 
-              - **cuda_type** = ``"float32"`` or ``"float"``.
-              - **cuda_type** = ``"float64"`` or ``"double"``.
+              - **dtype** = ``"float32"`` or ``"float"``.
+              - **dtype** = ``"float64"`` or ``"double"``.
 
     **To apply the routine on arbitrary NumPy arrays:**
         
@@ -140,7 +140,7 @@ class KernelSolve:
     
     """
     
-    def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype=default_cuda_type, opt_arg=None):
+    def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype=default_dtype, opt_arg=None):
         reduction_op = 'Sum'
         if opt_arg:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'

@@ -41,7 +41,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             sigma_sphere = np.pi / 2
 
             # Call cuda kernel
-            my_fshape_scp = FshapeScp(kernel_geom=kgeom, kernel_sig=ksig, kernel_sphere=ksphere, cuda_type=t)
+            my_fshape_scp = FshapeScp(kernel_geom=kgeom, kernel_sig=ksig, kernel_sphere=ksphere, dtype=t)
             gamma = my_fshape_scp(self.x.astype(t), self.y.astype(t),
                                   self.f.astype(t), self.g.astype(t),
                                   self.a.astype(t), self.b.astype(t),
@@ -114,7 +114,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myconv = Genred(formula, aliases, reduction_op='Sum', axis=axis, cuda_type=t)
+                myconv = Genred(formula, aliases, reduction_op='Sum', axis=axis, dtype=t)
                 gamma_keops = myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
 
                 # Numpy version
@@ -140,7 +140,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myconv = Genred(formula, aliases, reduction_op='LogSumExp', axis=1, cuda_type=t)
+                myconv = Genred(formula, aliases, reduction_op='LogSumExp', axis=1, dtype=t)
                 gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
 
                 # Numpy version
@@ -166,7 +166,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myop = Genred(formula, aliases, reduction_op='SumSoftMaxWeight', axis=1, cuda_type=t, formula2=formula_weights)
+                myop = Genred(formula, aliases, reduction_op='SumSoftMaxWeight', axis=1, dtype=t, formula2=formula_weights)
                 gamma_keops= myop(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
 
                 # Numpy version
@@ -248,7 +248,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                      'y = Vj('+str(self.D)+')']  # Second arg  : j-variable, of size D
 
 
-        my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, cuda_type=self.type_to_test[1], opt_arg=3)
+        my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1, dtype=self.type_to_test[1], opt_arg=3)
 
         c = my_routine(self.x, self.y, backend="auto").astype(int)
         cnp = np.argsort(np.sum((self.x[:,np.newaxis,:] - self.y[np.newaxis,:,:]) ** 2, axis=2), axis=1)[:,:3]
