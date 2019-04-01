@@ -26,7 +26,6 @@ import sphinx_gallery
 from recommonmark.transform import AutoStructify
 
 from pykeops import __version__
-if __version__ == "???" : __version__ = "0.1.7"
 
 # -- General configuration ------------------------------------------------
 

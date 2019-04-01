@@ -6,6 +6,8 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
+from pykeops import __version__ as current_version
+
 # Get the long description from the README file
 with open(path.join(here, 'pykeops','pykeops.md'), encoding='utf-8') as f:
      long_description = f.read()
@@ -44,7 +46,7 @@ pybind11_files = [
 
 setup(
     name='pykeops',
-    version='???',
+    version=current_version,
 
     description='Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows',  # Required
     long_description=long_description,
