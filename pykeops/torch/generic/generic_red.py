@@ -292,7 +292,10 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None):
+                 formula2=None, cuda_type=None):
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
         
