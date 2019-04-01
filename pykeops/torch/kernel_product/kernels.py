@@ -270,7 +270,7 @@ class Kernel:
             self.routine_log = routine_log
 
 
-def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32'):
+def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', cuda_type=None):
     r""":doc:`Math-friendly wrapper <../../kernel-product>` around the :func:`Genred` constructor.
 
     This routine allows you to compute kernel dot products (aka. as discrete convolutions)
@@ -394,6 +394,10 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32'):
                 [ 1.3097,  4.3967],
                 [ 0.4095, -0.3039]], grad_fn=<GenredAutogradBackward>)
     """
+    
+    if cuda_type:
+        # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+        dtype = cuda_type 
 
     kernel  = params["id"]
     if mode is None:    mode    = params.get("mode", "sum")

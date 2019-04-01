@@ -32,7 +32,7 @@ class KernelSolve:
         into a *list of scalar values*.
 
     Note:
-        :func:`KernelSolve` relies on CUDA kernels that are compiled on-the-fly 
+        :func:`KernelSolve` relies on C++ or CUDA kernels that are compiled on-the-fly 
         and stored in ``pykeops.build_folder`` as ".dll" or ".so" files for later use.
 
     Args:

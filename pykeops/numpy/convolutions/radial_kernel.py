@@ -19,7 +19,10 @@ class RadialKernelConv:
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p". 
     """
 
-    def __init__(self, dtype=default_dtype):
+    def __init__(self, dtype=default_dtype, cuda_type=None):
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type         
         self.myconv = load_keops('radial_kernel_conv', dtype)
 
     def __call__(self, x, y, beta, sigma, kernel='gaussian'):
@@ -39,7 +42,13 @@ class RadialKernelGrad1conv:
 
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
-    def __init__(self, dtype=default_dtype):
+    def __init__(self, dtype=default_dtype), cuda_type=None:
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type 
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type 
         self.myconv = load_keops('radial_kernel_grad1conv', dtype)
 
     def __call__(self, a, x, y, beta, sigma, kernel='gaussian'):

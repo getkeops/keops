@@ -22,7 +22,10 @@ class FshapeScp:
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
     
-    def __init__(self, kernel_geom="gaussian", kernel_sig="gaussian", kernel_sphere="binet", dtype=default_dtype):
+    def __init__(self, kernel_geom="gaussian", kernel_sig="gaussian", kernel_sphere="binet", dtype=default_dtype, cuda_type=None):
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type 
         self.kernel_geom = kernel_geom
         self.kernel_sig = kernel_sig
         self.kernel_sphere = kernel_sphere

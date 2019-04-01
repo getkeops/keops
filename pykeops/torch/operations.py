@@ -278,7 +278,10 @@ class KernelSolve:
         >>> print(g_x.shape)
         torch.Size([10000, 3]) 
     """
-    def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype=default_dtype):
+    def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype=default_dtype, cuda_type=None):
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type 
         reduction_op='Sum'
         # get the index of 'varinv' in the argument list
         tmp = aliases.copy()
