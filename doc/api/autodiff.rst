@@ -150,13 +150,13 @@ Coming back to our :ref:`previous example <formula.example>` where the formula
 
 .. code-block:: cpp
 
-    F = "SumReduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1)"
+    F = "Sum_Reduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1)"
 
 was discussed, the symbolic expression
 
 .. code-block:: cpp
 
-    [∂_a F] = "Grad( SumReduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1),
+    [∂_a F] = "Grad( Sum_Reduction(Square(Pm(0,1) - Vj(3,1)) * Exp(Vi(1,3) + Vj(2,3)), 1),
                      Vj(3,1), Vi(4,3) )"
 
 
@@ -171,4 +171,4 @@ With aliases, this computation simply reads:
 .. code-block:: cpp
 
     p=Pm(0,1), x=Vi(1,3), y=Vj(2,3), a=Vj(3,1), e=Vi(4,3)
-    [∂_a F](e) = "Grad( SumReduction(Square(p-a)*Exp(x+y), 1), a, e)"
+    [∂_a F](e) = "Grad( Sum_Reduction(Square(p-a)*Exp(x+y), 1), a, e)"

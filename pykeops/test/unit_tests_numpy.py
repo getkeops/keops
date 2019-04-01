@@ -166,7 +166,7 @@ class NumpyUnitTestCase(unittest.TestCase):
             with self.subTest(b=b, t=t):
 
                 # Call cuda kernel
-                myop = Genred(formula, aliases, reduction_op='SoftMax', axis=1, cuda_type=t, formula2=formula_weights)
+                myop = Genred(formula, aliases, reduction_op='SumSoftMaxWeight', axis=1, cuda_type=t, formula2=formula_weights)
                 gamma_keops= myop(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend=b)
 
                 # Numpy version

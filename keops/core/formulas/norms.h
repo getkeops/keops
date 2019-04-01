@@ -13,10 +13,17 @@
  * The file where the elementary norm-related operators are defined.
  * Available norms and scalar products are :
  *
- *   < .,. >, | . |^2, | .-. |^2 :
+ *   (.|.), |.|, |.|^2, |.-.|^2 :
  *      Scalprod<FA,FB> 			: scalar product between FA and FB
  *      SqNorm2<F>					: alias for Scalprod<F,F>
- *      SqDist<A,B>					: alias for SqNorm2<Subtract<A,B>>
+ *      Norm2<F>					: alias for Sqrt<SqNorm2<F>>
+ *      SqDist<FA,FB>				: alias for SqNorm2<Subtract<FA,FB>>
+ *   Non-standard norms :
+ *      WeightedSqNorm<A,F>         : squared weighted norm of F, either :
+ *                                       - a * sum_k f_k^2 if A::DIM=1
+ *                                       - sum_k a_k f_k^2 if A::DIM=F::DIM
+ *                                       - sum_kl a_kl f_k f_l if A::DIM=F::DIM^2
+ *      WeightedSqDist<A,FA,FB>       : alias for WeightedSqNorm<A,Subtract<FA,FB>>
  *
  */
 
@@ -30,7 +37,7 @@
 namespace keops {
 
 template < class FA, class FB >
-struct ScalprodImpl : BinaryOp<ScalprodImpl,FA,FB> {
+struct Scalprod_Impl : BinaryOp<Scalprod_Impl,FA,FB> {
     // Output dimension = 1, provided that FA::DIM = FB::DIM
     static const int DIMIN = FA::DIM;
     static_assert(DIMIN==FB::DIM,"Dimensions must be the same for Scalprod");
@@ -52,29 +59,29 @@ struct ScalprodImpl : BinaryOp<ScalprodImpl,FA,FB> {
 
 
 template < class FA, class FB >
-struct ScalprodAlias {
-    using type = ScalprodImpl<FA,FB>;
+struct Scalprod_Alias {
+    using type = Scalprod_Impl<FA,FB>;
 };
 
 // Three simple optimizations :
 
 // <A,0> = 0
 template < class FA, int DIM >
-struct ScalprodAlias<FA,Zero<DIM>> {
+struct Scalprod_Alias<FA,Zero<DIM>> {
     static_assert(DIM==FA::DIM,"Dimensions must be the same for Scalprod");
     using type = Zero<1>;
 };
 
 // <0,B> = 0
 template < class FB, int DIM >
-struct ScalprodAlias<Zero<DIM>,FB> {
+struct Scalprod_Alias<Zero<DIM>,FB> {
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Scalprod");
     using type = Zero<1>;
 };
 
 // <0,0> = 0
 template < int DIM1, int DIM2 >
-struct ScalprodAlias<Zero<DIM1>,Zero<DIM2>> {
+struct Scalprod_Alias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==DIM2,"Dimensions must be the same for Scalprod");
     using type = Zero<1>;
 };

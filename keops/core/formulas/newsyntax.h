@@ -7,8 +7,9 @@
 #include "core/formulas/factorize.h"
 
 #include "core/reductions/sum.h"
-#include "core/reductions/log_sum_exp.h"
+#include "core/reductions/max_sumshiftexp.h"
 #include "core/reductions/min.h"
+#include "core/reductions/max.h"
 #include "core/reductions/kmin.h"
 
 namespace keops {
@@ -43,6 +44,8 @@ F InvKeopsNS(KeopsNS<F> kf) {
 #define GradFromPos(F,V,I)  KeopsNS<GradFromPos<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(V)),I>>()
 
 #define IntCst(N) KeopsNS<IntConstant<N>>()
+
+#define Zero(D) KeopsNS<Zero<D>>()
 
 #define Elem(p,k) KeopsNS<Elem<decltype(InvKeopsNS(p)),k>>()
 
@@ -146,20 +149,40 @@ KeopsNS<Scalprod<FA,FB>> operator|(KeopsNS<FA> fa, KeopsNS<FB> fb) {
 
 // reductions
 
-#define SumReduction(F,I) KeopsNS<SumReduction<decltype(InvKeopsNS(F)),I>>()
-#define LogSumExpReduction(F,I) KeopsNS<LogSumExpReduction<decltype(InvKeopsNS(F)),I>>()
-#define LogSumExpVectReduction(F,I,G) KeopsNS<LogSumExpReduction<decltype(InvKeopsNS(F)),I,decltype(InvKeopsNS(G))>>()
+#define Sum_Reduction(F,I) KeopsNS<Sum_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Max_SumShiftExp_Reduction(F,I) KeopsNS<Max_SumShiftExp_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Max_SumShiftExpWeight_Reduction(F,I,G) KeopsNS<Max_SumShiftExp_Reduction<decltype(InvKeopsNS(F)),I,decltype(InvKeopsNS(G))>>()
 
-#define MinArgMinReduction(F,I) KeopsNS<MinArgMinReduction<decltype(InvKeopsNS(F)),I>>()
-#define ArgMinReduction(F,I) KeopsNS<ArgMinReduction<decltype(InvKeopsNS(F)),I>>()
-#define MinReduction(F,I) KeopsNS<MinReduction<decltype(InvKeopsNS(F)),I>>()
+#define Min_ArgMin_Reduction(F,I) KeopsNS<Min_ArgMin_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define ArgMin_Reduction(F,I) KeopsNS<ArgMin_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Min_Reduction(F,I) KeopsNS<Min_Reduction<decltype(InvKeopsNS(F)),I>>()
 
-#define MaxArgMaxReduction(F,I) KeopsNS<MaxArgMaxReduction<decltype(InvKeopsNS(F)),I>>()
-#define ArgMaxReduction(F,I) KeopsNS<ArgMaxReduction<decltype(InvKeopsNS(F)),I>>()
-#define MaxReduction(F,I) KeopsNS<MaxReduction<decltype(InvKeopsNS(F)),I>>()
+#define Max_ArgMax_Reduction(F,I) KeopsNS<Max_ArgMax_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define ArgMax_Reduction(F,I) KeopsNS<ArgMax_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Max_Reduction(F,I) KeopsNS<Max_Reduction<decltype(InvKeopsNS(F)),I>>()
 
-#define KMinArgKMinReduction(F,K,I) KeopsNS<KMinArgKMinReduction<decltype(InvKeopsNS(F)),K,I>>()
-#define ArgKMinReduction(F,K,I) KeopsNS<ArgKMinReduction<decltype(InvKeopsNS(F)),K,I>>()
-#define KMinReduction(F,K,I) KeopsNS<KMinReduction<decltype(InvKeopsNS(F)),K,I>>()
+#define KMin_ArgKMin_Reduction(F,K,I) KeopsNS<KMin_ArgKMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+#define ArgKMin_Reduction(F,K,I) KeopsNS<ArgKMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+#define KMin_Reduction(F,K,I) KeopsNS<KMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+
+// reductions (old syntax, kept for backward compatibility)
+
+#define SumReduction(F,I) KeopsNS<Sum_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define LogSumExpReduction(F,I) KeopsNS<Max_SumShiftExp_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define LogSumExpVectReduction(F,I,G) KeopsNS<Max_SumShiftExp_Reduction<decltype(InvKeopsNS(F)),I,decltype(InvKeopsNS(G))>>()
+
+#define Min_ArgMin_Reduction(F,I) KeopsNS<Min_ArgMin_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define ArgMinReduction(F,I) KeopsNS<ArgMin_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define MinReduction(F,I) KeopsNS<Min_Reduction<decltype(InvKeopsNS(F)),I>>()
+
+#define MaxArgMaxReduction(F,I) KeopsNS<Max_ArgMax_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define ArgMaxReduction(F,I) KeopsNS<ArgMax_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define MaxReduction(F,I) KeopsNS<Max_Reduction<decltype(InvKeopsNS(F)),I>>()
+
+#define KMinArgKMinReduction(F,K,I) KeopsNS<KMin_ArgKMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+#define ArgKMinReduction(F,K,I) KeopsNS<ArgKMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+#define KMinReduction(F,K,I) KeopsNS<KMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+
+
 
 }

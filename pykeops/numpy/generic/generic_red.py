@@ -207,11 +207,13 @@ class Genred():
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
-        self.formula = reduction_op_internal + 'Reduction(' + formula + str_opt_arg + ',' + str(
+        self.formula = reduction_op_internal + '_Reduction(' + formula + str_opt_arg + ',' + str(
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, aliases)
         self.cuda_type = cuda_type
         self.myconv = load_keops(self.formula,  self.aliases,  self.cuda_type, 'numpy')
+        self.axis = axis
+        self.opt_arg = opt_arg
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
         # Get tags
@@ -221,4 +223,5 @@ class Genred():
 
         out = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
 
-        return postprocess(out, "numpy", self.reduction_op)
+        nout = nx if self.axis==1 else ny
+        return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg, self.cuda_type)

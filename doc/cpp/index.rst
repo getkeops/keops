@@ -1,7 +1,8 @@
-
 .. figure:: ../_static/logo/keops++_logo.png
    :width: 100%
    :alt: Keops++ logo
+
+.. _`part.cppapi`:
 
 =================
 C++ API for Keops

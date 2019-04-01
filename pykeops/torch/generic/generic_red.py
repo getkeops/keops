@@ -126,35 +126,15 @@ class Genred():
             ``a.view(-1,1)`` should be used to turn a vector of weights
             into a *list of scalar values*.
 
-        Warning:
-            As of today, vector-valued formulas are only supported by
-            the ``"Sum"`` reduction. All the
-            :ref:`other reductions <part.reduction>` expect
-            **formula** to be scalar-valued.
-
         Note:
-            :func:`Genred` relies on CUDA kernels that are compiled on-the-fly,
+            :func:`Genred` relies on C++ or CUDA kernels that are compiled on-the-fly,
             and stored in ``pykeops.build_folder`` as ".dll" or ".so" files for later use.
 
         Note:
             :func:`Genred` is fully compatible with PyTorch's :mod:`autograd` engine:
-            If **reduction_op** is **Sum** or **LogSumExp**,
-            you can **backprop** through the KeOps :meth:`__call__` just
-            as if it was a vanilla PyTorch operation.
-
-        Note:
-            On top of the **Sum** and **LogSumExp** reductions, KeOps
-            supports
-            :ref:`variants of the ArgKMin reduction <part.reduction>`
-            that can be used
-            to implement k-nearest neighbor search.
-            These routines return indices encoded as **floating point numbers**, and
-            produce no gradient. Fortunately though, you can simply
-            turn them into ``LongTensors`` and use them to index
-            your arrays, as showcased in the documentation
-            of :func:`generic_argmin`, :func:`generic_argkmin` and in the
-            :doc:`K-means tutorial <../../../_auto_tutorials/kmeans/plot_kmeans_torch>`.
-
+            You can **backprop** through the KeOps :meth:`__call__` just
+            as if it was a vanilla PyTorch operation (except for Min or Max reduction types,
+            see :ref:`reductions <part.reduction>`)
 
         Args:
             formula (string): The scalar- or vector-valued expression
@@ -194,7 +174,7 @@ class Genred():
                   - **cuda_type** = ``"float32"`` or ``"float"``.
                   - **cuda_type** = ``"float64"`` or ``"double"``.
 
-            opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
+            opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMin_ArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
 
@@ -319,11 +299,15 @@ class Genred():
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
-        self.formula = reduction_op_internal + 'Reduction(' + formula + str_opt_arg + ',' + str(
+        self.formula = reduction_op_internal + '_Reduction(' + formula + str_opt_arg + ',' + str(
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, list(aliases)) # just in case the user provided a tuple
         self.cuda_type = cuda_type
+        self.axis = axis
+        self.opt_arg = opt_arg
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.cuda_type, device_id, ranges, *args)
-        return postprocess(out, "torch", self.reduction_op)
+        nx, ny = get_sizes(self.aliases, *args)
+        nout = nx if self.axis==1 else ny
+        return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, self.cuda_type)

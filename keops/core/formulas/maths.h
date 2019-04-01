@@ -27,10 +27,23 @@
  *      Inv<F>						: Pointwise inverse, more efficient than Pow<F,-1>
  *      IntInv<N>					: alias for Inv<IntConstant<N>>
  *      Sqrt<F>						: alias for Powf<F,IntInv<2>>
+ *      Rsqrt<F>					: inverse square root
  *
- *   exp, log :
+ *   standard math functions :
  *      Exp<F>						: exponential of F (vectorized)
  *      Log<F>						: logarithm   of F (vectorized)
+ *      Sin<F>						: sine        of F (vectorized)
+ *      Cos<F>						: cosine      of F (vectorized)
+ *      Sign<F>						: sign        of F (vectorized)
+ *      Step<F>						: step        of F (vectorized)
+ *      ReLU<F>						: ReLU        of F (vectorized)
+ *      Sign<F>						: sign        of F (vectorized)
+ *
+ *   concatenation and matrix-vector products:
+ *      Concat<FA,FB>				: concatenation of FB and FB
+ *      MatVecMult<FA,FB>			: matrix-vector product (FA::DIM must be a muliple of FB::DIM)
+ *      VecMatMult<FA,FB>			: vector-matrix product (FB::DIM must be a muliple of FA::DIM)
+ *      TensorProd<FA,FB>			: tensor product (output is of dimension FA::DIM*FB::DIM)
  *
  */
 
@@ -43,34 +56,34 @@ namespace keops {
 // The actual implementation can be found below.
 // Since the gradients of these operations are "bootstrapped", we need to be a little bit
 // careful with the declaration order, and therefore use three "typenames" per operation:
-// OpAlias, OpImpl and Op (proper).
-template < class FA, class FB > struct AddImpl;
-template < class FA, class FB > struct SubtractImpl;
-template < class FA, class FB > struct ScalprodImpl;
-template < class FA, class FB > struct ScalImpl;
-template < class FA, class FB > struct MultImpl;
+// Op_Alias, Op_Impl and Op (proper).
+template < class FA, class FB > struct Add_Impl;
+template < class FA, class FB > struct Subtract_Impl;
+template < class FA, class FB > struct Scalprod_Impl;
+template < class FA, class FB > struct Scal_Impl;
+template < class FA, class FB > struct Mult_Impl;
 
-template < class FA, class FB > struct AddAlias;
-template < class FA, class FB > struct SubtractAlias;
-template < class FA, class FB > struct ScalprodAlias;
-template < class FA, class FB > struct ScalAlias;
-template < class FA, class FB > struct MultAlias;
-template < class F > struct Norm2Alias;
-
-template < class FA, class FB >
-using Add = typename AddAlias<FA,FB>::type;
+template < class FA, class FB > struct Add_Alias;
+template < class FA, class FB > struct Subtract_Alias;
+template < class FA, class FB > struct Scalprod_Alias;
+template < class FA, class FB > struct Scal_Alias;
+template < class FA, class FB > struct Mult_Alias;
+template < class F > struct Norm2_Alias;
 
 template < class FA, class FB >
-using Subtract = typename SubtractAlias<FA,FB>::type;
+using Add = typename Add_Alias<FA,FB>::type;
 
 template < class FA, class FB >
-using Scalprod = typename ScalprodAlias<FA,FB>::type;
+using Subtract = typename Subtract_Alias<FA,FB>::type;
 
 template < class FA, class FB >
-using Scal = typename ScalAlias<FA,FB>::type;
+using Scalprod = typename Scalprod_Alias<FA,FB>::type;
 
 template < class FA, class FB >
-using Mult = typename MultAlias<FA,FB>::type;
+using Scal = typename Scal_Alias<FA,FB>::type;
+
+template < class FA, class FB >
+using Mult = typename Mult_Alias<FA,FB>::type;
 
 //////////////////////////////////////////////////////////////
 ////               MINUS OPERATOR : Minus< F >            ////
@@ -99,7 +112,7 @@ struct Minus : UnaryOp<Minus,F> {
 
 
 template < class FA, class FB >
-struct AddImpl : BinaryOp<AddImpl,FA,FB> {
+struct Add_Impl : BinaryOp<Add_Impl,FA,FB> {
     // Output dim = FA::DIM = FB::DIM
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Add");
@@ -125,25 +138,25 @@ struct AddImpl : BinaryOp<AddImpl,FA,FB> {
 
 // base class : this redirects to the implementation
 template < class FA, class FB >
-struct AddAlias0 {
-    using type = AddImpl<FA,FB>;
+struct Add_Alias0 {
+    using type = Add_Impl<FA,FB>;
 };
 
 // A + A = 2A
 template < class F >
-struct AddAlias0<F,F> {
+struct Add_Alias0<F,F> {
     using type = Scal<IntConstant<2>,F>;
 };
 
 // A + B*A = (1+B)*A
 template < class F, class G >
-struct AddAlias0<F,ScalImpl<G,F>> {
+struct Add_Alias0<F,Scal_Impl<G,F>> {
     using type = Scal<Add<IntConstant<1>,G>,F>;
 };
 
 // B*A + A = (1+B)*A
 template < class F, class G >
-struct AddAlias0<ScalImpl<G,F>,F> {
+struct Add_Alias0<Scal_Impl<G,F>,F> {
     using type = Scal<Add<IntConstant<1>,G>,F>;
 };
 
@@ -151,19 +164,19 @@ struct AddAlias0<ScalImpl<G,F>,F> {
 
 // base class : this redirects to the third stage
 template < class FA, class FB >
-struct AddAlias1 {
-    using type = typename AddAlias0<FA,FB>::type;
+struct Add_Alias1 {
+    using type = typename Add_Alias0<FA,FB>::type;
 };
 
 // B*A + C*A = (B+C)*A
 template < class F, class G, class H >
-struct AddAlias1<ScalImpl<G,F>,ScalImpl<H,F>> {
+struct Add_Alias1<Scal_Impl<G,F>,Scal_Impl<H,F>> {
     using type = Scal<Add<G,H>,F>;
 };
 
 // A+n = n+A (brings integers constants to the left)
 template < int N, class F >
-struct AddAlias1<F,IntConstantImpl<N>> {
+struct Add_Alias1<F,IntConstant_Impl<N>> {
     using type = Add<IntConstant<N>,F>;
 };
 
@@ -171,34 +184,34 @@ struct AddAlias1<F,IntConstantImpl<N>> {
 
 // base class : this redirects to the second stage
 template < class FA, class FB >
-struct AddAlias {
-    using type = typename AddAlias1<FA,FB>::type;
+struct Add_Alias {
+    using type = typename Add_Alias1<FA,FB>::type;
 };
 
 // A + 0 = A
 template < class FA, int DIM >
-struct AddAlias<FA,Zero<DIM>> {
+struct Add_Alias<FA,Zero<DIM>> {
     static_assert(DIM==FA::DIM,"Dimensions must be the same for Add");
     using type = FA;
 };
 
 // 0 + B = B
 template < class FB, int DIM >
-struct AddAlias<Zero<DIM>,FB> {
+struct Add_Alias<Zero<DIM>,FB> {
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Add");
     using type = FB;
 };
 
 // 0 + 0 = la tete a Toto
 template < int DIM1, int DIM2 >
-struct AddAlias<Zero<DIM1>,Zero<DIM2>> {
+struct Add_Alias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==DIM2,"Dimensions must be the same for Add");
     using type = Zero<DIM1>;
 };
 
 // m+n = m+n
 template < int M, int N >
-struct AddAlias<IntConstantImpl<M>,IntConstantImpl<N>> {
+struct Add_Alias<IntConstant_Impl<M>,IntConstant_Impl<N>> {
     using type = IntConstant<M+N>;
 };
 
@@ -208,7 +221,7 @@ struct AddAlias<IntConstantImpl<M>,IntConstantImpl<N>> {
 //////////////////////////////////////////////////////////////
 
 template < class F, class G >
-struct ConcatImpl : BinaryOp<ConcatImpl,F,G> {
+struct Concat_Impl : BinaryOp<Concat_Impl,F,G> {
     static const int DIM = F::DIM+G::DIM;
     
     static void PrintId(std::stringstream& str) { str << "Concat"; }
@@ -231,8 +244,8 @@ struct ConcatImpl : BinaryOp<ConcatImpl,F,G> {
 };
 
 template < class F, class G >
-struct ConcatAlias {
-	using type = ConcatImpl<F,G>;
+struct Concat_Alias {
+	using type = Concat_Impl<F,G>;
 };
 
 // ugly stuff to make logsumexp reduction work
@@ -242,12 +255,12 @@ struct Dummy {
 };
 
 template < class F >
-struct ConcatAlias<F,Dummy> {
+struct Concat_Alias<F,Dummy> {
 	using type = F;
 };
 
 template < class F, class G >
-using Concat = typename ConcatAlias<F,G>::type;
+using Concat = typename Concat_Alias<F,G>::type;
 
 //////////////////////////////////////////////////////////////
 ////      Scal*Vector Multiplication : Scal< FA,FB>       ////
@@ -255,7 +268,7 @@ using Concat = typename ConcatAlias<F,G>::type;
 
 
 template < class FA, class FB >
-struct ScalImpl : BinaryOp<ScalImpl,FA,FB> {
+struct Scal_Impl : BinaryOp<Scal_Impl,FA,FB> {
     // FB is a vector, Output has the same size, and FA is a scalar
     static const int DIM = FB::DIM;
     static_assert(FA::DIM==1,"Dimension of FA must be 1 for Scal");
@@ -287,25 +300,25 @@ struct ScalImpl : BinaryOp<ScalImpl,FA,FB> {
 
 // base class : this redirects to the implementation
 template < class FA, class FB >
-struct ScalAlias0 {
-    using type = ScalImpl<FA,FB>;
+struct Scal_Alias0 {
+    using type = Scal_Impl<FA,FB>;
 };
 
 // a*(b*c) = (a*b)*c
 template < class FA, class F, class G >
-struct ScalAlias0<FA,ScalImpl<F,G>> {
+struct Scal_Alias0<FA,Scal_Impl<F,G>> {
     using type = Scal<Scal<FA,F>,G>;
 };
 
 // m*n = m*n
 template < int M, int N >
-struct ScalAlias0<IntConstantImpl<M>,IntConstantImpl<N>> {
+struct Scal_Alias0<IntConstant_Impl<M>,IntConstant_Impl<N>> {
     using type = IntConstant<M*N>;
 };
 
 // a*n = n*a
 template < class FA, int N >
-struct ScalAlias0<FA,IntConstantImpl<N>> {
+struct Scal_Alias0<FA,IntConstant_Impl<N>> {
     using type = Scal<IntConstant<N>,FA>;
 };
 
@@ -313,27 +326,27 @@ struct ScalAlias0<FA,IntConstantImpl<N>> {
 
 // base class : this redirects to the second stage
 template < class FA, class FB >
-struct ScalAlias {
-    using type = typename ScalAlias0<FA,FB>::type;
+struct Scal_Alias {
+    using type = typename Scal_Alias0<FA,FB>::type;
 };
 
 // A * 0 = 0
 template < class FA, int DIM >
-struct ScalAlias<FA,Zero<DIM>> {
+struct Scal_Alias<FA,Zero<DIM>> {
     static_assert(1==FA::DIM,"Dimension of FA must be 1 for Scal");
     using type = Zero<DIM>;
 };
 
 // 0 * B = 0
 template < class FB, int DIM >
-struct ScalAlias<Zero<DIM>,FB> {
+struct Scal_Alias<Zero<DIM>,FB> {
     static_assert(DIM==1,"Dimension of FA must be 1 for Scal");
     using type = Zero<FB::DIM>;
 };
 
 // 0 * 0 = 0 (we have to specify it otherwise there is a conflict between A*0 and 0*B)
 template < int DIM1, int DIM2 >
-struct ScalAlias<Zero<DIM1>,Zero<DIM2>> {
+struct Scal_Alias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==1,"Dimension of FA must be 1 for Scal");
     using type = Zero<DIM2>;
 };
@@ -345,7 +358,7 @@ struct ScalAlias<Zero<DIM1>,Zero<DIM2>> {
 
 
 template < class FA, class FB >
-struct MultImpl : BinaryOp<MultImpl,FA,FB> {
+struct Mult_Impl : BinaryOp<Mult_Impl,FA,FB> {
     // FA and FB are vectors with same size, Output has the same size
     static const int DIM = FA::DIM;
     static_assert(FA::DIM==DIM,"Dimensions of FA and FB must be the same for Mult");
@@ -373,27 +386,27 @@ struct MultImpl : BinaryOp<MultImpl,FA,FB> {
 
 // base class : this redirects to the implementation
 template < class FA, class FB >
-struct MultAlias {
-    using type = MultImpl<FA,FB>;
+struct Mult_Alias {
+    using type = Mult_Impl<FA,FB>;
 };
 
 // A * 0 = 0
 template < class FA, int DIM >
-struct MultAlias<FA,Zero<DIM>> {
+struct Mult_Alias<FA,Zero<DIM>> {
     static_assert(DIM==FA::DIM,"Dimensions of FA and FB must be the same for Mult");
     using type = Zero<DIM>;
 };
 
 // 0 * B = 0
 template < class FB, int DIM >
-struct MultAlias<Zero<DIM>,FB> {
+struct Mult_Alias<Zero<DIM>,FB> {
     static_assert(DIM==FB::DIM,"Dimensions of FA and FB must be the same for Mult");
     using type = Zero<DIM>;
 };
 
 // 0 * 0 = 0 (we have to specify it otherwise there is a conflict between A*0 and 0*B)
 template < int DIM1, int DIM2 >
-struct MultAlias<Zero<DIM1>,Zero<DIM2>> {
+struct Mult_Alias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==DIM2,"Dimensions of FA and FB must be the same for Mult");
     using type = Zero<DIM1>;
 };
@@ -414,7 +427,7 @@ using ScalOrMult = CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>;
 
 
 template < class FA, class FB >
-struct SubtractImpl : BinaryOp<SubtractImpl,FA,FB> {
+struct Subtract_Impl : BinaryOp<Subtract_Impl,FA,FB> {
     // Output dim = FA::DIM = FB::DIM
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Subtract");
@@ -438,25 +451,25 @@ struct SubtractImpl : BinaryOp<SubtractImpl,FA,FB> {
 
 // base class : this redirects to the implementation
 template < class FA, class FB >
-struct SubtractAlias0 {
-    using type = SubtractImpl<FA,FB>;
+struct Subtract_Alias0 {
+    using type = Subtract_Impl<FA,FB>;
 };
 
 // A - A = 0
 template < class F >
-struct SubtractAlias0<F,F> {
+struct Subtract_Alias0<F,F> {
     using type = Zero<F::DIM>;
 };
 
 // A - B*A = (1-B)*A
 template < class F, class G >
-struct SubtractAlias0<F,ScalImpl<G,F>> {
+struct Subtract_Alias0<F,Scal_Impl<G,F>> {
     using type = Scal<Subtract<IntConstant<1>,G>,F>;
 };
 
 // B*A - A = (-1+B)*A
 template < class F, class G >
-struct SubtractAlias0<ScalImpl<G,F>,F> {
+struct Subtract_Alias0<Scal_Impl<G,F>,F> {
     using type = Scal<Add<IntConstant<-1>,G>,F>;
 };
 
@@ -464,19 +477,19 @@ struct SubtractAlias0<ScalImpl<G,F>,F> {
 
 // base class : this redirects to third stage
 template < class FA, class FB >
-struct SubtractAlias1 {
-    using type = typename SubtractAlias0<FA,FB>::type;
+struct Subtract_Alias1 {
+    using type = typename Subtract_Alias0<FA,FB>::type;
 };
 
 // B*A - C*A = (B-C)*A
 template < class F, class G, class H >
-struct SubtractAlias1<ScalImpl<G,F>,ScalImpl<H,F>> {
+struct Subtract_Alias1<Scal_Impl<G,F>,Scal_Impl<H,F>> {
     using type = Scal<Subtract<G,H>,F>;
 };
 
 // A-n = -n+A (brings integers constants to the left)
 template < int N, class F >
-struct SubtractAlias1<F,IntConstantImpl<N>> {
+struct Subtract_Alias1<F,IntConstant_Impl<N>> {
     using type = Add<IntConstant<-N>,F>;
 };
 
@@ -484,34 +497,34 @@ struct SubtractAlias1<F,IntConstantImpl<N>> {
 
 // base class, redirects to second stage
 template < class FA, class FB >
-struct SubtractAlias {
-    using type = typename SubtractAlias1<FA,FB>::type;
+struct Subtract_Alias {
+    using type = typename Subtract_Alias1<FA,FB>::type;
 };
 
 // A - 0 = A
 template < class FA, int DIM >
-struct SubtractAlias<FA,Zero<DIM>> {
+struct Subtract_Alias<FA,Zero<DIM>> {
     static_assert(DIM==FA::DIM,"Dimensions must be the same for Subtract");
     using type = FA;
 };
 
 // 0 - B = -B
 template < class FB, int DIM >
-struct SubtractAlias<Zero<DIM>,FB> {
+struct Subtract_Alias<Zero<DIM>,FB> {
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Subtract");
     using type = Minus<FB>;
 };
 
 // 0 - 0 = la tete a Toto
 template < int DIM1, int DIM2 >
-struct SubtractAlias<Zero<DIM1>,Zero<DIM2>> {
+struct Subtract_Alias<Zero<DIM1>,Zero<DIM2>> {
     static_assert(DIM1==DIM2,"Dimensions must be the same for Subtract");
     using type = Zero<DIM1>;
 };
 
 // m-n = m-n
 template < int M, int N >
-struct SubtractAlias<IntConstantImpl<M>,IntConstantImpl<N>> {
+struct Subtract_Alias<IntConstant_Impl<M>,IntConstant_Impl<N>> {
     using type = IntConstant<M-N>;
 };
 
@@ -788,18 +801,18 @@ using Powf = Exp<Scal<FB,Log<FA>>>;
 ////       SQUARE ROOT : Sqrt< F >                        ////
 //////////////////////////////////////////////////////////////
 
-template < class F > struct SqrtImpl; 
-template < class F > struct SqrtAlias; 
+template < class F > struct Sqrt_Impl; 
+template < class F > struct Sqrt_Alias; 
 template < class F > 
-using Sqrt = typename SqrtAlias<F>::type; 
+using Sqrt = typename Sqrt_Alias<F>::type; 
 
-template < class F > struct RsqrtImpl; 
-template < class F > struct RsqrtAlias; 
+template < class F > struct Rsqrt_Impl; 
+template < class F > struct Rsqrt_Alias; 
 template < class F > 
-using Rsqrt = typename RsqrtAlias<F>::type; 
+using Rsqrt = typename Rsqrt_Alias<F>::type; 
 
 template < class F >
-struct SqrtImpl : UnaryOp<SqrtImpl,F> {
+struct Sqrt_Impl : UnaryOp<Sqrt_Impl,F> {
     static const int DIM = F::DIM;
 
     static void PrintIdString(std::stringstream& str) { str << "Sqrt"; }
@@ -820,13 +833,13 @@ struct SqrtImpl : UnaryOp<SqrtImpl,F> {
 
 // base class, redirects to implementation
 template < class F > 
-struct SqrtAlias { 
-    using type = SqrtImpl<F>; 
+struct Sqrt_Alias { 
+    using type = Sqrt_Impl<F>; 
 }; 
  
 // Sqrt(0) = 0 
 template < int DIM > 
-struct SqrtAlias<Zero<DIM>> { 
+struct Sqrt_Alias<Zero<DIM>> { 
     using type = Zero<DIM>; 
 }; 
 
@@ -839,7 +852,7 @@ struct SqrtAlias<Zero<DIM>> {
 
 
 template < class F >
-struct RsqrtImpl : UnaryOp<RsqrtImpl,F> {
+struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl,F> {
     static const int DIM = F::DIM;
 
     static void PrintIdString(std::stringstream& str) { str << "Rsqrt"; }
@@ -867,13 +880,13 @@ struct RsqrtImpl : UnaryOp<RsqrtImpl,F> {
  
 // base class, redirects to implementation
 template < class F > 
-struct RsqrtAlias { 
-    using type = RsqrtImpl<F>; 
+struct Rsqrt_Alias { 
+    using type = Rsqrt_Impl<F>; 
 }; 
  
 // Rsqrt(0) = 0   // warning !! Rsqrt(0) should be Inf but we put 0 instead. This is intentional...
 template < int DIM > 
-struct RsqrtAlias<Zero<DIM>> { 
+struct Rsqrt_Alias<Zero<DIM>> { 
     using type = Zero<DIM>; 
 }; 
 
@@ -992,18 +1005,18 @@ struct TensorProd : BinaryOp<TensorProd,A,B> {
 // iterate replace operator (should be put somewhere else)
 
 template < class F, class G, class PACK >
-struct IterReplaceImpl {
+struct IterReplace_Impl {
 	using CURR = typename F::template Replace<G,typename PACK::FIRST>;
-	using type = typename IterReplaceImpl<F,G,typename PACK::NEXT>::type::template PUTLEFT<CURR>;
+	using type = typename IterReplace_Impl<F,G,typename PACK::NEXT>::type::template PUTLEFT<CURR>;
 };
 
 template < class F, class G >
-struct IterReplaceImpl<F,G,univpack<>> {
+struct IterReplace_Impl<F,G,univpack<>> {
 	using type = univpack<>;
 };
 
 template < class F, class G, class PACK >
-using IterReplace = typename IterReplaceImpl<F,G,PACK>::type;
+using IterReplace = typename IterReplace_Impl<F,G,PACK>::type;
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1011,18 +1024,18 @@ using IterReplace = typename IterReplaceImpl<F,G,PACK>::type;
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 template < int DIM, int I=0 >
-struct StandardBasisImpl {
+struct StandardBasis_Impl {
 	using EI = ElemT<IntConstant<1>,DIM,I>;
-	using type = typename StandardBasisImpl<DIM,I+1>::type::template PUTLEFT<EI>;
+	using type = typename StandardBasis_Impl<DIM,I+1>::type::template PUTLEFT<EI>;
 };
 
 template < int DIM >
-struct StandardBasisImpl<DIM,DIM> {
+struct StandardBasis_Impl<DIM,DIM> {
 	using type = univpack<>;
 };
 
 template < int DIM >
-using StandardBasis = typename StandardBasisImpl<DIM>::type;
+using StandardBasis = typename StandardBasis_Impl<DIM>::type;
 
 /////////////////////////////////////////////////////////////////////////
 ////      Matrix of gradient operator (=transpose of jacobian)       ////
@@ -1030,7 +1043,7 @@ using StandardBasis = typename StandardBasisImpl<DIM>::type;
 
 
 template < class F, class V >
-struct GradMatrixImpl {
+struct GradMatrix_Impl {
 	using IndsTempVars = GetInds<typename F::template VARS<3>>;
 	using GRADIN = Var<1+IndsTempVars::MAX,F::DIM,3>;
  	using packGrads = IterReplace< Grad<F,V,GRADIN> , GRADIN , StandardBasis<F::DIM> >;
@@ -1038,7 +1051,7 @@ struct GradMatrixImpl {
 };
 
 template < class F, class V >
-using GradMatrix = typename GradMatrixImpl<F,V>::type;
+using GradMatrix = typename GradMatrix_Impl<F,V>::type;
 
 
 

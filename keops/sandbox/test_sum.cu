@@ -50,7 +50,7 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = SumReduction<F>;
+    using FUNCONVF = Sum_Reduction<F>;
 
     // now we test ------------------------------------------------------------------------------
 

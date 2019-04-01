@@ -53,13 +53,13 @@ int main() {
     // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
     using F = Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>;
 
-    using FUNCONVF = SumReduction<F>;
+    using FUNCONVF = Sum_Reduction<F>;
 
     // gradient with respect to X ---------------------------------------------------------------
     using Eta = Var<6,FUNCONVF::DIM,0>; // new variable is in seventh position and is input of gradient
 
     /*
-     * Using GX = Grad<F,X,Eta> = (\partial_X F).Eta in a convolution sum (SumReduction<...>) makes sense.
+     * Using GX = Grad<F,X,Eta> = (\partial_X F).Eta in a convolution sum (Sum_Reduction<...>) makes sense.
      * Indeed, we know that
      *
      *      FUNCONVF_i = \sum_j F( P, X^0_i, X^1_i, ..., Y^0_j, Y^1_j, ... ).
@@ -97,7 +97,7 @@ int main() {
     // gradient with respect to Y  --------------------------------------------------------------
 
     /*
-     * Using GY = Grad<F,Y,Eta> = (\partial_Y F).Eta in a convolution sum (SumReduction<...>) makes sense...
+     * Using GY = Grad<F,Y,Eta> = (\partial_Y F).Eta in a convolution sum (Sum_Reduction<...>) makes sense...
      * IF YOU CHANGE THE SUMMATION VARIABLE FROM j TO i !
      * Indeed, we know that
      *

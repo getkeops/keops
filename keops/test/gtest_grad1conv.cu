@@ -57,7 +57,7 @@ void EXPECT_NONZEROS(const std::vector<T> X) {
 auto formula0 = Grad(GaussKernel(Pm(0,1), Vi(1,3), Vj(2,3), Vj(3,3)), Vi(1,3), Vi(4,3));
 using F0 = decltype(InvKeopsNS(formula0));
 
-using FUN0 = SumReduction<F0>;
+using FUN0 = Sum_Reduction<F0>;
 
 extern "C" int GaussGpuEval(__TYPE__ ooSigma2, __TYPE__* alpha_h, __TYPE__* x_h, __TYPE__* y_h, __TYPE__* beta_h, __TYPE__* gamma_h, int dimPoint, int dimVect, int nx, int ny) ;
 

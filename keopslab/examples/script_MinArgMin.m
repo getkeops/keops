@@ -15,7 +15,7 @@ b = randn(2,Ny);
 p = .25;
 
 % defining reduction operation :
-F = keops_kernel('MinReduction(Exp(-p*SqNorm2(x-y))*b,0)','x=Vi(3)','y=Vj(3)','b=Vj(2)','p=Pm(1)');
+F = keops_kernel('Min_Reduction(Exp(-p*SqNorm2(x-y))*b,0)','x=Vi(3)','y=Vj(3)','b=Vj(2)','p=Pm(1)');
 
 % performing computation and timing it
 tic
@@ -29,7 +29,7 @@ f(:,1:5)
 disp('Testing ArgMin reduction')
 
 % defining reduction operation :
-F = keops_kernel('ArgMinReduction(Exp(-p*SqNorm2(x-y))*b,0)',...
+F = keops_kernel('ArgMin_Reduction(Exp(-p*SqNorm2(x-y))*b,0)',...
     'x=Vi(3)','y=Vj(3)','b=Vj(2)','p=Pm(1)');
 
 % performing computation and timing it
@@ -44,7 +44,7 @@ f(:,1:5)
 disp('Testing MinArgMin reduction')
 
 % defining reduction operation :
-F = keops_kernel('MinArgMinReduction(Exp(-p*SqNorm2(x-y))*b,0)',...
+F = keops_kernel('Min_ArgMin_Reduction(Exp(-p*SqNorm2(x-y))*b,0)',...
     'x=Vi(3)','y=Vj(3)','b=Vj(2)','p=Pm(1)');
 
 % performing computation and timing it

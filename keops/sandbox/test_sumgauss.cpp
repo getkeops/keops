@@ -46,7 +46,7 @@ int main() {
     std::cout << PrintFormula<F>();
     std::cout << std::endl << std::endl;
 
-    using FUNCONVF = SumReduction<F>;
+    using FUNCONVF = Sum_Reduction<F>;
 
     // now we test ------------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ int main() {
     using Y0 = _Y<2,DIMPOINT>;
     using B0 = _Y<3,DIMVECT>;
     using F0 = GaussKernel<C0,X0,Y0,B0>;
-    using FUNCONVF0 = SumReduction<F0>;
+    using FUNCONVF0 = Sum_Reduction<F0>;
     std::vector<__TYPE__> vf0(Nx*FUNCONVF::DIM);    fillrandom(vf0); __TYPE__ *f0 = vf0.data();
     std::vector<__TYPE__> vf1(Nx*FUNCONVF::DIM);    fillrandom(vf1); __TYPE__ *f1 = vf1.data();
     std::vector<__TYPE__> vf2(Nx*FUNCONVF::DIM);    fillrandom(vf2); __TYPE__ *f2 = vf2.data();
@@ -131,7 +131,7 @@ int main() {
     std::vector<__TYPE__> vg(Nx*G::DIM);    fillrandom(vg); __TYPE__ *g = vg.data();
     std::vector<__TYPE__> ve(Nx*DIMVECT);    fillrandom(ve); __TYPE__ *e = ve.data();
 
-    using FUNCONVG = SumReduction<G>;
+    using FUNCONVG = Sum_Reduction<G>;
     begin = clock();
     Eval<FUNCONVG,CpuConv>::Run(Nx, Ny, g, oos2s, weights, x, y, b, e);
     end = clock();
@@ -147,7 +147,7 @@ int main() {
     std::cout << "Comparing with combination of 4 convolutions" << std::endl;
     using E0 = _X<4,DIMVECT>;
     using G0 = Grad<F0,X0,E0>;
-    using FUNCONVG0 = SumReduction<G0>;
+    using FUNCONVG0 = Sum_Reduction<G0>;
     std::vector<__TYPE__> vg0(Nx*G0::DIM);    fillrandom(vg0); __TYPE__ *g0 = vg0.data();
     std::vector<__TYPE__> vg1(Nx*G0::DIM);    fillrandom(vg1); __TYPE__ *g1 = vg1.data();
     std::vector<__TYPE__> vg2(Nx*G0::DIM);    fillrandom(vg2); __TYPE__ *g2 = vg2.data();

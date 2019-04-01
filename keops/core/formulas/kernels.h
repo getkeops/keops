@@ -144,10 +144,10 @@ struct GaussKernel_specific {
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
-        __TYPE__* params = Get<IndValAlias<INDS,C::N>::ind>(args...);
-        __TYPE__* xi = Get<IndValAlias<INDS,X::N>::ind>(args...);
-        __TYPE__* yj = Get<IndValAlias<INDS,Y::N>::ind>(args...);
-        __TYPE__* betaj = Get<IndValAlias<INDS,B::N>::ind>(args...);
+        __TYPE__* params = Get<IndVal_Alias<INDS,C::N>::ind>(args...);
+        __TYPE__* xi = Get<IndVal_Alias<INDS,X::N>::ind>(args...);
+        __TYPE__* yj = Get<IndVal_Alias<INDS,Y::N>::ind>(args...);
+        __TYPE__* betaj = Get<IndVal_Alias<INDS,B::N>::ind>(args...);
         __TYPE__ r2 = 0.0f;
         __TYPE__ temp;
         for(int k=0; k<DIMPOINT; k++) {
@@ -246,11 +246,11 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
-        __TYPE__* params = Get<IndValAlias<INDS,C::N>::ind>(args...);
-        __TYPE__* xi = Get<IndValAlias<INDS,X::N>::ind>(args...);
-        __TYPE__* yj = Get<IndValAlias<INDS,Y::N>::ind>(args...);
-        __TYPE__* betaj = Get<IndValAlias<INDS,B::N>::ind>(args...);
-        __TYPE__* etai = Get<IndValAlias<INDS,GRADIN::N>::ind>(args...);
+        __TYPE__* params = Get<IndVal_Alias<INDS,C::N>::ind>(args...);
+        __TYPE__* xi = Get<IndVal_Alias<INDS,X::N>::ind>(args...);
+        __TYPE__* yj = Get<IndVal_Alias<INDS,Y::N>::ind>(args...);
+        __TYPE__* betaj = Get<IndVal_Alias<INDS,B::N>::ind>(args...);
+        __TYPE__* etai = Get<IndVal_Alias<INDS,GRADIN::N>::ind>(args...);
 
         __TYPE__ r2 = 0.0f, sga = 0.0f;          // Don't forget to initialize at 0.0
         __TYPE__ xmy[DIMPOINT];

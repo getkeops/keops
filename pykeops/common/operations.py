@@ -6,25 +6,66 @@ import numpy as np
 def preprocess(reduction_op, formula2):
     reduction_op = reduction_op
     
-    if reduction_op == 'SoftMax':
-        reduction_op_internal = 'LogSumExpVect'
+    if reduction_op == 'SumSoftMaxWeight' or reduction_op == 'SoftMax': # SoftMax is just old naming for SumSoftMaxWeight
+        # SumSoftMaxWeight relies on KeOps Max_SumShiftExpWeight reduction, with a custom finalize
+        reduction_op_internal = 'Max_SumShiftExpWeight'
+        # we concatenate the 2nd formula (g) with a constant 1, so that we get sum_j exp(m_i-f_ij) g_ij and sum_j exp(m_i-f_ij) together
         formula2 = 'Concat(IntCst(1),' + formula2 + ')'
-    elif reduction_op == 'LogSumExp' and formula2:
-        reduction_op_internal = 'LogSumExpVect'
+    elif reduction_op == 'LogSumExp':
+        # LogSumExp relies also on Max_SumShiftExp or Max_SumShiftExpWeight reductions, with a custom finalize
+        if formula2:
+            # here we want to compute a log-sum-exp with weights: log(sum_j(exp(f_ij)g_ij))
+            reduction_op_internal = 'Max_SumShiftExpWeight'
+        else:
+            # here we want to compute a usual log-sum-exp: log(sum_j(exp(f_ij)))
+            reduction_op_internal = 'Max_SumShiftExp'
     else:
         reduction_op_internal = reduction_op
     
     return reduction_op_internal, formula2
 
 
-def postprocess(out, binding, reduction_op):
+def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
     tools = get_tools(binding)
     # Post-processing of the output:
-    if reduction_op == 'SoftMax':
+    if "Arg" in reduction_op:
+        # when using Arg type reductions,
+        # if nout is greater than 16 millions and dtype=float32, the result is not reliable
+        # because we encode indices as floats, so we raise an exception
+        if nout>1.6e7 and dtype=="float32":
+            raise ValueError('size of input array is too large for Arg type reduction with single precision. Use double precision.')        
+    if reduction_op == 'SumSoftMaxWeight' or reduction_op == 'SoftMax':
+        # we compute sum_j exp(f_ij) g_ij / sum_j exp(f_ij) from sum_j exp(m_i-f_ij) [1,g_ij]
         out = out[:, 2:] / out[:, 1][:, None]
-    elif reduction_op == 'ArgMin' or reduction_op == 'ArgKMin':
+    elif reduction_op == 'ArgMin' or reduction_op == 'ArgMax':
+        # outputs are encoded as floats but correspond to indices, so we cast to integers
         out = tools.long(out)
+    elif reduction_op == 'Min_ArgMin' or reduction_op == 'MinArgMin' or reduction_op == 'Max_ArgMax' or reduction_op == 'MaxArgMax':
+        # output is one array of size N x 2D, giving min and argmin value for each dimension. 
+        # We convert to one array of floats of size NxD giving mins, and one array of size NxD giving argmins (casted to integers)
+        tmp = tools.view(out,(nout,2,-1))
+        out = (tmp[:,0,:],tools.long(tmp[:,1,:])) 
+    elif reduction_op == 'KMin':
+        # output is of size N x KD giving K minimal values for each dim. We convert to array of size N x K x D
+        out = tools.view(out,(nout,opt_arg,-1))
+        if out.shape[2]==1:
+            out = tools.view(out,(nout,opt_arg))
+    elif reduction_op == 'ArgKMin':
+        # output is of size N x KD giving K minimal values for each dim. We convert to array of size N x K x D
+        # and cast to integers
+        out = tools.view(tools.long(out),(nout,opt_arg,-1))
+        if out.shape[2]==1:
+            out = tools.view(out,(nout,opt_arg))
+    elif reduction_op == 'KMin_ArgKMin' or reduction_op == 'KMinArgKMin':
+        # output is of size N x 2KD giving K min and argmin for each dim. We convert to 2 arrays of size N x K x D
+        # and cast to integers the second array
+        out = tools.view(out,(nout,opt_arg,2,-1))
+        if out.shape[3]==1:
+            out = (out[:,:,0],tools.long(out[:,:,1]))
+        else:
+            out = (out[:,:,0,:],tools.long(out[:,:,1,:]))
     elif reduction_op == 'LogSumExp':
+        # finalize the log-sum-exp computation as m + log(s)
         if out.shape[1] == 2:  # means (m,s) with m scalar and s scalar
             out = tools.view(out[:, 0] + tools.log(out[:, 1]), (-1, 1))
         else:  # here out.shape[1]>2, means (m,s) with m scalar and s vectorial

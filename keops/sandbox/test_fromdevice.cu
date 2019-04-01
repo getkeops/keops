@@ -51,7 +51,7 @@ int main() {
     // here we define F = exp(-C*|X-Y|^2) * Beta in usual notations
     using F = Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
 
-    using FUNCONVF = SumReduction<F>;
+    using FUNCONVF = Sum_Reduction<F>;
 
 
     // now we test ------------------------------------------------------------------------------

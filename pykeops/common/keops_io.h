@@ -28,7 +28,7 @@ namespace py = pybind11;
 /////////////////////////////////////////////////////////////////////////////////
 
 
-using FF = F::F; // F::F is formula inside reduction (ex if F is SumReduction<Form> then F::F is Form)
+using FF = F::F; // F::F is formula inside reduction (ex if F is Sum_Reduction<Form> then F::F is Form)
 
 using VARSI = typename FF::template VARS<0>;    // list variables of type I used in formula F
 using VARSJ = typename FF::template VARS<1>;    // list variables of type J used in formula F
