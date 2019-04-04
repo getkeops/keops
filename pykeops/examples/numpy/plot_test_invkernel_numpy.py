@@ -32,9 +32,10 @@ D  = 2      # Dimension of the ambient space
 Dv = 2      # Dimension of the vectors (= number of linear problems to solve)
 sigma = .1  # Radius of our RBF kernel    
 
-x = np.random.rand(N, D)
-b = np.random.rand(N, Dv)
-g = np.array([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
+dtype = 'float32'
+x = np.random.rand(N, D).astype(dtype)
+b = np.random.rand(N, Dv).astype(dtype)
+g = np.array([ .5 / sigma**2]).astype(dtype) # Parameter of the Gaussian RBF kernel
 
 ###############################################################################
 # KeOps kernel
@@ -55,7 +56,7 @@ aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
 # 
 
 alpha = 0.01
-Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
+Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1, dtype=dtype)
 
 ###############################################################################
 # .. note::
@@ -66,6 +67,9 @@ Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
 #
 # Apply our solver on arbitrary point clouds:
 #
+
+#Warmup of gpu
+Kinv(x, x, b, g)
 
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
 start = time.time()
