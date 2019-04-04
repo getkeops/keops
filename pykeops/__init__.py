@@ -1,6 +1,6 @@
 import sys, os.path
 
-__version__ = '1.0rc1'
+__version__ = '1.0'
 
 ###########################################################
 # Initialize some variables: the values may be redefined 

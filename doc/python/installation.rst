@@ -48,7 +48,7 @@ From source using git
 
   .. code-block:: console
 
-    git clone --recursive https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops.git /path/to/libkeops
+    git clone --recursive https://gitlab.com/bcharlier/keops.git /path/to/libkeops
 
   Note that your compiled **.so** routines will be stored in the folder ``/path/to/libkeops/pykeops/build``: this directory must have **write permission**. 
 

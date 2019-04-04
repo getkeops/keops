@@ -63,7 +63,7 @@ Evaluating the gradient of :math:`F` with the `backpropagation algorithm <https:
    and thus compute the **value** :math:`F(x)` : 
 
    .. figure:: ../_static/forward.svg
-      :width: 100% 
+      :width: 80% 
       :alt: Reverse AD
 
 2. A **Backward pass** to evaluate the (adjoints of the) differentials
@@ -78,7 +78,7 @@ Evaluating the gradient of :math:`F` with the `backpropagation algorithm <https:
    vector :math:`e` is the space of outputs: 
 
    .. figure:: ../_static/backward.svg
-       :width: 100% 
+       :width: 80% 
        :alt: Reverse AD
 
 This method relies on the chain-rule, as

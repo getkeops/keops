@@ -48,12 +48,12 @@ or kriging (aka. Gaussian process regression).
 More details are provided below:
 
 * :doc:`Documentation <introduction/why_using_keops>`
-* `Source code <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops>`_
+* `Source code <https://gitlab.com/bcharlier/keops>`_
 * :doc:`Learning KeOps with examples <_auto_examples/index>`
 * :doc:`Gallery of tutorials <_auto_tutorials/index>`
 * :doc:`Benchmarks <_auto_benchmarks/index>`
 
-**KeOps is licensed** under the `MIT license <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/licence.txt>`_.
+**KeOps is licensed** under the `MIT license <https://gitlab.com/bcharlier/keops/blob/master/licence.txt>`_.
 
 Projects using KeOps
 --------------------

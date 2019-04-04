@@ -21,7 +21,7 @@ In both cases, :mod:`Genred` is a class with no methods: its instantiation simpl
 
     my_red = Genred(formula, aliases, reduction_op='Sum', axis=0, dtype='float32')
 
-2. **Call**: The variable **my_red** now refers to a callable object wrapped around a set of custom Cuda routines. It may be used on any set of arrays (either NumPy arrays or Torch tensors) with the correct shapes, as described in the **aliases** argument:
+2. **Call**: The variable ``my_red`` now refers to a callable object wrapped around a set of custom Cuda routines. It may be used on any set of arrays (either NumPy arrays or Torch tensors) with the correct shapes, as described in the ``aliases`` argument:
 
   .. code-block:: python
 
@@ -32,7 +32,7 @@ In both cases, :mod:`Genred` is a class with no methods: its instantiation simpl
 Documentation
 =============
 
-See the :doc:`Genred Numpy <api/numpy/Genred_numpy>` or :doc:`Genred PyTorch<api/pytorch/Genred_torch>` API documentations for a complete description of the syntax at **instantiation** and **call** times.
+See the :class:`pykeops.numpy.Genred` or :class:`pykeops.torch.Genred` API documentations for a complete description of the syntax at **instantiation** and **call** times.
 
 
 

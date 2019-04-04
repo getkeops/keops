@@ -4,8 +4,8 @@ Math-friendly syntax
 The :func:`Genred <pykeops.torch.Genred>` operator provides a pythonic interface for the KeOps library.
 To let researchers use our code with maximum efficiency, we also propose
 some math-friendly **syntactic sugar** for 
-`NumPy <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/numpy/generic/generic_ops.py>`_ and
-`PyTorch <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/torch/generic/generic_ops.py>`_:
+`NumPy <https://gitlab.com/bcharlier/keops/blob/master/pykeops/numpy/generic/generic_ops.py>`_ and
+`PyTorch <https://gitlab.com/bcharlier/keops/blob/master/pykeops/torch/generic/generic_ops.py>`_:
 
 
 .. code-block:: python
@@ -13,15 +13,15 @@ some math-friendly **syntactic sugar** for
     from pykeops.numpy import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
     from pykeops.torch import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 
-These functions are simple wrappers around the :func:`pykeops.numpy.Genred`
-and :func:`pykeops.torch.Genred` modules: they let users
+These functions are simple wrappers around the :class:`pykeops.numpy.Genred`
+and :class:`pykeops.torch.Genred` classes: they let users
 specify the reduction operation and axis with **strings**
 instead of **keyword arguments**.
 
 Documentation
 =============
 
-See the :doc:`API documentation <api/pytorch/GenericOps>` to get a complete syntax.
+See the :doc:`numpy <api/numpy/GenericOps>` or the :doc:`pytorch <api/pytorch/GenericOps>` API documentation to get a complete syntax.
 
 An example
 ==========

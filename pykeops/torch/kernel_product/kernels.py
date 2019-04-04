@@ -112,7 +112,7 @@ class Kernel:
               - the product ``*``,
               - the integer exponentiation ``**k``.
 
-            **Parameters and variables.** Every kernel name is associated to a list of *atomic formulas* (that will require **parameters**) and a list of **pairs of variables**, ordered as they are in the name string. Both **parameters** and **variables** will be required as inputs by :func:`pykeops.torch.kernel_product`. A few examples:
+            **Parameters and variables.** Every kernel name is associated to a list of *atomic formulas* (that will require **parameters**) and a list of **pairs of variables**, ordered as they are in the name string. Both **parameters** and **variables** will be required as inputs by :func:`kernel_product`. A few examples:
 
               - ``"gaussian(x,y)"`` : one formula and one pair of variables.
               - ``"gaussian(x,y) * linear(u,v)**2"`` : two formulas and two pairs of variables.
@@ -121,7 +121,7 @@ class Kernel:
             Note that by convention, pairs of variables should be denoted by single-letter, non-overlapping duets: ``"gaussian(x',yy)"`` or ``"gaussian(x,y) + cauchy(y,z)"`` are not supported.
 
             **Atomic formulas.**
-            As of today, the `pre-defined kernel names <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/torch/kernel_product/kernels.py>`_ are:
+            As of today, the `pre-defined kernel names <https://gitlab.com/bcharlier/keops/blob/master/pykeops/torch/kernel_product/kernels.py>`_ are:
 
               - ``linear(x,y)``, the :math:`L^2` scalar product:
 
@@ -271,7 +271,7 @@ class Kernel:
 
 
 def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', cuda_type=None):
-    r""":doc:`Math-friendly wrapper <../../kernel-product>` around the :func:`Genred` constructor.
+    r""":doc:`Math-friendly wrapper <../../kernel-product>` around the :class:`pykeops.torch.Genred` constructor.
 
     This routine allows you to compute kernel dot products (aka. as discrete convolutions)
     with arbitrary formulas, using a **Sum** or a **LogSumExp** reduction operation.
@@ -283,7 +283,7 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', 
     and :doc:`GMM-fitting <../../../_auto_tutorials/gaussian_mixture/plot_gaussian_mixture>` tutorials.
 
 
-    Having created a kernel id, and with a few torch tensors at hand, you can feed the :func:`pykeops.torch.kernel_product` numerical routine with the appropriate input. More precisely, if :mod:`Kernel("my_kernel_name...")` defines a kernel with **F formulas** and **V variable pairs**, :func:`pykeops.torch.kernel_product` will accept the following arguments:
+    Having created a kernel id, and with a few torch tensors at hand, you can feed the :func:`kernel_product` numerical routine with the appropriate input. More precisely, if :class:`Kernel("my_kernel_name...") <Kernel>` defines a kernel with **F formulas** and **V variable pairs**, :func:`kernel_product` will accept the following arguments:
 
     Args:
 
@@ -323,7 +323,7 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', 
 
     Keyword Args:
         mode (string): Specifies the reduction operation.
-            The `supported values <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/pykeops/torch/kernel_product/features_kernels.py>`_ are:
+            The `supported values <https://gitlab.com/bcharlier/keops/blob/master/pykeops/torch/kernel_product/features_kernels.py>`_ are:
 
               - ``"sum"`` (default):
 

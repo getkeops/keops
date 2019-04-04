@@ -3,6 +3,8 @@ High-level kernel_product syntax
 ================================
 
 Let's showcase KeOps's high-level interface on 3D point clouds.
+
+ 
 """
 
 ####################################################################

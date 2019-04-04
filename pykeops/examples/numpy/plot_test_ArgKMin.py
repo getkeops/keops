@@ -4,6 +4,8 @@ Arg-K-Min reduction
 
 Using the :mod:`pykeop.numpy` API, we define a dataset of N points in :math:`\mathbb R^D` and compute for each
 point the indices of its K nearest neighbours (including itself).
+
+ 
 """
 
 ###############################################################

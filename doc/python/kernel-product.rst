@@ -1,5 +1,5 @@
 The kernel_product helper
-==========================
+##########################
 
 On top of the low-level operators, we also provide a **kernel name parser** that lets you quickly define and work with most of the kernel products used in shape analysis.  This high-level interface is only compatible with the PyTorch backend and relies on two operators:
 
@@ -37,7 +37,7 @@ On top of the low-level operators, we also provide a **kernel name parser** that
 
 
 Documentation
-=============
+==============
 
 See the :doc:`API documentation  <api/pytorch/KernelProduct>` for the syntax of the :func:`Kernel <pykeops.torch.kernel_product.kernels.Kernel>` parser and the :func:`kernel_product  <pykeops.torch.kernel_product.kernels.kernel_product>` routine.
 

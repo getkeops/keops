@@ -17,7 +17,7 @@ Packaged version (recommended)
 .. code-block:: bash
 
     cd /path/to
-    wget https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/-/archive/master/libkeops-master.zip
+    wget https://gitlab.com/bcharlier/keops/-/archive/master/libkeops-master.zip
     unzip libkeops-master.zip
 
 
@@ -35,7 +35,7 @@ From source using git
 
 .. code-block:: bash
 
-    git clone https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops.git /path/to/libkeops
+    git clone https://gitlab.com/bcharlier/keops.git /path/to/libkeops
 
 
 Note that temporary files will be written into the ``./libkeops/keopslab/build`` folder: this directory must have write permissions.
@@ -100,7 +100,7 @@ For debugging purposes, you can force a "verbose" compilation mode by setting
 
     verbosity=1
 
-in the file `/path/to/keops/keopslab/default_options.m <https://plmlab.math.cnrs.fr/benjamin.charlier/libkeops/blob/master/keopslab/default_options.m>`_.
+in the file `/path/to/keops/keopslab/default_options.m <https://gitlab.com/bcharlier/keops/blob/master/keopslab/default_options.m>`_.
 
 Old versions of Cuda
 ^^^^^^^^^^^^^^^^^^^^

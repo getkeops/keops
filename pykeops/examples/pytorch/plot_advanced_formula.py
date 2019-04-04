@@ -3,6 +3,8 @@ Advanced syntax in formulas
 ===========================
 
 Let's write generic formulas using the KeOps syntax.
+
+ 
 """
 
 ####################################################################

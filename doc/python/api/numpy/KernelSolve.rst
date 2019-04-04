@@ -13,5 +13,6 @@ KernelSolve
 .. rubric:: Syntax
 
 
-.. automodule:: pykeops.numpy.operations
+.. automodule:: pykeops.numpy
     :members:
+        KernelSolve

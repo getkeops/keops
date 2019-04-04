@@ -10,6 +10,8 @@ kernels convolutions. Namely it computes:
    a_i = \sum_{j=1}^N f\Big(\\frac{\|x_i-y_j\|}{\sigma}\Big) b_j, \quad \\text{ for all } i=1,\cdots,M
 
 where :math:`f` is a Gauss or Cauchy or Laplace or inverse multiquadric kernel. See e.g. `wikipedia  <https://en.wikipedia.org/wiki/Radial_basis_function>`_
+
+ 
 """
 
 #####################################################################

@@ -4,6 +4,8 @@ Anisotropic kernels
 
 Let's see how to encode anisotropic kernels
 with a minimal amount of effort.
+
+ 
 """
 
 
@@ -71,7 +73,7 @@ def plot_kernel(params) :
 #      k(x_i,y_j) = \exp( -\|x - y\|_{\Gamma}^2) = \exp( -  (x_i - y_j)^t \Gamma (x_i-y_j) ),
 # 
 # which is equivalent to the KeOps formula ``exp(-WeightedSquareNorm(gamma, x_i-y_j ))``. 
-# Using the high-level :mod:`pykeops.torch.Kernel`
+# Using the high-level :class:`pykeops.torch.Kernel`
 # and :func:`pykeops.torch.kernel_product` wrappers, we can simply define:
 
 params = {'id' : Kernel('gaussian(x,y)')}

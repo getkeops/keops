@@ -4,7 +4,7 @@ SumSoftMaxWeight reduction
 """
 
 ###############################################################################
-# Using the :mod:`pykeops.numpy.Genred` API,
+# Using the :class:`pykeops.numpy.Genred` class,
 # we show how to perform a computation specified through:
 # 
 # * Its **inputs**: 
@@ -53,7 +53,7 @@ b = np.random.rand(N, Dv)
 # KeOps kernel
 # ---------------
 # 
-# Create a new generic routine using the :func:`pykeops.numpy.Genred`
+# Create a new generic routine using the :class:`pykeops.numpy.Genred`
 # constructor:
 
 formula = 'SqDist(x,y)'

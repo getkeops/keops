@@ -8,7 +8,7 @@ Math friendly syntax
 .. rubric:: Summary
 
 
-.. currentmodule:: pykeops.numpy
+.. currentmodule:: pykeops.numpy.generic.generic_ops
 .. autosummary::
     generic_sum
     generic_logsumexp

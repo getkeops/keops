@@ -103,9 +103,9 @@ See the :doc:`pytorch <api/pytorch/Cluster>` or :doc:`numpy <api/numpy/Cluster>
 Examples
 ========
 
-As documented in e.g. the :func:`Genred() <pykeops.torch.Genred>` docstring,
+As documented in e.g. the :class:`pykeops.numpy.Genred` or :class:`pykeops.torch.Genred` docstring,
 all KeOps reductions accept an optional **ranges** argument,
-which can be either **None** (-> dense, quadratic reduction)
+which can be either ``None`` (i.e. dense, quadratic reduction)
 or a 6-uple of integer arrays, which encode
 a set of :math:`[\text{start}_k, \text{end}_k)` and
 :math:`[\text{start}^k_l, \text{end}^k_l)` intervals

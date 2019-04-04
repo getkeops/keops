@@ -27,7 +27,7 @@ In both cases, :mod:`KernelSolve` is a class with no methods: its instantiation 
 
     K_inv = KernelSolve(formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype='float32')
 
-2. **Call**: The variable **K_inv** now refers to a callable object wrapped around a set of custom Cuda routines. It may be used on any set of arrays (either NumPy arrays or Torch tensors) with the correct shapes, as described in the **aliases** argument:
+2. **Call**: The variable ``K_inv`` now refers to a callable object wrapped around a set of custom Cuda routines. It may be used on any set of arrays (either NumPy arrays or Torch tensors) with the correct shapes, as described in the ``aliases`` argument:
 
   .. code-block:: python
 
@@ -37,7 +37,7 @@ In both cases, :mod:`KernelSolve` is a class with no methods: its instantiation 
 Documentation
 =============
 
-See the :doc:`pytorch <api/pytorch/KernelSolve>` or :doc:`numpy <api/numpy/KernelSolve>`  api documentation for the syntax at **instantiation** and **call** times.
+See the :class:`pykeops.numpy.KernelSolve` or :class:`pykeops.torch.KernelSolve`  API documentation for the syntax at **instantiation** and **call** times.
 
 
 An example
@@ -73,5 +73,5 @@ with respect to the :math:`a_i`'s can be done with:
     mean_squared_error = ((K(x, x, a) + .1*a - b)**2).sum().sqrt() / len(x)
 
 
-**More examples** can be found in the :doc:`gallery <../_auto_tutorials/index>`.
+**More examples** can be found in the :doc:`examples <../_auto_examples/index>` , :doc:`tutorials <../_auto_tutorials/index>` and :doc:`benchmark <../_auto_benchmarks/plot_benchmark_invkernel>`.
 

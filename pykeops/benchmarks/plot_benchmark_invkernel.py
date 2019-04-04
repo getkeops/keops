@@ -8,11 +8,11 @@ In a nutshell, given :math:`x \in\mathbb R^{N\\times D}`  and :math:`b \in \math
 
 .. math::
 
-  b = K_{x,x} a \quad \Leftrightarrow \quad a = {K_{x,x}}^{-1} b
+  b = (\\alpha\operatorname{Id} + K_{x,x}) a \quad \Leftrightarrow \quad a = (\\alpha\operatorname{Id}+ K_{x,x})^{-1} b
   
-where :math:`K_{x,x} = \Big[\exp(-\|x_i -x_j\|^2 / \sigma^2)\Big]_{i,j=1}^N`. The benchmark tests various values of :math:`N \in [10, \cdots,10^6]`.
+where :math:`K_{x,x} = \Big[\exp(-\|x_i -x_j\|^2 / \sigma^2)\Big]_{i,j=1}^N`. The method is based on a conjugate gradient scheme. The benchmark tests various values of :math:`N \in [10, \cdots,10^6]`.
 
-
+ 
 """
 
 #####################################################################
@@ -237,6 +237,6 @@ routines = [(Kinv_numpy, "NumPy", "numpy"),
             (Kinv_keops_numpy, "NumPy + KeOps", "numpy"),  
             (Kinv_keops,   "PyTorch + KeOps", "torch"),
            ]
-full_bench( "Kriging (Gaussian process regression)", routines )
+full_bench( "Inverse radial kernel matrix", routines )
 
 plt.show()

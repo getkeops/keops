@@ -8,7 +8,6 @@ Cluster
 
 .. currentmodule:: pykeops.numpy.cluster
 .. autosummary::
-
     cluster_centroids
     cluster_ranges
     cluster_ranges_centroids
