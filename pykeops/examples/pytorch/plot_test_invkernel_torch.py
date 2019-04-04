@@ -37,6 +37,11 @@ x = torch.rand(N, D, requires_grad=True)
 b = torch.rand(N, Dv)
 g = torch.Tensor([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 
+if torch.cuda.is_available(): 
+    sync = torch.cuda.synchronize
+else:
+    def sync(): pass 
+
 ###############################################################################
 # KeOps kernel
 # ---------------
@@ -69,8 +74,10 @@ Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
 #
 
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
+sync()
 start = time.time()
 c = Kinv(x, x, b, g)
+sync()
 end = time.time()
 print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
@@ -78,9 +85,11 @@ print('Timing (KeOps implementation):', round(end - start, 5), 's')
 # Compare with a straightforward PyTorch implementation:
 #
 
+sync()
 start = time.time()
 K_xx = alpha * torch.eye(N) + torch.exp( -torch.sum( (x[:,None,:] - x[None,:,:])**2,dim=2) / (2*sigma**2) )
 c_py = torch.gesv(b, K_xx)[0]
+sync()
 end = time.time()
 print('Timing (PyTorch implementation):', round(end - start, 5), 's')
 print("Relative error = ",(torch.norm(c - c_py) / torch.norm(c_py)).item())
