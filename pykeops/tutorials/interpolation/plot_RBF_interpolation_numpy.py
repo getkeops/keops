@@ -17,7 +17,7 @@ to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_
 (aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_ )
 problems with a **linear memory footprint**.
 
-
+ 
 """
 
 ########################################################################
