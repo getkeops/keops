@@ -57,6 +57,8 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define Concat(f,g) KeopsNS<Concat<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
+#define Minus(f) KeopsNS<Minus<decltype(InvKeopsNS(f))>>()
+
 #define Exp(f) KeopsNS<Exp<decltype(InvKeopsNS(f))>>()
 
 #define Cos(f) KeopsNS<Cos<decltype(InvKeopsNS(f))>>()
