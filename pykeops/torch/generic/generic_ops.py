@@ -3,7 +3,7 @@ from pykeops.common.parse_type import get_type
 from pykeops.torch import Genred
 
 
-def generic_sum(formula, output, *aliases, **kwargs) :
+def generic_sum(formula, output, *aliases, **kwargs):
     """Alias for :class:`pykeops.torch.Genred` with a "Sum" reduction.
 
     Args:

@@ -2,7 +2,7 @@
 Solving positive definite linear systems
 =========================================
 
-This benchmark compares the performances of KeOps versus Numpy and Pytorch on a inverse matrix operation. It uses the functions :func:`pykeops.torch.KernelSolve` (see also :doc:`here <../_auto_examples/pytorch/plot_test_invkernel_torch>`) and  :func:`numpy.torch.KernelSolve` (see also :doc:`here <../_auto_examples/numpy/plot_test_invkernel_numpy>`).
+This benchmark compares the performances of KeOps versus Numpy and Pytorch on a inverse matrix operation. It uses the functions :func:`pykeops.torch.KernelSolve` (see also :doc:`here <../_auto_examples/pytorch/plot_test_invkernel_torch>`) and  :func:`pykeops.numpy.KernelSolve` (see also :doc:`here <../_auto_examples/numpy/plot_test_invkernel_numpy>`).
  
 In a nutshell, given :math:`x \in\mathbb R^{N\\times D}`  and :math:`b \in \mathbb R^{N\\times D_v}`, we compute :math:`a \in \mathbb R^{N\\times D_v}` so that
 
@@ -34,6 +34,7 @@ from pykeops.torch import KernelSolve
 from pykeops.torch.utils import squared_distances
 
 use_cuda = torch.cuda.is_available()
+
 ##############################################
 # Benchmark specifications:
 # 
@@ -135,7 +136,7 @@ def benchmark(Routine, dev, N, loops=10, lang='torch') :
     device = torch.device(dev)
     x, b, gamma, alpha = generate_samples(N, device, lang)
 
-    # We simply benchmark a convolution
+    # We simply benchmark a kernel inversion
     code = "a = Routine(x, b, gamma, alpha)"
     exec( code, locals() ) # Warmup run, to compile and load everything
     if use_cuda: torch.cuda.synchronize()
@@ -146,7 +147,7 @@ def benchmark(Routine, dev, N, loops=10, lang='torch') :
     if use_cuda: torch.cuda.synchronize()
     elapsed = time.perf_counter() - t_0  # ---------------------------
 
-    print("{:3} NxN convolution, with N ={:7}: {:3}x{:3.6f}s".format(loops, N, loops, elapsed / loops))
+    print("{:3} NxN kernel inversion, with N ={:7}: {:3}x{:3.6f}s".format(loops, N, loops, elapsed / loops))
     return elapsed / loops
 
 
@@ -156,6 +157,7 @@ def bench_config(Routine, backend, dev, l) :
     print("Backend : {}, Device : {} -------------".format(backend, dev))
 
     times = []
+    not_recorded_times = []
     try :
         Nloops = [100, 10, 1]
         nloops = Nloops.pop(0)
@@ -166,10 +168,10 @@ def bench_config(Routine, backend, dev, l) :
             if (nloops * elapsed > MAXTIME) or (nloops * elapsed > REDTIME/nloops and len(Nloops) > 0): 
                 nloops = Nloops.pop(0)
 
-    except RuntimeError :
+    except RuntimeError:
         print("**\nMemory overflow !")
         not_recorded_times = (len(NS)-len(times)) * [np.nan]
-    except IndexError :
+    except IndexError:
         print("**\nToo slow !")
         not_recorded_times = (len(NS)-len(times)) * [np.Infinity]
     
