@@ -3,7 +3,7 @@
 Kernel interpolation - NumPy API
 ==================================
 
-The :func:`pykeops.numpy.KernelSolve` operator allows you to solve optimization
+The :class:`numpy.KernelSolve <pykeops.numpy.operations.KernelSolve>` operator allows you to solve optimization
 problems of the form
 
 .. math::

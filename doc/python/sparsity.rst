@@ -103,7 +103,7 @@ See the :doc:`pytorch <api/pytorch/Cluster>` or :doc:`numpy <api/numpy/Cluster>
 Examples
 ========
 
-As documented in e.g. the :class:`pykeops.numpy.Genred` or :class:`pykeops.torch.Genred` docstring,
+As documented in e.g. the :class:`numpy.Genred <pykeops.numpy.generic.generic_red.Genred>` or :class:`pytorch.Genred <pykeops.pytorch.generic.generic_red.Genred>` docstring,
 all KeOps reductions accept an optional **ranges** argument,
 which can be either ``None`` (i.e. dense, quadratic reduction)
 or a 6-uple of integer arrays, which encode

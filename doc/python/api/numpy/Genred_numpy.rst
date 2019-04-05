@@ -7,13 +7,13 @@ Genred
 .. rubric:: Summary
 
 
-.. currentmodule:: pykeops.numpy
+.. currentmodule:: pykeops.numpy.generic.generic_red
 .. autosummary::
     Genred
 
 .. rubric:: Syntax
 
 
-.. automodule:: pykeops.numpy
+.. automodule:: pykeops.numpy.generic.generic_red
     :members:
        Genred

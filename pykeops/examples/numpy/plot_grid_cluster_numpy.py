@@ -8,7 +8,7 @@ to compute block-sparse reductions with **sub-quadratic time complexity**.
  
 """
 
-#############################
+########################################################################
 # Setup
 # ------------
 # Standard imports:
@@ -24,7 +24,7 @@ from pykeops.numpy.utils import IsGpuAvailable
 use_cuda = IsGpuAvailable()
 dtype = "float32"
    
-#####################
+########################################################################
 # Define our dataset: two point clouds on the unit square.
 #
 M, N = (5000, 5000) if use_cuda else (2000, 2000)
@@ -45,7 +45,7 @@ y = y / 10 + np.array([.6,.6]).astype(dtype)
 # To enable the implementation of algorithms with **sub-quadratic time complexity**
 # under this constraint, KeOps provides access to
 # **block-sparse reduction routines** through the optional
-# **ranges** argument, which is supported by :func:`pykeops.numpy.Genred`
+# **ranges** argument, which is supported by :class:`numpy.Genred <pykeops.numpy.generic.generic_red.Genred>`
 # and all its children.
 #
 # Pre-processing

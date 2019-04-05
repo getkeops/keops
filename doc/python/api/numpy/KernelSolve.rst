@@ -6,13 +6,13 @@ KernelSolve
 
 .. rubric:: Summary
 
-.. currentmodule:: pykeops.numpy
+.. currentmodule:: pykeops.numpy.operations
 .. autosummary::
     KernelSolve
 
 .. rubric:: Syntax
 
 
-.. automodule:: pykeops.numpy
+.. automodule:: pykeops.numpy.operations
     :members:
         KernelSolve

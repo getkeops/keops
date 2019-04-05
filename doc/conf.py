@@ -44,11 +44,21 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'matplotlib.sphinxext.plot_directive',
-    'sphinx.ext.viewcode',
     'sphinxcontrib.httpdomain',
     'sphinx_gallery.gen_gallery',
     'sphinx.ext.napoleon',
+    # 'sphinx.ext.viewcode',
+    'sphinx.ext.linkcode',
 ]
+
+# sphinx.ext.linkcode
+def linkcode_resolve(domain, info):
+    if domain != 'py':
+        return None
+    if not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    return "https://gitlab.com/bcharlier/keops/tree/master/%s.py" % filename
 
 from sphinx_gallery.sorting import FileNameSortKey
 
@@ -154,9 +164,16 @@ html_theme_options = {
     'sticky_navigation': True,
     'navigation_depth': 4,
     'includehidden': True,
-    'titles_only': False
+    'titles_only': False,
 }
 
+html_context = {
+    "display_gitlab": True, # Integrate Gitlab
+    "gitlab_user": "bcharlier", # Username
+    "gitlab_repo": "keops", # Repo name
+    "gitlab_version": "master", # Version
+    "conf_py_path": "/doc/", # Path in the checkout to the docs root
+}
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 html_title = "KeOps"
@@ -183,13 +200,14 @@ html_static_path = ['_static']
 html_last_updated_fmt = '%b %d, %Y'
 
 # If true, links to the reST sources are added to the pages.
-html_show_sourcelink = True
+html_show_sourcelink = False
+
+html_show_sphinx = False
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'KeOpsdoc'
-
 
 # -- Options for LaTeX output ---------------------------------------------
 

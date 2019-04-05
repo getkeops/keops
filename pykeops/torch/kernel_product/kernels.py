@@ -271,7 +271,7 @@ class Kernel:
 
 
 def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', cuda_type=None):
-    r""":doc:`Math-friendly wrapper <../../kernel-product>` around the :class:`pykeops.torch.Genred` constructor.
+    r""":doc:`Math-friendly wrapper <../../kernel-product>` around the :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` constructor.
 
     This routine allows you to compute kernel dot products (aka. as discrete convolutions)
     with arbitrary formulas, using a **Sum** or a **LogSumExp** reduction operation.

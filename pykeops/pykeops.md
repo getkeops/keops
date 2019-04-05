@@ -1,14 +1,14 @@
-![logo pykeops](http://www.kernel-operations.io/_images/pykeops_logo.png)
+![logo pykeops](http://www.kernel-operations.io/keops/_images/pykeops_logo.png)
 
 PyKeOps contains the python bindings (numpy and pytorch) for the cpp/cuda library [KeOps](http://http://www.kernel-operations.io/). It provides
 standard python functions that can be used in any **python 3** codes.
 
 For a full documentation you may read:
 
-* [Installation](https://www.kernel-operations.io/api/installation.html)
+* [Installation](https://www.kernel-operations.io/keops/introduction/installation.html)
 * [Documentation](https://www.kernel-operations.io/)
-* [Learning KeOps syntax with examples](https://www.kernel-operations.io/_auto_examples/index.html)
-* [Tutorials gallery](https://www.kernel-operations.io/_auto_tutorials/index.html)
+* [Learning KeOps syntax with examples](https://www.kernel-operations.io/keops/_auto_examples/index.html)
+* [Tutorials gallery](https://www.kernel-operations.io/keops/_auto_tutorials/index.html)
 
 # Authors
 

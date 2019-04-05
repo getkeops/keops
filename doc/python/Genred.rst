@@ -32,7 +32,7 @@ In both cases, :mod:`Genred` is a class with no methods: its instantiation simpl
 Documentation
 =============
 
-See the :class:`pykeops.numpy.Genred` or :class:`pykeops.torch.Genred` API documentations for a complete description of the syntax at **instantiation** and **call** times.
+See the :class:`numpy.Genred<pykeops.numpy.generic.generic_red.Genred>` or :class:`torch.Genred<pykeops.torch.generic.generic_red.Genred>` API documentations for a complete description of the syntax at **instantiation** and **call** times.
 
 
 

@@ -4,7 +4,7 @@ KernelSolve reduction
 
 Let's see how to solve discrete deconvolution problems
 using the **conjugate gradient solver** provided by
-:class:`pykeops.torch.KernelSolve`.
+:class:`torch.KernelSolve <pykeops.torch.operations.KernelSolve`.
 
  
 """

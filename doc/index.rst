@@ -1,3 +1,5 @@
+:gitlab_url: `<https://gitlab.com/bcharlier/keops/>`_
+
 .. figure:: _static/logo/keops_logo.png
    :width: 100% 
    :alt: Keops logo
