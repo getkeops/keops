@@ -31,7 +31,6 @@ def get_sizes(aliases, *args):
             indx = pos
         elif cat == 1:
             indy = pos
-            
         if (not(indx==[]) and not(indy==[])):
             return args[indx].shape[0], args[indy].shape[0]
     

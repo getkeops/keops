@@ -804,7 +804,10 @@ struct Abs : UnaryOp<Abs,F> {
 	
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
          for(int k=0; k<DIM; k++)
-             out[k] = abs(outF[k]);
+		if(outF[k]<0)
+            		out[k] = -outF[k];
+		else
+			out[k] = outF[k];
 	}
 
     // [\partial_V abs(F)].gradin = sign(F) * [\partial_V F].gradin
