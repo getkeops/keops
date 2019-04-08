@@ -57,7 +57,7 @@ To define formulas with KeOps, you can use simple arithmetics:
 ``f * g``                 scalar-vector multiplication (if ``f`` is scalar) or vector-vector element-wise multiplication
 ``f + g``                 addition of two vectors
 ``f - g``                 difference between two vectors or minus sign
-``f / g``                 element-wise division
+``f / g``                 element-wise division (N.B. ``f`` can be scalar, in fact ``f / g`` is the same as ``f * Inv(g)``)
 ``(f | g)``               scalar product between vectors
 ======================   =========================================================================================================
 
