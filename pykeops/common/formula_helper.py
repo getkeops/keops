@@ -163,11 +163,8 @@ class keops_formula:
         return self.binary(other,string2="+")
 
     def __radd__(self,other):
-        return keops_formula.binary(other,self,string2="+")
-       
-    def __iadd__(self,other):
-        if self==0:
-            return other
+        if other==0:
+            return self
         else:
             return keops_formula.binary(other,self,string2="+")
        
@@ -175,25 +172,19 @@ class keops_formula:
         return self.binary(other,string2="-")
         
     def __rsub__(self,other):
-        return keops_formula.binary(other,self,string2="-")
-        
-    def __isub__(self,other):
-        if self==0:
-            return -other
+        if other==0:
+            return -self
         else:
             return keops_formula.binary(other,self,string2="-")
-       
+        
     def __mul__(self,other):
         return self.binary(other,string2="*",dimcheck="sameor1")
         
     def __rmul__(self,other):
-        return keops_formula.binary(other,self,string2="*",dimcheck="sameor1")
-        
-    def __imul__(self,other):
-        if self==0:
+        if other==0:
             return O
-        elif self==1:
-            return other
+        elif other==1:
+            return self
         else:
             return keops_formula.binary(other,self,string2="*",dimcheck="sameor1")
        
@@ -201,10 +192,7 @@ class keops_formula:
         return self.binary(other,string2="/",dimcheck="sameor1")
         
     def __rtruediv__(self,other):
-        return keops_formula.binary(other,self,string2="/",dimcheck="sameor1")
-        
-    def __itruediv__(self,other):
-        if self==0:
+        if other==0:
             return O
         else:
             return keops_formula.binary(other,self,string2="/",dimcheck="sameor1")
@@ -253,6 +241,9 @@ class keops_formula:
 
     def unaryred(self,reduction_op,axis,dtype,opt_arg=None):
         return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg)(*self.variables)
+
+    def binaryred(self,other,reduction_op,axis,dtype,opt_arg=None):
+        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg, other.formula)(*self.variables)
 
         
     # list of reductions
