@@ -194,11 +194,28 @@ class keops_formula:
     def __rtruediv__(self,other):
         if other==0:
             return O
+        elif other==1:
+            return self.unary("Inv")
         else:
             return keops_formula.binary(other,self,string2="/",dimcheck="sameor1")
        
+    def __or__(self,other):
+        return self.binary(other,string2="|")
+        
+    def __ror__(self,other):
+        return keops_formula.binary(other,self,string2="|")
+        
     def exp(self):
         return self.unary("Exp")
+    
+    def log(self):
+        return self.unary("Log")
+    
+    def sin(self):
+        return self.unary("Sin")
+    
+    def cos(self):
+        return self.unary("Cos")
     
     def __abs__(self):
         return self.unary("Abs")
@@ -215,35 +232,68 @@ class keops_formula:
     def __neg__(self):
         return self.unary("Minus")
     
-    def __pow__(self,n):
-        if type(n)==int:
-            if n==2:
+    def __pow__(self,other):
+        if type(other)==int:
+            if other==2:
                 return self.unary("Square")
             else:
-                return self.unary("Pow",None,n)
-        elif type(n)==float:
-            if n == .5:
+                return self.unary("Pow",None,other)
+        elif type(other)==float:
+            if other == .5:
                 return self.unary("Sqrt")
-            elif n == -.5:
+            elif other == -.5:
                 return self.unary("Rsqrt")
             else:
-                n = keops_formula(self.tools.array([n],self.dtype))
-        if type(n)==type(keops_formula()):
-            if n.dim == 1 or n.dim==self.dim:
-                return self.binary(n,string1="Powf",dimcheck="sameor1")
+                other = keops_formula(self.tools.array([other],self.dtype))
+        if type(other)==type(keops_formula()):
+            if other.dim == 1 or other.dim==self.dim:
+                return self.binary(other,string1="Powf",dimcheck="sameor1")
             else:
                 raise ValueError("incorrect dimension of exponent")
         else:
             raise ValueError("incorrect input for exponent")
 
+    def power(self,other):
+        return self**other
+    
+    def square(self):
+        return self.unary("Square")
+    
+    def sqrt(self):
+        return self.unary("Sqrt")
+    
+    def rsqrt(self):
+        return self.unary("Rsqrt")
+    
+    def sign(self):
+        return self.unary("Sign")
+    
+    def step(self):
+        return self.unary("Step")
+    
+    def relu(self):
+        return self.unary("ReLU")
+    
+    def sqnorm2(self):
+        return self.unary("SqNorm2",dim=1)
+    
+    def norm2(self):
+        return self.unary("Norm2",dim=1)
+    
+    def normalize(self):
+        return self.unary("Normalize")
+    
+    def sqdist(self,other):
+        return self.binary(other,string1="SqDist",dim=1)
+    
     
     # prototypes for reductions
 
-    def unaryred(self,reduction_op,axis,dtype,opt_arg=None):
-        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg)(*self.variables)
+    def unaryred(self,reduction_op,axis,dtype,opt_arg=None, backend='auto', device_id=-1, ranges=None):
+        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg)(*self.variables,backend=backend,device_id=device_id,ranges=ranges)
 
-    def binaryred(self,other,reduction_op,axis,dtype,opt_arg=None):
-        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg, other.formula)(*self.variables)
+    def binaryred(self,other,reduction_op,axis,dtype,opt_arg=None, backend='auto', device_id=-1, ranges=None):
+        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg, other.formula)(*self.variables,backend=backend,device_id=device_id,ranges=ranges)
 
         
     # list of reductions
