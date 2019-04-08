@@ -74,6 +74,7 @@ Elementary functions:
 ``Square(f)``             element-wise square, faster than Pow(f,2)
 ``Sqrt(f)``               element-wise square root, faster than Powf(f,.5)
 ``Rsqrt(f)``              element-wise inverse square root, faster than Powf(f,-.5)
+``Abs(f)``                element-wise absolute value
 ``Sign(f)``               element-wise sign function (-1 if f<0, 0 if f=0, 1 if f>0)
 ``Step(f)``               element-wise step function (0 if f<0, 1 if f>=0)
 ``ReLU(f)``               element-wise ReLU function (0 if f<0, f if f>=0)
@@ -108,6 +109,7 @@ Constants and padding/concatenation operations:
 ``IntCst(N)``             integer constant N
 ``IntInv(N)``             alias for ``Inv(IntCst(N))`` : 1/N
 ``Zero(N)``               vector of zeros of size N
+``Sum(f)``                sum of elements of vector ``f``
 ``Elem(f, M)``            extract M-th element of vector ``f``
 ``ElemT(f, N, M)``        insert scalar value ``f`` at position M in a vector of zeros of length N
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)

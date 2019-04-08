@@ -37,6 +37,9 @@ class numpytools:
     def dtype(x): return x.dtype.name
     
     @staticmethod
+    def dtypename(dtype): return dtype
+    
+    @staticmethod
     def rand(m, n, dtype=default_dtype): return np.random.rand(m, n).astype(dtype)
     
     @staticmethod
