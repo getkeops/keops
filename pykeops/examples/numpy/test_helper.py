@@ -2,16 +2,17 @@ import numpy as np
 from pykeops import keops_formula as kf
 
 # numpy
-x = np.random.rand(2,1,1).astype('float32')
-y = np.random.rand(1,2,1).astype('float32')
-b = np.random.rand(1,2,1).astype('float32')
+x = np.random.rand(5,1,3).astype('float32')
+y = np.random.rand(1,10,3).astype('float32')
+b = np.random.rand(1,10,4).astype('float32')
 sigmas = [4.1,2.3,1.05,0.5]
 
 dxy2 = np.sum(abs(x-y)**.5,axis=2)[..., np.newaxis]
 Kxy = 0
 for s in sigmas:
     Kxy += np.exp(-dxy2/s**2)
-res = (Kxy*b).sum(axis=1)
+res = (Kxy*b)[:,:,1:3].sum(axis=1)
+print("res=",res)
 
 # keops from numpy
 x, y, b = kf(x), kf(y), kf(b)
@@ -20,7 +21,8 @@ dxy2 = kf.sum(abs(x-y)**.5,axis=2)
 Kxy = 0
 for s in sigmas:
     Kxy += kf.exp(-dxy2/s**2)
-kres = (Kxy*b).sum(axis=1)
+kres = (Kxy*b)[:,:,1:3].sum(axis=1)
+print("kres=",kres)
 
 # error
 print(np.linalg.norm(kres-res))

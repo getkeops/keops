@@ -88,16 +88,18 @@ class keops_formula:
 
     # prototypes for operations
                     
-    def unary(self,string,dim=None,opt_arg=None):
-        if not dim:
-            dim = self.dim
+    def unary(self,string,dimres=None,opt_arg=None,opt_arg2=None):
+        if not dimres:
+            dimres = self.dim
         res = keops_formula()
         res.variables, res.n = self.variables, self.n
-        if opt_arg:
+        if opt_arg2:
+            res.formula = string +"(" + self.formula + "," + str(opt_arg) + "," + str(opt_arg2) + ")"
+        elif opt_arg:
             res.formula = string +"(" + self.formula + "," + str(opt_arg) + ")"
         else:
             res.formula = string +"(" + self.formula + ")"
-        res.dim = dim
+        res.dim = dimres
         res.dtype = self.dtype
         res.tools = self.tools
         res.Genred = self.Genred
@@ -109,13 +111,13 @@ class keops_formula:
         else:
             self = keops_formula.keopsify(self,other.tools,other.dtype)  
         if not dimres:
-            dimres = self.dim
+            dimres = max(self.dim,other.dim)
         res = keops_formula()
         res.dtype = self.dtype    
         if self.tools:
             if other.tools:
                 if self.tools != other.tools:
-                    raise ValueError("cannot mix numopy and torch arrays")
+                    raise ValueError("cannot mix numpy and torch arrays")
                 else:
                     res.tools = self.tools
                     res.Genred = self.Genred
@@ -200,10 +202,10 @@ class keops_formula:
             return keops_formula.binary(other,self,string2="/",dimcheck="sameor1")
        
     def __or__(self,other):
-        return self.binary(other,string2="|")
+        return self.binary(other,string2="|",dimres=1)
         
     def __ror__(self,other):
-        return keops_formula.binary(other,self,string2="|")
+        return keops_formula.binary(other,self,string2="|",dimres=1)
         
     def exp(self):
         return self.unary("Exp")
@@ -237,7 +239,7 @@ class keops_formula:
             if other==2:
                 return self.unary("Square")
             else:
-                return self.unary("Pow",None,other)
+                return self.unary("Pow",opt_arg=other)
         elif type(other)==float:
             if other == .5:
                 return self.unary("Sqrt")
@@ -275,37 +277,121 @@ class keops_formula:
         return self.unary("ReLU")
     
     def sqnorm2(self):
-        return self.unary("SqNorm2",dim=1)
+        return self.unary("SqNorm2",dimres=1)
     
     def norm2(self):
-        return self.unary("Norm2",dim=1)
+        return self.unary("Norm2",dimres=1)
     
     def normalize(self):
         return self.unary("Normalize")
     
     def sqdist(self,other):
-        return self.binary(other,string1="SqDist",dim=1)
+        return self.binary(other,string1="SqDist",dimres=1)
     
+    def weightedsqnorm(self,other):
+        if type(self) != type(keops_formula()):
+            self = keops_formula.keopsify(self,other.tools,other.dtype)  
+        if self.dim not in (1,other.dim,other.dim**2):
+            raise ValueError("incorrect dimension of input for weightedsqnorm")
+        return self.binary(other,string1="WeightedSqNorm",dimres=1)
     
+    def weightedsqdist(self,f,g):
+        return self.weightedsqnorm(f-g)
+    
+    def elem(self,i):
+        if type(i) is not int:
+            raise ValueError("input should be integer")
+        if i<0 or i>=self.dim:
+            raise ValueError("index is out of bounds")
+        return self.unary("Elem",dimres=1,opt_arg=i)
+    
+    def extract(self,i,d):
+        if (type(i) is not int) or (type(d) is not int):
+            raise ValueError("inputs should be integers")
+        if i<0 or i>=self.dim:
+            raise ValueError("starting index is out of bounds")
+        if d<0 or i+d>=self.dim:
+            raise ValueError("dimension is out of bounds")
+        return self.unary("Extract",dimres=d,opt_arg=i,opt_arg2=d)
+    
+    def __getitem__(self, key):
+        if not isinstance(key,tuple) or len(key)!=3 or key[0]!=slice(None) or key[1]!=slice(None):
+            raise ValueError("only slicing of the forms [:,:,k], [:,:,k:l], [:,:,k:] or [:,:,:l] are allowed")
+        key = key[2]
+        if isinstance(key,slice):
+            if key.step is not None:
+                raise ValueError("only slicing of the forms [:,:,k], [:,:,k:l], [:,:,k:] or [:,:,:l] are allowed")
+            if key.start is None:
+                key.start = 0
+            if key.stop is None:
+                key.stop = self.dim
+            return self.extract(key.start,key.stop-key.start)
+        elif isinstance(key,int):
+            return self.elem(key)
+            
+    def concat(self,other):
+        return self.binary(other,string1="Concat",dimres=self.dim+other.dim,dimcheck=None)
+
+    def concatenate(self,axis):
+        if axis != 2:
+            raise ValueError("only concatenation over axis=2 is supported")
+        return
+        if isinstance(self,tuple):
+            if len(self)==0:
+                raise ValueError("tuple must not be empty")
+            elif len(self)==1:
+                return self
+            elif len(self)==2:    
+                return self[0].concat(self[1])
+            else:
+                return keops_formula.concatenate(self[0].concat(self[1]),self[2:],axis=2)
+        else:
+            raise ValueError("input must be tuple")    
+    
+    def matvecmult(self,other):
+        return self.binary(other,string1="MatVecMult",dimres=self.dim//other.dim,dimcheck=None)        
+        
+    def vecmatmult(self,other):
+        return self.binary(other,string1="VecMatMult",dimres=other.dim//self.dim,dimcheck=None)        
+        
+    def tensorprod(self,other):
+        return self.binary(other,string1="TensorProd",dimres=other.dim*self.dim,dimcheck=None)        
+                
+         
     # prototypes for reductions
 
-    def unaryred(self,reduction_op,axis,dtype,opt_arg=None, backend='auto', device_id=-1, ranges=None):
-        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg)(*self.variables,backend=backend,device_id=device_id,ranges=ranges)
+    def unaryred(self,reduction_op,opt_arg=None,axis=None, dim=None, **kwargs):
+        if axis is None:
+            axis = dim
+        if axis not in (0,1):
+            raise ValueError("axis must be 0 or 1 for reduction")
+        self.fixvariables()
+        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg)(*self.variables, **kwargs)
 
-    def binaryred(self,other,reduction_op,axis,dtype,opt_arg=None, backend='auto', device_id=-1, ranges=None):
-        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg, other.formula)(*self.variables,backend=backend,device_id=device_id,ranges=ranges)
+    def binaryred(self,other,reduction_op,axis=None,dim=None,opt_arg=None, **kwargs):
+        if axis is None:
+            axis = dim
+        if axis not in (0,1):
+            raise ValueError("axis must be 0 or 1 for reduction")
+        self.fixvariables() 
+        # *** this is incorrect, we should join variables in "other" before using fixvariables ***
+        return self.Genred(self.formula, [], reduction_op, axis, self.tools.dtypename(self.dtype), opt_arg, other.formula)(*self.variables, **kwargs)
 
         
     # list of reductions
 
-    def sum(self,axis=None,dim=None):
+    def sum(self,axis=None,dim=None, **kwargs):
         if axis is None:
             axis = dim
         if axis==2:
-            return self.unary("Sum",dim=1)
+            return self.unary("Sum",dimres=1)
         else:
-            self.fixvariables()    
-            return self.unaryred("Sum", axis, self.dtype)
+            return self.unaryred("Sum", axis=axis, **kwargs)
+    
+
+    def logsumexp(self,**kwargs):
+        return self.unaryred("LogSumExp", **kwargs)
+    
     
 
 
