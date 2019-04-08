@@ -19,4 +19,6 @@ build_folder = set_build_folder()
 verbose = False  # display output of compilations
 build_type = "Release"  # 'Release' or 'Debug'
 
+from .common.formula_helper import keops_formula
+
 sys.path.append(build_folder)

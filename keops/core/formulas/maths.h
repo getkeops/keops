@@ -30,6 +30,8 @@
  *      Rsqrt<F>					: inverse square root
  *
  *   standard math functions :
+ *      Sum<F>						: sum of values in F
+ *      Abs<F>						: absolute value of F (vectorized)
  *      Exp<F>						: exponential of F (vectorized)
  *      Log<F>						: logarithm   of F (vectorized)
  *      Sin<F>						: sine        of F (vectorized)
@@ -553,6 +555,53 @@ struct Exp : UnaryOp<Exp,F> {
 };
 
 //////////////////////////////////////////////////////////////
+////                 SUM : Sum< F >                       ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int D > struct SumT;
+
+template < class F >
+struct Sum : UnaryOp<Sum,F> {
+    
+    static const int DIM = 1;
+
+    static void PrintIdString(std::stringstream& str) { str << "Sum"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+		*out = 0;
+        for(int k=0; k<F::DIM; k++)
+            *out += outF[k];
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,SumT<GRADIN,F::DIM>>;
+
+};
+
+//////////////////////////////////////////////////////////////
+////        Transpose of Sum : SumT< F >                   ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int D >
+struct SumT : UnaryOp<SumT,F,D> {
+    
+	static_assert(F::DIM==1,"Dimension of input must be 1 for SumT");
+	
+    static const int DIM = D;
+
+    static void PrintIdString(std::stringstream& str) { str << "Exp"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++)
+             out[k] = *outF;
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,Sum<GRADIN>>;
+
+};
+
+//////////////////////////////////////////////////////////////
 ////        SINE and COSINE : Sin< F >, Cos< F >          ////
 //////////////////////////////////////////////////////////////
 
@@ -693,7 +742,7 @@ using IntInv = Inv<IntConstant<N>>;
 //////////////////////////////////////////////////////////////
 
 template < class FA, class FB >
-using Divide = Scal<FA,Inv<FB>>;
+using Divide = ScalOrMult<FA,Inv<FB>>;
 
 
 //////////////////////////////////////////////////////////////
@@ -740,6 +789,28 @@ struct Sign : UnaryOp<Sign,F> {
 
     template < class V, class GRADIN >
     using DiffT = Zero<V::DIM>;
+};
+
+//////////////////////////////////////////////////////////////
+////           ABSOLUTE VALUE : Abs< F >                  ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+struct Abs : UnaryOp<Abs,F> {
+    
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "Abs"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++)
+             out[k] = abs(outF[k]);
+	}
+
+    // [\partial_V abs(F)].gradin = sign(F) * [\partial_V F].gradin
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,Mult<Sign<F>,GRADIN>>;
+
 };
 
 //////////////////////////////////////////////////////////////

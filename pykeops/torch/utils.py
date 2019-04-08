@@ -47,19 +47,22 @@ class torchtools:
     def dtype(x): return x.dtype
 
     @staticmethod
-    def rand(m, n, dtype=default_dtype, device='0'): return torch.rand(m, n, dtype=dtype, device=device)
+    def dtypename(dtype): return 'float32' if dtype==torch.float32 else 'float64' 
 
     @staticmethod
-    def randn(m, n, dtype=default_dtype, device='0'): return torch.randn(m, n, dtype=dtype, device=device)
+    def rand(m, n, dtype=default_dtype, device='cpu'): return torch.rand(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype, device='0'): return torch.zeros(shape, dtype=dtype, device=device)
+    def randn(m, n, dtype=default_dtype, device='cpu'): return torch.randn(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def eye(n, dtype=default_dtype, device='0'): return torch.eye(n, dtype=dtype, device=device)
+    def zeros(shape, dtype=default_dtype, device='cpu'): return torch.zeros(shape, dtype=dtype, device=device)
 
     @staticmethod
-    def array(x, dtype=default_dtype, device='0'): return torch.tensor(x, dtype=dtype, device=device)
+    def eye(n, dtype=default_dtype, device='cpu'): return torch.eye(n, dtype=dtype, device=device)
+
+    @staticmethod
+    def array(x, dtype=default_dtype, device='cpu'): return torch.tensor(x, dtype=dtype, device=device)
     
 
 def WarmUpGpu():
