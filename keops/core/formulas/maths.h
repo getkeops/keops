@@ -109,6 +109,53 @@ struct Minus : UnaryOp<Minus,F> {
 };
 
 //////////////////////////////////////////////////////////////
+////                 SUM : Sum< F >                       ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int D > struct SumT;
+
+template < class F >
+struct Sum : UnaryOp<Sum,F> {
+    
+    static const int DIM = 1;
+
+    static void PrintIdString(std::stringstream& str) { str << "Sum"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+		*out = 0;
+        for(int k=0; k<F::DIM; k++)
+            *out += outF[k];
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,SumT<GRADIN,F::DIM>>;
+
+};
+
+//////////////////////////////////////////////////////////////
+////        Transpose of Sum : SumT< F >                   ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int D >
+struct SumT : UnaryOp<SumT,F,D> {
+    
+	static_assert(F::DIM==1,"Dimension of input must be 1 for SumT");
+	
+    static const int DIM = D;
+
+    static void PrintIdString(std::stringstream& str) { str << "Exp"; }
+	
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++)
+             out[k] = *outF;
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,Sum<GRADIN>>;
+
+};
+
+//////////////////////////////////////////////////////////////
 ////               ADDITION : Add< FA,FB >                ////
 //////////////////////////////////////////////////////////////
 
@@ -132,6 +179,27 @@ struct Add_Impl : BinaryOp<Add_Impl,FA,FB> {
 
 };
 
+// Addition with scalar-> vector broadcasting on the left
+template < class FA, class FB >
+struct Add_Impl_Broadcast : BinaryOp<Add_Impl_Broadcast,FA,FB> {
+    // Output dim = FB::DIM
+    static const int DIM = FB::DIM;
+    
+    static void PrintIdString(std::stringstream& str) { str << "+"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = *outA + outB[k];
+	}
+
+    // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin
+    template < class V, class GRADIN >
+    using DiffT = Add < typename FA::template DiffT<V,Sum<GRADIN>> , typename FB::template DiffT<V,GRADIN> >;
+
+};
+
+
+
 // Simplification rules
 // We have to divide rules into several stages
 // to avoid conflicts
@@ -141,7 +209,9 @@ struct Add_Impl : BinaryOp<Add_Impl,FA,FB> {
 // base class : this redirects to the implementation
 template < class FA, class FB >
 struct Add_Alias0 {
-    using type = Add_Impl<FA,FB>;
+    using type1 = CondType < Add_Impl_Broadcast<FA,FB> , Add_Impl<FA,FB> , FA::DIM==1 >;
+    using type2 = CondType < Add_Impl_Broadcast<FB,FA> , type1 , FB::DIM==1 >;
+    using type = CondType < Add_Impl<FA,FB> , type2 , FA::DIM==FB::DIM >;
 };
 
 // A + A = 2A
@@ -418,7 +488,7 @@ struct Mult_Alias<Zero<DIM1>,Zero<DIM2>> {
 // Scal and Mult depending on dimension in the new syntax
 
 template < class FA, class FB >
-using ScalOrMult = CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>;
+using ScalOrMult = CondType<Mult<FA,FB>,CondType<Scal<FB,FA>,CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>,FB::DIM==1>,FA::DIM==FB::DIM>;
 
 
 
@@ -447,6 +517,24 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl,FA,FB> {
 
 };
 
+template < class FA, class FB >
+struct Subtract_Impl_Broadcast : BinaryOp<Subtract_Impl_Broadcast,FA,FB> {
+    // Output dim = FB::DIM
+    static const int DIM = FB::DIM;
+    
+    static void PrintIdString(std::stringstream& str) { str << "-"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = *outA - outB[k];
+	}
+
+    // [\partial_V (A - B) ] . gradin = [\partial_V A ] . gradin  - [\partial_V B ] . gradin
+    template < class V, class GRADIN >
+    using DiffT = Subtract < typename FA::template DiffT<V,Sum<GRADIN>> , typename FB::template DiffT<V,GRADIN> >;
+
+};
+
 // Simplification rules
 
 // third stage
@@ -454,7 +542,9 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl,FA,FB> {
 // base class : this redirects to the implementation
 template < class FA, class FB >
 struct Subtract_Alias0 {
-    using type = Subtract_Impl<FA,FB>;
+    using type1 = CondType < Subtract_Impl_Broadcast<FA,FB> , Subtract_Impl<FA,FB> , FA::DIM==1 >;
+    using type2 = CondType < Add_Impl_Broadcast<Minus<FB>,FA> , type1 , FB::DIM==1 >;
+    using type = CondType < Subtract_Impl<FA,FB> , type2 , FA::DIM==FB::DIM >;
 };
 
 // A - A = 0
@@ -554,52 +644,6 @@ struct Exp : UnaryOp<Exp,F> {
 
 };
 
-//////////////////////////////////////////////////////////////
-////                 SUM : Sum< F >                       ////
-//////////////////////////////////////////////////////////////
-
-template < class F, int D > struct SumT;
-
-template < class F >
-struct Sum : UnaryOp<Sum,F> {
-    
-    static const int DIM = 1;
-
-    static void PrintIdString(std::stringstream& str) { str << "Sum"; }
-	
-    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-		*out = 0;
-        for(int k=0; k<F::DIM; k++)
-            *out += outF[k];
-	}
-
-    template < class V, class GRADIN >
-    using DiffT = typename F::template DiffT<V,SumT<GRADIN,F::DIM>>;
-
-};
-
-//////////////////////////////////////////////////////////////
-////        Transpose of Sum : SumT< F >                   ////
-//////////////////////////////////////////////////////////////
-
-template < class F, int D >
-struct SumT : UnaryOp<SumT,F,D> {
-    
-	static_assert(F::DIM==1,"Dimension of input must be 1 for SumT");
-	
-    static const int DIM = D;
-
-    static void PrintIdString(std::stringstream& str) { str << "Exp"; }
-	
-    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-         for(int k=0; k<DIM; k++)
-             out[k] = *outF;
-	}
-
-    template < class V, class GRADIN >
-    using DiffT = typename F::template DiffT<V,Sum<GRADIN>>;
-
-};
 
 //////////////////////////////////////////////////////////////
 ////        SINE and COSINE : Sin< F >, Cos< F >          ////
