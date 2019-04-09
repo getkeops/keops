@@ -1,41 +1,14 @@
 import re
-import os.path
 import numpy as np
 from collections import OrderedDict
 import pykeops
-
-
-###########################################################
-#             Set build_folder
-###########################################################
-
-def set_build_folder():
-    """
-    This function set a default build folder that contains the python module compiled
-    by pykeops.
-    """
-    bf_source = os.path.dirname(os.path.abspath(__file__)) + os.path.sep + '..' + os.path.sep + 'build' + os.path.sep
-    bf_home = os.path.expanduser('~')
-
-    if os.path.isdir(bf_source): # assume we are loading from source
-        build_folder  = bf_source
-    elif os.path.isdir(bf_home): # assume we are ussing wheel and home is accessible
-       build_folder = bf_home + os.path.sep + '.cache' + os.path.sep + 'pykeops-' + pykeops.__version__ + os.path.sep 
-    else: 
-        import tempfile
-        build_folder = tempfile.mkdtemp(prefix='pykeops-' + pykeops.__version__) + os.path.sep
-        
-    os.makedirs(build_folder, exist_ok=True)
-
-    return build_folder
-
 
 
 ############################################################
 #     define backend
 ############################################################
 
-class pykeops_backend():
+class SetBackend():
     """
     This class is  used to centralized the options used in PyKeops.
     """
@@ -122,7 +95,7 @@ def get_tag_backend(backend, variables, str = False):
     """
     entry point to get the correct backend
     """
-    res = pykeops_backend()
+    res = SetBackend()
     if not str:
         return res.define_tag_backend(backend, variables)
     else:
