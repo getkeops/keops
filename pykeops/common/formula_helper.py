@@ -244,7 +244,7 @@ class keops_formula:
                 self.Genred = Genred_torch
             self.dtype = self.tools.dtype(args[0])
             self.fixvariables()
-            self.redop = Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(res.dtype), self.opt_arg, self.formula2)
+            self.redop = self.Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(self.dtype), self.opt_arg, self.formula2)
         return self.redop(*args, *self.variables, **self.kwargs)
 
             
