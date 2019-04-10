@@ -1,4 +1,5 @@
 import numpy as np
+from pykeops import keops_formula as kf
 from pykeops import Vi, Vj, Pm
 
 
