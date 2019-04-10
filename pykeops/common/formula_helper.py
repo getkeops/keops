@@ -1,4 +1,3 @@
-import copy
 import numpy as np
 from pykeops.numpy import Genred as Genred_numpy
 from pykeops.numpy.utils import numpytools
@@ -47,15 +46,16 @@ class keops_formula:
         self.nj = None
         self.dtype = None
         if x is not None:
-            if isinstance(x,int):
+            typex = type(x)
+            if typex == int:
                 self.formula = "IntCst(" + str(x) + ")"
                 self.dim = 1
                 return
-            elif isinstance(x,float):
+            elif typex == float:
                 x = [x]
-            elif isinstance(x,list):
+            elif typex == list:
                 pass
-            elif isinstance(x,tuple):
+            elif typex == tuple:
                 # x is not a tensor but a triplet of integers (ind,dim,cat) specifying an abstract variable
                 if len(x)!=3 or not isinstance(x[0],int) or not isinstance(x[1],int) or not isinstance(x[2],int):
                     raise ValueError("incorrect input")
@@ -66,17 +66,17 @@ class keops_formula:
                 self.dim = x[1]
                 self.formula = "VarSymb(" + str(x[0]) + "," + str(self.dim) + "," + str(axis) + ")"
                 return
-            elif isinstance(x,np.ndarray):
+            elif typex == np.ndarray:
                 self.tools = numpytools
                 self.Genred = Genred_numpy
                 self.dtype = self.tools.dtype(x)
-            elif usetorch and isinstance(x,torch.Tensor):
+            elif usetorch and typex == torch.Tensor:
                 self.tools = torchtools
                 self.Genred = Genred_torch
                 self.dtype = self.tools.dtype(x)
             else:
                 raise ValueError("incorrect input")
-            if isinstance(x,list) or len(x.shape)==1:
+            if type(x) == list or len(x.shape)==1:
                 # init as 1d array : x is a parameter
                 if axis and axis != 2:
                     raise ValueError("input is 1d vector, so it is considered as parameter and axis should equal 2")
@@ -118,27 +118,27 @@ class keops_formula:
                 raise ValueError("input array should be 1d, 2d or 3d")            
         # N.B. we allow empty init
 
-    def fixvariables(variables, ind_start, formula, tools, dtype, formula2=""):
-        # we assign indices ind_start + 0,1,2... indices to each variable
-        i = ind_start
+    def fixvariables(self):
+        # we assign final indices to each variable
+        i = len(self.symbolic_variables)
         newvars = ()
-        for v in variables:
+        if self.formula2 is None:
+            self.formula2 = ""
+        for v in self.variables:
             idv = id(v)
-            if isinstance(v,list):
-                if dtype and tools:
-                    v = tools.array(v,dtype)
+            if type(v) == list:
+                v = self.tools.array(v,self.dtype)
             tag = "Var("+str(idv)
-            if tag in formula+formula2:
-                formula = formula.replace(tag,"Var("+str(i))
-                formula2 = formula2.replace(tag,"Var("+str(i))
+            if tag in self.formula + self.formula2:
+                self.formula = self.formula.replace(tag,"Var("+str(i))
+                self.formula2 = self.formula2.replace(tag,"Var("+str(i))
                 i += 1
                 newvars += (v,)
-        formula = formula.replace("VarSymb(","Var(")
-        formula2 = formula2.replace("VarSymb(","Var(")
-        if formula2=="":
-            return newvars, formula
-        else:
-            return newvars, formula, formula2
+        self.formula = self.formula.replace("VarSymb(","Var(")
+        self.formula2 = self.formula2.replace("VarSymb(","Var(")
+        if self.formula2 == "":
+            self.formula2 = None
+        self.variables = newvars
 
     def promote(self,other,props):
         res = keops_formula()
@@ -151,6 +151,19 @@ class keops_formula:
                 setattr(res,prop,x)
             else:
                 setattr(res,prop,y)
+        return res
+        
+    def init(self):
+        # create new object and propagate properties found in self
+        res = keops_formula()
+        res.dtype = self.dtype
+        res.tools = self.tools
+        res.dtype = self.dtype
+        res.Genred = self.Genred
+        res.ni = self.ni
+        res.nj = self.nj
+        res.variables = self.variables
+        res.symbolic_variables = self.symbolic_variables
         return res
                 
     def join(self,other):
@@ -167,7 +180,7 @@ class keops_formula:
     def unary(self,string,dimres=None,opt_arg=None,opt_arg2=None):
         if not dimres:
             dimres = self.dim
-        res = copy.copy(self)
+        res = self.init()
         if opt_arg2 is not None:
             res.formula = string +"(" + self.formula + "," + str(opt_arg) + "," + str(opt_arg2) + ")"
         elif opt_arg is not None:
@@ -196,71 +209,45 @@ class keops_formula:
 
     # prototypes for reductions
 
-    def unaryred(self,reduction_op,opt_arg=None,axis=None, dim=None, **kwargs):
+    def reduction(self,reduction_op,other=None,opt_arg=None,axis=None, dim=None, call=True, **kwargs):
         if axis is None:
             axis = dim
         if axis not in (0,1):
             raise ValueError("axis must be 0 or 1 for reduction")
-        variables, formula = keops_formula.fixvariables(self.variables, ind_start=len(self.symbolic_variables), formula=self.formula, tools=self.tools, dtype=self.dtype)
-        def f(*args):
-            if self.dtype is None:
-                if isinstance(args[0],np.ndarray):
-                    tools = numpytools
-                    Genred = Genred_numpy
-                elif usetorch and isinstance(args[0],torch.Tensor):
-                    tools = torchtools
-                    Genred = Genred_torch
-                dtype = tools.dtype(args[0])
-                variables_, formula_ = keops_formula.fixvariables(self.variables, ind_start=len(self.symbolic_variables), formula=self.formula, tools=tools, dtype=dtype)
-            else:
-                dtype = self.dtype
-                tools = self.tools
-                Genred = self.Genred
-                variables_, formula_ = variables, formula
-            return Genred(formula_, [], reduction_op, axis, tools.dtypename(dtype), opt_arg)(*args, *variables_, **kwargs)
-        if len(self.symbolic_variables)>0:
-            return f
+        if other is None:
+            res = self.init()
+            res.formula2 = None
         else:
-            return f()
-
-
-        
-
-    def binaryred(self,reduction_op,other,opt_arg=None,axis=None, dim=None, **kwargs):
-        if axis is None:
-            axis = dim
-        if axis not in (0,1):
-            raise ValueError("axis must be 0 or 1 for reduction")
-        res = keops_formula.join(self,other)
-        variables, formula, formula2 = keops_formula.fixvariables(res.variables, ind_start=len(res.symbolic_variables), formula=self.formula, tools=res.tools, dtype=res.dtype, formula2=other.formula)
-        def f(*args):
-            if res.dtype is None:
-                if isinstance(args[0],np.ndarray):
-                    tools = numpytools
-                    Genred = Genred_numpy
-                elif usetorch and isinstance(args[0],torch.Tensor):
-                    tools = torchtools
-                    Genred = Genred_torch
-                dtype = tools.dtype(args[0])
-                variables_, formula_, formula2_ = keops_formula.fixvariables(variables, ind_start=len(symbolic_variables), formula=formula, tools=tools, dtype=dtype, formula2=formula2)
-            else:
-                dtype = res.dtype
-                tools = res.tools
-                Genred = res.Genred
-                variables_, formula_, formula2_ = variables, formula, formula2
-            return Genred(formula_, [], reduction_op, axis, tools.dtypename(dtype), opt_arg, formula2_)(*args, *variables_, **kwargs)
-        if len(self.symbolic_variables)>0:
-            return f
+            res = self.join(other)
+            res.formula2 = other.formula
+        res.formula = self.formula
+        res.reduction_op = reduction_op
+        res.axis = axis
+        res.opt_arg = opt_arg
+        res.kwargs = kwargs
+        if res.dtype is not None:
+            res.fixvariables()
+            res.redop = res.Genred(res.formula, [], res.reduction_op, res.axis, res.tools.dtypename(res.dtype), res.opt_arg, res.formula2)
+        if call and len(self.symbolic_variables)==0 and res.dtype is not None:
+            return res()
         else:
-            return f()
+            return res
 
+    def __call__(self,*args, **kwargs):
+        self.kwargs.update(kwargs)
+        if self.dtype is None:
+            if isinstance(args[0],np.ndarray):
+                self.tools = numpytools
+                self.Genred = Genred_numpy
+            elif usetorch and isinstance(args[0],torch.Tensor):
+                self.tools = torchtools
+                self.Genred = Genred_torch
+            self.dtype = self.tools.dtype(args[0])
+            self.fixvariables()
+            self.redop = Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(res.dtype), self.opt_arg, self.formula2)
+        return self.redop(*args, *self.variables, **self.kwargs)
 
-        
-
-
-
-
-    
+            
     # list of operations
     
     def __add__(self,other):
@@ -480,28 +467,28 @@ class keops_formula:
         if axis==2:
             return self.unary("Sum",dimres=1)
         else:
-            return self.unaryred("Sum", axis=axis, **kwargs)
+            return self.reduction("Sum", axis=axis, **kwargs)
     
     def sum_reduction(self,**kwargs):
-        return self.unaryred("Sum",**kwargs)
+        return self.reduction("Sum",**kwargs)
     
     def logsumexp(self,weight=None,**kwargs):
         if weight is None:
-            return self.unaryred("LogSumExp", **kwargs)
+            return self.reduction("LogSumExp", **kwargs)
         else:
-            return self.binaryred("LogSumExpWeight", weight, **kwargs)
+            return self.reduction("LogSumExpWeight", weight, **kwargs)
         
     def logsumexp_reduction(self,**kwargs):
         return self.logsumexp(**kwargs)
         
     def sumsoftmaxweight(self,weight,**kwargs):
-        return self.binaryred("SumSoftMaxWeight", weight, **kwargs)
+        return self.reduction("SumSoftMaxWeight", weight, **kwargs)
         
     def sumsoftmaxweight_reduction(self,**kwargs):
         return self.sumsoftmaxweight(**kwargs)
         
     def min(self, **kwargs):
-        return self.unaryred("Min", **kwargs)
+        return self.reduction("Min", **kwargs)
     
     def min_reduction(self,**kwargs):
         return self.min(**kwargs)
@@ -510,19 +497,19 @@ class keops_formula:
         return self.min(**kwargs)
 
     def argmin(self, **kwargs):
-        return self.unaryred("ArgMin", **kwargs)
+        return self.reduction("ArgMin", **kwargs)
     
     def argmin_reduction(self,weight,**kwargs):
         return self.argmin(**kwargs)
 
     def min_argmin(self, **kwargs):
-        return self.unaryred("Min_ArgMin", **kwargs)
+        return self.reduction("Min_ArgMin", **kwargs)
     
     def min_argmin_reduction(self, **kwargs):
         return self.min_argmin(**kwargs)
     
     def max(self, **kwargs):
-        return self.unaryred("Max", **kwargs)
+        return self.reduction("Max", **kwargs)
     
     def max_reduction(self,weight,**kwargs):
         return self.max(**kwargs)
@@ -531,31 +518,31 @@ class keops_formula:
         return self.max(**kwargs)
 
     def argmax(self, **kwargs):
-        return self.unaryred("ArgMax", **kwargs)
+        return self.reduction("ArgMax", **kwargs)
     
     def argmax_reduction(self,weight,**kwargs):
         return self.argmax(**kwargs)
 
     def max_argmax(self, **kwargs):
-        return self.unaryred("Max_ArgMax", **kwargs)
+        return self.reduction("Max_ArgMax", **kwargs)
     
     def max_argmax_reduction(self, **kwargs):
         return self.max_argmax(**kwargs)
     
     def Kmin(self, K, **kwargs):
-        return self.unaryred("KMin",opt_arg=K,**kwargs)
+        return self.reduction("KMin",opt_arg=K,**kwargs)
 
     def Kmin_reduction(self, **kwargs):
         return self.Kmin(**kwargs)
 
     def argKmin(self, K, **kwargs):
-        return self.unaryred("ArgKMin",opt_arg=K,**kwargs)
+        return self.reduction("ArgKMin",opt_arg=K,**kwargs)
 
     def argKmin_reduction(self, **kwargs):
         return self.argKmin(**kwargs)
 
     def Kmin_argKmin(self, K, **kwargs):
-        return self.unaryred("KMin_ArgKMin",opt_arg=K,**kwargs)
+        return self.reduction("KMin_ArgKMin",opt_arg=K,**kwargs)
 
     def Kmin_argKmin_reduction(self, **kwargs):
         return self.Kmin_argKmin(**kwargs)
