@@ -118,27 +118,23 @@ class keops_formula:
                 raise ValueError("input array should be 1d, 2d or 3d")            
         # N.B. we allow empty init
 
-    def fixvariables(variables, ind_start, formula, tools, dtype, formula2=""):
-        # we assign indices ind_start + 0,1,2... indices to each variable
-        i = ind_start
+    def fixvariables(self):
+        # we assign final indices to each variable
+        i = len(self.symbolic_variables)
         newvars = ()
-        for v in variables:
+        for v in self.variables:
             idv = id(v)
             if isinstance(v,list):
-                if dtype and tools:
-                    v = tools.array(v,dtype)
+                v = self.tools.array(v,self.dtype)
             tag = "Var("+str(idv)
-            if tag in formula+formula2:
-                formula = formula.replace(tag,"Var("+str(i))
-                formula2 = formula2.replace(tag,"Var("+str(i))
+            if tag in self.formula + self.formula2:
+                self.formula = self.formula.replace(tag,"Var("+str(i))
+                self.formula2 = self.formula2.replace(tag,"Var("+str(i))
                 i += 1
                 newvars += (v,)
-        formula = formula.replace("VarSymb(","Var(")
-        formula2 = formula2.replace("VarSymb(","Var(")
-        if formula2=="":
-            return newvars, formula
-        else:
-            return newvars, formula, formula2
+        self.formula = self.formula.replace("VarSymb(","Var(")
+        self.formula2 = self.formula2.replace("VarSymb(","Var(")
+        self.variables = newvars
 
     def promote(self,other,props):
         res = keops_formula()
@@ -196,37 +192,40 @@ class keops_formula:
 
     # prototypes for reductions
 
-    def unaryred(self,reduction_op,opt_arg=None,axis=None, dim=None, **kwargs):
+    def unaryred(self,reduction_op,opt_arg=None,axis=None, dim=None, call=True, **kwargs):
         if axis is None:
             axis = dim
         if axis not in (0,1):
             raise ValueError("axis must be 0 or 1 for reduction")
-        variables, formula = keops_formula.fixvariables(self.variables, ind_start=len(self.symbolic_variables), formula=self.formula, tools=self.tools, dtype=self.dtype)
-        def f(*args):
-            if self.dtype is None:
-                if isinstance(args[0],np.ndarray):
-                    tools = numpytools
-                    Genred = Genred_numpy
-                elif usetorch and isinstance(args[0],torch.Tensor):
-                    tools = torchtools
-                    Genred = Genred_torch
-                dtype = tools.dtype(args[0])
-                variables_, formula_ = keops_formula.fixvariables(self.variables, ind_start=len(self.symbolic_variables), formula=self.formula, tools=tools, dtype=dtype)
-            else:
-                dtype = self.dtype
-                tools = self.tools
-                Genred = self.Genred
-                variables_, formula_ = variables, formula
-            return Genred(formula_, [], reduction_op, axis, tools.dtypename(dtype), opt_arg)(*args, *variables_, **kwargs)
-        if len(self.symbolic_variables)>0:
-            return f
+        res = copy.copy(self)
+        res.reduction_op = reduction_op
+        res.axis = axis
+        res.opt_arg = opt_arg
+        res.formula2 = ""
+        if res.dtype is not None:
+            res.fixvariables()
+            res.redop = self.Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(dtype), self.opt_arg)
+        if call and len(self.symbolic_variables)==0 and res.dtype is not None:
+            return self.__call__()
         else:
-            return f()
+            return f
 
+    def __call__(self,*args):
+        if self.dtype is None:
+            if isinstance(args[0],np.ndarray):
+                self.tools = numpytools
+                self.Genred = Genred_numpy
+            elif usetorch and isinstance(args[0],torch.Tensor):
+                self.tools = torchtools
+                self.Genred = Genred_torch
+            self.dtype = self.tools.dtype(args[0])
+            self.fixvariables()
+            self.redop = Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(dtype), self.opt_arg)
+        return self.redop(*args, *variables_, **kwargs)
 
         
 
-    def binaryred(self,reduction_op,other,opt_arg=None,axis=None, dim=None, **kwargs):
+    def binaryred(self,reduction_op,other,opt_arg=None,axis=None, dim=None, call=True, **kwargs):
         if axis is None:
             axis = dim
         if axis not in (0,1):
@@ -249,10 +248,10 @@ class keops_formula:
                 Genred = res.Genred
                 variables_, formula_, formula2_ = variables, formula, formula2
             return Genred(formula_, [], reduction_op, axis, tools.dtypename(dtype), opt_arg, formula2_)(*args, *variables_, **kwargs)
-        if len(self.symbolic_variables)>0:
-            return f
-        else:
+        if call and len(self.symbolic_variables)==0:
             return f()
+        else:
+            return f
 
 
         
