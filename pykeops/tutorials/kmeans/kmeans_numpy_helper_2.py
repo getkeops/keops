@@ -30,6 +30,7 @@ from matplotlib import pyplot as plt
 
 from pykeops.numpy import Genred
 from pykeops.numpy.utils import IsGpuAvailable
+from pykeops import Vi, Vj, Pm
 
 dtype = 'float32'  # May be 'float32' or 'float64'
 
@@ -40,15 +41,6 @@ dtype = 'float32'  # May be 'float32' or 'float64'
 def KMeans(x, K=10, Niter=100, verbose=True):
     N, D = x.shape  # Number of samples, dimension of the ambient space
     
-    # Define our KeOps kernel:
-    nn_search = Genred(
-        'SqDist(x,y)',             # A simple squared L2 distance
-        ['x = Vi({})'.format(D),   # target points of dimension D, indexed by "i"
-         'y = Vj({})'.format(D)],  # source points of dimension D, indexed by "j"
-        reduction_op='ArgMin',
-        axis=1,                    # The reduction is performed on the second axis
-        dtype=dtype)           # "float32" and "float64" are available
-        
     # K-means loop:
     # - x  is the point cloud, 
     # - cl is the vector of class labels
@@ -56,8 +48,9 @@ def KMeans(x, K=10, Niter=100, verbose=True):
     start = time.time()
     c = np.copy(x[:K, :])  # Simplistic random initialization
     
+    myop = Vi(x).sqdist(Vj(c)).argmin(axis=1,call=False)
     for i in range(Niter):
-        cl = nn_search(x, c).astype(int).reshape(N)  # Points -> Nearest cluster
+        cl = myop().reshape(N)
         Ncl = np.bincount(cl).astype(dtype)  # Class weights
         for d in range(D):  # Compute the cluster centroids with np.bincount:
             c[:, d] = np.bincount(cl, weights=x[:, d]) / Ncl
