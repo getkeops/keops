@@ -9,7 +9,7 @@ import time
 # its numpy counterpart
 
 # data
-nx, ny = 5000, 10000
+nx, ny = 500, 1000
 x = np.random.rand(nx,1,3)
 y = np.random.rand(1,ny,3)
 b = np.random.rand(1,ny,4)
@@ -23,7 +23,6 @@ for s in sigmas:
     Kxy += np.exp(-dxy2/s**2)
 res = (Kxy-b)[:,:,1:3].min(axis=1)
 print("Timing (Numpy implementation): ",round(time.time()-start,5),"s")
-print("numpy output : ",res)
 
 # same with keops
 WarmUpGpu()
@@ -35,7 +34,6 @@ for s in sigmas:
     Kxy += kf.exp(-dxy2/s**2)
 kres = (Kxy-b)[:,:,1:3].min(axis=1)
 print("Timing (KeOps implementation): ",round(time.time()-start,5),"s")
-print("keops output : ",kres)
 
 # error
 print("norm of the difference : ",np.linalg.norm(kres-res))
