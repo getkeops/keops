@@ -264,11 +264,11 @@ class KernelSolve:
         ...             "a = Vj(2)"]  # 3rd input: source signal, one dim-2 vector per column
         >>> K = Genred(formula, aliases, axis = 1)  # Reduce formula along the lines of the kernel matrix
         >>> K_inv = KernelSolve(formula, aliases, "a",  # The formula above is linear wrt. 'a'
-        ...                     axis = 1, alpha = .1)   # Let's try not to overfit the data...
+        ...                     axis = 1)
         >>> # Generate some random data:
         >>> x = torch.randn(10000, 3, requires_grad=True).cuda()  # Sampling locations
         >>> b = torch.randn(10000, 2).cuda()                      # Random observed signal
-        >>> a = K_inv(x, x, b)  # Linear solve: a_i = (.1*Id + K(x,x)) \ b
+        >>> a = K_inv(x, x, b, alpha = .1)  # Linear solve: a_i = (.1*Id + K(x,x)) \ b
         >>> print(a.shape)
         torch.Size([10000, 2]) 
         >>> # Mean squared error:   
@@ -278,7 +278,7 @@ class KernelSolve:
         >>> print(g_x.shape)
         torch.Size([10000, 3]) 
     """
-    def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype=default_dtype, cuda_type=None):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None):
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
@@ -292,10 +292,9 @@ class KernelSolve:
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
         self.varinvpos = varinvpos
         self.dtype = dtype
-        self.alpha = alpha
 
-    def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6, ranges=None):
-        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, self.alpha, backend, self.dtype, device_id, eps, ranges, *args)
+    def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
+        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, *args)
 
 
 

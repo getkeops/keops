@@ -56,7 +56,7 @@ aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
 # 
 
 alpha = 0.01
-Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1, dtype=dtype)
+Kinv = KernelSolve(formula, aliases, "b", axis=1, dtype=dtype)
 
 ###############################################################################
 # .. note::
@@ -73,7 +73,7 @@ Kinv(x, x, b, g)
 
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
 start = time.time()
-c = Kinv(x, x, b, g)
+c = Kinv(x, x, b, g, alpha=alpha)
 end = time.time()
 print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
