@@ -455,9 +455,9 @@ struct ExtractT : UnaryOp<ExtractT,F,START,DIM_> {
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 	    for(int k=0; k<START; k++)
             	out[k] = 0.0;
-	    for(int k=START; k<F::DIM; k++)
-            	out[k] = outF[k];
-	    for(int k=F::DIM; k<DIM; k++)
+	    for(int k=0; k<F::DIM; k++)
+            	out[START+k] = outF[k];
+	    for(int k=START+F::DIM; k<DIM; k++)
             	out[k] = 0.0;
 	}
 
