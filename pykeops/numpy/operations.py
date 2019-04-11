@@ -151,10 +151,15 @@ class KernelSolve:
         self.dtype = dtype
         self.myconv = load_keops(self.formula, self.aliases, self.dtype, 'numpy')
         self.alpha = alpha
-        tmp = aliases.copy()
-        for (i, s) in enumerate(tmp):
-            tmp[i] = s[:s.find("=")].strip()
-        self.varinvpos = tmp.index(varinvalias)
+        if varinvalias[:4] == "Var(":
+            # varinv is given directly as Var(*,*,*) so we just have to read the index
+            self.varinvpos = varinvalias[4]
+        else:
+            # we need to recover index from alias
+            tmp = aliases.copy()
+            for (i, s) in enumerate(tmp):
+                tmp[i] = s[:s.find("=")].strip()
+            self.varinvpos = tmp.index(varinvalias)
     
     def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6, ranges=None):
         # Get tags
