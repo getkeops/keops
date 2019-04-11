@@ -1,9 +1,11 @@
 import numpy as np
 from pykeops.numpy import Genred as Genred_numpy
+from pykeops.numpy import KernelSolve as KernelSolve_numpy
 from pykeops.numpy.utils import numpytools
 try:
     import torch
     from pykeops.torch import Genred as Genred_torch
+    from pykeops.torch import KernelSolve as KernelSolve_torch
     from pykeops.torch.utils import torchtools
     usetorch = True
 except ImportError:
@@ -42,16 +44,19 @@ class keops_formula:
         self.dim = None
         self.tools = None
         self.Genred = None
+        self.KernelSolve = None
         self.ni = None
         self.nj = None
         self.dtype = None
         if x is not None:
+            # stage 1
             typex = type(x)
             if typex == int:
                 self.formula = "IntCst(" + str(x) + ")"
                 self.dim = 1
                 return
             elif typex == float:
+                # convert to list and go to stage 2
                 x = [x]
             elif typex == list:
                 pass
@@ -69,14 +74,17 @@ class keops_formula:
             elif typex == np.ndarray:
                 self.tools = numpytools
                 self.Genred = Genred_numpy
+                self.KernelSolve = KernelSolve_numpy
                 self.dtype = self.tools.dtype(x)
             elif usetorch and typex == torch.Tensor:
                 self.tools = torchtools
                 self.Genred = Genred_torch
+                self.KernelSolve = KernelSolve_torch
                 self.dtype = self.tools.dtype(x)
             else:
                 raise ValueError("incorrect input")
-            if type(x) == list or len(x.shape)==1:
+            # stage 2 : dealing with python list, assumed to be array of floats, treated as parameter variables without fixed dtype
+            if type(x) == list:
                 # init as 1d array : x is a parameter
                 if axis and axis != 2:
                     raise ValueError("input is 1d vector, so it is considered as parameter and axis should equal 2")
@@ -84,8 +92,10 @@ class keops_formula:
                 self.dim = len(x)
                 self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + ",2)"
                 return
+            # stage 3 : if we get here it means x must be a numpy or pytorch array
             if len(x.shape)==3:
                 # init as 3d array : shape must be either (N,1,D) or (1,N,D) or (1,1,D)
+                # we infer axis from shape and convert to 1D or 2D array
                 if axis is not None:
                     raise ValueError("axis should not be given for 3d array input")
                 if x.shape[0]==1:
@@ -99,21 +109,34 @@ class keops_formula:
                     axis = 0
                 else:
                     raise ValueError("incorrect shape for input array")
+            # stage 4 : now x must be 2D or 1D array
             if len(x.shape)==2:
                 # init as 2d array : shape is (N,D) and axis must be given
                 if axis is None:
                     raise ValueError("axis should be given")
                 if axis not in (0,1):
                     raise ValueError("axis should be 0 or 1")
+                # id(x) is used as temporary identifier for KeOps "Var",
+                # this identifier will be changed when calling method "fixvariables"
+                # But first we do a small hack, in order to distinguish same array involved twice in a formula but with 
+                # different axis (e.g. Vi(x)-Vj(x) formula): we do a dummy reshape in order to get a different id
+                if axis==1:
+                    x = x.reshape(x.shape)
                 self.variables = (x,)
                 self.dim = x.shape[1]
-                # id(x) is used as temporary identifier for KeOps "Var", this will be changed when calling method "fixvariables"
                 self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + "," + str(axis) + ")"
                 if axis==0:
                     self.ni = x.shape[0]
                 else:
                     self.nj = x.shape[0]
                 self.dtype = self.tools.dtype(x)
+            elif len(x.shape)==1:
+                # init as 1d array : x is a parameter
+                if axis and axis != 2:
+                    raise ValueError("input is 1d vector, so it is considered as parameter and axis should equal 2")
+                self.variables = (x,)
+                self.dim = len(x)
+                self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + ",2)"
             else:
                 raise ValueError("input array should be 1d, 2d or 3d")            
         # N.B. we allow empty init
@@ -160,6 +183,7 @@ class keops_formula:
         res.tools = self.tools
         res.dtype = self.dtype
         res.Genred = self.Genred
+        res.KernelSolve = self.KernelSolve
         res.ni = self.ni
         res.nj = self.nj
         res.variables = self.variables
@@ -168,7 +192,7 @@ class keops_formula:
                 
     def join(self,other):
         # promote props
-        res = keops_formula.promote(self,other,("dtype","tools","Genred","ni","nj"))
+        res = keops_formula.promote(self,other,("dtype","tools","Genred","KernelSolve","ni","nj"))
         # we simply concatenate the two tuples of variables, without worrying about repetitions yet
         res.variables = self.variables + other.variables
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
@@ -227,9 +251,44 @@ class keops_formula:
         res.kwargs = kwargs
         if res.dtype is not None:
             res.fixvariables()
-            res.redop = res.Genred(res.formula, [], res.reduction_op, res.axis, res.tools.dtypename(res.dtype), res.opt_arg, res.formula2)
-        if call and len(self.symbolic_variables)==0 and res.dtype is not None:
+            res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis, res.tools.dtypename(res.dtype), res.opt_arg, res.formula2)
+        if call and len(res.symbolic_variables)==0 and res.dtype is not None:
             return res()
+        else:
+            return res
+
+    def solve(self,var, alpha=0, call=True, **kwargs):
+        # axis of reduction is the opposite of the axis of output
+        if len(var.symbolic_variables)==0:
+            axis = 0 if var.ni==1 else 1
+        else:
+            # var is symbolic
+            axis = 1-var.variables[0][2]
+            
+        if len(self.symbolic_variables)==0:
+            # there is no symbolic variable, so this is the classical mode: we want to invert sum(self*x) = var 
+            # we define x as a new symbolic variable with same dimension as var
+            # and we assume that axis of x is the axis of the reduction 
+            x = Var(0,var.dim,axis)
+            res = self*x
+            res.xstring = "Var(0," + str(var.dim) + "," + str(axis) + ")"
+        elif len(self.symbolic_variables)==1:
+            # there is one symbolic variable, so we assume it is the unknown x and it has index 0
+            res = self.init()
+            res.formula = self.formula
+            res.xstring = "Var(0," + str(self.symbolic_variables[0][1]) + "," + str(self.symbolic_variables[0][2]) + ")"
+        else:
+            raise ValueError("more than one symbolic variable in solve is not implemented")
+        res.reduction_op = "Solve"
+        res.formula2 = None
+        res.axis = axis
+        res.alpha = alpha
+        res.kwargs = kwargs
+        if res.dtype is not None:
+            res.fixvariables()
+            res.callfun = res.KernelSolve(res.formula,[],res.xstring,res.alpha,res.axis, res.tools.dtypename(res.dtype))
+        if call and len(var.symbolic_variables)==0 and res.dtype is not None:
+            return res(var.variables[0],**kwargs)
         else:
             return res
 
@@ -239,16 +298,22 @@ class keops_formula:
             if isinstance(args[0],np.ndarray):
                 self.tools = numpytools
                 self.Genred = Genred_numpy
+                self.KernelSolve = KernelSolve_numpy
             elif usetorch and isinstance(args[0],torch.Tensor):
                 self.tools = torchtools
                 self.Genred = Genred_torch
+                self.KernelSolve = KernelSolve_torch
             self.dtype = self.tools.dtype(args[0])
             self.fixvariables()
-            self.redop = self.Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(self.dtype), self.opt_arg, self.formula2)
-        return self.redop(*args, *self.variables, **self.kwargs)
-
-            
+            if self.reduction_op == "Solve":
+                self.callfun = self.KernelSolve(self.formula,[],self.xstring,self.alpha,self.axis, self.tools.dtypename(self.dtype))
+            else:
+                self.callfun = self.Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(self.dtype), self.opt_arg, self.formula2)
+        return self.callfun(*args, *self.variables, **self.kwargs)
+    
     # list of operations
+    
+    __array_ufunc__ = None
     
     def __add__(self,other):
         return self.binary(other,string2="+")
