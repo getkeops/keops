@@ -60,10 +60,6 @@ class KernelSolve:
             but may be more sophisticated than a mere ``"K(x,y) * {varinvalias}"``.
 
     Keyword Args:
-        alpha (float, default = 1e-10): Non-negative 
-            **ridge regularization** parameter, added to the diagonal
-            of the Kernel matrix :math:`K_{xx}`.
-
         axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine. 
             The supported values are:
 
@@ -90,6 +86,10 @@ class KernelSolve:
                 - All ``Pm(Dim_k)`` variables are encoded as **1d-arrays** (vectors) of size ``Dim_k``.
 
     Keyword Args:
+        alpha (float, default = 1e-10): Non-negative 
+            **ridge regularization** parameter, added to the diagonal
+            of the Kernel matrix :math:`K_{xx}`.
+
         backend (string): Specifies the map-reduce scheme,
             as detailed in the documentation 
             of the :func:`Genred` module.
@@ -127,11 +127,11 @@ class KernelSolve:
         ...             "a = Vj(2)"]  # 3rd input: source signal, one dim-2 vector per column
         >>> K = Genred(formula, aliases, axis = 1)  # Reduce formula along the lines of the kernel matrix
         >>> K_inv = KernelSolve(formula, aliases, "a",  # The formula above is linear wrt. 'a'
-        ...                     axis = 1, alpha = .1)   # Let's try not to overfit the data...
+        ...                     axis = 1)  
         >>> # Generate some random data:
         >>> x = np.random.randn(10000, 3)  # Sampling locations
         >>> b = np.random.randn(10000, 2)  # Random observed signal
-        >>> a = K_inv(x, x, b)  # Linear solve: a_i = (.1*Id + K(x,x)) \ b
+        >>> a = K_inv(x, x, b, alpha = .1)  # Linear solve: a_i = (.1*Id + K(x,x)) \ b
         >>> print(a.shape)
         (10000, 2) 
         >>> # Mean squared error:
@@ -140,7 +140,7 @@ class KernelSolve:
     
     """
     
-    def __init__(self, formula, aliases, varinvalias, alpha=1e-10, axis=0, dtype=default_dtype, opt_arg=None):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None):
         reduction_op = 'Sum'
         if opt_arg:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
@@ -150,13 +150,12 @@ class KernelSolve:
         self.varinvalias = varinvalias
         self.dtype = dtype
         self.myconv = load_keops(self.formula, self.aliases, self.dtype, 'numpy')
-        self.alpha = alpha
         tmp = aliases.copy()
         for (i, s) in enumerate(tmp):
             tmp[i] = s[:s.find("=")].strip()
         self.varinvpos = tmp.index(varinvalias)
     
-    def __call__(self, *args, backend='auto', device_id=-1, eps=1e-6, ranges=None):
+    def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         nx, ny = get_sizes(self.aliases, *args)
@@ -167,8 +166,8 @@ class KernelSolve:
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos + 1:]
             res = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
-            if self.alpha:
-                res += self.alpha * var
+            if alpha:
+                res += alpha * var
             return res
 
         return ConjugateGradientSolver('numpy', linop, varinv, eps=eps)

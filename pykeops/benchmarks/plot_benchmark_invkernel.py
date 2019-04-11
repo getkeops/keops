@@ -103,13 +103,13 @@ aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
 # 
 
 def Kinv_keops(x, b, gamma, alpha):
-    Kinv = KernelSolve(formula, aliases, "a", alpha=alpha, axis=1)
-    res = Kinv(x, x, b, gamma)
+    Kinv = KernelSolve(formula, aliases, "a", axis=1)
+    res = Kinv(x, x, b, gamma, alpha=alpha)
     return res
 
 def Kinv_keops_numpy(x, b, gamma, alpha):
-    Kinv = KernelSolve_np(formula, aliases, "a", alpha=alpha, axis=1, dtype='float32')
-    res = Kinv(x, x, b, gamma)
+    Kinv = KernelSolve_np(formula, aliases, "a", axis=1, dtype='float32')
+    res = Kinv(x, x, b, gamma, alpha=alpha)
     return res
 
 ###############################################################################

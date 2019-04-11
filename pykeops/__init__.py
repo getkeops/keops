@@ -1,6 +1,8 @@
-import sys, os.path
+import os.path
+import sys
+from .common.set_path import set_build_folder
 
-__version__ = '1.0'
+__version__ = '1.0.1'
 
 ###########################################################
 # Initialize some variables: the values may be redefined 
@@ -11,13 +13,10 @@ torch_found = False
 ###########################################################
 # Compilation options
 
-from .common.get_options import set_build_folder
-
 script_folder = os.path.dirname(os.path.abspath(__file__))
-build_folder  = set_build_folder()
+build_folder = set_build_folder()
 
-verbose = False # display output of compilations
-build_type = "Release" # 'Release' or 'Debug'
+verbose = False  # display output of compilations
+build_type = "Release"  # 'Release' or 'Debug'
 
 sys.path.append(build_folder)
-

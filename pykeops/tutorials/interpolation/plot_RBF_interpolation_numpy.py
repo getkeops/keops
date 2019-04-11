@@ -75,13 +75,13 @@ sigma = .1  # Kernel radius
 alpha = 1.  # Ridge regularization
 
 g = np.array([.5 / sigma ** 2]).astype(dtype)  # RBF bandwidth parameter
-Kinv = KernelSolve(formula, aliases, "A", alpha=alpha, axis=1)  # KeOps operator
+Kinv = KernelSolve(formula, aliases, "A", axis=1)  # KeOps operator
 
 #######################################################################
 # Perform the **Kernel interpolation**:
 
 start = time.time()
-a = Kinv(x, x, b, g)
+a = Kinv(x, x, b, g, alpha=alpha)
 end = time.time()
 
 print('Time to perform an RBF interpolation with {} samples in 1D: {:.5f}s'.format(
@@ -148,13 +148,13 @@ sigma = .1  # Kernel radius
 alpha = 10  # Ridge regularization
 
 g = np.array([1. / sigma]).astype(dtype)  # RBF bandwidth parameter
-Kinv = KernelSolve(formula, aliases, "A", alpha=alpha, axis=1)  # KeOps operator
+Kinv = KernelSolve(formula, aliases, "A", axis=1)  # KeOps operator
 
 #########################################################################
 # Perform the **Kernel interpolation**:
 
 start = time.time()
-a = Kinv(x, x, b, g)
+a = Kinv(x, x, b, g, alpha=alpha)
 end = time.time()
 
 print('Time to perform an RBF interpolation with {} samples in 2D: {:.5f}s'.format(N, end - start))
