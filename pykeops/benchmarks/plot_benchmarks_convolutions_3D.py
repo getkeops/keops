@@ -36,7 +36,7 @@ use_cuda = torch.cuda.is_available()
 # 
 
 D  = 3        # Let's do this in 3D
-MAXTIME = 20 if use_cuda else 1   # Max number of seconds before we break the loop
+MAXTIME = 10 if use_cuda else 1   # Max number of seconds before we break the loop
 REDTIME = 2  if use_cuda else .2  # Decrease the number of runs if computations take longer than 2s...
 
 # Number of samples that we'll loop upon
@@ -51,19 +51,32 @@ NS = [100, 200, 500,
 # Synthetic dataset. Feel free to use
 # a Stanford Bunny, or whatever!
 
-def generate_samples(N, device):
+def generate_samples(N, device, lang):
     """Create point clouds sampled non-uniformly on a sphere of diameter 1."""
 
-    x  = torch.randn(N, D, device=device)
-    x[:,0] += 1
-    x  = x / (2*x.norm(dim=1,keepdim=True))
+    if lang == 'torch':
+        if device == 'cuda':
+            torch.cuda.manual_seed_all(1234)
+        else:
+            torch.manual_seed(1234)
 
-    y  = torch.randn(N, D, device=device)
-    y[:,1] += 2
-    y  = y / (2*y.norm(dim=1,keepdim=True))
+        x  = torch.randn(N, D, device=device)
+        x[:,0] += 1
+        x  = x / (2*x.norm(dim=1,keepdim=True))
 
-    # Draw a random source signal:
-    b  = torch.randn(N, device=device).view(-1,1)
+        y  = torch.randn(N, D, device=device)
+        y[:,1] += 2
+        y  = y / (2*y.norm(dim=1,keepdim=True))
+
+        # Draw a random source signal:
+        b  = torch.randn(N, device=device).view(-1,1)
+
+    else:
+        np.random.seed(1234)
+
+        x  = np.random.rand(N, D).astype('float32')
+        y  = np.random.rand(N, D).astype('float32')
+        b  = np.random.randn(N).astype('float32')
 
     return x, y, b
 
@@ -71,6 +84,12 @@ def generate_samples(N, device):
 ##############################################
 # Define a simple Gaussian RBF product, using a **tensorized** implementation:
 #
+
+def gaussianconv_numpy(x, y, b):
+    K_xy = np.exp( - np.sum( (x[:,None,:] - y[None,:,:]) **2, axis=2) )
+
+    return K_xy@b
+
 
 def gaussianconv_pytorch(x, y, b):
     D_xx = (x*x).sum(-1).unsqueeze(1)         # (N,1)
@@ -98,12 +117,12 @@ gaussianconv_keops = generic_sum("Exp(-SqDist(X,Y)) * B",  # Formula
 # Benchmarking loops
 # -----------------------
 
-def benchmark(Routine, dev, N, loops = 10) :
+def benchmark(Routine, dev, N, loops = 10, lang='torch') :
     """Times a convolution on an N-by-N problem."""
 
     importlib.reload(torch)  # In case we had a memory overflow just before...
     device = torch.device(dev)
-    x, y, b = generate_samples(N, device)
+    x, y, b = generate_samples(N, device, lang)
 
     # We simply benchmark a convolution
     code = "a = Routine( x, y, b ) "
@@ -120,7 +139,7 @@ def benchmark(Routine, dev, N, loops = 10) :
     return elapsed / loops
 
 
-def bench_config(Routine, backend, dev) :
+def bench_config(Routine, backend, dev, l) :
     """Times a convolution for an increasing number of samples."""
 
     print("Backend : {}, Device : {} -------------".format(backend, dev))
@@ -130,7 +149,7 @@ def bench_config(Routine, backend, dev) :
         Nloops = [100, 10, 1]
         nloops = Nloops.pop(0)
         for n in NS :
-            elapsed = benchmark(Routine, dev, n, loops=nloops)
+            elapsed = benchmark(Routine, dev, n, loops=nloops, lang=l)
 
             times.append( elapsed )
             if (nloops * elapsed > MAXTIME) \
@@ -148,13 +167,13 @@ def bench_config(Routine, backend, dev) :
 def full_bench(title, routines) :
     """Benchmarks the varied backends of a geometric loss function."""
 
-    backends = [ backend for (_,backend) in routines ]
+    backends = [ backend for (_, backend, _) in routines ]
 
     print("Benchmarking : {} ===============================".format(title))
     
     lines  = [ NS ]
-    for routine, backend in routines :
-        lines.append( bench_config(routine, backend, "cuda" if use_cuda else "cpu") )
+    for routine, backend, lang in routines :
+        lines.append( bench_config(routine, backend, "cuda" if use_cuda else "cpu", lang) )
 
     benches = np.array(lines).T
 
@@ -195,8 +214,9 @@ def full_bench(title, routines) :
 # Run the benchmark
 # ---------------------
 
-routines = [ (gaussianconv_pytorch, "PyTorch"),  
-             (gaussianconv_keops,   "KeOps")  ]
+routines = [ (gaussianconv_numpy, "Numpy", "numpy"),
+             (gaussianconv_pytorch, "PyTorch", "torch"),  
+             (gaussianconv_keops,   "KeOps", "torch"),]
 full_bench( "Gaussian Matrix-Vector products", routines )
 
 plt.show()
