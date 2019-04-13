@@ -150,7 +150,6 @@ class KernelSolve:
         self.varinvalias = varinvalias
         self.dtype = dtype
         self.myconv = load_keops(self.formula, self.aliases, self.dtype, 'numpy')
-        self.alpha = alpha
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
             self.varinvpos = int(varinvalias[4:varinvalias.find(",")])

@@ -261,7 +261,7 @@ class keops_formula:
         else:
             return res
 
-    def kernelsolve(self,other, var=None, alpha=0, call=True, **kwargs):
+    def kernelsolve(self,other, var=None, call=True, **kwargs):
         # If given, var is symbolic variable corresponding to unknown
         # other must be a variable equal to the second member of the linear system,
         # and it may be symbolic. If it is symbolic, its index should match the index of var
@@ -290,11 +290,10 @@ class keops_formula:
         res.varformula = var.formula.replace("VarSymb","Var")
         res.other = other
         res.axis = axis
-        res.alpha = alpha
         res.kwargs = kwargs
         if res.dtype is not None:
             res.fixvariables()
-            res.callfun = res.KernelSolve(res.formula,[],res.varformula,res.alpha,res.axis, res.tools.dtypename(res.dtype))
+            res.callfun = res.KernelSolve(res.formula,[],res.varformula,res.axis, res.tools.dtypename(res.dtype))
         # we call if call=True, if other is not symbolic, and if the dtype is set
         if call and len(other.symbolic_variables)==0 and res.dtype is not None:
             return res()
@@ -315,7 +314,7 @@ class keops_formula:
             self.dtype = self.tools.dtype(args[0])
             self.fixvariables()
             if self.reduction_op == "Solve":
-                self.callfun = self.KernelSolve(self.formula,[],self.formula2,self.alpha,self.axis, self.tools.dtypename(self.dtype))
+                self.callfun = self.KernelSolve(self.formula,[],self.formula2,self.axis, self.tools.dtypename(self.dtype))
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(self.dtype), self.opt_arg, self.formula2)
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables)==0:

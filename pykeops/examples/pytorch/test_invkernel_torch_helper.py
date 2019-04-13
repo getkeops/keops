@@ -50,7 +50,7 @@ alpha = 0.01 # ridge regularization
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
 start = time.time()
 K_xx = keops.exp(-keops.sum( (Vi(x) - Vj(x))**2,dim=2) / (2*sigma**2) )
-cfun = keops.solve(K_xx,Vi(b),alpha=alpha,call=False)
+cfun = keops.kernelsolve(K_xx,Vi(b),alpha=alpha,call=False)
 c = cfun()
 end = time.time()
 print('Timing (KeOps implementation):', round(end - start, 5), 's')
