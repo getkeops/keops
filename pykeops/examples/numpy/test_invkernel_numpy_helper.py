@@ -38,20 +38,26 @@ g = np.array([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
 alpha = 0.01
 
 ###############################################################################
+# Apply our solver on arbitrary point clouds:
+#
+
+print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
+start = time.time()
+Kxx = (-Pm(g)*Vi(x).sqdist(Vj(x))).exp()
+c = Kxx.kernelsolve(Vi(b),alpha=alpha)
+end = time.time()
+print('Timing (KeOps implementation):', round(end - start, 5), 's')
+
+###############################################################################
 # .. note::
-#   This operator uses a conjugate gradient solver and assumes
-#   that **formula** defines a **symmetric**, positive and definite
+#   The kernelsolve method uses a conjugate gradient solver and assumes
+#   that **Kxx** defines a **symmetric**, positive and definite
 #   **linear** reduction with respect to the alias ``"b"``
 #   specified trough the third argument.
 #
 # Apply our solver on arbitrary point clouds:
 #
 
-print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
-start = time.time()
-c = (-g*Vi(x).sqdist(Vj(x))).exp().solve(Vi(b),alpha=alpha)
-end = time.time()
-print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
 ###############################################################################
 # Compare with a straightforward Numpy implementation:

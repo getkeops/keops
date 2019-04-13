@@ -153,7 +153,7 @@ class KernelSolve:
         self.alpha = alpha
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
-            self.varinvpos = varinvalias[4]
+            self.varinvpos = int(varinvalias[4:varinvalias.find(",")])
         else:
             # we need to recover index from alias
             tmp = aliases.copy()

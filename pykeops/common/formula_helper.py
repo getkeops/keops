@@ -54,6 +54,7 @@ class keops_formula:
             if typex == int:
                 self.formula = "IntCst(" + str(x) + ")"
                 self.dim = 1
+                self.axis = 2
                 return
             elif typex == float:
                 # convert to list and go to stage 2
@@ -66,10 +67,10 @@ class keops_formula:
                     raise ValueError("incorrect input")
                 if axis is not None:
                     raise ValueError("axis parameter should not be given when x is of the form (ind,dim,cat)")
-                axis = x[2]
+                self.axis = x[2]
                 self.symbolic_variables = (x,)
                 self.dim = x[1]
-                self.formula = "VarSymb(" + str(x[0]) + "," + str(self.dim) + "," + str(axis) + ")"
+                self.formula = "VarSymb(" + str(x[0]) + "," + str(self.dim) + "," + str(self.axis) + ")"
                 return
             elif typex == np.ndarray:
                 self.tools = numpytools
@@ -91,6 +92,7 @@ class keops_formula:
                 self.variables = (x,)
                 self.dim = len(x)
                 self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + ",2)"
+                self.axis = 2
                 return
             # stage 3 : if we get here it means x must be a numpy or pytorch array
             if len(x.shape)==3:
@@ -121,7 +123,7 @@ class keops_formula:
                 # But first we do a small hack, in order to distinguish same array involved twice in a formula but with 
                 # different axis (e.g. Vi(x)-Vj(x) formula): we do a dummy reshape in order to get a different id
                 if axis==1:
-                    x = x.reshape(x.shape)
+                    x = self.tools.view(x,x.shape)
                 self.variables = (x,)
                 self.dim = x.shape[1]
                 self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + "," + str(axis) + ")"
@@ -129,14 +131,16 @@ class keops_formula:
                     self.ni = x.shape[0]
                 else:
                     self.nj = x.shape[0]
+                self.axis = axis
                 self.dtype = self.tools.dtype(x)
             elif len(x.shape)==1:
                 # init as 1d array : x is a parameter
-                if axis and axis != 2:
+                if axis is not None and axis != 2:
                     raise ValueError("input is 1d vector, so it is considered as parameter and axis should equal 2")
                 self.variables = (x,)
                 self.dim = len(x)
                 self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + ",2)"
+                self.axis = 2
             else:
                 raise ValueError("input array should be 1d, 2d or 3d")            
         # N.B. we allow empty init
@@ -257,38 +261,43 @@ class keops_formula:
         else:
             return res
 
-    def solve(self,var, alpha=0, call=True, **kwargs):
-        # axis of reduction is the opposite of the axis of output
-        if len(var.symbolic_variables)==0:
-            axis = 0 if var.ni==1 else 1
+    def kernelsolve(self,other, var=None, alpha=0, call=True, **kwargs):
+        # If given, var is symbolic variable corresponding to unknown
+        # other must be a variable equal to the second member of the linear system,
+        # and it may be symbolic. If it is symbolic, its index should match the index of var
+        # if other is not symbolic, all variables in self must be non symbolic
+        if len(other.symbolic_variables)==0 and len(self.symbolic_variables)!=0:
+            raise ValueError("invalid inputs")
+        
+        # we infer axis of reduction as the opposite of the axis of output
+        axis = 1-other.axis
+        
+        if var is None:
+            # this is the classical mode: we want to invert sum(self*var) = other 
+            # we define var as a new symbolic variable with same dimension as other
+            # and we assume axis of var is same as axis of reduction
+            varindex = len(self.symbolic_variables)
+            var = Var(varindex,other.dim,axis)
+            res = self*var
         else:
-            # var is symbolic
-            axis = 1-var.variables[0][2]
-            
-        if len(self.symbolic_variables)==0:
-            # there is no symbolic variable, so this is the classical mode: we want to invert sum(self*x) = var 
-            # we define x as a new symbolic variable with same dimension as var
-            # and we assume that axis of x is the axis of the reduction 
-            x = Var(0,var.dim,axis)
-            res = self*x
-            res.xstring = "Var(0," + str(var.dim) + "," + str(axis) + ")"
-        elif len(self.symbolic_variables)==1:
-            # there is one symbolic variable, so we assume it is the unknown x and it has index 0
+            # var is given and must be a symbolic variable which is already inside self
+            varindex = var.symbolic_variables[0][0]
             res = self.init()
             res.formula = self.formula
-            res.xstring = "Var(0," + str(self.symbolic_variables[0][1]) + "," + str(self.symbolic_variables[0][2]) + ")"
-        else:
-            raise ValueError("more than one symbolic variable in solve is not implemented")
-        res.reduction_op = "Solve"
         res.formula2 = None
+        res.reduction_op = "Solve"
+        res.varindex = varindex
+        res.varformula = var.formula.replace("VarSymb","Var")
+        res.other = other
         res.axis = axis
         res.alpha = alpha
         res.kwargs = kwargs
         if res.dtype is not None:
             res.fixvariables()
-            res.callfun = res.KernelSolve(res.formula,[],res.xstring,res.alpha,res.axis, res.tools.dtypename(res.dtype))
-        if call and len(var.symbolic_variables)==0 and res.dtype is not None:
-            return res(var.variables[0],**kwargs)
+            res.callfun = res.KernelSolve(res.formula,[],res.varformula,res.alpha,res.axis, res.tools.dtypename(res.dtype))
+        # we call if call=True, if other is not symbolic, and if the dtype is set
+        if call and len(other.symbolic_variables)==0 and res.dtype is not None:
+            return res()
         else:
             return res
 
@@ -306,9 +315,15 @@ class keops_formula:
             self.dtype = self.tools.dtype(args[0])
             self.fixvariables()
             if self.reduction_op == "Solve":
-                self.callfun = self.KernelSolve(self.formula,[],self.xstring,self.alpha,self.axis, self.tools.dtypename(self.dtype))
+                self.callfun = self.KernelSolve(self.formula,[],self.formula2,self.alpha,self.axis, self.tools.dtypename(self.dtype))
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(self.dtype), self.opt_arg, self.formula2)
+        if self.reduction_op == "Solve" and len(self.other.symbolic_variables)==0:
+            # here args should be empty, according to our rule
+            if args!=():
+                raise ValueError("no input required")
+            # we replace by other
+            args = (self.other.variables[0],)
         return self.callfun(*args, *self.variables, **self.kwargs)
     
     # list of operations
