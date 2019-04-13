@@ -12,16 +12,34 @@ def complete_aliases(formula, aliases):
         This function parse formula (a string) to find pattern like 'Var(x,x,x)'.
         It then append to aliases (list of strings), the extra 'Var(x,x,x)'.
     """
-    def unique(sequence):
-        """ 
-            find unique element of list. Keeping order. 
-            Source : http://www.martinbroadhurst.com/removing-duplicates-from-a-list-while-preserving-order-in-python.html
-        """
-        seen = set()
-        return [x for x in sequence if not (x in seen or seen.add(x))]
-    
-    m = re.findall(r"Var\([0-9]{1,},[0-9]{1,},[0-9]{1,}\)", formula.replace(" ", ""))
-    return unique(aliases + m)   
+    # first we detect all instances of Var(*,*,*) in formula.
+    # These may be extra variables that are not listed in the aliases
+    extravars = re.findall(r"Var\([0-9]{1,},[0-9]{1,},[0-9]{1,}\)", formula.replace(" ", ""))
+    # we get unicity
+    extravars = list(set(extravars))
+    # now we loop through extravars
+    newind = () # this will give the indices in extravars list of new variables
+    newpos = () # this will give the indices in aliases list of new variables
+    for (ind,var) in enumerate(extravars):
+        # we get the "position" of the variable as the first integer value in the string
+        # (i.e. the "a" in "Var(a,b,c)")
+        pos = int(re.search(r"[0-9]{1,}",var).group(0))
+        if pos < len(aliases):
+            # this means that in fact var is not an extra variable, it is already in the list of aliases
+            # We could check that the "dimension" and "category" are consistent, but we assume here
+            # that the formula is consistent. The check will be done in the C++ code.
+            pass
+        else:
+            # we need to append var to aliases, but with correct position, so we first record the indices
+            newind += (ind,)
+            newpos += (pos,)
+    # finally we append the new variables with correct ordering to the aliases list. We assume here again
+    # that formula is consistent, more precisely
+    # that pos is a permutation of len(aliases):len(aliases)+len(newind)
+    aliases += [None]*len(newind)
+    for i in range(len(newind)):
+        aliases[newpos[i]] = extravars[newind[i]]
+    return aliases
 
 def get_sizes(aliases, *args):
     indx, indy = [], []

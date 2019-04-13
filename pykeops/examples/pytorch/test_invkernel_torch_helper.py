@@ -19,7 +19,8 @@ from matplotlib import pyplot as plt
 
 import torch
 
-from pykeops.torch import KernelSolve
+from pykeops import Vi, Vj, Pm
+from pykeops import keops_formula as keops
 
 
 ###############################################################################
@@ -34,27 +35,7 @@ sigma = .1  # Radius of our RBF kernel
 x = torch.rand(N, D, requires_grad=True)
 b = torch.rand(N, Dv)
 g = torch.Tensor([ .5 / sigma**2])  # Parameter of the Gaussian RBF kernel
-
-###############################################################################
-# KeOps kernel
-# ---------------
-#
-# Define a Gaussian RBF kernel:
-#
-
-formula = 'Exp(- g * SqDist(x,y)) * b'
-aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
-           'y = Vj(' + str(D) + ')',   # Second arg: j-variable of size D
-           'b = Vj(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
-           'g = Pm(1)']                # Fourth arg: scalar parameter
-             
-
-###############################################################################
-# Define the inverse kernel operation, with a ridge regularization **alpha**:
-# 
-
-alpha = 0.01
-Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
+alpha = 0.01 # ridge regularization
 
 ###############################################################################
 # .. note::
@@ -68,7 +49,9 @@ Kinv = KernelSolve(formula, aliases, "b", alpha=alpha, axis=1)
 
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
 start = time.time()
-c = Kinv(x, x, b, g)
+K_xx = keops.exp(-keops.sum( (Vi(x) - Vj(x))**2,dim=2) / (2*sigma**2) )
+cfun = keops.solve(K_xx,Vi(b),alpha=alpha,call=False)
+c = cfun()
 end = time.time()
 print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
@@ -97,6 +80,7 @@ plt.tight_layout() ; plt.show()
 # Compare the derivatives:
 #
 
+print(cfun.callfun)
 
 print("1st order derivative")
 e = torch.randn(N,D)

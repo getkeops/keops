@@ -283,13 +283,17 @@ class KernelSolve:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
         reduction_op='Sum'
-        # get the index of 'varinv' in the argument list
-        tmp = aliases.copy()
-        for (i,s) in enumerate(tmp):
-            tmp[i] = s[:s.find("=")].strip()
-        varinvpos = tmp.index(varinvalias)
         self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
+        if varinvalias[:4] == "Var(":
+            # varinv is given directly as Var(*,*,*) so we just have to read the index
+            varinvpos = int(varinvalias[4:varinvalias.find(",")])
+        else:
+            # we need to recover index from alias
+            tmp = self.aliases.copy()
+            for (i, s) in enumerate(tmp):
+                tmp[i] = s[:s.find("=")].strip()
+            varinvpos = tmp.index(varinvalias)
         self.varinvpos = varinvpos
         self.dtype = dtype
         self.alpha = alpha
