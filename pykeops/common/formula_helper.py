@@ -72,18 +72,10 @@ class keops_formula:
                 self.dim = x[1]
                 self.formula = "VarSymb(" + str(x[0]) + "," + str(self.dim) + "," + str(self.axis) + ")"
                 return
-            elif typex == np.ndarray:
-                self.tools = numpytools
-                self.Genred = Genred_numpy
-                self.KernelSolve = KernelSolve_numpy
-                self.dtype = self.tools.dtype(x)
-            elif usetorch and typex == torch.Tensor:
-                self.tools = torchtools
-                self.Genred = Genred_torch
-                self.KernelSolve = KernelSolve_torch
-                self.dtype = self.tools.dtype(x)
-            else:
-                raise ValueError("incorrect input")
+            elif typex in (np.float32,np.float64):
+                x = np.array(x).reshape(1)
+            elif usetorch and typex == torch.Tensor and len(x.shape)==0:
+                x = x.view(1)
             # stage 2 : dealing with python list, assumed to be array of floats, treated as parameter variables without fixed dtype
             if type(x) == list:
                 # init as 1d array : x is a parameter
@@ -95,6 +87,19 @@ class keops_formula:
                 self.axis = 2
                 return
             # stage 3 : if we get here it means x must be a numpy or pytorch array
+            typex = type(x)
+            if typex == np.ndarray:
+                self.tools = numpytools
+                self.Genred = Genred_numpy
+                self.KernelSolve = KernelSolve_numpy
+                self.dtype = self.tools.dtype(x)
+            elif usetorch and typex == torch.Tensor:
+                self.tools = torchtools
+                self.Genred = Genred_torch
+                self.KernelSolve = KernelSolve_torch
+                self.dtype = self.tools.dtype(x)
+            else:
+                raise ValueError("incorrect input")
             if len(x.shape)==3:
                 # init as 3d array : shape must be either (N,1,D) or (1,N,D) or (1,1,D)
                 # we infer axis from shape and convert to 1D or 2D array
@@ -111,7 +116,7 @@ class keops_formula:
                     axis = 0
                 else:
                     raise ValueError("incorrect shape for input array")
-            # stage 4 : now x must be 2D or 1D array
+            # stage 4 : now x must be 2D or 1D or 0D array
             if len(x.shape)==2:
                 # init as 2d array : shape is (N,D) and axis must be given
                 if axis is None:
@@ -133,8 +138,8 @@ class keops_formula:
                     self.nj = x.shape[0]
                 self.axis = axis
                 self.dtype = self.tools.dtype(x)
-            elif len(x.shape)==1:
-                # init as 1d array : x is a parameter
+            elif len(x.shape)<=1:
+                # init as 1d or 0d array : x is a parameter
                 if axis is not None and axis != 2:
                     raise ValueError("input is 1d vector, so it is considered as parameter and axis should equal 2")
                 self.variables = (x,)
@@ -174,7 +179,7 @@ class keops_formula:
             y = getattr(other,prop)
             if x is not None:
                 if y is not None and x!=y:
-                    raise ValueError("incompatible ",prop,": ",x," and ",y)
+                    raise ValueError("incompatible " + str(prop) + ": " + str(x) + " and " + str(y))
                 setattr(res,prop,x)
             else:
                 setattr(res,prop,y)
@@ -483,28 +488,31 @@ class keops_formula:
             raise ValueError("inputs should be integers")
         if i<0 or i>=self.dim:
             raise ValueError("starting index is out of bounds")
-        if d<0 or i+d>=self.dim:
+        if d<1 or i+d>self.dim:
             raise ValueError("dimension is out of bounds")
         return self.unary("Extract",dimres=d,opt_arg=i,opt_arg2=d)
     
     def __getitem__(self, key):
-        if self.ni is None and self.nj is None:
-            if not(isinstance(key,int) or isinstance(key,slice)):
+        # we allow only these forms:
+        #    [:,:,k], [:,:,k:l], [:,:,k:], [:,:,:l]
+        #    or equivalent [k], [k:l], [k:], [:l]
+        if isinstance(key,tuple):
+            if len(key)==3 and key[0]==slice(None) and key[1]==slice(None):
+                key = key[2]
+            else:
                 raise ValueError("incorrect slicing")
-        else:
-            if not isinstance(key,tuple) or len(key)!=3 or key[0]!=slice(None) or key[1]!=slice(None):
-                raise ValueError("incorrect slicing")
-            key = key[2]
         if isinstance(key,slice):
             if key.step is not None:
                 raise ValueError("incorrect slicing")
             if key.start is None:
-                key.start = 0
+                key = slice(0,key.stop)
             if key.stop is None:
-                key.stop = self.dim
+                key = slice(key.start,self.dim)
             return self.extract(key.start,key.stop-key.start)
         elif isinstance(key,int):
             return self.elem(key)
+        else:
+            raise ValueError("incorrect slicing")
             
     def concat(self,other):
         return self.binary(other,string1="Concat",dimres=self.dim+other.dim,dimcheck=None)
