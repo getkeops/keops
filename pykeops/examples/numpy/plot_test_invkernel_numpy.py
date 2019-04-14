@@ -69,7 +69,7 @@ Kinv = KernelSolve(formula, aliases, "b", axis=1, dtype=dtype)
 #
 
 #Warmup of gpu
-Kinv(x, x, b, g)
+Kinv(x, x, b, g, alpha=alpha)
 
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
 start = time.time()
