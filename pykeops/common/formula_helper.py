@@ -35,7 +35,11 @@ def Pm(x_or_ind,dim=None):
 
 
 class keops_formula:
-   
+    r"""
+        The KeOps container class
+    
+        """   
+    
     def __init__(self,x=None,axis=None):
         self.dtype = None
         self.variables = ()
@@ -47,7 +51,6 @@ class keops_formula:
         self.KernelSolve = None
         self.ni = None
         self.nj = None
-        self.dtype = None
         if x is not None:
             # stage 1
             typex = type(x)

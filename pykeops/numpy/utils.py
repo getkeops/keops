@@ -150,13 +150,15 @@ def IsGpuAvailable():
 
 def WarmUpGpu():
     # dummy first calls for accurate timing in case of GPU use
-    formula = 'Exp(-oos2*SqDist(x,y))*b'
-    aliases = ['x = Vi(1)',  # First arg   : i-variable, of size 1
-               'y = Vj(1)',  # Second arg  : j-variable, of size 1
-               'b = Vj(1)',  # Third arg  : j-variable, of size 1
-               'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float64')
-    dum = np.random.rand(10, 1)
-    dum2 = np.random.rand(10, 1)
-    my_routine(dum, dum, dum2, np.array([1.0]))
-    my_routine(dum, dum, dum2, np.array([1.0]))
+    print("Warming up the Gpu (numpy bindings) !!!")
+    if IsGpuAvailable():
+        formula = 'Exp(-oos2*SqDist(x,y))*b'
+        aliases = ['x = Vi(1)',  # First arg   : i-variable, of size 1
+                   'y = Vj(1)',  # Second arg  : j-variable, of size 1
+                   'b = Vj(1)',  # Third arg  : j-variable, of size 1
+                   'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+        my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float64')
+        dum = np.random.rand(10, 1)
+        dum2 = np.random.rand(10, 1)
+        my_routine(dum, dum, dum2, np.array([1.0]))
+        my_routine(dum, dum, dum2, np.array([1.0]))
