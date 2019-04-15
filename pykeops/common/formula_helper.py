@@ -41,6 +41,13 @@ class keops_formula:
         """   
     
     def __init__(self,x=None,axis=None):
+        r"""
+            Creates a KeOps variable
+            
+            :param x: either a NumPy array, a PyTorch tensor, or a tuple of 3 integers (ind,dim,cat)
+            :param axis: should be 0 or 1 if x is a 2D NumPy array or PyTorch tensor, should be None otherwise            
+        
+            """   
         self.dtype = None
         self.variables = ()
         self.symbolic_variables = ()
@@ -226,7 +233,7 @@ class keops_formula:
         res.dim = dimres
         return res        
                         
-    def binary(self,other,string1="",string2=",",dimres=None,dimcheck="sameor1"):
+    def binary(self,other,string,is_operator=False,dimres=None,dimcheck="sameor1"):
         if not isinstance(self,keops_formula):
             self = keops_formula(self)
         if not isinstance(other,keops_formula):
@@ -238,7 +245,10 @@ class keops_formula:
         elif dimcheck=="sameor1" and (self.dim!=other.dim and self.dim!=1 and other.dim!=1):
             raise ValueError("incorrect input dimensions")
         res = keops_formula.join(self,other)
-        res.formula = string1 + "(" + self.formula + string2 + other.formula + ")"
+        if is_operator:
+            res.formula = self.formula + string + other.formula
+        else:
+            res.formula = string + "(" + self.formula + "," + other.formula + ")"
         res.dim = dimres
         return res
         
@@ -261,6 +271,7 @@ class keops_formula:
         res.axis = axis
         res.opt_arg = opt_arg
         res.kwargs = kwargs
+        res.dim = self.dim
         if res.dtype is not None:
             res.fixvariables()
             res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis, res.tools.dtypename(res.dtype), res.opt_arg, res.formula2)
@@ -299,6 +310,7 @@ class keops_formula:
         res.other = other
         res.axis = axis
         res.kwargs = kwargs
+        res.dim = self.dim
         if res.dtype is not None:
             res.fixvariables()
             res.callfun = res.KernelSolve(res.formula,[],res.varformula,res.axis, res.tools.dtypename(res.dtype))
@@ -333,30 +345,53 @@ class keops_formula:
             args = (self.other.variables[0],)
         return self.callfun(*args, *self.variables, **self.kwargs)
     
+    def __str__(self):
+        string = "KeOps formula"
+        tmp = self.init()
+        tmp.formula = self.formula
+        if hasattr(self, 'formula2'):
+            tmp.formula2 = self.formula2
+        else:
+            tmp.formula2 = None
+        tmp.fixvariables()
+        string += "\n    formula: " + str(tmp.formula)
+        if len(self.symbolic_variables)>0:
+            string += "\n    symbolic variables: Var" + str(self.symbolic_variables[0])
+            for var in self.symbolic_variables[1:]:
+                string += ", Var" + str(var)
+        string += "\n    shape: (" + str(self.ni) + str(",") + str(self.nj) + str(",") + str(self.dim) + ")"
+        if hasattr(self, 'reduction_op'):
+            string += "\n    reduction: " + self.reduction_op + " (axis=" + str(self.axis) + ")"
+            if tmp.formula2 is not None:
+                string += "\n        formula2: " + tmp.formula2 + "\n"
+            if hasattr(self, 'opt_arg') and self.opt_arg is not None:
+                string += "\n        opt_arg: " + self.opt_arg
+        return string
+    
     # list of operations
     
     __array_ufunc__ = None
     
     def __add__(self,other):
-        return self.binary(other,string2="+")
+        return self.binary(other,string="+",is_operator=True)
 
     def __radd__(self,other):
         if other==0:
             return self
         else:
-            return keops_formula.binary(other,self,string2="+")
+            return keops_formula.binary(other,self,string="+",is_operator=True)
        
     def __sub__(self,other):
-        return self.binary(other,string2="-")
+        return self.binary(other,string="-",is_operator=True)
         
     def __rsub__(self,other):
         if other==0:
             return -self
         else:
-            return keops_formula.binary(other,self,string2="-")
+            return keops_formula.binary(other,self,string="-",is_operator=True)
         
     def __mul__(self,other):
-        return self.binary(other,string2="*")
+        return self.binary(other,string="*",is_operator=True)
         
     def __rmul__(self,other):
         if other==0:
@@ -364,10 +399,10 @@ class keops_formula:
         elif other==1:
             return self
         else:
-            return keops_formula.binary(other,self,string2="*")
+            return keops_formula.binary(other,self,string="*",is_operator=True)
        
     def __truediv__(self,other):
-        return self.binary(other,string2="/")
+        return self.binary(other,string="/",is_operator=True)
         
     def __rtruediv__(self,other):
         if other==0:
@@ -375,13 +410,13 @@ class keops_formula:
         elif other==1:
             return self.unary("Inv")
         else:
-            return keops_formula.binary(other,self,string2="/")
+            return keops_formula.binary(other,self,string="/",is_operator=True)
        
     def __or__(self,other):
-        return self.binary(other,string2="|",dimres=1,dimcheck="same")
+        return self.binary(other,string="|",is_operator=True,dimres=1,dimcheck="same")
         
     def __ror__(self,other):
-        return keops_formula.binary(other,self,string2="|",dimres=1,dimcheck="same")
+        return keops_formula.binary(other,self,string="|",is_operator=True,dimres=1,dimcheck="same")
         
     def exp(self):
         return self.unary("Exp")
@@ -425,7 +460,7 @@ class keops_formula:
                 other = keops_formula(self.tools.array([other],self.dtype))
         if type(other)==type(keops_formula()):
             if other.dim == 1 or other.dim==self.dim:
-                return self.binary(other,string1="Powf",dimcheck=None)
+                return self.binary(other,string="Powf",dimcheck=None)
             else:
                 raise ValueError("incorrect dimension of exponent")
         else:
@@ -467,14 +502,14 @@ class keops_formula:
         return self.unary("Normalize")
     
     def sqdist(self,other):
-        return self.binary(other,string1="SqDist",dimres=1)
+        return self.binary(other,string="SqDist",dimres=1)
     
     def weightedsqnorm(self,other):
         if type(self) != type(keops_formula()):
             self = keops_formula.keopsify(self,other.tools,other.dtype)  
         if self.dim not in (1,other.dim,other.dim**2):
             raise ValueError("incorrect dimension of input for weightedsqnorm")
-        return self.binary(other,string1="WeightedSqNorm",dimres=1,dimcheck=None)
+        return self.binary(other,string="WeightedSqNorm",dimres=1,dimcheck=None)
     
     def weightedsqdist(self,f,g):
         return self.weightedsqnorm(f-g)
@@ -518,7 +553,7 @@ class keops_formula:
             raise ValueError("incorrect slicing")
             
     def concat(self,other):
-        return self.binary(other,string1="Concat",dimres=self.dim+other.dim,dimcheck=None)
+        return self.binary(other,string="Concat",dimres=self.dim+other.dim,dimcheck=None)
 
     def concatenate(self,axis):
         if axis != 2:
@@ -536,13 +571,13 @@ class keops_formula:
             raise ValueError("input must be tuple")    
     
     def matvecmult(self,other):
-        return self.binary(other,string1="MatVecMult",dimres=self.dim//other.dim,dimcheck=None)        
+        return self.binary(other,string="MatVecMult",dimres=self.dim//other.dim,dimcheck=None)        
         
     def vecmatmult(self,other):
-        return self.binary(other,string1="VecMatMult",dimres=other.dim//self.dim,dimcheck=None)        
+        return self.binary(other,string="VecMatMult",dimres=other.dim//self.dim,dimcheck=None)        
         
     def tensorprod(self,other):
-        return self.binary(other,string1="TensorProd",dimres=other.dim*self.dim,dimcheck=None)        
+        return self.binary(other,string="TensorProd",dimres=other.dim*self.dim,dimcheck=None)        
                 
          
 

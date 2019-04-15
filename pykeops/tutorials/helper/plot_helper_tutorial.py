@@ -62,7 +62,10 @@ Kxyb = keops.exp(-dxy2/sigma**2) * Beta
 ########################################################################
 # At this point we have to think about Kxyb as having shape (M,N,Dv)
 # although in fact it is just a KeOps object and no computation has been
-# performed yet.
+# performed yet. We can check its formula and shape using print:
+print(Kxyb)
+
+########################################################################
 # Finally we compute the final sum over the j
 gamma = Kxyb.sum(axis=1)
 
@@ -214,7 +217,7 @@ for k in range(Niter):
     Kxyb = keops.exp(-dxy2/sigmas**2).sum() * bj
     gamma = Kxyb.sum_reduction(axis=1)
 end = time.time()
-print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n'.format(
+print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s'.format(
     Niter, end - start, Niter, (end - start) / Niter))
 
 start = time.time()
@@ -223,7 +226,7 @@ gammafun = Kxyb.sum_reduction(axis=1,call=False)
 for k in range(Niter):
     gamma = gammafun()
 end = time.time()
-print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n'.format(
+print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s'.format(
     Niter, end - start, Niter, (end - start) / Niter))
 
 ###########################################################################
@@ -267,6 +270,7 @@ bj = Vj(beta)
 dxy2 = keops.sum((xi-yj)**2)
 Kxyb = keops.exp(-dxy2/sigmas**2).sum() * bj
 gammafun = Kxyb.sum_reduction(axis=1)
+print(gammafun)
 
 gamma = gammafun(y)
 
