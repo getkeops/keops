@@ -20,9 +20,6 @@ from .operations import KernelSolve
 from .convolutions.radial_kernel import RadialKernelConv, RadialKernelGrad1conv
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 
-from .utils import WarmUpGpu
-WarmUpGpu()
-
 __all__ = sorted(["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin", "KernelSolve"])
 
 

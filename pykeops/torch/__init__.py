@@ -28,7 +28,4 @@ from .kernel_product.kernels import Kernel, kernel_product, kernel_formulas
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 from .kernel_product.formula import Formula
 
-from .utils import WarmUpGpu
-WarmUpGpu()
-
 __all__ = sorted(["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin", "Kernel", "kernel_product", "KernelSolve", "kernel_formulas", "Formula"])
