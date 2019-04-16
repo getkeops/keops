@@ -281,6 +281,43 @@ class keops_formula:
             return res
 
     def kernelsolve(self,other, var=None, call=True, **kwargs):
+        r"""
+            Solves a positive definite linear system of the form sum(self)=other or sum(self*var)=other, using a conjugate
+            gradient solver.
+            
+            :param self: a keops_formula object representing either a symmetric positive definite matrix 
+                   or a positive definite operator. Warning!! There is no check of the symmetry and positive definiteness.
+            :param other: a keops_formula variable which gives the second member of the equation.           
+            :param var: either None or a symbolic keops_formula variable.
+                            - If var is None then kernelsolve will return the solution var such that sum(self*var)=other.
+                            - If var is a symbolic variable, it must be one of the symbolic variables contained on formula self,
+                              and as a formula self must depend linearly on var. 
+            :param call: either True or False. If True and if no other symbolic variable than var is contained in self,
+                   then the output of kernelsolve will be a tensor, otherwise it will be a callable keops_formula
+            :param backend (string): Specifies the map-reduce scheme,
+                   as detailed in the documentation of the :func:`Genred` module.
+            :param device_id (int, default=-1): Specifies the GPU that should be used 
+                   to perform   the computation; a negative value lets your system 
+                   choose the default GPU. This parameter is only useful if your 
+                   system has access to several GPUs.
+            :param alpha: (float, default = 1e-10): Non-negative **ridge regularization** parameter
+            :param eps:
+            :params device_id: (int, default=-1): Specifies the GPU that should be used 
+                   to perform   the computation; a negative value lets your system 
+                   choose the default GPU. This parameter is only useful if your 
+                   system has access to several GPUs.
+            :param ranges: (6-uple of IntTensors, None by default):
+                   Ranges of integers that specify a 
+                   :doc:`block-sparse reduction scheme <../../sparsity>`
+                   with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
+                   as detailed in the documentation 
+                   of the :func:`Genred` module.
+
+                   If **None** (default), we simply use a **dense Kernel matrix**
+                   as we loop over all indices
+                   :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+            """   
+
         # If given, var is symbolic variable corresponding to unknown
         # other must be a variable equal to the second member of the linear system,
         # and it may be symbolic. If it is symbolic, its index should match the index of var
