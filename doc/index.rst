@@ -39,7 +39,7 @@ It provides:
 * Support for a wide range of mathematical **formulas**.
 * Seamless computation of **derivatives**, up to arbitrary orders.
 * Sum, LogSumExp, Min, Max but also ArgMin, ArgMax or K-min **reductions**.
-* A **conjugate gradient solver** for large-scale Kriging (aka. Gaussian process regression).
+* A **conjugate gradient solver** for e.g. large-scale spline interpolation method (or kriging aka. Gaussian process regression).
 * An interface for **block-sparse** and coarse-to-fine strategies.
 * Support for **multi GPU** configurations.
 

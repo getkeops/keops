@@ -4,15 +4,21 @@ KernelSolve
 .. rubric:: Summary
 
 
-:mod:`pykeops.torch` - Conjugate gradient solver for :doc:`Generic linear systems <../../generic-solver>`, with full support of PyTorch's :mod:`autograd` engine:
+This section contains the full API documention for the conjugate gradient solver for :doc:`Generic linear systems <../../generic-solver>`, with full support of PyTorch's :mod:`autograd` engine.
 
 .. currentmodule:: pykeops.torch.operations
 .. autosummary::
+    :nosignatures:
+
     KernelSolve
+    KernelSolve.__init__
+    KernelSolve.__call__
 
 .. rubric:: Syntax
 
 
-.. automodule:: pykeops.torch.operations
-    :members:
-        KernelSolve
+.. autoclass:: KernelSolve()
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __weakref__

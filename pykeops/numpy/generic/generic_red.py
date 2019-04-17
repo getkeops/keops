@@ -20,10 +20,6 @@ class Genred():
 
 
         Note:
-            :class:`Genred` relies on C++ or CUDA kernels that are compiled on-the-fly,
-            and stored in a :ref:`cache directory <part.cache>` as shared libraries (".so" files) for later use.
-
-        Note:
             On top of the **Sum** and **LogSumExp** reductions, KeOps
             supports
             :ref:`variants of the ArgKMin reduction <part.reduction>`
@@ -55,6 +51,10 @@ class Genred():
                  formula2=None, cuda_type=None):
         r"""
         Instantiate a new generic operation.
+
+        Note:
+            :class:`Genred` relies on C++ or CUDA kernels that are compiled on-the-fly,
+            and stored in a :ref:`cache directory <part.cache>` as shared libraries (".so" files) for later use.
 
         Args:
             formula (string): The scalar- or vector-valued expression

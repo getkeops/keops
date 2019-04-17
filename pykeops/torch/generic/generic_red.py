@@ -120,10 +120,6 @@ class Genred():
         that can be called just like any other PyTorch function.
 
         Note:
-            :class:`Genred` relies on C++ or CUDA kernels that are compiled on-the-fly,
-            and stored in a :ref:`cache directory <part.cache>` as shared libraries (".so" files) for later use.
-
-        Note:
             :func:`Genred` is fully compatible with PyTorch's :mod:`autograd` engine:
             You can **backprop** through the KeOps :meth:`__call__` just
             as if it was a vanilla PyTorch operation (except for Min or Max reduction types,
@@ -151,6 +147,10 @@ class Genred():
                  formula2=None, cuda_type=None):
         r"""
         Instantiate a new generic operation.
+
+        Note:
+            :class:`Genred` relies on C++ or CUDA kernels that are compiled on-the-fly,
+            and stored in a :ref:`cache directory <part.cache>` as shared libraries (".so" files) for later use.
 
         Args:
             formula (string): The scalar- or vector-valued expression
