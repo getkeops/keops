@@ -1,7 +1,7 @@
 keops_formula
 -------------
 
-:mod:`pykeops.common` - :doc:`Generic reductions <../../Genred>`:
+:mod:`pykeops.common`
 
 
 .. rubric:: Summary
@@ -10,6 +10,7 @@ keops_formula
 .. currentmodule:: pykeops.common.formula_helper
 .. autosummary::
     keops_formula
+	keops_formula.sin
 
 .. rubric:: Syntax
 

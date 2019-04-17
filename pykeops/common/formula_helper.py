@@ -48,14 +48,15 @@ class keops_formula:
         r"""
             Creates a KeOps variable or object
             
-            :param x: may be either:
-                - a float, list of floats, NumPy float, 0D or 1D NumPy array, 0D or 1D PyTorch tensor, in which case the resulting KeOps
-                variable will represent a parameter variable,
-                - a 2D or 3D NumPy array or PyTorch tensor, in which case the resulting KeOps variable will represent a "i"-indexed or 
-                "j"-indexed variable (depending on the value of axis),
-                - a tuple of 3 integers (ind,dim,cat), in which case the resulting KeOps variable will represent a symbolic variable,
-                - an integer, in which case the resulting KeOps object will represent the integer.        
-            :param axis: should be 0 or 1 if x is a 2D NumPy array or PyTorch tensor, should be None otherwise 
+            Args:
+                x: may be either:
+            
+                    - a float, list of floats, NumPy float, 0D or 1D NumPy array, 0D or 1D PyTorch tensor, in which case the resulting KeOps variable will represent a parameter variable,
+                    - a 2D or 3D NumPy array or PyTorch tensor, in which case the resulting KeOps variable will represent a "i"-indexed or 
+                      "j"-indexed variable (depending on the value of axis),
+                    - a tuple of 3 integers (ind,dim,cat), in which case the resulting KeOps variable will represent a symbolic variable,
+                    - an integer, in which case the resulting KeOps object will represent the integer.                    
+                axis: should be 0 or 1 if x is a 2D NumPy array or PyTorch tensor, should be None otherwise 
         
             Here are the behaviors of the constructor depending on the inputs x and axis:
         
