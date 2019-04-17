@@ -73,7 +73,7 @@ sphinx_gallery_conf = {
 # Generate the API documentation when building
 autosummary_generate = True
 numpydoc_show_class_members = False
-autodoc_member_order = 'alphabetical'
+autodoc_member_order = 'bysource'
 
 def skip(app, what, name, obj, would_skip, options):
     if name == "__call__":

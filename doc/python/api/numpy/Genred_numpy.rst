@@ -1,7 +1,7 @@
 Genred
 ------
 
-:mod:`pykeops.numpy` - :doc:`Generic reductions <../../Genred>`:
+This section contains the full API documentation for the numpy :doc:`Generic reductions <../../Genred>`.
 
 
 .. rubric:: Summary
@@ -9,11 +9,17 @@ Genred
 
 .. currentmodule:: pykeops.numpy.generic.generic_red
 .. autosummary::
+    :nosignatures:
+
     Genred
+    Genred.__init__
+    Genred.__call__
 
 .. rubric:: Syntax
 
 
-.. automodule:: pykeops.numpy.generic.generic_red
-    :members:
-       Genred
+.. autoclass:: Genred()
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __weakref__
