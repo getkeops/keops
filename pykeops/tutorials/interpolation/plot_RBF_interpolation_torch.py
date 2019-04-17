@@ -12,8 +12,9 @@ problems of the form
 where :math:`K_{xx}` is a symmetric, positive definite linear operator
 defined through the :ref:`KeOps generic syntax <part.generic_formulas>`
 and :math:`\\alpha` is a nonnegative regularization parameter.
-It can thus be used
-to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
+In the following script it is used for spline interpolation.
+
+It could also be used to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
 (aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_ )
 problems with a **linear memory footprint**.
 
@@ -49,8 +50,8 @@ x = torch.rand(N, 1).type(dtype)
 b = x + .5 * (6 * x).sin() + .1 * (20 * x).sin() + .05 * torch.randn(N, 1).type(dtype)
 
 ###############################################################################################
-# Kriging in 1D
-# -------------
+# Interpolation in 1D
+# -------------------
 #
 # Specify our **regression model** - a simple **Gaussian** variogram:
 
@@ -105,8 +106,8 @@ plt.axis([0, 1, 0, 1]);
 plt.tight_layout()
 
 ###############################################################################################
-# Kriging in 2D
-# -------------
+# Interpolation in 2D
+# -------------------
 #
 # Generate some data:
 
