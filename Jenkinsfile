@@ -1,7 +1,7 @@
 pipeline {
   agent none 
     stages {
-      stage('Build') {
+      stage('Build Linux') {
         agent { label 'ubuntu' }
         steps {
           echo 'Building..'
@@ -10,7 +10,7 @@ pipeline {
           sh 'cd keops/build && make VERBOSE=0'
         }
       }
-      stage('Test') {
+      stage('Test Linux') {
         agent { label 'ubuntu' }
         steps {
           echo 'Testing..'
@@ -19,7 +19,7 @@ pipeline {
           sh 'cd pykeops/test && python3 unit_tests_numpy.py'
         }
       }
-      stage('Build') {
+      stage('Build Mac') {
         agent { label 'macos' }
         steps {
           echo 'Building..'
@@ -28,7 +28,7 @@ pipeline {
           sh 'cd keops/build && make VERBOSE=0'
         }
       }
-      stage('Test') {
+      stage('Test Mac') {
         agent { label 'macos' }
         steps {
           echo 'Testing..'
@@ -39,4 +39,3 @@ pipeline {
     }
   }
 }
-        
