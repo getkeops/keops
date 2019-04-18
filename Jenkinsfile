@@ -21,6 +21,15 @@ pipeline {
                 sh 'cd keops/build && make VERBOSE=0'
             }
           }
+           stage('Build Cuda') {
+             agent { label 'cuda' }
+             steps {
+              echo 'Building..'
+                sh 'git submodule update --init'
+                sh 'cd keops/build && cmake ..'
+                sh 'cd keops/build && make VERBOSE=0'
+             }
+           }
         }
       }
       stage('Test') {
