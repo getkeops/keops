@@ -1,5 +1,6 @@
 ![logo](./doc/_static/logo/keops_logo.png)
 
+[![Build Status](https://ci.inria.fr/keops/buildStatus/icon?job=keops%2Fmaster)](https://ci.inria.fr/keops/job/keops/job/master/)
 
 # What is KeOps?
 
