@@ -121,7 +121,7 @@ class Kernel:
             Note that by convention, pairs of variables should be denoted by single-letter, non-overlapping duets: ``"gaussian(x',yy)"`` or ``"gaussian(x,y) + cauchy(y,z)"`` are not supported.
 
             **Atomic formulas.**
-            As of today, the `pre-defined kernel names <https://gitlab.com/bcharlier/keops/blob/master/pykeops/torch/kernel_product/kernels.py>`_ are:
+            As of today, the `pre-defined kernel names <https://github.com/getkeops/keops/blob/master/pykeops/torch/kernel_product/kernels.py>`_ are:
 
               - ``linear(x,y)``, the :math:`L^2` scalar product:
 
@@ -323,7 +323,7 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', 
 
     Keyword Args:
         mode (string): Specifies the reduction operation.
-            The `supported values <https://gitlab.com/bcharlier/keops/blob/master/pykeops/torch/kernel_product/features_kernels.py>`_ are:
+            The `supported values <https://github.com/getkeops/keops/blob/master/pykeops/torch/kernel_product/features_kernels.py>`_ are:
 
               - ``"sum"`` (default):
 

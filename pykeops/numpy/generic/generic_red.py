@@ -143,8 +143,8 @@ class Genred():
 
                     - ``"auto"`` (default): let KeOps decide which backend is best suited to your data, based on the tensors' shapes. ``"GPU_1D"`` will be chosen in most cases.
                     - ``"CPU"``: use a simple C++ ``for`` loop on a single CPU core.
-                    - ``"GPU_1D"``: use a `simple multithreading scheme <https://gitlab.com/bcharlier/keops/blob/master/keops/core/GpuConv1D.cu>`_ on the GPU - basically, one thread per value of the output index.
-                    - ``"GPU_2D"``: use a more sophisticated `2D parallelization scheme <https://gitlab.com/bcharlier/keops/blob/master/keops/core/GpuConv2D.cu>`_ on the GPU.
+                    - ``"GPU_1D"``: use a `simple multithreading scheme <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv1D.cu>`_ on the GPU - basically, one thread per value of the output index.
+                    - ``"GPU_2D"``: use a more sophisticated `2D parallelization scheme <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv2D.cu>`_ on the GPU.
                     - ``"GPU"``: let KeOps decide which one of the ``"GPU_1D"`` or the ``"GPU_2D"`` scheme will run faster on the given input.
 
             device_id (int, default=-1): Specifies the GPU that should be used

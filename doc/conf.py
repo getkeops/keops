@@ -58,7 +58,7 @@ def linkcode_resolve(domain, info):
     if not info['module']:
         return None
     filename = info['module'].replace('.', '/')
-    return "https://gitlab.com/bcharlier/keops/tree/master/%s.py" % filename
+    return "https://github.com/getkeops/keops/tree/master/%s.py" % filename
 
 from sphinx_gallery.sorting import FileNameSortKey
 
@@ -168,10 +168,10 @@ html_theme_options = {
 }
 
 html_context = {
-    "display_gitlab": True, # Integrate Gitlab
-    "gitlab_user": "bcharlier", # Username
-    "gitlab_repo": "keops", # Repo name
-    "gitlab_version": "master", # Version
+    "display_github": True, # Integrate Github
+    "github_user": "getkeops", # Username
+    "github_repo": "keops", # Repo name
+    "github_version": "master", # Version
     "conf_py_path": "/doc/", # Path in the checkout to the docs root
 }
 # The name for this set of Sphinx documents.  If None, it defaults to
