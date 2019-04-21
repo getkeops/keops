@@ -94,12 +94,10 @@ Testing your installation
 
   .. code-block:: console
 
-    Compiling libKeOpsnumpy40ae98a6da in /home/..../build/:
-    formula: Sum_Reduction(SqNorm2(x - y),1)
-    aliases: x = Vi(0,3); y = Vj(1,3); 
-    dtype  : float32
-    ... Done. 
-    Loaded.
+    Compiling libKeOpsnumpy5ac3d464a2 in /path/to/build_dir/:
+       formula: Sum_Reduction(SqNorm2(x - y),1)
+       aliases: x = Vi(0,3); y = Vj(1,3); 
+       dtype  : float64
 
   .. code-block:: python
 
@@ -125,12 +123,11 @@ Testing your installation
 
   .. code-block:: console
 
-    Compiling libKeOpstorch40ae98a6da in /home/..../build/:
-        formula: Sum_Reduction(SqNorm2(x-y),1)
-        aliases: x = Vi(0,3); y = Vj(1,3); 
-        dtype  : float32
+    Compiling libKeOpstorch91c92bd508 in /path/to/build_dir/:
+       formula: Sum_Reduction(SqNorm2(x-y),1)
+       aliases: x = Vi(0,3); y = Vj(1,3); 
+       dtype  : float32
     ... Done. 
-    Loaded.
 
   .. code-block:: python
 

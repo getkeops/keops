@@ -1,3 +1,16 @@
+* v1.0.2
+    - fix a bug in variable parsing for pykeops bindings
+    - KernelSolve syntax: move alpha kwarg in 'KernelSolve.__call__' 
+    - doc improvement
+
+* v1.0.1
+
+* v1.0
+    - add conjugate gradient solver KernelSolve
+    - change variable notations in formula: {Vx,Vy} to {Vi,Vj}. Old notations are still compatible (warning message)
+    - change kwarg 'cuda_type' to 'dtype'. Old Kwarg is still valid for backward compatibility
+    - Doc has been improved
+
 * v0.1.6
 
 
