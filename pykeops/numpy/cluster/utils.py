@@ -142,7 +142,7 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):
 
 
 def cluster_ranges_centroids(x, lab, weights=None):
-    r"""Computes the cluster indices and centroids of a (weighted) point cloud with labels.
+    """Computes the cluster indices and centroids of a (weighted) point cloud with labels.
     
     If **x** and **lab** encode a cloud of points :math:`x_i\in\mathbb{R}^D`
     with labels :math:`\ell_i\in[0,C)`, for :math:`i\in[0,M)`, this routine returns:
@@ -152,8 +152,8 @@ def cluster_ranges_centroids(x, lab, weights=None):
     - Centroids :math:`c_k` for each cluster :math:`k`, computed as barycenters
       using the weights :math:`w_i \in \mathbb{R}_{>0}`:
 
-    .. math::
-        c_k ~=~ \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
+        .. math::
+            c_k = \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
 
     - Total weights :math:`\sum_{i, \ell_i=k} w_i`, for :math:`k\in[0,C)`.
 

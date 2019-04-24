@@ -152,8 +152,8 @@ def cluster_ranges_centroids(x, lab, weights=None) :
     - Centroids :math:`c_k` for each cluster :math:`k`, computed as barycenters
       using the weights :math:`w_i \in \mathbb{R}_{>0}`:
 
-    .. math::
-        c_k = \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
+        .. math::
+            c_k = \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
 
     - Total weights :math:`\sum_{i, \ell_i=k} w_i`, for :math:`k\in[0,C)`.
 
