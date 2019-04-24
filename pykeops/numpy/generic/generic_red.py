@@ -29,7 +29,7 @@ class Genred():
             produce no gradient. Fortunately though, you can simply
             turn them into ``LongTensors`` and use them to index
             your arrays, as showcased in the documentation
-            of :func:`generic_argmin() <pykeops.numpy.generic.generic_ops.generic_argmin>`, :func:`generic_argkmin() <pykeops.numpy.generic.generic_ops.generic_argkmin>` and in the
+            of :func:`generic_argmin() <pykeops.numpy.generic_argmin>`, :func:`generic_argkmin() <pykeops.numpy.generic_argkmin>` and in the
             :doc:`K-means tutorial <../../../_auto_tutorials/kmeans/plot_kmeans_numpy>`.
 
         Example:

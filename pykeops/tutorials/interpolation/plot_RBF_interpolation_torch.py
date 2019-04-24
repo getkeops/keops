@@ -3,7 +3,7 @@
 Kernel interpolation - PyTorch API
 ==================================
 
-The :class:`torch.KernelSolve <pykeops.torch.operations.KernelSolve` operator allows you to solve optimization
+The :class:`torch.KernelSolve <pykeops.torch.KernelSolve>` operator allows you to solve optimization
 problems of the form
 
 .. math::

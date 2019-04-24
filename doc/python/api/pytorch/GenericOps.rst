@@ -1,8 +1,7 @@
 Math friendly syntax
 --------------------
 
-
-:mod:`pykeops.torch.generic.generic_ops` - :doc:`Math-friendly <../../generic-reduction>` aliases:
+This Section contains the full API doc of the :doc:`Math-friendly <../../generic-reduction>` aliases.
 
 
 .. rubric:: Summary

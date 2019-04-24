@@ -4,7 +4,7 @@ KernelSolve
 .. rubric:: Summary
 
 
-This section contains the full API documention for the conjugate gradient solver for :doc:`Generic linear systems <../../generic-solver>`, with full support of PyTorch's :mod:`autograd` engine.
+This section contains the full API documention for the conjugate gradient solver for :doc:`Generic linear systems <../../generic-solver>`, with full support of PyTorch's :mod:`torch.autograd` engine.
 
 .. currentmodule:: pykeops.torch
 .. autosummary::

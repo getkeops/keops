@@ -142,6 +142,9 @@ pygments_style = 'sphinx'
 todo_include_todos = False
 exclude_patterns = ['readme_first.md']
 
+# display broken internal links
+nitpicky = False
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for

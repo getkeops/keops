@@ -2,7 +2,7 @@
 Solving positive definite linear systems
 =========================================
 
-This benchmark compares the performances of KeOps versus Numpy and Pytorch on a inverse matrix operation. It uses the functions :class:`torch.KernelSolve <pykeops.torch.operations.KernelSolve>` (see also :doc:`here <../_auto_examples/pytorch/plot_test_invkernel_torch>`) and  :class:`numpy.KernelSolve <pykeops.numpy.operations.KernelSolve>` (see also :doc:`here <../_auto_examples/numpy/plot_test_invkernel_numpy>`).
+This benchmark compares the performances of KeOps versus Numpy and Pytorch on a inverse matrix operation. It uses the functions :class:`torch.KernelSolve <pykeops.torch.KernelSolve>` (see also :doc:`here <../_auto_examples/pytorch/plot_test_invkernel_torch>`) and  :class:`numpy.KernelSolve <pykeops.numpy.KernelSolve>` (see also :doc:`here <../_auto_examples/numpy/plot_test_invkernel_numpy>`).
  
 In a nutshell, given :math:`x \in\mathbb R^{N\\times D}`  and :math:`b \in \mathbb R^{N\\times D_v}`, we compute :math:`a \in \mathbb R^{N\\times D_v}` so that
 

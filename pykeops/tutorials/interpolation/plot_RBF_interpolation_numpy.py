@@ -1,13 +1,14 @@
-"""
+r"""
 ==================================
 Kernel interpolation - NumPy API
 ==================================
 
-The :class:`numpy.KernelSolve <pykeops.numpy.operations.KernelSolve>` operator allows you to solve optimization
+The :class:`numpy.KernelSolve <pykeops.numpy.KernelSolve>` operator allows you to solve optimization
 problems of the form
 
 .. math::
-    a^{\star}=\operatorname*{argmin}_a \| (\\alpha\operatorname{Id}+K_{xx})a -b\|^2_2,
+       & & a^{\star} & =\operatorname*{argmin}_a  \tfrac 1 2 \langle a,( \alpha \operatorname{Id}+K_{xx}) a\rangle - \langle a,b \rangle, \\\\
+        &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
 
 where :math:`K_{xx}` is a symmetric, positive definite linear operator
 defined through the :ref:`KeOps generic syntax <part.generic_formulas>`
