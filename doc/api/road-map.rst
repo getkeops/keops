@@ -2,7 +2,7 @@ Road map
 ========
 
 Our `Changelog <https://github.com/getkeops/keops/blob/master/CHANGELOG.md>`_
-can be found on the `KeOps Githib repository <https://github.com/getkeops/keops/>`_.
+can be found on the `KeOps Github repository <https://github.com/getkeops/keops/>`_.
 
 To-do list
 -------------
