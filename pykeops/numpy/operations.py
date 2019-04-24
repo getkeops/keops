@@ -12,7 +12,7 @@ class KernelSolve:
     r"""
     Creates a new conjugate gradient solver.
 
-    Supporting the same :ref:`generic syntax <part.generic_formulas>` as :class:`numpy.Genred <pykeops.numpy.generic.generic_red.Genred>`,
+    Supporting the same :ref:`generic syntax <part.generic_formulas>` as :class:`numpy.Genred <pykeops.numpy.Genred>`,
     this module allows you to solve generic optimization problems of
     the form:
 
@@ -131,7 +131,7 @@ class KernelSolve:
 
             backend (string): Specifies the map-reduce scheme,
                 as detailed in the documentation 
-                of the :class:`numpy.Genred <pykeops.numpy.generic.generic_red.Genred>` module.
+                of the :class:`numpy.Genred <pykeops.numpy.Genred>` module.
 
             device_id (int, default=-1): Specifies the GPU that should be used 
                 to perform   the computation; a negative value lets your system 
@@ -143,7 +143,7 @@ class KernelSolve:
                 :doc:`block-sparse reduction scheme <../../sparsity>`
                 with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
                 as detailed in the documentation 
-                of the :class:`numpy.Genred <pykeops.numpy.generic.generic_red.Genred>` module.
+                of the :class:`numpy.Genred <pykeops.numpy.Genred>` module.
 
                 If **None** (default), we simply use a **dense Kernel matrix**
                 as we loop over all indices

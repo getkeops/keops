@@ -6,7 +6,7 @@ This section contains the full API documentation for the NumPy version of the co
 
 .. rubric:: Summary
 
-.. currentmodule:: pykeops.numpy.operations
+.. currentmodule:: pykeops.numpy
 .. autosummary::
     :nosignatures:
 

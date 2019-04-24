@@ -1,7 +1,7 @@
 PyTorch API
 ===========
 
-
+.. automodule:: pykeops.torch
 
 .. toctree::
 

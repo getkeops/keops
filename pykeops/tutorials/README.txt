@@ -2,7 +2,7 @@
 Tutorials, applications
 =========================
 
-These tutorials present real-life applications of the :mod:`pykeops.numpy`
+These tutorials present real-life applications of the :mod:`pykeops.numpy <../../python/api/numpy/index.html>`
 and :mod:`pykeops.torch` modules,
 from Gaussian processes to Optimal Transport theory and K-means clustering.
 

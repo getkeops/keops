@@ -5,7 +5,7 @@ Kernel product helper
 
 .. rubric:: Summary
 
-.. currentmodule:: pykeops.torch.kernel_product.kernels
+.. currentmodule:: pykeops.torch
 .. autosummary::
     Kernel
     kernel_product
@@ -13,7 +13,8 @@ Kernel product helper
 .. rubric:: Syntax
 
 
-.. automodule:: pykeops.torch.kernel_product.kernels
+.. autoclass:: Kernel
     :members:
 
+.. autofunction:: kernel_product
 

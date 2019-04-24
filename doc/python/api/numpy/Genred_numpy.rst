@@ -7,7 +7,7 @@ This section contains the full API documentation for the numpy :doc:`Generic red
 .. rubric:: Summary
 
 
-.. currentmodule:: pykeops.numpy.generic.generic_red
+.. currentmodule:: pykeops.numpy
 .. autosummary::
     :nosignatures:
 

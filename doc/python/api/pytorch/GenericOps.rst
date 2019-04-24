@@ -8,7 +8,7 @@ Math friendly syntax
 .. rubric:: Summary
 
 
-.. currentmodule::  pykeops.torch.generic.generic_ops
+.. currentmodule::  pykeops.torch
 .. autosummary:: 
     generic_sum
     generic_logsumexp
@@ -19,5 +19,10 @@ Math friendly syntax
 .. rubric:: Syntax
 
 
-.. automodule:: pykeops.torch.generic.generic_ops
-    :members:
+.. autofunction:: generic_sum
+
+.. autofunction:: generic_logsumexp
+
+.. autofunction:: generic_argmin
+
+.. autofunction:: generic_argkmin

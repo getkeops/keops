@@ -13,8 +13,8 @@ some math-friendly **syntactic sugar** for
     from pykeops.numpy import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
     from pykeops.torch import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 
-These functions are simple wrappers around the :class:`numpy.Genred <pykeops.numpy.generic.generic_red.Genred>`
-and :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` classes: they let users
+These functions are simple wrappers around the :class:`numpy.Genred <pykeops.numpy.Genred>`
+and :class:`torch.Genred <pykeops.torch.Genred>` classes: they let users
 specify the reduction operation and axis with **strings**
 instead of **keyword arguments**.
 

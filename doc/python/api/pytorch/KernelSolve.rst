@@ -6,7 +6,7 @@ KernelSolve
 
 This section contains the full API documention for the conjugate gradient solver for :doc:`Generic linear systems <../../generic-solver>`, with full support of PyTorch's :mod:`autograd` engine.
 
-.. currentmodule:: pykeops.torch.operations
+.. currentmodule:: pykeops.torch
 .. autosummary::
     :nosignatures:
 

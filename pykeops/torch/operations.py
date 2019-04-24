@@ -142,7 +142,7 @@ class KernelSolve():
     r"""
     Creates a new conjugate gradient solver.
 
-    Supporting the same :ref:`generic syntax <part.generic_formulas>` as :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`,
+    Supporting the same :ref:`generic syntax <part.generic_formulas>` as :class:`torch.Genred <pykeops.torch.Genred>`,
     this module allows you to solve generic optimization problems of
     the form:
 
@@ -229,7 +229,7 @@ class KernelSolve():
 
                   - **dtype** = ``"float32"`` or ``"float"``.
                   - **dtype** = ``"float64"`` or ``"double"``.
-
+                  
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
@@ -265,11 +265,11 @@ class KernelSolve():
                     - All ``Vi(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`M`.
                     - All ``Vj(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`N`.
                     - All ``Pm(Dim_k)`` variables are encoded as **1d-tensors** (vectors) of size ``Dim_k``.
-
+                
         Keyword Args:
             backend (string): Specifies the map-reduce scheme,
                 as detailed in the documentation 
-                of the :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` module.
+                of the :class:`torch.Genred <pykeops.torch.Genred>` module.
 
             device_id (int, default=-1): Specifies the GPU that should be used 
                 to perform   the computation; a negative value lets your system 
@@ -280,11 +280,10 @@ class KernelSolve():
                 that specify a :doc:`block-sparse reduction scheme <../../sparsity>`
                 with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
                 as detailed in the documentation 
-                of the :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`module.
+                of the :class:`torch.Genred <pykeops.torch.Genred>` module.
 
                 If **None** (default), we simply use a **dense Kernel matrix**
-                as we loop over all indices
-                :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+                as we loop over all indices :math:`i\in[0,M)` and :math:`j\in[0,N)`.
 
         Returns:
             (M,D) or (N,D) Tensor:
@@ -295,7 +294,7 @@ class KernelSolve():
             **2d-tensor** with :math:`M` or :math:`N` lines (if **axis** = 1 
             or **axis** = 0, respectively) and a number of columns 
             that is inferred from the **formula**.
-
+            
         """
 
         return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, *args)

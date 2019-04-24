@@ -1,7 +1,7 @@
 Numpy API
 #########
 
-The numpy API ...
+.. automodule:: pykeops.numpy
 
 .. toctree::
 

@@ -6,7 +6,7 @@ Genred
 
 This section contains the full API documentation for the PyTorch :doc:`Generic reductions <../../Genred>`, with full support of PyTorch's :mod:`autograd` engine.
 
-.. currentmodule:: pykeops.torch.generic.generic_red
+.. currentmodule:: pykeops.torch
 .. autosummary::
     :nosignatures:
 

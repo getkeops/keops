@@ -4,7 +4,7 @@ SumSoftMaxWeight reduction
 """
 
 ###############################################################################
-# Using the :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` API,
+# Using the :class:`torch.Genred <pykeops.torch.Genred>` API,
 # we show how to perform a computation specified through:
 #  
 # * Its **inputs**: 
