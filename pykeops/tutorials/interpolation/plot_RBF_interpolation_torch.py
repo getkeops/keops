@@ -12,12 +12,12 @@ problems of the form
 where :math:`K_{xx}` is a symmetric, positive definite linear operator
 defined through the :ref:`KeOps generic syntax <part.generic_formulas>`
 and :math:`\\alpha` is a nonnegative regularization parameter.
-In the following script it is used for spline interpolation.
-
-It could also be used to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
-(aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_ )
+In the following script, we use it to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
+(aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_
+or `generalized spline interpolation <https://en.wikipedia.org/wiki/Spline_interpolation>`_)
 problems with a **linear memory footprint**.
 
+ 
  
 """
 
