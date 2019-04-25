@@ -4,10 +4,10 @@ from pykeops.torch import Genred
 
 
 def generic_sum(formula, output, *aliases, **kwargs):
-    """Alias for :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` with a "Sum" reduction.
+    """Alias for :class:`torch.Genred <pykeops.torch.Genred>` with a "Sum" reduction.
 
     Args:
-        formula (string): Symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        formula (string): Symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
         output (string): An identifier of the form ``"AL = TYPE(DIM)"`` 
             that specifies the category and dimension of the output variable. Here:
 
@@ -18,7 +18,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
                 - ``Vj``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
 
               - ``DIM`` is an integer, the dimension of the output variable; it should be compatible with **formula**.
-        *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
         dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
@@ -29,7 +29,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Example:
         >>> my_conv = generic_sum(       # Custom Kernel Density Estimator
@@ -49,10 +49,10 @@ def generic_sum(formula, output, *aliases, **kwargs):
     return Genred(formula, aliases, reduction_op='Sum', axis=axis, **kwargs)
 
 def generic_logsumexp(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` with a "LogSumExp" reduction.
+    """Alias for :class:`torch.Genred <pykeops.torch.Genred>` with a "LogSumExp" reduction.
 
     Args:
-        formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
         output (string): An identifier of the form ``"AL = TYPE(1)"`` 
             that specifies the category and dimension of the output variable. Here:
 
@@ -62,7 +62,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
                 - ``Vi``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
                 - ``Vj``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
 
-        *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
         dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
@@ -73,7 +73,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Example:
         Log-likelihood of a Gaussian Mixture Model,
@@ -103,10 +103,10 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
     return Genred(formula, aliases, reduction_op='LogSumExp', axis=axis,  **kwargs)
 
 def generic_argkmin(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` with an "ArgKMin" reduction.
+    """Alias for :class:`torch.Genred <pykeops.torch.Genred>` with an "ArgKMin" reduction.
 
     Args:
-        formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
         output (string): An identifier of the form ``"AL = TYPE(K)"`` 
             that specifies the category and dimension of the output variable. Here:
 
@@ -118,7 +118,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
 
               - ``K`` is an integer, the number of values to extract.
 
-        *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
         dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
@@ -129,7 +129,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Example:
         Bruteforce K-nearest neighbors search in dimension 100:
@@ -161,10 +161,10 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
 
 
 def generic_argmin(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` with an "ArgMin" reduction.
+    """Alias for :class:`torch.Genred <pykeops.torch.Genred>` with an "ArgMin" reduction.
 
     Args:
-        formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
         output (string): An identifier of the form ``"AL = TYPE(1)"`` 
             that specifies the category and dimension of the output variable. Here:
 
@@ -174,7 +174,7 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
                 - ``Vi``: indexation by :math:`i` along axis 0; reduction is performed along axis 1.
                 - ``Vj``: indexation by :math:`j` along axis 1; reduction is performed along axis 0.
 
-        *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
         dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
@@ -185,7 +185,7 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
 
     Returns:
         A generic reduction that can be called on arbitrary
-        Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`.
+        Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Example:
         Bruteforce nearest neighbor search in dimension 100:

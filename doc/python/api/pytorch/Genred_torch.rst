@@ -4,15 +4,21 @@ Genred
 .. rubric:: Summary
 
 
-:mod:`pykeops.torch` - :doc:`Generic reductions <../../Genred>`, with full support of PyTorch's :mod:`autograd` engine:
+This section contains the full API documentation for the PyTorch :doc:`Generic reductions <../../Genred>`, with full support of PyTorch's :mod:`torch.autograd` engine.
 
-.. currentmodule:: pykeops.torch.generic.generic_red
+.. currentmodule:: pykeops.torch
 .. autosummary::
+    :nosignatures:
+
     Genred
+    Genred.__init__
+    Genred.__call__
 
 .. rubric:: Syntax
 
 
-.. automodule:: pykeops.torch.generic.generic_red
-    :members:
-        Genred
+.. autoclass:: Genred()
+   :members:
+   :private-members:
+   :special-members:
+   :exclude-members: __weakref__

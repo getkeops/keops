@@ -7,8 +7,8 @@ On top of the low-level operators, we also provide a **kernel name parser** that
 
     from pykeops.torch import Kernel, kernel_product
 
-- :class:`pykeops.torch.Kernel  <pykeops.torch.kernel_product.kernels.Kernel>` is the name parser: it turns a string identifier (say, ``"gaussian(x,y) * linear(u,v)**2"``) into a set of KeOps formulas.
-- :func:`pykeops.torch.kernel_product()  <pykeops.torch.kernel_product.kernels.kernel_product>` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
+- :class:`pykeops.torch.Kernel  <pykeops.torch.Kernel>` is the name parser: it turns a string identifier (say, ``"gaussian(x,y) * linear(u,v)**2"``) into a set of KeOps formulas.
+- :func:`pykeops.torch.kernel_product()  <pykeops.torch.kernel_product>` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
 
 **A quick example:** here is how you can compute a *fully differentiable* Gaussian-RBF kernel product:
 
@@ -39,7 +39,7 @@ On top of the low-level operators, we also provide a **kernel name parser** that
 Documentation
 ==============
 
-See the :doc:`API documentation<api/pytorch/KernelProduct>` for the syntax of the :class:`pykeops.torch.Kernel<pykeops.torch.kernel_product.kernels.Kernel>` parser and the :func:`pykeops.torch.kernel_product()<pykeops.torch.kernel_product.kernels.kernel_product>` routine.
+See the :doc:`API documentation<api/pytorch/KernelProduct>` for the syntax of the :class:`pykeops.torch.Kernel<pykeops.torch.Kernel>` parser and the :func:`pykeops.torch.kernel_product()<pykeops.torch.kernel_product>` routine.
 
 
 An example

@@ -8,6 +8,7 @@ class numpytools:
     arraysum = np.sum
     exp = np.exp
     log = np.log
+    Genred = Genred
     
     @staticmethod
     def copy(x): return np.copy(x)

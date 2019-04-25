@@ -10,8 +10,8 @@ to implement **genuine coarse-to-fine strategies** that scale
 (almost) linearly with the number of samples,
 as advocated in `(Schmitzer, 2016) <https://arxiv.org/abs/1610.06519>`_.
 
-Relying on the KeOps routines :func:`generic_sum() <pykeops.torch.generic_ops.torch.generic_sum>` and
-:func:`generic_logsumexp() <pykeops.torch.generic.generic_ops.generic_logsumexp>`,
+Relying on the KeOps routines :func:`generic_sum() <pykeops.torch.generic_sum>` and
+:func:`generic_logsumexp() <pykeops.torch.generic_logsumexp>`,
 the `GeomLoss library <https://www.kernel-operations.io/geomloss>`_
 provides **Geometric Loss functions** as simple PyTorch layers,
 with a fully-fledged `gallery of examples <https://www.kernel-operations.io/geomloss/_auto_examples/index.html>`_.

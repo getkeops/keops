@@ -1,5 +1,3 @@
-:gitlab_url: `<https://gitlab.com/bcharlier/keops/>`_
-
 .. figure:: _static/logo/keops_logo.png
    :width: 100% 
    :alt: Keops logo
@@ -39,7 +37,7 @@ It provides:
 * Support for a wide range of mathematical **formulas**.
 * Seamless computation of **derivatives**, up to arbitrary orders.
 * Sum, LogSumExp, Min, Max but also ArgMin, ArgMax or K-min **reductions**.
-* A **conjugate gradient solver** for large-scale Kriging (aka. Gaussian process regression).
+* A **conjugate gradient solver** for e.g. large-scale spline interpolation method (or kriging aka. Gaussian process regression).
 * An interface for **block-sparse** and coarse-to-fine strategies.
 * Support for **multi GPU** configurations.
 
@@ -50,12 +48,12 @@ or kriging (aka. Gaussian process regression).
 More details are provided below:
 
 * :doc:`Documentation <introduction/why_using_keops>`
-* `Source code <https://gitlab.com/bcharlier/keops>`_
+* `Source code <https://github.com/getkeops/keops>`_
 * :doc:`Learning KeOps with examples <_auto_examples/index>`
 * :doc:`Gallery of tutorials <_auto_tutorials/index>`
 * :doc:`Benchmarks <_auto_benchmarks/index>`
 
-**KeOps is licensed** under the `MIT license <https://gitlab.com/bcharlier/keops/blob/master/licence.txt>`_.
+**KeOps is licensed** under the `MIT license <https://github.com/getkeops/keops/blob/master/licence.txt>`_.
 
 Projects using KeOps
 --------------------

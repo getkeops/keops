@@ -1,8 +1,8 @@
 Road map
 ========
 
-Our `Changelog <https://gitlab.com/bcharlier/keops/blob/master/CHANGELOG.md>`_
-can be found on the `KeOps Gitlab repository <https://gitlab.com/bcharlier/keops/>`_.
+Our `Changelog <https://github.com/getkeops/keops/blob/master/CHANGELOG.md>`_
+can be found on the `KeOps Github repository <https://github.com/getkeops/keops/>`_.
 
 To-do list
 -------------

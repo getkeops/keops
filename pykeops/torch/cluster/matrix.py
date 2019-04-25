@@ -54,7 +54,7 @@ def from_matrix( ranges_i, ranges_j, keep ) :
 
     Returns:
         A 6-uple of LongTensors that can be used as an optional **ranges**
-        argument of :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>`. See the documentation of :class:`torch.Genred <pykeops.torch.generic.generic_red.Genred>` for reference.
+        argument of :class:`torch.Genred <pykeops.torch.Genred>`. See the documentation of :class:`torch.Genred <pykeops.torch.Genred>` for reference.
 
     Example:
         >>> r_i = torch.IntTensor( [ [2,5], [7,12] ] )          # 2 clusters: X[0] = x_i[2:5], X[1] = x_i[7:12]

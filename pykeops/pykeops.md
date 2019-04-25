@@ -1,6 +1,6 @@
 ![logo pykeops](http://www.kernel-operations.io/keops/_images/pykeops_logo.png)
 
-PyKeOps contains the python bindings (numpy and pytorch) for the cpp/cuda library [KeOps](http://http://www.kernel-operations.io/). It provides
+PyKeOps contains the python bindings (numpy and pytorch) for the cpp/cuda library [KeOps](https://www.kernel-operations.io/). It provides
 standard python functions that can be used in any **python 3** codes.
 
 For a full documentation you may read:

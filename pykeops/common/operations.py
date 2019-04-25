@@ -102,6 +102,7 @@ def ConjugateGradientSolver(binding, linop, b, eps=1e-6):
 
 def KernelLinearSolver(binding, K, x, b, alpha=0, eps=1e-6, precond=False, precondKernel=None):
     tools = get_tools(binding)
+    dtype = tools.dtype(x)
 
     def PreconditionedConjugateGradientSolver(linop, b, invprecondop, eps=1e-6):
         # Preconditioned conjugate gradient algorithm to solve linear system of the form
@@ -149,8 +150,8 @@ def KernelLinearSolver(binding, K, x, b, alpha=0, eps=1e-6, precond=False, preco
                      'y = Vj(' + str(D) + ')',  # Second arg  : j-variable, of size D
                      'b = Vj(' + str(Dv) + ')',  # Third arg  : j-variable, of size Dv
                      'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, dtype=tools.dtype)
-        oos2 = tools.array([1.0 / sigma ** 2])
+        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, dtype=dtype)
+        oos2 = tools.array([1.0 / sigma ** 2],dtype=dtype)
         KernelMatrix = GaussKernelMatrix(sigma)
 
         def K(x, y, b=None):
@@ -167,8 +168,8 @@ def KernelLinearSolver(binding, K, x, b, alpha=0, eps=1e-6, precond=False, preco
                      'v = Vi(' + str(D) + ')',  # Second arg  : i-variable, of size D
                      'x = Vj(' + str(D) + ')',  # Third arg  : j-variable, of size D
                      'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, dtype=tools.dtype)
-        oos2 = tools.array([1.0 / sigma ** 2])
+        my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, dtype=dtype)
+        oos2 = tools.array([1.0 / sigma ** 2],dtype=dtype)
         KernelMatrix = GaussKernelMatrix(sigma)
 
         def K(u, v, x):
@@ -201,6 +202,6 @@ def KernelLinearSolver(binding, K, x, b, alpha=0, eps=1e-6, precond=False, preco
         invprecondop = NystromInversePreconditioner(K, precondKernel, x, alpha)
         a = PreconditionedConjugateGradientSolver(KernelLinOp, b, invprecondop, eps)
     else:
-        a = ConjugateGradientSolver(tools, KernelLinOp, b, eps=eps)
+        a = ConjugateGradientSolver(binding, KernelLinOp, b, eps=eps)
     
     return a

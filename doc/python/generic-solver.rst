@@ -37,7 +37,7 @@ In both cases, :mod:`KernelSolve` is a class with no methods: its instantiation 
 Documentation
 =============
 
-See the :class:`numpy.KernelSolve <pykeops.numpy.operations.KernelSolve>` or :class:`torch.KernelSolve <pykeops.torch.operations.KernelSolve>`  API documentation for the syntax at **instantiation** and **call** times.
+See the :class:`numpy.KernelSolve <pykeops.numpy.KernelSolve>` or :class:`torch.KernelSolve <pykeops.torch.KernelSolve>`  API documentation for the syntax at **instantiation** and **call** times.
 
 
 An example

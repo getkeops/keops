@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.abspath('sphinxext'))
 import sphinx_gallery
 from recommonmark.transform import AutoStructify
 
+import pykeops
 from pykeops import __version__
 
 # -- General configuration ------------------------------------------------
@@ -53,15 +54,39 @@ extensions = [
 
 # sphinx.ext.linkcode
 def linkcode_resolve(domain, info):
-    if domain != 'py':
+    def find_source():
+        # try to find the file and line number, based on code from numpy:
+        # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
+        obj = sys.modules[info['module']]
+        for part in info['fullname'].split('.'):
+            obj = getattr(obj, part)
+        import inspect
+        import os
+        fn = inspect.getsourcefile(obj)
+        fn = os.path.relpath(fn, start=os.path.dirname(pykeops.__file__))
+        source, lineno = inspect.getsourcelines(obj)
+        return fn, lineno, lineno + len(source) - 1
+
+    if domain != 'py' or not info['module']:
         return None
-    if not info['module']:
-        return None
-    filename = info['module'].replace('.', '/')
-    return "https://gitlab.com/bcharlier/keops/tree/master/%s.py" % filename
+    try:
+        filename = 'pykeops/%s#L%d-L%d' % find_source()
+    except Exception:
+        filename = info['module'].replace('.', '/') + '.py'
+
+    return "https://github.com/getkeops/keops/tree/master/%s" % filename
+
+
+# def linkcode_resolve(domain, info):
+    # from sphinx.util import get_full_modname
+    # if domain != 'py':
+        # return None
+    # if not info['module']:
+        # return None
+    # filename = get_full_modname(info['module'], info['fullname']).replace('.', '/')
+    # return "https://github.com/getkeops/keops/tree/master/%s.py" % filename
 
 from sphinx_gallery.sorting import FileNameSortKey
-
 sphinx_gallery_conf = {
      # path to your examples scripts
      'examples_dirs': ['../pykeops/examples', '../pykeops/tutorials', '../pykeops/benchmarks'],
@@ -73,7 +98,7 @@ sphinx_gallery_conf = {
 # Generate the API documentation when building
 autosummary_generate = True
 numpydoc_show_class_members = False
-autodoc_member_order = 'alphabetical'
+autodoc_member_order = 'bysource'
 
 def skip(app, what, name, obj, would_skip, options):
     if name == "__call__":
@@ -140,7 +165,10 @@ pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
+exclude_patterns = ['readme_first.md']
 
+# display broken internal links
+nitpicky = False
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -168,10 +196,10 @@ html_theme_options = {
 }
 
 html_context = {
-    "display_gitlab": True, # Integrate Gitlab
-    "gitlab_user": "bcharlier", # Username
-    "gitlab_repo": "keops", # Repo name
-    "gitlab_version": "master", # Version
+    "display_github": True, # Integrate Github
+    "github_user": "getkeops", # Username
+    "github_repo": "keops", # Repo name
+    "github_version": "master", # Version
     "conf_py_path": "/doc/", # Path in the checkout to the docs root
 }
 # The name for this set of Sphinx documents.  If None, it defaults to

@@ -138,124 +138,26 @@ class KernelSolveAutograd(torch.autograd.Function):
 
 
 
-class KernelSolve:
+class KernelSolve():
     r"""
     Creates a new conjugate gradient solver.
 
-    Supporting the same :ref:`generic syntax <part.generic_formulas>` as :func:`pykeops.numpy.Genred`,
+    Supporting the same :ref:`generic syntax <part.generic_formulas>` as :class:`torch.Genred <pykeops.torch.Genred>`,
     this module allows you to solve generic optimization problems of
     the form:
 
     .. math::
-       & & a^{\star} & =\operatorname*{argmin}_a  \| ( \alpha \operatorname{Id}+K_{xx}) a -b \|^2_2, \\\\
+       & & a^{\star} & =\operatorname*{argmin}_a  \tfrac 1 2 \langle a,( \alpha \operatorname{Id}+K_{xx}) a\rangle - \langle a,b \rangle, \\\\
         &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
 
     where :math:`K_{xx}` is a **symmetric**, **positive** definite **linear** operator
     and :math:`\alpha` is a **nonnegative regularization** parameter.
 
     
-    Warning:
-        Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
-        for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
-        as 2d Tensors of size ``(M,dim)``. In practice,
-        ``a.view(-1,1)`` should be used to turn a vector of weights
-        into a *list of scalar values*.
-
     Note:
-        :func:`KernelSolve` relies on CUDA kernels that are compiled on-the-fly 
-        and stored in ``pykeops.build_folder`` as ".dll" or ".so" files for later use.
-
-    Note:
-        :func:`KernelSolve` is fully compatible with PyTorch's :mod:`autograd` engine:
+        :class:`KernelSolve` is fully compatible with PyTorch's :mod:`autograd` engine:
         you can **backprop** through the KernelSolve :meth:`__call__` just
         as if it was a vanilla PyTorch operation.
-
-    Args:
-        formula (string): The scalar- or vector-valued expression
-            that should be computed and reduced.
-            The correct syntax is described in the :doc:`documentation <../../Genred>`,
-            using appropriate :doc:`mathematical operations <../../../api/math-operations>`.
-        aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"`` 
-            that specify the categories and dimensions of the input variables. Here:
-
-              - ``AL`` is an alphanumerical alias, used in the **formula**.
-              - ``TYPE`` is a *category*. One of:
-
-                - ``Vi``: indexation by :math:`i` along axis 0.
-                - ``Vj``: indexation by :math:`j` along axis 1.
-                - ``Pm``: no indexation, the input tensor is a *vector* and not a 2d array.
-
-              - ``DIM`` is an integer, the dimension of the current variable.
-            
-            As described below, :meth:`__call__` will expect input Tensors whose
-            shape are compatible with **aliases**.
-        varinvalias (string): The alphanumerical **alias** of the variable with
-            respect to which we shall perform our conjugate gradient descent.
-            **formula** is supposed to be linear with respect to **varinvalias**,
-            but may be more sophisticated than a mere ``"K(x,y) * {varinvalias}"``.
-
-    Keyword Args:
-        alpha (float, default = 1e-10): Non-negative 
-            **ridge regularization** parameter, added to the diagonal
-            of the Kernel matrix :math:`K_{xx}`.
-
-        axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine. 
-            The supported values are:
-
-              - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
-              - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
-
-        dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
-            The supported values are:
-
-              - **dtype** = ``"float32"`` or ``"float"``.
-              - **dtype** = ``"float64"`` or ``"double"``.
-
-    **To apply the routine on arbitrary torch Tensors:**
-        
-    
-    Args:
-        *args (2d Tensors (variables ``Vi(..)``, ``Vj(..)``) and 1d Tensors (parameters ``Pm(..)``)): The input numerical arrays, 
-            which should all have the same ``dtype``, be **contiguous** and be stored on 
-            the **same device**. KeOps expects one array per alias, 
-            with the following compatibility rules:
-
-                - All ``Vi(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`M`.
-                - All ``Vj(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`N`.
-                - All ``Pm(Dim_k)`` variables are encoded as **1d-tensors** (vectors) of size ``Dim_k``.
-
-    Keyword Args:
-        backend (string): Specifies the map-reduce scheme,
-            as detailed in the documentation 
-            of the :func:`Genred` module.
-
-        device_id (int, default=-1): Specifies the GPU that should be used 
-            to perform   the computation; a negative value lets your system 
-            choose the default GPU. This parameter is only useful if your 
-            system has access to several GPUs.
-
-        ranges (6-uple of IntTensors, None by default):
-            Ranges of integers that specify a 
-            :doc:`block-sparse reduction scheme <../../sparsity>`
-            with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
-            as detailed in the documentation 
-            of the :func:`Genred` module.
-
-            If **None** (default), we simply use a **dense Kernel matrix**
-            as we loop over all indices
-            :math:`i\in[0,M)` and :math:`j\in[0,N)`.
-
-    Returns:
-        (M,D) or (N,D) Tensor:
-
-        The solution of the optimization problem, stored on the same device
-        as the input Tensors. The output of a :func:`KernelSolve` 
-        call is always a 
-        **2d-tensor** with :math:`M` or :math:`N` lines (if **axis** = 1 
-        or **axis** = 0, respectively) and a number of columns 
-        that is inferred from the **formula**.
-
-    
 
     Example:
         >>> formula = "Exp(-Norm2(x - y)) * a"  # Exponential kernel
@@ -279,6 +181,56 @@ class KernelSolve:
         torch.Size([10000, 3]) 
     """
     def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None):
+        r"""
+        Instantiate a new KernelSolve operation.
+
+        Note:
+            :class:`KernelSolve` relies on CUDA kernels that are compiled on-the-fly 
+            and stored in a :ref:`cache directory <part.cache>` as shared libraries (".so" files) for later use.
+
+
+        Args:
+            formula (string): The scalar- or vector-valued expression
+                that should be computed and reduced.
+                The correct syntax is described in the :doc:`documentation <../../Genred>`,
+                using appropriate :doc:`mathematical operations <../../../api/math-operations>`.
+            aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"`` 
+                that specify the categories and dimensions of the input variables. Here:
+
+                  - ``AL`` is an alphanumerical alias, used in the **formula**.
+                  - ``TYPE`` is a *category*. One of:
+
+                    - ``Vi``: indexation by :math:`i` along axis 0.
+                    - ``Vj``: indexation by :math:`j` along axis 1.
+                    - ``Pm``: no indexation, the input tensor is a *vector* and not a 2d array.
+
+                  - ``DIM`` is an integer, the dimension of the current variable.
+                
+                As described below, :meth:`__call__` will expect input Tensors whose
+                shape are compatible with **aliases**.
+            varinvalias (string): The alphanumerical **alias** of the variable with
+                respect to which we shall perform our conjugate gradient descent.
+                **formula** is supposed to be linear with respect to **varinvalias**,
+                but may be more sophisticated than a mere ``"K(x,y) * {varinvalias}"``.
+
+        Keyword Args:
+            alpha (float, default = 1e-10): Non-negative 
+                **ridge regularization** parameter, added to the diagonal
+                of the Kernel matrix :math:`K_{xx}`.
+
+            axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine. 
+                The supported values are:
+
+                  - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
+                  - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
+
+            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+                The supported values are:
+
+                  - **dtype** = ``"float32"`` or ``"float"``.
+                  - **dtype** = ``"float64"`` or ``"double"``.
+                  
+        """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
@@ -298,6 +250,57 @@ class KernelSolve:
         self.dtype = dtype
 
     def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
+        r"""
+        Apply the routine on arbitrary torch Tensors.
+            
+        Warning:
+            Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
+            for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
+            as 2d Tensors of size ``(M,dim)``. In practice,
+            ``a.view(-1,1)`` should be used to turn a vector of weights
+            into a *list of scalar values*.
+        
+        Args:
+            *args (2d Tensors (variables ``Vi(..)``, ``Vj(..)``) and 1d Tensors (parameters ``Pm(..)``)): The input numerical arrays, 
+                which should all have the same ``dtype``, be **contiguous** and be stored on 
+                the **same device**. KeOps expects one array per alias, 
+                with the following compatibility rules:
+
+                    - All ``Vi(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`M`.
+                    - All ``Vj(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`N`.
+                    - All ``Pm(Dim_k)`` variables are encoded as **1d-tensors** (vectors) of size ``Dim_k``.
+                
+        Keyword Args:
+            backend (string): Specifies the map-reduce scheme,
+                as detailed in the documentation 
+                of the :class:`torch.Genred <pykeops.torch.Genred>` module.
+
+            device_id (int, default=-1): Specifies the GPU that should be used 
+                to perform   the computation; a negative value lets your system 
+                choose the default GPU. This parameter is only useful if your 
+                system has access to several GPUs.
+
+            ranges (6-uple of IntTensors, None by default): Ranges of integers 
+                that specify a :doc:`block-sparse reduction scheme <../../sparsity>`
+                with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
+                as detailed in the documentation 
+                of the :class:`torch.Genred <pykeops.torch.Genred>` module.
+
+                If **None** (default), we simply use a **dense Kernel matrix**
+                as we loop over all indices :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+
+        Returns:
+            (M,D) or (N,D) Tensor:
+
+            The solution of the optimization problem, stored on the same device
+            as the input Tensors. The output of a :class:`KernelSolve` 
+            call is always a 
+            **2d-tensor** with :math:`M` or :math:`N` lines (if **axis** = 1 
+            or **axis** = 0, respectively) and a number of columns 
+            that is inferred from the **formula**.
+            
+        """
+
         return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, *args)
 
 

@@ -53,8 +53,8 @@ setup(
     long_description_content_type='text/markdown',
     url='http://www.kernel-operations.io/',
     project_urls={
-        'Bug Reports': 'https://gitlab.com/bcharlier/keops/issues',
-        'Source': 'https://gitlab.com/bcharlier/keops',
+        'Bug Reports': 'https://github.com/getkeops/keops/issues',
+        'Source': 'https://github.com/getkeops/keops',
     },
     author='B. Charlier, J. Feydy, J. Glaunes',
     author_email='benjamin.charlier@umontpellier.fr, jfeydy@ens.fr, alexis.glaunes@parisdescartes.fr',
@@ -93,7 +93,7 @@ setup(
     package_data={
         'pykeops': [
             'pykeops.md',
-            'readme.md',
+            'readme_first.md',
             'CMakeLists.txt',
             'torch_headers.h.in',
             'numpy/convolutions/radial_kernel_conv.cpp',

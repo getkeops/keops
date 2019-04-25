@@ -1,7 +1,8 @@
 import numpy as np
 
-def grid_cluster( x, size ) :
-    """Simplistic clustering algorithm which distributes points into cubic bins.
+
+def grid_cluster(x, size):
+    r"""Simplistic clustering algorithm which distributes points into cubic bins.
 
     Args:
         x ((M,D) array): List of points :math:`x_i \in \mathbb{R}^D`.
@@ -23,19 +24,23 @@ def grid_cluster( x, size ) :
 
     """
     # Quantize the points' positions:
-    if   x.shape[1]==1 : weights = np.array( [ 1 ] ,            dtype=int)
-    elif x.shape[1]==2 : weights = np.array( [ 2**10, 1] ,      dtype=int)
-    elif x.shape[1]==3 : weights = np.array( [ 2**20, 2**10, 1],dtype=int)
-    else : raise NotImplementedError()
-    x_  = np.floor( x / size ).astype(int)
+    if x.shape[1] == 1:
+        weights = np.array([1], dtype=int)
+    elif x.shape[1] == 2:
+        weights = np.array([2 ** 10, 1], dtype=int)
+    elif x.shape[1] == 3:
+        weights = np.array([2 ** 20, 2 ** 10, 1], dtype=int)
+    else:
+        raise NotImplementedError()
+    x_ = np.floor(x / size).astype(int)
     x_ *= weights
-    lab = np.abs( np.sum(x_, axis=1) ) # labels
-
+    lab = np.abs(np.sum(x_, axis=1))  # labels
+    
     # Replace arbitrary labels with unique identifiers in a compact arange:
     u_lab = np.sort(np.unique(lab))
     N_lab = len(u_lab)
-    foo  = np.empty( np.max(u_lab)+1, dtype=int)
-    foo[u_lab] = np.arange(N_lab,  dtype=int)
-    lab  = foo[lab]
-
+    foo = np.empty(np.max(u_lab) + 1, dtype=int)
+    foo[u_lab] = np.arange(N_lab, dtype=int)
+    lab = foo[lab]
+    
     return lab

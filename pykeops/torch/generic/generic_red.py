@@ -119,22 +119,38 @@ class Genred():
         a custom Map-Reduce operation, it returns a C++ wrapper
         that can be called just like any other PyTorch function.
 
-        Warning:
-            Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
-            for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
-            as 2d Tensors of size ``(M,dim)``. In practice,
-            ``a.view(-1,1)`` should be used to turn a vector of weights
-            into a *list of scalar values*.
-
-        Note:
-            :func:`Genred` relies on C++ or CUDA kernels that are compiled on-the-fly,
-            and stored in ``pykeops.build_folder`` as ".dll" or ".so" files for later use.
-
         Note:
             :func:`Genred` is fully compatible with PyTorch's :mod:`autograd` engine:
             You can **backprop** through the KeOps :meth:`__call__` just
             as if it was a vanilla PyTorch operation (except for Min or Max reduction types,
             see :ref:`reductions <part.reduction>`)
+
+        Example:
+            >>> my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
+            ...                  ['x = Vi(3)',            # 1st input: dim-3 vector per line
+            ...                   'y = Vj(3)'],           # 2nd input: dim-3 vector per column
+            ...                  reduction_op='Sum',      # we also support LogSumExp, Min, etc.
+            ...                  axis=1)                  # reduce along the lines of the kernel matrix
+            >>> # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
+            >>> x = torch.randn(1000000, 3, requires_grad=True).cuda()
+            >>> y = torch.randn(2000000, 3).cuda()
+            >>> a = my_conv(x, y)  # a_i = sum_j exp(-|x_i-y_j|^2)
+            >>> print(a.shape)
+            torch.Size([1000000, 1])
+            >>> [g_x] = torch.autograd.grad((a ** 2).sum(), [x])  # KeOps supports autograd!
+            >>> print(g_x.shape)
+            torch.Size([1000000, 3])
+
+        """
+    
+    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
+                 formula2=None, cuda_type=None):
+        r"""
+        Instantiate a new generic operation.
+
+        Note:
+            :class:`Genred` relies on C++ or CUDA kernels that are compiled on-the-fly,
+            and stored in a :ref:`cache directory <part.cache>` as shared libraries (".so" files) for later use.
 
         Args:
             formula (string): The scalar- or vector-valued expression
@@ -176,11 +192,33 @@ class Genred():
 
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMin_ArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
+        """
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type 
+        self.reduction_op = reduction_op
+        reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
+        
+        str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
+        str_formula2 = ',' + formula2 if formula2 else ''
+        
+        self.formula = reduction_op_internal + '_Reduction(' + formula + str_opt_arg + ',' + str(
+            axis2cat(axis)) + str_formula2 + ')'
+        self.aliases = complete_aliases(self.formula, list(aliases)) # just in case the user provided a tuple
+        self.dtype = dtype
+        self.axis = axis
+        self.opt_arg = opt_arg
 
+    def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
+        r"""
+        To apply the routine on arbitrary torch Tensors.
 
-
-        **To apply the routine on arbitrary torch Tensors:**
-
+        Warning:
+            Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
+            for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
+            as 2d Tensors of size ``(M,dim)``. In practice,
+            ``a.view(-1,1)`` should be used to turn a vector of weights
+            into a *list of scalar values*.
 
         Args:
             *args (2d Tensors (variables ``Vi(..)``, ``Vj(..)``) and 1d Tensors (parameters ``Pm(..)``)): The input numerical arrays,
@@ -198,8 +236,8 @@ class Genred():
 
                     - ``"auto"`` (default): let KeOps decide which backend is best suited to your data, based on the tensors' shapes. ``"GPU_1D"`` will be chosen in most cases.
                     - ``"CPU"``: use a simple C++ ``for`` loop on a single CPU core.
-                    - ``"GPU_1D"``: use a `simple multithreading scheme <https://gitlab.com/bcharlier/keops/blob/master/keops/core/GpuConv1D.cu>`_ on the GPU - basically, one thread per value of the output index.
-                    - ``"GPU_2D"``: use a more sophisticated `2D parallelization scheme <https://gitlab.com/bcharlier/keops/blob/master/keops/core/GpuConv2D.cu>`_ on the GPU.
+                    - ``"GPU_1D"``: use a `simple multithreading scheme <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv1D.cu>`_ on the GPU - basically, one thread per value of the output index.
+                    - ``"GPU_2D"``: use a more sophisticated `2D parallelization scheme <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv2D.cu>`_ on the GPU.
                     - ``"GPU"``: let KeOps decide which one of the ``"GPU_1D"`` or the ``"GPU_2D"`` scheme will run faster on the given input.
 
             device_id (int, default=-1): Specifies the GPU that should be used
@@ -271,45 +309,7 @@ class Genred():
             or **axis** = 0, respectively) and a number of columns
             that is inferred from the **formula**.
 
-
-
-        Example:
-            >>> my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
-            ...                  ['x = Vi(3)',            # 1st input: dim-3 vector per line
-            ...                   'y = Vj(3)'],           # 2nd input: dim-3 vector per column
-            ...                  reduction_op='Sum',      # we also support LogSumExp, Min, etc.
-            ...                  axis=1)                  # reduce along the lines of the kernel matrix
-            >>> # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
-            >>> x = torch.randn(1000000, 3, requires_grad=True).cuda()
-            >>> y = torch.randn(2000000, 3).cuda()
-            >>> a = my_conv(x, y)  # a_i = sum_j exp(-|x_i-y_j|^2)
-            >>> print(a.shape)
-            torch.Size([1000000, 1])
-            >>> [g_x] = torch.autograd.grad((a ** 2).sum(), [x])  # KeOps supports autograd!
-            >>> print(g_x.shape)
-            torch.Size([1000000, 3])
-
         """
-    
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None):
-        if cuda_type:
-            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type 
-        self.reduction_op = reduction_op
-        reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
-        
-        str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
-        str_formula2 = ',' + formula2 if formula2 else ''
-        
-        self.formula = reduction_op_internal + '_Reduction(' + formula + str_opt_arg + ',' + str(
-            axis2cat(axis)) + str_formula2 + ')'
-        self.aliases = complete_aliases(self.formula, list(aliases)) # just in case the user provided a tuple
-        self.dtype = dtype
-        self.axis = axis
-        self.opt_arg = opt_arg
-
-    def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, device_id, ranges, *args)
         nx, ny = get_sizes(self.aliases, *args)
         nout = nx if self.axis==1 else ny

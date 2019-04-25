@@ -1,20 +1,21 @@
-"""
+r"""
 ==================================
 Kernel interpolation - NumPy API
 ==================================
 
-The :class:`numpy.KernelSolve <pykeops.numpy.operations.KernelSolve>` operator allows you to solve optimization
+The :class:`numpy.KernelSolve <pykeops.numpy.KernelSolve>` operator allows you to solve optimization
 problems of the form
 
 .. math::
-    a^{\star}=\operatorname*{argmin}_a \| (\\alpha\operatorname{Id}+K_{xx})a -b\|^2_2,
+       & & a^{\star} & =\operatorname*{argmin}_a  \tfrac 1 2 \langle a,( \alpha \operatorname{Id}+K_{xx}) a\rangle - \langle a,b \rangle, \\\\
+        &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
 
 where :math:`K_{xx}` is a symmetric, positive definite linear operator
 defined through the :ref:`KeOps generic syntax <part.generic_formulas>`
 and :math:`\\alpha` is a nonnegative regularization parameter.
-It can thus be used
-to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
-(aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_ )
+In the following script, we use it to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
+(aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_
+or `generalized spline interpolation <https://en.wikipedia.org/wiki/Spline_interpolation>`_)
 problems with a **linear memory footprint**.
 
  
@@ -50,8 +51,8 @@ x = np.random.rand(N, 1).astype(dtype)
 b = x + .5 * np.sin(6 * x) + .1 * np.sin(20 * x) + .05 * np.random.randn(N, 1).astype(dtype)
 
 ######################################################################
-# Kriging in 1D
-# ---------------
+# Interpolation in 1D
+# -------------------
 #
 # Specify our **regression model** - a simple **Gaussian** variogram:
 
@@ -106,8 +107,8 @@ plt.axis([0, 1, 0, 1]);
 plt.tight_layout()
 
 #########################################################################
-# Kriging in 2D
-# ---------------
+# Interpolation in 2D
+# -------------------
 #
 # Generate some data:
 

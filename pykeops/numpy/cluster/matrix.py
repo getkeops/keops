@@ -1,6 +1,7 @@
 import numpy as np
 
-def from_matrix( ranges_i, ranges_j, keep ) :
+
+def from_matrix(ranges_i, ranges_j, keep):
     r"""Turns a boolean matrix into a KeOps-friendly **ranges** argument.
 
     This routine is a helper for the **block-sparse** reduction mode of KeOps,
@@ -108,9 +109,9 @@ def from_matrix( ranges_i, ranges_j, keep ) :
         --> For Y[1], j in [4,5,6,7,8], we'll reduce over i in [2,3,4] and [7,8,9,10,11]
         --> For Y[2], j in [20,21,...,29], there is no reduction to be done
     """
-    J, I = np.meshgrid( np.arange(0, keep.shape[1]), np.arange(0,keep.shape[0]) )
-    redranges_i = ranges_i[ I.T[keep.T] ]  # Use PyTorch indexing to "stack" copies of ranges_i[...]
-    redranges_j = ranges_j[ J[keep] ]
+    J, I = np.meshgrid(np.arange(0, keep.shape[1]), np.arange(0, keep.shape[0]))
+    redranges_i = ranges_i[I.T[keep.T]]  # Use PyTorch indexing to "stack" copies of ranges_i[...]
+    redranges_j = ranges_j[J[keep]]
     slices_i = np.cumsum(np.sum(keep, axis=1), axis=0)  # slice indices in the "stacked" array redranges_j
     slices_j = np.cumsum(np.sum(keep, axis=0), axis=0)  # slice indices in the "stacked" array redranges_i
     return (ranges_i.astype("int32"), slices_i.astype("int32"), redranges_j.astype("int32"), \

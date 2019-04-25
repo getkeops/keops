@@ -1,7 +1,8 @@
 import numpy as np
 
-def sort_clusters(x, lab) :
-    """Sorts a list of points and labels to make sure that the clusters are contiguous in memory.
+
+def sort_clusters(x, lab):
+    r"""Sorts a list of points and labels to make sure that the clusters are contiguous in memory.
 
     On the GPU, **contiguous memory accesses** are key to high performances.
     By making sure that points in the same cluster are stored next
@@ -31,17 +32,18 @@ def sort_clusters(x, lab) :
         [0 0 0 1 2]
     """
     perm = np.argsort(lab.ravel())
-    lab  = lab[perm]
+    lab = lab[perm]
     if type(x) is tuple:
-        x_sorted = tuple( a[perm] for a in x )
+        x_sorted = tuple(a[perm] for a in x)
     elif type(x) is list:
-        x_sorted =  list( a[perm] for a in x )
+        x_sorted = list(a[perm] for a in x)
     else:
         x_sorted = x[perm]
-
+    
     return x_sorted, lab
 
-def cluster_ranges(lab, Nlab=None) :
+
+def cluster_ranges(lab, Nlab=None):
     """Computes the ``[start,end)`` indices that specify clusters in a sorted point cloud.
 
     If **lab** denotes a vector of labels :math:`\ell_i\in[0,C)`,
@@ -86,11 +88,12 @@ def cluster_ranges(lab, Nlab=None) :
         --> cluster 1 = x_sorted[3:4, :]
         --> cluster 2 = x_sorted[4:5, :]
     """
-    if Nlab is None : Nlab = np.bincount(lab)
-    pivots = np.concatenate( (np.array([0]), np.cumsum(Nlab, axis=0)) )
-    return np.stack( (pivots[:-1], pivots[1:]) ).T.astype(int)
+    if Nlab is None: Nlab = np.bincount(lab)
+    pivots = np.concatenate((np.array([0]), np.cumsum(Nlab, axis=0)))
+    return np.stack((pivots[:-1], pivots[1:])).T.astype(int)
 
-def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
+
+def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):
     """Computes the (weighted) centroids of classes specified by a vector of labels.
     
     If points :math:`x_i \in\mathbb{R}^D` are assigned to :math:`C` different classes
@@ -125,19 +128,20 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
         [[0.5 ]
          [4.75]]
     """
-    if Nlab is None : Nlab = np.bincount(lab).astype(float)
+    if Nlab is None: Nlab = np.bincount(lab).astype(float)
     if weights is not None and weights_c is None:
-        weights_c = np.bincount(lab, weights=weights)[:,None]
-
-    c = np.zeros( (len(Nlab), x.shape[1]), dtype=x.dtype)
+        weights_c = np.bincount(lab, weights=weights)[:, None]
+    
+    c = np.zeros((len(Nlab), x.shape[1]), dtype=x.dtype)
     for d in range(x.shape[1]):
         if weights is None:
-            c[:,d] = np.bincount(lab, weights=x[:,d]) / Nlab
-        else :
-            c[:,d] = np.bincount(lab, weights=x[:,d]*weights.ravel()) / weights_c.ravel()
+            c[:, d] = np.bincount(lab, weights=x[:, d]) / Nlab
+        else:
+            c[:, d] = np.bincount(lab, weights=x[:, d] * weights.ravel()) / weights_c.ravel()
     return c
 
-def cluster_ranges_centroids(x, lab, weights=None) :
+
+def cluster_ranges_centroids(x, lab, weights=None):
     """Computes the cluster indices and centroids of a (weighted) point cloud with labels.
     
     If **x** and **lab** encode a cloud of points :math:`x_i\in\mathbb{R}^D`
@@ -148,8 +152,8 @@ def cluster_ranges_centroids(x, lab, weights=None) :
     - Centroids :math:`c_k` for each cluster :math:`k`, computed as barycenters
       using the weights :math:`w_i \in \mathbb{R}_{>0}`:
 
-    .. math::
-        c_k ~=~ \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
+        .. math::
+            c_k = \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
 
     - Total weights :math:`\sum_{i, \ell_i=k} w_i`, for :math:`k\in[0,C)`.
 
@@ -203,18 +207,19 @@ def cluster_ranges_centroids(x, lab, weights=None) :
         [ 1.5 12. ]
     """
     Nlab = np.bincount(lab).astype(float)
-    if weights is not None :
+    if weights is not None:
         w_c = np.bincount(lab, weights=weights).ravel()
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab, weights=weights, weights_c=w_c), w_c
-    else :
+    else:
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab), Nlab
 
-def swap_axes(ranges) :
+
+def swap_axes(ranges):
     """Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional **ranges** parameter.
     
     This function returns **None** if **ranges** is **None**,
     and swaps the :math:`i` and :math:`j` arrays of indices otherwise."""
-    if ranges is None :
+    if ranges is None:
         return None
-    else :
-        return (*ranges[3:6],*ranges[0:3])
+    else:
+        return (*ranges[3:6], *ranges[0:3])
