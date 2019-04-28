@@ -13,76 +13,75 @@ except ImportError:
     pass
 
 
-# convenient aliases 
+# Convenient aliases:
 
 def Var(x_or_ind,dim=None,cat=None):
     if dim is None:
         # init via data: we assume x_or_ind is data
-        return keops_formula(x_or_ind,axis=cat)
+        return keops_formula(x_or_ind, axis=cat)
     else:
         # init via symbolic variable given as triplet (ind,dim,cat)
         return keops_formula((x_or_ind,dim,cat))
         
 def Vi(x_or_ind,dim=None):
-    return Var(x_or_ind,dim,0)    
+    return Var(x_or_ind, dim, 0)    
 
 def Vj(x_or_ind,dim=None):
-    return Var(x_or_ind,dim,1)    
+    return Var(x_or_ind, dim, 1)    
 
 def Pm(x_or_ind,dim=None):
-    return Var(x_or_ind,dim,2)    
+    return Var(x_or_ind, dim, 2)    
 
 
 
 class keops_formula:
-    r"""
-        The KeOps container class
+    r"""The KeOps container class.
+
+    Every keops_formula object represents a mathematical formula which 
+    may depend on some "i" or "j"-indexed variables and parameter variables
+    (i.e. variables that are not indexed),
+    built as a combination of unary and binary operations.
+    """   
     
-        Every keops_formula object represents a mathematical formula which may depend on some "i" or "j"-indexed variables and parameter variables
-        (i.e. variables that are not indexed),
-        built as a combination of unary and binary operations.
+    def __init__(self, x=None, axis=None):
+        r"""Creates a KeOps variable or object
+            
+        Args:
+            x: may be either:
+        
+                - a *float*, *list of floats*, *NumPy float*, *0D or 1D NumPy array*, 
+                    *0D or 1D PyTorch tensor*, in which case the resulting KeOps variable will represent a parameter variable,
+                - a *2D or 3D NumPy array* or *PyTorch tensor*, in which case the 
+                    resulting KeOps variable will represent a "i"-indexed or 
+                    "j"-indexed variable (depending on the value of axis),
+                - a tuple of 3 integers (ind,dim,cat), in which case the resulting KeOps variable will represent a symbolic variable,
+                - an integer, in which case the resulting KeOps object will represent the integer.                    
+            axis: should be 0 or 1 if x is a 2D NumPy array or PyTorch tensor, should be None otherwise 
     
+        Here are the behaviors of the constructor depending on the inputs x and axis:
+    
+        - if x is a tuple of 3 integers (ind,dim,cat), the KeOps variable will represent a symbolic variable, i.e. it will not be
+            attached to an actual tensor. The corresponding tensor will need to be passed as input to the final reduction call. 
+            ind correponds to the index of the variable (its position in the list of arguments in the call), dim corresponds to the
+            dimension of the variable, and cat to its category ("i"-idexed if cat=0, "j"-indexed if cat=1, parameter if cat=2).
+        - if x is a float, it will be converted to a single element list of floats. 
+        - if x is a list of floats, the KeOps variable will represent a vector parameter (equivalent 3D shape: (1,1,len(x))). 
+            The axis parameter should be None or 2. The dtype property of the variable will be set to None.
+        - if x is a NumPy float (np.float32 or np.float64), it will be converted to a NumPy array of floats with same dtype.
+        - if x is a NumPy 0D or 1D array or PyTorch OD or 1D tensor, the KeOps variable will represent a vector parameter (equivalent 3D shape: (1,1,len(x))).
+            The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64"). The axis parameter should equal 2 or None.
+        - if x is a NumPy 2D array or PyTorch 2D tensor, then axis should be set to 0 or 1, and the KeOps variable will represent 
+            either a "i"-indexed variable (equivalent 3D shape: (x.shape[0],1,x.shape[1])) or 
+            a "j"-indexed variable (equivalent 3D shape: (1,x.shape[0],x.shape[1])).
+            The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
+        - if x is a NumPy 3D array or PyTorch 3D tensor, then axis should be set to None, and the KeOps variable will represent 
+            either a "i"-indexed variable if x.shape[1]=1, or a "j"-indexed variable if x.shape[0]=1 (equivalent 3D shape: x.shape).
+            If x.shape[0] and x.shape[1] are greater than 1, it will result in an error.
+            The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
+        - if x is an integer, the KeOps object will represent a constant integer (equivalent 3D shape: (1,1,1))
+        - if x is None, the KeOps variable is initialized as empty, and the axis parameter is ignored.
+            This is supposed to be used only internally.
         """   
-    
-    def __init__(self,x=None,axis=None):
-        r"""
-            Creates a KeOps variable or object
-            
-            Args:
-                x: may be either:
-            
-                    - a float, list of floats, NumPy float, 0D or 1D NumPy array, 0D or 1D PyTorch tensor, in which case the resulting KeOps variable will represent a parameter variable,
-                    - a 2D or 3D NumPy array or PyTorch tensor, in which case the resulting KeOps variable will represent a "i"-indexed or 
-                      "j"-indexed variable (depending on the value of axis),
-                    - a tuple of 3 integers (ind,dim,cat), in which case the resulting KeOps variable will represent a symbolic variable,
-                    - an integer, in which case the resulting KeOps object will represent the integer.                    
-                axis: should be 0 or 1 if x is a 2D NumPy array or PyTorch tensor, should be None otherwise 
-        
-            Here are the behaviors of the constructor depending on the inputs x and axis:
-        
-            - if x is a tuple of 3 integers (ind,dim,cat), the KeOps variable will represent a symbolic variable, i.e. it will not be
-              attached to an actual tensor. The corresponding tensor will need to be passed as input to the final reduction call. 
-              ind correponds to the index of the variable (its position in the list of arguments in the call), dim corresponds to the
-              dimension of the variable, and cat to its category ("i"-idexed if cat=0, "j"-indexed if cat=1, parameter if cat=2).
-            - if x is a float, it will be converted to a single element list of floats. 
-            - if x is a list of floats, the KeOps variable will represent a vector parameter (equivalent 3D shape: (1,1,len(x))). 
-              The axis parameter should be None or 2. The dtype property of the variable will be set to None.
-            - if x is a NumPy float (np.float32 or np.float64), it will be converted to a NumPy array of floats with same dtype.
-            - if x is a NumPy 0D or 1D array or PyTorch OD or 1D tensor, the KeOps variable will represent a vector parameter (equivalent 3D shape: (1,1,len(x))).
-              The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64"). The axis parameter should equal 2 or None.
-            - if x is a NumPy 2D array or PyTorch 2D tensor, then axis should be set to 0 or 1, and the KeOps variable will represent 
-              either a "i"-indexed variable (equivalent 3D shape: (x.shape[0],1,x.shape[1])) or 
-              a "j"-indexed variable (equivalent 3D shape: (1,x.shape[0],x.shape[1])).
-              The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
-            - if x is a NumPy 3D array or PyTorch 3D tensor, then axis should be set to None, and the KeOps variable will represent 
-              either a "i"-indexed variable if x.shape[1]=1, or a "j"-indexed variable if x.shape[0]=1 (equivalent 3D shape: x.shape).
-              If x.shape[0] and x.shape[1] are greater than 1, it will result in an error.
-              The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
-            - if x is an integer, the KeOps object will represent a constant integer (equivalent 3D shape: (1,1,1))
-            - if x is None, the KeOps variable is initialized as empty, and the axis parameter is ignored.
-              This is supposed to be used only internally.
-            
-            """   
         self.dtype = None
         self.variables = ()
         self.symbolic_variables = ()
@@ -93,107 +92,134 @@ class keops_formula:
         self.KernelSolve = None
         self.ni = None
         self.nj = None
-        if x is not None:
-            # stage 1
+
+        if x is not None:  # A KeOps LazyTensor can be built from many different objects:
+
+            # Stage 1: Are we dealing with simple numbers? ---------------------
             typex = type(x)
-            if typex == int:
+            
+            if typex == tuple:  # x is not a Tensor but a triplet of integers 
+                                # (ind,dim,cat) that specifies an abstract variable
+                if len(x) != 3 or not isinstance(x[0], int) or not isinstance(x[1], int) or not isinstance(x[2], int):
+                    raise ValueError("LazyTensors(tuple) is only valid if tuple = (ind,dim,cat) is a triplet of integers.")
+                if axis is not None:
+                    raise ValueError("'axis' parameter should not be given when 'x' is of the form (ind,dim,cat).")
+                
+                self.symbolic_variables = (x,)
+                self.dim = x[1]
+                self.axis = x[2]
+                self.formula = "VarSymb({},{},{})".format(x[0], self.dim, self.axis)
+                return  # That's it!
+                
+            elif typex == int:  # Integer constants are best handled directly by the compiler
                 self.formula = "IntCst(" + str(x) + ")"
                 self.dim = 1
                 self.axis = 2
-                return
-            elif typex == float:
-                # convert to list and go to stage 2
-                x = [x]
+                return  # That's it!
+
+            elif typex == float:  # Float numbers must be encoded as Parameters,
+                                  # as C++'s templating system cannot deal with floating point arithmetics.
+                x = [x]  # Convert to list and go to stage 2
+
             elif typex == list:
                 pass
-            elif typex == tuple:
-                # x is not a tensor but a triplet of integers (ind,dim,cat) specifying an abstract variable
-                if len(x)!=3 or not isinstance(x[0],int) or not isinstance(x[1],int) or not isinstance(x[2],int):
-                    raise ValueError("incorrect input")
-                if axis is not None:
-                    raise ValueError("axis parameter should not be given when x is of the form (ind,dim,cat)")
-                self.axis = x[2]
-                self.symbolic_variables = (x,)
-                self.dim = x[1]
-                self.formula = "VarSymb(" + str(x[0]) + "," + str(self.dim) + "," + str(self.axis) + ")"
-                return
-            elif typex in (np.float32,np.float64):
+
+            elif typex in (np.float32,np.float64):  # NumPy scalar -> NumPy array
                 x = np.array(x).reshape(1)
-            elif usetorch and typex == torch.Tensor and len(x.shape)==0:
+
+            elif usetorch and typex == torch.Tensor and len(x.shape) == 0:  # Torch scalar -> Torch tensor
                 x = x.view(1)
-            # stage 2 : dealing with python list, assumed to be array of floats, treated as parameter variables without fixed dtype
+
+
+            # Stage 2: Dealing with python lists, understood as arrays of floats, 
+            #          and handled as Parameter variables without fixed dtype
             if type(x) == list:
-                # init as 1d array : x is a parameter
-                if axis and axis != 2:
-                    raise ValueError("input is 1d vector, so it is considered as parameter and axis should equal 2")
+                if axis is not None and axis != 2:
+                    raise ValueError("Lists of numbers are handled as Parameter " \
+                        + "variables, with an optional 'axis' argument that is equal to 2.")
+                
                 self.variables = (x,)
                 self.dim = len(x)
-                self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + ",2)"
                 self.axis = 2
-                return
-            # stage 3 : if we get here it means x must be a numpy or pytorch array
+                self.formula = "Var({},{},2)".format(id(x), self.dim)
+                return  # That's it!
+
+
+            # Stage 3: Dealing with NumPy and Torch tensors --------------------
             typex = type(x)
+
             if typex == np.ndarray:
                 self.tools = numpytools
                 self.Genred = Genred_numpy
                 self.KernelSolve = KernelSolve_numpy
                 self.dtype = self.tools.dtype(x)
+
             elif usetorch and typex == torch.Tensor:
                 self.tools = torchtools
                 self.Genred = Genred_torch
                 self.KernelSolve = KernelSolve_torch
                 self.dtype = self.tools.dtype(x)
             else:
-                raise ValueError("incorrect input")
-            if len(x.shape)==3:
-                # init as 3d array : shape must be either (N,1,D) or (1,N,D) or (1,1,D)
-                # we infer axis from shape and convert to 1D or 2D array
+                raise ValueError("LazyTensors should be built from NumPy arrays, PyTorch tensors, " \
+                                 +"float/integer numbers, lists of floats or 3-uples of integers. " \
+                                 +"Received: {}".format(typex))
+
+            if len(x.shape) == 3:  # Infer axis from the input shape
+                # If x is a 3D array, its shape must be either (M,1,D) or (1,N,D) or (1,1,D).
+                # We infer axis from shape and convert the data to a 1D or 2D array:
                 if axis is not None:
-                    raise ValueError("axis should not be given for 3d array input")
-                if x.shape[0]==1:
-                    if x.shape[1]==1:
-                        x = self.tools.view(x,(x.shape[2]))
-                    else:
-                        x = self.tools.view(x,(x.shape[1],x.shape[2]))
+                    raise ValueError("'axis' parameter should not be given when 'x' is a 3D tensor.")
+
+                if x.shape[0] == 1:
+                    if x.shape[1] == 1:  # (1,1,D) -> Pm(D)
+                        x = self.tools.view(x, (x.shape[2],) )
+                    else:  # (1,N,D) -> Vj(D)
+                        x = self.tools.view(x, (x.shape[1], x.shape[2]) )
                         axis = 1
-                elif x.shape[1]==1:
-                    x = self.tools.view(x,(x.shape[0],x.shape[2]))
+
+                elif x.shape[1] == 1:  # (M,1,D) -> Vi(D)
+                    x = self.tools.view(x, (x.shape[0], x.shape[2]) )
                     axis = 0
                 else:
-                    raise ValueError("incorrect shape for input array")
-            # stage 4 : now x must be 2D or 1D or 0D array
-            if len(x.shape)==2:
-                # init as 2d array : shape is (N,D) and axis must be given
-                if axis is None:
-                    raise ValueError("axis should be given")
-                if axis not in (0,1):
-                    raise ValueError("axis should be 0 or 1")
+                    raise ValueError("If 'x' is a 3D tensor, its shape should be one of (M,1,D), (1,N,D) or (1,1,D).")
+
+
+            # Stage 4: x is now encoded as a 2D or 1D array --------------------
+            if len(x.shape) == 2:  # shape is (N,D) or (M,D), with an explicit 'axis' parameter
+                if axis is None or axis not in (0,1):
+                    raise ValueError("When 'x' is encoded as a 2D array, LazyTensor expects an explicit 'axis' value in {0,1}.")
+                
                 # id(x) is used as temporary identifier for KeOps "Var",
                 # this identifier will be changed when calling method "fixvariables"
                 # But first we do a small hack, in order to distinguish same array involved twice in a formula but with 
                 # different axis (e.g. Vi(x)-Vj(x) formula): we do a dummy reshape in order to get a different id
-                if axis==1:
+                if axis == 1:
                     x = self.tools.view(x,x.shape)
+
                 self.variables = (x,)
                 self.dim = x.shape[1]
-                self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + "," + str(axis) + ")"
-                if axis==0:
+                self.axis = axis
+                self.formula = "Var({},{},{})".format( id(x), self.dim, self.axis )
+
+                if axis == 0:
                     self.ni = x.shape[0]
                 else:
                     self.nj = x.shape[0]
-                self.axis = axis
                 self.dtype = self.tools.dtype(x)
-            elif len(x.shape)<=1:
-                # init as 1d or 0d array : x is a parameter
+
+            elif len(x.shape) == 1:  # shape is (D,): x is a "Pm(D)" parameter
                 if axis is not None and axis != 2:
-                    raise ValueError("input is 1d vector, so it is considered as parameter and axis should equal 2")
+                    raise ValueError("When 'x' is encoded as a 1D or 0D array, 'axis' must be None or 2 (= Parameter variable).")
                 self.variables = (x,)
-                self.dim = len(x)
-                self.formula = "Var(" + str(id(x)) + "," + str(self.dim) + ",2)"
+                self.dim  = len(x)
                 self.axis = 2
+                self.formula = "Var({},{},2)".format( id(x), self.dim )
+
             else:
-                raise ValueError("input array should be 1d, 2d or 3d")            
-        # N.B. we allow empty init
+                raise ValueError("LazyTensors can be built from 0D, 1D, 2D or 3D tensors. " \
+                                +"Received x of shape: {}.".format(x.shape) )            
+        
+        # N.B.: We allow empty init!
 
     def fixvariables(self):
         # we assign final indices to each variable
