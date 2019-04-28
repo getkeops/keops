@@ -50,10 +50,10 @@ class keops_formula:
             x: may be either:
         
                 - a *float*, *list of floats*, *NumPy float*, *0D or 1D NumPy array*, 
-                    *0D or 1D PyTorch tensor*, in which case the resulting KeOps variable will represent a parameter variable,
+                  *0D or 1D PyTorch tensor*, in which case the resulting KeOps variable will represent a parameter variable,
                 - a *2D or 3D NumPy array* or *PyTorch tensor*, in which case the 
-                    resulting KeOps variable will represent a "i"-indexed or 
-                    "j"-indexed variable (depending on the value of axis),
+                  resulting KeOps variable will represent a "i"-indexed or 
+                  "j"-indexed variable (depending on the value of axis),
                 - a tuple of 3 integers (ind,dim,cat), in which case the resulting KeOps variable will represent a symbolic variable,
                 - an integer, in which case the resulting KeOps object will represent the integer.                    
             axis: should be 0 or 1 if x is a 2D NumPy array or PyTorch tensor, should be None otherwise 
@@ -61,26 +61,26 @@ class keops_formula:
         Here are the behaviors of the constructor depending on the inputs x and axis:
     
         - if x is a tuple of 3 integers (ind,dim,cat), the KeOps variable will represent a symbolic variable, i.e. it will not be
-            attached to an actual tensor. The corresponding tensor will need to be passed as input to the final reduction call. 
-            ind correponds to the index of the variable (its position in the list of arguments in the call), dim corresponds to the
-            dimension of the variable, and cat to its category ("i"-idexed if cat=0, "j"-indexed if cat=1, parameter if cat=2).
+          attached to an actual tensor. The corresponding tensor will need to be passed as input to the final reduction call. 
+          ind correponds to the index of the variable (its position in the list of arguments in the call), dim corresponds to the
+          dimension of the variable, and cat to its category ("i"-idexed if cat=0, "j"-indexed if cat=1, parameter if cat=2).
         - if x is a float, it will be converted to a single element list of floats. 
         - if x is a list of floats, the KeOps variable will represent a vector parameter (equivalent 3D shape: (1,1,len(x))). 
-            The axis parameter should be None or 2. The dtype property of the variable will be set to None.
+          The axis parameter should be None or 2. The dtype property of the variable will be set to None.
         - if x is a NumPy float (np.float32 or np.float64), it will be converted to a NumPy array of floats with same dtype.
         - if x is a NumPy 0D or 1D array or PyTorch OD or 1D tensor, the KeOps variable will represent a vector parameter (equivalent 3D shape: (1,1,len(x))).
-            The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64"). The axis parameter should equal 2 or None.
+          The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64"). The axis parameter should equal 2 or None.
         - if x is a NumPy 2D array or PyTorch 2D tensor, then axis should be set to 0 or 1, and the KeOps variable will represent 
-            either a "i"-indexed variable (equivalent 3D shape: (x.shape[0],1,x.shape[1])) or 
-            a "j"-indexed variable (equivalent 3D shape: (1,x.shape[0],x.shape[1])).
-            The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
+          either a "i"-indexed variable (equivalent 3D shape: (x.shape[0],1,x.shape[1])) or 
+          a "j"-indexed variable (equivalent 3D shape: (1,x.shape[0],x.shape[1])).
+          The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
         - if x is a NumPy 3D array or PyTorch 3D tensor, then axis should be set to None, and the KeOps variable will represent 
-            either a "i"-indexed variable if x.shape[1]=1, or a "j"-indexed variable if x.shape[0]=1 (equivalent 3D shape: x.shape).
-            If x.shape[0] and x.shape[1] are greater than 1, it will result in an error.
-            The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
+          either a "i"-indexed variable if x.shape[1]=1, or a "j"-indexed variable if x.shape[0]=1 (equivalent 3D shape: x.shape).
+          If x.shape[0] and x.shape[1] are greater than 1, it will result in an error.
+          The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
         - if x is an integer, the KeOps object will represent a constant integer (equivalent 3D shape: (1,1,1))
         - if x is None, the KeOps variable is initialized as empty, and the axis parameter is ignored.
-            This is supposed to be used only internally.
+          This is supposed to be used only internally.
         """   
         self.dtype = None
         self.variables = ()
@@ -222,7 +222,7 @@ class keops_formula:
         # N.B.: We allow empty init!
 
     def fixvariables(self):
-        """Assigns final indices to each variable, prior to a Genred call."""
+        """Assigns final labels to each variable, prior to a Genred call."""
 
         newvars = ()
         if self.formula2 is None: self.formula2 = ""  # We don't want to get regexp errors...
@@ -347,575 +347,516 @@ class keops_formula:
     # Prototypes for reduction operations  =====================================
 
     def reduction(self, reduction_op, other=None, opt_arg=None, axis=None, dim=None, call=True, **kwargs):
+        """Applies a reduction to a LazyTensor.
+
+        Keyword Args:
+          - other: 
+          - opt_arg: typically, some integer needed by ArgKMin reductions.
+          - axis or dim (0 or 1): the axis with respect to which the reduction should be performed.
+          - call (True or False): Should we actually perform the reduction on the current variables?
+            If True, the returned object will be a NumPy array or a PyTorch tensor.
+            Otherwise, we simply return a callable LazyTensor that can be used
+            as a :mod:`pykeops.numpy.Genred` or :mod:`pykeops.torch.Genred` function 
+            on arbitrary input data.
+        """
+
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
-        if axis not in (0,1): raise ValueError("axis must be 0 or 1 for reduction")
+        if axis not in (0,1): raise ValueError("Reductions must be called with 'axis' (or 'dim') equal to 0 or 1.")
+        
         if other is None:
-            res = self.init()
+            res = self.init()  # ~ self.copy()
             res.formula2 = None
         else:
             res = self.join(other)
             res.formula2 = other.formula
+
         res.formula = self.formula
         res.reduction_op = reduction_op
         res.axis = axis
         res.opt_arg = opt_arg
         res.kwargs = kwargs
         res.dim = self.dim
+
         if res.dtype is not None:
-            res.fixvariables()
-            res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis, res.tools.dtypename(res.dtype), res.opt_arg, res.formula2)
-        if call and len(res.symbolic_variables)==0 and res.dtype is not None:
+            res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
+            # "res" now becomes a callable object:
+            res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis, 
+                                     res.tools.dtypename(res.dtype), res.opt_arg, res.formula2)
+        
+        if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
             return res()
         else:
             return res
 
-    def kernelsolve(self,other, var=None, call=True, **kwargs):
-        r"""
-            Solves a positive definite linear system of the form sum(self)=other or sum(self*var)=other, using a conjugate
+    def kernelsolve(self, other, var=None, call=True, **kwargs):
+        r"""Solves a positive definite linear system of the form sum(self)=other or sum(self*var)=other, using a conjugate
             gradient solver.
             
-            :param self: a keops_formula object representing either a symmetric positive definite matrix 
-                   or a positive definite operator. Warning!! There is no check of the symmetry and positive definiteness.
-            :param other: a keops_formula variable which gives the second member of the equation.           
-            :param var: either None or a symbolic keops_formula variable.
-                            - If var is None then kernelsolve will return the solution var such that sum(self*var)=other.
-                            - If var is a symbolic variable, it must be one of the symbolic variables contained on formula self,
-                              and as a formula self must depend linearly on var. 
-            :param call: either True or False. If True and if no other symbolic variable than var is contained in self,
-                   then the output will be a tensor, otherwise it will be a callable keops_formula
-            :param backend (string): Specifies the map-reduce scheme,
-                   as detailed in the documentation of the :func:`Genred` module.
-            :param device_id (int, default=-1): Specifies the GPU that should be used 
-                   to perform   the computation; a negative value lets your system 
-                   choose the default GPU. This parameter is only useful if your 
-                   system has access to several GPUs.
-            :param alpha: (float, default = 1e-10): Non-negative **ridge regularization** parameter
-            :param eps:
-            :params device_id: (int, default=-1): Specifies the GPU that should be used 
-                   to perform   the computation; a negative value lets your system 
-                   choose the default GPU. This parameter is only useful if your 
-                   system has access to several GPUs.
-            :param ranges: (6-uple of IntTensors, None by default):
-                   Ranges of integers that specify a 
-                   :doc:`block-sparse reduction scheme <../../sparsity>`
-                   with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
-                   as detailed in the documentation 
-                   of the :func:`Genred` module.
+        :param self: a keops_formula object representing either a symmetric positive definite matrix 
+                or a positive definite operator. Warning!! There is no check of the symmetry and positive definiteness.
+        :param other: a keops_formula variable which gives the second member of the equation.           
+        :param var: either None or a symbolic keops_formula variable.
+                        - If var is None then kernelsolve will return the solution var such that sum(self*var)=other.
+                        - If var is a symbolic variable, it must be one of the symbolic variables contained on formula self,
+                            and as a formula self must depend linearly on var. 
+        :param call: either True or False. If True and if no other symbolic variable than var is contained in self,
+                then the output will be a tensor, otherwise it will be a callable keops_formula
+        :param backend (string): Specifies the map-reduce scheme,
+                as detailed in the documentation of the :func:`Genred` module.
+        :param device_id (int, default=-1): Specifies the GPU that should be used 
+                to perform   the computation; a negative value lets your system 
+                choose the default GPU. This parameter is only useful if your 
+                system has access to several GPUs.
+        :param alpha: (float, default = 1e-10): Non-negative **ridge regularization** parameter
+        :param eps:
+        :params device_id: (int, default=-1): Specifies the GPU that should be used 
+                to perform   the computation; a negative value lets your system 
+                choose the default GPU. This parameter is only useful if your 
+                system has access to several GPUs.
+        :param ranges: (6-uple of IntTensors, None by default):
+                Ranges of integers that specify a 
+                :doc:`block-sparse reduction scheme <../../sparsity>`
+                with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
+                as detailed in the documentation 
+                of the :func:`Genred` module.
 
-                   If **None** (default), we simply use a **dense Kernel matrix**
-                   as we loop over all indices
-                   :math:`i\in[0,M)` and :math:`j\in[0,N)`.
-            """   
+                If **None** (default), we simply use a **dense Kernel matrix**
+                as we loop over all indices
+                :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+        """   
 
         # If given, var is symbolic variable corresponding to unknown
         # other must be a variable equal to the second member of the linear system,
         # and it may be symbolic. If it is symbolic, its index should match the index of var
         # if other is not symbolic, all variables in self must be non symbolic
-        if len(other.symbolic_variables)==0 and len(self.symbolic_variables)!=0:
-            raise ValueError("invalid inputs")
+        if len(other.symbolic_variables) == 0 and len(self.symbolic_variables) != 0:
+            raise ValueError("If 'self' has symbolic variables, so should 'other'.")
         
         # we infer axis of reduction as the opposite of the axis of output
-        axis = 1-other.axis
+        axis = 1 - other.axis
         
         if var is None:
             # this is the classical mode: we want to invert sum(self*var) = other 
             # we define var as a new symbolic variable with same dimension as other
             # and we assume axis of var is same as axis of reduction
             varindex = len(self.symbolic_variables)
-            var = Var(varindex,other.dim,axis)
-            res = self*var
+            var = Var(varindex, other.dim, axis)
+            res = self * var
         else:
             # var is given and must be a symbolic variable which is already inside self
             varindex = var.symbolic_variables[0][0]
             res = self.init()
             res.formula = self.formula
+
         res.formula2 = None
         res.reduction_op = "Solve"
         res.varindex = varindex
-        res.varformula = var.formula.replace("VarSymb","Var")
+        res.varformula = var.formula.replace("VarSymb", "Var")
         res.other = other
         res.axis = axis
         res.kwargs = kwargs
         res.dim = self.dim
+
         if res.dtype is not None:
             res.fixvariables()
-            res.callfun = res.KernelSolve(res.formula,[],res.varformula,res.axis, res.tools.dtypename(res.dtype))
+            res.callfun = res.KernelSolve(res.formula, [], res.varformula, 
+                                          res.axis, res.tools.dtypename(res.dtype))
+        
         # we call if call=True, if other is not symbolic, and if the dtype is set
-        if call and len(other.symbolic_variables)==0 and res.dtype is not None:
+        if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
             return res()
         else:
             return res
 
-    def __call__(self,*args, **kwargs):
+    def __call__(self, *args, **kwargs):
+        """Executes a Genred or KernelSolve call on input data, as specified by self.formula."""
         self.kwargs.update(kwargs)
-        if self.dtype is None:
-            if isinstance(args[0],np.ndarray):
+
+        if self.dtype is None:  # This can only happen if we haven't encountered 2D or 3D arrays just yet...
+            if isinstance(args[0], np.ndarray):  # We use the "NumPy" or "PyTorch" backend depending on the first argument
                 self.tools = numpytools
                 self.Genred = Genred_numpy
                 self.KernelSolve = KernelSolve_numpy
-            elif usetorch and isinstance(args[0],torch.Tensor):
+
+            elif usetorch and isinstance(args[0], torch.Tensor):
                 self.tools = torchtools
                 self.Genred = Genred_torch
                 self.KernelSolve = KernelSolve_torch
+                
             self.dtype = self.tools.dtype(args[0])
             self.fixvariables()
             if self.reduction_op == "Solve":
-                self.callfun = self.KernelSolve(self.formula,[],self.formula2,self.axis, self.tools.dtypename(self.dtype))
+                self.callfun = self.KernelSolve(self.formula, [], self.formula2,
+                                                self.axis, self.tools.dtypename(self.dtype))
             else:
-                self.callfun = self.Genred(self.formula, [], self.reduction_op, self.axis, self.tools.dtypename(self.dtype), self.opt_arg, self.formula2)
-        if self.reduction_op == "Solve" and len(self.other.symbolic_variables)==0:
+                self.callfun = self.Genred(self.formula, [], self.reduction_op, 
+                                    self.axis, self.tools.dtypename(self.dtype), self.opt_arg, self.formula2)
+        
+        if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
             # here args should be empty, according to our rule
-            if args!=():
+            if args != ():
                 raise ValueError("no input required")
             # we replace by other
             args = (self.other.variables[0],)
         return self.callfun(*args, *self.variables, **self.kwargs)
     
     def __str__(self):
-        string = "KeOps formula"
-        tmp = self.init()
+        """Returns a verbose string identifier."""
+        tmp = self.init()  # ~ self.copy()
         tmp.formula = self.formula
-        if hasattr(self, 'formula2'):
-            tmp.formula2 = self.formula2
-        else:
-            tmp.formula2 = None
-        tmp.fixvariables()
-        string += "\n    formula: " + str(tmp.formula)
-        if len(self.symbolic_variables)>0:
-            string += "\n    symbolic variables: Var" + str(self.symbolic_variables[0])
-            for var in self.symbolic_variables[1:]:
-                string += ", Var" + str(var)
-        string += "\n    shape: (" + str(self.ni) + str(",") + str(self.nj) + str(",") + str(self.dim) + ")"
+        tmp.formula2 = None if not hasattr(self, 'formula2') else self.formula2
+        tmp.fixvariables()  # Replace Var(id(x),...) with consecutive labels
+
+        string = "KeOps formula\n    formula: {}".format(tmp.formula)
+        if len(self.symbolic_variables) > 0:
+            string += "\n    symbolic variables: Var{}".format(self.symbolic_variables[0])
+            for var in self.symbolic_variables[1:]:  string += ", Var{}".format(var)
+
+        string += "\n    shape: ({},{},{})".format(self.ni, self.nj, self.dim)
+
         if hasattr(self, 'reduction_op'):
-            string += "\n    reduction: " + self.reduction_op + " (axis=" + str(self.axis) + ")"
+            string += "\n    reduction: {} (axis={})".format(self.reduction_op, self.axis)
             if tmp.formula2 is not None:
-                string += "\n        formula2: " + tmp.formula2 + "\n"
+                string += "\n        formula2: {}".format(tmp.formula2)
             if hasattr(self, 'opt_arg') and self.opt_arg is not None:
-                string += "\n        opt_arg: " + self.opt_arg
+                string += "\n        opt_arg: {}".format(self.opt_arg)
         return string
     
-    # list of operations
+    # List of supported operations  ============================================
     
-    # this flag prevents NumPy (and also PyTorch ?) to override the implementations of __radd__, __rdiv___, etc
-    # that are written in this class. More concretely, if x is a NumPy array and y is a keops_formula object, writing
-    # x+y will call y.__radd__(x) (keops_formula method) instead of x.__add__(y) (NumPy method)
+    # N.B.: This flag prevents NumPy (and also PyTorch ?) from overriding 
+    #       the KeOps implementations of __radd__, __rdiv___, etc. written below. 
+    #       For instance, if x is a NumPy array and y is a KeOps LazyTensor, 
+    #       writing  "x+y"  will call y.__radd__(x) (LazyTensor method) instead 
+    #       of x.__add__(y) (NumPy method)
     __array_ufunc__ = None
     
+    # Arithmetics --------------------------------------------------------------
     def __add__(self,other):
-        r"""
-            Addition binary operation. x+y returns a new keops_formula object representing the addition of x and y.
-            Broadcasting rules apply : x.dim=1 or y.dim=1 are allowed, otherwise x.dim must equal y.dim
+        r"""Broadcasted addition operator - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object max(self.dim,other.dim)
-    
-            """   
-        return self.binary(other,string="+",is_operator=True)
+        ``x + y`` returns a :mod:`LazyTensor` that encodes, 
+        symbolically, the addition of ``x`` and ``y``.
+        """   
+        return self.binary(other, "+", is_operator=True)
 
     def __radd__(self,other):
-        r"""
-            Addition binary operation. x+y returns a new keops_formula object representing the addition of x and y.
-            Broadcasting rules apply : x.dim=1 or y.dim=1 are allowed, otherwise x.dim must equal y.dim
+        r"""Broadcasted addition operator - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object max(self.dim,other.dim)
-    
-            """   
-        if other==0:
+        ``x + y`` returns a :mod:`LazyTensor` that encodes, 
+        symbolically, the addition of ``x`` and ``y``.
+        """   
+        if other == 0:
             return self
         else:
-            return keops_formula.binary(other,self,string="+",is_operator=True)
+            return keops_formula.binary(other, self, "+", is_operator=True)
        
     def __sub__(self,other):
-        r"""
-            Subtraction binary operation. x-y returns a new keops_formula object representing the subtraction of x and y.
-            Broadcasting rules apply : x.dim=1 or y.dim=1 are allowed, otherwise x.dim must equal y.dim
+        r"""Broadcasted subtraction operator - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object max(self.dim,other.dim)
-    
-            """   
-        return self.binary(other,string="-",is_operator=True)
+        ``x - y`` returns a :mod:`LazyTensor` that encodes, 
+        symbolically, the subtraction of ``x`` and ``y``.
+        """
+        return self.binary(other, "-", is_operator=True)
         
     def __rsub__(self,other):
-        r"""
-            Subtraction binary operation. x-y returns a new keops_formula object representing the subtraction of x and y.
-            Broadcasting rules apply : x.dim=1 or y.dim=1 are allowed, otherwise x.dim must equal y.dim
+        r"""Broadcasted subtraction operator - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object max(self.dim,other.dim)
-    
-            """   
-        if other==0:
+        ``x - y`` returns a :mod:`LazyTensor` that encodes, 
+        symbolically, the subtraction of ``x`` and ``y``.
+        """
+        if other == 0:
             return -self
         else:
-            return keops_formula.binary(other,self,string="-",is_operator=True)
+            return keops_formula.binary(other, self, "-", is_operator=True)
         
     def __mul__(self,other):
-        r"""
-            Multiplication binary operation. x*y returns a new keops_formula object representing the element-wise multiplication of x and y.
-            Broadcasting rules apply : x.dim=1 or y.dim=1 are allowed, otherwise x.dim must equal y.dim
+        r"""Broadcasted elementwise product - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object max(self.dim,other.dim)
-    
-            """   
-        return self.binary(other,string="*",is_operator=True)
+        ``x * y`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the elementwise product of ``x`` and ``y``.
+        """
+        return self.binary(other, "*", is_operator=True)
         
     def __rmul__(self,other):
-        r"""
-            Multiplication binary operation. x*y returns a new keops_formula object representing the element-wise multiplication of x and y.
-            Broadcasting rules apply : x.dim=1 or y.dim=1 are allowed, otherwise x.dim must equal y.dim
+        r"""Broadcasted elementwise product - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object max(self.dim,other.dim)
-    
-            """   
-        if other==0:
-            return O
-        elif other==1:
-            return self
-        else:
-            return keops_formula.binary(other,self,string="*",is_operator=True)
+        ``x * y`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the elementwise product of ``x`` and ``y``.
+        """ 
+        if   other == 0: return 0
+        elif other == 1: return self
+        else: return keops_formula.binary(other, self, "*", is_operator=True)
        
     def __truediv__(self,other):
-        r"""
-            Division binary operation. x/y returns a new keops_formula object representing the element-wise division of x and y.
-            Broadcasting rules apply : x.dim=1 or y.dim=1 are allowed, otherwise x.dim must equal y.dim
+        r"""Broadcasted elementwise division - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object max(self.dim,other.dim)
-    
-            """   
-        return self.binary(other,string="/",is_operator=True)
+        ``x / y`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the elementwise division of ``x`` by ``y``.
+        """  
+        return self.binary(other, "/", is_operator=True)
         
     def __rtruediv__(self,other):
-        r"""
-            Division binary operation. x/y returns a new keops_formula object representing the element-wise division of x and y.
-            Broadcasting rules apply : x.dim=1 or y.dim=1 are allowed, otherwise x.dim must equal y.dim
+        r"""Broadcasted elementwise division - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension max(self.dim,other.dim)
-    
-            """   
-        if other==0:
-            return O
-        elif other==1:
-            return self.unary("Inv")
-        else:
-            return keops_formula.binary(other,self,string="/",is_operator=True)
+        ``x / y`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the elementwise division of ``x`` by ``y``.
+        """  
+        if   other == 0: return 0
+        elif other == 1: return self.unary("Inv")
+        else: return keops_formula.binary(other, self, "/", is_operator=True)
        
-    def __or__(self,other):
-        r"""
-            Scalar product binary operation. x|y returns a new keops_formula object representing the euclidean scalar product of x and y.
-            x.dim must equal y.dim
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension 1
-    
-            """   
-        return self.binary(other,string="|",is_operator=True,dimres=1,dimcheck="same")
+    def __or__(self, other):
+        r"""Euclidean scalar product - a binary operation.
+
+        ``(x|y)`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the scalar product of ``x`` and ``y`` which are assumed to have the same shape.    
+        """   
+        return self.binary(other, "|", is_operator=True, dimres=1, dimcheck="same")
         
     def __ror__(self,other):
-        r"""
-            Scalar product binary operation. x|y returns a new keops_formula object representing the euclidean scalar product of x and y.
-            x.dim must equal y.dim
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension 1
-    
-            """   
-        return keops_formula.binary(other,self,string="|",is_operator=True,dimres=1,dimcheck="same")
-        
-    def exp(self):
-        r"""
-            Exponetial unary operation. exp(x) returns a new keops_formula object representing the element-wise exponential of x.
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
-        return self.unary("Exp")
-    
-    def log(self):
-        r"""
-            Logarithm unary operation. log(x) returns a new keops_formula object representing the element-wise natural logarithm of x.
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
-        return self.unary("Log")
-    
-    def sin(self):
-        r"""
-            Sine unary operation. sin(x) returns a new keops_formula object representing the element-wise sine function of x.
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
-        return self.unary("Sin")
-    
-    def cos(self):
-        r"""
-            Cosine unary operation. cos(x) returns a new keops_formula object representing the element-wise cosine function of x.
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
-        return self.unary("Cos")
-    
+        r"""Euclidean scalar product - a binary operation.
+
+        ``(x|y)`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the scalar product of ``x`` and ``y`` which are assumed to have the same shape.    
+        """
+        return keops_formula.binary(other, self, "|", is_operator=True, dimres=1, dimcheck="same")
+
+    # Unary arithmetics --------------------------------------------------------
+
     def __abs__(self):
-        r"""
-            Absolute value unary operation. abs(x) returns a new keops_formula object representing the element-wise absolute value of x.
+        r"""Element-wise absolute value - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
+        ``abs(x)`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise absolute value of ``x``.
+        """  
         return self.unary("Abs")
     
     def abs(self):
-        r"""
-            Absolute value unary operation. abs(x) returns a new keops_formula object representing the element-wise absolute value of x.
+        r"""Element-wise absolute value - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
+        ``x.abs()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise absolute value of ``x``.
+        """  
         return abs(self)
     
-    def sqrt(self):
-        r"""
-            Square root unary operation. sqrt(x) returns a new keops_formula object representing the element-wise square root of x.
+    def __neg__(self):
+        r"""Element-wise minus - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
+        ``-x`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise opposite of ``x``.
+        """  
+        return self.unary("Minus")
     
-            """   
+
+    # Simple functions ---------------------------------------------------------
+       
+    def exp(self):
+        r"""Element-wise exponential - a unary operation.
+        
+        ``x.exp()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise exponential of ``x``.
+        """   
+        return self.unary("Exp")
+    
+    def log(self):
+        r"""Element-wise logarithm - a unary operation.
+        
+        ``x.log()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise logarithm of ``x``.
+        """    
+        return self.unary("Log")
+    
+    def cos(self):
+        r"""Element-wise cosine - a unary operation.
+        
+        ``x.cos()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise cosine of ``x``.
+        """  
+        return self.unary("Cos")
+
+    def sin(self):
+        r"""Element-wise sine - a unary operation.
+        
+        ``x.sin()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise sine of ``x``.
+        """     
+        return self.unary("Sin")
+    
+    def sqrt(self):
+        r"""Element-wise square root - a unary operation.
+        
+        ``x.sqrt()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise square root of ``x``.
+        """    
         return self.unary("Sqrt")
     
     def rsqrt(self):
-        r"""
-            Inverse square root unary operation. rsqrt(x) returns a new keops_formula object representing the element-wise inverse square root of x.
+        r"""Element-wise inverse square root - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
+        ``x.rsqrt()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise inverse square root of ``x``.
+        """   
         return self.unary("Rsqrt")
-    
-    def __neg__(self):
-        r"""
-            Minus unary operation. -x returns a new keops_formula object representing minus x.
+
+    def __pow__(self, other):
+        r"""Broadcasted element-wise power operator - a binary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
-        return self.unary("Minus")
-    
-    def __pow__(self,other):
-        r"""
-            Power binary operator. x**y returns a new keops_formula object representing x raised to the power y, element-wise.
+        ``x**y`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise value of ``x`` to the power ``y``.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-                 Note:
-                 - if y=2, x**y uses internally the Square KeOps operation
-                 - if y=0.5, x**y uses internally the Sqrt KeOps operation
-                 - if y=-0.5, x**y uses internally the Rsqrt KeOps operation
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
-        if type(other)==int:
-            if other==2:
-                return self.unary("Square")
+        Note:
+          - if **y = 2**, ``x**y`` relies on the ``"Square"`` KeOps operation;
+          - if **y = 0.5**, ``x**y`` uses on the ``"Sqrt"`` KeOps operation;
+          - if **y = -0.5**, ``x**y`` uses on the ``"Rsqrt"`` KeOps operation.
+        """   
+        if type(other) == int:
+            return self.unary("Square") if other == 2 else self.unary("Pow", opt_arg=other)
+        
+        elif type(other) == float:
+            if   other ==  .5: return self.unary("Sqrt")
+            elif other == -.5: return self.unary("Rsqrt")
+            else: other = keops_formula(self.tools.array([other], self.dtype))
+
+        if type(other) == type(keops_formula()):
+            if other.dim == 1 or other.dim == self.dim:
+                return self.binary(other, "Powf", dimcheck=None)
             else:
-                return self.unary("Pow",opt_arg=other)
-        elif type(other)==float:
-            if other == .5:
-                return self.unary("Sqrt")
-            elif other == -.5:
-                return self.unary("Rsqrt")
-            else:
-                other = keops_formula(self.tools.array([other],self.dtype))
-        if type(other)==type(keops_formula()):
-            if other.dim == 1 or other.dim==self.dim:
-                return self.binary(other,string="Powf",dimcheck=None)
-            else:
-                raise ValueError("incorrect dimension of exponent")
+                raise ValueError("Incompatible dimensions for the LazyTensor and its exponent: " \
+                               + "{} and {}.".format(self.dim, other.dim))
         else:
-            raise ValueError("incorrect input for exponent")
+            raise ValueError("The exponent should be an integer, a floar number or a LazyTensor.")
 
     def power(self,other):
-        r"""
-            Power binary operator. power(x,y) redirects to x**y
-    
-            """   
+        r"""Element-wise power operator - a binary operation.
+        
+        ``pow(x,y)`` is equivalent to ``x**y``.
+        """   
         return self**other
     
     def square(self):
-        r"""
-            Square unary operation. square(x) returns a new keops_formula object representing the element-wise square of x.
+        r"""Element-wise square - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
+        ``x.square()`` is equivalent to ``x**2`` and returns a :mod:`LazyTensor` 
+        that encodes, symbolically, the element-wise square of ``x``.
+        """
         return self.unary("Square")
     
     def sign(self):
-        r"""
-            Sign unary operation. sign(x) returns a new keops_formula object representing the element-wise sign function applied to x.
+        r"""Element-wise sign in {-1,0,+1} - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
+        ``x.sign()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise sign of ``x``.
+        """  
         return self.unary("Sign")
     
     def step(self):
-        r"""
-            Step unary operation. step(x) returns a new keops_formula object representing the element-wise step function applied to x.
+        r"""Element-wise step function - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
+        ``x.step()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the element-wise sign of ``x``.
+        """   
         return self.unary("Step")
     
     def relu(self):
-        r"""
-            ReLU unary operation. relu(x) returns a new keops_formula object representing the element-wise ReLU function applied to x.
+        r"""Element-wise ReLU function - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
+        ``x.relu()`` returns a :mod:`LazyTensor` that encodes, symbolically,
+        the element-wise positive part of ``x``.
+        """   
         return self.unary("ReLU")
     
     def sqnorm2(self):
-        r"""
-            Squared norm unary operation. sqnorm2(x) returns a new keops_formula object representing the squared euclidean norm of x.
+        r"""Squared Euclidean norm - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension 1
-    
-            """   
-        return self.unary("SqNorm2",dimres=1)
+        ``x.sqnorm2()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the squared Euclidean norm of a vector ``x``.
+        """
+        return self.unary("SqNorm2", dimres=1)
     
     def norm2(self):
-        r"""
-            Norm unary operation. norm2(x) returns a new keops_formula object representing the euclidean norm of x.
+        r"""Euclidean norm - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension 1
-    
-            """   
+        ``x.norm2()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        the Euclidean norm of a vector ``x``.
+        """  
         return self.unary("Norm2",dimres=1)
     
-    def norm(self,dim):
-        r"""
-            Norm unary operation. norm(x) or norm(x,dim=2) redirects to norm2(x)
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input dim: should equal 2, otherwise an error is raised.
-            :returns: a keops_formula object of dimension 1
-    
-            """   
-        if dim != 2:
-            raise ValueError("only norm over axis=2 is supported")
+    def norm(self, dim):
+        r"""Euclidean norm - a unary operation.
+
+        ``x.norm(-1)`` is equivalent to ``x.norm2()`` and returns a 
+        :mod:`LazyTensor` that encodes, symbolically, the Euclidean norm of a vector ``x``.
+        """
+        if dim not in [-1, 2]:
+            raise ValueError("KeOps only supports norms over the last dimension.")
         return self.norm2()
     
     def normalize(self):
-        r"""
-            Normalize unary operation. normalize(x) returns a new keops_formula object representing x divided by its euclidean norm.
+        r"""Vector normalization - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim
-    
-            """   
+        ``x.normalize()`` returns a :mod:`LazyTensor` that encodes, symbolically, 
+        a vector ``x`` divided by its Euclidean norm.
+        """   
         return self.unary("Normalize")
     
     def sqdist(self,other):
-        r"""
-            Squared distance binary operator. sqdist(x,y) returns a new keops_formula object representing the euclidean squared distance between x and y.
+        r"""Squared distance - a binary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension 1
+        ``x.sqdist(y)`` returns a :mod:`LazyTensor` that encodes, symbolically,
+        the squared Euclidean distance between two vectors ``x`` and ``y``.
+        """   
+        return self.binary(other, "SqDist", dimres=1)
     
-            """   
-        return self.binary(other,string="SqDist",dimres=1)
-    
-    def weightedsqnorm(self,other):
-        r"""
-            Weighted squared norm binary operation. weightedsqnorm(s,x) returns a new keops_formula object representing a weighted squared norm of x.
-            See the documentation of the corresponding WeightedSqNorm KeOps operation for explanantions.
+    def weightedsqnorm(self, other):
+        r"""Weighted squared norm - a binary operation. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension 1
-    
-            """   
+        ``LazyTensor.weightedsqnorm(s, x)`` returns a :mod:`LazyTensor` that encodes, symbolically,
+        the weighted squared Norm of a vector ``x`` - see
+        the :doc:`main reference page <../api/math-operations>` for details.
+        """   
         if type(self) != type(keops_formula()):
-            self = keops_formula.keopsify(self,other.tools,other.dtype)  
-        if self.dim not in (1,other.dim,other.dim**2):
-            raise ValueError("incorrect dimension of input for weightedsqnorm")
-        return self.binary(other,string="WeightedSqNorm",dimres=1,dimcheck=None)
-    
-    def weightedsqdist(self,f,g):
-        r"""
-            Weighted squared distance operation. weightedsqdist(s,x,y) redirects to weightedsqnorm(s,x-y)
-    
-            """   
-        return self.weightedsqnorm(f-g)
-    
-    def elem(self,i):
-        r"""
-            Element extraction unary operation. elem(x,i) returns a new keops_formula object representing the i-th coefficient x[i].
+            self = keops_formula.keopsify(self, other.tools, other.dtype)  
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input i: an integer, which should be between 0 and self.dim-1, otherwise an error is raised.
-            :returns: a keops_formula object of dimension 1
+        if self.dim not in (1, other.dim, other.dim**2):
+            raise ValueError("Squared norm weights should be of size 1 (scalar), " \
+                            +"D (diagonal) or D^2 (full symmetric tensor), but received " \
+                            +"{} with D={}.".format(self.dim, other.dim))
+        
+        return self.binary(other, "WeightedSqNorm", dimres=1, dimcheck=None)
     
-            """   
+    def weightedsqdist(self, f, g):
+        r"""Weighted squared distance. 
+        
+        ``LazyTensor.weightedsqdist(s, x, y)`` is equivalent to ``LazyTensor.weightedsqnorm(s, x - y)``.
+        """   
+        return self.weightedsqnorm( f - g )
+    
+    def elem(self, i):
+        r"""Indexing of a vector - a unary operation. 
+        
+        ``x.elem(i)`` returns a :mod:`LazyTensor` that encodes, symbolically,
+        the i-th element ``x[i]`` of the vector ``x``.
+        """   
         if type(i) is not int:
-            raise ValueError("input should be integer")
-        if i<0 or i>=self.dim:
-            raise ValueError("index is out of bounds")
-        return self.unary("Elem",dimres=1,opt_arg=i)
+            raise ValueError("Elem indexing is only supported for integer indices.")
+        if i < 0 or i >= self.dim:
+            raise ValueError("Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.dim))
+        return self.unary("Elem", dimres=1, opt_arg=i)
     
-    def extract(self,i,d):
-        r"""
-            Range extraction unary operation. extract(x,i,d) returns a new keops_formula object representing the sub-vector x[i:i+d].
+    def extract(self, i, d):
+        r"""Range indexing - a unary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input i: an integer, which should be between 0 and self.dim-1
-            :input d: an integer, which should be between 0 and self.dim-i-1
-            :returns: a keops_formula object of dimension d
-    
-            """   
+        ``x.extract(i, d)`` returns a :mod:`LazyTensor` that encodes, symbolically,
+        the sub-vector ``x[i:i+d]`` of the vector ``x``.    
+        """   
         if (type(i) is not int) or (type(d) is not int):
-            raise ValueError("inputs should be integers")
-        if i<0 or i>=self.dim:
-            raise ValueError("starting index is out of bounds")
-        if d<1 or i+d>self.dim:
-            raise ValueError("dimension is out of bounds")
-        return self.unary("Extract",dimres=d,opt_arg=i,opt_arg2=d)
+            raise ValueError("Indexing is only supported for integer indices.")
+        if i < 0 or i >= self.dim:
+            raise ValueError("Starting index is out of bounds.")
+        if d < 1 or i+d > self.dim:
+            raise ValueError("Slice dimension is out of bounds.")
+        return self.unary("Extract", dimres=d, opt_arg=i, opt_arg2=d)
     
     def __getitem__(self, key):
         r"""
