@@ -222,42 +222,49 @@ class keops_formula:
         # N.B.: We allow empty init!
 
     def fixvariables(self):
-        # we assign final indices to each variable
-        i = len(self.symbolic_variables)
+        """Assigns final indices to each variable, prior to a Genred call."""
+
         newvars = ()
-        if self.formula2 is None:
-            self.formula2 = ""
-        for v in self.variables:
+        if self.formula2 is None: self.formula2 = ""  # We don't want to get regexp errors...
+
+        i = len(self.symbolic_variables)  # The first few labels are already taken...
+        for v in self.variables:  # So let's loop over our tensors, and give them labels:
             idv = id(v)
             if type(v) == list:
-                v = self.tools.array(v,self.dtype)
-            tag = "Var("+str(idv)
+                v = self.tools.array(v, self.dtype)
+
+            # Replace "Var(idv," by "Var(i," and increment 'i':
+            tag = "Var({},".format(idv)
             if tag in self.formula + self.formula2:
-                self.formula = self.formula.replace(tag,"Var("+str(i))
-                self.formula2 = self.formula2.replace(tag,"Var("+str(i))
+                self.formula  = self.formula.replace( tag, "Var({},".format(i))
+                self.formula2 = self.formula2.replace(tag, "Var({},".format(i))
                 i += 1
                 newvars += (v,)
-        self.formula = self.formula.replace("VarSymb(","Var(")
-        self.formula2 = self.formula2.replace("VarSymb(","Var(")
-        if self.formula2 == "":
-            self.formula2 = None
+
+        # "VarSymb(..)" appear when users rely on the "LazyTensor(Ind,Dim,Cat)" syntax,
+        # for the sake of disambiguation:
+        self.formula  = self.formula.replace( "VarSymb(", "Var(")  # We can now replace them with
+        self.formula2 = self.formula2.replace("VarSymb(", "Var(")  # actual "Var" symbols
+
+        if self.formula2 == "": self.formula2 = None  # The pre-processing step is now over
         self.variables = newvars
 
-    def promote(self,other,props):
+    def promote(self, other, props):
+        """Creates a new LazyTensor whose 'None' properties are set to those of 'self' or 'other'."""
         res = keops_formula()
+
         for prop in props:
-            x = getattr(self,prop)
-            y = getattr(other,prop)
+            x, y = getattr(self, prop), getattr(other, prop)
             if x is not None:
-                if y is not None and x!=y:
-                    raise ValueError("incompatible " + str(prop) + ": " + str(x) + " and " + str(y))
-                setattr(res,prop,x)
+                if y is not None and x != y:
+                    raise ValueError("Incompatible values for attribute {}: {} and {}.".format(prop, x, y))
+                setattr(res, prop, x)
             else:
-                setattr(res,prop,y)
+                setattr(res, prop, y)
         return res
         
     def init(self):
-        # create new object and propagate properties found in self
+        """Creates a copy of a LazyTensor, without 'formula'."""
         res = keops_formula()
         res.dtype = self.dtype
         res.tools = self.tools
@@ -271,56 +278,77 @@ class keops_formula:
         return res
                 
     def join(self,other):
-        # promote props
-        res = keops_formula.promote(self,other,("dtype","tools","Genred","KernelSolve","ni","nj"))
-        # we simply concatenate the two tuples of variables, without worrying about repetitions yet
+        """Merges the variables and attributes of two LazyTensors, with a compatibility check.
+        
+        N.B.: This method concatenates tuples of variables, without paying attention to repetitions.
+        """
+        res = keops_formula.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj") )
+        
         res.variables = self.variables + other.variables
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
         return res
 
 
-    # prototypes for operations
+    # Prototypes for unary and binary operations  ==============================
                     
-    def unary(self,string,dimres=None,opt_arg=None,opt_arg2=None):
-        if not dimres:
-            dimres = self.dim
-        res = self.init()
+    def unary(self, operation, dimres=None, opt_arg=None, opt_arg2=None):
+        """Symbolically applies 'operation' to self, with optional arguments if needed.
+        
+        The optional argument 'dimres' may be used to specify the dimension of the output 'result'.
+        """
+        if not dimres: dimres = self.dim
+
+        res = self.init()  # Copy of self, without a formula
         if opt_arg2 is not None:
-            res.formula = string +"(" + self.formula + "," + str(opt_arg) + "," + str(opt_arg2) + ")"
+            res.formula = "{}({},{},{})".format(operation, self.formula, opt_arg, opt_arg2) 
         elif opt_arg is not None:
-            res.formula = string +"(" + self.formula + "," + str(opt_arg) + ")"
+            res.formula = "{}({},{})".format(operation, self.formula, opt_arg) 
         else:
-            res.formula = string +"(" + self.formula + ")"
+            res.formula = "{}({})".format(operation, self.formula) 
         res.dim = dimres
         return res        
                         
-    def binary(self,other,string,is_operator=False,dimres=None,dimcheck="sameor1"):
-        if not isinstance(self,keops_formula):
-            self = keops_formula(self)
-        if not isinstance(other,keops_formula):
-            other = keops_formula(other)      
-        if not dimres:
-            dimres = max(self.dim,other.dim)
-        if dimcheck=="same" and self.dim!=other.dim:
-            raise ValueError("dimensions must be the same")
-        elif dimcheck=="sameor1" and (self.dim!=other.dim and self.dim!=1 and other.dim!=1):
-            raise ValueError("incorrect input dimensions")
-        res = keops_formula.join(self,other)
-        if is_operator:
-            res.formula = self.formula + string + other.formula
-        else:
-            res.formula = string + "(" + self.formula + "," + other.formula + ")"
+    def binary(self, other, operation, is_operator=False, dimres=None, dimcheck="sameor1"):
+        """Symbolically applies 'operation' to self, with optional arguments if needed.
+        
+        Keyword args:
+          - dimres (int or None): may be used to specify the dimension of the output 'result'.
+          - is_operator (True or False): may be used to specify if **operation** is
+            an operator like "+", "-" or a 'genuine' function.
+          - dimcheck (string): shall we check the input dimensions?
+            Supported values are "same" and "sameor1".
+        """
+        # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
+        if not isinstance(self,keops_formula):  self = keops_formula(self)
+        if not isinstance(other,keops_formula): other = keops_formula(other)      
+
+        # By default, the dimension of the output variable is the max of the two operands:
+        if not dimres: dimres = max(self.dim, other.dim)
+
+        if dimcheck == "same" and self.dim != other.dim:
+            raise ValueError("Operation {} expects inputs of the same dimension. " \
+                           + "Received {} and {}.".format(operation, self.dim, other.dim))
+
+        elif dimcheck == "sameor1" and (self.dim != other.dim and self.dim != 1 and other.dim != 1):
+            raise ValueError("Operation {} expects inputs of the same dimension or dimension 1. " \
+                           + "Received {} and {}.".format(operation, self.dim, other.dim))
+
+        res = keops_formula.join(self, other)  # Merge the attributes and variables of both operands
         res.dim = dimres
+        
+        if is_operator:
+            res.formula = "({} {} {})".format( self.formula, operation, other.formula )
+        else:
+            res.formula = "{}({}, {})".format( operation, self.formula, other.formula )
+        
         return res
         
 
-    # prototypes for reductions
+    # Prototypes for reduction operations  =====================================
 
-    def reduction(self,reduction_op,other=None,opt_arg=None,axis=None, dim=None, call=True, **kwargs):
-        if axis is None:
-            axis = dim
-        if axis not in (0,1):
-            raise ValueError("axis must be 0 or 1 for reduction")
+    def reduction(self, reduction_op, other=None, opt_arg=None, axis=None, dim=None, call=True, **kwargs):
+        if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
+        if axis not in (0,1): raise ValueError("axis must be 0 or 1 for reduction")
         if other is None:
             res = self.init()
             res.formula2 = None
