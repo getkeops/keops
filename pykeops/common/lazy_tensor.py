@@ -86,7 +86,7 @@ class LazyTensor:
         self.variables = ()
         self.symbolic_variables = ()
         self.formula = None
-        self.dim = None
+        self.ndim = None
         self.tools = None
         self.Genred = None
         self.KernelSolve = None
@@ -106,14 +106,14 @@ class LazyTensor:
                     raise ValueError("'axis' parameter should not be given when 'x' is of the form (ind,dim,cat).")
                 
                 self.symbolic_variables = (x,)
-                self.dim = x[1]
+                self.ndim = x[1]
                 self.axis = x[2]
-                self.formula = "VarSymb({},{},{})".format(x[0], self.dim, self.axis)
+                self.formula = "VarSymb({},{},{})".format(x[0], self.ndim, self.axis)
                 return  # That's it!
                 
             elif typex == int:  # Integer constants are best handled directly by the compiler
                 self.formula = "IntCst(" + str(x) + ")"
-                self.dim = 1
+                self.ndim = 1
                 self.axis = 2
                 return  # That's it!
 
@@ -139,9 +139,9 @@ class LazyTensor:
                         + "variables, with an optional 'axis' argument that is equal to 2.")
                 
                 self.variables = (x,)
-                self.dim = len(x)
+                self.ndim = len(x)
                 self.axis = 2
-                self.formula = "Var({},{},2)".format(id(x), self.dim)
+                self.formula = "Var({},{},2)".format(id(x), self.ndim)
                 return  # That's it!
 
 
@@ -197,9 +197,9 @@ class LazyTensor:
                     x = self.tools.view(x,x.shape)
 
                 self.variables = (x,)
-                self.dim = x.shape[1]
+                self.ndim = x.shape[1]
                 self.axis = axis
-                self.formula = "Var({},{},{})".format( id(x), self.dim, self.axis )
+                self.formula = "Var({},{},{})".format( id(x), self.ndim, self.axis )
 
                 if axis == 0:
                     self.ni = x.shape[0]
@@ -211,9 +211,9 @@ class LazyTensor:
                 if axis is not None and axis != 2:
                     raise ValueError("When 'x' is encoded as a 1D or 0D array, 'axis' must be None or 2 (= Parameter variable).")
                 self.variables = (x,)
-                self.dim  = len(x)
+                self.ndim  = len(x)
                 self.axis = 2
-                self.formula = "Var({},{},2)".format( id(x), self.dim )
+                self.formula = "Var({},{},2)".format( id(x), self.ndim )
 
             else:
                 raise ValueError("LazyTensors can be built from 0D, 1D, 2D or 3D tensors. " \
@@ -296,7 +296,7 @@ class LazyTensor:
         
         The optional argument 'dimres' may be used to specify the dimension of the output 'result'.
         """
-        if not dimres: dimres = self.dim
+        if not dimres: dimres = self.ndim
 
         res = self.init()  # Copy of self, without a formula
         if opt_arg2 is not None:
@@ -305,7 +305,7 @@ class LazyTensor:
             res.formula = "{}({},{})".format(operation, self.formula, opt_arg) 
         else:
             res.formula = "{}({})".format(operation, self.formula) 
-        res.dim = dimres
+        res.ndim = dimres
         return res        
                         
     def binary(self, other, operation, is_operator=False, dimres=None, dimcheck="sameor1"):
@@ -323,18 +323,18 @@ class LazyTensor:
         if not isinstance(other,LazyTensor): other = LazyTensor(other)      
 
         # By default, the dimension of the output variable is the max of the two operands:
-        if not dimres: dimres = max(self.dim, other.dim)
+        if not dimres: dimres = max(self.ndim, other.ndim)
 
-        if dimcheck == "same" and self.dim != other.dim:
+        if dimcheck == "same" and self.ndim != other.ndim:
             raise ValueError("Operation {} expects inputs of the same dimension. " \
-                           + "Received {} and {}.".format(operation, self.dim, other.dim))
+                           + "Received {} and {}.".format(operation, self.ndim, other.ndim))
 
-        elif dimcheck == "sameor1" and (self.dim != other.dim and self.dim != 1 and other.dim != 1):
+        elif dimcheck == "sameor1" and (self.ndim != other.ndim and self.ndim != 1 and other.ndim != 1):
             raise ValueError("Operation {} expects inputs of the same dimension or dimension 1. " \
-                           + "Received {} and {}.".format(operation, self.dim, other.dim))
+                           + "Received {} and {}.".format(operation, self.ndim, other.ndim))
 
         res = LazyTensor.join(self, other)  # Merge the attributes and variables of both operands
-        res.dim = dimres
+        res.ndim = dimres
         
         if is_operator:
             res.formula = "({} {} {})".format( self.formula, operation, other.formula )
@@ -375,7 +375,7 @@ class LazyTensor:
         res.axis = axis
         res.opt_arg = opt_arg
         res.kwargs = kwargs
-        res.dim = self.dim
+        res.ndim = self.ndim
 
         if res.dtype is not None:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
@@ -440,7 +440,7 @@ class LazyTensor:
             # we define var as a new symbolic variable with same dimension as other
             # and we assume axis of var is same as axis of reduction
             varindex = len(self.symbolic_variables)
-            var = Var(varindex, other.dim, axis)
+            var = Var(varindex, other.ndim, axis)
             res = self * var
         else:
             # var is given and must be a symbolic variable which is already inside self
@@ -455,7 +455,7 @@ class LazyTensor:
         res.other = other
         res.axis = axis
         res.kwargs = kwargs
-        res.dim = self.dim
+        res.ndim = self.ndim
 
         if res.dtype is not None:
             res.fixvariables()
@@ -512,7 +512,7 @@ class LazyTensor:
             string += "\n    symbolic variables: Var{}".format(self.symbolic_variables[0])
             for var in self.symbolic_variables[1:]:  string += ", Var{}".format(var)
 
-        string += "\n    shape: ({},{},{})".format(self.ni, self.nj, self.dim)
+        string += "\n    shape: ({},{},{})".format(self.ni, self.nj, self.ndim)
 
         if hasattr(self, 'reduction_op'):
             string += "\n    reduction: {} (axis={})".format(self.reduction_op, self.axis)
@@ -719,11 +719,11 @@ class LazyTensor:
             else: other = LazyTensor(self.tools.array([other], self.dtype))
 
         if type(other) == type(LazyTensor()):
-            if other.dim == 1 or other.dim == self.dim:
+            if other.ndim == 1 or other.ndim == self.ndim:
                 return self.binary(other, "Powf", dimcheck=None)
             else:
                 raise ValueError("Incompatible dimensions for the LazyTensor and its exponent: " \
-                               + "{} and {}.".format(self.dim, other.dim))
+                               + "{} and {}.".format(self.ndim, other.ndim))
         else:
             raise ValueError("The exponent should be an integer, a floar number or a LazyTensor.")
 
@@ -818,10 +818,10 @@ class LazyTensor:
         if type(self) != type(LazyTensor()):
             self = LazyTensor(self)  
         
-        if self.dim not in (1, other.dim, other.dim**2):
+        if self.ndim not in (1, other.ndim, other.ndim**2):
             raise ValueError("Squared norm weights should be of size 1 (scalar), " \
                             +"D (diagonal) or D^2 (full symmetric tensor), but received " \
-                            +"{} with D={}.".format(self.dim, other.dim))
+                            +"{} with D={}.".format(self.ndim, other.ndim))
         
         return self.binary(other, "WeightedSqNorm", dimres=1, dimcheck=None)
     
@@ -840,8 +840,8 @@ class LazyTensor:
         """   
         if type(i) is not int:
             raise ValueError("Elem indexing is only supported for integer indices.")
-        if i < 0 or i >= self.dim:
-            raise ValueError("Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.dim))
+        if i < 0 or i >= self.ndim:
+            raise ValueError("Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.ndim))
         return self.unary("Elem", dimres=1, opt_arg=i)
     
     def extract(self, i, d):
@@ -852,9 +852,9 @@ class LazyTensor:
         """   
         if (type(i) is not int) or (type(d) is not int):
             raise ValueError("Indexing is only supported for integer indices.")
-        if i < 0 or i >= self.dim:
+        if i < 0 or i >= self.ndim:
             raise ValueError("Starting index is out of bounds.")
-        if d < 1 or i+d > self.dim:
+        if d < 1 or i+d > self.ndim:
             raise ValueError("Slice dimension is out of bounds.")
         return self.unary("Extract", dimres=d, opt_arg=i, opt_arg2=d)
     
@@ -888,7 +888,7 @@ class LazyTensor:
             if key.start is None:
                 key = slice(0, key.stop)
             if key.stop is None:
-                key = slice(key.start, self.dim)
+                key = slice(key.start, self.ndim)
             return self.extract(key.start, key.stop - key.start)
         elif isinstance(key, int):
             return self.elem(key)
@@ -901,7 +901,7 @@ class LazyTensor:
         ``x.concat(y)`` returns a :mod:`LazyTensor` that encodes, symbolically,
         the concatenation of ``x`` and ``y`` along their last dimension.    
         """   
-        return self.binary(other, "Concat", dimres = (self.dim + other.dim), dimcheck=None)
+        return self.binary(other, "Concat", dimres = (self.ndim + other.ndim), dimcheck=None)
 
     def concatenate(self, axis):
         r"""Concatenation of a tuple of LazyTensors.
@@ -945,7 +945,7 @@ class LazyTensor:
         For details, please check the documentation of the KeOps operation ``"MatVecMult"`` in
         the :doc:`main reference page <../api/math-operations>`.    
         """
-        return self.binary(other, "MatVecMult", dimres = (self.dim // other.dim), dimcheck=None)        
+        return self.binary(other, "MatVecMult", dimres = (self.ndim // other.ndim), dimcheck=None)        
         
     def vecmatmult(self,other):
         r"""Vector-matrix product - a binary operation.
@@ -957,7 +957,7 @@ class LazyTensor:
         For details, please check the documentation of the KeOps operation ``"VetMacMult"`` in
         the :doc:`main reference page <../api/math-operations>`.    
         """
-        return self.binary(other, "VecMatMult", dimres = (other.dim // self.dim), dimcheck=None)        
+        return self.binary(other, "VecMatMult", dimres = (other.ndim // self.ndim), dimcheck=None)        
         
     def tensorprod(self,other):
         r"""Tensor product of vectors - a binary operation.
@@ -969,7 +969,7 @@ class LazyTensor:
         For details, please check the documentation of the KeOps operation ``"TensorProd"`` in
         the :doc:`main reference page <../api/math-operations>`.    
         """ 
-        return self.binary(other, "TensorProd", dimres = (other.dim * self.dim), dimcheck=None)        
+        return self.binary(other, "TensorProd", dimres = (other.ndim * self.ndim), dimcheck=None)        
                 
          
 
