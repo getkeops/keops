@@ -21,6 +21,6 @@ build_type = "Release"  # 'Release' or 'Debug'
 
 sys.path.append(build_folder)
 
-from .common.formula_helper import keops_formula, Vi, Vj, Pm
+from .common.lazy_tensor import LazyTensor, Vi, Vj, Pm
 
 

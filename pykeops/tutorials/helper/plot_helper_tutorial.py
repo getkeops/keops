@@ -14,7 +14,7 @@ This tutorial shows how to use the new KeOps helper/container syntax
 
 import numpy as np
 import torch
-from pykeops import keops_formula as keops
+from pykeops import LazyTensor as keops
 from pykeops import Vi, Vj, Pm
 import time
 
@@ -24,10 +24,12 @@ import time
 
 #############################################################################
 # Let us first compute a simple gaussian convolution: let
+#
 #  - :math:`x_i` be arbistrary 2D points, :math:`1\leq i\leq M`
 #  - :math:`y_j` be arbistrary 2D points, :math:`1\leq j\leq N`
 #  - :math:`\beta_j` be arbistrary 4D vectors, :math:`1\leq j\leq N`
 #  - :math:`\sigma` as scale parameter
+#
 # We would like to compute, for :math:`1\leq i\leq M`,
 #
 # .. math::

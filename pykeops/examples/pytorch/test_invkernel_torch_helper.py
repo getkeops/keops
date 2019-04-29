@@ -20,7 +20,7 @@ from matplotlib import pyplot as plt
 import torch
 
 from pykeops import Vi, Vj, Pm
-from pykeops import keops_formula as keops
+from pykeops import LazyTensor as keops
 
 
 ###############################################################################

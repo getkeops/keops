@@ -18,10 +18,10 @@ except ImportError:
 def Var(x_or_ind,dim=None,cat=None):
     if dim is None:
         # init via data: we assume x_or_ind is data
-        return keops_formula(x_or_ind, axis=cat)
+        return LazyTensor(x_or_ind, axis=cat)
     else:
         # init via symbolic variable given as triplet (ind,dim,cat)
-        return keops_formula((x_or_ind,dim,cat))
+        return LazyTensor((x_or_ind,dim,cat))
         
 def Vi(x_or_ind,dim=None):
     return Var(x_or_ind, dim, 0)    
@@ -34,10 +34,10 @@ def Pm(x_or_ind,dim=None):
 
 
 
-class keops_formula:
+class LazyTensor:
     r"""The KeOps container class.
 
-    Every keops_formula object represents a mathematical formula which 
+    Every LazyTensor object represents a mathematical formula which 
     may depend on some "i" or "j"-indexed variables and parameter variables
     (i.e. variables that are not indexed),
     built as a combination of unary and binary operations.
@@ -251,7 +251,7 @@ class keops_formula:
 
     def promote(self, other, props):
         """Creates a new LazyTensor whose 'None' properties are set to those of 'self' or 'other'."""
-        res = keops_formula()
+        res = LazyTensor()
 
         for prop in props:
             x, y = getattr(self, prop), getattr(other, prop)
@@ -265,7 +265,7 @@ class keops_formula:
         
     def init(self):
         """Creates a copy of a LazyTensor, without 'formula'."""
-        res = keops_formula()
+        res = LazyTensor()
         res.dtype = self.dtype
         res.tools = self.tools
         res.dtype = self.dtype
@@ -282,7 +282,7 @@ class keops_formula:
         
         N.B.: This method concatenates tuples of variables, without paying attention to repetitions.
         """
-        res = keops_formula.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj") )
+        res = LazyTensor.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj") )
         
         res.variables = self.variables + other.variables
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
@@ -319,8 +319,8 @@ class keops_formula:
             Supported values are "same" and "sameor1".
         """
         # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
-        if not isinstance(self,keops_formula):  self = keops_formula(self)
-        if not isinstance(other,keops_formula): other = keops_formula(other)      
+        if not isinstance(self,LazyTensor):  self = LazyTensor(self)
+        if not isinstance(other,LazyTensor): other = LazyTensor(other)      
 
         # By default, the dimension of the output variable is the max of the two operands:
         if not dimres: dimres = max(self.dim, other.dim)
@@ -333,7 +333,7 @@ class keops_formula:
             raise ValueError("Operation {} expects inputs of the same dimension or dimension 1. " \
                            + "Received {} and {}.".format(operation, self.dim, other.dim))
 
-        res = keops_formula.join(self, other)  # Merge the attributes and variables of both operands
+        res = LazyTensor.join(self, other)  # Merge the attributes and variables of both operands
         res.dim = dimres
         
         if is_operator:
@@ -392,15 +392,15 @@ class keops_formula:
         r"""Solves a positive definite linear system of the form sum(self)=other or sum(self*var)=other, using a conjugate
             gradient solver.
             
-        :param self: a keops_formula object representing either a symmetric positive definite matrix 
+        :param self: a LazyTensor object representing either a symmetric positive definite matrix 
                 or a positive definite operator. Warning!! There is no check of the symmetry and positive definiteness.
-        :param other: a keops_formula variable which gives the second member of the equation.           
-        :param var: either None or a symbolic keops_formula variable.
+        :param other: a LazyTensor variable which gives the second member of the equation.           
+        :param var: either None or a symbolic LazyTensor variable.
                         - If var is None then kernelsolve will return the solution var such that sum(self*var)=other.
                         - If var is a symbolic variable, it must be one of the symbolic variables contained on formula self,
                             and as a formula self must depend linearly on var. 
         :param call: either True or False. If True and if no other symbolic variable than var is contained in self,
-                then the output will be a tensor, otherwise it will be a callable keops_formula
+                then the output will be a tensor, otherwise it will be a callable LazyTensor
         :param backend (string): Specifies the map-reduce scheme,
                 as detailed in the documentation of the :func:`Genred` module.
         :param device_id (int, default=-1): Specifies the GPU that should be used 
@@ -549,7 +549,7 @@ class keops_formula:
         if other == 0:
             return self
         else:
-            return keops_formula.binary(other, self, "+", is_operator=True)
+            return LazyTensor.binary(other, self, "+", is_operator=True)
        
     def __sub__(self,other):
         r"""Broadcasted subtraction operator - a binary operation. 
@@ -568,7 +568,7 @@ class keops_formula:
         if other == 0:
             return -self
         else:
-            return keops_formula.binary(other, self, "-", is_operator=True)
+            return LazyTensor.binary(other, self, "-", is_operator=True)
         
     def __mul__(self,other):
         r"""Broadcasted elementwise product - a binary operation. 
@@ -586,7 +586,7 @@ class keops_formula:
         """ 
         if   other == 0: return 0
         elif other == 1: return self
-        else: return keops_formula.binary(other, self, "*", is_operator=True)
+        else: return LazyTensor.binary(other, self, "*", is_operator=True)
        
     def __truediv__(self,other):
         r"""Broadcasted elementwise division - a binary operation. 
@@ -604,7 +604,7 @@ class keops_formula:
         """  
         if   other == 0: return 0
         elif other == 1: return self.unary("Inv")
-        else: return keops_formula.binary(other, self, "/", is_operator=True)
+        else: return LazyTensor.binary(other, self, "/", is_operator=True)
        
     def __or__(self, other):
         r"""Euclidean scalar product - a binary operation.
@@ -620,7 +620,7 @@ class keops_formula:
         ``(x|y)`` returns a :mod:`LazyTensor` that encodes, symbolically, 
         the scalar product of ``x`` and ``y`` which are assumed to have the same shape.    
         """
-        return keops_formula.binary(other, self, "|", is_operator=True, dimres=1, dimcheck="same")
+        return LazyTensor.binary(other, self, "|", is_operator=True, dimres=1, dimcheck="same")
 
     # Unary arithmetics --------------------------------------------------------
 
@@ -716,9 +716,9 @@ class keops_formula:
         elif type(other) == float:
             if   other ==  .5: return self.unary("Sqrt")
             elif other == -.5: return self.unary("Rsqrt")
-            else: other = keops_formula(self.tools.array([other], self.dtype))
+            else: other = LazyTensor(self.tools.array([other], self.dtype))
 
-        if type(other) == type(keops_formula()):
+        if type(other) == type(LazyTensor()):
             if other.dim == 1 or other.dim == self.dim:
                 return self.binary(other, "Powf", dimcheck=None)
             else:
@@ -815,8 +815,8 @@ class keops_formula:
         the weighted squared Norm of a vector ``x`` - see
         the :doc:`main reference page <../api/math-operations>` for details.
         """   
-        if type(self) != type(keops_formula()):
-            self = keops_formula(self)  
+        if type(self) != type(LazyTensor()):
+            self = LazyTensor(self)  
         
         if self.dim not in (1, other.dim, other.dim**2):
             raise ValueError("Squared norm weights should be of size 1 (scalar), " \
@@ -922,7 +922,7 @@ class keops_formula:
             elif len(self) == 2:    
                 return self[0].concat(self[1])
             else:
-                return keops_formula.concatenate(self[0].concat(self[1]), self[2:], axis=2)
+                return LazyTensor.concatenate(self[0].concat(self[1]), self[2:], axis=2)
         else:
             raise ValueError("LazyTensor.concatenate is implemented on *tuples* of LazyTensors.")    
     
@@ -933,7 +933,7 @@ class keops_formula:
         is a PyTorch-friendly alias for ``LazyTensor.concatenate( (x_1, x_2, ..., x_n), -1)``;
         just like indexing operations, it is only supported along the last dimension.
         """
-        return keops_formula.concatenate(self, dim)
+        return LazyTensor.concatenate(self, dim)
 
     def matvecmult(self,other):
         r"""Matrix-vector product - a binary operation.
@@ -985,13 +985,13 @@ class keops_formula:
         
           - if **axis or dim = 0**, return the sum reduction of x over the "i" indexes.
           - if **axis or dim = 0**, return the sum reduction of x over the "j" indexes.
-          - if **axis or dim = 0**, return and a new keops_formula object representing the sum of values of x,
+          - if **axis or dim = 0**, return and a new LazyTensor object representing the sum of values of x,
         
-        :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor,
+        :input self: a LazyTensor object, or any input that can be passed to the KeOps class constructor,
         :input axis: an integer, should be 0, 1 or 2,
         :input dim: an integer, alternative keyword for axis parameter,
         :param call: either True or False. If True and if no other symbolic variable than var is contained in self,
-                then the output will be a tensor, otherwise it will be a callable keops_formula
+                then the output will be a tensor, otherwise it will be a callable LazyTensor
         :param backend (string): Specifies the map-reduce scheme,
                 as detailed in the documentation of the :func:`Genred` module.
         :param device_id (int, default=-1): Specifies the GPU that should be used 
@@ -1013,10 +1013,10 @@ class keops_formula:
                 as we loop over all indices
                 :math:`i\in[0,M)` and :math:`j\in[0,N)`.
         :returns: either:
-                        - if axis=2: a keops_formula object of dimension 1,
+                        - if axis=2: a LazyTensor object of dimension 1,
                         - if axis=0 or 1, call=True and self.symbolic_variables is empty, a NumPy 2D array or PyTorch 2D tensor corresponding to the sum reduction
                         of self over axis,
-                        - otherwise, a keops_formula object representing the reduction operation and which can be called as a function (see method __call__).
+                        - otherwise, a LazyTensor object representing the reduction operation and which can be called as a function (see method __call__).
         """   
         if dim is not None:
             axis = dim

@@ -19,7 +19,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
-from pykeops import keops_formula as keops
+from pykeops import LazyTensor as keops
 from pykeops import Vi, Vj, Pm 
 from pykeops.numpy.utils import IsGpuAvailable
 

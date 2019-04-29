@@ -1,4 +1,4 @@
-keops_formula
+LazyTensor
 -------------
 
 :mod:`pykeops.common`
@@ -7,15 +7,13 @@ keops_formula
 .. rubric:: Summary
 
 
-.. currentmodule:: pykeops.common.formula_helper
+.. currentmodule:: pykeops.common.lazy_tensor
 .. autosummary::
-    keops_formula
-	keops_formula.sin
+    LazyTensor
 
 .. rubric:: Syntax
 
-
-.. autoclass:: keops_formula
+.. autoclass:: LazyTensor
     :members:
     :special-members:
 

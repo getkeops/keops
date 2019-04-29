@@ -5,4 +5,4 @@ The helper API ...
 
 .. toctree::
 
-    keops_formula
+    lazy_tensor
