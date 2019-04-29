@@ -507,12 +507,12 @@ class LazyTensor:
         tmp.formula2 = None if not hasattr(self, 'formula2') else self.formula2
         tmp.fixvariables()  # Replace Var(id(x),...) with consecutive labels
 
-        string = "KeOps formula\n    formula: {}".format(tmp.formula)
+        string = "KeOps LazyTensor\n    formula: {}".format(tmp.formula)
         if len(self.symbolic_variables) > 0:
             string += "\n    symbolic variables: Var{}".format(self.symbolic_variables[0])
             for var in self.symbolic_variables[1:]:  string += ", Var{}".format(var)
 
-        string += "\n    shape: ({},{},{})".format(self.ni, self.nj, self.ndim)
+        string += "\n    shape: {}".format(self.shape)
 
         if hasattr(self, 'reduction_op'):
             string += "\n    reduction: {} (axis={})".format(self.reduction_op, self.axis)
@@ -522,6 +522,17 @@ class LazyTensor:
                 string += "\n        opt_arg: {}".format(self.opt_arg)
         return string
     
+    @property
+    def shape(self):
+        ni   = 1 if self.ni   is None else self.ni
+        nj   = 1 if self.nj   is None else self.nj
+        ndim = 1 if self.ndim is None else self.ndim
+        return (ni, nj, ndim)
+
+    def dim(self):
+        """Just as in PyTorch, returns the number of dimensions of a LazyTensor."""
+        return len(self.shape)
+
     # List of supported operations  ============================================
     
     # N.B.: This flag prevents NumPy (and also PyTorch ?) from overriding 
