@@ -728,7 +728,7 @@ class keops_formula:
             raise ValueError("The exponent should be an integer, a floar number or a LazyTensor.")
 
     def power(self,other):
-        r"""Element-wise power operator - a binary operation.
+        r"""Broadcasted element-wise power operator - a binary operation.
         
         ``pow(x,y)`` is equivalent to ``x**y``.
         """   
@@ -816,7 +816,7 @@ class keops_formula:
         the :doc:`main reference page <../api/math-operations>` for details.
         """   
         if type(self) != type(keops_formula()):
-            self = keops_formula.keopsify(self, other.tools, other.dtype)  
+            self = keops_formula(self)  
         
         if self.dim not in (1, other.dim, other.dim**2):
             raise ValueError("Squared norm weights should be of size 1 (scalar), " \
@@ -859,167 +859,176 @@ class keops_formula:
         return self.unary("Extract", dimres=d, opt_arg=i, opt_arg2=d)
     
     def __getitem__(self, key):
-        r"""
-            Element or range extraction unary operator. x[key] redirects to elem or extract methods, depending on the key argument.
-            Valid key arguments are:
-                - an integer k, in which case x[key] redirects to elem(x,k),
-                - a tuple :,:,k with k an integer, which is equivalent to the previous case,
-                - a slice of the form k:l, k: or :l, with k and l integers, in which case x[key] redirects to extract(x,k,l-k),
-                - a tuple of slices of the form :,:,k:l, :,:,k: or :,:,:l, with k and l integers, which are equivalent to the previous cases.
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input key: an integer, slice or t-uple of slices as described above.
-            :returns: a keops_formula object
-    
-            """   
+        r"""Element or range indexing - a unary operation.
+
+        ``x[key]`` redirects to the :meth:`elem` or :meth:`extract` methods, depending on the ``key`` argument.
+        Supported values are:
+
+            - an integer ``k``, in which case ``x[key]`` 
+              redirects to ``elem(x,k)``,
+            - a tuple ``:,:,k`` with ``k`` an integer, 
+              which is equivalent to the case above,
+            - a slice of the form ``k:l``, ``k:`` or ``:l``, with ``k`` 
+              and ``l`` two integers, in which case ``x[key]`` redirects to ``extract(x,k,l-k)``,
+            - a tuple of slices of the form ``:,:,k:l``, ``:,:,k:`` or ``:,:,:l``, 
+              with ``k`` and ``l`` two integers, which are equivalent to the case above.
+        """   
         # we allow only these forms:
         #    [:,:,k], [:,:,k:l], [:,:,k:], [:,:,:l]
         #    or equivalent [k], [k:l], [k:], [:l]
-        if isinstance(key,tuple):
-            if len(key)==3 and key[0]==slice(None) and key[1]==slice(None):
+        if isinstance(key, tuple):
+            if len(key) == 3 and key[0] == slice(None) and key[1] == slice(None):
                 key = key[2]
             else:
-                raise ValueError("incorrect slicing")
-        if isinstance(key,slice):
-            if key.step is not None:
-                raise ValueError("incorrect slicing")
+                raise ValueError("LazyTensors only support indexing with respect to their last dimension.")
+        
+        if isinstance(key, slice):
+            if not key.step in [None, 1]:
+                raise ValueError("LazyTensors do not support sliced indexing with stepsizes > 1.")
             if key.start is None:
-                key = slice(0,key.stop)
+                key = slice(0, key.stop)
             if key.stop is None:
-                key = slice(key.start,self.dim)
-            return self.extract(key.start,key.stop-key.start)
-        elif isinstance(key,int):
+                key = slice(key.start, self.dim)
+            return self.extract(key.start, key.stop - key.start)
+        elif isinstance(key, int):
             return self.elem(key)
         else:
-            raise ValueError("incorrect slicing")
+            raise ValueError("LazyTensors only support indexing with integers and vanilla python slices.")
             
     def concat(self,other):
-        r"""
-            Concatenation binary operation. concat(x,y) returns a new keops_formula object representing the concatenation of x and y.
+        r"""Concatenation of two LazyTensors - a binary operation.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim + other.dim
-    
-            """   
-        return self.binary(other,string="Concat",dimres=self.dim+other.dim,dimcheck=None)
+        ``x.concat(y)`` returns a :mod:`LazyTensor` that encodes, symbolically,
+        the concatenation of ``x`` and ``y`` along their last dimension.    
+        """   
+        return self.binary(other, "Concat", dimres = (self.dim + other.dim), dimcheck=None)
 
-    def concatenate(self,axis):
-        r"""
-            Concatenation recursive operation. concatenate(x_tuple,axis=2) returns a new keops_formula object representing the 
-            concatenation of all x contained in the tuple x_tuple.
+    def concatenate(self, axis):
+        r"""Concatenation of a tuple of LazyTensors.
         
-            :input self: a tuple of keops_formula objects, or of any inputs that can be passed to the KeOps class constructor. 
-            :input axis: an integer. Should equal 2, otherwise an error is raised.
-            :returns: a keops_formula object of dimension equal to the sum of the dimensions of elments in the input tuple.
-    
-            """   
-        if axis != 2:
-            raise ValueError("only concatenation over axis=2 is supported")
-        if isinstance(self,tuple):
-            if len(self)==0:
-                raise ValueError("tuple must not be empty")
-            elif len(self)==1:
+        ``LazyTensor.concatenate( (x_1, x_2, ..., x_n), -1)`` returns a :mod:`LazyTensor` that encodes, symbolically,
+        the concatenation of ``x_1``, ``x_2``, ..., ``x_n`` along their last dimension.    
+        Note that **axis** should be equal to -1 or 2 (if the ``x_i``'s are 3D LazyTensors):
+        LazyTensors only support concatenation and indexing operations with respect
+        to the last dimension.
+        """   
+        if axis not in [-1, 2]:
+            raise ValueError("LazyTensor only supports concatenation along the last axis.")
+        if isinstance(self, tuple):
+            if len(self) == 0:
+                raise ValueError("Received an empty tuple of LazyTensors.")
+            elif len(self) == 1:
                 return self
-            elif len(self)==2:    
+            elif len(self) == 2:    
                 return self[0].concat(self[1])
             else:
-                return keops_formula.concatenate(self[0].concat(self[1]),self[2:],axis=2)
+                return keops_formula.concatenate(self[0].concat(self[1]), self[2:], axis=2)
         else:
-            raise ValueError("input must be tuple")    
+            raise ValueError("LazyTensor.concatenate is implemented on *tuples* of LazyTensors.")    
     
-    def matvecmult(self,other):
-        r"""
-            Matrix-vector product binary operation. matvecmult(x,y) returns a new keops_formula object representing the matrix-vector product of x and y.
-            See the documentation of corresponding KeOps operation MatVecMult for more explanations.
+    def cat(self, dim):
+        r"""Concatenation of a tuple of LazyTensors.
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim / other.dim
-    
-            """   
-        return self.binary(other,string="MatVecMult",dimres=self.dim//other.dim,dimcheck=None)        
+        ``LazyTensor.cat( (x_1, x_2, ..., x_n), -1)`` 
+        is a PyTorch-friendly alias for ``LazyTensor.concatenate( (x_1, x_2, ..., x_n), -1)``;
+        just like indexing operations, it is only supported along the last dimension.
+        """
+        return keops_formula.concatenate(self, dim)
+
+    def matvecmult(self,other):
+        r"""Matrix-vector product - a binary operation.
+
+        If ``x.shape[-1] == A*B`` and ``y.shape[-1] == B``,
+        ``z = x.matvecmult(y)`` returns a :mod:`LazyTensor` 
+        such that ``z.shape[-1] == A`` which encodes, symbolically,
+        the matrix-vector product of ``x`` and ``y`` along their last dimension.
+        For details, please check the documentation of the KeOps operation ``"MatVecMult"`` in
+        the :doc:`main reference page <../api/math-operations>`.    
+        """
+        return self.binary(other, "MatVecMult", dimres = (self.dim // other.dim), dimcheck=None)        
         
     def vecmatmult(self,other):
-        r"""
-            Vector-matrix product binary operation. vecmatmult(x,y) returns a new keops_formula object representing the vector-matrix product of x and y.
-            See the documentation of corresponding KeOps operation VecMatMult for more explanations.
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension other.dim / self.dim
-    
-            """   
-        return self.binary(other,string="VecMatMult",dimres=other.dim//self.dim,dimcheck=None)        
+        r"""Vector-matrix product - a binary operation.
+
+        If ``x.shape[-1] == A`` and ``y.shape[-1] == A*B``,
+        ``z = x.vecmatmult(y)`` returns a :mod:`LazyTensor` 
+        such that ``z.shape[-1] == B`` which encodes, symbolically,
+        the vector-matrix product of ``x`` and ``y`` along their last dimension.
+        For details, please check the documentation of the KeOps operation ``"VetMacMult"`` in
+        the :doc:`main reference page <../api/math-operations>`.    
+        """
+        return self.binary(other, "VecMatMult", dimres = (other.dim // self.dim), dimcheck=None)        
         
     def tensorprod(self,other):
-        r"""
-            Tensor product binary operation. tensorprod(x,y) returns a new keops_formula object representing the tensor product of x and y.
-        
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :input other: a keops_formula object, or any input that can be passed to the KeOps class constructor. 
-            :returns: a keops_formula object of dimension self.dim * other.dim
-    
-            """   
-        return self.binary(other,string="TensorProd",dimres=other.dim*self.dim,dimcheck=None)        
+        r"""Tensor product of vectors - a binary operation.
+
+        If ``x.shape[-1] == A`` and ``y.shape[-1] == B``,
+        ``z = x.tensorprod(y)`` returns a :mod:`LazyTensor` 
+        such that ``z.shape[-1] == A*B`` which encodes, symbolically,
+        the tensor product of ``x`` and ``y`` along their last dimension.
+        For details, please check the documentation of the KeOps operation ``"TensorProd"`` in
+        the :doc:`main reference page <../api/math-operations>`.    
+        """ 
+        return self.binary(other, "TensorProd", dimres = (other.dim * self.dim), dimcheck=None)        
                 
          
 
 
 
 
-    # list of reductions
+    # List of supported reductions  ============================================
 
-    def sum(self,axis=2,dim=None, **kwargs):
-        r"""
-            Summation unary operation, or Sum reduction. sum(x,axis,dim,**kwargs) will:
-            - if axis=0, return the sum reduction of x over the "i" indexes.
-            - if axis=1, return the sum reduction of x over the "j" indexes.
-            - if axis=2, return and a new keops_formula object representing the sum of values of x,
+    def sum(self, axis=2, dim=None, **kwargs):
+        r"""Summation unary operation, or Sum reduction. 
         
-            :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor,
-            :input axis: an integer, should be 0, 1 or 2,
-            :input dim: an integer, alternative keyword for axis parameter,
-            :param call: either True or False. If True and if no other symbolic variable than var is contained in self,
-                   then the output will be a tensor, otherwise it will be a callable keops_formula
-            :param backend (string): Specifies the map-reduce scheme,
-                   as detailed in the documentation of the :func:`Genred` module.
-            :param device_id (int, default=-1): Specifies the GPU that should be used 
-                   to perform   the computation; a negative value lets your system 
-                   choose the default GPU. This parameter is only useful if your 
-                   system has access to several GPUs.
-            :params device_id: (int, default=-1): Specifies the GPU that should be used 
-                   to perform   the computation; a negative value lets your system 
-                   choose the default GPU. This parameter is only useful if your 
-                   system has access to several GPUs.
-            :param ranges: (6-uple of IntTensors, None by default):
-                   Ranges of integers that specify a 
-                   :doc:`block-sparse reduction scheme <../../sparsity>`
-                   with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
-                   as detailed in the documentation 
-                   of the :func:`Genred` module.
+        sum(x, axis, dim, **kwargs) will:
+        
+          - if **axis or dim = 0**, return the sum reduction of x over the "i" indexes.
+          - if **axis or dim = 0**, return the sum reduction of x over the "j" indexes.
+          - if **axis or dim = 0**, return and a new keops_formula object representing the sum of values of x,
+        
+        :input self: a keops_formula object, or any input that can be passed to the KeOps class constructor,
+        :input axis: an integer, should be 0, 1 or 2,
+        :input dim: an integer, alternative keyword for axis parameter,
+        :param call: either True or False. If True and if no other symbolic variable than var is contained in self,
+                then the output will be a tensor, otherwise it will be a callable keops_formula
+        :param backend (string): Specifies the map-reduce scheme,
+                as detailed in the documentation of the :func:`Genred` module.
+        :param device_id (int, default=-1): Specifies the GPU that should be used 
+                to perform   the computation; a negative value lets your system 
+                choose the default GPU. This parameter is only useful if your 
+                system has access to several GPUs.
+        :params device_id: (int, default=-1): Specifies the GPU that should be used 
+                to perform   the computation; a negative value lets your system 
+                choose the default GPU. This parameter is only useful if your 
+                system has access to several GPUs.
+        :param ranges: (6-uple of IntTensors, None by default):
+                Ranges of integers that specify a 
+                :doc:`block-sparse reduction scheme <../../sparsity>`
+                with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
+                as detailed in the documentation 
+                of the :func:`Genred` module.
 
-                   If **None** (default), we simply use a **dense Kernel matrix**
-                   as we loop over all indices
-                   :math:`i\in[0,M)` and :math:`j\in[0,N)`.
-            :returns: either:
-                          - if axis=2: a keops_formula object of dimension 1,
-                          - if axis=0 or 1, call=True and self.symbolic_variables is empty, a NumPy 2D array or PyTorch 2D tensor corresponding to the sum reduction
-                            of self over axis,
-                          - otherwise, a keops_formula object representing the reduction operation and which can be called as a function (see method __call__).
-    
-            """   
+                If **None** (default), we simply use a **dense Kernel matrix**
+                as we loop over all indices
+                :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+        :returns: either:
+                        - if axis=2: a keops_formula object of dimension 1,
+                        - if axis=0 or 1, call=True and self.symbolic_variables is empty, a NumPy 2D array or PyTorch 2D tensor corresponding to the sum reduction
+                        of self over axis,
+                        - otherwise, a keops_formula object representing the reduction operation and which can be called as a function (see method __call__).
+        """   
         if dim is not None:
             axis = dim
-        if axis==2:
-            return self.unary("Sum",dimres=1)
+        if axis in [-1, 2]:
+            return self.unary("Sum", dimres=1)
         else:
             return self.reduction("Sum", axis=axis, **kwargs)
     
     def sum_reduction(self,**kwargs):
-        return self.reduction("Sum",**kwargs)
+        return self.reduction("Sum", **kwargs)
     
-    def logsumexp(self,weight=None,**kwargs):
+    def logsumexp(self, weight=None, **kwargs):
         if weight is None:
             return self.reduction("LogSumExp", **kwargs)
         else:
@@ -1077,19 +1086,19 @@ class keops_formula:
         return self.max_argmax(**kwargs)
     
     def Kmin(self, K, **kwargs):
-        return self.reduction("KMin",opt_arg=K,**kwargs)
+        return self.reduction("KMin", opt_arg=K, **kwargs)
 
     def Kmin_reduction(self, **kwargs):
         return self.Kmin(**kwargs)
 
     def argKmin(self, K, **kwargs):
-        return self.reduction("ArgKMin",opt_arg=K,**kwargs)
+        return self.reduction("ArgKMin", opt_arg=K, **kwargs)
 
     def argKmin_reduction(self, **kwargs):
         return self.argKmin(**kwargs)
 
     def Kmin_argKmin(self, K, **kwargs):
-        return self.reduction("KMin_ArgKMin",opt_arg=K,**kwargs)
+        return self.reduction("KMin_ArgKMin", opt_arg=K, **kwargs)
 
     def Kmin_argKmin_reduction(self, **kwargs):
         return self.Kmin_argKmin(**kwargs)
