@@ -5,7 +5,10 @@
 Kernel Operations on the GPU, with autodiff, without memory overflows
 ---------------------------------------------------------------------
 
-The KeOps library lets you compute generic reductions of **large 2d arrays** whose entries are given by a mathematical formula. It combines a **tiled reduction scheme** with an **automatic differentiation** engine, and can be used through Matlab, NumPy or PyTorch backends.
+The KeOps library lets you compute generic reductions of **very large arrays** 
+whose entries are given by a mathematical formula. 
+It combines a **tiled reduction scheme** with an **automatic differentiation** 
+engine, and can be used through Matlab, NumPy or PyTorch backends.
 It is perfectly suited to the computation of **Kernel dot products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
@@ -14,21 +17,28 @@ Using the PyTorch backend, a typical sample of code looks like:
 
 .. code-block:: python
 
+    # Create two arrays with 3 columns and a (huge) number of lines, on the GPU
     import torch
-    from pykeops.torch import Genred
-
-    # Kernel density estimator between point clouds in R^3
-    my_conv = Genred('Exp(-SqDist(x, y))',  # formula
-                     ['x = Vi(3)',        # 1st input: dim-3 vector per line
-                      'y = Vj(3)'],       # 2nd input: dim-3 vector per column
-                     reduction_op='Sum',  # we also support LogSumExp, Min, etc.
-                     axis=1)              # sum with respect to "j", result indexed by "i"
-
-    # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
     x = torch.randn(1000000, 3, requires_grad=True).cuda()
     y = torch.randn(2000000, 3).cuda()
-    a = my_conv(x, y)  # shape (1000000, 1), a_i = sum_j exp(-|x_i-y_j|^2)
-    g_x = torch.autograd.grad((a ** 2).sum(), [x])  # KeOps supports autodiff!
+
+    # Turn our Tensors into KeOps symbolic variables:
+    from pykeops import LazyTensor
+    x_i = LazyTensor( x[:,None,:] )  # x_i.shape = (1e6, 1, 3)
+    y_j = LazyTensor( y[None,:,:] )  # y_j.shape = ( 1, 2e6,3)
+
+    # We can now perform large-scale computations, without memory overflows:
+    D_ij = ((x_i - y_j)**2).sum(dim=2)  # Symbolic (1e6,2e6,1) matrix of squared distances
+    K_ij = (- D_ij).exp()               # Symbolic (1e6,2e6,1) Gaussian kernel matrix
+
+    # And come back to vanilla PyTorch Tensors or NumPy arrays using
+    # reduction operations such as .sum(), .logsumexp() or .argmin().
+    # Here, the kernel density estimation   a_i = sum_j exp(-|x_i-y_j|^2)
+    # is computed using a CUDA online map-reduce routine that has a linear
+    # memory footprint and outperforms standard PyTorch implementations
+    # by two orders of magnitude.
+    a_i = K_ij.sum(dim=1)  # Genuine torch.cuda.FloatTensor, a_i.shape = (1e6, 1), 
+    g_x = torch.autograd.grad((a_i ** 2).sum(), [x])  # KeOps supports autograd!
 
 KeOps allows you to leverage your GPU without compromising on usability.
 It provides:
@@ -37,7 +47,7 @@ It provides:
 * Support for a wide range of mathematical **formulas**.
 * Seamless computation of **derivatives**, up to arbitrary orders.
 * Sum, LogSumExp, Min, Max but also ArgMin, ArgMax or K-min **reductions**.
-* A **conjugate gradient solver** for e.g. large-scale spline interpolation method (or kriging aka. Gaussian process regression).
+* A **conjugate gradient solver** for e.g. large-scale spline interpolation or kriging, Gaussian process regression.
 * An interface for **block-sparse** and coarse-to-fine strategies.
 * Support for **multi GPU** configurations.
 
