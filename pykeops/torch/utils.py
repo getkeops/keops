@@ -1,6 +1,7 @@
 import torch
 
 from pykeops.torch import Genred, default_dtype
+from pykeops.torch.cluster import swap_axes as torch_swap_axes
 
 
 #  from pykeops.torch.generic.generic_red import GenredLowlevel
@@ -16,6 +17,8 @@ class torchtools:
     log = torch.log
     norm = torch.norm
 
+    swap_axes = torch_swap_axes
+    
     # Genred = Genred
     # GenredLowlevel = GenredLowlevel
 

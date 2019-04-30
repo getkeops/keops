@@ -2,6 +2,9 @@ import numpy as np
 from pykeops.numpy import Genred as Genred_numpy
 from pykeops.numpy import KernelSolve as KernelSolve_numpy
 from pykeops.numpy.utils import numpytools
+import re
+import copy
+
 try:
     import torch
     from pykeops.torch import Genred as Genred_torch
@@ -85,13 +88,16 @@ class LazyTensor:
         self.dtype = None
         self.variables = ()
         self.symbolic_variables = ()
-        self.formula = None
+        self.formula  = None
+        self.formula2 = None
         self.ndim = None
         self.tools = None
         self.Genred = None
         self.KernelSolve = None
         self.ni = None
         self.nj = None
+        self.axis = None
+        self.ranges = None  # Block-sparsity pattern
 
         if x is not None:  # A KeOps LazyTensor can be built from many different objects:
 
@@ -273,6 +279,7 @@ class LazyTensor:
         res.KernelSolve = self.KernelSolve
         res.ni = self.ni
         res.nj = self.nj
+        res.ranges = self.ranges
         res.variables = self.variables
         res.symbolic_variables = self.symbolic_variables
         return res
@@ -282,7 +289,7 @@ class LazyTensor:
         
         N.B.: This method concatenates tuples of variables, without paying attention to repetitions.
         """
-        res = LazyTensor.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj") )
+        res = LazyTensor.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj","ranges") )
         
         res.variables = self.variables + other.variables
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
@@ -319,8 +326,8 @@ class LazyTensor:
             Supported values are "same" and "sameor1".
         """
         # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
-        if not isinstance(self,LazyTensor):  self = LazyTensor(self)
-        if not isinstance(other,LazyTensor): other = LazyTensor(other)      
+        if not isinstance(self, LazyTensor):  self  = LazyTensor(self)
+        if not isinstance(other, LazyTensor): other = LazyTensor(other)      
 
         # By default, the dimension of the output variable is the max of the two operands:
         if not dimres: dimres = max(self.ndim, other.ndim)
@@ -1151,5 +1158,43 @@ class LazyTensor:
         # Expected behavior: if v is a vector, so should K @ v.
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
 
+    def t(self):
+        """Matrix transposition, permuting the axes -2 and -3.
+        
+        For instance, if ``K`` is a LazyTensor of shape ``(B,M,N,D)``,
+        ``K.t()`` returns a symbolic copy of ``K`` whose axes 1 and 2 have
+        been switched with each other: ``K.t().shape == (B,N,M,D)``.
+
+        Example:
+            >>> x, y = torch.randn(1000, 3), torch.randn(2000, 3)
+            >>> x_i, y_j = LazyTensor( x[:,None,:] ), LazyTensor( y[None,:,:] )
+            >>> K  = (- ((    x_i     -      y_j   )**2).sum(2) ).exp()  # Symbolic (1000,2000,1) Gaussian kernel matrix
+            >>> K_ = (- ((x[:,None,:] - y[None,:,:])**2).sum(2) ).exp()  # Explicit (1000,2000,1) Gaussian kernel matrix
+            >>> w  = torch.rand(1000, 2)
+            >>> print( (K.t() @ w - K_.t() @ w).abs().mean() )
+            ... tensor(1.7185e-05)
+        """
+
+        res = copy.copy(self)
+        res.ni, res.nj = res.nj, res.ni  # Switch the "M" and "N" dimensions
+        res.ranges = res.tools.swap_axes( res.ranges )
+
+        if   res.axis == res.dim() - 3: res.axis = res.dim() - 2
+        elif res.axis == res.dim() - 2: res.axis = res.dim() - 3
+
+        if res.formula is not None:  # Switch variables with CAT=0 and CAT=1
+            res.formula = re.sub(r"(Var|VarSymb)\((\d+),(\d+),0\)", r"\1(\2,\3,i)", res.formula)
+            res.formula = re.sub(r"(Var|VarSymb)\((\d+),(\d+),1\)", r"\1(\2,\3,0)", res.formula)
+            res.formula = re.sub(r"(Var|VarSymb)\((\d+),(\d+),i\)", r"\1(\2,\3,1)", res.formula)
+
+        if res.formula2 is not None:  # Switch variables with CAT=0 and CAT=1
+            res.formula2 = re.sub(r"(Var|VarSymb)\((\d+),(\d+),0\)", r"\1(\2,\3,i)", res.formula2)
+            res.formula2 = re.sub(r"(Var|VarSymb)\((\d+),(\d+),1\)", r"\1(\2,\3,0)", res.formula2)
+            res.formula2 = re.sub(r"(Var|VarSymb)\((\d+),(\d+),i\)", r"\1(\2,\3,1)", res.formula2)
+
+        return res
     
-    
+    @property
+    def T(self):
+        """Numpy-friendly alias for the matrix transpose ``self.t()``."""
+        return self.t()

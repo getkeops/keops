@@ -1,6 +1,7 @@
 import numpy as np
 
 from pykeops.numpy import Genred, default_dtype
+from pykeops.numpy.cluster import swap_axes as np_swap_axes
 
 
 class numpytools:
@@ -10,6 +11,8 @@ class numpytools:
     log = np.log
     Genred = Genred
     
+    swap_axes = np_swap_axes
+
     @staticmethod
     def copy(x): return np.copy(x)
     
