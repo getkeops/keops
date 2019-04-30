@@ -1114,5 +1114,42 @@ class LazyTensor:
     def Kmin_argKmin_reduction(self, **kwargs):
         return self.Kmin_argKmin(**kwargs)
 
+    # LazyTensors as linear operators  =========================================
+
+    def __matmul__(self, v):
+        r"""Matrix-vector or Matrix-matrix product.
+
+        If ``K`` is a LazyTensor whose trailing dimension ``K.shape[-1]`` is equal to 1,
+        we can understand it as a linear operator and apply it to arbitrary NumPy arrays
+        or PyTorch Tensors. Assuming that ``v`` is a 1D (resp. 2D) tensor such that
+        ``K.shape[-2] == v.shape[0]``, ``K @ v`` denotes the matrix-vector (resp. matrix-matrix)
+        product between the two objects, encoded as a vanilla NumPy or PyTorch 1D (resp. 2D) tensor.
+
+        Example:
+            >>> x, y = torch.randn(1000, 3), torch.randn(2000, 3)
+            >>> x_i, y_j = LazyTensor( x[:,None,:] ), LazyTensor( y[None,:,:] )
+            >>> K = (- ((x_i - y_j)**2).sum(2) ).exp()  # Symbolic (1000,2000,1) Gaussian kernel matrix
+            >>> v = torch.rand(2000, 2)
+            >>> print( (K @ v).shape )
+            ... torch.Size([1000, 2])
+        """
+        if self.shape[-1] != 1:
+            raise ValueError("The 'K @ v' syntax is only supported for LazyTensors "\
+                            +"'K' whose trailing dimension is equal to 1. Here, K.shape = {}.".format(self.shape))
+
+        if len(v.shape) == 1:
+            N, D = v.shape[0], 1
+        elif len(v.shape) == 2:
+            N, D = v.shape
+        else:
+            raise ValueError("When 'K' is a LazyTensor, the 'K @ v' syntax is only supported when " \
+                            +"'v' is a 1D vector or a 2D matrix. Received a tensor of shape {}.".format(v.shape))
+
+        v_ = LazyTensor( self.tools.view( v, (1,)*(self.dim() - 2) + (N, D) ) )
+        Kv = (self * v_ ).sum( self.dim() - 2 )  # Matrix-vector or Matrix-matrix product
+
+        # Expected behavior: if v is a vector, so should K @ v.
+        return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
+
     
     
