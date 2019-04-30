@@ -65,7 +65,10 @@ class torchtools:
     def eye(n, dtype=default_dtype, device='cpu'): return torch.eye(n, dtype=dtype, device=device)
 
     @staticmethod
-    def array(x, dtype=default_dtype, device='cpu'): return torch.tensor(x, dtype=dtype, device=device)
+    def array(x, dtype=default_dtype, device='cpu'):
+        if   dtype == "float32": dtype = torch.float32
+        elif dtype == "float64": dtype = torch.float64
+        return torch.tensor(x, dtype=dtype, device=device)
     
 
 def WarmUpGpu():

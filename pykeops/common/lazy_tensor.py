@@ -158,13 +158,13 @@ class LazyTensor:
                 self.tools = numpytools
                 self.Genred = Genred_numpy
                 self.KernelSolve = KernelSolve_numpy
-                self.dtype = self.tools.dtype(x)
+                self.dtype = self.tools.dtypename( self.tools.dtype(x) )
 
             elif usetorch and typex == torch.Tensor:
                 self.tools = torchtools
                 self.Genred = Genred_torch
                 self.KernelSolve = KernelSolve_torch
-                self.dtype = self.tools.dtype(x)
+                self.dtype = self.tools.dtypename( self.tools.dtype(x) )
             else:
                 raise ValueError("LazyTensors should be built from NumPy arrays, PyTorch tensors, " \
                                  +"float/integer numbers, lists of floats or 3-uples of integers. " \
@@ -211,7 +211,7 @@ class LazyTensor:
                     self.ni = x.shape[0]
                 else:
                     self.nj = x.shape[0]
-                self.dtype = self.tools.dtype(x)
+                self.dtype = self.tools.dtypename( self.tools.dtype(x) )
 
             elif len(x.shape) == 1:  # shape is (D,): x is a "Pm(D)" parameter
                 if axis is not None and axis != 2:
@@ -388,7 +388,7 @@ class LazyTensor:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
             # "res" now becomes a callable object:
             res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis, 
-                                     res.tools.dtypename(res.dtype), res.opt_arg, res.formula2)
+                                     res.dtype, res.opt_arg, res.formula2)
         
         if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
             return res()
@@ -467,7 +467,7 @@ class LazyTensor:
         if res.dtype is not None:
             res.fixvariables()
             res.callfun = res.KernelSolve(res.formula, [], res.varformula, 
-                                          res.axis, res.tools.dtypename(res.dtype))
+                                          res.axis, res.dtype)
         
         # we call if call=True, if other is not symbolic, and if the dtype is set
         if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
@@ -490,14 +490,14 @@ class LazyTensor:
                 self.Genred = Genred_torch
                 self.KernelSolve = KernelSolve_torch
                 
-            self.dtype = self.tools.dtype(args[0])
+            self.dtype = self.tools.dtypename( self.tools.dtype(args[0]) )
             self.fixvariables()
             if self.reduction_op == "Solve":
                 self.callfun = self.KernelSolve(self.formula, [], self.formula2,
-                                                self.axis, self.tools.dtypename(self.dtype))
+                                                self.axis, self.dtype)
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op, 
-                                    self.axis, self.tools.dtypename(self.dtype), self.opt_arg, self.formula2)
+                                    self.axis, self.dtype, self.opt_arg, self.formula2)
         
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
             # here args should be empty, according to our rule
@@ -534,11 +534,18 @@ class LazyTensor:
         ni   = 1 if self.ni   is None else self.ni
         nj   = 1 if self.nj   is None else self.nj
         ndim = 1 if self.ndim is None else self.ndim
+        return (ni, nj) if ndim == 1 else (ni, nj, ndim)
+
+    @property
+    def _shape(self):
+        ni   = 1 if self.ni   is None else self.ni
+        nj   = 1 if self.nj   is None else self.nj
+        ndim = 1 if self.ndim is None else self.ndim
         return (ni, nj, ndim)
 
     def dim(self):
         """Just as in PyTorch, returns the number of dimensions of a LazyTensor."""
-        return len(self.shape)
+        return len(self._shape)
 
     # List of supported operations  ============================================
     
@@ -956,9 +963,9 @@ class LazyTensor:
     def matvecmult(self,other):
         r"""Matrix-vector product - a binary operation.
 
-        If ``x.shape[-1] == A*B`` and ``y.shape[-1] == B``,
+        If ``x._shape[-1] == A*B`` and ``y._shape[-1] == B``,
         ``z = x.matvecmult(y)`` returns a :mod:`LazyTensor` 
-        such that ``z.shape[-1] == A`` which encodes, symbolically,
+        such that ``z._shape[-1] == A`` which encodes, symbolically,
         the matrix-vector product of ``x`` and ``y`` along their last dimension.
         For details, please check the documentation of the KeOps operation ``"MatVecMult"`` in
         the :doc:`main reference page <../api/math-operations>`.    
@@ -968,9 +975,9 @@ class LazyTensor:
     def vecmatmult(self,other):
         r"""Vector-matrix product - a binary operation.
 
-        If ``x.shape[-1] == A`` and ``y.shape[-1] == A*B``,
+        If ``x._shape[-1] == A`` and ``y._shape[-1] == A*B``,
         ``z = x.vecmatmult(y)`` returns a :mod:`LazyTensor` 
-        such that ``z.shape[-1] == B`` which encodes, symbolically,
+        such that ``z._shape[-1] == B`` which encodes, symbolically,
         the vector-matrix product of ``x`` and ``y`` along their last dimension.
         For details, please check the documentation of the KeOps operation ``"VetMacMult"`` in
         the :doc:`main reference page <../api/math-operations>`.    
@@ -980,9 +987,9 @@ class LazyTensor:
     def tensorprod(self,other):
         r"""Tensor product of vectors - a binary operation.
 
-        If ``x.shape[-1] == A`` and ``y.shape[-1] == B``,
+        If ``x._shape[-1] == A`` and ``y._shape[-1] == B``,
         ``z = x.tensorprod(y)`` returns a :mod:`LazyTensor` 
-        such that ``z.shape[-1] == A*B`` which encodes, symbolically,
+        such that ``z._shape[-1] == A*B`` which encodes, symbolically,
         the tensor product of ``x`` and ``y`` along their last dimension.
         For details, please check the documentation of the KeOps operation ``"TensorProd"`` in
         the :doc:`main reference page <../api/math-operations>`.    
@@ -1126,10 +1133,10 @@ class LazyTensor:
     def __matmul__(self, v):
         r"""Matrix-vector or Matrix-matrix product.
 
-        If ``K`` is a LazyTensor whose trailing dimension ``K.shape[-1]`` is equal to 1,
+        If ``K`` is a LazyTensor whose trailing dimension ``K._shape[-1]`` is equal to 1,
         we can understand it as a linear operator and apply it to arbitrary NumPy arrays
         or PyTorch Tensors. Assuming that ``v`` is a 1D (resp. 2D) tensor such that
-        ``K.shape[-2] == v.shape[0]``, ``K @ v`` denotes the matrix-vector (resp. matrix-matrix)
+        ``K.shape[-1] == v.shape[0]``, ``K @ v`` denotes the matrix-vector (resp. matrix-matrix)
         product between the two objects, encoded as a vanilla NumPy or PyTorch 1D (resp. 2D) tensor.
 
         Example:
@@ -1140,7 +1147,7 @@ class LazyTensor:
             >>> print( (K @ v).shape )
             ... torch.Size([1000, 2])
         """
-        if self.shape[-1] != 1:
+        if self._shape[-1] != 1:
             raise ValueError("The 'K @ v' syntax is only supported for LazyTensors "\
                             +"'K' whose trailing dimension is equal to 1. Here, K.shape = {}.".format(self.shape))
 
@@ -1159,7 +1166,7 @@ class LazyTensor:
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
 
     def t(self):
-        """Matrix transposition, permuting the axes -2 and -3.
+        """Matrix transposition, permuting the axes of :math:`i`- and :math:`j`-variables.
         
         For instance, if ``K`` is a LazyTensor of shape ``(B,M,N,D)``,
         ``K.t()`` returns a symbolic copy of ``K`` whose axes 1 and 2 have
@@ -1168,8 +1175,8 @@ class LazyTensor:
         Example:
             >>> x, y = torch.randn(1000, 3), torch.randn(2000, 3)
             >>> x_i, y_j = LazyTensor( x[:,None,:] ), LazyTensor( y[None,:,:] )
-            >>> K  = (- ((    x_i     -      y_j   )**2).sum(2) ).exp()  # Symbolic (1000,2000,1) Gaussian kernel matrix
-            >>> K_ = (- ((x[:,None,:] - y[None,:,:])**2).sum(2) ).exp()  # Explicit (1000,2000,1) Gaussian kernel matrix
+            >>> K  = (- ((    x_i     -      y_j   )**2).sum(2) ).exp()  # Symbolic (1000,2000) Gaussian kernel matrix
+            >>> K_ = (- ((x[:,None,:] - y[None,:,:])**2).sum(2) ).exp()  # Explicit (1000,2000) Gaussian kernel matrix
             >>> w  = torch.rand(1000, 2)
             >>> print( (K.t() @ w - K_.t() @ w).abs().mean() )
             ... tensor(1.7185e-05)
@@ -1198,3 +1205,32 @@ class LazyTensor:
     def T(self):
         """Numpy-friendly alias for the matrix transpose ``self.t()``."""
         return self.t()
+
+    def matvec(self, v):
+        """Alias for the matrix-vector product, added for compatibility with :mod:`scipy.sparse.linalg`.
+
+        If ``K`` is a LazyTensor whose trailing dimension ``K._shape[-1]`` is equal to 1,
+        we can understand it as a linear operator and wrap it into a
+        :mod:`scipy.sparse.linalg.LinearOperator` object, thus getting access
+        to robust solvers and spectral routines.
+
+        Example:
+            >>> import numpy as np
+            >>> x = np.random.randn(1000,3)
+            >>> x_i, x_j = LazyTensor( x[:,None,:] ), LazyTensor( x[None,:,:] )
+            >>> K_xx = (- ((x_i - x_j)**2).sum(2) ).exp()  # Symbolic (1000,1000) Gaussian kernel matrix
+            >>> from scipy.sparse.linalg import eigsh, aslinearoperator
+            >>> eigenvalues, eigenvectors = eigsh( aslinearoperator( K_xx ), k=5 )
+            >>> print(eigenvalues)
+            ... [ 35.5074527   59.01096445  61.35075268  69.34038814 123.77540277]
+            >>> print( eigenvectors.shape)
+            ... (1000, 5)
+        """
+        return self @ v
+    
+    def rmatvec(self):
+        """Alias for the transposed matrix-vector product, added for compatibility with :mod:`scipy.sparse.linalg`.
+
+        See :meth:`matvec` for further reference.
+        """
+        return self.T @ v
