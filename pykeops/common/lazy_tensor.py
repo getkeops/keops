@@ -15,6 +15,14 @@ except ImportError:
     usetorch = False
     pass
 
+try:
+    import torch
+    import gpytorch
+    use_gpytorch = True
+except ImportError:
+    use_gpytorch = False
+    pass
+
 
 # Convenient aliases:
 
@@ -1234,3 +1242,26 @@ class LazyTensor:
         See :meth:`matvec` for further reference.
         """
         return self.T @ v
+
+    def gpytorch(self):
+        if use_gpytorch:
+            return KeOpsLazyTensor(self)
+        else:
+            raise ImportError("Could not import the 'gpytorch' module.")
+
+
+if use_gpytorch:
+    class KeOpsLazyTensor(gpytorch.lazy.LazyTensor):
+
+        def __init__(self, K):
+            super().__init__()
+            self.K = K
+        
+        def _matmul(self, M):
+            return self.K @ M
+        
+        def _size(self):
+            return torch.Size( self.K.shape )
+
+        def _transpose_nonbatch(self):
+            return KeOpsLazyTensor( self.K.t() )
