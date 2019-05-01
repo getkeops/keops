@@ -1253,7 +1253,7 @@ class LazyTensor:
 if use_gpytorch:
     class KeOpsLazyTensor(gpytorch.lazy.LazyTensor):
 
-        def __init__(self, K):
+        def __init__(self, K=None):
             super().__init__()
             self.K = K
         
