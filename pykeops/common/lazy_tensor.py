@@ -520,6 +520,9 @@ class LazyTensor:
         tmp = self.init()  # ~ self.copy()
         tmp.formula = self.formula
         tmp.formula2 = None if not hasattr(self, 'formula2') else self.formula2
+        if tmp.tools is None:
+            # just to avoid error when printing a parameter vector entered as a raw python list
+            tmp.tools = numpytools
         tmp.fixvariables()  # Replace Var(id(x),...) with consecutive labels
 
         string = "KeOps LazyTensor\n    formula: {}".format(tmp.formula)
@@ -758,7 +761,7 @@ class LazyTensor:
                 raise ValueError("Incompatible dimensions for the LazyTensor and its exponent: " \
                                + "{} and {}.".format(self.ndim, other.ndim))
         else:
-            raise ValueError("The exponent should be an integer, a floar number or a LazyTensor.")
+            raise ValueError("The exponent should be an integer, a float number or a LazyTensor.")
 
     def power(self,other):
         r"""Broadcasted element-wise power operator - a binary operation.
