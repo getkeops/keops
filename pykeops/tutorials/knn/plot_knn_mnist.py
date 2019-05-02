@@ -30,7 +30,11 @@ tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 ######################################################################
 # Load the MNIST dataset: 70,000 images of shape (28,28).
 
-from sklearn.datasets import fetch_openml
+try:
+    from sklearn.datasets import fetch_openml
+except ImportError:
+    raise ImportError("This tutorial requires Scikit Learn version >= 0.20.")
+
 from sklearn.model_selection import train_test_split
 
 mnist = fetch_openml('mnist_784', cache=False)
