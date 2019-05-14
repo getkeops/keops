@@ -311,6 +311,15 @@ class LazyTensor:
         
         The optional argument 'dimres' may be used to specify the dimension of the output 'result'.
         """
+
+        # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
+        if not isinstance(self, LazyTensor):  self  = LazyTensor(self)
+        
+        # we must prevent any operation if self is the output of a reduction operation,
+        # i.e. if it has a reduction_op field
+        if hasattr(self, 'reduction_op'):
+            raise ValueError("Input is a 'reduced' LazyTensor, no operation can be applied to it. ")
+            
         if not dimres: dimres = self.ndim
 
         res = self.init()  # Copy of self, without a formula
@@ -337,6 +346,11 @@ class LazyTensor:
         if not isinstance(self, LazyTensor):  self  = LazyTensor(self)
         if not isinstance(other, LazyTensor): other = LazyTensor(other)      
 
+        # we must prevent any operation if self or other is the output of a reduction operation,
+        # i.e. if it has a reduction_op field
+        if hasattr(self, 'reduction_op') or hasattr(other, 'reduction_op'):
+            raise ValueError("One of the inputs is a 'reduced' LazyTensor, no operation can be applied to it. ")
+            
         # By default, the dimension of the output variable is the max of the two operands:
         if not dimres: dimres = max(self.ndim, other.ndim)
 
@@ -1006,11 +1020,7 @@ class LazyTensor:
         the :doc:`main reference page <../api/math-operations>`.    
         """ 
         return self.binary(other, "TensorProd", dimres = (other.ndim * self.ndim), dimcheck=None)        
-                
-         
-
-
-
+        
 
     # List of supported reductions  ============================================
 
