@@ -1,4 +1,5 @@
 import os.path
+import os
 import sys
 from .common.set_path import set_build_folder
 
@@ -16,7 +17,7 @@ torch_found = False
 script_folder = os.path.dirname(os.path.abspath(__file__))
 build_folder = set_build_folder()
 
-verbose = False  # display output of compilations
+verbose = bool(int(os.environ['KEOPS_VERBOSE'])) if 'KEOPS_VERBOSE' in os.environ else False  # display output of compilations
 build_type = "Release"  # 'Release' or 'Debug'
 
 sys.path.append(build_folder)
