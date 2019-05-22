@@ -4,6 +4,9 @@
 *~
 *.swp
 
+# virtual env
+*venv*
+
 # Build junk
 *build*
 *output*
