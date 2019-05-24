@@ -151,7 +151,13 @@ First of all, make sure that you are using a C++ compiler which is compatible wi
 Verbosity level
 ---------------
 
-To help debugging, you can activate a **verbose** compilation mode by adding a few words **after** your KeOps imports:
+To help debugging, you can activate a **verbose** compilation mode. It may be done by defining the environment variable `PYKEOPS_VERBOSE` to 1. In a terminal
+
+.. code-block:: bash
+  export PYKEOPS_VERBOSE=1
+  python my_script_calling_pykeops.py
+
+Or directly in your python script by setting **after** your KeOps imports the flag pykeops.verbose to true. It gives in a python shell something like: 
 
 .. code-block:: python
 
@@ -170,3 +176,21 @@ If you experience problems with compilation (or numerical inaccuracies after a K
 
   import pykeops
   print(pykeops.build_folder)
+
+
+Build type
+----------
+
+Only developper should use this feature. You can change the build type of the shared objects compiled by pyKeops from `Release` (default) to `Debug`. It may be done by defining the environment variable `PYKEOPS_BUILD_TYPE`: in a terminal
+
+.. code-block:: bash
+  export PYKEOPS_VERBOSE="Debug"
+  python my_script_calling_pykeops.py
+
+Or directly in your python script by changing **after** your KeOps imports the (string) variable `pykeops.build_type`. It gives in a python shell something like: 
+
+.. code-block:: python
+
+  import pykeops
+  pykeops.build_type = 'Debug'
+

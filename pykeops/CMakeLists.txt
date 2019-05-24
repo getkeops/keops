@@ -8,6 +8,10 @@ project(PyKeOps LANGUAGES CXX)
 
 set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 include(${KEOPS_SRC}/cuda.cmake)
 
 ## Set Path to sources
