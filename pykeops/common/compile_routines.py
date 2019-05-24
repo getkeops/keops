@@ -1,10 +1,11 @@
+import os
 import subprocess
 from pykeops import build_folder, script_folder, verbose, build_type
 from pykeops.common.utils import c_type
 from pykeops.common.parse_type import check_aliases_list
 
 
-def run_and_display(args, msg=''):
+def run_and_display(args, loc_build_folder, msg=''):
     """
     This function run the command stored in args and display the output if needed
     :param args: list
@@ -12,7 +13,7 @@ def run_and_display(args, msg=''):
     :return: None
     """
     try:
-        proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
+        proc = subprocess.run(args, cwd=loc_build_folder, stdout=subprocess.PIPE, check=True)
         if verbose:
             print(proc.stdout.decode('utf-8'))
 
@@ -39,9 +40,12 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     alias_disp_string = ''.join([process_disp_alias(alias) for alias in aliases])
 
     target = dllname
+    loc_build_folder = build_folder + target + os.path.sep 
+    os.makedirs(loc_build_folder, exist_ok=True)
     
-    print('Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ', end='', flush=True)
+    print('Compiling ' + dllname + ' in ' + loc_build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ', end='', flush=True)
 
+    print(script_folder)
     run_and_display(['cmake', script_folder,
                      '-DCMAKE_BUILD_TYPE=' + build_type,
                      '-DFORMULA_OBJ=' + formula,
@@ -50,9 +54,13 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                      '-D__TYPE__=' + c_type[dtype],
                      '-DPYTHON_LANG=' + lang,
                      ] + optional_flags,
+                    loc_build_folder,
                     msg='CMAKE')
 
-    run_and_display(['cmake', '--build', '.', '--target', target], msg='MAKE')
+    run_and_display(['cmake', '--build', '.', '--target', target], loc_build_folder, msg='MAKE')
+
+    run_and_display(['cmake', '--install', '.', '--target', target], loc_build_folder, msg='INSTALL')
+
     print('Done. ', end='\n', flush=True)
 
 

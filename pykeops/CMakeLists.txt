@@ -129,6 +129,10 @@ target_link_libraries(
     keops${shared_obj_name}
 )
 
+install(
+  TARGETS keops${shared_obj_name} ${shared_obj_name}
+  DESTINATION ${PROJECT_BINARY_DIR}/../
+)
 
 ########################################################################################################
 #                                        Specific                                                      #
