@@ -17,7 +17,10 @@ torch_found = False
 script_folder = os.path.dirname(os.path.abspath(__file__))
 build_folder = set_build_folder()
 
-verbose = bool(int(os.environ['KEOPS_VERBOSE'])) if 'KEOPS_VERBOSE' in os.environ else False  # display output of compilations
-build_type = "Release"  # 'Release' or 'Debug'
+# Set the verbosity option: display output of compilations. This is a boolean: False or True
+verbose = bool(int(os.environ['PYKEOPS_VERBOSE'])) if 'PYKEOPS_VERBOSE' in os.environ else False  
+
+# Force compiled and set the cmake build type. This is a string with possible value "Release" or "Debug"
+build_type = str(os.environ['PYKEOPS_BUILD_TYPE']) if ('PYKEOPS_BUILD_TYPE' in os.environ) else 'Release'
 
 sys.path.append(build_folder)

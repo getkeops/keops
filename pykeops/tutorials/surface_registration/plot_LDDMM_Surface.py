@@ -224,7 +224,7 @@ loss = LDDMMloss(Kv, dataloss)
 # initialize momentum vectors
 p0 = torch.zeros(q0.shape, dtype=torchdtype, device=torchdeviceId, requires_grad=True)
 
-optimizer = torch.optim.LBFGS([p0], max_eval=6)
+optimizer = torch.optim.LBFGS([p0], max_eval=10, max_iter=10)
 print('performing optimization...')
 start = time.time()
 
