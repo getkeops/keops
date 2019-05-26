@@ -132,6 +132,14 @@ target_link_libraries(
 install(
   TARGETS keops${shared_obj_name} ${shared_obj_name}
   DESTINATION ${PROJECT_BINARY_DIR}/../
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+)
+
+# Write a log file to decypher keops dllname
+string(TIMESTAMP TODAY "%Y/%m/%d")
+file(
+  APPEND ${PROJECT_BINARY_DIR}/../keops_hash.log
+  "${shared_obj_name} - ${FORMULA_OBJ} - ${VAR_ALIASES} - ${__TYPE__} - ${TODAY}\n"
 )
 
 ########################################################################################################
@@ -161,6 +169,12 @@ if (USE_CUDA)
         radial_kernel_conv_cuda
     )
 
+    install(
+        TARGETS radial_kernel_conv radial_kernel_conv_cuda
+        DESTINATION ${PROJECT_BINARY_DIR}/../
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    )
+
     #---------------------------------------------------------------------------------------------------
     CUDA_add_library(
         radial_kernel_grad1conv_cuda SHARED
@@ -179,6 +193,12 @@ if (USE_CUDA)
     target_link_libraries(
         radial_kernel_grad1conv PUBLIC
         radial_kernel_grad1conv_cuda
+    )
+
+    install(
+        TARGETS radial_kernel_grad1conv radial_kernel_grad1conv_cuda
+        DESTINATION ${PROJECT_BINARY_DIR}/../
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
     )
 
     #---------------------------------------------------------------------------------------------------
@@ -247,6 +267,13 @@ if (USE_CUDA)
             ${fshape_scp_name} PUBLIC
             ${name1}
         )
+
+        install(
+            TARGETS ${fshape_scp_name} ${name1}
+            DESTINATION ${PROJECT_BINARY_DIR}/../
+            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+        )
+
 
     endforeach()
 
