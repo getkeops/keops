@@ -1,12 +1,12 @@
+import importlib.util
+import os
+
 import numpy as np
 
-import os
-import importlib
-
 from pykeops import bin_folder, build_type
-from pykeops.numpy import default_dtype
-from pykeops.common.utils import c_type, create_and_lock_build_folder
 from pykeops.common.compile_routines import compile_specific_fshape_scp_routine
+from pykeops.common.utils import c_type, create_and_lock_build_folder
+from pykeops.numpy import default_dtype
 
 
 class LoadKeopsFshapeScp:
@@ -29,8 +29,9 @@ class LoadKeopsFshapeScp:
     
     @create_and_lock_build_folder()
     def _safe_compile(self):
-        compile_specific_fshape_scp_routine(self.dllname, self.kernel_geom, self.kernel_sig, self.kernel_sphere, self.dtype)
-
+        compile_specific_fshape_scp_routine(self.dllname, self.kernel_geom, self.kernel_sig, self.kernel_sphere,
+                                            self.dtype)
+    
     def import_module(self):
         return importlib.import_module(self.dllname)
 
@@ -49,15 +50,17 @@ class FshapeScp:
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
     
-    def __init__(self, kernel_geom="gaussian", kernel_sig="gaussian", kernel_sphere="binet", dtype=default_dtype, cuda_type=None):
+    def __init__(self, kernel_geom="gaussian", kernel_sig="gaussian", kernel_sphere="binet", dtype=default_dtype,
+                 cuda_type=None):
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type 
+            dtype = cuda_type
         self.kernel_geom = kernel_geom
         self.kernel_sig = kernel_sig
         self.kernel_sphere = kernel_sphere
         self.dtype = dtype
-
-    def __call__(self, x, y, f, g, alpha, beta, sigma_geom=1.0, sigma_sig=1.0, sigma_sphere=np.pi/2,):
-        myconv = LoadKeopsFshapeScp("fshape_scp", self.kernel_geom, self.kernel_sig, self.kernel_sphere, self.dtype).import_module()
-        return myconv.specific_fshape_scp(x, y, f, g, alpha, beta, sigma_geom , sigma_sig, sigma_sphere)
+    
+    def __call__(self, x, y, f, g, alpha, beta, sigma_geom=1.0, sigma_sig=1.0, sigma_sphere=np.pi / 2, ):
+        myconv = LoadKeopsFshapeScp("fshape_scp", self.kernel_geom, self.kernel_sig, self.kernel_sphere,
+                                    self.dtype).import_module()
+        return myconv.specific_fshape_scp(x, y, f, g, alpha, beta, sigma_geom, sigma_sig, sigma_sphere)

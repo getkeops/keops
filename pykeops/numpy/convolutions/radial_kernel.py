@@ -1,16 +1,17 @@
-import importlib
+import importlib.util
 import os
 
 from pykeops import bin_folder, build_type
-from pykeops.numpy import default_dtype
-from pykeops.common.utils import create_and_lock_build_folder
 from pykeops.common.compile_routines import compile_specific_conv_routine
+from pykeops.common.utils import create_and_lock_build_folder
+from pykeops.numpy import default_dtype
 
 
 class LoadKeopsSpecific:
     r"""
     This class compile the cuda routines if necessary and load it via the method import_module()
     """
+    
     def __init__(self, dllname, dtype=default_dtype):
         self.dllname = dllname
         self.dtype = dtype
@@ -42,13 +43,13 @@ class RadialKernelConv:
 
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p". 
     """
-
+    
     def __init__(self, dtype=default_dtype, cuda_type=None):
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type         
+            dtype = cuda_type
         self.myconv = LoadKeopsSpecific('radial_kernel_conv', dtype).import_module()
-
+    
     def __call__(self, x, y, beta, sigma, kernel='gaussian'):
         return self.myconv.specific_conv(x, y, beta, sigma, kernel)
 
@@ -66,14 +67,15 @@ class RadialKernelGrad1conv:
 
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
+    
     def __init__(self, dtype=default_dtype, cuda_type=None):
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type 
+            dtype = cuda_type
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type 
+            dtype = cuda_type
         self.myconv = LoadKeopsSpecific('radial_kernel_grad1conv', dtype).import_module()
-
+    
     def __call__(self, a, x, y, beta, sigma, kernel='gaussian'):
         return self.myconv.specific_grad1conv(a, x, y, beta, sigma, kernel)

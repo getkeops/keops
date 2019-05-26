@@ -1,5 +1,5 @@
 import os
-import importlib
+import importlib.util
 from hashlib import sha256
 
 from pykeops import bin_folder, build_type
