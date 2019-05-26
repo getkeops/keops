@@ -1,11 +1,38 @@
 import numpy as np
 
+import os
 import importlib
 
-from pykeops import build_type
+from pykeops import bin_folder, build_type
 from pykeops.numpy import default_dtype
-from pykeops.common.utils import c_type
+from pykeops.common.utils import c_type, create_and_lock_build_folder
 from pykeops.common.compile_routines import compile_specific_fshape_scp_routine
+
+
+class LoadKeopsFshapeScp:
+    r"""
+    This class compile the cuda routines if necessary and load it via the method import_module()
+    """
+    
+    def __init__(self, target, kernel_geom, kernel_sig, kernel_sphere, dtype):
+        self.kernel_geom = kernel_geom
+        self.kernel_sig = kernel_sig
+        self.kernel_sphere = kernel_sphere
+        self.dllname = target + "_" + kernel_geom + kernel_sig + kernel_sphere + "_" + c_type[dtype]
+        self.dtype = dtype
+        
+        spec = importlib.util.find_spec(self.dllname)
+        
+        if (spec is None) or (build_type == 'Debug'):
+            self.build_folder = bin_folder + os.path.sep + 'build-' + self.dllname
+            self._safe_compile()
+    
+    @create_and_lock_build_folder()
+    def _safe_compile(self):
+        compile_specific_fshape_scp_routine(self.dllname, self.kernel_geom, self.kernel_sig, self.kernel_sphere, self.dtype)
+
+    def import_module(self):
+        return importlib.import_module(self.dllname)
 
 
 class FshapeScp:
@@ -32,24 +59,5 @@ class FshapeScp:
         self.dtype = dtype
 
     def __call__(self, x, y, f, g, alpha, beta, sigma_geom=1.0, sigma_sig=1.0, sigma_sphere=np.pi/2,):
-        myconv = self.load_keops("fshape_scp", self.kernel_geom, self.kernel_sig, self.kernel_sphere, self.dtype)
+        myconv = LoadKeopsFshapeScp("fshape_scp", self.kernel_geom, self.kernel_sig, self.kernel_sphere, self.dtype).import_module()
         return myconv.specific_fshape_scp(x, y, f, g, alpha, beta, sigma_geom , sigma_sig, sigma_sphere)
-
-    @staticmethod
-    # extract radial_kernels_conv function pointer in the shared object radial_kernels_conv.so
-    def load_keops(target, kernel_geom, kernel_sig, kernel_sphere, dtype):
-        dllname = target + "_" + kernel_geom + kernel_sig + kernel_sphere + "_" + c_type[dtype]
-        # Import and compile
-        compile = (build_type == 'Debug')
-
-        if not compile:
-            try:
-                myconv = importlib.import_module(dllname)
-            except ImportError:
-                compile = True
-
-        if compile:
-            compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel_sphere, dtype)
-            myconv = importlib.import_module(dllname)
-            print("Loaded.")
-        return myconv
