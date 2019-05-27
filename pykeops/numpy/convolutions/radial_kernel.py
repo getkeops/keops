@@ -24,7 +24,7 @@ class LoadKeopsSpecific:
     
     @create_and_lock_build_folder()
     def _safe_compile(self):
-        compile_specific_conv_routine(self.dllname, self.dtype)
+        compile_specific_conv_routine(self.dllname, self.dtype, build_folder=self.build_folder)
     
     def import_module(self):
         return importlib.import_module(self.dllname)
