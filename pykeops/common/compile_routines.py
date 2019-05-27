@@ -84,6 +84,7 @@ def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel
                      '-D__TYPE__=' + c_type[dtype],
                      build_folder,
                      ],
+                    build_folder,
                     msg='CMAKE')
     run_and_display(['make', 'install', dllname], build_folder, msg='MAKE')
     print('Done. ', end='\n', flush=True)
