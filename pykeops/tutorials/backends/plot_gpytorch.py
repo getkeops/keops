@@ -7,7 +7,7 @@ Out-of-the-box, KeOps only provides :ref:`limited support <interpolation-tutoria
 `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
 or `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_:
 the :class:`KernelSolve <pykeops.torch.KernelSolve>` operator
-implements a straightforward conjugate gradient solver for kernel linear systems...
+implements a conjugate gradient solver for kernel linear systems...
 and that's about it.
 
 Fortunately though, KeOps can easily be used
@@ -18,9 +18,9 @@ within the first `regression tutorial <https://gpytorch.readthedocs.io/en/latest
 of GPytorch's documentation.
 
 Due to hard-coded constraints within the structure of GPytorch,
-the syntax below is pretty verbose... But **we're working on it**!
+the syntax presented below is pretty verbose... But **we're working on it**!
 Needless to say, feel free to `let us know <https://github.com/getkeops/keops/issues>`_
-if you encounter any unexpected behavior with this KeOps-GPytorch interface.
+if you encounter any unexpected behavior with this experimental KeOps-GPytorch interface.
 
 """
 
@@ -38,10 +38,10 @@ use_cuda = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 #####################################################################
-# Toy dataset: some regularly spaced samples on the unit interval,
+# We generate a toy dataset: some regularly spaced samples on the unit interval,
 # and a sinusoid signal corrupted by a small Gaussian noise.
 
-N = 100
+N = 1000 if use_cuda else 100
 train_x = torch.linspace(0, 1, N).type(dtype)
 train_y = torch.sin(train_x * (2 * math.pi)) \
         + .2 * torch.randn(train_x.size()).type(dtype)
@@ -54,14 +54,15 @@ train_y = torch.sin(train_x * (2 * math.pi)) \
 # Internally, GPytorch relies on `LazyTensors  <https://gpytorch.readthedocs.io/en/latest/lazy.html>`_
 # parameterized by explicit **torch Tensors** - and **nothing** else.
 # To let GPytorch use our KeOps CUDA routines, we should thus create
-# a new 
+# a new class of :mod:`gpytorch.lazy.LazyTensor`, encoding an implicit
+# kernel matrix built from raw point clouds **x_i** and **y_j**.
 # 
 # .. note::
 #   Ideally, we'd like to be able to **export KeOps LazyTensors** directly as
-#   GPytorch objects, but the reliance of the latter's engine on
+#   GPytorch objects, but the reliance of the latter's internal engine on
 #   explicit **torch.Tensor** variables is a hurdle that we could not bypass
 #   easily. Working on this problem with the GPytorch team, 
-#   we hope to provide a simpler syntax for this interface in future releases. 
+#   we hope to provide a simpler interface in future releases. 
 
 
 from pykeops import LazyTensor
@@ -69,13 +70,14 @@ from pykeops import LazyTensor
 class KeOpsRBFLazyTensor(gpytorch.lazy.LazyTensor):
     def __init__(self, x_i, y_j):
         """Creates a symbolic Gaussian RBF kernel out of two point clouds `x_i` and `y_j`."""
-        super().__init__( x_i, y_j )
+        super().__init__( x_i, y_j )  # GPytorch will remember that self was built from x_i and y_j
         
-        self.x_i, self.y_j = x_i, y_j
+        self.x_i, self.y_j = x_i, y_j  # Useful to define a symbolic transpose
 
-        # Compute the kernel matrix symbolically...
-        x_i, y_j = LazyTensor( self.x_i[:,None,:] ), LazyTensor( self.y_j[None,:,:] )
-        K_xy = ( - ((x_i - y_j)**2).sum(-1) / 2).exp()
+        with torch.autograd.enable_grad():  # N.B.: gpytorch operates in no_grad mode
+            x_i, y_j = LazyTensor( self.x_i[:,None,:] ), LazyTensor( self.y_j[None,:,:] )
+            K_xy = ( - ((x_i - y_j)**2).sum(-1) / 2).exp()  # Compute the kernel matrix symbolically...
+
         self.K = K_xy  # ... and store it for later use
 
     def _matmul(self, M):
@@ -94,41 +96,11 @@ class KeOpsRBFLazyTensor(gpytorch.lazy.LazyTensor):
         """Returns a (small) explicit sub-matrix, used e.g. for Nystroem approximation."""
         X_i = self.x_i[row_index]
         Y_j = self.y_j[col_index]
-        return ( - ((X_i - Y_j)**2).sum(-1) / 2).exp()
+        return ( - ((X_i - Y_j)**2).sum(-1) / 2).exp()  # Genuine torch.Tensor
 
-    def _quad_form_derivative(self, left_vecs, right_vecs):
-        """Given u (left_vecs) and v (right_vecs), computes the derivatives of (u^t K v) w.r.t. K."""
-        from collections import deque
-        from torchviz import make_dot
-
-        args = tuple(self.representation())
-        args_with_grads = tuple(arg for arg in args if arg.requires_grad)
-
-        # Easy case: if we don't require any gradients, then just return!
-        if not len(args_with_grads):
-            return tuple(None for _ in args)
-
-        # Normal case: we'll use the autograd to get us a derivative
-        with torch.autograd.enable_grad():
-            loss = (left_vecs * self._matmul(right_vecs)).sum()
-            print(loss.grad_fn)
-            loss.requires_grad_(True)
-            actual_grads = deque(torch.autograd.grad(loss, [self.x_i, self.y_j], allow_unused=True))
-            print(args_with_grads[1] is self.y_j)
-            # actual_grads = deque(torch.autograd.grad(loss, args_with_grads, allow_unused=True))
-
-        print(self.x_i.requires_grad)
-        print(actual_grads)
-
-        # Now make sure that the object we return has one entry for every item in args
-        grads = []
-        for arg in args:
-            if arg.requires_grad:
-                grads.append(actual_grads.popleft())
-            else:
-                grads.append(None)
-
-        return tuple(grads)
+    def _quad_form_derivative(self, *args, **kwargs):
+        """As of gpytorch v0.3.2, the default implementation returns a list instead of a tuple..."""
+        return tuple( super()._quad_form_derivative( *args, **kwargs) )  # Bugfix!
 
 
 #####################################################################
@@ -140,12 +112,15 @@ class KeOpsRBFKernel(gpytorch.kernels.Kernel):
     def __init__(self, **kwargs):
         super().__init__(has_lengthscale=True, **kwargs)
         
-    def forward(self, x1, x2, **params):
-        # Rescale the input data and wrap it in a KeOps LazyTensor:
-        if x1.dim() == 1: x1 = x1.view(-1,1)
-        if x2.dim() == 1: x2 = x2.view(-1,1)
-        x_i, y_j = x1.div(self.lengthscale), x2.div(self.lengthscale)
-        return KeOpsRBFLazyTensor(x_i, y_j)  # ... and return it as a gyptorch.lazy.LazyTensor
+    def forward(self, x1, x2, diag=False, **params):
+        if diag:  # A Gaussian RBF kernel only has "ones" on the diagonal
+            return torch.ones( len(x1) ).type_as(x1)
+        else:
+            if x1.dim() == 1: x1 = x1.view(-1,1)
+            if x2.dim() == 1: x2 = x2.view(-1,1)
+            # Rescale the input data...
+            x_i, y_j = x1.div(self.lengthscale), x2.div(self.lengthscale)
+            return KeOpsRBFLazyTensor(x_i, y_j)  # ... and return it as a gyptorch.lazy.LazyTensor
 
 #####################################################################
 # And use it to define a new Gaussian Process model:
@@ -165,8 +140,8 @@ class KeOpsGPModel(gpytorch.models.ExactGP):
 
 ##########################################################
 # **N.B., for the sake of comparison:** the GPytorch documentation went with
-# the code below, using the standard ``gpytorch.kernels.RBFKernel()`` 
-# instead of our custom ``KeOpsRBFKernel()``:
+# the code below, using the standard :meth:`gpytorch.kernels.RBFKernel()` 
+# instead of our custom :meth:`KeOpsRBFKernel()`:
 
 class ExactGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
@@ -217,7 +192,7 @@ for i in range(training_iter):
     # Calc loss and backprop gradients
     loss = -mll(output, train_y)
     loss.backward()
-    if i % 10 == 0:
+    if i % 10 == 0 or i == training_iter - 1:
       print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
           i + 1, training_iter, loss.item(),
           model.covar_module.base_kernel.lengthscale.item(),
@@ -261,4 +236,6 @@ with torch.no_grad():
     ax.set_ylim([-3, 3])
     ax.legend(['Observed Data', 'Mean', 'Confidence'])
 
+plt.axis([0, 1, -2, 2]);
+plt.tight_layout()
 plt.show()
