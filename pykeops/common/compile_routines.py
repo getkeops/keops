@@ -39,8 +39,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     alias_string = ''.join([process_alias(alias) for alias in aliases])
     alias_disp_string = ''.join([process_disp_alias(alias) for alias in aliases])
     
-    print(
-        'Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
+    print('Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
         end='', flush=True)
     
     run_and_display(['cmake', script_folder,
@@ -54,9 +53,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                     build_folder,
                     msg='CMAKE')
     
-    run_and_display(['make', 'install', dllname], build_folder, msg='MAKE')
-    
-    print('Done. ', end='\n', flush=True)
+    run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
 
 
 def compile_specific_conv_routine(dllname, dtype, build_folder=bin_folder):
@@ -68,8 +65,7 @@ def compile_specific_conv_routine(dllname, dtype, build_folder=bin_folder):
                      ],
                     build_folder,
                     msg='CMAKE')
-    run_and_display(['make', 'install', dllname], build_folder, msg='MAKE')
-    print('Done. ', end='\n', flush=True)
+    run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
 
 
 def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel_sphere, dtype,
@@ -86,5 +82,4 @@ def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel
                      ],
                     build_folder,
                     msg='CMAKE')
-    run_and_display(['make', 'install', dllname], build_folder, msg='MAKE')
-    print('Done. ', end='\n', flush=True)
+    run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
