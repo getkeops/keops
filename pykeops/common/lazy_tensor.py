@@ -106,6 +106,7 @@ class LazyTensor:
         self.nj = None
         self.axis = None
         self.ranges = None  # Block-sparsity pattern
+        self.backend = None # "CPU", "GPU", "GPU_2D", etc.
 
         if x is not None:  # A KeOps LazyTensor can be built from many different objects:
 
@@ -288,6 +289,7 @@ class LazyTensor:
         res.ni = self.ni
         res.nj = self.nj
         res.ranges = self.ranges
+        res.backend = self.backend
         res.variables = self.variables
         res.symbolic_variables = self.symbolic_variables
         return res
@@ -297,7 +299,7 @@ class LazyTensor:
         
         N.B.: This method concatenates tuples of variables, without paying attention to repetitions.
         """
-        res = LazyTensor.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj","ranges") )
+        res = LazyTensor.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj","ranges", "backend") )
         
         res.variables = self.variables + other.variables
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
@@ -501,6 +503,12 @@ class LazyTensor:
         """Executes a Genred or KernelSolve call on input data, as specified by self.formula."""
         self.kwargs.update(kwargs)
 
+        if self.ranges is not None and "ranges" not in self.kwargs:
+            self.kwargs.update({ "ranges" : self.ranges })
+        
+        if self.backend is not None and "backend" not in self.kwargs:
+            self.kwargs.update({ "backend" : self.backend })
+
         if self.dtype is None:  # This can only happen if we haven't encountered 2D or 3D arrays just yet...
             if isinstance(args[0], np.ndarray):  # We use the "NumPy" or "PyTorch" backend depending on the first argument
                 self.tools = numpytools
@@ -527,6 +535,7 @@ class LazyTensor:
                 raise ValueError("no input required")
             # we replace by other
             args = (self.other.variables[0],)
+
         return self.callfun(*args, *self.variables, **self.kwargs)
     
     def __str__(self):
