@@ -21,7 +21,7 @@ and
 :math:`\text{Reduction}` is a Sum, LogSumExp or any other standard operation (see :ref:`part.reduction` for the full list of supported reductions).
 
 We now describe the symbolic syntax that 
-can be used through KeOps' bindings.
+can be used through all KeOps bindings.
 
 .. _`part.varCategory`:
 
