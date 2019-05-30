@@ -1,5 +1,7 @@
 #include <vector>
 #include <string>
+#include <tuple>
+
 // #include "formula.h" done by cmake
 
 extern "C" {
@@ -62,16 +64,19 @@ const auto Error_msg_no_cuda = "[KeOps] This KeOps shared object has been compi
 /////////////////////////////////////////////////////////////////////////////////
 
 template< typename array_t >
-int get_size(array_t obj_ptri, int l);
+int get_ndim(array_t obj_ptri);  // len( a.shape )
 
 template< typename array_t >
-__TYPE__* get_data(array_t obj_ptri);
+int get_size(array_t obj_ptri, int l);  // a.shape[l]
 
 template< typename array_t >
-__INDEX__* get_rangedata(array_t obj_ptri);
+__TYPE__* get_data(array_t obj_ptri);   // raw pointer to "a.data"
 
 template< typename array_t >
-bool is_contiguous(array_t obj_ptri);
+__INDEX__* get_rangedata(array_t obj_ptri);  // raw pointer to "a.data", casted as integer
+
+template< typename array_t >
+bool is_contiguous(array_t obj_ptri);  // is "a" ordered properly? KeOps does *not* support strides!
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -86,58 +91,175 @@ void check_tag(int tag, std::string msg){
 }
 
 template<typename array_t>
-void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
+std::tuple<int, int, int, int*> check_args(std::vector<array_t> obj_ptr) {
 
     if (NARGS>0) {
-        // ------ check the dimensions ------------//
-        int *typeargs = new int[NARGS];
-        int *dimargs = new int[NARGS];
 
-        for (int k = 0; k < NARGS; k++) {
+        // Expected categories and dimensions, from the formula's signature =============
+        
+        int *typeargs = new int[NARGS];  // Expected categories
+        int *dimargs = new int[NARGS];   // Expected dimenstions
+
+        // Fill typeargs and dimargs with -1's:
+        for (int k = 0; k < NARGS; k++) {  
             typeargs[k] = -1;
             dimargs[k] = -1;
         }
+        // Fill in all the positions that correspond to "i" variables:
         for (int k = 0; k < NARGSI; k++) {
             typeargs[INDSI::VAL(k)] = 0;
             dimargs[INDSI::VAL(k)] = DIMSX::VAL(k);
         }
+        // Fill in all the positions that correspond to "j" variables:
         for (int k = 0; k < NARGSJ; k++) {
             typeargs[INDSJ::VAL(k)] = 1;
             dimargs[INDSJ::VAL(k)] = DIMSY::VAL(k);
         }
+        // Fill in all the positions that correspond to "parameters":
         for (int k = 0; k < NARGSP; k++) {
             typeargs[INDSP::VAL(k)] = 2;
             dimargs[INDSP::VAL(k)] = DIMSP::VAL(k);
         }
 
-        // check  the dimension :
+        // Are we working in batch mode? Infer the answer from the first arg =============
+        int nbatchdims = get_ndim( obj_ptr[0] );  // Number of dims of the first tensor
+        // Remove the "trailing" dim (.., D) if the first arg is a parameter,
+        // or the last two (.., M/N, D) if it is an "i" or "j" variable:
+        nbatchdims -= (typeargs[0] == 2) ? 1 : 2;  
+
+        if (nbatchdims < 0) {
+            throw std::runtime_error("[KeOps] Wrong number of dimensions for the first arg: is "
+                    + std::to_string( get_ndim( obj_ptr[0] ) ) + " but should be at least "
+                    + std::to_string( (typeargs[0] == 2) ? 1 : 2 ) );
+        }
+
+        // Now, we'll keep track of the output + all arguments' shapes in a large array:
+        int *shapes = new int[(NARGS + 1) * (nbatchdims + 3)]; // N.B.: shapes will be destroyed at the very end of generic_red
+        // Eventually, with "batch dimensions" [A, .., B], the table will look like:
+        //
+        // [ A, .., B, M, N, D_out]  -> output
+        // [ A, .., B, M, 1, D_1  ]  -> "i" variable
+        // [ A, .., B, 1, N, D_2  ]  -> "j" variable
+        // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
+        // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
+        // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
+
+        // Fill in the first line with
+        // [ 1, ..., 1, -1, -1, D_out]
+        for (int b = 0; b < nbatchdims; b++) {
+            shapes[b] = 1;  // 1 = default option
+        }
+        shapes[nbatchdims]     = -1;  // M is still unknown
+        shapes[nbatchdims + 1] = -1;  // N is still unknown
+        shapes[nbatchdims + 2] = DIMOUT;  // Top right corner: dimension of the output
+
+
+        // Check the compatibility of all tensor shapes ==================================
+        
         for (size_t i = 0; i < NARGS; i++) {
-            if (typeargs[i] == 0) {
-                if (nx != get_size(obj_ptr[i],0)) {
-                    throw std::runtime_error("[KeOps] Wrong number of rows for arg number " + std::to_string(i) + " : is "
-                            + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(nx));
+
+            // Check the number of dimensions --------------------------------------------
+            int ndims = get_ndim( obj_ptr[i] );  // Number of dims of the i-th tensor
+            
+            // N.B.: CAT=2 -> "Parameter" -> 1 extra dim ; otherwise, CAT=0 or 1 -> 2 extra dims
+            if( ndims != nbatchdims + ((typeargs[i] == 2) ? 1 : 2) ) {
+                throw std::runtime_error("[KeOps] Wrong number of dimensions for arg number " + std::to_string(i) 
+                            + " : KeOps detected " + std::to_string(nbatchdims)
+                            + " batch dimensions from the first argument 0, and thus expected "
+                            + std::to_string( nbatchdims + ((typeargs[i] == 2) ? 1 : 2) )
+                            + " dimenstions here, but only received "
+                            + std::to_string( ndims ) 
+                            + ". Note that KeOps supports broadcasting on batch dimensions, "
+                            + "but still expects 'dummy' unit dimensions in the input shapes, "
+                            + "for the sake of clarity.");
+            }  
+
+            // Fill in the (i+1)-th line of the "shapes" array ---------------------------
+            int off_i = (i + 1) * (nbatchdims + 3);
+
+            // First, the batch dimensions:
+            for (int b = 0; b < nbatchdims; b++) {
+                shapes[off_i+b] = get_size(obj_ptr[i], b);
+
+                // Check that the current value is compatible with what
+                // we've encountered so far, as stored in the first line of "shapes"
+                if (shapes[off_i+b] != 1) {  // This dimension is not "broadcasted"
+                    if (shapes[b] == 1) {
+                        shapes[b] = shapes[off_i+b];  // -> it becomes the new standard
+                    } else if ( shapes[b] != shapes[off_i+b] ) {
+                        throw std::runtime_error("[KeOps] Wrong value of the batch dimension " 
+                            + std::to_string(b) + " for argument number " + std::to_string(i) 
+                            + " : is " + std::to_string(shapes[off_i+b]) 
+                            + " but was " + std::to_string(shapes[b]) 
+                            + " or 1 in previous arguments.");
+                    }
+                }
+            }
+
+            // Then, the numbers "M", "N" and "D":
+            if (typeargs[i] == 0) {  // "i" variable --------------------------------------
+                shapes[off_i+nbatchdims] = get_size(obj_ptr[i], nbatchdims);  // = "M"
+                if (shapes[nbatchdims] == -1) {  // This is the first "i" variable that we encounter
+                    shapes[nbatchdims] = shapes[off_i+nbatchdims];  // -> Fill in the "M" coefficient in the first line
                 }
 
-                // column
-                if (get_size(obj_ptr[i],1) != dimargs[i]) {
-                    throw std::runtime_error("[KeOps] Wrong number of column for arg number " + std::to_string(i) + " : is "
-                            + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
-                }
-            } else if (typeargs[i] == 1) {
-                if (ny != get_size(obj_ptr[i],0) ) {
-                    throw std::runtime_error("[KeOps] Wrong number of rows for arg number " + std::to_string(i) + " : is "
-                            + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(ny));
-                }
-                // column
-                if (get_size(obj_ptr[i],1) != dimargs[i]) {
-                    throw std::runtime_error("[KeOps] Wrong number of column for arg number " + std::to_string(i) + " : is "
-                            + std::to_string(get_size(obj_ptr[i],1)) + " but should be " + std::to_string(dimargs[i])) ;
+                shapes[off_i+nbatchdims+1] = 1;
+                shapes[off_i+nbatchdims+2] = get_size(obj_ptr[i], nbatchdims+1);  // = "D"
+
+                // Check the number of "lines":
+                if (shapes[nbatchdims] != shapes[off_i+nbatchdims]) {
+                    throw std::runtime_error("[KeOps] Wrong value of the 'i' dimension "
+                            + std::to_string(nbatchdims) + "for arg number " + std::to_string(i) 
+                            + " : is " + std::to_string(shapes[off_i+nbatchdims])
+                            + " but was " + std::to_string(shapes[nbatchdims]) 
+                            + " in previous 'i' arguments.");
                 }
 
-            } else if (typeargs[i] == 2) {
-                if (get_size(obj_ptr[i],0) != dimargs[i]) {
-                    throw std::runtime_error("[KeOps] Wrong number of elements for arg number " + std::to_string(i) + " : is "
-                            + std::to_string(get_size(obj_ptr[i],0)) + " but should be " + std::to_string(dimargs[i])) ;
+                // And the number of "columns":
+                if (shapes[off_i+nbatchdims+2] != dimargs[i]) {
+                    throw std::runtime_error("[KeOps] Wrong value of the 'vector size' dimension "
+                            + std::to_string(nbatchdims+1) + "for arg number " + std::to_string(i) 
+                            + " : is " + std::to_string(shapes[off_i+nbatchdims+2]) 
+                            + " but should be " + std::to_string(dimargs[i])) ;
+                }
+            } 
+            else if (typeargs[i] == 1) {  // "j" variable ----------------------------------
+                shapes[off_i+nbatchdims] = 1;
+                shapes[off_i+nbatchdims+1] = get_size(obj_ptr[i], nbatchdims);  // = "N"
+                if (shapes[nbatchdims+1] == -1) {  // This is the first "j" variable that we encounter
+                    shapes[nbatchdims+1] = shapes[off_i+nbatchdims+1];  // -> Fill in the "N" coefficient in the first line
+                }
+
+                shapes[off_i+nbatchdims+2] = get_size(obj_ptr[i], nbatchdims+1);  // = "D"
+
+                // Check the number of "lines":
+                if (shapes[nbatchdims+1] != shapes[off_i+nbatchdims+1]) {
+                    throw std::runtime_error("[KeOps] Wrong value of the 'j' dimension "
+                            + std::to_string(nbatchdims) + "for arg number " + std::to_string(i) 
+                            + " : is " + std::to_string(shapes[off_i+nbatchdims+1])
+                            + " but was " + std::to_string(shapes[nbatchdims+1]) 
+                            + " in previous 'j' arguments.");
+                }
+
+                // And the number of "columns":
+                if (shapes[off_i+nbatchdims+2] != dimargs[i]) {
+                    throw std::runtime_error("[KeOps] Wrong value of the 'vector size' dimension "
+                            + std::to_string(nbatchdims+1) + "for arg number " + std::to_string(i) 
+                            + " : is " + std::to_string(shapes[off_i+nbatchdims+2]) 
+                            + " but should be " + std::to_string(dimargs[i])) ;
+                }
+
+            } 
+            else if (typeargs[i] == 2) {  // "parameters" -------------------------------
+                shapes[off_i+nbatchdims]   = 1;
+                shapes[off_i+nbatchdims+1] = 1;
+                shapes[off_i+nbatchdims+2] = get_size(obj_ptr[i], nbatchdims);  // = "D"
+
+                if (shapes[off_i+nbatchdims+2] != dimargs[i]) {
+                    throw std::runtime_error("[KeOps] Wrong value of the 'vector size' dimension "
+                            + std::to_string(nbatchdims) + "for arg number " + std::to_string(i) 
+                            + " : is " + std::to_string(shapes[off_i+nbatchdims+2]) 
+                            + " but should be " + std::to_string(dimargs[i])) ;
                 }
             }
 
@@ -150,8 +272,23 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
             }
         }
 
+        // Compute the total numbers nx and ny of "i" and "j" indices ==========
+        // Remember that the first line of "shapes" is given by:
+        //
+        // [ A, .., B, M, N, D_out]  -> output
+
+        int nbatches = 1;
+        for (int b = 0; b < nbatchdims; b++) {
+            nbatches *= shapes[b];  // Compute the product of all "batch dimensions"
+        }
+        int nx = nbatches * shapes[nbatchdims];      // = A * ... * B * M
+        int ny = nbatches * shapes[nbatchdims + 1];  // = A * ... * B * N
+        
+        // Free the allocated memory (but *not* shapes) ========================
         delete[] dimargs;
         delete[] typeargs;
+
+        return std::make_tuple(nx, ny, nbatchdims, shapes);
     }
 }
 
@@ -180,8 +317,7 @@ array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int De
 /////////////////////////////////////////////////////////////////////////////////
 
 template < typename array_t, typename index_t >
-array_t generic_red(int nx, int ny,
-                    int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
+array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on Cpu, tagCpuGpu=1       means Reduction on Gpu, tagCpuGpu=2 means Reduction on Gpu from device data
                     int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
                     int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means _fromHost suffix
                     int Device_Id,        // id of GPU device
@@ -217,8 +353,11 @@ array_t generic_red(int nx, int ny,
     for(size_t i=0; i<NARGS; i++)
         castedargs[i] = get_data(obj_ptr[i]);
 
-    // Check all the dimensions
-    check_args<array_t>(nx, ny, obj_ptr);
+    // Check the aguments' dimensions, and retrieve all the shape information:
+    std::tuple<int, int, int, int*> nx_ny_nbatch_shapes = check_args<array_t>(obj_ptr);
+    int nx = std::get<0>(nx_ny_nbatch_shapes), ny = std::get<1>(nx_ny_nbatch_shapes);
+    // int nbatchdims = std::get<2>(nx_ny_nbatch_shapes);
+    int *shapes = std::get<3>(nx_ny_nbatch_shapes);
 
     // dimension Output : nout is the nbr of rows of the result
     int nout = (TAGIJ == 0)? nx : ny;
@@ -270,6 +409,7 @@ array_t generic_red(int nx, int ny,
 
     delete[] castedargs;
     delete[] castedranges;
+    delete[] shapes;
 
     return result;
 

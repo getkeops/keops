@@ -20,6 +20,11 @@ using __RANGEARRAY__ = py::array_t<__INDEX__, py::array::c_style>;
 /////////////////////////////////////////////////////////////////////////////////
 
 template <>
+int get_ndim(__NUMPYARRAY__ obj_ptri){
+    return obj_ptri.ndim();
+}
+
+template <>
 int get_size(__NUMPYARRAY__ obj_ptri, int l){
     return obj_ptri.shape(l);
 }

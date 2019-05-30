@@ -11,6 +11,11 @@ namespace pykeops {
 /////////////////////////////////////////////////////////////////////////////////
 
 template <>
+int get_ndim(at::Tensor obj_ptri) {
+    return obj_ptri.dim();
+}
+
+template <>
 int get_size(at::Tensor obj_ptri, int l) {
     return obj_ptri.size(l);
 }
