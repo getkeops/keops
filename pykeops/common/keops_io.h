@@ -269,6 +269,7 @@ array_t generic_red(int nx, int ny,
                             castedargs);
 
     delete[] castedargs;
+    delete[] castedranges;
 
     return result;
 
