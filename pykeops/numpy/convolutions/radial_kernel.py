@@ -13,21 +13,21 @@ class LoadKeopsSpecific:
     """
     
     def __init__(self, dllname, dtype=default_dtype):
-        self.dllname = dllname
+        self.dll_name = dllname
         self.dtype = dtype
         
         spec = importlib.util.find_spec(dllname)
         
         if (spec is None) or (build_type == 'Debug'):
-            self.build_folder = bin_folder + os.path.sep + 'build-' + self.dllname
+            self.build_folder = bin_folder + os.path.sep + 'build-' + self.dll_name
             self._safe_compile()
     
     @create_and_lock_build_folder()
     def _safe_compile(self):
-        compile_specific_conv_routine(self.dllname, self.dtype, build_folder=self.build_folder)
+        compile_specific_conv_routine(self.dll_name, self.dtype, build_folderSpec=self.build_folder)
     
     def import_module(self):
-        return importlib.import_module(self.dllname)
+        return importlib.import_module(self.dll_name)
 
 
 class RadialKernelConv:
