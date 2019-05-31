@@ -18,22 +18,22 @@ class LoadKeopsFshapeScp:
         self.kernel_geom = kernel_geom
         self.kernel_sig = kernel_sig
         self.kernel_sphere = kernel_sphere
-        self.dllname = target + "_" + kernel_geom + kernel_sig + kernel_sphere + "_" + c_type[dtype]
+        self.dll_name = target + "_" + kernel_geom + kernel_sig + kernel_sphere + "_" + c_type[dtype]
         self.dtype = dtype
         
-        spec = importlib.util.find_spec(self.dllname)
+        spec = importlib.util.find_spec(self.dll_name)
         
         if (spec is None) or (build_type == 'Debug'):
-            self.build_folder = bin_folder + os.path.sep + 'build-' + self.dllname
+            self.build_folder = bin_folder + os.path.sep + 'build-' + self.dll_name
             self._safe_compile()
     
     @create_and_lock_build_folder()
     def _safe_compile(self):
-        compile_specific_fshape_scp_routine(self.dllname, self.kernel_geom, self.kernel_sig, self.kernel_sphere,
+        compile_specific_fshape_scp_routine(self.dll_name, self.kernel_geom, self.kernel_sig, self.kernel_sphere,
                                             self.dtype, build_folder=self.build_folder)
     
     def import_module(self):
-        return importlib.import_module(self.dllname)
+        return importlib.import_module(self.dll_name)
 
 
 class FshapeScp:
