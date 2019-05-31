@@ -3,7 +3,7 @@ import importlib.util
 from hashlib import sha256
 
 from pykeops import bin_folder, build_type
-from pykeops.common.utils import create_and_lock_build_folder
+from pykeops.common.utils import module_exists, create_and_lock_build_folder
 from pykeops.common.compile_routines import compile_generic_routine
 
 class LoadKEops:
@@ -25,9 +25,7 @@ class LoadKEops:
         # create the name from formula, aliases and dtype.
         self.dll_name = self._create_name(formula, aliases, dtype, lang)
 
-        spec = importlib.util.find_spec(self.dll_name)
-        
-        if (spec is None) or (build_type == 'Debug'):
+        if (module_exists(self.dll_name)) or (build_type == 'Debug'):
             self.build_folder = bin_folder + os.path.sep + 'build-' + self.dll_name
             self._safe_compile()
     

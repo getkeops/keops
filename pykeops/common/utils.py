@@ -2,8 +2,16 @@ import os
 import fcntl
 import functools
 from hashlib import sha256
+import importlib.util
+import shutil
 
 c_type = dict(float32="float", float64="double")
+
+
+def module_exists(dllname):
+    spec = importlib.util.find_spec(dllname)
+    return (spec is None)
+
 
 def create_name(formula, aliases, dtype, lang):
     """
@@ -77,6 +85,10 @@ def create_and_lock_build_folder():
                 with FileLock(f):
                     return func(*args, **kwargs)
     
+            # clean
+            if (module_exists(args[0].dll_name)) and (build_type != 'Debug'):
+                shutil.rmtree(bf)
+
         return wrapper_filelock
 
     return wrapper
