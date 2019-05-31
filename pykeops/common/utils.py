@@ -5,6 +5,8 @@ from hashlib import sha256
 import importlib.util
 import shutil
 
+from pykeops import build_type
+
 c_type = dict(float32="float", float64="double")
 
 
@@ -83,12 +85,14 @@ def create_and_lock_build_folder():
             # create a file lock to prevent multiple compilations at the same time
             with open(bf + os.path.sep + 'pykeops_build2.lock' , 'w') as f:
                 with FileLock(f):
-                    return func(*args, **kwargs)
+                    func_res = func(*args, **kwargs)
     
             # clean
-            if (module_exists(args[0].dll_name)) and (build_type != 'Debug'):
+            if (module_exists(args[0].dll_name)) or (build_type != 'Debug'):
                 shutil.rmtree(bf)
-
+            
+            return func_res
+        
         return wrapper_filelock
 
     return wrapper
