@@ -165,14 +165,13 @@ class KernelSolve:
         """
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
-        nx, ny = get_sizes(self.aliases, *args)
         varinv = args[self.varinvpos]
         
         if ranges is None: ranges = ()  # ranges should be encoded as a tuple
 
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos + 1:]
-            res = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
+            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
             if alpha:
                 res += alpha * var
             return res

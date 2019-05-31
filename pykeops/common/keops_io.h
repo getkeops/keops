@@ -277,18 +277,29 @@ std::tuple<int, int, int, int*> check_args(std::vector<array_t> obj_ptr) {
         //
         // [ A, .., B, M, N, D_out]  -> output
 
+        
+        int nx = shapes[nbatchdims];      // = M
+        int ny = shapes[nbatchdims + 1];  // = N
+
+        if (nx == -1 or ny == -1) {
+            throw std::runtime_error("[KeOps] [Jean:] After simplification, this formula only referred to one type ('i' or 'j') of variable: we should find a way to handle this situation properly.");
+        }
+
         int nbatches = 1;
         for (int b = 0; b < nbatchdims; b++) {
             nbatches *= shapes[b];  // Compute the product of all "batch dimensions"
         }
-        int nx = nbatches * shapes[nbatchdims];      // = A * ... * B * M
-        int ny = nbatches * shapes[nbatchdims + 1];  // = A * ... * B * N
+        nx *= nbatches;  // = A * ... * B * M
+        ny *= nbatches;  // = A * ... * B * N
         
         // Free the allocated memory (but *not* shapes) ========================
         delete[] dimargs;
         delete[] typeargs;
 
         return std::make_tuple(nx, ny, nbatchdims, shapes);
+    } 
+    else {  // Empty formula with no arguments
+        throw std::runtime_error("[KeOps] [Jean:] After simplification, this formula didn't refer to any variable: we should find a way to handle this situation properly.");
     }
 }
 
@@ -296,7 +307,7 @@ short int cast_Device_Id(int Device_Id){
   if (Device_Id <std::numeric_limits<short int>::max()) {
     return(Device_Id);
   } else {
-    throw std::runtime_error("[keOps] Device_Id exceeded short int limit");
+    throw std::runtime_error("[KeOps] Device_Id exceeded short int limit");
   }
 }
 

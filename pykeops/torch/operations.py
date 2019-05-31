@@ -38,8 +38,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         varinv = args[varinvpos]
         ctx.varinvpos = varinvpos
 
-        nx, ny = get_sizes(aliases, *args)
-
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
         if tagCPUGPU==1 & tagHostDevice==1:
@@ -50,7 +48,7 @@ class KernelSolveAutograd(torch.autograd.Function):
 
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
-            res = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
+            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
             if alpha:
                 res += alpha*var
             return res
