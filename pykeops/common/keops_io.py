@@ -1,10 +1,11 @@
-import os
 import importlib.util
+import os
 from hashlib import sha256
 
 from pykeops import bin_folder, build_type
-from pykeops.common.utils import module_exists, create_and_lock_build_folder
 from pykeops.common.compile_routines import compile_generic_routine
+from pykeops.common.utils import module_exists, create_and_lock_build_folder
+
 
 class LoadKEops:
     """
@@ -14,22 +15,21 @@ class LoadKEops:
 
     :return: The Python function that corresponds to the loaded Keops kernel.
     """
+
     def __init__(self, formula, aliases, dtype, lang, optional_flags=[]):
-        
         self.formula = formula
         self.aliases = aliases
         self.dtype = dtype
         self.lang = lang
         self.optional_flags = optional_flags
-        
+
         # create the name from formula, aliases and dtype.
         self.dll_name = self._create_name(formula, aliases, dtype, lang)
 
         if (module_exists(self.dll_name)) or (build_type == 'Debug'):
             self.build_folder = bin_folder + os.path.sep + 'build-' + self.dll_name
             self._safe_compile()
-    
-    
+
     def _create_name(self, formula, aliases, dtype, lang):
         """
         Compose the shared object name
@@ -46,10 +46,7 @@ class LoadKEops:
     @create_and_lock_build_folder()
     def _safe_compile(self):
         compile_generic_routine(self.formula, self.aliases, self.dll_name, self.dtype, self.lang,
-                                        self.optional_flags, build_folder=self.build_folder)
+                                self.optional_flags, build_folder=self.build_folder)
 
     def import_module(self):
         return importlib.import_module(self.dll_name)
-                
-    
-     

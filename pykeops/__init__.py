@@ -1,5 +1,6 @@
 import os
 import sys
+
 from .common.set_path import set_build_folder
 
 __version__ = '1.0.2'

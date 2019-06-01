@@ -1,9 +1,9 @@
-from pykeops.common.keops_io import LoadKEops
 from pykeops.common.get_options import get_tag_backend
+from pykeops.common.keops_io import LoadKEops
+from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_sizes, complete_aliases
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
-from pykeops.common.operations import preprocess, postprocess
 
 
 class Genred():
@@ -111,7 +111,7 @@ class Genred():
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, aliases)
         self.dtype = dtype
-        self.myconv = LoadKEops(self.formula,  self.aliases,  self.dtype, 'numpy').import_module()
+        self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy').import_module()
         self.axis = axis
         self.opt_arg = opt_arg
 

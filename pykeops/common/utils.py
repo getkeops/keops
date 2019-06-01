@@ -1,9 +1,9 @@
-import os
 import fcntl
 import functools
-from hashlib import sha256
 import importlib.util
+import os
 import shutil
+from hashlib import sha256
 
 from pykeops import build_type
 
@@ -76,21 +76,20 @@ def create_and_lock_build_folder():
     def wrapper(func):
         @functools.wraps(func)
         def wrapper_filelock(*args, **kwargs):
-            
             # get build folder name
             bf = args[0].build_folder
             # create build folder
             os.makedirs(bf, exist_ok=True)
 
             # create a file lock to prevent multiple compilations at the same time
-            with open(bf + os.path.sep + 'pykeops_build2.lock' , 'w') as f:
+            with open(bf + os.path.sep + 'pykeops_build2.lock', 'w') as f:
                 with FileLock(f):
                     func_res = func(*args, **kwargs)
     
             # clean
             if (module_exists(args[0].dll_name)) or (build_type != 'Debug'):
                 shutil.rmtree(bf)
-            
+
             return func_res
         
         return wrapper_filelock

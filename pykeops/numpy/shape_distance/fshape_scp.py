@@ -29,7 +29,8 @@ class LoadKeopsFshapeScp:
     
     @create_and_lock_build_folder()
     def _safe_compile(self):
-        compile_specific_fshape_scp_routine(self.dll_name, self.kernel_geom, self.kernel_sig, self.kernel_sphere, self.dtype, build_folder=self.build_folder)
+        compile_specific_fshape_scp_routine(self.dll_name, self.kernel_geom, self.kernel_sig, self.kernel_sphere,
+                                            self.dtype, build_folder=self.build_folder)
     
     def import_module(self):
         return importlib.import_module(self.dll_name)
@@ -48,7 +49,7 @@ class FshapeScp:
     
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
-    
+
     def __init__(self, kernel_geom="gaussian", kernel_sig="gaussian", kernel_sphere="binet", dtype=default_dtype,
                  cuda_type=None):
         if cuda_type:
@@ -58,7 +59,8 @@ class FshapeScp:
         self.kernel_sig = kernel_sig
         self.kernel_sphere = kernel_sphere
         self.dtype = dtype
-    
+
     def __call__(self, x, y, f, g, alpha, beta, sigma_geom=1.0, sigma_sig=1.0, sigma_sphere=np.pi / 2, ):
-        myconv = LoadKeopsFshapeScp("fshape_scp", self.kernel_geom, self.kernel_sig, self.kernel_sphere, self.dtype).import_module()
+        myconv = LoadKeopsFshapeScp("fshape_scp", self.kernel_geom, self.kernel_sig, self.kernel_sphere,
+                                    self.dtype).import_module()
         return myconv.specific_fshape_scp(x, y, f, g, alpha, beta, sigma_geom, sigma_sig, sigma_sphere)

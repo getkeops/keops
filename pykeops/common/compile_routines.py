@@ -16,7 +16,7 @@ def run_and_display(args, build_folder, msg=''):
         proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
         if verbose:
             print(proc.stdout.decode('utf-8'))
-    
+
     except subprocess.CalledProcessError as e:
         print('\n--------------------- ' + msg + ' DEBUG -----------------')
         print(e)
@@ -26,20 +26,21 @@ def run_and_display(args, build_folder, msg=''):
 
 def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_flags, build_folder=bin_folder):
     aliases = check_aliases_list(aliases)
-    
+
     def process_alias(alias):
         if alias.find("=") == -1:
             return ''  # because in this case it is not really an alias, the variable is just named
         else:
             return 'auto ' + str(alias) + '; '
-    
+
     def process_disp_alias(alias):
         return str(alias) + '; '
-    
+
     alias_string = ''.join([process_alias(alias) for alias in aliases])
     alias_disp_string = ''.join([process_disp_alias(alias) for alias in aliases])
-    
-    print('Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
+
+    print(
+        'Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
         end='', flush=True)
     
     run_and_display(['cmake', script_folder,
@@ -52,7 +53,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                      ] + optional_flags,
                     build_folder,
                     msg='CMAKE')
-    
+
     run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
 
 
