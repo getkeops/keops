@@ -1,7 +1,7 @@
 import numpy as np
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import load_keops
+from pykeops.common.keops_io import LoadKEops
 from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases
 from pykeops.common.utils import axis2cat
@@ -97,7 +97,7 @@ class KernelSolve:
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
-        self.myconv = load_keops(self.formula, self.aliases, self.dtype, 'numpy')
+        self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy').import_module()
         tmp = aliases.copy()
         for (i, s) in enumerate(tmp):
             tmp[i] = s[:s.find("=")].strip()
