@@ -78,7 +78,6 @@ def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel
                      '-DKERNEL_SIG=' + kernel_sig,
                      '-DKERNEL_SPHERE=' + kernel_sphere,
                      '-D__TYPE__=' + c_type[dtype],
-                     build_folder,
                      ],
                     build_folder,
                     msg='CMAKE')
