@@ -13,6 +13,7 @@ namespace keops {
 struct CpuConv_ranges {
 template < typename TYPE, class FUN >
 static int CpuConv_ranges_(FUN fun, TYPE** param, int nx, int ny, 
+                           int nbatchdims, int *shapes, 
                            int nranges_x, int nranges_y, __INDEX__ **ranges, 
                            TYPE** px, TYPE** py) {
     typedef typename FUN::DIMSX DIMSX; // dimensions of "i" indexed variables
@@ -78,6 +79,7 @@ static int CpuConv_ranges_(FUN fun, TYPE** param, int nx, int ny,
 // Wrapper with an user-friendly input format for px and py.
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, 
+                int nbatchdims, int *shapes, 
                 int nranges_x, int nranges_y, __INDEX__ **ranges,
                 TYPE* x1, Args... args) {
     typedef typename FUN::VARSI VARSI;
@@ -100,12 +102,13 @@ static int Eval(FUN fun, int nx, int ny,
     getlist<INDSJ>(py,args...);
     getlist<INDSP>(params,args...);
 
-    return CpuConv_ranges_(fun,params,nx,ny,nranges_x,nranges_y,ranges,px,py);
+    return CpuConv_ranges_(fun,params,nx,ny,nbatchdims,shapes,nranges_x,nranges_y,ranges,px,py);
 }
 
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays.
 template < typename TYPE, class FUN >
 static int Eval(FUN fun, int nx, int ny, 
+                int nbatchdims, int *shapes, 
                 int nranges_x, int nranges_y, __INDEX__ **ranges,
                 TYPE* x1, TYPE** args) {
     typedef typename FUN::VARSI VARSI;
@@ -131,7 +134,7 @@ static int Eval(FUN fun, int nx, int ny,
         py[i] = args[INDSJ::VAL(i)];
     for(int i=0; i<SIZEP; i++)
         params[i] = args[INDSP::VAL(i)];
-    return CpuConv_ranges_(fun,params,nx,ny,nranges_x,nranges_y,ranges,px,py);
+    return CpuConv_ranges_(fun,params,nx,ny,nbatchdims,shapes,nranges_x,nranges_y,ranges,px,py);
 }
 };
 }

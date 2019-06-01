@@ -9,6 +9,7 @@ namespace keops {
 
 template < typename TYPE, class FUN >
 __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
+    int nbatchdims, int *shapes, 
     __INDEX__* lookup_d, __INDEX__* slices_x, __INDEX__* ranges_y,
     TYPE** px, TYPE** py, TYPE** pp) {
 
@@ -89,6 +90,7 @@ struct GpuConv1D_ranges_FromHost {
 
 template < typename TYPE, class FUN >
 static int Eval_(FUN fun, int nx, int ny, 
+    int nbatchdims, int *shapes, 
     int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     TYPE** px_h, TYPE** py_h, TYPE** pp_h) {
 
@@ -239,6 +241,7 @@ static int Eval_(FUN fun, int nx, int ny,
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,
+        nbatchdims,shapes,
         lookup_d,slices_x_d,ranges_y_d,
         px_d,py_d,pp_d);
     
@@ -264,6 +267,7 @@ static int Eval_(FUN fun, int nx, int ny,
 // and use getlist to enroll them into "pointers arrays" px and py.
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, 
+    int nbatchdims, int *shapes, 
     int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     int device_id, TYPE* x1_h, Args... args) {
 
@@ -295,21 +299,23 @@ static int Eval(FUN fun, int nx, int ny,
     getlist<INDSJ>(py_h,args...);
     getlist<INDSP>(pp_h,args...);
 
-    return Eval_(fun,nx,ny,nranges_x,nranges_y,nredranges_x,nredranges_y,ranges,px_h,py_h,pp_h);
+    return Eval_(fun,nx,ny,nbatchdims,shapes,nranges_x,nranges_y,nredranges_x,nredranges_y,ranges,px_h,py_h,pp_h);
 
 }
 
 // same without the device_id argument
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, 
+    int nbatchdims, int *shapes, 
     int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     TYPE* x1_h, Args... args) {
-    return Eval(fun, nx, ny, nranges_x, nranges_y, nredranges_x, nredranges_y, ranges, -1, x1_h, args...);
+    return Eval(fun, nx, ny, nbatchdims, shapes, nranges_x, nranges_y, nredranges_x, nredranges_y, ranges, -1, x1_h, args...);
 }
 
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays
 template < typename TYPE, class FUN >
 static int Eval(FUN fun, int nx, int ny, 
+    int nbatchdims, int *shapes, 
     int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     TYPE* x1_h, TYPE** args, int device_id=-1) {
 
@@ -345,7 +351,7 @@ static int Eval(FUN fun, int nx, int ny,
     for(int i=0; i<SIZEP; i++)
         pp_h[i] = args[INDSP::VAL(i)];
 
-    return Eval_(fun,nx,ny,nranges_x,nranges_y,nredranges_x,nredranges_y,ranges,px_h,py_h,pp_h);
+    return Eval_(fun,nx,ny,nbatchdims,shapes,nranges_x,nranges_y,nredranges_x,nredranges_y,ranges,px_h,py_h,pp_h);
 
 }
 
@@ -355,7 +361,8 @@ static int Eval(FUN fun, int nx, int ny,
 
 struct GpuConv1D_ranges_FromDevice {
 template < typename TYPE, class FUN >
-static int Eval_(FUN fun, int nx, int ny, 
+static int Eval_(FUN fun, int nx, int ny,
+    int nbatchdims, int *shapes,  
     int nranges_x, int nranges_y, __INDEX__ **ranges, 
     TYPE** phx_d, TYPE** phy_d, TYPE** php_d) {
 
@@ -417,9 +424,9 @@ static int Eval_(FUN fun, int nx, int ny,
     // as well as pointers to slices_x and ranges_y on *device* memory.
     // -> Depending on the "ranges" location, we'll copy ranges_x *or* slices_x and ranges_y
     //    to the appropriate memory:
-    bool ranges_on_device = true;
-    cudaPointerAttributes attributes;
-    CudaSafeCall(cudaPointerGetAttributes(&attributes,ranges_x)); // N.B.: This may be expensive?!
+    bool ranges_on_device = (nbatchdims==0);  
+    // N.B.: We only support Host ranges with Device data when these ranges were created 
+    //       to emulate block-sparse reductions.
 
     if ( attributes.type == cudaMemoryTypeDevice ) {  // The ranges are on the device
         ranges_on_device = true;
@@ -477,6 +484,7 @@ static int Eval_(FUN fun, int nx, int ny,
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,
+        nbatchdims,shapes,
         lookup_d,slices_x,ranges_y,
         px_d,py_d,pp_d);
 
@@ -504,6 +512,7 @@ static int Eval_(FUN fun, int nx, int ny,
 // Same wrappers, but for data located on the device
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, 
+    int nbatchdims, int *shapes, 
     int nranges_x, int nranges_y, __INDEX__ **ranges, 
     int device_id, TYPE* x1_d, Args... args) {
 
@@ -537,13 +546,14 @@ static int Eval(FUN fun, int nx, int ny,
     getlist<INDSJ>(phy_d,args...);
     getlist<INDSP>(php_d,args...);
 
-    return Eval_(fun,nx,ny,nranges_x,nranges_y,ranges,phx_d,phy_d,php_d);
+    return Eval_(fun,nx,ny,nbatchdims,shapes,nranges_x,nranges_y,ranges,phx_d,phy_d,php_d);
 
 }
 
 // same without the device_id argument
 template < typename TYPE, class FUN, typename... Args >
 static int Eval(FUN fun, int nx, int ny, 
+    int nbatchdims, int *shapes, 
     int nranges_x, int nranges_y, __INDEX__ **ranges, 
     TYPE* x1_d, Args... args) {
     // We set the GPU device on which computations will be performed
@@ -555,11 +565,12 @@ static int Eval(FUN fun, int nx, int ny,
     // So we prefer to avoid this and provide directly the device_id as input (first function above)
     cudaPointerAttributes attributes;
     CudaSafeCall(cudaPointerGetAttributes(&attributes,x1_d));
-    return Eval(fun, nx, ny, nranges_x,nranges_y,ranges, attributes.device, x1_d, args...);
+    return Eval(fun, nx, ny, nbatchdims, shapes, nranges_x,nranges_y,ranges, attributes.device, x1_d, args...);
 }
 
 template < typename TYPE, class FUN >
 static int Eval(FUN fun, int nx, int ny, 
+    int nbatchdims, int *shapes, 
     int nranges_x, int nranges_y, __INDEX__ **ranges, 
     TYPE* x1_d, TYPE** args, int device_id=-1) {
 
@@ -605,7 +616,7 @@ static int Eval(FUN fun, int nx, int ny,
     for(int i=0; i<SIZEP; i++)
         pp_d[i] = args[INDSP::VAL(i)];
 
-    return Eval_(fun,nx,ny,nranges_x,nranges_y,ranges,px_d,py_d,pp_d);
+    return Eval_(fun,nx,ny,nbatchdims,shapes,nranges_x,nranges_y,ranges,px_d,py_d,pp_d);
 
 }
 

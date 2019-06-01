@@ -67,7 +67,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
             if (tagRanges == 0) { // Full M-by-N computation
                 CpuReduc(nx, ny, get_data(result_array), castedargs);
             } else if(tagRanges == 1) { // Block sparsity
-                CpuReduc_ranges(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
+                CpuReduc_ranges(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
             }
             return result_array;
         } else if(tagCpuGpu == 1) { // backend == "GPU", "GPU_1D", "GPU_2D"
@@ -78,7 +78,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
                 else if(tag1D2D == 1) // "GPU_2D"
                     GpuReduc2D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
             } else if (tagRanges == 1) {// Block sparsity
-                GpuReduc1D_ranges_FromHost(nx, ny, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+                GpuReduc1D_ranges_FromHost(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
             }
             return result_array;
 #else
@@ -95,7 +95,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
             else if(tag1D2D == 1) // "GPU_2D"
                 GpuReduc2D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
         } else if (tagRanges == 1) {// Block sparsity
-            GpuReduc1D_ranges_FromDevice(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+            GpuReduc1D_ranges_FromDevice(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
         }
         return result_array;
 

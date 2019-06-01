@@ -68,7 +68,7 @@ __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short
         if (tagRanges == 0) { // Full M-by-N computation
             CpuReduc(nx, ny, get_data(result_array), castedargs);
         } else if( tagRanges == 1) { // Block sparsity
-            CpuReduc_ranges(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
+            CpuReduc_ranges(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
         }
     }
     else if (tagCpuGpu == 1) {
@@ -80,7 +80,7 @@ __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short
                 else if (tag1D2D == 1)
                     GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
             } else if( tagRanges == 1) { // Block sparsity
-                GpuReduc1D_ranges_FromHost(nx, ny, nranges_x, nranges_y, nredranges_x, nredranges_y,
+                GpuReduc1D_ranges_FromHost(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, nredranges_x, nredranges_y,
                     castedranges, get_data(result_array), castedargs, Device_Id);
             }
         } else if (tagHostDevice==1)

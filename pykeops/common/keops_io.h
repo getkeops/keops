@@ -6,7 +6,7 @@
 
 extern "C" {
     int CpuReduc(int, int, __TYPE__*, __TYPE__**);
-    int CpuReduc_ranges(int, int, int, int, __INDEX__**, __TYPE__*, __TYPE__**);
+    int CpuReduc_ranges(int, int, int, int*, int, int, __INDEX__**, __TYPE__*, __TYPE__**);
 };
 
 #if USE_CUDA
@@ -15,8 +15,8 @@ extern "C" {
     int GpuReduc1D_FromDevice(int, int, __TYPE__*, __TYPE__**, int);
     int GpuReduc2D_FromHost(int, int, __TYPE__*, __TYPE__**, int);
     int GpuReduc2D_FromDevice(int, int, __TYPE__*, __TYPE__**, int);
-    int GpuReduc1D_ranges_FromHost(int, int, int, int, int, int, __INDEX__**, __TYPE__*, __TYPE__**, int);
-    int GpuReduc1D_ranges_FromDevice(int, int, int, int, __INDEX__**, __TYPE__*, __TYPE__**, int);
+    int GpuReduc1D_ranges_FromHost(int, int, int, int*, int, int, int, int, __INDEX__**, __TYPE__*, __TYPE__**, int);
+    int GpuReduc1D_ranges_FromDevice(int, int, int, int*, int, int, __INDEX__**, __TYPE__*, __TYPE__**, int);
 };
 #endif
 
