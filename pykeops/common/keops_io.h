@@ -1,5 +1,8 @@
 #include <vector>
 #include <string>
+#include <type_traits>
+#include <limits>
+#include <stdexcept>
 // #include "formula.h" done by cmake
 
 extern "C" {
@@ -28,7 +31,7 @@ namespace py = pybind11;
 /////////////////////////////////////////////////////////////////////////////////
 
 
-using FF = F::F; // F::F is formula inside reduction (ex if F is Sum_Reduction<Form> then F::F is Form)
+using FF = F::F; // F::F is formula inside reduction (ex if F is SumReduction<Form> then F::F is Form)
 
 using VARSI = typename FF::template VARS<0>;    // list variables of type I used in formula F
 using VARSJ = typename FF::template VARS<1>;    // list variables of type J used in formula F
@@ -88,7 +91,7 @@ void check_tag(int tag, std::string msg){
 template<typename array_t>
 void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
 
-    if (NARGS>0) {
+    if (NARGS > 0) {
         // ------ check the dimensions ------------//
         int *typeargs = new int[NARGS];
         int *dimargs = new int[NARGS];
@@ -155,12 +158,14 @@ void check_args(int nx, int ny, std::vector<array_t> obj_ptr) {
     }
 }
 
-short int cast_Device_Id(int Device_Id){
-  if (Device_Id <std::numeric_limits<short int>::max()) {
-    return(Device_Id);
-  } else {
-    throw std::runtime_error("[keOps] Device_Id exceeded short int limit");
-  }
+template<typename _T>
+short int cast_Device_Id(_T Device_Id) {
+    static_assert(std::is_integral<_T>::value, "Device_Id must be of integral type.");
+    if(Device_Id < std::numeric_limits<short int>::max()) {
+        return(static_cast<short int>(Device_Id));
+    } else {
+        throw std::runtime_error("[KeOps] Device_Id exceeded short int limit");
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
