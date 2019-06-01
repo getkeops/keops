@@ -421,12 +421,12 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
         //   castedranges = (ranges_i, slices_i, redranges_j,   ranges_j, slices_j, redranges_i)
         // with:
         // - ranges_i    = redranges_i = [ [0,M], [M,2M], ..., [(nbatches-1)M, nbatches*M] ]
-        // - slices_i    = slices_j    = [ [0,1], [1,2],  ..., [ nbatches-1,   nbatches  ] ]
+        // - slices_i    = slices_j    = [    1,     2,   ...,   nbatches-1,   nbatches    ]
         // - redranges_j = ranges_j    = [ [0,N], [N,2N], ..., [(nbatches-1)N, nbatches*N] ]
 
         castedranges = new __INDEX__ *[6];
         castedranges[0] = new __INDEX__[2*nbatches];  // ranges_i
-        castedranges[1] = new __INDEX__[2*nbatches];  // slices_i
+        castedranges[1] = new __INDEX__[nbatches];    // slices_i
         castedranges[2] = new __INDEX__[2*nbatches];  // redranges_j
         castedranges[3] = castedranges[2];            // ranges_j
         castedranges[4] = castedranges[1];            // slices_j
@@ -434,7 +434,7 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
 
         for (int b = 0; b < nbatches; b++) {
             castedranges[0][2*b] = b*M; castedranges[0][2*b+1] = (b+1)*M;
-            castedranges[1][2*b] = b;   castedranges[1][2*b+1] = (b+1);
+            castedranges[1][b]   = b+1;
             castedranges[2][2*b] = b*N; castedranges[2][2*b+1] = (b+1)*N;
         }
 
