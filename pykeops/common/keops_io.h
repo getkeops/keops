@@ -318,7 +318,7 @@ short int cast_Device_Id(int Device_Id){
 // Implemented by pykeops/torch/generic_red.cpp or pykeops/numpy/generic_red.cpp
 template < typename array_t >
 array_t launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
-                        int nx, int ny, int nout, int dimout,
+                        int nx, int ny, int nbatchdims, int *shapes, int *shape_out,
                         int tagRanges, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs);
 
@@ -367,60 +367,120 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
     // Check the aguments' dimensions, and retrieve all the shape information:
     std::tuple<int, int, int, int*> nx_ny_nbatch_shapes = check_args<array_t>(obj_ptr);
     int nx = std::get<0>(nx_ny_nbatch_shapes), ny = std::get<1>(nx_ny_nbatch_shapes);
-    // int nbatchdims = std::get<2>(nx_ny_nbatch_shapes);
+    int nbatchdims = std::get<2>(nx_ny_nbatch_shapes);
     int *shapes = std::get<3>(nx_ny_nbatch_shapes);
-
-    // dimension Output : nout is the nbr of rows of the result
-    int nout = (TAGIJ == 0)? nx : ny;
-
 
     int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y ;
     __INDEX__ **castedranges;
 
-    // Sparsity: should we handle ranges?
-    if(ranges.size() == 0) {
-        tagRanges = 0; 
-        nranges_x = 0; nranges_y = 0 ;
-        nredranges_x = 0; nredranges_y = 0 ;
-        castedranges = new __INDEX__ *[1];
+    // Sparsity: should we handle ranges? ======================================
+
+    if (nbatchdims == 0) {  // Standard M-by-N computation
+        if(ranges.size() == 0) {
+            tagRanges = 0; 
+            nranges_x = 0; nranges_y = 0 ;
+            nredranges_x = 0; nredranges_y = 0 ;
+            castedranges = new __INDEX__ *[1];
+        }
+        else if(ranges.size() == 6) {
+            // Cast the six integer arrays
+            std::vector<index_t> ranges_ptr(ranges.size());
+            for (size_t i = 0; i < ranges.size(); i++)
+                ranges_ptr[i] = py::cast<index_t> (ranges[i]);
+            
+            // get the pointers to data to avoid a copy
+            castedranges = new __INDEX__ *[ranges.size()];
+            for(size_t i=0; i<ranges.size(); i++)
+                castedranges[i] = get_rangedata(ranges_ptr[i]);
+
+            tagRanges = 1;
+            nranges_x = get_size(ranges_ptr[0], 0) ;
+            nranges_y = get_size(ranges_ptr[3], 0) ;
+
+            nredranges_x = get_size(ranges_ptr[5], 0) ;
+            nredranges_y = get_size(ranges_ptr[2], 0) ;
+        }
+        else {
+            throw std::runtime_error(
+                "[KeOps] the 'ranges' argument should be a tuple of size 0 or 6, "
+                "but is of size " + std::to_string(ranges.size()) + "."
+            );
+        }
+    } else if ( ranges.size() == 0 ) {  // Batch processing: we'll have to generate a custom, block-diagonal sparsity pattern
+        tagRanges = 1;  // Batch processing is emulated through the block-sparse mode
+
+        // We compute/read the number and size of our diagonal blocks ----------
+        int nbatches = 1;
+        for (int b = 0; b < nbatchdims; b++) {
+            nbatches *= shapes[b];  // Compute the product of all "batch dimensions"
+        }
+        int M = shapes[nbatchdims], N = shapes[nbatchdims+1];
+
+        // Create new "castedranges" from scratch ------------------------------
+        // With pythonic notations, we'll have:
+        //   castedranges = (ranges_i, slices_i, redranges_j,   ranges_j, slices_j, redranges_i)
+        // with:
+        // - ranges_i    = redranges_i = [ [0,M], [M,2M], ..., [(nbatches-1)M, nbatches*M] ]
+        // - slices_i    = slices_j    = [ [0,1], [1,2],  ..., [ nbatches-1,   nbatches  ] ]
+        // - redranges_j = ranges_j    = [ [0,N], [N,2N], ..., [(nbatches-1)N, nbatches*N] ]
+
+        castedranges = new __INDEX__ *[6];
+        castedranges[0] = new __INDEX__[2*nbatches];  // ranges_i
+        castedranges[1] = new __INDEX__[2*nbatches];  // slices_i
+        castedranges[2] = new __INDEX__[2*nbatches];  // redranges_j
+        castedranges[3] = castedranges[2];            // ranges_j
+        castedranges[4] = castedranges[1];            // slices_j
+        castedranges[5] = castedranges[0];            // redranges_i
+
+        for (int b = 0; b < nbatches; b++) {
+            castedranges[0][2*b] = b*M; castedranges[0][2*b+1] = (b+1)*M;
+            castedranges[1][2*b] = b;   castedranges[1][2*b+1] = (b+1);
+            castedranges[2][2*b] = b*N; castedranges[2][2*b+1] = (b+1)*N;
+        }
+
+        nranges_x = nbatches; nredranges_x = nbatches;
+        nranges_y = nbatches; nredranges_y = nbatches;
+
+    } else {
+            throw std::runtime_error(
+                "[KeOps] The 'ranges' argument (block-sparse mode) is not supported with batch processing, "
+                "but we detected " + std::to_string(nbatchdims) + " > 0 batch dimensions."
+            );
     }
-    else if(ranges.size() == 6) {
-        // Cast the six integer arrays
-        std::vector<index_t> ranges_ptr(ranges.size());
-        for (size_t i = 0; i < ranges.size(); i++)
-            ranges_ptr[i] = py::cast<index_t> (ranges[i]);
-        
-        // get the pointers to data to avoid a copy
-        castedranges = new __INDEX__ *[ranges.size()];
-        for(size_t i=0; i<ranges.size(); i++)
-            castedranges[i] = get_rangedata(ranges_ptr[i]);
+    
 
-        tagRanges = 1;
-        nranges_x = get_size(ranges_ptr[0], 0) ;
-        nranges_y = get_size(ranges_ptr[3], 0) ;
+    // Store, in a raw int array, the shape of the output: =====================
+    // [A, .., B, M, D]  if TAGIJ==0
+    //  or
+    // [A, .., B, N, D]  if TAGIJ==1
 
-        nredranges_x = get_size(ranges_ptr[5], 0) ;
-        nredranges_y = get_size(ranges_ptr[2], 0) ;
+    int *shape_output = new int[nbatchdims+2];
+    for (int b = 0; b < nbatchdims; b++) {
+            shape_output[b] = shapes[b];  // Copy the "batch dimensions"
     }
-    else {
-        throw std::runtime_error(
-            "[KeOps] the 'ranges' argument should be a tuple of size 0 or 6, "
-            "but is of size " + std::to_string(ranges.size()) + "."
-        );
-    }
+    shape_output[nbatchdims]   = shapes[nbatchdims+TAGIJ];  // M or N
+    shape_output[nbatchdims+1] = shapes[nbatchdims+2];      // D
 
 
-
-    // Call Cuda codes
+    // Call Cuda codes =========================================================
     array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
                             nx, ny,
-                            nout, F::DIM,      // dimout, nout
+                            nbatchdims, shapes, shape_output,
                             tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges,
                             castedargs);
+
+
+    // Free the allocated memory, return our output array ======================
+    if ( nbatchdims != 0 ) {
+        delete[] castedranges[0];  // ranges_i = redranges_i
+        delete[] castedranges[1];  // slices_i = slices_j
+        delete[] castedranges[2];  // redranges_j = ranges_j
+    }
 
     delete[] castedargs;
     delete[] castedranges;
     delete[] shapes;
+    delete[] shape_output;
 
     return result;
 
