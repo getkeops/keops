@@ -167,9 +167,12 @@ class Genred():
                       :math:`[\operatorname{start}^I_k,\operatorname{end}^I_k)` in :math:`[0,M]`
                       that specify our Mc blocks along the axis 0
                       of ":math:`i` variables".
-                    - ``slices_i``, (Mc,2) integer array - slice indices
-                      :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)`
-                      that specify Mc ranges in ``redranges_j``.
+                    - ``slices_i``, (Mc,) integer array - consecutive slice indices
+                      :math:`[\operatorname{end}^S_1, ..., \operatorname{end}^S_{M_c}]`
+                      that specify Mc ranges :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)` in ``redranges_j``,
+                      with :math:`\operatorname{start}^S_k = \operatorname{end}^S_{k-1}`.
+                      **The first 0 is implicit**, meaning that :math:`\operatorname{start}^S_0 = 0`, and we typically expect that
+                      ``slices_i[-1] == len(redrange_j)``.
                     - ``redranges_j``, (Mcc,2) integer array - slice indices
                       :math:`[\operatorname{start}^J_l,\operatorname{end}^J_l)` in :math:`[0,N]`
                       that specify reduction ranges along the axis 1
@@ -181,7 +184,7 @@ class Genred():
                 indices ``i in range( ranges_i[k,0], ranges_i[k,1] )``
                 should be computed using a Map-Reduce scheme over
                 indices ``j in Union( range( redranges_j[l, 0], redranges_j[l, 1] ))``
-                for ``l in range( slices_i[k,0], slices_i[k,1] )``.
+                for ``l in range( slices_i[k-1], slices_i[k] )``.
 
                 **Likewise, the last three ranges** will be used if **axis** = 0
                 (reduction along the axis of ":math:`i` variables"),
@@ -191,9 +194,12 @@ class Genred():
                       :math:`[\operatorname{start}^J_k,\operatorname{end}^J_k)` in :math:`[0,N]`
                       that specify our Nc blocks along the axis 1
                       of ":math:`j` variables".
-                    - ``slices_j``, (Nc,2) integer array - slice indices
-                      :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)`
-                      that specify Nc ranges in ``redranges_i``.
+                    - ``slices_j``, (Nc,) integer array - consecutive slice indices
+                      :math:`[\operatorname{end}^S_1, ..., \operatorname{end}^S_{N_c}]`
+                      that specify Nc ranges :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)` in ``redranges_i``,
+                      with :math:`\operatorname{start}^S_k = \operatorname{end}^S_{k-1}`.
+                      **The first 0 is implicit**, meaning that :math:`\operatorname{start}^S_0 = 0`, and we typically expect that
+                      ``slices_j[-1] == len(redrange_i)``.
                     - ``redranges_i``, (Ncc,2) integer array - slice indices
                       :math:`[\operatorname{start}^I_l,\operatorname{end}^I_l)` in :math:`[0,M]`
                       that specify reduction ranges along the axis 0
@@ -205,7 +211,7 @@ class Genred():
                 indices ``j in range( ranges_j[k,0], ranges_j[k,1] )``
                 should be computed using a Map-Reduce scheme over
                 indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))``
-                for ``l in range( slices_j[k,0], slices_j[k,1] )``.
+                for ``l in range( slices_j[k-1], slices_j[k] )``.
 
         Returns:
             (M,D) or (N,D) array:
