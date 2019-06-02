@@ -13,10 +13,14 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
     __INDEX__* lookup_d, __INDEX__* slices_x, __INDEX__* ranges_y,
     TYPE** px, TYPE** py, TYPE** pp) {
 
+    // Retrieve our position along the laaaaarge [1,~nx] axis:
     __INDEX__ range_id= (lookup_d)[3*blockIdx.x] ;
     __INDEX__ start_x = (lookup_d)[3*blockIdx.x+1] ;
     __INDEX__ end_x   = (lookup_d)[3*blockIdx.x+2] ;
     
+    // The "slices_x" vector encodes a set of cutting points in
+    // the "ranges_y" array of ranges.
+    // As discussed in the Genred docstring, the first "0" is implicit:
     __INDEX__ start_slice = range_id < 1 ? 0 : slices_x[range_id-1];
     __INDEX__ end_slice   = slices_x[range_id];
 

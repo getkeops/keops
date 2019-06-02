@@ -15,13 +15,6 @@ except ImportError:
     usetorch = False
     pass
 
-try:
-    import torch
-    import gpytorch
-    use_gpytorch = True
-except ImportError:
-    use_gpytorch = False
-    pass
 
 
 # Convenient aliases:
@@ -102,6 +95,7 @@ class LazyTensor:
         self.tools = None
         self.Genred = None
         self.KernelSolve = None
+        self.batchdims = None
         self.ni = None
         self.nj = None
         self.axis = None
@@ -179,28 +173,32 @@ class LazyTensor:
                                  +"float/integer numbers, lists of floats or 3-uples of integers. " \
                                  +"Received: {}".format(typex))
 
-            if len(x.shape) == 3:  # Infer axis from the input shape
-                # If x is a 3D array, its shape must be either (M,1,D) or (1,N,D) or (1,1,D).
-                # We infer axis from shape and convert the data to a 1D or 2D array:
+            if len(x.shape) >= 3:  # Infer axis from the input shape
+                # If x is a 3D+ array, its shape must be either (..,M,1,D) or (..,1,N,D) or (..,1,1,D).
+                # We infer axis from shape and squeeze out the "1" dimensions:
                 if axis is not None:
                     raise ValueError("'axis' parameter should not be given when 'x' is a 3D tensor.")
+                
+                if len(x.shape) > 3:  # We're in "batch mode"
+                    self.batchdims = tuple( x.shape[:-3] )
 
-                if x.shape[0] == 1:
-                    if x.shape[1] == 1:  # (1,1,D) -> Pm(D)
-                        x = self.tools.view(x, (x.shape[2],) )
-                    else:  # (1,N,D) -> Vj(D)
-                        x = self.tools.view(x, (x.shape[1], x.shape[2]) )
+                if x.shape[-3] == 1:
+                    if x.shape[-2] == 1:  # (..,1,1,D) -> Pm(D)
+                        x = x.squeeze(-2).squeeze(-2)
+                        axis = 2
+                    else:  # (..,1,N,D) -> Vj(D)
+                        x = x.squeeze(-3)
                         axis = 1
 
-                elif x.shape[1] == 1:  # (M,1,D) -> Vi(D)
-                    x = self.tools.view(x, (x.shape[0], x.shape[2]) )
+                elif x.shape[-2] == 1:  # (M,1,D) -> Vi(D)
+                    x = x.squeeze(-2)
                     axis = 0
                 else:
-                    raise ValueError("If 'x' is a 3D tensor, its shape should be one of (M,1,D), (1,N,D) or (1,1,D).")
+                    raise ValueError("If 'x' is a 3D+ tensor, its shape should be one of (..,M,1,D), (..,1,N,D) or (..,1,1,D).")
 
 
-            # Stage 4: x is now encoded as a 2D or 1D array --------------------
-            if len(x.shape) == 2:  # shape is (N,D) or (M,D), with an explicit 'axis' parameter
+            # Stage 4: x is now encoded as a 2D or 1D array + batch dimensions --------------------
+            if len(x.shape) >= 2 and axis != 2:  # shape is (..,M,D) or (..,N,D), with an explicit 'axis' parameter
                 if axis is None or axis not in (0,1):
                     raise ValueError("When 'x' is encoded as a 2D array, LazyTensor expects an explicit 'axis' value in {0,1}.")
                 
@@ -209,35 +207,35 @@ class LazyTensor:
                 # But first we do a small hack, in order to distinguish same array involved twice in a formula but with 
                 # different axis (e.g. Vi(x)-Vj(x) formula): we do a dummy reshape in order to get a different id
                 if axis == 1:
-                    x = self.tools.view(x,x.shape)
+                    x = self.tools.view(x, x.shape)
 
                 self.variables = (x,)
-                self.ndim = x.shape[1]
+                self.ndim = x.shape[-1]
                 self.axis = axis
                 self.formula = "Var({},{},{})".format( id(x), self.ndim, self.axis )
 
                 if axis == 0:
-                    self.ni = x.shape[0]
+                    self.ni = x.shape[-2]
                 else:
-                    self.nj = x.shape[0]
+                    self.nj = x.shape[-2]
                 self.dtype = self.tools.dtypename( self.tools.dtype(x) )
 
-            elif len(x.shape) == 1:  # shape is (D,): x is a "Pm(D)" parameter
+            elif len(x.shape) == 1 or axis == 2:  # shape is (D,): x is a "Pm(D)" parameter
                 if axis is not None and axis != 2:
                     raise ValueError("When 'x' is encoded as a 1D or 0D array, 'axis' must be None or 2 (= Parameter variable).")
                 self.variables = (x,)
-                self.ndim  = len(x)
+                self.ndim  = x.shape[-1]
                 self.axis = 2
                 self.formula = "Var({},{},2)".format( id(x), self.ndim )
 
             else:
-                raise ValueError("LazyTensors can be built from 0D, 1D, 2D or 3D tensors. " \
+                raise ValueError("LazyTensors can be built from 0D, 1D, 2D or 3D+ tensors. " \
                                 +"Received x of shape: {}.".format(x.shape) )            
         
         # N.B.: We allow empty init!
 
     def fixvariables(self):
-        """Assigns final labels to each variable, prior to a Genred call."""
+        """If needed, assigns final labels to each variable and pad their batch dimensions prior to a Genred call."""
 
         newvars = ()
         if self.formula2 is None: self.formula2 = ""  # We don't want to get regexp errors...
@@ -253,8 +251,14 @@ class LazyTensor:
             if tag in self.formula + self.formula2:
                 self.formula  = self.formula.replace( tag, "Var({},".format(i))
                 self.formula2 = self.formula2.replace(tag, "Var({},".format(i))
+
+                # Detect if v is meant to be used as a variable or as a parameter:
+                str_cat_v = re.search(r"Var\({},\d+,([012])\)".format(i), self.formula + self.formula2).group(1)
+                is_variable = 1 if str_cat_v in ('0', '1') else 0
+                dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
+                padded_v = self.tools.view( v, (1,) * dims_to_pad + v.shape)
+                newvars += (padded_v,)
                 i += 1
-                newvars += (v,)
 
         # "VarSymb(..)" appear when users rely on the "LazyTensor(Ind,Dim,Cat)" syntax,
         # for the sake of disambiguation:
@@ -286,6 +290,7 @@ class LazyTensor:
         res.dtype = self.dtype
         res.Genred = self.Genred
         res.KernelSolve = self.KernelSolve
+        res.batchdims = self.batchdims
         res.ni = self.ni
         res.nj = self.nj
         res.ranges = self.ranges
@@ -300,9 +305,30 @@ class LazyTensor:
         N.B.: This method concatenates tuples of variables, without paying attention to repetitions.
         """
         res = LazyTensor.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj","ranges", "backend") )
-        
-        res.variables = self.variables + other.variables
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
+        
+
+        def check_broadcasting(dims_1, dims_2):
+            """Checks that the shapes 'dims_1' and 'dims_2' are compatible with each other."""
+            if dims_1 is None:
+                return dims_2
+            if dims_2 is None:
+                return dims_1
+            
+            padded_dims_1 = (1,) * (len(dims_2) - len(dims_1)) + dims_1
+            padded_dims_2 = (1,) * (len(dims_1) - len(dims_2)) + dims_2
+
+            for (dim_1, dim_2) in zip( padded_dims_1, padded_dims_2 ):
+                if dim_1 != 1 and dim_2 != 1 and dim_1 != dim_2:
+                    raise ValueError("Incompatible batch dimensions: {} and {}.".format(dims_1, dims_2))
+
+            return max( padded_dims_1, padded_dims_2 )
+
+        # Checks on the batch dimensions - we support broadcasting:
+        res.batchdims = check_broadcasting(self.batchdims, other.batchdims)
+        # N.B.: If needed, variables will be padded with "dummy 1's" just before the Genred call, in self/res.fixvariables():
+        res.variables = self.variables + other.variables                      
+
         return res
 
 
@@ -383,7 +409,7 @@ class LazyTensor:
         Keyword Args:
           - other: 
           - opt_arg: typically, some integer needed by ArgKMin reductions.
-          - axis or dim (0 or 1): the axis with respect to which the reduction should be performed.
+          - axis or dim (nbatchdims + 0 or 1): the axis with respect to which the reduction should be performed.
           - call (True or False): Should we actually perform the reduction on the current variables?
             If True, the returned object will be a NumPy array or a PyTorch tensor.
             Otherwise, we simply return a callable LazyTensor that can be used
@@ -392,7 +418,8 @@ class LazyTensor:
         """
 
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
-        if axis not in (0,1): raise ValueError("Reductions must be called with 'axis' (or 'dim') equal to 0 or 1.")
+        if axis - self.nbatchdims not in (0,1):
+            raise ValueError("Reductions must be called with 'axis' (or 'dim') equal to the number of batch dimensions + 0 or 1.")
         
         if other is None:
             res = self.init()  # ~ self.copy()
@@ -403,7 +430,7 @@ class LazyTensor:
 
         res.formula = self.formula
         res.reduction_op = reduction_op
-        res.axis = axis
+        res.axis = axis - self.nbatchdims
         res.opt_arg = opt_arg
         res.kwargs = kwargs
         res.ndim = self.ndim
@@ -565,21 +592,28 @@ class LazyTensor:
     
     @property
     def shape(self):
+        btch = () if self.batchdims is None else self.batchdims
         ni   = 1 if self.ni   is None else self.ni
         nj   = 1 if self.nj   is None else self.nj
         ndim = 1 if self.ndim is None else self.ndim
-        return (ni, nj) if ndim == 1 else (ni, nj, ndim)
+        return btch + (ni, nj) if ndim == 1 else btch + (ni, nj, ndim)
 
     @property
     def _shape(self):
+        btch = () if self.batchdims is None else self.batchdims
         ni   = 1 if self.ni   is None else self.ni
         nj   = 1 if self.nj   is None else self.nj
         ndim = 1 if self.ndim is None else self.ndim
-        return (ni, nj, ndim)
+        return btch + (ni, nj, ndim)
 
     def dim(self):
         """Just as in PyTorch, returns the number of dimensions of a LazyTensor."""
         return len(self._shape)
+    
+
+    @property
+    def nbatchdims(self):
+        return 0 if self.batchdims is None else len(self.batchdims)
 
     # List of supported operations  ============================================
     
@@ -847,7 +881,7 @@ class LazyTensor:
         ``x.norm(-1)`` is equivalent to ``x.norm2()`` and returns a 
         :mod:`LazyTensor` that encodes, symbolically, the Euclidean norm of a vector ``x``.
         """
-        if dim not in [-1, 2]:
+        if dim not in [-1, len(self._shape) - 1]:
             raise ValueError("KeOps only supports norms over the last dimension.")
         return self.norm2()
     
@@ -925,19 +959,19 @@ class LazyTensor:
 
             - an integer ``k``, in which case ``x[key]`` 
               redirects to ``elem(x,k)``,
-            - a tuple ``:,:,k`` with ``k`` an integer, 
+            - a tuple ``..,:,:,k`` with ``k`` an integer, 
               which is equivalent to the case above,
             - a slice of the form ``k:l``, ``k:`` or ``:l``, with ``k`` 
               and ``l`` two integers, in which case ``x[key]`` redirects to ``extract(x,k,l-k)``,
-            - a tuple of slices of the form ``:,:,k:l``, ``:,:,k:`` or ``:,:,:l``, 
+            - a tuple of slices of the form ``..,:,:,k:l``, ``..,:,:,k:`` or ``..,:,:,:l``, 
               with ``k`` and ``l`` two integers, which are equivalent to the case above.
         """   
         # we allow only these forms:
-        #    [:,:,k], [:,:,k:l], [:,:,k:], [:,:,:l]
+        #    [..,:,:,k], [..,:,:,k:l], [..,:,:,k:], [..,:,:,:l]
         #    or equivalent [k], [k:l], [k:], [:l]
         if isinstance(key, tuple):
-            if len(key) == 3 and key[0] == slice(None) and key[1] == slice(None):
-                key = key[2]
+            if len(key) == len(self._shape) and key[:-1] == (slice(None),) * (len(self._shape) - 1) :
+                key = key[-1]
             else:
                 raise ValueError("LazyTensors only support indexing with respect to their last dimension.")
         
@@ -962,7 +996,7 @@ class LazyTensor:
         """   
         return self.binary(other, "Concat", dimres = (self.ndim + other.ndim), dimcheck=None)
 
-    def concatenate(self, axis):
+    def concatenate(self, axis=-1):
         r"""Concatenation of a tuple of LazyTensors.
         
         ``LazyTensor.concatenate( (x_1, x_2, ..., x_n), -1)`` returns a :mod:`LazyTensor` that encodes, symbolically,
@@ -971,7 +1005,7 @@ class LazyTensor:
         LazyTensors only support concatenation and indexing operations with respect
         to the last dimension.
         """   
-        if axis not in [-1, 2]:
+        if axis not in [-1, len(self._shape) - 1]:
             raise ValueError("LazyTensor only supports concatenation along the last axis.")
         if isinstance(self, tuple):
             if len(self) == 0:
@@ -981,7 +1015,7 @@ class LazyTensor:
             elif len(self) == 2:    
                 return self[0].concat(self[1])
             else:
-                return LazyTensor.concatenate(self[0].concat(self[1]), self[2:], axis=2)
+                return LazyTensor.concatenate( (self[0].concat(self[1]), self[2:]), axis=-1)
         else:
             raise ValueError("LazyTensor.concatenate is implemented on *tuples* of LazyTensors.")    
     
@@ -1033,7 +1067,7 @@ class LazyTensor:
 
     # List of supported reductions  ============================================
 
-    def sum(self, axis=2, dim=None, **kwargs):
+    def sum(self, axis=-1, dim=None, **kwargs):
         r"""Summation unary operation, or Sum reduction. 
         
         sum(x, axis, dim, **kwargs) will:
@@ -1068,14 +1102,14 @@ class LazyTensor:
                 as we loop over all indices
                 :math:`i\in[0,M)` and :math:`j\in[0,N)`.
         :returns: either:
-                        - if axis=2: a LazyTensor object of dimension 1,
+                        - if axis=-1: a LazyTensor object of dimension 1,
                         - if axis=0 or 1, call=True and self.symbolic_variables is empty, a NumPy 2D array or PyTorch 2D tensor corresponding to the sum reduction
                         of self over axis,
                         - otherwise, a LazyTensor object representing the reduction operation and which can be called as a function (see method __call__).
         """   
         if dim is not None:
             axis = dim
-        if axis in [-1, 2]:
+        if axis in [-1, len(self._shape) - 1]:
             return self.unary("Sum", dimres=1)
         else:
             return self.reduction("Sum", axis=axis, **kwargs)
@@ -1216,8 +1250,8 @@ class LazyTensor:
         res.ni, res.nj = res.nj, res.ni  # Switch the "M" and "N" dimensions
         res.ranges = res.tools.swap_axes( res.ranges )
 
-        if   res.axis == res.dim() - 3: res.axis = res.dim() - 2
-        elif res.axis == res.dim() - 2: res.axis = res.dim() - 3
+        if   res.axis == 0: res.axis = 1
+        elif res.axis == 1: res.axis = 0
 
         if res.formula is not None:  # Switch variables with CAT=0 and CAT=1
             res.formula = re.sub(r"(Var|VarSymb)\((\d+),(\d+),0\)", r"\1(\2,\3,i)", res.formula)
@@ -1264,26 +1298,3 @@ class LazyTensor:
         See :meth:`matvec` for further reference.
         """
         return self.T @ v
-
-    def gpytorch(self):
-        if use_gpytorch:
-            return KeOpsLazyTensor(self)
-        else:
-            raise ImportError("Could not import the 'gpytorch' module.")
-
-
-if use_gpytorch:
-    class KeOpsLazyTensor(gpytorch.lazy.LazyTensor):
-
-        def __init__(self, K=None):
-            super().__init__()
-            self.K = K
-        
-        def _matmul(self, M):
-            return self.K @ M
-        
-        def _size(self):
-            return torch.Size( self.K.shape )
-
-        def _transpose_nonbatch(self):
-            return KeOpsLazyTensor( self.K.t() )

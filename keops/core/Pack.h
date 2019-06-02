@@ -493,7 +493,7 @@ template < int N, int... NS > struct pack<N,NS...> {
         // Using pythonic syntax, we can describe our loading procedure as follows :
         for(int k=0; k<FIRST; k++){
             assert(&((*px)[i*FIRST+k]) != nullptr);
-            xi[k] = (*px)[i*FIRST+k];// First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
+            xi[k] = (*px)[i*FIRST+k];  // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
         }
         NEXT::load(i,xi+FIRST,px+1);   // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
     }
