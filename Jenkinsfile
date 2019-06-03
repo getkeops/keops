@@ -81,7 +81,7 @@ pipeline {
 
 
     stage('Deploy') {
-      when { tag "v*" }
+      when { tag pattern: "v[0-9]*.[0-9]*.[0-9]*", comparator: "REGEXP"}
       parallel {
         stage('Deploy Cuda') {
           agent { label 'cuda' }
