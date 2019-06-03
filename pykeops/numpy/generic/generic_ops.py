@@ -4,7 +4,7 @@ from pykeops.numpy import Genred
 
 
 def generic_sum(formula, output, *aliases, **kwargs):
-    """Alias for :class:`numpy.Genred <pykeops.numpy.Genred>` with a "Sum" reduction.
+    r"""Alias for :class:`numpy.Genred <pykeops.numpy.Genred>` with a "Sum" reduction.
 
     Args:
         formula (string): Symbolic KeOps expression, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
@@ -49,7 +49,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
 
 
 def generic_logsumexp(formula, output, *aliases, **kwargs):
-    """Alias for :class:`numpy.Genred <pykeops.numpy.Genred>` with a "LogSumExp" reduction.
+    r"""Alias for :class:`numpy.Genred <pykeops.numpy.Genred>` with a "LogSumExp" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
@@ -103,7 +103,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs):
 
 
 def generic_argkmin(formula, output, *aliases, **kwargs):
-    """Alias for :class:`numpy.Genred <pykeops.numpy.Genred>` with an "ArgKMin" reduction.
+    r"""Alias for :class:`numpy.Genred <pykeops.numpy.Genred>` with an "ArgKMin" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
@@ -160,7 +160,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs):
 
 
 def generic_argmin(formula, output, *aliases, **kwargs):
-    """Alias for :class:`numpy.Genred <pykeops.numpy.Genred>` with an "ArgMin" reduction.
+    r"""Alias for :class:`numpy.Genred <pykeops.numpy.Genred>` with an "ArgMin" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.

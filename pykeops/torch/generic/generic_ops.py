@@ -1,10 +1,10 @@
-from pykeops.common.utils import cat2axis
 from pykeops.common.parse_type import get_type
+from pykeops.common.utils import cat2axis
 from pykeops.torch import Genred
 
 
 def generic_sum(formula, output, *aliases, **kwargs):
-    """Alias for :class:`torch.Genred <pykeops.torch.Genred>` with a "Sum" reduction.
+    r"""Alias for :class:`torch.Genred <pykeops.torch.Genred>` with a "Sum" reduction.
 
     Args:
         formula (string): Symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
@@ -49,7 +49,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
     return Genred(formula, aliases, reduction_op='Sum', axis=axis, **kwargs)
 
 def generic_logsumexp(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`torch.Genred <pykeops.torch.Genred>` with a "LogSumExp" reduction.
+    r"""Alias for :class:`torch.Genred <pykeops.torch.Genred>` with a "LogSumExp" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
@@ -103,7 +103,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
     return Genred(formula, aliases, reduction_op='LogSumExp', axis=axis,  **kwargs)
 
 def generic_argkmin(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`torch.Genred <pykeops.torch.Genred>` with an "ArgKMin" reduction.
+    r"""Alias for :class:`torch.Genred <pykeops.torch.Genred>` with an "ArgKMin" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
@@ -161,7 +161,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
 
 
 def generic_argmin(formula, output, *aliases, **kwargs) :
-    """Alias for :class:`torch.Genred <pykeops.torch.Genred>` with an "ArgMin" reduction.
+    r"""Alias for :class:`torch.Genred <pykeops.torch.Genred>` with an "ArgMin" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.

@@ -37,6 +37,7 @@ pipeline {
       }
     }
 
+
     stage('Test') {
       parallel {
 
@@ -54,7 +55,7 @@ pipeline {
           agent { label 'macos' }
           environment { PATH="/Users/ci/miniconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin" }
           steps {
-            echo 'Testing..'
+            echo 'Testing...'
             sh 'git submodule update --init'
             sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
             sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
@@ -74,6 +75,20 @@ pipeline {
                 matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
             '''
           }
+        }
+      }
+    }
+
+
+    stage('Deploy') {
+      when { tag "v*" }
+      steps {
+        echo 'Building the doc...'
+        sh 'cd doc/ && ./generate_doc.sh'
+        echo 'Deploying the wheel package...'
+        sh 'cd pykeops && ./generate_wheel -v ${TAG_NAME##v}'
+        withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh 'set +x && cd build && twine upload -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'
         }
       }
     }
