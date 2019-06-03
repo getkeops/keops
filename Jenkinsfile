@@ -81,10 +81,11 @@ pipeline {
 
 
     stage('Deploy') {
-      when { buildingTag() }
+
       parallel {
         stage('Deploy Cuda') {
           agent { label 'cuda' }
+          when { buildingTag() }
           steps {
             echo 'Deploying on tag event...'
             sh 'git submodule update --init'
