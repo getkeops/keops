@@ -81,7 +81,7 @@ pipeline {
 
 
     stage('Deploy') {
-      when { tag "" }
+      when { buildingTag() }
       parallel {
         stage('Deploy Cuda') {
           agent { label 'cuda' }
