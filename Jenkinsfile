@@ -1,7 +1,7 @@
 pipeline {
   agent none 
   stages {
-
+/*
     stage('Build') {
       parallel {
         
@@ -78,20 +78,23 @@ pipeline {
         }
       }
     }
-
+*/
 
     stage('Deploy') {
       when { tag "v*" }
-      agent { label 'cuda' }
-      steps {
-        echo 'Deploying on tag event...'
-        sh 'git submodule update --init'
-        echo 'Building the doc...'
-        sh 'cd doc/ && ./generate_doc.sh'
-        echo 'Deploying the wheel package...'
-        sh 'cd pykeops && ./generate_wheel -v ${TAG_NAME##v}'
-        withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-          sh 'set +x && cd build && twine upload -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'
+
+      stage('Deploy Cuda') {
+        agent { label 'cuda' }
+        steps {
+          echo 'Deploying on tag event...'
+          sh 'git submodule update --init'
+          echo 'Building the doc...'
+          sh 'cd doc/ && ./generate_doc.sh'
+          echo 'Deploying the wheel package...'
+          sh 'cd pykeops && ./generate_wheel -v ${TAG_NAME##v}'
+          withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            sh 'set +x && cd build && twine upload -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'
+          }
         }
       }
     }
