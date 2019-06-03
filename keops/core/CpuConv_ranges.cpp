@@ -10,6 +10,28 @@
 
 namespace keops {
 
+
+int broadcast_index(int i, int nbatchdims, int *full_shape, int *shape) {
+    int M_N = shape[nbatchdims];
+    int res = i % M_N, step = M_N, full_step = M_N;
+    for (int b = nbatchdims; b > 0; b--) {
+        if (shape[b-1] != 1) {
+            res += ( (i / full_step) % shape[b-1] ) * step;
+        }
+        full_step *= full_shape[b-1];
+        step      *=      shape[b-1];
+    }
+    return res;
+}
+
+void vect_broadcast_index(int i, int nbatchdims, int nvars, int *full_shape, int *reduced_shapes, int *out) {
+    for (int k=0; k < nvars; k++) {
+        out[k] = broadcast_index(i, nbatchdims, full_shape, reduced_shapes + (nbatchdims+1)*k );
+    }
+}
+
+
+
 struct CpuConv_ranges {
 template < typename TYPE, class FUN >
 static int CpuConv_ranges_(FUN fun, TYPE** param, int nx, int ny, 
@@ -25,11 +47,71 @@ static int CpuConv_ranges_(FUN fun, TYPE** param, int nx, int ny,
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
+
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
+
+    const int SIZEI = VARSI::SIZE+1;
+    const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
+
+    using INDSI = GetInds<VARSI>;
+    using INDSJ = GetInds<VARSJ>;
+    using INDSP = GetInds<VARSP>;
+
+    // Separate and store the shapes of the "i" and "j" variables + parameters --------------
+    //
+    // shapes is an array of size (1+nargs)*(nbatchdims+3), which looks like:
+    // [ A, .., B, M, N, D_out]  -> output
+    // [ A, .., B, M, 1, D_1  ]  -> "i" variable
+    // [ A, .., B, 1, N, D_2  ]  -> "j" variable
+    // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
+    // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
+    // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
+
+    int shapes_i[(SIZEI-1)*(nbatchdims+1)], shapes_j[SIZEJ*(nbatchdims+1)], shapes_p[SIZEP*(nbatchdims+1)];
+
+    // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
+    // making it look like, say:
+    // [ A, .., B, M]
+    // [ A, .., 1, M]
+    // [ A, .., A, M]
+    for (int k = 0; k < (SIZEI-1); k++) {  // k-th line
+        for (int l = 0; l < nbatchdims+1; l++) {  // l-th column
+            shapes_i[ k * (nbatchdims+1) + l ] = shapes[ (1 + INDSI::VAL(k)) * (nbatchdims+3) + l ];
+        }
+    }
+
+    // Then, we do the same for shapes_j, but with "N" instead of "M":
+    for (int k = 0; k < SIZEJ; k++) {  // k-th line
+        for (int l = 0; l < nbatchdims; l++) {  // l-th column
+            shapes_j[ k * (nbatchdims+1) + l ] = shapes[ (1 + INDSJ::VAL(k)) * (nbatchdims+3) + l ];
+        }
+        shapes_j[ k * (nbatchdims+1) + nbatchdims ] = shapes[ (1 + INDSJ::VAL(k)) * (nbatchdims+3) + nbatchdims + 1];
+    }
+
+    // And finally for the parameters, with "1" instead of "M":
+    for (int k = 0; k < SIZEP; k++) {  // k-th line
+        for (int l = 0; l < nbatchdims; l++) {  // l-th column
+            shapes_p[ k * (nbatchdims+1) + l ] = shapes[ (1 + INDSP::VAL(k)) * (nbatchdims+3) + l ];
+        }
+        shapes_p[ k * (nbatchdims+1) + nbatchdims ] = 1;
+    }
+
+
+    // Actual for-for loop -----------------------------------------------------
+
     TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
-    load<DIMSP>(0,pp,param);
+    load<DIMSP>(0,pp,param);  // If nbatchdims == 0, the parameters are fixed once and for all
+
+    int indices_i[SIZEI-1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
+    for (int k = 0; k < SIZEI-1; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
+    for (int k = 0; k < SIZEJ;   k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
+    for (int k = 0; k < SIZEP;   k++) { indices_p[k] = 0; } 
 
 
-    // Set the output to zero, as the ranges may not cover the full output
+    // Set the output to zero, as the ranges may not cover the full output -----
     for(int i=0; i<nx; i++) {
         typename FUN::template InitializeReduction<TYPE>()(tmp); 
         typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
@@ -54,17 +136,41 @@ static int CpuConv_ranges_(FUN fun, TYPE** param, int nx, int ny,
         __INDEX__ start_slice = (range_index < 1) ? 0 : slices_x[range_index-1] ;
         __INDEX__ end_slice   = slices_x[range_index] ;
 
+
+        // If needed, compute the "true" start indices of the range, turning
+        // the "abstract" index start_x into an array of actual "pointers/offsets" stored in indices_i:
+        if (nbatchdims > 0) {
+            vect_broadcast_index(start_x, nbatchdims, SIZEI-1, shapes, shapes_i, indices_i);
+            // And for the parameters, too:
+            vect_broadcast_index(range_index, nbatchdims, SIZEP, shapes, shapes_p, indices_p);
+            load<DIMSP>(0, pp, param, indices_p); // Load the paramaters, once per tile
+        }
+
         for(__INDEX__ i = start_x; i < end_x; i++) {
-            load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1);
+            if (nbatchdims == 0) { 
+                load<typename DIMSX::NEXT>(i, xi+DIMFOUT, px+1); 
+            } else { 
+                load<typename DIMSX::NEXT>(i - start_x, xi+DIMFOUT, px+1, indices_i); 
+            }
             typename FUN::template InitializeReduction<TYPE>()(tmp);   // tmp = 0
 
             for(__INDEX__ slice = start_slice ; slice < end_slice ; slice++) { 
                 __INDEX__ start_y = ranges_y[2*slice] ;
                 __INDEX__ end_y   = ranges_y[2*slice + 1] ;
 
+                // If needed, compute the "true" start indices of the range, turning
+                // the "abstract" index start_y into an array of actual "pointers/offsets" stored in indices_j:
+                if (nbatchdims > 0) {
+                    vect_broadcast_index(start_y, nbatchdims, SIZEJ, shapes, shapes_j, indices_j);
+                }
+
                 for(int j = start_y; j < end_y; j++) {
-                    load<DIMSY>(j,yj,py);
-                    call<DIMSX,DIMSY,DIMSP>(fun,xi,yj,pp);
+                    if (nbatchdims == 0) { 
+                        load<DIMSY>(j, yj, py);
+                    } else { 
+                        load<DIMSY>(j - start_y, yj, py, indices_j);
+                    }
+                    call<DIMSX,DIMSY,DIMSP>(fun, xi, yj, pp);
                     typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j); // tmp += xi
                 }
             }
