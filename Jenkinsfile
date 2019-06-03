@@ -82,7 +82,10 @@ pipeline {
 
     stage('Deploy') {
       when { tag "v*" }
+      agent { label 'cuda' }
       steps {
+        echo 'Deploying on tag event...'
+        sh 'git submodule update --init'
         echo 'Building the doc...'
         sh 'cd doc/ && ./generate_doc.sh'
         echo 'Deploying the wheel package...'
