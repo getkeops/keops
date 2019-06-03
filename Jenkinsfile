@@ -1,7 +1,7 @@
 pipeline {
   agent none 
   stages {
-/*
+
     stage('Build') {
       parallel {
         
@@ -10,8 +10,8 @@ pipeline {
           steps {
             echo 'Building..'
             sh 'git submodule update --init'
-            sh 'cd keops/build && cmake ..'
-            sh 'cd keops/build && make VERBOSE=0'
+            // sh 'cd keops/build && cmake ..'
+            // sh 'cd keops/build && make VERBOSE=0'
           }
         }
         
@@ -20,8 +20,8 @@ pipeline {
           steps {
             echo 'Building..'
             sh 'git submodule update --init'
-            sh 'cd keops/build && cmake ..'
-            sh 'cd keops/build && make VERBOSE=0'
+            // sh 'cd keops/build && cmake ..'
+            // sh 'cd keops/build && make VERBOSE=0'
           }
         }
         
@@ -30,8 +30,8 @@ pipeline {
           steps {
             echo 'Building..'
             sh 'git submodule update --init'
-            sh 'cd keops/build && cmake ..'
-            sh 'cd keops/build && make VERBOSE=0'
+            // sh 'cd keops/build && cmake ..'
+            // sh 'cd keops/build && make VERBOSE=0'
           }
         }
       }
@@ -46,8 +46,8 @@ pipeline {
           steps {
             echo 'Testing..'
             sh 'git submodule update --init'
-            sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
-            sh 'cd pykeops/test && python3 unit_tests_numpy.py'
+            // sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
+            // sh 'cd pykeops/test && python3 unit_tests_numpy.py'
           }
         }
         
@@ -57,8 +57,8 @@ pipeline {
           steps {
             echo 'Testing...'
             sh 'git submodule update --init'
-            sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
-            sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
+            // sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
+            // sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
           }
         }
         
@@ -67,18 +67,18 @@ pipeline {
           steps {
             echo 'Testing..'
             sh 'git submodule update --init'
-            sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
-            sh 'cd pykeops/test && python3 unit_tests_numpy.py'
-            sh '''
-                cd keopslab/test
-                export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
-                matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
-            '''
+            // sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
+            // sh 'cd pykeops/test && python3 unit_tests_numpy.py'
+            // sh '''
+            //     cd keopslab/test
+            //     export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+            //     matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
+            // '''
           }
         }
       }
     }
-*/
+
 
     stage('Deploy') {
       when { tag "v*" }
