@@ -64,6 +64,7 @@ pipeline {
         
         stage('Test Cuda') {
           agent { label 'cuda' }
+          environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
           steps {
             echo 'Testing..'
             sh 'git submodule update --init'
