@@ -67,7 +67,7 @@ class GenredAutograd(torch.autograd.Function):
         
         grads = []  # list of gradients wrt. args;
 
-        for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
+        for (var_ind, (sig, arg_ind)) in enumerate(zip(aliases, args)):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[var_ind + 6]:  # because of (formula, aliases, backend, dtype, device_id, ranges)
                 grads.append(None)  # Don't waste time computing it.
@@ -95,10 +95,24 @@ class GenredAutograd(torch.autograd.Function):
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
                     # We replace it with a 'handmade hack' :
-                    grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
-                    grad = grad.view(-1)
+                    #grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
+                    #grad = grad.view(-1)
+                    grad = (1. * grad).sum(-2)
+                    dims_to_collapse = tuple( i for (i, (x,y)) in enumerate( zip( arg_ind.shape[:-1], grad.shape[:-1] )) if x < y )
+
                 else:
                     grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
+                    
+                    # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
+                    #       whereas 'arg_ind' may have some broadcasted batched dimensions.
+                    #       Before returning our gradient, we must collapse 'grad' with a .sum() operation,
+                    #       which is the adjoint of the good old "repmat" that could have been used
+                    #       to emulate the batch broadcasting.
+                    dims_to_collapse = tuple( i for (i, (x,y)) in enumerate( zip( arg_ind.shape[:-2], grad.shape[:-2] )) if x < y )
+                
+                if dims_to_collapse != ():
+                    grad = (1. * grad).sum(dims_to_collapse, keepdim=True)
+                grad = grad.reshape(arg_ind.shape)  # The gradient should have the same shape as the input!
                 grads.append(grad)
         
         # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, *args
