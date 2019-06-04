@@ -74,6 +74,15 @@ pipeline {
             //    export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
             //    matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
             //'''
+            echo 'Deploying on tag event...'
+            sh 'git submodule update --init'
+            echo 'Building the doc...'
+            sh 'cd doc/ && sh ./generate_doc.sh'
+            echo 'Deploying the wheel package...'
+            sh 'cd pykeops && sh ./generate_wheel -v ${TAG_NAME##v}'
+            withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+              sh 'set +x && cd build && twine upload -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'
+            }
           }
         }
       }
@@ -87,9 +96,9 @@ pipeline {
         echo 'Deploying on tag event...'
         sh 'git submodule update --init'
         echo 'Building the doc...'
-        sh 'cd doc/ && ./generate_doc.sh'
+        sh 'cd doc/ && sh ./generate_doc.sh'
         echo 'Deploying the wheel package...'
-        sh 'cd pykeops && ./generate_wheel -v ${TAG_NAME##v}'
+        sh 'cd pykeops && sh ./generate_wheel -v ${TAG_NAME##v}'
         withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh 'set +x && cd build && twine upload -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'
         }
