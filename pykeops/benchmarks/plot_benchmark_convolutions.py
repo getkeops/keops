@@ -163,32 +163,35 @@ for k in kernel_to_test:
 # ---------------
 #
 
-cmap = plt.get_cmap("tab10")
+# plot violin plot
+plt.violinplot(list(speed_numpy.values()),
+               showmeans=False,
+               showmedians=True,
+               )
+plt.violinplot(list(speed_pytorch.values()),
+               showmeans=False,
+               showmedians=True,
+               )
+plt.violinplot(list(speed_pykeops.values()),
+               showmeans=False,
+               showmedians=True,
+               )
+plt.violinplot(list(speed_pykeops_specific.values()),
+               showmeans=False,
+               showmedians=True,
+               )
 
-def draw_plot(data, edge_color, fill_color, pos):
-    bp = ax.boxplot(data, patch_artist=True, positions=pos)
-
-    for element in ['boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps']:
-        plt.setp(bp[element], color=edge_color)
-
-    for patch in bp['boxes']:
-        patch.set(facecolor=fill_color)  
-
-fig, ax = plt.subplots()
-draw_plot(list(speed_numpy.values()), cmap(0), cmap(0), [1,7,13,19])
-draw_plot(list(speed_pytorch.values()), cmap(1), cmap(1), [2,8,14,20])
-draw_plot(list(speed_pykeops.values()), cmap(2), cmap(2), [3,9,15,21])
-draw_plot(list(speed_pykeops_specific.values()), cmap(3), cmap(3), [4,10,16,22])
-
-plt.xticks([0, 2.5, 8.5, 14.5, 20.5, 23], [""] + kernel_to_test + [""])
+plt.xticks([1, 2, 3, 4], kernel_to_test)
 plt.yscale('log')
+# plt.ylim((0, .01))
 
 plt.grid(True)
 plt.xlabel('kernel type')
 plt.ylabel('time in s.')
 
+cmap = plt.get_cmap("tab10")
 fake_handles = [matplotlib.patches.Patch(color=cmap(i)) for i in range(4)]
 
-plt.legend(fake_handles, ['NumPy', 'PyTorch', 'KeOps', 'KeOps specific'], loc='upper center')
+plt.legend(fake_handles, ['NumPy', 'PyTorch', 'KeOps', 'KeOps specific'], loc='best')
 
 plt.show()

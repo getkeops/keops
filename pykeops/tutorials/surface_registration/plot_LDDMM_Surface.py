@@ -194,7 +194,6 @@ ax = Axes3D(fig)
 ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
 ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-ax.axis('equal')
 ax.plot_trisurf(q0.detach().cpu().numpy()[:, 0],
                 q0.detach().cpu().numpy()[:, 1],
                 q0.detach().cpu().numpy()[:, 2],
@@ -273,7 +272,6 @@ for t in range(nt):
     
     # make the plot
     ax = Axes3D(fig)
-    ax.axis('equal')
     ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
