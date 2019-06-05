@@ -383,12 +383,12 @@ class LazyTensor:
         if not dimres: dimres = max(self.ndim, other.ndim)
 
         if dimcheck == "same" and self.ndim != other.ndim:
-            raise ValueError("Operation {} expects inputs of the same dimension. " \
-                           + "Received {} and {}.".format(operation, self.ndim, other.ndim))
+            raise ValueError("Operation {} expects inputs of the same dimension. ".format(operation) \
+                           + "Received {} and {}.".format(self.ndim, other.ndim))
 
         elif dimcheck == "sameor1" and (self.ndim != other.ndim and self.ndim != 1 and other.ndim != 1):
-            raise ValueError("Operation {} expects inputs of the same dimension or dimension 1. " \
-                           + "Received {} and {}.".format(operation, self.ndim, other.ndim))
+            raise ValueError("Operation {} expects inputs of the same dimension or dimension 1. ".format(operation) \
+                           + "Received {} and {}.".format(self.ndim, other.ndim))
 
         res = LazyTensor.join(self, other)  # Merge the attributes and variables of both operands
         res.ndim = dimres

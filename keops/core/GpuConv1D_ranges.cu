@@ -4,16 +4,39 @@
 #include <cuda.h>
 
 #include "core/Pack.h"
+#include "core/broadcast_batch_dimensions.h"
 
 namespace keops {
 
 template < typename TYPE, class FUN >
 __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
-    int nbatchdims, int *shapes, 
+    int nbatchdims, int *shapes, int *offsets_d,
     __INDEX__* lookup_d, __INDEX__* slices_x, __INDEX__* ranges_y,
     TYPE** px, TYPE** py, TYPE** pp) {
 
-    // Retrieve our position along the laaaaarge [1,~nx] axis:
+
+    // Buffers for the "broadcasted indices" -----------------------------------
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
+
+    const int SIZEI = VARSI::SIZE+1;  // The usual convention is that the output "counts" in SIZEI
+    const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
+
+    const int SIZEVARS = SIZEI-1 + SIZEJ + SIZEP;
+
+    int offsets[SIZEVARS];
+    int *indices_i = offsets, *indices_j = offsets + SIZEI-1, *indices_p = offsets + SIZEI-1 + SIZEJ;
+
+    if (nbatchdims > 0) {
+        for (int k = 0; k < SIZEVARS; k++) {
+            offsets[k] = offsets_d[ SIZEVARS * blockIdx.x + k ];
+        }
+    }
+
+
+    // Retrieve our position along the laaaaarge [1,~nx] axis: -----------------
     __INDEX__ range_id= (lookup_d)[3*blockIdx.x] ;
     __INDEX__ start_x = (lookup_d)[3*blockIdx.x+1] ;
     __INDEX__ end_x   = (lookup_d)[3*blockIdx.x+2] ;
@@ -43,13 +66,22 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
 
     // load parameter(s)
     TYPE param_loc[DIMP < 1 ? 1 : DIMP];
-	load<DIMSP>(0,param_loc,pp); // load parameters variables from global memory to local thread memory
+
+    if (1) {
+	    load<DIMSP>(0, param_loc, pp); // load parameters variables from global memory to local thread memory
+    } else {
+        load<DIMSP>(0, param_loc, pp, indices_p); // Possibly, with offsets as we support broadcasting over batch dimensions
+    }
 
     // get the value of variable (index with i)
     TYPE xi[DIMX < 1 ? 1 : DIMX] ,tmp[DIMRED];
     if(i<end_x) {
         typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
-        load<typename DIMSX::NEXT>(i,xi+DIMFOUT,px+1); // load xi variables from global memory to local thread memory
+        if (1) {
+            load<typename DIMSX::NEXT>(i, xi+DIMFOUT, px+1); // load xi variables from global memory to local thread memory
+        } else {
+            load<typename DIMSX::NEXT>(threadIdx.x, xi+DIMFOUT, px+1, indices_i);  // Possibly, with offsets as we support broadcasting over batch dimensions
+        }
     }
 
     __INDEX__ start_y = ranges_y[2*start_slice], end_y = 0;
@@ -64,7 +96,11 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
                 int j = jstart + threadIdx.x;
 
                 if(j<end_y) { // we load yj from device global memory only if j<end_y
-                    load<DIMSY>(j,yj+threadIdx.x*DIMY,py); // load yj variables from global memory to shared memory
+                    if (1) {
+                        load<DIMSY>(j, yj+threadIdx.x*DIMY, py); // load yj variables from global memory to shared memory
+                    } else {
+                        load<DIMSY>(j - start_y, yj+threadIdx.x*DIMY, py, indices_j);  // Possibly, with offsets as we support broadcasting over batch dimensions
+                    }
                 }
                 __syncthreads();
 
@@ -88,6 +124,83 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
     }
 
 }
+
+
+
+
+template < class FUN >
+int* build_offset_tables( int nbatchdims, int *shapes, int nblocks, __INDEX__ *lookup_h ) {
+
+        // Support for broadcasting over batch dimensions =============================================
+        typedef typename FUN::VARSI VARSI;
+        typedef typename FUN::VARSJ VARSJ;
+        typedef typename FUN::VARSP VARSP;
+    
+        const int SIZEI = VARSI::SIZE+1;  // The usual convention is that the output "counts" in SIZEI
+        const int SIZEJ = VARSJ::SIZE;
+        const int SIZEP = VARSP::SIZE;
+    
+        const int SIZEVARS = SIZEI-1 + SIZEJ + SIZEP;
+    
+        // Separate and store the shapes of the "i" and "j" variables + parameters --------------
+        //
+        // shapes is an array of size (1+nargs)*(nbatchdims+3), which looks like:
+        // [ A, .., B, M, N, D_out]  -> output
+        // [ A, .., B, M, 1, D_1  ]  -> "i" variable
+        // [ A, .., B, 1, N, D_2  ]  -> "j" variable
+        // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
+        // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
+        // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
+    
+        int shapes_i[(SIZEI-1)*(nbatchdims+1)], shapes_j[SIZEJ*(nbatchdims+1)], shapes_p[SIZEP*(nbatchdims+1)];
+    
+        // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
+        // making it look like, say:
+        // [ A, .., B, M]
+        // [ A, .., 1, M]
+        // [ A, .., A, M]
+        // Then, we do the same for shapes_j, but with "N" instead of "M".
+        // And finally for the parameters, with "1" instead of "M".
+        fill_shapes<FUN>(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
+    
+        const int tagIJ = FUN::tagJ; // 1 if the reduction is made "over j", 0 if it is made "over i"
+        int M = shapes[nbatchdims], N = shapes[nbatchdims+1];
+
+        // We create a lookup table, "offsets", of shape (nblock, SIZEVARS) --------
+        int *offsets_h = NULL, *offsets_d = NULL;
+    
+        offsets_h = new int[nblocks * SIZEVARS] ;
+
+        for (int k=0; k < nblocks; k++) {
+            int range_id = (int) lookup_h[3*k] ;
+            int start_x  = tagIJ ? range_id * M : range_id * N;
+            int start_y  = tagIJ ? range_id * N : range_id * M;
+            
+            vect_broadcast_index(start_x, nbatchdims, SIZEI-1, shapes, shapes_i, offsets_h + k*SIZEVARS);
+            vect_broadcast_index(start_y, nbatchdims, SIZEJ,   shapes, shapes_j, offsets_h + k*SIZEVARS + SIZEI-1);
+            // And for the parameters, too:
+            vect_broadcast_index(range_id, nbatchdims, SIZEP, shapes, shapes_p, offsets_h + k*SIZEVARS + SIZEI-1 + SIZEJ);
+        }
+
+        CudaSafeCall(cudaMalloc((int**)&offsets_d, sizeof(int)*nblocks*SIZEVARS));
+        CudaSafeCall(cudaMemcpy(offsets_d, offsets_h, sizeof(int)*nblocks*SIZEVARS, cudaMemcpyHostToDevice));
+    
+        std::cout << "\n";
+        for (int k=0; k < nblocks; k++) {
+            for (int b=0; b < SIZEVARS; b++) {
+                std::cout << offsets_h[k*SIZEVARS + b] << ",";
+            }
+            std::cout << "\n";
+        }
+        delete [] offsets_h;
+        return offsets_d;
+}
+
+
+
+
+
+
 
 
 struct GpuConv1D_ranges_FromHost {
@@ -237,6 +350,15 @@ static int Eval_(FUN fun, int nx, int ny,
     CudaSafeCall(cudaMalloc((__INDEX__**) &ranges_y_d, sizeof(__INDEX__)*2*nredranges));
     CudaSafeCall(cudaMemcpy(ranges_y_d, ranges_y, sizeof(__INDEX__)*2*nredranges, cudaMemcpyHostToDevice));
 
+    // Support for broadcasting over batch dimensions =============================================
+
+    // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
+    int *offsets_d = NULL;
+
+    if (nbatchdims > 0) {
+        offsets_d = build_offset_tables<FUN>( nbatchdims, shapes, nblocks, lookup_h );
+    }
+
     // ============================================================================================
 
 
@@ -245,7 +367,7 @@ static int Eval_(FUN fun, int nx, int ny,
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,
-        nbatchdims,shapes,
+        nbatchdims,shapes, offsets_d,
         lookup_d,slices_x_d,ranges_y_d,
         px_d,py_d,pp_d);
     
@@ -260,9 +382,14 @@ static int Eval_(FUN fun, int nx, int ny,
     CudaSafeCall(cudaFree(p_data));
 
     // Free the block lookup table :
+    delete [] lookup_h;
     CudaSafeCall(cudaFree(lookup_d));
     CudaSafeCall(cudaFree(slices_x_d));
     CudaSafeCall(cudaFree(ranges_y_d));
+
+    if (nbatchdims > 0) {
+        CudaSafeCall(cudaFree(offsets_d));
+    }
 
     return 0;
 }
@@ -479,6 +606,15 @@ static int Eval_(FUN fun, int nx, int ny,
     CudaSafeCall(cudaMalloc((__INDEX__**)&lookup_d, sizeof(__INDEX__)*3*nblocks));
     CudaSafeCall(cudaMemcpy(lookup_d, lookup_h, sizeof(__INDEX__)*3*nblocks, cudaMemcpyHostToDevice));
 
+    // Support for broadcasting over batch dimensions =============================================
+
+    // We create a lookup table, "offsets", of shape (nblock, SIZEVARS):
+    int *offsets_d = NULL;
+
+    if (nbatchdims > 0) {
+        offsets_d = build_offset_tables<FUN>( nbatchdims, shapes, nblocks, lookup_h );
+    }
+
     // ============================================================================================
 
     dim3 gridSize;
@@ -486,7 +622,7 @@ static int Eval_(FUN fun, int nx, int ny,
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,
-        nbatchdims,shapes,
+        nbatchdims,shapes, offsets_d,
         lookup_d,slices_x_d,ranges_y_d,
         px_d,py_d,pp_d);
 
@@ -507,6 +643,11 @@ static int Eval_(FUN fun, int nx, int ny,
         CudaSafeCall(cudaFree(slices_x_d));
         CudaSafeCall(cudaFree(ranges_y_d));
     }
+    
+    if (nbatchdims > 0) {
+        CudaSafeCall(cudaFree(offsets_d));
+    }
+
 
     return 0;
 }
