@@ -185,13 +185,6 @@ int* build_offset_tables( int nbatchdims, int *shapes, int nblocks, __INDEX__ *l
         CudaSafeCall(cudaMalloc((int**)&offsets_d, sizeof(int)*nblocks*SIZEVARS));
         CudaSafeCall(cudaMemcpy(offsets_d, offsets_h, sizeof(int)*nblocks*SIZEVARS, cudaMemcpyHostToDevice));
     
-        std::cout << "\n";
-        for (int k=0; k < nblocks; k++) {
-            for (int b=0; b < SIZEVARS; b++) {
-                std::cout << offsets_h[k*SIZEVARS + b] << ",";
-            }
-            std::cout << "\n";
-        }
         delete [] offsets_h;
         return offsets_d;
 }
@@ -214,33 +207,103 @@ static int Eval_(FUN fun, int nx, int ny,
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
-    const int DIMX = DIMSX::SUM;
     const int DIMY = DIMSY::SUM;
-    const int DIMP = DIMSP::SUM;
     const int DIMOUT = FUN::DIM; // dimension of output variable
-    const int DIMFOUT = DIMSX::FIRST; // DIMFOUT is dimension of output variable of inner function
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
 
 
+
+    // Compute the memory footprints of all (broadcasted?) variables ===========
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
+
+    const int SIZEVARSI = VARSI::SIZE+1;  // The usual convention is that the output "counts" in SIZEI
+    const int SIZEVARSJ = VARSJ::SIZE;
+    const int SIZEVARSP = VARSP::SIZE;
+
+    static_assert(SIZEVARSI == SIZEI, "[Jean:] Looks like I misunderstood something... Sorry.");
+    static_assert(SIZEVARSJ == SIZEJ, "[Jean:] Looks like I misunderstood something... Sorry.");
+    static_assert(SIZEVARSP == SIZEP, "[Jean:] Looks like I misunderstood something... Sorry.");
+
+    // Separate and store the shapes of the "i" and "j" variables + parameters --------------
+    //
+    // shapes is an array of size (1+nargs)*(nbatchdims+3), which looks like:
+    // [ A, .., B, M, N, D_out]  -> output
+    // [ A, .., B, M, 1, D_1  ]  -> "i" variable
+    // [ A, .., B, 1, N, D_2  ]  -> "j" variable
+    // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
+    // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
+    // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
+
+    int shapes_i[(SIZEVARSI-1)*(nbatchdims+1)], shapes_j[SIZEVARSJ*(nbatchdims+1)], shapes_p[SIZEVARSP*(nbatchdims+1)];
+
+    // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
+    // making it look like, say:
+    // [ A, .., B, M]
+    // [ A, .., 1, M]
+    // [ A, .., A, M]
+    // Then, we do the same for shapes_j, but with "N" instead of "M".
+    // And finally for the parameters, with "1" instead of "M".
+    fill_shapes<FUN>(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
+
+    int total_footprint_x = 0, total_footprint_y = 0, total_footprint_p = 0;
+    int footprints_x[SIZEI], footprints_y[SIZEJ], footprints_p[SIZEP];
+    int tmp = 0;
+
+    // Footprints of the "x" variables: ----------------------------------------
+    footprints_x[0] = nx * DIMOUT;  // First "x variable" is the output
+    total_footprint_x = footprints_x[0];
+    for (int k=1; k < SIZEI; k++) { // For the actual variables:
+        tmp = DIMSX::VAL(k);  // use the product of the vector dimension...
+        for (int l=0; l < nbatchdims+1; l++) {
+            tmp *= shapes_i[ (k-1)*(nbatchdims+1) + l];  // with all the shape's dimensions
+        }
+        footprints_x[k] = tmp;
+        total_footprint_x += tmp;
+    }
+
+    // Footprints of the "y" variables: ----------------------------------------
+    for (int k=0; k < SIZEJ; k++) { // For the actual variables:
+        tmp = DIMSY::VAL(k);  // use the product of the vector dimension...
+        for (int l=0; l < nbatchdims+1; l++) {
+            tmp *= shapes_j[ k*(nbatchdims+1) + l];  // with all the shape's dimensions
+        }
+        footprints_y[k] = tmp;
+        total_footprint_y += tmp;
+    }
+
+    // Footprints of the "parameters": -----------------------------------------
+    for (int k=0; k < SIZEP; k++) { // For the actual variables:
+        tmp = DIMSP::VAL(k);  // use the product of the vector dimension...
+        for (int l=0; l < nbatchdims+1; l++) {
+            tmp *= shapes_p[ k*(nbatchdims+1) + l];  // with all the shape's dimensions
+        }
+        footprints_p[k] = tmp;
+        total_footprint_p += tmp;
+    }
+
+
     // Load data on the device =================================================
+
+    // Setup pointers, allocate memory -----------------------------------------
     // pointers to device data
     TYPE *x_d, *y_d, *param_d;
-
     // device arrays of pointers to device data
     TYPE **px_d, **py_d, **pp_d;
 
     // single cudaMalloc
     void **p_data;
     CudaSafeCall(cudaMalloc((void**)&p_data, 
-                             sizeof(TYPE*) * (SIZEI+SIZEJ+SIZEP)  // pointers to the start of each variable
-                           + sizeof(TYPE) * (       DIMP          // parameters
-                                            + nx * (DIMX-DIMFOUT+DIMOUT)  // "i" variables if tagIJ==1, "j" otherwise
-                                            + ny * DIMY )));              // "j" variables if tagIJ==1, "i" otherwise
+                             sizeof(TYPE*) * (SIZEI+SIZEJ+SIZEP)      // pointers to the start of each variable
+                           + sizeof(TYPE) * ( total_footprint_p       // parameters
+                                            + total_footprint_x       // "i" variables if tagIJ==1, "j" otherwise
+                                            + total_footprint_y )));  // "j" variables if tagIJ==1, "i" otherwise
     
 
-    // Now, fill in our big, contiguous array:
+    // Now, fill in our big, contiguous array: ---------------------------------
     // In the head, the pointers to the data:
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;   // pointers to the "x" variables, later on in p_data
@@ -253,9 +316,9 @@ static int Eval_(FUN fun, int nx, int ny,
     // In the tail, the actual data:
     TYPE *p_data_b = (TYPE*)p_data_a;  // Beware: Instead of storing TYPE*, we now store TYPE
     param_d = p_data_b; // Parameters
-    p_data_b += DIMP;
+    p_data_b += total_footprint_p;
     x_d = p_data_b;     // "x" variables
-    p_data_b += nx * (DIMX-DIMFOUT+DIMOUT);
+    p_data_b += total_footprint_x;
     y_d = p_data_b;     // "y" variables
 
     // host arrays of pointers to device data
@@ -263,37 +326,45 @@ static int Eval_(FUN fun, int nx, int ny,
     TYPE *phy_d[SIZEJ];  // Will be loaded to py_d
     TYPE *php_d[SIZEP];  // Will be loaded to pp_d
 
+    // parameters --------------------------------------------------------------
     int nvals;    
-    nvals = DIMSP::VAL(0);  // dimension of the first parameter
     // if DIMSP is empty (i.e. no parameter), nvals = -1 which could result in a segfault
-    if(nvals >= 0){ 
+    if(SIZEP > 0){ 
+        nvals = footprints_p[0];  // dimension of the first parameter
         php_d[0] = param_d;
         CudaSafeCall(cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
-    }
-    for(int k=1; k<SIZEP; k++) {
-        php_d[k] = php_d[k-1] + nvals;  // Move to the right...
-        nvals = DIMSP::VAL(k); // Memory footprint of the k-th parameter...
-        CudaSafeCall(cudaMemcpy(php_d[k], pp_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));  // And load the data
-    }    
-
-    phx_d[0] = x_d;
-    nvals = nx * DIMOUT;  // First "x variable" is the output: no need to load anything
-    for(int k=1; k<SIZEI; k++) {
-        phx_d[k] = phx_d[k-1] + nvals;  // Move to the right...
-        nvals = nx * DIMSX::VAL(k); // Memory footprint of the k-th x variable...
-        CudaSafeCall(cudaMemcpy(phx_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
+    
+        for(int k=1; k<SIZEP; k++) {
+            php_d[k] = php_d[k-1] + nvals;  // Move to the right...
+            nvals = footprints_p[k]; // Memory footprint of the k-th parameter...
+            CudaSafeCall(cudaMemcpy(php_d[k], pp_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));  // And load the data
+        }    
     }
 
-    phy_d[0] = y_d;
-    nvals = ny * DIMSY::VAL(0);  // First "y" variable...
-    CudaSafeCall(cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice)); // Should be loaded on the device!
-    for(int k=1; k<SIZEJ; k++) {
-        phy_d[k] = phy_d[k-1] + nvals;  // Move to the right...
-        nvals = ny * DIMSY::VAL(k);  // Memory footprint of the (k+1)-th y variable...
-        CudaSafeCall(cudaMemcpy(phy_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));  // And load the data
+    // "x" variables -----------------------------------------------------------
+    if (SIZEI > 0) {
+        phx_d[0] = x_d;
+        nvals = footprints_x[0];  // First "x variable" is the output: no need to load anything
+        for(int k=1; k<SIZEI; k++) {
+            phx_d[k] = phx_d[k-1] + nvals;  // Move to the right...
+            nvals = footprints_x[k]; // Memory footprint of the k-th x variable...
+            CudaSafeCall(cudaMemcpy(phx_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
+        }
     }
 
-    // Load on the device the pointer arrays:
+    // "y" variables -----------------------------------------------------------
+    if (SIZEJ > 0) {
+        phy_d[0] = y_d;
+        nvals = footprints_y[0];  // First "y" variable...
+        CudaSafeCall(cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice)); // Should be loaded on the device!
+        for(int k=1; k<SIZEJ; k++) {
+            phy_d[k] = phy_d[k-1] + nvals;  // Move to the right...
+            nvals = footprints_y[k];  // Memory footprint of the (k+1)-th y variable...
+            CudaSafeCall(cudaMemcpy(phy_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));  // And load the data
+        }
+    }
+
+    // Load on the device the pointer arrays: ----------------------------------
     CudaSafeCall(cudaMemcpy(pp_d, php_d, SIZEP*sizeof(TYPE*), cudaMemcpyHostToDevice));
     CudaSafeCall(cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice));
     CudaSafeCall(cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice));
