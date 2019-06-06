@@ -36,40 +36,45 @@ def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
             raise ValueError('size of input array is too large for Arg type reduction with single precision. Use double precision.')        
     if reduction_op == 'SumSoftMaxWeight' or reduction_op == 'SoftMax':
         # we compute sum_j exp(f_ij) g_ij / sum_j exp(f_ij) from sum_j exp(m_i-f_ij) [1,g_ij]
-        out = out[:, 2:] / out[:, 1][:, None]
+        out = out[..., 2:] / out[..., 1][..., None]
     elif reduction_op == 'ArgMin' or reduction_op == 'ArgMax':
         # outputs are encoded as floats but correspond to indices, so we cast to integers
         out = tools.long(out)
     elif reduction_op == 'Min_ArgMin' or reduction_op == 'MinArgMin' or reduction_op == 'Max_ArgMax' or reduction_op == 'MaxArgMax':
         # output is one array of size N x 2D, giving min and argmin value for each dimension. 
         # We convert to one array of floats of size NxD giving mins, and one array of size NxD giving argmins (casted to integers)
-        tmp = tools.view(out,(nout,2,-1))
-        out = (tmp[:,0,:],tools.long(tmp[:,1,:])) 
+        shape_out = out.shape
+        tmp = tools.view(out, shape_out[:-1] + (2, -1) )
+        vals    = tmp[...,0,:]
+        indices = tmp[...,1,:]
+        out = ( vals, tools.long(indices) ) 
     elif reduction_op == 'KMin':
         # output is of size N x KD giving K minimal values for each dim. We convert to array of size N x K x D
-        out = tools.view(out,(nout,opt_arg,-1))
-        if out.shape[2]==1:
-            out = tools.view(out,(nout,opt_arg))
+        shape_out = out.shape
+        out = tools.view(out, shape_out[:-1] + (opt_arg, -1))
+        if out.shape[-1] == 1:
+            out = out.squeeze(-1)
     elif reduction_op == 'ArgKMin':
         # output is of size N x KD giving K minimal values for each dim. We convert to array of size N x K x D
         # and cast to integers
-        out = tools.view(tools.long(out),(nout,opt_arg,-1))
-        if out.shape[2]==1:
-            out = tools.view(out,(nout,opt_arg))
+        shape_out = out.shape
+        out = tools.view(tools.long(out), shape_out[:-1] + (opt_arg, -1))
+        if out.shape[-1] == 1:
+            out = out.squeeze(-1)
     elif reduction_op == 'KMin_ArgKMin' or reduction_op == 'KMinArgKMin':
         # output is of size N x 2KD giving K min and argmin for each dim. We convert to 2 arrays of size N x K x D
         # and cast to integers the second array
-        out = tools.view(out,(nout,opt_arg,2,-1))
-        if out.shape[3]==1:
-            out = (out[:,:,0],tools.long(out[:,:,1]))
-        else:
-            out = (out[:,:,0,:],tools.long(out[:,:,1,:]))
+        shape_out = out.shape
+        out = tools.view(out, shape_out[:-1] + (opt_arg, 2, -1))
+        out = (out[...,0,:], tools.long(out[...,1,:]))
+        if out[0].shape[-1] == 1:
+            out = (out[0].squeeze(-1), out[1].squeeze(-1))
     elif reduction_op == 'LogSumExp':
         # finalize the log-sum-exp computation as m + log(s)
-        if out.shape[1] == 2:  # means (m,s) with m scalar and s scalar
-            out = tools.view(out[:, 0] + tools.log(out[:, 1]), (-1, 1))
-        else:  # here out.shape[1]>2, means (m,s) with m scalar and s vectorial
-            out = out[:, 0][:, None] + tools.log(out[:, 1:])
+        if out.shape[-1] == 2:  # means (m,s) with m scalar and s scalar
+            out = (out[..., 0] + tools.log(out[..., 1]))[...,None]
+        else:  # here out.shape[-1]>2, means (m,s) with m scalar and s vectorial
+            out = out[..., 0][..., None] + tools.log(out[..., 1:])
     return out
 
 

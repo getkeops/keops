@@ -1117,11 +1117,11 @@ class LazyTensor:
     def sum_reduction(self,**kwargs):
         return self.reduction("Sum", **kwargs)
     
-    def logsumexp(self, weight=None, **kwargs):
+    def logsumexp(self, axis=None, weight=None, **kwargs):
         if weight is None:
-            return self.reduction("LogSumExp", **kwargs)
+            return self.reduction("LogSumExp", axis=axis, **kwargs)
         else:
-            return self.reduction("LogSumExpWeight", weight, **kwargs)
+            return self.reduction("LogSumExpWeight", weight, axis=axis, **kwargs)
         
     def logsumexp_reduction(self,**kwargs):
         return self.logsumexp(**kwargs)

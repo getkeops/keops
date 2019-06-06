@@ -108,7 +108,11 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
                     TYPE* yjrel = yj; // Loop on the columns of the current block.
                     for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {
                         call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-                        typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
+                        if (nbatchdims == 0) {
+                            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x + start_y);     // tmp += xi
+                        } else {
+                            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x);
+                        }
                     }
                 }
                 __syncthreads();

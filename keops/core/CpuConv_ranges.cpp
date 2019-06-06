@@ -128,7 +128,11 @@ static int CpuConv_ranges_(FUN fun, TYPE** param, int nx, int ny,
                         load<DIMSY>(j - start_y, yj, py, indices_j);
                     }
                     call<DIMSX,DIMSY,DIMSP>(fun, xi, yj, pp);
-                    typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j); // tmp += xi
+                    if (nbatchdims == 0) {
+                        typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j); // tmp += xi
+                    } else {
+                        typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j - start_y); // tmp += xi
+                    }
                 }
             }
             typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
