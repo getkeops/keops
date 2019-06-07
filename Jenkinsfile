@@ -89,6 +89,9 @@ pipeline {
         sh 'git submodule update --init'
         echo 'Building the doc...'
         sh 'cd doc/ && sh ./generate_doc.sh'
+        withCredentials([usernamePassword(credentialsId: '02af275f-5383-4be3-91d8-4c711aa90de9', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          lftp -u ${USERNAME},${PASSWORD}  -e "mirror -e -R  ./doc/_build/html/ /www/keops_latest/ ; quit" ftp://ftp.cluster021.hosting.ovh.net
+        }
       }
     }
 
