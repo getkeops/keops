@@ -88,7 +88,7 @@ pipeline {
         echo 'Generating doc on tag event...'
         sh 'git submodule update --init'
         echo 'Building the doc...'
-        sh 'cd doc/ && sh ./generate_doc.sh'
+        sh 'cd doc/ && ./generate_doc.sh'
         withCredentials([usernamePassword(credentialsId: '02af275f-5383-4be3-91d8-4c711aa90de9', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh 'lftp -u ${USERNAME},${PASSWORD}  -e "mirror -e -R  ./doc/_build/html/ /www/keops_latest/ ; quit" ftp://ftp.cluster021.hosting.ovh.net'
         }
@@ -103,7 +103,7 @@ pipeline {
         echo 'Deploying on tag event...'
         sh 'git submodule update --init'
         echo 'Deploying the wheel package...'
-        sh 'cd pykeops && sh ./generate_wheel.sh -v ${TAG_NAME##v}'
+        sh 'cd pykeops && ./generate_wheel.sh -v ${TAG_NAME##v}'
         withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh 'cd build && twine upload --repository-url https://test.pypi.org/legacy/ -u ${USERNAME} -p ${PASSWORD} ./dist/pykeops-${TAG_NAME##v}.tar.gz'
           }
