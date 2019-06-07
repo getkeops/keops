@@ -90,7 +90,7 @@ pipeline {
         echo 'Building the doc...'
         sh 'cd doc/ && sh ./generate_doc.sh'
         echo 'Deploying the wheel package...'
-        sh 'cd pykeops && sh ./generate_wheel -v ${TAG_NAME##v}'
+        sh 'cd pykeops && pwd && ls && sh ./generate_wheel -v ${TAG_NAME##v}'
         withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh 'set +x && cd build && twine upload -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'
           }
