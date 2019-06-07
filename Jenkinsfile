@@ -84,7 +84,8 @@ pipeline {
 
     stage('Deploy') {
       agent { label 'cuda' }
-      when { buildingTag() }
+      //when { buildingTag() }
+      when { tag "v*" }
       steps {
         echo 'Deploying on tag event...'
         sh 'git submodule update --init'
