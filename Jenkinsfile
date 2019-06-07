@@ -85,7 +85,7 @@ pipeline {
     stage('Deploy') {
       agent { label 'cuda' }
       //when { buildingTag() }
-      when { tag "v*" }
+      //when { tag "v*" }
       steps {
         echo 'Deploying on tag event...'
         sh 'git submodule update --init'
@@ -94,7 +94,7 @@ pipeline {
         echo 'Deploying the wheel package...'
         sh 'cd pykeops && sh ./generate_wheel.sh -v ${TAG_NAME##v}'
         withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-          sh 'set +x && cd build && twine upload --repository-url https://test.pypi.org/legacy/ -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'
+          sh 'cd build && twine upload --repository-url https://test.pypi.org/legacy/ -u ${USERNAME} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'
           }
       }
     }
