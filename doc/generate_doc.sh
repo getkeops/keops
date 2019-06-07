@@ -1,4 +1,4 @@
-#! /usr/bin/bash
+#! /bin/sh
 #
 # This script build the doc and fix some links
 
@@ -17,6 +17,11 @@ done
 # build the doc (1rst run to compile the binaries, 2nd run to render the doc)
 make html
 make clean
+make html
+
+# try to capture error code in the final part
+set -o errexit
+set -e
 make html
 
 # Fix some bad links due interaction between rtd-theme and sphinx-gallery
