@@ -190,3 +190,116 @@ for i in range(1, 7):
 
 plt.tight_layout()
 plt.show()
+
+
+###############################################################
+# Scaling to large datasets with block-sparse reductions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 
+
+
+
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+N = 500 if use_cuda else 1000
+t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
+x = np.stack((.4 + .4 * (t / 7) * np.cos(1.5*t), 
+              .1 + .8 * np.random.rand(N),
+              .5 + .3 * (t / 7) * np.sin(1.5*t),     ), 1)
+x = x + .01 * np.random.randn(*x.shape)
+x = x.astype(dtype)
+
+N_display = 100 if use_cuda else 500
+indices_display = np.random.randint(0, N, N_display)
+
+fig = plt.figure(figsize=(8,8))
+ax = fig.add_subplot(111, projection='3d')
+x_ = x[indices_display,:]
+ax.scatter( x_[:,0], x_[:,1], x_[:,2],
+            s = 250000 / len(x_), c = t[indices_display], 
+           edgecolors='none', cmap=plt.cm.Spectral)
+ax.set_title("{:,} out of {:,} points in our source point cloud".format(N_display, N))
+plt.tight_layout()
+
+
+
+from pykeops.numpy.cluster import grid_cluster, cluster_ranges_centroids, sort_clusters, from_matrix
+eps = .1  # Size of our square bins
+x_labels = grid_cluster(x, eps)  # class labels
+x_ranges, x_centroids, _  = cluster_ranges_centroids(x, x_labels)
+x, x_labels = sort_clusters(x, x_labels)
+
+
+fig = plt.figure(figsize=(8,8))
+ax = fig.add_subplot(111, projection='3d')
+x_ = x[indices_display,:]
+ax.scatter( x_[:,0], x_[:,1], x_[:,2],
+            s = 250000 / len(x_), c = x_labels[indices_display], 
+           edgecolors='none', cmap="prism")
+ax.set_title("Cluster labels")
+plt.tight_layout()
+
+
+
+sigma = .3  # Characteristic length of interaction
+# Compute a coarse Boolean mask:
+D = np.sum((x_centroids[:,None,:] - x_centroids[None,:,:])**2, 2)
+keep = D < (4 * sigma + np.sqrt(3)*eps)**2
+
+ranges_ij = from_matrix(x_ranges, x_ranges, keep)
+
+
+areas = (x_ranges[:,1]-x_ranges[:,0])[:,None] \
+      * (x_ranges[:,1]-x_ranges[:,0])[None,:]
+total_area  = np.sum(areas) # should be equal to N*M
+sparse_area = np.sum(areas[keep])
+print("We keep {:.2e}/{:.2e} = {:2d}% of the original kernel matrix.".format(
+    sparse_area, total_area, int(100 * sparse_area / total_area) ))
+print("")
+
+
+x_ = x / sigma
+x_i, x_j = LazyTensor( x_[:,None,:] ), LazyTensor( x_[None,:,:] )
+K_xx = (- ((x_i - x_j)**2).sum(2) / 2 ).exp()  # Symbolic (N,N) Gaussian kernel matrix
+
+K_xx.ranges = ranges_ij  # block-sparsity pattern
+K_xx.backend = "CPU"
+print(K_xx)
+print(ranges_ij)
+print(ranges_ij[1])
+print(ranges_ij[2].shape)
+
+K = aslinearoperator( K_xx )
+
+
+D = K@np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
+
+print(D)
+D_2 = aslinearoperator( diags( 1 / np.sqrt(D) ) )
+L_norm = IdentityOperator( (N,N) ) - D_2@K@D_2
+L_norm.dtype = np.dtype(dtype)  # Scipy Bugfix: by default, "-" removes the dtype information...
+
+
+from time import time
+start = time()
+
+# Compute the 7 smallest eigenvalues/vectors of our normalized graph Laplacian
+eigenvalues, coordinates = eigsh( L_norm , k=7, which="SM" )
+
+print("Smallest eigenvalues of the normalized graph Laplacian, computed in {:.3f}s:".format(time() - start))
+print(eigenvalues)
+
+
+fig = plt.figure(figsize=(12,8))
+
+for i in range(1, 7):
+    ax = fig.add_subplot(2, 3, i, projection='3d')
+    x_ = x[indices_display,:]
+    ax.scatter( x_[:,0], x_[:,1], x_[:,2],
+                s = 250000 / len(x_), c = coordinates[indices_display,i], 
+            edgecolors='none', cmap=plt.cm.Spectral)
+    ax.set_title( "Eigenvalue {} = {:.1e}".format( i+1, eigenvalues[i] ) )
+
+plt.tight_layout()
+plt.show()
