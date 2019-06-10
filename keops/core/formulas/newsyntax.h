@@ -18,7 +18,7 @@ template < class F > struct KeopsNS : public F { };
 
 template < class F >
 F InvKeopsNS(KeopsNS<F> kf) {
-	return F();
+    return F();
 }
 
 #define Var(N,DIM, CAT) KeopsNS<Var<N,DIM,CAT>>()
@@ -91,7 +91,7 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define TensorProd(f,g) KeopsNS<TensorProd<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
-#define TensorDot(f,g) KeopsNS<TensorDot<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+#define TensorDot(f,g,i) KeopsNS<TensorDot<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g)), i>>()
 
 #define GradMatrix(f,g) KeopsNS<GradMatrix<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 

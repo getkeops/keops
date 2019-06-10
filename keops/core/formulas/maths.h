@@ -20,31 +20,31 @@
  *      Minus<F>                    : alias for Scal<IntConstant<-1>,F>
  *
  *   /, ^, ^2, ^-1, ^(1/2) :
- *      Divide<FA,FB>				: alias for Scal<FA,Inv<FB>>
- *      Pow<F,M>					: Mth power of F (vectorized) ; M is an integer
- *      Powf<A,B>					: alias for Exp<Scal<FB,Log<FA>>>
- *      Square<F>					: Pointwise square, more efficient than Pow<F,2>
- *      Inv<F>						: Pointwise inverse, more efficient than Pow<F,-1>
- *      IntInv<N>					: alias for Inv<IntConstant<N>>
- *      Sqrt<F>						: alias for Powf<F,IntInv<2>>
- *      Rsqrt<F>					: inverse square root
+ *      Divide<FA,FB>               : alias for Scal<FA,Inv<FB>>
+ *      Pow<F,M>                    : Mth power of F (vectorized) ; M is an integer
+ *      Powf<A,B>                   : alias for Exp<Scal<FB,Log<FA>>>
+ *      Square<F>                   : Pointwise square, more efficient than Pow<F,2>
+ *      Inv<F>                      : Pointwise inverse, more efficient than Pow<F,-1>
+ *      IntInv<N>                   : alias for Inv<IntConstant<N>>
+ *      Sqrt<F>                     : alias for Powf<F,IntInv<2>>
+ *      Rsqrt<F>                    : inverse square root
  *
  *   standard math functions :
- *      Exp<F>						: exponential of F (vectorized)
- *      Log<F>						: logarithm   of F (vectorized)
- *      Sin<F>						: sine        of F (vectorized)
- *      Cos<F>						: cosine      of F (vectorized)
- *      Sign<F>						: sign        of F (vectorized)
- *      Step<F>						: step        of F (vectorized)
- *      ReLU<F>						: ReLU        of F (vectorized)
- *      Sign<F>						: sign        of F (vectorized)
+ *      Exp<F>                      : exponential of F (vectorized)
+ *      Log<F>                      : logarithm   of F (vectorized)
+ *      Sin<F>                      : sine        of F (vectorized)
+ *      Cos<F>                      : cosine      of F (vectorized)
+ *      Sign<F>                     : sign        of F (vectorized)
+ *      Step<F>                     : step        of F (vectorized)
+ *      ReLU<F>                     : ReLU        of F (vectorized)
+ *      Sign<F>                     : sign        of F (vectorized)
  *
  *   concatenation and matrix-vector products:
- *      Concat<FA,FB>				: concatenation of FB and FB
- *      MatVecMult<FA,FB>			: matrix-vector product (FA::DIM must be a muliple of FB::DIM)
- *      VecMatMult<FA,FB>			: vector-matrix product (FB::DIM must be a muliple of FA::DIM)
- *      TensorProd<FA,FB>			: tensor product (output is of dimension FA::DIM*FB::DIM)
- *      TensorDot<FA,FB, I>      	: tensor dot as in numpy (FA::DIM must be a muliple of FB::DIM) I is an IntCst()
+ *      Concat<FA,FB>                : concatenation of FB and FB
+ *      MatVecMult<FA,FB>            : matrix-vector product (FA::DIM must be a muliple of FB::DIM)
+ *      VecMatMult<FA,FB>            : vector-matrix product (FB::DIM must be a muliple of FA::DIM)
+ *      TensorProd<FA,FB>            : tensor product (output is of dimension FA::DIM*FB::DIM)
+ *      TensorDot<FA,FB, I>          : tensor dot as in numpy (FA::DIM must be a muliple of FB::DIM) I is an IntCst()
  *
  */
 
@@ -92,15 +92,17 @@ using Mult = typename Mult_Alias<FA,FB>::type;
 
 template < class F >
 struct Minus : UnaryOp<Minus,F> {
-    
+
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Minus"; }
-	
+    static void PrintIdString(std::stringstream& str) {
+        str << "Minus";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-         for(int k=0; k<DIM; k++)
-             out[k] = -outF[k];
-	}
+        for(int k=0; k<DIM; k++)
+            out[k] = -outF[k];
+    }
 
     template < class V, class GRADIN >
     using DiffT = typename F::template DiffT<V,Minus<GRADIN>>;
@@ -117,17 +119,19 @@ struct Add_Impl : BinaryOp<Add_Impl,FA,FB> {
     // Output dim = FA::DIM = FB::DIM
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Add");
-    
-    static void PrintIdString(std::stringstream& str) { str << "+"; }
-    
+
+    static void PrintIdString(std::stringstream& str) {
+        str << "+";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-            for(int k=0; k<DIM; k++)
-            	out[k] = outA[k] + outB[k];
-	}
+        for(int k=0; k<DIM; k++)
+            out[k] = outA[k] + outB[k];
+    }
 
     // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin
     template < class V, class GRADIN >
-    using DiffT = Add < typename FA::template DiffT<V,GRADIN> , typename FB::template DiffT<V,GRADIN> >;
+    using DiffT = Add < typename FA::template DiffT<V,GRADIN>, typename FB::template DiffT<V,GRADIN> >;
 
 };
 
@@ -224,15 +228,17 @@ struct Add_Alias<IntConstant_Impl<M>,IntConstant_Impl<N>> {
 template < class F, class G >
 struct Concat_Impl : BinaryOp<Concat_Impl,F,G> {
     static const int DIM = F::DIM+G::DIM;
-    
-    static void PrintId(std::stringstream& str) { str << "Concat"; }
+
+    static void PrintId(std::stringstream& str) {
+        str << "Concat";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF, __TYPE__ *outG) {
-	    for(int k=0; k<F::DIM; k++)
-            	out[k] = outF[k];
-	    for(int k=0; k<G::DIM; k++)
-            	out[k+F::DIM] = outG[k];
-	}
+        for(int k=0; k<F::DIM; k++)
+            out[k] = outF[k];
+        for(int k=0; k<G::DIM; k++)
+            out[k+F::DIM] = outG[k];
+    }
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
@@ -246,18 +252,18 @@ struct Concat_Impl : BinaryOp<Concat_Impl,F,G> {
 
 template < class F, class G >
 struct Concat_Alias {
-	using type = Concat_Impl<F,G>;
+    using type = Concat_Impl<F,G>;
 };
 
 // ugly stuff to make logsumexp reduction work
 struct Dummy {
-	static const int N = 0;
-	static const int DIM = 0;
+    static const int N = 0;
+    static const int DIM = 0;
 };
 
 template < class F >
 struct Concat_Alias<F,Dummy> {
-	using type = F;
+    using type = F;
 };
 
 template < class F, class G >
@@ -274,12 +280,14 @@ struct Scal_Impl : BinaryOp<Scal_Impl,FA,FB> {
     static const int DIM = FB::DIM;
     static_assert(FA::DIM==1,"Dimension of FA must be 1 for Scal");
 
-    static void PrintIdString(std::stringstream& str) { str << "*"; }
+    static void PrintIdString(std::stringstream& str) {
+        str << "*";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-            for(int k=0; k<DIM; k++)
-            	out[k] = *outA*outB[k];
-	}
+        for(int k=0; k<DIM; k++)
+            out[k] = *outA*outB[k];
+    }
 
     //  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
     // i.e.
@@ -289,7 +297,7 @@ struct Scal_Impl : BinaryOp<Scal_Impl,FA,FB> {
     //
     // [\partial_V A*B] . gradin = [\partial_V A].(<gradin,B>) + A * [\partial_V B].gradin
     template < class V, class GRADIN >
-    using DiffT = Add < typename FA::template DiffT<V,Scalprod<GRADIN,FB>> , Scal < FA, typename FB::template DiffT<V,GRADIN> > >;
+    using DiffT = Add < typename FA::template DiffT<V,Scalprod<GRADIN,FB>>, Scal < FA, typename FB::template DiffT<V,GRADIN> > >;
 
 };
 
@@ -363,24 +371,26 @@ struct Mult_Impl : BinaryOp<Mult_Impl,FA,FB> {
     // FA and FB are vectors with same size, Output has the same size
     static const int DIM = FA::DIM;
     static_assert(FA::DIM==DIM,"Dimensions of FA and FB must be the same for Mult");
-    
-    static void PrintIdString(std::stringstream& str) { str << "*"; }
-    
+
+    static void PrintIdString(std::stringstream& str) {
+        str << "*";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
         for(int k=0; k<DIM; k++)
             out[k] = outA[k]*outB[k];
     }
-    
+
     //  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
     template < class V, class GRADIN >
     using DiffTFA = typename FA::template DiffT<V,GRADIN>;
-    
+
     template < class V, class GRADIN >
     using DiffTFB = typename FB::template DiffT<V,GRADIN>;
 
     template < class V, class GRADIN >
     using DiffT = Add<DiffTFA<V,Mult<FB,GRADIN>>,DiffTFB<V,Mult<FA,GRADIN>>>;
-    
+
 };
 
 // Simplification rules
@@ -413,7 +423,7 @@ struct Mult_Alias<Zero<DIM1>,Zero<DIM2>> {
 };
 
 
-// small hack to be able to use the * operator for both 
+// small hack to be able to use the * operator for both
 // Scal and Mult depending on dimension in the new syntax
 
 template < class FA, class FB >
@@ -423,7 +433,7 @@ using ScalOrMult = CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>;
 
 
 //////////////////////////////////////////////////////////////
-////             SUBTRACT : F-G		                      ////
+////             SUBTRACT : F-G                              ////
 //////////////////////////////////////////////////////////////
 
 
@@ -432,17 +442,19 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl,FA,FB> {
     // Output dim = FA::DIM = FB::DIM
     static const int DIM = FA::DIM;
     static_assert(DIM==FB::DIM,"Dimensions must be the same for Subtract");
-    
-    static void PrintIdString(std::stringstream& str) { str << "-"; }
-    
+
+    static void PrintIdString(std::stringstream& str) {
+        str << "-";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-            for(int k=0; k<DIM; k++)
-            	out[k] = outA[k] - outB[k];
-	}
+        for(int k=0; k<DIM; k++)
+            out[k] = outA[k] - outB[k];
+    }
 
     // [\partial_V (A - B) ] . gradin = [\partial_V A ] . gradin  - [\partial_V B ] . gradin
     template < class V, class GRADIN >
-    using DiffT = Subtract < typename FA::template DiffT<V,GRADIN> , typename FB::template DiffT<V,GRADIN> >;
+    using DiffT = Subtract < typename FA::template DiffT<V,GRADIN>, typename FB::template DiffT<V,GRADIN> >;
 
 };
 
@@ -537,15 +549,17 @@ struct Subtract_Alias<IntConstant_Impl<M>,IntConstant_Impl<N>> {
 
 template < class F >
 struct Exp : UnaryOp<Exp,F> {
-    
+
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Exp"; }
-	
+    static void PrintIdString(std::stringstream& str) {
+        str << "Exp";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-         for(int k=0; k<DIM; k++)
-             out[k] = exp(outF[k]);
-	}
+        for(int k=0; k<DIM; k++)
+            out[k] = exp(outF[k]);
+    }
 
     // [\partial_V exp(F)].gradin = exp(F) * [\partial_V F].gradin
     template < class V, class GRADIN >
@@ -562,15 +576,17 @@ template < class F > struct Cos;
 
 template < class F >
 struct Sin : UnaryOp<Sin,F> {
-    
+
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Sin"; }
-	
+    static void PrintIdString(std::stringstream& str) {
+        str << "Sin";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-         for(int k=0; k<DIM; k++)
-             out[k] = sin(outF[k]);
-	}
+        for(int k=0; k<DIM; k++)
+            out[k] = sin(outF[k]);
+    }
 
     template < class V, class GRADIN >
     using DiffT = typename F::template DiffT<V,Mult<Cos<F>,GRADIN>>;
@@ -579,15 +595,17 @@ struct Sin : UnaryOp<Sin,F> {
 
 template < class F >
 struct Cos : UnaryOp<Cos,F> {
-    
+
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Cos"; }
-	
+    static void PrintIdString(std::stringstream& str) {
+        str << "Cos";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-         for(int k=0; k<DIM; k++)
-             out[k] = cos(outF[k]);
-	}
+        for(int k=0; k<DIM; k++)
+            out[k] = cos(outF[k]);
+    }
 
     template < class V, class GRADIN >
     using DiffT = typename F::template DiffT<V,Minus<Mult<Sin<F>,GRADIN>>>;
@@ -598,17 +616,19 @@ struct Cos : UnaryOp<Cos,F> {
 ////             POWER OPERATOR : Pow< F, M >             ////
 //////////////////////////////////////////////////////////////
 
-template < class F, int M >
+              template < class F, int M >
 struct Pow : UnaryOp<Pow,F,M>  {
-    
+
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Pow"; }
+    static void PrintIdString(std::stringstream& str) {
+        str << "Pow";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
             out[k] = pow(outF[k],M);
-	}
+    }
 
     // [\partial_V F^M].gradin  =  M * (F^(M-1)) * [\partial_V F].gradin
     template < class V, class GRADIN >
@@ -628,17 +648,19 @@ struct Pow : UnaryOp<Pow,F,M>  {
 
 template < class F >
 struct Square : UnaryOp<Square,F> {
-    
+
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Sq"; }
-	
+    static void PrintIdString(std::stringstream& str) {
+        str << "Sq";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-         for(int k=0; k<DIM; k++) {
-             __TYPE__ temp = outF[k];
-             out[k] = temp*temp;
-         }
-	}
+        for(int k=0; k<DIM; k++) {
+            __TYPE__ temp = outF[k];
+            out[k] = temp*temp;
+        }
+    }
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
@@ -658,23 +680,25 @@ struct Square : UnaryOp<Square,F> {
 
 template < class F >
 struct Inv : UnaryOp<Inv,F> {
-    
+
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Inv"; }
-	
+    static void PrintIdString(std::stringstream& str) {
+        str << "Inv";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-         for(int k=0; k<DIM; k++) {
-             out[k] = 1 / outF[k];
-         }
-}
+        for(int k=0; k<DIM; k++) {
+            out[k] = 1 / outF[k];
+        }
+    }
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
 
     // [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
     template < class V, class GRADIN >
-    using DiffT = Scal<IntConstant<-1>,DiffTF<V,Mult<  Square<Inv<F>>  ,GRADIN>>> ;
+    using DiffT = Scal<IntConstant<-1>,DiffTF<V,Mult<  Square<Inv<F>>,GRADIN>>> ;
 
 };
 
@@ -705,12 +729,14 @@ template < class F >
 struct Log : UnaryOp<Log,F> {
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Log"; }
+    static void PrintIdString(std::stringstream& str) {
+        str << "Log";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
             out[k] = log(outF[k]);
-	}
+    }
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
@@ -727,17 +753,19 @@ template < class F >
 struct Sign : UnaryOp<Sign,F> {
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Sign"; }
+    static void PrintIdString(std::stringstream& str) {
+        str << "Sign";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
-			if(outF[k]<0)
-            	out[k] = -1.0;
-			else if(outF[k]==0)
-				out[k] = 0.0;
-			else
-				out[k] = 1.0;
-	}
+            if(outF[k]<0)
+                out[k] = -1.0;
+            else if(outF[k]==0)
+                out[k] = 0.0;
+            else
+                out[k] = 1.0;
+    }
 
     template < class V, class GRADIN >
     using DiffT = Zero<V::DIM>;
@@ -751,15 +779,17 @@ template < class F >
 struct Step : UnaryOp<Step,F> {
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Step"; }
+    static void PrintIdString(std::stringstream& str) {
+        str << "Step";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
-			if(outF[k]<0)
-            	out[k] = 0.0;
-			else
-				out[k] = 1.0;
-	}
+            if(outF[k]<0)
+                out[k] = 0.0;
+            else
+                out[k] = 1.0;
+    }
 
     template < class V, class GRADIN >
     using DiffT = Zero<V::DIM>;
@@ -773,15 +803,17 @@ template < class F >
 struct ReLU : UnaryOp<ReLU,F> {
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "ReLU"; }
+    static void PrintIdString(std::stringstream& str) {
+        str << "ReLU";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         for(int k=0; k<DIM; k++)
-			if(outF[k]<0)
-            	out[k] = 0.0;
-			else
-				out[k] = outF[k];
-	}
+            if(outF[k]<0)
+                out[k] = 0.0;
+            else
+                out[k] = outF[k];
+    }
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
@@ -802,47 +834,49 @@ using Powf = Exp<Scal<FB,Log<FA>>>;
 ////       SQUARE ROOT : Sqrt< F >                        ////
 //////////////////////////////////////////////////////////////
 
-template < class F > struct Sqrt_Impl; 
-template < class F > struct Sqrt_Alias; 
-template < class F > 
-using Sqrt = typename Sqrt_Alias<F>::type; 
+                 template < class F > struct Sqrt_Impl;
+                 template < class F > struct Sqrt_Alias;
+                 template < class F >
+                 using Sqrt = typename Sqrt_Alias<F>::type;
 
-template < class F > struct Rsqrt_Impl; 
-template < class F > struct Rsqrt_Alias; 
-template < class F > 
-using Rsqrt = typename Rsqrt_Alias<F>::type; 
+                 template < class F > struct Rsqrt_Impl;
+                 template < class F > struct Rsqrt_Alias;
+                 template < class F >
+                 using Rsqrt = typename Rsqrt_Alias<F>::type;
 
-template < class F >
+                 template < class F >
 struct Sqrt_Impl : UnaryOp<Sqrt_Impl,F> {
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Sqrt"; }
+    static void PrintIdString(std::stringstream& str) {
+        str << "Sqrt";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-        for(int k=0; k<DIM; k++) 
+        for(int k=0; k<DIM; k++)
             out[k] = sqrt(outF[k]);
-	}
+    }
 
     template < class V, class GRADIN >
     using DiffTF = typename F::template DiffT<V,GRADIN>;
 
     template < class V, class GRADIN >
-    using DiffT = DiffTF<V,Mult< Scal<IntInv<2>,Rsqrt<F>> ,GRADIN>>;
+    using DiffT = DiffTF<V,Mult< Scal<IntInv<2>,Rsqrt<F>>,GRADIN>>;
 };
 
 // Simplification rule
 
 // base class, redirects to implementation
-template < class F > 
-struct Sqrt_Alias { 
-    using type = Sqrt_Impl<F>; 
-}; 
- 
-// Sqrt(0) = 0 
-template < int DIM > 
-struct Sqrt_Alias<Zero<DIM>> { 
-    using type = Zero<DIM>; 
-}; 
+template < class F >
+struct Sqrt_Alias {
+    using type = Sqrt_Impl<F>;
+};
+
+// Sqrt(0) = 0
+template < int DIM >
+struct Sqrt_Alias<Zero<DIM>> {
+    using type = Zero<DIM>;
+};
 
 
 
@@ -856,15 +890,17 @@ template < class F >
 struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl,F> {
     static const int DIM = F::DIM;
 
-    static void PrintIdString(std::stringstream& str) { str << "Rsqrt"; }
+    static void PrintIdString(std::stringstream& str) {
+        str << "Rsqrt";
+    }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-        for(int k=0; k<DIM; k++) 
+        for(int k=0; k<DIM; k++)
             if(outF[k]==0)
                 out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
             else
 #ifdef __NVCC__
-                out[k] = rsqrt(outF[k]); 
+                out[k] = rsqrt(outF[k]);
 #else
                 out[k] = 1.0/sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
 #endif
@@ -874,22 +910,22 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl,F> {
     using DiffTF = typename F::template DiffT<V,GRADIN>;
 
     template < class V, class GRADIN >
-    using DiffT = DiffTF<V,Mult< Scal<IntInv<-2>,Pow<Rsqrt<F>,3>> ,GRADIN>>;
+    using DiffT = DiffTF<V,Mult< Scal<IntInv<-2>,Pow<Rsqrt<F>,3>>,GRADIN>>;
 };
 
 // Simplification rule
- 
+
 // base class, redirects to implementation
-template < class F > 
-struct Rsqrt_Alias { 
-    using type = Rsqrt_Impl<F>; 
-}; 
- 
+template < class F >
+struct Rsqrt_Alias {
+    using type = Rsqrt_Impl<F>;
+};
+
 // Rsqrt(0) = 0   // warning !! Rsqrt(0) should be Inf but we put 0 instead. This is intentional...
-template < int DIM > 
-struct Rsqrt_Alias<Zero<DIM>> { 
-    using type = Zero<DIM>; 
-}; 
+template < int DIM >
+struct Rsqrt_Alias<Zero<DIM>> {
+    using type = Zero<DIM>;
+};
 
 
 
@@ -903,31 +939,33 @@ template < class A, class B > struct VecMatMult;
 template < class A, class B >
 struct MatVecMult : BinaryOp<MatVecMult,A,B> {
     // A is vector of size n*p, interpreted as matrix (column major), B is vector of size p, interpreted as column vector
-	// output is vector of size n
-	
+    // output is vector of size n
+
     static_assert(A::DIM % B::DIM == 0,"Dimensions of A and B are not compatible for matrix-vector product");
 
     static const int DIM = A::DIM / B::DIM;
-    
-    static void PrintIdString(std::stringstream& str) { str << "x"; }
-    
+
+    static void PrintIdString(std::stringstream& str) {
+        str << "x";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
         for(int k=0; k<DIM; k++) {
-        	out[k] = 0;
-        	for(int l=0; l<B::DIM; l++)
-            	out[k] += outA[l*DIM+k] * outB[l];
+            out[k] = 0;
+            for(int l=0; l<B::DIM; l++)
+                out[k] += outA[l*DIM+k] * outB[l];
         }
     }
-    
+
     template < class V, class GRADIN >
     using DiffTA = typename A::template DiffT<V,GRADIN>;
-    
+
     template < class V, class GRADIN >
     using DiffTB = typename B::template DiffT<V,GRADIN>;
 
     template < class V, class GRADIN >
     using DiffT = Add<DiffTA<V,TensorProd<GRADIN,B>>,DiffTB<V,VecMatMult<GRADIN,A>>>;
-    
+
 };
 
 
@@ -938,32 +976,34 @@ struct MatVecMult : BinaryOp<MatVecMult,A,B> {
 template < class B, class A >
 struct VecMatMult : BinaryOp<VecMatMult,B,A> {
     // A is vector of size n*p, interpreted as matrix (column major), B is vector of size n, interpreted as row vector
-	// output is vector of size p
-	
+    // output is vector of size p
+
     static_assert(A::DIM % B::DIM == 0,"Dimensions of A and B are not compatible for matrix-vector product");
 
     static const int DIM = A::DIM / B::DIM;
-    
-    static void PrintIdString(std::stringstream& str) { str << "x"; }
-    
+
+    static void PrintIdString(std::stringstream& str) {
+        str << "x";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
         int q = 0;
         for(int k=0; k<DIM; k++) {
-        	out[k] = 0;
-        	for(int l=0; l<B::DIM; l++, q++)
-            	out[k] += outA[q] * outB[l];
+            out[k] = 0;
+            for(int l=0; l<B::DIM; l++, q++)
+                out[k] += outA[q] * outB[l];
         }
     }
-    
+
     template < class V, class GRADIN >
     using DiffTA = typename A::template DiffT<V,GRADIN>;
-    
+
     template < class V, class GRADIN >
     using DiffTB = typename B::template DiffT<V,GRADIN>;
 
     template < class V, class GRADIN >
     using DiffT = Add<DiffTA<V,TensorProd<B,GRADIN>>,DiffTB<V,MatVecMult<A,GRADIN>>>;
-    
+
 };
 
 
@@ -971,40 +1011,45 @@ struct VecMatMult : BinaryOp<VecMatMult,B,A> {
 ////      Tensor dot product      A (x) b                           ////
 /////////////////////////////////////////////////////////////////////////
 
-template < class A, class B >
-struct TensorDot : BinaryOp<TensorDot,A,B> {
+template < class A, class B, int PM>
+struct TensorDot : BinaryOpParam< TensorDot,A,B,PM> {
     // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
     // n=3 and m=2 are assume to be known
-	// output is vector of size n
-	
+    // output is vector of size n
+
+    static_assert( std::ceil(PM) == std::floor(PM), "Parameter in TensorDot should be an integer.");
+    static_assert( std::ceil(std::log(A::DIM)/ std::log(PM)) == std::floor(std::log(A::DIM)/ std::log(PM)),"Dimension of A should be a power of the parameter PM.");
+
     //static_assert(int(std::pow(A::DIM,m) ) ,"Dimensions of A and B are not compatible for matrix-vector product");
-    static_assert(A::DIM == 8, "Dimensions of A and B are not compatible for matrix-vector product");
-    static_assert(B::DIM == 4,"Dimensions of A and B are not compatible for matrix-vector product");
+    static_assert(A::DIM == PM * PM * PM, "Dimensions of A and B are not compatible for matrix-vector product");
+    static_assert(B::DIM == PM * PM,"Dimensions of A and B are not compatible for matrix-vector product");
 
     static const int DIM = A::DIM / B::DIM;
-    
-    static void PrintIdString(std::stringstream& str) { str << "(x)"; }
-    
+
+    static void PrintIdString(std::stringstream& str) {
+        str << "(x)";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-       static const int DIMDOT = int(std::exp(std::log(A::DIM)/3));
-    
+        static const int DIMDOT = int(std::exp(std::log(A::DIM)/3));
+
         for(int k=0; k<DIM; k++) {
-        	out[k] = 0;
-        	for(int l=0; l<DIMDOT; l++)
+            out[k] = 0;
+            for(int l=0; l<DIMDOT; l++)
                 for(int m=0; m<DIMDOT; m++)
-                   out[k] += inA[m*DIM*DIM+l*DIM+k] * inB[m*DIM+l];
+                    out[k] += inA[m*DIM*DIM+l*DIM+k] * inB[m*DIM+l];
         }
     }
-    
+
     template < class V, class GRADIN >
     using DiffTA = typename A::template DiffT<V,GRADIN>;
-    
+
     template < class V, class GRADIN >
     using DiffTB = typename B::template DiffT<V,GRADIN>;
 
     template < class V, class GRADIN >
     using DiffT = Add<DiffTA<V,TensorProd<GRADIN,B>>,DiffTB<V,VecMatMult<GRADIN,A>>>;
-    
+
 };
 
 
@@ -1014,30 +1059,32 @@ struct TensorDot : BinaryOp<TensorDot,A,B> {
 
 template < class A, class B >
 struct TensorProd : BinaryOp<TensorProd,A,B> {
-    // A is vector of size n, B is vector of size p, 
-	// output is vector of size n*p
-	
+    // A is vector of size n, B is vector of size p,
+    // output is vector of size n*p
+
     static const int DIM = A::DIM * B::DIM;
-    
-    static void PrintIdString(std::stringstream& str) { str << "(x)"; }
-    
+
+    static void PrintIdString(std::stringstream& str) {
+        str << "(x)";
+    }
+
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
         int q = 0;
         for(int k=0; k<A::DIM; k++) {
-        	for(int l=0; l<B::DIM; l++, q++)
-            	out[q] = outA[k] * outB[l];
+            for(int l=0; l<B::DIM; l++, q++)
+                out[q] = outA[k] * outB[l];
         }
     }
-    
+
     template < class V, class GRADIN >
     using DiffTA = typename A::template DiffT<V,GRADIN>;
-    
+
     template < class V, class GRADIN >
     using DiffTB = typename B::template DiffT<V,GRADIN>;
 
     template < class V, class GRADIN >
     using DiffT = Add<DiffTA<V,MatVecMult<GRADIN,B>>,DiffTB<V,VecMatMult<A,GRADIN>>>;
-    
+
 };
 
 
@@ -1048,13 +1095,13 @@ struct TensorProd : BinaryOp<TensorProd,A,B> {
 
 template < class F, class G, class PACK >
 struct IterReplace_Impl {
-	using CURR = typename F::template Replace<G,typename PACK::FIRST>;
-	using type = typename IterReplace_Impl<F,G,typename PACK::NEXT>::type::template PUTLEFT<CURR>;
+    using CURR = typename F::template Replace<G,typename PACK::FIRST>;
+    using type = typename IterReplace_Impl<F,G,typename PACK::NEXT>::type::template PUTLEFT<CURR>;
 };
 
 template < class F, class G >
 struct IterReplace_Impl<F,G,univpack<>> {
-	using type = univpack<>;
+    using type = univpack<>;
 };
 
 template < class F, class G, class PACK >
@@ -1067,13 +1114,13 @@ using IterReplace = typename IterReplace_Impl<F,G,PACK>::type;
 
 template < int DIM, int I=0 >
 struct StandardBasis_Impl {
-	using EI = ElemT<IntConstant<1>,DIM,I>;
-	using type = typename StandardBasis_Impl<DIM,I+1>::type::template PUTLEFT<EI>;
+    using EI = ElemT<IntConstant<1>,DIM,I>;
+    using type = typename StandardBasis_Impl<DIM,I+1>::type::template PUTLEFT<EI>;
 };
 
 template < int DIM >
 struct StandardBasis_Impl<DIM,DIM> {
-	using type = univpack<>;
+    using type = univpack<>;
 };
 
 template < int DIM >
@@ -1086,10 +1133,10 @@ using StandardBasis = typename StandardBasis_Impl<DIM>::type;
 
 template < class F, class V >
 struct GradMatrix_Impl {
-	using IndsTempVars = GetInds<typename F::template VARS<3>>;
-	using GRADIN = Var<1+IndsTempVars::MAX,F::DIM,3>;
- 	using packGrads = IterReplace< Grad<F,V,GRADIN> , GRADIN , StandardBasis<F::DIM> >;
- 	using type = IterBinaryOp<Concat,packGrads>;
+    using IndsTempVars = GetInds<typename F::template VARS<3>>;
+    using GRADIN = Var<1+IndsTempVars::MAX,F::DIM,3>;
+    using packGrads = IterReplace< Grad<F,V,GRADIN>, GRADIN, StandardBasis<F::DIM> >;
+    using type = IterBinaryOp<Concat,packGrads>;
 };
 
 template < class F, class V >
