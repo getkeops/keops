@@ -13,11 +13,11 @@
  * Available math operations are :
  *
  *   +, *, - :
- *      Add<FA,FB>					: adds FA and FB functions
- *      Subtract<FA,FB>					: subtractss FA and FB functions
+ *      Add<FA,FB>                  : adds FA and FB functions
+ *      Subtract<FA,FB>             : subtractss FA and FB functions
  *      Scal<FA,FB>                 : product of FA (scalar valued) with FB
  *      Mult<FA,FB>                 : element-wise multiplication of FA and FB
- *      Minus<F>					: alias for Scal<IntConstant<-1>,F>
+ *      Minus<F>                    : alias for Scal<IntConstant<-1>,F>
  *
  *   /, ^, ^2, ^-1, ^(1/2) :
  *      Divide<FA,FB>				: alias for Scal<FA,Inv<FB>>
@@ -44,6 +44,7 @@
  *      MatVecMult<FA,FB>			: matrix-vector product (FA::DIM must be a muliple of FB::DIM)
  *      VecMatMult<FA,FB>			: vector-matrix product (FB::DIM must be a muliple of FA::DIM)
  *      TensorProd<FA,FB>			: tensor product (output is of dimension FA::DIM*FB::DIM)
+ *      TensorDot<FA,FB, I>      	: tensor dot as in numpy (FA::DIM must be a muliple of FB::DIM) I is an IntCst()
  *
  */
 
@@ -962,6 +963,47 @@ struct VecMatMult : BinaryOp<VecMatMult,B,A> {
 
     template < class V, class GRADIN >
     using DiffT = Add<DiffTA<V,TensorProd<B,GRADIN>>,DiffTB<V,MatVecMult<A,GRADIN>>>;
+    
+};
+
+
+/////////////////////////////////////////////////////////////////////////
+////      Tensor dot product      A (x) b                           ////
+/////////////////////////////////////////////////////////////////////////
+
+template < class A, class B >
+struct TensorDot : BinaryOp<TensorDot,A,B> {
+    // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
+    // n=3 and m=2 are assume to be known
+	// output is vector of size n
+	
+    //static_assert(int(std::pow(A::DIM,m) ) ,"Dimensions of A and B are not compatible for matrix-vector product");
+    static_assert(A::DIM == 8, "Dimensions of A and B are not compatible for matrix-vector product");
+    static_assert(B::DIM == 4,"Dimensions of A and B are not compatible for matrix-vector product");
+
+    static const int DIM = A::DIM / B::DIM;
+    
+    static void PrintIdString(std::stringstream& str) { str << "(x)"; }
+    
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+       static const int DIMDOT = int(std::exp(std::log(A::DIM)/3));
+    
+        for(int k=0; k<DIM; k++) {
+        	out[k] = 0;
+        	for(int l=0; l<DIMDOT; l++)
+                for(int m=0; m<DIMDOT; m++)
+                   out[k] += inA[m*DIM*DIM+l*DIM+k] * inB[m*DIM+l];
+        }
+    }
+    
+    template < class V, class GRADIN >
+    using DiffTA = typename A::template DiffT<V,GRADIN>;
+    
+    template < class V, class GRADIN >
+    using DiffTB = typename B::template DiffT<V,GRADIN>;
+
+    template < class V, class GRADIN >
+    using DiffT = Add<DiffTA<V,TensorProd<GRADIN,B>>,DiffTB<V,VecMatMult<GRADIN,A>>>;
     
 };
 
