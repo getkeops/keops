@@ -372,6 +372,12 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
 
     int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y ;
     __INDEX__ **castedranges;
+    // N.B.: This vector is only used if ranges.size() == 6,
+    //       but should *absolutely* be declared in all cases.
+    //       Otherwise, a silent error (not detected by the compiler) provokes
+    //       a silent buffer re-allocation, with a random corruption (in some edge cases)
+    //       of the "ranges" arrays and, eventually, a segmentation fault. 
+    std::vector<index_t> ranges_ptr(ranges.size());  
 
     // Sparsity: should we handle ranges? ======================================
 
@@ -384,7 +390,6 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
         }
         else if(ranges.size() == 6) {
             // Cast the six integer arrays
-            std::vector<index_t> ranges_ptr(ranges.size());
             for (size_t i = 0; i < ranges.size(); i++)
                 ranges_ptr[i] = py::cast<index_t> (ranges[i]);
             
