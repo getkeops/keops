@@ -1008,7 +1008,7 @@ struct VecMatMult : BinaryOp<VecMatMult,B,A> {
 
 
 /////////////////////////////////////////////////////////////////////////
-////      Tensor dot product      A (x) b                           ////
+////              Tensor dot product      A : b                      ////
 /////////////////////////////////////////////////////////////////////////
 
 template < class A, class B, int PM>

@@ -63,6 +63,7 @@ namespace keops {
 template < int DIM > struct Zero; // Declare Zero in the header, for IdOrZero_Alias. _Implementation below.
 
 //////////////////////////////////////////////////////////////
+////                        ZEROS                         ////
 //////////////////////////////////////////////////////////////
 
 // IdOrZero( Vref, V, Fun ) = FUN                   if Vref == V
@@ -142,9 +143,9 @@ struct Var {
     template < class INDS, typename ...ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // IndVal_Alias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
-        __TYPE__* xi = Get<IndVal_Alias<INDS,N>::ind>(args...); // xi = the "ind"-th argument.
-        for(int k=0; k<DIM; k++) // Assume that xi and out are of size DIM,
-            out[k] = xi[k];      // and copy xi into out.
+        __TYPE__* xi = Get<IndVal_Alias<INDS,N>::ind>(args...);   // xi = the "ind"-th argument.
+        for(int k=0; k<DIM; k++)                                  // Assume that xi and out are of size DIM,
+            out[k] = xi[k];                                       // and copy xi into out.
     }
 
 
@@ -245,26 +246,26 @@ struct BinaryOp_base {
 
     // recursive function to print the formula as a string
     static void PrintId(std::stringstream& str) {
-        str << "(";			// prints "("
-        FA::PrintId(str);				// prints the formula FA
-        THIS::PrintIdString(str);		// prints the id string of the operator : "+", "*", ...
-        FB::PrintId(str);				// prints the formula FB
-        str << ")";			// prints ")"
+        str << "(";                     // prints "("
+        FA::PrintId(str);               // prints the formula FA
+        THIS::PrintIdString(str);       // prints the id string of the operator : "+", "*", ...
+        FB::PrintId(str);               // prints the formula FB
+        str << ")";                     // prints ")"
     }
 
     static void PrintFactorized(std::stringstream& str) {
         PrintId(str);
     }
 
-	// AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
-	// for example Add<Var<0,2,0>,Var<1,2,1>>::AllTypes is :
-	// univpack< Add<Var<0,2,0>,Var<1,2,1>> , Var<0,2,0> , Var<1,2,2> >
+    // AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
+    // for example Add<Var<0,2,0>,Var<1,2,1>>::AllTypes is :
+    // univpack< Add<Var<0,2,0>,Var<1,2,1>> , Var<0,2,0> , Var<1,2,2> >
     using AllTypes = MergePacks<univpack<OP<FA,FB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
 
-	// "Replace" can be used to replace any occurrence of a sub-formula in a formula
-	// For example Add<Var<0,2,0>,Var<1,2,1>>::Replace<Var<1,2,1>,Var<1,2,0>> will be Add<Var<0,2,0>,Var<1,2,0>>	
+    // "Replace" can be used to replace any occurrence of a sub-formula in a formula
+    // For example Add<Var<0,2,0>,Var<1,2,1>>::Replace<Var<1,2,1>,Var<1,2,0>> will be Add<Var<0,2,0>,Var<1,2,0>>
     template<class A, class B>
-    using Replace = CondType< B , OP<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>> , IsSameType<A,THIS>::val >;
+    using Replace = CondType< B, OP<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>>, IsSameType<A,THIS>::val >;
 
     // VARS gives the list of all "Vars" of a given category inside a formula
     // Here we must take the union of Vars that are inside FA and Vars that are inside FB
@@ -348,12 +349,12 @@ struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>>  : BinaryOp_base<OP,Var<
 
 template < template<class,class> class OP, class PACK >
 struct IterBinaryOp_Impl {
-	using type = OP<typename PACK::FIRST,typename IterBinaryOp_Impl<OP,typename PACK::NEXT>::type>;
+    using type = OP<typename PACK::FIRST,typename IterBinaryOp_Impl<OP,typename PACK::NEXT>::type>;
 };
 
 template < template<class,class> class OP, class F >
 struct IterBinaryOp_Impl<OP,univpack<F>> {
-	using type = F;
+    using type = F;
 };
 
 template < template<class,class> class OP, class PACK >
@@ -379,7 +380,7 @@ struct BinaryOpParam_base {
         THIS::PrintIdString(str);   // prints the id string of the operator : "+", "*", ...
         FB::PrintId(str);           // prints the formula FB
         str << ",";                 // prints "("
-        str << PM;           // prints the formula FB
+        str << PM;                  // prints the formula FB
         str << ")";                 // prints ")"
     }
 
@@ -443,21 +444,21 @@ struct BinaryOpParam<OP,Var<N,DIM,CAT>,FB,PM>  : BinaryOpParam_base<OP,Var<N,DIM
 
 // specialization when right template is of type Var
 template < template<class,class,int> class OP, class FA, int N, int DIM, int CAT, int PM >
-struct BinaryOpParam<OP,FA,Var<N,DIM,CAT>,PM>  : BinaryOpParam_base<OP,FA,Var<N,DIM,CAT>,PM> {
+        struct BinaryOpParam<OP,FA,Var<N,DIM,CAT>,PM>  : BinaryOpParam_base<OP,FA,Var<N,DIM,CAT>,PM> {
 
-    using THIS = OP<FA,Var<N,DIM,CAT>,PM>;
+            using THIS = OP<FA,Var<N,DIM,CAT>,PM>;
 
-    template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
-        // we create a vector and call Eval only for FA
-        __TYPE__ outA[FA::DIM];
-        FA::template Eval<INDS>(outA,args...);
-        // access the Nth argument of args
-        __TYPE__* outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
-        // then we call the Operation function
-        THIS::Operation(out,outA,outB);
-    }
-};
+            template < class INDS, typename... ARGS >
+            static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+                // we create a vector and call Eval only for FA
+                __TYPE__ outA[FA::DIM];
+                FA::template Eval<INDS>(outA,args...);
+                // access the Nth argument of args
+                __TYPE__* outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
+                // then we call the Operation function
+                THIS::Operation(out,outA,outB);
+            }
+        };
 
 // specialization when both templates are of type Var
 template < template<class,class, int> class OP, int NA, int DIMA, int CATA, int NB, int DIMB, int CATB, int PM >
