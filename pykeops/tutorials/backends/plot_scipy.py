@@ -178,7 +178,6 @@ print(eigenvalues)
 # the raw point cloud **x** and be used to perform
 # spectral clustering, shape matching or whatever's relevant!
 
-# sphinx_gallery_thumbnail_number = 2
 plt.figure(figsize=(12,8))
 
 for i in range(1, 7):
@@ -193,16 +192,20 @@ plt.show()
 
 
 ###############################################################
-# Scaling to large datasets with block-sparse reductions
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Scaling up to large datasets with block-sparse matrices
+# ---------------------------------------------------------------
 # 
-
-
+# Going further, :mod:`LazyTensors` support the specification
+# of adaptive **block-sparsity patterns** through an optional **.ranges** attribute
+# which allows us to perform large matrix-vector products with **sub-quadratic** complexity.
+# To illustrate this advanced feature of KeOps, 
+# let's generate a large "noisy Swiss roll" with **1,000,000 points** in the unit cube:
+#
 
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-N = 500 if use_cuda else 1000
+N = 1000000 if use_cuda else 1000
 t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = np.stack((.4 + .4 * (t / 7) * np.cos(1.5*t), 
               .1 + .8 * np.random.rand(N),
@@ -210,7 +213,11 @@ x = np.stack((.4 + .4 * (t / 7) * np.cos(1.5*t),
 x = x + .01 * np.random.randn(*x.shape)
 x = x.astype(dtype)
 
-N_display = 100 if use_cuda else 500
+################################################################
+# To **display** our toy dataset with the (not-so-efficient) PyPlot library,
+# we pick **10,000 points** at random:
+
+N_display = 10000 if use_cuda else 500
 indices_display = np.random.randint(0, N, N_display)
 
 fig = plt.figure(figsize=(8,8))
@@ -223,13 +230,48 @@ ax.set_title("{:,} out of {:,} points in our source point cloud".format(N_displa
 plt.tight_layout()
 
 
+####################################################################
+# **Can we scale the spectral analysis presented above to this huge dataset?**
+#
+# In practice, the radius :math:`\sigma` of our
+# kernel "adjacency" function is often **much smaller than the diameter of the input point cloud**:
+# spectral methods rely on *small-range* neighborhoods to build
+# a *global* coordinate system.
+# Since :math:`k(x,y) \simeq 0` above a threshold of, say, :math:`4\sigma`,
+# a simple way of accelerating
+# the kernel-vector product :math:`v\mapsto K_{xx}v` in the (soft-)graph Laplacian is thus to
+# **skip computations** between pairs of points which are far away from each other.
+#
+# As explained in :doc:`the documentation <../../python/sparsity>`,
+# fast GPU routines rely heavily on **memory contiguity**:
+# before going any further, we must
+# **sort our input dataset** to make sure that neighboring points are stored
+# next to each other on the device memory. As detailed in the 
+# :doc:`KeOps+NumPy tutorial on block-sparse reductions <../../_auto_examples/numpy/plot_grid_cluster_numpy>`,
+# a simply way of doing so is to write:
 
+# Import the KeOps helper routines for block-sparse reductions:
 from pykeops.numpy.cluster import grid_cluster, cluster_ranges_centroids, sort_clusters, from_matrix
-eps = .1  # Size of our square bins
-x_labels = grid_cluster(x, eps)  # class labels
+
+# Put our points in cubic bins of size eps, as we compute a vector of class labels:
+eps = .05
+x_labels = grid_cluster(x, eps)
+# Compute the memory footprint and centroid of each of those non-empty "cubic" clusters:
 x_ranges, x_centroids, _  = cluster_ranges_centroids(x, x_labels)
+# Sort our dataset according to the vector of labels:
 x, x_labels = sort_clusters(x, x_labels)
 
+#############################################################################
+# 
+# .. note::
+#   In higher-dimensional settings, the simplistic 
+#   :func:`grid_cluster <pykeops.numpy.cluster.grid_cluster>`
+#   clustering scheme could be replaced by a more versatile routine such as
+#   our :doc:`KeOps+NumPy K-means implementation <../kmeans/plot_kmeans_numpy>`.
+#
+# Points are now roughly sorted
+# according to their locations, with each cluster corresponding to
+# a contiguous slice of the (sorted) **x** array:
 
 fig = plt.figure(figsize=(8,8))
 ax = fig.add_subplot(111, projection='3d')
@@ -240,45 +282,79 @@ ax.scatter( x_[:,0], x_[:,1], x_[:,2],
 ax.set_title("Cluster labels")
 plt.tight_layout()
 
+############################################################################
+# We can prune out computations out of the :math:`v\mapsto K_{xx} v`
+# matrix-vector product in a GPU-friendly way by **skipping whole blocks**
+# of cluster-cluster interactions.
+# A good rule of thumb is to **only consider pairs of points** belonging
+# to clusters :math:`X` and :math:`Y` whose centroids :math:`x_c` and 
+# :math:`y_c` are such that:
+#
+# .. math::
+#   \|x_c - y_c\|^2 < \big( 4\sigma + \tfrac{1}{2}\text{diam}(X)  + \tfrac{1}{2}\text{diam}(Y) \big)^2.
+#
+# Considering that our cubic bins of size :math:`\varepsilon` all have a
+# diameter that is equal to :math:`\sqrt{3}\,\varepsilon`, this "block-sparsity"
+# pattern can be encoded in a small boolean matrix **keep** computed through:
 
-
-sigma = .3  # Characteristic length of interaction
+sigma = .01  # Standard deviation of our Gaussian kernel
 # Compute a coarse Boolean mask:
 D = np.sum((x_centroids[:,None,:] - x_centroids[None,:,:])**2, 2)
-keep = D < (4 * sigma + np.sqrt(3)*eps)**2
+keep = D < ( 4 * sigma + np.sqrt(3) * eps )**2
+
+###############################################################
+# which can then be converted to a GPU-friendly, 
+# `LIL-like sparsity pattern <https://en.wikipedia.org/wiki/Sparse_matrix#List_of_lists_(LIL)>`_
+# with the :func:`from_matrix <pykeops.numpy.cluster.from_matrix>` helper:
 
 ranges_ij = from_matrix(x_ranges, x_ranges, keep)
 
+############################################################################
+# Now, leveraging this information with KeOps is as simple
+# as typing:
 
-areas = (x_ranges[:,1]-x_ranges[:,0])[:,None] \
-      * (x_ranges[:,1]-x_ranges[:,0])[None,:]
-total_area  = np.sum(areas) # should be equal to N*M
-sparse_area = np.sum(areas[keep])
-print("We keep {:.2e}/{:.2e} = {:2d}% of the original kernel matrix.".format(
-    sparse_area, total_area, int(100 * sparse_area / total_area) ))
-print("")
-
-
-x_ = x / sigma
+x_ = x / sigma  # N.B.: x is a **sorted** list of points
 x_i, x_j = LazyTensor( x_[:,None,:] ), LazyTensor( x_[None,:,:] )
 K_xx = (- ((x_i - x_j)**2).sum(2) / 2 ).exp()  # Symbolic (N,N) Gaussian kernel matrix
 
 K_xx.ranges = ranges_ij  # block-sparsity pattern
-K_xx.backend = "CPU"
 print(K_xx)
-print(ranges_ij)
-print(ranges_ij[1])
-print(ranges_ij[2].shape)
+
+############################################################################
+# A straightforward computation shows that our new 
+# **block-sparse** operator may be **up to 20 times more efficient** than a
+# full KeOps :mod:`LazyTensor`:
+
+# Compute the area of each rectangle "cluster-cluster" tile in the full kernel matrix:
+areas = (x_ranges[:,1] - x_ranges[:,0])[:,None] \
+      * (x_ranges[:,1] - x_ranges[:,0])[None,:]
+total_area  = np.sum(areas) # should be equal to N**2 = 1e12
+sparse_area = np.sum(areas[keep])
+
+print("We keep {:.2e}/{:.2e} = {:2d}% of the original kernel matrix.".format(
+    sparse_area, total_area, int(100 * sparse_area / total_area) ))
+
+
+############################################################################
+# Good. Once we're done with this pre-processing step,
+# block-sparse :mod:`LazyTensors` are just as easy to interface with **scipy** as
+# regular NumPy arrays:
 
 K = aslinearoperator( K_xx )
 
+##########################################################################
+# The normalized graph Laplacian can be defined as usual:
 
 D = K@np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
-
-print(D)
 D_2 = aslinearoperator( diags( 1 / np.sqrt(D) ) )
 L_norm = IdentityOperator( (N,N) ) - D_2@K@D_2
 L_norm.dtype = np.dtype(dtype)  # Scipy Bugfix: by default, "-" removes the dtype information...
+
+
+
+##########################################################################
+# And our favourite solver will compute, as expected,
+# the smallest eigenvalues of this custom operator:
 
 
 from time import time
@@ -287,10 +363,24 @@ start = time()
 # Compute the 7 smallest eigenvalues/vectors of our normalized graph Laplacian
 eigenvalues, coordinates = eigsh( L_norm , k=7, which="SM" )
 
-print("Smallest eigenvalues of the normalized graph Laplacian, computed in {:.3f}s:".format(time() - start))
+print("Smallest eigenvalues of the normalized graph Laplacian, computed in {:.3f}s ".format(time() - start) \
+    + "on a cloud of {} points in dimension {}.".format(x.shape[0], x.shape[1]) )
 print(eigenvalues)
 
 
+##########################################################################
+#
+# .. note::
+#   On very large problems, a custom eigenproblem solver
+#   implemented with the **PyTorch+KeOps** interface should be sensibly **faster**
+#   than this SciPy wrapper: performing all computations on the GPU
+#   would allow us to perform linear operations in parallel
+#   and to **skip hundreds of unnecessary Host-Device memory transfers**.
+#
+# Anyway. Displayed on a subsampled point cloud (for the sake of efficiency),
+# our spectral coordinates look good!
+
+# sphinx_gallery_thumbnail_number = 5
 fig = plt.figure(figsize=(12,8))
 
 for i in range(1, 7):
