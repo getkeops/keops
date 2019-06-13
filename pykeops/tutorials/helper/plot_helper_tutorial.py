@@ -75,7 +75,7 @@ gamma = Kxyb.sum(axis=1)
 # Now since we have called a reduction operation over the second axis
 # (i.e. over the j indices), the KeOps engine has been called and the
 # output gamma is not any more a KeOps object but a NumPy tensor of 
-# shape (M,Dv)
+# shape (M,Dv).
 
 #######################################################################
 # Let us do it again, starting from PyTorch tensors, and computing
@@ -94,6 +94,13 @@ gamma = Kxyb.sum(dim=1)
 
 e = torch.rand(M,Dv)
 grad_gamma = torch.autograd.grad(gamma,x,e)
+
+#######################################################################
+# Note that we can use also a "grad" method, which takes the
+# symbolic gradient of the formula before doing the reduction.
+# This gives the same result
+E = keops(e,axis=0)
+grad_gamma_ = Kxyb.grad(X,E).sum(dim=1)
 
 #########################################################################
 # The Vi, Vj, Pm style

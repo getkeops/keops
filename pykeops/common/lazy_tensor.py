@@ -360,15 +360,15 @@ class LazyTensor:
         res.ndim = dimres
         return res        
                         
-    def binary(self, other, operation, is_operator=False, dimres=None, dimcheck="sameor1"):
+    def binary(self, other, operation, is_operator=False, dimres=None, dimcheck="sameor1", opt_arg=None, opt_pos="last"):
         """Symbolically applies 'operation' to self, with optional arguments if needed.
         
         Keyword args:
           - dimres (int or None): may be used to specify the dimension of the output 'result'.
           - is_operator (True or False): may be used to specify if **operation** is
             an operator like "+", "-" or a 'genuine' function.
-          - dimcheck (string): shall we check the input dimensions?
-            Supported values are "same" and "sameor1".
+          - dimcheck (string or None): shall we check the input dimensions?
+            Supported values are "same", "sameor1", or None.
         """
         # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
         if not isinstance(self, LazyTensor):  self  = LazyTensor(self)
@@ -382,19 +382,30 @@ class LazyTensor:
         # By default, the dimension of the output variable is the max of the two operands:
         if not dimres: dimres = max(self.ndim, other.ndim)
 
-        if dimcheck == "same" and self.ndim != other.ndim:
-            raise ValueError("Operation {} expects inputs of the same dimension. ".format(operation) \
+        if dimcheck == "same":
+            if self.ndim != other.ndim:
+                raise ValueError("Operation {} expects inputs of the same dimension. ".format(operation) \
                            + "Received {} and {}.".format(self.ndim, other.ndim))
 
-        elif dimcheck == "sameor1" and (self.ndim != other.ndim and self.ndim != 1 and other.ndim != 1):
-            raise ValueError("Operation {} expects inputs of the same dimension or dimension 1. ".format(operation) \
+        elif dimcheck == "sameor1":
+            if (self.ndim != other.ndim and self.ndim != 1 and other.ndim != 1):
+                raise ValueError("Operation {} expects inputs of the same dimension or dimension 1. ".format(operation) \
                            + "Received {} and {}.".format(self.ndim, other.ndim))
+        
+        elif dimcheck != None :
+            raise ValueError("incorrect dimcheck keyword in binary operation")
 
         res = LazyTensor.join(self, other)  # Merge the attributes and variables of both operands
         res.ndim = dimres
         
         if is_operator:
             res.formula = "({} {} {})".format( self.formula, operation, other.formula )
+        elif opt_arg is not None:
+            if isinstance(opt_arg, LazyTensor): opt_arg = opt_arg.formula
+            if opt_pos == "last":
+                res.formula = "{}({}, {}, {})".format( operation, self.formula, other.formula, opt_arg )
+            elif opt_pos == "middle":
+                res.formula = "{}({}, {}, {})".format( operation, self.formula, opt_arg, other.formula )
         else:
             res.formula = "{}({}, {})".format( operation, self.formula, other.formula )
         
@@ -1063,7 +1074,18 @@ class LazyTensor:
         the :doc:`main reference page <../api/math-operations>`.    
         """ 
         return self.binary(other, "TensorProd", dimres = (other.ndim * self.ndim), dimcheck=None)        
-        
+
+    def grad(self,other,gradin):
+        r"""Symbolic gradient operation.
+
+        ``z = x.grad(v,e)`` returns a :mod:`LazyTensor` 
+        which encodes, symbolically,
+        the gradient (more precisely, the adjoint of the differential operator) of ``x``, with 
+        respect to variable ``v``, and applied to ``e``.
+        For details, please check the documentation of the KeOps operation ``"Grad"`` in
+        the :doc:`main reference page <../api/math-operations>`.    
+        """ 
+        return self.binary(gradin, "Grad", dimres = other.ndim, dimcheck="same", opt_arg=other, opt_pos="middle")             
 
     # List of supported reductions  ============================================
 
