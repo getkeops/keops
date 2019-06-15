@@ -23,7 +23,7 @@ def complete_aliases(formula, aliases):
     for (ind,var) in enumerate(extravars):
         # we get the "position" of the variable as the first integer value in the string
         # (i.e. the "a" in "Var(a,b,c)")
-        pos = int(re.search(r"[0-9]{1,}",var).group(0))
+        pos = int(re.search(r"[0-9]{1,}", var).group(0))
         if pos < len(aliases):
             # this means that in fact var is not an extra variable, it is already in the list of aliases
             # We could check that the "dimension" and "category" are consistent, but we assume here
@@ -40,6 +40,20 @@ def complete_aliases(formula, aliases):
     for i in range(len(newind)):
         aliases[newpos[i]] = extravars[newind[i]]
     return aliases
+
+
+def parse_aliases(aliases):
+    categories, dimensions = [], []
+    for i, alias in enumerate(aliases):
+        varname, cat, dim, pos = get_type(alias)
+        if pos is not None and pos != i:
+            raise ValueError("This list of aliases is not ordered properly: " + str(aliases))
+        categories.append(cat)
+        dimensions.append(dim)
+
+    return tuple(categories), tuple(dimensions)
+
+
 
 def get_sizes(aliases, *args):
     indx, indy = [], []

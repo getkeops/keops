@@ -1,7 +1,7 @@
 import torch
 
 from pykeops.common.utils import axis2cat
-from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
+from pykeops.common.parse_type import get_type, get_sizes, complete_aliases, parse_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 from pykeops.common.operations import preprocess, postprocess
@@ -36,7 +36,8 @@ class GenredAutograd(torch.autograd.Function):
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
         
         if ranges is None : ranges = () # To keep the same type
-        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *args)
+        (categories, dimensions) = parse_aliases(aliases)
+        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions, *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.

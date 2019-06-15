@@ -1,6 +1,6 @@
 from pykeops.common.keops_io import load_keops
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.parse_type import get_sizes, complete_aliases
+from pykeops.common.parse_type import get_sizes, complete_aliases, parse_aliases
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 from pykeops.common.operations import preprocess, postprocess
@@ -226,7 +226,8 @@ class Genred():
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         if ranges is None : ranges = () # To keep the same type
 
-        out = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
+        (categories, dimensions) = parse_aliases(self.aliases)
+        out = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, categories, dimensions, *args)
 
         nx, ny = get_sizes(self.aliases, *args)
         nout = nx if self.axis==1 else ny

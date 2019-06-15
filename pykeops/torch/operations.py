@@ -3,7 +3,7 @@ import torch
 from pykeops.torch.generic.generic_red import GenredAutograd
 from pykeops.torch import default_dtype
 from pykeops.common.utils import axis2cat
-from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
+from pykeops.common.parse_type import get_type, get_sizes, complete_aliases, parse_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import load_keops
 
@@ -46,15 +46,16 @@ class KernelSolveAutograd(torch.autograd.Function):
                 if args[i].device.index != device_id:
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
 
+        (categories, dimensions) = parse_aliases(aliases)
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
-            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
+            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions, *newargs)
             if alpha:
                 res += alpha*var
             return res
 
         global copy
-        result = ConjugateGradientSolver('torch',linop,varinv.data,eps)
+        result = ConjugateGradientSolver('torch', linop, varinv.data, eps)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
