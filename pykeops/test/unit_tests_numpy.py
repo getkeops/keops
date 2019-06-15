@@ -205,12 +205,12 @@ class NumpyUnitTestCase(unittest.TestCase):
         
         t = self.type_to_test[0]
 
-        aliases = ['p=Pm(0,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
-        formula = 'Square(p-Var(1,1,1))*Exp(-SqNorm2(y-x))'
+        aliases = ['p=Pm(0,1)', 'x=Vi(1,3)', 'y=Vj(2,3)']
+        formula = 'Square(p-Var(3,1,1))*Exp(-SqNorm2(y-x))'
 
         # Call cuda kernel
         myconv = Genred(formula, aliases, reduction_op='Sum', axis=1)
-        gamma_keops= myconv(self.sigma.astype(t), self.g.astype(t), self.x.astype(t), self.y.astype(t), backend='auto')
+        gamma_keops= myconv(self.sigma.astype(t), self.x.astype(t), self.y.astype(t), self.g.astype(t), backend='auto')
 
         # Numpy version
         gamma_py = np.sum((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), axis=1)
