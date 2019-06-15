@@ -9,11 +9,14 @@ import pykeops
 from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances, log_sum_exp, np_kernel_sphere
 
 class NumpyUnitTestCase(unittest.TestCase):
-
+    
+    A = int(4)  # Batchdim 1
+    B = int(6)  # Batchdim 2
     M = int(10)
     N = int(6)
     D = int(3)
     E = int(3)
+    nbatchdims = int(2)
 
     x = np.random.rand(M, D)
     a = np.random.rand(M, E)
@@ -22,6 +25,11 @@ class NumpyUnitTestCase(unittest.TestCase):
     b = np.random.rand(N, E)
     g = np.random.rand(N, 1)
     sigma = np.array([0.4])
+
+    X = np.random.rand(A, 1, M, D)
+    L = np.random.rand(1, B, M, 1)
+    Y = np.random.rand(1, B, N, D)
+    S = np.random.rand(A, B, 1) + 1
 
     type_to_test = ['float32', 'float64']
 
@@ -253,6 +261,45 @@ class NumpyUnitTestCase(unittest.TestCase):
         c = my_routine(self.x, self.y, backend="auto").astype(int)
         cnp = np.argsort(np.sum((self.x[:,np.newaxis,:] - self.y[np.newaxis,:,:]) ** 2, axis=2), axis=1)[:,:3]
         self.assertTrue(np.allclose(c.ravel(),cnp.ravel()))
+
+
+    ############################################################
+    def test_LazyTensor_sum(self):
+    ############################################################
+        from pykeops import LazyTensor
+
+        full_results = []
+        for use_keops in [True, False]:
+
+            results = []
+
+            for (x, l, y, s) in [(self.X.astype(t),  self.L.astype(t),  self.Y.astype(t),  self.S.astype(t)) for t in self.type_to_test]:
+
+                x_i = x[:,:,:,None,:]
+                l_i = l[:,:,:,None,:]
+                y_j = y[:,:,None,:,:]
+                s_p = s[:,:,None,None,:]
+
+                if use_keops:
+                    x_i, l_i, y_j, s_p = LazyTensor(x_i), LazyTensor(l_i), LazyTensor(y_j), LazyTensor(s_p)
+
+                D_ij = ( (l_i + x_i * y_j)**2 + s_p).sum(-1)
+                
+                if use_keops:
+                    K_ij = 1 / (1 + D_ij).exp()
+                else:
+                    K_ij = 1 / np.exp(1 + D_ij)
+
+                a_i = K_ij.sum(self.nbatchdims + 1)
+                if use_keops: a_i = a_i.squeeze(-1)
+
+                results += [a_i]
+
+            full_results.append(results)
+
+        for (res_keops, res_numpy) in zip(full_results[0], full_results[1]):    
+            self.assertTrue(res_keops.shape == res_numpy.shape)
+            self.assertTrue(np.allclose(res_keops, res_numpy, atol=1e-3))
 
 
 if __name__ == '__main__':
