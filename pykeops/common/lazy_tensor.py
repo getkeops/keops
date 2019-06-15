@@ -240,11 +240,18 @@ class LazyTensor:
         newvars = ()
         if self.formula2 is None: self.formula2 = ""  # We don't want to get regexp errors...
 
+        device = None  # Useful to load lists (and float constants) on the proper device
+        for v in self.variables:
+            device = self.tools.device(v)
+            if device is not None:
+                break
+                
+
         i = len(self.symbolic_variables)  # The first few labels are already taken...
         for v in self.variables:  # So let's loop over our tensors, and give them labels:
             idv = id(v)
             if type(v) == list:
-                v = self.tools.array(v, self.dtype)
+                v = self.tools.array(v, self.dtype, device)
 
             # Replace "Var(idv," by "Var(i," and increment 'i':
             tag = "Var({},".format(idv)

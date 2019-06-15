@@ -56,7 +56,10 @@ class numpytools:
     def eye(n, dtype=default_dtype): return np.eye(n).astype(dtype)
     
     @staticmethod
-    def array(x, dtype=default_dtype): return np.array(x).astype(dtype)
+    def array(x, dtype=default_dtype, device=None): return np.array(x).astype(dtype)
+
+    @staticmethod
+    def device(x): return 'cpu'
 
 
 def squared_distances(x, y):

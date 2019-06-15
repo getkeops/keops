@@ -70,6 +70,13 @@ class torchtools:
         elif dtype == "float64": dtype = torch.float64
         return torch.tensor(x, dtype=dtype, device=device)
     
+    @staticmethod
+    def device(x):
+        if isinstance(x, torch.Tensor):
+            return x.device
+        else:
+            return None
+
 
 def WarmUpGpu():
     # dummy first calls for accurate timing in case of GPU use
