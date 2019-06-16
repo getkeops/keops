@@ -827,7 +827,7 @@ class LazyTensor:
         elif type(other) == float:
             if   other ==  .5: return self.unary("Sqrt")
             elif other == -.5: return self.unary("Rsqrt")
-            else: other = LazyTensor(self.tools.array([other], self.dtype))
+            else: other = LazyTensor(other)
 
         if type(other) == type(LazyTensor()):
             if other.ndim == 1 or other.ndim == self.ndim:
