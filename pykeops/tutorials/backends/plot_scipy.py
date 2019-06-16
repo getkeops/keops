@@ -15,7 +15,7 @@ Crucially, KeOps :mod:`LazyTensors <pykeops.LazyTensor>` are now **fully compati
 with this interface.
 As an example, let's see how to combine KeOps with a 
 `fast eigenproblem solver <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_ 
-to compute **spectral coordinates** on a large 2D point cloud.
+to compute **spectral coordinates** on a large 2D or 3D point cloud.
 
 .. note::
     Ideally, we'd like to interface KeOps with some
@@ -41,7 +41,7 @@ dtype = "float32"  # No need for double precision here!
 
 
 ###################################################################
-# Create a toy dataset, a spiral in 2D:
+# Create a toy dataset, a spiral in 2D sampled with 10,000 points:
 
 N = 10000 if use_cuda else 1000
 t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
@@ -195,9 +195,9 @@ plt.show()
 # Scaling up to large datasets with block-sparse matrices
 # ---------------------------------------------------------------
 # 
-# Going further, :mod:`LazyTensors` support the specification
-# of adaptive **block-sparsity patterns** through an optional **.ranges** attribute
-# which allows us to perform large matrix-vector products with **sub-quadratic** complexity.
+# Going further, :mod:`LazyTensors` support 
+# adaptive **block-sparsity patterns** (specified through an optional **.ranges** attribute)
+# which allow us to perform large matrix-vector products with **sub-quadratic** complexity.
 # To illustrate this advanced feature of KeOps, 
 # let's generate a large "noisy Swiss roll" with **1,000,000 points** in the unit cube:
 #
@@ -240,7 +240,7 @@ plt.tight_layout()
 # Since :math:`k(x,y) \simeq 0` above a threshold of, say, :math:`4\sigma`,
 # a simple way of accelerating
 # the kernel-vector product :math:`v\mapsto K_{xx}v` in the (soft-)graph Laplacian is thus to
-# **skip computations** between pairs of points which are far away from each other.
+# **skip computations** between pairs of points that are far away from each other.
 #
 # As explained in :doc:`the documentation <../../python/sparsity>`,
 # fast GPU routines rely heavily on **memory contiguity**:
@@ -248,7 +248,7 @@ plt.tight_layout()
 # **sort our input dataset** to make sure that neighboring points are stored
 # next to each other on the device memory. As detailed in the 
 # :doc:`KeOps+NumPy tutorial on block-sparse reductions <../../_auto_examples/numpy/plot_grid_cluster_numpy>`,
-# a simply way of doing so is to write:
+# a simple way of doing so is to write:
 
 # Import the KeOps helper routines for block-sparse reductions:
 from pykeops.numpy.cluster import grid_cluster, cluster_ranges_centroids, sort_clusters, from_matrix
@@ -266,7 +266,7 @@ x, x_labels = sort_clusters(x, x_labels)
 # .. note::
 #   In higher-dimensional settings, the simplistic 
 #   :func:`grid_cluster <pykeops.numpy.cluster.grid_cluster>`
-#   clustering scheme could be replaced by a more versatile routine such as
+#   scheme could be replaced by a more versatile routine such as
 #   our :doc:`KeOps+NumPy K-means implementation <../kmeans/plot_kmeans_numpy>`.
 #
 # Points are now roughly sorted
@@ -283,7 +283,7 @@ ax.set_title("Cluster labels")
 plt.tight_layout()
 
 ############################################################################
-# We can prune out computations out of the :math:`v\mapsto K_{xx} v`
+# We can prune computations out of the :math:`v\mapsto K_{xx} v`
 # matrix-vector product in a GPU-friendly way by **skipping whole blocks**
 # of cluster-cluster interactions.
 # A good rule of thumb is to **only consider pairs of points** belonging
@@ -336,7 +336,7 @@ print("We keep {:.2e}/{:.2e} = {:2d}% of the original kernel matrix.".format(
 
 
 ############################################################################
-# Good. Once we're done with this pre-processing step,
+# Good. Once we're done with these pre-processing steps,
 # block-sparse :mod:`LazyTensors` are just as easy to interface with **scipy** as
 # regular NumPy arrays:
 
@@ -364,7 +364,7 @@ start = time()
 eigenvalues, coordinates = eigsh( L_norm , k=7, which="SM" )
 
 print("Smallest eigenvalues of the normalized graph Laplacian, computed in {:.3f}s ".format(time() - start) \
-    + "on a cloud of {} points in dimension {}.".format(x.shape[0], x.shape[1]) )
+    + "on a cloud of {:,} points in dimension {}:".format(x.shape[0], x.shape[1]) )
 print(eigenvalues)
 
 

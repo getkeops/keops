@@ -46,7 +46,7 @@ torchtype = torch.float32 if dtype == 'float32' else torch.float64
 x = torch.rand(M, 1, dtype=torchtype)
 y = torch.rand(N, 1, dtype=torchtype, requires_grad=True)
 a = torch.rand(N, 1, dtype=torchtype)
-p = torch.rand(1, 1, dtype=torchtype)
+p = torch.rand(1,    dtype=torchtype)
 b = torch.rand(N, 3, dtype=torchtype)
 
 ####################################################################

@@ -38,7 +38,7 @@ dtype = 'float32'  # May be 'float32' or 'float64'
 ##########################################################################
 # Simple implementation of the K-means algorithm:
 
-def KMeans(x, K=10, Niter=100, verbose=True):
+def KMeans(x, K=10, Niter=10, verbose=True):
     N, D = x.shape  # Number of samples, dimension of the ambient space
     
     # K-means loop:

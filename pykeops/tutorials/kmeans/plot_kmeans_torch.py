@@ -74,7 +74,7 @@ def KMeans(x, K=10, Niter=10, verbose=True):
 ###############################################################
 # K-means in 2D
 # ----------------------
-# First experiment with 10,000 points in dimension 2, with 50 classes:
+# First experiment with N=10,000 points in dimension D=2, with K=50 classes:
 #
 N, D, K = 10000, 2, 50
 
@@ -98,7 +98,7 @@ plt.axis([0,1,0,1]) ; plt.tight_layout() ; plt.show()
 ####################################################################
 # K-means in dimension 100
 # -------------------------
-# Second experiment with 1,000,000 points in dimension 100, with 1,000 classes:
+# Second experiment with N=1,000,000 points in dimension D=100, with K=1,000 classes:
 
 if use_cuda:
     N, D, K = 1000000, 100, 1000

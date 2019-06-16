@@ -21,7 +21,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import torch
 
-from pykeops.torch import generic_argkmin
+from pykeops import LazyTensor
 
 use_cuda = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
@@ -34,7 +34,7 @@ x = torch.rand(N, D).type(dtype)       # Random samples on the unit square
 
 # Random-ish class labels:
 def fth(x):
-    return 3*x*(x-.5)*(x-1)+x
+    return 3*x*(x-.5)*(x-1) + x
 cl = x[:,1] + .1 * torch.randn(N).type(dtype) < fth( x[:,0] )
 
 #######################################################################
@@ -42,7 +42,7 @@ cl = x[:,1] + .1 * torch.randn(N).type(dtype) < fth( x[:,0] )
 
 M = 1000 if use_cuda else 100
 tmp = torch.linspace(0, 1, M).type(dtype)
-g1, g2 = torch.meshgrid(tmp,tmp)
+g2, g1 = torch.meshgrid(tmp, tmp)
 g = torch.cat( (g1.contiguous().view(-1,1), g2.contiguous().view(-1,1)), dim=1 )
 
 
@@ -61,21 +61,19 @@ plt.imshow(np.ones((2,2)), extent=(0,1,0,1), alpha=0)
 plt.axis('off') ; plt.axis([0, 1, 0, 1])
 plt.title('{:,} data points,\n{:,} grid points'.format(N, M*M))
 
-for (i,K) in enumerate( (1, 3, 10, 20, 50) ):
-
-    # Define our KeOps kernel:
-    knn_search = generic_argkmin( 
-        'SqDist(x,y)',  # A simple squared L2 distance
-        'ind = Vi({})'.format(K),  # The K output indices are indexed by "i"
-        'x = Vi({})'.format(D),    # 1st arg: target points of dimension D, indexed by "i"
-        'y = Vj({})'.format(D))    # 2nd arg: source points of dimension D, indexed by "j"
+for (i, K) in enumerate( (1, 3, 10, 20, 50) ):
 
     start = time.time()    # Benchmark:
-    indKNN = knn_search(g, x)  # Grid <-> Samples
+    
+    G_i = LazyTensor( g[:,None,:] )      # (M**2, 1, 2)
+    X_j = LazyTensor( x[None,:,:] )      # (1, N, 2)
+    D_ij = ( (G_i - X_j) ** 2 ).sum(-1)  # (M**2, N) symbolic matrix of squared distances
+    indKNN = D_ij.argKmin(K, dim=1)      # Grid <-> Samples, (M**2, K) integer tensor
+
     clg = cl[indKNN].float().mean(1) > .5     # Classify the Grid points
     end = time.time()
 
-    plt.subplot(2, 3,i+2)  # Fancy display:
+    plt.subplot(2, 3, i+2)  # Fancy display:
     clg = clg.view(M,M)
     plt.imshow(clg.cpu(), extent=(0,1,0,1), origin='lower')
     plt.axis('off') ; plt.axis([0, 1, 0, 1]) ; plt.tight_layout()
