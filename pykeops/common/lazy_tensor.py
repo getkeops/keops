@@ -464,7 +464,7 @@ class LazyTensor:
         else:
             return res
 
-    def kernelsolve(self, other, var=None, call=True, **kwargs):
+    def solve(self, other, var=None, call=True, **kwargs):
         r"""Solves a positive definite linear system of the form sum(self)=other or sum(self*var)=other, using a conjugate
             gradient solver.
             
@@ -500,6 +500,9 @@ class LazyTensor:
                 as we loop over all indices
                 :math:`i\in[0,M)` and :math:`j\in[0,N)`.
         """   
+
+        if not isinstance(other, LazyTensor):
+            other = LazyTensor(other, axis=0)  # a vector is normally indexed by "i"
 
         # If given, var is symbolic variable corresponding to unknown
         # other must be a variable equal to the second member of the linear system,
