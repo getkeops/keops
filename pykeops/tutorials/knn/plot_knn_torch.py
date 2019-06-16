@@ -8,6 +8,7 @@ to perform **bruteforce k-nearest neighbors search** with four lines of code.
 It can thus be used to implement a **large-scale** 
 `K-NN classifier <https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm>`_,
 **without memory overflows**.
+
 """
 
 #####################################################################
@@ -70,7 +71,7 @@ for (i, K) in enumerate( (1, 3, 10, 20, 50) ):
     D_ij = ( (G_i - X_j) ** 2 ).sum(-1)  # (M**2, N) symbolic matrix of squared distances
     indKNN = D_ij.argKmin(K, dim=1)      # Grid <-> Samples, (M**2, K) integer tensor
 
-    clg = cl[indKNN].float().mean(1) > .5     # Classify the Grid points
+    clg = cl[indKNN].float().mean(1) > .5  # Classify the Grid points
     end = time.time()
 
     plt.subplot(2, 3, i+2)  # Fancy display:
