@@ -1,6 +1,7 @@
 import numpy as np
 
 from pykeops.numpy import Genred, default_dtype
+from pykeops.numpy.cluster import swap_axes as np_swap_axes
 
 
 class numpytools:
@@ -10,6 +11,8 @@ class numpytools:
     log = np.log
     Genred = Genred
     
+    swap_axes = np_swap_axes
+
     @staticmethod
     def copy(x): return np.copy(x)
     
@@ -38,6 +41,9 @@ class numpytools:
     def dtype(x): return x.dtype.name
     
     @staticmethod
+    def dtypename(dtype): return dtype
+    
+    @staticmethod
     def rand(m, n, dtype=default_dtype): return np.random.rand(m, n).astype(dtype)
     
     @staticmethod
@@ -50,7 +56,10 @@ class numpytools:
     def eye(n, dtype=default_dtype): return np.eye(n).astype(dtype)
     
     @staticmethod
-    def array(x, dtype=default_dtype): return np.array(x).astype(dtype)
+    def array(x, dtype=default_dtype, device=None): return np.array(x).astype(dtype)
+
+    @staticmethod
+    def device(x): return 'cpu'
 
 
 def squared_distances(x, y):
@@ -148,13 +157,15 @@ def IsGpuAvailable():
 
 def WarmUpGpu():
     # dummy first calls for accurate timing in case of GPU use
-    formula = 'Exp(-oos2*SqDist(x,y))*b'
-    aliases = ['x = Vi(1)',  # First arg   : i-variable, of size 1
-               'y = Vj(1)',  # Second arg  : j-variable, of size 1
-               'b = Vj(1)',  # Third arg  : j-variable, of size 1
-               'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float64')
-    dum = np.random.rand(10, 1)
-    dum2 = np.random.rand(10, 1)
-    my_routine(dum, dum, dum2, np.array([1.0]))
-    my_routine(dum, dum, dum2, np.array([1.0]))
+    print("Warming up the Gpu (numpy bindings) !!!")
+    if IsGpuAvailable():
+        formula = 'Exp(-oos2*SqDist(x,y))*b'
+        aliases = ['x = Vi(1)',  # First arg   : i-variable, of size 1
+                   'y = Vj(1)',  # Second arg  : j-variable, of size 1
+                   'b = Vj(1)',  # Third arg  : j-variable, of size 1
+                   'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+        my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float64')
+        dum = np.random.rand(10, 1)
+        dum2 = np.random.rand(10, 1)
+        my_routine(dum, dum, dum2, np.array([1.0]))
+        my_routine(dum, dum, dum2, np.array([1.0]))

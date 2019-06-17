@@ -1,6 +1,7 @@
 import torch
 
 from pykeops.torch import Genred, default_dtype
+from pykeops.torch.cluster import swap_axes as torch_swap_axes
 
 
 #  from pykeops.torch.generic.generic_red import GenredLowlevel
@@ -16,6 +17,8 @@ class torchtools:
     log = torch.log
     norm = torch.norm
 
+    swap_axes = torch_swap_axes
+    
     # Genred = Genred
     # GenredLowlevel = GenredLowlevel
 
@@ -47,33 +50,48 @@ class torchtools:
     def dtype(x): return x.dtype
 
     @staticmethod
-    def rand(m, n, dtype=default_dtype, device='0'): return torch.rand(m, n, dtype=dtype, device=device)
+    def dtypename(dtype): return 'float32' if dtype==torch.float32 else 'float64' 
 
     @staticmethod
-    def randn(m, n, dtype=default_dtype, device='0'): return torch.randn(m, n, dtype=dtype, device=device)
+    def rand(m, n, dtype=default_dtype, device='cpu'): return torch.rand(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype, device='0'): return torch.zeros(shape, dtype=dtype, device=device)
+    def randn(m, n, dtype=default_dtype, device='cpu'): return torch.randn(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def eye(n, dtype=default_dtype, device='0'): return torch.eye(n, dtype=dtype, device=device)
+    def zeros(shape, dtype=default_dtype, device='cpu'): return torch.zeros(shape, dtype=dtype, device=device)
 
     @staticmethod
-    def array(x, dtype=default_dtype, device='0'): return torch.tensor(x, dtype=dtype, device=device)
+    def eye(n, dtype=default_dtype, device='cpu'): return torch.eye(n, dtype=dtype, device=device)
+
+    @staticmethod
+    def array(x, dtype=default_dtype, device='cpu'):
+        if   dtype == "float32": dtype = torch.float32
+        elif dtype == "float64": dtype = torch.float64
+        return torch.tensor(x, dtype=dtype, device=device)
     
+    @staticmethod
+    def device(x):
+        if isinstance(x, torch.Tensor):
+            return x.device
+        else:
+            return None
+
 
 def WarmUpGpu():
     # dummy first calls for accurate timing in case of GPU use
-    formula = 'Exp(-oos2*SqDist(x,y))*b'
-    aliases = ['x = Vi(1)',  # First arg   : i-variable, of size 1
-               'y = Vj(1)',  # Second arg  : j-variable, of size 1
-               'b = Vj(1)',  # Third arg  : j-variable, of size 1
-               'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-    my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float32')
-    dum = torch.rand(10, 1)
-    dum2 = torch.rand(10, 1)
-    my_routine(dum, dum, dum2, torch.tensor([1.0]))
-    my_routine(dum, dum, dum2, torch.tensor([1.0]))
+    print("Warming up the Gpu (torch bindings) !!!")
+    if torch.cuda.is_available():
+        formula = 'Exp(-oos2*SqDist(x,y))*b'
+        aliases = ['x = Vi(1)',  # First arg   : i-variable, of size 1
+                   'y = Vj(1)',  # Second arg  : j-variable, of size 1
+                   'b = Vj(1)',  # Third arg  : j-variable, of size 1
+                   'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
+        my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float32')
+        dum = torch.rand(10, 1)
+        dum2 = torch.rand(10, 1)
+        my_routine(dum, dum, dum2, torch.tensor([1.0]))
+        my_routine(dum, dum, dum2, torch.tensor([1.0]))
 
 
 def squared_distances(x, y):

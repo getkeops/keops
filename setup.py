@@ -107,6 +107,7 @@ setup(
             'keops/cuda.cmake',
             'keops/headers.cmake',
             'keops/core/autodiff.h',
+            'keops/core/broadcast_batch_dimensions.h',
             'keops/core/CpuConv.cpp',
             'keops/core/CpuConv_ranges.cpp',
             'keops/core/CudaErrorCheck.cu',

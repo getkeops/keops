@@ -5,6 +5,7 @@ Fitting a Gaussian Mixture Model
 In this tutorial, we show how to use KeOps to fit
 a Gaussian Mixture Model with a **custom sparsity prior**
 through **gradient descent** on the empiric log-likelihood.
+
 """
 
 ####################################################################

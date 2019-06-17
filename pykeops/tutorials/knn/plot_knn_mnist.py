@@ -9,6 +9,7 @@ It can thus be used to implement a **large-scale**
 `K-NN classifier <https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm>`_,
 **without memory overflows** on the 
 full `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset.
+
 """
 
 #####################################################################
@@ -22,7 +23,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import torch
 
-from pykeops.torch import generic_argkmin
+from pykeops import LazyTensor
 
 use_cuda = torch.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
@@ -30,7 +31,11 @@ tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 ######################################################################
 # Load the MNIST dataset: 70,000 images of shape (28,28).
 
-from sklearn.datasets import fetch_openml
+try:
+    from sklearn.datasets import fetch_openml
+except ImportError:
+    raise ImportError("This tutorial requires Scikit Learn version >= 0.20.")
+
 from sklearn.model_selection import train_test_split
 
 mnist = fetch_openml('mnist_784', cache=False)
@@ -55,17 +60,16 @@ x_test,  y_test  = x[Ntrain:Ntrain+Ntest,:], y[Ntrain:Ntrain+Ntest]
 
 K = 3  # N.B.: K has very little impact on the running time
 
-# Define our KeOps kernel:
-knn_search = generic_argkmin( 
-    'SqDist(x,y)',  # A simplistic squared L2 distance
-    'ind = Vi({})'.format(K),  # The K output indices are indexed by "i"
-    'x = Vi({})'.format(D),    # 1st arg: target points of dimension D, indexed by "i"
-    'y = Vj({})'.format(D))    # 2nd arg: source points of dimension D, indexed by "j"
-
 start = time.time()    # Benchmark:
-ind_knn = knn_search(x_test, x_train)  # Samples <-> Dataset, (N_test, K)
-lab_knn = y_train[ind_knn]  # (N_test, K) of integers in [0,9]
+
+X_i = LazyTensor( x_test[:,None,:] )   # (10000, 1, 784) test set
+X_j = LazyTensor( x_train[None,:,:] )  # (1, 60000, 784) train set
+D_ij = ( (X_i - X_j) ** 2 ).sum(-1)    # (10000, 60000) symbolic matrix of squared L2 distances
+
+ind_knn = D_ij.argKmin(K, dim=1)  # Samples <-> Dataset, (N_test, K)
+lab_knn = y_train[ind_knn]  # (N_test, K) array of integers in [0,9]
 y_knn, _ = lab_knn.mode()   # Compute the most likely label
+
 if use_cuda: torch.cuda.synchronize()
 end = time.time()
 

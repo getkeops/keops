@@ -24,3 +24,7 @@ verbose = bool(int(os.environ['PYKEOPS_VERBOSE'])) if 'PYKEOPS_VERBOSE' in os.en
 build_type = str(os.environ['PYKEOPS_BUILD_TYPE']) if ('PYKEOPS_BUILD_TYPE' in os.environ) else 'Release'
 
 sys.path.append(bin_folder)
+
+from .common.lazy_tensor import LazyTensor, Vi, Vj, Pm
+
+

@@ -19,7 +19,8 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
-from pykeops.numpy import Genred
+from pykeops import LazyTensor as keops
+from pykeops import Vi, Vj, Pm 
 from pykeops.numpy.utils import IsGpuAvailable
 
 ###############################################################
@@ -29,18 +30,7 @@ from pykeops.numpy.utils import IsGpuAvailable
 gpuids = [0,1] if torch.cuda.device_count() > 1 else [0]
 
 
-###############################################################
-# KeOps Kernel
-# -------------
-# Define some arbitrary KeOps routine:
-
-formula   =  'Square(p-a) * Exp(x+y)'
-variables = ['x = Vi(3)','y = Vj(3)','a = Vj(1)','p = Pm(1)']
-
 dtype = 'float32'  # May be 'float32' or 'float64'
-
-my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, dtype=dtype)
-
 
 ###############################################################
 #  Generate some data, stored on the CPU (host) memory:
@@ -57,7 +47,8 @@ p = np.random.randn(1).astype(dtype)
 # Launch our routine on the CPU:
 #
 
-c = my_routine(x, y, a, p, backend='CPU')
+xi, yj, aj = Vi(x), Vj(y), Vj(a)
+c = ((p-aj)**2*(xi+yj).exp()).sum(axis=1, backend='CPU')
 
 #########################################
 # And on our GPUs, with copies between 
@@ -65,7 +56,7 @@ c = my_routine(x, y, a, p, backend='CPU')
 #
 if IsGpuAvailable():
     for gpuid in gpuids:
-        d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
+        d = ((p-aj)**2*(xi+yj).exp()).sum(axis=1,backend='GPU', device_id=gpuid)
         print('Relative error on gpu {}: {:1.3e}'.format( gpuid, 
                 float( np.sum(np.abs(c - d)) / np.sum(np.abs(c)) ) ))
     

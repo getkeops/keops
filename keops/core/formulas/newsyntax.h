@@ -51,11 +51,17 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define ElemT(p,k) KeopsNS<ElemT<decltype(InvKeopsNS(p)),k>>()
 
+#define Sum(p) KeopsNS<Sum<decltype(InvKeopsNS(p))>>()
+
+#define SumT(p,d) KeopsNS<SumT<decltype(InvKeopsNS(p)),d>>()
+
 #define Extract(p,k,n) KeopsNS<Extract<decltype(InvKeopsNS(p)),k,n>>()
 
 #define ExtractT(p,k,n) KeopsNS<ExtractT<decltype(InvKeopsNS(p)),k,n>>()
 
 #define Concat(f,g) KeopsNS<Concat<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+
+#define Abs(f) KeopsNS<Abs<decltype(InvKeopsNS(f))>>()
 
 #define Exp(f) KeopsNS<Exp<decltype(InvKeopsNS(f))>>()
 
@@ -121,31 +127,42 @@ template < class FA, class FB >
 KeopsNS<Add<FA,FB>> operator+(KeopsNS<FA> fa, KeopsNS<FB> fb) {
     return KeopsNS<Add<FA,FB>>();
 }
+#define Add(fa,fb) KeopsNS<Add<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
+
 
 template < class FA, class FB >
 KeopsNS<ScalOrMult<FA,FB>> operator*(KeopsNS<FA> fa, KeopsNS<FB> fb) {
     return KeopsNS<ScalOrMult<FA,FB>>();
 }
+#define ScalOrMult(fa,fb) KeopsNS<ScalOrMult<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
+
 
 template < class F >
 KeopsNS<Minus<F>> operator-(KeopsNS<F> f) {
     return KeopsNS<Minus<F>>();
 }
+#define Minus(f) KeopsNS<Minus<decltype(InvKeopsNS(f))>>()
+
 
 template < class FA, class FB >
 KeopsNS<Subtract<FA,FB>> operator-(KeopsNS<FA> fa, KeopsNS<FB> fb) {
     return KeopsNS<Subtract<FA,FB>>();
 }
+#define Subtract(fa,fb) KeopsNS<Subtract<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
+
 
 template < class FA, class FB >
 KeopsNS<Divide<FA,FB>> operator/(KeopsNS<FA> fa, KeopsNS<FB> fb) {
     return KeopsNS<Divide<FA,FB>>();
 }
+#define Divide(fa,fb) KeopsNS<Divide<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
+
 
 template < class FA, class FB >
 KeopsNS<Scalprod<FA,FB>> operator|(KeopsNS<FA> fa, KeopsNS<FB> fb) {
     return KeopsNS<Scalprod<FA,FB>>();
 }
+#define Scalprod(fa,fb) KeopsNS<Scalprod<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
 
 // reductions
 
