@@ -59,8 +59,8 @@ More details are provided below:
 
 * :doc:`Documentation <introduction/why_using_keops>`
 * `Source code <https://github.com/getkeops/keops>`_
-* :doc:`Learning KeOps with examples <_auto_examples/index>`
-* :doc:`Gallery of tutorials <_auto_tutorials/index>`
+* :doc:`Learning KeOps with tutorials <_auto_tutorials/index>`
+* :doc:`Gallery of examples <_auto_examples/index>`
 * :doc:`Benchmarks <_auto_benchmarks/index>`
 
 **KeOps is licensed** under the `MIT license <https://github.com/getkeops/keops/blob/master/licence.txt>`_.
