@@ -172,7 +172,8 @@ for k in kernel_to_test:
 
 
 ####################################################################
-# Display results:
+# Display results
+# ---------------
 #
 
 # plot violin plot

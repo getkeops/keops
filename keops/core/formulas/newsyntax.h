@@ -97,7 +97,7 @@ F InvKeopsNS(KeopsNS<F> kf) {
 
 #define TensorProd(f,g) KeopsNS<TensorProd<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
-#define GradMatrix(f,v) KeopsNS<GradMatrix<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+#define GradMatrix(f,g) KeopsNS<GradMatrix<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
 #define SqNorm2(f) KeopsNS<SqNorm2<decltype(InvKeopsNS(f))>>()
 

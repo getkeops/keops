@@ -180,7 +180,7 @@ Assume we want to compute the sum
 
 .. math::
 
-  F(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1..M, u=1,2,3} \in \mathbb R^{M\times 3}
+  F(p,x,y,a)_i = \left(\sum_{j=1}^N (p -a_j )^2 \exp(x_i^u + y_j^u) \right)_{i=1,\ldots,M, u=1,2,3} \in \mathbb R^{M\times 3}
 
 
 where:

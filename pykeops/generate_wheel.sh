@@ -1,20 +1,33 @@
 #!/bin/bash
-#
+
 #---------------#
 # pyKeOps wheel # 
 #---------------#
 #
 # This script creates the wheel package for pykeops. Use at your own risk.
 
+
 CURRENT_DIR=$(pwd)
 echo $CURRENT_DIR
 
 # ensure we are in the right dir
 SCRIPT_DIR=`dirname $0`
-echo $SCRIPT_DIR
-
 cd $SCRIPT_DIR
 cd ..
+echo "Entering ${SCRIPT_DIR}/../"
+
+
+while getopts "v:" opt; do
+  case ${opt} in
+    v ) version=${OPTARG##v}
+        echo "Set a new version number: ${version}"
+        sed -i.bak "/__version__/c__version__ = \'$version\'" pykeops/__init__.py
+      ;;
+    \? ) echo "Usage: generate_wheel [-v VERSION_NUMBER]"
+         exit -1
+      ;;
+  esac
+done
 
 # clean pycache stuff
 find -name *__pycache__* -exec rm {} \-rf \;
@@ -34,6 +47,9 @@ python3 setup.py bdist_wheel --python-tag py3 --dist-dir build/wheel #--plat-nam
 rm pykeops/readme.md
 mv pykeops/CMakeLists.txt.bak pykeops/CMakeLists.txt
 rm -rf pykeops/keops
+if [ ! -z "$version" ]; then
+    mv pykeops/__init__.py.bak pykeops/__init__.py
+fi
 
 # comes back to directory of 
 cd $CURRENT_DIR

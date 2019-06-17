@@ -1,7 +1,7 @@
 import numpy as np
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import load_keops
+from pykeops.common.keops_io import LoadKEops
 from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases, parse_aliases
 from pykeops.common.utils import axis2cat
@@ -98,16 +98,11 @@ class KernelSolve:
         (self.categories, self.dimensions) = parse_aliases(self.aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
-        self.myconv = load_keops(self.formula, self.aliases, self.dtype, 'numpy')
-        if varinvalias[:4] == "Var(":
-            # varinv is given directly as Var(*,*,*) so we just have to read the index
-            self.varinvpos = int(varinvalias[4:varinvalias.find(",")])
-        else:
-            # we need to recover index from alias
-            tmp = aliases.copy()
-            for (i, s) in enumerate(tmp):
-                tmp[i] = s[:s.find("=")].strip()
-            self.varinvpos = tmp.index(varinvalias)
+        self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy').import_module()
+        tmp = aliases.copy()
+        for (i, s) in enumerate(tmp):
+            tmp[i] = s[:s.find("=")].strip()
+        self.varinvpos = tmp.index(varinvalias)
     
     def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
         r"""

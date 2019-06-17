@@ -8,6 +8,10 @@ project(PyKeOps LANGUAGES CXX)
 
 set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 include(${KEOPS_SRC}/cuda.cmake)
 
 ## Set Path to sources
@@ -25,9 +29,16 @@ Include_Directories(${SOURCE_FILES})
 
 include(${KEOPS_SRC}/headers.cmake)
 
-########################################################################################################
-#                                             PYBIND11                                                 #
-########################################################################################################
+# installation directory
+set(BIN_DIR ${PROJECT_BINARY_DIR}/../)
+
+
+
+
+
+########################################################################################################################
+#                                                     PYBIND11                                                         #
+########################################################################################################################
 
 add_subdirectory(pybind11)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
@@ -39,9 +50,15 @@ endif()
 # We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/torch_headers.h.in ${CMAKE_CURRENT_BINARY_DIR}/torch_headers.h @ONLY)
 
-########################################################################################################
-#                                        Generic                                                       #
-########################################################################################################
+
+
+
+
+
+
+########################################################################################################################
+#                                                        Generic                                                       #
+########################################################################################################################
 
 # this dummy flag is used in the bindings
 if (${__TYPE__} STREQUAL "double")
@@ -129,15 +146,35 @@ target_link_libraries(
     keops${shared_obj_name}
 )
 
+# Installation step
+add_custom_command(
+    TARGET ${shared_obj_name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${shared_obj_name}> ${BIN_DIR}
+)
+add_custom_command(
+    TARGET keops${shared_obj_name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops${shared_obj_name}> ${BIN_DIR}
+)
 
-########################################################################################################
-#                                        Specific                                                      #
-########################################################################################################
+# Write a log file to decypher keops dllname
+if(shared_obj_name)
+   string(TIMESTAMP TODAY "%Y/%m/%d")
+   file(APPEND ${PROJECT_BINARY_DIR}/../keops_hash.log ${shared_obj_name} - ${FORMULA_OBJ} - ${VAR_ALIASES} - ${__TYPE__} - ${TODAY}\n)
+endif()
+
+
+
+
+
+
+
+########################################################################################################################
+#                                                        Specific                                                      #
+########################################################################################################################
 
 if (USE_CUDA)
 
-
-    #---------------------------------------------------------------------------------------------------
+# --------------------------------------------------- CONV -------------------------------------------------------------
     CUDA_add_library(
         radial_kernel_conv_cuda SHARED
         ${KEOPS_SRC}/specific/radial_kernels/cuda_conv.cu
@@ -157,7 +194,27 @@ if (USE_CUDA)
         radial_kernel_conv_cuda
     )
 
-    #---------------------------------------------------------------------------------------------------
+    # Ensure the shared lib look for the other .so in its own dir.
+    if(APPLE)
+        set_target_properties(radial_kernel_conv PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
+    else()
+        set_target_properties(radial_kernel_conv PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
+    endif()
+
+    # Installation step
+    add_custom_command(
+        TARGET radial_kernel_conv POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:radial_kernel_conv> ${BIN_DIR}
+    )
+    add_custom_command(
+        TARGET radial_kernel_conv_cuda POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:radial_kernel_conv_cuda> ${BIN_DIR}
+    )
+
+
+
+# ------------------------------------------------ GRAD1CONV -----------------------------------------------------------
+
     CUDA_add_library(
         radial_kernel_grad1conv_cuda SHARED
         ${KEOPS_SRC}/specific/radial_kernels/cuda_grad1conv.cu
@@ -177,7 +234,29 @@ if (USE_CUDA)
         radial_kernel_grad1conv_cuda
     )
 
-    #---------------------------------------------------------------------------------------------------
+    # Ensure the shared lib look for the other .so in its own dir.
+    if(APPLE)
+        set_target_properties(radial_kernel_grad1conv PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
+    else()
+        set_target_properties(radial_kernel_grad1conv PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
+    endif()
+
+    # Installation step
+    add_custom_command(
+        TARGET radial_kernel_grad1conv POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:radial_kernel_grad1conv> ${BIN_DIR}
+    )
+    add_custom_command(
+        TARGET radial_kernel_grad1conv_cuda POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:radial_kernel_grad1conv_cuda> ${BIN_DIR}
+    )
+
+
+
+
+
+# --------------------------------------------------- FSHAPE SCP  ------------------------------------------------------
+
     if(NOT KERNEL_GEOM OR (KERNEL_GEOM STREQUAL "gaussian"))
         SET(KERNEL_GEOM "gaussian")
         SET(KERNEL_GEOM_TYPE 0)
@@ -218,10 +297,12 @@ if (USE_CUDA)
         SET(fshape_scp_name fshape_scp${ext_name}_${KERNEL_GEOM}${KERNEL_SIG}${KERNEL_SPHERE}_${__TYPE__})
 
         SET(name1 fshape_gpu${ext_name})
+
         CUDA_add_library(
             ${name1} SHARED
             ${KEOPS_SRC}/specific/shape_distance/${name1}.cu
         )
+
         set_target_properties(${name1} PROPERTIES
             LIBRARY_OUTPUT_NAME ${fshape_scp_name}
             PREFIX ""
@@ -243,6 +324,23 @@ if (USE_CUDA)
             ${fshape_scp_name} PUBLIC
             ${name1}
         )
+        # Ensure the shared lib look for the other .so in its own dir.
+        if(APPLE)
+            set_target_properties(${fshape_scp_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
+        else()
+            set_target_properties(${fshape_scp_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
+        endif()
+
+        # Installation step
+        add_custom_command(
+            TARGET ${fshape_scp_name} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${fshape_scp_name}> ${BIN_DIR}
+        )
+        add_custom_command(
+            TARGET ${name1} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${name1}> ${BIN_DIR}
+        )
+
 
     endforeach()
 

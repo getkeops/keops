@@ -1,8 +1,19 @@
 import fcntl
 import functools
+import importlib.util
+import os
+import shutil
 from hashlib import sha256
 
+from pykeops import build_type
+
 c_type = dict(float32="float", float64="double")
+
+
+def module_exists(dllname):
+    spec = importlib.util.find_spec(dllname)
+    return (spec is None)
+
 
 def create_name(formula, aliases, dtype, lang):
     """
@@ -57,22 +68,33 @@ class FileLock:
         fcntl.flock(self.fd, fcntl.LOCK_UN)
 
 
-def filelock(build_folder, lock_file_name="pykeops.lock"):
+def create_and_lock_build_folder():
     """
-    This function is used to lock the building dir (see cmake) too avoid two concurrency
+    This function is used to create and lock the building dir (see cmake) too avoid two concurrency
     threads using the same cache files.
     """
     def wrapper(func):
         @functools.wraps(func)
         def wrapper_filelock(*args, **kwargs):
-            with open(build_folder + '/' + lock_file_name, 'w') as f:
+            # get build folder name
+            bf = args[0].build_folder
+            # create build folder
+            os.makedirs(bf, exist_ok=True)
+
+            # create a file lock to prevent multiple compilations at the same time
+            with open(bf + os.path.sep + 'pykeops_build2.lock', 'w') as f:
                 with FileLock(f):
-                    return func(*args, **kwargs)
-
-        return wrapper_filelock
+                    func_res = func(*args, **kwargs)
     
-    return wrapper
+            # clean
+            if (module_exists(args[0].dll_name)) or (build_type != 'Debug'):
+                shutil.rmtree(bf)
 
+            return func_res
+        
+        return wrapper_filelock
+
+    return wrapper
 
 def get_tools(lang):
     """
