@@ -86,6 +86,14 @@ void loop(const std::array<size_t, shape_size>& shape, Functor functor)
 
 constexpr unsigned cilog2(unsigned val) { return val ? 1 + cilog2(val >> 1) : -1; }
 
+template <size_t size1, size_t size2>
+constexpr std::tuple<size_t,size_t,size_t> kd(std::array<size_t, size1> dim_a, std::array<size_t, size2> dim_b, size_t i, size_t j , size_t k) {
+    size_t kda = dim_a[1]*dim_a[2]*i + dim_a[2]*j;
+    size_t kdb = k;
+    size_t I   = kda + kdb;
+    return std::make_tuple(I,kda,kdb);
+}
+
 int main() {
 
     // generate tuple (at compile time)
@@ -97,8 +105,7 @@ int main() {
      
     double FA[8] = {4.4,5.4,6.2,6.5,7.5,6.1,8.7,1.3};
     double FB[4] = {1.4,1.2,1.5,1.22};
-    
-
+ 
     // constexpr size_t sum_dim_a = 2;
     // constexpr size_t keep_dim_a[2] = [0,1];
 
@@ -108,26 +115,41 @@ int main() {
     // print (at runtime)
     double out[2*2*2] = {0,0,0,0,0,0,0,0};
 
-    constexpr size_t base2 = cilog2(8); 
-    std::array<size_t, cilog2(8)> ijk;
+    size_t I = 0;
+    loop(std::array<size_t,4>{2,2,2,2},[&I,&out,&FA,&FB,&ma4](size_t i,size_t j,size_t k, size_t r){
+        const auto& dim_a = std::get<0>(ma4);
+        const auto& dim_b = std::get<1>(ma4);
 
-    loop(std::array<size_t,2>{8,2},[&out,&FA,&FB,&ijk](size_t I, size_t r){
-        size_t i = I / 8;
-        size_t j = (I-i) / 4;
-        size_t k = (I-j-k) / 2;
-    
-        out[I] += FA[ 4*i + 2*j + r] * FB[ r*2 + k];
+        std::tuple KD = kd(dim_a,dim_b,i,j,k);
+        size_t I   = std::get<0>(KD);
+        size_t kda = std::get<1>(KD);
+        size_t kdb = std::get<2>(KD);
+        out[I] += FA[kda + r] * FB[dim_b[1]*r + kdb];
     });
-    // for(size_t i=0; i<2; i++)
-    //     for(size_t j=0; j<2; j++)
-    //      for(size_t k=0; k<2; k++)
-    //         for(size_t l=0; l< 2; l++) {
-    //         out[4*i + 2*j + k] += FA[ 4*i + 2*j + l] * FB[ l*2 + k];
-    //         std::cout << "(" << k << "," << l << ")" << std::endl;
-    //     }
+ 
+//    std::cout << "out = " << (out | view::all) << std::endl;
+
+    // constexpr size_t base2 = cilog2(8); 
+    // std::array<size_t, cilog2(8)> ijk;
+
+    // loop(std::array<size_t,2>{8,2},[&out,&FA,&FB,&ijk](size_t I, size_t r){
+    //     size_t i = I / 8;
+    //     size_t j = (I-i) / 4;
+    //     size_t k = (I-j-k) / 2;
+    
+    //     out[I] += FA[ 4*i + 2*j + r] * FB[ r*2 + k];
+    // });
+    double out2[2*2*2] = {0,0,0,0,0,0,0,0};
+
+    for(size_t i=0; i<2; i++)
+        for(size_t j=0; j<2; j++)
+         for(size_t k=0; k<2; k++)
+            for(size_t l=0; l< 2; l++) {
+            out2[4*i + 2*j + k] += FA[ 4*i + 2*j + l] * FB[ l*2 + k];
+        }
 
 
 
-   std::cout << "out = " << (out | view::all) << std::endl;
-   std::cout << (3 >> 1) << std::endl;
+   std::cout << "out  = " << (out | view::all) << std::endl;
+   std::cout << "out2 = " << (out2 | view::all) << std::endl;
 }
