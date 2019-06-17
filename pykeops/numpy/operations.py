@@ -99,10 +99,17 @@ class KernelSolve:
         self.varinvalias = varinvalias
         self.dtype = dtype
         self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy').import_module()
-        tmp = aliases.copy()
-        for (i, s) in enumerate(tmp):
-            tmp[i] = s[:s.find("=")].strip()
-        self.varinvpos = tmp.index(varinvalias)
+        
+        if varinvalias[:4] == "Var(":
+            # varinv is given directly as Var(*,*,*) so we just have to read the index
+            varinvpos = int(varinvalias[4:varinvalias.find(",")])
+        else:
+            # we need to recover index from alias
+            tmp = self.aliases.copy()
+            for (i, s) in enumerate(tmp):
+                tmp[i] = s[:s.find("=")].strip()
+            varinvpos = tmp.index(varinvalias)
+        self.varinvpos = varinvpos
     
     def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
         r"""

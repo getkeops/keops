@@ -116,7 +116,7 @@ gaussianconv_keops = generic_sum("Exp(-SqDist(X,Y)) * B",  # Formula
 
 
 #############################################
-# Finally, perform the same operation with our high-level :mod:`LazyTensor` wrapper:
+# Finally, perform the same operation with our high-level :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` wrapper:
 
 from pykeops import LazyTensor
 

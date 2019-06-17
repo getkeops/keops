@@ -3,7 +3,7 @@
 Kernel interpolation - PyTorch API
 ==================================
 
-The :meth:`K_xx.solve(b, alpha=1e-10)` method of KeOps :mod:`LazyTensors` allows you to solve optimization
+The :meth:`K_xx.solve(b, alpha=1e-10)` method of KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` allows you to solve optimization
 problems of the form
 
 .. math::

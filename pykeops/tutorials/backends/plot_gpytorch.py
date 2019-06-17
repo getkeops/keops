@@ -13,7 +13,7 @@ and that's about it.
 Fortunately though, KeOps can easily be used
 as a scalable GPU backend for versatile, high-level libraries such
 as `GPytorch <https://gpytorch.ai/>`_: in this notebook,
-we show how to plug KeOps' :mod:`LazyTensor <pykeops.LazyTensor>`
+we show how to plug KeOps' :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`
 within the first `regression tutorial <https://gpytorch.readthedocs.io/en/latest/examples/01_Simple_GP_Regression/Simple_GP_Regression.html>`_
 of GPytorch's documentation.
 

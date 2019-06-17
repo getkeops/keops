@@ -11,7 +11,7 @@ which represents generic "Matrix-Vector" products
 and can be plugged seamlessly in a `large collection <https://docs.scipy.org/doc/scipy/reference/sparse.linalg.html>`_ 
 of linear algebra routines.
 
-Crucially, KeOps :mod:`LazyTensors <pykeops.LazyTensor>` are now **fully compatible**
+Crucially, KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` are now **fully compatible**
 with this interface.
 As an example, let's see how to combine KeOps with a 
 `fast eigenproblem solver <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_ 
@@ -89,7 +89,7 @@ print(K_xx)
 # Linear operators
 # ~~~~~~~~~~~~~~~~~
 #
-# As far as **scipy** is concerned, a KeOps :mod:`LazyTensor` such
+# As far as **scipy** is concerned, a KeOps :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` such
 # as **K_xx** can be directly understood as a 
 # `LinearOperator <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.LinearOperator.html>`_:
 
@@ -97,7 +97,7 @@ from scipy.sparse.linalg import aslinearoperator
 K = aslinearoperator( K_xx )
 
 #########################################################
-# Just like regular numpy :mod:`arrays` or KeOps :mod:`LazyTensors`,
+# Just like regular numpy :mod:`arrays` or KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`,
 # :mod:`LinearOperators` fully support the "matrix" product operator ``@``.
 # For instance, to compute the mass coefficients
 # 
@@ -195,7 +195,7 @@ plt.show()
 # Scaling up to large datasets with block-sparse matrices
 # ---------------------------------------------------------------
 # 
-# Going further, :mod:`LazyTensors` support 
+# Going further, :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` support 
 # adaptive **block-sparsity patterns** (specified through an optional **.ranges** attribute)
 # which allow us to perform large matrix-vector products with **sub-quadratic** complexity.
 # To illustrate this advanced feature of KeOps, 
@@ -323,7 +323,7 @@ print(K_xx)
 ############################################################################
 # A straightforward computation shows that our new 
 # **block-sparse** operator may be **up to 20 times more efficient** than a
-# full KeOps :mod:`LazyTensor`:
+# full KeOps :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`:
 
 # Compute the area of each rectangle "cluster-cluster" tile in the full kernel matrix:
 areas = (x_ranges[:,1] - x_ranges[:,0])[:,None] \
@@ -337,7 +337,7 @@ print("We keep {:.2e}/{:.2e} = {:2d}% of the original kernel matrix.".format(
 
 ############################################################################
 # Good. Once we're done with these pre-processing steps,
-# block-sparse :mod:`LazyTensors` are just as easy to interface with **scipy** as
+# block-sparse :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` are just as easy to interface with **scipy** as
 # regular NumPy arrays:
 
 K = aslinearoperator( K_xx )

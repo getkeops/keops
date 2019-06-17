@@ -10,6 +10,14 @@ To-do list
 * Put **reference paper** on Arxiv.
 * Fully document the **inner C++ API** and algorithms.
 * Provide **R bindings**.
+* Add support for **tensor** (and not just vector) variables.
+* Allow users to backprop through the ``.min()`` or ``.max()`` reduction
+  of a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`.
+* Add support for the **advanced indexing** of 
+  :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`. 
+  Users should be able to **extract sub-matrices** as :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` or genuine NumPy arrays / PyTorch tensors
+  to perform e.g. Nyström approximation without having to
+  implement twice the same kernel formula.
 * Add support for the `Fast and Furious Method <https://gargantua.polytechnique.fr/siatel-web/linkto/mICYYYT(myY6>`_ and other
   `Multipole <https://en.wikipedia.org/wiki/Fast_multipole_method>`_ 
   or `Nyström-like <https://en.wikipedia.org/wiki/Low-rank_matrix_approximations>`_ **approximations**.
