@@ -94,7 +94,7 @@ struct Looper {
         for (size_t index = 0; index < shape[shape_index]; ++index) {
             Looper<shape_index + 1, shape_size>() (
                     shape,
-                    [index, &functor](auto... tail){ functor(std::forward_as_tuple(index, tail...)); }
+                [index, &functor](auto... tail){ functor(std::tuple_cat(std::tuple<size_t>(index), tail...)); }
                     );
         }
     }
@@ -119,6 +119,10 @@ void loop(const std::array<size_t, shape_size>& shape, Functor functor)
 template <size_t size1, size_t size2>
 constexpr std::tuple<size_t,size_t,size_t> kd(std::array<size_t, size1> dim_a, std::array<size_t, size2> dim_b, size_t i, size_t j , size_t k) {
     size_t kda = dim_a[1]*dim_a[2]*i + dim_a[2]*j;
+
+
+
+    
     size_t kdb = k;
     size_t I   = kda + kdb;
     return std::make_tuple(I,kda,kdb);
@@ -137,6 +141,18 @@ constexpr size_t dimout(std::array<size_t, NumberOfKeepDim> keep_dim){
 //static constexpr std::array< size_t, sizeof...(A)> toArray( std::index_sequence<A... >) noexcept {
     //return std::array<size_t, sizeof...(A ) > { A... };
 //}
+//
+
+template<size_t, class T>
+using T_ = T;
+
+template<class T, size_t... Is>
+auto gen(std::index_sequence<Is...>) { return std::tuple<T_<Is, T>...>{}; }
+
+template<class T, size_t N>
+auto gen() { return gen<T>(std::make_index_sequence<N>{}); } 
+
+
 
 
 
@@ -165,7 +181,7 @@ int main() {
     double out[dimout_var];
     std::fill(out, out + dimout_var, 0);
    
-    loop(std::get<5>(ma4),[&out,&FA,&FB,&ma4](std::tuple<size_t,size_t,size_t,size_t> it){
+    const auto& my_lambda = [&out,&FA,&FB,&ma4](decltype(gen<size_t, std::get<5>(ma4).size()>()) it){
         const auto& dim_a = std::get<0>(ma4);
         const auto& dim_b = std::get<1>(ma4);
 
@@ -173,8 +189,12 @@ int main() {
         size_t I   = std::get<0>(KD);
         size_t kda = std::get<1>(KD);
         size_t kdb = std::get<2>(KD);
+        
         out[I] += FA[kda + std::get<3>(it)] * FB[dim_b[1]*std::get<3>(it) + kdb];
-    });
+
+    };
+    
+    loop(std::get<5>(ma4), my_lambda );
  
     // -------------------------------------------------------------------------------------------------------------------------------------
     double out2[2*2*2] = {0,0,0,0,0,0,0,0};
