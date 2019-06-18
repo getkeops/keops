@@ -171,7 +171,7 @@ ei = Vi(np.random.rand(M,Dv))
 xj = Vj(x)
 dx2 = keops.sum((xi-xj)**2)
 Kxx = (-dx2/sigma**2).exp()
-res = keops.kernelsolve(Kxx,ei,alpha=.1)
+res = keops.solve(Kxx,ei,alpha=.1)
 
 #########################################################################
 # Use of loops or vector operations for sums of kernels
