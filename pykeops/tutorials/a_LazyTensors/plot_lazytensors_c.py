@@ -1,106 +1,11 @@
 """
-===============================
-Helper/Container syntax
-===============================
+===================================
+Advanced usage: symbolic variables
+===================================
 
 This tutorial shows how to use the new KeOps helper/container syntax
  
 """
-
-#########################################################################
-# Setup 
-# -----------------
-# Standard imports:
-
-import numpy as np
-import torch
-from pykeops import LazyTensor as keops
-from pykeops import Vi, Vj, Pm
-import time
-
-#########################################################################
-# The 3D tensor syntax, aka NumPy or PyTorch style
-# ------------------------------------------------
-
-#############################################################################
-# Let us first compute a simple gaussian convolution: let
-#
-#  - :math:`x_i` be arbistrary 2D points, :math:`1\leq i\leq M`
-#  - :math:`y_j` be arbistrary 2D points, :math:`1\leq j\leq N`
-#  - :math:`\beta_j` be arbistrary 4D vectors, :math:`1\leq j\leq N`
-#  - :math:`\sigma` as scale parameter
-#
-# We would like to compute, for :math:`1\leq i\leq M`,
-#
-# .. math::
-#   \gamma_i ~=~ \sum_{j=1}^N\exp\left(-\frac{\|x_i-y_j\|^2}{\sigma^2}\right)\beta_j
-
-
-
-################################################################
-# Here is the corresponding computation using KeOps:
-#
-# We first define the dataset. In this first part we will use
-# a "3D" tensor convention : the i indices correspond to the
-# first axis, the j indices to the 2nd axis, and the 3rd axis
-# is used for the dimension of points or vectors
-M, N = 50, 30
-D, Dv = 4, 2
-x = np.random.rand(M,1,D)
-y = np.random.rand(1,N,D)
-beta = np.random.rand(1,N,Dv)
-sigma = 0.25
-
-################################################################
-# We first convert tensors x,y,b into KeOps objects:
-X, Y, Beta = keops(x), keops(y), keops(beta)
-
-########################################################################
-# Then we perform operations as if we were using usual 3D tensors, 
-# using usual broadcasting conventions as in NumPy.
-dxy2 = keops.sum((X-Y)**2,axis=2)
-Kxyb = keops.exp(-dxy2/sigma**2) * Beta
-
-########################################################################
-# At this point we have to think about Kxyb as having shape (M,N,Dv)
-# although in fact it is just a KeOps object and no computation has been
-# performed yet. We can check its formula and shape using print:
-print(Kxyb)
-
-########################################################################
-# Finally we compute the final sum over the j
-gamma = Kxyb.sum(axis=1)
-
-########################################################################
-# Now since we have called a reduction operation over the second axis
-# (i.e. over the j indices), the KeOps engine has been called and the
-# output gamma is not any more a KeOps object but a NumPy tensor of 
-# shape (M,Dv).
-
-#######################################################################
-# Let us do it again, starting from PyTorch tensors, and computing
-# a gradient to see how the autodiff goes through.
-# Note that we use "dim" instead of "axis" keywords
-# to mimic PyTorch conventions
-# but the two keys are equivalent in KeOps.
-x = torch.rand(M,1,D,requires_grad=True)
-y = torch.rand(1,N,D)
-beta = torch.rand(1,N,Dv)
-
-X, Y, Beta = keops(x), keops(y), keops(beta)
-dxy2 = keops.sum((X-Y)**2,dim=2)
-Kxyb = keops.exp(-dxy2/sigma**2) * Beta
-gamma = Kxyb.sum(dim=1)
-
-e = torch.rand(M,Dv)
-grad_gamma = torch.autograd.grad(gamma,x,e)
-
-#######################################################################
-# Note that we can use also a "grad" method, which takes the
-# symbolic gradient of the formula before doing the reduction.
-# This gives the same result
-E = keops(e,axis=0)
-grad_gamma_ = Kxyb.grad(X,E).sum(dim=1)
 
 #########################################################################
 # The Vi, Vj, Pm style
