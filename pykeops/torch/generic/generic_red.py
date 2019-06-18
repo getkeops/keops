@@ -61,9 +61,9 @@ class GenredAutograd(torch.autograd.Function):
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
 
-        not_supported = ["Min_ArgMin", "Min", 
-                         "Max_ArgMax", "Max",
-                         "KMin_ArgKMin", "KMin"]
+        not_supported = ["Min_ArgMin_Reduction", "Min_Reduction", 
+                         "Max_ArgMax_Reduction", "Max_Reduction",
+                         "KMin_ArgKMin_Reduction", "KMin_Reduction"]
         for red in not_supported:
             if formula.startswith(red):
                 raise NotImplementedError("As of today, KeOps does not support "
