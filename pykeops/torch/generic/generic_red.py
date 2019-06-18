@@ -61,6 +61,20 @@ class GenredAutograd(torch.autograd.Function):
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
 
+        not_supported = ["Min_ArgMin", "Min", 
+                         "Max_ArgMax", "Max",
+                         "KMin_ArgKMin", "KMin"]
+        for red in not_supported:
+            if formula.startswith(red):
+                raise NotImplementedError("As of today, KeOps does not support "
+                    + "backpropagation through the " + red + " reduction. "
+                    + "Adding this feature to LazyTensors is on the cards "
+                    + "for future releases... But until then, you may want "
+                    + "to consider extracting the relevant integer indices "
+                    + "with a '.argmin()', '.argmax()' or '.argKmin()' reduction "
+                    + "before using PyTorch advanced indexing to create a fully-differentiable "
+                    + "tensor containing the relevant 'minimal' values.")
+
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
