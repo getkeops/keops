@@ -8,11 +8,11 @@
 *venv*
 
 # Build junk
+*build*
 *output*
 !*input_output.py
-*/build/*
+/build/*
 !/build/.gitkeep
-*_build*
 *_auto_examples*
 *_auto_tutorials*
 *_auto_benchmarks*
