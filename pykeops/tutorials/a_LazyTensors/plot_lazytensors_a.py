@@ -261,7 +261,9 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 #   
 # - The structure of KeOps computations is still a little bit **rigid**,
 #   and :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` should only
-#   be used in situations where the **large** dimensions M and N are in positions
+#   be used in situations where the **large** dimensions M and N 
+#   over which the main reduction
+#   will be performed are in positions
 #   -3 and -2 (respectively), with **vector** variables in position
 #   -1 and an arbitrary number of batch dimensions beforehand.
 #   We're working towards a full support of **tensor** variables,
