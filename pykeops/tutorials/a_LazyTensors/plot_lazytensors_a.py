@@ -208,9 +208,6 @@ x_i = LazyTensor( x[:,None,:] )  # (M, 1, 3) LazyTensor
 y_j = LazyTensor( y[None,:,:] )  # (1, N, 3) LazyTensor
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # Symbolic (M, N) matrix of squared distances
 
-s_i = D_ij.argmin(dim=1).view(-1)  # (M,) integer Torch tensor
-print("s_i is now a {} of shape {}.".format(type(s_i), s_i.shape) )
-
 #####################################################################
 # We could compute the (M,) vector of squared distances to the **nearest y-neighbor** with:
 
@@ -219,15 +216,16 @@ to_nn = D_ij.min(dim=1).view(-1)
 ################################################################
 # But instead, using:
 
-to_nn_diff = ((x - y[s_i,:]) ** 2).sum(-1)  
+s_i = D_ij.argmin(dim=1).view(-1)  # (M,) integer Torch tensor
+to_nn_alt = ((x - y[s_i,:]) ** 2).sum(-1)  
 
 ##########################################################
 # outputs the same result, while also allowing us to **compute arbitrary gradients**:
 
 print( "Difference between the two vectors: {:.2e}".format( 
-       (to_nn - to_nn_diff).abs().max() ) )
+       (to_nn - to_nn_alt).abs().max() ) )
 
-[g_i] = torch.autograd.grad( to_nn_diff.sum(), [x] )
+[g_i] = torch.autograd.grad( to_nn_alt.sum(), [x] )
 print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
 
 ###########################################################
