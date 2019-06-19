@@ -111,9 +111,9 @@ Table of content
    :caption: PyKeops
 
    python/index
+   _auto_tutorials/index
    _auto_examples/index
    _auto_benchmarks/index
-   _auto_tutorials/index
    python/api/index
 
 .. toctree::
