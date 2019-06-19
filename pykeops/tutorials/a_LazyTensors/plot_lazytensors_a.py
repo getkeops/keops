@@ -32,10 +32,10 @@ x = np.random.rand(M, 2)
 y = np.random.rand(N, 2)
 
 ##########################################################################
-# With NumPy, an efficient way of computing the **nearest y-neighbor**
+# With NumPy, an efficient way of computing the index of the **nearest y-neighbor**
 #
 # .. math::
-#   y_{\sigma(i)} ~=~ \arg \min_{j\in [1,N]} \| x_i - y_j\|^2
+#   \sigma(i) ~=~ \arg \min_{j\in [1,N]} \| x_i - y_j\|^2
 #
 # for all points :math:`x_i` is to perform a :func:`numpy.argmin()`
 # reduction on the **M-by-N matrix** of squared distances
@@ -144,7 +144,7 @@ print( s_i[:10] )
 # .. math::
 #   a_i ~=~ \sum_{j=1}^N \exp(-\|x_i-y_j\|)\cdot b_j
 # 
-# in dimension D=10 can be performed through:
+# in dimension D=10 can be performed with:
 
 D = 10
 x = torch.randn(M, D).type(tensor)  # M target points in dimension D, stored on the GPU
@@ -174,9 +174,9 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape) )
 # we may compute the gradient
 #
 # .. math::
-#   g_i ~=~ \partial \sum_i \|a_i\|^2 / \partial x_i
+#   g_i ~=~ \frac{\partial \sum_i \|a_i\|^2}{\partial x_i}
 #
-# through:
+# with:
 
 [g_i] = torch.autograd.grad( (a_i ** 2).sum(), [x], create_graph=True)
 print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
@@ -196,7 +196,7 @@ print("h_i is now a {} of shape {}.".format(type(h_i), h_i.shape) )
 #   Until then, a simple workaround is to use
 #   the indices computed by the
 #   :meth:`.argmin()`, :meth:`.argmax()` or :meth:`.argKmin()`
-#   reductions to define a fully differentiable PyTorch tensors.
+#   reductions to define a fully differentiable PyTorch tensor as we now explain.
 #
 # Coming back to our example about nearest neighbors in the unit cube:
 
@@ -243,7 +243,7 @@ print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
 # 
 # As should be expected, :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
 # also provide a simple support of **batch processing**,
-# with operator broadcasting:
+# with broadcasting over dummy (=1) batch dimensions:
 
 A, B = 7, 3  # Batch dimensions
 
@@ -258,16 +258,56 @@ K_ij = ( - 1.6 * D_ij / (1 + s**2) )  # Some arbitrary (A, B, M, N, 1) Kernel ma
 a_i = K_ij.sum(dim=3)
 print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 
-# The structure of KeOps computations still is a little bit rigid
-# 
+##################################################################
+# Everything works just fine, with two major caveats:
+#   
+# - The structure of KeOps computations is still a little bit **rigid**,
+#   and :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` should only
+#   be used in situations where the **large** dimensions M and N are in positions
+#   -3 and -2 (respectively), with **vector** variables in position
+#   -1 and an arbitrary number of batch dimensions beforehand.
+#   We're working towards a full support of **tensor** variables,
+#   but this will probably take a few more weeks to implement and test properly...
+#
+# - KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` never collapse
+#   their last "dimension", even after a :func:`.sum(-1)` reduction
+#   whose **keepdim** argument is implicitely set to **True**.
+
+print("Convenient, numpy-friendly shape:       ", K_ij.shape)
+print("Actual shape, used internally by KeOps: ", K_ij._shape)
+
+##################################################################
+# This is the reason why in the example above,
+# **a_i** is a 4D Tensor of shape ``(7, 3, 1000, 1)`` and **not** 
+# a 3D Tensor of shape ``(7, 3, 1000)``.
 #
 
 
 #############################################################################
 # Supported formulas
 # ------------------------------------
-# Blabla
+# 
+# The full range of mathematical operations supported by
+# :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` is described
+# in our API documentation.
+# Let's just mention that the lines below define valid computations:
 #
+
+x_i = LazyTensor( torch.randn(A, B, M, 1, D) )
+l_i = LazyTensor( torch.randn(1, 1, M, 1, D) )
+y_j = LazyTensor( torch.randn(1, B, 1, N, D) )
+s   = LazyTensor( torch.rand( A, 1, 1, 1, 1) )
+
+F_ij = (x_i ** 1.5 + y_j / l_i).cos() + (x_i[:,:,:,:,2] * s.relu() * y_j)
+print(F_ij)
+
+a_j = F_ij.sum(dim=2)
+print("a_j is now a {} of shape {}.".format(type(a_j), a_j.shape))
+
+#############################################################################
+# Enjoy! And feel free to check the next tutorial for a discussion
+# of the varied reduction operations that can be applied to
+# KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`.
 
 
 
