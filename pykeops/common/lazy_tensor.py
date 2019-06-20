@@ -39,7 +39,7 @@ def Pm(x_or_ind,dim=None):
 
 
 class LazyTensor:
-    r"""The KeOps container class.
+    r"""Symbolic KeOps wrapper for NumPy arrays and PyTorch tensors.
 
     Every LazyTensor object represents a mathematical formula which 
     may depend on some "i" or "j"-indexed variables and parameter variables
@@ -48,7 +48,7 @@ class LazyTensor:
     """   
     
     def __init__(self, x=None, axis=None):
-        r"""Creates a KeOps variable or object
+        r"""Creates a KeOps symbolic variable.
             
         Args:
             x: may be either:

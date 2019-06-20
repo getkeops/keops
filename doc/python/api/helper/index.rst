@@ -1,7 +1,5 @@
-Helper API
-##########
-
-The helper API ...
+LazyTensor API (NumPy/PyTorch agnostic)
+########################################
 
 .. toctree::
 
