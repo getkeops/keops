@@ -298,7 +298,7 @@ l_i = LazyTensor( torch.randn(1, 1, M, 1, D) )
 y_j = LazyTensor( torch.randn(1, B, 1, N, D) )
 s   = LazyTensor( torch.rand( A, 1, 1, 1, 1) )
 
-F_ij = (x_i ** 1.5 + y_j / l_i).cos() + (x_i[:,:,:,:,2] * s.relu() * y_j)
+F_ij = (x_i ** 1.5 + y_j / l_i).cos() - (x_i | y_j) + (x_i[:,:,:,:,2] * s.relu() * y_j)
 print(F_ij)
 
 a_j = F_ij.sum(dim=2)
