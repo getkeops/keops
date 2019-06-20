@@ -62,37 +62,40 @@ class LazyTensor:
             x: May be either:
         
                 - A *float*, a *list of floats*, a *NumPy float*, a *0D or 1D NumPy array*, 
-                  a *0D or 1D PyTorch tensor*, in which case the resulting KeOps variable will represent a parameter variable,
-                - A *2D or 3D NumPy array* or *PyTorch tensor*, in which case the 
-                  resulting KeOps variable will represent a "i"-indexed or 
-                  "j"-indexed variable (depending on the value of axis),
-                - A tuple of 3 integers (ind,dim,cat), in which case the resulting KeOps variable will represent a symbolic variable,
-                - An integer, in which case the resulting KeOps object will represent the integer, handled efficiently at compilation time.                    
-            axis: should be 0 or 1 if x is a 2D NumPy array or PyTorch tensor, should be None otherwise 
+                  a *0D or 1D PyTorch tensor*, in which case the
+                  :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`
+                  represents a constant **vector of parameters**, to be broadcasted
+                  on other :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`.
+                - A *2D NumPy array* or *PyTorch tensor*, in which case the 
+                  :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`
+                  represents a **variable** indexed by 
+                  :math:`i` if **axis=0** or :math:`j` if **axis=1**.
+                - A *3D+ NumPy array* or *PyTorch tensor* with
+                  a dummy dimension (=1) at position -3 or -2,
+                  in which case the 
+                  :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`
+                  represents a **variable** indexed by 
+                  :math:`i` or :math:`j`, respectively.
+                  Dimensions before the last three will be handled as
+                  **batch dimensions**, that may support
+                  operator broadcasting.
+                - A *tuple of 3 integers* (ind,dim,cat), in which case the 
+                  :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` represents a :doc:`symbolic variable <../../../api/math-operations>`
+                  that should be instantiated at call-time.
+                - An *integer*, in which case the 
+                  :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` represents an **integer constant** handled efficiently at compilation time.     
+                - **None**, for internal use.
+
+            axis (int): should be equal to 0 or 1 if **x** is a 2D tensor, and  **None** otherwise.
     
-        Here are the behaviors of the constructor depending on the inputs x and axis:
-    
-        - if x is a tuple of 3 integers (ind,dim,cat), the KeOps variable will represent a symbolic variable, i.e. it will not be
-          attached to an actual tensor. The corresponding tensor will need to be passed as input to the final reduction call. 
-          ind correponds to the index of the variable (its position in the list of arguments in the call), dim corresponds to the
-          dimension of the variable, and cat to its category ("i"-idexed if cat=0, "j"-indexed if cat=1, parameter if cat=2).
-        - if x is a float, it will be converted to a single element list of floats. 
-        - if x is a list of floats, the KeOps variable will represent a vector parameter (equivalent 3D shape: (1,1,len(x))). 
-          The axis parameter should be None or 2. The dtype property of the variable will be set to None.
-        - if x is a NumPy float (np.float32 or np.float64), it will be converted to a NumPy array of floats with same dtype.
-        - if x is a NumPy 0D or 1D array or PyTorch OD or 1D tensor, the KeOps variable will represent a vector parameter (equivalent 3D shape: (1,1,len(x))).
-          The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64"). The axis parameter should equal 2 or None.
-        - if x is a NumPy 2D array or PyTorch 2D tensor, then axis should be set to 0 or 1, and the KeOps variable will represent 
-          either a "i"-indexed variable (equivalent 3D shape: (x.shape[0],1,x.shape[1])) or 
-          a "j"-indexed variable (equivalent 3D shape: (1,x.shape[0],x.shape[1])).
-          The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
-        - if x is a NumPy 3D array or PyTorch 3D tensor, then axis should be set to None, and the KeOps variable will represent 
-          either a "i"-indexed variable if x.shape[1]=1, or a "j"-indexed variable if x.shape[0]=1 (equivalent 3D shape: x.shape).
-          If x.shape[0] and x.shape[1] are greater than 1, it will result in an error.
-          The dtype property of the variable will be set to the corresponding dtype ("float32" or "float64")
-        - if x is an integer, the KeOps object will represent a constant integer (equivalent 3D shape: (1,1,1))
-        - if x is None, the KeOps variable is initialized as empty, and the axis parameter is ignored.
-          This is supposed to be used only internally.
+        .. warning::
+            A :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` constructed
+            from a NumPy array or a PyTorch tensor retains its **dtype** (float32 vs float64)
+            and **device** properties (is it stored on the GPU?).
+            Since KeOps does **not** support automatic type conversions and data transfers,
+            please make sure **not to mix** :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
+            that come from different frameworks/devices or which are stored
+            with different precisions.
         """   
         self.dtype = None
         self.variables = ()
@@ -377,11 +380,11 @@ class LazyTensor:
         """Symbolically applies **operation** to **self**, with optional arguments if needed.
         
         Keyword args:
-          - dimres (int, None): May be used to specify the dimension of the output 'result'.
+          - dimres (int): May be used to specify the dimension of the output **result**.
           - is_operator (bool, default=False): May be used to specify if **operation** is
             an operator like ``+``, ``-`` or a "genuine" function.
-          - dimcheck (string, None): shall we check the input dimensions?
-            Supported values are "same", "sameor1", or None.
+          - dimcheck (string): shall we check the input dimensions?
+            Supported values are ``"same"``, ``"sameor1"``, or **None**.
         """
         # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
         if not isinstance(self, LazyTensor):  self  = LazyTensor(self)
@@ -430,15 +433,18 @@ class LazyTensor:
     def reduction(self, reduction_op, other=None, opt_arg=None, axis=None, dim=None, call=True, **kwargs):
         """Applies a reduction to a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`.
 
+        Args:
+            - reduction_op (string): 
+
         Keyword Args:
-          - other: 
+          - other: May be used to specify some **weights**.
           - opt_arg: typically, some integer needed by ArgKMin reductions.
-          - axis or dim (nbatchdims + 0 or 1): the axis with respect to which the reduction should be performed.
+          - axis or dim (int): The axis with respect to which the reduction should be performed. Supported values are **nbatchdims** and **nbatchdims + 1**, where **nbatchdims** is the number of "batch" dimensions before the last three (:math:`i` indices, :math:`j` indices, variables' dimensions). 
           - call (True or False): Should we actually perform the reduction on the current variables?
-            If True, the returned object will be a NumPy array or a PyTorch tensor.
-            Otherwise, we simply return a callable :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that can be used
+            If **True**, the returned object will be a NumPy array or a PyTorch tensor.
+            Otherwise, we simply return a callable :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that may be used
             as a :mod:`pykeops.numpy.Genred` or :mod:`pykeops.torch.Genred` function 
-            on arbitrary input data.
+            on arbitrary tensor data.
         """
 
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
@@ -471,37 +477,43 @@ class LazyTensor:
             return res
 
     def solve(self, other, var=None, call=True, **kwargs):
-        r"""Solves a positive definite linear system of the form sum(self)=other or sum(self*var)=other, using a conjugate
-            gradient solver.
+        r"""Solves a positive definite linear system of the form ``sum(self) = other`` or ``sum(self*var) = other`` , using a conjugate gradient solver.
             
-        :param self: a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` object representing either a symmetric positive definite matrix or a positive definite operator. Warning!! There is no check of the symmetry and positive definiteness.
-        :param other: a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` variable which gives the second member of the equation.           
-        :param var: either None or a symbolic :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` variable.
-                - If var is None then kernelsolve will return the solution var such that sum(self*var)=other.
-                - If var is a symbolic variable, it must be one of the symbolic variables contained on formula self, and as a formula self must depend linearly on var. 
-        :param call: either True or False. If True and if no other symbolic variable than var is contained in self, then the output will be a tensor, otherwise it will be a callable :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`
-        :param backend (string): Specifies the map-reduce scheme,
-                as detailed in the documentation of the :func:`Genred` module.
-        :param device_id (int, default=-1): Specifies the GPU that should be used 
-                to perform   the computation; a negative value lets your system 
-                choose the default GPU. This parameter is only useful if your 
-                system has access to several GPUs.
-        :param alpha: (float, default = 1e-10): Non-negative **ridge regularization** parameter
-        :param eps:
-        :params device_id: (int, default=-1): Specifies the GPU that should be used 
-                to perform   the computation; a negative value lets your system 
-                choose the default GPU. This parameter is only useful if your 
-                system has access to several GPUs.
-        :param ranges: (6-uple of IntTensors, None by default):
-                Ranges of integers that specify a 
-                :doc:`block-sparse reduction scheme <../../sparsity>`
-                with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
-                as detailed in the documentation 
-                of the :func:`Genred` module.
+        Args:
+          - self (:mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`): KeOps variable that encodes a symmetric positive definite matrix / linear operator. 
+          - other (:mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`): KeOps variable that encodes the second member of the equation.
 
-                If **None** (default), we simply use a **dense Kernel matrix**
-                as we loop over all indices
-                :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+        Keyword args:
+
+          - var (:mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`):
+            If **var** is **None**, **solve** will return the solution
+            of the ``self * var = other`` equation.
+            Otherwise, if **var** is a KeOps symbolic variable, **solve** will
+            assume that **self** defines an expression that is linear
+            with respect to **var** and solve the equation ``self(var) = other``
+            with respect to **var**.
+          - alpha (float, default=1e-10): Non-negative **ridge regularization** parameter.
+          - call (bool): If **True** and if no other symbolic variable than 
+            **var** is contained in **self**, **solve** will return a tensor 
+            solution of our linear system. Otherwise **solve** will return 
+            a callable :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`.
+          - backend (string): Specifies the map-reduce scheme,
+            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
+          - device_id (int, default=-1): Specifies the GPU that should be used 
+            to perform the computation; a negative value lets your system 
+            choose the default GPU. This parameter is only useful if your 
+            system has access to several GPUs.
+          - ranges (6-uple of IntTensors, None by default):
+            Ranges of integers that specify a 
+            :doc:`block-sparse reduction scheme <../../sparsity>`
+            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
+            If **None** (default), we simply use a **dense Kernel matrix**
+            as we loop over all indices
+            :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+
+        .. warning::
+            Please note that **no check** of symmetry and definiteness will be
+            performed prior to our conjugate gradient descent.
         """   
 
         if not isinstance(other, LazyTensor):
@@ -551,7 +563,7 @@ class LazyTensor:
             return res
 
     def __call__(self, *args, **kwargs):
-        """Executes a Genred or KernelSolve call on input data, as specified by self.formula."""
+        """Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` call on the input data, as specified by **self.formula** ."""
         self.kwargs.update(kwargs)
 
         if self.ranges is not None and "ranges" not in self.kwargs:
@@ -631,7 +643,7 @@ class LazyTensor:
         return btch + (ni, nj, ndim)
 
     def dim(self):
-        """Just as in PyTorch, returns the number of dimensions of a LazyTensor."""
+        """Just as in PyTorch, returns the number of dimensions of a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`."""
         return len(self._shape)
     
 
@@ -1107,40 +1119,32 @@ class LazyTensor:
         
         sum(x, axis, dim, **kwargs) will:
 
-          - if **axis or dim = 0**, return the sum reduction of x over the "i" indexes.
-          - if **axis or dim = 0**, return the sum reduction of x over the "j" indexes.
-          - if **axis or dim = 0**, return and a new :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` object representing the sum of values of x,
+          - if **axis or dim = 0**, return the sum reduction of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the sum reduction of **x** over the "j" indexes.
+          - if **axis or dim = 0**, return a new :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` object representing the sum of the values of the vector **x**,
         
-        :input self: a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` object, or any input that can be passed to the KeOps class constructor,
-        :input axis: an integer, should be 0, 1 or 2,
-        :input dim: an integer, alternative keyword for axis parameter,
-        :param call: either True or False. If True and if no other symbolic variable than var is contained in self,
-                then the output will be a tensor, otherwise it will be a callable LazyTensor
-        :param backend (string): Specifies the map-reduce scheme,
-                as detailed in the documentation of the :func:`Genred` module.
-        :param device_id (int, default=-1): Specifies the GPU that should be used 
-                to perform   the computation; a negative value lets your system 
-                choose the default GPU. This parameter is only useful if your 
-                system has access to several GPUs.
-        :params device_id: (int, default=-1): Specifies the GPU that should be used 
-                to perform   the computation; a negative value lets your system 
-                choose the default GPU. This parameter is only useful if your 
-                system has access to several GPUs.
-        :param ranges: (6-uple of IntTensors, None by default):
-                Ranges of integers that specify a 
-                :doc:`block-sparse reduction scheme <../../sparsity>`
-                with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
-                as detailed in the documentation 
-                of the :func:`Genred` module.
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, sum along the 
+            dimension of the vector variable).
+          - dim (integer): alternative keyword for the axis parameter.
+          - call (bool): If **True** and if **self** does not rely on any symbolic variable,
+            the output of our sum reduction will be a tensor; otherwise it will be a callable LazyTensor 
+          - backend (string): Specifies the map-reduce scheme,
+            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
+          - device_id (int, default=-1): Specifies the GPU that should be used 
+            to perform the computation; a negative value lets your system 
+            choose the default GPU. This parameter is only useful if your 
+            system has access to several GPUs.
+          - ranges (6-uple of IntTensors, None by default):
+            Ranges of integers that specify a 
+            :doc:`block-sparse reduction scheme <../../sparsity>`
+            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
+            If **None** (default), we simply use a **dense Kernel matrix**
+            as we loop over all indices
+            :math:`i\in[0,M)` and :math:`j\in[0,N)`.
 
-                If **None** (default), we simply use a **dense Kernel matrix**
-                as we loop over all indices
-                :math:`i\in[0,M)` and :math:`j\in[0,N)`.
-        :returns: either:
-                        - if axis=-1: a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` object of dimension 1,
-                        - if axis=0 or 1, call=True and self.symbolic_variables is empty, a NumPy 2D array or PyTorch 2D tensor corresponding to the sum reduction
-                        of self over axis,
-                        - otherwise, a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` object representing the reduction operation and which can be called as a function (see method __call__).
         """   
         if dim is not None:
             axis = dim
