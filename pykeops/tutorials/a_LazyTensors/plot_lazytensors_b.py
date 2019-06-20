@@ -15,9 +15,9 @@ Fancy reductions, solving linear systems
 # vanilla NumPy arrays or PyTorch tensors.
 #
 # .. note::
-#   In this tutorial, we stick to the **PyTorch** interface
+#   In this tutorial, we stick to the **PyTorch** interface;
 #   but note that apart from a few lines on backpropagation,
-#   everything here can be seamlessly translated to vanilla NumPy+KeOps code.
+#   everything here can be seamlessly translated to vanilla **NumPy+KeOps** code.
 #
 # LogSumExp, KMin and advanced reductions
 # ---------------------------------------------------
@@ -112,16 +112,74 @@ print( "ArgKMin reduction of V_ij wrt. the 'N' dimension:", V_ij.argKmin(K=K, di
 
 #################################################################
 # Finally, the :mod:`.sumsoftmaxweight(weights)` reduction
-# may be used  !!!
+# may be used to computed weighted SoftMax combinations
+#
+# .. math::
+#   a_i = \frac{\sum_j \exp(s_{i,j})\,v_{i,j} }{\sum_j \exp(s_{i,j})},
+#
+# with scalar coefficients :math:`s_{i,j}` and arbitrary vector weights :math:`v_{i,j}`:
+
+a_i = S_ij.sumsoftmaxweight(V_ij, dim=1)
+print( "SumSoftMaxWeight reduction of S_ij, with weights V_ij, wrt. the 'N' dimension:", 
+       a_i.shape )
 
 
 #################################################################
 # Solving linear systems
 # -------------------------------------
 #
-# When working with
+# Inverting large M-by-M linear systems is a fundamental problem in applied mathematics.
+# To help you solve problems of the form
 #
+# .. math::
+#       & & a^{\star} & =\operatorname*{argmin}_a  \| (\alpha\operatorname{Id}+K_{xx})a -b\|^2_2, \\\\
+#       &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
+#
+# KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` support 
+# a simple :mod:`K_xx.solve(b, alpha=1e-10)` operation that can be used as follows:
+
+x   = torch.randn(M, D, requires_grad=True).type(tensor)  # Random point cloud
+x_i = LazyTensor( x[:,None,:] )  # (M, 1, D) LazyTensor
+x_j = LazyTensor( x[None,:,:] )  # (1, M, D) LazyTensor
+
+K_xx = (- ((x_i - x_j) ** 2).sum(-1)).exp() # Symbolic (M, M) Gaussian kernel matrix
+
+alpha = .1  # "Ridge" regularization parameter
+b_i = torch.randn(M, 4).type(tensor)  # Target signal, supported by the x_i's
+a_i = K_xx.solve(b_i, alpha=alpha)    # Source signal, supported by the x_i's
+
+print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape) )
+
+##################################################################
+# As expected, we can now check that:
+#
+# .. math::
+#   (\alpha \operatorname{Id} + K_{xx}) \,a ~\simeq~ b.
+#
+
+c_i = alpha * a_i + K_xx@a_i  # Reconstructed target signal
+
+print("Mean squared reconstruction error: {:.2e}".format(
+    ((c_i - b_i)**2).mean()
+))
+
+#################################################################
+# Please note that just like (nearly) all the other :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` methods,
+# :meth:`solve()` fully supports the :mod:`torch.autograd` module:
+
+[g_i] = torch.autograd.grad( (a_i ** 2).sum(), [x])
+
+print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
+
 
 #################################################################
 # .. warning::
-#   Blabla kernel
+#   As of today, the :meth:`solve()` operator only implements
+#   a `conjugate gradient descent <https://en.wikipedia.org/wiki/Conjugate_gradient_method>`_ 
+#   under the assumption that **K_xx is a symmetric, positive-definite matrix**.
+#   To solve generic systems, you could either
+#   :doc:`interface KeOps with the routines of the SciPy package <../backends/plot_scipy>`
+#   or implement your own solver, mimicking our
+#   `reference implementation. <https://github.com/getkeops/keops/blob/master/pykeops/common/operations.py>`_
+
+
