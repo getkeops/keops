@@ -431,20 +431,32 @@ class LazyTensor:
     # Prototypes for reduction operations  =====================================
 
     def reduction(self, reduction_op, other=None, opt_arg=None, axis=None, dim=None, call=True, **kwargs):
-        """Applies a reduction to a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`.
-
+        """Applies a reduction to a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`. This method is used internally by the LazyTensor class.
         Args:
-            - reduction_op (string): 
+            - reduction_op (string): the string identifier of the reduction, which will be passed to the KeOps routines.
 
         Keyword Args:
-          - other: May be used to specify some **weights**.
-          - opt_arg: typically, some integer needed by ArgKMin reductions.
+          - other: May be used to specify some **weights** ; depends on the reduction.
+          - opt_arg: typically, some integer needed by ArgKMin reductions ; depends on the reduction.
           - axis or dim (int): The axis with respect to which the reduction should be performed. Supported values are **nbatchdims** and **nbatchdims + 1**, where **nbatchdims** is the number of "batch" dimensions before the last three (:math:`i` indices, :math:`j` indices, variables' dimensions). 
           - call (True or False): Should we actually perform the reduction on the current variables?
             If **True**, the returned object will be a NumPy array or a PyTorch tensor.
             Otherwise, we simply return a callable :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that may be used
             as a :mod:`pykeops.numpy.Genred` or :mod:`pykeops.torch.Genred` function 
             on arbitrary tensor data.
+          - backend (string): Specifies the map-reduce scheme,
+            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
+          - device_id (int, default=-1): Specifies the GPU that should be used 
+            to perform the computation; a negative value lets your system 
+            choose the default GPU. This parameter is only useful if your 
+            system has access to several GPUs.
+          - ranges (6-uple of IntTensors, None by default):
+            Ranges of integers that specify a 
+            :doc:`block-sparse reduction scheme <../../sparsity>`
+            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
+            If **None** (default), we simply use a **dense Kernel matrix**
+            as we loop over all indices
+            :math:`i\in[0,M)` and :math:`j\in[0,N)`.
         """
 
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
@@ -1129,21 +1141,7 @@ class LazyTensor:
             1 (= reduction over :math:`j`) or 2 (i.e. -1, sum along the 
             dimension of the vector variable).
           - dim (integer): alternative keyword for the axis parameter.
-          - call (bool): If **True** and if **self** does not rely on any symbolic variable,
-            the output of our sum reduction will be a tensor; otherwise it will be a callable LazyTensor 
-          - backend (string): Specifies the map-reduce scheme,
-            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
-          - device_id (int, default=-1): Specifies the GPU that should be used 
-            to perform the computation; a negative value lets your system 
-            choose the default GPU. This parameter is only useful if your 
-            system has access to several GPUs.
-          - ranges (6-uple of IntTensors, None by default):
-            Ranges of integers that specify a 
-            :doc:`block-sparse reduction scheme <../../sparsity>`
-            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
-            If **None** (default), we simply use a **dense Kernel matrix**
-            as we loop over all indices
-            :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
 
         """   
         if dim is not None:
@@ -1153,82 +1151,288 @@ class LazyTensor:
         else:
             return self.reduction("Sum", axis=axis, **kwargs)
     
-    def sum_reduction(self,**kwargs):
+    def sum_reduction(self, **kwargs):
+        r"""Sum reduction. 
+        
+        sum_reduction(x, **kwargs) will return the sum reduction of **x**.
+        
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("Sum", **kwargs)
     
-    def logsumexp(self, axis=None, weight=None, **kwargs):
+    def logsumexp(self, weight=None, **kwargs):
+        r"""Log-Sum-Exp reduction. 
+        
+        logsumexp(x, weight, **kwargs) will return the log-sum-exp reduction of **x**.
+        
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - weight (LazyTensor): optional :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` object that specifies scalar or vector-valued weights
+            in the log-sum-exp operation
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         if weight is None:
             return self.reduction("LogSumExp", axis=axis, **kwargs)
         else:
             return self.reduction("LogSumExp", weight, axis=axis, **kwargs)
         
     def logsumexp_reduction(self,**kwargs):
+        r"""Log-Sum-Exp reduction. Redirects to :meth:`logsumexp` method.        
+        """   
         return self.logsumexp(**kwargs)
         
-    def sumsoftmaxweight(self,weight,**kwargs):
+    def sumsoftmaxweight(self, weight, axis=None, dim=None, **kwargs):
+        r"""Sum of weighted Soft-Max reduction. 
+        
+        sumsoftmaxweight(x, weight, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the log-sum-exp reduction of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the log-sum-exp reduction of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - weight (LazyTensor): :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` object that specifies scalar or vector-valued weights.
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("SumSoftMaxWeight", weight, **kwargs)
         
     def sumsoftmaxweight_reduction(self,**kwargs):
+        r"""Sum of weighted Soft-Max reduction. Redirects to :meth:`sumsoftmaxweight` method.          
+        """   
         return self.sumsoftmaxweight(**kwargs)
         
-    def min(self, **kwargs):
+    def min(self, axis=None, dim=None, **kwargs):
+        r"""Min reduction. 
+        
+        min(x, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the minimal values of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the minimal values of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("Min", **kwargs)
     
     def min_reduction(self,**kwargs):
+        r"""Min reduction. Redirects to :meth:`min` method.          
+        """   
         return self.min(**kwargs)
 
     def __min__(self, **kwargs):
+        r"""Min reduction. Redirects to :meth:`min` method.          
+        """   
         return self.min(**kwargs)
 
     def argmin(self, **kwargs):
+        r"""ArgMin reduction. 
+        
+        argmin(x, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the indices of minimal values of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the indices of minimal values of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("ArgMin", **kwargs)
     
     def argmin_reduction(self,weight,**kwargs):
+        r"""ArgMin reduction. Redirects to :meth:`argmin` method.          
+        """   
         return self.argmin(**kwargs)
 
-    def min_argmin(self, **kwargs):
+    def min_argmin(self, axis=None, dim=None, **kwargs):
+        r"""Min-ArgMin reduction. 
+        
+        min_argmin(x, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the minimal values and its indices of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the minimal values and its indices of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("Min_ArgMin", **kwargs)
     
     def min_argmin_reduction(self, **kwargs):
+        r"""Min-ArgMin reduction. Redirects to :meth:`min_argmin` method.          
+        """   
         return self.min_argmin(**kwargs)
     
-    def max(self, **kwargs):
+    def max(self, axis=None, dim=None, **kwargs):
+        r"""Max reduction. 
+        
+        max(x, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the maximal values of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the maximal values of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("Max", **kwargs)
     
     def max_reduction(self,weight,**kwargs):
+        r"""Max reduction. Redirects to :meth:`max` method.          
+        """ 
         return self.max(**kwargs)
 
     def __max__(self, **kwargs):
+        r"""Max reduction. Redirects to :meth:`max` method.          
+        """ 
         return self.max(**kwargs)
 
-    def argmax(self, **kwargs):
+    def argmax(self, axis=None, dim=None, **kwargs):
+        r"""ArgMax reduction. 
+        
+        argmax(x, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the indices of maximal values of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the indices of maximal values of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("ArgMax", **kwargs)
     
     def argmax_reduction(self,weight,**kwargs):
+        r"""ArgMax reduction. Redirects to :meth:`argmax` method.          
+        """   
         return self.argmax(**kwargs)
 
-    def max_argmax(self, **kwargs):
+    def max_argmax(self, axis=None, dim=None, **kwargs):
+        r"""Max-ArgMax reduction. 
+        
+        max_argmax(x, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the maximal values and its indices of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the maximal values and its indices of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("Max_ArgMax", **kwargs)
     
     def max_argmax_reduction(self, **kwargs):
+        r"""Max-ArgMax reduction. Redirects to :meth:`max_argmax` method.          
+        """   
         return self.max_argmax(**kwargs)
     
-    def Kmin(self, K, **kwargs):
+    def Kmin(self, axis=None, dim=None, K, **kwargs):
+        r"""K-Min reduction. 
+        
+        Kmin(x, K, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the K minimal values of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the K minimal values of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - K (integer): number of minimal values required
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("KMin", opt_arg=K, **kwargs)
 
     def Kmin_reduction(self, **kwargs):
+        r"""Kmin reduction. Redirects to :meth:`Kmin` method.          
+        """   
         return self.Kmin(**kwargs)
 
-    def argKmin(self, K, **kwargs):
+    def argKmin(self, axis=None, dim=None, K, **kwargs):
+        r"""argKmin reduction. 
+        
+        argKmin(x, K, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the indices of the K minimal values of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the indices of the K minimal values of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - K (integer): number of minimal values required
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("ArgKMin", opt_arg=K, **kwargs)
 
     def argKmin_reduction(self, **kwargs):
+        r"""argKmin reduction. Redirects to :meth:`argKmin` method.          
+        """   
         return self.argKmin(**kwargs)
 
-    def Kmin_argKmin(self, K, **kwargs):
+    def Kmin_argKmin(self, axis=None, dim=None, K, **kwargs):
+        r"""K-Min-argK-min reduction. 
+        
+        Kmin_argKmin(x, K, axis, dim, **kwargs) will:
+
+          - if **axis or dim = 0**, return the K minimal values and its indices of **x** over the "i" indexes.
+          - if **axis or dim = 0**, return the K minimal values and its indices of **x** over the "j" indexes.
+        
+        Keyword Args:
+          - K (integer): number of minimal values required
+          - axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            or 1 (= reduction over :math:`j`).
+          - dim (integer): alternative keyword for the axis parameter.
+          - **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """   
         return self.reduction("KMin_ArgKMin", opt_arg=K, **kwargs)
 
     def Kmin_argKmin_reduction(self, **kwargs):
+        r"""Kmin_argKmin reduction. Redirects to :meth:`Kmin_argKmin` method.          
+        """   
         return self.Kmin_argKmin(**kwargs)
 
     # LazyTensors as linear operators  =========================================
