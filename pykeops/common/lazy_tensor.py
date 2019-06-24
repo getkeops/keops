@@ -1255,7 +1255,7 @@ class LazyTensor:
         """   
         return self.min(**kwargs)
 
-    def argmin(self, **kwargs):
+    def argmin(self, axis=None, dim=None, **kwargs):
         r"""ArgMin reduction. 
         
         argmin(axis, dim, **kwargs) will:
