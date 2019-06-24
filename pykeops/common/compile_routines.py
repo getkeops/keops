@@ -55,6 +55,8 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                     msg='CMAKE')
 
     run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
+    
+    print('Done.')
 
 
 def compile_specific_conv_routine(dllname, dtype, build_folder=bin_folder):
@@ -67,6 +69,7 @@ def compile_specific_conv_routine(dllname, dtype, build_folder=bin_folder):
                     build_folder,
                     msg='CMAKE')
     run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
+    print('Done.')
 
 
 def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel_sphere, dtype,
@@ -83,3 +86,4 @@ def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel
                     build_folder,
                     msg='CMAKE')
     run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
+    print('Done.')
