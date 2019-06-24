@@ -1,3 +1,11 @@
+"""
+========================================
+Advanced usage: Vi, Vj and Pm decorators
+========================================
+
+This tutorial shows how to use the new KeOps helper/container syntax
+ 
+"""
 
 import time
 import numpy as np
