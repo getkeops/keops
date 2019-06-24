@@ -1,10 +1,10 @@
 """
-KernelSolve reduction
-===========================
+KernelSolve reduction (with LazyTensors)
+========================================
 
 Let's see how to solve discrete deconvolution problems
 using the **conjugate gradient solver** provided by
-:func:`pykeops.numpy.KernelSolve`.
+the :meth:`solve` method of KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`.
 
 """
 
@@ -45,13 +45,13 @@ alpha = 0.01
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N,D))
 start = time.time()
 Kxx = (-Pm(g)*Vi(x).sqdist(Vj(x))).exp()
-c = Kxx.kernelsolve(Vi(b),alpha=alpha)
+c = Kxx.solve(Vi(b),alpha=alpha)
 end = time.time()
 print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
 ###############################################################################
 # .. note::
-#   The kernelsolve method uses a conjugate gradient solver and assumes
+#   The :meth:`solve` method uses a conjugate gradient solver and assumes
 #   that **Kxx** defines a **symmetric**, positive and definite
 #   **linear** reduction with respect to the alias ``"b"``
 #   specified trough the third argument.
