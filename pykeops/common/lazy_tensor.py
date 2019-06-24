@@ -1160,7 +1160,7 @@ class LazyTensor:
         if weight is None:
             return self.reduction("LogSumExp", axis=axis, **kwargs)
         else:
-            return self.reduction("LogSumExpWeight", weight, axis=axis, **kwargs)
+            return self.reduction("LogSumExp", weight, axis=axis, **kwargs)
         
     def logsumexp_reduction(self,**kwargs):
         return self.logsumexp(**kwargs)

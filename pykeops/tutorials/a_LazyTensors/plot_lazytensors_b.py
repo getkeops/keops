@@ -63,13 +63,16 @@ print( "Sum reduction of V_ij wrt. the 'M' dimension:", V_ij.sum(axis=0).shape )
 # Just like PyTorch tensors, 
 # :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
 # also support a **stabilized** `log-sum-exp reduction <https://en.wikipedia.org/wiki/LogSumExp>`_,
-# computed efficiently with a **running maximum** in the CUDA loop: 
+# computed efficiently with a **running maximum** in the CUDA loop. For example, the 
+# following line computes :math:`\log(\sum_ie^{S_{ij}})`
 
 print( "LogSumExp reduction of S_ij wrt. the 'M' dimension:", S_ij.logsumexp(dim=0).shape )
 
-# N.B.: logsumexp reductions are not yet available for vector formulas...
-#       but this will be done soon!
-# print( "LogSumExp reduction of V_ij wrt. the 'N' dimension:", V_ij.logsumexp(dim=1).shape )
+##################################################################
+# This reduction supports a weight parameter, which can be scalar or vector-valued.
+# For example, the following line computes :math:`\log(\sum_je^{S_{ij}}V_{ij})`
+print( "LogSumExp reduction of S_ij, with 'weight' V_ij, wrt. the 'N' dimension:", 
+      S_ij.logsumexp(dim=1,weight=V_ij).shape )
 
 
 ###############################################################
