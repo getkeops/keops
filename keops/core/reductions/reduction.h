@@ -64,4 +64,19 @@ struct Eval {
 	}
 };
 
+// same but reduction is given as instance instead of type
+template < class MODE, class RED, typename... Args >
+static int EvalRed(RED red, int nx, int ny, Args... args) {
+	if(RED::tagI==0)
+       		return MODE::Eval(red,nx,ny,args...);
+	else if(RED::tagI==1)
+       		return MODE::Eval(red,ny,nx,args...);
+       	else return -1;
+}
+
+
+
+
+
+
 }

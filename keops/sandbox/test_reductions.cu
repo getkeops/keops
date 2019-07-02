@@ -4,7 +4,7 @@
 // where : 
 //    - F is a Gaussian kernel F(i,j) = exp(-c*|x_i-y_j|^2)*b_j 
 //    - the x_i are Nx=10000 points in R^3 
-//    - the y_j are Ny=10000 points in R^3
+//    - the y_j are Ny=15000 points in R^3
 //    - c is a scalar parameter
 //    - the b_j are Ny vectors in R^2 
 //    - Red_j represents a reduction operation, computed for each index i over the j indices
@@ -18,7 +18,7 @@
 //        * ArgKMin : returns the indices of K first minimal values of F(i,j) (here K=3), 
 //        * KMinArgKMin : returns values and indices of K first minimal values of F(i,j) (here K=3), 
 //
-// This program runs on CPU ; see the file test_reductions.cu for the equivalent program on GPU.
+// This program runs on CPU and GPU ; see the file test_reductions.cpp for the equivalent program on CPU only.
 //
 // This example can be compiled with the command
 //		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O3 -o build/test_reductions test_reductions.cu
@@ -38,6 +38,8 @@
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"
+#include "core/GpuConv1D.cu"
+#include "core/GpuConv2D.cu"
 #include "core/reductions/sum.h"
 #include "core/reductions/min.h"
 #include "core/reductions/kmin.h"
@@ -86,7 +88,7 @@ template < class RED > void DoTest(std::string red_id, int Nx, int Ny, __TYPE__ 
     std::vector<__TYPE__> rescpu(Nx*RED::DIM);
     rescpu = vres;
     std::cout << "output = ";
-    DispValues(rescpu,5,RED::DIM);
+    DispValues(rescpu.data(),5,RED::DIM);
 
     Eval<RED,GpuConv1D_FromHost>::Run(Nx, Ny, res, oos2, x, y, b);	// first dummy call to Gpu
 
@@ -99,7 +101,7 @@ template < class RED > void DoTest(std::string red_id, int Nx, int Ny, __TYPE__ 
     std::vector<__TYPE__> resgpu1(Nx*RED::DIM);
     resgpu1 = vres;
     std::cout << "output = ";
-    DispValues(resgpu1,5,RED::DIM);
+    DispValues(resgpu1.data(),5,RED::DIM);
 
     begin = clock();
     Eval<RED,GpuConv2D_FromHost>::Run(Nx, Ny, res, oos2, x, y, b);
@@ -110,7 +112,7 @@ template < class RED > void DoTest(std::string red_id, int Nx, int Ny, __TYPE__ 
     std::vector<__TYPE__> resgpu2(Nx*RED::DIM);
     resgpu2 = vres;
     std::cout << "output = ";
-    DispValues(resgpu2,5,RED::DIM);
+    DispValues(resgpu2.data(),5,RED::DIM);
 
 }
 
@@ -130,7 +132,7 @@ int main() {
 
     // now we test ------------------------------------------------------------------------------
 
-    int Nx=5000, Ny=2000;
+    int Nx=10000, Ny=15000;
         
     
     std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();

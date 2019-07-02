@@ -1,16 +1,15 @@
 // test convolution with autodiff
 // compile with
-//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_autodiff test_autodiff.cpp 
+//		g++ -I.. -std=c++11 -O3 -o build/test_autodiff test_autodiff.cpp
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the CPU, then get its gradient and test again the convolution
 
-// Here we build the function F(x,y,u,v,beta,C) = <u,v>^2 * exp(-C*|x-y|^2) * beta
-// where x, y, beta are 3D vectors, and u, v are 4D vectors, C is a scalar parameter
-// and the convolution is gamma_i = sum_j F(x_i,y_j,u_i,v_j,beta_j,C)
-// then we define G(x,y,u,v,beta,C,eta) = gradient of F with respect to x, with new input variable eta (3D)
-// and the new convolution is gamma_i = sum_j G(x_i,y_j,u_i,v_j,beta_j,C,eta_i)
-#include <cstdlib>
+// Here we build the function f(x,y,u,v,beta) = <u,v>^2 * exp(-p*|x-y|^2) * beta
+// where p is a scalar parameter, x, y, beta are 3D vectors, and u, v are 4D vectors
+// and the convolution is res_i = sum_j f(x_i,y_j,u_i,v_j,beta_j)
+// then we define the gradients of this reduction with respect to x and y 
+// (i.e. the gradient of x -> sum_j f(x_i,y_j,...) and y -> sum_j f(x_i,y_j,...)), with new input variable eta (3D).
 
 #include <stdio.h>
 #include <assert.h>
@@ -19,11 +18,16 @@
 #include <algorithm>
 #include <iostream>
 
+#ifndef __TYPE__
+  #define __TYPE__ float
+#endif
+
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
+#include "core/formulas/newsyntax.h"
 
 #include "core/CpuConv.cpp"
 #include "core/reductions/sum.h"
@@ -31,97 +35,90 @@
 using namespace keops;
 
 __TYPE__ floatrand() {
-    return ((__TYPE__)std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
+    return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
 }
 
 template < class V > void fillrandom(V& v) {
     generate(v.begin(), v.end(), floatrand);    // fills vector with random values
 }
 
+
+
 int main() {
+
     // In this part we define the symbolic variables of the function
-    using X = Var<0,3,0>; 	// X is the first variable and represents a 3D vector
-    using Y = Var<1,3,1>; 	// Y is the second variable and represents a 3D vector
-    using U = Var<2,4,0>; 	// U is the third variable and represents a 4D vector
-    using V = Var<3,4,1>; 	// V is the fourth variable and represents a 4D vector
-    using Beta = Var<4,3,1>;	// Beta is the fifth variable and represents a 3D vector
-    using C = Param<5,1>;	// C is the sixth variable and represents a scalar (1D vector)
+    auto p = Pm(0,1);	 // p is the first variable and is a scalar parameter
+    auto x = Vi(1,3); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
+    auto y = Vj(2,3); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
+    auto u = Vi(3,4); 	 // u is the fourth variable and represents a 4D vector, "i"-indexed.
+    auto v = Vj(4,4); 	 // v is the fourth variable and represents a 4D vector, "j"-indexed.
+    auto beta = Vj(5,3); // beta is the sixth variable and represents a 3D vector, "j"-indexed.
 
     // symbolic expression of the function ------------------------------------------------------
-    
-    // here we define F = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = Sum_Reduction<Scal<Norm2<U>,Scal<Square<Scalprod<U,V>>, Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>>>>;
 
-    // gradient with respect to X ---------------------------------------------------------------
-    using Eta = Var<6,F::DIM,0>; // new variable is in seventh position and is input of gradient
+    // here we define f = <u,v>^2 * exp(-p*|x-y|^2) * beta in usual notations
+    auto f = Square(u|v) * Exp(-p*SqNorm2(x-y)) * beta;
     
-    using GX = Grad<F,X,Eta>;
+    // We define the reduction operation on f. Here a sum reduction, performed over the "j" index, and resulting in a "i"-indexed variable
+    auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
 
-    using GY = Grad<F,Y,Eta>;
+    // Now we define gradients of the reduction operation:
+    // First we define a new variable to be the input of gradient
+    auto eta = Vi(6,Sum_f.DIM); 
+    // now we gradient with respect to x ---------------------------------------------------------------
+    auto Grad_x_Sum_f = Grad(Sum_f,x,eta);
+    // and gradient with respect to y  --------------------------------------------------------------
+    auto Grad_y_Sum_f = Grad(Sum_f,y,eta);
+
+
 
     // now we test ------------------------------------------------------------------------------
 
     int Nx=5000, Ny=2000;
 
-    std::vector<__TYPE__> vf(Nx*F::DIM);    fillrandom(vf); __TYPE__ *f = vf.data();
-    std::vector<__TYPE__> vx(Nx*X::DIM);    fillrandom(vx); __TYPE__ *x = vx.data();
-    std::vector<__TYPE__> vy(Ny*Y::DIM);    fillrandom(vy); __TYPE__ *y = vy.data();
-    std::vector<__TYPE__> vu(Nx*U::DIM);    fillrandom(vu); __TYPE__ *u = vu.data();
-    std::vector<__TYPE__> vv(Ny*V::DIM);    fillrandom(vv); __TYPE__ *v = vv.data();
-    std::vector<__TYPE__> vb(Ny*Beta::DIM); fillrandom(vb); __TYPE__ *b = vb.data();
-    
-    std::vector<__TYPE__> rescpu(Nx*F::DIM);
+    // here we define actual data for all variables and feed it it with random values
+    std::vector<__TYPE__> vx(Nx*x.DIM);    fillrandom(vx); __TYPE__ *px = vx.data();
+    std::vector<__TYPE__> vy(Ny*y.DIM);    fillrandom(vy); __TYPE__ *py = vy.data();
+    std::vector<__TYPE__> vu(Nx*u.DIM);    fillrandom(vu); __TYPE__ *pu = vu.data();
+    std::vector<__TYPE__> vv(Ny*v.DIM);    fillrandom(vv); __TYPE__ *pv = vv.data();
+    std::vector<__TYPE__> vb(Ny*beta.DIM); fillrandom(vb); __TYPE__ *pb = vb.data();
 
+    // also a vector for the output
+    std::vector<__TYPE__> vres(Nx*Sum_f.DIM);    fillrandom(vres); __TYPE__ *pres = vres.data();
+
+    // parameter variable
     __TYPE__ params[1];
-    __TYPE__ Sigma = 1;
+    __TYPE__ Sigma = 4.0;
     params[0] = 1.0/(Sigma*Sigma);
-  
+
     clock_t begin, end;
 
-    std::cout << "testing function F" << std::endl;
-
+    std::cout << "testing reduction" << std::endl;
     begin = clock();
-    Eval<F,CpuConv>::Run(Nx, Ny, f, x, y, u, v, b, params);
+    EvalRed<CpuConv>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    rescpu = vf;
+    vres.resize(Nx*Grad_x_Sum_f.DIM);
+    pres = vres.data();
 
-    // display values
-    std::cout << "Ny*vu = ";
-    for(int i=0; i<5; i++)
-        std::cout << Ny*vu[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
-    std::cout << "rescpu = ";
-    for(int i=0; i<5; i++)
-        std::cout << rescpu[i] << " ";
-    std::cout << "..." << std::endl << std::endl;
+    std::vector<__TYPE__> ve(Nx*eta.DIM); fillrandom(ve); __TYPE__ *pe = ve.data();
 
-    std::vector<__TYPE__> ve(Nx*Eta::DIM); fillrandom(ve); __TYPE__ *e = ve.data();
-
-    std::cout << "testing function GX" << std::endl;
-
+    std::cout << "testing gradient wrt x" << std::endl;
     begin = clock();
-    Eval<GX,CpuConv>::Run(Nx, Ny, f, x, y, u, v, b, params, e);
+    EvalRed<CpuConv>(Grad_x_Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb, pe);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    rescpu = vf;
+    // gradient wrt y, which is a "j" variable.
 
-    // gradient wrt Y, which is a "j" variable.
-
-    rescpu.resize(Ny*GY::DIM); 
-    vf.resize(Ny*GY::DIM);
-    f = vf.data();
-
-    std::cout << "testing function GY" << std::endl;
-
+    vres.resize(Ny*Grad_y_Sum_f.DIM);
+    pres = vres.data();
     begin = clock();
-    Eval<GY,CpuConv>::Run(Nx, Ny, f, x, y, u, v, b, params, e);
+    EvalRed<CpuConv>(Grad_y_Sum_f,Ny, Nx, pres, params, px, py, pu, pv, pb, pe);
     end = clock();
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    rescpu = vf;
 
 }
 
