@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -D__TYPE__=float -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_fromdevice test_fromdevice.cu
+//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_fromdevice test_fromdevice.cu
 
 // testing "from device" convolution, i.e. convolution which is performed on the device
 // directly from device data
@@ -12,100 +12,123 @@
 #include <ctime>
 #include <algorithm>
 
+// fix some Gpu properties
+// These values should be fine, but you can check them with GetGpuProps.cu program
+#ifndef MAXIDGPU
+  #define MAXIDGPU 0 // (= number of Gpu devices - 1)
+  #define CUDA_BLOCK_SIZE 192
+  #define MAXTHREADSPERBLOCK0 1024 
+  #define SHAREDMEMPERBLOCK0 49152
+#endif 
+
+#ifndef __TYPE__
+  #define __TYPE__ float
+#endif
+
 #include <thrust/device_ptr.h>
 #include <thrust/fill.h>
+
+#include <thrust/device_vector.h>
+#include <thrust/random.h>
 
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
+#include "core/formulas/newsyntax.h"
 
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
 #include "core/reductions/sum.h"
 
+#define DIMPOINT 3
+#define DIMVECT 2
+
+struct GenRand
+{
+    __device__
+    float operator () (int idx)
+    {
+        thrust::default_random_engine randEng;
+        thrust::uniform_real_distribution<__TYPE__> uniDist(0,1);
+        randEng.discard(idx);
+printf("rand=%f\n",uniDist(randEng));
+        return uniDist(randEng);
+    }
+};
+
+void FillRandom(thrust::device_vector<__TYPE__> v) {
+    thrust::transform(v.begin(),v.end(),v.begin(),GenRand());
+}
+
 using namespace keops;
-
-__TYPE__ floatrand() {
-    return ((__TYPE__) std::rand())/RAND_MAX-.5;    // random value between -.5 and .5
-}
-
-template < class V > void fillrandom(V& v) {
-    generate(v.begin(), v.end(), floatrand);    // fills vector with random values
-}
 
 int main() {
 
     int deviceID = 0;
     cudaSetDevice(deviceID);
 
-    // In this part we define the symbolic variables of the function
-    using X = Var<1,3,0>; 	// X is the second variable and represents a 3D vector
-    using Y = Var<2,3,1>; 	// Y is the third variable and represents a 3D vector
-    using Beta = Var<3,3,1>;	// Beta is the sixth variable and represents a 3D vector
-    using C = Param<0,1>;		// C is the first variable and is a scalar parameter
+    // symbolic expression of the function : a gaussian kernel
+    auto c = Pm(0,1);
+    auto x = Vi(1,DIMPOINT);
+    auto y = Vj(2,DIMPOINT);
+    auto beta = Vj(3,DIMVECT);
+    
+    auto f = Exp(-c*SqNorm2(x-y)) * beta; 
 
-    // symbolic expression of the function ------------------------------------------------------
+    std::cout << std::endl << "Function f : " << std::endl;
+    std::cout << PrintFormula(f);
+    std::cout << std::endl << std::endl;
 
-    // here we define F = exp(-C*|X-Y|^2) * Beta in usual notations
-    using F = Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
-
-    using FUNCONVF = Sum_Reduction<F>;
-
+    auto Sum_f = Sum_Reduction(f,0);
 
     // now we test ------------------------------------------------------------------------------
 
     int Nx=4000, Ny=60000;
 
-    __TYPE__ *f_d;
-    cudaMalloc(&f_d, sizeof(__TYPE__)*(Nx*FUNCONVF::DIM));
-	thrust::device_ptr<__TYPE__> f_d_thrust(f_d);
-    thrust::fill(f_d_thrust, f_d_thrust + Nx*FUNCONVF::DIM, 3.4);
+    thrust::device_vector<__TYPE__> vres_d(Nx*Sum_f.DIM);
+    __TYPE__ *res_d = thrust::raw_pointer_cast(vres_d.data());
     
-    __TYPE__ *param_d;
-    cudaMalloc(&param_d, sizeof(__TYPE__)*C::DIM);
-	thrust::device_ptr<__TYPE__> param_d_thrust(param_d);
-    thrust::fill(param_d_thrust, param_d_thrust + C::DIM, 1.0);
+    thrust::device_vector<__TYPE__> vparam_d(c.DIM);
+    FillRandom(vparam_d);
+    __TYPE__ *param_d = thrust::raw_pointer_cast(vparam_d.data());
     
-    __TYPE__ *x_d;
-    cudaMalloc(&x_d, sizeof(__TYPE__)*(Nx*X::DIM));
-	thrust::device_ptr<__TYPE__> x_d_thrust(x_d);
-    thrust::fill(x_d_thrust, x_d_thrust + Nx*X::DIM, 1.0);
+    thrust::device_vector<__TYPE__> vx_d(Nx*x.DIM);
+    FillRandom(vx_d);
+    __TYPE__ *x_d = thrust::raw_pointer_cast(vx_d.data());
     
-    __TYPE__ *y_d;
-    cudaMalloc(&y_d, sizeof(__TYPE__)*(Ny*Y::DIM));
-	thrust::device_ptr<__TYPE__> y_d_thrust(y_d);
-    thrust::fill(y_d_thrust, y_d_thrust + Ny*Y::DIM, 1.0);
+    thrust::device_vector<__TYPE__> vy_d(Ny*y.DIM);
+    FillRandom(vy_d);
+    __TYPE__ *y_d = thrust::raw_pointer_cast(vy_d.data());
     
-    __TYPE__ *b_d;
-    cudaMalloc(&b_d, sizeof(__TYPE__)*(Ny*Beta::DIM));
-	thrust::device_ptr<__TYPE__> b_d_thrust(b_d);
-    thrust::fill(b_d_thrust, b_d_thrust + Ny*Beta::DIM, 1.0);
+    thrust::device_vector<__TYPE__> vb_d(Ny*beta.DIM);
+    FillRandom(vb_d);
+    __TYPE__ *b_d = thrust::raw_pointer_cast(vb_d.data());
     
     clock_t begin, end;
 
     std::cout << "blank run 1" << std::endl;
     begin = clock();
-    Eval<FUNCONVF,GpuConv2D_FromDevice>::Run(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+    EvalRed<GpuConv2D_FromDevice>(Sum_f,Nx, Ny, res_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for blank run 1 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     std::cout << "blank run 2" << std::endl;
     begin = clock();
-    Eval<FUNCONVF,GpuConv2D_FromDevice>::Run(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+    EvalRed<GpuConv2D_FromDevice>(Sum_f,Nx, Ny, res_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for blank run 2 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     std::cout << "testing function F" << std::endl;
     begin = clock();
     for(int i=0; i<200; i++)
-        Eval<FUNCONVF,GpuConv2D_FromDevice>::Run(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+        EvalRed<GpuConv2D_FromDevice>(Sum_f,Nx, Ny, res_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for 200 GPU computations (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::vector<__TYPE__> resgpu2D(Nx*FUNCONVF::DIM);     fill(resgpu2D.begin(),resgpu2D.end(),2.5);
-    cudaMemcpy(resgpu2D.data(), f_d, Nx*FUNCONVF::DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
+    std::vector<__TYPE__> resgpu2D(Nx*Sum_f.DIM);
+    cudaMemcpy(resgpu2D.data(), res_d, Nx*Sum_f.DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
 
     // display output
     std::cout << std::endl << "resgpu2D =";
@@ -115,12 +138,14 @@ int main() {
 
     begin = clock();
     for(int i=0; i<200; i++)
-        Eval<FUNCONVF,GpuConv1D_FromDevice>::Run(Nx, Ny, f_d, param_d, x_d, y_d, b_d);
+        EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Ny, res_d, param_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for 200 GPU computations (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    std::vector<__TYPE__> resgpu1D(Nx*FUNCONVF::DIM);     fill(resgpu1D.begin(),resgpu1D.end(),3.4);
-    cudaMemcpy(resgpu1D.data(), f_d, Nx*FUNCONVF::DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
+    thrust::copy(vx_d.begin(), vx_d.begin()+10, std::ostream_iterator<__TYPE__>(std::cout, " "));
+
+    std::vector<__TYPE__> resgpu1D(Nx*Sum_f.DIM);
+    cudaMemcpy(resgpu1D.data(), res_d, Nx*Sum_f.DIM*sizeof(__TYPE__), cudaMemcpyDeviceToHost);
 
     // display output
     std::cout << std::endl << "resgpu1D =";
@@ -130,18 +155,9 @@ int main() {
 
     // display mean of errors
     __TYPE__ s = 0;
-    for(int i=0; i<Nx*FUNCONVF::DIM; i++)
+    for(int i=0; i<Nx*Sum_f.DIM; i++)
         s += std::abs(resgpu1D[i]-resgpu2D[i]);
     std::cout << "mean abs error 1D/2D =" << s/Nx << std::endl;
-
-
-    cudaFree(f_d);
-    cudaFree(param_d);
-    cudaFree(x_d);
-    cudaFree(y_d);
-    cudaFree(b_d);
-
-
 
 
 

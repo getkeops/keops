@@ -21,7 +21,7 @@
 // This program runs on CPU and GPU ; see the file test_reductions.cpp for the equivalent program on CPU only.
 //
 // This example can be compiled with the command
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O3 -o build/test_reductions test_reductions.cu
+//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++11 -O3 -o build/test_reductions test_reductions.cu
 // 
 
 #include <stdio.h>
@@ -31,11 +31,25 @@
 #include <algorithm>
 #include <iostream>
 
+// fix some Gpu properties
+// These values should be fine, but you can check them with GetGpuProps.cu program
+#ifndef MAXIDGPU
+  #define MAXIDGPU 0 // (= number of Gpu devices - 1)
+  #define CUDA_BLOCK_SIZE 192
+  #define MAXTHREADSPERBLOCK0 1024 
+  #define SHAREDMEMPERBLOCK0 49152
+#endif 
+
+#ifndef __TYPE__
+  #define __TYPE__ float
+#endif
+
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"
 #include "core/formulas/norms.h"
 #include "core/formulas/factorize.h"
+#include "core/formulas/newsyntax.h"
 
 #include "core/CpuConv.cpp"
 #include "core/GpuConv1D.cu"
@@ -72,15 +86,15 @@ void DispValues(__TYPE__ *x, int N, int dim) {
 #define DIMPOINT 3
 #define DIMVECT 2
 
-template < class RED > void DoTest(std::string red_id, int Nx, int Ny, __TYPE__ *oos2, __TYPE__ *x, __TYPE__ *y, __TYPE__ *b) {
+template < class RED > void DoTest(RED red, std::string red_id, int Nx, int Ny, __TYPE__ *pc, __TYPE__ *px, __TYPE__ *py, __TYPE__ *pb) {
     std::cout << "Testing " << red_id << " reduction" << std::endl;
 
-    std::vector<__TYPE__> vres(Nx*RED::DIM);    fillrandom(vres); __TYPE__ *res = vres.data();
+    std::vector<__TYPE__> vres(Nx*RED::DIM);    fillrandom(vres); __TYPE__ *pres = vres.data();
 
     clock_t begin, end;
 
     begin = clock();
-    Eval<RED,CpuConv>::Run(Nx, Ny, res, oos2, x, y, b);
+    EvalRed<CpuConv>(red, Nx, Ny, pres, pc, px, py, pb);
     end = clock();
 
     std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
@@ -90,10 +104,10 @@ template < class RED > void DoTest(std::string red_id, int Nx, int Ny, __TYPE__ 
     std::cout << "output = ";
     DispValues(rescpu.data(),5,RED::DIM);
 
-    Eval<RED,GpuConv1D_FromHost>::Run(Nx, Ny, res, oos2, x, y, b);	// first dummy call to Gpu
+    EvalRed<GpuConv1D_FromHost>(red, Nx, Ny, pres, pc, px, py, pb);	// first dummy call to Gpu
 
     begin = clock();
-    Eval<RED,GpuConv1D_FromHost>::Run(Nx, Ny, res, oos2, x, y, b);
+    EvalRed<GpuConv1D_FromHost>(red, Nx, Ny, pres, pc, px, py, pb);
     end = clock();
 
     std::cout << "time for GPU computation (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
@@ -104,7 +118,7 @@ template < class RED > void DoTest(std::string red_id, int Nx, int Ny, __TYPE__ 
     DispValues(resgpu1.data(),5,RED::DIM);
 
     begin = clock();
-    Eval<RED,GpuConv2D_FromHost>::Run(Nx, Ny, res, oos2, x, y, b);
+    EvalRed<GpuConv2D_FromHost>(red, Nx, Ny, pres, pc, px, py, pb);
     end = clock();
 
     std::cout << "time for GPU computation (2D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
@@ -119,34 +133,33 @@ template < class RED > void DoTest(std::string red_id, int Nx, int Ny, __TYPE__ 
 int main() {
 
     // symbolic expression of the function : a gaussian kernel
-    using C = _P<0,1>;
-    using X = _X<1,DIMPOINT>;
-    using Y = _Y<2,DIMPOINT>;
-    using B = _Y<3,DIMVECT>;
+    auto c = Pm(0,1);
+    auto x = Vi(1,DIMPOINT);
+    auto y = Vj(2,DIMPOINT);
+    auto b = Vj(3,DIMVECT);
     
-    using F = GaussKernel<C,X,Y,B>;
+    auto f = Exp(-c*SqNorm2(x-y)) * b; // or equivalently we could use the alias : auto f = GaussKernel(c,x,y,b);
 
-    std::cout << std::endl << "Function F : " << std::endl;
-    std::cout << PrintFormula<F>();
+    std::cout << std::endl << "Function f : " << std::endl;
+    std::cout << PrintFormula(f);
     std::cout << std::endl << std::endl;
 
     // now we test ------------------------------------------------------------------------------
 
     int Nx=10000, Ny=15000;
         
-    
-    std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *x = vx.data();
-    std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *y = vy.data();
-    std::vector<__TYPE__> vb(Ny*DIMVECT); fillrandom(vb); __TYPE__ *b = vb.data();
+    // we create random vectors for each variable and get their pointers.
+    std::vector<__TYPE__> vx(Nx*DIMPOINT);    fillrandom(vx); __TYPE__ *px = vx.data();
+    std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *py = vy.data();
+    std::vector<__TYPE__> vb(Ny*DIMVECT);     fillrandom(vb); __TYPE__ *pb = vb.data();
+    __TYPE__ pc[1] = {.5};
 
-    __TYPE__ oos2[1] = {.5};
-
-    DoTest < Sum_Reduction<F> >("Sum",Nx, Ny, oos2, x, y, b);
-    DoTest < Min_Reduction<F> >("Min",Nx, Ny, oos2, x, y, b);
-    DoTest < ArgMin_Reduction<F> >("ArgMin",Nx, Ny, oos2, x, y, b);
-    DoTest < Min_ArgMin_Reduction<F> >("Min_ArgMin",Nx, Ny, oos2, x, y, b);
-    DoTest < ArgKMin_Reduction<F,3> >("ArgKMin",Nx, Ny, oos2, x, y, b);
-    DoTest < KMin_ArgKMin_Reduction<F,3> >("KMin_ArgKMin",Nx, Ny, oos2, x, y, b);
+    DoTest(SumReduction(f,0), "Sum", Nx, Ny, pc, px, py, pb);
+    DoTest(Min_Reduction(f,0), "Min", Nx, Ny, pc, px, py, pb);
+    DoTest(ArgMin_Reduction(f,0), "ArgMin", Nx, Ny, pc, px, py, pb);
+    DoTest(Min_ArgMin_Reduction(f,0), "Min_ArgMin", Nx, Ny, pc, px, py, pb);
+    DoTest(ArgKMin_Reduction(f,3,0), "ArgKMin", Nx, Ny, pc, px, py, pb);
+    DoTest(KMin_ArgKMin_Reduction(f,3,0), "KMin_ArgKMin", Nx, Ny, pc, px, py, pb);
 }
 
 

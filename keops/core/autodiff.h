@@ -568,6 +568,12 @@ std::string PrintFormula() {
     return str.str();
 }
 
+// other version, allowing to write PrintFormula(f) where f is instance of F
+template < class F >
+std::string PrintFormula(F f) {
+    return PrintFormula<F>();
+}
+
 // Print reduction to string
 
 template < class F >
