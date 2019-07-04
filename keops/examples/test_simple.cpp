@@ -1,36 +1,17 @@
-// test convolution with autodiff
+// test convolution 
 // compile with
-//		g++ -I.. -std=c++11 -O3 -o build/test_autodiff test_autodiff.cpp
+//		g++ -I.. -std=c++11 -O3 -o build/test_simple test_simple.cpp
 
 // we define an arbitrary function using available blocks,
-// then test its convolution on the CPU, then get its gradient and test again the convolution
+// then test its convolution on the CPU
 
 // Here we build the function f(x,y,u,v,beta) = <u,v>^2 * exp(-p*|x-y|^2) * beta
 // where p is a scalar parameter, x, y, beta are 3D vectors, and u, v are 4D vectors
 // and the convolution is res_i = sum_j f(x_i,y_j,u_i,v_j,beta_j)
-// then we define the gradients of this reduction with respect to x and y 
-// (i.e. the gradient of x -> sum_j f(x_i,y_j,...) and y -> sum_j f(x_i,y_j,...)), with new input variable eta (3D).
 
-#include <stdio.h>
-#include <assert.h>
-#include <vector>
-#include <ctime>
-#include <algorithm>
 #include <iostream>
-
-#ifndef __TYPE__
-  #define __TYPE__ float
-#endif
-
-#include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms.h"
-#include "core/formulas/factorize.h"
-#include "core/formulas/newsyntax.h"
-
-#include "core/CpuConv.cpp"
-#include "core/reductions/sum.h"
+#include <algorithm>
+#include <keops.h>
 
 using namespace keops;
 
@@ -42,7 +23,21 @@ template < class V > void fillrandom(V& v) {
     generate(v.begin(), v.end(), floatrand);    // fills vector with random values
 }
 
-
+// a function to display output of reduction
+void DispValues(__TYPE__ *x, int N, int dim) {
+  std::cout << std::endl;
+  int k = 0;
+  for(int i=0; i<N; i++) {
+    for(int d=0; d<dim; d++) {
+      std::cout << x[k] << " ";
+      k++;
+    }
+    std::cout << std::endl;
+  }
+  for(int d=0; d<dim; d++)
+    std::cout << "... ";
+  std::cout << std::endl << std::endl;
+}
 
 int main() {
 
@@ -61,15 +56,6 @@ int main() {
     
     // We define the reduction operation on f. Here a sum reduction, performed over the "j" index, and resulting in a "i"-indexed variable
     auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
-
-    // Now we define gradients of the reduction operation:
-    // First we define a new variable to be the input of gradient
-    auto eta = Vi(6,Sum_f.DIM); 
-    // now we gradient with respect to x ---------------------------------------------------------------
-    auto Grad_x_Sum_f = Grad(Sum_f,x,eta);
-    // and gradient with respect to y  --------------------------------------------------------------
-    auto Grad_y_Sum_f = Grad(Sum_f,y,eta);
-
 
 
     // now we test ------------------------------------------------------------------------------
@@ -91,34 +77,11 @@ int main() {
     __TYPE__ Sigma = 4.0;
     params[0] = 1.0/(Sigma*Sigma);
 
-    clock_t begin, end;
-
-    std::cout << "testing reduction" << std::endl;
-    begin = clock();
+    std::cout << "testing Sum reduction" << std::endl;
     EvalRed<CpuConv>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
-    end = clock();
-    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
-    vres.resize(Nx*Grad_x_Sum_f.DIM);
-    pres = vres.data();
-
-    std::vector<__TYPE__> ve(Nx*eta.DIM); fillrandom(ve); __TYPE__ *pe = ve.data();
-
-    std::cout << "testing gradient wrt x" << std::endl;
-    begin = clock();
-    EvalRed<CpuConv>(Grad_x_Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb, pe);
-    end = clock();
-    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
-    // gradient wrt y, which is a "j" variable.
-
-    vres.resize(Ny*Grad_y_Sum_f.DIM);
-    pres = vres.data();
-    begin = clock();
-    EvalRed<CpuConv>(Grad_y_Sum_f,Ny, Nx, pres, params, px, py, pu, pv, pb, pe);
-    end = clock();
-    std::cout << "time for CPU computation : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
+    std::cout << "output:" << std::endl;
+    DispValues(pres,5,Sum_f.DIM);
 
 }
 

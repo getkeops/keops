@@ -24,13 +24,7 @@
 //		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++11 -O3 -o build/test_reductions test_reductions.cu
 // 
 
-#include <stdio.h>
-#include <assert.h>
-#include <vector>
-#include <ctime>
 #include <algorithm>
-#include <iostream>
-
 #include <keops.h>
 
 using namespace keops;
@@ -133,8 +127,16 @@ int main() {
     DoTest(Min_Reduction(f,0), "Min", Nx, Ny, pc, px, py, pb);
     DoTest(ArgMin_Reduction(f,0), "ArgMin", Nx, Ny, pc, px, py, pb);
     DoTest(Min_ArgMin_Reduction(f,0), "Min_ArgMin", Nx, Ny, pc, px, py, pb);
+    DoTest(Max_Reduction(f,0), "Max", Nx, Ny, pc, px, py, pb);
+    DoTest(ArgMax_Reduction(f,0), "ArgMax", Nx, Ny, pc, px, py, pb);
+    DoTest(Max_ArgMax_Reduction(f,0), "Max_ArgMax", Nx, Ny, pc, px, py, pb);
+    DoTest(KMin_Reduction(f,3,0), "KMin", Nx, Ny, pc, px, py, pb);
     DoTest(ArgKMin_Reduction(f,3,0), "ArgKMin", Nx, Ny, pc, px, py, pb);
     DoTest(KMin_ArgKMin_Reduction(f,3,0), "KMin_ArgKMin", Nx, Ny, pc, px, py, pb);
+    // last test with Max_SumShiftExp reduction, which requires formula to be of dimension 1, 
+    // so we compute it on the first dimension of f only
+    auto f0 = Elem(f,0);
+    DoTest(Max_SumShiftExp_Reduction(f0,0), "Max_SumShiftExp", Nx, Ny, pc, px, py, pb);
 }
 
 

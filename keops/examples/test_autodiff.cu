@@ -11,37 +11,13 @@
 // then we define the gradients of this reduction with respect to x and y 
 // (i.e. the gradient of x -> sum_j f(x_i,y_j,...) and y -> sum_j f(x_i,y_j,...)), with new input variable eta (3D).
 
-#include <stdio.h>
-#include <assert.h>
-#include <cuda.h>
-#include <vector>
-#include <ctime>
 #include <algorithm>
 
-// fix some Gpu properties
-// These values should be fine, but you can check them with GetGpuProps.cu program
-#ifndef MAXIDGPU
-  #define MAXIDGPU 0 // (= number of Gpu devices - 1)
-  #define CUDA_BLOCK_SIZE 192
-  #define MAXTHREADSPERBLOCK0 1024 
-  #define SHAREDMEMPERBLOCK0 49152
-#endif 
+// __TYPE__ is floating point type used in all code; may be float or double
+// if not defined here, it will be set to float in keops.h below
+#define __TYPE__ double
 
-#ifndef __TYPE__
-  #define __TYPE__ float
-#endif
-
-#include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms.h"
-#include "core/formulas/factorize.h"
-#include "core/formulas/newsyntax.h"
-
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
-#include "core/CpuConv.cpp"
-#include "core/reductions/sum.h"
+#include <keops.h>
 
 using namespace keops;
 
