@@ -3,12 +3,26 @@
 
 #ifdef __CUDACC__
 	// fix some Gpu properties
-	// These values should be fine, but you can check them with GetGpuProps.cu program
+    // CUDA_BLOCK_SIZE gives an upper bound on size of the size of Cuda blocks
+    // The actual block size may be lower due to memory limitations, depending on the formula used
+	#ifndef CUDA_BLOCK_SIZE
+	    #define CUDA_BLOCK_SIZE 192 
+	#endif
+    // Here we define the maximum number of threads per block and the shared memory per block
+    // These values can depend on the Gpu, although in fact values 1024 and 49152 respectively
+    // are the good values for almost all cards. 
+	// So these values should be fine, but you can check them with GetGpuProps.cu program
+    // Here we assume that: either the user has defined MAXIDGPU (=number of Gpu devices minus one)
+	// and corresponding specific values MAXTHREADSPERBLOCK0, SHAREDMEMPERBLOCK0, MAXTHREADSPERBLOCK1, SHAREDMEMPERBLOCK1, ...
+    // for each device, or MAXIDGPU is not defined, and we will use global MAXTHREADSPERBLOCK and SHAREDMEMPERBLOCK
 	#ifndef MAXIDGPU
-	  #define MAXIDGPU 0 // (= number of Gpu devices - 1)
-	  #define CUDA_BLOCK_SIZE 192
-	  #define MAXTHREADSPERBLOCK0 1024 
-	  #define SHAREDMEMPERBLOCK0 49152
+        // we give default values
+		#ifndef MAXTHREADSPERBLOCK
+		    #define MAXTHREADSPERBLOCK 1024 
+		#endif
+		#ifndef SHAREDMEMPERBLOCK
+		    #define SHAREDMEMPERBLOCK 49152 
+		#endif
 	#endif 
 #endif
 
@@ -31,3 +45,6 @@
 #include "core/reductions/sum.h"
 #include "core/reductions/min.h"
 #include "core/reductions/kmin.h"
+#include "core/reductions/max_sumshiftexp.h"
+#include "core/reductions/max.h"
+#include "core/reductions/zero.h"

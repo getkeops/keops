@@ -663,39 +663,47 @@ int maxThreadsPerBlock, sharedMemPerBlock;
 // I have not managed to use a "recursive macro" hack, it was not compiling on all systems.
 // This assumes the number of Gpus is <= 10 ; feel free to add more lines if needed !
 void SetGpuProps(int device) {
-    #if defined(__CUDACC__) && MAXIDGPU >= 0 
-        SET_GPU_PROPS_MACRO(0)
+	#if defined(__CUDACC__)
+	    #if defined(MAXTHREADSPERBLOCK) && defined(SHAREDMEMPERBLOCK)
+	        // global values are defined 
+			maxThreadsPerBlock = MAXTHREADSPERBLOCK;
+			sharedMemPerBlock = SHAREDMEMPERBLOCK;
+			return;
+        #else			
+		    #if MAXIDGPU >= 0 
+		        SET_GPU_PROPS_MACRO(0)
+		    #endif
+		    #if MAXIDGPU >= 1 
+		        SET_GPU_PROPS_MACRO(1)
+		    #endif
+		    #if MAXIDGPU >= 2 
+		        SET_GPU_PROPS_MACRO(2)
+		    #endif
+		    #if MAXIDGPU >= 3 
+		        SET_GPU_PROPS_MACRO(3)
+		    #endif
+		    #if MAXIDGPU >= 4 
+		        SET_GPU_PROPS_MACRO(4)
+		    #endif
+		    #if MAXIDGPU >= 5 
+		        SET_GPU_PROPS_MACRO(5)
+		    #endif
+		    #if MAXIDGPU >= 6 
+		        SET_GPU_PROPS_MACRO(6)
+		    #endif
+		    #if MAXIDGPU >= 7 
+		        SET_GPU_PROPS_MACRO(7)
+		    #endif
+		    #if MAXIDGPU >= 8 
+		        SET_GPU_PROPS_MACRO(8)
+		    #endif
+		    #if MAXIDGPU >= 9 
+		        SET_GPU_PROPS_MACRO(9)
+		    #endif
+		    fprintf( stderr, "invalid Gpu device number. If the number of available Gpus is >= 10, add required lines at the end of function SetGpuProps and recompile.\n");
+		    exit( -1 );
+		#endif
     #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 1 
-        SET_GPU_PROPS_MACRO(1)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 2 
-        SET_GPU_PROPS_MACRO(2)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 3 
-        SET_GPU_PROPS_MACRO(3)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 4 
-        SET_GPU_PROPS_MACRO(4)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 5 
-        SET_GPU_PROPS_MACRO(5)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 6 
-        SET_GPU_PROPS_MACRO(6)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 7 
-        SET_GPU_PROPS_MACRO(7)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 8 
-        SET_GPU_PROPS_MACRO(8)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 9 
-        SET_GPU_PROPS_MACRO(9)
-    #endif
-    fprintf( stderr, "invalid Gpu device number. If the number of available Gpus is >= 10, add required lines at the end of function SetGpuProps and recompile.\n");
-    exit( -1 );
-
 }
 
 }
