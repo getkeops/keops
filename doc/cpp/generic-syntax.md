@@ -12,18 +12,21 @@ auto f = Square(p-y)*Exp(x+y);
 ```
 
 Here, the `f` variable represents a symbolic computation; as a C++ object, it is completely useless.
-However, we can retrieve its *type* -- which contains all the relevant information -- using the `decltype` keyword :
 
+Next we define the type of reduction that we want to perform, as follows:
 ```cpp
-using F = decltype(f);
+auto Sum_f = Sum_Reduction(f,0);
 ```
+
+This means that we want to perform a sum reduction over the "j" indices, resulting in a "i"-indexed output. 
+We would use Sum_Reduction(f,1) for a reduction over the "i" indices.
 
 The convolution operation is then performed using one of these three calls:
 
 ```cpp
-CpuConv(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
-GpuConv1D(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
-GpuConv2D(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
+EvalRed<CpuConv>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
+EvalRed<GpuConv1D_FromHost>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
+EvalRed<GpuConv2D_FromHost>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
 ```
 
 where `pc`, `pp`, `pa`, `px`, and `py` are pointers to their respective arrays in (Cpu) memory, `pc` denoting the output. These three functions correspond to computations performed repectively on the Cpu, on the Gpu with a "1D" tiling algorithm, and with a "2D" tiling algorithm.
@@ -31,6 +34,6 @@ where `pc`, `pp`, `pa`, `px`, and `py` are pointers to their respective arrays i
 If data arrays are already located in the GPU memory, these functions should be favored:
 
 ```cpp
-GpuConv1D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
-GpuConv2D_FromDevice(Generic<F>::sEval(), Nx, Ny, pc, pp, pa, px, py);
+EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
+EvalRed<GpuConv2D_FromDevice>(Sum_f,Nx, Ny, pres, params, px, py, pu, pv, pb);
 ```
