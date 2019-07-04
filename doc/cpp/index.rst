@@ -14,4 +14,4 @@ This section documents the use of the KeOps library in C++ codes. We provide som
    :maxdepth: 2
    :caption: Keops++
 
-   generic-syntax
+   generic-syntax.rst
