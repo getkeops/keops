@@ -30,7 +30,8 @@ def grid_cluster( x, size ) :
         else : raise NotImplementedError()
         x_  = ( x / size ).floor().int()
         x_ *= weights
-        lab = x_.sum(1).abs() # labels
+        lab = x_.sum(1) # labels
+        lab = lab - lab.min()
 
         # Replace arbitrary labels with unique identifiers in a compact arange
         u_lab = torch.unique(lab).sort()[0]
