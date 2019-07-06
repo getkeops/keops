@@ -18,6 +18,13 @@ To-do list
   Users should be able to **extract sub-matrices** as :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` or genuine NumPy arrays / PyTorch tensors
   to perform e.g. Nyström approximation without having to
   implement twice the same kernel formula.
+* Add support for the **block construction** of 
+  :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`,
+  using a ``BlockLazyTensor([[A, B], [C, D]])`` syntax.
+* Write new :meth:`.tensor()` and :meth:`.array()` methods
+  for :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`,
+  allowing users to cast their symbolic operators as
+  explicit matrices whenever possible.
 * Add support for the `Fast and Furious Method <https://gargantua.polytechnique.fr/siatel-web/linkto/mICYYYT(myY6>`_ and other
   `Multipole <https://en.wikipedia.org/wiki/Fast_multipole_method>`_ 
   or `Nyström-like <https://en.wikipedia.org/wiki/Low-rank_matrix_approximations>`_ **approximations**.
