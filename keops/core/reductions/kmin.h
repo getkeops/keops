@@ -16,7 +16,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 
     static const int DIM = 2*K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
 
-	static const int DIMRED = DIM;	// dimension of temporary variable for reduction
+    static const int DIMRED = DIM;	// dimension of temporary variable for reduction
 		
     static void PrintId(std::stringstream& str) {
         str << "KMin_ArgKMin_Reduction(";			// prints "("
