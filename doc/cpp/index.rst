@@ -8,10 +8,10 @@
 C++ API for Keops
 =================
 
-This section documents the use of the KeOps library in C++ codes. We provide many examples in the `./keops/sandbox/ <https://github.com/getkeops/keops/tree/master/keops/sandbox>`_ directory.
+This section documents the use of the KeOps library in C++ codes. We provide some examples in the `./keops/examples/ <https://github.com/getkeops/keops/tree/master/keops/examples>`_ directory.
 
 .. toctree::
    :maxdepth: 2
    :caption: Keops++
 
-   generic-syntax
+   generic-syntax.rst

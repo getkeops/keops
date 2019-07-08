@@ -71,6 +71,7 @@ set_target_properties(${shared_obj_name} PROPERTIES
 
 add_subdirectory(specific)
 add_subdirectory(sandbox)
+add_subdirectory(examples)
 
 if (NOT(${CMAKE_VERSION} VERSION_LESS 3.6.0)) # workaround for https://github.com/google/benchmark/issues/603
 
