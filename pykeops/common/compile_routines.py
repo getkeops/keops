@@ -43,14 +43,15 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
         'Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
         end='', flush=True)
     
-    run_and_display(['cmake', script_folder,
+    command_line = ['cmake', script_folder,
                      '-DCMAKE_BUILD_TYPE=' + build_type,
                      '-DFORMULA_OBJ=' + formula,
                      '-DVAR_ALIASES=' + alias_string,
                      '-Dshared_obj_name=' + dllname,
                      '-D__TYPE__=' + c_type[dtype],
                      '-DPYTHON_LANG=' + lang,
-                     ] + optional_flags,
+                     ] + optional_flags
+    run_and_display(command_line + ['-DcommandLine=' + ' '.join(command_line)],
                     build_folder,
                     msg='CMAKE')
 

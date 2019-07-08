@@ -159,6 +159,7 @@ setup(
                      'matplotlib',
                      'imageio',
                      'torch',
+                     'gpytorch',
                      ],
             },
 )
