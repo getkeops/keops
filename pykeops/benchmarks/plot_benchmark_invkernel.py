@@ -117,7 +117,7 @@ def Kinv_keops_numpy(x, b, gamma, alpha):
 #
 def Kinv_pytorch(x, b, gamma, alpha):
     K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp( - squared_distances(x, x) * gamma) 
-    res = torch.gesv(b, K_xx)[0]
+    res = torch.solve(b, K_xx)[0]
     return res
 
 def Kinv_numpy(x, b, gamma, alpha):
