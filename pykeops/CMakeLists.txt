@@ -157,10 +157,10 @@ add_custom_command(
 )
 
 # Write a log file to decypher keops dllname
-if(shared_obj_name)
+if(commandLine)
    string(TIMESTAMP TODAY "%Y/%m/%d")
    file(APPEND ${PROJECT_BINARY_DIR}/../keops_hash.log
-     "# ${shared_obj_name} compiled on ${TODAY} with ${CMAKE_CXX_COMPILER} (${CMAKE_CXX_COMPILER_VERSION}):\n\n ${commandLine}\n\n# ----------------------------------------------------------------------\n")
+     "# ${shared_obj_name} compiled on ${TODAY} with ${CMAKE_CXX_COMPILER} (${CMAKE_CXX_COMPILER_VERSION}):\n\n ${commandLine}\n cmake --build . --target ${shared_obj_name} --  VERBOSE=1\n\n# ----------------------------------------------------------------------\n")
 endif()
 
 
