@@ -287,7 +287,9 @@ class LazyTensor:
         self.variables = newvars
 
     def promote(self, other, props):
-        """Creates a new :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` whose **None** properties are set to those of **self** or **other**."""
+        r"""
+        Creates a new :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` whose **None** properties are set to those of **self** or **other**.
+        """
         res = LazyTensor()
 
         for prop in props:
@@ -301,7 +303,9 @@ class LazyTensor:
         return res
         
     def init(self):
-        """Creates a copy of a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`, without **formula** attribute."""
+        r"""
+        Creates a copy of a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`, without **formula** attribute.
+        """
         res = LazyTensor()
         res.dtype = self.dtype
         res.tools = self.tools
@@ -318,14 +322,17 @@ class LazyTensor:
         return res
                 
     def join(self,other):
-        """Merges the variables and attributes of two :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`, with a compatibility check. This method concatenates tuples of variables, without paying attention to repetitions.
+        r"""
+        Merges the variables and attributes of two :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`, with a compatibility check. This method concatenates tuples of variables, without paying attention to repetitions.
         """
         res = LazyTensor.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj","ranges", "backend") )
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
         
 
         def check_broadcasting(dims_1, dims_2):
-            """Checks that the shapes **dims_1** and **dims_2** are compatible with each other."""
+            r"""
+            Checks that the shapes **dims_1** and **dims_2** are compatible with each other.
+            """
             if dims_1 is None:
                 return dims_2
             if dims_2 is None:
@@ -351,7 +358,8 @@ class LazyTensor:
     # Prototypes for unary and binary operations  ==============================
                     
     def unary(self, operation, dimres=None, opt_arg=None, opt_arg2=None):
-        """Symbolically applies **operation** to **self**, with optional arguments if needed.
+        r"""
+        Symbolically applies **operation** to **self**, with optional arguments if needed.
         
         The optional argument **dimres** may be used to specify the dimension of the output **result**.
         """
@@ -377,7 +385,7 @@ class LazyTensor:
         return res        
                         
     def binary(self, other, operation, is_operator=False, dimres=None, dimcheck="sameor1", opt_arg=None, opt_pos="last"):
-        """Symbolically applies **operation** to **self**, with optional arguments if needed.
+        r"""Symbolically applies **operation** to **self**, with optional arguments if needed.
         
         Keyword args:
           - dimres (int): May be used to specify the dimension of the output **result**.
@@ -431,7 +439,8 @@ class LazyTensor:
     # Prototypes for reduction operations  =====================================
 
     def reduction(self, reduction_op, other=None, opt_arg=None, axis=None, dim=None, call=True, **kwargs):
-        """Applies a reduction to a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`. This method is used internally by the LazyTensor class.
+        r"""
+        Applies a reduction to a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`. This method is used internally by the LazyTensor class.
         Args:
             reduction_op (string): the string identifier of the reduction, which will be passed to the KeOps routines.
 
@@ -492,7 +501,8 @@ class LazyTensor:
             return res
 
     def solve(self, other, var=None, call=True, **kwargs):
-        r"""Solves a positive definite linear system of the form ``sum(self) = other`` or ``sum(self*var) = other`` , using a conjugate gradient solver.
+        r"""
+        Solves a positive definite linear system of the form ``sum(self) = other`` or ``sum(self*var) = other`` , using a conjugate gradient solver.
             
         Args:
           self (:mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`): KeOps variable that encodes a symmetric positive definite matrix / linear operator. 
@@ -578,7 +588,9 @@ class LazyTensor:
             return res
 
     def __call__(self, *args, **kwargs):
-        """Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` call on the input data, as specified by **self.formula** ."""
+        r"""
+        Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` call on the input data, as specified by **self.formula** .
+        """
         self.kwargs.update(kwargs)
 
         if self.ranges is not None and "ranges" not in self.kwargs:
@@ -617,7 +629,9 @@ class LazyTensor:
         return self.callfun(*args, *self.variables, **self.kwargs)
     
     def __str__(self):
-        """Returns a verbose string identifier."""
+        r"""
+        Returns a verbose string identifier.
+        """
         tmp = self.init()  # ~ self.copy()
         tmp.formula = self.formula
         tmp.formula2 = None if not hasattr(self, 'formula2') else self.formula2
@@ -658,7 +672,9 @@ class LazyTensor:
         return btch + (ni, nj, ndim)
 
     def dim(self):
-        """Just as in PyTorch, returns the number of dimensions of a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`."""
+        r"""
+        Just as in PyTorch, returns the number of dimensions of a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`.
+        """
         return len(self._shape)
     
 
@@ -677,7 +693,8 @@ class LazyTensor:
     
     # Arithmetics --------------------------------------------------------------
     def __add__(self,other):
-        r"""Broadcasted addition operator - a binary operation. 
+        r"""
+        Broadcasted addition operator - a binary operation. 
         
         ``x + y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, 
         symbolically, the addition of ``x`` and ``y``.
@@ -685,7 +702,8 @@ class LazyTensor:
         return self.binary(other, "+", is_operator=True)
 
     def __radd__(self,other):
-        r"""Broadcasted addition operator - a binary operation. 
+        r"""
+        Broadcasted addition operator - a binary operation. 
         
         ``x + y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, 
         symbolically, the addition of ``x`` and ``y``.
@@ -696,7 +714,8 @@ class LazyTensor:
             return LazyTensor.binary(other, self, "+", is_operator=True)
        
     def __sub__(self,other):
-        r"""Broadcasted subtraction operator - a binary operation. 
+        r"""
+        Broadcasted subtraction operator - a binary operation. 
         
         ``x - y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, 
         symbolically, the subtraction of ``x`` and ``y``.
@@ -704,7 +723,8 @@ class LazyTensor:
         return self.binary(other, "-", is_operator=True)
         
     def __rsub__(self,other):
-        r"""Broadcasted subtraction operator - a binary operation. 
+        r"""
+        Broadcasted subtraction operator - a binary operation. 
         
         ``x - y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, 
         symbolically, the subtraction of ``x`` and ``y``.
@@ -715,7 +735,8 @@ class LazyTensor:
             return LazyTensor.binary(other, self, "-", is_operator=True)
         
     def __mul__(self,other):
-        r"""Broadcasted elementwise product - a binary operation. 
+        r"""
+        Broadcasted elementwise product - a binary operation. 
         
         ``x * y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the elementwise product of ``x`` and ``y``.
@@ -723,7 +744,8 @@ class LazyTensor:
         return self.binary(other, "*", is_operator=True)
         
     def __rmul__(self,other):
-        r"""Broadcasted elementwise product - a binary operation. 
+        r"""
+        Broadcasted elementwise product - a binary operation. 
         
         ``x * y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the elementwise product of ``x`` and ``y``.
@@ -733,7 +755,8 @@ class LazyTensor:
         else: return LazyTensor.binary(other, self, "*", is_operator=True)
        
     def __truediv__(self,other):
-        r"""Broadcasted elementwise division - a binary operation. 
+        r"""
+        Broadcasted elementwise division - a binary operation. 
         
         ``x / y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the elementwise division of ``x`` by ``y``.
@@ -741,7 +764,8 @@ class LazyTensor:
         return self.binary(other, "/", is_operator=True)
         
     def __rtruediv__(self,other):
-        r"""Broadcasted elementwise division - a binary operation. 
+        r"""
+        Broadcasted elementwise division - a binary operation. 
         
         ``x / y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the elementwise division of ``x`` by ``y``.
@@ -751,7 +775,8 @@ class LazyTensor:
         else: return LazyTensor.binary(other, self, "/", is_operator=True)
        
     def __or__(self, other):
-        r"""Euclidean scalar product - a binary operation.
+        r"""
+        Euclidean scalar product - a binary operation.
 
         ``(x|y)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the scalar product of ``x`` and ``y`` which are assumed to have the same shape.    
@@ -759,7 +784,8 @@ class LazyTensor:
         return self.binary(other, "|", is_operator=True, dimres=1, dimcheck="same")
         
     def __ror__(self,other):
-        r"""Euclidean scalar product - a binary operation.
+        r"""
+        Euclidean scalar product - a binary operation.
 
         ``(x|y)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the scalar product of ``x`` and ``y`` which are assumed to have the same shape.    
@@ -769,7 +795,8 @@ class LazyTensor:
     # Unary arithmetics --------------------------------------------------------
 
     def __abs__(self):
-        r"""Element-wise absolute value - a unary operation.
+        r"""
+        Element-wise absolute value - a unary operation.
         
         ``abs(x)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise absolute value of ``x``.
@@ -777,7 +804,8 @@ class LazyTensor:
         return self.unary("Abs")
     
     def abs(self):
-        r"""Element-wise absolute value - a unary operation.
+        r"""
+        Element-wise absolute value - a unary operation.
         
         ``x.abs()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise absolute value of ``x``.
@@ -785,7 +813,8 @@ class LazyTensor:
         return abs(self)
     
     def __neg__(self):
-        r"""Element-wise minus - a unary operation.
+        r"""
+        Element-wise minus - a unary operation.
         
         ``-x`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise opposite of ``x``.
@@ -796,7 +825,8 @@ class LazyTensor:
     # Simple functions ---------------------------------------------------------
        
     def exp(self):
-        r"""Element-wise exponential - a unary operation.
+        r"""
+        Element-wise exponential - a unary operation.
         
         ``x.exp()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise exponential of ``x``.
@@ -804,7 +834,8 @@ class LazyTensor:
         return self.unary("Exp")
     
     def log(self):
-        r"""Element-wise logarithm - a unary operation.
+        r"""
+        Element-wise logarithm - a unary operation.
         
         ``x.log()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise logarithm of ``x``.
@@ -812,7 +843,8 @@ class LazyTensor:
         return self.unary("Log")
     
     def cos(self):
-        r"""Element-wise cosine - a unary operation.
+        r"""
+        Element-wise cosine - a unary operation.
         
         ``x.cos()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise cosine of ``x``.
@@ -820,7 +852,8 @@ class LazyTensor:
         return self.unary("Cos")
 
     def sin(self):
-        r"""Element-wise sine - a unary operation.
+        r"""
+        Element-wise sine - a unary operation.
         
         ``x.sin()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise sine of ``x``.
@@ -828,7 +861,8 @@ class LazyTensor:
         return self.unary("Sin")
     
     def sqrt(self):
-        r"""Element-wise square root - a unary operation.
+        r"""
+        Element-wise square root - a unary operation.
         
         ``x.sqrt()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise square root of ``x``.
@@ -836,7 +870,8 @@ class LazyTensor:
         return self.unary("Sqrt")
     
     def rsqrt(self):
-        r"""Element-wise inverse square root - a unary operation.
+        r"""
+        Element-wise inverse square root - a unary operation.
         
         ``x.rsqrt()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise inverse square root of ``x``.
@@ -844,7 +879,8 @@ class LazyTensor:
         return self.unary("Rsqrt")
 
     def __pow__(self, other):
-        r"""Broadcasted element-wise power operator - a binary operation.
+        r"""
+        Broadcasted element-wise power operator - a binary operation.
         
         ``x**y`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise value of ``x`` to the power ``y``.
@@ -872,14 +908,16 @@ class LazyTensor:
             raise ValueError("The exponent should be an integer, a float number or a LazyTensor.")
 
     def power(self,other):
-        r"""Broadcasted element-wise power operator - a binary operation.
+        r"""
+        Broadcasted element-wise power operator - a binary operation.
         
         ``pow(x,y)`` is equivalent to ``x**y``.
         """   
         return self**other
     
     def square(self):
-        r"""Element-wise square - a unary operation.
+        r"""
+        Element-wise square - a unary operation.
         
         ``x.square()`` is equivalent to ``x**2`` and returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` 
         that encodes, symbolically, the element-wise square of ``x``.
@@ -887,7 +925,8 @@ class LazyTensor:
         return self.unary("Square")
     
     def sign(self):
-        r"""Element-wise sign in {-1,0,+1} - a unary operation.
+        r"""
+        Element-wise sign in {-1,0,+1} - a unary operation.
         
         ``x.sign()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise sign of ``x``.
@@ -895,7 +934,8 @@ class LazyTensor:
         return self.unary("Sign")
     
     def step(self):
-        r"""Element-wise step function - a unary operation.
+        r"""
+        Element-wise step function - a unary operation.
         
         ``x.step()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the element-wise sign of ``x``.
@@ -903,7 +943,8 @@ class LazyTensor:
         return self.unary("Step")
     
     def relu(self):
-        r"""Element-wise ReLU function - a unary operation.
+        r"""
+        Element-wise ReLU function - a unary operation.
         
         ``x.relu()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically,
         the element-wise positive part of ``x``.
@@ -911,7 +952,8 @@ class LazyTensor:
         return self.unary("ReLU")
     
     def sqnorm2(self):
-        r"""Squared Euclidean norm - a unary operation.
+        r"""
+        Squared Euclidean norm - a unary operation.
         
         ``x.sqnorm2()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the squared Euclidean norm of a vector ``x``.
@@ -919,7 +961,8 @@ class LazyTensor:
         return self.unary("SqNorm2", dimres=1)
     
     def norm2(self):
-        r"""Euclidean norm - a unary operation.
+        r"""
+        Euclidean norm - a unary operation.
         
         ``x.norm2()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         the Euclidean norm of a vector ``x``.
@@ -927,7 +970,8 @@ class LazyTensor:
         return self.unary("Norm2",dimres=1)
     
     def norm(self, dim):
-        r"""Euclidean norm - a unary operation.
+        r"""
+        Euclidean norm - a unary operation.
 
         ``x.norm(-1)`` is equivalent to ``x.norm2()`` and returns a 
         :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, the Euclidean norm of a vector ``x``.
@@ -937,7 +981,8 @@ class LazyTensor:
         return self.norm2()
     
     def normalize(self):
-        r"""Vector normalization - a unary operation.
+        r"""
+        Vector normalization - a unary operation.
         
         ``x.normalize()`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically, 
         a vector ``x`` divided by its Euclidean norm.
@@ -945,7 +990,8 @@ class LazyTensor:
         return self.unary("Normalize")
     
     def sqdist(self,other):
-        r"""Squared distance - a binary operation.
+        r"""
+        Squared distance - a binary operation.
         
         ``x.sqdist(y)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically,
         the squared Euclidean distance between two vectors ``x`` and ``y``.
@@ -953,7 +999,8 @@ class LazyTensor:
         return self.binary(other, "SqDist", dimres=1)
     
     def weightedsqnorm(self, other):
-        r"""Weighted squared norm - a binary operation. 
+        r"""
+        Weighted squared norm - a binary operation. 
         
         ``LazyTensor.weightedsqnorm(s, x)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically,
         the weighted squared Norm of a vector ``x`` - see
@@ -970,14 +1017,16 @@ class LazyTensor:
         return self.binary(other, "WeightedSqNorm", dimres=1, dimcheck=None)
     
     def weightedsqdist(self, f, g):
-        r"""Weighted squared distance. 
+        r"""
+        Weighted squared distance. 
         
         ``LazyTensor.weightedsqdist(s, x, y)`` is equivalent to ``LazyTensor.weightedsqnorm(s, x - y)``.
         """   
         return self.weightedsqnorm( f - g )
     
     def elem(self, i):
-        r"""Indexing of a vector - a unary operation. 
+        r"""
+        Indexing of a vector - a unary operation. 
         
         ``x.elem(i)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically,
         the i-th element ``x[i]`` of the vector ``x``.
@@ -989,7 +1038,8 @@ class LazyTensor:
         return self.unary("Elem", dimres=1, opt_arg=i)
     
     def extract(self, i, d):
-        r"""Range indexing - a unary operation.
+        r"""
+        Range indexing - a unary operation.
         
         ``x.extract(i, d)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically,
         the sub-vector ``x[i:i+d]`` of the vector ``x``.    
@@ -1003,7 +1053,8 @@ class LazyTensor:
         return self.unary("Extract", dimres=d, opt_arg=i, opt_arg2=d)
     
     def __getitem__(self, key):
-        r"""Element or range indexing - a unary operation.
+        r"""
+        Element or range indexing - a unary operation.
 
         ``x[key]`` redirects to the :meth:`elem` or :meth:`extract` methods, depending on the ``key`` argument.
         Supported values are:
@@ -1040,7 +1091,8 @@ class LazyTensor:
             raise ValueError("LazyTensors only support indexing with integers and vanilla python slices.")
             
     def concat(self,other):
-        r"""Concatenation of two :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` - a binary operation.
+        r"""
+        Concatenation of two :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` - a binary operation.
         
         ``x.concat(y)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically,
         the concatenation of ``x`` and ``y`` along their last dimension.    
@@ -1048,7 +1100,8 @@ class LazyTensor:
         return self.binary(other, "Concat", dimres = (self.ndim + other.ndim), dimcheck=None)
 
     def concatenate(self, axis=-1):
-        r"""Concatenation of a tuple of :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`.
+        r"""
+        Concatenation of a tuple of :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`.
         
         ``LazyTensor.concatenate( (x_1, x_2, ..., x_n), -1)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` that encodes, symbolically,
         the concatenation of ``x_1``, ``x_2``, ..., ``x_n`` along their last dimension.    
@@ -1071,7 +1124,8 @@ class LazyTensor:
             raise ValueError("LazyTensor.concatenate is implemented on *tuples* of LazyTensors.")    
     
     def cat(self, dim):
-        r"""Concatenation of a tuple of LazyTensors.
+        r"""
+        Concatenation of a tuple of LazyTensors.
         
         ``LazyTensor.cat( (x_1, x_2, ..., x_n), -1)`` 
         is a PyTorch-friendly alias for ``LazyTensor.concatenate( (x_1, x_2, ..., x_n), -1)``;
@@ -1080,7 +1134,8 @@ class LazyTensor:
         return LazyTensor.concatenate(self, dim)
 
     def matvecmult(self,other):
-        r"""Matrix-vector product - a binary operation.
+        r"""
+        Matrix-vector product - a binary operation.
 
         If ``x._shape[-1] == A*B`` and ``y._shape[-1] == B``,
         ``z = x.matvecmult(y)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` 
@@ -1092,7 +1147,8 @@ class LazyTensor:
         return self.binary(other, "MatVecMult", dimres = (self.ndim // other.ndim), dimcheck=None)        
         
     def vecmatmult(self,other):
-        r"""Vector-matrix product - a binary operation.
+        r"""
+        Vector-matrix product - a binary operation.
 
         If ``x._shape[-1] == A`` and ``y._shape[-1] == A*B``,
         ``z = x.vecmatmult(y)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` 
@@ -1104,7 +1160,8 @@ class LazyTensor:
         return self.binary(other, "VecMatMult", dimres = (other.ndim // self.ndim), dimcheck=None)        
         
     def tensorprod(self,other):
-        r"""Tensor product of vectors - a binary operation.
+        r"""
+        Tensor product of vectors - a binary operation.
 
         If ``x._shape[-1] == A`` and ``y._shape[-1] == B``,
         ``z = x.tensorprod(y)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` 
@@ -1116,7 +1173,8 @@ class LazyTensor:
         return self.binary(other, "TensorProd", dimres = (other.ndim * self.ndim), dimcheck=None)        
 
     def grad(self,other,gradin):
-        r"""Symbolic gradient operation.
+        r"""
+        Symbolic gradient operation.
 
         ``z = x.grad(v,e)`` returns a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` 
         which encodes, symbolically,
@@ -1130,9 +1188,10 @@ class LazyTensor:
     # List of supported reductions  ============================================
 
     def sum(self, axis=-1, dim=None, **kwargs):
-        r"""Summation unary operation, or Sum reduction. 
+        r"""
+        Summation unary operation, or Sum reduction. 
         
-        sum(axis, dim, **kwargs) will:
+        ``sum(axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the sum reduction of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the sum reduction of **self** over the "j" indexes.
@@ -1155,9 +1214,10 @@ class LazyTensor:
             return self.reduction("Sum", axis=axis, **kwargs)
     
     def sum_reduction(self, axis=None, dim=None, **kwargs):
-        r"""Sum reduction. 
+        r"""
+        Sum reduction. 
         
-        sum_reduction(axis, dim, **kwargs) will return the sum reduction of **self**.
+        ``sum_reduction(axis, dim, **kwargs)`` will return the sum reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1170,9 +1230,10 @@ class LazyTensor:
         return self.reduction("Sum", axis=axis, dim=dim, **kwargs)
 
     def logsumexp(self, axis=None, dim=None, weight=None, **kwargs):
-        r"""Log-Sum-Exp reduction. 
+        r"""
+        Log-Sum-Exp reduction. 
         
-        logsumexp(axis, dim, weight, **kwargs) will:
+        ``logsumexp(axis, dim, weight, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the "log-sum-exp" reduction of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the "log-sum-exp" reduction of **self** over the "j" indexes.
@@ -1196,14 +1257,16 @@ class LazyTensor:
             return self.reduction("LogSumExp", other=weight, axis=axis, dim=dim, **kwargs)
         
     def logsumexp_reduction(self,**kwargs):
-        r"""Log-Sum-Exp reduction. Redirects to :meth:`logsumexp` method.        
+        r"""
+        Log-Sum-Exp reduction. Redirects to :meth:`logsumexp` method.        
         """   
         return self.logsumexp(**kwargs)
         
     def sumsoftmaxweight(self, weight, axis=None, dim=None, **kwargs):
-        r"""Sum of weighted Soft-Max reduction. 
+        r"""
+        Sum of weighted Soft-Max reduction. 
         
-        sumsoftmaxweight(weight, axis, dim, **kwargs) will:
+        ``sumsoftmaxweight(weight, axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the "sum of weighted Soft-Max" reduction of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the "sum of weighted Soft-Max" reduction of **self** over the "j" indexes.
@@ -1223,14 +1286,16 @@ class LazyTensor:
         return self.reduction("SumSoftMaxWeight", other=weight, axis=axis, dim=dim, **kwargs)
         
     def sumsoftmaxweight_reduction(self,**kwargs):
-        r"""Sum of weighted Soft-Max reduction. Redirects to :meth:`sumsoftmaxweight` method.          
+        r"""
+        Sum of weighted Soft-Max reduction. Redirects to :meth:`sumsoftmaxweight` method.          
         """   
         return self.sumsoftmaxweight(**kwargs)
         
     def min(self, axis=None, dim=None, **kwargs):
-        r"""Min reduction. 
+        r"""
+        Min reduction. 
         
-        min(axis, dim, **kwargs) will:
+        ``min(axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the minimal values of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the minimal values of **self** over the "j" indexes.
@@ -1246,19 +1311,22 @@ class LazyTensor:
         return self.reduction("Min", axis=axis, dim=dim, **kwargs)
     
     def min_reduction(self,**kwargs):
-        r"""Min reduction. Redirects to :meth:`min` method.          
+        r"""
+        Min reduction. Redirects to :meth:`min` method.          
         """   
         return self.min(**kwargs)
 
     def __min__(self, **kwargs):
-        r"""Min reduction. Redirects to :meth:`min` method.          
+        r"""
+        Min reduction. Redirects to :meth:`min` method.          
         """   
         return self.min(**kwargs)
 
     def argmin(self, axis=None, dim=None, **kwargs):
-        r"""ArgMin reduction. 
+        r"""
+        ArgMin reduction. 
         
-        argmin(axis, dim, **kwargs) will:
+        ``argmin(axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the indices of minimal values of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the indices of minimal values of **self** over the "j" indexes.
@@ -1274,14 +1342,16 @@ class LazyTensor:
         return self.reduction("ArgMin", axis=axis, dim=dim, **kwargs)
     
     def argmin_reduction(self,**kwargs):
-        r"""ArgMin reduction. Redirects to :meth:`argmin` method.          
+        r"""
+        ArgMin reduction. Redirects to :meth:`argmin` method.          
         """   
         return self.argmin(**kwargs)
 
     def min_argmin(self, axis=None, dim=None, **kwargs):
-        r"""Min-ArgMin reduction. 
+        r"""
+        Min-ArgMin reduction. 
         
-        min_argmin(axis, dim, **kwargs) will:
+        ``min_argmin(axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the minimal values and its indices of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the minimal values and its indices of **self** over the "j" indexes.
@@ -1297,14 +1367,16 @@ class LazyTensor:
         return self.reduction("Min_ArgMin", axis=axis, dim=dim, **kwargs)
     
     def min_argmin_reduction(self, **kwargs):
-        r"""Min-ArgMin reduction. Redirects to :meth:`min_argmin` method.          
+        r"""
+        Min-ArgMin reduction. Redirects to :meth:`min_argmin` method.          
         """   
         return self.min_argmin(**kwargs)
     
     def max(self, axis=None, dim=None, **kwargs):
-        r"""Max reduction. 
+        r"""
+        Max reduction. 
         
-        max(axis, dim, **kwargs) will:
+        ``max(axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the maximal values of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the maximal values of **self** over the "j" indexes.
@@ -1320,19 +1392,22 @@ class LazyTensor:
         return self.reduction("Max", axis=axis, dim=dim, **kwargs)
     
     def max_reduction(self,**kwargs):
-        r"""Max reduction. Redirects to :meth:`max` method.          
+        r"""
+        Max reduction. Redirects to :meth:`max` method.          
         """ 
         return self.max(**kwargs)
 
     def __max__(self, **kwargs):
-        r"""Max reduction. Redirects to :meth:`max` method.          
+        r"""
+        Max reduction. Redirects to :meth:`max` method.          
         """ 
         return self.max(**kwargs)
 
     def argmax(self, axis=None, dim=None, **kwargs):
-        r"""ArgMax reduction. 
+        r"""
+        ArgMax reduction. 
         
-        argmax(axis, dim, **kwargs) will:
+        ``argmax(axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the indices of maximal values of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the indices of maximal values of **self** over the "j" indexes.
@@ -1348,14 +1423,16 @@ class LazyTensor:
         return self.reduction("ArgMax", axis=axis, dim=dim, **kwargs)
     
     def argmax_reduction(self,**kwargs):
-        r"""ArgMax reduction. Redirects to :meth:`argmax` method.          
+        r"""
+        ArgMax reduction. Redirects to :meth:`argmax` method.          
         """   
         return self.argmax(**kwargs)
 
     def max_argmax(self, axis=None, dim=None, **kwargs):
-        r"""Max-ArgMax reduction. 
+        r"""
+        Max-ArgMax reduction. 
         
-        max_argmax(axis, dim, **kwargs) will:
+        ``max_argmax(axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the maximal values and its indices of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the maximal values and its indices of **self** over the "j" indexes.
@@ -1371,14 +1448,16 @@ class LazyTensor:
         return self.reduction("Max_ArgMax", axis=axis, dim=dim, **kwargs)
     
     def max_argmax_reduction(self, **kwargs):
-        r"""Max-ArgMax reduction. Redirects to :meth:`max_argmax` method.          
+        r"""
+        Max-ArgMax reduction. Redirects to :meth:`max_argmax` method.          
         """   
         return self.max_argmax(**kwargs)
     
     def Kmin(self, K, axis=None, dim=None, **kwargs):
-        r"""K-Min reduction. 
+        r"""
+        K-Min reduction. 
         
-        Kmin(K, axis, dim, **kwargs) will:
+        ``Kmin(K, axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the K minimal values of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the K minimal values of **self** over the "j" indexes.
@@ -1395,14 +1474,16 @@ class LazyTensor:
         return self.reduction("KMin", opt_arg=K, axis=axis, dim=dim, **kwargs)
 
     def Kmin_reduction(self, **kwargs):
-        r"""Kmin reduction. Redirects to :meth:`Kmin` method.          
+        r"""
+        Kmin reduction. Redirects to :meth:`Kmin` method.          
         """   
         return self.Kmin(**kwargs)
 
     def argKmin(self, K, axis=None, dim=None, **kwargs):
-        r"""argKmin reduction. 
+        r"""
+        argKmin reduction. 
         
-        argKmin(K, axis, dim, **kwargs) will:
+        ``argKmin(K, axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the indices of the K minimal values of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the indices of the K minimal values of **self** over the "j" indexes.
@@ -1419,14 +1500,16 @@ class LazyTensor:
         return self.reduction("ArgKMin", opt_arg=K, axis=axis, dim=dim, **kwargs)
 
     def argKmin_reduction(self, **kwargs):
-        r"""argKmin reduction. Redirects to :meth:`argKmin` method.          
+        r"""
+        argKmin reduction. Redirects to :meth:`argKmin` method.          
         """   
         return self.argKmin(**kwargs)
 
     def Kmin_argKmin(self, K, axis=None, dim=None, **kwargs):
-        r"""K-Min-argK-min reduction. 
+        r"""
+        K-Min-argK-min reduction. 
         
-        Kmin_argKmin(K, axis, dim, **kwargs) will:
+        ``Kmin_argKmin(K, axis, dim, **kwargs)`` will:
 
           - if **axis or dim = 0**, return the K minimal values and its indices of **self** over the "i" indexes.
           - if **axis or dim = 1**, return the K minimal values and its indices of **self** over the "j" indexes.
@@ -1443,14 +1526,16 @@ class LazyTensor:
         return self.reduction("KMin_ArgKMin", opt_arg=K, axis=axis, dim=dim, **kwargs)
 
     def Kmin_argKmin_reduction(self, **kwargs):
-        r"""Kmin_argKmin reduction. Redirects to :meth:`Kmin_argKmin` method.          
+        r"""
+        Kmin_argKmin reduction. Redirects to :meth:`Kmin_argKmin` method.          
         """   
         return self.Kmin_argKmin(**kwargs)
 
     # LazyTensors as linear operators  =========================================
 
     def __matmul__(self, v):
-        r"""Matrix-vector or Matrix-matrix product.
+        r"""
+        Matrix-vector or Matrix-matrix product.
 
         If ``K`` is a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` whose trailing dimension ``K._shape[-1]`` is equal to 1,
         we can understand it as a linear operator and apply it to arbitrary NumPy arrays
@@ -1485,7 +1570,8 @@ class LazyTensor:
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
 
     def t(self):
-        """Matrix transposition, permuting the axes of :math:`i`- and :math:`j`-variables.
+        r"""
+        Matrix transposition, permuting the axes of :math:`i`- and :math:`j`-variables.
         
         For instance, if ``K`` is a LazyTensor of shape ``(B,M,N,D)``,
         ``K.t()`` returns a symbolic copy of ``K`` whose axes 1 and 2 have
@@ -1522,11 +1608,14 @@ class LazyTensor:
     
     @property
     def T(self):
-        """Numpy-friendly alias for the matrix transpose ``self.t()``."""
+        r"""
+        Numpy-friendly alias for the matrix transpose ``self.t()``.
+        """
         return self.t()
 
     def matvec(self, v):
-        """Alias for the matrix-vector product, added for compatibility with :mod:`scipy.sparse.linalg`.
+        r"""
+        Alias for the matrix-vector product, added for compatibility with :mod:`scipy.sparse.linalg`.
 
         If ``K`` is a :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` whose trailing dimension ``K._shape[-1]`` is equal to 1,
         we can understand it as a linear operator and wrap it into a
@@ -1548,7 +1637,8 @@ class LazyTensor:
         return self @ v
     
     def rmatvec(self):
-        """Alias for the transposed matrix-vector product, added for compatibility with :mod:`scipy.sparse.linalg`.
+        r"""
+        Alias for the transposed matrix-vector product, added for compatibility with :mod:`scipy.sparse.linalg`.
 
         See :meth:`matvec` for further reference.
         """
