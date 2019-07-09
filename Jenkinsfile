@@ -81,7 +81,7 @@ pipeline {
     }
 
     stage('Doc') {
-      agent { label 'cuda' }
+      agent { label 'cuda-doc' }
       when { tag "v*" }
       environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
       steps {

@@ -15,14 +15,14 @@ while getopts "v:" opt; do
 done
 
 # build the doc (1rst run to compile the binaries, 2nd run to render the doc)
-make html
+CXX=g++-8 CC=gcc-8 make html
 make clean
-make html
+CXX=g++-8 CC=gcc-8 make html
 
 # try to capture error code in the final part
 set -o errexit
 set -e
-make html
+CXX=g++-8 CC=gcc-8 make html
 
 # Fix some bad links due interaction between rtd-theme and sphinx-gallery
 find . -path "*_auto_*" -name "plot_*.html" -exec sed -i "s/doc\/_auto_\(.*\)rst/pykeops\/\1py/" {} \;
