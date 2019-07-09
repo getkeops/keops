@@ -14,10 +14,12 @@
 #include <algorithm>
 
 // __TYPE__ is floating point type used in all code; may be float or double
-// if not defined here, it will be set to float in keops.h below
-#define __TYPE__ double
+// if not defined here or previously, it will be set by default to float in keops_includes.h below
+#ifndef __TYPE__
+  #define __TYPE__ double
+#endif
 
-#include <keops.h>
+#include <keops_includes.h>
 
 using namespace keops;
 

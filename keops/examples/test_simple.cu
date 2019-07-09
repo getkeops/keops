@@ -10,7 +10,7 @@
 // and the convolution is res_i = sum_j f(x_i,y_j,u_i,v_j,beta_j)
 
 #include <algorithm>
-#include <keops.h>
+#include <keops_includes.h>
 
 using namespace keops;
 

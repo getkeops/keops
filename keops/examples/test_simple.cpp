@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <algorithm>
-#include <keops.h>
+#include <keops_includes.h>
 
 using namespace keops;
 

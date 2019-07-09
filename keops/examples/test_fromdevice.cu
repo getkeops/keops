@@ -7,7 +7,7 @@
 
 #include <algorithm>
 #include <thrust/device_vector.h>
-#include <keops.h>
+#include <keops_includes.h>
 
 #define DIMPOINT 3
 #define DIMVECT 2
