@@ -160,6 +160,7 @@ setup(
                      'imageio',
                      'torch',
                      'gpytorch',
+                     'scikit-learn',
                      ],
             },
 )
