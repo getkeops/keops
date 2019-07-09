@@ -1,3 +1,4 @@
+// IC Script for Keops
 pipeline {
   agent none 
   stages {
@@ -10,8 +11,8 @@ pipeline {
           steps {
             echo 'Building..'
               sh 'git submodule update --init'
-              sh 'cd keops/build && cmake ..'
-              sh 'cd keops/build && make VERBOSE=0'
+              // sh 'cd keops/build && cmake ..'
+              // sh 'cd keops/build && make VERBOSE=0'
           }
         }
 
@@ -20,8 +21,8 @@ pipeline {
           steps {
             echo 'Building..'
               sh 'git submodule update --init'
-              sh 'cd keops/build && cmake ..'
-              sh 'cd keops/build && make VERBOSE=0'
+              //sh 'cd keops/build && cmake ..'
+              //sh 'cd keops/build && make VERBOSE=0'
           }
         }
 
@@ -30,8 +31,8 @@ pipeline {
           steps {
             echo 'Building..'
               sh 'git submodule update --init'
-              sh 'cd keops/build && cmake ..'
-              sh 'cd keops/build && make VERBOSE=0'
+              //sh 'cd keops/build && cmake ..'
+              //sh 'cd keops/build && make VERBOSE=0'
           }
         }
       }
@@ -46,8 +47,8 @@ pipeline {
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
-              sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
-              sh 'cd pykeops/test && python3 unit_tests_numpy.py'
+              //sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
+              //sh 'cd pykeops/test && python3 unit_tests_numpy.py'
           }
         }
 
@@ -57,45 +58,59 @@ pipeline {
           steps {
             echo 'Testing...'
               sh 'git submodule update --init'
-              sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
-              sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
+              //sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_pytorch.py'
+              //sh 'cd pykeops/test && /Users/ci/miniconda3/bin/python3 unit_tests_numpy.py'
           }
         }
 
         stage('Test Cuda') {
           agent { label 'cuda' }
-          environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
-              sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
-              sh 'cd pykeops/test && python3 unit_tests_numpy.py'
-              sh '''
-              cd keopslab/test
-              export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
-              matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
-              '''
+              //sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
+              //sh 'cd pykeops/test && python3 unit_tests_numpy.py'
+              //sh '''
+              //cd keopslab/test
+              //export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+              //matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
+              //'''
           }
         }
       }
     }
 
+    stage('Doc') {
+      agent { label 'cuda-doc' }
+      when { tag "v*" }
+      environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
+      steps {
+        echo 'Generating doc on tag event...'
+        sh 'git submodule update --init'
+        echo 'Building the doc...'
+        sh 'cd doc/ && sh ./generate_doc.sh'
+        withCredentials([usernamePassword(credentialsId: '02af275f-5383-4be3-91d8-4c711aa90de9', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh '''
+             lftp -u ${USERNAME},${PASSWORD}  -e "mirror -e -R  ./doc/_build/html/ /www/keops_latest/ ; quit" ftp://ftp.cluster021.hosting.ovh.net
+             '''
+        }
+      }
+    }
 
-    /*stage('Deploy') {*/
-    /*agent { label 'cuda' }*/
-    /*when { buildingTag() }*/
-    /*steps {*/
-    /*echo 'Deploying on tag event...'*/
-    /*sh 'git submodule update --init'*/
-    /*echo 'Building the doc...'*/
-    /*sh 'cd doc/ && sh ./generate_doc.sh'*/
-    /*echo 'Deploying the wheel package...'*/
-    /*sh 'cd pykeops && sh ./generate_wheel -v ${TAG_NAME##v}'*/
-    /*withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {*/
-    /*sh 'set +x && cd build && twine upload -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'*/
-    /*}*/
-    /*}*/
-    /*}*/
+    stage('Deploy') {
+      agent { label 'cuda' }
+      when { tag "v*" }
+      environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
+      steps {
+        echo 'Deploying on tag event...'
+        sh 'git submodule update --init'
+        echo 'Deploying the wheel package...'
+        sh 'cd pykeops && sh ./generate_wheel.sh -v ${TAG_NAME##v}'
+        withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh 'cd build && twine upload --repository-url https://test.pypi.org/legacy/ -u ${USERNAME} -p ${PASSWORD} ./dist/pykeops-${TAG_NAME##v}.tar.gz'
+          }
+      }
+    }
 
   }
 }
