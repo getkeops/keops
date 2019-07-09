@@ -36,9 +36,9 @@ import numpy as np
 
 from pykeops import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
+
 use_cuda = IsGpuAvailable()
 dtype = "float32"  # No need for double precision here!
-
 
 ###################################################################
 # Create a toy dataset, a spiral in 2D sampled with 10,000 points:
@@ -52,9 +52,10 @@ x = x.astype(dtype)
 ###################################################################
 # And display it:
 # 
-plt.figure(figsize=(8,8))
-plt.scatter(x[:,0], x[:,1], s= 5000 / len(x))
-plt.axis("equal") ; plt.axis([0,1,0,1])
+plt.figure(figsize=(8, 8))
+plt.scatter(x[:, 0], x[:, 1], s=5000 / len(x))
+plt.axis("equal");
+plt.axis([0, 1, 0, 1])
 plt.tight_layout()
 
 #######################################################################
@@ -80,8 +81,8 @@ plt.tight_layout()
 
 sigma = .05
 x_ = x / sigma
-x_i, x_j = LazyTensor( x_[:,None,:] ), LazyTensor( x_[None,:,:] )
-K_xx = (- ((x_i - x_j)**2).sum(2) / 2 ).exp()  # Symbolic (N,N) Gaussian kernel matrix
+x_i, x_j = LazyTensor(x_[:, None, :]), LazyTensor(x_[None, :, :])
+K_xx = (- ((x_i - x_j) ** 2).sum(2) / 2).exp()  # Symbolic (N,N) Gaussian kernel matrix
 
 print(K_xx)
 
@@ -94,7 +95,8 @@ print(K_xx)
 # `LinearOperator <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.LinearOperator.html>`_:
 
 from scipy.sparse.linalg import aslinearoperator
-K = aslinearoperator( K_xx )
+
+K = aslinearoperator(K_xx)
 
 #########################################################
 # Just like regular numpy :mod:`arrays` or KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`,
@@ -106,8 +108,7 @@ K = aslinearoperator( K_xx )
 #  
 # we can simply write:
 
-D = K@np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
-
+D = K @ np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
 
 #######################################################################
 # Going further, robust and efficient routines such as
@@ -117,11 +118,11 @@ D = K@np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
 #
 
 from scipy.sparse.linalg import eigsh
-eigenvalues, eigenvectors = eigsh( K, k=5 )  # Largest 5 eigenvalues/vectors
 
-print( "Largest eigenvalues:", eigenvalues )
-print( "Eigenvectors of shape:", eigenvectors.shape )
+eigenvalues, eigenvectors = eigsh(K, k=5)  # Largest 5 eigenvalues/vectors
 
+print("Largest eigenvalues:", eigenvalues)
+print("Eigenvectors of shape:", eigenvectors.shape)
 
 ############################################
 # Graph Laplacian
@@ -132,27 +133,27 @@ print( "Eigenvectors of shape:", eigenvectors.shape )
 # To define our implicit **graph Laplacian matrix**:
 #
 # .. math::
-#       L~=~ \text{diag}(D) ~-~ K,
+#       L= \text{diag}(D) - K,
 #
 # we can simply type:
 
 from scipy.sparse import diags
-L = aslinearoperator( diags( D ) ) - K
+
+L = aslinearoperator(diags(D)) - K
 L.dtype = np.dtype(dtype)  # Scipy Bugfix: by default, "-" removes the dtype information...
 
 ##################################################
 # Alternatively, we can also use a **symmetric, normalized Laplacian matrix** defined through:
 # 
 # .. math::
-#       L_{\text{norm}}~=~ \text{Id} ~-~ \text{diag}(D^{-1/2}) \,K \,\text{diag}(D^{-1/2}).
+#       L_{\text{norm}}= \text{Id} - \text{diag}(D^{-1/2}) K \text{diag}(D^{-1/2}).
 
 
 from scipy.sparse.linalg.interface import IdentityOperator
 
-D_2 = aslinearoperator( diags( 1 / np.sqrt(D) ) )
-L_norm = IdentityOperator( (N,N) ) - D_2@K@D_2
+D_2 = aslinearoperator(diags(1 / np.sqrt(D)))
+L_norm = IdentityOperator((N, N)) - D_2 @ K @ D_2
 L_norm.dtype = np.dtype(dtype)  # Scipy Bugfix: by default, "-" removes the dtype information...
-
 
 ##################################################
 # Then, computing spectral coordinates on **x** is as simple
@@ -160,10 +161,11 @@ L_norm.dtype = np.dtype(dtype)  # Scipy Bugfix: by default, "-" removes the dtyp
 #
 
 from time import time
+
 start = time()
 
 # Compute the 7 smallest eigenvalues/vectors of our graph Laplacian
-eigenvalues, coordinates = eigsh( L , k=7, which="SM" )
+eigenvalues, coordinates = eigsh(L, k=7, which="SM")
 
 print("Smallest eigenvalues of the graph Laplacian, computed in {:.3f}s:".format(time() - start))
 print(eigenvalues)
@@ -178,18 +180,20 @@ print(eigenvalues)
 # the raw point cloud **x** and be used to perform
 # spectral clustering, shape matching or whatever's relevant!
 
-plt.figure(figsize=(12,8))
+_, axarr = plt.subplots(nrows=2, ncols=3, figsize=(12, 8))
 
-for i in range(1, 7):
-    ax = plt.subplot(2,3,i)
-    plt.scatter(x[:,0], x[:,1], c=coordinates[:,i], cmap=plt.cm.Spectral,
-                s= 9*500 / len(x))
-    ax.set_title( "Eigenvalue {} = {:.2f}".format( i+1, eigenvalues[i] ) )
-    plt.axis("equal") ; plt.axis([0,1,0,1])
+for i in range(2):
+    for j in range(3):
+        axarr[i][j].scatter(x[:, 0], x[:, 1],
+                            c=coordinates[:, 3 * i + j], cmap=plt.cm.Spectral,
+                            s=9 * 500 / len(x))
+        axarr[i][j].set_title("Eigenvalue {} = {:.2f}".format(3 * i + j + 1, eigenvalues[3 * i + j]))
+        axarr[i][j].set_aspect("equal")
+        axarr[i][j].set_xlim(0,1)
+        axarr[i][j].set_ylim(0,1)
 
 plt.tight_layout()
 plt.show()
-
 
 ###############################################################
 # Scaling up to large datasets with block-sparse matrices
@@ -207,9 +211,9 @@ from mpl_toolkits.mplot3d import Axes3D
 
 N = 1000000 if use_cuda else 1000
 t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
-x = np.stack((.4 + .4 * (t / 7) * np.cos(1.5*t), 
+x = np.stack((.4 + .4 * (t / 7) * np.cos(1.5 * t),
               .1 + .8 * np.random.rand(N),
-              .5 + .3 * (t / 7) * np.sin(1.5*t),     ), 1)
+              .5 + .3 * (t / 7) * np.sin(1.5 * t),), 1)
 x = x + .01 * np.random.randn(*x.shape)
 x = x.astype(dtype)
 
@@ -217,17 +221,16 @@ x = x.astype(dtype)
 # To **display** our toy dataset with the (not-so-efficient) PyPlot library,
 # we pick **10,000 points** at random:
 
-N_display = 10000 if use_cuda else 500
+N_display = 10000 if use_cuda else N
 indices_display = np.random.randint(0, N, N_display)
 
-fig = plt.figure(figsize=(8,8))
+fig = plt.figure(figsize=(8, 8))
 ax = Axes3D(fig)
-x_ = x[indices_display,:]
-ax.scatter( x_[:,0], x_[:,1], x_[:,2],
-            s = 250000 / len(x_), c = t[indices_display], 
+x_ = x[indices_display, :]
+ax.scatter(x_[:, 0], x_[:, 1], x_[:, 2],
+           c=t[indices_display],
            edgecolors='none', cmap=plt.cm.Spectral)
 ax.set_title("{:,} out of {:,} points in our source point cloud".format(N_display, N))
-
 
 ####################################################################
 # **Can we scale the spectral analysis presented above to this huge dataset?**
@@ -256,7 +259,7 @@ from pykeops.numpy.cluster import grid_cluster, cluster_ranges_centroids, sort_c
 eps = .05
 x_labels = grid_cluster(x, eps)
 # Compute the memory footprint and centroid of each of those non-empty "cubic" clusters:
-x_ranges, x_centroids, _  = cluster_ranges_centroids(x, x_labels)
+x_ranges, x_centroids, _ = cluster_ranges_centroids(x, x_labels)
 # Sort our dataset according to the vector of labels:
 x, x_labels = sort_clusters(x, x_labels)
 
@@ -272,11 +275,11 @@ x, x_labels = sort_clusters(x, x_labels)
 # according to their locations, with each cluster corresponding to
 # a contiguous slice of the (sorted) **x** array:
 
-fig = plt.figure(figsize=(8,8))
+fig = plt.figure(figsize=(8, 8))
 ax = Axes3D(fig)
-x_ = x[indices_display,:]
-ax.scatter( x_[:,0], x_[:,1], x_[:,2],
-            s = 250000 / len(x_), c = x_labels[indices_display], 
+x_ = x[indices_display, :]
+ax.scatter(x_[:, 0], x_[:, 1], x_[:, 2],
+           c=x_labels[indices_display],
            edgecolors='none', cmap="prism")
 ax.set_title("Cluster labels")
 
@@ -297,8 +300,8 @@ ax.set_title("Cluster labels")
 
 sigma = .01 if use_cuda else .1  # Standard deviation of our Gaussian kernel
 # Compute a coarse Boolean mask:
-D = np.sum((x_centroids[:,None,:] - x_centroids[None,:,:])**2, 2)
-keep = D < ( 4 * sigma + np.sqrt(3) * eps )**2
+D = np.sum((x_centroids[:, None, :] - x_centroids[None, :, :]) ** 2, 2)
+keep = D < (4 * sigma + np.sqrt(3) * eps) ** 2
 
 ###############################################################
 # which can then be converted to a GPU-friendly, 
@@ -312,8 +315,8 @@ ranges_ij = from_matrix(x_ranges, x_ranges, keep)
 # as typing:
 
 x_ = x / sigma  # N.B.: x is a **sorted** list of points
-x_i, x_j = LazyTensor( x_[:,None,:] ), LazyTensor( x_[None,:,:] )
-K_xx = (- ((x_i - x_j)**2).sum(2) / 2 ).exp()  # Symbolic (N,N) Gaussian kernel matrix
+x_i, x_j = LazyTensor(x_[:, None, :]), LazyTensor(x_[None, :, :])
+K_xx = (- ((x_i - x_j) ** 2).sum(2) / 2).exp()  # Symbolic (N,N) Gaussian kernel matrix
 
 K_xx.ranges = ranges_ij  # block-sparsity pattern
 print(K_xx)
@@ -324,31 +327,28 @@ print(K_xx)
 # full KeOps :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`:
 
 # Compute the area of each rectangle "cluster-cluster" tile in the full kernel matrix:
-areas = (x_ranges[:,1] - x_ranges[:,0])[:,None] \
-      * (x_ranges[:,1] - x_ranges[:,0])[None,:]
-total_area  = np.sum(areas) # should be equal to N**2 = 1e12
+areas = (x_ranges[:, 1] - x_ranges[:, 0])[:, None] \
+        * (x_ranges[:, 1] - x_ranges[:, 0])[None, :]
+total_area = np.sum(areas)  # should be equal to N**2 = 1e12
 sparse_area = np.sum(areas[keep])
 
 print("We keep {:.2e}/{:.2e} = {:2d}% of the original kernel matrix.".format(
-    sparse_area, total_area, int(100 * sparse_area / total_area) ))
-
+    sparse_area, total_area, int(100 * sparse_area / total_area)))
 
 ############################################################################
 # Good. Once we're done with these pre-processing steps,
 # block-sparse :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` are just as easy to interface with **scipy** as
 # regular NumPy arrays:
 
-K = aslinearoperator( K_xx )
+K = aslinearoperator(K_xx)
 
 ##########################################################################
 # The normalized graph Laplacian can be defined as usual:
 
-D = K@np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
-D_2 = aslinearoperator( diags( 1 / np.sqrt(D) ) )
-L_norm = IdentityOperator( (N,N) ) - D_2@K@D_2
+D = K @ np.ones(N, dtype=dtype)  # Sum along the lines of the adjacency matrix
+D_2 = aslinearoperator(diags(1 / np.sqrt(D)))
+L_norm = IdentityOperator((N, N)) - D_2 @ K @ D_2
 L_norm.dtype = np.dtype(dtype)  # Scipy Bugfix: by default, "-" removes the dtype information...
-
-
 
 ##########################################################################
 # And our favourite solver will compute, as expected,
@@ -356,15 +356,15 @@ L_norm.dtype = np.dtype(dtype)  # Scipy Bugfix: by default, "-" removes the dtyp
 
 
 from time import time
+
 start = time()
 
 # Compute the 7 smallest eigenvalues/vectors of our normalized graph Laplacian
-eigenvalues, coordinates = eigsh( L_norm , k=7, which="SM" )
+eigenvalues, coordinates = eigsh(L_norm, k=7, which="SM")
 
 print("Smallest eigenvalues of the normalized graph Laplacian, computed in {:.3f}s ".format(time() - start) \
-    + "on a cloud of {:,} points in dimension {}:".format(x.shape[0], x.shape[1]) )
+      + "on a cloud of {:,} points in dimension {}:".format(x.shape[0], x.shape[1]))
 print(eigenvalues)
-
 
 ##########################################################################
 #
@@ -378,16 +378,18 @@ print(eigenvalues)
 # Anyway. Displayed on a subsampled point cloud (for the sake of efficiency),
 # our spectral coordinates look good!
 
-# sphinx_gallery_thumbnail_number = 5
-fig = plt.figure(figsize=(12,8))
+x_ = x[indices_display, :]
 
-for i in range(1, 7):
-    ax = fig.add_subplot(2, 3, i, projection='3d')
-    x_ = x[indices_display,:]
-    ax.scatter( x_[:,0], x_[:,1], x_[:,2],
-                s = 250000 / len(x_), c = coordinates[indices_display,i], 
-            edgecolors='none', cmap=plt.cm.Spectral)
-    ax.set_title( "Eigenvalue {} = {:.1e}".format( i+1, eigenvalues[i] ) )
+# sphinx_gallery_thumbnail_number = 5
+_, axarr = plt.subplots(nrows=2, ncols=3, figsize=(12, 8), subplot_kw=dict(projection='3d'))
+
+for i in range(2):
+    for j in range(3):
+        axarr[i][j].scatter(x_[:, 0], x_[:, 1], x_[:, 2],
+                            c=coordinates[indices_display, 3 * i + j],
+                            edgecolors='none', cmap=plt.cm.Spectral
+                            )
+        axarr[i][j].set_title("Eigenvalue {} = {:.1e}".format(3 * i + j + 1, eigenvalues[3 * i + j]))
 
 plt.tight_layout()
 plt.show()
