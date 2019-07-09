@@ -221,13 +221,12 @@ N_display = 10000 if use_cuda else 500
 indices_display = np.random.randint(0, N, N_display)
 
 fig = plt.figure(figsize=(8,8))
-ax = fig.add_subplot(111, projection='3d')
+ax = Axes3D(fig)
 x_ = x[indices_display,:]
 ax.scatter( x_[:,0], x_[:,1], x_[:,2],
             s = 250000 / len(x_), c = t[indices_display], 
            edgecolors='none', cmap=plt.cm.Spectral)
 ax.set_title("{:,} out of {:,} points in our source point cloud".format(N_display, N))
-plt.tight_layout()
 
 
 ####################################################################
@@ -274,13 +273,12 @@ x, x_labels = sort_clusters(x, x_labels)
 # a contiguous slice of the (sorted) **x** array:
 
 fig = plt.figure(figsize=(8,8))
-ax = fig.add_subplot(111, projection='3d')
+ax = Axes3D(fig)
 x_ = x[indices_display,:]
 ax.scatter( x_[:,0], x_[:,1], x_[:,2],
             s = 250000 / len(x_), c = x_labels[indices_display], 
            edgecolors='none', cmap="prism")
 ax.set_title("Cluster labels")
-plt.tight_layout()
 
 ############################################################################
 # We can prune computations out of the :math:`v\mapsto K_{xx} v`
@@ -297,7 +295,7 @@ plt.tight_layout()
 # diameter that is equal to :math:`\sqrt{3}\,\varepsilon`, this "block-sparsity"
 # pattern can be encoded in a small boolean matrix **keep** computed through:
 
-sigma = .01  # Standard deviation of our Gaussian kernel
+sigma = .01 if use_cuda else .1  # Standard deviation of our Gaussian kernel
 # Compute a coarse Boolean mask:
 D = np.sum((x_centroids[:,None,:] - x_centroids[None,:,:])**2, 2)
 keep = D < ( 4 * sigma + np.sqrt(3) * eps )**2
