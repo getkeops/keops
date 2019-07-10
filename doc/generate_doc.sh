@@ -6,7 +6,7 @@ while getopts "v:" opt; do
   case ${opt} in
     v ) version=${OPTARG##v}
         echo "Set a new version number: ${version}"
-        sed -i.bak "/__version__/c__version__ = \'$version\'" pykeops/__init__.py
+        sed -i.bak "/__version__/c__version__ = \'$version\'" ../pykeops/__init__.py
       ;;
     \? ) echo "Usage: generate_doc [-v VERSION_NUMBER]"
          exit -1
@@ -30,5 +30,5 @@ find . -path "*_auto_*" -name "index.html" -exec sed -i "s/doc\/_auto_\(.*\)\/in
 
 # restore original __init__.py
 if [ ! -z "$version" ]; then
-    mv pykeops/__init__.py.bak pykeops/__init__.py
+    mv ../pykeops/__init__.py.bak ../pykeops/__init__.py
 fi

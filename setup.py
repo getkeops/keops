@@ -81,6 +81,7 @@ setup(
         'pykeops',
         'pykeops.common',
         'pykeops.numpy',
+        'pykeops.numpy.cluster',
         'pykeops.numpy.convolutions',
         'pykeops.numpy.generic',
         'pykeops.numpy.shape_distance',

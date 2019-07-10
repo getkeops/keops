@@ -1,3 +1,11 @@
+* v1.1
+    - Add Support for LazyTensor
+    - Improve the documentation
+    - Refactor KeOps cpp directory structure 
+    - Improve build dir structure: builds are done in a subdirectory and builds junks are removed after sucessful compilation. Add keops_hash.log file to decypher .so names.
+    - Add support for environment variable (PYKEOS_VERBOSE and PYKEOPS_BUILD_TYPE) to make debug and verbosity easier
+
+
 * v1.0.2
     - fix a bug in variable parsing for pykeops bindings
     - KernelSolve syntax: move alpha kwarg in 'KernelSolve.__call__' 

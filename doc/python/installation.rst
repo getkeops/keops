@@ -189,7 +189,7 @@ You can force the (re)compilation of the KeOps shared objects by changing the bu
 
 .. code-block:: bash
 
-  export PYKEOPS_VERBOSE="Debug"
+  export PYKEOPS_BUILD_TYPE="Debug"
   python my_script_calling_pykeops.py
 
 Or directly in your python script, altering the value of the (string) variable ``pykeops.build_type`` right **after** your KeOps imports. In a python shell, simply type: 
