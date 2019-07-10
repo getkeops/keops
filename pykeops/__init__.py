@@ -25,11 +25,5 @@ build_type = str(os.environ['PYKEOPS_BUILD_TYPE']) if ('PYKEOPS_BUILD_TYPE' in o
 
 sys.path.append(bin_folder)
 
-# Import to let users type `from pykeops import LazyTensor`.
-# The try-catch structure is there to fix a broken 
-# GPUtil import during the pip installation process...
-try:
-    from .common.lazy_tensor import LazyTensor, Vi, Vj, Pm
-except:
-    pass
 
+from .common.lazy_tensor import LazyTensor, Vi, Vj, Pm
