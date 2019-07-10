@@ -57,6 +57,7 @@ plt.scatter(x[:, 0], x[:, 1], s=5000 / len(x))
 plt.axis("equal");
 plt.axis([0, 1, 0, 1])
 plt.tight_layout()
+plt.show()
 
 #######################################################################
 # Spectral coordinates
@@ -229,8 +230,9 @@ ax = Axes3D(fig)
 x_ = x[indices_display, :]
 ax.scatter(x_[:, 0], x_[:, 1], x_[:, 2],
            c=t[indices_display],
-           edgecolors='none', cmap=plt.cm.Spectral)
+           cmap=plt.cm.Spectral)
 ax.set_title("{:,} out of {:,} points in our source point cloud".format(N_display, N))
+plt.show()
 
 ####################################################################
 # **Can we scale the spectral analysis presented above to this huge dataset?**
@@ -280,8 +282,9 @@ ax = Axes3D(fig)
 x_ = x[indices_display, :]
 ax.scatter(x_[:, 0], x_[:, 1], x_[:, 2],
            c=x_labels[indices_display],
-           edgecolors='none', cmap="prism")
+           cmap="prism")
 ax.set_title("Cluster labels")
+plt.show()
 
 ############################################################################
 # We can prune computations out of the :math:`v\mapsto K_{xx} v`
@@ -387,7 +390,7 @@ for i in range(2):
     for j in range(3):
         axarr[i][j].scatter(x_[:, 0], x_[:, 1], x_[:, 2],
                             c=coordinates[indices_display, 3 * i + j],
-                            edgecolors='none', cmap=plt.cm.Spectral
+                            cmap=plt.cm.Spectral
                             )
         axarr[i][j].set_title("Eigenvalue {} = {:.1e}".format(3 * i + j + 1, eigenvalues[3 * i + j]))
 
