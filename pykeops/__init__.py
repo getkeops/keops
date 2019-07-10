@@ -26,4 +26,15 @@ build_type = str(os.environ['PYKEOPS_BUILD_TYPE']) if ('PYKEOPS_BUILD_TYPE' in o
 sys.path.append(bin_folder)
 
 
-from .common.lazy_tensor import LazyTensor, Vi, Vj, Pm
+# Hack-ish way of fixing the imports at "pip install" time ---------------------
+# (copy-pasted from the NumPy Github repository)
+
+# We first need to detect if we're being called as part of the pykeops setup
+# procedure itself in a reliable manner.
+try:
+    __PYKEOPS_SETUP__  # global variable, will be set to True by setup.py
+except NameError:
+    __PYKEOPS_SETUP__ = False  # standard use-case
+
+if not __PYKEOPS_SETUP__:
+    from .common.lazy_tensor import LazyTensor, Vi, Vj, Pm

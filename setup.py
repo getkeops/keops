@@ -6,6 +6,18 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
+# Copy-pasted hack from https://github.com/numpy/numpy/blob/master/setup.py: ---
+# allowing us to write "from pykeops import __version__" even when dependencies
+# are missing, during a pip install.
+
+# This is a bit hackish: we are setting a global variable so that the main
+# numpy __init__ can detect if it is being loaded by the setup routine, to
+# avoid attempting to load components that aren't built yet.  While ugly, it's
+# a lot more robust than what was previously being used.
+import builtins
+builtins.__PYKEOPS_SETUP__ = True
+# ------------------------------------------------------------------------------
+
 from pykeops import __version__ as current_version
 
 # Get the long description from the README file
@@ -166,3 +178,11 @@ setup(
             },
 )
 
+
+
+if __name__ == '__main__':
+    # This may avoid problems where pykeops is installed via ``*_requires`` by
+    # setuptools, the global namespace isn't reset properly, and then pykeops is
+    # imported later (which will then fail to load pykeops extension modules).
+    # See numpy gh-7956 for details
+    del builtins.__PYKEOPS_SETUP__
