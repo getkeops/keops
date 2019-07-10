@@ -82,8 +82,8 @@ pipeline {
     }
 
     stage('Doc') {
+      when { buildingTag() }
       agent { label 'cuda-doc' }
-      when { tag "v*" }
       // environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
       steps {
         echo 'Generating doc on tag event...'
@@ -99,8 +99,8 @@ pipeline {
     }
 
     stage('Deploy') {
+      when { buildingTag() }
       agent { label 'cuda' }
-      when { tag "v*" }
       environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
       steps {
         echo 'Deploying on tag event...'
