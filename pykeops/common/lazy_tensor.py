@@ -4,9 +4,9 @@ import copy
 
 from pykeops import torch_found as usetorch
 
-if not usetorch:
-    from pykeops.numpy.utils import numpytools
-else:
+from pykeops.numpy.utils import numpytools
+
+if usetorch:
     import torch
     from pykeops.torch.utils import torchtools
 
