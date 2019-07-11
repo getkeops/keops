@@ -29,4 +29,11 @@ from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin,
 from .kernel_product.formula import Formula
 from pykeops.common.lazy_tensor import LazyTensor, Vi, Vj, Pm
 
+# N.B.: If "from pykeops.numpy import LazyTensor" has already been run,
+#       the line above will *not* import "torchtools" and we'll end up with an error...
+#       So even though it may be a bit ugly, we re-load the lazy_tensor file
+#       to make sure that "pykeops.torch_found = True" is taken into account.
+import importlib
+importlib.reload(pykeops.common.lazy_tensor)
+
 __all__ = sorted(["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin", "Kernel", "kernel_product", "KernelSolve", "kernel_formulas", "Formula", "LazyTensor", "Vi", "Vj", "Pm"])

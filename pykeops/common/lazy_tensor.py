@@ -6,7 +6,6 @@ from pykeops import numpy_found as usenumpy
 from pykeops import torch_found as usetorch
 
 if usenumpy:
-    import numpy
     from pykeops.numpy.utils import numpytools
 
 if usetorch:
@@ -142,7 +141,7 @@ class LazyTensor:
             elif typex == list:
                 pass
 
-            elif typex in (np.float32,np.float64):  # NumPy scalar -> NumPy array
+            elif usenumpy and typex in (np.float32,np.float64):  # NumPy scalar -> NumPy array
                 x = np.array(x).reshape(1)
 
             elif usetorch and typex == torch.Tensor and len(x.shape) == 0:  # Torch scalar -> Torch tensor
@@ -166,7 +165,7 @@ class LazyTensor:
             # Stage 3: Dealing with NumPy and Torch tensors --------------------
             typex = type(x)
 
-            if typex == np.ndarray:
+            if usenumpy and typex == np.ndarray:
                 self.tools = numpytools
                 self.Genred = numpytools.Genred
                 self.KernelSolve = numpytools.KernelSolve
@@ -178,7 +177,9 @@ class LazyTensor:
                 self.KernelSolve = torchtools.KernelSolve
                 self.dtype = self.tools.dtypename( self.tools.dtype(x) )
             else:
-                raise ValueError("LazyTensors should be built from NumPy arrays, PyTorch tensors, " \
+                str_numpy = "NumPy arrays, " if usenumpy else ""
+                str_torch = "PyTorch tensors, " if usetorch else ""
+                raise ValueError("LazyTensors should be built from " + str_numpy + str_torch \
                                  +"float/integer numbers, lists of floats or 3-uples of integers. " \
                                  +"Received: {}".format(typex))
 
@@ -598,7 +599,7 @@ class LazyTensor:
             self.kwargs.update({ "backend" : self.backend })
 
         if self.dtype is None:  # This can only happen if we haven't encountered 2D or 3D arrays just yet...
-            if isinstance(args[0], np.ndarray):  # We use the "NumPy" or "PyTorch" backend depending on the first argument
+            if usenumpy and isinstance(args[0], np.ndarray):  # We use the "NumPy" or "PyTorch" backend depending on the first argument
                 self.tools = numpytools
                 self.Genred = numpytools.Genred
                 self.KernelSolve = numpytools.KernelSolve
