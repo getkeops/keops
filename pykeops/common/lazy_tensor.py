@@ -110,6 +110,12 @@ class LazyTensor:
         self.ranges = None  # Block-sparsity pattern
         self.backend = None # "CPU", "GPU", "GPU_2D", etc.
 
+        # Duck typing attribute, to be used instead of "isinstance(self, LazyTensor)"
+        # This is a workaround for an importlib.reload messy situation, 
+        # and will come handy when we'll start supporting Block LazyTensors
+        # and other custom operators.
+        self.__lazytensor__ = True  
+
         if x is not None:  # A KeOps LazyTensor can be built from many different objects:
 
             # Stage 1: Are we dealing with simple numbers? ---------------------
@@ -364,7 +370,7 @@ class LazyTensor:
         """
 
         # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
-        if not isinstance(self, LazyTensor):  self  = LazyTensor(self)
+        if not hasattr(self, "__lazytensor__"):  self  = LazyTensor(self)
         
         # we must prevent any operation if self is the output of a reduction operation,
         # i.e. if it has a reduction_op field
@@ -394,8 +400,8 @@ class LazyTensor:
             Supported values are ``"same"``, ``"sameor1"``, or **None**.
         """
         # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
-        if not isinstance(self, LazyTensor):  self  = LazyTensor(self)
-        if not isinstance(other, LazyTensor): other = LazyTensor(other)      
+        if not hasattr(self, "__lazytensor__"): self  = LazyTensor(self)
+        if not hasattr(other, "__lazytensor__"): other = LazyTensor(other)      
 
         # we must prevent any operation if self or other is the output of a reduction operation,
         # i.e. if it has a reduction_op field
@@ -424,7 +430,7 @@ class LazyTensor:
         if is_operator:
             res.formula = "({} {} {})".format( self.formula, operation, other.formula )
         elif opt_arg is not None:
-            if isinstance(opt_arg, LazyTensor): opt_arg = opt_arg.formula
+            if hasattr(opt_arg, "__lazytensor__"): opt_arg = opt_arg.formula
             if opt_pos == "last":
                 res.formula = "{}({}, {}, {})".format( operation, self.formula, other.formula, opt_arg )
             elif opt_pos == "middle":
@@ -540,7 +546,7 @@ class LazyTensor:
             performed prior to our conjugate gradient descent.
         """   
 
-        if not isinstance(other, LazyTensor):
+        if not hasattr(other, "__lazytensor__"):
             other = LazyTensor(other, axis=0)  # a vector is normally indexed by "i"
 
         # If given, var is symbolic variable corresponding to unknown
