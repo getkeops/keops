@@ -9,6 +9,7 @@ __version__ = '1.1'
 # Initialize some variables: the values may be redefined 
 
 gpu_available = False
+numpy_found = False
 torch_found = False
 
 ###########################################################

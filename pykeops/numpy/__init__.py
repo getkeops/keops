@@ -15,6 +15,8 @@ default_dtype = 'float64' # 'float32' or 'float64'
 ##########################################################
 # Import pyKeOps routines 
 
+pykeops.numpy_found = True
+
 from .generic.generic_red import Genred
 from .operations import KernelSolve
 from .convolutions.radial_kernel import RadialKernelConv, RadialKernelGrad1conv

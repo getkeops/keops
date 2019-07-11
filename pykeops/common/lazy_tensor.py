@@ -2,9 +2,12 @@ import numpy as np
 import re
 import copy
 
+from pykeops import numpy_found as usenumpy
 from pykeops import torch_found as usetorch
 
-from pykeops.numpy.utils import numpytools
+if usenumpy:
+    import numpy
+    from pykeops.numpy.utils import numpytools
 
 if usetorch:
     import torch
