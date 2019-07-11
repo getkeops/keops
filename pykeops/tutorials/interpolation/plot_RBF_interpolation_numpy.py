@@ -32,7 +32,7 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-from pykeops import LazyTensor
+from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
 
 #######################################################################

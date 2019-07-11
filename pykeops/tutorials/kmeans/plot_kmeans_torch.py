@@ -27,7 +27,7 @@ import time
 import torch
 from matplotlib import pyplot as plt
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 use_cuda = torch.cuda.is_available()
 dtype = 'float32' if use_cuda else 'float64'

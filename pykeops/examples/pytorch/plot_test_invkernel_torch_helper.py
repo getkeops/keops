@@ -19,8 +19,8 @@ from matplotlib import pyplot as plt
 
 import torch
 
-from pykeops import Vi, Vj, Pm
-from pykeops import LazyTensor as keops
+from pykeops.torch import Vi, Vj, Pm
+from pykeops.torch import LazyTensor as keops
 
 
 ###############################################################################

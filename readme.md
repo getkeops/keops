@@ -21,7 +21,7 @@ x = torch.randn(1000000, 3, requires_grad=True).cuda()
 y = torch.randn(2000000, 3).cuda()
 
 # Turn our Tensors into KeOps symbolic variables:
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 x_i = LazyTensor( x[:,None,:] )  # x_i.shape = (1e6, 1, 3)
 y_j = LazyTensor( y[None,:,:] )  # y_j.shape = ( 1, 2e6,3)
 
@@ -79,6 +79,6 @@ As of today, KeOps provides core routines for:
 
 Feel free to contact us for any bug report or feature request:
 
-* [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
+* [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
 * [Jean Feydy](https://www.math.ens.fr/~feydy/)
 * [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)

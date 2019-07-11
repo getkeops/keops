@@ -19,7 +19,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 nump = lambda t : t.cpu().numpy()
 use_cuda = torch.cuda.is_available()

@@ -20,7 +20,7 @@ It can thus be used to implement a **large-scale**
 
 import time
 import numpy as np
-from pykeops import LazyTensor
+from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
 from matplotlib import pyplot as plt
 

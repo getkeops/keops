@@ -33,11 +33,12 @@ SumSoftMaxWeight reduction (with LazyTensors)
 
 import time
 import numpy as np
-from pykeops.numpy import Genred
-from pykeops import LazyTensor as kf
-from pykeops import Vi, Vj, Pm
-from pykeops.numpy.utils import WarmUpGpu
 import matplotlib.pyplot as plt
+
+from pykeops.numpy import LazyTensor as kf
+from pykeops.numpy import Vi, Vj, Pm
+from pykeops.numpy.utils import WarmUpGpu
+
 
 ###############################################################################
 # Define our dataset:

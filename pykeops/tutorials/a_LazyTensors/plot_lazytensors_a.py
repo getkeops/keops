@@ -107,7 +107,7 @@ except RuntimeError as err:
 # 
 # 
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 x_i = LazyTensor( x[:,None,:] )  # (M, 1, 2) KeOps LazyTensor, wrapped around the numpy array x
 y_j = LazyTensor( y[None,:,:] )  # (1, N, 2) KeOps LazyTensor, wrapped around the numpy array y

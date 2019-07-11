@@ -19,7 +19,7 @@ import numpy as np
 import time 
 import matplotlib.pyplot as plt
 
-from pykeops import Vi, Vj, Pm
+from pykeops.numpy import Vi, Vj, Pm
 from pykeops.numpy import KernelSolve
 from pykeops.numpy.utils import IsGpuAvailable
 

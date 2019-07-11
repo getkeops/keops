@@ -34,7 +34,8 @@ to compute **spectral coordinates** on a large 2D or 3D point cloud.
 import matplotlib.pyplot as plt
 import numpy as np
 
-from pykeops import LazyTensor
+#from pykeops.common.lazy_tensor import LazyTensor
+from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
 
 use_cuda = IsGpuAvailable()

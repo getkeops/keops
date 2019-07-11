@@ -24,7 +24,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import torch
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 use_cuda = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor

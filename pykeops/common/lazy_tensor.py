@@ -1,19 +1,14 @@
 import numpy as np
-from pykeops.numpy import Genred as Genred_numpy
-from pykeops.numpy import KernelSolve as KernelSolve_numpy
-from pykeops.numpy.utils import numpytools
 import re
 import copy
 
-try:
+from pykeops import torch_found as usetorch
+
+if not usetorch:
+    from pykeops.numpy.utils import numpytools
+else:
     import torch
-    from pykeops.torch import Genred as Genred_torch
-    from pykeops.torch import KernelSolve as KernelSolve_torch
     from pykeops.torch.utils import torchtools
-    usetorch = True
-except ImportError:
-    usetorch = False
-    pass
 
 
 
@@ -170,14 +165,14 @@ class LazyTensor:
 
             if typex == np.ndarray:
                 self.tools = numpytools
-                self.Genred = Genred_numpy
-                self.KernelSolve = KernelSolve_numpy
+                self.Genred = numpytools.Genred
+                self.KernelSolve = numpytools.KernelSolve
                 self.dtype = self.tools.dtypename( self.tools.dtype(x) )
 
             elif usetorch and typex == torch.Tensor:
                 self.tools = torchtools
-                self.Genred = Genred_torch
-                self.KernelSolve = KernelSolve_torch
+                self.Genred = torchtools.Genred
+                self.KernelSolve = torchtools.KernelSolve
                 self.dtype = self.tools.dtypename( self.tools.dtype(x) )
             else:
                 raise ValueError("LazyTensors should be built from NumPy arrays, PyTorch tensors, " \
@@ -602,13 +597,13 @@ class LazyTensor:
         if self.dtype is None:  # This can only happen if we haven't encountered 2D or 3D arrays just yet...
             if isinstance(args[0], np.ndarray):  # We use the "NumPy" or "PyTorch" backend depending on the first argument
                 self.tools = numpytools
-                self.Genred = Genred_numpy
-                self.KernelSolve = KernelSolve_numpy
+                self.Genred = numpytools.Genred
+                self.KernelSolve = numpytools.KernelSolve
 
             elif usetorch and isinstance(args[0], torch.Tensor):
                 self.tools = torchtools
-                self.Genred = Genred_torch
-                self.KernelSolve = KernelSolve_torch
+                self.Genred = torchtools.Genred
+                self.KernelSolve = torchtools.KernelSolve
                 
             self.dtype = self.tools.dtypename( self.tools.dtype(args[0]) )
             self.fixvariables()

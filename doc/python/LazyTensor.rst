@@ -20,7 +20,7 @@ this new tensor type may be used with **very little overhead**:
     y = torch.randn(2000000, 3).cuda()
 
     # Turn our Tensors into KeOps symbolic variables:
-    from pykeops import LazyTensor
+    from pykeops.torch import LazyTensor
     x_i = LazyTensor( x[:,None,:] )  # x_i.shape = (1e6, 1, 3)
     y_j = LazyTensor( y[None,:,:] )  # y_j.shape = ( 1, 2e6,3)
 

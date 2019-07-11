@@ -9,7 +9,7 @@ This tutorial shows some advanced features of the LazyTensor class.
 
 import time
 import torch
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 use_cuda = torch.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
@@ -36,7 +36,7 @@ y = torch.randn(N, D).type(tensor)
 
 ############################################################################
 # Then we use Vi and Vj to convert to KeOps LazyTensor objects
-from pykeops import Vi, Vj, Pm
+from pykeops.torch import Vi, Vj, Pm
 x_i = Vi(x)  # (M, 1, D) LazyTensor, equivalent to LazyTensor( x[:,None,:] ) 
 y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] ) 
 
@@ -138,7 +138,7 @@ x = torch.randn(M, D).type(tensor)
 y = torch.randn(N, D).type(tensor)
 b = torch.randn(N, Dv).type(tensor)
 sigmas = tensor([0.5, 1.0, 2.0, 4.0])
-from pykeops import Vi, Vj, Pm
+from pykeops.torch import Vi, Vj, Pm
 x_i = Vi(x)  # (M, 1, D) LazyTensor, equivalent to LazyTensor( x[:,None,:] ) 
 y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] ) 
 b_j = Vj(b)  # (1, N, D) LazyTensor, equivalent to LazyTensor( b[None,:,:] ) 

@@ -1,6 +1,6 @@
 import numpy as np
 
-from pykeops.numpy import Genred, default_dtype
+from pykeops.numpy import Genred, default_dtype, KernelSolve
 from pykeops.numpy.cluster import swap_axes as np_swap_axes
 
 
@@ -10,7 +10,7 @@ class numpytools:
     exp = np.exp
     log = np.log
     Genred = Genred
-    
+    KernelSolve = KernelSolve
     swap_axes = np_swap_axes
 
     @staticmethod

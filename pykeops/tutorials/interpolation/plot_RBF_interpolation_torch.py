@@ -32,7 +32,7 @@ import time
 import torch
 from matplotlib import pyplot as plt
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 ###############################################################################################
 # Generate some data:

@@ -118,7 +118,7 @@ gaussianconv_keops = generic_sum("Exp(-SqDist(X,Y)) * B",  # Formula
 #############################################
 # Finally, perform the same operation with our high-level :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` wrapper:
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 def gaussianconv_lazytensor(x, y, b):
     nbatchdims = len(x.shape) - 2

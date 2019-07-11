@@ -1,6 +1,6 @@
 import torch
 
-from pykeops.torch import Genred, default_dtype
+from pykeops.torch import Genred, KernelSolve, default_dtype
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
 
 
@@ -19,7 +19,8 @@ class torchtools:
 
     swap_axes = torch_swap_axes
     
-    # Genred = Genred
+    Genred = Genred
+    KernelSolve = KernelSolve
     # GenredLowlevel = GenredLowlevel
 
     @staticmethod

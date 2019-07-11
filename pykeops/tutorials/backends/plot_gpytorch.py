@@ -66,7 +66,7 @@ train_y = torch.sin(train_x * (2 * math.pi)) \
 #   we hope to provide a simpler interface in future releases. 
 
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 class KeOpsRBFLazyTensor(gpytorch.lazy.LazyTensor):
     def __init__(self, x_i, y_j):
