@@ -18,12 +18,12 @@ Packaged version (recommended)
 
     cd /path/to
     wget https://github.com/getkeops/keops/archive/master.zip
-    unzip libkeops-master.zip
+    unzip master.zip
 
 
-Note that temporary files will be written into the ``/path/to/libkeops/keopslab/build`` folder: this directory must have write permissions.
+Note that temporary files will be written into the ``/path/to/keops-master/keopslab/build`` folder: this directory must have write permissions.
 
-2. Manually add the directory ``/path/to/libkeops`` to you Matlab path, as documented :ref:`below <part.path>`.
+2. Manually add the directory ``/path/to/keops-master/keopslab`` to you Matlab path, as documented :ref:`below <part.path>`.
 
 3. :ref:`Test your installation <part.test>`.
 
@@ -35,12 +35,12 @@ From source using git
 
 .. code-block:: bash
 
-    git clone https://github.com/getkeops/keops.git /path/to/libkeops
+    git clone https://github.com/getkeops/keops.git /path/to/keops
 
 
-Note that temporary files will be written into the ``./libkeops/keopslab/build`` folder: this directory must have write permissions.
+Note that temporary files will be written into the ``/path/to/keops/keopslab/build`` folder: this directory must have write permissions.
 
-2. Manually add the directory ``/path/to/libkeops`` to you matlab path: see :ref:`part.path`
+2. Manually add the directory ``/path/to/keops/keopslab`` to you matlab path: see :ref:`part.path`
 
 3. :ref:`Test your installation <part.test>`.
 
@@ -49,20 +49,20 @@ Note that temporary files will be written into the ``./libkeops/keopslab/build``
 Set the path
 ------------
 
-There are two ways to tell Matlab that KeOpsLab is now available in ``/path/to/libkeops``:
+There are two ways to tell Matlab that KeOpsLab is now available in ``/path/to/keops/keopslab``:
 
 + You can add this folder to your Matlab path once and for all: in the Matlab prompt, type  
 
 .. code-block:: matlab
 
-    addpath(genpath('/path/to/libkeops'))
+    addpath(genpath('/path/to/keops/keopslab'))
     savepath
 
 + Otherwise, please add the following line to the beginning of your scripts:
 
 .. code-block:: matlab
 
-    addpath(genpath('/path/to/libkeops'))
+    addpath(genpath('/path/to/keops/keopslab'))
 
 
 .. _part.test:
@@ -76,7 +76,7 @@ Test that everything goes fine
 
     x = reshape(1:9,3,[]); y = reshape(3:8,3,[]);
 
-    my_conv = Kernel('Sum_Reduction(SqNorm2(x-y),1)','x=Vi(0,3)','y=Vj(1,3)');
+    my_conv = keops_kernel('Sum_Reduction(SqNorm2(x-y),1)','x=Vi(0,3)','y=Vj(1,3)');
     my_conv(x,y)'
 
 It should return:

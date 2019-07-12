@@ -55,7 +55,7 @@ b = torch.rand(N,Dv)
 # KeOps kernel
 # ---------------
 # 
-# Create a new generic routine using the :func:`pykeops.numpy.Genred`
+# Create a new generic routine using the :class:`pykeops.numpy.Genred`
 # constructor:
 
 formula = 'SqDist(x,y)'

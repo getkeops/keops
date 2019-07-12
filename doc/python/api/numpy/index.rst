@@ -5,6 +5,7 @@ Numpy API
 
 .. toctree::
 
+    LazyTensor
     Genred_numpy
     KernelSolve
     GenericOps

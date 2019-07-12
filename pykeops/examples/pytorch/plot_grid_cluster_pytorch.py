@@ -46,7 +46,7 @@ y = y/10 + dtype([.6,.6])
 # To enable the implementation of algorithms with **sub-quadratic time complexity**
 # under this constraint, KeOps provides access to
 # **block-sparse reduction routines** through the optional
-# **ranges** argument, which is supported by :func:`torch.Genred <pykeops.torch.Genred>`
+# **ranges** argument, which is supported by :class:`torch.Genred <pykeops.torch.Genred>`
 # and all its children.
 #
 # Pre-processing
