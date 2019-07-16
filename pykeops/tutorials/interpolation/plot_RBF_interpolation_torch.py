@@ -1,17 +1,17 @@
-"""
+r"""
 ==================================
 Kernel interpolation - PyTorch API
 ==================================
 
-The :mod:`K_xx.solve(b, alpha=1e-10)` method of KeOps :class:`pykeops.torch.LazyTensor` allows you to solve optimization
+The :meth:`pykeops.torch.LazyTensor.solve(b, alpha=1e-10)<pykeops.torch.LazyTensor.solve>` method of KeOps :class:`pykeops.torch.LazyTensor` allows you to solve optimization
 problems of the form
 
 .. math::
-    a^{\star}=\operatorname*{argmin}_a \| (\\alpha\operatorname{Id}+K_{xx})a -b\|^2_2,
+    a^{\star}=\operatorname*{argmin}_a \| (\alpha\operatorname{Id}+K_{xx})a -b\|^2_2,
 
 where :math:`K_{xx}` is a symmetric, positive definite linear operator
 defined through the :ref:`KeOps generic syntax <part.generic_formulas>`
-and :math:`\\alpha` is a nonnegative regularization parameter.
+and :math:`\alpha` is a nonnegative regularization parameter.
 In the following script, we use it to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
 (aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_
 or `generalized spline interpolation <https://en.wikipedia.org/wiki/Spline_interpolation>`_)

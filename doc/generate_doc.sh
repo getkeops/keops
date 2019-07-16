@@ -21,6 +21,7 @@ set -e
 # build the doc (1rst run to compile the binaries, 2nd run to render the doc)
 make clean
 CXX=g++-8 CC=gcc-8 make html
+make clean
 CXX=g++-8 CC=gcc-8 make html
 CXX=g++-8 CC=gcc-8 make html
 
