@@ -64,20 +64,20 @@ To define formulas with KeOps, you can use simple arithmetics:
 Elementary functions:
 
 ======================   =========================================================================================================
-``Inv(f)``                element-wise inverse (1 ./ f)
+``Inv(f)``                element-wise inverse ``1 ./ f``
 ``Exp(f)``                element-wise exponential function
 ``Log(f)``                element-wise natural logarithm
 ``Sin(f)``                element-wise sine function
 ``Cos(f)``                element-wise cosine function
-``Pow(f, P)``             P-th power of ``f`` (element-wise), where P is a fixed integer
+``Pow(f, P)``             ``P``-th power of ``f`` (element-wise), where ``P`` is a fixed integer
 ``Powf(f, g)``            power operation, alias for ``Exp(g*Log(f))``
-``Square(f)``             element-wise square, faster than Pow(f,2)
-``Sqrt(f)``               element-wise square root, faster than Powf(f,.5)
-``Rsqrt(f)``              element-wise inverse square root, faster than Powf(f,-.5)
+``Square(f)``             element-wise square, faster than ``Pow(f,2)``
+``Sqrt(f)``               element-wise square root, faster than ``Powf(f,.5)``
+``Rsqrt(f)``              element-wise inverse square root, faster than ``Powf(f,-.5)``
 ``Abs(f)``                element-wise absolute value
-``Sign(f)``               element-wise sign function (-1 if f<0, 0 if f=0, 1 if f>0)
-``Step(f)``               element-wise step function (0 if f<0, 1 if f>=0)
-``ReLU(f)``               element-wise ReLU function (0 if f<0, f if f>=0)
+``Sign(f)``               element-wise sign function (``-1`` if ``f<0``, ``0`` if ``f=0``, ``1`` if ``f>0``)
+``Step(f)``               element-wise step function (``0`` if ``f<0``, ``1`` if ``f>=0``)
+``ReLU(f)``               element-wise ReLU function (``0`` if ``f<0``, ``f`` if ``f>=0``)
 ======================   =========================================================================================================
 
 

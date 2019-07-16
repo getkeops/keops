@@ -1260,7 +1260,7 @@ class LazyTensor:
             of batch dimensions plus 0 (= reduction over :math:`i`), 
             or 1 (= reduction over :math:`j`).
           dim (integer): alternative keyword for the axis parameter.
-          weight (LazyTensor): optional :class:`LazyTensor` object that specifies scalar or vector-valued weights
+          weight (:class:`LazyTensor`): optional object that specifies scalar or vector-valued weights
             in the log-sum-exp operation
           **kwargs: optional parameters that are passed to the :meth:`reduction` method.
 
@@ -1289,7 +1289,7 @@ class LazyTensor:
         the :doc:`main reference page <../../../api/math-operations>`.
         
         Keyword Args:
-          weight (LazyTensor): :class:`LazyTensor` object that specifies scalar or vector-valued weights.
+          weight (:class:`LazyTensor`): object that specifies scalar or vector-valued weights.
           axis (integer): reduction dimension, which should be equal to the number
             of batch dimensions plus 0 (= reduction over :math:`i`), 
             or 1 (= reduction over :math:`j`).
