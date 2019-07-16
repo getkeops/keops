@@ -1,7 +1,7 @@
 import torch
 
 def sort_clusters(x, lab) :
-    """Sorts a list of points and labels to make sure that the clusters are contiguous in memory.
+    r"""Sorts a list of points and labels to make sure that the clusters are contiguous in memory.
 
     On the GPU, **contiguous memory accesses** are key to high performances.
     By making sure that points in the same cluster are stored next
@@ -46,7 +46,7 @@ def sort_clusters(x, lab) :
     return x_sorted, lab
 
 def cluster_ranges(lab, Nlab=None) :
-    """Computes the ``[start,end)`` indices that specify clusters in a sorted point cloud.
+    r"""Computes the ``[start,end)`` indices that specify clusters in a sorted point cloud.
 
     If **lab** denotes a vector of labels :math:`\ell_i\in[0,C)`,
     :func:`sort_clusters` allows us to sort our point clouds and make sure
@@ -95,7 +95,7 @@ def cluster_ranges(lab, Nlab=None) :
     return torch.stack( (pivots[:-1], pivots[1:]) ).t().int()
 
 def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
-    """Computes the (weighted) centroids of classes specified by a vector of labels.
+    r"""Computes the (weighted) centroids of classes specified by a vector of labels.
     
     If points :math:`x_i \in\mathbb{R}^D` are assigned to :math:`C` different classes
     by the vector of integer labels :math:`\ell_i \in [0,C)`,
@@ -142,7 +142,7 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
     return c
 
 def cluster_ranges_centroids(x, lab, weights=None) :
-    """Computes the cluster indices and centroids of a (weighted) point cloud with labels.
+    r"""Computes the cluster indices and centroids of a (weighted) point cloud with labels.
     
     If **x** and **lab** encode a cloud of points :math:`x_i\in\mathbb{R}^D`
     with labels :math:`\ell_i\in[0,C)`, for :math:`i\in[0,M)`, this routine returns:
@@ -214,10 +214,12 @@ def cluster_ranges_centroids(x, lab, weights=None) :
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab), Nlab
 
 def swap_axes(ranges) :
-    """Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional **ranges** parameter.
+    r"""
+    Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional **ranges** parameter.
     
     This function returns **None** if **ranges** is **None**,
-    and swaps the :math:`i` and :math:`j` arrays of indices otherwise."""
+    and swaps the :math:`i` and :math:`j` arrays of indices otherwise.
+    """
     if ranges is None :
         return None
     else :
