@@ -3,7 +3,7 @@
 K-NN classification - NumPy API
 =================================
 
-The :mod:`.argKmin(K)` reduction supported by KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` allows us
+The :meth:`pykeops.numpy.LazyTensor.argKmin` reduction supported by KeOps :class:`pykeops.numpy.LazyTensor` allows us
 to perform **bruteforce k-nearest neighbors search** with four lines of code.
 It can thus be used to implement a **large-scale** 
 `K-NN classifier <https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm>`_,
@@ -20,7 +20,7 @@ It can thus be used to implement a **large-scale**
 
 import time
 import numpy as np
-from pykeops import LazyTensor
+from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
 from matplotlib import pyplot as plt
 

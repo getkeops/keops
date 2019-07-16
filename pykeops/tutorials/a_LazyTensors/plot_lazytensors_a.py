@@ -1,4 +1,4 @@
-"""
+r"""
 ================================================
 A wrapper for NumPy and PyTorch arrays
 ================================================
@@ -8,22 +8,20 @@ to modern computing libraries,
 alleviating the need for **huge intermediate variables**
 such as *kernel* or *distance* matrices in machine
 learning and computational geometry.
-
+ 
 """
 
 #########################################################################
-# First steps 
-# -----------------
+# First steps
+# -----------
 #
 # A simple high-level interface to the KeOps inner routines is provided by
-# the :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`
-# **symbolic wrapper**, which can be used in conjunction with
-# both **NumPy arrays** or **PyTorch tensors**
-# - just don't mix the two frameworks in the same computation!
+# the :class:`pykeops.numpy.LazyTensor` or :class:`pykeops.torch.LazyTensor`
+# **symbolic wrapper**, which can be used with **NumPy arrays** or **PyTorch 
+# tensors** respectively.
 #
-# To illustrate its main features on a **simple**
-# **example**, let's generate two point clouds :math:`(x_i)_{i\in[1,M]}` 
-# and :math:`(y_j)_{j\in[1,N]}` in the unit square:
+# To illustrate its main features on a **simple example**, let's generate two point
+# clouds :math:`(x_i)_{i\in[1,M]}`  and :math:`(y_j)_{j\in[1,N]}` in the unit square:
 
 import numpy as np
 
@@ -35,13 +33,13 @@ y = np.random.rand(N, 2)
 # With NumPy, an efficient way of computing the index of the **nearest y-neighbor**
 #
 # .. math::
-#   \sigma(i) ~=~ \arg \min_{j\in [1,N]} \| x_i - y_j\|^2
+#   \sigma(i) = \arg \min_{j\in [1,N]} \| x_i - y_j\|^2
 #
 # for all points :math:`x_i` is to perform a :func:`numpy.argmin()`
 # reduction on the **M-by-N matrix** of squared distances
 #
 # .. math::
-#   D_{i,j} ~=~ \|x_i-y_j\|^2,
+#   D_{i,j} = \|x_i-y_j\|^2,
 #
 # computed using **tensorized**, broadcasted operators:
 #
@@ -107,7 +105,7 @@ except RuntimeError as err:
 # 
 # 
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 x_i = LazyTensor( x[:,None,:] )  # (M, 1, 2) KeOps LazyTensor, wrapped around the numpy array x
 y_j = LazyTensor( y[None,:,:] )  # (1, N, 2) KeOps LazyTensor, wrapped around the numpy array y
@@ -118,12 +116,12 @@ print( D_ij )
 ##########################################################
 # With KeOps, implementing **lazy** numerical schemes really
 # is **that simple**!
-# Our :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` variables
+# Our :class:`LazyTensor<pykeops.torch.LazyTensor>` variables
 # are encoded by a list of data arrays plus an arbitrary
 # symbolic formula, written with a :doc:`custom mathematical syntax <../../api/math-operations>`
 # that is modified after each "pythonic" operation such as ``-``, ``**2`` or ``.exp()``.
 #
-# We may now perform our :func:`LazyTensor.argmin()` reduction using
+# We may now perform our :meth:`pykeops.torch.LazyTensor.argmin` reduction using
 # an efficient Map-Reduce scheme, implemented 
 # as a `highly templated CUDA kernel <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv1D.cu>`_ around
 # our custom symbolic formula.
@@ -136,13 +134,13 @@ print( "s_i is now a {} of shape {}.".format(type(s_i), s_i.shape) )
 print( s_i[:10] )
 
 ##########################################################
-# Going further, you may combine :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
+# Going further, you may combine :class:`LazyTensors <pykeops.torch.LazyTensor>`
 # using a **wide range of mathematical operations**.
 # For instance, with data arrays stored directly on the GPU,
 # a Laplacian kernel dot product 
 # 
 # .. math::
-#   a_i ~=~ \sum_{j=1}^N \exp(-\|x_i-y_j\|)\cdot b_j
+#   a_i = \sum_{j=1}^N \exp(-\|x_i-y_j\|)\cdot b_j
 # 
 # in dimension D=10 can be performed with:
 
@@ -166,7 +164,7 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape) )
 # Automatic differentiation
 # -----------------------------------------------
 #
-# Crucially, :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
+# Crucially, :class:`LazyTensors<pykeops.torch.LazyTensor>`
 # **fully support** the :mod:`torch.autograd` engine:
 # you may backprop through KeOps reductions as easily as through
 # vanilla PyTorch operations.
@@ -191,11 +189,11 @@ print("h_i is now a {} of shape {}.".format(type(h_i), h_i.shape) )
 ############################################################################
 # .. warning::
 #   As of today, backpropagation is **not supported** through
-#   the :meth:`.min()`, :meth:`.max()` or :meth:`.Kmin()` reductions:
+#   the :meth:`pykeops.torch.LazyTensor.min`, :meth:`pykeops.torch.LazyTensor.max` or :meth:`pykeops.torch.LazyTensor.Kmin` reductions:
 #   we're working on it, but are not there just yet.
 #   Until then, a simple workaround is to use
 #   the indices computed by the
-#   :meth:`.argmin()`, :meth:`.argmax()` or :meth:`.argKmin()`
+#   :meth:`pykeops.torch.LazyTensor.argmin`, :meth:`pykeops.torch.LazyTensor.argmax` or :meth:`pykeops.torch.LazyTensor.argKmin`
 #   reductions to define a fully differentiable PyTorch tensor as we now explain.
 #
 # Coming back to our example about nearest neighbors in the unit cube:
@@ -209,7 +207,7 @@ y_j = LazyTensor( y[None,:,:] )  # (1, N, 3) LazyTensor
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # Symbolic (M, N) matrix of squared distances
 
 #####################################################################
-# We could compute the (M,) vector of squared distances to the **nearest y-neighbor** with:
+# We could compute the ``(M,)`` vector of squared distances to the **nearest y-neighbor** with:
 
 to_nn = D_ij.min(dim=1).view(-1)  
 
@@ -239,7 +237,7 @@ print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
 # Batch processing
 # -----------------------------------------------
 # 
-# As should be expected, :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
+# As should be expected, :class:`LazyTensors<pykeops.torch.LazyTensor>`
 # also provide a simple support of **batch processing**,
 # with broadcasting over dummy (=1) batch dimensions:
 
@@ -260,7 +258,7 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 # Everything works just fine, with two major caveats:
 #   
 # - The structure of KeOps computations is still a little bit **rigid**,
-#   and :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` should only
+#   and :class:`LazyTensors<pykeops.torch.LazyTensor>` should only
 #   be used in situations where the **large** dimensions M and N 
 #   over which the main reduction
 #   will be performed are in positions
@@ -269,8 +267,8 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 #   We're working towards a full support of **tensor** variables,
 #   but this will probably take a few more weeks to implement and test properly...
 #
-# - KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` never collapse
-#   their last "dimension", even after a :func:`.sum(-1)` reduction
+# - KeOps :class:`LazyTensors<pykeops.torch.LazyTensor>` never collapse
+#   their last "dimension", even after a ``.sum(-1)`` reduction
 #   whose **keepdim** argument is implicitely set to **True**.
 
 print("Convenient, numpy-friendly shape:       ", K_ij.shape)
@@ -288,7 +286,7 @@ print("Actual shape, used internally by KeOps: ", K_ij._shape)
 # ------------------------------------
 # 
 # The full range of mathematical operations supported by
-# :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` is described
+# :class:`LazyTensors<pykeops.torch.LazyTensor>` is described
 # in our API documentation.
 # Let's just mention that the lines below define valid computations:
 #
@@ -307,7 +305,7 @@ print("a_j is now a {} of shape {}.".format(type(a_j), a_j.shape))
 #############################################################################
 # Enjoy! And feel free to check the next tutorial for a discussion
 # of the varied reduction operations that can be applied to
-# KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`.
+# KeOps :class:`LazyTensors<pykeops.torch.LazyTensor>`.
 
 
 

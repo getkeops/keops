@@ -8,7 +8,7 @@ Fancy reductions, solving linear systems
 
 #############################################################
 # As discussed in the previous notebook, 
-# KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
+# KeOps :class:`LazyTensors <pykeops.torch.LazyTensor>`
 # support a wide range of **mathematical formulas**.
 # Let us now discuss the different operators that may be used
 # to **reduce** our large M-by-N symbolic tensors into
@@ -22,12 +22,12 @@ Fancy reductions, solving linear systems
 # LogSumExp, KMin and advanced reductions
 # ---------------------------------------------------
 #
-# First, let's build some large :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
+# First, let's build some large :class:`LazyTensors <pykeops.torch.LazyTensor>`
 # ``S_ij`` and ``V_ij`` which respectively handle **scalar** and **vector**
 # formulas:
 
 import torch
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 use_cuda = torch.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 M, N = (100000, 200000) if use_cuda else (1000, 2000)
@@ -46,22 +46,22 @@ print(S_ij)
 print(V_ij)
 
 ############################################################################
-# As we've seen earlier, the :meth:`.sum()` reduction can be used
+# As we've seen earlier, the :meth:`pykeops.torch.LazyTensor.sum()` reduction can be used
 # on both ``S_ij`` and ``V_ij`` to produce genuine PyTorch 2D tensors:
 
 print( "Sum reduction of S_ij wrt. the 'N' dimension:", S_ij.sum(dim=1).shape )
 
 ###############################################
-# Note that :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
-# support reductions over both indexing "M" and "N" dimensions,
-# which may be specified using the PyTorch-friendly **dim**
-# or the standard NumPy **axis** optional arguments:
+# Note that :class:`LazyTensors<pykeops.torch.LazyTensor>`
+# support reductions over both indexing ``M`` and ``N`` dimensions,
+# which may be specified using the PyTorch-friendly ``dim``
+# or the standard NumPy ``axis`` optional arguments:
 
 print( "Sum reduction of V_ij wrt. the 'M' dimension:", V_ij.sum(axis=0).shape )
 
 ##################################################################
 # Just like PyTorch tensors, 
-# :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`
+# :mod:`pykeops.torch.LazyTensor`
 # also support a **stabilized** `log-sum-exp reduction <https://en.wikipedia.org/wiki/LogSumExp>`_,
 # computed efficiently with a **running maximum** in the CUDA loop. For example, the 
 # following line computes :math:`\log(\sum_ie^{S_{ij}})`
@@ -76,7 +76,7 @@ print( "LogSumExp reduction of S_ij, with 'weight' V_ij, wrt. the 'N' dimension:
 
 
 ###############################################################
-# Going further, the :meth:`.min()`, :meth:`.max()`, :meth:`.argmin()` or :meth:`.argmax()`
+# Going further, the :meth:`pykeops.torch.LazyTensor.min`, :meth:`pykeops.torch.LazyTensor.max()`, :meth:`pykeops.torch.LazyTensor.argmin` or :meth:`pykeops.torch.LazyTensor.argmax`
 # reductions work as expected, following the (sensible) NumPy convention:
 
 print( "Min    reduction of S_ij wrt. the 'M' dimension:", S_ij.min(dim=0).shape )
@@ -87,7 +87,7 @@ print( "ArgMax reduction of V_ij wrt. the 'N' dimension:", V_ij.argmax(dim=1).sh
 
 ##################################################################
 # To compute both quantities in a single pass, feel free to use 
-# the :meth:`.min_argmin()` and :meth:`.max_argmax()` reductions:
+# the :meth:`pykeops.torch.LazyTensor.min_argmin` and :meth:`pykeops.torch.LazyTensor.max_argmax` reductions:
 
 m_i, s_i = S_ij.min_argmin(dim=0)
 print( "Min-ArgMin reduction on S_ij wrt. the 'M' dimension:", m_i.shape, s_i.shape )
@@ -97,7 +97,7 @@ print( "Max-ArgMax reduction on V_ij wrt. the 'N' dimension:", m_i.shape, s_i.sh
 
 ##################################################################
 # More interestingly, KeOps also provides support for
-# the :meth:`.Kmin()`, :meth:`.argKmin()` and :meth:`.Kmin_argKmin()`
+# the :meth:`pykeops.torch.LazyTensor.Kmin`, :meth:`pykeops.torch.LazyTensor.argKmin` and :meth:`pykeops.torch.LazyTensor.Kmin_argKmin`
 # reductions that may be used to implement an efficient
 # :doc:`K-nearest neighbor algorithm <../knn/plot_knn_torch>` :
 #
@@ -114,7 +114,7 @@ print( "KMin    reduction of V_ij wrt. the 'M' dimension:", V_ij.Kmin(K=K, dim=0
 print( "ArgKMin reduction of V_ij wrt. the 'N' dimension:", V_ij.argKmin(K=K, dim=1).shape )
 
 #################################################################
-# Finally, the :mod:`.sumsoftmaxweight(weights)` reduction
+# Finally, the :meth:`pykeops.torch.LazyTensor.sumsoftmaxweight` reduction
 # may be used to computed weighted SoftMax combinations
 #
 # .. math::
@@ -138,12 +138,12 @@ print( "SumSoftMaxWeight reduction of S_ij, with weights V_ij, wrt. the 'N' dime
 #       & & a^{\star} & =\operatorname*{argmin}_a  \| (\alpha\operatorname{Id}+K_{xx})a -b\|^2_2, \\\\
 #       &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
 #
-# KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` support 
+# KeOps :mod:`pykeops.torch.LazyTensor` support 
 # a simple :mod:`K_xx.solve(b, alpha=1e-10)` operation that can be used as follows:
 
 x   = torch.randn(M, D, requires_grad=True).type(tensor)  # Random point cloud
-x_i = LazyTensor( x[:,None,:] )  # (M, 1, D) LazyTensor
-x_j = LazyTensor( x[None,:,:] )  # (1, M, D) LazyTensor
+x_i = LazyTensor( x[:,None,:] )                           # (M, 1, D) LazyTensor
+x_j = LazyTensor( x[None,:,:] )                           # (1, M, D) LazyTensor
 
 K_xx = (- ((x_i - x_j) ** 2).sum(-1)).exp() # Symbolic (M, M) Gaussian kernel matrix
 
@@ -157,18 +157,16 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape) )
 # As expected, we can now check that:
 #
 # .. math::
-#   (\alpha \operatorname{Id} + K_{xx}) \,a ~\simeq~ b.
+#   (\alpha \operatorname{Id} + K_{xx}) \,a \simeq b.
 #
 
 c_i = alpha * a_i + K_xx@a_i  # Reconstructed target signal
 
-print("Mean squared reconstruction error: {:.2e}".format(
-    ((c_i - b_i)**2).mean()
-))
+print("Mean squared reconstruction error: {:.2e}".format(((c_i - b_i)**2).mean()))
 
 #################################################################
-# Please note that just like (nearly) all the other :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` methods,
-# :meth:`solve()` fully supports the :mod:`torch.autograd` module:
+# Please note that just like (nearly) all the other :class:`LazyTensor <pykeops.torch.LazyTensor>` methods,
+# :meth:`pykeops.torch.LazyTensor.solve` fully supports the :mod:`torch.autograd` module:
 
 [g_i] = torch.autograd.grad( (a_i ** 2).sum(), [x])
 
@@ -177,7 +175,7 @@ print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
 
 #################################################################
 # .. warning::
-#   As of today, the :meth:`solve()` operator only implements
+#   As of today, the :meth:`pykeops.torch.LazyTensor.solve` operator only implements
 #   a `conjugate gradient descent <https://en.wikipedia.org/wiki/Conjugate_gradient_method>`_ 
 #   under the assumption that **K_xx is a symmetric, positive-definite matrix**.
 #   To solve generic systems, you could either

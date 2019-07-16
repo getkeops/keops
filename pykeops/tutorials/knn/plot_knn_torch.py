@@ -3,7 +3,7 @@
 K-NN classification - PyTorch API
 =================================
 
-The :mod:`.argKmin(K)` reduction supported by KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` allows us
+The :mod:`.argKmin(K)` reduction supported by KeOps :class:`pykeops.torch.LazyTensor` allows us
 to perform **bruteforce k-nearest neighbors search** with four lines of code.
 It can thus be used to implement a **large-scale** 
 `K-NN classifier <https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm>`_,
@@ -24,7 +24,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import torch
 
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 
 use_cuda = torch.cuda.is_available()
 dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor

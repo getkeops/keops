@@ -3,7 +3,7 @@
 K-means clustering - NumPy API
 ===============================
 
-The :meth:`.argmin()` reduction supported by KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` allows us
+The :meth:`pykeops.numpy.LazyTensor.argmin` reduction supported by KeOps :class:`pykeops.numpy.LazyTensor` allows us
 to perform **bruteforce nearest neighbor search** with four lines of code.
 It can thus be used to implement a **large-scale** 
 `K-means clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_,
@@ -28,7 +28,7 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-from pykeops import LazyTensor
+from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
 
 dtype = 'float32'  # May be 'float32' or 'float64'

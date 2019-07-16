@@ -3,12 +3,13 @@ import sys
 
 from .common.set_path import set_build_folder
 
-__version__ = '1.1'
+__version__ = '1.1.1'
 
 ###########################################################
 # Initialize some variables: the values may be redefined 
 
 gpu_available = False
+numpy_found = False
 torch_found = False
 
 ###########################################################
@@ -24,6 +25,3 @@ verbose = bool(int(os.environ['PYKEOPS_VERBOSE'])) if 'PYKEOPS_VERBOSE' in os.en
 build_type = str(os.environ['PYKEOPS_BUILD_TYPE']) if ('PYKEOPS_BUILD_TYPE' in os.environ) else 'Release'
 
 sys.path.append(bin_folder)
-
-
-from .common.lazy_tensor import LazyTensor, Vi, Vj, Pm

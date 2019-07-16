@@ -266,7 +266,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_LazyTensor_sum(self):
     ############################################################
-        from pykeops import LazyTensor
+        from pykeops.numpy import LazyTensor
 
         full_results = []
         for use_keops in [True, False]:

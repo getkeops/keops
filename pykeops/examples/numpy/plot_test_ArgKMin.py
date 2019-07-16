@@ -44,7 +44,7 @@ my_routine = Genred(formula, variables, reduction_op='ArgKMin', axis=1,
 
 
 ###############################################################
-# Using our new :func:`pykeops.numpy.Genred` routine, 
+# Using our new :class:`pykeops.numpy.Genred` routine, 
 # we perform a K-nearest neighbor search ( **reduction_op** = ``"ArgKMin"`` )
 # over the :math:`j` variable :math:`y_j` ( **axis** = 1):
 #

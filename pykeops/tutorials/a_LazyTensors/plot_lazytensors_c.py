@@ -9,7 +9,7 @@ This tutorial shows some advanced features of the LazyTensor class.
 
 import time
 import torch
-from pykeops import LazyTensor
+from pykeops.torch import LazyTensor
 use_cuda = torch.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
@@ -18,7 +18,7 @@ tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 # -------------------------
 # This part presents an alternative style for using the KeOps LazyTensor wrapper, that
 # some users may find more convenient. The idea is to always input 2D tensors, 
-# and use the Vi, Vj helpers described below to specify wether the tensor is to be 
+# and use the :func:`Vi <pykeops.torch.Vi>`, :func:`Vj <pykeops.torch.Vj>` helpers described below to specify wether the tensor is to be 
 # understood as indexed by i (i.e. with an equivalent shape of the form (M,1,D))
 # or by j (shape of the form (1,N,D)). Note that it is currently not possible to use 
 # additional batch dimensions with this specific syntax.
@@ -35,8 +35,8 @@ x = torch.randn(M, D).type(tensor)
 y = torch.randn(N, D).type(tensor)
 
 ############################################################################
-# Then we use Vi and Vj to convert to KeOps LazyTensor objects
-from pykeops import Vi, Vj, Pm
+# Then we use :func:`Vi <pykeops.torch.Vi>` and :func:`Vj <pykeops.torch.Vj>` to convert to KeOps LazyTensor objects
+from pykeops.torch import Vi, Vj, Pm
 x_i = Vi(x)  # (M, 1, D) LazyTensor, equivalent to LazyTensor( x[:,None,:] ) 
 y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] ) 
 
@@ -46,21 +46,21 @@ D2xy = ((x_i - y_j) ** 2).sum()
 gamma = D2xy.sum_reduction(dim=1)
 
 #########################################################################
-# Note that in the first line we used "sum" without any axis or dim parameter.
-# This is equivalent to sum(-1) or sum(dim=2), because
-# the axis parameter is set to 2 by default. But speaking about dim=2
-# here with the Vi, Vj helpers could be misleading.
-# Similarly we used "sum_reduction" instead of "sum" to make it clear
-# that we perform a reduction, but sum and sum_reduction with dim=0 or 1
-# are equivalent (however sum_reduction with dim=2 is forbidden)
+# Note that in the first line we used ``sum`` without any axis or dim parameter.
+# This is equivalent to ``sum(-1)`` or ``sum(dim=2)``, because
+# the axis parameter is set to ``2`` by default. But speaking about ``dim=2``
+# here with the :func:`Vi <pykeops.torch.Vi>`, :func:`Vj <pykeops.torch.Vj>` helpers could be misleading.
+# Similarly we used ``sum_reduction`` instead of ``sum`` to make it clear
+# that we perform a reduction, but sum and sum_reduction with ``dim=0`` or ``1``
+# are equivalent (however ``sum_reduction`` with ``dim=2`` is forbidden)
 
 
 ############################################################################
-# We have not spoken about Pm yet. In fact Pm is used to introduce 
+# We have not spoken about :func:`Pm <pykeops.torch.Pm>` yet. In fact :func:`Pm <pykeops.torch.Pm>` is used to introduce 
 # scalars or 1D vectors of parameters into formulas, but it is useless
 # in such examples because scalars, lists of scalars, 0D or 1D NumPy vectors
 # are automatically converted into parameters when combined with 
-# KeOps formulas. We will have to use Pm in other parts below.
+# KeOps formulas. We will have to use :func:`Pm <pykeops.torch.Pm>` in other parts below.
 
 
 ########################################################################
@@ -78,13 +78,13 @@ indmin = ((x_i-y_j)**2).sum().argmin(axis=0)
 res = (abs(x_i|y_j)**1.5).sumsoftmaxweight(x_i,axis=1)
 
 ########################################################################
-# The [] operator can be used to do element selection or slicing 
+# The ``[]`` operator can be used to do element selection or slicing 
 # (Elem or Extract operation in KeOps).
 res = (x_i[:2]*y_j[2:]-x_i[2:]*y_j[:2]).sqnorm2().sum(axis=1)
 
 ########################################################################
 # Kernel inversion : let's do a gaussian kernel inversion. Note that
-# we have to use both Vi and Vj helpers on the same tensor x here.
+# we have to use both :func:`Vi <pykeops.torch.Vi>` and :func:`Vj <pykeops.torch.Vj>` helpers on the same tensor ``x`` here.
 # 
 e_i = Vi(torch.rand(M,D).type(tensor))
 x_j = Vj(x)
@@ -119,8 +119,8 @@ Kxy = LazyTensor.exp(-D2xy/sigmas**2).sum()
 gamma = (Kxy*b_j).sum_reduction(axis=1)
 
 ###############################################################################
-# This is because all operations are broadcasted, so the / operation above
-# works and corresponds to a ./ (scalar-vector element-wise division)
+# This is because all operations are broadcasted, so the ``/`` operation above
+# works and corresponds to a ``./`` (scalar-vector element-wise division)
 
 
 
@@ -138,7 +138,7 @@ x = torch.randn(M, D).type(tensor)
 y = torch.randn(N, D).type(tensor)
 b = torch.randn(N, Dv).type(tensor)
 sigmas = tensor([0.5, 1.0, 2.0, 4.0])
-from pykeops import Vi, Vj, Pm
+from pykeops.torch import Vi, Vj, Pm
 x_i = Vi(x)  # (M, 1, D) LazyTensor, equivalent to LazyTensor( x[:,None,:] ) 
 y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] ) 
 b_j = Vj(b)  # (1, N, D) LazyTensor, equivalent to LazyTensor( b[None,:,:] ) 
@@ -189,15 +189,15 @@ print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s'.format(
 
 ###########################################################################
 # Of course this means the user has to perform in-place operations
-# over tensors x, y, beta inside the loop, otherwise the result of the
-# call to gammafun will always be the same. This is not very convenient,
+# over tensors ``x``, ``y,`` ``beta`` inside the loop, otherwise the result of the
+# call to ``gammafun`` will always be the same. This is not very convenient,
 # so we provide also a "symbolic variables" syntax.
 
 ###########################################################################
 # Using "symbolic" variables in formulas
 # -----------------------------------------------------
 #
-# Instead of inputing tensors to the Vi, Vj, Pm helpers, one may specify
+# Instead of inputing tensors to the :func:`Vi <pykeops.torch.Vi>`, :func:`Vj <pykeops.torch.Vj>`, :func:`Pm <pykeops.torch.Pm>` helpers, one may specify
 # the variables as symbolic, providing an index and a dimension:
 xi = Vi(0,D)
 yj = Vj(1,D)
@@ -211,16 +211,16 @@ Kxyb = LazyTensor.exp(-dxy2/Sigmas**2).sum() * bj
 gammafun = Kxyb.sum_reduction(axis=1)
 
 ###############################################################################
-# Note that we did not have to specify "call=False" because since the
+# Note that we did not have to specify ``call=False`` because since the
 # variables are symbolic, no computation can be done of course. So the
 # ouput is automatically a function. We can evaluate it by providing the
-# arguments in the order specified by the index argument given to Vi, Vj, Pm:
+# arguments in the order specified by the index argument given to :func:`Vi <pykeops.torch.Vi>`, :func:`Vj <pykeops.torch.Vj>`, :func:`Pm <pykeops.torch.Pm>`:
 gamma = gammafun(x,y,beta,sigmas)
 
 ###########################################################################
 # Symbolic and non symbolic variables can be mixed. For example if we want
-# to fix x, beta and sigmas in the previous example and make the reduction
-# a function of y only we can write:
+# to fix ``x``, ``beta`` and ``sigmas`` in the previous example and make the reduction
+# a function of ``y`` only we can write:
 xi = Vi(x)
 yj = Vj(0,D)
 bj = Vj(beta)

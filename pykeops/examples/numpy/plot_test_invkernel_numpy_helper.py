@@ -4,7 +4,7 @@ KernelSolve reduction (with LazyTensors)
 
 Let's see how to solve discrete deconvolution problems
 using the **conjugate gradient solver** provided by
-the :meth:`solve` method of KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`.
+the :meth:`pykeops.numpy.LazyTensor.solve` method of KeOps :class:`pykeops.numpy.LazyTensor`.
 
 """
 
@@ -19,7 +19,7 @@ import numpy as np
 import time 
 import matplotlib.pyplot as plt
 
-from pykeops import Vi, Vj, Pm
+from pykeops.numpy import Vi, Vj, Pm
 from pykeops.numpy import KernelSolve
 from pykeops.numpy.utils import IsGpuAvailable
 
@@ -51,7 +51,7 @@ print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
 ###############################################################################
 # .. note::
-#   The :meth:`solve` method uses a conjugate gradient solver and assumes
+#   The :meth:`pykeops.numpy.LazyTensor.solve` method uses a conjugate gradient solver and assumes
 #   that **Kxx** defines a **symmetric**, positive and definite
 #   **linear** reduction with respect to the alias ``"b"``
 #   specified trough the third argument.

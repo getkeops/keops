@@ -401,7 +401,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_LazyTensor_sum(self):
     ############################################################
         import torch
-        from pykeops import LazyTensor
+        from pykeops.torch import LazyTensor
 
         full_results = []
         for use_keops in [True, False]:
@@ -441,7 +441,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_LazyTensor_logsumexp(self):
     ############################################################
         import torch
-        from pykeops import LazyTensor
+        from pykeops.torch import LazyTensor
 
         full_results = []
         for use_keops in [True, False]:
@@ -480,7 +480,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_LazyTensor_min(self):
     ############################################################
         import torch
-        from pykeops import LazyTensor
+        from pykeops.torch import LazyTensor
 
         full_results = []
         for use_keops in [True, False]:

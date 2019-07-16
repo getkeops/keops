@@ -19,8 +19,8 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
-from pykeops import LazyTensor as keops
-from pykeops import Vi, Vj, Pm 
+from pykeops.torch import LazyTensor as keops
+from pykeops.torch import Vi, Vj, Pm
 from pykeops.numpy.utils import IsGpuAvailable
 
 ###############################################################

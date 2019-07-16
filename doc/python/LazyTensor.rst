@@ -6,11 +6,7 @@ LazyTensors
 Overview
 ========
 
-The **high-level** interface of KeOps is the 
-:mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` wrapper, which allows users to perform **efficient, semi-symbolic computations** on very large NumPy arrays
-or PyTorch tensors.
-As displayed on this website's :doc:`front page, <../index>`
-this new tensor type may be used with **very little overhead**:
+The **high-level** interface of KeOps is the :mod:`LazyTensor <pykeops.numpy.LazyTensor>` and :mod:`LazyTensor <pykeops.torch.LazyTensor>` wrappers, which allows users to perform **efficient, semi-symbolic computations** on very large NumPy arrays or PyTorch tensors respectively.  As displayed on this website's :doc:`front page, <../index>` this new tensor type may be used with **very little overhead**:
 
 .. code-block:: python
 
@@ -20,7 +16,7 @@ this new tensor type may be used with **very little overhead**:
     y = torch.randn(2000000, 3).cuda()
 
     # Turn our Tensors into KeOps symbolic variables:
-    from pykeops import LazyTensor
+    from pykeops.torch import LazyTensor
     x_i = LazyTensor( x[:,None,:] )  # x_i.shape = (1e6, 1, 3)
     y_j = LazyTensor( y[None,:,:] )  # y_j.shape = ( 1, 2e6,3)
 
@@ -43,11 +39,9 @@ Documentation
 
 Starting with the :doc:`KeOps 101 tutorial <../_auto_tutorials/a_LazyTensors/plot_lazytensors_a>`,
 most examples in our :doc:`gallery <../_auto_tutorials/index>`
-rely on :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` :
+rely on :mod:`LazyTensor <pykeops.numpy.LazyTensor>` or :mod:`LazyTensors <pykeops.torch.LazyTensor>` :
 going through this collection of **real-life demos** is probably
 the best way of getting familiar with the KeOps user interface.
 
-Going further, please refer to
-the :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` API
-for an exhaustive list of all supported operations.
+Going further, please refer to the :mod:`LazyTensor <pykeops.numpy.LazyTensor>` or :mod:`LazyTensor <pykeops.torch.LazyTensor>` API for an exhaustive list of all supported operations.
 
