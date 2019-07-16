@@ -99,7 +99,7 @@ plt.tight_layout() ; plt.show()
 # Custom kernel formula
 # -------------------------
 #
-# Through a direct access to :mod:`pykeops.torch.Formula`
+# Through a direct access to :class:`pykeops.torch.Formula`
 # and the dict :mod:`pykeops.torch.kernel_formulas`,
 # users may add their own formulas to the :mod:`pykeops.torch.Kernel` parser.
 #

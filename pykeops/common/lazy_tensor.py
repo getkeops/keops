@@ -47,14 +47,14 @@ def Pm(x_or_ind,dim=None):
 class LazyTensor:
     r"""Symbolic wrapper for NumPy arrays and PyTorch tensors.
 
-    :class:`LazyTensors` encode numerical arrays through the combination
+    :class:`LazyTensor` encode numerical arrays through the combination
     of a symbolic, **mathematical formula** and a list of **small data arrays**.
     They can be used to implement efficient algorithms on objects
     that are **easy to define**, but **impossible to store** in memory
     (e.g. the matrix of pairwise distances between
     two large point clouds).
 
-    :class:`LazyTensors` may be created from standard NumPy arrays or PyTorch tensors,
+    :class:`LazyTensor` may be created from standard NumPy arrays or PyTorch tensors,
     combined using simple mathematical operations and converted
     back to NumPy arrays or PyTorch tensors with
     efficient reduction routines, which outperform
@@ -71,7 +71,7 @@ class LazyTensor:
                   a *0D or 1D PyTorch tensor*, in which case the
                   :class:`LazyTensor`
                   represents a constant **vector of parameters**, to be broadcasted
-                  on other :class:`LazyTensors`.
+                  on other :class:`LazyTensor`.
                 - A *2D NumPy array* or *PyTorch tensor*, in which case the 
                   :class:`LazyTensor`
                   represents a **variable** indexed by 
@@ -99,7 +99,7 @@ class LazyTensor:
             from a NumPy array or a PyTorch tensor retains its **dtype** (float32 vs float64)
             and **device** properties (is it stored on the GPU?).
             Since KeOps does **not** support automatic type conversions and data transfers,
-            please make sure **not to mix** :class:`LazyTensors`
+            please make sure **not to mix** :class:`LazyTensor`
             that come from different frameworks/devices or which are stored
             with different precisions.
         """   
@@ -337,7 +337,7 @@ class LazyTensor:
                 
     def join(self,other):
         r"""
-        Merges the variables and attributes of two :class:`LazyTensors`, with a compatibility check. This method concatenates tuples of variables, without paying attention to repetitions.
+        Merges the variables and attributes of two :class:`LazyTensor`, with a compatibility check. This method concatenates tuples of variables, without paying attention to repetitions.
         """
         res = LazyTensor.promote(self, other, ("dtype","tools","Genred","KernelSolve","ni","nj","ranges", "backend") )
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
@@ -1106,7 +1106,7 @@ class LazyTensor:
             
     def concat(self,other):
         r"""
-        Concatenation of two :class:`LazyTensors` - a binary operation.
+        Concatenation of two :class:`LazyTensor` - a binary operation.
         
         ``x.concat(y)`` returns a :class:`LazyTensor` that encodes, symbolically,
         the concatenation of ``x`` and ``y`` along their last dimension.    
@@ -1115,11 +1115,11 @@ class LazyTensor:
 
     def concatenate(self, axis=-1):
         r"""
-        Concatenation of a tuple of :class:`LazyTensors`.
+        Concatenation of a tuple of :class:`LazyTensor`.
         
         ``LazyTensor.concatenate( (x_1, x_2, ..., x_n), -1)`` returns a :class:`LazyTensor` that encodes, symbolically,
         the concatenation of ``x_1``, ``x_2``, ..., ``x_n`` along their last dimension.    
-        Note that **axis** should be equal to -1 or 2 (if the ``x_i``'s are 3D LazyTensors):
+        Note that **axis** should be equal to -1 or 2 (if the ``x_i``'s are 3D LazyTensor):
         LazyTensors only support concatenation and indexing operations with respect
         to the last dimension.
         """   

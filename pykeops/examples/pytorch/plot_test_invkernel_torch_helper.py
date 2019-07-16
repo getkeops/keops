@@ -4,7 +4,7 @@ KernelSolve reduction (with LazyTensors)
 
 Let's see how to solve discrete deconvolution problems
 using the **conjugate gradient solver** provided by
-the :meth:`solve` method of KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`.
+the :meth:`pykeops.torch.LazyTensor.solve` method of KeOps :class:`pykeops.torch.LazyTensor`.
 """
 
 ###############################################################################

@@ -3,7 +3,7 @@ r"""
 Kernel interpolation - NumPy API
 ==================================
 
-The :mod:`K_xx.solve(b, alpha=1e-10)` method of KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` allows you to solve optimization
+The :mod:`K_xx.solve(b, alpha=1e-10)` method of KeOps :class:`pykeops.numpy.LazyTensor` allows you to solve optimization
 problems of the form
 
 .. math::

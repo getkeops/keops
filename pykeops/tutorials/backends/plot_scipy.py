@@ -11,7 +11,7 @@ which represents generic "Matrix-Vector" products
 and can be plugged seamlessly in a `large collection <https://docs.scipy.org/doc/scipy/reference/sparse.linalg.html>`_ 
 of linear algebra routines.
 
-Crucially, KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` are now **fully compatible**
+Crucially, KeOps :class:`pykeops.torch.LazyTensor` are now **fully compatible**
 with this interface.
 As an example, let's see how to combine KeOps with a 
 `fast eigenproblem solver <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_ 
@@ -91,7 +91,7 @@ print(K_xx)
 # Linear operators
 # ~~~~~~~~~~~~~~~~~
 #
-# As far as **scipy** is concerned, a KeOps :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>` such
+# As far as **scipy** is concerned, a KeOps :class:`pykeops.torch.LazyTensor` such
 # as **K_xx** can be directly understood as a 
 # `LinearOperator <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.LinearOperator.html>`_:
 
@@ -100,12 +100,12 @@ from scipy.sparse.linalg import aslinearoperator
 K = aslinearoperator(K_xx)
 
 #########################################################
-# Just like regular numpy :mod:`arrays` or KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>`,
+# Just like regular numpy :mod:`arrays` or KeOps :class:`pykeops.torch.LazyTensor`,
 # :mod:`LinearOperators` fully support the "matrix" product operator ``@``.
 # For instance, to compute the mass coefficients
 # 
 # .. math::
-#   D_i ~=~ \sum_{j=1}^N K_{i,j},
+#   D_i = \sum_{j=1}^N K_{i,j},
 #  
 # we can simply write:
 
@@ -186,7 +186,8 @@ _, axarr = plt.subplots(nrows=2, ncols=3, figsize=(12, 8))
 for i in range(2):
     for j in range(3):
         axarr[i][j].scatter(x[:, 0], x[:, 1],
-                            c=coordinates[:, 3 * i + j], cmap=plt.cm.Spectral,
+                            c=coordinates[:, 3 * i + j],
+                            cmap=plt.cm.Spectral,
                             s=9 * 500 / len(x))
         axarr[i][j].set_title("Eigenvalue {} = {:.2f}".format(3 * i + j + 1, eigenvalues[3 * i + j]))
         axarr[i][j].set_aspect("equal")
@@ -200,7 +201,7 @@ plt.show()
 # Scaling up to large datasets with block-sparse matrices
 # ---------------------------------------------------------------
 # 
-# Going further, :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` support 
+# Going further, :class:`pykeops.torch.LazyTensor` support 
 # adaptive **block-sparsity patterns** (specified through an optional **.ranges** attribute)
 # which allow us to perform large matrix-vector products with **sub-quadratic** complexity.
 # To illustrate this advanced feature of KeOps, 
@@ -327,7 +328,7 @@ print(K_xx)
 ############################################################################
 # A straightforward computation shows that our new 
 # **block-sparse** operator may be **up to 20 times more efficient** than a
-# full KeOps :mod:`LazyTensor <pykeops.common.lazy_tensor.LazyTensor>`:
+# full KeOps :class:`pykeops.torch.LazyTensor`:
 
 # Compute the area of each rectangle "cluster-cluster" tile in the full kernel matrix:
 areas = (x_ranges[:, 1] - x_ranges[:, 0])[:, None] \
@@ -340,7 +341,7 @@ print("We keep {:.2e}/{:.2e} = {:2d}% of the original kernel matrix.".format(
 
 ############################################################################
 # Good. Once we're done with these pre-processing steps,
-# block-sparse :mod:`LazyTensors <pykeops.common.lazy_tensor.LazyTensor>` are just as easy to interface with **scipy** as
+# block-sparse :class:`pykeops.torch.LazyTensor` are just as easy to interface with **scipy** as
 # regular NumPy arrays:
 
 K = aslinearoperator(K_xx)
@@ -390,8 +391,7 @@ for i in range(2):
     for j in range(3):
         axarr[i][j].scatter(x_[:, 0], x_[:, 1], x_[:, 2],
                             c=coordinates[indices_display, 3 * i + j],
-                            cmap=plt.cm.Spectral
-                            )
+                            cmap=plt.cm.Spectral)
         axarr[i][j].set_title("Eigenvalue {} = {:.1e}".format(3 * i + j + 1, eigenvalues[3 * i + j]))
 
 plt.tight_layout()
