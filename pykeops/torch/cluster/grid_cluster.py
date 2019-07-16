@@ -1,7 +1,7 @@
 import torch
 
 def grid_cluster( x, size ) :
-    """Simplistic clustering algorithm which distributes points into cubic bins.
+    r"""Simplistic clustering algorithm which distributes points into cubic bins.
 
     Args:
         x ((M,D) Tensor): List of points :math:`x_i \in \mathbb{R}^D`.

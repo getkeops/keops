@@ -44,8 +44,8 @@ y = np.random.rand(N, 2)
 # computed using **tensorized**, broadcasted operators:
 #
 
-x_i = x[:,None,:]  # (M, 1, 2) numpy array
-y_j = y[None,:,:]  # (1, N, 2) numpy array
+x_i = x[:,None,:]                  # (M, 1, 2) numpy array
+y_j = y[None,:,:]                  # (1, N, 2) numpy array
 
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) array of squared distances |x_i-y_j|^2
 s_i  = np.argmin(D_ij, axis=1)     # (M,)   array of integer indices
@@ -59,8 +59,8 @@ import torch
 use_cuda = torch.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
-x_i = tensor( x[:,None,:] )  # (M, 1, 2) torch tensor
-y_j = tensor( y[None,:,:] )  # (1, N, 2) torch tensor
+x_i = tensor(x[:,None,:])          # (M, 1, 2) torch tensor
+y_j = tensor(y[None,:,:])          # (1, N, 2) torch tensor
 
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) tensor of squared distances |x_i-y_j|^2
 s_i  = D_ij.argmin(dim=1)          # (M,)   tensor of integer indices
@@ -78,12 +78,11 @@ M, N = (100000, 200000) if use_cuda else (1000, 2000)
 x = np.random.rand(M, 2)
 y = np.random.rand(N, 2)
 
-x_i = tensor( x[:,None,:] )  # (M, 1, 2) torch tensor
-y_j = tensor( y[None,:,:] )  # (1, N, 2) torch tensor
+x_i = tensor(x[:,None,:])              # (M, 1, 2) torch tensor
+y_j = tensor(y[None,:,:])              # (1, N, 2) torch tensor
 
 try:
     D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) tensor of squared distances |x_i-y_j|^2
-
 except RuntimeError as err: 
     print(err)
 
@@ -105,10 +104,10 @@ except RuntimeError as err:
 # 
 # 
 
-from pykeops.torch import LazyTensor
+from pykeops.numpy import LazyTensor as LazyTensor_np
 
-x_i = LazyTensor( x[:,None,:] )  # (M, 1, 2) KeOps LazyTensor, wrapped around the numpy array x
-y_j = LazyTensor( y[None,:,:] )  # (1, N, 2) KeOps LazyTensor, wrapped around the numpy array y
+x_i = LazyTensor_np(x[:,None,:])   # (M, 1, 2) KeOps LazyTensor, wrapped around the numpy array x
+y_j = LazyTensor_np(y[None,:,:])   # (1, N, 2) KeOps LazyTensor, wrapped around the numpy array y
 
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # **Symbolic** (M, N) matrix of squared distances
 print( D_ij )
@@ -144,15 +143,17 @@ print( s_i[:10] )
 # 
 # in dimension D=10 can be performed with:
 
+from pykeops.torch import LazyTensor
+
 D = 10
 x = torch.randn(M, D).type(tensor)  # M target points in dimension D, stored on the GPU
 y = torch.randn(N, D).type(tensor)  # N source points in dimension D, stored on the GPU
 b = torch.randn(N, 4).type(tensor)  # N values of the 4D source signal, stored on the GPU
 
-x.requires_grad = True  # In the next section, we'll compute gradients wrt. x!
+x.requires_grad = True              # In the next section, we'll compute gradients wrt. x!
 
-x_i = LazyTensor( x[:,None,:] )  # (M, 1, D) LazyTensor
-y_j = LazyTensor( y[None,:,:] )  # (1, N, D) LazyTensor
+x_i = LazyTensor(x[:,None,:])       # (M, 1, D) LazyTensor
+y_j = LazyTensor(y[None,:,:])       # (1, N, D) LazyTensor
 
 D_ij = ((x_i - y_j) ** 2).sum(-1).sqrt()  # Symbolic (M, N) matrix of distances
 K_ij = (- D_ij).exp()  # Symbolic (M, N) Laplacian (aka. exponential) kernel matrix
