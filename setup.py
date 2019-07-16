@@ -163,6 +163,9 @@ setup(
                      'gpytorch',
                      'scikit-learn',
                      ],
+            'devtools': ['gcc7',
+                         'cmake',
+                        ],
             },
 )
 
