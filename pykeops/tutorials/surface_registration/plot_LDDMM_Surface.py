@@ -60,7 +60,7 @@ else:
 # Define the kernels
 # ------------------
 #
-# Define Gaussian kernel :math:`(K(x,y)b)_i = \sum_j \exp(-\|x_i-y_j\|^2)b_j`
+# Define Gaussian kernel :math:`(K(x,y)b)_i = \sum_j \exp(-\gamma\|x_i-y_j\|^2)b_j`
 
 def GaussKernel(sigma):
     def K(x, y, b):
@@ -74,7 +74,7 @@ def GaussKernel(sigma):
 
 
 ###################################################################
-# Define "Gaussian-CauchyBinet" kernel :math:`(K(x,y,u,v)b)_i = \sum_j \exp(-\|x_i-y_j\|^2) \langle u_i,v_j\rangle^2 b_j`
+# Define "Gaussian-CauchyBinet" kernel :math:`(K(x,y,u,v)b)_i = \sum_j \exp(-\gamma\|x_i-y_j\|^2) \langle u_i,v_j\rangle^2 b_j`
 
 def GaussLinKernel(sigma):
     def K(x, y, u, v, b):
@@ -275,13 +275,11 @@ for t in range(nt):
     ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.plot_trisurf(q0np[:, 0], q0np[:, 1], q0np[:, 2], triangles=FSnp, color=(0, 0, 0, 0),  edgecolor=(1, 0, 0, .08 * (nt-1-t)/(nt-1)), linewidth=1)
     ax.plot_trisurf(qnp[:, 0],  qnp[:, 1],  qnp[:, 2],  triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3),  linewidth=1)
     ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0),  edgecolor=(0, 0, 1, .3),  linewidth=1)
 
     yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="y")
-    red_proxy = plt.Rectangle((0, 0), 1, 1, fc=(1, 0, 0, .8 * (nt - 1 - t) / (nt - 1)))
-    ax.legend([red_proxy, yellow_proxy, blue_proxy], ['source', 'deformed', 'target'])
+    ax.legend([yellow_proxy, blue_proxy], ['deformed', 'target'])
     ax.set_title('LDDMM matching example, step ' + str(t))
     
     # draw it!

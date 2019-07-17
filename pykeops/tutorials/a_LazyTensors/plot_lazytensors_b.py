@@ -139,7 +139,7 @@ print( "SumSoftMaxWeight reduction of S_ij, with weights V_ij, wrt. the 'N' dime
 #       &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
 #
 # KeOps :mod:`pykeops.torch.LazyTensor` support 
-# a simple :mod:`K_xx.solve(b, alpha=1e-10)` operation that can be used as follows:
+# a simple :meth:`LazyTensor.solve(b, alpha=1e-10)<pykeops.torch.LazyTensor.solve>` operation that can be used as follows:
 
 x   = torch.randn(M, D, requires_grad=True).type(tensor)  # Random point cloud
 x_i = LazyTensor( x[:,None,:] )                           # (M, 1, D) LazyTensor

@@ -240,10 +240,10 @@ def full_bench(title, routines) :
 # NumPy vs. PyTorch vs. KeOps
 # --------------------------------------------------------
 
-routines = [ (gaussianconv_numpy, "Numpy", "numpy"),
-             (gaussianconv_pytorch, "PyTorch", "torch"),  
-             (gaussianconv_keops,   "KeOps", "torch"),]
-full_bench( "Gaussian Matrix-Vector products", routines )
+# routines = [ (gaussianconv_numpy, "Numpy", "numpy"),
+             # (gaussianconv_pytorch, "PyTorch", "torch"),  
+             # (gaussianconv_keops,   "KeOps", "torch"),]
+# full_bench( "Gaussian Matrix-Vector products", routines )
 
 
 
@@ -253,7 +253,7 @@ full_bench( "Gaussian Matrix-Vector products", routines )
 
 routines = [ (gaussianconv_keops,      "KeOps (Genred)",     "torch"), 
              (gaussianconv_lazytensor, "KeOps (LazyTensor)", "torch"), 
-             ((gaussianconv_lazytensor, 90), "KeOps (LazyTensor, batchsize=90)", "torch"),]
+             ((gaussianconv_lazytensor, 10), "KeOps (LazyTensor, batchsize=10)", "torch"),]
 full_bench( "Gaussian Matrix-Vector products", routines )
 
 plt.show()
