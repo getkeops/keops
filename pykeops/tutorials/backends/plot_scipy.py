@@ -31,8 +31,9 @@ to compute **spectral coordinates** on a large 2D or 3D point cloud.
 # Standard imports:
 #
 
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
@@ -208,9 +209,6 @@ plt.show()
 # let's generate a large "noisy Swiss roll" with **1,000,000 points** in the unit cube:
 #
 
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
 N = 1000000 if use_cuda else 1000
 t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = np.stack((.4 + .4 * (t / 7) * np.cos(1.5 * t),
@@ -226,12 +224,11 @@ x = x.astype(dtype)
 N_display = 10000 if use_cuda else N
 indices_display = np.random.randint(0, N, N_display)
 
-fig = plt.figure(figsize=(8, 8))
-ax = Axes3D(fig)
+_, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), subplot_kw=dict(projection='3d'))
 x_ = x[indices_display, :]
-ax.scatter(x_[:, 0], x_[:, 1], x_[:, 2],
-           c=t[indices_display],
-           cmap=plt.cm.Spectral)
+ax.scatter3D(x_[:, 0], x_[:, 1], x_[:, 2],
+             c=t[indices_display],
+             cmap=plt.cm.Spectral)
 ax.set_title("{:,} out of {:,} points in our source point cloud".format(N_display, N))
 plt.show()
 
@@ -278,10 +275,9 @@ x, x_labels = sort_clusters(x, x_labels)
 # according to their locations, with each cluster corresponding to
 # a contiguous slice of the (sorted) **x** array:
 
-fig = plt.figure(figsize=(8, 8))
-ax = Axes3D(fig)
+_, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), subplot_kw=dict(projection='3d'))
 x_ = x[indices_display, :]
-ax.scatter(x_[:, 0], x_[:, 1], x_[:, 2],
+ax.scatter3D(x_[:, 0], x_[:, 1], x_[:, 2],
            c=x_labels[indices_display],
            cmap="prism")
 ax.set_title("Cluster labels")
@@ -389,7 +385,7 @@ _, axarr = plt.subplots(nrows=2, ncols=3, figsize=(12, 8), subplot_kw=dict(proje
 
 for i in range(2):
     for j in range(3):
-        axarr[i][j].scatter(x_[:, 0], x_[:, 1], x_[:, 2],
+        axarr[i][j].scatter3D(x_[:, 0], x_[:, 1], x_[:, 2],
                             c=coordinates[indices_display, 3 * i + j],
                             cmap=plt.cm.Spectral)
         axarr[i][j].set_title("Eigenvalue {} = {:.1e}".format(3 * i + j + 1, eigenvalues[3 * i + j]))

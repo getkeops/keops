@@ -92,7 +92,8 @@ sphinx_gallery_conf = {
      'examples_dirs': ['../pykeops/examples', '../pykeops/tutorials', '../pykeops/benchmarks'],
      # path where to save gallery generated examples
      'gallery_dirs': ['./_auto_examples', '_auto_tutorials', '_auto_benchmarks'],
-    'within_subsection_order': FileNameSortKey,
+     # order of the Gallery
+     'within_subsection_order': FileNameSortKey,
 }
 
 # Generate the API documentation when building

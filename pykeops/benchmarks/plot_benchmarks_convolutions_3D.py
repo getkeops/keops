@@ -226,7 +226,7 @@ def full_bench(title, routines) :
     plt.legend(loc='upper left')
     plt.grid(True, which="major", linestyle="-")
     plt.grid(True, which="minor", linestyle="dotted")
-    plt.axis([ NS[0], NS[-1], 1e-4, MAXTIME ])
+    plt.axis([ NS[0], NS[-1], 1e-5, MAXTIME ])
     plt.tight_layout()
 
     # Save as a .csv to put a nice Tikz figure in the papers:
@@ -253,7 +253,7 @@ full_bench( "Gaussian Matrix-Vector products", routines )
 
 routines = [ (gaussianconv_keops,      "KeOps (Genred)",     "torch"), 
              (gaussianconv_lazytensor, "KeOps (LazyTensor)", "torch"), 
-             ((gaussianconv_lazytensor, 10), "KeOps (LazyTensor, batchsize=10)", "torch"),]
+             ((gaussianconv_lazytensor, 90), "KeOps (LazyTensor, batchsize=90)", "torch"),]
 full_bench( "Gaussian Matrix-Vector products", routines )
 
 plt.show()
