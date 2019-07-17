@@ -231,26 +231,31 @@ int main()
     };
 
     loop(std::get<5>(ma4), my_lambda);
+    
+    for (auto i = 0; i < 8; i++) {
+        std::cout << "out  = " << out[i] << std::endl;
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------------
 
     double out3[dimout_var];
     std::fill(out3, out3 + dimout_var, 0);
 
     constexpr const size_t indices_number = std::get<5>(ma4).size();
-    const auto &my_lambda2 = [&out3, &FA, &FB, &ma4,indices_number](decltype(gen<size_t, indices_number>()) it) {
+    const auto &my_lambda2 = [&out3, &FA, &FB, &ma4, indices_number](decltype(gen<size_t, indices_number>()) it) {
         const auto &dim_a = std::get<0>(ma4);
         const auto &dim_b = std::get<1>(ma4);
-
-
+        
         std::tuple KD = kdvar<3,2,2,1,1,1,1,4>(dim_a,
-                              dim_b,
-                              {2, 1},
-                              {2},
-                              {3},
-                              {1},
-                              {0, 1},
-                              {2},
-                              {3},
-                              get_array_from_tuple(it));
+                                               dim_b,
+                                               {2, 1},
+                                               {2},
+                                               {3},
+                                               {1},
+                                               {0, 1},
+                                               {2},
+                                               {3},
+                                               get_array_from_tuple(it));
         size_t I = std::get<0>(KD);
         size_t kda = std::get<1>(KD);
         size_t kdb = std::get<2>(KD);
@@ -259,29 +264,23 @@ int main()
     };
     loop(std::get<5>(ma4), my_lambda2);
 
+    for (auto i = 0; i < 8; i++) {
+        std::cout << "out3 = " << out3[i] << std::endl;
+    }
+
     // -------------------------------------------------------------------------------------------------------------------------------------
     double out2[2 * 2 * 2] = {0, 0, 0, 0, 0, 0, 0, 0};
 
     for (size_t i = 0; i < 2; i++)
         for (size_t j = 0; j < 2; j++)
             for (size_t k = 0; k < 2; k++)
-                for (size_t l = 0; l < 2; l++)
-                {
+                for (size_t l = 0; l < 2; l++) {
                     out2[4 * i + 2 * j + k] += FA[4 * i + 2 * j + l] * FB[l * 2 + k];
                 }
 
-    for (auto i = 0; i < 8; i++)
-    {
-        std::cout << "out  = " << out[i] << std::endl;
-    }
 
-    for (auto i = 0; i < 8; i++)
-    {
+    for (auto i = 0; i < 8; i++) {
         std::cout << "out2 = " << out2[i] << std::endl;
     }
 
-    for (auto i = 0; i < 8; i++)
-    {
-        std::cout << "out3 = " << out3[i] << std::endl;
-    }
 }
