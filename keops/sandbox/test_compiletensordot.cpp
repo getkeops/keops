@@ -47,28 +47,28 @@ build_array4(std::index_sequence<DIMFA...>,
   std::array<size_t, size_keepdim_b + size_keep_dim_a> dim_keep{};
   std::array<size_t, size_keep_dim_a> dim_keep_a{};
   std::array<size_t, size_keepdim_b> dim_keep_b{};
-  for (auto i = 0; i < size_keep_dim_a; i++) {
+  for (size_t i = 0; i < size_keep_dim_a; i++) {
     dim_keep_a[i] = indices_a[i];
     dim_keep[i] = indices_a[i];
   }
 
-  for (auto i = 0; i < size_keepdim_b; i++) {
+  for (size_t i = 0; i < size_keepdim_b; i++) {
     dim_keep_b[i] = indices_b[indices_contdim_b.size() + i];
     dim_keep[i + size_keep_dim_a] = dim_keep_b[i];
   }
 
   // contdim
   std::array<size_t, indices_contdim_a.size()> dim_cont{};
-  for (auto i = 0; i < indices_contdim_a.size(); i++) {
+  for (size_t i = 0; i < indices_contdim_a.size(); i++) {
     dim_cont[i] = indices_a[size_keep_dim_a + i];
   }
 
   // dim_tot : contains all indices in that order [dim_keep_a, dim_keep_b, dim_cont]
   std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot{};
-  for (auto i = 0; i < dim_keep.size(); i++) {
+  for (size_t i = 0; i < dim_keep.size(); i++) {
     dim_tot[i] = dim_keep[i];
   }
-  for (auto i = 0; i < indices_contdim_a.size(); i++) {
+  for (size_t i = 0; i < indices_contdim_a.size(); i++) {
     dim_tot[dim_keep.size() + i] = dim_cont[i];
   }
 
@@ -123,50 +123,69 @@ template<size_t size_list_dim_a, size_t size_list_dim_b,
 constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t,
                                                               size_list_dim_a> list_dim_a,        // list of size
                                                    std::array<size_t, size_list_dim_b> list_dim_b,
-                                                   std::array<size_t,
-                                                              size_list_dim_a
-                                                                  - size_list_contdim> list_keepdim_a,       // {2,1}
-                                                   std::array<size_t,
-                                                              size_list_dim_b
-                                                                  - size_list_contdim> list_keepdim_b,       // {99}
-                                                   std::array<size_t,
-                                                              size_list_contdim> list_contdim_a,                         // {99}
-                                                   std::array<size_t,
-                                                              size_list_contdim> list_contdim_b,                         // {1}
-                                                   std::array<size_t,
-                                                              size_list_dim_a
-                                                                  - size_list_contdim> list_indices_a,       // {0,1}
-                                                   std::array<size_t,
-                                                              size_list_dim_b
-                                                                  - size_list_contdim> list_indices_b,       // {2}
-                                                   std::array<size_t,
-                                                              size_list_contdim> list_indices_out,                       // {3}
+    // std::array<size_t, size_list_dim_a - size_list_contdim> list_strides_keepdim_a,       // {2,1}
+    // std::array<size_t, size_list_dim_b - size_list_contdim> list_strides_keepdim_b,       // {99}
+    // std::array<size_t, size_list_contdim> list_strides_contdim_a,                         // {99}
+    // std::array<size_t, size_list_contdim> list_strides_contdim_b,                         // {1}
                                                    std::array<size_t,
                                                               size_list_dim_a + size_list_dim_b
-                                                                  - size_list_contdim> list_indices_keepdim_tot)          // {i,j,k}
+                                                                  - size_list_contdim> list_indices_tot)          // {i,j,k}
 {
+
+  std::array<size_t, size_list_dim_a - size_list_contdim> list_indices_keepdim_a;
+  for (size_t i = 0; i < (size_list_dim_a - size_list_contdim); i++) {
+    list_indices_keepdim_a[i] = i;                                                       // {0,1}
+  }
+
+  std::array<size_t, size_list_dim_a - size_list_contdim> list_strides_keepdim_a;
+  for (size_t i = 0; i < (size_list_dim_a - size_list_contdim); i++) {
+    list_strides_keepdim_a[i] = (size_list_dim_a - size_list_contdim) - i;                               // {2,1}
+  }
+
+  std::array<size_t, size_list_dim_b - size_list_contdim> list_indices_keepdim_b;
+  for (size_t i = 0; i < (size_list_dim_b - size_list_contdim); i++) {
+    list_indices_keepdim_b[i] = (size_list_dim_a - size_list_contdim) + i;   // {2}
+  }
+
+  std::array<size_t, size_list_dim_b - size_list_contdim - 1> list_strides_keepdim_b;
+  for (size_t i = 0; i < (size_list_dim_b - size_list_contdim - 1); i++) {
+    list_strides_keepdim_b[i] = (size_list_dim_b - size_list_contdim - 1) - i;           // {}
+  }
+
+  std::array<size_t, size_list_contdim> list_indices_contdim;                                              // {3}
+  for (size_t i = 0; i < size_list_contdim; i++) {
+    list_indices_contdim[i] = (size_list_dim_a + size_list_dim_b - 2 * size_list_contdim) + i;   // {2}
+  }
+
+  std::array<size_t, size_list_contdim - 1> list_strides_contdim_a;
+  for (size_t i = 0; i < (size_list_contdim - 1); i++) {
+    list_strides_contdim_a[i] = (size_list_contdim - 1) - i;           // {}
+  }
+  std::array<size_t, size_list_contdim> list_strides_contdim_b; // {1}
+  for (size_t i = 0; i < size_list_contdim; i++) {
+    list_strides_contdim_b[i] = size_list_contdim - i;           // {}
+  }
+
   size_t kda = 0;
   size_t kdb = 0;
 
-  //   std::array<size_t, size_list_contdim> list_indices_out =
-
-  for (auto i = 0; i < (size_list_dim_a - size_list_contdim); i++) {
-    kda = (list_keepdim_a[i] >= size_list_dim_a ? 1 : list_dim_a[list_keepdim_a[i]])
-        * (list_indices_keepdim_tot[list_indices_a[i]] + kda);
+  for (size_t i = 0; i < (size_list_dim_a - size_list_contdim); i++) {
+    kda = ((size_list_dim_a - size_list_contdim == 0) ? 1 : list_dim_a[list_strides_keepdim_a[i]])
+        * (list_indices_tot[list_indices_keepdim_a[i]] + kda);
   }
-  for (auto i = 0; i < (size_list_dim_b - size_list_contdim); i++) {
-    kdb = (list_keepdim_b[i] >= size_list_dim_b ? 1 : list_dim_b[list_keepdim_b[i]])
-        * (list_indices_keepdim_tot[list_indices_b[i]] + kdb);
+  for (size_t i = 0; i < (size_list_dim_b - size_list_contdim); i++) {
+    kdb = ((size_list_dim_b - size_list_contdim - 1 == 0) ? 1 : list_dim_b[list_strides_keepdim_b[i]])
+        * (list_indices_tot[list_indices_keepdim_b[i]] + kdb);
   }
   size_t I = kda + kdb;
 
   size_t kda_r = 0;
   size_t kdb_r = 0;
 
-  for (auto i = 0; i < size_list_contdim; i++) {
-    size_t r = list_indices_keepdim_tot[list_indices_out[i]];
-    kda_r = (list_contdim_a[i] >= size_list_dim_a ? 1 : list_dim_a[list_contdim_a[i]]) * (r + kda_r);
-    kdb_r = (list_contdim_b[i] >= size_list_dim_b ? 1 : list_dim_b[list_contdim_b[i]]) * (r + kdb_r);
+  for (size_t i = 0; i < size_list_contdim; i++) {
+    size_t r = list_indices_tot[list_indices_contdim[i]];
+    kda_r = ((size_list_contdim == 1) ? 1 : list_dim_a[list_strides_contdim_a[i]]) * (r + kda_r);
+    kdb_r = ((size_list_contdim == 0) ? 1 : list_dim_b[list_strides_contdim_b[i]]) * (r + kdb_r);
   }
 
   return std::make_tuple(I, kda + kda_r, kdb + kdb_r);
@@ -261,13 +280,6 @@ int main() {
 
     std::tuple KD = kdvar<3, 2, 1>(dim_a,
                                    dim_b,
-                                   {2, 1},
-                                   {99},
-                                   {99},
-                                   {1},
-                                   {0, 1},
-                                   {2},
-                                   {3},
                                    get_array_from_tuple(it));
     size_t I = std::get<0>(KD);
     size_t kda = std::get<1>(KD);
@@ -275,8 +287,6 @@ int main() {
 
     out3[I] += FA[kda] * FB[kdb];
   };
-
-  auto ee = std::get<6>(ma4);
 
   loop(std::get<6>(ma4), my_lambda2);
 
@@ -292,6 +302,7 @@ int main() {
       for (size_t k = 0; k < 2; k++)
         for (size_t l = 0; l < 2; l++) {
           out2[4 * i + 2 * j + k] += FA[4 * i + 2 * j + l] * FB[l * 2 + k];
+          // out2[2 * i +  j] += FA[4 * i + 2 * k + l] * FB[l * 2 + k];
         }
 
   for (auto i = 0; i < 8; i++) {
