@@ -21,7 +21,7 @@ and
 :math:`\text{Reduction}` is a Sum, LogSumExp or any other standard operation (see :ref:`part.reduction` for the full list of supported reductions).
 
 We now describe the symbolic syntax that 
-can be used through KeOps' bindings.
+can be used through all KeOps bindings.
 
 .. _`part.varCategory`:
 
@@ -57,26 +57,27 @@ To define formulas with KeOps, you can use simple arithmetics:
 ``f * g``                 scalar-vector multiplication (if ``f`` is scalar) or vector-vector element-wise multiplication
 ``f + g``                 addition of two vectors
 ``f - g``                 difference between two vectors or minus sign
-``f / g``                 element-wise division
+``f / g``                 element-wise division (N.B. ``f`` can be scalar, in fact ``f / g`` is the same as ``f * Inv(g)``)
 ``(f | g)``               scalar product between vectors
 ======================   =========================================================================================================
 
 Elementary functions:
 
 ======================   =========================================================================================================
-``Inv(f)``                element-wise inverse (1 ./ f)
+``Inv(f)``                element-wise inverse ``1 ./ f``
 ``Exp(f)``                element-wise exponential function
 ``Log(f)``                element-wise natural logarithm
 ``Sin(f)``                element-wise sine function
 ``Cos(f)``                element-wise cosine function
-``Pow(f, P)``             P-th power of ``f`` (element-wise), where P is a fixed integer
+``Pow(f, P)``             ``P``-th power of ``f`` (element-wise), where ``P`` is a fixed integer
 ``Powf(f, g)``            power operation, alias for ``Exp(g*Log(f))``
-``Square(f)``             element-wise square, faster than Pow(f,2)
-``Sqrt(f)``               element-wise square root, faster than Powf(f,.5)
-``Rsqrt(f)``              element-wise inverse square root, faster than Powf(f,-.5)
-``Sign(f)``               element-wise sign function (-1 if f<0, 0 if f=0, 1 if f>0)
-``Step(f)``               element-wise step function (0 if f<0, 1 if f>=0)
-``ReLU(f)``               element-wise ReLU function (0 if f<0, f if f>=0)
+``Square(f)``             element-wise square, faster than ``Pow(f,2)``
+``Sqrt(f)``               element-wise square root, faster than ``Powf(f,.5)``
+``Rsqrt(f)``              element-wise inverse square root, faster than ``Powf(f,-.5)``
+``Abs(f)``                element-wise absolute value
+``Sign(f)``               element-wise sign function (``-1`` if ``f<0``, ``0`` if ``f=0``, ``1`` if ``f>0``)
+``Step(f)``               element-wise step function (``0`` if ``f<0``, ``1`` if ``f>=0``)
+``ReLU(f)``               element-wise ReLU function (``0`` if ``f<0``, ``f`` if ``f>=0``)
 ======================   =========================================================================================================
 
 
@@ -108,6 +109,7 @@ Constants and padding/concatenation operations:
 ``IntCst(N)``             integer constant N
 ``IntInv(N)``             alias for ``Inv(IntCst(N))`` : 1/N
 ``Zero(N)``               vector of zeros of size N
+``Sum(f)``                sum of elements of vector ``f``
 ``Elem(f, M)``            extract M-th element of vector ``f``
 ``ElemT(f, N, M)``        insert scalar value ``f`` at position M in a vector of zeros of length N
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)

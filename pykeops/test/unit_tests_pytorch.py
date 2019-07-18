@@ -1,4 +1,5 @@
-import sys, os.path
+import os.path
+import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..') * 2)
 
@@ -11,10 +12,13 @@ from pykeops.numpy.utils import squared_distances, np_kernel, log_np_kernel, gra
 
 
 class PytorchUnitTestCase(unittest.TestCase):
+    A = int(5)  # Batchdim 1
+    B = int(3)  # Batchdim 2
     M = int(10)
     N = int(6)
     D = int(3)
     E = int(3)
+    nbatchdims = int(2)
     
     x = np.random.rand(M, D)
     a = np.random.rand(M, E)
@@ -26,6 +30,11 @@ class PytorchUnitTestCase(unittest.TestCase):
     p = np.random.rand(2)
     sigma = np.array([0.4])
     alpha = np.array([0.1])
+    
+    X = np.random.rand(A, B, M, D)
+    L = np.random.rand(A, 1, M, 1)
+    Y = np.random.rand(1, B, N, D)
+    S = np.random.rand(A, B, 1) + 1
     
     try:
         import torch
@@ -44,6 +53,12 @@ class PytorchUnitTestCase(unittest.TestCase):
         pc = torch.tensor(p, dtype=dtype, device=device, requires_grad=True)
         sigmac = torch.tensor(sigma, dtype=dtype, device=device, requires_grad=False)
         alphac = torch.tensor(alpha, dtype=dtype, device=device, requires_grad=False)
+
+        Xc = torch.tensor(X, dtype=dtype, device=device, requires_grad=True)
+        Lc = torch.tensor(L, dtype=dtype, device=device, requires_grad=True)
+        Yc = torch.tensor(Y, dtype=dtype, device=device, requires_grad=True)
+        Sc = torch.tensor(S, dtype=dtype, device=device, requires_grad=True)
+
         
         dtype = torch.float64
         xcd = torch.tensor(x, dtype=dtype, device=device, requires_grad=True)
@@ -56,6 +71,10 @@ class PytorchUnitTestCase(unittest.TestCase):
         pcd = torch.tensor(p, dtype=dtype, device=device, requires_grad=True)
         sigmacd = torch.tensor(sigma, dtype=dtype, device=device, requires_grad=False)
         alphacd = torch.tensor(alpha, dtype=dtype, device=device, requires_grad=False)
+        Xcd = torch.tensor(X, dtype=dtype, device=device, requires_grad=True)
+        Lcd = torch.tensor(L, dtype=dtype, device=device, requires_grad=True)
+        Ycd = torch.tensor(Y, dtype=dtype, device=device, requires_grad=True)
+        Scd = torch.tensor(S, dtype=dtype, device=device, requires_grad=True)
         
         print('Running Pytorch tests.')
     except:
@@ -294,13 +313,13 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
         from pykeops.torch import Genred
         from pykeops.numpy.utils import squared_distances
-        
-        aliases = ['p=Pm(0,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
-        formula = 'Square(p-Var(1,1,1))*Exp(-SqNorm2(y-x))'
+
+    aliases = ['p=Pm(0,1)', 'x=Vi(1,3)', 'y=Vj(2,3)']
+    formula = 'Square(p-Var(3,1,1))*Exp(-SqNorm2(y-x))'
         
         # Call cuda kernel
         myconv = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float32' )
-        gamma_keops= myconv(self.sigmac, self.gc, self.xc, self.yc, backend='auto')
+    gamma_keops = myconv(self.sigmac, self.xc, self.yc, self.gc, backend='auto')
 
         # Numpy version
         gamma_py = np.sum((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), axis=1)
@@ -378,8 +397,125 @@ class PytorchUnitTestCase(unittest.TestCase):
         deserialized_kernel = pickle.loads(serialized_kernel)
 
         self.assertTrue(type(kernel_instance), type(deserialized_kernel))
+    
+    ############################################################
+    def test_LazyTensor_sum(self):
+        ############################################################
+        import torch
+        from pykeops.torch import LazyTensor
+        
+        full_results = []
+        for use_keops in [True, False]:
+            
+            results = []
+            
+            # N.B.: We could loop over float32 and float64, but this would take longer...
+            for (x, l, y, s) in [(self.Xc, self.Lc, self.Yc, self.Sc)]:  # Float32
+                
+                x_i = x.unsqueeze(-2)
+                l_i = l.unsqueeze(-2)
+                y_j = y.unsqueeze(-3)
+                s_p = s.unsqueeze(-2).unsqueeze(-2)
+                
+                if use_keops:
+                    x_i, l_i, y_j, s_p = LazyTensor(x_i), LazyTensor(l_i), LazyTensor(y_j), LazyTensor(s_p)
+                
+                D_ij = (.5 * (l_i * x_i - y_j) ** 2 / s_p).sum(-1)
+                K_ij = (- D_ij).exp()
+                a_i = K_ij.sum(self.nbatchdims + 1)
+                if use_keops: a_i = a_i.squeeze(-1)
+                [g_x, g_y, g_s] = torch.autograd.grad((a_i ** 2).sum(), [x, y, s], create_graph=True)
+                [g_xx] = torch.autograd.grad((g_x ** 2).sum(), [x], create_graph=True)
+                
+                results += [a_i, g_x, g_y, g_s, g_xx]
+            
+            full_results.append(results)
+        
+        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+            self.assertTrue(res_keops.shape == res_torch.shape)
+            self.assertTrue(np.allclose(res_keops.cpu().data.numpy().ravel(),
+                                        res_torch.cpu().data.numpy().ravel(), atol=1e-3),
+                            "KeOps:\n" + str(res_keops) + "\nPyTorch:\n" + str(res_torch)
+                            + "\nMax error: {:.2e}".format((res_keops - res_torch).abs().max()))
+    
+    ############################################################
+    def test_LazyTensor_logsumexp(self):
+        ############################################################
+        import torch
+        from pykeops.torch import LazyTensor
+        
+        full_results = []
+        for use_keops in [True, False]:
+            
+            results = []
+            
+            # N.B.: We could loop over float32 and float64, but this would take longer...
+            for (x, l, y, s) in [(self.Xcd, self.Lcd, self.Ycd, self.Scd)]:  # Float64
+                
+                x_i = x.unsqueeze(-2)
+                l_i = l.unsqueeze(-2)
+                y_j = y.unsqueeze(-3)
+                s_p = s.unsqueeze(-2).unsqueeze(-2)
+                
+                if use_keops:
+                    x_i, l_i, y_j, s_p = LazyTensor(x_i), LazyTensor(l_i), LazyTensor(y_j), LazyTensor(s_p)
+                
+                D_ij = ((l_i * x_i + y_j).relu() * s_p / 9).sum(-1)
+                K_ij = - 1 / (1 + D_ij)
+                a_i = K_ij.logsumexp(self.nbatchdims + 1)
+                if use_keops: a_i = a_i.squeeze(-1)
+                [g_x, g_y, g_s] = torch.autograd.grad((1. * a_i).sum(), [x, y, s], create_graph=True)
+                [g_xs] = torch.autograd.grad((g_x.abs()).sum(), [s], create_graph=True)
+                
+                results += [a_i, g_x, g_y, g_s, g_xs]
+            
+            full_results.append(results)
+        
+        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+            self.assertTrue(res_keops.shape == res_torch.shape)
+            self.assertTrue(np.allclose(res_keops.cpu().data.numpy().ravel(),
+                                        res_torch.cpu().data.numpy().ravel(), atol=1e-5))
+    
+    ############################################################
+    def test_LazyTensor_min(self):
+    
+    ############################################################
+    from pykeops.torch import LazyTensor
+    
+    full_results = []
+    for use_keops in [True, False]:
+        
+        results = []
+        
+        # N.B.: We could loop over float32 and float64, but this would take longer...
+        for (x, l, y, s) in [(self.Xc, self.Lc, self.Yc, self.Sc)]:  # Float32
+            
+            x_i = x.unsqueeze(-2)
+            l_i = l.unsqueeze(-2)
+            y_j = y.unsqueeze(-3)
+            s_p = s.unsqueeze(-2).unsqueeze(-2)
+            
+            if use_keops:
+                x_i, l_i, y_j, s_p = LazyTensor(x_i), LazyTensor(l_i), LazyTensor(y_j), LazyTensor(s_p)
+            
+            D_ij = ((1 + ((l_i * x_i + y_j).relu() * s_p) ** 2).log()).sum(-1, keepdim=True)
+            K_ij = (D_ij ** 1.5 + 1).cos() * (D_ij * (3.2 + s_p)).sin()
+            
+            if use_keops:
+                m, am = K_ij.min_argmin(dim=self.nbatchdims)
+            else:
+                m, am = K_ij.min(dim=self.nbatchdims)
+            
+            results += [m, am]
+        
+        full_results.append(results)
+    
+    for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+        self.assertTrue(res_keops.shape == res_torch.shape)
+        self.assertTrue(np.allclose(res_keops.cpu().data.numpy().ravel(),
+                                    res_torch.cpu().data.numpy().ravel(), atol=1e-5))
 
-
+    
 if __name__ == '__main__':
     """
     run tests

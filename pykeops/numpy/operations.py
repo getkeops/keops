@@ -3,7 +3,7 @@ import numpy as np
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKEops
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import get_sizes, complete_aliases
+from pykeops.common.parse_type import complete_aliases, parse_aliases
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
@@ -95,13 +95,21 @@ class KernelSolve:
         else:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, aliases)
+        (self.categories, self.dimensions) = parse_aliases(self.aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
         self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy').import_module()
-        tmp = aliases.copy()
-        for (i, s) in enumerate(tmp):
-            tmp[i] = s[:s.find("=")].strip()
-        self.varinvpos = tmp.index(varinvalias)
+
+        if varinvalias[:4] == "Var(":
+            # varinv is given directly as Var(*,*,*) so we just have to read the index
+            varinvpos = int(varinvalias[4:varinvalias.find(",")])
+        else:
+            # we need to recover index from alias
+            tmp = self.aliases.copy()
+            for (i, s) in enumerate(tmp):
+                tmp[i] = s[:s.find("=")].strip()
+            varinvpos = tmp.index(varinvalias)
+        self.varinvpos = varinvpos
     
     def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
         r"""
@@ -160,14 +168,14 @@ class KernelSolve:
         """
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
-        nx, ny = get_sizes(self.aliases, *args)
         varinv = args[self.varinvpos]
         
         if ranges is None: ranges = ()  # ranges should be encoded as a tuple
 
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos + 1:]
-            res = self.myconv.genred_numpy(nx, ny, tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
+            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, self.categories, self.dimensions,
+                                           *newargs)
             if alpha:
                 res += alpha * var
             return res

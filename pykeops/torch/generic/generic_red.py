@@ -4,6 +4,7 @@ from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKEops
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
+from pykeops.common.parse_type import parse_aliases
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype, include_dirs
 
@@ -27,8 +28,6 @@ class GenredAutograd(torch.autograd.Function):
         ctx.device_id = device_id
         ctx.ranges = ranges
         ctx.myconv = myconv
-        
-        nx, ny = get_sizes(aliases, *args)
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
@@ -39,7 +38,9 @@ class GenredAutograd(torch.autograd.Function):
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
         
         if ranges is None : ranges = () # To keep the same type
-        result = myconv.genred_pytorch(nx, ny, tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *args)
+        (categories, dimensions) = parse_aliases(aliases)
+        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions,
+                                       *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
@@ -60,6 +61,20 @@ class GenredAutograd(torch.autograd.Function):
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
 
+        not_supported = ["Min_ArgMin_Reduction", "Min_Reduction",
+                         "Max_ArgMax_Reduction", "Max_Reduction",
+                         "KMin_ArgKMin_Reduction", "KMin_Reduction"]
+        for red in not_supported:
+            if formula.startswith(red):
+                raise NotImplementedError("As of today, KeOps does not support "
+                                          + "backpropagation through the " + red + " reduction. "
+                                          + "Adding this feature to LazyTensors is on the cards "
+                                          + "for future releases... But until then, you may want "
+                                          + "to consider extracting the relevant integer indices "
+                                          + "with a '.argmin()', '.argmax()' or '.argKmin()' reduction "
+                                          + "before using PyTorch advanced indexing to create a fully-differentiable "
+                                          + "tensor containing the relevant 'minimal' values.")
+
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
@@ -70,7 +85,7 @@ class GenredAutograd(torch.autograd.Function):
         
         grads = []  # list of gradients wrt. args;
 
-        for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
+        for (var_ind, (sig, arg_ind)) in enumerate(zip(aliases, args)):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[var_ind + 6]:  # because of (formula, aliases, backend, dtype, device_id, ranges)
                 grads.append(None)  # Don't waste time computing it.
@@ -98,10 +113,26 @@ class GenredAutograd(torch.autograd.Function):
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
                     # We replace it with a 'handmade hack' :
-                    grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
-                    grad = grad.view(-1)
+                    # grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
+                    # grad = grad.view(-1)
+                    grad = (1. * grad).sum(-2)
+                    dims_to_collapse = tuple(
+                        i for (i, (x, y)) in enumerate(zip(arg_ind.shape[:-1], grad.shape[:-1])) if x < y)
+
                 else:
                     grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
+
+                    # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
+                    #       whereas 'arg_ind' may have some broadcasted batched dimensions.
+                    #       Before returning our gradient, we must collapse 'grad' with a .sum() operation,
+                    #       which is the adjoint of the good old "repmat" that could have been used
+                    #       to emulate the batch broadcasting.
+                    dims_to_collapse = tuple(
+                        i for (i, (x, y)) in enumerate(zip(arg_ind.shape[:-2], grad.shape[:-2])) if x < y)
+
+                if dims_to_collapse != ():
+                    grad = (1. * grad).sum(dims_to_collapse, keepdim=True)
+                grad = grad.reshape(arg_ind.shape)  # The gradient should have the same shape as the input!
                 grads.append(grad)
         
         # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, *args
@@ -261,9 +292,12 @@ class Genred():
                       :math:`[\operatorname{start}^I_k,\operatorname{end}^I_k)` in :math:`[0,M]`
                       that specify our Mc blocks along the axis 0
                       of ":math:`i` variables".
-                    - ``slices_i``, (Mc,2) IntTensor - slice indices
-                      :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)`
-                      that specify Mc ranges in ``redranges_j``.
+                    - ``slices_i``, (Mc,) IntTensor - consecutive slice indices
+                      :math:`[\operatorname{end}^S_1, ..., \operatorname{end}^S_{M_c}]`
+                      that specify Mc ranges :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)` in ``redranges_j``,
+                      with :math:`\operatorname{start}^S_k = \operatorname{end}^S_{k-1}`.
+                      **The first 0 is implicit**, meaning that :math:`\operatorname{start}^S_0 = 0`, and we typically expect that
+                      ``slices_i[-1] == len(redrange_j)``.
                     - ``redranges_j``, (Mcc,2) IntTensor - slice indices
                       :math:`[\operatorname{start}^J_l,\operatorname{end}^J_l)` in :math:`[0,N]`
                       that specify reduction ranges along the axis 1
@@ -275,7 +309,7 @@ class Genred():
                 indices ``i in range( ranges_i[k,0], ranges_i[k,1] )``
                 should be computed using a Map-Reduce scheme over
                 indices ``j in Union( range( redranges_j[l, 0], redranges_j[l, 1] ))``
-                for ``l in range( slices_i[k,0], slices_i[k,1] )``.
+                for ``l in range( slices_i[k-1], slices_i[k] )``.
 
                 **Likewise, the last three ranges** will be used if **axis** = 0
                 (reduction along the axis of ":math:`i` variables"),
@@ -285,9 +319,12 @@ class Genred():
                       :math:`[\operatorname{start}^J_k,\operatorname{end}^J_k)` in :math:`[0,N]`
                       that specify our Nc blocks along the axis 1
                       of ":math:`j` variables".
-                    - ``slices_j``, (Nc,2) IntTensor - slice indices
-                      :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)`
-                      that specify Nc ranges in ``redranges_i``.
+                    - ``slices_j``, (Nc,) IntTensor - consecutive slice indices
+                      :math:`[\operatorname{end}^S_1, ..., \operatorname{end}^S_{N_c}]`
+                      that specify Nc ranges :math:`[\operatorname{start}^S_k,\operatorname{end}^S_k)` in ``redranges_i``,
+                      with :math:`\operatorname{start}^S_k = \operatorname{end}^S_{k-1}`.
+                      **The first 0 is implicit**, meaning that :math:`\operatorname{start}^S_0 = 0`, and we typically expect that
+                      ``slices_j[-1] == len(redrange_i)``.
                     - ``redranges_i``, (Ncc,2) IntTensor - slice indices
                       :math:`[\operatorname{start}^I_l,\operatorname{end}^I_l)` in :math:`[0,M]`
                       that specify reduction ranges along the axis 0
@@ -299,7 +336,7 @@ class Genred():
                 indices ``j in range( ranges_j[k,0], ranges_j[k,1] )``
                 should be computed using a Map-Reduce scheme over
                 indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))``
-                for ``l in range( slices_j[k,0], slices_j[k,1] )``.
+                for ``l in range( slices_j[k-1], slices_j[k] )``.
 
         Returns:
             (M,D) or (N,D) Tensor:

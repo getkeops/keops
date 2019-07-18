@@ -15,10 +15,11 @@ to compute block-sparse reductions with **sub-quadratic time complexity**.
 #
 
 import time
+
 import numpy as np
 from matplotlib import pyplot as plt
 
-from pykeops.numpy import Genred
+from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
 
 use_cuda = IsGpuAvailable()
@@ -159,17 +160,17 @@ print("")
 # Benchmark a block-sparse Gaussian convolution
 # -------------------------------------------------
 #
-# Define a Gaussian kernel product on 2d point clouds:
-g = np.array( [ .5 / sigma**2 ] ).astype(dtype)
-b = np.random.randn(N, 1).astype(dtype)
+# Define a Gaussian kernel matrix from 2d point clouds:
 
-my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",  # A simple Gaussian kernel
-                 ["G = Pm(1)",  # 1st arg: bandwidth parameter
-                  "X = Vi(2)",  # 2nd arg: one 2d-point per line
-                  "Y = Vj(2)",  # 3rd arg: one 2d-point per column
-                  "B = Vj(1)"], # 4th arg: one 1d-signal per column
-                  axis = 1,     # Reduction wrt. "j", result indexed by "i"
-                  dtype=dtype )
+x_, y_ = x / sigma, y / sigma
+x_i, y_j = LazyTensor(x_[:, None, :]), LazyTensor(y_[None, :, :])
+D_ij = ((x_i - y_j) ** 2).sum(dim=2)  # Symbolic (M,N,1) matrix of squared distances
+K = (- D_ij / 2).exp()  # Symbolic (M,N,1) Gaussian kernel matrix
+
+#####################################################################
+# And create a random signal supported by the points :math:`y_j`:
+
+b = np.random.randn(N, 1).astype(dtype)
 
 ##############################################################################
 # Compare the performances of our **block-sparse** code
@@ -184,18 +185,21 @@ my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",  # A simple Gaussian kernel
 
 backends = (["CPU", "GPU"] if M*N < 4e8 else ["GPU"]) if use_cuda else ["CPU"]
 for backend in backends :
-    
+    K.backend = backend  # Switch to CPU or GPU mode
+
     # GPU warm-up:
-    a = my_conv(g, x, y, b, backend=backend)
+    a = K @ b
 
     start = time.time()
-    a_full = my_conv(g, x, y, b, backend=backend)
+    K.ranges = None  # default
+    a_full = K @ b
     end = time.time()
     t_full = end-start
     print(" Full  convolution, {} backend: {:2.4f}s".format(backend, end-start))
 
     start = time.time()
-    a_sparse = my_conv(g, x, y, b, backend=backend, ranges=ranges_ij )
+    K.ranges = ranges_ij  # block-sparsity pattern
+    a_sparse = K @ b
     end = time.time()
     t_sparse = end-start
     print("Sparse convolution, {} backend: {:2.4f}s".format(backend, end-start) )

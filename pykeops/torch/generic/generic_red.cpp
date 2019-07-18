@@ -11,6 +11,11 @@ namespace pykeops {
 /////////////////////////////////////////////////////////////////////////////////
 
 template <>
+int get_ndim(at::Tensor obj_ptri) {
+    return obj_ptri.dim();
+}
+
+template <>
 int get_size(at::Tensor obj_ptri, int l) {
     return obj_ptri.size(l);
 }
@@ -43,19 +48,26 @@ bool is_contiguous(at::Tensor obj_ptri) {
 
 template <>
 at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
-                        int nx, int ny, int nout, int dimout,
+                        int nx, int ny, int nbatchdims, int *shapes, int *shape_out,
                         int tagRanges, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs) {
 
+    
+    // PyTorch only accepts "long int arrays" to specify the shape of a new tensor:
+    int64_t shape_out_long[nbatchdims+2];
+    std::copy(shape_out, shape_out + nbatchdims+2, shape_out_long);
+    c10::ArrayRef<int64_t> shape_out_array(shape_out_long, (int64_t) nbatchdims+2);
+
+
     if(tagHostDevice == 0) { // Data is located on Host
 
-        auto result_array = torch::empty({nout, dimout}, at::device(at::kCPU).dtype(AT_TYPE).requires_grad(true));
+        auto result_array = torch::empty(shape_out_array, at::device(at::kCPU).dtype(AT_TYPE).requires_grad(true));
 
         if (tagCpuGpu == 0) { // backend == "CPU"
             if (tagRanges == 0) { // Full M-by-N computation
                 CpuReduc(nx, ny, get_data(result_array), castedargs);
             } else if(tagRanges == 1) { // Block sparsity
-                CpuReduc_ranges(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
+                CpuReduc_ranges(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
             }
             return result_array;
         } else if(tagCpuGpu == 1) { // backend == "GPU", "GPU_1D", "GPU_2D"
@@ -66,7 +78,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
                 else if(tag1D2D == 1) // "GPU_2D"
                     GpuReduc2D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
             } else if (tagRanges == 1) {// Block sparsity
-                GpuReduc1D_ranges_FromHost(nx, ny, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+                GpuReduc1D_ranges_FromHost(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
             }
             return result_array;
 #else
@@ -76,14 +88,14 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
     } else if(tagHostDevice == 1) { // Data is on the device
 #if USE_CUDA
         //assert(Device_Id <std::numeric_limits<c10::DeviceIndex>::max());  // check that int will fit in a c10::DeviceIndex type
-        auto result_array = torch::empty({nout, dimout}, at::device({at::kCUDA, Device_Id}).dtype(AT_TYPE).requires_grad(true));
+        auto result_array = torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_TYPE).requires_grad(true));
         if (tagRanges == 0) { // Full M-by-N computation
             if(tag1D2D == 0) // "GPU_1D"
                 GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
             else if(tag1D2D == 1) // "GPU_2D"
                 GpuReduc2D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
         } else if (tagRanges == 1) {// Block sparsity
-            GpuReduc1D_ranges_FromDevice(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+            GpuReduc1D_ranges_FromDevice(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
         }
         return result_array;
 

@@ -1,7 +1,7 @@
 import torch
 
 def grid_cluster( x, size ) :
-    """Simplistic clustering algorithm which distributes points into cubic bins.
+    r"""Simplistic clustering algorithm which distributes points into cubic bins.
 
     Args:
         x ((M,D) Tensor): List of points :math:`x_i \in \mathbb{R}^D`.
@@ -30,7 +30,8 @@ def grid_cluster( x, size ) :
         else : raise NotImplementedError()
         x_  = ( x / size ).floor().int()
         x_ *= weights
-        lab = x_.sum(1).abs() # labels
+        lab = x_.sum(1)  # labels
+        lab = lab - lab.min()
 
         # Replace arbitrary labels with unique identifiers in a compact arange
         u_lab = torch.unique(lab).sort()[0]

@@ -1,3 +1,4 @@
+// IC Script for Keops
 pipeline {
   agent none 
   stages {
@@ -80,22 +81,37 @@ pipeline {
       }
     }
 
+    stage('Doc') {
+      when { buildingTag() }
+      agent { label 'cuda-doc' }
+      // environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
+      steps {
+        echo 'Generating doc on tag event...'
+        sh 'git submodule update --init'
+        echo 'Building the doc...'
+        sh 'cd doc/ && conda activate keops && sh ./generate_doc.sh'
+        withCredentials([usernamePassword(credentialsId: '02af275f-5383-4be3-91d8-4c711aa90de9', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh '''
+             lftp -u ${USERNAME},${PASSWORD}  -e "mirror -e -R  ./doc/_build/html/ /www/keops_latest/ ; quit" ftp://ftp.cluster021.hosting.ovh.net
+             '''
+        }
+      }
+    }
 
-    /*stage('Deploy') {*/
-    /*agent { label 'cuda' }*/
-    /*when { buildingTag() }*/
-    /*steps {*/
-    /*echo 'Deploying on tag event...'*/
-    /*sh 'git submodule update --init'*/
-    /*echo 'Building the doc...'*/
-    /*sh 'cd doc/ && sh ./generate_doc.sh'*/
-    /*echo 'Deploying the wheel package...'*/
-    /*sh 'cd pykeops && sh ./generate_wheel -v ${TAG_NAME##v}'*/
-    /*withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {*/
-    /*sh 'set +x && cd build && twine upload -u ${USERNAME} -p ${PASSWORD} ../build/dist/pykeops-${TAG_NAME##v}.tar.gz'*/
-    /*}*/
-    /*}*/
-    /*}*/
+    stage('Deploy') {
+      when { buildingTag() }
+      agent { label 'cuda' }
+      environment { PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/cuda-7.5/bin:/home/jenkins/.local/bin/" }
+      steps {
+        echo 'Deploying on tag event...'
+        sh 'git submodule update --init'
+        echo 'Deploying the wheel package...'
+        sh 'cd pykeops && sh ./generate_wheel.sh -v ${TAG_NAME##v}'
+        withCredentials([usernamePassword(credentialsId: '8c7c609b-aa5e-4845-89bb-6db566236ca7', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh 'cd build && twine upload --repository-url https://test.pypi.org/legacy/ -u ${USERNAME} -p ${PASSWORD} ./dist/pykeops-${TAG_NAME##v}.tar.gz'
+          }
+      }
+    }
 
   }
 }

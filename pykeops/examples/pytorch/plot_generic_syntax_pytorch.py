@@ -26,10 +26,12 @@ Sum reduction
 #
 # Standard imports:
 import time
+
+import matplotlib.pyplot as plt
 import torch
 from torch.autograd import grad
+
 from pykeops.torch import Genred
-import matplotlib.pyplot as plt
 
 #####################################################################
 # Declare random inputs:
@@ -46,7 +48,7 @@ torchtype = torch.float32 if dtype == 'float32' else torch.float64
 x = torch.randn(M, 3, dtype=torchtype, device=device)
 y = torch.randn(N, 3, dtype=torchtype, device=device, requires_grad=True)
 a = torch.randn(N, 1, dtype=torchtype, device=device)
-p = torch.randn(1, 1, dtype=torchtype, device=device)
+p = torch.randn(1, dtype=torchtype, device=device)
 
 ####################################################################
 # Define a custom formula

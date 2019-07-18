@@ -24,9 +24,10 @@ Sum reduction
 #
 # Standard imports:
 
-import numpy as np
-from pykeops.numpy import Genred
 import matplotlib.pyplot as plt
+import numpy as np
+
+from pykeops.numpy import Genred
 
 #####################################################################
 # Declare random inputs:
@@ -39,7 +40,7 @@ dtype = 'float32'  # May be 'float32' or 'float64'
 x = np.random.randn(M,3).astype(dtype)
 y = np.random.randn(N,3).astype(dtype)
 a = np.random.randn(N,1).astype(dtype)
-p = np.random.randn(1,1).astype(dtype)
+p = np.random.randn(1).astype(dtype)
 
 
 ####################################################################

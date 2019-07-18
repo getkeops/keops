@@ -27,12 +27,14 @@ Using pip (recommended)
 
   Note that the compiled shared objects (``*.so`` files) will be stored into the folder  ``~/.cache/libkeops-$version`` where ``~`` is the path to your home folder and ``$version`` is the package version number.
 
-3. Test your installation: :ref:`part.checkPython`
+3. Test your installation, as described in the :ref:`next section. <part.checkPython>`
 
 On Google Colab
 ===============
 
-Google provides free virtual machine able to run KeOps. In a new `Colab notebook <https://colab.research.google.com>`_, typing:
+Google provides free virtual machines which are able to run KeOps
+out-of-the-box. 
+In a new `Colab notebook <https://colab.research.google.com>`_, typing:
 
 .. code-block:: bash
 
@@ -61,7 +63,7 @@ From source using git
 
       echo "export PYTHONPATH=$PYTHONPATH:/path/to/libkeops/" >> ~/.bashrc
 
-  + Otherwise, you can add the following line to the beginning of your python scripts:
+  + Otherwise, you may add the following line to the beginning of your python scripts:
     
     .. code-block:: python
 
@@ -69,7 +71,7 @@ From source using git
       import sys
       sys.path.append('/path/to/libkeops')
 
-3. Test your installation: :ref:`part.checkPython`
+3. Test your installation, as described in the :ref:`next section. <part.checkPython>`
 
 
 .. _`part.checkPython`:
@@ -153,7 +155,7 @@ First of all, make sure that you are using a C++ compiler which is compatible wi
 Cache directory
 ---------------
 
-If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to **flush the build folder** (i.e. the cache of already-compiled formulas). To get the directory name:
+If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to **flush the build folder** (i.e. the cache of already-compiled formulas). To get the directory name, just type:
 
 .. code-block:: python
 
@@ -183,14 +185,14 @@ Or directly in your python script by setting **after** your KeOps imports the fl
 Build type
 ----------
 
-You can force the (re)compilation of the keops shared object by changing the build type from `Release` (default) to `Debug`. It may be done by defining the environment variable `PYKEOPS_BUILD_TYPE`: in a terminal
+You can force the (re)compilation of the KeOps shared objects by changing the build type from ``Release`` (default) to ``Debug``. This may be done by defining the environment variable ``PYKEOPS_BUILD_TYPE`` , either in a terminal:
 
 .. code-block:: bash
 
-  export PYKEOPS_VERBOSE="Debug"
+  export PYKEOPS_BUILD_TYPE="Debug"
   python my_script_calling_pykeops.py
 
-Or directly in your python script by changing **after** your KeOps imports the (string) variable `pykeops.build_type`. It gives in a python shell something like: 
+Or directly in your python script, altering the value of the (string) variable ``pykeops.build_type`` right **after** your KeOps imports. In a python shell, simply type: 
 
 .. code-block:: python
 
@@ -198,4 +200,6 @@ Or directly in your python script by changing **after** your KeOps imports the (
   pykeops.build_type = 'Debug'
 
 .. warning::
-  Beware! The shared object generated with in debug mode should be deleted after debugging as they are not optimized. Flush your cache directory as described :ref:`part.cache`.
+  Beware! The shared objects generated in debug mode are **not optimized**,
+  and should thus be deleted at the end of your debugging session. 
+  In order to do so, please **flush your cache directory** as described in the :ref:`previous section <part.cache>`.

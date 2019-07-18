@@ -5,6 +5,7 @@ Fitting a Gaussian Mixture Model
 In this tutorial, we show how to use KeOps to fit
 a Gaussian Mixture Model with a **custom sparsity prior**
 through **gradient descent** on the empiric log-likelihood.
+
 """
 
 ####################################################################
@@ -13,17 +14,14 @@ through **gradient descent** on the empiric log-likelihood.
 # 
 # Standard imports:
 
-import numpy as np
-
-from matplotlib import pyplot as plt
 import matplotlib.cm as cm
-
+import numpy as np
 import torch
+from matplotlib import pyplot as plt
 from torch.nn import Module, Parameter
 from torch.nn.functional import softmax, log_softmax
 
 from pykeops.torch import Kernel, kernel_product
-
 
 ####################################################################
 # Define our dataset: a collection of points :math:`(x_i)_{i\in[1,N]}` which describe a

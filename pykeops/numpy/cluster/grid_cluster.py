@@ -34,8 +34,9 @@ def grid_cluster(x, size):
         raise NotImplementedError()
     x_ = np.floor(x / size).astype(int)
     x_ *= weights
-    lab = np.abs(np.sum(x_, axis=1))  # labels
-    
+    lab = np.sum(x_, axis=1)  # labels
+    lab = lab - np.min(lab)
+
     # Replace arbitrary labels with unique identifiers in a compact arange:
     u_lab = np.sort(np.unique(lab))
     N_lab = len(u_lab)

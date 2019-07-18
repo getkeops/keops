@@ -1,11 +1,10 @@
-#!/bin/bash
+#! /bin/sh
 
 #---------------#
 # pyKeOps wheel # 
 #---------------#
 #
 # This script creates the wheel package for pykeops. Use at your own risk.
-
 
 CURRENT_DIR=$(pwd)
 echo $CURRENT_DIR
@@ -39,6 +38,9 @@ sed -i.bak "s/\${CMAKE_CURRENT_SOURCE_DIR}\/\.\.\/keops/\${CMAKE_CURRENT_SOURCE_
 
 cp -R keops pykeops/
 
+
+set -o errexit
+set -e
 # generate wheel
 python3 setup.py sdist --dist-dir build/dist
 python3 setup.py bdist_wheel --python-tag py3 --dist-dir build/wheel #--plat-name manylinux1_x86_64

@@ -27,9 +27,9 @@ LogSumExp reduction
 # Standard imports:
 
 import time
-from matplotlib import pyplot as plt
 
 import torch
+from matplotlib import pyplot as plt
 from torch.autograd import grad
 
 from pykeops.torch import Genred
@@ -46,7 +46,7 @@ torchtype = torch.float32 if dtype == 'float32' else torch.float64
 x = torch.rand(M, 1, dtype=torchtype)
 y = torch.rand(N, 1, dtype=torchtype, requires_grad=True)
 a = torch.rand(N, 1, dtype=torchtype)
-p = torch.rand(1, 1, dtype=torchtype)
+p = torch.rand(1, dtype=torchtype)
 
 ####################################################################
 # Define a custom formula

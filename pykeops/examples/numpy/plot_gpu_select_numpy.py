@@ -15,9 +15,9 @@ operation will be performed.
 # -------------
 # Standard imports:
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import matplotlib.pyplot as plt
 
 from pykeops.numpy import Genred
 from pykeops.numpy.utils import IsGpuAvailable
@@ -51,7 +51,7 @@ N = 2000
 x = np.random.randn(M,3).astype(dtype)
 y = np.random.randn(N,3).astype(dtype)
 a = np.random.randn(N,1).astype(dtype)
-p = np.random.randn(1,1).astype(dtype)
+p = np.random.randn(1).astype(dtype)
 
 #########################################
 # Launch our routine on the CPU:

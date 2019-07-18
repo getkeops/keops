@@ -5,6 +5,7 @@ PyTorch API
 
 .. toctree::
 
+    LazyTensor
     Genred_torch
     GenericOps
     KernelSolve

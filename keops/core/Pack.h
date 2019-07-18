@@ -413,6 +413,10 @@ template < int... NS > struct pack {
     template < typename TYPE >
     HOST_DEVICE static void load(int i, TYPE* xi, TYPE** px) { }
 
+    // (even with broadcasting batch dimensions!)
+    template < typename TYPE >
+    HOST_DEVICE static void load(int i, TYPE* xi, TYPE** px, int *offsets) { }
+
     // ... counts for nothing in the evaluation of a function ...
     template < typename TYPE, class FUN, typename... Args  >
     HOST_DEVICE static void call(FUN fun, TYPE* x, Args... args) {
@@ -493,10 +497,26 @@ template < int N, int... NS > struct pack<N,NS...> {
         // Using pythonic syntax, we can describe our loading procedure as follows :
         for(int k=0; k<FIRST; k++){
             assert(&((*px)[i*FIRST+k]) != nullptr);
-            xi[k] = (*px)[i*FIRST+k];// First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
+            xi[k] = (*px)[i*FIRST+k];  // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
         }
         NEXT::load(i,xi+FIRST,px+1);   // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
     }
+
+    // Idem, but with variable-dependent offsets; this is critical for broadcasting
+    // batch dimensions in the *_ranges reduction routines:
+    template < typename TYPE >
+    HOST_DEVICE static void load(int i, TYPE* xi, TYPE** px, int *offsets) {
+        assert(xi != nullptr);
+        assert(px != nullptr);
+        int true_i = offsets[0] + i;
+        // Using pythonic syntax, we can describe our loading procedure as follows :
+        for(int k = 0; k < FIRST; k++){
+            assert(&((*px)[ true_i * FIRST + k]) != nullptr);
+            xi[k]  = (*px)[ true_i * FIRST + k];  // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
+        }
+        NEXT::load(i,xi+FIRST,px+1, offsets+1);   // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
+    }
+
 
     // call(fun, [x1, x2, x3], arg1, arg2 ) will end up executing fun( arg1, arg2, x1, x2, x3 ).
     template < typename TYPE, class FUN, typename... Args  >
@@ -622,6 +642,13 @@ HOST_DEVICE void load(int i, TYPE* xi, TYPE** px) {
     DIMS::load(i,xi,px);
 }
 
+// Loads the i-th "line" of px to xi, with offsets (used when broadcasting batch dimensions)
+template < class DIMS, typename TYPE >
+HOST_DEVICE void load(int i, TYPE* xi, TYPE** px, int *offsets) {
+    DIMS::load(i,xi,px,offsets);
+}
+
+
 // global variables maxThreadsPerBlock and sharedMemPerBlock may depend on the device, so we will set them at each call using
 // predefined MAXTHREADSPERBLOCK0, SHAREDMEMPERBLOCK0, MAXTHREADSPERBLOCK1, SHAREDMEMPERBLOCK1, etc.
 // through the function SetGpuProps
@@ -636,39 +663,47 @@ int maxThreadsPerBlock, sharedMemPerBlock;
 // I have not managed to use a "recursive macro" hack, it was not compiling on all systems.
 // This assumes the number of Gpus is <= 10 ; feel free to add more lines if needed !
 void SetGpuProps(int device) {
-    #if defined(__CUDACC__) && MAXIDGPU >= 0 
-        SET_GPU_PROPS_MACRO(0)
+	#if defined(__CUDACC__)
+	    #if defined(MAXTHREADSPERBLOCK) && defined(SHAREDMEMPERBLOCK)
+	        // global values are defined 
+			maxThreadsPerBlock = MAXTHREADSPERBLOCK;
+			sharedMemPerBlock = SHAREDMEMPERBLOCK;
+			return;
+        #else			
+		    #if MAXIDGPU >= 0 
+		        SET_GPU_PROPS_MACRO(0)
+		    #endif
+		    #if MAXIDGPU >= 1 
+		        SET_GPU_PROPS_MACRO(1)
+		    #endif
+		    #if MAXIDGPU >= 2 
+		        SET_GPU_PROPS_MACRO(2)
+		    #endif
+		    #if MAXIDGPU >= 3 
+		        SET_GPU_PROPS_MACRO(3)
+		    #endif
+		    #if MAXIDGPU >= 4 
+		        SET_GPU_PROPS_MACRO(4)
+		    #endif
+		    #if MAXIDGPU >= 5 
+		        SET_GPU_PROPS_MACRO(5)
+		    #endif
+		    #if MAXIDGPU >= 6 
+		        SET_GPU_PROPS_MACRO(6)
+		    #endif
+		    #if MAXIDGPU >= 7 
+		        SET_GPU_PROPS_MACRO(7)
+		    #endif
+		    #if MAXIDGPU >= 8 
+		        SET_GPU_PROPS_MACRO(8)
+		    #endif
+		    #if MAXIDGPU >= 9 
+		        SET_GPU_PROPS_MACRO(9)
+		    #endif
+		    fprintf( stderr, "invalid Gpu device number. If the number of available Gpus is >= 10, add required lines at the end of function SetGpuProps and recompile.\n");
+		    exit( -1 );
+		#endif
     #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 1 
-        SET_GPU_PROPS_MACRO(1)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 2 
-        SET_GPU_PROPS_MACRO(2)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 3 
-        SET_GPU_PROPS_MACRO(3)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 4 
-        SET_GPU_PROPS_MACRO(4)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 5 
-        SET_GPU_PROPS_MACRO(5)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 6 
-        SET_GPU_PROPS_MACRO(6)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 7 
-        SET_GPU_PROPS_MACRO(7)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 8 
-        SET_GPU_PROPS_MACRO(8)
-    #endif
-    #if defined(__CUDACC__) && MAXIDGPU >= 9 
-        SET_GPU_PROPS_MACRO(9)
-    #endif
-    fprintf( stderr, "invalid Gpu device number. If the number of available Gpus is >= 10, add required lines at the end of function SetGpuProps and recompile.\n");
-    exit( -1 );
-
 }
 
 }

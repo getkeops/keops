@@ -20,6 +20,11 @@ using __RANGEARRAY__ = py::array_t<__INDEX__, py::array::c_style>;
 /////////////////////////////////////////////////////////////////////////////////
 
 template <>
+int get_ndim(__NUMPYARRAY__ obj_ptri){
+    return obj_ptri.ndim();
+}
+
+template <>
 int get_size(__NUMPYARRAY__ obj_ptri, int l){
     return obj_ptri.shape(l);
 }
@@ -51,16 +56,19 @@ bool is_contiguous(__NUMPYARRAY__ obj_ptri){
 
 template <>
 __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
-                        int nx, int ny, int nout, int dimout,
+                        int nx, int ny, int nbatchdims, int *shapes, int *shape_out,
                         int tagRanges, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
                         __TYPE__ ** castedargs){
 
-    auto result_array = __NUMPYARRAY__({nout,dimout});
+    // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
+    std::vector<int> shape_vector(shape_out, shape_out+nbatchdims+2);
+    auto result_array = __NUMPYARRAY__(shape_vector);
+
     if (tagCpuGpu == 0) {
         if (tagRanges == 0) { // Full M-by-N computation
             CpuReduc(nx, ny, get_data(result_array), castedargs);
         } else if( tagRanges == 1) { // Block sparsity
-            CpuReduc_ranges(nx, ny, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
+            CpuReduc_ranges(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
         }
     }
     else if (tagCpuGpu == 1) {
@@ -72,7 +80,7 @@ __NUMPYARRAY__ launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short
                 else if (tag1D2D == 1)
                     GpuReduc2D_FromHost( nx, ny, get_data(result_array), castedargs, Device_Id);
             } else if( tagRanges == 1) { // Block sparsity
-                GpuReduc1D_ranges_FromHost(nx, ny, nranges_x, nranges_y, nredranges_x, nredranges_y,
+                GpuReduc1D_ranges_FromHost(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, nredranges_x, nredranges_y,
                     castedranges, get_data(result_array), castedargs, Device_Id);
             }
         } else if (tagHostDevice==1)

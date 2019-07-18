@@ -15,11 +15,12 @@ to compute block-sparse reductions with **sub-quadratic time complexity**.
 #
 
 import time
+
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from pykeops.torch import Genred
+from pykeops.torch import LazyTensor
 
 nump = lambda t : t.cpu().numpy()
 use_cuda = torch.cuda.is_available()
@@ -46,7 +47,7 @@ y = y/10 + dtype([.6,.6])
 # To enable the implementation of algorithms with **sub-quadratic time complexity**
 # under this constraint, KeOps provides access to
 # **block-sparse reduction routines** through the optional
-# **ranges** argument, which is supported by :func:`torch.Genred <pykeops.torch.Genred>`
+# **ranges** argument, which is supported by :class:`torch.Genred <pykeops.torch.Genred>`
 # and all its children.
 #
 # Pre-processing
@@ -166,16 +167,17 @@ print("")
 # Benchmark a block-sparse Gaussian convolution
 # -------------------------------------------------
 #
-# Define a Gaussian kernel product on 2d point clouds:
-g = torch.Tensor( [ .5 / sigma**2 ] ).type(dtype)
-b = torch.randn(N, 1).type(dtype)
+# Define a Gaussian kernel matrix from 2d point clouds:
 
-my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",  # A simple Gaussian kernel
-                 ["G = Pm(1)",  # 1st arg: bandwidth parameter
-                  "X = Vi(2)",  # 2nd arg: one 2d-point per line
-                  "Y = Vj(2)",  # 3rd arg: one 2d-point per column
-                  "B = Vj(1)"], # 4th arg: one 1d-signal per column
-                  axis = 1 )    # Reduction wrt. "j", result indexed by "i"
+x_, y_ = x / sigma, y / sigma
+x_i, y_j = LazyTensor(x_[:, None, :]), LazyTensor(y_[None, :, :])
+D_ij = ((x_i - y_j) ** 2).sum(dim=2)  # Symbolic (M,N,1) matrix of squared distances
+K = (- D_ij / 2).exp()  # Symbolic (M,N,1) Gaussian kernel matrix
+
+#####################################################################
+# And create a random signal supported by the points :math:`y_j`:
+
+b = torch.randn(N, 1).type(dtype)
 
 #######################################################
 # Compare the performances of our **block-sparse** code
@@ -187,34 +189,28 @@ my_conv = Genred( "Exp(-G*SqDist(X,Y)) * B",  # A simple Gaussian kernel
 #   kick on around the "20,000 points" mark as the skipped computations
 #   make up for the clustering and branching overheads.
 #
-backends = (["CPU", "GPU"] if M*N < 4e8 else ["GPU"]) if use_cuda else ["CPU"]
-for backend in backends :
-    if backend == "CPU" : 
-        g_, x_, y_, b_ = g.cpu(), x.cpu(), y.cpu(), b.cpu()
-        ranges_ij_ = tuple(r.cpu() for r in ranges_ij)
-    else :                
-        g_, x_, y_, b_ = g, x, y, b
-        ranges_ij_ = ranges_ij
-    
-    # GPU warm-up:
-    a = my_conv(g_, x_, y_, b_, backend=backend)
+backend = "GPU" if use_cuda else "CPU"
 
-    start = time.time()
-    a_full = my_conv(g_, x_, y_, b_, backend=backend)
-    end = time.time()
-    t_full = end-start
-    print(" Full  convolution, {} backend: {:2.4f}s".format(backend, end-start))
+# GPU warm-up:
+a = K @ b
 
-    start = time.time()
-    a_sparse = my_conv(g_, x_, y_, b_, backend=backend, ranges=ranges_ij_ )
-    end = time.time()
-    t_sparse = end-start
-    print("Sparse convolution, {} backend: {:2.4f}s".format(backend, end-start) )
-    print("Relative time : {:3d}% ({:3d}% including clustering), ".format(
-        int(100*t_sparse/t_full),
-        int(100*(t_sparse+t_cluster)/t_full)))
-    print("Relative error:   {:3.4f}%".format( 100* (a_sparse-a_full).abs().sum() / a_full.abs().sum() ))
-    print("")
+start = time.time()
+a_full = K @ b
+end = time.time()
+t_full = end - start
+print(" Full  convolution, {} backend: {:2.4f}s".format(backend, end - start))
+
+start = time.time()
+K.ranges = ranges_ij
+a_sparse = K @ b
+end = time.time()
+t_sparse = end - start
+print("Sparse convolution, {} backend: {:2.4f}s".format(backend, end - start))
+print("Relative time : {:3d}% ({:3d}% including clustering), ".format(
+    int(100 * t_sparse / t_full),
+    int(100 * (t_sparse + t_cluster) / t_full)))
+print("Relative error:   {:3.4f}%".format(100 * (a_sparse - a_full).abs().sum() / a_full.abs().sum()))
+print("")
 
 ####################################################################
 # Fancy visualization: we display our coarse binary mask

@@ -1,6 +1,6 @@
 // test convolution using specific formula for Gauss kernel
 // compile with
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O2 -o build/test_specific test_specific.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O2 -o build/test_specific test_specific.cu
 
 // we compare a generic implementation of the Gauss kernel vs the specific
 // 

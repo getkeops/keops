@@ -30,6 +30,8 @@
  *      Rsqrt<F>                    : inverse square root
  *
  *   standard math functions :
+ *      Sum<F>						: sum of values in F
+ *      Abs<F>						: absolute value of F (vectorized)
  *      Exp<F>                      : exponential of F (vectorized)
  *      Log<F>                      : logarithm   of F (vectorized)
  *      Sin<F>                      : sine        of F (vectorized)
@@ -40,11 +42,11 @@
  *      Sign<F>                     : sign        of F (vectorized)
  *
  *   concatenation and matrix-vector products:
- *      Concat<FA,FB>                : concatenation of FB and FB
- *      MatVecMult<FA,FB>            : matrix-vector product (FA::DIM must be a muliple of FB::DIM)
- *      VecMatMult<FA,FB>            : vector-matrix product (FB::DIM must be a muliple of FA::DIM)
- *      TensorProd<FA,FB>            : tensor product (output is of dimension FA::DIM*FB::DIM)
- *      TensorDot<FA,FB, I>          : tensor dot as in numpy (FA::DIM must be a muliple of FB::DIM) I is an IntCst()
+ *      Concat<FA,FB>               : concatenation of FB and FB
+ *      MatVecMult<FA,FB>           : matrix-vector product (FA::DIM must be a muliple of FB::DIM)
+ *      VecMatMult<FA,FB>           : vector-matrix product (FB::DIM must be a muliple of FA::DIM)
+ *      TensorProd<FA,FB>           : tensor product (output is of dimension FA::DIM*FB::DIM)
+ *      TensorDot<FA,FB, I>         : tensor dot as in numpy (FA::DIM must be a muliple of FB::DIM) I is an IntCst()
  *
  */
 
@@ -110,6 +112,53 @@ struct Minus : UnaryOp<Minus,F> {
 };
 
 //////////////////////////////////////////////////////////////
+////                 SUM : Sum< F >                       ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int D > struct SumT;
+
+template < class F >
+struct Sum : UnaryOp<Sum,F> {
+
+    static const int DIM = 1;
+
+    static void PrintIdString(std::stringstream& str) { str << "Sum"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+		*out = 0;
+        for(int k=0; k<F::DIM; k++)
+            *out += outF[k];
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,SumT<GRADIN,F::DIM>>;
+
+};
+
+//////////////////////////////////////////////////////////////
+////        Transpose of Sum : SumT< F >                   ////
+//////////////////////////////////////////////////////////////
+
+template < class F, int D >
+struct SumT : UnaryOp<SumT,F,D> {
+
+	static_assert(F::DIM==1,"Dimension of input must be 1 for SumT");
+
+    static const int DIM = D;
+
+    static void PrintIdString(std::stringstream& str) { str << "Exp"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++)
+             out[k] = *outF;
+	}
+
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,Sum<GRADIN>>;
+
+};
+
+//////////////////////////////////////////////////////////////
 ////               ADDITION : Add< FA,FB >                ////
 //////////////////////////////////////////////////////////////
 
@@ -135,6 +184,27 @@ struct Add_Impl : BinaryOp<Add_Impl,FA,FB> {
 
 };
 
+// Addition with scalar-> vector broadcasting on the left
+template < class FA, class FB >
+struct Add_Impl_Broadcast : BinaryOp<Add_Impl_Broadcast,FA,FB> {
+    // Output dim = FB::DIM
+    static const int DIM = FB::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "+"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = *outA + outB[k];
+	}
+
+    // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin
+    template < class V, class GRADIN >
+    using DiffT = Add < typename FA::template DiffT<V,Sum<GRADIN>> , typename FB::template DiffT<V,GRADIN> >;
+
+};
+
+
+
 // Simplification rules
 // We have to divide rules into several stages
 // to avoid conflicts
@@ -144,7 +214,9 @@ struct Add_Impl : BinaryOp<Add_Impl,FA,FB> {
 // base class : this redirects to the implementation
 template < class FA, class FB >
 struct Add_Alias0 {
-    using type = Add_Impl<FA,FB>;
+    using type1 = CondType < Add_Impl_Broadcast<FA,FB> , Add_Impl<FA,FB> , FA::DIM==1 >;
+    using type2 = CondType < Add_Impl_Broadcast<FB,FA> , type1 , FB::DIM==1 >;
+    using type = CondType < Add_Impl<FA,FB> , type2 , FA::DIM==FB::DIM >;
 };
 
 // A + A = 2A
@@ -427,7 +499,7 @@ struct Mult_Alias<Zero<DIM1>,Zero<DIM2>> {
 // Scal and Mult depending on dimension in the new syntax
 
 template < class FA, class FB >
-using ScalOrMult = CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>;
+using ScalOrMult = CondType<Mult<FA,FB>,CondType<Scal<FB,FA>,CondType<Scal<FA,FB>,Mult<FA,FB>,FA::DIM==1>,FB::DIM==1>,FA::DIM==FB::DIM>;
 
 
 
@@ -458,6 +530,24 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl,FA,FB> {
 
 };
 
+template < class FA, class FB >
+struct Subtract_Impl_Broadcast : BinaryOp<Subtract_Impl_Broadcast,FA,FB> {
+    // Output dim = FB::DIM
+    static const int DIM = FB::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "-"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+            for(int k=0; k<DIM; k++)
+            	out[k] = *outA - outB[k];
+	}
+
+    // [\partial_V (A - B) ] . gradin = [\partial_V A ] . gradin  - [\partial_V B ] . gradin
+    template < class V, class GRADIN >
+    using DiffT = Subtract < typename FA::template DiffT<V,Sum<GRADIN>> , typename FB::template DiffT<V,GRADIN> >;
+
+};
+
 // Simplification rules
 
 // third stage
@@ -465,7 +555,9 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl,FA,FB> {
 // base class : this redirects to the implementation
 template < class FA, class FB >
 struct Subtract_Alias0 {
-    using type = Subtract_Impl<FA,FB>;
+    using type1 = CondType < Subtract_Impl_Broadcast<FA,FB> , Subtract_Impl<FA,FB> , FA::DIM==1 >;
+    using type2 = CondType < Add_Impl_Broadcast<Minus<FB>,FA> , type1 , FB::DIM==1 >;
+    using type = CondType < Subtract_Impl<FA,FB> , type2 , FA::DIM==FB::DIM >;
 };
 
 // A - A = 0
@@ -566,6 +658,7 @@ struct Exp : UnaryOp<Exp,F> {
     using DiffT = typename F::template DiffT<V,Mult<Exp<F>,GRADIN>>;
 
 };
+
 
 //////////////////////////////////////////////////////////////
 ////        SINE and COSINE : Sin< F >, Cos< F >          ////
@@ -718,7 +811,7 @@ using IntInv = Inv<IntConstant<N>>;
 //////////////////////////////////////////////////////////////
 
 template < class FA, class FB >
-using Divide = Scal<FA,Inv<FB>>;
+using Divide = ScalOrMult<FA,Inv<FB>>;
 
 
 //////////////////////////////////////////////////////////////
@@ -769,6 +862,31 @@ struct Sign : UnaryOp<Sign,F> {
 
     template < class V, class GRADIN >
     using DiffT = Zero<V::DIM>;
+};
+
+//////////////////////////////////////////////////////////////
+////           ABSOLUTE VALUE : Abs< F >                  ////
+//////////////////////////////////////////////////////////////
+
+template < class F >
+struct Abs : UnaryOp<Abs,F> {
+
+    static const int DIM = F::DIM;
+
+    static void PrintIdString(std::stringstream& str) { str << "Abs"; }
+
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+         for(int k=0; k<DIM; k++)
+		if(outF[k]<0)
+            		out[k] = -outF[k];
+		else
+			out[k] = outF[k];
+	}
+
+    // [\partial_V abs(F)].gradin = sign(F) * [\partial_V F].gradin
+    template < class V, class GRADIN >
+    using DiffT = typename F::template DiffT<V,Mult<Sign<F>,GRADIN>>;
+
 };
 
 //////////////////////////////////////////////////////////////
@@ -834,17 +952,17 @@ using Powf = Exp<Scal<FB,Log<FA>>>;
 ////       SQUARE ROOT : Sqrt< F >                        ////
 //////////////////////////////////////////////////////////////
 
-                 template < class F > struct Sqrt_Impl;
-                 template < class F > struct Sqrt_Alias;
-                 template < class F >
-                 using Sqrt = typename Sqrt_Alias<F>::type;
+template < class F > struct Sqrt_Impl;
+template < class F > struct Sqrt_Alias;
+template < class F >
+using Sqrt = typename Sqrt_Alias<F>::type;
 
-                 template < class F > struct Rsqrt_Impl;
-                 template < class F > struct Rsqrt_Alias;
-                 template < class F >
-                 using Rsqrt = typename Rsqrt_Alias<F>::type;
+template < class F > struct Rsqrt_Impl;
+template < class F > struct Rsqrt_Alias;
+template < class F >
+using Rsqrt = typename Rsqrt_Alias<F>::type;
 
-                 template < class F >
+template < class F >
 struct Sqrt_Impl : UnaryOp<Sqrt_Impl,F> {
     static const int DIM = F::DIM;
 

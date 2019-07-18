@@ -17,13 +17,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os, sys
+import os
+import sys
+
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('sphinxext'))
-
-import sphinx_gallery
-from recommonmark.transform import AutoStructify
 
 import pykeops
 from pykeops import __version__
@@ -89,10 +88,13 @@ def linkcode_resolve(domain, info):
 from sphinx_gallery.sorting import FileNameSortKey
 sphinx_gallery_conf = {
      # path to your examples scripts
-     'examples_dirs': ['../pykeops/examples', '../pykeops/tutorials', '../pykeops/benchmarks'],
+    'examples_dirs': ['../pykeops/tutorials', '../pykeops/benchmarks', '../pykeops/examples'],
      # path where to save gallery generated examples
-     'gallery_dirs': ['./_auto_examples', '_auto_tutorials', '_auto_benchmarks'],
+    'gallery_dirs': ['_auto_tutorials', '_auto_benchmarks', './_auto_examples'],
+    # order of the Gallery
     'within_subsection_order': FileNameSortKey,
+    # Add patterns
+    # 'filename_pattern': r'../pykeops/tutorials/*',
 }
 
 # Generate the API documentation when building

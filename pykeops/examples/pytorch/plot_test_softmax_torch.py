@@ -32,11 +32,12 @@ SumSoftMaxWeight reduction
 # Standard imports:
 
 import time
-from matplotlib import pyplot as plt
 
 import torch
+from matplotlib import pyplot as plt
+
 from pykeops.torch import Genred
-    
+
 ###############################################################################
 # Define our dataset:
 #
@@ -55,7 +56,7 @@ b = torch.rand(N,Dv)
 # KeOps kernel
 # ---------------
 # 
-# Create a new generic routine using the :func:`pykeops.numpy.Genred`
+# Create a new generic routine using the :class:`pykeops.numpy.Genred`
 # constructor:
 
 formula = 'SqDist(x,y)'

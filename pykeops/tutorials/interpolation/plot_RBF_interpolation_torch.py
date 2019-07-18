@@ -1,17 +1,17 @@
-"""
+r"""
 ==================================
 Kernel interpolation - PyTorch API
 ==================================
 
-The :class:`torch.KernelSolve <pykeops.torch.KernelSolve>` operator allows you to solve optimization
+The :meth:`pykeops.torch.LazyTensor.solve(b, alpha=1e-10)<pykeops.torch.LazyTensor.solve>` method of KeOps :class:`pykeops.torch.LazyTensor` allows you to solve optimization
 problems of the form
 
 .. math::
-    a^{\star}=\operatorname*{argmin}_a \| (\\alpha\operatorname{Id}+K_{xx})a -b\|^2_2,
+    a^{\star}=\operatorname*{argmin}_a \| (\alpha\operatorname{Id}+K_{xx})a -b\|^2_2,
 
 where :math:`K_{xx}` is a symmetric, positive definite linear operator
 defined through the :ref:`KeOps generic syntax <part.generic_formulas>`
-and :math:`\\alpha` is a nonnegative regularization parameter.
+and :math:`\alpha` is a nonnegative regularization parameter.
 In the following script, we use it to solve large-scale `Kriging <https://en.wikipedia.org/wiki/Kriging>`_ 
 (aka. `Gaussian process regression <https://scikit-learn.org/stable/modules/gaussian_process.html>`_
 or `generalized spline interpolation <https://en.wikipedia.org/wiki/Spline_interpolation>`_)
@@ -32,8 +32,7 @@ import time
 import torch
 from matplotlib import pyplot as plt
 
-from pykeops.torch import Genred
-from pykeops.torch import KernelSolve
+from pykeops.torch import LazyTensor
 
 ###############################################################################################
 # Generate some data:
@@ -49,42 +48,37 @@ x = torch.rand(N, 1).type(dtype)
 # Some random-ish 1D signal:
 b = x + .5 * (6 * x).sin() + .1 * (20 * x).sin() + .05 * torch.randn(N, 1).type(dtype)
 
-###############################################################################################
+
+######################################################################
 # Interpolation in 1D
 # -------------------
 #
-# Specify our **regression model** - a simple **Gaussian** variogram:
+# Specify our **regression model** - a simple **Gaussian** variogram or **kernel matrix**
+# of deviation **sigma**:
 
-formula = "Exp(- G * SqDist(X,Y) ) * A"  # Gaussian kernel matrix
-aliases = ["X = Vi(1)",  # 1st arg: target points, i-variable of size 1
-           "Y = Vj(1)",  # 2nd arg: source points, j-variable of size 1
-           "A = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
-           "G = Pm(1)"]  # 4th arg: scalar parameter, 1/(2*std**2)
+def gaussian_kernel(x, y, sigma=.1):
+    x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
+    y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
+    D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
+    return (- D_ij / (2 * sigma ** 2)).exp()  # (M, N) symbolic Gaussian kernel matrix
 
-###############################################################################################
-# Define an **interpolation problem** by specifying:
-# 
-# - The kernel computation through **formula**, **aliases** 
-#   and the **axis** of reduction.
-# - The variable ``A`` with respect to which the computation above is assumed to be **linear**.
-# - The ridge regularization parameter **alpha**, which controls the trade-off
-#   between a perfect fit (**alpha** = 0) and a 
-#   smooth interpolation (**alpha** = :math:`+\infty`).
 
-sigma = .1  # Kernel radius
+#######################################################################
+# Perform the **Kernel interpolation**, without forgetting to specify
+# the ridge regularization parameter **alpha** which controls the trade-off
+# between a perfect fit (**alpha** = 0) and a 
+# smooth interpolation (**alpha** = :math:`+\infty`):
+
 alpha = 1.  # Ridge regularization
 
-g = torch.Tensor([.5 / sigma ** 2]).type(dtype)  # RBF bandwidth parameter
-Kinv = KernelSolve(formula, aliases, "A", axis=1)  # KeOps operator
-
-###############################################################################################
-# Perform the **Kernel interpolation**:
-
 start = time.time()
-a = Kinv(x, x, b, g, alpha=alpha)
+
+K_xx = gaussian_kernel(x, x)
+a = K_xx.solve(b, alpha=alpha)
+
 end = time.time()
 
-print('Time to perform an RBF interpolation with {} samples in 1D: {:.5f}s'.format(
+print('Time to perform an RBF interpolation with {:,} samples in 1D: {:.5f}s'.format(
     N, end - start))
 
 ###############################################################################################
@@ -93,14 +87,15 @@ print('Time to perform an RBF interpolation with {} samples in 1D: {:.5f}s'.form
 
 # Extrapolate on a uniform sample:
 t = torch.linspace(0, 1, 1001).type(dtype)[:, None]
-K = Genred(formula, aliases, axis=1)
-xt = K(t, x, a, g)
+
+K_tx = gaussian_kernel(t, x)
+mean_t = K_tx @ a
 
 # 1D plot:
 plt.figure(figsize=(8, 6))
 
 plt.scatter(x.cpu()[:, 0], b.cpu()[:, 0], s=100 / len(x))  # Noisy samples
-plt.plot(t.cpu().numpy(), xt.cpu().numpy(), "r")
+plt.plot(t.cpu().numpy(), mean_t.cpu().numpy(), "r")
 
 plt.axis([0, 1, 0, 1]);
 plt.tight_layout()
@@ -125,40 +120,35 @@ b = b + .05 * torch.randn(N, 1).type(dtype)
 Nout = N // 4
 b[-Nout:] = torch.rand(Nout, 1).type(dtype)
 
-###############################################################################################
-# Specify our **regression model** - a simple **Exponential** variogram:
 
-formula = "Exp(- G * Norm2(X-Y) ) * A"  # Laplacian kernel matrix
-aliases = ["X = Vi(2)",  # 1st arg: target points, i-variable of size 2
-           "Y = Vj(2)",  # 2nd arg: source points, j-variable of size 2
-           "A = Vj(1)",  # 3rd arg: source signal, j-variable of size 1
-           "G = Pm(1)"]  # 4th arg: scalar parameter, 1/std
+########################################################################
+# Specify our **regression model** - a simple **Exponential** variogram
+# or **Laplacian** kernel matrix of deviation **sigma**:
 
-###############################################################################################
-# Define an **interpolation problem** by specifying:
-# 
-# - The kernel computation through **formula**, **aliases** 
-#   and the **axis** of reduction.
-# - The variable ``A`` with respect to which the computation above is assumed to be **linear**.
-# - The ridge regularization parameter **alpha**, which controls the trade-off
-#   between a perfect fit (**alpha** = 0) and a 
-#   smooth interpolation (**alpha** = :math:`+\infty`).
+def laplacian_kernel(x, y, sigma=.1):
+    x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
+    y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
+    D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
+    return (- D_ij.sqrt() / sigma).exp()  # (M, N) symbolic Laplacian kernel matrix
 
-sigma = .1  # Kernel radius
+
+#######################################################################
+# Perform the **Kernel interpolation**, without forgetting to specify
+# the ridge regularization parameter **alpha** which controls the trade-off
+# between a perfect fit (**alpha** = 0) and a 
+# smooth interpolation (**alpha** = :math:`+\infty`):
+
 alpha = 10  # Ridge regularization
 
-g = torch.Tensor([1. / sigma]).type(dtype)  # RBF bandwidth parameter
-Kinv = KernelSolve(formula, aliases, "A", axis=1)  # KeOps operator
-
-###############################################################################################
-# Perform the **Kernel interpolation**:
-
 start = time.time()
-a = Kinv(x, x, b, g, alpha=alpha)
+
+K_xx = laplacian_kernel(x, x)
+a = K_xx.solve(b, alpha=alpha)
+
 end = time.time()
 
-print('Time to perform an RBF interpolation with {} samples in 2D: {:.5f}s'.format(
-    N, end - start))
+print('Time to perform an RBF interpolation with {:,} samples in 2D: {:.5f}s'.format(N, end - start))
+
 
 ###############################################################################################
 # Display the (fitted) model on the unit square:
@@ -168,14 +158,16 @@ print('Time to perform an RBF interpolation with {} samples in 2D: {:.5f}s'.form
 X = Y = torch.linspace(0, 1, 101).type(dtype)
 X, Y = torch.meshgrid(X, Y)
 t = torch.stack((X.contiguous().view(-1), Y.contiguous().view(-1)), dim=1)
-K = Genred(formula, aliases, axis=1)
-xt = K(t, x, a, g).view(101, 101)
+
+K_tx = laplacian_kernel(t, x)
+mean_t = K_tx @ a
+mean_t = mean_t.view(101, 101)
 
 # 2D plot: noisy samples and interpolation in the background
 plt.figure(figsize=(8, 8))
 
 plt.scatter(x.cpu()[:, 0], x.cpu()[:, 1], c=b.cpu().view(-1), s=25000 / len(x), cmap="bwr")
-plt.imshow(xt.cpu().numpy()[::-1, :], interpolation="bilinear", extent=[0, 1, 0, 1], cmap="coolwarm")
+plt.imshow(mean_t.cpu().numpy()[::-1, :], interpolation="bilinear", extent=[0, 1, 0, 1], cmap="coolwarm")
 
 # sphinx_gallery_thumbnail_number = 2
 plt.axis([0, 1, 0, 1])

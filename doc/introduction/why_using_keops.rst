@@ -41,7 +41,12 @@ But for large datasets (say, :math:`M,N \geqslant 10,000`), this is not realisti
 KeOps is all about **letting researchers break through this memory bottleneck**. Relying on **online map-reduce schemes**, we provide CUDA routines that "sum" the coefficients :math:`K_{i,j}\cdot b_j` as they are computed, without ever storing the full matrix :math:`K` in memory.
 
 
-See the :doc:`benchmarks <../_auto_benchmarks/index>`.
+As evidenced by our :doc:`benchmarks <../_auto_benchmarks/index>`,
+the KeOps routines **outperform** their standard GPU-tensorized counterparts
+**by two orders of magnitude** on modern hardware:
+on top of a reduced memory usage, they can also bring
+a considerable speed-up to all applications 
+that rely on massive - but simple - map-reduce operations.
 
 .. _part.formula:
 
@@ -56,7 +61,7 @@ Let's say that you have at hand:
 - a collection :math:`y^1_j, y^2_j, ..., y^Y_j` of vector sequences, indexed by an integer :math:`j` ranging from 1 to :math:`N`.
 - a vector-valued function :math:`f(p^1, p^2,..., x^1_i, x^2_i,..., y^1_j, y^2_j, ...)` on these input vectors.
 
-Then, referring to the :math:`p`'s as **parameters**, the :math:`x`'s as **x-variables** and the :math:`y`'s as **y-variables**, the KeOps library allows you to compute efficiently *any* expression :math:`a_i` of the form
+Then, referring to the :math:`p`'s as **parameters**, the :math:`x_i`'s as **x-variables** and the :math:`y_j`'s as **y-variables**, the KeOps library allows you to compute efficiently *any* expression :math:`a_i` of the form
 
 .. math::
     a_i = \operatorname{Reduction}_{j=1,\cdots,N}\limits \big[ f(p^1, p^2,..., x^1_i, x^2_i,..., y^1_j, y^2_j, ...)  \big], \qquad i=1,\cdots,M
@@ -64,7 +69,8 @@ Then, referring to the :math:`p`'s as **parameters**, the :math:`x`'s as **x-var
 alongside its **derivatives** with respect to all the variables and parameters.
 
 
-See the :doc:`gallery <../_auto_tutorials/index>`.
+Feel free to browse through our :doc:`gallery of tutorials <../_auto_tutorials/index>`
+for examples of applications.
 
 
 Features
