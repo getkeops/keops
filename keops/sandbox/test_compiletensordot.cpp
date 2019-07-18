@@ -16,6 +16,9 @@ using DimFb = Ind(2, 2);
 using ContFa = Ind(2);
 using ContFb = Ind(0);
 
+using ContFa4 = Ind(1,2);
+using ContFb4 = Ind(0,1);
+
 template<size_t... DIMFA, size_t... DIMFB, size_t... CONTFA, size_t... CONTFB>
 static constexpr std::tuple<std::array<size_t, sizeof...(DIMFA)>,
                             std::array<size_t, sizeof...(DIMFB)>,
@@ -120,16 +123,9 @@ constexpr std::tuple<size_t, size_t, size_t> kd(std::array<size_t, size1> dim_a,
 
 template<size_t size_list_dim_a, size_t size_list_dim_b,
     size_t size_list_contdim>
-constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t,
-                                                              size_list_dim_a> list_dim_a,        // list of size
+constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t, size_list_dim_a> list_dim_a,
                                                    std::array<size_t, size_list_dim_b> list_dim_b,
-    // std::array<size_t, size_list_dim_a - size_list_contdim> list_strides_keepdim_a,       // {2,1}
-    // std::array<size_t, size_list_dim_b - size_list_contdim> list_strides_keepdim_b,       // {99}
-    // std::array<size_t, size_list_contdim> list_strides_contdim_a,                         // {99}
-    // std::array<size_t, size_list_contdim> list_strides_contdim_b,                         // {1}
-                                                   std::array<size_t,
-                                                              size_list_dim_a + size_list_dim_b
-                                                                  - size_list_contdim> list_indices_tot)          // {i,j,k}
+                                                   std::array<size_t, size_list_dim_a + size_list_dim_b - size_list_contdim> list_indices_tot)          // {i,j,k}
 {
 
   std::array<size_t, size_list_dim_a - size_list_contdim> list_indices_keepdim_a;
@@ -139,32 +135,38 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t,
 
   std::array<size_t, size_list_dim_a - size_list_contdim> list_strides_keepdim_a;
   for (size_t i = 0; i < (size_list_dim_a - size_list_contdim); i++) {
-    list_strides_keepdim_a[i] = (size_list_dim_a - size_list_contdim) - i;                               // {2,1}
-  }
-
-  std::array<size_t, size_list_dim_b - size_list_contdim> list_indices_keepdim_b;
-  for (size_t i = 0; i < (size_list_dim_b - size_list_contdim); i++) {
-    list_indices_keepdim_b[i] = (size_list_dim_a - size_list_contdim) + i;   // {2}
-  }
-
-  std::array<size_t, size_list_dim_b - size_list_contdim - 1> list_strides_keepdim_b;
-  for (size_t i = 0; i < (size_list_dim_b - size_list_contdim - 1); i++) {
-    list_strides_keepdim_b[i] = (size_list_dim_b - size_list_contdim - 1) - i;           // {}
-  }
-
-  std::array<size_t, size_list_contdim> list_indices_contdim;                                              // {3}
-  for (size_t i = 0; i < size_list_contdim; i++) {
-    list_indices_contdim[i] = (size_list_dim_a + size_list_dim_b - 2 * size_list_contdim) + i;   // {2}
+    list_strides_keepdim_a[i] = (size_list_dim_a - size_list_contdim) - i;               // {2,1}
   }
 
   std::array<size_t, size_list_contdim - 1> list_strides_contdim_a;
   for (size_t i = 0; i < (size_list_contdim - 1); i++) {
-    list_strides_contdim_a[i] = (size_list_contdim - 1) - i;           // {}
+    list_strides_contdim_a[i] = (size_list_contdim - 1) - i;                             // {}
   }
-  std::array<size_t, size_list_contdim> list_strides_contdim_b; // {1}
+
+
+
+  std::array<size_t, size_list_dim_b - size_list_contdim> list_indices_keepdim_b;
+  for (size_t i = 0; i < (size_list_dim_b - size_list_contdim); i++) {
+    list_indices_keepdim_b[i] = (size_list_dim_a - size_list_contdim) + i;               // {2}
+  }
+  const size_t size_strides_keepdim_b = (size_list_dim_b == size_list_contdim)? 0: (size_list_dim_b - size_list_contdim - 1);
+  std::array<size_t, size_strides_keepdim_b> list_strides_keepdim_b;
+  for (size_t i = 0; i < size_strides_keepdim_b; i++) {
+    list_strides_keepdim_b[i] = size_strides_keepdim_b - i;           // {}
+  }
+
+  std::array<size_t, size_list_contdim> list_strides_contdim_b;
   for (size_t i = 0; i < size_list_contdim; i++) {
-    list_strides_contdim_b[i] = size_list_contdim - i;           // {}
+    list_strides_contdim_b[i] = size_list_contdim - i;                                   // {1}
   }
+
+
+
+  std::array<size_t, size_list_contdim> list_indices_contdim;
+  for (size_t i = 0; i < size_list_contdim; i++) {
+    list_indices_contdim[i] = (size_list_dim_a + size_list_dim_b - 2 * size_list_contdim) + i;   // {3}
+  }
+
 
   size_t kda = 0;
   size_t kdb = 0;
@@ -173,6 +175,7 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t,
     kda = ((size_list_dim_a - size_list_contdim == 0) ? 1 : list_dim_a[list_strides_keepdim_a[i]])
         * (list_indices_tot[list_indices_keepdim_a[i]] + kda);
   }
+
   for (size_t i = 0; i < (size_list_dim_b - size_list_contdim); i++) {
     kdb = ((size_list_dim_b - size_list_contdim - 1 == 0) ? 1 : list_dim_b[list_strides_keepdim_b[i]])
         * (list_indices_tot[list_indices_keepdim_b[i]] + kdb);
@@ -184,8 +187,8 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t,
 
   for (size_t i = 0; i < size_list_contdim; i++) {
     size_t r = list_indices_tot[list_indices_contdim[i]];
-    kda_r = ((size_list_contdim == 1) ? 1 : list_dim_a[list_strides_contdim_a[i]]) * (r + kda_r);
-    kdb_r = ((size_list_contdim == 0) ? 1 : list_dim_b[list_strides_contdim_b[i]]) * (r + kdb_r);
+    kda_r = ((size_list_contdim == r) ? 1 : list_dim_a[list_strides_contdim_a[i]]) * (r + kda_r);
+    kdb_r = ((size_list_contdim == r) ? 1 : list_dim_b[list_strides_contdim_b[i]]) * (r + kdb_r);
   }
 
   return std::make_tuple(I, kda + kda_r, kdb + kdb_r);
@@ -231,6 +234,7 @@ int main() {
 
   double FA[8] = {4.4, 5.4, 6.2, 6.5, 7.5, 6.1, 8.7, 1.3};
   double FB[4] = {1.4, 1.2, 1.5, 1.22};
+/*
 
   // generate tuple (at compile time)
   constexpr auto ma4 = build_array4(DimFa(),
@@ -274,13 +278,13 @@ int main() {
   std::fill(out3, out3 + dimout_var, 0);
 
   constexpr const size_t indices_number = std::get<6>(ma4).size();
+
   const auto &my_lambda2 = [&out3, &FA, &FB, &ma4, indices_number](decltype(gen<size_t, indices_number>()) it) {
     const auto &dim_a = std::get<0>(ma4);
     const auto &dim_b = std::get<1>(ma4);
 
-    std::tuple KD = kdvar<3, 2, 1>(dim_a,
-                                   dim_b,
-                                   get_array_from_tuple(it));
+    std::tuple KD = kdvar<3, 2, 1>(dim_a, dim_b, get_array_from_tuple(it));
+
     size_t I = std::get<0>(KD);
     size_t kda = std::get<1>(KD);
     size_t kdb = std::get<2>(KD);
@@ -309,4 +313,60 @@ int main() {
     std::cout << "out2 = " << out2[i] << std::endl;
   }
 
+  std::cout << std::endl;
+*/
+
+  // -------------------------------------------------------------------------------------------------------------------------------------
+  double out4[2] = {0, 0};
+
+  for (size_t i = 0; i < 2; i++)
+      for (size_t k = 0; k < 2; k++)
+        for (size_t l = 0; l < 2; l++) {
+          out4[ i ] += FA[4 * i + 2 * k + l] * FB[k * 2 + l];
+        }
+
+  for (auto i = 0; i < 2; i++) {
+    std::cout << "out4 = " << out4[i] << std::endl;
+  }
+
+  double out5[2] = {0, 0};
+  constexpr auto ma5 = build_array4(DimFa(),
+                                    DimFb(),
+                                    ContFa4(),
+                                    ContFb4());
+
+  constexpr const size_t indices_number4 = std::get<6>(ma5).size();
+  const auto &my_lambda4 = [&out5, &FA, &FB, &ma5, indices_number4](decltype(gen<size_t, indices_number4>()) it) {
+    const auto &dim_a = std::get<0>(ma5);
+    const auto &dim_b = std::get<1>(ma5);
+
+    std::tuple KD = kdvar<3, 2, 2>(dim_a,
+                                   dim_b,
+                                   get_array_from_tuple(it));
+    size_t I = std::get<0>(KD);
+    size_t kda = std::get<1>(KD);
+    size_t kdb = std::get<2>(KD);
+
+    out5[I] += FA[kda] * FB[kdb];
+  };
+
+  loop(std::get<6>(ma5), my_lambda4);
+
+  for (auto i = 0; i < 2; i++) {
+    std::cout << "out5 = " << out5[i] << std::endl;
+  }
+
+
 }
+
+
+/*
+
+ import numpy as np
+ a = np.array([4.4, 5.4, 6.2, 6.5, 7.5, 6.1, 8.7, 1.3]).reshape(2,2,2)
+ b = np.array([1.4, 1.2, 1.5, 1.22]).reshape(2,2)
+ print(np.tensordot(a,b,axes=([2],[0])))
+
+ print(np.tensordot(a,b,axes=([1,2],[0,1]))) # out4
+
+ */
