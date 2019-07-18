@@ -13,6 +13,10 @@
         #keops
     #)
 #endif()
+add_executable(
+        test_compiletensordot
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_compiletensordot.cpp
+)
 
 add_executable(
     test_factorized_cpp
