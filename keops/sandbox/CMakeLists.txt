@@ -14,9 +14,13 @@
     #)
 #endif()
 add_executable(
+        test_tensordot
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot.cpp)
+
+
+add_executable(
         test_compiletensordot
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_compiletensordot.cpp
-)
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_compiletensordot.cpp)
 
 add_executable(
     test_factorized_cpp
