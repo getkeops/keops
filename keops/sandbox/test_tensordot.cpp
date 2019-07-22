@@ -36,17 +36,14 @@ void loop(const std::array<size_t, shape_size> &shape, Functor functor) {
   Looper<0, shape_size>()(shape, functor);
 }
 
-
+// ---------------------------------------------------------------------------------------------------------------------
 
 
 template<size_t... DIMFA, size_t... DIMFB, size_t... CONTFA, size_t... CONTFB>
 static constexpr std::tuple<std::array<size_t, sizeof...(DIMFA)>,
                             std::array<size_t, sizeof...(DIMFB)>,
-                            std::array<size_t, sizeof...(DIMFA) - sizeof...(CONTFA)>,
-                            std::array<size_t, sizeof...(DIMFB) - sizeof...(CONTFB)>,
-                            std::array<size_t,
-                                       sizeof...(DIMFA) + sizeof...(DIMFB) - sizeof...(CONTFA) - sizeof...(CONTFB)>,
-                            std::array<size_t, sizeof...(CONTFB)>,
+                            std::array<size_t, sizeof...(DIMFA)>,
+                            std::array<size_t, sizeof...(DIMFB)>,
                             std::array<size_t, sizeof...(DIMFA) + sizeof...(DIMFB) - sizeof...(CONTFA)>>
 build_array4(std::index_sequence<DIMFA...>,
              std::index_sequence<DIMFB...>,
@@ -54,39 +51,41 @@ build_array4(std::index_sequence<DIMFA...>,
              std::index_sequence<CONTFB...>) noexcept {
 
   // Cast index_sequence to array
-  auto indices_a = std::array<size_t, sizeof...(DIMFA)>{DIMFA...};
-  auto indices_b = std::array<size_t, sizeof...(DIMFB)>{DIMFB...};
-  auto indices_contdim_a = std::array<size_t, sizeof...(CONTFA)>{CONTFA...};
-  auto indices_contdim_b = std::array<size_t, sizeof...(CONTFB)>{CONTFB...};
+  constexpr auto list_dim_a = std::array<size_t, sizeof...(DIMFA)>{DIMFA...};
+  constexpr auto list_dim_b = std::array<size_t, sizeof...(DIMFB)>{DIMFB...};
+  constexpr auto indices_contdim_a = std::array<size_t, sizeof...(CONTFA)>{CONTFA...};
+  constexpr auto indices_contdim_b = std::array<size_t, sizeof...(CONTFB)>{CONTFB...};
 
+  constexpr size_t size_listdim_a = list_dim_a.size();
+  constexpr size_t size_listdim_b = list_dim_b.size();
   // get size of the contraction
-  constexpr size_t size_keep_dim_a = indices_a.size() - indices_contdim_a.size();
-  constexpr size_t size_keepdim_b = indices_b.size() - indices_contdim_b.size();
+  constexpr size_t size_keepdim_a = list_dim_a.size() - indices_contdim_a.size();
+  constexpr size_t size_keepdim_b = list_dim_b.size() - indices_contdim_b.size();
 
 
 
 
   // dim_keep : contains the list of kept dim
-  std::array<size_t, size_keepdim_b + size_keep_dim_a> dim_keep{};
-  std::array<size_t, size_keep_dim_a> dim_keep_a{};
-  std::array<size_t, size_keepdim_b> dim_keep_b{};
-  for (size_t i = 0; i < size_keep_dim_a; i++) {
-    dim_keep_a[i] = indices_a[i];
-    dim_keep[i] = indices_a[i];
+  std::array<size_t, size_keepdim_b + size_keepdim_a> dim_keep{};
+  std::array<size_t, size_keepdim_a> list_keep_dim_a{};
+  std::array<size_t, size_keepdim_b> list_keep_dim_b{};
+  for (size_t i = 0; i < size_keepdim_a; i++) {
+    list_keep_dim_a[i] = list_dim_a[i];
+    dim_keep[i] = list_dim_a[i];
   }
 
   for (size_t i = 0; i < size_keepdim_b; i++) {
-    dim_keep_b[i] = indices_b[indices_contdim_b.size() + i];
-    dim_keep[i + size_keep_dim_a] = dim_keep_b[i];
+    list_keep_dim_b[i] = list_dim_b[indices_contdim_b.size() + i];
+    dim_keep[i + size_keepdim_a] = list_keep_dim_b[i];
   }
 
   // contdim
   std::array<size_t, indices_contdim_a.size()> dim_cont{};
   for (size_t i = 0; i < indices_contdim_a.size(); i++) {
-    dim_cont[i] = indices_a[size_keep_dim_a + i];
+    dim_cont[i] = list_dim_a[size_keepdim_a + i];
   }
 
-  // dim_tot : contains all indices in that order [dim_keep_a, dim_keep_b, dim_cont]
+  // dim_tot : contains all indices in that order [list_keep_dim_a, list_keep_dim_b, dim_cont]
   std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot{};
   for (size_t i = 0; i < dim_keep.size(); i++) {
     dim_tot[i] = dim_keep[i];
@@ -95,9 +94,21 @@ build_array4(std::index_sequence<DIMFA...>,
     dim_tot[dim_keep.size() + i] = dim_cont[i];
   }
 
-  return std::make_tuple(indices_a, indices_b,
-                         dim_keep_a, dim_keep_b, dim_keep,
-                         dim_cont,
+  std::array<size_t, size_listdim_a> list_stride_dim_a{};
+  for (size_t i = 0; i < size_listdim_a; i++) {
+    list_stride_dim_a[i] = 1;
+    for (size_t j=i+1; j < size_listdim_a; j++)
+      list_stride_dim_a[i] *= list_dim_a[j];
+  }
+  std::array<size_t, size_listdim_b> list_stride_dim_b{};
+  for (size_t i = 0; i < size_listdim_b; i++) {
+    list_stride_dim_b[i] = 1;
+    for (size_t j=i+1; j < size_listdim_b; j++ )
+      list_stride_dim_b[i] *= list_dim_b[j];                                                       // {0,1}
+  }
+
+  return std::make_tuple(list_dim_a, list_dim_b,
+                         list_stride_dim_a, list_stride_dim_b,
                          dim_tot);
 }
 
@@ -105,6 +116,8 @@ build_array4(std::index_sequence<DIMFA...>,
 template<size_t size_list_dim_a, size_t size_list_dim_b, size_t size_list_contdim>
 constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t, size_list_dim_a> list_dim_a,
                                                    std::array<size_t, size_list_dim_b> list_dim_b,
+                                                   std::array<size_t, size_list_dim_a> list_stride_dim_a,
+                                                   std::array<size_t, size_list_dim_b> list_stride_dim_b,
                                                    std::array<size_t, size_list_dim_a + size_list_dim_b - size_list_contdim> list_indices_tot)          // {i,j,k}
 {
 
@@ -122,12 +135,7 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t, size_list_
     list_indices_keepdim_a[i] = list_indices_tot[i];       // {0,1}
   }
 
-  std::array<size_t, size_list_dim_a> list_stride_dim_a;
-  for (size_t i = 0; i < size_list_dim_a; i++) {
-    list_stride_dim_a[i] = 1;
-    for (size_t j=i+1; j < size_list_dim_a; j++)
-      list_stride_dim_a[i] *= list_dim_a[j];
-  }
+
 
   size_t kda = 0;
   for (size_t i = 0; i < (size_keep_dim_a); i++) {
@@ -145,12 +153,6 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(std::array<size_t, size_list_
     list_indices_keepdim_b[i] = list_indices_tot[size_keep_dim_a + i];               // {2}
   }
 
-  std::array<size_t, size_list_dim_b> list_stride_dim_b;
-  for (size_t i = 0; i < size_list_dim_b; i++) {
-    list_stride_dim_b[i] = 1;
-    for (size_t j=i+1; j < size_list_dim_b; j++ )
-      list_stride_dim_b[i] *= list_dim_b[j];                                                       // {0,1}
-  }
 
   size_t kdb = 0;
   for (size_t i = 0; i < (size_keep_dim_b); i++) {
@@ -234,6 +236,7 @@ int main() {
   double FA[8] = {4.4, 5.4, 6.2, 6.5, 7.5, 6.1, 8.7, 1.3};
   double FB[4] = {1.4, 1.2, 1.5, 1.22};
 
+  // -------------------------------------------------------------------------------------------------------------------
   // generate tuple (at compile time)
   constexpr auto ma4 = build_array4(DimFa(),
                                     DimFb(),
@@ -243,18 +246,22 @@ int main() {
 
   constexpr size_t dimout_var = dimout(std::get<4>(ma4));
 
-  // -------------------------------------------------------------------------------------------------------------------------------------
-
   double out_td[dimout_var];
   std::fill(out_td, out_td + dimout_var, 0);
 
-  constexpr const size_t indices_number = std::get<6>(ma4).size();
+  constexpr const size_t indices_number = std::get<4>(ma4).size();
 
   const auto &my_lambda2 = [&out_td, &FA, &FB, &ma4, indices_number](decltype(gen<size_t, indices_number>()) it) {
     const auto &dim_a = std::get<0>(ma4);
     const auto &dim_b = std::get<1>(ma4);
+    const auto &stride_a = std::get<2>(ma4);
+    const auto &stride_b = std::get<3>(ma4);
 
-    std::tuple KD = kdvar<3, 2, 1>(dim_a, dim_b, get_array_from_tuple(it));
+    std::tuple KD = kdvar<3, 2, 1>(dim_a,
+                                   dim_b,
+                                   stride_a,
+                                   stride_b,
+                                   get_array_from_tuple(it));
 
     size_t I = std::get<0>(KD);
     size_t kda = std::get<1>(KD);
@@ -263,7 +270,7 @@ int main() {
     out_td[I] += FA[kda] * FB[kdb];
   };
 
-  loop(std::get<6>(ma4), my_lambda2);
+  loop(std::get<4>(ma4), my_lambda2);
 
   // --------
 
@@ -299,13 +306,17 @@ int main() {
                                     ContFa4(),
                                     ContFb4());
 
-  constexpr const size_t indices_number4 = std::get<6>(ma5).size();
+  constexpr const size_t indices_number4 = std::get<4>(ma5).size();
   const auto &my_lambda4 = [&out5, &FA, &FB, &ma5, indices_number4](decltype(gen<size_t, indices_number4>()) it) {
     const auto &dim_a = std::get<0>(ma5);
     const auto &dim_b = std::get<1>(ma5);
+    const auto &stride_a = std::get<2>(ma5);
+    const auto &stride_b = std::get<3>(ma5);
 
     std::tuple KD = kdvar<3, 2, 2>(dim_a,
                                    dim_b,
+                                   stride_a,
+                                   stride_b,
                                    get_array_from_tuple(it));
     size_t I = std::get<0>(KD);
     size_t kda = std::get<1>(KD);
@@ -314,7 +325,7 @@ int main() {
     out5[I] += FA[kda] * FB[kdb];
   };
 
-  loop(std::get<6>(ma5), my_lambda4);
+  loop(std::get<4>(ma5), my_lambda4);
 
   // -------------
 
@@ -349,13 +360,17 @@ int main() {
                                     ContFa6(),
                                     ContFb6());
 
-  constexpr const size_t indices_number6 = std::get<6>(ma6).size();
+  constexpr const size_t indices_number6 = std::get<4>(ma6).size();
   const auto &my_lambda6 = [&out6, &FAA, &FBB, &ma6, indices_number6](decltype(gen<size_t, indices_number6>()) it) {
     const auto &dim_a6 = std::get<0>(ma6);
     const auto &dim_b6 = std::get<1>(ma6);
+    const auto &stride_a = std::get<2>(ma6);
+    const auto &stride_b = std::get<3>(ma6);
 
     std::tuple KD = kdvar<3, 3, 2>(dim_a6,
                                    dim_b6,
+                                   stride_a,
+                                   stride_b,
                                    get_array_from_tuple(it));
     size_t I = std::get<0>(KD);
     size_t kda = std::get<1>(KD);
@@ -364,7 +379,7 @@ int main() {
     out6[I] += FAA[kda] * FBB[kdb];
   };
 
-  loop(std::get<6>(ma6), my_lambda6);
+  loop(std::get<4>(ma6), my_lambda6);
 
   // -------------
 
@@ -397,13 +412,17 @@ int main() {
                                     ContFa8(),
                                     ContFa8());
 
-  constexpr const size_t indices_number8 = std::get<6>(ma8).size();
+  constexpr const size_t indices_number8 = std::get<4>(ma8).size();
   const auto &my_lambda8 = [&out8, &FAA, &ma8, indices_number8](decltype(gen<size_t, indices_number8>()) it) {
     const auto &dim_a8 = std::get<0>(ma8);
     const auto &dim_b8 = std::get<1>(ma8);
+    const auto &stride_a = std::get<2>(ma8);
+    const auto &stride_b = std::get<3>(ma8);
 
     std::tuple KD = kdvar<3, 3, 3>(dim_a8,
                                    dim_b8,
+                                   stride_a,
+                                   stride_b,
                                    get_array_from_tuple(it));
     size_t I = std::get<0>(KD);
     size_t kda = std::get<1>(KD);
@@ -412,7 +431,7 @@ int main() {
     out8[I] += FAA[kda] * FAA[kdb];
   };
 
-  loop(std::get<6>(ma8), my_lambda8);
+  loop(std::get<4>(ma8), my_lambda8);
 
 
   // -------------
