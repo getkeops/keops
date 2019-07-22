@@ -38,16 +38,18 @@ void loop(const std::array<size_t, shape_size> &shape, Functor functor) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-template<size_t SIZE_DIMFA, size_t SIZE_DIMFB, size_t SIZE_CONTFA >
+template<size_t SIZE_DIMFA, size_t SIZE_DIMFB, size_t SIZE_CONTA >
 using packed_tensor_parameters = std::tuple<std::array<size_t, SIZE_DIMFA>,
                             std::array<size_t, SIZE_DIMFB>,
                             std::array<size_t, SIZE_DIMFA>,
                             std::array<size_t, SIZE_DIMFB>,
-                            std::array<size_t, SIZE_DIMFA + SIZE_DIMFB - SIZE_CONTFA>>;
+                            std::array<size_t, SIZE_DIMFA + SIZE_DIMFB - 2 * SIZE_CONTA>,
+                            std::array<size_t, SIZE_DIMFA + SIZE_DIMFB - SIZE_CONTA>,
+                            size_t>;
 
 template<size_t... DIMFA, size_t... DIMFB, size_t... CONTFA, size_t... CONTFB>
 static constexpr packed_tensor_parameters<sizeof... (DIMFA), sizeof... (DIMFB), sizeof... (CONTFA)>
-build_array4(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...)) noexcept {
+tensordot_parameters(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...)) noexcept {
 
   // Cast index_sequence to array
   constexpr auto list_dim_a = std::array<size_t, sizeof...(DIMFA)>{DIMFA...};
@@ -60,6 +62,7 @@ build_array4(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...)) noexc
   // get size of the contraction
   constexpr size_t size_keepdim_a = list_dim_a.size() - indices_contdim_a.size();
   constexpr size_t size_keepdim_b = list_dim_b.size() - indices_contdim_b.size();
+  size_t dimout = 1;
 
 
 
@@ -71,11 +74,13 @@ build_array4(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...)) noexc
   for (size_t i = 0; i < size_keepdim_a; i++) {
     list_keep_dim_a[i] = list_dim_a[i];
     dim_keep[i] = list_dim_a[i];
+    dimout *= list_dim_a[i];
   }
 
   for (size_t i = 0; i < size_keepdim_b; i++) {
     list_keep_dim_b[i] = list_dim_b[indices_contdim_b.size() + i];
     dim_keep[i + size_keepdim_a] = list_keep_dim_b[i];
+    dimout *= list_keep_dim_b[i];
   }
 
   // contdim
@@ -103,24 +108,33 @@ build_array4(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...)) noexc
   for (size_t i = 0; i < size_listdim_b; i++) {
     list_stride_dim_b[i] = 1;
     for (size_t j=i+1; j < size_listdim_b; j++ )
-      list_stride_dim_b[i] *= list_dim_b[j];                                                       // {0,1}
+      list_stride_dim_b[i] *= list_dim_b[j];
   }
 
-  return std::make_tuple(list_dim_a, list_dim_b,
-                         list_stride_dim_a, list_stride_dim_b,
-                         dim_tot);
+  std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim{};
+  for (size_t i = 0; i < size_keepdim_a  + size_keepdim_b; i++) {
+    list_stride_keepdim[i] = 1;
+    for (size_t j = i + 1; j < size_keepdim_a + size_keepdim_b; j++)
+      list_stride_keepdim[i] *= (j < size_keepdim_a) ? list_dim_a[j] : list_dim_b[j - size_keepdim_a
+          + indices_contdim_a.size()];                                                       // {0,1}
+  }
+
+    return std::make_tuple(list_dim_a, list_dim_b,
+                           list_stride_dim_a, list_stride_dim_b, list_stride_keepdim,
+                           dim_tot, dimout);
 }
 
 
-template<size_t SIZE_DIMFA, size_t SIZE_DIMFB, size_t SIZE_CONTF>
-constexpr std::tuple<size_t, size_t, size_t> kdvar(const packed_tensor_parameters<SIZE_DIMFA, SIZE_DIMFB, SIZE_CONTF> &ma4,
-                                                   std::array<size_t, SIZE_DIMFA + SIZE_DIMFB - SIZE_CONTF> list_indices_tot)          // {i,j,k}
+template<size_t SIZE_DIMFA, size_t SIZE_DIMFB, size_t SIZE_CONT>
+constexpr std::tuple<size_t, size_t, size_t> kdvar(const packed_tensor_parameters<SIZE_DIMFA, SIZE_DIMFB, SIZE_CONT> &ma4,
+                                                   std::array<size_t, SIZE_DIMFA + SIZE_DIMFB - SIZE_CONT> list_indices_tot)
 {
 
   const auto list_dim_a = std::get<0>(ma4);
   const auto list_dim_b = std::get<1>(ma4);
   const auto list_stride_dim_a = std::get<2>(ma4);
   const auto list_stride_dim_b = std::get<3>(ma4);
+  const auto list_stride_keepdim = std::get<4>(ma4);
 
   constexpr size_t size_keep_dim_a = list_indices_tot.size() - list_dim_b.size();
   constexpr size_t size_keep_dim_b = list_indices_tot.size() - list_dim_a.size();
@@ -128,59 +142,33 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(const packed_tensor_parameter
   constexpr size_t size_list_dim_b = list_dim_b.size();
 
 
-  std::array<size_t, size_list_contdim> list_indices_contdim;
-  for (size_t i = 0; i < size_list_contdim; i++) {
-    list_indices_contdim[i] = list_indices_tot[(size_keep_dim_a + size_keep_dim_b) + i];   // {3}
-  }
 
-  // FA --------------------------
-  std::array<size_t, size_keep_dim_a> list_indices_keepdim_a;
-  for (size_t i = 0; i < (size_keep_dim_a); i++) {
-    list_indices_keepdim_a[i] = list_indices_tot[i];       // {0,1}
-  }
-
-
+  // kda and kdb --------------------------
 
   size_t kda = 0;
   for (size_t i = 0; i < (size_keep_dim_a); i++) {
-    kda += list_stride_dim_a[i] * list_indices_keepdim_a[i];
+    size_t list_indices_keepdim_ai = list_indices_tot[i];
+    kda += list_stride_dim_a[i] *  list_indices_keepdim_ai;
   }
-
-  for (size_t i = 0; i < (size_list_contdim); i++) {
-    kda += list_stride_dim_a[size_keep_dim_a + i] * list_indices_contdim[i];
-  }
-
-
-  // FB --------------------------
-  std::array<size_t, size_keep_dim_b> list_indices_keepdim_b;
-  for (size_t i = 0; i < (size_keep_dim_b); i++) {
-    list_indices_keepdim_b[i] = list_indices_tot[size_keep_dim_a + i];               // {2}
-  }
-
 
   size_t kdb = 0;
   for (size_t i = 0; i < (size_keep_dim_b); i++) {
-    kdb += list_stride_dim_b[size_list_dim_b-1 - i] * list_indices_keepdim_b[i];
-  }
-  for (size_t i = 0; i < (size_list_contdim); i++) {
-    kdb += list_stride_dim_b[i] * list_indices_contdim[i];
+    size_t list_indices_keepdim_bi = list_indices_tot[size_keep_dim_a + i];
+    kdb += list_stride_dim_b[size_list_dim_b-1 - i] * list_indices_keepdim_bi;
   }
 
+
+  for (size_t i = 0; i < (size_list_contdim); i++) {
+    size_t list_indices_contdimi = list_indices_tot[(size_keep_dim_a + size_keep_dim_b) + i];
+    kda += list_stride_dim_a[size_keep_dim_a + i] * list_indices_contdimi;
+    kdb += list_stride_dim_b[i] * list_indices_contdimi;
+  }
 
   // ------------------
 
   size_t I = 0;
-
-
-  std::array<size_t, size_keep_dim_a + size_keep_dim_b> list_stride_keepdim;
-  for (size_t i = 0; i < size_keep_dim_a  + size_keep_dim_b; i++) {
-    list_stride_keepdim[i] = 1;
-    for (size_t j=i+1; j < size_keep_dim_a  + size_keep_dim_b; j++ )
-      list_stride_keepdim[i] *= ( j < size_keep_dim_a) ?  list_dim_a[j] : list_dim_b[j-size_keep_dim_a+size_list_contdim];                                                       // {0,1}
-  }
-
   for (size_t i = 0; i < size_keep_dim_a + size_keep_dim_b  ; i++) {
-    I += list_stride_keepdim[i] * (( i < size_keep_dim_a) ? list_indices_keepdim_a[i] : list_indices_keepdim_b[i - size_keep_dim_a]);
+    I += list_stride_keepdim[i] * list_indices_tot[i];
   }
 
   // std::cout << "(" << list_indices_tot[0] << "," << list_indices_tot[1] <<  "," <<list_indices_tot[2] <<  "," <<list_indices_tot[3] <<")     " << kda << " " << kdb << " " << I << std::endl;
@@ -188,6 +176,17 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(const packed_tensor_parameter
   return std::make_tuple(I, kda, kdb);
 }
 
+
+template<size_t KEEPDIM>
+constexpr size_t dimout(std::array<size_t, KEEPDIM> keep_dim) {
+  size_t out = 1;
+  for (size_t i : keep_dim)
+    out *= i;
+
+  return out;
+}
+
+// ------------------- Utils
 template<size_t, class T>
 using T_ = T;
 
@@ -197,21 +196,12 @@ auto gen(std::index_sequence<Is...>) { return std::tuple<T_<Is, T>...>{}; }
 template<class T, size_t N>
 auto gen() { return gen<T>(std::make_index_sequence<N>{}); }
 
-template<size_t NumberOfKeepDim>
-constexpr size_t dimout(std::array<size_t, NumberOfKeepDim> keep_dim) {
-  size_t out = 1;
-  for (size_t i : keep_dim)
-    out *= i;
-
-  return out;
-}
-
-
 template<typename tuple_t>
 constexpr auto get_array_from_tuple(tuple_t &&tuple) {
   constexpr auto get_array = [](auto &&... x) { return std::array{std::forward<decltype(x)>(x) ...}; };
   return std::apply(get_array, std::forward<tuple_t>(tuple));
 }
+
 
 
 
@@ -242,18 +232,16 @@ int main() {
 
   // -------------------------------------------------------------------------------------------------------------------
   // generate tuple (at compile time)
-  constexpr auto ma4 = build_array4(DimFa(),
+  constexpr auto ma4 = tensordot_parameters(DimFa(),
                                     DimFb(),
                                     ContFa(),
                                     ContFb());
 
+  
+  double out_td[std::get<6>(ma4)];
+  std::fill(out_td, out_td + std::get<6>(ma4), 0);
 
-  constexpr size_t dimout_var = dimout(std::get<4>(ma4));
-
-  double out_td[dimout_var];
-  std::fill(out_td, out_td + dimout_var, 0);
-
-  constexpr const size_t indices_number = std::get<4>(ma4).size();
+  constexpr const size_t indices_number = std::get<5>(ma4).size();
 
   const auto &my_lambda2 = [&out_td, &FA, &FB, &ma4, indices_number](decltype(gen<size_t, indices_number>()) it) {
 
@@ -266,7 +254,7 @@ int main() {
     out_td[I] += FA[kda] * FB[kdb];
   };
 
-  loop(std::get<4>(ma4), my_lambda2);
+  loop(std::get<5>(ma4), my_lambda2);
 
   // --------
 
@@ -296,13 +284,15 @@ int main() {
 
   // -------------------------------------------------------------------------------------------------------------------
 
-  double out5[2] = {0, 0};
-  constexpr auto ma5 = build_array4(DimFa(),
+  constexpr auto ma5 = tensordot_parameters(DimFa(),
                                     DimFb(),
                                     ContFa4(),
                                     ContFb4());
 
-  constexpr const size_t indices_number4 = std::get<4>(ma5).size();
+  double out5[std::get<6>(ma5)];
+  std::fill(out5, out5 + std::get<6>(ma5), 0);
+  
+  constexpr const size_t indices_number4 = std::get<5>(ma5).size();
   const auto &my_lambda4 = [&out5, &FA, &FB, &ma5, indices_number4](decltype(gen<size_t, indices_number4>()) it) {
 
     std::tuple KD = kdvar<DimFa::size(), DimFb::size(), ContFa4::size()>(ma5, get_array_from_tuple(it));
@@ -314,7 +304,7 @@ int main() {
     out5[I] += FA[kda] * FB[kdb];
   };
 
-  loop(std::get<4>(ma5), my_lambda4);
+  loop(std::get<5>(ma5), my_lambda4);
 
   // -------------
 
@@ -343,13 +333,16 @@ int main() {
   double FBB[24] =  {6, 4,2, 9,9, 5,1, 6,7, 8,2, 4,1, 9,7, 8,5, 4,3, 2,3, 8,5, 7};
 
 
-  double out6[10] = {0, 0, 0, 0 ,0, 0, 0, 0, 0 ,0};
-  constexpr auto ma6 = build_array4(DimFa6(),
+  constexpr auto ma6 = tensordot_parameters(DimFa6(),
                                     DimFb6(),
                                     ContFa6(),
                                     ContFb6());
 
-  constexpr const size_t indices_number6 = std::get<4>(ma6).size();
+
+  double out6[std::get<6>(ma6)];
+  std::fill(out6, out6 + std::get<6>(ma6), 0);
+
+  constexpr const size_t indices_number6 = std::get<5>(ma6).size();
   const auto &my_lambda6 = [&out6, &FAA, &FBB, &ma6, indices_number6](decltype(gen<size_t, indices_number6>()) it) {
 
     std::tuple KD = kdvar<DimFa6::size(), DimFb6::size(), ContFa6::size()>(ma6, get_array_from_tuple(it));
@@ -361,7 +354,7 @@ int main() {
     out6[I] += FAA[kda] * FBB[kdb];
   };
 
-  loop(std::get<4>(ma6), my_lambda6);
+  loop(std::get<5>(ma6), my_lambda6);
 
   // -------------
 
@@ -389,13 +382,15 @@ int main() {
 
 // -------------------------------------------------------------------------------------------------------------------
 
-double out8[1] = {0};
-constexpr auto ma8 = build_array4(DimFa6(),
+constexpr auto ma8 = tensordot_parameters(DimFa6(),
                                   DimFa6(),
                                   ContFa8(),
                                   ContFa8());
 
-constexpr const size_t indices_number8 = std::get<4>(ma8).size();
+double out8[std::get<6>(ma8)];
+std::fill(out8, out8 + std::get<6>(ma8), 0);
+
+constexpr const size_t indices_number8 = std::get<5>(ma8).size();
 const auto &my_lambda8 = [&out8, &FAA, &ma8, indices_number8](decltype(gen<size_t, indices_number8>()) it) {
 
   std::tuple KD = kdvar<DimFa6::size(), DimFb6::size(), ContFa8::size()>(ma8, get_array_from_tuple(it));
@@ -407,7 +402,7 @@ const auto &my_lambda8 = [&out8, &FAA, &ma8, indices_number8](decltype(gen<size_
   out8[I] += FAA[kda] * FAA[kdb];
 };
 
-loop(std::get<4>(ma8), my_lambda8);
+loop(std::get<5>(ma8), my_lambda8);
 
 
 // -------------
