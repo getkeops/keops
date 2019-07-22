@@ -13,6 +13,10 @@
         #keops
     #)
 #endif()
+add_executable(
+        test_tensordot_formula_cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_formula.cpp
+)
 
 add_executable(
     test_simple_cpp
