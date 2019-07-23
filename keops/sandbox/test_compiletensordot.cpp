@@ -294,7 +294,7 @@ int main() {
 
   constexpr const size_t indices_number = std::get<6>(ma4).size();
 
-  const auto &my_lambda2 = [&out3, &FA, &FB, &ma4, indices_number](decltype(gen<size_t, indices_number>()) it) {
+  const auto &my_lambda2 = [&out3, &FA, &FB, &ma4](decltype(gen<size_t, indices_number>()) it) {
     const auto &dim_a = std::get<0>(ma4);
     const auto &dim_b = std::get<1>(ma4);
 
@@ -355,7 +355,7 @@ int main() {
                                     ContFb4());
 
   constexpr const size_t indices_number4 = std::get<6>(ma5).size();
-  const auto &my_lambda4 = [&out5, &FA, &FB, &ma5, indices_number4](decltype(gen<size_t, indices_number4>()) it) {
+  const auto &my_lambda4 = [&out5, &FA, &FB, &ma5](decltype(gen<size_t, indices_number4>()) it) {
     const auto &dim_a = std::get<0>(ma5);
     const auto &dim_b = std::get<1>(ma5);
 
@@ -407,7 +407,7 @@ int main() {
                                     ContFb6());
 
   constexpr const size_t indices_number6 = std::get<6>(ma6).size();
-  const auto &my_lambda6 = [&out6, &FAA, &FBB, &ma6, indices_number6](decltype(gen<size_t, indices_number6>()) it) {
+  const auto &my_lambda6 = [&out6, &FAA, &FBB, &ma6](decltype(gen<size_t, indices_number6>()) it) {
   const auto &dim_a6 = std::get<0>(ma6);
   const auto &dim_b6 = std::get<1>(ma6);
 
@@ -436,7 +436,7 @@ int main() {
                                     ContFa8());
 
   constexpr const size_t indices_number8 = std::get<6>(ma8).size();
-  const auto &my_lambda8 = [&out8, &FAA, &FBB, &ma8, indices_number8](decltype(gen<size_t, indices_number8>()) it) {
+  const auto &my_lambda8 = [&out8, &FAA, &FBB, &ma8](decltype(gen<size_t, indices_number8>()) it) {
     const auto &dim_a8 = std::get<0>(ma8);
     const auto &dim_b8 = std::get<1>(ma8);
 

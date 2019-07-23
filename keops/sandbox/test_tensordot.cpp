@@ -243,7 +243,7 @@ int main() {
 
   constexpr const size_t indices_number = std::get<5>(ma4).size();
 
-  const auto &my_lambda2 = [&out_td, &FA, &FB, &ma4, indices_number](decltype(gen<size_t, indices_number>()) it) {
+  const auto &my_lambda2 = [&out_td, &FA, &FB, &ma4](decltype(gen<size_t, indices_number>()) it) {
 
     std::tuple KD = kdvar<DimFa::size(), DimFb::size(), ContFa::size()>(ma4, get_array_from_tuple(it));
 
@@ -293,7 +293,7 @@ int main() {
   std::fill(out5, out5 + std::get<6>(ma5), 0);
   
   constexpr const size_t indices_number4 = std::get<5>(ma5).size();
-  const auto &my_lambda4 = [&out5, &FA, &FB, &ma5, indices_number4](decltype(gen<size_t, indices_number4>()) it) {
+  const auto &my_lambda4 = [&out5, &FA, &FB, &ma5](decltype(gen<size_t, indices_number4>()) it) {
 
     std::tuple KD = kdvar<DimFa::size(), DimFb::size(), ContFa4::size()>(ma5, get_array_from_tuple(it));
 
@@ -343,7 +343,7 @@ int main() {
   std::fill(out6, out6 + std::get<6>(ma6), 0);
 
   constexpr const size_t indices_number6 = std::get<5>(ma6).size();
-  const auto &my_lambda6 = [&out6, &FAA, &FBB, &ma6, indices_number6](decltype(gen<size_t, indices_number6>()) it) {
+  const auto &my_lambda6 = [&out6, &FAA, &FBB, &ma6](decltype(gen<size_t, indices_number6>()) it) {
 
     std::tuple KD = kdvar<DimFa6::size(), DimFb6::size(), ContFa6::size()>(ma6, get_array_from_tuple(it));
 
@@ -391,7 +391,7 @@ double out8[std::get<6>(ma8)];
 std::fill(out8, out8 + std::get<6>(ma8), 0);
 
 constexpr const size_t indices_number8 = std::get<5>(ma8).size();
-const auto &my_lambda8 = [&out8, &FAA, &ma8, indices_number8](decltype(gen<size_t, indices_number8>()) it) {
+const auto &my_lambda8 = [&out8, &FAA, &ma8](decltype(gen<size_t, indices_number8>()) it) {
 
   std::tuple KD = kdvar<DimFa6::size(), DimFb6::size(), ContFa8::size()>(ma8, get_array_from_tuple(it));
 
