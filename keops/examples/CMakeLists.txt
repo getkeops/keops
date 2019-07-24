@@ -36,6 +36,11 @@ add_executable(
 if (USE_CUDA)
 
     CUDA_add_executable(
+            test_tensordot_formula
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_formula.cu
+    )
+
+    CUDA_add_executable(
         test_simple
         ${CMAKE_CURRENT_SOURCE_DIR}/test_simple.cu
     )
