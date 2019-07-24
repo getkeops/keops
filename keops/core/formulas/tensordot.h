@@ -67,63 +67,67 @@ tensordot_parameters(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...
   size_t dimout = 1;
 
 
-
-
   // dim_keep : contains the list of kept dim
   std::array<size_t, size_keepdim_b + size_keepdim_a> dim_keep{};
   std::array<size_t, size_keepdim_a> list_keep_dim_a{};
   std::array<size_t, size_keepdim_b> list_keep_dim_b{};
   for (size_t i = 0; i < size_keepdim_a; i++) {
-    list_keep_dim_a[i] = list_dim_a[i];
-    dim_keep[i] = list_dim_a[i];
+    // list_keep_dim_a[i] = list_dim_a[i];
+    // dim_keep[i] = list_dim_a[i];
     dimout *= list_dim_a[i];
   }
 
-  for (size_t i = 0; i < size_keepdim_b; i++) {
-    list_keep_dim_b[i] = list_dim_b[indices_contdim_b.size() + i];
-    dim_keep[i + size_keepdim_a] = list_keep_dim_b[i];
+  for (int i = 0; i < size_keepdim_b; i++) {
+    // list_keep_dim_b[i] = list_dim_b[indices_contdim_b.size() + i];
+    // dim_keep[i + size_keepdim_a] = list_keep_dim_b[i];
     dimout *= list_keep_dim_b[i];
   }
 
   // contdim
-  std::array<size_t, indices_contdim_a.size()> dim_cont{};
+  // std::array<size_t, indices_contdim_a.size()> dim_cont{};
   for (size_t i = 0; i < indices_contdim_a.size(); i++) {
-    dim_cont[i] = list_dim_a[size_keepdim_a + i];
+    // dim_cont[i] = list_dim_a[size_keepdim_a + i];
   }
 
   // dim_tot : contains all indices in that order [list_keep_dim_a, list_keep_dim_b, dim_cont]
-  std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot{};
-  for (size_t i = 0; i < dim_keep.size(); i++) {
-    dim_tot[i] = dim_keep[i];
+  // std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot{};
+   for (int i = 0; i < dim_keep.size(); i++) {
+    //  dim_tot[i] = dim_keep[i];
   }
   for (size_t i = 0; i < indices_contdim_a.size(); i++) {
-    dim_tot[dim_keep.size() + i] = dim_cont[i];
+    // dim_tot[dim_keep.size() + i] = dim_cont[i];
   }
 
-  std::array<size_t, size_listdim_a> list_stride_dim_a{};
+  // std::array<size_t, size_listdim_a> list_stride_dim_a{};
   for (size_t i = 0; i < size_listdim_a; i++) {
-    list_stride_dim_a[i] = 1;
-    for (size_t j=i+1; j < size_listdim_a; j++)
-      list_stride_dim_a[i] *= list_dim_a[j];
+    //  list_stride_dim_a[i] = 1;
+    // for (size_t j=i+1; j < size_listdim_a; j++)
+    //  list_stride_dim_a[i] *= list_dim_a[j];
   }
-  std::array<size_t, size_listdim_b> list_stride_dim_b{};
+  // std::array<size_t, size_listdim_b> list_stride_dim_b{};
   for (size_t i = 0; i < size_listdim_b; i++) {
-    list_stride_dim_b[i] = 1;
-    for (size_t j=i+1; j < size_listdim_b; j++ )
-      list_stride_dim_b[i] *= list_dim_b[j];
+    // list_stride_dim_b[i] = 1;
+    //  for (size_t j=i+1; j < size_listdim_b; j++ )
+    //   list_stride_dim_b[i] *= list_dim_b[j];
   }
 
-  std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim{};
-  for (size_t i = 0; i < size_keepdim_a  + size_keepdim_b; i++) {
-    list_stride_keepdim[i] = 1;
-    for (size_t j = i + 1; j < size_keepdim_a + size_keepdim_b; j++)
-      list_stride_keepdim[i] *= (j < size_keepdim_a) ? list_dim_a[j] : list_dim_b[j - size_keepdim_a
-          + indices_contdim_a.size()];                                                       // {0,1}
-  }
+  // std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim{};
+  for (int i = 0; i < size_keepdim_a  + size_keepdim_b; i++) {
+    //  list_stride_keepdim[i] = 1;
+    //  for (size_t j = i + 1; j < size_keepdim_a + size_keepdim_b; j++)
+    //  list_stride_keepdim[i] *= (j < size_keepdim_a) ? list_dim_a[j] : list_dim_b[j - size_keepdim_a
+    //      + indices_contdim_a.size()];                                                       // {0,1}
 
+  std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot=  {2,2,2};
+  std::array<size_t, size_listdim_b> list_stride_dim_a =  {4,2,1};
+  std::array<size_t, size_listdim_b> list_stride_dim_b =  {2,1};
+  std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim = {1};
   return std::make_tuple(list_dim_a, list_dim_b,
-                         list_stride_dim_a, list_stride_dim_b, list_stride_keepdim,
+                        list_stride_dim_a, list_stride_dim_b, list_stride_keepdim,
                          dim_tot, dimout);
+  //return std::make_tuple(list_dim_a,  list_dim_b,
+  //                        {4,2,1}, {2,1}, {1},
+  //                       {2,2,2}, dimout);
 }
 
 

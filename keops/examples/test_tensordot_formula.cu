@@ -68,7 +68,7 @@ int main() {
   std::vector<__TYPE__> vres(Nx*Sum_f.DIM);    fillrandom(vres); __TYPE__ *pres = vres.data();
 
   std::cout << "testing Sum reduction" << std::endl;
-  EvalRed<GpuConv2D_FromHost>(Sum_f,Nx, Ny, pres, px, py);
+  EvalRed<GpuConv1D_FromHost>(Sum_f,Nx, Ny, pres, px, py);
 
   std::cout << "output:" << std::endl;
   DispValues(pres,5,Sum_f.DIM);

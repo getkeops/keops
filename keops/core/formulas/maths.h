@@ -7,7 +7,6 @@
 #include "core/autodiff.h"
 
 #include "core/formulas/constants.h"
-#include "core/formulas/tensordot.h"
 
 /*
  * The file where the elementary math operators are defined.
@@ -1159,11 +1158,12 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
   // n=3 and m=2 are assume to be known
   // output is vector of size n
 
-  static_assert(std::ceil(PM) == std::floor(PM), "Parameter in TensorDot should be an integer.");
-  static_assert(std::ceil(std::log(A::DIM) / std::log(PM)) == std::floor(std::log(A::DIM) / std::log(PM)),
-                "Dimension of A should be a power of the parameter PM.");
-  static_assert(std::ceil(std::log(B::DIM) / std::log(PM)) == std::floor(std::log(B::DIM) / std::log(PM)),
-                "Dimension of B should be a power of the parameter PM.");
+
+  // static_assert(std::ceil(PM) == std::floor(PM), "Parameter in TensorDot should be an integer.");
+  // static_assert(std::ceil(std::log(A::DIM) / std::log(PM)) == std::floor(std::log(A::DIM) / std::log(PM)),
+  //              "Dimension of A should be a power of the parameter PM.");
+  // static_assert(std::ceil(std::log(B::DIM) / std::log(PM)) == std::floor(std::log(B::DIM) / std::log(PM)),
+  //              "Dimension of B should be a power of the parameter PM.");
 
 
   static const int DIM = A::DIM / B::DIM;
@@ -1172,23 +1172,25 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     str << "(:)";
   }
 
-  using DimFa = Ind(2, 2, 2);
-  using DimFb = Ind(2, 2);
-  using ContFa = Ind(1, 2);
-  using ContFb = Ind(0, 1);
 
   static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-    /*
-    static const int DIMDOT = int(std::exp(std::log(A::DIM) / 3));
-    for (size_t i = 0; i < DIMDOT; i++) {
-      out[i] = 0;
-      for (size_t k = 0; k < DIMDOT; k++)
-        for (size_t l = 0; l < DIMDOT; l++) {
 
-          out[i] += inA[DIMDOT * DIMDOT * i + DIMDOT * k + l] * inB[k * DIMDOT + l];
+    for (size_t i = 0; i < DIM; i++) {
+      out[i] = 0;
+      for (size_t k = 0; k < DIM; k++)
+        for (size_t l = 0; l < DIM; l++) {
+
+          out[i] += inA[DIM * DIM * i + DIM * k + l] * inB[k * DIM + l];
         }
     }
-     */
+
+/*
+    #include "core/formulas/tensordot.h"
+    using DimFa = Ind(2, 2, 2);
+    using DimFb = Ind(2, 2);
+    using ContFa = Ind(1, 2);
+    using ContFb = Ind(0, 1);
+
     constexpr auto tensordot_param = tensordot_parameters(DimFa(),
                                                           DimFb(),
                                                           ContFa(),
@@ -1200,7 +1202,7 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     constexpr const size_t indices_number = std::get<5>(tensordot_param).size();
 
     const auto
-        &dot_lambda = [&out, &inA, &inB, &tensordot_param, indices_number](decltype(gen<size_t, indices_number>()) it) {
+        &dot_lambda = [&out, &inA, &inB, &tensordot_param](decltype(gen<size_t, indices_number>()) it) {
 
       std::tuple KD = kdvar<DimFa::size(), DimFb::size(), ContFa::size()>(tensordot_param, get_array_from_tuple(it));
 
@@ -1212,6 +1214,7 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     };
 
     loop(std::get<5>(tensordot_param), dot_lambda);
+    */
 
   }
 
