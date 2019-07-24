@@ -16,6 +16,7 @@ using DimFb = Ind(2, 2);
 using ContFa = Ind(1, 2);
 using ContFb = Ind(0, 1);
 
+
 /*
  * The file where the elementary math operators are defined.
  * Available math operations are :
@@ -1180,7 +1181,6 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     str << "(:)";
   }
 
-
   static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
 /*
     for (size_t i = 0; i < DIM; i++) {
@@ -1193,21 +1193,22 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     }
 
 */
-
-    auto tensordot_param = tensordot_parameters(DimFa(),
+    constexpr auto tensordot_param = tensordot_parameters(DimFa(),
                                                           DimFb(),
                                                           ContFa(),
                                                           ContFb());
 
-    size_t dimout = std::get<6>(tensordot_param);
+    // constexpr  size_t dimout = std::get<6>(tensordot_param);
+    constexpr  size_t dimout = 2;
+    // constexpr size_t indices_number = 3;
+    constexpr size_t indices_number = std::get<5>(tensordot_param).size();
+
     // std::fill(out, out + dimout, 0);
     for (size_t i=0; i < dimout; i++)
         out[i] = 0;
 
-    constexpr const size_t indices_number = std::get<5>(tensordot_param).size();
 
-    const auto
-        &dot_lambda = [&out, &inA, &inB, &tensordot_param](decltype(gen<size_t, indices_number>()) it) {
+    const auto &dot_lambda = [out, inA, inB, tensordot_param] HOST_DEVICE (decltype(gen<size_t, indices_number>()) it) {
 
       std::tuple<size_t,size_t,size_t> KD = kdvar<DimFa::size(), DimFb::size(), ContFa::size()>(tensordot_param, get_array_from_tuple(it));
 
@@ -1217,9 +1218,10 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
 
       out[I] += inA[kda] * inB[kdb];
     };
-
-    loop(std::get<5>(tensordot_param), dot_lambda);
-
+    
+    // loop(std::get<5>(tensordot_param), dot_lambda);
+    constexpr std::array<size_t,3> tmp{2,2,2};
+    loop(tmp, dot_lambda);
 
   }
 

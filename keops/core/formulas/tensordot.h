@@ -15,7 +15,7 @@ namespace keops {
 template<size_t shape_index, size_t shape_size>
 struct Looper {
   template<typename Functor>
-  void operator()(const std::array<size_t, shape_size> &shape, Functor functor) {
+  HOST_DEVICE INLINE void operator()(const std::array<size_t, shape_size> &shape, Functor functor) {
     for (size_t index = 0; index < shape[shape_index]; ++index) {
       Looper<shape_index + 1, shape_size>()(
           shape,
@@ -28,13 +28,13 @@ struct Looper {
 template<size_t shape_size>
 struct Looper<shape_size, shape_size> {
   template<typename Functor>
-  void operator()(const std::array<size_t, shape_size> &, Functor functor) {
+  HOST_DEVICE INLINE void operator()(const std::array<size_t, shape_size> &, Functor functor) {
     functor();
   }
 };
 
 template<size_t shape_size, typename Functor>
-void loop(const std::array<size_t, shape_size> &shape, Functor functor) {
+HOST_DEVICE INLINE void loop(const std::array<size_t, shape_size> &shape, Functor functor) {
   Looper<0, shape_size>()(shape, functor);
 }
 
@@ -64,23 +64,22 @@ tensordot_parameters(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...
   // get size of the contraction
   constexpr size_t size_keepdim_a = list_dim_a.size() - indices_contdim_a.size();
   constexpr size_t size_keepdim_b = list_dim_b.size() - indices_contdim_b.size();
-  size_t dimout = 1;
-
+  size_t dimout = 2;
 
   // dim_keep : contains the list of kept dim
   std::array<size_t, size_keepdim_b + size_keepdim_a> dim_keep{};
-  std::array<size_t, size_keepdim_a> list_keep_dim_a{};
-  std::array<size_t, size_keepdim_b> list_keep_dim_b{};
+  //std::array<size_t, size_keepdim_a> list_keep_dim_a{};
+  //std::array<size_t, size_keepdim_b> list_keep_dim_b{};
   for (size_t i = 0; i < size_keepdim_a; i++) {
     // list_keep_dim_a[i] = list_dim_a[i];
     // dim_keep[i] = list_dim_a[i];
-    dimout *= list_dim_a[i];
+    //dimout *= list_dim_a[i];
   }
 
   for (int i = 0; i < size_keepdim_b; i++) {
     // list_keep_dim_b[i] = list_dim_b[indices_contdim_b.size() + i];
     // dim_keep[i + size_keepdim_a] = list_keep_dim_b[i];
-    dimout *= list_keep_dim_b[i];
+    //dimout *= list_keep_dim_b[i];
   }
 
   // contdim
@@ -119,10 +118,10 @@ tensordot_parameters(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...
     //      + indices_contdim_a.size()];                                                       // {0,1}
   }
 
-  std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot  {2,2,2};
-  std::array<size_t, size_listdim_a> list_stride_dim_a {4,2,1};
-  std::array<size_t, size_listdim_b> list_stride_dim_b   {2,1};
-  std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim {1};
+  constexpr std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot  {2,2,2};
+  constexpr std::array<size_t, size_listdim_a> list_stride_dim_a {4,2,1};
+  constexpr std::array<size_t, size_listdim_b> list_stride_dim_b   {2,1};
+  constexpr std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim {1};
   return std::make_tuple(list_dim_a, list_dim_b,
                         list_stride_dim_a, list_stride_dim_b, list_stride_keepdim,
                          dim_tot, dimout);
@@ -153,13 +152,13 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(const packed_tensor_parameter
   // kda and kdb --------------------------
 
   size_t kda = 0;
-  for (size_t i = 0; i < (size_keep_dim_a); i++) {
+  for (int i = 0; i < (size_keep_dim_a); i++) {
     size_t list_indices_keepdim_ai = list_indices_tot[i];
     kda += list_stride_dim_a[i] *  list_indices_keepdim_ai;
   }
 
   size_t kdb = 0;
-  for (size_t i = 0; i < (size_keep_dim_b); i++) {
+  for (int i = 0; i < (size_keep_dim_b); i++) {
     size_t list_indices_keepdim_bi = list_indices_tot[size_keep_dim_a + i];
     kdb += list_stride_dim_b[size_list_dim_b-1 - i] * list_indices_keepdim_bi;
   }
@@ -174,11 +173,11 @@ constexpr std::tuple<size_t, size_t, size_t> kdvar(const packed_tensor_parameter
   // ------------------
 
   size_t I = 0;
-  for (size_t i = 0; i < size_keep_dim_a + size_keep_dim_b  ; i++) {
+  for (int i = 0; i < size_keep_dim_a + size_keep_dim_b  ; i++) {
     I += list_stride_keepdim[i] * list_indices_tot[i];
   }
 
-  // std::cout << "(" << list_indices_tot[0] << "," << list_indices_tot[1] <<  "," <<list_indices_tot[2] <<  "," <<list_indices_tot[3] <<")     " << kda << " " << kdb << " " << I << std::endl;
+   //std::cout << "(" << list_indices_tot[0] << "," << list_indices_tot[1] <<  "," <<list_indices_tot[2] <<  "," <<list_indices_tot[3] <<")     " << kda << " " << kdb << " " << I << std::endl;
 
   return std::make_tuple(I, kda, kdb);
 }
