@@ -117,11 +117,12 @@ tensordot_parameters(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...
     //  for (size_t j = i + 1; j < size_keepdim_a + size_keepdim_b; j++)
     //  list_stride_keepdim[i] *= (j < size_keepdim_a) ? list_dim_a[j] : list_dim_b[j - size_keepdim_a
     //      + indices_contdim_a.size()];                                                       // {0,1}
+  }
 
-  std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot=  {2,2,2};
-  std::array<size_t, size_listdim_b> list_stride_dim_a =  {4,2,1};
-  std::array<size_t, size_listdim_b> list_stride_dim_b =  {2,1};
-  std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim = {1};
+  std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot  {2,2,2};
+  std::array<size_t, size_listdim_a> list_stride_dim_a {4,2,1};
+  std::array<size_t, size_listdim_b> list_stride_dim_b   {2,1};
+  std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim {1};
   return std::make_tuple(list_dim_a, list_dim_b,
                         list_stride_dim_a, list_stride_dim_b, list_stride_keepdim,
                          dim_tot, dimout);
@@ -202,11 +203,32 @@ auto gen(std::index_sequence<Is...>) { return std::tuple<T_<Is, T>...>{}; }
 template<class T, size_t N>
 auto gen() { return gen<T>(std::make_index_sequence<N>{}); }
 
-template<typename tuple_t>
-constexpr auto get_array_from_tuple(tuple_t &&tuple) {
-  constexpr auto get_array = [](auto &&... x) { return std::array{std::forward<decltype(x)>(x) ...}; };
-  return std::apply(get_array, std::forward<tuple_t>(tuple));
+
+
+// The following lines may be changed with std=c++17 by
+// template<typename tuple_t>
+// constexpr auto get_array_from_tuple(tuple_t &&tuple) {
+//   constexpr auto get_array = [](auto &&... x) { return std::array{std::forward<decltype(x)>(x) ...}; };
+//   return std::apply(get_array, std::forward<tuple_t>(tuple));
+// }
+
+
+// Convert tuple into a array implementation
+
+template<typename T, std::size_t N, typename Tuple,  std::size_t... I>
+
+constexpr decltype(auto) t2a_impl(const Tuple& a, std::index_sequence<I...>) {
+        return std::array<T,N>{std::get<I>(a)...};
 }
+
+// Convert tuple into a array
+template<typename Head, typename... T>
+constexpr decltype(auto) get_array_from_tuple(const std::tuple<Head, T...>& a) {
+        using Tuple = std::tuple<Head, T...>;
+        constexpr auto N = sizeof...(T) + 1;
+        return t2a_impl<Head, N, Tuple>(a, std::make_index_sequence<N>());
+}
+
 
 
 }

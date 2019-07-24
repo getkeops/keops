@@ -3,10 +3,18 @@
 #include <sstream>
 #include <assert.h>
 
+
 #include "core/Pack.h"
 #include "core/autodiff.h"
 
 #include "core/formulas/constants.h"
+
+
+#include "core/formulas/tensordot.h"
+using DimFa = Ind(2, 2, 2);
+using DimFb = Ind(2, 2);
+using ContFa = Ind(1, 2);
+using ContFb = Ind(0, 1);
 
 /*
  * The file where the elementary math operators are defined.
@@ -1174,7 +1182,7 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
 
 
   static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-
+/*
     for (size_t i = 0; i < DIM; i++) {
       out[i] = 0;
       for (size_t k = 0; k < DIM; k++)
@@ -1184,14 +1192,9 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
         }
     }
 
-/*
-    #include "core/formulas/tensordot.h"
-    using DimFa = Ind(2, 2, 2);
-    using DimFb = Ind(2, 2);
-    using ContFa = Ind(1, 2);
-    using ContFb = Ind(0, 1);
+*/
 
-    constexpr auto tensordot_param = tensordot_parameters(DimFa(),
+    auto tensordot_param = tensordot_parameters(DimFa(),
                                                           DimFb(),
                                                           ContFa(),
                                                           ContFb());
@@ -1206,7 +1209,7 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     const auto
         &dot_lambda = [&out, &inA, &inB, &tensordot_param](decltype(gen<size_t, indices_number>()) it) {
 
-      std::tuple KD = kdvar<DimFa::size(), DimFb::size(), ContFa::size()>(tensordot_param, get_array_from_tuple(it));
+      std::tuple<size_t,size_t,size_t> KD = kdvar<DimFa::size(), DimFb::size(), ContFa::size()>(tensordot_param, get_array_from_tuple(it));
 
       size_t I = std::get<0>(KD);
       size_t kda = std::get<1>(KD);
@@ -1216,7 +1219,7 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     };
 
     loop(std::get<5>(tensordot_param), dot_lambda);
-    */
+
 
   }
 
