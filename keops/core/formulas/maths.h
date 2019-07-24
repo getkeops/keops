@@ -1197,7 +1197,9 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
                                                           ContFb());
 
     size_t dimout = std::get<6>(tensordot_param);
-    std::fill(out, out + dimout, 0);
+    // std::fill(out, out + dimout, 0);
+    for (size_t i=0; i < dimout; i++)
+        out[i] = 0;
 
     constexpr const size_t indices_number = std::get<5>(tensordot_param).size();
 
