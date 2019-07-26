@@ -14,6 +14,10 @@
     #)
 #endif()
 add_executable(
+        test_tensordot_c14
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_c14.cpp)
+
+add_executable(
         test_tensordot
         ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot.cpp)
 
