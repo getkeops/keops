@@ -10,11 +10,7 @@
 #include "core/formulas/constants.h"
 
 
-#include "core/formulas/tensordot.h"
-using DimFa = Ind(2, 2, 2);
-using DimFb = Ind(2, 2);
-using ContFa = Ind(1, 2);
-using ContFb = Ind(0, 1);
+#include "core/formulas/tensordot_c14.h"
 
 
 /*
@@ -60,6 +56,10 @@ using ContFb = Ind(0, 1);
  */
 
 namespace keops {
+using DimFa = Ind(2, 2, 2);
+using DimFb = Ind(2, 2);
+using ContFa = Ind(1, 2);
+using ContFb = Ind(0, 1);
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -1193,6 +1193,23 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     }
 
 */
+    using ma4 = tensordot_parameters<
+        DimFa,
+        DimFb,
+        ContFa,
+        ContFb>;
+
+    // std::fill(out, out + dimout, 0);
+    for (size_t i=0; i < ma4::dimout; i++)
+      out[i] = 0;
+
+    constexpr std::array<KD, ma4::dimtot> list_kd = ma4::kd_seq;
+    for (auto kd : list_kd)
+    {
+      //  std::cout << kd.a << " " << kd.b <<  " " << kd.I << std::endl;
+      out[kd.I] += inA[kd.a] * inA[kd.b];
+    }
+/*
     constexpr auto tensordot_param = tensordot_parameters(DimFa(),
                                                           DimFb(),
                                                           ContFa(),
@@ -1222,7 +1239,7 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     // loop(std::get<5>(tensordot_param), dot_lambda);
     constexpr std::array<size_t,3> tmp{2,2,2};
     loop(tmp, dot_lambda);
-
+*/
   }
 
   template<class V, class GRADIN>

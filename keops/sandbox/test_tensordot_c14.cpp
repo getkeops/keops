@@ -102,8 +102,7 @@ struct cum_prod<index_sequence<a, X...>>
 template <size_t... Ix>
 using index_sequence = tao::seq::integer_sequence<size_t, Ix...>;
 
-#define Ind(...) \
-    index_sequence<__VA_ARGS__>
+#define Ind(...) index_sequence<__VA_ARGS__>
 
 template <size_t... Ix>
 constexpr auto make_array_from_seq(index_sequence<Ix...>) -> std::array<size_t, sizeof...(Ix)>
