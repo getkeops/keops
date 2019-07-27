@@ -352,6 +352,10 @@ int main()
         for (size_t k = 0; k < 2; k++)
             for (size_t l = 0; l < 2; l++)
             {
+                    //size_t kda = 4 * i + 2 * k + l;
+                    //size_t kdb = k * 2 + l;
+                    //size_t I = i;
+                    //std::cout << I << "," << kda << "," << kdb << "," << std::endl;
                 out4[i] += FA[4 * i + 2 * k + l] * FB[k * 2 + l];
             }
 

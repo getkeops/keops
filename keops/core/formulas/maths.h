@@ -1182,64 +1182,51 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
   }
 
   static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+
+
 /*
+    
     for (size_t i = 0; i < DIM; i++) {
-      out[i] = 0;
       for (size_t k = 0; k < DIM; k++)
         for (size_t l = 0; l < DIM; l++) {
 
           out[i] += inA[DIM * DIM * i + DIM * k + l] * inB[k * DIM + l];
         }
     }
-
+    
 */
+
+    /*
+      out[0] += inA[0] * inB[0];
+      out[0] += inA[1] * inB[1];
+      out[0] += inA[2] * inB[2];
+      out[0] += inA[3] * inB[3];
+      out[1] += inA[4] * inB[0];
+      out[1] += inA[5] * inB[1];
+      out[1] += inA[6] * inB[2];
+      out[1] += inA[7] * inB[3];
+*/
+  /*  
+    constexpr size_t list_kd[] =  {0,0,0, 0,1,1, 0,2,2, 0,3,3, 1,4,0, 1,5,1, 1,6,2, 1,7,3};
+
+#pragma unroll (8)
+    for (size_t i =0 ; i < 8 ; i ++) {
+      out[list_kd[3*i]] += inA[list_kd[3*i+1]] * inB[list_kd[3*i+2]];
+    }
+
+    */
+    
     using ma4 = tensordot_parameters<
         DimFa,
         DimFb,
         ContFa,
         ContFb>;
 
-    // std::fill(out, out + dimout, 0);
-    for (size_t i=0; i < ma4::dimout; i++)
-      out[i] = 0;
-
     constexpr std::array<KD, ma4::dimtot> list_kd = ma4::kd_seq;
-    for (auto kd : list_kd)
-    {
-      //  std::cout << kd.a << " " << kd.b <<  " " << kd.I << std::endl;
-      out[kd.I] += inA[kd.a] * inA[kd.b];
+    for (auto kd : list_kd) {
+      out[kd.I] += inA[kd.a] * inB[kd.b];
     }
-/*
-    constexpr auto tensordot_param = tensordot_parameters(DimFa(),
-                                                          DimFb(),
-                                                          ContFa(),
-                                                          ContFb());
-
-    // constexpr  size_t dimout = std::get<6>(tensordot_param);
-    constexpr  size_t dimout = 2;
-    // constexpr size_t indices_number = 3;
-    constexpr size_t indices_number = std::get<5>(tensordot_param).size();
-
-    // std::fill(out, out + dimout, 0);
-    for (size_t i=0; i < dimout; i++)
-        out[i] = 0;
-
-
-    const auto &dot_lambda = [out, inA, inB, tensordot_param] HOST_DEVICE (decltype(gen<size_t, indices_number>()) it) {
-
-      std::tuple<size_t,size_t,size_t> KD = kdvar<DimFa::size(), DimFb::size(), ContFa::size()>(tensordot_param, get_array_from_tuple(it));
-
-      size_t I = std::get<0>(KD);
-      size_t kda = std::get<1>(KD);
-      size_t kdb = std::get<2>(KD);
-
-      out[I] += inA[kda] * inB[kdb];
-    };
     
-    // loop(std::get<5>(tensordot_param), dot_lambda);
-    constexpr std::array<size_t,3> tmp{2,2,2};
-    loop(tmp, dot_lambda);
-*/
   }
 
   template<class V, class GRADIN>
