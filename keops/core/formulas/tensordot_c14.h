@@ -73,7 +73,7 @@ constexpr auto prod_red(index_sequence<X...>)
 {
   constexpr std::array<size_t, sizeof...(X)> x{X...};
   size_t res = 1;
-  for (size_t i = 0; i < sizeof...(X); i++)
+  for (size_t i = 0; i != sizeof...(X); i++)
     res *= x[i];
   return res;
 }
@@ -263,6 +263,7 @@ struct tensordot_parameters<
   }
 
   constexpr static std::array<KD, dimtot> kd_seq = get_KD(dimout_seq{});
+  constexpr static __device__ std::array<KD, dimtot> get_kd_seq() {return kd_seq;};
 };
 
 
