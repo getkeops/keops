@@ -355,6 +355,7 @@ struct tensordot_parameters<
     return {(get_indices<DIMOUT_SEQ>())...};
   }
  
+  constexpr static auto kd_seq = get_KD(dimout_seq{});
 };
 
 

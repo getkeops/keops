@@ -1167,7 +1167,7 @@ using ma4 = tensordot_parameters<
     ContFa,
     ContFb>;
 
-__constant__ auto kd_seq = ma4::get_KD(ma4::dimout_seq{});
+__constant__ auto kd_seq = ma4::kd_seq;
 
 template<class A, class B, int PM>
 struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
