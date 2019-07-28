@@ -57,7 +57,7 @@ int main() {
 
   // now we test ------------------------------------------------------------------------------
 
-  int Nx=5, Ny=10;
+  int Nx=5000, Ny=10000;
 
   // here we define actual data for all variables and feed it it with random values
   std::vector<__TYPE__> vx(Nx*x.DIM);    fillrandom(vx); __TYPE__ *px = vx.data();

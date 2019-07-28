@@ -166,7 +166,7 @@ constexpr auto prod_red(index_sequence<X...>)
 {
   constexpr std::array<size_t, sizeof...(X)> x{X...};
   size_t res = 1;
-  for (size_t i = 0; i < sizeof...(X); i++)
+  for (size_t i = 0; i != sizeof...(X); i++)
     res *= x[i];
   return res;
 }
