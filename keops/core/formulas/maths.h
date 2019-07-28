@@ -1161,6 +1161,14 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 ////              Tensor dot product      A : b                      ////
 /////////////////////////////////////////////////////////////////////////
 
+using ma4 = tensordot_parameters<
+    DimFa,
+    DimFb,
+    ContFa,
+    ContFb>;
+
+__constant__ auto kd_seq = ma4::get_KD(ma4::dimout_seq{});
+
 template<class A, class B, int PM>
 struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
   // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
@@ -1193,18 +1201,13 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     }
 
 */
-    using ma4 = tensordot_parameters<
-        DimFa,
-        DimFb,
-        ContFa,
-        ContFb>;
+
 
     // std::fill(out, out + dimout, 0);
     for (size_t i=0; i < ma4::dimout; i++)
       out[i] = 0;
 
-    constexpr std::array<KD, ma4::dimtot> list_kd = ma4::kd_seq;
-    for (auto kd : list_kd)
+    for (auto kd : kd_seq)
     {
       //  std::cout << kd.a << " " << kd.b <<  " " << kd.I << std::endl;
       out[kd.I] += inA[kd.a] * inA[kd.b];

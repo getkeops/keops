@@ -12,6 +12,99 @@
 #include <tao/seq/make_integer_range.hpp>
 
 
+template<class _Ty,
+	size_t _Size>
+	class hd_array
+{	// fixed size array of values
+public:
+	using value_type = _Ty;
+	using size_type = size_t;
+	using difference_type = int;
+	using pointer = _Ty * ;
+	using const_pointer = const _Ty *;
+	using reference = _Ty & ;
+	using const_reference = const _Ty&;
+
+	__host__ __device__ bool fill(const _Ty& _Value)
+	{	// assign value to all elements
+		// try to fill each value of the array with the give item
+		for (int i = 0; i < _Size; ++i) {
+			_Elems[i] = _Value;
+		}
+		return true;
+	}
+
+	__host__ __device__ pointer begin()
+	{	// return iterator for beginning of mutable sequence
+		return &(_Elems[0]);
+	}
+
+	__host__ __device__ pointer end()
+	{	// return iterator for end of mutable sequence
+		return &(_Elems[0 + _Size]);
+	}
+
+	__host__ __device__ size_type size() const
+	{	// return length of sequence
+		return (_Size);
+	}
+
+	__host__ __device__ size_type max_size() const
+	{	// return maximum possible length of sequence
+		return (_Size);
+	}
+
+	__host__ __device__ reference at(size_type _Pos)
+	{	// subscript mutable sequence with checking
+		checkArrayBound(_Pos);
+
+		return (_Elems[_Pos]);
+	}
+
+	__host__ __device__ const_reference at(size_type _Pos) const
+	{	// subscript nonmutable sequence with checking
+		checkArrayBound(_Pos);
+
+		return (_Elems[_Pos]);
+	}
+
+	__host__ __device__ reference operator[](size_type _Pos)
+	{	// subscript mutable sequence
+		checkArrayBound(_Pos);
+
+		return (_Elems[_Pos]);
+	}
+
+	__host__ __device__ const_reference operator[](size_type _Pos) const
+	{	// subscript nonmutable sequence
+
+		checkArrayBound(_Pos);
+
+		return (_Elems[_Pos]);
+	}
+
+
+	__host__ __device__ _Ty * data()
+	{	// return pointer to mutable data array
+		return (_Elems);
+	}
+
+	__host__ __device__ const _Ty * data() const
+	{	// return pointer to nonmutable data array
+		return (_Elems);
+	}
+
+	__host__ __device__ void checkArrayBound(size_type &_Pos) {
+		if (_Size <= _Pos) {
+			_Pos = _Size - 1;
+		}
+		// Unsigned int, so do not have to consider < 0 case
+	}
+
+
+	_Ty _Elems[_Size];
+};
+
 namespace tao
 {
 namespace seq
@@ -257,12 +350,11 @@ struct tensordot_parameters<
 
   using dimout_seq = tao::seq::make_index_sequence<dimtot>;
   template <size_t... DIMOUT_SEQ>
-  static constexpr auto get_KD(index_sequence<DIMOUT_SEQ...>)
+  static constexpr auto get_KD(index_sequence<DIMOUT_SEQ...>) -> hd_array<KD,sizeof...(DIMOUT_SEQ)>
   {
-    return std::array<KD, sizeof...(DIMOUT_SEQ)>{(get_indices<DIMOUT_SEQ>())...};
+    return {(get_indices<DIMOUT_SEQ>())...};
   }
-
-  constexpr static std::array<KD, dimtot> kd_seq = get_KD(dimout_seq{});
+ 
 };
 
 
