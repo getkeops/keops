@@ -263,7 +263,8 @@ struct tensordot_parameters<
   }
 
   constexpr static std::array<KD, dimtot> kd_seq = get_KD(dimout_seq{});
-  constexpr static __device__ std::array<KD, dimtot> get_kd_seq() {return kd_seq;};
+
+  constexpr static HOST_DEVICE std::array<KD, dimtot> get_kd_seq() {return kd_seq;};
 };
 
 
