@@ -56,17 +56,24 @@ def parse_aliases(aliases):
 
 
 def get_sizes(aliases, *args):
-    indx, indy = [], []
+    nx, ny = None, None
     for (var_ind, sig) in enumerate(aliases):
         _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
         if cat == 0:
-            indx = pos
+            nx = args[pos].shape[0]
         elif cat == 1:
-            indy = pos
-        if (not(indx==[]) and not(indy==[])):
-            return args[indx].shape[0], args[indy].shape[0]
+            ny = args[pos].shape[0]
+        if (nx is not None) and (ny is not None):
+            return nx, ny
     
-    raise ValueError('Cannot determine the size of variables. Please check the aliases.')
+    # At this point, we know that our formula is degenerate, 
+    # with no "x" or no "y" variable. The sensible behavior is to assume that
+    # the corresponding "empty" dimension is equal to 1,
+    # in accordance with the dimcheck of keops_io.h:
+    if nx is None: nx = 1
+    if ny is None: ny = 1
+
+    return nx, ny
 
 
 def get_type(type_str, position_in_list=None):

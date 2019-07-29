@@ -305,13 +305,16 @@ std::tuple<int, int, int, int*> check_args(size_t nargs, std::vector<int> catego
     //
     // [ A, .., B, M, N, D_out]  -> output
 
-    
+    if (shapes[nbatchdims] == -1) {  // If the formula does not contain any "x" variable
+        shapes[nbatchdims] = 1;      // Let's say that M = 1.
+    }
+    if (shapes[nbatchdims+1] == -1) {  // If the formula does not contain any "y" variable
+        shapes[nbatchdims+1] = 1;      // Let's say that N = 1.
+    }
+
     int nx = shapes[nbatchdims];      // = M
     int ny = shapes[nbatchdims + 1];  // = N
 
-    if (nx == -1 or ny == -1) {
-        throw std::runtime_error("[KeOps] [Jean:] This formula only referred to one type ('i' or 'j') of variable: we should find a way to handle this situation properly.");
-    }
 
     int nbatches = 1;
     for (int b = 0; b < nbatchdims; b++) {
