@@ -255,46 +255,48 @@ struct tensordot_parameters<
                        IND...>();
   }
 
-  using dimout_seq = tao::seq::make_index_sequence<dimtot>;
-  template <size_t... DIMOUT_SEQ>
-  static constexpr auto get_KD(index_sequence<DIMOUT_SEQ...>)
+  // using dimout_seq = tao::seq::make_index_sequence<dimtot>;
+  // template <size_t... DIMOUT_SEQ>
+  // static constexpr auto get_KD(index_sequence<DIMOUT_SEQ...>)
+  // {
+  //   return std::array<KD, sizeof...(DIMOUT_SEQ)>{(get_indices<DIMOUT_SEQ>())...};
+  // }
+
+  // constexpr static std::array<KD, dimtot> kd_seq = get_KD(dimout_seq{});
+
+  // constexpr static HOST_DEVICE std::array<KD, dimtot> get_kd_seq() {return kd_seq;};
+
+  template<std::size_t N, typename FunctionType, std::size_t I>
+  class repeat_t
   {
-    return std::array<KD, sizeof...(DIMOUT_SEQ)>{(get_indices<DIMOUT_SEQ>())...};
+  public:
+    HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
+    HOST_DEVICE FunctionType operator()()
+    {
+      function_(get_indices<I>());
+      return repeat_t<N,FunctionType,I+1>(function_)();
+    }
+  private:
+    FunctionType function_;
+  };
+
+  template<std::size_t N, typename FunctionType>
+  class repeat_t<N,FunctionType,N>
+  {
+  public:
+    HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
+    HOST_DEVICE FunctionType operator()() { return function_; }
+  private:
+    FunctionType function_;
+  };
+
+  template<typename FunctionType>
+  static HOST_DEVICE repeat_t<dimtot,FunctionType,0> repeat(FunctionType function)
+  {
+    return repeat_t<dimtot,FunctionType,0>(function);
   }
 
-  constexpr static std::array<KD, dimtot> kd_seq = get_KD(dimout_seq{});
-
-  constexpr static HOST_DEVICE std::array<KD, dimtot> get_kd_seq() {return kd_seq;};
 };
 
-template<std::size_t N, typename FunctionType, std::size_t I>
-class repeat_t
-{
-public:
-  __host__ __device__ repeat_t(FunctionType function) : function_(function) {}
-  __host__ __device__ FunctionType operator()()
-  {
-    function_(I);
-    return repeat_t<N,FunctionType,I+1>(function_)();
-  }
-private:
-  FunctionType function_;
-};
-
-template<std::size_t N, typename FunctionType>
-class repeat_t<N,FunctionType,N>
-{
-public:
-  __host__ __device__ repeat_t(FunctionType function) : function_(function) {}
-  __host__ __device__ FunctionType operator()() { return function_; }
-private:
-  FunctionType function_;
-};
-
-template<std::size_t N, typename FunctionType>
-__host__ __device__ repeat_t<N,FunctionType,0> repeat(FunctionType function)
-{
-  return repeat_t<N,FunctionType,0>(function);
-}
 
 }

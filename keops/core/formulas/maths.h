@@ -1252,7 +1252,7 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
         ContFa,
         ContFb>;
 
-    constexpr std::array<KD, ma4::dimtot> kd = ma4::get_kd_seq();
+    // constexpr std::array<KD, ma4::dimtot> kd = ma4::get_kd_seq();
     // out[kd[0].I] += inA[kd[0].a] * inB[kd[0].b];
     // out[kd[1].I] += inA[kd[1].a] * inB[kd[1].b];
     // out[kd[2].I] += inA[kd[2].a] * inB[kd[2].b];
@@ -1263,9 +1263,9 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     // out[kd[7].I] += inA[kd[7].a] * inB[kd[7].b];
 
 
-    repeat<ma4::dimtot>([=](std::size_t i)
+    ma4::repeat([&out,&inA,&inB](KD kd)
     {
-      out[kd[i].I] += inA[kd[i].a] * inB[kd[i].b];
+      out[kd.I] += inA[kd.a] * inB[kd.b];
     })();
     
   }
