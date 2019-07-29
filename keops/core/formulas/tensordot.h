@@ -1,233 +1,282 @@
 #pragma once
 
-#include <tuple>
 #include <array>
+
+#include <tao/seq/integer_sequence.hpp>
+#include <tao/seq/contains.hpp>
+#include <tao/seq/concatenate.hpp>
+#include <tao/seq/map.hpp>
+#include <tao/seq/zip.hpp>
+#include <tao/seq/select.hpp>
+#include <tao/seq/sum.hpp>
+#include <tao/seq/make_integer_range.hpp>
+
+
+namespace tao {
+namespace seq {
+namespace impl {
+struct prod {
+    template <typename T, T A, T B>
+    using apply = std::integral_constant<T, A * B>;
+};
+
+} // namespace impl
+
+template <typename A, typename B>
+using prod = zip<impl::prod, A, B>;
+
+template <typename A, typename B>
+using prod_t = typename prod<A, B>::type;
+
+template <typename, typename>
+struct filter_out;
+
+template <size_t... As>
+struct filter_out<index_sequence<As...>, index_sequence<>> {
+    using type = index_sequence<>;
+};
+
+template <size_t... As, size_t b, size_t... Bs>
+struct filter_out<index_sequence<As...>, index_sequence<b, Bs...>> {
+    constexpr static bool included = tao::seq::contains<size_t, b, As...>::value;
+    using tail = typename filter_out<index_sequence<As...>, index_sequence<Bs...>>::type;
+    using type = typename std::conditional<
+                 included,
+                 tail,
+                 typename tao::seq::concatenate<index_sequence<b>, tail>::type>::type;
+};
+
+template <typename>
+struct reverse;
+
+template <>
+struct reverse<index_sequence<>> {
+    using type = index_sequence<>;
+};
+
+template <size_t a, size_t... As>
+struct reverse<index_sequence<a, As...>> {
+    using reversed = typename reverse<index_sequence<As...>>::type;
+    using type = typename tao::seq::concatenate<reversed, index_sequence<a>>::type;
+};
+
+template <size_t... X>
+constexpr auto prod_red(index_sequence<X...>) {
+    constexpr std::array<size_t, sizeof...(X)> x{X...};
+    size_t res = 1;
+    for (size_t i = 0; i != sizeof...(X); i++)
+        res *= x[i];
+    return res;
+}
+
+template <typename>
+struct cum_prod;
+
+template <>
+struct cum_prod<index_sequence<>> {
+    using type = index_sequence<>;
+};
+
+template <size_t a, size_t... X>
+struct cum_prod<index_sequence<a, X...>> {
+    using type = typename tao::seq::concatenate<
+                 index_sequence<prod_red(index_sequence<X...> {})>,
+                 typename cum_prod<index_sequence<X...>>::type>::type;
+};
+
+} // namespace seq
+
+} // namespace tao
+
 
 namespace keops {
 
-#define Ind(...) std::index_sequence<__VA_ARGS__>
 
+template <size_t... Ix>
+using index_sequence = tao::seq::integer_sequence<size_t, Ix...>;
 
+#define Ind(...) index_sequence<__VA_ARGS__>
 
-//----------------------------------------------------------------------------------------------------------------------
+template <size_t... Ix>
+constexpr auto make_array_from_seq(index_sequence<Ix...>) -> std::array<size_t, sizeof...(Ix)> {
+    return std::array<size_t, sizeof...(Ix)> {Ix...};
+}
 
-// Standard loop
-template<size_t shape_index, size_t shape_size>
-struct Looper {
-  template<typename Functor>
-  HOST_DEVICE INLINE void operator()(const std::array<size_t, shape_size> &shape, Functor functor) {
-    for (size_t index = 0; index < shape[shape_index]; ++index) {
-      Looper<shape_index + 1, shape_size>()(
-          shape,
-          [index, &functor](auto... tail) { functor(std::tuple_cat(std::tuple<size_t>(index), tail...)); });
+struct KD {
+    size_t I;
+    size_t a;
+    size_t b;
+};
+
+template <typename, typename, typename, typename>
+struct tensordot_parameters;
+
+template <size_t... DIMFA, size_t... DIMFB, size_t... CONTFA, size_t... CONTFB>
+struct tensordot_parameters<
+    index_sequence<DIMFA...>,
+    index_sequence<DIMFB...>,
+    index_sequence<CONTFA...>,
+    index_sequence<CONTFB...>> {
+    constexpr static auto size_listdim_a = sizeof...(DIMFA);
+    using indices_dim_a_t = tao::seq::make_index_sequence<size_listdim_a>;
+    using indices_keepdim_a_t = typename tao::seq::filter_out<
+                                index_sequence<CONTFA...>,
+                                indices_dim_a_t>::type;
+    using keepdim_a_t = typename tao::seq::map<
+                        indices_keepdim_a_t,
+                        index_sequence<DIMFA...>>::type;
+    using cont_dim_a_t = typename tao::seq::map<
+                         index_sequence<CONTFA...>,
+                         index_sequence<DIMFA...>>::type;
+
+    constexpr static auto size_listdim_b = sizeof...(DIMFB);
+    using indices_dim_b_t = tao::seq::make_index_sequence<size_listdim_b>;
+    using indices_keepdim_b_t = typename tao::seq::filter_out<
+                                index_sequence<CONTFB...>,
+                                indices_dim_b_t>::type;
+    using keepdim_b_t = typename tao::seq::map<
+                        indices_keepdim_b_t,
+                        index_sequence<DIMFB...>>::type;
+    using cont_dim_b_t = typename tao::seq::map<
+                         index_sequence<CONTFB...>,
+                         index_sequence<DIMFB...>>::type;
+
+    static_assert(std::is_same<cont_dim_a_t, cont_dim_b_t>::value, "Contracting dimensions should  be the same");
+    constexpr static auto size_list_contdim = cont_dim_a_t::size();
+
+    using dim_keep_t = typename tao::seq::concatenate<keepdim_a_t, keepdim_b_t>::type;
+    using dim_tot_t = typename tao::seq::concatenate<dim_keep_t, cont_dim_a_t>::type;
+    using list_stride_dim_a_t = typename tao::seq::cum_prod<index_sequence<DIMFA...>>::type;
+    using list_stride_dim_b_t = typename tao::seq::cum_prod<index_sequence<DIMFB...>>::type;
+    using list_stride_keepdim_t = typename tao::seq::cum_prod<
+                                  typename tao::seq::concatenate<
+                                  keepdim_a_t,
+                                  typename tao::seq::reverse<keepdim_b_t>::type>::type>::type;
+
+    using list_indices_strides_tot = typename tao::seq::cum_prod<dim_tot_t>::type;
+
+    constexpr static size_t dimout = tao::seq::prod_red(dim_keep_t{});
+    constexpr static size_t dimtot = tao::seq::prod_red(dim_tot_t{});
+    template <size_t... IND>
+    constexpr static KD kdvar(index_sequence<IND...>) {
+        using list_indices_tot = index_sequence<IND...>;
+
+        // Kda first pass
+        using list_indices_keepdim_a = typename tao::seq::map<
+                                       tao::seq::make_index_range<0, indices_keepdim_a_t::size()>,
+                                       list_indices_tot>::type;
+
+        using list_indices_strides_keepdim_a = typename tao::seq::map<
+                                               tao::seq::make_index_range<0, indices_keepdim_a_t::size()>,
+                                               list_stride_dim_a_t>::type;
+
+        size_t kda = tao::seq::sum<
+                     tao::seq::prod_t<
+                     list_indices_strides_keepdim_a,
+                     list_indices_keepdim_a>>::value;
+
+        // Kdb first pass
+        using list_indices_keepdim_b = typename tao::seq::map<
+                                       tao::seq::make_index_range<indices_keepdim_a_t::size(), indices_keepdim_a_t::size() + indices_keepdim_b_t::size()>,
+                                       list_indices_tot>::type;
+
+        using list_indices_strides_keepdim_b = typename tao::seq::map<
+                                               tao::seq::make_index_range<0, indices_keepdim_b_t::size()>,
+                                               typename tao::seq::reverse<list_stride_dim_b_t>::type>::type;
+
+        size_t kdb = tao::seq::sum<
+                     tao::seq::prod_t<
+                     list_indices_strides_keepdim_b,
+                     list_indices_keepdim_b>>::value;
+
+        // Contdim
+        using list_indices_contdim = typename tao::seq::map<
+                                     tao::seq::make_index_range<dim_keep_t::size(), list_indices_tot::size()>,
+                                     list_indices_tot>::type;
+
+        using list_indices_strides_contdim_a = typename tao::seq::map<
+                                               tao::seq::make_index_range<indices_keepdim_a_t::size(), indices_keepdim_a_t::size() + list_indices_contdim::size()>,
+                                               list_stride_dim_a_t>::type;
+
+        using list_indices_strides_contdim_b = typename tao::seq::map<
+                                               tao::seq::make_index_range<0, list_indices_contdim::size()>,
+                                               list_stride_dim_b_t>::type;
+
+        kda += tao::seq::sum<
+               tao::seq::prod_t<
+               list_indices_strides_contdim_a,
+               list_indices_contdim>>::value;
+
+        kdb += tao::seq::sum<
+               tao::seq::prod_t<
+               list_indices_strides_contdim_b,
+               list_indices_contdim>>::value;
+
+        using list_indices_keepdim = typename tao::seq::map<
+                                     tao::seq::make_index_range<0, dim_keep_t::size()>,
+                                     list_indices_tot>::type;
+
+        size_t I = tao::seq::sum<
+                   tao::seq::prod_t<
+                   list_stride_keepdim_t,
+                   list_indices_keepdim>>::value;
+
+        return KD{I, kda, kdb};
     }
-  }
+
+    template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) == list_indices_strides_tot::size()> * = nullptr>
+    static constexpr auto get_indices() {
+        using internal = typename tao::seq::reverse<index_sequence<IND...>>::type;
+        return kdvar(internal{});
+        //    return kdvar(index_sequence<IND...>{});
+    }
+
+    template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) < list_indices_strides_tot::size()> * = nullptr>
+    static constexpr auto get_indices() {
+        return get_indices<dim_i % tao::seq::select<sizeof...(IND), list_indices_strides_tot>::value,
+                           dim_i / tao::seq::select<sizeof...(IND), list_indices_strides_tot>::value,
+                           IND...>();
+    }
+
+    using dimout_seq = tao::seq::make_index_sequence<dimtot>;
+    template <size_t... DIMOUT_SEQ>
+    static constexpr auto get_KD(index_sequence<DIMOUT_SEQ...>) {
+        return std::array<KD, sizeof...(DIMOUT_SEQ)> {(get_indices<DIMOUT_SEQ>())...};
+    }
+
+    constexpr static std::array<KD, dimtot> kd_seq = get_KD(dimout_seq{});
+
+    constexpr static HOST_DEVICE std::array<KD, dimtot> get_kd_seq() {
+        return kd_seq;
+    };
 };
 
-// Stopping condition
-template<size_t shape_size>
-struct Looper<shape_size, shape_size> {
-  template<typename Functor>
-  HOST_DEVICE INLINE void operator()(const std::array<size_t, shape_size> &, Functor functor) {
-    functor();
-  }
+template<std::size_t N, typename FunctionType, std::size_t I>
+class repeat_t {
+public:
+    HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
+    HOST_DEVICE FunctionType operator()() {
+        function_(I);
+        return repeat_t<N,FunctionType,I+1>(function_)();
+    }
+private:
+    FunctionType function_;
 };
 
-template<size_t shape_size, typename Functor>
-HOST_DEVICE INLINE void loop(const std::array<size_t, shape_size> &shape, Functor functor) {
-  Looper<0, shape_size>()(shape, functor);
+template<std::size_t N, typename FunctionType>
+class repeat_t<N,FunctionType,N> {
+public:
+    HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
+    HOST_DEVICE FunctionType operator()() {
+        return function_;
+    }
+private:
+    FunctionType function_;
+};
+
+template<std::size_t N, typename FunctionType>
+HOST_DEVICE repeat_t<N,FunctionType,0> repeat(FunctionType function) {
+    return repeat_t<N,FunctionType,0>(function);
 }
-
-// ---------------------------------------------------------------------------------------------------------------------
-
-template<size_t SIZE_DIMFA, size_t SIZE_DIMFB, size_t SIZE_CONTA >
-using packed_tensor_parameters = std::tuple<std::array<size_t, SIZE_DIMFA>,
-                                            std::array<size_t, SIZE_DIMFB>,
-                                            std::array<size_t, SIZE_DIMFA>,
-                                            std::array<size_t, SIZE_DIMFB>,
-                                            std::array<size_t, SIZE_DIMFA + SIZE_DIMFB - 2 * SIZE_CONTA>,
-                                            std::array<size_t, SIZE_DIMFA + SIZE_DIMFB - SIZE_CONTA>,
-                                            size_t>;
-
-template<size_t... DIMFA, size_t... DIMFB, size_t... CONTFA, size_t... CONTFB>
-static constexpr packed_tensor_parameters<sizeof... (DIMFA), sizeof... (DIMFB), sizeof... (CONTFA)>
-tensordot_parameters(Ind(DIMFA...), Ind(DIMFB...), Ind(CONTFA...), Ind(CONTFB...)) noexcept {
-
-  // Cast index_sequence to array
-  constexpr auto list_dim_a = std::array<size_t, sizeof...(DIMFA)>{DIMFA...};
-  constexpr auto list_dim_b = std::array<size_t, sizeof...(DIMFB)>{DIMFB...};
-  constexpr auto indices_contdim_a = std::array<size_t, sizeof...(CONTFA)>{CONTFA...};
-  constexpr auto indices_contdim_b = std::array<size_t, sizeof...(CONTFB)>{CONTFB...};
-
-  constexpr size_t size_listdim_a = list_dim_a.size();
-  constexpr size_t size_listdim_b = list_dim_b.size();
-  // get size of the contraction
-  constexpr size_t size_keepdim_a = list_dim_a.size() - indices_contdim_a.size();
-  constexpr size_t size_keepdim_b = list_dim_b.size() - indices_contdim_b.size();
-  size_t dimout = 2;
-
-  // dim_keep : contains the list of kept dim
-  std::array<size_t, size_keepdim_b + size_keepdim_a> dim_keep{};
-  //std::array<size_t, size_keepdim_a> list_keep_dim_a{};
-  //std::array<size_t, size_keepdim_b> list_keep_dim_b{};
-  for (size_t i = 0; i < size_keepdim_a; i++) {
-    // list_keep_dim_a[i] = list_dim_a[i];
-    // dim_keep[i] = list_dim_a[i];
-    //dimout *= list_dim_a[i];
-  }
-
-  for (int i = 0; i < size_keepdim_b; i++) {
-    // list_keep_dim_b[i] = list_dim_b[indices_contdim_b.size() + i];
-    // dim_keep[i + size_keepdim_a] = list_keep_dim_b[i];
-    //dimout *= list_keep_dim_b[i];
-  }
-
-  // contdim
-  // std::array<size_t, indices_contdim_a.size()> dim_cont{};
-  for (size_t i = 0; i < indices_contdim_a.size(); i++) {
-    // dim_cont[i] = list_dim_a[size_keepdim_a + i];
-  }
-
-  // dim_tot : contains all indices in that order [list_keep_dim_a, list_keep_dim_b, dim_cont]
-  // std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot{};
-   for (int i = 0; i < dim_keep.size(); i++) {
-    //  dim_tot[i] = dim_keep[i];
-  }
-  for (size_t i = 0; i < indices_contdim_a.size(); i++) {
-    // dim_tot[dim_keep.size() + i] = dim_cont[i];
-  }
-
-  // std::array<size_t, size_listdim_a> list_stride_dim_a{};
-  for (size_t i = 0; i < size_listdim_a; i++) {
-    //  list_stride_dim_a[i] = 1;
-    // for (size_t j=i+1; j < size_listdim_a; j++)
-    //  list_stride_dim_a[i] *= list_dim_a[j];
-  }
-  // std::array<size_t, size_listdim_b> list_stride_dim_b{};
-  for (size_t i = 0; i < size_listdim_b; i++) {
-    // list_stride_dim_b[i] = 1;
-    //  for (size_t j=i+1; j < size_listdim_b; j++ )
-    //   list_stride_dim_b[i] *= list_dim_b[j];
-  }
-
-  // std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim{};
-  for (int i = 0; i < size_keepdim_a  + size_keepdim_b; i++) {
-    //  list_stride_keepdim[i] = 1;
-    //  for (size_t j = i + 1; j < size_keepdim_a + size_keepdim_b; j++)
-    //  list_stride_keepdim[i] *= (j < size_keepdim_a) ? list_dim_a[j] : list_dim_b[j - size_keepdim_a
-    //      + indices_contdim_a.size()];                                                       // {0,1}
-  }
-
-  constexpr std::array<size_t, indices_contdim_a.size() + dim_keep.size()> dim_tot  {2,2,2};
-  constexpr std::array<size_t, size_listdim_a> list_stride_dim_a {4,2,1};
-  constexpr std::array<size_t, size_listdim_b> list_stride_dim_b   {2,1};
-  constexpr std::array<size_t, size_keepdim_a + size_keepdim_b> list_stride_keepdim {1};
-  return std::make_tuple(list_dim_a, list_dim_b,
-                        list_stride_dim_a, list_stride_dim_b, list_stride_keepdim,
-                         dim_tot, dimout);
-  //return std::make_tuple(list_dim_a,  list_dim_b,
-  //                        {4,2,1}, {2,1}, {1},
-  //                       {2,2,2}, dimout);
-}
-
-
-template<size_t SIZE_DIMFA, size_t SIZE_DIMFB, size_t SIZE_CONT>
-constexpr std::tuple<size_t, size_t, size_t> kdvar(const packed_tensor_parameters<SIZE_DIMFA, SIZE_DIMFB, SIZE_CONT> &ma4,
-                                                   std::array<size_t, SIZE_DIMFA + SIZE_DIMFB - SIZE_CONT> list_indices_tot)
-{
-
-  const auto list_dim_a = std::get<0>(ma4);
-  const auto list_dim_b = std::get<1>(ma4);
-  const auto list_stride_dim_a = std::get<2>(ma4);
-  const auto list_stride_dim_b = std::get<3>(ma4);
-  const auto list_stride_keepdim = std::get<4>(ma4);
-
-  constexpr size_t size_keep_dim_a = list_indices_tot.size() - list_dim_b.size();
-  constexpr size_t size_keep_dim_b = list_indices_tot.size() - list_dim_a.size();
-  constexpr size_t size_list_contdim = list_indices_tot.size() - size_keep_dim_a - size_keep_dim_b ;
-  constexpr size_t size_list_dim_b = list_dim_b.size();
-
-
-
-  // kda and kdb --------------------------
-
-  size_t kda = 0;
-  for (int i = 0; i < (size_keep_dim_a); i++) {
-    size_t list_indices_keepdim_ai = list_indices_tot[i];
-    kda += list_stride_dim_a[i] *  list_indices_keepdim_ai;
-  }
-
-  size_t kdb = 0;
-  for (int i = 0; i < (size_keep_dim_b); i++) {
-    size_t list_indices_keepdim_bi = list_indices_tot[size_keep_dim_a + i];
-    kdb += list_stride_dim_b[size_list_dim_b-1 - i] * list_indices_keepdim_bi;
-  }
-
-
-  for (size_t i = 0; i < (size_list_contdim); i++) {
-    size_t list_indices_contdimi = list_indices_tot[(size_keep_dim_a + size_keep_dim_b) + i];
-    kda += list_stride_dim_a[size_keep_dim_a + i] * list_indices_contdimi;
-    kdb += list_stride_dim_b[i] * list_indices_contdimi;
-  }
-
-  // ------------------
-
-  size_t I = 0;
-  for (int i = 0; i < size_keep_dim_a + size_keep_dim_b  ; i++) {
-    I += list_stride_keepdim[i] * list_indices_tot[i];
-  }
-
-   //std::cout << "(" << list_indices_tot[0] << "," << list_indices_tot[1] <<  "," <<list_indices_tot[2] <<  "," <<list_indices_tot[3] <<")     " << kda << " " << kdb << " " << I << std::endl;
-
-  return std::make_tuple(I, kda, kdb);
-}
-
-
-template<size_t KEEPDIM>
-constexpr size_t dimout(std::array<size_t, KEEPDIM> keep_dim) {
-  size_t out = 1;
-  for (size_t i : keep_dim)
-    out *= i;
-
-  return out;
-}
-
-// ------------------- Utils
-template<size_t, class T>
-using T_ = T;
-
-template<class T, size_t... Is>
-auto gen(std::index_sequence<Is...>) { return std::tuple<T_<Is, T>...>{}; }
-
-template<class T, size_t N>
-auto gen() { return gen<T>(std::make_index_sequence<N>{}); }
-
-
-
-// The following lines may be changed with std=c++17 by
-// template<typename tuple_t>
-// constexpr auto get_array_from_tuple(tuple_t &&tuple) {
-//   constexpr auto get_array = [](auto &&... x) { return std::array{std::forward<decltype(x)>(x) ...}; };
-//   return std::apply(get_array, std::forward<tuple_t>(tuple));
-// }
-
-
-// Convert tuple into a array implementation
-
-template<typename T, std::size_t N, typename Tuple,  std::size_t... I>
-
-constexpr decltype(auto) t2a_impl(const Tuple& a, std::index_sequence<I...>) {
-        return std::array<T,N>{std::get<I>(a)...};
-}
-
-// Convert tuple into a array
-template<typename Head, typename... T>
-constexpr decltype(auto) get_array_from_tuple(const std::tuple<Head, T...>& a) {
-        using Tuple = std::tuple<Head, T...>;
-        constexpr auto N = sizeof...(T) + 1;
-        return t2a_impl<Head, N, Tuple>(a, std::make_index_sequence<N>());
-}
-
-
 
 }
