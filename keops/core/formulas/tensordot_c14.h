@@ -267,5 +267,34 @@ struct tensordot_parameters<
   constexpr static HOST_DEVICE std::array<KD, dimtot> get_kd_seq() {return kd_seq;};
 };
 
+template<std::size_t N, typename FunctionType, std::size_t I>
+class repeat_t
+{
+public:
+  __host__ __device__ repeat_t(FunctionType function) : function_(function) {}
+  __host__ __device__ FunctionType operator()()
+  {
+    function_(I);
+    return repeat_t<N,FunctionType,I+1>(function_)();
+  }
+private:
+  FunctionType function_;
+};
+
+template<std::size_t N, typename FunctionType>
+class repeat_t<N,FunctionType,N>
+{
+public:
+  __host__ __device__ repeat_t(FunctionType function) : function_(function) {}
+  __host__ __device__ FunctionType operator()() { return function_; }
+private:
+  FunctionType function_;
+};
+
+template<std::size_t N, typename FunctionType>
+__host__ __device__ repeat_t<N,FunctionType,0> repeat(FunctionType function)
+{
+  return repeat_t<N,FunctionType,0>(function);
+}
 
 }
