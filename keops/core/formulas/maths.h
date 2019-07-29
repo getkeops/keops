@@ -1242,8 +1242,6 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
     out[kd[7].I] += inA[kd[7].a] * inB[kd[7].b];
 */
 
-/*
-    // VERSION : 
     for (size_t i =0 ; i < DIM ; i ++) {
       out[i] = 0;
     }
@@ -1254,11 +1252,11 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
         ContFa,
         ContFb>;
 
+    constexpr std::array<KD, ma4::dimtot> kd = ma4::get_kd_seq();
     #pragma  unroll ma4::dimtot
     for (size_t i =0 ; i < ma4::dimtot ; i ++) {
       out[kd[i].I] += inA[kd[i].a] * inB[kd[i].b];
     }
-*/
     
   }
 
