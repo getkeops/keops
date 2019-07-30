@@ -1169,8 +1169,8 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 ////              Tensor dot product      A : b                      ////
 /////////////////////////////////////////////////////////////////////////
 
-template<class A, class B, int PM>
-struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
+template<class A, class B, int... PM>
+struct TensorDot : BinaryOpParam<TensorDot, A, B, PM...> {
     // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
     // n=3 and m=2 are assume to be known
     // output is vector of size n
@@ -1191,68 +1191,8 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
 
-
-        /*
-        //VERSION : FORLOOP
-        for (size_t i = 0; i < DIM; i++) {
-          out[i] = 0;
-          for (size_t k = 0; k < DIM; k++)
-            for (size_t l = 0; l < DIM; l++) {
-              out[i] += inA[DIM * DIM * i + DIM * k + l] * inB[k * DIM + l];
-            }
-        }
-        */
-
-        /*
-        //VERSION : FORLOOP UNROLL
-         for (size_t i = 0; i < DIM; i++) {
-           out[0] = inA[0] * inB[0];
-           out[0] += inA[1] * inB[1];
-           out[0] += inA[2] * inB[2];
-           out[0] += inA[3] * inB[3];
-           out[1] = inA[4] * inB[0];
-           out[1] += inA[5] * inB[1];
-           out[1] += inA[6] * inB[2];
-           out[1] += inA[7] * inB[3];
-         */
-
-        /*
-        // VERSION: C-ARRAY
-        size_t list_kd[] =  {0,0,0, 0,1,1, 0,2,2, 0,3,3, 1,4,0, 1,5,1, 1,6,2, 1,7,3};
-
-        #pragma unroll (8)
-        for (size_t i =0 ; i < 8 ; i ++) {
-          out[list_kd[3*i]] += inA[list_kd[3*i+1]] * inB[list_kd[3*i+2]];
-        }
-        */
-
-
-        /*
-        // VERSION : UNROLL
-        for (size_t i =0 ; i < DIM ; i ++) {
-          out[i] = 0;
-        }
-
-        using parameters = tensordot_parameters<
-            DimFa,
-            DimFb,
-            ContFa,
-            ContFb>;
-
-        constexpr std::array<KD, parameters::dimtot> kd = parameters::get_kd_seq();
-        out[kd[0].I] += inA[kd[0].a] * inB[kd[0].b];
-        out[kd[1].I] += inA[kd[1].a] * inB[kd[1].b];
-        out[kd[2].I] += inA[kd[2].a] * inB[kd[2].b];
-        out[kd[3].I] += inA[kd[3].a] * inB[kd[3].b];
-        out[kd[4].I] += inA[kd[4].a] * inB[kd[4].b];
-        out[kd[5].I] += inA[kd[5].a] * inB[kd[5].b];
-        out[kd[6].I] += inA[kd[6].a] * inB[kd[6].b];
-        out[kd[7].I] += inA[kd[7].a] * inB[kd[7].b];
-        */
-
-        for (size_t i =0 ; i < DIM ; i ++) {
+        for (size_t i =0 ; i < DIM ; i ++)
             out[i] = 0;
-        }
 
         using parameters = tensordot_parameters<DimFa, DimFb, ContFa, ContFb>;
 
@@ -1260,7 +1200,6 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
         parameters::repeat([&out,&inA,&inB](KD kd) {
             out[kd.I] += inA[kd.a] * inB[kd.b];
         })();
-
     }
 
     template<class V, class GRADIN>
