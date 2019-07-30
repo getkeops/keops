@@ -95,12 +95,6 @@ namespace keops {
 template <size_t... Ix>
 using index_sequence = tao::seq::integer_sequence<size_t, Ix...>;
 
-#define Ind(...) index_sequence<__VA_ARGS__>
-
-template <size_t... Ix>
-constexpr auto make_array_from_seq(index_sequence<Ix...>) -> std::array<size_t, sizeof...(Ix)> {
-    return std::array<size_t, sizeof...(Ix)> {Ix...};
-}
 
 struct KD {
     size_t I;
@@ -108,63 +102,64 @@ struct KD {
     size_t b;
 };
 
-template <typename, typename, typename, typename>
-struct tensordot_parameters;
+//template <typename, typename, typename, typename> struct tensordot_parameters;
 
-template <size_t... DIMFA, size_t... DIMFB, size_t... CONTFA, size_t... CONTFB>
-struct tensordot_parameters<
-    index_sequence<DIMFA...>,
-    index_sequence<DIMFB...>,
-    index_sequence<CONTFA...>,
-    index_sequence<CONTFB...>> {
-    constexpr static auto size_listdim_a = sizeof...(DIMFA);
+template <class DIMFA, class DIMFB, class CONTFA, class CONTFB>
+struct tensordot_parameters {
+
+    constexpr static auto size_listdim_a = DIMFA::size();
     using indices_dim_a_t = tao::seq::make_index_sequence<size_listdim_a>;
     using indices_keepdim_a_t = typename tao::seq::filter_out<
-                                index_sequence<CONTFA...>,
+                                CONTFA,
                                 indices_dim_a_t>::type;
     using keepdim_a_t = typename tao::seq::map<
-                        indices_keepdim_a_t,
-                        index_sequence<DIMFA...>>::type;
+                                indices_keepdim_a_t,
+                                DIMFA>::type;
     using cont_dim_a_t = typename tao::seq::map<
-                         index_sequence<CONTFA...>,
-                         index_sequence<DIMFA...>>::type;
+                                CONTFA,
+                                DIMFA>::type;
 
-    constexpr static auto size_listdim_b = sizeof...(DIMFB);
+    constexpr static auto size_listdim_b = CONTFB::size();
     using indices_dim_b_t = tao::seq::make_index_sequence<size_listdim_b>;
     using indices_keepdim_b_t = typename tao::seq::filter_out<
-                                index_sequence<CONTFB...>,
+                                CONTFB,
                                 indices_dim_b_t>::type;
     using keepdim_b_t = typename tao::seq::map<
-                        indices_keepdim_b_t,
-                        index_sequence<DIMFB...>>::type;
+                                indices_keepdim_b_t,
+                                DIMFB>::type;
     using cont_dim_b_t = typename tao::seq::map<
-                         index_sequence<CONTFB...>,
-                         index_sequence<DIMFB...>>::type;
+                                CONTFB,
+                                DIMFB>::type;
 
     static_assert(std::is_same<cont_dim_a_t, cont_dim_b_t>::value, "Contracting dimensions should  be the same");
+
     constexpr static auto size_list_contdim = cont_dim_a_t::size();
 
-    using dim_keep_t = typename tao::seq::concatenate<keepdim_a_t, keepdim_b_t>::type;
-    using dim_tot_t = typename tao::seq::concatenate<dim_keep_t, cont_dim_a_t>::type;
-    using list_stride_dim_a_t = typename tao::seq::cum_prod<index_sequence<DIMFA...>>::type;
-    using list_stride_dim_b_t = typename tao::seq::cum_prod<index_sequence<DIMFB...>>::type;
+    using dim_keep_t = typename tao::seq::concatenate<
+                                 keepdim_a_t,
+                                 keepdim_b_t>::type;
+    using dim_tot_t = typename tao::seq::concatenate<
+                                 dim_keep_t,
+                                 cont_dim_a_t>::type;
+    using list_stride_dim_a_t = typename tao::seq::cum_prod<DIMFA>::type;
+    using list_stride_dim_b_t = typename tao::seq::cum_prod<DIMFB>::type;
     using list_stride_keepdim_t = typename tao::seq::cum_prod<
-                                  typename tao::seq::concatenate<
-                                  keepdim_a_t,
-                                  typename tao::seq::reverse<keepdim_b_t>::type>::type>::type;
+                                 typename tao::seq::concatenate<
+                                 keepdim_a_t,
+                                 typename tao::seq::reverse<keepdim_b_t>::type>::type>::type;
 
     using list_indices_strides_tot = typename tao::seq::cum_prod<dim_tot_t>::type;
 
     constexpr static size_t dimout = tao::seq::prod_red(dim_keep_t{});
     constexpr static size_t dimtot = tao::seq::prod_red(dim_tot_t{});
-    template <size_t... IND>
-    constexpr static KD kdvar(index_sequence<IND...>) {
-        using list_indices_tot = index_sequence<IND...>;
+
+    template <class IND>
+    constexpr static KD kdvar(IND) {
 
         // Kda first pass
         using list_indices_keepdim_a = typename tao::seq::map<
                                        tao::seq::make_index_range<0, indices_keepdim_a_t::size()>,
-                                       list_indices_tot>::type;
+                                       IND>::type;
 
         using list_indices_strides_keepdim_a = typename tao::seq::map<
                                                tao::seq::make_index_range<0, indices_keepdim_a_t::size()>,
@@ -178,7 +173,7 @@ struct tensordot_parameters<
         // Kdb first pass
         using list_indices_keepdim_b = typename tao::seq::map<
                                        tao::seq::make_index_range<indices_keepdim_a_t::size(), indices_keepdim_a_t::size() + indices_keepdim_b_t::size()>,
-                                       list_indices_tot>::type;
+                                       IND>::type;
 
         using list_indices_strides_keepdim_b = typename tao::seq::map<
                                                tao::seq::make_index_range<0, indices_keepdim_b_t::size()>,
@@ -191,8 +186,8 @@ struct tensordot_parameters<
 
         // Contdim
         using list_indices_contdim = typename tao::seq::map<
-                                     tao::seq::make_index_range<dim_keep_t::size(), list_indices_tot::size()>,
-                                     list_indices_tot>::type;
+                                     tao::seq::make_index_range<dim_keep_t::size(), IND::size()>,
+                                     IND>::type;
 
         using list_indices_strides_contdim_a = typename tao::seq::map<
                                                tao::seq::make_index_range<indices_keepdim_a_t::size(), indices_keepdim_a_t::size() + list_indices_contdim::size()>,
@@ -214,21 +209,20 @@ struct tensordot_parameters<
 
         using list_indices_keepdim = typename tao::seq::map<
                                      tao::seq::make_index_range<0, dim_keep_t::size()>,
-                                     list_indices_tot>::type;
+                                     IND>::type;
 
         size_t I = tao::seq::sum<
                    tao::seq::prod_t<
                    list_stride_keepdim_t,
                    list_indices_keepdim>>::value;
 
-        return KD{I, kda, kdb};
+      return KD{I, kda, kdb};
     }
 
     template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) == list_indices_strides_tot::size()> * = nullptr>
     static constexpr auto get_indices() {
         using internal = typename tao::seq::reverse<index_sequence<IND...>>::type;
         return kdvar(internal{});
-        //    return kdvar(index_sequence<IND...>{});
     }
 
     template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) < list_indices_strides_tot::size()> * = nullptr>

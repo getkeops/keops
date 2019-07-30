@@ -54,10 +54,6 @@
  */
 
 namespace keops {
-using DimFa = Ind(2, 2, 2);
-using DimFb = Ind(2, 2);
-using ContFa = Ind(1, 2);
-using ContFb = Ind(0, 1);
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -1169,37 +1165,38 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 ////              Tensor dot product      A : b                      ////
 /////////////////////////////////////////////////////////////////////////
 
-template<class A, class B, int... PM>
-struct TensorDot : BinaryOpParam<TensorDot, A, B, PM...> {
+
+
+template<class A, class B, class DIMFA, class DIMFB, class CONTFA, class CONTFB>
+struct TensorDot : BinaryOpParam<TensorDot,A,B,DIMFA,DIMFB,CONTFA,CONTFB> {
     // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
     // n=3 and m=2 are assume to be known
     // output is vector of size n
 
+    static_assert(DIMFA::size() > 0, "Please provide a non empty DIMA");
+    static_assert(DIMFB::size() > 0, "Please provide a non empty DIMB");
+    static_assert(CONTFA::size() > 0, "Please provide a non empty CONTA");
+    static_assert(CONTFB::size() > 0, "Please provide a non empty CONTB");
+    static_assert(tao::seq::prod_red(DIMFA{}) == A::DIM, "DIMA is not consistant with dimension of A");
+    static_assert(tao::seq::prod_red(DIMFB{}) == B::DIM, "DIMB is not consistant with dimension of B");
 
-    // static_assert(std::ceil(PM) == std::floor(PM), "Parameter in TensorDot should be an integer.");
-    // static_assert(std::ceil(std::log(A::DIM) / std::log(PM)) == std::floor(std::log(A::DIM) / std::log(PM)),
-    //              "Dimension of A should be a power of the parameter PM.");
-    // static_assert(std::ceil(std::log(B::DIM) / std::log(PM)) == std::floor(std::log(B::DIM) / std::log(PM)),
-    //              "Dimension of B should be a power of the parameter PM.");
+    using parameters = tensordot_parameters<DIMFA, DIMFB, CONTFA, CONTFB>;
 
-
-    static const int DIM = A::DIM / B::DIM;
+    static const int DIM = parameters::dimout;
 
     static void PrintIdString(std::stringstream &str) {
         str << "(:)";
     }
 
-    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
 
-        for (size_t i =0 ; i < DIM ; i ++)
-            out[i] = 0;
+       for (size_t i =0 ; i < DIM ; i ++)
+             out[i] = 0;
 
-        using parameters = tensordot_parameters<DimFa, DimFb, ContFa, ContFb>;
+         parameters::repeat([&out,&inA,&inB](KD kd) {
+             out[kd.I] += inA[kd.a] * inB[kd.b];
+         })();
 
-
-        parameters::repeat([&out,&inA,&inB](KD kd) {
-            out[kd.I] += inA[kd.a] * inB[kd.b];
-        })();
     }
 
     template<class V, class GRADIN>

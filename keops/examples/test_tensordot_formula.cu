@@ -48,8 +48,8 @@ int main() {
 
   // symbolic expression of the function ------------------------------------------------------
 
-  // here we define f = <x,y> in usual notations
-  auto f = TensorDot(x,y,2);
+  // here we define f = x : y in usual notations
+  auto f = TensorDot(x,y, Ind(2,2,2), Ind(2,2), Ind(1,2), Ind(0,1));
 
   // We define the reduction operation on f. Here a sum reduction, performed over the "j" index, and resulting in a "i"-indexed variable
   auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")

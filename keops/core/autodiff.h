@@ -368,10 +368,10 @@ using IterBinaryOp = typename IterBinaryOp_Impl<OP,PACK>::type;
 // binary operator class : common methods
 // binary operators are of the type OP<F,G> : for example Add<F,G>, Mult<F,G>
 // There template parameters are two sub-formulas FA and FB
-template < template<class,class,int...> class OP, class FA, class FB, int... PM >
+template < template<class,class,class, class, class, class> class OP, class FA, class FB, class DIMFA, class DIMFB, class CONTFA, class CONTFB >
 struct BinaryOpParam_base {
 
-    using THIS = OP<FA,FB,PM...>;
+    using THIS = OP<FA,FB,DIMFA,DIMFB, CONTFA, CONTFB>;
 
     // recursive function to print the formula as a string
     static void PrintId(std::stringstream& str) {
@@ -391,12 +391,12 @@ struct BinaryOpParam_base {
     // AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
     // for example Add<Var<0,2,0>,Var<1,2,1>>::AllTypes is :
     // univpack< Add<Var<0,2,0>,Var<1,2,1>> , Var<0,2,0> , Var<1,2,2> >
-    using AllTypes = MergePacks<univpack<OP<FA,FB,PM...>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
+    using AllTypes = MergePacks<univpack<OP<FA,FB,DIMFA,DIMFB, CONTFA, CONTFB>>,MergePacks<typename FA::AllTypes,typename FB::AllTypes>>;
 
     // "Replace" can be used to replace any occurrence of a sub-formula in a formula
     // For example Add<Var<0,2,0>,Var<1,2,1>>::Replace<Var<1,2,1>,Var<1,2,0>> will be Add<Var<0,2,0>,Var<1,2,0>>
     template<class A, class B>
-    using Replace = CondType< B, OP<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>, PM...>, IsSameType<A,THIS>::val >;
+    using Replace = CondType< B, OP<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>, DIMFA,DIMFB, CONTFA, CONTFB>, IsSameType<A,THIS>::val >;
 
     // VARS gives the list of all "Vars" of a given category inside a formula
     // Here we must take the union of Vars that are inside FA and Vars that are inside FB
@@ -407,10 +407,10 @@ struct BinaryOpParam_base {
 
 
 // binary operator class : default Eval method
-template < template<class,class,int...> class OP, class FA, class FB, int... PM >
-struct BinaryOpParam : BinaryOpParam_base<OP,FA,FB,PM...> {
+template <template<class,class,class, class, class, class> class OP, class FA, class FB, class DIMFA, class DIMFB, class CONTFA, class CONTFB >
+struct BinaryOpParam : BinaryOpParam_base<OP,FA,FB,DIMFA,DIMFB, CONTFA, CONTFB> {
 
-    using THIS = OP<FA,FB,PM...>;
+    using THIS = OP<FA,FB,DIMFA,DIMFB, CONTFA, CONTFB>;
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
@@ -425,10 +425,10 @@ struct BinaryOpParam : BinaryOpParam_base<OP,FA,FB,PM...> {
 };
 
 // specialization when left template is of type Var
-template < template<class,class,int...> class OP, int N, int DIM, int CAT, class FB, int... PM >
-struct BinaryOpParam<OP,Var<N,DIM,CAT>,FB,PM...>  : BinaryOpParam_base<OP,Var<N,DIM,CAT>,FB,PM...> {
+template < template<class,class,class, class, class, class> class OP, int N, int DIM, int CAT, class FB, class DIMFA, class DIMFB, class CONTFA, class CONTFB >
+struct BinaryOpParam<OP,Var<N,DIM,CAT>,FB,DIMFA,DIMFB, CONTFA, CONTFB>  : BinaryOpParam_base<OP,Var<N,DIM,CAT>,FB,DIMFA,DIMFB, CONTFA, CONTFB> {
 
-    using THIS = OP<Var<N,DIM,CAT>,FB,PM...>;
+    using THIS = OP<Var<N,DIM,CAT>,FB,DIMFA,DIMFB, CONTFA, CONTFB>;
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
@@ -443,10 +443,10 @@ struct BinaryOpParam<OP,Var<N,DIM,CAT>,FB,PM...>  : BinaryOpParam_base<OP,Var<N,
 };
 
 // specialization when right template is of type Var
-template < template<class,class,int...> class OP, class FA, int N, int DIM, int CAT, int... PM >
-        struct BinaryOpParam<OP,FA,Var<N,DIM,CAT>,PM...>  : BinaryOpParam_base<OP,FA,Var<N,DIM,CAT>,PM...> {
+template < template<class,class,class, class, class, class> class OP, class FA, int N, int DIM, int CAT, class DIMFA, class DIMFB, class CONTFA, class CONTFB >
+        struct BinaryOpParam<OP,FA,Var<N,DIM,CAT>,DIMFA,DIMFB, CONTFA, CONTFB>  : BinaryOpParam_base<OP,FA,Var<N,DIM,CAT>,DIMFA,DIMFB, CONTFA, CONTFB> {
 
-            using THIS = OP<FA,Var<N,DIM,CAT>,PM...>;
+            using THIS = OP<FA,Var<N,DIM,CAT>,DIMFA,DIMFB, CONTFA, CONTFB>;
 
             template < class INDS, typename... ARGS >
             static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
@@ -461,11 +461,11 @@ template < template<class,class,int...> class OP, class FA, int N, int DIM, int 
         };
 
 // specialization when both templates are of type Var
-template < template<class,class, int...> class OP, int NA, int DIMA, int CATA, int NB, int DIMB, int CATB, int... PM >
-struct BinaryOpParam<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PM...> :
-    BinaryOpParam_base<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PM...> {
+template < template<class,class, class, class, class, class> class OP, int NA, int DIMA, int CATA, int NB, int DIMB, int CATB, class DIMFA, class DIMFB, class CONTFA, class CONTFB >
+struct BinaryOpParam<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,DIMFA,DIMFB, CONTFA, CONTFB> :
+    BinaryOpParam_base<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,DIMFA,DIMFB, CONTFA, CONTFB> {
 
-    using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PM...>;
+    using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,DIMFA,DIMFB, CONTFA, CONTFB>;
 
     template < class INDS, typename... ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {

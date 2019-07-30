@@ -43,6 +43,7 @@ F InvKeopsNS(KeopsNS<F> kf) {
 #define Vi(N,DIM) KeopsNS<_X<N,DIM>>()
 #define Vj(N,DIM) KeopsNS<_Y<N,DIM>>()
 #define Pm(N,DIM) KeopsNS<_P<N,DIM>>()
+#define Ind(...) index_sequence<__VA_ARGS__>
 
 #define IntCst(N) KeopsNS<IntConstant<N>>()
 #define Zero(D) KeopsNS<Zero<D>>()
@@ -137,7 +138,8 @@ KeopsNS<Scalprod<FA,FB>> operator|(KeopsNS<FA> fa, KeopsNS<FB> fb) {
 #define MatVecMult(f,g) KeopsNS<MatVecMult<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 #define VecMatMult(f,g) KeopsNS<VecMatMult<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 #define TensorProd(f,g) KeopsNS<TensorProd<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
-#define TensorDot(f,g,i) KeopsNS<TensorDot<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g)), i>>()
+#define TensorDot(f,g,dimf, dimg, contf, contg) KeopsNS<TensorDot<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g)), dimf, dimg, contf, contg>>()
+
 
 #define GradMatrix(f,g) KeopsNS<GradMatrix<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
