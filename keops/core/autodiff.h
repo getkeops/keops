@@ -237,8 +237,10 @@ struct UnaryOp<OP,Var<N,DIM,CAT>,NS...>  : UnaryOp_base<OP,Var<N,DIM,CAT>,NS...>
 
 
 // binary operator class : common methods
-// unary operators are of the type OP<F,G> : for example Add<F,G>, Mult<F,G>
-// There template parameters are two sub-formulas FA and FB
+
+// binary operators are of the type OP<F,G> : for example Add<F,G>, Mult<F,G>
+// There template parameters are two sub-formulas FA and FB and PARAMS... is a pack of index_sequences containing the
+// needed parameters. As for now it is used
 template < template<class,class,class...> class OP, class FA, class FB, class... PARAMS >
 struct BinaryOp_base {
 
@@ -246,13 +248,12 @@ struct BinaryOp_base {
 
   // recursive function to print the formula as a string
   static void PrintId(std::stringstream& str) {
-    str << "(";                 // prints "("
-    FA::PrintId(str);           // prints the formula FA
-    THIS::PrintIdString(str);   // prints the id string of the operator : "+", "*", ...
-    FB::PrintId(str);           // prints the formula FB
-    str << ",";                 // prints "("
-    //str << PM;                  // prints the formula FB
-    str << ")";                 // prints ")"
+    str << "(";                                  // prints "("
+    FA::PrintId(str);                            // prints the formula FA
+    THIS::PrintIdString(str);                    // prints the id string of the operator : "+", "*", ...
+    FB::PrintId(str);                            // prints the formula FB
+    univpack<PARAMS...>::PrintAllIndexSequence(str);
+    str << ")";                                  // prints ")"
   }
 
   static void PrintFactorized(std::stringstream& str) {

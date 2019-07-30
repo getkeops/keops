@@ -1185,7 +1185,7 @@ struct TensorDot : BinaryOp<TensorDot,A,B,DIMFA,DIMFB,CONTFA,CONTFB> {
     static const int DIM = parameters::dimout;
 
     static void PrintIdString(std::stringstream &str) {
-        str << "(:)";
+        str << ":";
     }
 
      static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {

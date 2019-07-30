@@ -57,7 +57,7 @@ int main() {
 
   // now we test ------------------------------------------------------------------------------
 
-  int Nx=5000, Ny=10000;
+  int Nx=5, Ny=10;
 
   // here we define actual data for all variables and feed it it with random values
   std::vector<__TYPE__> vx(Nx*x.DIM);    fillrandom(vx); __TYPE__ *px = vx.data();
@@ -67,7 +67,9 @@ int main() {
   // also a vector for the output
   std::vector<__TYPE__> vres(Nx*Sum_f.DIM);    fillrandom(vres); __TYPE__ *pres = vres.data();
 
-  std::cout << "testing Sum reduction" << std::endl;
+  std::cout << "testing Sum reduction of " << std::endl;;
+  std::cout << PrintFormula(f);
+  std::cout << std::endl;
   EvalRed<CpuConv>(Sum_f,Nx, Ny, pres, px, py);
 
   std::cout << "output:" << std::endl;
