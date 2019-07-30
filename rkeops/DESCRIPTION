@@ -1,11 +1,32 @@
 Package: rkeops
 Type: Package
-Title: What the package does (short line)
+Title: Kernel Operations on the GPU, with autodiff, without memory overflows
 Version: 1.0
 Date: 2019-07-30
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
+Authors@R: c(
+    person(given="Benjamin", family="Charlier", 
+           comment="<http://imag.umontpellier.fr/~charlier/>", 
+           role="aut"), 
+    person(given="Jean", family="Feydi", 
+           comment="<https://www.math.ens.fr/~feydy/>", 
+           role="aut"), 
+    person(given="Joan Alexis", family="Glaunès", 
+           comment="<https://www.mi.parisdescartes.fr/~glaunes/>", 
+           role="aut"), 
+    person(given="Ghislain", family="Durif", 
+           comment="<https://gdurif.perso.math.cnrs.fr/>", 
+           email="gd.dev@libertymail.net", 
+           role=c("aut", "cre")))
+Description: The KeOps library lets you compute generic reductions of very large arrays whose entries are given by a mathematical formula. It combines a tiled reduction scheme 
+    with an automatic differentiation engine, and can be used through Matlab, NumPy or 
+    PyTorch backends. It is perfectly suited to the computation of Kernel dot products 
+    and the associated gradients, even when the full kernel matrix does not fit into 
+    the GPU memory.
 License: What license is it under?
 Suggests: 
     testthat (>= 2.1.0)
+URL: https://www.kernel-operations.io/>, <https://github.com/getkeops/keops/
+BugReports: https://github.com/getkeops/keops/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1
