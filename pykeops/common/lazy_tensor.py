@@ -1549,13 +1549,13 @@ class LazyTensor:
 
     def __matmul__(self, v):
         r"""
-        Matrix-vector or Matrix-matrix product.
+        Matrix-vector or Matrix-matrix product, supporting batch dimensions.
 
         If ``K`` is a :class:`LazyTensor` whose trailing dimension ``K._shape[-1]`` is equal to 1,
         we can understand it as a linear operator and apply it to arbitrary NumPy arrays
-        or PyTorch Tensors. Assuming that ``v`` is a 1D (resp. 2D) tensor such that
-        ``K.shape[-1] == v.shape[0]``, ``K @ v`` denotes the matrix-vector (resp. matrix-matrix)
-        product between the two objects, encoded as a vanilla NumPy or PyTorch 1D (resp. 2D) tensor.
+        or PyTorch Tensors. Assuming that ``v`` is a 1D (resp. ND) tensor such that
+        ``K.shape[-1] == v.shape[-1]`` (resp. ``v.shape[-2]``), ``K @ v`` denotes the matrix-vector (resp. matrix-matrix)
+        product between the two objects, encoded as a vanilla NumPy or PyTorch 1D (resp. ND) tensor.
 
         Example:
             >>> x, y = torch.randn(1000, 3), torch.randn(2000, 3)
@@ -1570,18 +1570,17 @@ class LazyTensor:
                             +"'K' whose trailing dimension is equal to 1. Here, K.shape = {}.".format(self.shape))
 
         if len(v.shape) == 1:
-            N, D = v.shape[0], 1
-        elif len(v.shape) == 2:
-            N, D = v.shape
+            newdims = (1, v.shape[0], 1)
         else:
-            raise ValueError("When 'K' is a LazyTensor, the 'K @ v' syntax is only supported when " \
-                            +"'v' is a 1D vector or a 2D matrix. Received a tensor of shape {}.".format(v.shape))
+            newdims = v.shape[:-2] + (1,) + v.shape[-2:]
 
-        v_ = LazyTensor( self.tools.view( v, (1,)*(self.dim() - 2) + (N, D) ) )
-        Kv = (self * v_ ).sum( self.dim() - 2 )  # Matrix-vector or Matrix-matrix product
+        v_ = LazyTensor( self.tools.view( v, newdims ) )
+        Kv = (self * v_ )            # Supports broadcasting
+        Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
 
         # Expected behavior: if v is a vector, so should K @ v.
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
+
 
     def t(self):
         r"""
