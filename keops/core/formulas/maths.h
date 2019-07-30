@@ -1168,7 +1168,7 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 
 
 template<class A, class B, class DIMFA, class DIMFB, class CONTFA, class CONTFB>
-struct TensorDot : BinaryOpParam<TensorDot,A,B,DIMFA,DIMFB,CONTFA,CONTFB> {
+struct TensorDot : BinaryOp<TensorDot,A,B,DIMFA,DIMFB,CONTFA,CONTFB> {
     // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
     // n=3 and m=2 are assume to be known
     // output is vector of size n
