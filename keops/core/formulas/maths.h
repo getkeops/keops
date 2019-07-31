@@ -1256,10 +1256,13 @@ struct TensorDot : BinaryOpParam<TensorDot, A, B, PM> {
 
         using parameters = tensordot_parameters<DimFa, DimFb, ContFa, ContFb>;
 
-
-        parameters::repeat([&out,&inA,&inB](KD kd) {
+        loop<parameters::dim_tot_t>::f(parameters::kdvar_apply([&out,&inA,&inB](KD kd){
             out[kd.I] += inA[kd.a] * inB[kd.b];
-        })();
+        }));
+
+        // parameters::repeat([&out,&inA,&inB](KD kd) {
+        //     out[kd.I] += inA[kd.a] * inB[kd.b];
+        // })();
 
     }
 

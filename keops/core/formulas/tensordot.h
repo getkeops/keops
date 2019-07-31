@@ -91,11 +91,51 @@ struct cum_prod<index_sequence<a, X...>> {
 
 namespace keops {
 
-
 template <size_t... Ix>
 using index_sequence = tao::seq::integer_sequence<size_t, Ix...>;
 
 #define Ind(...) index_sequence<__VA_ARGS__>
+
+namespace loop_impl {
+    template<typename, size_t... I>
+    struct Looper;
+
+    template<size_t... Is>
+    struct Looper<index_sequence<Is...>> {
+        template <typename Func>
+        constexpr static HOST_DEVICE void f(Func&& func) {
+            func(index_sequence<Is...>{});
+        }
+    };
+
+    template <size_t I, size_t... Is, size_t... PIs>
+    struct Looper<index_sequence<PIs...>, I,Is...> {
+        template <std::size_t... Idx, typename Func>
+        constexpr static HOST_DEVICE void f_help (index_sequence<Idx...>, Func&& func) {
+            (void)std::initializer_list<int>{ (Looper<index_sequence<PIs...,Idx>,Is...>::f(func), 0)... };   
+        }
+
+        template <typename Func>
+        constexpr static HOST_DEVICE void f(Func&& func) {
+            f_help(tao::seq::make_index_sequence<I>{}, func);
+        }
+
+
+    };
+
+    template<typename>
+    struct loop_t;
+
+    template<size_t... Is>
+    struct loop_t<index_sequence<Is...>> {
+        using type = Looper<index_sequence<>, Is...>;
+    };
+
+}
+
+template<typename Is>
+using loop = typename loop_impl::loop_t<Is>::type;
+
 
 template <size_t... Ix>
 constexpr auto make_array_from_seq(index_sequence<Ix...>) -> std::array<size_t, sizeof...(Ix)> {
@@ -224,48 +264,67 @@ struct tensordot_parameters<
         return KD{I, kda, kdb};
     }
 
-    template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) == list_indices_strides_tot::size()> * = nullptr>
-    static constexpr auto get_indices() {
-        using internal = typename tao::seq::reverse<index_sequence<IND...>>::type;
-        return kdvar(internal{});
-        //    return kdvar(index_sequence<IND...>{});
-    }
 
-    template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) < list_indices_strides_tot::size()> * = nullptr>
-    static constexpr auto get_indices() {
-        return get_indices<dim_i % tao::seq::select<sizeof...(IND), list_indices_strides_tot>::value,
-                           dim_i / tao::seq::select<sizeof...(IND), list_indices_strides_tot>::value,
-                           IND...>();
-    }
-
-    template<std::size_t N, typename FunctionType, std::size_t I>
-    class repeat_t {
-    public:
-        HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
-        HOST_DEVICE FunctionType operator()() {
-            function_(get_indices<I>());
-            return repeat_t<N,FunctionType,I+1>(function_)();
+    template<typename Func>
+    struct kdvar_t {
+        template<size_t... Is>
+        HOST_DEVICE void operator()(index_sequence<Is...> x) {
+            _f(kdvar(x));
         }
 
-        private:
-        FunctionType function_;
+        Func& _f;
+        HOST_DEVICE kdvar_t(Func&& f) : _f(f) {}
     };
 
-    template<std::size_t N, typename FunctionType>
-    class repeat_t<N,FunctionType,N> {
-    public:
-        HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
-        HOST_DEVICE FunctionType operator()() {
-            return function_;
-        }
-    private:
-        FunctionType function_;
-    };
-
-    template<typename FunctionType>
-    static HOST_DEVICE repeat_t<dimtot,FunctionType,0> repeat(FunctionType function) {
-        return repeat_t<dimtot,FunctionType,0>(function);
+    template<typename Func>
+    static HOST_DEVICE auto kdvar_apply(Func&& f) {
+        return kdvar_t<Func>(std::forward<Func>(f));
     }
+
+    // template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) == list_indices_strides_tot::size()> * = nullptr>
+    // static constexpr auto get_indices() {
+    //     using internal = typename tao::seq::reverse<index_sequence<IND...>>::type;
+    //     return kdvar(internal{});
+    //     //    return kdvar(index_sequence<IND...>{});
+    // }
+
+    // template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) < list_indices_strides_tot::size()> * = nullptr>
+    // static constexpr auto get_indices() {
+    //     return get_indices<dim_i % tao::seq::select<sizeof...(IND), list_indices_strides_tot>::value,
+    //                        dim_i / tao::seq::select<sizeof...(IND), list_indices_strides_tot>::value,
+    //                        IND...>();
+    // }
+
+    // template<std::size_t N, typename FunctionType, std::size_t I>
+    // class repeat_t {
+    // public:
+    //     HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
+    //     HOST_DEVICE FunctionType operator()() {
+    //         function_(get_indices<I>());
+    //         return repeat_t<N,FunctionType,I+1>(function_)();
+    //     }
+
+    //     private:
+    //     FunctionType function_;
+    // };
+
+    // template<std::size_t N, typename FunctionType>
+    // class repeat_t<N,FunctionType,N> {
+    // public:
+    //     HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
+    //     HOST_DEVICE FunctionType operator()() {
+    //         return function_;
+    //     }
+    // private:
+    //     FunctionType function_;
+    // };
+
+    // template<typename FunctionType>
+    // static HOST_DEVICE repeat_t<dimtot,FunctionType,0> repeat(FunctionType function) {
+    //     return repeat_t<dimtot,FunctionType,0>(function);
+    // }
+
+
 
 };
 
