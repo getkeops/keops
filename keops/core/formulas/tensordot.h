@@ -154,7 +154,7 @@ struct tensordot_parameters {
                                 CONTFA,
                                 DIMFA>::type;
 
-    constexpr static auto size_listdim_b = CONTFB::size();
+    constexpr static auto size_listdim_b = DIMFB::size();
     using indices_dim_b_t = tao::seq::make_index_sequence<size_listdim_b>;
     using indices_keepdim_b_t = typename tao::seq::filter_out<
                                 CONTFB,
@@ -251,6 +251,80 @@ struct tensordot_parameters {
                    list_stride_keepdim_t,
                    list_indices_keepdim>>::value;
 
+/*
+      using essai = typename tao::seq::filter_out<
+          std::index_sequence<0,1,2>,
+          tao::seq::make_index_sequence<5>>::type;
+
+      std::cout << "essai (" << essai::size() <<") : ";
+      std::cout << tao::seq::select<0, essai>::value << ":" ;
+      std::cout << tao::seq::select<1, essai>::value << ":" ;
+      std::cout << std::endl;
+
+      std::cout << tao::seq::select<0,CONTFA>::value << "::::::" ;
+      std::cout << std::endl;
+
+      std::cout << "indices_dim_a_t (" << indices_dim_a_t::size() <<") : ";
+      std::cout << tao::seq::select<0, indices_dim_a_t>::value << ":" ;
+      std::cout << tao::seq::select<1, indices_dim_a_t>::value << ":" ;
+      std::cout << tao::seq::select<2, indices_dim_a_t>::value << ":" ;
+      std::cout << std::endl;
+
+      std::cout << "indices_dim_keep_a (" << indices_keepdim_a_t::size() <<") : ";
+      std::cout << tao::seq::select<0, indices_keepdim_a_t>::value << ":" ;
+      //std::cout << tao::seq::select<1, indices_keepdim_a_t>::value << ":" ;
+      std::cout << std::endl;
+
+      std::cout << "indices_dim_keep_b (" << indices_keepdim_b_t::size() <<") : ";
+      std::cout << tao::seq::select<0, indices_keepdim_b_t>::value << ":" ;
+      std::cout << std::endl;
+
+
+      std::cout << "DIMA (" << DIMFA::size() <<") : ";
+      std::cout << tao::seq::select<0, DIMFA>::value << ":" ;
+      std::cout << tao::seq::select<1, DIMFA>::value << ":" ;
+      std::cout << tao::seq::select<2, DIMFA>::value << ":" ;
+      std::cout << std::endl;
+
+      std::cout << "CONTFA (" << CONTFA::size() <<") : ";
+      std::cout << tao::seq::select<0, CONTFA>::value << ":" ;
+      std::cout << tao::seq::select<1, CONTFA>::value << ":" ;
+      std::cout << std::endl;
+
+      std::cout << "cont_dim_a_t (" << cont_dim_a_t::size() <<") : ";
+      std::cout << tao::seq::select<0, cont_dim_a_t>::value << ":" ;
+      std::cout << tao::seq::select<1, cont_dim_a_t>::value << ":" ;
+      std::cout << std::endl;
+
+      std::cout << "cont_dim_b_t (" << cont_dim_b_t::size() <<") : ";
+      std::cout << tao::seq::select<0, cont_dim_b_t>::value << ":" ;
+      std::cout << tao::seq::select<1, cont_dim_b_t>::value << ":" ;
+      std::cout << std::endl;
+
+      std::cout << "dim_keep (" << dim_keep_t::size() <<") : ";
+      std::cout << tao::seq::select<0, dim_keep_t>::value << ":" ;
+      std::cout << tao::seq::select<1, dim_keep_t>::value << ":" ;
+      // std::cout << tao::seq::select<2, dim_keep_t>::value << ":" ;
+      std::cout << std::endl;
+//     cont_dim_a_t
+
+      std::cout << "dim_tot (" << dim_tot_t::size()<<") : ";
+      std::cout << tao::seq::select<0, dim_tot_t>::value << ":" ;
+      std::cout << tao::seq::select<1, dim_tot_t>::value << ":" ;
+      std::cout << tao::seq::select<2, dim_tot_t>::value << ":" ;
+      std::cout << tao::seq::select<3, dim_tot_t>::value << ":";
+      std::cout << std::endl;
+
+
+
+
+      std::cout << "(" << tao::seq::select<0,IND>::value << ","
+                       << tao::seq::select<1,IND>::value << ","
+                       << tao::seq::select<2,IND>::value << ","
+                       << tao::seq::select<3,IND>::value
+                       << ")       "
+                       << I << " "<< kda << " " << kdb << std::endl;
+      */
       return KD{I, kda, kdb};
     }
 
