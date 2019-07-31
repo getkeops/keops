@@ -176,7 +176,7 @@ struct univpack {
 
 
 // An helper class to convert index_sequence to Pack
-template<class C> struct packFromIndSeq{};
+template<typename> struct packFromIndSeq{};
 
 template<size_t... Is> struct packFromIndSeq<std::index_sequence<Is...>> {
   using type = pack<Is...>;
