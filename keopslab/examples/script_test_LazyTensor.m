@@ -18,15 +18,13 @@ p = .25;
 %       Kernel with KeOps LazyTensor      %
 %-----------------------------------------%
 
+tic
 X = LazyTensor(x);
 Y = LazyTensor(y);
 B = LazyTensor(b);
-
-G = exp(-p*(X-Y).^2);
+G = exp(-p*sum((X-Y).^2,1));
 K = G.*b;
-
-tic
-g = sum_reduction(K,2);
+g = sum_reduction(K,3);
 fprintf('Time for keops computation : %f s.\n', toc)
 
 %-----------------------------------------%

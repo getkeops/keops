@@ -133,6 +133,14 @@ classdef LazyTensor
             obj = unary_op(x,'Exp',@same_shape);
         end
         
+        function obj = sum(x,dim)
+            if dim==1
+                obj = unary_op(x,'Sum',@same_shape_to_one_unary,0);
+            else
+                error('not implemented')
+            end
+        end
+        
         function obj = power(x,y)
             if isnumeric(y) && numel(y)==1
                 if y==2
@@ -160,9 +168,9 @@ classdef LazyTensor
             ndims = length(x.shape);
             switch dim
                 case ndims-x.nbatchdims
-                    aliases = get_aliases(x.vars,dim,dim-1);
+                    aliases = get_aliases(x.vars,dim-1,dim);
                 case ndims-x.nbatchdims-1
-                    aliases = get_aliases(x.vars,dim,dim+1);
+                    aliases = get_aliases(x.vars,dim+1,dim);
                 otherwise
                         error('incorrect dimension for reduction')
             end
