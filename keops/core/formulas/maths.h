@@ -1190,12 +1190,12 @@ struct TensorDot : BinaryOp<TensorDot,A,B,DIMFA,DIMFB,CONTFA,CONTFB> {
 
      static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
 
-       for (size_t i =0 ; i < DIM ; i ++)
-             out[i] = 0;
+        for (size_t i =0 ; i < DIM ; i ++)
+            out[i] = 0;
 
-         parameters::repeat([&out,&inA,&inB](KD kd) {
-             out[kd.I] += inA[kd.a] * inB[kd.b];
-         })();
+        loop<typename parameters::dim_tot_t>::f(parameters::kdvar_apply([&out,&inA,&inB](KD kd){
+            out[kd.I] += inA[kd.a] * inB[kd.b];
+        }));
 
     }
 
