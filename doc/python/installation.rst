@@ -160,7 +160,7 @@ If you experience problems with compilation (or numerical inaccuracies after a K
 .. code-block:: python
 
   import pykeops
-  print(pykeops.build_folder)
+  print(pykeops.bin_folder)
 
 
 
