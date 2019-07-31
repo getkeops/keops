@@ -281,51 +281,6 @@ struct tensordot_parameters<
         return kdvar_t<Func>(std::forward<Func>(f));
     }
 
-    // template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) == list_indices_strides_tot::size()> * = nullptr>
-    // static constexpr auto get_indices() {
-    //     using internal = typename tao::seq::reverse<index_sequence<IND...>>::type;
-    //     return kdvar(internal{});
-    //     //    return kdvar(index_sequence<IND...>{});
-    // }
-
-    // template <size_t dim_i, size_t... IND, std::enable_if_t<sizeof...(IND) < list_indices_strides_tot::size()> * = nullptr>
-    // static constexpr auto get_indices() {
-    //     return get_indices<dim_i % tao::seq::select<sizeof...(IND), list_indices_strides_tot>::value,
-    //                        dim_i / tao::seq::select<sizeof...(IND), list_indices_strides_tot>::value,
-    //                        IND...>();
-    // }
-
-    // template<std::size_t N, typename FunctionType, std::size_t I>
-    // class repeat_t {
-    // public:
-    //     HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
-    //     HOST_DEVICE FunctionType operator()() {
-    //         function_(get_indices<I>());
-    //         return repeat_t<N,FunctionType,I+1>(function_)();
-    //     }
-
-    //     private:
-    //     FunctionType function_;
-    // };
-
-    // template<std::size_t N, typename FunctionType>
-    // class repeat_t<N,FunctionType,N> {
-    // public:
-    //     HOST_DEVICE repeat_t(FunctionType function) : function_(function) {}
-    //     HOST_DEVICE FunctionType operator()() {
-    //         return function_;
-    //     }
-    // private:
-    //     FunctionType function_;
-    // };
-
-    // template<typename FunctionType>
-    // static HOST_DEVICE repeat_t<dimtot,FunctionType,0> repeat(FunctionType function) {
-    //     return repeat_t<dimtot,FunctionType,0>(function);
-    // }
-
-
-
 };
 
 }
