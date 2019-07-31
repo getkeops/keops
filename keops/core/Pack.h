@@ -15,6 +15,7 @@
 
 #include <sstream>
 #include <assert.h>
+#include <utility>
 
 #ifdef __CUDACC__
 	#include <npp.h>
@@ -175,8 +176,7 @@ struct univpack {
 
 
 // An helper class to convert index_sequence to Pack
-template<class C>
-struct packFromIndSeq{};
+template<class C> struct packFromIndSeq{};
 
 template<size_t... Is> struct packFromIndSeq<std::index_sequence<Is...>> {
   using type = pack<Is...>;
