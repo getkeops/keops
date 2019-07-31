@@ -1,7 +1,5 @@
 #pragma once
 
-#include <array>
-
 #include <tao/seq/integer_sequence.hpp>
 #include <tao/seq/contains.hpp>
 #include <tao/seq/concatenate.hpp>
@@ -61,12 +59,10 @@ struct reverse<index_sequence<a, As...>> {
 };
 
 template <size_t... X>
-constexpr auto prod_red(index_sequence<X...>) {
-    constexpr std::array<size_t, sizeof...(X)> x{X...};
-    size_t res = 1;
-    for (size_t i = 0; i != sizeof...(X); i++)
-        res *= x[i];
-    return res;
+constexpr auto prod_red(std::index_sequence<X...>) {
+ size_t res = 1;
+ (void)std::initializer_list<int>{ (res *= X, 0)... };
+ return res;
 }
 
 template <typename>
@@ -135,12 +131,6 @@ namespace loop_impl {
 
 template<typename Is>
 using loop = typename loop_impl::loop_t<Is>::type;
-
-
-template <size_t... Ix>
-constexpr auto make_array_from_seq(index_sequence<Ix...>) -> std::array<size_t, sizeof...(Ix)> {
-    return std::array<size_t, sizeof...(Ix)> {Ix...};
-}
 
 struct KD {
     size_t I;
