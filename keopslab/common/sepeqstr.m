@@ -1,5 +1,6 @@
 function [left,right] = sepeqstr(str)
 % get string before and after equal sign
+str = strrep(str,' ',''); % remove blanks
 pos = find(str=='=');
 if isempty(pos)
     pos = 0;

@@ -188,11 +188,11 @@ else
             int typek = typeargs[k];
             // we check dimension here from the formula
             if(dimk!=dimargs[k]) {
-                mexPrintf("For argument #%d : dimension (=number of columns) is %d but should be %d.\n",k,dimk,dimargs[k]);
+                mexPrintf("For argument #%d : dimension (=number of rows) is %d but should be %d.\n",k,dimk,dimargs[k]);
                 mexErrMsgTxt("Wrong dimension for input argument.");
             }
             if(n[typek]!=nk) {
-                mexPrintf("For argument #%d : size (=number of rows) is %d but should be %d.\n",k,nk,n[typek]);
+                mexPrintf("For argument #%d : size (=number of columns) is %d but should be %d.\n",k,nk,n[typek]);
                 mexErrMsgTxt("inconsistent input sizes");
             }
         }
