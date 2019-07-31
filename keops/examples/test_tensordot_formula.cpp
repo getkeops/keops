@@ -42,14 +42,14 @@ void DispValues(__TYPE__ *x, int N, int dim) {
 int main() {
 
   // In this part we define the symbolic variables of the function
-  auto x = Vi(0,8); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
-  auto y = Vj(1,4); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
+  auto x = Vi(0,2*10*10); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
+  auto y = Vj(1,10*10); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
 
 
   // symbolic expression of the function ------------------------------------------------------
 
   // here we define f = x : y in usual notations
-  auto f = TensorDot(x,y,Ind(2,2,2),Ind(2,2),Ind(1,2),Ind(0,1));
+  auto f = TensorDot(x,y, Ind(2,10,10), Ind(10,10), Ind(1,2), Ind(0,1));
 
   // We define the reduction operation on f. Here a sum reduction, performed over the "j" index, and resulting in a "i"-indexed variable
   auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
@@ -57,7 +57,7 @@ int main() {
 
   // now we test ------------------------------------------------------------------------------
 
-  int Nx=5, Ny=10;
+  int Nx=5000, Ny=10000;
 
   // here we define actual data for all variables and feed it it with random values
   std::vector<__TYPE__> vx(Nx*x.DIM);    fillrandom(vx); __TYPE__ *px = vx.data();
@@ -67,12 +67,12 @@ int main() {
   // also a vector for the output
   std::vector<__TYPE__> vres(Nx*Sum_f.DIM);    fillrandom(vres); __TYPE__ *pres = vres.data();
 
-  std::cout << "testing Sum reduction of " << std::endl;;
+  std::cout << "Testing Sum reduction of :" << std::endl;;
   std::cout << PrintFormula(f);
   std::cout << std::endl;
-  EvalRed<CpuConv>(Sum_f,Nx, Ny, pres, px, py);
 
-  std::cout << "output:" << std::endl;
+  std::cout << std::endl << "Output:" << std::endl;
+  EvalRed<CpuConv>(Sum_f,Nx, Ny, pres, px, py);
   DispValues(pres,5,Sum_f.DIM);
 
 }
