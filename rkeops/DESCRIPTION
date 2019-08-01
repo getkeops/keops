@@ -1,7 +1,7 @@
 Package: rkeops
 Type: Package
 Title: Kernel Operations on the GPU, with autodiff, without memory overflows
-Version: 1.0
+Version: 1.1.1
 Date: 2019-07-30
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
@@ -22,11 +22,16 @@ Description: The KeOps library lets you compute generic reductions of very large
     PyTorch backends. It is perfectly suited to the computation of Kernel dot products 
     and the associated gradients, even when the full kernel matrix does not fit into 
     the GPU memory.
-License: What license is it under?
+License: MIT + file LICENSE
+LinkingTo:
+    Rcpp, RcppEigen
+Imports:
+    Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5)
 Suggests: 
     testthat (>= 2.1.0)
-URL: https://www.kernel-operations.io/>, <https://github.com/getkeops/keops/
+URL: https://www.kernel-operations.io/>, https://github.com/getkeops/keops/
 BugReports: https://github.com/getkeops/keops/issues
 Encoding: UTF-8
+LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1

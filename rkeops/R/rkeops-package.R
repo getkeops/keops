@@ -32,4 +32,9 @@
 #' @details
 #' See <https://www.kernel-operations.io/>
 #' 
+#' @import Rcpp
+#' @importFrom Rcpp sourceCpp
+#' @import RcppEigen
+#' @useDynLib rkeops, .registration = TRUE
+#' 
 NULL
