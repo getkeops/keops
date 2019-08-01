@@ -27,6 +27,6 @@ prebuild <- function() {
     files <- paste(c("Collate:", 
                      list.files(path="rkeops/R", recursive = TRUE)), 
                    collapse = "\n    ")
-    command <- paste0("echo \"", files, "\" >> ", filename)
+    command <- paste0("printf '%b' \"", files, "\n\" >> ", filename)
     tmp <- system(command)
 }
