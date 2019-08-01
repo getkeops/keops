@@ -1193,12 +1193,12 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB> {
         for (size_t i =0 ; i < DIM ; i ++)
             out[i] = 0;
 
-        loop<typename parameters::dim_tot_t>::f(parameters::kdvar_apply([&out,&inA,&inB](KD kd){
+        loop<typename parameters::loopdim_t >::f(parameters::kdvar_apply([&out,&inA,&inB](KD kd){
             out[kd.I] += inA[kd.a] * inB[kd.b];
         }));
 
         /*
-         std::cout << "---- " << parameters::dimtot << std::endl;
+         std::cout << "---- " << parameters::dimloop << std::endl;
          std::cout << "---- " << parameters::dimout << std::endl;
          parameters::repeat([&out,&inA,&inB](KD kd) {
             out[kd.I] += inA[kd.a] * inB[kd.b];
