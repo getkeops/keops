@@ -1,5 +1,4 @@
-#' @name get_pkg_dir
-#' @title get_pkg_dir
+#' Getter for package installation directory
 #' @keywords internal
 #' @description
 #' Return the path to the directory where the package 
@@ -12,8 +11,7 @@ get_pkg_dir <- function(pkg = "rkeops") {
     return(find.package(pkg))
 }
 
-#' @name get_src_dir
-#' @title get_src_dir
+#' Getter for package additional source directory
 #' @keywords internal
 #' @description
 #' Return the path to the directory containing `keops` source 
@@ -30,8 +28,7 @@ get_src_dir <- function(pkg = "rkeops") {
     return(out)
 }
 
-#' @name get_build_dir
-#' @title get_build_dir
+#' Getter for package build directory
 #' @keywords internal
 #' @description
 #' Return the path to the directory `build` where `keops` custom 
