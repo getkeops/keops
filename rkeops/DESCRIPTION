@@ -28,7 +28,7 @@ LinkingTo:
 Imports:
     Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5)
 Suggests: 
-    testthat (>= 2.1.0)
+    testthat (>= 2.1.0), stringr (>= 1.4.0)
 URL: https://www.kernel-operations.io/>, https://github.com/getkeops/keops/
 BugReports: https://github.com/getkeops/keops/issues
 Encoding: UTF-8
@@ -40,3 +40,4 @@ Collate:
     rkeops-internal.R
     rkeops-package.R
     starting.R
+    utils.R
