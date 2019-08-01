@@ -14,6 +14,11 @@ you can use the attached [project file](../keops.Rproj).
 You will be able to document, build and check `rkeops` with 
 Rstudio tools (`document`, `build`, `check`).
 
+We recommend to use the function `prebuild()` available with
+`source(rkeops/prebuild.R)` to update the [DESCRIPTION](.rkeops/DESCRIPTION) 
+file of `rkeops` (date, version, included R files) before 
+building.
+
 
 ## R command tools
 
@@ -49,11 +54,23 @@ devtools::load_all()
 devtools::document(roclets = c('rd', 'collate', 'namespace', 'vignette'))
 ```
 
+### Prebuild script
+
+A prebuild script is available to update the `DESCRIPTION` file of `rkeops`
+(date, version, included R files):
+```R
+setwd(pkgdir)
+source("prebuild.R")
+prebuild()
+```
+**Note:** The `Collate` field with included R files should be the last one in 
+the [DESCRIPTION](.rkeops/DESCRIPTION) file for this script to work.
+
 ### Package build and check
 
 ```R
 setwd(pkgdir)
-Rcpp::compileAttributes(pkgdir)
+Rcpp::compileAttributes()
 devtools::build()
 devtools::check()
 ```

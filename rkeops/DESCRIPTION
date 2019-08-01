@@ -2,7 +2,7 @@ Package: rkeops
 Type: Package
 Title: Kernel Operations on the GPU, with autodiff, without memory overflows
 Version: 1.1.1
-Date: 2019-07-30
+Date: 2019-08-01
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
            comment="<http://imag.umontpellier.fr/~charlier/>", 
@@ -35,3 +35,7 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
+Collate:
+    rkeops-internal.R
+    rkeops-package.R
+    starting.R
