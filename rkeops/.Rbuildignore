@@ -1,5 +1,6 @@
 .gitkeep
 .gitignore
+readme.txt
 recipe.md
 rkeops.md
 prebuild.R
