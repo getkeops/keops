@@ -36,6 +36,7 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Collate:
+    default_options.R
     rkeops-internal.R
     rkeops-package.R
     starting.R

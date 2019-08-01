@@ -9,3 +9,4 @@
 # use_cuda_if_possible = 1; % 0 to force computation on CPU
 # 
 # end
+default_options <- function() {}
