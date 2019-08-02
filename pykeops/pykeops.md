@@ -12,6 +12,6 @@ For a full documentation you may read:
 
 # Authors
 
-- [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
+- [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
 - [Jean Feydy](https://www.math.ens.fr/~feydy/)
 - [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
