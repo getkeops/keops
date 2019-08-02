@@ -187,45 +187,37 @@ struct loop_t<index_sequence<Is...>> {
 template<typename Is>
 using loop = typename loop_impl::loop_t<Is>::type;
 
-struct KD {
-  size_t I;
-  size_t a;
-  size_t b;
+// Dummy class that stores the indices computes for tensordot
+struct tensordot_indices {
+  size_t out_indices;
+  size_t a_indices;
+  size_t b_indices;
 };
 
-//template <typename, typename, typename, typename> struct tensordot_parameters;
 
 template<class DIMFA, class DIMFB, class CONTFA, class CONTFB>
 struct tensordot_parameters {
 
   // Left hand-side
-  using indices_keepdim_a_t = typename tao::seq::filter_out<
-      CONTFA,
-      tao::seq::make_index_sequence<DIMFA::size()>>::type;
-  using keepdim_a_t = typename tao::seq::map<
-      indices_keepdim_a_t,
-      DIMFA>::type;
-  using contdim_a_t = typename tao::seq::map<
-      CONTFA,
-      DIMFA>::type;
+  using indices_keepdim_a_t = typename tao::seq::filter_out<CONTFA,
+                                                            tao::seq::make_index_sequence<DIMFA::size()>>::type;
+  using keepdim_a_t = typename tao::seq::map<indices_keepdim_a_t,
+                                             DIMFA>::type;
+  using contdim_a_t = typename tao::seq::map<CONTFA,
+                                             DIMFA>::type;
   using list_stride_dim_a_t = typename tao::seq::cum_prod<DIMFA>::type;
 
 
   // Right hand-side
-  using indices_keepdim_b_t = typename tao::seq::filter_out<
-      CONTFB,
-      tao::seq::make_index_sequence<DIMFB::size()>>::type;
-  using keepdim_b_t = typename tao::seq::map<
-      indices_keepdim_b_t,
-      DIMFB>::type;
-  using contdim_b_t = typename tao::seq::map<
-      CONTFB,
-      DIMFB>::type;
+  using indices_keepdim_b_t = typename tao::seq::filter_out<CONTFB,
+                                                            tao::seq::make_index_sequence<DIMFB::size()>>::type;
+  using keepdim_b_t = typename tao::seq::map<indices_keepdim_b_t,
+                                             DIMFB>::type;
+  using contdim_b_t = typename tao::seq::map<CONTFB,
+                                             DIMFB>::type;
   using list_stride_dim_b_t = typename tao::seq::cum_prod<DIMFB>::type;
 
-
-  static_assert(std::is_same<contdim_a_t, contdim_b_t>::value, "Contracting dimensions should  be the same");
-
+  static_assert(std::is_same<contdim_a_t, contdim_b_t>::value, "In TensorDot: contracting dimensions should  be the same");
 
   // Output
   using keepdim_t = typename tao::seq::concatenate<keepdim_a_t,
@@ -235,12 +227,12 @@ struct tensordot_parameters {
 
   constexpr static size_t dimout = tao::seq::prod_red(keepdim_t{});
 
-  // Loop
+  // Loop: in this code we choose to loop on the keepdims first and then on the contraction dims.
   using loopdim_t = typename tao::seq::concatenate<keepdim_t,
                                                    contdim_a_t>::type;
 
   constexpr static size_t dimloop = tao::seq::prod_red(loopdim_t{});
-
+  
   using ala = typename tao::seq::concatenate<tao::seq::make_index_range<0, keepdim_a_t::size()>,
                                              tao::seq::make_index_range<keepdim_t::size(), dimloop>>::type;
 
@@ -257,54 +249,54 @@ struct tensordot_parameters {
                                                           bla>::type;
 
   template<class IND>
-  constexpr static KD kdvar(IND) {
+  constexpr static tensordot_indices compute_tensordot_indices(IND) {
 
-    // Kda
+    // a_indices
     using list_indices_a = typename tao::seq::map<list_indices_a_intot,
                                                   IND>::type;
 
-    size_t kda = tao::seq::sum<
+    size_t a_indices = tao::seq::sum<
         tao::seq::prod_t<
             list_stride_dim_a_t,
             list_indices_a>>::value;
 
-    // Kdb
+    // b_indices
     using list_indices_b = typename tao::seq::map<list_indices_b_intot,
                                                   IND>::type;
 
-    size_t kdb = tao::seq::sum<
+    size_t b_indices = tao::seq::sum<
         tao::seq::prod_t<
             list_stride_dim_b_t,
             list_indices_b>>::value;
 
-    // I
+    // out_indices
     using list_indices_keepdim = typename tao::seq::map<
         tao::seq::make_index_range<0, keepdim_t::size()>,
         IND>::type;
 
-    size_t I = tao::seq::sum<
+    size_t out_indices = tao::seq::sum<
         tao::seq::prod_t<
             list_stride_keepdim_t,
             list_indices_keepdim>>::value;
 
 
-    return KD{I, kda, kdb};
+    return tensordot_indices{out_indices, a_indices, b_indices};
   }
 
   template<typename Func>
-  struct kdvar_t {
+  struct compute_tensordot_indices_t {
     template<size_t... Is>
     HOST_DEVICE void operator()(index_sequence<Is...> x) {
-      _f(kdvar(x));
+      _f(compute_tensordot_indices(x));
     }
 
     Func &_f;
-    HOST_DEVICE kdvar_t(Func &&f) : _f(f) {}
+    HOST_DEVICE compute_tensordot_indices_t(Func &&f) : _f(f) {}
   };
 
   template<typename Func>
-  static HOST_DEVICE auto kdvar_apply(Func &&f) {
-    return kdvar_t<Func>(std::forward<Func>(f));
+  static HOST_DEVICE auto compute_tensordot_indices_apply(Func &&f) {
+    return compute_tensordot_indices_t<Func>(std::forward<Func>(f));
   }
 
 };
