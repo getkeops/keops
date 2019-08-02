@@ -77,15 +77,12 @@ add_subdirectory(examples)
 if (NOT(${CMAKE_VERSION} VERSION_LESS 3.6.0)) # workaround for https://github.com/google/benchmark/issues/603
 
     if(NOT(APPLE))
-        add_subdirectory(lib/gtest)
+        add_subdirectory(lib/gtest EXCLUDE_FROM_ALL)
         add_subdirectory(test)
 
-        #add_definitions(-DBENCHMARK_DOWNLOAD_DEPENDENCIES=ON)
-        #add_definitions(-DBENCHMARK_ENABLE_GTEST_TESTS=OFF)
         set(BENCHMARK_ENABLE_GTEST_TESTS 0  CACHE INTERNAL "")
 
-        #find_package(gtest PATHS ${CMAKE_CURRENT_SOURCE_DIR}/lib/gtest/)
-        add_subdirectory(lib/benchmark)
+        add_subdirectory(lib/benchmark EXCLUDE_FROM_ALL)
         add_subdirectory(bench)
     endif()
 
