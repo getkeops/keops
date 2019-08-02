@@ -40,11 +40,11 @@ get_src_dir <- function(pkg = "rkeops") {
 #' @author Ghislain Durif
 #' @param pkg name (string) of the R package, default is "rkeops".
 #' @param create boolean indicating if the corresponding directory
-#' is created or not.
+#' should be created if missing or not. Default is TRUE.
 #' @return path to the corresponding directory.
 #' @export
 get_build_dir <- function(pkg = "rkeops", create = TRUE) {
     out <- file.path(get_pkg_dir(pkg), "build")
-    if(!dir.exists(out)) dir.create(out)
+    if(!dir.exists(out) & create) dir.create(out)
     return(out)
 }
