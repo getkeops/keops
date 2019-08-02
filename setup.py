@@ -95,7 +95,8 @@ setup(
     package_data={
         'pykeops': [
             'pykeops.md',
-            'readme_first.md',
+            'readme.md',
+            'licence.txt',
             'CMakeLists.txt',
             'torch_headers.h.in',
             'numpy/convolutions/radial_kernel_conv.cpp',
