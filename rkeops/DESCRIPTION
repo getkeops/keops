@@ -2,7 +2,7 @@ Package: rkeops
 Type: Package
 Title: Kernel Operations on the GPU, with autodiff, without memory overflows
 Version: 1.1.1
-Date: 2019-08-01
+Date: 2019-08-02
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
            comment="<http://imag.umontpellier.fr/~charlier/>", 
@@ -26,7 +26,7 @@ License: MIT + file LICENSE
 LinkingTo:
     Rcpp, RcppEigen
 Imports:
-    Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5)
+    Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5), openssl (>= 1.4)
 Suggests: 
     testthat (>= 2.1.0), stringr (>= 1.4.0)
 URL: https://www.kernel-operations.io/>, https://github.com/getkeops/keops/
@@ -36,6 +36,7 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Collate:
+    common-string2hash.R
     default_options.R
     rkeops-internal.R
     rkeops-package.R
