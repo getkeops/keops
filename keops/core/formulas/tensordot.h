@@ -12,11 +12,16 @@
 
 namespace tao {
 namespace seq {
+// -------------------------------------------------------------- //
+//      Various operation for reordering index_sequences          //
+// -------------------------------------------------------------- //
+
+//  Permute reorder elemenents of M with the inversed permutation given by S
+//  using namespace tao::seq;
+//    static_assert(std::is_same< permute_t<index_sequence<3,0,2,1>, index_sequence<4,5,6,7> >,
+//                                          index_sequence<5,7,6,4> >::value, "ooops" );
+
 namespace impl {
-struct prod {
-  template<typename T, T A, T B>
-  using apply = std::integral_constant<T, A * B>;
-};
 
 template<typename, typename>
 struct permute_i;
@@ -24,16 +29,27 @@ struct permute_i;
 template<std::size_t... Ns, std::size_t... Is>
 struct permute_i<tao::seq::index_sequence<Ns...>, tao::seq::index_sequence<Is...> > {
   using type = index_sequence<tao::seq::index_of<size_t, Is, Ns...>::value...>;
-
 };
 
 } // namespace impl
 
-template<typename A, typename B>
-using prod = zip<impl::prod, A, B>;
+template<typename, typename>
+struct permute;
 
-template<typename A, typename B>
-using prod_t = typename prod<A, B>::type;
+template<std::size_t... Ns, typename M>
+struct permute<index_sequence<Ns...>, M> {
+  using tmp  = typename impl::permute_i<index_sequence<Ns...>, make_index_sequence<sizeof...(Ns)> >::type;
+  using type = typename map<tmp, M>::type;
+};
+
+template<typename S, typename M>
+using permute_t = typename permute<S, M>::type;
+
+
+//  filter_out remove elements of B given by the indexes stored inA
+//  using namespace tao::seq;
+//    static_assert(std::is_same< filter_out<index_sequence<0,2>, index_sequence<4,5,6,7> >,
+//                                          index_sequence<5,7> >::value, "ooops" );
 
 template<typename, typename>
 struct filter_out;
@@ -53,6 +69,11 @@ struct filter_out<index_sequence<As...>, index_sequence<b, Bs...>> {
       typename tao::seq::concatenate<index_sequence<b>, tail>::type>::type;
 };
 
+//  Reverse the order of the index_sequence A
+//  using namespace tao::seq;
+//    static_assert(std::is_same< reverse<index_sequence<4,5,6,7> >,
+//                                        index_sequence<7,6,5,4> >::value, "ooops" );
+
 template<typename>
 struct reverse;
 
@@ -67,39 +88,29 @@ struct reverse<index_sequence<a, As...>> {
   using type = typename tao::seq::concatenate<reversed, index_sequence<a>>::type;
 };
 
-template<typename, typename>
-struct permute;
+// Return the index_sequence containing the elementwise product of index_sequences A and B
+//  using namespace tao::seq;
+//    static_assert(std::is_same< product<index_sequence<0,5,7,1>, index_sequence<4,5,6,7> >,
+//                                        index_sequence<0,25,42,4> >::value, "ooops" );
+namespace impl {
 
-template<std::size_t... Ns, typename M>
-struct permute<index_sequence<Ns...>, M> {
-  using tmp  = typename impl::permute_i<index_sequence<Ns...>, make_index_sequence<sizeof...(Ns)> >::type;
-  using type = typename map<tmp, M>::type;
+struct prod {
+  template<typename T, T A, T B>
+  using apply = std::integral_constant<T, A * B>;
 };
+} // namespace impl
 
-template<typename S, typename M>
-using permute_t = typename permute<S, M>::type;
+template<typename A, typename B>
+using prod = zip<impl::prod, A, B>;
 
-/*
-template <typename>
-struct inverse;
-
-template <0,  size_t... As>
-struct inverse<index_sequence<>> {
-  using type = index_sequence<>;
-};
-
-template <size_t N, size_t... As>
-struct inverse<index_sequence<As...>> {
-  constexpr static size_t ia = tao::seq::index_of<size_t, sizeof...(As)-1, As...>::value;
-  using inversed = typename inverse< typename tao::seq::filter_out<index_sequence<ia>, index_sequence<As...>>::type>::type;
-  using type = typename tao::seq::concatenate<inversed,
-                                              index_sequence<ia>
-                                              >::type;
-};
-
-*/
+template<typename A, typename B>
+using prod_t = typename prod<A, B>::type;
 
 
+// Return the size_t containing the product of all element from index_sequences A
+//  using namespace tao::seq;
+//    static_assert(std::is_same< product_red<index_sequence<4,5,6,7> >,
+//                                            index_sequence<840> >::value, "ooops" );
 template<size_t... X>
 constexpr auto prod_red(std::index_sequence<X...>) {
   size_t res = 1;
@@ -107,6 +118,11 @@ constexpr auto prod_red(std::index_sequence<X...>) {
   return res;
 }
 
+// Return the index_sequence containing the cumulative product of all element of index_sequences A
+// except the first.
+//  using namespace tao::seq;
+//    static_assert(std::is_same< product_red<index_sequence<4,5,6,7> >,
+//                                            index_sequence<210,42,7,1> >::value, "ooops" );
 template<typename>
 struct cum_prod;
 
@@ -215,11 +231,7 @@ struct tensordot_parameters {
   using keepdim_t = typename tao::seq::concatenate<keepdim_a_t,
                                                    keepdim_b_t>::type;
 
-  using list_stride_keepdim_t = typename tao::seq::cum_prod<
-                                      typename tao::seq::concatenate<keepdim_a_t,
-                                                                     typename tao::seq::reverse<keepdim_b_t>::type
-                                      >::type
-                                >::type;
+  using list_stride_keepdim_t = typename tao::seq::cum_prod<keepdim_t>::type;
 
   constexpr static size_t dimout = tao::seq::prod_red(keepdim_t{});
 
