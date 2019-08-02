@@ -26,9 +26,9 @@ License: MIT + file LICENSE
 LinkingTo:
     Rcpp, RcppEigen
 Imports:
-    Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5), openssl (>= 1.4)
+    Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5), openssl (>= 1.4), stringr (>= 1.4.0)
 Suggests: 
-    testthat (>= 2.1.0), stringr (>= 1.4.0)
+    testthat (>= 2.1.0)
 URL: https://www.kernel-operations.io/>, https://github.com/getkeops/keops/
 BugReports: https://github.com/getkeops/keops/issues
 Encoding: UTF-8
@@ -36,6 +36,7 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Collate:
+    common-get_cmake.R
     common-string2hash.R
     default_options.R
     rkeops-internal.R
