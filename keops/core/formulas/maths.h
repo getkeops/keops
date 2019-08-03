@@ -1175,8 +1175,6 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB> {
 
     static_assert(DIMFA::size() > 0, "Please provide a non empty DIMA");
     static_assert(DIMFB::size() > 0, "Please provide a non empty DIMB");
-    static_assert(CONTFA::size() > 0, "Please provide a non empty CONTA");
-    static_assert(CONTFB::size() > 0, "Please provide a non empty CONTB");
     static_assert(tao::seq::prod_red(DIMFA{}) == A::DIM, "DIMA is not consistant with dimension of A");
     static_assert(tao::seq::prod_red(DIMFB{}) == B::DIM, "DIMB is not consistant with dimension of B");
 

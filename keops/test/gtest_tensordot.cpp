@@ -10,32 +10,6 @@ using namespace keops;
 
 namespace {
 
-TEST(tensordot, two){
-
-  auto x = Vi(0,2*2*2); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
-  auto y = Vj(1,2*2); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
-  auto f = TensorDot(x,y, Ind(2,2,2), Ind(2,2), Ind(1,2), Ind(0,1));
-  auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
-
-  __TYPE__ FA[8] = {4.4, 5.4, 6.2, 6.5, 7.5, 6.1, 8.7, 1.3};
-  __TYPE__ FB[4] = {1.4, 1.2, 1.5, 1.22};
-
-  __TYPE__ out_keops[2];
-  EvalRed<CpuConv>(Sum_f,1, 1, out_keops, FA, FB);
-
-  __TYPE__ out_loop[2] = {0, 0};
-  for (size_t i = 0; i < 2; i++)
-    for (size_t k = 0; k < 2; k++)
-      for (size_t l = 0; l < 2; l++)
-        out_loop[i] += FA[4 * i + 2 * k + l] * FB[k * 2 + l];
-
-  __TYPE__ s2d = 0;
-  for(int i=0; i<2; i++) {
-    //std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
-    s2d += abs(out_keops[i] - out_loop[i]);
-  }
-  EXPECT_LE(s2d,5e-10);
-}
 
 TEST(tensordot, one){
 
@@ -51,17 +25,19 @@ TEST(tensordot, one){
   EvalRed<CpuConv>(Sum_f,1, 1, out_keops, FA, FB);
 
   double out_loop[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  size_t q =0 ;
   for (size_t i = 0; i < 2; i++)
-    for (size_t j = 0; j < 2; j++)
-      for (size_t k = 0; k < 2; k++)
+    for (size_t j = 0; j < 2; j++) {
+      for (size_t k = 0; k < 2; k++, q++)
         for (size_t l = 0; l < 2; l++) {
           // size_t kda = 4 * i + 2 * j + l;
           // size_t kdb = l * 2 + k;
           // size_t I = 4 * i + 2 * j + k;
           // std::cout << "(" << i << "," << j <<  "," << k <<  "," << l <<")     " << I << " " << kda << " " << kdb  << std::endl;
-
-          out_loop[4 * i + 2 * j + k] += FA[4 * i + 2 * j + l] * FB[l * 2 + k];
+          //out_loop[4 * i + 2 * j + k] += FA[4 * i + 2 * j + l] * FB[l * 2 + k];
+          out_loop[q] += FA[4 * i + 2 * j + l] * FB[l * 2 + k];
         }
+    }
 
   __TYPE__ s2d = 0;
   for(int i=0; i<8; i++) {
@@ -72,6 +48,37 @@ TEST(tensordot, one){
 }
 
 
+TEST(tensordot, two){
+
+  auto x = Vi(0,2*2*2); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
+  auto y = Vj(1,2*2); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
+  auto f = TensorDot(x,y, Ind(2,2,2), Ind(2,2), Ind(1,2), Ind(0,1));
+  auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
+
+  __TYPE__ FA[8] = {4.4, 5.4, 6.2, 6.5, 7.5, 6.1, 8.7, 1.3};
+  __TYPE__ FB[4] = {1.4, 1.2, 1.5, 1.22};
+
+  __TYPE__ out_keops[2];
+  EvalRed<CpuConv>(Sum_f,1, 1, out_keops, FA, FB);
+
+  __TYPE__ out_loop[2] = {0, 0};
+
+  size_t q = 0;
+  for (size_t i = 0; i < 2; i++) {
+    size_t qq = 0;
+    for (size_t k = 0; k < 2; k++)
+      for (size_t l = 0; l < 2; l++, q++, qq++) {
+        // out_loop[i] += FA[4 * i + 2 * k + l] * FB[k * 2 + l];
+        out_loop[i] += FA[q] * FB[qq];
+      }
+  }
+  __TYPE__ s2d = 0;
+  for(int i=0; i<2; i++) {
+    //std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
+    s2d += abs(out_keops[i] - out_loop[i]);
+  }
+  EXPECT_LE(s2d,5e-10);
+}
 
 TEST(tensordot, three){
 
@@ -260,6 +267,39 @@ np.tensordot(a,b,axes=([0],[1])).flatten()
 #         66, 103,  64, 107,  62,  73,  35,  65,  78,  97,  58,  76])
 
 */ 
+
+
+
+TEST(tensordot, height){
+
+  auto x = Vi(0,4); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
+  auto y = Vj(1,4); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
+  auto f = TensorDot(x,y, Ind(4), Ind(4), Ind(), Ind());
+  auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
+
+  __TYPE__ FA[8] = {4.4, 5.4, 6.2, 6.5};
+  __TYPE__ FB[4] = {1.4, 1.2, 1.5, 1.22};
+
+  __TYPE__ out_keops[16];
+  EvalRed<CpuConv>(Sum_f,1, 1, out_keops, FA, FB);
+
+  double out_loop[16];
+  size_t q =0 ;
+  for (size_t i = 0; i < 4; i++) {
+    for (size_t j = 0; j < 4; j++, q++) {
+      out_loop[q] = FA[i] * FB[j];
+      }
+    }
+
+  __TYPE__ s2d = 0;
+  for(int i=0; i<16; i++) {
+    // std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
+    s2d += abs(out_keops[i] - out_loop[i]);
+  }
+  EXPECT_LE(s2d,5e-6);
+}
+
+
 } // namespace
 
 GTEST_API_ int main(int argc, char **argv) {
