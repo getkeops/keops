@@ -17,7 +17,6 @@ include(${KEOPS_SRC}/cuda.cmake)
 set(SOURCE_FILES
     ${KEOPS_SRC}
     ${PROJECT_BINARY_DIR}
-    ${KEOPS_SRC}/lib/sequences/include
 )
 
 Include_Directories(${SOURCE_FILES})
