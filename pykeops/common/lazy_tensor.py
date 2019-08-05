@@ -1196,6 +1196,17 @@ class LazyTensor:
         """
         return self.binary(other, "TensorProd", dimres=(other.ndim * self.ndim), dimcheck=None)
     
+    def tensordot(self, other, dimfa, dimfb, contfa, contfb):
+        r"""
+        Tensor dot product - a binary operation.  
+        *** very temporary implementation - to be updated soon***
+        """
+        dimres = np.array(dimfa).prod() * np.array(dimfb).prod() / np.array(dimfa)[contfa].prod()**2
+        opt_arg = "";
+        for intseq in (dimfa, dimfb, contfa, contfb):
+            opt_arg = opt_arg + "Ind{}, ".format(tuple(intseq))
+        return self.binary(other, "TensorDot", dimres=dimres, dimcheck=None, opt_arg=opt_arg)
+    
     def grad(self, other, gradin):
         r"""
         Symbolic gradient operation.
