@@ -1,35 +1,92 @@
 context("Default options for compilation")
 
-test_that("default_options", {
-    out <- default_options()
-    expect_is(out, "list")
-    attach(out)
-    expect_equal(build_dir, 
-                 file.path(find.package("rkeops"), "build"))
-    expect_equal(src_dir, 
-                 file.path(find.package("rkeops"), "include"))
-    expect_equal(precision, "float")
-    expect_equal(verbosity, 0)
-    expect_equal(use_cuda_if_possible, 1)
+test_that("default_compile_options", {
+    out <- rkeops::default_compile_options()
+    check_default_compile_options(out)
 })
 
-test_that("default_options_precision", {
-    out <- default_options(precision = "double")
-    attach(out)
-    expect_equal(precision, "double")
-    expect_error(default_options(precision = "something"), 
+test_that("compile_options", {
+    ## default behavior
+    out <- rkeops::compile_options()
+    check_default_compile_options(out)
+    ## behavior with user-provided input
+    # precision
+    out <- rkeops::compile_options(precision = "double")
+    expect_equal(out$precision, "double")
+    expect_error(rkeops::compile_options(precision = "something"),
                  "Wrong input for `precision` parameter.",
+                 fixed = TRUE)
+    # verbosity
+    out <- rkeops::compile_options(verbosity = TRUE)
+    expect_equal(out$verbosity, 1)
+    expect_error(rkeops::compile_options(precision = "something"),
+                 "Wrong input for `precision` parameter.",
+                 fixed = TRUE)
+    # use_gpu
+    out <- rkeops::compile_options(use_gpu = FALSE)
+    expect_equal(out$use_cuda_if_possible, 0)
+    expect_error(rkeops::compile_options(use_gpu = "something"),
+                 "Wrong input for `use_cuda_if_possible` parameter.",
+                 fixed = TRUE)
+    # build_dir
+    out <- rkeops::compile_options(build_dir = get_build_dir())
+    expect_equal(out$build_dir,
+                 file.path(find.package("rkeops"), "build"))
+    # FIXME expect_error(rkeops::compile_options(build_dir = "/nopath/to/test"),
+    #              "Wrong input for `build_dir` parameter.",
+    #              fixed = TRUE)
+    # src_dir
+    out <- rkeops::compile_options(src_dir = get_src_dir())
+    expect_equal(out$src_dir,
+                 file.path(find.package("rkeops"), "include"))
+    # FIXME expect_error(rkeops::compile_options(src_dir = "/nopath/to/test"),
+    #              "Wrong input for `src_dir` parameter.",
+    #              fixed = TRUE)
+})
+
+test_that("default_runtime_options", {
+    out <- rkeops::default_runtime_options()
+    check_default_runtime_options(out)
+})
+
+test_that("runtime_options", {
+    ## default behavior
+    out <- rkeops::runtime_options()
+    check_default_runtime_options(out)
+    ## behavior with user-provided input
+    # tagCpuGpu
+    out <- rkeops::runtime_options(tagCpuGpu = 0)
+    expect_equal(out$tagCpuGpu, 0)
+    expect_error(rkeops::runtime_options(tagCpuGpu = "something"),
+                 "Wrong input for `tagCpuGpu` parameter.",
+                 fixed = TRUE)
+    # tag1D2D
+    out <- rkeops::runtime_options(tag1D2D = 0)
+    expect_equal(out$tag1D2D, 0)
+    expect_error(rkeops::runtime_options(tag1D2D = "something"),
+                 "Wrong input for `tag1D2D` parameter.",
+                 fixed = TRUE)
+    # devicee_id
+    out <- rkeops::runtime_options(device_id = 1)
+    expect_equal(out$device_id, 1)
+    expect_error(rkeops::runtime_options(device_id = -6),
+                 "Wrong input for `device_id` parameter.",
+                 fixed = TRUE)
+    expect_error(rkeops::runtime_options(device_id = "something"),
+                 "Wrong input for `device_id` parameter.",
                  fixed = TRUE)
 })
 
-test_that("default_options_verbosity", {
-    out <- default_options(verbosity = TRUE)
-    attach(out)
-    expect_equal(verbosity, 1)
+test_that("check_compile_options", {
+    out <- rkeops::default_compile_options()
+    expect_error(rkeops::check_compile_options(out), NA)
+    expect_error(rkeops::check_compile_options(5),
+                 "invalid compile options")
 })
 
-test_that("default_options_cpu", {
-    out <- default_options(use_gpu = FALSE)
-    attach(out)
-    expect_equal(use_cuda_if_possible, 0)
+test_that("check_runtime_options", {
+    out <- rkeops::default_runtime_options()
+    expect_error(rkeops::check_runtime_options(out), NA)
+    expect_error(rkeops::check_runtime_options(5),
+                 "invalid runtime options")
 })
