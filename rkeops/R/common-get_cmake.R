@@ -67,6 +67,7 @@ get_cmake <- function(path = NULL) {
 #' @return a null value if all checks are ok.
 #' @author Ghislain Durif
 #' @importFrom stringr str_extract
+#' @importFrom utils compareVersion
 #' @export
 check_cmake <- function(cmake_executable) {
     # check if string
