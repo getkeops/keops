@@ -31,7 +31,7 @@
 #' with the following elements `tagCpuGpu`, `tag1D2D`, `device_id`. Default 
 #' value is `NULL` and default runtime options are set up 
 #' (see [rkeops::default_runtime_options()]).
-#' @seealso [rkeops::set_rkeops_options()], [rkeops::compile_options()], 
+#' @seealso [rkeops::set_rkeops_option()], [rkeops::compile_options()], 
 #' [rkeops::runtime_options()], [rkeops::default_compile_options()], 
 #' [rkeops::default_runtime_options()].
 #' @export
