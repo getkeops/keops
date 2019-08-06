@@ -22,6 +22,45 @@ test_that("check_cmake", {
                  "`cmake_executable` input parameter is not a path to a cmake executable.")
 })
 
+test_that("get_rkeops_options", {
+    custom_compile_options <- compile_options(
+        precision = 'float', verbosity = FALSE, 
+        use_gpu = TRUE, build_dir = NULL, 
+        src_dir = NULL)
+    custom_runtime_options <- runtime_options(
+        tagCpuGpu = 1, tag1D2D = 0, 
+        device_id = 0)
+    set_rkeops_options(custom_compile_options, 
+                       custom_runtime_options)
+    rkeops_options <- get_rkeops_options()
+    expect_equal(rkeops_options$compile_options,
+                 custom_compile_options)
+    expect_equal(rkeops_options$runtime_options,
+                 custom_runtime_options)
+})
+
+test_that("get_rkeops_option", {
+    custom_compile_options <- compile_options(
+        precision = 'float', verbosity = FALSE, 
+        use_gpu = TRUE, build_dir = NULL, 
+        src_dir = NULL)
+    custom_runtime_options <- runtime_options(
+        tagCpuGpu = 1, tag1D2D = 0, 
+        device_id = 0)
+    ## check getting each compile option
+    tmp <- lapply(names(custom_compile_options), function(option) {
+        value <- get_rkeops_option(option)
+        expect_equal(value,
+                     custom_compile_options[option])
+    })
+    ## check getting each runtime option
+    tmp <- lapply(names(custom_runtime_options), function(option) {
+        value <- get_rkeops_option(option)
+        expect_equal(value,
+                     custom_runtime_options[option])
+    })
+})
+
 test_that("set_rkeops_options", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
