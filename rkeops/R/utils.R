@@ -1,3 +1,21 @@
+#' Create name of shared library from formula and arguments
+#' @description
+#' Using input formula and arguments along with current value of "precision" 
+#' option, the function `dllname` creates through a hash a name for the shared 
+#' library where the operators defined by the formula and arguments will be 
+#' compiled.
+#' @details
+#' FIXME
+#' @author Ghislain Durif
+#' @importFrom stringr str_to_lower
+#' @export
+create_dllname <- function(formula, args) {
+    tmp <- paste0(formula, paste0(args, collapse=""), 
+                  "_", get_rkeops_option("precision"))
+    out <- string2hash(str_to_lower(tmp))
+    return(out)
+}
+
 #' Getter for package installation directory
 #' @keywords internal
 #' @description

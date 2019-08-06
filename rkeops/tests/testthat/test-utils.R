@@ -1,5 +1,14 @@
 context("utils functions")
 
+test_that("dllname", {
+    formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta,0)"
+    args = c("x=Vi(3)", "y=Vj(3)",
+             "beta=Vj(3)", "lambda=Pm(1)")
+    expected_value <- "4621b22f0172c0d526e8d02fa33f4908f519fbb51fb47c90c3742b282530b9f8"
+    expect_equal(as.character(create_dllname(formula, args)), 
+                 expected_value)
+})
+
 test_that("get_pkg_dir", {
     expect_equal(get_pkg_dir(), find.package("rkeops"))
 })
