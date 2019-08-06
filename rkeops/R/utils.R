@@ -48,3 +48,25 @@ get_build_dir <- function(pkg = "rkeops", create = TRUE) {
     if(!dir.exists(out) & create) dir.create(out)
     return(out)
 }
+
+#' Check if `rkeops` is installed on the system
+#' @keywords internal
+#' @description
+#' When running automatic tests without building and installing the package, 
+#' i.e. with `devtools::test()`, the package file structure is different 
+#' from the structure of a built and installed package (obtained with 
+#' `devtools::check()`). For instance, the directory `inst/include` is 
+#' replaced by `include`, or `src` by `lib`. Check functions inside `rkeops` 
+#' have different behavior between these two cases.
+#' 
+#' The function `is_installed` checks the availability of the compiled 
+#' function [rkeops::is_compiled()]. If available, it means that `rkeops` is 
+#' installed on the system.
+#' @author Ghislain Durif
+#' @seealso [rkeops::is_installed()]
+#' @export
+is_installed <- function() {
+    out_compile <- tryCatch(is_compiled(), error = function(e) return(0))
+    out_file <- dir.exists(get_src_dir())
+    return(out_compile & out_file)
+}
