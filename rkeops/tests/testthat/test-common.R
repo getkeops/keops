@@ -13,7 +13,7 @@ test_that("get_cmake", {
 
 test_that("check_cmake", {
     out <- get_cmake()
-    expect_equal(check_cmake(out), 0)
+    expect_equal(check_cmake(out), 1)
     expect_error(check_cmake(0), 
                  "`cmake_executable` input parameter should be a text string.")
     expect_error(check_cmake("/nopath/to/test"), 
@@ -22,16 +22,16 @@ test_that("check_cmake", {
                  "`cmake_executable` input parameter is not a path to a cmake executable.")
 })
 
-test_that("set_options", {
-    custom_compile_options <- rkeops::compile_options(
+test_that("set_rkeops_options", {
+    custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
         use_gpu = TRUE, build_dir = NULL, 
         src_dir = NULL)
-    custom_runtime_options <- rkeops::runtime_options(
+    custom_runtime_options <- runtime_options(
         tagCpuGpu = 1, tag1D2D = 0, 
         device_id = 0)
-    set_options(custom_compile_options, 
-                custom_runtime_options)
+    set_rkeops_options(custom_compile_options, 
+                       custom_runtime_options)
     rkeops_options <- getOption("rkeops")
     expect_equal(rkeops_options$compile_options,
                  custom_compile_options)
@@ -39,24 +39,24 @@ test_that("set_options", {
                  custom_runtime_options)
 })
 
-test_that("set_option", {
-    custom_compile_options <- rkeops::compile_options(
+test_that("set_rkeops_option", {
+    custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
         use_gpu = TRUE, build_dir = NULL, 
         src_dir = NULL)
-    custom_runtime_options <- rkeops::runtime_options(
+    custom_runtime_options <- runtime_options(
         tagCpuGpu = 1, tag1D2D = 0, 
         device_id = 0)
     ## check setting each compile option
     tmp <- lapply(names(custom_compile_options), function(option) {
-        set_option(option, custom_compile_options[option])
+        set_rkeops_option(option, custom_compile_options[option])
         rkeops_options <- getOption("rkeops")
         expect_equal(rkeops_options$compile_options[option],
                      custom_compile_options[option])
     })
     ## check setting each runtime option
     tmp <- lapply(names(custom_runtime_options), function(option) {
-        set_option(option, custom_runtime_options[option])
+        set_rkeops_option(option, custom_runtime_options[option])
         rkeops_options <- getOption("rkeops")
         expect_equal(rkeops_options$runtime_options[option],
                      custom_runtime_options[option])
