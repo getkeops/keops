@@ -64,7 +64,7 @@ get_cmake <- function(path = NULL) {
 #' and its version (`rkeops` requires cmake >= 3.10).
 #' @param cmake_executable text string, path to cmake 
 #' (e.g. `/path/to/cmake` on Unix system).
-#' @return a null value if all checks are ok.
+#' @return a value 1 if all checks are ok.
 #' @author Ghislain Durif
 #' @importFrom stringr str_extract
 #' @importFrom utils compareVersion
@@ -89,5 +89,5 @@ check_cmake <- function(cmake_executable) {
     if(compareVersion(current_version, expected_version)<0) {
         stop("cmake version is too old, version >= 3.10 is required")
     }
-    return(0)
+    return(1)
 }
