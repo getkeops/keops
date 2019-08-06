@@ -737,7 +737,7 @@ struct Cos : UnaryOp<Cos, F> {
 ////             POWER OPERATOR : Pow< F, M >             ////
 //////////////////////////////////////////////////////////////
 
-              template<class F, int M>
+template<class F, int M>
 struct Pow : UnaryOp<Pow, F, M> {
 
     static const int DIM = F::DIM;
@@ -982,21 +982,15 @@ using Powf = Exp<Scal<FB, Log<FA>>>;
 ////       SQUARE ROOT : Sqrt< F >                        ////
 //////////////////////////////////////////////////////////////
 
-                 template<class F>
-                 struct Sqrt_Impl;
-                 template<class F>
-                 struct Sqrt_Alias;
-                 template<class F>
-                 using Sqrt = typename Sqrt_Alias<F>::type;
+template<class F> struct Sqrt_Impl;
+template<class F> struct Sqrt_Alias;
+template<class F> using Sqrt = typename Sqrt_Alias<F>::type;
 
-                 template<class F>
-                 struct Rsqrt_Impl;
-                 template<class F>
-                 struct Rsqrt_Alias;
-                 template<class F>
-                 using Rsqrt = typename Rsqrt_Alias<F>::type;
+template<class F> struct Rsqrt_Impl;
+template<class F> struct Rsqrt_Alias;
+template<class F> using Rsqrt = typename Rsqrt_Alias<F>::type;
 
-                 template<class F>
+template<class F>
 struct Sqrt_Impl : UnaryOp<Sqrt_Impl, F> {
     static const int DIM = F::DIM;
 
@@ -1092,7 +1086,7 @@ struct VecMatMult;
 
 template<class A, class B>
 struct MatVecMult : BinaryOp<MatVecMult, A, B> {
-    // A is vector of size n*p, interpreted as matrix (column major), B is vector of size p, interpreted as column vector
+    // A is vector of size n*p, interpreted as matrix, B is vector of size p, interpreted as column vector
     // output is vector of size n
 
     static_assert(A::DIM % B::DIM == 0, "Dimensions of A and B are not compatible for matrix-vector product");
@@ -1102,15 +1096,24 @@ struct MatVecMult : BinaryOp<MatVecMult, A, B> {
     static void PrintIdString(std::stringstream &str) {
         str << "x";
     }
-
-    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-        for (int k = 0; k < DIM; k++) {
-            out[k] = 0;
-            for (int l = 0; l < B::DIM; l++)
-                out[k] += outA[l * DIM + k] * outB[l];
+#if C_CONTIGUOUS //row major
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+        size_t q = 0;
+        for (size_t i = 0; i != DIM; i++) {
+            out[i] = 0;
+            for (size_t k = 0; k != B::DIM; k++, q++)
+                out[i] += inA[q] * inB[k];
         }
     }
-
+#else // column major
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+        for (size_t i = 0; i != DIM; i++) {
+            out[i] = 0;
+            for (size_t k = 0; k != B::DIM; k++)
+                out[i] += inA[k * DIM + i] * inB[k];
+        }
+    }
+#endif
     template<class V, class GRADIN>
     using DiffTA = typename A::template DiffT<V, GRADIN>;
 
@@ -1129,10 +1132,10 @@ struct MatVecMult : BinaryOp<MatVecMult, A, B> {
 
 template<class B, class A>
 struct VecMatMult : BinaryOp<VecMatMult, B, A> {
-    // A is vector of size n*p, interpreted as matrix (column major), B is vector of size n, interpreted as row vector
+    // A is vector of size n*p, interpreted as matrix, B is vector of size n, interpreted as row vector
     // output is vector of size p
 
-    static_assert(A::DIM % B::DIM == 0, "Dimensions of A and B are not compatible for matrix-vector product");
+    static_assert(A::DIM % B::DIM == 0, "Dimensions of A and B are not compatible for vector-matrix product");
 
     static const int DIM = A::DIM / B::DIM;
 
@@ -1140,15 +1143,24 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
         str << "x";
     }
 
-    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-        int q = 0;
-        for (int k = 0; k < DIM; k++) {
-            out[k] = 0;
-            for (int l = 0; l < B::DIM; l++, q++)
-                out[k] += outA[q] * outB[l];
+#if C_CONTIGUOUS //row major
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
+        for (size_t i = 0; i != DIM; i++) {
+            out[i] = 0;
+            for (size_t k = 0; k != B::DIM; k++)
+                out[i] += inB[k] * inA[DIM * k + i];
         }
     }
-
+#else // column major
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
+        size_t q = 0;
+        for (size_t i = 0; i != DIM; i++) {
+            out[i] = 0;
+            for (size_t k = 0; k != B::DIM; k++, q++)
+                out[i] += inB[k] * inA[q];
+        }
+    }
+#endif
     template<class V, class GRADIN>
     using DiffTA = typename A::template DiffT<V, GRADIN>;
 
@@ -1187,14 +1199,12 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB> {
     }
 
      static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-
-        for (size_t i =0 ; i < DIM ; i ++)
+        for (size_t i =0 ; i != DIM ; i ++)
             out[i] = 0;
 
         loop<typename parameters::loopdim_t >::f(parameters::compute_tensordot_indices_apply([&out,&inA,&inB](tensordot_indices td){
             out[td.out_indices] += inA[td.a_indices] * inB[td.b_indices];
         }));
-
     }
 
     template<class V, class GRADIN>
@@ -1203,8 +1213,21 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB> {
     template<class V, class GRADIN>
     using DiffTB = typename B::template DiffT<V, GRADIN>;
 
-    template<class V, class GRADIN>
-    using DiffT = Add<DiffTA<V, TensorProd<GRADIN, B>>, DiffTB<V, VecMatMult<GRADIN, A>>>;
+
+template<class V, class GRADIN>
+    using DiffT = Add<
+                    DiffTA<V, TensorDot<GRADIN, B,
+                                typename parameters::keepdim_t,
+                                DIMFB,
+                                typename parameters::list_indices_keepdim_b_inout,
+                                typename parameters::indices_keepdim_b_t>>,
+                    DiffTB<V, TensorDot<GRADIN, A,
+                                typename parameters::keepdim_t,
+                                DIMFA,
+                                typename parameters::list_indices_keepdim_a_inout,
+                                typename parameters::indices_keepdim_a_t >>
+                    >;
+
 
 };
 
@@ -1216,22 +1239,30 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB> {
 template<class A, class B>
 struct TensorProd : BinaryOp<TensorProd, A, B> {
     // A is vector of size n, B is vector of size p,
-    // output is vector of size n*p
+    // output is vector of size n*p understood as a matrix n x p
 
     static const int DIM = A::DIM * B::DIM;
 
     static void PrintIdString(std::stringstream &str) {
         str << "(x)";
     }
-
-    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-        int q = 0;
-        for (int k = 0; k < A::DIM; k++) {
-            for (int l = 0; l < B::DIM; l++, q++)
-                out[q] = outA[k] * outB[l];
+#if C_CONTIGUOUS // row major
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+        size_t q = 0;
+        for (size_t k = 0; k != A::DIM; k++) {
+            for (size_t l = 0; l != B::DIM; l++, q++)
+                out[q] = inA[k] * inB[l];
         }
     }
-
+#else // column major
+    static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+        size_t q = 0;
+        for (size_t i = 0; i != A::DIM; i++) {
+            for (size_t j = 0; j != B::DIM; j++, q++)
+                out[A::DIM * j + i] = inA[i] * inB[j];
+        }
+    }
+#endif
     template<class V, class GRADIN>
     using DiffTA = typename A::template DiffT<V, GRADIN>;
 

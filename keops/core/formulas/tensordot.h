@@ -205,8 +205,11 @@ struct tensordot_parameters {
                                              DIMFA>::type;
   using contdim_a_t = typename tao::seq::map<CONTFA,
                                              DIMFA>::type;
+#if C_CONTIGUOUS
   using list_stride_dim_a_t = typename tao::seq::cum_prod<DIMFA>::type;
-
+#else
+  using list_stride_dim_a_t = typename tao::seq::cum_prod<typename tao::seq::reverse<DIMFA>::type>::type;
+#endif
 
   // Right hand-side
   using indices_keepdim_b_t = typename tao::seq::filter_out<CONTFB,
@@ -215,17 +218,26 @@ struct tensordot_parameters {
                                              DIMFB>::type;
   using contdim_b_t = typename tao::seq::map<CONTFB,
                                              DIMFB>::type;
+#if C_CONTIGUOUS
   using list_stride_dim_b_t = typename tao::seq::cum_prod<DIMFB>::type;
+#else
+  using list_stride_dim_b_t = typename tao::seq::cum_prod<typename tao::seq::reverse<DIMFB>::type>::type;
+#endif
+
 
   static_assert(std::is_same<contdim_a_t, contdim_b_t>::value, "In TensorDot: contracting dimensions should  be the same");
+
 
   // Output
   using keepdim_t = typename tao::seq::concatenate<keepdim_a_t,
                                                    keepdim_b_t>::type;
-
+#if C_CONTIGUOUS
   using list_stride_keepdim_t = typename tao::seq::cum_prod<keepdim_t>::type;
-
+#else
+  using list_stride_keepdim_t = typename tao::seq::cum_prod<typename tao::seq::reverse<keepdim_t>::type>::type;
+#endif
   constexpr static size_t dimout = tao::seq::prod_red(keepdim_t{});
+
 
   // Loop: in this code we choose to loop on the keepdims first and then on the contraction dims.
   using loopdim_t = typename tao::seq::concatenate<keepdim_t,
@@ -238,15 +250,17 @@ struct tensordot_parameters {
 
   using ali = typename tao::seq::concatenate<indices_keepdim_a_t, CONTFA>::type;
 
-  using list_indices_a_intot = typename tao::seq::permute<ali,
-                                                          ala>::type;
+  using list_indices_a_intot = typename tao::seq::permute<ali, ala>::type;
 
   using bla = typename tao::seq::concatenate<tao::seq::make_index_range<keepdim_a_t::size(), keepdim_t::size()>,
                                              tao::seq::make_index_range<keepdim_t::size(), dimloop>>::type;
   using bli = typename tao::seq::concatenate<indices_keepdim_b_t, CONTFB>::type;
 
-  using list_indices_b_intot = typename tao::seq::permute<bli,
-                                                          bla>::type;
+  using list_indices_b_intot = typename tao::seq::permute<bli, bla>::type;
+
+  // used to compute the Gradient
+  using list_indices_keepdim_b_inout = typename tao::seq::make_index_range<keepdim_a_t::size(), keepdim_t::size()>;
+  using list_indices_keepdim_a_inout = typename tao::seq::make_index_range<0, keepdim_a_t::size()>;
 
   template<class IND>
   constexpr static tensordot_indices compute_tensordot_indices(IND) {
@@ -255,30 +269,29 @@ struct tensordot_parameters {
     using list_indices_a = typename tao::seq::map<list_indices_a_intot,
                                                   IND>::type;
 
-    size_t a_indices = tao::seq::sum<
-        tao::seq::prod_t<
-            list_stride_dim_a_t,
-            list_indices_a>>::value;
+#if C_CONTIGUOUS
+    size_t a_indices = tao::seq::sum<tao::seq::prod_t<list_stride_dim_a_t, list_indices_a>>::value;
+#else
+    size_t a_indices = tao::seq::sum<tao::seq::prod_t<list_stride_dim_a_t, typename tao::seq::reverse<list_indices_a>::type>>::value;
+#endif
+
 
     // b_indices
     using list_indices_b = typename tao::seq::map<list_indices_b_intot,
                                                   IND>::type;
-
-    size_t b_indices = tao::seq::sum<
-        tao::seq::prod_t<
-            list_stride_dim_b_t,
-            list_indices_b>>::value;
-
+#if C_CONTIGUOUS
+    size_t b_indices = tao::seq::sum<tao::seq::prod_t<list_stride_dim_b_t,list_indices_b>>::value;
+#else
+    size_t b_indices = tao::seq::sum<tao::seq::prod_t<list_stride_dim_b_t, typename tao::seq::reverse<list_indices_b>::type>>::value;
+#endif
     // out_indices
-    using list_indices_keepdim = typename tao::seq::map<
-        tao::seq::make_index_range<0, keepdim_t::size()>,
-        IND>::type;
-
-    size_t out_indices = tao::seq::sum<
-        tao::seq::prod_t<
-            list_stride_keepdim_t,
-            list_indices_keepdim>>::value;
-
+    using list_indices_keepdim = typename tao::seq::map<tao::seq::make_index_range<0, keepdim_t::size()>,
+                                                        IND>::type;
+#if C_CONTIGUOUS
+    size_t out_indices = tao::seq::sum<tao::seq::prod_t<list_stride_keepdim_t, list_indices_keepdim>>::value;
+#else
+    size_t out_indices = tao::seq::sum<tao::seq::prod_t<list_stride_keepdim_t, typename tao::seq::reverse<list_indices_keepdim>::type>>::value;
+#endif
 
     return tensordot_indices{out_indices, a_indices, b_indices};
   }

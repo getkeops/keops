@@ -50,6 +50,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                      '-Dshared_obj_name=' + dllname,
                      '-D__TYPE__=' + c_type[dtype],
                      '-DPYTHON_LANG=' + lang,
+                     '-DC_CONTIGUOUS=1',
                     ] + optional_flags
     run_and_display(command_line + ['-DcommandLine=' + ' '.join(command_line)],
                     build_folder,
