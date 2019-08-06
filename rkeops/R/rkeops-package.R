@@ -35,6 +35,7 @@
 #' @import Rcpp
 #' @importFrom Rcpp sourceCpp
 #' @import RcppEigen
+#' @importFrom utils packageVersion
 #' @useDynLib rkeops, .registration = TRUE
 #' 
 NULL
