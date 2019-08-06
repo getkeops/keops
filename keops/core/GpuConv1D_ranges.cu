@@ -89,7 +89,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
         if( (index+1 >= end_slice) || (ranges_y[2*index+2] != ranges_y[2*index+1]) ) {
             //start_y = ranges_y[2*index] ;
             end_y = ranges_y[2*index+1];
-            //printf("%d,%d.", start_y, end_y) ;
+
             for(int jstart = start_y, tile = 0; jstart < end_y; jstart += blockDim.x, tile++) {
 
                 // get the current column
@@ -99,7 +99,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
                     if (nbatchdims == 0) {
                         load<DIMSY>(j, yj+threadIdx.x*DIMY, py); // load yj variables from global memory to shared memory
                     } else {
-                        load<DIMSY>(j - start_y, yj+threadIdx.x*DIMY, py, indices_j);  // Possibly, with offsets as we support broadcasting over batch dimensions
+                        load<DIMSY>(j-start_y, yj+threadIdx.x*DIMY, py, indices_j);  // Possibly, with offsets as we support broadcasting over batch dimensions
                     }
                 }
                 __syncthreads();
@@ -125,6 +125,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
     }
     if(i<end_x) {
     	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
+//printf("blockIdx.x=%d, threadIdx.x=%d, i=%d, start_x=%d, end_x=%d, *tmp=%f, *(px[0]+i*DIMOUT)=%f\n",blockIdx.x,threadIdx.x,i,start_x,end_x,*tmp,*(px[0]+i*DIMOUT));
     }
 
 }
@@ -170,7 +171,7 @@ int* build_offset_tables( int nbatchdims, int *shapes, int nblocks, __INDEX__ *l
         const int tagIJ = FUN::tagJ; // 1 if the reduction is made "over j", 0 if it is made "over i"
         int M = shapes[nbatchdims], N = shapes[nbatchdims+1];
 
-        // We create a lookup table, "offsets", of shape (nblock, SIZEVARS) --------
+        // We create a lookup table, "offsets", of shape (nblocks, SIZEVARS) --------
         int *offsets_h = NULL, *offsets_d = NULL;
     
         offsets_h = new int[nblocks * SIZEVARS] ;
@@ -179,10 +180,11 @@ int* build_offset_tables( int nbatchdims, int *shapes, int nblocks, __INDEX__ *l
             int range_id = (int) lookup_h[3*k] ;
             int start_x  = tagIJ ? range_id * M : range_id * N;
             int start_y  = tagIJ ? range_id * N : range_id * M;
+
+            int patch_offset = (int) (lookup_h[3*k+1]-start_x);
             
-            vect_broadcast_index(start_x, nbatchdims, SIZEI-1, shapes, shapes_i, offsets_h + k*SIZEVARS);
+            vect_broadcast_index(start_x, nbatchdims, SIZEI-1, shapes, shapes_i, offsets_h + k*SIZEVARS, patch_offset);
             vect_broadcast_index(start_y, nbatchdims, SIZEJ,   shapes, shapes_j, offsets_h + k*SIZEVARS + SIZEI-1);
-            // And for the parameters, too:
             vect_broadcast_index(range_id, nbatchdims, SIZEP, shapes, shapes_p, offsets_h + k*SIZEVARS + SIZEI-1 + SIZEJ);
         }
 
@@ -418,7 +420,6 @@ static int Eval_(FUN fun, int nx, int ny,
             lookup_h[3*index]   = i;
             lookup_h[3*index+1] = ranges_x[2*i] + j;
             lookup_h[3*index+2] = ranges_x[2*i] + j + std::min((int) blockSize.x, len_range-j ) ;
-
             index++;
         }
     }
