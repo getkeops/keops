@@ -28,7 +28,7 @@ pipeline {
 
         stage('Build Cuda') {
           agent { label 'cuda' }
-          environment { CXX=g++-8 }
+          environment { CXX="g++-8" }
           steps {
             echo 'Building..'
               sh 'git submodule update --init'
@@ -67,7 +67,7 @@ pipeline {
         stage('Test Cuda') {
           agent { label 'cuda' }
           environment { 
-            CXX=g++-8
+            CXX="g++-8"
             // PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/jenkins/.local/bin/"
           }
           steps {
