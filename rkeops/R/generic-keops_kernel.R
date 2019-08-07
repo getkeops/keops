@@ -3,6 +3,7 @@
 #' FIXME
 #' @details
 #' FIXME
+#' See <http://www.kernel-operations.io/keops/api/math-operations.html>
 #' @author Ghislain Durif
 #' @param formula text string, an operator formula.
 #' @param args vector of text string, operator parameters.
@@ -55,7 +56,9 @@ keops_kernel <- function(formula, args) {
     
     # load shared library
     # FIXME
-    # dyn.load(dllfilename, local = FALSE)
+    # if(file.exists(dllfilename)) {
+    #     dyn.load(dllfilename, local = FALSE)
+    # }
     
     # return function calling the corresponding compile operator
     # FIXME
