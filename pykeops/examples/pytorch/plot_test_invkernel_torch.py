@@ -16,19 +16,18 @@ using the **conjugate gradient solver** provided by
 # Standard imports:
 #
 
-import time 
-from matplotlib import pyplot as plt
+import time
 
 import torch
+from matplotlib import pyplot as plt
 
 from pykeops.torch import KernelSolve
-
 
 ###############################################################################
 # Define our dataset:
 #
 
-N  = 5000 if torch.cuda.is_available() else 500  # Number of points
+N = 5000 if torch.cuda.is_available() else 500  # Number of points
 D  = 2      # Dimension of the ambient space
 Dv = 2      # Dimension of the vectors (= number of linear problems to solve)
 sigma = .1  # Radius of our RBF kernel    
@@ -119,7 +118,7 @@ start = time.time()
 u_py, = torch.autograd.grad(c_py, x, e)
 end = time.time()
 print('Timing (PyTorch derivative):', round(end - start, 5), 's')
-print("Relative error = ",(torch.norm(u - u_py) / torch.norm(u_py)).item())
+print("Relative error = ", (torch.norm(u - u_py) / torch.norm(u_py)).item())
 
 
 

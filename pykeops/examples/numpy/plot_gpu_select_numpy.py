@@ -15,9 +15,9 @@ operation will be performed.
 # -------------
 # Standard imports:
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import matplotlib.pyplot as plt
 
 from pykeops.numpy import Genred
 from pykeops.numpy.utils import IsGpuAvailable

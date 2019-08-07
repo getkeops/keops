@@ -56,11 +56,11 @@ b = x + .5 * np.sin(6 * x) + .1 * np.sin(20 * x) + .05 * np.random.randn(N, 1).a
 # Specify our **regression model** - a simple **Gaussian** variogram or **kernel matrix**
 # of deviation **sigma**:
 
-def gaussian_kernel(x, y, sigma = .1):
-    x_i = LazyTensor( x[:,None,:] )  # (M, 1, 1)
-    y_j = LazyTensor( y[None,:,:] )  # (1, N, 1)
-    D_ij = ( (x_i - y_j) ** 2 ).sum(-1)  # (M, N) symbolic matrix of squared distances
-    return ( - D_ij / (2 * sigma**2) ).exp()  # (M, N) symbolic Gaussian kernel matrix
+def gaussian_kernel(x, y, sigma=.1):
+    x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
+    y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
+    D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
+    return (- D_ij / (2 * sigma ** 2)).exp()  # (M, N) symbolic Gaussian kernel matrix
 
 #######################################################################
 # Perform the **Kernel interpolation**, without forgetting to specify
@@ -88,7 +88,7 @@ print('Time to perform an RBF interpolation with {:,} samples in 1D: {:.5f}s'.fo
 t = np.reshape(np.linspace(0, 1, 1001), [1001, 1]).astype(dtype)
 
 K_tx = gaussian_kernel(t, x)
-mean_t = K_tx@a
+mean_t = K_tx @ a
 
 # 1D plot:
 plt.figure(figsize=(8, 6))
@@ -123,11 +123,12 @@ b[-Nout:] = np.random.rand(Nout, 1).astype(dtype)
 # Specify our **regression model** - a simple **Exponential** variogram
 # or **Laplacian** kernel matrix of deviation **sigma**:
 
-def laplacian_kernel(x, y, sigma = .1):
-    x_i = LazyTensor( x[:,None,:] )  # (M, 1, 1)
-    y_j = LazyTensor( y[None,:,:] )  # (1, N, 1)
-    D_ij = ( (x_i - y_j) ** 2 ).sum(-1)  # (M, N) symbolic matrix of squared distances
-    return ( - D_ij.sqrt() / sigma ).exp()  # (M, N) symbolic Laplacian kernel matrix
+def laplacian_kernel(x, y, sigma=.1):
+    x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
+    y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
+    D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
+    return (- D_ij.sqrt() / sigma).exp()  # (M, N) symbolic Laplacian kernel matrix
+
 
 #######################################################################
 # Perform the **Kernel interpolation**, without forgetting to specify
@@ -156,7 +157,7 @@ X, Y = np.meshgrid(X, Y)
 t = np.stack((X.ravel(), Y.ravel()), axis=1)
 
 K_tx = laplacian_kernel(t, x)
-mean_t = K_tx@a
+mean_t = K_tx @ a
 mean_t = mean_t.reshape(101, 101)[::-1, :]
 
 # 2D plot: noisy samples and interpolation in the background

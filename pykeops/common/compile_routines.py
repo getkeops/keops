@@ -42,7 +42,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     print(
         'Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
         end='', flush=True)
-    
+
     command_line = ['cmake', script_folder,
                      '-DCMAKE_BUILD_TYPE=' + build_type,
                      '-DFORMULA_OBJ=' + formula,
@@ -50,13 +50,14 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                      '-Dshared_obj_name=' + dllname,
                      '-D__TYPE__=' + c_type[dtype],
                      '-DPYTHON_LANG=' + lang,
-                     ] + optional_flags
+                     '-DC_CONTIGUOUS=1',
+                    ] + optional_flags
     run_and_display(command_line + ['-DcommandLine=' + ' '.join(command_line)],
                     build_folder,
                     msg='CMAKE')
 
     run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
-    
+
     print('Done.')
 
 

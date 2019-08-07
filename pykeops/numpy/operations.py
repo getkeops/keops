@@ -3,7 +3,7 @@ import numpy as np
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKEops
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import get_sizes, complete_aliases, parse_aliases
+from pykeops.common.parse_type import complete_aliases, parse_aliases
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
@@ -99,7 +99,7 @@ class KernelSolve:
         self.varinvalias = varinvalias
         self.dtype = dtype
         self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy').import_module()
-        
+
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
             varinvpos = int(varinvalias[4:varinvalias.find(",")])
@@ -174,7 +174,8 @@ class KernelSolve:
 
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos + 1:]
-            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, self.categories, self.dimensions, *newargs)
+            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, self.categories, self.dimensions,
+                                           *newargs)
             if alpha:
                 res += alpha * var
             return res

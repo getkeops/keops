@@ -39,7 +39,7 @@ class numpytools:
     
     @staticmethod
     def dtype(x): return x.dtype.name
-    
+
     @staticmethod
     def dtypename(dtype): return dtype
     

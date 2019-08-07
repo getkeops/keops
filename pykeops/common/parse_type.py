@@ -14,7 +14,7 @@ def complete_aliases(formula, aliases):
     """
     # first we detect all instances of Var(*,*,*) in formula.
     # These may be extra variables that are not listed in the aliases
-    extravars = re.findall(r"Var\([0-9]{1,},[0-9]{1,},[0-9]{1,}\)", formula.replace(" ", ""))
+    extravars = re.findall(r"Var\([0-9]+,[0-9]+,[0-9]+\)", formula.replace(" ", ""))
     # we get unicity
     extravars = list(set(extravars))
     # now we loop through extravars
@@ -23,7 +23,7 @@ def complete_aliases(formula, aliases):
     for (ind,var) in enumerate(extravars):
         # we get the "position" of the variable as the first integer value in the string
         # (i.e. the "a" in "Var(a,b,c)")
-        pos = int(re.search(r"[0-9]{1,}", var).group(0))
+        pos = int(re.search(r"[0-9]+", var).group(0))
         if pos < len(aliases):
             # this means that in fact var is not an extra variable, it is already in the list of aliases
             # We could check that the "dimension" and "category" are consistent, but we assume here
@@ -50,7 +50,7 @@ def parse_aliases(aliases):
             raise ValueError("This list of aliases is not ordered properly: " + str(aliases))
         categories.append(cat)
         dimensions.append(dim)
-
+    
     return tuple(categories), tuple(dimensions)
 
 

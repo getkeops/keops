@@ -24,9 +24,10 @@ Sum reduction
 #
 # Standard imports:
 
-import numpy as np
-from pykeops.numpy import Genred
 import matplotlib.pyplot as plt
+import numpy as np
+
+from pykeops.numpy import Genred
 
 #####################################################################
 # Declare random inputs:

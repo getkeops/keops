@@ -30,6 +30,10 @@
   #define __TYPE__ float
 #endif
 
+#ifndef C_CONTIGUOUS
+  #define C_CONTIGUOUS 0
+#endif
+
 #include "core/formulas/constants.h"
 #include "core/formulas/maths.h"
 #include "core/formulas/kernels.h"

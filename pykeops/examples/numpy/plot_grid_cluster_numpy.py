@@ -15,6 +15,7 @@ to compute block-sparse reductions with **sub-quadratic time complexity**.
 #
 
 import time
+
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -162,9 +163,9 @@ print("")
 # Define a Gaussian kernel matrix from 2d point clouds:
 
 x_, y_ = x / sigma, y / sigma
-x_i, y_j = LazyTensor( x_[:,None,:] ), LazyTensor( y_[None,:,:] )
-D_ij = ((x_i - y_j)**2).sum(dim=2)  # Symbolic (M,N,1) matrix of squared distances
-K = (- D_ij / 2).exp()              # Symbolic (M,N,1) Gaussian kernel matrix
+x_i, y_j = LazyTensor(x_[:, None, :]), LazyTensor(y_[None, :, :])
+D_ij = ((x_i - y_j) ** 2).sum(dim=2)  # Symbolic (M,N,1) matrix of squared distances
+K = (- D_ij / 2).exp()  # Symbolic (M,N,1) Gaussian kernel matrix
 
 #####################################################################
 # And create a random signal supported by the points :math:`y_j`:
@@ -184,22 +185,21 @@ b = np.random.randn(N, 1).astype(dtype)
 
 backends = (["CPU", "GPU"] if M*N < 4e8 else ["GPU"]) if use_cuda else ["CPU"]
 for backend in backends :
-    
     K.backend = backend  # Switch to CPU or GPU mode
 
     # GPU warm-up:
-    a = K@b
+    a = K @ b
 
     start = time.time()
     K.ranges = None  # default
-    a_full = K@b
+    a_full = K @ b
     end = time.time()
     t_full = end-start
     print(" Full  convolution, {} backend: {:2.4f}s".format(backend, end-start))
 
     start = time.time()
     K.ranges = ranges_ij  # block-sparsity pattern
-    a_sparse = K@b
+    a_sparse = K @ b
     end = time.time()
     t_sparse = end-start
     print("Sparse convolution, {} backend: {:2.4f}s".format(backend, end-start) )

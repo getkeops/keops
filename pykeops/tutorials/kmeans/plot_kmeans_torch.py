@@ -45,13 +45,13 @@ def KMeans(x, K=10, Niter=10, verbose=True):
     # - c  is the cloud of cluster centroids
     start = time.time()
     c = x[:K, :].clone()  # Simplistic random initialization
-    x_i = LazyTensor( x[:,None,:] )  # (Npoints, 1, D)
+    x_i = LazyTensor(x[:, None, :])  # (Npoints, 1, D)
 
     for i in range(Niter):
-
-        c_j = LazyTensor( c[None,:,:] )  # (1, Nclusters, D)
-        D_ij = ((x_i - c_j)**2).sum(-1)  # (Npoints, Nclusters) symbolic matrix of squared distances
-        cl  = D_ij.argmin(dim=1).long().view(-1)  # Points -> Nearest cluster
+    
+        c_j = LazyTensor(c[None, :, :])  # (1, Nclusters, D)
+        D_ij = ((x_i - c_j) ** 2).sum(-1)  # (Npoints, Nclusters) symbolic matrix of squared distances
+        cl = D_ij.argmin(dim=1).long().view(-1)  # Points -> Nearest cluster
 
         Ncl = torch.bincount(cl).type(torchtype[dtype])  # Class weights
         for d in range(D):  # Compute the cluster centroids with torch.bincount:

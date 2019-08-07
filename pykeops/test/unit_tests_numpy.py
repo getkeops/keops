@@ -1,4 +1,6 @@
-import sys, os.path
+import os.path
+import sys
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + (os.path.sep + '..')*2)
 
 import unittest
@@ -9,7 +11,6 @@ import pykeops
 from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances, log_sum_exp, np_kernel_sphere
 
 class NumpyUnitTestCase(unittest.TestCase):
-    
     A = int(4)  # Batchdim 1
     B = int(6)  # Batchdim 2
     M = int(10)
@@ -25,7 +26,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     b = np.random.rand(N, E)
     g = np.random.rand(N, 1)
     sigma = np.array([0.4])
-
+    
     X = np.random.rand(A, 1, M, D)
     L = np.random.rand(1, B, M, 1)
     Y = np.random.rand(1, B, N, D)
@@ -218,7 +219,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 
         # Call cuda kernel
         myconv = Genred(formula, aliases, reduction_op='Sum', axis=1)
-        gamma_keops= myconv(self.sigma.astype(t), self.x.astype(t), self.y.astype(t), self.g.astype(t), backend='auto')
+        gamma_keops = myconv(self.sigma.astype(t), self.x.astype(t), self.y.astype(t), self.g.astype(t), backend='auto')
 
         # Numpy version
         gamma_py = np.sum((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), axis=1)
@@ -261,43 +262,43 @@ class NumpyUnitTestCase(unittest.TestCase):
         c = my_routine(self.x, self.y, backend="auto").astype(int)
         cnp = np.argsort(np.sum((self.x[:,np.newaxis,:] - self.y[np.newaxis,:,:]) ** 2, axis=2), axis=1)[:,:3]
         self.assertTrue(np.allclose(c.ravel(),cnp.ravel()))
-
-
+    
     ############################################################
     def test_LazyTensor_sum(self):
     ############################################################
         from pykeops.numpy import LazyTensor
-
+        
         full_results = []
         for use_keops in [True, False]:
-
+            
             results = []
-
-            for (x, l, y, s) in [(self.X.astype(t),  self.L.astype(t),  self.Y.astype(t),  self.S.astype(t)) for t in self.type_to_test]:
-
-                x_i = x[:,:,:,None,:]
-                l_i = l[:,:,:,None,:]
-                y_j = y[:,:,None,:,:]
-                s_p = s[:,:,None,None,:]
-
+            
+            for (x, l, y, s) in [(self.X.astype(t), self.L.astype(t), self.Y.astype(t), self.S.astype(t)) for t in
+                                 self.type_to_test]:
+                
+                x_i = x[:, :, :, None, :]
+                l_i = l[:, :, :, None, :]
+                y_j = y[:, :, None, :, :]
+                s_p = s[:, :, None, None, :]
+                
                 if use_keops:
                     x_i, l_i, y_j, s_p = LazyTensor(x_i), LazyTensor(l_i), LazyTensor(y_j), LazyTensor(s_p)
-
-                D_ij = ( (l_i + x_i * y_j)**2 + s_p).sum(-1)
+                
+                D_ij = ((l_i + x_i * y_j) ** 2 + s_p).sum(-1)
                 
                 if use_keops:
                     K_ij = 1 / (1 + D_ij).exp()
                 else:
                     K_ij = 1 / np.exp(1 + D_ij)
-
+                
                 a_i = K_ij.sum(self.nbatchdims + 1)
                 if use_keops: a_i = a_i.squeeze(-1)
-
+                
                 results += [a_i]
-
+            
             full_results.append(results)
-
-        for (res_keops, res_numpy) in zip(full_results[0], full_results[1]):    
+        
+        for (res_keops, res_numpy) in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_numpy.shape)
             self.assertTrue(np.allclose(res_keops, res_numpy, atol=1e-3))
 

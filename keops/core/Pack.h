@@ -1,9 +1,9 @@
 /*
- * To differentiate automatically our code at compilation time, we'll have to use some
- * very advanced C++ syntax. Indeed, as we use the compiler as a "formula/graph-processing engine",
- * we need it to process tree structures and lists of variables.
- * This is achieved using the recursive ("variadic") templating of C++11;
- * we define the following "container/symbolic" templates:
+|* To differentiate automatically our code at compilation time, KeOps relies heavily on 
+ * variadic std=c++11 syntax. The idea is to use the compiler as a "formula/graph-processing engine",
+ * and we need it to process tree structures and lists of variables.
+ * This is achieved using the recursive variadic templating.
+ * We define the following "container/symbolic" templates:
  * - univpack,    which acts as a list of symbolic types
  * - pack,        which acts more specifically as a list of vectors of known sizes
  * - CondType,    which acts as a symbolic conditional statement
@@ -15,6 +15,7 @@
 
 #include <sstream>
 #include <assert.h>
+#include <utility>
 
 #ifdef __CUDACC__
 	#include <npp.h>
@@ -164,11 +165,24 @@ struct univpack {
         str << "univpack< >";
     }
 
+  static void PrintAllIndexSequence(std::stringstream& str) {  }
+
     template < class D >        // [].append_first(D) = [D]
     using PUTLEFT = univpack<D>;
 
     using NEXT = void;          // [].tail() = void
 };
+
+
+
+// An helper class to convert index_sequence to Pack
+template<typename> struct packFromIndSeq{};
+
+template<size_t... Is> struct packFromIndSeq<std::index_sequence<Is...>> {
+  using type = pack<Is...>;
+};
+
+
 
 // A non-empty univpack, defined recursively as [C] + univpack( Args )
 template < class C, typename... Args >
@@ -185,6 +199,13 @@ struct univpack<C,Args...> {
         FIRST::PrintId(str);
         NEXT::PrintComma(str);
         NEXT::PrintAll(str);
+    }
+    // This function prints binaryOp with template...
+    static void PrintAllIndexSequence(std::stringstream& str) {
+        str << ", {";
+        packFromIndSeq<FIRST>::type::PrintAll(str);
+        str << "}";
+        NEXT::PrintAllIndexSequence(str);
     }
 
     static void PrintId(std::stringstream& str) {
@@ -700,7 +721,13 @@ void SetGpuProps(int device) {
 		    #if MAXIDGPU >= 9 
 		        SET_GPU_PROPS_MACRO(9)
 		    #endif
-		    fprintf( stderr, "invalid Gpu device number. If the number of available Gpus is >= 10, add required lines at the end of function SetGpuProps and recompile.\n");
+		    #if MAXIDGPU >= 10
+		        SET_GPU_PROPS_MACRO(10)
+            #endif
+            #if MAXIDGPU >= 11
+		        SET_GPU_PROPS_MACRO(11)
+		    #endif
+		    fprintf( stderr, "invalid Gpu device number. If the number of available Gpus is > 12, add required lines at the end of function SetGpuProps and recompile.\n");
 		    exit( -1 );
 		#endif
     #endif

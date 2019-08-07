@@ -1,5 +1,6 @@
-from pykeops.common.utils import get_tools
 import numpy as np
+
+from pykeops.common.utils import get_tools
 
 
 # Some advance operations defined at user level use in fact other reductions.
@@ -44,10 +45,10 @@ def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
         # output is one array of size N x 2D, giving min and argmin value for each dimension. 
         # We convert to one array of floats of size NxD giving mins, and one array of size NxD giving argmins (casted to integers)
         shape_out = out.shape
-        tmp = tools.view(out, shape_out[:-1] + (2, -1) )
-        vals    = tmp[...,0,:]
-        indices = tmp[...,1,:]
-        out = ( vals, tools.long(indices) ) 
+        tmp = tools.view(out, shape_out[:-1] + (2, -1))
+        vals = tmp[..., 0, :]
+        indices = tmp[..., 1, :]
+        out = (vals, tools.long(indices))
     elif reduction_op == 'KMin':
         # output is of size N x KD giving K minimal values for each dim. We convert to array of size N x K x D
         shape_out = out.shape
@@ -66,13 +67,13 @@ def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
         # and cast to integers the second array
         shape_out = out.shape
         out = tools.view(out, shape_out[:-1] + (opt_arg, 2, -1))
-        out = (out[...,0,:], tools.long(out[...,1,:]))
+        out = (out[..., 0, :], tools.long(out[..., 1, :]))
         if out[0].shape[-1] == 1:
             out = (out[0].squeeze(-1), out[1].squeeze(-1))
     elif reduction_op == 'LogSumExp':
         # finalize the log-sum-exp computation as m + log(s)
         if out.shape[-1] == 2:  # means (m,s) with m scalar and s scalar
-            out = (out[..., 0] + tools.log(out[..., 1]))[...,None]
+            out = (out[..., 0] + tools.log(out[..., 1]))[..., None]
         else:  # here out.shape[-1]>2, means (m,s) with m scalar and s vectorial
             out = out[..., 0][..., None] + tools.log(out[..., 1:])
     return out

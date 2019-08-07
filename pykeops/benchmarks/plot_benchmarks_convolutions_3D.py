@@ -21,13 +21,13 @@ as the number of samples grows from 100 to 1,000,000.
 # Setup
 # ---------------------
 
-import os
-import numpy as np
-import time
-from matplotlib import pyplot as plt
-
 import importlib
+import os
+import time
+
+import numpy as np
 import torch
+from matplotlib import pyplot as plt
 
 use_cuda = torch.cuda.is_available()
 
@@ -62,23 +62,23 @@ def generate_samples(N, device, lang, batchsize=None):
         else:
             torch.manual_seed(1234)
 
-        x  = torch.randn( B + (N, D), device=device)
+        x = torch.randn(B + (N, D), device=device)
         x[:,0] += 1
         x  = x / (2*x.norm(dim=1,keepdim=True))
 
-        y  = torch.randn( B + (N, D), device=device)
+        y = torch.randn(B + (N, D), device=device)
         y[:,1] += 2
         y  = y / (2*y.norm(dim=1,keepdim=True))
 
         # Draw a random source signal:
-        b  = torch.randn( B + (N, 1), device=device)
+        b = torch.randn(B + (N, 1), device=device)
 
     else:
         np.random.seed(1234)
 
-        x  = np.random.rand( *(B + (N, D)) ).astype('float32')
-        y  = np.random.rand( *(B + (N, D))).astype('float32')
-        b  = np.random.randn(*(B + (N,))).astype('float32')
+        x = np.random.rand(*(B + (N, D))).astype('float32')
+        y = np.random.rand(*(B + (N, D))).astype('float32')
+        b = np.random.randn(*(B + (N,))).astype('float32')
 
     return x, y, b
 
@@ -100,7 +100,7 @@ def gaussianconv_pytorch(x, y, b):
     D_xy = D_xx - 2*D_xy + D_yy
     K_xy = (-D_xy).exp()
 
-    return K_xy@b
+    return K_xy @ b
 
 ##############################################
 # Define a simple Gaussian RBF product, using an **online** implementation:
@@ -114,26 +114,26 @@ gaussianconv_keops = generic_sum("Exp(-SqDist(X,Y)) * B",  # Formula
                                  "Y = Vj({})".format(D),   # 2nd argument
                                  "B = Vj(1)" )             # 3rd argument
 
-
 #############################################
 # Finally, perform the same operation with our high-level :class:`pykeops.torch.LazyTensor` wrapper:
 
 from pykeops.torch import LazyTensor
 
+
 def gaussianconv_lazytensor(x, y, b):
     nbatchdims = len(x.shape) - 2
-    x_i = LazyTensor( x.unsqueeze(-2) )  # (B, M, 1, D)
-    y_j = LazyTensor( y.unsqueeze(-3) )  # (B, 1, N, D)
-    D_ij = ((x_i - y_j) ** 2).sum(-1)    # (B, M, N, 1)
-    K_ij = ( - D_ij).exp()               # (B, M, N, 1)
-    S_ij =  K_ij * b.unsqueeze(-3)       # (B, M, N, 1) * (B, 1, N, 1)
-    return S_ij.sum(dim = nbatchdims+1)
+    x_i = LazyTensor(x.unsqueeze(-2))  # (B, M, 1, D)
+    y_j = LazyTensor(y.unsqueeze(-3))  # (B, 1, N, D)
+    D_ij = ((x_i - y_j) ** 2).sum(-1)  # (B, M, N, 1)
+    K_ij = (- D_ij).exp()  # (B, M, N, 1)
+    S_ij = K_ij * b.unsqueeze(-3)  # (B, M, N, 1) * (B, 1, N, 1)
+    return S_ij.sum(dim=nbatchdims + 1)
 
 ##############################################
 # Benchmarking loops
 # -----------------------
 
-def benchmark(routine_batchsize, dev, N, loops = 10, lang='torch') :
+def benchmark(routine_batchsize, dev, N, loops=10, lang='torch'):
     """Times a convolution on an N-by-N problem."""
 
     if isinstance(routine_batchsize, tuple):
@@ -161,7 +161,7 @@ def benchmark(routine_batchsize, dev, N, loops = 10, lang='torch') :
         return elapsed / loops
     else:
         print("{:3}x{:3} NxN convolution, with N ={:7}: {:3}x{:3}x{:3.6f}s".format(
-                B, loops, N, B, loops, elapsed / (B*loops)))
+            B, loops, N, B, loops, elapsed / (B * loops)))
         return elapsed / (B * loops)
 
 
@@ -226,7 +226,7 @@ def full_bench(title, routines) :
     plt.legend(loc='upper left')
     plt.grid(True, which="major", linestyle="-")
     plt.grid(True, which="minor", linestyle="dotted")
-    plt.axis([ NS[0], NS[-1], 1e-5, MAXTIME ])
+    plt.axis([NS[0], NS[-1], 1e-5, MAXTIME])
     plt.tight_layout()
 
     # Save as a .csv to put a nice Tikz figure in the papers:
@@ -241,19 +241,18 @@ def full_bench(title, routines) :
 # --------------------------------------------------------
 
 # routines = [ (gaussianconv_numpy, "Numpy", "numpy"),
-             # (gaussianconv_pytorch, "PyTorch", "torch"),  
-             # (gaussianconv_keops,   "KeOps", "torch"),]
+# (gaussianconv_pytorch, "PyTorch", "torch"),
+# (gaussianconv_keops,   "KeOps", "torch"),]
 # full_bench( "Gaussian Matrix-Vector products", routines )
-
 
 
 ################################################
 # Genred vs. LazyTensor vs. batched LazyTensor
 # ------------------------------------------------
 
-routines = [ (gaussianconv_keops,      "KeOps (Genred)",     "torch"), 
-             (gaussianconv_lazytensor, "KeOps (LazyTensor)", "torch"), 
-             ((gaussianconv_lazytensor, 10), "KeOps (LazyTensor, batchsize=10)", "torch"),]
+routines = [(gaussianconv_keops, "KeOps (Genred)", "torch"),
+            (gaussianconv_lazytensor, "KeOps (LazyTensor)", "torch"),
+            ((gaussianconv_lazytensor, 10), "KeOps (LazyTensor, batchsize=10)", "torch"), ]
 full_bench( "Gaussian Matrix-Vector products", routines )
 
 plt.show()

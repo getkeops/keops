@@ -56,11 +56,12 @@ b = x + .5 * (6 * x).sin() + .1 * (20 * x).sin() + .05 * torch.randn(N, 1).type(
 # Specify our **regression model** - a simple **Gaussian** variogram or **kernel matrix**
 # of deviation **sigma**:
 
-def gaussian_kernel(x, y, sigma = .1):
-    x_i = LazyTensor( x[:,None,:] )  # (M, 1, 1)
-    y_j = LazyTensor( y[None,:,:] )  # (1, N, 1)
-    D_ij = ( (x_i - y_j) ** 2 ).sum(-1)  # (M, N) symbolic matrix of squared distances
-    return ( - D_ij / (2 * sigma**2) ).exp()  # (M, N) symbolic Gaussian kernel matrix
+def gaussian_kernel(x, y, sigma=.1):
+    x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
+    y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
+    D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
+    return (- D_ij / (2 * sigma ** 2)).exp()  # (M, N) symbolic Gaussian kernel matrix
+
 
 #######################################################################
 # Perform the **Kernel interpolation**, without forgetting to specify
@@ -88,7 +89,7 @@ print('Time to perform an RBF interpolation with {:,} samples in 1D: {:.5f}s'.fo
 t = torch.linspace(0, 1, 1001).type(dtype)[:, None]
 
 K_tx = gaussian_kernel(t, x)
-mean_t = K_tx@a
+mean_t = K_tx @ a
 
 # 1D plot:
 plt.figure(figsize=(8, 6))
@@ -124,11 +125,12 @@ b[-Nout:] = torch.rand(Nout, 1).type(dtype)
 # Specify our **regression model** - a simple **Exponential** variogram
 # or **Laplacian** kernel matrix of deviation **sigma**:
 
-def laplacian_kernel(x, y, sigma = .1):
-    x_i = LazyTensor( x[:,None,:] )  # (M, 1, 1)
-    y_j = LazyTensor( y[None,:,:] )  # (1, N, 1)
-    D_ij = ( (x_i - y_j) ** 2 ).sum(-1)  # (M, N) symbolic matrix of squared distances
-    return ( - D_ij.sqrt() / sigma ).exp()  # (M, N) symbolic Laplacian kernel matrix
+def laplacian_kernel(x, y, sigma=.1):
+    x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
+    y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
+    D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
+    return (- D_ij.sqrt() / sigma).exp()  # (M, N) symbolic Laplacian kernel matrix
+
 
 #######################################################################
 # Perform the **Kernel interpolation**, without forgetting to specify
@@ -158,7 +160,7 @@ X, Y = torch.meshgrid(X, Y)
 t = torch.stack((X.contiguous().view(-1), Y.contiguous().view(-1)), dim=1)
 
 K_tx = laplacian_kernel(t, x)
-mean_t = K_tx@a
+mean_t = K_tx @ a
 mean_t = mean_t.view(101, 101)
 
 # 2D plot: noisy samples and interpolation in the background

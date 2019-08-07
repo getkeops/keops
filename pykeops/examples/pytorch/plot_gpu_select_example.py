@@ -16,9 +16,8 @@ operation will be performed.
 # Standard imports:
 
 import numpy as np
-from matplotlib import pyplot as plt
-
 import torch
+from matplotlib import pyplot as plt
 
 from pykeops.numpy import Genred
 
