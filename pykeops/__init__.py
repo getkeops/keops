@@ -3,7 +3,7 @@ import sys
 
 from .common.set_path import set_build_folder
 
-__version__ = '1.1.1'
+__version__ = '1.1.2b'
 
 ###########################################################
 # Initialize some variables: the values may be redefined 

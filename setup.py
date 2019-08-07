@@ -46,16 +46,33 @@ pybind11_files = [
 ]
 
 tao_seq_files = [
+    'keops/lib/sequences/include/tao/seq/',
+    'keops/lib/sequences/include/tao/seq/fold.hpp',
+    'keops/lib/sequences/include/tao/seq/max.hpp',
+    'keops/lib/sequences/include/tao/seq/index_of.hpp',
+    'keops/lib/sequences/include/tao/seq/min.hpp',
+    'keops/lib/sequences/include/tao/seq/make_integer_sequence.hpp',
     'keops/lib/sequences/include/tao/seq/integer_sequence.hpp',
-    'keops/lib/sequences/include/tao/seq/config.hpp',
     'keops/lib/sequences/include/tao/seq/contains.hpp',
     'keops/lib/sequences/include/tao/seq/concatenate.hpp',
+    'keops/lib/sequences/include/tao/seq/is_any.hpp',
+    'keops/lib/sequences/include/tao/seq/plus.hpp',
+    'keops/lib/sequences/include/tao/seq/tail.hpp',
+    'keops/lib/sequences/include/tao/seq/scale.hpp',
     'keops/lib/sequences/include/tao/seq/map.hpp',
-    'keops/lib/sequences/include/tao/seq/zip.hpp',
-    'keops/lib/sequences/include/tao/seq/index_of.hpp',
-    'keops/lib/sequences/include/tao/seq/select.hpp',
-    'keops/lib/sequences/include/tao/seq/sum.hpp',
     'keops/lib/sequences/include/tao/seq/make_integer_range.hpp',
+    'keops/lib/sequences/include/tao/seq/config.hpp',
+    'keops/lib/sequences/include/tao/seq/select.hpp',
+    'keops/lib/sequences/include/tao/seq/exclusive_scan.hpp',
+    'keops/lib/sequences/include/tao/seq/at_index.hpp',
+    'keops/lib/sequences/include/tao/seq/zip.hpp',
+    'keops/lib/sequences/include/tao/seq/partial_sum.hpp',
+    'keops/lib/sequences/include/tao/seq/inclusive_scan.hpp',
+    'keops/lib/sequences/include/tao/seq/minus.hpp',
+    'keops/lib/sequences/include/tao/seq/sequence_helper.hpp',
+    'keops/lib/sequences/include/tao/seq/head.hpp',
+    'keops/lib/sequences/include/tao/seq/sum.hpp',
+    'keops/lib/sequences/include/tao/seq/is_all.hpp',
 ]
 
 setup(
