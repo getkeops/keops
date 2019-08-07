@@ -74,12 +74,12 @@ pipeline {
             echo 'Testing..'
               sh 'git submodule update --init'
               sh '''
-                 conda activate keops
+                 . /opt/miniconda3/bin/activate keops
                  cd pykeops/test
                  python unit_tests_pytorch.py
               '''
               sh '''
-                 conda activate keops
+                 . /opt/miniconda3/bin/activate keops
                  cd pykeops/test
                  python unit_tests_numpy.py
               '''
