@@ -63,7 +63,7 @@ format_var_aliases <- function(args) {
                                           pattern = "[0-9]+"))
     } else {
         stop(paste0("Issue with input argument consistency, use either ", 
-                    "'(dim)' or '(pos, dim)´ for 'Vi' and 'Vj' ",
+                    "'(dim)' or '(pos, dim)' for 'Vi' and 'Vj' ",
                     "(see help page or vignette for more details)."))
         # FIXME
     }

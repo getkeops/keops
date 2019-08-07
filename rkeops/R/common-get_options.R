@@ -14,15 +14,15 @@
 #' with the following elements `tagCpuGpu`, `tag1D2D`, `device_id` (see 
 #' [rkeops::default_runtime_options()]).
 #' 
-#' These options are set with the functions [rkeop::set_rkeops_options()] and 
-#' [rkeop::set_rkeops_option()]. To know which values are allowed for which 
+#' These options are set with the functions [rkeops::set_rkeops_options()] and 
+#' [rkeops::set_rkeops_option()]. To know which values are allowed for which 
 #' options, you can check [rkeops::compile_options()] and 
 #' [rkeops::runtime_options()].
 #' @author Ghislain Durif
 #' @return a list with `rkeops` current options values (see Details). 
 #' @seealso [rkeops::get_rkeops_option()], [rkeops::compile_options()], 
-#' [rkeops::runtime_options()], [rkeop::set_rkeops_options()], 
-#' [rkeop::set_rkeops_option()]
+#' [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
+#' [rkeops::set_rkeops_option()]
 #' @export
 get_rkeops_options <- function() {
     ## check rkeops global options
@@ -51,16 +51,16 @@ get_rkeops_options <- function() {
 #' `rkeops` options among `build_dir`, `src_dir`, `precision`, `verbosity`, 
 #' `use_cuda_if_possible` or `tagCpuGpu`, `tag1D2D`, `device_id`.
 #' 
-#' These options are set with the functions [rkeop::set_rkeops_options()] and 
-#' [rkeop::set_rkeops_option()]. To know which values are allowed for which 
+#' These options are set with the functions [rkeops::set_rkeops_options()] and 
+#' [rkeops::set_rkeops_option()]. To know which values are allowed for which 
 #' options, you can check [rkeops::compile_options()] and 
 #' [rkeops::runtime_options()].
 #' @author Ghislain Durif
 #' @param option string, name of the options to set up (see Details).
 #' @return the value of the requested option (see Details).
 #' @seealso [rkeops::get_rkeops_options()], [rkeops::compile_options()], 
-#' [rkeops::runtime_options()], [rkeop::set_rkeops_options()], 
-#' [rkeop::set_rkeops_option()]
+#' [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
+#' [rkeops::set_rkeops_option()]
 #' @export
 get_rkeops_option <- function(option) {
     possible_compile_options <- c("build_dir", "src_dir", "precision", 
