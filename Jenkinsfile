@@ -68,7 +68,7 @@ pipeline {
           agent { label 'cuda' }
           environment { 
             CXX=g++-8
-            PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/jenkins/.local/bin/ 
+            // PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/jenkins/.local/bin/"
           }
           steps {
             echo 'Testing..'
