@@ -32,5 +32,11 @@ print((sum_f_keops-sum_f_torch).abs().max())
 
 
 
+# checking gradients
+u = torch.rand(10,8)
+grad_keops = torch.autograd.grad(sum_f_keops,x,u)[0]
+grad_torch = torch.autograd.grad(sum_f_torch,x,u)[0]
+print((grad_keops-grad_torch).abs().max())
+
 
 
