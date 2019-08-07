@@ -157,7 +157,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     SetGpuProps(dev);
 
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = min(CUDA_BLOCK_SIZE,min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
+    blockSize.x = std::min(CUDA_BLOCK_SIZE,std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
@@ -304,7 +304,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = min(CUDA_BLOCK_SIZE,min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
+    blockSize.x = std::min(CUDA_BLOCK_SIZE,std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / (DIMY*sizeof(TYPE))))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);

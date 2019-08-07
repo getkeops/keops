@@ -25,16 +25,15 @@ template < class F, class G >
 using CondFactorize = CondType<Factorize<F,G>,F,(CountIn<F,G>::val > 1)>;
 
 template < class F, class G >
-struct Factorize_Impl : BinaryOp<Factorize_Impl,F,G>
-{
+struct Factorize_Impl : BinaryOp<Factorize_Impl,F,G> {
 
     static const int DIM = F::DIM;
 
     static void PrintId(std::stringstream& str) {
-    	using IndsTempVars = GetInds<typename F::template VARS<3>>;
-    	static const int dummyPos = 1+IndsTempVars::MAX;
-    	using dummyVar = Var<dummyPos,G::DIM,3>;
-    	using Ffact = typename F::template Replace<G,dummyVar>;
+        using IndsTempVars = GetInds<typename F::template VARS<3>>;
+        static const int dummyPos = 1+IndsTempVars::MAX;
+        using dummyVar = Var<dummyPos,G::DIM,3>;
+        using Ffact = typename F::template Replace<G,dummyVar>;
         str << "[";
         dummyVar::PrintId(str);
         str << "=";
@@ -54,15 +53,15 @@ struct Factorize_Impl : BinaryOp<Factorize_Impl,F,G>
 
     template < class INDS, typename ...ARGS >
     static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
-		// First we compute G
-		__TYPE__ outG[G::DIM];
-		G::template Eval<INDS>(outG,args...);
-		// Ffact is the factorized formula
-		using Ffact = typename THIS::template FactorizedFormula<INDS>;
-		// new indices for the call to Eval : we add one more index to the list
-		using NEWINDS = ConcatPacks<INDS,pack<INDS::MAX+1>>;
-		// call to Eval on the factorized formula, we pass outG as last parameter
-		Ffact::template Eval<NEWINDS>(out,args...,outG);
+        // First we compute G
+        __TYPE__ outG[G::DIM];
+        G::template Eval<INDS>(outG,args...);
+        // Ffact is the factorized formula
+        using Ffact = typename THIS::template FactorizedFormula<INDS>;
+        // new indices for the call to Eval : we add one more index to the list
+        using NEWINDS = ConcatPacks<INDS,pack<INDS::MAX+1>>;
+        // call to Eval on the factorized formula, we pass outG as last parameter
+        Ffact::template Eval<NEWINDS>(out,args...,outG);
     }
 
     template < class V, class GRADIN >
@@ -116,7 +115,7 @@ struct Factorize_Alias<F,univpack<G,GS...>> {
     using type = Factorize<CondFactorize<F,G>,univpack<GS...>>;
 };
 
-// specializing CountIn 
+// specializing CountIn
 template<class F, class G, class H>
 struct CountIn<Factorize_Impl<F,G>,H> {
     static const int val = CountIn_<Factorize_Impl<F,G>,H>::val + CountIn<F,H>::val - CountIn<G,H>::val * CountIn<F,G>::val + CountIn<G,H>::val;

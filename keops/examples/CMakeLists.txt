@@ -13,6 +13,10 @@
         #keops
     #)
 #endif()
+add_executable(
+        test_tensordot_formula_cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_formula.cpp
+)
 
 add_executable(
     test_simple_cpp
@@ -30,6 +34,11 @@ add_executable(
 )
 
 if (USE_CUDA)
+
+    CUDA_add_executable(
+            test_tensordot_formula
+            ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_formula.cu
+    )
 
     CUDA_add_executable(
         test_simple

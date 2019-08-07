@@ -2,14 +2,16 @@
 #------------------------------- COMPILATOR OPTS ------------------------------------#
 #------------------------------------------------------------------------------------#
 
+set(CMAKE_CXX_STANDARD 14)
+
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -Wall -ferror-limit=2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ferror-limit=2")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -Wall -fmax-errors=2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fmax-errors=2")
 endif()
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
 
 if(APPLE)
     set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
@@ -33,6 +35,12 @@ if(NOT __TYPE__)
     Set(__TYPE__ float CACHE STRING "Precision type of the computations (float or double)")
 endif()
 add_definitions(-D__TYPE__=${__TYPE__})
+
+# - Choose if the multi-dimensional kernels are stored column or row wise 
+if(NOT C_CONTIGUOUS)
+  Set(C_CONTIGUOUS 0 CACHE STRING "Multi-dimensional kernels are stored column wise.")
+endif()
+add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 
 # - Declare the templates formula if not provided by the user
 if(NOT DEFINED USENEWSYNTAX)

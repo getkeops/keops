@@ -1,13 +1,10 @@
 import torch
 
-from pykeops.torch.generic.generic_red import GenredAutograd
-from pykeops.torch import default_dtype
-from pykeops.common.utils import axis2cat
-from pykeops.common.parse_type import get_type, get_sizes, complete_aliases, parse_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKEops
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
+from pykeops.common.parse_type import get_type, complete_aliases
+from pykeops.common.parse_type import parse_aliases
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype
 from pykeops.torch import include_dirs
@@ -52,7 +49,8 @@ class KernelSolveAutograd(torch.autograd.Function):
         (categories, dimensions) = parse_aliases(aliases)
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
-            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions, *newargs)
+            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions,
+                                        *newargs)
             if alpha:
                 res += alpha*var
             return res
@@ -238,7 +236,7 @@ class KernelSolve():
             dtype = cuda_type 
         reduction_op='Sum'
         self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
-        self.aliases = complete_aliases(formula, list(aliases)) # just in case the user provided a tuple
+        self.aliases = complete_aliases(formula, list(aliases))  # just in case the user provided a tuple
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
             varinvpos = int(varinvalias[4:varinvalias.find(",")])

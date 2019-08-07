@@ -44,27 +44,28 @@ y = np.random.rand(N, 2)
 # computed using **tensorized**, broadcasted operators:
 #
 
-x_i = x[:,None,:]                  # (M, 1, 2) numpy array
-y_j = y[None,:,:]                  # (1, N, 2) numpy array
+x_i = x[:, None, :]  # (M, 1, 2) numpy array
+y_j = y[None, :, :]  # (1, N, 2) numpy array
 
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) array of squared distances |x_i-y_j|^2
-s_i  = np.argmin(D_ij, axis=1)     # (M,)   array of integer indices
-print( s_i[:10] )
+s_i = np.argmin(D_ij, axis=1)  # (M,)   array of integer indices
+print(s_i[:10])
 
 ###########################################################################
 # That's good! Going further, we may speed-up these computations
 # using the **CUDA routines** of the PyTorch library:
 
 import torch
+
 use_cuda = torch.cuda.is_available()
 tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
-x_i = tensor(x[:,None,:])          # (M, 1, 2) torch tensor
-y_j = tensor(y[None,:,:])          # (1, N, 2) torch tensor
+x_i = tensor(x[:, None, :])  # (M, 1, 2) torch tensor
+y_j = tensor(y[None, :, :])  # (1, N, 2) torch tensor
 
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) tensor of squared distances |x_i-y_j|^2
-s_i  = D_ij.argmin(dim=1)          # (M,)   tensor of integer indices
-print( s_i[:10] )
+s_i = D_ij.argmin(dim=1)  # (M,)   tensor of integer indices
+print(s_i[:10])
 
 ###########################################################################
 # But **can we scale to larger point clouds?**
@@ -78,12 +79,12 @@ M, N = (100000, 200000) if use_cuda else (1000, 2000)
 x = np.random.rand(M, 2)
 y = np.random.rand(N, 2)
 
-x_i = tensor(x[:,None,:])              # (M, 1, 2) torch tensor
-y_j = tensor(y[None,:,:])              # (1, N, 2) torch tensor
+x_i = tensor(x[:, None, :])  # (M, 1, 2) torch tensor
+y_j = tensor(y[None, :, :])  # (1, N, 2) torch tensor
 
 try:
     D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) tensor of squared distances |x_i-y_j|^2
-except RuntimeError as err: 
+except RuntimeError as err:
     print(err)
 
 ###########################################################################
@@ -106,11 +107,11 @@ except RuntimeError as err:
 
 from pykeops.numpy import LazyTensor as LazyTensor_np
 
-x_i = LazyTensor_np(x[:,None,:])   # (M, 1, 2) KeOps LazyTensor, wrapped around the numpy array x
-y_j = LazyTensor_np(y[None,:,:])   # (1, N, 2) KeOps LazyTensor, wrapped around the numpy array y
+x_i = LazyTensor_np(x[:, None, :])  # (M, 1, 2) KeOps LazyTensor, wrapped around the numpy array x
+y_j = LazyTensor_np(y[None, :, :])  # (1, N, 2) KeOps LazyTensor, wrapped around the numpy array y
 
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # **Symbolic** (M, N) matrix of squared distances
-print( D_ij )
+print(D_ij)
 
 ##########################################################
 # With KeOps, implementing **lazy** numerical schemes really
@@ -128,9 +129,9 @@ print( D_ij )
 # the KeOps routines have a **linear memory footprint**
 # and generally **outperform tensorized GPU implementations by two orders of magnitude**.
 
-s_i  = D_ij.argmin(dim=1).ravel()  # genuine (M,) array of integer indices
-print( "s_i is now a {} of shape {}.".format(type(s_i), s_i.shape) )
-print( s_i[:10] )
+s_i = D_ij.argmin(dim=1).ravel()  # genuine (M,) array of integer indices
+print("s_i is now a {} of shape {}.".format(type(s_i), s_i.shape))
+print(s_i[:10])
 
 ##########################################################
 # Going further, you may combine :class:`LazyTensors <pykeops.torch.LazyTensor>`
@@ -150,16 +151,16 @@ x = torch.randn(M, D).type(tensor)  # M target points in dimension D, stored on 
 y = torch.randn(N, D).type(tensor)  # N source points in dimension D, stored on the GPU
 b = torch.randn(N, 4).type(tensor)  # N values of the 4D source signal, stored on the GPU
 
-x.requires_grad = True              # In the next section, we'll compute gradients wrt. x!
+x.requires_grad = True  # In the next section, we'll compute gradients wrt. x!
 
-x_i = LazyTensor(x[:,None,:])       # (M, 1, D) LazyTensor
-y_j = LazyTensor(y[None,:,:])       # (1, N, D) LazyTensor
+x_i = LazyTensor(x[:, None, :])  # (M, 1, D) LazyTensor
+y_j = LazyTensor(y[None, :, :])  # (1, N, D) LazyTensor
 
 D_ij = ((x_i - y_j) ** 2).sum(-1).sqrt()  # Symbolic (M, N) matrix of distances
 K_ij = (- D_ij).exp()  # Symbolic (M, N) Laplacian (aka. exponential) kernel matrix
-a_i = K_ij@b  # The matrix-vector product "@" can be used on "raw" PyTorch tensors!
+a_i = K_ij @ b  # The matrix-vector product "@" can be used on "raw" PyTorch tensors!
 
-print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape) )
+print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 
 #############################################################################
 # Automatic differentiation
@@ -177,15 +178,15 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape) )
 #
 # with:
 
-[g_i] = torch.autograd.grad( (a_i ** 2).sum(), [x], create_graph=True)
-print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
+[g_i] = torch.autograd.grad((a_i ** 2).sum(), [x], create_graph=True)
+print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape))
 
 #############################################################################
 # As usual with PyTorch, having set the ``create_graph=True`` option
 # allows us to compute higher-order derivatives as needed:
 
-[h_i] = torch.autograd.grad( g_i.exp().sum(), [x], create_graph=True)
-print("h_i is now a {} of shape {}.".format(type(h_i), h_i.shape) )
+[h_i] = torch.autograd.grad(g_i.exp().sum(), [x], create_graph=True)
+print("h_i is now a {} of shape {}.".format(type(h_i), h_i.shape))
 
 ############################################################################
 # .. warning::
@@ -203,29 +204,29 @@ x = torch.randn(M, 3).type(tensor)
 y = torch.randn(N, 3).type(tensor)
 x.requires_grad = True
 
-x_i = LazyTensor( x[:,None,:] )  # (M, 1, 3) LazyTensor
-y_j = LazyTensor( y[None,:,:] )  # (1, N, 3) LazyTensor
+x_i = LazyTensor(x[:, None, :])  # (M, 1, 3) LazyTensor
+y_j = LazyTensor(y[None, :, :])  # (1, N, 3) LazyTensor
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # Symbolic (M, N) matrix of squared distances
 
 #####################################################################
 # We could compute the ``(M,)`` vector of squared distances to the **nearest y-neighbor** with:
 
-to_nn = D_ij.min(dim=1).view(-1)  
+to_nn = D_ij.min(dim=1).view(-1)
 
 ################################################################
 # But instead, using:
 
 s_i = D_ij.argmin(dim=1).view(-1)  # (M,) integer Torch tensor
-to_nn_alt = ((x - y[s_i,:]) ** 2).sum(-1)  
+to_nn_alt = ((x - y[s_i, :]) ** 2).sum(-1)
 
 ##########################################################
 # outputs the same result, while also allowing us to **compute arbitrary gradients**:
 
-print( "Difference between the two vectors: {:.2e}".format( 
-       (to_nn - to_nn_alt).abs().max() ) )
+print("Difference between the two vectors: {:.2e}".format(
+    (to_nn - to_nn_alt).abs().max()))
 
-[g_i] = torch.autograd.grad( to_nn_alt.sum(), [x] )
-print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
+[g_i] = torch.autograd.grad(to_nn_alt.sum(), [x])
+print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape))
 
 ###########################################################
 # The only real downside here is that we had to write **twice** the
@@ -244,13 +245,13 @@ print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape) )
 
 A, B = 7, 3  # Batch dimensions
 
-x_i = LazyTensor( torch.randn(A, B, M, 1, D) )
-l_i = LazyTensor( torch.randn(1, 1, M, 1, D) )
-y_j = LazyTensor( torch.randn(1, B, 1, N, D) )
-s   = LazyTensor( torch.rand( A, 1, 1, 1, 1) )
+x_i = LazyTensor(torch.randn(A, B, M, 1, D))
+l_i = LazyTensor(torch.randn(1, 1, M, 1, D))
+y_j = LazyTensor(torch.randn(1, B, 1, N, D))
+s = LazyTensor(torch.rand(A, 1, 1, 1, 1))
 
 D_ij = ((l_i * x_i - y_j) ** 2).sum(-1)  # Symbolic (A, B, M, N, 1) LazyTensor
-K_ij = ( - 1.6 * D_ij / (1 + s**2) )  # Some arbitrary (A, B, M, N, 1) Kernel matrix
+K_ij = (- 1.6 * D_ij / (1 + s ** 2))  # Some arbitrary (A, B, M, N, 1) Kernel matrix
 
 a_i = K_ij.sum(dim=3)
 print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
@@ -292,12 +293,12 @@ print("Actual shape, used internally by KeOps: ", K_ij._shape)
 # Let's just mention that the lines below define valid computations:
 #
 
-x_i = LazyTensor( torch.randn(A, B, M, 1, D) )
-l_i = LazyTensor( torch.randn(1, 1, M, 1, D) )
-y_j = LazyTensor( torch.randn(1, B, 1, N, D) )
-s   = LazyTensor( torch.rand( A, 1, 1, 1, 1) )
+x_i = LazyTensor(torch.randn(A, B, M, 1, D))
+l_i = LazyTensor(torch.randn(1, 1, M, 1, D))
+y_j = LazyTensor(torch.randn(1, B, 1, N, D))
+s = LazyTensor(torch.rand(A, 1, 1, 1, 1))
 
-F_ij = (x_i ** 1.5 + y_j / l_i).cos() - (x_i | y_j) + (x_i[:,:,:,:,2] * s.relu() * y_j)
+F_ij = (x_i ** 1.5 + y_j / l_i).cos() - (x_i | y_j) + (x_i[:, :, :, :, 2] * s.relu() * y_j)
 print(F_ij)
 
 a_j = F_ij.sum(dim=2)
@@ -307,6 +308,3 @@ print("a_j is now a {} of shape {}.".format(type(a_j), a_j.shape))
 # Enjoy! And feel free to check the next tutorial for a discussion
 # of the varied reduction operations that can be applied to
 # KeOps :class:`LazyTensors<pykeops.torch.LazyTensor>`.
-
-
-

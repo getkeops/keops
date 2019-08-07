@@ -1,8 +1,9 @@
 # Always prefer setuptools over distutils
-from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
+
+from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 
@@ -109,7 +110,7 @@ setup(
             'keops/cuda.cmake',
             'keops/headers.cmake',
             'keops/core/autodiff.h',
-            'keops/core/broadcast_batch_dimensions.h',
+                       'keops/core/broadcast_batch_dimensions.h',
             'keops/core/CpuConv.cpp',
             'keops/core/CpuConv_ranges.cpp',
             'keops/core/CudaErrorCheck.cu',
@@ -164,9 +165,9 @@ setup(
                      'gpytorch',
                      'scikit-learn',
                      ],
-            'devtools': ['gcc7',
-                         'cmake',
-                        ],
+        'devtools': ['gcc7',
+                     'cmake',
+                     ],
             },
 )
 

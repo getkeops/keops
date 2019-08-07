@@ -20,14 +20,13 @@ where :math:`K_{x,x} = \Big[\exp(-\|x_i -x_j\|^2 / \sigma^2)\Big]_{i,j=1}^N`. Th
 # --------------------
 # Standard imports:
 
-import os
-import numpy as np
-
-import time
-from matplotlib import pyplot as plt
-
 import importlib
+import os
+import time
+
+import numpy as np
 import torch
+from matplotlib import pyplot as plt
 
 from pykeops.numpy import KernelSolve as KernelSolve_np
 from pykeops.torch import KernelSolve
@@ -116,7 +115,7 @@ def Kinv_keops_numpy(x, b, gamma, alpha):
 # Define the same Kernel solver, using a **tensorized** implementation:
 #
 def Kinv_pytorch(x, b, gamma, alpha):
-    K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp( - squared_distances(x, x) * gamma) 
+    K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp( - squared_distances(x, x) * gamma)
     res = torch.solve(b, K_xx)[0]
     return res
 

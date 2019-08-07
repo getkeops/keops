@@ -13,10 +13,12 @@ Let's showcase KeOps's high-level interface on 3D point clouds.
 #
 # Standard imports:
 
+import matplotlib.pyplot as plt
 import torch
 from torch.autograd import grad
+
 from pykeops.torch import Kernel, kernel_product
-import matplotlib.pyplot as plt
+
 
 ####################################################################
 # Convenience functions:

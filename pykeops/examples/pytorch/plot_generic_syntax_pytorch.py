@@ -26,10 +26,12 @@ Sum reduction
 #
 # Standard imports:
 import time
+
+import matplotlib.pyplot as plt
 import torch
 from torch.autograd import grad
+
 from pykeops.torch import Genred
-import matplotlib.pyplot as plt
 
 #####################################################################
 # Declare random inputs:

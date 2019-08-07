@@ -31,9 +31,8 @@ to compute **spectral coordinates** on a large 2D or 3D point cloud.
 # Standard imports:
 #
 
-import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
@@ -192,8 +191,8 @@ for i in range(2):
                             s=9 * 500 / len(x))
         axarr[i][j].set_title("Eigenvalue {} = {:.2f}".format(3 * i + j + 1, eigenvalues[3 * i + j]))
         axarr[i][j].set_aspect("equal")
-        axarr[i][j].set_xlim(0,1)
-        axarr[i][j].set_ylim(0,1)
+        axarr[i][j].set_xlim(0, 1)
+        axarr[i][j].set_ylim(0, 1)
 
 plt.tight_layout()
 plt.show()
@@ -278,8 +277,8 @@ x, x_labels = sort_clusters(x, x_labels)
 _, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), subplot_kw=dict(projection='3d'))
 x_ = x[indices_display, :]
 ax.scatter3D(x_[:, 0], x_[:, 1], x_[:, 2],
-           c=x_labels[indices_display],
-           cmap="prism")
+             c=x_labels[indices_display],
+             cmap="prism")
 ax.set_title("Cluster labels")
 plt.show()
 
@@ -386,8 +385,8 @@ _, axarr = plt.subplots(nrows=2, ncols=3, figsize=(12, 8), subplot_kw=dict(proje
 for i in range(2):
     for j in range(3):
         axarr[i][j].scatter3D(x_[:, 0], x_[:, 1], x_[:, 2],
-                            c=coordinates[indices_display, 3 * i + j],
-                            cmap=plt.cm.Spectral)
+                              c=coordinates[indices_display, 3 * i + j],
+                              cmap=plt.cm.Spectral)
         axarr[i][j].set_title("Eigenvalue {} = {:.1e}".format(3 * i + j + 1, eigenvalues[3 * i + j]))
 
 plt.tight_layout()

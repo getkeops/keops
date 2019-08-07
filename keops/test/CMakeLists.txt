@@ -15,7 +15,10 @@ endfunction()
 # Multi thread compilation test
 set(empty "")
 add_test_helper(unit_test_compile gtest_compile.cpp empty)
-
+add_test_helper(unit_test_tensordot gtest_tensordot.cpp empty)
+SET_PROPERTY(TARGET unit_test_tensordot
+        PROPERTY CXX_STANDARD 14
+        )
 if (USE_CUDA)
         add_test_helper(unit_test_grad1conv ${CMAKE_CURRENT_SOURCE_DIR}/gtest_grad1conv.cu radial_kernels_grad1conv)
         add_test_helper(unit_test_conv ${CMAKE_CURRENT_SOURCE_DIR}/gtest_conv.cpp ${shared_obj_name})

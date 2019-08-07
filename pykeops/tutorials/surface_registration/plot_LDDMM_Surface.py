@@ -16,18 +16,15 @@ We perform an LDDMM matching of two meshes using the geodesic shooting algorithm
 # Standard imports
 
 import os
-import numpy as np
+import time
 
+import imageio
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
+import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
-import imageio
-
+from mpl_toolkits.mplot3d import Axes3D
 from torch.autograd import grad
-
-import time
 
 from pykeops.torch import Kernel, kernel_product
 from pykeops.torch.kernel_product.formula import *

@@ -20,9 +20,9 @@ full `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset.
 # Standard imports:
 
 import time
-from matplotlib import pyplot as plt
 
 import torch
+from matplotlib import pyplot as plt
 
 from pykeops.torch import LazyTensor
 
@@ -36,8 +36,6 @@ try:
     from sklearn.datasets import fetch_openml
 except ImportError:
     raise ImportError("This tutorial requires Scikit Learn version >= 0.20.")
-
-from sklearn.model_selection import train_test_split
 
 mnist = fetch_openml('mnist_784', cache=False)
 
@@ -63,9 +61,9 @@ K = 3  # N.B.: K has very little impact on the running time
 
 start = time.time()    # Benchmark:
 
-X_i = LazyTensor( x_test[:,None,:] )   # (10000, 1, 784) test set
-X_j = LazyTensor( x_train[None,:,:] )  # (1, 60000, 784) train set
-D_ij = ( (X_i - X_j) ** 2 ).sum(-1)    # (10000, 60000) symbolic matrix of squared L2 distances
+X_i = LazyTensor(x_test[:, None, :])  # (10000, 1, 784) test set
+X_j = LazyTensor(x_train[None, :, :])  # (1, 60000, 784) train set
+D_ij = ((X_i - X_j) ** 2).sum(-1)  # (10000, 60000) symbolic matrix of squared L2 distances
 
 ind_knn = D_ij.argKmin(K, dim=1)  # Samples <-> Dataset, (N_test, K)
 lab_knn = y_train[ind_knn]  # (N_test, K) array of integers in [0,9]

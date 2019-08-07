@@ -14,19 +14,21 @@
  *
  */
 
-// A "zero" vector of size _DIM
-// Declared using the   Zero<DIM>   syntax.
 namespace keops {
 
+// A "zero" vector of size _DIM
+// Declared using the   Zero<DIM>   syntax.
 template < int _DIM >
 struct Zero {
     static const int DIM = _DIM;
 
-    static void PrintId(std::stringstream& str) { str << "0(DIM=" << DIM << ")"; }
+    static void PrintId(std::stringstream& str) {
+        str << "0(DIM=" << DIM << ")";
+    }
 
     template<class A, class B>
     using Replace = Zero<DIM>;
-    
+
     using AllTypes = univpack<Zero<DIM>>;
 
     template < int CAT >      // Whatever CAT...
@@ -50,18 +52,20 @@ struct Zero {
 
 template < int N > struct IntConstant_Impl;
 template < int N > struct IntConstant_Alias;
-template < int N > 
-using IntConstant = typename IntConstant_Alias<N>::type; 
+template < int N >
+using IntConstant = typename IntConstant_Alias<N>::type;
 
 template < int N >
 struct IntConstant_Impl {
     static const int DIM = 1;
 
-    static void PrintId(std::stringstream& str) { str << N; }
+    static void PrintId(std::stringstream& str) {
+        str << N;
+    }
 
     template<class A, class B>
     using Replace = IntConstant<N>;
-    
+
     using AllTypes = univpack<IntConstant<N>>;
 
     template < int CAT >      // Whatever CAT...
@@ -81,15 +85,15 @@ struct IntConstant_Impl {
 // Simplification rule
 
 // base class, redirects to implementation
-template < int N > 
-struct IntConstant_Alias { 
-    using type = IntConstant_Impl<N>; 
-}; 
- 
+template < int N >
+struct IntConstant_Alias {
+    using type = IntConstant_Impl<N>;
+};
+
 // 0 = 0
 template<>
-struct IntConstant_Alias<0> { 
-    using type = Zero<1>; 
-}; 
+struct IntConstant_Alias<0> {
+    using type = Zero<1>;
+};
 
 }

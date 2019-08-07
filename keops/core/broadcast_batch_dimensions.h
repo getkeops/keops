@@ -15,9 +15,9 @@ int broadcast_index(int i, int nbatchdims, int *full_shape, int *shape) {
     return res;
 }
 
-void vect_broadcast_index(int i, int nbatchdims, int nvars, int *full_shape, int *reduced_shapes, int *out) {
+void vect_broadcast_index(int i, int nbatchdims, int nvars, int *full_shape, int *reduced_shapes, int *out, int add_offset = 0) {
     for (int k=0; k < nvars; k++) {
-        out[k] = broadcast_index(i, nbatchdims, full_shape, reduced_shapes + (nbatchdims+1)*k );
+        out[k] = add_offset + broadcast_index(i, nbatchdims, full_shape, reduced_shapes + (nbatchdims+1)*k );
     }
 }
 

@@ -1,11 +1,10 @@
 import torch
 
-from pykeops.common.utils import axis2cat
-from pykeops.common.parse_type import get_type, get_sizes, complete_aliases, parse_aliases
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKEops
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
+from pykeops.common.parse_type import parse_aliases
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype, include_dirs
 
@@ -40,7 +39,8 @@ class GenredAutograd(torch.autograd.Function):
         
         if ranges is None : ranges = () # To keep the same type
         (categories, dimensions) = parse_aliases(aliases)
-        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions, *args)
+        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions,
+                                       *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
@@ -61,19 +61,19 @@ class GenredAutograd(torch.autograd.Function):
         nargs = len(args)
         result = ctx.saved_tensors[-1].detach()
 
-        not_supported = ["Min_ArgMin_Reduction", "Min_Reduction", 
+        not_supported = ["Min_ArgMin_Reduction", "Min_Reduction",
                          "Max_ArgMax_Reduction", "Max_Reduction",
                          "KMin_ArgKMin_Reduction", "KMin_Reduction"]
         for red in not_supported:
             if formula.startswith(red):
                 raise NotImplementedError("As of today, KeOps does not support "
-                    + "backpropagation through the " + red + " reduction. "
-                    + "Adding this feature to LazyTensors is on the cards "
-                    + "for future releases... But until then, you may want "
-                    + "to consider extracting the relevant integer indices "
-                    + "with a '.argmin()', '.argmax()' or '.argKmin()' reduction "
-                    + "before using PyTorch advanced indexing to create a fully-differentiable "
-                    + "tensor containing the relevant 'minimal' values.")
+                                          + "backpropagation through the " + red + " reduction. "
+                                          + "Adding this feature to LazyTensors is on the cards "
+                                          + "for future releases... But until then, you may want "
+                                          + "to consider extracting the relevant integer indices "
+                                          + "with a '.argmin()', '.argmax()' or '.argKmin()' reduction "
+                                          + "before using PyTorch advanced indexing to create a fully-differentiable "
+                                          + "tensor containing the relevant 'minimal' values.")
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
@@ -113,21 +113,23 @@ class GenredAutograd(torch.autograd.Function):
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
                     # We replace it with a 'handmade hack' :
-                    #grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
-                    #grad = grad.view(-1)
+                    # grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
+                    # grad = grad.view(-1)
                     grad = (1. * grad).sum(-2)
-                    dims_to_collapse = tuple( i for (i, (x,y)) in enumerate( zip( arg_ind.shape[:-1], grad.shape[:-1] )) if x < y )
+                    dims_to_collapse = tuple(
+                        i for (i, (x, y)) in enumerate(zip(arg_ind.shape[:-1], grad.shape[:-1])) if x < y)
 
                 else:
                     grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
-                    
+
                     # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
                     #       whereas 'arg_ind' may have some broadcasted batched dimensions.
                     #       Before returning our gradient, we must collapse 'grad' with a .sum() operation,
                     #       which is the adjoint of the good old "repmat" that could have been used
                     #       to emulate the batch broadcasting.
-                    dims_to_collapse = tuple( i for (i, (x,y)) in enumerate( zip( arg_ind.shape[:-2], grad.shape[:-2] )) if x < y )
-                
+                    dims_to_collapse = tuple(
+                        i for (i, (x, y)) in enumerate(zip(arg_ind.shape[:-2], grad.shape[:-2])) if x < y)
+
                 if dims_to_collapse != ():
                     grad = (1. * grad).sum(dims_to_collapse, keepdim=True)
                 grad = grad.reshape(arg_ind.shape)  # The gradient should have the same shape as the input!

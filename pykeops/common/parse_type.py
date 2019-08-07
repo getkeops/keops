@@ -14,7 +14,7 @@ def complete_aliases(formula, aliases):
     """
     # first we detect all instances of Var(*,*,*) in formula.
     # These may be extra variables that are not listed in the aliases
-    extravars = re.findall(r"Var\([0-9]{1,},[0-9]{1,},[0-9]{1,}\)", formula.replace(" ", ""))
+    extravars = re.findall(r"Var\([0-9]+,[0-9]+,[0-9]+\)", formula.replace(" ", ""))
     # we get unicity
     extravars = list(set(extravars))
     # now we loop through extravars
@@ -23,7 +23,7 @@ def complete_aliases(formula, aliases):
     for (ind,var) in enumerate(extravars):
         # we get the "position" of the variable as the first integer value in the string
         # (i.e. the "a" in "Var(a,b,c)")
-        pos = int(re.search(r"[0-9]{1,}", var).group(0))
+        pos = int(re.search(r"[0-9]+", var).group(0))
         if pos < len(aliases):
             # this means that in fact var is not an extra variable, it is already in the list of aliases
             # We could check that the "dimension" and "category" are consistent, but we assume here
@@ -50,23 +50,30 @@ def parse_aliases(aliases):
             raise ValueError("This list of aliases is not ordered properly: " + str(aliases))
         categories.append(cat)
         dimensions.append(dim)
-
+    
     return tuple(categories), tuple(dimensions)
 
 
 
 def get_sizes(aliases, *args):
-    indx, indy = [], []
+    nx, ny = None, None
     for (var_ind, sig) in enumerate(aliases):
         _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
         if cat == 0:
-            indx = pos
+            nx = args[pos].shape[0]
         elif cat == 1:
-            indy = pos
-        if (not(indx==[]) and not(indy==[])):
-            return args[indx].shape[0], args[indy].shape[0]
+            ny = args[pos].shape[0]
+        if (nx is not None) and (ny is not None):
+            return nx, ny
     
-    raise ValueError('Cannot determine the size of variables. Please check the aliases.')
+    # At this point, we know that our formula is degenerate, 
+    # with no "x" or no "y" variable. The sensible behavior is to assume that
+    # the corresponding "empty" dimension is equal to 1,
+    # in accordance with the dimcheck of keops_io.h:
+    if nx is None: nx = 1
+    if ny is None: ny = 1
+
+    return nx, ny
 
 
 def get_type(type_str, position_in_list=None):

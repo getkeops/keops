@@ -1,18 +1,17 @@
+if(NOT(APPLE))
+    add_executable(
+        test_tensordot_c14
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_c14.cpp
+    )
 
-# ----------------- test link
-#if (USE_CUDA)
-
-    #CUDA_add_executable(
-        #test_link_conv
-        #${CMAKE_CURRENT_SOURCE_DIR}/test_link.cu
-        #OPTIONS --pre-include=formula.h
-    #)
-
-    #target_link_libraries(
-        #test_link_conv
-        #keops
-    #)
-#endif()
+    add_executable(
+        test_tensordot
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot.cpp
+    )
+    SET_PROPERTY(TARGET test_tensordot
+        PROPERTY CXX_STANDARD 17
+    )
+endif()
 
 add_executable(
     test_factorized_cpp

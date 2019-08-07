@@ -32,11 +32,12 @@ SumSoftMaxWeight reduction
 # Standard imports:
 
 import time
-from matplotlib import pyplot as plt
 
 import torch
+from matplotlib import pyplot as plt
+
 from pykeops.torch import Genred
-    
+
 ###############################################################################
 # Define our dataset:
 #

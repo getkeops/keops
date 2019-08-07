@@ -15,6 +15,7 @@ to compute block-sparse reductions with **sub-quadratic time complexity**.
 #
 
 import time
+
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
@@ -169,9 +170,9 @@ print("")
 # Define a Gaussian kernel matrix from 2d point clouds:
 
 x_, y_ = x / sigma, y / sigma
-x_i, y_j = LazyTensor( x_[:,None,:] ), LazyTensor( y_[None,:,:] )
-D_ij = ((x_i - y_j)**2).sum(dim=2)  # Symbolic (M,N,1) matrix of squared distances
-K = (- D_ij / 2).exp()              # Symbolic (M,N,1) Gaussian kernel matrix
+x_i, y_j = LazyTensor(x_[:, None, :]), LazyTensor(y_[None, :, :])
+D_ij = ((x_i - y_j) ** 2).sum(dim=2)  # Symbolic (M,N,1) matrix of squared distances
+K = (- D_ij / 2).exp()  # Symbolic (M,N,1) Gaussian kernel matrix
 
 #####################################################################
 # And create a random signal supported by the points :math:`y_j`:
@@ -191,24 +192,24 @@ b = torch.randn(N, 1).type(dtype)
 backend = "GPU" if use_cuda else "CPU"
 
 # GPU warm-up:
-a = K@b
+a = K @ b
 
 start = time.time()
-a_full = K@b
+a_full = K @ b
 end = time.time()
-t_full = end-start
-print(" Full  convolution, {} backend: {:2.4f}s".format(backend, end-start))
+t_full = end - start
+print(" Full  convolution, {} backend: {:2.4f}s".format(backend, end - start))
 
 start = time.time()
 K.ranges = ranges_ij
-a_sparse = K@b
+a_sparse = K @ b
 end = time.time()
-t_sparse = end-start
-print("Sparse convolution, {} backend: {:2.4f}s".format(backend, end-start) )
+t_sparse = end - start
+print("Sparse convolution, {} backend: {:2.4f}s".format(backend, end - start))
 print("Relative time : {:3d}% ({:3d}% including clustering), ".format(
-    int(100*t_sparse/t_full),
-    int(100*(t_sparse+t_cluster)/t_full)))
-print("Relative error:   {:3.4f}%".format( 100* (a_sparse-a_full).abs().sum() / a_full.abs().sum() ))
+    int(100 * t_sparse / t_full),
+    int(100 * (t_sparse + t_cluster) / t_full)))
+print("Relative error:   {:3.4f}%".format(100 * (a_sparse - a_full).abs().sum() / a_full.abs().sum()))
 print("")
 
 ####################################################################

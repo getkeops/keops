@@ -15,8 +15,10 @@ point the indices of its K nearest neighbours (including itself).
 # Standard imports:
 
 import time
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+
 from pykeops.numpy import Genred
 
 ###############################################################
