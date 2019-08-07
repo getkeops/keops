@@ -87,7 +87,7 @@ print('Timing (KeOps implementation):', round(end - start, 5), 's')
 sync()
 start = time.time()
 K_xx = alpha * torch.eye(N) + torch.exp( -torch.sum( (x[:,None,:] - x[None,:,:])**2,dim=2) / (2*sigma**2) )
-c_py = torch.gesv(b, K_xx)[0]
+c_py = torch.solve(b, K_xx)[0]
 sync()
 end = time.time()
 print('Timing (PyTorch implementation):', round(end - start, 5), 's')

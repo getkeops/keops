@@ -342,7 +342,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         Kinv = KernelSolve(formula, aliases, 'b', axis=1)
         
         c = Kinv(self.xc, self.xc ,self.ac ,self.sigmac, alpha=self.alphac)
-        c_ = torch.gesv(self.ac, self.alphac * torch.eye(self.M, device=self.device) + torch.exp(-torch.sum((self.xc[:,None,:] - self.xc[None,:,:]) ** 2, dim=2) * self.sigmac))[0]
+        c_ = torch.solve(self.ac, self.alphac * torch.eye(self.M, device=self.device) + torch.exp(-torch.sum((self.xc[:,None,:] - self.xc[None,:,:]) ** 2, dim=2) * self.sigmac))[0]
         
         self.assertTrue(np.allclose (c.cpu().data.numpy().ravel(), c_.cpu().data.numpy().ravel(), atol=1e-4))
         

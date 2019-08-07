@@ -27,7 +27,7 @@ class torchtools:
     def transpose(x): return (x.t())
 
     @staticmethod
-    def solve(A, b): return torch.gesv(b, A)[0].contiguous()
+    def solve(A, b): return torch.solve(b, A)[0].contiguous()
 
     @staticmethod
     def arraysum(x, axis=None): return x.sum() if axis is None else x.sum(dim=axis)
