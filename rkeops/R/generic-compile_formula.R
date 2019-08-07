@@ -1,16 +1,21 @@
-# function testbuild = compile_formula(code1, code2, filename)
-# % This function call cmake to compile the generic cuda code
-# 
-# cmd_cmake =  [ '-DVAR_ALIASES="', code1, '" -DFORMULA_OBJ="',...
-#                code2,'" -DUSENEWSYNTAX=TRUE', ' -Dmex_name="',...
-#                filename, '" -Dshared_obj_name="', filename, '"'];
-#            
-# cmd_make = 'mex_cpp'; 
-# 
-# mexname = ['keops', filename];
-# 
-# msg = [':\n        Formula: ',code2, '\n        aliases: ',code1];
-# 
-# testbuild = compile_code(cmd_cmake, cmd_make, mexname, msg);
-#                       
-# end
+#' Compile code
+#' @description
+#' FIXME
+#' @details
+#' FIXME
+#' @author Ghislain Durif
+#' @export
+compile_formula <- function(formula, var_aliases, hash) {
+    
+    # FIXME
+    
+    cmd_cmake <- paste0("cmake",
+                        " -DFORMULA_OBJ=", formula,
+                        " -DVAR_ALIASES=", var_aliases,
+                        " -Dshared_obj_name=", dllname)
+    
+    
+    # cmdline = [cmake, ' ', src_dir , ' -DUSE_CUDA=', num2str(use_cuda_if_possible), ...
+    #            ' -DCMAKE_BUILD_TYPE=Release', ' -D__TYPE__=', precision, ...
+    #            ' -DMatlab_ROOT_DIR="', matlabroot, '" ', cmd_cmake];
+}
