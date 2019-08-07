@@ -75,10 +75,40 @@ devtools::build()
 devtools::check()
 ```
 
-
-
 ### Release
 
 ```R
 devtools::release()
+```
+
+
+## Additional notes
+
+### Exemple of compilation of Cpp code exported to R
+
+Focus on required include and lib
+
+* `RcppExports.cpp`
+```
+g++ -std=gnu++11 -I"/usr/share/R/include" -DNDEBUG  -I"~/R/x86_64-pc-linux-gnu-library/3.6/Rcpp/include" -I"~/R/x86_64-pc-linux-gnu-library/3.6/RcppEigen/in
+clude"   -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-p1m1mT/r-base-3.6.1=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  
+-c RcppExports.cpp -o RcppExports.o
+```
+
+* `rkeops.cpp`
+```
+g++ -std=gnu++11 -I"/usr/share/R/include" -DNDEBUG  -I"~/R/x86_64-pc-linux-gnu-library/3.6/Rcpp/include" -I"~/R/x86_64-pc-linux-gnu-library/3.6/RcppEigen/include"   -fpic  -g -O2 -fdebug-prefix-map=/build/r-base-p1m1mT/r-base-3.6.1=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g  -c rkeops.cpp -o rkeops.o
+```
+
+* shared lib
+```
+g++ -std=gnu++11 -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -Wl,-z,relro -o rkeops.so RcppExports.o rkeops.o -L/usr/lib/R/lib -lR
+```
+
+* required include and lib can be found with
+```R
+R.home("include")
+system.file("include", package = "Rcpp")
+system.file("include", package = "RcppEigen")
+R.home("lib")
 ```
