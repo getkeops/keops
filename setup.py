@@ -45,6 +45,19 @@ pybind11_files = [
     'pybind11/tools/pybind11Config.cmake.in',
 ]
 
+tao_seq_files = [
+    'keops/lib/sequences/include/tao/seq/integer_sequence.hpp',
+    'keops/lib/sequences/include/tao/seq/config.hpp',
+    'keops/lib/sequences/include/tao/seq/contains.hpp',
+    'keops/lib/sequences/include/tao/seq/concatenate.hpp',
+    'keops/lib/sequences/include/tao/seq/map.hpp',
+    'keops/lib/sequences/include/tao/seq/zip.hpp',
+    'keops/lib/sequences/include/tao/seq/index_of.hpp',
+    'keops/lib/sequences/include/tao/seq/select.hpp',
+    'keops/lib/sequences/include/tao/seq/sum.hpp',
+    'keops/lib/sequences/include/tao/seq/make_integer_range.hpp',
+]
+
 setup(
     name='pykeops',
     version=current_version,
@@ -110,7 +123,7 @@ setup(
             'keops/cuda.cmake',
             'keops/headers.cmake',
             'keops/core/autodiff.h',
-                       'keops/core/broadcast_batch_dimensions.h',
+            'keops/core/broadcast_batch_dimensions.h',
             'keops/core/CpuConv.cpp',
             'keops/core/CpuConv_ranges.cpp',
             'keops/core/CudaErrorCheck.cu',
@@ -126,6 +139,7 @@ setup(
             'keops/core/formulas/maths.h',
             'keops/core/formulas/newsyntax.h',
             'keops/core/formulas/norms.h',
+            'keops/core/formulas/tensordot.h',
             'keops/core/reductions/kmin.h',
             'keops/core/reductions/max_sumshiftexp.h',
             'keops/core/reductions/min.h',
@@ -142,7 +156,7 @@ setup(
             'keops/specific/shape_distance/fshape_gpu.cu',
             'keops/specific/shape_distance/fshape_gpu.cx',
             'keops/specific/shape_distance/kernels.cx',
-        ] + pybind11_files
+        ] + pybind11_files + tao_seq_files
     },
 
     install_requires=[

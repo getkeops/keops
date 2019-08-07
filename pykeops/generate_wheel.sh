@@ -23,14 +23,14 @@ while getopts "v:" opt; do
         sed -i.bak "/__version__/c__version__ = \'$version\'" pykeops/__init__.py
       ;;
     \? ) echo "Usage: generate_wheel [-v VERSION_NUMBER]"
-         exit -1
+         exit 255
       ;;
   esac
 done
 
 # clean pycache stuff
-find -name *__pycache__* -exec rm {} \-rf \;
-find -name *.pyc* -exec rm {} \-rf \;
+find -name "*__pycache__*" -exec rm {} \-rf \;
+find -name "*.pyc*" -exec rm {} \-rf \;
 
 # ugly trick to set right relative path in wheel package 
 cp readme.md pykeops/readme.md
