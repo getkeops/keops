@@ -23,7 +23,7 @@
 #' |---------|-------------------------|-----------|
 #' 
 #' 
-#' @importFrom stringr str_detect str_count str_extract
+#' @importFrom stringr str_count str_detect str_extract str_split
 #' @export
 format_var_aliases <- function(args) {
     
@@ -52,7 +52,7 @@ format_var_aliases <- function(args) {
     var_type <- str_extract(string = split_args[,2],
                             pattern = paste0(possible_var_type,
                             collapse = "|"))
-    if(all(arg_check)) {
+    if(all(args_check)) {
         var_pos <- as.numeric(str_extract(string = split_args[,2], 
                                           pattern = "[0-9]+(?=,)"))
         var_dim <- as.numeric(str_extract(string = split_args[,2], 
