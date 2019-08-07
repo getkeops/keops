@@ -12,8 +12,9 @@
 #' @return the associated hash value as a character 
 #' string.
 #' @importFrom openssl sha256
+#' @importFrom stringr str_sub
 #' @export
 string2hash <- function(str) {
-    out <- sha256(str)
+    out <- str_sub(sha256(str), start = 1, end = 25)
     return(out)
 }
