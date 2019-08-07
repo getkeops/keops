@@ -314,12 +314,12 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch import Genred
         from pykeops.numpy.utils import squared_distances
 
-    aliases = ['p=Pm(0,1)', 'x=Vi(1,3)', 'y=Vj(2,3)']
-    formula = 'Square(p-Var(3,1,1))*Exp(-SqNorm2(y-x))'
+        aliases = ['p=Pm(0,1)', 'x=Vi(1,3)', 'y=Vj(2,3)']
+        formula = 'Square(p-Var(3,1,1))*Exp(-SqNorm2(y-x))'
         
         # Call cuda kernel
         myconv = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float32' )
-    gamma_keops = myconv(self.sigmac, self.xc, self.yc, self.gc, backend='auto')
+        gamma_keops = myconv(self.sigmac, self.xc, self.yc, self.gc, backend='auto')
 
         # Numpy version
         gamma_py = np.sum((self.sigma - self.g.T)**2 * np.exp(-squared_distances(self.x, self.y)), axis=1)
@@ -478,42 +478,41 @@ class PytorchUnitTestCase(unittest.TestCase):
     
     ############################################################
     def test_LazyTensor_min(self):
-    
     ############################################################
-    from pykeops.torch import LazyTensor
-    
-    full_results = []
-    for use_keops in [True, False]:
+        from pykeops.torch import LazyTensor
         
-        results = []
+        full_results = []
+        for use_keops in [True, False]:
+            
+            results = []
+            
+            # N.B.: We could loop over float32 and float64, but this would take longer...
+            for (x, l, y, s) in [(self.Xc, self.Lc, self.Yc, self.Sc)]:  # Float32
+                
+                x_i = x.unsqueeze(-2)
+                l_i = l.unsqueeze(-2)
+                y_j = y.unsqueeze(-3)
+                s_p = s.unsqueeze(-2).unsqueeze(-2)
+                
+                if use_keops:
+                    x_i, l_i, y_j, s_p = LazyTensor(x_i), LazyTensor(l_i), LazyTensor(y_j), LazyTensor(s_p)
+                
+                D_ij = ((1 + ((l_i * x_i + y_j).relu() * s_p) ** 2).log()).sum(-1, keepdim=True)
+                K_ij = (D_ij ** 1.5 + 1).cos() * (D_ij * (3.2 + s_p)).sin()
+                
+                if use_keops:
+                    m, am = K_ij.min_argmin(dim=self.nbatchdims)
+                else:
+                    m, am = K_ij.min(dim=self.nbatchdims)
+                
+                results += [m, am]
+            
+            full_results.append(results)
         
-        # N.B.: We could loop over float32 and float64, but this would take longer...
-        for (x, l, y, s) in [(self.Xc, self.Lc, self.Yc, self.Sc)]:  # Float32
-            
-            x_i = x.unsqueeze(-2)
-            l_i = l.unsqueeze(-2)
-            y_j = y.unsqueeze(-3)
-            s_p = s.unsqueeze(-2).unsqueeze(-2)
-            
-            if use_keops:
-                x_i, l_i, y_j, s_p = LazyTensor(x_i), LazyTensor(l_i), LazyTensor(y_j), LazyTensor(s_p)
-            
-            D_ij = ((1 + ((l_i * x_i + y_j).relu() * s_p) ** 2).log()).sum(-1, keepdim=True)
-            K_ij = (D_ij ** 1.5 + 1).cos() * (D_ij * (3.2 + s_p)).sin()
-            
-            if use_keops:
-                m, am = K_ij.min_argmin(dim=self.nbatchdims)
-            else:
-                m, am = K_ij.min(dim=self.nbatchdims)
-            
-            results += [m, am]
-        
-        full_results.append(results)
-    
-    for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
-        self.assertTrue(res_keops.shape == res_torch.shape)
-        self.assertTrue(np.allclose(res_keops.cpu().data.numpy().ravel(),
-                                    res_torch.cpu().data.numpy().ravel(), atol=1e-5))
+        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+            self.assertTrue(res_keops.shape == res_torch.shape)
+            self.assertTrue(np.allclose(res_keops.cpu().data.numpy().ravel(),
+                                        res_torch.cpu().data.numpy().ravel(), atol=1e-5))
 
     
 if __name__ == '__main__':

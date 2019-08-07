@@ -12,14 +12,6 @@ SET_PROPERTY(TARGET test_tensordot
         )
 
 add_executable(
-        test_compiletensordot
-        ${CMAKE_CURRENT_SOURCE_DIR}/test_compiletensordot.cpp
-)
-SET_PROPERTY(TARGET test_compiletensordot
-             PROPERTY CXX_STANDARD 17
-)
-
-add_executable(
     test_factorized_cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/test_factorized.cpp
 )
