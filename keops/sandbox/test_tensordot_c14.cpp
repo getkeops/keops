@@ -2,15 +2,14 @@
 #include <iostream>
 #include <iomanip>
 
-#include <tao/seq/integer_sequence.hpp>
-#include <tao/seq/contains.hpp>
-#include <tao/seq/concatenate.hpp>
-#include <tao/seq/map.hpp>
-#include <tao/seq/zip.hpp>
-#include <tao/seq/select.hpp>
-#include <tao/seq/sum.hpp>
-// #include <tao/seq/prod.hpp>
-#include <tao/seq/make_integer_range.hpp>
+#include <lib/sequences/include/tao/seq/integer_sequence.hpp>
+#include <lib/sequences/include/tao/seq/contains.hpp>
+#include <lib/sequences/include/tao/seq/concatenate.hpp>
+#include <lib/sequences/include/tao/seq/map.hpp>
+#include <lib/sequences/include/tao/seq/zip.hpp>
+#include <lib/sequences/include/tao/seq/select.hpp>
+#include <lib/sequences/include/tao/seq/sum.hpp>
+#include <lib/sequences/include/tao/seq/make_integer_range.hpp>
 
 namespace tao
 {
