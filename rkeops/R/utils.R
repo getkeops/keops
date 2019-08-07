@@ -6,6 +6,8 @@
 #' compiled.
 #' @details
 #' FIXME
+#' @param formula text string
+#' @param args vector of text string
 #' @author Ghislain Durif
 #' @importFrom stringr str_to_lower
 #' @export
