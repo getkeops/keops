@@ -1,15 +1,17 @@
-add_executable(
+if(NOT(APPLE))
+    add_executable(
         test_tensordot_c14
         ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_c14.cpp
-)
+    )
 
-add_executable(
+    add_executable(
         test_tensordot
         ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot.cpp
-)
-SET_PROPERTY(TARGET test_tensordot
+    )
+    SET_PROPERTY(TARGET test_tensordot
         PROPERTY CXX_STANDARD 17
-        )
+    )
+endif()
 
 add_executable(
     test_factorized_cpp
