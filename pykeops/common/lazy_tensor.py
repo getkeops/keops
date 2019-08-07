@@ -448,7 +448,7 @@ class LazyTensor:
                 res.formula = "{}({}, {}, {})".format(operation, self.formula, opt_arg, other.formula)
         else:
             res.formula = "{}({}, {})".format(operation, self.formula, other.formula)
-        
+        print(res.formula)
         return res
     
     # Prototypes for reduction operations  =====================================
@@ -1196,15 +1196,21 @@ class LazyTensor:
         """
         return self.binary(other, "TensorProd", dimres=(other.ndim * self.ndim), dimcheck=None)
     
-    def tensordot(self, other, dimfa, dimfb, contfa, contfb):
+    def keops_tensordot(self, other, dimfa, dimfb, contfa, contfb):
         r"""
-        Tensor dot product - a binary operation.  
+        Tensor dot product (on KeOps internal dimensions) - a binary operation.  
         *** very temporary implementation - to be updated soon***
         """
         dimres = np.array(dimfa).prod() * np.array(dimfb).prod() / np.array(dimfa)[contfa].prod()**2
         opt_arg = "";
         for intseq in (dimfa, dimfb, contfa, contfb):
-            opt_arg = opt_arg + "Ind{}, ".format(tuple(intseq))
+            opt_arg += "Ind("
+            if isinstance(intseq,int):
+                intseq = (intseq,)  # convert to tuple
+            for item in intseq:
+                opt_arg += "{},".format(item)
+            opt_arg = opt_arg[:-1] + "), " # to remove last comma
+        opt_arg = opt_arg[:-2] # to remove last comma and space
         return self.binary(other, "TensorDot", dimres=dimres, dimcheck=None, opt_arg=opt_arg)
     
     def grad(self, other, gradin):
