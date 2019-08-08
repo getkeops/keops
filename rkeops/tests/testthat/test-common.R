@@ -59,6 +59,9 @@ test_that("get_rkeops_option", {
         expect_equal(value,
                      custom_runtime_options[option])
     })
+    ## error if no input
+    expect_error(get_rkeops_option(),
+                 "Input missing, perhaps you wanted to call `get_rkeops_options()`?")
 })
 
 test_that("set_rkeops_options", {
@@ -100,6 +103,9 @@ test_that("set_rkeops_option", {
         expect_equal(rkeops_options$runtime_options[option],
                      custom_runtime_options[option])
     })
+    ## error if no input
+    expect_error(set_rkeops_option(),
+                 "Input missing, perhaps you wanted to call `set_rkeops_options()`?")
 })
 
 test_that("string2hash", {

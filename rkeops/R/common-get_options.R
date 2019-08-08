@@ -68,6 +68,9 @@ get_rkeops_option <- function(option) {
     possible_runtime_options <- rkeops_option_names(tag = "runtime")
     possible_options <- c(possible_compile_options, possible_runtime_options)
     ## check input
+    if(missing(option)) {
+        stop("Input missing, perhaps you wanted to call `get_rkeops_options()`?")
+    }
     if(!option %in% possible_options)
         stop(paste0("`option` value should be one of the followings: '", 
                     paste0(possible_options, collapse = "', '"),
