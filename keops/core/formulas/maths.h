@@ -1219,11 +1219,11 @@ template<class V, class GRADIN>
                                 DIMFB,
                                 typename parameters::list_indices_keepdim_b_inout,
                                 typename parameters::indices_keepdim_b_t>>,
-                    DiffTB<V, TensorDot<GRADIN, A,
-                                typename parameters::keepdim_t,
+                    DiffTB<V, TensorDot<A,GRADIN,
                                 DIMFA,
-                                typename parameters::list_indices_keepdim_a_inout,
-                                typename parameters::indices_keepdim_a_t >>
+                                typename parameters::keepdim_t,
+                                typename parameters::indices_keepdim_a_t,
+                                typename parameters::list_indices_keepdim_a_inout >>
                     >;
 
 

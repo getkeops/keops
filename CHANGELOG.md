@@ -1,3 +1,8 @@
+* v1.1.2
+    - Fix bug in bashed computations
+    - Add to wheel pykeops package licence file
+
+
 * v1.1.1
     - Change LazyTensor imports. One should use: from pykeops.{numpy,torch} import LazyTensor.
     - Add to wheel pykeops package a 'devtools' option that install cmake and gcc.

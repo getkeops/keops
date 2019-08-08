@@ -21,7 +21,7 @@ from .generic.generic_red import Genred
 from .operations import KernelSolve
 from .convolutions.radial_kernel import RadialKernelConv, RadialKernelGrad1conv
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
-from pykeops.common.lazy_tensor import LazyTensor
+from pykeops.common.lazy_tensor import LazyTensor, Vi, Vj, Pm
 
 # N.B.: If "from pykeops.torch import LazyTensor" has already been run,
 #       the line above will *not* import "numpytools" and we'll end up with an error...
