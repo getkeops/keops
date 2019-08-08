@@ -25,7 +25,7 @@ test_that("check_cmake", {
 test_that("get_rkeops_options", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
-        use_gpu = TRUE, build_dir = NULL, 
+        use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL, 
         src_dir = NULL)
     custom_runtime_options <- runtime_options(
         tagCpuGpu = 1, tag1D2D = 0, 
@@ -42,7 +42,7 @@ test_that("get_rkeops_options", {
 test_that("get_rkeops_option", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
-        use_gpu = TRUE, build_dir = NULL, 
+        use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL, 
         src_dir = NULL)
     custom_runtime_options <- runtime_options(
         tagCpuGpu = 1, tag1D2D = 0, 
@@ -64,7 +64,7 @@ test_that("get_rkeops_option", {
 test_that("set_rkeops_options", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
-        use_gpu = TRUE, build_dir = NULL, 
+        use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL, 
         src_dir = NULL)
     custom_runtime_options <- runtime_options(
         tagCpuGpu = 1, tag1D2D = 0, 
@@ -81,7 +81,7 @@ test_that("set_rkeops_options", {
 test_that("set_rkeops_option", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
-        use_gpu = TRUE, build_dir = NULL, 
+        use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL, 
         src_dir = NULL)
     custom_runtime_options <- runtime_options(
         tagCpuGpu = 1, tag1D2D = 0, 

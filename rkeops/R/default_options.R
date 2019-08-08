@@ -9,6 +9,8 @@
 #' (see Details).
 #' @details
 #' The aforementioned compile options are the following:
+#' * `rkeops_dir`: path to `rkeops` install directory on the system (e.g. 
+#' `/path/to/R_package_install/rkeops/build` on Unix system).
 #' * `build_dir`: path to directory where new custom user-defined operators 
 #' will be compiled and corresponding share objects (`.so` files) will be 
 #' saved (so that they can be found upon reuse to avoid useless recompilation). 
@@ -31,6 +33,7 @@
 #' @author Ghislain Durif
 #' @return a list (of class `rkeops_compile_options`) with the following 
 #' elements:
+#' \item{rkeops_dir}{string, path to `rkeops` install directory on the system.}
 #' \item{build_dir}{string, path to the directory where new custom user-defined 
 #' operators will be compiled.}
 #' \item{src_dir}{string, path to `keops` (C++) source files required for 
@@ -59,6 +62,8 @@ default_compile_options <- function() {
 #' options (see Details).
 #' @details
 #' The aforementioned compile options are the following:
+#' * `rkeops_dir`: path to `rkeops` install directory on the system (e.g. 
+#' `/path/to/R_package_install/rkeops/build` on Unix system).
 #' * `build_dir`: path to directory where new custom user-defined operators 
 #' will be compiled and corresponding share objects (`.so` files) will be 
 #' saved (so that they can be found upon reuse to avoid useless recompilation). 
@@ -85,6 +90,9 @@ default_compile_options <- function() {
 #' is `FALSE`.
 #' @param use_gpu boolean indicator regarding use of GPU in computations (if 
 #' possible on the system). Default value is `TRUE`.
+#' @param rkeops_dir string, path to `rkeops` install directory on the system. 
+#' If NULL, default path described in Details section is used. Default value 
+#' is `NULL`.
 #' @param build_dir string, path to the directory where new custom user-defined 
 #' operators will be compiled. If NULL, default path described in Details 
 #' section is used. Default value is `NULL`.
@@ -93,6 +101,7 @@ default_compile_options <- function() {
 #' Details section is used. Default value is `NULL`.
 #' @return a list (of class `rkeops_compile_options`) with the following 
 #' elements:
+#' \item{rkeops_dir}{string, path to `rkeops` install directory on the system.}
 #' \item{build_dir}{string, path to the directory where new custom user-defined 
 #' operators will be compiled.}
 #' \item{src_dir}{string, path to `keops` (C++) source files required for 
@@ -106,14 +115,17 @@ default_compile_options <- function() {
 #' [rkeops::set_rkeops_options()], [rkeops::set_rkeops_option()]
 #' @export
 compile_options <- function(precision = 'float', verbosity = FALSE, 
-                            use_gpu = TRUE, build_dir = NULL, src_dir = NULL) {
+                            use_gpu = TRUE, rkeops_dir = NULL, 
+                            build_dir = NULL, src_dir = NULL) {
+    if(is.null(rkeops_dir))
+        rkeops_dir <- get_pkg_dir()
     if(is.null(build_dir))
         build_dir <- get_build_dir()
     if(is.null(src_dir))
         src_dir <- get_src_dir()
     verbosity <- ifelse(verbosity, 1, 0)
     use_cuda_if_possible <- ifelse(use_gpu, 1, 0)
-    out <- as.list(data.frame(build_dir, src_dir, precision, 
+    out <- as.list(data.frame(rkeops_dir, build_dir, src_dir, precision, 
                               verbosity, use_cuda_if_possible, 
                               stringsAsFactors = FALSE))
     class(out) <- "rkeops_compile_options"
@@ -129,12 +141,15 @@ compile_options <- function(precision = 'float', verbosity = FALSE,
 #' FIXME
 #' @author Ghislain Durif
 #' @param options a list (of class `rkeops_compile_options`) with the 
-#' following elements `build_dir`, `src_dir`, `precision`, `verbosity`, 
-#' `use_cuda_if_possible`.
+#' following elements `rkeops_dir`, `build_dir`, `src_dir`, `precision`, 
+#' `verbosity`, `use_cuda_if_possible`.
 #' @export
 check_compile_options <- function(options) {
     if(class(options) != "rkeops_compile_options")
         stop("invalid compile options")
+    if(!is.character(options$rkeops_dir) |
+       (is_installed() & !dir.exists(options$rkeops_dir)))
+        stop('Wrong input for `rkeops_dir` parameter.')
     if(!is.character(options$build_dir) |
        (is_installed() & !dir.exists(options$build_dir)))
         stop('Wrong input for `build_dir` parameter.')
@@ -266,4 +281,48 @@ check_runtime_options <- function(options) {
     else if(options$device_id%%1 != 0 | options$device_id<0)
         stop('Wrong input for `device_id` parameter.')
 }
+
+
+#' Return list of `rkeops` option names
+#' @keywords internal
+#' @description
+#' The function `rkeops_option_names` returns the names of the different  
+#' `rkeops` option (in `R` global options scope) provided.
+#' @details
+#' `rkeops` uses two sets of options: compile options `rkeops_dir`, 
+#' `build_dir`, `src_dir`, `precision`, `verbosity`, `use_cuda_if_possible` 
+#' (see [rkeops::compile_options()]), and runtime options `tagCpuGpu`, 
+#' `tag1D2D`, `device_id` (see [rkeops::runtime_options()]).
+#' 
+#' These options define the behavior of `rkeops` when compiling or when 
+#' running new user-defined operators.
+#' 
+#' If you specify a tag between "compile" or "runtime" (or both) in input, you 
+#' will get the names of the corresponding subset of `rkeops` options.
+#' @author Ghislain Durif
+#' @param tag text string or vector of text string, specifying the requested 
+#' subset of `rkeops` options, i.e. `"compile"` or `"runtime"`. Default value 
+#' is `c("compile", "runtime")` and both are return.
+#' @seealso [rkeops::get_rkeops_options()], [rkeops::set_rkeops_options()], 
+#' [rkeops::compile_options()], [rkeops::runtime_options()]
+#' @export
+rkeops_option_names <- function(tag = c("compile", "runtime")) {
+    # option list
+    possible_compile_options <- names(default_compile_options())
+    possible_runtime_options <- names(default_runtime_options())
+    # check input
+    if(!all(tag %in% c("compile", "runtime"))) {
+        stop("Wrong input for `tag` parameter.")
+    }
+    # output
+    out <- NULL
+    if("compile" %in% tag) {
+        out <- c(out, possible_compile_options)
+    }
+    if("runtime" %in% tag) {
+        out <- c(out, possible_runtime_options)
+    }
+    return(out)
+}
+
 

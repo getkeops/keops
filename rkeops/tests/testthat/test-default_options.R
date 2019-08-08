@@ -2,13 +2,13 @@ context("Default options for compilation")
 
 test_that("default_compile_options", {
     out <- rkeops::default_compile_options()
-    check_default_compile_options(out)
+    expect_error(check_default_compile_options(out), NA)
 })
 
 test_that("compile_options", {
     ## default behavior
     out <- rkeops::compile_options()
-    check_default_compile_options(out)
+    expect_error(check_default_compile_options(out), NA)
     ## behavior with user-provided input
     # precision
     out <- rkeops::compile_options(precision = "double")
@@ -28,6 +28,13 @@ test_that("compile_options", {
     expect_error(rkeops::compile_options(use_gpu = "something"),
                  "Wrong input for `use_cuda_if_possible` parameter.",
                  fixed = TRUE)
+    # rkeops_dir
+    out <- rkeops::compile_options(rkeops_dir = get_pkg_dir())
+    expect_equal(out$rkeops_dir,
+                 find.package("rkeops"))
+    # FIXME expect_error(rkeops::compile_options(rkeops_dir = "/nopath/to/test"),
+    #              "Wrong input for `rkeops_dir` parameter.",
+    #              fixed = TRUE)
     # build_dir
     out <- rkeops::compile_options(build_dir = get_build_dir())
     expect_equal(out$build_dir,
@@ -89,4 +96,23 @@ test_that("check_runtime_options", {
     expect_error(rkeops::check_runtime_options(out), NA)
     expect_error(rkeops::check_runtime_options(5),
                  "invalid runtime options")
+})
+
+test_that("rkeops_option_names", {
+    # both "compile" and "runtime"
+    out <- rkeops::rkeops_option_names()
+    expected_value <- c(names(default_compile_options()), 
+                        names(default_runtime_options()))
+    expect_equal(out, expected_value)
+    # "compile"
+    out <- rkeops::rkeops_option_names(tag = "compile")
+    expected_value <- names(default_compile_options())
+    expect_equal(out, expected_value)
+    # "runtime"
+    out <- rkeops::rkeops_option_names(tag = "runtime")
+    expected_value <- names(default_runtime_options())
+    expect_equal(out, expected_value)
+    # error
+    expect_error(rkeops::rkeops_option_names(tag = "test"), 
+                 "Wrong input for `tag` parameter.")
 })
