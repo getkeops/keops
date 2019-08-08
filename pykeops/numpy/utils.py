@@ -20,6 +20,12 @@ class numpytools:
     def transpose(x): return x.T
     
     @staticmethod
+    def permute(x,*args): return x.transpose(*args)
+
+    @staticmethod
+    def contiguous(x): return np.ascontiguousarray(x)
+
+    @staticmethod
     def numpy(x): return x
     
     @staticmethod

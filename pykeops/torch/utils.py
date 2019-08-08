@@ -27,6 +27,12 @@ class torchtools:
     def transpose(x): return (x.t())
 
     @staticmethod
+    def permute(x,*args): return x.permute(*args)
+
+    @staticmethod
+    def contiguous(x): return x.contiguous()
+
+    @staticmethod
     def solve(A, b): return torch.solve(b, A)[0].contiguous()
 
     @staticmethod
