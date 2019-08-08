@@ -1603,8 +1603,6 @@ class LazyTensor:
 
         v_ = self.tools.view( v, newdims )
         
-        import time
-        
         if pykeops.gpu_available and v_.shape[-1] > 80 :
             # custom method when last dim of v is large
             # we have :
@@ -1619,9 +1617,7 @@ class LazyTensor:
             # we add a dummy dimension at the end (maybe not necessary ?)
             v_ = self.tools.view(v_,list(v_.shape)+[1]) # (Nv,1,..,1,batchdimsv,1,N,1)
             v_ = LazyTensor(v_)
-            tic = time.time()
             Kv = (self*v_).sum(dim=len(v_._shape)-2) # (Nv,outbatchdims,M,1)
-            print(time.time()-tic)
             Kv = self.tools.permute(Kv,list(range(1,len(Kv.shape)))+[0]) # (outbatchdims,M,1,Nv)
             Kv = self.tools.contiguous(Kv)
             Kv = self.tools.view(Kv,list(Kv.shape[:-2])+[Kv.shape[-1]]) # (outbatchdims,M,Nv)
