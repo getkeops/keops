@@ -1625,9 +1625,7 @@ class LazyTensor:
             # otherwise, direct KeOps operation
             v_ = LazyTensor(v_)
             Kv = (self * v_ )            # Supports broadcasting
-            tic = time.time()
             Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
-            print(time.time()-tic)
 
         # Expected behavior: if v is a vector, so should K @ v.
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
