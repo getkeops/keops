@@ -33,6 +33,8 @@ to compute **spectral coordinates** on a large 2D or 3D point cloud.
 
 import matplotlib.pyplot as plt
 import numpy as np
+# noinspection PyUnresolvedReferences
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
 from pykeops.numpy import LazyTensor
 from pykeops.numpy.utils import IsGpuAvailable
