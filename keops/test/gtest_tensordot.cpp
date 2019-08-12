@@ -755,28 +755,28 @@ TEST(tensordot, sixteen){
     for (size_t j = 0; j < 3; j++)
       for (size_t k = 0; k < 2; k++)
         for (size_t l = 0; l < 4; l++) {
-          size_t kda = 12 * i + 3 * l + j;
-          size_t kdb =  2 * l + k;
-          size_t I = 6 * i + 2 * j + k;
-          std::cout << "(" << i << "," << j <<  "," << k <<  "," << l <<")     " << I << " " << kda << " " << kdb  << std::endl;
+          // size_t kda = 12 * i + 3 * l + j;
+          // size_t kdb =  2 * l + k;
+          // size_t I = 6 * i + 3 * k + j;
+          // std::cout << "(" << i << "," << j <<  "," << k <<  "," << l <<")     " << I << " " << kda << " " << kdb  << std::endl;
           out_loop[6 * i + 3 * k + j] += FAA[12 * i + 3 * l + j] * FBB[ 2 * l + k];
         }
 #else
   for (size_t i = 0; i < 5; i++)
-    for (size_t j = 0; j < 2; j++)
-      for (size_t k = 0; k < 4; k++)
-        for (size_t l = 0; l < 3; l++) {
+    for (size_t j = 0; j < 3; j++)
+      for (size_t k = 0; k < 2; k++)
+        for (size_t l = 0; l < 4; l++) {
           // size_t kda = 20 * l + 5 * k + i;
           // size_t kdb = 12 * j + 4 * l + k;
           // size_t I = 5 * j + i;
           // std::cout << "(" << i << "," << j <<  "," << k <<  "," << l <<")     " << I << " " << kda << " " << kdb  << std::endl;
-          out_loop[5 * j + i] += FAA[20 * l + 5 * k + i] * FBB[12 * j + 4 * l + k];
+          out_loop[10 * j + 5 * k + i] += FAA[20 * j + 5 * l + i] * FBB[4 * k + l];
         }
 #endif
 
   __TYPE__ s2d = 0;
   for(int i=0; i<30; i++) {
-    std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
+    // std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
     s2d += abs(out_keops[i] - out_loop[i]);
   }
   EXPECT_LE(s2d,5e-6);
@@ -786,10 +786,15 @@ TEST(tensordot, sixteen){
 import numpy as np
 a = np.array([7, 9, 9, 5, 8, 3, 6, 9, 6, 0, 5, 7, 3, 4, 3, 5, 3, 3, 0, 9, 9, 6, 0, 3, 3, 7, 0, 8, 6, 0, 6, 1, 3, 1, 4, 7, 3, 9, 8, 8, 3, 7, 2, 3, 1, 9, 5, 7, 7, 5, 9, 7, 0, 1, 9, 7, 5, 0, 3, 8]).reshape(5, 4, 3)
 b = np.array([6, 4, 2, 9, 9, 5, 1, 6]).reshape(4, 2)
-np.tensordot(a,b,axes=([1],[0])).flatten() # 106 103 156 183 121 135  34  93 111  88 108 102  89 120  67 111  34  57
-  61 148  92 108  78 142 137 136  96  73 109 118
+np.tensordot(a,b,axes=([1],[0])).swapaxes(2,1).flatten()
+# array([106, 156, 121, 103, 183, 135,  34, 111, 108,  93,  88, 102,  89, 67,  34, 120, 111,  57,  61,  92,  78, 148, 108, 142, 137,  96, 109, 136,  73, 118])
 
-  106 156 121 103 183 135  34 111 108  93  88 102  89  67  34 120 111  57 61  92  78 148 108 142 137  96 109 136  73 118
+
+import numpy as np
+a = np.array([7, 9, 9, 5, 8, 3, 6, 9, 6, 0, 5, 7, 3, 4, 3, 5, 3, 3, 0, 9, 9, 6, 0, 3, 3, 7, 0, 8, 6, 0, 6, 1, 3, 1, 4, 7, 3, 9, 8, 8, 3, 7, 2, 3, 1, 9, 5, 7, 7, 5, 9, 7, 0, 1, 9, 7, 5, 0, 3, 8]).reshape(5, 4, 3, order='F')
+b = np.array([6, 4, 2, 9, 9, 5, 1, 6]).reshape(4, 2, order='F')
+np.tensordot(a,b,axes=([1],[0])).swapaxes(2,1).flatten(order='F')
+# array([109, 119, 123,  62, 135, 113, 136, 147,  79, 129, 157,  65, 119, 116,  98, 164,  73,  97, 106,  79, 135, 121,  40,  75, 116, 123, 125,  53,  81,  91])
 */
 
 
