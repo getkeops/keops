@@ -138,8 +138,7 @@ KeopsNS<Scalprod<FA,FB>> operator|(KeopsNS<FA> fa, KeopsNS<FB> fb) {
 #define MatVecMult(f,g) KeopsNS<MatVecMult<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 #define VecMatMult(f,g) KeopsNS<VecMatMult<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 #define TensorProd(f,g) KeopsNS<TensorProd<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
-#define TensorDot(f,g,dimf, dimg, contf, contg) KeopsNS<TensorDot<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g)), dimf, dimg, contf, contg>>()
-
+#define TensorDot(f,g,...) KeopsNS<TensorDot<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g)), __VA_ARGS__>>()
 
 #define GradMatrix(f,g) KeopsNS<GradMatrix<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 

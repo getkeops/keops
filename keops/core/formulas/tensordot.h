@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream>
 #include "lib/sequences/include/tao/seq/integer_sequence.hpp"
 #include "lib/sequences/include/tao/seq/contains.hpp"
 #include "lib/sequences/include/tao/seq/concatenate.hpp"
@@ -16,10 +16,6 @@ namespace seq {
 //      Various operation for reordering index_sequences          //
 // -------------------------------------------------------------- //
 
-//  Permute reorder elemenents of M with the inversed permutation given by S
-//  using namespace tao::seq;
-//    static_assert(std::is_same< permute_t<index_sequence<3,0,2,1>, index_sequence<4,5,6,7> >,
-//                                          index_sequence<5,7,6,4> >::value, "ooops" );
 
 namespace impl {
 
@@ -32,6 +28,94 @@ struct permute_i<tao::seq::index_sequence<Ns...>, tao::seq::index_sequence<Is...
 };
 
 } // namespace impl
+
+
+// Sort :
+//
+//    using namespace tao::seq;
+//    static_assert(std::is_same<tao::seq::sort<ord, index_sequence<39,2,4,10>>::type, index_sequence<2,4,10,39>>::value, "ooops");
+//    static_assert(std::is_same<tao::seq::sort_index<ord, index_sequence<39,2,4,10>>::type, index_sequence<3,0,1,2>>::value, "ooops");
+//    print_index_sequence(index_sequence<3,5,2,8>{});
+//
+//
+namespace sort_impl {
+template < template <size_t, size_t> class Pred, class Ia, class Ib> struct merge;
+
+template <template <size_t, size_t> class Pred, class Ib>
+struct merge<Pred, index_sequence<>, Ib> {
+  using type = Ib;
+};
+
+template <template <size_t, size_t> class Pred, class Ia>
+struct merge<Pred, Ia, index_sequence<>> {
+   using type = Ia;
+};
+
+            template <template <size_t, size_t> class Pred, size_t a, size_t... Ia, size_t b, size_t... Ib>
+            struct merge<Pred, index_sequence<a,Ia...>, index_sequence<b,Ib...> > {
+                using type = std::conditional_t< Pred<a,b>::value,
+                        tao::seq::concatenate_t<index_sequence<a>, typename merge<Pred, index_sequence<Ia...>, index_sequence<b, Ib...> >::type>,
+                        tao::seq::concatenate_t<index_sequence<b>, typename merge<Pred, index_sequence<a, Ia...>, index_sequence<Ib...> >::type>>;
+            };
+
+        template< typename, typename >
+        struct permute_i;
+
+        template< std::size_t... Ns, std::size_t... Is  >
+        struct permute_i< index_sequence< Ns... >, index_sequence< Is... > > {
+            using type = index_sequence< index_of<size_t, Is, Ns...>::value... >;
+        };
+}  // namespace sortimpl
+
+       template< template <size_t, size_t> class Pred, class Is>
+       struct sort;
+
+       template< template <size_t, size_t> class Pred, size_t a, size_t... Is>
+       struct sort<Pred, index_sequence<a, Is...> > {
+           using tail_sorted = typename sort<Pred, index_sequence<Is...> >::type;
+           using type = typename sort_impl::merge<Pred, index_sequence<a>, tail_sorted>::type;
+       };
+
+
+       template < template <size_t, size_t> class Pred >
+       struct sort<Pred, index_sequence<> > {
+           using type = index_sequence<>;
+       };
+
+        template< template <size_t, size_t> class Pred, class Is>
+        struct sort_index;
+
+
+        template< template <size_t, size_t> class Pred, size_t... Ns>
+        struct sort_index<Pred, index_sequence<Ns...> > {
+            using sorted = typename sort<Pred, index_sequence<Ns...> >::type;
+            using type  = typename sort_impl::permute_i<sorted, index_sequence<Ns...>  >::type;
+        };
+
+template <size_t a, size_t b> struct ord {
+    static const bool value = a < b;
+};
+
+template <class Is>
+struct sort_index_asc{
+   using type = typename sort_index<ord, Is>::type;
+};
+
+
+// Print an Index sequence
+
+template<size_t... Is>
+void print_index_sequence(index_sequence<Is...>) {
+  (void)std::initializer_list<int>{ (std::cout << Is << " ", 0)...};
+  std::cout << std::endl;
+}
+
+
+
+//  Permute reorder elemenents of M with the inversed permutation given by S
+//  using namespace tao::seq;
+//    static_assert(std::is_same< permute_t<index_sequence<3,0,2,1>, index_sequence<4,5,6,7> >,
+//                                          index_sequence<5,7,6,4> >::value, "ooops" );
 
 template<typename, typename>
 struct permute;
@@ -195,16 +279,13 @@ struct tensordot_indices {
 };
 
 
-template<class DIMFA, class DIMFB, class CONTFA, class CONTFB>
+template<class DIMFA, class DIMFB, class CONTFA, class CONTFB, class PERMUTE>
 struct tensordot_parameters {
 
   // Left hand-side
-  using indices_keepdim_a_t = typename tao::seq::filter_out<CONTFA,
-                                                            tao::seq::make_index_sequence<DIMFA::size()>>::type;
-  using keepdim_a_t = typename tao::seq::map<indices_keepdim_a_t,
-                                             DIMFA>::type;
-  using contdim_a_t = typename tao::seq::map<CONTFA,
-                                             DIMFA>::type;
+  using indices_keepdim_a_t = typename tao::seq::filter_out<CONTFA, tao::seq::make_index_sequence<DIMFA::size()>>::type;
+  using keepdim_a_t = typename tao::seq::map<indices_keepdim_a_t, DIMFA>::type;
+  using contdim_a_t = typename tao::seq::map<CONTFA, DIMFA>::type;
 #if C_CONTIGUOUS
   using list_stride_dim_a_t = typename tao::seq::cum_prod<DIMFA>::type;
 #else
@@ -212,12 +293,9 @@ struct tensordot_parameters {
 #endif
 
   // Right hand-side
-  using indices_keepdim_b_t = typename tao::seq::filter_out<CONTFB,
-                                                            tao::seq::make_index_sequence<DIMFB::size()>>::type;
-  using keepdim_b_t = typename tao::seq::map<indices_keepdim_b_t,
-                                             DIMFB>::type;
-  using contdim_b_t = typename tao::seq::map<CONTFB,
-                                             DIMFB>::type;
+  using indices_keepdim_b_t = typename tao::seq::filter_out<CONTFB, tao::seq::make_index_sequence<DIMFB::size()>>::type;
+  using keepdim_b_t = typename tao::seq::map<indices_keepdim_b_t, DIMFB>::type;
+  using contdim_b_t = typename tao::seq::map<CONTFB, DIMFB>::type;
 #if C_CONTIGUOUS
   using list_stride_dim_b_t = typename tao::seq::cum_prod<DIMFB>::type;
 #else
@@ -225,26 +303,28 @@ struct tensordot_parameters {
 #endif
 
 
-  static_assert(std::is_same<contdim_a_t, contdim_b_t>::value, "In TensorDot: contracting dimensions should  be the same");
-
+  static_assert(std::is_same<contdim_a_t, contdim_b_t>::value,
+                "In TensorDot: contracting dimensions should be the same");
 
   // Output
-  using keepdim_t = typename tao::seq::concatenate<keepdim_a_t,
-                                                   keepdim_b_t>::type;
+  using keepdim_t = typename tao::seq::concatenate<keepdim_a_t, keepdim_b_t>::type;
 #if C_CONTIGUOUS
-  using list_stride_keepdim_t = typename tao::seq::cum_prod<keepdim_t>::type;
+  using list_stride_keepdim_t = typename tao::seq::cum_prod<typename tao::seq::permute<PERMUTE, keepdim_t>::type>::type;
 #else
-  using list_stride_keepdim_t = typename tao::seq::cum_prod<typename tao::seq::reverse<keepdim_t>::type>::type;
+  using list_stride_keepdim_t = typename tao::seq::cum_prod<typename tao::seq::reverse<typename tao::seq::permute<PERMUTE, keepdim_t>::type>::type>::type;
+  //using list_stride_keepdim_t = typename tao::seq::cum_prod<typename tao::seq::reverse<keepdim_t>::type>::type;
 #endif
   constexpr static size_t dimout = tao::seq::prod_red(keepdim_t{});
 
+  static_assert(std::is_same<typename tao::seq::permute<PERMUTE, PERMUTE>::type,
+                             tao::seq::make_index_range<0, keepdim_t::size()>>::value,
+                "In TensorDot: PERMUTE should be a permutation index_sequence.");
 
   // Loop: in this code we choose to loop on the keepdims first and then on the contraction dims.
-  using loopdim_t = typename tao::seq::concatenate<keepdim_t,
-                                                   contdim_a_t>::type;
+  using loopdim_t = typename tao::seq::concatenate<keepdim_t, contdim_a_t>::type;
 
   constexpr static size_t dimloop = tao::seq::prod_red(loopdim_t{});
-  
+
   using ala = typename tao::seq::concatenate<tao::seq::make_index_range<0, keepdim_a_t::size()>,
                                              tao::seq::make_index_range<keepdim_t::size(), dimloop>>::type;
 
@@ -261,6 +341,11 @@ struct tensordot_parameters {
   // used to compute the Gradient
   using list_indices_keepdim_b_inout = typename tao::seq::make_index_range<keepdim_a_t::size(), keepdim_t::size()>;
   using list_indices_keepdim_a_inout = typename tao::seq::make_index_range<0, keepdim_a_t::size()>;
+
+  using aa = typename tao::seq::permute<typename tao::seq::sort_index_asc<CONTFB>::type, CONTFA>::type;
+  using moveaxis_a = typename tao::seq::concatenate<indices_keepdim_a_t, aa>::type;
+  using bb = typename tao::seq::permute<typename tao::seq::sort_index_asc<CONTFA>::type, CONTFB>::type;
+  using moveaxis_b = typename tao::seq::concatenate<indices_keepdim_b_t, bb>::type;
 
   template<class IND>
   constexpr static tensordot_indices compute_tensordot_indices(IND) {
@@ -285,14 +370,21 @@ struct tensordot_parameters {
     size_t b_indices = tao::seq::sum<tao::seq::prod_t<list_stride_dim_b_t, typename tao::seq::reverse<list_indices_b>::type>>::value;
 #endif
     // out_indices
-    using list_indices_keepdim = typename tao::seq::map<tao::seq::make_index_range<0, keepdim_t::size()>,
-                                                        IND>::type;
+    // using list_indices_keepdim = typename tao::seq::map<tao::seq::make_index_range<0, keepdim_t::size()>, IND>::type;
+//    using list_indices_keepdim = typename tao::seq::map<PERMUTE, IND>::type;
+    using list_indices_keepdim = typename tao::seq::permute<PERMUTE, IND>::type;
+
 #if C_CONTIGUOUS
     size_t out_indices = tao::seq::sum<tao::seq::prod_t<list_stride_keepdim_t, list_indices_keepdim>>::value;
 #else
     size_t out_indices = tao::seq::sum<tao::seq::prod_t<list_stride_keepdim_t, typename tao::seq::reverse<list_indices_keepdim>::type>>::value;
 #endif
+ /*
+    std::cout << "dimout: " << dimout  << " ("<< out_indices << " " << a_indices << " " << b_indices << ")" << std::endl;
 
+    tao::seq::print_index_sequence(typename tao::seq::permute<PERMUTE, PERMUTE>::type{});
+    tao::seq::print_index_sequence(tao::seq::make_index_range<0, keepdim_t::size()>{});
+    std::cout << "--" << std::endl; */
     return tensordot_indices{out_indices, a_indices, b_indices};
   }
 
@@ -313,5 +405,4 @@ struct tensordot_parameters {
   }
 
 };
-
 }

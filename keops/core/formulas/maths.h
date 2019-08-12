@@ -1176,9 +1176,8 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 /////////////////////////////////////////////////////////////////////////
 
 
-
-template<class A, class B, class DIMFA, class DIMFB, class CONTFA, class CONTFB>
-struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB> {
+template<class A, class B, class DIMFA, class DIMFB, class CONTFA, class CONTFB, class PERMUTEDIMOUT=std::make_index_sequence<DIMFA::size() + DIMFB::size() - 2 * CONTFA::size()>>
+struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT> {
     // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
     // n=3 and m=2 are assume to be known
     // output is vector of size n
@@ -1188,7 +1187,7 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB> {
     static_assert(tao::seq::prod_red(DIMFA{}) == A::DIM, "DIMA is not consistant with dimension of A");
     static_assert(tao::seq::prod_red(DIMFB{}) == B::DIM, "DIMB is not consistant with dimension of B");
 
-    using parameters = tensordot_parameters<DIMFA, DIMFB, CONTFA, CONTFB>;
+    using parameters = tensordot_parameters<DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT>;
 
     static const int DIM = parameters::dimout;
 
@@ -1212,18 +1211,20 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB> {
     using DiffTB = typename B::template DiffT<V, GRADIN>;
 
 
-template<class V, class GRADIN>
-    using DiffT = Add<
+   template<class V, class GRADIN>
+   using DiffT = Add<
                     DiffTA<V, TensorDot<GRADIN, B,
-                                typename parameters::keepdim_t,
-                                DIMFB,
-                                typename parameters::list_indices_keepdim_b_inout,
-                                typename parameters::indices_keepdim_b_t>>,
-                    DiffTB<V, TensorDot<A,GRADIN,
-                                DIMFA,
-                                typename parameters::keepdim_t,
-                                typename parameters::indices_keepdim_a_t,
-                                typename parameters::list_indices_keepdim_a_inout >>
+                                typename parameters::keepdim_t,                    // 3
+                                DIMFB,                                             // 4 2
+                                typename parameters::list_indices_keepdim_b_inout, // .
+                                typename parameters::indices_keepdim_b_t,          // .
+                                typename parameters::moveaxis_a>>,                 // 1, 2 0
+                    DiffTB<V, TensorDot<GRADIN, A,
+                                typename parameters::keepdim_t,                    // 3
+                                DIMFA,                                             // 2, 3, 4
+                                typename parameters::list_indices_keepdim_a_inout, //0
+                                typename parameters::indices_keepdim_a_t,          //1
+                                typename parameters::moveaxis_b>>                  // . , 0 1
                     >;
 
 

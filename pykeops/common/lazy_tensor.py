@@ -1201,9 +1201,10 @@ class LazyTensor:
         Tensor dot product (on KeOps internal dimensions) - a binary operation.  
         *** very temporary implementation - to be updated soon***
         """
-        dimres = np.array(dimfa).prod() * np.array(dimfb).prod() / np.array(dimfa)[contfa].prod()**2
-        opt_arg = "";
-        for intseq in (dimfa, dimfb, contfa, contfb):
+        permute = tuple(range(len(dimfa) + len(dimfb) - 2 * len(contfa)))
+        dimres = np.array(dimfa).prod() * np.array(dimfb).prod() / np.array(dimfa)[np.array(contfa)].prod()**2
+        opt_arg = ""
+        for intseq in (dimfa, dimfb, contfa, contfb, permute):
             opt_arg += "Ind("
             if isinstance(intseq,int):
                 intseq = (intseq,)  # convert to tuple

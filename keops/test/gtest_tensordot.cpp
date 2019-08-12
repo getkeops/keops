@@ -576,7 +576,6 @@ TEST(tensordot, eleven){
 }
 
 
-
 TEST(tensordot, twelve){
 
   __TYPE__ FA[16] = {6, 44, 20, 9, 99, 5, 1, 6, 7, 8, 2, 4, 1.1, 55.9, 7, 8};
@@ -647,6 +646,7 @@ TEST(tensordot, thirteen){
 #endif
   EXPECT_LE(s2d,5e-6);
 }
+
 /*
 import torch
 a = torch.tensor([7.7, 4.5, 2.7, 9.8, 9.3, 5.34, 1.56, 6, 7.43, 8.7, 2.21, 4.98, 1.2, 9.32, 7.76, 8.33], requires_grad=True).reshape(4,4)
@@ -692,6 +692,7 @@ TEST(tensordot, fourteen){
   }
   EXPECT_LE(s2d,5e-6);
 }
+
 /*
 import torch
 a = torch.tensor([7.7, 4.5, 2.7, 9.8, 9.3, 5.34, 1.56, 6, 7, 8, 2, 4, 1, 9, 7, 8], requires_grad=True).reshape(4,4)
@@ -735,7 +736,152 @@ TEST(tensordot, fifteen){
 
 
 
+TEST(tensordot, sixteen){
 
+  auto x = Vi(0,5*4*3); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
+  auto y = Vj(1,4*2); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
+  auto f = TensorDot(x,y, Ind(5, 4, 3), Ind(4, 2), Ind(1), Ind(0), Ind(0, 2, 1));
+  auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
+
+  __TYPE__ FAA[60] = {7, 9, 9, 5, 8, 3, 6, 9, 6, 0, 5, 7, 3, 4, 3, 5, 3, 3, 0, 9, 9, 6, 0, 3, 3, 7, 0, 8, 6, 0, 6, 1, 3, 1, 4, 7, 3, 9, 8, 8, 3, 7, 2, 3, 1, 9, 5, 7, 7, 5, 9, 7, 0, 1, 9, 7, 5, 0, 3, 8};
+  __TYPE__ FBB[8] = {6, 4, 2, 9, 9, 5, 1, 6};
+
+  __TYPE__ out_keops[30];
+  EvalRed<CpuConv>(Sum_f,1, 1, out_keops, FAA, FBB);
+
+  __TYPE__ out_loop[30] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#if C_CONTIGUOUS
+  for (size_t i = 0; i < 5; i++)
+    for (size_t j = 0; j < 3; j++)
+      for (size_t k = 0; k < 2; k++)
+        for (size_t l = 0; l < 4; l++) {
+          size_t kda = 12 * i + 3 * l + j;
+          size_t kdb =  2 * l + k;
+          size_t I = 6 * i + 2 * j + k;
+          std::cout << "(" << i << "," << j <<  "," << k <<  "," << l <<")     " << I << " " << kda << " " << kdb  << std::endl;
+          out_loop[6 * i + 3 * k + j] += FAA[12 * i + 3 * l + j] * FBB[ 2 * l + k];
+        }
+#else
+  for (size_t i = 0; i < 5; i++)
+    for (size_t j = 0; j < 2; j++)
+      for (size_t k = 0; k < 4; k++)
+        for (size_t l = 0; l < 3; l++) {
+          // size_t kda = 20 * l + 5 * k + i;
+          // size_t kdb = 12 * j + 4 * l + k;
+          // size_t I = 5 * j + i;
+          // std::cout << "(" << i << "," << j <<  "," << k <<  "," << l <<")     " << I << " " << kda << " " << kdb  << std::endl;
+          out_loop[5 * j + i] += FAA[20 * l + 5 * k + i] * FBB[12 * j + 4 * l + k];
+        }
+#endif
+
+  __TYPE__ s2d = 0;
+  for(int i=0; i<30; i++) {
+    std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
+    s2d += abs(out_keops[i] - out_loop[i]);
+  }
+  EXPECT_LE(s2d,5e-6);
+}
+
+/*
+import numpy as np
+a = np.array([7, 9, 9, 5, 8, 3, 6, 9, 6, 0, 5, 7, 3, 4, 3, 5, 3, 3, 0, 9, 9, 6, 0, 3, 3, 7, 0, 8, 6, 0, 6, 1, 3, 1, 4, 7, 3, 9, 8, 8, 3, 7, 2, 3, 1, 9, 5, 7, 7, 5, 9, 7, 0, 1, 9, 7, 5, 0, 3, 8]).reshape(5, 4, 3)
+b = np.array([6, 4, 2, 9, 9, 5, 1, 6]).reshape(4, 2)
+np.tensordot(a,b,axes=([1],[0])).flatten() # 106 103 156 183 121 135  34  93 111  88 108 102  89 120  67 111  34  57
+  61 148  92 108  78 142 137 136  96  73 109 118
+
+  106 156 121 103 183 135  34 111 108  93  88 102  89  67  34 120 111  57 61  92  78 148 108 142 137  96 109 136  73 118
+*/
+
+
+
+
+/*
+TEST(tensordot, seventeen){
+
+  auto x = Vi(0, 2*3*4  ); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
+  auto y = Vj(1,4*2); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
+  // auto xi = Vj(2,3);
+  //auto Sum_f = Sum_Reduction( Grad(TensorDot(x, y, Ind(2,3,4), Ind(4,2), Ind(2,0), Ind(0,1), Ind(0)), x, xi),0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
+  auto xi = Vi(2,3);
+  auto Sum_f = Sum_Reduction( Grad(TensorDot(x, y, Ind(2,3,4), Ind(4,2), Ind(2,0), Ind(0,1), Ind(0)), y, xi),0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
+
+  __TYPE__ FAA[24] = {6, 4, 2, 9, 9, 5, 1, 6,6, 4, 2, 9, 9, 5, 1, 6,6, 4, 2, 9, 9, 5, 1, 6};
+  __TYPE__ FBB[8] = {6, 4, 2, 9, 9, 5, 1, 6};
+  __TYPE__ XI[3] = {6, 4, 2};
+  __TYPE__ out_keops[8];
+  EvalRed<CpuConv>(Sum_f,1, 1, out_keops, FAA, FBB, XI);
+
+
+  __TYPE__ s2d = 0;
+  for(int i=0; i<8; i++) {
+    std::cout << out_keops[i] << std::endl;
+    s2d += abs(out_keops[i] );
+  }
+  EXPECT_LE(s2d,5e-6);
+}
+*/
+
+TEST(tensordot, seventeen){
+
+  auto x = Vi(0,4*5*3); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
+  auto y = Vj(1,3*4*2); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
+  //auto f = TensorDot(x,y, Ind(4, 5, 3), Ind(3, 4, 2), Ind(0, 2), Ind(1, 0), Ind(0,1));
+  auto f = TensorDot(x,y, Ind(4, 5, 3), Ind(3, 4, 2), Ind(0, 2), Ind(1, 0), Ind(1,0));
+
+  auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")
+
+  __TYPE__ FAA[60] = {7, 9, 9, 5, 8, 3, 6, 9, 6, 0, 5, 7, 3, 4, 3, 5, 3, 3, 0, 9, 9, 6, 0, 3, 3, 7, 0, 8, 6, 0, 6, 1, 3, 1, 4, 7, 3, 9, 8, 8, 3, 7, 2, 3, 1, 9, 5, 7, 7, 5, 9, 7, 0, 1, 9, 7, 5, 0, 3, 8};
+  __TYPE__ FBB[24] = {6, 4, 2, 9, 9, 5, 1, 6, 7, 8, 2, 4, 1, 9, 7, 8, 5, 4, 3, 2, 3, 8, 5, 7};
+
+  __TYPE__ out_keops[10];
+  EvalRed<CpuConv>(Sum_f,1, 1, out_keops, FAA, FBB);
+
+  __TYPE__ out_loop[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#if C_CONTIGUOUS
+  for (size_t i = 0; i < 5; i++)
+    for (size_t j = 0; j < 2; j++)
+      for (size_t k = 0; k < 4; k++)
+        for (size_t l = 0; l < 3; l++) {
+            // size_t kda = 15 * k + 3 * i + l;
+            // size_t kdb = 8 * l + 2 * k + j;
+            // size_t I = 2 * i + j;
+            // std::cout << "(" << i << "," << j <<  "," << k <<  "," << l <<")     " << I << " " << kda << " " << kdb  << std::endl;
+            out_loop[5 * j + i] += FAA[15 * k + 3 * i + l] * FBB[8 * l + 2 * k + j];
+        }
+#else
+  for (size_t i = 0; i < 5; i++)
+    for (size_t j = 0; j < 2; j++)
+      for (size_t k = 0; k < 4; k++)
+        for (size_t l = 0; l < 3; l++) {
+            // size_t I = 5 * j + i;
+            // size_t kda = 20 * l + 4 * i + k;
+            // size_t kdb = 12 * j + 3 * k + l;
+            // std::cout << "(" << i << "," << j <<  "," << k <<  "," << l <<")     " << I << " " << kda << " " << kdb  << std::endl;
+            out_loop[2 * i + j] += FAA[20 * l + 4 * i + k] * FBB[12 * j + 3 * k + l];
+        }
+#endif
+
+  __TYPE__ s2d = 0;
+  for(int i=0; i<10; i++) {
+    // std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
+    s2d += abs(out_keops[i] - out_loop[i]);
+  }
+  EXPECT_LE(s2d,5e-6);
+
+}
+/*
+import numpy as np
+a= np.array([[[7, 9, 9], [5, 8, 3], [6, 9, 6], [0, 5, 7]], [[3, 4, 3], [5, 3, 3],[0, 9, 9],[6, 0, 3]],[[3, 7, 0],[8, 6, 0],[6, 1, 3],[1, 4, 7]], [[3, 9, 8],[8, 3, 7],[2, 3, 1],[9, 5, 7]],[[7, 5, 9],[7, 0, 1],[9, 7, 5],[0, 3, 8]]]).flatten().reshape(4, 5, 3)
+b = np.array([[[6, 4],[2, 9],[9, 5]],[[1, 6],[7, 8],[2, 4]],[[1, 9],[7, 8],[5, 4]],[[3, 2],[3, 8],[5, 7]]]).flatten().reshape(3,4,2)
+print(np.tensordot(a,b,axes=([0,2],[1,0])).swapaxes(1,0).flatten())
+# [318 267 222 269 174 405 392 389 391 277]
+
+import numpy as np
+aa= np.array([[[7, 9, 9], [5, 8, 3], [6, 9, 6], [0, 5, 7]], [[3, 4, 3], [5, 3, 3],[0, 9, 9],[6, 0, 3]],[[3, 7, 0],[8, 6, 0],[6, 1, 3],[1, 4, 7]], [[3, 9, 8],[8, 3, 7],[2, 3, 1],[9,5, 7]],[[7, 5, 9],[7, 0, 1],[9, 7, 5],[0, 3, 8]]]).flatten().reshape(4, 5, 3, order='F')
+bb = np.array([[[6, 4],[2, 9],[9, 5]],[[1, 6],[7, 8],[2, 4]],[[1, 9],[7, 8],[5, 4]],[[3, 2],[3, 8],[5, 7]]]).flatten().reshape(3,4,2, order='F')
+print(np.tensordot(aa,bb,axes=([0,2],[1,0])).swapaxes(1,0).flatten(order='F'))
+# [335 348 354 331 289 293 252 239 337 327]
+*/
 
 } // namespace
 
