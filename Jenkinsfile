@@ -3,7 +3,8 @@ pipeline {
   agent none 
   stages {
 
-    stage('Build') {
+// ----------------------------------------------------------------------------------------
+    stage('Test KeOps++') {
       parallel {
 
         stage('Build in Linux') {
@@ -36,11 +37,13 @@ pipeline {
               sh 'cd keops/build && make -j15 VERBOSE=0'
           }
         }
+
       }
     }
 
 
-    stage('Test') {
+// ----------------------------------------------------------------------------------------
+    stage('Test PyKeOps') {
       parallel {
 
         stage('Test Linux') {
@@ -83,18 +86,37 @@ pipeline {
                  cd pykeops/test
                  python unit_tests_numpy.py
               '''
-              // sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
-              // sh 'cd pykeops/test && python3 unit_tests_numpy.py'
-              // sh '''
-              //    cd keopslab/test
-              //    export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
-              //    matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
-              // '''
           }
         }
       }
     }
 
+// ----------------------------------------------------------------------------------------
+    stage('Test KeOpsLab') {
+      parallel {
+
+        stage('Test Cuda') {
+          agent { label 'matlab' }
+          environment { 
+            PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/jenkins/.local/bin/"
+          }
+          steps {
+            echo 'Testing..'
+              sh 'git submodule update --init'
+              sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
+              sh 'cd pykeops/test && python3 unit_tests_numpy.py'
+              sh '''
+                 cd keopslab/test
+                 export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+                 matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
+              '''
+          }
+        }
+
+      }
+    }
+
+// ----------------------------------------------------------------------------------------
     stage('Doc') {
       when { buildingTag() }
       agent { label 'cuda-doc' }
@@ -102,7 +124,11 @@ pipeline {
         echo 'Generating doc on tag event...'
         sh 'git submodule update --init'
         echo 'Building the doc...'
-        sh 'cd doc/ && conda activate keops && sh ./generate_doc.sh -b -l -v ${TAG_NAME##v}'
+        sh '''
+          . /opt/miniconda3/bin/activate keops
+          cd doc/
+          sh ./generate_doc.sh -b -l -v ${TAG_NAME##v}
+        '''
         withCredentials([usernamePassword(credentialsId: '02af275f-5383-4be3-91d8-4c711aa90de9', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
           sh '''
              lftp -u ${USERNAME},${PASSWORD}  -e "mirror -e -R  ./doc/_build/html/ /www/keops_latest/ ; quit" ftp://ftp.cluster021.hosting.ovh.net
@@ -111,6 +137,7 @@ pipeline {
       }
     }
 
+// ----------------------------------------------------------------------------------------
     stage('Deploy') {
       when { buildingTag() }
       agent { label 'cuda' }
