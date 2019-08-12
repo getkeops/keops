@@ -240,10 +240,10 @@ def full_bench(title, routines) :
 # NumPy vs. PyTorch vs. KeOps
 # --------------------------------------------------------
 
-# routines = [ (gaussianconv_numpy, "Numpy", "numpy"),
-# (gaussianconv_pytorch, "PyTorch", "torch"),
-# (gaussianconv_keops,   "KeOps", "torch"),]
-# full_bench( "Gaussian Matrix-Vector products", routines )
+routines = [ (gaussianconv_numpy,   "Numpy",   "numpy"),
+             (gaussianconv_pytorch, "PyTorch", "torch"),
+             (gaussianconv_keops,   "KeOps",   "torch"), ]
+full_bench( "Gaussian Matrix-Vector products", routines )
 
 
 ################################################
