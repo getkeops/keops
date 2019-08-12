@@ -4,10 +4,10 @@ Matlab Install
 Requirements
 ------------
 
-- A unix-like system (typically Linux or MacOs X) with a C++ compiler (gcc>=4.8, clang)
+- A unix-like system (typically Linux or MacOs X) with a C++ compiler compatible with std=c++14 (e.g. gcc>=7 or clang>=8)
 - Cmake>=3.10
 - Matlab>=R2012
-- Optional: Cuda (>=9.0 is recommended)
+- Optional: Cuda (>=10.0 is recommended)
 
 Packaged version (recommended)
 ------------------------------

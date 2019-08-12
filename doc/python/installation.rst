@@ -8,10 +8,10 @@ Requirements
 ============
 
 - **Python 3** with packages **numpy** and **GPUtil**.
-- A C++ compiler: **g++** version >=5 or **clang++**.
+- A C++ compiler compatible with std=c++14: **g++** version >=7 or **clang++** version >=8.
 - The **Cmake** build system, version >= 3.10.
-- The **Cuda** toolkit, including the **nvcc** compiler (optional): version >=9.0 is recommended. Make sure that your C++ compiler is compatible with the installed nvcc.
-- **PyTorch** (optional): version >= 1.0.0.
+- The **Cuda** toolkit, including the **nvcc** compiler (optional): version >=10.0 is recommended. Make sure that your C++ compiler is compatible with the installed nvcc.
+- **PyTorch** (optional): version >= 1.1.0.
 
 
 Using pip (recommended)
