@@ -293,7 +293,7 @@ std::tuple<int, int, int, int*> check_args(size_t nargs, std::vector<int> catego
 
         if (!is_contiguous(obj_ptr[i])) {
             throw std::runtime_error("[KeOps] Arg number " + std::to_string(i) + " : is not contiguous. "
-                    + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
+                    + "Please provide 'contiguous' data array, as KeOps does not support strides. "
                     + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
                     + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
                     + "'(1. * a).sum()' or 'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ") ;
