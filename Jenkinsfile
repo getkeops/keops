@@ -103,8 +103,6 @@ pipeline {
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
-              sh 'cd pykeops/test && python3 unit_tests_pytorch.py'
-              sh 'cd pykeops/test && python3 unit_tests_numpy.py'
               sh '''
                  cd keopslab/test
                  export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
