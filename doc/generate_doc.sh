@@ -10,9 +10,13 @@ echo "Entering ${SCRIPT_DIR}/"
 
 build_step=false
 fix_link=false
+number_of_build=1
 
-while getopts "v:bl" opt; do
+while getopts "n:v:bl" opt; do
   case ${opt} in
+    n )  number_of_build=${OPTARG##n}
+      ;;
+
     b )  build_step=true
       ;;
 
@@ -23,11 +27,12 @@ while getopts "v:bl" opt; do
         echo "Set a new version number: ${version}"
         sed -i.bak "/__version__/c__version__ = \'$version\'" ../pykeops/__init__.py
       ;;
-    \? ) echo "Usage: generate_doc [-v VERSION_NUMBER] [-l] [-b]
+    \? ) echo "Usage: generate_doc [-v VERSION_NUMBER] [-l] [-b] [-n NUMBER_OF_BUILD]
 
     -b : build with sphinx
     -l : make correction on links
-    -v : compile doc with the specified VERSION_NUMBER.
+    -v : compile doc with the specified VERSION_NUMBER
+    -n : number of consecutive build(s)
     "
          exit -1
       ;;
@@ -40,11 +45,12 @@ echo $build_step
 if [ $build_step = true ]; then
   printf "\n----------------------\n   Building the doc   \n----------------------\n\n"
 
-  # build the doc (1rst run to compile the binaries, 2nd run to render the doc)
+
+for i in 1 .. number_of_build
+do
   make clean
   CXX=g++-8 CC=gcc-8 make html
-  make clean
-  CXX=g++-8 CC=gcc-8 make html
+done
 
 fi
 
