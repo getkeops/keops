@@ -72,6 +72,7 @@ struct GpuConv1D_FromHost {
 template < typename TYPE, class FUN >
 static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h) {
 
+
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
@@ -135,11 +136,15 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     }
 
     phy_d[0] = y_d;
-    nvals = ny*DIMSY::VAL(0);
+    // TODO : replace the following max with a reduction taking into account 
+    // that there is no Vj variable (ie DIMSY::VAL(.) == 0)
+    nvals = ny*max(0, (int) DIMSY::VAL(0));
     CudaSafeCall(cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     for(int k=1; k<SIZEJ; k++) {
         phy_d[k] = phy_d[k-1] + nvals;
-        nvals = ny*DIMSY::VAL(k);
+        // TODO : replace the following max with a reduction taking into account 
+        // that there is no Vj variable (ie DIMSY::VAL(.) == 0)
+        nvals = ny*max(0, (int) DIMSY::VAL(k));
         CudaSafeCall(cudaMemcpy(phy_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     }
 
