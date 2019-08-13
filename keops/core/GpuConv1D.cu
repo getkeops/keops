@@ -115,17 +115,18 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     TYPE *php_d[SIZEP];
 
     int nvals;    
-    nvals = DIMSP::VAL(0);
     // if DIMSP is empty (i.e. no parameter), nvals = -1 which could result in a segfault
-    if(nvals >= 0){ 
-        php_d[0] = param_d;
-        CudaSafeCall(cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
-    }
-    for(int k=1; k<SIZEP; k++) {
+    if(SIZEP > 0){ 
+      php_d[0] = param_d;
+      nvals = DIMSP::VAL(0);
+      CudaSafeCall(cudaMemcpy(php_d[0], pp_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
+
+      for(int k=1; k<SIZEP; k++) {
         php_d[k] = php_d[k-1] + nvals;
         nvals = DIMSP::VAL(k);
         CudaSafeCall(cudaMemcpy(php_d[k], pp_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
-    }    
+      }    
+    }
 
     phx_d[0] = x_d;
     nvals = nx*DIMOUT;
@@ -135,17 +136,17 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
         CudaSafeCall(cudaMemcpy(phx_d[k], px_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
     }
 
-    phy_d[0] = y_d;
-    // TODO : replace the following max with a reduction taking into account 
-    // that there is no Vj variable (ie DIMSY::VAL(.) == 0)
-    nvals = ny*max(0, (int) DIMSY::VAL(0));
-    CudaSafeCall(cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
-    for(int k=1; k<SIZEJ; k++) {
+    // if DIMSY is empty (i.e. no Vj variable), nvals = -1 which could result in a segfault
+    if(SIZEJ > 0){ 
+      phy_d[0] = y_d;
+      nvals = ny*DIMSY::VAL(0);
+      CudaSafeCall(cudaMemcpy(phy_d[0], py_h[0], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
+
+      for(int k=1; k<SIZEJ; k++) {
         phy_d[k] = phy_d[k-1] + nvals;
-        // TODO : replace the following max with a reduction taking into account 
-        // that there is no Vj variable (ie DIMSY::VAL(.) == 0)
-        nvals = ny*max(0, (int) DIMSY::VAL(k));
+        nvals = ny*(int) DIMSY::VAL(k);
         CudaSafeCall(cudaMemcpy(phy_d[k], py_h[k], sizeof(TYPE)*nvals, cudaMemcpyHostToDevice));
+      }
     }
 
     // copy arrays of pointers
