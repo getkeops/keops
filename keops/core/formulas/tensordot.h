@@ -348,7 +348,7 @@ struct tensordot_parameters {
   using moveaxis_b = typename tao::seq::concatenate<indices_keepdim_b_t, bb>::type;
 
   template<class IND>
-  constexpr static tensordot_indices compute_tensordot_indices(IND) {
+  HOST_DEVICE constexpr static tensordot_indices compute_tensordot_indices(IND) {
 
     // a_indices
     using list_indices_a = typename tao::seq::map<list_indices_a_intot,
