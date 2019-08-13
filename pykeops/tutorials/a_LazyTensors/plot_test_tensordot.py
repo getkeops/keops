@@ -35,7 +35,7 @@ C = A.keops_tensordot(B, (4, 7), (7,), (1,), (0,)).sum_reduction(dim=1)
 #  print(C, c)
 print("Compare the two MatVecMul implementations. All good?", torch.allclose(c.flatten(), C.flatten()))
 
-xi = torch.randn(4)
+xi = torch.randn(4, dtype=torch.float64)
 dC = torch.autograd.grad(C, a, xi.reshape(1, 4), retain_graph=True)[0].view(-1)
 dc = torch.autograd.grad(c, a, xi, retain_graph=True)[0].view(-1)
 
@@ -68,7 +68,7 @@ C = A.keops_tensordot(B, (4, 7), (7,), (1,), (0,)).sum_reduction(dim=1)
 # print(C, c)
 print("Compare the two MatVecMul with sum implementations. All good ?", torch.allclose(c.flatten(), C.flatten()))
 
-xi = torch.randn(M, 4)
+xi = torch.randn(M, 4, dtype=torch.float64)
 dCa = torch.autograd.grad(C, a, xi, retain_graph=True)[0].view(-1)
 dca = torch.autograd.grad(c, a, xi, retain_graph=True)[0].view(-1)
 
@@ -101,7 +101,7 @@ C = A.keops_tensordot(B, (4, 7), (7, 2), (1,), (0,)).sum_reduction(dim=1)
 #  print(C, c)
 print("Compare the two MatMul implementations. All good?", torch.allclose(c.flatten(), C.flatten()))
 
-xi = torch.randn(4 * 2)
+xi = torch.randn(4 * 2, dtype=torch.float64)
 dC = torch.autograd.grad(C, a, xi.reshape(1, 4 * 2), retain_graph=True)[0].view(-1)
 dc = torch.autograd.grad(c, a, xi.reshape(4, 2), retain_graph=True)[0].view(-1)
 
@@ -371,7 +371,7 @@ print('------------------------------------------')
 # ^^^^^^^^^^^^^^^^
 
 x = torch.randn(M, 2, 3, 5, 2, 4, requires_grad=True, dtype=torch.float64)
-y = torch.randn(N, 2, 4, 5, 3, 2, requires_grad=True, dtype=torch.float64)
+y = torch.randn(N, 2, 4, 5, 3, 2, 3, requires_grad=True, dtype=torch.float64)
 
 xshape, yshape = x.shape[1:], y.shape[1:]
 f_keops = LazyTensor(x.reshape(M, 1, int(np.array((xshape)).prod()))).keops_tensordot(
