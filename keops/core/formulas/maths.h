@@ -116,6 +116,7 @@ struct Minus : UnaryOp<Minus, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = -outF[k];
     }
@@ -143,6 +144,7 @@ struct Sum : UnaryOp<Sum, F> {
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         *out = 0;
+#pragma unroll
         for (int k = 0; k < F::DIM; k++)
             *out += outF[k];
     }
@@ -166,6 +168,7 @@ struct SumT : UnaryOp<SumT, F, D> {
     static void PrintIdString(std::stringstream& str) { str << "SumT"; }
 	
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = *outF;
     }
@@ -191,6 +194,7 @@ struct Add_Impl : BinaryOp<Add_Impl, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = outA[k] + outB[k];
     }
@@ -212,6 +216,7 @@ struct Add_Impl_Broadcast : BinaryOp<Add_Impl_Broadcast, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = *outA + outB[k];
     }
@@ -325,8 +330,10 @@ struct Concat_Impl : BinaryOp<Concat_Impl, F, G> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF, __TYPE__ *outG) {
+#pragma unroll
         for (int k = 0; k < F::DIM; k++)
             out[k] = outF[k];
+#pragma unroll
         for (int k = 0; k < G::DIM; k++)
             out[k + F::DIM] = outG[k];
     }
@@ -376,6 +383,7 @@ struct Scal_Impl : BinaryOp<Scal_Impl, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = *outA * outB[k];
     }
@@ -469,6 +477,7 @@ struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = outA[k] * outB[k];
     }
@@ -542,6 +551,7 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = outA[k] - outB[k];
     }
@@ -562,6 +572,7 @@ struct Subtract_Impl_Broadcast : BinaryOp<Subtract_Impl_Broadcast, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = *outA - outB[k];
     }
@@ -673,6 +684,7 @@ struct Exp : UnaryOp<Exp, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = exp(outF[k]);
     }
@@ -703,6 +715,7 @@ struct Sin : UnaryOp<Sin, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = sin(outF[k]);
     }
@@ -722,6 +735,7 @@ struct Cos : UnaryOp<Cos, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = cos(outF[k]);
     }
@@ -745,6 +759,7 @@ struct Pow : UnaryOp<Pow, F, M> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#pragma unroll
         for (int k = 0; k < DIM; k++)
             out[k] = pow(outF[k], M);
     }
@@ -775,6 +790,7 @@ struct Square : UnaryOp<Square, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#pragma unroll
         for (int k = 0; k < DIM; k++) {
             __TYPE__ temp = outF[k];
             out[k] = temp * temp;
