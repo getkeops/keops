@@ -368,10 +368,10 @@ print('------------------------------------------')
 
 ####################################################################################################################
 # A Seventh example
-# ^^^^^^^^^^^^^^^^
+# ^^^^^^^^^^^^^^^^^
 
-x = torch.randn(M, 2, 3, 5, 2, 4, requires_grad=True, dtype=torch.float64)
-y = torch.randn(N, 2, 4, 5, 3, 2, 3, requires_grad=True, dtype=torch.float64)
+x = torch.randn(M, 2, 3, 2, 2, 4, requires_grad=True, dtype=torch.float64)
+y = torch.randn(N, 2, 4, 2, 3, 2, 3, requires_grad=True, dtype=torch.float64)
 
 xshape, yshape = x.shape[1:], y.shape[1:]
 f_keops = LazyTensor(x.reshape(M, 1, int(np.array((xshape)).prod()))).keops_tensordot(
@@ -402,21 +402,18 @@ print("Compare the two gradient y tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
 
 
-
-
-"""
 ########################################################################################################################
 #  Using gradcheck
 #  ---------------
 #
 
 
-def my_tensordot(x,y):
-    f_keops = LazyTensor(x.reshape(M, 1, 4 * 3 * 7)).keops_tensordot(LazyTensor(y.reshape(1, N, 7 * 2)), (4, 3, 7),
-                                                                     (7, 2), (2,), (0,))
-    return f_keops.sum_reduction(dim=1)
+# def my_tensordot(x,y):
+    # f_keops = LazyTensor(x.reshape(M, 1, 4 * 3 * 7)).keops_tensordot(LazyTensor(y.reshape(1, N, 7 * 2)), (4, 3, 7),
+                                                                     # (7, 2), (2,), (0,))
+    # return f_keops.sum_reduction(dim=1)
     
-print(torch.autograd.gradcheck(my_tensordot, [x,y]))
+# print(torch.autograd.gradcheck(my_tensordot, [x,y]))
 
 def my_tensordot2(x, y):
     xshape, yshape = x.shape[1:], y.shape[1:]
@@ -432,4 +429,3 @@ x = torch.randn(M, 2, 2, 2, requires_grad=True, dtype=torch.float64)
 y = torch.randn(N, 2, 2, requires_grad=True, dtype=torch.float64)
 print(torch.autograd.gradcheck(my_tensordot2, [x, y], atol=1e-5, rtol=1e-5))
 
-"""

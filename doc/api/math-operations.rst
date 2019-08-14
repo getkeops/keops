@@ -119,11 +119,12 @@ Constants and padding/concatenation operations:
 
 Elementary dot products:
 
-======================   =========================================================================================================
-``MatVecMult(f, g)``      matrix-vector product ``f x g``: ``f`` is vector interpreted as matrix (column-major), ``g`` is vector
-``VecMatMult(f, g)``      vector-matrix product ``f x g``: ``f`` is vector, ``g`` is vector interpreted as matrix (column-major)
-``TensorProd(f, g)``      tensor product ``f x g^T`` : ``f`` and ``g`` are vectors of sizes M and N, output is of size MN.
-======================   =========================================================================================================
+==============================================     ====================================================================================================================================================================================================================================================================================
+``MatVecMult(f, g)``                                matrix-vector product ``f x g``: ``f`` is vector interpreted as matrix (column-major), ``g`` is vector
+``VecMatMult(f, g)``                                vector-matrix product ``f x g``: ``f`` is vector, ``g`` is vector interpreted as matrix (column-major)
+``TensorProd(f, g)``                                tensor cross product ``f x g^T``: ``f`` and ``g`` are vectors of sizes M and N, output is of size MN.
+``TensorDot(f, g, dimf, dimg, contf, contg)``       tensordot product ``f : g`` : ``f`` and ``g`` are tensors of sizes listed in ``dimf`` and ``dimg`` contracted along the dimensions listed in ``contf`` and ``contg``. The ``MatVecMult``, ``VecMatMult`` and ``TensorProd`` operations are special cases of ``TensorDot(f,g)``.
+==============================================     ====================================================================================================================================================================================================================================================================================
 
 Symbolic gradients:
 
