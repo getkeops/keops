@@ -55,6 +55,10 @@
 
 namespace keops {
 
+// For some reason, pragma unroll does not accept macro as an argument.
+// It has to be replace by an Integral Constant Expression 
+constexpr int MAX_UNROLL_COUNT_ICE = MAX_UNROLL_COUNT;
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
@@ -116,7 +120,7 @@ struct Minus : UnaryOp<Minus, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = -outF[k];
     }
@@ -144,7 +148,7 @@ struct Sum : UnaryOp<Sum, F> {
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
         *out = 0;
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < F::DIM; k++)
             *out += outF[k];
     }
@@ -168,7 +172,7 @@ struct SumT : UnaryOp<SumT, F, D> {
     static void PrintIdString(std::stringstream& str) { str << "SumT"; }
 	
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = *outF;
     }
@@ -194,7 +198,7 @@ struct Add_Impl : BinaryOp<Add_Impl, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = outA[k] + outB[k];
     }
@@ -216,7 +220,7 @@ struct Add_Impl_Broadcast : BinaryOp<Add_Impl_Broadcast, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = *outA + outB[k];
     }
@@ -330,10 +334,10 @@ struct Concat_Impl : BinaryOp<Concat_Impl, F, G> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF, __TYPE__ *outG) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < F::DIM; k++)
             out[k] = outF[k];
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < G::DIM; k++)
             out[k + F::DIM] = outG[k];
     }
@@ -383,7 +387,7 @@ struct Scal_Impl : BinaryOp<Scal_Impl, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = *outA * outB[k];
     }
@@ -477,7 +481,7 @@ struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = outA[k] * outB[k];
     }
@@ -551,7 +555,7 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = outA[k] - outB[k];
     }
@@ -572,7 +576,7 @@ struct Subtract_Impl_Broadcast : BinaryOp<Subtract_Impl_Broadcast, FA, FB> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = *outA - outB[k];
     }
@@ -684,7 +688,7 @@ struct Exp : UnaryOp<Exp, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = exp(outF[k]);
     }
@@ -715,7 +719,7 @@ struct Sin : UnaryOp<Sin, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = sin(outF[k]);
     }
@@ -735,7 +739,7 @@ struct Cos : UnaryOp<Cos, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = cos(outF[k]);
     }
@@ -759,7 +763,7 @@ struct Pow : UnaryOp<Pow, F, M> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = pow(outF[k], M);
     }
@@ -790,7 +794,7 @@ struct Square : UnaryOp<Square, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++) {
             __TYPE__ temp = outF[k];
             out[k] = temp * temp;
@@ -823,7 +827,7 @@ struct Inv : UnaryOp<Inv, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++) {
             out[k] = 1 / outF[k];
         }
@@ -870,7 +874,7 @@ struct Log : UnaryOp<Log, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = log(outF[k]);
     }
@@ -895,7 +899,7 @@ struct Sign : UnaryOp<Sign, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             if (outF[k] > 0)
                 out[k] = 1.0;
@@ -923,7 +927,7 @@ struct Abs : UnaryOp<Abs, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             if (outF[k] < 0)
                 out[k] = -outF[k];
@@ -950,7 +954,7 @@ struct Step : UnaryOp<Step, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             if (outF[k] < 0)
                 out[k] = 0.0;
@@ -975,7 +979,7 @@ struct ReLU : UnaryOp<ReLU, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             if (outF[k] < 0)
                 out[k] = 0.0;
@@ -1019,7 +1023,7 @@ struct Sqrt_Impl : UnaryOp<Sqrt_Impl, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             out[k] = sqrt(outF[k]);
     }
@@ -1062,7 +1066,7 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
     }
 
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
         for (int k = 0; k < DIM; k++)
             if (outF[k] == 0)
                 out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
@@ -1120,22 +1124,22 @@ struct MatVecMult : BinaryOp<MatVecMult, A, B> {
     }
 #if C_CONTIGUOUS //row major
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-        size_t q = 0;
-#pragma unroll
-        for (size_t i = 0; i != DIM; i++) {
+        int q = 0;
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+        for (int i = 0; i < DIM; i++) {
             out[i] = 0;
-#pragma unroll
-            for (size_t k = 0; k != B::DIM; k++, q++)
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+            for (int k = 0; k < B::DIM; k++, q++)
                 out[i] += inA[q] * inB[k];
         }
     }
 #else // column major
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-#pragma unroll
-        for (size_t i = 0; i != DIM; i++) {
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+        for (int i = 0; i < DIM; i++) {
             out[i] = 0;
-#pragma unroll
-            for (size_t k = 0; k != B::DIM; k++)
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+            for (int k = 0; k < B::DIM; k++)
                 out[i] += inA[k * DIM + i] * inB[k];
         }
     }
@@ -1171,22 +1175,22 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 
 #if C_CONTIGUOUS //row major
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
-#pragma unroll
-        for (size_t i = 0; i != DIM; i++) {
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+        for (int i = 0; i < DIM; i++) {
             out[i] = 0;
-#pragma unroll
-            for (size_t k = 0; k != B::DIM; k++)
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+            for (int k = 0; k < B::DIM; k++)
                 out[i] += inB[k] * inA[DIM * k + i];
         }
     }
 #else // column major
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
-        size_t q = 0;
-#pragma unroll
-        for (size_t i = 0; i != DIM; i++) {
+        int q = 0;
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+        for (int i = 0; i < DIM; i++) {
             out[i] = 0;
-#pragma unroll
-            for (size_t k = 0; k != B::DIM; k++, q++)
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+            for (int k = 0; k < B::DIM; k++, q++)
                 out[i] += inB[k] * inA[q];
         }
     }
@@ -1228,8 +1232,8 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMU
     }
 
      static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-#pragma unroll
-        for (size_t i =0 ; i != DIM ; i ++)
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+        for (int i =0 ; i < DIM ; i ++)
             out[i] = 0;
 
         loop<typename parameters::loopdim_t >::f(parameters::compute_tensordot_indices_apply([&out,&inA,&inB](tensordot_indices td){
@@ -1280,21 +1284,21 @@ struct TensorProd : BinaryOp<TensorProd, A, B> {
     }
 #if C_CONTIGUOUS // row major
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-        size_t q = 0;
-#pragma unroll
-        for (size_t k = 0; k != A::DIM; k++) {
-#pragma unroll
-            for (size_t l = 0; l != B::DIM; l++, q++)
+        int q = 0;
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+        for (int k = 0; k < A::DIM; k++) {
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+            for (int l = 0; l < B::DIM; l++, q++)
                 out[q] = inA[k] * inB[l];
         }
     }
 #else // column major
     static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-        size_t q = 0;
-#pragma unroll
-        for (size_t i = 0; i != A::DIM; i++) {
-#pragma unroll
-            for (size_t j = 0; j != B::DIM; j++, q++)
+        int q = 0;
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+        for (int i = 0; i < A::DIM; i++) {
+#pragma unroll (MAX_UNROLL_COUNT_ICE)
+            for (int j = 0; j < B::DIM; j++, q++)
                 out[A::DIM * j + i] = inA[i] * inB[j];
         }
     }
