@@ -80,11 +80,13 @@ get_rkeops_option <- function(option) {
     if(is.null(rkeops_options) | is.null(rkeops_options$compile_options) | 
        is.null(rkeops_options$runtime_options))
         stop("rkeops global options are not defined.")
-    ## update corresponding option with provided value
+    ## return corresponding option with provided value
+    out <- NULL
     if(option %in% c(possible_compile_options)) {
-        return(rkeops_options$compile_options[option])
+        out <- rkeops_options$compile_options[option]
     }
     if(option %in% c(possible_runtime_options)) {
-        return(rkeops_options$runtime_options[option])
+        out <- rkeops_options$runtime_options[option]
     }
+    return(unname(unlist(out)))
 }

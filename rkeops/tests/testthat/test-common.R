@@ -51,13 +51,13 @@ test_that("get_rkeops_option", {
     tmp <- lapply(names(custom_compile_options), function(option) {
         value <- get_rkeops_option(option)
         expect_equal(value,
-                     custom_compile_options[option])
+                     unname(unlist(custom_compile_options[option])))
     })
     ## check getting each runtime option
     tmp <- lapply(names(custom_runtime_options), function(option) {
         value <- get_rkeops_option(option)
         expect_equal(value,
-                     custom_runtime_options[option])
+                     unname(unlist(custom_runtime_options[option])))
     })
     ## error if no input
     expect_error(get_rkeops_option(),
