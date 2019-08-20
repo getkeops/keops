@@ -39,12 +39,20 @@ get_pkg_dir <- function(pkg = "rkeops") {
 #' @details
 #' This path is generaly something like 
 #' `/path/to/R_package_install/rkeops/include`.
+#' 
+#' **Note:** when running tests in the development project `keops` without 
+#' installing `rkeops`, for consistency reason, the function returns 
+#' `/path/to/keops/rkeops/inst/include` (because the content of 
+#' `rkeops/inst/include` is copied to `rkeops/include` at installation).
 #' @author Ghislain Durif
 #' @param pkg name (string) of the R package, default is "rkeops".
 #' @return path to the corresponding directory.
 #' @export
 get_src_dir <- function(pkg = "rkeops") {
     out <- file.path(get_pkg_dir(pkg), "include")
+    if(!is_installed()) {
+        out <- file.path(get_pkg_dir(pkg), "inst", "include")
+    }
     return(out)
 }
 
@@ -57,14 +65,20 @@ get_src_dir <- function(pkg = "rkeops") {
 #' This path is generaly something like 
 #' `/path/to/R_package_install/rkeops/build`. The correspondinging
 #' directory can be created if not existing.
+#' **Note:** when running tests in the development project `keops` without 
+#' installing `rkeops`, for consistency reason, the function returns 
+#' `/path/to/keops/rkeops/inst/build`.
 #' @author Ghislain Durif
 #' @param pkg name (string) of the R package, default is "rkeops".
 #' @param create boolean indicating if the corresponding directory
-#' should be created if missing or not. Default is TRUE.
+#' should be created if missing or not. Default value is TRUE.
 #' @return path to the corresponding directory.
 #' @export
 get_build_dir <- function(pkg = "rkeops", create = TRUE) {
     out <- file.path(get_pkg_dir(pkg), "build")
+    if(!is_installed()) {
+        out <- file.path(get_pkg_dir(pkg), "inst", "build")
+    }
     if(!dir.exists(out) & create) dir.create(out)
     return(out)
 }
@@ -87,6 +101,6 @@ get_build_dir <- function(pkg = "rkeops", create = TRUE) {
 #' @export
 is_installed <- function() {
     out_compile <- tryCatch(is_compiled(), error = function(e) return(0))
-    out_file <- dir.exists(get_src_dir())
+    out_file <- dir.exists(file.path(get_pkg_dir(), "include"))
     return(out_compile & out_file)
 }

@@ -36,16 +36,22 @@ test_that("compile_options", {
     #              "Wrong input for `rkeops_dir` parameter.",
     #              fixed = TRUE)
     # build_dir
+    expected_dir <- file.path(find.package("rkeops"), "build")
+    if(!dir.exists(expected_dir))
+        expected_dir <- file.path(find.package("rkeops"), "inst", "build")
     out <- rkeops::compile_options(build_dir = get_build_dir())
     expect_equal(out$build_dir,
-                 file.path(find.package("rkeops"), "build"))
+                 expected_dir)
     # FIXME expect_error(rkeops::compile_options(build_dir = "/nopath/to/test"),
     #              "Wrong input for `build_dir` parameter.",
     #              fixed = TRUE)
     # src_dir
+    expected_dir <- file.path(find.package("rkeops"), "include")
+    if(!dir.exists(expected_dir))
+        expected_dir <- file.path(find.package("rkeops"), "inst", "include")
     out <- rkeops::compile_options(src_dir = get_src_dir())
     expect_equal(out$src_dir,
-                 file.path(find.package("rkeops"), "include"))
+                 expected_dir)
     # FIXME expect_error(rkeops::compile_options(src_dir = "/nopath/to/test"),
     #              "Wrong input for `src_dir` parameter.",
     #              fixed = TRUE)

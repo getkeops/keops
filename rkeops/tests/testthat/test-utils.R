@@ -16,12 +16,18 @@ test_that("get_pkg_dir", {
 })
 
 test_that("get_src_dir", {
+    expected_dir <- file.path(find.package("rkeops"), "include")
+    if(!dir.exists(expected_dir))
+        expected_dir <- file.path(find.package("rkeops"), "inst", "include")
     expect_equal(get_src_dir(), 
-                 file.path(find.package("rkeops"), "include"))
+                 expected_dir)
 })
 
 test_that("get_build_dir", {
+    expected_dir <- file.path(find.package("rkeops"), "build")
+    if(!dir.exists(expected_dir))
+        expected_dir <- file.path(find.package("rkeops"), "inst", "build")
     expect_equal(get_build_dir(), 
-                 file.path(find.package("rkeops"), "build"))
-    expect_true(dir.exists(file.path(find.package("rkeops"), "build")))
+                 expected_dir)
+    expect_true(dir.exists(expected_dir))
 })
