@@ -104,3 +104,34 @@ is_installed <- function() {
     out_file <- dir.exists(file.path(get_pkg_dir(), "include"))
     return(out_compile & out_file)
 }
+
+#' Get path to R default Makeconf file 
+#' @keywords internal
+#' @description
+#' Default R compile and linking options are defined in the Makeconf files. 
+#' The function return the path to this file.
+#' @details
+#' The default compile and linking options are required to compile new user-
+#' defined operators. We use the option defined in the R default Makeconf file 
+#' (in particular used by R CMD SHLIB).
+#' @param path test string, path to custom Makeconf file. Default value is 
+#' NULL and R default Makeconf file is used.
+#' @return path to Makeconf file.
+#' @author Ghislain Durif
+#' @importFrom stringr str_length
+#' @export
+R_makeconf_path <- function(path = NULL) {
+    if(!missing(path)) {
+        if(!is.character(path) | 
+           !tryCatch(file.exists(path), error = function(e) return(FALSE)))
+            stop("`path` input parameter should be an existing file name.")
+        return(path)
+    } else {
+        # Windows specific path
+        r_arch <- .Platform$r_arch
+        if(str_length(r_arch) == 0)
+            return(file.path(R.home("etc"), r_arch, "Makeconf"))
+        # Unix-based OS path
+        return(file.path(R.home("etc"), "Makeconf"))
+    }
+}

@@ -31,3 +31,14 @@ test_that("get_build_dir", {
                  expected_dir)
     expect_true(dir.exists(expected_dir))
 })
+
+test_that("R_makeconf_path", {
+    out <- R_makeconf_path()
+    expect_true(is.character(out))
+    expect_true(file.exists(out))
+    expect_match(out, "Makeconf")
+    expect_error(R_makeconf_path(5), 
+                 "`path` input parameter should be an existing file name.")
+    expect_error(R_makeconf_path(path="/no/path/to/notest"), 
+                 "`path` input parameter should be an existing file name.")
+})
