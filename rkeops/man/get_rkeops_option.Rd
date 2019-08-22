@@ -17,26 +17,27 @@ The function \code{get_rkeops_option} returns the current value of a specific
 \code{rkeops} option (in \code{R} global options scope) provided as input.
 }
 \details{
-\code{rkeops} uses two sets of options: compile options \code{build_dir}, \code{src_dir},
-\code{precision}, \code{verbosity}, \code{use_cuda_if_possible} (see
-\code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options \code{tagCpuGpu}, \code{tag1D2D},
-\code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}). These options define the
-behavior of \code{rkeops} when compiling or when running new user-defined
-operators.
+\code{rkeops} uses two sets of options: compile options \code{rkeops_dir},
+\code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity}, \code{use_cuda_if_possible}
+(see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options \code{tagCpuGpu},
+\code{tag1D2D}, \code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
+
+These options define the behavior of \code{rkeops} when compiling or when
+running new user-defined operators.
 
 With the function \code{get_rkeops_option}, you get the value of a specific
-\code{rkeops} options among \code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity},
-\code{use_cuda_if_possible} or \code{tagCpuGpu}, \code{tag1D2D}, \code{device_id}.
+\code{rkeops} options among \code{rkeops_dir}, \code{build_dir}, \code{src_dir}, \code{precision},
+\code{verbosity}, \code{use_cuda_if_possible} or \code{tagCpuGpu}, \code{tag1D2D}, \code{device_id}.
 
-These options are set with the functions \code{\link[rkeop:set_rkeops_options]{rkeops::set_rkeops_options()}} and
-\code{\link[rkeop:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which
+These options are set with the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} and
+\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which
 options, you can check \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and
 \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.
 }
 \seealso{
 \code{\link[rkeops:get_rkeops_options]{rkeops::get_rkeops_options()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeop:set_rkeops_options]{rkeops::set_rkeops_options()}},
-\code{\link[rkeop:set_rkeops_option]{rkeops::set_rkeops_option()}}
+\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
+\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
 }
 \author{
 Ghislain Durif

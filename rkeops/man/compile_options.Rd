@@ -5,7 +5,8 @@
 \title{User-defined options used for compilation in \code{rkeops} package}
 \usage{
 compile_options(precision = "float", verbosity = FALSE,
-  use_gpu = TRUE, build_dir = NULL, src_dir = NULL)
+  use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL,
+  src_dir = NULL)
 }
 \arguments{
 \item{precision}{string, precision for floating point computations (\code{float}
@@ -16,6 +17,10 @@ is \code{FALSE}.}
 
 \item{use_gpu}{boolean indicator regarding use of GPU in computations (if
 possible on the system). Default value is \code{TRUE}.}
+
+\item{rkeops_dir}{string, path to \code{rkeops} install directory on the system.
+If NULL, default path described in Details section is used. Default value
+is \code{NULL}.}
 
 \item{build_dir}{string, path to the directory where new custom user-defined
 operators will be compiled. If NULL, default path described in Details
@@ -28,6 +33,7 @@ Details section is used. Default value is \code{NULL}.}
 \value{
 a list (of class \code{rkeops_compile_options}) with the following
 elements:
+\item{rkeops_dir}{string, path to \code{rkeops} install directory on the system.}
 \item{build_dir}{string, path to the directory where new custom user-defined
 operators will be compiled.}
 \item{src_dir}{string, path to \code{keops} (C++) source files required for
@@ -50,6 +56,8 @@ options (see Details).
 \details{
 The aforementioned compile options are the following:
 \itemize{
+\item \code{rkeops_dir}: path to \code{rkeops} install directory on the system (e.g.
+\code{/path/to/R_package_install/rkeops/build} on Unix system).
 \item \code{build_dir}: path to directory where new custom user-defined operators
 will be compiled and corresponding share objects (\code{.so} files) will be
 saved (so that they can be found upon reuse to avoid useless recompilation).

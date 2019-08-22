@@ -17,17 +17,18 @@ The function \code{set_rkeops_option} allows to set up a single specific \code{r
 options in \code{R} global options scope.
 }
 \details{
-\code{rkeops} uses two sets of options: compile options \code{build_dir}, \code{src_dir},
-\code{precision}, \code{verbosity}, \code{use_cuda_if_possible} (see
-\code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options \code{tagCpuGpu}, \code{tag1D2D},
-\code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}). These options define the
-behavior of \code{rkeops} when compiling or when running new user-defined
-operators.
+\code{rkeops} uses two sets of options: compile options \code{rkeops_dir},
+\code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity}, \code{use_cuda_if_possible}
+(see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options \code{tagCpuGpu},
+\code{tag1D2D}, \code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
+
+These options define the behavior of \code{rkeops} when compiling or when
+running new user-defined operators.
 
 With the function \code{set_rkeops_option}, you can set up a specific \code{rkeops}
-options among \code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity},
-\code{use_cuda_if_possible} or \code{tagCpuGpu}, \code{tag1D2D}, \code{device_id} with a value
-that you provide in input.
+options among \code{rkeops_dir} (not recommended), \code{build_dir}, \code{src_dir},
+\code{precision}, \code{verbosity}, \code{use_cuda_if_possible} or \code{tagCpuGpu}, \code{tag1D2D},
+\code{device_id} with a value that you provide in input.
 
 To know which values are allowed for which options, you can check
 \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.

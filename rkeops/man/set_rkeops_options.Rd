@@ -9,9 +9,10 @@ set_rkeops_options(custom_compile_options = NULL,
 }
 \arguments{
 \item{custom_compile_options}{a list (of class \code{rkeops_compile_options})
-with the following elements \code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity},
-\code{use_cuda_if_possible}. Default value is \code{NULL} and default compile options
-are set up (see \code{\link[rkeops:default_compile_options]{rkeops::default_compile_options()}}).}
+with the following elements \code{rkeops_dir}, \code{build_dir}, \code{src_dir},
+\code{precision}, \code{verbosity}, \code{use_cuda_if_possible}. Default value is \code{NULL}
+and default compile options are set up (see
+\code{\link[rkeops:default_compile_options]{rkeops::default_compile_options()}}).}
 
 \item{custom_runtime_options}{a list (of class \code{rkeops_runtime_options})
 with the following elements \code{tagCpuGpu}, \code{tag1D2D}, \code{device_id}. Default

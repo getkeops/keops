@@ -2,7 +2,7 @@ Package: rkeops
 Type: Package
 Title: Kernel Operations on the GPU, with autodiff, without memory overflows
 Version: 1.1.1
-Date: 2019-08-07
+Date: 2019-08-22
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
            comment="<http://imag.umontpellier.fr/~charlier/>", 
@@ -36,11 +36,13 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Collate:
+    common-compile_code.R
     common-get_cmake.R
     common-get_options.R
     common-set_options.R
     common-string2hash.R
     default_options.R
+    generic-compile_formula.R
     generic-format_var_aliase.R
     generic-keops_kernel.R
     RcppExports.R

@@ -20,22 +20,22 @@ the current states of \code{rkeops} options by calling \code{get_rkeops_options(
 \code{The function }get_keops_options` return a list with these two elements:
 \itemize{
 \item a list named \code{compile_options} (of class \code{rkeops_compile_options}) with
-the following elements \code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity},
-\code{use_cuda_if_possible} (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}).
+the following elements \code{rkeops_dir}, \code{build_dir}, \code{src_dir}, \code{precision},
+\code{verbosity}, \code{use_cuda_if_possible} (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}).
 \item a list named \code{runtime_options} (of class \code{rkeops_runtime_options})
 with the following elements \code{tagCpuGpu}, \code{tag1D2D}, \code{device_id} (see
 \code{\link[rkeops:default_runtime_options]{rkeops::default_runtime_options()}}).
 }
 
-These options are set with the functions \code{\link[rkeop:set_rkeops_options]{rkeops::set_rkeops_options()}} and
-\code{\link[rkeop:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which
+These options are set with the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} and
+\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which
 options, you can check \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and
 \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.
 }
 \seealso{
 \code{\link[rkeops:get_rkeops_option]{rkeops::get_rkeops_option()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeop:set_rkeops_options]{rkeops::set_rkeops_options()}},
-\code{\link[rkeop:set_rkeops_option]{rkeops::set_rkeops_option()}}
+\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
+\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
 }
 \author{
 Ghislain Durif

@@ -6,6 +6,11 @@
 \usage{
 create_dllname(formula, args)
 }
+\arguments{
+\item{formula}{text string}
+
+\item{args}{vector of text string}
+}
 \description{
 Using input formula and arguments along with current value of "precision"
 option, the function \code{dllname} creates through a hash a name for the shared

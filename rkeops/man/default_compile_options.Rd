@@ -9,6 +9,7 @@ default_compile_options()
 \value{
 a list (of class \code{rkeops_compile_options}) with the following
 elements:
+\item{rkeops_dir}{string, path to \code{rkeops} install directory on the system.}
 \item{build_dir}{string, path to the directory where new custom user-defined
 operators will be compiled.}
 \item{src_dir}{string, path to \code{keops} (C++) source files required for
@@ -31,6 +32,8 @@ The function \code{default_compile_options} returns an object of class
 \details{
 The aforementioned compile options are the following:
 \itemize{
+\item \code{rkeops_dir}: path to \code{rkeops} install directory on the system (e.g.
+\code{/path/to/R_package_install/rkeops/build} on Unix system).
 \item \code{build_dir}: path to directory where new custom user-defined operators
 will be compiled and corresponding share objects (\code{.so} files) will be
 saved (so that they can be found upon reuse to avoid useless recompilation).
