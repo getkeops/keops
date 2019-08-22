@@ -13,11 +13,11 @@ compile_test_binder <- function() {
                   "$(Rscript -e 'RcppEigen:::CxxFlags()')\" \\\n",
                   "PKG_LIBS=", 
                   "\"$(Rscript -e 'Rcpp:::LdFlags()')\" \\\n", 
-                  R.home("bin"), .Platform$file.sep, "R ",
-                  "CMD SHLIB ",
-                  "-o ", paste0(dllname, .Platform$dynlib.ext), 
+                  shQuote(paste0(R.home("bin"), .Platform$file.sep, "R")),
+                  " CMD SHLIB ",
+                  "-o ", shQuote(paste0(dllname, .Platform$dynlib.ext)), 
                   " test_binder.cpp RcppExports.cpp")
-    tmp <- system(cmd)
+    tmp <- system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
     if(tmp != 0)
         stop("Error with compilation")
     # output

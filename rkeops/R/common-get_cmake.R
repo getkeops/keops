@@ -77,7 +77,7 @@ check_cmake <- function(cmake_executable) {
     if(!file.exists(cmake_executable))
         stop("`cmake_executable` input parameter does not correspond to an existing file.")
     # get cmake version
-    tmp <- system(paste0(cmake_executable, " --version"), intern = TRUE)
+    tmp <- system(paste0(shQuote(cmake_executable), " --version"), intern = TRUE)
     tmp <- paste0(tmp, collapse = "\n")
     # check if it is cmake
     if(!str_detect(string = tmp, pattern = "cmake"))
