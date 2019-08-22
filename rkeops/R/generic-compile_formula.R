@@ -5,17 +5,52 @@
 #' FIXME
 #' @author Ghislain Durif
 #' @export
-compile_formula <- function(formula, var_aliases, hash) {
+compile_formula <- function(formula, var_aliases, dllname) {
     
     # FIXME
     
-    cmd_cmake <- paste0("cmake",
-                        " -DFORMULA_OBJ=", formula,
-                        " -DVAR_ALIASES=", var_aliases,
-                        " -Dshared_obj_name=", dllname)
+    formula <- "test_formula"
+    var_aliases <- "test_var_aliases"
+    dllname <- "test_dll"
     
+    ## cmake src dir
+    cmake_dir <- dirname(get_rkeops_option("src_dir"))
     
-    # cmdline = [cmake, ' ', src_dir , ' -DUSE_CUDA=', num2str(use_cuda_if_possible), ...
-    #            ' -DCMAKE_BUILD_TYPE=Release', ' -D__TYPE__=', precision, ...
-    #            ' -DMatlab_ROOT_DIR="', matlabroot, '" ', cmd_cmake];
+    ## get user current working directory
+    current_directory <- getwd()
+    
+    ## generate binder
+    tmp <- compileAttributes(pkgdir = file.path(get_src_dir(),
+                                                "binder"))
+    if(length(tmp) == 0) {
+        stop("Issue when generating R/C++ interface")
+    }
+    
+    ## move to build directory
+    tmp_build_dir <- file.path(get_rkeops_option("build_dir"), dllname)
+    if(!dir.exists(tmp_build_dir)) dir.create(tmp_build_dir)
+    setwd(tmp_build_dir)
+    
+    ## compiling (call to cmake)
+    return_status <- compile_code(formula, var_aliases, dllname, cmake_dir)
+    
+    ## move back to user working directory
+    setwd(current_directory)
+    
+    ## check compiling status
+    if(return_status != 0)
+        stop("Error during cmake call.")
+    
+    ## check compilation
+    test_binder <- tryCatch(load_dll(path = tmp_build_dir,
+                                     dllname = paste0("librkeops", dllname), 
+                                     object = "test_binder"),
+                            error = function(e) return(NULL))
+    if(is.null(test_binder) | 
+       !tryCatch(test_binder(), error = function(e) return(FALSE)))
+        stop("Issue with compilation.")
+    
+    ## return operator
+    # FIXME
+    
 }
