@@ -105,6 +105,23 @@ is_installed <- function() {
     return(out_compile & out_file)
 }
 
+#' Load shared library for user-defined operator
+#' @description
+#' FIXME
+#' @details
+#' FIXME
+#' @author Ghislain Durif
+#' @import Rcpp
+#' @export
+load_dll <- function(path, dllname, object) {
+    filename <- file.path(path, paste0(dllname, .Platform$dynlib.ext))
+    tmp <- dyn.load(filename)
+    out <- Rcpp:::sourceCppFunction(function() {}, FALSE, tmp, 
+                                    paste0("_binder_", object))
+    rm(tmp)
+    return(out)
+}
+
 #' Get path to R default Makeconf file 
 #' @keywords internal
 #' @description
