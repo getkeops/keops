@@ -112,3 +112,53 @@ system.file("include", package = "Rcpp")
 system.file("include", package = "RcppEigen")
 R.home("lib")
 ```
+
+### Cmake tip
+
+(per <http://johnnado.com/cmake-directory-variables/>)
+
+Cmake source directories
+* `CMAKE_SOURCE_DIR`: The path to the top level of the source tree. This is the directory that contains the top-level CMakeLists.txt file.  That is, this is the source directory you specify to the cmake command.
+* `CMAKE_CURRENT_SOURCE_DIR`: The path to the directory containing the CMakeLists.txt file that is currently being processed.
+* `PROJECT_SOURCE_DIR`: Top level source directory for the current project.  Not every CMakeLists.txt file defines a project–this is the directory that contains the most recent CMakeLists.txt file that defined a project.
+* `projectName_SOURCE_DIR`: Source directory for the named project.  This is the directory that contains the CMakeLists.txt file that contains the project(projectName) definition.  Every CMakeLists.txt file need not define a project, but one reason to define a project is to create this variable so you can refer to its source files later, in other CMakeLists.txt files.
+
+Cmake binary directories
+* `CMAKE_BINARY_DIR`: The path to the top level of the build tree.  This is the directory in which you ran the cmake command.
+* `CMAKE_CURRENT_BINARY_DIR`: The path to the binary directory currently being processed. When an `add_subdirectory` command is encountered in a CMakeLists.txt file, a corresponding directory is created in the build directory. This variable contains that subdirectory.
+* `PROJECT_BINARY_DIR`: Top level binary directory for the current project. Not every CMakeLists.txt file defines a project–this is the directory in the build tree that corresponds to the most recent CMakeLists.txt file that defined a project.
+* `projectName_BINARY_DIR`: Binary directory for the named project. This is the directory in the build tree that corresponds to the CMakeLists.txt file that contains a project(projectName) definition. Every CMakeLists.txt file need not define a project, but one reason to define a project is to create this variable so you can refer to its binary files later, in other CMakeLists.txt files.
+
+
+### check compilation in R
+
+* check shared object file
+```bash
+nm -gC <lib>.so
+```
+
+* check shared library and registered routines in R
+```R
+dyn.load(paste0("<lib>", .Platform$dynlib.ext))  
+dlls <- getLoadedDLLs()
+getDLLRegisteredRoutines(dlls$<lib>)
+```
+
+
+### compile by hand
+
+```bash
+cd rkeops/inst/include/binder/src
+PKG_CPPFLAGS="$(Rscript -e 'Rcpp:::CxxFlags()') $(Rscript -e 'RcppEigen:::CxxFlags()')" \
+PKG_LIBS="$(Rscript -e 'Rcpp:::LdFlags()')" \
+R CMD SHLIB -o test_binder.so RcppExports.cpp test_binder.cpp
+```
+
+```R
+test <- function() {
+    tmp <- dyn.load("test_binder.so")
+    out <- Rcpp:::sourceCppFunction(function() {}, FALSE, tmp, '_binder_testing_binder')
+    rm(tmp)
+    return(out)
+}
+```
