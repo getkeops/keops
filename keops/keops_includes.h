@@ -35,7 +35,7 @@
 #endif
 
 #ifndef MAX_UNROLL_COUNT
-  #define MAX_UNROLL_COUNT 512
+  #define MAX_UNROLL_COUNT 1048576
 #endif
 
 #include "core/formulas/constants.h"
