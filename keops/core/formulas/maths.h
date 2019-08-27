@@ -55,11 +55,6 @@
 
 namespace keops {
 
-// For some reason, pragma unroll does not accept macro as an argument.
-// It has to be replace by an Integral Constant Expression 
-//constexpr int MAX_UNROLL_COUNT_ICE = MAX_UNROLL_COUNT;
-// #define MAX_UNROLL_COUNT_ICE
-
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
