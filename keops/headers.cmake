@@ -42,11 +42,6 @@ if(NOT C_CONTIGUOUS)
 endif()
 add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 
-# - Choose maximal number of count trip for loop unrolling
-if(NOT MAX_UNROLL_COUNT)
-  Set(MAX_UNROLL_COUNT 1048576 CACHE STRING "Maximum unroll count is set to 1048576.")
-endif()
-add_definitions(-DMAX_UNROLL_COUNT=${MAX_UNROLL_COUNT})
 
 # - Declare the templates formula if not provided by the user
 if(NOT DEFINED USENEWSYNTAX)
