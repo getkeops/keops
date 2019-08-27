@@ -1251,22 +1251,21 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMU
    template<class V, class GRADIN>
    using DiffT = Add<
                     DiffTA<V, TensorDot<GRADIN, B,
-                                typename parameters::keepdim_t,                    // 3
-                                DIMFB,                                             // 4 2
-                                typename parameters::list_indices_keepdim_b_inout, // .
-                                typename parameters::indices_keepdim_b_t,          // .
-                                typename parameters::moveaxis_a>>,                 // 1, 2 0
+                                typename tao::seq::permute<PERMUTEDIMOUT, typename parameters::keepdim_t>::type,                    // 3
+                                DIMFB,                                                                                              // 4 2
+                                typename tao::seq::map<typename parameters::list_indices_keepdim_b_inout, PERMUTEDIMOUT>::type,     // .
+                                typename parameters::indices_keepdim_b_t,                                                           // .
+                                typename parameters::moveaxis_a>>,                                                                  // 1, 2 0
                     DiffTB<V, TensorDot<GRADIN, A,
-                                typename parameters::keepdim_t,                    // 3
-                                DIMFA,                                             // 2, 3, 4
-                                typename parameters::list_indices_keepdim_a_inout, //0
-                                typename parameters::indices_keepdim_a_t,          //1
-                                typename parameters::moveaxis_b>>                  // . , 0 1
+                                typename tao::seq::permute<PERMUTEDIMOUT, typename parameters::keepdim_t>::type,                    // 3
+                                DIMFA,                                                                                              // 2, 3, 4
+                                 typename tao::seq::map<typename parameters::list_indices_keepdim_a_inout, PERMUTEDIMOUT>::type,    //0
+                                typename parameters::indices_keepdim_a_t,                                                           //1
+                                typename parameters::moveaxis_b>>                                                                   // . , 0 1
                     >;
 
 
 };
-
 
 /////////////////////////////////////////////////////////////////////////
 ////      Tensor product      a x b^T                                ////

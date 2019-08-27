@@ -1196,15 +1196,21 @@ class LazyTensor:
         """
         return self.binary(other, "TensorProd", dimres=(other.ndim * self.ndim), dimcheck=None)
     
-    def keops_tensordot(self, other, dimfa, dimfb, contfa, contfb):
-        r"""
-        Tensor dot product (on KeOps internal dimensions) - a binary operation.  
-        *** very temporary implementation - to be updated soon***
+    def keops_tensordot(self, other, dimfa, dimfb, contfa, contfb, *args):
         """
-        permute = tuple(range(len(dimfa) + len(dimfb) - 2 * len(contfa)))
-        dimres = np.array(dimfa).prod() * np.array(dimfb).prod() / np.array(dimfa)[np.array(contfa)].prod()**2
+        Tensor dot product (on KeOps internal dimensions) - a binary operation.
+
+        :param other: a LazyTensor
+        :param dimfa: tuple of int
+        :param dimfb: tuple of int
+        :param contfa: tuple of int listing contraction dimension of a (could be empty)
+        :param contfb: tuple of int listing contraction dimension of b (could be empty)
+        :param args: a tuple of int containing the graph of a permutation of the output
+        :return:
+        """
+        # permute = tuple(range(len(dimfa) + len(dimfb) - 2 * len(contfa)))
         opt_arg = ""
-        for intseq in (dimfa, dimfb, contfa, contfb, permute):
+        for intseq in (dimfa, dimfb, contfa, contfb) + args:
             opt_arg += "Ind("
             if isinstance(intseq,int):
                 intseq = (intseq,)  # convert to tuple
@@ -1212,6 +1218,8 @@ class LazyTensor:
                 opt_arg += "{},".format(item)
             opt_arg = opt_arg[:-1] + "), " # to remove last comma
         opt_arg = opt_arg[:-2] # to remove last comma and space
+
+        dimres = np.array(dimfa).prod() * np.array(dimfb).prod() / np.array(dimfa)[np.array(contfa)].prod() ** 2
         return self.binary(other, "TensorDot", dimres=dimres, dimcheck=None, opt_arg=opt_arg)
     
     def grad(self, other, gradin):

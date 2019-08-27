@@ -339,13 +339,15 @@ struct tensordot_parameters {
   using list_indices_b_intot = typename tao::seq::permute<bli, bla>::type;
 
   // used to compute the Gradient
-  using list_indices_keepdim_b_inout = typename tao::seq::make_index_range<keepdim_a_t::size(), keepdim_t::size()>;
   using list_indices_keepdim_a_inout = typename tao::seq::make_index_range<0, keepdim_a_t::size()>;
+  using reordered_contfa = typename tao::seq::permute<typename tao::seq::sort_index_asc<CONTFB>::type, CONTFA>::type;
+  using reordered_keepdim_a = typename tao::seq::permute<typename tao::seq::sort_index_asc<typename tao::seq::map<list_indices_keepdim_a_inout, PERMUTE>::type>::type, indices_keepdim_a_t>::type;
+  using moveaxis_a = typename tao::seq::concatenate<reordered_keepdim_a, reordered_contfa>::type;
 
-  using aa = typename tao::seq::permute<typename tao::seq::sort_index_asc<CONTFB>::type, CONTFA>::type;
-  using moveaxis_a = typename tao::seq::concatenate<indices_keepdim_a_t, aa>::type;
-  using bb = typename tao::seq::permute<typename tao::seq::sort_index_asc<CONTFA>::type, CONTFB>::type;
-  using moveaxis_b = typename tao::seq::concatenate<indices_keepdim_b_t, bb>::type;
+  using list_indices_keepdim_b_inout = typename tao::seq::make_index_range<keepdim_a_t::size(), keepdim_t::size()>;
+  using reordered_contfb = typename tao::seq::permute<typename tao::seq::sort_index_asc<CONTFA>::type, CONTFB>::type;
+  using reordered_keepdim_b = typename tao::seq::permute<typename tao::seq::sort_index_asc<typename tao::seq::map<list_indices_keepdim_b_inout, PERMUTE>::type>::type, indices_keepdim_b_t>::type;
+  using moveaxis_b = typename tao::seq::concatenate<reordered_keepdim_b, reordered_contfb>::type;
 
   template<class IND>
   HOST_DEVICE constexpr static tensordot_indices compute_tensordot_indices(IND) {
@@ -379,7 +381,13 @@ struct tensordot_parameters {
 #else
     size_t out_indices = tao::seq::sum<tao::seq::prod_t<list_stride_keepdim_t, typename tao::seq::reverse<list_indices_keepdim>::type>>::value;
 #endif
- /*
+    /*std::cout << "list_stride_keepdim_t: ";tao::seq::print_index_sequence(list_stride_keepdim_t{});
+    std::cout << "permute : "; tao::seq::print_index_sequence(PERMUTE{});
+    std::cout << "permute(permute): "; tao::seq::print_index_sequence(typename tao::seq::permute<PERMUTE, PERMUTE>::type{});
+    std::cout << "permute(permute): "; tao::seq::print_index_sequence(tao::seq::make_index_range<0, keepdim_t::size()>{});
+    std::cout << "moveaxis_a: "; tao::seq::print_index_sequence(moveaxis_a{});
+    std::cout << "moveaxis_b: "; tao::seq::print_index_sequence(moveaxis_b{});
+
     std::cout << "dimout: " << dimout  << " ("<< out_indices << " " << a_indices << " " << b_indices << ")" << std::endl;
 
     tao::seq::print_index_sequence(typename tao::seq::permute<PERMUTE, PERMUTE>::type{});
