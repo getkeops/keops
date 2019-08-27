@@ -397,8 +397,9 @@ grad_torch = torch.autograd.grad(sum_f_torch2, y, e, retain_graph=True)[0].numpy
 print("Compare the two gradient y tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
 
-
 print('------------------------------------------')
+
+
 #######################################################################################################################
 #
 #
@@ -407,6 +408,7 @@ print('------------------------------------------')
 def my_tensordort_perm(a, b, dims=None, perm=None):
     # print(torch.tensordot(a, b, dims=dims).sum(3).shape)
     return torch.tensordot(a, b, dims=dims).sum(3).permute(perm)
+
 
 def invert_permutation_numpy(permutation):
     return np.arange(len(permutation))[np.argsort(permutation)]
@@ -417,18 +419,17 @@ y = torch.randn(N, 2, 4, requires_grad=True, dtype=torch.float64)
 
 dimfa, dimfb = x.shape[1:], y.shape[1:]
 contfa, contfb = [3], [2]
-keepfa, keepfb = [item - 1 for item in [1,2,3] if item not in contfa], [item for item in [1,2] if item not in contfb]
-# contfa, contfb = [2, 3], [1, 2]
+keepfa, keepfb = [item - 1 for item in [1, 2, 3] if item not in contfa], [item for item in [1, 2] if item not in contfb]
+#  contfa, contfb = [2, 3], [1, 2]
 n = len(dimfa) + len(dimfb) - 2 * len(contfa)
 # perm = [int(i) for i in torch.randperm(n)]
-perm = [2,0,1]
+perm = [2, 0, 1]
 # perm = [2, 1, 3, 0]
-# perm = [1, 0]
+#  perm = [1, 0]
 
 
-perm_torch = (0,) + tuple([(i+1) for i in invert_permutation_numpy(perm)])
-sum_f_torch2 = my_tensordort_perm(x, y, dims=(contfa, contfb), perm=perm_torch) # 1, 2,3,5,4 -> 1, 5,3,4,2
-
+perm_torch = (0,) + tuple([(i + 1) for i in invert_permutation_numpy(perm)])
+sum_f_torch2 = my_tensordort_perm(x, y, dims=(contfa, contfb), perm=perm_torch)  # 1, 2,3,5,4 -> 1, 5,3,4,2
 
 f_keops = LazyTensor(x.reshape(M, 1, int(np.array((dimfa)).prod()))).keops_tensordot(
     LazyTensor(y.reshape(1, N, int(np.array(dimfb).prod()))),
@@ -442,8 +443,6 @@ sum_f_keops = f_keops.sum_reduction(dim=1)
 
 print("Compare the two tensordot implementation. All good ????!!",
       torch.allclose(sum_f_keops.flatten(), sum_f_torch2.flatten()))
-
-
 
 # checking gradients
 e = torch.randn_like(sum_f_torch2)
@@ -455,17 +454,17 @@ grad_torch = torch.autograd.grad(sum_f_torch2, x, e, retain_graph=True)[0].numpy
 print("Compare the two gradient x tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
 # print("Compare the two gradient x tensordot implementation. All good ????!",
-#       np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
+#        np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
 grad_keops = torch.autograd.grad(sum_f_keops, y, e.reshape(M, -1), retain_graph=True)[0].numpy()
 grad_torch = torch.autograd.grad(sum_f_torch2, y, e, retain_graph=True)[0].numpy()
 
-# grad_torch2 = my_tensordort_perm(e, x, dims=([1,3], [1,2]), perm=[0,1,2,3]).permute(perm)
+#  grad_torch2 = my_tensordort_perm(e, x, dims=([1,3], [1,2]), perm=[0,1,2,3]).permute(perm)
 # grad_torch2 = my_tensordort_perm(e, x, dims=([1,3], [1,2]), perm=perm)
 
 print("Compare the two gradient y tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
-# print("Compare the two gradient y tensordot implementation. All good ????!",
-#       np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
+#  print("Compare the two gradient y tensordot implementation. All good ????!",
+#        np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
 print('------------------------------------------')
 
 x = torch.randn(M, 2, 3, 4, requires_grad=True, dtype=torch.float64)
@@ -473,18 +472,18 @@ y = torch.randn(N, 2, 4, 5, requires_grad=True, dtype=torch.float64)
 
 dimfa, dimfb = x.shape[1:], y.shape[1:]
 contfa, contfb = [3], [2]
-keepfa, keepfb = [item-1 for item in [1,2,3] if item not in contfa], [item for item in [1,2,3] if item not in contfb]
-# contfa, contfb = [2, 3], [1, 2]
+keepfa, keepfb = [item - 1 for item in [1, 2, 3] if item not in contfa], [item for item in [1, 2, 3] if
+                                                                          item not in contfb]
+#  contfa, contfb = [2, 3], [1, 2]
 n = len(dimfa) + len(dimfb) - 2 * len(contfa)
 # perm = [int(i) for i in torch.randperm(n)]
-perm = [0,2,3,1]
+perm = [0, 2, 3, 1]
 # perm = [2, 1, 3, 0]
-# perm = [1, 0]
+#  perm = [1, 0]
 
 
-perm_torch = (0,) + tuple([(i+1) for i in invert_permutation_numpy(perm)])
-sum_f_torch2 = my_tensordort_perm(x, y, dims=(contfa, contfb), perm=perm_torch) # 1, 2,3,5,4 -> 1, 5,3,4,2
-
+perm_torch = (0,) + tuple([(i + 1) for i in invert_permutation_numpy(perm)])
+sum_f_torch2 = my_tensordort_perm(x, y, dims=(contfa, contfb), perm=perm_torch)  # 1, 2,3,5,4 -> 1, 5,3,4,2
 
 f_keops = LazyTensor(x.reshape(M, 1, int(np.array((dimfa)).prod()))).keops_tensordot(
     LazyTensor(y.reshape(1, N, int(np.array(dimfb).prod()))),
@@ -499,19 +498,17 @@ sum_f_keops = f_keops.sum_reduction(dim=1)
 print("Compare the two tensordot implementation. All good ????!!",
       torch.allclose(sum_f_keops.flatten(), sum_f_torch2.flatten()))
 
-
-
 # checking gradients
 e = torch.randn_like(sum_f_torch2)
 grad_keops = torch.autograd.grad(sum_f_keops, x, e.reshape(M, -1), retain_graph=True)[0].numpy()
-# grad_torch2 = my_tensordort_perm(e, y, dims=([4,2], keepfb), perm=[0,1,2,3])
+#  grad_torch2 = my_tensordort_perm(e, y, dims=([4,2], keepfb), perm=[0,1,2,3])
 
 grad_torch = torch.autograd.grad(sum_f_torch2, x, e, retain_graph=True)[0].numpy()
 
 print("Compare the two gradient x tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
-# print("Compare the two gradient x tensordot implementation. All good ????!",
-#       np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
+#  print("Compare the two gradient x tensordot implementation. All good ????!",
+#        np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
 
 
 grad_keops = torch.autograd.grad(sum_f_keops, y, e.reshape(M, -1), retain_graph=True)[0]
@@ -524,23 +521,21 @@ print("Compare the two gradient y tensordot implementation. All good ????!",
 #      np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
 print('------------------------------------------')
 
-
 x = torch.randn(M, 2, 3, 2, 2, 4, requires_grad=True, dtype=torch.float64)
 y = torch.randn(N, 2, 4, 2, 3, 2, 3, requires_grad=True, dtype=torch.float64)
 
 dimfa, dimfb = x.shape[1:], y.shape[1:]
 contfa, contfb = [5, 1, 3], [2, 5, 3]
-keepfa, keepfb = [item-1 for item in [1,2,3] if item not in contfa], [item for item in [1,2,3] if item not in contfb]
 n = len(dimfa) + len(dimfb) - 2 * len(contfa)
-#perm_id = [int(i) for i in range(n+1)]
+# perm_id = [int(i) for i in range(n+1)]
 
 # perm = [int(i) for i in torch.randperm(n)]
 # perm = [0,2,1,4,3]
-perm = [4,3,0,1,2]
-perm_torch = (0,) + tuple([(i+1) for i in invert_permutation_numpy(perm)])
+perm = [4, 3, 2, 0, 1]
+perm_torch = (0,) + tuple([(i + 1) for i in invert_permutation_numpy(perm)])
 sum_f_torch2 = my_tensordort_perm(x, y, dims=(contfa, contfb), perm=perm_torch)
 
-#print(sum_f_torch2.shape)
+# print(sum_f_torch2.shape)
 
 f_keops = LazyTensor(x.reshape(M, 1, int(np.array((dimfa)).prod()))).keops_tensordot(
     LazyTensor(y.reshape(1, N, int(np.array(dimfb).prod()))),
@@ -568,7 +563,10 @@ grad_keops = torch.autograd.grad(sum_f_keops, y, e.reshape(M, -1), retain_graph=
 grad_torch = torch.autograd.grad(sum_f_torch2, y, e, retain_graph=True)[0].numpy()
 print("Compare the two gradient y tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
-"""
+
+print('------------------------------------------')
+
+
 #######################################################################################################################
 #  Using gradcheck
 #  ---------------
@@ -597,4 +595,4 @@ def my_tensordot2(x, y):
 x = torch.randn(M, 2, 2, 2, requires_grad=True, dtype=torch.float64)
 y = torch.randn(N, 2, 2, requires_grad=True, dtype=torch.float64)
 print(torch.autograd.gradcheck(my_tensordot2, [x, y], atol=1e-5, rtol=1e-5))
-"""
+print(torch.autograd.gradgradcheck(my_tensordot2, [x, y], atol=1e-5, rtol=1e-5))

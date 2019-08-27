@@ -33,18 +33,32 @@ At a low level, every variable :math:`x^k_{\iota_k}` is specified by its **categ
 
 In practice, the category :math:`\iota_k` is given through a keyword
 
-=========  ============================
+=========  ============================================================
  keyword    meaning
-=========  ============================
+=========  ============================================================
  ``Vi``     variable indexed by :math:`i`
  ``Vj``     variable indexed by :math:`j`
  ``Pm``     parameter
-=========  ============================
+=========  ============================================================
 
 followed by a :math:`(k,d_k)` or (index,dimension) pair of integers.
 For instance, ``Vi(2,4)`` specifies a variable indexed by :math:`i`, given as the third (:math:`k=2`) input in the function call, and representing a vector of dimension :math:`d_k=4`.
 
 **N.B.:** Using the same index ``k`` for two variables with different dimensions or categories is not allowed and will be rejected by the compiler.
+
+
+.. _`part.reservedWord`:
+
+Reseved words
+=============
+
+=========  ============================================================
+ keyword    meaning
+=========  ============================================================
+ ``Ind``    indexes sequences
+=========  ============================================================
+
+followed by a sequence  :math:`(i_0, i_1, \cdots)` of integers. For instance, ``Ind(2,4,2,5,12)`` can be used as parameters for some operations.
 
 .. _`part.mathOperation`:
 
@@ -87,21 +101,21 @@ Simple vector operations:
 ``SqNorm2(f)``               squared L2 norm, same as ``(f|f)``
 ``Norm2(f)``                 L2 norm, same as ``Sqrt((f|f))``
 ``Normalize(f)``             normalize vector, same as ``Rsqrt(SqNorm2(f)) * f``
-``SqDist(f,g)``              squared L2 distance, same as ``SqNorm2(f-g)``
+``SqDist(f, g)``              squared L2 distance, same as ``SqNorm2(f - g)``
 =========================   =============================================================================================================
 
 Generic squared Euclidean norms, with support for scalar, diagonal and full (symmetric)
 matrices. If ``f`` is a vector of size `N`, depending on the size of
 ``s``, ``WeightedSqNorm(s,f)`` may refer to:
 
-- a weighted L2 norm :math:`s[0]\cdot\sum_{1\leqslant i \leqslant N} f[i-1]^2`  if ``s`` is a vector of size 1.
-- a separable norm :math:`\sum_{1\leqslant i \leqslant N} s[i-1]\cdot f[i-1]^2`  if ``s`` is a vector of size `N`.
-- a full anisotropic norm :math:`\sum_{1\leqslant i,j\leqslant N} s[N\cdot i+j-1]\cdot f[i-1] f[j-1]`  if ``s`` is a vector of size `N*N` such that ``s[N*i+j-1]=s[N*j+i-1]``.
+- a weighted L2 norm :math:`s[0]\cdot\sum_{0\leqslant i < N} f[i]^2`  if ``s`` is a vector of size 1.
+- a separable norm :math:`\sum_{0\leqslant i < N} s[i]\cdot f[i]^2`  if ``s`` is a vector of size `N`.
+- a full anisotropic norm :math:`\sum_{0\leqslant i,j < N} s[iN+j] f[i] f[j]`  if ``s`` is a vector of size `N * N` such that ``s[i*N+j]=s[j*N+i]`` (i.e. stores a symmetric matrix).
 
-=========================   =============================================================================================================
-``WeightedSqNorm(s,f)``      generic squared euclidean norm
-``WeightedSqDist(s,f,g)``    generic squared distance, same as ``WeightedSqNorm(s,f-g)``
-=========================   =============================================================================================================
+============================   =============================================================================================================
+``WeightedSqNorm(s, f)``         generic squared euclidean norm
+``WeightedSqDist(s, f, g)``      generic squared distance, same as ``WeightedSqNorm(s, f-g)``
+============================   =============================================================================================================
 
 Constants and padding/concatenation operations:
 
@@ -123,7 +137,7 @@ Elementary dot products:
 ``MatVecMult(f, g)``                                matrix-vector product ``f x g``: ``f`` is vector interpreted as matrix (column-major), ``g`` is vector
 ``VecMatMult(f, g)``                                vector-matrix product ``f x g``: ``f`` is vector, ``g`` is vector interpreted as matrix (column-major)
 ``TensorProd(f, g)``                                tensor cross product ``f x g^T``: ``f`` and ``g`` are vectors of sizes M and N, output is of size MN.
-``TensorDot(f, g, dimf, dimg, contf, contg)``       tensordot product ``f : g`` : ``f`` and ``g`` are tensors of sizes listed in ``dimf`` and ``dimg`` contracted along the dimensions listed in ``contf`` and ``contg``. The ``MatVecMult``, ``VecMatMult`` and ``TensorProd`` operations are special cases of ``TensorDot(f,g)``.
+``TensorDot(f, g, dimf, dimg, contf, contg)``       tensordot product ``f : g``(similar to `numpy's tensordot <https://docs.scipy.org/doc/numpy/reference/generated/numpy.tensordot.html>`_ in the spirit): ``f`` and ``g`` are tensors of sizes listed in ``dimf`` and ``dimg`` :ref:`index sequences <part.reservedWord>` and contracted along the dimensions listed in ``contf`` and ``contg`` :ref:`index sequences <part.reservedWord>`. The ``MatVecMult``, ``VecMatMult`` and ``TensorProd`` operations are special cases of ``TensorDot``.
 ==============================================     ====================================================================================================================================================================================================================================================================================
 
 Symbolic gradients:

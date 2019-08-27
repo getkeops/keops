@@ -514,7 +514,50 @@ class PytorchUnitTestCase(unittest.TestCase):
             self.assertTrue(np.allclose(res_keops.cpu().data.numpy().ravel(),
                                         res_torch.cpu().data.numpy().ravel(), atol=1e-5))
 
-    
+    ############################################################
+    def test_TensorDot_with_permute(self):
+    ############################################################
+        import torch
+        from pykeops.torch import LazyTensor
+
+        def my_tensordort_perm(a, b, dims=None, perm=None):
+            return torch.tensordot(a, b, dims=dims).sum(3).permute(perm)
+
+        def invert_permutation_numpy(permutation):
+            return np.arange(len(permutation))[np.argsort(permutation)]
+
+        x = torch.randn(self.M, 2, 3, 2, 2, 4, requires_grad=True, dtype=torch.float64)
+        y = torch.randn(self.N, 2, 4, 2, 3, 2, 3, requires_grad=True, dtype=torch.float64)
+
+        dimfa, dimfb = x.shape[1:], y.shape[1:]
+        contfa, contfb = [5, 1, 3], [2, 5, 3]
+        perm = [4, 3, 2, 0, 1]
+        perm_torch = (0,) + tuple([(i + 1) for i in invert_permutation_numpy(perm)])
+        sum_f_torch2 = my_tensordort_perm(x, y, dims=(contfa, contfb), perm=perm_torch)
+
+        f_keops = LazyTensor(x.reshape(self.M, 1, int(np.array((dimfa)).prod()))).keops_tensordot(
+            LazyTensor(y.reshape(1, self.N, int(np.array(dimfb).prod()))),
+            dimfa,
+            dimfb,
+            tuple(np.array(contfa) - 1),
+            tuple(np.array(contfb) - 1),
+            tuple(perm)
+        )
+        sum_f_keops = f_keops.sum_reduction(dim=1)
+        self.assertTrue(torch.allclose(sum_f_keops.flatten(), sum_f_torch2.flatten()))
+
+        e = torch.randn_like(sum_f_torch2)
+        # checking gradients
+        grad_keops = torch.autograd.grad(sum_f_keops, x, e.reshape(self.M, -1), retain_graph=True)[0]
+        grad_torch = torch.autograd.grad(sum_f_torch2, x, e, retain_graph=True)[0]
+        self.assertTrue(torch.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
+
+        grad_keops = torch.autograd.grad(sum_f_keops, y, e.reshape(self.M, -1))[0]
+        grad_torch = torch.autograd.grad(sum_f_torch2, y, e)[0]
+        self.assertTrue(torch.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
+
+
+
 if __name__ == '__main__':
     """
     run tests
