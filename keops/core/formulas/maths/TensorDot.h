@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 #include "lib/sequences/include/tao/seq/integer_sequence.hpp"
 #include "lib/sequences/include/tao/seq/contains.hpp"

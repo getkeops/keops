@@ -6,8 +6,8 @@
 #include "core/autodiff.h"
 
 #include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/norms.h"
+#include "core/formulas/maths/maths.h"
+#include "core/formulas/norms/norms.h"
 #include "core/formulas/factorize.h"
 
 /*
@@ -34,11 +34,11 @@
  *      InverseMultiquadricKernel<DIMPOINT,DIMVECT>    : uses InverseMultiquadricFunction
  *
  */
-
+namespace keops {
 //////////////////////////////////////////////////////////////
 ////             STANDARD RADIAL FUNCTIONS                ////
 //////////////////////////////////////////////////////////////
-namespace keops {
+
 template < class R2, class C >
 using GaussFunction = Exp<Scal<C,Minus<R2>>>;
 
@@ -254,13 +254,16 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 
         __TYPE__ r2 = 0.0f, sga = 0.0f;                 // Don't forget to initialize at 0.0
         __TYPE__ xmy[DIMPOINT];
+#pragma unroll
         for(int k=0; k<DIMPOINT; k++) {                 // Compute the L2 squared distance r2 = | x_i-y_j |_2^2
             xmy[k] =  xi[k]-yj[k];
             r2 += xmy[k]*xmy[k];
         }
+#pragma unroll
         for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
             sga += betaj[k]*etai[k];
         __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
+#pragma unroll
         for(int k=0; k<DIMPOINT; k++)                   // Increment the output vector gammai - which is a POINT
             gammai[k] = s * xmy[k];
     }
