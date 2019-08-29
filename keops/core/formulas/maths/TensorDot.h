@@ -413,4 +413,68 @@ struct tensordot_parameters {
   }
 
 };
+
+
+
+
+/////////////////////////////////////////////////////////////////////////
+////              Tensor dot product      A : b                      ////
+/////////////////////////////////////////////////////////////////////////
+
+
+template<class A, class B, class DIMFA, class DIMFB, class CONTFA, class CONTFB, class PERMUTEDIMOUT=std::make_index_sequence<DIMFA::size() + DIMFB::size() - 2 * CONTFA::size()>>
+struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT> {
+  // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
+  // n=3 and m=2 are assume to be known
+  // output is vector of size n
+
+  static_assert(DIMFA::size() > 0, "Please provide a non empty DIMA");
+  static_assert(DIMFB::size() > 0, "Please provide a non empty DIMB");
+  static_assert(tao::seq::prod_red(DIMFA{}) == A::DIM, "DIMA is not consistant with dimension of A");
+  static_assert(tao::seq::prod_red(DIMFB{}) == B::DIM, "DIMB is not consistant with dimension of B");
+
+  using parameters = tensordot_parameters<DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT>;
+
+  static const int DIM = parameters::dimout;
+
+  static void PrintIdString(std::stringstream &str) {
+    str << ":";
+  }
+
+  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+#pragma unroll
+    for (int i =0 ; i < DIM ; i ++)
+      out[i] = 0;
+
+    loop<typename parameters::loopdim_t >::f(parameters::compute_tensordot_indices_apply([&out,&inA,&inB](tensordot_indices td){
+      out[td.out_indices] += inA[td.a_indices] * inB[td.b_indices];
+    }));
+  }
+
+  template<class V, class GRADIN>
+  using DiffTA = typename A::template DiffT<V, GRADIN>;
+
+  template<class V, class GRADIN>
+  using DiffTB = typename B::template DiffT<V, GRADIN>;
+
+
+  template<class V, class GRADIN>
+  using DiffT = Add<
+      DiffTA<V, TensorDot<GRADIN, B,
+                          typename tao::seq::permute<PERMUTEDIMOUT, typename parameters::keepdim_t>::type,                    // 3
+                          DIMFB,                                                                                              // 4 2
+                          typename tao::seq::map<typename parameters::list_indices_keepdim_b_inout, PERMUTEDIMOUT>::type,     // .
+                          typename parameters::indices_keepdim_b_t,                                                           // .
+                          typename parameters::moveaxis_a>>,                                                                  // 1, 2 0
+      DiffTB<V, TensorDot<GRADIN, A,
+                          typename tao::seq::permute<PERMUTEDIMOUT, typename parameters::keepdim_t>::type,                    // 3
+                          DIMFA,                                                                                              // 2, 3, 4
+                          typename tao::seq::map<typename parameters::list_indices_keepdim_a_inout, PERMUTEDIMOUT>::type,    //0
+                          typename parameters::indices_keepdim_a_t,                                                           //1
+                          typename parameters::moveaxis_b>>                                                                   // . , 0 1
+  >;
+
+
+};
+
 }
