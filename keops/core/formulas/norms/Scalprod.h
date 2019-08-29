@@ -1,20 +1,27 @@
 #pragma once
 
+#include <assert.h>
 #include <sstream>
+#include <core/formulas/maths/Scal.h>
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
+#include "core/formulas/maths/Scal.h"
+#include "core/formulas/maths/Add.h"
 #include "core/formulas/constants.h"
 
 namespace keops {
 
+template < class FA, class FB >
+struct Scalprod_Alias ;
 
+template<class FA, class FB>
+using Scalprod = typename Scalprod_Alias<FA, FB>::type;
 
 //////////////////////////////////////////////////////////////
 ////           SCALAR PRODUCT :   Scalprod< A,B >         ////
 //////////////////////////////////////////////////////////////
 
-namespace keops {
 
 template < class FA, class FB >
 struct Scalprod_Impl : BinaryOp<Scalprod_Impl,FA,FB> {
@@ -34,16 +41,11 @@ struct Scalprod_Impl : BinaryOp<Scalprod_Impl,FA,FB> {
   // <A,B> is scalar-valued, so that gradin is necessarily a scalar.
   // [\partial_V <A,B>].gradin = gradin * ( [\partial_V A].B + [\partial_V B].A )
   template < class V, class GRADIN >
-  using DiffT = Scal < GRADIN, Add < typename FA::template DiffT<V,FB>, typename FB::template DiffT<V,FA> > >;
+  using DiffT = Scal< GRADIN, Add< typename FA::template DiffT<V,FB>, typename FB::template DiffT<V,FA> > >;
 };
 
 
 
-
-template < class FA, class FB >
-struct Scalprod_Alias {
-  using type = Scalprod_Impl<FA,FB>;
-};
 
 // Three simple optimizations :
 

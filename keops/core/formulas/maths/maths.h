@@ -43,6 +43,58 @@
  *
  */
 
+namespace keops {
+
+// Addition, Subtraction, Scalar product and "Scalar*Vector product" symbolic operators.
+// The actual implementation can be found below.
+// Since the gradients of these operations are "bootstrapped", we need to be a little bit
+// careful with the declaration order, and therefore use three "typenames" per operation:
+// Op_Alias, Op_Impl and Op (proper).
+template<class FA, class FB>
+struct Add_Impl;
+template<class FA, class FB>
+struct Subtract_Impl;
+template<class FA, class FB>
+struct Scalprod_Impl;
+template<class FA, class FB>
+struct Scal_Impl;
+template<class FA, class FB>
+struct Mult_Impl;
+
+template<class FA, class FB>
+struct Add_Alias;
+template<class FA, class FB>
+struct Subtract_Alias;
+template<class FA, class FB>
+struct Scalprod_Alias;
+template<class FA, class FB>
+struct Scal_Alias;
+template<class FA, class FB>
+struct Mult_Alias;
+template<class F>
+struct Norm2_Alias;
+template<class A, class B>
+struct TensorProd;
+template<class A, class B>
+struct MatVecMult;
+
+template<class FA, class FB>
+using Add = typename Add_Alias<FA, FB>::type;
+
+template<class FA, class FB>
+using Subtract = typename Subtract_Alias<FA, FB>::type;
+
+template<class FA, class FB>
+using Scalprod = typename Scalprod_Alias<FA, FB>::type;
+
+template<class FA, class FB>
+using Scal = typename Scal_Alias<FA, FB>::type;
+
+template<class FA, class FB>
+using Mult = typename Mult_Alias<FA, FB>::type;
+
+}
+
 #include "core/formulas/maths/Abs.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/Concat.h"
@@ -73,3 +125,4 @@
 #include "core/formulas/maths/TensorDot.h"
 #include "core/formulas/maths/TensorProd.h"
 #include "core/formulas/maths/VecMatMult.h"
+

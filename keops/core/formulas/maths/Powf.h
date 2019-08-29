@@ -1,0 +1,14 @@
+#pragma once
+
+#include "core/formulas/maths/Pow.h"
+
+namespace keops {
+
+//////////////////////////////////////////////////////////////
+////             POWER OPERATOR : Powf< A, B >            ////
+//////////////////////////////////////////////////////////////
+
+template<class FA, class FB>
+using Powf = Exp<Scal<FB, Log<FA>>>;
+
+}

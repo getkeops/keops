@@ -17,6 +17,16 @@
  *      WeightedSqDist<A,FA,FB>     : alias for WeightedSqNorm<A,Subtract<FA,FB>>
  *
  */
+namespace keops {
+
+template < class FA, class FB >
+struct Scalprod_Alias ;
+
+template<class FA, class FB>
+using Scalprod = typename Scalprod_Alias<FA, FB>::type;
+
+}
+
 
 #include "core/formulas/norms/Norm2.h"
 #include "core/formulas/norms/Normalize.h"
