@@ -45,6 +45,10 @@ struct Scalprod_Impl : BinaryOp<Scalprod_Impl,FA,FB> {
 };
 
 
+template < class FA, class FB >
+struct Scalprod_Alias {
+    using type = Scalprod_Impl<FA,FB>;
+};
 
 
 // Three simple optimizations :
