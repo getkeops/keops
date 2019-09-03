@@ -5,25 +5,13 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Sum.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Minus.h"
 
 namespace keops {
 
-
-// Addition, Subtraction, Scalar product and "Scalar*Vector product" symbolic operators.
-// The actual implementation can be found below.
-// Since the gradients of these operations are "bootstrapped", we need to be a little bit
-// careful with the declaration order, and therefore use three "typenames" per operation:
-// Op_Alias, Op_Impl and Op (proper).
-
-
-template<class FA, class FB>
-struct Subtract_Alias;
-
-template<class FA, class FB>
-using Subtract = typename Subtract_Alias<FA, FB>::type;
 
 //////////////////////////////////////////////////////////////
 ////             SUBTRACT : F-G                           ////

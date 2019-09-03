@@ -5,6 +5,7 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/TensorProd.h"
@@ -14,6 +15,11 @@ namespace keops {
 /////////////////////////////////////////////////////////////////////////
 ////     Vector-matrix product           b x A                       ////
 /////////////////////////////////////////////////////////////////////////
+
+template<class A, class B>
+struct MatVecMult;
+template<class A, class B>
+struct TensorProd;
 
 template<class B, class A>
 struct VecMatMult : BinaryOp<VecMatMult, B, A> {

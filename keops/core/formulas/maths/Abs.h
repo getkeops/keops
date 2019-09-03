@@ -4,6 +4,7 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Sign.h"
 #include "core/formulas/maths/Mult.h"
 
@@ -24,11 +25,17 @@ struct Abs : UnaryOp<Abs, F> {
 
   static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
-    for (int k = 0; k < DIM; k++)
-      if (outF[k] < 0)
-        out[k] = -outF[k];
-      else
-        out[k] = outF[k];
+    for (int k = 0; k < DIM; k++){
+#ifdef __NVCC__
+#if USE_DOUBLE
+        out[k] = fabs(outF[k]);
+#else
+        out[k] = fabsf(outF[k]);
+#endif
+#else
+      out[k] =  std::abs(outF[k]);
+#endif
+    }
   }
 
   // [\partial_V abs(F)].gradin = sign(F) * [\partial_V F].gradin

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Pack.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Mult.h"
 

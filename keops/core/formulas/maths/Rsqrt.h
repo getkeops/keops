@@ -4,10 +4,12 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
-
-#include "core/formulas/maths/Pow.h"
-#include "core/formulas/maths/Mult.h"
+#include "core/formulas/constants.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Scal.h"
+#include "core/formulas/maths/Mult.h"
+#include "core/formulas/maths/Pow.h"
+#include "core/formulas/maths/Inv.h"
 #include "core/formulas/maths/IntInv.h"
 
 namespace keops {
@@ -35,7 +37,11 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
       else
 #ifdef __NVCC__
+#if USE_DOUBLE
         out[k] = rsqrt(outF[k]);
+#else
+        out[k] = rsqrtf(outF[k]);
+#endif
 #else
         out[k] = 1.0 / sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
 #endif
@@ -48,7 +54,11 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
   using DiffT = DiffTF<V, Mult<Scal<IntInv<-2>, Pow<Rsqrt<F>, 3>>, GRADIN>>;
 };
 
-// Simplification rule
+// base class, redirects to implementation
+template<class F>
+struct Rsqrt_Alias {
+  using type = Rsqrt_Impl<F>;
+};
 
 // Rsqrt(0) = 0   // warning !! Rsqrt(0) should be Inf but we put 0 instead. This is intentional...
 template<int DIM>

@@ -2,6 +2,7 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/StandardBasis.h"
 #include "core/formulas/maths/Concat.h"
 
@@ -19,8 +20,5 @@ struct GradMatrix_Impl {
   using packGrads = IterReplace <Grad<F, V, GRADIN>, GRADIN, StandardBasis<F::DIM>>;
   using type = IterBinaryOp<Concat, packGrads>;
 };
-
-template<class F, class V>
-using GradMatrix = typename GradMatrix_Impl<F, V>::type;
 
 }

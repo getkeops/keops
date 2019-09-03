@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+
+#include "core/formulas/maths/maths.h"
 #include "lib/sequences/include/tao/seq/integer_sequence.hpp"
 #include "lib/sequences/include/tao/seq/contains.hpp"
 #include "lib/sequences/include/tao/seq/concatenate.hpp"

@@ -5,9 +5,11 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/IntInv.h"
+#include "core/formulas/maths/Rsqrt.h"
 
 namespace keops {
 
