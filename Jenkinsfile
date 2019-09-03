@@ -1,4 +1,11 @@
 // IC Script for Keops
+
+node {
+  checkout scm
+  result = sh (script: "git log -1 | grep '\\[ci skip\\]'", returnStatus: true)
+  if (result != 0) {
+    echo "performing build..."
+
 pipeline {
   agent none 
   stages {
@@ -154,5 +161,10 @@ pipeline {
       }
     }
 
+  }
+}
+
+  } else {
+    echo "not running..."
   }
 }
