@@ -3,9 +3,7 @@
 node {
   checkout scm
   result = sh (script: "git log -1 | grep '\\[ci skip\\]'", returnStatus: true)
-  if (result != 0) {
-
-  } else {
+  if (result == 0) {
     currentBuild.result = 'ABORTED'
     error('Detect [no ci] message in commit message. Not running.')
   }
