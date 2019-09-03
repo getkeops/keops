@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_fromdevice test_fromdevice.cu
+//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_fromdevice test_fromdevice.cu
 
 // testing "from device" convolution, i.e. convolution which is performed on the device
 // directly from device data

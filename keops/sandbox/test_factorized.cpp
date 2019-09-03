@@ -1,6 +1,6 @@
 // test convolution using factorized formula
 // compile with
-//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_factorized test_factorized.cpp
+//		g++ -I.. -D__TYPE__=float -std=c++14 -O3 -o build/test_factorized test_factorized.cpp
 
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test

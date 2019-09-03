@@ -1,6 +1,6 @@
 // test convolution
 // compile with
-//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_sumgauss test_sumgauss.cpp
+//		g++ -I.. -D__TYPE__=float -std=c++14 -O3 -o build/test_sumgauss test_sumgauss.cpp
 // 
 
 #include <stdio.h>

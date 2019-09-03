@@ -1,6 +1,6 @@
 // test convolution 
 // compile with
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++11 -O2 -o build/test_simple test_simple.cu
+//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_simple test_simple.cu
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the GPU
