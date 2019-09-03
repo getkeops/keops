@@ -83,7 +83,11 @@
 #include "core/formulas/norms/WeightedSqNorm.h"
 
 
-#include "core/formulas/kernels.h"
+// import all Kernels
+#include "core/formulas/kernels/ScalarRadialKernels.h"
+#include "core/formulas/kernels/MatrixKernels.h"
+
+
 #include "core/formulas/factorize.h"
 #include "core/formulas/newsyntax.h"
 

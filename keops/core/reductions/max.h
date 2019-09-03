@@ -1,7 +1,8 @@
 #pragma once
 
-#include "core/Pack.h"
+#include <sstream>
 
+#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/reductions/zero.h"
 

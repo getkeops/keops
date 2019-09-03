@@ -13,10 +13,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms/norms.h"
+#include "core/formulas/kernels/ScalarRadialKernels.h"
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"

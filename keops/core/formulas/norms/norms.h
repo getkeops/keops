@@ -17,6 +17,7 @@
  *      WeightedSqDist<A,FA,FB>     : alias for WeightedSqNorm<A,Subtract<FA,FB>>
  *
  */
+
 namespace keops {
 
 template < class FA, class FB >

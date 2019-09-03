@@ -1,9 +1,9 @@
 #pragma once
 
+#include <sstream>
+
 #include "core/Pack.h"
-
 #include "core/autodiff.h"
-
 #include "core/reductions/zero.h"
 
 namespace keops {

@@ -32,7 +32,7 @@ struct Exp : UnaryOp<Exp, F> {
       out[k] = expf(outF[k]);
 #endif
 #else
-        out[k] = out[k] = std::exp(outF[k]);
+        out[k] = exp(outF[k]);
 #endif
   }
 

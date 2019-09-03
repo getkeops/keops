@@ -3,10 +3,13 @@
 #include <sstream>
 
 #include "core/Pack.h"
-
 #include "core/autodiff.h"
-
 #include "core/reductions/reduction.h"
+#include "core/formulas/maths/Concat.h"
+#include "core/formulas/maths/Scal.h"
+#include "core/formulas/maths/Subtract.h"
+#include "core/formulas/maths/Exp.h"
+
 
 // Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(m_i-f_ij) g_ij
 // where f and g are two formulas. f must be scalar-valued.
