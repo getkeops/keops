@@ -2,14 +2,14 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/IntInv.h"
 #include "core/formulas/maths/Rsqrt.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -55,5 +55,7 @@ template<int DIM>
 struct Sqrt_Alias<Zero<DIM>> {
 using type = Zero<DIM>;
 };
+
+#define Sqrt(f) KeopsNS<Sqrt<decltype(InvKeopsNS(f))>>()
 
 }

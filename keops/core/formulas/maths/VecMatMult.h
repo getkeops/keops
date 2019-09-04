@@ -3,12 +3,11 @@
 #include <sstream>
 #include <assert.h>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/TensorProd.h"
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -66,5 +65,7 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
   using DiffT = Add<DiffTA<V, TensorProd<B, GRADIN>>, DiffTB<V, MatVecMult<A, GRADIN>>>;
 
 };
+
+#define VecMatMult(f,g) KeopsNS<VecMatMult<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
 }

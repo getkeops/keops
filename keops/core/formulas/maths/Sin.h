@@ -2,11 +2,11 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Cos.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -36,5 +36,7 @@ struct Sin : UnaryOp<Sin, F> {
   using DiffT = typename F::template DiffT<V, Mult<Cos<F>, GRADIN>>;
 
 };
+
+#define Sin(f) KeopsNS<Sin<decltype(InvKeopsNS(f))>>()
 
 }

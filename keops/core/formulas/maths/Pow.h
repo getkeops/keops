@@ -2,13 +2,12 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
 
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -39,5 +38,7 @@ struct Pow : UnaryOp<Pow, F, M> {
   using DiffT = Scal<IntConstant<M>, DiffTF<V, Mult<Pow<F, M - 1>, GRADIN>>>;
 
 };
+
+#define Pow(f,M) KeopsNS<Pow<decltype(InvKeopsNS(f)),M>>()
 
 }

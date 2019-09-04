@@ -2,13 +2,12 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
 
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -45,4 +44,7 @@ struct Square : UnaryOp<Square, F> {
   using DiffT = Scal<IntConstant<2>, DiffTF<V, Mult<F, GRADIN>>>;
 
 };
+
+#define Square(f) KeopsNS<Square<decltype(InvKeopsNS(f))>>()
+
 }

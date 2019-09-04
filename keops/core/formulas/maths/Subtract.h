@@ -5,10 +5,13 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
+#include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/Sum.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Minus.h"
+#include "core/formulas/maths/maths.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -145,5 +148,11 @@ template<int M, int N>
 struct Subtract_Alias<IntConstant_Impl<M>, IntConstant_Impl<N>> {
 using type = IntConstant<M - N>;
 };
+
+template < class FA, class FB >
+KeopsNS<Subtract<FA,FB>> operator-(KeopsNS<FA> fa, KeopsNS<FB> fb) {
+  return KeopsNS<Subtract<FA,FB>>();
+}
+#define Subtract(fa,fb) KeopsNS<Subtract<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
 
 }

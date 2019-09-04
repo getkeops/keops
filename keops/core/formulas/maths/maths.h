@@ -52,30 +52,31 @@ namespace keops {
 // careful with the declaration order, and therefore use three "typenames" per operation:
 // Op_Alias, Op_Impl and Op (proper).
 
-//template<class FA, class FB>
-//struct Add_Impl;
+template<class FA, class FB>
+struct Add_Impl;
 template<class FA, class FB>
 struct Add_Alias;
 template<class FA, class FB>
 using Add = typename Add_Alias<FA, FB>::type;
 
-//template<class FA, class FB>
-//struct Subtract_Impl;
+
+template<class FA, class FB>
+struct Subtract_Impl;
 template<class FA, class FB>
 struct Subtract_Alias;
 template<class FA, class FB>
 using Subtract = typename Subtract_Alias<FA, FB>::type;
 
-//template<class FA, class FB>
-//struct Scal_Impl;
+template<class FA, class FB>
+struct Scal_Impl;
 template<class FA, class FB>
 struct Scal_Alias;
 template<class FA, class FB>
 using Scal = typename Scal_Alias<FA, FB>::type;
 
 
-//template<class FA, class FB>
-//struct Mult_Impl;
+template<class FA, class FB>
+struct Mult_Impl;
 template<class FA, class FB>
 struct Mult_Alias;
 template<class FA, class FB>
@@ -316,7 +317,6 @@ using VecMatMult = typename VecMatMult_Impl<FA, FB>::type;
 #include "core/formulas/maths/GradMatrix.h"
 #include "core/formulas/maths/TensorDot.h"
 #include "core/formulas/maths/TensorProd.h"
-#include "core/formulas/maths/StandardBasis.h"
 #include "core/formulas/maths/VecMatMult.h"
 */
 

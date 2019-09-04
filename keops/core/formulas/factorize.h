@@ -4,11 +4,9 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
-
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
-#include "core/formulas/norms/norms.h"
-#include "core/formulas/kernels/kernels.h"
+#include "core/pre_headers.h"
+
 
 //////////////////////////////////////////////////////////////
 ////      FACTORIZE OPERATOR  : Factorize< F,G >          ////
@@ -124,5 +122,8 @@ struct CountIn<Factorize_Impl<F,G>,H> {
 // Auto factorization : factorize F by each of its subformulas
 template < class F >
 using AutoFactorize = Factorize<F,typename F::AllTypes>;
+
+#define Factorize(F,G) KeopsNS<Factorize<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(G))>()
+#define AutoFactorize(F) KeopsNS<AutoFactorize<decltype(InvKeopsNS(F))>>()
 
 }

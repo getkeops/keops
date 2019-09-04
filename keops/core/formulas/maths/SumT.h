@@ -2,10 +2,10 @@
 
 #include <assert.h>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/maths/Sum.h"
 
+#include "core/pre_headers.h"
 namespace keops {
 
 //////////////////////////////////////////////////////////////
@@ -33,5 +33,7 @@ struct SumT : UnaryOp<SumT, F, D> {
   using DiffT = typename F::template DiffT<V, Sum<GRADIN>>;
 
 };
+
+#define SumT(p,d) KeopsNS<SumT<decltype(InvKeopsNS(p)),d>>()
 
 }

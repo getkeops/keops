@@ -2,11 +2,11 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Step.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -37,5 +37,7 @@ struct ReLU : UnaryOp<ReLU, F> {
   template<class V, class GRADIN>
   using DiffT = DiffTF<V, Mult<Step<F>, GRADIN>>;
 };
+
+#define ReLU(f) KeopsNS<ReLU<decltype(InvKeopsNS(f))>>()
 
 }

@@ -10,7 +10,8 @@
 #include <algorithm>
 #include <iostream>
 
-#include "core/formulas/kernels/ScalarRadialKernels.h"
+#include "core/formulas/kernels/SumGaussKernel.h"
+#include "core/formulas/kernels/GaussKernel.h"
 #include "core/CpuConv.cpp"
 #include "core/reductions/sum.h"
 

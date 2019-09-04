@@ -2,9 +2,9 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -32,5 +32,12 @@ struct Minus : UnaryOp<Minus, F> {
   using DiffT = typename F::template DiffT<V, Minus<GRADIN>>;
 
 };
+
+template < class F >
+KeopsNS<Minus<F>> operator-(KeopsNS<F> f) {
+  return KeopsNS<Minus<F>>();
+}
+#define Minus(f) KeopsNS<Minus<decltype(InvKeopsNS(f))>>()
+
 
 }

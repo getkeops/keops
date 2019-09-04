@@ -2,12 +2,12 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -38,5 +38,6 @@ struct Sign : UnaryOp<Sign, F> {
   using DiffT = Zero<V::DIM>;
 };
 
+#define Sign(f) KeopsNS<Sign<decltype(InvKeopsNS(f))>>()
 
 }

@@ -2,10 +2,10 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -41,5 +41,7 @@ struct Exp : UnaryOp<Exp, F> {
   using DiffT = typename F::template DiffT<V, Mult<Exp<F>, GRADIN>>;
 
 };
+
+#define Exp(f) KeopsNS<Exp<decltype(InvKeopsNS(f))>>()
 
 }
