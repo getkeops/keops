@@ -36,7 +36,7 @@ struct Zero {
 
     // Evaluation is easy : simply fill-up *out with zeros.
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+    static DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         for(int k=0; k<DIM; k++)
             out[k] = 0;
     }
@@ -73,7 +73,7 @@ struct IntConstant_Impl {
 
     // Evaluation is easy : simply fill *out = out[0] with N.
     template < class INDS, typename... ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+    static DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         *out = N;
     }
 

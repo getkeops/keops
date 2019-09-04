@@ -18,7 +18,7 @@ struct Max_ArgMax_Reduction_Base : public Reduction<F,tagI> {
 		
 		template < typename TYPE >
 		struct InitializeReduction {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp) {
+			DEVICE INLINE void operator()(TYPE *tmp) {
 				for(int k=0; k<F::DIM; k++)
 					tmp[k] = NEG_INFINITY<TYPE>::value; // initialize output
 				for(int k=F::DIM; k<2*F::DIM; k++)
@@ -29,7 +29,7 @@ struct Max_ArgMax_Reduction_Base : public Reduction<F,tagI> {
 		// equivalent of the += operation
 		template < typename TYPE >
 		struct ReducePairShort {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+			DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
 				for(int k=0; k<F::DIM; k++) {
 					if(xi[k]>tmp[k]) {
 						tmp[k] = xi[k];
@@ -42,7 +42,7 @@ struct Max_ArgMax_Reduction_Base : public Reduction<F,tagI> {
 		// equivalent of the += operation
 		template < typename TYPE >
 		struct ReducePair {
-			HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+			DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
 				for(int k=0; k<F::DIM; k++) {
 					if(xi[k]>tmp[k]) {
 						tmp[k] = xi[k];
@@ -69,7 +69,7 @@ struct Max_ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<
         
     template < typename TYPE >
     struct FinalizeOutput {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<DIM; k++)
                 out[k] = tmp[k];
         }
@@ -94,7 +94,7 @@ struct ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<ArgM
 
     template < typename TYPE >
     struct FinalizeOutput {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<F::DIM; k++)
                 out[k] = tmp[F::DIM+k];
         }
@@ -122,7 +122,7 @@ struct Max_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<Max_Red
 
     template < typename TYPE >
     struct FinalizeOutput {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<F::DIM; k++)
                 out[k] = tmp[k];
         }

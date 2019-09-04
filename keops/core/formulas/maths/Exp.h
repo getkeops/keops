@@ -22,7 +22,7 @@ struct Exp : UnaryOp<Exp, F> {
     str << "Exp";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
 #ifdef __NVCC__

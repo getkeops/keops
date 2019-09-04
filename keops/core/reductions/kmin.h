@@ -26,7 +26,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 
     template < typename TYPE >
     struct InitializeReduction {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp) {
+        DEVICE INLINE void operator()(TYPE *tmp) {
             for(int k=0; k<F::DIM; k++) {
                 for(int l=k; l<K*2*F::DIM+k; l+=2*F::DIM) {
                     tmp[l] = PLUS_INFINITY<TYPE>::value; // initialize output
@@ -40,7 +40,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
     // equivalent of the += operation
     template < typename TYPE >
     struct ReducePairShort {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
             TYPE xik;
             int l;
             for(int k=0; k<F::DIM; k++) {
@@ -62,7 +62,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 	// equivalent of the += operation
 	template < typename TYPE >
 	struct ReducePair {
-		HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+		DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
 		    TYPE out[DIMRED];
 			for(int k=0; k<F::DIM; k++) {
 			    int p = k;
@@ -87,7 +87,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
         
     template < typename TYPE >
     struct FinalizeOutput {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<DIM; k++)
                 out[k] = tmp[k];
         }
@@ -115,7 +115,7 @@ struct ArgKMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
                   
     template < typename TYPE >
     struct FinalizeOutput {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<F::DIM; k++)
                 for(int p=k, l=k; l<K*2*F::DIM+k; p+=F::DIM, l+=2*F::DIM)
                     out[p] = tmp[l+F::DIM];
@@ -148,7 +148,7 @@ struct KMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 
     template < typename TYPE >
     struct FinalizeOutput {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<F::DIM; k++)
                 for(int p=k, l=k; l<K*2*F::DIM+k; p+=F::DIM, l+=2*F::DIM)
                     out[p] = tmp[l];

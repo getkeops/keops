@@ -24,7 +24,7 @@ struct Sum : UnaryOp<Sum, F> {
     str << "Sum";
   }
 
-  static HOST_DEVICE INLINE
+  static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
     *out = 0;
 #pragma unroll

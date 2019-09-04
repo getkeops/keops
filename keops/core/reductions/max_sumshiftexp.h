@@ -40,7 +40,7 @@ struct Max_SumShiftExp_Reduction : public Reduction<Concat<F,G_>,tagI> {
 
     template < typename TYPE >
     struct InitializeReduction {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp) {
+        DEVICE INLINE void operator()(TYPE *tmp) {
             // We fill empty cells with the neutral element of the reduction operation,
             //                   (-inf,0) = e^{-inf} * 0 = 0
 
@@ -55,7 +55,7 @@ struct Max_SumShiftExp_Reduction : public Reduction<Concat<F,G_>,tagI> {
     // equivalent of the += operation
     template < typename TYPE >
     struct ReducePairShort {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
             // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
             TYPE tmpexp;
             if(tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
@@ -74,7 +74,7 @@ struct Max_SumShiftExp_Reduction : public Reduction<Concat<F,G_>,tagI> {
     // equivalent of the += operation
     template < typename TYPE >
     struct ReducePair {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
             // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
             TYPE tmpexp;
             if(tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
@@ -92,7 +92,7 @@ struct Max_SumShiftExp_Reduction : public Reduction<Concat<F,G_>,tagI> {
 
     template < typename TYPE >
     struct FinalizeOutput {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<DIM; k++)
                 out[k] = tmp[k];
         }

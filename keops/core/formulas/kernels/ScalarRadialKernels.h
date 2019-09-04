@@ -136,7 +136,7 @@ struct GaussKernel_specific {
   using AllTypes = univpack<THIS>;
 
   template < class INDS, typename... ARGS >
-  static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
+  static DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
     __TYPE__* params = Get<IndVal_Alias<INDS,C::N>::ind>(args...);
     __TYPE__* xi = Get<IndVal_Alias<INDS,X::N>::ind>(args...);
     __TYPE__* yj = Get<IndVal_Alias<INDS,Y::N>::ind>(args...);
@@ -193,7 +193,7 @@ struct GradGaussKernel_specific {
   using AllTypes = MergePacks < univpack<THIS,V>, typename GRADIN::AllTypes >;
 
   template < class INDS, typename... ARGS >
-  static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
+  static DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
     GenericVersion::template Eval<INDS>(gammai,args...);
   }
 
@@ -238,7 +238,7 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
   using AllTypes = MergePacks < univpack<THIS,X>, typename GRADIN::AllTypes >;
 
   template < class INDS, typename... ARGS >
-  static HOST_DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
+  static DEVICE INLINE void Eval(__TYPE__* gammai, ARGS... args) {
     __TYPE__* params = Get<IndVal_Alias<INDS,C::N>::ind>(args...);
     __TYPE__* xi = Get<IndVal_Alias<INDS,X::N>::ind>(args...);
     __TYPE__* yj = Get<IndVal_Alias<INDS,Y::N>::ind>(args...);

@@ -20,11 +20,13 @@
 #ifdef __CUDACC__
 	#include <npp.h>
 	#define HOST_DEVICE __host__ __device__
+	#define DEVICE __device__
 	#define INLINE __forceinline__
 	#define INFINITY_FLOAT NPP_MAXABS_32F
 	#define INFINITY_DOUBLE NPP_MAXABS_64F
 #else
-        #define HOST_DEVICE 
+    #define HOST_DEVICE 
+    #define DEVICE 
 	#include <limits>
 	#define INLINE inline
 	#define INFINITY_FLOAT std::numeric_limits<float>::infinity()

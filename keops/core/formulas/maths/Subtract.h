@@ -28,7 +28,7 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl, FA, FB> {
     str << "-";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = outA[k] - outB[k];
@@ -49,7 +49,7 @@ struct Subtract_Impl_Broadcast : BinaryOp<Subtract_Impl_Broadcast, FA, FB> {
     str << "-";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = *outA - outB[k];

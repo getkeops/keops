@@ -52,7 +52,7 @@ struct Factorize_Impl : BinaryOp<Factorize_Impl,F,G> {
     using FactorizedFormula = typename F::template Replace<G,Var<INDS::MAX+1,G::DIM,3>>;	// means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
 
     template < class INDS, typename ...ARGS >
-    static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+    static DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
         // First we compute G
         __TYPE__ outG[G::DIM];
         G::template Eval<INDS>(outG,args...);

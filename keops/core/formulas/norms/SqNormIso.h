@@ -29,7 +29,7 @@ struct SqNormIso : BinaryOp<SqNormIso, FS, FA> {
     str << "<SqNormIso>";
   }
 
-  static HOST_DEVICE INLINE
+  static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
     *out = 0;
     for (int k = 0; k < DIMIN; k++)

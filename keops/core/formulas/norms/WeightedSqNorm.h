@@ -33,7 +33,7 @@ struct SymTwoOuterProduct : BinaryOp<SymTwoOuterProduct,X,Y> {
     str << "<SymTwoOuterProduct>";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX, __TYPE__ *outY) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX, __TYPE__ *outY) {
     for(int k=0; k < DIMIN; k++) {
       for(int l=0; l < DIMIN; l++)
         out[ k*DIMIN + l ] = outX[k] * outY[l] + outX[l] * outY[k] ;
@@ -60,7 +60,7 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
     str << "<SymTwoDot>";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
     for(int k=0; k < DIMIN; k++) {
       out[k] = 0;
       for(int l=0; l < DIMIN; l++) {
@@ -89,7 +89,7 @@ struct SymOuterProduct : UnaryOp<SymOuterProduct,X> {
     str << "SymOuterProduct";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX) {
     for(int k=0; k < DIMIN; k++) {
       for(int l=0; l < DIMIN; l++)
         out[ k*DIMIN + l ] = outX[ k ] * outX[ l ];
@@ -117,7 +117,7 @@ struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
     str << "<SymSqNorm>";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
     *out = 0;
     for(int k=0; k < DIMIN; k++) {
       for(int l=0; l < DIMIN; l++)

@@ -242,7 +242,7 @@ struct Looper;
 template<size_t... Is>
 struct Looper<index_sequence<Is...>> {
   template<typename Func>
-  constexpr static HOST_DEVICE void f(Func &&func) {
+  constexpr static DEVICE void f(Func &&func) {
     func(index_sequence<Is...>{});
   }
 };
@@ -250,12 +250,12 @@ struct Looper<index_sequence<Is...>> {
 template<size_t I, size_t... Is, size_t... PIs>
 struct Looper<index_sequence<PIs...>, I, Is...> {
   template<std::size_t... Idx, typename Func>
-  constexpr static HOST_DEVICE void f_help(index_sequence<Idx...>, Func &&func) {
+  constexpr static DEVICE void f_help(index_sequence<Idx...>, Func &&func) {
     (void) std::initializer_list<int>{(Looper<index_sequence<PIs..., Idx>, Is...>::f(func), 0)...};
   }
 
   template<typename Func>
-  constexpr static HOST_DEVICE void f(Func &&func) {
+  constexpr static DEVICE void f(Func &&func) {
     f_help(tao::seq::make_index_sequence<I>{}, func);
   }
 
@@ -353,7 +353,7 @@ struct tensordot_parameters {
   using moveaxis_b = typename tao::seq::concatenate<reordered_keepdim_b, reordered_contfb>::type;
 
   template<class IND>
-  HOST_DEVICE constexpr static tensordot_indices compute_tensordot_indices(IND) {
+  DEVICE constexpr static tensordot_indices compute_tensordot_indices(IND) {
 
     // a_indices
     using list_indices_a = typename tao::seq::map<list_indices_a_intot,
@@ -402,16 +402,16 @@ struct tensordot_parameters {
   template<typename Func>
   struct compute_tensordot_indices_t {
     template<size_t... Is>
-    HOST_DEVICE void operator()(index_sequence<Is...> x) {
+    DEVICE void operator()(index_sequence<Is...> x) {
       _f(compute_tensordot_indices(x));
     }
 
     Func &_f;
-    HOST_DEVICE compute_tensordot_indices_t(Func &&f) : _f(f) {}
+    DEVICE compute_tensordot_indices_t(Func &&f) : _f(f) {}
   };
 
   template<typename Func>
-  static HOST_DEVICE auto compute_tensordot_indices_apply(Func &&f) {
+  static DEVICE auto compute_tensordot_indices_apply(Func &&f) {
     return compute_tensordot_indices_t<Func>(std::forward<Func>(f));
   }
 
@@ -444,7 +444,7 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMU
     str << ":";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
 #pragma unroll
     for (int i =0 ; i < DIM ; i ++)
       out[i] = 0;

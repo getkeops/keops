@@ -35,7 +35,7 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
   }
 
 #if C_CONTIGUOUS //row major
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
 #pragma unroll
         for (int i = 0; i < DIM; i++) {
             out[i] = 0;
@@ -45,7 +45,7 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
         }
     }
 #else // column major
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
     int q = 0;
 #pragma unroll
     for (int i = 0; i < DIM; i++) {

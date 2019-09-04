@@ -27,7 +27,7 @@ struct Scal_Impl : BinaryOp<Scal_Impl, FA, FB> {
     str << "*";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = *outA * outB[k];

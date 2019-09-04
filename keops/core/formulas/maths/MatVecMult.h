@@ -30,7 +30,7 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
     str << "x";
   }
 #if C_CONTIGUOUS //row major
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
         int q = 0;
 #pragma unroll
         for (int i = 0; i < DIM; i++) {
@@ -41,7 +41,7 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
         }
     }
 #else // column major
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
 #pragma unroll
     for (int i = 0; i < DIM; i++) {
       out[i] = 0;
