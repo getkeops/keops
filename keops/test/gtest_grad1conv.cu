@@ -6,12 +6,7 @@
 #include <ctime>
 
 #include "bench/generate_data.h"
-
-#include "core/formulas/newsyntax.h"
-
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
-#include "core/CpuConv.cpp"
+#include "keops_includes.h"
 
 #define ATOL 1e-3
 #define RTOL 1e-4

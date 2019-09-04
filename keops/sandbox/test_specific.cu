@@ -14,11 +14,7 @@
 
 #include <cuda.h>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
-#include "core/formulas/kernels/kernels.h"
-#include "core/formulas/norms/norms.h"
-#include "core/formulas/factorize.h"
+#include "core/formulas/kernels/ScalarRadialKernels.h"
 
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"

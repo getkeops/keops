@@ -51,6 +51,11 @@
 #include "core/formulas/norms/WeightedSqDist.h"
 #include "core/formulas/norms/WeightedSqNorm.h"
 
+// import all Kernels 
+#include "core/formulas/kernels/ScalarRadialKernels.h"
+#include "core/formulas/kernels/MatrixKernels.h"
+
+// import all reductions
 #include "core/reductions/sum.h"
 #include "core/reductions/max_sumshiftexp.h"
 #include "core/reductions/min.h"

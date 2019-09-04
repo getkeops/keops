@@ -12,12 +12,7 @@
 #include <ctime>
 #include <algorithm>
 
-#include "core/formulas/newsyntax.h"
-
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
-#include "core/CpuConv.cpp"
-#include "core/reductions/sum.h"
+#include "keops_includes.h"
 
 using namespace keops;
 
