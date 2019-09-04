@@ -4,6 +4,7 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Step.h"
 
@@ -21,7 +22,7 @@ struct ReLU : UnaryOp<ReLU, F> {
     str << "ReLU";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       if (outF[k] < 0)

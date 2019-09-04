@@ -45,7 +45,7 @@ struct Reduction {
     static const int NMINARGS = 1+INDS::MAX; // minimal number of arguments when calling the formula.
 
     template < typename... Args >
-    HOST_DEVICE INLINE void operator()(Args... args) {
+    DEVICE INLINE void operator()(Args... args) {
         F::template Eval<INDS>(args...);
     }
     

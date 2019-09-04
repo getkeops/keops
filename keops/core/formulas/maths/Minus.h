@@ -4,6 +4,7 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
+#include "core/formulas/maths/maths.h"
 
 namespace keops {
 
@@ -20,7 +21,7 @@ struct Minus : UnaryOp<Minus, F> {
     str << "Minus";
   }
 
-  static HOST_DEVICE INLINE
+  static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)

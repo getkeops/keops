@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/ScalOrMult.h"
 #include "core/formulas/maths/Inv.h"
 

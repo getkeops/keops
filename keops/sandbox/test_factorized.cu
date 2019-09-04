@@ -1,6 +1,6 @@
 // test convolution using factorized formula
 // compile with
-//		nvcc -I.. -D__TYPE__=float -Wno-deprecated-gpu-targets -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -std=c++11 -O2 -o build/test_factorized test_factorized.cu
+//		nvcc -I.. -D__TYPE__=float -Wno-deprecated-gpu-targets -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -std=c++14 -O2 -o build/test_factorized test_factorized.cu
 
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test
@@ -12,12 +12,7 @@
 #include <ctime>
 #include <algorithm>
 
-#include "core/formulas/newsyntax.h"
-
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
-#include "core/CpuConv.cpp"
-#include "core/reductions/sum.h"
+#include "keops_includes.h"
 
 using namespace keops;
 

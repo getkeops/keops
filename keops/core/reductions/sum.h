@@ -1,10 +1,11 @@
 #pragma once
 
+#include <sstream>
+
 #include "core/Pack.h"
-
 #include "core/autodiff.h"
-
 #include "core/reductions/reduction.h"
+#include "core/formulas/constants.h"
 
 namespace keops {
 
@@ -30,7 +31,7 @@ struct Sum_Reduction_Impl : public Reduction<F,tagI> {
 
     template < typename TYPE >
     struct InitializeReduction {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp) {
+        DEVICE INLINE void operator()(TYPE *tmp) {
             for(int k=0; k<DIM; k++)
                 tmp[k] = 0.0f; // initialize output
         }
@@ -39,7 +40,7 @@ struct Sum_Reduction_Impl : public Reduction<F,tagI> {
     // equivalent of the += operation
     template < typename TYPE >
     struct ReducePairShort {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
             for(int k=0; k<DIM; k++) {
                 tmp[k] += xi[k];
             }
@@ -49,7 +50,7 @@ struct Sum_Reduction_Impl : public Reduction<F,tagI> {
     // equivalent of the += operation
     template < typename TYPE >
     struct ReducePair {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
             for(int k=0; k<DIM; k++) {
                 tmp[k] += xi[k];
             }
@@ -58,7 +59,7 @@ struct Sum_Reduction_Impl : public Reduction<F,tagI> {
 
     template < typename TYPE >
     struct FinalizeOutput {
-        HOST_DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<DIM; k++)
                 out[k] = tmp[k];
         }

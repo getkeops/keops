@@ -1,6 +1,6 @@
 // test convolution
 // compile with
-//		g++ -I.. -std=c++11 -O3 -o build/test_simple test_simple.cpp
+//		g++ -I.. -std=c++14 -O3 -o build/test_simple test_simple.cpp
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the CPU

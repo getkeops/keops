@@ -5,8 +5,8 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
-#include "core/formulas/maths/Pow.h"
 #include "core/formulas/maths/Scal.h"
 
 
@@ -25,7 +25,7 @@ struct Pow : UnaryOp<Pow, F, M> {
     str << "Pow";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = pow(outF[k], M);

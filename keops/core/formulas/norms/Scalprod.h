@@ -32,7 +32,7 @@ struct Scalprod_Impl : BinaryOp<Scalprod_Impl,FA,FB> {
 
   static void PrintIdString(std::stringstream& str) { str << "|";}
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
     *out = 0;
     for(int k=0; k<DIMIN; k++)
       *out += outA[k]*outB[k];
@@ -45,6 +45,10 @@ struct Scalprod_Impl : BinaryOp<Scalprod_Impl,FA,FB> {
 };
 
 
+template < class FA, class FB >
+struct Scalprod_Alias {
+    using type = Scalprod_Impl<FA,FB>;
+};
 
 
 // Three simple optimizations :

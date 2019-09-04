@@ -21,7 +21,7 @@
 // This program runs on CPU ; see the file test_reductions.cu for the equivalent program on GPU.
 //
 // This example can be compiled with the command
-//		g++ -I.. -D__TYPE__=float -std=c++11 -O3 -o build/test_reductions test_reductions.cpp
+//		g++ -I.. -D__TYPE__=float -std=c++14 -O3 -o build/test_reductions test_reductions.cpp
 // 
 
 #include <algorithm>

@@ -2,6 +2,7 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/VecMatMult.h"
@@ -24,7 +25,7 @@ struct TensorProd : BinaryOp<TensorProd, A, B> {
     str << "(x)";
   }
 #if C_CONTIGUOUS // row major
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
         int q = 0;
 #pragma unroll
         for (int k = 0; k < A::DIM; k++) {
@@ -34,7 +35,7 @@ struct TensorProd : BinaryOp<TensorProd, A, B> {
         }
     }
 #else // column major
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
     int q = 0;
 #pragma unroll
     for (int i = 0; i < A::DIM; i++) {

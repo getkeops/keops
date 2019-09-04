@@ -2,6 +2,7 @@
 
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Inv.h"
+#include "core/formulas/maths/maths.h"
 
 namespace keops {
 

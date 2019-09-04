@@ -1,6 +1,6 @@
 // test convolution using specific formula for Gauss kernel
 // compile with
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++11 -O2 -o build/test_specific test_specific.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -D__TYPE__=float -std=c++14 -O2 -o build/test_specific test_specific.cu
 
 // we compare a generic implementation of the Gauss kernel vs the specific
 // 
@@ -14,11 +14,7 @@
 
 #include <cuda.h>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms/norms.h"
-#include "core/formulas/factorize.h"
+#include "core/formulas/kernels/ScalarRadialKernels.h"
 
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"

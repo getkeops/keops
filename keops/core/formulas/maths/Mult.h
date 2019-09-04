@@ -5,23 +5,11 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
+#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Add.h"
 
 namespace keops {
-
-// Addition, Subtraction, Scalar product and "Scalar*Vector product" symbolic operators.
-// The actual implementation can be found below.
-// Since the gradients of these operations are "bootstrapped", we need to be a little bit
-// careful with the declaration order, and therefore use three "typenames" per operation:
-// Op_Alias, Op_Impl and Op (proper).
-
-template<class FA, class FB>
-struct Mult_Alias;
-
-template<class FA, class FB>
-using Mult = typename Mult_Alias<FA, FB>::type;
-
 
 //////////////////////////////////////////////////////////////
 ////      Element-wise Multiplication : Mult< FA,FB>      ////
@@ -38,7 +26,7 @@ struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
     str << "*";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = outA[k] * outB[k];

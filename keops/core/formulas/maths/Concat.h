@@ -3,6 +3,8 @@
 #include <sstream>
 #include "core/Pack.h"
 #include "core/autodiff.h"
+#include "core/formulas/maths/maths.h"
+#include "core/formulas/maths/Add.h"
 
 namespace keops {
 
@@ -19,7 +21,7 @@ struct Concat_Impl : BinaryOp<Concat_Impl, F, G> {
     str << "Concat";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF, __TYPE__ *outG) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF, __TYPE__ *outG) {
 #pragma unroll
     for (int k = 0; k < F::DIM; k++)
       out[k] = outF[k];

@@ -1,6 +1,6 @@
 // test convolution using factorized formula
 // compile with
-//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_factorized test_factorized.cpp
+//		g++ -I.. -D__TYPE__=float -std=c++14 -O3 -o build/test_factorized test_factorized.cpp
 
 // we define an arbitrary function F,
 // then use a factorized version FF of the same function and test
@@ -13,10 +13,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms/norms.h"
+#include "core/formulas/kernels/ScalarRadialKernels.h"
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"

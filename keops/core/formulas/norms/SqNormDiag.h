@@ -25,7 +25,7 @@ struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
     str << "<SqNormDiag>";
   }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
+  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
     *out = 0;
     for(int k=0; k<DIMIN; k++)
       *out += outS[k]*outA[k]*outA[k];

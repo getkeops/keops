@@ -1,6 +1,6 @@
 // test convolution using specific formula for Gauss kernel
 // compile with
-//		g++ -I.. -D__TYPE__=float -std=c++11 -O2 -o build/test_specific test_specific.cpp
+//		g++ -I.. -D__TYPE__=float -std=c++14 -O3 -o build/test_specific test_specific.cpp
 
 // we compare a generic implementation of the Gauss kernel vs the specific
 // 
@@ -12,10 +12,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms/norms.h"
+#include "core/formulas/kernels/ScalarRadialKernels.h"
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"
