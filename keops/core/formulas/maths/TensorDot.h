@@ -92,8 +92,8 @@ struct tensordot_parameters {
 
   // Left hand-side
   using indices_keepdim_a_t = tao::seq::difference_t<tao::seq::make_index_sequence<DIMFA::size()>,CONTFA>;
-  using keepdim_a_t = typename tao::seq::map<indices_keepdim_a_t, DIMFA>::type;
-  using contdim_a_t = typename tao::seq::map<CONTFA, DIMFA>::type;
+  using keepdim_a_t = tao::seq::map_t<indices_keepdim_a_t, DIMFA>;
+  using contdim_a_t = tao::seq::map_t<CONTFA, DIMFA>;
 #if C_CONTIGUOUS
   using list_stride_dim_a_t = cum_prod<DIMFA>;
 #else
@@ -102,8 +102,8 @@ struct tensordot_parameters {
 
   // Right hand-side
   using indices_keepdim_b_t = tao::seq::difference_t<tao::seq::make_index_sequence<DIMFB::size()>,CONTFB>;
-  using keepdim_b_t = typename tao::seq::map<indices_keepdim_b_t, DIMFB>::type;
-  using contdim_b_t = typename tao::seq::map<CONTFB, DIMFB>::type;
+  using keepdim_b_t = tao::seq::map_t<indices_keepdim_b_t, DIMFB>;
+  using contdim_b_t = tao::seq::map_t<CONTFB, DIMFB>;
 #if C_CONTIGUOUS
   using list_stride_dim_b_t = cum_prod<DIMFB>;
 #else
@@ -115,7 +115,7 @@ struct tensordot_parameters {
                 "In TensorDot: contracting dimensions should be the same");
 
   // Output
-  using keepdim_t = typename tao::seq::concatenate<keepdim_a_t, keepdim_b_t>::type;
+  using keepdim_t = tao::seq::concatenate_t<keepdim_a_t, keepdim_b_t>;
 #if C_CONTIGUOUS
   using list_stride_keepdim_t = cum_prod<tao::seq::permutate_t<PERMUTE, keepdim_t>>;
 #else
@@ -128,21 +128,21 @@ struct tensordot_parameters {
                 "In TensorDot: PERMUTE should be a permutation index_sequence.");
 
   // Loop: in this code we choose to loop on the keepdims first and then on the contraction dims.
-  using loopdim_t = typename tao::seq::concatenate<keepdim_t, contdim_a_t>::type;
+  using loopdim_t = tao::seq::concatenate_t<keepdim_t, contdim_a_t>;
 
   constexpr static size_t dimloop = tao::seq::prod<loopdim_t>::value;
   constexpr static size_t number_of_dimloop = loopdim_t::size();
 
-  using ala = typename tao::seq::concatenate<tao::seq::make_index_range<0, keepdim_a_t::size()>,
-                                             tao::seq::make_index_range<keepdim_t::size(), number_of_dimloop>>::type;
+  using ala = tao::seq::concatenate_t<tao::seq::make_index_range<0, keepdim_a_t::size()>,
+                                    tao::seq::make_index_range<keepdim_t::size(), number_of_dimloop>>;
 
-  using ali = typename tao::seq::concatenate<indices_keepdim_a_t, CONTFA>::type;
+  using ali = tao::seq::concatenate_t<indices_keepdim_a_t, CONTFA>;
 
   using list_indices_a_intot = tao::seq::permutate_t<ali, ala>;
 
-  using bla = typename tao::seq::concatenate<tao::seq::make_index_range<keepdim_a_t::size(), keepdim_t::size()>,
-                                             tao::seq::make_index_range<keepdim_t::size(), number_of_dimloop>>::type;
-  using bli = typename tao::seq::concatenate<indices_keepdim_b_t, CONTFB>::type;
+  using bla = tao::seq::concatenate_t<tao::seq::make_index_range<keepdim_a_t::size(), keepdim_t::size()>,
+                                      tao::seq::make_index_range<keepdim_t::size(), number_of_dimloop>>;
+  using bli = tao::seq::concatenate_t<indices_keepdim_b_t, CONTFB>;
 
   using list_indices_b_intot = tao::seq::permutate_t<bli, bla>;
 
@@ -150,19 +150,18 @@ struct tensordot_parameters {
   using list_indices_keepdim_a_inout = typename tao::seq::make_index_range<0, keepdim_a_t::size()>;
   using reordered_contfa = tao::seq::permutate_t<tao::seq::sort_index_t<tao::seq::op::less,CONTFB>, CONTFA>;
   using reordered_keepdim_a = tao::seq::permutate_t<tao::seq::sort_index_t<tao::seq::op::less,tao::seq::map_t<list_indices_keepdim_a_inout, PERMUTE>>, indices_keepdim_a_t>;
-  using moveaxis_a = typename tao::seq::concatenate<reordered_keepdim_a, reordered_contfa>::type;
+  using moveaxis_a = tao::seq::concatenate_t<reordered_keepdim_a, reordered_contfa>;
 
   using list_indices_keepdim_b_inout = typename tao::seq::make_index_range<keepdim_a_t::size(), keepdim_t::size()>;
   using reordered_contfb = tao::seq::permutate_t<tao::seq::sort_index_t<tao::seq::op::less,CONTFA>, CONTFB>;
   using reordered_keepdim_b = tao::seq::permutate_t<tao::seq::sort_index_t<tao::seq::op::less,tao::seq::map_t<list_indices_keepdim_b_inout, PERMUTE>>, indices_keepdim_b_t>;
-  using moveaxis_b = typename tao::seq::concatenate<reordered_keepdim_b, reordered_contfb>::type;
+  using moveaxis_b = tao::seq::concatenate_t<reordered_keepdim_b, reordered_contfb>;
 
   template<class IND>
   DEVICE constexpr static tensordot_indices compute_tensordot_indices(IND) {
 
     // a_indices
-    using list_indices_a = typename tao::seq::map<list_indices_a_intot,
-                                                  IND>::type;
+    using list_indices_a = tao::seq::map_t<list_indices_a_intot, IND>;
 
 #if C_CONTIGUOUS
     size_t a_indices = tao::seq::sum<tao::seq::multiplies_t<list_stride_dim_a_t, list_indices_a>>::value;
@@ -172,8 +171,7 @@ struct tensordot_parameters {
 
 
     // b_indices
-    using list_indices_b = typename tao::seq::map<list_indices_b_intot,
-                                                  IND>::type;
+    using list_indices_b = tao::seq::map_t<list_indices_b_intot, IND>;
 #if C_CONTIGUOUS
     size_t b_indices = tao::seq::sum<tao::seq::multiplies_t<list_stride_dim_b_t,list_indices_b>>::value;
 #else
@@ -271,13 +269,13 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMU
       DiffTA<V, TensorDot<GRADIN, B,
                           tao::seq::permutate_t<PERMUTEDIMOUT, typename parameters::keepdim_t>,                    // 3
                           DIMFB,                                                                                              // 4 2
-                          typename tao::seq::map<typename parameters::list_indices_keepdim_b_inout, PERMUTEDIMOUT>::type,     // .
+                          tao::seq::map_t<typename parameters::list_indices_keepdim_b_inout, PERMUTEDIMOUT>,     // .
                           typename parameters::indices_keepdim_b_t,                                                           // .
                           typename parameters::moveaxis_a>>,                                                                  // 1, 2 0
       DiffTB<V, TensorDot<GRADIN, A,
                           tao::seq::permutate_t<PERMUTEDIMOUT, typename parameters::keepdim_t>,                    // 3
                           DIMFA,                                                                                              // 2, 3, 4
-                          typename tao::seq::map<typename parameters::list_indices_keepdim_a_inout, PERMUTEDIMOUT>::type,    //0
+                          tao::seq::map_t<typename parameters::list_indices_keepdim_a_inout, PERMUTEDIMOUT>,    //0
                           typename parameters::indices_keepdim_a_t,                                                           //1
                           typename parameters::moveaxis_b>>                                                                   // . , 0 1
   >;
