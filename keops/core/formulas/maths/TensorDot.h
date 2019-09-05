@@ -11,11 +11,64 @@
 #include "lib/sequences/include/tao/seq/first.hpp"
 #include "lib/sequences/include/tao/seq/sort_index.hpp"
 #include "lib/sequences/include/tao/seq/functional.hpp"
-#include "lib/sequences/include/tao/seq/difference.hpp"
+// #include "lib/sequences/include/tao/seq/difference.hpp"
 #include "lib/sequences/include/tao/seq/reverse.hpp"
 #include "lib/sequences/include/tao/seq/multiplies.hpp"
 #include "lib/sequences/include/tao/seq/prod.hpp"
 #include "lib/sequences/include/tao/seq/exclusive_scan.hpp"
+
+// TODO : wait for a fix from tao::seq
+namespace tao
+{
+   namespace seq
+   {
+     namespace impl 
+     {
+         template< typename, typename, typename >
+         struct difference;
+
+         template< typename T, T... As >
+         struct difference< T, integer_sequence< T >, integer_sequence< T, As... > >
+         {
+            using type = integer_sequence< T >;
+         };
+
+         template< typename T, T... As, T b, T... Bs >
+         struct difference< T, integer_sequence< T, b, Bs... >, integer_sequence< T, As... > >
+         {
+            constexpr static bool included = tao::seq::contains< T, b, As... >::value;
+            using tail = typename difference< T, integer_sequence< T, Bs... >, integer_sequence< T, As... > >::type;
+            using type = typename std::conditional<
+               included,
+               tail,
+               typename tao::seq::concatenate< integer_sequence< T, b >, tail >::type >::type;
+         };
+
+      }  // namespace impl
+
+      template< typename, typename >
+      struct difference;
+
+      template< typename TA, TA... As, typename TB, TB... Bs >
+      struct difference< integer_sequence< TA, As... >, integer_sequence< TB, Bs... > >
+      {
+        using CT = typename std::common_type< TA, TB >::type;
+
+         template< CT N >
+         using check = contains< CT, N, Bs... >;
+
+        // ERROR THERE
+        // using type = concatenate_t< impl::conditional_t< check< As >::value, integer_sequence< CT >, integer_sequence< CT, As > >... >;
+        // OK
+        using type = typename impl::difference< CT, integer_sequence< CT, As... >, integer_sequence< CT, Bs... > >::type; // ERROR
+      };
+
+      template< typename A, typename B >
+      using difference_t = typename difference< A, B >::type;
+
+   }  // namespace seq
+
+}  // namespace tao
 
 namespace keops {
 
@@ -91,7 +144,7 @@ template<class DIMFA, class DIMFB, class CONTFA, class CONTFB, class PERMUTE>
 struct tensordot_parameters {
 
   // Left hand-side
-  using indices_keepdim_a_t = tao::seq::difference_t<tao::seq::make_index_sequence<DIMFA::size()>,CONTFA>;
+  using indices_keepdim_a_t = tao::seq::difference_t<tao::seq::make_index_sequence<tao::seq::impl::sequence_size<DIMFA>::value>,CONTFA>;
   using keepdim_a_t = tao::seq::map_t<indices_keepdim_a_t, DIMFA>;
   using contdim_a_t = tao::seq::map_t<CONTFA, DIMFA>;
 #if C_CONTIGUOUS
@@ -101,7 +154,7 @@ struct tensordot_parameters {
 #endif
 
   // Right hand-side
-  using indices_keepdim_b_t = tao::seq::difference_t<tao::seq::make_index_sequence<DIMFB::size()>,CONTFB>;
+  using indices_keepdim_b_t = tao::seq::difference_t<tao::seq::make_index_sequence<tao::seq::impl::sequence_size<DIMFB>::value>,CONTFB>;
   using keepdim_b_t = tao::seq::map_t<indices_keepdim_b_t, DIMFB>;
   using contdim_b_t = tao::seq::map_t<CONTFB, DIMFB>;
 #if C_CONTIGUOUS
@@ -180,7 +233,7 @@ struct tensordot_parameters {
     // out_indices
     // using list_indices_keepdim = typename tao::seq::map<tao::seq::make_index_range<0, keepdim_t::size()>, IND>::type;
 //    using list_indices_keepdim = typename tao::seq::map<PERMUTE, IND>::type;
-    using list_indices_keepdim = tao::seq::permutate_t<PERMUTE, tao::seq::first_t<keepdim_t::size(),IND>>;
+    using list_indices_keepdim = tao::seq::permutate_t<PERMUTE, tao::seq::first_t<tao::seq::impl::sequence_size<keepdim_t>::value,IND>>;
 
 #if C_CONTIGUOUS
     size_t out_indices = tao::seq::sum<tao::seq::multiplies_t<list_stride_keepdim_t, list_indices_keepdim>>::value;
