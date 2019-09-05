@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/formulas/norms/Scalprod.h"
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -11,5 +12,7 @@ namespace keops {
 // Simple alias
 template < class F >
 using SqNorm2 = Scalprod<F,F>;
+
+#define SqNorm2(f) KeopsNS<SqNorm2<decltype(InvKeopsNS(f))>>()
 
 }

@@ -2,7 +2,8 @@
 
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Inv.h"
-#include "core/formulas/maths/maths.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -15,4 +16,5 @@ namespace keops {
 template<int N>
 using IntInv = Inv<IntConstant<N>>;
 
+#define IntInv(N) KeopsNS<IntInv<N>>()
 }

@@ -2,11 +2,11 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/maths.h"
 
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -34,5 +34,7 @@ struct Step : UnaryOp<Step, F> {
   template<class V, class GRADIN>
   using DiffT = Zero<V::DIM>;
 };
+
+#define Step(f) KeopsNS<Step<decltype(InvKeopsNS(f))>>()
 
 }

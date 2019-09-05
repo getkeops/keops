@@ -2,11 +2,11 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Sign.h"
 #include "core/formulas/maths/Mult.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -44,5 +44,5 @@ struct Abs : UnaryOp<Abs, F> {
 
 };
 
-
+#define Abs(f) KeopsNS<Abs<decltype(InvKeopsNS(f))>>()
 }

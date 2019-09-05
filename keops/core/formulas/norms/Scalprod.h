@@ -2,13 +2,13 @@
 
 #include <assert.h>
 #include <sstream>
-#include <core/formulas/maths/Scal.h>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/constants.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -74,5 +74,10 @@ static_assert(DIM1==DIM2,"Dimensions must be the same for Scalprod");
 using type = Zero<1>;
 };
 
+template < class FA, class FB >
+KeopsNS<Scalprod<FA,FB>> operator|(KeopsNS<FA> fa, KeopsNS<FB> fb) {
+  return KeopsNS<Scalprod<FA,FB>>();
+}
+#define Scalprod(fa,fb) KeopsNS<Scalprod<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
 
 }

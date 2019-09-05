@@ -67,7 +67,6 @@
 #include "core/formulas/maths/GradMatrix.h"
 #include "core/formulas/maths/TensorDot.h"
 #include "core/formulas/maths/TensorProd.h"
-#include "core/formulas/maths/StandardBasis.h"
 #include "core/formulas/maths/VecMatMult.h"
 
 
@@ -84,8 +83,16 @@
 
 
 // import all Kernels
+#include "core/formulas/kernels/CauchyKernel.h"
+#include "core/formulas/kernels/CurlFreeGaussKernel.h"
+#include "core/formulas/kernels/DivFreeGaussKernel.h"
+#include "core/formulas/kernels/GaussKernel.h"
+#include "core/formulas/kernels/InverseMultiquadricKernel.h"
+#include "core/formulas/kernels/LaplaceKernel.h"
 #include "core/formulas/kernels/ScalarRadialKernels.h"
-#include "core/formulas/kernels/MatrixKernels.h"
+#include "core/formulas/kernels/SumGaussKernel.h"
+#include "core/formulas/kernels/TRI_Kernel.h"
+#include "core/formulas/kernels/TRIGaussKernel.h"
 
 
 #include "core/formulas/factorize.h"

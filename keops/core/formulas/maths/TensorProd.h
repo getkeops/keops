@@ -1,12 +1,11 @@
 #pragma once
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/VecMatMult.h"
 
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -56,5 +55,7 @@ struct TensorProd : BinaryOp<TensorProd, A, B> {
   using DiffT = Add<DiffTA<V, MatVecMult<GRADIN, B>>, DiffTB<V, VecMatMult<A, GRADIN>>>;
 
 };
+
+#define TensorProd(f,g) KeopsNS<TensorProd<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
 }

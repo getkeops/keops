@@ -2,12 +2,12 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Sin.h"
 #include "core/formulas/maths/Minus.h"
 #include "core/formulas/maths/Mult.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -39,5 +39,7 @@ struct Cos : UnaryOp<Cos, F> {
   using DiffT = typename F::template DiffT<V, Minus<Mult<Sin<F>, GRADIN>>>;
 
 };
+
+#define Cos(f) KeopsNS<Cos<decltype(InvKeopsNS(f))>>()
 
 }

@@ -152,7 +152,6 @@ setup(
             'keops/core/Pack.h',
             'keops/core/formulas/constants.h',
             'keops/core/formulas/factorize.h',
-            'keops/core/formulas/kernels.h',
             'keops/core/formulas/maths.h',
             'keops/core/formulas/newsyntax.h',
             'keops/core/formulas/norms.h',

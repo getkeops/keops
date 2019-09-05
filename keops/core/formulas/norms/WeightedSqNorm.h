@@ -8,6 +8,7 @@
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/norms/SqNormDiag.h"
 #include "core/formulas/norms/SqNormIso.h"
+#include "core/pre_headers.h"
 
 
 namespace keops {
@@ -19,7 +20,7 @@ namespace keops {
 template < class A, class X > struct SymTwoDot;
 
 // TODO: The SymTwoOuterProduct, SymTwoDot, SymOuterProduct methods should be
-//       implemented with the generic methods Tensordot, MacVecMult, TensorProd etc...
+//       implemented with the generic methods Tensordot or with MatVecMult, TensorProd, etc...
 
 // SymTwoOuterProduct<X,Y> = X @ Y^T + Y @ X^T
 template < class X, class Y >
@@ -140,6 +141,7 @@ using WeightedSqNorm = CondType< SqNormIso<A,X>,
 CondType< SqNormDiag<A,X>, SymSqNorm<A,X>, A::DIM==X::DIM >,
 A::DIM == 1  >;
 
+#define WeightedSqNorm(s,f)   KeopsNS<WeightedSqNorm<decltype(InvKeopsNS(s)), decltype(InvKeopsNS(f))>>()
 
 
 

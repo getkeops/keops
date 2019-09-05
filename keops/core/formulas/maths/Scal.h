@@ -2,12 +2,11 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/formulas/maths/maths.h"
-#include "core/formulas/maths/Add.h"
 #include "core/formulas/constants.h"
+#include "core/formulas/maths/Add.h"
 #include "core/formulas/norms/norms.h"
+#include "core/formulas/maths/maths.h"
 
 namespace keops {
 

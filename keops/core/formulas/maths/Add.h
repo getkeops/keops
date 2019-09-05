@@ -5,12 +5,13 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Sum.h"
 #include "core/formulas/maths/Scal.h"
+#include "core/formulas/maths/maths.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
-
 
 
 //////////////////////////////////////////////////////////////
@@ -150,5 +151,12 @@ template<int M, int N>
 struct Add_Alias<IntConstant_Impl < M>, IntConstant_Impl <N>> {
 using type = IntConstant<M + N>;
 };
+
+
+template < class FA, class FB >
+KeopsNS<Add<FA,FB>> operator+(KeopsNS<FA> fa, KeopsNS<FB> fb) {
+  return KeopsNS<Add<FA,FB>>();
+}
+#define Add(fa,fb) KeopsNS<Add<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
 
 }

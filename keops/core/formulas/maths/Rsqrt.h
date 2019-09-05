@@ -2,15 +2,15 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Pow.h"
 #include "core/formulas/maths/Inv.h"
 #include "core/formulas/maths/IntInv.h"
+
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -66,5 +66,5 @@ struct Rsqrt_Alias<Zero<DIM>> {
 using type = Zero<DIM>;
 };
 
-
+#define Rsqrt(f) KeopsNS<Rsqrt<decltype(InvKeopsNS(f))>>()
 }

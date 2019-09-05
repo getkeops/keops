@@ -3,6 +3,8 @@
 #include <iostream>
 
 #include "core/formulas/maths/maths.h"
+#include "core/pre_headers.h"
+
 #include "lib/sequences/include/tao/seq/integer_sequence.hpp"
 #include "lib/sequences/include/tao/seq/concatenate.hpp"
 #include "lib/sequences/include/tao/seq/sum.hpp"
@@ -230,6 +232,7 @@ struct tensordot_parameters {
 #else
     size_t b_indices = tao::seq::sum<tao::seq::multiplies_t<list_stride_dim_b_t, tao::seq::reverse_t<list_indices_b>>>::value;
 #endif
+
     // out_indices
     // using list_indices_keepdim = typename tao::seq::map<tao::seq::make_index_range<0, keepdim_t::size()>, IND>::type;
 //    using list_indices_keepdim = typename tao::seq::map<PERMUTE, IND>::type;
@@ -240,6 +243,7 @@ struct tensordot_parameters {
 #else
     size_t out_indices = tao::seq::sum<tao::seq::multiplies_t<list_stride_keepdim_t, tao::seq::reverse_t<list_indices_keepdim>>>::value;
 #endif
+
     /*std::cout << "list_stride_keepdim_t: ";tao::seq::print_index_sequence(list_stride_keepdim_t{});
     std::cout << "permute : "; tao::seq::print_index_sequence(PERMUTE{});
     std::cout << "permute(permute): "; tao::seq::print_index_sequence(typename tao::seq::permutate<PERMUTE, PERMUTE>::type{});
@@ -335,5 +339,8 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMU
 
 
 };
+
+
+#define TensorDot(f,g,...) KeopsNS<TensorDot<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g)), __VA_ARGS__>>()
 
 }
