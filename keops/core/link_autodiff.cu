@@ -1,10 +1,10 @@
 #include "core/autodiff.h"
 #include "core/GpuConv1D.cu"
 #include "core/GpuConv2D.cu"
-#include "core/reductions/sum.h"
-#include "core/reductions/min.h"
-#include "core/reductions/kmin.h"
-#include "core/reductions/max_sumshiftexp.h"
+#include "core/formulas/reductions/sum.h"
+#include "core/formulas/reductions/min.h"
+#include "core/formulas/reductions/kmin.h"
+#include "core/formulas/reductions/max_sumshiftexp.h"
 
 using namespace keops;
 

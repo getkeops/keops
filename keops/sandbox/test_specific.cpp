@@ -16,7 +16,7 @@
 #include "core/formulas/factorize.h"
 
 #include "core/CpuConv.cpp"
-#include "core/reductions/sum.h"
+#include "core/formulas/reductions/sum.h"
 
 using namespace keops;
 

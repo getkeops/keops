@@ -4,7 +4,7 @@
 
 #include "core/Pack.h"
 #include "core/autodiff.h"
-#include "core/reductions/reduction.h"
+#include "core/formulas/reductions/reduction.h"
 #include "core/formulas/constants.h"
 
 namespace keops {

@@ -3,7 +3,7 @@
 #include <sstream>
 
 #include "core/autodiff.h"
-#include "core/reductions/reduction.h"
+#include "core/formulas/reductions/reduction.h"
 #include "core/formulas/constants.h"
 #include "core/pre_headers.h"
 
