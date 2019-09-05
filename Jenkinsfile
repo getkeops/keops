@@ -11,9 +11,11 @@ pipeline {
           agent { label 'ubuntu' }
           steps {
             echo 'Building..'
+            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
               sh 'git submodule update --init'
               sh 'cd keops/build && cmake ..'
               sh 'cd keops/build && make VERBOSE=0'
+            }
           }
         }
 
@@ -21,9 +23,11 @@ pipeline {
           agent { label 'macos' }
           steps {
             echo 'Building..'
+            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
               sh 'git submodule update --init'
               sh 'cd keops/build && cmake ..'
               sh 'cd keops/build && make VERBOSE=0'
+            }
           }
         }
 
@@ -32,9 +36,11 @@ pipeline {
           environment { CXX="g++-8" }
           steps {
             echo 'Building..'
+            wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
               sh 'git submodule update --init'
               sh 'cd keops/build && cmake ..'
               sh 'cd keops/build && make -j15 VERBOSE=0'
+            }
           }
         }
 
