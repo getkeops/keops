@@ -49,7 +49,15 @@
 #include "core/formulas/norms/WeightedSqNorm.h"
 
 // import all Kernels
-#include "core/formulas/kernels/ScalarRadialKernels.h"
+#include "core/formulas/kernels/CauchyKernel.h"
+#include "core/formulas/kernels/CurlFreeGaussKernel.h"
+#include "core/formulas/kernels/DivFreeGaussKernel.h"
+#include "core/formulas/kernels/GaussKernel.h"
+#include "core/formulas/kernels/InverseMultiquadricKernel.h"
+#include "core/formulas/kernels/LaplaceKernel.h"
+#include "core/formulas/kernels/SumGaussKernel.h"
+#include "core/formulas/kernels/TRI_Kernel.h"
+#include "core/formulas/kernels/TRIGaussKernel.h"
 
 // import all reductions
 #include "core/reductions/sum.h"
