@@ -5,6 +5,7 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/reductions/zero.h"
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -131,5 +132,10 @@ struct Max_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<Max_Red
     // no gradient implemented here
 
 };
+
+#define ArgMax_Reduction(F,I) KeopsNS<ArgMax_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Max_Reduction(F,I) KeopsNS<Max_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Max_ArgMax_Reduction(F,I) KeopsNS<Max_ArgMax_Reduction<decltype(InvKeopsNS(F)),I>>()
+
 
 }

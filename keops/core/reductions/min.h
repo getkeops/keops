@@ -5,11 +5,12 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/reductions/zero.h"
+#include "core/pre_headers.h"
 
 namespace keops {
-
-// min+argmin reduction : base class
-
+/////////////////////////////////////////////////////////////////////////
+//          min+argmin reduction : base class                          //
+/////////////////////////////////////////////////////////////////////////
 template < class F, int tagI=0 >
 struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 
@@ -54,6 +55,7 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
         
 };
 
+#define Min_ArgMin_Reduction(F,I) KeopsNS<Min_ArgMin_Reduction<decltype(InvKeopsNS(F)),I>>()
 
 // Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij anbd its index
 // operation is vectorized: if Fij is vector-valued, min+argmin is computed for each dimension.
@@ -131,5 +133,8 @@ struct Min_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<Min_Red
     // no gradient implemented here
 
 };
+#define ArgMin_Reduction(F,I) KeopsNS<ArgMin_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Min_Reduction(F,I) KeopsNS<Min_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Min_ArgMin_Reduction(F,I) KeopsNS<Min_ArgMin_Reduction<decltype(InvKeopsNS(F)),I>>()
 
 }

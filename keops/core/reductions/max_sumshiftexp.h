@@ -9,7 +9,8 @@
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Subtract.h"
 #include "core/formulas/maths/Exp.h"
-
+#include "core/reductions/sum.h"
+#include "core/pre_headers.h"
 
 // Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(m_i-f_ij) g_ij
 // where f and g are two formulas. f must be scalar-valued.
@@ -119,5 +120,7 @@ struct Max_SumShiftExp_Reduction : public Reduction<Concat<F,G_>,tagI> {
 
 };
 
+#define Max_SumShiftExp_Reduction(F,I) KeopsNS<Max_SumShiftExp_Reduction<decltype(InvKeopsNS(F)),I>>()
+#define Max_SumShiftExpWeight_Reduction(F,I,G) KeopsNS<Max_SumShiftExp_Reduction<decltype(InvKeopsNS(F)),I,decltype(InvKeopsNS(G))>>()
 
 }

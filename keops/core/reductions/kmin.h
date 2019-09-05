@@ -5,6 +5,7 @@
 #include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/reductions/zero.h"
+#include "core/pre_headers.h"
 
 namespace keops {
 // Implements the k-min-arg-k-min reduction operation : for each i or each j, find the values and indices of the
@@ -159,5 +160,10 @@ struct KMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 
 
 };
+
+#define KMin_ArgKMin_Reduction(F,K,I) KeopsNS<KMin_ArgKMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+#define ArgKMin_Reduction(F,K,I) KeopsNS<ArgKMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+#define KMin_Reduction(F,K,I) KeopsNS<KMin_Reduction<decltype(InvKeopsNS(F)),K,I>>()
+
 
 }

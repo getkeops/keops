@@ -123,7 +123,7 @@ int main() {
     std::vector<__TYPE__> vb(Ny*DIMVECT);     fillrandom(vb); __TYPE__ *pb = vb.data();
     __TYPE__ pc[1] = {.5};
 
-    DoTest(SumReduction(f,0), "Sum", Nx, Ny, pc, px, py, pb);
+    DoTest(Sum_Reduction(f,0), "Sum", Nx, Ny, pc, px, py, pb);
     DoTest(Min_Reduction(f,0), "Min", Nx, Ny, pc, px, py, pb);
     DoTest(ArgMin_Reduction(f,0), "ArgMin", Nx, Ny, pc, px, py, pb);
     DoTest(Min_ArgMin_Reduction(f,0), "Min_ArgMin", Nx, Ny, pc, px, py, pb);

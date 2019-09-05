@@ -2,10 +2,10 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff.h"
 #include "core/reductions/reduction.h"
 #include "core/formulas/constants.h"
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -84,5 +84,6 @@ struct Sum_Reduction_Alias<Zero<DIM>,tagI> {
     using type = Zero_Reduction<DIM,tagI>;
 };
 
+#define Sum_Reduction(F,I) KeopsNS<Sum_Reduction<decltype(InvKeopsNS(F)),I>>()
 
 }
