@@ -13,6 +13,9 @@ namespace keops {
 ////     VECTOR "INJECTION" : ExtractT<F,START,DIM>       ////
 //////////////////////////////////////////////////////////////
 
+template< class F, int START, int DIM_ >
+struct Extract;
+
 template < class F, int START, int DIM_ >
 struct ExtractT : UnaryOp<ExtractT,F,START,DIM_> {
   static const int DIM = DIM_;

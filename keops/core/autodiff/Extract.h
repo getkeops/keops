@@ -3,6 +3,7 @@
 #include <sstream>
 #include <assert.h>
 
+#include "core/autodiff/ExtractT.h"
 #include "core/pre_headers.h"
 
 namespace keops {

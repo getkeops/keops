@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sstream>
 #include <assert.h>
 
 #include "core/Pack.h"
