@@ -82,7 +82,7 @@
 #include "core/formulas/norms/WeightedSqNorm.h"
 
 // import all reductions
-#include "core/formulas/reductions/sum.h"
+#include "core/formulas/reductions/Sum_Reduction.h"
 #include "core/formulas/reductions/max_sumshiftexp.h"
 #include "core/formulas/reductions/min.h"
 #include "core/formulas/reductions/max.h"

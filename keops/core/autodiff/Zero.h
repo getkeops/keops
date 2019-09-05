@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/pre_headers.h"
+
 namespace keops {
 
 //////////////////////////////////////////////////////////////
@@ -23,5 +25,6 @@ struct IdOrZero_Alias<V,V,FUN> {
 template < class Vref, class V, class FUN >
 using IdOrZero = typename IdOrZero_Alias<Vref,V,FUN>::type;
 
+#define Zero(D) KeopsNS<Zero<D>>()
 
 }

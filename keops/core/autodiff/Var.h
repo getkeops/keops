@@ -5,6 +5,7 @@
 
 #include "core/Pack.h"
 #include "core/autodiff/Zero.h"
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -104,5 +105,10 @@ using Param = Var<N,DIM,2>;
 template < int N, int DIM >
 using _P = Param<N,DIM>;
 
+#define Var(N,DIM, CAT) KeopsNS<Var<N,DIM,CAT>>()
+
+#define Vi(N,DIM) KeopsNS<_X<N,DIM>>()
+#define Vj(N,DIM) KeopsNS<_Y<N,DIM>>()
+#define Pm(N,DIM) KeopsNS<_P<N,DIM>>()
 
 }

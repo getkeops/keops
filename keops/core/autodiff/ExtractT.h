@@ -5,6 +5,8 @@
 
 #include "core/autodiff/Extract.h"
 
+#include "core/pre_headers.h"
+
 namespace keops {
 
 //////////////////////////////////////////////////////////////
@@ -37,5 +39,7 @@ struct ExtractT : UnaryOp<ExtractT,F,START,DIM_> {
   template < class V, class GRADIN >
   using DiffT = DiffTF<V,Extract<GRADIN,START,F::DIM>>;
 };
+
+#define ExtractT(p,k,n) KeopsNS<ExtractT<decltype(InvKeopsNS(p)),k,n>>()
 
 }

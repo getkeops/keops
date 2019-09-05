@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "core/Pack.h"
+#include "core/pre_headers.h"
 
 /*
  * The file where the elementary constants are defined.
@@ -94,5 +95,7 @@ template<>
 struct IntConstant_Alias<0> {
     using type = Zero<1>;
 };
+
+#define IntCst(N) KeopsNS<IntConstant<N>>()
 
 }

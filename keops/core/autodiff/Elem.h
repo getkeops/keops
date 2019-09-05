@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "core/autodiff/ElemT.h"
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -33,4 +34,7 @@ struct Elem : UnaryOp< Elem, F, M > {
   template< class V, class GRADIN >
   using DiffT = DiffTF< V, ElemT< GRADIN, F::DIM, M > >;
 };
+
+#define Elem(p,k) KeopsNS<Elem<decltype(InvKeopsNS(p)),k>>()
+
 }

@@ -9,7 +9,7 @@
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Subtract.h"
 #include "core/formulas/maths/Exp.h"
-#include "core/formulas/reductions/sum.h"
+#include "core/formulas/reductions/Sum_Reduction.h"
 #include "core/pre_headers.h"
 
 // Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(m_i-f_ij) g_ij

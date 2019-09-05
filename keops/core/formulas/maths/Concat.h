@@ -5,6 +5,7 @@
 #include "core/autodiff/BinaryOp.h"
 #include "core/autodiff/Extract.h"
 #include "core/formulas/maths/Add.h"
+#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -59,5 +60,6 @@ struct Concat_Alias<F, Dummy> {
 template<class F, class G>
 using Concat = typename Concat_Alias<F, G>::type;
 
+#define Concat(f,g) KeopsNS<Concat<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
 
 }

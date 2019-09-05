@@ -5,7 +5,7 @@
 #include "core/Pack.h"
 #include "core/autodiff/UnaryOp.h"
 #include "core/formulas/reductions/reduction.h"
-#include "core/formulas/reductions/zero.h"
+#include "core/formulas/reductions/Zero_Reduction.h"
 #include "core/pre_headers.h"
 
 namespace keops {

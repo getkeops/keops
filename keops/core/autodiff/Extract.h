@@ -3,6 +3,8 @@
 #include <sstream>
 #include <assert.h>
 
+#include "core/pre_headers.h"
+
 namespace keops {
 
 //////////////////////////////////////////////////////////////
@@ -35,5 +37,7 @@ struct Extract : UnaryOp< Extract, F, START, DIM_ > {
   template< class V, class GRADIN >
   using DiffT = DiffTF< V, ExtractT< GRADIN, START, F::DIM > >;
 };
+
+#define Extract(p,k,n) KeopsNS<Extract<decltype(InvKeopsNS(p)),k,n>>()
 
 }
