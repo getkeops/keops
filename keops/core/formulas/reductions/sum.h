@@ -2,9 +2,10 @@
 
 #include <sstream>
 
-#include "core/autodiff.h"
+#include "core/autodiff/Grad.h"
 #include "core/formulas/reductions/reduction.h"
 #include "core/formulas/constants.h"
+#include "core/formulas/utils.h"
 #include "core/pre_headers.h"
 
 namespace keops {

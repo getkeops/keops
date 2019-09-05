@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Cos.h"
 
@@ -28,8 +28,13 @@ struct Sin : UnaryOp<Sin, F> {
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
-    for (int k = 0; k < DIM; k++)
+    for (int k = 0; k < DIM; k++) {
+#if USE_DOUBLE
       out[k] = sin(outF[k]);
+#else
+      out[k] = sinf(outF[k]);
+#endif
+    }
   }
 
   template<class V, class GRADIN>

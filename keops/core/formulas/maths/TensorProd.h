@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/autodiff.h"
+#include "core/autodiff/BinaryOp.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/VecMatMult.h"

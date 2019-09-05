@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "core/Pack.h"
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
 #include "core/formulas/maths/SumT.h"
 
 #include "core/pre_headers.h"

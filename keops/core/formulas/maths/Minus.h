@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
 
 #include "core/pre_headers.h"
 

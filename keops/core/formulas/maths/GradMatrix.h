@@ -1,7 +1,8 @@
 #pragma once
 
 #include "core/Pack.h"
-#include "core/autodiff.h"
+#include "core/autodiff/Grad.h"
+#include "core/autodiff/ElemT.h"
 #include "core/formulas/maths/Concat.h"
 #include "core/pre_headers.h"
 

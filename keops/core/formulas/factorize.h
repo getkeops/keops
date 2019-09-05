@@ -3,7 +3,9 @@
 #include <sstream>
 
 #include "core/Pack.h"
-#include "core/autodiff.h"
+#include "core/autodiff/BinaryOp.h"
+#include "core/autodiff/Var.h"
+#include "core/autodiff/CountIn.h"
 #include "core/formulas/constants.h"
 #include "core/pre_headers.h"
 

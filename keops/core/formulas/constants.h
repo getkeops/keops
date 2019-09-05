@@ -3,7 +3,6 @@
 #include <sstream>
 
 #include "core/Pack.h"
-#include "core/autodiff.h"
 
 /*
  * The file where the elementary constants are defined.

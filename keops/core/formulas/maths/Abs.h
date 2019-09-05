@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
 #include "core/formulas/maths/Sign.h"
 #include "core/formulas/maths/Mult.h"
 

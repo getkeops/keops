@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <sstream>
 
-#include "core/autodiff.h"
+#include "core/autodiff/BinaryOp.h"
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/Scal.h"

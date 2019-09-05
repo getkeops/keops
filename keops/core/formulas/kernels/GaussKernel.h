@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/Pack.h"
-#include "core/autodiff.h"
+#include "core/autodiff/Grad.h"
 #include "core/formulas/factorize.h"
 #include "core/formulas/maths/Minus.h"
 #include "core/formulas/maths/Scal.h"

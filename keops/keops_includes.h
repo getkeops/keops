@@ -70,7 +70,7 @@
 #include "core/formulas/maths/VecMatMult.h"
 
 
-// import all operation on vector implementations
+// import all operations on vector implementations
 #include "core/formulas/norms/Norm2.h"
 #include "core/formulas/norms/Normalize.h"
 #include "core/formulas/norms/Scalprod.h"
@@ -81,6 +81,12 @@
 #include "core/formulas/norms/WeightedSqDist.h"
 #include "core/formulas/norms/WeightedSqNorm.h"
 
+// import all reductions
+#include "core/formulas/reductions/sum.h"
+#include "core/formulas/reductions/max_sumshiftexp.h"
+#include "core/formulas/reductions/min.h"
+#include "core/formulas/reductions/max.h"
+#include "core/formulas/reductions/kmin.h"
 
 // import all Kernels
 #include "core/formulas/kernels/CauchyKernel.h"
@@ -105,9 +111,4 @@
 #endif
 
 
-// import all reductions
-#include "core/formulas/reductions/sum.h"
-#include "core/formulas/reductions/max_sumshiftexp.h"
-#include "core/formulas/reductions/min.h"
-#include "core/formulas/reductions/max.h"
-#include "core/formulas/reductions/kmin.h"
+#include "core/formulas/utils.h"

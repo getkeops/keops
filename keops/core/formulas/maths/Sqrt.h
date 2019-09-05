@@ -1,8 +1,9 @@
 #pragma once
 
 #include <sstream>
+#include <cmath>
 
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
@@ -31,8 +32,13 @@ struct Sqrt_Impl : UnaryOp<Sqrt_Impl, F> {
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
-    for (int k = 0; k < DIM; k++)
+    for (int k = 0; k < DIM; k++) {
+#if USE_DOUBLE
       out[k] = sqrt(outF[k]);
+#else
+      out[k] = sqrtf(outF[k]);
+#endif
+    }
   }
 
   template<class V, class GRADIN>

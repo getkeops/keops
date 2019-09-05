@@ -1,17 +1,12 @@
-#include "core/autodiff.h"
-#include "core/CpuConv.cpp"
-#include "core/formulas/reductions/sum.h"
-#include "core/formulas/reductions/min.h"
-#include "core/formulas/reductions/kmin.h"
-#include "core/formulas/reductions/max_sumshiftexp.h"
-
-#include "core/formulas/newsyntax.h"
+#include "core/formulas/reductions/reduction.h"
 
 using namespace keops;
 
 /////////////////////////
 // Convolutions on Cpu //
 /////////////////////////
+
+#include "core/CpuConv.cpp"
 
 extern "C" int CpuReduc(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
     return Eval<F,CpuConv>::Run(nx, ny, gamma, args);

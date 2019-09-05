@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/autodiff.h"
+#include "core/autodiff/BinaryOp.h"
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Add.h"

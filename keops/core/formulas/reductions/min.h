@@ -3,7 +3,7 @@
 #include <sstream>
 
 #include "core/Pack.h"
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
 #include "core/formulas/reductions/reduction.h"
 #include "core/formulas/reductions/zero.h"
 #include "core/pre_headers.h"

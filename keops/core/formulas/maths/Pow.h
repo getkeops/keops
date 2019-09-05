@@ -1,8 +1,9 @@
 #pragma once
 
 #include <sstream>
+#include <cmath>
 
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"

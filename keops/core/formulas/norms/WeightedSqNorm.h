@@ -4,7 +4,8 @@
 #include <sstream>
 
 #include "core/Pack.h"
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
+#include "core/autodiff/BinaryOp.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/norms/SqNormDiag.h"
 #include "core/formulas/norms/SqNormIso.h"

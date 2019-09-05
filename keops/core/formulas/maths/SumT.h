@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "core/autodiff.h"
+#include "core/autodiff/UnaryOp.h"
 #include "core/formulas/maths/Sum.h"
 
 #include "core/pre_headers.h"

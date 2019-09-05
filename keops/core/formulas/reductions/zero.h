@@ -3,7 +3,6 @@
 #include <sstream>
 
 #include "core/Pack.h"
-#include "core/autodiff.h"
 #include "core/formulas/reductions/reduction.h"
 #include "core/formulas/constants.h"
 

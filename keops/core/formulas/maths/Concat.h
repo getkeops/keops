@@ -2,7 +2,8 @@
 
 #include <sstream>
 #include "core/Pack.h"
-#include "core/autodiff.h"
+#include "core/autodiff/BinaryOp.h"
+#include "core/autodiff/Extract.h"
 #include "core/formulas/maths/Add.h"
 
 namespace keops {

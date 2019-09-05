@@ -1,10 +1,5 @@
-#include "core/autodiff.h"
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
-#include "core/formulas/reductions/sum.h"
-#include "core/formulas/reductions/min.h"
-#include "core/formulas/reductions/kmin.h"
-#include "core/formulas/reductions/max_sumshiftexp.h"
+#include "core/formulas/reductions/reduction.h"
+
 
 using namespace keops;
 
@@ -12,9 +7,13 @@ using namespace keops;
 // Convolutions on Gpu device from host data //
 ///////////////////////////////////////////////
 
+#include "core/GpuConv1D.cu"
+
 extern "C" int GpuReduc1D_FromHost(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_id=-1) {
     return Eval<F,GpuConv1D_FromHost>::Run(nx, ny, gamma, args, device_id);
 }
+
+#include "core/GpuConv2D.cu"
 
 extern "C" int GpuReduc2D_FromHost(int nx, int ny, __TYPE__* gamma, __TYPE__** args, int device_id=-1) {
     return Eval<F,GpuConv2D_FromHost>::Run(nx, ny, gamma, args, device_id);
