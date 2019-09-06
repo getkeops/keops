@@ -5,7 +5,7 @@
 #include <chrono>
 #include <ctime>
 
-#include "core/formulas/newsyntax.h"
+#include <keops_includes.h>
 
 #include "bench/generate_data.h"
 

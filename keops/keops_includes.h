@@ -1,6 +1,3 @@
-
-
-
 #include "core/formulas/constants.h"
 
 
@@ -47,12 +44,14 @@
 #include "core/formulas/norms/WeightedSqDist.h"
 #include "core/formulas/norms/WeightedSqNorm.h"
 
+
 // import all reductions
 #include "core/formulas/reductions/Sum_Reduction.h"
 #include "core/formulas/reductions/max_sumshiftexp.h"
 #include "core/formulas/reductions/min.h"
 #include "core/formulas/reductions/max.h"
 #include "core/formulas/reductions/kmin.h"
+
 
 // import all Kernels
 #include "core/formulas/kernels/CauchyKernel.h"
@@ -67,9 +66,6 @@
 #include "core/formulas/kernels/TRIGaussKernel.h"
 
 
-#include "core/formulas/factorize.h"
-#include "core/formulas/newsyntax.h"
-
 #include "core/CpuConv.cpp"
 #ifdef __CUDACC__
 	#include "core/GpuConv1D.cu"
@@ -77,4 +73,3 @@
 #endif
 
 
-#include "core/formulas/PrintFormula.h"
