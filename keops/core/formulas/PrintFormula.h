@@ -2,15 +2,16 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
+#include "core/Pack/GetDims.h"
+#include "core/Pack/GetInds.h"
 
 namespace keops {
 
 // Print formula to string
 
 template<class F>
-std::string PrintFormula() {
-  std::stringstream str;
+::std::string PrintFormula() {
+  ::std::stringstream str;
   str << "Variables : ";
   using Vars0 = typename F::template VARS<0>;
   using Dims0 = GetDims<Vars0>;
@@ -27,7 +28,7 @@ std::string PrintFormula() {
   using Inds2 = GetInds<Vars2>;
   for (int k = 0; k < Vars2::SIZE; k++)
     str << "p" << Inds2::VAL(k) << " (dim=" << Dims2::VAL(k) << "), ";
-  str << std::endl;
+  str << ::std::endl;
   str << "Formula = ";
   F::PrintId(str);
   return str.str();
@@ -35,14 +36,14 @@ std::string PrintFormula() {
 
 // other version, allowing to write PrintFormula(f) where f is instance of F
 template<class F>
-std::string PrintFormula(F f) {
+::std::string PrintFormula(F f) {
   return PrintFormula<F>();
 }
 
 // Print reduction to string
 template<class F>
-std::string PrintReduction() {
-  std::stringstream str;
+::std::string PrintReduction() {
+  ::std::stringstream str;
   F::PrintId(str);
   return str.str();
 }

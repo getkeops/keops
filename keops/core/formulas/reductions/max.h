@@ -2,7 +2,6 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff/UnaryOp.h"
 #include "core/formulas/reductions/reduction.h"
 #include "core/formulas/reductions/Zero_Reduction.h"
@@ -65,7 +64,7 @@ struct Max_ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<
 
         static const int DIM = 2*F::DIM;		// DIM is dimension of output of convolution ; for a max-argmax reduction it is equal to 2 times the dimension of output of formula
 		
-    static void PrintIdString(std::stringstream& str) {
+    static void PrintIdString(::std::stringstream& str) {
         str << "Max_ArgMax_Reduction";
     }
         
@@ -90,7 +89,7 @@ struct ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<ArgM
         
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmax reduction it is equal to the dimension of output of formula
 		
-    static void PrintIdString(std::stringstream& str) {
+    static void PrintIdString(::std::stringstream& str) {
         str << "ArgMax_Reduction";
     }
 
@@ -118,7 +117,7 @@ struct Max_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<Max_Red
         
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a max reduction it is equal to the dimension of output of formula
 		
-    static void PrintIdString(std::stringstream& str) {
+    static void PrintIdString(::std::stringstream& str) {
         str << "Max_Reduction";
     }
 

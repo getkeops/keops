@@ -2,7 +2,6 @@
 
 #include <assert.h>
 
-#include "core/Pack.h"
 #include "core/autodiff/UnaryOp.h"
 #include "core/formulas/maths/SumT.h"
 
@@ -21,7 +20,7 @@ struct Sum : UnaryOp<Sum, F> {
 
   static const int DIM = 1;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "Sum";
   }
 

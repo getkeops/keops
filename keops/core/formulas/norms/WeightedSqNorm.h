@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <sstream>
 
-#include "core/Pack.h"
+#include "core/Pack/CondType.h"
 #include "core/autodiff/UnaryOp.h"
 #include "core/autodiff/BinaryOp.h"
 #include "core/formulas/maths/Add.h"
@@ -31,7 +31,7 @@ struct SymTwoOuterProduct : BinaryOp<SymTwoOuterProduct,X,Y> {
   static_assert( Y::DIM == DIMIN, "A symmetric outer product can only be done with two vectors sharing the same length.");
   static const int DIM = DIMIN * DIMIN;
 
-  static void PrintIdString(std::stringstream& str) {
+  static void PrintIdString(::std::stringstream& str) {
     str << "<SymTwoOuterProduct>";
   }
 
@@ -58,7 +58,7 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
   static_assert( A::DIM == DIMIN*DIMIN, "A symmetric matrix on a space of dim D should be encoded as a vector of size D*D.");
   static const int DIM = DIMIN;
 
-  static void PrintIdString(std::stringstream& str) {
+  static void PrintIdString(::std::stringstream& str) {
     str << "<SymTwoDot>";
   }
 
@@ -87,7 +87,7 @@ struct SymOuterProduct : UnaryOp<SymOuterProduct,X> {
   static const int DIMIN = X::DIM;
   static const int DIM = DIMIN * DIMIN;
 
-  static void PrintIdString(std::stringstream& str) {
+  static void PrintIdString(::std::stringstream& str) {
     str << "SymOuterProduct";
   }
 
@@ -115,7 +115,7 @@ struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
   static_assert( A::DIM == X::DIM * X::DIM, "Anisotropic square norm expects a vector of parameters of dimension FA::DIM * FA::DIM.");
   static const int DIM = 1;
 
-  static void PrintIdString(std::stringstream& str) {
+  static void PrintIdString(::std::stringstream& str) {
     str << "<SymSqNorm>";
   }
 

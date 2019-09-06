@@ -2,7 +2,6 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/formulas/reductions/reduction.h"
 #include "core/formulas/reductions/Zero_Reduction.h"
 #include "core/pre_headers.h"
@@ -19,7 +18,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 
     static const int DIMRED = DIM;	// dimension of temporary variable for reduction
 		
-    static void PrintId(std::stringstream& str) {
+    static void PrintId(::std::stringstream& str) {
         str << "KMin_ArgKMin_Reduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
         str << ",K=" << K << ",tagI=" << tagI << ")";
@@ -108,7 +107,7 @@ struct ArgKMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 
     static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
 
-    static void PrintId(std::stringstream& str) {
+    static void PrintId(::std::stringstream& str) {
         str << "ArgKMin_Reduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
         str << ",K=" << K << ",tagI=" << tagI << ")";
@@ -141,7 +140,7 @@ struct KMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 
         static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
                  
-    static void PrintId(std::stringstream& str) {
+    static void PrintId(::std::stringstream& str) {
         str << "KMin_Reduction(";			// prints "("
         F::PrintId(str);				// prints the formula F
         str << ",K=" << K << ",tagI=" << tagI << ")";

@@ -1,6 +1,10 @@
 #pragma once
 
-#include "core/Pack.h"
+#include "core/Pack/UnivPack.h"
+#include "core/Pack/CondType.h"
+#include "core/Pack/IsSame.h"
+#include "core/Pack/IndVal.h"
+#include "core/Pack/MergePacks.h"
 #include "core/autodiff/Grad.h"
 #include "core/formulas/factorize.h"
 #include "core/formulas/maths/Minus.h"
@@ -53,7 +57,7 @@ struct GaussKernel_specific {
   static const int DIMPOINT = X::DIM;
   static const int DIMVECT = DIM;
 
-  static void PrintId(std::stringstream& str) {
+  static void PrintId(::std::stringstream& str) {
     str << "GaussKernel_specific(";
     C::PrintId(str);
     str << ",";
@@ -109,7 +113,7 @@ struct GradGaussKernel_specific {
   template < int CAT >
   using VARS = typename GenericVersion::template VARS<CAT>;
 
-  static void PrintId(std::stringstream& str) {
+  static void PrintId(::std::stringstream& str) {
     str << "GradGaussKernel_specific(";
     C::PrintId(str);
     str << ",";
@@ -156,7 +160,7 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 
   using THIS = GradGaussKernel_specific<C,X,Y,B,X,GRADIN>;
 
-  static void PrintId(std::stringstream& str) {
+  static void PrintId(::std::stringstream& str) {
     str << "GradGaussKernel_specific(";
     C::PrintId(str);
     str << ",";

@@ -21,7 +21,7 @@ struct Pow : UnaryOp<Pow, F, M> {
 
   static const int DIM = F::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "Pow";
   }
 

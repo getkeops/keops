@@ -22,7 +22,7 @@ struct Scal_Impl : BinaryOp<Scal_Impl, FA, FB> {
   static const int DIM = FB::DIM;
   static_assert(FA::DIM == 1, "Dimension of FA must be 1 for Scal");
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "*";
   }
 

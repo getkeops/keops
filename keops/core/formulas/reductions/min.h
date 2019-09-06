@@ -2,7 +2,6 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff/UnaryOp.h"
 #include "core/formulas/reductions/reduction.h"
 #include "core/formulas/reductions/Zero_Reduction.h"
@@ -66,7 +65,7 @@ struct Min_ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<
 
         static const int DIM = 2*F::DIM;		// DIM is dimension of output of convolution ; for a min-argmin reduction it is equal to 2 times the dimension of output of formula
 		
-    static void PrintIdString(std::stringstream& str) {
+    static void PrintIdString(::std::stringstream& str) {
         str << "Min_ArgMin_Reduction";
     }
         
@@ -91,7 +90,7 @@ struct ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<ArgM
         
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmin reduction it is equal to the dimension of output of formula
 		
-    static void PrintIdString(std::stringstream& str) {
+    static void PrintIdString(::std::stringstream& str) {
         str << "ArgMin_Reduction";
     }
 
@@ -119,7 +118,7 @@ struct Min_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<Min_Red
         
         static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a min reduction it is equal to the dimension of output of formula
 		
-    static void PrintIdString(std::stringstream& str) {
+    static void PrintIdString(::std::stringstream& str) {
         str << "Min_Reduction";
     }
 

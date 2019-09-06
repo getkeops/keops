@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
+#include "core/Pack/UnivPack.h"
 #include "core/pre_headers.h"
 
 /*
@@ -22,7 +22,7 @@ template < int _DIM >
 struct Zero {
     static const int DIM = _DIM;
 
-    static void PrintId(std::stringstream& str) {
+    static void PrintId(::std::stringstream& str) {
         str << "0(DIM=" << DIM << ")";
     }
 
@@ -59,14 +59,14 @@ template < int N >
 struct IntConstant_Impl {
     static const int DIM = 1;
 
-    static void PrintId(std::stringstream& str) {
+    static void PrintId(::std::stringstream& str) {
         str << N;
     }
 
-    template<class A, class B>
-    using Replace = IntConstant<N>;
+    template< class A, class B >
+    using Replace = IntConstant< N >;
 
-    using AllTypes = univpack<IntConstant<N>>;
+    using AllTypes = univpack< IntConstant< N > >;
 
     template < int CAT >      // Whatever CAT...
     using VARS = univpack<>;  // there's no variable used in there.

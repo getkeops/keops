@@ -3,7 +3,9 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
+#include "core/Pack/UnivPack.h"
+#include "core/Pack/IsSame.h"
+#include "core/Pack/IndVal.h"
 #include "core/autodiff/Zero.h"
 #include "core/pre_headers.h"
 
@@ -34,7 +36,7 @@ struct Var {
 
   // prints the variable as a string
   // we just print e.g. x0, y2, p1 to simplify reading, forgetting about dimensions
-  static void PrintId(std::stringstream& str) {
+  static void PrintId(::std::stringstream& str) {
     if(CAT==0)
       str << "x";
     else if(CAT==1)

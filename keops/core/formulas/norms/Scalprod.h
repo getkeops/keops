@@ -30,7 +30,7 @@ struct Scalprod_Impl : BinaryOp<Scalprod_Impl,FA,FB> {
   static_assert(DIMIN==FB::DIM,"Dimensions must be the same for Scalprod");
   static const int DIM = 1;
 
-  static void PrintIdString(std::stringstream& str) { str << "|";}
+  static void PrintIdString(::std::stringstream& str) { str << "|";}
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
     *out = 0;

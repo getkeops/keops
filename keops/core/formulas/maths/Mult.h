@@ -20,7 +20,7 @@ struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
   static const int DIM = FA::DIM;
   static_assert(FA::DIM == DIM, "Dimensions of FA and FB must be the same for Mult");
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "*";
   }
 

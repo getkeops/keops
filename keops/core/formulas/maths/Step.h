@@ -18,7 +18,7 @@ template<class F>
 struct Step : UnaryOp<Step, F> {
   static const int DIM = F::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "Step";
   }
 

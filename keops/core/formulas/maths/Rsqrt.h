@@ -26,7 +26,7 @@ template<class F>
 struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
   static const int DIM = F::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "Rsqrt";
   }
 

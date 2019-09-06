@@ -17,7 +17,7 @@
 
 #include "core/CpuConv.cpp"
 #include "core/formulas/reductions/Sum_Reduction.h"
-#include "core/formulas/utils.h"
+#include "core/formulas/PrintFormula.h"
 
 using namespace keops;
 

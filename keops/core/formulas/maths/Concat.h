@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sstream>
-#include "core/Pack.h"
 #include "core/autodiff/BinaryOp.h"
 #include "core/autodiff/Extract.h"
 #include "core/formulas/maths/Add.h"
@@ -18,7 +17,7 @@ template<class F, class G>
 struct Concat_Impl : BinaryOp<Concat_Impl, F, G> {
   static const int DIM = F::DIM + G::DIM;
 
-  static void PrintId(std::stringstream &str) {
+  static void PrintId(::std::stringstream &str) {
     str << "Concat";
   }
 

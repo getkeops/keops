@@ -1,7 +1,9 @@
 #include <mex.h>
 
 // #include "formula.h" made in cmake
-#include "core/Pack.h"
+#include "core/Pack/GetInds.h"
+#include "core/Pack/GetDims.h"
+#include "core/Pack/ConcatPack.h"
 
 extern "C" int CpuReduc(int, int, __TYPE__*, __TYPE__**);
 

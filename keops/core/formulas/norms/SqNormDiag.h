@@ -20,7 +20,7 @@ struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
   static_assert(FS::DIM==FA::DIM,"Diagonal square norm expects a vector of parameters of dimension FA::DIM.");
   static const int DIM = 1;
 
-  static void PrintIdString(std::stringstream& str) {
+  static void PrintIdString(::std::stringstream& str) {
     str << "<SqNormDiag>";
   }
 

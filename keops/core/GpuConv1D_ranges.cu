@@ -3,7 +3,9 @@
 #include <assert.h>
 #include <cuda.h>
 
-#include "core/Pack.h"
+#include "core/Pack/Pack.h"
+#include "core/Pack/GetInds.h"
+#include "core/Pack/GetDims.h"
 #include "core/broadcast_batch_dimensions.h"
 
 namespace keops {
@@ -385,7 +387,7 @@ static int Eval_(FUN fun, int nx, int ny,
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = std::min(CUDA_BLOCK_SIZE,std::min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
+    blockSize.x = ::std::min(CUDA_BLOCK_SIZE,::std::min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / ::std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
 
 
     // Ranges pre-processing... ==================================================================
@@ -419,7 +421,7 @@ static int Eval_(FUN fun, int nx, int ny,
         for(int j=0; j<len_range ; j+=blockSize.x) {
             lookup_h[3*index]   = i;
             lookup_h[3*index+1] = ranges_x[2*i] + j;
-            lookup_h[3*index+2] = ranges_x[2*i] + j + std::min((int) blockSize.x, len_range-j ) ;
+            lookup_h[3*index+2] = ranges_x[2*i] + j + ::std::min((int) blockSize.x, len_range-j ) ;
             index++;
         }
     }
@@ -621,7 +623,7 @@ static int Eval_(FUN fun, int nx, int ny,
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = std::min(CUDA_BLOCK_SIZE,std::min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
+    blockSize.x = ::std::min(CUDA_BLOCK_SIZE,::std::min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / ::std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
 
 
     // Ranges pre-processing... ==================================================================
@@ -684,7 +686,7 @@ static int Eval_(FUN fun, int nx, int ny,
         for(int j=0; j<len_range ; j+=blockSize.x) {
             lookup_h[3*index]   = i;
             lookup_h[3*index+1] = ranges_x_h[2*i] + j;
-            lookup_h[3*index+2] = ranges_x_h[2*i] + j + std::min((int) blockSize.x, len_range-j ) ;
+            lookup_h[3*index+2] = ranges_x_h[2*i] + j + ::std::min((int) blockSize.x, len_range-j ) ;
 
             index++;
         }

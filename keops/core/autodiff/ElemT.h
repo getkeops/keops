@@ -20,7 +20,7 @@ struct ElemT : UnaryOp< ElemT, F, N, M > {
   static const int DIM = N;
   static_assert(F::DIM == 1, "Input of ElemT should be a scalar");
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "ElemT";
   }
 

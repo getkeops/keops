@@ -19,7 +19,7 @@ struct Abs : UnaryOp<Abs, F> {
 
   static const int DIM = F::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "Abs";
   }
 
@@ -33,7 +33,7 @@ struct Abs : UnaryOp<Abs, F> {
         out[k] = fabsf(outF[k]);
 #endif
 #else
-      out[k] =  std::abs(outF[k]);
+      out[k] =  ::std::abs(outF[k]);
 #endif
     }
   }

@@ -23,7 +23,7 @@ struct ExtractT : UnaryOp<ExtractT,F,START,DIM_> {
   static_assert(START+F::DIM<=DIM,"Index out of bound in ExtractT");
   static_assert(START>=0,"Index out of bound in ExtractT");
 
-  static void PrintIdString(std::stringstream& str) {
+  static void PrintIdString(::std::stringstream& str) {
     str << "ExtractT";
   }
 

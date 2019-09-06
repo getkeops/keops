@@ -19,7 +19,7 @@ template<class F>
 struct Log : UnaryOp<Log, F> {
   static const int DIM = F::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "Log";
   }
 

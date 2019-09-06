@@ -2,7 +2,10 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
+#include "core/Pack/UnivPack.h"
+#include "core/Pack/Pack.h"
+#include "core/Pack/MergePacks.h"
+#include "core/Pack/CondType.h"
 #include "core/autodiff/Var.h"
 
 namespace keops {
@@ -28,7 +31,7 @@ struct UnaryOp_base {
   using THIS = OP<F,NS...>;
 
   // recursive function to print the formula as a string
-  static void PrintId(std::stringstream& str) {
+  static void PrintId(::std::stringstream& str) {
     THIS::PrintIdString(str);      // prints the id string of the operator : "Exp", "Log", "Pow",...
     str << "(";                    // prints "("
     F::PrintId(str);               // prints the formula F

@@ -3,7 +3,7 @@
 #include <sstream>
 #include <assert.h>
 
-#include "core/Pack.h"
+#include "core/Pack/CondType.h"
 #include "core/autodiff/BinaryOp.h"
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Sum.h"
@@ -26,7 +26,7 @@ struct Add_Impl : BinaryOp<Add_Impl, FA, FB> {
   static const int DIM = FA::DIM;
   static_assert(DIM == FB::DIM, "Dimensions must be the same for Add");
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "+";
   }
 
@@ -48,7 +48,7 @@ struct Add_Impl_Broadcast : BinaryOp<Add_Impl_Broadcast, FA, FB> {
   // Output dim = FB::DIM
   static const int DIM = FB::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "+";
   }
 

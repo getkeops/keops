@@ -40,7 +40,7 @@ namespace tao
          {
             constexpr static bool included = tao::seq::contains< T, b, As... >::value;
             using tail = typename difference< T, integer_sequence< T, Bs... >, integer_sequence< T, As... > >::type;
-            using type = typename std::conditional<
+            using type = typename ::std::conditional<
                included,
                tail,
                typename tao::seq::concatenate< integer_sequence< T, b >, tail >::type >::type;
@@ -54,7 +54,7 @@ namespace tao
       template< typename TA, TA... As, typename TB, TB... Bs >
       struct difference< integer_sequence< TA, As... >, integer_sequence< TB, Bs... > >
       {
-        using CT = typename std::common_type< TA, TB >::type;
+        using CT = typename ::std::common_type< TA, TB >::type;
 
          template< CT N >
          using check = contains< CT, N, Bs... >;
@@ -81,15 +81,15 @@ using index_sequence = tao::seq::integer_sequence<size_t, Ix...>;
 
 template<size_t... Is>
 void print_index_sequence(index_sequence<Is...>) {
-  (void)std::initializer_list<int>{ (std::cout << Is << " ", 0)...};
-  std::cout << std::endl;
+  (void)::std::initializer_list<int>{ (::std::cout << Is << " ", 0)...};
+  ::std::cout << ::std::endl;
 }
 
 
 // Return the index_sequence containing the cumulative product of all element of index_sequences A
 // except the first.
 //  using namespace tao::seq;
-//    static_assert(std::is_same< product_red<index_sequence<4,5,6,7> >,
+//    static_assert(::std::is_same< product_red<index_sequence<4,5,6,7> >,
 //                                            index_sequence<210,42,7,1> >::value, "ooops" );
 
 template<typename S>
@@ -109,9 +109,9 @@ struct Looper<index_sequence<Is...>> {
 
 template<size_t I, size_t... Is, size_t... PIs>
 struct Looper<index_sequence<PIs...>, I, Is...> {
-  template<std::size_t... Idx, typename Func>
+  template<::std::size_t... Idx, typename Func>
   constexpr static DEVICE void f_help(index_sequence<Idx...>, Func &&func) {
-    (void) std::initializer_list<int>{(Looper<index_sequence<PIs..., Idx>, Is...>::f(func), 0)...};
+    (void) ::std::initializer_list<int>{(Looper<index_sequence<PIs..., Idx>, Is...>::f(func), 0)...};
   }
 
   template<typename Func>
@@ -166,7 +166,7 @@ struct tensordot_parameters {
 #endif
 
 
-  static_assert(std::is_same<contdim_a_t, contdim_b_t>::value,
+  static_assert(::std::is_same<contdim_a_t, contdim_b_t>::value,
                 "In TensorDot: contracting dimensions should be the same");
 
   // Output
@@ -178,7 +178,7 @@ struct tensordot_parameters {
 #endif
   constexpr static size_t dimout = tao::seq::prod<keepdim_t>::value;
 
-  static_assert(std::is_same<tao::seq::permutate_t<PERMUTE, PERMUTE>,
+  static_assert(::std::is_same<tao::seq::permutate_t<PERMUTE, PERMUTE>,
                              tao::seq::make_index_range<0, keepdim_t::size()>>::value,
                 "In TensorDot: PERMUTE should be a permutation index_sequence.");
 
@@ -244,18 +244,18 @@ struct tensordot_parameters {
     size_t out_indices = tao::seq::sum<tao::seq::multiplies_t<list_stride_keepdim_t, tao::seq::reverse_t<list_indices_keepdim>>>::value;
 #endif
 
-    /*std::cout << "list_stride_keepdim_t: ";tao::seq::print_index_sequence(list_stride_keepdim_t{});
-    std::cout << "permute : "; tao::seq::print_index_sequence(PERMUTE{});
-    std::cout << "permute(permute): "; tao::seq::print_index_sequence(typename tao::seq::permutate<PERMUTE, PERMUTE>::type{});
-    std::cout << "permute(permute): "; tao::seq::print_index_sequence(tao::seq::make_index_range<0, keepdim_t::size()>{});
-    std::cout << "moveaxis_a: "; tao::seq::print_index_sequence(moveaxis_a{});
-    std::cout << "moveaxis_b: "; tao::seq::print_index_sequence(moveaxis_b{});
+    /*::std::cout << "list_stride_keepdim_t: ";tao::seq::print_index_sequence(list_stride_keepdim_t{});
+    ::std::cout << "permute : "; tao::seq::print_index_sequence(PERMUTE{});
+    ::std::cout << "permute(permute): "; tao::seq::print_index_sequence(typename tao::seq::permutate<PERMUTE, PERMUTE>::type{});
+    ::std::cout << "permute(permute): "; tao::seq::print_index_sequence(tao::seq::make_index_range<0, keepdim_t::size()>{});
+    ::std::cout << "moveaxis_a: "; tao::seq::print_index_sequence(moveaxis_a{});
+    ::std::cout << "moveaxis_b: "; tao::seq::print_index_sequence(moveaxis_b{});
 
-    std::cout << "dimout: " << dimout  << " ("<< out_indices << " " << a_indices << " " << b_indices << ")" << std::endl;
+    ::std::cout << "dimout: " << dimout  << " ("<< out_indices << " " << a_indices << " " << b_indices << ")" << ::std::endl;
 
     tao::seq::print_index_sequence(typename tao::seq::permutate<PERMUTE, PERMUTE>::type{});
     tao::seq::print_index_sequence(tao::seq::make_index_range<0, keepdim_t::size()>{});
-    std::cout << "--" << std::endl; */
+    ::std::cout << "--" << ::std::endl; */
     return tensordot_indices{out_indices, a_indices, b_indices};
   }
 
@@ -272,7 +272,7 @@ struct tensordot_parameters {
 
   template<typename Func>
   static DEVICE auto compute_tensordot_indices_apply(Func &&f) {
-    return compute_tensordot_indices_t<Func>(std::forward<Func>(f));
+    return compute_tensordot_indices_t<Func>(::std::forward<Func>(f));
   }
 
 };
@@ -285,7 +285,7 @@ struct tensordot_parameters {
 /////////////////////////////////////////////////////////////////////////
 
 
-template<class A, class B, class DIMFA, class DIMFB, class CONTFA, class CONTFB, class PERMUTEDIMOUT=std::make_index_sequence<DIMFA::size() + DIMFB::size() - 2 * CONTFA::size()>>
+template<class A, class B, class DIMFA, class DIMFB, class CONTFA, class CONTFB, class PERMUTEDIMOUT=::std::make_index_sequence<DIMFA::size() + DIMFB::size() - 2 * CONTFA::size()>>
 struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT> {
   // A is vector of size p ** n, interpreted as matrix (column major), B is vector of size p ** m, interpreted as column vector
   // n=3 and m=2 are assume to be known
@@ -300,7 +300,7 @@ struct TensorDot : BinaryOp<TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERMU
 
   static const int DIM = parameters::dimout;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << ":";
   }
 

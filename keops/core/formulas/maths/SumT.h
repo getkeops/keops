@@ -21,7 +21,7 @@ struct SumT : UnaryOp<SumT, F, D> {
 
   static const int DIM = D;
 
-  static void PrintIdString(std::stringstream& str) { str << "SumT"; }
+  static void PrintIdString(::std::stringstream& str) { str << "SumT"; }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll

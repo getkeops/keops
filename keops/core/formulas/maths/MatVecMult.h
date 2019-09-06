@@ -26,7 +26,7 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
 
   static const int DIM = A::DIM / B::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "x";
   }
 #if C_CONTIGUOUS //row major

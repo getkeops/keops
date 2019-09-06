@@ -1,11 +1,13 @@
 #pragma once
 
 #include <stdio.h>
-#include <iostream>
+#include <sstream>
 #include <assert.h>
 #include <cuda.h>
 
-#include "core/Pack.h"
+#include "core/Pack/Pack.h"
+#include "core/Pack/GetInds.h"
+#include "core/Pack/GetDims.h"
 #include "core/CudaErrorCheck.cu"
 
 namespace keops {
@@ -174,7 +176,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = std::min(CUDA_BLOCK_SIZE,std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
+    blockSize.x = ::std::min(CUDA_BLOCK_SIZE,::std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / ::std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
@@ -404,7 +406,7 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = std::min(CUDA_BLOCK_SIZE,std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
+    blockSize.x = ::std::min(CUDA_BLOCK_SIZE,::std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / ::std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
 
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);

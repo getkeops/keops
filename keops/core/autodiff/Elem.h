@@ -20,7 +20,7 @@ struct Elem : UnaryOp< Elem, F, M > {
   static const int DIM = 1;
   static_assert(F::DIM > M, "Index out of bound in Elem");
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "Elem";
   }
 

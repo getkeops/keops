@@ -13,7 +13,7 @@
 #include "core/formulas/reductions/Sum_Reduction.h"
 #include "core/formulas/kernels/SumGaussKernel.h"
 #include "core/formulas/kernels/GaussKernel.h"
-#include "core/formulas/utils.h"
+#include "core/formulas/PrintFormula.h"
 #include "core/CpuConv.cpp"
 
 

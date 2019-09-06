@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "core/Pack.h"
+#include "core/Pack/CondType.h"
 #include "core/autodiff/BinaryOp.h"
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Add.h"
@@ -27,7 +27,7 @@ struct Subtract_Impl : BinaryOp<Subtract_Impl, FA, FB> {
   static const int DIM = FA::DIM;
   static_assert(DIM == FB::DIM, "Dimensions must be the same for Subtract");
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "-";
   }
 
@@ -48,7 +48,7 @@ struct Subtract_Impl_Broadcast : BinaryOp<Subtract_Impl_Broadcast, FA, FB> {
   // Output dim = FB::DIM
   static const int DIM = FB::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "-";
   }
 

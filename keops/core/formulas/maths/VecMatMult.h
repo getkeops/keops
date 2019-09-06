@@ -29,7 +29,7 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 
   static const int DIM = A::DIM / B::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "x";
   }
 

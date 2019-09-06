@@ -2,7 +2,10 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
+#include "core/Pack/CondType.h"
+#include "core/Pack/UnivPack.h"
+#include "core/Pack/MergePacks.h"
+#include "core/Pack/IndVal.h"
 #include "core/autodiff/Var.h"
 
 namespace keops {
@@ -19,7 +22,7 @@ struct BinaryOp_base {
   using THIS = OP<FA,FB,PARAMS...>;
 
   // recursive function to print the formula as a string
-  static void PrintId(std::stringstream& str) {
+  static void PrintId(::std::stringstream& str) {
     str << "(";                                  // prints "("
     FA::PrintId(str);                            // prints the formula FA
     THIS::PrintIdString(str);                    // prints the id string of the operator : "+", "*", ...
@@ -28,7 +31,7 @@ struct BinaryOp_base {
     str << ")";                                  // prints ")"
   }
 
-  static void PrintFactorized(std::stringstream& str) {
+  static void PrintFactorized(::std::stringstream& str) {
     PrintId(str);
   }
 

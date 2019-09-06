@@ -24,7 +24,7 @@ struct SqNormIso : BinaryOp<SqNormIso, FS, FA> {
   static_assert(FS::DIM == 1, "Isotropic square norm expects a scalar parameter.");
   static const int DIM = 1;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "<SqNormIso>";
   }
 

@@ -5,7 +5,7 @@
 #include "core/autodiff/Grad.h"
 #include "core/formulas/reductions/reduction.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/utils.h"
+#include "core/formulas/PrintFormula.h"
 #include "core/pre_headers.h"
 
 namespace keops {
@@ -25,8 +25,8 @@ struct Sum_Reduction_Impl : public Reduction<F,tagI> {
     static const int DIMRED = DIM;		// dimension of temporary variable for reduction
 
 	// recursive function to print the formula as a string 
-    static void PrintId(std::stringstream& str) {
-        str << "Sum_Reduction (with tagI=" << tagI << ") of :" << std::endl;
+    static void PrintId(::std::stringstream& str) {
+        str << "Sum_Reduction (with tagI=" << tagI << ") of :" << ::std::endl;
         str << PrintFormula<F>();				// prints the formula F
     }
 

@@ -17,7 +17,7 @@ struct Minus : UnaryOp<Minus, F> {
 
   static const int DIM = F::DIM;
 
-  static void PrintIdString(std::stringstream &str) {
+  static void PrintIdString(::std::stringstream &str) {
     str << "Minus";
   }
 

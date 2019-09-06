@@ -2,7 +2,6 @@
 
 #include <sstream>
 
-#include "core/Pack.h"
 #include "core/autodiff/Extract.h"
 #include "core/formulas/reductions/reduction.h"
 #include "core/formulas/maths/Concat.h"
@@ -31,7 +30,7 @@ struct Max_SumShiftExp_Reduction : public Reduction<Concat<F,G_>,tagI> {
 
     static_assert(F::DIM==1,"LogSumExp requires first formula F of dimension 1.");
 
-    static void PrintId(std::stringstream& str) {
+    static void PrintId(::std::stringstream& str) {
         str << "Max_SumShiftExp_Reduction(F=";			// prints "("
         F::PrintId(str);				// prints the formula F
         str << ",tagI=" << tagI << ",G=";
