@@ -346,6 +346,9 @@ class LazyTensor:
                                  ("dtype", "tools", "Genred", "KernelSolve", "ni", "nj", "ranges", "backend"))
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
         
+        def max_tuple(a, b):
+            return tuple( max(a_i, b_i) for (a_i, b_i) in zip(a, b) )
+
         def check_broadcasting(dims_1, dims_2):
             r"""
             Checks that the shapes **dims_1** and **dims_2** are compatible with each other.
@@ -362,7 +365,7 @@ class LazyTensor:
                 if dim_1 != 1 and dim_2 != 1 and dim_1 != dim_2:
                     raise ValueError("Incompatible batch dimensions: {} and {}.".format(dims_1, dims_2))
             
-            return max(padded_dims_1, padded_dims_2)
+            return max_tuple(padded_dims_1, padded_dims_2)
         
         # Checks on the batch dimensions - we support broadcasting:
         res.batchdims = check_broadcasting(self.batchdims, other.batchdims)
