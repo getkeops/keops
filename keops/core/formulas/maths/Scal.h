@@ -5,11 +5,24 @@
 #include "core/autodiff/BinaryOp.h"
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Add.h"
-#include "core/formulas/norms/norms.h"
-#include "core/formulas/maths/maths.h"
+#include "core/formulas/norms/Scalprod.h"
+
 
 namespace keops {
 
+template<class FA, class FB>
+struct Scal_Impl;
+template<class FA, class FB>
+struct Scal_Alias;
+template<class FA, class FB>
+using Scal = typename Scal_Alias<FA, FB>::type;
+
+template<class FA, class FB>
+struct Add_Impl;
+template<class FA, class FB>
+struct Add_Alias;
+template<class FA, class FB>
+using Add = typename Add_Alias<FA, FB>::type;
 
 //////////////////////////////////////////////////////////////
 ////      Scal*Vector Multiplication : Scal< FA,FB>       ////

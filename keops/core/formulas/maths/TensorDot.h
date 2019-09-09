@@ -1,8 +1,9 @@
 #pragma once
 
+#include <assert.h>
 #include <iostream>
+#include <sstream>
 
-#include "core/formulas/maths/maths.h"
 #include "core/pre_headers.h"
 
 #include "lib/sequences/include/tao/seq/integer_sequence.hpp"

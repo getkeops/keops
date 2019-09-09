@@ -4,7 +4,6 @@
 
 #include "core/autodiff/UnaryOp.h"
 #include "core/formulas/constants.h"
-#include "core/formulas/maths/maths.h"
 
 #include "core/pre_headers.h"
 

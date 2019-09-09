@@ -1,6 +1,5 @@
 /*
- *
- * The file where the elementary operators are defined.
+ * The files where the elementary operators are defined.
  *
  * The core operators of our engine are :
  *      Var<N,DIM,CAT>           : the N-th variable, a vector of dimension DIM,

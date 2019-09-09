@@ -1,7 +1,5 @@
-#pragma once
-
 /*
- * The file where the elementary norm-related operators are defined.
+ * The files where the elementary norm-related operators are defined.
  * Available norms and scalar products are :
  *
  *   (.|.), |.|, |.|^2, |.-.|^2 :
@@ -17,15 +15,4 @@
  *      WeightedSqDist<A,FA,FB>     : alias for WeightedSqNorm<A,Subtract<FA,FB>>
  *
  */
-
-namespace keops {
-
-template < class FA, class FB >
-struct Scalprod_Alias ;
-
-template<class FA, class FB>
-using Scalprod = typename Scalprod_Alias<FA, FB>::type;
-
-}
-
 

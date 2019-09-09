@@ -9,12 +9,17 @@
 #include "core/formulas/maths/Sum.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Minus.h"
-#include "core/formulas/maths/maths.h"
 
 #include "core/pre_headers.h"
 
 namespace keops {
 
+template<class FA, class FB>
+struct Subtract_Impl;
+template<class FA, class FB>
+struct Subtract_Alias;
+template<class FA, class FB>
+using Subtract = typename Subtract_Alias<FA, FB>::type;
 
 //////////////////////////////////////////////////////////////
 ////             SUBTRACT : F-G                           ////

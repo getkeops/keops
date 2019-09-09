@@ -9,6 +9,13 @@
 
 namespace keops {
 
+template<class FA, class FB>
+struct Mult_Impl;
+template<class FA, class FB>
+struct Mult_Alias;
+template<class FA, class FB>
+using Mult = typename Mult_Alias<FA, FB>::type;
+
 //////////////////////////////////////////////////////////////
 ////      Element-wise Multiplication : Mult< FA,FB>      ////
 //////////////////////////////////////////////////////////////

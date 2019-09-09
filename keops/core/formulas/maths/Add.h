@@ -8,12 +8,24 @@
 #include "core/formulas/constants.h"
 #include "core/formulas/maths/Sum.h"
 #include "core/formulas/maths/Scal.h"
-#include "core/formulas/maths/maths.h"
 
 #include "core/pre_headers.h"
 
 namespace keops {
 
+template<class FA, class FB>
+struct Add_Impl;
+template<class FA, class FB>
+struct Add_Alias;
+template<class FA, class FB>
+using Add = typename Add_Alias<FA, FB>::type;
+
+template<class FA, class FB>
+struct Scal_Impl;
+template<class FA, class FB>
+struct Scal_Alias;
+template<class FA, class FB>
+using Scal = typename Scal_Alias<FA, FB>::type;
 
 //////////////////////////////////////////////////////////////
 ////               ADDITION : Add< FA,FB >                ////
@@ -63,7 +75,6 @@ struct Add_Impl_Broadcast : BinaryOp<Add_Impl_Broadcast, FA, FB> {
   using DiffT = Add<typename FA::template DiffT<V, Sum< GRADIN>>, typename FB::template DiffT<V, GRADIN> >;
 
 };
-
 
 
 // Simplification rules

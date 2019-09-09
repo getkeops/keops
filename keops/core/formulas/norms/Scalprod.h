@@ -14,9 +14,23 @@ namespace keops {
 
 template < class FA, class FB >
 struct Scalprod_Alias ;
-
 template<class FA, class FB>
 using Scalprod = typename Scalprod_Alias<FA, FB>::type;
+
+
+template<class FA, class FB>
+struct Scal_Impl;
+template<class FA, class FB>
+struct Scal_Alias;
+template<class FA, class FB>
+using Scal = typename Scal_Alias<FA, FB>::type;
+
+template<class FA, class FB>
+struct Add_Impl;
+template<class FA, class FB>
+struct Add_Alias;
+template<class FA, class FB>
+using Add = typename Add_Alias<FA, FB>::type;
 
 //////////////////////////////////////////////////////////////
 ////           SCALAR PRODUCT :   Scalprod< A,B >         ////
