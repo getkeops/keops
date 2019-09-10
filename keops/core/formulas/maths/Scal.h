@@ -11,6 +11,7 @@
 
 namespace keops {
 
+// We need some pre-declarations due to the co-dependency of Add and Scal
 template<class FA, class FB>
 struct Scal_Impl;
 template<class FA, class FB>

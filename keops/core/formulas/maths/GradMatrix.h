@@ -1,10 +1,12 @@
 #pragma once
 
+#include "core/Pack/UnivPack.h"
 #include "core/Pack/GetInds.h"
 #include "core/Pack/IterReplace.h"
 #include "core/autodiff/Grad.h"
 #include "core/autodiff/ElemT.h"
 #include "core/formulas/maths/Concat.h"
+#include "core/formulas/constants/IntConst.h"
 #include "core/pre_headers.h"
 
 namespace keops {

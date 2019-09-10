@@ -9,6 +9,7 @@
 
 namespace keops {
 
+// We need some pre-declarations
 template<class FA, class FB>
 struct Mult_Impl;
 template<class FA, class FB>
