@@ -3,7 +3,7 @@
 #include <sstream>
 
 #include "core/autodiff/UnaryOp.h"
-#include "core/formulas/constants.h"
+#include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
 

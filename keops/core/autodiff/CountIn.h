@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/formulas/factorize.h"
+#include "core/formulas/Factorize.h"
 
 namespace keops {
 

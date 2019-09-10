@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/formulas/constants.h"
-#include "core/formulas/factorize.h"
+#include "core/formulas/constants/IntConst.h"
+#include "core/formulas/Factorize.h"
 #include "core/formulas/maths/Divide.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Subtract.h"

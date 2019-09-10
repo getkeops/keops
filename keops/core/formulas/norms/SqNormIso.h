@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "core/autodiff/BinaryOp.h"
-#include "core/formulas/constants.h"
+#include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/norms/SqNorm2.h"

@@ -6,7 +6,7 @@
 #include "core/Pack/IndVal.h"
 #include "core/Pack/MergePacks.h"
 #include "core/autodiff/Grad.h"
-#include "core/formulas/factorize.h"
+#include "core/formulas/Factorize.h"
 #include "core/formulas/maths/Minus.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Exp.h"

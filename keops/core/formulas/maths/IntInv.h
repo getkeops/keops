@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/formulas/constants.h"
+#include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Inv.h"
 
 #include "core/pre_headers.h"

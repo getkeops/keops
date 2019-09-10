@@ -1,7 +1,6 @@
-
-
-
-#include "core/formulas/constants.h"
+// import constant
+#include "core/formulas/constants/IntConst.h"
+#include "core/formulas/constants/Zero.h"
 
 
 // import all math implementations
@@ -66,15 +65,13 @@
 #include "core/formulas/kernels/TRI_Kernel.h"
 #include "core/formulas/kernels/TRIGaussKernel.h"
 
-
-#include "core/formulas/factorize.h"
-#include "core/formulas/newsyntax.h"
+#include "core/formulas/Factorize.h"
 
 #include "core/CpuConv.cpp"
-#ifdef __CUDACC__
-	#include "core/GpuConv1D.cu"
-	#include "core/GpuConv2D.cu"
-#endif
 
+#ifdef __CUDACC__
+  #include "core/GpuConv1D.cu"
+  #include "core/GpuConv2D.cu"
+#endif
 
 #include "core/formulas/PrintFormula.h"

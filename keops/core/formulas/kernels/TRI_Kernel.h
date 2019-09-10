@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/formulas/factorize.h"
+#include "core/formulas/Factorize.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Subtract.h"
