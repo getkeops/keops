@@ -14,7 +14,7 @@
 #include "core/formulas/kernels/SumGaussKernel.h"
 #include "core/formulas/kernels/GaussKernel.h"
 #include "core/formulas/PrintFormula.h"
-#include "core/CpuConv.cpp"
+#include "core/mapreduce/CpuConv.cpp"
 
 
 using namespace keops;

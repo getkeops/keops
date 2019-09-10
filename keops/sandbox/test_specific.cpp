@@ -15,7 +15,7 @@
 #include "core/formulas/kernels/GaussKernel.h"
 #include "core/formulas/Factorize.h"
 
-#include "core/CpuConv.cpp"
+#include "core/mapreduce/CpuConv.cpp"
 #include "core/reductions/Sum_Reduction.h"
 #include "core/formulas/PrintFormula.h"
 

@@ -9,9 +9,6 @@
 
 #include "bench/generate_data.h"
 
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
-#include "core/CpuConv.cpp"
 
 namespace keops{
 

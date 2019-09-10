@@ -6,14 +6,14 @@
 
 #include "core/pack/Pack.h"
 #include "core/pack/GetInds.h"
-#include "core/broadcast_batch_dimensions.h"
+#include "broadcast_batch_dimensions.h"
 
 // Host implementation of the convolution, for comparison
 
 namespace keops {
 
 struct CpuConv_ranges {
-  template<typename TYPE, class FUN>
+  template < typename TYPE, class FUN >
   static int CpuConv_ranges_(FUN fun, TYPE **param, int nx, int ny,
                              int nbatchdims, int *shapes,
                              int nranges_x, int nranges_y, __INDEX__ **ranges,
@@ -56,23 +56,23 @@ struct CpuConv_ranges {
     // [ A, .., A, M]
     // Then, we do the same for shapes_j, but with "N" instead of "M".
     // And finally for the parameters, with "1" instead of "M".
-    fill_shapes<FUN>(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
+    fill_shapes< FUN >(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
 
     // Actual for-for loop -----------------------------------------------------
 
     TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
-    load<DIMSP>(0, pp, param);  // If nbatchdims == 0, the parameters are fixed once and for all
+    load< DIMSP >(0, pp, param);  // If nbatchdims == 0, the parameters are fixed once and for all
 
     int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
-    for (int k = 0; k < SIZEI - 1; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
-    for (int k = 0; k < SIZEJ; k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
-    for (int k = 0; k < SIZEP; k++) { indices_p[k] = 0; }
+    for (int k = 0; k < SIZEI - 1; k++) {indices_i[k] = 0;}  // Fill the "offsets" with zeroes,
+    for (int k = 0; k < SIZEJ; k++) {indices_j[k] = 0;}  // the default value when nbatchdims == 0.
+    for (int k = 0; k < SIZEP; k++) {indices_p[k] = 0;}
 
 
     // Set the output to zero, as the ranges may not cover the full output -----
     for (int i = 0; i < nx; i++) {
-      typename FUN::template InitializeReduction<TYPE>()(tmp);
-      typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0] + i * DIMOUT, px, i);
+      typename FUN::template InitializeReduction< TYPE >()(tmp);
+      typename FUN::template FinalizeOutput< TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
     }
 
     // N.B.: In the following code, we assume that the x-ranges do not overlap.
@@ -101,16 +101,16 @@ struct CpuConv_ranges {
         vect_broadcast_index(start_x, nbatchdims, SIZEI - 1, shapes, shapes_i, indices_i);
         // And for the parameters, too:
         vect_broadcast_index(range_index, nbatchdims, SIZEP, shapes, shapes_p, indices_p);
-        load<DIMSP>(0, pp, param, indices_p); // Load the paramaters, once per tile
+        load< DIMSP >(0, pp, param, indices_p); // Load the paramaters, once per tile
       }
 
       for (__INDEX__ i = start_x; i < end_x; i++) {
         if (nbatchdims == 0) {
-          load<typename DIMSX::NEXT>(i, xi + DIMFOUT, px + 1);
+          load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
         } else {
-          load<typename DIMSX::NEXT>(i - start_x, xi + DIMFOUT, px + 1, indices_i);
+          load< typename DIMSX::NEXT >(i - start_x, xi + DIMFOUT, px + 1, indices_i);
         }
-        typename FUN::template InitializeReduction<TYPE>()(tmp);   // tmp = 0
+        typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
 
         for (__INDEX__ slice = start_slice; slice < end_slice; slice++) {
           __INDEX__ start_y = ranges_y[2 * slice];
@@ -124,19 +124,19 @@ struct CpuConv_ranges {
 
           for (int j = start_y; j < end_y; j++) {
             if (nbatchdims == 0) {
-              load<DIMSY>(j, yj, py);
+              load< DIMSY >(j, yj, py);
             } else {
-              load<DIMSY>(j - start_y, yj, py, indices_j);
+              load< DIMSY >(j - start_y, yj, py, indices_j);
             }
-            call<DIMSX, DIMSY, DIMSP>(fun, xi, yj, pp);
+            call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
             if (nbatchdims == 0) {
-              typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j); // tmp += xi
+              typename FUN::template ReducePairShort< TYPE >()(tmp, xi, j); // tmp += xi
             } else {
-              typename FUN::template ReducePairShort<TYPE>()(tmp, xi, j - start_y); // tmp += xi
+              typename FUN::template ReducePairShort< TYPE >()(tmp, xi, j - start_y); // tmp += xi
             }
           }
         }
-        typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0] + i * DIMOUT, px, i);
+        typename FUN::template FinalizeOutput< TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
       }
 
     }
@@ -145,7 +145,7 @@ struct CpuConv_ranges {
   }
 
 // Wrapper with an user-friendly input format for px and py.
-  template<typename TYPE, class FUN, typename... Args>
+  template < typename TYPE, class FUN, typename... Args >
   static int Eval(FUN fun, int nx, int ny,
                   int nbatchdims, int *shapes,
                   int nranges_x, int nranges_y, __INDEX__ **ranges,
@@ -158,23 +158,23 @@ struct CpuConv_ranges {
     const int SIZEJ = VARSJ::SIZE;
     const int SIZEP = VARSP::SIZE;
 
-    using INDSI = GetInds<VARSI>;
-    using INDSJ = GetInds<VARSJ>;
-    using INDSP = GetInds<VARSP>;
+    using INDSI = GetInds< VARSI >;
+    using INDSJ = GetInds< VARSJ >;
+    using INDSP = GetInds< VARSP >;
 
     TYPE *px[SIZEI];
     TYPE *py[SIZEJ];
     TYPE *params[SIZEP];
     px[0] = x1;
-    getlist<INDSI>(px + 1, args...);
-    getlist<INDSJ>(py, args...);
-    getlist<INDSP>(params, args...);
+    getlist< INDSI >(px + 1, args...);
+    getlist< INDSJ >(py, args...);
+    getlist< INDSP >(params, args...);
 
     return CpuConv_ranges_(fun, params, nx, ny, nbatchdims, shapes, nranges_x, nranges_y, ranges, px, py);
   }
 
 // Idem, but with args given as an array of arrays, instead of an explicit list of arrays.
-  template<typename TYPE, class FUN>
+  template < typename TYPE, class FUN >
   static int Eval(FUN fun, int nx, int ny,
                   int nbatchdims, int *shapes,
                   int nranges_x, int nranges_y, __INDEX__ **ranges,
@@ -187,9 +187,9 @@ struct CpuConv_ranges {
     const int SIZEJ = VARSJ::SIZE;
     const int SIZEP = VARSP::SIZE;
 
-    using INDSI = GetInds<VARSI>;
-    using INDSJ = GetInds<VARSJ>;
-    using INDSP = GetInds<VARSP>;
+    using INDSI = GetInds< VARSI >;
+    using INDSJ = GetInds< VARSJ >;
+    using INDSP = GetInds< VARSP >;
 
     TYPE *px[SIZEI];
     TYPE *py[SIZEJ];

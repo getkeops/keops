@@ -8,7 +8,8 @@
 #include "core/pack/Pack.h"
 #include "core/pack/GetInds.h"
 #include "core/pack/GetDims.h"
-#include "core/CudaErrorCheck.cu"
+#include "core/utils/CudaErrorCheck.cu"
+#include "core/utils/CudaSizes.h"
 
 namespace keops {
 

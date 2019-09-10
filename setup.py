@@ -129,13 +129,15 @@ setup(
             import_files('keops/core/formulas/norms/') +
             import_files('keops/core/reductions') +
             [
-            'keops/core/broadcast_batch_dimensions.h',
-            'keops/core/CpuConv.cpp',
-            'keops/core/CpuConv_ranges.cpp',
-            'keops/core/CudaErrorCheck.cu',
-            'keops/core/GpuConv1D.cu',
-            'keops/core/GpuConv1D_ranges.cu',
-            'keops/core/GpuConv2D.cu',
+            'keops/core/mapreduce/broadcast_batch_dimensions.h',
+            'keops/core/mapreduce/CpuConv.cpp',
+            'keops/core/mapreduce/CpuConv_ranges.cpp',
+            'keops/core/mapreduce/GpuConv1D.cu',
+            'keops/core/mapreduce/GpuConv1D_ranges.cu',
+            'keops/core/mapreduce/GpuConv2D.cu',
+            'keops/core/utils/CudaErrorCheck.cu',
+            'keops/core/utils/CudaSizes.h',
+            'keops/core/utils/Infinity.h',
             'keops/core/link_autodiff.cpp',
             'keops/core/link_autodiff.cu',
             'keops/core/pre_headers.h',

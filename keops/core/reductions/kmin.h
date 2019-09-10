@@ -2,9 +2,11 @@
 
 #include <sstream>
 
-#include "core/reductions/reduction.h"
+#include "core/reductions/Reduction.h"
 #include "core/reductions/Zero_Reduction.h"
 #include "core/pre_headers.h"
+#include "core/utils/Infinity.h"
+
 
 namespace keops {
 // Implements the k-min-arg-k-min reduction operation : for each i or each j, find the values and indices of the

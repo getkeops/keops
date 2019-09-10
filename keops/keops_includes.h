@@ -70,10 +70,10 @@
 #include "core/formulas/Factorize.h"
 #include "core/formulas/PrintFormula.h"
 
-#include "core/CpuConv.cpp"
+#include "core/mapreduce/CpuConv.cpp"
 
 #ifdef __CUDACC__
-  #include "core/GpuConv1D.cu"
-  #include "core/GpuConv2D.cu"
+  #include "core/mapreduce/GpuConv1D.cu"
+  #include "core/mapreduce/GpuConv2D.cu"
 #endif
 
