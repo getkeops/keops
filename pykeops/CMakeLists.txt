@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(PyKeOps LANGUAGES CXX)
 
-set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
+set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/keops)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)

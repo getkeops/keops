@@ -15,7 +15,9 @@ with open(path.join(here, 'pykeops','pykeops.md'), encoding='utf-8') as f:
   long_description = f.read()
 
 def import_files(dirname):
-  return [path.join(dirname, f) for f in os.listdir(dirname) if any(f.endswith(ext) for ext in ['h', 'hpp'])]
+  _dirname = path.join(os.getcwd(), 'pykeops', dirname)
+  res = [path.join(dirname, f) for f in os.listdir(_dirname) if any(f.endswith(ext) for ext in ['h', 'hpp'])]
+  return res
 
 
 # List file from Pybind11 sources
@@ -113,9 +115,11 @@ setup(
             'torch/generic/generic_red.cpp',
             'torch/generic/generic_red.cpp',
             'common/keops_io.h',
-            'keops/formula.h.in',
             'keops/cuda.cmake',
-            'keops/headers.cmake'] +
+            'keops/formula.h.in',
+            'keops/headers.cmake',
+            'keops/keops_includes.h',
+            ] +
             import_files('keops/core/autodiff/') +
             import_files('keops/core/pack/') +
             import_files('keops/core/formulas/') +
@@ -134,7 +138,7 @@ setup(
             'keops/core/GpuConv2D.cu',
             'keops/core/link_autodiff.cpp',
             'keops/core/link_autodiff.cu',
-            'keops/core/PrintFormula.h',
+            'keops/core/pre_headers.h',
             'keops/specific/CMakeLists.txt',
             'keops/specific/radial_kernels/cuda_conv.cu',
             'keops/specific/radial_kernels/cuda_conv.cx',
@@ -144,7 +148,7 @@ setup(
             'keops/specific/shape_distance/fshape_gpu.cu',
             'keops/specific/shape_distance/fshape_gpu.cx',
             'keops/specific/shape_distance/kernels.cx',
-        ] + pybind11_files + tao_seq_files
+            ] + pybind11_files + tao_seq_files
     },
 
     install_requires=[
