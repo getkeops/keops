@@ -3,7 +3,7 @@
 TensorDot
 =========
 
-This is a test script to showcase the tensordot syntax. This is WIP: syntax is subject to changes, (second order) derivatives may be wrong in some cases. **Use at your own risk...**
+This is a test script to showcase the tensordot syntax.
 """
 
 import numpy as np

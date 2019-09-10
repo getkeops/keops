@@ -1,4 +1,14 @@
 // IC Script for Keops
+
+node {
+  checkout scm
+  result = sh (script: "git log -1 | grep '\\[ci skip\\]'", returnStatus: true)
+  if (result == 0) {
+    currentBuild.result = 'ABORTED'
+    error('Detect [no ci] message in commit message. Not running.')
+  }
+}
+
 pipeline {
   agent none 
   stages {
@@ -156,3 +166,4 @@ pipeline {
 
   }
 }
+
