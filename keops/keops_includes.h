@@ -49,10 +49,10 @@
 
 // import all reductions
 #include "core/reductions/Sum_Reduction.h"
-#include "core/reductions/max_sumshiftexp.h"
-#include "core/reductions/min.h"
-#include "core/reductions/max.h"
-#include "core/reductions/kmin.h"
+#include "core/reductions/Max_SumShiftExp_Reduction.h"
+#include "core/reductions/Min_Reduction.h"
+#include "core/reductions/Max_Reduction.h"
+#include "core/reductions/KMin_Reduction.h"
 
 
 // import all Kernels
