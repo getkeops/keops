@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/Pack/UnivPack.h"
-#include "core/Pack/ConcatPack.h"
-#include "core/Pack/RemoveFromPack.h"
+#include "core/pack/UnivPack.h"
+#include "core/pack/ConcatPack.h"
+#include "core/pack/RemoveFromPack.h"
 
 namespace keops {
 

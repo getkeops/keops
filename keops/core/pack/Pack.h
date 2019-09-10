@@ -4,8 +4,8 @@
 #include <assert.h>
 
 #include "core/pre_headers.h"
-#include "core/Pack/Get.h"
-#include "core/Pack/CondType.h"
+#include "core/pack/Get.h"
+#include "core/pack/CondType.h"
 
 namespace keops {
 

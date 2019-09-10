@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/Pack/UnivPack.h"
+#include "core/pack/UnivPack.h"
 #include "core/formulas/constants/Zero.h"
 
 namespace keops {

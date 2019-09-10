@@ -2,8 +2,8 @@
 
 #include <sstream>
 
-#include "core/Pack/GetDims.h"
-#include "core/Pack/GetInds.h"
+#include "core/pack/GetDims.h"
+#include "core/pack/GetInds.h"
 
 namespace keops {
 

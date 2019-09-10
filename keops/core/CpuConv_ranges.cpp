@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <vector>
 
-#include "core/Pack/Pack.h"
-#include "core/Pack/GetInds.h"
+#include "core/pack/Pack.h"
+#include "core/pack/GetInds.h"
 #include "core/broadcast_batch_dimensions.h"
 
 // Host implementation of the convolution, for comparison

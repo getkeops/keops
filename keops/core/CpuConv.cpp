@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <vector>
 
-#include "core/Pack/GetInds.h"
+#include "core/pack/GetInds.h"
 
 // Host implementation of the convolution, for comparison
 

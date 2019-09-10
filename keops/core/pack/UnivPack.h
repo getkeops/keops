@@ -3,7 +3,7 @@
 #include <sstream>
 #include <utility>
 
-#include "core/Pack/Pack.h"
+#include "core/pack/Pack.h"
 
 namespace keops {
 

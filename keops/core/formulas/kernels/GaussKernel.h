@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/Pack/UnivPack.h"
-#include "core/Pack/CondType.h"
-#include "core/Pack/IsSame.h"
-#include "core/Pack/IndVal.h"
-#include "core/Pack/MergePacks.h"
+#include "core/pack/UnivPack.h"
+#include "core/pack/CondType.h"
+#include "core/pack/IsSame.h"
+#include "core/pack/IndVal.h"
+#include "core/pack/MergePacks.h"
 #include "core/autodiff/Grad.h"
 #include "core/formulas/Factorize.h"
 #include "core/formulas/maths/Minus.h"

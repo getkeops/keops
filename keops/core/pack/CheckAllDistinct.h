@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/Pack/PackVal.h"
-#include "core/Pack/ZeroPack.h"
-#include "core/Pack/ReplaceInPack.h"
+#include "core/pack/PackVal.h"
+#include "core/pack/ZeroPack.h"
+#include "core/pack/ReplaceInPack.h"
 
 namespace keops {
 

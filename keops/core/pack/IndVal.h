@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Pack/UnivPack.h"
+#include "core/pack/UnivPack.h"
 
 namespace keops {
 

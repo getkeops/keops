@@ -1,9 +1,9 @@
 #pragma once
 
-#include "core/Pack/GetInds.h"
-#include "core/Pack/ConcatPack.h"
-#include "core/Pack/GetDims.h"
-#include "core/Pack/CheckAllDistinct.h"
+#include "core/pack/GetInds.h"
+#include "core/pack/ConcatPack.h"
+#include "core/pack/GetDims.h"
+#include "core/pack/CheckAllDistinct.h"
 
 namespace keops {
 

@@ -3,9 +3,9 @@
 
 #include <sstream>
 
-#include "core/Pack/UnivPack.h"
-#include "core/Pack/IsSame.h"
-#include "core/Pack/IndVal.h"
+#include "core/pack/UnivPack.h"
+#include "core/pack/IsSame.h"
+#include "core/pack/IndVal.h"
 #include "core/autodiff/Zero.h"
 #include "core/pre_headers.h"
 

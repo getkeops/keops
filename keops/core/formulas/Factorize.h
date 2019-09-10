@@ -2,10 +2,10 @@
 
 #include <sstream>
 
-#include "core/Pack/UnivPack.h"
-#include "core/Pack/Pack.h"
-#include "core/Pack/ConcatPack.h"
-#include "core/Pack/GetInds.h"
+#include "core/pack/UnivPack.h"
+#include "core/pack/Pack.h"
+#include "core/pack/ConcatPack.h"
+#include "core/pack/GetInds.h"
 #include "core/autodiff/BinaryOp.h"
 #include "core/autodiff/Var.h"
 #include "core/autodiff/CountIn.h"

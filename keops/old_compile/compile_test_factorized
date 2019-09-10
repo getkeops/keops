@@ -1,1 +1,0 @@
-nvcc -D_MWAITXINTRIN_H_INCLUDED -D_FORCE_INLINES -D __TYPE__=float -std=c++11 -O2 -o build/test_factorized sandbox/test_factorized.cu

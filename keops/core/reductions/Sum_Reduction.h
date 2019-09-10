@@ -3,7 +3,7 @@
 #include <sstream>
 
 #include "core/autodiff/Grad.h"
-#include "core/Reductions/reduction.h"
+#include "core/reductions/reduction.h"
 #include "core/formulas/constants/Zero.h"
 #include "core/formulas/PrintFormula.h"
 #include "core/pre_headers.h"

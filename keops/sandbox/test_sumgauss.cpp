@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "core/Reductions/Sum_Reduction.h"
+#include "core/reductions/Sum_Reduction.h"
 #include "core/formulas/kernels/SumGaussKernel.h"
 #include "core/formulas/kernels/GaussKernel.h"
 #include "core/formulas/PrintFormula.h"

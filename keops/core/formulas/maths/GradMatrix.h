@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/Pack/UnivPack.h"
-#include "core/Pack/GetInds.h"
-#include "core/Pack/IterReplace.h"
+#include "core/pack/UnivPack.h"
+#include "core/pack/GetInds.h"
+#include "core/pack/IterReplace.h"
 #include "core/autodiff/Grad.h"
 #include "core/autodiff/ElemT.h"
 #include "core/formulas/maths/Concat.h"

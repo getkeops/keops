@@ -1,6 +1,7 @@
 # Always prefer setuptools over distutils
 # To use a consistent encoding
 from codecs import open
+import os
 from os import path
 
 from setuptools import setup
@@ -11,7 +12,11 @@ from pykeops import __version__ as current_version
 
 # Get the long description from the README file
 with open(path.join(here, 'pykeops','pykeops.md'), encoding='utf-8') as f:
-     long_description = f.read()
+  long_description = f.read()
+
+def import_files(dirname):
+  return [path.join(dirname, f) for f in os.listdir(dirname) if any(f.endswith(ext) for ext in ['h', 'hpp'])]
+
 
 # List file from Pybind11 sources
 pybind11_files = [
@@ -45,35 +50,7 @@ pybind11_files = [
     'pybind11/tools/pybind11Config.cmake.in',
 ]
 
-tao_seq_files = [
-    'keops/lib/sequences/include/tao/seq/',
-    'keops/lib/sequences/include/tao/seq/fold.hpp',
-    'keops/lib/sequences/include/tao/seq/max.hpp',
-    'keops/lib/sequences/include/tao/seq/index_of.hpp',
-    'keops/lib/sequences/include/tao/seq/min.hpp',
-    'keops/lib/sequences/include/tao/seq/make_integer_sequence.hpp',
-    'keops/lib/sequences/include/tao/seq/integer_sequence.hpp',
-    'keops/lib/sequences/include/tao/seq/contains.hpp',
-    'keops/lib/sequences/include/tao/seq/concatenate.hpp',
-    'keops/lib/sequences/include/tao/seq/is_any.hpp',
-    'keops/lib/sequences/include/tao/seq/plus.hpp',
-    'keops/lib/sequences/include/tao/seq/tail.hpp',
-    'keops/lib/sequences/include/tao/seq/scale.hpp',
-    'keops/lib/sequences/include/tao/seq/map.hpp',
-    'keops/lib/sequences/include/tao/seq/make_integer_range.hpp',
-    'keops/lib/sequences/include/tao/seq/config.hpp',
-    'keops/lib/sequences/include/tao/seq/select.hpp',
-    'keops/lib/sequences/include/tao/seq/exclusive_scan.hpp',
-    'keops/lib/sequences/include/tao/seq/at_index.hpp',
-    'keops/lib/sequences/include/tao/seq/zip.hpp',
-    'keops/lib/sequences/include/tao/seq/partial_sum.hpp',
-    'keops/lib/sequences/include/tao/seq/inclusive_scan.hpp',
-    'keops/lib/sequences/include/tao/seq/minus.hpp',
-    'keops/lib/sequences/include/tao/seq/sequence_helper.hpp',
-    'keops/lib/sequences/include/tao/seq/head.hpp',
-    'keops/lib/sequences/include/tao/seq/sum.hpp',
-    'keops/lib/sequences/include/tao/seq/is_all.hpp',
-]
+tao_seq_files = import_files('keops/lib/sequences/include/tao/seq/')
 
 setup(
     name='pykeops',
@@ -138,17 +115,16 @@ setup(
             'common/keops_io.h',
             'keops/formula.h.in',
             'keops/cuda.cmake',
-            'keops/headers.cmake',
-            'keops/core/autodiff/Zero.h',
-            'keops/core/autodiff/Var.h',
-            'keops/core/autodiff/UnaryOp.h',
-            'keops/core/autodiff/BinaryOp.h',
-            'keops/core/autodiff/Elem.h',
-            'keops/core/autodiff/ElemT.h',
-            'keops/core/autodiff/Extract.h',
-            'keops/core/autodiff/ExtractT.h',
-            'keops/core/autodiff/Grad.h',
-            'keops/core/autodiff/CountIn.h',
+            'keops/headers.cmake'] +
+            import_files('keops/core/autodiff/') +
+            import_files('keops/core/pack/') +
+            import_files('keops/core/formulas/') +
+            import_files('keops/core/formulas/constants/') +
+            import_files('keops/core/formulas/kernels') +
+            import_files('keops/core/formulas/maths/') +
+            import_files('keops/core/formulas/norms/') +
+            import_files('keops/core/reductions') +
+            [
             'keops/core/broadcast_batch_dimensions.h',
             'keops/core/CpuConv.cpp',
             'keops/core/CpuConv_ranges.cpp',
@@ -158,38 +134,7 @@ setup(
             'keops/core/GpuConv2D.cu',
             'keops/core/link_autodiff.cpp',
             'keops/core/link_autodiff.cu',
-            'keops/core/Pack/CheckAllDistinct.h',
-            'keops/core/Pack/ConcatPack.h',
-            'keops/core/Pack/CondType.h',
-            'keops/core/Pack/CountInPack.h',
-            'keops/core/Pack/GetDims.h',
-            'keops/core/Pack/Get.h',
-            'keops/core/Pack/GetInds.h',
-            'keops/core/Pack/IndVal.h',
-            'keops/core/Pack/IsSame.h',
-            'keops/core/Pack/IterReplace.h',
-            'keops/core/Pack/Pack.h',
-            'keops/core/Pack/MergePacks.h',
-            'keops/core/Pack/PackVal.h',
-            'keops/core/Pack/RemoveFromPack.h',
-            'keops/core/Pack/ReplaceInPack.h',
-            'keops/core/Pack/UnivPack.h',
-            'keops/core/Pack/Val.h',
-            'keops/core/Pack/ZeroPack.h',
             'keops/core/PrintFormula.h',
-            'keops/core/formulas/constants.h',
-            'keops/core/formulas/factorize.h',
-            'keops/core/formulas/maths.h',
-            'keops/core/formulas/newsyntax.h',
-            'keops/core/formulas/norms.h',
-            'keops/core/formulas/tensordot.h',
-            'keops/core/Reductions/kmin.h',
-            'keops/core/Reductions/max_sumshiftexp.h',
-            'keops/core/Reductions/min.h',
-            'keops/core/Reductions/max.h',
-            'keops/core/Reductions/reduction.h',
-            'keops/core/Reductions/sum.h',
-            'keops/core/Reductions/zero.h',
             'keops/specific/CMakeLists.txt',
             'keops/specific/radial_kernels/cuda_conv.cu',
             'keops/specific/radial_kernels/cuda_conv.cx',

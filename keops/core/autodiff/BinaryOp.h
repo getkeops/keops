@@ -2,10 +2,10 @@
 
 #include <sstream>
 
-#include "core/Pack/CondType.h"
-#include "core/Pack/UnivPack.h"
-#include "core/Pack/MergePacks.h"
-#include "core/Pack/IndVal.h"
+#include "core/pack/CondType.h"
+#include "core/pack/UnivPack.h"
+#include "core/pack/MergePacks.h"
+#include "core/pack/IndVal.h"
 #include "core/autodiff/Var.h"
 
 namespace keops {

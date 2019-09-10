@@ -3,9 +3,9 @@
 #include <assert.h>
 #include <cuda.h>
 
-#include "core/Pack/Pack.h"
-#include "core/Pack/GetInds.h"
-#include "core/Pack/GetDims.h"
+#include "core/pack/Pack.h"
+#include "core/pack/GetInds.h"
+#include "core/pack/GetDims.h"
 #include "core/broadcast_batch_dimensions.h"
 
 namespace keops {

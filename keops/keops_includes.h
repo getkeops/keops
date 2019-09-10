@@ -47,11 +47,11 @@
 #include "core/formulas/norms/WeightedSqNorm.h"
 
 // import all reductions
-#include "core/Reductions/Sum_Reduction.h"
-#include "core/Reductions/max_sumshiftexp.h"
-#include "core/Reductions/min.h"
-#include "core/Reductions/max.h"
-#include "core/Reductions/kmin.h"
+#include "core/reductions/Sum_Reduction.h"
+#include "core/reductions/max_sumshiftexp.h"
+#include "core/reductions/min.h"
+#include "core/reductions/max.h"
+#include "core/reductions/kmin.h"
 
 // import all Kernels
 #include "core/formulas/kernels/CauchyKernel.h"

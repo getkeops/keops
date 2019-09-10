@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Pack/CondType.h"
+#include "core/pack/CondType.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Mult.h"
 

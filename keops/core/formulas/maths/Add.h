@@ -3,7 +3,7 @@
 #include <sstream>
 #include <assert.h>
 
-#include "core/Pack/CondType.h"
+#include "core/pack/CondType.h"
 #include "core/autodiff/BinaryOp.h"
 #include "core/formulas/constants/Zero.h"
 #include "core/formulas/constants/IntConst.h"

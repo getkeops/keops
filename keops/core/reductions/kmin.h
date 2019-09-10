@@ -2,8 +2,8 @@
 
 #include <sstream>
 
-#include "core/Reductions/reduction.h"
-#include "core/Reductions/Zero_Reduction.h"
+#include "core/reductions/reduction.h"
+#include "core/reductions/Zero_Reduction.h"
 #include "core/pre_headers.h"
 
 namespace keops {

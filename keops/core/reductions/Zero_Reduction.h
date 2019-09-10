@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/Reductions/reduction.h"
+#include "core/reductions/reduction.h"
 #include "core/formulas/constants/Zero.h"
 
 namespace keops {
