@@ -3,8 +3,8 @@
 #include <sstream>
 
 #include "core/autodiff/UnaryOp.h"
-#include "core/formulas/reductions/reduction.h"
-#include "core/formulas/reductions/Zero_Reduction.h"
+#include "core/Reductions/reduction.h"
+#include "core/Reductions/Zero_Reduction.h"
 #include "core/pre_headers.h"
 
 namespace keops {

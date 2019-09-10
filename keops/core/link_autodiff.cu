@@ -1,4 +1,4 @@
-#include "core/formulas/reductions/reduction.h"
+#include "core/Reductions/reduction.h"
 
 
 using namespace keops;
