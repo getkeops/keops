@@ -3,17 +3,18 @@
 #include <sstream>
 #include <assert.h>
 
-#include "core/autodiff/ExtractT.h"
+#include "core/autodiff/UnaryOp.h"
+#include "core/formulas/maths/ExtractT.h"
 #include "core/pre_headers.h"
 
 namespace keops {
 
+template< class F, int START, int DIM_ >
+struct ExtractT;
+
 //////////////////////////////////////////////////////////////
 ////     VECTOR EXTRACTION : Extract<F,START,DIM>         ////
 //////////////////////////////////////////////////////////////
-
-template< class F, int START, int DIM_ >
-struct ExtractT;
 
 template< class F, int START, int DIM_ >
 struct Extract : UnaryOp< Extract, F, START, DIM_ > {

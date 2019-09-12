@@ -36,5 +36,6 @@ struct Zero {
   using DiffT = Zero<V::DIM>;
 };
 
+#define Zero(D) KeopsNS<Zero<D>>()
 
 }

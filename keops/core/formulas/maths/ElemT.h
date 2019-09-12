@@ -3,7 +3,8 @@
 #include <sstream>
 #include <assert.h>
 
-#include "core/autodiff/Elem.h"
+#include "core/autodiff/UnaryOp.h"
+#include "core/formulas/maths/Elem.h"
 #include "core/pre_headers.h"
 
 namespace keops {

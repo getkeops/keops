@@ -3,17 +3,18 @@
 #include <sstream>
 #include <assert.h>
 
-#include "core/autodiff/ElemT.h"
+#include "core/autodiff/UnaryOp.h"
+#include "core/formulas/maths/ElemT.h"
 #include "core/pre_headers.h"
 
 namespace keops {
 
+template< class F, int N, int M >
+struct ElemT;
+
 //////////////////////////////////////////////////////////////
 ////     ELEMENT EXTRACTION : Elem<F,M>                   ////
 //////////////////////////////////////////////////////////////
-
-template< class F, int N, int M >
-struct ElemT;
 
 template< class F, int M >
 struct Elem : UnaryOp< Elem, F, M > {

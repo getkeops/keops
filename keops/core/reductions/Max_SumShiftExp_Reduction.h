@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/autodiff/Extract.h"
+#include "core/formulas/maths/Extract.h"
 #include "core/reductions/Reduction.h"
 #include "core/reductions/Sum_Reduction.h"
 #include "core/formulas/maths/Concat.h"

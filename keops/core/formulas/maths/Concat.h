@@ -2,7 +2,7 @@
 
 #include <sstream>
 #include "core/autodiff/BinaryOp.h"
-#include "core/autodiff/Extract.h"
+#include "core/formulas/maths/Extract.h"
 #include "core/formulas/maths/Add.h"
 #include "core/pre_headers.h"
 

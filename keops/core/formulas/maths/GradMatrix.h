@@ -4,7 +4,7 @@
 #include "core/pack/GetInds.h"
 #include "core/pack/IterReplace.h"
 #include "core/autodiff/Grad.h"
-#include "core/autodiff/ElemT.h"
+#include "core/formulas/maths/ElemT.h"
 #include "core/formulas/maths/Concat.h"
 #include "core/formulas/constants/IntConst.h"
 #include "core/pre_headers.h"
