@@ -120,7 +120,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                     genconv = GenredAutograd().apply
 
                     if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
-                        # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/reductions
+                        # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/formulas/reductions
                         # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
                         grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
                         # Then, sum 'grad' wrt 'i' :

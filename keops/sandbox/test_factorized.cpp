@@ -13,14 +13,13 @@
 #include <algorithm>
 #include <iostream>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms.h"
-#include "core/formulas/factorize.h"
+#include "core/formulas/kernels/GaussKernel.h"
+#include "core/formulas/Factorize.h"
 
-#include "core/CpuConv.cpp"
-#include "core/reductions/sum.h"
+
+#include "core/mapreduce/CpuConv.cpp"
+#include "core/reductions/Sum_Reduction.h"
+#include "core/formulas/PrintFormula.h"
 
 using namespace keops;
 

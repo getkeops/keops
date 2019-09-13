@@ -1,18 +1,3 @@
-
-# ----------------- test link
-#if (USE_CUDA)
-
-    #CUDA_add_executable(
-        #test_link_conv
-        #${CMAKE_CURRENT_SOURCE_DIR}/test_link.cu
-        #OPTIONS --pre-include=formula.h
-    #)
-
-    #target_link_libraries(
-        #test_link_conv
-        #keops
-    #)
-#endif()
 add_executable(
         test_tensordot_formula_cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_formula.cpp
@@ -58,6 +43,11 @@ if (USE_CUDA)
     CUDA_add_executable(
         test_fromdevice
         ${CMAKE_CURRENT_SOURCE_DIR}/test_fromdevice.cu
+    )
+
+    CUDA_add_executable(
+        test_reductions
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_reductions.cu
     )
 
 endif()

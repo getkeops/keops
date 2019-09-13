@@ -1,5 +1,0 @@
-#!/bin/bash
-
-type=${4:-float}
-#(cat core/link_autodiff_a.cu; printf "$2" ; printf "\n#define FORMULA $1\n" ; cat core/link_autodiff_b.cu)
-(cat core/link_autodiff_a.cu; printf "$2" ; printf "\n#define FORMULA $1\n" ; cat core/link_autodiff_b.cu) | nvcc -O2 -x cu -D_FORCE_INLINES -D __TYPE__=$type -std=c++11 -Xcompiler -fPIC -shared -o /dev/stdout -I $PWD - > "build/$3"

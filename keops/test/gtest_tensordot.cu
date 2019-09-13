@@ -2,9 +2,9 @@
 #include <assert.h>
 #include <algorithm>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <keops_includes.h>
+#include "keops_includes.h"
 
 using namespace keops;
 

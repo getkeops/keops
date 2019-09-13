@@ -14,15 +14,14 @@
 
 #include <cuda.h>
 
-#include "core/formulas/constants.h"
-#include "core/formulas/maths.h"
-#include "core/formulas/kernels.h"
-#include "core/formulas/norms.h"
-#include "core/formulas/factorize.h"
+#include "core/reductions/Sum_Reduction.h"
+#include "core/formulas/kernels/GaussKernel.h"
+#include "core/formulas/Factorize.h"
+#include "core/formulas/PrintFormula.h"
 
-#include "core/GpuConv1D.cu"
-#include "core/GpuConv2D.cu"
-#include "core/reductions/sum.h"
+#include "core/mapreduce/GpuConv1D.cu"
+#include "core/mapreduce/GpuConv2D.cu"
+
 
 using namespace keops;
 

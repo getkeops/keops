@@ -1,2 +1,0 @@
-nvcc -v -D__TYPE__=float -std=c++11 -Xcompiler -fPIC -shared -o build/simple_autodiff.so ./sandbox/simple_autodiff.cu
-

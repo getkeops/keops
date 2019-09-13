@@ -10,10 +10,10 @@
 #define FORMULA_OBJ_STR "@FORMULA_OBJ@"
 #define VAR_ALIASES_STR "@VAR_ALIASES@"
 
+#include <keops_includes.h>
+
 #cmakedefine USENEWSYNTAX @USENEWSYNTAX@
 #ifdef USENEWSYNTAX
-
-    #include "core/formulas/newsyntax.h"
 
 namespace keops {
     @VAR_ALIASES@
@@ -22,12 +22,6 @@ namespace keops {
 }
 
 #else
-
-    #include "core/formulas/constants.h"
-    #include "core/formulas/maths.h"
-    #include "core/formulas/kernels.h"
-    #include "core/formulas/norms.h"
-    #include "core/formulas/factorize.h"
     
 namespace keops {
     #cmakedefine FORMULA @FORMULA@
