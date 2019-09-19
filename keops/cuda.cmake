@@ -8,8 +8,11 @@
 find_package(CUDA QUIET)
 
 # set USE_CUDA to CUDA_FOUND, unless USE_CUDA value is enforced
-if(NOT DEFINED USE_CUDA)
-    Set(USE_CUDA ${CUDA_FOUND})
+ 
+if(NOT DEFINED ENV{USE_CUDA})
+  Set(USE_CUDA ${CUDA_FOUND})
+else()
+  Set(USE_CUDA $ENV{USE_CUDA})
 endif()
 
 # second : we detect Gpu properties with a home-made script
