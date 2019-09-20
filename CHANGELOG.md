@@ -1,3 +1,7 @@
+* v1.2
+    - Add TensorDot operation
+    - Refactor Cpp codes
+
 * v1.1.2
     - Fix bug in batch computations
     - Add to wheel pykeops package licence file
