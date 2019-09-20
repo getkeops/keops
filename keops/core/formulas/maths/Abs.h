@@ -26,7 +26,7 @@ struct Abs : UnaryOp<Abs, F> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++){
-#ifdef __NVCC__
+#ifdef __CUDA_ARCH__
 #if USE_DOUBLE
         out[k] = fabs(outF[k]);
 #else
