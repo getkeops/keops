@@ -1,11 +1,11 @@
 .. figure:: ../_static/logo/keops++_logo.png
    :width: 100%
-   :alt: Keops++ logo
+   :alt: KeOps++ logo
 
 .. _`part.cppapi`:
 
 =================
-C++ API for Keops
+C++ API for KeOps
 =================
 
 This section documents the use of the KeOps library in C++ codes. We provide some examples in the `./keops/examples/ <https://github.com/getkeops/keops/tree/master/keops/examples>`_ directory.

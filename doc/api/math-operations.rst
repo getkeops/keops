@@ -49,8 +49,8 @@ For instance, ``Vi(2,4)`` specifies a variable indexed by :math:`i`, given as th
 
 .. _`part.reservedWord`:
 
-Reseved words
-=============
+Reserved words
+===============
 
 =========  ============================================================
  keyword    meaning

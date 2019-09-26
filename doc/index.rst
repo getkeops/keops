@@ -124,7 +124,16 @@ Table of content
 
 .. toctree::
    :maxdepth: 2
-   :caption: Keops++
+   :caption: KeOps++
 
    cpp/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: How does it work?
+
+   autodiff_gpus/index
+   engine/index
+   formulas/index
+   conclusion/conclusion
 
