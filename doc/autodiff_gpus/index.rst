@@ -4,7 +4,17 @@
 Autodiff and GPUs
 =================
 
-Blabla
+Before presenting the inner workings
+of KeOps, we **recap briefly the main rules
+of GPU programming and automatic differentiation**.
+This short introduction will, hopefully,
+allow readers to understand the
+capabilities and limitations of these (remarkable) tools.
+
+Note that this section is extracted
+from the Chapter 2.1 of Jean Feydy's PhD thesis,
+to be available soon.
+
 
 .. toctree::
    :maxdepth: 2
