@@ -2,7 +2,7 @@ High-level frameworks
 =================================
 
 To provide a transparent interface for the backpropagation algorithm,
-Deep Learning libraries rely on three core modules:
+deep learning libraries rely on three core modules:
 
 #. **A comprehensive list of operations**, with
    forward and backward routines implemented *next to each other*.
@@ -101,7 +101,7 @@ In the picture above, we displayed the :mod:`H.grad_fn` attribute of
 our kernel norm using the `GraphViz Dot program <http://www.graphviz.org/>`_. 
 This acyclic graph is the exact
 equivalent of the second “backward” line of the backpropagation
-diagram that we presented page :
+diagram that we presented in the previous section:
 
   -  **White nodes** stand for backward operators
      :math:`\partial_x F_{i+1} : (x_i,x_{i+1}^*) \mapsto x_i^*`.

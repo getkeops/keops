@@ -316,10 +316,10 @@ In practice, the *backwards* of usual operations are seldom more costly
 than 4-5 applications of the corresponding *forward* operators:
 differentiating a polynomial gives us a polynomial, logarithms become
 pointwise inversions, etc. Ergo, if one has enough memory at hand to
-store the intermediate results :math:`x_0`, …, :math:`x_{p-1}` during
+store the intermediate results :math:`x_0, \dots, x_{p-1}` during
 the forward pass, **the backpropagation algorithm is an automatic and
 time-effective way of computing the gradients** of generic scalar-valued
 functions, with **runtimes that do not exceed that of four or five
 applications of the forward program**. This statement may come as a
-shock to first-time users of Deep Learning frameworks; but as we are
+shock to first-time users of deep learning frameworks; but as we are
 about to see, it is both *true* and *effective*.

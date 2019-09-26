@@ -4,7 +4,16 @@
 Efficient CUDA schemes
 ========================
 
-Blabla
+
+We now explain the principles behind
+the **tiled Map-Reduce CUDA schemes** 
+that lie at the heart
+of the KeOps engine.
+
+Note that this section is extracted
+from the Chapter 2.2 of Jean Feydy's PhD thesis,
+to be available soon.
+
 
 .. toctree::
    :maxdepth: 2
