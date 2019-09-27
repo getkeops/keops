@@ -1,4 +1,6 @@
 import subprocess
+import os
+import locale
 
 from pykeops import bin_folder, script_folder, verbose, build_type
 from pykeops.common.parse_type import check_aliases_list
@@ -15,12 +17,12 @@ def run_and_display(args, build_folder, msg=''):
     try:
         proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
         if verbose:
-            print(proc.stdout.decode('utf-8'))
+            print(proc.stdout.decode(locale.getpreferredencoding()))
 
     except subprocess.CalledProcessError as e:
         print('\n--------------------- ' + msg + ' DEBUG -----------------')
         print(e)
-        print(e.stdout.decode('utf-8'))
+        print(e.stdout.decode('utf-8' if os.name != "nt" else 'cp850'))
         print('--------------------- ----------- -----------------')
 
 
@@ -44,6 +46,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
         end='', flush=True)
 
     command_line = ['cmake', script_folder,
+                     '-GNinja' if os.name == "nt" else '',
                      '-DCMAKE_BUILD_TYPE=' + build_type,
                      '-DFORMULA_OBJ=' + formula,
                      '-DVAR_ALIASES=' + alias_string,
@@ -51,12 +54,13 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                      '-D__TYPE__=' + c_type[dtype],
                      '-DPYTHON_LANG=' + lang,
                      '-DC_CONTIGUOUS=1',
+                     '-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON'
                     ] + optional_flags
-    run_and_display(command_line + ['-DcommandLine=' + ' '.join(command_line)],
+    run_and_display(command_line + (['-DcommandLine=\"' + ' '.join(command_line) + '\"'] if (os.name != "nt") else []),
                     build_folder,
                     msg='CMAKE')
 
-    run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
+    run_and_display(['cmake', '--build', '.', '--target', dllname], build_folder, msg='MAKE')
 
     print('Done.')
 

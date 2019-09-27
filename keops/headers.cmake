@@ -6,18 +6,31 @@ set(CMAKE_CXX_STANDARD 14)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ferror-limit=2")
-else()
+elseif(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -fmax-errors=2")
 endif()
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_RELEASE} -wd4068 /EHsc")
+else()
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
+endif()
 
 if(APPLE)
   set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
   set(CMAKE_MACOSX_RPATH TRUE)
 endif(APPLE)
 
+if(MSVC)
+    set(IncludePrefix /FI)
+else()
+    set(IncludePrefix -include)
+endif()
+
+if(WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 1)
+endif()
 
 #------------------------------------------------------------------------------------#
 #----------------------------------- KeOps OPTS -------------------------------------#

@@ -1,4 +1,4 @@
-import fcntl
+import portalocker
 import functools
 import importlib.util
 import os
@@ -56,16 +56,16 @@ def cat2axis(cat):
 
 
 class FileLock:
-    def __init__(self, fd, op=fcntl.LOCK_EX):
+    def __init__(self, fd, op=portalocker.LOCK_EX):
         self.fd = fd
         self.op = op
 
     def __enter__(self):
-        fcntl.flock(self.fd, self.op)
+        portalocker.lock(self.fd, self.op)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        fcntl.flock(self.fd, fcntl.LOCK_UN)
+        portalocker.unlock(self.fd)
 
 
 def create_and_lock_build_folder():

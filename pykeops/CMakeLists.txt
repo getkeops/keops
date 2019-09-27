@@ -87,7 +87,7 @@ else()
 
     target_compile_options(
         keops${shared_obj_name} BEFORE
-        PRIVATE -include ${shared_obj_name}.h
+        PRIVATE ${IncludePrefix} ${shared_obj_name}.h
     )
 
     # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
@@ -123,13 +123,13 @@ if(${PYTHON_LANG} STREQUAL "torch")
 
     target_compile_options(
             ${shared_obj_name} BEFORE
-            PRIVATE -include torch_headers.h
+            PRIVATE ${IncludePrefix} torch_headers.h
     )
 else() # assuming numpy
 
     target_compile_options(
             ${shared_obj_name} BEFORE
-            PRIVATE -include ${shared_obj_name}.h
+            PRIVATE ${IncludePrefix} ${shared_obj_name}.h
     )
 
 endif()
@@ -137,7 +137,7 @@ endif()
 # Ensure the shared lib look for the other .so in its own dir.
 if(APPLE)
     set_target_properties(${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
-else()
+elsif(NOT MSVC)
     set_target_properties(${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
 endif()
 
@@ -194,7 +194,7 @@ if (USE_CUDA)
 
     target_compile_options(
         radial_kernel_conv BEFORE
-        PRIVATE  -include ${shared_obj_name}.h
+        PRIVATE ${IncludePrefix} ${shared_obj_name}.h
     )
 
     target_link_libraries(
@@ -234,7 +234,7 @@ if (USE_CUDA)
 
     target_compile_options(
         radial_kernel_grad1conv BEFORE
-        PRIVATE  -include ${shared_obj_name}.h
+        PRIVATE ${IncludePrefix} ${shared_obj_name}.h
     )
 
     target_link_libraries(
@@ -325,7 +325,7 @@ if (USE_CUDA)
 
         target_compile_options(
             ${fshape_scp_name} BEFORE
-            PRIVATE  -include ${shared_obj_name}.h
+            PRIVATE ${IncludePrefix} ${shared_obj_name}.h
         )
 
         target_link_libraries(
