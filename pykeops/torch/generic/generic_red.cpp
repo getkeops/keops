@@ -8,7 +8,7 @@
 namespace keops_binders {
 
 /////////////////////////////////////////////////////////////////////////////////
-//                             Utils
+//                  Template specialization (aTen Tensors)                     //
 /////////////////////////////////////////////////////////////////////////////////
 
 //Specialization of functions in keops/binders/checks.h
@@ -26,11 +26,6 @@ int get_size(at::Tensor obj_ptri, int l) {
 template <>
 __TYPE__ *get_data(at::Tensor obj_ptri) {
   return obj_ptri.data< __TYPE__ >();
-}
-
-template <>
-__INDEX__ *get_rangedata(at::Tensor obj_ptri) {
-  return obj_ptri.data< __INDEX__ >();
 }
 
 template <>
@@ -68,8 +63,14 @@ at::Tensor allocate_result_array_gpu(int* shape_out, int nbatchdims) {
 }
 #endif
 
+template <>
+__INDEX__ *get_rangedata(at::Tensor obj_ptri) {
+  return obj_ptri.data< __INDEX__ >();
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////
-//                    PyBind11 entry point
+//                    PyBind11 entry point                                     //
 /////////////////////////////////////////////////////////////////////////////////
 
 
@@ -79,19 +80,14 @@ at::Tensor allocate_result_array_gpu(int* shape_out, int nbatchdims) {
 #define xstr(s) str(s)
 #define str(s) #s
 
-PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m
-) {
-m.
-doc() = "keops for pytorch through pybind11"; // optional module docstring
+PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
+m.doc() = "keops for pytorch through pybind11"; // optional module docstring
 
 m.def("genred_pytorch", &generic_red <at::Tensor, at::Tensor>, "Entry point to keops - pytorch version.");
 
-m.attr("tagIJ") =
-TAGIJ;
-m.attr("dimout") =
-DIMOUT;
-m.attr("formula") =
-f;
+m.attr("tagIJ") = TAGIJ;
+m.attr("dimout") = DIMOUT;
+m.attr("formula") = f;
 m.attr("compiled_formula") = xstr(FORMULA_OBJ_STR);
 m.attr("compiled_aliases") = xstr(VAR_ALIASES_STR);
 }

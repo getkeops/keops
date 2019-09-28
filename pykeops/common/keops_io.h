@@ -12,9 +12,12 @@
 
 namespace keops_binders {
 
+void keops_error(std::basic_string< char > msg) {
+  throw std::runtime_error(msg);
+}
+
 using namespace keops;
 namespace py = pybind11;
-
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    Main function
@@ -36,7 +39,7 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   // Check that we have enough arguments:
   size_t nargs = py_args.size();
   if (nargs < NARGS) {
-    throw std::runtime_error(
+    keops_error(
         "[KeOps] Wrong number of args : is " + std::to_string(py_args.size())
             + " but should be at least " + std::to_string(NARGS)
             + " in " + f
@@ -187,7 +190,7 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   array_t result = launch_keops< array_t >(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
                                            nx, ny,
                                            nbatchdims, shapes, shape_output,
-                                           tagRanges, nranges_x, nranges_y, castedranges,
+                            tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges,
                                            castedargs);
 
 
