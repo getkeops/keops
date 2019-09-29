@@ -197,6 +197,7 @@ advantages over the simple notion of “vector of partial derivatives”:
    `usually has a strong impact <https://www.mitpressjournals.org/doi/abs/10.1162/089976698300017746>`_ 
    on 
    `Machine Learning pipelines <https://dmitryulyanov.github.io/deep_image_prior>`_.
+   |br|
 
 #. It allows us to *compose* gradients without reserve. Indeed, if
    :math:`X`, :math:`Y`, :math:`Z` are three Hilbert spaces and if
@@ -295,6 +296,7 @@ to the two lines of the diagram above:
    memory** the successive vectors :math:`x_i \in \mathbb{R}^{N_i}`. The last
    one, :math:`x_p \in \mathbb{R}`, is equal to the value of the objective
    :math:`F(x_0)`.
+   |br|
 
 #. Starting from the canonical value of :math:`x_p^* = 1 \in \mathbb{R}`,
    compute the successive **dual vectors**:
@@ -323,3 +325,10 @@ functions, with **runtimes that do not exceed that of four or five
 applications of the forward program**. This statement may come as a
 shock to first-time users of deep learning frameworks; but as we are
 about to see, it is both *true* and *effective*.
+
+
+.. |br| raw:: html
+
+  <br/><br/>
+
+

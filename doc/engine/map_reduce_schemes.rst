@@ -106,7 +106,6 @@ blocks as follows:
 
 
    #. Once again, the thread **synchronizes** with the other workers.
-      |br|
 
 
 #. Once this large outer loop has been completed, the buffer :math:`a`
@@ -155,7 +154,7 @@ Performances
 As most efficient CUDA programs, the algorithm presented above is pretty
 verbose: a full page of tedious memory transfers surrounds what is, at
 heart, a good old **“for-for” loop**. Crucially though, our efforts pay
-off: as evidenced by our benchmarks, 
+off: as evidenced by our :doc:`benchmarks <../_auto_benchmarks/plot_benchmarks_convolutions_3D>`, 
 KeOps typically provides a
 **x30/x10,000 speed-up** when compared with tensorized
 PyTorch-GPU/NumPy-CPU implementations of the same kernel dot
@@ -172,7 +171,7 @@ consumes the relevant values of
 :math:`F(p^1,\dots, x^1_i, \dots, y^1_j, \dots)` on-the-spot, in the
 registers of the CUDA cores.
 
-Note that **this level of performance could *not* have been achieved with
+Note that **this level of performance could not have been achieved with
 high-level Python code**: PyTorch and TensorFlow variables always refer
 to arrays that are stored in the **Device memory**. Writing C++
 CUDA programs is the only way of getting an explicit access to the
@@ -198,8 +197,8 @@ lines” :math:`\mathrm{M}` is much smaller than the size of the “reduction ra
 :math:`\mathrm{N}`, KeOps also implements a **2D Map-Reduce scheme** in the
 `GpuConv2D.cu <https://github.com/getkeops/keops/blob/master/keops/core/mapreduce/GpuConv2D.cu>`_ 
 CUDA file. Assigning the
-:math:`\mathrm{K}`-by-:math:`\mathrm{K}` *tiles* of
-the computation plan one-by-one to the CUDA blocks – instead of
+:math:`\mathrm{K}`-by-:math:`\mathrm{K}` tiles of
+the computation plan **one-by-one to the CUDA blocks** – instead of
 using a line-wise grouping method – this algorithm requires the
 allocation of intermediate buffers but makes sure that no block stays
 idle during the computation.
