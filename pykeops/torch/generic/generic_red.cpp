@@ -58,7 +58,7 @@ at::Tensor allocate_result_array_gpu(int* shape_out, int nbatchdims) {
   std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
   c10::ArrayRef < int64_t > shape_out_array(shape_out_long, (int64_t) nbatchdims + 2);
 
-  return torch::empty(shape_out_array, at::device(at::kGPU).dtype(AT_TYPE).requires_grad(true));
+  return torch::empty(shape_out_array, at::device(at::kCUDA).dtype(AT_TYPE).requires_grad(true));
 
 }
 #endif
