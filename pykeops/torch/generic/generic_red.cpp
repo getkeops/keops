@@ -2,8 +2,9 @@
 // #include <torch/extension.h>
 // #include <pybind11/pybind11.h>
 
-#include "common/keops_io.h"
 #include "binders/checks.h"
+#include "common/keops_io.h"
+
 
 namespace keops_binders {
 
@@ -57,7 +58,7 @@ at::Tensor allocate_result_array_gpu(int* shape_out, int nbatchdims) {
   int64_t shape_out_long[nbatchdims + 2];
   std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
   c10::ArrayRef < int64_t > shape_out_array(shape_out_long, (int64_t) nbatchdims + 2);
-
+  // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
   return torch::empty(shape_out_array, at::device(at::kGPU).dtype(AT_TYPE).requires_grad(true));
 
 }
@@ -74,22 +75,16 @@ __INDEX__ *get_rangedata(at::Tensor obj_ptri) {
 /////////////////////////////////////////////////////////////////////////////////
 
 
-// the following macro force the compiler to change MODULE_NAME to its value
-#define VALUE_OF(x) x
-
-#define xstr(s) str(s)
-#define str(s) #s
-
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
-m.doc() = "keops for pytorch through pybind11"; // optional module docstring
+m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
 
 m.def("genred_pytorch", &generic_red <at::Tensor, at::Tensor>, "Entry point to keops - pytorch version.");
 
-m.attr("tagIJ") = TAGIJ;
-m.attr("dimout") = DIMOUT;
-m.attr("formula") = f;
-m.attr("compiled_formula") = xstr(FORMULA_OBJ_STR);
-m.attr("compiled_aliases") = xstr(VAR_ALIASES_STR);
+m.attr("tagIJ") = keops::TAGIJ;
+m.attr("dimout") = keops::DIMOUT;
+m.attr("formula") = keops::f;
+m.attr("compiled_formula") = xstr(keops::FORMULA_OBJ_STR);
+m.attr("compiled_aliases") = xstr(keops::VAR_ALIASES_STR);
 }
 
 }

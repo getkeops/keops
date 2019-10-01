@@ -28,23 +28,17 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
                     int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
                     int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means _fromHost suffix
                     int Device_Id,        // id of GPU device
-                    py::tuple ranges,     // () if no "sparsity" ranges are given (default behavior)
+                    py::tuple ranges={},  // () if no "sparsity" ranges are given (default behavior)
                                           // Otherwise, ranges is a 6-uple of (integer) array_t
                                           // ranges = (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
                                           // as documented in the doc on sparstiy and clustering.
-                    py::tuple categories,
-                    py::tuple dimensions,
-                    py::args py_args) {
+                    py::tuple categories={},
+                    py::tuple dimensions={},
+                    py::args py_args={}) {
 
   // Check that we have enough arguments:
   size_t nargs = py_args.size();
-  if (nargs < NARGS) {
-    keops_error(
-        "[KeOps] Wrong number of args : is " + std::to_string(py_args.size())
-            + " but should be at least " + std::to_string(NARGS)
-            + " in " + f
-    );
-  }
+  check_narg(nargs);
 
   check_tag(tag1D2D, "1D2D");
   check_tag(tagCpuGpu, "CpuGpu");
@@ -79,7 +73,7 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   }
 
   // Check the aguments' dimensions, and retrieve all the shape information:
-  std::tuple< int, int, int, int * > nx_ny_nbatch_shapes = check_ranges< array_t >(nargs, cats, dims, obj_ptr);
+  std::tuple< int, int, int, int* > nx_ny_nbatch_shapes = check_ranges< array_t >(nargs, cats, dims, obj_ptr);
   int nx = std::get< 0 >(nx_ny_nbatch_shapes), ny = std::get< 1 >(nx_ny_nbatch_shapes);
   int nbatchdims = std::get< 2 >(nx_ny_nbatch_shapes);
   int *shapes = std::get< 3 >(nx_ny_nbatch_shapes);
@@ -98,11 +92,7 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   if (nbatchdims == 0) {  // Standard M-by-N computation
     if (ranges.size() == 0) {
       tagRanges = 0;
-      nranges_x = 0;
-      nranges_y = 0;
-      nredranges_x = 0;
-      nredranges_y = 0;
-      castedranges = new __INDEX__ *[1];
+
     } else if (ranges.size() == 6) {
       // Cast the six integer arrays
       for (size_t i = 0; i < ranges.size(); i++)
@@ -125,6 +115,9 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
           "but is of size " + std::to_string(ranges.size()) + "."
       );
     }
+
+
+
   } else if (ranges.size() == 0) {
     // Batch processing: we'll have to generate a custom, block-diagonal sparsity pattern
     tagRanges = 1;  // Batch processing is emulated through the block-sparse mode
@@ -172,7 +165,7 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
     );
   }
 
-
+/*
   // Store, in a raw int array, the shape of the output: =====================
   // [A, .., B, M, D]  if TAGIJ==0
   //  or
@@ -184,15 +177,27 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   }
   shape_output[nbatchdims] = shapes[nbatchdims + TAGIJ];      // M or N
   shape_output[nbatchdims + 1] = shapes[nbatchdims + 2];      // D
+*/
 
+  int* shape_output = get_output_shape(shapes, nbatchdims);
 
   // Call Cuda codes =========================================================
-  array_t result = launch_keops< array_t >(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
-                                           nx, ny,
-                                           nbatchdims, shapes, shape_output,
-                            tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges,
-                                           castedargs);
-
+  array_t result;
+  if (tagRanges == 1) {
+    result = launch_keops_ranges< array_t >(tag1D2D, tagCpuGpu, tagHostDevice,
+                                            Device_Id_s,
+                                            nx, ny,
+                                            nbatchdims, shapes, shape_output,
+                                            nranges_x, nranges_y,
+                                            nredranges_x, nredranges_y,
+                                            castedranges,
+                                            castedargs);
+  } else {
+    result = launch_keops< array_t >(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
+                                     nx, ny,
+                                     shape_output,
+                                     castedargs);
+  }
 
   // Free the allocated memory, return our output array ======================
   if (nbatchdims != 0) {
@@ -202,7 +207,8 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   }
 
   delete[] castedargs;
-  delete[] castedranges;
+  if (tagRanges)
+     delete[] castedranges;
   delete[] shapes;
   delete[] shape_output;
 
