@@ -54,6 +54,7 @@
 #include "core/reductions/Min_Reduction.h"
 #include "core/reductions/Max_Reduction.h"
 #include "core/reductions/KMin_Reduction.h"
+#include "core/reductions/Scattered_Sum_Reduction.h"
 
 
 // import all Kernels

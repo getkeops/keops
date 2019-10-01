@@ -1298,6 +1298,18 @@ class LazyTensor:
         """
         return self.reduction("Sum", axis=axis, dim=dim, **kwargs)
     
+
+    def scattered_sum(self, index_lazytensor, dim_output, axis=-1, dim=None, **kwargs):
+        if dim is not None:
+            axis = dim
+        return self.reduction("Scattered_Sum", other=index_lazytensor, opt_arg=dim_output, axis=axis, **kwargs)
+
+    def scattered_sum_reduction(self, index_lazytensor, dim_output, axis=-1, dim=None, **kwargs):
+        return self.scattered_sum(index_lazytensor, dim_output, axis=axis, dim=dim, **kwargs)
+
+
+
+
     def logsumexp(self, axis=None, dim=None, weight=None, **kwargs):
         r"""
         Log-Sum-Exp reduction. 
