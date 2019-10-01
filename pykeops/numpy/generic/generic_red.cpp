@@ -47,6 +47,12 @@ __NUMPYARRAY__ allocate_result_array(int* shape_out, int nbatchdims) {
   return __NUMPYARRAY__(shape_vector);
 }
 
+#if USE_CUDA
+template <>
+__NUMPYARRAY__ allocate_result_array_gpu(int* shape_out, int nbatchdims) {
+  throw std::runtime_error("[KeOps] numpy does not yet support nd array on GPU.");
+}
+#endif
 
 using __RANGEARRAY__ = py::array_t< __INDEX__, py::array::c_style >;
 
@@ -69,7 +75,7 @@ using namespace keops;
 
 
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
-m.doc() = "pyKeOps: KeOps for numpy through pybind11."
+m.doc() = "pyKeOps: KeOps for numpy through pybind11.";
 
 m.def("genred_numpy", &generic_red <__NUMPYARRAY__, __RANGEARRAY__>, "Entry point to keops - numpy version.");
 

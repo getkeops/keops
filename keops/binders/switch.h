@@ -84,7 +84,7 @@ array_t launch_keops(int tag1D2D,
 
     case 110: {
 #if USE_CUDA
-      auto result_array = allocate_result_array_gpu<at::Tensor >(shape_out);
+      auto result_array = allocate_result_array_gpu< array_t >(shape_out);
       GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
       return result_array;
 #else
