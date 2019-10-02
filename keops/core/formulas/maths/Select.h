@@ -3,21 +3,30 @@
 #include <sstream>
 #include <assert.h>
 
+#include "lib/sequences/include/tao/seq/select.hpp"
 #include "core/autodiff/BinaryOp.h"
 #include "core/formulas/maths/SelectT.h"
 #include "core/pre_headers.h"
 
 namespace keops {
 
-template< class F, class G, int D, int FFDIM >
+template< class F, class G, class D, class FFDIM >
 struct SelectT;
 
 //////////////////////////////////////////////////////////////
 ////     VECTOR SELECTION : Select<FF,G,DIM,FDIM>         ////
 //////////////////////////////////////////////////////////////
 
-template< class FF, class G, int D, int FDIM >
-struct Select : BinaryOp< Select, FF, G, D, FDIM > {
+
+// N.B.: D and FDIM are actually integers, but have
+//       to be encapsulated as tao::seq objects
+//       to fit within the BinaryOp guidelines
+template< class FF, class G, class D_, class FDIM_ >
+struct Select : BinaryOp< Select, FF, G, D_, FDIM_ > {
+
+  static const int FDIM = tao::seq::select<0,FDIM_>::value;
+  static const int D    = tao::seq::select<0,D_>::value;
+
   static const int DIM = FDIM;
 
   static_assert(FF::DIM == DIM * D, "Selects should pick values in a vector of size 'D * F::DIM'.");
@@ -47,7 +56,7 @@ struct Select : BinaryOp< Select, FF, G, D, FDIM > {
   using DiffTFF = typename FF::template DiffT<V, GRADIN>;
 
   template< class V, class GRADIN >
-  using DiffT = DiffTFF< V, SelectT< GRADIN, G, D, FF::DIM > >;
+  using DiffT = DiffTFF< V, SelectT< GRADIN, G, Ind(D), Ind(FF::DIM) > >;
 };
 
 #define Select(ff,g,d,fd) KeopsNS<Select<decltype(InvKeopsNS(ff)),decltype(InvKeopsNS(g)),d,fd>>()
