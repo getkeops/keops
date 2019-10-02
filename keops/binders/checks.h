@@ -143,10 +143,11 @@ void check_args(size_t nargs,
 }
 
 template < typename array_t >
-std::tuple< int, int, int, int * > check_ranges(size_t nargs,
-                                                std::vector< int > categories,
-                                                std::vector< int > dimensions,
-                                                std::vector < array_t > obj_ptr) {
+std::tuple< int, int, int, int * > check_ranges(std::vector < array_t > obj_ptr,
+                                                std::vector< int > categories={},
+                                                std::vector< int > dimensions={}) {
+
+  size_t nargs = obj_ptr.size();
 
   // Are we working in batch mode? Infer the answer from the first arg =============
   int nbatchdims = get_ndim(obj_ptr[0]);  // Number of dims of the first tensor

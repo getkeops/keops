@@ -47,8 +47,8 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   short int Device_Id_s = cast_Device_Id(Device_Id);
 
   // Cast the input variable : It may be a copy here...
-  std::vector <array_t> obj_ptr(py_args.size());
-  for (size_t i = 0; i < py_args.size(); i++)
+  std::vector <array_t> obj_ptr(nargs);
+  for (size_t i = 0; i < nargs; i++)
     obj_ptr[i] = py::cast< array_t >(py_args[i]);
   // If torch.h is included, the last 3 lines could be replaced by : auto obj_ptr = py::cast<std::vector<array_t>>(py_args);
 
@@ -73,7 +73,7 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   }
 
   // Check the aguments' dimensions, and retrieve all the shape information:
-  std::tuple< int, int, int, int* > nx_ny_nbatch_shapes = check_ranges< array_t >(nargs, cats, dims, obj_ptr);
+  std::tuple< int, int, int, int* > nx_ny_nbatch_shapes = check_ranges< array_t >(obj_ptr, cats, dims);
   int nx = std::get< 0 >(nx_ny_nbatch_shapes), ny = std::get< 1 >(nx_ny_nbatch_shapes);
   int nbatchdims = std::get< 2 >(nx_ny_nbatch_shapes);
   int *shapes = std::get< 3 >(nx_ny_nbatch_shapes);

@@ -4,7 +4,7 @@ function [src_dir,build_dir,precision,verbosity,use_cuda_if_possible] = default_
 
 build_dir = [fileparts([mfilename('fullpath')]),'/build/'];
 src_dir = fileparts([mfilename('fullpath')]);
-precision = 'float';
+precision = 'double';
 verbosity = 0;
 use_cuda_if_possible = 1; % 0 to force computation on CPU
 

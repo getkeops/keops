@@ -1,5 +1,10 @@
 #include <mex.h>
 
+#include <tuple>
+#include "binders/checks.h"
+#include "binders/utils.h"
+#include "binders/switch.h"
+
 // #include "formula.h" made in cmake
 #include "core/pack/GetInds.h"
 #include "core/pack/GetDims.h"
@@ -41,6 +46,21 @@ void ExitFcn(void) {
    };
    static scoped_redirect_cout mycout_redirect;
    */
+
+namespace keops_binders {
+
+template <>
+mxArray* allocate_result_array(int* shape_out, int nbatchdims) {
+  return mxCreateDoubleMatrix(shape_out[0], shape_out[1], mxREAL);
+}
+
+template <>
+__TYPE__* get_data(mxArray *result_array) {
+  return  mxGetPr(result_array);
+}
+
+}
+
 
 //////////////////////////////////////////////////////////////////
 ///////////////// MEX ENTRY POINT ////////////////////////////////
@@ -200,6 +220,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     }
     argu += NMINARGS;
 
+    int shape_out[2] = {n[tagIJ], F::DIM};
+    auto result = keops_binders::launch_keops< mxArray* >(tag1D2D, tagCpuGpu, 0, device_id,
+                                          n[0], n[1],
+                                          &shape_out[0],
+                                          castedargs);
 
     //////////////////////////////////////////////////////////////
     // Output arguments
@@ -243,14 +268,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
 #if not USE_DOUBLE
     // copy the casted results in double
-    int ngamma =mxGetNumberOfElements(plhs[0]);
-    std::copy(castedgamma,castedgamma+ngamma,gamma);
+    int ngamma = mxGetNumberOfElements(plhs[0]);
+    std::copy(castedgamma, castedgamma + ngamma, gamma);
 
     delete[] castedgamma;
-    for(int k=0; k<NMINARGS; k++)
+    for(int k=0; k < NMINARGS; k++)
        delete[] castedargs[k];
     delete[] castedargs;
 #endif
+
 
     delete[] args;
     delete[] typeargs;
