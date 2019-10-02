@@ -14,7 +14,7 @@ extern "C" {
 };
 #endif
 
-namespace pykeops {
+namespace keops_binders {
 
 using namespace keops;
 namespace py = pybind11;
