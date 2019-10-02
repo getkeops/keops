@@ -7,7 +7,7 @@ namespace keops {
 //         Compilation Options             //
 /////////////////////////////////////////////
 
-#ifdef __CUDACC__
+#ifdef __CUDA_ARCH__
   #define HOST_DEVICE __host__ __device__
   #define DEVICE __device__
   #define INLINE __forceinline__

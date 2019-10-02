@@ -32,11 +32,12 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
-    for (int k = 0; k < DIM; k++)
-      if (outF[k] == 0)
+    for (int k = 0; k < DIM; k++) {
+      if (outF[k] == 0) {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
-      else
-#ifdef __NVCC__
+      }
+      else {
+#ifdef __CUDA_ARCH__    // check if we are compiling a device code
 #if USE_DOUBLE
         out[k] = rsqrt(outF[k]);
 #else
@@ -45,6 +46,8 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
 #else
         out[k] = 1.0 / sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
 #endif
+      }
+    }
   }
 
   template<class V, class GRADIN>

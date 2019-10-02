@@ -17,7 +17,7 @@ where :math:`K_{x,x} = \Big[\exp(-\|x_i -x_j\|^2 / \sigma^2)\Big]_{i,j=1}^N`. Th
 
 #####################################################################
 # Setup
-# --------------------
+# -----
 # Standard imports:
 
 import importlib
@@ -28,13 +28,17 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from pykeops.numpy import KernelSolve as KernelSolve_np
+from scipy.sparse import diags
+from scipy.sparse.linalg import aslinearoperator, cg
+from scipy.sparse.linalg.interface import IdentityOperator
+
+from pykeops.numpy import KernelSolve as KernelSolve_np, LazyTensor
 from pykeops.torch import KernelSolve
 from pykeops.torch.utils import squared_distances
 
 use_cuda = torch.cuda.is_available()
 
-##############################################
+#####################################################################
 # Benchmark specifications:
 # 
 
@@ -52,7 +56,7 @@ NS = [10, 20, 50,
       1000000
       ]
 
-######################################################################
+#####################################################################
 # Create some random input data:
 #
 
@@ -78,7 +82,7 @@ def generate_samples(N, device, lang):
 
     return x, b, gamma, alpha
 
-###############################################################################
+######################################################################
 # KeOps kernel
 # ---------------
 #
@@ -90,14 +94,14 @@ aliases = ['x = Vi(' + str(D) + ')',   # First arg:  i-variable of size D
            'a = Vj(' + str(Dv) + ')',  # Third arg:  j-variable of size Dv
            'g = Pm(1)']                # Fourth arg: scalar parameter
 
-###############################################################################
+######################################################################
 # .. note::
 #   This operator uses a conjugate gradient solver and assumes
 #   that **formula** defines a **symmetric**, positive and definite
 #   **linear** reduction with respect to the alias ``"a"``
 #   specified trough the third argument.
 
-###############################################################################
+######################################################################
 # Define the Kernel solver, with a ridge regularization **alpha**:
 # 
 
@@ -111,9 +115,19 @@ def Kinv_keops_numpy(x, b, gamma, alpha):
     res = Kinv(x, x, b, gamma, alpha=alpha)
     return res
 
-###############################################################################
+def Kinv_scipy(x, b, gamma, alpha):
+    x_i, y_j = LazyTensor( gamma * x[:, None, :]), LazyTensor( gamma * x[None, :, :])
+    K_ij = (- ((x_i - y_j) ** 2).sum(2)).exp()
+    A = aslinearoperator(diags(alpha * np.ones(x.shape[0]))) +  aslinearoperator(K_ij)
+    A.dtype = np.dtype('float32')
+    res = cg(A, b)
+    return res
+
+
+######################################################################
 # Define the same Kernel solver, using a **tensorized** implementation:
 #
+
 def Kinv_pytorch(x, b, gamma, alpha):
     K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp( - squared_distances(x, x) * gamma)
     res = torch.solve(b, K_xx)[0]
@@ -124,7 +138,7 @@ def Kinv_numpy(x, b, gamma, alpha):
     res = np.linalg.solve(K_xx, b)
     return res
 
-##############################################
+######################################################################
 # Benchmarking loops
 # -----------------------
 
@@ -229,7 +243,7 @@ def full_bench(title, routines) :
                fmt='%-9.5f', header=header, comments='')
 
 
-##############################################
+######################################################################
 # Run the benchmark
 # ---------------------
 
@@ -237,6 +251,7 @@ routines = [(Kinv_numpy, "NumPy", "numpy"),
             (Kinv_pytorch, "PyTorch", "torch"),  
             (Kinv_keops_numpy, "NumPy + KeOps", "numpy"),  
             (Kinv_keops,   "PyTorch + KeOps", "torch"),
+            (Kinv_scipy,   "Scipy + KeOps", "numpy"),
            ]
 full_bench( "Inverse radial kernel matrix", routines )
 

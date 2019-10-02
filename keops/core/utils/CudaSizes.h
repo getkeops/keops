@@ -8,7 +8,7 @@ namespace keops {
 /////////////////////////////////////////////
 
 
-#ifdef __CUDACC__
+#ifdef USE_CUDA
 // fix some Gpu properties
   // CUDA_BLOCK_SIZE gives an upper bound on size of the size of Cuda blocks
   // The actual block size may be lower due to memory limitations, depending on the formula used

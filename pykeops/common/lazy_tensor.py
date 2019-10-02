@@ -1117,6 +1117,22 @@ class LazyTensor:
         else:
             raise ValueError("LazyTensors only support indexing with integers and vanilla python slices.")
     
+
+    def one_hot(self, D):
+        r"""
+        Encodes a (rounded) scalar value as a one-hot vector of dimension D. 
+        
+        ``x.one_hot(D)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        a vector of length D whose round(x)-th coordinate is equal to 1, and the other ones to zero.
+        """
+        if type(D) is not int:
+            raise ValueError("One-hot encoding expects an integer dimension of the output vector.")
+        if self.ndim != 1:
+            raise ValueError("One-hot encoding is only supported for scalar formulas.")
+            
+        return self.unary("OneHot", dimres=D, opt_arg=D)
+
+
     def concat(self, other):
         r"""
         Concatenation of two :class:`LazyTensor` - a binary operation.

@@ -49,8 +49,8 @@ For instance, ``Vi(2,4)`` specifies a variable indexed by :math:`i`, given as th
 
 .. _`part.reservedWord`:
 
-Reseved words
-=============
+Reserved words
+===============
 
 =========  ============================================================
  keyword    meaning
@@ -129,6 +129,7 @@ Constants and padding/concatenation operations:
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)
 ``ExtractT(f, M, D)``     insert vector ``f`` in a larger vector of zeros (M is starting index, D is dimension of output)
 ``Concat(f, g)``          concatenation of vectors ``f`` and ``g``
+``OneHot(f, D)``          encodes a (rounded) scalar value as a one-hot vector of dimension D
 ======================   =========================================================================================================
 
 Elementary dot products:

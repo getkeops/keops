@@ -1,5 +1,9 @@
+* v1.2
+    - Add TensorDot operation
+    - Refactor Cpp codes
+
 * v1.1.2
-    - Fix bug in bashed computations
+    - Fix bug in batch computations
     - Add to wheel pykeops package licence file
 
 
@@ -47,7 +51,7 @@
 
 * v0.1.3
     - Fix pickle problem with inherited class in pytorch
-    - 'import pykeops' do not try to import torch any more
+    - 'import pykeops' does not try to import torch any more
 
 
 * v0.1.2

@@ -39,7 +39,8 @@ g = np.array([.5 / sigma ** 2])  # Parameter of the Gaussian RBF kernel
 alpha = 0.01
 
 ###############################################################################
-# Apply our solver on arbitrary point clouds:
+# KeOps internal conjugate gradient solver
+# ----------------------------------------
 #
 
 print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N, D))
@@ -61,6 +62,25 @@ print('Timing (KeOps implementation):', round(end - start, 5), 's')
 
 
 ###############################################################################
+# Scipy conjugate gradient
+# ------------------------
+
+from scipy.sparse import diags
+from scipy.sparse.linalg import aslinearoperator, cg
+from scipy.sparse.linalg.interface import IdentityOperator
+ 
+print("Solving a Gaussian linear system, with {} points in dimension {}.".format(N, D))
+start = time.time()
+A = aslinearoperator(diags(alpha * np.ones(N))) +  aslinearoperator(Kxx)
+c_sp = np.zeros((N, Dv))
+for i in range(Dv):
+    c_sp[:,i] = cg(A, b[:,i])[0]
+
+end = time.time()
+print('Timing (KeOps + scipy implementation):', round(end - start, 5), 's')
+
+
+###############################################################################
 # Compare with a straightforward Numpy implementation:
 #
 
@@ -69,12 +89,14 @@ K_xx = alpha * np.eye(N) + np.exp(- g * np.sum((x[:, None, :] - x[None, :, :]) *
 c_np = np.linalg.solve(K_xx, b)
 end = time.time()
 print('Timing (Numpy implementation):', round(end - start, 5), 's')
-print("Relative error = ", np.linalg.norm(c - c_np) / np.linalg.norm(c_np))
+print("Relative error (KeOps) = ", np.linalg.norm(c - c_np) / np.linalg.norm(c))
+print("Relative error (KeOps + scipy)= ", np.linalg.norm(c - c_sp) / np.linalg.norm(c))
 
 # Plot the results next to each other:
 for i in range(Dv):
     plt.subplot(Dv, 1, i + 1)
     plt.plot(c[:40, i], '-', label='KeOps')
+    plt.plot(c_sp[:40, i], '--', label='KeOps + Scipy')
     plt.plot(c_np[:40, i], '--', label='NumPy')
     plt.legend(loc='lower right')
 plt.tight_layout();
