@@ -1,9 +1,10 @@
 #include <mex.h>
 
-#include <tuple>
+
 #include "binders/checks.h"
 #include "binders/utils.h"
 #include "binders/switch.h"
+
 
 // #include "formula.h" made in cmake
 #include "core/pack/GetInds.h"
@@ -47,6 +48,7 @@ void ExitFcn(void) {
    static scoped_redirect_cout mycout_redirect;
    */
 
+
 namespace keops_binders {
 
 template <>
@@ -57,6 +59,20 @@ mxArray* allocate_result_array(int* shape_out, int nbatchdims) {
 template <>
 __TYPE__* get_data(mxArray *result_array) {
   return  mxGetPr(result_array);
+}
+
+template <>
+int get_ndim(mxArray *obj_ptri) {
+  return 2;
+}
+
+template <>
+int get_size(mxArray *obj_ptri, int l) {
+  return (int) mxGetDimensions(obj_ptri)[l];
+}
+
+void keops_error(const char* msg) {
+  mexErrMsgTxt(msg);
 }
 
 }
@@ -220,12 +236,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     }
     argu += NMINARGS;
 
-    int shape_out[2] = {n[tagIJ], F::DIM};
-    auto result = keops_binders::launch_keops< mxArray* >(tag1D2D, tagCpuGpu, 0, device_id,
-                                          n[0], n[1],
-                                          &shape_out[0],
-                                          castedargs);
-
     //////////////////////////////////////////////////////////////
     // Output arguments
     //////////////////////////////////////////////////////////////
@@ -239,6 +249,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
     double *gamma = mxGetPr(plhs[0]);
     __TYPE__ *castedgamma = castedFun(gamma, plhs[0]);
 
+/*
+    int shape_out[2] = {n[tagIJ], F::DIM};
+    auto result = keops_binders::launch_keops< mxArray* >(tag1D2D, tagCpuGpu, 0, device_id,
+                                                          n[0], n[1],
+                                                          &shape_out[0],
+                                                          castedargs);
+  */
     //////////////////////////////////////////////////////////////
     // Call Cuda codes
     //////////////////////////////////////////////////////////////
