@@ -10,8 +10,12 @@
 
 namespace keops {
 
-template< class FF, class G, class D, class FDIM >
-struct Select;
+template< class FF, class G, class D_FDIM >
+struct Select_Impl;
+
+template< class FF, class G, int D, int FDIM > using Select = Select_Impl< FF, G, Ind(D, FDIM) > ;
+
+#define Select(ff,g,d,fd) KeopsNS<Select<decltype(InvKeopsNS(ff)),decltype(InvKeopsNS(g)),d,fd>>()
 
 //////////////////////////////////////////////////////////////
 ////     VECTOR "INJECTION" : SelectT<F,G,D,FFDIM>        ////
@@ -20,11 +24,11 @@ struct Select;
 // N.B.: D and FDIM are actually integers, but have
 //       to be encapsulated as tao::seq objects
 //       to fit within the BinaryOp guidelines
-template < class F, class G, class D_, class FFDIM_ >
-struct SelectT : BinaryOp< SelectT, F, G, D_, FFDIM_> {
+template < class F, class G, class D_FFDIM >
+struct SelectT_Impl : BinaryOp< SelectT_Impl, F, G, D_FFDIM> {
 
-  static const int FFDIM = tao::seq::select<0,FFDIM_>::value;
-  static const int D     = tao::seq::select<0,D_>::value;
+  static const int D     = tao::seq::select<0, D_FFDIM>::value;
+  static const int FFDIM = tao::seq::select<1, D_FFDIM>::value;
 
   static const int DIM = FFDIM;
 
@@ -52,9 +56,8 @@ struct SelectT : BinaryOp< SelectT, F, G, D_, FFDIM_> {
   using DiffTF = typename F::template DiffT<V,GRADIN>;
 
   template < class V, class GRADIN >
-  using DiffT = DiffTF<V,Select<GRADIN,G,Ind(D),Ind(F::DIM)>>;
+  using DiffT = DiffTF<V,Select<GRADIN,G,D,F::DIM>>;
 };
 
-#define SelectT(f,g,d,ffd) KeopsNS<SelectT<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g)),d,ffd>>()
 
 }
