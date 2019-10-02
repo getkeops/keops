@@ -9,6 +9,18 @@
 #include "core/pre_headers.h"
 
 
+// The scattered sum reduction allows users to distributes values
+// of the reduced functional in a buffer of set size.
+//
+//       "Scattered_Sum_Reduction( F, D, tagI, G)"
+// describes the reduction of the formula F over axis tagI,
+// with a buffer of size D * F::DIM, with indices
+// given by the (rounded) values of G in [0, D).
+// Note that if G is outside of this range, no computation
+// is performed and the thread simply skips to the next value of the
+// reduction index.
+
+
 namespace keops {
 
 // N.B.: additional arguments D and G_ have to be in this order to fit the
@@ -86,6 +98,10 @@ struct Scattered_Sum_Reduction : public Reduction< Concat< G_, F >, tagI > {
     }
   };
 
+  template < class V, class GRADIN, class FO=void >
+  using DiffT = Sum_Reduction< Grad< F, V, Select<GRADIN, G, D, F::DIM>>, (V::CAT) % 2 >;
+  // remark : if V::CAT is 2 (parameter), we will get tagI=(V::CAT)%2=0, so we will do reduction wrt j.
+  // In this case there is a summation left to be done by the user.
 
 };
 
