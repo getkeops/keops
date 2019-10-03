@@ -13,10 +13,6 @@ namespace keops {
 template< class FF, class G, class D_FDIM >
 struct Select_Impl;
 
-template< class FF, class G, int D, int FDIM > using Select = Select_Impl< FF, G, Ind(D, FDIM) > ;
-
-#define Select(ff,g,d,fd) KeopsNS<Select<decltype(InvKeopsNS(ff)),decltype(InvKeopsNS(g)),d,fd>>()
-
 //////////////////////////////////////////////////////////////
 ////     VECTOR "INJECTION" : SelectT<F,G,D,FFDIM>        ////
 //////////////////////////////////////////////////////////////
@@ -53,11 +49,15 @@ struct SelectT_Impl : BinaryOp< SelectT_Impl, F, G, D_FFDIM> {
   }
 
   template < class V, class GRADIN >
-  using DiffTF = typename F::template DiffT<V,GRADIN>;
+  using DiffTF = typename F::template DiffT< V, GRADIN >;
 
   template < class V, class GRADIN >
-  using DiffT = DiffTF<V,Select<GRADIN,G,D,F::DIM>>;
+  using DiffT = DiffTF< V, Select_Impl< GRADIN, G, Ind(D, F::DIM) >>;
 };
+
+template < class FF, class G, int D, int FDIM > using SelectT = SelectT_Impl< FF, G, Ind(D, FDIM) >;
+
+#define SelectT(ff, g, d, fd) KeopsNS<SelectT<decltype(InvKeopsNS(ff)),decltype(InvKeopsNS(g)),d,fd>>()
 
 
 }
