@@ -42,3 +42,27 @@ test_that("format_var_aliases",  {
                         "(see help page or vignette for more details)."), 
                  fixed = TRUE)
 })
+
+test_that("keops_kernel", {
+    
+    formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta,0)"
+    args = c("x=Vi(3)", "y=Vj(3)", "beta=Vj(3)", "lambda=Pm(1)")
+    
+    op <- keops_kernel(formula, args)
+    
+    x <- matrix(runif(100*3), ncol=3)
+    y <- matrix(runif(100*3), ncol=3)
+    beta <- matrix(runif(100*3), ncol=3)
+    lambda <- 5e-3
+    
+    expected_res <- apply(exp(lambda * sqrt(sum((x-y)^2))) * beta, 1, sum)
+    
+    lambda <- as.matrix(5)
+    
+    args <- list(x, y, beta, lambda)
+    param <- list(tagCpuGpu=0, tag1D2D=0, tagHostDevice=0, Device_Id=0, 
+                  nx=nrow(x), ny=nrow(y))
+    
+    
+    res <- op(args, param)
+})
