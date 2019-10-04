@@ -25,7 +25,7 @@ using rkeops_array_t = std::vector<rkeops::type_t>;
 // Interface
 // [[Rcpp::depends(RcppEigen)]]
 // [[Rcpp::export]]
-eigen_matrix_t r_genred(
+SEXP r_genred(
         Rcpp::List & input,
         Rcpp::List & param) {
     
@@ -45,19 +45,21 @@ eigen_matrix_t r_genred(
     int ny = Rcpp::as<int>(param["ny"]);
     
     // Data
-    rkeops_list_t raw_data_list(input.length());
-    for(size_t i=0; i < input.length(); i++) {
+    rkeops_list_t raw_input(input.length());
+    for(int i=0; i < input.length(); i++) {
         eigen_matrix_t tmp = Rcpp::as<eigen_matrix_t>(input[i]);
         rkeops_array_t data(tmp.data(), tmp.data() + tmp.rows() * tmp.cols());
-        rkeops_matrix_t raw_data = rkeops::matrix(data, tmp.rows(), tmp.cols());
-        raw_data_list.push_back(raw_data);
+        rkeops_matrix_t raw_data = rkeops_matrix_t(data, tmp.rows(), tmp.cols());
+        raw_input.push_back(raw_data);
     }
     
     rkeops::matrix<rkeops::type_t> raw_output = genred(
             tagCpuGpu, tag1D2D, tagHostDevice, 
             Device_Id, nx, ny,
-            input);
+            raw_input);
     
-    eigen_matrix_t output(raw_output.data(), raw_output.get_nrows(), raw_output.get_nrows());
-    return(output);
+    eigen_matrix_t output = Eigen::Map<eigen_matrix_t>(raw_output.get_data(), 
+                                                       raw_output.get_nrow(), 
+                                                       raw_output.get_nrow());
+    return(Rcpp::NumericMatrix(Rcpp::wrap(output)));
 }

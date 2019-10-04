@@ -54,7 +54,8 @@ template <>
 __TYPEARRAY__ allocate_result_array(int* shape_out, int nbatchdims) {
     // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
     std::vector< int > shape_vector(shape_out, shape_out + nbatchdims + 2);
-    return __TYPEARRAY__(shape_vector.data());
+    // assume 2d array = matrix
+    return __TYPEARRAY__(shape_vector[0], shape_vector[1]);
 }
 
 #if USE_CUDA
@@ -91,11 +92,11 @@ array_t generic_red(
     short int Device_Id_s = cast_Device_Id(Device_Id);
 
     // get the pointers to data to avoid a copy
-    __TYPE__ **castedargs = new __TYPE__ *[NARGS];
-    for (size_t i = 0; i < NARGS; i++)
+    __TYPE__ **castedargs = new __TYPE__ *[keops::NARGS];
+    for (size_t i = 0; i < keops::NARGS; i++)
         castedargs[i] = get_data(input[i]);
 
-    int shape_output[2] = {tagIJ ? nx : ny, DIMOUT};
+    int shape_output[2] = {keops::TAGIJ ? nx : ny, keops::DIMOUT};
 
     // Call Cuda codes =========================================================
     array_t result;
@@ -104,7 +105,6 @@ array_t generic_red(
                                      castedargs);
     
     delete[] castedargs;
-    delete[] shape_output;
 
     return result;
 

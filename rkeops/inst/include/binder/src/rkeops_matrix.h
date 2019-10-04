@@ -27,6 +27,13 @@ public:
         _is_contiguous = RKEOPS_C_CONTIGUOUS;
     };
     
+    matrix(size_t nrow, size_t ncol) {
+        _data = std::vector<T>(nrow * ncol);
+        _nrow = nrow;
+        _ncol = ncol;
+        _is_contiguous = RKEOPS_C_CONTIGUOUS;
+    };
+    
     matrix(std::vector<T> data, size_t nrow, size_t ncol) {
         _data = std::vector<T>(data.begin(), data.end());
         _nrow = nrow;

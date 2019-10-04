@@ -22,7 +22,7 @@ rkeops_matrix_t genred(
         tag1D2D,
         tagHostDevice,
         Device_Id,
-        input)
+        input);
     
     return(output);
 }
