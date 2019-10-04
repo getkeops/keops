@@ -113,11 +113,18 @@ is_installed <- function() {
 #' @author Ghislain Durif
 #' @import Rcpp
 #' @export
-load_dll <- function(path, dllname, object) {
+load_dll <- function(path, dllname, object, genred=FALSE) {
     filename <- file.path(path, paste0(dllname, .Platform$dynlib.ext))
     tmp <- dyn.load(filename)
-    out <- Rcpp:::sourceCppFunction(function() {}, FALSE, tmp, 
-                                    paste0("_binder_", object))
+    out <- NULL
+    if(genred) {
+        out <- Rcpp:::sourceCppFunction(function(input, param) {}, FALSE, tmp, 
+                                        paste0("_binder_", object))
+    } else {
+        out <- Rcpp:::sourceCppFunction(function() {}, FALSE, tmp, 
+                                        paste0("_binder_", object))
+    }
+    
     rm(tmp)
     return(out)
 }
