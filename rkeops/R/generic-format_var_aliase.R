@@ -53,6 +53,8 @@ format_var_aliases <- function(args) {
     
     # parse
     split_args <- Reduce("rbind", str_split(string = args, pattern = "="))
+    if(!is.matrix(split_args))
+        split_args <- matrix(split_args, ncol=2)
     var_name <- split_args[,1]
     var_type <- str_extract(string = split_args[,2],
                             pattern = paste0(possible_var_type,
