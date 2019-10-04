@@ -149,6 +149,7 @@ target_link_libraries(
 add_library( # generate the string "g++ -c ..." but do not execute it
     rkeops${shared_obj_name} SHARED
     # binder source
+    ${BINDER_SRC_DIR}/r_genred.cpp
     ${BINDER_SRC_DIR}/RcppExports.cpp
     ${BINDER_SRC_DIR}/test_binder.cpp
 )
