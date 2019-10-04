@@ -40,29 +40,26 @@ keops_kernel <- function(formula, args) {
         stop("`args` input parameter should be a vector of text strings")
     
     # check formula and args formating
-    # FIXME
+    var_aliases <- format_var_aliases(args)
     
     # hash name to compile formula in a shared library file
     dllname <- create_dllname(formula, args)
-    dllfilename <- file.path(get_build_dir(), dllname)
-    
-    # operator name
-    operator_name <- paste0("keops", dllname) # FIXME
+    dllfilename <- file.path(get_build_dir(), 
+                             paste0("librkeops", dllname, .Platform$dynlib.ext))
     
     # compile operator if necessary
     if(!file.exists(dllfilename) | get_rkeops_option("verbosity")) {
-        compile_formula() # FIXME
+        compile_formula(formula, var_aliases$var_aliases, dllname) # FIXME
     }
     
     # load shared library
-    # FIXME
-    # if(file.exists(dllfilename)) {
-    #     dyn.load(dllfilename, local = FALSE)
-    # }
+    r_genred <- load_dll(path = get_build_dir(),
+                         dllname = paste0("librkeops", dllname), 
+                         object = "r_genred",
+                         genred=TRUE)
     
     # return function calling the corresponding compile operator
-    # FIXME
-    # function(args) {
-    #     return(.Call(operator_name, args))
-    # }
+    function(args, param) {
+        return(r_genred(args, param))
+    }
 }
