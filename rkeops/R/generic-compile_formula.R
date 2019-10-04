@@ -6,13 +6,7 @@
 #' @author Ghislain Durif
 #' @export
 compile_formula <- function(formula, var_aliases, dllname) {
-    
-    # FIXME
-    
-    formula <- "test_formula"
-    var_aliases <- "test_var_aliases"
-    dllname <- "test_dll"
-    
+
     ## cmake src dir
     cmake_dir <- dirname(get_rkeops_option("src_dir"))
     
@@ -50,7 +44,12 @@ compile_formula <- function(formula, var_aliases, dllname) {
        !tryCatch(test_binder(), error = function(e) return(FALSE)))
         stop("Issue with compilation.")
     
-    ## return operator
-    # FIXME
-    
+    ## cleaning tmp build dir
+    so_file_list <- file.path(tmp_build_dir, 
+                              paste0(c("librkeops", "lib", ""), 
+                                     dllname, .Platform$dynlib.ext))
+    file.copy(from=so_file_list, to=get_rkeops_option("build_dir"), 
+              overwrite = TRUE, recursive = FALSE, 
+              copy.mode = TRUE)
+    unlink(tmp_build_dir, recursive = TRUE)
 }
