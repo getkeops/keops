@@ -2,6 +2,8 @@
 #define RKEOPS_MATRIX_H
 
 #include <vector>
+#include <iostream>
+#include <iterator>
 
 namespace rkeops {
 
@@ -34,7 +36,7 @@ public:
         _is_contiguous = RKEOPS_C_CONTIGUOUS;
     };
     
-    matrix(std::vector<T> data, size_t nrow, size_t ncol) {
+    matrix(std::vector<T> & data, size_t nrow, size_t ncol) {
         _data = std::vector<T>(data.begin(), data.end());
         _nrow = nrow;
         _ncol = ncol;
@@ -52,7 +54,7 @@ public:
     };
     
     int get_ncol() {
-        return(_nrow);
+        return(_ncol);
     };
     
     std::vector<size_t> get_shape() {
@@ -64,14 +66,30 @@ public:
         return(this->get_shape()[l]);
     };
     
+    int get_length() {
+        return(_nrow * _ncol);
+    };
+    
     T* get_data() {
         return( (T*) _data.data());
+    };
+    
+    std::vector<T> get_raw_data() {
+        return(_data);
     };
     
     bool is_contiguous() {
         return(_is_contiguous);
     };
     
+    void print() {
+        for (auto j = _data.begin(); j != _data.end(); ++j) {
+            std::cout << *j << ' ';
+            if( ((int) std::distance(_data.begin(), j) + 1) % _ncol == 0)
+                std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    };
 };
 
 }

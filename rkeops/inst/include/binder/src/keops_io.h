@@ -16,7 +16,7 @@
 // rkeops matrix type
 using rkeops_matrix_t = rkeops::matrix<rkeops::type_t>;
 // list of input data
-using rkeops_list_t = std::vector< rkeops_matrix_t >;
+using rkeops_list_t = std::vector<rkeops_matrix_t>;
 
 namespace keops_binders {
 
@@ -80,7 +80,7 @@ array_t generic_red(
         int tagHostDevice,
         int Device_Id,
         rkeops_list_t & input) {
-
+    
     // Check that we have enough arguments:
     size_t nargs = input.size();
     check_narg(nargs);
@@ -90,24 +90,23 @@ array_t generic_red(
     check_tag(tagHostDevice, "HostDevice");
 
     short int Device_Id_s = cast_Device_Id(Device_Id);
-
+    
     // get the pointers to data to avoid a copy
     __TYPE__ **castedargs = new __TYPE__ *[keops::NARGS];
-    for (size_t i = 0; i < keops::NARGS; i++)
+    for (size_t i = 0; i < keops::NARGS; i++) {
         castedargs[i] = get_data(input[i]);
-
+    }
+    
     int shape_output[2] = {keops::TAGIJ ? nx : ny, keops::DIMOUT};
-
+    
     // Call Cuda codes =========================================================
-    array_t result;
-    result = launch_keops< array_t >(tag1D2D, tagCpuGpu, tagHostDevice,
-                                     Device_Id_s, nx, ny, shape_output,
-                                     castedargs);
+    array_t result = launch_keops< array_t >(
+                                tag1D2D, tagCpuGpu, tagHostDevice,
+                                Device_Id_s, nx, ny, shape_output,
+                                castedargs);
     
     delete[] castedargs;
-
     return result;
-
 }
 
 }
