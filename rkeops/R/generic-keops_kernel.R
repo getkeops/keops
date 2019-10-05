@@ -49,7 +49,7 @@ keops_kernel <- function(formula, args) {
     
     # compile operator if necessary
     if(!file.exists(dllfilename) | get_rkeops_option("verbosity")) {
-        compile_formula(formula, var_aliases$var_aliases, dllname) # FIXME
+        compile_formula(formula, var_aliases$var_aliases, dllname)
     }
     
     # load shared library
@@ -59,7 +59,9 @@ keops_kernel <- function(formula, args) {
                          genred=TRUE)
     
     # return function calling the corresponding compile operator
-    function(args, param) {
-        return(r_genred(args, param))
+    function(input, nx, ny) {
+        param <- c(get_rkeops_options("runtime"),
+                   list(nx=nx, ny=ny))
+        return(r_genred(input, param))
     }
 }

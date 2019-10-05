@@ -24,6 +24,8 @@ compile_code <- function(formula, var_aliases, dllname, cmake_dir) {
                         shQuote(system.file("include", package = "RcppEigen")),
                         " -DR_LIB=", shQuote(R.home("lib")))
     # FIXME
+    # " -DCMAKE_BUILD_TYPE=Debug")
+    # FIXME
     # cmake_cmd <- paste0(cmake_cmd,
     #                     " -DcommandLine='", shQuote(cmake_cmd), "'")
     tmp <- system(cmake_cmd)

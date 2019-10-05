@@ -52,4 +52,6 @@ compile_formula <- function(formula, var_aliases, dllname) {
               overwrite = TRUE, recursive = FALSE, 
               copy.mode = TRUE)
     unlink(tmp_build_dir, recursive = TRUE)
+    ## output
+    return(0)
 }
