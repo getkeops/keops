@@ -4,7 +4,11 @@
 \alias{get_rkeops_options}
 \title{Get \code{rkeops} options current values}
 \usage{
-get_rkeops_options()
+get_rkeops_options(tag = NULL)
+}
+\arguments{
+\item{tag}{text string being "compile" or "runtime" to get corresponding
+options. If missing (default), both are returned.}
 }
 \value{
 a list with \code{rkeops} current options values (see Details).
@@ -23,9 +27,12 @@ the current states of \code{rkeops} options by calling \code{get_rkeops_options(
 the following elements \code{rkeops_dir}, \code{build_dir}, \code{src_dir}, \code{precision},
 \code{verbosity}, \code{use_cuda_if_possible} (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}).
 \item a list named \code{runtime_options} (of class \code{rkeops_runtime_options})
-with the following elements \code{tagCpuGpu}, \code{tag1D2D}, \code{device_id} (see
-\code{\link[rkeops:default_runtime_options]{rkeops::default_runtime_options()}}).
+with the following elements \code{tagCpuGpu}, \code{tag1D2D}, \code{tagHostDevice},
+\code{device_id} (see \code{\link[rkeops:default_runtime_options]{rkeops::default_runtime_options()}}).
 }
+
+If the \code{tag} input parameter is specified, only the corresponding options
+are returned.
 
 These options are set with the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} and
 \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which

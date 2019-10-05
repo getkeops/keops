@@ -19,7 +19,7 @@ The function \code{rkeops_option_names} returns the names of the different
 \code{rkeops} uses two sets of options: compile options \code{rkeops_dir},
 \code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity}, \code{use_cuda_if_possible}
 (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options \code{tagCpuGpu},
-\code{tag1D2D}, \code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
+\code{tag1D2D}, \code{tagHostDevice}, \code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
 
 These options define the behavior of \code{rkeops} when compiling or when
 running new user-defined operators.

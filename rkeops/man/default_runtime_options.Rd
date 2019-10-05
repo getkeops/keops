@@ -9,15 +9,7 @@ default_runtime_options()
 \value{
 a list (of class \code{rkeops_runtime_options}) with the following
 elements:
-\item{build_dir}{string, path to the directory where new custom user-defined
-operators will be compiled.}
-\item{src_dir}{string, path to \code{keops} (C++) source files required for
-compilation of user-defined operators.}
-\item{precision}{string, precision for floating point computations (\code{float}
-or \code{double}).}
-\item{verbosity}{integer, 0-1 indicator (boolean) for verbosity.}
-\item{use_cuda_if_possible}{integer, 0-1 indicator (boolean) regarding use
-of GPU in computations (if possible).}
+FIXME
 }
 \description{
 When using compiled user-defined operators, \code{rkeops} requires runtime

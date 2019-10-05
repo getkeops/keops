@@ -4,14 +4,18 @@
 \alias{runtime_options}
 \title{User-defined options used at runtime in \code{rkeops} package}
 \usage{
-runtime_options(tagCpuGpu = 1, tag1D2D = 0, device_id = 0)
+runtime_options(tagCpuGpu = 0, tag1D2D = 0, tagHostDevice = 0,
+  device_id = 0)
 }
 \arguments{
 \item{tagCpuGpu}{integer, indicator for CPU or GPU computations (see
-Details). Default value is \code{1}.}
+Details). Default value is \code{0}.}
 
 \item{tag1D2D}{integer, indicator regarding data partitioning for
 parallelization (see Details). Default value is \code{0}.}
+
+\item{tagHostDevice}{integer, indicator regarding the data location (see
+Details). Default value is \code{0}.}
 
 \item{device_id}{integer, id of GPU device on the machine (see Details).
 Default value is \code{0}.}
@@ -39,10 +43,13 @@ The aforementioned compile options are the following:
 \itemize{
 \item \code{tagCpuGpu}: \code{0} means convolution on Cpu, \code{1} means convolution on Gpu,
 \code{2} means convolution on Gpu using data on device (i.e. in GPU memory).
-Default value is \code{1}.
+Default value is \code{0}.
 \item \code{tag1D2D}: \code{0} means 1D parallelization (over rows of matrices), and \code{1}
 parallelization over blocks of rows and columns (useful with small columns
 large rows matrices). Default value is \code{0}.
+\item \code{tagHostDevice}: \code{0} means that data are located on host memory, \code{1}
+means that data are located on the device (i.e. GPU) memory. Default value
+is \code{0}.
 \item \code{device_id}: id of GPU device on the machine where the computation are
 made. Default value is \code{0}. Ideally, GPU assignation should be handled
 outside of \code{R} and \code{rkeops}.

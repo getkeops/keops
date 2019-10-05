@@ -2,7 +2,7 @@ Package: rkeops
 Type: Package
 Title: Kernel Operations on the GPU, with autodiff, without memory overflows
 Version: 1.1.1
-Date: 2019-08-22
+Date: 2019-10-06
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
            comment="<http://imag.umontpellier.fr/~charlier/>", 

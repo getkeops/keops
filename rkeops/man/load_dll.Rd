@@ -4,7 +4,7 @@
 \alias{load_dll}
 \title{Load shared library for user-defined operator}
 \usage{
-load_dll(path, dllname, object)
+load_dll(path, dllname, object, genred = FALSE)
 }
 \description{
 FIXME

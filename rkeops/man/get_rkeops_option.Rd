@@ -20,14 +20,15 @@ The function \code{get_rkeops_option} returns the current value of a specific
 \code{rkeops} uses two sets of options: compile options \code{rkeops_dir},
 \code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity}, \code{use_cuda_if_possible}
 (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options \code{tagCpuGpu},
-\code{tag1D2D}, \code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
+\code{tag1D2D}, \code{tagHostDevice}, \code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
 
 These options define the behavior of \code{rkeops} when compiling or when
 running new user-defined operators.
 
 With the function \code{get_rkeops_option}, you get the value of a specific
 \code{rkeops} options among \code{rkeops_dir}, \code{build_dir}, \code{src_dir}, \code{precision},
-\code{verbosity}, \code{use_cuda_if_possible} or \code{tagCpuGpu}, \code{tag1D2D}, \code{device_id}.
+\code{verbosity}, \code{use_cuda_if_possible} or \code{tagCpuGpu}, \code{tag1D2D},
+\code{tagHostDevice}, \code{device_id}.
 
 These options are set with the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} and
 \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which
