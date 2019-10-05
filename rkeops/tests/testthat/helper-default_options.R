@@ -25,7 +25,7 @@ check_default_compile_options <- function(input) {
 check_default_runtime_options <- function(input) {
     expect_is(input, "rkeops_runtime_options")
     attach(input, name = "tmp_env")
-    expect_equal(tagCpuGpu, 1)
+    expect_equal(tagCpuGpu, 0)
     expect_equal(tag1D2D, 0)
     expect_equal(device_id, 0)
     detach("tmp_env")

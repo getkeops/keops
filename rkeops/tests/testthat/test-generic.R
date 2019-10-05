@@ -1,6 +1,21 @@
 context("generic functions")
 
-test_that("format_var_aliases",  {
+test_that("compile_formula", {
+    # set_rkeops_options()
+    # # matrix product then sum
+    # formula = "Sum_Reduction((x|y), 1)"
+    # args = c("x=Vi(3)", "y=Vj(3)")
+    # var_aliases <- format_var_aliases(args)$var_aliases
+    # dllname <- "test_compile_formula_dll"
+    # ## run
+    # res <- tryCatch(compile_formula(formula, var_aliases, dllname),
+    #                 error = function(e) return(NULL))
+    # ## check
+    # expect_false(is.null(res))
+    
+})
+
+test_that("format_var_aliases", {
     # short syntax
     args <- c("x=Vi(3)", "y=Vj(3)", 
              "beta=Vj(3)", "lambda=Pm(1)")
@@ -44,25 +59,29 @@ test_that("format_var_aliases",  {
 })
 
 test_that("keops_kernel", {
+    # set_rkeops_options()
+    # # matrix product then sum
+    # formula = "Sum_Reduction((x|y), 1)"
+    # args = c("x=Vi(3)", "y=Vj(3)")
+    # 
+    # formula = "Sum_Reduction((x|y), 1)"
+    # args = c("x=Vi(3)", "y=Vj(3)")
+    # 
+    # op <- tryCatch(keops_kernel(formula, args),
+    #                error = function(e) return(NULL))
+    # expect_false(is.null(op))
+    # 
+    # ## col-major
+    # n = 10
+    # x <- matrix(runif(n*3), ncol=n)
+    # y <- matrix(runif(n*3), ncol=n)
+    # input <- list(x, y) #, beta, lambda)
+    # res <- tryCatch(op(input),
+    #                 error = function(e) return(NULL))
+    # expect_false(is.null(op))
+    # 
+    # expected_res <- apply(t(x) %*% y, 1, sum)
+    # expect_true(abs(res-expected_res) < 1E-5)
     
-    formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta,0)"
-    args = c("x=Vi(3)", "y=Vj(3)", "beta=Vj(3)", "lambda=Pm(1)")
     
-    op <- keops_kernel(formula, args)
-    
-    x <- matrix(runif(100*3), ncol=3)
-    y <- matrix(runif(100*3), ncol=3)
-    beta <- matrix(runif(100*3), ncol=3)
-    lambda <- 5e-3
-    
-    expected_res <- apply(exp(lambda * sqrt(sum((x-y)^2))) * beta, 1, sum)
-    
-    lambda <- as.matrix(5)
-    
-    args <- list(x, y, beta, lambda)
-    param <- list(tagCpuGpu=0, tag1D2D=0, tagHostDevice=0, Device_Id=0, 
-                  nx=nrow(x), ny=nrow(y))
-    
-    
-    res <- op(args, param)
 })
