@@ -39,7 +39,7 @@ SEXP r_genred(
     // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means _fromHost suffix
     int tagHostDevice = Rcpp::as<int>(param["tagHostDevice"]);
     // id of GPU device
-    int Device_Id = Rcpp::as<int>(param["Device_Id"]);
+    int Device_Id = Rcpp::as<int>(param["device_id"]);
     // nx, ny
     int nx = Rcpp::as<int>(param["nx"]);
     int ny = Rcpp::as<int>(param["ny"]);
@@ -48,8 +48,7 @@ SEXP r_genred(
     rkeops_list_t raw_input;
     for(int i=0; i < input.length(); i++) {
         eigen_matrix_t tmp = Rcpp::as<eigen_matrix_t>(input[i]);
-        rkeops_array_t data(tmp.data(), tmp.data() + tmp.rows() * tmp.cols());
-        rkeops_matrix_t raw_data = rkeops_matrix_t(data, tmp.rows(), tmp.cols());
+        rkeops_matrix_t raw_data = rkeops_matrix_t(tmp.data(), tmp.rows(), tmp.cols());
         raw_input.push_back(raw_data);
     }
     

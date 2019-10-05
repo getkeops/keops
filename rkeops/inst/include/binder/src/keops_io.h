@@ -28,25 +28,25 @@ void keops_error(std::basic_string< char > msg) {
 //                  Template specialization (shell Matrix)                    //
 ////////////////////////////////////////////////////////////////////////////////
 
-using __TYPEARRAY__ = rkeops_matrix_t;
+using __TYPEARRAY__ = rkeops::matrix<__TYPE__>;
 
 template <>
-int get_ndim(__TYPEARRAY__ obj_ptri) {
+int get_ndim(__TYPEARRAY__ &obj_ptri) {
     return(obj_ptri.get_ndim());
 }
 
 template <>
-int get_size(__TYPEARRAY__ obj_ptri, int l) {
+int get_size(__TYPEARRAY__ &obj_ptri, int l) {
     return(obj_ptri.get_size(l));
 }
 
 template <>
-__TYPE__* get_data(__TYPEARRAY__ obj_ptri) {
-    return (__TYPE__ *) obj_ptri.get_data();
+__TYPE__* get_data(__TYPEARRAY__ &obj_ptri) {
+    return( (__TYPE__*) obj_ptri.get_data());
 }
 
 template <>
-bool is_contiguous(__TYPEARRAY__ obj_ptri) {
+bool is_contiguous(__TYPEARRAY__ &obj_ptri) {
     return(obj_ptri.is_contiguous());
 }
 
@@ -93,9 +93,8 @@ array_t generic_red(
     
     // get the pointers to data to avoid a copy
     __TYPE__ **castedargs = new __TYPE__ *[keops::NARGS];
-    for (size_t i = 0; i < keops::NARGS; i++) {
-        castedargs[i] = get_data(input[i]);
-    }
+    for (size_t i = 0; i < keops::NARGS; i++)
+        castedargs[i] = input[i].get_data();
     
     int shape_output[2] = {keops::TAGIJ ? nx : ny, keops::DIMOUT};
     

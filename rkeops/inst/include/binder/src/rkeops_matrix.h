@@ -43,6 +43,13 @@ public:
         _is_contiguous = RKEOPS_C_CONTIGUOUS;
     };
     
+    matrix(T* data, size_t nrow, size_t ncol) {
+        _data = std::vector<T>(data, data + (nrow * ncol));
+        _nrow = nrow;
+        _ncol = ncol;
+        _is_contiguous = RKEOPS_C_CONTIGUOUS;
+    };
+    
     ~matrix() {};
     
     int get_ndim() {
@@ -67,7 +74,7 @@ public:
     };
     
     int get_length() {
-        return(_nrow * _ncol);
+        return(_data.size());
     };
     
     T* get_data() {
