@@ -11,20 +11,25 @@
 #' the following elements `rkeops_dir`, `build_dir`, `src_dir`, `precision`, 
 #' `verbosity`, `use_cuda_if_possible` (see [rkeops::compile_options()]).
 #' * a list named `runtime_options` (of class `rkeops_runtime_options`) 
-#' with the following elements `tagCpuGpu`, `tag1D2D`, `device_id` (see 
-#' [rkeops::default_runtime_options()]).
+#' with the following elements `tagCpuGpu`, `tag1D2D`, `tagHostDevice`, 
+#' `device_id` (see [rkeops::default_runtime_options()]).
+#' 
+#' If the `tag` input parameter is specified, only the corresponding options 
+#' are returned.
 #' 
 #' These options are set with the functions [rkeops::set_rkeops_options()] and 
 #' [rkeops::set_rkeops_option()]. To know which values are allowed for which 
 #' options, you can check [rkeops::compile_options()] and 
 #' [rkeops::runtime_options()].
 #' @author Ghislain Durif
+#' @param tag text string being "compile" or "runtime" to get corresponding 
+#' options. If missing (default), both are returned.
 #' @return a list with `rkeops` current options values (see Details). 
 #' @seealso [rkeops::get_rkeops_option()], [rkeops::compile_options()], 
 #' [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
 #' [rkeops::set_rkeops_option()]
 #' @export
-get_rkeops_options <- function() {
+get_rkeops_options <- function(tag=NULL) {
     ## check rkeops global options
     rkeops_options <- getOption("rkeops")
     ## check rkeops options existence
@@ -32,7 +37,16 @@ get_rkeops_options <- function() {
        is.null(rkeops_options$runtime_options))
         stop("rkeops global options are not defined.")
     ## out
-    return(rkeops_options)
+    if(missing(tag)) {
+        return(rkeops_options)
+    } else {
+        if(tag == "compile")
+            return(rkeops_options$compile_options)
+        else if(tag == "runtime")
+            return(rkeops_options$runtime_options)
+        else
+            stop("`tag` input parameter value should be 'compile' or 'compile'")
+    }
 }
 
 #' Get the current value of a specific compile or runtime options of `rkeops`
@@ -43,14 +57,15 @@ get_rkeops_options <- function() {
 #' `rkeops` uses two sets of options: compile options `rkeops_dir`, 
 #' `build_dir`, `src_dir`, `precision`, `verbosity`, `use_cuda_if_possible` 
 #' (see [rkeops::compile_options()]), and runtime options `tagCpuGpu`, 
-#' `tag1D2D`, `device_id` (see [rkeops::runtime_options()]).
+#' `tag1D2D`, `tagHostDevice`, `device_id` (see [rkeops::runtime_options()]).
 #' 
 #' These options define the behavior of `rkeops` when compiling or when 
 #' running new user-defined operators.
 #' 
 #' With the function `get_rkeops_option`, you get the value of a specific 
 #' `rkeops` options among `rkeops_dir`, `build_dir`, `src_dir`, `precision`, 
-#' `verbosity`, `use_cuda_if_possible` or `tagCpuGpu`, `tag1D2D`, `device_id`.
+#' `verbosity`, `use_cuda_if_possible` or `tagCpuGpu`, `tag1D2D`, 
+#' `tagHostDevice`, `device_id`.
 #' 
 #' These options are set with the functions [rkeops::set_rkeops_options()] and 
 #' [rkeops::set_rkeops_option()]. To know which values are allowed for which 

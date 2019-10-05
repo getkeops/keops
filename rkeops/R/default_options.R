@@ -192,15 +192,7 @@ check_compile_options <- function(options) {
 #' @author Ghislain Durif
 #' @return a list (of class `rkeops_runtime_options`) with the following 
 #' elements:
-#' \item{build_dir}{string, path to the directory where new custom user-defined 
-#' operators will be compiled.}
-#' \item{src_dir}{string, path to `keops` (C++) source files required for 
-#' compilation of user-defined operators.}
-#' \item{precision}{string, precision for floating point computations (`float` 
-#' or `double`).}
-#' \item{verbosity}{integer, 0-1 indicator (boolean) for verbosity.}
-#' \item{use_cuda_if_possible}{integer, 0-1 indicator (boolean) regarding use 
-#' of GPU in computations (if possible).}
+#' FIXME
 #' @seealso [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
 #' [rkeops::set_rkeops_option()]
 #' @export
@@ -222,10 +214,13 @@ default_runtime_options <- function() {
 #' The aforementioned compile options are the following:
 #' * `tagCpuGpu`: `0` means convolution on Cpu, `1` means convolution on Gpu, 
 #' `2` means convolution on Gpu using data on device (i.e. in GPU memory). 
-#' Default value is `1`.
+#' Default value is `0`.
 #' * `tag1D2D`: `0` means 1D parallelization (over rows of matrices), and `1` 
 #' parallelization over blocks of rows and columns (useful with small columns 
 #' large rows matrices). Default value is `0`.
+#' * `tagHostDevice`: `0` means that data are located on host memory, `1` 
+#' means that data are located on the device (i.e. GPU) memory. Default value 
+#' is `0`.
 #' * `device_id`: id of GPU device on the machine where the computation are 
 #' made. Default value is `0`. Ideally, GPU assignation should be handled 
 #' outside of `R` and `rkeops`.
@@ -235,9 +230,11 @@ default_runtime_options <- function() {
 #' [rkeops::set_rkeops_option()].
 #' @author Ghislain Durif
 #' @param tagCpuGpu integer, indicator for CPU or GPU computations (see 
-#' Details). Default value is `1`.
+#' Details). Default value is `0`.
 #' @param tag1D2D integer, indicator regarding data partitioning for 
 #' parallelization (see Details). Default value is `0`.
+#' @param tagHostDevice integer, indicator regarding the data location (see 
+#' Details). Default value is `0`.
 #' @param device_id integer, id of GPU device on the machine (see Details). 
 #' Default value is `0`.
 #' @return a list (of class `rkeops_runtime_options`) with the following 
@@ -250,9 +247,9 @@ default_runtime_options <- function() {
 #' @seealso [rkeops::default_runtime_options()], [rkeops::set_rkeops_options()],
 #' [rkeops::set_rkeops_option()]
 #' @export
-runtime_options <- function(tagCpuGpu = 1, tag1D2D = 0, 
+runtime_options <- function(tagCpuGpu = 0, tag1D2D = 0, tagHostDevice=0, 
                             device_id = 0) {
-    out <- as.list(data.frame(tagCpuGpu, tag1D2D, device_id, 
+    out <- as.list(data.frame(tagCpuGpu, tag1D2D, tagHostDevice, device_id, 
                               stringsAsFactors = FALSE))
     class(out) <- "rkeops_runtime_options"
     check_runtime_options(out)
@@ -276,6 +273,8 @@ check_runtime_options <- function(options) {
         stop('Wrong input for `tagCpuGpu` parameter.')
     if(!options$tag1D2D %in% c(0, 1))
         stop('Wrong input for `tag1D2D` parameter.')
+    if(!options$tagHostDevice %in% c(0, 1))
+        stop('Wrong input for `tagHostDevice` parameter.')
     if(!is.numeric(options$device_id))
         stop('Wrong input for `device_id` parameter.')
     else if(options$device_id%%1 != 0 | options$device_id<0)
@@ -292,7 +291,7 @@ check_runtime_options <- function(options) {
 #' `rkeops` uses two sets of options: compile options `rkeops_dir`, 
 #' `build_dir`, `src_dir`, `precision`, `verbosity`, `use_cuda_if_possible` 
 #' (see [rkeops::compile_options()]), and runtime options `tagCpuGpu`, 
-#' `tag1D2D`, `device_id` (see [rkeops::runtime_options()]).
+#' `tag1D2D`, `tagHostDevice`, `device_id` (see [rkeops::runtime_options()]).
 #' 
 #' These options define the behavior of `rkeops` when compiling or when 
 #' running new user-defined operators.
