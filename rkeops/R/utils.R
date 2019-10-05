@@ -1,3 +1,16 @@
+#' Clean build directory
+#' @description
+#' Remove all shared object files generated from compilations of user-defined 
+#' operators.
+#' @details
+#' FIXME
+#' @author Ghislain Durif
+#' @export
+clean_rkeops <- function() {
+    file_list <- list.files(get_build_dir())
+    file.remove(file.path(get_build_dir(), file_list))
+}
+
 #' Create name of shared library from formula and arguments
 #' @description
 #' Using input formula and arguments along with current value of "precision" 
