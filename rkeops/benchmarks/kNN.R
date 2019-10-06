@@ -29,7 +29,7 @@ KNNExample = function(N,Ntest,D,K)
     var2 = paste('y = Vj(',D,')',sep="") # First arg   : j-variable, of size D
     variables = c(var1,var2)
     
-    #my_routine_keops = keops_kernel(formula, variables)
+    my_routine_keops = keops_kernel(formula, variables)
     
     my_routine_nokeops = function(x,y)
     {
