@@ -32,8 +32,8 @@ KMeansExample = function(N,D,K,Niter=10)
     x = matrix(runif(N*D),D,N)
     
     formula = 'ArgMin_Reduction(SqDist(x,y),1)'
-    var1 = paste('x = Vi(',D,')',sep="") # First arg   : i-variable, of size D
-    var2 = paste('y = Vj(',D,')',sep="") # First arg   : j-variable, of size D
+    var1 = paste('x=Vi(',D,')',sep="") # First arg   : i-variable, of size D
+    var2 = paste('y=Vj(',D,')',sep="") # First arg   : j-variable, of size D
     variables = c(var1,var2)
     
     my_routine_keops = keops_kernel(formula, variables)

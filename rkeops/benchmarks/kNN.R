@@ -25,8 +25,8 @@ KNNExample = function(N,Ntest,D,K)
     cly = matrix(sample(0:1,N,rep=TRUE),1,N)
     
     formula = paste('ArgKMin_Reduction(SqDist(x,y),',K,',1)',sep="")
-    var1 = paste('x = Vi(',D,')',sep="") # First arg   : i-variable, of size D
-    var2 = paste('y = Vj(',D,')',sep="") # First arg   : j-variable, of size D
+    var1 = paste('x=Vi(',D,')',sep="") # First arg   : i-variable, of size D
+    var2 = paste('y=Vj(',D,')',sep="") # First arg   : j-variable, of size D
     variables = c(var1,var2)
     
     my_routine_keops = keops_kernel(formula, variables)
