@@ -26,6 +26,15 @@
 #' @importFrom stringr str_count str_detect str_extract str_split
 #' @export
 format_var_aliases <- function(args) {
+	
+	if(length(args) == 0) {
+		out <- list(var_name = NULL, 
+                var_type = NULL, 
+                var_pos = NULL, 
+                var_dim = NULL,
+                var_aliases = "")
+        return(out)
+    }
     
     # check input type
     if(any(!is.character(args)))
