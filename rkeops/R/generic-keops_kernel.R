@@ -33,10 +33,11 @@
 #' }
 #' @export
 keops_kernel <- function(formula, args) {
+
     # check input
     if(!is.character(formula))
         stop("`formula` input parameter should be a text string")
-    if(!is.vector(args) & !is.character(args))
+    if(!(length(args)==0 | (is.vector(args) & is.character(args))))
         stop("`args` input parameter should be a vector of text strings")
     
     # check formula and args formating

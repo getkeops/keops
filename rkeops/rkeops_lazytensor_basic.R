@@ -124,8 +124,7 @@ reduction.LazyTensor = function(x,opstr,index)
     formula = paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
     args = c()
     op = keops_kernel(formula,args)
-    param <- list(tagCpuGpu=0, tag1D2D=0, tagHostDevice=0, Device_Id=0, nx=x$ni, ny=x$nj)
-    res = op(x$vars,param)
+    res = op(x$vars,nx=x$ni,ny=x$nj)
 }
 
 Sum <- function(obj,index) 
@@ -156,18 +155,18 @@ D = 3
 M = 100
 N = 150
 E = 4
-x = matrix(runif(M,D), nrow=D)
-y = matrix(runif(N,D), nrow=D)
-b = matrix(runif(N,E), nrow=E)
+x = matrix(runif(M*D), nrow=D)
+y = matrix(runif(N*D), nrow=D)
+b = matrix(runif(N*E), nrow=E)
 s = 0.25
 
 # creating LazyTensor objects from matrices
 x_i  = LazyTensor(x,index='i')  
-x_j  = LazyTensor(x,index='j')
+y_j  = LazyTensor(y,index='j')
 b_j  = LazyTensor(b,index='j')
 
 # Symbolic matrix of squared distances: 
-D_ij = Sum( (x_i - x_j)^2 )
+D_ij = Sum( (x_i - y_j)^2 )
 
 # Symbolic Gaussian kernel matrix:
 K_ij = Exp( - D_ij / (2 * s^2) )
