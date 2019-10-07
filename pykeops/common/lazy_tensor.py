@@ -816,6 +816,25 @@ class LazyTensor:
         the scalar product of ``x`` and ``y`` which are assumed to have the same shape.    
         """
         return LazyTensor.binary(other, self, "|", is_operator=True, dimres=1, dimcheck="same")
+
+    
+    def __mod__(self, other):
+        r"""
+        Broadcasted elementwise (float) modulo - a binary operation. 
+        
+        ``x % y`` returns a :class:`LazyTensor` that encodes, symbolically, 
+        the elementwise float modulo of ``x`` and ``y``.
+        """
+        return self.binary(other, "%", is_operator=True)
+    
+    def __rmod__(self, other):
+        r"""
+        Broadcasted elementwise (float) modulo - a binary operation. 
+        
+        ``x % y`` returns a :class:`LazyTensor` that encodes, symbolically, 
+        the elementwise float modulo of ``x`` and ``y``.
+        """
+        return LazyTensor.binary(other, self, "%", is_operator=True)
     
     # Unary arithmetics --------------------------------------------------------
     

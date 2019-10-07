@@ -10,6 +10,7 @@
 #include "core/formulas/maths/Concat.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Mult.h"
+#include "core/formulas/maths/Mod.h"
 #include "core/formulas/maths/ScalOrMult.h"
 #include "core/formulas/maths/Subtract.h"
 #include "core/formulas/maths/Exp.h"

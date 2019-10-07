@@ -26,7 +26,7 @@ template<class FA, class FB>
 struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
   // FA and FB are vectors with same size, Output has the same size
   static const int DIM = FA::DIM;
-  static_assert(FA::DIM == DIM, "Dimensions of FA and FB must be the same for Mult");
+  static_assert(FB::DIM == DIM, "Dimensions of FA and FB must be the same for Mult");
 
   static void PrintIdString(::std::stringstream &str) {
     str << "*";
