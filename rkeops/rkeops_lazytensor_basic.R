@@ -103,7 +103,17 @@ binaryop.LazyTensor = function(x,y,opstr)
     Sum( x*y, index = 'j')
 }
 
-exp.LazyTensor = function(x)
+Exp <- function(obj,index) 
+{
+    UseMethod("Exp")
+}
+
+Exp.default <- function(obj,index) 
+{
+    cat("This is a generic function\n")
+}
+
+Exp.LazyTensor = function(x)
 {
     obj = unaryop.LazyTensor(x,"Exp")
 }
@@ -112,7 +122,7 @@ reduction.LazyTensor = function(x,opstr,index)
 {
     if(index=="i") tag=0 else tag=1 
     formula = paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
-    args = c("")
+    args = c()
     op = keops_kernel(formula,args)
     param <- list(tagCpuGpu=0, tag1D2D=0, tagHostDevice=0, Device_Id=0, nx=x$ni, ny=x$nj)
     res = op(x$vars,param)
