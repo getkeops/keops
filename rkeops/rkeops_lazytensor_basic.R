@@ -96,6 +96,13 @@ binaryop.LazyTensor = function(x,y,opstr)
     obj = binaryop.LazyTensor(x,y,"/")
 }
 
+"%*%.default" = .Primitive("%*%") # assign default as current definition
+
+"%*%" = function(x,...)
+{ 
+    UseMethod("%*%",x)
+}
+
 "%*%.LazyTensor" = function(x,y)
 {
     if(is.matrix(y))
@@ -153,7 +160,7 @@ Sum.LazyTensor = function(x,index=NA)
 
 D = 3
 M = 100
-N = 150
+N = 100
 E = 4
 x = matrix(runif(M*D), nrow=D)
 y = matrix(runif(N*D), nrow=D)
@@ -163,13 +170,26 @@ s = 0.25
 # creating LazyTensor objects from matrices
 x_i  = LazyTensor(x,index='i')  
 y_j  = LazyTensor(y,index='j')
-b_j  = LazyTensor(b,index='j')
+b_j  = b
 
 # Symbolic matrix of squared distances: 
-D_ij = Sum( (x_i - y_j)^2 )
+SqDist_ij = Sum( (x_i - y_j)^2 )
 
 # Symbolic Gaussian kernel matrix:
-K_ij = Exp( - D_ij / (2 * s^2) )
+K_ij = Exp( - SqDist_ij / (2 * s^2) )
 
 # Genuine matrix: 
-v = Sum(K_ij * b_j, index='j')  
+v = K_ij %*% b_j
+
+# we compare to standard R computation
+SqDist = 0
+onesM = matrix(1,M,1)
+onesN = matrix(1,N,1)
+for(k in 1:D)
+    SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))**2
+K = exp(-SqDist/(2*s^2))
+v2 = K %*% b   
+
+print(mean(abs(v-v2)))
+
+
