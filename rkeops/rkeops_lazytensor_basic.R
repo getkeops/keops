@@ -10,6 +10,7 @@ LazyTensor = function(x,index)
     if(is.matrix(x))
     {
         # x is matrix, treated as indexed variable, so index must be "i" or "j"
+		x = t(x)
         d = nrow(x)
         if(index=='i')
         {
@@ -27,7 +28,7 @@ LazyTensor = function(x,index)
         # assume x is numeric vector, treated as parameter, then converted to matrix
         d = length(x)
         cat = 2
-        x = matrix(x)
+        x = t(matrix(x))
     }
     formula = paste('Var(0,',d,',',cat,')', sep="")
     vars = list(x)
@@ -131,7 +132,7 @@ reduction.LazyTensor = function(x,opstr,index)
     formula = paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
     args = c()
     op = keops_kernel(formula,args)
-    res = op(x$vars,nx=x$ni,ny=x$nj)
+    res = t(op(x$vars,nx=x$ni,ny=x$nj))
 }
 
 Sum <- function(obj,index) 
@@ -162,9 +163,9 @@ D = 3
 M = 100
 N = 150
 E = 4
-x = matrix(runif(M*D), nrow=D)
-y = matrix(runif(N*D), nrow=D)
-b = matrix(runif(N*E), nrow=E)
+x = matrix(runif(M*D),M,D)
+y = matrix(runif(N*D),N,D)
+b = matrix(runif(N*E),N,E)
 s = 0.25
 
 # creating LazyTensor objects from matrices
@@ -183,12 +184,12 @@ v = K_ij %*% b_j
 
 # we compare to standard R computation
 SqDist = 0
-onesM = matrix(1,M,1)
-onesN = matrix(1,N,1)
+onesM = matrix(1,1,M)
+onesN = matrix(1,1,N)
 for(k in 1:D)
-    SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
+    SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
 K = exp(-SqDist/(2*s^2))
-v2 = t(t(K) %*% t(b))   
+v2 = K %*% b   
 
 print(mean(abs(v-v2)))
 
