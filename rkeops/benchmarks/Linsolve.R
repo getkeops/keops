@@ -15,15 +15,15 @@ library(class)
 
 library(rkeops)
 
-set_rkeops_option("tagCpuGpu", 1)
+set_rkeops_option("tagCpuGpu", 0)
 set_rkeops_option("precision", "double")
 
-ConjugateGradientSolver = function(linop, b, eps=1e-6)
+ConjugateGradientSolver = function(linop, b, tol)
 {
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
-    delta = length(b) * eps ^ 2
+    delta = length(b) * tol ^ 2
     a = 0
     r = b
     nr2 = sum(r^2)
@@ -48,9 +48,9 @@ ConjugateGradientSolver = function(linop, b, eps=1e-6)
 }
 
 
-LinsolveExample = function(N,D,alpha=0)
+LinsolveExample = function(N,D,alpha,tol)
 {
-    print(paste("Gaussian kernel system solver with N=",N,", D=",D,", alpha=,",alpha,sep=""))
+    print(paste("Gaussian kernel system solver with N=",N,", D=",D,", alpha=",alpha,", tol=",tol,sep=""))
 
     x = matrix(runif(N*D),D,N)
     b = matrix(runif(N),1,N)
@@ -65,56 +65,54 @@ LinsolveExample = function(N,D,alpha=0)
     
     my_routine_keops = keops_kernel(formula, variables)
     
-    my_routine_nokeops = function(x,y,b,lambda)
+    my_routine_nokeops = function(args,nx,ny)
     {
-        M = ncol(x)
-	N = ncol(y)
-	out = matrix(0,D,N)
-	for(i in 1:M)
-		for(j in 1:N)
-			out[,i] = out[,i] + exp(-lambda*sum((x[,i]-y[,j])^2))*b[,j]
-	out
+      x = args[[1]]
+      y = args[[2]]
+      b = args[[3]]
+      lambda = args[[4]]
+      M = ncol(x)
+      N = ncol(y)
+      SqDist = matrix(0,M,N)
+      onesM = matrix(1,M,1)
+      onesN = matrix(1,N,1)
+      for(k in 1:D)
+        SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
+      K = exp(-lambda[1]*SqDist)
+      out = t(t(K) %*% t(b)) 
     }
     
-    my_routine = my_routine_keops
+    my_routine = my_routine_nokeops
 
     my_linop = function(b)
-	    my_routine(x,x,b,lambda) + alpha*b
+	    my_routine(list(x,x,b,lambda),N,N) + alpha*b
     
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
     dum2 = matrix(runif(10),nrow=1)
-    my_routine(dum,dum,dum2,lambda)
-    my_routine(dum,dum,dum2,lambda)
+    my_routine(list(dum,dum,dum2,lambda),10,10)
+    my_routine(list(dum,dum,dum2,lambda),10,10)
     
     start = Sys.time()
-    inds = my_routine(x,y)
-    cl1 = round(colMeans(matrix(cly[inds],K,Ntest)))
+    out1 = ConjugateGradientSolver(my_linop,b,tol=tol)
     end = Sys.time()
     res = end-start
     
     # compare with standard R implementation via matrices
     start = Sys.time()
-        M = ncol(x)
-	N = ncol(y)
-        SqDist = matrix(0,M,N)
-	onesM = matrix(1,M,1)
+        N = ncol(x)
+        SqDist = matrix(0,N,N)
 	onesN = matrix(1,N,1)
         for(k in 1:D)
-            SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))**2
-        K = exp(-lambda*SqDist)
-	out2 = K %*% b   
+            SqDist = SqDist + (onesN %*% x[k,] - t(onesN %*% x[k,]))**2
+        K = exp(-lambda[1]*SqDist) + alpha*diag(N)
+	out2 = t(solve(t(K),t(b),tol=tol))   
     end = Sys.time()
     res = c(res,end-start)
     
-    # compare with standard R implementation via loops
+    # compare with other R implementation ?
     start = Sys.time()
-        M = ncol(x)
-	N = ncol(y)
-	out3 = matrix(0,D,N)
-	for(i in 1:M)
-		for(j in 1:N)
-			out3[,i] = out3[,i] + exp(-lambda*sum((x[,i]-y[,j])^2))*b[,j]
+    out3 = out2
     end = Sys.time()
     res = c(res,end-start)
     
@@ -123,13 +121,14 @@ LinsolveExample = function(N,D,alpha=0)
     res
 }
 
-Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
+#Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
+Ns = c(100,200,500)
 nN = length(Ns)
 res = matrix(0,nN,4)
-colnames(res) = c("Npoints","GaussConv(KeOps)","GaussConv(matrices)","GaussConv(loops)")
+colnames(res) = c("Npoints","GaussConv(KeOps)","GaussConv(matrices)","GaussConv(other)")
 res[,1] = Ns
 for(l in 1:nN)
-    res[l,2:4] =GaussConvExample(M=Ns[l],N=Ns[l],D=3)
+    res[l,2:4] = LinsolveExample(N=Ns[l],D=3,alpha=1,tol=1e-3)
 res = res[,c(1,3,4,2)]
 print("")
 print("Timings:")

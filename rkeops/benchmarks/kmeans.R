@@ -11,7 +11,7 @@
 
 library(rkeops)
 
-set_rkeops_option("tagCpuGpu", 1)
+set_rkeops_option("tagCpuGpu", 0)
 set_rkeops_option("precision", "double")
 
 indexedSum = function(V,inds,K)
@@ -40,8 +40,8 @@ KMeansExample = function(N,D,K,Niter=10)
 
     my_routine_nokeops = function(args,nx,ny)
     {
-	x = args[1]
-	y = args[2]
+	x = args[[1]]
+	y = args[[2]]
         N = ncol(x)
         cl = rep(0,N)
         for(i in 1:N)
@@ -49,7 +49,7 @@ KMeansExample = function(N,D,K,Niter=10)
         cl
     }
     
-    my_routine = my_routine_keops
+    my_routine = my_routine_nokeops
     
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
@@ -96,7 +96,8 @@ KMeansExample = function(N,D,K,Niter=10)
     res
 }
 
-Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
+#Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
+Ns = c(100,200,500)
 nN = length(Ns)
 res = matrix(0,nN,4)
 colnames(res) = c("Npoints","kmeans(KeOps)","kmeans{stats}","kmeans(caret)")

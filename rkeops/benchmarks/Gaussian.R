@@ -14,7 +14,7 @@ library(class)
 
 library(rkeops)
 
-set_rkeops_option("tagCpuGpu", 1)
+set_rkeops_option("tagCpuGpu", 0)
 set_rkeops_option("precision", "double")
 
 GaussConvExample = function(M,N,D)
@@ -24,7 +24,7 @@ GaussConvExample = function(M,N,D)
     x = matrix(runif(M*D),D,M)
     y = matrix(runif(N*D),D,N)
     b = matrix(runif(N*D),D,N)
-    lambda = matrix(1 / 0.25^2)
+    lambda = matrix(1.0 / 0.25^2)
     
     formula = paste('Sum_Reduction(Exp(-lambda*SqDist(x,y))*b,1)',sep="")
     var1 = paste('x=Vi(',D,')',sep="")  # First arg   : i-variable, of size D
@@ -41,13 +41,15 @@ GaussConvExample = function(M,N,D)
 	y = args[[2]]
 	b = args[[3]]
 	lambda = args[[4]]
-        M = ncol(x)
+	M = ncol(x)
 	N = ncol(y)
-	out = matrix(0,D,M)
-	for(i in 1:M)
-		for(j in 1:N)
-			out[,i] = out[,i] + exp(-lambda*sum((x[,i]-y[,j])^2))*b[,j]
-	out
+	SqDist = matrix(0,M,N)
+	onesM = matrix(1,M,1)
+	onesN = matrix(1,N,1)
+	for(k in 1:D)
+	  SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
+	K = exp(-lambda[1]*SqDist)
+	out = t(t(K) %*% t(b))   
     }
     
     my_routine = my_routine_nokeops
@@ -71,19 +73,14 @@ GaussConvExample = function(M,N,D)
 	onesN = matrix(1,N,1)
         for(k in 1:D)
             SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
-        K = exp(-lambda*SqDist)
+        K = exp(-lambda[1]*SqDist)
 	out2 = t(t(K) %*% t(b))   
     end = Sys.time()
     res = c(res,end-start)
     
-    # compare with standard R implementation via loops
+    # compare with other R implementation ?
     start = Sys.time()
-        M = ncol(x)
-	N = ncol(y)
-	out3 = matrix(0,D,N)
-	for(i in 1:M)
-		for(j in 1:N)
-			out3[,i] = out3[,i] + exp(-lambda*sum((x[,i]-y[,j])^2))*b[,j]
+    out3 = out2
     end = Sys.time()
     res = c(res,end-start)
     
@@ -96,7 +93,7 @@ GaussConvExample = function(M,N,D)
 Ns = c(100,200,500)
 nN = length(Ns)
 res = matrix(0,nN,4)
-colnames(res) = c("Npoints","GaussConv(KeOps)","GaussConv(matrices)","GaussConv(loops)")
+colnames(res) = c("Npoints","GaussConv(KeOps)","GaussConv(matrices)","GaussConv(other)")
 res[,1] = Ns
 for(l in 1:nN)
     res[l,2:4] =GaussConvExample(M=Ns[l],N=Ns[l],D=3)

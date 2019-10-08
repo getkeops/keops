@@ -13,12 +13,12 @@ library(class)
 
 library(rkeops)
 
-set_rkeops_option("tagCpuGpu", 1)
+set_rkeops_option("tagCpuGpu", 0)
 set_rkeops_option("precision", "double")
 
 KNNExample = function(N,Ntest,D,K)
 {
-    print(paste("k-NN with N=",N,", Ntest=,",Ntest,", D=,",D,", K=",K,sep=""))
+    print(paste("k-NN with N=",N,", Ntest=,",Ntest,", D=",D,", K=",K,sep=""))
 
     x = matrix(runif(Ntest*D),D,Ntest)
     y = matrix(runif(N*D),D,N)
@@ -33,8 +33,8 @@ KNNExample = function(N,Ntest,D,K)
     
     my_routine_nokeops = function(args,nx,ny)
     {
-	x = args[1]
-	y = args[2]
+	x = args[[1]]
+	y = args[[2]]
         N = ncol(x)
         inds = matrix(0,K,N)
         for(i in 1:N)
@@ -42,7 +42,7 @@ KNNExample = function(N,Ntest,D,K)
         inds
     }
     
-    my_routine = my_routine_keops
+    my_routine = my_routine_nokeops
     
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
@@ -75,7 +75,8 @@ KNNExample = function(N,Ntest,D,K)
     res
 }
 
-Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
+#Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
+Ns = c(100,200,500)
 nN = length(Ns)
 res = matrix(0,nN,4)
 colnames(res) = c("Npoints","kNN(KeOps)","kNN{class}","kNN(caret)")
