@@ -31,6 +31,7 @@ include(${KEOPS_SRC_DIR}/cuda.cmake)
 set(SOURCE_FILES
     ${KEOPS_SRC_DIR}
     ${BINDER_SRC_DIR}
+    ${PROJECT_BINARY_DIR}
 )
 
 ## include
