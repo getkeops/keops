@@ -100,10 +100,16 @@ KMeansExample = function(N,D,K,Niter=10)
 Ns = c(100,200,500)
 nN = length(Ns)
 res = matrix(0,nN,4)
-colnames(res) = c("Npoints","kmeans(KeOps)","kmeans{stats}","kmeans(caret)")
+colnames(res) = c("Npoints","R (K****)","R (kmeans{stats})","R other")
 res[,1] = Ns
+Ntry = 10
 for(l in 1:nN)
-    res[l,2:4] = KMeansExample(N=Ns[l],D=100,K=floor(sqrt(Ns[l])))
+{
+    resl = 0
+    for(i in 1:Ntry)
+        resl = resl + KMeansExample(N=Ns[l],D=100,K=floor(sqrt(Ns[l])))
+    res[l,2:4] = resl / Ntry
+}
 res = res[,c(1,3,4,2)]
 print("")
 print("Timings:")

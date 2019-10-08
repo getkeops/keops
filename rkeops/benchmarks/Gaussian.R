@@ -93,10 +93,16 @@ GaussConvExample = function(M,N,D)
 Ns = c(100,200,500)
 nN = length(Ns)
 res = matrix(0,nN,4)
-colnames(res) = c("Npoints","GaussConv(KeOps)","GaussConv(matrices)","GaussConv(other)")
+colnames(res) = c("Npoints","R (K****)","R","R other")
 res[,1] = Ns
+Ntry = 10
 for(l in 1:nN)
-    res[l,2:4] =GaussConvExample(M=Ns[l],N=Ns[l],D=3)
+{
+    resl = 0
+    for(i in 1:Ntry)
+        resl = resl + GaussConvExample(M=Ns[l],N=Ns[l],D=3)
+    res[l,2:4] = resl / Ntry
+}
 res = res[,c(1,3,4,2)]
 print("")
 print("Timings:")

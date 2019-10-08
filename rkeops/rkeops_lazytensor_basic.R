@@ -128,7 +128,7 @@ Exp.LazyTensor = function(x)
 
 reduction.LazyTensor = function(x,opstr,index)
 {
-    if(index=="i") tag=0 else tag=1 
+    if(index=="i") tag=1 else tag=0
     formula = paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
     args = c()
     op = keops_kernel(formula,args)
