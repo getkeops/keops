@@ -73,12 +73,13 @@ KMeansExample = function(N,D,K,Niter=10)
         cl_old = cl
     }
     cl1 = cl
+
     end = Sys.time()
     res = end-start
         
     # compare with standard R kmeans (library stats)
     start = Sys.time()
-    cl2 = kmeans(t(x),t(x[,1:K]),iter.max = Niter)$clusters
+    cl2 = kmeans(t(x),t(x[,1:K]),iter.max = Niter)$cluster
     end = Sys.time()
     res = c(res,end-start)
     
