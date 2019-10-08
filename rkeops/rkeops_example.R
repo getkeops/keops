@@ -23,8 +23,8 @@ op <- keops_kernel(formula, args)
 
 n <- 10
 p <- 15
-x <- matrix(runif(n*3), ncol=n)
-y <- matrix(runif(p*3), ncol=p)
+x <- matrix(runif(n*3),3,n)
+y <- matrix(runif(p*3),3,p)
 
 input <- list(x, y)
 res <- op(input, nx=ncol(x), ny=ncol(y))
@@ -40,8 +40,8 @@ op <- keops_kernel(formula, args)
 
 n <- 10
 p <- 15
-x <- matrix(runif(n*3), ncol=n)
-y <- matrix(runif(p*3), ncol=p)
+x <- matrix(runif(n*3),3,n)
+y <- matrix(runif(p*3),3,p)
 
 input <- list(x, y)
 res <- op(input, nx=ncol(x), ny=ncol(y))
@@ -57,9 +57,9 @@ op <- keops_kernel(formula, args)
 
 nx = 1000
 ny = 1500
-x <- matrix(runif(nx*3), ncol=nx)
-y <- matrix(runif(ny*3), ncol=ny)
-beta <- matrix(runif(ny*3), ncol=ny)
+x <- matrix(runif(nx*3),3,nx)
+y <- matrix(runif(ny*3),3,ny)
+beta <- matrix(runif(ny*3),3,ny)
 
 lambda <- as.matrix(5)
 
