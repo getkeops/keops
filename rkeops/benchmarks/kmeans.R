@@ -66,7 +66,12 @@ KMeansExample = function(N,D,K,Niter=10)
         cl = 1 + as.integer(as.vector(my_routine(list(x,C),N,K)))
         if(all(cl==cl_old)) break;
         x_ = rbind(x,rep(1,N))
-        C = indexedSum(x_,cl,K)
+        #C = indexedSum(x_,cl,K)
+        C = matrix(0,D+1,K)
+        for(k in 1:K)
+        {
+            C[,k] = rowMeans(as.matrix(x_[,cl==k]))
+        }
         for(d in 1:D)
             C[d,] = C[d,] / C[D+1,]
         C = C[1:D,]
@@ -88,7 +93,12 @@ KMeansExample = function(N,D,K,Niter=10)
         cl = 1 + as.integer(as.vector(my_routine(list(x,C),N,K)))
         if(all(cl==cl_old)) break;
         x_ = rbind(x,rep(1,N))
-        C = indexedSum(x_,cl,K)
+        #C = indexedSum(x_,cl,K)
+        C = matrix(0,D+1,K)
+        for(k in 1:K)
+        {
+            C[,k] = rowMeans(as.matrix(x_[,cl==k]))
+        }
         for(d in 1:D)
             C[d,] = C[d,] / C[D+1,]
         C = C[1:D,]
