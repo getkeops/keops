@@ -15,6 +15,6 @@
 #' @importFrom stringr str_sub
 #' @export
 string2hash <- function(str) {
-    out <- str_sub(sha256(str), start = 1, end = 25)
+    out <- paste("headers", str_sub(sha256(str), start = 1, end = 25), sep="")
     return(out)
 }
