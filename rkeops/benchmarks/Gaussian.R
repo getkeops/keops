@@ -12,8 +12,7 @@
 
 library(rkeops)
 
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
+set_rkeops_option("tagCpuGpu", 1)
 
 GaussConvExample = function(M,N,D)
 {
@@ -31,7 +30,10 @@ GaussConvExample = function(M,N,D)
     var4 = paste('lambda=Pm(1)',sep="") # Fourth arg  : parameter, of size 1
     variables = c(var1,var2,var3,var4)
     
-    my_routine_keops = keops_kernel(formula, variables)
+    set_rkeops_option("precision", "float")
+    my_routine_keops_float = keops_kernel(formula, variables)
+    set_rkeops_option("precision", "double")
+    my_routine_keops_double = keops_kernel(formula, variables)
     
     my_routine_nokeops = function(args,nx,ny)
     {
@@ -50,7 +52,7 @@ GaussConvExample = function(M,N,D)
 	out = t(t(K) %*% t(b)) 
     }
     
-    my_routine = my_routine_keops
+    my_routine = my_routine_keops_float
     
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
@@ -61,9 +63,17 @@ GaussConvExample = function(M,N,D)
     out1 = my_routine(list(x,y,b,lambda),M,N)
     end = Sys.time()
     res = end-start
+
+    my_routine = my_routine_keops_double
+    start = Sys.time()
+    out2 = my_routine(list(x,y,b,lambda),M,N)
+    end = Sys.time()
+    res = c(res,end-start)
     
     # compare with standard R implementation via matrices
-    start = Sys.time()
+    if(M<15000)
+    {
+        start = Sys.time()
         M = ncol(x)
 	N = ncol(y)
         SqDist = matrix(0,M,N)
@@ -72,26 +82,22 @@ GaussConvExample = function(M,N,D)
         for(k in 1:D)
             SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
         K = exp(-lambda[1]*SqDist)
-	out2 = t(t(K) %*% t(b))
-    end = Sys.time()
-    res = c(res,end-start)
-    
-    # compare with other R implementation ?
-    start = Sys.time()
-    out3 = out2
-    end = Sys.time()
-    res = c(res,end-start)
+	out3 = t(t(K) %*% t(b))
+        end = Sys.time()
+        res = c(res,end-start)
+    }
+    else
+        res = c(res,NA)
     
     print(paste("mean errors : ",mean(abs(out1-out2)),", ",mean(abs(out2-out3)),")",sep=""))
    
     res
 }
 
-# Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
-Ns = c(100,200,500,1000,2000,5000,10000)
+Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
 nN = length(Ns)
 res = matrix(0,nN,4)
-colnames(res) = c("Npoints","R (K****)","R","R other")
+colnames(res) = c("Npoints","R (K**** float)","R (K**** double)","R")
 res[,1] = Ns
 Ntry = 1
 for(l in 1:nN)
@@ -101,7 +107,7 @@ for(l in 1:nN)
         resl = resl + GaussConvExample(M=Ns[l],N=Ns[l],D=3)
     res[l,2:4] = resl / Ntry
 }
-res = res[,c(1,3,4,2)]
+res = res[,c(1,4,2,3)]
 print("")
 print("Timings:")
 print(res)
