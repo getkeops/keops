@@ -6,11 +6,11 @@
 # We define a dataset of N points in R^D, then apply a simple k-means algorithm.
 
 
-devtools::install("../../rkeops")
+#devtools::install("../../rkeops")
 
 library(rkeops)
 
-set_rkeops_option("tagCpuGpu", )
+set_rkeops_option("tagCpuGpu",1)
 
 indexedSum = function(V,inds,K)
 {
@@ -26,7 +26,7 @@ indexedSum = function(V,inds,K)
 
 KMeansExample = function(N,D,K,Niter=10)
 {
-    print(paste("k-means with N=",N,", D=,",D,", K=",K,", Niter=",Niter,sep=""))
+    print(paste("k-means with N=",N,", D=",D,", K=",K,", Niter=",Niter,sep=""))
     x = matrix(runif(N*D),D,N)
     
     formula = 'ArgMin_Reduction(SqDist(x,y),0)'
