@@ -55,7 +55,7 @@ __TYPEARRAY__ allocate_result_array(int* shape_out, int nbatchdims) {
     // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
     std::vector< int > shape_vector(shape_out, shape_out + nbatchdims + 2);
     // assume 2d array = matrix
-    return __TYPEARRAY__(shape_vector[0], shape_vector[1]);
+    return __TYPEARRAY__(shape_vector[1], shape_vector[0]);
 }
 
 #if USE_CUDA
