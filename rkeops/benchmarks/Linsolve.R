@@ -80,7 +80,7 @@ LinsolveExample = function(N,D,alpha,tol)
       out = t(t(K) %*% t(b)) 
     }
     
-    my_routine = my_routine_nokeops
+    my_routine = my_routine_keops
 
     my_linop = function(b)
 	    my_routine(list(x,x,b,lambda),N,N) + alpha*b
