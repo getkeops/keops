@@ -79,10 +79,16 @@ KNNExample = function(N,Ntest,D,K)
 Ns = c(100,200,500)
 nN = length(Ns)
 res = matrix(0,nN,4)
-colnames(res) = c("Npoints","kNN(KeOps)","kNN{class}","kNN(caret)")
+colnames(res) = c("Npoints","R (K****)","R (kNN{class})","R other")
 res[,1] = Ns
+Ntry = 10
 for(l in 1:nN)
-    res[l,2:4] = KNNExample(N=Ns[l],Ntest=10000,D=100,K=10)
+{
+    resl = 0
+    for(i in 1:Ntry)
+        resl = resl + KNNExample(N=Ns[l],Ntest=10000,D=100,K=10)
+    res[l,2:4] = resl / Ntry
+}
 res = res[,c(1,3,4,2)]
 print("")
 print("Timings:")
