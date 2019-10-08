@@ -87,7 +87,10 @@ GaussConvExample = function(M,N,D)
         res = c(res,end-start)
     }
     else
-        res = c(res,NA)
+    {
+        res = c(res,NaN)
+        out3 = out1
+    }
     
     print(paste("mean errors : ",mean(abs(out1-out2)),", ",mean(abs(out2-out3)),")",sep=""))
    

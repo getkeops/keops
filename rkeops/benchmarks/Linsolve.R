@@ -13,8 +13,7 @@
 
 library(rkeops)
 
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
+set_rkeops_option("tagCpuGpu", 1)
 
 ConjugateGradientSolver = function(linop, b, tol)
 {
@@ -61,7 +60,11 @@ LinsolveExample = function(N,D,alpha,tol)
     var4 = paste('lambda=Pm(1)',sep="") # Fourth arg  : parameter, of size 1
     variables = c(var1,var2,var3,var4)
     
-    my_routine_keops = keops_kernel(formula, variables)
+    set_rkeops_option("precision", "float")
+    my_routine_keops_float = keops_kernel(formula, variables)
+    
+    set_rkeops_option("precision", "double")
+    my_routine_keops_double = keops_kernel(formula, variables)
     
     my_routine_nokeops = function(args,nx,ny)
     {
@@ -80,7 +83,7 @@ LinsolveExample = function(N,D,alpha,tol)
       out = t(t(K) %*% t(b)) 
     }
     
-    my_routine = my_routine_keops
+    my_routine = my_routine_keops_float
 
     my_linop = function(b)
 	    my_routine(list(x,x,b,lambda),N,N) + alpha*b
@@ -95,18 +98,36 @@ LinsolveExample = function(N,D,alpha,tol)
     out1 = ConjugateGradientSolver(my_linop,b,tol=tol)
     end = Sys.time()
     res = end-start
+
+    my_routine = my_routine_keops_double
+
+    my_linop = function(b)
+	    my_routine(list(x,x,b,lambda),N,N) + alpha*b
+
+    start = Sys.time()
+    out2 = ConjugateGradientSolver(my_linop,b,tol=tol)
+    end = Sys.time()
+    res = end-start
     
     # compare with standard R implementation via matrices
-    start = Sys.time()
+    if(N<7000)
+    {
+        start = Sys.time()
         N = ncol(x)
         SqDist = matrix(0,N,N)
 	onesN = matrix(1,N,1)
         for(k in 1:D)
             SqDist = SqDist + (onesN %*% x[k,] - t(onesN %*% x[k,]))**2
         K = exp(-lambda[1]*SqDist) + alpha*diag(N)
-	out2 = t(solve(t(K),t(b),tol=tol))   
-    end = Sys.time()
-    res = c(res,end-start)
+	out3 = t(solve(t(K),t(b),tol=tol))   
+        end = Sys.time()
+        res = c(res,end-start)
+    }
+    else
+    {
+        res = c(res,NaN)
+        out3 = out1
+    }
     
     # compare with other R implementation ?
     start = Sys.time()
@@ -119,11 +140,10 @@ LinsolveExample = function(N,D,alpha,tol)
     res
 }
 
-#Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
-Ns = c(100,200,500)
+Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
 nN = length(Ns)
 res = matrix(0,nN,4)
-colnames(res) = c("Npoints","R (K****)","R (solve{base})","R other")
+colnames(res) = c("Npoints","R (K**** float)","R (K**** double)","R (solve{base})")
 res[,1] = Ns
 Ntry = 10
 for(l in 1:nN)
@@ -133,7 +153,7 @@ for(l in 1:nN)
         resl = resl + LinsolveExample(N=Ns[l],D=3,alpha=0.8,tol=1e-6)
     res[l,2:4] = resl / Ntry
 }
-res = res[,c(1,3,4,2)]
+res = res[,c(1,4,2,3)]
 print("")
 print("Timings:")
 print(res)
