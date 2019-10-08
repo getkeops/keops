@@ -19,7 +19,7 @@ set_rkeops_option("precision", "double")
 
 GaussConvExample = function(M,N,D)
 {
-    print(paste("Gaussian convolution with M=",N,", N=,",N,", D=,",D,sep=""))
+    print(paste("Gaussian convolution with M=",M,", N=,",N,", D=,",D,sep=""))
 
     x = matrix(runif(M*D),D,M)
     y = matrix(runif(N*D),D,N)
@@ -86,7 +86,7 @@ GaussConvExample = function(M,N,D)
     if(all(out1==out2)&all(out2==out3))
         print("OK same results")
     else
-        print(paste("NOT OK : different results !! (",100*mean(cl1==cl2)," % agree)",sep=""))
+        print(paste("NOT OK : different results !! (",100*mean(out1==out2)," % agree)",sep=""))
     
     res
 }

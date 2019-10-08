@@ -160,7 +160,7 @@ Sum.LazyTensor = function(x,index=NA)
 
 D = 3
 M = 100
-N = 100
+N = 150
 E = 4
 x = matrix(runif(M*D), nrow=D)
 y = matrix(runif(N*D), nrow=D)
@@ -188,7 +188,7 @@ onesN = matrix(1,N,1)
 for(k in 1:D)
     SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
 K = exp(-SqDist/(2*s^2))
-v2 = K %*% b   
+v2 = t(t(K) %*% t(b))   
 
 print(mean(abs(v-v2)))
 
