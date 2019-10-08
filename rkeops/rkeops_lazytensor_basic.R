@@ -186,7 +186,7 @@ SqDist = 0
 onesM = matrix(1,M,1)
 onesN = matrix(1,N,1)
 for(k in 1:D)
-    SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))**2
+    SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
 K = exp(-SqDist/(2*s^2))
 v2 = K %*% b   
 
