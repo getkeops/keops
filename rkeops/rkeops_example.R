@@ -21,18 +21,35 @@ args = c("x=Vi(3)", "y=Vj(3)")
 
 op <- keops_kernel(formula, args)
 
-n = 10
+n <- 10
+p <- 15
 x <- matrix(runif(n*3), ncol=n)
-y <- matrix(runif(n*3), ncol=n)
-beta <- matrix(runif(n*3), ncol=n)
-lambda <- 5e-3
+y <- matrix(runif(p*3), ncol=p)
 
 input <- list(x, y)
 res <- op(input, nx=ncol(x), ny=ncol(y))
+str(res)
 expected_res <- apply(t(x) %*% y, 2, sum)
 sum(abs(res - expected_res))
 
-## exemple 2 : fails with malloc(): memory corruption.. Abandon (core dumped) !!!!!
+## exemple 2
+formula = "Sum_Reduction((x|y), 0)"
+args = c("x=Vi(3)", "y=Vj(3)")
+
+op <- keops_kernel(formula, args)
+
+n <- 10
+p <- 15
+x <- matrix(runif(n*3), ncol=n)
+y <- matrix(runif(p*3), ncol=p)
+
+input <- list(x, y)
+res <- op(input, nx=ncol(x), ny=ncol(y))
+str(res)
+expected_res <- apply(t(x) %*% y, 1, sum)
+sum(abs(res - expected_res))
+
+## exemple 3
 formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)"
 args = c("x=Vi(3)", "y=Vj(3)", "beta=Vj(3)", "lambda=Pm(1)")
 

@@ -96,7 +96,7 @@ array_t generic_red(
     for (size_t i = 0; i < keops::NARGS; i++)
         castedargs[i] = input[i].get_data();
     
-    int shape_output[2] = {keops::TAGIJ ? nx : ny, keops::DIMOUT};
+    int shape_output[2] = {keops::TAGIJ ? ny : nx, keops::DIMOUT};
     
     // Call Cuda codes =========================================================
     array_t result = launch_keops< array_t >(
