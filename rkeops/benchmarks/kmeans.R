@@ -38,8 +38,10 @@ KMeansExample = function(N,D,K,Niter=10)
     
     my_routine_keops = keops_kernel(formula, variables)
 
-    my_routine_nokeops = function(x,y)
+    my_routine_nokeops = function(args,nx,ny)
     {
+	x = args[1]
+	y = args[2]
         N = ncol(x)
         cl = rep(0,N)
         for(i in 1:N)
@@ -51,15 +53,15 @@ KMeansExample = function(N,D,K,Niter=10)
     
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
-    my_routine(dum,dum)
-    my_routine(dum,dum)
+    my_routine(list(dum,dum),10,10)
+    my_routine(list(dum,dum),10,10)
     
     start = Sys.time()
     C = x[,1:K]
     cl_old = rep(0,N)
     for(i in 1:Niter)
     {
-        cl = as.integer(as.vector(my_routine(x,C)))
+        cl = as.integer(as.vector(my_routine(list(x,C),N,K)))
         if(all(cl==cl_old)) break;
         x_ = rbind(x,rep(1,N))
         C = indexedSum(x_,cl,K)

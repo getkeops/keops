@@ -31,8 +31,10 @@ KNNExample = function(N,Ntest,D,K)
     
     my_routine_keops = keops_kernel(formula, variables)
     
-    my_routine_nokeops = function(x,y)
+    my_routine_nokeops = function(args,nx,ny)
     {
+	x = args[1]
+	y = args[2]
         N = ncol(x)
         inds = matrix(0,K,N)
         for(i in 1:N)
@@ -44,11 +46,11 @@ KNNExample = function(N,Ntest,D,K)
     
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
-    my_routine(dum,dum)
-    my_routine(dum,dum)
+    my_routine(list(dum,dum),10,10)
+    my_routine(list(dum,dum),10,10)
     
     start = Sys.time()
-    inds = my_routine(x,y)
+    inds = my_routine(list(x,y),Ntest,N)
     cl1 = round(colMeans(matrix(cly[inds],K,Ntest)))
     end = Sys.time()
     res = end-start
@@ -79,7 +81,7 @@ res = matrix(0,nN,4)
 colnames(res) = c("Npoints","kNN(KeOps)","kNN{class}","kNN(caret)")
 res[,1] = Ns
 for(l in 1:nN)
-    res[,l] = KNNExample(N=Ns[l],Ntest=10000,D=100,K=10)
+    res[l,2:4] = KNNExample(N=Ns[l],Ntest=10000,D=100,K=10)
 res = res[,c(1,3,4,2)]
 print("")
 print("Timings:")

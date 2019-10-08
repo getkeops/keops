@@ -12,7 +12,7 @@ rkeops_option_names()
 
 # to get a specific option: get_rkeops_option(<name>)
 # to set a specific option: set_rkeops_option(<name>, <value>)
-# in particular, to compute on GPU: set_rkeops_option("tagCpuGpu, 1)
+# in particular, to compute on GPU: set_rkeops_option("tagCpuGpu", 1)
 
 
 ## exemple 1
