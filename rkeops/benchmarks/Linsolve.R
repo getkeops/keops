@@ -53,8 +53,8 @@ LinsolveExample = function(N,D,alpha,tol)
     print(paste("Gaussian kernel system solver with N=",N,", D=",D,", alpha=",alpha,", tol=",tol,sep=""))
 
     x = matrix(runif(N*D),D,N)
-    b = matrix(runif(N),1,N)
-    lambda = matrix(1 / 0.25^2)
+    b = matrix(rnorm(N),1,N)
+    lambda = matrix(.5 / 0.01^2)
     
     formula = paste('Sum_Reduction(Exp(-lambda*SqDist(x,y))*b,1)',sep="")
     var1 = paste('x=Vi(',D,')',sep="")  # First arg   : i-variable, of size D
@@ -128,7 +128,7 @@ res = matrix(0,nN,4)
 colnames(res) = c("Npoints","GaussConv(KeOps)","GaussConv(matrices)","GaussConv(other)")
 res[,1] = Ns
 for(l in 1:nN)
-    res[l,2:4] = LinsolveExample(N=Ns[l],D=3,alpha=1,tol=1e-3)
+    res[l,2:4] = LinsolveExample(N=Ns[l],D=3,alpha=0.8,tol=1e-6)
 res = res[,c(1,3,4,2)]
 print("")
 print("Timings:")

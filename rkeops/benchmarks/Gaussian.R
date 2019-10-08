@@ -49,7 +49,7 @@ GaussConvExample = function(M,N,D)
 	for(k in 1:D)
 	  SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
 	K = exp(-lambda[1]*SqDist)
-	out = t(K) %*% t(b) 
+	out = t(t(K) %*% t(b)) 
     }
     
     my_routine = my_routine_keops
@@ -62,9 +62,6 @@ GaussConvExample = function(M,N,D)
     start = Sys.time()
     out1 = my_routine(list(x,y,b,lambda),M,N)
     end = Sys.time()
-print("out1")
-print(nrow(out1))
-print(ncol(out1))
     res = end-start
     
     # compare with standard R implementation via matrices
@@ -77,11 +74,8 @@ print(ncol(out1))
         for(k in 1:D)
             SqDist = SqDist + (onesN %*% x[k,] - t(onesM %*% y[k,]))^2
         K = exp(-lambda[1]*SqDist)
-	out2 = t(K) %*% t(b)
+	out2 = t(t(K) %*% t(b))
     end = Sys.time()
-print("out2")
-print(nrow(out2))
-print(ncol(out2))
     res = c(res,end-start)
     
     # compare with other R implementation ?
