@@ -31,7 +31,7 @@ KMeansExample = function(N,D,K,Niter=10)
     print(paste("k-means with N=",N,", D=,",D,", K=",K,", Niter=",Niter,sep=""))
     x = matrix(runif(N*D),D,N)
     
-    formula = 'ArgMin_Reduction(SqDist(x,y),1)'
+    formula = 'ArgMin_Reduction(SqDist(x,y),0)'
     var1 = paste('x=Vi(',D,')',sep="") # First arg   : i-variable, of size D
     var2 = paste('y=Vj(',D,')',sep="") # First arg   : j-variable, of size D
     variables = c(var1,var2)
@@ -49,7 +49,7 @@ KMeansExample = function(N,D,K,Niter=10)
         cl
     }
     
-    my_routine = my_routine_nokeops
+    my_routine = my_routine_keops
     
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
@@ -61,7 +61,7 @@ KMeansExample = function(N,D,K,Niter=10)
     cl_old = rep(0,N)
     for(i in 1:Niter)
     {
-        cl = as.integer(as.vector(my_routine(list(x,C),N,K)))
+        cl = 1 + as.integer(as.vector(my_routine(list(x,C),N,K)))
         if(all(cl==cl_old)) break;
         x_ = rbind(x,rep(1,N))
         C = indexedSum(x_,cl,K)
@@ -73,13 +73,12 @@ KMeansExample = function(N,D,K,Niter=10)
         cl_old = cl
     }
     cl1 = cl
-
     end = Sys.time()
     res = end-start
         
     # compare with standard R kmeans (library stats)
     start = Sys.time()
-    cl2 = kmeans(t(x),t(x[,1:K]),iter.max = Niter)$cluster
+    cl2 = kmeans(t(x),t(x[,1:K]),iter.max = Niter, algorithm = "Lloyd")$cluster
     end = Sys.time()
     res = c(res,end-start)
     
@@ -98,7 +97,7 @@ KMeansExample = function(N,D,K,Niter=10)
 }
 
 #Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
-Ns = c(100,200,500)
+Ns = c(100,200,500,1000)
 nN = length(Ns)
 res = matrix(0,nN,4)
 colnames(res) = c("Npoints","R (K****)","R (kmeans{stats})","R other")

@@ -8,8 +8,6 @@
 # then solve the gaussian kernel system :
 # b_i = sum_j exp(-||x_i-y_j||^2/(2sigma^2)) out_j
 
-library(class)
-
 #setwd("~/Desktop/keops_github/keops")
 #devtools::install("rkeops")
 
@@ -56,7 +54,7 @@ LinsolveExample = function(N,D,alpha,tol)
     b = matrix(rnorm(N),1,N)
     lambda = matrix(.5 / 0.01^2)
     
-    formula = paste('Sum_Reduction(Exp(-lambda*SqDist(x,y))*b,1)',sep="")
+    formula = paste('Sum_Reduction(Exp(-lambda*SqDist(x,y))*b,0)',sep="")
     var1 = paste('x=Vi(',D,')',sep="")  # First arg   : i-variable, of size D
     var2 = paste('y=Vj(',D,')',sep="")  # Second arg  : j-variable, of size D
     var3 = paste('b=Vj(1)',sep="")      # Third arg   : j-variable, of size 1

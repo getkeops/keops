@@ -7,8 +7,6 @@
 # then apply a gaussian convolution operation :
 # out_i = sum_j exp(-||x_i-y_j||^2/(2sigma^2)) b_j
 
-library(class)
-
 #setwd("~/Desktop/keops_github/keops")
 #devtools::install("rkeops")
 
@@ -19,14 +17,14 @@ set_rkeops_option("precision", "double")
 
 GaussConvExample = function(M,N,D)
 {
-    print(paste("Gaussian convolution with M=",M,", N=,",N,", D=",D,sep=""))
+    print(paste("Gaussian convolution with M=",M,", N=",N,", D=",D,sep=""))
 
     x = matrix(runif(M*D),D,M)
     y = matrix(runif(N*D),D,N)
     b = matrix(runif(N*D),D,N)
     lambda = matrix(1.0 / 0.25^2)
     
-    formula = paste('Sum_Reduction(Exp(-lambda*SqDist(x,y))*b,1)',sep="")
+    formula = paste('Sum_Reduction(Exp(-lambda*SqDist(x,y))*b,0)',sep="")
     var1 = paste('x=Vi(',D,')',sep="")  # First arg   : i-variable, of size D
     var2 = paste('y=Vj(',D,')',sep="")  # Second arg  : j-variable, of size D
     var3 = paste('b=Vj(',D,')',sep="")  # Third arg   : j-variable, of size D
@@ -90,12 +88,12 @@ GaussConvExample = function(M,N,D)
 }
 
 # Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
-Ns = c(100,200,500)
+Ns = c(100,200,500,1000,2000,5000,10000)
 nN = length(Ns)
 res = matrix(0,nN,4)
 colnames(res) = c("Npoints","R (K****)","R","R other")
 res[,1] = Ns
-Ntry = 10
+Ntry = 1
 for(l in 1:nN)
 {
     resl = 0

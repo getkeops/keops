@@ -18,13 +18,13 @@ set_rkeops_option("precision", "double")
 
 KNNExample = function(N,Ntest,D,K)
 {
-    print(paste("k-NN with N=",N,", Ntest=,",Ntest,", D=",D,", K=",K,sep=""))
+    print(paste("k-NN with N=",N,", Ntest=",Ntest,", D=",D,", K=",K,sep=""))
 
     x = matrix(runif(Ntest*D),D,Ntest)
     y = matrix(runif(N*D),D,N)
     cly = matrix(sample(0:1,N,rep=TRUE),1,N)
     
-    formula = paste('ArgKMin_Reduction(SqDist(x,y),',K,',1)',sep="")
+    formula = paste('ArgKMin_Reduction(SqDist(x,y),',K,',0)',sep="")
     var1 = paste('x=Vi(',D,')',sep="") # First arg   : i-variable, of size D
     var2 = paste('y=Vj(',D,')',sep="") # First arg   : j-variable, of size D
     variables = c(var1,var2)
@@ -42,7 +42,7 @@ KNNExample = function(N,Ntest,D,K)
         inds
     }
     
-    my_routine = my_routine_nokeops
+    my_routine = my_routine_keops
     
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
@@ -50,7 +50,7 @@ KNNExample = function(N,Ntest,D,K)
     my_routine(list(dum,dum),10,10)
     
     start = Sys.time()
-    inds = my_routine(list(x,y),Ntest,N)
+    inds = 1 + as.integer(as.vector(my_routine(list(x,y),Ntest,N)))
     cl1 = round(colMeans(matrix(cly[inds],K,Ntest)))
     end = Sys.time()
     res = end-start
@@ -76,7 +76,7 @@ KNNExample = function(N,Ntest,D,K)
 }
 
 #Ns = c(100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000)
-Ns = c(100,200,500)
+Ns = c(100,200,500,1000)
 nN = length(Ns)
 res = matrix(0,nN,4)
 colnames(res) = c("Npoints","R (K****)","R (kNN{class})","R other")

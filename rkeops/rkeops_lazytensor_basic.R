@@ -1,5 +1,7 @@
 library(rkeops)
 
+set_rkeops_option("tagCpuGpu", 0)
+set_rkeops_option("precision", "double")
 
 # Minimal LazyTensor implementation
 
@@ -168,7 +170,7 @@ y = matrix(runif(N*D),N,D)
 b = matrix(runif(N*E),N,E)
 s = 0.25
 
-# creating LazyTensor objects from matrices
+# creating LazyTensor from matrices
 x_i  = LazyTensor(x,index='i')  
 y_j  = LazyTensor(y,index='j')
 b_j  = b
