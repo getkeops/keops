@@ -8,8 +8,7 @@
 # then solve the gaussian kernel system :
 # b_i = sum_j exp(-||x_i-y_j||^2/(2sigma^2)) out_j
 
-#setwd("~/Desktop/keops_github/keops")
-#devtools::install("rkeops")
+devtools::install("../../rkeops")
 
 library(rkeops)
 
@@ -107,7 +106,7 @@ LinsolveExample = function(N,D,alpha,tol)
     start = Sys.time()
     out2 = ConjugateGradientSolver(my_linop,b,tol=tol)
     end = Sys.time()
-    res = end-start
+    res = c(res,end-start)
     
     # compare with standard R implementation via matrices
     if(N<7000)
@@ -128,12 +127,6 @@ LinsolveExample = function(N,D,alpha,tol)
         res = c(res,NaN)
         out3 = out1
     }
-    
-    # compare with other R implementation ?
-    start = Sys.time()
-    out3 = out2
-    end = Sys.time()
-    res = c(res,end-start)
     
     print(paste("mean errors : ",mean(abs(out1-out2)),", ",mean(abs(out2-out3)),")",sep=""))
     

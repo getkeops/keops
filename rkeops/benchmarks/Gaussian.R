@@ -7,8 +7,7 @@
 # then apply a gaussian convolution operation :
 # out_i = sum_j exp(-||x_i-y_j||^2/(2sigma^2)) b_j
 
-#setwd("~/Desktop/keops_github/keops")
-#devtools::install("rkeops")
+devtools::install("../../rkeops")
 
 library(rkeops)
 
@@ -102,7 +101,7 @@ nN = length(Ns)
 res = matrix(0,nN,4)
 colnames(res) = c("Npoints","R (K**** float)","R (K**** double)","R")
 res[,1] = Ns
-Ntry = 1
+Ntry = 10
 for(l in 1:nN)
 {
     resl = 0
