@@ -98,7 +98,7 @@ for(l in 1:nN)
         resl = resl + KNNExample(N=Ns[l],Ntest=10000,D=100,K=10)
     res[l,2:4] = resl / Ntry
 }
-res = res[,c(1,3,4,2)]
+res = res[,c(1,4,2,3)]
 print("")
 print("Timings:")
 print(res)
