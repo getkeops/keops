@@ -3,7 +3,7 @@ Scaling up K-Means classification
 ===========================================================
 
 Let's compare the performances of Numpy, PyTorch and KeOps on 
-simple K-Means iteration in dimension 100,
+simple K-Means iteration in dimension 10,
 with a growing number of samples :math:`\mathrm{N}` and
 :math:`\mathrm{K} = \lfloor \sqrt{\mathrm{N}} \rfloor` clusters.
  
@@ -28,7 +28,7 @@ use_cuda = torch.cuda.is_available()
 # Benchmark specifications:
 # 
 
-D  = 10        # Let's do this in dimension 100
+D  = 10        # Let's do this in dimension 10
 
 MAXTIME = 10 if use_cuda else 1   # Max number of seconds before we break the loop
 REDTIME = 2  if use_cuda else .2  # Decrease the number of runs if computations take longer than 2s...
