@@ -12,7 +12,7 @@
 #include "core/pre_headers.h"
 #include "core/utils/Infinity.h"
 
-// Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(m_i-f_ij) g_ij
+// Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(f_ij-m_i) g_ij
 // where f and g are two formulas. f must be scalar-valued.
 // This reduciton is the base for numerically stable computation of log-sum-exp and softmax type reductions.
 
@@ -29,7 +29,7 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
 
   static const int DIM = DIMRED;
 
-  static_assert(F::DIM == 1, "LogSumExp requires first formula F of dimension 1.");
+  static_assert(F::DIM == 1, "Max_SumShiftExp requires first formula F of dimension 1.");
 
   static void PrintId(::std::stringstream &str) {
     str << "Max_SumShiftExp_Reduction(F=";            // prints "("
@@ -99,7 +99,7 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
 
   // Beware: the formula that we use for the gradient is *only* valid
   // if the output [M,S] = Max_SumShiftExp(F,G) has been flattened through a
-  // L = M + log(S)
+  // L = M + log(S) (Log-Sum-Exp) or a weighted Soft-Max
   // operation (as done by the Python bindings), and if 
   // GRADIN = [Grad(L), Grad(L)/S ]
   // has been backpropagated from L.
