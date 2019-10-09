@@ -51,62 +51,45 @@ KMeansExample = function(N,D,K,Niter=10)
         cl
     }
     
-    my_routine = my_routine_keops_float
-    
     # dummy first calls for accurate timing in case of GPU use
     dum = matrix(runif(D*10),nrow=D)
-    my_routine(list(dum,dum),10,10)
-    my_routine(list(dum,dum),10,10)
+    my_routine_keops_float(list(dum,dum),10,10)
+    my_routine_keops_float(list(dum,dum),10,10)
     
-    start = Sys.time()
+    my_kmeans = function(my_routine)
+    {
     C = x[,1:K]
     cl_old = rep(0,N)
     for(i in 1:Niter)
     {
+        # 1) assignment step, done with KeOps
         cl = 1 + as.integer(as.vector(my_routine(list(x,C),N,K)))
         if(all(cl==cl_old)) break;
+        # 2) recomputing centers : this step is the bottleneck for us, because here we do it with R for loops
+        # over N, which is very slow; we should find someting faster
         x_ = rbind(x,rep(1,N))
-        #C = indexedSum(x_,cl,K)
-        C = matrix(0,D+1,K)
-        for(k in 1:K)
-        {
-            C[,k] = rowMeans(as.matrix(x_[,cl==k]))
-        }
+        C = indexedSum(x_,cl,K)
+        # other method we tried, with for loops on K, still unefficient
+        #C = matrix(0,D+1,K)
+        #for(k in 1:K)
+        #    C[,k] = rowMeans(as.matrix(x_[,cl==k]))
         for(d in 1:D)
             C[d,] = C[d,] / C[D+1,]
         C = C[1:D,]
-        # below using aggregate ; does the same as previous 5 lines, but apparently slower
+        # below using aggregate ; does the same, but apparently slower
         # C = t(aggregate(t(x),list(cl),mean))[2:3,]
         cl_old = cl
     }
-    cl1 = cl
-    end = Sys.time()
-    res = end-start
-        
-    my_routine = my_routine_keops_double
+    return(cl)
+    }
 
     start = Sys.time()
-    C = x[,1:K]
-    cl_old = rep(0,N)
-    for(i in 1:Niter)
-    {
-        cl = 1 + as.integer(as.vector(my_routine(list(x,C),N,K)))
-        if(all(cl==cl_old)) break;
-        x_ = rbind(x,rep(1,N))
-        #C = indexedSum(x_,cl,K)
-        C = matrix(0,D+1,K)
-        for(k in 1:K)
-        {
-            C[,k] = rowMeans(as.matrix(x_[,cl==k]))
-        }
-        for(d in 1:D)
-            C[d,] = C[d,] / C[D+1,]
-        C = C[1:D,]
-        # below using aggregate ; does the same as previous 5 lines, but apparently slower
-        # C = t(aggregate(t(x),list(cl),mean))[2:3,]
-        cl_old = cl
-    }
-    cl2 = cl
+    cl1 = my_kmeans(my_routine_keops_float)
+    end = Sys.time()
+    res = end-start
+
+    start = Sys.time()
+    cl2 = my_kmeans(my_routine_keops_double)
     end = Sys.time()
     res = c(res,end-start)
         
