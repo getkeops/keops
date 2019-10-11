@@ -1629,31 +1629,9 @@ class LazyTensor:
         else:
             newdims = v.shape[:-2] + (1,) + v.shape[-2:]
 
-        v_ = self.tools.view( v, newdims )
-        
-        if pykeops.gpu_available and v_.shape[-1] > 80 :
-            # custom method when last dim of v is large
-            # we have :
-            # K._shape = (batchdimsK,M,N,1)
-            # v_.shape = (batchdimsv,1,N,Nv)        
-            # we expand v_ to get same shape as K :
-            v_ = self.tools.view(v_,[1]*(len(self._shape)-len(v_.shape))+list(v_.shape)) # (1,..,1,batchdimsv,1,N,Nv)
-            # (NB if K has less batch dims than v it does nothing)
-            # now we shift the Nv dim from last to first position
-            v_ = self.tools.permute(v_,[len(v_.shape)-1]+list(range(0,len(v_.shape)-1))) # (Nv,1,..,1,batchdimsv,1,N)
-            v_ = self.tools.contiguous(v_)
-            # we add a dummy dimension at the end (maybe not necessary ?)
-            v_ = self.tools.view(v_,list(v_.shape)+[1]) # (Nv,1,..,1,batchdimsv,1,N,1)
-            v_ = LazyTensor(v_)
-            Kv = (self*v_).sum(dim=len(v_._shape)-2) # (Nv,outbatchdims,M,1)
-            Kv = self.tools.permute(Kv,list(range(1,len(Kv.shape)))+[0]) # (outbatchdims,M,1,Nv)
-            Kv = self.tools.contiguous(Kv)
-            Kv = self.tools.view(Kv,list(Kv.shape[:-2])+[Kv.shape[-1]]) # (outbatchdims,M,Nv)
-        else :
-            # otherwise, direct KeOps operation
-            v_ = LazyTensor(v_)
-            Kv = (self * v_ )            # Supports broadcasting
-            Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
+        v_ = LazyTensor(self.tools.view( v, newdims ))
+        Kv = (self * v_ )            # Supports broadcasting
+        Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
 
         # Expected behavior: if v is a vector, so should K @ v.
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
