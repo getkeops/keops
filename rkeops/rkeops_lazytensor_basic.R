@@ -3,20 +3,47 @@ library(rkeops)
 set_rkeops_option("tagCpuGpu", 0)
 set_rkeops_option("precision", "double")
 
-# Minimal LazyTensor implementation
 
+# Minimal LazyTensor implementation. LazyTensors objects are wrappers around
+# R matrices or vectors that are used to create symbolic formulas for the KeOps
+# reduction operations. A typical use case is the following
+#    x = runif(100,3)          # arbitrary R matrix representing 100 data points in R^3
+#    y = runif(150,3)          # arbitrary R matrix representing 150 data points in R^3
+#    s = 0.1                   # scale parameter
+#    x_i = LazyTensor(x,"i")   # symbolic object representing an arbitrary row of x, indexed by the letter "i"
+#    y_j = LazyTensor(y,"j")   # symbolic object representing an arbitrary row of y, indexed by the letter "j"
+#    D_ij = sum((x_i-y_j)^2)   # symbolic matrix of pairwise squared distances, with 100 rows and 150 columns
+#    K_ij = exp(-D_ij/s^2)     # symbolic matrix, 100 rows and 150 columns
+#    res = sum(K_ij,index="i") # actual R matrix (in fact a row vector of length 150 here) containing the column sums of K_ij (i.e. the sums over the "i" index, for each "j" index)
+
+
+# Here we define only a small set of operations, needed to run the small
+# example below. This is done using S3 classes, but maybe it would be better and
+# cleaner to use Reference classes...
+
+# The entry point for LazyTensor : LazyTensor(x,index) will turn a R matrix or R vector
+# x into a LazyTensor object with some attached index="i" or index="j". More precisely,
+# the three cases of use are :
+#  -if x is a R matrix of size N*D:
+#     LazyTensor(x,"i")
+#     LazyTensor(x,"j")
+#  In these cases the output object should be understood as an arbitrary row of x, indexed by "i" or "j"
+#  -if x is a R vector of size D:
+#     LazyTensor(x)
+#  In this case the output object corresponds to a parameter vector, without any attached index
 LazyTensor = function(x,index)
 {
-    ni = 0
-    nj = 0
+    ni = 0   # will correpond to the number of rows of the input if it is an "i" indexed variable
+    nj = 0   # will correpond to the number of rows of the input if it is a "j" indexed variable
+
+    # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
     if(is.matrix(x))
     {
-        # x is matrix, treated as indexed variable, so index must be "i" or "j"
-		x = t(x)
-        d = nrow(x)
+	x = t(x)          # we transpose the input matrix x because KeOps needs C-contiguous arrays
+        d = nrow(x)       # d is the dimension, now the number of rows of x
         if(index=='i')
         {
-            cat=0 
+            cat = 0       # cat is the KeOps "category", 0, 1, or 2, corresponding to the 3 different cases of use (see above)
             ni = ncol(x)
         }
         else
@@ -25,15 +52,19 @@ LazyTensor = function(x,index)
             nj = ncol(x)
         }
     }
+    # 2) else we assume x is a numeric vector, treated as parameter, then converted to matrix
     else
     {
-        # assume x is numeric vector, treated as parameter, then converted to matrix
         d = length(x)
         cat = 2
-        x = t(matrix(x))
+        x = t(matrix(x))   # now x is a row matrix, which is the correct shape for KeOps routines
     }
-    formula = paste('Var(0,',d,',',cat,')', sep="")
-    vars = list(x)
+
+    # Now we define "formula", a string specifying the variable for KeOps C++ codes.
+    formula = paste('Var(0,',d,',',cat,')', sep="")   # Var(ind,dim,cat), where ind gives the position in the final call to KeOps routine, dim is the dimension, and cat the category
+    vars = list(x)    # vars lists all actual matrices necessary to evaluate the current formula, here only one.
+
+    # finally we build and return the LazyTensor object
     obj = list(formula = formula, vars=vars, ni=ni, nj=nj)
     class(obj) = "LazyTensor"
     obj
