@@ -15,13 +15,26 @@ set_rkeops_option("precision", "double")
 #    D_ij = sum((x_i-y_j)^2)   # symbolic matrix of pairwise squared distances, with 100 rows and 150 columns
 #    K_ij = exp(-D_ij/s^2)     # symbolic matrix, 100 rows and 150 columns
 #    res = sum(K_ij,index="i") # actual R matrix (in fact a row vector of length 150 here) containing the column sums of K_ij (i.e. the sums over the "i" index, for each "j" index)
+#
+# How does LazyTensor class work internally ?
+# LazyTensor objects mainly contain two members:
+#  - formula : a string defining the mathematical operation to be computed by the KeOps routine. 
+#  - vars : a list of R matrices which will be the inputs of the KeOps routine
+# Let us detail these two members in the previous example :
+#  x_i : formula="Var(0,3,0)" and vars = { x }
+#  y_j : formula="Var(0,3,1)" and vars = { y }
+#  D_ij : formula="Sum(Square(Var(0,3,0)-Var(1,3,1)))" and vars = {x,y}
+#  K_ij : formula="Exp(-Sum(Square(Var(0,3,0)-Var(1,3,1)))/Var(2,1,1))" and vars = {x,y,s^2}
+#  Then the last command sum(K_ij,index="i") 
+#  builds up the final formula string "Sum_Reduction(Exp(-Sum(Square(Var(0,3,0)-Var(1,3,1)))/Var(2,1,1)),1)"
+#  and passes it to the keops_kernel function. The resulting R routine is evaluated with inputs x, y, and s^2.
 
 
 # Here we define only a small set of operations, needed to run the small
 # example below. This is done using S3 classes, but maybe it would be better and
 # cleaner to use Reference classes...
 
-# The entry point for LazyTensor : LazyTensor(x,index) will turn a R matrix or R vector
+# Function LazyTensor : The entry point for LazyTensor : LazyTensor(x,index) will turn a R matrix or R vector
 # x into a LazyTensor object with some attached index="i" or index="j". More precisely,
 # the three cases of use are :
 #  -if x is a R matrix of size N*D:
