@@ -866,6 +866,15 @@ class LazyTensor:
         """
         return self.unary("Log")
     
+    def xlogx(self):
+        r"""
+        Element-wise x*log(x) function - a unary operation.
+        
+        ``x.xlogx()`` returns a :class:`LazyTensor` that encodes, symbolically, 
+        the element-wise ``x`` times logarithm of ``x`` (with value 0 at 0).
+        """
+        return self.unary("XLogX")
+    
     def cos(self):
         r"""
         Element-wise cosine - a unary operation.

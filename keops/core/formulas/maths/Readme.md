@@ -21,6 +21,7 @@ Standard math functions :
  *      Abs<F>                         : absolute value of F (vectorized)
  *      Exp<F>                         : exponential of F (vectorized)
  *      Log<F>                         : logarithm   of F (vectorized)
+ *      XLogX<F>                       : function F*log(F) (vectorized)
  *      Sin<F>                         : sine        of F (vectorized)
  *      Cos<F>                         : cosine      of F (vectorized)
  *      Sign<F>                        : sign        of F (vectorized)
