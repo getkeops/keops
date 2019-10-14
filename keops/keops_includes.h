@@ -21,6 +21,7 @@
 #include "core/formulas/maths/IntInv.h"
 #include "core/formulas/maths/Divide.h"
 #include "core/formulas/maths/Log.h"
+#include "core/formulas/maths/XLogX.h"
 #include "core/formulas/maths/Sign.h"
 #include "core/formulas/maths/Abs.h"
 #include "core/formulas/maths/Step.h"
