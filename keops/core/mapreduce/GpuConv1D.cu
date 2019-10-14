@@ -39,7 +39,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
   load<DIMSP>(0, param_loc, pp); // load parameters variables from global memory to local thread memory
 
   // get the value of variable (index with i)
-  TYPE xi[DIMX < 1 ? 1 : DIMX], tmp[DIMRED], tmp_block[DIMRED]; 
+  TYPE xi[DIMX < 1 ? 1 : DIMX], tmp[DIMRED];
   if (i < nx) {
     typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
     load<typename DIMSX::NEXT>(i, xi + DIMFOUT, px + 1); // load xi variables from global memory to local thread memory
@@ -57,16 +57,13 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
 
     if (i < nx) { // we compute x1i only if needed
       TYPE * yjrel = yj; // Loop on the columns of the current block.
-      // we use an intermediate tmp_block vector to accumulate results from the block. This increases accuracy.
-      typename FUN::template InitializeReduction<TYPE>()(tmp_block);
       for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += DIMY) {
         call<DIMSX, DIMSY, DIMSP>(fun,
                                   xi,
                                   yjrel,
-                                  param_loc); // Call the function, which outputs results in xi[0:DIMX1]
-        typename FUN::template ReducePairShort<TYPE>()(tmp_block, xi, jrel + tile * blockDim.x);     // tmp_block += xi
+                                  param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
+        typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel + tile * blockDim.x);     // tmp += xi
       }
-      typename FUN::template ReducePair<TYPE>()(tmp, tmp_block);     // tmp += xi
     }
     __syncthreads();
   }
