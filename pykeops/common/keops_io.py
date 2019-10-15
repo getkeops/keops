@@ -7,7 +7,7 @@ from pykeops.common.compile_routines import compile_generic_routine
 from pykeops.common.utils import module_exists, create_and_lock_build_folder
 
 
-class LoadKEops:
+class LoadKeOps:
     """
     Load the keops shared library that corresponds to the given formula, aliases, dtype and lang.
     If the shared library cannot be loaded, it will be compiled.
