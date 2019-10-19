@@ -15,10 +15,17 @@ class GenredAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, *args):
+    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, use_double_acc, use_BlockRed, use_Kahan, *args):
     
-        myconv = LoadKEops(formula, aliases, dtype, 'torch',
-                           ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)]).import_module()
+        optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)]
+        if use_double_acc:
+            optional_flags += ['-D__TYPEACC__=double']
+        if use_BlockRed:
+            optional_flags += ['-DUSE_BLOCKRED=1']
+        if use_Kahan:
+            optional_flags += ['-DUSE_KAHAN=1']
+
+        myconv = LoadKEops(formula, aliases, dtype, 'torch', optional_flags).import_module()
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
@@ -241,7 +248,7 @@ class Genred():
         self.axis = axis
         self.opt_arg = opt_arg
 
-    def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
+    def __call__(self, *args, backend='auto', device_id=-1, ranges=None, use_double_acc=False, use_BlockRed=False, use_Kahan=False):
         r"""
         To apply the routine on arbitrary torch Tensors.
 
@@ -338,6 +345,19 @@ class Genred():
                 indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))``
                 for ``l in range( slices_j[k-1], slices_j[k] )``.
 
+            use_double_acc (bool, default False): accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+                It improves the accuracy of results in case of large sized data, but is slower.
+           
+            use_BlockRed (bool, default False): use an intermediate accumulator in each block before accumulating in the output. This improves
+                accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+
+            use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+
         Returns:
             (M,D) or (N,D) Tensor:
 
@@ -348,7 +368,8 @@ class Genred():
             that is inferred from the **formula**.
 
         """
-        out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, device_id, ranges, *args)
+        out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
+                                   device_id, ranges, use_double_acc, use_BlockRed, use_Kahan, *args)
         nx, ny = get_sizes(self.aliases, *args)
         nout = nx if self.axis==1 else ny
         return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, self.dtype)

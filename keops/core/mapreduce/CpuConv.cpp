@@ -22,18 +22,19 @@ struct CpuConv {
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
+    TYPE xi[DIMX], yj[DIMY], pp[DIMP];
+    __TYPEACC__ tmp[DIMRED];
     load< DIMSP >(0, pp, param);
 
     for (int i = 0; i < nx; i++) {
       load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
-      typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+      typename FUN::template InitializeReduction< __TYPEACC__ >()(tmp);   // tmp = 0
       for (int j = 0; j < ny; j++) {
         load< DIMSY >(j, yj, py);
         call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
-        typename FUN::template ReducePairShort< TYPE >()(tmp, xi, j); // tmp += xi
+        typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(tmp, xi, j); // tmp += xi
       }
-      typename FUN::template FinalizeOutput< TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
+      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
     }
 
     return 0;

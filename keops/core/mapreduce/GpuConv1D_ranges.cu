@@ -77,9 +77,10 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
     }
 
     // get the value of variable (index with i)
-    TYPE xi[DIMX < 1 ? 1 : DIMX] ,tmp[DIMRED];
+    TYPE xi[DIMX < 1 ? 1 : DIMX];
+    __TYPEACC__ tmp[DIMRED];
     if(i<end_x) {
-        typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
+        typename FUN::template InitializeReduction<__TYPEACC__>()(tmp); // tmp = 0
         if (nbatchdims == 0) {
             load<typename DIMSX::NEXT>(i, xi+DIMFOUT, px+1); // load xi variables from global memory to local thread memory
         } else {
@@ -112,9 +113,9 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
                     for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {
                         call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
                         if (nbatchdims == 0) {
-                            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x + start_y);     // tmp += xi
+                            typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(tmp, xi, jrel+tile*blockDim.x + start_y);     // tmp += xi
                         } else {
-                            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x);
+                            typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(tmp, xi, jrel+tile*blockDim.x);
                         }
                     }
                 }
@@ -127,7 +128,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
         }
     }
     if(i<end_x) {
-    	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
+    	typename FUN::template FinalizeOutput<__TYPEACC__,TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
 //printf("blockIdx.x=%d, threadIdx.x=%d, i=%d, start_x=%d, end_x=%d, *tmp=%f, *(px[0]+i*DIMOUT)=%f\n",blockIdx.x,threadIdx.x,i,start_x,end_x,*tmp,*(px[0]+i*DIMOUT));
     }
 

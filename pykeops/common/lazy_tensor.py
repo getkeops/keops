@@ -487,6 +487,16 @@ class LazyTensor:
             If **None** (default), we simply use a **dense Kernel matrix**
             as we loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+          use_double_acc (bool, default False): accumulate results of reduction in float64 variables, before casting to float32. 
+             This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+             It improves the accuracy of results in case of large sized data, but is slower.          
+          use_BlockRed (bool, default False): use an intermediate accumulator in each block before accumulating in the output. This improves
+             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+          use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
+             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
         """
         
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...

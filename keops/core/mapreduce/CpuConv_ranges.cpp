@@ -60,7 +60,8 @@ struct CpuConv_ranges {
 
     // Actual for-for loop -----------------------------------------------------
 
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
+    TYPE xi[DIMX], yj[DIMY], pp[DIMP];
+    __TYPEACC__ tmp[DIMRED];
     load< DIMSP >(0, pp, param);  // If nbatchdims == 0, the parameters are fixed once and for all
 
     int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
@@ -71,8 +72,8 @@ struct CpuConv_ranges {
 
     // Set the output to zero, as the ranges may not cover the full output -----
     for (int i = 0; i < nx; i++) {
-      typename FUN::template InitializeReduction< TYPE >()(tmp);
-      typename FUN::template FinalizeOutput< TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
+      typename FUN::template InitializeReduction< __TYPEACC__ >()(tmp);
+      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
     }
 
     // N.B.: In the following code, we assume that the x-ranges do not overlap.
@@ -110,7 +111,7 @@ struct CpuConv_ranges {
         } else {
           load< typename DIMSX::NEXT >(i - start_x, xi + DIMFOUT, px + 1, indices_i);
         }
-        typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+        typename FUN::template InitializeReduction< __TYPEACC__ >()(tmp);   // tmp = 0
 
         for (__INDEX__ slice = start_slice; slice < end_slice; slice++) {
           __INDEX__ start_y = ranges_y[2 * slice];
@@ -130,13 +131,13 @@ struct CpuConv_ranges {
             }
             call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
             if (nbatchdims == 0) {
-              typename FUN::template ReducePairShort< TYPE >()(tmp, xi, j); // tmp += xi
+              typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(tmp, xi, j); // tmp += xi
             } else {
-              typename FUN::template ReducePairShort< TYPE >()(tmp, xi, j - start_y); // tmp += xi
+              typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(tmp, xi, j - start_y); // tmp += xi
             }
           }
         }
-        typename FUN::template FinalizeOutput< TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
+        typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
       }
 
     }

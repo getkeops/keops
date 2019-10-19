@@ -22,12 +22,12 @@ int get_size(at::Tensor obj_ptri, int l) {
 
 template <>
 __TYPE__* get_data(at::Tensor obj_ptri) {
-    return obj_ptri.data<__TYPE__>();
+    return obj_ptri.data_ptr<__TYPE__>();
 }
 
 template <>
 __INDEX__* get_rangedata(at::Tensor obj_ptri) {
-    return obj_ptri.data<__INDEX__>();
+    return obj_ptri.data_ptr<__INDEX__>();
 }
 
 template <>

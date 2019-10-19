@@ -52,12 +52,12 @@ __global__ void reduce2D(TYPE *in, TYPE *out, TYPE ** px, int sizeY,int nx) {
 
     // However, for now, we use a "vectorized" reduction op.,
     // which can also handle non-trivial reductions such as "LogSumExp"
-    TYPE tmp[DIMIN];
-    typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
+    __TYPEACC__ tmp[DIMIN];
+    typename FUN::template InitializeReduction<__TYPEACC__>()(tmp); // tmp = 0
     if(tid < nx) {
         for (int y = 0; y < sizeY; y++)
-            typename FUN::template ReducePair<TYPE>()(tmp, in + (tid+y*nx)*DIMIN);     // tmp += in[(tid+y*nx) *DIMVECT : +DIMVECT];
-        typename FUN::template FinalizeOutput<TYPE>()(tmp, out+tid*DIMOUT, px, tid);
+            typename FUN::template ReducePair<__TYPEACC__,TYPE>()(tmp, in + (tid+y*nx)*DIMIN);     // tmp += in[(tid+y*nx) *DIMVECT : +DIMVECT];
+        typename FUN::template FinalizeOutput<__TYPEACC__,TYPE>()(tmp, out+tid*DIMOUT, px, tid);
     }
 
 }
@@ -100,9 +100,9 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     // Step 1 : Load in Thread Memory the information needed in the current line ---------------------------
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     TYPE xi[DIMX < 1 ? 1 : DIMX];
-    TYPE tmp[DIMRED];
+    __TYPEACC__ tmp[DIMRED];
     if(i<nx) { // we will compute x1i only if i is in the range
-        typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
+        typename FUN::template InitializeReduction<__TYPEACC__>()(tmp); // tmp = 0
         // Load xi from device global memory.
         // Remember that we use an interleaved memory scheme where
         // xi = [ x1i, x2i, x3i, ... ].
@@ -133,7 +133,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         TYPE* yjrel = yj; // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, blockDim.x*blockIdx.y+jrel);     // tmp += xi
+            typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(tmp, xi, blockDim.x*blockIdx.y+jrel);     // tmp += xi
         }
     }
     __syncthreads();
