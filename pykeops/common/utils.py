@@ -5,7 +5,7 @@ import os
 import shutil
 from hashlib import sha256
 
-from pykeops import build_type
+from pykeops import build_type, bin_folder
 
 c_type = dict(float32="float", float64="double")
 
@@ -73,6 +73,7 @@ def create_and_lock_build_folder():
     This function is used to create and lock the building dir (see cmake) too avoid two concurrency
     threads using the same cache files.
     """
+
     def wrapper(func):
         @functools.wraps(func)
         def wrapper_filelock(*args, **kwargs):
@@ -85,16 +86,17 @@ def create_and_lock_build_folder():
             with open(bf + os.path.sep + 'pykeops_build2.lock', 'w') as f:
                 with FileLock(f):
                     func_res = func(*args, **kwargs)
-    
+
             # clean
             if (module_exists(args[0].dll_name)) or (build_type != 'Debug'):
                 shutil.rmtree(bf)
 
             return func_res
-        
+
         return wrapper_filelock
 
     return wrapper
+
 
 def get_tools(lang):
     """
@@ -104,29 +106,32 @@ def get_tools(lang):
     :param lang: a string with the langage ('torch'/'pytorch' or 'numpy')
     :return: a class tools
     """
-    
+
     if lang == "numpy":
         from pykeops.numpy.utils import numpytools
         tools = numpytools()
     elif lang == "torch" or lang == "pytorch":
         from pykeops.torch.utils import torchtools
         tools = torchtools()
-    
+
     return tools
 
 
-def WarmUpGpu(backend):
-    tools = get_tools(backend)
-    
+def WarmUpGpu(lang):
+    tools = get_tools(lang)
     # dummy first calls for accurate timing in case of GPU use
-    formula = "Exp(-oos2*SqDist(x,y))*b"
-    variables = ["x = Vi(1)",  # First arg : i-variable, of size 1
-                 "y = Vj(1)",  # Second arg: j-variable, of size 1
-                 "b = Vj(1)",  # Third arg : j-variable, of size 1
-                 "oos2 = Pm(1)"]  # Fourth arg: scalar parameter
-    
-    my_routine = tools.Genred(formula, variables, reduction_op='Sum', axis=1, dtype=tools.dtype)
+    my_routine = tools.Genred("SqDist(x,y)", ["x = Vi(1)",  "y = Vj(1)"], reduction_op='Sum', axis=1, dtype=tools.dtype)
     dum = tools.rand(10, 1)
-    dum2 = tools.rand(10, 1)
-    my_routine(dum, dum, dum2, tools.array([1.0]))
-    my_routine(dum, dum, dum2, tools.array([1.0]))
+    my_routine(dum, dum)
+    my_routine(dum, dum)
+
+
+def clean_pykeops(path=bin_folder, lang=""):
+
+    if lang not in ["numpy", "torch", ""]:
+        raise ValueError("lang should be the empty string, numpy or torch")
+
+    for f in os.listdir(path):
+        if (f.endswith('so')) and (f.count("libKeOps" + lang)):
+            os.remove(os.path.join(path, f))
+            print(os.path.join(path, f) + " has been removed.")
