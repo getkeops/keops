@@ -76,10 +76,10 @@ struct Max_ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<
         
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
 #pragma unroll
             for(int k=0; k<DIM; k++)
-                out[k] = tmp[k];
+                out[k] = acc[k];
         }
     };
 
@@ -102,10 +102,10 @@ struct ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<ArgM
 
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
 #pragma unroll
             for(int k=0; k<F::DIM; k++)
-                out[k] = tmp[F::DIM+k];
+                out[k] = acc[F::DIM+k];
         }
     };
 
@@ -131,10 +131,10 @@ struct Max_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<Max_Red
 
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
 #pragma unroll
             for(int k=0; k<F::DIM; k++)
-                out[k] = tmp[k];
+                out[k] = acc[k];
         }
     };
 
