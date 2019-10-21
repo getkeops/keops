@@ -41,15 +41,19 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
   // get the value of variable (index with i)
   TYPE xi[DIMX < 1 ? 1 : DIMX];
   __TYPEACC__ acc[DIMRED];
-#if USE_BLOCKRED || USE_KAHAN
-    // additional tmp vector to store either intermediate sums from each block (if USE_BLOCKRED=1) or accumulate errors (if USE_KAHAN=1)
-    __TYPEACC__ tmp[DIMOUT]; 
+#if USE_BLOCKRED
+    // additional tmp vector to store intermediate results from each block
+    TYPE tmp[DIMRED];
+#elif USE_KAHAN
+    // additional tmp vector to accumulate errors
+    const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+    TYPE tmp[DIM_KAHAN];
 #endif
   if (i < nx) {
     typename FUN::template InitializeReduction<__TYPEACC__>()(acc); // acc = 0
 #if USE_KAHAN
 #pragma unroll
-    for (int k = 0; k < DIMOUT; k++)
+    for (int k = 0; k < DIM_KAHAN; k++)
       tmp[k] = 0.0f;
 #endif
     load<typename DIMSX::NEXT>(i, xi + DIMFOUT, px + 1); // load xi variables from global memory to local thread memory
@@ -68,9 +72,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
     if (i < nx) { // we compute x1i only if needed
       TYPE * yjrel = yj; // Loop on the columns of the current block.
 #if USE_BLOCKRED
-#pragma unroll
-      for (int k = 0; k < DIMOUT; k++)
-        tmp[k] = 0.0f;
+      typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
 #endif
       for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += DIMY) {
         call<DIMSX, DIMSY, DIMSP>(fun,
@@ -78,7 +80,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
                                   yjrel,
                                   param_loc); // Call the function, which outputs results in xi[0:DIMX1]
 #if USE_BLOCKRED
-        typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(tmp, xi, jrel + tile * blockDim.x);     // tmp += xi
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, jrel + tile * blockDim.x);     // tmp += xi
 #elif USE_KAHAN
         typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);     
 #else

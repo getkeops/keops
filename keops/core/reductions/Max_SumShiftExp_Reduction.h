@@ -56,7 +56,7 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
   template < typename TYPEACC, typename TYPE >
   struct ReducePairShort {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, int j) {
-      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
       TYPEACC tmpexp;
       if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
         tmpexp = exp(xi[0] - acc[0]);
@@ -77,7 +77,7 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
   template < typename TYPEACC, typename TYPE >
   struct ReducePair {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi) {
-      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
       TYPEACC tmpexp;
       if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
         tmpexp = exp(xi[0] - acc[0]);
@@ -97,15 +97,33 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
   // Kahan scheme
   template < typename TYPEACC, typename TYPE >
   struct KahanScheme {
-    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPEACC *tmp) {
+    static const int DIMACC = DIMRED-1;
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPE *tmp) {
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+      TYPEACC tmpexp;
+      if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+        tmpexp = exp(xi[0] - acc[0]);
 #pragma unroll
 	for (int k=1; k<DIMRED; k++)
         {
-		TYPEACC a = xi[k] - tmp[k-1];
+		TYPEACC a = xi[k] * tmpexp - tmp[k-1];
 		TYPEACC b = acc[k] + a;
 		tmp[k-1] = (b - acc[k]) - a;
 		acc[k] = b;
 	}
+      } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+        tmpexp = exp(acc[0] - xi[0]);
+#pragma unroll
+        for (int k = 1; k < DIMRED; k++)
+        {
+		TYPEACC u = tmpexp * acc[k];
+		TYPEACC a = xi[k] - tmpexp * tmp[k-1];
+		TYPEACC b = u + a;
+		tmp[k-1] = (b - u) - a;
+		acc[k] = b;
+	}
+	acc[0] = xi[0];
+      }
     }
   };
 

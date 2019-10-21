@@ -65,8 +65,9 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
 
   // Kahan scheme
   template < typename TYPEACC, typename TYPE >
-  struct KahanCompensatedSum {
-    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPEACC *tmp) {
+  struct KahanScheme {
+    static const int DIMACC = DIM;
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPE *tmp) {
 #pragma unroll
 	for (int k=0; k<DIM; k++)
         {

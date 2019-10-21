@@ -21,17 +21,20 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 		template < typename TYPE >
 		struct InitializeReduction {
 			DEVICE INLINE void operator()(TYPE *tmp) {
+#pragma unroll
 				for(int k=0; k<F::DIM; k++)
 					tmp[k] = PLUS_INFINITY<TYPE>::value; // initialize output
+#pragma unroll
 				for(int k=F::DIM; k<2*F::DIM; k++)
 					tmp[k] = 0; // initialize output
 			}
 		};
 
 		// equivalent of the += operation
-		template < typename TYPE >
+		template < typename TYPEACC, typename TYPE >
 		struct ReducePairShort {
-			DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, int j) {
+#pragma unroll
 				for(int k=0; k<F::DIM; k++) {
 					if(xi[k]<tmp[k]) {
 						tmp[k] = xi[k];
@@ -42,9 +45,10 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 		};
         
 		// equivalent of the += operation
-		template < typename TYPE >
+		template < typename TYPEACC, typename TYPE >
 		struct ReducePair {
-			DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi) {
+#pragma unroll
 				for(int k=0; k<F::DIM; k++) {
 					if(xi[k]<tmp[k]) {
 						tmp[k] = xi[k];
@@ -70,9 +74,9 @@ struct Min_ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<
         str << "Min_ArgMin_Reduction";
     }
         
-    template < typename TYPE >
+    template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *out, TYPE **px, int i) {
             for(int k=0; k<DIM; k++)
                 out[k] = tmp[k];
         }
@@ -98,6 +102,7 @@ struct ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<ArgM
     template < typename TYPE >
     struct FinalizeOutput {
         DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+#pragma unroll
             for(int k=0; k<F::DIM; k++)
                 out[k] = tmp[F::DIM+k];
         }
@@ -123,9 +128,10 @@ struct Min_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<Min_Red
         str << "Min_Reduction";
     }
 
-    template < typename TYPE >
+    template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *out, TYPE **px, int i) {
+#pragma unroll
             for(int k=0; k<F::DIM; k++)
                 out[k] = tmp[k];
         }

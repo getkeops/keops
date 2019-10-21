@@ -23,18 +23,46 @@ struct CpuConv {
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
     TYPE xi[DIMX], yj[DIMY], pp[DIMP];
-    __TYPEACC__ tmp[DIMRED];
+    __TYPEACC__ acc[DIMRED];
+#if USE_BLOCKRED
+    // additional tmp vector to store intermediate results from each block
+    TYPE tmp[DIMRED];
+#elif USE_KAHAN
+    // additional tmp vector to accumulate errors
+    const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+    TYPE tmp[DIM_KAHAN];
+#endif
     load< DIMSP >(0, pp, param);
 
     for (int i = 0; i < nx; i++) {
       load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
-      typename FUN::template InitializeReduction< __TYPEACC__ >()(tmp);   // tmp = 0
+      typename FUN::template InitializeReduction< __TYPEACC__ >()(acc);   // acc = 0
+#if USE_BLOCKRED
+      typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+#elif USE_KAHAN
+#pragma unroll
+      for (int k = 0; k < DIM_KAHAN; k++)
+        tmp[k] = 0.0f;
+#endif
       for (int j = 0; j < ny; j++) {
         load< DIMSY >(j, yj, py);
         call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
-        typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(tmp, xi, j); // tmp += xi
+#if USE_BLOCKRED
+        typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j); // tmp += xi
+        if ((j+1)%200) {
+            typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
+            typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+        }
+#elif USE_KAHAN
+        typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
+#else
+        typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(acc, xi, j); // acc += xi
+#endif
       }
-      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
+#if USE_BLOCKRED
+      typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
+#endif          
+      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acc, px[0] + i * DIMOUT, px, i);
     }
 
     return 0;
