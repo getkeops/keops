@@ -101,7 +101,7 @@ class KernelSolveAutograd(torch.autograd.Function):
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 9]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges)
+            if not ctx.needs_input_grad[var_ind + 10]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -137,8 +137,8 @@ class KernelSolveAutograd(torch.autograd.Function):
                         grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
                     grads.append(grad)
          
-        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, *args
-        return (None, None, None, None, None, None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args
+        return (None, None, None, None, None, None, None, None, None, None, *grads)
 
 
 
