@@ -162,14 +162,18 @@ if(APPLE)
     set_target_properties(
         rkeops${shared_obj_name} 
         PROPERTIES LINK_FLAGS 
-        "-Wl,-rpath,@loader_path/."
+        "-Wno-ignored-attributes -Wl,-rpath,@loader_path/."
     )
 else()
     set_target_properties(
         rkeops${shared_obj_name} 
-        PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN"
+        PROPERTIES LINK_FLAGS "-Wno-ignored-attributes -Wl,-rpath,$ORIGIN"
     )
 endif()
+
+target_compile_options(
+    rkeops${shared_obj_name} 
+    PRIVATE -Wno-ignored-attributes)
 
 # target
 target_link_libraries(
