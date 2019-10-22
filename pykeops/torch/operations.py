@@ -21,7 +21,7 @@ class KernelSolveAutograd(torch.autograd.Function):
     
         optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] + accuracy_flags
 
-        myconv = LoadKEops(formula, aliases, dtype, 'torch',
+        myconv = LoadKeOps(formula, aliases, dtype, 'torch',
                            optional_flags).import_module()
 
         # Context variables: save everything to compute the gradient:

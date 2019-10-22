@@ -101,7 +101,7 @@ class KernelSolve:
         (self.categories, self.dimensions) = parse_aliases(self.aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
-        self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
+        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
 
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index

@@ -127,7 +127,7 @@ class Genred():
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, aliases)
         self.dtype = dtype
-        self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
+        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
         self.axis = axis
         self.opt_arg = opt_arg
 
