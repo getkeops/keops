@@ -1,12 +1,13 @@
-// test convolution with autodiff
+// test convolution
 // compile with
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_fromdevice test_fromdevice.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_fromdevice test_fromdevice.cu
 
 // testing "from device" convolution, i.e. convolution which is performed on the device
 // directly from device data
 
 #include <algorithm>
 #include <thrust/device_vector.h>
+
 #include <keops_includes.h>
 
 #define DIMPOINT 3
