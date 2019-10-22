@@ -41,59 +41,98 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
 
   template < typename TYPE >
   struct InitializeReduction {
-    DEVICE INLINE void operator()(TYPE *tmp) {
+    DEVICE INLINE void operator()(TYPE *acc) {
       // We fill empty cells with the neutral element of the reduction operation,
       //                   (-inf,0) = e^{-inf} * 0 = 0
 
-      tmp[0] = NEG_INFINITY< TYPE >::value;
+      acc[0] = NEG_INFINITY< TYPE >::value;
+#pragma unroll
       for (int k = 1; k < DIMRED; k++)
-        tmp[k] = 0.0f;
+        acc[k] = 0.0f;
     }
   };
 
   // equivalent of the += operation
-  template < typename TYPE >
+  template < typename TYPEACC, typename TYPE >
   struct ReducePairShort {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
-      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
-      TYPE tmpexp;
-      if (tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
-        tmpexp = exp(xi[0] - tmp[0]);
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, int j) {
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+      TYPEACC tmpexp;
+      if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+        tmpexp = exp(xi[0] - acc[0]);
+#pragma unroll
         for (int k = 1; k < DIMRED; k++)
-          tmp[k] += xi[k] * tmpexp;
+          acc[k] += xi[k] * tmpexp;
       } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
-        tmpexp = exp(tmp[0] - xi[0]);
+        tmpexp = exp(acc[0] - xi[0]);
+#pragma unroll
         for (int k = 1; k < DIMRED; k++)
-          tmp[k] = xi[k] + tmpexp * tmp[k];
-        tmp[0] = xi[0];
+          acc[k] = xi[k] + tmpexp * acc[k];
+        acc[0] = xi[0];
       }
     }
   };
 
   // equivalent of the += operation
-  template < typename TYPE >
+  template < typename TYPEACC, typename TYPE >
   struct ReducePair {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
-      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
-      TYPE tmpexp;
-      if (tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
-        tmpexp = exp(xi[0] - tmp[0]);
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi) {
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+      TYPEACC tmpexp;
+      if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+        tmpexp = exp(xi[0] - acc[0]);
+#pragma unroll
         for (int k = 1; k < DIMRED; k++)
-          tmp[k] += xi[k] * tmpexp;
+          acc[k] += xi[k] * tmpexp;
       } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
-        tmpexp = exp(tmp[0] - xi[0]);
+        tmpexp = exp(acc[0] - xi[0]);
+#pragma unroll
         for (int k = 1; k < DIMRED; k++)
-          tmp[k] = xi[k] + tmpexp * tmp[k];
-        tmp[0] = xi[0];
+          acc[k] = xi[k] + tmpexp * acc[k];
+        acc[0] = xi[0];
       }
     }
   };
 
-  template < typename TYPE >
+  // Kahan scheme
+  template < typename TYPEACC, typename TYPE >
+  struct KahanScheme {
+    static const int DIMACC = DIMRED-1;
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPE *tmp) {
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+      TYPEACC tmpexp;
+      if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+        tmpexp = exp(xi[0] - acc[0]);
+#pragma unroll
+	for (int k=1; k<DIMRED; k++)
+        {
+		TYPEACC a = xi[k] * tmpexp - tmp[k-1];
+		TYPEACC b = acc[k] + a;
+		tmp[k-1] = (b - acc[k]) - a;
+		acc[k] = b;
+	}
+      } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+        tmpexp = exp(acc[0] - xi[0]);
+#pragma unroll
+        for (int k = 1; k < DIMRED; k++)
+        {
+		TYPEACC u = tmpexp * acc[k];
+		TYPEACC a = xi[k] - tmpexp * tmp[k-1];
+		TYPEACC b = u + a;
+		tmp[k-1] = (b - u) - a;
+		acc[k] = b;
+	}
+	acc[0] = xi[0];
+      }
+    }
+  };
+
+  template < typename TYPEACC, typename TYPE >
   struct FinalizeOutput {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+#pragma unroll
       for (int k = 0; k < DIM; k++)
-        out[k] = tmp[k];
+        out[k] = acc[k];
     }
   };
 

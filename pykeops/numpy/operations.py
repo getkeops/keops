@@ -3,7 +3,7 @@ import numpy as np
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import complete_aliases, parse_aliases
+from pykeops.common.parse_type import complete_aliases, parse_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
@@ -43,7 +43,7 @@ class KernelSolve:
     
     """
     
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -94,11 +94,14 @@ class KernelSolve:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
         else:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+
+        optional_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op)
+
         self.aliases = complete_aliases(formula, aliases)
         (self.categories, self.dimensions) = parse_aliases(self.aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
-        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy').import_module()
+        self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
 
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index

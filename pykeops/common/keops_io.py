@@ -24,13 +24,13 @@ class LoadKeOps:
         self.optional_flags = optional_flags
 
         # create the name from formula, aliases and dtype.
-        self.dll_name = self._create_name(formula, aliases, dtype, lang)
+        self.dll_name = self._create_name(formula, aliases, dtype, lang, optional_flags)
 
         if (module_exists(self.dll_name)) or (build_type == 'Debug'):
             self.build_folder = bin_folder + os.path.sep + 'build-' + self.dll_name
             self._safe_compile()
 
-    def _create_name(self, formula, aliases, dtype, lang):
+    def _create_name(self, formula, aliases, dtype, lang, optional_flags):
         """
         Compose the shared object name
         """
@@ -39,7 +39,7 @@ class LoadKeOps:
     
         # Since the OS prevents us from using arbitrary long file names, an okayish solution is to call
         # a standard hash function, and hope that we won't fall into a non-injective nightmare case...
-        dll_name = ",".join(aliases + [formula]) + "_" + dtype
+        dll_name = ",".join(aliases + [formula] + optional_flags) + "_" + dtype
         dll_name = "libKeOps" + lang + sha256(dll_name.encode("utf-8")).hexdigest()[:10]
         return dll_name
 
