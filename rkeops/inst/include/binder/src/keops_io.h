@@ -14,9 +14,10 @@
 #include "rkeops_matrix.h"
 
 // rkeops matrix type
+using rkeops_base_matrix_t = rkeops::base_matrix<rkeops::type_t>;
 using rkeops_matrix_t = rkeops::matrix<rkeops::type_t>;
-// list of input data
-using rkeops_list_t = std::vector<rkeops_matrix_t>;
+// list of raw input data
+using rkeops_list_t = std::vector<rkeops_base_matrix_t>;
 
 namespace keops_binders {
 
@@ -31,22 +32,22 @@ void keops_error(std::basic_string< char > msg) {
 using __TYPEARRAY__ = rkeops::matrix<__TYPE__>;
 
 template <>
-int get_ndim(__TYPEARRAY__ &obj_ptri) {
+int get_ndim(__TYPEARRAY__ obj_ptri) {
     return(obj_ptri.get_ndim());
 }
 
 template <>
-int get_size(__TYPEARRAY__ &obj_ptri, int l) {
+int get_size(__TYPEARRAY__ obj_ptri, int l) {
     return(obj_ptri.get_size(l));
 }
 
 template <>
-__TYPE__* get_data(__TYPEARRAY__ &obj_ptri) {
+__TYPE__* get_data(__TYPEARRAY__ obj_ptri) {
     return( (__TYPE__*) obj_ptri.get_data());
 }
 
 template <>
-bool is_contiguous(__TYPEARRAY__ &obj_ptri) {
+bool is_contiguous(__TYPEARRAY__ obj_ptri) {
     return(obj_ptri.is_contiguous());
 }
 
