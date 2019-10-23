@@ -35,19 +35,3 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
-Collate:
-    common-compile_code.R
-    common-get_cmake.R
-    common-get_options.R
-    common-set_options.R
-    common-string2hash.R
-    default_options.R
-    generic-compile_formula.R
-    generic-format_var_aliase.R
-    generic-keops_kernel.R
-    RcppExports.R
-    rkeops-internal.R
-    rkeops-package.R
-    starting.R
-    utils.R
-    zzz.R
