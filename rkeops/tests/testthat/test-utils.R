@@ -62,17 +62,6 @@ test_that("load_dll", {
     # }
 })
 
-test_that("R_makeconf_path", {
-    out <- R_makeconf_path()
-    expect_true(is.character(out))
-    expect_true(file.exists(out))
-    expect_match(out, "Makeconf")
-    expect_error(R_makeconf_path(5), 
-                 "`path` input parameter should be an existing file name.")
-    expect_error(R_makeconf_path(path="/no/path/to/notest"), 
-                 "`path` input parameter should be an existing file name.")
-})
-
 test_that("use_gpu", {
     expect_error(use_gpu(), NA)
     expect_true(get_rkeops_option("tagCpuGpu") %in% c(1, 2))
