@@ -126,16 +126,16 @@ is_installed <- function() {
 #' @author Ghislain Durif
 #' @import Rcpp
 #' @export
-load_dll <- function(path, dllname, object, genred=FALSE) {
+load_dll <- function(path, dllname, object, tag="_binder_", genred=FALSE) {
     filename <- file.path(path, paste0(dllname, .Platform$dynlib.ext))
     tmp <- dyn.load(filename)
     out <- NULL
     if(genred) {
         out <- Rcpp:::sourceCppFunction(function(input, param) {}, FALSE, tmp, 
-                                        paste0("_binder_", object))
+                                        paste0(tag, object))
     } else {
         out <- Rcpp:::sourceCppFunction(function() {}, FALSE, tmp, 
-                                        paste0("_binder_", object))
+                                        paste0(tag, object))
     }
     
     rm(tmp)
@@ -154,7 +154,7 @@ load_dll <- function(path, dllname, object, genred=FALSE) {
 #' calling the function `use_gpu` is mandatory to run computations on GPU.
 #' @author Ghislain Durif
 #' @seealso [rkeops::compile4gpu()]
-#' @example 
+#' @examples 
 #' \dontrun{
 #' use_gpu()
 #' }
@@ -177,7 +177,7 @@ use_gpu <- function() {
 #' `compile4gpu`.
 #' @author Ghislain Durif
 #' @seealso [rkeops::use_gpu()]
-#' @example 
+#' @examples 
 #' \dontrun{
 #' compile4gpu()
 #' }

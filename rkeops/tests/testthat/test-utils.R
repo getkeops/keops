@@ -42,24 +42,25 @@ test_that("get_build_dir", {
 })
 
 test_that("load_dll", {
-    # # current dir
-    # current_dir <- getwd()
-    # # go to binder dir
-    # binder_dir <- file.path(get_src_dir(), "binder", "src")
-    # # compile test function
-    # setwd(binder_dir)
-    # tmp <- tryCatch(compile_test_binder(), 
-    #                 error = function(e) return(NULL))
-    # setwd(current_dir)
-    # # test (if compilation work)
-    # expect_true(!is.null(tmp))
-    # if(!is.null(tmp)) {
-    #     test_binder <- load_dll(path = binder_dir, 
-    #                             dllname = tmp, 
-    #                             object = "test_binder")
-    #     expect_error(test_binder(), NA)
-    #     expect_equal(test_binder(), 1)
-    # }
+    # current dir
+    current_dir <- getwd()
+    # go to src dir
+    src_dir <- file.path(get_pkg_dir(), "src")
+    # compile test function
+    setwd(src_dir)
+    tmp <- tryCatch(compile_test_function(),
+                    error = function(e) return(NULL))
+    setwd(current_dir)
+    # test (if compilation work)
+    expect_true(!is.null(tmp))
+    if(!is.null(tmp)) {
+        test_function <- load_dll(path = get_build_dir(),
+                                  dllname = tmp,
+                                  object = "is_compiled",
+                                  tag="_rkeops_")
+        expect_error(test_function(), NA)
+        expect_equal(test_function(), 1)
+    }
 })
 
 test_that("use_gpu", {
