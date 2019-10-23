@@ -72,12 +72,14 @@ test_that("compile_code", {
 test_that("get_rkeops_options", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
-        use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL, 
+        use_cuda_if_possible = TRUE, 
+        col_major = TRUE, debug = FALSE, 
+        rkeops_dir = NULL, build_dir = NULL, 
         src_dir = NULL)
     custom_runtime_options <- runtime_options(
-        tagCpuGpu = 1, tag1D2D = 0, 
+        tagCpuGpu = 0, tag1D2D = 0, tagHostDevice=0, 
         device_id = 0)
-    set_rkeops_options(custom_compile_options, 
+    set_rkeops_options(custom_compile_options,
                        custom_runtime_options)
     rkeops_options <- get_rkeops_options()
     expect_equal(rkeops_options$compile_options,
@@ -89,10 +91,12 @@ test_that("get_rkeops_options", {
 test_that("get_rkeops_option", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
-        use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL, 
+        use_cuda_if_possible = TRUE, 
+        col_major = TRUE, debug = FALSE, 
+        rkeops_dir = NULL, build_dir = NULL, 
         src_dir = NULL)
     custom_runtime_options <- runtime_options(
-        tagCpuGpu = 1, tag1D2D = 0, 
+        tagCpuGpu = 0, tag1D2D = 0, tagHostDevice=0, 
         device_id = 0)
     ## check getting each compile option
     tmp <- lapply(names(custom_compile_options), function(option) {
@@ -114,10 +118,12 @@ test_that("get_rkeops_option", {
 test_that("set_rkeops_options", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
-        use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL, 
+        use_cuda_if_possible = TRUE, 
+        col_major = TRUE, debug = FALSE, 
+        rkeops_dir = NULL, build_dir = NULL, 
         src_dir = NULL)
     custom_runtime_options <- runtime_options(
-        tagCpuGpu = 1, tag1D2D = 0, 
+        tagCpuGpu = 0, tag1D2D = 0, tagHostDevice=0, 
         device_id = 0)
     set_rkeops_options(custom_compile_options, 
                        custom_runtime_options)
@@ -131,10 +137,12 @@ test_that("set_rkeops_options", {
 test_that("set_rkeops_option", {
     custom_compile_options <- compile_options(
         precision = 'float', verbosity = FALSE, 
-        use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL, 
+        use_cuda_if_possible = TRUE, 
+        col_major = TRUE, debug = FALSE, 
+        rkeops_dir = NULL, build_dir = NULL, 
         src_dir = NULL)
     custom_runtime_options <- runtime_options(
-        tagCpuGpu = 1, tag1D2D = 0, 
+        tagCpuGpu = 0, tag1D2D = 0, tagHostDevice=0, 
         device_id = 0)
     ## check setting each compile option
     tmp <- lapply(names(custom_compile_options), function(option) {
@@ -157,9 +165,11 @@ test_that("set_rkeops_option", {
 
 test_that("string2hash", {
     out <- string2hash("test")
-    expected_out <- stringr::str_sub(paste0("9f86d081884c7d659a2feaa0c55ad015", 
-                                            "a3bf4f1b2b0b822cd15d6c15b0f00a08"),
-                                     start = 1, end = 25)
+    expected_out <- paste0("headers", 
+                           stringr::str_sub(
+                               paste0("9f86d081884c7d659a2feaa0c55ad015", 
+                                      "a3bf4f1b2b0b822cd15d6c15b0f00a08"),
+                               start = 1, end = 25))
     expect_equal(as.character(out), 
                  expected_out)
 })

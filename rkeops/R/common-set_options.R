@@ -3,38 +3,39 @@
 #' `rkeops` uses two sets of options: compile options (see 
 #' [rkeops::compile_options()]) and runtime options (see 
 #' [rkeops::runtime_options()]). These options define the behavior of `rkeops` 
-#' when compiling or when running new user-defined operators.
+#' when compiling or when calling user-defined operators.
 #' 
 #' If no input is provided, the functions `set_rkeops_options` initializes the 
 #' `rkeops` options in the `R` global options scope (i.e. options available 
-#' by calling `options()` or `getOptions(<option_name>)`).
+#' by calling `options()` or `getOptions(<option_name>)`) with default values.
 #' 
-#' If some input is provided, i.e. objects defining compile options or run 
-#' options (see Details), `rkeops` global options are updated accordingly.
+#' If some input is provided, i.e. objects defining compile options and/or 
+#' runtime options (see Details), `rkeops` global options are updated 
+#' accordingly.
 #' @details
 #' `rkeops` global options includes two lists defining options used at 
-#' compilation of new user-defined operators or at runtime. These two list 
+#' compilation of user-defined operators or at runtime. These two list 
 #' contains specific informations (see [rkeops::compile_options()] and 
-#' [rkeops::runtime_options()] respectively).
+#' [rkeops::runtime_options()] respectively, in particular for default values).
 #' 
 #' In order to update, the corresponding options, user should provide objects 
-#' returned by the functions [rkeops::compile_options()] and 
+#' returned by the functions [rkeops::compile_options()] and/or 
 #' [rkeops::runtime_options()] respectively, being lists of class 
 #' `rkeops_compile_options` and `rkeops_runtime_options` respectively, with 
 #' specific attributes.
 #' @author Ghislain Durif
-#' @param custom_compile_options a list (of class `rkeops_compile_options`) 
-#' with the following elements `rkeops_dir`, `build_dir`, `src_dir`, 
-#' `precision`, `verbosity`, `use_cuda_if_possible`. Default value is `NULL` 
-#' and default compile options are set up (see 
+#' @param custom_compile_options a list (of class `rkeops_compile_options`). 
+#' See [rkeops::compile_options()] for a detailled description. Default value 
+#' is `NULL` and default compile options are set up (see 
 #' [rkeops::default_compile_options()]).
-#' @param custom_runtime_options a list (of class `rkeops_runtime_options`) 
-#' with the following elements `tagCpuGpu`, `tag1D2D`, `device_id`. Default 
+#' @param custom_runtime_options a list (of class `rkeops_runtime_options`). 
+#' See [rkeops::runtime_options()] for a detailled description. Default 
 #' value is `NULL` and default runtime options are set up 
 #' (see [rkeops::default_runtime_options()]).
 #' @seealso [rkeops::set_rkeops_option()], [rkeops::compile_options()], 
 #' [rkeops::runtime_options()], [rkeops::default_compile_options()], 
-#' [rkeops::default_runtime_options()].
+#' [rkeops::default_runtime_options()], [rkeops::use_gpu()], 
+#' [rkeops::compile4gpu()], [rkeops::get_rkeops_options()]
 #' @export
 set_rkeops_options <- function(custom_compile_options = NULL, 
                                custom_runtime_options = NULL) {
@@ -87,29 +88,38 @@ set_rkeops_options <- function(custom_compile_options = NULL,
 #' Set up a specific compile or runtime options of `rkeops` in `R` global 
 #' options scope
 #' @description
-#' The function `set_rkeops_option` allows to set up a single specific `rkeops` 
-#' options in `R` global options scope.
+#' The function `set_rkeops_option` allows to modify the value of a single 
+#' specific `rkeops` options in `R` global options scope.
 #' @details
-#' `rkeops` uses two sets of options: compile options `rkeops_dir`, 
-#' `build_dir`, `src_dir`, `precision`, `verbosity`, `use_cuda_if_possible` 
-#' (see [rkeops::compile_options()]), and runtime options `tagCpuGpu`, 
-#' `tag1D2D`, `device_id` (see [rkeops::runtime_options()]).
-#' 
-#' These options define the behavior of `rkeops` when compiling or when 
-#' running new user-defined operators.
+#' `rkeops` uses two sets of options: compile options (see 
+#' [rkeops::compile_options()]) and runtime options (see 
+#' [rkeops::runtime_options()]). These options define the behavior of `rkeops` 
+#' when compiling or when calling user-defined operators.
 #' 
 #' With the function `set_rkeops_option`, you can set up a specific `rkeops` 
-#' options among `rkeops_dir` (not recommended), `build_dir`, `src_dir`, 
-#' `precision`, `verbosity`, `use_cuda_if_possible` or `tagCpuGpu`, `tag1D2D`, 
-#' `device_id` with a value that you provide in input.
+#' option among:
+#' * `rkeops` compile options: rkeops_dir` (not recommended), `build_dir`, 
+#' `src_dir` (not recommended), `precision`, `verbosity`, 
+#' `use_cuda_if_possible`, `col_major` (not recommended), `debug`
+#' * `rkeops` runtime options: `tagCpuGpu`, `tag1D2D`, `tagHostDevice`, 
+#' `device_id`
+#' with a value that you provide in input.
 #' 
 #' To know which values are allowed for which options, you can check 
 #' [rkeops::compile_options()] and [rkeops::runtime_options()].
 #' @author Ghislain Durif
-#' @param option string, name of the options to set up (see Details).
+#' @param option string, name of the option to set up (see Details).
 #' @param value whatever value to assign to the chosen option (see Details).
 #' @seealso [rkeops::set_rkeops_options()], [rkeops::compile_options()], 
-#' [rkeops::runtime_options()]
+#' [rkeops::runtime_options()],  [rkeops::use_gpu()], [rkeops::compile4gpu()], 
+#' [rkeops::get_rkeops_options()]
+#' @example 
+#' \dontrun{
+#' # to enable GPU computing
+#' set_rkeops_option("tagCpuGpu", 1)
+#' # to set up the GPU id used for computations
+#' set_rkeops_option("device_id", 0)
+#' }
 #' @export
 set_rkeops_option <- function(option, value) {
     possible_compile_options <- rkeops_option_names(tag = "compile")
