@@ -67,34 +67,7 @@ if isempty(strfind(formula,'Reduction('))
 end
 
 % accuracy options
-% accumulate results of reduction in double instead of float ?
-options = set_default_option(options,'use_double_acc',0);
-% use Kahan scheme to compensat sums ? This can only be enabled for
-% summation type reductions ; we will check this just below
-options = set_default_option(options,'use_kahan',0);
-% use temporary accumulator to accumulate results in each block ?
-% This option is enabled by default for summation type reductions because
-% it improves accuracy with no overhead. We forbid it for other types
-% because it is useless.
-ind = strfind(formula,'_Reduction(');
-switch formula(1:ind-1)
-    case {'Sum','MaxSumShiftExp','MaxSumShiftExpWeight'}
-        use_blockred_default = 1;
-    otherwise
-        use_blockred_default = 0;
-        % check for blockred and Kahan summation options now
-        if options.use_blockred == 1
-            error('Block reduction can only be used for summation type reductions')
-        end
-        if options.use_kahan == 1
-            error('Kahan summation can only be used for summation type reductions')
-        end
-end
-options = set_default_option(options,'use_blockred',use_blockred_default);
-% Also block reduction and Kahan summations are not compatible
-if options.use_blockred && options.use_kahan
-    error('Block reducitonand Kahan summation are not compatible')
-end
+options = set_accuracy_options(options,formula);
 
 % sumoutput is an optional tag (0 or 1) to tell wether we must further sum the
 % output in the end. This is used when taking derivatives with respect to

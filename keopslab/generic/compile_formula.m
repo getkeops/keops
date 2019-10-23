@@ -13,11 +13,8 @@ cmd_cmake =  [ '-DVAR_ALIASES="', code1, '" -DFORMULA_OBJ="',...
 if options.use_double_acc
     cmd_cmake = [cmd_cmake, ' -D__TYPEACC__=double'];
 end
-if options.use_blockred
-    cmd_cmake = [cmd_cmake, ' -DUSE_BLOCKRED=1'];
-end
-if options.use_kahan
-    cmd_cmake = [cmd_cmake, ' -DUSE_KAHAN=1'];
+if options.sum_scheme
+    cmd_cmake = [cmd_cmake, ' -DSUM_SCHEME=',num2str(options.sum_scheme)];
 end
         
 cmd_make = 'mex_cpp'; 
