@@ -46,13 +46,9 @@ add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 if(__TYPEACC__)
   add_definitions(-D__TYPEACC__=${__TYPEACC__})
 endif()
-if(USE_BLOCKRED)
-  add_definitions(-DUSE_BLOCKRED=${USE_BLOCKRED})
+if(SUM_SCHEME)
+  add_definitions(-DSUM_SCHEME=${SUM_SCHEME})
 endif()
-if(USE_KAHAN)
-  add_definitions(-DUSE_KAHAN=${USE_KAHAN})
-endif()
-
 
 
 # - Declare the templates formula if not provided by the user

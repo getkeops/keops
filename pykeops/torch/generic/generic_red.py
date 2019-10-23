@@ -179,7 +179,7 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
+                 formula2=None, cuda_type=None, use_double_acc=False, sum_scheme="auto"):
         r"""
         Instantiate a new generic operation.
 
@@ -233,14 +233,14 @@ class Genred():
                 "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
                 It improves the accuracy of results in case of large sized data, but is slower.
            
-            use_BlockRed (bool or "auto", default "auto"): if True, use an intermediate accumulator in each block before accumulating 
-                in the output. This improves
-                accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". Default value "auto" will reset it to True for these reductions.
-
-            use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
-                accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+            sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
+                when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+                Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
+                  - **sum_scheme** =  ``"direct_sum"``: direct summation
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
 
         """
         if cuda_type:
@@ -249,7 +249,7 @@ class Genred():
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
         
-        self.accuracy_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op_internal)
+        self.accuracy_flags = get_accuracy_flags(use_double_acc, sum_scheme, dtype, reduction_op_internal)
 
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''

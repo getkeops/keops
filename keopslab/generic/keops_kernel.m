@@ -34,11 +34,11 @@ else
     options=struct;
 end
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
-options = setoptions(options,'tagCpuGpu',1);
+options = set_default_option(options,'tagCpuGpu',1);
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
-options = setoptions(options,'tag1D2D',0);
+options = set_default_option(options,'tag1D2D',0);
 % device_id is id of GPU device in case several GPUs can be used
-options = setoptions(options,'device_id',0);
+options = set_default_option(options,'device_id',0);
 
 % detect formula and aliases from inputs. Formula should be the only string
 % without '=' character.
@@ -64,23 +64,26 @@ if isempty(strfind(formula,'Reduction('))
         tagIJ = 0;
     end
     formula = ['Sum_Reduction(',formula,',',num2str(tagIJ),')'];
-end        
+end
+
+% accuracy options
+options = set_accuracy_options(options,formula);
 
 % sumoutput is an optional tag (0 or 1) to tell wether we must further sum the
 % output in the end. This is used when taking derivatives with respect to
 % parameter variables (see grad function)
-options = setoptions(options,'sumoutput',0);
+options = set_default_option(options,'sumoutput',0);
 
 % from the string inputs we form the code which will be added to the source cpp/cu file, and the string used to encode the file name
 [CodeVars, indij] = format_var_aliase(aliases);
 
 % we use a hash to shorten string and avoid special characters in the filename
-hash = string2hash(lower([CodeVars,formula]));
+hash = string2hash(lower(compile_formula(CodeVars, formula, 'gros_bidon', options, 'no_compile')));
 Fname = ['keops', hash];
 mex_name = [Fname, '.', mexext];
 
 if ~(exist(mex_name,'file') == 3) || (verbosity == 1)
-     compile_formula(CodeVars, formula, hash);
+     compile_formula(CodeVars, formula, hash, options);
 end
 
 % return function handler
@@ -107,6 +110,6 @@ end
 % number of variables actually present in the formula (which is obtained by 
 % calling the formula with no argument). In some special
 % cases this is not correct and the value must be manually set.
-options = setoptions(options,'numvars',max(length(aliases),F()));
+options = set_default_option(options,'numvars',max(length(aliases),F()));
 
 end

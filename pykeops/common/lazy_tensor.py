@@ -305,13 +305,12 @@ class LazyTensor:
 
     def separate_kwargs(self, kwargs):    
         # separating keyword arguments for Genred init vs Genred call...
-        # Currently the only three additional optional keyword arguments that are passed to Genred init
-        # are accuracy options: use_double_acc, use_BlockRed, use_Kahan. Since they all start 
-        # by "use_", we use this to distinguish...
+        # Currently the only two additional optional keyword arguments that are passed to Genred init
+        # are accuracy options: use_double_acc and sum_cheme.
         kwargs_init = []
         kwargs_call = []
         for key in kwargs:
-            if len(key)>3 and key[:4]=="use_":
+            if key in ("use_double_acc","sum_scheme"):
                 kwargs_init += [(key,kwargs[key])]
             else:
                 kwargs_call += [(key,kwargs[key])]                
@@ -503,16 +502,19 @@ class LazyTensor:
             If **None** (default), we simply use a **dense Kernel matrix**
             as we loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
-          use_double_acc (bool, default False): accumulate results of reduction in float64 variables, before casting to float32. 
-             This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
-             It improves the accuracy of results in case of large sized data, but is slower.          
-          use_BlockRed (bool, default False): use an intermediate accumulator in each block before accumulating in the output. This improves
-             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
-          use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
-             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+          use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
+            This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+            "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+            It improves the accuracy of results in case of large sized data, but is slower.  
+          sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
+            when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+            Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
+              - **sum_scheme** =  ``"direct_sum"``: direct summation
+              - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                in the output. This improves accuracy for large sized data. 
+              - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+            accuracy for large sized data. 
+
         """
         
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
@@ -583,16 +585,18 @@ class LazyTensor:
             If **None** (default), we simply use a **dense Kernel matrix**
             as we loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
-          use_double_acc (bool, default False): accumulate results of reductions in float64 variables, before casting to float32. 
-             This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
-             It improves the accuracy of results in case of large sized data, but is slower.          
-          use_BlockRed (bool, default False): use an intermediate accumulator in each block before accumulating in the output. This improves
-             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
-          use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
-             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+          use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
+            This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+            "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+            It improves the accuracy of results in case of large sized data, but is slower.  
+          sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
+            when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+            Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
+              - **sum_scheme** =  ``"direct_sum"``: direct summation
+              - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                in the output. This improves accuracy for large sized data. 
+              - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+            accuracy for large sized data. 
 
         .. warning::
             Please note that **no check** of symmetry and definiteness will be
