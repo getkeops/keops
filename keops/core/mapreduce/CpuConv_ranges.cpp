@@ -62,10 +62,10 @@ struct CpuConv_ranges {
 
     TYPE xi[DIMX], yj[DIMY], pp[DIMP];
     __TYPEACC__ acc[DIMRED];
-#if USE_BLOCKRED
+#if SUM_SCHEME == BLOCK_SUM
     // additional tmp vector to store intermediate results from each block
     TYPE tmp[DIMRED];
-#elif USE_KAHAN
+#elif SUM_SCHEME == KAHAN_SCHEME
     // additional tmp vector to accumulate errors
     const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
     TYPE tmp[DIM_KAHAN];
@@ -120,9 +120,9 @@ struct CpuConv_ranges {
           load< typename DIMSX::NEXT >(i - start_x, xi + DIMFOUT, px + 1, indices_i);
         }
         typename FUN::template InitializeReduction< __TYPEACC__ >()(acc);   // tmp = 0
-#if USE_BLOCKRED
+#if SUM_SCHEME == BLOCK_SUM
         typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
-#elif USE_KAHAN
+#elif SUM_SCHEME == KAHAN_SCHEME
 #pragma unroll
         for (int k = 0; k < DIM_KAHAN; k++)
           tmp[k] = 0.0f;
@@ -141,13 +141,13 @@ struct CpuConv_ranges {
             for (int j = start_y; j < end_y; j++) {
               load< DIMSY >(j, yj, py);
               call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
-#if USE_BLOCKRED
+#if SUM_SCHEME == BLOCK_SUM
               typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j); // tmp += xi
               if ((j+1)%200) {
                   typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
                   typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
               }
-#elif USE_KAHAN
+#elif SUM_SCHEME == KAHAN_SCHEME
               typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
 #else
               typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(acc, xi, j); // acc += xi
@@ -158,13 +158,13 @@ struct CpuConv_ranges {
             for (int j = start_y; j < end_y; j++) {
               load< DIMSY >(j - start_y, yj, py, indices_j);
               call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
-#if USE_BLOCKRED
+#if SUM_SCHEME == BLOCK_SUM
               typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j - start_y); // tmp += xi
               if ((j+1)%200) {
                   typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
                   typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
               }
-#elif USE_KAHAN
+#elif SUM_SCHEME == KAHAN_SCHEME
               typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
 #else
               typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(acc, xi, j - start_y); // acc += xi
@@ -172,7 +172,7 @@ struct CpuConv_ranges {
             }
           }
         }
-#if USE_BLOCKRED
+#if SUM_SCHEME == BLOCK_SUM
         typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
 #endif          
         typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acc, px[0] + i * DIMOUT, px, i);

@@ -184,7 +184,7 @@ class KernelSolve():
         >>> print(g_x.shape)
         torch.Size([10000, 3]) 
     """
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None, use_double_acc=False, sum_scheme="auto"):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -234,13 +234,25 @@ class KernelSolve():
                   - **dtype** = ``"float32"`` or ``"float"``.
                   - **dtype** = ``"float64"`` or ``"double"``.
                   
+            use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32.
+                It improves the accuracy of results in case of large sized data, but is slower.
+           
+            sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
+                Default value "auto" will set this option to "block_red". Possible values are:
+                  - **sum_scheme** =  ``"direct_sum"``: direct summation
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
+
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
         reduction_op='Sum'
 
-        self.accuracy_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op)
+        self.accuracy_flags = get_accuracy_flags(use_double_acc, sum_scheme, dtype, reduction_op)
 
         self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases))  # just in case the user provided a tuple
