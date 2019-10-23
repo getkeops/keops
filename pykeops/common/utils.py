@@ -7,7 +7,7 @@ from hashlib import sha256
 
 from pykeops import build_type, bin_folder
 
-c_type = dict(float32="float", float64="double")
+c_type = dict(float16="__fp16", float32="float", float64="double")
 
 
 def module_exists(dllname):

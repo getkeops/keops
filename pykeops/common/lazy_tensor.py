@@ -99,7 +99,7 @@ class LazyTensor:
     
         .. warning::
             A :class:`LazyTensor` constructed
-            from a NumPy array or a PyTorch tensor retains its **dtype** (float32 vs float64)
+            from a NumPy array or a PyTorch tensor retains its **dtype** (float16, float32 or float64)
             and **device** properties (is it stored on the GPU?).
             Since KeOps does **not** support automatic type conversions and data transfers,
             please make sure **not to mix** :class:`LazyTensor`
@@ -160,7 +160,7 @@ class LazyTensor:
             elif typex == list:
                 pass
             
-            elif usenumpy and typex in (np.float32, np.float64):  # NumPy scalar -> NumPy array
+            elif usenumpy and typex in (np.float16, np.float32, np.float64):  # NumPy scalar -> NumPy array
                 x = np.array(x).reshape(1)
             
             elif usetorch and typex == torch.Tensor and len(x.shape) == 0:  # Torch scalar -> Torch tensor

@@ -88,11 +88,12 @@ class Genred():
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
+            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays.
                 The supported values are:
 
-                  - **dtype** = ``"float32"`` or ``"float"``.
-                  - **dtype** = ``"float64"`` or ``"double"``.
+                  - **dtype** = ``"float16"``.
+                  - **dtype** = ``"float32"``.
+                  - **dtype** = ``"float64"``.
 
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.

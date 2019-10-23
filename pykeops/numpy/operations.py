@@ -82,11 +82,12 @@ class KernelSolve:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays. 
                 The supported values are:
 
-                  - **dtype** = ``"float32"`` or ``"float"``.
-                  - **dtype** = ``"float64"`` or ``"double"``.
+                  - **dtype** = ``"float16"``.
+                  - **dtype** = ``"float32"``.
+                  - **dtype** = ``"float64"``.
 
             use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
                 This can only be set to True when data is in float32.

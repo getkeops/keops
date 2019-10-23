@@ -222,6 +222,7 @@ class Genred():
             dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
                 The supported values are:
 
+                  - **dtype** = ``"float16"`` or ``"half"``.
                   - **dtype** = ``"float32"`` or ``"float"``.
                   - **dtype** = ``"float64"`` or ``"double"``.
 

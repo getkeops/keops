@@ -24,6 +24,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
         dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
+              - **dtype** = ``"float16"``,
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
 
@@ -68,6 +69,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs):
         dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
+              - **dtype** = ``"float16"``,
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
 
@@ -124,6 +126,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs):
         dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
+              - **dtype** = ``"float16"``,
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
 
@@ -179,6 +182,7 @@ def generic_argmin(formula, output, *aliases, **kwargs):
         dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
+              - **dtype** = ``"float16"``,
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
 
