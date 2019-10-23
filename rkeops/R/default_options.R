@@ -333,7 +333,7 @@ check_runtime_options <- function(options) {
 #' @param tag text string or vector of text string, specifying the requested 
 #' subset of `rkeops` options, i.e. `"compile"` or `"runtime"`. Default value 
 #' is `c("compile", "runtime")` and both are returned.
-#' @value a vector of requested `rkeops` options.
+#' @return a vector of requested `rkeops` options.
 #' @seealso [rkeops::get_rkeops_options()], [rkeops::set_rkeops_options()], 
 #' [rkeops::compile_options()], [rkeops::runtime_options()]
 #' @export

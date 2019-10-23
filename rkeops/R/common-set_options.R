@@ -36,6 +36,10 @@
 #' [rkeops::runtime_options()], [rkeops::default_compile_options()], 
 #' [rkeops::default_runtime_options()], [rkeops::use_gpu()], 
 #' [rkeops::compile4gpu()], [rkeops::get_rkeops_options()]
+#' @examples 
+#' \dontrun{
+#' set_rkeops_options()
+#' }
 #' @export
 set_rkeops_options <- function(custom_compile_options = NULL, 
                                custom_runtime_options = NULL) {
@@ -113,7 +117,7 @@ set_rkeops_options <- function(custom_compile_options = NULL,
 #' @seealso [rkeops::set_rkeops_options()], [rkeops::compile_options()], 
 #' [rkeops::runtime_options()],  [rkeops::use_gpu()], [rkeops::compile4gpu()], 
 #' [rkeops::get_rkeops_options()]
-#' @example 
+#' @examples 
 #' \dontrun{
 #' # to enable GPU computing
 #' set_rkeops_option("tagCpuGpu", 1)
