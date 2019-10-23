@@ -2,7 +2,7 @@
 % Please edit documentation in R/default_options.R
 \name{runtime_options}
 \alias{runtime_options}
-\title{User-defined options used at runtime in \code{rkeops} package}
+\title{Define a list of user-defined options used at runtime in \code{rkeops} package}
 \usage{
 runtime_options(tagCpuGpu = 0, tag1D2D = 0, tagHostDevice = 0,
   device_id = 0)
@@ -30,34 +30,41 @@ parallelization (see Details).}
 \item{device_id}{integer, id of GPU device on the machine (see Details).}
 }
 \description{
-When using compiled user-defined operators, \code{rkeops} requires runtime
-options that control how the computations are done (memory manegement,
-data partition for parallelization, etc.).
+When calling user-defined operators, \code{rkeops} requires runtime options that
+control how the computations are done (memory management, data partition for
+parallelization, GPU device if relevant).
 
-The function \code{runtime_options} returns an object of class
-\code{rkeops_runtime_options} with user-provided values for the corresponding
-options (see Details).
+The function \code{runtime_options} returns a list of class
+\code{rkeops_runtime_options} with default values for the corresponding options
+(see Details).
 }
 \details{
-The aforementioned compile options are the following:
+The aforementioned runtime options are the following:
 \itemize{
-\item \code{tagCpuGpu}: \code{0} means convolution on Cpu, \code{1} means convolution on Gpu,
-\code{2} means convolution on Gpu using data on device (i.e. in GPU memory).
-Default value is \code{0}.
+\item \code{tagCpuGpu}: \code{0} means computations on CPU, \code{1} means computations on GPU,
+\code{2} means computations on GPU using data on device (i.e. in GPU memory).
+Default value is \code{1}. The mode \code{2} is not available for the moment in R.
 \item \code{tag1D2D}: \code{0} means 1D parallelization (over rows of matrices), and \code{1}
 parallelization over blocks of rows and columns (useful with small columns
 large rows matrices). Default value is \code{0}.
-\item \code{tagHostDevice}: \code{0} means that data are located on host memory, \code{1}
-means that data are located on the device (i.e. GPU) memory. Default value
-is \code{0}.
-\item \code{device_id}: id of GPU device on the machine where the computation are
-made. Default value is \code{0}. Ideally, GPU assignation should be handled
-outside of \code{R} and \code{rkeops}.
+\item \code{tagHostDevice}: \code{0} means that data are stored on host memory (i.e. in
+RAM), \code{1} means that data are stored on GPU memory. Default value is \code{0}.
+The mode \code{1} is not available for the moment in R.
+\item \code{device_id}: id of GPU device (if relevant, i.e. with \code{tagCpuGpu} $\ne 0$)
+where the computations will be made. Default value is \code{0}. Ideally, GPU
+assignation should be handled outside of \code{R} and \code{rkeops}.
 }
 
-\strong{Note:} To set up the options defined with this function, you should use
-the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} or
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+\strong{Note:} Default options are set up when loading \code{rkeops}. To reset
+\code{rkeops} options to default, you should use the function
+\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
+use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+}
+\examples{
+\dontrun{
+runtime_options(tagCpuGpu = 0, tag1D2D = 0, 
+                tagHostDevice=0, device_id = 0)
+}
 }
 \seealso{
 \code{\link[rkeops:default_runtime_options]{rkeops::default_runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},

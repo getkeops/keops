@@ -2,20 +2,22 @@
 % Please edit documentation in R/default_options.R
 \name{check_compile_options}
 \alias{check_compile_options}
-\title{Check \code{rkeops} compile options}
+\title{Check a list of \code{rkeops} compile options provided in input}
 \usage{
 check_compile_options(options)
 }
 \arguments{
 \item{options}{a list (of class \code{rkeops_compile_options}) with the
-following elements \code{rkeops_dir}, \code{build_dir}, \code{src_dir}, \code{precision},
-\code{verbosity}, \code{use_cuda_if_possible}.}
+following named elements \code{rkeops_dir}, \code{build_dir}, \code{src_dir}, \code{precision},
+\code{verbosity}, \code{use_cuda_if_possible}, \code{col_major} \code{debug}.}
 }
 \description{
-FIXME
+The function \code{check_compile_options} checks the validity of \code{rkeops} compile
+options provided in input as a list.
 }
 \details{
-FIXME
+Refer to \code{\link[rkeops:compile_options]{rkeops::compile_options()}} for a detailed description of
+these options.
 }
 \author{
 Ghislain Durif

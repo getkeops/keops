@@ -2,58 +2,33 @@
 % Please edit documentation in R/default_options.R
 \name{default_compile_options}
 \alias{default_compile_options}
-\title{Default options used for compilation in \code{rkeops} package}
+\title{Define a list of default options used for compilation in \code{rkeops} package}
 \usage{
 default_compile_options()
 }
 \value{
-a list (of class \code{rkeops_compile_options}) with the following
-elements:
-\item{rkeops_dir}{string, path to \code{rkeops} install directory on the system.}
-\item{build_dir}{string, path to the directory where new custom user-defined
-operators will be compiled.}
-\item{src_dir}{string, path to \code{keops} (C++) source files required for
-compilation of user-defined operators.}
-\item{precision}{string, precision for floating point computations (\code{float}
-or \code{double}).}
-\item{verbosity}{integer, 0-1 indicator (boolean) for verbosity.}
-\item{use_cuda_if_possible}{integer, 0-1 indicator (boolean) regarding use
-of GPU in computations (if possible).}
+a list of class \code{rkeops_compile_options} (see
+\code{\link[rkeops:compile_options]{rkeops::compile_options()}} for the detailed output).
 }
 \description{
-To compile new user-defined operators, \code{rkeops} requires compilation options
-that control the compilation process and the way these new operators
-behave (precision, verbosity, use of GPU, path to different required files).
+To compile user-defined operators, \code{rkeops} requires compilation options.
 
-The function \code{default_compile_options} returns an object of class
-\code{rkeops_compile_options} with default values for the corresponding options
-(see Details).
+The function \code{default_compile_options} returns a list with default values
+for the corresponding options (see Details).
 }
 \details{
-The aforementioned compile options are the following:
-\itemize{
-\item \code{rkeops_dir}: path to \code{rkeops} install directory on the system (e.g.
-\code{/path/to/R_package_install/rkeops/build} on Unix system).
-\item \code{build_dir}: path to directory where new custom user-defined operators
-will be compiled and corresponding share objects (\code{.so} files) will be
-saved (so that they can be found upon reuse to avoid useless recompilation).
-Default value is the \code{build} sub-folder in \code{rkeops} install directory (e.g.
-\code{/path/to/R_package_install/rkeops/build} on Unix system).
-\item \code{src_dir}: path to \code{keops} (C++) source files required for compilation of
-user-defined operators. Default value is the \code{include} sub-folder in
-\code{rkeops} install directory (e.g. \code{/path/to/R_package_install/rkeops/include}
-on Unix system).
-\item \code{precision}: precision for floating point computations (\code{float} or
-\code{double}). Default value is \code{float}.
-\item \code{verbosity}: 0-1 indicator (boolean) for verbosity level.
-Default value is \code{0}.
-\item \code{use_cuda_if_possible}: 0-1 indicator (boolean) regarding use
-of GPU in computations (if possible on the system). Default value is \code{1}.
-}
+Please refer to \code{\link[rkeops:compile_options]{rkeops::compile_options()}} for a detailed description of
+these options.
 
-\strong{Note:} To set up the options defined with this function, you should use
-the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} or
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+\strong{Note:} Default options are set up when loading \code{rkeops}. To reset
+\code{rkeops} options to default, you should use the function
+\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
+use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+}
+\examples{
+\dontrun{
+default_compile_options()
+}
 }
 \seealso{
 \code{\link[rkeops:compile_options]{rkeops::compile_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},

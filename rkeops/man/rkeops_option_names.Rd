@@ -9,22 +9,24 @@ rkeops_option_names(tag = c("compile", "runtime"))
 \arguments{
 \item{tag}{text string or vector of text string, specifying the requested
 subset of \code{rkeops} options, i.e. \code{"compile"} or \code{"runtime"}. Default value
-is \code{c("compile", "runtime")} and both are return.}
+is \code{c("compile", "runtime")} and both are returned.}
+}
+\value{
+a vector of requested \code{rkeops} options.
 }
 \description{
 The function \code{rkeops_option_names} returns the names of the different
-\code{rkeops} option (in \code{R} global options scope) provided.
+\code{rkeops} option (in \code{R} global options scope).
 }
 \details{
-\code{rkeops} uses two sets of options: compile options \code{rkeops_dir},
-\code{build_dir}, \code{src_dir}, \code{precision}, \code{verbosity}, \code{use_cuda_if_possible}
-(see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options \code{tagCpuGpu},
-\code{tag1D2D}, \code{tagHostDevice}, \code{device_id} (see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
+\code{rkeops} uses two sets of options: compile options
+(see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options
+(see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
 
 These options define the behavior of \code{rkeops} when compiling or when
-running new user-defined operators.
+calling user-defined operators.
 
-If you specify a tag between "compile" or "runtime" (or both) in input, you
+You can specify a tag (\code{"compile"} or \code{"runtime"} or both) in input, you
 will get the names of the corresponding subset of \code{rkeops} options.
 }
 \seealso{

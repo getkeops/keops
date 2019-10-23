@@ -2,11 +2,11 @@
 % Please edit documentation in R/default_options.R
 \name{compile_options}
 \alias{compile_options}
-\title{User-defined options used for compilation in \code{rkeops} package}
+\title{Define a list of user-defined options used for compilation in \code{rkeops} package}
 \usage{
 compile_options(precision = "float", verbosity = FALSE,
-  use_gpu = TRUE, rkeops_dir = NULL, build_dir = NULL,
-  src_dir = NULL)
+  use_cuda_if_possible = TRUE, col_major = TRUE, debug = FALSE,
+  rkeops_dir = NULL, build_dir = NULL, src_dir = NULL)
 }
 \arguments{
 \item{precision}{string, precision for floating point computations (\code{float}
@@ -15,8 +15,14 @@ or \code{double}). Default value is \code{float}.}
 \item{verbosity}{boolean indicator regarding verbosity level. Default value
 is \code{FALSE}.}
 
-\item{use_gpu}{boolean indicator regarding use of GPU in computations (if
-possible on the system). Default value is \code{TRUE}.}
+\item{use_cuda_if_possible}{boolean indicator regarding compilation of the
+user-defined operators to be GPU-compatible (if possible on the system,
+i.e. if CUDA is available). Default value is \code{TRUE}. If set to \code{TRUE} and
+CUDA is not available, user-defined operators are compiled for CPU
+computations.}
+
+\item{debug}{boolean indicator regarding debuging flag for compilation.
+Default value is \code{FALSE}.}
 
 \item{rkeops_dir}{string, path to \code{rkeops} install directory on the system.
 If NULL, default path described in Details section is used. Default value
@@ -43,22 +49,25 @@ or \code{double}).}
 \item{verbosity}{integer, 0-1 indicator (boolean) for verbosity.}
 \item{use_cuda_if_possible}{integer, 0-1 indicator (boolean) regarding use
 of GPU in computations (if possible).}
+\item{col_major}{integer, 0-1 indicator (boolean) for storage order.}
+\item{debug}{integer, 0-1 indicator (boolean) for debugging flag.}
 }
 \description{
 To compile new user-defined operators, \code{rkeops} requires compilation options
-that control the compilation process and the way these new operators
-behave (precision, verbosity, use of GPU, path to different required files).
+that control the compilation process and the way user-defined operators
+behave (precision, verbosity, use of GPU, storage order, debug flag, and
+path to different required files).
 
-The function \code{compile_options} returns an object of class
-\code{rkeops_compile_options} with user-provided values for the corresponding
-options (see Details).
+The function \code{default_compile_options} returns a list of class
+\code{rkeops_compile_options} with default values for the corresponding options
+(see Details).
 }
 \details{
 The aforementioned compile options are the following:
 \itemize{
 \item \code{rkeops_dir}: path to \code{rkeops} install directory on the system (e.g.
-\code{/path/to/R_package_install/rkeops/build} on Unix system).
-\item \code{build_dir}: path to directory where new custom user-defined operators
+\code{/path/to/R_package_install/rkeops} on Unix system).
+\item \code{build_dir}: path to directory where new user-defined operators
 will be compiled and corresponding share objects (\code{.so} files) will be
 saved (so that they can be found upon reuse to avoid useless recompilation).
 Default value is the \code{build} sub-folder in \code{rkeops} install directory (e.g.
@@ -73,11 +82,36 @@ on Unix system).
 Default value is \code{0}.
 \item \code{use_cuda_if_possible}: 0-1 indicator (boolean) regarding use
 of GPU in computations (if possible on the system). Default value is \code{1}.
+\item \code{col_major}: 0-1 indicator (boolean) regarding matrix storage order in
+C++ KeOps API. \code{1} is column-major storage (or \code{f_contiguous}) and \code{0} is
+row-major storage (or \code{c_contiguous}). Default value is \code{1}. Keep in mind
+that matrices are stored with column-major order in R.
+\item \code{debug}: 0-1 indicator (boolean) regarding compilation debugging flag.
+\code{1} means that user-defined operators will be compiled with a debug flag,
+and \code{0} means no debug flag. Default value is \code{0}
 }
 
-\strong{Note:} To set up the options defined with this function, you should use
-the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} or
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+\strong{Note on storage order:} Column-major storage means that elements of each
+column of a matrix are contiguous in memory (called Fortran-style).
+Row-major storage means that each row of a matrix are contiguous
+in memory (called C-style). In R, matrices are stored with column-major
+order in R, so we recommend to use column-major order in for KeOps
+compilation (to avoid useless matrix conversion).
+
+\strong{Note:} Default options are set up when loading \code{rkeops}. To reset
+\code{rkeops} options to default, you should use the function
+\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
+use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+}
+\examples{
+\dontrun{
+compile_options(
+    precision = 'float', verbosity = FALSE, 
+    use_cuda_if_possible = TRUE, 
+    col_major = TRUE, debug = FALSE, 
+    rkeops_dir = NULL, build_dir = NULL, 
+    src_dir = NULL)
+}
 }
 \seealso{
 @seealso \code{\link[rkeops:default_compile_options]{rkeops::default_compile_options()}},

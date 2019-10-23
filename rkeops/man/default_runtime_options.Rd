@@ -2,41 +2,33 @@
 % Please edit documentation in R/default_options.R
 \name{default_runtime_options}
 \alias{default_runtime_options}
-\title{Default options used at runtime in \code{rkeops} package}
+\title{Define a list of default options used at runtime in \code{rkeops} package}
 \usage{
 default_runtime_options()
 }
 \value{
-a list (of class \code{rkeops_runtime_options}) with the following
-elements:
-FIXME
+a list of class \code{rkeops_runtime_options} (see
+\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} for the detailed output).
 }
 \description{
-When using compiled user-defined operators, \code{rkeops} requires runtime
-options that control how the computations are done (memory manegement,
-data partition for parallelization, etc.).
+To call user-defined operators, \code{rkeops} requires runtime options.
 
-The function \code{default_runtime_options} returns an object of class
-\code{rkeops_runtime_options} with default values for the corresponding options
-(see Details).
+The function \code{default_runtime_options} returns a list with default values
+for the corresponding options (see Details).
 }
 \details{
-The aforementioned compile options are the following:
-\itemize{
-\item \code{tagCpuGpu}: \code{0} means convolution on Cpu, \code{1} means convolution on Gpu,
-\code{2} means convolution on Gpu using data on device (i.e. in GPU memory).
-Default value is \code{1}.
-\item \code{tag1D2D}: \code{0} means 1D parallelization (over rows of matrices), and \code{1}
-parallelization over blocks of rows and columns (useful with small columns
-large rows matrices). Default value is \code{0}.
-\item \code{device_id}: id of GPU device on the machine where the computation are
-made. Default value is \code{0}. Ideally, GPU assignation should be handled
-outside of \code{R} and \code{rkeops}.
-}
+Please refer to \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} for a detailed description of
+these options.
 
-\strong{Note:} To set up the options defined with this function, you should use
-the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} or
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+\strong{Note:} Default options are set up when loading \code{rkeops}. To reset
+\code{rkeops} options to default, you should use the function
+\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
+use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+}
+\examples{
+\dontrun{
+default_runtime_options()
+}
 }
 \seealso{
 \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},

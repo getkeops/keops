@@ -2,12 +2,12 @@
 % Please edit documentation in R/common-get_options.R
 \name{get_rkeops_options}
 \alias{get_rkeops_options}
-\title{Get \code{rkeops} options current values}
+\title{Get the current \code{rkeops} options in \code{R} global options scope}
 \usage{
 get_rkeops_options(tag = NULL)
 }
 \arguments{
-\item{tag}{text string being "compile" or "runtime" to get corresponding
+\item{tag}{text string being \code{"compile"} or \code{"runtime"} to get corresponding
 options. If missing (default), both are returned.}
 }
 \value{
@@ -17,27 +17,29 @@ a list with \code{rkeops} current options values (see Details).
 \code{rkeops} uses two sets of options: compile options (see
 \code{\link[rkeops:compile_options]{rkeops::compile_options()}}) and runtime options (see
 \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}). These options define the behavior of \code{rkeops}
-when compiling or when running new user-defined operators. You can read
-the current states of \code{rkeops} options by calling \code{get_rkeops_options()}.
+when compiling or when calling user-defined operators.
+
+You can read the current states of \code{rkeops} options by calling
+\code{get_rkeops_options()}.
 }
 \details{
-\code{The function }get_keops_options` return a list with these two elements:
-\itemize{
-\item a list named \code{compile_options} (of class \code{rkeops_compile_options}) with
-the following elements \code{rkeops_dir}, \code{build_dir}, \code{src_dir}, \code{precision},
-\code{verbosity}, \code{use_cuda_if_possible} (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}).
-\item a list named \code{runtime_options} (of class \code{rkeops_runtime_options})
-with the following elements \code{tagCpuGpu}, \code{tag1D2D}, \code{tagHostDevice},
-\code{device_id} (see \code{\link[rkeops:default_runtime_options]{rkeops::default_runtime_options()}}).
-}
+\code{rkeops} global options includes two lists defining options used at
+compilation of user-defined operators or at runtime. These two list
+contains specific informations (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and
+\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} respectively, in particular for default values).
 
-If the \code{tag} input parameter is specified, only the corresponding options
-are returned.
+If the \code{tag} input parameter is specified (e.g. \code{"compile"} or \code{"runtime"}),
+only the corresponding option list is returned.
 
 These options are set with the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} and
 \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which
 options, you can check \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and
 \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.
+}
+\examples{
+\dontrun{
+get_rkeops_options()
+}
 }
 \seealso{
 \code{\link[rkeops:get_rkeops_option]{rkeops::get_rkeops_option()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},

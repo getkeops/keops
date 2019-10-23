@@ -2,19 +2,21 @@
 % Please edit documentation in R/default_options.R
 \name{check_runtime_options}
 \alias{check_runtime_options}
-\title{Check \code{rkeops} runtime options}
+\title{Check a list of \code{rkeops} runtime options provided in input}
 \usage{
 check_runtime_options(options)
 }
 \arguments{
 \item{options}{a list (of class \code{rkeops_runtime_options}) with the
-following \code{tagCpuGpu}, \code{tag1D2D}, \code{device_id}.}
+following \code{tagCpuGpu}, \code{tag1D2D}, \code{tagHostDevice}, \code{device_id}.}
 }
 \description{
-FIXME
+The function \code{check_runtime_options} checks the validity of \code{rkeops} runtime
+options provided in input as a list.
 }
 \details{
-FIXME
+Refer to \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} for a detailed description of
+these options.
 }
 \author{
 Ghislain Durif
