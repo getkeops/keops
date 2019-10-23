@@ -2,8 +2,6 @@
 #include <RcppEigen.h>
 #include <vector>
 
-#include <iostream>
-
 #include "rkeops_data_type.h"
 #include "rkeops_matrix.h"
 
