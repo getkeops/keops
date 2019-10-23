@@ -32,7 +32,7 @@ message(STATUS "Using shared_obj_name: ${shared_obj_name}")
 
 # - type for computation. The CACHE option enable to see it in ccmake.
 if(NOT __TYPE__)
-  Set(__TYPE__ float CACHE STRING "Precision type of the computations (__fp16, float or double)")
+  Set(__TYPE__ float CACHE STRING "Precision type of the computations (__half, float or double)")
 endif()
 add_definitions(-D__TYPE__=${__TYPE__})
 

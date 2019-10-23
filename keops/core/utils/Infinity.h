@@ -23,10 +23,14 @@ namespace keops {
 template < typename TYPE >
 struct PLUS_INFINITY;
 
+/*
+#ifdef __CUDACC__
 template <>
-struct PLUS_INFINITY< __fp16 > {
-  static constexpr __fp16 value = INFINITY_HALF;
+struct PLUS_INFINITY< __half > {
+  static constexpr __half value = 3000.0;
 };
+#endif
+*/
 
 template <>
 struct PLUS_INFINITY< float > {
@@ -41,10 +45,14 @@ struct PLUS_INFINITY< double > {
 template < typename TYPE >
 struct NEG_INFINITY;
 
+/*
+#ifdef __CUDACC__
 template <>
-struct NEG_INFINITY< __fp16 > {
-  static constexpr __fp16 value = -INFINITY_HALF;
+struct NEG_INFINITY< __half > {
+  static constexpr __half value = -INFINITY_HALF;
 };
+#endif
+*/
 
 template <>
 struct NEG_INFINITY< float > {

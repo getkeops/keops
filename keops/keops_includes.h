@@ -1,4 +1,6 @@
 
+#include <cuda_fp16.h>
+
 // import constant
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/constants/Zero.h"
