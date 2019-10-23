@@ -4,9 +4,11 @@ test_that("dllname", {
     formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta,0)"
     args = c("x=Vi(3)", "y=Vj(3)",
              "beta=Vj(3)", "lambda=Pm(1)")
-    expected_value <- stringr::str_sub(paste0("4621b22f0172c0d526e8d02fa33f4908", 
-                                              "f519fbb51fb47c90c3742b282530b9f8"),
-                                       start = 1, end = 25)
+    expected_value <- paste0("headers",
+                             stringr::str_sub(
+                                 paste0("4621b22f0172c0d526e8d02fa33f4908", 
+                                        "f519fbb51fb47c90c3742b282530b9f8"),
+                                 start = 1, end = 25))
     expect_equal(as.character(create_dllname(formula, args)), 
                  expected_value)
 })
