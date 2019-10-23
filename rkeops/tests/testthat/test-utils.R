@@ -70,3 +70,13 @@ test_that("R_makeconf_path", {
     expect_error(R_makeconf_path(path="/no/path/to/notest"), 
                  "`path` input parameter should be an existing file name.")
 })
+
+test_that("use_gpu", {
+    expect_error(use_gpu(), NA)
+    expect_true(get_rkeops_option("tagCpuGpu") %in% c(1, 2))
+})
+
+test_that("compile4gpu", {
+    expect_error(compile4gpu(), NA)
+    expect_equal(get_rkeops_option("use_cuda_if_possible"), 1)
+})

@@ -172,3 +172,48 @@ R_makeconf_path <- function(path = NULL) {
         return(file.path(R.home("etc"), "Makeconf"))
     }
 }
+
+
+#' Enable GPU-computing when calling user-defined operators
+#' @description
+#' Set up `rkeops` runtime options to use GPU computing when calling 
+#' user-defined operators.
+#' @details
+#' If you have compiled GPU-compatible operators (see [rkeops::compile4gpu()]), 
+#' you can call the function `use_gpu` to specificly run computations on GPU.
+#' 
+#' **Note:** The default behavior in `rkeops` is to use CPU computing, thus 
+#' calling the function `use_gpu` is mandatory to run computations on GPU.
+#' @author Ghislain Durif
+#' @seealso [rkeops::compile4gpu()]
+#' @example 
+#' \dontrun{
+#' use_gpu()
+#' }
+#' @export
+use_gpu <- function() {
+    set_rkeops_option("tagCpuGpu", 1)
+}
+
+#' Enable compilation of GPU-compatible user-defined operators
+#' @description
+#' Set up `rkeops` compile options to compile user-defined operators that can 
+#' be computed on GPU.
+#' @details
+#' Compiling GPU-compatible user-defined operators requires CUDA and `nvcc` 
+#' (Nvidia compiler). If not available, user-defined operators will only be 
+#' CPU-compatible.
+#' 
+#' **Note:** Default behavior is to compile GPU-compatible operators thus, if 
+#' you do not modify `rkeops` options, it is optional to use the function 
+#' `compile4gpu`.
+#' @author Ghislain Durif
+#' @seealso [rkeops::use_gpu()]
+#' @example 
+#' \dontrun{
+#' compile4gpu()
+#' }
+#' @export
+compile4gpu <- function() {
+    set_rkeops_option("use_cuda_if_possible", 1)
+}
