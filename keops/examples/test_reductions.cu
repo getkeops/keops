@@ -21,7 +21,7 @@
 // This program runs on CPU and GPU ; see the file test_reductions.cpp for the equivalent program on CPU only.
 //
 // This example can be compiled with the command
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++14 -O3 -o build/test_reductions test_reductions.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 -O3 -o build/test_reductions test_reductions.cu
 // 
 
 #include <algorithm>

@@ -37,7 +37,7 @@ struct Concat_Impl : BinaryOp<Concat_Impl, F, G> {
   using DiffTG = typename G::template DiffT<V, GRADIN>;
 
   template<class V, class GRADIN>
-  using DiffT = Add<DiffTF<V, Extract<GRADIN, 0, F::DIM>>, DiffTG<V, Extract<GRADIN, F::DIM, DIM>>>;
+  using DiffT = Add<DiffTF<V, Extract<GRADIN, 0, F::DIM>>, DiffTG<V, Extract<GRADIN, F::DIM, G::DIM>>>;
 };
 
 template<class F, class G>

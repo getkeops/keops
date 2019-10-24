@@ -129,6 +129,7 @@ Constants and padding/concatenation operations:
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)
 ``ExtractT(f, M, D)``     insert vector ``f`` in a larger vector of zeros (M is starting index, D is dimension of output)
 ``Concat(f, g)``          concatenation of vectors ``f`` and ``g``
+``OneHot(f, D)``          encodes a (rounded) scalar value as a one-hot vector of dimension D
 ======================   =========================================================================================================
 
 Elementary dot products:
@@ -160,10 +161,10 @@ code name                    arguments              mathematical expression     
                                                     (reduction over j)
 =========================    =====================  ============================================================================================================================  =========================================================================
 ``Sum``                      ``f``                  :math:`\sum_j f_{ij}`                                                                                        
-``Max_SumShiftExp``          ``f`` (scalar)         :math:`(m_i,s_i)` with :math:`\left\{\begin{array}{l}m_i=\max_j f_{ij}\\s_i=\sum_j\exp(m_i-f_{ij})\end{array}\right.`         - core KeOps reduction for ``LogSumExp``.
+``Max_SumShiftExp``          ``f`` (scalar)         :math:`(m_i,s_i)` with :math:`\left\{\begin{array}{l}m_i=\max_j f_{ij}\\s_i=\sum_j\exp(f_{ij}-m_i)\end{array}\right.`         - core KeOps reduction for ``LogSumExp``.
                                                                                                                                                                                   - gradient is a pseudo-gradient, should not be used by itself
 ``LogSumExp``                ``f`` (scalar)         :math:`\log\left(\sum_j\exp(f_{ij})\right)`                                                                                   only in Python bindings
-``Max_SumShiftExpWeight``    ``f`` (scalar), ``g``  :math:`(m_i,s_i)` with :math:`\left\{\begin{array}{l}m_i=\max_j f_{ij}\\s_i=\sum_j\exp(m_i-f_{ij})g_{ij}\end{array}\right.`   - core KeOps reduction for ``LogSumExpWeight`` and ``SumSoftMaxWeight``.
+``Max_SumShiftExpWeight``    ``f`` (scalar), ``g``  :math:`(m_i,s_i)` with :math:`\left\{\begin{array}{l}m_i=\max_j f_{ij}\\s_i=\sum_j\exp(f_{ij}-m_i)g_{ij}\end{array}\right.`   - core KeOps reduction for ``LogSumExpWeight`` and ``SumSoftMaxWeight``.
                                                                                                                                                                                   - gradient is a pseudo-gradient, should not be used by itself
 ``LogSumExpWeight``          ``f`` (scalar), ``g``  :math:`\log\left(\sum_j\exp(f_{ij})g_{ij}\right)`                                                                             only in Python bindings
 ``SumSoftMaxWeight``         ``f`` (scalar), ``g``  :math:`\left(\sum_j\exp(f_{ij})g_{ij}\right)/\left(\sum_j\exp(f_{ij})\right)`                                                 only in Python bindings

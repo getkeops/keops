@@ -21,6 +21,7 @@
 #include "core/formulas/maths/IntInv.h"
 #include "core/formulas/maths/Divide.h"
 #include "core/formulas/maths/Log.h"
+#include "core/formulas/maths/XLogX.h"
 #include "core/formulas/maths/Sign.h"
 #include "core/formulas/maths/Abs.h"
 #include "core/formulas/maths/Step.h"
@@ -33,6 +34,7 @@
 #include "core/formulas/maths/TensorDot.h"
 #include "core/formulas/maths/TensorProd.h"
 #include "core/formulas/maths/VecMatMult.h"
+#include "core/formulas/maths/OneHot.h"
 
 
 // import all operations on vector implementations
@@ -69,6 +71,17 @@
 
 #include "core/formulas/Factorize.h"
 #include "core/formulas/PrintFormula.h"
+
+// special options for accuracy
+#ifndef __TYPEACC__
+  #define __TYPEACC__ __TYPE__
+#endif
+#ifndef USE_BLOCKRED
+  #define USE_BLOCKRED 0
+#endif
+#ifndef USE_KAHAN
+  #define USE_KAHAN 0
+#endif
 
 #include "core/mapreduce/CpuConv.cpp"
 

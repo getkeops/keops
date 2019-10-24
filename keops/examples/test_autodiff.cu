@@ -1,6 +1,6 @@
 // test convolution with autodiff
 // compile with
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_autodiff test_autodiff.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_autodiff test_autodiff.cu
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the CPU or GPU, then get its gradients and test again the convolutions

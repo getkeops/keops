@@ -140,3 +140,30 @@ def check_aliases_list(types_list):
             aliases.append(name + " = " + list(categories.keys())[cat] + "(" + str(pos) + "," + str(dim) + ")")
     
     return aliases
+
+def get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op_internal):
+        if use_double_acc:
+            if (dtype != "float32") or (reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight")):
+                raise ValueError("[KeOps] use_double_acc=True is only valid for sum type reductions and when input data type is float32.")
+        if use_BlockRed is "auto":
+            if reduction_op_internal in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight") and not use_Kahan:
+                use_BlockRed = True
+            else:
+                use_BlockRed = False
+        if use_BlockRed:
+            if reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
+                raise ValueError("[KeOps] use_BlockRed=True is only valid for sum type reductions.")
+        if use_Kahan:
+            if reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
+                raise ValueError("[KeOps] use_Kahan=True is only valid for sum type reductions.")
+        if use_BlockRed and use_Kahan:
+            raise ValueError("[KeOps] use_BlockRed and use_Kahan cannot be set both to True.")
+
+        optional_flags = []
+        if use_double_acc:
+            optional_flags += ['-D__TYPEACC__=double']
+        if use_BlockRed:
+            optional_flags += ['-DUSE_BLOCKRED=1']
+        if use_Kahan:
+            optional_flags += ['-DUSE_KAHAN=1']
+        return optional_flags

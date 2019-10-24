@@ -8,6 +8,7 @@ pieces of software:
 -  **Automatic differentiation.** Relying on symbolic “historical
    records” that are attached to the program’s variables, modern computing
    libraries now implement transparent :mod:`.grad()` operators.
+   |br|
 
 -  **GPU backends for tensor-based computations.** Benefitting from the
    long-term investment of Nvidia, recent frameworks provide backends
@@ -98,3 +99,10 @@ Through a convenient symbolic abstraction, the “LazyTensor” wrapper,
 KeOps provides efficient routines for machine learning 
 and computational geometry *without ever
 compromising on usability*.
+
+
+
+.. |br| raw:: html
+
+  <br/><br/>
+

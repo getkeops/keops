@@ -21,6 +21,7 @@ Standard math functions :
  *      Abs<F>                         : absolute value of F (vectorized)
  *      Exp<F>                         : exponential of F (vectorized)
  *      Log<F>                         : logarithm   of F (vectorized)
+ *      XLogX<F>                       : function F*log(F) (vectorized)
  *      Sin<F>                         : sine        of F (vectorized)
  *      Cos<F>                         : cosine      of F (vectorized)
  *      Sign<F>                        : sign        of F (vectorized)
@@ -33,6 +34,7 @@ Concatenation and matrix-vector products:
  *      Elem<F,N>                      : extract Nth element of F
  *      Extract<F,START,LENGTH>        : extract a number LENGTH starting at index START
  *      MatVecMult<FA,FB>              : matrix-vector product (FA::DIM must be a muliple of FB::DIM)
+ *      OneHot<F,D>                    : represents a scalar formula (rounded to an integer) as a one-hot vector of dimension D
  *      VecMatMult<FA,FB>              : vector-matrix product (FB::DIM must be a muliple of FA::DIM)
  *      TensorProd<FA,FB>              : tensor product (output is of dimension FA::DIM*FB::DIM)
  *      TensorDot<FA,FB,DA,DB,CA,CB>   : tensor dot as in numpy. FA and FB are formulas and DA, DB, CA and CB are
