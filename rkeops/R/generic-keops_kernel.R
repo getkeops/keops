@@ -1,9 +1,13 @@
 #' Defines a new operators
 #' @description
-#' FIXME
+#' This function is the core of the KeOps library, it allows you to create 
+#' new operators based on kernel operation and matrix reduction discribed as a 
+#' mathematic formula.
 #' @details
+#' KeOps operators are defined by using 
+#' 
 #' FIXME
-#' See <http://www.kernel-operations.io/keops/api/math-operations.html>
+#' See <https://www.kernel-operations.io/keops/api/math-operations.html>
 #' @author Ghislain Durif
 #' @param formula text string, an operator formula.
 #' @param args vector of text string, operator parameters.
@@ -14,10 +18,20 @@
 #' \dontrun{
 #' # Define and test a function that computes for each i the sum over j
 #' # of the square of the scalar products of `x_i` and `y_j` (both 3d vectors)
-#' F <- keops_kernel(formula = "Sum_Reduction(Square((x,y)),0)",
+#' F <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
 #'                   args = c("x=Vi(3)", "y=Vj(3)"))
-#' x <- rnorm(3,2000)
-#' y <- rnorm(3,5000)
+#' nx <- 10
+#' ny <- 15
+#' # x_i = rows of the matrix x
+#' x <- matrix(runif(nx*3), nrow=nx, ncol=3)
+#' # y _j = rows of the matrix y
+#' y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+#' res <- F(list(x,y))
+#' 
+#' # x_i = columns of the matrix x
+#' x <- matrix(runif(nx*3), nrow=3, ncol=nx)
+#' # y _j = rows of the matrix y
+#' y <- matrix(runif(ny*3), nrow=3, ncol=ny)
 #' res <- F(x,y)
 #' 
 #' # Define and test the convolution with a Gauss kernel i.e. the sum 
@@ -69,13 +83,17 @@ keops_kernel <- function(formula, args) {
     
     
     # return function calling the corresponding compile operator
-    function(input) {
+    function(...) {
+        ## get input args
+        input <- as.list(match.call())[-1]
+        # unlist if input is a list
+        if(!is.numeric(input[[1]])) input <- input[[1]]
         ## storing some context
         env <- list(formula=formula,
                     args=args,
                     var_aliases=var_aliases)
         
-        ## reorder input if names are supplied
+        ## reorder input if names are supplied (if not parameter order is used)
         # check that all input args are named
         if(sum(str_length(names(input)) > 0) == length(input)) {
             # expected order
@@ -84,6 +102,17 @@ keops_kernel <- function(formula, args) {
             if(all(names(input) %in% expected_order))
                 if(any(names(input) != expected_order))
                     input <- input[expected_order]
+        }
+        
+        ## transform scalar to matrix (generally parameters)
+        check_scalar <- sapply(1:length(input), 
+                               function(ind) return(is.null(dim(input[[ind]]))))
+        if(any(check_scalar)) {
+            tmp_names <- names(input)
+            input[check_scalar] <- lapply(which(check_scalar),
+                                          function(ind) 
+                                              return(as.matrix(input[[ind]])))
+            names(input) <- tmp_names
         }
 
         ## transpose input if necessary
