@@ -244,7 +244,7 @@ default_runtime_options <- function() {
 #' * `tagHostDevice`: `0` means that data are stored on host memory (i.e. in 
 #' RAM), `1` means that data are stored on GPU memory. Default value is `0`. 
 #' The mode `1` is not available for the moment in R.
-#' * `device_id`: id of GPU device (if relevant, i.e. with `tagCpuGpu` $\ne 0$) 
+#' * `device_id`: id of GPU device (if relevant, i.e. with `tagCpuGpu != 0`) 
 #' where the computations will be made. Default value is `0`. Ideally, GPU 
 #' assignation should be handled outside of `R` and `rkeops`.
 #' 
