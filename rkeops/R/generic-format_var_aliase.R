@@ -30,15 +30,19 @@
 #' `"x=YY(pos, dim)"` where `YY` can be `Vi`, `Vj` or `Pm`:
 #' * `dim` is the dimension of the variable or parameter. For `Vi` and `Vj`, 
 #' the range of `i` or `j` is not known at compile time, only at runtime.
-#' * `pos` is the position of the variable in the formula, starting from `0`.
-#' This position should be specify for all variable or none, if not specify 
-#' the natural order in the vector `args` is used.
+#' * `pos` is the position of the variable as it will be supplied to the 
+#' operator, starting from `0`. This position should be specify for all 
+#' variable or none, if not specify the natural order in the vector `args` is 
+#' used.
 #' 
 #' For the formula `"Sum_Reduction(Exp(lambda * SqNorm2(x-y)), 0)"`, both
 #' `args = c("x=Vi(3)", "y=Vj(3)", "lambda=Pm(1)")` and 
 #' `args <- c("x=Vi(0,3)", "y=Vj(1,3)", "beta=Vj(2,3)", "lambda=Pm(3,1)")` are
 #' equivalent. When specifying the `pos` parameter, the natural order in the 
 #' vector `args` may not correspond to the order of the formula input arguments.
+#' 
+#' **Note:** we recommand to use the `Vi(dim)` notation and let the position be 
+#' determined by the argument order.
 #' @param args vector of text string, formula input arguments (see Details).
 #' @return a list with different information about formula input arguments:
 #' \item{var_name}{vector of text string, corresponding name of formula 
