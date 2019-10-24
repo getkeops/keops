@@ -1,9 +1,20 @@
-#' Compile code
+#' Compile a formula defining a new operator
 #' @description
-#' FIXME
+#' User-defined operators associated to a formula are compiled in shared object 
+#' files with this function.
 #' @details
-#' FIXME
+#' The function `compile_formula` sets up the working directory and the 
+#' environment to call the function [rkeops::compile_code()] for the 
+#' cmake compilation.
+#' 
+#' Afterwards, it also verify that the compilation went smoothly.
+#' @param formula text string, formula defining the new operator.
+#' @param var_aliases text string, formated formula input arguments returned by 
+#' [rkeops::format_var_aliases()] (specifically `$var_aliases`).
+#' @param dllname text string, the name associated to the related shared object 
+#' file.
 #' @author Ghislain Durif
+#' @seealso [rkeops::keops_kernel()], [rkeops::compile_code()]
 #' @export
 compile_formula <- function(formula, var_aliases, dllname) {
 

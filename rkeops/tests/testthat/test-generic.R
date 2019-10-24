@@ -1,18 +1,36 @@
 context("generic functions")
 
 test_that("compile_formula", {
-    # set_rkeops_options()
-    # # matrix product then sum
-    # formula = "Sum_Reduction((x|y), 1)"
-    # args = c("x=Vi(3)", "y=Vj(3)")
-    # var_aliases <- format_var_aliases(args)$var_aliases
-    # dllname <- "test_compile_formula_dll"
-    # ## run
-    # res <- tryCatch(compile_formula(formula, var_aliases, dllname),
-    #                 error = function(e) return(NULL))
-    # ## check
-    # expect_false(is.null(res))
-    
+    set_rkeops_options()
+    # matrix product then sum
+    formula = "Sum_Reduction((x|y), 1)"
+    args = c("x=Vi(3)", "y=Vj(3)")
+    var_aliases <- format_var_aliases(args)$var_aliases
+    dllname <- "test_compile_formula_dll"
+    ## run
+    res <- tryCatch(compile_formula(formula, var_aliases, dllname),
+                    error = function(e) return(NULL))
+    ## check
+    expect_false(is.null(res))
+    ## testing formula
+    # load shared library
+    r_genred <- load_dll(path = get_build_dir(),
+                         dllname = paste0("librkeops", dllname), 
+                         object = "r_genred",
+                         genred=TRUE)
+    # data
+    nx <- 10
+    ny <- 15
+    x <- matrix(runif(nx*3), nrow=3, ncol=nx)
+    y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+    # run
+    param <- c(get_rkeops_options("runtime"),
+               list(nx=ncol(x), ny=ncol(y)))
+    input <- list(x, y)
+    res <- r_genred(input, param)
+    # check result
+    expected_res <- colSums(t(x) %*% y)
+    expect_true(sum(abs(res - expected_res)) < 1E-5)
 })
 
 test_that("format_var_aliases", {
