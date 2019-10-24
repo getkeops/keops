@@ -2,17 +2,21 @@
 #' @keywords internal
 #' @description
 #' The function `format_var_aliases` formats KeOps formula arguments to be 
-#' understood by the C++ code. 
+#' understood by the C++ code.
+#' 
+#' 
 #' 
 #' @details
-#' `e^(lambda*||x_i - y_j||^2) * beta_j` where `x_i`, `y_j` 
-#' and `beta_j` are 3d vectors
+#' Mathematical formula: `sum_i e^(lambda*||x_i - y_j||^2)` where `x_i`, `y_j` 
+#' are 3d vectors, and `lambda` is a scaler parameter.
 #' 
+#' Corresponding KeOps formula and input parameters:
 #' ```
-#' formula = "Sum_Reduction(Exp(lambda * SqNorm2(x-y)) * beta, 0)"
-#' args = c("x=Vi(3)", "y=Vj(3)", 
-#'          "beta=Vj(3)", "lambda=Pm(1)")
+#' formula = "Sum_Reduction(Exp(lambda * SqNorm2(x-y)), 0)"
+#' args = c("x=Vi(3)", "y=Vj(3)", "lambda=Pm(1)")
 #' ```
+#' 
+#' Input parameters can be of different types: 
 #' 
 #' |---------|-------------------------|-----------|
 #' | keyword | meaning                 | type      |
@@ -22,7 +26,28 @@
 #' | `Pm`    | parameter               | `2`       |
 #' |---------|-------------------------|-----------|
 #' 
+#' An input parameters should be defined as follows `"x=YY(dim)"` or 
+#' `"x=YY(pos, dim)"` where `YY` can be `Vi`, `Vj` or `Pm`:
+#' * `dim` is the dimension of the variable or parameter. For `Vi` and `Vj`, 
+#' the range of `i` or `j` is not known at compile time, only at runtime.
+#' * `pos` is the position of the variable in the formula, starting from `0`.
+#' This position should be specify for all variable or none, if not specify 
+#' the natural order in the vector `args` is used.
 #' 
+#' For the formula `"Sum_Reduction(Exp(lambda * SqNorm2(x-y)), 0)"`, both
+#' `args = c("x=Vi(3)", "y=Vj(3)", "lambda=Pm(1)")` and 
+#' `args <- c("x=Vi(0,3)", "y=Vj(1,3)", "beta=Vj(2,3)", "lambda=Pm(3,1)")` are
+#' equivalent. When specifying the `pos` parameter, the natural order in the 
+#' vector `args` may not correspond to the order of the formula input arguments.
+#' @param args vector of text string, formula input arguments (see Details).
+#' @return a list with different information about formula input arguments:
+#' \item{var_name}{vector of text string, corresponding name of formula 
+#' arguments}
+#' \item{var_type}{vector of text string, corresponding type of formula 
+#' arguments (among `Vi`, `Vj`, `Pm`).}
+#' \item{var_pos}{vector of integer, corresponding arguments positions.}
+#' \item{var_aliases}{text string, declaration of formula input arguments for 
+#' the C++ KeOps API.}
 #' @importFrom stringr str_count str_detect str_extract str_split
 #' @export
 format_var_aliases <- function(args) {

@@ -25,7 +25,7 @@ test_that("format_var_aliases", {
              "beta=Vj(2,3)", "lambda=Pm(3,1)")
     check_args(args)
     # long syntax unordered
-    arg_order <- c(1,3,0,2)
+    arg_order <- c(1,3,4,2)
     args <- c("x=Vi(0,3)", "y=Vj(1,3)", 
               "beta=Vj(2,3)", "lambda=Pm(3,1)")[arg_order]
     check_args(args, arg_order)
