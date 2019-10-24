@@ -9,6 +9,7 @@
 #' @param args vector of text string, operator parameters.
 #' @return
 #' FIXME
+#' @importFrom stringr str_length
 #' @examples
 #' \dontrun{
 #' # Define and test a function that computes for each i the sum over j
@@ -59,8 +60,64 @@ keops_kernel <- function(formula, args) {
                          object = "r_genred",
                          genred=TRUE)
     
+    # reordering var_aliases (to correspond to operator input)
+    var_aliases <- lapply(var_aliases, function(elem)
+        if(length(elem)>1)
+            return(elem[order(var_aliases$var_pos)])
+        else
+            return(elem))
+    
+    
     # return function calling the corresponding compile operator
-    function(input, nx, ny) {
+    function(input) {
+        ## storing some context
+        env <- list(formula=formula,
+                    args=args,
+                    var_aliases=var_aliases)
+        
+        ## reorder input if names are supplied
+        # check that all input args are named
+        if(sum(str_length(names(input)) > 0) == length(input)) {
+            # expected order
+            expected_order <- env$var_aliases$var_name
+            # check if names are consistant
+            if(all(names(input) %in% expected_order))
+                if(any(names(input) != expected_order))
+                    input <- input[expected_order]
+        }
+
+        ## transpose input if necessary
+        # check if necessary
+        check_input_dim <- sapply(1:length(input),
+            function(ind) {
+                input_dim <- nrow(input[[ind]])
+                expected_dim <- env$var_aliases$var_dim[ind]
+                return(input_dim != expected_dim)
+            })
+        # transpose if necessary
+        if(any(check_input_dim)) {
+            tmp_names <- names(input)
+            input[check_input_dim] <- lapply(which(check_input_dim),
+                    function(ind) {
+                        input_dim <- nrow(input[[ind]])
+                        expected_dim <- env$var_aliases$var_dim[ind]
+                        return(t(input[[ind]]))
+                    })
+            names(input) <- tmp_names
+        }
+
+        ## range i
+        index_i <- which(env$var_aliases$var_type == "Vi")
+        nxs <- sapply(input[index_i], ncol)
+        nx <- nxs[1]
+        if(mean(nxs) != nx) stop("Range of index i is different among all Vi's variables")
+        ## range j
+        index_j <- which(env$var_aliases$var_type == "Vj")
+        nys <- sapply(input[index_j], ncol)
+        ny <- nys[1]
+        if(mean(nys) != ny) stop("Range of index j is different among all Vj's variables")
+        
+        ## run
         param <- c(get_rkeops_options("runtime"),
                    list(nx=nx, ny=ny))
         return(r_genred(input, param))

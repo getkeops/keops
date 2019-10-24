@@ -9,7 +9,7 @@ test_that("compile_formula", {
     dllname <- "test_compile_formula_dll"
     ## run
     res <- tryCatch(compile_formula(formula, var_aliases, dllname),
-                    error = function(e) return(NULL))
+                    error = function(e) {print(e); return(NULL)})
     ## check
     expect_false(is.null(res))
     ## testing formula
@@ -18,7 +18,7 @@ test_that("compile_formula", {
                          dllname = paste0("librkeops", dllname), 
                          object = "r_genred",
                          genred=TRUE)
-    # data
+    ## data (reduction index in column)
     nx <- 10
     ny <- 15
     x <- matrix(runif(nx*3), nrow=3, ncol=nx)
@@ -77,29 +77,42 @@ test_that("format_var_aliases", {
 })
 
 test_that("keops_kernel", {
-    # set_rkeops_options()
-    # # matrix product then sum
-    # formula = "Sum_Reduction((x|y), 1)"
-    # args = c("x=Vi(3)", "y=Vj(3)")
-    # 
-    # formula = "Sum_Reduction((x|y), 1)"
-    # args = c("x=Vi(3)", "y=Vj(3)")
-    # 
-    # op <- tryCatch(keops_kernel(formula, args),
-    #                error = function(e) return(NULL))
-    # expect_false(is.null(op))
-    # 
-    # ## col-major
-    # n = 10
-    # x <- matrix(runif(n*3), ncol=n)
-    # y <- matrix(runif(n*3), ncol=n)
-    # input <- list(x, y) #, beta, lambda)
-    # res <- tryCatch(op(input),
-    #                 error = function(e) return(NULL))
-    # expect_false(is.null(op))
-    # 
-    # expected_res <- apply(t(x) %*% y, 1, sum)
-    # expect_true(abs(res-expected_res) < 1E-5)
+    set_rkeops_options()
+    # matrix product then sum
+    formula = "Sum_Reduction((x|y), 1)"
+    args = c("x=Vi(3)", "y=Vj(3)")
+    # define and compile operator
+    op <- tryCatch(keops_kernel(formula, args),
+                   error = function(e) {print(e); return(NULL)})
+    expect_false(is.null(op))
     
+    ## data (reduction index in column)
+    nx <- 10
+    ny <- 15
+    x <- matrix(runif(nx*3), nrow=3, ncol=nx)
+    y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+    # run
+    input <- list(x, y)
+    expected_res <- colSums(t(x) %*% y)
+    run_op(op, input, expected_res)
     
+    ## data (reduction index in row)
+    nx <- 10
+    ny <- 15
+    x <- t(matrix(runif(nx*3), nrow=3, ncol=nx))
+    y <- t(matrix(runif(ny*3), nrow=3, ncol=ny))
+    # run
+    input <- list(x, y)
+    expected_res <- colSums(x %*% t(y))
+    run_op(op, input, expected_res)
+    
+    ## data (named input wrong order)
+    nx <- 10
+    ny <- 15
+    x <- matrix(runif(nx*3), nrow=3, ncol=nx)
+    y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+    # run
+    input <- list(y=y, x=x)
+    expected_res <- colSums(t(x) %*% y)
+    run_op(op, input, expected_res)
 })
