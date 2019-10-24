@@ -49,7 +49,7 @@ test_that("compile_code", {
     ## compiling (call to cmake)
     return_status <- tryCatch(compile_code(formula, var_aliases,
                                            dllname, cmake_dir),
-                              error = function(e) return(NULL))
+                              error = function(e) {print(e); return(NULL)})
 
     ## move back to user working directory
     setwd(current_directory)
@@ -61,7 +61,7 @@ test_that("compile_code", {
     test_binder <- tryCatch(load_dll(path = tmp_build_dir,
                                      dllname = paste0("librkeops", dllname),
                                      object = "test_binder"),
-                            error = function(e) return(NULL))
+                            error = function(e) {print(e); return(NULL)})
     expect_false(is.null(test_binder))
     expect_true(test_binder() == 1)
 

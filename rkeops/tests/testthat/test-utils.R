@@ -14,7 +14,8 @@ test_that("dllname", {
 })
 
 test_that("clean_rkeops", {
-    res <- tryCatch(clean_rkeops(), error = function(e) return(NULL))
+    res <- tryCatch(clean_rkeops(), 
+                    error = function(e) {print(e); return(NULL)})
     expect_false(is.null(res))
     file_list <- list.files(get_build_dir())
     expect_true(length(file_list) == 0)
@@ -49,7 +50,7 @@ test_that("load_dll", {
     # compile test function
     setwd(src_dir)
     tmp <- tryCatch(compile_test_function(),
-                    error = function(e) return(NULL))
+                    error = function(e) {print(e); return(NULL)})
     setwd(current_dir)
     # test (if compilation work)
     expect_true(!is.null(tmp))
