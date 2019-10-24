@@ -1,10 +1,20 @@
 #' Clean build directory
 #' @description
-#' Remove all shared object files generated from compilations of user-defined 
+#' Remove all dll files generated from compilations of user-defined 
 #' operators.
 #' @details
-#' FIXME
+#' When compiling a user-defined operators, a shared object (so) library 
+#' (or dynamic link library, dll) file is created in the directory `build_dir` 
+#' specified in compile options of `rkeops`. For every new operators, such a 
+#' file is created.
+#' 
+#' Calling `clean_rkeops()` allows you to empty the directory `build_dir`.
 #' @author Ghislain Durif
+#' @seealso [rkeops::compile_options()], [rkeops::set_rkeops_option()]
+#' @examples 
+#' \dontrun{
+#' clean_rkeops()
+#' }
 #' @export
 clean_rkeops <- function() {
     file_list <- list.files(get_build_dir())
@@ -12,13 +22,21 @@ clean_rkeops <- function() {
 }
 
 #' Create name of shared library from formula and arguments
+#' @keywords internal
 #' @description
-#' Using input formula and arguments along with current value of "precision" 
-#' option, the function `dllname` creates through a hash a name for the shared 
+#' Using input formula and arguments along with current value of `"precision"` 
+#' option, the function `dllname` creates a hashed name for the shared 
 #' library where the operators defined by the formula and arguments will be 
 #' compiled.
 #' @details
-#' FIXME
+#' When compiling a user-defined operators, a shared object (so) library 
+#' (or dynamic link library, dll) file is created in the directory `build_dir` 
+#' specified in compile options of `rkeops`. For every new operators, such a 
+#' file is created.
+#' 
+#' The shared library file associated to a user-defined operator has a unique 
+#' name so that it can be reused without compilation when calling again the 
+#' associated operator.
 #' @param formula text string
 #' @param args vector of text string
 #' @author Ghislain Durif
@@ -118,12 +136,30 @@ is_installed <- function() {
     return(out_compile & out_file)
 }
 
-#' Load shared library for user-defined operator
+#' Load function from dll shared library for user-defined operator
+#' @keywords internal
 #' @description
-#' FIXME
+#' User-defined operators are compiled in shared library files. The associated 
+#' function can be load into R with the function `load_dll`.
 #' @details
-#' FIXME
+#' When compiling a user-defined operators, a shared object (so) library 
+#' (or dynamic link library, dll) file is created in the directory `build_dir` 
+#' specified in compile options of `rkeops`. For every new operators, such a 
+#' file is created.
+#' 
+#' When using a user-defined operator, it is imported into R with the function 
+#' `load_dll`. This function is specifically designed to load `rkeops`-related 
+#' operators with a particular signature (and a test function without input 
+#' paremeter).
 #' @author Ghislain Durif
+#' @param path test string, path to directory where the dll file can be found.
+#' @param dllname text string, dll file name (without the extension).
+#' @param object text string, function from the dll file to be loaded in R.
+#' @param tag text string, prefix used internally in Rcpp. Default value is 
+#' `"_binder_"`. This argument is only used in the unit tests.
+#' @param genred boolean, loading `genred` function or not (different 
+#' signatures).
+#' @return loaded function
 #' @import Rcpp
 #' @export
 load_dll <- function(path, dllname, object, tag="_binder_", genred=FALSE) {
