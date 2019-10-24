@@ -61,6 +61,8 @@ test_that("load_dll", {
         expect_error(test_function(), NA)
         expect_equal(test_function(), 1)
     }
+    ## cleaning
+    clean_rkeops()
 })
 
 test_that("use_gpu", {
