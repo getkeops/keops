@@ -14,10 +14,10 @@ test_that("dllname", {
 })
 
 test_that("clean_rkeops", {
-    # res <- tryCatch(clean_rkeops(), error = function(e) return(NULL))
-    # expect_false(is.null(res))
-    # file_list <- list.files(get_build_dir())
-    # expect(length(file_list == 0))
+    res <- tryCatch(clean_rkeops(), error = function(e) return(NULL))
+    expect_false(is.null(res))
+    file_list <- list.files(get_build_dir())
+    expect_true(length(file_list) == 0)
 })
 
 test_that("get_pkg_dir", {
