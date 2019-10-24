@@ -19,13 +19,7 @@ check_args <- function(args, arg_order = NULL) {
 
 # function to repeat check of keops_kernel
 run_op <- function(op, input, expected_res) {
-    # run (passing arguments as themselve)
-    res <- tryCatch(do.call(op, input),
-                    error = function(e) {print(e); return(NULL)})
-    expect_false(is.null(res))
-    # check result
-    expect_true(sum(abs(res - expected_res)) < 1E-5)
-    # run (passing arguments as list)
+    # run
     res <- tryCatch(op(input),
                     error = function(e) {print(e); return(NULL)})
     expect_false(is.null(res))

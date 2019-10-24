@@ -83,17 +83,13 @@ keops_kernel <- function(formula, args) {
     
     
     # return function calling the corresponding compile operator
-    function(...) {
-        ## get input args
-        input <- as.list(match.call())[-1]
-        # unlist if input is a list
-        if(!is.numeric(input[[1]])) input <- input[[1]]
+    function(input) {
         ## storing some context
         env <- list(formula=formula,
                     args=args,
                     var_aliases=var_aliases)
         
-        ## reorder input if names are supplied (if not parameter order is used)
+        ## reorder input if names are supplied (if not list order is used)
         # check that all input args are named
         if(sum(str_length(names(input)) > 0) == length(input)) {
             # expected order
