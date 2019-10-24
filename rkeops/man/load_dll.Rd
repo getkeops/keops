@@ -2,16 +2,42 @@
 % Please edit documentation in R/utils.R
 \name{load_dll}
 \alias{load_dll}
-\title{Load shared library for user-defined operator}
+\title{Load function from dll shared library for user-defined operator}
 \usage{
-load_dll(path, dllname, object, genred = FALSE)
+load_dll(path, dllname, object, tag = "_binder_", genred = FALSE)
+}
+\arguments{
+\item{path}{test string, path to directory where the dll file can be found.}
+
+\item{dllname}{text string, dll file name (without the extension).}
+
+\item{object}{text string, function from the dll file to be loaded in R.}
+
+\item{tag}{text string, prefix used internally in Rcpp. Default value is
+\code{"_binder_"}. This argument is only used in the unit tests.}
+
+\item{genred}{boolean, loading \code{genred} function or not (different
+signatures).}
+}
+\value{
+loaded function
 }
 \description{
-FIXME
+User-defined operators are compiled in shared library files. The associated
+function can be load into R with the function \code{load_dll}.
 }
 \details{
-FIXME
+When compiling a user-defined operators, a shared object (so) library
+(or dynamic link library, dll) file is created in the directory \code{build_dir}
+specified in compile options of \code{rkeops}. For every new operators, such a
+file is created.
+
+When using a user-defined operator, it is imported into R with the function
+\code{load_dll}. This function is specifically designed to load \code{rkeops}-related
+operators with a particular signature (and a test function without input
+paremeter).
 }
 \author{
 Ghislain Durif
 }
+\keyword{internal}

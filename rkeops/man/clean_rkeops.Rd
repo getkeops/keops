@@ -7,11 +7,24 @@
 clean_rkeops()
 }
 \description{
-Remove all shared object files generated from compilations of user-defined
+Remove all dll files generated from compilations of user-defined
 operators.
 }
 \details{
-FIXME
+When compiling a user-defined operators, a shared object (so) library
+(or dynamic link library, dll) file is created in the directory \code{build_dir}
+specified in compile options of \code{rkeops}. For every new operators, such a
+file is created.
+
+Calling \code{clean_rkeops()} allows you to empty the directory \code{build_dir}.
+}
+\examples{
+\dontrun{
+clean_rkeops()
+}
+}
+\seealso{
+\code{\link[rkeops:compile_options]{rkeops::compile_options()}}, \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
 }
 \author{
 Ghislain Durif
