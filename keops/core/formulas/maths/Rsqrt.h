@@ -56,7 +56,7 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
         out[k] = rsqrtf(outF[k]);
 #endif
 #elif USE_HALF
-        out[k] = rsqrtf((float)outF[k]);
+        out[k] = 1.0 / sqrt((float)outF[k]);
 #else
         out[k] = 1.0 / sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
 #endif

@@ -89,7 +89,11 @@ struct GaussKernel_specific {
     __TYPE__ temp;
     for(int k=0; k<DIMPOINT; k++) {
       temp =  yj[k]-xi[k];
+#if USE_HALF
+      r2 = r2 + temp*temp;
+#else
       r2 += temp*temp;
+#endif
     }
 #if USE_HALF && ! GPU_ON
     __TYPE__ s = exp((float)(-r2*params[0]));
@@ -200,12 +204,20 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
       xmy[k] =  xi[k]-yj[k];
       r2 += xmy[k]*xmy[k];
     }
+#if USE_HALF && ! GPU_ON
+#pragma unroll
+    for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
+      sga = sga + betaj[k]*etai[k];
+    __TYPE__ s = - 2.0 * (float)sga * exp((float)(-r2*params[0]));  // Don't forget the 2 !
+#elif USE_HALF
+#pragma unroll
+    for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
+      sga = sga + betaj[k]*etai[k];
+    __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
+#else
 #pragma unroll
     for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
       sga += betaj[k]*etai[k];
-#if USE_HALF && ! GPU_ON
-    __TYPE__ s = - 2.0 * (float)sga * exp((float)(-r2*params[0]));  // Don't forget the 2 !
-#else
     __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
 #endif
 #pragma unroll

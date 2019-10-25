@@ -65,10 +65,17 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
     for(int k=0; k < DIMIN; k++) {
       out[k] = 0;
-      for(int l=0; l < DIMIN; l++) {
+#if USE_HALF
+#pragma unroll
+      for(int l=0; l < DIMIN; l++)
+        out[ k ] = out[k] + outA[ k*DIMIN + l ] * outX[ l ];
+      out[k] = out[k] * (half)2;
+#else
+#pragma unroll
+      for(int l=0; l < DIMIN; l++)
         out[ k ] += outA[ k*DIMIN + l ] * outX[ l ];
-      }
       out[k] *= 2;
+#endif
     }
   }
 
@@ -121,9 +128,17 @@ struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
     *out = 0;
+#pragma unroll
     for(int k=0; k < DIMIN; k++) {
+#if USE_HALF
+#pragma unroll
+      for(int l=0; l < DIMIN; l++)
+        *out = *out + outA[ k*DIMIN + l ] * outX[k]*outX[l];
+#else
+#pragma unroll
       for(int l=0; l < DIMIN; l++)
         *out += outA[ k*DIMIN + l ] * outX[k]*outX[l];
+#endif
     }
   }
 

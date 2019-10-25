@@ -35,9 +35,15 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
 #pragma unroll
         for (int i = 0; i < DIM; i++) {
             out[i] = 0;
+#if USE_HALF
+#pragma unroll
+            for (int k = 0; k < B::DIM; k++, q++)
+                out[i] = out[i] + inA[q] * inB[k];
+#else
 #pragma unroll
             for (int k = 0; k < B::DIM; k++, q++)
                 out[i] += inA[q] * inB[k];
+#endif
         }
     }
 #else // column major
@@ -45,9 +51,15 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
 #pragma unroll
     for (int i = 0; i < DIM; i++) {
       out[i] = 0;
+#if USE_HALF
+#pragma unroll
+      for (int k = 0; k < B::DIM; k++)
+        out[i] = out[i] + inA[k * DIM + i] * inB[k];
+#else
 #pragma unroll
       for (int k = 0; k < B::DIM; k++)
         out[i] += inA[k * DIM + i] * inB[k];
+#endif
     }
   }
 #endif

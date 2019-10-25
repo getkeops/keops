@@ -38,9 +38,15 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 #pragma unroll
         for (int i = 0; i < DIM; i++) {
             out[i] = 0;
+#if USE_HALF
+#pragma unroll
+            for (int k = 0; k < B::DIM; k++)
+                out[i] = out[i] + inB[k] * inA[DIM * k + i];
+#else
 #pragma unroll
             for (int k = 0; k < B::DIM; k++)
                 out[i] += inB[k] * inA[DIM * k + i];
+#endif
         }
     }
 #else // column major
@@ -49,9 +55,15 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 #pragma unroll
     for (int i = 0; i < DIM; i++) {
       out[i] = 0;
+#if USE_HALF
+#pragma unroll
+      for (int k = 0; k < B::DIM; k++, q++)
+        out[i] = out[i] + inB[k] * inA[q];
+#else
 #pragma unroll
       for (int k = 0; k < B::DIM; k++, q++)
         out[i] += inB[k] * inA[q];
+#endif
     }
   }
 #endif

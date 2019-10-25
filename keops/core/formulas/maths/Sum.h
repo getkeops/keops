@@ -27,9 +27,15 @@ struct Sum : UnaryOp<Sum, F> {
   static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
     *out = 0;
+#if USE_HALF
+#pragma unroll
+    for (int k = 0; k < F::DIM; k++)
+      *out = *out + outF[k];
+#else
 #pragma unroll
     for (int k = 0; k < F::DIM; k++)
       *out += outF[k];
+#endif
   }
 
   template<class V, class GRADIN>

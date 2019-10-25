@@ -26,9 +26,20 @@ struct Pow : UnaryOp<Pow, F, M> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#if USE_HALF && GPU_ON
+// apparently there is no power operator for half type...
+#pragma unroll
+    for (int k = 0; k < DIM; k++)
+        out[k] = exp(N*log(outF[k]);
+#elif USE_HALF
+#pragma unroll
+    for (int k = 0; k < DIM; k++)
+      out[k] = pow((float)outF[k], M);
+#else
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = pow(outF[k], M);
+#endif
   }
 
   // [\partial_V F^M].gradin  =  M * (F^(M-1)) * [\partial_V F].gradin

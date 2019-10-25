@@ -48,8 +48,15 @@ struct Scalprod_Impl : BinaryOp< Scalprod_Impl, FA, FB > {
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
     *out = 0;
+#if USE_HALF
+#pragma unroll
+    for (int k = 0; k < DIMIN; k++)
+      *out = *out + outA[k] * outB[k];
+#else
+#pragma unroll
     for (int k = 0; k < DIMIN; k++)
       *out += outA[k] * outB[k];
+#endif
   }
 
   // <A,B> is scalar-valued, so that gradin is necessarily a scalar.

@@ -26,8 +26,15 @@ struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
     *out = 0;
+#if USE_HALF
+#pragma unroll
+    for(int k=0; k<DIMIN; k++)
+      *out = *out + outS[k]*outA[k]*outA[k];
+#else
+#pragma unroll
     for(int k=0; k<DIMIN; k++)
       *out += outS[k]*outA[k]*outA[k];
+#endif
   }
 
   // sum_i s_i*a_i*a_i is scalar-valued, so that gradin is necessarily a scalar.
