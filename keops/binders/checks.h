@@ -49,13 +49,13 @@ using namespace keops;
 // This function has to be specialized in the various binders:
 
 template < typename array_t >
-int get_ndim(array_t &obj_ptri);  // len( a.shape )
+size_t get_ndim(array_t &obj_ptri);  // len( a.shape )
 
 template < typename array_t >
-int get_size(array_t &obj_ptri, int l);  // a.shape[l]
+size_t get_size(array_t &obj_ptri, size_t l);  // a.shape[l]
 
-template < typename array_t >
-__TYPE__ *get_data(array_t &obj_ptri);   // raw pointer to "a.data"
+template < typename array_t, typename _T >
+_T *get_data(array_t &obj_ptri);   // raw pointer to "a.data"
 
 template < typename array_t >
 __INDEX__ *get_rangedata(array_t &obj_ptri);  // raw pointer to "a.data", casted as integer
@@ -70,7 +70,7 @@ void keops_error(std::string);
 //                    Sanity checks on args
 /////////////////////////////////////////////////////////////////////////////////
 
-void check_narg(int narg) {
+void check_narg(size_t narg) {
   if (narg < NARGS)
     keops_error("[KeOps] Wrong number of args : is " + std::to_string(narg)
               + " but should be at least " + std::to_string(NARGS)

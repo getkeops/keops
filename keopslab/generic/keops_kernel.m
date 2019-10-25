@@ -25,6 +25,14 @@ Nargin = nargin;
 % get verbosity level to force compilation
 [~,~,~,verbosity,use_cuda_if_possible] = default_options();
 
+try
+gpuArray(
+1);
+canUseGPU = true;
+catch
+    canUseGPU = false;
+end
+
 % last arg is optional structure to override default tags
 if isstruct(varargin{end})
     options = varargin{end};
@@ -34,7 +42,12 @@ else
     options=struct;
 end
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
-options = setoptions(options,'tagCpuGpu',1);
+if use_cuda_if_possible &&
+canUseGPU
+    options = setoptions(options, 'tagCpuGpu', 1);
+else
+options = setoptions(options, 'tagCpuGpu', 0);
+end
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 options = setoptions(options,'tag1D2D',0);
 % device_id is id of GPU device in case several GPUs can be used

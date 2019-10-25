@@ -12,9 +12,7 @@
 
 namespace keops_binders {
 
-void keops_error(std::basic_string< char > msg) {
-  throw std::runtime_error(msg);
-}
+
 
 using namespace keops;
 namespace py = pybind11;
@@ -182,20 +180,21 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
   int* shape_output = get_output_shape(shapes, nbatchdims);
 
   // Call Cuda codes =========================================================
-  array_t result;
+  array_t result = allocate_result_array< array_t >(shape_output, tagCpuGpu);
+
   if (tagRanges == 1) {
-    result = launch_keops_ranges< array_t >(tag1D2D, tagCpuGpu, tagHostDevice,
+    /*result = launch_keops_ranges< array_t >(tag1D2D, tagCpuGpu, tagHostDevice,
                                             Device_Id_s,
                                             nx, ny,
                                             nbatchdims, shapes, shape_output,
                                             nranges_x, nranges_y,
                                             nredranges_x, nredranges_y,
                                             castedranges,
-                                            castedargs);
+                                            castedargs);*/
   } else {
-    result = launch_keops< array_t >(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
+    launch_keops < array_t > (tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
                                      nx, ny,
-                                     shape_output,
+        , get_data(result),
                                      castedargs);
   }
 

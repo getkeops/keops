@@ -66,6 +66,9 @@ __INDEX__* get_rangedata(__RANGEARRAY__ obj_ptri) {
   return (__INDEX__ *) obj_ptri.data();
 }
 
+void keops_error(std::basic_string< char > msg) {
+  throw std::runtime_error(msg);
+}
 
 using namespace keops;
 

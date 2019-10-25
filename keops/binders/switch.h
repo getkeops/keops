@@ -18,15 +18,26 @@ extern "C" {
 
 namespace keops_binders {
 
-void keops_error(std::basic_string < char > );
+void keops_error(std::basic_string< char >);
 
 template < typename array_t >
-array_t allocate_result_array(int *a, int b = 0);
+array_t allocate_result_array(const size_t *a, const size_t b = 0);
 
-#if USE_CUDA
 template < typename array_t >
-array_t allocate_result_array_gpu(int* a, int b=0);
-#endif
+array_t allocate_result_array_gpu(const size_t *a, const size_t b = 0);
+
+template < typename array_t >
+array_t create_result_array(const int nx, const int ny, const int tagHostDevice = 0) {
+
+  size_t shape_out[2] = {keops::DIMOUT, (keops::TAGIJ == 1) ? ny : nx};
+
+  array_t result =
+      (tagHostDevice == 0) ? allocate_result_array< array_t >(shape_out) : allocate_result_array_gpu< array_t >(
+          shape_out);
+  return result;
+}
+
+
 
 int *get_output_shape(int* shapes = {}, int nbatchdims = 0) {
 // Store, in a raw int array, the shape of the output: =====================
@@ -43,30 +54,29 @@ int *get_output_shape(int* shapes = {}, int nbatchdims = 0) {
   return shape_output;
 }
 
-template < typename array_t >
-array_t launch_keops(int tag1D2D,
-                     int tagCpuGpu,
-                     int tagHostDevice,
-                     short int Device_Id,
-                     int nx,
-                     int ny,
-                     int *shape_out,
-                     __TYPE__ **castedargs) {
+void launch_keops(int tag1D2D,
+                  int tagCpuGpu,
+                  int tagHostDevice,
+                  short int Device_Id,
+                  int nx,
+                  int ny,
+                  __TYPE__ *result_array,
+                  __TYPE__ **castedargs) {
   // Create a decimal word to avoid nested conditional below
   int decision = 100 * tagHostDevice + 10 * tagCpuGpu + tag1D2D;
 
   switch (decision) {
     case 0: {
-      auto result_array = allocate_result_array< array_t >(shape_out);
-      CpuReduc(nx, ny, get_data(result_array), castedargs);
-      return result_array;
+      //auto result_array = allocate_result_array< array_t >(shape_out);
+      CpuReduc(nx, ny, result_array, castedargs);
+      return;
     }
 
     case 10: {
 #if USE_CUDA
-      auto result_array = allocate_result_array< array_t >(shape_out);
-      GpuReduc1D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
-      return result_array;
+      //auto result_array = allocate_result_array< array_t >(shape_out);
+      GpuReduc1D_FromHost(nx, ny, result_array, castedargs, Device_Id);
+      return;
 #else
       keops_error(Error_msg_no_cuda);
 #endif
@@ -74,9 +84,9 @@ array_t launch_keops(int tag1D2D,
 
     case 11: {
 #if USE_CUDA
-      auto result_array = allocate_result_array< array_t >(shape_out);
-      GpuReduc2D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
-      return result_array;
+      //auto result_array = allocate_result_array< array_t >(shape_out);
+      GpuReduc2D_FromHost(nx, ny, result_array, castedargs, Device_Id);
+      return;
 #else
       keops_error(Error_msg_no_cuda);
 #endif
@@ -84,9 +94,9 @@ array_t launch_keops(int tag1D2D,
 
     case 110: {
 #if USE_CUDA
-      auto result_array = allocate_result_array_gpu< array_t >(shape_out);
-      GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
-      return result_array;
+      //auto result_array = allocate_result_array_gpu< array_t >(shape_out);
+      GpuReduc1D_FromDevice(nx, ny, result_array, castedargs, Device_Id);
+      return;
 #else
       keops_error(Error_msg_no_cuda);
 #endif
@@ -94,9 +104,9 @@ array_t launch_keops(int tag1D2D,
 
     case 111: {
 #if USE_CUDA
-      auto result_array = allocate_result_array_gpu< array_t >(shape_out);
-      GpuReduc2D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
-      return result_array;
+      //auto result_array = allocate_result_array_gpu< array_t >(shape_out);
+      GpuReduc2D_FromDevice(nx, ny, result_array, castedargs, Device_Id);
+      return;
 #else
       keops_error(Error_msg_no_cuda);
 #endif

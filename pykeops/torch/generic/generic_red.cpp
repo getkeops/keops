@@ -15,8 +15,8 @@ namespace keops_binders {
 //Specialization of functions in keops/binders/checks.h
 
 template <>
-int get_ndim(at::Tensor obj_ptri) {
-  return obj_ptri.dim();
+int get_ndim(at::Tensor *obj_ptri) {
+  return obj_ptri->dim();
 }
 
 template <>
@@ -70,6 +70,9 @@ __INDEX__ *get_rangedata(at::Tensor obj_ptri) {
   return obj_ptri.data< __INDEX__ >();
 }
 
+void keops_error(std::basic_string< char > msg) {
+  throw std::runtime_error(msg);
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    PyBind11 entry point                                     //
