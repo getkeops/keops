@@ -244,7 +244,8 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     // host arrays of pointers to device data
     TYPE *phx_d[SIZEI];
     TYPE *phy_d[SIZEJ];
-    TYPE *php_d[SIZEP];
+
+    auto php_d = (TYPE**) malloc( sizeof(TYPE*) * SIZEP);
 
     // Send data from host to device.
     int nvals;
@@ -384,7 +385,8 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_id=
 
     TYPE *px_h[SIZEI];
     TYPE *py_h[SIZEJ];
-    TYPE *pp_h[SIZEP];
+
+    auto pp_h = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     px_h[0] = x1_h;
     for(int i=1; i<SIZEI; i++)
@@ -573,7 +575,8 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_d, TYPE** args, int device_id=
 
     TYPE *phx_d[SIZEI];
     TYPE *phy_d[SIZEJ];
-    TYPE *php_d[SIZEP];
+
+    auto php_d = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     phx_d[0] = x1_d;
     for(int i=1; i<SIZEI; i++)

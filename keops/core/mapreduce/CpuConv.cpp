@@ -22,7 +22,9 @@ struct CpuConv {
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP];
+    TYPE xi[DIMX], yj[DIMY];
+    auto pp = (TYPE*)malloc(DIMP * sizeof(TYPE));
+
     __TYPEACC__ acc[DIMRED];
 #if USE_BLOCKRED
     // additional tmp vector to store intermediate results from each block
@@ -111,7 +113,8 @@ struct CpuConv {
 
     TYPE *px[SIZEI];
     TYPE *py[SIZEJ];
-    TYPE *params[SIZEP];
+
+    auto params = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     px[0] = x1;
     for (int i = 1; i < SIZEI; i++)

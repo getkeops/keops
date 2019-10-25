@@ -47,7 +47,12 @@ if(CUDA_FOUND AND USE_CUDA)
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
             if(__nvcc_res EQUAL 0)
-                set(CUDA_gpu_detect_props ${__nvcc_out} CACHE INTERNAL "Returned GPU architetures from caffe_detect_gpus tool" FORCE)
+                if (WIN32) # Removing garbage output on windows
+                    string(REGEX REPLACE ".*\n(-.*)$" "\\1" _nvcc_out "${__nvcc_out}")
+                    set(CUDA_gpu_detect_props "${_nvcc_out}" CACHE INTERNAL "Returned GPU architetures from caffe_detect_gpus tool" FORCE)
+                else()
+                    set(CUDA_gpu_detect_props ${__nvcc_out} CACHE INTERNAL "Returned GPU architetures from caffe_detect_gpus tool" FORCE)
+                endif()
             endif()
         endif()
 
@@ -101,10 +106,11 @@ if(CUDA_FOUND AND USE_CUDA)
     
     List(APPEND CUDA_NVCC_FLAGS ${out_variable})
     List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
-    List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
+    # Useless and/or redondant flag settings on recent cmake
+    # List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
     #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-backtrace-limit 900")
     #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-depth 900")
-    List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")
+    # List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")
 
 else()
     set(USE_CUDA 0)

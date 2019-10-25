@@ -1,6 +1,7 @@
 # pragma once
 
-#include <torch/extension.h>
+// #include <torch/extension.h>
+#include <torch/types.h>
 #include <pybind11/pybind11.h>
 
 #include <@shared_obj_name@.h>

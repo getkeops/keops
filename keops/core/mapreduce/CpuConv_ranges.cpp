@@ -46,8 +46,9 @@ struct CpuConv_ranges {
     // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
     // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
 
-    int shapes_i[(SIZEI - 1) * (nbatchdims + 1)], shapes_j[SIZEJ * (nbatchdims + 1)],
-        shapes_p[SIZEP * (nbatchdims + 1)];
+    int* shapes_i = (int*)malloc( sizeof(int) * (SIZEI - 1) * (nbatchdims + 1));
+    int* shapes_j = (int*)malloc( sizeof(int) * SIZEJ * (nbatchdims + 1));
+    int* shapes_p = (int*)malloc( sizeof(int) * SIZEP * (nbatchdims + 1));
 
     // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
     // making it look like, say:
@@ -60,7 +61,10 @@ struct CpuConv_ranges {
 
     // Actual for-for loop -----------------------------------------------------
 
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP];
+    TYPE xi[DIMX], yj[DIMY];
+
+    auto pp = (TYPE*)malloc(sizeof(TYPE) * DIMP);
+
     __TYPEACC__ acc[DIMRED];
 #if USE_BLOCKRED
     // additional tmp vector to store intermediate results from each block
@@ -72,7 +76,8 @@ struct CpuConv_ranges {
 #endif
     load< DIMSP >(0, pp, param);  // If nbatchdims == 0, the parameters are fixed once and for all
 
-    int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
+    int indices_i[SIZEI - 1], indices_j[SIZEJ];  // Buffers for the "broadcasted indices"
+    auto indices_p = (int*)malloc(sizeof(int) * SIZEP);
     for (int k = 0; k < SIZEI - 1; k++) {indices_i[k] = 0;}  // Fill the "offsets" with zeroes,
     for (int k = 0; k < SIZEJ; k++) {indices_j[k] = 0;}  // the default value when nbatchdims == 0.
     for (int k = 0; k < SIZEP; k++) {indices_p[k] = 0;}
@@ -232,7 +237,8 @@ struct CpuConv_ranges {
 
     TYPE *px[SIZEI];
     TYPE *py[SIZEJ];
-    TYPE *params[SIZEP];
+
+    auto params = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     px[0] = x1;
     for (int i = 1; i < SIZEI; i++)

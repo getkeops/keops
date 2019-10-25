@@ -196,8 +196,9 @@ int* build_offset_tables( int nbatchdims, int *shapes, int nblocks, __INDEX__ *l
         // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
         // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
     
-        int shapes_i[(SIZEI-1)*(nbatchdims+1)], shapes_j[SIZEJ*(nbatchdims+1)], shapes_p[SIZEP*(nbatchdims+1)];
-    
+        auto shapes_i = (int*) malloc( sizeof(int)* (SIZEI-1)*(nbatchdims+1));
+        auto shapes_j = (int*) malloc( sizeof(int)* SIZEJ*(nbatchdims+1));
+        auto shapes_p = (int*) malloc( sizeof(int)* SIZEP*(nbatchdims+1));
         // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
         // making it look like, say:
         // [ A, .., B, M]
@@ -283,7 +284,9 @@ static int Eval_(FUN fun, int nx, int ny,
     // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
     // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
 
-    int shapes_i[(SIZEVARSI-1)*(nbatchdims+1)], shapes_j[SIZEVARSJ*(nbatchdims+1)], shapes_p[SIZEVARSP*(nbatchdims+1)];
+    auto shapes_i = (int*) malloc( sizeof(int) * (SIZEVARSI-1)*(nbatchdims+1));
+    auto shapes_j = (int*) malloc( sizeof(int) * SIZEVARSJ*(nbatchdims+1));
+    auto shapes_p = (int*) malloc( sizeof(int) * SIZEVARSP*(nbatchdims+1));
 
     // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
     // making it look like, say:
@@ -295,7 +298,8 @@ static int Eval_(FUN fun, int nx, int ny,
     fill_shapes<FUN>(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
 
     int total_footprint_x = 0, total_footprint_y = 0, total_footprint_p = 0;
-    int footprints_x[SIZEI], footprints_y[SIZEJ], footprints_p[SIZEP];
+    int footprints_x[SIZEI], footprints_y[SIZEJ];
+    auto footprints_p = (int*) malloc( sizeof(int) * SIZEP );
     int tmp = 0;
 
     // Footprints of the "x" variables: ----------------------------------------
@@ -369,8 +373,7 @@ static int Eval_(FUN fun, int nx, int ny,
     // host arrays of pointers to device data
     TYPE *phx_d[SIZEI];  // Will be loaded to px_d
     TYPE *phy_d[SIZEJ];  // Will be loaded to py_d
-    TYPE *php_d[SIZEP];  // Will be loaded to pp_d
-
+    auto php_d = (TYPE**)malloc(sizeof(TYPE*) * SIZEP); // Will be loaded to pp_d
     // parameters --------------------------------------------------------------
     int nvals;    
     // if DIMSP is empty (i.e. no parameter), nvals = -1 which could result in a segfault
@@ -600,7 +603,8 @@ static int Eval(FUN fun, int nx, int ny,
 
     TYPE *px_h[SIZEI];
     TYPE *py_h[SIZEJ];
-    TYPE *pp_h[SIZEP];
+
+    auto pp_h = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     px_h[0] = x1_h;
     for(int i=1; i<SIZEI; i++)
@@ -877,7 +881,8 @@ static int Eval(FUN fun, int nx, int ny,
 
     TYPE *px_d[SIZEI];
     TYPE *py_d[SIZEJ];
-    TYPE *pp_d[SIZEP];
+
+    auto pp_d = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     px_d[0] = x1_d;
     for(int i=1; i<SIZEI; i++)

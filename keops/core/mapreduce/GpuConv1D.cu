@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <algorithm>
 #include <assert.h>
 #include <cuda.h>
 
@@ -145,7 +146,8 @@ struct GpuConv1D_FromHost {
     // host arrays of pointers to device data
     TYPE *phx_d[SIZEI];
     TYPE *phy_d[SIZEJ];
-    TYPE *php_d[SIZEP];
+
+    auto php_d = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     int nvals;
     // if DIMSP is empty (i.e. no parameter), nvals = -1 which could result in a segfault
@@ -287,7 +289,8 @@ struct GpuConv1D_FromHost {
 
     TYPE *px_h[SIZEI];
     TYPE *py_h[SIZEJ];
-    TYPE *pp_h[SIZEP];
+
+    auto pp_h = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     px_h[0] = x1_h;
     for (int i = 1; i < SIZEI; i++)
@@ -452,7 +455,8 @@ struct GpuConv1D_FromDevice {
 
     TYPE *px_d[SIZEI];
     TYPE *py_d[SIZEJ];
-    TYPE *pp_d[SIZEP];
+
+    auto pp_d = (TYPE**)malloc(SIZEP * sizeof(TYPE*));
 
     px_d[0] = x1_d;
     for (int i = 1; i < SIZEI; i++)
