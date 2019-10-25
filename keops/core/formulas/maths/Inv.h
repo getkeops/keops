@@ -34,9 +34,13 @@ struct Inv : UnaryOp<Inv, F> {
 #ifdef __CUDA_ARCH__
 #if USE_DOUBLE
       out[k] = 1 / outF[k];           // there is no fast divide for cuda and double
+#elif USE_HALF
+      out[k] = hrcp(outF[k]);
 #else
       out[k] = fdividef(1.0, outF[k]);
 #endif
+#elif USE_HALF
+      out[k] = (half)1 / outF[k];
 #else
       out[k] = 1 / outF[k];
 #endif

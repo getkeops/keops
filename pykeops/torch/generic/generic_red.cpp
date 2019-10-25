@@ -42,6 +42,8 @@ bool is_contiguous(at::Tensor obj_ptri) {
 
 #if USE_DOUBLE
 #define AT_TYPE at::kDouble
+#elif USE_HALF
+#define AT_TYPE at::kHalf
 #else
 #define AT_TYPE at::kFloat
 #endif

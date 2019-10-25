@@ -24,6 +24,24 @@ struct Sign : UnaryOp<Sign, F> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#if USE_HALF && GPU_ON
+#pragma unroll
+    for (int k = 0; k < DIM; k++)
+      if hgt(outF[k],0)
+        out[k] = 1.0;
+      else if hlt(outF[k],0)
+        out[k] = -1.0;
+      else
+        out[k] = 0.0;
+#elif USE_HALF
+    for (int k = 0; k < DIM; k++)
+      if (outF[k] > (half)0)
+        out[k] = (half)1.0;
+      else if (outF[k] < (half)0)
+        out[k] = (half)-1.0;
+      else
+        out[k] = (half)0.0;
+#else
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       if (outF[k] > 0)
@@ -32,6 +50,7 @@ struct Sign : UnaryOp<Sign, F> {
         out[k] = -1.0;
       else
         out[k] = 0.0;
+#endif
   }
 
   template<class V, class GRADIN>

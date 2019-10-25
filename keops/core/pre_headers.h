@@ -11,10 +11,12 @@ namespace keops {
   #define HOST_DEVICE __host__ __device__
   #define DEVICE __device__
   #define INLINE __forceinline__
+  #define GPU_ON 1
 #else
   #define HOST_DEVICE
   #define DEVICE
   #define INLINE inline
+  #define GPU_ON 0
 #endif
 
 #define __INDEX__ int32_t // use int instead of double
@@ -22,6 +24,7 @@ namespace keops {
 #ifndef __TYPE__
   #define __TYPE__ float
   #define USE_DOUBLE 0
+  #define USE_HALF 0
 #endif
 
 #ifndef C_CONTIGUOUS

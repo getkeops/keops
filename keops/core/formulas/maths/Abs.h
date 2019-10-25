@@ -29,9 +29,13 @@ struct Abs : UnaryOp<Abs, F> {
 #ifdef __CUDA_ARCH__
 #if USE_DOUBLE
         out[k] = fabs(outF[k]);
+#elif USE_HALF
+        out[k] = abs(outF[k]);
 #else
         out[k] = fabsf(outF[k]);
 #endif
+#elif USE_HALF
+        out[k] = abs((float)outF[k]);
 #else
       out[k] =  ::std::abs(outF[k]);
 #endif

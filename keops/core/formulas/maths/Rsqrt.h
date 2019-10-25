@@ -33,16 +33,30 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
+#if USE_HALF && GPU_ON
+      if heq(outF[k],0) {
+        out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
+      }
+#elif USE_HALF
+      if (outF[k] == (half)0) {
+        out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
+      }
+#else
       if (outF[k] == 0) {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
       }
+#endif
       else {
 #ifdef __CUDA_ARCH__    // check if we are compiling a device code
 #if USE_DOUBLE
         out[k] = rsqrt(outF[k]);
+#elif USE_HALF
+        out[k] = hrsqrt(outF[k]);
 #else
         out[k] = rsqrtf(outF[k]);
 #endif
+#elif USE_HALF
+        out[k] = rsqrtf((float)outF[k]);
 #else
         out[k] = 1.0 / sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
 #endif

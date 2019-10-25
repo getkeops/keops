@@ -91,7 +91,11 @@ struct GaussKernel_specific {
       temp =  yj[k]-xi[k];
       r2 += temp*temp;
     }
+#if USE_HALF && ! GPU_ON
+    __TYPE__ s = exp((float)(-r2*params[0]));
+#else
     __TYPE__ s = exp(-r2*params[0]);
+#endif
     for(int k=0; k<DIMVECT; k++)
       gammai[k] = s * betaj[k];
   }
@@ -199,7 +203,11 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 #pragma unroll
     for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
       sga += betaj[k]*etai[k];
+#if USE_HALF && ! GPU_ON
+    __TYPE__ s = - 2.0 * (float)sga * exp((float)(-r2*params[0]));  // Don't forget the 2 !
+#else
     __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
+#endif
 #pragma unroll
     for(int k=0; k<DIMPOINT; k++)                   // Increment the output vector gammai - which is a POINT
       gammai[k] = s * xmy[k];
