@@ -7,7 +7,7 @@ from pykeops.common.parse_type import get_type, complete_aliases
 from pykeops.common.parse_type import parse_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype
-from pykeops.torch import include_dirs
+from pykeops.torch import include_dirs, library_dirs
 from pykeops.torch.generic.generic_red import GenredAutograd
 
 
@@ -19,7 +19,7 @@ class KernelSolveAutograd(torch.autograd.Function):
     @staticmethod
     def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args):
     
-        optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] + accuracy_flags
+        optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] +  + ['-DPYTORCH_LIBRARY_DIR' + ';'.join(library_dirs) ] + accuracy_flags
 
         myconv = LoadKeOps(formula, aliases, dtype, 'torch',
                            optional_flags).import_module()

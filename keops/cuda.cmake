@@ -107,7 +107,7 @@ if(CUDA_FOUND AND USE_CUDA)
     List(APPEND CUDA_NVCC_FLAGS ${out_variable})
     List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
     # Useless and/or redondant flag settings on recent cmake
-    # List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
+    List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
     #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-backtrace-limit 900")
     #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-depth 900")
     # List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")

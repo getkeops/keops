@@ -25,6 +25,12 @@ if(PYTORCH_INCLUDE_DIR)
     list(APPEND SOURCE_FILES ${PYTORCH_INCLUDE_DIR})
 endif()
 
+if(PYTORCH_LIBRARY_DIR)
+    if(WIN32)
+        set(TORCH_LIBRARIES torch c10_cuda)
+    endif()
+endif()
+
 Include_Directories(${SOURCE_FILES})
 
 include(${KEOPS_SRC}/headers.cmake)
@@ -125,6 +131,11 @@ if(${PYTHON_LANG} STREQUAL "torch")
             ${shared_obj_name} BEFORE
             PRIVATE ${IncludePrefix} torch_headers.h
     )
+
+    if(WIN32) # windows must manually link torch libraries 
+        target_link_directories(${shared_obj_name} PUBLIC ${PYTORCH_LIBRARY_DIR})
+        target_link_libraries(${shared_obj_name}  PUBLIC ${TORCH_LIBRARIES})
+    endif()
 else() # assuming numpy
 
     target_compile_options(

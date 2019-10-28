@@ -7,9 +7,10 @@ torch_version_required = '1.3'
 
 # is torch installed ?
 import torch
-from torch.utils.cpp_extension import include_paths
+from torch.utils.cpp_extension import include_paths, library_paths
 
 include_dirs = include_paths()[0:2]
+library_dirs = library_paths()
 
 if torch.__version__ < torch_version_required:
     raise ImportError('The pytorch version should be >=' + torch_version_required)

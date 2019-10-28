@@ -196,7 +196,8 @@ int* build_offset_tables( int nbatchdims, int *shapes, int nblocks, __INDEX__ *l
         // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
         // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
     
-        auto shapes_i = (int*) malloc( sizeof(int)* (SIZEI-1)*(nbatchdims+1));
+        auto shapes_i = new int[(SIZEI-1)*(nbatchdims+1)];
+        // auto shapes_i = (int*) malloc( sizeof(int)* (SIZEI-1)*(nbatchdims+1));
         auto shapes_j = (int*) malloc( sizeof(int)* SIZEJ*(nbatchdims+1));
         auto shapes_p = (int*) malloc( sizeof(int)* SIZEP*(nbatchdims+1));
         // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
