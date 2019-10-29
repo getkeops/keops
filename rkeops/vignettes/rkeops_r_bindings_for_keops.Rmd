@@ -1,0 +1,77 @@
+---
+title: "RKeOps: R bindings for KeOps"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+  pdf_document:
+    toc: true
+    number_sections: yes
+author: "Ghislain Durif"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{RKeOps: R bindings for KeOps}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  progress = TRUE,
+  warning = FALSE
+)
+```
+
+# Install RKeOps
+
+## Requirements
+
+* R (tested with R >= 3.5)
+* Cmake (>=3.10)
+* C++ compiler (g++ >=7 or clang) for CPU computing or CUDA compiler (nvcc >=10) and CUDA libs for GPU computing
+
+## Install from CRAN
+(**not available at the moment**)
+```{r install, eval=FALSE}
+install.packages("rkeops")
+```
+
+## Install from sources
+
+* Install directly from Github (requires `git`)
+```{r install_github, eval=FALSE}
+devtools::install_git("https://github.com/getkeops/keops", 
+                      subdir = "rkeops", 
+                      args="--recurse-submodules=\"keops/lib/sequences\"")
+# not possible to use `devtools::intall_github()` because of the submodule
+```
+
+## Get sources and install from local repository
+* Get KeOps sources (bash command)
+```bash
+git clone --recurse-submodules="keops/lib/sequences" https://github.com/getkeops/keops
+# or
+git clone https://github.com/getkeops/keops
+cd keops
+git submodule update --init -- keops/lib/sequences
+# other submodules are not necessary for RKeOps
+```
+
+* Install from source in R (assuming you are in the `keops` directory)
+```{r install_src, eval=FALSE}
+devtools::install("rkeops")
+```
+
+---
+
+# Using RKeOps
+
+```{r setup}
+library(rkeops)
+```
+
+## Input data
+
+Comment on storage order
+
+

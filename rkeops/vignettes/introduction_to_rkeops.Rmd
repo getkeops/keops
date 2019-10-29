@@ -1,14 +1,13 @@
 ---
 title: "Introduction to RKeOps"
 output: 
+  rmarkdown::html_vignette:
+    toc: true
   pdf_document:
     toc: true
     number_sections: yes
-  rmarkdown::html_vignette:
-    toc: true
 author: "Ghislain Durif"
 date: "`r Sys.Date()`"
-abstract: "RKeOps is the R package interfacing the KeOps library."
 vignette: >
   %\VignetteIndexEntry{Introduction to RKeOps}
   %\VignetteEncoding{UTF-8}
@@ -27,7 +26,6 @@ knitr::opts_chunk$set(
 * Source: <https://github.com/getkeops/keops>
 * Licence and Copyright: see <https://github.com/getkeops/keops/blob/master/licence.txt>
 
-
 # Authors
 
 Feel free to contact us for any bug report or feature request:
@@ -37,7 +35,11 @@ Feel free to contact us for any bug report or feature request:
 * [Jean Feydy](http://www.math.ens.fr/~feydy/)
 * [Joan Alexis Glaunès](http://www.mi.parisdescartes.fr/~glaunes/)
 
-# KeOps: seamless Kernel Operations on GPU, with auto-differentiation and without memory overflows
+# What is RKeOps?
+
+RKeOps is the R package interfacing the KeOps library.
+
+## KeOps: seamless Kernel Operations on GPU, with auto-differentiation and without memory overflows
 
 The KeOps library (http://www.kernel-operations.io) provides routines to compute generic reductions of large 2d arrays whose entries are given by a mathematical formula. Using a C++/CUDA-based implementation with GPU support, it combines a tiled reduction scheme with an automatic differentiation engine. Relying on online map-reduce schemes, it is perfectly suited to the scalable computation of kernel dot products and the associated gradients, even when the full kernel matrix does not fit into the GPU memory.
 
@@ -45,50 +47,14 @@ KeOps is all about breaking through this memory bottleneck and making GPU power 
 
 To ensure its verstility, KeOps can be used through Matlab, Python (NumPy or PyTorch) and R backends.
 
-# Install RKeOps
+## RKeOps
 
-## Requirements
+[Here](https://gdurif.perso.math.cnrs.fr/files/material/slides_Toulouse_2019_Durif_KeOps.pdf) you can find a few slides explaining what is the KeOps library.
 
-* R (tested with R >= 3.5)
-* Cmake (>=3.10)
-* C++ compiler (g++ >=7 or clang) for CPU computing or CUDA compiler (nvcc >=10) and CUDA libs for GPU computing
+* Compute generic reduction (row or column-wise) of very large array matrices, i.e. $$\sum_{i=1}^M a_{ij} \ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N a_{ij}$$ for a $M \times N$ matrix $A = [a_{ij}]$ with $M$ rows and $N$ columns
 
-## Install from CRAN
-(**not available at the moment**)
-```{r install, eval=FALSE}
-install.packages("rkeops")
-```
+## Matrix reduction and Kernel operator
 
-## Install from sources
-
-* Install directly from Github (requires `git`)
-```{r install_github, eval=FALSE}
-devtools::install_git("https://github.com/getkeops/keops", 
-                      subdir = "rkeops", 
-                      args="--recurse-submodules=\"keops/lib/sequences\"")
-# not possible to use `devtools::intall_github()` because of the submodule
-```
-
-## Get sources and install from local repository
-* Get KeOps sources (bash command)
-```bash
-git clone --recurse-submodules="keops/lib/sequences" https://github.com/getkeops/keops
-# or
-git clone https://github.com/getkeops/keops
-cd keops
-git submodule update --init -- keops/lib/sequences
-# other submodules are not necessary for RKeOps
-```
-
-* Install from source in R (assuming you are in the `keops` directory)
-```{r install_src, eval=FALSE}
-devtools::install("rkeops")
-```
+Explain the 
 
 ---
-
-# Using RKeOps
-
-```{r setup}
-library(rkeops)
-```
