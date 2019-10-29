@@ -37,7 +37,7 @@ Feel free to contact us for any bug report or feature request:
 
 # What is RKeOps?
 
-RKeOps is the R package interfacing the KeOps library.
+RKeOps is the R package interfacing the KeOps library. [Here](https://gdurif.perso.math.cnrs.fr/files/material/slides_Toulouse_2019_Durif_KeOps.pdf) you can find a few slides explaining functionalities of the KeOps library.
 
 ## KeOps: seamless Kernel Operations on GPU, with auto-differentiation and without memory overflows
 
@@ -49,12 +49,76 @@ To ensure its verstility, KeOps can be used through Matlab, Python (NumPy or PyT
 
 ## RKeOps
 
-[Here](https://gdurif.perso.math.cnrs.fr/files/material/slides_Toulouse_2019_Durif_KeOps.pdf) you can find a few slides explaining what is the KeOps library.
+KeOps is a library that can 
 
-* Compute generic reduction (row or column-wise) of very large array matrices, i.e. $$\sum_{i=1}^M a_{ij} \ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N a_{ij}$$ for a $M \times N$ matrix $A = [a_{ij}]$ with $M$ rows and $N$ columns
+* Compute **generic reduction** (row-wise or column-wise) of very large array/matrices, i.e. $$\sum_{i=1}^M a_{ij} \ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N a_{ij}$$ for some matrix $A = [a_{ij}]_{M \times N}$ with $M$ rows and $N$ columns, whose entries $a_{ij}$ can be defined with basic math formulae or matrix operators.
+
+* Compute **kernel dot products**, i.e. $$\sum_{i=1}^M K(\mathbf x_i, \mathbf y_j)\ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N K(\mathbf x_i, \mathbf y_j)$$ for a kernel function $K$ and some vectors $\mathbf x_i$, $\mathbf y_j\in \mathbb{R}^D$ that are generally the rows of some data matrices $\mathbf X = [x_{ik}]_{M \times D}$ and $\mathbf Y = [y_{jk}]_{N \times D}$ respectively.
+
+* Compute the **associated gradients**
+
+## Why using RKeOps?
+
+RKeOps provides
+* an API to create user-defined operators based on generic mathematical formulae, to transform and reduce data matrices such as $\mathbf X = [x_{ik}]_{M \times D}$ and $\mathbf Y = [y_{jk}]_{N \times D}$.
+* fast computation on GPU without memory overflow, especially to process very large dimensions $M$ and $N$ ($\approx 10^4$ ou $10^6$) over indexes $i$ and $j$.
+* automatic differentiation and gradient computations for the user-defined operators.
+
+---
+
+# More details about RKeOps
 
 ## Matrix reduction and Kernel operator
 
-Explain the 
+The general framework of RKeOps (and KeOps) is to provide fast and scalable matrix operations on GPU, in particular kernel-based computations of the form $$\underset{i=1,...,M}{\text{reduction}}\ F(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j) \ \ \ \ \text{or}\ \ \ \ \underset{j=1,...,N}{\text{reduction}}\ F(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j)$$ where
+
+* $\boldsymbol{\sigma}\in\mathbb R^L$ is a vector of parameters
+* $\mathbf x_i\in \mathbb{R}^D$ and $\mathbf y_j\in \mathbb{R}^{D'}$ are two vectors of data (potentially with different dimensions)
+* $F: \mathbb R^L \times \mathbb R^D \times \mathbb R^{D'} \to \mathbb R$ is a function of the data and the parameters, that can be expressed through a composition of generic operators
+* $\text{reduction}$ is a generic reduction operation over the index $i$ or $j$ (e.g. sum)
+
+RKeOps creates an operator implementing your formula, and you can apply it to your data, or computes its gradient regarding some data.
+
+### What you need to do
+
+To use RKeOps you only need to express your computations as one of the previous formulae.<br><br>
+
+RKeOps allows to use a wide range of mathematical functions to define your operators (see <https://www.kernel-operations.io/keops/api/math-operations.html>).<br><br>
+
+You can use two type of data matrices:
+
+* ones whose rows are indexed by $i=1,...,M$ such as $\mathbf X = [x_{ik}]_{M \times D}$
+
+* others whose rows are indexed by $j=1,...,N$ such as $\mathbf Y = [y_{ik'}]_{N \times D'}$
+
+All matrices indexed by $i$ should have the same dimensions, same for all matrices indexed by $j$. Only the dimensions $D$ and $D'$ should be known for the compilation of your operators. The respective dimensions $M$ and $N$ are set at runtime (and can change from one run to another).
+
+* Dimensions $M$ and $N$ (over indexes $i$ and $j$ respectively) can be very large, even to large for GPU memory.
+
+* Inner dimensions $D$ and $D'$ should be small enough to fit in GPU memory (data colocality to avoid useless transfer).
+
+### Examples
+
+With RKeOps, you can define kernel functions $K: \mathbb R^D \times \mathbb R^D \to \mathbb R$ such as (for some vectors $\mathbf x_i, \mathbf y_j\in \mathbb{R}^D$)
+
+* the linear kernel (standard scalar product) $K(\mathbf x_i, \mathbf y_j) = \big\langle \mathbf x_i \, , \, \mathbf y_j \big\rangle$
+* the Gaussian kernel $K(\mathbf x_i, \mathbf y_j) = \exp\left(-\frac{1}{2\sigma^2} || \mathbf x_i - \mathbf y_j ||_2^{\,2}\right)$ with $\sigma>0$
+* and more
+
+And you can compute reductions based on such operators, especially when the $M \times N$ matrix $[K(\mathbf x_i, \mathbf y_j)]$ is to large to fit into memory, such as
+
+* Kernel reduction: $$\sum_{i=1}^M K(\mathbf x_i, \mathbf y_j)\ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N K(\mathbf x_i, \mathbf y_j)$$
+
+* Convolution-like operations: $$\sum_{i=1}^M K(\mathbf x_i, \mathbf y_j)\beta_j\ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N K(\mathbf x_i, \mathbf y_j)\beta_j$$ for some vector $[\beta_j]\in\mathbb R^N$
+
+* More complex operations: $$\sum_{i=1}^{M}\, K_1(\mathbf x_i, \mathbf y_j)\, K_2(\mathbf u_i, \mathbf v_j)\,\langle \boldsymbol\alpha_i\,;\,\boldsymbol\beta_j\rangle \ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^{N}\, K_1(\mathbf x_i, \mathbf y_j)\, K_2(\mathbf u_i, \mathbf v_j)\,\langle \boldsymbol\alpha_i\,;\,\boldsymbol\beta_j\rangle$$ for some kernel $K_1$ and $K_2$, and some $D$-vectors $(\mathbf x_i)_i, (\mathbf u_i)_i, (\boldsymbol\alpha_i)_i \in \mathbb R^{M\times D}$ and $(\mathbf y_j)_j, (\mathbf v_j)_j, (\boldsymbol\beta_j)_j \in \mathbb R^{N\times D}$
+
+## GPU computing
+
+Based on your formulae, RKeOps compile on the fly operators that can be used to run the corresponding computations on GPU, it uses a tiling scheme to decompose the data and avoid (i) useless and costly memory transfers between host and GPU (performance gain) and (ii) memory overflow.
 
 ---
+
+# Using RKeOps
+
+See the specific vignette [RKeOps: R bindings for KeOps](rkeops_r_bindings_for_keops.html).
