@@ -84,8 +84,9 @@ Default value is \code{0}.
 of GPU in computations (if possible on the system). Default value is \code{1}.
 \item \code{col_major}: 0-1 indicator (boolean) regarding matrix storage order in
 C++ KeOps API. \code{1} is column-major storage (or \code{f_contiguous}) and \code{0} is
-row-major storage (or \code{c_contiguous}). Default value is \code{1}. Keep in mind
-that matrices are stored with column-major order in R.
+row-major storage (or \code{c_contiguous}). Default value is \code{1}. This is
+independent from the storage order in R. Always keep in mind that matrices
+are stored with column-major order in R.
 \item \code{debug}: 0-1 indicator (boolean) regarding compilation debugging flag.
 \code{1} means that user-defined operators will be compiled with a debug flag,
 and \code{0} means no debug flag. Default value is \code{0}

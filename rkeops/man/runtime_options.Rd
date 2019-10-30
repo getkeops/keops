@@ -50,7 +50,7 @@ large rows matrices). Default value is \code{0}.
 \item \code{tagHostDevice}: \code{0} means that data are stored on host memory (i.e. in
 RAM), \code{1} means that data are stored on GPU memory. Default value is \code{0}.
 The mode \code{1} is not available for the moment in R.
-\item \code{device_id}: id of GPU device (if relevant, i.e. with \code{tagCpuGpu} $\ne 0$)
+\item \code{device_id}: id of GPU device (if relevant, i.e. with \code{tagCpuGpu != 0})
 where the computations will be made. Default value is \code{0}. Ideally, GPU
 assignation should be handled outside of \code{R} and \code{rkeops}.
 }
