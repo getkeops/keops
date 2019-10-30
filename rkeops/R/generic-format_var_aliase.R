@@ -16,7 +16,7 @@
 #' args = c("x=Vi(3)", "y=Vj(3)", "lambda=Pm(1)")
 #' ```
 #' 
-#' Input parameters can be of different types: 
+#' Input arguments can be of different types: 
 #' 
 #' |---------|-------------------------|-----------|
 #' | keyword | meaning                 | type      |

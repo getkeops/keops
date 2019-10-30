@@ -58,8 +58,9 @@ default_compile_options <- function() {
 #' of GPU in computations (if possible on the system). Default value is `1`.
 #' * `col_major`: 0-1 indicator (boolean) regarding matrix storage order in 
 #' C++ KeOps API. `1` is column-major storage (or `f_contiguous`) and `0` is 
-#' row-major storage (or `c_contiguous`). Default value is `1`. Keep in mind 
-#' that matrices are stored with column-major order in R.
+#' row-major storage (or `c_contiguous`). Default value is `1`. This is 
+#' independent from the storage order in R. Always keep in mind that matrices 
+#' are stored with column-major order in R.
 #' * `debug`: 0-1 indicator (boolean) regarding compilation debugging flag.
 #' `1` means that user-defined operators will be compiled with a debug flag, 
 #' and `0` means no debug flag. Default value is `0`
