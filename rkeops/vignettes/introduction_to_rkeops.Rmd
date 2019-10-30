@@ -47,7 +47,7 @@ The KeOps library (http://www.kernel-operations.io) provides routines to compute
 
 KeOps is all about breaking through this memory bottleneck and making GPU power available for seamless standard mathematical routine computations. As of 2019, this effort has been mostly restricted to the operations needed to implement Convolutional Neural Networks: linear algebra routines and convolutions on grids, images and volumes. KeOps provides GPU support without the cost of developing a specific CUDA implementation of your custom mathematical operators.
 
-To ensure its verstility, KeOps can be used through Matlab, Python (NumPy or PyTorch) and R backends.
+To ensure its versatility, KeOps can be used through Matlab, Python (NumPy or PyTorch) and R back-ends.
 
 ## RKeOps
 
@@ -73,7 +73,7 @@ RKeOps provides<br>
 
 ---
 
-# Matrix reduction and Kernel operator
+# Matrix reduction and kernel operator
 
 The general framework of RKeOps (and KeOps) is to provide fast and scalable matrix operations on GPU, in particular kernel-based computations of the form $$\underset{i=1,...,M}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j) \ \ \ \ \text{or}\ \ \ \ \underset{j=1,...,N}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j)$$ where<br>
 
@@ -110,9 +110,9 @@ with
 
 * parameter: $\sigma\in\mathbb R$<br>
 
-* $i$-indexed variable $[\mathbf x_i]_{i=1,...,M} \in\mathbb R^{M\times 3}$<br>
+* $i$-indexed variables $\mathbf X = [\mathbf x_i]_{i=1,...,M} \in\mathbb R^{M\times 3}$<br>
 
-* $j$-indexed variables $[\mathbf y_j]_{j=1,...,N} \in\mathbb R^{N\times 3}$ and $[\mathbf b_j]_{j=1,...,N} \in\mathbb R^{N\times 6}$<br><br>
+* $j$-indexed variables $\mathbf Y = [\mathbf y_j]_{j=1,...,N} \in\mathbb R^{N\times 3}$ and $\mathbf B = [\mathbf b_j]_{j=1,...,N} \in\mathbb R^{N\times 6}$<br><br>
 
 In R, we can define the corresponding KeOps formula as a **simple text string**:
 ```{r formula, eval=FALSE}
@@ -134,13 +134,13 @@ Then we just compile the corresponding operator and apply it to some data
 ```{r compile, eval=FALSE}
 # compilation
 op <- keops_kernel(formula, args)
-# data and parameter
+# data and parameter values
 X <- matrix(runif(1000*3), nrow=1000)   # matrix 1000 x 3
 Y <- matrix(runif(1500*3), nrow=1500)   # matrix 1500 x 3
 B <- matrix(runif(1500*6), nrow=1500)   # matrix 1500 x 6
 s <- 0.2
 # computation (order of the input arguments should be similar to `args`)
-res <- op(list(x, y, beta, s))
+res <- op(list(X, Y, B, s))
 ```
 
 ## Generic kernel function
