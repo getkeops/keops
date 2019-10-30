@@ -43,7 +43,7 @@ install.packages("rkeops")
 devtools::install_git("https://github.com/getkeops/keops", 
                       subdir = "rkeops", 
                       args="--recurse-submodules=\"keops/lib/sequences\"")
-# not possible to use `devtools::intall_github()` because of the submodule
+# not possible to use `devtools::intall_github()` because of the required submodule
 ```
 
 ## Get sources and install from local repository
@@ -70,8 +70,24 @@ devtools::install("rkeops")
 library(rkeops)
 ```
 
-## Input data
+## Input matrix
 
-Comment on storage order
+You can use two type of input matrices with RKeOps:<br>
 
+* ones whose rows (or columns) are indexed by $i=1,...,M$ such as $\mathbf X = [x_{ik}]_{M \times D}$<br>
 
+* others whose rows (or columns) are indexed by $j=1,...,N$ such as $\mathbf Y = [y_{ik'}]_{N \times D'}$<br><br>
+
+The dimensions over indexes $i$ or $j$ are called the **outer dimensions** (i.e. $M$ or $N$). The other dimensions (i.e. $D$ or $D'$) are called the **inner dimensions**. These terms refer to the contiguity of the data in memory:<br>
+
+* **Outer dimensions** $M$ and $N$ (over indexes $i$ and $j$ respectively) can be **very large**, even to large for GPU memory.<br>
+
+* **Inner dimensions** $D$ and $D'$ should be **small** enough to fit in GPU memory, in particular to ensure data colocality and avoid useless memory transfers. Corresponding columns (or rows) should be contiguous in memory (this point is handled for you in RKeOps).<br>
+
+> **_Note 1:_** The outer dimension can correspond to the rows or the columns of the input matrices (and vice-versa for the inner dimension). The optimal orientation of input matrices is discussed [here](rkeops_r_bindings_for_keops.html#input-matrix) .
+
+> **_Note 2:_** All matrices indexed by $i$ should have the same outer dimension over $i$ (i.e. $M$), same for all matrices indexed by $j$ (dimension $N$). Only the inner dimensions $D$ and $D'$ should be known for the compilation of your operators. The respective outer dimensions $M$ and $N$ are set at runtime (and can change from one run to another).<br>
+
+### Data storage orientation
+
+In R matrix are stored using a column-major
