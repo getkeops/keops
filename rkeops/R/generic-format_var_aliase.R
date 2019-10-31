@@ -3,9 +3,6 @@
 #' @description
 #' The function `format_var_aliases` formats KeOps formula arguments to be 
 #' understood by the C++ code.
-#' 
-#' 
-#' 
 #' @details
 #' Mathematical formula: `sum_i e^(lambda*||x_i - y_j||^2)` where `x_i`, `y_j` 
 #' are 3d vectors, and `lambda` is a scaler parameter.
@@ -45,6 +42,7 @@
 #' determined by the argument order.
 #' @param args vector of text string, formula input arguments (see Details).
 #' @return a list with different information about formula input arguments:
+#' \input{args}{vector of text string, input parameter `args`}
 #' \item{var_name}{vector of text string, corresponding name of formula 
 #' arguments}
 #' \item{var_type}{vector of text string, corresponding type of formula 
@@ -57,7 +55,9 @@
 format_var_aliases <- function(args) {
 	
 	if(length(args) == 0) {
-		out <- list(var_name = NULL, 
+		out <- list(
+		        args = NULL, 
+		        var_name = NULL, 
                 var_type = NULL, 
                 var_pos = NULL, 
                 var_dim = NULL,
@@ -124,7 +124,8 @@ format_var_aliases <- function(args) {
                                    ") ", var_name), ""),
                           collapse = ";")
     ## output
-    out <- list(var_name = unname(var_name), 
+    out <- list(args = args, 
+                var_name = unname(var_name), 
                 var_type = unname(var_type), 
                 var_pos = unname(var_pos), 
                 var_dim = unname(var_dim),
