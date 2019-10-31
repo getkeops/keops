@@ -4,10 +4,10 @@
 #' new operators based on kernel operation and matrix reduction discribed as a 
 #' mathematic formula.
 #' @details
-#' The functioning of the `keops_kernel` is detailled in the 
-#' vignettes, especially how to write formulae, specified input arguments, how 
-#' to format data to apply the created operators, etc. 
-#' Run `browseVignettes("rkeops")` to access the vignettes.
+#' The use of the function `keops_kernel` is detailled in the vignettes, 
+#' especially how to write formulae, specified input arguments, how to format 
+#' data to apply the created operators, etc. Run `browseVignettes("rkeops")` 
+#' to access the vignettes.
 #' 
 #' KeOps operators are defined thanks to formula, i.e. a text string describing 
 #' the mathematical operations that you want to apply to your data, and a 
