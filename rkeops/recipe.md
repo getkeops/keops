@@ -84,6 +84,14 @@ devtools::release()
 
 ## Additional notes
 
+### Vignette creation
+
+```R
+setwd("rkeops")
+usethis::use_vignette(name = "introduction_to_rkeops", 
+                      title = "Introduction to RKeOps")
+```
+
 ### Exemple of compilation of Cpp code exported to R
 
 Focus on required include and lib
