@@ -114,16 +114,20 @@ keops_kernel <- function(formula, args) {
     
     
     # return function calling the corresponding compile operator
-    function(input) {
+    function(input=NULL) {
         ## !! important !!
-        # input should be a list, because list are references and since 
-        # argument passing is done by copy in R, it is better to copy a list of 
-        # reference than the actual input data, especially for big matrices.
+        # input: should be a list, because list are references and since 
+        #   argument passing is done by copy in R, it is better to copy a list 
+        #   of reference than the actual input data, especially for big 
+        #   matrices.
+        # if NULL or missing, env (context) is returned
         
         ## storing some context
         env <- list(formula=formula,
                     args=args,
                     var_aliases=var_aliases)
+        if(missing(input) | is.null(input))
+            return(env)
         
         ## reorder input if names are supplied (if not list order is used)
         # check that all input args are named
