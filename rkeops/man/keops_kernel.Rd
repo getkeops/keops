@@ -13,7 +13,7 @@ keops_kernel(formula, args)
 }
 \value{
 a function that can be used to compute the value of the formula
-on actual data. This function takes at input a list of data corresponding
+on actual data. This function takes as input a list of data corresponding
 to the formula arguments and return the computed values (generally a
 vector or a matrix depending on the reduction).
 }
@@ -23,12 +23,29 @@ new operators based on kernel operation and matrix reduction discribed as a
 mathematic formula.
 }
 \details{
-KeOps operators are defined by using
+The functioning of the \code{keops_kernel} is detailled in the
+vignettes, especially how to write formulae, specified input arguments, how
+to format data to apply the created operators, etc.
+Run \code{browseVignettes("rkeops")} to access the vignettes.
 
-FIXME
-See \url{https://www.kernel-operations.io/keops/api/math-operations.html}
+KeOps operators are defined thanks to formula, i.e. a text string describing
+the mathematical operations that you want to apply to your data, and a
+list defining the input arguments of your formula.
 
-Important:
+The function \code{keops_kernel} compiles and imports a new operator that
+implements the formala given in input, it returns a function that can be
+used to compute the result of the formula on actual data.
+
+The returned function expects a list of arguments whose order corresponds to
+the order given in \code{args} to \code{keops_kernel}. We use a list to avoid useless
+copies of data.
+
+\strong{Note:} Data are input as a list, because list are references and since
+argument passing is done by copy in R, it is better to copy a list of
+reference than the actual input data, especially for big matrices.
+
+You should be careful with the input dimension of your data, to correspond
+to the input dimension specified in \code{args}.
 }
 \examples{
 \dontrun{
@@ -40,39 +57,29 @@ F <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
 ## data
 nx <- 10
 ny <- 15
-
-# case 1
-# x_i = rows of the matrix x (not contiguous in memory)
-x <- matrix(runif(nx*3), nrow=nx, ncol=3)
-# y _j = rows of the matrix y (not contiguous in memory)
-y <- matrix(runif(ny*3), nrow=ny, ncol=3)
-# compute the result
-res <- F(list(x,y))
-
-# case 2
-# x_i = columns of the matrix x (contiguous in memory)
-x <- matrix(runif(nx*3), nrow=3, ncol=nx)
-# y _j = rows of the matrix y (contiguous in memory)
-y <- matrix(runif(ny*3), nrow=3, ncol=ny)
-# compute the result
-res <- F(list(x,y))
+# x_i = rows of the matrix X
+X <- matrix(runif(nx*3), nrow=nx, ncol=3)
+# y _j = rows of the matrix Y
+Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+## compute the result
+res <- F(list(X,Y))
 
 ## Example 2
 # Define a function that computes the the convolution with a Gauss kernel 
 # i.e. the sum over j of `e^(lambda*||x_i - y_j||^2) * beta_j` where `x_i`, 
 # `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar
-F = keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta,0)",
+F = keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
                  args = c("x=Vi(3)", "y=Vj(3)", 
                           "beta=Vj(3)", "lambda=Pm(1)"))
 
 # data
 nx <- 10
 ny <- 15
-# x_i = rows of the matrix x (not contiguous in memory)
-x <- matrix(runif(nx*3), nrow=nx, ncol=3)
-# y _j = rows of the matrix y (not contiguous in memory)
-y <- matrix(runif(ny*3), nrow=ny, ncol=3)
-# beta_j = rows of the matrix y (not contiguous in memory)
+# x_i = rows of the matrix X
+X <- matrix(runif(nx*3), nrow=nx, ncol=3)
+# y _j = rows of the matrix Y
+Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+# beta_j = rows of the matrix beta
 beta <- matrix(runif(ny*3), nrow=ny, ncol=3)
 # !! important !! y and beta should have the same dimension
 
@@ -80,7 +87,7 @@ beta <- matrix(runif(ny*3), nrow=ny, ncol=3)
 lambda <- 0.25
 
 # compute the result
-res <- F(list(x, y, beta, lambda))
+res <- F(list(X, Y, beta, lambda))
 }
 }
 \author{
