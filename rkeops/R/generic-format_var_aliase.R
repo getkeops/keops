@@ -40,6 +40,7 @@
 #' 
 #' **Note:** we recommand to use the `Vi(dim)` notation and let the position be 
 #' determined by the argument order.
+#' @author Ghislain Durif
 #' @param args vector of text string, formula input arguments (see Details).
 #' @return a list with different information about formula input arguments:
 #' \input{args}{vector of text string, input parameter `args`}
@@ -133,3 +134,85 @@ format_var_aliases <- function(args) {
     return(out)
 }
 
+#' Parse formula for extra arguments not encoded in argument aliases
+#' @keywords internal
+#' @description
+#' FIXME
+#' @details
+#' Parse the formula for string such as
+#' * `"YY(<pos>,<dim>)"` where `YY` can be a formula input argument type 
+#' (`Vi`, `Vj` or `Pm`), `<pos>` is the position of the corresponding input 
+#' argument, and `<dim>` its inner dimension.
+#' * `"Var(<pos>,<dim>,<type>)` where `<pos>` and `<dim>` are the position and 
+#' inner dimension (c.f. previous point) and `<type>` is an integer encoding 
+#' the formula input argument type with the following relation:
+#' 
+#' |---------|-------------------------|-----------|
+#' | keyword | meaning                 | type      |
+#' |---------|-------------------------|-----------|
+#' | `Vi`    | variable indexed by `i` | `0`       |
+#' | `Vj`    | variable indexed by `j` | `1`       |
+#' | `Pm`    | parameter               | `2`       |
+#' |---------|-------------------------|-----------|
+#' 
+#' @author Ghislain Durif
+#' @param formula text string, an operator formula (see Details).
+#' @param args vector of text string, formula arguments (see Details).
+#' @return FIXME
+#' @importFrom stringr str_count str_detect str_extract str_split
+#' @export
+parse_extra_args <- function(formula, args) {
+    
+    ## empty out
+    out <- list(
+        var_type = NULL, 
+        var_pos = NULL, 
+        var_dim = NULL)
+    
+    ## parse the formula
+    pattern1 = "(Vi|Vj|Pm)\\(([0-9]+),([0-9]+)\\)"
+    pattern2 = "Var\\(([0-9]+),([0-9]+),([0-9]+)\\)"
+    parse1 <- str_match_all(formula, pattern1)[[1]]
+    parse2 <- str_match_all(formula, pattern2)[[1]]
+    
+    ## nothing to be found
+    if(length(parse1) == 0 & length(parse2) == 0) {
+        return(out)
+    }
+    
+    ## candidate var_type
+    var_types <- c("Vi", "Vj", "Pm")
+    
+    ## var aliases
+    var_aliases <- format_var_aliases(args)
+    
+    ## format results of parsing
+    if(length(parse1) > 0) {
+        extra_args1 <- list(
+            var_type = parse1[,2], 
+            var_pos = as.integer(parse1[,3]), 
+            var_dim = as.integer(parse1[,4]))
+        
+        if(!all(extra_args1 %in% var_aliases$var_pos))
+            out <- as.list(rbind(as.data.frame(out, 
+                                               stringsAsFactors = FALSE), 
+                                 as.data.frame(extra_args1, 
+                                               stringsAsFactors = FALSE)))
+    }
+    
+    if(length(parse2) > 0) {
+        extra_args2 <- list(
+            var_type = sapply(as.integer(parse2[,4])+1, function(ind) var_types[[ind]]), 
+            var_pos = as.integer(parse2[,2]), 
+            var_dim = as.integer(parse2[,3]))
+        
+        if(!all(extra_args2 %in% var_aliases$var_pos))
+            out <- as.list(rbind(as.data.frame(out, 
+                                               stringsAsFactors = FALSE), 
+                                 as.data.frame(extra_args2, 
+                                               stringsAsFactors = FALSE)))
+    }
+    
+    ## out
+    return(out)
+}
