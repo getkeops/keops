@@ -18,50 +18,6 @@ __device__ static constexpr T static_max_device(T a, T b) {
     return a < b ? b : a;
 }
 
-template <typename TYPE, int DIMIN, int DIMOUT, class FUN>
-__global__ void reduce2D(TYPE *in, TYPE *out, TYPE ** px, int sizeY,int nx) {
-    /* Function used as a final reduction pass in the 2D scheme,
-     * once the block reductions have been made.
-     * Takes as input:
-     * - in,  a  sizeY * (nx * DIMIN ) array
-     * - out, an          nx * DIMOUT   array
-     * also px array of pointers to input device data is needed, used for some reductions
-     *
-     * Computes, in parallel, the "columnwise"-reduction (which correspond to lines of blocks)
-     * of *in and stores the result in out.
-     */
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
-
-    /* As shown below, the code that is used to store the block-wise sum
-      "tmp" in parallel is:
-        if(i<nx)
-            for(int k=0; k<DIMX1; k++)
-                (*px)[blockIdx.y*DIMX1*nx+i*DIMX1+k] = tmp[k];
-    */
-
-    /* // This code should be a bit more efficient (more parallel) in the case
-       // of a simple "fully parallel" reduction op such as "sum", "max" or "min"
-    TYPE res = 0;
-    if(tid < nx*DIMVECT) {
-        for (int i = 0; i < sizeY; i++)
-            res += in[tid + i*nx*DIMVECT]; // We use "+=" as a reduction op. But it could be anything, really!
-        // res = in[tid+ nx* DIMVECT];
-        out[tid] = res;
-    }
-    */
-
-    // However, for now, we use a "vectorized" reduction op.,
-    // which can also handle non-trivial reductions such as "LogSumExp"
-    __TYPEACC__ acc[DIMIN];
-    typename FUN::template InitializeReduction<__TYPEACC__>()(acc); // acc = 0
-    if(tid < nx) {
-        for (int y = 0; y < sizeY; y++)
-            typename FUN::template ReducePair<__TYPEACC__,TYPE>()(acc, in + (tid+y*nx)*DIMIN);     // acc += in[(tid+y*nx) *DIMVECT : +DIMVECT];
-        typename FUN::template FinalizeOutput<__TYPEACC__,TYPE>()(acc, out+tid*DIMOUT, px, tid);
-    }
-
-}
-
 // thread kernel: computation of x1i = sum_j k(x2i,x3i,...,y1j,y2j,...) for index i given by thread id.
 // N.B.: This routine by itself is generic, and does not specifically refer to the "sum" operation.
 //       It can be used for any Map-Reduce operation, provided that "fun" is well-understood.
@@ -112,6 +68,8 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     TYPE tmp[DIM_KAHAN];
 #endif
     if(i<nx) { // we will compute x1i only if i is in the range
+        if (blockIdx.y==0)
+            typename FUN::template InitializeReduction<TYPE>()(px[0] + i * DIMRED); 
 #if SUM_SCHEME == BLOCK_SUM         
         typename FUN::template InitializeReduction<TYPE>()(acc); // acc = 0
 #else
@@ -170,9 +128,59 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     // We accumulate it in the output array (*px) = px[0], which has in fact gridSize.y * nx
     // lines of size DIMRED. The final reduction, which "sums over the block lines",
     // shall be done in a later step.
-    if(i<nx)
-        for(int k=0; k<DIMRED; k++)
-            (*px)[blockIdx.y*DIMRED*nx+i*DIMRED+k] = acc[k];
+    if(i<nx) {
+
+extern __shared__ int test;
+if (i==0)
+    test = 1;
+__syncthreads();
+while(test)
+{
+if (i==0)
+{
+  TYPE* out = px[0];
+  int cnt = 0;
+  while(1)
+  {
+    cnt++;
+    TYPE tmp1 = *out;
+    if (tmp1 == 0)
+      *out = blockIdx.y+1;
+    TYPE tmp2 = *out;
+    printf("here in block %d, cnt=%d, *out before = %f, *out after = %f\n", blockIdx.y, cnt, tmp1, tmp2);
+    if (tmp2 == blockIdx.y+1)
+      break;
+  }
+}
+__syncthreads();
+TYPE outi[DIMRED];
+if (i)
+{
+    for (int k=0; k<DIMRED; k++)
+        outi[k] = (px[0] + i * DIMRED)[k];
+    typename FUN::template ReducePairShort<TYPE,__TYPEACC__>()(outi, acc, 0);
+}
+__syncthreads();
+if (i==0)
+if (*px[0]==blockIdx.y+1 )
+    test = 0;
+else
+    printf("block %d : restart\n",blockIdx.y);
+__syncthreads();
+if (i && test==0)
+    for (int k=0; k<DIMRED; k++)
+        (px[0] + i * DIMRED)[k] = outi[k];
+__syncthreads();
+if(i==0 && test==0)
+if(*px[0]==blockIdx.y+1)
+    *px[0] = 0;
+else
+    printf("block %d : error!!!!\n",blockIdx.y);
+__syncthreads();
+}
+
+}
+
 }
 ///////////////////////////////////////////////////
 
@@ -189,7 +197,6 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     const int DIMP = DIMSP::SUM;
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
-    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
@@ -208,22 +215,15 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
     gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
 
-    // Reduce  : grid and block are both 1d
-    dim3 blockSize2;
-    blockSize2.x = CUDA_BLOCK_SIZE; // number of threads in each block
-    dim3 gridSize2;
-    gridSize2.x =  (nx*DIMRED) / blockSize2.x + ((nx*DIMRED)%blockSize2.x==0 ? 0 : 1);
-
-    // Data on the device. We need an "inflated" x1B, which contains gridSize.y "copies" of x_d
-    // that will be reduced in the final pass.
-    TYPE *x1B, *x_d, *y_d, *param_d;
+    // Data on the device. 
+    TYPE *x_d, *y_d, *param_d;
 
     // device arrays of pointers to device data
     TYPE **px_d, **py_d, **pp_d;
 
     // single cudaMalloc
     void **p_data;
-    CudaSafeCall(cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(DIMP+nx*(DIMX-DIMFOUT+DIMOUT)+ny*DIMY+nx*DIMRED*gridSize.y)));
+    CudaSafeCall(cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(DIMP+nx*(DIMX-DIMFOUT+DIMOUT)+ny*DIMY)));
 
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;
@@ -238,8 +238,6 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
     x_d = p_data_b;
     p_data_b += nx*(DIMX-DIMFOUT+DIMOUT);
     y_d = p_data_b;
-    p_data_b += ny*DIMY;
-    x1B = p_data_b;
 
     // host arrays of pointers to device data
     TYPE *phx_d[SIZEI];
@@ -282,8 +280,6 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
       }
     }
 
-    phx_d[0] = x1B; // we write the result before reduction in the "inflated" vector
-
     // copy arrays of pointers
     CudaSafeCall(cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice));
     CudaSafeCall(cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice));
@@ -291,14 +287,6 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h)
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
-
-    // block until the device has completed
-    CudaSafeCall(cudaDeviceSynchronize());
-    CudaCheckError();
-
-    // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
-    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMRED ) to (nx, DIMOUT)
-    reduce2D<TYPE,DIMRED,DIMOUT,FUN><<<gridSize2, blockSize2>>>(x1B, x_d, px_d, gridSize.y,nx);
 
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
@@ -411,15 +399,9 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
     const int DIMY = DIMSY::SUM;
-    const int DIMOUT = FUN::DIM; // dimension of output variable
-    const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
-
-    // Data on the device. We need an "inflated" x1B, which contains gridSize.y "copies" of x_d
-    // that will be reduced in the final pass.
-    TYPE *x1B, *out;
 
     // device arrays of pointers to device data
     TYPE **px_d, **py_d, **pp_d;
@@ -433,21 +415,14 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
     dim3 blockSize;
     // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
     blockSize.x = ::std::min(CUDA_BLOCK_SIZE,::std::min(maxThreadsPerBlock, (int) (sharedMemPerBlock / ::std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
-
     dim3 gridSize;
     gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
     gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
 
-    // Reduce : grid and block are both 1d
-    dim3 blockSize2;
-    blockSize2.x = blockSize.x; // number of threads in each block
-    dim3 gridSize2;
-    gridSize2.x =  (nx*DIMRED) / blockSize2.x + ((nx*DIMRED)%blockSize2.x==0 ? 0 : 1);
-
     // single cudaMalloc
     void **p_data;
 
-    CudaSafeCall(cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)+sizeof(TYPE)*(nx*DIMRED*gridSize.y)));
+    CudaSafeCall(cudaMalloc((void**)&p_data, sizeof(TYPE*)*(SIZEI+SIZEJ+SIZEP)));
 
     TYPE **p_data_a = (TYPE**)p_data;
     px_d = p_data_a;
@@ -455,12 +430,6 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
     py_d = p_data_a;
     p_data_a += SIZEJ;
     pp_d = p_data_a;
-    p_data_a += SIZEP;
-    x1B = (TYPE*)p_data_a;
-
-    out = phx_d[0]; // save the output location
-
-    phx_d[0] = x1B;
 
     CudaSafeCall(cudaMemcpy(px_d, phx_d, SIZEI*sizeof(TYPE*), cudaMemcpyHostToDevice));
     CudaSafeCall(cudaMemcpy(py_d, phy_d, SIZEJ*sizeof(TYPE*), cudaMemcpyHostToDevice));
@@ -468,14 +437,6 @@ static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php
 
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,px_d,py_d,pp_d);
-
-    // block until the device has completed
-    CudaSafeCall(cudaDeviceSynchronize());
-    CudaCheckError();
-
-    // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
-    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMRED ) to (nx, DIMOUT)
-    reduce2D<TYPE,DIMRED,DIMOUT,FUN><<<gridSize2, blockSize2>>>(x1B, out, px_d, gridSize.y,nx);
 
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
