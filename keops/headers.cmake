@@ -4,7 +4,7 @@
 
 set(CMAKE_CXX_STANDARD 14)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ferror-limit=2")
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas -fmax-errors=2")
@@ -45,7 +45,7 @@ add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 
 # - Declare the templates formula if not provided by the user
 if(NOT DEFINED USENEWSYNTAX)
-  Set(USENEWSYNTAX TRUE)
+  Set(USENEWSYNTAX 1)
 endif()
 
 if(NOT USENEWSYNTAX)
@@ -65,5 +65,30 @@ else()
 
 endif()
 
+# - recover the declared positions of the variables in a Formula call
+string(REGEX MATCHALL "(Pm|V(ar|[ij]))\\(([0-9]+)" ARGS_LIST ${FORMULA_OBJ} ${VAR_ALIASES})
+string(REGEX REPLACE "(Pm|V(ar|[ij]))\\(" ";" ARGS_POS_LIST ${ARGS_LIST})
+
+# max(var [value1 value2...]) sets var to the maximum of a list of
+# integers. If list is empty, sets var to 0.
+function(max var)
+  set(first YES)
+  set(choice NO)
+  foreach(item ${ARGN})
+    if(first)
+      set(choice ${item})
+      set(first 0)
+    elseif(choice LESS ${item})
+      set(choice ${item})
+    endif()
+  endforeach(item)
+  set(${var} ${choice} PARENT_SCOPE)
+endfunction(max)
+# from : https://rosettacode.org/wiki/Greatest_element_of_a_list#CMake
+
+max(MAX_POS_ARGS ${ARGS_POS_LIST})
+
+message(STATUS "Compiled formula is ${FORMULA_OBJ}; ${VAR_ALIASES} where the number of args is ${MAX_POS_ARGS} ")
 # We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
 configure_file(${CMAKE_CURRENT_LIST_DIR}/formula.h.in ${shared_obj_name}.h @ONLY)
+
