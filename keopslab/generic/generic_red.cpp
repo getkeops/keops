@@ -159,7 +159,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 //////////////////////////////////////////////////////////////
 
   // set the output pointer to the output result(vector)
-  plhs[0] = keops_binders::create_result_array< mxArray * >(nx, ny);
+  plhs[0] = keops_binders::create_result_array< mxArray* >(nx, ny);
 
   //create a C pointer to a copy of the output result(vector)
   double *gamma = mxGetPr(plhs[0]);

@@ -27,7 +27,8 @@ const int NARGSI = VARSI::SIZE; // number of I variables used in formula F
 const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
 const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
 
-const int NARGS = F::NMINARGS;
+const int NMINARGS = F::NMINARGS;
+
 const int DIMOUT = F::DIM;
 
 const int TAGIJ = F::tagI;
