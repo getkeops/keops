@@ -26,13 +26,13 @@ struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
     *out = 0;
-#if USE_HALF
 #pragma unroll
     for(int k=0; k<DIMIN; k++)
+#if USE_HALF && GPU_ON
+      *out = __hfma(*out, outS[k], __hmul(outA[k], outA[k]));
+#elif USE_HALF
       *out = *out + outS[k]*outA[k]*outA[k];
 #else
-#pragma unroll
-    for(int k=0; k<DIMIN; k++)
       *out += outS[k]*outA[k]*outA[k];
 #endif
   }

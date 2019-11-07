@@ -26,7 +26,9 @@ struct Log : UnaryOp<Log, F> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
-#if USE_DOUBLE
+#if USE_HALF && GPU_ON
+      out[k] = hlog(outF[k]);
+#elif USE_DOUBLE
       out[k] = log(outF[k]);
 #else
       out[k] = logf(outF[k]);

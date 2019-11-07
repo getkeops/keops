@@ -10,6 +10,17 @@ namespace pykeops {
 //                             Utils
 /////////////////////////////////////////////////////////////////////////////////
 
+#if USE_DOUBLE
+#define AT_kTYPE at::kDouble
+#define AT_TYPE double
+#elif USE_HALF
+#define AT_kTYPE at::kHalf
+#define AT_TYPE at::Half
+#else
+#define AT_kTYPE at::kFloat
+#define AT_TYPE float
+#endif
+
 template <>
 int get_ndim(at::Tensor obj_ptri) {
     return obj_ptri.dim();
@@ -22,7 +33,7 @@ int get_size(at::Tensor obj_ptri, int l) {
 
 template <>
 __TYPE__* get_data(at::Tensor obj_ptri) {
-    return obj_ptri.data_ptr<__TYPE__>();
+    return (__TYPE__*)obj_ptri.data_ptr<AT_TYPE>();
 }
 
 template <>
@@ -40,14 +51,6 @@ bool is_contiguous(at::Tensor obj_ptri) {
 //                    Call Cuda functions
 /////////////////////////////////////////////////////////////////////////////////
 
-#if USE_DOUBLE
-#define AT_TYPE at::kDouble
-#elif USE_HALF
-#define AT_TYPE at::kHalf
-#else
-#define AT_TYPE at::kFloat
-#endif
-
 template <>
 at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
                         int nx, int ny, int nbatchdims, int *shapes, int *shape_out,
@@ -63,7 +66,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
 
     if(tagHostDevice == 0) { // Data is located on Host
 
-        auto result_array = torch::empty(shape_out_array, at::device(at::kCPU).dtype(AT_TYPE).requires_grad(true));
+        auto result_array = torch::empty(shape_out_array, at::device(at::kCPU).dtype(AT_kTYPE).requires_grad(true));
 
         if (tagCpuGpu == 0) { // backend == "CPU"
             if (tagRanges == 0) { // Full M-by-N computation
@@ -90,7 +93,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
     } else if(tagHostDevice == 1) { // Data is on the device
 #if USE_CUDA
         //assert(Device_Id <std::numeric_limits<c10::DeviceIndex>::max());  // check that int will fit in a c10::DeviceIndex type
-        auto result_array = torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_TYPE).requires_grad(true));
+        auto result_array = torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_kTYPE).requires_grad(true));
         if (tagRanges == 0) { // Full M-by-N computation
             if(tag1D2D == 0) // "GPU_1D"
                 GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);

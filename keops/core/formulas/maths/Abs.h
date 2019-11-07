@@ -30,6 +30,7 @@ struct Abs : UnaryOp<Abs, F> {
 #if USE_DOUBLE
         out[k] = fabs(outF[k]);
 #elif USE_HALF
+	// N.B. I don't know how if there is a dedicated absolute value operation for half precision...
         out[k] = abs(outF[k]);
 #else
         out[k] = fabsf(outF[k]);

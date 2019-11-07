@@ -25,7 +25,11 @@ struct Minus : UnaryOp<Minus, F> {
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
+#if USE_HALF && GPU_ON
+      out[k] = __hneg(outF[k]);
+#else
       out[k] = -outF[k];
+#endif
   }
 
   template<class V, class GRADIN>

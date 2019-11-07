@@ -32,7 +32,11 @@ struct Square : UnaryOp<Square, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
       __TYPE__ temp = outF[k];
+#if USE_HALF && GPU_ON
+      out[k] = __hmul(temp,temp);
+#else
       out[k] = temp * temp;
+#endif
     }
   }
 

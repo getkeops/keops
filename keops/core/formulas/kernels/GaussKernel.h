@@ -89,13 +89,17 @@ struct GaussKernel_specific {
     __TYPE__ temp;
     for(int k=0; k<DIMPOINT; k++) {
       temp =  yj[k]-xi[k];
-#if USE_HALF
+#if USE_HALF && GPU_ON
+      r2 = __hfma(r2, temp, temp);
+#elif USE_HALF
       r2 = r2 + temp*temp;
 #else
       r2 += temp*temp;
 #endif
     }
-#if USE_HALF && ! GPU_ON
+#if USE_HALF && GPU_ON
+    __TYPE__ s = hexp(__hneg(__hmul(r2,params[0])));
+#elif USE_HALF
     __TYPE__ s = exp((float)(-r2*params[0]));
 #else
     __TYPE__ s = exp(-r2*params[0]);
@@ -201,28 +205,33 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
     __TYPE__ xmy[DIMPOINT];
 #pragma unroll
     for(int k=0; k<DIMPOINT; k++) {                 // Compute the L2 squared distance r2 = | x_i-y_j |_2^2
+#if USE_HALF && GPU_ON
+      xmy[k] =  __hsub(xi[k], yj[k]);
+      r2 = __hfma(r2, xmy[k], xmy[k]);
+#else
       xmy[k] =  xi[k]-yj[k];
       r2 += xmy[k]*xmy[k];
+#endif
     }
-#if USE_HALF && ! GPU_ON
 #pragma unroll
     for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
+#if USE_HALF && GPU_ON
+      sga = hfma(sga, betaj[k], etai[k]);
+    __TYPE__ s = __hneg(__hmul(__hmul(2.0,sga), hexp(__hneg(__hmul(r2,params[0])))));  // Don't forget the 2 !
+#elif USE_HALF
       sga = sga + betaj[k]*etai[k];
     __TYPE__ s = - 2.0 * (float)sga * exp((float)(-r2*params[0]));  // Don't forget the 2 !
-#elif USE_HALF
-#pragma unroll
-    for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
-      sga = sga + betaj[k]*etai[k];
-    __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
 #else
-#pragma unroll
-    for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
       sga += betaj[k]*etai[k];
     __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
 #endif
 #pragma unroll
     for(int k=0; k<DIMPOINT; k++)                   // Increment the output vector gammai - which is a POINT
+#if USE_HALF && GPU_ON
+      gammai[k] = __hmul(s, xmy[k]);
+#else
       gammai[k] = s * xmy[k];
+#endif
   }
 
   // direct implementation stops here, so we link back to the usual autodiff module

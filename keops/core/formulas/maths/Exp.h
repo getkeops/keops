@@ -28,6 +28,8 @@ struct Exp : UnaryOp<Exp, F> {
     for (int k = 0; k < DIM; k++) {
 #if USE_DOUBLE
       out[k] = exp(outF[k]);
+#elif USE_HALF && GPU_ON
+      out[k] = hexp(outF[k]);
 #else
       out[k] = expf(outF[k]);
 #endif

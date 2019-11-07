@@ -36,9 +36,15 @@ struct SymTwoOuterProduct : BinaryOp<SymTwoOuterProduct,X,Y> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX, __TYPE__ *outY) {
+#pragma unroll
     for(int k=0; k < DIMIN; k++) {
+#pragma unroll
       for(int l=0; l < DIMIN; l++)
+#if USE_HALF && GPU_ON
+        out[ k*DIMIN + l ] = __hfma(__hmul(outX[k], outY[l]), outX[l], outY[k]) ;
+#else
         out[ k*DIMIN + l ] = outX[k] * outY[l] + outX[l] * outY[k] ;
+#endif
     }
   }
 
@@ -63,16 +69,18 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
+#pragma unroll
     for(int k=0; k < DIMIN; k++) {
       out[k] = 0;
-#if USE_HALF
 #pragma unroll
       for(int l=0; l < DIMIN; l++)
+#if USE_HALF && GPU_ON
+        out[ k ] = __hfma(out[k], outA[ k*DIMIN + l ], outX[ l ]);
+      out[k] = __hmul(out[k], (half)2);
+#elif USE_HALF
         out[ k ] = out[k] + outA[ k*DIMIN + l ] * outX[ l ];
       out[k] = out[k] * (half)2;
 #else
-#pragma unroll
-      for(int l=0; l < DIMIN; l++)
         out[ k ] += outA[ k*DIMIN + l ] * outX[ l ];
       out[k] *= 2;
 #endif
@@ -99,9 +107,15 @@ struct SymOuterProduct : UnaryOp<SymOuterProduct,X> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX) {
+#pragma unroll
     for(int k=0; k < DIMIN; k++) {
+#pragma unroll
       for(int l=0; l < DIMIN; l++)
+#if USE_HALF && GPU_ON
+        out[ k*DIMIN + l ] = __hmul(outX[ k ], outX[ l ]);
+#else
         out[ k*DIMIN + l ] = outX[ k ] * outX[ l ];
+#endif
     }
   }
 
@@ -130,13 +144,13 @@ struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
     *out = 0;
 #pragma unroll
     for(int k=0; k < DIMIN; k++) {
-#if USE_HALF
 #pragma unroll
       for(int l=0; l < DIMIN; l++)
+#if USE_HALF && GPU_ON
+        *out = __hfma(*out, outA[ k*DIMIN + l ], outX[k]*outX[l]);
+#elif USE_HALF
         *out = *out + outA[ k*DIMIN + l ] * outX[k]*outX[l];
 #else
-#pragma unroll
-      for(int l=0; l < DIMIN; l++)
         *out += outA[ k*DIMIN + l ] * outX[k]*outX[l];
 #endif
     }

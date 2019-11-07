@@ -29,7 +29,9 @@ struct Sin : UnaryOp<Sin, F> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
-#if USE_DOUBLE
+#if USE_HALF && GPU_ON
+      out[k] = hsin(outF[k]);
+#elif USE_DOUBLE
       out[k] = sin(outF[k]);
 #else
       out[k] = sinf(outF[k]);
