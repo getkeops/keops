@@ -102,9 +102,7 @@ F = @Eval;
         if nargin==0
             out = feval(Fname);
         else
-            nx = size(varargin{indij(1)},2);
-            ny = size(varargin{indij(2)},2);
-            out = feval(Fname, nx, ny, options.tagCpuGpu, options.tag1D2D, options.device_id,varargin{:});
+            out = feval(Fname, options.tagCpuGpu, options.tag1D2D, options.device_id, varargin{:});
             if options.sumoutput
                 out = sum(out,2); % '2' because we sum with respect to index, not dimension !
             end

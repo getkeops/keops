@@ -66,7 +66,8 @@ else()
 endif()
 
 # - recover the declared positions of the variables in a Formula call
-string(REGEX MATCHALL "(Pm|V(ar|[ij]))\\(([0-9]+)" ARGS_LIST ${FORMULA_OBJ} ${VAR_ALIASES})
+string(REGEX REPLACE " " "" FORMULA_NOSPACE ${FORMULA_OBJ} ${VAR_ALIASES})
+string(REGEX MATCHALL "(Pm|V(ar|[ij]))\\(([0-9]+)" ARGS_LIST ${FORMULA_NOSPACE})
 string(REGEX REPLACE "(Pm|V(ar|[ij]))\\(" ";" ARGS_POS_LIST ${ARGS_LIST})
 
 # max(var [value1 value2...]) sets var to the maximum of a list of
@@ -86,9 +87,52 @@ function(max var)
 endfunction(max)
 # from : https://rosettacode.org/wiki/Greatest_element_of_a_list#CMake
 
-max(MAX_POS_ARGS ${ARGS_POS_LIST})
+max(TMP ${ARGS_POS_LIST})
+MATH(EXPR MAX_POS_ARGS "${TMP} + 1")
 
-message(STATUS "Compiled formula is ${FORMULA_OBJ}; ${VAR_ALIASES} where the number of args is ${MAX_POS_ARGS} ")
+string(REGEX MATCHALL "GradFromPos\\(" GFP_LIST ${FORMULA_NOSPACE})
+if(GFP_LIST)
+  message(STATUS "ddfdf ${GFP_LIST}")
+  string(REGEX REPLACE "GradFromPos\\(" "a;" GFP_LIST_2 ${GFP_LIST})
+  message(STATUS "GFP_LIST_2 ${GFP_LIST_2}")
+  list(LENGTH GFP_LIST_2 MM)
+  message(STATUS "length GFP_LIST_2 ${MM}")
+  set(TMP ${MAX_POS_ARGS})
+  MATH(EXPR MAX_POS_ARGS "2 * (${MM} - 1) + ${TMP}")
+endif()
+
+
+# - recover the declared positions of the variables in a Formula call
+string(REGEX MATCH "(Pm|V(ar|[ij]))\\(0,[0-9]*,*([0-9]+)" ARG_FIRST ${FORMULA_NOSPACE})
+
+string(REGEX MATCH "Var" TYPE_ARG_PARSED ${ARG_FIRST})
+if(TYPE_ARG_PARSED)
+  string(REGEX MATCH "Var\\(0,[0-9]*,([0-9]+)" TYPE_FIRST_ARG ${FORMULA_NOSPACE})
+  set(TYPE_FIRST_ARG ${CMAKE_MATCH_1})
+endif()
+
+if(NOT TYPE_FIRST_ARG)
+string(REGEX MATCH "Vi" TYPE_ARG_PARSED ${ARG_FIRST})
+if(TYPE_ARG_PARSED)
+  set(TYPE_FIRST_ARG 0)
+endif()
+endif()
+
+if(NOT TYPE_FIRST_ARG)
+string(REGEX MATCH "Vj" TYPE_ARG_PARSED ${ARG_FIRST})
+if(TYPE_ARG_PARSED)
+  set(TYPE_FIRST_ARG 1)
+endif()
+endif()
+
+if(NOT TYPE_FIRST_ARG)
+string(REGEX MATCH "Pm" TYPE_ARG_PARSED ${ARG_FIRST})
+if(TYPE_ARG_PARSED)
+  set(TYPE_FIRST_ARG 2)
+endif()
+endif()
+
+message(STATUS "Compiled formula is ${FORMULA_OBJ}; ${VAR_ALIASES} where the number of args is ${MAX_POS_ARGS} and the type of first arg is ${TYPE_FIRST_ARG}")
 # We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
 configure_file(${CMAKE_CURRENT_LIST_DIR}/formula.h.in ${shared_obj_name}.h @ONLY)
 
