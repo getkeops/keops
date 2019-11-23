@@ -204,17 +204,8 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       shapes[b] = 1;  // 1 = default option
     }
     
-    if (TYPE_FIRST_ARG == 0) {
-      shapes[nbatchdims] = get_size(*obj_ptr[0], MN_pos);
-      shapes[nbatchdims + 1] = -1;
-    } else if (TYPE_FIRST_ARG == 1){
-      shapes[nbatchdims] = -1;
-      shapes[nbatchdims + 1] = get_size(*obj_ptr[0], MN_pos);       // N is still unknown
-    } else {
-      shapes[nbatchdims] = -1;
-      shapes[nbatchdims + 1] = -1;
-    }
-    
+    shapes[nbatchdims] = get_size(*obj_ptr[POS_FIRST_ARGI], MN_pos);
+    shapes[nbatchdims + 1] = get_size(*obj_ptr[POS_FIRST_ARGJ], MN_pos);       // N is still unknown
     shapes[nbatchdims + 2] = DIMOUT;   // Top right corner: dimension of the output
 
   }
@@ -268,10 +259,6 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       }
 
       shapes[off_i + nbatchdims] = get_size(*obj_ptr[i], MN_pos);  // = "M"
-      if (shapes[nbatchdims] == -1) {  // This is the first "i" variable that we encounter
-        shapes[nbatchdims] = shapes[off_i + nbatchdims];  // -> Fill in the "M" coefficient in the first line
-      }
-
       shapes[off_i + nbatchdims + 1] = 1;
       shapes[off_i + nbatchdims + 2] = get_size(*obj_ptr[i], D_pos);  // = "D"
 
@@ -338,15 +325,9 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       }
 
       shapes[off_i + nbatchdims + 1] = get_size(*obj_ptr[i], MN_pos);  // = "N"
-      if (shapes[nbatchdims + 1] == -1) {  // This is the first "j" variable that we encounter
-        shapes[nbatchdims + 1] = shapes[off_i + nbatchdims + 1];  // -> Fill in the "N" coefficient in the first line
-      }
-
       shapes[off_i + nbatchdims] = 1;
       shapes[off_i + nbatchdims + 2] = get_size(*obj_ptr[i], D_pos);  // = "D"
-
-
-
+      
       // Check the number of "lines":
       if (shapes[nbatchdims + 1] != shapes[off_i + nbatchdims + 1]) {
         keops_error("[KeOps] Wrong value of the 'j' dimension "

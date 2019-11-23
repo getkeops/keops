@@ -16,6 +16,8 @@ namespace keops {
 
 static const int NARGS=@MAX_POS_ARGS@;
 static const int TYPE_FIRST_ARG=@TYPE_FIRST_ARG@;
+static const int POS_FIRST_ARGI=@POS_FIRST_ARGI@;
+static const int POS_FIRST_ARGJ=@POS_FIRST_ARGJ@;
 @VAR_ALIASES@
 
 #cmakedefine USENEWSYNTAX @USENEWSYNTAX@

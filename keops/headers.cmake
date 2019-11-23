@@ -88,7 +88,7 @@ endfunction(max)
 # from : https://rosettacode.org/wiki/Greatest_element_of_a_list#CMake
 
 max(TMP ${ARGS_POS_LIST})
-MATH(EXPR MAX_POS_ARGS "${TMP} + 1")
+MATH(EXPR MAX_POS_ARGS "${TMP}")
 
 string(REGEX MATCHALL "GradFromPos\\(" GFP_LIST ${FORMULA_NOSPACE})
 if(GFP_LIST)
@@ -98,7 +98,50 @@ if(GFP_LIST)
   list(LENGTH GFP_LIST_2 MM)
   message(STATUS "length GFP_LIST_2 ${MM}")
   set(TMP ${MAX_POS_ARGS})
-  MATH(EXPR MAX_POS_ARGS "2 * (${MM} - 1) + ${TMP}")
+  MATH(EXPR MAX_POS_ARGS " ${MM} + ${TMP}")
+endif()
+
+
+# - recover the position of the first I variable:
+string(REGEX MATCH "Vi\\(([0-9]+)" ARGI_FIRST ${FORMULA_NOSPACE})
+message(STATUS "ARGI_FIRST ${ARGI_FIRST}")
+if(ARGI_FIRST)
+  message(STATUS "ARGI_FIRST2 ${ARGI_FIRST}")
+  set(POS_FIRST_ARGI ${CMAKE_MATCH_1})
+endif()
+
+if(NOT ARGI_FIRST)
+  string(REGEX MATCH "Var\\(([0-9]+),[0-9]+,0" ARGI_FIRST ${FORMULA_NOSPACE})
+  if(ARGI_FIRST)
+    set(POS_FIRST_ARGI ${CMAKE_MATCH_1})
+  endif()
+endif()
+
+if(NOT ARGI_FIRST)
+  set(POS_FIRST_ARGI "-1")
+  message(STATUS "No i variables detected")
+else()
+  message(STATUS "First i variables detected is ${POS_FIRST_ARGI}")
+endif()
+
+# - recover the position of the first J variable:
+string(REGEX MATCH "Vj\\(([0-9]+)" ARGJ_FIRST ${FORMULA_NOSPACE})
+if(ARGJ_FIRST)
+  set(POS_FIRST_ARGJ ${CMAKE_MATCH_1})
+endif()
+
+if(NOT ARGJ_FIRST)
+  string(REGEX MATCH "Var\\(([0-9]+),[0-9]+,1" ARGJ_FIRST ${FORMULA_NOSPACE})
+  if(ARGJ_FIRST)
+    set(POS_FIRST_ARGJ ${CMAKE_MATCH_1})
+  endif()
+endif()
+
+if(NOT ARGJ_FIRST)
+  set(POS_FIRST_ARGJ "-1")
+  message(STATUS "No j variables detected.")
+else()
+  message(STATUS "First j variables detected is ${POS_FIRST_ARGJ}")
 endif()
 
 
