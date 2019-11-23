@@ -88,7 +88,7 @@ endfunction(max)
 # from : https://rosettacode.org/wiki/Greatest_element_of_a_list#CMake
 
 max(TMP ${ARGS_POS_LIST})
-MATH(EXPR MAX_POS_ARGS "${TMP} + 1")
+MATH(EXPR MAX_POS_ARGS "${TMP}")
 
 string(REGEX MATCHALL "GradFromPos\\(" GFP_LIST ${FORMULA_NOSPACE})
 if(GFP_LIST)

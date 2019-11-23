@@ -130,8 +130,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   //  create pointers to the input vectors
   const mxArray *args[keops::NARGS];
   __TYPE__ *castedargs[keops::NARGS];
-
-  for (int k = 0; k < keops::NARGS; k++) {
+  
+  printf("---- %d\n", keops::NARGS);
+  printf("---- %d\n", nrhs - 3);
+  for (int k = 0; k < nrhs - 3; k++) {
     //  input sources
     args[k] = prhs[argu + k];
     castedargs[k] = castedFun< __TYPE__ >(prhs[argu + k]);
@@ -172,7 +174,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   std::copy(castedgamma, castedgamma + ngamma, gamma);
 
   delete[] castedgamma;
-  for(int k=0; k<NARGS; k++)
+  for(int k=0; k<nrhs-3; k++)
     delete[] castedargs[k];
 #endif
 
