@@ -5,9 +5,11 @@
 
 
 namespace keops {
+
 /////////////////////////////////////////////////////////////////////////////////
-//                           Keops
+//                           Keops                                             //
 /////////////////////////////////////////////////////////////////////////////////
+
 using FF = F::F; // F::F is formula inside reduction (ex if F is SumReduction<Form> then F::F is Form)
 
 using VARSI = typename FF::template VARS< 0 >;    // list variables of type I used in formula F
@@ -22,7 +24,7 @@ using INDSI = GetInds< VARSI >;
 using INDSJ = GetInds< VARSJ >;
 using INDSP = GetInds< VARSP >;
 
-using INDS = ConcatPacks <ConcatPacks< INDSI, INDSJ >, INDSP>;
+using INDS = ConcatPacks < ConcatPacks< INDSI, INDSJ >, INDSP >;
 
 const int NARGSI = VARSI::SIZE; // number of I variables used in formula F
 const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
@@ -35,7 +37,6 @@ const int DIMOUT = F::DIM;
 const int TAGIJ = F::tagI;
 
 const std::string f = PrintReduction< F >();
-
 
 }
 
@@ -88,69 +89,14 @@ void check_tag(int tag, std::string msg) {
 template< typename array_t >
 void check_contiguity(array_t &obj_ptr, int i) {
   if (!is_contiguous(obj_ptr)) {
-    keops_error("[Keops] Arg number " + std::to_string(i) + " : is not contiguous. "
+    keops_error("[Keops] Arg at position " + std::to_string(i) + ": is not contiguous. "
                 + "Please provide 'contiguous' dara array, as KeOps does not support strides. "
                 + "If you're getting this error in the 'backward' pass of a code using torch.sum() "
                 + "on the output of a KeOps routine, you should consider replacing 'a.sum()' with "
                 + "'torch.dot(a.view(-1), torch.ones_like(a).view(-1))'. ");
   }
 }
-/*
-template< typename array_t >
-void check_args(size_t nargs,
-                int nx, int ny,
-                array_t **obj_ptr) {
 
-  check_narg(nargs);
-
-  if (NMINARGS > 0) {
-
-    // Checks args in all the positions that correspond to "i" variables:
-    for (int k = 0; k < NARGSI; k++) {
-      int i = INDSI::VAL(k);
-
-      if (get_size(obj_ptr[i], 0) != nx) {
-        keops_error("[KeOps] Wrong number of rows for arg number " + std::to_string(i) + " : is "
-                    + std::to_string(get_size(obj_ptr[i], 0)) + " but should be " + std::to_string(nx));
-      }
-      if (get_size(obj_ptr[i], 1) != DIMSX::VAL(k)) {
-        keops_error("[KeOps] Wrong number of column for arg number " + std::to_string(i) + " : is "
-                    + std::to_string(get_size(obj_ptr[i], 1)) + " but should be " + std::to_string(DIMSX::VAL(k)));
-      }
-
-      check_contiguity(obj_ptr[i], i);
-    }
-
-    // Checks args in all the positions that correspond to "j" variables:
-    for (int k = 0; k < NARGSJ; k++) {
-      int i = INDSJ::VAL(k);
-
-      if (get_size(obj_ptr[i], 0) != ny) {
-        keops_error("[KeOps] Wrong number of rows for arg number " + std::to_string(i) + " : is "
-                    + std::to_string(get_size(obj_ptr[i], 0)) + " but should be " + std::to_string(ny));
-      }
-      if (get_size(obj_ptr[i], 1) != DIMSY::VAL(k)) {
-        keops_error("[KeOps] Wrong number of column for arg number " + std::to_string(i) + " : is "
-                    + std::to_string(get_size(obj_ptr[i], 1)) + " but should be " + std::to_string(DIMSY::VAL(k)));
-      }
-
-      check_contiguity(obj_ptr[i], i);
-    }
-
-    // Checks args in all the positions that correspond to "parameters":
-    for (int k = 0; k < NARGSP; k++) {
-      int i = INDSP::VAL(k);
-      if (get_size(obj_ptr[i], 0) != DIMSP::VAL(k)) {
-        keops_error("[KeOps] Wrong number of elements for arg number " + std::to_string(i) + " : is "
-                    + std::to_string(get_size(obj_ptr[i], 0)) + " but should be " + std::to_string(DIMSP::VAL(k)));
-      }
-
-      check_contiguity(obj_ptr[i], i);
-    }
-
-  }
-}
-*/
 
 template< typename array_t >
 std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) {
@@ -181,9 +127,9 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
     nbatchdims -= trailing_dim;
 
     if (nbatchdims < 0) {
-      keops_error("[KeOps] Wrong number of dimensions for the first arg: is "
+      keops_error("[KeOps] Wrong number of dimensions for arg at position 0: is "
               + std::to_string(get_ndim(*obj_ptr[0])) + " but should be at least "
-              + std::to_string(trailing_dim)
+              + std::to_string(trailing_dim) + "."
       );
     }
 
@@ -225,7 +171,7 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       int ndims = get_ndim(*obj_ptr[i]);  // Number of dims of the i-th tensor
       
       if (ndims != nbatchdims + 2) {
-        keops_error("[KeOps] Wrong number of dimensions for arg number " + std::to_string(i)
+        keops_error("[KeOps] Wrong number of dimensions for arg at position " + std::to_string(i)
                     + " (i type): KeOps detected " + std::to_string(nbatchdims)
                     + " batch dimensions from the first argument 0, and thus expected "
                     + std::to_string(nbatchdims + 2)
@@ -265,7 +211,7 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       // Check the number of "lines":
       if (shapes[nbatchdims] != shapes[off_i + nbatchdims]) {
         keops_error("[KeOps] Wrong value of the 'i' dimension "
-                    + std::to_string(nbatchdims) + "for arg number " + std::to_string(i)
+                    + std::to_string(nbatchdims) + "for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(shapes[off_i + nbatchdims])
                     + " but was " + std::to_string(shapes[nbatchdims])
                     + " in previous 'i' arguments.");
@@ -274,7 +220,7 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       // And the number of "columns":
       if (shapes[off_i + nbatchdims + 2] != DIMSX::VAL(k)) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
-                    + std::to_string(nbatchdims + 1) + " for arg number " + std::to_string(i)
+                    + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
                     + " but should be " + std::to_string(DIMSX::VAL(k)));
       }
@@ -291,7 +237,7 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       int ndims = get_ndim(*obj_ptr[i]);  // Number of dims of the i-th tensor
 
       if (ndims != nbatchdims + 2) {
-        keops_error("[KeOps] Wrong number of dimensions for arg number " + std::to_string(i)
+        keops_error("[KeOps] Wrong number of dimensions for arg at position " + std::to_string(i)
                     + " (j type): KeOps detected " + std::to_string(nbatchdims)
                     + " batch dimensions from the first argument 0, and thus expected "
                     + std::to_string(nbatchdims + 2)
@@ -331,7 +277,7 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       // Check the number of "lines":
       if (shapes[nbatchdims + 1] != shapes[off_i + nbatchdims + 1]) {
         keops_error("[KeOps] Wrong value of the 'j' dimension "
-                    + std::to_string(nbatchdims) + " for arg number " + std::to_string(i)
+                    + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(shapes[off_i + nbatchdims + 1])
                     + " but was " + std::to_string(shapes[nbatchdims + 1])
                     + " in previous 'j' arguments.");
@@ -340,7 +286,7 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
       // And the number of "columns":
       if (shapes[off_i + nbatchdims + 2] != DIMSY::VAL(k)) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
-                    + std::to_string(nbatchdims + 1) + " for arg number " + std::to_string(i)
+                    + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
                     + " but should be " + std::to_string(DIMSY::VAL(k)));
       }
@@ -360,7 +306,7 @@ std::tuple< int, int, int, int * > check_ranges(size_t nargs, array_t* obj_ptr) 
 
       if (shapes[off_i + nbatchdims + 2] != DIMSP::VAL(k)) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
-                    + std::to_string(nbatchdims) + " for arg number " + std::to_string(i)
+                    + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
                     + " but should be " + std::to_string(DIMSP::VAL(k)));
       }

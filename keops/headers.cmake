@@ -104,9 +104,8 @@ endif()
 
 # - recover the position of the first I variable:
 string(REGEX MATCH "Vi\\(([0-9]+)" ARGI_FIRST ${FORMULA_NOSPACE})
-message(STATUS "ARGI_FIRST ${ARGI_FIRST}")
+
 if(ARGI_FIRST)
-  message(STATUS "ARGI_FIRST2 ${ARGI_FIRST}")
   set(POS_FIRST_ARGI ${CMAKE_MATCH_1})
 endif()
 
