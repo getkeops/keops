@@ -53,10 +53,12 @@ template< typename output_T >
 output_T* castedFun(const mxArray *dd) {
   /*  get the dimensions */
 #if  USE_DOUBLE
-  return keops_binders::get_data< double >(*dd);
+  // return keops_binders::get_data< double >(*dd);
+  return mxGetPr(dd);
 #else
   int n = mxGetNumberOfElements(dd);
-  double *double_ptr = keops_binders::get_data< double >(*dd);
+  // double *double_ptr = keops_binders::get_data<const mxArray &, double >(*dd);
+  double *double_ptr = mxGetPr(dd);
   
   output_T *float_ptr = new output_T[n];
   std::copy(double_ptr, double_ptr + n, float_ptr);
