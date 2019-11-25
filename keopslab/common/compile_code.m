@@ -4,7 +4,8 @@ function testbuild = compile_code(cmd_cmake, cmd_make, filename, msg)
     
     fprintf(['Compiling ', filename, ' in ', bin_folder, msg, '\n        dtype  : ', precision, '\n ... '])
 
-    build_folder = fullfile(bin_folder, filename, filesep)
+    % crerate a separate subfolder to perform the compilation. Shared object files will be automatically copied in currentdir.
+    build_folder = fullfile(bin_folder, filename, filesep);
     mkdir(build_folder);
     
     % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
@@ -44,6 +45,7 @@ function testbuild = compile_code(cmd_cmake, cmd_make, filename, msg)
     
     % ...coming back to current directory
     cd(cur_dir)
+    rmdir(build_folder, 's');
 
     testbuild = (exist([filename,'.',mexext],'file')==3);
     if  testbuild
