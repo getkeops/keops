@@ -15,12 +15,12 @@ namespace keops_binders {
 //Specialization of functions in keops/binders/checks.h
 
 template <>
-int get_ndim(at::Tensor *obj_ptri) {
-  return obj_ptri->dim();
+size_t get_ndim(at::Tensor obj_ptri) {
+  return obj_ptri.dim();
 }
 
 template <>
-int get_size(at::Tensor obj_ptri, int l) {
+size_t get_size(at::Tensor obj_ptri, size_t l) {
   return obj_ptri.size(l);
 }
 
@@ -35,13 +35,13 @@ bool is_contiguous(at::Tensor obj_ptri) {
 }
 
 #if USE_DOUBLE
-#define AT_TYPE at::kDouble
+  #define AT_TYPE at::kDouble
 #else
-#define AT_TYPE at::kFloat
+  #define AT_TYPE at::kFloat
 #endif
 
 template <>
-at::Tensor allocate_result_array(int* shape_out, int nbatchdims) {
+at::Tensor allocate_result_array(const size_t* shape_out, const size_t nbatchdims) {
   // ATen only accepts "long int arrays" to specify the shape of a new tensor:
   int64_t shape_out_long[nbatchdims + 2];
   std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
@@ -53,7 +53,7 @@ at::Tensor allocate_result_array(int* shape_out, int nbatchdims) {
 
 #if USE_CUDA
 template <>
-at::Tensor allocate_result_array_gpu(int* shape_out, int nbatchdims) {
+at::Tensor allocate_result_array_gpu(const size_t* shape_out, const size_t nbatchdims) {
   // ATen only accepts "long int arrays" to specify the shape of a new tensor:
   int64_t shape_out_long[nbatchdims + 2];
   std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);

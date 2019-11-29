@@ -37,7 +37,7 @@ size_t get_size(__NUMPYARRAY__ obj_ptri, size_t l) {
 }
 
 template<>
-__TYPE__ *get_data(__NUMPYARRAY__ obj_ptri) {
+__TYPE__* get_data(__NUMPYARRAY__ obj_ptri) {
   return (__TYPE__ *) obj_ptri.data();
 }
 
@@ -55,7 +55,7 @@ __NUMPYARRAY__ allocate_result_array(const size_t *shape_out, const size_t nbatc
 
 #if USE_CUDA
 template <>
-__NUMPYARRAY__ allocate_result_array_gpu(int* shape_out, int nbatchdims) {
+__NUMPYARRAY__ allocate_result_array_gpu(const size_t* shape_out, const size_t nbatchdims) {
   throw std::runtime_error("[KeOps] numpy does not yet support nd array on GPU.");
 }
 #endif

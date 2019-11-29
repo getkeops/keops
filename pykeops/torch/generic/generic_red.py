@@ -38,13 +38,12 @@ class GenredAutograd(torch.autograd.Function):
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
         
         if ranges is None : ranges = () # To keep the same type
-        (categories, dimensions) = parse_aliases(aliases)
-        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions,
-                                       *args)
+
+        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
-        ctx.save_for_backward(*args,result)
+        ctx.save_for_backward(*args, result)
 
         return result
 
@@ -54,7 +53,7 @@ class GenredAutograd(torch.autograd.Function):
         aliases = ctx.aliases
         backend = ctx.backend
         dtype = ctx.dtype
-        ranges    = ctx.ranges
+        ranges = ctx.ranges
         device_id = ctx.device_id
         myconv = ctx.myconv
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
