@@ -68,7 +68,7 @@ end
 % for backward compability : if formula does not specify the type of
 % reduction, we assume the user uses the old syntax where only summation was possible
 % and summation over i or j was specified via an optional flag
-if ~contains(formula,'Reduction(')
+if isempty(strfind(formula,'Reduction('))
     if isfield(options,'tagIJ')
         tagIJ = options.tagIJ;
     else
