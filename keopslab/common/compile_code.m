@@ -44,7 +44,8 @@ function testbuild = compile_code(cmd_cmake, cmd_make, filename, msg)
     end
     
     % ...coming back to current directory
-    cd(cur_dir)
+    cd(cur_dir);
+    % clean build folder
     rmdir(build_folder, 's');
 
     testbuild = (exist([filename,'.',mexext],'file')==3);

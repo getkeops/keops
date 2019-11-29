@@ -224,10 +224,10 @@ class Genred():
 
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
-        if ranges is None : ranges = () # To keep the same type
+        if ranges is None :
+            ranges = () # To keep the same type
 
-        (categories, dimensions) = parse_aliases(self.aliases)
-        out = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, categories, dimensions, *args)
+        out = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
 
         nx, ny = get_sizes(self.aliases, *args)
         nout = nx if self.axis==1 else ny

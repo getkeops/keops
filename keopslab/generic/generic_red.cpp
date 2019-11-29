@@ -11,14 +11,19 @@
 using namespace keops;
 
 template<>
-size_t keops_binders::get_ndim(const mxArray &pm) {
-  return mxGetNumberOfDimensions(&pm);
+size_t keops_binders::get_ndim(const mxArray* pm) {
+  return mxGetNumberOfDimensions(pm);
 }
 
 template<>
-size_t keops_binders::get_size(const mxArray &pm, size_t l) {
-  const mwSize *d = mxGetDimensions(&pm);
+size_t keops_binders::get_size(const mxArray* pm, size_t l) {
+  const mwSize *d = mxGetDimensions(pm);
   return d[l];
+}
+
+template< typename _T >
+_T* keops_binders::get_data(const mxArray* pm) {
+  return mxGetPr(pm);
 }
 
 template<>
@@ -28,13 +33,8 @@ mxArray *keops_binders::allocate_result_array(const size_t *dimout, const size_t
 }
 
 template<>
-mxArray* keops_binders::allocate_result_array_gpu(const size_t *dimout, const size_t a) {
+mxArray* keops_binders::allocate_result_array_gpu(const size_t* dimout, const size_t a) {
   mexErrMsgTxt("[keOpsLab] does not yet support array on GPU.");
-}
-
-template< typename _T >
-_T* keops_binders::get_data(const mxArray &pm) {
-  return mxGetPr(&pm);
 }
 
 void keops_binders::keops_error(std::string msg) {
@@ -42,7 +42,7 @@ void keops_binders::keops_error(std::string msg) {
 }
 
 template<>
-bool keops_binders::is_contiguous(const mxArray &pm) {
+bool keops_binders::is_contiguous(const mxArray* pm) {
   return true;
 };
 
@@ -52,13 +52,13 @@ bool keops_binders::is_contiguous(const mxArray &pm) {
 ////////////////////////////////////////////////////////////////////////////////
 
 template< typename output_T >
-output_T* castedFun(const mxArray *dd) {
+output_T* castedFun(const mxArray* dd) {
   /*  get the dimensions */
 #if  USE_DOUBLE
-  return keops_binders::get_data< double >(*dd);
+  return keops_binders::get_data< double >(dd);
 #else
   int n = mxGetNumberOfElements(dd);
-  double *double_ptr = keops_binders::get_data< double >(*dd);
+  double *double_ptr = keops_binders::get_data< double >(dd);
   
   output_T *float_ptr = new output_T[n];
   std::copy(double_ptr, double_ptr + n, float_ptr);

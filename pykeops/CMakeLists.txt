@@ -70,7 +70,7 @@ endif()
 
 # ----------------- create shared lib (cuda)
 if(USE_CUDA)
-  
+
     CUDA_add_library(
         keops${shared_obj_name} SHARED
         ${KEOPS_SRC}/core/link_autodiff.cu
@@ -100,7 +100,7 @@ endif()
 
 # skip the full RPATH for the build tree. We append $ORIGIN later
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH "")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 

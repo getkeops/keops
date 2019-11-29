@@ -39,14 +39,14 @@ array_t create_result_array(const int nx, const int ny, const int tagHostDevice 
 
 
 
-int *get_output_shape(int* shapes = {}, int nbatchdims = 0) {
+size_t* get_output_shape(size_t* shapes = {}, size_t nbatchdims = 0) {
 // Store, in a raw int array, the shape of the output: =====================
 // [A, .., B, M, D]  if TAGIJ==0
 //  or
 // [A, .., B, N, D]  if TAGIJ==1
-
-  int *shape_output = new int[nbatchdims + 2];
-  for (int b = 0; b < nbatchdims; b++) {
+  
+  size_t *shape_output = new size_t[nbatchdims + 2];
+  for (size_t b = 0; b < nbatchdims; b++) {
     shape_output[b] = shapes[b];                               // Copy the "batch dimensions"
   }
   shape_output[nbatchdims] = shapes[nbatchdims + TAGIJ];      // M or N
