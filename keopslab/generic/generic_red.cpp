@@ -144,10 +144,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   // number of input arrays of the matlab function.
   // The "-3" is because there are 3 parameter inputs before the list
   // of arrays : tagCpuGpu, tagID2D, device_id
-  std::tuple< int, int, int, int * > sizes = keops_binders::check_ranges(nrhs - 3, args);
+  std::tuple< size_t, size_t, size_t, size_t * > sizes = keops_binders::check_ranges(nrhs - 3, args);
   
-  int nx = std::get< 0 >(sizes);
-  int ny = std::get< 1 >(sizes);
+  size_t nx = std::get< 0 >(sizes);
+  size_t ny = std::get< 1 >(sizes);
 
 //////////////////////////////////////////////////////////////
 // Output arguments

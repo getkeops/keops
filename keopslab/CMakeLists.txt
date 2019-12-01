@@ -8,6 +8,7 @@ file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
 message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
 
 project(KeOpsLab LANGUAGES CXX)
+set(CMAKE_CXX_COMPILER /usr/bin/g++-8)
 
 ## Set Path to sources
 set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
@@ -140,7 +141,6 @@ if(Matlab_FOUND)
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops${shared_obj_name}> ${BIN_DIR}
   )
 
-  matlab_get_mex_suffix(matlab_root mex_suffix)
   add_custom_command(
     TARGET mex_cpp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy keops${shared_obj_name}.${mex_suffix} ${BIN_DIR}
@@ -282,6 +282,17 @@ if(Matlab_FOUND)
         LINKER_LANGUAGE CXX
         EXCLUDE_FROM_ALL TRUE
         )
+
+  # Installation step
+  add_custom_command(
+    TARGET ${name1} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${name1}> ${BIN_DIR}
+  )
+
+  add_custom_command(
+    TARGET ${name3} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${mex_fshape_scp_name}.${mex_suffix} ${BIN_DIR}
+  )
     endforeach()
 
   endif()
