@@ -53,10 +53,10 @@ using namespace keops;
 // This function has to be specialized in the various binders:
 
 template< typename array_t >
-size_t get_ndim(array_t obj_ptri);  // len( a.shape )
+int get_ndim(array_t obj_ptri);  // len( a.shape )
 
 template< typename array_t >
-size_t get_size(array_t obj_ptri, size_t l);  // a.shape[l]
+int get_size(array_t obj_ptri, int l);  // a.shape[l]
 
 template< typename array_t, typename _T >
 _T *get_data(array_t obj_ptri);   // raw pointer to "a.data"
@@ -74,7 +74,7 @@ void keops_error(std::string);
 //                    Sanity checks on args
 /////////////////////////////////////////////////////////////////////////////////
 
-void check_narg(size_t narg) {
+void check_narg(int narg) {
   if (narg < NARGS)
     keops_error("[KeOps] Wrong number of args : is " + std::to_string(narg)
                 + " but should be at least " + std::to_string(NARGS)
@@ -100,11 +100,11 @@ void check_contiguity(array_t &obj_ptr, int i) {
 
 
 template< typename array_t >
-std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_t *obj_ptr) {
-//void check_ranges(size_t nargs, array_t* obj_ptr) {
+std::tuple< int, int, int, int * > check_ranges(int nargs, array_t *obj_ptr) {
+//void check_ranges(int nargs, array_t* obj_ptr) {
   
-  size_t nbatchdims, *shapes, MN_pos, D_pos;
-  std::function< size_t(array_t, size_t, size_t) > get_size_batch;
+  int nbatchdims, *shapes, MN_pos, D_pos;
+  std::function< int(array_t, int, int) > get_size_batch;
   
   if (NARGS > 0) {
     // Are we working in batch mode? Infer the answer from the first arg =============
@@ -124,20 +124,20 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
     #if C_CONTIGUOUS
     MN_pos = nbatchdims;
     D_pos = nbatchdims + 1;
-    get_size_batch = [](auto obj_ptr, size_t nbatch, size_t b) {
+    get_size_batch = [](auto obj_ptr, int nbatch, int b) {
     return get_size(obj_ptr, b);
   };
     #else
     MN_pos = nbatchdims + 1;
     D_pos = nbatchdims;
-    get_size_batch = [](auto obj_ptr, size_t nbatch, size_t b) {
+    get_size_batch = [](auto obj_ptr, int nbatch, int b) {
       return get_size(obj_ptr, nbatch - b);
     };
     #endif
     
     
     // Now, we'll keep track of the output + all arguments' shapes in a large array:
-    shapes = new size_t[(nargs + 1) * (nbatchdims + 3)];
+    shapes = new int[(nargs + 1) * (nbatchdims + 3)];
     // N.B.: shapes will be destroyed at the very end of generic_red
     // Eventually, with "batch dimensions" [A, .., B], the table will look like:
     //
@@ -149,7 +149,7 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
     // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
     
     // Fill in the first line with [ 1, ..., 1, {-1, M}, {-1,N}, D_out]
-    for (size_t b = 0; b < nbatchdims; b++) {
+    for (int b = 0; b < nbatchdims; b++) {
       shapes[b] = 1;  // 1 = default option
     }
     
@@ -166,11 +166,11 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
   if (NMINARGS > 0) {
     
     // Checks args in all the positions that correspond to "i" variables:
-    for (size_t k = 0; k < NARGSI; k++) {
-      size_t i = INDSI::VAL(k);
+    for (int k = 0; k < NARGSI; k++) {
+      int i = INDSI::VAL(k);
       
       // Check the number of dimensions --------------------------------------------
-      size_t ndims = get_ndim(obj_ptr[i]);  // Number of dims of the i-th tensor
+      int ndims = get_ndim(obj_ptr[i]);  // Number of dims of the i-th tensor
       
       if (ndims != nbatchdims + 2) {
         keops_error("[KeOps] Wrong number of dimensions for arg at position " + std::to_string(i)
@@ -185,10 +185,10 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
       }
       
       // Fill in the (i+1)-th line of the "shapes" array ---------------------------
-      size_t off_i = (i + 1) * (nbatchdims + 3);
+      int off_i = (i + 1) * (nbatchdims + 3);
       
       // First, the batch dimensions:
-      for (size_t b = 0; b < nbatchdims; b++) {
+      for (int b = 0; b < nbatchdims; b++) {
         shapes[off_i + b] = get_size_batch(obj_ptr[i], nbatchdims, b);
         
         // Check that the current value is compatible with what
@@ -220,7 +220,7 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
       }
       
       // And the number of "columns":
-      if (shapes[off_i + nbatchdims + 2] != DIMSX::VAL(k)) {
+      if (shapes[off_i + nbatchdims + 2] != static_cast< int >(DIMSX::VAL(k))) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
                     + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
@@ -232,11 +232,11 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
     
     
     // Checks args in all the positions that correspond to "j" variables:
-    for (size_t k = 0; k < NARGSJ; k++) {
-      size_t i = INDSJ::VAL(k);
+    for (int k = 0; k < NARGSJ; k++) {
+      int i = INDSJ::VAL(k);
       
       // Check the number of dimensions --------------------------------------------
-      size_t ndims = get_ndim(obj_ptr[i]);  // Number of dims of the i-th tensor
+      int ndims = get_ndim(obj_ptr[i]);  // Number of dims of the i-th tensor
       
       if (ndims != nbatchdims + 2) {
         keops_error("[KeOps] Wrong number of dimensions for arg at position " + std::to_string(i)
@@ -251,10 +251,10 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
       }
       
       // Fill in the (i+1)-th line of the "shapes" array ---------------------------
-      size_t off_i = (i + 1) * (nbatchdims + 3);
+      int off_i = (i + 1) * (nbatchdims + 3);
       
       // First, the batch dimensions:
-      for (size_t b = 0; b < nbatchdims; b++) {
+      for (int b = 0; b < nbatchdims; b++) {
         shapes[off_i + b] = get_size(obj_ptr[i], b);
         
         // Check that the current value is compatible with what
@@ -286,7 +286,7 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
       }
       
       // And the number of "columns":
-      if (shapes[off_i + nbatchdims + 2] != DIMSY::VAL(k)) {
+      if (shapes[off_i + nbatchdims + 2] != static_cast< int >(DIMSY::VAL(k))) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
                     + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
@@ -297,16 +297,16 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
     }
     
     
-    for (size_t k = 0; k < NARGSP; k++) {
-      size_t i = INDSP::VAL(k);
+    for (int k = 0; k < NARGSP; k++) {
+      int i = INDSP::VAL(k);
       // Fill in the (i+1)-th line of the "shapes" array ---------------------------
-      size_t off_i = (i + 1) * (nbatchdims + 3);
+      int off_i = (i + 1) * (nbatchdims + 3);
       
       shapes[off_i + nbatchdims] = 1;
       shapes[off_i + nbatchdims + 1] = 1;
       shapes[off_i + nbatchdims + 2] = get_size(obj_ptr[i], nbatchdims);  // = "D"
       
-      if (shapes[off_i + nbatchdims + 2] != DIMSP::VAL(k)) {
+      if (shapes[off_i + nbatchdims + 2] != static_cast< int >(DIMSP::VAL(k))) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
                     + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(shapes[off_i + nbatchdims + 2])
@@ -329,12 +329,12 @@ std::tuple< size_t, size_t, size_t, size_t * > check_ranges(size_t nargs, array_
     shapes[nbatchdims + 1] = 1;        // Let's say that N = 1.
   }
   
-  size_t nx = shapes[nbatchdims];      // = M
-  size_t ny = shapes[nbatchdims + 1];  // = N
+  int nx = shapes[nbatchdims];      // = M
+  int ny = shapes[nbatchdims + 1];  // = N
   
   
-  size_t nbatches = 1;
-  for (size_t b = 0; b < nbatchdims; b++) {
+  int nbatches = 1;
+  for (int b = 0; b < nbatchdims; b++) {
     nbatches *= shapes[b];  // Compute the product of all "batch dimensions"
   }
   nx *= nbatches;  // = A * ... * B * M

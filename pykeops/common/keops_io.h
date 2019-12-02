@@ -31,7 +31,7 @@ array_t generic_red(
         py::args py_args = {}) {
   
   // Check that we have enough arguments:
-  size_t nargs = py_args.size();
+  int nargs = py_args.size();
   
   keops_binders::check_tag(tag1D2D, "1D2D");
   keops_binders::check_tag(tagCpuGpu, "CpuGpu");
@@ -47,16 +47,18 @@ array_t generic_red(
   
   // get the pointers to data to avoid a copy
   __TYPE__ *castedargs[NARGS];
-  for (size_t i = 0; i < NARGS; i++)
+  for (int i = 0; i < NARGS; i++)
     castedargs[i] = keops_binders::get_data< array_t, __TYPE__ >(obj_ptr[i]);
   
   // Check the aguments' dimensions, and retrieve all the shape information:
-  std::tuple< size_t, size_t, size_t, size_t * > nx_ny_nbatch_shapes = keops_binders::check_ranges< array_t >(nargs,
+  std::tuple< int, int, int, int * > nx_ny_nbatch_shapes = keops_binders::check_ranges< array_t >(nargs,
                                                                                                               &obj_ptr[0]); // trick to cast std::vector to array
-  size_t nx = std::get< 0 >(nx_ny_nbatch_shapes), ny = std::get< 1 >(nx_ny_nbatch_shapes);
-  size_t nbatchdims = std::get< 2 >(nx_ny_nbatch_shapes);
-  size_t *shapes = std::get< 3 >(nx_ny_nbatch_shapes);
+  int nx = std::get< 0 >(nx_ny_nbatch_shapes), ny = std::get< 1 >(nx_ny_nbatch_shapes);
+  int nbatchdims = std::get< 2 >(nx_ny_nbatch_shapes);
+  int *shapes = std::get< 3 >(nx_ny_nbatch_shapes);
   
+  printf("line 60\n");
+
   int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y;
   __INDEX__ **castedranges;
   // N.B.: This vector is only used if ranges.size() == 6,
@@ -71,6 +73,7 @@ array_t generic_red(
   if (nbatchdims == 0) {  // Standard M-by-N computation
     if (ranges.size() == 0) {
       tagRanges = 0;
+  printf("line 76\n");
       
     } else if (ranges.size() == 6) {
       // Cast the six integer arrays
@@ -102,10 +105,10 @@ array_t generic_red(
     
     // We compute/read the number and size of our diagonal blocks ----------
     int nbatches = 1;
-    for (size_t b = 0; b < nbatchdims; b++) {
+    for (int b = 0; b < nbatchdims; b++) {
       nbatches *= shapes[b];  // Compute the product of all "batch dimensions"
     }
-    size_t M = shapes[nbatchdims], N = shapes[nbatchdims + 1];
+    int M = shapes[nbatchdims], N = shapes[nbatchdims + 1];
     
     // Create new "castedranges" from scratch ------------------------------
     // With pythonic notations, we'll have:
@@ -161,10 +164,12 @@ array_t generic_red(
   shape_output[nbatchdims + 1] = shapes[nbatchdims + 2];      // D
 */
   
-  size_t *shape_output = keops_binders::get_output_shape(shapes, nbatchdims);
-  
+  printf("line 167\n"); 
+  int *shape_output = keops_binders::get_output_shape(shapes, nbatchdims);
+  printf("line 169\n"); 
   // Call Cuda codes =========================================================
-  array_t result = keops_binders::allocate_result_array< array_t >(shape_output, tagCpuGpu);
+  array_t result = keops_binders::create_result_array< array_t >(nx, ny, tagHostDevice);
+  printf("line 172\n"); 
   
   if (tagRanges == 1) {
     /*result = launch_keops_ranges< array_t >(tag1D2D, tagCpuGpu, tagHostDevice,
@@ -176,17 +181,19 @@ array_t generic_red(
                                             castedranges,
                                             castedargs);*/
   } else {
+    printf("line 184\n"); 
     keops_binders::launch_keops(tag1D2D, tagCpuGpu, tagHostDevice,
                                 Device_Id_s,
                                 nx, ny,
                                 keops_binders::get_data< array_t, __TYPE__ >(result),
                                 castedargs);
+    printf("line 190\n"); 
+
   }
+  printf("line 193\n"); 
   
-  delete[] shapes;
   delete[] shape_output;
   
   return result;
-  
 }
 

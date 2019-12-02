@@ -21,15 +21,15 @@ namespace keops_binders {
 void keops_error(std::basic_string< char >);
 
 template < typename array_t >
-array_t allocate_result_array(const size_t *a, const size_t b = 0);
+array_t allocate_result_array(const int *a, const int b = 0);
 
 template < typename array_t >
-array_t allocate_result_array_gpu(const size_t *a, const size_t b = 0);
+array_t allocate_result_array_gpu(const int *a, const int b = 0);
 
 template < typename array_t >
 array_t create_result_array(const int nx, const int ny, const int tagHostDevice = 0) {
 
-  size_t shape_out[2] = {keops::DIMOUT, (keops::TAGIJ == 1) ? ny : nx};
+  int shape_out[2] = {keops::DIMOUT, (keops::TAGIJ == 1) ? ny : nx};
 
   array_t result =
       (tagHostDevice == 0) ? allocate_result_array< array_t >(shape_out) : allocate_result_array_gpu< array_t >(
@@ -39,14 +39,14 @@ array_t create_result_array(const int nx, const int ny, const int tagHostDevice 
 
 
 
-size_t* get_output_shape(size_t* shapes = {}, size_t nbatchdims = 0) {
+int* get_output_shape(int* shapes = {}, int nbatchdims = 0) {
 // Store, in a raw int array, the shape of the output: =====================
 // [A, .., B, M, D]  if TAGIJ==0
 //  or
 // [A, .., B, N, D]  if TAGIJ==1
   
-  size_t *shape_output = new size_t[nbatchdims + 2];
-  for (size_t b = 0; b < nbatchdims; b++) {
+  int *shape_output = new int[nbatchdims + 2];
+  for (int b = 0; b < nbatchdims; b++) {
     shape_output[b] = shapes[b];                               // Copy the "batch dimensions"
   }
   shape_output[nbatchdims] = shapes[nbatchdims + TAGIJ];      // M or N

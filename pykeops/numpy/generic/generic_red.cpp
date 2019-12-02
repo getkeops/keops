@@ -27,12 +27,12 @@ namespace keops_binders {
 // this is maybe not the best in term of performance... but at least it is safe.
 
 template<>
-size_t get_ndim(__NUMPYARRAY__ obj_ptri) {
+int get_ndim(__NUMPYARRAY__ obj_ptri) {
   return obj_ptri.ndim();
 }
 
 template<>
-size_t get_size(__NUMPYARRAY__ obj_ptri, size_t l) {
+int get_size(__NUMPYARRAY__ obj_ptri, int l) {
   return obj_ptri.shape(l);
 }
 
@@ -47,7 +47,8 @@ bool is_contiguous(__NUMPYARRAY__ obj_ptri) {
 }
 
 template<>
-__NUMPYARRAY__ allocate_result_array(const size_t *shape_out, const size_t nbatchdims) {
+__NUMPYARRAY__ allocate_result_array(const int *shape_out, const int nbatchdims) {
+  printf("nb %d: %d, %d, %d\n", nbatchdims + 2 , shape_out[0], shape_out[1], shape_out[2]);
   // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
   std::vector< int > shape_vector(shape_out, shape_out + nbatchdims + 2);
   return __NUMPYARRAY__(shape_vector);
@@ -55,14 +56,14 @@ __NUMPYARRAY__ allocate_result_array(const size_t *shape_out, const size_t nbatc
 
 #if USE_CUDA
 template <>
-__NUMPYARRAY__ allocate_result_array_gpu(const size_t* shape_out, const size_t nbatchdims) {
+__NUMPYARRAY__ allocate_result_array_gpu(const int* shape_out, const int nbatchdims) {
   throw std::runtime_error("[KeOps] numpy does not yet support nd array on GPU.");
 }
 #endif
 
 
 template<>
-size_t get_size(__RANGEARRAY__ obj_ptri, size_t l) {
+int get_size(__RANGEARRAY__ obj_ptri, int l) {
   return obj_ptri.shape(l);
 }
 
@@ -85,18 +86,13 @@ using namespace keops;
 
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m
 ) {
-m.
-
-doc() = "pyKeOps: KeOps for numpy through pybind11.";
+m.doc() = "pyKeOps: KeOps for numpy through pybind11.";
 
 m.def("genred_numpy", &generic_red <__NUMPYARRAY__, __RANGEARRAY__>, "Entry point to keops - numpy version.");
 
-m.attr("tagIJ") =
-keops::TAGIJ;
-m.attr("dimout") =
-keops::DIMOUT;
-m.attr("formula") =
-keops::f;
+m.attr("tagIJ") = keops::TAGIJ;
+m.attr("dimout") = keops::DIMOUT;
+m.attr("formula") = keops::f;
 m.attr("compiled_formula") = xstr(keops::FORMULA_OBJ_STR);
 m.attr("compiled_aliases") = xstr(keops::VAR_ALIASES_STR);
 }
