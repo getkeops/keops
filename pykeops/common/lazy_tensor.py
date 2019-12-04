@@ -647,6 +647,106 @@ class LazyTensor:
         else:
             return res
     
+    def sqsolve(self, other, var=None, call=True, **kwargs):
+        r"""
+        Solves a positive definite linear system of the form ``sum(self*sum(self*var)) = other``, using a conjugate gradient solver.
+        (where axis of second sum is opposite of axis of first, i.e. we encode a A^T A x = y linear system, where self encodes matrix A) 
+            
+        Args:
+          self (:class:`LazyTensor`): KeOps variable that encodes a linear operator. 
+          other (:class:`LazyTensor`): KeOps variable that encodes the second member of the equation.
+
+        Keyword args:
+
+          var (:class:`LazyTensor`):
+            If **var** is **None**, **sqsolve** will return the solution
+            of the ``self * var = other`` equation.
+            Otherwise, if **var** is a KeOps symbolic variable, **sqsolve** will
+            assume that **self** defines an expression that is linear
+            with respect to **var** and solve the equation ``self^T(self(var)) = other``
+            with respect to **var**.
+          alpha (float, default=1e-10): Non-negative **ridge regularization** parameter.
+          call (bool): If **True** and if no other symbolic variable than 
+            **var** is contained in **self**, **sqsolve** will return a tensor 
+            solution of our linear system. Otherwise **sqsolve** will return 
+            a callable :class:`LazyTensor`.
+          backend (string): Specifies the map-reduce scheme,
+            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
+          device_id (int, default=-1): Specifies the GPU that should be used 
+            to perform the computation; a negative value lets your system 
+            choose the default GPU. This parameter is only useful if your 
+            system has access to several GPUs.
+          ranges (6-uple of IntTensors, None by default):
+            Ranges of integers that specify a 
+            :doc:`block-sparse reduction scheme <../../sparsity>`
+            as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
+            If **None** (default), we simply use a **dense Kernel matrix**
+            as we loop over all indices
+            :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+          use_double_acc (bool, default False): accumulate results of reductions in float64 variables, before casting to float32. 
+             This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+             It improves the accuracy of results in case of large sized data, but is slower.          
+          use_BlockRed (bool, default False): use an intermediate accumulator in each block before accumulating in the output. This improves
+             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+          use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
+             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+
+        .. warning::
+            Please note that **no check** of symmetry and definiteness will be
+            performed prior to our conjugate gradient descent.
+        """
+        
+        if not hasattr(other, "__lazytensor__"):
+            other = LazyTensor(other, axis=0)  # a vector is normally indexed by "i"
+        
+        # If given, var is symbolic variable corresponding to unknown
+        # other must be a variable equal to the second member of the linear system,
+        # and it may be symbolic. If it is symbolic, its index should match the index of var
+        # if other is not symbolic, all variables in self must be non symbolic
+        if len(other.symbolic_variables) == 0 and len(self.symbolic_variables) != 0:
+            raise ValueError("If 'self' has symbolic variables, so should 'other'.")
+        
+        # we infer axis of reduction as the opposite of the axis of output
+        axis = 1 - other.axis
+        
+        if var is None:
+            # this is the classical mode: we want to invert sum(self^T*sum(self*var)) = other 
+            # we define var as a new symbolic variable with same dimension as other
+            # and we assume axis of var is same as axis of reduction
+            varindex = len(self.symbolic_variables)
+            var = Var(varindex, other.ndim, axis)
+            res = self * var
+        else:
+            # var is given and must be a symbolic variable which is already inside self
+            varindex = var.symbolic_variables[0][0]
+            res = self.init()
+            res.formula = self.formula
+        
+        res.formula2 = None
+        res.reduction_op = "Solve"
+        res.varindex = varindex
+        res.varformula = var.formula.replace("VarSymb", "Var")
+        res.other = other
+        res.axis = axis
+
+        kwargs_init, res.kwargs = self.separate_kwargs(kwargs)
+
+        res.ndim = self.ndim
+        
+        if res.dtype is not None:
+            res.fixvariables()
+            res.callfun = res.KernelSolve(res.formula, [], res.varformula,
+                                          res.axis, res.dtype, **kwargs_init)
+        
+        # we call if call=True, if other is not symbolic, and if the dtype is set
+        if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
+            return res()
+        else:
+            return res
+    
     def __call__(self, *args, **kwargs):
         r"""
         Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` call on the input data, as specified by **self.formula** .
@@ -682,11 +782,14 @@ class LazyTensor:
             if self.reduction_op == "Solve":
                 self.callfun = self.KernelSolve(self.formula, [], self.formula2,
                                                 self.axis, self.dtype, **kwargs_init)
+            elif self.reduction_op == "SquaredKernelSolve":
+                self.callfun = self.SquaredKernelSolve(self.formula, [], self.formula2,
+                                                self.axis, self.dtype, **kwargs_init)
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op,
                                            self.axis, self.dtype, self.opt_arg, self.formula2, **kwargs_init)
         
-        if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
+        if self.reduction_op in ("Solve","SquaredKernelSolve") and len(self.other.symbolic_variables) == 0:
             # here args should be empty, according to our rule
             if args != ():
                 raise ValueError("no input required")

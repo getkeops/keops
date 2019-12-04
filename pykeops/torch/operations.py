@@ -85,14 +85,18 @@ class KernelSolveAutograd(torch.autograd.Function):
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
         result = ctx.saved_tensors[-1]
+        varinv = args[varinvpos]
 
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
         eta = 'Var(' + str(nargs) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
       
-        # there is also a new variable for the formula's output
-        resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
+        # there is also a new variable for the "SavedForward" tensor, to be used when creating the formula for the gradient below ("Grad_WithSavedForward(...)")
+        # In the present case (gradient of the inverse), it will be the result of Kinv(K varinv) = varinv, i.e. just the original input tensor !!!
+        # This should never be used anyway because up to now we only use linear operations defined via sum reductions, for which the "SavedForward" argument is unused.
+        _, cat, dim, _ = get_type(aliases[varinvpos], position_in_list=varinvpos)
+        resvar = 'Var(' + str(nargs+1) + ',' + str(dim) + ',' + str(cat) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
         KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *newargs)
@@ -118,7 +122,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                     var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
                     formula_g = 'Grad_WithSavedForward(' + formula + ', ' + var + ', ' + eta + ', ' + resvar + ')'  # Grad<F,V,G,R>
                     aliases_g = aliases + [eta, resvar]
-                    args_g = args[:varinvpos] + (result,) + args[varinvpos+1:] + (-KinvG,) + (result,)  # Don't forget the gradient to backprop !
+                    args_g = args[:varinvpos] + (result,) + args[varinvpos+1:] + (-KinvG,) + (varinv,)  # Don't forget the gradient to backprop !
 
                     # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
                     genconv = GenredAutograd().apply
@@ -309,6 +313,198 @@ class KernelSolve():
         """
 
         return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, self.accuracy_flags, *args)
+
+
+
+
+
+
+
+
+
+
+class SquaredKernelSolveAutograd(torch.autograd.Function):
+
+    @staticmethod
+    def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args):
+    
+        optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] + accuracy_flags
+
+        ctx.aliases = 2*[None]
+        ctx.aliases[0] = aliases
+
+	myconv = 2*[None]
+        myconv[0] = LoadKeOps(formula[0], aliases[0], dtype, 'torch',
+                           optional_flags).import_module()
+        myconv[1] = LoadKeOps(formula[1], aliases[1], dtype, 'torch',
+                           optional_flags).import_module()
+
+        resvar0 = 'Var(' + str(varinvpos) + ',' + str(myconv[0].dimout) + ',' + str(myconv[0].tagIJ) + ')'
+        ctx.aliases[1] = self.aliases[:varinvpos] + [resvar0] + self.aliases[varinvpos+1:]
+
+        # Context variables: save everything to compute the gradient:
+        ctx.formula = formula
+        ctx.varinvpos = varinvpos
+        ctx.alpha = alpha
+        ctx.backend = backend
+        ctx.dtype = dtype
+        ctx.device_id = device_id
+        ctx.eps = eps
+        ctx.myconv = myconv
+        ctx.ranges = ranges
+        ctx.accuracy_flags = accuracy_flags
+        if ranges is None: ranges = () # To keep the same type
+            
+        varinv = args[varinvpos]
+        ctx.varinvpos = varinvpos
+
+        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+
+        if tagCPUGPU==1 & tagHostDevice==1:
+            device_id = args[0].device.index
+            for i in range(1,len(args)):
+                if args[i].device.index != device_id:
+                    raise ValueError("[KeOps] Input arrays must be all located on the same device.")
+
+        def linop(var):
+            (categories0, dimensions0) = parse_aliases(aliases[0])
+            newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
+            res = myconv[0].genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories0, dimensions0, *newargs)
+            (categories1, dimensions1) = parse_aliases(aliases[1])
+            newargs = args[:varinvpos] + (res,) + args[varinvpos+1:]
+            res = myconv[1].genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories1, dimensions1, *newargs)
+            if alpha:
+                res += alpha*var
+            return res
+
+        global copy
+	result = ConjugateGradientSolver('torch', linop, varinv.data, eps)
+
+        ctx.save_for_backward(*args,result)
+
+        return result
+
+    @staticmethod
+    def backward(ctx, G):
+        formula = ctx.formula
+        aliases = ctx.aliases
+        varinvpos = ctx.varinvpos
+        backend = ctx.backend
+        alpha = ctx.alpha
+        dtype = ctx.dtype
+        device_id = ctx.device_id
+        eps = ctx.eps
+        myconv = ctx.myconv
+        varinvpos = ctx.varinvpos
+        ranges = ctx.ranges
+        accuracy_flags = ctx.accuracy_flags
+
+        args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
+        nargs = len(args)
+        result = ctx.saved_tensors[-1]
+        varinv = args[varinvpos]
+        
+        # If formula takes 5 variables (numbered from 0 to 4), then the gradient
+        # wrt. the output, G, should be given as a 6-th variable (numbered 5),
+        # with the same dim-cat as the formula's output.
+        eta = 'Var(' + str(nargs) + ',' + str(myconv[1].dimout) + ',' + str(myconv[1].tagIJ) + ')'
+        eta0 = 'Var(' + str(nargs) + ',' + str(myconv[0].dimout) + ',' + str(myconv[0].tagIJ) + ')'
+      
+        # there is also a new variable for the "SavedForward" tensor, to be used when creating the formula for the gradient below ("Grad_WithSavedForward(...)")
+        # In the present case (gradient of the inverse), it will be the result of Kinv(K varinv) = varinv, i.e. just the original input tensor !!!
+        # This should never be used anyway because up to now we only use linear operations defined via sum reductions, for which the "SavedForward" argument is unused.
+        _, cat, dim, _ = get_type(aliases[varinvpos], position_in_list=varinvpos)
+        resvar = 'Var(' + str(nargs+1) + ',' + str(dim) + ',' + str(cat) + ')'
+        
+        resvar0 = 'Var(' + str(nargs+1) + ',' + str(myconv[0].dimout) + ',' + str(myconv[0].tagIJ) + ')'
+        
+        newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
+        KinvG = SquaredKernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *newargs)
+
+        grads = []  # list of gradients wrt. args;
+
+        for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
+            # If the current gradient is to be discarded immediatly...
+            if not ctx.needs_input_grad[var_ind + 10]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags)
+                grads.append(None)  # Don't waste time computing it.
+
+            else:  # Otherwise, the current gradient is really needed by the user:
+
+                if var_ind == varinvpos:
+                    grads.append(KinvG)
+                else:
+                    genconv = GenredAutograd().apply
+                    
+                    _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
+                    var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
+                    
+                    newargs = args[:varinvpos] + (-KinvG,) + args[varinvpos+1:]
+                    grad = genconv(formula[0], aliases[0], backend, dtype, device_id, ranges, accuracy_flags, *newargs)
+
+                    newargs = args[:varinvpos] + (result,) + args[varinvpos+1:]
+                    result0 = genconv(formula[0], aliases[0], backend, dtype, device_id, ranges, accuracy_flags, *newargs)
+
+                    formula_g0 = 'Grad_WithSavedForward(' + formula[0] + ', ' + var + ', ' + eta0 + ', ' + resvar0 + ')'  # Grad<F,V,G,R>
+                    aliases_g0 = aliases[0] + [eta0, resvar0]
+                    newargs = args[:varinvpos] + (result,) + args[varinvpos+1:] + (grad,) + (result0,)  # Don't forget the gradient to backprop !
+                    grad = genconv(formula_g0, aliases_g0, backend, dtype, device_id, ranges, accuracy_flags, *newargs)
+
+                    formula_g1 = 'Grad_WithSavedForward(' + formula[1] + ', ' + var + ', ' + eta + ', ' + resvar + ')'  # Grad<F,V,G,R>
+                    aliases_g1 = aliases[1] + [eta, resvar]
+                    newargs = args[:varinvpos] + (result0,) + args[varinvpos+1:] + (-KinvG,) + (varinv,)  # Don't forget the gradient to backprop !
+                    grad += genconv(formula_g1, aliases_g1, backend, dtype, device_id, ranges, accuracy_flags, *newargs)
+                    
+                    
+                    if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
+                        grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
+                        grad = grad.view(-1)
+
+                    grads.append(grad)
+         
+        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args
+        return (None, None, None, None, None, None, None, None, None, None, *grads)
+
+
+
+class SquaredKernelSolve():
+
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
+        if cuda_type:
+            # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
+            dtype = cuda_type 
+            
+        reduction_op='Sum'
+
+        self.accuracy_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op)
+
+        self.formula[0] = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+        self.formula[1] = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(1-axis)) + ')'
+        
+        self.aliases = complete_aliases(formula, list(aliases))  # just in case the user provided a tuple
+
+        if varinvalias[:4] == "Var(":
+            # varinv is given directly as Var(*,*,*) so we just have to read the index
+            varinvpos = int(varinvalias[4:varinvalias.find(",")])
+        else:
+            # we need to recover index from alias
+            tmp = self.aliases[0].copy()
+            for (i, s) in enumerate(tmp):
+                tmp[i] = s[:s.find("=")].strip()
+            varinvpos = tmp.index(varinvalias)
+
+        self.varinvpos = varinvpos
+        self.dtype = dtype
+
+    def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
+        return SquaredKernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, self.accuracy_flags, *args)
+
+
+
+
+
+
+
+
 
 
 
