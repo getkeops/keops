@@ -122,17 +122,17 @@ std::tuple< int, int, int, int * > check_ranges(int nargs, array_t *obj_ptr) {
     }
     
     #if C_CONTIGUOUS
-    MN_pos = nbatchdims;
-    D_pos = nbatchdims + 1;
-    get_size_batch = [](auto obj_ptr, int nbatch, int b) {
-    return get_size(obj_ptr, b);
-  };
+      MN_pos = nbatchdims;
+      D_pos = nbatchdims + 1;
+      get_size_batch = [](auto obj_ptr, int nbatch, int b) {
+        return get_size(obj_ptr, b);
+      };
     #else
-    MN_pos = nbatchdims + 1;
-    D_pos = nbatchdims;
-    get_size_batch = [](auto obj_ptr, int nbatch, int b) {
-      return get_size(obj_ptr, nbatch - b);
-    };
+      MN_pos = nbatchdims + 1;
+      D_pos = nbatchdims;
+      get_size_batch = [](auto obj_ptr, int nbatch, int b) {
+        return get_size(obj_ptr, nbatch - b);
+      };
     #endif
     
     

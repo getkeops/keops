@@ -29,11 +29,12 @@ array_t allocate_result_array_gpu(const int *a, const int b = 0);
 template < typename array_t >
 array_t create_result_array(const int nx, const int ny, const int tagHostDevice = 0) {
 
-  int shape_out[2] = {keops::DIMOUT, (keops::TAGIJ == 1) ? ny : nx};
-
-  array_t result =
-      (tagHostDevice == 0) ? allocate_result_array< array_t >(shape_out) : allocate_result_array_gpu< array_t >(
-          shape_out);
+  #if C_CONTIGUOUS
+    int shape_out[2] = { (keops::TAGIJ == 1) ? ny : nx, keops::DIMOUT};
+  #else
+    int shape_out[2] = {keops::DIMOUT, (keops::TAGIJ == 1) ? ny : nx};
+  #endif
+  array_t result = (tagHostDevice == 0) ? allocate_result_array< array_t >(shape_out) : allocate_result_array_gpu< array_t >(shape_out);
   return result;
 }
 
