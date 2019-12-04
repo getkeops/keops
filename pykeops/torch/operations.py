@@ -333,7 +333,7 @@ class SquaredKernelSolveAutograd(torch.autograd.Function):
         ctx.aliases = 2*[None]
         ctx.aliases[0] = aliases
 
-	myconv = 2*[None]
+        myconv = 2*[None]
         myconv[0] = LoadKeOps(formula[0], aliases[0], dtype, 'torch',
                            optional_flags).import_module()
         myconv[1] = LoadKeOps(formula[1], aliases[1], dtype, 'torch',
@@ -378,7 +378,7 @@ class SquaredKernelSolveAutograd(torch.autograd.Function):
             return res
 
         global copy
-	result = ConjugateGradientSolver('torch', linop, varinv.data, eps)
+        result = ConjugateGradientSolver('torch', linop, varinv.data, eps)
 
         ctx.save_for_backward(*args,result)
 
@@ -477,6 +477,7 @@ class SquaredKernelSolve():
 
         self.accuracy_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op)
 
+        self.formula = 2*[None]
         self.formula[0] = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.formula[1] = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(1-axis)) + ')'
         

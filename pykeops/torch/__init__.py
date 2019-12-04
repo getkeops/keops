@@ -23,7 +23,7 @@ default_dtype = 'float32'
 # Import pyKeOps routines 
 
 from .generic.generic_red import Genred
-from .operations import KernelSolve
+from .operations import KernelSolve, SquaredKernelSolve
 from .kernel_product.kernels import Kernel, kernel_product, kernel_formulas
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
 from .kernel_product.formula import Formula

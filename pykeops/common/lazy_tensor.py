@@ -115,6 +115,7 @@ class LazyTensor:
         self.tools = None
         self.Genred = None
         self.KernelSolve = None
+        self.SquaredKernelSolve = None
         self.batchdims = None
         self.ni = None
         self.nj = None
@@ -192,6 +193,7 @@ class LazyTensor:
                 self.tools = torchtools
                 self.Genred = torchtools.Genred
                 self.KernelSolve = torchtools.KernelSolve
+                self.SquaredKernelSolve = torchtools.SquaredKernelSolve
                 self.dtype = self.tools.dtypename(self.tools.dtype(x))
             else:
                 str_numpy = "NumPy arrays, " if usenumpy else ""
@@ -345,6 +347,7 @@ class LazyTensor:
         res.dtype = self.dtype
         res.Genred = self.Genred
         res.KernelSolve = self.KernelSolve
+        res.SquaredKernelSolve = self.SquaredKernelSolve
         res.batchdims = self.batchdims
         res.ni = self.ni
         res.nj = self.nj
@@ -359,7 +362,7 @@ class LazyTensor:
         Merges the variables and attributes of two :class:`LazyTensor`, with a compatibility check. This method concatenates tuples of variables, without paying attention to repetitions.
         """
         res = LazyTensor.promote(self, other,
-                                 ("dtype", "tools", "Genred", "KernelSolve", "ni", "nj", "ranges", "backend"))
+                                 ("dtype", "tools", "Genred", "KernelSolve", "SquaredKernelSolve", "ni", "nj", "ranges", "backend"))
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
         
         def max_tuple(a, b):
@@ -726,7 +729,7 @@ class LazyTensor:
             res.formula = self.formula
         
         res.formula2 = None
-        res.reduction_op = "Solve"
+        res.reduction_op = "SquaredKernelSolve"
         res.varindex = varindex
         res.varformula = var.formula.replace("VarSymb", "Var")
         res.other = other
@@ -738,7 +741,7 @@ class LazyTensor:
         
         if res.dtype is not None:
             res.fixvariables()
-            res.callfun = res.KernelSolve(res.formula, [], res.varformula,
+            res.callfun = res.SquaredKernelSolve(res.formula, [], res.varformula,
                                           res.axis, res.dtype, **kwargs_init)
         
         # we call if call=True, if other is not symbolic, and if the dtype is set
@@ -749,7 +752,7 @@ class LazyTensor:
     
     def __call__(self, *args, **kwargs):
         r"""
-        Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` call on the input data, as specified by **self.formula** .
+        Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` or :mod:`SquaredKernelSolve <pykeops.torch.SquaredKernelSolve>` call on the input data, as specified by **self.formula** .
         """
         if not hasattr(self,"reduction_op"):
             raise ValueError("A LazyTensor object may be called only if it corresponds to the ouput of a reduction operation or solve operation.")
@@ -773,6 +776,7 @@ class LazyTensor:
                 self.tools = torchtools
                 self.Genred = torchtools.Genred
                 self.KernelSolve = torchtools.KernelSolve
+                self.SquaredKernelSolve = torchtools.SquaredKernelSolve
             
             self.dtype = self.tools.dtypename(self.tools.dtype(args[0]))
             self.fixvariables()
