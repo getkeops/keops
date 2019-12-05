@@ -11,25 +11,30 @@
 using namespace keops;
 
 template<>
-size_t keops_binders::get_ndim(const mxArray* pm) {
+int keops_binders::get_ndim(const mxArray* pm) {
   return mxGetNumberOfDimensions(pm);
 }
 
 template<>
-size_t keops_binders::get_size(const mxArray* pm, size_t l) {
+int keops_binders::get_size(const mxArray* pm, int l) {
   const mwSize *d = mxGetDimensions(pm);
   return d[l];
 }
 
 template< typename _T >
 _T* keops_binders::get_data(const mxArray* pm) {
-  return mxGetPr(pm);
+  return static_cast< _T* >(mxGetData(pm));
 }
 
 template<>
-mxArray *keops_binders::allocate_result_array(const size_t *dimout, const size_t a) {
+mxArray* keops_binders::allocate_result_array< mxArray*, double >(const size_t* dimout, const size_t a) {
   return mxCreateNumericArray((int) 2, dimout, mxDOUBLE_CLASS, mxREAL);
 //  return mxCreateDoubleMatrix(dimout[0], dimout[1], mxREAL);
+}
+
+template<>
+mxArray* keops_binders::allocate_result_array< mxArray*, float >(const size_t* dimout, const size_t a) {
+  return mxCreateNumericArray((int) 2, dimout, mxSINGLE_CLASS, mxREAL);
 }
 
 template<>
@@ -144,21 +149,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   // number of input arrays of the matlab function.
   // The "-3" is because there are 3 parameter inputs before the list
   // of arrays : tagCpuGpu, tagID2D, device_id
-  std::tuple< size_t, size_t, size_t, size_t * > sizes = keops_binders::check_ranges(nrhs - 3, args);
+  std::tuple< int, int, int, int* > sizes = keops_binders::check_ranges(nrhs - 3, args);
   
-  size_t nx = std::get< 0 >(sizes);
-  size_t ny = std::get< 1 >(sizes);
+  int nx = std::get< 0 >(sizes);
+  int ny = std::get< 1 >(sizes);
 
 //////////////////////////////////////////////////////////////
 // Output arguments
 //////////////////////////////////////////////////////////////
   
   // set the output pointer to the output result(vector)
-  plhs[0] = keops_binders::create_result_array< mxArray * >(nx, ny);
+  plhs[0] = keops_binders::create_result_array< mxArray*, __TYPE__ >(nx, ny);
   
   //create a C pointer to a copy of the output result(vector)
-  double *gamma = mxGetPr(plhs[0]);
-  __TYPE__ *castedgamma = castedFun< __TYPE__ >(plhs[0]);
+  __TYPE__* gamma = (__TYPE__*) keops_binders::get_data< mxArray* >(plhs[0]);
 
 //////////////////////////////////////////////////////////////
 // Call Cuda codes
@@ -167,15 +171,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   keops_binders::launch_keops(tag1D2D, tagCpuGpu, tagHostDevice,
                               Device_Id_s,
                               nx, ny,
-                              castedgamma,
+                              gamma,
                               castedargs);
 
 #if not USE_DOUBLE
-  // copy the casted results in double
-  int ngamma = mxGetNumberOfElements(plhs[0]);
-  std::copy(castedgamma, castedgamma + ngamma, gamma);
-
-  delete[] castedgamma;
   for(int k=0; k<nrhs-3; k++)
     delete[] castedargs[k];
 #endif

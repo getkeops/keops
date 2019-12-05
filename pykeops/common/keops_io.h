@@ -168,7 +168,7 @@ array_t generic_red(
   int *shape_output = keops_binders::get_output_shape(shapes, nbatchdims);
   printf("line 169\n"); 
   // Call Cuda codes =========================================================
-  array_t result = keops_binders::create_result_array< array_t >(nx, ny, tagHostDevice);
+  array_t result = keops_binders::create_result_array< array_t, __TYPE__ >(nx, ny, tagHostDevice);
   printf("line 172\n"); 
   
   if (tagRanges == 1) {

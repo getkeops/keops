@@ -25,7 +25,7 @@ int get_size(at::Tensor obj_ptri, int l) {
 }
 
 template <>
-__TYPE__ *get_data(at::Tensor obj_ptri) {
+__TYPE__* get_data< at::Tensor, __TYPE__ >(at::Tensor obj_ptri) {
   return obj_ptri.data_ptr< __TYPE__ >();
 }
 
@@ -41,7 +41,7 @@ bool is_contiguous(at::Tensor obj_ptri) {
 #endif
 
 template <>
-at::Tensor allocate_result_array(const int* shape_out, const int nbatchdims) {
+at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims) {
   // ATen only accepts "long int arrays" to specify the shape of a new tensor:
   int64_t shape_out_long[nbatchdims + 2];
   std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
@@ -51,9 +51,10 @@ at::Tensor allocate_result_array(const int* shape_out, const int nbatchdims) {
 
 }
 
-#if USE_CUDA
+
 template <>
-at::Tensor allocate_result_array_gpu(const int* shape_out, const int nbatchdims) {
+at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims) {
+#if USE_CUDA
   // ATen only accepts "long int arrays" to specify the shape of a new tensor:
   int64_t shape_out_long[nbatchdims + 2];
   std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
@@ -61,13 +62,14 @@ at::Tensor allocate_result_array_gpu(const int* shape_out, const int nbatchdims)
 
   // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
   return torch::empty(shape_out_array, at::device(at::kCUDA).dtype(AT_TYPE).requires_grad(true));
-
-}
+#else
+  keops_error(Error_msg_no_cuda);
 #endif
+}
 
 template <>
 __INDEX__ *get_rangedata(at::Tensor obj_ptri) {
-  return obj_ptri.data< __INDEX__ >();
+  return obj_ptri.data_ptr< __INDEX__ >();
 }
 
 void keops_error(std::basic_string< char > msg) {

@@ -20,21 +20,23 @@ namespace keops_binders {
 
 void keops_error(std::basic_string< char >);
 
-template < typename array_t >
-array_t allocate_result_array(const int *a, const int b = 0);
+template< typename array_t, typename _T >
+array_t allocate_result_array(const size_t* a, const size_t b = 0);
 
-template < typename array_t >
-array_t allocate_result_array_gpu(const int *a, const int b = 0);
+template< typename array_t, typename _T >
+array_t allocate_result_array_gpu(const size_t* a, const size_t b = 0);
 
-template < typename array_t >
+template< typename array_t, typename _T >
 array_t create_result_array(const int nx, const int ny, const int tagHostDevice = 0) {
 
   #if C_CONTIGUOUS
-    int shape_out[2] = { (keops::TAGIJ == 1) ? ny : nx, keops::DIMOUT};
+  size_t shape_out[2] = { (keops::TAGIJ == 1) ? static_cast< size_t >(ny) : static_cast< size_t >(nx), static_cast< size_t >(keops::DIMOUT)};
   #else
-    int shape_out[2] = {keops::DIMOUT, (keops::TAGIJ == 1) ? ny : nx};
+  size_t shape_out[2] = {static_cast< size_t >(keops::DIMOUT),
+                         (keops::TAGIJ == 1) ? static_cast< size_t >(ny) : static_cast< size_t >(nx)};
   #endif
-  array_t result = (tagHostDevice == 0) ? allocate_result_array< array_t >(shape_out) : allocate_result_array_gpu< array_t >(shape_out);
+  array_t result = (tagHostDevice == 0) ? allocate_result_array< array_t, _T >(shape_out)
+                                        : allocate_result_array_gpu< array_t, _T >(shape_out);
   return result;
 }
 
