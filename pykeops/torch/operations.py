@@ -330,20 +330,18 @@ class SquaredKernelSolveAutograd(torch.autograd.Function):
     
         optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] + accuracy_flags
 
-        ctx.aliases = 2*[None]
-        ctx.aliases[0] = aliases
-
         myconv = 2*[None]
+
         myconv[0] = LoadKeOps(formula[0], aliases[0], dtype, 'torch',
                            optional_flags).import_module()
+
         myconv[1] = LoadKeOps(formula[1], aliases[1], dtype, 'torch',
                            optional_flags).import_module()
 
-        resvar0 = 'Var(' + str(varinvpos) + ',' + str(myconv[0].dimout) + ',' + str(myconv[0].tagIJ) + ')'
-        ctx.aliases[1] = self.aliases[:varinvpos] + [resvar0] + self.aliases[varinvpos+1:]
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
+        ctx.aliases = aliases
         ctx.varinvpos = varinvpos
         ctx.alpha = alpha
         ctx.backend = backend
@@ -413,9 +411,8 @@ class SquaredKernelSolveAutograd(torch.autograd.Function):
         # there is also a new variable for the "SavedForward" tensor, to be used when creating the formula for the gradient below ("Grad_WithSavedForward(...)")
         # In the present case (gradient of the inverse), it will be the result of Kinv(K varinv) = varinv, i.e. just the original input tensor !!!
         # This should never be used anyway because up to now we only use linear operations defined via sum reductions, for which the "SavedForward" argument is unused.
-        _, cat, dim, _ = get_type(aliases[varinvpos], position_in_list=varinvpos)
-        resvar = 'Var(' + str(nargs+1) + ',' + str(dim) + ',' + str(cat) + ')'
-        
+
+        resvar = 'Var(' + str(nargs+1) + ',' + str(myconv[1].dimout) + ',' + str(myconv[1].tagIJ) + ')'      
         resvar0 = 'Var(' + str(nargs+1) + ',' + str(myconv[0].dimout) + ',' + str(myconv[0].tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
@@ -423,7 +420,7 @@ class SquaredKernelSolveAutograd(torch.autograd.Function):
 
         grads = []  # list of gradients wrt. args;
 
-        for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
+        for (var_ind, sig) in enumerate(aliases[0]):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[var_ind + 10]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags)
                 grads.append(None)  # Don't waste time computing it.
@@ -468,7 +465,8 @@ class SquaredKernelSolveAutograd(torch.autograd.Function):
 
 class SquaredKernelSolve():
 
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
+    def __init__(self, formula, varinvalias, varinvalias2, axis=0, dtype=default_dtype, cuda_type=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
+
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
@@ -478,20 +476,18 @@ class SquaredKernelSolve():
         self.accuracy_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op)
 
         self.formula = 2*[None]
-        self.formula[0] = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
-        self.formula[1] = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(1-axis)) + ')'
-        
-        self.aliases = complete_aliases(formula, list(aliases))  # just in case the user provided a tuple
+        self.aliases = 2*[None]
 
-        if varinvalias[:4] == "Var(":
-            # varinv is given directly as Var(*,*,*) so we just have to read the index
-            varinvpos = int(varinvalias[4:varinvalias.find(",")])
-        else:
-            # we need to recover index from alias
-            tmp = self.aliases[0].copy()
-            for (i, s) in enumerate(tmp):
-                tmp[i] = s[:s.find("=")].strip()
-            varinvpos = tmp.index(varinvalias)
+        self.formula[0] = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+        self.aliases[0] = complete_aliases(self.formula[0], [])
+
+        formula = formula.replace(varinvalias,varinvalias2)
+
+        self.formula[1] = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(1-axis)) + ')'
+        self.aliases[1] = complete_aliases(self.formula[1], [])
+        
+        # here we assume varinvalias is given directly as Var(*,*,*) so we just have to read the index
+        varinvpos = int(varinvalias[4:varinvalias.find(",")])
 
         self.varinvpos = varinvpos
         self.dtype = dtype

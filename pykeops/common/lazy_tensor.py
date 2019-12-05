@@ -650,7 +650,7 @@ class LazyTensor:
         else:
             return res
     
-    def sqsolve(self, other, var=None, call=True, **kwargs):
+    def sqsolve(self, other, call=True, **kwargs):
         r"""
         Solves a positive definite linear system of the form ``sum(self*sum(self*var)) = other``, using a conjugate gradient solver.
         (where axis of second sum is opposite of axis of first, i.e. we encode a A^T A x = y linear system, where self encodes matrix A) 
@@ -661,13 +661,6 @@ class LazyTensor:
 
         Keyword args:
 
-          var (:class:`LazyTensor`):
-            If **var** is **None**, **sqsolve** will return the solution
-            of the ``self * var = other`` equation.
-            Otherwise, if **var** is a KeOps symbolic variable, **sqsolve** will
-            assume that **self** defines an expression that is linear
-            with respect to **var** and solve the equation ``self^T(self(var)) = other``
-            with respect to **var**.
           alpha (float, default=1e-10): Non-negative **ridge regularization** parameter.
           call (bool): If **True** and if no other symbolic variable than 
             **var** is contained in **self**, **sqsolve** will return a tensor 
@@ -712,26 +705,24 @@ class LazyTensor:
         if len(other.symbolic_variables) == 0 and len(self.symbolic_variables) != 0:
             raise ValueError("If 'self' has symbolic variables, so should 'other'.")
         
-        # we infer axis of reduction as the opposite of the axis of output
-        axis = 1 - other.axis
+        # we infer axis of first reduction equal to the axis of output
+        axis = other.axis
         
-        if var is None:
-            # this is the classical mode: we want to invert sum(self^T*sum(self*var)) = other 
-            # we define var as a new symbolic variable with same dimension as other
-            # and we assume axis of var is same as axis of reduction
-            varindex = len(self.symbolic_variables)
-            var = Var(varindex, other.ndim, axis)
-            res = self * var
-        else:
-            # var is given and must be a symbolic variable which is already inside self
-            varindex = var.symbolic_variables[0][0]
-            res = self.init()
-            res.formula = self.formula
+        # we want to invert sum(self^T*sum(self*var)) = other 
+        # we define var as a new symbolic variable with same dimension as other
+        # and we assume axis of var is same as axis of reduction
+        varindex = len(self.symbolic_variables)
+        var = Var(varindex, other.ndim, axis)
+
+        res = self * var
+
+        var2 = Var(varindex, res.ndim, 1-axis)
         
         res.formula2 = None
         res.reduction_op = "SquaredKernelSolve"
         res.varindex = varindex
         res.varformula = var.formula.replace("VarSymb", "Var")
+        res.varformula2 = var2.formula.replace("VarSymb", "Var")
         res.other = other
         res.axis = axis
 
@@ -741,7 +732,7 @@ class LazyTensor:
         
         if res.dtype is not None:
             res.fixvariables()
-            res.callfun = res.SquaredKernelSolve(res.formula, [], res.varformula,
+            res.callfun = res.SquaredKernelSolve(res.formula, res.varformula, res.varformula2,
                                           res.axis, res.dtype, **kwargs_init)
         
         # we call if call=True, if other is not symbolic, and if the dtype is set
@@ -784,10 +775,10 @@ class LazyTensor:
             kwargs_init, self.kwargs = self.separate_kwargs(self.kwargs)
 
             if self.reduction_op == "Solve":
-                self.callfun = self.KernelSolve(self.formula, [], self.formula2,
+                self.callfun = self.KernelSolve(self.formula, [], self.varformula,
                                                 self.axis, self.dtype, **kwargs_init)
             elif self.reduction_op == "SquaredKernelSolve":
-                self.callfun = self.SquaredKernelSolve(self.formula, [], self.formula2,
+                self.callfun = self.SquaredKernelSolve(self.formula, self.varformula, self.varformula2,
                                                 self.axis, self.dtype, **kwargs_init)
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op,
