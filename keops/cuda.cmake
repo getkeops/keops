@@ -97,6 +97,8 @@ if(CUDA_FOUND AND USE_CUDA)
   # Options for nvcc
   CUDA_SELECT_NVCC_ARCH_FLAGS(out_variable "Auto")
 
+  set(CMAKE_CUDA_STANDARD 14)
+
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
 
   List(APPEND CUDA_NVCC_FLAGS ${out_variable})
