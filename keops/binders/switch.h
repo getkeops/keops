@@ -21,13 +21,13 @@ namespace keops_binders {
 void keops_error(std::basic_string< char >);
 
 template< typename array_t, typename _T >
-array_t allocate_result_array(const size_t* a, const size_t b = 0);
+array_t allocate_result_array(const size_t* shape_out, const size_t nbatchdims = 0);
 
 template< typename array_t, typename _T >
-array_t allocate_result_array_gpu(const size_t* a, const size_t b = 0);
+array_t allocate_result_array_gpu(const size_t* shape_out, const size_t nbatchdims = 0, short int Device_Id = 0);
 
 template< typename array_t, typename _T >
-array_t create_result_array(const int nx, const int ny, const int tagHostDevice = 0) {
+array_t create_result_array(const int nx, const int ny, const int tagHostDevice = 0, const short int Device_Id = 0) {
 
   #if C_CONTIGUOUS
   size_t shape_out[2] = { (keops::TAGIJ == 1) ? static_cast< size_t >(ny) : static_cast< size_t >(nx), static_cast< size_t >(keops::DIMOUT)};
@@ -57,7 +57,7 @@ int* get_output_shape(int* shapes = {}, int nbatchdims = 0) {
   return shape_output;
 }
 
-template < typename array_t, typename array_t_out >
+template< typename array_t, typename array_t_out = array_t >
 array_t_out launch_keops(int tag1D2D,
                   int tagCpuGpu,
                   int tagHostDevice,

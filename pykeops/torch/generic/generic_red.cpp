@@ -53,7 +53,8 @@ at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(const size_t* shape_out
 
 
 template <>
-at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims) {
+at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims,
+                                                             short int Device_Id) {
 #if USE_CUDA
   // ATen only accepts "long int arrays" to specify the shape of a new tensor:
   int64_t shape_out_long[nbatchdims + 2];
@@ -61,9 +62,10 @@ at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(const size_t* shape
   c10::ArrayRef < int64_t > shape_out_array(shape_out_long, (int64_t) nbatchdims + 2);
 
   // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
-  return torch::empty(shape_out_array, at::device(at::kCUDA).dtype(AT_TYPE).requires_grad(true));
+  return torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_TYPE).requires_grad(true));
 #else
   keops_error(Error_msg_no_cuda);
+  throw std::runtime_error("Simply here to avoid a warning at compilation.");
 #endif
 }
 

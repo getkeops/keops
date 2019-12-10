@@ -60,13 +60,10 @@ variables = ['x = Vi(3)',  # First arg   : i-variable, of size 3
 
 my_routine = Genred(formula, variables, reduction_op='Sum', axis=1, dtype=dtype)
 c = my_routine(x, y, a, p, backend='auto')
-print("c.shape: ", c.shape)
-print(c)
+
 ####################################################################
 # The equivalent code in NumPy:
 c_np = ((p - a.T)[:,np.newaxis] **2 * np.exp(x.T[:,:,np.newaxis] + y.T[:,np.newaxis,:]) ).sum(2).T
-print(c_np.shape)
-print(c_np)
 
 # Plot the results next to each other:
 for i in range(3):

@@ -38,7 +38,7 @@ int get_size(__NUMPYARRAY__ obj_ptri, int l) {
 
 template<>
 __TYPE__* get_data(__NUMPYARRAY__ obj_ptri) {
-  return (__TYPE__ *) obj_ptri.data();
+  return const_cast< __TYPE__* >(obj_ptri.data());
 }
 
 template<>
@@ -48,14 +48,14 @@ bool is_contiguous(__NUMPYARRAY__ obj_ptri) {
 
 template<>
 __NUMPYARRAY__ allocate_result_array< __NUMPYARRAY__, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims) {
-  printf("nb %d: %d, %d, %d\n", nbatchdims + 2 , shape_out[0], shape_out[1], shape_out[2]);
   // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
   std::vector< int > shape_vector(shape_out, shape_out + nbatchdims + 2);
   return __NUMPYARRAY__(shape_vector);
 }
 
 template <>
-__NUMPYARRAY__ allocate_result_array_gpu< __NUMPYARRAY__, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims) {
+__NUMPYARRAY__ allocate_result_array_gpu< __NUMPYARRAY__, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims,
+                                                                     short int Device_Id) {
   throw std::runtime_error("[KeOps] numpy does not yet support nd array on GPU.");
 }
 
