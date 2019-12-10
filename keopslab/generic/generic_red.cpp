@@ -21,11 +21,25 @@ int keops_binders::get_size(const mxArray* pm, int l) {
   return d[l];
 }
 
-template< typename _T >
-_T* keops_binders::get_data(const mxArray* pm) {
-  return static_cast< _T* >(mxGetData(pm));
+template<>
+double* keops_binders::get_data< mxArray*, double >(mxArray* pm) {
+  return static_cast< double* >(mxGetData(pm));
 }
 
+template<>
+float* keops_binders::get_data< mxArray*, float >(mxArray* pm) {
+  return static_cast< float* >(mxGetData(pm));
+}
+
+template<>
+double* keops_binders::get_data< const mxArray*, double >(const mxArray* pm) {
+  return static_cast< double* >(mxGetData(pm));
+}
+
+template<>
+float* keops_binders::get_data< const mxArray*, float >(const mxArray* pm) {
+  return static_cast< float* >(mxGetData(pm));
+}
 template<>
 mxArray* keops_binders::allocate_result_array< mxArray*, double >(const size_t* dimout, const size_t a) {
   return mxCreateNumericArray((int) 2, dimout, mxDOUBLE_CLASS, mxREAL);
@@ -38,7 +52,7 @@ mxArray* keops_binders::allocate_result_array< mxArray*, float >(const size_t* d
 }
 
 template<>
-mxArray* keops_binders::allocate_result_array_gpu(const size_t* dimout, const size_t a) {
+mxArray* keops_binders::allocate_result_array_gpu< mxArray*, __TYPE__ >(const size_t* a, const size_t b) {
   mexErrMsgTxt("[keOpsLab] does not yet support array on GPU.");
 }
 
@@ -53,22 +67,40 @@ bool keops_binders::is_contiguous(const mxArray* pm) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Helper function to cast mxArray (which is double by default) to __TYPE__   //
+// Helper functions to cast mxArray                                           //
 ////////////////////////////////////////////////////////////////////////////////
 
-template< typename output_T >
-output_T* castedFun(const mxArray* dd) {
-  /*  get the dimensions */
+const mxArray* castedFun(const mxArray* dd) {
+
 #if  USE_DOUBLE
-  return keops_binders::get_data< double >(dd);
+  //return keops_binders::get_data< double >(dd);
+  return dd;
 #else
-  int n = mxGetNumberOfElements(dd);
-  double *double_ptr = keops_binders::get_data< double >(dd);
+  mxArray* df = mxCreateNumericArray(mxGetNumberOfDimensions(dd), mxGetDimensions(dd), mxSINGLE_CLASS, mxREAL);
+  float* float_ptr = (float*) mxGetData(df);
   
-  output_T *float_ptr = new output_T[n];
+  double* double_ptr = (double*) mxGetData(dd);
+  int n = mxGetNumberOfElements(dd);
   std::copy(double_ptr, double_ptr + n, float_ptr);
   
-  return float_ptr;
+  return df;
+#endif
+};
+
+mxArray* icastedFun(mxArray* df) {
+
+#if  USE_DOUBLE
+  //return keops_binders::get_data< double >(dd);
+  return dd;
+#else
+  mxArray* dd = mxCreateNumericArray(mxGetNumberOfDimensions(df), mxGetDimensions(df), mxDOUBLE_CLASS, mxREAL);
+  double* double_ptr = (double*) mxGetData(dd);
+  
+  float* float_ptr = (float*) mxGetData(df);
+  int n = mxGetNumberOfElements(df);
+  std::copy(float_ptr, float_ptr + n, double_ptr);
+  
+  return dd;
 #endif
 };
 
@@ -112,7 +144,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   if (mxGetM(prhs[argu]) != 1 || mxGetN(prhs[argu]) != 1)
     mexErrMsgTxt("[KeOps]: third arg should be scalar tagCpuGpu");
   int tagCpuGpu = *mxGetPr(prhs[argu]);
-  keops_binders::check_tag(tagCpuGpu, "CpuGpu");
   
   
   argu++;
@@ -120,65 +151,36 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   if (mxGetM(prhs[argu]) != 1 || mxGetN(prhs[argu]) != 1)
     mexErrMsgTxt("[KeOps]: fourth arg should be scalar tag1D2D");
   int tag1D2D = *mxGetPr(prhs[argu]);
-  keops_binders::check_tag(tag1D2D, "1D2D");
+
   
   //----- GpuArray are not currently supported--------------//
   int tagHostDevice = 0;
-  keops_binders::check_tag(tagHostDevice, "HostDevice");
   
   argu++;
   //----- the next input arguments: device_id--------------//
   if (mxGetM(prhs[argu]) != 1 || mxGetN(prhs[argu]) != 1)
     mexErrMsgTxt("[KeOps]: fifth arg should be scalar device_id");
-  short int Device_Id_s = keops_binders::cast_Device_Id(*mxGetPr(prhs[argu]));
+  int Device_Id_s = *mxGetPr(prhs[argu]);
   
   argu++;
   //----- the next input arguments: args--------------//
   //  create pointers to the input vectors
-  const mxArray *args[keops::NARGS];
-  __TYPE__ *castedargs[keops::NARGS];
-  
-  printf("---- %d\n", keops::NARGS);
-  printf("---- %d\n", nrhs - 3);
+  const mxArray *castedargs[keops::NARGS];
   for (int k = 0; k < nrhs - 3; k++) {
-    //  input sources
-    args[k] = prhs[argu + k];
-    castedargs[k] = castedFun< __TYPE__ >(prhs[argu + k]);
+    castedargs[k] = castedFun(prhs[argu + k]);
   }
-
-  // number of input arrays of the matlab function.
-  // The "-3" is because there are 3 parameter inputs before the list
-  // of arrays : tagCpuGpu, tagID2D, device_id
-  std::tuple< int, int, int, int* > sizes = keops_binders::check_ranges(nrhs - 3, args);
   
-  int nx = std::get< 0 >(sizes);
-  int ny = std::get< 1 >(sizes);
-
-//////////////////////////////////////////////////////////////
-// Output arguments
-//////////////////////////////////////////////////////////////
-  
-  // set the output pointer to the output result(vector)
-  plhs[0] = keops_binders::create_result_array< mxArray*, __TYPE__ >(nx, ny);
-  
-  //create a C pointer to a copy of the output result(vector)
-  __TYPE__* gamma = (__TYPE__*) keops_binders::get_data< mxArray* >(plhs[0]);
-
 //////////////////////////////////////////////////////////////
 // Call Cuda codes
 //////////////////////////////////////////////////////////////
   
-  keops_binders::launch_keops(tag1D2D, tagCpuGpu, tagHostDevice,
-                              Device_Id_s,
-                              nx, ny,
-                              gamma,
-                              castedargs);
-
-#if not USE_DOUBLE
-  for(int k=0; k<nrhs-3; k++)
-    delete[] castedargs[k];
-#endif
-
+  plhs[0] = icastedFun(keops_binders::launch_keops< const mxArray*, mxArray* >(
+          tag1D2D,
+          tagCpuGpu,
+          tagHostDevice,
+          Device_Id_s,
+          nrhs - 3,
+          castedargs));
 }
 
 

@@ -57,29 +57,47 @@ int* get_output_shape(int* shapes = {}, int nbatchdims = 0) {
   return shape_output;
 }
 
-void launch_keops(int tag1D2D,
+template < typename array_t, typename array_t_out >
+array_t_out launch_keops(int tag1D2D,
                   int tagCpuGpu,
                   int tagHostDevice,
-                  short int Device_Id,
-                  int nx,
-                  int ny,
-                  __TYPE__ *result_array,
-                  __TYPE__ **castedargs) {
+                  int deviceId,
+                  int nargs,
+                  array_t *args) {
+  
+  keops_binders::check_tag(tag1D2D, "1D2D");
+  keops_binders::check_tag(tagCpuGpu, "CpuGpu");
+  keops_binders::check_tag(tagHostDevice, "HostDevice");
+  
+  short int Device_Id_s = keops_binders::cast_Device_Id(deviceId);
+  
+  std::tuple< int, int, int, int* > sizes = keops_binders::check_ranges(nargs, args);
+  int nx = std::get< 0 >(sizes);
+  int ny = std::get< 1 >(sizes);
+  
+  array_t_out result = create_result_array< array_t_out, __TYPE__ >(nx, ny, tagHostDevice);
+  __TYPE__ *result_array =  get_data< array_t_out, __TYPE__ >(result);
+  
+  // get the pointers to data to avoid a copy
+  __TYPE__* args_ptr[NARGS];
+  for (int i = 0; i < NARGS; i++)
+    args_ptr[i] = keops_binders::get_data< array_t, __TYPE__ >(args[i]);
+  
   // Create a decimal word to avoid nested conditional below
   int decision = 100 * tagHostDevice + 10 * tagCpuGpu + tag1D2D;
 
   switch (decision) {
     case 0: {
       //auto result_array = allocate_result_array< array_t >(shape_out);
-      CpuReduc(nx, ny, result_array, castedargs);
-      return;
+      CpuReduc(nx, ny, result_array, args_ptr);
+      return result;
     }
 
     case 10: {
 #if USE_CUDA
       //auto result_array = allocate_result_array< array_t >(shape_out);
-      GpuReduc1D_FromHost(nx, ny, result_array, castedargs, Device_Id);
-      return;
+      GpuReduc1D_FromHost(nx, ny, result_array, args_ptr, Device_Id);
+      return result;
 #else
       keops_error(Error_msg_no_cuda);
 #endif
@@ -88,8 +106,8 @@ void launch_keops(int tag1D2D,
     case 11: {
 #if USE_CUDA
       //auto result_array = allocate_result_array< array_t >(shape_out);
-      GpuReduc2D_FromHost(nx, ny, result_array, castedargs, Device_Id);
-      return;
+      GpuReduc2D_FromHost(nx, ny, result_array, args_ptr, Device_Id);
+      return result;
 #else
       keops_error(Error_msg_no_cuda);
 #endif
@@ -98,8 +116,8 @@ void launch_keops(int tag1D2D,
     case 110: {
 #if USE_CUDA
       //auto result_array = allocate_result_array_gpu< array_t >(shape_out);
-      GpuReduc1D_FromDevice(nx, ny, result_array, castedargs, Device_Id);
-      return;
+      GpuReduc1D_FromDevice(nx, ny, result_array, args_ptr, Device_Id);
+      return result;
 #else
       keops_error(Error_msg_no_cuda);
 #endif
@@ -108,8 +126,8 @@ void launch_keops(int tag1D2D,
     case 111: {
 #if USE_CUDA
       //auto result_array = allocate_result_array_gpu< array_t >(shape_out);
-      GpuReduc2D_FromDevice(nx, ny, result_array, castedargs, Device_Id);
-      return;
+      GpuReduc2D_FromDevice(nx, ny, result_array, args_ptr, Device_Id);
+      return result;
 #else
       keops_error(Error_msg_no_cuda);
 #endif
@@ -130,7 +148,7 @@ array_t launch_keops_ranges(int tag1D2D, int tagCpuGpu, int tagHostDevice,
                             int nranges_x, int nranges_y,
                             int nredranges_x, int nredranges_y,
                             __INDEX__ **castedranges,
-                            __TYPE__ **castedargs) {
+                            __TYPE__ **args_ptr) {
   // Create a decimal word to avoid nested conditional below
   int decision = 100 * tagHostDevice + 10 * tagCpuGpu + tag1D2D;
 
@@ -145,14 +163,14 @@ array_t launch_keops_ranges(int tag1D2D, int tagCpuGpu, int tagHostDevice,
                       nranges_y,
                       castedranges,
                       get_data(result_array),
-                      castedargs);
+                      args_ptr);
       return result_array;
     }
 
     case 10: {
 #if USE_CUDA
       auto result_array = allocate_result_array< array_t >(shape_out, nbatchdims);
-      GpuReduc1D_ranges_FromHost(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+      GpuReduc1D_ranges_FromHost(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges, get_data(result_array), args_ptr, Device_Id);
       return result_array;
 #else
       keops_error(Error_msg_no_cuda);
@@ -162,7 +180,7 @@ array_t launch_keops_ranges(int tag1D2D, int tagCpuGpu, int tagHostDevice,
     case 110: {
 #if USE_CUDA
       auto result_array = allocate_result_array_gpu< array_t >(shape_out, nbatchdims);
-      GpuReduc1D_ranges_FromDevice(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
+      GpuReduc1D_ranges_FromDevice(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), args_ptr, Device_Id);
       return result_array;
 #else
       keops_error(Error_msg_no_cuda);
