@@ -81,9 +81,9 @@ else()
 # ----------------- create shared lib (cpp)
 
     add_library(
-        keops${shared_obj_name} SHARED
-        ${KEOPS_SRC}/core/link_autodiff.cpp
-    )
+      keops${shared_obj_name} SHARED
+      ${KEOPS_SRC}/core/link_autodiff.cpp
+      ../keops/binders/keops_cst.h)
 
     target_compile_options(
         keops${shared_obj_name} BEFORE

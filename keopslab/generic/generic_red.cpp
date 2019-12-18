@@ -41,18 +41,28 @@ float* keops_binders::get_data< const mxArray*, float >(const mxArray* pm) {
   return static_cast< float* >(mxGetData(pm));
 }
 template<>
-mxArray* keops_binders::allocate_result_array< mxArray*, double >(const size_t* dimout, const size_t a) {
-  return mxCreateNumericArray((int) 2, dimout, mxDOUBLE_CLASS, mxREAL);
-//  return mxCreateDoubleMatrix(dimout[0], dimout[1], mxREAL);
+mxArray* keops_binders::allocate_result_array< mxArray*, double >(int* dimout, int nbatchdims) {
+  // mxArray constructor only accepts "size_t" to specify the shape of a new tensor:
+  int ndimout = nbatchdims + 2;
+  size_t dimout_size_t[ndimout];
+  std::copy(dimout, dimout + ndimout, dimout_size_t);
+  
+  return mxCreateNumericArray(ndimout, dimout_size_t, mxDOUBLE_CLASS, mxREAL);
 }
 
 template<>
-mxArray* keops_binders::allocate_result_array< mxArray*, float >(const size_t* dimout, const size_t a) {
-  return mxCreateNumericArray((int) 2, dimout, mxSINGLE_CLASS, mxREAL);
+mxArray* keops_binders::allocate_result_array< mxArray*, float >(int* dimout, int nbatchdims) {
+  // mxArray constructor only accepts "size_t" to specify the shape of a new tensor:
+  int ndimout = nbatchdims + 2;
+  size_t dimout_size_t[ndimout];
+  std::copy(dimout, dimout + ndimout, dimout_size_t);
+  
+  return mxCreateNumericArray(ndimout, dimout_size_t, mxSINGLE_CLASS, mxREAL);
 }
 
 template<>
-mxArray* keops_binders::allocate_result_array_gpu< mxArray*, __TYPE__ >(const size_t* a, const size_t b) {
+mxArray*
+keops_binders::allocate_result_array_gpu< mxArray*, __TYPE__ >(int* dimout, int nbatchdims, short int device_id) {
   mexErrMsgTxt("[keOpsLab] does not yet support array on GPU.");
 }
 

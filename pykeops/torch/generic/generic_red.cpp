@@ -41,7 +41,7 @@ bool is_contiguous(at::Tensor obj_ptri) {
 #endif
 
 template <>
-at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims) {
+at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(int* shape_out, int nbatchdims) {
   // ATen only accepts "long int arrays" to specify the shape of a new tensor:
   int64_t shape_out_long[nbatchdims + 2];
   std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
@@ -53,7 +53,7 @@ at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(const size_t* shape_out
 
 
 template <>
-at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(const size_t* shape_out, const size_t nbatchdims,
+at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(int* shape_out, int nbatchdims,
                                                              short int Device_Id) {
 #if USE_CUDA
   // ATen only accepts "long int arrays" to specify the shape of a new tensor:

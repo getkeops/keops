@@ -24,7 +24,7 @@ array_t generic_red(
         int tag1D2D,          // tag1D2D=0       means 1D Gpu scheme,      tag1D2D=1       means 2D Gpu scheme
         int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means _fromHost suffix
         int Device_Id,        // id of GPU device
-        py::tuple ranges,  // () if no "sparsity" ranges are given (default behavior)
+        py::tuple py_ranges,  // () if no "sparsity" ranges are given (default behavior)
         // Otherwise, ranges is a 6-uple of (integer) array_t
         // ranges = (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
         // as documented in the doc on sparstiy and clustering.
@@ -34,20 +34,16 @@ array_t generic_red(
   int nargs = py_args.size();
   
   // Cast the input variable : It may be a copy here...
-  std::vector< array_t > obj_ptr(py_args.size());
+  std::vector< array_t > args(py_args.size());
   for (size_t i = 0; i < py_args.size(); i++)
-    obj_ptr[i] = py::cast< array_t >(py_args[i]);
+    args[i] = py::cast< array_t >(py_args[i]);
   // If torch.h is included, the last 3 lines could be replaced by : auto obj_ptr = py::cast<std::vector<array_t>>(py_args);
   
+  int nranges = py_ranges.size();
   // Cast the six integer arrays
-  std::vector< index_t > ranges_ptr(ranges.size());
-  for (size_t i = 0; i < ranges.size(); i++)
-    ranges_ptr[i] = py::cast< index_t >(ranges[i]);
-  
-  // get the pointers to data to avoid a copy
-  __INDEX__* castedranges[ranges.size()];
-  for (size_t i = 0; i < ranges.size(); i++)
-    castedranges[i] = keops_binders::get_rangedata(ranges_ptr[i]);
+  std::vector< index_t > ranges(py_ranges.size());
+  for (size_t i = 0; i < py_ranges.size(); i++)
+    ranges[i] = py::cast< index_t >(py_ranges[i]);
   
   
   // Call Cuda codes =========================================================
@@ -63,12 +59,15 @@ array_t generic_red(
                                          
                                          castedargs);
   } else {*/
-  array_t result = keops_binders::launch_keops< array_t >(tag1D2D,
-                                                          tagCpuGpu,
-                                                          tagHostDevice,
-                                                          Device_Id,
-                                                          nargs,
-                                                          &obj_ptr[0]);
+  array_t result = keops_binders::launch_keops< array_t, array_t, index_t >
+          (tag1D2D,
+           tagCpuGpu,
+           tagHostDevice,
+           Device_Id,
+           nargs,
+           &args[0],
+           nranges,
+           &ranges[0]);
   
   /*} */
   
