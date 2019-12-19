@@ -380,9 +380,22 @@ array_t_out launch_keops(int tag1D2D,
     }
     
     case 1000: {
+      /*
+      printf("%d \n", SS.nx);
+      printf("%d \n", SS.ny);
+      printf("%d \n", SS.nbatchdims);
+      printf("%d \n", SS.shapes);
+      printf("%d \n", RR.nranges_x);
+      printf("%d \n", RR.nranges_y);
+      printf("%d \n", RR.castedranges);
+*/
+      
+      __INDEX__ **tmp;
+      int* tmp2;
+      CpuReduc(SS.nx, SS.ny, result_ptr, args_ptr);
       printf("---DFDFDSFSDFSDFSDFSDFSD\n");
-      CpuReduc_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
-                      RR.nranges_x, RR.nranges_y, RR.castedranges,
+      CpuReduc_ranges(0, 0, 0, 0,
+                      0, 0, 0,
                       result_ptr, args_ptr);
       printf("DFDFDSFSDFSDFSDFSDFSD");
       return result;

@@ -35,7 +35,7 @@ struct CpuConv_ranges {
     const int SIZEI = VARSI::SIZE + 1;
     const int SIZEJ = VARSJ::SIZE;
     const int SIZEP = VARSP::SIZE;
-
+    printf("ici1");
     // Separate and store the shapes of the "i" and "j" variables + parameters --------------
     //
     // shapes is an array of size (1+nargs)*(nbatchdims+3), which looks like:
@@ -57,7 +57,7 @@ struct CpuConv_ranges {
     // Then, we do the same for shapes_j, but with "N" instead of "M".
     // And finally for the parameters, with "1" instead of "M".
     fill_shapes< FUN >(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
-
+    printf("ici2");
     // Actual for-for loop -----------------------------------------------------
 
     TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
@@ -161,7 +161,7 @@ struct CpuConv_ranges {
     using INDSI = GetInds< VARSI >;
     using INDSJ = GetInds< VARSJ >;
     using INDSP = GetInds< VARSP >;
-
+    printf("ici0");
     TYPE *px[SIZEI];
     TYPE *py[SIZEJ];
     TYPE *params[SIZEP];
@@ -194,7 +194,7 @@ struct CpuConv_ranges {
     TYPE *px[SIZEI];
     TYPE *py[SIZEJ];
     TYPE *params[SIZEP];
-
+    printf("ici-1");
     px[0] = x1;
     for (int i = 1; i < SIZEI; i++)
       px[i] = args[INDSI::VAL(i - 1)];

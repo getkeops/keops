@@ -9,7 +9,9 @@ using namespace keops;
 #include "core/mapreduce/CpuConv.cpp"
 
 extern "C" int CpuReduc(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
-    return Eval<F,CpuConv>::Run(nx, ny, gamma, args);
+  printf("ici-3");
+  
+  return Eval<F,CpuConv>::Run(nx, ny, gamma, args);
 }
 
 
@@ -20,6 +22,7 @@ extern "C" int CpuReduc(int nx, int ny, __TYPE__* gamma, __TYPE__** args) {
 #include "core/mapreduce/CpuConv_ranges.cpp"
 
 extern "C" int CpuReduc_ranges(int nx, int ny, int nbatchdims, int *shapes, int nranges_x, int nranges_y, __INDEX__ **castedranges, __TYPE__* gamma, __TYPE__** args) {
-    return Eval<F,CpuConv_ranges>::Run(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, gamma, args);
+  printf("ici-2");
+  return Eval<F,CpuConv_ranges>::Run(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, gamma, args);
 }
 

@@ -174,8 +174,7 @@ class KernelSolve:
 
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos + 1:]
-            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, self.categories, self.dimensions,
-                                           *newargs)
+            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
             if alpha:
                 res += alpha * var
             return res
