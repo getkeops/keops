@@ -95,7 +95,6 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
       }
   
       _shapes[off_i + nbatchdims] = get_size(args[i], MN_pos);  // = "M"
-      _shapes[off_i + nbatchdims + 1] = 1;
       _shapes[off_i + nbatchdims + 2] = get_size(args[i], D_pos);  // = "D"
       
       // Check the number of "lines":
@@ -161,7 +160,6 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
       }
   
       _shapes[off_i + nbatchdims + 1] = get_size(args[i], MN_pos);  // = "N"
-      _shapes[off_i + nbatchdims] = 1;
       _shapes[off_i + nbatchdims + 2] = get_size(args[i], D_pos);  // = "D"
       
       // Check the number of "lines":
@@ -190,8 +188,11 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
       // Fill in the (i+1)-th line of the "shapes" array ---------------------------
       int off_i = (i + 1) * (nbatchdims + 3);
   
-      _shapes[off_i + nbatchdims] = 1;
-      _shapes[off_i + nbatchdims + 1] = 1;
+      // First, the batch dimensions:
+      for (int b = 0; b < nbatchdims; b++) {
+        _shapes[off_i + b] = get_size_batch(args[i], nbatchdims + 2, b);
+      }
+        
       _shapes[off_i + nbatchdims + 2] = get_size(args[i], nbatchdims);  // = "D"
   
       if (_shapes[off_i + nbatchdims + 2] != static_cast< int >(DIMSP::VAL(k))) {

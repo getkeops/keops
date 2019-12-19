@@ -45,6 +45,7 @@ array_t generic_red(
   for (size_t i = 0; i < py_ranges.size(); i++)
     ranges[i] = py::cast< index_t >(py_ranges[i]);
   
+  printf("End Pybind11_cast\n");
   
   // Call Cuda codes =========================================================
   /*if (tagRanges == 1) {

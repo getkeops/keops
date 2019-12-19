@@ -46,11 +46,9 @@ class KernelSolveAutograd(torch.autograd.Function):
                 if args[i].device.index != device_id:
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
 
-        (categories, dimensions) = parse_aliases(aliases)
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
-            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions,
-                                        *newargs)
+            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
             if alpha:
                 res += alpha*var
             return res
