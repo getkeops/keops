@@ -45,21 +45,7 @@ array_t generic_red(
   for (size_t i = 0; i < py_ranges.size(); i++)
     ranges[i] = py::cast< index_t >(py_ranges[i]);
   
-  printf("End Pybind11_cast\n");
   
-  // Call Cuda codes =========================================================
-  /*if (tagRanges == 1) {
-    keops_binders::launch_keops_ranges(tag1D2D, tagCpuGpu, tagHostDevice,
-                                            Device_Id_s,
-                                            nx, ny,
-                                         nbatchdims, shapes,
-                                            nranges_x, nranges_y,
-                                            nredranges_x, nredranges_y,
-                                         keops_binders::get_data< array_t, __TYPE__ >(result),
-                                            castedranges,
-                                         
-                                         castedargs);
-  } else {*/
   array_t result = keops_binders::launch_keops< array_t, array_t, index_t >
           (tag1D2D,
            tagCpuGpu,
@@ -69,8 +55,6 @@ array_t generic_red(
            &args[0],
            nranges,
            &ranges[0]);
-  
-  /*} */
   
   return result;
 }
