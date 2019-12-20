@@ -192,10 +192,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   }
   
 //////////////////////////////////////////////////////////////
-// Call Cuda codes
+// Call Cuda codes                                          //
 //////////////////////////////////////////////////////////////
   
-  plhs[0] = icastedFun(keops_binders::launch_keops< const mxArray*, mxArray* >(
+  plhs[0] = icastedFun(keops_binders::launch_keops< const mxArray*, mxArray*, mxArray* >(
           tag1D2D,
           tagCpuGpu,
           tagHostDevice,

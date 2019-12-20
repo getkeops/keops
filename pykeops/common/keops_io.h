@@ -25,10 +25,14 @@ array_t generic_red(
         int tagHostDevice,    // tagHostDevice=1 means _fromDevice suffix. tagHostDevice=0 means _fromHost suffix
         int Device_Id,        // id of GPU device
         py::tuple py_ranges,  // () if no "sparsity" ranges are given (default behavior)
-        // Otherwise, ranges is a 6-uple of (integer) array_t
-        // ranges = (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
-        // as documented in the doc on sparstiy and clustering.
+                              // Otherwise, ranges is a 6-uple of (integer) array_t
+                              // ranges = (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
+                              // as documented in the doc on sparstiy and clustering.
         py::args py_args) {
+  
+//////////////////////////////////////////////////////////////
+// Input arguments                                          //
+//////////////////////////////////////////////////////////////
   
   // Check that we have enough arguments:
   int nargs = py_args.size();
@@ -44,7 +48,10 @@ array_t generic_red(
   std::vector< index_t > ranges(py_ranges.size());
   for (size_t i = 0; i < py_ranges.size(); i++)
     ranges[i] = py::cast< index_t >(py_ranges[i]);
-  
+
+//////////////////////////////////////////////////////////////
+// Call Cuda codes                                          //
+//////////////////////////////////////////////////////////////
   
   array_t result = keops_binders::launch_keops< array_t, array_t, index_t >
           (tag1D2D,
