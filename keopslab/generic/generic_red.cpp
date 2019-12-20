@@ -40,6 +40,17 @@ template<>
 float* keops_binders::get_data< const mxArray*, float >(const mxArray* pm) {
   return static_cast< float* >(mxGetData(pm));
 }
+
+template<>
+__INDEX__* keops_binders::get_rangedata(mxArray* pm) {
+  return static_cast< __INDEX__ * >(mxGetData(pm));
+}
+
+template<>
+__INDEX__* keops_binders::get_rangedata(const mxArray* pm) {
+  return static_cast< __INDEX__ * >(mxGetData(pm));
+}
+
 template<>
 mxArray* keops_binders::allocate_result_array< mxArray*, double >(int* dimout, int nbatchdims) {
   // mxArray constructor only accepts "size_t" to specify the shape of a new tensor:

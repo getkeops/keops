@@ -1,6 +1,6 @@
 %% example of KMin, ArgKMin, and KMin-KArgMin reductions :
 
-path_to_lib = '..';
+path_to_lib = [fileparts(mfilename('fullpath')), filesep, '..'];
 addpath(genpath(path_to_lib))
 
 %% KMin reduction of a gaussian kernel: K minimal values for each index
