@@ -314,18 +314,17 @@ array_t_out launch_keops(int tag1D2D,
                          int nranges = 0,
                          index_t* ranges = {}) {
   
-  printf("Entering Launch_keops :\n");
-  
   keops_binders::check_tag(tag1D2D, "1D2D");
   keops_binders::check_tag(tagCpuGpu, "CpuGpu");
   keops_binders::check_tag(tagHostDevice, "HostDevice");
   
   Sizes< array_t > SS(nargs, args);
   Ranges< array_t, index_t > RR(SS, nranges, ranges);
-  printf("Ranges Launch_keops :\n");
   
-  array_t_out result = (tagHostDevice == 0) ? allocate_result_array< array_t_out, __TYPE__ >(SS.shape_out)
-                                            : allocate_result_array_gpu< array_t_out, __TYPE__ >(SS.shape_out);
+  array_t_out result = (tagHostDevice == 0) ? allocate_result_array< array_t_out, __TYPE__ >(SS.shape_out,
+                                                                                             SS.nbatchdims)
+                                            : allocate_result_array_gpu< array_t_out, __TYPE__ >(SS.shape_out,
+                                                                                                 SS.nbatchdims);
   __TYPE__* result_ptr = get_data< array_t_out, __TYPE__ >(result);
   
   // get the pointers to data to avoid a copy
@@ -335,7 +334,6 @@ array_t_out launch_keops(int tag1D2D,
   
   // Create a decimal word to avoid nested conditional below
   int decision = 1000 * RR.tagRanges + 100 * tagHostDevice + 10 * tagCpuGpu + tag1D2D;
-  printf("decision is %d\n", decision);
   
   switch (decision) {
     case 0: {
@@ -345,7 +343,7 @@ array_t_out launch_keops(int tag1D2D,
     
     case 10: {
 #if USE_CUDA
-      GpuReduc1D_FromHost(SS.nx, SS.ny, result_ptr, args_ptr, Device_Id);
+      GpuReduc1D_FromHost(SS.nx, SS.ny, result_ptr, args_ptr, cast_Device_Id(deviceId));
       return result;
 #else
       keops_error(Error_msg_no_cuda);
@@ -380,24 +378,9 @@ array_t_out launch_keops(int tag1D2D,
     }
     
     case 1000: {
-      /*
-      printf("%d \n", SS.nx);
-      printf("%d \n", SS.ny);
-      printf("%d \n", SS.nbatchdims);
-      printf("%d \n", SS.shapes);
-      printf("%d \n", RR.nranges_x);
-      printf("%d \n", RR.nranges_y);
-      printf("%d \n", RR.castedranges);
-*/
-      
-      __INDEX__ **tmp;
-      int* tmp2;
-      CpuReduc(SS.nx, SS.ny, result_ptr, args_ptr);
-      printf("---DFDFDSFSDFSDFSDFSDFSD\n");
-      CpuReduc_ranges(0, 0, 0, 0,
-                      0, 0, 0,
+      CpuReduc_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
+                      RR.nranges_x, RR.nranges_y, RR.castedranges,
                       result_ptr, args_ptr);
-      printf("DFDFDSFSDFSDFSDFSDFSD");
       return result;
     }
     
