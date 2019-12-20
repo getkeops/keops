@@ -67,7 +67,7 @@ int get_size(__RANGEARRAY__ obj_ptri, int l) {
 
 template<>
 __INDEX__ *get_rangedata(__RANGEARRAY__ obj_ptri) {
-  return static_cast< __INDEX__ * >(obj_ptri.data());
+  return const_cast< __INDEX__ * >(obj_ptri.data());
 }
 
 void keops_error(std::basic_string< char > msg) {
