@@ -1,6 +1,6 @@
 %% this example shows how to use the autodiff with keops. 
 
-path_to_lib = '..';
+path_to_lib = [fileparts(mfilename('fullpath')), filesep, '..'];
 addpath(genpath(path_to_lib))
 
 disp('Testing automatic differentiation of sum reductions with Keops')
