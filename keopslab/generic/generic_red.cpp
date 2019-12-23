@@ -81,6 +81,7 @@ template<>
 mxArray*
 keops_binders::allocate_result_array_gpu< mxArray*, __TYPE__ >(int* dimout, int nbatchdims, short int device_id) {
   mexErrMsgTxt("[keOpsLab] does not yet support array on GPU.");
+  throw std::runtime_error("[KeOps] this line is just here to avoid a warning.");
 }
 
 void keops_binders::keops_error(std::string msg) {

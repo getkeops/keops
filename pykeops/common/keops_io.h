@@ -6,8 +6,8 @@
 #include <tuple>
 
 // #include "formula.h" done by cmake
-#include "binders/checks.h"
 #include "binders/utils.h"
+#include "binders/checks.h"
 #include "binders/switch.h"
 
 

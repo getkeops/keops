@@ -20,14 +20,20 @@ p = .25;
 % defining reduction operation F and its gradient G :
 F = keops_kernel('Sum_Reduction(Exp(-p*SqNorm2(x-y))*b,0)',...
     'x=Vi(3)','y=Vj(3)','b=Vj(3)','p=Pm(1)');
+% Using AutoDiff engine
 G = keops_grad(F,'x');
+% Using direct computation
+H = keops_kernel('Sum_Reduction(IntCst(2)*p*(y-x)*Exp(-p*SqNorm2(x-y))*(b|a),0)',...
+'x=Vi(3)','y=Vj(3)','b=Vj(3)','p=Pm(1)', 'a=Vi(3)');
+h = H(x,y,b,p,a);
 
 tic
 g = G(x,y,b,p,a); % actual computation
 toc
 
-disp('first output values :')
-g(:,1:5)
+disp('Compare the two implementations. Absolute error: ')
+sum(sum(abs(g - h)))
+
 
 %% Test 2 Another example, gradient with respect to a 'j indexed' variable
 disp('test 2')

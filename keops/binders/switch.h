@@ -1,9 +1,7 @@
 #pragma once
 
-#include <algorithm>
-
-#include "binders/utils.h"
 #include "binders/keops_cst.h"
+#include "binders/utils.h"
 #include "binders/checks.h"
 
 
@@ -24,126 +22,6 @@ extern "C" {
 #endif
 
 namespace keops_binders {
-
-template< typename array_t >
-class Sizes {
-public:
-  // constructors
-  Sizes(int _nargs, array_t* args) {
-    
-    nargs = _nargs;
-    
-    // fill shapes wit "batch dimensions" [A, .., B], the table will look like:
-    //
-    // [ A, .., B, M, N, D_out]  -> output
-    // [ A, .., B, M, 1, D_1  ]  -> "i" variable
-    // [ A, .., B, 1, N, D_2  ]  -> "j" variable
-    // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
-    // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
-    // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
-    fill_shape(_nargs, args);
-    
-    check_ranges(_nargs, args);
-    shapes = &_shapes[0];
-    
-    // fill shape_out
-    _shape_out.resize(nbatchdims + 3);
-    #if C_CONTIGUOUS
-    std::copy(_shapes.begin(), _shapes.begin() + nbatchdims + 3, _shape_out.begin());// Copy the "batch dimensions"
-    _shape_out.erase(_shape_out.begin() + nbatchdims + (1 - keops::TAGIJ));
-    #else
-    std::reverse_copy(_shapes.begin(), _shapes.begin() + nbatchdims + 3,
-                      _shape_out.begin());// Copy the "batch dimensions"
-    _shape_out.erase(_shape_out.begin() + 1 + keops::TAGIJ);
-    #endif
-    
-    shape_out = &_shape_out[0];
-    
-    // fill nx and ny
-    M = _shapes[nbatchdims];      // = M
-    N = _shapes[nbatchdims + 1];  // = N
-    
-    // Compute the product of all "batch dimensions"
-    nbatches = 1;
-    for (int b = 0; b < nbatchdims; b++)
-      nbatches *= shapes[b];
-    //int nbatches = std::accumulate(shapes, shapes + nbatchdims, 1, std::multiplies< int >());
-    
-    nx = nbatches * M;  // = A * ... * B * M
-    ny = nbatches * N;  // = A * ... * B * N
-  }
-  
-  // attributs
-  int nargs;
-  int nx, ny;
-  int M, N;
-  int nbatchdims;
-  int nbatches;
-  
-  std::vector< int > _shapes;
-  int* shapes;
-  std::vector< int > _shape_out;
-  int* shape_out;
-  
-  // methods
-private:
-  void fill_shape(int nargs, array_t* args);
-  
-  void check_ranges(int nargs, array_t* args);
-  
-  std::function< int(array_t, int, int) > get_size_batch;
-  int MN_pos, D_pos;
-};
-
-
-template< typename array_t >
-void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
-  
-  
-  if (keops::NARGS > 0) {
-    // Are we working in batch mode? Infer the answer from the first arg =============
-    nbatchdims = get_ndim(args[0]);  // Number of dims of the first tensor
-    
-    // Remove the "trailing" dim (.., D) if the first arg is a parameter,
-    // or the last two (.., M/N, D) if it is an "i" or "j" variable:
-    static const int trailing_dim = (keops::TYPE_FIRST_ARG == 2) ? 1 : 2;
-    nbatchdims -= trailing_dim;
-    if (nbatchdims < 0) {
-      keops_error("[KeOps] Wrong number of dimensions for arg at position 0: is "
-                  + std::to_string(get_ndim(args[0])) + " but should be at least "
-                  + std::to_string(trailing_dim) + "."
-      );
-    }
-  } else {
-    nbatchdims = 0;
-  }
-  
-  #if C_CONTIGUOUS
-  get_size_batch = [](auto args, int nbatch, int b) {
-    return get_size(args, b);
-  };
-  MN_pos = nbatchdims;
-  D_pos = nbatchdims + 1;
-  #else
-  D_pos = 0;
-  MN_pos = 1;
-  get_size_batch = [](auto obj_ptr, int nbatch, int b) {
-    return get_size(obj_ptr, nbatch - b);
-  };
-  #endif
-  
-  // Now, we'll keep track of the output + all arguments' shapes in a large array:
-  _shapes.resize((keops::NARGS + 1) * (nbatchdims + 3), 1);
-  
-  if (keops::POS_FIRST_ARGI > -1)
-    _shapes[nbatchdims] = get_size(args[keops::POS_FIRST_ARGI], MN_pos);
-  
-  if (keops::POS_FIRST_ARGJ > -1)
-    _shapes[nbatchdims + 1] = get_size(args[keops::POS_FIRST_ARGJ], MN_pos);
-  
-  _shapes[nbatchdims + 2] = keops::DIMOUT;   // Top right corner: dimension of the output
-  
-}
 
 
 template< typename array_t, typename index_t >
@@ -266,13 +144,13 @@ array_t_out launch_keops(int tag1D2D,
   keops_binders::check_tag(tagCpuGpu, "CpuGpu");
   keops_binders::check_tag(tagHostDevice, "HostDevice");
   
+  keops_binders::check_nargs(nargs);
+  
   Sizes< array_t > SS(nargs, args);
   Ranges< array_t, index_t > RR(SS, nranges, ranges);
   
-  array_t_out result = (tagHostDevice == 0) ? allocate_result_array< array_t_out, __TYPE__ >(SS.shape_out,
-                                                                                             SS.nbatchdims)
-                                            : allocate_result_array_gpu< array_t_out, __TYPE__ >(SS.shape_out,
-                                                                                                 SS.nbatchdims);
+  array_t_out result = (tagHostDevice == 0) ? allocate_result_array< array_t_out, __TYPE__ >(SS.shape_out, SS.nbatchdims)
+                                            : allocate_result_array_gpu< array_t_out, __TYPE__ >(SS.shape_out, SS.nbatchdims);
   __TYPE__* result_ptr = get_data< array_t_out, __TYPE__ >(result);
   
   // get the pointers to data to avoid a copy
