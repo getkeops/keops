@@ -1,13 +1,13 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
+// keops_binders import
+#include "binders/utils.h"
+#include "binders/checks.h"
+#include "binders/switch.h"
+
 // keops import
 #include "common/keops_io.h"
-
-// keops_binders import
-#include "binders/checks.h"
-#include "binders/utils.h"
-#include "binders/switch.h"
 
 
 using __NUMPYARRAY__ = py::array_t< __TYPE__, py::array::c_style >;

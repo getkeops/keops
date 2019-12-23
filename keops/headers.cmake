@@ -92,13 +92,10 @@ MATH(EXPR MAX_POS_ARGS "${TMP}")
 
 string(REGEX MATCHALL "GradFromPos\\(" GFP_LIST ${FORMULA_NOSPACE})
 if(GFP_LIST)
-  message(STATUS "ddfdf ${GFP_LIST}")
   string(REGEX REPLACE "GradFromPos\\(" "a;" GFP_LIST_2 ${GFP_LIST})
-  message(STATUS "GFP_LIST_2 ${GFP_LIST_2}")
   list(LENGTH GFP_LIST_2 MM)
-  message(STATUS "length GFP_LIST_2 ${MM}")
   set(TMP ${MAX_POS_ARGS})
-  MATH(EXPR MAX_POS_ARGS " ${MM} + ${TMP}")
+  MATH(EXPR MAX_POS_ARGS " ${MM} -1 + ${TMP}")
 endif()
 
 

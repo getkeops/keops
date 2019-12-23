@@ -57,5 +57,7 @@ const auto Error_msg_no_cuda =
 
 void check_tag(int tag, std::string msg);
 
+void check_nargs(int nargs);
+
 
 }
