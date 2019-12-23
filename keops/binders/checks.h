@@ -5,6 +5,7 @@
 #include <functional>
 #include <algorithm>
 
+#include "binders/utils.h"
 #include "binders/keops_cst.h"
 
 
