@@ -11,12 +11,18 @@
 using namespace keops;
 
 template<>
-int keops_binders::get_ndim(const mxArray* pm) {
+int keops_binders::get_ndim< const mxArray* >(const mxArray* pm) {
   return mxGetNumberOfDimensions(pm);
 }
 
 template<>
-int keops_binders::get_size(const mxArray* pm, int l) {
+int keops_binders::get_size< const mxArray* >(const mxArray* pm, int l) {
+  const mwSize *d = mxGetDimensions(pm);
+  return d[l];
+}
+
+template<>
+int keops_binders::get_size< mxArray* >(mxArray* pm, int l) {
   const mwSize *d = mxGetDimensions(pm);
   return d[l];
 }
