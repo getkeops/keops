@@ -1,10 +1,9 @@
 import torch
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import LoadKEops
+from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import get_type, complete_aliases
-from pykeops.common.parse_type import parse_aliases
+from pykeops.common.parse_type import get_type, complete_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype
 from pykeops.torch import include_dirs
@@ -17,10 +16,12 @@ class KernelSolveAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, *args):
+    def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args):
     
-        myconv = LoadKEops(formula, aliases, dtype, 'torch',
-                           ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)]).import_module()
+        optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] + accuracy_flags
+
+        myconv = LoadKeOps(formula, aliases, dtype, 'torch',
+                           optional_flags).import_module()
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
@@ -33,6 +34,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.eps = eps
         ctx.myconv = myconv
         ctx.ranges = ranges
+        ctx.accuracy_flags = accuracy_flags
         if ranges is None: ranges = () # To keep the same type
             
         varinv = args[varinvpos]
@@ -58,7 +60,7 @@ class KernelSolveAutograd(torch.autograd.Function):
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
-        ctx.save_for_backward(*args,result)
+        ctx.save_for_backward(*args, result)
 
         return result
 
@@ -73,8 +75,8 @@ class KernelSolveAutograd(torch.autograd.Function):
         device_id = ctx.device_id
         eps = ctx.eps
         myconv = ctx.myconv
-        varinvpos = ctx.varinvpos
         ranges = ctx.ranges
+        accuracy_flags = ctx.accuracy_flags
 
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
@@ -89,13 +91,13 @@ class KernelSolveAutograd(torch.autograd.Function):
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, *newargs)
+        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 9]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges)
+            if not ctx.needs_input_grad[var_ind + 10]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -120,7 +122,7 @@ class KernelSolveAutograd(torch.autograd.Function):
                     if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                         # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/formulas/reductions
                         # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                        grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
+                        grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
                         # Then, sum 'grad' wrt 'i' :
                         # I think that '.sum''s backward introduces non-contiguous arrays,
                         # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -128,11 +130,11 @@ class KernelSolveAutograd(torch.autograd.Function):
                         grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                         grad = grad.view(-1)
                     else:
-                        grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
+                        grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
                     grads.append(grad)
          
-        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, *args
-        return (None, None, None, None, None, None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args
+        return (None, None, None, None, None, None, None, None, None, None, *grads)
 
 
 
@@ -178,7 +180,7 @@ class KernelSolve():
         >>> print(g_x.shape)
         torch.Size([10000, 3]) 
     """
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -232,7 +234,10 @@ class KernelSolve():
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
-        reduction_op='Sum'
+        reduction_op = 'Sum'
+
+        self.accuracy_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op)
+
         self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases))  # just in case the user provided a tuple
         if varinvalias[:4] == "Var(":
@@ -299,7 +304,7 @@ class KernelSolve():
             
         """
 
-        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, *args)
+        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, self.accuracy_flags, *args)
 
 
 

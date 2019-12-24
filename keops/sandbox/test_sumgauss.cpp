@@ -10,12 +10,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "core/reductions/Sum_Reduction.h"
-#include "core/formulas/kernels/SumGaussKernel.h"
-#include "core/formulas/kernels/GaussKernel.h"
-#include "core/formulas/PrintFormula.h"
-#include "core/mapreduce/CpuConv.cpp"
-
+#include <keops_includes.h>
 
 using namespace keops;
 

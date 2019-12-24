@@ -3,7 +3,7 @@ import sys
 
 from .common.set_path import set_bin_folder
 
-__version__ = '1.2'
+__version__ = '1.4'
 
 ###########################################################
 # Initialize some variables: the values may be redefined 

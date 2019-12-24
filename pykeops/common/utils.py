@@ -127,7 +127,6 @@ def WarmUpGpu(lang):
 
 
 def clean_pykeops(path=bin_folder, lang=""):
-
     if lang not in ["numpy", "torch", ""]:
         raise ValueError("lang should be the empty string, numpy or torch")
 

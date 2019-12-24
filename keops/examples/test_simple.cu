@@ -1,6 +1,6 @@
 // test convolution 
 // compile with
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_simple test_simple.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_simple test_simple.cu
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the GPU

@@ -23,13 +23,13 @@ add_executable(
   ${CMAKE_CURRENT_SOURCE_DIR}/test_reductions.cpp
 )
 
-if (USE_CUDA)
+if(USE_CUDA)
 
   CUDA_add_executable(
     test_formula_without_j
     ${CMAKE_CURRENT_SOURCE_DIR}/test_formula_without_j.cu
   )
-  
+
   CUDA_add_executable(
     test_gpytorch
     ${CMAKE_CURRENT_SOURCE_DIR}/test_gpytorch.cu

@@ -42,6 +42,17 @@ if(NOT C_CONTIGUOUS)
 endif()
 add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 
+# - some options for accuracy of summations
+if(__TYPEACC__)
+  add_definitions(-D__TYPEACC__=${__TYPEACC__})
+endif()
+if(USE_BLOCKRED)
+  add_definitions(-DUSE_BLOCKRED=${USE_BLOCKRED})
+endif()
+if(USE_KAHAN)
+  add_definitions(-DUSE_KAHAN=${USE_KAHAN})
+endif()
+
 
 # - Declare the templates formula if not provided by the user
 if(NOT DEFINED USENEWSYNTAX)

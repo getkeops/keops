@@ -155,12 +155,12 @@ First of all, make sure that you are using a C++ compiler which is compatible wi
 Cache directory
 ---------------
 
-If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to **flush the build folder** (i.e. the cache of already-compiled formulas). To get the directory name, just type:
+If you experience problems with compilation, it may be a good idea to **flush the build folder** (i.e. the cache of already-compiled formulas). To do this, just type:
 
 .. code-block:: python
 
   import pykeops
-  print(pykeops.bin_folder)
+  pykeops.clean_pykeops()
 
 
 

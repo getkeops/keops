@@ -8,7 +8,6 @@ file(LOCK ${CMAKE_CURRENT_BINARY_DIR} DIRECTORY)
 message(STATUS "Lock building directory: ${CMAKE_CURRENT_BINARY_DIR}")
 
 project(KeOpsLab LANGUAGES CXX)
-set(CMAKE_CXX_COMPILER /usr/bin/g++-8)
 
 ## Set Path to sources
 set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../keops)
