@@ -61,6 +61,7 @@ def plot_kernel(params) :
      plt.imshow(-heatmap, interpolation='bilinear', origin='lower',
                 vmin = -1, vmax = 1, cmap=cm.RdBu,
                 extent=(0,1,0,1))
+     plt.show()
 
 
 ###############################################
