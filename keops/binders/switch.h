@@ -59,30 +59,6 @@ public:
     
     shape_out = &_shape_out[0];
     
-    /*
-    printf("nbatchdim %d\n", _shape_out.size());
-    printf("nbatchdim %d\n", (keops::NARGS + 1) * (nbatchdims + 3));
-    */
-     for (auto &i : _shapes) { std::cout << i << " ";}
-    std::cout << '\n';
-    
-    for (auto &i : _shape_out) { std::cout << i << " ";}
-    std::cout << '\n';
-    /*
-    printf("%d\n", keops::TAGIJ);
-    
-    
-    _shape_out[0] = 3;
-    _shape_out[1] = 5000;
-  
-    for (int b = 0; b < nbatchdims; b++)
-      _shape_out[b] = shapes[b];
-    
-    _shape_out[nbatchdims] = shapes[MN_pos + keops::TAGIJ];  // M or N
-    _shape_out[nbatchdims + 1] = shapes[nbatchdims + 2];         // D
-    */
-    
-    
     // fill nx and ny
     M = _shapes[nbatchdims];      // = M
     N = _shapes[nbatchdims + 1];  // = N
@@ -191,8 +167,6 @@ public:
     if (sizes.nbatchdims == 0) {  // Standard M-by-N computation
       if (nranges == 0) {
         
-        printf("nranges and nbatchdims == 0\n");
-        
         tagRanges = 0;
         
         nranges_x = 0;
@@ -202,8 +176,6 @@ public:
         nredranges_y = 0;
         
       } else if (nranges == 6) {
-  
-        printf("nbatchdim == 0 & nranges == 6\n");
   
         tagRanges = 1;
         nranges_x = get_size(ranges[0], 0);
@@ -222,8 +194,6 @@ public:
       
     } else if (nranges == 0) {
       // Batch processing: we'll have to generate a custom, block-diagonal sparsity pattern
-      printf("nbatchdims > 0 & nranges == 0\n");
-  
       tagRanges = 1;  // Batch processing is emulated through the block-sparse mode
       
       // Create new "castedranges" from scratch ------------------------------
@@ -246,22 +216,12 @@ public:
       //__INDEX__ redranges_j[2 * sizes.nbatches];  // redranges_j
       redranges_j.resize(2 * sizes.nbatches, 0);
       
-      
-
-      
       for (int b = 0; b < sizes.nbatches; b++) {
         ranges_i[2 * b] = b * sizes.M;
         ranges_i[2 * b + 1] = (b + 1) * sizes.M;
         slices_i[b] = (b + 1);
         redranges_j[2 * b] = b * sizes.N;
         redranges_j[2 * b + 1] = (b + 1) * sizes.N;
-        
-        std::cout << b * sizes.M << " ";
-        std::cout << (b + 1) * sizes.M << " ";
-        std::cout << (b + 1) << " ";
-        std::cout << b * sizes.N << " ";
-        std::cout << (b + 1) * sizes.N << " ";
-        std::cout << '\n';
       }
   
       _castedranges[0] = &ranges_i[0];
@@ -278,18 +238,6 @@ public:
       nredranges_y = sizes.nbatches;
       castedranges = &_castedranges[0];
   
-  
-      for (auto &i : _castedranges) { std::cout << i << " ";}
-      std::cout << '\n';
-  
-      for (int i=0; i<6; i++){
-        for (int j=0; j< sizes.nbatches; j++){
-          std::cout << castedranges[i][j] << " ";
-        }
-        std::cout << '\n';
-      }
-  
-      printf("%d %d %d %d %d %d %d \n", sizes.nx, sizes.ny, sizes.nbatchdims, nranges_x, nranges_y, nredranges_x, nredranges_y);
     } else {
       throw std::runtime_error(
               "[KeOps] The 'ranges' argument (block-sparse mode) is not supported with batch processing, "
