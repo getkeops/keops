@@ -53,8 +53,7 @@ at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(int* shape_out, int nba
 
 
 template <>
-at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(int* shape_out, int nbatchdims,
-                                                             short int Device_Id) {
+at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(int* shape_out, int nbatchdims, short int Device_Id) {
 #if USE_CUDA
   // ATen only accepts "long int arrays" to specify the shape of a new tensor:
   int64_t shape_out_long[nbatchdims + 2];
