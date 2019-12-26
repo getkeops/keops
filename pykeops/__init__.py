@@ -16,7 +16,8 @@ torch_found = False
 # Compilation options
 
 script_folder = os.path.dirname(os.path.abspath(__file__))
-bin_folder = set_bin_folder()
+bin_folder = ""
+set_bin_folder()
 
 # Set the verbosity option: display output of compilations. This is a boolean: False or True
 verbose = bool(int(os.environ['PYKEOPS_VERBOSE'])) if 'PYKEOPS_VERBOSE' in os.environ else False  

@@ -120,6 +120,7 @@ setup(
             'keops/headers.cmake',
             'keops/keops_includes.h',
             ] +
+            import_files('keops/binders/') +
             import_files('keops/core/autodiff/') +
             import_files('keops/core/pack/') +
             import_files('keops/core/formulas/') +
