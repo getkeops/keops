@@ -152,37 +152,7 @@ else()
 endif()
 
 
-# - recover the declared positions of the variables in a Formula call
-string(REGEX MATCH "(Pm|V(ar|[ij]))\\(0,[0-9]*,*([0-9]+)" ARG_FIRST ${FORMULA_NOSPACE})
-
-string(REGEX MATCH "Var" TYPE_ARG_PARSED ${ARG_FIRST})
-if(TYPE_ARG_PARSED)
-  string(REGEX MATCH "Var\\(0,[0-9]*,([0-9]+)" TYPE_FIRST_ARG ${FORMULA_NOSPACE})
-  set(TYPE_FIRST_ARG ${CMAKE_MATCH_1})
-endif()
-
-if(NOT TYPE_FIRST_ARG)
-string(REGEX MATCH "Vi" TYPE_ARG_PARSED ${ARG_FIRST})
-if(TYPE_ARG_PARSED)
-  set(TYPE_FIRST_ARG 0)
-endif()
-endif()
-
-if(NOT TYPE_FIRST_ARG)
-string(REGEX MATCH "Vj" TYPE_ARG_PARSED ${ARG_FIRST})
-if(TYPE_ARG_PARSED)
-  set(TYPE_FIRST_ARG 1)
-endif()
-endif()
-
-if(NOT TYPE_FIRST_ARG)
-string(REGEX MATCH "Pm" TYPE_ARG_PARSED ${ARG_FIRST})
-if(TYPE_ARG_PARSED)
-  set(TYPE_FIRST_ARG 2)
-endif()
-endif()
-
-message(STATUS "Compiled formula is ${FORMULA_OBJ}; ${VAR_ALIASES} where the number of args is ${MAX_POS_ARGS} and the type of first arg is ${TYPE_FIRST_ARG}")
+message(STATUS "Compiled formula is ${FORMULA_OBJ}; ${VAR_ALIASES} where the number of args is ${MAX_POS_ARGS}.")
 # We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
 configure_file(${CMAKE_CURRENT_LIST_DIR}/formula.h.in ${shared_obj_name}.h @ONLY)
 

@@ -116,20 +116,18 @@ private:
 
 template< typename array_t >
 void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
-  
-  
+
+  constexpr int POS = std::max(keops::POS_FIRST_ARGI, keops::POS_FIRST_ARGJ);
+  static_assert((POS > -1), "[KeOps] There is no Vi or Vj variables detected in the formula.");
+
   if (keops::NARGS > 0) {
     // Are we working in batch mode? Infer the answer from the first arg =============
-    nbatchdims = get_ndim(args[0]);  // Number of dims of the first tensor
-    
-    // Remove the "trailing" dim (.., D) if the first arg is a parameter,
-    // or the last two (.., M/N, D) if it is an "i" or "j" variable:
-    static const int trailing_dim = (keops::TYPE_FIRST_ARG == 2) ? 1 : 2;
-    nbatchdims -= trailing_dim;
+    nbatchdims =  get_ndim(args[POS]);  // Number of dims of the first tensor
+    nbatchdims -= 2;
+
     if (nbatchdims < 0) {
       keops_error("[KeOps] Wrong number of dimensions for arg at position 0: is "
-                  + std::to_string(get_ndim(args[0])) + " but should be at least "
-                  + std::to_string(trailing_dim) + "."
+                  + std::to_string(get_ndim(args[0])) + " but should be at least 2."
       );
     }
   } else {
