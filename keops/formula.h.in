@@ -14,7 +14,7 @@ namespace keops {
 #define FORMULA_OBJ_STR "@FORMULA_OBJ@"
 #define VAR_ALIASES_STR "@VAR_ALIASES@"
 
-static const int NARGS=@MAX_POS_ARGS@ + 1;
+static const int NARGS=@NARGS@;
 static const int POS_FIRST_ARGI=@POS_FIRST_ARGI@;
 static const int POS_FIRST_ARGJ=@POS_FIRST_ARGJ@;
 @VAR_ALIASES@

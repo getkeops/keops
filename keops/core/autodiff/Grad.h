@@ -27,10 +27,15 @@ using Grad_WithSavedForward = typename F::template DiffT< V, GRADIN, FO >;
 // is not available in the C++ code, so it needs to be provided by the user.
 // Note additional variable to input saved forward
 template< class F, class V, int I >
-using GradFromPos = Grad_WithSavedForward< F, V, Var < I, F::DIM, F::CAT >,Var< I + 1, F::DIM, F::CAT > >;
+using GradFromPos = Grad< F, V, Var< I, F::DIM, F::CAT > >;
+
+template< class F, class V, int I >
+using GradFromPos_WithSavedForward = Grad_WithSavedForward< F, V, Var< I, F::DIM, F::CAT >, Var< I + 1, F::DIM, F::CAT > >;
+
+
 
 #define Grad(F, V, GRADIN)  KeopsNS< Grad< decltype(InvKeopsNS(F)), decltype(InvKeopsNS(V)), decltype(InvKeopsNS(GRADIN)) > >()
 #define Grad_WithSavedForward(F, V, GRADIN, FO)  KeopsNS< Grad_WithSavedForward< decltype(InvKeopsNS(F)), decltype(InvKeopsNS(V)), decltype(InvKeopsNS(GRADIN)), decltype(InvKeopsNS(FO)) > >()
 #define GradFromPos(F, V, I)  KeopsNS< GradFromPos< decltype(InvKeopsNS(F)), decltype(InvKeopsNS(V)), I > >()
-
+#define GradFromPos_WithSavedForward(F, V, I)  KeopsNS< GradFromPos_WithSavedForward< decltype(InvKeopsNS(F)), decltype(InvKeopsNS(V)), I > >()
 }

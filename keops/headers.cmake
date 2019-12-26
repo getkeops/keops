@@ -81,34 +81,26 @@ string(REGEX REPLACE " " "" FORMULA_NOSPACE ${FORMULA_OBJ} ${VAR_ALIASES})
 string(REGEX MATCHALL "(Pm|V(ar|[ij]))\\(([0-9]+)" ARGS_LIST ${FORMULA_NOSPACE})
 string(REGEX REPLACE "(Pm|V(ar|[ij]))\\(" ";" ARGS_POS_LIST ${ARGS_LIST})
 
-# max(var [value1 value2...]) sets var to the maximum of a list of
-# integers. If list is empty, sets var to 0.
-function(max var)
-  set(first YES)
-  set(choice NO)
-  foreach(item ${ARGN})
-    if(first)
-      set(choice ${item})
-      set(first 0)
-    elseif(choice LESS ${item})
-      set(choice ${item})
-    endif()
-  endforeach(item)
-  set(${var} ${choice} PARENT_SCOPE)
-endfunction(max)
-# from : https://rosettacode.org/wiki/Greatest_element_of_a_list#CMake
-
-max(TMP ${ARGS_POS_LIST})
-MATH(EXPR MAX_POS_ARGS "${TMP}")
+# - Count the number of variable in the formula: it depends on alias(es), explicit Var(pos, dim, type) declation(s) and GradFromPos(_WithSavedForward) operators.
+list(REMOVE_DUPLICATES ARGS_POS_LIST)
+list(LENGTH ARGS_POS_LIST TMP)
+MATH(EXPR NARGS "${TMP} - 1")
 
 string(REGEX MATCHALL "GradFromPos\\(" GFP_LIST ${FORMULA_NOSPACE})
 if(GFP_LIST)
   string(REGEX REPLACE "GradFromPos\\(" "a;" GFP_LIST_2 ${GFP_LIST})
   list(LENGTH GFP_LIST_2 MM)
-  set(TMP ${MAX_POS_ARGS})
-  MATH(EXPR MAX_POS_ARGS " ${MM} -1 + ${TMP}")
+  set(TMP ${NARGS})
+  MATH(EXPR NARGS " ${MM} - 1 + ${TMP}")  # Add implicitely 1 variable
 endif()
 
+string(REGEX MATCHALL "GradFromPos_WithSavedForward\\(" GFP_LIST ${FORMULA_NOSPACE})
+if(GFP_LIST)
+  string(REGEX REPLACE "GradFromPos\\(" "a;" GFP_LIST_2 ${GFP_LIST})
+  list(LENGTH GFP_LIST_2 MM)
+  set(TMP ${NARGS})
+  MATH(EXPR NARGS " ${MM} + ${TMP}")    # Add implicitely 2 variables
+endif()
 
 # - recover the position of the first I variable:
 string(REGEX MATCH "Vi\\(([0-9]+)" ARGI_FIRST ${FORMULA_NOSPACE})
@@ -152,7 +144,7 @@ else()
 endif()
 
 
-message(STATUS "Compiled formula is ${FORMULA_OBJ}; ${VAR_ALIASES} where the number of args is ${MAX_POS_ARGS}.")
+message(STATUS "Compiled formula is ${FORMULA_OBJ}; ${VAR_ALIASES} where the number of args is ${NARGS}.")
 # We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
 configure_file(${CMAKE_CURRENT_LIST_DIR}/formula.h.in ${shared_obj_name}.h @ONLY)
 

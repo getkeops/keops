@@ -1,15 +1,6 @@
 #include <vector>
-#include <string>
-#include <type_traits>
-#include <limits>
-#include <stdexcept>
-#include <tuple>
 
-// #include "formula.h" done by cmake
-#include "binders/utils.h"
-#include "binders/checks.h"
 #include "binders/switch.h"
-
 
 using namespace keops;
 namespace py = pybind11;
@@ -34,19 +25,22 @@ array_t generic_red(
 // Input arguments                                          //
 //////////////////////////////////////////////////////////////
   
-  // Check that we have enough arguments:
+  // get the number of args
   int nargs = py_args.size();
   
   // Cast the input variable : It may be a copy here...
-  std::vector< array_t > args(py_args.size());
-  for (size_t i = 0; i < py_args.size(); i++)
+  // If torch.h is included, the next 3 lines could be replaced by :
+  // auto args = py::cast<std::vector<array_t>>(py_args);
+  std::vector< array_t > args(nargs);
+  for (int i = 0; i < nargs; i++)
     args[i] = py::cast< array_t >(py_args[i]);
-  // If torch.h is included, the last 3 lines could be replaced by : auto obj_ptr = py::cast<std::vector<array_t>>(py_args);
-  
+
+  // get the number of ranges
   int nranges = py_ranges.size();
-  // Cast the six integer arrays
-  std::vector< index_t > ranges(py_ranges.size());
-  for (size_t i = 0; i < py_ranges.size(); i++)
+
+  // Cast the ranges arrays
+  std::vector< index_t > ranges(nranges);
+  for (int i = 0; i < nranges; i++)
     ranges[i] = py::cast< index_t >(py_ranges[i]);
 
 //////////////////////////////////////////////////////////////

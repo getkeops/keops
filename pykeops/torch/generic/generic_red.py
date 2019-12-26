@@ -3,8 +3,7 @@ import torch
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
-from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
-from pykeops.common.parse_type import parse_aliases, get_accuracy_flags
+from pykeops.common.parse_type import get_type, get_sizes, complete_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype, include_dirs
 
