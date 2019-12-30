@@ -33,7 +33,10 @@
 #' @return a function that can be used to compute the value of the formula 
 #' on actual data. This function takes as input a list of data corresponding 
 #' to the formula arguments and return the computed values (generally a 
-#' vector or a matrix depending on the reduction).
+#' vector or a matrix depending on the reduction). It has an additional integer 
+#' input parameter `inner_dim` indicating if the inner dimension 
+#' (c.f. `browseVignettes("rkeops")`) corresponds to columns, i.e. 
+#' `inner_dim=1` (default), or rows, i.e. `inner_dim=0`, in the data. 
 #' @importFrom stringr str_length
 #' @examples
 #' \dontrun{
@@ -114,7 +117,7 @@ keops_kernel <- function(formula, args) {
     
     
     # return function calling the corresponding compile operator
-    function(input=NULL) {
+    function(input=NULL, inner_dim=1) {
         ## !! important !!
         # input: should be a list, because list are references and since 
         #   argument passing is done by copy in R, it is better to copy a list 
@@ -151,40 +154,41 @@ keops_kernel <- function(formula, args) {
             names(input) <- tmp_names
         }
 
-        ## transpose input if necessary
-        # check if necessary
-        check_input_dim <- sapply(1:length(input),
-            function(ind) {
-                input_dim <- nrow(input[[ind]])
-                expected_dim <- env$var_aliases$var_dim[ind]
-                return(input_dim != expected_dim)
-            })
-        # transpose if necessary
-        if(any(check_input_dim)) {
-            tmp_names <- names(input)
-            input[check_input_dim] <- lapply(which(check_input_dim),
-                    function(ind) {
-                        input_dim <- nrow(input[[ind]])
-                        expected_dim <- env$var_aliases$var_dim[ind]
-                        return(t(input[[ind]]))
-                    })
-            names(input) <- tmp_names
-        }
-
-        ## range i
-        index_i <- which(env$var_aliases$var_type == "Vi")
-        nxs <- sapply(input[index_i], ncol)
-        nx <- nxs[1]
-        if(mean(nxs) != nx) stop("Range of index i is different among all Vi's variables")
-        ## range j
-        index_j <- which(env$var_aliases$var_type == "Vj")
-        nys <- sapply(input[index_j], ncol)
-        ny <- nys[1]
-        if(mean(nys) != ny) stop("Range of index j is different among all Vj's variables")
+        ## transpose input if necessary (done in Cpp)
+        # # check if necessary
+        # check_input_dim <- sapply(1:length(input),
+        #     function(ind) {
+        #         input_dim <- nrow(input[[ind]])
+        #         expected_dim <- env$var_aliases$var_dim[ind]
+        #         return(input_dim != expected_dim)
+        #     })
+        # # transpose if necessary
+        # if(any(check_input_dim)) {
+        #     tmp_names <- names(input)
+        #     input[check_input_dim] <- lapply(which(check_input_dim),
+        #             function(ind) {
+        #                 input_dim <- nrow(input[[ind]])
+        #                 expected_dim <- env$var_aliases$var_dim[ind]
+        #                 return(t(input[[ind]]))
+        #             })
+        #     names(input) <- tmp_names
+        # }
+        
+        ### dimensions are now handled in Cpp
+        # ## range i
+        # index_i <- which(env$var_aliases$var_type == "Vi")
+        # nxs <- sapply(input[index_i], ncol)
+        # nx <- nxs[1]
+        # if(mean(nxs) != nx) stop("Range of index i is different among all Vi's variables")
+        # ## range j
+        # index_j <- which(env$var_aliases$var_type == "Vj")
+        # nys <- sapply(input[index_j], ncol)
+        # ny <- nys[1]
+        # if(mean(nys) != ny) stop("Range of index j is different among all Vj's variables")
         
         ## run
         param <- c(get_rkeops_options("runtime"),
-                   list(nx=nx, ny=ny))
+                   list(inner_dim=inner_dim))
         return(r_genred(input, param))
     }
 }
