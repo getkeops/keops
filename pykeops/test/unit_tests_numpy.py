@@ -48,7 +48,6 @@ class NumpyUnitTestCase(unittest.TestCase):
             sigma_geom = 1.0
             sigma_sig = 1.0
             sigma_sphere = np.pi / 2
-            print("ee")
             # Call cuda kernel
             my_fshape_scp = FshapeScp(kernel_geom=kgeom, kernel_sig=ksig, kernel_sphere=ksphere, dtype=t)
             gamma = my_fshape_scp(self.x.astype(t), self.y.astype(t),
@@ -87,7 +86,6 @@ class NumpyUnitTestCase(unittest.TestCase):
                 gamma_py = np.matmul(np_kernel(self.x, self.y, self.sigma, kernel=k), self.b)
 
                 # compare output
-                print("dd")
                 self.assertTrue(np.allclose(gamma, gamma_py, atol=1e-6))
 
     @unittest.skipIf(not pykeops.gpu_available, 'No GPU detected. Skip tests.')
