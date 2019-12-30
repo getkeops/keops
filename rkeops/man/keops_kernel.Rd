@@ -15,7 +15,10 @@ keops_kernel(formula, args)
 a function that can be used to compute the value of the formula
 on actual data. This function takes as input a list of data corresponding
 to the formula arguments and return the computed values (generally a
-vector or a matrix depending on the reduction).
+vector or a matrix depending on the reduction). It has an additional integer
+input parameter \code{inner_dim} indicating if the inner dimension
+(c.f. \code{browseVignettes("rkeops")}) corresponds to columns, i.e.
+\code{inner_dim=1} (default), or rows, i.e. \code{inner_dim=0}, in the data.
 }
 \description{
 This function is the core of the KeOps library, it allows you to create
@@ -23,10 +26,10 @@ new operators based on kernel operation and matrix reduction discribed as a
 mathematic formula.
 }
 \details{
-The functioning of the \code{keops_kernel} is detailled in the
-vignettes, especially how to write formulae, specified input arguments, how
-to format data to apply the created operators, etc.
-Run \code{browseVignettes("rkeops")} to access the vignettes.
+The use of the function \code{keops_kernel} is detailled in the vignettes,
+especially how to write formulae, specified input arguments, how to format
+data to apply the created operators, etc. Run \code{browseVignettes("rkeops")}
+to access the vignettes.
 
 KeOps operators are defined thanks to formula, i.e. a text string describing
 the mathematical operations that you want to apply to your data, and a

@@ -11,6 +11,7 @@ format_var_aliases(args)
 }
 \value{
 a list with different information about formula input arguments:
+\input{args}{vector of text string, input parameter \code{args}}
 \item{var_name}{vector of text string, corresponding name of formula
 arguments}
 \item{var_type}{vector of text string, corresponding type of formula
@@ -60,5 +61,8 @@ vector \code{args} may not correspond to the order of the formula input argument
 
 \strong{Note:} we recommand to use the \code{Vi(dim)} notation and let the position be
 determined by the argument order.
+}
+\author{
+Ghislain Durif
 }
 \keyword{internal}
