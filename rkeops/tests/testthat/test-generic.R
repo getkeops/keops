@@ -116,3 +116,23 @@ test_that("keops_kernel", {
     expected_res <- colSums(t(x) %*% y)
     run_op(op, input, expected_res)
 })
+
+test_that("parse_extra_args", {
+    
+    formula <- "Sum_Reduction(Exp(lambda * SqNorm2(x - y)) * beta, 0)"
+    args <- c("x=Vi(3)", "y=Vj(3)", "beta=Vj(6)", "lambda=Pm(1)")
+    
+    out <- parse_extra_args(formula, args)
+    expect_equal(out$var_type, NULL)
+    expect_equal(out$var_pos, NULL)
+    expect_equal(out$var_dim, NULL)
+    
+    formula <- "Sum_Reduction(Exp(lambda * SqNorm2(x - y)) * Vj(6), 0)"
+    args <- c("x=Vi(3)", "y=Vj(3)", "lambda=Pm(1)")
+    
+    out <- parse_extra_args(formula, args)
+    expect_equal(out$var_type, NULL)
+    expect_equal(out$var_pos, NULL)
+    expect_equal(out$var_dim, NULL)
+    
+})

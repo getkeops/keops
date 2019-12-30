@@ -159,20 +159,25 @@ format_var_aliases <- function(args) {
 #' @param formula text string, an operator formula (see Details).
 #' @param args vector of text string, formula arguments (see Details).
 #' @return FIXME
-#' @importFrom stringr str_count str_detect str_extract str_split
+#' @importFrom stringr str_match_all str_replace
 #' @export
 parse_extra_args <- function(formula, args) {
     
-    ## empty out
+    ## remove space
+    formula <- str_replace(string = formula, pattern = " ", replacement = "")
+    
+    ## empty output
     out <- list(
         var_type = NULL, 
         var_pos = NULL, 
         var_dim = NULL)
     
     ## parse the formula
+    # YY(<pos>,<dim>) with YY = Vi, Vj or Pm
     pattern1 = "(Vi|Vj|Pm)\\(([0-9]+),([0-9]+)\\)"
-    pattern2 = "Var\\(([0-9]+),([0-9]+),([0-9]+)\\)"
     parse1 <- str_match_all(formula, pattern1)[[1]]
+    # Var(<pos>,<dim>,<type>)
+    pattern2 = "Var\\(([0-9]+),([0-9]+),([0-9]+)\\)"
     parse2 <- str_match_all(formula, pattern2)[[1]]
     
     ## nothing to be found
