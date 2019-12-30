@@ -1,18 +1,24 @@
-# RKeOps
+![logo rkeops](../doc/_static/logo/rkeops_logo.png)
 
-Kernel operations on GPU, with autodiff, without memory overflows in R
-
-RKeOps is the R package interfacing the cpp/cuda library 
-[KeOps](https://www.kernel-operations.io/). It provides 
+RKeOps contains the R bindings for the cpp/cuda library [KeOps](https://www.kernel-operations.io/). It provides
 standard R functions that can be used in any R (>=3) codes.
 
-## Authors
-- [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
-- [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
+For a full documentation you may read:
+
+* [Installation](https://www.kernel-operations.io/keops/introduction/installation.html)
+* [Documentation](https://www.kernel-operations.io/)
+* [Learning KeOps syntax with examples](https://www.kernel-operations.io/keops/_auto_examples/index.html)
+* [Tutorials gallery](https://www.kernel-operations.io/keops/_auto_tutorials/index.html)
+
+# Authors
+
+- [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
 - [Jean Feydy](https://www.math.ens.fr/~feydy/)
 - [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
+- [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
 
-## Details
+
+# Details
 The KeOps library provides seamless kernel operations on GPU, with 
 auto-differentiation and without memory overflows.
 
