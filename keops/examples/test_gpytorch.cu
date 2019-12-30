@@ -1,5 +1,5 @@
 // test gpytorch compile with
-//		nvcc -I.. -std=c++14 -O2 -o build/test_gpytorch ./test_gpytorch.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -std=c++14 -O2 -o build/test_gpytorch ./test_gpytorch.cu
 
 #include <algorithm>
 #include <keops_includes.h>

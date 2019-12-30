@@ -3,7 +3,7 @@ import pykeops
 ##########################################################
 # Search for Pytorch and a GPU
 
-torch_version_required = '1.0'
+torch_version_required = '1.3'
 
 # is torch installed ?
 import torch

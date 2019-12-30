@@ -1,19 +1,24 @@
 function testbuild = compile_code(cmd_cmake, cmd_make, filename, msg)
 
-    [src_dir, build_dir, precision, verbosity, use_cuda_if_possible] = default_options();
+    [src_dir, bin_folder, precision, verbosity, use_cuda_if_possible] = default_options();
     
-    fprintf(['Compiling ', filename, ' in ', build_dir, msg, '\n        dtype  : ', precision, '\n ... '])
+    fprintf(['Compiling ', filename, ' in ', bin_folder, msg, '\n        dtype  : ', precision, '\n ... '])
 
+    % crerate a separate subfolder to perform the compilation. Shared object files will be automatically copied in currentdir.
+    build_folder = fullfile(bin_folder, filename, filesep);
+    mkdir(build_folder);
+    
     % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
     setenv('LD_LIBRARY_PATH','') 
     % I do not have a better option to set working dir...
-    cur_dir= pwd; cd(build_dir) ;
+    cur_dir= pwd; cd(build_folder) ;
     % find cmake :
     cmake = getcmake();
     % cmake command:
     cmdline = [cmake, ' ', src_dir , ' -DUSE_CUDA=', num2str(use_cuda_if_possible), ...
                ' -DCMAKE_BUILD_TYPE=Release', ' -D__TYPE__=', precision, ...
                ' -DMatlab_ROOT_DIR="', matlabroot, '" ', cmd_cmake];
+    cmdline = [cmdline, ' -DcommandLine=''',cmdline,''''];
     
     try
         
@@ -39,7 +44,9 @@ function testbuild = compile_code(cmd_cmake, cmd_make, filename, msg)
     end
     
     % ...coming back to current directory
-    cd(cur_dir)
+    cd(cur_dir);
+    % clean build folder
+    rmdir(build_folder, 's');
 
     testbuild = (exist([filename,'.',mexext],'file')==3);
     if  testbuild

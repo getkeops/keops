@@ -1,6 +1,6 @@
-path_to_lib = '..';
+path_to_lib = [fileparts(mfilename('fullpath')), filesep, '..'];
 addpath(genpath(path_to_lib))
-
+filesep
 %--------------------------------------%
 %         Create dataset               %
 %--------------------------------------%

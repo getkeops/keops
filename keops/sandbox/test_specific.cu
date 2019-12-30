@@ -14,14 +14,7 @@
 
 #include <cuda.h>
 
-#include "core/reductions/Sum_Reduction.h"
-#include "core/formulas/kernels/GaussKernel.h"
-#include "core/formulas/Factorize.h"
-#include "core/formulas/PrintFormula.h"
-
-#include "core/mapreduce/GpuConv1D.cu"
-#include "core/mapreduce/GpuConv2D.cu"
-
+#include <keops_includes.h>
 
 using namespace keops;
 

@@ -7,7 +7,7 @@
 % and s_i = sum_j exp(m_i-F_ij)), then finalize the 
 % computation as out_i = m_i + log(s_i)
 
-path_to_lib = '..';
+path_to_lib = [fileparts(mfilename('fullpath')), filesep, '..'];
 addpath(genpath(path_to_lib))
 
 %% LogSumExp reduction of a gaussian kernel:

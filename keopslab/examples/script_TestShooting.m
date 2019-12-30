@@ -1,9 +1,8 @@
+function testShooting
 % this function demonstrate how to compute LDDMM with a divergence/curl free
 % kernel
 
-function testShooting
-
-path_to_lib = '..';
+path_to_lib = [fileparts(mfilename('fullpath')), filesep, '..'];
 addpath(genpath(path_to_lib))
 
 % control points
