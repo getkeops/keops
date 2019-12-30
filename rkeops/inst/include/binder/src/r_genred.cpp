@@ -9,34 +9,28 @@
 
 // Eigen matrix type (row or col major, Keops side)
 #if C_CONTIGUOUS
-using eigen_matrix_t = Eigen::Matrix<rkeops::type_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using eigen_matrix_t = Eigen::Matrix< rkeops::type_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor >;
 #else
-using eigen_matrix_t = Eigen::Matrix<rkeops::type_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+using eigen_matrix_t = Eigen::Matrix< rkeops::type_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor >;
 #endif
 
 // Eigen R-style matrix (double and col-major)
-using eigen_r_matrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+using eigen_r_matrix = Eigen::Matrix< double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor >;
 
-// Eigen matrix for io (copy or Map between R-style matrix and Keops side)
-#if !USE_DOUBLE || C_CONTIGUOUS
-// if float or row-major: cast with copy
+// Eigen matrix for io 
+// (copy between R-style matrix and Keops side for cast and potential transpose)
 using io_matrix = eigen_r_matrix;
 using input_matrix = eigen_matrix_t;
-#else
-// if double and col-major: no copy
-using io_matrix = Eigen::Map<eigen_r_matrix>;
-using input_matrix = Eigen::Map<eigen_matrix_t>;
-#endif
 
 // list of input data
-using input_list_t = std::vector<input_matrix>;
+using input_list_t = std::vector< input_matrix >;
 
 // rkeops matrix type (proxy type)
-using rkeops_base_matrix_t = rkeops::base_matrix<rkeops::type_t>;
-using rkeops_matrix_t = rkeops::matrix<rkeops::type_t>;
+using rkeops_base_matrix_t = rkeops::base_matrix< rkeops::type_t >;
+using rkeops_matrix_t = rkeops::matrix< rkeops::type_t >;
 
 // list of raw input data (list of proxy matrix)
-using rkeops_list_t = std::vector<rkeops_base_matrix_t>;
+using rkeops_list_t = std::vector< rkeops_base_matrix_t >;
 
 // Interface
 // [[Rcpp::depends(RcppEigen)]]
@@ -56,9 +50,13 @@ SEXP r_genred(
     int tagHostDevice = Rcpp::as<int>(param["tagHostDevice"]);
     // id of GPU device
     int Device_Id = Rcpp::as<int>(param["device_id"]);
-    // nx, ny
-    int nx = Rcpp::as<int>(param["nx"]);
-    int ny = Rcpp::as<int>(param["ny"]);
+    // // nx, ny (managed lated)
+    // int nx = Rcpp::as<int>(param["nx"]);
+    // int ny = Rcpp::as<int>(param["ny"]);
+    // data contiguity
+    // inner_dim = 1 means columns
+    // inner_dim = 0 means rows
+    int inner_dim = Rcpp::as<int>(param["inner_dim"]);
     
     // ---------------------------------------------------------------------- //
     // Input Data
@@ -66,13 +64,24 @@ SEXP r_genred(
     
     // Prepare input data
     input_list_t input_list;
-    for(int i=0; i < input.length(); i++) {
-        // Rcpp input matrix to Eigen::Map (double, col-major): no copy
-        io_matrix tmp(Rcpp::as<io_matrix>(input[i]));
-        // if float or row-major: copy (cast to float and/or row-major)
-        // if double and col-major: no copy
-        input_matrix casted_tmp(tmp.cast<rkeops::type_t>());
-        input_list.push_back(casted_tmp);
+    if(inner_dim) {
+        // requiring a transpose (inner dimension = columns)
+        for(int i=0; i < input.length(); i++) {
+            // Rcpp input matrix to Eigen::Map (double, col-major): no copy
+            io_matrix tmp(Rcpp::as< io_matrix >(input[i]));
+            // transpose and cast if necessary
+            input_matrix casted_tmp(tmp.transpose().cast< rkeops::type_t >());
+            input_list.push_back(casted_tmp);
+        }
+    } else {
+        // not requiring a transpose (inner dimension = rows)
+        for(int i=0; i < input.length(); i++) {
+            // Rcpp input matrix to Eigen::Map (double, col-major): no copy
+            io_matrix tmp(Rcpp::as< io_matrix >(input[i]));
+            // cast if necessary
+            input_matrix casted_tmp(tmp.cast< rkeops::type_t >());
+            input_list.push_back(casted_tmp);
+        }
     }
     
     // Data flatten (no copy)
@@ -88,16 +97,15 @@ SEXP r_genred(
     // Computation
     rkeops_matrix_t raw_output = genred(
             tagCpuGpu, tag1D2D, tagHostDevice, 
-            Device_Id, nx, ny,
-            raw_input_list);
+            Device_Id, raw_input_list);
     
     // ---------------------------------------------------------------------- //
     // Result
     // back to Eigen matrix (no copy)
-    Eigen::Map<eigen_matrix_t> tmp_output(
+    Eigen::Map< eigen_matrix_t > tmp_output(
         raw_output.get_data(), raw_output.get_nrow(), raw_output.get_ncol());
     // copy only if necessary (from float or row-major to double col-major)
-    io_matrix output(tmp_output.cast<double>());
+    io_matrix output(tmp_output.cast< double >());
     
     return(Rcpp::NumericMatrix(Rcpp::wrap(output)));
 }
