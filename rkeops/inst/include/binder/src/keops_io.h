@@ -2,10 +2,10 @@
 #define RKEOPS_IO_H
 
 #include <string>
-#include <stdexcept>
+// #include <stdexcept>
 #include <vector>
 
-#include "binders/checks.h"
+// #include "binders/checks.h"
 #include "binders/utils.h"
 #include "binders/switch.h"
 // #include "formula.h" made in cmake
@@ -14,10 +14,10 @@
 #include "rkeops_matrix.h"
 
 // rkeops matrix type
-using rkeops_base_matrix_t = rkeops::base_matrix<rkeops::type_t>;
-using rkeops_matrix_t = rkeops::matrix<rkeops::type_t>;
+using rkeops_base_matrix_t = rkeops::base_matrix< rkeops::type_t >;
+using rkeops_matrix_t = rkeops::matrix< rkeops::type_t >;
 // list of raw input data
-using rkeops_list_t = std::vector<rkeops_base_matrix_t>;
+using rkeops_list_t = std::vector< rkeops_base_matrix_t >;
 
 namespace keops_binders {
 
@@ -32,27 +32,27 @@ void keops_error(std::basic_string< char > msg) {
 using __TYPEARRAY__ = rkeops::matrix<__TYPE__>;
 
 template <>
-int get_ndim(__TYPEARRAY__ &obj_ptri) {
+int get_ndim(__TYPEARRAY__ obj_ptri) {
     return(obj_ptri.get_ndim());
 }
 
 template <>
-int get_size(__TYPEARRAY__ &obj_ptri, int l) {
+int get_size(__TYPEARRAY__ obj_ptri, int l) {
     return(obj_ptri.get_size(l));
 }
 
 template <>
-__TYPE__* get_data(__TYPEARRAY__ &obj_ptri) {
+__TYPE__* get_data(__TYPEARRAY__ obj_ptri) {
     return( (__TYPE__*) obj_ptri.get_data());
 }
 
 template <>
-bool is_contiguous(__TYPEARRAY__ &obj_ptri) {
+bool is_contiguous(__TYPEARRAY__ obj_ptri) {
     return(obj_ptri.is_contiguous());
 }
 
 template <>
-__TYPEARRAY__ allocate_result_array(int* shape_out, int nbatchdims) {
+__TYPEARRAY__ allocate_result_array< __TYPEARRAY__, __TYPE__ >(int* shape_out, int nbatchdims) {
     // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
     std::vector< int > shape_vector(shape_out, shape_out + nbatchdims + 2);
     // assume 2d array = matrix
@@ -61,7 +61,7 @@ __TYPEARRAY__ allocate_result_array(int* shape_out, int nbatchdims) {
 
 #if USE_CUDA
 template <>
-__TYPEARRAY__ allocate_result_array_gpu(int* shape_out, int nbatchdims) {
+__TYPEARRAY__ allocate_result_array_gpu< __TYPEARRAY__, __TYPE__ >(int* shape_out, int nbatchdims) {
     throw std::runtime_error("[rkeops] does not yet support array on GPU.");
 }
 #endif
@@ -73,9 +73,8 @@ __TYPEARRAY__ allocate_result_array_gpu(int* shape_out, int nbatchdims) {
 //                            Main function                                   //
 ////////////////////////////////////////////////////////////////////////////////
 
-template < typename array_t >
-array_t generic_red(
-        int nx, int ny,
+template< typename array_t_in, typename array_t_out, typename index_t >
+array_t_out generic_red(
         int tagCpuGpu,
         int tag1D2D,
         int tagHostDevice,
@@ -84,28 +83,37 @@ array_t generic_red(
     
     // Check that we have enough arguments:
     size_t nargs = input.size();
-    check_narg(nargs);
+    // check_narg(nargs);
+    // 
+    // check_tag(tag1D2D, "1D2D");
+    // check_tag(tagCpuGpu, "CpuGpu");
+    // check_tag(tagHostDevice, "HostDevice");
 
-    check_tag(tag1D2D, "1D2D");
-    check_tag(tagCpuGpu, "CpuGpu");
-    check_tag(tagHostDevice, "HostDevice");
-
-    short int Device_Id_s = cast_Device_Id(Device_Id);
+    // short int Device_Id_s = cast_Device_Id(Device_Id);
     
     // get the pointers to data to avoid a copy
-    __TYPE__ **castedargs = new __TYPE__ *[keops::NARGS];
-    for (size_t i = 0; i < keops::NARGS; i++)
-        castedargs[i] = input[i].get_data();
-    
-    int shape_output[2] = {keops::TAGIJ ? ny : nx, keops::DIMOUT};
+    // __TYPE__ **castedargs = new __TYPE__ *[keops::NARGS];
+    // for (size_t i = 0; i < keops::NARGS; i++)
+    //     castedargs[i] = input[i].get_data();
+
+    // int shape_output[2] = {keops::TAGIJ ? ny : nx, keops::DIMOUT};
     
     // Call Cuda codes =========================================================
-    array_t result = launch_keops< array_t >(
-                                tag1D2D, tagCpuGpu, tagHostDevice,
-                                Device_Id_s, nx, ny, shape_output,
-                                castedargs);
+    array_t_out result = keops_binders::launch_keops< array_t_in, array_t_out, index_t >(
+        tag1D2D,
+        tagCpuGpu,
+        tagHostDevice,
+        Device_Id,
+        nargs,
+        input.data(),
+        0, {});
     
-    delete[] castedargs;
+    //     launch_keops< array_t >(
+    //                             tag1D2D, tagCpuGpu, tagHostDevice,
+    //                             Device_Id_s, nx, ny, shape_output,
+    //                             castedargs);
+    // 
+    // delete[] castedargs;
     return result;
 }
 
