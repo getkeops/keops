@@ -222,13 +222,14 @@ if(USE_CUDA)
     keops1rfh${shared_obj_name}
     keops1rfd${shared_obj_name}
   )
-else()
-  target_link_libraries(
-    ${shared_obj_name} PUBLIC
-    keops${shared_obj_name}
-    keopsr${shared_obj_name}
-  )
 endif()
+
+target_link_libraries(
+  ${shared_obj_name} PUBLIC
+  keops${shared_obj_name}
+  keopsr${shared_obj_name}
+)
+
 
 # Installation step
 add_custom_command(
