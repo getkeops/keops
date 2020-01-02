@@ -1,24 +1,22 @@
-# install.packages("devtools") if necessary
-#devtools::install("../../rkeops") # or edit path to rkeops sub-directory
-
-devtools::load_all("..")
+# test definition, compilation and use of rkeops operators
+project_root_dir <- system("git rev-parse --show-toplevel", intern=TRUE)
+devtools::load_all(file.path(project_root_dir, "rkeops"))
 set_rkeops_options()
 clean_rkeops()
+
+message(getwd())
 
 # rkeops options (compile and runtime)
 get_rkeops_options()
 
-# option names
-rkeops_option_names()
-
 # to get a specific option: get_rkeops_option(<name>)
 # to set a specific option: set_rkeops_option(<name>, <value>)
-# in particular, to compute on GPU: 
-# set_rkeops_option("tagCpuGpu", 1)
+# in particular, to compute on GPU: set_rkeops_option("tagCpuGpu", 1)
 set_rkeops_option("precision", "double")
-
+set_rkeops_option("verbosity", 1)
 
 ## exemple 1
+message("## Example 1")
 formula = "Sum_Reduction((x|y), 1)"
 args = c("x=Vi(3)", "y=Vj(3)")
 
@@ -30,27 +28,31 @@ x <- matrix(runif(nx*3), nrow=3, ncol=nx)
 y <- matrix(runif(ny*3), nrow=3, ncol=ny)
 
 input <- list(x, y)
-res <- op(input)
+res <- op(input, inner_dim=0)
+
 expected_res <- colSums(t(x) %*% y)
+
+print(cbind(t(res), expected_res))
 sum(abs(res - expected_res))
 
-## exemple 2
-formula = "Sum_Reduction((x|y), 0)"
-args = c("x=Vi(3)", "y=Vj(3)")
-
-op <- keops_kernel(formula, args)
-
-nx <- 10
-ny <- 15
-x <- matrix(runif(nx*3), nrow= 3, ncol=nx)
-y <- matrix(runif(ny*3), nrow=3, ncol=ny)
-
-input <- list(x, y)
-tracemem(input)
-res <- op(input, nx=ncol(x), ny=ncol(y))
-str(res)
-expected_res <- apply(t(x) %*% y, 2, sum)
-sum(abs(res - expected_res))
+# ## exemple 2
+# message("## Example 2")
+# formula = "Sum_Reduction((x|y), 0)"
+# args = c("x=Vi(3)", "y=Vj(3)")
+# 
+# op <- keops_kernel(formula, args)
+# 
+# nx <- 10
+# ny <- 15
+# x <- matrix(runif(nx*3), nrow= 3, ncol=nx)
+# y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+# 
+# input <- list(x, y)
+# tracemem(input)
+# res <- op(input, inner_dim=0)
+# str(res)
+# expected_res <- apply(t(x) %*% y, 2, sum)
+# sum(abs(res - expected_res))
 
 # ## exemple 3
 # 
@@ -69,7 +71,7 @@ sum(abs(res - expected_res))
 # 
 # input <- list(x, y, beta, lambda)
 # 
-# res <- op(input)
+# res <- op(input, inner_dim=0)
 # summary(t(res))
 # 
 # expected_res <- matrix(0, 3, nx)

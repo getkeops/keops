@@ -1,8 +1,10 @@
-devtools::load_all("..")
+# test compilation of rkeops operators
+project_root_dir <- system("git rev-parse --show-toplevel", intern=TRUE)
+devtools::load_all(file.path(project_root_dir, "rkeops"))
 
 set_rkeops_options()
 # matrix product then sum
-formula = "Sum_Reduction((x|y), 1)"
+formula = "Sum_Reduction((x|y), 0)"
 args = c("x=Vi(3)", "y=Vj(3)")
 
 var_aliases <- format_var_aliases(args)$var_aliases
@@ -42,4 +44,4 @@ test_binder <- tryCatch(load_dll(path = tmp_build_dir,
 expect_false(is.null(test_binder))
 expect_true(test_binder() == 1)
 
-print("DONE")
+message("DONE")
