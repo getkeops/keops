@@ -13,7 +13,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 include(${KEOPS_SRC}/cuda.cmake)
-
 ## Set Path to sources
 set(SOURCE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -62,7 +61,7 @@ endif()
 
 # ----------------- create shared lib (cuda)
 if(USE_CUDA)
-
+message(STATUS cmake_cuda ${CMAKE_CUDA_STANDARD})
   CUDA_add_library(
     keops${shared_obj_name} SHARED
     ${KEOPS_SRC}/core/link_autodiff.cu

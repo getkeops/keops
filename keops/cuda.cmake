@@ -102,7 +102,7 @@ if(CUDA_FOUND AND USE_CUDA)
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
 
   List(APPEND CUDA_NVCC_FLAGS ${out_variable})
-  List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
+  List(APPEND CUDA_NVCC_FLAGS "--use_fast_math -std=c++14")
   List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
   #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-backtrace-limit 900")
   #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-depth 900")
