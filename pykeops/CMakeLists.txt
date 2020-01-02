@@ -123,63 +123,62 @@ if(USE_CUDA)
                         LIBRARY_OUTPUT_NAME ${shared_obj_name}1rfd
                         PREFIX ""
                         )
-
-else()
-  # ----------------- create shared lib (cpp)
-
-  add_library(
-    keops${shared_obj_name} SHARED
-    ${KEOPS_SRC}/core/mapreduce/CpuConv.cpp
-    ${KEOPS_SRC}/binders/keops_cst.h
-  )
-
-  target_compile_options(
-    keops${shared_obj_name} BEFORE
-    PRIVATE -include ${shared_obj_name}.h
-  )
-
-  # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
-  set_source_files_properties(
-    ${KEOPS_SRC}/core/mapreduce/CpuConv.cpp PROPERTIES
-    OBJECT_DEPENDS ${shared_obj_name}.h
-  )
-  # set name
-  set_target_properties(keops${shared_obj_name} PROPERTIES
-                        LIBRARY_OUTPUT_NAME ${shared_obj_name}
-                        PREFIX ""
-                        )
-
-
-  add_library(
-    keopsr${shared_obj_name} SHARED
-    ${KEOPS_SRC}/core/mapreduce/CpuConv_ranges.cpp
-    ${KEOPS_SRC}/binders/keops_cst.h
-  )
-
-  target_compile_options(
-    keopsr${shared_obj_name} BEFORE
-    PRIVATE -include ${shared_obj_name}.h
-  )
-
-  # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
-  set_source_files_properties(
-    ${KEOPS_SRC}/core/mapreduce/CpuConv_ranges PROPERTIES
-    OBJECT_DEPENDS ${shared_obj_name}.h
-  )
-
-  # set name
-  set_target_properties(keopsr${shared_obj_name} PROPERTIES
-                        LIBRARY_OUTPUT_NAME ${shared_obj_name}r
-                        PREFIX ""
-                        )
 endif()
+
+# ----------------- create shared lib (cpp)
+
+add_library(
+  keops${shared_obj_name} SHARED
+  ${KEOPS_SRC}/core/mapreduce/CpuConv.cpp
+  ${KEOPS_SRC}/binders/keops_cst.h
+)
+
+target_compile_options(
+  keops${shared_obj_name} BEFORE
+  PRIVATE -include ${shared_obj_name}.h
+)
+
+# tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+set_source_files_properties(
+  ${KEOPS_SRC}/core/mapreduce/CpuConv.cpp PROPERTIES
+  OBJECT_DEPENDS ${shared_obj_name}.h
+)
+# set name
+set_target_properties(keops${shared_obj_name} PROPERTIES
+                      LIBRARY_OUTPUT_NAME ${shared_obj_name}
+                      PREFIX ""
+                      )
+
+
+add_library(
+  keopsr${shared_obj_name} SHARED
+  ${KEOPS_SRC}/core/mapreduce/CpuConv_ranges.cpp
+  ${KEOPS_SRC}/binders/keops_cst.h
+)
+
+target_compile_options(
+  keopsr${shared_obj_name} BEFORE
+  PRIVATE -include ${shared_obj_name}.h
+)
+
+# tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+set_source_files_properties(
+  ${KEOPS_SRC}/core/mapreduce/CpuConv_ranges PROPERTIES
+  OBJECT_DEPENDS ${shared_obj_name}.h
+)
+
+# set name
+set_target_properties(keopsr${shared_obj_name} PROPERTIES
+                      LIBRARY_OUTPUT_NAME ${shared_obj_name}r
+                      PREFIX ""
+                      )
+
 
 # skip the full RPATH for the build tree. We append $ORIGIN later
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH "")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-
 
 
 # -------------------- Pybind11

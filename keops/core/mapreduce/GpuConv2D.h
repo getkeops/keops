@@ -174,6 +174,5 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         for(int k=0; k<DIMRED; k++)
             (*px)[blockIdx.y*DIMRED*nx+i*DIMRED+k] = acc[k];
 }
-///////////////////////////////////////////////////
 
 }
