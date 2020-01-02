@@ -143,7 +143,7 @@ format_var_aliases <- function(args) {
 #' * `"YY(<pos>,<dim>)"` where `YY` can be a formula input argument type 
 #' (`Vi`, `Vj` or `Pm`), `<pos>` is the position of the corresponding input 
 #' argument, and `<dim>` its inner dimension.
-#' * `"Var(<pos>,<dim>,<type>)` where `<pos>` and `<dim>` are the position and 
+#' * `"Var(<pos>,<dim>,<type>)"` where `<pos>` and `<dim>` are the position and 
 #' inner dimension (c.f. previous point) and `<type>` is an integer encoding 
 #' the formula input argument type with the following relation:
 #' 
