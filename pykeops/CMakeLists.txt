@@ -64,18 +64,73 @@ endif()
 if(USE_CUDA)
 
   CUDA_add_library(
-    keops${shared_obj_name} SHARED
-    ${KEOPS_SRC}/core/link_autodiff.cu
+    keops1fh${shared_obj_name} SHARED
+    ${KEOPS_SRC}/core/mapreduce/GpuConv1D_FromHost.cu
     OPTIONS --pre-include=${shared_obj_name}.h
   )
+  # set name
+  set_target_properties(keops1fh${shared_obj_name} PROPERTIES
+                        LIBRARY_OUTPUT_NAME ${shared_obj_name}1fh
+                        PREFIX ""
+                        )
+  CUDA_add_library(
+    keops1fd${shared_obj_name} SHARED
+    ${KEOPS_SRC}/core/mapreduce/GpuConv1D_FromDevice.cu
+    OPTIONS --pre-include=${shared_obj_name}.h
+  )
+  # set name
+  set_target_properties(keops1fd${shared_obj_name} PROPERTIES
+                        LIBRARY_OUTPUT_NAME ${shared_obj_name}1fd
+                        PREFIX ""
+                        )
+  CUDA_add_library(
+    keops2fh${shared_obj_name} SHARED
+    ${KEOPS_SRC}/core/mapreduce/GpuConv2D_FromHost.cu
+    OPTIONS --pre-include=${shared_obj_name}.h
+  )
+  # set name
+  set_target_properties(keops2fh${shared_obj_name} PROPERTIES
+                        LIBRARY_OUTPUT_NAME ${shared_obj_name}2fh
+                        PREFIX ""
+                        )
+  CUDA_add_library(
+    keops2fd${shared_obj_name} SHARED
+    ${KEOPS_SRC}/core/mapreduce/GpuConv2D_FromDevice.cu
+    OPTIONS --pre-include=${shared_obj_name}.h
+  )
+  # set name
+  set_target_properties(keops2fd${shared_obj_name} PROPERTIES
+                        LIBRARY_OUTPUT_NAME ${shared_obj_name}2fd
+                        PREFIX ""
+                        )
+  CUDA_add_library(
+    keops1rfh${shared_obj_name} SHARED
+    ${KEOPS_SRC}/core/mapreduce/GpuConv1D_ranges_FromHost.cu
+    OPTIONS --pre-include=${shared_obj_name}.h
+  )
+  # set name
+  set_target_properties(keops1rfh${shared_obj_name} PROPERTIES
+                        LIBRARY_OUTPUT_NAME ${shared_obj_name}1rfh
+                        PREFIX ""
+                        )
+  CUDA_add_library(
+    keops1rfd${shared_obj_name} SHARED
+    ${KEOPS_SRC}/core/mapreduce/GpuConv1D_ranges_FromDevice.cu
+    OPTIONS --pre-include=${shared_obj_name}.h
+  )
+  # set name
+  set_target_properties(keops1rfd${shared_obj_name} PROPERTIES
+                        LIBRARY_OUTPUT_NAME ${shared_obj_name}1rfd
+                        PREFIX ""
+                        )
 
 else()
   # ----------------- create shared lib (cpp)
 
   add_library(
     keops${shared_obj_name} SHARED
-    ${KEOPS_SRC}/core/link_autodiff.cpp
-    ../keops/binders/keops_cst.h
+    ${KEOPS_SRC}/core/mapreduce/CpuConv.cpp
+    ${KEOPS_SRC}/binders/keops_cst.h
   )
 
   target_compile_options(
@@ -85,10 +140,38 @@ else()
 
   # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
   set_source_files_properties(
-    ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
+    ${KEOPS_SRC}/core/mapreduce/CpuConv.cpp PROPERTIES
+    OBJECT_DEPENDS ${shared_obj_name}.h
+  )
+  # set name
+  set_target_properties(keops${shared_obj_name} PROPERTIES
+                        LIBRARY_OUTPUT_NAME ${shared_obj_name}
+                        PREFIX ""
+                        )
+
+
+  add_library(
+    keopsr${shared_obj_name} SHARED
+    ${KEOPS_SRC}/core/mapreduce/CpuConv_ranges.cpp
+    ${KEOPS_SRC}/binders/keops_cst.h
+  )
+
+  target_compile_options(
+    keopsr${shared_obj_name} BEFORE
+    PRIVATE -include ${shared_obj_name}.h
+  )
+
+  # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+  set_source_files_properties(
+    ${KEOPS_SRC}/core/mapreduce/CpuConv_ranges PROPERTIES
     OBJECT_DEPENDS ${shared_obj_name}.h
   )
 
+  # set name
+  set_target_properties(keopsr${shared_obj_name} PROPERTIES
+                        LIBRARY_OUTPUT_NAME ${shared_obj_name}r
+                        PREFIX ""
+                        )
 endif()
 
 # skip the full RPATH for the build tree. We append $ORIGIN later
@@ -97,11 +180,7 @@ SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH "")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
-# set name
-set_target_properties(keops${shared_obj_name} PROPERTIES
-                      LIBRARY_OUTPUT_NAME ${shared_obj_name}
-                      PREFIX ""
-                      )
+
 
 # -------------------- Pybind11
 pybind11_add_module(${shared_obj_name}
@@ -134,10 +213,23 @@ else()
   set_target_properties(${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
 endif()
 
-target_link_libraries(
-  ${shared_obj_name} PUBLIC
-  keops${shared_obj_name}
-)
+if(USE_CUDA)
+  target_link_libraries(
+    ${shared_obj_name} PUBLIC
+    keops1fh${shared_obj_name}
+    keops1fd${shared_obj_name}
+    keops2fh${shared_obj_name}
+    keops2fd${shared_obj_name}
+    keops1rfh${shared_obj_name}
+    keops1rfd${shared_obj_name}
+  )
+else()
+  target_link_libraries(
+    ${shared_obj_name} PUBLIC
+    keops${shared_obj_name}
+    keopsr${shared_obj_name}
+  )
+endif()
 
 # Installation step
 add_custom_command(
@@ -148,7 +240,36 @@ add_custom_command(
   TARGET keops${shared_obj_name} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops${shared_obj_name}> ${BIN_DIR}
 )
-
+add_custom_command(
+  TARGET keopsr${shared_obj_name} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keopsr${shared_obj_name}> ${BIN_DIR}
+)
+if(USE_CUDA)
+  add_custom_command(
+    TARGET keops1fh${shared_obj_name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops1fh${shared_obj_name}> ${BIN_DIR}
+  )
+  add_custom_command(
+    TARGET keops1fd${shared_obj_name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops1fd${shared_obj_name}> ${BIN_DIR}
+  )
+  add_custom_command(
+    TARGET keops2fh${shared_obj_name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops2fh${shared_obj_name}> ${BIN_DIR}
+  )
+  add_custom_command(
+    TARGET keops2fh${shared_obj_name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops2fh${shared_obj_name}> ${BIN_DIR}
+  )
+  add_custom_command(
+    TARGET keops1rfh${shared_obj_name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops1rfh${shared_obj_name}> ${BIN_DIR}
+  )
+  add_custom_command(
+    TARGET keops1rfd${shared_obj_name} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops1rfd${shared_obj_name}> ${BIN_DIR}
+  )
+endif()
 # Write a log file to decypher keops dllname
 if(commandLine)
   string(TIMESTAMP TODAY "%Y/%m/%d")

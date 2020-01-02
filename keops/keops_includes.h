@@ -83,10 +83,3 @@
   #define USE_KAHAN 0
 #endif
 
-#include "core/mapreduce/CpuConv.cpp"
-
-#ifdef __CUDACC__
-  #include "core/mapreduce/GpuConv1D.cu"
-  #include "core/mapreduce/GpuConv2D.cu"
-#endif
-

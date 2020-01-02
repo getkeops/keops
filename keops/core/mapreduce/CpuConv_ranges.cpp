@@ -1,5 +1,3 @@
-#pragma once
-
 #include <stdio.h>
 #include <assert.h>
 #include <vector>
@@ -7,6 +5,7 @@
 #include "core/pack/Pack.h"
 #include "core/pack/GetInds.h"
 #include "broadcast_batch_dimensions.h"
+#include "core/reductions/Reduction.h"
 
 // Host implementation of the convolution, for comparison
 
@@ -35,7 +34,7 @@ struct CpuConv_ranges {
     const int SIZEI = VARSI::SIZE + 1;
     const int SIZEJ = VARSJ::SIZE;
     const int SIZEP = VARSP::SIZE;
-  
+    
     // Separate and store the shapes of the "i" and "j" variables + parameters --------------
     //
     // shapes is an array of size (1+nargs)*(nbatchdims+3), which looks like:
@@ -57,9 +56,9 @@ struct CpuConv_ranges {
     // Then, we do the same for shapes_j, but with "N" instead of "M".
     // And finally for the parameters, with "1" instead of "M".
     fill_shapes< FUN >(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
-  
+    
     // Actual for-for loop -----------------------------------------------------
-
+    
     TYPE xi[DIMX], yj[DIMY], pp[DIMP];
     __TYPEACC__ acc[DIMRED];
 #if USE_BLOCKRED
@@ -99,11 +98,11 @@ struct CpuConv_ranges {
     for (int range_index = 0; range_index < nranges; range_index++) {
       __INDEX__ start_x = ranges_x[2 * range_index];
       __INDEX__ end_x = ranges_x[2 * range_index + 1];
-  
+      
       __INDEX__ start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
       __INDEX__ end_slice = slices_x[range_index];
-  
-  
+      
+      
       // If needed, compute the "true" start indices of the range, turning
       // the "abstract" index start_x into an array of actual "pointers/offsets" stored in indices_i:
       if (nbatchdims > 0) {
@@ -112,7 +111,7 @@ struct CpuConv_ranges {
         vect_broadcast_index(range_index, nbatchdims, SIZEP, shapes, shapes_p, indices_p);
         load< DIMSP >(0, pp, param, indices_p); // Load the paramaters, once per tile
       }
-  
+      
       for (__INDEX__ i = start_x; i < end_x; i++) {
         if (nbatchdims == 0) {
           load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
@@ -130,13 +129,13 @@ struct CpuConv_ranges {
         for (__INDEX__ slice = start_slice; slice < end_slice; slice++) {
           __INDEX__ start_y = ranges_y[2 * slice];
           __INDEX__ end_y = ranges_y[2 * slice + 1];
-      
+          
           // If needed, compute the "true" start indices of the range, turning
           // the "abstract" index start_y into an array of actual "pointers/offsets" stored in indices_j:
           if (nbatchdims > 0) {
             vect_broadcast_index(start_y, nbatchdims, SIZEJ, shapes, shapes_j, indices_j);
           }
-
+          
           if (nbatchdims == 0) {
             for (int j = start_y; j < end_y; j++) {
               load< DIMSY >(j, yj, py);
@@ -153,8 +152,7 @@ struct CpuConv_ranges {
               typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(acc, xi, j); // acc += xi
 #endif
             }
-          }
-          else {
+          } else {
             for (int j = start_y; j < end_y; j++) {
               load< DIMSY >(j - start_y, yj, py, indices_j);
               call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
@@ -177,9 +175,9 @@ struct CpuConv_ranges {
 #endif
         typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acc, px[0] + i * DIMOUT, px, i);
       }
-
+      
     }
-
+    
     return 0;
   }
 
@@ -244,4 +242,10 @@ struct CpuConv_ranges {
     return CpuConv_ranges_(fun, params, nx, ny, nbatchdims, shapes, nranges_x, nranges_y, ranges, px, py);
   }
 };
+}
+
+using namespace keops;
+
+extern "C" int CpuReduc_ranges(int nx, int ny, int nbatchdims, int *shapes, int nranges_x, int nranges_y, __INDEX__ **castedranges, __TYPE__* gamma, __TYPE__** args) {
+  return Eval< F, CpuConv_ranges >::Run(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, gamma, args);
 }
