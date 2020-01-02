@@ -102,9 +102,9 @@ SEXP r_genred(
     // ---------------------------------------------------------------------- //
     // Result
     // back to Eigen matrix (no copy)
+    raw_output.update_data();
     Eigen::Map< eigen_matrix_t > tmp_output(
         raw_output.get_data(), raw_output.get_nrow(), raw_output.get_ncol());
-    // copy only if necessary (from float or row-major to double col-major)
     io_matrix output(tmp_output.cast< double >());
     
     return(Rcpp::NumericMatrix(Rcpp::wrap(output)));

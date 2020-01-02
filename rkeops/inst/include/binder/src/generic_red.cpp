@@ -16,7 +16,7 @@ rkeops_matrix_t genred(
         int Device_Id,
         rkeops_list_t & input) {
     
-    rkeops_matrix_t output = keops_binders::generic_red< rkeops_base_matrix_t, rkeops_matrix_t, rkeops_matrix_t > (
+    rkeops_matrix_t output = rkeops::generic_red< rkeops_base_matrix_t, rkeops_matrix_t, rkeops_matrix_t > (
         tagCpuGpu,
         tag1D2D,
         tagHostDevice,

@@ -1,17 +1,11 @@
 #ifndef RKEOPS_MATRIX_H
 #define RKEOPS_MATRIX_H
 
-#include <vector>
 #include <iostream>
 #include <iterator>
+#include <vector>
 
 namespace rkeops {
-
-#if C_CONTIGUOUS
-const bool RKEOPS_C_CONTIGUOUS = 1;
-#else
-const bool RKEOPS_C_CONTIGUOUS = 0;
-#endif
 
 // rkeops base matrix type (storing a pointer and dimension)
 template <typename T>
@@ -20,21 +14,21 @@ protected:
     T* _data;     // pointer to data
     size_t _nrow; // number of row
     size_t _ncol; // number of column
-    bool _is_contiguous; // true = row-major or c_contiguous, false = column-major or f_contiguous
+    bool _is_contiguous; // true (handled in Rcpp entry point)
     
 public:
     base_matrix() {
         _data = nullptr;
         _nrow = 0;
         _ncol = 0;
-        _is_contiguous = RKEOPS_C_CONTIGUOUS;
+        _is_contiguous = true;
     };
     
     base_matrix(size_t nrow, size_t ncol) {
         _data = nullptr;
         _nrow = nrow;
         _ncol = ncol;
-        _is_contiguous = RKEOPS_C_CONTIGUOUS;
+        _is_contiguous = true;
     };
     
     base_matrix(T* data, size_t nrow, size_t ncol) : base_matrix(nrow, ncol) {
@@ -42,9 +36,7 @@ public:
     };
     
     base_matrix(std::vector<T> & raw_data, size_t nrow, size_t ncol) : 
-        base_matrix(nrow, ncol) {
-        _data = raw_data.data();
-    };
+        base_matrix(raw_data.data(), nrow, ncol) {};
     
     ~base_matrix() {};
     
@@ -100,17 +92,15 @@ public:
 template <typename T>
 class matrix : public base_matrix<T> {
 protected:
-    std::vector<T> _raw_data; // flat vector of matrix data
+    // flat vector of matrix data (replace _data)
+    std::vector<T> _raw_data;
     
 public:
     matrix() : base_matrix<T>(), _raw_data() {
-        this->update_data();
     };
     
-    matrix(size_t nrow, size_t ncol) : base_matrix<T>(nrow, ncol) {
-        _raw_data = std::vector<T>(nrow * ncol);
-        this->update_data();
-    };
+    matrix(size_t nrow, size_t ncol) : 
+        base_matrix<T>(nrow, ncol), _raw_data(nrow * ncol) {};
     
     matrix(T* data, size_t nrow, size_t ncol) : 
         base_matrix<T>(data, nrow, ncol) {
@@ -118,20 +108,13 @@ public:
     };
     
     matrix(std::vector<T> & data, size_t nrow, size_t ncol) : 
-        base_matrix<T>(nrow, ncol) {
-        _raw_data = std::vector<T>(data.begin(), data.end());
-        this->update_data();
-    };
+        base_matrix<T>(nrow, ncol), _raw_data(data) {};
     
     ~matrix() {};
     
+    // !! to be used wisely !!
     void update_data() {
         this->_data = _raw_data.data();
-    };
-    
-    T* get_data() {
-        this->update_data();
-        return(this->_data);
     };
     
     std::vector<T> get_raw_data() {
