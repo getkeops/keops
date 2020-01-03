@@ -8,3 +8,5 @@ rkeops.md
 benchmarks
 dev
 examples
+lib/benchmark
+lib/gtest
