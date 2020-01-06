@@ -1,8 +1,12 @@
 .gitkeep
 .gitignore
+*.o
+*.so
 prebuild.R
+rkeops_lazytensor_basic.R
 readme.txt
 recipe.md
+rkeops.md
 benchmarks
 dev
 examples
