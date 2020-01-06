@@ -18,9 +18,9 @@ check_args <- function(args, arg_order = NULL) {
 }
 
 # function to repeat check of keops_kernel
-run_op <- function(op, input, expected_res) {
+run_op <- function(op, input, expected_res, inner_dim) {
     # run
-    res <- tryCatch(op(input),
+    res <- tryCatch(op(input, inner_dim),
                     error = function(e) {print(e); return(NULL)})
     expect_false(is.null(res))
     # check result

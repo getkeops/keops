@@ -25,7 +25,7 @@ test_that("compile_formula", {
     y <- matrix(runif(ny*3), nrow=3, ncol=ny)
     # run
     param <- c(get_rkeops_options("runtime"),
-               list(nx=ncol(x), ny=ncol(y)))
+               list(inner_dim=0))
     input <- list(x, y)
     res <- r_genred(input, param)
     # check result
@@ -94,7 +94,7 @@ test_that("keops_kernel", {
     # run
     input <- list(x, y)
     expected_res <- colSums(t(x) %*% y)
-    run_op(op, input, expected_res)
+    run_op(op, input, expected_res, inner_dim=0)
     
     ## data (reduction index in row)
     nx <- 10
@@ -104,7 +104,7 @@ test_that("keops_kernel", {
     # run
     input <- list(x, y)
     expected_res <- colSums(x %*% t(y))
-    run_op(op, input, expected_res)
+    run_op(op, input, expected_res, inner_dim=1)
     
     ## data (named input wrong order)
     nx <- 10
@@ -114,7 +114,7 @@ test_that("keops_kernel", {
     # run
     input <- list(y=y, x=x)
     expected_res <- colSums(t(x) %*% y)
-    run_op(op, input, expected_res)
+    run_op(op, input, expected_res, inner_dim=0)
 })
 
 test_that("parse_extra_args", {
