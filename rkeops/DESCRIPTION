@@ -1,6 +1,6 @@
 Package: rkeops
 Type: Package
-Title: Kernel Operations on the GPU, with autodiff, without memory overflows
+Title: Kernel Operations on the GPU, with Autodiff, without Memory Overflows
 Version: 1.1.1
 Date: 2020-01-06
 Authors@R: c(
@@ -34,7 +34,7 @@ Suggests:
     testthat (>= 2.1.0),
     knitr,
     rmarkdown
-URL: https://www.kernel-operations.io/>, https://github.com/getkeops/keops/
+URL: https://www.kernel-operations.io/, https://github.com/getkeops/keops/
 BugReports: https://github.com/getkeops/keops/issues
 Encoding: UTF-8
 LazyData: true

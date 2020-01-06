@@ -15,7 +15,8 @@
 #' - [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
 #' - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
 #' - [Jean Feydy](https://www.math.ens.fr/~feydy/)
-#' - [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
+#' - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
+#' - François-David Collin
 #' 
 #' @details
 #' The KeOps library provides seamless kernel operations on GPU, with 
@@ -29,7 +30,7 @@
 #' 
 #' For more information, please read the vignettes 
 #' (`browseVignettes("rkeops")`) and visit 
-#' <https://www.kernel-operations.io/>.
+#' https://www.kernel-operations.io/.
 #' 
 #' @import Rcpp
 #' @importFrom Rcpp sourceCpp
