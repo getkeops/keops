@@ -39,39 +39,60 @@ The function \code{keops_kernel} compiles and imports a new operator that
 implements the formala given in input, it returns a function that can be
 used to compute the result of the formula on actual data.
 
-The returned function expects a list of arguments whose order corresponds to
-the order given in \code{args} to \code{keops_kernel}. We use a list to avoid useless
-copies of data.
+The returned function expects a list of arguments, as data matrices, whose
+order corresponds to the order given in \code{args} to \code{keops_kernel}.
+We use a list to avoid useless copies of data.
 
 \strong{Note:} Data are input as a list, because list are references and since
 argument passing is done by copy in R, it is better to copy a list of
 reference than the actual input data, especially for big matrices.
 
 You should be careful with the input dimension of your data, to correspond
-to the input dimension specified in \code{args}.
+to the input dimension specified in \code{args} (see inner ou outer dimension in
+\code{browseVignettes("rkeops")}.
 }
 \examples{
 \dontrun{
 ## Example 1
-# Define a function that computes for each i the sum over j
-# of the scalar products of `x_i` and `y_j` (both 3d vectors)
-F <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
-                  args = c("x=Vi(3)", "y=Vj(3)"))
-## data
+# Defining a function that computes for each j the sum over i
+# of the scalar products between `x_i` and `y_j` (both 3d vectors), 
+# i.e. the sum over the rows of the result of the matrix product `X * t(Y)`
+# where `x_i` and `y_j` are the respective rows of the matrices `X` and `Y`.
+op <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
+                   args = c("x=Vi(3)", "y=Vj(3)"))
+# data
 nx <- 10
 ny <- 15
 # x_i = rows of the matrix X
 X <- matrix(runif(nx*3), nrow=nx, ncol=3)
-# y _j = rows of the matrix Y
+# y_j = rows of the matrix Y
 Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
-## compute the result
-res <- F(list(X,Y))
+# compute the result (here, by default `inner_dim=1` and columns corresponds 
+# to the inner dimension)
+res <- op(list(X,Y))
+
+## Example 1 bis
+# In example 1, the inner dimension (i.e. the commun dimension of vectors 
+# `x_i` and `y_j` corresponds to columns of the matrices `X` and `Y` resp.).
+# We know consider the inner dimension to be the rows of the matrices `X` 
+# and `Y`.
+
+# data
+nx <- 10
+ny <- 15
+# x_i = columns of the matrix X
+X <- matrix(runif(nx*3), nrow=3, ncol=nx)
+# y_j = columns of the matrix Y
+Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+# compute the result (we specify `inner_dim=0` to indicate that the rows 
+# corresponds to the inner dimension)
+res <- op(list(X,Y), inner_dim=0)
 
 ## Example 2
-# Define a function that computes the the convolution with a Gauss kernel 
-# i.e. the sum over j of `e^(lambda*||x_i - y_j||^2) * beta_j` where `x_i`, 
-# `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar
-F = keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
+# Defining a function that computes the convolution with a Gaussian kernel 
+# i.e. the sum over i of `e^(lambda * ||x_i - y_j||^2) * beta_j` where `x_i`, 
+# `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar parameter.
+op = keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
                  args = c("x=Vi(3)", "y=Vj(3)", 
                           "beta=Vj(3)", "lambda=Pm(1)"))
 
@@ -90,7 +111,7 @@ beta <- matrix(runif(ny*3), nrow=ny, ncol=3)
 lambda <- 0.25
 
 # compute the result
-res <- F(list(X, Y, beta, lambda))
+res <- op(list(X, Y, beta, lambda))
 }
 }
 \author{
