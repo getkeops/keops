@@ -21,6 +21,8 @@ i.e. if CUDA is available). Default value is \code{TRUE}. If set to \code{TRUE} 
 CUDA is not available, user-defined operators are compiled for CPU
 computations.}
 
+\item{col_major}{boolean indicator regarding storage order (default is TRUE).}
+
 \item{debug}{boolean indicator regarding debuging flag for compilation.
 Default value is \code{FALSE}.}
 
