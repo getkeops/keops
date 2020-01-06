@@ -10,7 +10,7 @@ clean <- function() {
     ## clean inst/build
     build_dir <- file.path(pkgdir, "inst", "build")
     if(dir.exists(build_dir)) {
-        cmd <- paste0("rm -r ", build_dir, "/*")
+        cmd <- paste0("rm -rf ", build_dir, "/*")
         tmp <- system(cmd)
     }
 }
@@ -31,3 +31,7 @@ prebuild <- function() {
                       filename)
     tmp <- system(command)
 }
+
+# run
+clean()
+prebuild()
