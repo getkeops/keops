@@ -34,6 +34,9 @@ Feel free to contact us for any bug report or feature request:
 * [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
 * [Jean Feydy](http://www.math.ens.fr/~feydy/)
 * [Joan Alexis Glaunès](http://www.mi.parisdescartes.fr/~glaunes/)
+* François-David Collin
+
+You can also fill an issue report on Github at <https://github.com/getkeops/keops/issues>.
 
 # What is RKeOps?
 
