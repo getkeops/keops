@@ -17,8 +17,12 @@
 #' }
 #' @export
 clean_rkeops <- function() {
+    # directories
+    dir_list <- list.dirs(get_build_dir(), recursive = FALSE)
+    if(length(dir_list) > 0) unlink(dir_list, recursive = TRUE)
+    # files
     file_list <- list.files(get_build_dir())
-    file.remove(file.path(get_build_dir(), file_list))
+    if(length(file_list) > 0) file.remove(file.path(get_build_dir(), file_list))
 }
 
 #' Create name of shared library from formula and arguments
