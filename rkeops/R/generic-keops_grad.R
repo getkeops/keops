@@ -15,9 +15,14 @@
 #' @importFrom stringr str_match_all
 #' @examples
 #' \dontrun{
+#' formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
+#' args <- c("x=Vi(0,3)", "y=Vj(1,3)")
+#' op <- keops_kernel(formula, args)
+#' grad_op <- keops_grad(op, var=0)
 #' }
 #' @export
 keops_grad <- function(operator, var) {
+    stop("gradient computation is not ready yet, you can compute gradient by directly the formula with `Grad` keyword. See the vignettes.")
     # check input (string or integer)
     if(is.numeric(var)) var <- as.integer(var)
     if(length(var) > 1 & !is.character(var) & !is.integer(var)) 

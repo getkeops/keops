@@ -27,6 +27,10 @@ FIXME
 }
 \examples{
 \dontrun{
+formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
+args <- c("x=Vi(0,3)", "y=Vj(1,3)")
+op <- keops_kernel(formula, args)
+grad_op <- keops_grad(op, var=0)
 }
 }
 \author{
