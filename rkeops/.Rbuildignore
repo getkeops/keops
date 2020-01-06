@@ -1,10 +1,9 @@
 .gitkeep
 .gitignore
 prebuild.R
-README.md
 readme.txt
 recipe.md
-rkeops.md
 benchmarks
 dev
 examples
+TODO
