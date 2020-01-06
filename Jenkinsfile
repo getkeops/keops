@@ -99,6 +99,7 @@ pipeline {
               '''
           }
         }
+
       }
     }
 
@@ -114,13 +115,43 @@ pipeline {
               sh '''
                  cd keopslab/test
                  export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
-                 matlab -nodisplay -r "r=runtests(\'generic_test.m\'),exit(sum([r(:).Failed]))"
+                 matlab -nodisplay -r "r=runtests('generic_test.m'),exit(sum([r(:).Failed]))"
               '''
           }
         }
 
       }
     }
+
+// ----------------------------------------------------------------------------------------
+    stage('Test RKeOps') {
+      parallel {
+
+        stage('Test Linux') {
+          agent { label 'ubuntu' }
+          steps {
+            echo 'Testing..'
+              sh 'git submodule update --init'
+              sh '''
+                 R -e "devtools::check('rkeops')"
+              '''
+          }
+        }
+
+        stage('Test Cuda') {
+          agent { label 'cuda' }
+          steps {
+            echo 'Testing..'
+              sh 'git submodule update --init'
+              sh '''
+                 R -e "devtools::check('rkeops')"
+              '''
+          }
+        }
+
+      }
+    }
+
 
 // ----------------------------------------------------------------------------------------
     stage('Doc') {

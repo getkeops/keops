@@ -7,3 +7,5 @@ benchmarks
 dev
 examples
 TODO
+lib/benchmark
+lib/gtest
