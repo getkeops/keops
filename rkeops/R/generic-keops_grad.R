@@ -19,19 +19,18 @@
 #' @export
 keops_grad <- function(operator, var) {
     # check input (string or integer)
-    if(!is.character(var) & !is.integer(var)) 
+    if(is.numeric(var)) var <- as.integer(var)
+    if(length(var) > 1 & !is.character(var) & !is.integer(var)) 
         stop(paste0("`var` input argument should be the name (string) ", 
                     "or position (integer) of an argument in the formula"))
     # get operator context (formula, variable, etc.)
     env <- operator()
-    # check if var in formula arguments
-    # TODO
-    
+    # parse formula and args to derive position of new variable
+    var_aliases <- env$var_aliases
+    extra_var <- parse_extra_args(env$formula, env$args)
     # position new variable = length arg list - 1 (last)
-    # FIXME (using parse_extra_args)
-    posnewvar <- length(env$var_aliases$args)
+    posnewvar <- max(c(var_aliases$var_pos, extra_var$var_pos)) + 1
     # position of the variable to be derived
-    # FIXME
     pos <- NULL
     if(is.character(var)) {
         pos <- env$var_aliases$var_pos[which(env$var_aliases$var_pos == var)]
@@ -40,4 +39,9 @@ keops_grad <- function(operator, var) {
     } else {
         stop("`var` input argument should be a text string or an integer.")
     }
+    # new formula
+    new_formula <- paste0("GradFromPos(", env$formula, ",", pos, ",", 
+                          posnewvar, ")")
+    # define new op
+    return(keops_kernel(new_formula, env$args))
 }
