@@ -1,8 +1,4 @@
-# install.packages("devtools") if necessary
-#devtools::install("../../rkeops") # or edit path to rkeops sub-directory
-
 library(rkeops)
-clean_rkeops()
 
 # rkeops options (compile and runtime)
 get_rkeops_options()
@@ -14,69 +10,67 @@ rkeops_option_names()
 # to set a specific option: set_rkeops_option(<name>, <value>)
 # in particular, to compute on GPU: 
 # set_rkeops_option("tagCpuGpu", 1)
-set_rkeops_option("precision", "double")
+# set_rkeops_option("precision", "double")
 
-
-## exemple 1
-formula = "Sum_Reduction((x|y), 1)"
-args = c("x=Vi(3)", "y=Vj(3)")
-
-op <- keops_kernel(formula, args)
-
+## Example 1
+message("## Example 1")
+# Defining a function that computes for each j the sum over i
+# of the scalar products between `x_i` and `y_j` (both 3d vectors),
+# i.e. the sum over the rows of the result of the matrix product `X * t(Y)`
+# where `x_i` and `y_j` are the respective rows of the matrices `X` and `Y`.
+op <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
+                   args = c("x=Vi(3)", "y=Vj(3)"))
+# data
 nx <- 10
 ny <- 15
-x <- matrix(runif(nx*3), nrow=3, ncol=nx)
-y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+# x_i = rows of the matrix X
+X <- matrix(runif(nx*3), nrow=nx, ncol=3)
+# y_j = rows of the matrix Y
+Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+# computing the result (here, by default `inner_dim=1` and columns corresponds
+# to the inner dimension)
+res <- op(list(X,Y))
 
-input <- list(x, y)
-res <- op(input)
-expected_res <- colSums(t(x) %*% y)
-sum(abs(res - expected_res))
+## Example 1 bis
+message("## Example 1 bis")
+# In example 1, the inner dimension (i.e. the commun dimension of vectors
+# `x_i` and `y_j` corresponds to columns of the matrices `X` and `Y` resp.).
+# We know consider the inner dimension to be the rows of the matrices `X`
+# and `Y`.
 
-## exemple 2
-formula = "Sum_Reduction((x|y), 0)"
-args = c("x=Vi(3)", "y=Vj(3)")
-
-op <- keops_kernel(formula, args)
-
+# data
 nx <- 10
 ny <- 15
-x <- matrix(runif(nx*3), nrow= 3, ncol=nx)
-y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+# x_i = columns of the matrix X
+X <- matrix(runif(nx*3), nrow=3, ncol=nx)
+# y_j = columns of the matrix Y
+Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+# computing the result (we specify `inner_dim=0` to indicate that rows
+# corresponds to the inner dimension)
+res <- op(list(X,Y), inner_dim=0)
 
-input <- list(x, y)
-tracemem(input)
-res <- op(input, nx=ncol(x), ny=ncol(y))
-str(res)
-expected_res <- apply(t(x) %*% y, 2, sum)
-sum(abs(res - expected_res))
+## Example 2
+message("## Example 2")
+# Defining a function that computes the convolution with a Gaussian kernel
+# i.e. the sum over i of `e^(lambda * ||x_i - y_j||^2) * beta_j` where `x_i`,
+# `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar parameter.
+op <- keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
+                   args = c("x=Vi(3)", "y=Vj(3)",
+                            "beta=Vj(3)", "lambda=Pm(1)"))
 
-## exemple 3
+# data
+nx <- 10
+ny <- 15
+# x_i = rows of the matrix X
+X <- matrix(runif(nx*3), nrow=nx, ncol=3)
+# y _j = rows of the matrix Y
+Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+# beta_j = rows of the matrix beta
+beta <- matrix(runif(ny*3), nrow=ny, ncol=3)
+# !! important !! y and beta should have the same dimension
 
-formula = "Sum_Reduction(Exp(-lambda*SqNorm2(x-y))*beta, 1)"
-args = c("x=Vi(3)", "y=Vj(3)", "beta=Vj(3)", "lambda=Pm(1)")
+# parameter
+lambda <- 0.25
 
-op <- keops_kernel(formula, args)
-
-nx = 10
-ny = 15
-x <- matrix(runif(nx*3), nrow=3, ncol=nx)
-y <- matrix(runif(ny*3), nrow=3, ncol=ny)
-beta <- matrix(runif(ny*3), nrow=3, ncol=ny)
-
-lambda <- as.matrix(.5)
-
-input <- list(x, y, beta, lambda)
-
-res <- op(input)
-summary(t(res))
-
-expected_res <- matrix(0, 3, nx)
-for(i in 1:nx) {
-    for(j in 1:ny) {
-        expected_res[,i] <- expected_res[,i] + exp(- lambda[1] * sum((x[,i]-y[,j])^2)) * beta[,j]
-    }
-}
-
-sum(abs(res - expected_res))
-
+# computing the result
+res <- op(list(X, Y, beta, lambda))
