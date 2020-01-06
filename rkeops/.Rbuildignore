@@ -13,3 +13,10 @@ examples
 TODO
 lib/benchmark
 lib/gtest
+lib/sequences/.appveyor.yml
+lib/sequences/.clang-format
+lib/sequences/.git
+lib/sequences/.travis.yml
+lib/sequences/.conan
+lib/sequences/Makefile
+version
