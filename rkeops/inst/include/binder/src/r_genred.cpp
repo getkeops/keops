@@ -105,6 +105,7 @@ SEXP r_genred(
     raw_output.update_data();
     Eigen::Map< eigen_matrix_t > tmp_output(
         raw_output.get_data(), raw_output.get_nrow(), raw_output.get_ncol());
+    // back to R (copy with cast)
     io_matrix output(tmp_output.cast< double >());
     
     return(Rcpp::NumericMatrix(Rcpp::wrap(output)));
