@@ -4,8 +4,6 @@ devtools::load_all(file.path(project_root_dir, "rkeops"))
 set_rkeops_options()
 clean_rkeops()
 
-message(getwd())
-
 # rkeops options (compile and runtime)
 get_rkeops_options()
 
