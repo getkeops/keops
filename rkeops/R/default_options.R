@@ -86,6 +86,7 @@ default_compile_options <- function() {
 #' i.e. if CUDA is available). Default value is `TRUE`. If set to `TRUE` and 
 #' CUDA is not available, user-defined operators are compiled for CPU 
 #' computations.
+#' @param col_major boolean indicator regarding storage order (default is TRUE).
 #' @param debug boolean indicator regarding debuging flag for compilation. 
 #' Default value is `FALSE`.
 #' @param rkeops_dir string, path to `rkeops` install directory on the system. 
