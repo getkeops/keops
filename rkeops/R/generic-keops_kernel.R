@@ -17,16 +17,17 @@
 #' implements the formala given in input, it returns a function that can be 
 #' used to compute the result of the formula on actual data.
 #' 
-#' The returned function expects a list of arguments whose order corresponds to 
-#' the order given in `args` to `keops_kernel`. We use a list to avoid useless 
-#' copies of data.
+#' The returned function expects a list of arguments, as data matrices, whose 
+#' order corresponds to the order given in `args` to `keops_kernel`. 
+#' We use a list to avoid useless copies of data.
 #' 
 #' **Note:** Data are input as a list, because list are references and since 
 #' argument passing is done by copy in R, it is better to copy a list of 
 #' reference than the actual input data, especially for big matrices.
 #' 
 #' You should be careful with the input dimension of your data, to correspond 
-#' to the input dimension specified in `args`.
+#' to the input dimension specified in `args` (see inner ou outer dimension in 
+#' `browseVignettes("rkeops")`.
 #' @author Ghislain Durif
 #' @param formula text string, an operator formula (see Details).
 #' @param args vector of text string, formula arguments (see Details).
@@ -41,25 +42,45 @@
 #' @examples
 #' \dontrun{
 #' ## Example 1
-#' # Define a function that computes for each i the sum over j
-#' # of the scalar products of `x_i` and `y_j` (both 3d vectors)
-#' F <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
-#'                   args = c("x=Vi(3)", "y=Vj(3)"))
-#' ## data
+#' # Defining a function that computes for each j the sum over i
+#' # of the scalar products between `x_i` and `y_j` (both 3d vectors), 
+#' # i.e. the sum over the rows of the result of the matrix product `X * t(Y)`
+#' # where `x_i` and `y_j` are the respective rows of the matrices `X` and `Y`.
+#' op <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
+#'                    args = c("x=Vi(3)", "y=Vj(3)"))
+#' # data
 #' nx <- 10
 #' ny <- 15
 #' # x_i = rows of the matrix X
 #' X <- matrix(runif(nx*3), nrow=nx, ncol=3)
-#' # y _j = rows of the matrix Y
+#' # y_j = rows of the matrix Y
 #' Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
-#' ## compute the result
-#' res <- F(list(X,Y))
+#' # compute the result (here, by default `inner_dim=1` and columns corresponds 
+#' # to the inner dimension)
+#' res <- op(list(X,Y))
+#' 
+#' ## Example 1 bis
+#' # In example 1, the inner dimension (i.e. the commun dimension of vectors 
+#' # `x_i` and `y_j` corresponds to columns of the matrices `X` and `Y` resp.).
+#' # We know consider the inner dimension to be the rows of the matrices `X` 
+#' # and `Y`.
+#' 
+#' # data
+#' nx <- 10
+#' ny <- 15
+#' # x_i = columns of the matrix X
+#' X <- matrix(runif(nx*3), nrow=3, ncol=nx)
+#' # y_j = columns of the matrix Y
+#' Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+#' # compute the result (we specify `inner_dim=0` to indicate that the rows 
+#' # corresponds to the inner dimension)
+#' res <- op(list(X,Y), inner_dim=0)
 #' 
 #' ## Example 2
-#' # Define a function that computes the the convolution with a Gauss kernel 
-#' # i.e. the sum over j of `e^(lambda*||x_i - y_j||^2) * beta_j` where `x_i`, 
-#' # `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar
-#' F = keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
+#' # Defining a function that computes the convolution with a Gaussian kernel 
+#' # i.e. the sum over i of `e^(lambda * ||x_i - y_j||^2) * beta_j` where `x_i`, 
+#' # `y_j` and `beta_j` are 3d vectors, and `lambda` is a scalar parameter.
+#' op = keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
 #'                  args = c("x=Vi(3)", "y=Vj(3)", 
 #'                           "beta=Vj(3)", "lambda=Pm(1)"))
 #' 
@@ -78,7 +99,7 @@
 #' lambda <- 0.25
 #' 
 #' # compute the result
-#' res <- F(list(X, Y, beta, lambda))
+#' res <- op(list(X, Y, beta, lambda))
 #' }
 #' @export
 keops_kernel <- function(formula, args) {
@@ -128,7 +149,8 @@ keops_kernel <- function(formula, args) {
         ## storing some context
         env <- list(formula=formula,
                     args=args,
-                    var_aliases=var_aliases)
+                    var_aliases=var_aliases,
+                    inner_dim=inner_dim)
         if(missing(input) | is.null(input))
             return(env)
         
@@ -153,42 +175,16 @@ keops_kernel <- function(formula, args) {
                                               return(as.matrix(input[[ind]])))
             names(input) <- tmp_names
         }
-
-        ## transpose input if necessary (done in Cpp)
-        # # check if necessary
-        # check_input_dim <- sapply(1:length(input),
-        #     function(ind) {
-        #         input_dim <- nrow(input[[ind]])
-        #         expected_dim <- env$var_aliases$var_dim[ind]
-        #         return(input_dim != expected_dim)
-        #     })
-        # # transpose if necessary
-        # if(any(check_input_dim)) {
-        #     tmp_names <- names(input)
-        #     input[check_input_dim] <- lapply(which(check_input_dim),
-        #             function(ind) {
-        #                 input_dim <- nrow(input[[ind]])
-        #                 expected_dim <- env$var_aliases$var_dim[ind]
-        #                 return(t(input[[ind]]))
-        #             })
-        #     names(input) <- tmp_names
-        # }
-        
-        ### dimensions are now handled in Cpp
-        # ## range i
-        # index_i <- which(env$var_aliases$var_type == "Vi")
-        # nxs <- sapply(input[index_i], ncol)
-        # nx <- nxs[1]
-        # if(mean(nxs) != nx) stop("Range of index i is different among all Vi's variables")
-        # ## range j
-        # index_j <- which(env$var_aliases$var_type == "Vj")
-        # nys <- sapply(input[index_j], ncol)
-        # ny <- nys[1]
-        # if(mean(nys) != ny) stop("Range of index j is different among all Vj's variables")
         
         ## run
         param <- c(get_rkeops_options("runtime"),
                    list(inner_dim=inner_dim))
-        return(r_genred(input, param))
+        out <- r_genred(input, param)
+        ## transpose if necessary
+        if(inner_dim) {
+            return(t(out))
+        } else {
+            return(out)
+        }
     }
 }
