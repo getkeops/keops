@@ -10,6 +10,7 @@ rkeops.md
 benchmarks
 dev
 examples
+tests
 TODO
 lib/benchmark
 lib/gtest

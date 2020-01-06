@@ -133,7 +133,7 @@ pipeline {
             echo 'Testing..'
               sh 'git submodule update --init'
               sh '''
-                 R -e "devtools::check('rkeops')"
+                 R -e "devtools::check('rkeops'); devtools::test('rkeops', reporter = 'fail', stop_on_failure=TRUE)"
               '''
           }
         }
@@ -144,7 +144,7 @@ pipeline {
             echo 'Testing..'
               sh 'git submodule update --init'
               sh '''
-                 R -e "devtools::check('rkeops')"
+                 R -e "devtools::check('rkeops'); devtools::test('rkeops', reporter = 'fail', stop_on_failure=TRUE)"
               '''
           }
         }
