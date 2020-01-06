@@ -6,7 +6,7 @@ output:
   pdf_document:
     toc: true
     number_sections: yes
-author: "Ghislain Durif"
+author: ""
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteIndexEntry{Introduction to RKeOps}
@@ -176,4 +176,4 @@ Based on your formulae, RKeOps compile on the fly operators that can be used to 
 
 # Installing and using RKeOps
 
-See the specific vignette [RKeOps: R bindings for KeOps](rkeops_r_bindings_for_keops.html).
+See the specific vignette **Using RKeOps**.

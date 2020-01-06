@@ -1,12 +1,12 @@
 ---
-title: "RKeOps: R bindings for KeOps"
+title: "Using RKeOps"
 output: 
   rmarkdown::html_vignette:
     toc: true
   pdf_document:
     toc: true
     number_sections: yes
-author: "Ghislain Durif"
+author: ""
 date: "`r Sys.Date()`"
 vignette: >
   %\VignetteIndexEntry{RKeOps: R bindings for KeOps}

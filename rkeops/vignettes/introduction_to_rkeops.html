@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content />
+
+<meta name="date" content="2020-01-06" />
+
+<title>Introduction to RKeOps</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to RKeOps</h1>
+<h4 class="date">2020-01-06</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#authors">Authors</a></li>
+<li><a href="#what-is-rkeops">What is RKeOps?</a><ul>
+<li><a href="#keops">KeOps</a></li>
+<li><a href="#rkeops">RKeOps</a></li>
+<li><a href="#why-using-rkeops">Why using RKeOps?</a></li>
+</ul></li>
+<li><a href="#matrix-reduction-and-kernel-operator">Matrix reduction and kernel operator</a><ul>
+<li><a href="#what-you-need-to-do">What you need to do</a></li>
+<li><a href="#example-in-r">Example in R</a></li>
+<li><a href="#generic-kernel-function">Generic kernel function</a></li>
+<li><a href="#gpu-computing">GPU computing</a></li>
+</ul></li>
+<li><a href="#installing-and-using-rkeops">Installing and using RKeOps</a></li>
+</ul>
+</div>
+
+<ul>
+<li>URL: <a href="https://www.kernel-operations.io/" class="uri">https://www.kernel-operations.io/</a></li>
+<li>Source: <a href="https://github.com/getkeops/keops" class="uri">https://github.com/getkeops/keops</a></li>
+<li>Licence and Copyright: see <a href="https://github.com/getkeops/keops/blob/master/licence.txt" class="uri">https://github.com/getkeops/keops/blob/master/licence.txt</a></li>
+</ul>
+<div id="authors" class="section level1">
+<h1>Authors</h1>
+<p>Feel free to contact us for any bug report or feature request:</p>
+<ul>
+<li><a href="http://imag.umontpellier.fr/~charlier/">Benjamin Charlier</a></li>
+<li><a href="https://gdurif.perso.math.cnrs.fr/">Ghislain Durif</a></li>
+<li><a href="http://www.math.ens.fr/~feydy/">Jean Feydy</a></li>
+<li><a href="http://helios.mi.parisdescartes.fr/~glaunes/">Joan Alexis Glaunès</a></li>
+<li>François-David Collin</li>
+</ul>
+<p>You can also fill an issue report on Github at <a href="https://github.com/getkeops/keops/issues" class="uri">https://github.com/getkeops/keops/issues</a>.</p>
+</div>
+<div id="what-is-rkeops" class="section level1">
+<h1>What is RKeOps?</h1>
+<p>RKeOps is the R package interfacing the KeOps library. <a href="https://gdurif.perso.math.cnrs.fr/files/material/slides_Toulouse_2019_Durif_KeOps.pdf">Here</a> you can find a few slides explaining functionalities of the KeOps library.</p>
+<div id="keops" class="section level2">
+<h2>KeOps</h2>
+<blockquote>
+<p>Seamless Kernel Operations on GPU, with auto-differentiation and without memory overflows</p>
+</blockquote>
+<p>The KeOps library (<a href="http://www.kernel-operations.io" class="uri">http://www.kernel-operations.io</a>) provides routines to compute generic reductions of large 2d arrays whose entries are given by a mathematical formula. Using a C++/CUDA-based implementation with GPU support, it combines a tiled reduction scheme with an automatic differentiation engine. Relying on online map-reduce schemes, it is perfectly suited to the scalable computation of kernel dot products and the associated gradients, even when the full kernel matrix does not fit into the GPU memory.</p>
+<p>KeOps is all about breaking through this memory bottleneck and making GPU power available for seamless standard mathematical routine computations. As of 2019, this effort has been mostly restricted to the operations needed to implement Convolutional Neural Networks: linear algebra routines and convolutions on grids, images and volumes. KeOps provides GPU support without the cost of developing a specific CUDA implementation of your custom mathematical operators.</p>
+<p>To ensure its versatility, KeOps can be used through Matlab, Python (NumPy or PyTorch) and R back-ends.</p>
+</div>
+<div id="rkeops" class="section level2">
+<h2>RKeOps</h2>
+<p>RKeOps is a library that can<br><br></p>
+<ul>
+<li><p>Compute <strong>generic reduction</strong> (row-wise or column-wise) of very large array/matrices, i.e. <span class="math display">\[\sum_{i=1}^M a_{ij} \ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N a_{ij}\]</span> for some matrix <span class="math inline">\(A = [a_{ij}]_{M \times N}\)</span> with <span class="math inline">\(M\)</span> rows and <span class="math inline">\(N\)</span> columns, whose entries <span class="math inline">\(a_{ij}\)</span> can be defined with basic math formulae or matrix operators.<br><br></p></li>
+<li><p>Compute <strong>kernel dot products</strong>, i.e. <span class="math display">\[\sum_{i=1}^M K(\mathbf x_i, \mathbf y_j)\ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N K(\mathbf x_i, \mathbf y_j)\]</span> for a kernel function <span class="math inline">\(K\)</span> and some vectors <span class="math inline">\(\mathbf x_i\)</span>, <span class="math inline">\(\mathbf y_j\in \mathbb{R}^D\)</span> that are generally rows of some data matrices <span class="math inline">\(\mathbf X = [x_{ik}]_{M \times D}\)</span> and <span class="math inline">\(\mathbf Y = [y_{jk}]_{N \times D}\)</span> respectively.<br><br></p></li>
+<li><p>Compute the <strong>associated gradients</strong><br><br></p></li>
+</ul>
+<blockquote>
+<p><strong><em>Applications</em></strong>: RKeOps can be used to implement a wide range of problems encountered in <strong><em>machine learning</em></strong>, <strong><em>statistics</em></strong> and more: such as <span class="math inline">\(k\)</span>-nearest neighbor classification, <span class="math inline">\(k\)</span>-means clustering, Gaussian-kernel-based problems (e.g. linear system with Ridge regularization), etc.</p>
+</blockquote>
+</div>
+<div id="why-using-rkeops" class="section level2">
+<h2>Why using RKeOps?</h2>
+<p>RKeOps provides<br></p>
+<ul>
+<li><p>an API to create <strong>user-defined operators</strong> based on generic mathematical formulae, that can be applied to data matrices such as <span class="math inline">\(\mathbf X = [x_{ik}]_{M \times D}\)</span> and <span class="math inline">\(\mathbf Y = [y_{jk}]_{N \times D}\)</span>.<br></p></li>
+<li><p>fast computation on <strong>GPU</strong> without memory overflow, especially to process <strong>very large dimensions</strong> <span class="math inline">\(M\)</span> and <span class="math inline">\(N\)</span> (e.g. <span class="math inline">\(\approx 10^4\)</span> or <span class="math inline">\(10^6\)</span>) over indexes <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span>.<br></p></li>
+<li><p>automatic differentiation and <strong>gradient computations</strong> for user-defined operators.<br></p></li>
+</ul>
+<hr />
+</div>
+</div>
+<div id="matrix-reduction-and-kernel-operator" class="section level1">
+<h1>Matrix reduction and kernel operator</h1>
+<p>The general framework of RKeOps (and KeOps) is to provide fast and scalable matrix operations on GPU, in particular kernel-based computations of the form <span class="math display">\[\underset{i=1,...,M}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j) \ \ \ \ \text{or}\ \ \ \ \underset{j=1,...,N}{\text{reduction}}\ G(\boldsymbol{\sigma}, \mathbf x_i, \mathbf y_j)\]</span> where<br></p>
+<ul>
+<li><p><span class="math inline">\(\boldsymbol{\sigma}\in\mathbb R^L\)</span> is a vector of parameters<br></p></li>
+<li><p><span class="math inline">\(\mathbf x_i\in \mathbb{R}^D\)</span> and <span class="math inline">\(\mathbf y_j\in \mathbb{R}^{D'}\)</span> are two vectors of data (potentially with different dimensions)<br></p></li>
+<li><p><span class="math inline">\(G: \mathbb R^L \times \mathbb R^D \times \mathbb R^{D'} \to \mathbb R\)</span> is a function of the data and the parameters, that can be expressed through a composition of generic operators<br></p></li>
+<li><p><span class="math inline">\(\text{reduction}\)</span> is a generic reduction operation over the index <span class="math inline">\(i\)</span> or <span class="math inline">\(j\)</span> (e.g. sum)<br><br></p></li>
+</ul>
+<p>RKeOps creates (and compiles on the fly) an operator implementing your formula. You can apply it to your data, or compute its gradient regarding some data points.<br><br></p>
+<blockquote>
+<p><strong><em>Note:</em></strong> You can use a wide range of reduction such as <code>sum</code>, <code>min</code>, <code>argmin</code>, <code>max</code>, <code>argmax</code>, etc.</p>
+</blockquote>
+<div id="what-you-need-to-do" class="section level2">
+<h2>What you need to do</h2>
+<p>To use RKeOps you only need to express your computations as a formula with the previous form.<br><br></p>
+<p>RKeOps allows to use a wide range of mathematical functions to define your operators (see <a href="https://www.kernel-operations.io/keops/api/math-operations.html" class="uri">https://www.kernel-operations.io/keops/api/math-operations.html</a>).<br><br></p>
+<p>You can use two type of input matrices with RKeOps:<br></p>
+<ul>
+<li><p>ones whose rows (or columns) are indexed by <span class="math inline">\(i=1,...,M\)</span> such as <span class="math inline">\(\mathbf X = [x_{ik}]_{M \times D}\)</span><br></p></li>
+<li><p>others whose rows (or columns) are indexed by <span class="math inline">\(j=1,...,N\)</span> such as <span class="math inline">\(\mathbf Y = [y_{ik'}]_{N \times D'}\)</span><br><br></p></li>
+</ul>
+<p>More details about input matrices (size, storage order) are given <a href="rkeops_r_bindings_for_keops.html#input-matrix">here</a>.</p>
+</div>
+<div id="example-in-r" class="section level2">
+<h2>Example in R</h2>
+<p>We want to implement with RKeOps the following mathematical formula <span class="math display">\[\sum_{j=1}^{N} \exp\Big(-\sigma || \mathbf x_i - \mathbf y_j ||_2^{\,2}\Big)\,\mathbf b_j\]</span> with</p>
+<ul>
+<li><p>parameter: <span class="math inline">\(\sigma\in\mathbb R\)</span><br></p></li>
+<li><p><span class="math inline">\(i\)</span>-indexed variables <span class="math inline">\(\mathbf X = [\mathbf x_i]_{i=1,...,M} \in\mathbb R^{M\times 3}\)</span><br></p></li>
+<li><p><span class="math inline">\(j\)</span>-indexed variables <span class="math inline">\(\mathbf Y = [\mathbf y_j]_{j=1,...,N} \in\mathbb R^{N\times 3}\)</span> and <span class="math inline">\(\mathbf B = [\mathbf b_j]_{j=1,...,N} \in\mathbb R^{N\times 6}\)</span><br><br></p></li>
+</ul>
+<p>In R, we can define the corresponding KeOps formula as a <strong>simple text string</strong>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">formula =<span class="st"> &quot;Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)&quot;</span></a></code></pre></div>
+<ul>
+<li><code>SqNorm2</code> = squared <span class="math inline">\(\ell_2\)</span> norm</li>
+<li><code>Exp</code> = exponential</li>
+<li><code>Sum_reduction(..., 0)</code> = sum reduction over the dimension 0 i.e. sum on the <span class="math inline">\(j\)</span>’s (1 to sum over the <span class="math inline">\(i\)</span>’s)<br></li>
+</ul>
+<p>and the corresponding arguments of the formula, i.e. parameters or variables indexed by <span class="math inline">\(i\)</span> or <span class="math inline">\(j\)</span> with their corresponding inner dimensions:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">args =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;x = Vi(3)&quot;</span>,      <span class="co"># vector indexed by i (of dim 3)</span></a>
+<a class="sourceLine" id="cb2-2" data-line-number="2">         <span class="st">&quot;y = Vj(3)&quot;</span>,      <span class="co"># vector indexed by j (of dim 3)</span></a>
+<a class="sourceLine" id="cb2-3" data-line-number="3">         <span class="st">&quot;b = Vj(6)&quot;</span>,      <span class="co"># vector indexed by j (of dim 6)</span></a>
+<a class="sourceLine" id="cb2-4" data-line-number="4">         <span class="st">&quot;s = Pm(1)&quot;</span>)      <span class="co"># parameter (scalar) </span></a></code></pre></div>
+<p>Then we just compile the corresponding operator and apply it to some data</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1"><span class="co"># compilation</span></a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">op &lt;-<span class="st"> </span><span class="kw">keops_kernel</span>(formula, args)</a>
+<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="co"># data and parameter values</span></a>
+<a class="sourceLine" id="cb3-4" data-line-number="4">nx &lt;-<span class="st"> </span><span class="dv">100</span></a>
+<a class="sourceLine" id="cb3-5" data-line-number="5">ny &lt;-<span class="st"> </span><span class="dv">150</span></a>
+<a class="sourceLine" id="cb3-6" data-line-number="6">X &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>nx)   <span class="co"># matrix 100 x 3</span></a>
+<a class="sourceLine" id="cb3-7" data-line-number="7">Y &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>ny)   <span class="co"># matrix 150 x 3</span></a>
+<a class="sourceLine" id="cb3-8" data-line-number="8">B &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">6</span>), <span class="dt">nrow=</span>ny)   <span class="co"># matrix 150 x 6</span></a>
+<a class="sourceLine" id="cb3-9" data-line-number="9">s &lt;-<span class="st"> </span><span class="fl">0.2</span></a>
+<a class="sourceLine" id="cb3-10" data-line-number="10"><span class="co"># computation (order of the input arguments should be similar to `args`)</span></a>
+<a class="sourceLine" id="cb3-11" data-line-number="11">res &lt;-<span class="st"> </span><span class="kw">op</span>(<span class="kw">list</span>(X, Y, B, s))</a></code></pre></div>
+</div>
+<div id="generic-kernel-function" class="section level2">
+<h2>Generic kernel function</h2>
+<p>With RKeOps, you can define kernel functions <span class="math inline">\(K: \mathbb R^D \times \mathbb R^D \to \mathbb R\)</span> such as, for some vectors <span class="math inline">\(\mathbf x_i\)</span>, <span class="math inline">\(\mathbf y_j\in \mathbb{R}^D\)</span><br></p>
+<ul>
+<li><p>the linear kernel (standard scalar product) <span class="math inline">\(K(\mathbf x_i, \mathbf y_j) = \big\langle \mathbf x_i \, , \, \mathbf y_j \big\rangle\)</span><br></p></li>
+<li><p>the Gaussian kernel <span class="math inline">\(K(\mathbf x_i, \mathbf y_j) = \exp\left(-\frac{1}{2\sigma^2} || \mathbf x_i - \mathbf y_j ||_2^{\,2}\right)\)</span> with <span class="math inline">\(\sigma&gt;0\)</span><br></p></li>
+<li><p>and more…<br><br></p></li>
+</ul>
+<p>Then you can compute reductions based on such functions, especially when the <span class="math inline">\(M \times N\)</span> matrix <span class="math inline">\(\mathbf K = [K(\mathbf x_i, \mathbf y_j)]\)</span> is too large to fit into memory, such as<br></p>
+<ul>
+<li><p>Kernel reduction: <span class="math display">\[\sum_{i=1}^M K(\mathbf x_i, \mathbf y_j)\ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N K(\mathbf x_i, \mathbf y_j)\]</span></p></li>
+<li><p>Convolution-like operations: <span class="math display">\[\sum_{i=1}^M K(\mathbf x_i, \mathbf y_j)\boldsymbol\beta_j\ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^N K(\mathbf x_i, \mathbf y_j)\boldsymbol\beta_j\]</span> for some vectors <span class="math inline">\((\boldsymbol\beta_j)_{j=1,...,N} \in \mathbb R^{N\times D}\)</span><br><br></p></li>
+<li><p>More complex operations: <span class="math display">\[\sum_{i=1}^{M}\, K_1(\mathbf x_i, \mathbf y_j)\, K_2(\mathbf u_i, \mathbf v_j)\,\langle \boldsymbol\alpha_i\, ,\,\boldsymbol\beta_j\rangle \ \ \ \ \text{or}\ \ \ \ \sum_{j=1}^{N}\, K_1(\mathbf x_i, \mathbf y_j)\, K_2(\mathbf u_i, \mathbf v_j)\,\langle \boldsymbol\alpha_i\, ,\,\boldsymbol\beta_j\rangle\]</span> for some kernel <span class="math inline">\(K_1\)</span> and <span class="math inline">\(K_2\)</span>, and some <span class="math inline">\(D\)</span>-vectors <span class="math inline">\((\mathbf x_i)_{i=1,...,M}, (\mathbf u_i)_{i=1,...,M}, (\boldsymbol\alpha_i)_{i=1,...,M} \in \mathbb R^{M\times D}\)</span> and <span class="math inline">\((\mathbf y_j)_{j=1,...,N}, (\mathbf v_j)_{j=1,...,N}, (\boldsymbol\beta_j)_{j=1,...,N} \in \mathbb R^{N\times D}\)</span></p></li>
+</ul>
+</div>
+<div id="gpu-computing" class="section level2">
+<h2>GPU computing</h2>
+<p>Based on your formulae, RKeOps compile on the fly operators that can be used to run the corresponding computations on GPU, it uses a tiling scheme to decompose the data and avoid (i) useless and costly memory transfers between host and GPU (performance gain) and (ii) memory overflow.</p>
+<blockquote>
+<p><strong><em>Note:</em></strong> You can use the same code (i.e. define the same operators) for CPU or GPU computing. The only difference will be the compiler used for the compilation of your operators (upon the availability of CUDA on your system).</p>
+</blockquote>
+<hr />
+</div>
+</div>
+<div id="installing-and-using-rkeops" class="section level1">
+<h1>Installing and using RKeOps</h1>
+<p>See the specific vignette <strong>Using RKeOps</strong>.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
