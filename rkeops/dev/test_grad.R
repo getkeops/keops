@@ -14,7 +14,7 @@ nx <- 10
 ny <- 15
 x <- matrix(runif(nx*3), nrow=3, ncol=nx)
 y <- matrix(runif(ny*3), nrow=3, ncol=ny)
-eta <- 1
+eta <- matrix(runif(nx*1), nrow=1, ncol=nx)
 
 input <- list(x, y, eta)
 res <- op(input, inner_dim=0)
@@ -22,7 +22,7 @@ res <- op(input, inner_dim=0)
 
 # GramFromPos
 message("## testing GradFromPos")
-formula <- "GradFromPos(Sum_Reduction(SqNorm2(x-y), 0), 0, 2)"
+formula <- "GradFromPos(Sum_Reduction(SqNorm2(x-y), 0), x, 2)"
 args <- c("x=Vi(0,3)", "y=Vj(1,3)")
 op <- keops_kernel(formula, args)
 
@@ -30,7 +30,7 @@ nx <- 10
 ny <- 15
 x <- matrix(runif(nx*3), nrow=3, ncol=nx)
 y <- matrix(runif(ny*3), nrow=3, ncol=ny)
-eta <- 1
+eta <- matrix(1, nrow=1, ncol=nx)
 
 input <- list(x, y, eta)
 res <- op(input, inner_dim=0)
