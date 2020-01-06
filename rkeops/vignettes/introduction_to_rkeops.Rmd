@@ -33,7 +33,7 @@ Feel free to contact us for any bug report or feature request:
 * [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
 * [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
 * [Jean Feydy](http://www.math.ens.fr/~feydy/)
-* [Joan Alexis Glaunès](http://www.mi.parisdescartes.fr/~glaunes/)
+* [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
 * François-David Collin
 
 You can also fill an issue report on Github at <https://github.com/getkeops/keops/issues>.
@@ -119,11 +119,11 @@ with
 
 In R, we can define the corresponding KeOps formula as a **simple text string**:
 ```{r formula, eval=FALSE}
-formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 1)"
+formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 ```
   - `SqNorm2` = squared $\ell_2$ norm
   - `Exp` = exponential
-  - `Sum_reduction(..., 1)` = sum reduction over the dimension 1 i.e. $j$ (0 for $i$)<br>
+  - `Sum_reduction(..., 0)` = sum reduction over the dimension 0 i.e. sum on the $j$'s (1 to sum over the $i$'s)<br>
 
 and the corresponding arguments of the formula, i.e. parameters or variables indexed by $i$ or $j$ with their corresponding inner dimensions:
 ```{r args, eval=FALSE}
@@ -138,9 +138,11 @@ Then we just compile the corresponding operator and apply it to some data
 # compilation
 op <- keops_kernel(formula, args)
 # data and parameter values
-X <- matrix(runif(1000*3), nrow=1000)   # matrix 1000 x 3
-Y <- matrix(runif(1500*3), nrow=1500)   # matrix 1500 x 3
-B <- matrix(runif(1500*6), nrow=1500)   # matrix 1500 x 6
+nx <- 100
+ny <- 150
+X <- matrix(runif(nx*3), nrow=nx)   # matrix 100 x 3
+Y <- matrix(runif(ny*3), nrow=ny)   # matrix 150 x 3
+B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
 s <- 0.2
 # computation (order of the input arguments should be similar to `args`)
 res <- op(list(X, Y, B, s))

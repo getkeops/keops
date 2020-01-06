@@ -35,7 +35,7 @@ Thanks to RKeOps, you can use **GPU computing directly inside R** without the co
 * C++ compiler (g++ >=7 or clang) for CPU computing or CUDA compiler (nvcc >=10) and CUDA libs for GPU computing
 
 ## Install from CRAN
-(**not available at the moment**)
+
 ```{r install, eval=FALSE}
 install.packages("rkeops")
 ```
@@ -81,7 +81,7 @@ RKeOps allows to define and compile new operators that run computations on GPU.
 
 ```{r full_example, eval=FALSE}
 # implementation of a convolution with a Gaussian kernel
-formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 1)"
+formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 # input arguments
 args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
          "y = Vj(3)",      # vector indexed by j (of dim 3)
@@ -90,9 +90,11 @@ args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
 # compilation
 op <- keops_kernel(formula, args)
 # data and parameter values
-X <- matrix(runif(1000*3), nrow=1000)   # matrix 1000 x 3
-Y <- matrix(runif(1500*3), nrow=1500)   # matrix 1500 x 3
-B <- matrix(runif(1500*6), nrow=1500)   # matrix 1500 x 6
+nx <- 100
+ny <- 150
+X <- matrix(runif(nx*3), nrow=nx)   # matrix 100 x 3
+Y <- matrix(runif(ny*3), nrow=ny)   # matrix 150 x 3
+B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
 s <- 0.2
 # run computations on GPU (to be used only if relevant)
 use_gpu()
@@ -124,11 +126,11 @@ with
 
 In R, we can define the corresponding KeOps formula as a simple **text string**:
 ```{r formula, eval=FALSE}
-formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 1)"
+formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
 ```
 * `SqNorm2` = squared $\ell_2$ norm
 * `Exp` = exponential
-* `Sum_reduction(..., 1)` = sum reduction over the dimension 1 i.e. $j$ (0 for $i$)<br>
+* `Sum_reduction(..., 0)` = sum reduction over the dimension 0 i.e. sum on the $j$'s (1 to sum over the $i$'s)<br>
 
 ## Arguments
 
@@ -210,15 +212,38 @@ We generate data with inner dimensions (number of columns) corresponding to each
 
 ```{r run, eval=FALSE}
 # data and parameter values
-X <- matrix(runif(1000*3), nrow=1000)   # matrix 1000 x 3
-Y <- matrix(runif(1500*3), nrow=1500)   # matrix 1500 x 3
-B <- matrix(runif(1500*6), nrow=1500)   # matrix 1500 x 6
+nx <- 100
+ny <- 150
+X <- matrix(runif(nx*3), nrow=nx)   # matrix 100 x 3
+Y <- matrix(runif(ny*3), nrow=ny)   # matrix 150 x 3
+B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
 s <- 0.2
 # run computations on GPU (to be used only if relevant)
 use_gpu()
 # computation (order of the input arguments should be similar to `args`)
 res <- op(list(x, y, beta, s))
 ```
+
+## Computing gradients
+
+Work in progress. You can define gradients directly in the formula for the moment, e.g.
+
+```{r gradient, eval=FALSE}
+formula <- "Grad(Sum_Reduction(SqNorm2(x-y), 0), x, eta)"
+args <- c("x=Vi(0,3)", "y=Vj(1,3)", "eta=Vi(2,1)")
+op <- keops_kernel(formula, args)
+
+nx <- 10
+ny <- 15
+x <- matrix(runif(nx*3), nrow=3, ncol=nx)
+y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+eta <- 1
+
+input <- list(x, y, eta)
+res <- op(input, inner_dim=0)
+```
+
+where `eta` is the new variable at which the gradient is computed, its dimension should correspond to the output dimension of the operation inside the gradient (here `SqNorm2(x-y)` is of dimension 1).
 
 ## RKeOps options
 
@@ -256,7 +281,7 @@ set_rkeops_option("use_cuda_if_possible", 0)
 
 * `precision`: by default, user-defined operators are compiled to use float 32bits for computations (faster than float 64bits or double, compensated sum is available to reduce errors inherent to float 32bits operations)
 ```{r set_precision, eval=FALSE}
-set_rkeops_option("precision", "float")    # float 64bits (default)
+set_rkeops_option("precision", "float")    # float 32bits (default)
 set_rkeops_option("precision", "double")   # float 64bits
 ```
 
@@ -292,7 +317,34 @@ In R, matrices are stored using a column-major order, meaning that a $M \times D
 
 For RKeOps to be computationnally efficient, it is important that elements of the input matrices are contiguous along the inner dimensions $D$ (or $D'$). Thus, it is recommended to use input matrices where the outer dimension (i.e. indexes $i$ or $j$) are the columns, and inner dimensions the rows, e.g. transpose matrices $\mathbf X^{t} = [x_{ki}]_{D \times M}$ or $\mathbf Y^{t} = [y_{k'i}]_{D' \times N}$.
 
-> **_Important:_** In machine learning and statistics, we generally use data matrices where each sample/observation/individual is a row, i.e. matrices where the outer dimensions correspond to rows, e.g. $\mathbf X = [x_{ik}]_{M \times D}$, $\mathbf Y = [y_{ik'}]_{N \times D'}$.<br><br> In this case, when calling your operator, RKeOps will automatically convert your matrices to their transpose, where the outer dimensions correspond to columns. This is transparent for you, and done if necessary when casting the input data to the required precision (if you use float 32bits precision) to avoid useless data copy and performance loss.
+> **_Important:_** In machine learning and statistics, we generally use data matrices where each sample/observation/individual is a row, i.e. matrices where the outer dimensions correspond to rows, e.g. $\mathbf X = [x_{ik}]_{M \times D}$, $\mathbf Y = [y_{ik'}]_{N \times D'}$.<br><br> This is the default using case of RKeOps. RKeOps will then automatically convert your matrices to their transpose, where the outer dimensions correspond to columns.<br><br> If you want to use matrices where the inner_dimension directly corresponds to rows of your matrices, i.e. $\mathbf X^{t} = [x_{ki}]_{D \times M}$ or $\mathbf Y^{t} = [y_{k'i}]_{D' \times N}$, you just need to specify the input parameter `inner_dim=0` when calling your operator.
 
-If you use float 64bits (double) precision, we recommand that you use input matrices where the outer dimensions corresponds to columns (to avoid the copy when transposing because no cast is needed).
+Example:
+```{r storage_order, eval=FALSE}
+# standard column reduction of a matrix product
+op <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
+                   args = c("x=Vi(3)", "y=Vj(3)"))
+
+# data (inner dimension = columns)
+nx <- 10
+ny <- 15
+# x_i = rows of the matrix X
+X <- matrix(runif(nx*3), nrow=nx, ncol=3)
+# y_j = rows of the matrix Y
+Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+# computing the result (here, by default `inner_dim=1` and columns corresponds
+# to the inner dimension)
+res <- op(list(X,Y))
+
+# data (inner dimension = rows)
+nx <- 10
+ny <- 15
+# x_i = columns of the matrix X
+X <- matrix(runif(nx*3), nrow=3, ncol=nx)
+# y_j = columns of the matrix Y
+Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+# computing the result (we specify `inner_dim=0` to indicate that rows
+# corresponds to the inner dimension)
+res <- op(list(X,Y), inner_dim=0)
+```
 
