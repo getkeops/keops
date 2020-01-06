@@ -173,15 +173,18 @@ parse_extra_args <- function(formula, args) {
         var_dim = NULL)
     
     ## parse the formula
-    # YY(<pos>,<dim>) with YY = Vi, Vj or Pm
-    pattern1 = "(Vi|Vj|Pm)\\(([0-9]+),([0-9]+)\\)"
+    # YY(<dim>) with YY = Vi, Vj or Pm
+    pattern1 = "(Vi|Vj|Pm)\\(([0-9]+)\\)"
     parse1 <- str_match_all(formula, pattern1)[[1]]
-    # Var(<pos>,<dim>,<type>)
-    pattern2 = "Var\\(([0-9]+),([0-9]+),([0-9]+)\\)"
+    # YY(<pos>,<dim>) with YY = Vi, Vj or Pm
+    pattern2 = "(Vi|Vj|Pm)\\(([0-9]+),([0-9]+)\\)"
     parse2 <- str_match_all(formula, pattern2)[[1]]
+    # Var(<pos>,<dim>,<type>)
+    pattern3 = "Var\\(([0-9]+),([0-9]+),([0-9]+)\\)"
+    parse3 <- str_match_all(formula, pattern3)[[1]]
     
     ## nothing to be found
-    if(length(parse1) == 0 & length(parse2) == 0) {
+    if(length(parse1) == 0 & length(parse2) == 0 & length(parse3) == 0) {
         return(out)
     }
     
@@ -195,8 +198,8 @@ parse_extra_args <- function(formula, args) {
     if(length(parse1) > 0) {
         extra_args1 <- list(
             var_type = parse1[,2], 
-            var_pos = as.integer(parse1[,3]), 
-            var_dim = as.integer(parse1[,4]))
+            var_pos = (1:nrow(parse1)) + max(var_aliases$var_pos), 
+            var_dim = as.integer(parse1[,3]))
         
         if(!all(extra_args1 %in% var_aliases$var_pos))
             out <- as.list(rbind(as.data.frame(out, 
@@ -207,14 +210,27 @@ parse_extra_args <- function(formula, args) {
     
     if(length(parse2) > 0) {
         extra_args2 <- list(
-            var_type = sapply(as.integer(parse2[,4])+1, function(ind) var_types[[ind]]), 
-            var_pos = as.integer(parse2[,2]), 
-            var_dim = as.integer(parse2[,3]))
+            var_type = parse2[,2], 
+            var_pos = as.integer(parse2[,3]), 
+            var_dim = as.integer(parse2[,4]))
         
         if(!all(extra_args2 %in% var_aliases$var_pos))
             out <- as.list(rbind(as.data.frame(out, 
                                                stringsAsFactors = FALSE), 
                                  as.data.frame(extra_args2, 
+                                               stringsAsFactors = FALSE)))
+    }
+    
+    if(length(parse3) > 0) {
+        extra_args3 <- list(
+            var_type = sapply(as.integer(parse3[,4])+1, function(ind) var_types[[ind]]), 
+            var_pos = as.integer(parse3[,2]), 
+            var_dim = as.integer(parse3[,3]))
+        
+        if(!all(extra_args3 %in% var_aliases$var_pos))
+            out <- as.list(rbind(as.data.frame(out, 
+                                               stringsAsFactors = FALSE), 
+                                 as.data.frame(extra_args3, 
                                                stringsAsFactors = FALSE)))
     }
     

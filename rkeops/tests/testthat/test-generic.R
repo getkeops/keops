@@ -129,14 +129,13 @@ test_that("keops_kernel", {
     # run
     input <- list(x, y)
     expected_res <- c(63, 90)
-    run_op(op, input, expected_res, inner_dim=1)
+    run_op(op, input, expected_res, inner_dim=0)
 })
 
 test_that("parse_extra_args", {
     
     formula <- "Sum_Reduction(Exp(lambda * SqNorm2(x - y)) * beta, 0)"
     args <- c("x=Vi(3)", "y=Vj(3)", "beta=Vj(6)", "lambda=Pm(1)")
-    
     out <- parse_extra_args(formula, args)
     expect_equal(out$var_type, NULL)
     expect_equal(out$var_pos, NULL)
@@ -144,10 +143,31 @@ test_that("parse_extra_args", {
     
     formula <- "Sum_Reduction(Exp(lambda * SqNorm2(x - y)) * Vj(6), 0)"
     args <- c("x=Vi(3)", "y=Vj(3)", "lambda=Pm(1)")
-    
     out <- parse_extra_args(formula, args)
-    expect_equal(out$var_type, NULL)
-    expect_equal(out$var_pos, NULL)
-    expect_equal(out$var_dim, NULL)
+    expect_equal(out$var_type, "Vj")
+    expect_equal(out$var_pos, 3)
+    expect_equal(out$var_dim, 6)
+    
+    formula <- "Sum_Reduction(Exp(Pm(1) * SqNorm2(x - y)) * Vj(6), 0)"
+    args <- c("x=Vi(3)", "y=Vj(3)")
+    out <- parse_extra_args(formula, args)
+    expect_equal(out$var_type, c("Pm", "Vj"))
+    expect_equal(out$var_pos, c(2, 3))
+    expect_equal(out$var_dim, c(1, 6))
+    
+    
+    formula <- "Sum_Reduction(Exp(lambda * SqNorm2(x - y)) * Vj(2,6), 0)"
+    args <- c("x=Vi(0,3)", "y=Vj(1,3)", "lambda=Pm(3,1)")
+    out <- parse_extra_args(formula, args)
+    expect_equal(out$var_type, "Vj")
+    expect_equal(out$var_pos, 2)
+    expect_equal(out$var_dim, 6)
+    
+    formula <- "Sum_Reduction(Exp(Pm(2,1) * SqNorm2(x - y)) * Vj(3,6), 0)"
+    args <- c("x=Vi(0,3)", "y=Vj(1,3)")
+    out <- parse_extra_args(formula, args)
+    expect_equal(out$var_type, c("Pm", "Vj"))
+    expect_equal(out$var_pos, c(2, 3))
+    expect_equal(out$var_dim, c(1, 6))
     
 })
