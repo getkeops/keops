@@ -78,7 +78,7 @@ test_that("format_var_aliases", {
 
 test_that("keops_kernel", {
     set_rkeops_options()
-    # matrix product then sum
+    ## matrix product then sum
     formula = "Sum_Reduction((x|y), 1)"
     args = c("x=Vi(3)", "y=Vj(3)")
     # define and compile operator
@@ -115,6 +115,21 @@ test_that("keops_kernel", {
     input <- list(y=y, x=x)
     expected_res <- colSums(t(x) %*% y)
     run_op(op, input, expected_res, inner_dim=0)
+    
+    ## Squared norm
+    formula = "Sum_Reduction(SqNorm2(x-y),1)"
+    args = c("x=Vi(0,3)", "y=Vj(1,3)")
+    # define and compile operator
+    op <- tryCatch(keops_kernel(formula, args),
+                   error = function(e) {print(e); return(NULL)})
+    expect_false(is.null(op))
+    # data
+    x <- matrix(1:9, nrow=3)
+    y <- matrix(3:8, nrow=3)
+    # run
+    input <- list(x, y)
+    expected_res <- c(63, 90)
+    run_op(op, input, expected_res, inner_dim=1)
 })
 
 test_that("parse_extra_args", {
