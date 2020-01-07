@@ -24,5 +24,5 @@ run_op <- function(op, input, expected_res, inner_dim) {
                     error = function(e) {print(e); return(NULL)})
     expect_false(is.null(res))
     # check result
-    expect_true(sum(abs(res - expected_res)) < 1E-5)
+    expect_true(sum(abs(res - expected_res)) < 1E-4)
 }
