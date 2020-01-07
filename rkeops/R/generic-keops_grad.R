@@ -1,10 +1,26 @@
 #' Compute the gradient of a rkeops operator
 #' @description
-#' FIXME
+#' The function `keops_grad` defines a new operator that is a partial derivative 
+#' from a previously defined KeOps operator supplied as input regarding a 
+#' specified input variable of this operator.
 #' @details
-#' The use of the function `keops_grad` is detailled in the vignettes. 
+#' The use of the function `keops_grad` is detailed in the vignettes. 
 #' Run `browseVignettes("rkeops")` to access the vignettes.
-#' FIXME
+#' 
+#' KeOps gradient operators are defined based on KeOps formula and on operator 
+#' `Grad`. The function `keops_grad` is a wrapper to define a new formula 
+#' deriving the gradient of the formula associated to a previously defined 
+#' operator. The user just needs to choose regarding which variable (given by 
+#' name or by position starting at 0), they want to compute the partial 
+#' derivative.
+#' 
+#' The function `keops_grad` then calls the function [rkeops::keops_kernel()] 
+#' to compile a new operator corresponding to the partial derivative of the 
+#' input operator.
+#' 
+#' To decide regarding which variable the input operator should be derived,
+#' you can specify its name or its position starting as 0 with the input 
+#' parameter `var`. 
 #' @author Ghislain Durif
 #' @param operator a function returned by `keops_kernel` implementing a 
 #' formula.
@@ -13,6 +29,7 @@
 #' gradient of the formula should be computed.
 #' @return FIXME
 #' @importFrom stringr str_match_all
+#' @seealso [rkeops::keops_kernel()]
 #' @examples
 #' \dontrun{
 #' formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
@@ -34,22 +51,19 @@ keops_grad <- function(operator, var) {
     extra_var <- parse_extra_args(env$formula, env$args)
     # position new variable = length arg list - 1 (last)
     posnewvar <- max(c(var_aliases$var_pos, extra_var$var_pos)) + 1
-    # position of the variable to be derived
-    pos <- NULL
+    # define the new formula depending on var type
+    new_formula <- NULL
     if(is.character(var)) {
-        pos <- var_aliases$var_pos[which(var_aliases$var_pos == var)]
+        new_formula <- paste0("GradFromPos(", env$formula, ",", var, ",", 
+                              posnewvar, ")")
+        
+        
     } else if(is.numeric(var)) {
-        pos <- var
+        new_formula <- paste0("GradFromInd(", env$formula, ",", var, ",", 
+                              posnewvar, ")")
     } else {
         stop("`var` input argument should be a text string or an integer.")
     }
-    # var to derived from
-    var_name <- paste0(var_aliases$var_type[pos+1], "(", 
-                       var_aliases$var_pos[pos+1], ",", 
-                       var_aliases$var_dim[pos+1], ")")
-    # new formula
-    new_formula <- paste0("GradFromPos(", env$formula, ",", var_name, ",", 
-                          posnewvar, ")")
     # define new op
     return(keops_kernel(new_formula, env$args))
 }
