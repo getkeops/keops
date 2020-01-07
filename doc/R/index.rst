@@ -13,6 +13,7 @@ standard functions that can be used in any R code.
 .. toctree::
    :maxdepth: 2
    :caption: RKeOps
-
+   
+   installation
    vignettes
    quickstart
