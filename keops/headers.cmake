@@ -86,17 +86,17 @@ list(REMOVE_DUPLICATES ARGS_POS_LIST)
 list(LENGTH ARGS_POS_LIST TMP)
 MATH(EXPR NARGS "${TMP} - 1")
 
-string(REGEX MATCHALL "GradFromPos\\(" GFP_LIST ${FORMULA_NOSPACE})
+string(REGEX MATCHALL "GradFrom(Pos|Ind)\\(" GFP_LIST ${FORMULA_NOSPACE})
 if(GFP_LIST)
-  string(REGEX REPLACE "GradFromPos\\(" "a;" GFP_LIST_2 ${GFP_LIST})
+  string(REGEX REPLACE "GradFrom(Pos|Ind)\\(" "a;" GFP_LIST_2 ${GFP_LIST})
   list(LENGTH GFP_LIST_2 MM)
   set(TMP ${NARGS})
   MATH(EXPR NARGS " ${MM} - 1 + ${TMP}")  # Add implicitely 1 variable
 endif()
 
-string(REGEX MATCHALL "GradFromPos_WithSavedForward\\(" GFP_LIST ${FORMULA_NOSPACE})
+string(REGEX MATCHALL "GradFrom(Pos|Ind)_WithSavedForward\\(" GFP_LIST ${FORMULA_NOSPACE})
 if(GFP_LIST)
-  string(REGEX REPLACE "GradFromPos\\(" "a;" GFP_LIST_2 ${GFP_LIST})
+  string(REGEX REPLACE "GradFrom(Pos|Ind)\\(" "a;" GFP_LIST_2 ${GFP_LIST})
   list(LENGTH GFP_LIST_2 MM)
   set(TMP ${NARGS})
   MATH(EXPR NARGS " ${MM} + ${TMP}")    # Add implicitely 2 variables
