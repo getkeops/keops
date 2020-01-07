@@ -27,7 +27,7 @@ args <- c("x=Vi(0,3)", "y=Vj(1,3)")
 op <- keops_kernel(formula, args)
 res2 <- op(input, inner_dim=0)
 
-# GramFromPos
+# GramFromInd
 message("## testing GradFromInd")
 formula <- "GradFromInd(Sum_Reduction(SqNorm2(x-y), 0), 0, 2)"
 args <- c("x=Vi(0,3)", "y=Vj(1,3)")
