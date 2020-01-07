@@ -70,9 +70,11 @@ devtools::release()
 To release on CRAN, you can generate the tar.gz file and check it with the following bash commands:
 ```bash
 R CMD build rkeops
-R CMD check rkeops_<version>.tar.gz
+R CMD check --as-cran rkeops_<version>.tar.gz
 ```
 (replace `<version>` by the current version number).
+
+For submission on CRAN, visit <https://cran.r-project.org/submit.html>.
 
 
 ## Additional notes
