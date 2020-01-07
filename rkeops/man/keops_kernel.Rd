@@ -50,6 +50,9 @@ reference than the actual input data, especially for big matrices.
 You should be careful with the input dimension of your data, to correspond
 to the input dimension specified in \code{args} (see inner ou outer dimension in
 \code{browseVignettes("rkeops")}.
+
+It is possible to compute partial derivatives of user defined operators
+with the function \code{\link[rkeops:keops_grad]{rkeops::keops_grad()}}.
 }
 \examples{
 \dontrun{
@@ -113,6 +116,9 @@ lambda <- 0.25
 # compute the result
 res <- op(list(X, Y, beta, lambda))
 }
+}
+\seealso{
+\code{\link[rkeops:keops_grad]{rkeops::keops_grad()}}
 }
 \author{
 Ghislain Durif
