@@ -14,7 +14,7 @@ For a full documentation you may read:
 
 - [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
 - [Jean Feydy](https://www.math.ens.fr/~feydy/)
-- [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
+- [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
 - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
 - François-David Collin
 
