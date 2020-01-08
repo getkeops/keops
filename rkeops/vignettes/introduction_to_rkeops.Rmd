@@ -104,7 +104,7 @@ You can use two type of input matrices with RKeOps:<br>
 
 * others whose rows (or columns) are indexed by $j=1,...,N$ such as $\mathbf Y = [y_{ik'}]_{N \times D'}$<br><br>
 
-More details about input matrices (size, storage order) are given [here](rkeops_r_bindings_for_keops.html#input-matrix).
+More details about input matrices (size, storage order) are given in the vignette 'Using RKeOps'.
 
 ## Example in R
 

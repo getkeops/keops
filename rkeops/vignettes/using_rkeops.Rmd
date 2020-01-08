@@ -148,9 +148,9 @@ The dimensions over indexes $i$ or $j$ are called the **outer dimensions** (i.e.
 
 * **Outer dimensions** $M$ and $N$ (over indexes $i$ and $j$ respectively) can be **very large**, even to large for GPU memory.<br>
 
-* **Inner dimensions** $D$ and $D'$ should be **small** enough to fit in GPU memory, in particular to ensure data colocality and avoid useless memory transfers. Corresponding columns (or rows) should be contiguous in memory (this point is handled for you in RKeOps, see this [section](rkeops_r_bindings_for_keops.html#data-storage-orientation)).<br>
+* **Inner dimensions** $D$ and $D'$ should be **small** enough to fit in GPU memory, in particular to ensure data colocality and avoid useless memory transfers. Corresponding columns (or rows) should be contiguous in memory (this point is handled for you in RKeOps, see this [section](#data-storage-orientation)).<br>
 
-> **_Note 1:_** The outer dimension can correspond to the rows or the columns of the input matrices (and vice-versa for the inner dimension). The optimal orientation of input matrices is discussed in this [section](rkeops_r_bindings_for_keops.html#data-storage-orientation) .
+> **_Note 1:_** The outer dimension can correspond to the rows or the columns of the input matrices (and vice-versa for the inner dimension). The optimal orientation of input matrices is discussed in this [section](#data-storage-orientation) .
 
 > **_Note 2:_** All matrices indexed by $i$ should have the same outer dimension $M$ over $i$, same for all matrices indexed by $j$ (outer dimension $N$). Only the inner dimensions $D$ and $D'$ should be known for the compilation of your operators. The respective outer dimensions $M$ and $N$ are set at runtime (and can change from one run to another).<br>
 
@@ -257,8 +257,8 @@ op <- keops_kernel(formula, args)
 grad_op <- keops_grad(op, var="x")
 
 # data
-nx <- 10
-ny <- 15
+nx <- 100
+ny <- 150
 x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
 y <- matrix(runif(ny*3), nrow=ny, ncol=3)     # matrix 150 x 3
 eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1
@@ -311,6 +311,10 @@ set_rkeops_option("precision", "float")    # float 32bits (default)
 set_rkeops_option("precision", "double")   # float 64bits
 ```
 
+You can directly change the precision used in compiled operators with the 
+functions `compile4float32` and `compile4float64` which respectively 
+enable float 32bits precision (default) and float 64bits (or double) precision.
+
 * other compile options (including boolean value for to enable verbosity or to add debugging flag), see `?compile_options`
 
 
@@ -321,6 +325,10 @@ set_rkeops_option("precision", "double")   # float 64bits
 use_gpu()
 # see `?runtime_options` for a more advanced use of GPU inside RKeOps
 ```
+You can also specify the GPU id that you want to use, e.g. `use_gpu(device=0)` 
+to use GPU 0 (default) for instance.
+
+To deactivate GPU computations, you can run `use_cpu()`.
 
 * `device_id`: choose on which GPU the computations will be done, default is 0.
 ```{r set_device_id, eval=FALSE}
@@ -335,7 +343,7 @@ set_rkeops_option("device_id", 0)
 
 ### Precision
 
-By default, RKeOps uses float 32bits precision for computations. Since R only considers 64bits floating point numbers, your data will be casted when calling your RKeOps operators. If your application requires to use float 64bits (double) precision, keep in mind that you will suffer a performance loss (potentially not an issue on high-end GPUs). In any case, compensated summation reduction will be soon available in KeOps to correct for 32bits floating point arithmetic errors.
+By default, RKeOps uses float 32bits precision for computations. Since R only considers 64bits floating point numbers, if you want to use float 32bits, input data and output results will be casted befors and after computations respectively in your RKeOps operator. If your application requires to use float 64bits (double) precision, keep in mind that you will suffer a performance loss (potentially not an issue on high-end GPUs). In any case, compensated summation reduction is available in KeOps to correct for 32bits floating point arithmetic errors.
 
 ### Data storage orientation
 
@@ -343,7 +351,7 @@ In R, matrices are stored using a column-major order, meaning that a $M \times D
 
 For RKeOps to be computationnally efficient, it is important that elements of the input matrices are contiguous along the inner dimensions $D$ (or $D'$). Thus, it is recommended to use input matrices where the outer dimension (i.e. indexes $i$ or $j$) are the columns, and inner dimensions the rows, e.g. transpose matrices $\mathbf X^{t} = [x_{ki}]_{D \times M}$ or $\mathbf Y^{t} = [y_{k'i}]_{D' \times N}$.
 
-> **_Important:_** In machine learning and statistics, we generally use data matrices where each sample/observation/individual is a row, i.e. matrices where the outer dimensions correspond to rows, e.g. $\mathbf X = [x_{ik}]_{M \times D}$, $\mathbf Y = [y_{ik'}]_{N \times D'}$.<br><br> This is the default using case of RKeOps. RKeOps will then automatically convert your matrices to their transpose, where the outer dimensions correspond to columns.<br><br> If you want to use matrices where the inner_dimension directly corresponds to rows of your matrices, i.e. $\mathbf X^{t} = [x_{ki}]_{D \times M}$ or $\mathbf Y^{t} = [y_{k'i}]_{D' \times N}$, you just need to specify the input parameter `inner_dim=0` when calling your operator.
+> **_Important:_** In machine learning and statistics, we generally use data matrices where each sample/observation/individual is a row, i.e. matrices where the outer dimensions correspond to rows, e.g. $\mathbf X = [x_{ik}]_{M \times D}$, $\mathbf Y = [y_{ik'}]_{N \times D'}$.<br><br> This is the default using case of RKeOps. RKeOps will then automatically convert your matrices to their transpose, where the outer dimensions correspond to columns.<br><br> If you want to use data where the inner dimension directly corresponds to rows of your matrices, i.e. $\mathbf X^{t} = [x_{ki}]_{D \times M}$ or $\mathbf Y^{t} = [y_{k'i}]_{D' \times N}$, you just need to specify the input parameter `inner_dim=0` when calling your operator.
 
 Example:
 ```{r storage_order, eval=FALSE}
