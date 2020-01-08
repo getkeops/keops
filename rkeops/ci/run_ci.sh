@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 RDIR=$(git rev-parse --show-toplevel)
 CIDIR=${RDIR}/rkeops/ci
 
