@@ -9,6 +9,7 @@ readme.txt
 recipe.md
 rkeops.md
 benchmarks
+ci
 dev
 examples
 tests

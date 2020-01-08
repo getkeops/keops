@@ -6,6 +6,11 @@ project file, or use R commands and follow the recipe described
 [below](#r-command-tools)
 
 
+## Continuous Integration (CI)
+
+Check this [script](./ci/run_ci.sh).
+
+
 ## Rstudio
 
 You can use Rstudio for development. To set up, the package project,

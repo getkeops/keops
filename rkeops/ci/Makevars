@@ -1,0 +1,3 @@
+CXXFLAGS+=-std=c++11 -Wno-ignored-attributes
+CXX11FLAGS+=-Wno-ignored-attributes
+CXX14FLAGS+=-Wno-ignored-attributes
