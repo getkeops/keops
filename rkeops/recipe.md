@@ -74,7 +74,9 @@ devtools::check()
 devtools::release()
 ```
 
-**Note:** To release on CRAN, it is recommended to use the command line tools, c.f. next section. 
+**Note:** To release on CRAN, it is recommended to use the command line tools, c.f. next section.
+
+**Note:** Before releasing on CRAN, you can use <https://win-builder.r-project.org/> to test if the package can be built on Windows (it may not works, it just is just required to install it on Windows).
 
 ## Command line tools
 
