@@ -10,6 +10,12 @@ project file, or use R commands and follow the recipe described
 
 Check this [script](./ci/run_ci.sh).
 
+To enable automatic tests to be run on GPU, the environment variable `TEST_GPU` 
+should be defined with the value `1` before running the CI scripts, i.e.
+```bash
+export TEST_GPU=1
+```
+
 
 ## Rstudio
 
