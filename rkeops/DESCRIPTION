@@ -26,6 +26,7 @@ Description: The KeOps library lets you compute generic reductions of very large
     and the associated gradients, even when the full kernel matrix does not fit into 
     the GPU memory.
 License: MIT + file LICENSE
+Depends: R (>= 3.1.0)
 LinkingTo:
     Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5)
 Imports:
