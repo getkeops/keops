@@ -42,12 +42,12 @@ args <- c("x=Vi(0,3)", "y=Vj(1,3)")
 op <- keops_kernel(formula, args)
 
 grad_op <- keops_grad(op, var=0)
-
-nx <- 10
-ny <- 15
-x <- matrix(runif(nx*3), nrow=3, ncol=nx)
-y <- matrix(runif(ny*3), nrow=3, ncol=ny)
-eta <- 1
-
-input <- list(x, y, eta)
 res <- grad_op(input, inner_dim=0)
+
+# Direct compile
+message("## Deirect Compile")
+formula <- "Sum_Reduction(IntCst(2)*(x-y)*eta, 0)"
+args <- c("x=Vi(0,3)", "y=Vj(1,3)", "eta=Vi(2,1)")
+op <- keops_kernel(formula, args)
+
+res4 <- op(input, inner_dim=0)
