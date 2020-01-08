@@ -6,11 +6,16 @@ get_rkeops_options()
 # option names
 rkeops_option_names()
 
+# to clean rkeops build directory
+clean_rkeops()
+
 # to get a specific option: get_rkeops_option(<name>)
 # to set a specific option: set_rkeops_option(<name>, <value>)
-# in particular, to compute on GPU: 
-# set_rkeops_option("tagCpuGpu", 1)
-# set_rkeops_option("precision", "double")
+# or direct functions:
+# use_gpu() # to compute on GPU
+# use_cpu() # to compute on CPU
+# compile4float32() # to compile with float 32bits precision
+# compile4float64() # to compile with float 64bits or double precision
 
 ## Example 1
 message("## Example 1")
@@ -21,8 +26,8 @@ message("## Example 1")
 op <- keops_kernel(formula = "Sum_Reduction((x|y), 1)",
                    args = c("x=Vi(3)", "y=Vj(3)"))
 # data
-nx <- 10
-ny <- 15
+nx <- 1000
+ny <- 1500
 # x_i = rows of the matrix X
 X <- matrix(runif(nx*3), nrow=nx, ncol=3)
 # y_j = rows of the matrix Y
@@ -39,8 +44,8 @@ message("## Example 1 bis")
 # and `Y`.
 
 # data
-nx <- 10
-ny <- 15
+nx <- 1000
+ny <- 1500
 # x_i = columns of the matrix X
 X <- matrix(runif(nx*3), nrow=3, ncol=nx)
 # y_j = columns of the matrix Y
@@ -59,8 +64,8 @@ op <- keops_kernel(formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta, 1)",
                             "beta=Vj(3)", "lambda=Pm(1)"))
 
 # data
-nx <- 10
-ny <- 15
+nx <- 1000
+ny <- 1500
 # x_i = rows of the matrix X
 X <- matrix(runif(nx*3), nrow=nx, ncol=3)
 # y _j = rows of the matrix Y
@@ -74,3 +79,26 @@ lambda <- 0.25
 
 # computing the result
 res <- op(list(X, Y, beta, lambda))
+
+
+## Example 3
+message("## Example 3")
+# define an operator
+formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
+args <- c("x=Vi(0,3)", "y=Vj(1,3)")
+op <- keops_kernel(formula, args)
+# gradient regarding input variable 'x'
+grad_op <- keops_grad(op, var="x")
+
+# data
+nx <- 1000
+ny <- 1500
+# x_i = rows of the matrix X
+X <- matrix(runif(nx*3), nrow=nx, ncol=3)
+# y_j = rows of the matrix Y
+Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
+# computing the result
+res <- op(list(X,Y))
+# computing the gradient
+eta <- matrix(1, nrow=nx, ncol=1)
+res <- grad_op(list(X, Y, eta))
