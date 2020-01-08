@@ -16,6 +16,7 @@ For a full documentation you may read:
 - [Jean Feydy](https://www.math.ens.fr/~feydy/)
 - [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
 - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
+- François-David Collin
 
 
 # Details
@@ -43,7 +44,7 @@ install.packages("rkeops")
 ## Install from sources
 
 * Install directly from Github (requires `git`)
-```{r install_github, eval=FALSE}
+```R
 devtools::install_git("https://github.com/getkeops/keops", 
                       subdir = "rkeops", 
                       args="--recurse-submodules='keops/lib/sequences'")
@@ -62,6 +63,6 @@ git submodule update --init -- keops/lib/sequences
 ```
 
 * Install from local source in R (assuming you are in the `keops` directory)
-```{r install_src, eval=FALSE}
+```R
 devtools::install("rkeops")
 ```
