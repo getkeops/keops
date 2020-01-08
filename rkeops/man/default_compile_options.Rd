@@ -23,7 +23,10 @@ these options.
 \strong{Note:} Default options are set up when loading \code{rkeops}. To reset
 \code{rkeops} options to default, you should use the function
 \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
-use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}. Some wrappers are available
+to enable some compilation options, see \code{\link[rkeops:compile4float32]{rkeops::compile4float32()}},
+\code{\link[rkeops:compile4float64]{rkeops::compile4float64()}}, \code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}},
+\code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}.
 }
 \examples{
 \dontrun{
@@ -32,7 +35,8 @@ default_compile_options()
 }
 \seealso{
 \code{\link[rkeops:compile_options]{rkeops::compile_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
+\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}, \code{\link[rkeops:compile4float32]{rkeops::compile4float32()}},
+\code{\link[rkeops:compile4float64]{rkeops::compile4float64()}}, \code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}
 }
 \author{
 Ghislain Durif

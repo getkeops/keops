@@ -4,7 +4,12 @@
 \alias{use_gpu}
 \title{Enable GPU-computing when calling user-defined operators}
 \usage{
-use_gpu()
+use_gpu(device = 0)
+}
+\arguments{
+\item{device}{integer, GPU device id to be used for computations. Default
+is \code{0}. It is recommended to use default GPU and manage GPU assignment
+outside R by setting the environment variable \code{CUDA_VISIBLE_DEVICES}.}
 }
 \description{
 Set up \code{rkeops} runtime options to use GPU computing when calling
@@ -16,6 +21,8 @@ you can call the function \code{use_gpu} to specificly run computations on GPU.
 
 \strong{Note:} The default behavior in \code{rkeops} is to use CPU computing, thus
 calling the function \code{use_gpu} is mandatory to run computations on GPU.
+
+To disable GPU computing, run \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}.
 }
 \examples{
 \dontrun{
@@ -23,7 +30,8 @@ use_gpu()
 }
 }
 \seealso{
-\code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}
+\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},
+\code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}
 }
 \author{
 Ghislain Durif

@@ -59,6 +59,9 @@ assignation should be handled outside of \code{R} and \code{rkeops}.
 \code{rkeops} options to default, you should use the function
 \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
 use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+
+Some wrappers are available to enable some compilation options,
+see \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}, \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}.
 }
 \examples{
 \dontrun{
@@ -68,7 +71,7 @@ runtime_options(tagCpuGpu = 0, tag1D2D = 0,
 }
 \seealso{
 \code{\link[rkeops:default_runtime_options]{rkeops::default_runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
+\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}, \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}, \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}
 }
 \author{
 Ghislain Durif

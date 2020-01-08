@@ -68,10 +68,32 @@ test_that("load_dll", {
 
 test_that("use_gpu", {
     expect_error(use_gpu(), NA)
+    expect_error(use_gpu(0), NA)
     expect_true(get_rkeops_option("tagCpuGpu") %in% c(1, 2))
+    expect_equal(get_rkeops_option("device_id"), 0)
+})
+
+test_that("use_cpu", {
+    expect_error(use_cpu(), NA)
+    expect_equal(get_rkeops_option("tagCpuGpu"), 0)
 })
 
 test_that("compile4gpu", {
     expect_error(compile4gpu(), NA)
     expect_equal(get_rkeops_option("use_cuda_if_possible"), 1)
+})
+
+test_that("compile4cpu", {
+    expect_error(compile4cpu(), NA)
+    expect_equal(get_rkeops_option("use_cuda_if_possible"), 0)
+})
+
+test_that("compile4float32", {
+    expect_error(compile4float32(), NA)
+    expect_equal(get_rkeops_option("precision"), "float")
+})
+
+test_that("compile4float64", {
+    expect_error(compile4float64(), NA)
+    expect_equal(get_rkeops_option("precision"), "double")
 })
