@@ -165,17 +165,21 @@ is_installed <- function() {
 #' signatures).
 #' @return loaded function
 #' @import Rcpp
+#' @importFrom utils getFromNamespace
 #' @export
 load_dll <- function(path, dllname, object, tag="_binder_", genred=FALSE) {
     filename <- file.path(path, paste0(dllname, .Platform$dynlib.ext))
     tmp <- dyn.load(filename)
     out <- NULL
+    
+    sourceCppFunction = getFromNamespace("sourceCppFunction", "Rcpp")
+    
     if(genred) {
-        out <- Rcpp:::sourceCppFunction(function(input, param) {}, FALSE, tmp, 
-                                        paste0(tag, object))
+        out <- sourceCppFunction(function(input, param) {}, FALSE, tmp, 
+                                 paste0(tag, object))
     } else {
-        out <- Rcpp:::sourceCppFunction(function() {}, FALSE, tmp, 
-                                        paste0(tag, object))
+        out <- sourceCppFunction(function() {}, FALSE, tmp, 
+                                 paste0(tag, object))
     }
     
     rm(tmp)
