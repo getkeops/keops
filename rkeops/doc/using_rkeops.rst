@@ -5,8 +5,8 @@ Thanks to RKeOps, you can use **GPU computing directly inside R**
 without the cost of developing a specific CUDA implementation of your
 custom mathematical operators.
 
-Install RKeOps
-==============
+Installing RKeOps
+=================
 
 Requirements
 ------------
@@ -23,8 +23,8 @@ Install from CRAN
 
     install.packages("rkeops")
 
-Install from sources
---------------------
+Install from Github sources
+---------------------------
 
 -  Install directly from Github (requires ``git``)
 
@@ -58,8 +58,8 @@ Get sources and install from local repository
 
 --------------
 
-Using RKeOps
-============
+How to use RKeOps
+=================
 
 Load RKeOps in R:
 
@@ -445,10 +445,9 @@ To deactivate GPU computations, you can run ``use_cpu()``.
 
     set_rkeops_option("device_id", 0)
 
-    ***Note***: We recommend to handle GPU assignation outside RKeOps,
-    for instance by setting the environment variable
-    ``CUDA_VISIBLE_DEVICES``. Thus, you can keep the default GPU device
-    id = 0 in RKeOps.
+***Note***: We recommend to handle GPU assignation outside RKeOps, for
+instance by setting the environment variable ``CUDA_VISIBLE_DEVICES``.
+Thus, you can keep the default GPU device id = 0 in RKeOps.
 
 -  Other runtime options, see ``?runtime_options``
 
