@@ -2,3 +2,5 @@
 *.o
 *.so
 inst/doc
+doc
+Meta

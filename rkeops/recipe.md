@@ -16,6 +16,9 @@ should be defined with the value `1` before running the CI scripts, i.e.
 export TEST_GPU=1
 ```
 
+To generate html files from the vignettes that can be integrated into the 
+Sphinx doc, see this [script](./ci/html2doc.sh).
+
 
 ## Rstudio
 
