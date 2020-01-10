@@ -18,12 +18,28 @@ gradient of the formula should be computed.}
 FIXME
 }
 \description{
-FIXME
+The function \code{keops_grad} defines a new operator that is a partial derivative
+from a previously defined KeOps operator supplied as input regarding a
+specified input variable of this operator.
 }
 \details{
-The use of the function \code{keops_grad} is detailled in the vignettes.
+The use of the function \code{keops_grad} is detailed in the vignettes.
 Run \code{browseVignettes("rkeops")} to access the vignettes.
-FIXME
+
+KeOps gradient operators are defined based on KeOps formula and on operator
+\code{Grad}. The function \code{keops_grad} is a wrapper to define a new formula
+deriving the gradient of the formula associated to a previously defined
+operator. The user just needs to choose regarding which variable (given by
+name or by position starting at 0), they want to compute the partial
+derivative.
+
+The function \code{keops_grad} then calls the function \code{\link[rkeops:keops_kernel]{rkeops::keops_kernel()}}
+to compile a new operator corresponding to the partial derivative of the
+input operator.
+
+To decide regarding which variable the input operator should be derived,
+you can specify its name or its position starting as 0 with the input
+parameter \code{var}.
 }
 \examples{
 \dontrun{
@@ -32,6 +48,9 @@ args <- c("x=Vi(0,3)", "y=Vj(1,3)")
 op <- keops_kernel(formula, args)
 grad_op <- keops_grad(op, var=0)
 }
+}
+\seealso{
+\code{\link[rkeops:keops_kernel]{rkeops::keops_kernel()}}
 }
 \author{
 Ghislain Durif

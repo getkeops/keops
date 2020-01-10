@@ -4,6 +4,7 @@
 .*\.so
 prebuild.R
 rkeops_lazytensor_basic.R
+notes_dev.md
 readme.txt
 recipe.md
 rkeops.md

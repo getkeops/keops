@@ -13,7 +13,7 @@
 
 <meta name="author" content />
 
-<meta name="date" content="2020-01-06" />
+<meta name="date" content="2020-01-07" />
 
 <title>Using RKeOps</title>
 
@@ -303,7 +303,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 
 <h1 class="title toc-ignore">Using RKeOps</h1>
-<h4 class="date">2020-01-06</h4>
+<h4 class="date">2020-01-07</h4>
 
 
 <div id="TOC">
@@ -527,49 +527,72 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 <div id="computing-gradients" class="section level2">
 <h2>Computing gradients</h2>
-<p>Work in progress. You can define gradients directly in the formula for the moment, e.g.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">formula &lt;-<span class="st"> &quot;Grad(Sum_Reduction(SqNorm2(x-y), 0), x, eta)&quot;</span></a>
-<a class="sourceLine" id="cb12-2" data-line-number="2">args &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;x=Vi(0,3)&quot;</span>, <span class="st">&quot;y=Vj(1,3)&quot;</span>, <span class="st">&quot;eta=Vi(2,1)&quot;</span>)</a>
-<a class="sourceLine" id="cb12-3" data-line-number="3">op &lt;-<span class="st"> </span><span class="kw">keops_kernel</span>(formula, args)</a>
-<a class="sourceLine" id="cb12-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb12-5" data-line-number="5">nx &lt;-<span class="st"> </span><span class="dv">10</span></a>
-<a class="sourceLine" id="cb12-6" data-line-number="6">ny &lt;-<span class="st"> </span><span class="dv">15</span></a>
-<a class="sourceLine" id="cb12-7" data-line-number="7">x &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span>nx)</a>
-<a class="sourceLine" id="cb12-8" data-line-number="8">y &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span>ny)</a>
-<a class="sourceLine" id="cb12-9" data-line-number="9">eta &lt;-<span class="st"> </span><span class="dv">1</span></a>
-<a class="sourceLine" id="cb12-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb12-11" data-line-number="11">input &lt;-<span class="st"> </span><span class="kw">list</span>(x, y, eta)</a>
-<a class="sourceLine" id="cb12-12" data-line-number="12">res &lt;-<span class="st"> </span><span class="kw">op</span>(input, <span class="dt">inner_dim=</span><span class="dv">0</span>)</a></code></pre></div>
+<p>You can define gradients directly in the formula, e.g.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="co"># defining a formula with a Gradient</span></a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">formula &lt;-<span class="st"> &quot;Grad(Sum_Reduction(SqNorm2(x-y), 0), x, eta)&quot;</span></a>
+<a class="sourceLine" id="cb12-3" data-line-number="3">args &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;x=Vi(0,3)&quot;</span>, <span class="st">&quot;y=Vj(1,3)&quot;</span>, <span class="st">&quot;eta=Vi(2,1)&quot;</span>)</a>
+<a class="sourceLine" id="cb12-4" data-line-number="4"><span class="co"># compiling the corresponding operator</span></a>
+<a class="sourceLine" id="cb12-5" data-line-number="5">op &lt;-<span class="st"> </span><span class="kw">keops_kernel</span>(formula, args)</a>
+<a class="sourceLine" id="cb12-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb12-7" data-line-number="7"><span class="co"># data</span></a>
+<a class="sourceLine" id="cb12-8" data-line-number="8">nx &lt;-<span class="st"> </span><span class="dv">100</span></a>
+<a class="sourceLine" id="cb12-9" data-line-number="9">ny &lt;-<span class="st"> </span><span class="dv">150</span></a>
+<a class="sourceLine" id="cb12-10" data-line-number="10">x &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>nx, <span class="dt">ncol=</span><span class="dv">3</span>)     <span class="co"># matrix 100 x 3</span></a>
+<a class="sourceLine" id="cb12-11" data-line-number="11">y &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>ny, <span class="dt">ncol=</span><span class="dv">3</span>)     <span class="co"># matrix 150 x 3</span></a>
+<a class="sourceLine" id="cb12-12" data-line-number="12">eta &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">1</span>), <span class="dt">nrow=</span>nx, <span class="dt">ncol=</span><span class="dv">1</span>)   <span class="co"># matrix 100 x 1</span></a>
+<a class="sourceLine" id="cb12-13" data-line-number="13"></a>
+<a class="sourceLine" id="cb12-14" data-line-number="14"><span class="co"># computation</span></a>
+<a class="sourceLine" id="cb12-15" data-line-number="15">input &lt;-<span class="st"> </span><span class="kw">list</span>(x, y, eta)</a>
+<a class="sourceLine" id="cb12-16" data-line-number="16">res &lt;-<span class="st"> </span><span class="kw">op</span>(input)</a></code></pre></div>
 <p>where <code>eta</code> is the new variable at which the gradient is computed, its dimension should correspond to the output dimension of the operation inside the gradient (here <code>SqNorm2(x-y)</code> is of dimension 1).</p>
+<p>You can also use the function <code>keops_grad</code> to derive existing KeOps operators.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="co"># defining an operator (reduction on squared distance)</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">formula &lt;-<span class="st"> &quot;Sum_Reduction(SqNorm2(x-y), 0)&quot;</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">args &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;x=Vi(0,3)&quot;</span>, <span class="st">&quot;y=Vj(1,3)&quot;</span>)</a>
+<a class="sourceLine" id="cb13-4" data-line-number="4">op &lt;-<span class="st"> </span><span class="kw">keops_kernel</span>(formula, args)</a>
+<a class="sourceLine" id="cb13-5" data-line-number="5"><span class="co"># defining its gradient regarding x</span></a>
+<a class="sourceLine" id="cb13-6" data-line-number="6">grad_op &lt;-<span class="st"> </span><span class="kw">keops_grad</span>(op, <span class="dt">var=</span><span class="st">&quot;x&quot;</span>)</a>
+<a class="sourceLine" id="cb13-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb13-8" data-line-number="8"><span class="co"># data</span></a>
+<a class="sourceLine" id="cb13-9" data-line-number="9">nx &lt;-<span class="st"> </span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb13-10" data-line-number="10">ny &lt;-<span class="st"> </span><span class="dv">15</span></a>
+<a class="sourceLine" id="cb13-11" data-line-number="11">x &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>nx, <span class="dt">ncol=</span><span class="dv">3</span>)     <span class="co"># matrix 100 x 3</span></a>
+<a class="sourceLine" id="cb13-12" data-line-number="12">y &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>ny, <span class="dt">ncol=</span><span class="dv">3</span>)     <span class="co"># matrix 150 x 3</span></a>
+<a class="sourceLine" id="cb13-13" data-line-number="13">eta &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">1</span>), <span class="dt">nrow=</span>nx, <span class="dt">ncol=</span><span class="dv">1</span>)   <span class="co"># matrix 100 x 1</span></a>
+<a class="sourceLine" id="cb13-14" data-line-number="14"></a>
+<a class="sourceLine" id="cb13-15" data-line-number="15"><span class="co"># computation</span></a>
+<a class="sourceLine" id="cb13-16" data-line-number="16">input &lt;-<span class="st"> </span><span class="kw">list</span>(x, y, eta)</a>
+<a class="sourceLine" id="cb13-17" data-line-number="17">res &lt;-<span class="st"> </span><span class="kw">grad_op</span>(input)</a></code></pre></div>
+<p><strong>Note:</strong> when defining a gradient, the operator created by <code>keops_grad</code>requires an additional variable whose inner dimension corresponds to the output dimension of the derived formula (here <code>SqNorm2(x-y)</code> is a real-valued function, hence dimension 1) and outer dimension corresponds to the outer dimension of the variable regarding which the gradient is taken (here <code>x</code>).</p>
 </div>
 <div id="rkeops-options" class="section level2">
 <h2>RKeOps options</h2>
 <p>RKeOps behavior is driven by specific options in <code>R</code> global options scope. Such options are set up when loading RKeOps (i.e. by calling <code>library(rkeops)</code>).</p>
 <p>You can get the current values of RKeOps options with</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw">get_rkeops_options</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw">get_rkeops_options</span>()</a></code></pre></div>
 <p>To (re)set RKeOps options to default values, run:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw">set_rkeops_options</span>()</a></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="kw">set_rkeops_options</span>()</a></code></pre></div>
 <p>To set a specific option with a given value, you can do:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="kw">set_rkeops_option</span>(option, value)</a>
-<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="co"># `option` = text string, name of the option to set up</span></a>
-<a class="sourceLine" id="cb15-3" data-line-number="3"><span class="co"># `value` = whatever value to assign to the chosen option</span></a></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="kw">set_rkeops_option</span>(option, value)</a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="co"># `option` = text string, name of the option to set up</span></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="co"># `value` = whatever value to assign to the chosen option</span></a></code></pre></div>
 <p>Check <code>?set_rkeops_option</code> for more details.</p>
 <div id="compile-options" class="section level3">
 <h3>Compile options</h3>
 <ul>
 <li><code>use_cuda_if_possible</code>: by default, user-defined operators are compiled for GPU if CUDA is available (and compiled for CPU otherwise).</li>
 </ul>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="co"># enable compiling for GPU if available (not necessary if using default options)</span></a>
-<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="kw">compile4gpu</span>()</a>
-<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="co"># or equivalently</span></a>
-<a class="sourceLine" id="cb16-4" data-line-number="4"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;use_cuda_if_possible&quot;</span>, <span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb16-5" data-line-number="5"><span class="co"># disable compiling for GPU</span></a>
-<a class="sourceLine" id="cb16-6" data-line-number="6"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;use_cuda_if_possible&quot;</span>, <span class="dv">0</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="co"># enable compiling for GPU if available (not necessary if using default options)</span></a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="kw">compile4gpu</span>()</a>
+<a class="sourceLine" id="cb17-3" data-line-number="3"><span class="co"># or equivalently</span></a>
+<a class="sourceLine" id="cb17-4" data-line-number="4"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;use_cuda_if_possible&quot;</span>, <span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb17-5" data-line-number="5"><span class="co"># disable compiling for GPU</span></a>
+<a class="sourceLine" id="cb17-6" data-line-number="6"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;use_cuda_if_possible&quot;</span>, <span class="dv">0</span>)</a></code></pre></div>
 <ul>
 <li><code>precision</code>: by default, user-defined operators are compiled to use float 32bits for computations (faster than float 64bits or double, compensated sum is available to reduce errors inherent to float 32bits operations)</li>
 </ul>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;precision&quot;</span>, <span class="st">&quot;float&quot;</span>)    <span class="co"># float 32bits (default)</span></a>
-<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;precision&quot;</span>, <span class="st">&quot;double&quot;</span>)   <span class="co"># float 64bits</span></a></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;precision&quot;</span>, <span class="st">&quot;float&quot;</span>)    <span class="co"># float 32bits (default)</span></a>
+<a class="sourceLine" id="cb18-2" data-line-number="2"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;precision&quot;</span>, <span class="st">&quot;double&quot;</span>)   <span class="co"># float 64bits</span></a></code></pre></div>
 <ul>
 <li>other compile options (including boolean value for to enable verbosity or to add debugging flag), see <code>?compile_options</code></li>
 </ul>
@@ -579,12 +602,12 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <ul>
 <li>GPU computing: by default, RKeOps runs computations on CPU (even for GPU-compiled operators). To enable GPU computing, you can run (before calling your operator):</li>
 </ul>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="kw">use_gpu</span>()</a>
-<a class="sourceLine" id="cb18-2" data-line-number="2"><span class="co"># see `?runtime_options` for a more advanced use of GPU inside RKeOps</span></a></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="kw">use_gpu</span>()</a>
+<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="co"># see `?runtime_options` for a more advanced use of GPU inside RKeOps</span></a></code></pre></div>
 <ul>
 <li><code>device_id</code>: choose on which GPU the computations will be done, default is 0.</li>
 </ul>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;device_id&quot;</span>, <span class="dv">0</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="kw">set_rkeops_option</span>(<span class="st">&quot;device_id&quot;</span>, <span class="dv">0</span>)</a></code></pre></div>
 <blockquote>
 <p><strong><em>Note</em></strong>: We recommend to handle GPU assignation outside RKeOps, for instance by setting the environment variable <code>CUDA_VISIBLE_DEVICES</code>. Thus, you can keep the default GPU device id = 0 in RKeOps.</p>
 </blockquote>
@@ -607,31 +630,31 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <p><strong><em>Important:</em></strong> In machine learning and statistics, we generally use data matrices where each sample/observation/individual is a row, i.e. matrices where the outer dimensions correspond to rows, e.g. <span class="math inline">\(\mathbf X = [x_{ik}]_{M \times D}\)</span>, <span class="math inline">\(\mathbf Y = [y_{ik'}]_{N \times D'}\)</span>.<br><br> This is the default using case of RKeOps. RKeOps will then automatically convert your matrices to their transpose, where the outer dimensions correspond to columns.<br><br> If you want to use matrices where the inner_dimension directly corresponds to rows of your matrices, i.e. <span class="math inline">\(\mathbf X^{t} = [x_{ki}]_{D \times M}\)</span> or <span class="math inline">\(\mathbf Y^{t} = [y_{k'i}]_{D' \times N}\)</span>, you just need to specify the input parameter <code>inner_dim=0</code> when calling your operator.</p>
 </blockquote>
 <p>Example:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1"><span class="co"># standard column reduction of a matrix product</span></a>
-<a class="sourceLine" id="cb20-2" data-line-number="2">op &lt;-<span class="st"> </span><span class="kw">keops_kernel</span>(<span class="dt">formula =</span> <span class="st">&quot;Sum_Reduction((x|y), 1)&quot;</span>,</a>
-<a class="sourceLine" id="cb20-3" data-line-number="3">                   <span class="dt">args =</span> <span class="kw">c</span>(<span class="st">&quot;x=Vi(3)&quot;</span>, <span class="st">&quot;y=Vj(3)&quot;</span>))</a>
-<a class="sourceLine" id="cb20-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb20-5" data-line-number="5"><span class="co"># data (inner dimension = columns)</span></a>
-<a class="sourceLine" id="cb20-6" data-line-number="6">nx &lt;-<span class="st"> </span><span class="dv">10</span></a>
-<a class="sourceLine" id="cb20-7" data-line-number="7">ny &lt;-<span class="st"> </span><span class="dv">15</span></a>
-<a class="sourceLine" id="cb20-8" data-line-number="8"><span class="co"># x_i = rows of the matrix X</span></a>
-<a class="sourceLine" id="cb20-9" data-line-number="9">X &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>nx, <span class="dt">ncol=</span><span class="dv">3</span>)</a>
-<a class="sourceLine" id="cb20-10" data-line-number="10"><span class="co"># y_j = rows of the matrix Y</span></a>
-<a class="sourceLine" id="cb20-11" data-line-number="11">Y &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>ny, <span class="dt">ncol=</span><span class="dv">3</span>)</a>
-<a class="sourceLine" id="cb20-12" data-line-number="12"><span class="co"># computing the result (here, by default `inner_dim=1` and columns corresponds</span></a>
-<a class="sourceLine" id="cb20-13" data-line-number="13"><span class="co"># to the inner dimension)</span></a>
-<a class="sourceLine" id="cb20-14" data-line-number="14">res &lt;-<span class="st"> </span><span class="kw">op</span>(<span class="kw">list</span>(X,Y))</a>
-<a class="sourceLine" id="cb20-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb20-16" data-line-number="16"><span class="co"># data (inner dimension = rows)</span></a>
-<a class="sourceLine" id="cb20-17" data-line-number="17">nx &lt;-<span class="st"> </span><span class="dv">10</span></a>
-<a class="sourceLine" id="cb20-18" data-line-number="18">ny &lt;-<span class="st"> </span><span class="dv">15</span></a>
-<a class="sourceLine" id="cb20-19" data-line-number="19"><span class="co"># x_i = columns of the matrix X</span></a>
-<a class="sourceLine" id="cb20-20" data-line-number="20">X &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span>nx)</a>
-<a class="sourceLine" id="cb20-21" data-line-number="21"><span class="co"># y_j = columns of the matrix Y</span></a>
-<a class="sourceLine" id="cb20-22" data-line-number="22">Y &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span>ny)</a>
-<a class="sourceLine" id="cb20-23" data-line-number="23"><span class="co"># computing the result (we specify `inner_dim=0` to indicate that rows</span></a>
-<a class="sourceLine" id="cb20-24" data-line-number="24"><span class="co"># corresponds to the inner dimension)</span></a>
-<a class="sourceLine" id="cb20-25" data-line-number="25">res &lt;-<span class="st"> </span><span class="kw">op</span>(<span class="kw">list</span>(X,Y), <span class="dt">inner_dim=</span><span class="dv">0</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="co"># standard column reduction of a matrix product</span></a>
+<a class="sourceLine" id="cb21-2" data-line-number="2">op &lt;-<span class="st"> </span><span class="kw">keops_kernel</span>(<span class="dt">formula =</span> <span class="st">&quot;Sum_Reduction((x|y), 1)&quot;</span>,</a>
+<a class="sourceLine" id="cb21-3" data-line-number="3">                   <span class="dt">args =</span> <span class="kw">c</span>(<span class="st">&quot;x=Vi(3)&quot;</span>, <span class="st">&quot;y=Vj(3)&quot;</span>))</a>
+<a class="sourceLine" id="cb21-4" data-line-number="4"></a>
+<a class="sourceLine" id="cb21-5" data-line-number="5"><span class="co"># data (inner dimension = columns)</span></a>
+<a class="sourceLine" id="cb21-6" data-line-number="6">nx &lt;-<span class="st"> </span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb21-7" data-line-number="7">ny &lt;-<span class="st"> </span><span class="dv">15</span></a>
+<a class="sourceLine" id="cb21-8" data-line-number="8"><span class="co"># x_i = rows of the matrix X</span></a>
+<a class="sourceLine" id="cb21-9" data-line-number="9">X &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>nx, <span class="dt">ncol=</span><span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb21-10" data-line-number="10"><span class="co"># y_j = rows of the matrix Y</span></a>
+<a class="sourceLine" id="cb21-11" data-line-number="11">Y &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span>ny, <span class="dt">ncol=</span><span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb21-12" data-line-number="12"><span class="co"># computing the result (here, by default `inner_dim=1` and columns corresponds</span></a>
+<a class="sourceLine" id="cb21-13" data-line-number="13"><span class="co"># to the inner dimension)</span></a>
+<a class="sourceLine" id="cb21-14" data-line-number="14">res &lt;-<span class="st"> </span><span class="kw">op</span>(<span class="kw">list</span>(X,Y))</a>
+<a class="sourceLine" id="cb21-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb21-16" data-line-number="16"><span class="co"># data (inner dimension = rows)</span></a>
+<a class="sourceLine" id="cb21-17" data-line-number="17">nx &lt;-<span class="st"> </span><span class="dv">10</span></a>
+<a class="sourceLine" id="cb21-18" data-line-number="18">ny &lt;-<span class="st"> </span><span class="dv">15</span></a>
+<a class="sourceLine" id="cb21-19" data-line-number="19"><span class="co"># x_i = columns of the matrix X</span></a>
+<a class="sourceLine" id="cb21-20" data-line-number="20">X &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(nx<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span>nx)</a>
+<a class="sourceLine" id="cb21-21" data-line-number="21"><span class="co"># y_j = columns of the matrix Y</span></a>
+<a class="sourceLine" id="cb21-22" data-line-number="22">Y &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">runif</span>(ny<span class="op">*</span><span class="dv">3</span>), <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span>ny)</a>
+<a class="sourceLine" id="cb21-23" data-line-number="23"><span class="co"># computing the result (we specify `inner_dim=0` to indicate that rows</span></a>
+<a class="sourceLine" id="cb21-24" data-line-number="24"><span class="co"># corresponds to the inner dimension)</span></a>
+<a class="sourceLine" id="cb21-25" data-line-number="25">res &lt;-<span class="st"> </span><span class="kw">op</span>(<span class="kw">list</span>(X,Y), <span class="dt">inner_dim=</span><span class="dv">0</span>)</a></code></pre></div>
 </div>
 </div>
 </div>

@@ -117,7 +117,7 @@ test_that("keops_kernel", {
     run_op(op, input, expected_res, inner_dim=0)
     
     ## Squared norm
-    formula = "Sum_Reduction(SqNorm2(x-y),1)"
+    formula = "Sum_Reduction(SqNorm2(x-y), 1)"
     args = c("x=Vi(0,3)", "y=Vj(1,3)")
     # define and compile operator
     op <- tryCatch(keops_kernel(formula, args),
@@ -130,6 +130,88 @@ test_that("keops_kernel", {
     input <- list(x, y)
     expected_res <- c(63, 90)
     run_op(op, input, expected_res, inner_dim=0)
+})
+
+test_that("keops_grad", {
+    set_rkeops_options()
+    ## define an operator (squared norm reduction)
+    formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
+    args <- c("x=Vi(0,3)", "y=Vj(1,3)")
+    op <- keops_kernel(formula, args)
+    
+    ## define and compile the gradient regarding var 0
+    grad_op <- tryCatch(keops_grad(op, var=0),
+                        error = function(e) {print(e); return(NULL)})
+    expect_false(is.null(grad_op))
+    
+    # data (reduction index in column)
+    nx <- 10
+    ny <- 15
+    x <- matrix(runif(nx*3), nrow=3, ncol=nx)
+    y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+    eta <- matrix(1, nrow=1, ncol=nx)
+    # run
+    input <- list(x, y, eta)
+    expected_res <- expected_res <- sapply(1:nx, function(i) {
+        tmp <- sapply(1:ny, function(j) {
+            return(2 * (x[,i]-y[,j]))
+        })
+        return(apply(tmp,1,sum))
+    })
+    run_op(grad_op, input, expected_res, inner_dim=0)
+    
+    # data (reduction index in row)
+    nx <- 10
+    ny <- 15
+    x <- t(matrix(runif(nx*3), nrow=3, ncol=nx))
+    y <- t(matrix(runif(ny*3), nrow=3, ncol=ny))
+    eta <- t(matrix(1, nrow=1, ncol=nx))
+    # run
+    input <- list(x, y, eta)
+    expected_res <- t(sapply(1:nx, function(i) {
+        tmp <- sapply(1:ny, function(j) {
+            return(2 * (x[i,]-y[j,]))
+        })
+        return(apply(tmp,1,sum))
+    }))
+    run_op(grad_op, input, expected_res, inner_dim=1)
+    
+    ## define and compile the gradient regarding var x
+    grad_op <- tryCatch(keops_grad(op, var="x"),
+                        error = function(e) {print(e); return(NULL)})
+    expect_false(is.null(grad_op))
+    
+    # data (reduction index in column)
+    nx <- 10
+    ny <- 15
+    x <- matrix(runif(nx*3), nrow=3, ncol=nx)
+    y <- matrix(runif(ny*3), nrow=3, ncol=ny)
+    eta <- matrix(1, nrow=1, ncol=nx)
+    # run
+    input <- list(x, y, eta)
+    expected_res <- expected_res <- sapply(1:nx, function(i) {
+        tmp <- sapply(1:ny, function(j) {
+            return(2 * (x[,i]-y[,j]))
+        })
+        return(apply(tmp,1,sum))
+    })
+    run_op(grad_op, input, expected_res, inner_dim=0)
+    
+    # data (reduction index in row)
+    nx <- 10
+    ny <- 15
+    x <- t(matrix(runif(nx*3), nrow=3, ncol=nx))
+    y <- t(matrix(runif(ny*3), nrow=3, ncol=ny))
+    eta <- t(matrix(1, nrow=1, ncol=nx))
+    # run
+    input <- list(x, y, eta)
+    expected_res <- t(sapply(1:nx, function(i) {
+        tmp <- sapply(1:ny, function(j) {
+            return(2 * (x[i,]-y[j,]))
+        })
+        return(apply(tmp,1,sum))
+    }))
+    run_op(grad_op, input, expected_res, inner_dim=1)
 })
 
 test_that("parse_extra_args", {

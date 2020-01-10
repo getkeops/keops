@@ -28,6 +28,9 @@
 #' You should be careful with the input dimension of your data, to correspond 
 #' to the input dimension specified in `args` (see inner ou outer dimension in 
 #' `browseVignettes("rkeops")`.
+#' 
+#' It is possible to compute partial derivatives of user defined operators 
+#' with the function [rkeops::keops_grad()]. 
 #' @author Ghislain Durif
 #' @param formula text string, an operator formula (see Details).
 #' @param args vector of text string, formula arguments (see Details).
@@ -39,6 +42,7 @@
 #' (c.f. `browseVignettes("rkeops")`) corresponds to columns, i.e. 
 #' `inner_dim=1` (default), or rows, i.e. `inner_dim=0`, in the data. 
 #' @importFrom stringr str_length
+#' @seealso [rkeops::keops_grad()]
 #' @examples
 #' \dontrun{
 #' ## Example 1

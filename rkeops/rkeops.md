@@ -31,3 +31,37 @@ when the full kernel matrix does not fit into the GPU memory.
 For more information (installation, usage), please visit 
 <https://www.kernel-operations.io/> and read the [vignettes](rkeops/vignettes) 
 available in R with the command `browseVignettes("rkeops")`.
+
+# Installation
+
+## Install from CRAN
+
+```{r install, eval=FALSE}
+install.packages("rkeops")
+```
+
+## Install from sources
+
+* Install directly from Github (requires `git`)
+```{r install_github, eval=FALSE}
+devtools::install_git("https://github.com/getkeops/keops", 
+                      subdir = "rkeops", 
+                      args="--recurse-submodules='keops/lib/sequences'")
+# not possible to use `devtools::intall_github()` because of the required submodule
+```
+
+## Get sources and install from local repository
+* Get KeOps sources (bash command)
+```bash
+git clone --recurse-submodules="keops/lib/sequences" https://github.com/getkeops/keops
+# or
+git clone https://github.com/getkeops/keops
+cd keops
+git submodule update --init -- keops/lib/sequences
+# other submodules are not necessary for RKeOps
+```
+
+* Install from local source in R (assuming you are in the `keops` directory)
+```{r install_src, eval=FALSE}
+devtools::install("rkeops")
+```
