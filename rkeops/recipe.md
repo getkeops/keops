@@ -6,6 +6,20 @@ project file, or use R commands and follow the recipe described
 [below](#r-command-tools)
 
 
+## Continuous Integration (CI)
+
+Check this [script](./ci/run_ci.sh).
+
+To enable automatic tests to be run on GPU, the environment variable `TEST_GPU` 
+should be defined with the value `1` before running the CI scripts, i.e.
+```bash
+export TEST_GPU=1
+```
+
+To generate html files from the vignettes that can be integrated into the 
+Sphinx doc, see this [script](./ci/html2doc.sh).
+
+
 ## Rstudio
 
 You can use Rstudio for development. To set up, the package project,
@@ -63,7 +77,9 @@ devtools::check()
 devtools::release()
 ```
 
-**Note:** To release on CRAN, it is recommended to use the command line tools, c.f. next section. 
+**Note:** To release on CRAN, it is recommended to use the command line tools, c.f. next section.
+
+**Note:** Before releasing on CRAN, you can use <https://win-builder.r-project.org/> to test if the package can be built on Windows (it may not works, it just is just required to install it on Windows).
 
 ## Command line tools
 

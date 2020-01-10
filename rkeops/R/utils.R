@@ -165,17 +165,21 @@ is_installed <- function() {
 #' signatures).
 #' @return loaded function
 #' @import Rcpp
+#' @importFrom utils getFromNamespace
 #' @export
 load_dll <- function(path, dllname, object, tag="_binder_", genred=FALSE) {
     filename <- file.path(path, paste0(dllname, .Platform$dynlib.ext))
     tmp <- dyn.load(filename)
     out <- NULL
+    
+    sourceCppFunction = getFromNamespace("sourceCppFunction", "Rcpp")
+    
     if(genred) {
-        out <- Rcpp:::sourceCppFunction(function(input, param) {}, FALSE, tmp, 
-                                        paste0(tag, object))
+        out <- sourceCppFunction(function(input, param) {}, FALSE, tmp, 
+                                 paste0(tag, object))
     } else {
-        out <- Rcpp:::sourceCppFunction(function() {}, FALSE, tmp, 
-                                        paste0(tag, object))
+        out <- sourceCppFunction(function() {}, FALSE, tmp, 
+                                 paste0(tag, object))
     }
     
     rm(tmp)
@@ -192,21 +196,50 @@ load_dll <- function(path, dllname, object, tag="_binder_", genred=FALSE) {
 #' 
 #' **Note:** The default behavior in `rkeops` is to use CPU computing, thus 
 #' calling the function `use_gpu` is mandatory to run computations on GPU.
+#' 
+#' To disable GPU computing, run [rkeops::use_cpu()].
 #' @author Ghislain Durif
-#' @seealso [rkeops::compile4gpu()]
+#' @param device integer, GPU device id to be used for computations. Default 
+#' is `0`. It is recommended to use default GPU and manage GPU assignment 
+#' outside R by setting the environment variable `CUDA_VISIBLE_DEVICES`.
+#' @seealso [rkeops::compile4cpu()], [rkeops::compile4gpu()], 
+#' [rkeops::use_cpu()]
 #' @examples 
 #' \dontrun{
 #' use_gpu()
 #' }
 #' @export
-use_gpu <- function() {
+use_gpu <- function(device=0) {
+    set_rkeops_option("device_id", as.integer(device))
     set_rkeops_option("tagCpuGpu", 1)
 }
 
-#' Enable compilation of GPU-compatible user-defined operators
+#' Disable GPU-computing when calling user-defined operators
 #' @description
-#' Set up `rkeops` compile options to compile user-defined operators that can 
-#' be computed on GPU.
+#' Set up `rkeops` runtime options to use CPU computing when calling 
+#' user-defined operators.
+#' @details
+#' **Note:** The default behavior in `rkeops` is to use CPU computing, thus 
+#' calling the function `use_gpu` is mandatory to run computations on GPU.
+#' 
+#' To enable GPU computing, run [rkeops::use_gpu()].
+#' @author Ghislain Durif
+#' @seealso [rkeops::compile4cpu()], [rkeops::compile4gpu()], 
+#' [rkeops::use_gpu()]
+#' @examples 
+#' \dontrun{
+#' use_cpu()
+#' }
+#' @export
+use_cpu <- function() {
+    set_rkeops_option("tagCpuGpu", 0)
+}
+
+#' Enable compilation of GPU-compatible user-defined operators if possible
+#' @description
+#' Set up `rkeops` compile options to compile user-defined operators that run 
+#' on GPU. If CUDA is not available, user-defined operators will 
+#' still be compiled without GPU support.
 #' @details
 #' Compiling GPU-compatible user-defined operators requires CUDA and `nvcc` 
 #' (Nvidia compiler). If not available, user-defined operators will only be 
@@ -215,8 +248,13 @@ use_gpu <- function() {
 #' **Note:** Default behavior is to compile GPU-compatible operators thus, if 
 #' you do not modify `rkeops` options, it is optional to use the function 
 #' `compile4gpu`.
+#' 
+#' When a GPU-compatible operator is compiled, you should call 
+#' [rkeops::use_gpu()] to ensure that computation will be run on GPU 
+#' (difference between compilation and runtime options). GPU-compatible 
+#' operators can run on CPU.
 #' @author Ghislain Durif
-#' @seealso [rkeops::use_gpu()]
+#' @seealso [rkeops::compile4cpu()], [rkeops::use_gpu()], 
 #' @examples 
 #' \dontrun{
 #' compile4gpu()
@@ -224,4 +262,73 @@ use_gpu <- function() {
 #' @export
 compile4gpu <- function() {
     set_rkeops_option("use_cuda_if_possible", 1)
+}
+
+#' Disable compilation of GPU-compatible user-defined operators
+#' @description
+#' Set up `rkeops` compile options to compile user-defined operators that run 
+#' be computed on CPU.
+#' @details
+#' **Note:** Default behavior is to compile GPU-compatible operators thus, if 
+#' you do not modify `rkeops` options, you have to call the function 
+#' `compile4cpu` to disable GPU-support.
+#' 
+#' CPU-compatible operators cannot run on GPU.
+#' @author Ghislain Durif
+#' @seealso [rkeops::compile4gpu()], [rkeops::use_cpu()]
+#' @examples 
+#' \dontrun{
+#' compile4cpu()
+#' }
+#' @export
+compile4cpu <- function() {
+    set_rkeops_option("use_cuda_if_possible", 0)
+}
+
+#' Enable compiling of user-defined operators using float 32bits precision.
+#' @description
+#' Set up `rkeops` compile options to compile user-defined operators that use 
+#' float 32bits precision in computation.
+#' @details
+#' **Note:** Default behavior is to compile operators operators that use 
+#' float 32bits precision in computation. Hence, if you do not modify `rkeops` 
+#' options, you do not have to call the function `compile4float32` to 
+#' compile operators using float 32bits precision.
+#' 
+#' Since R only manages float 64bits or double numbers, the input and output 
+#' are casted to float 32bits before and after computations respectively.
+#' @author Ghislain Durif
+#' @seealso [rkeops::compile4float64()]
+#' @examples 
+#' \dontrun{
+#' compile4float32()
+#' }
+#' @export
+compile4float32 <- function() {
+    set_rkeops_option("precision", "float")
+}
+
+#' Enable compiling of user-defined operators using float 64bits precision.
+#' @description
+#' Set up `rkeops` compile options to compile user-defined operators that use 
+#' float 64bits precision in computation.
+#' @details
+#' **Note:** Default behavior is to compile operators operators that use 
+#' float 32bits precision in computation. Hence, if you do not modify `rkeops` 
+#' options, you have to call the function `compile4float64` to 
+#' compile operators using float 64bits precision.
+#' 
+#' Using float 64bits (or double) precision is likely to result in a loss of 
+#' performance regarding computing time on GPU. If you want to get the best 
+#' performance but worry about computation precision, you can use float 32bits 
+#' precision and compensated sums that are implemented in KeOps.
+#' @author Ghislain Durif
+#' @seealso [rkeops::compile4float32()]
+#' @examples 
+#' \dontrun{
+#' compile4float64()
+#' }
+#' @export
+compile4float64 <- function() {
+    set_rkeops_option("precision", "double")
 }

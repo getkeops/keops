@@ -78,6 +78,10 @@ test_that("format_var_aliases", {
 
 test_that("keops_kernel", {
     set_rkeops_options()
+    
+    ## computation on GPU ?
+    if(Sys.getenv("TEST_GPU") == "1") use_gpu()
+    
     ## matrix product then sum
     formula = "Sum_Reduction((x|y), 1)"
     args = c("x=Vi(3)", "y=Vj(3)")
@@ -134,6 +138,10 @@ test_that("keops_kernel", {
 
 test_that("keops_grad", {
     set_rkeops_options()
+    
+    ## computation on GPU ?
+    if(Sys.getenv("TEST_GPU") == "1") use_gpu()
+    
     ## define an operator (squared norm reduction)
     formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
     args <- c("x=Vi(0,3)", "y=Vj(1,3)")

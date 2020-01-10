@@ -118,9 +118,9 @@ template< typename array_t >
 void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
 
   constexpr int POS = std::max(keops::POS_FIRST_ARGI, keops::POS_FIRST_ARGJ);
-  static_assert((POS > -1), "[KeOps] There is no Vi or Vj variables detected in the formula.");
+  static_assert(((POS > -1) || (keops::NARGS > 0)) , "[KeOps] There is no variables detected in the formula.");
 
-  if (keops::NARGS > 0) {
+  if ((keops::NARGS > 0) && (POS > -1)) {
     // Are we working in batch mode? Infer the answer from the first arg =============
     nbatchdims =  get_ndim(args[POS]);  // Number of dims of the first tensor
     nbatchdims -= 2;

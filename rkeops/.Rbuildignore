@@ -9,6 +9,7 @@ readme.txt
 recipe.md
 rkeops.md
 benchmarks
+ci
 dev
 examples
 tests
@@ -22,3 +23,5 @@ lib/sequences/.travis.yml
 lib/sequences/.conan
 lib/sequences/Makefile
 version
+^doc$
+^Meta$

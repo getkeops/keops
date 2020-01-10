@@ -11,12 +11,16 @@
 #' **Note:** Default options are set up when loading `rkeops`. To reset 
 #' `rkeops` options to default, you should use the function 
 #' [rkeops::set_rkeops_options()]. To set up a particular option, you should 
-#' use the function [rkeops::set_rkeops_option()].
+#' use the function [rkeops::set_rkeops_option()]. Some wrappers are available 
+#' to enable some compilation options, see [rkeops::compile4float32()], 
+#' [rkeops::compile4float64()], [rkeops::compile4cpu()], 
+#' [rkeops::compile4gpu()].
 #' @author Ghislain Durif
 #' @return a list of class `rkeops_compile_options` (see 
 #' [rkeops::compile_options()] for the detailed output).
 #' @seealso [rkeops::compile_options()], [rkeops::set_rkeops_options()], 
-#' [rkeops::set_rkeops_option()]
+#' [rkeops::set_rkeops_option()], [rkeops::compile4float32()], 
+#' [rkeops::compile4float64()], [rkeops::compile4cpu()], [rkeops::compile4gpu()]
 #' @examples
 #' \dontrun{
 #' default_compile_options()
@@ -76,6 +80,10 @@ default_compile_options <- function() {
 #' `rkeops` options to default, you should use the function 
 #' [rkeops::set_rkeops_options()]. To set up a particular option, you should 
 #' use the function [rkeops::set_rkeops_option()].
+#' 
+#' Some wrappers are available to enable some compilation options, 
+#' see [rkeops::compile4float32()], [rkeops::compile4float64()], 
+#' [rkeops::compile4cpu()], [rkeops::compile4gpu()].
 #' @author Ghislain Durif
 #' @param precision string, precision for floating point computations (`float` 
 #' or `double`). Default value is `float`.
@@ -112,8 +120,10 @@ default_compile_options <- function() {
 #' of GPU in computations (if possible).}
 #' \item{col_major}{integer, 0-1 indicator (boolean) for storage order.}
 #' \item{debug}{integer, 0-1 indicator (boolean) for debugging flag.}
-#' @seealso @seealso [rkeops::default_compile_options()], 
-#' [rkeops::set_rkeops_options()], [rkeops::set_rkeops_option()]
+#' @seealso [rkeops::default_compile_options()], 
+#' [rkeops::set_rkeops_options()], [rkeops::set_rkeops_option()], 
+#' [rkeops::compile4float32()], [rkeops::compile4float64()], 
+#' [rkeops::compile4cpu()], [rkeops::compile4gpu()]
 #' @examples
 #' \dontrun{
 #' compile_options(
@@ -211,11 +221,14 @@ check_compile_options <- function(options) {
 #' `rkeops` options to default, you should use the function 
 #' [rkeops::set_rkeops_options()]. To set up a particular option, you should 
 #' use the function [rkeops::set_rkeops_option()].
+#' 
+#' Some wrappers are available to enable some compilation options, 
+#' see [rkeops::use_cpu()], [rkeops::use_gpu()].
 #' @author Ghislain Durif
 #' @return a list of class `rkeops_runtime_options` (see 
 #' [rkeops::runtime_options()] for the detailed output).
 #' @seealso [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
-#' [rkeops::set_rkeops_option()]
+#' [rkeops::set_rkeops_option()], [rkeops::use_cpu()], [rkeops::use_gpu()]
 #' @examples
 #' \dontrun{
 #' default_runtime_options()
@@ -254,6 +267,9 @@ default_runtime_options <- function() {
 #' `rkeops` options to default, you should use the function 
 #' [rkeops::set_rkeops_options()]. To set up a particular option, you should 
 #' use the function [rkeops::set_rkeops_option()].
+#' 
+#' Some wrappers are available to enable some compilation options, 
+#' see [rkeops::use_cpu()], [rkeops::use_gpu()].
 #' @author Ghislain Durif
 #' @param tagCpuGpu integer, indicator for CPU or GPU computations (see 
 #' Details). Default value is `0`.
@@ -271,7 +287,7 @@ default_runtime_options <- function() {
 #' parallelization (see Details).}
 #' \item{device_id}{integer, id of GPU device on the machine (see Details).}
 #' @seealso [rkeops::default_runtime_options()], [rkeops::set_rkeops_options()],
-#' [rkeops::set_rkeops_option()]
+#' [rkeops::set_rkeops_option()], [rkeops::use_cpu()], [rkeops::use_gpu()]
 #' @examples
 #' \dontrun{
 #' runtime_options(tagCpuGpu = 0, tag1D2D = 0, 

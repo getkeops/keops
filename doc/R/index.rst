@@ -14,6 +14,5 @@ standard functions that can be used in any R code.
    :maxdepth: 2
    :caption: RKeOps
    
-   installation
-   vignettes
+   using_rkeops
    quickstart

@@ -1,6 +1,8 @@
 context("utils functions")
 
 test_that("dllname", {
+    set_rkeops_options()
+    
     formula = "Sum_Reduction(Exp(lambda*SqNorm2(x-y))*beta,0)"
     args = c("x=Vi(3)", "y=Vj(3)",
              "beta=Vj(3)", "lambda=Pm(1)")
@@ -14,18 +16,22 @@ test_that("dllname", {
 })
 
 test_that("clean_rkeops", {
-    res <- tryCatch(clean_rkeops(), 
-                    error = function(e) {print(e); return(NULL)})
-    expect_false(is.null(res))
+    set_rkeops_options()
+    
+    clean_rkeops()
     file_list <- list.files(get_build_dir())
     expect_true(length(file_list) == 0)
 })
 
 test_that("get_pkg_dir", {
+    set_rkeops_options()
+    
     expect_equal(get_pkg_dir(), find.package("rkeops"))
 })
 
 test_that("get_src_dir", {
+    set_rkeops_options()
+    
     expected_dir <- file.path(find.package("rkeops"), "include")
     if(!dir.exists(expected_dir))
         expected_dir <- file.path(find.package("rkeops"), "inst", "include")
@@ -34,6 +40,8 @@ test_that("get_src_dir", {
 })
 
 test_that("get_build_dir", {
+    set_rkeops_options()
+    
     expected_dir <- file.path(find.package("rkeops"), "build")
     if(!dir.exists(expected_dir))
         expected_dir <- file.path(find.package("rkeops"), "inst", "build")
@@ -43,6 +51,7 @@ test_that("get_build_dir", {
 })
 
 test_that("load_dll", {
+    set_rkeops_options()
     # current dir
     current_dir <- getwd()
     # go to src dir
@@ -67,11 +76,39 @@ test_that("load_dll", {
 })
 
 test_that("use_gpu", {
+    set_rkeops_options()
     expect_error(use_gpu(), NA)
+    expect_error(use_gpu(0), NA)
     expect_true(get_rkeops_option("tagCpuGpu") %in% c(1, 2))
+    expect_equal(get_rkeops_option("device_id"), 0)
+})
+
+test_that("use_cpu", {
+    set_rkeops_options()
+    expect_error(use_cpu(), NA)
+    expect_equal(get_rkeops_option("tagCpuGpu"), 0)
 })
 
 test_that("compile4gpu", {
+    set_rkeops_options()
     expect_error(compile4gpu(), NA)
     expect_equal(get_rkeops_option("use_cuda_if_possible"), 1)
+})
+
+test_that("compile4cpu", {
+    set_rkeops_options()
+    expect_error(compile4cpu(), NA)
+    expect_equal(get_rkeops_option("use_cuda_if_possible"), 0)
+})
+
+test_that("compile4float32", {
+    set_rkeops_options()
+    expect_error(compile4float32(), NA)
+    expect_equal(get_rkeops_option("precision"), "float")
+})
+
+test_that("compile4float64", {
+    set_rkeops_options()
+    expect_error(compile4float64(), NA)
+    expect_equal(get_rkeops_option("precision"), "double")
 })

@@ -1,4 +1,4 @@
-![logo rkeops](rkeops_logo.png)
+![logo rkeops](man/figures/rkeops_logo.png)
 
 RKeOps contains the R bindings for the cpp/cuda library [KeOps](https://www.kernel-operations.io/). It provides
 standard R functions that can be used in any R (>=3) codes.
@@ -14,8 +14,9 @@ For a full documentation you may read:
 
 - [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
 - [Jean Feydy](https://www.math.ens.fr/~feydy/)
-- [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
+- [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
 - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
+- François-David Collin
 
 
 # Details
@@ -43,7 +44,7 @@ install.packages("rkeops")
 ## Install from sources
 
 * Install directly from Github (requires `git`)
-```{r install_github, eval=FALSE}
+```R
 devtools::install_git("https://github.com/getkeops/keops", 
                       subdir = "rkeops", 
                       args="--recurse-submodules='keops/lib/sequences'")
@@ -62,6 +63,6 @@ git submodule update --init -- keops/lib/sequences
 ```
 
 * Install from local source in R (assuming you are in the `keops` directory)
-```{r install_src, eval=FALSE}
+```R
 devtools::install("rkeops")
 ```

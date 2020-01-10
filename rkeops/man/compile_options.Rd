@@ -105,6 +105,10 @@ compilation (to avoid useless matrix conversion).
 \code{rkeops} options to default, you should use the function
 \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
 use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+
+Some wrappers are available to enable some compilation options,
+see \code{\link[rkeops:compile4float32]{rkeops::compile4float32()}}, \code{\link[rkeops:compile4float64]{rkeops::compile4float64()}},
+\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}.
 }
 \examples{
 \dontrun{
@@ -117,8 +121,10 @@ compile_options(
 }
 }
 \seealso{
-@seealso \code{\link[rkeops:default_compile_options]{rkeops::default_compile_options()}},
-\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}, \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
+\code{\link[rkeops:default_compile_options]{rkeops::default_compile_options()}},
+\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}, \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}},
+\code{\link[rkeops:compile4float32]{rkeops::compile4float32()}}, \code{\link[rkeops:compile4float64]{rkeops::compile4float64()}},
+\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}
 }
 \author{
 Ghislain Durif

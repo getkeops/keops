@@ -3,7 +3,8 @@ import sys
 
 from .common.set_path import set_bin_folder
 
-__version__ = '1.4'
+with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'version'), encoding='utf-8') as v:
+  __version__ = v.read().rstrip()
 
 ###########################################################
 # Initialize some variables: the values may be redefined 
