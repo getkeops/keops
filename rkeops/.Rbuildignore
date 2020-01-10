@@ -2,6 +2,7 @@
 .gitignore
 .*\.o
 .*\.so
+inst/build
 prebuild.R
 rkeops_lazytensor_basic.R
 notes_dev.md
