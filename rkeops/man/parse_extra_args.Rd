@@ -21,10 +21,10 @@ FIXME
 Parse the formula for string such as
 \itemize{
 \item \code{"YY(<pos>,<dim>)"} where \code{YY} can be a formula input argument type
-(\code{Vi}, \code{Vj} or \code{Pm}), \code{<pos>} is the position of the corresponding input
-argument, and \code{<dim>} its inner dimension.
-\item \code{"Var(<pos>,<dim>,<type>)"} where \code{<pos>} and \code{<dim>} are the position and
-inner dimension (c.f. previous point) and \code{<type>} is an integer encoding
+(\code{Vi}, \code{Vj} or \code{Pm}), \verb{<pos>} is the position of the corresponding input
+argument, and \verb{<dim>} its inner dimension.
+\item \code{"Var(<pos>,<dim>,<type>)"} where \verb{<pos>} and \verb{<dim>} are the position and
+inner dimension (c.f. previous point) and \verb{<type>} is an integer encoding
 the formula input argument type with the following relation:
 }
 

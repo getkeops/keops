@@ -25,7 +25,7 @@ The function \code{format_var_aliases} formats KeOps formula arguments to be
 understood by the C++ code.
 }
 \details{
-Mathematical formula: \code{sum_i e^(lambda*||x_i - y_j||^2)} where \code{x_i}, \code{y_j}
+Mathematical formula: \verb{sum_i e^(lambda*||x_i - y_j||^2)} where \code{x_i}, \code{y_j}
 are 3d vectors, and \code{lambda} is a scaler parameter.
 
 Corresponding KeOps formula and input parameters:\preformatted{formula = "Sum_Reduction(Exp(lambda * SqNorm2(x-y)), 0)"

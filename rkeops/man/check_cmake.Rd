@@ -8,7 +8,7 @@ check_cmake(cmake_executable)
 }
 \arguments{
 \item{cmake_executable}{text string, path to cmake
-(e.g. \code{/path/to/cmake} on Unix system).}
+(e.g. \verb{/path/to/cmake} on Unix system).}
 }
 \value{
 a value 1 if all checks are ok.

@@ -10,7 +10,7 @@ compile_formula(formula, var_aliases, dllname)
 \item{formula}{text string, formula defining the new operator.}
 
 \item{var_aliases}{text string, formated formula input arguments returned by
-\code{\link[rkeops:format_var_aliases]{rkeops::format_var_aliases()}} (specifically \code{$var_aliases}).}
+\code{\link[rkeops:format_var_aliases]{rkeops::format_var_aliases()}} (specifically \verb{$var_aliases}).}
 
 \item{dllname}{text string, the name associated to the related shared object
 file.}

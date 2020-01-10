@@ -4,9 +4,16 @@
 \alias{compile_options}
 \title{Define a list of user-defined options used for compilation in \code{rkeops} package}
 \usage{
-compile_options(precision = "float", verbosity = FALSE,
-  use_cuda_if_possible = TRUE, col_major = TRUE, debug = FALSE,
-  rkeops_dir = NULL, build_dir = NULL, src_dir = NULL)
+compile_options(
+  precision = "float",
+  verbosity = FALSE,
+  use_cuda_if_possible = TRUE,
+  col_major = TRUE,
+  debug = FALSE,
+  rkeops_dir = NULL,
+  build_dir = NULL,
+  src_dir = NULL
+)
 }
 \arguments{
 \item{precision}{string, precision for floating point computations (\code{float}
@@ -68,15 +75,15 @@ The function \code{default_compile_options} returns a list of class
 The aforementioned compile options are the following:
 \itemize{
 \item \code{rkeops_dir}: path to \code{rkeops} install directory on the system (e.g.
-\code{/path/to/R_package_install/rkeops} on Unix system).
+\verb{/path/to/R_package_install/rkeops} on Unix system).
 \item \code{build_dir}: path to directory where new user-defined operators
 will be compiled and corresponding share objects (\code{.so} files) will be
 saved (so that they can be found upon reuse to avoid useless recompilation).
 Default value is the \code{build} sub-folder in \code{rkeops} install directory (e.g.
-\code{/path/to/R_package_install/rkeops/build} on Unix system).
+\verb{/path/to/R_package_install/rkeops/build} on Unix system).
 \item \code{src_dir}: path to \code{keops} (C++) source files required for compilation of
 user-defined operators. Default value is the \code{include} sub-folder in
-\code{rkeops} install directory (e.g. \code{/path/to/R_package_install/rkeops/include}
+\code{rkeops} install directory (e.g. \verb{/path/to/R_package_install/rkeops/include}
 on Unix system).
 \item \code{precision}: precision for floating point computations (\code{float} or
 \code{double}). Default value is \code{float}.

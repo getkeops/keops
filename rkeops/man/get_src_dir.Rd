@@ -18,11 +18,11 @@ files that are shipped with \code{rkeops} installation.
 }
 \details{
 This path is generaly something like
-\code{/path/to/R_package_install/rkeops/include}.
+\verb{/path/to/R_package_install/rkeops/include}.
 
 \strong{Note:} when running tests in the development project \code{keops} without
 installing \code{rkeops}, for consistency reason, the function returns
-\code{/path/to/keops/rkeops/inst/include} (because the content of
+\verb{/path/to/keops/rkeops/inst/include} (because the content of
 \code{rkeops/inst/include} is copied to \code{rkeops/include} at installation).
 }
 \author{

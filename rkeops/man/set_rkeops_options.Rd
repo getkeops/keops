@@ -4,8 +4,10 @@
 \alias{set_rkeops_options}
 \title{Initialize or update \code{rkeops} options in \code{R} global options scope}
 \usage{
-set_rkeops_options(custom_compile_options = NULL,
-  custom_runtime_options = NULL)
+set_rkeops_options(
+  custom_compile_options = NULL,
+  custom_runtime_options = NULL
+)
 }
 \arguments{
 \item{custom_compile_options}{a list (of class \code{rkeops_compile_options}).
@@ -26,7 +28,7 @@ when compiling or when calling user-defined operators.
 
 If no input is provided, the functions \code{set_rkeops_options} initializes the
 \code{rkeops} options in the \code{R} global options scope (i.e. options available
-by calling \code{options()} or \code{getOptions(<option_name>)}) with default values.
+by calling \code{options()} or \verb{getOptions(<option_name>)}) with default values.
 
 If some input is provided, i.e. objects defining compile options and/or
 runtime options (see Details), \code{rkeops} global options are updated
