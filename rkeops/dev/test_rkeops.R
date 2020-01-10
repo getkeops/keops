@@ -29,10 +29,7 @@ input <- list(x, y)
 res <- op(input, inner_dim=0)
 
 expected_res <- colSums(t(x) %*% y)
-
 print(dim(res))
-
-print(cbind(t(res), expected_res))
 sum(abs(res - expected_res))
 
 ## exemple 1 bis
@@ -46,7 +43,6 @@ res <- op(input, inner_dim=1)
 
 expected_res <- colSums(x %*% t(y))
 print(dim(res))
-print(cbind(t(res), expected_res))
 sum(abs(res - expected_res))
 
 ## exemple 2
