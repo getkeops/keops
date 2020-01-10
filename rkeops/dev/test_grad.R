@@ -14,10 +14,11 @@ nx <- 10
 ny <- 15
 x <- matrix(runif(nx*3), nrow=3, ncol=nx)
 y <- matrix(runif(ny*3), nrow=3, ncol=ny)
-eta <- matrix(runif(nx*1), nrow=1, ncol=nx)
+# eta <- matrix(runif(nx*1), nrow=1, ncol=nx)
+eta <- matrix(1, nrow=1, ncol=nx)
 
 input <- list(x, y, eta)
-res <- op(input, inner_dim=0)
+res1 <- op(input, inner_dim=0)
 
 
 # GramFromPos
@@ -34,6 +35,7 @@ args <- c("x=Vi(0,3)", "y=Vj(1,3)")
 op <- keops_kernel(formula, args)
 res3 <- op(input, inner_dim=0)
 
+sum(abs(res2 - res3))
 
 # keops_grad
 message("## keops_grad")
@@ -45,25 +47,20 @@ input <- list(x, y)
 res <- op(input, inner_dim=0)
 
 grad_op <- keops_grad(op, var=0)
-res <- grad_op(input, inner_dim=0)
+input <- list(x, y, eta)
+res4 <- grad_op(input, inner_dim=0)
+
+sum(abs(res2 - res4))
 
 # Direct compile
 message("## Direct Compile")
 formula <- "Sum_Reduction(IntCst(2)*(x-y)*eta, 0)"
 args <- c("x=Vi(0,3)", "y=Vj(1,3)", "eta=Vi(2,1)")
 op <- keops_kernel(formula, args)
-
-res4 <- op(input, inner_dim=0)
-
-
-nx <- 10
-ny <- 15
-x <- matrix(runif(nx*3), nrow=3, ncol=nx)
-y <- matrix(runif(ny*3), nrow=3, ncol=ny)
-eta <- matrix(1, nrow=1, ncol=nx)
-
 input <- list(x, y, eta)
-res <- grad_op(input, inner_dim=0)
+res5 <- op(input, inner_dim=0)
+
+sum(abs(res2 - res5))
 
 expected_res <- expected_res <- sapply(1:nx, function(i) {
     tmp <- sapply(1:ny, function(j) {
@@ -72,4 +69,4 @@ expected_res <- expected_res <- sapply(1:nx, function(i) {
     return(apply(tmp,1,sum))
 })
 
-sum(abs(res - expected_res))
+sum(abs(res4 - expected_res))
