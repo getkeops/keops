@@ -10,8 +10,8 @@ project(rkeops LANGUAGES CXX)
 # set up PROJECT_BINARY_DIR (where cmake is called, here 
 #   /path/to/keops/rkeops/build)
 
-message(TARGET " PROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}")
-message(TARGET " PROJECT_BINARY_DIR=${PROJECT_BINARY_DIR}")
+#message(TARGET " PROJECT_SOURCE_DIR=${PROJECT_SOURCE_DIR}")
+#message(TARGET " PROJECT_BINARY_DIR=${PROJECT_BINARY_DIR}")
 
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/include)
 
