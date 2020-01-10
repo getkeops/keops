@@ -3,8 +3,39 @@
 In this file are described all steps required to build the `rkeops` package. 
 You can either use Rstudio machinery with the [attached](#rstudio) Rstudio 
 project file, or use R commands and follow the recipe described 
-[below](#r-command-tools)
+[below](#r-command-tools).
 
+## Set up environment
+
+### Set up a CRAN repository
+
+Edit or create the file `~/.Rprofile` and add:
+```
+## Default repo
+local({r <- getOption("repos")
+    r["CRAN"] <- "https://cloud.r-project.org" 
+    options(repos=r)
+})
+```
+
+### Install R package dependencies
+
+1. Install devtools dependencies
+```bash
+# on Ubuntu
+apt-get install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev
+```
+
+2. Install devtools
+```R
+install.packages("devtools")
+```
+
+3. Install other dependencies
+```R
+install.packages(c("Rcpp", "RcppEigen", "openssl", "stringr", 
+                   "testthat", "knitr", "rmarkdown", "roxygen2"))
+```
 
 ## Continuous Integration (CI)
 
