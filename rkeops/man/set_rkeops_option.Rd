@@ -25,7 +25,7 @@ when compiling or when calling user-defined operators.
 With the function \code{set_rkeops_option}, you can set up a specific \code{rkeops}
 option among:
 \itemize{
-\item \code{rkeops} compile options: rkeops_dir\code{(not recommended),}build_dir\code{,  }src_dir\code{(not recommended),}precision\code{, }verbosity\code{,  }use_cuda_if_possible\code{, }col_major\code{(not recommended),}debug`
+\item \code{rkeops} compile options: rkeops_dir\verb{(not recommended),}build_dir\verb{,  }src_dir\verb{(not recommended),}precision\verb{, }verbosity\verb{,  }use_cuda_if_possible\verb{, }col_major\verb{(not recommended),}debug`
 \item \code{rkeops} runtime options: \code{tagCpuGpu}, \code{tag1D2D}, \code{tagHostDevice},
 \code{device_id}
 with a value that you provide in input.

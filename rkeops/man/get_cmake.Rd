@@ -8,7 +8,7 @@ get_cmake(path = NULL)
 }
 \arguments{
 \item{path}{text string (optional), path where to search
-\code{cmake} (e.g. \code{/path/to/dir} on Unix system). Default value
+\code{cmake} (e.g. \verb{/path/to/dir} on Unix system). Default value
 is NULL and the function searches for \code{cmake} in the
 standard PATH (on unix system).}
 }
@@ -21,7 +21,7 @@ This function returns the path to the cmake executable.
 \details{
 If no path is supplied, the function searches for the
 \code{cmake} command in the standard PATH (on Unix system).
-If a path is supplied (e.g. \code{/path/to/dir} on Unix
+If a path is supplied (e.g. \verb{/path/to/dir} on Unix
 system), the function search for the \code{cmake} command
 in this path.
 

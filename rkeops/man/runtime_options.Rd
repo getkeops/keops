@@ -4,8 +4,7 @@
 \alias{runtime_options}
 \title{Define a list of user-defined options used at runtime in \code{rkeops} package}
 \usage{
-runtime_options(tagCpuGpu = 0, tag1D2D = 0, tagHostDevice = 0,
-  device_id = 0)
+runtime_options(tagCpuGpu = 0, tag1D2D = 0, tagHostDevice = 0, device_id = 0)
 }
 \arguments{
 \item{tagCpuGpu}{integer, indicator for CPU or GPU computations (see
