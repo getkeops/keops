@@ -1,5 +1,8 @@
 * v1.3
+    - rkeops: keops binding for R (uploaded in CRAN)
+    - Refactor keops binders: there is a Cpp namespace called "keops_binder" providing an easy entry point to keops functions (that are in the namespace "keops")
     - Add accuracy options for single precision summations: block summations (used by default now), mixed precision and Kahan compensated scheme.
+    - Add a pykeops.clean_pykeops() routine to flush the cache dir.
     
 * v1.2
     - Add TensorDot operation
