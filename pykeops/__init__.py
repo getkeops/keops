@@ -28,4 +28,8 @@ build_type = str(os.environ['PYKEOPS_BUILD_TYPE']) if ('PYKEOPS_BUILD_TYPE' in o
 
 sys.path.append(bin_folder)
 
+###########################################################
+# Utils
+
 from .common.utils import clean_pykeops
+from .test.install import test_numpy_bindings, test_torch_bindings
