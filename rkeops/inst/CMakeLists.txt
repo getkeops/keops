@@ -29,6 +29,7 @@ include(${KEOPS_SRC_DIR}/cuda.cmake)
 
 ## Set Path to sources
 set(SOURCE_FILES
+    ${SRC_DIR}
     ${KEOPS_SRC_DIR}
     ${BINDER_SRC_DIR}
     ${PROJECT_BINARY_DIR}
