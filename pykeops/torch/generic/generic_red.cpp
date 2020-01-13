@@ -2,9 +2,11 @@
 // #include <torch/extension.h>
 // #include <pybind11/pybind11.h>
 
-#include "binders/checks.h"
-#include "common/keops_io.h"
+// keops_binders import
+#include "keops/binders/include.h"
 
+// pykeops import
+#include "common/keops_io.h"
 
 namespace keops_binders {
 

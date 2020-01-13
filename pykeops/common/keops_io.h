@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "binders/switch.h"
+#include "keops/binders/include.h"
 
 using namespace keops;
 namespace py = pybind11;

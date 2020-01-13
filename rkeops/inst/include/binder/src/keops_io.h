@@ -5,9 +5,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "binders/utils.h"
-#include "binders/switch.h"
-// #include "formula.h" made in cmake
+#include "keops/binders/include.h"
 
 #include "rkeops_data_type.h"
 #include "rkeops_matrix.h"
