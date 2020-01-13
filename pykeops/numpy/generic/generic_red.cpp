@@ -2,11 +2,9 @@
 #include <pybind11/numpy.h>
 
 // keops_binders import
-#include "binders/utils.h"
-#include "binders/checks.h"
-#include "binders/switch.h"
+#include "keops/binders/include.h"
 
-// keops import
+// pykeops import
 #include "common/keops_io.h"
 
 
@@ -75,6 +73,7 @@ void keops_error(std::basic_string< char > msg) {
 }
 
 }
+
 using namespace keops;
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -82,8 +81,7 @@ using namespace keops;
 /////////////////////////////////////////////////////////////////////////////////
 
 
-PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m
-) {
+PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
 m.doc() = "pyKeOps: KeOps for numpy through pybind11.";
 
 m.def("genred_numpy", &generic_red <__NUMPYARRAY__, __RANGEARRAY__>, "Entry point to keops - numpy version.");

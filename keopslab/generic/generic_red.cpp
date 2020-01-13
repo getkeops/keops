@@ -3,10 +3,7 @@
 // #include "formula.h" made in cmake
 
 // keops_binders import
-#include "binders/utils.h"
-#include "binders/checks.h"
-#include "binders/switch.h"
-
+#include "binders/include.h"
 
 using namespace keops;
 

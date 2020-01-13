@@ -27,7 +27,7 @@ class LoadKeOps:
         self.dll_name = self._create_name(formula, aliases, dtype, lang, optional_flags)
 
         if (module_exists(self.dll_name)) or (build_type == 'Debug'):
-            self.build_folder = bin_folder + os.path.sep + 'build-' + self.dll_name
+            self.build_folder = os.path.join(bin_folder, 'build-' + self.dll_name)
             self._safe_compile()
 
     def _create_name(self, formula, aliases, dtype, lang, optional_flags):

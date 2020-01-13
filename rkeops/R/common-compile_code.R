@@ -21,6 +21,10 @@
 #' @export
 compile_code <- function(formula, var_aliases, dllname, cmake_dir) {
     
+    message(paste0('Compiling ', dllname, ' in ', cmake_dir, ':\n',
+                   '       formula: ', formula, '\n', 
+                   '       aliases: ', var_aliases, '\n', 
+                   '       dtype  : ', get_rkeops_option("precision"), '\n...'))
     ## cmake
     cmake_cmd <- paste0(shQuote(get_cmake()), " ", shQuote(cmake_dir), 
                         " -DUSE_CUDA=", 
@@ -48,7 +52,7 @@ compile_code <- function(formula, var_aliases, dllname, cmake_dir) {
     if(tmp == 0) {
         make_cmd <- paste0("cmake", " --build .", 
                            " --target rkeops", shQuote(dllname), 
-                           " --" , " VERBOSE=1")
+                            ifelse(get_rkeops_option("verbosity"), "-- VERBOSE=1", ""))
         tmp <- system(make_cmd)
     }
     
