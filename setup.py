@@ -96,6 +96,7 @@ setup(
         'pykeops.numpy.convolutions',
         'pykeops.numpy.generic',
         'pykeops.numpy.shape_distance',
+        'pykeops.test',
         'pykeops.torch',
         'pykeops.torch.cluster',
         'pykeops.torch.generic',
