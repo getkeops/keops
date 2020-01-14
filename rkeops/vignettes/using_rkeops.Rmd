@@ -183,7 +183,7 @@ of the `X`$^\text{th}$ variable in the formula.<br><br>
 
 > **_Important:_** The names should correspond to the ones used in the formula. The input parameter order will be the one used when calling the compiled operator.
 
-**Example:** We define the corresponding arguments of the previous [formula](rkeops_r_bindings_for_keops.html#formula), i.e. parameters or variables indexed by $i$ or $j$ with their corresponding inner dimensions:
+**Example:** We define the corresponding arguments of the previous [formula](#formula), i.e. parameters or variables indexed by $i$ or $j$ with their corresponding inner dimensions:
 ```{r args, eval=FALSE}
 args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
          "y = Vj(3)",      # vector indexed by j (of dim 3)
