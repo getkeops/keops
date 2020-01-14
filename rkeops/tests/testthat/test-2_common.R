@@ -22,6 +22,10 @@ test_that("check_cmake", {
                  "`cmake_executable` input parameter is not a path to a cmake executable.")
 })
 
+test_that("check_os", {
+    expect_true(check_os(out) %in% c(0,1))
+})
+
 test_that("compile_code", {
     set_rkeops_options()
     # matrix product then sum
