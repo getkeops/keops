@@ -383,3 +383,9 @@ Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
 res <- op(list(X,Y), inner_dim=0)
 ```
 
+### Compilation files and cleaning
+
+The compilation of new operators produces shared library (or share object `.so`) files stored in a `build` sub-directory of the package installation directory, to be reused and avoid recompilation of already defined operators.
+
+You can check where your compiled operators are stored by running `get_build_dir()`. To clean RKeOps install and remove all shared library files, you can run `clean_rkeops()`.
+
