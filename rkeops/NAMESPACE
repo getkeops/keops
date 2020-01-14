@@ -2,6 +2,7 @@
 
 export(check_cmake)
 export(check_compile_options)
+export(check_os)
 export(check_runtime_options)
 export(clean_rkeops)
 export(compile4cpu)

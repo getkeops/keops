@@ -5,11 +5,9 @@
 }
 
 .onLoad <- function(libname, pkgname) {
-    if(is_installed()) {
+    if(is_installed() & check_os(onLoad=TRUE)) {
         # set up rkeops global options
         set_rkeops_options()
-        # check cmake
-        check_cmake(get_cmake())
     }
 }
 
