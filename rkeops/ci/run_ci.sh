@@ -17,4 +17,4 @@ cat ${CIDIR}/Makevars > ${HOME}/.R/Makevars
 Rscript ${CIDIR}/run_check.R
 
 # test package
-Rscript ${CIDIR}/run_tests.R
+#Rscript ${CIDIR}/run_tests.R
