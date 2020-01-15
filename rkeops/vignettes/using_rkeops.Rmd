@@ -183,7 +183,7 @@ of the `X`$^\text{th}$ variable in the formula.<br><br>
 
 > **_Important:_** The names should correspond to the ones used in the formula. The input parameter order will be the one used when calling the compiled operator.
 
-**Example:** We define the corresponding arguments of the previous [formula](rkeops_r_bindings_for_keops.html#formula), i.e. parameters or variables indexed by $i$ or $j$ with their corresponding inner dimensions:
+**Example:** We define the corresponding arguments of the previous [formula](#formula), i.e. parameters or variables indexed by $i$ or $j$ with their corresponding inner dimensions:
 ```{r args, eval=FALSE}
 args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
          "y = Vj(3)",      # vector indexed by j (of dim 3)
@@ -382,4 +382,10 @@ Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
 # corresponds to the inner dimension)
 res <- op(list(X,Y), inner_dim=0)
 ```
+
+### Compilation files and cleaning
+
+The compilation of new operators produces shared library (or share object `.so`) files stored in a `build` sub-directory of the package installation directory, to be reused and avoid recompilation of already defined operators.
+
+You can check where your compiled operators are stored by running `get_build_dir()`. To clean RKeOps install and remove all shared library files, you can run `clean_rkeops()`.
 

@@ -30,8 +30,9 @@ the computation of Kernel dot products and the associated gradients, even
 when the full kernel matrix does not fit into the GPU memory.
 
 For more information (installation, usage), please visit 
-<https://www.kernel-operations.io/> and read the [vignettes](rkeops/vignettes) 
-available in R with the command `browseVignettes("rkeops")`.
+<https://www.kernel-operations.io/> (especially the section dedicated to 
+RKeOps) and read the vignettes available in R with the command 
+`browseVignettes("rkeops")` or on the CRAN.
 
 # Installation
 

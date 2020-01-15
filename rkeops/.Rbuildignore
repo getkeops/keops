@@ -4,6 +4,7 @@
 .*\.so
 inst/build
 keops/build
+LICENSE.md
 prebuild.R
 rkeops_lazytensor_basic.R
 notes_dev.md

@@ -21,6 +21,8 @@
 #' @export
 compile_code <- function(formula, var_aliases, dllname, cmake_dir) {
     
+    if(!check_os() | !check_cmake(get_cmake())) return(NULL)
+    
     message(paste0('Compiling ', dllname, ' in ', cmake_dir, ':\n',
                    '       formula: ', formula, '\n', 
                    '       aliases: ', var_aliases, '\n', 
@@ -46,14 +48,16 @@ compile_code <- function(formula, var_aliases, dllname, cmake_dir) {
     # FIXME
     # cmake_cmd <- paste0(cmake_cmd,
     #                     " -DcommandLine='", shQuote(cmake_cmd), "'")
-    tmp <- system(cmake_cmd)
+    tmp <- system(cmake_cmd, ignore.stdout = !get_rkeops_option("verbosity"), 
+                  ignore.stderr = !get_rkeops_option("verbosity"))
     
     ## make
     if(tmp == 0) {
         make_cmd <- paste0("cmake", " --build .", 
                            " --target rkeops", shQuote(dllname), 
                             ifelse(get_rkeops_option("verbosity"), "-- VERBOSE=1", ""))
-        tmp <- system(make_cmd)
+        tmp <- system(make_cmd, ignore.stdout = !get_rkeops_option("verbosity"), 
+                      ignore.stderr = !get_rkeops_option("verbosity"))
     }
     
     return(tmp)
