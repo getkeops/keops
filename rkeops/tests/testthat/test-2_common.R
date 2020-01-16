@@ -7,8 +7,8 @@ test_that("get_cmake", {
                  "`path` input parameter should be a text string.")
     expect_error(get_cmake("/nopath/to/test"), 
                  "`path` input parameter should be a path to an existing directory.")
-    expect_warning(get_cmake("/bin"), 
-                   "`cmake` not found in path /bin")
+    expect_warning(get_cmake("/home"), 
+                   "`cmake` not found in path /home")
 })
 
 test_that("check_cmake", {
