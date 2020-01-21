@@ -28,7 +28,9 @@
 #' [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
 #' [rkeops::set_rkeops_option()]
 #' @examples
+#' \donttest{
 #' get_rkeops_options()
+#' }
 #' @export
 get_rkeops_options <- function(tag=NULL) {
     ## check rkeops global options
