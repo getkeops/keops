@@ -27,7 +27,7 @@
 #' @seealso [rkeops::get_rkeops_option()], [rkeops::compile_options()], 
 #' [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
 #' [rkeops::set_rkeops_option()]
-#' @examples 
+#' @examples
 #' get_rkeops_options()
 #' @export
 get_rkeops_options <- function(tag=NULL) {
@@ -77,9 +77,11 @@ get_rkeops_options <- function(tag=NULL) {
 #' @seealso [rkeops::get_rkeops_options()], [rkeops::compile_options()], 
 #' [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
 #' [rkeops::set_rkeops_option()]
-#' @examples 
+#' @examples
+#' \donttest{
 #' # to get the GPU id used for computations
 #' get_rkeops_option("device_id")
+#' }
 #' @export
 get_rkeops_option <- function(option) {
     possible_compile_options <- rkeops_option_names(tag = "compile")

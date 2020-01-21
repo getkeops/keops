@@ -23,7 +23,9 @@ Since R only manages float 64bits or double numbers, the input and output
 are casted to float 32bits before and after computations respectively.
 }
 \examples{
+\donttest{
 compile4float32()
+}
 }
 \seealso{
 \code{\link[rkeops:compile4float64]{rkeops::compile4float64()}}

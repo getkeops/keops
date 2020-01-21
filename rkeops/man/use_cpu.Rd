@@ -20,7 +20,9 @@ calling the function \code{use_gpu} is mandatory to run computations on GPU.
 To enable GPU computing, run \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}.
 }
 \examples{
+\donttest{
 use_cpu()
+}
 }
 \seealso{
 \code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},

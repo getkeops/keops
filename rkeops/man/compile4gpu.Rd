@@ -29,7 +29,9 @@ When a GPU-compatible operator is compiled, you should call
 operators can run on CPU.
 }
 \examples{
+\donttest{
 compile4gpu()
+}
 }
 \seealso{
 \code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}},
