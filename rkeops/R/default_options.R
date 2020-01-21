@@ -22,9 +22,7 @@
 #' [rkeops::set_rkeops_option()], [rkeops::compile4float32()], 
 #' [rkeops::compile4float64()], [rkeops::compile4cpu()], [rkeops::compile4gpu()]
 #' @examples
-#' \dontrun{
 #' default_compile_options()
-#' }
 #' @export
 default_compile_options <- function() {
     out <- compile_options()
@@ -125,14 +123,12 @@ default_compile_options <- function() {
 #' [rkeops::compile4float32()], [rkeops::compile4float64()], 
 #' [rkeops::compile4cpu()], [rkeops::compile4gpu()]
 #' @examples
-#' \dontrun{
 #' compile_options(
 #'     precision = 'float', verbosity = FALSE, 
 #'     use_cuda_if_possible = TRUE, 
 #'     col_major = TRUE, debug = FALSE, 
 #'     rkeops_dir = NULL, build_dir = NULL, 
 #'     src_dir = NULL)
-#' }
 #' @export
 compile_options <- function(precision = 'float', verbosity = FALSE, 
                             use_cuda_if_possible = TRUE, 
@@ -231,9 +227,7 @@ check_compile_options <- function(options) {
 #' @seealso [rkeops::runtime_options()], [rkeops::set_rkeops_options()], 
 #' [rkeops::set_rkeops_option()], [rkeops::use_cpu()], [rkeops::use_gpu()]
 #' @examples
-#' \dontrun{
 #' default_runtime_options()
-#' }
 #' @export
 default_runtime_options <- function() {
     out <- runtime_options()
@@ -290,10 +284,8 @@ default_runtime_options <- function() {
 #' @seealso [rkeops::default_runtime_options()], [rkeops::set_rkeops_options()],
 #' [rkeops::set_rkeops_option()], [rkeops::use_cpu()], [rkeops::use_gpu()]
 #' @examples
-#' \dontrun{
 #' runtime_options(tagCpuGpu = 0, tag1D2D = 0, 
 #'                 tagHostDevice=0, device_id = 0)
-#' }
 #' @export
 runtime_options <- function(tagCpuGpu = 0, tag1D2D = 0, tagHostDevice=0, 
                             device_id = 0) {

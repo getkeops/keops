@@ -1,4 +1,5 @@
 #' Compile a formula defining a new operator
+#' @keywords internal
 #' @description
 #' User-defined operators associated to a formula are compiled in shared object 
 #' files with this function.

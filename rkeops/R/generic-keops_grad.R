@@ -37,7 +37,7 @@
 #' @importFrom stringr str_match_all
 #' @seealso [rkeops::keops_kernel()]
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
 #' args <- c("x=Vi(0,3)", "y=Vj(1,3)")
 #' op <- keops_kernel(formula, args)

@@ -38,9 +38,7 @@
 #' [rkeops::default_runtime_options()], [rkeops::use_gpu()], 
 #' [rkeops::compile4gpu()], [rkeops::get_rkeops_options()]
 #' @examples 
-#' \dontrun{
 #' set_rkeops_options()
-#' }
 #' @export
 set_rkeops_options <- function(custom_compile_options = NULL, 
                                custom_runtime_options = NULL) {
@@ -120,12 +118,10 @@ set_rkeops_options <- function(custom_compile_options = NULL,
 #' [rkeops::runtime_options()],  [rkeops::use_gpu()], [rkeops::compile4gpu()], 
 #' [rkeops::get_rkeops_options()]
 #' @examples 
-#' \dontrun{
 #' # to enable GPU computing
 #' set_rkeops_option("tagCpuGpu", 1)
 #' # to set up the GPU id used for computations
 #' set_rkeops_option("device_id", 0)
-#' }
 #' @export
 set_rkeops_option <- function(option, value) {
     possible_compile_options <- rkeops_option_names(tag = "compile")

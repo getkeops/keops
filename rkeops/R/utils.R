@@ -13,7 +13,7 @@
 #' @return None
 #' @seealso [rkeops::compile_options()], [rkeops::set_rkeops_option()]
 #' @examples 
-#' \dontrun{
+#' \donttest{
 #' clean_rkeops()
 #' }
 #' @export
@@ -209,9 +209,7 @@ load_dll <- function(path, dllname, object, tag="_binder_", genred=FALSE) {
 #' @seealso [rkeops::compile4cpu()], [rkeops::compile4gpu()], 
 #' [rkeops::use_cpu()]
 #' @examples 
-#' \dontrun{
 #' use_gpu()
-#' }
 #' @export
 use_gpu <- function(device=0) {
     set_rkeops_option("device_id", as.integer(device))
@@ -232,9 +230,7 @@ use_gpu <- function(device=0) {
 #' @seealso [rkeops::compile4cpu()], [rkeops::compile4gpu()], 
 #' [rkeops::use_gpu()]
 #' @examples 
-#' \dontrun{
 #' use_cpu()
-#' }
 #' @export
 use_cpu <- function() {
     set_rkeops_option("tagCpuGpu", 0)
@@ -262,9 +258,7 @@ use_cpu <- function() {
 #' @return None
 #' @seealso [rkeops::compile4cpu()], [rkeops::use_gpu()], 
 #' @examples 
-#' \dontrun{
 #' compile4gpu()
-#' }
 #' @export
 compile4gpu <- function() {
     set_rkeops_option("use_cuda_if_possible", 1)
@@ -284,9 +278,7 @@ compile4gpu <- function() {
 #' @return None
 #' @seealso [rkeops::compile4gpu()], [rkeops::use_cpu()]
 #' @examples 
-#' \dontrun{
 #' compile4cpu()
-#' }
 #' @export
 compile4cpu <- function() {
     set_rkeops_option("use_cuda_if_possible", 0)
@@ -308,9 +300,7 @@ compile4cpu <- function() {
 #' @return None
 #' @seealso [rkeops::compile4float64()]
 #' @examples 
-#' \dontrun{
 #' compile4float32()
-#' }
 #' @export
 compile4float32 <- function() {
     set_rkeops_option("precision", "float")
@@ -334,9 +324,7 @@ compile4float32 <- function() {
 #' @return None
 #' @seealso [rkeops::compile4float32()]
 #' @examples 
-#' \dontrun{
 #' compile4float64()
-#' }
 #' @export
 compile4float64 <- function() {
     set_rkeops_option("precision", "double")
