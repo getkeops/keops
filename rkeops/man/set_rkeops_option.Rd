@@ -41,7 +41,7 @@ To know which values are allowed for which options, you can check
 # to enable GPU computing
 set_rkeops_option("tagCpuGpu", 1)
 # to set up the GPU id used for computations
-set_rkeops_option("device_id", 0)
+set_rkeops_option("device_id", 0L) # integer value
 }
 \seealso{
 \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},

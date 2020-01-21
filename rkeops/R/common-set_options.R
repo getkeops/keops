@@ -121,7 +121,7 @@ set_rkeops_options <- function(custom_compile_options = NULL,
 #' # to enable GPU computing
 #' set_rkeops_option("tagCpuGpu", 1)
 #' # to set up the GPU id used for computations
-#' set_rkeops_option("device_id", 0)
+#' set_rkeops_option("device_id", 0L) # integer value
 #' @export
 set_rkeops_option <- function(option, value) {
     possible_compile_options <- rkeops_option_names(tag = "compile")

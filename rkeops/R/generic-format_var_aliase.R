@@ -157,7 +157,8 @@ format_var_aliases <- function(args) {
 #' 
 #' @author Ghislain Durif
 #' @param formula text string, an operator formula (see Details).
-#' @param args vector of text string, formula arguments (see Details).
+#' @param args vector of text string, formula input arguments (see Details).
+#' @return a list with different information about formula input arguments:
 #' a list with different information about formula input arguments:
 #' \item{var_type}{vector of text string, corresponding type of formula 
 #' arguments (among `Vi`, `Vj`, `Pm`).}
