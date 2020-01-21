@@ -37,9 +37,7 @@ options, you can check \code{\link[rkeops:compile_options]{rkeops::compile_optio
 \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.
 }
 \examples{
-\dontrun{
 get_rkeops_options()
-}
 }
 \seealso{
 \code{\link[rkeops:get_rkeops_option]{rkeops::get_rkeops_option()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},

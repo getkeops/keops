@@ -6,6 +6,9 @@
 \usage{
 compile4float64()
 }
+\value{
+None
+}
 \description{
 Set up \code{rkeops} compile options to compile user-defined operators that use
 float 64bits precision in computation.
@@ -22,9 +25,7 @@ performance but worry about computation precision, you can use float 32bits
 precision and compensated sums that are implemented in KeOps.
 }
 \examples{
-\dontrun{
 compile4float64()
-}
 }
 \seealso{
 \code{\link[rkeops:compile4float32]{rkeops::compile4float32()}}

@@ -9,10 +9,12 @@ parse_extra_args(formula, args)
 \arguments{
 \item{formula}{text string, an operator formula (see Details).}
 
-\item{args}{vector of text string, formula arguments (see Details).}
-}
-\value{
-FIXME
+\item{args}{vector of text string, formula arguments (see Details).
+a list with different information about formula input arguments:
+\item{var_type}{vector of text string, corresponding type of formula
+arguments (among \code{Vi}, \code{Vj}, \code{Pm}).}
+\item{var_pos}{vector of integer, corresponding arguments positions.}
+\item{var_dim}{vector of integer, corresponding arguments dimensions.}}
 }
 \description{
 FIXME

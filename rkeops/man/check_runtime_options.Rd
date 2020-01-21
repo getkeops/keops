@@ -10,6 +10,9 @@ check_runtime_options(options)
 \item{options}{a list (of class \code{rkeops_runtime_options}) with the
 following \code{tagCpuGpu}, \code{tag1D2D}, \code{tagHostDevice}, \code{device_id}.}
 }
+\value{
+None
+}
 \description{
 The function \code{check_runtime_options} checks the validity of \code{rkeops} runtime
 options provided in input as a list.

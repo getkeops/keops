@@ -29,9 +29,7 @@ to enable some compilation options, see \code{\link[rkeops:compile4float32]{rkeo
 \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}.
 }
 \examples{
-\dontrun{
 default_compile_options()
-}
 }
 \seealso{
 \code{\link[rkeops:compile_options]{rkeops::compile_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},

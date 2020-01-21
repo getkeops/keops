@@ -6,6 +6,10 @@
 \usage{
 helloWorld()
 }
+\value{
+None
+}
 \description{
 dummy function to init package
 }
+\keyword{internal}

@@ -6,6 +6,9 @@
 \usage{
 clean_rkeops()
 }
+\value{
+None
+}
 \description{
 Remove all dll files generated from compilations of user-defined
 operators.
@@ -19,7 +22,7 @@ file is created.
 Calling \code{clean_rkeops()} allows you to empty the directory \code{build_dir}.
 }
 \examples{
-\dontrun{
+\donttest{
 clean_rkeops()
 }
 }

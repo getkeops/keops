@@ -6,6 +6,9 @@
 \usage{
 compile4cpu()
 }
+\value{
+None
+}
 \description{
 Set up \code{rkeops} compile options to compile user-defined operators that run
 be computed on CPU.
@@ -18,9 +21,7 @@ you do not modify \code{rkeops} options, you have to call the function
 CPU-compatible operators cannot run on GPU.
 }
 \examples{
-\dontrun{
 compile4cpu()
-}
 }
 \seealso{
 \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}, \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}

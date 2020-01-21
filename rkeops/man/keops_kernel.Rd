@@ -55,7 +55,7 @@ It is possible to compute partial derivatives of user defined operators
 with the function \code{\link[rkeops:keops_grad]{rkeops::keops_grad()}}.
 }
 \examples{
-\dontrun{
+\donttest{
 ## Example 1
 # Defining a function that computes for each j the sum over i
 # of the scalar products between `x_i` and `y_j` (both 3d vectors), 

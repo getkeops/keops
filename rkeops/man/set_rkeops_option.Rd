@@ -12,6 +12,9 @@ set_rkeops_option(option, value)
 
 \item{value}{whatever value to assign to the chosen option (see Details).}
 }
+\value{
+None
+}
 \description{
 The function \code{set_rkeops_option} allows to modify the value of a single
 specific \code{rkeops} options in \code{R} global options scope.
@@ -35,12 +38,10 @@ To know which values are allowed for which options, you can check
 \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.
 }
 \examples{
-\dontrun{
 # to enable GPU computing
 set_rkeops_option("tagCpuGpu", 1)
 # to set up the GPU id used for computations
 set_rkeops_option("device_id", 0)
-}
 }
 \seealso{
 \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},

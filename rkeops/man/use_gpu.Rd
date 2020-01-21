@@ -11,6 +11,9 @@ use_gpu(device = 0)
 is \code{0}. It is recommended to use default GPU and manage GPU assignment
 outside R by setting the environment variable \code{CUDA_VISIBLE_DEVICES}.}
 }
+\value{
+None
+}
 \description{
 Set up \code{rkeops} runtime options to use GPU computing when calling
 user-defined operators.
@@ -25,9 +28,7 @@ calling the function \code{use_gpu} is mandatory to run computations on GPU.
 To disable GPU computing, run \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}.
 }
 \examples{
-\dontrun{
 use_gpu()
-}
 }
 \seealso{
 \code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},

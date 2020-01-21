@@ -11,6 +11,9 @@ check_compile_options(options)
 following named elements \code{rkeops_dir}, \code{build_dir}, \code{src_dir}, \code{precision},
 \code{verbosity}, \code{use_cuda_if_possible}, \code{col_major} \code{debug}.}
 }
+\value{
+None
+}
 \description{
 The function \code{check_compile_options} checks the validity of \code{rkeops} compile
 options provided in input as a list.

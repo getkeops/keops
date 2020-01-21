@@ -118,14 +118,12 @@ see \code{\link[rkeops:compile4float32]{rkeops::compile4float32()}}, \code{\link
 \code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}.
 }
 \examples{
-\dontrun{
 compile_options(
     precision = 'float', verbosity = FALSE, 
     use_cuda_if_possible = TRUE, 
     col_major = TRUE, debug = FALSE, 
     rkeops_dir = NULL, build_dir = NULL, 
     src_dir = NULL)
-}
 }
 \seealso{
 \code{\link[rkeops:default_compile_options]{rkeops::default_compile_options()}},

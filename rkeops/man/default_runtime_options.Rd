@@ -29,9 +29,7 @@ Some wrappers are available to enable some compilation options,
 see \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}, \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}.
 }
 \examples{
-\dontrun{
 default_runtime_options()
-}
 }
 \seealso{
 \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},

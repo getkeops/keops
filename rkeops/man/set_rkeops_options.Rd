@@ -20,6 +20,9 @@ See \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} for a detail
 value is \code{NULL} and default runtime options are set up
 (see \code{\link[rkeops:default_runtime_options]{rkeops::default_runtime_options()}}).}
 }
+\value{
+None
+}
 \description{
 \code{rkeops} uses two sets of options: compile options (see
 \code{\link[rkeops:compile_options]{rkeops::compile_options()}}) and runtime options (see
@@ -47,9 +50,7 @@ returned by the functions \code{\link[rkeops:compile_options]{rkeops::compile_op
 specific attributes.
 }
 \examples{
-\dontrun{
 set_rkeops_options()
-}
 }
 \seealso{
 \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},

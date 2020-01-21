@@ -18,6 +18,9 @@ file.}
 \item{cmake_dir}{text string, directory where to find the \code{CMakeLists.txt}
 file.}
 }
+\value{
+an exit code (integer value), 0 if no problem, not 0 otherwise.
+}
 \description{
 The function \code{compile_code} is a wrapper to call cmake used in the function
 \code{\link[rkeops:compile_formula]{rkeops::compile_formula()}}.

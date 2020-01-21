@@ -15,7 +15,13 @@ variable/parameter (given by name or by position starting at 0) the
 gradient of the formula should be computed.}
 }
 \value{
-FIXME
+a function that can be used to compute the value of the formula
+on actual data. This function takes as input a list of data corresponding
+to the formula arguments and return the computed values (generally a
+vector or a matrix depending on the reduction). It has an additional integer
+input parameter \code{inner_dim} indicating if the inner dimension
+(c.f. \code{browseVignettes("rkeops")}) corresponds to columns, i.e.
+\code{inner_dim=1} (default), or rows, i.e. \code{inner_dim=0}, in the data.
 }
 \description{
 The function \code{keops_grad} defines a new operator that is a partial derivative
@@ -42,7 +48,7 @@ you can specify its name or its position starting as 0 with the input
 parameter \code{var}.
 }
 \examples{
-\dontrun{
+\donttest{
 formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
 args <- c("x=Vi(0,3)", "y=Vj(1,3)")
 op <- keops_kernel(formula, args)

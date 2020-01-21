@@ -6,6 +6,9 @@
 \usage{
 compile4float32()
 }
+\value{
+None
+}
 \description{
 Set up \code{rkeops} compile options to compile user-defined operators that use
 float 32bits precision in computation.
@@ -20,9 +23,7 @@ Since R only manages float 64bits or double numbers, the input and output
 are casted to float 32bits before and after computations respectively.
 }
 \examples{
-\dontrun{
 compile4float32()
-}
 }
 \seealso{
 \code{\link[rkeops:compile4float64]{rkeops::compile4float64()}}

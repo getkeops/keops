@@ -15,6 +15,9 @@ compile_formula(formula, var_aliases, dllname)
 \item{dllname}{text string, the name associated to the related shared object
 file.}
 }
+\value{
+0 if no problem
+}
 \description{
 User-defined operators associated to a formula are compiled in shared object
 files with this function.
@@ -32,3 +35,4 @@ Afterwards, it also verify that the compilation went smoothly.
 \author{
 Ghislain Durif
 }
+\keyword{internal}

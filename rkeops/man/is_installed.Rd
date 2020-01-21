@@ -6,6 +6,9 @@
 \usage{
 is_installed()
 }
+\value{
+1 if ok, 0 otherwise
+}
 \description{
 When running automatic tests without building and installing the package,
 i.e. with \code{devtools::test()}, the package file structure is different

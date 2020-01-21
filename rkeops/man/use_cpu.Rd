@@ -6,6 +6,9 @@
 \usage{
 use_cpu()
 }
+\value{
+None
+}
 \description{
 Set up \code{rkeops} runtime options to use CPU computing when calling
 user-defined operators.
@@ -17,9 +20,7 @@ calling the function \code{use_gpu} is mandatory to run computations on GPU.
 To enable GPU computing, run \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}.
 }
 \examples{
-\dontrun{
 use_cpu()
-}
 }
 \seealso{
 \code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},

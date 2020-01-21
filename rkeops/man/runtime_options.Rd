@@ -63,10 +63,8 @@ Some wrappers are available to enable some compilation options,
 see \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}, \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}.
 }
 \examples{
-\dontrun{
 runtime_options(tagCpuGpu = 0, tag1D2D = 0, 
                 tagHostDevice=0, device_id = 0)
-}
 }
 \seealso{
 \code{\link[rkeops:default_runtime_options]{rkeops::default_runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
