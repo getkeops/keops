@@ -13,6 +13,7 @@
 #' [rkeops::format_var_aliases()] (specifically `$var_aliases`).
 #' @param dllname text string, the name associated to the related shared object 
 #' file.
+#' @return 0 if no problem
 #' @author Ghislain Durif
 #' @seealso [rkeops::keops_kernel()], [rkeops::compile_code()]
 #' @export

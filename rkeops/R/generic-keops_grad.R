@@ -27,7 +27,13 @@
 #' @param var a text string or an integer number indicating regarding to which 
 #' variable/parameter (given by name or by position starting at 0) the 
 #' gradient of the formula should be computed.
-#' @return FIXME
+#' @return a function that can be used to compute the value of the formula 
+#' on actual data. This function takes as input a list of data corresponding 
+#' to the formula arguments and return the computed values (generally a 
+#' vector or a matrix depending on the reduction). It has an additional integer 
+#' input parameter `inner_dim` indicating if the inner dimension 
+#' (c.f. `browseVignettes("rkeops")`) corresponds to columns, i.e. 
+#' `inner_dim=1` (default), or rows, i.e. `inner_dim=0`, in the data.
 #' @importFrom stringr str_match_all
 #' @seealso [rkeops::keops_kernel()]
 #' @examples

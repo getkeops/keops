@@ -40,7 +40,7 @@
 #' vector or a matrix depending on the reduction). It has an additional integer 
 #' input parameter `inner_dim` indicating if the inner dimension 
 #' (c.f. `browseVignettes("rkeops")`) corresponds to columns, i.e. 
-#' `inner_dim=1` (default), or rows, i.e. `inner_dim=0`, in the data. 
+#' `inner_dim=1` (default), or rows, i.e. `inner_dim=0`, in the data.
 #' @importFrom stringr str_length
 #' @seealso [rkeops::keops_grad()]
 #' @examples

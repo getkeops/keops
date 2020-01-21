@@ -10,6 +10,7 @@
 #' 
 #' Calling `clean_rkeops()` allows you to empty the directory `build_dir`.
 #' @author Ghislain Durif
+#' @return None
 #' @seealso [rkeops::compile_options()], [rkeops::set_rkeops_option()]
 #' @examples 
 #' \dontrun{
@@ -43,6 +44,7 @@ clean_rkeops <- function() {
 #' associated operator.
 #' @param formula text string
 #' @param args vector of text string
+#' @return dll name (text string)
 #' @author Ghislain Durif
 #' @importFrom stringr str_to_lower
 #' @export
@@ -131,6 +133,7 @@ get_build_dir <- function(pkg = "rkeops", create = TRUE) {
 #' The function `is_installed` checks the availability of the compiled 
 #' function [rkeops::is_compiled()]. If available, it means that `rkeops` is 
 #' installed on the system.
+#' @return 1 if ok, 0 otherwise
 #' @author Ghislain Durif
 #' @seealso [rkeops::is_installed()]
 #' @export
@@ -202,6 +205,7 @@ load_dll <- function(path, dllname, object, tag="_binder_", genred=FALSE) {
 #' @param device integer, GPU device id to be used for computations. Default 
 #' is `0`. It is recommended to use default GPU and manage GPU assignment 
 #' outside R by setting the environment variable `CUDA_VISIBLE_DEVICES`.
+#' @return None
 #' @seealso [rkeops::compile4cpu()], [rkeops::compile4gpu()], 
 #' [rkeops::use_cpu()]
 #' @examples 
@@ -224,6 +228,7 @@ use_gpu <- function(device=0) {
 #' 
 #' To enable GPU computing, run [rkeops::use_gpu()].
 #' @author Ghislain Durif
+#' @return None
 #' @seealso [rkeops::compile4cpu()], [rkeops::compile4gpu()], 
 #' [rkeops::use_gpu()]
 #' @examples 
@@ -254,6 +259,7 @@ use_cpu <- function() {
 #' (difference between compilation and runtime options). GPU-compatible 
 #' operators can run on CPU.
 #' @author Ghislain Durif
+#' @return None
 #' @seealso [rkeops::compile4cpu()], [rkeops::use_gpu()], 
 #' @examples 
 #' \dontrun{
@@ -275,6 +281,7 @@ compile4gpu <- function() {
 #' 
 #' CPU-compatible operators cannot run on GPU.
 #' @author Ghislain Durif
+#' @return None
 #' @seealso [rkeops::compile4gpu()], [rkeops::use_cpu()]
 #' @examples 
 #' \dontrun{
@@ -298,6 +305,7 @@ compile4cpu <- function() {
 #' Since R only manages float 64bits or double numbers, the input and output 
 #' are casted to float 32bits before and after computations respectively.
 #' @author Ghislain Durif
+#' @return None
 #' @seealso [rkeops::compile4float64()]
 #' @examples 
 #' \dontrun{
@@ -323,6 +331,7 @@ compile4float32 <- function() {
 #' performance but worry about computation precision, you can use float 32bits 
 #' precision and compensated sums that are implemented in KeOps.
 #' @author Ghislain Durif
+#' @return None
 #' @seealso [rkeops::compile4float32()]
 #' @examples 
 #' \dontrun{

@@ -32,6 +32,7 @@
 #' See [rkeops::runtime_options()] for a detailled description. Default 
 #' value is `NULL` and default runtime options are set up 
 #' (see [rkeops::default_runtime_options()]).
+#' @return None
 #' @seealso [rkeops::set_rkeops_option()], [rkeops::compile_options()], 
 #' [rkeops::runtime_options()], [rkeops::default_compile_options()], 
 #' [rkeops::default_runtime_options()], [rkeops::use_gpu()], 
@@ -114,6 +115,7 @@ set_rkeops_options <- function(custom_compile_options = NULL,
 #' @author Ghislain Durif
 #' @param option string, name of the option to set up (see Details).
 #' @param value whatever value to assign to the chosen option (see Details).
+#' @return None
 #' @seealso [rkeops::set_rkeops_options()], [rkeops::compile_options()], 
 #' [rkeops::runtime_options()],  [rkeops::use_gpu()], [rkeops::compile4gpu()], 
 #' [rkeops::get_rkeops_options()]

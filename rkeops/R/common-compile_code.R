@@ -16,6 +16,7 @@
 #' file.
 #' @param cmake_dir text string, directory where to find the `CMakeLists.txt` 
 #' file.
+#' @return an exit code (integer value), 0 if no problem, not 0 otherwise.
 #' @seealso [rkeops::compile_formula()], [rkeops::format_var_aliases()]
 #' @author Ghislain Durif
 #' @export

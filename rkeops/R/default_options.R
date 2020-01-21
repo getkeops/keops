@@ -181,6 +181,7 @@ compile_options <- function(precision = 'float', verbosity = FALSE,
 #' @param options a list (of class `rkeops_compile_options`) with the 
 #' following named elements `rkeops_dir`, `build_dir`, `src_dir`, `precision`, 
 #' `verbosity`, `use_cuda_if_possible`, `col_major` `debug`.
+#' @return None
 #' @export
 check_compile_options <- function(options) {
     if(class(options) != "rkeops_compile_options")
@@ -315,6 +316,7 @@ runtime_options <- function(tagCpuGpu = 0, tag1D2D = 0, tagHostDevice=0,
 #' @author Ghislain Durif
 #' @param options a list (of class `rkeops_runtime_options`) with the 
 #' following `tagCpuGpu`, `tag1D2D`, `tagHostDevice`, `device_id`.
+#' @return None
 #' @export
 check_runtime_options <- function(options) {
     if(class(options) != "rkeops_runtime_options")

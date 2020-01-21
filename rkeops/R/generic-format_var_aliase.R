@@ -158,7 +158,11 @@ format_var_aliases <- function(args) {
 #' @author Ghislain Durif
 #' @param formula text string, an operator formula (see Details).
 #' @param args vector of text string, formula arguments (see Details).
-#' @return FIXME
+#' a list with different information about formula input arguments:
+#' \item{var_type}{vector of text string, corresponding type of formula 
+#' arguments (among `Vi`, `Vj`, `Pm`).}
+#' \item{var_pos}{vector of integer, corresponding arguments positions.}
+#' \item{var_dim}{vector of integer, corresponding arguments dimensions.}
 #' @importFrom stringr str_match_all str_replace
 #' @export
 parse_extra_args <- function(formula, args) {
