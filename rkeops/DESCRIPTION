@@ -10,7 +10,7 @@ Authors@R: c(
     person(given="Jean", family="Feydy", 
            comment="<https://www.math.ens.fr/~feydy/>", 
            role="aut"), 
-    person(given="Joan Alexis", family="Glaunès", 
+    person(given="Joan A.", family="Glaunès", 
            comment="<https://www.mi.parisdescartes.fr/~glaunes/>", 
            role="aut"), 
     person(given="Ghislain", family="Durif", 
@@ -19,7 +19,7 @@ Authors@R: c(
            role=c("aut", "cre")), 
     person(given="François-David", family="Collin", 
            comment="", 
-           role="ctb"))
+           role="aut"))
 Description: The KeOps library lets you compute generic reductions of very large arrays whose entries are given by a mathematical formula. It combines a tiled reduction scheme 
     with an automatic differentiation engine, and can be used through Matlab, NumPy or 
     PyTorch backends. It is perfectly suited to the computation of Kernel dot products 
