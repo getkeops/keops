@@ -45,6 +45,7 @@ def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
         # output is one array of size N x 2D, giving min and argmin value for each dimension. 
         # We convert to one array of floats of size NxD giving mins, and one array of size NxD giving argmins (casted to integers)
         shape_out = out.shape
+        print(shape_out)
         tmp = tools.view(out, shape_out[:-1] + (2, -1))
         vals = tmp[..., 0, :]
         indices = tmp[..., 1, :]

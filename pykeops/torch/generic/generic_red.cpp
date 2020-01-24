@@ -2,134 +2,98 @@
 // #include <torch/extension.h>
 // #include <pybind11/pybind11.h>
 
+// keops_binders import
+#include "keops/binders/include.h"
+
+// pykeops import
 #include "common/keops_io.h"
 
-namespace pykeops {
+namespace keops_binders {
 
 /////////////////////////////////////////////////////////////////////////////////
-//                             Utils
+//                  Template specialization (aTen Tensors)                     //
 /////////////////////////////////////////////////////////////////////////////////
+
+//Specialization of functions in keops/binders/checks.h
 
 template <>
 int get_ndim(at::Tensor obj_ptri) {
-    return obj_ptri.dim();
+  return obj_ptri.dim();
 }
 
 template <>
 int get_size(at::Tensor obj_ptri, int l) {
-    return obj_ptri.size(l);
+  return obj_ptri.size(l);
 }
 
 template <>
-__TYPE__* get_data(at::Tensor obj_ptri) {
-    return obj_ptri.data<__TYPE__>();
-}
-
-template <>
-__INDEX__* get_rangedata(at::Tensor obj_ptri) {
-    return obj_ptri.data<__INDEX__>();
+__TYPE__* get_data< at::Tensor, __TYPE__ >(at::Tensor obj_ptri) {
+  return obj_ptri.data_ptr< __TYPE__ >();
 }
 
 template <>
 bool is_contiguous(at::Tensor obj_ptri) {
-    return obj_ptri.is_contiguous();
+  return obj_ptri.is_contiguous();
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////
-//                    Call Cuda functions
-/////////////////////////////////////////////////////////////////////////////////
-
 #if USE_DOUBLE
-#define AT_TYPE at::kDouble
+  #define AT_TYPE at::kDouble
 #else
-#define AT_TYPE at::kFloat
+  #define AT_TYPE at::kFloat
 #endif
 
 template <>
-at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int Device_Id,
-                        int nx, int ny, int nbatchdims, int *shapes, int *shape_out,
-                        int tagRanges, int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **castedranges,
-                        __TYPE__ ** castedargs) {
+at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(int* shape_out, int nbatchdims) {
+  // ATen only accepts "long int arrays" to specify the shape of a new tensor:
+  int64_t shape_out_long[nbatchdims + 2];
+  std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
+  c10::ArrayRef < int64_t > shape_out_array(shape_out_long, (int64_t) nbatchdims + 2);
 
-    
-    // PyTorch only accepts "long int arrays" to specify the shape of a new tensor:
-    int64_t shape_out_long[nbatchdims+2];
-    std::copy(shape_out, shape_out + nbatchdims+2, shape_out_long);
-    c10::ArrayRef<int64_t> shape_out_array(shape_out_long, (int64_t) nbatchdims+2);
+  return torch::empty(shape_out_array, at::device(at::kCPU).dtype(AT_TYPE).requires_grad(true));
 
-
-    if(tagHostDevice == 0) { // Data is located on Host
-
-        auto result_array = torch::empty(shape_out_array, at::device(at::kCPU).dtype(AT_TYPE).requires_grad(true));
-
-        if (tagCpuGpu == 0) { // backend == "CPU"
-            if (tagRanges == 0) { // Full M-by-N computation
-                CpuReduc(nx, ny, get_data(result_array), castedargs);
-            } else if(tagRanges == 1) { // Block sparsity
-                CpuReduc_ranges(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs);
-            }
-            return result_array;
-        } else if(tagCpuGpu == 1) { // backend == "GPU", "GPU_1D", "GPU_2D"
-#if USE_CUDA
-            if (tagRanges == 0) { // Full M-by-N computation
-                if(tag1D2D == 0) // "GPU_1D"
-                    GpuReduc1D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
-                else if(tag1D2D == 1) // "GPU_2D"
-                    GpuReduc2D_FromHost(nx, ny, get_data(result_array), castedargs, Device_Id);
-            } else if (tagRanges == 1) {// Block sparsity
-                GpuReduc1D_ranges_FromHost(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, nredranges_x, nredranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
-            }
-            return result_array;
-#else
-            throw std::runtime_error(Error_msg_no_cuda);
-#endif
-        }
-    } else if(tagHostDevice == 1) { // Data is on the device
-#if USE_CUDA
-        //assert(Device_Id <std::numeric_limits<c10::DeviceIndex>::max());  // check that int will fit in a c10::DeviceIndex type
-        auto result_array = torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_TYPE).requires_grad(true));
-        if (tagRanges == 0) { // Full M-by-N computation
-            if(tag1D2D == 0) // "GPU_1D"
-                GpuReduc1D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
-            else if(tag1D2D == 1) // "GPU_2D"
-                GpuReduc2D_FromDevice(nx, ny, get_data(result_array), castedargs, Device_Id);
-        } else if (tagRanges == 1) {// Block sparsity
-            GpuReduc1D_ranges_FromDevice(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, get_data(result_array), castedargs, Device_Id);
-        }
-        return result_array;
-
-#else
-        throw std::runtime_error("[KeOps] This KeOps shared object has been compiled without cuda support: try to set tagHostDevice to 0 or recompile the formula with a working version of cuda.");
-#endif
-    }
-    throw std::runtime_error("[KeOps] MeoooOOOOoooOOOOOoow..."); // Data is either on Host or Device...
 }
 
 
+template <>
+at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(int* shape_out, int nbatchdims, short int Device_Id) {
+#if USE_CUDA
+  // ATen only accepts "long int arrays" to specify the shape of a new tensor:
+  int64_t shape_out_long[nbatchdims + 2];
+  std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
+  c10::ArrayRef < int64_t > shape_out_array(shape_out_long, (int64_t) nbatchdims + 2);
+
+  // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
+  return torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_TYPE).requires_grad(true));
+#else
+  keops_error(Error_msg_no_cuda);
+  throw std::runtime_error("Simply here to avoid a warning at compilation.");
+#endif
+}
+
+template <>
+__INDEX__ *get_rangedata(at::Tensor obj_ptri) {
+  return obj_ptri.data_ptr< __INDEX__ >();
+}
+
+void keops_error(std::basic_string< char > msg) {
+  throw std::runtime_error(msg);
+}
+
 /////////////////////////////////////////////////////////////////////////////////
-//                    PyBind11 entry point
+//                    PyBind11 entry point                                     //
 /////////////////////////////////////////////////////////////////////////////////
 
-
-// the following macro force the compiler to change MODULE_NAME to its value
-#define VALUE_OF(x) x
-
-#define xstr(s) str(s)
-#define str(s) #s
 
 PYBIND11_MODULE(VALUE_OF(MODULE_NAME), m) {
-    m.doc() = "keops for pytorch through pybind11"; // optional module docstring
+m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
 
-    m.def("genred_pytorch",
-          &generic_red<at::Tensor,at::Tensor>,
-          "Entry point to keops - pytorch version.");
+m.def("genred_pytorch", &generic_red <at::Tensor, at::Tensor>, "Entry point to keops - pytorch version.");
 
-    m.attr("tagIJ") = TAGIJ;
-    m.attr("dimout") = DIMOUT;
-    m.attr("formula") = f;
-    m.attr("compiled_formula") = xstr(FORMULA_OBJ_STR);
-    m.attr("compiled_aliases") = xstr(VAR_ALIASES_STR);
+m.attr("tagIJ") = keops::TAGIJ;
+m.attr("dimout") = keops::DIMOUT;
+m.attr("formula") = keops::f;
+m.attr("compiled_formula") = xstr(keops::FORMULA_OBJ_STR);
+m.attr("compiled_aliases") = xstr(keops::VAR_ALIASES_STR);
 }
 
 }

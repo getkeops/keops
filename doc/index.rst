@@ -108,7 +108,7 @@ Table of content
 
 .. toctree::
    :maxdepth: 2
-   :caption: PyKeops
+   :caption: PyKeOps
 
    python/index
    _auto_tutorials/index
@@ -118,7 +118,13 @@ Table of content
 
 .. toctree::
    :maxdepth: 2
-   :caption: KeopsLab
+   :caption: RKeOps
+
+   R/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: KeOpsLab
 
    matlab/index
 

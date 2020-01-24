@@ -84,7 +84,7 @@ start = time.time()
 cc  = torch.sum( ( x[:,None,:] - y[None,:,:] ) ** 2, 2)
 cc -= torch.max(cc,dim=1)[0][:,None] # subtract the max for robustness
 cc  = torch.exp(cc)@b / torch.sum(torch.exp(cc),dim=1)[:,None]
-print("Timing (Numpy implementation): ",round(time.time()-start,5),"s")
+print("Timing (PyTorch implementation): ", round(time.time()-start,5),"s")
 
 print("Relative error : ", (torch.norm(c - cc) / torch.norm(c)).item())
 

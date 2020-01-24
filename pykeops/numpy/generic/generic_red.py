@@ -1,7 +1,7 @@
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import LoadKEops
+from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
-from pykeops.common.parse_type import get_sizes, complete_aliases, parse_aliases
+from pykeops.common.parse_type import get_sizes, complete_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
@@ -48,7 +48,7 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None):
+                 formula2=None, cuda_type=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
         r"""
         Instantiate a new generic operation.
 
@@ -97,12 +97,28 @@ class Genred():
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
+            use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+                It improves the accuracy of results in case of large sized data, but is slower.
+           
+            use_BlockRed (bool or "auto", default "auto"): if True, use an intermediate accumulator in each block before accumulating 
+                in the output. This improves
+                accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". Default value "auto" will reset it to True for these reductions.
+
+            use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
+
+        optional_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op_internal)
         
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
@@ -111,7 +127,7 @@ class Genred():
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, aliases)
         self.dtype = dtype
-        self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy').import_module()
+        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
         self.axis = axis
         self.opt_arg = opt_arg
 
@@ -224,10 +240,10 @@ class Genred():
 
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
-        if ranges is None : ranges = () # To keep the same type
+        if ranges is None :
+            ranges = () # To keep the same type
 
-        (categories, dimensions) = parse_aliases(self.aliases)
-        out = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, categories, dimensions, *args)
+        out = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
 
         nx, ny = get_sizes(self.aliases, *args)
         nout = nx if self.axis==1 else ny

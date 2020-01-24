@@ -1,0 +1,14 @@
+Package: binder
+Type: Package
+Title: Pseudo package for rkeops binder
+Version: 1.0
+Date: 2019-08-20
+Author: Ghislain Durif
+Maintainer: Ghislain Durif <gd.dev@libertymail.net>
+Description: Pseudo-package for C++ code compiled at runtime. The package 
+    structure is required to use `Rcpp::compileAttributes()` routine 
+    and automaticly generate R/C++ interface for new user-defined operators.
+    This "package" is not installed, the compilation of the binding files is 
+    processed with cmake.
+Imports: Rcpp (>= 1.0.2), RcppEigen (>= 0.3.3.5)
+LinkingTo: Rcpp, RcppEigen

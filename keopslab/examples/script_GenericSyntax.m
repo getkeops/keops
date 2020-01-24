@@ -2,7 +2,7 @@
 % with Matlab bindings. Please read file generic_syntax.md at the root of
 % the library for explanations.
 
-path_to_lib = '..';
+path_to_lib = [fileparts(mfilename('fullpath')), filesep, '..'];
 addpath(genpath(path_to_lib))
 
 % defining the kernel operation

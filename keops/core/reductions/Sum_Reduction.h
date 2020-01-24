@@ -35,15 +35,17 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   template < typename TYPE >
   struct InitializeReduction {
     DEVICE INLINE void operator()(TYPE *tmp) {
+#pragma unroll
       for (int k = 0; k < DIM; k++)
         tmp[k] = 0.0f; // initialize output
     }
   };
 
   // equivalent of the += operation
-  template < typename TYPE >
+  template < typename TYPEACC, typename TYPE >
   struct ReducePairShort {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
+    DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, int j) {
+#pragma unroll
       for (int k = 0; k < DIM; k++) {
         tmp[k] += xi[k];
       }
@@ -51,20 +53,38 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   };
 
   // equivalent of the += operation
-  template < typename TYPE >
+  template < typename TYPEACC, typename TYPE >
   struct ReducePair {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi) {
+#pragma unroll
       for (int k = 0; k < DIM; k++) {
-        tmp[k] += xi[k];
+        acc[k] += xi[k];
       }
     }
   };
 
-  template < typename TYPE >
+  // Kahan scheme
+  template < typename TYPEACC, typename TYPE >
+  struct KahanScheme {
+    static const int DIMACC = DIM;
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPE *tmp) {
+#pragma unroll
+	for (int k=0; k<DIM; k++)
+        {
+		TYPEACC a = xi[k] - tmp[k];
+		TYPEACC b = acc[k] + a;
+		tmp[k] = (b - acc[k]) - a;
+		acc[k] = b;
+	}
+    }
+  };
+
+  template < typename TYPEACC, typename TYPE >
   struct FinalizeOutput {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+#pragma unroll
       for (int k = 0; k < DIM; k++)
-        out[k] = tmp[k];
+        out[k] = acc[k];
     }
   };
 

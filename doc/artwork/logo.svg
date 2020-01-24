@@ -16,7 +16,7 @@
    version="1.1"
    id="svg1845"
    sodipodi:docname="logo.svg"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
    inkscape:export-filename="/home/bcharlier/libkp/doc/_static/logo/logo.png"
    inkscape:export-xdpi="13.0048"
    inkscape:export-ydpi="13.0048">
@@ -158,9 +158,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.028284271"
-     inkscape:cx="4046.399"
-     inkscape:cy="-2117.8514"
+     inkscape:zoom="0.056568542"
+     inkscape:cx="-8813.1846"
+     inkscape:cy="-24986.006"
      inkscape:document-units="mm"
      inkscape:current-layer="layer2"
      showgrid="false"
@@ -181,7 +181,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -633,6 +633,70 @@
              id="path839-1-2-0-0-3-40"
              d="m -1292.3487,1452.1817 51.5768,-153.7535 202.4164,153.7535 z"
              style="display:inline;fill:#ffcc00;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2818673px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+        </g>
+      </g>
+    </g>
+    <g
+       id="g1015"
+       inkscape:export-filename="/home/bcharlier/libkp/doc/_static/logo/rkeops_logo.png"
+       inkscape:export-xdpi="9.4099998"
+       inkscape:export-ydpi="9.4099998">
+      <flowRoot
+         transform="matrix(5.4461567,0,0,5.4461567,8952.4216,-375.52081)"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:96px;line-height:125%;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, ';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         id="flowRoot850-53-7"
+         xml:space="preserve"><flowRegion
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:96px;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, '"
+           id="flowRegion852-32-5"><rect
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:96px;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, '"
+             y="825.47375"
+             x="-1922.4465"
+             height="142.51198"
+             width="395.43652"
+             id="rect854-5-3" /></flowRegion><flowPara
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Roboto Condensed';-inkscape-font-specification:'Roboto Condensed, '"
+           id="flowPara856-32-5">RKeOps</flowPara></flowRoot>      <g
+         transform="translate(7.0722776e-5)"
+         id="g1000">
+        <g
+           id="g1631-9-6"
+           transform="translate(40.40735,2987.6798)">
+          <path
+             inkscape:connector-curvature="0"
+             id="path837-8-2-2"
+             d="m 664.64878,1393.579 v 0 l -28.29022,84.3358 z m -111.02824,-84.337 -111.02753,-84.3358 -84.87133,253.0086 h 139.31771 z"
+             style="display:inline;fill:#3366cc;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+          <path
+             inkscape:connector-curvature="0"
+             id="path837-5-1-41-9"
+             d="m 664.64863,1562.2509 -28.29095,-84.3359 28.29021,84.3359 z M 553.6204,1646.5867 497.03925,1477.915 H 357.72154 l 84.87133,253.0076 z"
+             style="display:inline;fill:#2656a8;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+        </g>
+      </g>
+      <g
+         transform="translate(-3.1253215e-5)"
+         id="g995">
+        <g
+           id="g1951-1"
+           transform="translate(154.3482,706.25979)">
+          <g
+             transform="translate(-921.61977,2307.1525)"
+             id="g1582-1-2">
+            <path
+               style="display:inline;fill:#d4a900;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2818673px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m -1240.7719,1605.9355 -51.5768,-153.7538 h 253.9932 z"
+               id="path837-9-0-4-6-5-95-7"
+               inkscape:connector-curvature="0"
+               inkscape:transform-center-x="249.82155"
+               inkscape:transform-center-y="-57.798374" />
+            <path
+               style="display:inline;fill:#ffcc00;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.2818673px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m -1292.3487,1452.1817 51.5768,-153.7535 202.4164,153.7535 z"
+               id="path839-1-2-0-0-3-40-0"
+               inkscape:connector-curvature="0"
+               inkscape:transform-center-x="249.82155"
+               inkscape:transform-center-y="-211.55199" />
+          </g>
         </g>
       </g>
     </g>

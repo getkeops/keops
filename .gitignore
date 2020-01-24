@@ -46,3 +46,7 @@
 keopslab/generic/pathtocmake
 
 keopslab/common/pathtocmake
+
+# R/Rstudio related files
+.Rproj.user
+.Rhistory

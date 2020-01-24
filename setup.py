@@ -11,7 +11,7 @@ here = path.abspath(path.dirname(__file__))
 from pykeops import __version__ as current_version
 
 # Get the long description from the README file
-with open(path.join(here, 'pykeops','pykeops.md'), encoding='utf-8') as f:
+with open(path.join(here, 'pykeops','readme.md'), encoding='utf-8') as f:
   long_description = f.read()
 
 def import_files(dirname):
@@ -56,7 +56,8 @@ tao_seq_files = import_files('keops/lib/sequences/include/tao/seq/')
 
 setup(
     name='pykeops',
-    version=current_version,
+
+    version = current_version,
 
     description='Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows',  # Required
     long_description=long_description,
@@ -95,6 +96,7 @@ setup(
         'pykeops.numpy.convolutions',
         'pykeops.numpy.generic',
         'pykeops.numpy.shape_distance',
+        'pykeops.test',
         'pykeops.torch',
         'pykeops.torch.cluster',
         'pykeops.torch.generic',
@@ -103,7 +105,6 @@ setup(
 
     package_data={
         'pykeops': [
-            'pykeops.md',
             'readme.md',
             'licence.txt',
             'CMakeLists.txt',
@@ -119,7 +120,9 @@ setup(
             'keops/formula.h.in',
             'keops/headers.cmake',
             'keops/keops_includes.h',
+            'version',
             ] +
+            import_files('keops/binders/') +
             import_files('keops/core/autodiff/') +
             import_files('keops/core/pack/') +
             import_files('keops/core/formulas/') +

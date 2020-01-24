@@ -1,6 +1,6 @@
 %% example of Min, ArgMin, and Min-ArgMin reductions :
 
-path_to_lib = '..';
+path_to_lib = [fileparts(mfilename('fullpath')), filesep, '..'];
 addpath(genpath(path_to_lib))
 
 %% Min reduction of a gaussian kernel:

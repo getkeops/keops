@@ -302,7 +302,23 @@ class LazyTensor:
         
         if self.formula2 == "": self.formula2 = None  # The pre-processing step is now over
         self.variables = newvars
-    
+
+    def separate_kwargs(self, kwargs):    
+        # separating keyword arguments for Genred init vs Genred call...
+        # Currently the only three additional optional keyword arguments that are passed to Genred init
+        # are accuracy options: use_double_acc, use_BlockRed, use_Kahan. Since they all start 
+        # by "use_", we use this to distinguish...
+        kwargs_init = []
+        kwargs_call = []
+        for key in kwargs:
+            if len(key)>3 and key[:4]=="use_":
+                kwargs_init += [(key,kwargs[key])]
+            else:
+                kwargs_call += [(key,kwargs[key])]                
+        kwargs_init = dict(kwargs_init)
+        kwargs_call = dict(kwargs_call)
+        return kwargs_init, kwargs_call
+
     def promote(self, other, props):
         r"""
         Creates a new :class:`LazyTensor` whose **None** properties are set to those of **self** or **other**.
@@ -487,6 +503,16 @@ class LazyTensor:
             If **None** (default), we simply use a **dense Kernel matrix**
             as we loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+          use_double_acc (bool, default False): accumulate results of reduction in float64 variables, before casting to float32. 
+             This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+             It improves the accuracy of results in case of large sized data, but is slower.          
+          use_BlockRed (bool, default False): use an intermediate accumulator in each block before accumulating in the output. This improves
+             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+          use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
+             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
         """
         
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
@@ -505,14 +531,17 @@ class LazyTensor:
         res.reduction_op = reduction_op
         res.axis = axis - self.nbatchdims
         res.opt_arg = opt_arg
-        res.kwargs = kwargs
+
+        kwargs_init, kwargs_call = self.separate_kwargs(kwargs)
+
+        res.kwargs = kwargs_call
         res.ndim = self.ndim
         
         if res.dtype is not None:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
             # "res" now becomes a callable object:
             res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis,
-                                     res.dtype, res.opt_arg, res.formula2)
+                                     res.dtype, res.opt_arg, res.formula2, **kwargs_init)
         
         if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
             return res()
@@ -554,6 +583,16 @@ class LazyTensor:
             If **None** (default), we simply use a **dense Kernel matrix**
             as we loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+          use_double_acc (bool, default False): accumulate results of reductions in float64 variables, before casting to float32. 
+             This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+             It improves the accuracy of results in case of large sized data, but is slower.          
+          use_BlockRed (bool, default False): use an intermediate accumulator in each block before accumulating in the output. This improves
+             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+          use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
+             accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
+             "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
 
         .. warning::
             Please note that **no check** of symmetry and definiteness will be
@@ -592,13 +631,15 @@ class LazyTensor:
         res.varformula = var.formula.replace("VarSymb", "Var")
         res.other = other
         res.axis = axis
-        res.kwargs = kwargs
+
+        kwargs_init, res.kwargs = self.separate_kwargs(kwargs)
+
         res.ndim = self.ndim
         
         if res.dtype is not None:
             res.fixvariables()
             res.callfun = res.KernelSolve(res.formula, [], res.varformula,
-                                          res.axis, res.dtype)
+                                          res.axis, res.dtype, **kwargs_init)
         
         # we call if call=True, if other is not symbolic, and if the dtype is set
         if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
@@ -610,6 +651,9 @@ class LazyTensor:
         r"""
         Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` call on the input data, as specified by **self.formula** .
         """
+        if not hasattr(self,"reduction_op"):
+            raise ValueError("A LazyTensor object may be called only if it corresponds to the ouput of a reduction operation or solve operation.")
+
         self.kwargs.update(kwargs)
         
         if self.ranges is not None and "ranges" not in self.kwargs:
@@ -632,12 +676,15 @@ class LazyTensor:
             
             self.dtype = self.tools.dtypename(self.tools.dtype(args[0]))
             self.fixvariables()
+            
+            kwargs_init, self.kwargs = self.separate_kwargs(self.kwargs)
+
             if self.reduction_op == "Solve":
                 self.callfun = self.KernelSolve(self.formula, [], self.formula2,
-                                                self.axis, self.dtype)
+                                                self.axis, self.dtype, **kwargs_init)
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op,
-                                           self.axis, self.dtype, self.opt_arg, self.formula2)
+                                           self.axis, self.dtype, self.opt_arg, self.formula2, **kwargs_init)
         
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
             # here args should be empty, according to our rule
@@ -884,6 +931,15 @@ class LazyTensor:
         the element-wise logarithm of ``x``.
         """
         return self.unary("Log")
+    
+    def xlogx(self):
+        r"""
+        Element-wise x*log(x) function - a unary operation.
+        
+        ``x.xlogx()`` returns a :class:`LazyTensor` that encodes, symbolically, 
+        the element-wise ``x`` times logarithm of ``x`` (with value 0 at 0).
+        """
+        return self.unary("XLogX")
     
     def cos(self):
         r"""
@@ -1660,31 +1716,9 @@ class LazyTensor:
         else:
             newdims = v.shape[:-2] + (1,) + v.shape[-2:]
 
-        v_ = self.tools.view( v, newdims )
-        
-        if pykeops.gpu_available and v_.shape[-1] > 80 :
-            # custom method when last dim of v is large
-            # we have :
-            # K._shape = (batchdimsK,M,N,1)
-            # v_.shape = (batchdimsv,1,N,Nv)        
-            # we expand v_ to get same shape as K :
-            v_ = self.tools.view(v_,[1]*(len(self._shape)-len(v_.shape))+list(v_.shape)) # (1,..,1,batchdimsv,1,N,Nv)
-            # (NB if K has less batch dims than v it does nothing)
-            # now we shift the Nv dim from last to first position
-            v_ = self.tools.permute(v_,[len(v_.shape)-1]+list(range(0,len(v_.shape)-1))) # (Nv,1,..,1,batchdimsv,1,N)
-            v_ = self.tools.contiguous(v_)
-            # we add a dummy dimension at the end (maybe not necessary ?)
-            v_ = self.tools.view(v_,list(v_.shape)+[1]) # (Nv,1,..,1,batchdimsv,1,N,1)
-            v_ = LazyTensor(v_)
-            Kv = (self*v_).sum(dim=len(v_._shape)-2) # (Nv,outbatchdims,M,1)
-            Kv = self.tools.permute(Kv,list(range(1,len(Kv.shape)))+[0]) # (outbatchdims,M,1,Nv)
-            Kv = self.tools.contiguous(Kv)
-            Kv = self.tools.view(Kv,list(Kv.shape[:-2])+[Kv.shape[-1]]) # (outbatchdims,M,Nv)
-        else :
-            # otherwise, direct KeOps operation
-            v_ = LazyTensor(v_)
-            Kv = (self * v_ )            # Supports broadcasting
-            Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
+        v_ = LazyTensor(self.tools.view( v, newdims ))
+        Kv = (self * v_ )            # Supports broadcasting
+        Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
 
         # Expected behavior: if v is a vector, so should K @ v.
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
