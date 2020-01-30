@@ -21,7 +21,6 @@ class Monitor(Thread):
     def stop(self):
         self.stopped = True
 
-
 backend = "torch"  # "torch" or "numpy", but only "torch" works for now
 device_id = 0
 if backend == "torch":
@@ -40,6 +39,7 @@ def K(x,y,b,**kwargs):
     D_ij = ((x_i - y_j)**2).sum(axis=2)  
     K_ij = (- D_ij).exp() * b_j             
     K_ij = K_ij.sum(axis=1,call=False,**kwargs)
+    print(K_ij)
     return K_ij
 
 M, N, D = 1000, 100000, 3
@@ -67,20 +67,19 @@ else:
     bh = b.astype(np.float16)
 
 Ntest_half, Ntest_float, Ntest_double = 10, 10, 10
-monitor = Monitor(1e-6)
+# monitor = Monitor(1e-6)
 # computation using float32
 K_keops32 = K(xf,yf,bf)
 res_float = K_keops32()
-print("comp float, time : ",timeit.timeit("K_keops32()",number=Ntest_float,setup="from __main__ import K_keops32")/Ntest_float)
-monitor.stop()
+print("comp float, time : ",timeit.timeit("K_keops32()",number=Ntest_float,setup="from __main__ import K_keops32"))
+# monitor.stop()
 
-print('----')
 # computation using float64
-monitor = Monitor(1e-6)
+# monitor = Monitor(1e-6)
 K_keops64 = K(x,y,b)
 res_double = K_keops64()
-print("comp double, time : ",timeit.timeit("K_keops64()",number=Ntest_double,setup="from __main__ import K_keops64")/Ntest_double)
-monitor.stop()
+print("comp double, time : ",timeit.timeit("K_keops64()",number=Ntest_double,setup="from __main__ import K_keops64"))
+# monitor.stop()
 if backend == "torch":
     print("relative mean error float / double : ",(res_float.double()-res_double).abs().mean()/res_double.abs().mean())
     print("relative max error float / double : ",(res_float.double()-res_double).abs().max()/res_double.abs().mean())
@@ -89,11 +88,11 @@ else:
     print("relative max error float / double : ",np.max(np.abs(res_float.astype(np.float64)-res_double))/np.mean(np.abs(res_double)))
 
 # computation using float16
-monitor = Monitor(1e-6)
+# monitor = Monitor(1e-6)
 K_keops16 = K(xh,yh,bh)
 res_half = K_keops16()
-print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="from __main__ import K_keops16")/Ntest_half)
-monitor.stop()
+print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="from __main__ import K_keops16"))
+# monitor.stop()
 
 if backend == "torch":
     print("relative mean error half / double : ",(res_half.double()-res_double).abs().mean()/res_double.abs().mean())
