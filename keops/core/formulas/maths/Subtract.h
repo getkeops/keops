@@ -41,7 +41,7 @@ struct Subtract_Impl : BinaryOp< Subtract_Impl, FA, FB > {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
 #if USE_HALF && GPU_ON
-      out[k] = __hsub(outA[k],outB[k]);
+      out[k] = __hsub2(outA[k],outB[k]);
 #else
       out[k] = outA[k] - outB[k];
 #endif
@@ -66,7 +66,7 @@ struct Subtract_Impl_Broadcast : BinaryOp< Subtract_Impl_Broadcast, FA, FB > {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
 #if USE_HALF && GPU_ON
-      out[k] = __hsub(*outA,outB[k]);
+      out[k] = __hsub2(*outA,outB[k]);
 #else
       out[k] = *outA - outB[k];
 #endif

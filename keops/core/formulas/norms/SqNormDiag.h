@@ -29,7 +29,7 @@ struct SqNormDiag : BinaryOp<SqNormDiag,FS,FA> {
 #pragma unroll
     for(int k=0; k<DIMIN; k++)
 #if USE_HALF && GPU_ON
-      *out = __hfma(*out, outS[k], __hmul(outA[k], outA[k]));
+      *out = __hfma2(*out, outS[k], __hmul2(outA[k], outA[k]));
 #elif USE_HALF
       *out = *out + outS[k]*outA[k]*outA[k];
 #else

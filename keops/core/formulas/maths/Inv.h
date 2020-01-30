@@ -35,7 +35,7 @@ struct Inv : UnaryOp<Inv, F> {
 #if USE_DOUBLE
       out[k] = 1 / outF[k];           // there is no fast divide for cuda and double
 #elif USE_HALF
-      out[k] = hrcp(outF[k]);
+      out[k] = h2rcp(outF[k]);
 #else
       out[k] = fdividef(1.0, outF[k]);
 #endif

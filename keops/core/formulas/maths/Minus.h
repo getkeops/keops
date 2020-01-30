@@ -26,7 +26,7 @@ struct Minus : UnaryOp<Minus, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
 #if USE_HALF && GPU_ON
-      out[k] = __hneg(outF[k]);
+      out[k] = __hneg2(outF[k]);
 #else
       out[k] = -outF[k];
 #endif

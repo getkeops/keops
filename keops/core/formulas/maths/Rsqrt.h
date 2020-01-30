@@ -34,7 +34,7 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
 #if USE_HALF && GPU_ON
-      if heq(outF[k],0) {
+      if heq2(outF[k],0) {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
       }
 #elif USE_HALF
@@ -51,7 +51,7 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
 #if USE_DOUBLE
         out[k] = rsqrt(outF[k]);
 #elif USE_HALF
-        out[k] = hrsqrt(outF[k]);
+        out[k] = h2rsqrt(outF[k]);
 #else
         out[k] = rsqrtf(outF[k]);
 #endif

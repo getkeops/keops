@@ -27,9 +27,9 @@ struct Sign : UnaryOp<Sign, F> {
 #if USE_HALF && GPU_ON
 #pragma unroll
     for (int k = 0; k < DIM; k++)
-      if hgt(outF[k],0)
+      if hgt2(outF[k],0)
         out[k] = 1.0;
-      else if hlt(outF[k],0)
+      else if hlt2(outF[k],0)
         out[k] = -1.0;
       else
         out[k] = 0.0;

@@ -36,7 +36,7 @@ struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
 #if USE_HALF && GPU_ON
-      out[k] = __hmul(outA[k],outB[k]);
+      out[k] = __hmul2(outA[k],outB[k]);
 #else
       out[k] = outA[k] * outB[k];
 #endif

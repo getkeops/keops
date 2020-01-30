@@ -31,7 +31,7 @@ struct TensorProd : BinaryOp<TensorProd, A, B> {
 #pragma unroll
             for (int l = 0; l < B::DIM; l++, q++)
 #if USE_HALF && GPU_ON
-                out[q] = __hmul(inA[k],inB[l]);
+                out[q] = __hmul2(inA[k],inB[l]);
 #else
                 out[q] = inA[k] * inB[l];
 #endif
@@ -45,7 +45,7 @@ struct TensorProd : BinaryOp<TensorProd, A, B> {
 #pragma unroll
       for (int j = 0; j < B::DIM; j++, q++)
 #if USE_HALF && GPU_ON
-        out[A::DIM * j + i] = __hmul(inA[i],inB[j]);
+        out[A::DIM * j + i] = __hmul2(inA[i],inB[j]);
 #else
         out[A::DIM * j + i] = inA[i] * inB[j];
 #endif

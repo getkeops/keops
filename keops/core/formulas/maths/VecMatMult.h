@@ -41,7 +41,7 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 #pragma unroll
             for (int k = 0; k < B::DIM; k++)
 #if USE_HALF && GPU_ON
-                out[i] = __hfma(out[i], inB[k], inA[DIM * k + i]);
+                out[i] = __hfma2(out[i], inB[k], inA[DIM * k + i]);
 #elif USE_HALF
                 out[i] = out[i] + inB[k] * inA[DIM * k + i];
 #else
@@ -58,7 +58,7 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 #pragma unroll
       for (int k = 0; k < B::DIM; k++, q++)
 #if USE_HALF && GPU_ON
-        out[i] = __hfma(out[i], inB[k], inA[q]);
+        out[i] = __hfma2(out[i], inB[k], inA[q]);
 #elif USE_HALF
         out[i] = out[i] + inB[k] * inA[q];
 #else
