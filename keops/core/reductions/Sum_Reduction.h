@@ -82,9 +82,24 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   template < typename TYPEACC, typename TYPE >
   struct FinalizeOutput {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+#if USE_HALF && GPU_ON
+	if ((FIRST % 2)==0) {
+		for(int k=0, int l=0; k<DIM/2; k++, l+=2) {
+			out[k] = lows2half2(acc[l],acc[l+1]);
+			out[k+DIM/2] = highs2half2(acc[l],acc[l+1]);
+		}
+	}
+	else {
+		for(int k=0, int l=0; k<DIM/2; k++, l+=2) {
+			out[k] = lows2half2(acc[l],acc[l+1]);
+			out[k+DIM/2+1] = highs2half2(acc[l+1],acc[l+2]);
+		}
+	}
+#else
 #pragma unroll
       for (int k = 0; k < DIM; k++)
         out[k] = acc[k];
+#endif
     }
   };
 
