@@ -8,7 +8,8 @@ Kernel Operations on the GPU, with autodiff, without memory overflows
 The KeOps library lets you compute generic reductions of **very large arrays** 
 whose entries are given by a mathematical formula. 
 It combines a **tiled reduction scheme** with an **automatic differentiation** 
-engine, and can be used through **Matlab**, **NumPy** or **PyTorch** backends.
+engine, and can be used through **Matlab**, **Python** (NumPy or PyTorch) or 
+**R** backends.
 It is perfectly suited to the computation of **Kernel dot products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
@@ -87,7 +88,7 @@ Feel free to contact us for any bug report or feature request:
 - `Benjamin Charlier <http://imag.umontpellier.fr/~charlier/>`_
 - `Jean Feydy <http://www.math.ens.fr/~feydy/>`_
 - `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_
-
+- `Ghislain Durif <https://gdurif.perso.math.cnrs.fr/>`_
 
 Table of content
 ----------------
