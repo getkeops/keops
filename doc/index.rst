@@ -14,6 +14,8 @@ It is perfectly suited to the computation of **Kernel dot products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
 
+The project is hosted on `GitHub <https://github.com/getkeops/keops>`_.
+
 Using the **PyTorch backend**, a typical sample of code looks like:
 
 .. code-block:: python
