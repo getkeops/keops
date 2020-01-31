@@ -27,7 +27,7 @@ struct Log : UnaryOp<Log, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
 #if USE_HALF && GPU_ON
-      out[k] = hlog(outF[k]);
+      out[k] = h2log(outF[k]);
 #elif USE_DOUBLE
       out[k] = log(outF[k]);
 #else

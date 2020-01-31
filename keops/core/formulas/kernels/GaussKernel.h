@@ -90,7 +90,7 @@ struct GaussKernel_specific {
     for(int k=0; k<DIMPOINT; k++) {
       temp =  yj[k]-xi[k];
 #if USE_HALF && GPU_ON
-      r2 = __hfma(r2, temp, temp);
+      r2 = __hfma2(r2, temp, temp);
 #elif USE_HALF
       r2 = r2 + temp*temp;
 #else
@@ -98,7 +98,7 @@ struct GaussKernel_specific {
 #endif
     }
 #if USE_HALF && GPU_ON
-    __TYPE__ s = hexp(__hneg(__hmul(r2,params[0])));
+    __TYPE__ s = h2exp(_hneg2(__hmul2(r2,params[0])));
 #elif USE_HALF
     __TYPE__ s = exp((float)(-r2*params[0]));
 #else
@@ -206,8 +206,8 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 #pragma unroll
     for(int k=0; k<DIMPOINT; k++) {                 // Compute the L2 squared distance r2 = | x_i-y_j |_2^2
 #if USE_HALF && GPU_ON
-      xmy[k] =  __hsub(xi[k], yj[k]);
-      r2 = __hfma(r2, xmy[k], xmy[k]);
+      xmy[k] =  __hsub2(xi[k], yj[k]);
+      r2 = __hfma2(r2, xmy[k], xmy[k]);
 #else
       xmy[k] =  xi[k]-yj[k];
       r2 += xmy[k]*xmy[k];
@@ -217,7 +217,7 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
     for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
 #if USE_HALF && GPU_ON
       sga = hfma(sga, betaj[k], etai[k]);
-    __TYPE__ s = __hneg(__hmul(__hmul(2.0,sga), hexp(__hneg(__hmul(r2,params[0])))));  // Don't forget the 2 !
+    __TYPE__ s = _hneg2(__hmul2(__hmul2(2.0,sga), h2exp(_hneg2(__hmul2(r2,params[0])))));  // Don't forget the 2 !
 #elif USE_HALF
       sga = sga + betaj[k]*etai[k];
     __TYPE__ s = - 2.0 * (float)sga * exp((float)(-r2*params[0]));  // Don't forget the 2 !
@@ -228,7 +228,7 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 #pragma unroll
     for(int k=0; k<DIMPOINT; k++)                   // Increment the output vector gammai - which is a POINT
 #if USE_HALF && GPU_ON
-      gammai[k] = __hmul(s, xmy[k]);
+      gammai[k] = __hmul2(s, xmy[k]);
 #else
       gammai[k] = s * xmy[k];
 #endif

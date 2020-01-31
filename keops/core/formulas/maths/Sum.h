@@ -31,7 +31,7 @@ struct Sum : UnaryOp<Sum, F> {
 #pragma unroll
     for (int k = 0; k < F::DIM; k++)
 #if GPU_ON
-      *out = __hadd(*out,outF[k]);
+      *out = __hadd2(*out,outF[k]);
 #else
       *out = *out + outF[k];
 #endif

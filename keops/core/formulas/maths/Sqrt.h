@@ -34,7 +34,7 @@ struct Sqrt_Impl : UnaryOp<Sqrt_Impl, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
 #if USE_HALF && GPU_ON
-      out[k] = hsqrt(outF[k]);
+      out[k] = h2rsqrt(outF[k]);
 #elif USE_DOUBLE
       out[k] = sqrt(outF[k]);
 #else

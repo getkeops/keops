@@ -29,7 +29,7 @@ struct Exp : UnaryOp<Exp, F> {
 #if USE_DOUBLE
       out[k] = exp(outF[k]);
 #elif USE_HALF && GPU_ON
-      out[k] = hexp(outF[k]);
+      out[k] = h2exp(outF[k]);
 #else
       out[k] = expf(outF[k]);
 #endif

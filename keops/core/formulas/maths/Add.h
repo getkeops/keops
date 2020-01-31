@@ -48,7 +48,7 @@ struct Add_Impl : BinaryOp< Add_Impl, FA, FB > {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
 #if USE_HALF && GPU_ON
-      out[k] = __hadd(outA[k],outB[k]);
+      out[k] = __hadd2(outA[k],outB[k]);
 #else
       out[k] = outA[k] + outB[k];
 #endif
@@ -74,7 +74,7 @@ struct Add_Impl_Broadcast : BinaryOp< Add_Impl_Broadcast, FA, FB > {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
 #if USE_HALF && GPU_ON
-      out[k] = __hadd(*outA,outB[k]);
+      out[k] = __hadd2(*outA,outB[k]);
 #else
       out[k] = *outA + outB[k];
 #endif

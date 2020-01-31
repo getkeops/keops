@@ -26,7 +26,7 @@ struct ReLU : UnaryOp<ReLU, F> {
 #if USE_HALF && GPU_ON
 #pragma unroll
     for (int k = 0; k < DIM; k++)
-      if hlt(outF[k],0)
+      if hlt2(outF[k],0)
         out[k] = 0.0;
       else
         out[k] = outF[k];

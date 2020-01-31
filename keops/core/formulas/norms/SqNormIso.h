@@ -34,8 +34,8 @@ struct SqNormIso : BinaryOp<SqNormIso, FS, FA> {
 #pragma unroll
     for (int k = 0; k < DIMIN; k++)
 #if USE_HALF && GPU_ON
-      *out = __hfma(*out, outA[k], outA[k]);
-    *out = __hmul(*out, *outS);
+      *out = __hfma2(*out, outA[k], outA[k]);
+    *out = __hmul2(*out, *outS);
 #elif USE_HALF
       *out = *out + outA[k] * outA[k];
     *out = *out * *outS;

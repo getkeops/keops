@@ -30,7 +30,7 @@ struct Sin : UnaryOp<Sin, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
 #if USE_HALF && GPU_ON
-      out[k] = hsin(outF[k]);
+      out[k] = h2sin(outF[k]);
 #elif USE_DOUBLE
       out[k] = sin(outF[k]);
 #else

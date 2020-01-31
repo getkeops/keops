@@ -30,7 +30,7 @@ struct Pow : UnaryOp<Pow, F, M> {
 // apparently there is no power operator for half type...
 #pragma unroll
     for (int k = 0; k < DIM; k++)
-        out[k] = hexp(__hmul((half)N,hlog(outF[k])));
+        out[k] = h2exp(__hmul2((half)N,h2log(outF[k])));
 #elif USE_HALF
 #pragma unroll
     for (int k = 0; k < DIM; k++)

@@ -34,7 +34,7 @@ struct Cos : UnaryOp<Cos, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
 #if USE_HALF && GPU_ON
-      out[k] = hcos(outF[k]);
+      out[k] = h2cos(outF[k]);
 #elif USE_DOUBLE
       out[k] = cos(outF[k]);
 #else
