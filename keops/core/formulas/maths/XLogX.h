@@ -33,10 +33,7 @@ struct XLogX : UnaryOp<XLogX, F> {
 #elif USE_HALF && GPU_ON
       out[k] = outF[k] ? outF[k]*h2log(outF[k]) : 0.0;
 #elif USE_HALF
-      if (outF[k]==(half)0.0)
-            out[k] = (half)0.0;
-      else
-            outF[k]*(half)logf((half)outF[k]);
+// this should never happen...
 #else
       out[k] = outF[k] ? outF[k]*logf(outF[k]) : 0.0;
 #endif

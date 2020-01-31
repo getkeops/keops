@@ -145,24 +145,24 @@ struct pack<N, NS...> {
 #if USE_HALF && GPU_ON
 	// special loading scheme for half2 format. 
 	if ((FIRST % 2)==0) {
-      for (int k = 0, int l = 0; k < FIRST/2; k++, l+=2) {
+      for (int k = 0, l = 0; k < FIRST/2; k++, l+=2) {
         assert(&((*px)[i * FIRST + k]) != nullptr);
-	    xi[l] = lows2half2((*px)[i * FIRST + k], (*px)[i * FIRST + FIRST/2 + k]);
-	    xi[l+1] = highs2half2((*px)[i * FIRST + k], (*px)[i * FIRST + FIRST/2 + k]);
+	    xi[l] = __lows2half2((*px)[i * FIRST + k], (*px)[i * FIRST + FIRST/2 + k]);
+	    xi[l+1] = __highs2half2((*px)[i * FIRST + k], (*px)[i * FIRST + FIRST/2 + k]);
 	  }
 	}
 	else {
-      for (int k = 0, int l = 0; k < FIRST/2; k++, l+=2) {
+      for (int k = 0, l = 0; k < FIRST/2; k++, l+=2) {
           assert(&((*px)[i * FIRST + k]) != nullptr);
 		  half2 tmp;
-		  tmp = high2half2((*px)[i * FIRST + FIRST/2 + k]);
-  	      xi[l] = lows2half2((*px)[i * FIRST + k], tmp);
-		  tmp = low2half2((*px)[i * FIRST + FIRST/2 + k + 1]);
-  	      xi[l+1] = highs2half2((*px)[i * FIRST + k], tmp);
+		  tmp = __high2half2((*px)[i * FIRST + FIRST/2 + k]);
+  	      xi[l] = __lows2half2((*px)[i * FIRST + k], tmp);
+		  tmp = __low2half2((*px)[i * FIRST + FIRST/2 + k + 1]);
+  	      xi[l+1] = __highs2half2((*px)[i * FIRST + k], tmp);
   	  }
 	  half2 tmp;
-	  tmp = high2half2((*px)[i * FIRST + FIRST-1]);
-	  xi[FIRST-1] = lows2half2((*px)[i * FIRST + FIRST/2], tmp);
+	  tmp = __high2half2((*px)[i * FIRST + FIRST-1]);
+	  xi[FIRST-1] = __lows2half2((*px)[i * FIRST + FIRST/2], tmp);
 	}  
 #else
     for (int k = 0; k < FIRST; k++) {
@@ -183,24 +183,24 @@ struct pack<N, NS...> {
 #if USE_HALF && GPU_ON
 	// special loading scheme for half2 format. 
 	if ((FIRST % 2)==0) {
-      for (int k = 0, int l = 0; k < FIRST/2; k++, l+=2) {
+      for (int k = 0, l = 0; k < FIRST/2; k++, l+=2) {
         assert(&((*px)[true_i * FIRST + k]) != nullptr);
-	    xi[l] = lows2half2((*px)[true_i * FIRST + k], (*px)[true_i * FIRST + FIRST/2 + k]);
-	    xi[l+1] = highs2half2((*px)[true_i * FIRST + k], (*px)[true_i * FIRST + FIRST/2 + k]);
+	    xi[l] = __lows2half2((*px)[true_i * FIRST + k], (*px)[true_i * FIRST + FIRST/2 + k]);
+	    xi[l+1] = __highs2half2((*px)[true_i * FIRST + k], (*px)[true_i * FIRST + FIRST/2 + k]);
 	  }
 	}
 	else {
-      for (int k = 0, int l = 0; k < FIRST/2; k++, l+=2) {
+      for (int k = 0, l = 0; k < FIRST/2; k++, l+=2) {
           assert(&((*px)[true_i * FIRST + k]) != nullptr);
 		  half2 tmp;
-		  tmp = high2half2((*px)[true_i * FIRST + FIRST/2 + k]);
-  	      xi[l] = lows2half2((*px)[true_i * FIRST + k], tmp);
-		  tmp = low2half2((*px)[true_i * FIRST + FIRST/2 + k + 1]);
-  	      xi[l+1] = highs2half2((*px)[true_i * FIRST + k], tmp);
+		  tmp = __high2half2((*px)[true_i * FIRST + FIRST/2 + k]);
+  	      xi[l] = __lows2half2((*px)[true_i * FIRST + k], tmp);
+		  tmp = __low2half2((*px)[true_i * FIRST + FIRST/2 + k + 1]);
+  	      xi[l+1] = __highs2half2((*px)[true_i * FIRST + k], tmp);
   	  }
 	  half2 tmp;
-	  tmp = high2half2((*px)[true_i * FIRST + FIRST-1]);
-	  xi[FIRST-1] = lows2half2((*px)[true_i * FIRST + FIRST/2], tmp);
+	  tmp = __high2half2((*px)[true_i * FIRST + FIRST-1]);
+	  xi[FIRST-1] = __lows2half2((*px)[true_i * FIRST + FIRST/2], tmp);
 	}  
 #else
     // Using pythonic syntax, we can describe our loading procedure as follows :

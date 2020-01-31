@@ -26,8 +26,8 @@ struct Sum : UnaryOp<Sum, F> {
 
   static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
-    *out = 0;
 #if USE_HALF
+    *out = __float2half2_rn(0.0f);
 #pragma unroll
     for (int k = 0; k < F::DIM; k++)
 #if GPU_ON
@@ -36,6 +36,7 @@ struct Sum : UnaryOp<Sum, F> {
       *out = *out + outF[k];
 #endif
 #else
+    *out = 0;
 #pragma unroll
     for (int k = 0; k < F::DIM; k++)
       *out += outF[k];

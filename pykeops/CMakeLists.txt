@@ -68,7 +68,7 @@ else()
 endif()
 
 # this dummy flag is used in the bindings
-if (${__TYPE__} STREQUAL "half")
+if (${__TYPE__} STREQUAL "half2")
     add_definitions(-DUSE_HALF=1)
 else()
     add_definitions(-DUSE_HALF=0)

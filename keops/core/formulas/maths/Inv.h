@@ -39,8 +39,10 @@ struct Inv : UnaryOp<Inv, F> {
 #else
       out[k] = fdividef(1.0, outF[k]);
 #endif
-#elif USE_HALF
+#elif USE_HALF && GPU_ON
       out[k] = (half)1 / outF[k];
+#elif USE_HALF
+// this should never happen...
 #else
       out[k] = 1 / outF[k];
 #endif

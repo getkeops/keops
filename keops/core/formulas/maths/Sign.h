@@ -34,13 +34,7 @@ struct Sign : UnaryOp<Sign, F> {
       else
         out[k] = 0.0;
 #elif USE_HALF
-    for (int k = 0; k < DIM; k++)
-      if (outF[k] > (half)0)
-        out[k] = (half)1.0;
-      else if (outF[k] < (half)0)
-        out[k] = (half)-1.0;
-      else
-        out[k] = (half)0.0;
+// this should never happen...
 #else
 #pragma unroll
     for (int k = 0; k < DIM; k++)

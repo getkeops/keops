@@ -8,11 +8,13 @@ namespace keops {
 /////////////////////////////////////////////
 
 #ifdef __CUDA_ARCH__
+#warning "C Preprocessor : __CUDA_ARCH__ is defined"
   #define HOST_DEVICE __host__ __device__
   #define DEVICE __device__
   #define INLINE __forceinline__
   #define GPU_ON 1
 #else
+#warning "C Preprocessor : __CUDA_ARCH__ is not defined"
   #define HOST_DEVICE
   #define DEVICE
   #define INLINE inline

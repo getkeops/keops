@@ -65,7 +65,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
     // swap each half2 entry
 #pragma unroll
 	for (int k = DIMFOUT; k < DIMX; k++)
-    	xi_tmp[k] = lowhigh2highlow(xi[k])
+    	xi_tmp[k] = __lowhigh2highlow(xi[k]);
 #endif
   }
 
@@ -98,7 +98,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
 	    // since the xi were swapped and not the yj, we need to swap again the result
 #pragma unroll
 		for (int k = 0; k < DIMFOUT; k++)
-			xi_tmp[k] = lowhigh2highlow(xi_tmp[k])
+			xi_tmp[k] = __lowhigh2highlow(xi_tmp[k]);
 		// now we can reduce
 		typename FUN::template ReducePairShort<TYPE,TYPE>()(xi, xi_tmp, jrel + tile * blockDim.x);     // xi += xi_tmp
 #endif

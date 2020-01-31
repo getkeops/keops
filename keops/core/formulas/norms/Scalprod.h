@@ -47,7 +47,11 @@ struct Scalprod_Impl : BinaryOp< Scalprod_Impl, FA, FB > {
   static void PrintIdString(::std::stringstream &str) { str << "|"; }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-    *out = 0;
+#if USE_HALF
+    *out = __float2half2_rn(0.0f);
+#else
+    *out = 0.0f;
+#endif
 #pragma unroll
     for (int k = 0; k < DIMIN; k++)
 #if USE_HALF && GPU_ON
