@@ -39,7 +39,6 @@ def K(x,y,b,**kwargs):
     D_ij = ((x_i - y_j)**2).sum(axis=2)  
     K_ij = (- D_ij).exp() * b_j             
     K_ij = K_ij.sum(axis=1,call=False,**kwargs)
-    print(K_ij)
     return K_ij
 
 M, N, D = 1000, 100000, 3
@@ -81,11 +80,11 @@ res_double = K_keops64()
 print("comp double, time : ",timeit.timeit("K_keops64()",number=Ntest_double,setup="from __main__ import K_keops64"))
 # monitor.stop()
 if backend == "torch":
-    print("relative mean error float / double : ",(res_float.double()-res_double).abs().mean()/res_double.abs().mean())
-    print("relative max error float / double : ",(res_float.double()-res_double).abs().max()/res_double.abs().mean())
+    print("relative mean error float / double : ",((res_float.double()-res_double).abs().mean()/res_double.abs().mean()).item())
+    print("relative max error float / double : ",((res_float.double()-res_double).abs().max()/res_double.abs().mean()).item())
 else:
-    print("relative mean error float / double : ",np.mean(np.abs(res_float.astype(np.float64)-res_double))/np.mean(np.abs(res_double)))
-    print("relative max error float / double : ",np.max(np.abs(res_float.astype(np.float64)-res_double))/np.mean(np.abs(res_double)))
+    print("relative mean error float / double : ",(np.mean(np.abs(res_float.astype(np.float64)-res_double))/np.mean(np.abs(res_double))).item())
+    print("relative max error float / double : ",(np.max(np.abs(res_float.astype(np.float64)-res_double))/np.mean(np.abs(res_double))).item())
 
 # computation using float16
 # monitor = Monitor(1e-6)
@@ -95,10 +94,13 @@ print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="
 # monitor.stop()
 
 if backend == "torch":
-    print("relative mean error half / double : ",(res_half.double()-res_double).abs().mean()/res_double.abs().mean())
-    print("relative max error half / double : ",(res_half.double()-res_double).abs().max()/res_double.abs().mean())
+    print("relative mean error half / double : ",((res_half.double()-res_double).abs().mean()/res_double.abs().mean()).item())
+    print("relative max error half / double : ",((res_half.double()-res_double).abs().max()/res_double.abs().mean()).item())
 else:
-    print("relative mean error half / double : ",np.mean(np.abs(res_half.astype(np.float64)-res_double))/np.mean(np.abs(res_double)))
-    print("relative max error half / double : ",np.max(np.abs(res_half.astype(np.float64)-res_double))/np.mean(np.abs(res_double)))
+    print("relative mean error half / double : ",(np.mean(np.abs(res_half.astype(np.float64)-res_double))/np.mean(np.abs(res_double))).item())
+    print("relative max error half / double : ",(np.max(np.abs(res_half.astype(np.float64)-res_double))/np.mean(np.abs(res_double))).item())
 
+#print("res_float = ",res_float)
+
+#print("res_half = ",res_half)
 

@@ -35,8 +35,10 @@ struct Abs : UnaryOp<Abs, F> {
 #else
         out[k] = fabsf(outF[k]);
 #endif
-#elif USE_HALF
+#elif USE_HALF && GPU_ON
         out[k] = abs((float)outF[k]);
+#elif USE_HALF
+// this should never be used...
 #else
       out[k] =  ::std::abs(outF[k]);
 #endif

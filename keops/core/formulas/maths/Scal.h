@@ -46,6 +46,8 @@ struct Scal_Impl : BinaryOp<Scal_Impl, FA, FB> {
     for (int k = 0; k < DIM; k++)
 #if USE_HALF && GPU_ON
       out[k] = __hmul2(*outA,outB[k]);
+#elif USE_HALF
+      {}
 #else
       out[k] = *outA * outB[k];
 #endif

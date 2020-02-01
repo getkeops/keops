@@ -33,7 +33,8 @@ struct Sum : UnaryOp<Sum, F> {
 #if GPU_ON
       *out = __hadd2(*out,outF[k]);
 #else
-      *out = *out + outF[k];
+      {}
+      //*out = *out + outF[k];
 #endif
 #else
     *out = 0;

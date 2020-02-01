@@ -94,7 +94,7 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
 		call<DIMSX, DIMSY, DIMSP>(fun,
                                   xi_tmp,
                                   yjrel,
-                                  param_loc); // Call the function, which outputs results in xi[0:DIMX1]
+                                  param_loc); // Call the function, which outputs results in xi_tmp[0:DIMX1]
 	    // since the xi were swapped and not the yj, we need to swap again the result
 #pragma unroll
 		for (int k = 0; k < DIMFOUT; k++)

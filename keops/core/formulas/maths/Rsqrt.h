@@ -38,9 +38,13 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
       }
 #elif USE_HALF
+// this should never be used...
+      if (1) {}
+/*
       if (outF[k] == (half)0) {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
       }
+*/
 #else
       if (outF[k] == 0) {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
@@ -56,7 +60,8 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
         out[k] = rsqrtf(outF[k]);
 #endif
 #elif USE_HALF
-        out[k] = 1.0 / sqrt((float)outF[k]);
+	// this should never be used...
+        //out[k] = 1.0 / sqrt((float)outF[k]);
 #else
         out[k] = 1.0 / sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
 #endif

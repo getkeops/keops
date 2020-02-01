@@ -32,7 +32,12 @@ struct Pow : UnaryOp<Pow, F, M> {
     for (int k = 0; k < DIM; k++)
         out[k] = h2exp(__hmul2((half)N,h2log(outF[k])));
 #elif USE_HALF
-// this should never happen...
+// this should neveer be used...
+/*
+#pragma unroll
+    for (int k = 0; k < DIM; k++)
+      out[k] = pow((float)outF[k], M);
+*/
 #else
 #pragma unroll
     for (int k = 0; k < DIM; k++)

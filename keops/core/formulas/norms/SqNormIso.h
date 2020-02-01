@@ -30,15 +30,21 @@ struct SqNormIso : BinaryOp<SqNormIso, FS, FA> {
 
   static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outS, __TYPE__ *outA) {
-    *out = 0;
+#if USE_HALF && GPU_ON
+      *out = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
+      *out = 0.0f;
+#endif
 #pragma unroll
     for (int k = 0; k < DIMIN; k++)
 #if USE_HALF && GPU_ON
       *out = __hfma2(*out, outA[k], outA[k]);
     *out = __hmul2(*out, *outS);
 #elif USE_HALF
-      *out = *out + outA[k] * outA[k];
-    *out = *out * *outS;
+    {}
+    //  *out = *out + outA[k] * outA[k];
+    //*out = *out * *outS;
 #else
       *out += outA[k] * outA[k];
     *out *= *outS;

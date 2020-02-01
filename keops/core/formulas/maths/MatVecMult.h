@@ -34,12 +34,15 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
         int q = 0;
 #pragma unroll
         for (int i = 0; i < DIM; i++) {
-            out[i] = 0;
 #if USE_HALF
+#if GPU_ON
+            out[i] = __float2half2_rn(0.0f);
 #pragma unroll
             for (int k = 0; k < B::DIM; k++, q++)
                 out[i] = out[i] + inA[q] * inB[k];
+#endif
 #else
+            out[i] = 0.0f;
 #pragma unroll
             for (int k = 0; k < B::DIM; k++, q++)
                 out[i] += inA[q] * inB[k];

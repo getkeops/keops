@@ -31,10 +31,12 @@ struct Square : UnaryOp<Square, F> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
-      __TYPE__ temp = outF[k];
 #if USE_HALF && GPU_ON
+      __TYPE__ temp = outF[k];
       out[k] = __hmul2(temp,temp);
+#elif USE_HALF
 #else
+      __TYPE__ temp = outF[k];
       out[k] = temp * temp;
 #endif
     }

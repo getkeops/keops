@@ -88,16 +88,21 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
 #if USE_HALF && GPU_ON
 	if ((DIM % 2)==0) {
-		for(int k=0, l=0; k<DIM/2; k++, l+=2) {
-			out[k] = __lows2half2(acc[l],acc[l+1]);
-			out[k+DIM/2] = __highs2half2(acc[l],acc[l+1]);
+#pragma unroll
+		for(int k=0; k<DIM/2; k++) {
+			out[k] = __lows2half2(acc[2*k],acc[2*k+1]);
+			out[k+DIM/2] = __highs2half2(acc[2*k],acc[2*k+1]);
 		}
 	}
 	else {
-		for(int k=0, l=0; k<DIM/2; k++, l+=2) {
-			out[k] = __lows2half2(acc[l],acc[l+1]);
-			out[k+DIM/2+1] = __highs2half2(acc[l+1],acc[l+2]);
+#pragma unroll
+		for(int k=0; k<DIM/2; k++) {
+			out[k] = __lows2half2(acc[2*k],acc[2*k+1]);
+			out[k+DIM/2+1] = __highs2half2(acc[2*k+1],acc[2*k+2]);
 		}
+                half2 tmp;
+                tmp = __low2half2(acc[DIM-1]);
+                out[DIM/2] = __highs2half2(tmp,acc[0]);
 	}
 #else
 #pragma unroll

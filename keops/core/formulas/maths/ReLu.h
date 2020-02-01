@@ -31,12 +31,15 @@ struct ReLU : UnaryOp<ReLU, F> {
       else
         out[k] = outF[k];
 #elif USE_HALF
+// this should never be used...
+/*
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       if (outF[k] < (half)0)
         out[k] = 0.0;
       else
         out[k] = outF[k];
+*/
 #else
 #pragma unroll
     for (int k = 0; k < DIM; k++)
