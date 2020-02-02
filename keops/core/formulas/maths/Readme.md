@@ -15,8 +15,12 @@ Available math operations are :
  *      Sqrt<F>                        : alias for Powf<F,IntInv<2>>
  *      Rsqrt<F>                       : inverse square root
 
-Standard math functions :
+Standard math functions :   
  *      Sum<F>                         : sum of values in F
+ *      Max<F>                         : max of values in F
+ *      Min<F>                         : min of values in F
+ *      ArgMax<F>                      : argmax of values in F
+ *      ArgMin<F>                      : argmin of values in F
  *      Abs<F>                         : absolute value of F (vectorized)
  *      Exp<F>                         : exponential of F (vectorized)
  *      Log<F>                         : logarithm of F (vectorized)

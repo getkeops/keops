@@ -6,6 +6,10 @@
 // import all math implementations
 #include "core/formulas/maths/Minus.h"
 #include "core/formulas/maths/Sum.h"
+#include "core/formulas/maths/Min.h"
+#include "core/formulas/maths/Max.h"
+#include "core/formulas/maths/ArgMin.h"
+#include "core/formulas/maths/ArgMax.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/Concat.h"
 #include "core/formulas/maths/Scal.h"

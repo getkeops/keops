@@ -1415,15 +1415,38 @@ class LazyTensor:
         Sum of weighted Soft-Max reduction. Redirects to :meth:`sumsoftmaxweight` method.          
         """
         return self.sumsoftmaxweight(**kwargs)
-    
-    def min(self, axis=None, dim=None, **kwargs):
+
+    def min(self, axis=-1, dim=None, **kwargs):
         r"""
-        Min reduction. 
+        Minimum unary operation, or Min reduction. 
         
         ``min(axis, dim, **kwargs)`` will:
 
-          - if **axis or dim = 0**, return the minimal values of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the minimal values of **self** over the "j" indexes.
+          - if **axis or dim = 0**, return the min reduction of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the min reduction of **self** over the "j" indexes.
+          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the min of the values of the vector **self**,
+        
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, min along the 
+            dimension of the vector variable).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("Min", dimres=1)
+        else:
+            return self.reduction("Min", axis=axis, **kwargs)
+                
+    def min_reduction(self, axis=None, dim=None, **kwargs):
+        r"""
+        Min reduction. 
+        
+        ``min_reduction(axis, dim, **kwargs)`` will return the min reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1435,26 +1458,43 @@ class LazyTensor:
         """
         return self.reduction("Min", axis=axis, dim=dim, **kwargs)
     
-    def min_reduction(self, **kwargs):
-        r"""
-        Min reduction. Redirects to :meth:`min` method.          
-        """
-        return self.min(**kwargs)
-    
     def __min__(self, **kwargs):
         r"""
-        Min reduction. Redirects to :meth:`min` method.          
+        Minimum unary operation, or Min reduction. Redirects to :meth:`min` method.          
         """
         return self.min(**kwargs)
     
-    def argmin(self, axis=None, dim=None, **kwargs):
+    def argmin(self, axis=-1, dim=None, **kwargs):
         r"""
-        ArgMin reduction. 
+        ArgMin unary operation, or ArgMin reduction. 
         
         ``argmin(axis, dim, **kwargs)`` will:
 
-          - if **axis or dim = 0**, return the indices of minimal values of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the indices of minimal values of **self** over the "j" indexes.
+          - if **axis or dim = 0**, return the argmin reduction of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the argmin reduction of **self** over the "j" indexes.
+          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the argmin of the values of the vector **self**,
+        
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, argmin along the 
+            dimension of the vector variable).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("ArgMin", dimres=1)
+        else:
+            return self.reduction("ArgMin", axis=axis, **kwargs)
+    
+    def argmin_reduction(self, axis=None, dim=None, **kwargs):
+        r"""
+        ArgMin reduction. 
+        
+        ``argmin_reduction(axis, dim, **kwargs)`` will return the argmin reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1465,12 +1505,6 @@ class LazyTensor:
 
         """
         return self.reduction("ArgMin", axis=axis, dim=dim, **kwargs)
-    
-    def argmin_reduction(self, **kwargs):
-        r"""
-        ArgMin reduction. Redirects to :meth:`argmin` method.          
-        """
-        return self.argmin(**kwargs)
     
     def min_argmin(self, axis=None, dim=None, **kwargs):
         r"""
@@ -1497,14 +1531,37 @@ class LazyTensor:
         """
         return self.min_argmin(**kwargs)
     
-    def max(self, axis=None, dim=None, **kwargs):
+    def max(self, axis=-1, dim=None, **kwargs):
         r"""
-        Max reduction. 
+        Miaximum unary operation, or Max reduction. 
         
         ``max(axis, dim, **kwargs)`` will:
 
-          - if **axis or dim = 0**, return the maximal values of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the maximal values of **self** over the "j" indexes.
+          - if **axis or dim = 0**, return the max reduction of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the max reduction of **self** over the "j" indexes.
+          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the max of the values of the vector **self**,
+        
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, max along the 
+            dimension of the vector variable).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("Max", dimres=1)
+        else:
+            return self.reduction("Max", axis=axis, **kwargs)
+                
+    def max_reduction(self, axis=None, dim=None, **kwargs):
+        r"""
+        Max reduction. 
+        
+        ``max_reduction(axis, dim, **kwargs)`` will return the max reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1516,26 +1573,43 @@ class LazyTensor:
         """
         return self.reduction("Max", axis=axis, dim=dim, **kwargs)
     
-    def max_reduction(self, **kwargs):
-        r"""
-        Max reduction. Redirects to :meth:`max` method.          
-        """
-        return self.max(**kwargs)
-    
     def __max__(self, **kwargs):
         r"""
-        Max reduction. Redirects to :meth:`max` method.          
+        Maximum unary operation, or Max reduction. Redirects to :meth:`max` method.          
         """
         return self.max(**kwargs)
     
-    def argmax(self, axis=None, dim=None, **kwargs):
+    def argmax(self, axis=-1, dim=None, **kwargs):
         r"""
-        ArgMax reduction. 
+        ArgMax unary operation, or ArgMax reduction. 
         
         ``argmax(axis, dim, **kwargs)`` will:
 
-          - if **axis or dim = 0**, return the indices of maximal values of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the indices of maximal values of **self** over the "j" indexes.
+          - if **axis or dim = 0**, return the argmax reduction of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the argmax reduction of **self** over the "j" indexes.
+          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the argmax of the values of the vector **self**,
+        
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, argmax along the 
+            dimension of the vector variable).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("ArgMax", dimres=1)
+        else:
+            return self.reduction("ArgMax", axis=axis, **kwargs)
+    
+    def argmax_reduction(self, axis=None, dim=None, **kwargs):
+        r"""
+        ArgMax reduction. 
+        
+        ``argmax_reduction(axis, dim, **kwargs)`` will return the argmax reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1546,12 +1620,6 @@ class LazyTensor:
 
         """
         return self.reduction("ArgMax", axis=axis, dim=dim, **kwargs)
-    
-    def argmax_reduction(self, **kwargs):
-        r"""
-        ArgMax reduction. Redirects to :meth:`argmax` method.          
-        """
-        return self.argmax(**kwargs)
     
     def max_argmax(self, axis=None, dim=None, **kwargs):
         r"""
