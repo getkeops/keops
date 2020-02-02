@@ -30,7 +30,8 @@ struct OneHot : UnaryOp< OneHot, F, DIM_ > {
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
-      out[k] = (round(outF[0]) == k) ? 1 : 0 ;
+      out[k] = 0.0;
+	out[(int)(outF[0]+.5)] = 1.0;
   }
 
   // There is no gradient to accumulate on V, whatever V.
