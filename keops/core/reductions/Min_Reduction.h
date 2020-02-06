@@ -68,6 +68,8 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 template < class F, int tagI=0 >
 struct Min_ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<Min_ArgMin_Reduction,F,tagI> {
 
+    static const bool tag_int_as_float = true;  // means we will store integer indices as floats in output array
+
         static const int DIM = 2*F::DIM;		// DIM is dimension of output of convolution ; for a min-argmin reduction it is equal to 2 times the dimension of output of formula
 		
     static void PrintIdString(::std::stringstream& str) {
@@ -92,8 +94,10 @@ struct Min_ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<
 
 template < class F, int tagI=0 >
 struct ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<ArgMin_Reduction,F,tagI> {
+
+    static const bool tag_int_as_float = true;  // means we will store integer indices as floats in output array
         
-        static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmin reduction it is equal to the dimension of output of formula
+    static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmin reduction it is equal to the dimension of output of formula
 		
     static void PrintIdString(::std::stringstream& str) {
         str << "ArgMin_Reduction";

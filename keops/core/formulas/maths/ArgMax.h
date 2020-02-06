@@ -15,7 +15,12 @@ namespace keops {
 template<class F>
 struct ArgMax : UnaryOp<ArgMax, F> {
 
+#if __TYPE__==float
+  static_assert(F::DIM <= 16777216, "[KeOps] Dimension is too large for storing indices as single precision floats.");
+#endif
+
   static_assert(F::DIM >= 1, "ArgMax operation is only valid when dimension is non zero.");
+
   static const int DIM = 1;
 
   static void PrintIdString(::std::stringstream &str) {

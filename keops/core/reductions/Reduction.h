@@ -15,6 +15,8 @@ namespace keops {
 template < class F_, int tagI_=0 >
 struct Reduction {
 
+    static const bool tag_int_as_float = false;  // by default results of reductions truely represent floats, except when they represent integer indices such as for e.g. the ArgMin reduction
+
     using F = F_;
 
     static const int tagI = tagI_;

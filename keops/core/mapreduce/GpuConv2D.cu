@@ -181,6 +181,9 @@ struct GpuConv2D_FromHost {
 template < typename TYPE, class FUN >
 static int Eval_(FUN fun, int nx, int ny, TYPE** px_h, TYPE** py_h, TYPE** pp_h) {
 
+    if(FUN::tag_int_as_float && sizeof(TYPE)==4 && ny>16777216)
+        throw std::runtime_error("[KeOps] Size of array is too large for storing index values as single precision floats");
+
     using DIMSX = typename FUN::DIMSX;
     using DIMSY = typename FUN::DIMSY;
     using DIMSP = typename FUN::DIMSP;
@@ -406,6 +409,9 @@ static int Eval(FUN fun, int nx, int ny, TYPE* x1_h, TYPE** args, int device_id=
 struct GpuConv2D_FromDevice {
 template < typename TYPE, class FUN >
 static int Eval_(FUN fun, int nx, int ny, TYPE** phx_d, TYPE** phy_d, TYPE** php_d) {
+
+    if(FUN::tag_int_as_float && sizeof(TYPE)==4 && ny>16777216)
+        throw std::runtime_error("[KeOps] Size of array is too large for storing index values as single precision floats");
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;

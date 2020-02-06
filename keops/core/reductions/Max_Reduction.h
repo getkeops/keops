@@ -68,7 +68,9 @@ struct Max_ArgMax_Reduction_Base : public Reduction<F,tagI> {
 template < class F, int tagI=0 >
 struct Max_ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<Max_ArgMax_Reduction,F,tagI> {
 
-        static const int DIM = 2*F::DIM;		// DIM is dimension of output of convolution ; for a max-argmax reduction it is equal to 2 times the dimension of output of formula
+    static const bool tag_int_as_float = true;  // means we will store integer indices as floats in output array
+
+    static const int DIM = 2*F::DIM;		// DIM is dimension of output of convolution ; for a max-argmax reduction it is equal to 2 times the dimension of output of formula
 		
     static void PrintIdString(::std::stringstream& str) {
         str << "Max_ArgMax_Reduction";
@@ -93,8 +95,10 @@ struct Max_ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<
 
 template < class F, int tagI=0 >
 struct ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<ArgMax_Reduction,F,tagI> {
-        
-        static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmax reduction it is equal to the dimension of output of formula
+
+    static const bool tag_int_as_float = true;  // means we will store integer indices as floats in output array        
+
+    static const int DIM = F::DIM;		// DIM is dimension of output of convolution ; for a argmax reduction it is equal to the dimension of output of formula
 		
     static void PrintIdString(::std::stringstream& str) {
         str << "ArgMax_Reduction";

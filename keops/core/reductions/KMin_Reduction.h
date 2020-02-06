@@ -16,6 +16,8 @@ namespace keops {
 template < class F, int K, int tagI=0 >
 struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 
+    static const bool tag_int_as_float = true;  // means we will store integer indices as floats in output array
+
     static const int DIM = 2*K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
 
     static const int DIMRED = DIM;	// dimension of temporary variable for reduction
@@ -149,8 +151,9 @@ struct ArgKMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 template < class F, int K, int tagI=0 >
 struct KMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
 
+    static const bool tag_int_as_float = false;  // means we will not store integer indices as floats in output array
 
-        static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
+    static const int DIM = K*F::DIM;		// DIM is dimension of output of convolution ; for a arg-k-min reduction it is equal to the dimension of output of formula
                  
     static void PrintId(::std::stringstream& str) {
         str << "KMin_Reduction(";			// prints "("

@@ -18,6 +18,10 @@ struct CpuConv_ranges {
                              int nbatchdims, int* shapes,
                              int nranges_x, int nranges_y, __INDEX__** ranges,
                              TYPE** px, TYPE** py) {
+
+    if(FUN::tag_int_as_float && sizeof(TYPE)==4 && ny>16777216)
+        throw std::runtime_error("[KeOps] Size of array is too large for storing index values as single precision floats");
+
     typedef typename FUN::DIMSX DIMSX; // dimensions of "i" indexed variables
     typedef typename FUN::DIMSY DIMSY; // dimensions of "j" indexed variables
     typedef typename FUN::DIMSP DIMSP; // dimensions of parameters variables

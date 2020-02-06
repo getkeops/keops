@@ -249,6 +249,9 @@ static int Eval_(FUN fun, int nx, int ny,
     int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges, 
     TYPE** px_h, TYPE** py_h, TYPE** pp_h) {
 
+    if(FUN::tag_int_as_float && sizeof(TYPE)==4 && ny>16777216)
+        throw std::runtime_error("[KeOps] Size of array is too large for storing index values as single precision floats");
+
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
@@ -624,6 +627,9 @@ static int Eval_(FUN fun, int nx, int ny,
     int nbatchdims, int *shapes,  
     int nranges_x, int nranges_y, __INDEX__ **ranges, 
     TYPE** phx_d, TYPE** phy_d, TYPE** php_d) {
+
+    if(FUN::tag_int_as_float && sizeof(TYPE)==4 && ny>16777216)
+        throw std::runtime_error("[KeOps] Size of array is too large for storing index values as single precision floats");
 
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
