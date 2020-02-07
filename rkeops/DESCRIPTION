@@ -2,7 +2,7 @@ Package: rkeops
 Type: Package
 Title: Kernel Operations on the GPU, with Autodiff, without Memory Overflows
 Version: 1.3
-Date: 2020-01-06
+Date: 2020-02-07
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
            comment="<http://imag.umontpellier.fr/~charlier/>", 
@@ -39,7 +39,8 @@ Suggests:
     testthat (>= 2.1.0),
     knitr,
     rmarkdown
-SystemRequirements: C++11
+OS_type: unix
+SystemRequirements: C++11, cmake (>= 3.10), clang (optional), CUDA (recommended)
 URL: https://www.kernel-operations.io/, https://github.com/getkeops/keops/
 BugReports: https://github.com/getkeops/keops/issues
 Encoding: UTF-8
