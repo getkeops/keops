@@ -6,17 +6,29 @@
 Authors
 =======
 
-Feel free to contact us for any bug report or feature request:
+Feel free to contact us for any bug report or feature request, you can
+also fill an issue report on
+`GitHub <https://github.com/getkeops/keops/issues>`__.
 
--  `Benjamin Charlier <http://imag.umontpellier.fr/%7Echarlier/>`__
--  `Ghislain Durif <https://gdurif.perso.math.cnrs.fr/>`__
--  `Jean Feydy <http://www.math.ens.fr/%7Efeydy/>`__
+KeOps, PyKeOps, KeOpsLab
+------------------------
+
+-  `Benjamin Charlier <https://imag.umontpellier.fr/%7Echarlier/>`__
+-  `Jean Feydy <https://www.math.ens.fr/%7Efeydy/>`__
 -  `Joan Alexis
    Glaunès <http://helios.mi.parisdescartes.fr/%7Eglaunes/>`__
+
+RKeOps
+------
+
+-  `Ghislain Durif <https://gdurif.perso.math.cnrs.fr/>`__
+
+Contributors
+------------
+
 -  François-David Collin
 
-You can also fill an issue report on Github at
-https://github.com/getkeops/keops/issues.
+--------------
 
 What is RKeOps?
 ===============

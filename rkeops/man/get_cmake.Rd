@@ -27,9 +27,6 @@ in this path.
 
 \strong{Note}: for the moment, this does not work on
 Windows OS.
-
-TODO: use \url{https://github.com/stnava/cmaker} to
-install cmake if not available on the system .
 }
 \author{
 Ghislain Durif

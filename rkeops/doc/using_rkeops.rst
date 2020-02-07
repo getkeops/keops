@@ -16,6 +16,9 @@ Requirements
 -  C++ compiler (g++ >=7 or clang) for CPU computing or CUDA compiler
    (nvcc >=10) and CUDA libs for GPU computing
 
+**Disclaimer:** KeOps (including RKeOps) is not functional on Windows,
+it was only tested on Linux and MacOS.
+
 Install from CRAN
 -----------------
 
@@ -240,9 +243,8 @@ where
     the compiled operator.
 
 **Example:** We define the corresponding arguments of the previous
-`formula <rkeops_r_bindings_for_keops.html#formula>`__, i.e. parameters
-or variables indexed by \\(i\\) or \\(j\\) with their corresponding
-inner dimensions:
+`formula <#formula>`__, i.e. parameters or variables indexed by \\(i\\)
+or \\(j\\) with their corresponding inner dimensions:
 
 ::
 
@@ -529,3 +531,15 @@ Example:
     # computing the result (we specify `inner_dim=0` to indicate that rows
     # corresponds to the inner dimension)
     res <- op(list(X,Y), inner_dim=0)
+
+Compilation files and cleaning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The compilation of new operators produces shared library (or share
+object ``.so``) files stored in a ``build`` sub-directory of the package
+installation directory, to be reused and avoid recompilation of already
+defined operators.
+
+You can check where your compiled operators are stored by running
+``get_build_dir()``. To clean RKeOps install and remove all shared
+library files, you can run ``clean_rkeops()``.
