@@ -35,10 +35,9 @@ options, you can check \code{\link[rkeops:compile_options]{rkeops::compile_optio
 }
 }
 \examples{
-\donttest{
+library(rkeops)
 # to get the GPU id used for computations
 get_rkeops_option("device_id")
-}
 }
 \seealso{
 \code{\link[rkeops:get_rkeops_options]{rkeops::get_rkeops_options()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},

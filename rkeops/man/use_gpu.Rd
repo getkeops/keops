@@ -28,9 +28,8 @@ calling the function \code{use_gpu} is mandatory to run computations on GPU.
 To disable GPU computing, run \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}.
 }
 \examples{
-\donttest{
+library(rkeops)
 use_gpu()
-}
 }
 \seealso{
 \code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},
