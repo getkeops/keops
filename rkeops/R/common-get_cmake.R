@@ -11,9 +11,6 @@
 #' 
 #' **Note**: for the moment, this does not work on 
 #' Windows OS.
-#' 
-#' TODO: use <https://github.com/stnava/cmaker> to 
-#' install cmake if not available on the system .
 #' @param path text string (optional), path where to search 
 #' `cmake` (e.g. `/path/to/dir` on Unix system). Default value 
 #' is NULL and the function searches for `cmake` in the 
@@ -23,6 +20,9 @@
 #' @importFrom stringr str_detect
 #' @export
 get_cmake <- function(path = NULL) {
+    # TODO: use <https://github.com/stnava/cmaker> to 
+    # install cmake if not available on the system .
+    
     # check
     if(!is.null(path)) {
         if(!is.character(path))
