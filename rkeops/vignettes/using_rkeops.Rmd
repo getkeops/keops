@@ -9,9 +9,9 @@ output:
 author: ""
 date: "`r Sys.Date()`"
 vignette: >
+  %\VignetteEncoding{UTF-8}
   %\VignetteIndexEntry{RKeOps: R bindings for KeOps}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -33,6 +33,8 @@ Thanks to RKeOps, you can use **GPU computing directly inside R** without the co
 * R (tested with R >= 3.5)
 * Cmake (>=3.10)
 * C++ compiler (g++ >=7 or clang) for CPU computing or CUDA compiler (nvcc >=10) and CUDA libs for GPU computing
+
+**Disclaimer:** KeOps (including RKeOps) is not functional on Windows, it was only tested on Linux and MacOS.
 
 ## Install from CRAN
 
