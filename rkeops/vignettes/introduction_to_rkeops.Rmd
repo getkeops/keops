@@ -28,15 +28,24 @@ knitr::opts_chunk$set(
 
 # Authors
 
-Feel free to contact us for any bug report or feature request:
+Feel free to contact us for any bug report or feature request, you can also fill 
+an issue report on [GitHub](https://github.com/getkeops/keops/issues).
 
-* [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
-* [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
-* [Jean Feydy](http://www.math.ens.fr/~feydy/)
+## KeOps, PyKeOps, KeOpsLab
+
+* [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
+* [Jean Feydy](https://www.math.ens.fr/~feydy/)
 * [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
+
+## RKeOps
+
+* [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
+
+## Contributors
+
 * François-David Collin
 
-You can also fill an issue report on Github at <https://github.com/getkeops/keops/issues>.
+---
 
 # What is RKeOps?
 

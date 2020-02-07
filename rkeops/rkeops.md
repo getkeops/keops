@@ -12,12 +12,24 @@ For a full documentation you may read:
 
 # Authors
 
+Feel free to contact us for any bug report or feature request, you can also fill 
+an issue report on [GitHub](https://github.com/getkeops/keops/issues).
+
+## KeOps, PyKeOps, KeOpsLab
+
 - [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
 - [Jean Feydy](https://www.math.ens.fr/~feydy/)
 - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
+
+## RKeOps
+
 - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
+
+## Contributors
+
 - François-David Collin
 
+---
 
 # Details
 The KeOps library provides seamless kernel operations on GPU, with 
