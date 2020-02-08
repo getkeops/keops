@@ -43,9 +43,11 @@ def K(x,y,b,**kwargs):
 
 def K_half(x,y,b,**kwargs):
     N, D = y.shape
-    indN = torch.cat((torch.arange(N),torch.arange(1,N),torch.tensor([0])))
-    y = y[indN,:]
-    b = b[indN,:]    
+    #indN = torch.cat((torch.arange(N),torch.arange(1,N),torch.tensor([0])))
+    #y = y[indN,:]
+    #b = b[indN,:]    
+    y = torch.cat((y,y[1:,:],y[0,:].view(1,D)),dim=0)
+    b = torch.cat((b,b[1:,:],b[0,:].view(1,1)),dim=0)
     M, D = x.shape
     x = x.view((M//2,2,D)).transpose(1,2).contiguous().view((M,D))
     N, D = y.shape
