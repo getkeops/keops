@@ -30,7 +30,13 @@ struct Exp : UnaryOp<Exp, F> {
       out[k] = exp(outF[k]);
 #elif USE_HALF
 #if GPU_ON
-      out[k] = h2exp(outF[k]);
+      // There is a exp operation for half2 type
+      //out[k] = h2exp(outF[k]);
+      // but doing experiments on RTX 2080 Ti card, it appears to be very slow, 
+      // so we use expf function twice instead :
+      float a = expf(__low2float(outF[k]));
+      float b = expf(__high2float(outF[k]));
+      out[k] = __floats2half2_rn(a,b);
 #else
 // we should never use this...
 #endif
