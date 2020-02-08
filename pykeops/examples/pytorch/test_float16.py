@@ -41,7 +41,26 @@ def K(x,y,b,**kwargs):
     K_ij = K_ij.sum(axis=1,call=False,**kwargs)
     return K_ij
 
-M, N, D = 1000, 100000, 3
+def K_half(x,y,b,**kwargs):
+    N, D = y.shape
+    indN = torch.cat((torch.arange(N),torch.arange(1,N),torch.tensor([0])))
+    y = y[indN,:]
+    b = b[indN,:]    
+    M, D = x.shape
+    x = x.view((M//2,2,D)).transpose(1,2).contiguous().view((M,D))
+    N, D = y.shape
+    y = y.view((N//2,2,D)).transpose(1,2).contiguous().view((N,D))
+    N, D = b.shape
+    b = b.view((N//2,2,D)).transpose(1,2).contiguous().view((N,D))
+    x_i = LazyTensor( x[:,None,:] )
+    y_j = LazyTensor( y[None,:,:] )  
+    b_j = LazyTensor( b[None,:,:] ) 
+    D_ij = ((x_i - y_j)**2).sum(axis=2)  
+    K_ij = (- D_ij).exp() * b_j             
+    K_ij = K_ij.sum(axis=1,call=False,**kwargs)
+    return K_ij
+
+M, N, D = 100000, 100000, 3
 
 if backend == "torch":
     torch.manual_seed(0)
@@ -65,7 +84,7 @@ else:
     yh = y.astype(np.float16)
     bh = b.astype(np.float16)
 
-Ntest_half, Ntest_float, Ntest_double = 10, 10, 10
+Ntest_half, Ntest_float, Ntest_double = 1, 1, 1
 # monitor = Monitor(1e-6)
 # computation using float32
 K_keops32 = K(xf,yf,bf)
@@ -73,34 +92,18 @@ res_float = K_keops32()
 print("comp float, time : ",timeit.timeit("K_keops32()",number=Ntest_float,setup="from __main__ import K_keops32"))
 # monitor.stop()
 
-# computation using float64
-# monitor = Monitor(1e-6)
-K_keops64 = K(x,y,b)
-res_double = K_keops64()
-print("comp double, time : ",timeit.timeit("K_keops64()",number=Ntest_double,setup="from __main__ import K_keops64"))
-# monitor.stop()
-if backend == "torch":
-    print("relative mean error float / double : ",((res_float.double()-res_double).abs().mean()/res_double.abs().mean()).item())
-    print("relative max error float / double : ",((res_float.double()-res_double).abs().max()/res_double.abs().mean()).item())
-else:
-    print("relative mean error float / double : ",(np.mean(np.abs(res_float.astype(np.float64)-res_double))/np.mean(np.abs(res_double))).item())
-    print("relative max error float / double : ",(np.max(np.abs(res_float.astype(np.float64)-res_double))/np.mean(np.abs(res_double))).item())
-
 # computation using float16
 # monitor = Monitor(1e-6)
-K_keops16 = K(xh,yh,bh)
+K_keops16 = K_half(xh,yh,bh)
 res_half = K_keops16()
 print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="from __main__ import K_keops16"))
 # monitor.stop()
 
 if backend == "torch":
-    print("relative mean error half / double : ",((res_half.double()-res_double).abs().mean()/res_double.abs().mean()).item())
-    print("relative max error half / double : ",((res_half.double()-res_double).abs().max()/res_double.abs().mean()).item())
+    print("relative mean error half / float : ",((res_half.float()-res_float).abs().mean()/res_float.abs().mean()).item())
+    print("relative max error half / float : ",((res_half.float()-res_float).abs().max()/res_float.abs().mean()).item())
 else:
-    print("relative mean error half / double : ",(np.mean(np.abs(res_half.astype(np.float64)-res_double))/np.mean(np.abs(res_double))).item())
-    print("relative max error half / double : ",(np.max(np.abs(res_half.astype(np.float64)-res_double))/np.mean(np.abs(res_double))).item())
+    print("relative mean error half / float : ",(np.mean(np.abs(res_half.astype(np.float64)-res_float))/np.mean(np.abs(res_float))).item())
+    print("relative max error half / float : ",(np.max(np.abs(res_half.astype(np.float64)-res_float))/np.mean(np.abs(res_float))).item())
 
-#print("res_float = ",res_float)
-
-#print("res_half = ",res_half)
 

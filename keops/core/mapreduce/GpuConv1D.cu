@@ -40,10 +40,6 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
 
   // get the value of variable (index with i)
   TYPE xi[DIMX < 1 ? 1 : DIMX];
-#if USE_HALF && GPU_ON
-  // additional temporary vector for half2 computations
-  TYPE xi_tmp[DIMX < 1 ? 1 : DIMX];
-#endif
   __TYPEACC__ acc[DIMRED];
 #if SUM_SCHEME == BLOCK_SUM
     // additional tmp vector to store intermediate results from each block
@@ -61,12 +57,6 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
       tmp[k] = 0.0f;
 #endif
     load<typename DIMSX::NEXT>(i, xi + DIMFOUT, px + 1); // load xi variables from global memory to local thread memory
-#if USE_HALF && GPU_ON
-    // swap each half2 entry
-#pragma unroll
-	for (int k = DIMFOUT; k < DIMX; k++)
-    	xi_tmp[k] = __lowhigh2highlow(xi[k]);
-#endif
   }
 
   for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {
@@ -89,19 +79,6 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
                                   xi,
                                   yjrel,
                                   param_loc); // Call the function, which outputs results in xi[0:DIMX1]
-#if USE_HALF && GPU_ON
-        // evaluate for swapped indices        
-		call<DIMSX, DIMSY, DIMSP>(fun,
-                                  xi_tmp,
-                                  yjrel,
-                                  param_loc); // Call the function, which outputs results in xi_tmp[0:DIMX1]
-	    // since the xi were swapped and not the yj, we need to swap again the result
-#pragma unroll
-		for (int k = 0; k < DIMFOUT; k++)
-			xi_tmp[k] = __lowhigh2highlow(xi_tmp[k]);
-		// now we can reduce
-		typename FUN::template ReducePairShort<TYPE,TYPE>()(xi, xi_tmp, jrel + tile * blockDim.x);     // xi += xi_tmp
-#endif
 #if SUM_SCHEME == BLOCK_SUM
         typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, jrel + tile * blockDim.x);     // tmp += xi
 #elif SUM_SCHEME == KAHAN_SCHEME

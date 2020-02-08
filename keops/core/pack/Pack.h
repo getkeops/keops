@@ -142,37 +142,11 @@ struct pack<N, NS...> {
      * (where Ni is the max value of "i" you should expect)
      * Obviously, we do not make any sanity check... so beware of illicit memory accesses !
      */
-#if USE_HALF && GPU_ON
-	// special loading scheme for half2 format. 
-	if ((FIRST % 2)==0) {
-#pragma unroll
-      for (int k = 0; k < FIRST/2; k++) {
-        assert(&((*px)[i * FIRST + k]) != nullptr);
-	    xi[2*k] = __lows2half2((*px)[i * FIRST + k], (*px)[i * FIRST + FIRST/2 + k]);
-	    xi[2*k+1] = __highs2half2((*px)[i * FIRST + k], (*px)[i * FIRST + FIRST/2 + k]);
-	  }
-	}
-	else {
-#pragma unroll
-      for (int k = 0; k < FIRST/2; k++) {
-          assert(&((*px)[i * FIRST + k]) != nullptr);
-		  half2 tmp;
-		  tmp = __high2half2((*px)[i * FIRST + FIRST/2 + k]);
-  	      xi[2*k] = __lows2half2((*px)[i * FIRST + k], tmp);
-		  tmp = __low2half2((*px)[i * FIRST + FIRST/2 + k + 1]);
-  	      xi[2*k+1] = __highs2half2((*px)[i * FIRST + k], tmp);
-  	  }
-	  half2 tmp;
-	  tmp = __high2half2((*px)[i * FIRST + FIRST-1]);
-	  xi[FIRST-1] = __lows2half2((*px)[i * FIRST + FIRST/2], tmp);
-	}  
-#else
 #pragma unroll
     for (int k = 0; k < FIRST; k++) {
-      assert(&((*px)[i * FIRST + k]) != nullptr);
+      //assert(&((*px)[i * FIRST + k]) != nullptr);
       xi[k] = (*px)[i * FIRST + k];                 // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
     }
-#endif
     NEXT::load(i, xi + FIRST, px + 1);              // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
   }
 
@@ -183,38 +157,12 @@ struct pack<N, NS...> {
     assert(xi != nullptr);
     assert(px != nullptr);
     int true_i = offsets[0] + i;
-#if USE_HALF && GPU_ON
-	// special loading scheme for half2 format. 
-	if ((FIRST % 2)==0) {
-#pragma unroll
-      for (int k = 0; k < FIRST/2; k++) {
-        assert(&((*px)[true_i * FIRST + k]) != nullptr);
-	    xi[2*k] = __lows2half2((*px)[true_i * FIRST + k], (*px)[true_i * FIRST + FIRST/2 + k]);
-	    xi[2*k+1] = __highs2half2((*px)[true_i * FIRST + k], (*px)[true_i * FIRST + FIRST/2 + k]);
-	  }
-	}
-	else {
-#pragma unroll
-      for (int k = 0; k < FIRST/2; k++) {
-          assert(&((*px)[true_i * FIRST + k]) != nullptr);
-		  half2 tmp;
-		  tmp = __high2half2((*px)[true_i * FIRST + FIRST/2 + k]);
-  	      xi[2*k] = __lows2half2((*px)[true_i * FIRST + k], tmp);
-		  tmp = __low2half2((*px)[true_i * FIRST + FIRST/2 + k + 1]);
-  	      xi[2*k+1] = __highs2half2((*px)[true_i * FIRST + k], tmp);
-  	  }
-	  half2 tmp;
-	  tmp = __high2half2((*px)[true_i * FIRST + FIRST-1]);
-	  xi[FIRST-1] = __lows2half2((*px)[true_i * FIRST + FIRST/2], tmp);
-	}  
-#else
     // Using pythonic syntax, we can describe our loading procedure as follows :
 #pragma unroll
     for (int k = 0; k < FIRST; k++) {
-      assert(&((*px)[true_i * FIRST + k]) != nullptr);
+      //assert(&((*px)[true_i * FIRST + k]) != nullptr);
       xi[k] = (*px)[true_i * FIRST + k];            // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
     }
-#endif
     NEXT::load(i,
                xi + FIRST,
                px + 1,
