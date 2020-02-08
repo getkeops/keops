@@ -53,7 +53,12 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
 #pragma unroll
     for (int i = 0; i < DIM; i++) {
-      out[i] = 0;
+#if USE_HALF && GPU_ON
+      out[i] = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
+      out[i] = 0.0f;
+#endif
 #pragma unroll
       for (int k = 0; k < B::DIM; k++)
 #if USE_HALF
