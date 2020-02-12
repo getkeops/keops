@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include <assert.h>
 #include <vector>
+
+#ifdef USE_OPENMP
 #include <omp.h>
+#endif
 
 #include "core/pack/Pack.h"
 #include "core/pack/GetInds.h"
