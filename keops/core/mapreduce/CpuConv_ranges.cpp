@@ -82,25 +82,13 @@ struct CpuConv_ranges {
     __INDEX__* ranges_x = FUN::tagJ ? ranges[0] : ranges[3];
     __INDEX__* slices_x = FUN::tagJ ? ranges[1] : ranges[4];
     __INDEX__* ranges_y = FUN::tagJ ? ranges[2] : ranges[5];
-    
-#pragma omp parallel for 
-    for (int range_index = 0; range_index < nranges; range_index++) {
-      TYPE xi[DIMX], yj[DIMY], pploc[DIMP];
-      TYPE *ppp; // will point either to pp or pploc
-      __TYPEACC__ acc[DIMRED];
-#if USE_BLOCKRED
-      // additional tmp vector to store intermediate results from each block
-      TYPE tmp[DIMRED];
-#elif USE_KAHAN
-      // additional tmp vector to accumulate errors
-      const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
-      TYPE tmp[DIM_KAHAN];
-#endif
 
-        int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
-        for (int k = 0; k < SIZEI - 1; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
-        for (int k = 0; k < SIZEJ; k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
-        for (int k = 0; k < SIZEP; k++) { indices_p[k] = 0; }
+    int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
+    for (int k = 0; k < SIZEI - 1; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
+    for (int k = 0; k < SIZEJ; k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
+    for (int k = 0; k < SIZEP; k++) { indices_p[k] = 0; }
+    
+    for (int range_index = 0; range_index < nranges; range_index++) {
 
       __INDEX__ start_x = ranges_x[2 * range_index];
       __INDEX__ end_x = ranges_x[2 * range_index + 1];
@@ -108,20 +96,27 @@ struct CpuConv_ranges {
       __INDEX__ start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
       __INDEX__ end_slice = slices_x[range_index];
   
-  
       // If needed, compute the "true" start indices of the range, turning
       // the "abstract" index start_x into an array of actual "pointers/offsets" stored in indices_i:
       if (nbatchdims > 0) {
         vect_broadcast_index(start_x, nbatchdims, SIZEI - 1, shapes, shapes_i, indices_i);
         // And for the parameters, too:
         vect_broadcast_index(range_index, nbatchdims, SIZEP, shapes, shapes_p, indices_p);
-        load< DIMSP >(0, pploc, param, indices_p); // Load the paramaters, once per tile
-        ppp = pploc;
+        load< DIMSP >(0, pp, param, indices_p); // Load the paramaters, once per tile
       }
-      else
-        ppp = pp;
-  
+
+#pragma omp parallel for   
       for (__INDEX__ i = start_x; i < end_x; i++) {
+        TYPE xi[DIMX], yj[DIMY];
+        __TYPEACC__ acc[DIMRED];
+#if USE_BLOCKRED
+        // additional tmp vector to store intermediate results from each block
+        TYPE tmp[DIMRED];
+#elif USE_KAHAN
+        // additional tmp vector to accumulate errors
+        const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+        TYPE tmp[DIM_KAHAN];
+#endif
         if (nbatchdims == 0) {
           load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
         } else {
@@ -148,7 +143,7 @@ struct CpuConv_ranges {
           if (nbatchdims == 0) {
             for (int j = start_y; j < end_y; j++) {
               load< DIMSY >(j, yj, py);
-              call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, ppp);
+              call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
 #if USE_BLOCKRED
               typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j); // tmp += xi
               if ((j+1)%200) {
@@ -165,7 +160,7 @@ struct CpuConv_ranges {
           else {
             for (int j = start_y; j < end_y; j++) {
               load< DIMSY >(j - start_y, yj, py, indices_j);
-              call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, ppp);
+              call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
 #if USE_BLOCKRED
               typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j - start_y); // tmp += xi
               if ((j+1)%200) {
