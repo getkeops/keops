@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <vector>
 
+#include <omp.h>
+
 #include "core/pack/GetInds.h"
 
 // Host implementation of the convolution, for comparison
@@ -22,7 +24,12 @@ struct CpuConv {
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP];
+    TYPE pp[DIMP];
+    load< DIMSP >(0, pp, param);
+
+#pragma omp parallel for 
+    for (int i = 0; i < nx; i++) {
+    TYPE xi[DIMX], yj[DIMY];
     __TYPEACC__ acc[DIMRED];
 #if USE_BLOCKRED
     // additional tmp vector to store intermediate results from each block
@@ -32,9 +39,6 @@ struct CpuConv {
     const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
     TYPE tmp[DIM_KAHAN];
 #endif
-    load< DIMSP >(0, pp, param);
-
-    for (int i = 0; i < nx; i++) {
       load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
       typename FUN::template InitializeReduction< __TYPEACC__ >()(acc);   // acc = 0
 #if USE_BLOCKRED

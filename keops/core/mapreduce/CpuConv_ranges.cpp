@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <vector>
+#include <omp.h>
 
 #include "core/pack/Pack.h"
 #include "core/pack/GetInds.h"
@@ -60,28 +61,14 @@ struct CpuConv_ranges {
   
     // Actual for-for loop -----------------------------------------------------
 
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP];
-    __TYPEACC__ acc[DIMRED];
-#if USE_BLOCKRED
-    // additional tmp vector to store intermediate results from each block
-    TYPE tmp[DIMRED];
-#elif USE_KAHAN
-    // additional tmp vector to accumulate errors
-    const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
-    TYPE tmp[DIM_KAHAN];
-#endif
+    TYPE pp[DIMP];
     load< DIMSP >(0, pp, param);  // If nbatchdims == 0, the parameters are fixed once and for all
-    
-    int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
-    for (int k = 0; k < SIZEI - 1; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
-    for (int k = 0; k < SIZEJ; k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
-    for (int k = 0; k < SIZEP; k++) { indices_p[k] = 0; }
-    
-    
+        
     // Set the output to zero, as the ranges may not cover the full output -----
+    __TYPEACC__ acctmp[DIMRED];
     for (int i = 0; i < nx; i++) {
-      typename FUN::template InitializeReduction< __TYPEACC__ >()(acc);
-      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acc, px[0] + i * DIMOUT, px, i);
+      typename FUN::template InitializeReduction< __TYPEACC__ >()(acctmp);
+      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acctmp, px[0] + i * DIMOUT, px, i);
     }
     
     // N.B.: In the following code, we assume that the x-ranges do not overlap.
@@ -96,7 +83,25 @@ struct CpuConv_ranges {
     __INDEX__* slices_x = FUN::tagJ ? ranges[1] : ranges[4];
     __INDEX__* ranges_y = FUN::tagJ ? ranges[2] : ranges[5];
     
+#pragma omp parallel for 
     for (int range_index = 0; range_index < nranges; range_index++) {
+      TYPE xi[DIMX], yj[DIMY], pploc[DIMP];
+      TYPE *ppp; // will point either to pp or pploc
+      __TYPEACC__ acc[DIMRED];
+#if USE_BLOCKRED
+      // additional tmp vector to store intermediate results from each block
+      TYPE tmp[DIMRED];
+#elif USE_KAHAN
+      // additional tmp vector to accumulate errors
+      const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+      TYPE tmp[DIM_KAHAN];
+#endif
+
+        int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
+        for (int k = 0; k < SIZEI - 1; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
+        for (int k = 0; k < SIZEJ; k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
+        for (int k = 0; k < SIZEP; k++) { indices_p[k] = 0; }
+
       __INDEX__ start_x = ranges_x[2 * range_index];
       __INDEX__ end_x = ranges_x[2 * range_index + 1];
   
@@ -110,8 +115,11 @@ struct CpuConv_ranges {
         vect_broadcast_index(start_x, nbatchdims, SIZEI - 1, shapes, shapes_i, indices_i);
         // And for the parameters, too:
         vect_broadcast_index(range_index, nbatchdims, SIZEP, shapes, shapes_p, indices_p);
-        load< DIMSP >(0, pp, param, indices_p); // Load the paramaters, once per tile
+        load< DIMSP >(0, pploc, param, indices_p); // Load the paramaters, once per tile
+        ppp = pploc;
       }
+      else
+        ppp = pp;
   
       for (__INDEX__ i = start_x; i < end_x; i++) {
         if (nbatchdims == 0) {
@@ -140,7 +148,7 @@ struct CpuConv_ranges {
           if (nbatchdims == 0) {
             for (int j = start_y; j < end_y; j++) {
               load< DIMSY >(j, yj, py);
-              call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
+              call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, ppp);
 #if USE_BLOCKRED
               typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j); // tmp += xi
               if ((j+1)%200) {
@@ -157,7 +165,7 @@ struct CpuConv_ranges {
           else {
             for (int j = start_y; j < end_y; j++) {
               load< DIMSY >(j - start_y, yj, py, indices_j);
-              call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
+              call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, ppp);
 #if USE_BLOCKRED
               typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j - start_y); // tmp += xi
               if ((j+1)%200) {
