@@ -43,7 +43,7 @@ if N < 15000:
     K_ij = np.exp(- D_ij)
     res_numpy = K_ij.sum(axis=1)
     print("time with NumPy : ", time.time()-start)
-    print("error : ",np.linalg.norm(res_keops-res_numpy)/np.linalg.norm(res_numpy))
+    print("error : ",np.linalg.norm(res_keops.numpy()-res_numpy)/np.linalg.norm(res_numpy))
 
 
 
