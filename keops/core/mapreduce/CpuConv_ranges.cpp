@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <vector>
 
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 #include "core/pack/Pack.h"
 #include "core/pack/GetInds.h"
 #include "broadcast_batch_dimensions.h"
@@ -60,28 +64,14 @@ struct CpuConv_ranges {
   
     // Actual for-for loop -----------------------------------------------------
 
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP];
-    __TYPEACC__ acc[DIMRED];
-#if USE_BLOCKRED
-    // additional tmp vector to store intermediate results from each block
-    TYPE tmp[DIMRED];
-#elif USE_KAHAN
-    // additional tmp vector to accumulate errors
-    const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
-    TYPE tmp[DIM_KAHAN];
-#endif
+    TYPE pp[DIMP];
     load< DIMSP >(0, pp, param);  // If nbatchdims == 0, the parameters are fixed once and for all
-    
-    int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
-    for (int k = 0; k < SIZEI - 1; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
-    for (int k = 0; k < SIZEJ; k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
-    for (int k = 0; k < SIZEP; k++) { indices_p[k] = 0; }
-    
-    
+        
     // Set the output to zero, as the ranges may not cover the full output -----
+    __TYPEACC__ acctmp[DIMRED];
     for (int i = 0; i < nx; i++) {
-      typename FUN::template InitializeReduction< __TYPEACC__ >()(acc);
-      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acc, px[0] + i * DIMOUT, px, i);
+      typename FUN::template InitializeReduction< __TYPEACC__ >()(acctmp);
+      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acctmp, px[0] + i * DIMOUT, px, i);
     }
     
     // N.B.: In the following code, we assume that the x-ranges do not overlap.
@@ -95,14 +85,19 @@ struct CpuConv_ranges {
     __INDEX__* ranges_x = FUN::tagJ ? ranges[0] : ranges[3];
     __INDEX__* slices_x = FUN::tagJ ? ranges[1] : ranges[4];
     __INDEX__* ranges_y = FUN::tagJ ? ranges[2] : ranges[5];
+
+    int indices_i[SIZEI - 1], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
+    for (int k = 0; k < SIZEI - 1; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
+    for (int k = 0; k < SIZEJ; k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
+    for (int k = 0; k < SIZEP; k++) { indices_p[k] = 0; }
     
     for (int range_index = 0; range_index < nranges; range_index++) {
+
       __INDEX__ start_x = ranges_x[2 * range_index];
       __INDEX__ end_x = ranges_x[2 * range_index + 1];
   
       __INDEX__ start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
       __INDEX__ end_slice = slices_x[range_index];
-  
   
       // If needed, compute the "true" start indices of the range, turning
       // the "abstract" index start_x into an array of actual "pointers/offsets" stored in indices_i:
@@ -112,8 +107,19 @@ struct CpuConv_ranges {
         vect_broadcast_index(range_index, nbatchdims, SIZEP, shapes, shapes_p, indices_p);
         load< DIMSP >(0, pp, param, indices_p); // Load the paramaters, once per tile
       }
-  
+
+#pragma omp parallel for   
       for (__INDEX__ i = start_x; i < end_x; i++) {
+        TYPE xi[DIMX], yj[DIMY];
+        __TYPEACC__ acc[DIMRED];
+#if USE_BLOCKRED
+        // additional tmp vector to store intermediate results from each block
+        TYPE tmp[DIMRED];
+#elif USE_KAHAN
+        // additional tmp vector to accumulate errors
+        const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+        TYPE tmp[DIM_KAHAN];
+#endif
         if (nbatchdims == 0) {
           load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
         } else {
