@@ -36,8 +36,8 @@ def K(x,y,b,p,**kwargs):
     x_i = LazyTensor( x[:,:,:,None,:] )
     y_j = LazyTensor( y[:,:,None,:,:] )  
     b_j = LazyTensor( b[:,:,None,:,:] ) 
-    p = LazyTensor( p ) 
-    D_ij = (p*(x_i - y_j)**2).sum(axis=4)  
+    p = LazyTensor( p[:,:,None,None,:] ) 
+    D_ij = ((x_i - y_j)**2).sum(axis=4)  
     K_ij = (- D_ij).exp() * b_j             
     K_ij = K_ij.sum(axis=3,call=False,**kwargs)
     return K_ij
