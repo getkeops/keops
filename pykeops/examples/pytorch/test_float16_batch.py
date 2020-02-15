@@ -33,11 +33,11 @@ else:
 import timeit
 
 def K(x,y,b,p,**kwargs):
-    x_i = LazyTensor( x[:,:,:,None,:] )
-    y_j = LazyTensor( y[:,:,None,:,:] )  
-    b_j = LazyTensor( b[:,:,None,:,:] ) 
+    x_i = LazyTensor( x )
+    y_j = LazyTensor( y )  
+    b_j = LazyTensor( b ) 
     p = LazyTensor( p ) 
-    D_ij = (p*(x_i - y_j)**2).sum(axis=4)  
+    D_ij = ((x_i - y_j)**2).sum(axis=4)  
     K_ij = (- D_ij).exp() * b_j             
     K_ij = K_ij.sum(axis=3,call=False,**kwargs)
     return K_ij
@@ -46,10 +46,11 @@ B, C, M, N, D = 123, 3, 11, 2001, 3
 
 if backend == "torch":
     torch.manual_seed(1)
-    x = torch.randn(1, C, M, D, dtype=torch.float64).cuda(device_id)
-    y = torch.randn(B, 1, N, D, dtype=torch.float64).cuda(device_id)
-    b = torch.randn(B, C, N, 1, dtype=torch.float64).cuda(device_id)
-    p = torch.randn(B, C, D, dtype=torch.float64).cuda(device_id)
+    x = torch.randn(1, C, M, 1, D, dtype=torch.float64).cuda(device_id)
+    y = torch.randn(B, 1, 1, N, D, dtype=torch.float64).cuda(device_id)
+    b = torch.randn(B, C, 1, N, 1, dtype=torch.float64).cuda(device_id)
+    #p = torch.randn(B, C, 1, 1, D, dtype=torch.float64).cuda(device_id)
+    p = torch.ones(1, dtype=torch.float64).cuda(device_id)
     xf = x.float()
     yf = y.float()
     bf = b.float()
@@ -69,13 +70,12 @@ else:
     yh = y.astype(np.float16)
     bh = b.astype(np.float16)
 
-Ntest_half, Ntest_float = 10, 10
+Ntest_half, Ntest_float = 0, 0
 # monitor = Monitor(1e-6)
 # computation using float32
 K_keops32 = K(xf,yf,bf,pf)
 res_float = K_keops32()
 print("comp float, time : ",timeit.timeit("K_keops32()",number=Ntest_float,setup="from __main__ import K_keops32"))
-print(res_float)
 # monitor.stop()
 
 # computation using float16
@@ -84,7 +84,6 @@ K_keops16 = K(xh,yh,bh,ph)
 K_ij = K_keops16()
 res_half = K_ij
 print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="from __main__ import K_keops16"))
-print(res_half)
 # monitor.stop()
 
 if backend == "torch":

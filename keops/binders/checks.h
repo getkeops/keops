@@ -313,7 +313,7 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
       for (int b = 0; b < nbatchdims; b++) {
         _shapes[off_i + b] = get_size_batch(args[i], nbatchdims + 2, b);
       }
-        
+
       _shapes[off_i + nbatchdims + 2] = get_size(args[i], nbatchdims);  // = "D"
 
 #if USE_HALF  
@@ -347,7 +347,7 @@ void Sizes< array_t >::switch_to_half2_indexing() {
         int off_i = (i + 1) * (nbatchdims + 3);
         // we don't have anymore the category information...
         // the last three dimensions are either of the form (M,1,D), (1,N,D), or (1,1,D)
-        // with M or N even in the 2 first cases, or D even in the third case.
+        // where M or N are even in the 2 first cases, or D is even in the third case.
         if(shapes[off_i+nbatchdims]>1)
             shapes[off_i+nbatchdims] = shapes[off_i+nbatchdims] / 2;
         else if(shapes[off_i+nbatchdims+1]>1)
