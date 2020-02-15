@@ -27,20 +27,25 @@ int get_size(at::Tensor obj_ptri, int l) {
 }
 
 template <>
-__TYPE__* get_data< at::Tensor, __TYPE__ >(at::Tensor obj_ptri) {
-  return obj_ptri.data_ptr< __TYPE__ >();
-}
-
-template <>
 bool is_contiguous(at::Tensor obj_ptri) {
   return obj_ptri.is_contiguous();
 }
 
 #if USE_DOUBLE
-  #define AT_TYPE at::kDouble
+  #define AT_kTYPE at::kDouble
+  #define AT_TYPE double
+#elif USE_HALF
+  #define AT_kTYPE at::kHalf
+  #define AT_TYPE at::Half
 #else
-  #define AT_TYPE at::kFloat
+  #define AT_kTYPE at::kFloat
+  #define AT_TYPE float
 #endif
+
+template <>
+__TYPE__* get_data< at::Tensor, __TYPE__ >(at::Tensor obj_ptri) {
+  return (__TYPE__*)obj_ptri.data_ptr< AT_TYPE >();
+}
 
 template <>
 at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(int* shape_out, int nbatchdims) {
@@ -49,7 +54,7 @@ at::Tensor allocate_result_array< at::Tensor, __TYPE__ >(int* shape_out, int nba
   std::copy(shape_out, shape_out + nbatchdims + 2, shape_out_long);
   c10::ArrayRef < int64_t > shape_out_array(shape_out_long, (int64_t) nbatchdims + 2);
 
-  return torch::empty(shape_out_array, at::device(at::kCPU).dtype(AT_TYPE).requires_grad(true));
+  return torch::empty(shape_out_array, at::device(at::kCPU).dtype(AT_kTYPE).requires_grad(true));
 
 }
 
@@ -63,7 +68,7 @@ at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(int* shape_out, int
   c10::ArrayRef < int64_t > shape_out_array(shape_out_long, (int64_t) nbatchdims + 2);
 
   // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
-  return torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_TYPE).requires_grad(true));
+  return torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_kTYPE).requires_grad(true));
 #else
   keops_error(Error_msg_no_cuda);
   throw std::runtime_error("Simply here to avoid a warning at compilation.");

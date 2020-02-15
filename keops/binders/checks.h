@@ -104,6 +104,9 @@ public:
   int* shape_out;
   
   // methods
+
+  void switch_to_half2_indexing();
+
 private:
   void fill_shape(int nargs, array_t* args);
   
@@ -312,11 +315,16 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
       }
         
       _shapes[off_i + nbatchdims + 2] = get_size(args[i], nbatchdims);  // = "D"
-  
-      if (_shapes[off_i + nbatchdims + 2] != static_cast< int >(DIMSP::VAL(k))) {
+
+#if USE_HALF  
+      int dim_param = _shapes[off_i + nbatchdims + 2] / 2;
+#else
+      int dim_param = _shapes[off_i + nbatchdims + 2];
+#endif
+      if (dim_param != static_cast< int >(DIMSP::VAL(k))) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
                     + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
-                    + " : is " + std::to_string(_shapes[off_i + nbatchdims + 2])
+                    + " : is " + std::to_string(dim_param)
                     + " but should be " + std::to_string(DIMSP::VAL(k)));
       }
   
@@ -325,6 +333,28 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
   }
   
   
+}
+
+template< typename array_t >
+void Sizes< array_t >::switch_to_half2_indexing() {
+    // special case of float16 inputs : because we use half2 type in Cuda codes, we need to divide by two nx, ny, and M, N, or D
+    // values inside the shapes vector.
+    nx = nx / 2;
+    ny = ny / 2;
+    shapes[nbatchdims] = shapes[nbatchdims] / 2;
+    shapes[nbatchdims+1] = shapes[nbatchdims+1] / 2;
+    for (int i = 0; i < nargs; i++) {
+        int off_i = (i + 1) * (nbatchdims + 3);
+        // we don't have anymore the category information...
+        // the last three dimensions are either of the form (M,1,D), (1,N,D), or (1,1,D)
+        // with M or N even in the 2 first cases, or D even in the third case.
+        if(shapes[off_i+nbatchdims]>1)
+            shapes[off_i+nbatchdims] = shapes[off_i+nbatchdims] / 2;
+        else if(shapes[off_i+nbatchdims+1]>1)
+            shapes[off_i+nbatchdims+1] = shapes[off_i+nbatchdims+1] / 2;
+        else
+            shapes[off_i+nbatchdims+2] = shapes[off_i+nbatchdims+2] / 2;   
+    }
 }
 
 }

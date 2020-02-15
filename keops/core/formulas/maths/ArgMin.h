@@ -24,14 +24,21 @@ struct ArgMin : UnaryOp<ArgMin, F> {
 
   static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#if USE_HALF && GPU_ON
+//#pragma unroll
+#elif USE_HALF
+// this should never be used...
+#else
     *out = 0.0;
 	__TYPE__ tmp = outF[0];
 #pragma unroll
-    for (int k = 0; k < F::DIM; k++)
+    for (int k = 1; k < F::DIM; k++)
       if (outF[k] < tmp) {
       	tmp = outF[k];
 		*out = k;
       }
+#endif
+
   }
 
   template<class V, class GRADIN>

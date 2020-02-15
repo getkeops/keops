@@ -112,10 +112,10 @@ struct CpuConv_ranges {
       for (__INDEX__ i = start_x; i < end_x; i++) {
         TYPE xi[DIMX], yj[DIMY];
         __TYPEACC__ acc[DIMRED];
-#if USE_BLOCKRED
+#if SUM_SCHEME == BLOCK_SUM
         // additional tmp vector to store intermediate results from each block
         TYPE tmp[DIMRED];
-#elif USE_KAHAN
+#elif SUM_SCHEME == KAHAN_SCHEME
         // additional tmp vector to accumulate errors
         const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
         TYPE tmp[DIM_KAHAN];

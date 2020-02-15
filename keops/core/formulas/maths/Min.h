@@ -26,11 +26,16 @@ struct Min : UnaryOp<Min, F> {
 
   static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#if USE_HALF && GPU_ON
+#elif USE_HALF
+// this should never be used...
+#else
     *out = outF[0];
 #pragma unroll
     for (int k = 1; k < F::DIM; k++)
       if (outF[k] < *out)
 		  *out = outF[k];
+#endif
   }
 
   template<class V, class GRADIN>

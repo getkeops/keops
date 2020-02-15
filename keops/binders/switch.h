@@ -148,11 +148,16 @@ array_t_out launch_keops(int tag1D2D,
   short int deviceId_casted = cast_Device_Id(deviceId);
   
   Sizes< array_t > SS(nargs, args);
-  Ranges< array_t, index_t > RR(SS, nranges, ranges);
-  
+
   array_t_out result = (tagHostDevice == 0) ? allocate_result_array< array_t_out, __TYPE__ >(SS.shape_out, SS.nbatchdims)
                                             : allocate_result_array_gpu< array_t_out, __TYPE__ >(SS.shape_out, SS.nbatchdims, deviceId_casted);
   __TYPE__* result_ptr = get_data< array_t_out, __TYPE__ >(result);
+
+#if USE_HALF
+  SS.switch_to_half2_indexing();
+#endif
+  
+  Ranges< array_t, index_t > RR(SS, nranges, ranges);
   
   // get the pointers to data to avoid a copy
   __TYPE__* args_ptr[keops::NARGS];
