@@ -141,29 +141,27 @@ def check_aliases_list(types_list):
     
     return aliases
 
-def get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op_internal):
+def get_accuracy_flags(use_double_acc, sum_scheme, dtype, reduction_op_internal):
         if use_double_acc:
             if (dtype != "float32") or (reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight")):
                 raise ValueError("[KeOps] use_double_acc=True is only valid for sum type reductions and when input data type is float32.")
-        if use_BlockRed is "auto":
-            if reduction_op_internal in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight") and not use_Kahan:
-                use_BlockRed = True
+        if sum_scheme is "auto":
+            if reduction_op_internal in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
+                sum_scheme = "block_sum"
             else:
-                use_BlockRed = False
-        if use_BlockRed:
+                sum_scheme = "direct_sum"
+        if sum_scheme == "block_sum":
             if reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
-                raise ValueError("[KeOps] use_BlockRed=True is only valid for sum type reductions.")
-        if use_Kahan:
+                raise ValueError('[KeOps] sum_scheme="block_sum" is only valid for sum type reductions.')
+        if sum_scheme == "kahan_scheme":
             if reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
-                raise ValueError("[KeOps] use_Kahan=True is only valid for sum type reductions.")
-        if use_BlockRed and use_Kahan:
-            raise ValueError("[KeOps] use_BlockRed and use_Kahan cannot be set both to True.")
+                raise ValueError('[KeOps] sum_scheme="kahan_scheme" is only valid for sum type reductions.')
 
         optional_flags = []
         if use_double_acc:
             optional_flags += ['-D__TYPEACC__=double']
-        if use_BlockRed:
-            optional_flags += ['-DUSE_BLOCKRED=1']
-        if use_Kahan:
-            optional_flags += ['-DUSE_KAHAN=1']
+        if sum_scheme == "block_sum":
+            optional_flags += ['-DSUM_SCHEME=1']
+        elif sum_scheme == "kahan_scheme":
+            optional_flags += ['-DSUM_SCHEME=2']
         return optional_flags

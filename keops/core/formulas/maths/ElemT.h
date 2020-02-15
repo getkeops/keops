@@ -27,7 +27,12 @@ struct ElemT : UnaryOp< ElemT, F, N, M > {
 
   static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
     for (int k = 0; k < DIM; k++)
-      out[k] = 0.0;
+#if USE_HALF && GPU_ON
+      out[k] = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
+      out[k] = 0.0f;
+#endif
     out[M] = *outF;
   }
 

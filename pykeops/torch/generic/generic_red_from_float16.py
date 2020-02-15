@@ -40,12 +40,13 @@ class GenredAutograd(torch.autograd.Function):
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
         
         if ranges is None : ranges = () # To keep the same type
-
-        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *args)
+        (categories, dimensions) = parse_aliases(aliases)
+        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions,
+                                       *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
-        ctx.save_for_backward(*args, result)
+        ctx.save_for_backward(*args,result)
 
         return result
 
@@ -55,7 +56,7 @@ class GenredAutograd(torch.autograd.Function):
         aliases = ctx.aliases
         backend = ctx.backend
         dtype = ctx.dtype
-        ranges = ctx.ranges
+        ranges    = ctx.ranges
         accuracy_flags = ctx.accuracy_flags
         device_id = ctx.device_id
         myconv = ctx.myconv
@@ -228,19 +229,19 @@ class Genred():
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMin_ArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
-            use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32.
+            use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
                 This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight".
+                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
                 It improves the accuracy of results in case of large sized data, but is slower.
-
-            use_BlockRed (bool or "auto", default "auto"): if True, use an intermediate accumulator in each block before accumulating
-                in the output. This improves
-                accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". Default value "auto" will reset it to True for these reductions.
-
-            use_Kahan (bool, default False): use Kahan summation algorithm to compensate for round-off errors. This improves
-                accuracy for large sized data. This can only be set to True when reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight".
+           
+            sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
+                when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+                Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
+                  - **sum_scheme** =  ``"direct_sum"``: direct summation
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
 
         """
         if cuda_type:

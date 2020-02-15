@@ -37,10 +37,24 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
 #pragma unroll
         for (int i = 0; i < DIM; i++) {
-            out[i] = 0;
+#if USE_HALF && GPU_ON
+            out[i] = __float2half2_rn(0.0f);
+#elif USE_HALF
+// this should never be used...
+#else
+            out[i] = 0.0f;
+#endif
 #pragma unroll
-            for (int k = 0; k < B::DIM; k++)
+            for (int k = 0; k < B::DIM; k++) {
+#if USE_HALF && GPU_ON
+                out[i] = __hfma2(out[i], inB[k], inA[DIM * k + i]);
+#elif USE_HALF
+// this should never be used...
+//                out[i] = out[i] + inB[k] * inA[DIM * k + i];
+#else
                 out[i] += inB[k] * inA[DIM * k + i];
+#endif
+	    }
         }
     }
 #else // column major
@@ -48,10 +62,23 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
     int q = 0;
 #pragma unroll
     for (int i = 0; i < DIM; i++) {
-      out[i] = 0;
+#if USE_HALF && GPU_ON
+      out[i] = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
+      out[i] = 0.0f;
+#endif
 #pragma unroll
       for (int k = 0; k < B::DIM; k++, q++)
+#if USE_HALF && GPU_ON
+        out[i] = __hfma2(out[i], inB[k], inA[q]);
+#elif USE_HALF
+        {}
+// this should never be used...
+//        out[i] = out[i] + inB[k] * inA[q];
+#else
         out[i] += inB[k] * inA[q];
+#endif
     }
   }
 #endif

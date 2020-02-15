@@ -58,7 +58,14 @@ class torchtools:
 
     @staticmethod
     def dtypename(dtype):
-        return 'float32' if dtype == torch.float32 else 'float64'
+        if dtype == torch.float32:
+            return 'float32'
+        elif dtype == torch.float64:
+            return 'float64'
+        elif dtype == torch.float16:
+            return 'float16'
+        else:
+            raise ValueError("[KeOps] data type incompatible with KeOps.")
 
     @staticmethod
     def rand(m, n, dtype=default_dtype, device='cpu'):
@@ -82,6 +89,10 @@ class torchtools:
             dtype = torch.float32
         elif dtype == "float64":
             dtype = torch.float64
+        elif dtype == "float16":
+            dtype = torch.float16
+        else:
+            raise ValueError("[KeOps] data type incompatible with KeOps.")
         return torch.tensor(x, dtype=dtype, device=device)
 
     @staticmethod

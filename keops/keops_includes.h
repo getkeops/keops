@@ -1,3 +1,6 @@
+
+#include <cuda_fp16.h>
+
 // import constant
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/constants/Zero.h"
@@ -80,11 +83,11 @@
 #ifndef __TYPEACC__
   #define __TYPEACC__ __TYPE__
 #endif
-#ifndef USE_BLOCKRED
-  #define USE_BLOCKRED 0
-#endif
-#ifndef USE_KAHAN
-  #define USE_KAHAN 0
+#define DIRECT_SUM 0
+#define BLOCK_SUM 1
+#define KAHAN_SCHEME 2
+#ifndef SUM_SCHEME
+  #define SUM_SCHEME DIRECT_SUM
 #endif
 
 #include "core/mapreduce/CpuConv.cpp"

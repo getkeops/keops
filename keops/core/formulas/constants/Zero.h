@@ -28,7 +28,11 @@ struct Zero {
   template < class INDS, typename... ARGS >
   static DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
     for(int k=0; k<DIM; k++)
-      out[k] = 0;
+#if USE_HALF
+        out[k] = __float2half2_rn(0.0f); // initialize output
+#else
+        out[k] = 0.0f; // initialize output
+#endif  
   }
 
   // There is no gradient to accumulate on V, whatever V.

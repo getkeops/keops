@@ -34,7 +34,11 @@ struct IntConstant_Impl {
   // Evaluation is easy : simply fill *out = out[0] with N.
   template < class INDS, typename... ARGS >
   static DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+#if USE_HALF
+    *out = __float2half2_rn(N);
+#else
     *out = N;
+#endif
   }
 
   // There is no gradient to accumulate on V, whatever V.

@@ -28,10 +28,22 @@ struct OneHot : UnaryOp< OneHot, F, DIM_ > {
   //       with unnecessary casts, etc.
   static HOST_DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#if USE_HALF && GPU_ON
+#pragma unroll
+    for (int k = 0; k < DIM; k++)
+      out[k] = heq2(h2rint(outF[0]),k);
+#elif USE_HALF
+/*
+#pragma unroll
+    for (int k = 0; k < DIM; k++)
+      out[k] = (round((float)outF[0]) == k) ? 1 : 0 ;
+*/
+#else
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = 0.0;
-	out[(int)(outF[0]+.5)] = 1.0;
+    out[(int)(outF[0]+.5)] = 1.0;
+#endif
   }
 
   // There is no gradient to accumulate on V, whatever V.

@@ -36,9 +36,17 @@ struct SymTwoOuterProduct : BinaryOp<SymTwoOuterProduct,X,Y> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX, __TYPE__ *outY) {
+#pragma unroll
     for(int k=0; k < DIMIN; k++) {
+#pragma unroll
       for(int l=0; l < DIMIN; l++)
+#if USE_HALF && GPU_ON
+        out[ k*DIMIN + l ] = __hfma2(__hmul2(outX[k], outY[l]), outX[l], outY[k]) ;
+#elif USE_HALF
+        {}
+#else
         out[ k*DIMIN + l ] = outX[k] * outY[l] + outX[l] * outY[k] ;
+#endif
     }
   }
 
@@ -63,12 +71,31 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
+#pragma unroll
     for(int k=0; k < DIMIN; k++) {
-      out[k] = 0;
+#if USE_HALF && GPU_ON
+      out[k] = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
+      out[k] = 0.0f;
+#endif
+#pragma unroll
       for(int l=0; l < DIMIN; l++) {
+#if USE_HALF && GPU_ON
+        out[ k ] = __hfma2(out[k], outA[ k*DIMIN + l ], outX[ l ]);
+      }
+      out[k] = __hmul2(out[k], (half)2);
+#elif USE_HALF
+      }
+/*
+        out[ k ] = out[k] + outA[ k*DIMIN + l ] * outX[ l ];
+      out[k] = out[k] * (half)2;
+*/
+#else
         out[ k ] += outA[ k*DIMIN + l ] * outX[ l ];
       }
       out[k] *= 2;
+#endif
     }
   }
 
@@ -92,9 +119,17 @@ struct SymOuterProduct : UnaryOp<SymOuterProduct,X> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outX) {
+#pragma unroll
     for(int k=0; k < DIMIN; k++) {
+#pragma unroll
       for(int l=0; l < DIMIN; l++)
+#if USE_HALF && GPU_ON
+        out[ k*DIMIN + l ] = __hmul2(outX[ k ], outX[ l ]);
+#elif USE_HALF
+        {}
+#else
         out[ k*DIMIN + l ] = outX[ k ] * outX[ l ];
+#endif
     }
   }
 
@@ -120,10 +155,24 @@ struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outX) {
-    *out = 0;
+#if USE_HALF && GPU_ON
+      *out = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
+      *out = 0.0f;
+#endif
+#pragma unroll
     for(int k=0; k < DIMIN; k++) {
+#pragma unroll
       for(int l=0; l < DIMIN; l++)
+#if USE_HALF && GPU_ON
+        *out = __hfma2(*out, outA[ k*DIMIN + l ], outX[k]*outX[l]);
+#elif USE_HALF
+        {}
+        //*out = *out + outA[ k*DIMIN + l ] * outX[k]*outX[l];
+#else
         *out += outA[ k*DIMIN + l ] * outX[k]*outX[l];
+#endif
     }
   }
 

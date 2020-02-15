@@ -29,9 +29,16 @@ struct Abs : UnaryOp<Abs, F> {
 #ifdef __CUDA_ARCH__
 #if USE_DOUBLE
         out[k] = fabs(outF[k]);
+#elif USE_HALF
+	// N.B. I don't know how if there is a dedicated absolute value operation for half precision...
+        out[k] = abs(outF[k]);
 #else
         out[k] = fabsf(outF[k]);
 #endif
+#elif USE_HALF && GPU_ON
+        out[k] = abs((float)outF[k]);
+#elif USE_HALF
+// this should never be used...
 #else
       out[k] =  ::std::abs(outF[k]);
 #endif

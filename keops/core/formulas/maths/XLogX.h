@@ -30,6 +30,16 @@ struct XLogX : UnaryOp<XLogX, F> {
     for (int k = 0; k < DIM; k++) {
 #if USE_DOUBLE
       out[k] = outF[k] ? outF[k]*log(outF[k]) : 0.0;
+#elif USE_HALF && GPU_ON
+      out[k] = outF[k] ? outF[k]*h2log(outF[k]) : 0.0;
+#elif USE_HALF
+// this should never be used...
+/*
+      if (outF[k]==(half)0.0)
+            out[k] = (half)0.0;
+      else
+            outF[k]*(half)logf((half)outF[k]);
+*/
 #else
       out[k] = outF[k] ? outF[k]*logf(outF[k]) : 0.0;
 #endif

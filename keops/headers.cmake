@@ -37,7 +37,7 @@ message(STATUS "Using shared_obj_name: ${shared_obj_name}")
 
 # - type for computation. The CACHE option enable to see it in ccmake.
 if(NOT __TYPE__)
-  Set(__TYPE__ float CACHE STRING "Precision type of the computations (float or double)")
+  Set(__TYPE__ float CACHE STRING "Precision type of the computations (__half, float or double)")
 endif()
 add_definitions(-D__TYPE__=${__TYPE__})
 
@@ -51,13 +51,9 @@ add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 if(__TYPEACC__)
   add_definitions(-D__TYPEACC__=${__TYPEACC__})
 endif()
-if(USE_BLOCKRED)
-  add_definitions(-DUSE_BLOCKRED=${USE_BLOCKRED})
+if(SUM_SCHEME)
+  add_definitions(-DSUM_SCHEME=${SUM_SCHEME})
 endif()
-if(USE_KAHAN)
-  add_definitions(-DUSE_KAHAN=${USE_KAHAN})
-endif()
-
 
 # - Declare the templates formula if not provided by the user
 if(NOT DEFINED USENEWSYNTAX)

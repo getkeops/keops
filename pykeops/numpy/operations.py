@@ -43,7 +43,7 @@ class KernelSolve:
     
     """
     
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, use_double_acc=False, sum_scheme="auto"):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -82,11 +82,24 @@ class KernelSolve:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays. 
                 The supported values are:
 
-                  - **dtype** = ``"float32"`` or ``"float"``.
-                  - **dtype** = ``"float64"`` or ``"double"``.
+                  - **dtype** = ``"float16"``.
+                  - **dtype** = ``"float32"``.
+                  - **dtype** = ``"float64"``.
+
+            use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32.
+                It improves the accuracy of results in case of large sized data, but is slower.
+           
+            sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
+                Default value "auto" will set this option to "block_red". Possible values are:
+                  - **sum_scheme** =  ``"direct_sum"``: direct summation
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
 
         """
         reduction_op = 'Sum'
@@ -95,7 +108,7 @@ class KernelSolve:
         else:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
 
-        optional_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op)
+        optional_flags = get_accuracy_flags(use_double_acc, sum_scheme, dtype, reduction_op)
 
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias

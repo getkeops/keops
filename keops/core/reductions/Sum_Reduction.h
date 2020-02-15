@@ -37,7 +37,11 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
     DEVICE INLINE void operator()(TYPE *tmp) {
 #pragma unroll
       for (int k = 0; k < DIM; k++)
+#if USE_HALF
+        tmp[k] = __float2half2_rn(0.0f); // initialize output
+#else
         tmp[k] = 0.0f; // initialize output
+#endif
     }
   };
 
@@ -82,9 +86,29 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   template < typename TYPEACC, typename TYPE >
   struct FinalizeOutput {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+#if USE_HALF && GPU_ON
+	if ((DIM % 2)==0) {
+#pragma unroll
+		for(int k=0; k<DIM/2; k++) {
+			out[k] = __lows2half2(acc[2*k],acc[2*k+1]);
+			out[k+DIM/2] = __highs2half2(acc[2*k],acc[2*k+1]);
+		}
+	}
+	else {
+#pragma unroll
+		for(int k=0; k<DIM/2; k++) {
+			out[k] = __lows2half2(acc[2*k],acc[2*k+1]);
+			out[k+DIM/2+1] = __highs2half2(acc[2*k+1],acc[2*k+2]);
+		}
+                half2 tmp;
+                tmp = __low2half2(acc[DIM-1]);
+                out[DIM/2] = __highs2half2(tmp,acc[0]);
+	}
+#else
 #pragma unroll
       for (int k = 0; k < DIM; k++)
         out[k] = acc[k];
+#endif
     }
   };
 

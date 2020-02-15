@@ -33,7 +33,11 @@ struct Cos : UnaryOp<Cos, F> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
-#if USE_DOUBLE
+#if USE_HALF
+#if GPU_ON
+      out[k] = h2cos(outF[k]);
+#endif
+#elif USE_DOUBLE
       out[k] = cos(outF[k]);
 #else
       out[k] = cosf(outF[k]);

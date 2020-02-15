@@ -33,7 +33,11 @@ struct Sqrt_Impl : UnaryOp<Sqrt_Impl, F> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
-#if USE_DOUBLE
+#if USE_HALF && GPU_ON
+      out[k] = h2rsqrt(outF[k]);
+#elif USE_HALF
+// this should never be used...
+#elif USE_DOUBLE
       out[k] = sqrt(outF[k]);
 #else
       out[k] = sqrtf(outF[k]);

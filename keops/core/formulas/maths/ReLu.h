@@ -23,12 +23,31 @@ struct ReLU : UnaryOp<ReLU, F> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#if USE_HALF && GPU_ON
+#pragma unroll
+    for (int k = 0; k < DIM; k++)
+      if hlt2(outF[k],0)
+        out[k] = 0.0;
+      else
+        out[k] = outF[k];
+#elif USE_HALF
+// this should never be used...
+/*
+#pragma unroll
+    for (int k = 0; k < DIM; k++)
+      if (outF[k] < (half)0)
+        out[k] = 0.0;
+      else
+        out[k] = outF[k];
+*/
+#else
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       if (outF[k] < 0)
         out[k] = 0.0;
       else
         out[k] = outF[k];
+#endif
   }
 
   template<class V, class GRADIN>

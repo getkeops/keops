@@ -35,7 +35,13 @@ struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
+#if USE_HALF && GPU_ON
+      out[k] = __hmul2(outA[k],outB[k]);
+#elif USE_HALF
+      {}
+#else
       out[k] = outA[k] * outB[k];
+#endif
   }
 
   //  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)

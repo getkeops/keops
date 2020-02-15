@@ -29,11 +29,19 @@ struct ExtractT : UnaryOp<ExtractT,F,START,DIM_> {
 
   static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
     for(int k=0; k<START; k++)
+#if USE_HALF
+      out[k] = __float2half2_rn(0.0f);
+#else
       out[k] = 0.0;
+#endif
     for(int k=0; k<F::DIM; k++)
       out[START+k] = outF[k];
     for(int k=START+F::DIM; k<DIM; k++)
+#if USE_HALF
+      out[k] = __float2half2_rn(0.0f);
+#else
       out[k] = 0.0;
+#endif
   }
 
   template < class V, class GRADIN >

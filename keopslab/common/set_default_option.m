@@ -1,5 +1,5 @@
-function v = setoptions(struct, fieldname, default_value, possible_value)
-% setoptions(struct, fieldname, default_value, possible_value) - given a struct,
+function v = set_default_option(struct, fieldname, default_value, possible_value)
+% set_default_option(struct, fieldname, default_value, possible_value) - given a struct,
 % check if the field 'fieldname' exists. If not, it creates the field with 
 % the default value. If it exists and possible_value is 
 % given, it checks that the existing value is in possible value.

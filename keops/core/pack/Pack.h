@@ -142,9 +142,9 @@ struct pack<N, NS...> {
      * (where Ni is the max value of "i" you should expect)
      * Obviously, we do not make any sanity check... so beware of illicit memory accesses !
      */
-    // Using pythonic syntax, we can describe our loading procedure as follows :
+#pragma unroll
     for (int k = 0; k < FIRST; k++) {
-      assert(&((*px)[i * FIRST + k]) != nullptr);
+      //assert(&((*px)[i * FIRST + k]) != nullptr);
       xi[k] = (*px)[i * FIRST + k];                 // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
     }
     NEXT::load(i, xi + FIRST, px + 1);              // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
@@ -158,8 +158,9 @@ struct pack<N, NS...> {
     assert(px != nullptr);
     int true_i = offsets[0] + i;
     // Using pythonic syntax, we can describe our loading procedure as follows :
+#pragma unroll
     for (int k = 0; k < FIRST; k++) {
-      assert(&((*px)[true_i * FIRST + k]) != nullptr);
+      //assert(&((*px)[true_i * FIRST + k]) != nullptr);
       xi[k] = (*px)[true_i * FIRST + k];            // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
     }
     NEXT::load(i,

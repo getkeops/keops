@@ -277,11 +277,22 @@ struct TensorDot : BinaryOp< TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERM
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
 #pragma unroll
     for (int i = 0; i < DIM; i++)
-      out[i] = 0;
+#if USE_HALF && GPU_ON
+      out[i] = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
+      out[i] = 0.0f;
+#endif
 
     loop< typename parameters::loopdim_t >::f(parameters::compute_tensordot_indices_apply([&out, &inA, &inB](
         tensordot_indices td) {
+#if USE_HALF && GPU_ON
+      out[td.out_indices] = __hfma2(out[td.out_indices], inA[td.a_indices], inB[td.b_indices]);
+#elif USE_HALF
+      //out[td.out_indices] = out[td.out_indices] + inA[td.a_indices] * inB[td.b_indices];
+#else
       out[td.out_indices] += inA[td.a_indices] * inB[td.b_indices];
+#endif
     }));
   }
 

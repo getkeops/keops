@@ -85,15 +85,43 @@ struct GaussKernel_specific {
     __TYPE__* xi = Get<IndVal_Alias<INDS,X::N>::ind>(args...);
     __TYPE__* yj = Get<IndVal_Alias<INDS,Y::N>::ind>(args...);
     __TYPE__* betaj = Get<IndVal_Alias<INDS,B::N>::ind>(args...);
+#if USE_HALF && GPU_ON
+    __TYPE__ r2 = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
     __TYPE__ r2 = 0.0f;
+#endif
     __TYPE__ temp;
+#pragma unroll
     for(int k=0; k<DIMPOINT; k++) {
+#if USE_HALF && GPU_ON
+      temp =  __hsub2(yj[k],xi[k]);
+      r2 = __hfma2(r2, temp, temp);
+#elif USE_HALF
+      //temp =  yj[k]-xi[k];
+      //r2 = r2 + temp*temp;
+#else
       temp =  yj[k]-xi[k];
       r2 += temp*temp;
+#endif
     }
+#if USE_HALF && GPU_ON
+    __TYPE__ s = h2exp(_hneg2(__hmul2(r2,params[0])));
+#pragma unroll
+    for(int k=0; k<DIMVECT; k++)
+      gammai[k] = __hmul2(s,betaj[k]);
+#elif USE_HALF
+    __TYPE__ s;
+    //__TYPE__ s = exp((float)(-r2*params[0]));
+//#pragma unroll
+    //for(int k=0; k<DIMVECT; k++)
+    //  gammai[k] = s * betaj[k];
+#else
     __TYPE__ s = exp(-r2*params[0]);
+#pragma unroll
     for(int k=0; k<DIMVECT; k++)
       gammai[k] = s * betaj[k];
+#endif
   }
 
   template < class V, class GRADIN >
@@ -188,21 +216,46 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
     __TYPE__* yj = Get<IndVal_Alias<INDS,Y::N>::ind>(args...);
     __TYPE__* betaj = Get<IndVal_Alias<INDS,B::N>::ind>(args...);
     __TYPE__* etai = Get<IndVal_Alias<INDS,GRADIN::N>::ind>(args...);
-
-    __TYPE__ r2 = 0.0f, sga = 0.0f;                 // Don't forget to initialize at 0.0
     __TYPE__ xmy[DIMPOINT];
+#if USE_HALF && GPU_ON
+    __TYPE__ r2 = __float2half2_rn(0.0f), sga =__float2half2_rn(0.0f);                 // Don't forget to initialize at 0.0
+#elif USE_HALF
+#else
+    __TYPE__ r2 = 0.0f, sga = 0.0f;                 // Don't forget to initialize at 0.0
+#endif
 #pragma unroll
     for(int k=0; k<DIMPOINT; k++) {                 // Compute the L2 squared distance r2 = | x_i-y_j |_2^2
+#if USE_HALF && GPU_ON
+      xmy[k] =  __hsub2(xi[k], yj[k]);
+      r2 = __hfma2(r2, xmy[k], xmy[k]);
+#elif USE_HALF
+#else
       xmy[k] =  xi[k]-yj[k];
       r2 += xmy[k]*xmy[k];
+#endif
     }
 #pragma unroll
     for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
+#if USE_HALF && GPU_ON
+      sga = hfma(sga, betaj[k], etai[k]);
+    __TYPE__ s = _hneg2(__hmul2(__hmul2(2.0,sga), h2exp(_hneg2(__hmul2(r2,params[0])))));  // Don't forget the 2 !
+#elif USE_HALF
+    {}
+    //  sga = sga + betaj[k]*etai[k];
+    //__TYPE__ s = - 2.0 * (float)sga * exp((float)(-r2*params[0]));  // Don't forget the 2 !
+#else
       sga += betaj[k]*etai[k];
     __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
+#endif
 #pragma unroll
     for(int k=0; k<DIMPOINT; k++)                   // Increment the output vector gammai - which is a POINT
+#if USE_HALF && GPU_ON
+      gammai[k] = __hmul2(s, xmy[k]);
+#elif USE_HALF
+      {}
+#else
       gammai[k] = s * xmy[k];
+#endif
   }
 
   // direct implementation stops here, so we link back to the usual autodiff module

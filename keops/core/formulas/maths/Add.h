@@ -47,7 +47,13 @@ struct Add_Impl : BinaryOp< Add_Impl, FA, FB > {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
+#if USE_HALF && GPU_ON
+      out[k] = __hadd2(outA[k],outB[k]);
+#elif USE_HALF
+      {}
+#else
       out[k] = outA[k] + outB[k];
+#endif
   }
 
   // [ \partial_V (A + B) ] . gradin = [ \partial_V A ] . gradin  + [ \partial_V B ] . gradin
@@ -69,7 +75,13 @@ struct Add_Impl_Broadcast : BinaryOp< Add_Impl_Broadcast, FA, FB > {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
 #pragma unroll
     for (int k = 0; k < DIM; k++)
+#if USE_HALF && GPU_ON
+      out[k] = __hadd2(*outA,outB[k]);
+#elif USE_HALF
+      {}
+#else
       out[k] = *outA + outB[k];
+#endif
   }
 
   // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin

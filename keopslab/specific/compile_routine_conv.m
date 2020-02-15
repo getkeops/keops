@@ -9,6 +9,6 @@ filename = 'conv';
 
 msg = '';
 
-testbuild = compile_code(cmd_cmake, cmd_make, filename, msg)
+testbuild = compile_code(cmd_cmake, cmd_make, filename, msg);
 
 end
