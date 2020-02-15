@@ -91,7 +91,6 @@ class Genred():
             dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays.
                 The supported values are:
 
-                  - **dtype** = ``"float16"``.
                   - **dtype** = ``"float32"``.
                   - **dtype** = ``"float64"``.
 
@@ -116,6 +115,10 @@ class Genred():
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type 
+
+        if dtype in ('float16','half'):
+            raise ValueError("[KeOps] Float16 type is only supported with PyTorch tensors inputs.")
+
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 

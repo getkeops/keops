@@ -63,7 +63,6 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
     std::copy(shape_out, shape_out + nbatchdims+2, shape_out_long);
     c10::ArrayRef<int64_t> shape_out_array(shape_out_long, (int64_t) nbatchdims+2);
 
-
     if(tagHostDevice == 0) { // Data is located on Host
 
         auto result_array = torch::empty(shape_out_array, at::device(at::kCPU).dtype(AT_kTYPE).requires_grad(true));
@@ -92,6 +91,7 @@ at::Tensor launch_keops(int tag1D2D, int tagCpuGpu, int tagHostDevice, short int
         }
     } else if(tagHostDevice == 1) { // Data is on the device
 #if USE_CUDA
+
         //assert(Device_Id <std::numeric_limits<c10::DeviceIndex>::max());  // check that int will fit in a c10::DeviceIndex type
         auto result_array = torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_kTYPE).requires_grad(true));
         if (tagRanges == 0) { // Full M-by-N computation

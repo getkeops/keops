@@ -283,7 +283,11 @@ std::tuple<int, int, int, int*> check_args(size_t nargs, std::vector<int> catego
             shapes[off_i+nbatchdims+1] = 1;
             shapes[off_i+nbatchdims+2] = get_size(obj_ptr[i], nbatchdims);  // = "D"
 
+#if USE_HALF
+            if (shapes[off_i+nbatchdims+2] != 2*dimensions[i]) {
+#else
             if (shapes[off_i+nbatchdims+2] != dimensions[i]) {
+#endif
                 throw std::runtime_error("[KeOps] Wrong value of the 'vector size' dimension "
                         + std::to_string(nbatchdims) + "for arg number " + std::to_string(i) 
                         + " : is " + std::to_string(shapes[off_i+nbatchdims+2]) 
@@ -420,6 +424,31 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
     int nbatchdims = std::get<2>(nx_ny_nbatch_shapes);
     int *shapes = std::get<3>(nx_ny_nbatch_shapes);
 
+    // Store, in a raw int array, the shape of the output: =====================
+    // [A, .., B, M, D]  if TAGIJ==0
+    //  or
+    // [A, .., B, N, D]  if TAGIJ==1
+
+    int *shape_output = new int[nbatchdims+2];
+    for (int b = 0; b < nbatchdims; b++) {
+            shape_output[b] = shapes[b];  // Copy the "batch dimensions"
+    }
+    shape_output[nbatchdims]   = shapes[nbatchdims+TAGIJ];  // M or N
+    shape_output[nbatchdims+1] = shapes[nbatchdims+2];      // D
+
+#if USE_HALF
+    // special case of float16 inputs : because we use half2 type in Cuda codes, we need to divide by two nx, ny, and M, N
+    // values inside the shapes vector.
+    nx = nx / 2;
+    ny = ny / 2;
+    shapes[nbatchdims] = shapes[nbatchdims] / 2;
+    shapes[nbatchdims+1] = shapes[nbatchdims+1] / 2;
+    for (size_t i = 0; i < nargs; i++) {
+        int off_i = (i + 1) * (nbatchdims + 3);
+        shapes[off_i+nbatchdims+cats[i]] = shapes[off_i+nbatchdims+cats[i]] / 2;
+    }
+#endif
+
     int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y ;
     __INDEX__ **castedranges;
     // N.B.: This vector is only used if ranges.size() == 6,
@@ -503,20 +532,6 @@ array_t generic_red(int tagCpuGpu,        // tagCpuGpu=0     means Reduction on 
             );
     }
     
-
-    // Store, in a raw int array, the shape of the output: =====================
-    // [A, .., B, M, D]  if TAGIJ==0
-    //  or
-    // [A, .., B, N, D]  if TAGIJ==1
-
-    int *shape_output = new int[nbatchdims+2];
-    for (int b = 0; b < nbatchdims; b++) {
-            shape_output[b] = shapes[b];  // Copy the "batch dimensions"
-    }
-    shape_output[nbatchdims]   = shapes[nbatchdims+TAGIJ];  // M or N
-    shape_output[nbatchdims+1] = shapes[nbatchdims+2];      // D
-
-
     // Call Cuda codes =========================================================
     array_t result = launch_keops<array_t>(tag1D2D, tagCpuGpu, tagHostDevice, Device_Id_s,
                             nx, ny,

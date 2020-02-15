@@ -5,6 +5,7 @@ import GPUtil
 from threading import Thread
 import time
 
+
 class Monitor(Thread):
     def __init__(self, delay):
         super(Monitor, self).__init__()
@@ -31,32 +32,36 @@ else:
 
 import timeit
 
-def K(x,y,b,**kwargs):
-    x_i = LazyTensor( x[:,None,:] )
-    y_j = LazyTensor( y[None,:,:] )  
-    b_j = LazyTensor( b[None,:,:] ) 
-    D_ij = (3.5*(x_i - y_j)**2).sum(axis=2)  
+def K(x,y,b,p,**kwargs):
+    x_i = LazyTensor( x[:,:,:,None,:] )
+    y_j = LazyTensor( y[:,:,None,:,:] )  
+    b_j = LazyTensor( b[:,:,None,:,:] ) 
+    p = LazyTensor( p ) 
+    D_ij = (p*(x_i - y_j)**2).sum(axis=4)  
     K_ij = (- D_ij).exp() * b_j             
-    K_ij = K_ij.sum(axis=1,call=False,**kwargs)
+    K_ij = K_ij.sum(axis=3,call=False,**kwargs)
     return K_ij
 
-M, N, D = 2000, 200000, 2
+B, C, M, N, D = 123, 3, 11, 2001, 3
 
 if backend == "torch":
     torch.manual_seed(1)
-    x = torch.randn(M, D, dtype=torch.float64).cuda(device_id)
-    y = torch.randn(N, D, dtype=torch.float64).cuda(device_id)
-    b = torch.randn(N, 1, dtype=torch.float64).cuda(device_id)
+    x = torch.randn(1, C, M, D, dtype=torch.float64).cuda(device_id)
+    y = torch.randn(B, 1, N, D, dtype=torch.float64).cuda(device_id)
+    b = torch.randn(B, C, N, 1, dtype=torch.float64).cuda(device_id)
+    p = torch.randn(B, C, D, dtype=torch.float64).cuda(device_id)
     xf = x.float()
     yf = y.float()
     bf = b.float()
+    pf = p.float()
     xh = x.half()
     yh = y.half()
     bh = b.half()
+    ph = p.half()
 else:
-    x = np.random.randn(M, D)
-    y = np.random.randn(N, D)
-    b = np.random.randn(N, 1)
+    x = np.random.randn(B, C, M, D)
+    y = np.random.randn(B, C, N, D)
+    b = np.random.randn(B, C, N, 1)
     xf = x.astype(np.float32)
     yf = y.astype(np.float32)
     bf = b.astype(np.float32)
@@ -67,17 +72,19 @@ else:
 Ntest_half, Ntest_float = 10, 10
 # monitor = Monitor(1e-6)
 # computation using float32
-K_keops32 = K(xf,yf,bf)
+K_keops32 = K(xf,yf,bf,pf)
 res_float = K_keops32()
 print("comp float, time : ",timeit.timeit("K_keops32()",number=Ntest_float,setup="from __main__ import K_keops32"))
+print(res_float)
 # monitor.stop()
 
 # computation using float16
 # monitor = Monitor(1e-6)
-K_keops16 = K(xh,yh,bh)
+K_keops16 = K(xh,yh,bh,ph)
 K_ij = K_keops16()
 res_half = K_ij
 print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="from __main__ import K_keops16"))
+print(res_half)
 # monitor.stop()
 
 if backend == "torch":

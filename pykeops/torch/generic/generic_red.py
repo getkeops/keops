@@ -3,11 +3,11 @@ import torch
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
+from pykeops.torch.half2_convert import preprocess_half2, postprocess_half2
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.parse_type import parse_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype, include_dirs
-
 
 class GenredAutograd(torch.autograd.Function):
     """
@@ -370,8 +370,16 @@ class Genred():
 
         """
 
-        out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
-                                   device_id, ranges, self.accuracy_flags, *args)
         nx, ny = get_sizes(self.aliases, *args)
         nout = nx if self.axis==1 else ny
+
+        if self.dtype in ('float16','half'):
+            args, ranges, tag_dummy = preprocess_half2(args, self.aliases, self.axis, ranges, nx, ny)
+        
+        out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
+                                   device_id, ranges, self.accuracy_flags, *args)
+
+        if self.dtype in ('float16','half'):
+            out = postprocess_half2(out, tag_dummy)
+
         return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, self.dtype)
