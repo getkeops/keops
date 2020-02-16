@@ -341,6 +341,8 @@ void Sizes< array_t >::switch_to_half2_indexing() {
     // values inside the shapes vector.
     nx = nx / 2;
     ny = ny / 2;
+    M = M / 2;
+    N = N / 2;
     shapes[nbatchdims] = shapes[nbatchdims] / 2;
     shapes[nbatchdims+1] = shapes[nbatchdims+1] / 2;
     for (int i = 0; i < nargs; i++) {

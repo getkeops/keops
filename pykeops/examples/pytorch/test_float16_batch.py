@@ -38,11 +38,11 @@ def K(x,y,b,p,**kwargs):
     b_j = LazyTensor( b[:,:,None,:,:] ) 
     p = LazyTensor( p[:,:,None,None,:] ) 
     D_ij = ((x_i - y_j)**2).sum(axis=4)  
-    K_ij = (- D_ij).exp() * b_j             
+    K_ij = (- p*D_ij).exp() * b_j             
     K_ij = K_ij.sum(axis=3,call=False,**kwargs)
     return K_ij
 
-B, C, M, N, D = 123, 3, 11, 2001, 3
+B, C, M, N, D = 3, 5, 11, 11, 1
 
 if backend == "torch":
     torch.manual_seed(1)
@@ -69,13 +69,13 @@ else:
     yh = y.astype(np.float16)
     bh = b.astype(np.float16)
 
-Ntest_half, Ntest_float = 10, 10
+Ntest_half, Ntest_float = 0, 0
 # monitor = Monitor(1e-6)
 # computation using float32
 K_keops32 = K(xf,yf,bf,pf)
 res_float = K_keops32()
 print("comp float, time : ",timeit.timeit("K_keops32()",number=Ntest_float,setup="from __main__ import K_keops32"))
-print(res_float)
+#print(res_float)
 # monitor.stop()
 
 # computation using float16
@@ -84,7 +84,7 @@ K_keops16 = K(xh,yh,bh,ph)
 K_ij = K_keops16()
 res_half = K_ij
 print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="from __main__ import K_keops16"))
-print(res_half)
+#print(res_half)
 # monitor.stop()
 
 if backend == "torch":
