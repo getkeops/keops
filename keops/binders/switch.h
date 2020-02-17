@@ -4,11 +4,12 @@
 #include "binders/utils.h"
 #include "binders/checks.h"
 
-
+#if !USE_HALF
 extern "C" {
 int CpuReduc(int, int, __TYPE__*, __TYPE__**);
 int CpuReduc_ranges(int, int, int, int*, int, int, __INDEX__**, __TYPE__*, __TYPE__**);
 };
+#endif
 
 #if USE_CUDA
 extern "C" {
@@ -168,10 +169,13 @@ array_t_out launch_keops(int tag1D2D,
   int decision = 1000 * RR.tagRanges + 100 * tagHostDevice + 10 * tagCpuGpu + tag1D2D;
   
   switch (decision) {
+
+#if !USE_HALF
     case 0: {
       CpuReduc(SS.nx, SS.ny, result_ptr, args_ptr);
       return result;
     }
+#endif
     
     case 10: {
 #if USE_CUDA
@@ -208,13 +212,15 @@ array_t_out launch_keops(int tag1D2D,
       keops_error(Error_msg_no_cuda);
 #endif
     }
-    
+
+#if !USE_HALF    
     case 1000: {
       CpuReduc_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
                       RR.nranges_x, RR.nranges_y, RR.castedranges,
                       result_ptr, args_ptr);
       return result;
     }
+#endif
     
     case 1010: {
 #if USE_CUDA

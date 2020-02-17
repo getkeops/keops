@@ -42,19 +42,19 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 		// equivalent of the += operation
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePairShort {
-			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, int j) {
+			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
 #pragma unroll
 				for(int k=0; k<F::DIM; k++) {
 #if USE_HALF && GPU_ON
 					__half2 cond = __hlt2(xi[k],tmp[k]);
 					__half2 negcond = __float2half2_rn(1.0f)-cond;
 					tmp[k] = cond * xi[k] + negcond * tmp[k];
-					tmp[F::DIM+k] = cond * __float2half2_rn(j) + negcond * tmp[F::DIM+k];
+					tmp[F::DIM+k] = cond * val + negcond * tmp[F::DIM+k];
 #elif USE_HALF
 #else
 					if(xi[k]<tmp[k]) {
 						tmp[k] = xi[k];
-						tmp[F::DIM+k] = j;
+						tmp[F::DIM+k] = val;
 					}
 #endif
 				}

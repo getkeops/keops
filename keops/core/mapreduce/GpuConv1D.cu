@@ -80,11 +80,21 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
                                   yjrel,
                                   param_loc); // Call the function, which outputs results in xi[0:DIMX1]
 #if SUM_SCHEME == BLOCK_SUM
+#if USE_HALF
+        int ind = jrel + tile * blockDim.x;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, __floats2half2_rn(2*ind,2*ind+1));     // tmp += xi
+#else
         typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, jrel + tile * blockDim.x);     // tmp += xi
+#endif
 #elif SUM_SCHEME == KAHAN_SCHEME
         typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);     
 #else
+#if USE_HALF
+        int ind = jrel + tile * blockDim.x;
+        typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
 	typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, jrel + tile * blockDim.x);     // acc += xi
+#endif
 #endif
       }
 #if SUM_SCHEME == BLOCK_SUM

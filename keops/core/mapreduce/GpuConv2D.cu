@@ -153,11 +153,21 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
 #if SUM_SCHEME == BLOCK_SUM
-            typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#if USE_HALF
+        int ind = blockDim.x*blockIdx.y+jrel;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#endif
 #elif SUM_SCHEME == KAHAN_SCHEME
             typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);   
 #else
-            typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#if USE_HALF
+        int ind = blockDim.x*blockIdx.y+jrel;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#endif
 #endif
         }
     }

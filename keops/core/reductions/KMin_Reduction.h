@@ -33,8 +33,17 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
             for(int k=0; k<F::DIM; k++) {
 #pragma unroll
                 for(int l=k; l<K*2*F::DIM+k; l+=2*F::DIM) {
+#if USE_HALF && GPU_ON
+                    tmp[l] = __float2half2_rn(65504.); // initialize output
+                    tmp[l+F::DIM] = __float2half2_rn(0.); // initialize output
+         // to be continued...
+         printf("[KeOps] Error : KMin or ArgKMin reductions are not yet implemented with half precision type");
+         asm("trap;");
+#elif USE_HALF
+#else
                     tmp[l] = PLUS_INFINITY<TYPE>::value; // initialize output
                     tmp[l+F::DIM] = 0; // initialize output
+#endif
                 }
             }
         }
@@ -44,7 +53,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
     // equivalent of the += operation
     template < typename TYPEACC, typename TYPE >
     struct ReducePairShort {
-        DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, int j) {
+        DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
             TYPE xik;
             int l;
 #pragma unroll
@@ -55,7 +64,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
                     TYPE tmpl = tmp[l];
                     int indtmpl = tmp[l+F::DIM];
                     tmp[l] = xik;
-                    tmp[l+F::DIM] = j;
+                    tmp[l+F::DIM] = val;
                     if(l<(K-1)*2*F::DIM+k) {
                         tmp[l+2*F::DIM] = tmpl;
                         tmp[l+2*F::DIM+F::DIM] = indtmpl;

@@ -373,12 +373,12 @@ class Genred():
         nout = nx if self.axis==1 else ny
 
         if self.dtype in ('float16','half'):
-            args, ranges, tag_dummy = preprocess_half2(args, self.aliases, self.axis, ranges, nx, ny)
+            args, ranges, tag_dummy, N = preprocess_half2(args, self.aliases, self.axis, ranges, nx, ny)
         
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
                                    device_id, ranges, self.accuracy_flags, *args)
 
         if self.dtype in ('float16','half'):
-            out = postprocess_half2(out, tag_dummy)
+            out = postprocess_half2(out, tag_dummy, self.reduction_op, N)
 
         return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, self.dtype)

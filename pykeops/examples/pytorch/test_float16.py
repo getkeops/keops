@@ -38,11 +38,11 @@ def K(x,y,b,p,**kwargs):
     p = LazyTensor( p ) 
     #D_ij = ((x_i - y_j)**2).sum(axis=2)  
     #K_ij = ((- p*D_ij) * b_j)  
-    K_ij = (x_i-b_j)
-    K_ij = K_ij.min(axis=1,call=False,**kwargs)
+    K_ij = (x_i*b_j).sum()
+    K_ij = K_ij.min_argmin(axis=1,call=False,**kwargs)
     return K_ij
 
-M, N, D = 13, 21, 4
+M, N, D = 201, 201, 4
 
 if backend == "torch":
     torch.manual_seed(2)
@@ -50,9 +50,9 @@ if backend == "torch":
     y = torch.randn(N, D, dtype=torch.float64).cuda(device_id)
     b = torch.randn(N, 1, dtype=torch.float64).cuda(device_id)
     p = torch.randn(D, dtype=torch.float64).cuda(device_id)
-    xf = x.float()
-    yf = y.float()
-    bf = b.float()
+    xf = x.half().float()
+    yf = y.half().float()
+    bf = b.half().float()
     pf = p.float()
     xh = x.half()
     yh = y.half()
@@ -74,6 +74,7 @@ Ntest_half, Ntest_float = 0, 0
 # computation using float32
 K_keops32 = K(xf,yf,bf,pf)
 res_float = K_keops32()
+
 print("comp float, time : ",timeit.timeit("K_keops32()",number=Ntest_float,setup="from __main__ import K_keops32"))
 # monitor.stop()
 print(res_float)
@@ -83,11 +84,21 @@ print(res_float)
 K_keops16 = K(xh,yh,bh,ph)
 K_ij = K_keops16()
 res_half = K_ij
+
 print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="from __main__ import K_keops16"))
 # monitor.stop()
 print(res_half)
 
 if backend == "torch":
-    print("mean relative error half vs float : ",((res_half.float()-res_float)/res_float).abs().mean().item())
-    print("max relative error half vs float : ",((res_half.float()-res_float)/res_float).abs().max().item())
+    print("min")
+    print("mean relative error half vs float : ",((res_half[0].float()-res_float[0])/res_float[0]).abs().mean().item())
+    print("max relative error half vs float : ",((res_half[0].float()-res_float[0])/res_float[0]).abs().max().item())
+
+    print("argmin")
+    print("mean relative error half vs float : ",((res_half[1].float()-res_float[1])/res_float[1]).abs().mean().item())
+    print("max relative error half vs float : ",((res_half[1].float()-res_float[1])/res_float[1]).abs().max().item())
+
+print(res_half[0].float()-res_float[0])
+print(res_half[1].float()-res_float[1])
+
 

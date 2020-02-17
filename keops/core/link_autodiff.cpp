@@ -2,6 +2,8 @@
 
 using namespace keops;
 
+#if !USE_HALF
+
 /////////////////////////
 // Convolutions on Cpu //
 /////////////////////////
@@ -23,3 +25,4 @@ extern "C" int CpuReduc_ranges(int nx, int ny, int nbatchdims, int *shapes, int 
   return Eval< F, CpuConv_ranges >::Run(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, gamma, args);
 }
 
+#endif

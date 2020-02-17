@@ -12,7 +12,7 @@ def make_odd_cat(y):
         y = torch.cat((y,yend,ycut),dim=-2)
     else:
         y = torch.cat((y,y),dim=-2)
-    return y
+    return y, N
  
 def make_even_size(x):
     bdims = x.shape[:-2]
@@ -57,6 +57,7 @@ def ranges2half2(ranges,N):
     return ranges_i, slices_i, redranges_j
 
 def preprocess_half2(args, aliases, axis, ranges, nx, ny):
+    N = ny if axis==1 else nx
     if ranges is not None:
         if axis==1:
             ranges = ranges2half2(ranges[0:3],ny) + ranges[3:6]
@@ -68,21 +69,33 @@ def preprocess_half2(args, aliases, axis, ranges, nx, ny):
         arg = args[pos].data # we don't want to record our cuisine in the Autograd mechanism !
         if cat==2:
             arg = arg[...,None,:]      # (...,D)   -> (...,1,D)
-            arg,_ = make_even_size(arg)  # (...,1,D) -> (...,2,D)
+            arg = make_even_size(arg)  # (...,1,D) -> (...,2,D)
         elif cat==axis:
-            arg = make_odd_cat(arg)
+            arg, Narg = make_odd_cat(arg)
+            N = max(N,Narg)
         else:
             arg, tag_dummy = make_even_size(arg)
         arg = half2half2(arg)
         if cat==2:
             arg = arg.view(tuple(arg.shape[:-2])+(2*dim,))   # (...,2,D) -> (...,2*D) (we "hide" the factor 2 in the dimension...)
         newargs[pos] = arg
-    return newargs, ranges, tag_dummy
+    return newargs, ranges, tag_dummy, N
 
-def postprocess_half2(out, tag_dummy):
+def postprocess_half2(out, tag_dummy, reduction_op, N):
     out = half22half(out)
     if tag_dummy:
         out = out[...,:-1,:]
+    if reduction_op in ('ArgMin', 'ArgMax', 'ArgKMin'):
+        outind = out
+    elif reduction_op in ('Min_ArgMin', 'MinArgMin', 'Max_ArgMax', 'MaxArgMax', 'KMinArgKMin', 'KMin_ArgKMin'):
+        outind = out[...,out.shape[-1]//2:]
+    else:
+        return out
+    if N%2==0:
+        outind[outind==N] = N - 1
+        outind[outind>N] -= N + 1
+    else:
+        outind[outind>=N] -= N
     return out
 
 

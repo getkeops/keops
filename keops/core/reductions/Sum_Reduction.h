@@ -48,7 +48,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   // equivalent of the += operation
   template < typename TYPEACC, typename TYPE >
   struct ReducePairShort {
-    DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, int j) {
+    DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
 #pragma unroll
       for (int k = 0; k < DIM; k++) {
         tmp[k] += xi[k];

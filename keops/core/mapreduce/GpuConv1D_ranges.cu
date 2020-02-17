@@ -130,11 +130,21 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
                         for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {
                             call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
 #if SUM_SCHEME == BLOCK_SUM
-                            typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, jrel+tile*blockDim.x + start_y);     // tmp += xi
+#if USE_HALF
+        int ind = jrel+tile*blockDim.x + start_y;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, __floats2half2_rn(2*ind,2*ind+1));     // tmp += xi
+#else
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, jrel+tile*blockDim.x + start_y);     // tmp += xi
+#endif                           
 #elif SUM_SCHEME == KAHAN_SCHEME
                             typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
 #else
-                            typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, jrel+tile*blockDim.x + start_y);     // acc += xi
+#if USE_HALF
+        int ind = jrel+tile*blockDim.x + start_y;
+        typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+        typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, jrel+tile*blockDim.x + start_y);     // acc += xi
+#endif                              
 #endif
                         } 
                     }
@@ -142,11 +152,21 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
                         for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {
                             call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
 #if SUM_SCHEME == BLOCK_SUM
+#if USE_HALF
+       			    int ind = jrel+tile*blockDim.x;
+        		    typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, __floats2half2_rn(2*ind,2*ind+1));     // tmp += xi
+#else
                             typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
+#endif
 #elif SUM_SCHEME == KAHAN_SCHEME
                             typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
 #else
+#if USE_HALF
+       			    int ind = jrel+tile*blockDim.x;
+        		    typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
                             typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, jrel+tile*blockDim.x);     // acc += xi
+#endif
 #endif
                         }
                     }
