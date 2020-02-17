@@ -33,39 +33,34 @@ struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
-#if USE_HALF && GPU_ON
-      if heq2(outF[k],0) {
+#ifdef __CUDA_ARCH__
+  #if USE_HALF && GPU_ON
+      __half2 cond = __heq2(outF[k],__float2half2_rn(0.0f));
+      out[k] = h2rsqrt(outF[k]+cond) * (__float2half2_rn(1.0f)-cond);
+  #elif USE_HALF
+  // this should never be used...
+  #elif USE_DOUBLE
+      if (outF[k] == 0) {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
       }
+      else
+        out[k] = rsqrt(outF[k]);
+  #else
+      if (outF[k] == 0) {
+        out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
+      }
+      else
+        out[k] = rsqrtf(outF[k]);
+  #endif
 #elif USE_HALF
 // this should never be used...
-      if (1) {}
-/*
-      if (outF[k] == (half)0) {
-        out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
-      }
-*/
 #else
       if (outF[k] == 0) {
         out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
       }
-#endif
-      else {
-#ifdef __CUDA_ARCH__    // check if we are compiling a device code
-#if USE_DOUBLE
-        out[k] = rsqrt(outF[k]);
-#elif USE_HALF
-        out[k] = h2rsqrt(outF[k]);
-#else
-        out[k] = rsqrtf(outF[k]);
-#endif
-#elif USE_HALF
-	// this should never be used...
-        //out[k] = 1.0 / sqrt((float)outF[k]);
-#else
+      else
         out[k] = 1.0 / sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
 #endif
-      }
     }
   }
 

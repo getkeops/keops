@@ -55,10 +55,9 @@ struct Scalprod_Impl : BinaryOp< Scalprod_Impl, FA, FB > {
 #pragma unroll
     for (int k = 0; k < DIMIN; k++)
 #if USE_HALF && GPU_ON
-      *out = __hfma2(*out, outA[k], outB[k]);
+      *out = __hfma2(outA[k], outB[k], *out);
 #elif USE_HALF
       {}
-      //*out = *out + outA[k] * outB[k];
 #else
       *out += outA[k] * outB[k];
 #endif

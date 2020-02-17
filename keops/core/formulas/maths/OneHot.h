@@ -31,7 +31,7 @@ struct OneHot : UnaryOp< OneHot, F, DIM_ > {
 #if USE_HALF && GPU_ON
 #pragma unroll
     for (int k = 0; k < DIM; k++)
-      out[k] = heq2(h2rint(outF[0]),k);
+      out[k] = __heq2(h2rint(outF[0]),__float2half2_rn(k));
 #elif USE_HALF
 /*
 #pragma unroll

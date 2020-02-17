@@ -44,11 +44,18 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
     DEVICE INLINE void operator()(TYPE *acc) {
       // We fill empty cells with the neutral element of the reduction operation,
       //                   (-inf,0) = e^{-inf} * 0 = 0
-
+#if USE_HALF && GPU_ON
+      acc[0] = __float2half2_rn(-65504.);
+#pragma unroll
+      for (int k = 1; k < DIMRED; k++)
+        acc[k] = __float2half2_rn(0.0f);
+#elif USE_HALF
+#else
       acc[0] = NEG_INFINITY< TYPE >::value;
 #pragma unroll
       for (int k = 1; k < DIMRED; k++)
         acc[k] = 0.0f;
+#endif
     }
   };
 

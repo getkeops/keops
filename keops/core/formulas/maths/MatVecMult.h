@@ -39,7 +39,7 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
             out[i] = __float2half2_rn(0.0f);
 #pragma unroll
             for (int k = 0; k < B::DIM; k++, q++)
-                out[i] = out[i] + inA[q] * inB[k];
+                out[i] =  __hfma2(inA[q], inB[k], out[i]);
 #endif
 #else
             out[i] = 0.0f;
@@ -63,9 +63,8 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
       for (int k = 0; k < B::DIM; k++)
 #if USE_HALF
 #if GPU_ON
-        out[i] = __hfma2(out[i], inA[k * DIM + i], inB[k]);
+        out[i] = __hfma2(inA[k * DIM + i], inB[k], out[i]);
 #else
-        out[i] = out[i] + inA[k * DIM + i] * inB[k];
 #endif
 #else
         out[i] += inA[k * DIM + i] * inB[k];

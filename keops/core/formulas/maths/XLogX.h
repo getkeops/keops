@@ -31,15 +31,9 @@ struct XLogX : UnaryOp<XLogX, F> {
 #if USE_DOUBLE
       out[k] = outF[k] ? outF[k]*log(outF[k]) : 0.0;
 #elif USE_HALF && GPU_ON
-      out[k] = outF[k] ? outF[k]*h2log(outF[k]) : 0.0;
+      out[k] = outF[k] * h2log(outF[k] + __heq2(outF[k],__float2half2_rn(0.0f)));
 #elif USE_HALF
 // this should never be used...
-/*
-      if (outF[k]==(half)0.0)
-            out[k] = (half)0.0;
-      else
-            outF[k]*(half)logf((half)outF[k]);
-*/
 #else
       out[k] = outF[k] ? outF[k]*logf(outF[k]) : 0.0;
 #endif

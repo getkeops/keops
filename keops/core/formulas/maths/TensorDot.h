@@ -287,9 +287,9 @@ struct TensorDot : BinaryOp< TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERM
     loop< typename parameters::loopdim_t >::f(parameters::compute_tensordot_indices_apply([&out, &inA, &inB](
         tensordot_indices td) {
 #if USE_HALF && GPU_ON
-      out[td.out_indices] = __hfma2(out[td.out_indices], inA[td.a_indices], inB[td.b_indices]);
+      out[td.out_indices] = __hfma2(inA[td.a_indices], inB[td.b_indices], out[td.out_indices]);
 #elif USE_HALF
-      //out[td.out_indices] = out[td.out_indices] + inA[td.a_indices] * inB[td.b_indices];
+// should never be used...
 #else
       out[td.out_indices] += inA[td.a_indices] * inB[td.b_indices];
 #endif

@@ -8,7 +8,6 @@
 
 #ifdef __CUDACC__
   #include <npp.h>
-  #define INFINITY_HALF NPP_MAXABS_16F
   #define INFINITY_FLOAT NPP_MAXABS_32F
   #define INFINITY_DOUBLE NPP_MAXABS_64F
 #else

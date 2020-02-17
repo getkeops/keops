@@ -24,29 +24,14 @@ struct Sign : UnaryOp<Sign, F> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+#pragma unroll
+    for (int k = 0; k < DIM; k++) 
 #if USE_HALF && GPU_ON
-#pragma unroll
-    for (int k = 0; k < DIM; k++)
-      if hgt2(outF[k],0)
-        out[k] = 1.0;
-      else if hlt2(outF[k],0)
-        out[k] = -1.0;
-      else
-        out[k] = 0.0;
+      out[k] =  __hgt2(outF[k],__float2half2_rn(0.0f)) - __hlt2(outF[k],__float2half2_rn(0.0f));  // (outF[k]>0) - (outF[k]<0) (element-wise)
 #elif USE_HALF
+{}
 // this should never be used...
-/*
-    for (int k = 0; k < DIM; k++)
-      if (outF[k] > (half)0)
-        out[k] = (half)1.0;
-      else if (outF[k] < (half)0)
-        out[k] = (half)-1.0;
-      else
-        out[k] = (half)0.0;
-*/
 #else
-#pragma unroll
-    for (int k = 0; k < DIM; k++)
       if (outF[k] > 0)
         out[k] = 1.0;
       else if (outF[k] < 0)

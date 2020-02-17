@@ -27,6 +27,14 @@ struct Min : UnaryOp<Min, F> {
   static DEVICE INLINE
   void Operation(__TYPE__ *out, __TYPE__ *outF) {
 #if USE_HALF && GPU_ON
+    *out = outF[0];
+#pragma unroll
+    for (int k = 1; k < F::DIM; k++) {
+      // we have to work element-wise...
+      __half2 cond = __hlt2(outF[k],*out);                 // cond = (outF[k] < out) (element-wise)
+      __half2 negcond = __float2half2_rn(1.0f)-cond;       // negcond = 1-cond
+      *out = cond * outF[k] + negcond * *out;              // out  = cond * outF[k] + (1-cond) * out
+    }
 #elif USE_HALF
 // this should never be used...
 #else

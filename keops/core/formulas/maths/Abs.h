@@ -27,20 +27,26 @@ struct Abs : UnaryOp<Abs, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++){
 #ifdef __CUDA_ARCH__
-#if USE_DOUBLE
+  #if USE_DOUBLE
         out[k] = fabs(outF[k]);
-#elif USE_HALF
-	// N.B. I don't know how if there is a dedicated absolute value operation for half precision...
-        out[k] = abs(outF[k]);
-#else
+  #elif USE_HALF
+    #if CUDART_VERSION < 10020
+        // absolute value operation for half2 type is only available with Cuda version >= 10.2...
+        __half2 cond = __hlt2(__float2half2_rn(0.0f),outF[k]);                  // cond = (0 < outF[k]) (element-wise)
+        __half2 coef = __float2half2_rn(2.0f) * cond - __float2half2_rn(1.0f);  // coef = 2*cond-1
+        out[k] = coef * outF[k];                
+    #else
+        out[k] = __habs2(outF[k]);
+    #endif
+  #else
         out[k] = fabsf(outF[k]);
-#endif
-#elif USE_HALF && GPU_ON
-        out[k] = abs((float)outF[k]);
-#elif USE_HALF
-// this should never be used...
+  #endif
 #else
+  #if USE_HALF
+  // should never be used..
+  #else
       out[k] =  ::std::abs(outF[k]);
+  #endif
 #endif
     }
   }

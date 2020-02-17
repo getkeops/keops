@@ -23,10 +23,19 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 			DEVICE INLINE void operator()(TYPE *tmp) {
 #pragma unroll
 				for(int k=0; k<F::DIM; k++)
+#if USE_HALF
+					tmp[k] = __float2half2_rn(65504.); // initialize output
+#else
 					tmp[k] = PLUS_INFINITY<TYPE>::value; // initialize output
+#endif
 #pragma unroll
 				for(int k=F::DIM; k<2*F::DIM; k++)
-					tmp[k] = 0; // initialize output
+#if USE_HALF
+                                    tmp[k] = __float2half2_rn(0.0f); // initialize output
+#else
+                                    tmp[k] = 0.0f; // initialize output
+#endif
+
 			}
 		};
 
@@ -36,10 +45,18 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, int j) {
 #pragma unroll
 				for(int k=0; k<F::DIM; k++) {
+#if USE_HALF && GPU_ON
+					__half2 cond = __hlt2(xi[k],tmp[k]);
+					__half2 negcond = __float2half2_rn(1.0f)-cond;
+					tmp[k] = cond * xi[k] + negcond * tmp[k];
+					tmp[F::DIM+k] = cond * __float2half2_rn(j) + negcond * tmp[F::DIM+k];
+#elif USE_HALF
+#else
 					if(xi[k]<tmp[k]) {
 						tmp[k] = xi[k];
 						tmp[F::DIM+k] = j;
 					}
+#endif
 				}
 			}
 		};
@@ -50,10 +67,18 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi) {
 #pragma unroll
 				for(int k=0; k<F::DIM; k++) {
+#if USE_HALF && GPU_ON
+					__half2 cond = __hlt2(xi[k],tmp[k]);
+					__half2 negcond = __float2half2_rn(1.0f)-cond;
+					tmp[k] = cond * xi[k] + negcond * tmp[k];
+					tmp[F::DIM+k] = cond * xi[F::DIM+k] + negcond * tmp[F::DIM+k];
+#elif USE_HALF
+#else
 					if(xi[k]<tmp[k]) {
 						tmp[k] = xi[k];
 						tmp[F::DIM+k] = xi[F::DIM+k];
 					}
+#endif
 				}
 			}
 		};

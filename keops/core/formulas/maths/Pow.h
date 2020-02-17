@@ -7,6 +7,9 @@
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
+#include "core/formulas/maths/Inv.h"
+
+#include "core/formulas/maths/Powf.h"
 
 #include "core/pre_headers.h"
 
@@ -15,6 +18,37 @@ namespace keops {
 //////////////////////////////////////////////////////////////
 ////             POWER OPERATOR : Pow< F, M >             ////
 //////////////////////////////////////////////////////////////
+
+#if USE_HALF
+
+// there is no power operator available yet for half2...
+// so we use recursive definition F^M = F^(M/2) * F^(M/2).
+template<class F, int M>
+struct Pow_Impl {
+  using left = typename Pow_Impl<F,M/2>::type;
+  using right = typename Pow_Impl<F,M-M/2>::type;
+  using type = typename Mult_Alias<left, right>::type;
+};
+
+template<class F>
+struct Pow_Impl<F,1> {
+  using type = F;
+};
+
+template<class F>
+struct Pow_Impl<F,-1> {
+  using type = Inv<F>;
+};
+
+template<class F>
+struct Pow_Impl<F,0> {
+  using type = IntConstant<1>;
+};
+
+template<class F, int M>
+using Pow = typename Pow_Impl<F,M>::type;
+
+#else
 
 template<class F, int M>
 struct Pow : UnaryOp<Pow, F, M> {
@@ -26,23 +60,9 @@ struct Pow : UnaryOp<Pow, F, M> {
   }
 
   static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#if USE_HALF && GPU_ON
-// apparently there is no power operator for half type...
-#pragma unroll
-    for (int k = 0; k < DIM; k++)
-        out[k] = h2exp(__hmul2((half)N,h2log(outF[k])));
-#elif USE_HALF
-// this should neveer be used...
-/*
-#pragma unroll
-    for (int k = 0; k < DIM; k++)
-      out[k] = pow((float)outF[k], M);
-*/
-#else
 #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = pow(outF[k], M);
-#endif
   }
 
   // [\partial_V F^M].gradin  =  M * (F^(M-1)) * [\partial_V F].gradin
@@ -53,6 +73,8 @@ struct Pow : UnaryOp<Pow, F, M> {
   using DiffT = Scal<IntConstant<M>, DiffTF<V, Mult<Pow<F, M - 1>, GRADIN>>>;
 
 };
+
+#endif
 
 #define Pow(f,M) KeopsNS<Pow<decltype(InvKeopsNS(f)),M>>()
 

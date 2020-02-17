@@ -38,17 +38,17 @@ def K(x,y,b,p,**kwargs):
     p = LazyTensor( p ) 
     #D_ij = ((x_i - y_j)**2).sum(axis=2)  
     #K_ij = ((- p*D_ij) * b_j)  
-    K_ij = (x_i-b_j)
-    K_ij = K_ij.min(axis=1,call=False,**kwargs)
+    K_ij = (b_j|x_i)
+    K_ij = K_ij.sum(axis=1,call=False,**kwargs)
     return K_ij
 
 M, N, D = 13, 21, 4
 
 if backend == "torch":
-    torch.manual_seed(2)
+    torch.manual_seed(1)
     x = torch.randn(M, D, dtype=torch.float64).cuda(device_id)
     y = torch.randn(N, D, dtype=torch.float64).cuda(device_id)
-    b = torch.randn(N, 1, dtype=torch.float64).cuda(device_id)
+    b = torch.randn(N, D, dtype=torch.float64).cuda(device_id)
     p = torch.randn(D, dtype=torch.float64).cuda(device_id)
     xf = x.float()
     yf = y.float()
@@ -61,7 +61,7 @@ if backend == "torch":
 else:
     x = np.random.randn(M, D)
     y = np.random.randn(N, D)
-    b = np.random.randn(N, 1)
+    b = np.random.randn(N, 2)
     xf = x.astype(np.float32)
     yf = y.astype(np.float32)
     bf = b.astype(np.float32)

@@ -41,7 +41,7 @@ struct SymTwoOuterProduct : BinaryOp<SymTwoOuterProduct,X,Y> {
 #pragma unroll
       for(int l=0; l < DIMIN; l++)
 #if USE_HALF && GPU_ON
-        out[ k*DIMIN + l ] = __hfma2(__hmul2(outX[k], outY[l]), outX[l], outY[k]) ;
+        out[ k*DIMIN + l ] = __hfma2(outX[l], outY[k], __hmul2(outX[k], outY[l])) ;
 #elif USE_HALF
         {}
 #else
@@ -82,15 +82,11 @@ struct SymTwoDot : BinaryOp<SymTwoDot,A,X> {
 #pragma unroll
       for(int l=0; l < DIMIN; l++) {
 #if USE_HALF && GPU_ON
-        out[ k ] = __hfma2(out[k], outA[ k*DIMIN + l ], outX[ l ]);
+        out[ k ] = __hfma2(outA[ k*DIMIN + l ], outX[ l ], out[k]);
       }
       out[k] = __hmul2(out[k], (half)2);
 #elif USE_HALF
       }
-/*
-        out[ k ] = out[k] + outA[ k*DIMIN + l ] * outX[ l ];
-      out[k] = out[k] * (half)2;
-*/
 #else
         out[ k ] += outA[ k*DIMIN + l ] * outX[ l ];
       }
@@ -166,10 +162,9 @@ struct SymSqNorm : BinaryOp<SymSqNorm,A,X> {
 #pragma unroll
       for(int l=0; l < DIMIN; l++)
 #if USE_HALF && GPU_ON
-        *out = __hfma2(*out, outA[ k*DIMIN + l ], outX[k]*outX[l]);
+        *out = __hfma2(outA[ k*DIMIN + l ], outX[k]*outX[l], *out);
 #elif USE_HALF
-        {}
-        //*out = *out + outA[ k*DIMIN + l ] * outX[k]*outX[l];
+{}
 #else
         *out += outA[ k*DIMIN + l ] * outX[k]*outX[l];
 #endif

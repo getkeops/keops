@@ -96,10 +96,9 @@ struct GaussKernel_specific {
     for(int k=0; k<DIMPOINT; k++) {
 #if USE_HALF && GPU_ON
       temp =  __hsub2(yj[k],xi[k]);
-      r2 = __hfma2(r2, temp, temp);
+      r2 = __hfma2(temp, temp, r2);
 #elif USE_HALF
-      //temp =  yj[k]-xi[k];
-      //r2 = r2 + temp*temp;
+// shoud never be used..
 #else
       temp =  yj[k]-xi[k];
       r2 += temp*temp;
@@ -112,10 +111,6 @@ struct GaussKernel_specific {
       gammai[k] = __hmul2(s,betaj[k]);
 #elif USE_HALF
     __TYPE__ s;
-    //__TYPE__ s = exp((float)(-r2*params[0]));
-//#pragma unroll
-    //for(int k=0; k<DIMVECT; k++)
-    //  gammai[k] = s * betaj[k];
 #else
     __TYPE__ s = exp(-r2*params[0]);
 #pragma unroll
@@ -227,7 +222,7 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
     for(int k=0; k<DIMPOINT; k++) {                 // Compute the L2 squared distance r2 = | x_i-y_j |_2^2
 #if USE_HALF && GPU_ON
       xmy[k] =  __hsub2(xi[k], yj[k]);
-      r2 = __hfma2(r2, xmy[k], xmy[k]);
+      r2 = __hfma2(xmy[k], xmy[k], r2);
 #elif USE_HALF
 #else
       xmy[k] =  xi[k]-yj[k];
@@ -237,12 +232,10 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 #pragma unroll
     for(int k=0; k<DIMVECT; k++)                    // Compute the L2 dot product <a_i, b_j>
 #if USE_HALF && GPU_ON
-      sga = hfma(sga, betaj[k], etai[k]);
-    __TYPE__ s = _hneg2(__hmul2(__hmul2(2.0,sga), h2exp(_hneg2(__hmul2(r2,params[0])))));  // Don't forget the 2 !
+      sga = __hfma2(betaj[k], etai[k], sga);
+    __TYPE__ s = - __float2half2_rn(2.0f) * sga * h2exp(-r2*params[0]);  // Don't forget the 2 !
 #elif USE_HALF
     {}
-    //  sga = sga + betaj[k]*etai[k];
-    //__TYPE__ s = - 2.0 * (float)sga * exp((float)(-r2*params[0]));  // Don't forget the 2 !
 #else
       sga += betaj[k]*etai[k];
     __TYPE__ s = - 2.0 * sga * exp(-r2*params[0]);  // Don't forget the 2 !
@@ -250,7 +243,7 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
 #pragma unroll
     for(int k=0; k<DIMPOINT; k++)                   // Increment the output vector gammai - which is a POINT
 #if USE_HALF && GPU_ON
-      gammai[k] = __hmul2(s, xmy[k]);
+      gammai[k] = s * xmy[k];
 #elif USE_HALF
       {}
 #else
