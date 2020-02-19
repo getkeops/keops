@@ -42,9 +42,9 @@ else
 end
 % tagCpuGpu=0 means convolution on Cpu, tagCpuGpu=1 means convolution on Gpu, tagCpuGpu=2 means convolution on Gpu from device data
 if use_cuda_if_possible && canUseGPU
-    options = setoptions(options, 'tagCpuGpu', 1);
+    options = set_default_option(options, 'tagCpuGpu', 1);
 else
-    options = setoptions(options, 'tagCpuGpu', 0);
+    options = set_default_option(options, 'tagCpuGpu', 0);
 end
 % tag1D2D=0 means 1D Gpu scheme, tag1D2D=1 means 2D Gpu scheme
 options = set_default_option(options,'tag1D2D',0);
