@@ -146,39 +146,39 @@ def get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_o
             raise ValueError("[KeOps] you cannot set both options use_double_acc and dtype_acc.")
         if use_double_acc:
             dtype_acc = "float64"
-        if dtype_acc is not "auto" and reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
+        if dtype_acc != "auto" and reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
             raise ValueError("[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)")
-        if dtype_acc is "auto":
+        if dtype_acc == "auto":
             dtype_acc = dtype
         if dtype is "float32" and dtype_acc not in ("float32","float64"):
             raise ValueError("[KeOps] invalid parameter dtype_acc : should be either 'float32' or 'float64' when dtype is 'float32'")
-        elif dtype is "float16" and dtype_acc not in ("float16","float32"):
+        elif dtype == "float16" and dtype_acc not in ("float16","float32"):
             raise ValueError("[KeOps] invalid parameter dtype_acc : should be either 'float16' or 'float32' when dtype is 'float16'")
-        elif dtype is "float64" and dtype_acc not in "float64":
+        elif dtype == "float64" and dtype_acc not in "float64":
             raise ValueError("[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'")
-        if sum_scheme is "auto":
+        if sum_scheme == "auto":
             if reduction_op_internal in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
                 sum_scheme = "block_sum"
             else:
                 sum_scheme = "direct_sum"
-        if sum_scheme is "block_sum":
+        if sum_scheme == "block_sum":
             if reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
                 raise ValueError('[KeOps] sum_scheme="block_sum" is only valid for sum type reductions.')
-        elif sum_scheme is "kahan_scheme":
+        elif sum_scheme == "kahan_scheme":
             if reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
                 raise ValueError('[KeOps] sum_scheme="kahan_scheme" is only valid for sum type reductions.')
-        elif sum_scheme is not "direct_sum":
+        elif sum_scheme != "direct_sum":
             raise ValueError('[KeOps] invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".')
 
         optional_flags = []
-        if dtype_acc is "float64" :
+        if dtype_acc == "float64" :
             optional_flags += ['-D__TYPEACC__=double']
-        elif dtype_acc is "float32" :
-            if dtype is "float16":
+        elif dtype_acc == "float32" :
+            if dtype == "float16":
                 optional_flags += ['-D__TYPEACC__=float2']
             else:
                 optional_flags += ['-D__TYPEACC__=float']
-        elif dtype_acc is "float16" :
+        elif dtype_acc == "float16" :
             optional_flags += ['-D__TYPEACC__=half2']
         else:
             raise ValueError('[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".')
