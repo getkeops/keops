@@ -21,43 +21,38 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 		template < typename TYPE >
 		struct InitializeReduction {
 			DEVICE INLINE void operator()(TYPE *tmp) {
-#pragma unroll
-				for(int k=0; k<F::DIM; k++)
-#if USE_HALF
-					tmp[k] = __float2half2_rn(65504.); // initialize output
-#else
-					tmp[k] = PLUS_INFINITY<TYPE>::value; // initialize output
-#endif
-#pragma unroll
-				for(int k=F::DIM; k<2*F::DIM; k++)
-#if USE_HALF
-                                    tmp[k] = __float2half2_rn(0.0f); // initialize output
-#else
-                                    tmp[k] = 0.0f; // initialize output
-#endif
-
+				VectAssign<F::DIM>(tmp, cast_to<TYPE>(PLUS_INFINITY<TYPE>::value));
+				VectAssign<F::DIM>(tmp + F::DIM, cast_to<TYPE>(0.0f));
 			}
 		};
+
+template < typename TYPEACC, typename TYPE >
+		struct ReducePairScalar {
+			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE xi, TYPE val) {
+					if(xi<*tmp) {
+						*tmp = xi;
+						*(tmp+F::DIM) = val;
+					}
+				}
+			};
+
+#if USE_HALF && GPU_ON
+template < typename TYPEACC >
+	struct ReducePairScalar<TYPEACC, half2 > {
+			DEVICE INLINE void operator()(TYPEACC *tmp, half2 xi, half2 val) {
+					half2 cond = __hlt2(xi,*tmp);
+					half2 negcond = (half2)cast_to<half2>(1.0f)-cond;
+					*tmp = cond * xi + negcond * *tmp;
+					*(tmp+F::DIM) = cond * val + negcond * *(tmp+F::DIM);
+				}
+			};
+#endif
 
 		// equivalent of the += operation
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePairShort {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
-#pragma unroll
-				for(int k=0; k<F::DIM; k++) {
-#if USE_HALF && GPU_ON
-					__half2 cond = __hlt2(xi[k],tmp[k]);
-					__half2 negcond = __float2half2_rn(1.0f)-cond;
-					tmp[k] = cond * xi[k] + negcond * tmp[k];
-					tmp[F::DIM+k] = cond * val + negcond * tmp[F::DIM+k];
-#elif USE_HALF
-#else
-					if(xi[k]<tmp[k]) {
-						tmp[k] = xi[k];
-						tmp[F::DIM+k] = val;
-					}
-#endif
-				}
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,xi,val);
 			}
 		};
         
@@ -87,7 +82,7 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
 
 #define Min_ArgMin_Reduction(F,I) KeopsNS<Min_ArgMin_Reduction<decltype(InvKeopsNS(F)),I>>()
 
-// Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij anbd its index
+// Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij and its index
 // operation is vectorized: if Fij is vector-valued, min+argmin is computed for each dimension.
 
 template < class F, int tagI=0 >

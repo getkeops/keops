@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "core/utils/TypesUtils.h"
 #include "core/autodiff/Grad.h"
 #include "core/reductions/Reduction.h"
 #include "core/formulas/constants/Zero.h"
@@ -37,11 +38,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
     DEVICE INLINE void operator()(TYPE *tmp) {
 #pragma unroll
       for (int k = 0; k < DIM; k++)
-#if USE_HALF
-        tmp[k] = __float2half2_rn(0.0f); // initialize output
-#else
-        tmp[k] = 0.0f; // initialize output
-#endif
+        tmp[k] = cast_to<TYPE>(0.0f); // initialize output
     }
   };
 
@@ -51,7 +48,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
     DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
 #pragma unroll
       for (int k = 0; k < DIM; k++) {
-        tmp[k] += xi[k];
+        tmp[k] += cast_to<TYPEACC>(xi[k]);
       }
     }
   };
@@ -62,7 +59,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi) {
 #pragma unroll
       for (int k = 0; k < DIM; k++) {
-        acc[k] += xi[k];
+        acc[k] += cast_to<TYPEACC>(xi[k]);
       }
     }
   };
@@ -75,9 +72,9 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
 #pragma unroll
 	for (int k=0; k<DIM; k++)
         {
-		TYPEACC a = xi[k] - tmp[k];
+		TYPEACC a = cast_to<TYPEACC>(xi[k] - tmp[k]);
 		TYPEACC b = acc[k] + a;
-		tmp[k] = (b - acc[k]) - a;
+		tmp[k] = cast_to<TYPE>((b - acc[k]) - a);
 		acc[k] = b;
 	}
     }
@@ -88,7 +85,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
 #pragma unroll
       for (int k = 0; k < DIM; k++)
-        out[k] = acc[k];
+        out[k] = cast_to<TYPE>(acc[k]);
     }
   };
 

@@ -48,7 +48,7 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None, use_double_acc=False, sum_scheme="auto"):
+                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto"):
         r"""
         Instantiate a new generic operation.
 
@@ -97,11 +97,19 @@ class Genred():
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
-            use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
-                This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-                "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight", because otherwise it is useless. 
+            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
                 It improves the accuracy of results in case of large sized data, but is slower.
-           
+                Default value "auto" will set this option to the value of dtype. The supported values are: 
+
+                  - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+                  - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+                  - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+
+            use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+                If True, accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32 or float64.
+                It improves the accuracy of results in case of large sized data, but is slower.
+                      
             sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
                 when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
                 Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
@@ -122,7 +130,7 @@ class Genred():
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
-        optional_flags = get_accuracy_flags(use_double_acc, sum_scheme, dtype, reduction_op_internal)
+        optional_flags = get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op_internal)
         
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''

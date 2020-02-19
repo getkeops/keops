@@ -69,7 +69,7 @@ def preprocess_half2(args, aliases, axis, ranges, nx, ny):
         arg = args[pos].data # we don't want to record our cuisine in the Autograd mechanism !
         if cat==2:
             arg = arg[...,None,:]      # (...,D)   -> (...,1,D)
-            arg = make_even_size(arg)  # (...,1,D) -> (...,2,D)
+            arg, _ = make_even_size(arg)  # (...,1,D) -> (...,2,D)
         elif cat==axis:
             arg, Narg = make_odd_cat(arg)
             N = max(N,Narg)

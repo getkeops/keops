@@ -92,7 +92,11 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
 #if SUM_SCHEME == KAHAN_SCHEME
 #pragma unroll
         for (int k = 0; k < DIM_KAHAN; k++)
+#if USE_HALF
+          tmp[k] = __float2half2_rn(0.0f);
+#else
           tmp[k] = 0.0f;
+#endif
 #endif
         if (nbatchdims == 0) {
             load<typename DIMSX::NEXT>(i, xi+DIMFOUT, px+1); // load xi variables from global memory to local thread memory

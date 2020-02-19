@@ -8,6 +8,7 @@
 
 #ifdef __CUDACC__
   #include <npp.h>
+  #define INFINITY_HALF (65504.f)
   #define INFINITY_FLOAT NPP_MAXABS_32F
   #define INFINITY_DOUBLE NPP_MAXABS_64F
 #else
@@ -22,14 +23,14 @@ namespace keops {
 template < typename TYPE >
 struct PLUS_INFINITY;
 
-/*
+#if USE_HALF
 #ifdef __CUDACC__
 template <>
-struct PLUS_INFINITY< __half > {
-  static constexpr __half value = 3000.0;
+struct PLUS_INFINITY< half2 > {
+  static constexpr float value = INFINITY_HALF;
 };
 #endif
-*/
+#endif
 
 template <>
 struct PLUS_INFINITY< float > {

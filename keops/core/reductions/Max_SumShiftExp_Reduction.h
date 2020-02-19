@@ -153,8 +153,10 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
         }
       acc[0] = m_min;
       // to be continued....
-      printf("[KeOps] Error : Kahan summation for Max_SumShiftExp reduction is not yet implemented with half precision type");
-      asm("trap;");
+      if (threadIdx.x==0 && blockIdx.x==0 && blockIdx.y==0) {
+        printf("\n   [KeOps] Error : Kahan summation for Max_SumShiftExp reduction is not yet implemented with half precision type.\n\n");
+        asm("trap;");
+      }
 #elif USE_HALF
 #else
       if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'

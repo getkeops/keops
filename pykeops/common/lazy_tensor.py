@@ -305,12 +305,12 @@ class LazyTensor:
 
     def separate_kwargs(self, kwargs):    
         # separating keyword arguments for Genred init vs Genred call...
-        # Currently the only two additional optional keyword arguments that are passed to Genred init
-        # are accuracy options: use_double_acc and sum_cheme.
+        # Currently the only three additional optional keyword arguments that are passed to Genred init
+        # are accuracy options: dtype_acc, use_double_acc and sum_cheme.
         kwargs_init = []
         kwargs_call = []
         for key in kwargs:
-            if key in ("use_double_acc","sum_scheme"):
+            if key in ("dtype_acc","use_double_acc","sum_scheme"):
                 kwargs_init += [(key,kwargs[key])]
             else:
                 kwargs_call += [(key,kwargs[key])]                
@@ -502,10 +502,16 @@ class LazyTensor:
             If **None** (default), we simply use a **dense Kernel matrix**
             as we loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
-          use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
-            This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-            "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
-            It improves the accuracy of results in case of large sized data, but is slower.  
+          dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+            It improves the accuracy of results in case of large sized data, but is slower.
+            Default value "auto" will set this option to the value of dtype. The supported values are: 
+              - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+              - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+              - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+          use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+            If True, accumulate results of reduction in float64 variables, before casting to float32. 
+            This can only be set to True when data is in float32 or float64.
+            It improves the accuracy of results in case of large sized data, but is slower.           
           sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
             when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
             Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
@@ -585,10 +591,16 @@ class LazyTensor:
             If **None** (default), we simply use a **dense Kernel matrix**
             as we loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
-          use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
-            This can only be set to True when data is in float32, and reduction_op is one of:"Sum", "MaxSumShiftExp", "LogSumExp",
-            "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
-            It improves the accuracy of results in case of large sized data, but is slower.  
+          dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+            It improves the accuracy of results in case of large sized data, but is slower.
+            Default value "auto" will set this option to the value of dtype. The supported values are: 
+              - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+              - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+              - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+          use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+            If True, accumulate results of reduction in float64 variables, before casting to float32. 
+            This can only be set to True when data is in float32 or float64.
+            It improves the accuracy of results in case of large sized data, but is slower.           
           sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
             when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
             Default value "auto" will set this option to "block_red" for these reductions. Possible values are:

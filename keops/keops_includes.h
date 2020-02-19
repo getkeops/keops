@@ -1,5 +1,7 @@
 
-#include <cuda_fp16.h>
+#if USE_HALF
+  #include <cuda_fp16.h>
+#endif
 
 // import constant
 #include "core/formulas/constants/IntConst.h"
@@ -90,9 +92,12 @@
   #define SUM_SCHEME DIRECT_SUM
 #endif
 
+#if !USE_HALF
 #include "core/mapreduce/CpuConv.cpp"
+#endif
 
 #ifdef __CUDACC__
+  #include <cuda_fp16.h>
   #include "core/mapreduce/GpuConv1D.cu"
   #include "core/mapreduce/GpuConv2D.cu"
 #endif

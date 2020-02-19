@@ -43,7 +43,7 @@ class KernelSolve:
     
     """
     
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, use_double_acc=False, sum_scheme="auto"):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto"):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -89,8 +89,17 @@ class KernelSolve:
                   - **dtype** = ``"float32"``.
                   - **dtype** = ``"float64"``.
 
-            use_double_acc (bool, default False): if True, accumulate results of reduction in float64 variables, before casting to float32. 
-                This can only be set to True when data is in float32.
+            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+                It improves the accuracy of results in case of large sized data, but is slower.
+                Default value "auto" will set this option to the value of dtype. The supported values are: 
+
+                  - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+                  - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+                  - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+
+            use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+                If True, accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32 or float64.
                 It improves the accuracy of results in case of large sized data, but is slower.
            
             sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
@@ -108,7 +117,7 @@ class KernelSolve:
         else:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
 
-        optional_flags = get_accuracy_flags(use_double_acc, sum_scheme, dtype, reduction_op)
+        optional_flags = get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op)
 
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias

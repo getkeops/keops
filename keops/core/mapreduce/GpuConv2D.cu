@@ -120,7 +120,11 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
 #if SUM_SCHEME == KAHAN_SCHEME
 #pragma unroll
         for (int k = 0; k < DIM_KAHAN; k++)
+#if USE_HALF
+          tmp[k] = __float2half2_rn(0.0f);
+#else
           tmp[k] = 0.0f;
+#endif
 #endif
         // Load xi from device global memory.
         // Remember that we use an interleaved memory scheme where
