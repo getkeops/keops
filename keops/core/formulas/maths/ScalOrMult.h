@@ -19,12 +19,12 @@ struct ScalOrMult_Impl < FA, FB, typename std::enable_if < FA::DIM==FB::DIM >::t
 };
 
 template < class FA, class FB >
-struct ScalOrMult_Impl < FA, FB, typename std::enable_if < FA::DIM==1 & (FB::DIM>1) >::type > {
+struct ScalOrMult_Impl < FA, FB, typename std::enable_if < (FA::DIM==1) && (FB::DIM>1) >::type > {
     using type = typename Scal_Alias<FA,FB>::type;
 };
 
 template < class FA, class FB >
-struct ScalOrMult_Impl < FA, FB, typename std::enable_if < FB::DIM==1 & (FA::DIM>1) >::type > {
+struct ScalOrMult_Impl < FA, FB, typename std::enable_if < (FB::DIM==1) && (FA::DIM>1) >::type > {
     using type = typename Scal_Alias<FB,FA>::type;
 };
 
