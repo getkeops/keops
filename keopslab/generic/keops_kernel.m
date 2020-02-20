@@ -94,7 +94,7 @@ Fname = ['keops', hash];
 mex_name = [Fname, '.', mexext];
 
 if ~(exist(mex_name,'file') == 3) || (verbosity == 1)
-    compile_formula(CodeVars, formula, hash);
+    compile_formula(CodeVars, formula, hash, options);
 end
 
 % return function handler

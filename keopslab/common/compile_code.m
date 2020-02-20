@@ -30,13 +30,7 @@ else
     cur_dir= pwd; cd(build_folder) ;
     
     try
-        
-        % I do not have a better option to set working dir...
-        cur_dir= pwd; cd(build_dir) ;
-        
-        % it seems to be a workaround to flush Matlab's default LD_LIBRARY_PATH
-        setenv('LD_LIBRARY_PATH','')
-        
+                
         try
             
             [prebuild_status,prebuild_output] = system(cmdline);
