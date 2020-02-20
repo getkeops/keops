@@ -14,8 +14,14 @@ options = set_default_option(options,'use_double_acc',0);
 % - 'kahan_scheme': use Kahan scheme for compensating round-off errors.
 
 % We check that reduction is of summation type
-ind = strfind(formula,'_Reduction(');
-is_sum_type_red = any(strcmp(formula(1:ind-1),...
+if strcmp(formula(1:12),'GradFromPos(')
+    ind_start = 13;
+else
+    ind_start = 1;
+end
+ind_end = strfind(formula,'_Reduction(') - 1;
+disp(formula(ind_start:ind_end))
+is_sum_type_red = any(strcmp(formula(ind_start:ind_end),...
     {'Sum','MaxSumShiftExp','MaxSumShiftExpWeight'}));
 if is_sum_type_red
         default_sum_scheme = 1; % internally 1 means block_sum 
