@@ -31,7 +31,10 @@ struct Sin : UnaryOp<Sin, F> {
     for (int k = 0; k < DIM; k++) {
 #if USE_HALF
 #if GPU_ON
-      out[k] = h2sin(outF[k]);
+//      out[k] = h2sin(outF[k]);
+      float a = __sinf(__low2float(outF[k]));
+      float b = __sinf(__high2float(outF[k]));
+      out[k] = __floats2half2_rn(a,b);
 #endif
 #elif USE_DOUBLE
       out[k] = sin(outF[k]);

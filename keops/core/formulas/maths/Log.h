@@ -27,7 +27,10 @@ struct Log : UnaryOp<Log, F> {
 #pragma unroll
     for (int k = 0; k < DIM; k++) {
 #if USE_HALF && GPU_ON
-      out[k] = h2log(outF[k]);
+//      out[k] = h2log(outF[k]);
+      float a = __logf(__low2float(outF[k]));
+      float b = __logf(__high2float(outF[k]));
+      out[k] = __floats2half2_rn(a,b);
 #elif USE_HALF
 // this should never happen...
 #elif USE_DOUBLE
