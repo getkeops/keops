@@ -35,7 +35,9 @@ struct Cos : UnaryOp<Cos, F> {
     for (int k = 0; k < DIM; k++) {
 #if USE_HALF
 #if GPU_ON
-      out[k] = h2cos(outF[k]);
+      float a = __cosf(__low2float(outF[k]));
+      float b = __cosf(__high2float(outF[k]));
+      out[k] = __floats2half2_rn(a,b);
 #endif
 #elif USE_DOUBLE
       out[k] = cos(outF[k]);
