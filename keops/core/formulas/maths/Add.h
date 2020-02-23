@@ -44,16 +44,25 @@ struct Add_Impl : BinaryOp< Add_Impl, FA, FB > {
     str << " + ";
   }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++)
-#if USE_HALF && GPU_ON
-      out[k] = __hadd2(outA[k],outB[k]);
-#elif USE_HALF
-      {}
-#else
-      out[k] = outA[k] + outB[k];
+  template < typename TYPE >
+  struct Operation_Scalar {
+  	DEVICE INLINE void operator() (TYPE &out, TYPE &outA, TYPE &outB) {
+		out = outA + outB;
+	}
+  };
+
+#if USE_HALF
+  template < >
+  struct Operation_Scalar<half2> {
+    DEVICE INLINE void operator() (half2 &out, half2 &outA, half2 &outB) {
+		out = __hadd2(outA,outB);
+	}
+  };
 #endif
+  
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
+	  VectApply < Operation_Scalar<TYPE>, DIM > (out, outA, outB);
   }
 
   // [ \partial_V (A + B) ] . gradin = [ \partial_V A ] . gradin  + [ \partial_V B ] . gradin

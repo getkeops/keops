@@ -1,14 +1,10 @@
 #pragma once
 
-#include <sstream>
-#include <cmath>
-
-#include "core/autodiff/UnaryOp.h"
+#include "core/utils/keops_math.h"
+#include "core/autodiff/VectorizedScalarOp.h"
 #include "core/formulas/maths/Sin.h"
 #include "core/formulas/maths/Minus.h"
 #include "core/formulas/maths/Mult.h"
-
-#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -22,30 +18,15 @@ struct Sin;
 
 
 template<class F>
-struct Cos : UnaryOp<Cos, F> {
+struct Cos : VectorizedScalarOp<Cos, F> {
 
-  static const int DIM = F::DIM;
+  static void PrintIdString(::std::stringstream &str) { str << "Cos"; }
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Cos";
-  }
-
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++) {
-#if USE_HALF
-#if GPU_ON
-      float a = __cosf(__low2float(outF[k]));
-      float b = __cosf(__high2float(outF[k]));
-      out[k] = __floats2half2_rn(a,b);
-#endif
-#elif USE_DOUBLE
-      out[k] = cos(outF[k]);
-#else
-      out[k] = cosf(outF[k]);
-#endif
+  template < typename TYPE > struct Operation_Scalar {
+	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
+    	  out = keops_cos(outF);
     }
-  }
+  };
 
   template<class V, class GRADIN>
   using DiffT = typename F::template DiffT<V, Minus<Mult<Sin<F>, GRADIN>>>;

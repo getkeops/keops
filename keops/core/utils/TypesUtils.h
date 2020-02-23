@@ -6,11 +6,25 @@
 
 namespace keops {
 
+	template < class FUN, int DIM, typename TYPEOUT, typename TYPEIN > 
+	DEVICE INLINE void VectApply(TYPEOUT &out, TYPEIN *arg) {
+	  #pragma unroll
+	  for(int k=0; k<DIM; k++)
+	    FUN()(out, arg[k]);
+	}
+
+	template < class FUN, int DIM, typename TYPEOUT, typename TYPEIN > 
+	DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg) {
+	  #pragma unroll
+	  for(int k=0; k<DIM; k++)
+	    FUN()(out[k], arg[k]);
+	}
+
 template < class FUN, int DIM, typename TYPEOUT, typename TYPEIN > 
 DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg1, TYPEIN arg2) {
   #pragma unroll
   for(int k=0; k<DIM; k++)
-    FUN()(out+k, arg1[k], arg2);
+    FUN()(out[k], arg1[k], arg2);
 }
 
 template < int DIM, typename TYPE > 
@@ -18,6 +32,13 @@ DEVICE INLINE void VectAssign(TYPE *out, TYPE val) {
   #pragma unroll
   for(int k=0; k<DIM; k++)
     out[k] = val;
+}
+
+template < int DIM, typename TYPE > 
+DEVICE INLINE void VectCopy(TYPE *out, TYPE *in) {
+  #pragma unroll
+  for(int k=0; k<DIM; k++)
+    out[k] = in[k];
 }
 
 template < typename TYPEOUT, typename TYPEIN > 
