@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/utils/keops_math.h"
-#include "core/autodiff/VectorizedScalarOp.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/maths/Sin.h"
 #include "core/formulas/maths/Minus.h"
 #include "core/formulas/maths/Mult.h"
@@ -18,7 +18,7 @@ struct Sin;
 
 
 template<class F>
-struct Cos : VectorizedScalarOp<Cos, F> {
+struct Cos : VectorizedScalarUnaryOp<Cos, F> {
 
   static void PrintIdString(::std::stringstream &str) { str << "Cos"; }
 

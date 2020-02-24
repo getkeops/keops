@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/utils/keops_math.h"
-#include "core/autodiff/VectorizedScalarOp.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/maths/Sign.h"
 #include "core/formulas/maths/Mult.h"
 
@@ -12,7 +12,7 @@ namespace keops {
 //////////////////////////////////////////////////////////////
 
 template<class F>
-struct Abs : VectorizedScalarOp<Abs, F> {
+struct Abs : VectorizedScalarUnaryOp<Abs, F> {
 
   static void PrintIdString(::std::stringstream &str) { str << "Abs"; }
 

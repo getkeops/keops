@@ -16,12 +16,12 @@ N = 5000  # Number of "j" points
 D = 3    # Dimension of the ambient space
 Dv = 2   # Dimension of the vectors
 
-x = 2*torch.randn(M,D)
-y = 2*torch.randn(N,D)
-b = torch.rand(N,Dv)
+x = 2*torch.randn(M,D).cuda()
+y = 2*torch.randn(N,D).cuda()
+b = torch.rand(N,Dv).cuda()
 
 
-formula = 'Sum(Exp(x-y))*b'
+formula = 'ArgMax(Exp(x+y))*b'
 aliases = ['x = Vi('+str(D)+')',   # First arg:  i-variable of size D
            'y = Vj('+str(D)+')',   # Second arg: j-variable of size D
            'b = Vj('+str(Dv)+')']  # Third arg:  j-variable of size Dv
@@ -41,7 +41,7 @@ print("Timing (KeOps implementation): ",round(time.time()-start,5),"s")
 
 # compare with direct implementation
 start = time.time()
-cc = torch.sum( torch.exp( x[:,None,:] - y[None,:,:] ) , 2)
+cc = torch.max( torch.exp( x[:,None,:] + y[None,:,:] ) , 2)[1]
 cc = torch.min(cc[:,:,None]*b[None,:,:],dim=1)
 cc = cc[0]
 print("Timing (PyTorch implementation): ", round(time.time()-start,5),"s")

@@ -8,7 +8,7 @@
 namespace keops {
 
 template< template<class> class OP, class F >
-struct VectorizedScalarOp : UnaryOp<OP, F> {
+struct VectorizedScalarUnaryOp : UnaryOp<OP, F> {
 	
     static const int DIM = F::DIM;
 

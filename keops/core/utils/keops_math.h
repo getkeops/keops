@@ -4,10 +4,10 @@
 
 namespace keops {
 	
-template < typename TYPE > DEVICE INLINE TYPE keops_abs(TYPE& x) { return fabs(x); }
-template < typename TYPE > DEVICE INLINE TYPE keops_exp(TYPE& x) { return exp(x); }
-template < typename TYPE > DEVICE INLINE TYPE keops_cos(TYPE& x) { return cos(x); }
-template < typename TYPE > DEVICE INLINE TYPE keops_sin(TYPE& x) { return sin(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_abs(TYPE &x) { return fabs(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_exp(TYPE &x) { return exp(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_cos(TYPE &x) { return cos(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_sin(TYPE &x) { return sin(x); }
 
 #ifdef __CUDA_ARCH__
   
