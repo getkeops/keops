@@ -5,16 +5,27 @@
 namespace keops {
 	
 template < typename TYPE > DEVICE INLINE TYPE keops_abs(TYPE& x) { return fabs(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_exp(TYPE& x) { return exp(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_cos(TYPE& x) { return cos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sin(TYPE& x) { return sin(x); }
 
 #ifdef __CUDA_ARCH__
   
 DEVICE INLINE float keops_abs(float& x) { return fabsf(x); } 
+DEVICE INLINE float keops_exp(float& x) { return expf(x); } 
 DEVICE INLINE float keops_cos(float& x) { return cosf(x); } 
 DEVICE INLINE float keops_sin(float& x) { return sinf(x); } 
     
   #if USE_HALF 
+
+// N.B. Some of dedicated operations for half2 type : h2exp,...
+// appear to be very slow (doing experiments on RTX 2080 Ti card),
+// so we use float type functions twice instead :
+DEVICE INLINE half2& keops_exp(half2& x) {
+    float a = __expf(__low2float(x);
+    float b = __expf(__high2float(x));
+    return __floats2half2_rn(a,b);
+}
 
 DEVICE INLINE half2& keops_cos(half2& x) {
     float a = __cosf(__low2float(x);
