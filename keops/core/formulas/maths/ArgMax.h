@@ -33,10 +33,10 @@ struct ArgMax : UnaryOp<ArgMax, F> {
       }  
   }
 
-#if USE_HALF
+#if USE_HALF && GPU_ON
   static DEVICE INLINE void Operation(half2 *out, half2 *outF) {
     *out = __float2half2_rn(0.0f);
-    TYPE tmp = outF[0];
+    half2 tmp = outF[0];
     #pragma unroll
     for (int k = 1; k < F::DIM; k++) {
       // we have to work element-wise...

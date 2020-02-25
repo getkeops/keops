@@ -32,15 +32,6 @@ struct Sum : UnaryOp<Sum, F> {
 	}
   };
   
-#if USE_HALF 
-  template < >
-  struct Operation_Scalar<half2> {
-    DEVICE INLINE void operator() (half2& out, half2& outF) {
-      	  out = __hadd2(out,outF);
-	}
-  };
-#endif
-  
   template < typename TYPE >
   static DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
     *out = cast_to<TYPE>(0.0f);
