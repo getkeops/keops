@@ -141,6 +141,7 @@ setup(
             'keops/core/utils/CudaErrorCheck.cu',
             'keops/core/utils/CudaSizes.h',
             'keops/core/utils/Infinity.h',
+            'keops/core/utils/TypesUtils.h',
             'keops/core/link_autodiff.cpp',
             'keops/core/link_autodiff.cu',
             'keops/core/pre_headers.h',
