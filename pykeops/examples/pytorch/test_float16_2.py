@@ -1,24 +1,7 @@
 # Test for half precision support in KeOps
 # We perform a gaussian convolution with half, single and double precision
 # and compare timings and accuracy
-import GPUtil
-from threading import Thread
 import time
-
-class Monitor(Thread):
-    def __init__(self, delay):
-        super(Monitor, self).__init__()
-        self.stopped = False
-        self.delay = delay  # Time between calls to GPUtil
-        self.start()
-
-    def run(self):
-        while not self.stopped:
-            GPUtil.showUtilization()
-            time.sleep(self.delay)
-
-    def stop(self):
-        self.stopped = True
 
 backend = "torch"  # "torch" or "numpy", but only "torch" works for now
 device_id = 0
@@ -36,12 +19,12 @@ def K(x,y,b,p,**kwargs):
     y_j = LazyTensor( y[None,:,:] )  
     b_j = LazyTensor( b[None,:,:] ) 
     p = LazyTensor( p ) 
-    D_ij = ((x_i - y_j)**2).sum(axis=2)  
-    K_ij = ((- p*D_ij).exp() * b_j)  
-    K_ij = K_ij.min(axis=1,call=False,**kwargs)
+    D_ij = (x_i+y_j).min(axis=2)
+    K_ij = ((- p*D_ij) * b_j)
+    K_ij = K_ij.sum(axis=1,call=False,**kwargs)
     return K_ij
 
-M, N, D = 1000000, 1000000, 3
+M, N, D = 4, 4, 4#1000000, 1000000, 3
 
 if backend == "torch":
     torch.manual_seed(1)
@@ -70,25 +53,19 @@ else:
 
 Ntest_half, Ntest_float = 1, 1
 
-
-# monitor = Monitor(1e-6)
 # computation using float32
 K_keops32 = K(xf,yf,bf,pf)
 res_float = K_keops32()
 res_float = res_float[:100,:];
 print("comp float, time : ",timeit.timeit("K_keops32()",number=Ntest_float,setup="from __main__ import K_keops32"))
-# monitor.stop()
-#print(res_float)
+print(res_float)
 
 # computation using float16
-# monitor = Monitor(1e-6)
-K_keops16 = K(xh[:100,:],yh,bh,ph,sum_scheme="direct_sum")
+K_keops16 = K(xh[:100,:],yh,bh,ph)
 K_ij = K_keops16()
 res_half = K_ij
 print("comp half, time : ",timeit.timeit("K_keops16()",number=Ntest_half,setup="from __main__ import K_keops16"))
-# monitor.stop()
-#print(res_half)
-
+print(res_half)
 
 if backend == "torch":
     print("relative mean error half vs float : ",((res_half.float()-res_float).abs().mean()/res_float.abs().mean()).item())

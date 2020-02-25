@@ -26,51 +26,35 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
 
   static const int DIM = A::DIM / B::DIM;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "x";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "x"; }
+
 #if C_CONTIGUOUS //row major
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+
+  template < typename TYPE > 
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inA, TYPE *inB) {
         int q = 0;
-#pragma unroll
+        #pragma unroll
         for (int i = 0; i < DIM; i++) {
-#if USE_HALF
-#if GPU_ON
-            out[i] = __float2half2_rn(0.0f);
-#pragma unroll
-            for (int k = 0; k < B::DIM; k++, q++)
-                out[i] =  __hfma2(inA[q], inB[k], out[i]);
-#endif
-#else
-            out[i] = 0.0f;
-#pragma unroll
+            out[i] = cast_to<TYPE>(0.0f);
+            #pragma unroll
             for (int k = 0; k < B::DIM; k++, q++)
                 out[i] += inA[q] * inB[k];
-#endif
         }
     }
+
 #else // column major
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-#pragma unroll
+
+  template < typename TYPE > 
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inA, TYPE *inB) {
+    #pragma unroll
     for (int i = 0; i < DIM; i++) {
-#if USE_HALF && GPU_ON
-      out[i] = __float2half2_rn(0.0f);
-#elif USE_HALF
-#else
-      out[i] = 0.0f;
-#endif
-#pragma unroll
+      out[i] = cast_to<TYPE>(0.0f);
+      #pragma unroll
       for (int k = 0; k < B::DIM; k++)
-#if USE_HALF
-#if GPU_ON
-        out[i] = __hfma2(inA[k * DIM + i], inB[k], out[i]);
-#else
-#endif
-#else
         out[i] += inA[k * DIM + i] * inB[k];
-#endif
     }
   }
+
 #endif
 
   template<class V, class GRADIN>
