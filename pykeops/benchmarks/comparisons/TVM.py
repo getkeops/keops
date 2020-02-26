@@ -7,28 +7,28 @@ TVM
 # If you're running this script on Google Colab, use the following lines to install TVM on your session:
 
 
-%matplotlib inline
-
-try:
-  import google.colab
-  IN_COLAB = True
-except:
-  IN_COLAB = False
-
-if IN_COLAB:
-    ! gsutil cp "gs://tvm-fcrc-binaries-7f775516ff9dfab922c304049f294cec/tvm.tar.gz" /tmp/tvm.tar.gz
-    ! mkdir -p /tvm
-    ! tar -xf /tmp/tvm.tar.gz --strip-components=4 --directory /tvm
-    ! ls -la /tvm
-    ! bash /tvm/package.sh
-    # Add TVM to the Python path.
-    import sys
-    sys.path.append('/tvm/python')
-    sys.path.append('/tvm/topi/python')
-    sys.path.append('/tvm/nnvm/python')
-    sys.path.append('/tvm/vta/python')
-else:
-    print("Notebook executing locally, skipping Colab setup ...")
+#%matplotlib inline
+#
+#try:
+#  import google.colab
+#  IN_COLAB = True
+#except:
+#  IN_COLAB = False
+#
+#if IN_COLAB:
+#    ! gsutil cp "gs://tvm-fcrc-binaries-7f775516ff9dfab922c304049f294cec/tvm.tar.gz" /tmp/tvm.tar.gz
+#    ! mkdir -p /tvm
+#    ! tar -xf /tmp/tvm.tar.gz --strip-components=4 --directory /tvm
+#    ! ls -la /tvm
+#    ! bash /tvm/package.sh
+#    # Add TVM to the Python path.
+#    import sys
+#    sys.path.append('/tvm/python')
+#    sys.path.append('/tvm/topi/python')
+#    sys.path.append('/tvm/nnvm/python')
+#    sys.path.append('/tvm/vta/python')
+#else:
+#    print("Notebook executing locally, skipping Colab setup ...")
 
 
 ###################################################################
