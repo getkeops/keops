@@ -56,7 +56,7 @@ compile_code <- function(formula, var_aliases, dllname, cmake_dir) {
     if(tmp == 0) {
         make_cmd <- paste0("cmake", " --build .", 
                            " --target rkeops", shQuote(dllname), 
-                            ifelse(get_rkeops_option("verbosity"), "-- VERBOSE=1", ""))
+                            ifelse(get_rkeops_option("verbosity"), "--VERBOSE=1", ""))
         tmp <- system(make_cmd, ignore.stdout = !get_rkeops_option("verbosity"), 
                       ignore.stderr = !get_rkeops_option("verbosity"))
     }
