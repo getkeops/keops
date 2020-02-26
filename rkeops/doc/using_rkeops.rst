@@ -22,6 +22,8 @@ it was only tested on Linux and MacOS.
 Install from CRAN
 -----------------
 
+    **Note:** RKeOps is not avaible on CRAN yet, it should be soon.
+
 ::
 
     install.packages("rkeops")
@@ -420,8 +422,8 @@ the functions ``compile4float32`` and ``compile4float64`` which
 respectively enable float 32bits precision (default) and float 64bits
 (or double) precision.
 
--  other compile options (including boolean value for to enable
-   verbosity or to add debugging flag), see ``?compile_options``
+-  other compile options (including boolean value to enable verbosity or
+   to add debugging flag), see ``?compile_options``
 
 Runtime options
 ~~~~~~~~~~~~~~~
