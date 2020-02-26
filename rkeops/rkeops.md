@@ -50,6 +50,8 @@ RKeOps) and read the vignettes available in R with the command
 
 ## Install from CRAN
 
+> **Note:** RKeOps is not avaible on CRAN yet, it should be soon.
+
 ```{r install, eval=FALSE}
 install.packages("rkeops")
 ```
