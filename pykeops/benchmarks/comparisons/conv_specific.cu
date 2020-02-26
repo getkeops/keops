@@ -12,22 +12,11 @@ typedef std::chrono::high_resolution_clock Clock;
 #define __TYPE__ float
 
 
-typedef  __TYPE__(*KernelFun)( __TYPE__);
-
 ///////////////////////
 //  Gaussian Kernel  //
 ///////////////////////
 
-template < typename TYPE >
-__device__ TYPE GaussF(TYPE r2) {
-    // Gaussian radial kernel - takes as input the squared norm r2
-    return exp(- r2 );
-}
-
-
-
-
-template < typename TYPE, int DIMPOINT, int DIMVECT, KernelFun KernelF >
+template < typename TYPE, int DIMPOINT, int DIMVECT >
 __global__ void KernelGpuConvOnDevice(TYPE *x, TYPE *y, TYPE *beta, TYPE *gamma,
                                       int nx, int ny) {
     // Thread kernel:
@@ -41,8 +30,10 @@ __global__ void KernelGpuConvOnDevice(TYPE *x, TYPE *y, TYPE *beta, TYPE *gamma,
     // One thread = One line = One x_i + One gamma_i + a whole bunch of "y_j".
     TYPE xi[DIMPOINT], gammai[DIMVECT];
     if(i<nx) { // we will compute gammai only if i is in the range
+#pragma unroll
         for(int k=0; k<DIMPOINT; k++)
             xi[k] = x[i*DIMPOINT+k];  // Load xi from device global memory
+#pragma unroll
         for(int k=0; k<DIMVECT; k++)
             gammai[k] = 0.0f;         // Make sure to put to zero the output array
     }
@@ -56,8 +47,10 @@ __global__ void KernelGpuConvOnDevice(TYPE *x, TYPE *y, TYPE *beta, TYPE *gamma,
             // Pretty uneasy to read : we store yj and betaj interleaved, for better performance
             // SharedData = "[ y0, b0, y1, b1, y2, b2, ... ]"
             int inc = DIMPOINT + DIMVECT; // Size of a  [yj, bj] block
+#pragma unroll
             for(int k=0; k<DIMPOINT; k++)
                 SharedData[threadIdx.x*inc+k]          =    y[j*DIMPOINT+k];
+#pragma unroll
             for(int k=0; k<DIMVECT; k++)
                 SharedData[threadIdx.x*inc+DIMPOINT+k] = beta[j*DIMVECT +k];
         }
@@ -71,14 +64,16 @@ __global__ void KernelGpuConvOnDevice(TYPE *x, TYPE *y, TYPE *beta, TYPE *gamma,
             betaj = SharedData + DIMPOINT;
             int inc = DIMPOINT + DIMVECT;  // The increment, size of a [y_j,b_j] block.
             for(int jrel = 0; jrel < blockDim.x && jrel<ny-jstart; jrel++, yj+=inc, betaj+=inc) {
-                TYPE r2   = 0.0f, temp = 0.0f;
+                TYPE r2 = 0.0f;
                 // Compute x_i-y_j and its squared norm:
+#pragma unroll
                 for(int k=0; k<DIMPOINT; k++) {
-                    temp    =  xi[k]-yj[k];
-                    r2     +=   temp*temp;
+                    TYPE temp = xi[k] - yj[k];
+                    r2 += temp * temp;
                 }
                 // Straighforward inplace reduction loop over j : at last, we're getting to the maths... **********
-                TYPE s = KernelF(r2);  // The kernel function is stored in "radial_kernels.cx"
+                TYPE s = expf(-r2);  // The kernel function is stored in "radial_kernels.cx"
+#pragma unroll
                 for(int k=0; k<DIMVECT; k++)   // Add the vector s*beta_j to gamma_i
                     gammai[k] += s * betaj[k]; // (no need to be extra-clever here)
                 // ************************************************************************************************
@@ -92,15 +87,16 @@ __global__ void KernelGpuConvOnDevice(TYPE *x, TYPE *y, TYPE *beta, TYPE *gamma,
 
     // Save the result in global memory.
     if(i<nx)
+#pragma unroll
         for(int k=0; k<DIMVECT; k++)
             gamma[i*DIMVECT+k] = gammai[k];
 }
 
 
 
-template < typename TYPE, KernelFun KernelF >
+template < typename TYPE, int DIMPOINT, int DIMVECT >
 int KernelGpuEvalConv(TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
-                      int dimPoint, int dimVect, int nx, int ny, int nits) {
+                      int nx, int ny, int nits) {
 
     // Data on the device.
     TYPE* x_d;
@@ -109,27 +105,19 @@ int KernelGpuEvalConv(TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
     TYPE* gamma_d;
 
     // Allocate arrays on device.
-    cudaMalloc((void**)&x_d,     sizeof(TYPE)*(nx*dimPoint));
-    cudaMalloc((void**)&y_d,     sizeof(TYPE)*(ny*dimPoint));
-    cudaMalloc((void**)&beta_d,  sizeof(TYPE)*(ny*dimVect ));
-    cudaMalloc((void**)&gamma_d, sizeof(TYPE)*(nx*dimVect ));
-
-    // Set values to zeros
-    cudaMemset(x_d,    0, sizeof(TYPE)*(nx*dimPoint));
-    cudaMemset(y_d,    0, sizeof(TYPE)*(ny*dimPoint));
-    cudaMemset(beta_d, 0, sizeof(TYPE)*(ny*dimVect ));
-    cudaMemset(gamma_d,0, sizeof(TYPE)*(nx*dimVect ));
+    cudaMalloc((void**)&x_d,     sizeof(TYPE)*(nx*DIMPOINT + ny*DIMPOINT + ny*DIMVECT  + nx*DIMVECT ));
+    y_d = x_d + nx * DIMPOINT;
+    beta_d = y_d + ny * DIMPOINT;
+    gamma_d = beta_d + ny * DIMVECT;
 
     // Send data from host to device.
-    cudaMemcpy(x_d,    x_h,    sizeof(TYPE)*(nx*dimPoint), cudaMemcpyHostToDevice);
-    cudaMemcpy(y_d,    y_h,    sizeof(TYPE)*(ny*dimPoint), cudaMemcpyHostToDevice);
-    cudaMemcpy(beta_d, beta_h, sizeof(TYPE)*(ny*dimVect ), cudaMemcpyHostToDevice);
+    cudaMemcpy(x_d,    x_h,    sizeof(TYPE)*(nx*DIMPOINT + ny*DIMPOINT + ny*DIMVECT ), cudaMemcpyHostToDevice);
 
 
-    int BlockSizes[7] = {64, 128, 192, 256, 512, 1024, 2048};
+    int BlockSizes[6] = {64, 128, 192, 256, 512, 1024};
     int CUDA_BLOCK_SIZE = 0;
 
-    for(int b = 0; b < 7; b++) {
+    for(int b = 0; b < 6; b++) {
         CUDA_BLOCK_SIZE = BlockSizes[b];
         std::cout << "BlockSize = " << CUDA_BLOCK_SIZE << ", " ;
 
@@ -143,7 +131,7 @@ int KernelGpuEvalConv(TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
         auto start = Clock::now();
 
         for (int it=0; it < nits; it++) {
-            KernelGpuConvOnDevice<TYPE,3,1,KernelF><<<gridSize,blockSize,blockSize.x*(dimVect+dimPoint)*sizeof(TYPE)>>>
+            KernelGpuConvOnDevice<TYPE,3 , 1><<<gridSize,blockSize,blockSize.x*(DIMVECT+DIMPOINT)*sizeof(TYPE)>>>
             (x_d, y_d, beta_d, gamma_d, nx, ny);
 
         }
@@ -161,7 +149,7 @@ int KernelGpuEvalConv(TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
     std::cout << std::endl;
 
     // Send data from device to host.
-    cudaMemcpy(gamma_h, gamma_d, sizeof(TYPE)*(nx*dimVect),cudaMemcpyDeviceToHost);
+    cudaMemcpy(gamma_h, gamma_d, sizeof(TYPE)*(nx*DIMVECT),cudaMemcpyDeviceToHost);
 
     // Free memory.
     cudaFree(x_d);
@@ -188,10 +176,10 @@ int main(void)
       float *x, *y, *p, *g;
 
       // Allocate Unified Memory – accessible from CPU or GPU
-      cudaMallocManaged(&x, 3*N*sizeof(float));
-      cudaMallocManaged(&y, 3*N*sizeof(float));
-      cudaMallocManaged(&p,   N*sizeof(float));
-      cudaMallocManaged(&g,   N*sizeof(float));
+      cudaMallocManaged(&x, (3*N + 3*N + N + N) * sizeof(float));
+      y = x + 3*N;
+      p = y + 3*N;
+      g = p + N;
 
       // initialize x and y arrays on the host
       for (int i = 0; i < 3*N; i++) {
@@ -204,9 +192,9 @@ int main(void)
 
       std::cout << "N = " << N << " : " << std::endl;
 
-      KernelGpuEvalConv<__TYPE__,GaussF>(
+      KernelGpuEvalConv< __TYPE__, 3, 1 >(
             x, y, p, g,
-            3, 1, N, N,
+            N, N,
             (N > 100000 ? 1 : nits)
       );
 
@@ -216,9 +204,6 @@ int main(void)
 
       // Free memory
       cudaFree(x);
-      cudaFree(y);
-      cudaFree(p);
-      cudaFree(g);
     }
 
       std::cout << "Done" << std::endl;
