@@ -37,7 +37,7 @@ Install from Github sources
 
     devtools::install_git("https://github.com/getkeops/keops", 
                           subdir = "rkeops", 
-                          args="--recurse-submodules='keops/lib/sequences'")
+                          args="--recursive")
     # not possible to use `devtools::intall_github()` because of the required submodule
 
 Get sources and install from local repository
