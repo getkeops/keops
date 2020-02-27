@@ -4,25 +4,35 @@
 
 namespace keops {
 	
+template < typename TYPE > DEVICE INLINE TYPE keops_pow(TYPE &x, int n) { return pow(x,n); }
 template < typename TYPE > DEVICE INLINE TYPE keops_log(TYPE &x) { return log(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_rcp(TYPE &x) { return 1.0f / x; }
 template < typename TYPE > DEVICE INLINE TYPE keops_abs(TYPE &x) { return fabs(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_exp(TYPE &x) { return exp(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_cos(TYPE &x) { return cos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sin(TYPE &x) { return sin(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_relu(TYPE &x) { return (x<0)? 0.0f : x; }
+template < typename TYPE > DEVICE INLINE TYPE keops_sign(TYPE &x) { return (x>0)? 1.0f : ( (x<0)? -1.0f : 0.0f ); }
+template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE &x) { return 1.0f / sqrt(x); }
 
 #ifdef __CUDA_ARCH__
   
+DEVICE INLINE float keops_pow(float& x, int n) { return powf(x,n); } 
 DEVICE INLINE float keops_log(float& x) { return logf(x); } 
 DEVICE INLINE float keops_rcp(float& x) { return __frcp_rn(x); } 
 DEVICE INLINE float keops_abs(float& x) { return fabsf(x); } 
 DEVICE INLINE float keops_exp(float& x) { return expf(x); } 
 DEVICE INLINE float keops_cos(float& x) { return cosf(x); } 
 DEVICE INLINE float keops_sin(float& x) { return sinf(x); } 
+DEVICE INLINE float keops_rsqrt(float& x) { return rsqrtf(x); } 
+
+DEVICE INLINE double keops_rsqrt(double& x) { return rsqrt(x); } 
     
   #if USE_HALF 
 
 DEVICE INLINE half2 keops_rcp(half2& x) { return h2rcp(x); } 
+DEVICE INLINE half2 keops_relu(half2& x) { return __hlt2(__float2half2_rn(0.0f),x) * x; }  // (0<x) * x (element-wise) 
+DEVICE INLINE half2 keops_sign(half2& x) { return __hgt2(x,__float2half2_rn(0.0f)) - __hlt2(x,__float2half2_rn(0.0f)); } // (x>0) - (x<0) (element-wise)
 
 // N.B. Some of dedicated operations for half2 type : h2exp,...
 // appear to be very slow (doing experiments on RTX 2080 Ti card),
