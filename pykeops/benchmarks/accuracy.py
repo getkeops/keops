@@ -33,7 +33,6 @@ MAXTIME = 10 if use_cuda else 1   # Max number of seconds before we break the lo
 REDTIME = 2  if use_cuda else .2  # Decrease the number of runs if computations take longer than 2s...
 
 # Number of samples that we'll loop upon
-M = 1000
 NS = [100, 200, 500, 
       1000, 2000, 5000, 
       10000, 20000, 50000, 
@@ -52,7 +51,7 @@ def generate_samples(N, D, device, lang):
         else:
             torch.manual_seed(123)
             
-        x = torch.rand((M, D), device=device, dtype=torch.float64)
+        x = torch.rand((N, D), device=device, dtype=torch.float64)
         y = torch.rand((N, D), device=device, dtype=torch.float64)
         # Draw a random source signal:
         b = torch.randn((N, 1), device=device, dtype=torch.float64)
@@ -60,7 +59,7 @@ def generate_samples(N, D, device, lang):
     else:
         np.random.seed(1234)
 
-        x = np.random.randn(*((M, D)))
+        x = np.random.randn(*((N, D)))
         y = np.random.randn(*((N, D)))
         b = np.random.randn(*((N,)))
 
@@ -84,7 +83,7 @@ def conv_lazytensor(x, y, b, dtype, dtype_acc, sum_scheme):
 # -----------------------
 
 def benchmark(Routine, dev, N, D, loops, lang, dtype, dtype_acc, sum_scheme):
-    """Times a convolution on an N-by-N problem."""
+    """Times a convolution on an N-by-N problem, and evaluate accuracy."""
 
     importlib.reload(torch)  # In case we had a memory overflow just before...
     device = torch.device(dev)
@@ -98,26 +97,36 @@ def benchmark(Routine, dev, N, D, loops, lang, dtype, dtype_acc, sum_scheme):
     x, y, b = x_.to(torch_dtype), y_.to(torch_dtype), b_.to(torch_dtype)
     
     # We simply benchmark a convolution
-    code = "out = Routine( x, y, b, dtype, dtype_acc, sum_scheme ) "
-    exec( code, locals() ) # Warmup run, to compile and load everything
 
-    t_0 = time.perf_counter()  # Actual benchmark --------------------
-    if use_cuda: torch.cuda.synchronize()
-    for i in range(loops):
-        exec( code, locals() )
-    if use_cuda: torch.cuda.synchronize()
-    elapsed = time.perf_counter() - t_0  # ---------------------------
-    
+    N0 = min(N,100)
+    Routine( x[:N0,:], y[:N0,:], b[:N0,:], dtype, dtype_acc, sum_scheme ) # Warmup run, to compile and load everything
+
+    # timings
+    if loops>0:
+        code = "out = Routine( x, y, b, dtype, dtype_acc, sum_scheme ) "    
+        t_0 = time.perf_counter()  # Actual benchmark --------------------
+        if use_cuda: torch.cuda.synchronize()
+        for i in range(loops):
+            exec( code, locals() )
+        if use_cuda: torch.cuda.synchronize()
+        elapsed = time.perf_counter() - t_0  # ---------------------------
+        elapsed /= loops        
+        print("timing of {:3} NxN convolution(s), with N ={:7}: {:3}x{:3.6f}s".format(loops, N, loops, elapsed / loops))
+    else:
+        elapsed = np.NaN
+
+    # accuracy
     ind = torch.randperm(y.shape[0])
-    out = Routine( x, y[ind,:], b[ind,:], dtype, dtype_acc, sum_scheme )
-    ref_out = Routine( x_, y_, b_, "float64", "float64", "kahan_scheme" )
+    M = min(N,1000) # we evaluate accuracy on a subsample of outputs only because computations with full precisions are slow.
+    out = Routine( x[:M,:], y[ind,:], b[ind,:], dtype, dtype_acc, sum_scheme )
+    ref_out = Routine( x_[:M,:], y_, b_, "float64", "float64", "kahan_scheme" )
     mean_err = ((out.double()-ref_out.double()).abs().mean()/ref_out.double().abs().mean()).item()
     mean_err = float('NaN') if mean_err==0 else mean_err
     max_err = ((out.double()-ref_out.double()).abs().max()/ref_out.double().abs().mean()).item()
     max_err = float('NaN') if max_err==0 else max_err
+    print("accuracy of an MxN convolution, with M = {}, N ={:7}: mean err={:.1e}, max err={:.1e}".format(M, N, mean_err, max_err))
 
-    print("{:3} MxN convolution, with M = {}, N ={:7}: {:3}x{:3.6f}s, mean err={}, max err={}".format(loops, M, N, loops, elapsed / loops, mean_err, max_err))
-    return elapsed / loops, mean_err, max_err
+    return elapsed, mean_err, max_err
 
 def bench_config(Routine, backend, dev, lang, dtype, dtype_acc, sum_scheme) :
     """Times a convolution for an increasing number of samples."""
@@ -129,17 +138,16 @@ def bench_config(Routine, backend, dev, lang, dtype, dtype_acc, sum_scheme) :
     max_errs = []
             
     try :
-        Nloops = [100, 10, 1]
+        Nloops = [100, 10, 1, 0]
         nloops = Nloops.pop(0)
         for n in NS :
             elapsed, mean_err, max_err = benchmark(Routine, dev, n, D, nloops, lang, dtype, dtype_acc, sum_scheme)
-
             times.append( elapsed )
             mean_errs.append( mean_err )
             max_errs.append( max_err )
-            if (nloops * elapsed > MAXTIME) \
-            or (nloops * elapsed > REDTIME/10 and len(Nloops) > 0 ) : 
-                nloops = Nloops.pop(0)
+            if nloops > 0:
+                if (nloops * elapsed > MAXTIME) or (nloops * elapsed > REDTIME/10 and nloops>1) : 
+                    nloops = Nloops.pop(0)
 
     except RuntimeError :
         print("**\nMemory overflow !")
@@ -194,7 +202,10 @@ def full_bench(title, routines) :
         plt.grid(True, which="minor", linestyle="dotted")
         true_vals = benches[:,1:].flatten()
         true_vals = true_vals[np.isfinite(true_vals)]
-        plt.axis([NS[0], NS[-1], true_vals.min(), 100*true_vals.max()])
+        if ind_benches==0:
+            plt.axis([NS[0], NS[-1], true_vals.min(), MAXTIME])
+        else:
+            plt.axis([NS[0], NS[-1], true_vals.min(), 100*true_vals.max()])
         plt.tight_layout()
 
         # Save as a .csv to put a nice Tikz figure in the papers:
