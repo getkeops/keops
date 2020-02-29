@@ -3,6 +3,9 @@
 #include <assert.h>
 #include <sstream>
 
+#include "core/utils/keops_math.h"
+#include "core/utils/TypesUtils.h"
+
 #include "core/autodiff/BinaryOp.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Add.h"
@@ -39,6 +42,7 @@ using Add = typename Add_Alias< FA, FB >::type;
 
 template < class FA, class FB >
 struct Scalprod_Impl : BinaryOp< Scalprod_Impl, FA, FB > {
+
   // Output dimension = 1, provided that FA::DIM = FB::DIM
   static const int DIMIN = FA::DIM;
   static_assert(DIMIN == FB::DIM, "Dimensions must be the same for Scalprod");
@@ -46,21 +50,12 @@ struct Scalprod_Impl : BinaryOp< Scalprod_Impl, FA, FB > {
 
   static void PrintIdString(::std::stringstream &str) { str << "|"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#if USE_HALF
-    *out = __float2half2_rn(0.0f);
-#else
-    *out = 0.0f;
-#endif
-#pragma unroll
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
+    *out = cast_to<TYPE>(0.0f);
+    #pragma unroll
     for (int k = 0; k < DIMIN; k++)
-#if USE_HALF && GPU_ON
-      *out = __hfma2(outA[k], outB[k], *out);
-#elif USE_HALF
-      {}
-#else
-      *out += outA[k] * outB[k];
-#endif
+      *out = keops_fma(outA[k], outB[k], *out);
   }
 
   // <A,B> is scalar-valued, so that gradin is necessarily a scalar.

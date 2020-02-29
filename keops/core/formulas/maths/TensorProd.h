@@ -15,46 +15,39 @@ namespace keops {
 
 template<class A, class B>
 struct TensorProd : BinaryOp<TensorProd, A, B> {
+
   // A is vector of size n, B is vector of size p,
   // output is vector of size n*p understood as a matrix n x p
-
   static const int DIM = A::DIM * B::DIM;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "(x)";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "(x)"; }
+
 #if C_CONTIGUOUS // row major
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inA, TYPE *inB) {
         int q = 0;
-#pragma unroll
+	#pragma unroll
         for (int k = 0; k < A::DIM; k++) {
-#pragma unroll
+	    #pragma unroll
             for (int l = 0; l < B::DIM; l++, q++)
-#if USE_HALF && GPU_ON
-                out[q] = __hmul2(inA[k],inB[l]);
-#elif USE_HALF
-                {}
-#else
                 out[q] = inA[k] * inB[l];
-#endif
         }
-    }
+  }
+
 #else // column major
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inA, TYPE *inB) {
     int q = 0;
-#pragma unroll
+    #pragma unroll
     for (int i = 0; i < A::DIM; i++) {
-#pragma unroll
+      #pragma unroll
       for (int j = 0; j < B::DIM; j++, q++)
-#if USE_HALF && GPU_ON
-        out[A::DIM * j + i] = __hmul2(inA[i],inB[j]);
-#elif USE_HALF
-                {}
-#else
         out[A::DIM * j + i] = inA[i] * inB[j];
-#endif
     }
   }
+
 #endif
 
   template<class V, class GRADIN>

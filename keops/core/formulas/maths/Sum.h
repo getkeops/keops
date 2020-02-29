@@ -21,9 +21,7 @@ struct Sum : UnaryOp<Sum, F> {
 
   static const int DIM = 1;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Sum";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "Sum"; }
 
   template < typename TYPE >
   struct Operation_Scalar {

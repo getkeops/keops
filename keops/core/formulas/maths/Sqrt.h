@@ -3,7 +3,8 @@
 #include <sstream>
 #include <cmath>
 
-#include "core/autodiff/UnaryOp.h"
+#include "core/utils/keops_math.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/constants/Zero.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
@@ -23,27 +24,16 @@ template<class F> struct Sqrt_Alias;
 template<class F> using Sqrt = typename Sqrt_Alias<F>::type;
 
 template<class F>
-struct Sqrt_Impl : UnaryOp<Sqrt_Impl, F> {
-  static const int DIM = F::DIM;
+struct Sqrt_Impl : VectorizedScalarUnaryOp<Sqrt_Impl, F> {
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Sqrt";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "Sqrt"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++) {
-#if USE_HALF && GPU_ON
-      out[k] = h2sqrt(outF[k]);
-#elif USE_HALF
-// this should never be used...
-#elif USE_DOUBLE
-      out[k] = sqrt(outF[k]);
-#else
-      out[k] = sqrtf(outF[k]);
-#endif
+  template < typename TYPE > 
+  struct Operation_Scalar {
+	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
+    	  out = keops_sqrt(outF);
     }
-  }
+  };
 
   template<class V, class GRADIN>
   using DiffTF = typename F::template DiffT<V, GRADIN>;
