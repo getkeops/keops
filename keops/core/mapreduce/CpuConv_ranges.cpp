@@ -8,6 +8,7 @@
 #include <omp.h>
 #endif
 
+#include "core/utils/TypesUtils.h"
 #include "core/pack/Pack.h"
 #include "core/pack/GetInds.h"
 #include "broadcast_batch_dimensions.h"

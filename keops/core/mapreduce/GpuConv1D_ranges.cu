@@ -8,7 +8,7 @@
 #include "core/pack/GetDims.h"
 #include "core/mapreduce/broadcast_batch_dimensions.h"
 #include "core/utils/CudaErrorCheck.cu"
-#include "core/utils/TypeUtils.h"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 

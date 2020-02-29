@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <vector>
 
+#include "core/utils/TypesUtils.h"
+
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif
