@@ -59,10 +59,10 @@ struct BinaryOp : BinaryOp_base<OP,FA,FB,PARAMS...> {
 
   using THIS = OP<FA,FB,PARAMS...>;
 
-  template < class INDS, typename... ARGS >
-  static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+  template < class INDS, typename TYPE, typename... ARGS >
+  static HOST_DEVICE INLINE void Eval(TYPE* out, ARGS... args) {
     // we create vectors of sizes FA::DIM and FB::DIM
-    __TYPE__ outA[FA::DIM], outB[FB::DIM];
+    TYPE outA[FA::DIM], outB[FB::DIM];
     // then we call the Eval function of FA and FB
     FA::template Eval<INDS>(outA,args...);
     FB::template Eval<INDS>(outB,args...);
@@ -77,13 +77,13 @@ struct BinaryOp<OP,Var<N,DIM,CAT>,FB,PARAMS...>  : BinaryOp_base<OP,Var<N,DIM,CA
 
 using THIS = OP<Var<N,DIM,CAT>,FB,PARAMS...>;
 
-template < class INDS, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+template < class INDS, typename TYPE, typename... ARGS >
+static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   // we create a vector and call Eval only for FB
-  __TYPE__ outB[FB::DIM];
+  TYPE outB[FB::DIM];
   FB::template Eval<INDS>(outB,args...);
   // access the Nth argument of args
-  __TYPE__* outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
+  TYPE *outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
   // then we call the Operation function
   THIS::Operation(out,outA,outB);
 }
@@ -95,13 +95,13 @@ struct BinaryOp<OP,FA,Var<N,DIM,CAT>,PARAMS...>  : BinaryOp_base<OP,FA,Var<N,DIM
 
 using THIS = OP<FA,Var<N,DIM,CAT>,PARAMS...>;
 
-template < class INDS, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+template < class INDS, typename TYPE, typename... ARGS >
+static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   // we create a vector and call Eval only for FA
-  __TYPE__ outA[FA::DIM];
+  TYPE outA[FA::DIM];
   FA::template Eval<INDS>(outA,args...);
   // access the Nth argument of args
-  __TYPE__* outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
+  TYPE *outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
   // then we call the Operation function
   THIS::Operation(out,outA,outB);
 }
@@ -114,11 +114,11 @@ BinaryOp_base<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PARAMS...> {
 
 using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PARAMS...>;
 
-template < class INDS, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+template < class INDS, typename TYPE, typename... ARGS >
+static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   // we access the NAth and NBth arguments of args
-  __TYPE__* outA = Get<IndVal_Alias<INDS,NA>::ind>(args...);
-  __TYPE__* outB = Get<IndVal_Alias<INDS,NB>::ind>(args...);
+  TYPE *outA = Get<IndVal_Alias<INDS,NA>::ind>(args...);
+  TYPE *outB = Get<IndVal_Alias<INDS,NB>::ind>(args...);
   // then we call the Operation function
   THIS::Operation(out,outA,outB);
 }
