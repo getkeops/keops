@@ -6,7 +6,7 @@
 #include "core/reductions/Zero_Reduction.h"
 #include "core/pre_headers.h"
 #include "core/utils/Infinity.h"
-
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 // Implements the k-min-arg-k-min reduction operation : for each i or each j, find the values and indices of the
@@ -26,28 +26,24 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
         str << ",K=" << K << ",tagI=" << tagI << ")";
     }
 
-    template < typename TYPE >
+    template < typename TYPEACC, typename TYPE >
     struct InitializeReduction {
-        DEVICE INLINE void operator()(TYPE *tmp) {
-#pragma unroll
+        DEVICE INLINE void operator()(TYPEACC *tmp) {
+            #pragma unroll
             for(int k=0; k<F::DIM; k++) {
-#pragma unroll
+                #pragma unroll
                 for(int l=k; l<K*2*F::DIM+k; l+=2*F::DIM) {
-#if USE_HALF && GPU_ON
-                    tmp[l] = __float2half2_rn(65504.); // initialize output
-                    tmp[l+F::DIM] = __float2half2_rn(0.); // initialize output
-         // to be continued...
-         if (threadIdx.x==0 && blockIdx.x==0 && blockIdx.y==0) {
-           printf("\n   [KeOps] Error : KMin or ArgKMin reductions are not yet implemented with half precision type.\n\n");
-           asm("trap;");
-         }
-#elif USE_HALF
-#else
-                    tmp[l] = PLUS_INFINITY<TYPE>::value; // initialize output
-                    tmp[l+F::DIM] = 0; // initialize output
-#endif
+                    tmp[l] = cast_to<TYPEACC>(PLUS_INFINITY<TYPE>::value); // initialize output
+                    tmp[l+F::DIM] = cast_to<TYPEACC>(0.0f); // initialize output
                 }
             }
+#if USE_HALF && GPU_ON
+            // to be continued...
+            if (threadIdx.x==0 && blockIdx.x==0 && blockIdx.y==0) {
+              printf("\n   [KeOps] Error : KMin or ArgKMin reductions are not yet implemented with half precision type.\n\n");
+              asm("trap;");
+            }
+#endif
         }
     };
 
@@ -59,10 +55,10 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 #if !USE_HALF
             TYPE xik;
             int l;
-#pragma unroll
+            #pragma unroll
             for(int k=0; k<F::DIM; k++) {
                 xik = xi[k];
-#pragma unroll
+                #pragma unroll
                 for(l=(K-1)*2*F::DIM+k; l>=k && xik<tmp[l]; l-=2*F::DIM) {
                     TYPE tmpl = tmp[l];
                     int indtmpl = tmp[l+F::DIM];
@@ -84,11 +80,11 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 		DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi) {
 #if !USE_HALF
 		    TYPE out[DIMRED];
-#pragma unroll
+                        #pragma unroll
 			for(int k=0; k<F::DIM; k++) {
 			    int p = k;
 			    int q = k;
-#pragma unroll
+                            #pragma unroll
 			    for(int l=k; l<DIMRED; l+=2*F::DIM) {
 			        if(xi[p]<tmp[q]) {
 					    out[l] = xi[p];
@@ -102,7 +98,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
 					}  
 				}
 			}
-#pragma unroll
+                        #pragma unroll
 			for(int k=0; k<DIMRED; k++)
 			    tmp[k] = out[k];
 #endif
@@ -112,7 +108,7 @@ struct KMin_ArgKMin_Reduction : public Reduction<F,tagI> {
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
         DEVICE INLINE void operator()(TYPE *acc, TYPE *out, TYPE **px, int i) {
-#pragma unroll
+            #pragma unroll
             for(int k=0; k<DIM; k++)
                 out[k] = acc[k];
         }
@@ -141,9 +137,9 @@ struct ArgKMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
         DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
-#pragma unroll
+            #pragma unroll
             for(int k=0; k<F::DIM; k++)
-#pragma unroll
+                #pragma unroll
                 for(int p=k, l=k; l<K*2*F::DIM+k; p+=F::DIM, l+=2*F::DIM)
                     out[p] = acc[l+F::DIM];
         }
@@ -176,9 +172,9 @@ struct KMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
         DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
-#pragma unroll
+            #pragma unroll
             for(int k=0; k<F::DIM; k++)
-#pragma unroll
+                s#pragma unroll
                 for(int p=k, l=k; l<K*2*F::DIM+k; p+=F::DIM, l+=2*F::DIM)
                     out[p] = acc[l];
         }

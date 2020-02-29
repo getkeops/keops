@@ -26,10 +26,10 @@ struct Min_Reduction : public Reduction<F,tagI>, UnaryOp<Min_Reduction,F,tagI> {
         str << "Min_Reduction";
     }
 
-		template < typename TYPE >
+		template < typename TYPEACC, typename TYPE >
 		struct InitializeReduction {
-			DEVICE INLINE void operator()(TYPE *tmp) {
-				VectAssign<F::DIM>(tmp, cast_to<TYPE>(PLUS_INFINITY<TYPE>::value));
+			DEVICE INLINE void operator()(TYPEACC *tmp) {
+				VectAssign<F::DIM>(tmp, PLUS_INFINITY<TYPE>::value);
 			}
 		};
 
@@ -90,11 +90,11 @@ struct Min_ArgMin_Reduction_Base : public Reduction<F,tagI> {
     // We work with a (values,indices) vector
 	static const int DIMRED = 2*F::DIM;	// dimension of temporary variable for reduction
 		
-		template < typename TYPE >
+		template < typename TYPEACC, typename TYPE >
 		struct InitializeReduction {
-			DEVICE INLINE void operator()(TYPE *tmp) {
-				VectAssign<F::DIM>(tmp, cast_to<TYPE>(PLUS_INFINITY<TYPE>::value));
-				VectAssign<F::DIM>(tmp + F::DIM, cast_to<TYPE>(0.0f));
+			DEVICE INLINE void operator()(TYPEACC *tmp) {
+				VectAssign<F::DIM>(tmp, PLUS_INFINITY<TYPE>::value);
+				VectAssign<F::DIM>(tmp + F::DIM, 0.0f);
 			}
 		};
 
