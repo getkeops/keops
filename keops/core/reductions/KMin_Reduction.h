@@ -174,7 +174,7 @@ struct KMin_Reduction : public KMin_ArgKMin_Reduction<F,K,tagI> {
         DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
             #pragma unroll
             for(int k=0; k<F::DIM; k++)
-                s#pragma unroll
+                #pragma unroll
                 for(int p=k, l=k; l<K*2*F::DIM+k; p+=F::DIM, l+=2*F::DIM)
                     out[p] = acc[l];
         }

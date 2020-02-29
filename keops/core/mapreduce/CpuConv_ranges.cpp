@@ -70,7 +70,7 @@ struct CpuConv_ranges {
     // Set the output to zero, as the ranges may not cover the full output -----
     __TYPEACC__ acctmp[DIMRED];
     for (int i = 0; i < nx; i++) {
-      typename FUN::template InitializeReduction< __TYPEACC__ >()(acctmp);
+      typename FUN::template InitializeReduction< __TYPEACC__, TYPE >()(acctmp);
       typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acctmp, px[0] + i * DIMOUT, px, i);
     }
     

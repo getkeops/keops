@@ -10,7 +10,7 @@
 #include "core/pack/GetDims.h"
 #include "core/utils/CudaErrorCheck.cu"
 #include "core/utils/CudaSizes.h"
-#include "core/utils/TypeUtils.h"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 
