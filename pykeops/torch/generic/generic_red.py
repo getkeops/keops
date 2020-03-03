@@ -377,7 +377,7 @@ class Genred():
         """
 
         nx, ny = get_sizes(self.aliases, *args)
-        nout, nred = nx, ny if self.axis==1 else ny, nx
+        nout, nred = (nx, ny) if self.axis==1 else (ny, nx)
 
         if "Arg" in self.reduction_op:
             # when using Arg type reductions,
