@@ -327,8 +327,13 @@ class LazyTensor:
         for prop in props:
             x, y = getattr(self, prop), getattr(other, prop)
             if x is not None:
-                if y is not None and x != y:
-                    raise ValueError("Incompatible values for attribute {}: {} and {}.".format(prop, x, y))
+                if y is not None:
+                    if prop == "ranges":
+                        x_eq_y = all(tuple(map(lambda x,y : torch.eq(x,y).all().item(),x,y)))
+                    else:
+                        x_eq_y = x==y
+                    if not(x_eq_y):
+                        raise ValueError("Incompatible values for attribute {}: {} and {}.".format(prop, x, y))
                 setattr(res, prop, x)
             else:
                 setattr(res, prop, y)
@@ -1224,17 +1229,18 @@ class LazyTensor:
         LazyTensors only support concatenation and indexing operations with respect
         to the last dimension.
         """
-        if axis not in [-1, len(self._shape) - 1]:
-            raise ValueError("LazyTensor only supports concatenation along the last axis.")
         if isinstance(self, tuple):
             if len(self) == 0:
                 raise ValueError("Received an empty tuple of LazyTensors.")
-            elif len(self) == 1:
-                return self
-            elif len(self) == 2:
-                return self[0].concat(self[1])
             else:
-                return LazyTensor.concatenate((self[0].concat(self[1]), self[2:]), axis=-1)
+                if axis not in [-1, len(self[0]._shape) - 1]:
+                    raise ValueError("LazyTensor only supports concatenation along the last axis.")
+                if len(self) == 1:
+                    return self[0]
+                elif len(self) == 2:
+                    return self[0].concat(self[1])
+                else:
+                    return LazyTensor.concatenate((self[0].concat(self[1]),)+self[2:], axis=-1)
         else:
             raise ValueError("LazyTensor.concatenate is implemented on *tuples* of LazyTensors.")
     
