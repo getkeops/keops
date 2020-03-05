@@ -1,14 +1,12 @@
 #pragma once
 
 #include <sstream>
-
-#include "core/autodiff/UnaryOp.h"
+#include "core/utils/keops_math.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Square.h"
-
-#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -20,34 +18,16 @@ namespace keops {
 //using Inv = Pow<F,-1>;
 
 template<class F>
-struct Inv : UnaryOp<Inv, F> {
+struct Inv : VectorizedScalarUnaryOp<Inv, F> {
 
-  static const int DIM = F::DIM;
+  static void PrintIdString(::std::stringstream &str) { str << "Inv"; }
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Inv";
-  }
-
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++) {
-#ifdef __CUDA_ARCH__
-#if USE_DOUBLE
-      out[k] = 1 / outF[k];           // there is no fast divide for cuda and double
-#elif USE_HALF
-      out[k] = h2rcp(outF[k]);
-#else
-      out[k] = fdividef(1.0, outF[k]);
-#endif
-#elif USE_HALF && GPU_ON
-      out[k] = (half)1 / outF[k];
-#elif USE_HALF
-// this should never happen...
-#else
-      out[k] = 1 / outF[k];
-#endif
+  template < typename TYPE > 
+  struct Operation_Scalar {
+	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
+    	  out = keops_rcp(outF);
     }
-  }
+  };
 
   template<class V, class GRADIN>
   using DiffTF = typename F::template DiffT<V, GRADIN>;

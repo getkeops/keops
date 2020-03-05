@@ -8,6 +8,7 @@
 #include "core/pack/GetDims.h"
 #include "core/mapreduce/broadcast_batch_dimensions.h"
 #include "core/utils/CudaErrorCheck.cu"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 
@@ -88,15 +89,9 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
     TYPE tmp[DIM_KAHAN];
 #endif
     if(i<end_x) {
-        typename FUN::template InitializeReduction<__TYPEACC__>()(acc); // acc = 0
+        typename FUN::template InitializeReduction<__TYPEACC__,TYPE>()(acc); // acc = 0
 #if SUM_SCHEME == KAHAN_SCHEME
-#pragma unroll
-        for (int k = 0; k < DIM_KAHAN; k++)
-#if USE_HALF
-          tmp[k] = __float2half2_rn(0.0f);
-#else
-          tmp[k] = 0.0f;
-#endif
+        VectAssign<DIM_KAHAN>(tmp,0.0f);
 #endif
         if (nbatchdims == 0) {
             load<typename DIMSX::NEXT>(i, xi+DIMFOUT, px+1); // load xi variables from global memory to local thread memory
@@ -128,7 +123,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
                 if(i<end_x) { // we compute x1i only if needed
                     TYPE* yjrel = yj; // Loop on the columns of the current block.
 #if SUM_SCHEME == BLOCK_SUM
-      	            typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
+      	            typename FUN::template InitializeReduction<TYPE,TYPE>()(tmp); // tmp = 0
 #endif
                     if (nbatchdims == 0) {
                         for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {

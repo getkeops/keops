@@ -25,16 +25,9 @@ def preprocess(reduction_op, formula2):
     
     return reduction_op_internal, formula2
 
-
 def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
     tools = get_tools(binding)
     # Post-processing of the output:
-    if "Arg" in reduction_op:
-        # when using Arg type reductions,
-        # if nout is greater than 16 millions and dtype=float32, the result is not reliable
-        # because we encode indices as floats, so we raise an exception
-        if nout>1.6e7 and dtype=="float32":
-            raise ValueError('size of input array is too large for Arg type reduction with single precision. Use double precision.')        
     if reduction_op == 'SumSoftMaxWeight' or reduction_op == 'SoftMax':
         # we compute sum_j exp(f_ij) g_ij / sum_j exp(f_ij) from sum_j exp(m_i-f_ij) [1,g_ij]
         out = out[..., 2:] / out[..., 1][..., None]

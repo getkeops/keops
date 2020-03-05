@@ -18,19 +18,17 @@ struct ExtractT;
 
 template< class F, int START, int DIM_ >
 struct Extract : UnaryOp< Extract, F, START, DIM_ > {
+
   static const int DIM = DIM_;
 
   static_assert(F::DIM >= START + DIM, "Index out of bound in Extract");
   static_assert(START >= 0, "Index out of bound in Extract");
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Extract";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "Extract"; }
 
-  static HOST_DEVICE INLINE
-  void Operation(__TYPE__ *out, __TYPE__ *outF) {
-    for (int k = 0; k < DIM; k++)
-      out[k] = outF[START + k];
+  template < typename TYPE >
+  static HOST_DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
+    VectCopy<DIM>(out, outF+START);
   }
 
   template< class V, class GRADIN >

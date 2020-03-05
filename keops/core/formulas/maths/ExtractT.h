@@ -23,25 +23,13 @@ struct ExtractT : UnaryOp<ExtractT,F,START,DIM_> {
   static_assert(START+F::DIM<=DIM,"Index out of bound in ExtractT");
   static_assert(START>=0,"Index out of bound in ExtractT");
 
-  static void PrintIdString(::std::stringstream& str) {
-    str << "ExtractT";
-  }
+  static void PrintIdString(::std::stringstream& str) { str << "ExtractT"; }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-    for(int k=0; k<START; k++)
-#if USE_HALF
-      out[k] = __float2half2_rn(0.0f);
-#else
-      out[k] = 0.0;
-#endif
-    for(int k=0; k<F::DIM; k++)
-      out[START+k] = outF[k];
-    for(int k=START+F::DIM; k<DIM; k++)
-#if USE_HALF
-      out[k] = __float2half2_rn(0.0f);
-#else
-      out[k] = 0.0;
-#endif
+  template < typename TYPE >
+  static HOST_DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
+    VectAssign<START>(out, 0.0f);
+    VectCopy<F::DIM>(out+START, outF);
+    VectAssign<DIM-START-F::DIM>(out+START+F::DIM, 0.0f);
   }
 
   template < class V, class GRADIN >

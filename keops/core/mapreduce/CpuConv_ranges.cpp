@@ -8,6 +8,7 @@
 #include <omp.h>
 #endif
 
+#include "core/utils/TypesUtils.h"
 #include "core/pack/Pack.h"
 #include "core/pack/GetInds.h"
 #include "broadcast_batch_dimensions.h"
@@ -70,7 +71,7 @@ struct CpuConv_ranges {
     // Set the output to zero, as the ranges may not cover the full output -----
     __TYPEACC__ acctmp[DIMRED];
     for (int i = 0; i < nx; i++) {
-      typename FUN::template InitializeReduction< __TYPEACC__ >()(acctmp);
+      typename FUN::template InitializeReduction< __TYPEACC__, TYPE >()(acctmp);
       typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acctmp, px[0] + i * DIMOUT, px, i);
     }
     
@@ -125,13 +126,11 @@ struct CpuConv_ranges {
         } else {
           load< typename DIMSX::NEXT >(i - start_x, xi + DIMFOUT, px + 1, indices_i);
         }
-        typename FUN::template InitializeReduction< __TYPEACC__ >()(acc);   // tmp = 0
+        typename FUN::template InitializeReduction< __TYPEACC__, TYPE >()(acc);   // tmp = 0
 #if SUM_SCHEME == BLOCK_SUM
-        typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+        typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
 #elif SUM_SCHEME == KAHAN_SCHEME
-#pragma unroll
-        for (int k = 0; k < DIM_KAHAN; k++)
-          tmp[k] = 0.0f;
+        VectAssign<DIM_KAHAN>(tmp,0.0f);
 #endif
         for (__INDEX__ slice = start_slice; slice < end_slice; slice++) {
           __INDEX__ start_y = ranges_y[2 * slice];
@@ -151,7 +150,7 @@ struct CpuConv_ranges {
               typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j); // tmp += xi
               if ((j+1)%200) {
                   typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
-                  typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+                  typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
               }
 #elif SUM_SCHEME == KAHAN_SCHEME
               typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
@@ -168,7 +167,7 @@ struct CpuConv_ranges {
               typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j - start_y); // tmp += xi
               if ((j+1)%200) {
                   typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
-                  typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+                  typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
               }
 #elif SUM_SCHEME == KAHAN_SCHEME
               typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);

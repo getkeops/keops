@@ -377,7 +377,17 @@ class Genred():
         """
 
         nx, ny = get_sizes(self.aliases, *args)
-        nout = nx if self.axis==1 else ny
+        nout, nred = (nx, ny) if self.axis==1 else (ny, nx)
+
+        if "Arg" in self.reduction_op:
+            # when using Arg type reductions,
+            # if nred is greater than 16 millions and dtype=float32, the result is not reliable
+            # because we encode indices as floats, so we raise an exception ;
+            # same with float16 type and nred>2048
+            if nred>1.6e7 and self.dtype in ("float32","float"):
+                raise ValueError('size of input array is too large for Arg type reduction with single precision. Use double precision.')  
+            elif nred>2048 and self.dtype in ("float16","half"):
+                raise ValueError('size of input array is too large for Arg type reduction with float16 dtype..')  
 
         if self.dtype in ('float16','half'):
             args, ranges, tag_dummy, N = preprocess_half2(args, self.aliases, self.axis, ranges, nx, ny)

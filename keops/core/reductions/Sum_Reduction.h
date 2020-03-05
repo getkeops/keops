@@ -22,8 +22,7 @@ using Sum_Reduction = typename Sum_Reduction_Alias< F, tagI >::type;
 template < class F, int tagI >
 struct Sum_Reduction_Impl : public Reduction< F, tagI > {
 
-  static const int DIM =
-      F::DIM;        // DIM is dimension of output of convolution ; for a sum reduction it is equal to the dimension of output of formula
+  static const int DIM = F::DIM;        // DIM is dimension of output of convolution ; for a sum reduction it is equal to the dimension of output of formula
 
   static const int DIMRED = DIM;        // dimension of temporary variable for reduction
 
@@ -33,23 +32,25 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
     str << PrintFormula< F >();                // prints the formula F
   }
 
-  template < typename TYPE >
+  template < typename TYPEACC, typename TYPE >
   struct InitializeReduction {
-    DEVICE INLINE void operator()(TYPE *tmp) {
-#pragma unroll
-      for (int k = 0; k < DIM; k++)
-        tmp[k] = cast_to<TYPE>(0.0f); // initialize output
+    DEVICE INLINE void operator()(TYPEACC *tmp) {
+      VectAssign<DIM>(tmp, 0.0f);
     }
+  };
+
+  template < typename TYPEACC, typename TYPE >		
+  struct ReducePairScalar {
+      DEVICE INLINE void operator()(TYPEACC& tmp, const TYPE& xi) {
+	tmp += cast_to<TYPEACC>(xi);
+      }
   };
 
   // equivalent of the += operation
   template < typename TYPEACC, typename TYPE >
   struct ReducePairShort {
     DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
-#pragma unroll
-      for (int k = 0; k < DIM; k++) {
-        tmp[k] += cast_to<TYPEACC>(xi[k]);
-      }
+      VectApply < ReducePairScalar<TYPEACC,TYPE>, DIM > (tmp, xi);
     }
   };
 
@@ -57,10 +58,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   template < typename TYPEACC, typename TYPE >
   struct ReducePair {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi) {
-#pragma unroll
-      for (int k = 0; k < DIM; k++) {
-        acc[k] += cast_to<TYPEACC>(xi[k]);
-      }
+      VectApply < ReducePairScalar<TYPEACC,TYPE>, DIM > (acc, xi);
     }
   };
 
@@ -69,7 +67,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   struct KahanScheme {
     static const int DIMACC = DIM;
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPE *tmp) {
-#pragma unroll
+        #pragma unroll
 	for (int k=0; k<DIM; k++)
         {
 		TYPEACC a = cast_to<TYPEACC>(xi[k] - tmp[k]);
@@ -83,9 +81,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   template < typename TYPEACC, typename TYPE >
   struct FinalizeOutput {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
-#pragma unroll
-      for (int k = 0; k < DIM; k++)
-        out[k] = cast_to<TYPE>(acc[k]);
+      VectCopy<DIM>(out, acc);
     }
   };
 

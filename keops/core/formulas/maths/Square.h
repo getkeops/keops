@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "core/autodiff/UnaryOp.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
@@ -20,27 +20,16 @@ namespace keops {
 //using Square = Pow<F,2>;
 
 template<class F>
-struct Square : UnaryOp<Square, F> {
+struct Square : VectorizedScalarUnaryOp<Square, F> {
 
-  static const int DIM = F::DIM;
+  static void PrintIdString(::std::stringstream &str) { str << "Sq"; }
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Sq";
-  }
-
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++) {
-#if USE_HALF && GPU_ON
-      __TYPE__ temp = outF[k];
-      out[k] = __hmul2(temp,temp);
-#elif USE_HALF
-#else
-      __TYPE__ temp = outF[k];
-      out[k] = temp * temp;
-#endif
+  template < typename TYPE > 
+  struct Operation_Scalar {
+	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
+    	  out = outF * outF;
     }
-  }
+  };
 
   template<class V, class GRADIN>
   using DiffTF = typename F::template DiffT<V, GRADIN>;

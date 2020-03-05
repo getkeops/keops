@@ -62,10 +62,10 @@ struct UnaryOp : UnaryOp_base<OP,F,NS...> {
 
   using THIS = OP<F,NS...>;
 
-  template < class INDS, typename... ARGS >
-  static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+  template < class INDS, typename TYPE, typename... ARGS >
+  static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
     // we create a vector of size F::DIM
-    __TYPE__ outA[F::DIM];
+    TYPE outA[F::DIM];
     // then we call the Eval function of F
     F::template Eval<INDS>(outA,args...);
     // then we call the Operation function
@@ -79,10 +79,10 @@ struct UnaryOp< OP, Var< N, DIM, CAT >, NS... >  : UnaryOp_base< OP,Var< N, DIM,
 
 using THIS = OP< Var< N, DIM, CAT>, NS... >;
 
-template < class INDS, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+template < class INDS, typename TYPE, typename... ARGS >
+static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   // we do not need to create a vector ; just access the Nth argument of args
-  __TYPE__* outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
+  TYPE *outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
   // then we call the Operation function
   THIS::Operation(out,outA);
 }

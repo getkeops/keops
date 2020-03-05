@@ -1,16 +1,13 @@
 #pragma once
 
-#include <sstream>
 #include <assert.h>
 
 #include "core/pack/CondType.h"
-#include "core/autodiff/BinaryOp.h"
+#include "core/autodiff/VectorizedScalarBinaryOp.h"
 #include "core/formulas/constants/Zero.h"
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Sum.h"
 #include "core/formulas/maths/Scal.h"
-
-#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -35,26 +32,20 @@ using Scal = typename Scal_Alias< FA, FB >::type;
 
 
 template < class FA, class FB >
-struct Add_Impl : BinaryOp< Add_Impl, FA, FB > {
+struct Add_Impl : VectorizedScalarBinaryOp< Add_Impl, FA, FB > {
+
   // Output dim = FA::DIM = FB::DIM
   static const int DIM = FA::DIM;
   static_assert(DIM == FB::DIM, "Dimensions must be the same for Add");
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << " + ";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << " + "; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++)
-#if USE_HALF && GPU_ON
-      out[k] = __hadd2(outA[k],outB[k]);
-#elif USE_HALF
-      {}
-#else
-      out[k] = outA[k] + outB[k];
-#endif
-  }
+  template < typename TYPE >
+  struct Operation_Scalar {
+  	DEVICE INLINE void operator() (TYPE &out, TYPE &outA, TYPE &outB) {
+		out = outA + outB;
+	}
+  };
 
   // [ \partial_V (A + B) ] . gradin = [ \partial_V A ] . gradin  + [ \partial_V B ] . gradin
   template < class V, class GRADIN >
@@ -68,20 +59,18 @@ struct Add_Impl_Broadcast : BinaryOp< Add_Impl_Broadcast, FA, FB > {
   // Output dim = FB::DIM
   static const int DIM = FB::DIM;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "+";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "+"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++)
-#if USE_HALF && GPU_ON
-      out[k] = __hadd2(*outA,outB[k]);
-#elif USE_HALF
-      {}
-#else
-      out[k] = *outA + outB[k];
-#endif
+  template < typename TYPE >
+  struct Operation_Scalar {
+  	DEVICE INLINE void operator() (TYPE &out, TYPE &outA, TYPE &outB) {
+		out = outA + outB;
+	}
+  };
+
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
+      VectApply < Operation_Scalar<TYPE>, DIM > (out, *outA, outB);
   }
 
   // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin

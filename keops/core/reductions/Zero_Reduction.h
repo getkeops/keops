@@ -4,6 +4,7 @@
 
 #include "core/reductions/Reduction.h"
 #include "core/formulas/constants/Zero.h"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 

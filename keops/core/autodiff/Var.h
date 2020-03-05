@@ -71,10 +71,10 @@ struct Var {
   //
   // will see that the index 1 is targeted,
   // assume that "var5" is of size DIM, and copy its value in "out".
-  template < class INDS, typename ...ARGS >
-  static HOST_DEVICE INLINE void Eval(__TYPE__ *out, ARGS... args) {
+  template < class INDS, typename TYPE, typename ...ARGS >
+  static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
     // IndVal_Alias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
-    __TYPE__ *xi = Get< IndVal_Alias< INDS, N >::ind >(args...);   // xi = the "ind"-th argument.
+    TYPE *xi = Get< IndVal_Alias< INDS, N >::ind >(args...);   // xi = the "ind"-th argument.
     for (int k = 0; k < DIM; k++)                                  // Assume that xi and out are of size DIM,
       out[k] = xi[k];                                       // and copy xi into out.
   }

@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "core/pack/UnivPack.h"
+#include "core/utils/TypesUtils.h"
 #include "core/formulas/constants/Zero.h"
 
 namespace keops {
@@ -17,11 +18,10 @@ using IntConstant = typename IntConstant_Alias<N>::type;
 
 template < int N >
 struct IntConstant_Impl {
+
   static const int DIM = 1;
 
-  static void PrintId(::std::stringstream& str) {
-    str << N;
-  }
+  static void PrintId(::std::stringstream& str) { str << N; }
 
   template< class A, class B >
   using Replace = IntConstant< N >;
@@ -32,13 +32,9 @@ struct IntConstant_Impl {
   using VARS = univpack<>;  // there's no variable used in there.
 
   // Evaluation is easy : simply fill *out = out[0] with N.
-  template < class INDS, typename... ARGS >
-  static DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
-#if USE_HALF
-    *out = __float2half2_rn(N);
-#else
-    *out = N;
-#endif
+  template < class INDS, typename TYPE, typename... ARGS >
+  static DEVICE INLINE void Eval(TYPE* out, ARGS... args) {
+    *out = cast_to<TYPE>((float)N);
   }
 
   // There is no gradient to accumulate on V, whatever V.

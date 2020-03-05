@@ -10,6 +10,7 @@
 #include "core/pack/GetDims.h"
 #include "core/utils/CudaErrorCheck.cu"
 #include "core/utils/CudaSizes.h"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 
@@ -53,7 +54,7 @@ __global__ void reduce2D(TYPE *in, TYPE *out, TYPE ** px, int sizeY,int nx) {
     // However, for now, we use a "vectorized" reduction op.,
     // which can also handle non-trivial reductions such as "LogSumExp"
     __TYPEACC__ acc[DIMIN];
-    typename FUN::template InitializeReduction<__TYPEACC__>()(acc); // acc = 0
+    typename FUN::template InitializeReduction<__TYPEACC__,TYPE>()(acc); // acc = 0
     if(tid < nx) {
         for (int y = 0; y < sizeY; y++)
             typename FUN::template ReducePair<__TYPEACC__,TYPE>()(acc, in + (tid+y*nx)*DIMIN);     // acc += in[(tid+y*nx) *DIMVECT : +DIMVECT];
@@ -113,18 +114,12 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
 #endif
     if(i<nx) { // we will compute x1i only if i is in the range
 #if SUM_SCHEME == BLOCK_SUM         
-        typename FUN::template InitializeReduction<TYPE>()(acc); // acc = 0
+        typename FUN::template InitializeReduction<TYPE,TYPE>()(acc); // acc = 0
 #else
-        typename FUN::template InitializeReduction<__TYPEACC__>()(acc); // acc = 0
+        typename FUN::template InitializeReduction<__TYPEACC__,TYPE>()(acc); // acc = 0
 #endif
 #if SUM_SCHEME == KAHAN_SCHEME
-#pragma unroll
-        for (int k = 0; k < DIM_KAHAN; k++)
-#if USE_HALF
-          tmp[k] = __float2half2_rn(0.0f);
-#else
-          tmp[k] = 0.0f;
-#endif
+        VectAssign<DIM_KAHAN>(tmp,0.0f);
 #endif
         // Load xi from device global memory.
         // Remember that we use an interleaved memory scheme where

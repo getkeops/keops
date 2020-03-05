@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <vector>
 
+#include "core/utils/TypesUtils.h"
+
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif
@@ -42,13 +44,11 @@ struct CpuConv {
     TYPE tmp[DIM_KAHAN];
 #endif
       load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
-      typename FUN::template InitializeReduction< __TYPEACC__ >()(acc);   // acc = 0
+      typename FUN::template InitializeReduction< __TYPEACC__, TYPE >()(acc);   // acc = 0
 #if SUM_SCHEME == BLOCK_SUM
-      typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+      typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
 #elif SUM_SCHEME == KAHAN_SCHEME
-#pragma unroll
-      for (int k = 0; k < DIM_KAHAN; k++)
-        tmp[k] = 0.0f;
+      VectAssign<DIM_KAHAN>(tmp,0.0f);
 #endif
       for (int j = 0; j < ny; j++) {
         load< DIMSY >(j, yj, py);
@@ -57,7 +57,7 @@ struct CpuConv {
         typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j); // tmp += xi
         if ((j+1)%200) {
             typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
-            typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+            typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
         }
 #elif SUM_SCHEME == KAHAN_SCHEME
         typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
