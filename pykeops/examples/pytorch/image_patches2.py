@@ -42,7 +42,7 @@ def LazyTensor_patches(I,s,axis,use_ranges=True):
 
 
 
-m, n, d, s, K = 30, 30, 1, 5, 4
+m, n, d, s, K = 30, 30, 3, 5, 4
 
 id_device = 0
 device = 'cuda:'+str(id_device) if torch.cuda.is_available() else 'cpu'
@@ -81,13 +81,13 @@ out_keops = q*(n-s+1)+r
 print("elapsed keops : ",time.time()-start)
 
 if m*n<10000:
-    print("erreur : ",(out_keops-out_torch).abs().sum().item())
+    print("erreur : ",(out_keops.cpu()-out_torch).abs().sum().item())
 
 
 
 # testing with KeOps - with padding and no ranges
 
-Ipad = torch.cat((I,1e20*torch.ones(m,1,d)),dim=1)
+Ipad = torch.cat((I,1e20*torch.ones(m,1,d, device=device)),dim=1)
 
 start = time.time()
 P_i = LazyTensor_patches(Ipad,s,axis=0,use_ranges=False)
@@ -105,6 +105,6 @@ out_keops = q*(n-s+1)+r
 print("elapsed keops : ",time.time()-start)
 
 if m*n<10000:
-    print("erreur : ",(out_keops-out_torch).abs().sum().item())
+    print("erreur : ",(out_keops.cpu()-out_torch).abs().sum().item())
 
 
