@@ -16,7 +16,7 @@ import imageio
 if 'cuda' in device:
     imfile = "https://homepages.cae.wisc.edu/~ece533/images/fruits.png"
 else:
-    imfile = "https://s-media-cache-ak0.pinimg.com/originals/26/76/3d/26763d481172f5dc599d151570b38ded.jpg"
+    imfile = "http://helios.math-info.univ-paris5.fr/~glaunes/pikachu.bmp"
 I = torch.tensor(imageio.imread(imfile)).float().to(device)
 m, n, d = I.shape
 
@@ -41,8 +41,8 @@ if m*n<20000:
     start = time.time()
     P = torch_patches(I,s)
     D2 = ((P[:,None,:]-P[None,:,:])**2).sum(dim=2)
-    out_torch = D2.argsort(dim=1)[:,:4]
-    print("elapsed time PyTorch : ",time.time()-start)
+    out_torch = D2.argsort(dim=1)[:,:K]
+    print("elapsed time with PyTorch : ",time.time()-start)
 
 
 
@@ -99,9 +99,6 @@ out_keops = q*(n-s+1)+r
 
 print("elapsed time with KeOps (ranges) : ",time.time()-start)
 
-if m*n<20000:
-    print("errors : ",(out_keops.cpu()!=out_torch).sum().item())
-
 
 
 # testing with KeOps - with padding and no ranges
@@ -128,40 +125,40 @@ out_keops = q*(n-s+1)+r
 
 print("elapsed time with KeOps (padding) : ",time.time()-start)
 
-if m*n<20000:
-    print("error : ",(out_keops.cpu()!=out_torch).sum().item())
 
 
-
+# displaying the image with some results 
 
 from PIL import Image
 import numpy as np
 I = I.cpu().numpy().astype(np.uint8)
 def ShowNearestPatches(I,i,j):
     def add_patch_box(I,i,j,s,clr):
-        I[i:i+s,j,:] = clr
-        I[i:i+s,j+s-1,:] = clr
-        I[i,j:j+s,:] = clr
-        I[i+s-1,j:j+s,:] = clr
-        return I
+        B = I.copy()
+        B[i:i+s,j,:] = clr
+        B[i:i+s,j+s-1,:] = clr
+        B[i,j:j+s,:] = clr
+        B[i+s-1,j:j+s,:] = clr
+        return np.mean([I,B],axis=0).astype(np.uint8)
     def add_segment(I,i,j,ik,jk,clr):
+        B = I.copy()
         n = 100
         iseg = np.linspace(i,ik,n).astype(np.int)
         jseg = np.linspace(j,jk,n).astype(np.int)
         for k in range(n):
-            I[iseg[k],jseg[k],:] = clr
-        return I
+            B[iseg[k],jseg[k],:] = clr
+        return np.mean([I,B],axis=0).astype(np.uint8)
     red = np.array([255,0,0]).astype(np.uint8)
     blue = np.array([0,0,255]).astype(np.uint8)
-    I = add_patch_box(I,i,j,s,red)
     ind = i*(n-s+1)+j
     for k in range(1,K):
         indk = out_keops[ind,k].cpu().numpy().astype(np.int)
         ik, jk = indk//(n-s+1), indk%(n-s+1)
         I = add_patch_box(I,ik,jk,s,blue)
         I = add_segment(I,i+s//2,j+s//2,ik+s//2,jk+s//2,blue)
+    I = add_patch_box(I,i,j,s,red)
     return I
-for k in range(10):
+for k in range(10 if 'cuda' in device else 1):
     i, j = np.random.randint(m-s+1), np.random.randint(n-s+1)
     I = ShowNearestPatches(I,i,j)
 I = Image.fromarray(I, 'RGB')
