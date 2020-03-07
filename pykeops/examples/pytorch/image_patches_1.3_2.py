@@ -8,21 +8,19 @@ from pykeops.torch import LazyTensor
 id_device = 0
 device = 'cuda:'+str(id_device) if torch.cuda.is_available() else 'cpu'
 
+# parameters (s size of block, K number of nearest neighbours)
+s, K = 5, 10
+
+# loading image
+import imageio
 if 'cuda' in device:
-    m, n = 512, 512
+    imfile = "https://homepages.cae.wisc.edu/~ece533/images/fruits.png"
 else:
-    m, n = 30, 30
-
-d, s, K = 3, 5, 4
-
-torch.manual_seed(2 )
-
-I = torch.rand(m,n,d).double().to(device)
-#I = torch.arange(m*n*d).float().view(m,n,d).to(device)
-
+    imfile = "https://s-media-cache-ak0.pinimg.com/originals/26/76/3d/26763d481172f5dc599d151570b38ded.jpg"
+I = torch.tensor(imageio.imread(imfile)).float().to(device)
+m, n, d = I.shape
 
 # function to buill image patches with PyTorch, used as reference
-
 def torch_patches(I,s):
     # inputs : I torch tensor of shape (m,n,d), image
     #          s : integer, size of patches
@@ -71,36 +69,8 @@ def LazyTensor_patches(I,s,axis,use_ranges=True):
     if use_ranges:
         # we define the range of computation using the range arguments of KeOps
         # This is used to avoid computing over "garbage" patches
-        rgm = torch.arange(m-s+1)[:,None].int()
-        ranges = torch.cat((rgm*n,rgm*n+n-s+1),dim=1).to(I.device)
-        slices = ((torch.arange(m-s+1).int()+1)*(m-s+1)).to(I.device)
-        red_ranges = (torch.cat((ranges,)*(m-s+1),dim=0)).to(I.device)
-        return P, (ranges,slices,red_ranges,ranges,slices,red_ranges)
-    else:
-        return P
-
-def LazyTensor_patches_v2(I,s,axis,use_ranges=True):
-    # input : I torch tensor of shape (m,n,d), image
-    #         s : integer, size of patches
-    # output : LazyTensor of shape ((m-s+1)*n-s+1,d*s**2) representing all s-by-s patches of I, 
-    # N.B. there are (m-s)*(s-1) "garbage" patches, corresponding to indices (i,m-s+1),...(i,m-1)
-    # for each row i except the last one. These patches will not be taken into account in computations
-    # if use_ranges=True, but will remain in any case in the output as zero valued rows.
-    m, n, d = I.shape
-    I = I.view(m*n,d)
-    ind_last = (m-s+1)*n-s+1
-    for i in range(s):
-        for j in range(s):
-            if i==0 and j==0:
-                P = LazyTensor(torch.narrow(I,0,0,ind_last),axis=axis)
-            else:
-                ind_shift = i*n + j
-                P = P.concat(LazyTensor(torch.narrow(I,0,ind_shift,ind_last),axis=axis))
-    if use_ranges:
-        # we define the range of computation using the range arguments of KeOps
-        # This is used to avoid computing over "garbage" patches
-        ranges = torch.tensor([[0,ind_last]]).int()
-        slices = torch.tensor([m-s+1]).int()
+        ranges = torch.tensor([[0,ind_last]]).int().to(I.device)
+        slices = torch.tensor([m-s+1]).int().to(I.device)
         rgm = torch.arange(m-s+1)[:,None].int()
         red_ranges = torch.cat((rgm*n,rgm*n+n-s+1),dim=1).to(I.device)
         return P, (ranges,slices,red_ranges,ranges,slices,red_ranges)
@@ -133,36 +103,11 @@ if m*n<20000:
     print("errors : ",(out_keops.cpu()!=out_torch).sum().item())
 
 
-# testing with KeOps - with ranges v2
-
-start = time.time()
-
-# creating LazyTensor objects for patches and computing
-P_i, ranges = LazyTensor_patches_v2(I,s,axis=0)
-P_j, ranges = LazyTensor_patches_v2(I,s,axis=1)
-D2 = P_i.sqdist(P_j)
-out_keops = D2.argKmin(dim=1, K=K, ranges=ranges)
-
-# now post-processing to get rid of the garbage rows of the output
-ind_keep = torch.arange(m*n).view(m,n)[:-s+1,:-s+1].flatten()
-out_keops = out_keops[ind_keep,:]
-# Also here the output corresponds to patch indices, for the list of patches that includes
-# garbage patches. So we need to convert the indices
-q = out_keops // n
-r = out_keops % n
-out_keops = q*(n-s+1)+r
-
-print("elapsed time with KeOps (ranges) : ",time.time()-start)
-
-if m*n<20000:
-    print("errors : ",(out_keops.cpu()!=out_torch).sum().item())
-
-
 
 # testing with KeOps - with padding and no ranges
 
 # padding the image with very large values on the right border
-Ipad = torch.cat((I,1e20*torch.ones(m,1,d, device=device).double()),dim=1)
+Ipad = torch.cat((I,1e20*torch.ones(m,1,d, device=device)),dim=1)
 
 start = time.time()
 
@@ -186,12 +131,41 @@ print("elapsed time with KeOps (padding) : ",time.time()-start)
 if m*n<20000:
     print("error : ",(out_keops.cpu()!=out_torch).sum().item())
 
-ind = torch.argmax((out_torch!=out_keops).sum(dim=1))
-print(ind)
-print(out_torch[ind,:])
-print(out_keops[ind,:])
-print(((P[608,:]-P[178,:])**2).sum())
-print(((P[608,:]-P[543,:])**2).sum())
-a = ((P[608,:]-P[178,:])**2).sum()
-b = ((P[608,:]-P[543,:])**2).sum()
-print(a-b)
+
+
+
+from PIL import Image
+import numpy as np
+I = I.cpu().numpy().astype(np.uint8)
+def ShowNearestPatches(I,i,j):
+    def add_patch_box(I,i,j,s,clr):
+        I[i:i+s,j,:] = clr
+        I[i:i+s,j+s-1,:] = clr
+        I[i,j:j+s,:] = clr
+        I[i+s-1,j:j+s,:] = clr
+        return I
+    def add_segment(I,i,j,ik,jk,clr):
+        n = 100
+        iseg = np.linspace(i,ik,n).astype(np.int)
+        jseg = np.linspace(j,jk,n).astype(np.int)
+        for k in range(n):
+            I[iseg[k],jseg[k],:] = clr
+        return I
+    red = np.array([255,0,0]).astype(np.uint8)
+    blue = np.array([0,0,255]).astype(np.uint8)
+    I = add_patch_box(I,i,j,s,red)
+    ind = i*(n-s+1)+j
+    for k in range(1,K):
+        indk = out_keops[ind,k].cpu().numpy().astype(np.int)
+        ik, jk = indk//(n-s+1), indk%(n-s+1)
+        I = add_patch_box(I,ik,jk,s,blue)
+        I = add_segment(I,i+s//2,j+s//2,ik+s//2,jk+s//2,blue)
+    return I
+for k in range(10):
+    i, j = np.random.randint(m-s+1), np.random.randint(n-s+1)
+    I = ShowNearestPatches(I,i,j)
+I = Image.fromarray(I, 'RGB')
+I.show()
+
+
+
