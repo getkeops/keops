@@ -113,11 +113,11 @@ int KernelGpuEvalConv(TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
     // Send data from host to device.
     cudaMemcpy(x_d,    x_h,    sizeof(TYPE)*(nx*DIMPOINT + ny*DIMPOINT + ny*DIMVECT ), cudaMemcpyHostToDevice);
 
-
-    int BlockSizes[6] = {64, 128, 192, 256, 512, 1024};
+    int n_blocksizes = 1;
+    int BlockSizes[n_blocksizes] = {192}; //{64, 128, 192, 256, 512, 1024};
     int CUDA_BLOCK_SIZE = 0;
 
-    for(int b = 0; b < 6; b++) {
+    for(int b = 0; b < n_blocksizes; b++) {
         CUDA_BLOCK_SIZE = BlockSizes[b];
         std::cout << "BlockSize = " << CUDA_BLOCK_SIZE << ", " ;
 
@@ -165,13 +165,19 @@ int KernelGpuEvalConv(TYPE* x_h, TYPE* y_h, TYPE* beta_h, TYPE* gamma_h,
 
 int main(void)
 {
-  int Ns[3] = {10000, 100000, 1000000};
-  int N = 0;
-  int nits = 100;
+  //int Ns[3] = {10000, 100000, 1000000};
+  //int nits[3] = {100, 10, 1};
 
-  for (int n = 0; n < 3; n++){
+  int Ns[1] = {1000000};
+  int nits[1] = {1};
+
+  int N = 0;
+  int nit = 0;
+
+  for (int n = 0; n < 1; n++){
 
       N = Ns[n];
+      nit = nits[n];
 
       float *x, *y, *p, *g;
 
@@ -195,7 +201,7 @@ int main(void)
       KernelGpuEvalConv< __TYPE__, 3, 1 >(
             x, y, p, g,
             N, N,
-            (N > 100000 ? 1 : nits)
+            nit
       );
 
       // Wait for GPU to finish before accessing on host
