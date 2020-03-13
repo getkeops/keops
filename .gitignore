@@ -50,3 +50,6 @@ keopslab/common/pathtocmake
 # R/Rstudio related files
 .Rproj.user
 .Rhistory
+
+# benchmark extra file
+benchmarks/*halide*
