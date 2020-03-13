@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <thrust/device_vector.h>
+#include <stdio.h>
 
 #include <keops_includes.h>
 
@@ -41,7 +42,7 @@ void DispValues(__TYPE__ *x, int N, int dim) {
 
 using namespace keops;
 
-int main() {
+int main(int argc, char **argv) {
 
     int deviceID = 0;
     cudaSetDevice(deviceID);
@@ -61,17 +62,18 @@ int main() {
 
     // now we test ------------------------------------------------------------------------------
 
-    int Nx=1000000, Ny=1000000;
-
+    int Nx;
+    sscanf(argv[1], "%d", &Nx);
+    
     std::vector<__TYPE__> vx(Nx*x.DIM);    fillrandom(vx); __TYPE__ *px = vx.data();
     thrust::device_vector<__TYPE__> vx_d(vx);
     __TYPE__ *x_d = thrust::raw_pointer_cast(vx_d.data());
 
-    std::vector<__TYPE__> vy(Ny*DIMPOINT);    fillrandom(vy); __TYPE__ *py = vy.data();
+    std::vector<__TYPE__> vy(Nx*DIMPOINT);    fillrandom(vy); __TYPE__ *py = vy.data();
     thrust::device_vector<__TYPE__> vy_d(vy);
     __TYPE__ *y_d = thrust::raw_pointer_cast(vy_d.data());
    
-    std::vector<__TYPE__> vb(Ny*DIMVECT);     fillrandom(vb); __TYPE__ *pb = vb.data();
+    std::vector<__TYPE__> vb(Nx*DIMVECT);     fillrandom(vb); __TYPE__ *pb = vb.data();
     thrust::device_vector<__TYPE__> vb_d(vb);
     __TYPE__ *b_d = thrust::raw_pointer_cast(vb_d.data());
    
@@ -85,20 +87,20 @@ int main() {
 
     std::cout << "blank run 1" << std::endl;
     begin = clock();
-    EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Ny, res_d, x_d, y_d, b_d);
+    EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Nx, res_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for blank run 1 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
     std::cout << "blank run 2" << std::endl;
     begin = clock();
-    EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Ny, res_d, x_d, y_d, b_d);
+    EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Nx, res_d, x_d, y_d, b_d);
     end = clock();
     std::cout << "time for blank run 2 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 
 
 
 
-    int Ntest = 1;
+    int Ntest = 10;
 
     std::cout << "testing From_Device mode" << std::endl;
 
@@ -106,7 +108,7 @@ int main() {
     auto start = Clock::now();
 
     for(int i=0; i<Ntest; i++)
-        EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Ny, res_d, x_d, y_d, b_d);
+        EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Nx, res_d, x_d, y_d, b_d);
 
     //end = clock();
     //std::cout << "time for "<< Ntest <<" GPU computations (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
