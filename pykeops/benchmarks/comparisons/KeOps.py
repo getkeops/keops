@@ -1,10 +1,7 @@
 """
 KeOps
-====================
+=====
 """
-
-##########################
-# Blabla
 
 import torch
 import numpy as np

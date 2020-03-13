@@ -2,6 +2,33 @@
 
 This set of scripts can be used to benchmark the performance of KeOps versus other solutions.
 
+## PyKeOps
+
+To compute the Gaussian convolution on GPU using Pykeops with torch.
+
+1. intall pykeops
+
+```bash
+$ pip install pykeops
+```
+
+2. Run
+
+```bash
+$ python KeOps.py
+```
+
+## KeOps++
+
+To compute the Gaussian convolution on GPU using KeOps c++ backend
+
+```bash
+mkdir build
+cd build
+cmake ../keops
+make test_fromdevice 10000
+```
+
 ## Halide
 
 To compute the Gaussian convolution on GPU using Halide (c++ code)
@@ -31,13 +58,13 @@ To compute the Gaussian convolution on GPU using TF-XLA:
 should do the trick. On a linux system, you may need to define the XLA-FLAGS env: 
 
 ```bash
-export XLA_FLAGS="--xla_gpu_cuda_data_dir=/path/to/cuda
+$ export XLA_FLAGS="--xla_gpu_cuda_data_dir=/path/to/cuda
 ```
 
 2. Run
 
 ```bash
-python TF_XLA.py
+$ python TF_XLA.py
 ```
 
 ## Pytorch GPU
@@ -45,7 +72,7 @@ python TF_XLA.py
 To compute the Gaussian convolution on GPU using PyTorch:
 
 ```bash
-python Pytorch_GPU.py
+$ python Pytorch_GPU.py
 ```
 
 ## Pytorch TPU
@@ -60,5 +87,5 @@ To compute the Gaussian convolution on GPU using PyTorch:
 2. If you are running on a linux system, export `TVM_HOME` and `PYTHONPATH` variable.
 3. Run
 ```bash
-python TVM.py
+$ python TVM.py
 ```
