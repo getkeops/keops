@@ -3,16 +3,6 @@ TensorFlow, with an XLA backend
 ====================================
 """
 
-#########################################
-# This script should be run with TF 2.0 installed on your machine.
-# On Google Colab,
-#
-# !pip install tensorflow-gpu==2.0.0
-
-##############################################
-# Should do the trick.
-#
-#
 
 import tensorflow as tf
 #tf.config.optimizer.set_jit(True)
@@ -36,7 +26,7 @@ Ns, D = [10000, 100000, 1000000], 3
 #
 
 # First, test without XLA
-for N in Ns:
+for N in Ns[:1]:
 
     # Generate the data
     x = tf.random.normal((N, 1, D))
@@ -44,16 +34,16 @@ for N in Ns:
     p = tf.random.normal((N,1))
 
     # First run just in case...
-    p = KP(x,y,p)
+    out = KP(x,y,p)
 
     # Timings for TF vanilla
     start = time()
     for _ in range(nits):
-        p = KP(x,y,p)
+        out = KP(x,y,p)
 
     # N.B.: we need some kind of "print" statement to make
     #       sure that TF actually executes our code
-    print(p)
+    print("TF Vanilla : ",out[:10])
     end = time()
     print("Timing with {} points: {} x {:.4f}s".format(N, nits, (end-start) / nits) )
 
@@ -69,16 +59,16 @@ for N in Ns:
     p = tf.random.normal((N,1))
 
     # Precompile just in case...
-    p = tf.xla.experimental.compile(KP, inputs=[x,y,p])
+    out = tf.xla.experimental.compile(KP, inputs=[x,y,p])
 
     start = time()
     
     for _ in range(nits):
-        p = tf.xla.experimental.compile(KP, inputs=[x,y,p])[0]
+        out = tf.xla.experimental.compile(KP, inputs=[x,y,p])[0]
 
     # N.B.: we need some kind of "print" statement to make
     #       sure that TF actually executes our code
-    print(p)
+    print("XLA : ",out[:10])
     end = time()
 
     print("Timing with {} points: {} x {:.4f}s".format(N, nits, (end-start) / nits) )
