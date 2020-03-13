@@ -25,8 +25,9 @@ To compute the Gaussian convolution on GPU using KeOps c++ backend
 ```bash
 mkdir build
 cd build
-cmake ../keops
-make test_fromdevice 10000
+cmake ../../keops
+make test_fromdevice
+example/test_fromdevice 100000
 ```
 
 ## Halide
@@ -43,7 +44,7 @@ $ tar xvf halide-linux-64-gcc53-800-65c26cba6a3eca2d08a0bccf113ca28746012cc3.tgz
 
 ```bash
 $ g++ gauss_conv_halide.cpp -g -std=c++11 -I halide/tutorial -I halide/include -I halide/tools -L halide/bin -lHalide -lpthread -ldl -o gauss_conv_halide
-$ LD_LIBRARY_PATH=halide/bin ./gauss_conv_halide 10000
+$ LD_LIBRARY_PATH=halide/bin ./gauss_conv_halide 100000
 ```
 
 ## TF-XLA
