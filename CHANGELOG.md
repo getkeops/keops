@@ -1,3 +1,7 @@
+* v1.4
+    - Added multiprocessor parallelization in Cpu mode.
+    - Added support for float16 data type.
+
 * v1.3
     - rkeops: keops binding for R (uploaded in CRAN)
     - Refactor keops binders: there is a Cpp namespace called "keops_binder" providing an easy entry point to keops functions (that are in the namespace "keops")
