@@ -12,6 +12,7 @@
 #include "core/utils/CudaSizes.h"
 #include "core/utils/TypesUtils.h"
 
+
 namespace keops {
 
 template<typename TYPE, class FUN>
@@ -366,6 +367,7 @@ struct GpuConv1D_FromDevice {
 
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
+
     CudaCheckError();
 
     CudaSafeCall(cudaFree(p_data));
