@@ -11,8 +11,6 @@
 #include "core/utils/CudaErrorCheck.cu"
 #include "core/utils/CudaSizes.h"
 
-#include <chrono>
-typedef std::chrono::high_resolution_clock Clock;
 
 namespace keops {
 
@@ -354,21 +352,12 @@ struct GpuConv1D_FromDevice {
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-
-auto start = Clock::now();
-
     // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
     GpuConv1DOnDevice<TYPE> << < gridSize, blockSize, blockSize.x * (DIMY) * sizeof(TYPE) >>
         > (fun, nx, ny, px_d, py_d, pp_d);
 
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
-
-auto end = Clock::now();
-        std::cout << "time = " 
-                  << (float) std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() 
-                  << " milliseconds" << std::endl;
-
 
     CudaCheckError();
 

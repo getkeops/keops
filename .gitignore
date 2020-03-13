@@ -36,6 +36,9 @@
 *__pycache__*
 *.pyc
 
+# coverage data files
+*.coverage*
+
 # Setuptools distribution folder.
 /dist/
 
