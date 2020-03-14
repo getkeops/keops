@@ -157,17 +157,17 @@ def LDDMMloss(K, dataloss, gamma=0):
 # FS,FT : Face connectivity of source and target surfaces
 # K kernel
 def lossVarifoldSurf(FS, VT, FT, K):
-    def CompCLNn(F, V):
+    def get_center_length_normal(F, V):
         V0, V1, V2 = V.index_select(0, F[:, 0]), V.index_select(0, F[:, 1]), V.index_select(0, F[:, 2])
-        C, N = .5 * (V0 + V1 + V2), .5 * torch.cross(V1 - V0, V2 - V0)
-        L = (N ** 2).sum(dim=1)[:, None].sqrt()
-        return C, L, N / L
+        centers, normals =  (V0 + V1 + V2) / 3, .5 * torch.cross(V1 - V0, V2 - V0)
+        length = (normals ** 2).sum(dim=1)[:, None].sqrt()
+        return centers, length, normals/ length
     
-    CT, LT, NTn = CompCLNn(FT, VT)
+    CT, LT, NTn = get_center_length_normal(FT, VT)
     cst = (LT * K(CT, CT, NTn, NTn, LT)).sum()
     
     def loss(VS):
-        CS, LS, NSn = CompCLNn(FS, VS)
+        CS, LS, NSn = get_center_length_normal(FS, VS)
         return cst + (LS * K(CS, CS, NSn, NSn, LS)).sum() - 2 * (LS * K(CS, CT, NSn, NTn, LT)).sum()
 
     return loss
