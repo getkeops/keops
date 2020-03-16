@@ -2,7 +2,7 @@ Package: rkeops
 Type: Package
 Title: Kernel Operations on the GPU, with Autodiff, without Memory Overflows
 Version: 1.3
-Date: 2020-02-07
+Date: 2020-03-16
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
            comment="<http://imag.umontpellier.fr/~charlier/>", 
@@ -18,15 +18,15 @@ Authors@R: c(
            email="gd.dev@libertymail.net", 
            role=c("aut", "cre")), 
     person(given="François-David", family="Collin", 
-           comment="", 
+           comment="Development-related consulting and support", 
            role="ctb"),
     person(given="Daniel", family="Frey", 
-           comment="Author of the included C++ library `sequences`", 
-           role="aut"))
-Description: The KeOps library lets you compute generic reductions of very large arrays 
+           comment="Author of the included C++ library 'sequences'", 
+           role="ctb"))
+Description: The 'KeOps' library lets you compute generic reductions of very large arrays 
     whose entries are given by a mathematical formula. It combines a tiled reduction scheme 
-    with an automatic differentiation engine, and can be used through Matlab, NumPy or 
-    PyTorch backends. It is perfectly suited to the computation of Kernel dot products 
+    with an automatic differentiation engine, and can be used through 'R', 'Matlab', 'NumPy' or 
+    'PyTorch' backends. It is perfectly suited to the computation of Kernel dot products 
     and the associated gradients, even when the full kernel matrix does not fit into 
     the GPU memory.
 License: MIT + file LICENSE
