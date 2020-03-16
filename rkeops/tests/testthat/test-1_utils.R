@@ -58,6 +58,7 @@ test_that("load_dll", {
     src_dir <- file.path(get_pkg_dir(), "src")
     # compile test function
     setwd(src_dir)
+    on.exit(setwd(current_dir))
     tmp <- tryCatch(compile_test_function(),
                     error = function(e) {print(e); return(NULL)})
     setwd(current_dir)

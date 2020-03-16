@@ -49,6 +49,7 @@ test_that("compile_code", {
     tmp_build_dir <- file.path(get_rkeops_option("build_dir"), dllname)
     if(!dir.exists(tmp_build_dir)) dir.create(tmp_build_dir)
     setwd(tmp_build_dir)
+    on.exit(setwd(current_directory))
 
     ## compiling (call to cmake)
     return_status <- tryCatch(compile_code(formula, var_aliases,
