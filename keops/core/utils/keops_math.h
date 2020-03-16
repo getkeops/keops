@@ -85,7 +85,7 @@ DEVICE INLINE half2 keops_abs(half2 x) {
   
     #else
   
-DEVICE INLINE half2 keops_abs(half2 x) { return __habs(x); }
+DEVICE INLINE half2 keops_abs(half2 x) { return __habs2(x); }
 
     #endif
   #endif
