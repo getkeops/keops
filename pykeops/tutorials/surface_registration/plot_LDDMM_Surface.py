@@ -26,7 +26,7 @@ from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 from torch.autograd import grad
 
-from pykeops.torch import Kernel, kernel_product
+from pykeops.torch import Kernel, kernel_product, LazyTensor, Vi, Vj
 from pykeops.torch.kernel_product.formula import *
 
 # torch type and device
@@ -60,29 +60,21 @@ else:
 # Define Gaussian kernel :math:`(K(x,y)b)_i = \sum_j \exp(-\gamma\|x_i-y_j\|^2)b_j`
 
 def GaussKernel(sigma):
-    def K(x, y, b):
-        params = {
-            'id': Kernel('gaussian(x,y)'),
-            'gamma': 1 / (sigma * sigma),
-            'backend': 'auto'
-        }
-        return kernel_product(params, x, y, b)
-    return K
-
+    x, y, b = Vi(0,3), Vj(1,3), Vj(2,3)
+    gamma = 1 / (sigma * sigma)
+    D2 = x.sqdist(y)
+    K = (-D2*gamma).exp()
+    return (K*b).sum_reduction(axis=1)
 
 ###################################################################
 # Define "Gaussian-CauchyBinet" kernel :math:`(K(x,y,u,v)b)_i = \sum_j \exp(-\gamma\|x_i-y_j\|^2) \langle u_i,v_j\rangle^2 b_j`
 
 def GaussLinKernel(sigma):
-    def K(x, y, u, v, b):
-        params = {
-            'id': Kernel('gaussian(x,y) * linear(u,v)**2'),
-            'gamma': (1 / (sigma * sigma), None),
-            'backend': 'auto'
-        }
-        return kernel_product(params, (x, u), (y, v), b)
-    return K
-
+    x, y, u, v, b = Vi(0,3), Vj(1,3), Vi(2,3), Vj(3,3), Vj(4,1)
+    gamma = 1 / (sigma * sigma)
+    D2 = x.sqdist(y)
+    K = (-D2*gamma).exp() * (u*v).sum()**2
+    return (K*b).sum_reduction(axis=1)
 
 ####################################################################
 # Custom ODE solver, for ODE systems which are defined on tuples
