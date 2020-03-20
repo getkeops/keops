@@ -1,3 +1,4 @@
+import sys
 import subprocess
 
 from pykeops import bin_folder, script_folder, verbose, build_type
@@ -50,6 +51,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                      '-Dshared_obj_name=' + dllname,
                      '-D__TYPE__=' + c_type[dtype],
                      '-DPYTHON_LANG=' + lang,
+                     '-DPYBIND11_PYTHON_VERSION=' + str(sys.version_info.major) + '.' +str(sys.version_info.minor),
                      '-DC_CONTIGUOUS=1',
                     ] + optional_flags
 

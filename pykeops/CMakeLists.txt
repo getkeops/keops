@@ -37,7 +37,7 @@ set(BIN_DIR ${PROJECT_BINARY_DIR}/../)
 #                                                     PYBIND11                                                         #
 ########################################################################################################################
 
-add_subdirectory(pybind11)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pybind11)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0) #  fix for pytorch: https://discuss.pytorch.org/t/pytorch-0-4-1-undefined-symbol-at-import-of-a-cpp-extension/24420 and https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
 if(NOT PYTHON_LANG)
