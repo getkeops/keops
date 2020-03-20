@@ -22,7 +22,8 @@ it was only tested on Linux and MacOS.
 Install from CRAN
 -----------------
 
-    **Note:** RKeOps is not avaible on CRAN yet, it should be soon.
+    **Note:** RKeOps is avaible on CRAN but only for UNIX environment
+    (GNU/Linux and MacOS) and not for Windows.
 
 ::
 
