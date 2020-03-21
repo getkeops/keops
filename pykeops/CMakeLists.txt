@@ -39,7 +39,13 @@ set(BIN_DIR ${PROJECT_BINARY_DIR}/../)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pybind11)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
-add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0) #  fix for pytorch: https://discuss.pytorch.org/t/pytorch-0-4-1-undefined-symbol-at-import-of-a-cpp-extension/24420 and https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
+
+# fix for pytorch: https://discuss.pytorch.org/t/pytorch-0-4-1-undefined-symbol-at-import-of-a-cpp-extension/24420 and https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
+if(NOT DEFINED _GLIBCXX_USE_CXX11_ABI) 
+    Set(_GLIBCXX_USE_CXX11_ABI 0)  # set default value to False...
+endif()
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${_GLIBCXX_USE_CXX11_ABI}) 
+
 if(NOT PYTHON_LANG)
   Set(PYTHON_LANG numpy)
 endif()

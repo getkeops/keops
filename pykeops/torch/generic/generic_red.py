@@ -7,7 +7,7 @@ from pykeops.torch.half2_convert import preprocess_half2, postprocess_half2
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
 from pykeops.common.parse_type import parse_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
-from pykeops.torch import default_dtype, include_dirs
+from pykeops.torch import default_dtype, include_dirs, torch_cxx11_abi_flag
 
 class GenredAutograd(torch.autograd.Function):
     """
@@ -17,7 +17,7 @@ class GenredAutograd(torch.autograd.Function):
     @staticmethod
     def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, accuracy_flags, *args):
     
-        optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] + accuracy_flags
+        optional_flags = ['-D_GLIBCXX_USE_CXX11_ABI=' + str(int(torch_cxx11_abi_flag)), '-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] + accuracy_flags
 
         myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags).import_module()
 
