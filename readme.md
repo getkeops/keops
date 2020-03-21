@@ -66,6 +66,10 @@ More details are provided below:
 * [Gallery of examples](http://www.kernel-operations.io/keops/_auto_examples/index.html)
 * [Benchmarks](http://www.kernel-operations.io/keops/_auto_benchmarks/index.html)
 
+# Benchmark
+
+KeOps is one of the fastest solution to compute generic Kernel formula. See our [benchmark](./benchmarks/README.md)
+
 # Projects using KeOps
 
 As of today, KeOps provides core routines for:
