@@ -27,7 +27,7 @@ Using pip (recommended)
 
   Note that the compiled shared objects (``*.so`` files) will be stored into the folder  ``~/.cache/libkeops-$version`` where ``~`` is the path to your home folder and ``$version`` is the package version number.
 
-3. Test your installation, as described in the :ref:`next section. <part.checkPython>`
+3. Test your installation, as described in the :ref:`next section <part.checkPython>`.
 
 On Google Colab
 ===============

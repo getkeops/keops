@@ -38,6 +38,7 @@
 
 # coverage data files
 *.coverage*
+htmlcov
 
 # Setuptools distribution folder.
 /dist/

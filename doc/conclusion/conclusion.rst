@@ -5,7 +5,7 @@ Conclusion
 The previous sections uncovered the inner workings of the KeOps
 library. After pages and pages of technical derivations, 
 **users can now reap the reward of our year-long investment in low-level software
-engineering** through the user-friendly :mod:`LazyTensor` wrapper.
+engineering** through the user-friendly :mod:`pykeops.numpy.LazyTensor` or :mod:`pykeops.torch.LazyTensor` wrappers.
 
 
 History of the project
@@ -129,18 +129,17 @@ returns the solution:
 
    \begin{aligned}
    a^{\star}
-   ~=~
+   =
    \operatorname*{argmin}_a  \|\, (\alpha\operatorname{Id}+K_{xx})\,a \,-\,b\,\|^2_2
-   ~=~
-   (\alpha \operatorname{Id}~+~ K_{xx})^{-1} b, \label{eq:pykeops_solver}\end{aligned}
+   =
+   (\alpha \operatorname{Id} + K_{xx})^{-1} b, \label{eq:pykeops_solver}\end{aligned}
 
-of the linear system
-“:math:`(\alpha \operatorname{Id}~+~ K_{xx})\,a = b`”, computed with a
+of the linear system ":math:`(\alpha \operatorname{Id}~+~ K_{xx})\,a = b`", computed with a
 conjugate gradient scheme.
 
 **Using KeOps as a backend for high-level libraries.**
 Going further, as discussed in 
-our :doc:`gallery <../_auto_tutorials/backends/>`, 
+our :ref:`gallery <part.backend>`, 
 :mod:`LazyTensors` can be neatly interfaced
 with the high-quality solvers of the 
 `Scipy <https://docs.scipy.org/doc/scipy/reference/sparse.linalg.html>`_

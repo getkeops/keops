@@ -1,20 +1,23 @@
 # Comparisons with other frameworks
 
+This set of scripts can be used to benchmark the performance of KeOps versus other solutions.
+
+## Results
+
 We compare the performances of several computing libraries on a simple benchmark: a Gaussian kernel matrix-vector product with a growing number of points `N` in dimension `D = 3`.  All experiments are performed with `float32` precision on a Nvidia RTX 2080 TiGPU, with the exception of the PyTorch-TPU column that was run in Google Colab.
 
 
-|              |   PyTorch    |   PyTorch-TPU   |    TF-XLA      |   Halide        |    TVM   |     PyKeOps   |  KeOps++  |
-|:------------:|:------------:|:---------------:|:--------------:|:---------------:|:--------:|:-------------:|:---------:|
-|N = 10k       |     9 ms     |      10 ms      |     13 ms      |  1.0 ms         |  3.8 ms  |     **0.7 ms**    |  **0.40 ms**  |
-|N = 100k      | out of mem   |   out of mem    |      89 ms     |   34.1 ms       |  36.8 ms |    **15.0 ms**    |  **14.6 ms**  |
-|N = 1M        | out of mem   |   out of mem    |    out of mem  |   3.8 s         |  2.79 s  |     **1.39 s**    |  **1.38 s**   |
-|Lines of code |     5        |     5           |       5        |    15           |   17     |     5         |    55             |
-|Interface     |  NumPy-like  |     NumPy-like  |   NumPy-like   |   C++low-level  |  Python  | NumPy-like    |   C++             |
+|              |   PyTorch    |   PyTorch-TPU   |    TF-XLA      |   Halide        |        TVM       |     PyKeOps   |    KeOps++   |
+|:------------:|:------------:|:---------------:|:--------------:|:---------------:|:----------------:|:-------------:|:------------:|
+|N = 10k       |     9 ms     |      10 ms      |     13 ms      |  1.0 ms         |     3.8 ms       | **0.7 ms**    |  **0.40 ms** |
+|N = 100k      | out of mem   |   out of mem    |      89 ms     |   34.1 ms       |     36.8 ms      | **15.0 ms**   |  **14.6 ms** |
+|N = 1M        | out of mem   |   out of mem    |    out of mem  |   3.8 s         |     2.79 s       | **1.39 s**    |  **1.38 s**  |
+|Lines of code |     5        |     5           |       5        |    15           |      17          |     5         |    55        |
+|Interface     |  NumPy-like  |     NumPy-like  |   NumPy-like   |        C++      | low-level Python | NumPy-like    |   C++        |
 
+## Scripts
 
-This set of scripts can be used to benchmark the performance of KeOps versus other solutions.
-
-## PyKeOps
+### PyKeOps
 
 To compute the Gaussian convolution on GPU using Pykeops with torch.
 
@@ -30,7 +33,7 @@ $ pip install pykeops
 $ python KeOps.py
 ```
 
-## KeOps++
+### KeOps++
 
 To compute the Gaussian convolution on GPU using KeOps c++ backend
 
@@ -42,7 +45,7 @@ make test_fromdevice
 example/test_fromdevice 100000
 ```
 
-## Halide
+### [Halide](https://halide-lang.org/)
 
 To compute the Gaussian convolution on GPU using Halide (c++ code)
 
@@ -59,7 +62,7 @@ $ g++ gauss_conv_halide.cpp -g -std=c++11 -I halide/tutorial -I halide/include -
 $ LD_LIBRARY_PATH=halide/bin ./gauss_conv_halide 100000
 ```
 
-## TF-XLA
+### [TF-XLA](https://www.tensorflow.org/xla)
 
 To compute the Gaussian convolution on GPU using TF-XLA:
 
@@ -80,7 +83,7 @@ $ export XLA_FLAGS="--xla_gpu_cuda_data_dir=/path/to/cuda
 $ python TF_XLA.py
 ```
 
-## Pytorch GPU
+### [Pytorch GPU](https://pytorch.org/)
 
 To compute the Gaussian convolution on GPU using PyTorch:
 
@@ -88,11 +91,11 @@ To compute the Gaussian convolution on GPU using PyTorch:
 $ python Pytorch_GPU.py
 ```
 
-## Pytorch TPU
+### Pytorch TPU
 
 To compute the Gaussian convolution on TPU using PyTorch. This code should be run on a Google Colab session, with TPU acceleration. Copy/paste the content of `PyTorch_TPU.py` in the collab notebook.
 
-## TVM
+### [TVM](https://tvm.apache.org/)
 
 To compute the Gaussian convolution on GPU using PyTorch:
 
