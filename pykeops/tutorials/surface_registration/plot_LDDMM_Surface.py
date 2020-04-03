@@ -18,13 +18,11 @@ We perform an LDDMM matching of two meshes using the geodesic shooting algorithm
 import os
 import time
 
-import imageio
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
-from mpl_toolkits.mplot3d import Axes3D
 from torch.autograd import grad
+
+import plotly
+import plotly.graph_objs as go
 
 from pykeops.torch import Kernel, kernel_product, LazyTensor, Vi, Vj
 from pykeops.torch.kernel_product.formula import *
@@ -178,26 +176,26 @@ FS = FS.clone().detach().to(dtype=torch.long, device=torchdeviceId)
 FT = FT.clone().detach().to(dtype=torch.long, device=torchdeviceId)
 sigma = torch.tensor([20], dtype=torchdtype, device=torchdeviceId)
 
-fig = plt.figure()
-ax = Axes3D(fig)
-ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-ax.plot_trisurf(q0.detach().cpu().numpy()[:, 0],
-                q0.detach().cpu().numpy()[:, 1],
-                q0.detach().cpu().numpy()[:, 2],
-                triangles=FS.detach().cpu().numpy(),
-                color=(0, 0, 0, 0),  edgecolor=(1, 0, 0, .08), linewidth=1)
-ax.plot_trisurf(VT.detach().cpu().numpy()[:, 0],
-                VT.detach().cpu().numpy()[:, 1],
-                VT.detach().cpu().numpy()[:, 2],
-                triangles=FT.detach().cpu().numpy(),
-                color=(0, 0, 0, 0),  edgecolor=(0, 0, 1, .3),  linewidth=1)
-blue_proxy = plt.Rectangle((0, 0), 1, 1, fc="b")
-red_proxy = plt.Rectangle((0, 0), 1, 1, fc=(1, 0, 0, .5))
-ax.legend([red_proxy,  blue_proxy], ['source', 'target'])
-ax.set_title('Data')
-plt.show()
+x, y, z = q0[:,0].detach().cpu().numpy(), q0[:,1].detach().cpu().numpy(), q0[:,2].detach().cpu().numpy()
+i, j, k = FS[:,0].detach().cpu().numpy(), FS[:,1].detach().cpu().numpy(), FS[:,2].detach().cpu().numpy()
+
+xt, yt, zt = VT[:,0].detach().cpu().numpy(), VT[:,1].detach().cpu().numpy(), VT[:,2].detach().cpu().numpy()
+it, jt, kt = FT[:,0].detach().cpu().numpy(), FT[:,1].detach().cpu().numpy(), FT[:,2].detach().cpu().numpy()
+
+save_folder = '../../../doc/_build/html/_images/'
+os.makedirs(save_folder, exist_ok=True)
+
+fig = go.Figure(data=[go.Mesh3d(x=xt, y=yt, z=zt, i=it, j=jt, k=kt, color='blue', opacity=0.50),
+                      go.Mesh3d(x=x, y=y, z=z, i=i, j=j, k=k, color='red', opacity=0.50)])
+fig.write_html( save_folder + "data.html", auto_open=False)
+
+
+############################################################################
+# .. raw:: html
+#
+#     <iframe src="../../_images/data.html" height="300px" width="100%"></iframe>
+#
+
 
 #####################################################################
 # Define data attachment and LDDMM functional
@@ -236,49 +234,65 @@ print('Optimization (L-BFGS) time: ', round(time.time() - start, 2), ' seconds')
 nt = 15
 listpq = Shooting(p0, q0, Kv, nt=nt)
 
-################################################################################
+############################################################################
 # .. raw:: html
 #
-#     <img class='sphx-glr-single-img' src='../../_images/surface_matching.gif'/>
+#     <iframe src="../../_images/results.html" height="300px" width="100%"></iframe>
 #
 
 
 ####################################################################
-# The code to generate the .gif:
+# The code to generate the figure:
 
 VTnp, FTnp = VT.detach().cpu().numpy(), FT.detach().cpu().numpy()
 q0np, FSnp = q0.detach().cpu().numpy(), FS.detach().cpu().numpy()
 
+# Create figure
+fig = go.Figure()
+fig.add_trace(
+        go.Mesh3d(
+            visible=True,
+            x=VTnp[:, 0], y=VTnp[:, 1], z=VTnp[:, 2],
+            i=FTnp[:, 0], j=FTnp[:, 1], k=FTnp[:, 2],
+        )
+)
 
-images = []
+# Add traces, one for each slider step
 for t in range(nt):
     qnp = listpq[t][1].detach().cpu().numpy()
-    
-    # create Figure
-    fig = Figure(figsize=(6, 5), dpi=100)
-    # Link canvas to fig
-    canvas = FigureCanvasAgg(fig)
-    
-    # make the plot
-    ax = Axes3D(fig)
-    ax.w_xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.w_yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.w_zaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
-    ax.plot_trisurf(qnp[:, 0],  qnp[:, 1],  qnp[:, 2],  triangles=FSnp, color=(1, 1, 0, .5), edgecolor=(1, 1, 1, .3),  linewidth=1)
-    ax.plot_trisurf(VTnp[:, 0], VTnp[:, 1], VTnp[:, 2], triangles=FTnp, color=(0, 0, 0, 0),  edgecolor=(0, 0, 1, .3),  linewidth=1)
+    fig.add_trace(
+        go.Mesh3d(
+            visible=False,
+            x=qnp[:, 0], y=qnp[:, 1], z=qnp[:, 2],
+            i=FSnp[:, 0], j=FSnp[:, 1], k=FSnp[:, 2],
+            )
+    )
 
-    yellow_proxy = plt.Rectangle((0, 0), 1, 1, fc="y")
-    ax.legend([yellow_proxy, blue_proxy], ['deformed', 'target'])
-    ax.set_title('LDDMM matching example, step ' + str(t))
-    
-    # draw it!
-    canvas.draw()
-    
-    # save plot in a numpy array through buffer
-    s, (width, height) = canvas.print_to_buffer()
-    images.append(np.frombuffer(s, np.uint8).reshape((height, width, 4)))
+# Make 10th trace visible
+fig.data[1].visible = True
 
-save_folder = '../../../doc/_build/html/_images/'
-os.makedirs(save_folder, exist_ok=True)
-imageio.mimsave(save_folder + 'surface_matching.gif', images, duration=.5)
+# Create and add slider
+steps = []
+for i in range(len(fig.data) - 1):
+    step = dict(
+        method="restyle",
+        args=["visible", [False] * len(fig.data)],
+    )
+    step["args"][1][0] = True
+    step["args"][1][i+1] = True  # Toggle i'th trace to "visible"
+    steps.append(step)
+
+sliders = [dict(
+    active=0,
+    currentvalue={"prefix": "time: "},
+    pad={"t": 20},
+    steps=steps
+)]
+
+fig.update_layout(
+    sliders=sliders
+)
+
+fig.write_html( save_folder + "results.html", auto_open=False)
+
 
