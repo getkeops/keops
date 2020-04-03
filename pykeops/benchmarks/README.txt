@@ -7,9 +7,9 @@ These benchmarks showcase the performances of the KeOps routines as the number o
 Comparison with other related projects
 --------------------------------------
 
-You may find `here <https://github.com/getkeops/keops/tree/master/benchmarks>`_ a benchmark that compare the performances of pyKeOps with other related projects.
+KeOps is **fast**! You may find `here <https://github.com/getkeops/keops/tree/master/benchmarks>`_ a benchmark that compare the performances of pyKeOps with other related projects.
 
-pyKeOps benchmarks 
+pyKeOps benchmarks
 ------------------
 
 .. note::
