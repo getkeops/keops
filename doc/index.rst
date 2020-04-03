@@ -86,7 +86,7 @@ Authors
 -------
 
 Feel free to contact us for any bug report or feature request, you can also fill 
-an issue report on `GitHub <https://github.com/getkeops/keops/issues>`_.
+an issue report on `GitHub issue tracker <https://github.com/getkeops/keops/issues>`_.
 
 **KeOps, PyKeOps, KeOpsLab**
 
