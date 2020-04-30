@@ -326,7 +326,7 @@ class Genred():
                       **The first 0 is implicit**, meaning that :math:`\operatorname{start}^S_0 = 0`, and we typically expect that
                       ``slices_i[-1] == len(redrange_j)``.
                     - ``redranges_j``, (Mcc,2) IntTensor - slice indices
-                      :math:`[\operatorname{start}^J_l,\operatorname{end}^J_l)` in :math:`[0,N]`
+                      :math:`[\operatorname{start}^J_\ell,\operatorname{end}^J_\ell)` in :math:`[0,N]`
                       that specify reduction ranges along the axis 1
                       of ":math:`j` variables".
 
@@ -353,7 +353,7 @@ class Genred():
                       **The first 0 is implicit**, meaning that :math:`\operatorname{start}^S_0 = 0`, and we typically expect that
                       ``slices_j[-1] == len(redrange_i)``.
                     - ``redranges_i``, (Ncc,2) IntTensor - slice indices
-                      :math:`[\operatorname{start}^I_l,\operatorname{end}^I_l)` in :math:`[0,M]`
+                      :math:`[\operatorname{start}^I_\ell,\operatorname{end}^I_\ell)` in :math:`[0,M]`
                       that specify reduction ranges along the axis 0
                       of ":math:`i` variables".
 

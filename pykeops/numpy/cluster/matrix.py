@@ -44,7 +44,7 @@ def from_matrix(ranges_i, ranges_j, keep):
         ranges_i ((M,2) integer array): List of :math:`[\text{start}_k,\text{end}_k)` indices.
             For :math:`k \in [0,M)`, the :math:`k`-th cluster of ":math:`i`" variables is
             given by ``x_i[ ranges_i[k,0]:ranges_i[k,1], : ]``, etc.
-        ranges_j ((N,2) integer array): List of :math:`[\text{start}_l,\text{end}_l)` indices.
+        ranges_j ((N,2) integer array): List of :math:`[\text{start}_\ell,\text{end}_\ell)` indices.
             For :math:`\ell \in [0,N)`, the :math:`\ell`-th cluster of ":math:`j`" variables is
             given by ``y_j[ ranges_j[l,0]:ranges_j[l,1], : ]``, etc.
         keep ((M,N) boolean array): 
