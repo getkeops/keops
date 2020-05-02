@@ -7,7 +7,7 @@ Complexity of the KeOps routines
 ================================
 
 KeOps is built around online map-reduce routines
-which have a **quadratic time complexity**: if :math:`M` and
+that have a **quadratic time complexity**: if :math:`M` and
 :math:`N` denote the number of :math:`i` and :math:`j` variables,
 the cost of a generic reduction scales asymptotically in :math:`O(MN)`.
 This is most evident in our :doc:`convolution benchmark <../_auto_benchmarks/plot_benchmark_convolutions>`,
@@ -20,16 +20,17 @@ to implement a discrete convolution:
 
 **Can we do better?**
 To go beyond this quadratic lower bound,
-a simple idea is to **skip some computations**, using a **sparsity prior**
-on the kernel matrix. For instance, we could decide to skip kernel computations
+a simple idea is to use a **sparsity prior**
+on the kernel matrix to **skip some computations**. 
+For instance, we could decide to skip kernel computations
 when **points** :math:`x_i` **and** :math:`y_j` **are far apart from each other**.
 But can we do so **efficiently**?
 
 Sparsity on the CPU
 -------------------
 
-On CPUs, a standard strategy is to use `sparse matrices <https://en.wikipedia.org/wiki/Sparse_matrix>`_,
-encoding our operators through **lists of non-zero coefficients and indices**.
+On CPUs, a standard strategy is to use `sparse matrices <https://en.wikipedia.org/wiki/Sparse_matrix>`_
+and encode our operators with **lists of non-zero coefficients and indices**.
 Schematically, this comes down to endowing each index :math:`i\in[1,M]`
 with a set :math:`J_i\subset[1,N]` of :math:`j`-neighbors,
 and to restrict ourselves to the computation of
@@ -42,7 +43,7 @@ This approach is very well suited to matrices with a handful of nonzero coeffici
 e.g. the intrinsic Laplacian of a 3D mesh.
 But on large, densely connected problems, sparse encoding
 runs into a major issue: as it relies on **non-contiguous** memory accesses,
-it scales **very poorly** on modern parallel hardware.
+it scales **very poorly** on parallel hardware.
 
 Block-sparsity on the GPU
 -------------------------
@@ -77,7 +78,7 @@ By encoding our sparsity patterns as **block-wise binary masks**
 made up of tiles :math:`T^k_l~=~[\text{start}_k, \text{end}_k) \times [\text{start}^k_l, \text{end}^k_l) \subset [1,M]\times[1,N]`,
 we can leverage coalesced memory operations for maximum efficiency on the GPU. 
 As long as our index ranges are **wider than the buffer size**,
-we should thus be close to **optimal performances**.
+we should get close to **optimal performances**.
 
 **Going further.** This scheme can be generalized to **generic**
 formulas and reductions. For reductions with respect to the :math:`i` axis,

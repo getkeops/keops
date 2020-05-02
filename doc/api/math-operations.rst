@@ -4,7 +4,7 @@ Formulas and syntax
 ###################
 
 
-KeOps lets you define any reduction operation of the form
+KeOps lets us define any reduction operation of the form
 
 .. math::
 

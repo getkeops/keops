@@ -82,6 +82,26 @@ As of today, KeOps provides core routines for:
   `Shapes toolbox <https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox>`_,
   two research-oriented `LDDMM <https://en.wikipedia.org/wiki/Large_deformation_diffeomorphic_metric_mapping>`_ toolkits.
 
+
+
+Licensing, academic use
+---------------------------
+
+This library is licensed under the permissive `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_,
+which is fully compatible with both **academic** and **commercial** applications.
+If you use this code in a research paper, **please cite**:
+
+::
+
+    @article{charlier2020kernel,
+        title={Kernel operations on the {GPU}, with autodiff, without memory overflows},
+        author={Charlier, Benjamin and Feydy, Jean and Glaun{\`e}s, Joan Alexis and Collin, Fran{\c{c}}ois-David and Durif, Ghislain},
+        journal={arXiv preprint arXiv:2004.11127},
+        year={2020}
+    }
+
+
+
 Authors
 -------
 

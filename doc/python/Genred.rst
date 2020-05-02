@@ -6,7 +6,7 @@ Generic reductions
 Overview
 ========
 
-The low-level interface of KeOps is the :mod:`Genred` module, which allows users to **define and reduce** generic operations. Depending on your framework, you may import :mod:`Genred` using either:
+The low-level interface of KeOps is the :mod:`Genred` module, which allows us to **define and reduce** generic operations. Depending on the framework, we can import :mod:`Genred` using either:
 
 .. code-block:: python
 

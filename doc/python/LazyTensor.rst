@@ -6,7 +6,7 @@ LazyTensors
 Overview
 ========
 
-The **high-level** interface of KeOps is the :mod:`LazyTensor <pykeops.numpy.LazyTensor>` (NumPy version) or :mod:`LazyTensor <pykeops.torch.LazyTensor>` (PyTorch version) wrapper, which allows users to perform **efficient, semi-symbolic computations** on very large NumPy arrays or PyTorch tensors respectively.  As displayed on this website's :doc:`front page, <../index>` this new tensor type may be used with **very little overhead**:
+The **high-level** interface of KeOps is the :mod:`LazyTensor <pykeops.numpy.LazyTensor>` (NumPy version) or :mod:`LazyTensor <pykeops.torch.LazyTensor>` (PyTorch version) wrapper, which allows users to perform **efficient, semi-symbolic computations** on very large NumPy arrays or PyTorch tensors respectively.  As displayed on this website's :doc:`front page, <../index>` this new tensor type can be used with **very little overhead**:
 
 .. code-block:: python
 

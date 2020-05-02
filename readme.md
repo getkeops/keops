@@ -75,14 +75,11 @@ KeOps is one of the fastest solution to compute generic Kernel formula. See our 
 When using KeOps for your scientific work, please cite the [preprint](https://hal.archives-ouvertes.fr/hal-02517462) or directly use the following bibtex:
 
 ```tex
-@unpublished{keops,
-  TITLE = {{Kernel Operations on GPU, without memory overflows Kernel Operations on the GPU, with Autodiff, without Memory Overflows}},
-  AUTHOR = {Charlier, Benjamin and Feydy, Jean and Glaun{\`e}s, Joan and Collin, Fran{\c c}ois-David and Durif, Ghislain},
-  URL = {https://hal.archives-ouvertes.fr/hal-02517462},
-  NOTE = {working paper or preprint},
-  YEAR = {2020},
-  KEYWORDS = {kernel methods ; Gaussian processes ; GPU ; automatic differentiation},
-  PDF = {https://hal.archives-ouvertes.fr/hal-02517462/},
+@article{charlier2020kernel,
+  title={Kernel operations on the {GPU}, with autodiff, without memory overflows},
+  author={Charlier, Benjamin and Feydy, Jean and Glaun{\`e}s, Joan Alexis and Collin, Fran{\c{c}}ois-David and Durif, Ghislain},
+  journal={arXiv preprint arXiv:2004.11127},
+  year={2020}
 }
 ```
 
