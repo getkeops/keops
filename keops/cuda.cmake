@@ -102,4 +102,8 @@ if(USE_CUDA)
 
 endif()
 
-add_definitions(-DUSE_CUDA=${USE_CUDA})
+if(USE_CUDA)
+  add_definitions(-DUSE_CUDA=1)
+else()
+  add_definitions(-DUSE_CUDA=0)
+endif()
