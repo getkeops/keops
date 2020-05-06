@@ -4,21 +4,18 @@
 
 # As of now, we use an ugly mix of old and new cmake methods to properly detect cuda, nvcc and the gpu arch...
 
-# first use cmake to detect cuda, this defines a variable CUDA_FOUND 
-find_package(CUDA QUIET)
-
 # set USE_CUDA to CUDA_FOUND, unless USE_CUDA value is enforced
-if(NOT DEFINED ENV{USE_CUDA})
-  Set(USE_CUDA ${CUDA_FOUND})
+if(((DEFINED ENV{USE_CUDA}) AND (NOT ENV{USE_CUDA})) OR ((DEFINED USE_CUDA) AND (NOT USE_CUDA)))
+  Set(USE_CUDA 0)
+
 else()
-  Set(USE_CUDA $ENV{USE_CUDA})
-  if(NOT ${CUDA_FOUND})
-    Set(USE_CUDA FALSE)
-  endif()
+  find_package(CUDA QUIET)
+  Set(USE_CUDA ${CUDA_FOUND})
+
 endif()
 
 # second : we detect Gpu properties with a home-made script
-if(CUDA_FOUND AND USE_CUDA)
+if(USE_CUDA)
   # getting some properties of GPUs to pass them as "-D..." options at compilation (adapted from caffe git repo).
   function(caffe_detect_installed_gpus out_variable)
     if(NOT CUDA_gpu_detect_props)
@@ -73,11 +70,6 @@ if(CUDA_FOUND AND USE_CUDA)
     add_definitions(${gpu_compute_props})
   endif()
 
-endif()
-
-
-if(CUDA_FOUND AND USE_CUDA)
-
   # Template macros.
   add_definitions(-D_FORCE_INLINES)
   add_definitions(-DCUDA_BLOCK_SIZE=192)
@@ -108,14 +100,6 @@ if(CUDA_FOUND AND USE_CUDA)
   #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-depth 900")
   List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")
 
-else()
-  set(USE_CUDA 0)
 endif()
 
-# this flag is used in pragma
-if(USE_CUDA)
-  add_definitions(-DUSE_CUDA=1)
-else()
-  add_definitions(-DUSE_CUDA=0)
-endif()
-
+add_definitions(-DUSE_CUDA=${USE_CUDA})
