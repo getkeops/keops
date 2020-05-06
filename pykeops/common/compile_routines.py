@@ -44,22 +44,23 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
         'Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
         end='', flush=True)
 
-    command_line = ['cmake', script_folder,
-                     '-DCMAKE_BUILD_TYPE=' + build_type,
-                     '-DFORMULA_OBJ=' + formula,
-                     '-DVAR_ALIASES=' + alias_string,
-                     '-Dshared_obj_name=' + dllname,
-                     '-D__TYPE__=' + c_type[dtype],
-                     '-DPYTHON_LANG=' + lang,
-                     '-DPYBIND11_PYTHON_VERSION=' + str(sys.version_info.major) + '.' +str(sys.version_info.minor),
-                     '-DC_CONTIGUOUS=1',
+    command_line = ["cmake", script_folder,
+                     "-DCMAKE_BUILD_TYPE=" + "'{}'".format(build_type),
+                     "-DFORMULA_OBJ=" + "'{}'".format(formula),
+                     "-DVAR_ALIASES=" + "'{}'".format(alias_string),
+                     "-Dshared_obj_name=" + "'{}'".format(dllname),
+                     "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
+                     "-DPYTHON_LANG=" + "'{}'".format(lang),
+                     "-DPYTHON_EXECUTABLE=" + "'{}'".format(sys.executable),
+                     "-DPYBIND11_PYTHON_VERSION=" + "'{}'".format(str(sys.version_info.major) + "." + str(sys.version_info.minor)),
+                     "-DC_CONTIGUOUS=1",
                     ] + optional_flags
 
-    run_and_display(command_line + ['-DcommandLine=' + ' '.join(command_line)],
+    run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
                     build_folder,
-                    msg='CMAKE')
+                    msg="CMAKE")
 
-    run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
+    run_and_display(["cmake", "--build", ".", "--target", dllname, "--", "VERBOSE=1"], build_folder, msg="MAKE")
 
     print('Done.')
 
