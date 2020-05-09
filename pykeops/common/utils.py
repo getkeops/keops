@@ -88,7 +88,7 @@ def create_and_lock_build_folder():
                     func_res = func(*args, **kwargs)
 
             # clean
-            if (module_exists(args[0].dll_name)) or (build_type != 'Debug'):
+            if (module_exists(args[0].dll_name)) and (build_type != 'Debug'):
                 shutil.rmtree(bf)
 
             return func_res
