@@ -16,8 +16,9 @@ elif (torch.__version__ == "1.5.0") and (str(os.getenv("TORCH_USE_RTLD_GLOBAL"))
         "environment variable 'TORCH_USE_RTLD_GLOBAL=YES' before launching python again. See "
         "https://github.com/pytorch/pytorch/issues/38122")
 
-# get the path of the current pytorch
-include_dirs = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(torch.__path__)]
+# get the path of the current pytorch and some built options
+include_dirs = ['-DPYTORCH_ROOT_DIR=' + ';'.join(torch.__path__),
+                '-D_GLIBCXX_USE_CXX11_ABI=' + str(int(torch._C._GLIBCXX_USE_CXX11_ABI))]
 
 ##########################################################
 # Get GPU informations
