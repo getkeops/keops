@@ -59,7 +59,7 @@ pipeline {
         stage('Test Linux') {
           agent { label 'ubuntu' }
           environment {
-           TORCH_USE_RTLD_GLOBAL=YES
+           TORCH_USE_RTLD_GLOBAL="YES"
           }
           steps {
             echo 'Testing..'
@@ -86,7 +86,7 @@ pipeline {
           agent { label 'cuda' }
           environment { 
             CXX="g++-8"
-            TORCH_USE_RTLD_GLOBAL=YES
+            TORCH_USE_RTLD_GLOBAL="YES"
           }
           steps {
             echo 'Testing..'
