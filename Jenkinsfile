@@ -58,6 +58,9 @@ pipeline {
 
         stage('Test Linux') {
           agent { label 'ubuntu' }
+          environment {
+           TORCH_USE_RTLD_GLOBAL=YES
+          }
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
@@ -68,7 +71,9 @@ pipeline {
 
         stage('Test Mac') {
           agent { label 'macos' }
-          environment { PATH="/Users/ci/miniconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin" }
+          environment {
+            PATH="/Users/ci/miniconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
+          }
           steps {
             echo 'Testing...'
               sh 'git submodule update --init'
@@ -81,6 +86,7 @@ pipeline {
           agent { label 'cuda' }
           environment { 
             CXX="g++-8"
+            TORCH_USE_RTLD_GLOBAL=YES
           }
           steps {
             echo 'Testing..'

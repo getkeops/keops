@@ -1,5 +1,5 @@
 import torch
-import os
+import os, sys
 import pykeops
 
 ##########################################################
@@ -10,7 +10,7 @@ torch_version_required = '1.3'
 
 if torch.__version__ < torch_version_required:
     raise ImportError('[pyKeOps]: The pytorch version should be >=' + torch_version_required)
-elif (torch.__version__ == "1.5.0") and (str(os.getenv("TORCH_USE_RTLD_GLOBAL")).lower() not in ['yes', 'on', '1']):
+elif (torch.__version__ == "1.5.0") and (str(os.getenv("TORCH_USE_RTLD_GLOBAL")).lower() not in ['yes', 'on', '1']) and (sys.platform.startswith('linux')):
     raise ImportError(
         "[pyKeOps]: pykeops.torch is trying to import pytorch v1.5.0. You should restart python and declare the "
         "environment variable 'TORCH_USE_RTLD_GLOBAL=YES' before launching python again. See "
