@@ -1,25 +1,23 @@
+// Keops import are made through cmake
+
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
 // keops_binders import
 #include "keops/binders/include.h"
 
-// pykeops import
 #include "common/keops_io.h"
 
+using __NUMPYARRAY__ = pybind11::array_t< __TYPE__, pybind11::array::c_style >;
+using __RANGEARRAY__ = pybind11::array_t< __INDEX__, pybind11::array::c_style >;
 
-using __NUMPYARRAY__ = py::array_t< __TYPE__, py::array::c_style >;
-using __RANGEARRAY__ = py::array_t< __INDEX__, py::array::c_style >;
-
-
-namespace py = pybind11;
 
 namespace keops_binders {
 /////////////////////////////////////////////////////////////////////////////////
 //                  Template specialization (NumPy Arrays)                     //
 /////////////////////////////////////////////////////////////////////////////////
 
-// <__TYPE__, py::array::c_style>  ensures 2 things whatever is the arguments:
+// <__TYPE__, pybind11::array::c_style>  ensures 2 things whatever is the arguments:
 //  1) the precision used is __TYPE__ (float or double typically) on the device,
 //  2) everything is convert as contiguous before being loaded in memory
 // this is maybe not the best in term of performance... but at least it is safe.
@@ -41,7 +39,7 @@ __TYPE__* get_data(__NUMPYARRAY__ obj_ptri) {
 
 template<>
 bool is_contiguous(__NUMPYARRAY__ obj_ptri) {
-  return obj_ptri.c_style;  // always true because of py::array::c_style
+  return obj_ptri.c_style;  // always true because of pybind11::array::c_style
 }
 
 template<>
@@ -74,7 +72,6 @@ void keops_error(std::basic_string< char > msg) {
 
 }
 
-using namespace keops;
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    PyBind11 entry point                                     //

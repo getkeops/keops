@@ -1,5 +1,5 @@
 import torch
-
+import os
 import pykeops
 
 ##########################################################
@@ -9,18 +9,20 @@ import pykeops
 torch_version_required = '1.3'
 
 if torch.__version__ < torch_version_required:
-    raise ImportError('The pytorch version should be >=' + torch_version_required)
+    raise ImportError('[pyKeOps]: The pytorch version should be >=' + torch_version_required)
+elif (torch.__version__ == "1.5.0") and (str(os.getenv("TORCH_USE_RTLD_GLOBAL")).lower() not in ['yes', 'on', '1']):
+    raise ImportError(
+        "[pyKeOps]: pykeops.torch is trying to import pytorch v1.5.0. You should restart python and declare the "
+        "environment variable 'TORCH_USE_RTLD_GLOBAL=YES' before launching python again. See "
+        "https://github.com/pytorch/pytorch/issues/38122")
 
-# get some useful informations about pytorch ABI
-from torch.utils.cpp_extension import include_paths
-
-include_dirs = include_paths()[0:2]
-torch_cxx11_abi_flag = torch._C._GLIBCXX_USE_CXX11_ABI
+# get the path of the current pytorch
+include_dirs = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(torch.__path__)]
 
 ##########################################################
 # Get GPU informations
 
-pykeops.gpu_available = torch.cuda.is_available() # use torch to detect gpu
+pykeops.gpu_available = torch.cuda.is_available()  # use torch to detect gpu
 pykeops.torch_found = True
 
 default_dtype = 'float32'

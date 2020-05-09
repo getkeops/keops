@@ -18,7 +18,7 @@ class KernelSolveAutograd(torch.autograd.Function):
     @staticmethod
     def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args):
     
-        optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] + accuracy_flags
+        optional_flags = include_dirs + accuracy_flags
 
         myconv = LoadKeOps(formula, aliases, dtype, 'torch',
                            optional_flags).import_module()

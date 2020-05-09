@@ -7,6 +7,7 @@ categories = OrderedDict([
     ("Pm", 2)
 ])
 
+
 def complete_aliases(formula, aliases):
     """ 
         This function parse formula (a string) to find pattern like 'Var(x,x,x)'.
@@ -18,9 +19,9 @@ def complete_aliases(formula, aliases):
     # we get unicity
     extravars = list(set(extravars))
     # now we loop through extravars
-    newind = () # this will give the indices in extravars list of new variables
-    newpos = () # this will give the indices in aliases list of new variables
-    for (ind,var) in enumerate(extravars):
+    newind = ()  # this will give the indices in extravars list of new variables
+    newpos = ()  # this will give the indices in aliases list of new variables
+    for (ind, var) in enumerate(extravars):
         # we get the "position" of the variable as the first integer value in the string
         # (i.e. the "a" in "Var(a,b,c)")
         pos = int(re.search(r"[0-9]+", var).group(0))
@@ -36,7 +37,7 @@ def complete_aliases(formula, aliases):
     # finally we append the new variables with correct ordering to the aliases list. We assume here again
     # that formula is consistent, more precisely
     # that pos is a permutation of len(aliases):len(aliases)+len(newind)
-    aliases += [None]*len(newind)
+    aliases += [None] * len(newind)
     for i in range(len(newind)):
         aliases[newpos[i]] = extravars[newind[i]]
     return aliases
@@ -50,9 +51,8 @@ def parse_aliases(aliases):
             raise ValueError("This list of aliases is not ordered properly: " + str(aliases))
         categories.append(cat)
         dimensions.append(dim)
-    
-    return tuple(categories), tuple(dimensions)
 
+    return tuple(categories), tuple(dimensions)
 
 
 def get_sizes(aliases, *args):
@@ -65,7 +65,7 @@ def get_sizes(aliases, *args):
             ny = args[pos].shape[0]
         if (nx is not None) and (ny is not None):
             return nx, ny
-    
+
     # At this point, we know that our formula is degenerate, 
     # with no "x" or no "y" variable. The sensible behavior is to assume that
     # the corresponding "empty" dimension is equal to 1,
@@ -88,16 +88,16 @@ def get_type(type_str, position_in_list=None):
 
     :return: name : a string (here "var"), cat : an int (0,1 or 2), dim : an int
     """
-    
+
     # switch old Vx Vy syntax to Vi Vj
     if ("Vx" in type_str) or ("Vy" in type_str):
-        type_str = type_str.replace("Vx","Vi")
-        type_str = type_str.replace("Vy","Vj")
+        type_str = type_str.replace("Vx", "Vi")
+        type_str = type_str.replace("Vy", "Vj")
         import warnings
         warnings.warn("'Vx' and 'Vy' variables types are now renamed 'Vi' and 'Vj'")
-    
+
     m = re.match('([a-zA-Z_][a-zA-Z_0-9]*)=(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
-    
+
     if m is None:
         m = re.match('(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
         if m is None:
@@ -138,53 +138,59 @@ def check_aliases_list(types_list):
             aliases.append("Var(" + str(pos) + "," + str(dim) + "," + str(cat) + ")")
         else:
             aliases.append(name + " = " + list(categories.keys())[cat] + "(" + str(pos) + "," + str(dim) + ")")
-    
+
     return aliases
 
+
 def get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op_internal):
-        if dtype_acc is not "auto" and use_double_acc:
-            raise ValueError("[KeOps] you cannot set both options use_double_acc and dtype_acc.")
-        if use_double_acc:
-            dtype_acc = "float64"
-        if dtype_acc != "auto" and reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
-            raise ValueError("[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)")
-        if dtype_acc == "auto":
-            dtype_acc = dtype
-        if dtype is "float32" and dtype_acc not in ("float32","float64"):
-            raise ValueError("[KeOps] invalid parameter dtype_acc : should be either 'float32' or 'float64' when dtype is 'float32'")
-        elif dtype == "float16" and dtype_acc not in ("float16","float32"):
-            raise ValueError("[KeOps] invalid parameter dtype_acc : should be either 'float16' or 'float32' when dtype is 'float16'")
-        elif dtype == "float64" and dtype_acc not in "float64":
-            raise ValueError("[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'")
-        if sum_scheme == "auto":
-            if reduction_op_internal in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
-                sum_scheme = "block_sum"
-            else:
-                sum_scheme = "direct_sum"
-        if sum_scheme == "block_sum":
-            if reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
-                raise ValueError('[KeOps] sum_scheme="block_sum" is only valid for sum type reductions.')
-        elif sum_scheme == "kahan_scheme":
-            if reduction_op_internal not in ("Sum","Max_SumShiftExp","Max_SumShiftExpWeight"):
-                raise ValueError('[KeOps] sum_scheme="kahan_scheme" is only valid for sum type reductions.')
-        elif sum_scheme != "direct_sum":
-            raise ValueError('[KeOps] invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".')
-
-        optional_flags = []
-        if dtype_acc == "float64" :
-            optional_flags += ['-D__TYPEACC__=double']
-        elif dtype_acc == "float32" :
-            if dtype == "float16":
-                optional_flags += ['-D__TYPEACC__=float2']
-            else:
-                optional_flags += ['-D__TYPEACC__=float']
-        elif dtype_acc == "float16" :
-            optional_flags += ['-D__TYPEACC__=half2']
+    if dtype_acc is not "auto" and use_double_acc:
+        raise ValueError("[KeOps] you cannot set both options use_double_acc and dtype_acc.")
+    if use_double_acc:
+        dtype_acc = "float64"
+    if dtype_acc != "auto" and reduction_op_internal not in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
+        raise ValueError(
+            "[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)")
+    if dtype_acc == "auto":
+        dtype_acc = dtype
+    if dtype is "float32" and dtype_acc not in ("float32", "float64"):
+        raise ValueError(
+            "[KeOps] invalid parameter dtype_acc : should be either 'float32' or 'float64' when dtype is 'float32'")
+    elif dtype == "float16" and dtype_acc not in ("float16", "float32"):
+        raise ValueError(
+            "[KeOps] invalid parameter dtype_acc : should be either 'float16' or 'float32' when dtype is 'float16'")
+    elif dtype == "float64" and dtype_acc not in "float64":
+        raise ValueError("[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'")
+    if sum_scheme == "auto":
+        if reduction_op_internal in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
+            sum_scheme = "block_sum"
         else:
-            raise ValueError('[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".')
+            sum_scheme = "direct_sum"
+    if sum_scheme == "block_sum":
+        if reduction_op_internal not in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
+            raise ValueError('[KeOps] sum_scheme="block_sum" is only valid for sum type reductions.')
+    elif sum_scheme == "kahan_scheme":
+        if reduction_op_internal not in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
+            raise ValueError('[KeOps] sum_scheme="kahan_scheme" is only valid for sum type reductions.')
+    elif sum_scheme != "direct_sum":
+        raise ValueError(
+            '[KeOps] invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".')
 
-        if sum_scheme == "block_sum":
-            optional_flags += ['-DSUM_SCHEME=1']
-        elif sum_scheme == "kahan_scheme":
-            optional_flags += ['-DSUM_SCHEME=2']
-        return optional_flags
+    optional_flags = []
+    if dtype_acc == "float64":
+        optional_flags += ['-D__TYPEACC__=double']
+    elif dtype_acc == "float32":
+        if dtype == "float16":
+            optional_flags += ['-D__TYPEACC__=float2']
+        else:
+            optional_flags += ['-D__TYPEACC__=float']
+    elif dtype_acc == "float16":
+        optional_flags += ['-D__TYPEACC__=half2']
+    else:
+        raise ValueError(
+            '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".')
+
+    if sum_scheme == "block_sum":
+        optional_flags += ['-DSUM_SCHEME=1']
+    elif sum_scheme == "kahan_scheme":
+        optional_flags += ['-DSUM_SCHEME=2']
+    return optional_flags

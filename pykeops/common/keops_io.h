@@ -2,7 +2,6 @@
 
 #include "keops/binders/include.h"
 
-using namespace keops;
 namespace py = pybind11;
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +45,7 @@ array_t generic_red(
 //////////////////////////////////////////////////////////////
 // Call Cuda codes                                          //
 //////////////////////////////////////////////////////////////
-  
+
   array_t result = keops_binders::launch_keops< array_t, array_t, index_t >
           (tag1D2D,
            tagCpuGpu,

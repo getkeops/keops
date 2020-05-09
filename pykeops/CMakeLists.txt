@@ -21,10 +21,6 @@ set(SOURCE_FILES
     ${PROJECT_BINARY_DIR}
     )
 
-if(PYTORCH_INCLUDE_DIR)
-  list(APPEND SOURCE_FILES ${PYTORCH_INCLUDE_DIR})
-endif()
-
 Include_Directories(${SOURCE_FILES})
 
 include(${KEOPS_SRC}/headers.cmake)
@@ -37,25 +33,32 @@ set(BIN_DIR ${PROJECT_BINARY_DIR}/../)
 #                                                     PYBIND11                                                         #
 ########################################################################################################################
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pybind11)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pybind11)  #find_package(pybind11  REQUIRED)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
 
-# fix for pytorch: https://discuss.pytorch.org/t/pytorch-0-4-1-undefined-symbol-at-import-of-a-cpp-extension/24420 and https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
-if(NOT DEFINED _GLIBCXX_USE_CXX11_ABI) 
-    Set(_GLIBCXX_USE_CXX11_ABI 0)  # set default value to False...
+if(NOT DEFINED PYTHON_LANG)
+  Set(PYTHON_LANG torch)
 endif()
-add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${_GLIBCXX_USE_CXX11_ABI}) 
-
-if(NOT PYTHON_LANG)
-  Set(PYTHON_LANG numpy)
-endif()
-
-# We should generate a file to avoid parsing problem with shell: write the macros  in a file which will be included
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/torch_headers.h.in ${CMAKE_CURRENT_BINARY_DIR}/torch_headers.h @ONLY)
 
 
 ########################################################################################################################
-#                                                        Generic                                                       #
+#                                                       PYTORCH                                                        #
+########################################################################################################################
+
+if(${PYTHON_LANG} STREQUAL "torch")
+
+    set(CMAKE_PREFIX_PATH ${PYTORCH_INCLUDE_DIR})
+    find_package(Torch REQUIRED)
+
+    # fix for pytorch: https://discuss.pytorch.org/t/pytorch-0-4-1-undefined-symbol-at-import-of-a-cpp-extension/24420 and https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
+    add_definitions(${TORCH_CXX_FLAGS})
+
+    # We should generate a file to avoid parsing problem with shell: write the macros in a file which will be included
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/torch_headers.h.in ${CMAKE_CURRENT_BINARY_DIR}/torch_headers.h @ONLY)
+endif()
+
+########################################################################################################################
+#                                                        KEOPS                                                         #
 ########################################################################################################################
 
 # this dummy flag is used in the bindings
@@ -103,17 +106,18 @@ else()
 
 endif()
 
+# set name
+set_target_properties(keops${shared_obj_name} PROPERTIES
+        LIBRARY_OUTPUT_NAME ${shared_obj_name}
+        PREFIX ""
+        )
 # skip the full RPATH for the build tree. We append $ORIGIN later
 SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH "")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
-# set name
-set_target_properties(keops${shared_obj_name} PROPERTIES
-                      LIBRARY_OUTPUT_NAME ${shared_obj_name}
-                      PREFIX ""
-                      )
+
 
 # -------------------- Pybind11
 pybind11_add_module(${shared_obj_name}
@@ -130,6 +134,12 @@ if(${PYTHON_LANG} STREQUAL "torch")
     ${shared_obj_name} BEFORE
     PRIVATE -include torch_headers.h
   )
+
+  target_link_libraries( ${shared_obj_name} PUBLIC
+          keops${shared_obj_name}
+          "${TORCH_LIBRARIES}"
+   )
+
 else() # assuming numpy
 
   target_compile_options(
@@ -137,6 +147,9 @@ else() # assuming numpy
     PRIVATE -include ${shared_obj_name}.h
   )
 
+  target_link_libraries( ${shared_obj_name} PUBLIC
+          keops${shared_obj_name}
+   )
 endif()
 
 # Ensure the shared lib look for the other .so in its own dir.
@@ -146,12 +159,11 @@ else()
   set_target_properties(${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
 endif()
 
-target_link_libraries(
-  ${shared_obj_name} PUBLIC
-  keops${shared_obj_name}
-)
 
-# Installation step
+########################################################################################################################
+#                                                   INSTALLATION                                                       #
+########################################################################################################################
+
 add_custom_command(
   TARGET ${shared_obj_name} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${shared_obj_name}> ${BIN_DIR}

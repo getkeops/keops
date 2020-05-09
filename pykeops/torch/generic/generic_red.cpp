@@ -1,6 +1,7 @@
-// Import done by Cmake
+// Keops and torch import done by Cmake
 // #include <torch/extension.h>
-// #include <pybind11/pybind11.h>
+
+#include <pybind11/pybind11.h>
 
 // keops_binders import
 #include "keops/binders/include.h"
@@ -83,6 +84,7 @@ __INDEX__ *get_rangedata(at::Tensor obj_ptri) {
 void keops_error(std::basic_string< char > msg) {
   throw std::runtime_error(msg);
 }
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 //                    PyBind11 entry point                                     //
@@ -101,4 +103,4 @@ m.attr("compiled_formula") = xstr(keops::FORMULA_OBJ_STR);
 m.attr("compiled_aliases") = xstr(keops::VAR_ALIASES_STR);
 }
 
-}
+
