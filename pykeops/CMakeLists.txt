@@ -145,10 +145,10 @@ if(${PYTHON_LANG} STREQUAL "torch")
             PRIVATE -include torch_headers.h
     )
 
-#    target_link_libraries(${shared_obj_name} PUBLIC
-#            keops${shared_obj_name}
-#            "${TORCH_LIBRARIES}"
-#    )
+    target_link_libraries(${shared_obj_name} PUBLIC
+            keops${shared_obj_name}
+            ${PYTORCH_ROOT_DIR}/lib/libtorch_python.so
+    )
 
 else () # assuming numpy
 
@@ -157,11 +157,12 @@ else () # assuming numpy
             PRIVATE -include ${shared_obj_name}.h
     )
 
+    target_link_libraries(${shared_obj_name} PUBLIC
+            keops${shared_obj_name}
+    )
+
 endif ()
 
-target_link_libraries(${shared_obj_name} PUBLIC
-        keops${shared_obj_name}
-        )
 
 # Ensure the shared lib look for the other .so in its own dir.
 if (APPLE)
