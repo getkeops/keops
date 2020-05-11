@@ -58,8 +58,6 @@ pipeline {
 
         stage('Test Linux') {
           agent { label 'ubuntu' }
-          environment {
-          }
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
