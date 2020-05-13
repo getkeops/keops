@@ -51,7 +51,7 @@
 #' \item{var_pos}{vector of integer, corresponding arguments positions.}
 #' \item{var_aliases}{text string, declaration of formula input arguments for 
 #' the C++ KeOps API.}
-#' @importFrom stringr str_count str_detect str_extract str_split
+#' @importFrom stringr str_count str_detect str_extract str_split str_replace_all fixed
 #' @export
 format_var_aliases <- function(args) {
 	
@@ -77,7 +77,7 @@ format_var_aliases <- function(args) {
                             "\\([0-9]+(,[0-9]+)?\\)"))
     
     # check correctness of input args
-    args_check <- str_count(string = args, 
+    args_check <- str_count(string = str_replace_all(args, fixed(" "), ""), 
                             pattern = paste0(possible_args,
                                              collapse = "|")) == 1
     if(!all(args_check)) {
