@@ -272,7 +272,7 @@ class Genred():
         r"""
         To apply the routine on arbitrary torch Tensors.
 
-        Warning:
+        .. warning:
             Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
             for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
             as 2d Tensors of size ``(M,dim)``. In practice,

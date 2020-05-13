@@ -114,11 +114,9 @@ class Genred():
                 when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
                 Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
                   - **sum_scheme** =  ``"direct_sum"``: direct summation
-                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
-                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating in the output. This improves accuracy for large sized data. 
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data. 
-
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
@@ -147,7 +145,7 @@ class Genred():
         r"""
         Apply the routine on arbitrary NumPy arrays.
 
-        Warning:
+        .. warning::
             Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
             for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
             as 2d Tensors of size ``(M,dim)``. In practice,
@@ -206,13 +204,9 @@ class Genred():
                       that specify reduction ranges along the axis 1
                       of ":math:`j` variables".
 
-                If **axis** = 1,
-                these integer arrays allow us to say
-                that ``for k in range(Mc)``, the output values for
-                indices ``i in range( ranges_i[k,0], ranges_i[k,1] )``
-                should be computed using a Map-Reduce scheme over
-                indices ``j in Union( range( redranges_j[l, 0], redranges_j[l, 1] ))``
-                for ``l in range( slices_i[k-1], slices_i[k] )``.
+                If **axis** = 1, these integer arrays allow us to say that ``for k in range(Mc)``, the output values for
+                indices ``i in range( ranges_i[k,0], ranges_i[k,1] )`` should be computed using a Map-Reduce scheme over
+                indices ``j in Union( range( redranges_j[l, 0], redranges_j[l, 1] ))`` for ``l in range( slices_i[k-1], slices_i[k] )``.
 
                 **Likewise, the last three ranges** will be used if **axis** = 0
                 (reduction along the axis of ":math:`i` variables"),
@@ -234,12 +228,9 @@ class Genred():
                       of ":math:`i` variables".
 
                 If **axis** = 0,
-                these integer arrays allow us to say
-                that ``for k in range(Nc)``, the output values for
-                indices ``j in range( ranges_j[k,0], ranges_j[k,1] )``
-                should be computed using a Map-Reduce scheme over
-                indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))``
-                for ``l in range( slices_j[k-1], slices_j[k] )``.
+                these integer arrays allow us to say that ``for k in range(Nc)``, the output values for
+                indices ``j in range( ranges_j[k,0], ranges_j[k,1] )`` should be computed using a Map-Reduce scheme over
+                indices ``i in Union( range( redranges_i[l, 0], redranges_i[l, 1] ))`` for ``l in range( slices_j[k-1], slices_j[k] )``.
 
         Returns:
             (M,D) or (N,D) array:

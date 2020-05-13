@@ -98,6 +98,7 @@ class LazyTensor:
             axis (int): should be equal to 0 or 1 if **x** is a 2D tensor, and  **None** otherwise.
     
         .. warning::
+
             A :class:`LazyTensor` constructed
             from a NumPy array or a PyTorch tensor retains its **dtype** (float16, float32 or float64)
             and **device** properties (is it stored on the GPU?).
@@ -264,7 +265,7 @@ class LazyTensor:
                 # N.B.: We allow empty init!
     
     def fixvariables(self):
-        """If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
+        r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
         
         newvars = ()
         if self.formula2 is None: self.formula2 = ""  # We don't want to get regexp errors...
@@ -524,8 +525,7 @@ class LazyTensor:
               - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
                 in the output. This improves accuracy for large sized data. 
               - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
-            accuracy for large sized data. 
-
+                accuracy for large sized data. 
         """
         
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
@@ -570,7 +570,6 @@ class LazyTensor:
           other (:class:`LazyTensor`): KeOps variable that encodes the second member of the equation.
 
         Keyword args:
-
           var (:class:`LazyTensor`):
             If **var** is **None**, **solve** will return the solution
             of the ``self * var = other`` equation.
@@ -594,8 +593,7 @@ class LazyTensor:
             :doc:`block-sparse reduction scheme <../../sparsity>`
             as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
             If **None** (default), we simply use a **dense Kernel matrix**
-            as we loop over all indices
-            :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+            as we loop over all indices :math:`i\in[0,M)` and :math:`j\in[0,N)`.
           dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
             It improves the accuracy of results in case of large sized data, but is slower.
             Default value "auto" will set this option to the value of dtype. The supported values are: 
@@ -613,9 +611,10 @@ class LazyTensor:
               - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
                 in the output. This improves accuracy for large sized data. 
               - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
-            accuracy for large sized data. 
+                accuracy for large sized data. 
 
         .. warning::
+
             Please note that **no check** of symmetry and definiteness will be
             performed prior to our conjugate gradient descent.
         """

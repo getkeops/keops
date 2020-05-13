@@ -66,7 +66,6 @@ More details are provided below:
 * :doc:`Gallery of examples <_auto_examples/index>`
 * :doc:`Benchmarks <_auto_benchmarks/index>`
 
-**KeOps is licensed** under the `MIT license <https://github.com/getkeops/keops/blob/master/licence.txt>`_.
 
 Projects using KeOps
 --------------------
@@ -85,7 +84,7 @@ As of today, KeOps provides core routines for:
 
 
 Licensing, academic use
----------------------------
+-----------------------
 
 This library is licensed under the permissive `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_,
 which is fully compatible with both **academic** and **commercial** applications.
