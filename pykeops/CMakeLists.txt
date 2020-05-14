@@ -146,14 +146,10 @@ if(${PYTHON_LANG} STREQUAL "torch")
     )
 
     # We should include libtorch_python.so as an explicit include: https://github.com/pytorch/pytorch/issues/38122
-    if (UNIX)
-        target_link_libraries(${shared_obj_name} PUBLIC
-                keops${shared_obj_name}
+    if (NOT APPLE AND NOT WIN32)
+        target_link_libraries(
+                ${shared_obj_name} PUBLIC
                 ${PYTORCH_ROOT_DIR}/lib/libtorch_python.so
-        )
-    else()
-        target_link_libraries(${shared_obj_name} PUBLIC
-                keops${shared_obj_name}
         )
     endif()
 
@@ -164,11 +160,12 @@ else () # assuming numpy
             PRIVATE -include ${shared_obj_name}.h
     )
 
-    target_link_libraries(${shared_obj_name} PUBLIC
-            keops${shared_obj_name}
-    )
-
 endif ()
+
+target_link_libraries(
+        ${shared_obj_name} PUBLIC 
+        keops${shared_obj_name}
+)
 
 
 # Ensure the shared lib look for the other .so in its own dir.
