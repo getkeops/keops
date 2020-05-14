@@ -1,8 +1,8 @@
 Package: rkeops
 Type: Package
 Title: Kernel Operations on the GPU, with Autodiff, without Memory Overflows
-Version: 1.4
-Date: 2020-03-16
+Version: 1.4.1
+Date: 2020-05-14
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
            comment="<http://imag.umontpellier.fr/~charlier/>", 
@@ -40,11 +40,12 @@ Suggests:
     knitr,
     rmarkdown
 OS_type: unix
-SystemRequirements: C++11, cmake (>= 3.10), clang (optional), CUDA (recommended)
+SystemRequirements: C++11, cmake (>= 3.10), clang (optional), 
+    CUDA (optional but recommended)
 URL: https://www.kernel-operations.io/, https://github.com/getkeops/keops/
 BugReports: https://github.com/getkeops/keops/issues
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 VignetteBuilder: knitr
