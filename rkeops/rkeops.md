@@ -57,7 +57,8 @@ RKeOps) and read the vignettes available in R with the command
   at <https://cmake.org/>.
 * clang (optional): clang compiler is supported.
 * CUDA (optional but recommended for performance): you need CUDA to enable GPU 
-  computing in RKeOps.
+  computing in RKeOps. CUDA can be found at 
+  <https://developer.nvidia.com/cuda-downloads>.
 * At the moment, RKeOps is not available for Windows.
 
 ## Install from CRAN
