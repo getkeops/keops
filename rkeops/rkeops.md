@@ -50,7 +50,7 @@ RKeOps) and read the vignettes available in R with the command
 
 ## SystemRequirements
 
-* C++11: you should have a C++ compiler compatible with C++ 11 (see 
+* C++11: you should have a C++ compiler compatible with C++11 (see 
   <https://en.cppreference.com/w/cpp/compiler_support> for details). We 
   recommend GCC or clang.
 * cmake (>=3.10): should be available in standard path. You can get cmake 
