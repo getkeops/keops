@@ -44,7 +44,9 @@
 #' @importFrom stringr str_length
 #' @seealso [rkeops::keops_grad()]
 #' @examples
-#' \donttest{
+#' \dontrun{
+#' set_rkeops_options()
+#' 
 #' ## Example 1
 #' # Defining a function that computes for each j the sum over i
 #' # of the scalar products between `x_i` and `y_j` (both 3d vectors), 

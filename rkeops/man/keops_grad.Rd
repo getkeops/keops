@@ -48,11 +48,44 @@ you can specify its name or its position starting as 0 with the input
 parameter \code{var}.
 }
 \examples{
-\donttest{
+\dontrun{
+set_rkeops_options()
+
+# defining an operator (reduction on squared distance)
 formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
 args <- c("x=Vi(0,3)", "y=Vj(1,3)")
 op <- keops_kernel(formula, args)
-grad_op <- keops_grad(op, var=0)
+# defining its gradient regarding x
+grad_op <- keops_grad(op, var="x")
+
+# data
+nx <- 100
+ny <- 150
+x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
+y <- matrix(runif(ny*3), nrow=ny, ncol=3)     # matrix 150 x 3
+eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1
+
+# computation
+input <- list(x, y, eta)
+res <- grad_op(input)
+
+# OR you can directly define gradient in a formula
+# defining a formula with a Gradient
+formula <- "Grad(Sum_Reduction(SqNorm2(x-y), 0), x, eta)"
+args <- c("x=Vi(0,3)", "y=Vj(1,3)", "eta=Vi(2,1)")
+# compiling the corresponding operator
+op <- keops_kernel(formula, args)
+
+# data
+nx <- 100
+ny <- 150
+x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
+y <- matrix(runif(ny*3), nrow=ny, ncol=3)     # matrix 150 x 3
+eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1
+
+# computation
+input <- list(x, y, eta)
+res <- op(input)
 }
 }
 \seealso{
