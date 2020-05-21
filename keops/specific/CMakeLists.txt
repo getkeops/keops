@@ -1,7 +1,7 @@
 if(USE_CUDA)
 
-  CUDA_add_library(
-    radial_kernels_conv SHARED
+  CUDA_add_executable(
+    radial_kernels_conv
     ${CMAKE_CURRENT_SOURCE_DIR}/radial_kernels/cuda_conv.cu
   )
 
