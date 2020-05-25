@@ -39,11 +39,13 @@ check_cmake <- function(cmake_executable) {
             current_version <- str_extract(string = tmp, 
                                            pattern = "([0-9]+.?)+")
             expected_version <- "3.10"
-            if(compareVersion(current_version, expected_version)<0) {
+            if(compareVersion(current_version, expected_version) < 0) {
                 stop("cmake version is too old, version >= 3.10 is required")
             }
             out <- 1
         }
+    } else {
+        stop("No camke executable was provided.")
     }
     # return
     return(out)
