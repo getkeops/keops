@@ -1,6 +1,6 @@
 // test convolution 
 // compile with
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 -O2 -o build/test_simple test_simple.cu
+//		nvcc -I.. -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 -O3 -arch=sm_61 -o build/test_chunk -DCUDA_BLOCK_SIZE=192 -Xptxas="-v" -DINDIM=1000 -DENABLECHUNK=1 test_chunk.cu
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the GPU
@@ -70,17 +70,17 @@ int main() {
     std::cout << "testing Sum reduction" << std::endl;
 clock_t begin, end;
 begin = clock();
-    //EvalRed<GpuConv1D_FromHost>(Sum_f,Nx, Ny, pres, px, py);
+    EvalRed<GpuConv1D_FromHost>(Sum_f,Nx, Ny, pres, px, py);
 end = clock();
-std::cout << "time for blank run 1 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-begin = clock();
-    //EvalRed<GpuConv1D_FromHost>(Sum_f,Nx, Ny, pres, px, py);
-end = clock();
-std::cout << "time for blank run 2 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+std::cout << "time for run 1 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
 begin = clock();
     EvalRed<GpuConv1D_FromHost>(Sum_f,Nx, Ny, pres, px, py);
 end = clock();
-std::cout << "time for eval : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+std::cout << "time for run 2 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+begin = clock();
+    EvalRed<GpuConv1D_FromHost>(Sum_f,Nx, Ny, pres, px, py);
+end = clock();
+std::cout << "time for run 3 : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     std::cout << "output:" << std::endl;
     DispValues(pres,5,Sum_f.DIM);
 
