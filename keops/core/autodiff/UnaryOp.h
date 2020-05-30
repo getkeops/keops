@@ -49,11 +49,24 @@ struct UnaryOp_base {
   template<class A, class B>
   using Replace = CondType< B, OP<typename F::template Replace<A,B>,NS...>, IsSameType<A,THIS>::val >;
 
+  // version with two replacements of Vars at a time (two consecutive Replace might not work because of non compatible dimensions)
+  template<class A1, class B1, class A2, class B2>
+  using ReplaceVars2 = OP<typename F::template ReplaceVars2<A1,B1,A2,B2>,NS...>;
+
   // VARS gives the list of all "Vars" of a given category inside a formula
   // Here it is simple : the variables inside the formula OP<F,NS..> are the variables in F
   template < int CAT >
   using VARS = typename F::template VARS<CAT>;
 
+  // operator as shortcut to Eval...
+  template < typename INDS >
+  struct EvalFun {
+      template < typename... Args >
+      DEVICE INLINE void operator()(Args... args) {
+      	THIS::template Eval<INDS>(args...);
+      }
+  };
+    
 };
 
 // unary operator class : default Eval method

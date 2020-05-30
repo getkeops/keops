@@ -1,6 +1,6 @@
 // test convolution
 // compile with
-//		nvcc -I../../../keops -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 --use_fast_math -O3 -o test_fromdevice test_fromdevice.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 --use_fast_math -O3 -o test_fromdevice test_fromdevice.cu
 
 // testing "from device" convolution, i.e. convolution which is performed on the device
 // directly from device data

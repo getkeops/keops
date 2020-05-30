@@ -45,6 +45,10 @@ struct BinaryOp_base {
   template<class A, class B>
   using Replace = CondType< B, OP<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>, PARAMS...>, IsSameType<A,THIS>::val >;
 
+  // version with two replacements of Vars at a time (two consecutive Replace might not work because of non compatible dimensions)
+  template<class A1, class B1, class A2, class B2>
+  using ReplaceVars2 = OP<typename FA::template ReplaceVars2<A1,B1,A2,B2>,typename FB::template ReplaceVars2<A1,B1,A2,B2>, PARAMS...>;
+
   // VARS gives the list of all "Vars" of a given category inside a formula
   // Here we must take the union of Vars that are inside FA and Vars that are inside FB
   template < int CAT >
@@ -122,6 +126,16 @@ static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   // then we call the Operation function
   THIS::Operation(out,outA,outB);
 }
+
+  // operator as shortcut to Eval...
+  template < typename INDS >
+  struct EvalFun {
+      template < typename... Args >
+      DEVICE INLINE void operator()(Args... args) {
+      	THIS::template Eval<INDS>(args...);
+      }
+  };
+    
 };
 
 

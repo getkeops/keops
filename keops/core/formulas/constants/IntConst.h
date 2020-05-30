@@ -26,6 +26,9 @@ struct IntConstant_Impl {
   template< class A, class B >
   using Replace = IntConstant< N >;
 
+  template< class A1, class B1, class A2, class B2 >
+  using ReplaceVars2 = IntConstant< N >;
+
   using AllTypes = univpack< IntConstant< N > >;
 
   template < int CAT >      // Whatever CAT...
