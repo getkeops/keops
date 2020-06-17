@@ -357,32 +357,28 @@ struct GpuConv1D_FromHost {
 
     SetGpuProps(dev);
 
-    bool use_Chunks = false;
-    if( ENABLECHUNK && DIMX > DIM_TRESHOLD_CHUNK )// register pressure case...
-    {
-      use_Chunks = true;
+#if ENABLECHUNK && DIMFOUT==1 && DIMX > DIM_TRESHOLD_CHUNK // register pressure case...
       blockSize.x = CUDA_BLOCK_SIZE_CHUNKS;
-    }
-	else
-	{
+#else
 	  // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
       blockSize.x = ::std::min(CUDA_BLOCK_SIZE,
                              ::std::min(maxThreadsPerBlock,
                                         (int) (sharedMemPerBlock / ::std::max(1,
                                                                               (int) (  DIMY
                                                                                   * sizeof(TYPE)))))); // number of threads in each block
-	}
-	
+#endif
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-    if(use_Chunks)
-      GpuConv1DOnDevice_Chunks<TYPE> << < gridSize, blockSize, blockSize.x * DIMCHUNK * sizeof(TYPE) >>
-        > (fun, nx, ny, px_d, py_d, pp_d);
-    else
-      GpuConv1DOnDevice<TYPE> << < gridSize, blockSize, blockSize.x * DIMY * sizeof(TYPE) >>
-        > (fun, nx, ny, px_d, py_d, pp_d);
-
+#if ENABLECHUNK && DIMFOUT==1 && DIMX > DIM_TRESHOLD_CHUNK
+      GpuConv1DOnDevice_Chunks<TYPE> 
+		  <<< gridSize, blockSize, blockSize.x * DIMCHUNK * sizeof(TYPE) >>> 
+			  (fun, nx, ny, px_d, py_d, pp_d);
+#else
+      GpuConv1DOnDevice<TYPE> 
+		  <<< gridSize, blockSize, blockSize.x * DIMY * sizeof(TYPE) >>> 
+			  (fun, nx, ny, px_d, py_d, pp_d);
+#endif
 
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
@@ -519,33 +515,29 @@ struct GpuConv1D_FromDevice {
 
     SetGpuProps(dev);
 
-    bool use_Chunks = false;
     dim3 blockSize;
-    if( ENABLECHUNK && DIMX > DIM_TRESHOLD_CHUNK ) // register pressure case...
-    {
-      use_Chunks = true;
+#if ENABLECHUNK && DIMFOUT==1 && DIMX > DIM_TRESHOLD_CHUNK // register pressure case...
       blockSize.x = CUDA_BLOCK_SIZE_CHUNKS;
-    }
-	else
-	{
+#else
 	  // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
       blockSize.x = ::std::min(CUDA_BLOCK_SIZE,
                              ::std::min(maxThreadsPerBlock,
                                         (int) (sharedMemPerBlock / ::std::max(1,
                                                                               (int) (  DIMY
                                                                                   * sizeof(TYPE)))))); // number of threads in each block
-	}
-
+#endif
+	
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-    if(use_Chunks)
-      GpuConv1DOnDevice_Chunks<TYPE> << < gridSize, blockSize, blockSize.x * DIMCHUNK * sizeof(TYPE) >>
-        > (fun, nx, ny, px_d, py_d, pp_d);
-    else
-      GpuConv1DOnDevice<TYPE> << < gridSize, blockSize, blockSize.x * DIMY * sizeof(TYPE) >>
-        > (fun, nx, ny, px_d, py_d, pp_d);
-
+#if ENABLECHUNK && DIMFOUT==1 && DIMX > DIM_TRESHOLD_CHUNK
+      GpuConv1DOnDevice_Chunks<TYPE> 
+		  <<< gridSize, blockSize, blockSize.x * DIMCHUNK * sizeof(TYPE) >>> 
+			  (fun, nx, ny, px_d, py_d, pp_d);
+#else
+      GpuConv1DOnDevice<TYPE> <<< gridSize, blockSize, blockSize.x * DIMY * sizeof(TYPE) >>> 
+		  (fun, nx, ny, px_d, py_d, pp_d);
+#endif
 
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
