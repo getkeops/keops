@@ -16,7 +16,7 @@ def TestChunkedTiles(formula):
             loc = re.search(",.*?,",varstr).span()
             loc = loc[0]+1, loc[1]-1
             dim[k] = int(varstr[loc[0]:loc[1]])
-        if dim[0]==dim[1]:
+        if dim[0]==dim[1] and dim[0]>100:
             return True
     return False
     
@@ -39,10 +39,10 @@ class LoadKeOps:
         self.optional_flags = optional_flags
         
         if TestChunkedTiles(formula):
-            optional_flags += ['-DENABLECHUNK=1']
+            self.optional_flags += ['-DENABLECHUNK=1']
 
         # create the name from formula, aliases and dtype.
-        self.dll_name = self._create_name(formula, aliases, dtype, lang, optional_flags)
+        self.dll_name = self._create_name(formula, aliases, dtype, lang, self.optional_flags)
 
         if (module_exists(self.dll_name)) or (build_type == 'Debug'):
             self.build_folder = os.path.join(bin_folder, 'build-' + self.dll_name)

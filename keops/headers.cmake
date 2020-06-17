@@ -55,6 +55,11 @@ if(SUM_SCHEME)
   add_definitions(-DSUM_SCHEME=${SUM_SCHEME})
 endif()
 
+# option for special computation scheme when dim > 100
+if(ENABLECHUNK)
+  add_definitions(-DENABLECHUNK=${ENABLECHUNK})
+endif()
+
 # - Declare the templates formula if not provided by the user
 if(NOT DEFINED USENEWSYNTAX)
   Set(USENEWSYNTAX 1)

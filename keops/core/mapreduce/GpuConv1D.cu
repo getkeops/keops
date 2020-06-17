@@ -12,19 +12,6 @@
 #include "core/utils/CudaSizes.h"
 #include "core/utils/TypesUtils.h"
 
-#ifndef ENABLECHUNK
-  #define ENABLECHUNK 0
-#endif
-#ifndef DIMCHUNK
-  #define DIMCHUNK 64
-#endif
-#ifndef CUDA_BLOCK_SIZE_CHUNKS
-  #define CUDA_BLOCK_SIZE_CHUNKS 192
-#endif
-#ifndef DIM_TRESHOLD_CHUNK
-  #define DIM_TRESHOLD_CHUNK 110
-#endif
-
 namespace keops {
 	
 
@@ -357,7 +344,7 @@ struct GpuConv1D_FromHost {
 
     SetGpuProps(dev);
 
-#if ENABLECHUNK && DIMFOUT==1 && DIMX > DIM_TRESHOLD_CHUNK // register pressure case...
+#if ENABLECHUNK // register pressure case...
       blockSize.x = CUDA_BLOCK_SIZE_CHUNKS;
 #else
 	  // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
@@ -370,7 +357,7 @@ struct GpuConv1D_FromHost {
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-#if ENABLECHUNK && DIMFOUT==1 && DIMX > DIM_TRESHOLD_CHUNK
+#if ENABLECHUNK
       GpuConv1DOnDevice_Chunks<TYPE> 
 		  <<< gridSize, blockSize, blockSize.x * DIMCHUNK * sizeof(TYPE) >>> 
 			  (fun, nx, ny, px_d, py_d, pp_d);
@@ -484,8 +471,6 @@ struct GpuConv1D_FromDevice {
     typedef typename FUN::DIMSX DIMSX;
     typedef typename FUN::DIMSY DIMSY;
     typedef typename FUN::DIMSP DIMSP;
-    const int DIMX = DIMSX::SUM;
-    const int DIMY = DIMSY::SUM;
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
     const int SIZEP = DIMSP::SIZE;
@@ -516,9 +501,10 @@ struct GpuConv1D_FromDevice {
     SetGpuProps(dev);
 
     dim3 blockSize;
-#if ENABLECHUNK && DIMFOUT==1 && DIMX > DIM_TRESHOLD_CHUNK // register pressure case...
+#if ENABLECHUNK  // register pressure case...
       blockSize.x = CUDA_BLOCK_SIZE_CHUNKS;
 #else
+      const int DIMY = DIMSY::SUM;
 	  // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
       blockSize.x = ::std::min(CUDA_BLOCK_SIZE,
                              ::std::min(maxThreadsPerBlock,
@@ -530,7 +516,7 @@ struct GpuConv1D_FromDevice {
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-#if ENABLECHUNK && DIMFOUT==1 && DIMX > DIM_TRESHOLD_CHUNK
+#if ENABLECHUNK
       GpuConv1DOnDevice_Chunks<TYPE> 
 		  <<< gridSize, blockSize, blockSize.x * DIMCHUNK * sizeof(TYPE) >>> 
 			  (fun, nx, ny, px_d, py_d, pp_d);
