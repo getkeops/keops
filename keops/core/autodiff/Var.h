@@ -55,6 +55,10 @@ struct Var {
   template < class A, class B >
   using Replace = CondType< B, THIS, IsSameType< A, THIS >::val >;
 
+  // Replacement of two Vars at a time
+  template < class A1, class B1, class A2, class B2 >
+  using ReplaceVars2 = typename THIS::template Replace<A1,B1>::template Replace<A2,B2>;
+
   // AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
   // here there is just one type in the Var type : itself
   // because it does not depend on other sub-formula
@@ -75,6 +79,7 @@ struct Var {
   static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
     // IndVal_Alias<INDS,N>::ind is the first index such that INDS[ind]==N. Let's call it "ind"
     TYPE *xi = Get< IndVal_Alias< INDS, N >::ind >(args...);   // xi = the "ind"-th argument.
+    #pragma unroll
     for (int k = 0; k < DIM; k++)                                  // Assume that xi and out are of size DIM,
       out[k] = xi[k];                                       // and copy xi into out.
   }
