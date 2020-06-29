@@ -142,6 +142,9 @@ pipeline {
 
         stage('Test Cuda') {
           agent { label 'cuda' }
+          environment { 
+            CXX="g++-8"
+          }
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
