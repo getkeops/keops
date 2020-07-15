@@ -14,7 +14,7 @@ Fortunately though, KeOps can easily be used
 as a scalable GPU backend for versatile, high-level libraries such
 as `GPytorch <https://gpytorch.ai/>`_: in this notebook,
 we show how to plug KeOps' :class:`pykeops.torch.LazyTensor`
-within the first `regression tutorial <https://gpytorch.readthedocs.io/en/latest/examples/01_Simple_GP_Regression/Simple_GP_Regression.html>`_
+within the first `regression tutorial <https://docs.gpytorch.ai/en/v1.1.1/examples/01_Exact_GPs/Simple_GP_Regression.html>`_
 of GPytorch's documentation.
 
 Due to hard-coded constraints within the structure of GPytorch,
@@ -22,6 +22,16 @@ the syntax presented below is pretty verbose... But **we're working on it**!
 Needless to say, feel free to `let us know <https://github.com/getkeops/keops/issues>`_
 if you encounter any unexpected behavior with this experimental KeOps-GPytorch interface.
 
+
+.. note::
+    The GPytorch team has now integrated 
+    `explicit KeOps kernels <https://github.com/cornellius-gp/gpytorch/tree/master/gpytorch/kernels/keops>`_ within
+    their repository: they are documented
+    `in this tutorial <https://docs.gpytorch.ai/en/v1.1.1/examples/02_Scalable_Exact_GPs/KeOps_GP_Regression.html>`_ and make the handcrafted example below
+    somewhat obsolete. Nevertheless, we keep this page
+    online for the sake of completeness: it may be useful
+    to advanced users who wish to use custom KeOps
+    kernels with GPytorch.
 
 """
 
@@ -111,8 +121,7 @@ class KeOpsRBFLazyTensor(gpytorch.lazy.LazyTensor):
 class KeOpsRBFKernel(gpytorch.kernels.Kernel):
     """Simple KeOps re-implementation of 'gpytorch.kernels.RBFKernel'."""
     
-    def __init__(self, **kwargs):
-        super().__init__(has_lengthscale=True, **kwargs)
+    has_lengthscale=True
     
     def forward(self, x1, x2, diag=False, **params):
         if diag:  # A Gaussian RBF kernel only has "ones" on the diagonal
@@ -172,7 +181,7 @@ else:
 # GP training
 # -----------------
 # The code below is now a direct copy-paste from the
-# `GPytorch 101 tutorial <https://gpytorch.readthedocs.io/en/latest/examples/01_Simple_GP_Regression/Simple_GP_Regression.html>`_:
+# `GPytorch 101 tutorial <https://docs.gpytorch.ai/en/v1.1.1/examples/01_Exact_GPs/Simple_GP_Regression.html>`_:
 
 # Find optimal model hyperparameters
 model.train()
