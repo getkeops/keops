@@ -10,11 +10,42 @@ whose entries are given by a mathematical formula.
 It combines a **tiled reduction scheme** with an **automatic differentiation** 
 engine, and can be used through **Matlab**, **Python** (NumPy or PyTorch) or 
 **R** backends.
-It is perfectly suited to the computation of **Kernel dot products**
+It is perfectly suited to the computation of **Kernel matrix-vector products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
 
 The project is hosted on `GitHub <https://github.com/getkeops/keops>`_.
+
+
+.. figure:: _static/symbolic_matrix.svg
+    :width: 90% 
+    :alt: Symbolic matrices
+    :align: center
+
+Math libraries understand variables as matrices,
+also known as tensors.
+(a) These are usually **dense** and encoded as
+explicit numerical arrays :math:`(M_{i,j}) = (M[i,j]) \in \mathbb{R}^{\mathrm{M}\times\mathrm{N}}`
+that can have a large memory footprint.
+(b) Alternatively, some operators can be encoded as
+**sparse matrices**: libraries store in memory the indices
+:math:`(i_n,j_n)` and values :math:`M_n = M_{i_n,j_n}`
+that correspond to a small number
+of non-zero coefficients.
+Reduction operations are then implemented using
+indexing methods and scattered memory accesses.
+(c) **We provide support for a third class of tensors:**
+**symbolic matrices** whose coefficients
+are given by a formula
+:math:`M_{i,j} = F(x_i,y_j)` that is evaluated on
+data arrays :math:`(x_i)` and :math:`(y_j)`.
+Reduction operations are implemented using
+parallel schemes that compute the coefficients :math:`M_{i,j}`
+on-the-fly.
+We take advantage of the structure of CUDA registers
+to bypass costly memory transfers
+and achieve optimal runtimes on a wide range of applications.
+
 
 Using the **PyTorch backend**, a typical sample of code looks like:
 
@@ -121,8 +152,8 @@ an issue report on `GitHub issue tracker <https://github.com/getkeops/keops/issu
 
 - François-David Collin
 
-Table of content
-----------------
+Table of contents
+-------------------
 
 .. toctree::
    :maxdepth: 2

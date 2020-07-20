@@ -8,13 +8,39 @@ documentation and tutorials.
 # Kernel Operations on the GPU, with autodiff, without memory overflows
 
 The KeOps library lets you compute generic reductions of **very large arrays**
-whose entries are given by a mathematical formula. 
+whose entries are given by a mathematical formula.
 It combines a **tiled reduction scheme** with an **automatic differentiation**
-engine, and can be used through **Matlab**, **Python** (NumPy or PyTorch) or 
+engine, and can be used through **Matlab**, **Python** (NumPy or PyTorch) or
 **R** backends.
-It is perfectly suited to the computation of **Kernel dot products**
+It is perfectly suited to the computation of **Kernel matrix-vector products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
+
+![Symbolic matrices](./doc/_static/symbolic_matrix.svg)
+
+Math libraries understand variables as matrices,
+also known as tensors.
+(a) These are usually **dense** and encoded as
+explicit numerical arrays that can have a large memory footprint.
+(b) Alternatively, some operators can be encoded as
+**sparse matrices**: libraries store in memory the indices
+(i<sub>n</sub>,j<sub>n</sub>) and 
+values M<sub>n</sub> = M<sub>i<sub>n</sub>,j<sub>n</sub></sub>
+that correspond to a small number
+of non-zero coefficients.
+Reduction operations are then implemented using
+indexing methods and scattered memory accesses.
+(c) **We provide support for a third class of tensors:**
+**symbolic matrices** whose coefficients
+are given by a formula
+M<sub>i,j</sub> = F(x<sub>i</sub>,y<sub>j</sub>) that is evaluated on
+data arrays (x<sub>i</sub>) and (y<sub>j</sub>).
+Reduction operations are implemented using
+parallel schemes that compute the coefficients M<sub>i,j</sub>
+on-the-fly.
+We take advantage of the structure of CUDA registers
+to bypass costly memory transfers
+and achieve optimal runtimes on a wide range of applications.
 
 Using the **PyTorch backend**, a typical sample of code looks like:
 
