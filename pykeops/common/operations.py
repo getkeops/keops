@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from pykeops.common.utils import get_tools
 
@@ -72,20 +73,25 @@ def postprocess(out, binding, reduction_op, nout, opt_arg, dtype):
     return out
 
 
-def ConjugateGradientSolver(binding, linop, b, eps=1e-6):
+def ConjugateGradientSolver(binding, linop, b, eps=1e-6, callback=None, maxiter=None):
     # Conjugate gradient algorithm to solve linear system of the form
     # Ma=b where linop is a linear operation corresponding
     # to a symmetric and positive definite matrix
+    if binding not in ("torch", "numpy", "pytorch"):
+        raise ValueError(
+            "Language not supported, please use numpy, torch or pytorch.")
     tools = get_tools(binding)
     delta = tools.size(b) * eps ** 2
+    if maxiter == None:
+        maxiter = 10 * tools.size(b)
     a = 0
     r = tools.copy(b)
     nr2 = (r ** 2).sum()
     if nr2 < delta:
         return 0 * r
     p = tools.copy(r)
-    k = 0
-    while True:
+    k = 1
+    while k <= maxiter:
         Mp = linop(p)
         alp = nr2 / (p * Mp).sum()
         a += alp * p
@@ -96,6 +102,10 @@ def ConjugateGradientSolver(binding, linop, b, eps=1e-6):
         p = r + (nr2new / nr2) * p
         nr2 = nr2new
         k += 1
+        if callback is not None:
+            callback(a)
+    if k == maxiter:
+        warnings.warn("Warning ----------- Conjugate gradient reached maximum iteration !")
     return a
 
 

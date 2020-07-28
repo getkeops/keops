@@ -114,6 +114,11 @@ def skip(app, what, name, obj, would_skip, options):
 def setup(app):
     app.connect("autodoc-skip-member", skip)
 
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning,
+                        message='Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.')
+
 # Include the example source for plots in API docs
 # plot_include_source = True
 # plot_formats = [("png", 90)]

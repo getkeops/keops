@@ -556,7 +556,41 @@ class PytorchUnitTestCase(unittest.TestCase):
         grad_torch = torch.autograd.grad(sum_f_torch2, y, e)[0]
         self.assertTrue(torch.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
 
-
+    ############################################################
+    def test_cg_dic(self):
+    ############################################################
+        from pykeops.torch import KernelSolve, Genred
+        formula = 'Exp(- g * SqDist(x,y)) * a'
+        aliases = ['x = Vi(3)',   # First arg:  i-variable of size D
+                   'y = Vj(3)',   # Second arg: j-variable of size D
+                   'a = Vj(1)',  # Third arg:  j-variable of size Dv
+                   'g = Pm(1)']
+        K = Genred(formula, aliases, axis=1, dtype="float32")
+        Kinv = KernelSolve(formula, aliases, "a", axis=1,
+                           dtype="float32")
+        ans = Kinv.cg(self.xc, self.xc, self.fc,
+                          self.sigmac, alpha=self.sigmac)[0]
+        err = ((self.sigmac * ans + K(self.xc, self.xc,
+                                     ans, self.sigmac) - self.fc) ** 2).sum()
+        self.assertTrue(np.allclose(err.cpu().data.numpy(), np.zeros(err.shape)))
+    
+    #############################################################
+    def test_cg_dic(self):
+    ############################################################
+        from pykeops.torch import KernelSolve, Genred
+        formula = 'Exp(- g * SqDist(x,y)) * a'
+        aliases = ['x = Vi(3)',   # First arg:  i-variable of size D
+                   'y = Vj(3)',   # Second arg: j-variable of size D
+                   'a = Vj(1)',  # Third arg:  j-variable of size Dv
+                   'g = Pm(1)']
+        K = Genred(formula, aliases, axis=1, dtype="float32")
+        Kinv = KernelSolve(formula, aliases, "a", axis=1,
+                           dtype="float32")
+        ans = Kinv(self.xc, self.xc, self.fc,
+                          self.sigmac, alpha=self.sigmac)
+        err = ((self.sigmac * ans + K(self.xc, self.xc,
+                                     ans, self.sigmac) - self.fc) ** 2).sum()
+        self.assertTrue(np.allclose(err.cpu().data.numpy(), np.zeros(err.shape)))
 
 if __name__ == '__main__':
     """

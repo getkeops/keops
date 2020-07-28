@@ -302,6 +302,46 @@ class NumpyUnitTestCase(unittest.TestCase):
             self.assertTrue(res_keops.shape == res_numpy.shape)
             self.assertTrue(np.allclose(res_keops, res_numpy, atol=1e-3))
 
+    ############################################################
+    def test_cg_dic(self):
+    ############################################################
+        from pykeops.numpy import KernelSolve, Genred
+        formula = 'Exp(- g * SqDist(x,y)) * a'
+        aliases = ['x = Vi(3)',   # First arg:  i-variable of size D
+                   'y = Vj(3)',   # Second arg: j-variable of size D
+                   'a = Vj(1)',  # Third arg:  j-variable of size Dv
+                   'g = Pm(1)']
+
+        K = Genred(formula, aliases, axis=1, dtype=self.type_to_test[1])
+        Kinv = KernelSolve(formula, aliases, "a", axis=1,
+                           dtype=self.type_to_test[1])
+
+        ans = Kinv.cg(self.x, self.x, self.f,
+                          self.sigma, alpha=self.sigma)[0]
+        err = ((self.sigma * ans + K(self.x, self.x,
+                                     ans, self.sigma) - self.f) ** 2).sum()
+        self.assertTrue(np.allclose(err, np.zeros(err.shape)))
+
+    ############################################################
+    def test_cg_call(self):
+    ############################################################
+        from pykeops.numpy import KernelSolve, Genred
+        formula = 'Exp(- g * SqDist(x,y)) * a'
+        aliases = ['x = Vi(3)',   # First arg:  i-variable of size D
+                   'y = Vj(3)',   # Second arg: j-variable of size D
+                   'a = Vj(1)',  # Third arg:  j-variable of size Dv
+                   'g = Pm(1)']
+
+        K = Genred(formula, aliases, axis=1, dtype=self.type_to_test[1])
+        Kinv = KernelSolve(formula, aliases, "a", axis=1,
+                           dtype=self.type_to_test[1])
+
+        ans = Kinv(self.x, self.x, self.f,
+                          self.sigma, alpha=self.sigma)
+        err = ((self.sigma * ans + K(self.x, self.x,
+                                     ans, self.sigma) - self.f) ** 2).sum()
+        self.assertTrue(np.allclose(err, np.zeros(err.shape)))
+    
 
 if __name__ == '__main__':
     unittest.main()
