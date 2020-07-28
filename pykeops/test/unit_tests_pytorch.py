@@ -575,7 +575,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(err.cpu().data.numpy(), np.zeros(err.shape)))
     
     #############################################################
-    def test_cg_dic(self):
+    def test_cg(self):
     ############################################################
         from pykeops.torch import KernelSolve, Genred
         formula = 'Exp(- g * SqDist(x,y)) * a'
