@@ -383,13 +383,15 @@ class dic_KernelSolveAutograd(torch.autograd.Function):
             if alpha:
                 res += alpha*var
             return res
+        global copy
 
         result, iter_ = cg(linop, varinv.data, 'torch', eps=eps, check_cond=check_cond, callback=callback)
         ctx.save_for_backward(*args, result)
+
         return result, torch.as_tensor(iter_)
 
     @staticmethod
-    def backward(ctx, G):
+    def backward(ctx, G, G2):
 
         formula = ctx.formula
         aliases = ctx.aliases
@@ -399,11 +401,11 @@ class dic_KernelSolveAutograd(torch.autograd.Function):
         dtype = ctx.dtype
         device_id = ctx.device_id
         eps = ctx.eps
-        check_cond = ctx.check_cond
         myconv = ctx.myconv
         ranges = ctx.ranges
-        callback = ctx.callback
         accuracy_flags = ctx.accuracy_flags
+        check_cond = ctx.check_cond
+        callback = ctx.callback
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
         nargs = len(args)
         result = ctx.saved_tensors[-1]
@@ -412,14 +414,11 @@ class dic_KernelSolveAutograd(torch.autograd.Function):
       
         # there is also a new variable for the formula's output
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
-        
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, check_cond, callback, *newargs)
-
+        KinvG = dic_KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, check_cond, callback, *newargs)
         grads = []  # list of gradients wrt. args;
-
         for (var_ind, sig) in enumerate(aliases):
-            if not ctx.needs_input_grad[var_ind + 10]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags)
+            if not ctx.needs_input_grad[var_ind + 12]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags)
                 grads.append(None)  # Don't waste time computing it.
 
             else:
@@ -430,9 +429,8 @@ class dic_KernelSolveAutograd(torch.autograd.Function):
                     var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
                     formula_g = 'Grad_WithSavedForward(' + formula + ', ' + var + ', ' + eta + ', ' + resvar + ')'  # Grad<F,V,G,R>
                     aliases_g = aliases + [eta, resvar]
-                    args_g = args[:varinvpos] + (result,) + args[varinvpos+1:] + (-KinvG,) + (result,)
+                    args_g = args[:varinvpos] + (result,) + args[varinvpos+1:] + (-KinvG[0],) + (result,)
                     genconv = GenredAutograd().apply
-
                     if cat == 2:
                         grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
                         grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
@@ -440,5 +438,4 @@ class dic_KernelSolveAutograd(torch.autograd.Function):
                     else:
                         grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
                     grads.append(grad)
-         
-        return (None, None, None, None, None, None, None, None, None, None, None, None, None, *grads)
+        return (None, None, None, None, None, None, None, None, None, None, None, None, *grads)
