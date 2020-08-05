@@ -34,6 +34,22 @@ struct Var {
 
   using THIS = Var< N, DIM, CAT >;
 
+  template < int DIMCHK >
+  using CHUNKED_VERSION = Var< N, DIMCHK, CAT >;
+
+  static const bool IS_CHUNKABLE = true;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = univpack<>;
+
+  static const int NUM_CHUNKED_FORMULAS = 0;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = Var< N, DIM, CAT >;
+
+  template < int CAT_, int DIMCHK >
+  using CHUNKED_VARS = CondType< univpack< Var< N, DIMCHK, CAT>>, univpack<>, CAT == CAT_ >;
+
   // prints the variable as a string
   // we just print e.g. x0, y2, p1 to simplify reading, forgetting about dimensions
   static void PrintId(::std::stringstream &str) {
@@ -91,6 +107,15 @@ struct Var {
   template < class V, class GRADIN >
   using DiffT = IdOrZero< Var< N, DIM, CAT >, V, GRADIN >;
 
+  // operator as shortcut to Eval...
+  template < typename INDS >
+  struct EvalFun {
+      template < typename... Args >
+      DEVICE INLINE void operator()(Args... args) {
+      	THIS::template Eval<INDS>(args...);
+      }
+  };
+
 };
 
 //////////////////////////////////////////////////////////////
@@ -117,5 +142,24 @@ using _P = Param< N, DIM >;
 #define Vi(N, DIM) KeopsNS<_X<N,DIM>>()
 #define Vj(N, DIM) KeopsNS<_Y<N,DIM>>()
 #define Pm(N, DIM) KeopsNS<_P<N,DIM>>()
+
+
+
+//////////////////////////////////////////////////////////////
+////                      CHUNK FORMULA                   ////
+//////////////////////////////////////////////////////////////
+
+/*
+ * Class for building a chunked computation scheme.
+ */
+
+template < class _CHUNKED_FORMULA, class _POST_CHUNK_FORMULA >
+struct ChunkedFormula {
+
+  using CHUNKED_FORMULA = univpack < _CHUNKED_FORMULA >;
+
+  using POST_CHUNK_FORMULA = _POST_CHUNK_FORMULA;
+
+};
 
 }

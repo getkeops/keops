@@ -1,4 +1,18 @@
 
+// special computation scheme for dim>100
+#ifndef ENABLECHUNK
+  #define ENABLECHUNK 0
+#endif
+#ifndef DIMCHUNK
+  #define DIMCHUNK 64
+#endif
+#ifndef CUDA_BLOCK_SIZE_CHUNKS
+  #define CUDA_BLOCK_SIZE_CHUNKS 192
+#endif
+#ifndef DIM_TRESHOLD_CHUNK
+  #define DIM_TRESHOLD_CHUNK 110
+#endif
+
 #if USE_HALF
   #include <cuda_fp16.h>
 #endif
@@ -90,20 +104,6 @@
 #define KAHAN_SCHEME 2
 #ifndef SUM_SCHEME
   #define SUM_SCHEME DIRECT_SUM
-#endif
-
-// special computation scheme for dim>100
-#ifndef ENABLECHUNK
-  #define ENABLECHUNK 0
-#endif
-#ifndef DIMCHUNK
-  #define DIMCHUNK 64
-#endif
-#ifndef CUDA_BLOCK_SIZE_CHUNKS
-  #define CUDA_BLOCK_SIZE_CHUNKS 192
-#endif
-#ifndef DIM_TRESHOLD_CHUNK
-  #define DIM_TRESHOLD_CHUNK 110
 #endif
 
 // float16 support

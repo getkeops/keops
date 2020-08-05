@@ -48,7 +48,7 @@ struct Reduction {
     DEVICE INLINE void operator()(Args... args) {
         F::template Eval<INDS>(args...);
     }
-    
+
 };
 
 // default evaluation by calling Cpu/Gpu reduction engine, taking care of axis of reduction

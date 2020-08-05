@@ -8,6 +8,8 @@ from pykeops.common.utils import module_exists, create_and_lock_build_folder
 
 
 def TestChunkedTiles(formula):
+    return True
+    """
     import re
     if re.search(".*Reduction\(Sum\((Square|Abs)\(\(Var\(.*?\) . Var\(.*?\)\)\)\).*?\)",formula) is not None:
         dim = [0,0]
@@ -19,6 +21,7 @@ def TestChunkedTiles(formula):
         if dim[0]==dim[1] and dim[0]>100:
             return True
     return False
+    """
     
     
 

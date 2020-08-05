@@ -21,6 +21,19 @@ struct BinaryOp_base {
 
   using THIS = OP<FA,FB,PARAMS...>;
 
+  template < int DIMCHK >
+  using CHUNKED_VERSION = void;
+
+  static const bool IS_CHUNKABLE = false;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = ConcatPacks < typename FA::template CHUNKED_FORMULAS<DIMCHK>, typename FB::template CHUNKED_FORMULAS<DIMCHK> >;
+
+  static const int NUM_CHUNKED_FORMULAS = FA::NUM_CHUNKED_FORMULAS + FB::NUM_CHUNKED_FORMULAS;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = OP < typename FA::template POST_CHUNK_FORMULA<IND>, typename FB::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS>, PARAMS... >;
+
   // recursive function to print the formula as a string
   static void PrintId(::std::stringstream& str) {
     str << "(";                                  // prints "("
@@ -53,6 +66,9 @@ struct BinaryOp_base {
   // Here we must take the union of Vars that are inside FA and Vars that are inside FB
   template < int CAT >
   using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
+
+  template < int CAT, int DIMCHK >
+  using CHUNKED_VARS = univpack<>;
 
 };
 
@@ -157,6 +173,7 @@ using IterBinaryOp = typename IterBinaryOp_Impl<OP,PACK>::type;
 
 
 
+
 /*
  *  // iterate binary operator
  *
@@ -173,7 +190,6 @@ using IterBinaryOp = typename IterBinaryOp_Impl<OP,PACK>::type;
  *template < template<class,class> class OP, class PACK >
  *using IterBinaryOp = typename IterBinaryOp_Impl<OP,PACK>::type;
  */
-
 
 
 

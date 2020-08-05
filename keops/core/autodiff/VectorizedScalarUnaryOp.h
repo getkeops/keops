@@ -12,10 +12,18 @@ struct VectorizedScalarUnaryOp : UnaryOp<OP, F, NS...> {
 	
     static const int DIM = F::DIM;
 
+    static const bool IS_CHUNKABLE = F::IS_CHUNKABLE;
+
+    template < int DIMCHK >
+    using CHUNKED_VERSION = OP<typename F::template CHUNKED_VERSION<DIMCHK>,NS...>;
+
+    template < int CAT, int DIMCHK >
+    using CHUNKED_VARS = typename F::template CHUNKED_VARS<CAT,DIMCHK>;
+
     template < typename TYPE >
     static DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
-		using OpScal = typename OP<F,NS...>::template Operation_Scalar<TYPE>;
-  	    VectApply < OpScal, DIM > (out, outF);
+	using OpScal = typename OP<F,NS...>::template Operation_Scalar<TYPE>;
+  	VectApply < OpScal, DIM > (out, outF);
     }
 
 };

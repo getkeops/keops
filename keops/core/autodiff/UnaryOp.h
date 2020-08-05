@@ -30,6 +30,23 @@ struct UnaryOp_base {
 
   using THIS = OP<F,NS...>;
 
+  using ARG = F;
+
+  template < int DIMCHK >
+  using CHUNKED_VERSION = void;
+
+  static const bool IS_CHUNKABLE = false;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = typename F::template CHUNKED_FORMULAS<DIMCHK>;
+
+  static const int NUM_CHUNKED_FORMULAS = F::NUM_CHUNKED_FORMULAS;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = OP < typename F::template POST_CHUNK_FORMULA<IND>, NS... >;
+
+  static const bool USE_CHUNK = F::USE_CHUNK;
+
   // recursive function to print the formula as a string
   static void PrintId(::std::stringstream& str) {
     THIS::PrintIdString(str);      // prints the id string of the operator : "Exp", "Log", "Pow",...
@@ -57,6 +74,9 @@ struct UnaryOp_base {
   // Here it is simple : the variables inside the formula OP<F,NS..> are the variables in F
   template < int CAT >
   using VARS = typename F::template VARS<CAT>;
+
+  template < int CAT, int DIMCHK >
+  using CHUNKED_VARS = univpack<>;
 
   // operator as shortcut to Eval...
   template < typename INDS >
@@ -100,5 +120,8 @@ static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   THIS::Operation(out,outA);
 }
 };
+
+
+
 
 }

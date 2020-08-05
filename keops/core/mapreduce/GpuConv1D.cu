@@ -12,8 +12,64 @@
 #include "core/utils/CudaSizes.h"
 #include "core/utils/TypesUtils.h"
 
+// these 3 lines to be removed, used for debug...
+//#include <type_traits>
+//typedef typename F00::xxxx xxxx;
+//static_assert(std::is_same<F00, F0>::value, "not same type");
+
+
 namespace keops {
+
+template < class FUN, class FUN_CHUNK, class FUN_CHUNK_CURR, bool DO_FINALIZE, typename TYPE >
+__device__ void do_chunk_sub(TYPE *acc, int tile, int i, int j, int jstart, int chunk, int nx, int ny, 
+			TYPE **px, TYPE **py, TYPE *fout, TYPE *xi, TYPE *yj, TYPE *param_loc) {
+	typedef typename FUN::DIMSX DIMSX;
+	const int DIMFOUT = DIMSX::FIRST;
+	typedef typename FUN::DIMSX DIMSX;  // DIMSX is a "vector" of templates giving dimensions of xi variables
+	typedef typename FUN::DIMSY DIMSY;  // DIMSY is a "vector" of templates giving dimensions of yj variables
+	typedef typename FUN::DIMSP DIMSP;
+	using VARSI_CHUNK = typename FUN_CHUNK::template VARS<FUN::tagI>;
+	using DIMSX_CHUNK = typename GetDims<VARSI_CHUNK>::template PUTLEFT<FUN_CHUNK::DIM>;
+	using VARSJ_CHUNK = typename FUN_CHUNK::template VARS<FUN::tagJ>;
+	using DIMSY_CHUNK = GetDims<VARSJ_CHUNK>;
+	const int DIMY_CHUNK = DIMSY_CHUNK::SUM;
+	static const int NMINARGS = FUN::NMINARGS;
+	using FUN_POSTCHUNK = typename FUN::F::template POST_CHUNK_FORMULA < NMINARGS >;
+	const int DIMOUT_CHUNK = FUN_CHUNK::DIM;
+	using VARSI_CHUNK_CURR = typename FUN_CHUNK_CURR::template VARS<FUN::tagI>;
+	using VARSJ_CHUNK_CURR = typename FUN_CHUNK_CURR::template VARS<FUN::tagJ>;
+	using DIMSX_CHUNK_CURR = typename GetDims<VARSI_CHUNK_CURR>::template PUTLEFT<FUN_CHUNK_CURR::DIM>;
+	using DIMSY_CHUNK_CURR = GetDims<VARSJ_CHUNK_CURR>;
+			if (i < nx) {
+				load_chunks < typename DIMSX::NEXT, typename DIMSX_CHUNK::NEXT, typename DIMSX_CHUNK_CURR::NEXT >
+					(i, chunk, xi + DIMFOUT, px + 1);
+			}
+			__syncthreads();
 	
+			if (j < ny) { // we load yj from device global memory only if j<ny
+				load_chunks < DIMSY, DIMSY_CHUNK, DIMSY_CHUNK_CURR > (j, chunk, yj + threadIdx.x * DIMY_CHUNK, py);
+			}
+			__syncthreads();
+	
+			if (i < nx) { // we compute x1i only if needed
+				TYPE * yjrel = yj; // Loop on the columns of the current block.
+				for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += DIMY_CHUNK) {
+					TYPE *foutj = fout+jrel*DIMOUT_CHUNK;
+					call < DIMSX_CHUNK, DIMSY_CHUNK, DIMSP > (FUN_CHUNK_CURR::template EvalFun<FUN::INDS>(), xi, yjrel, param_loc);
+					FUN_CHUNK_CURR::acc_chunk(foutj, xi);
+					if (DO_FINALIZE) {
+						call<DIMSX_CHUNK, DIMSY_CHUNK, DIMSP, pack<DIMOUT_CHUNK> >
+							(FUN_POSTCHUNK::template EvalFun<ConcatPacks<typename FUN::INDS,pack<FUN::NMINARGS>>>(), 
+							xi, yjrel, param_loc, foutj);
+						typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()
+							(acc, xi, jrel + tile * blockDim.x);     // acc += xi
+					}
+				}
+
+			}
+			__syncthreads();
+}
+
 
 template<typename TYPE, class FUN>
 __global__ void GpuConv1DOnDevice_Chunks(FUN fun, int nx, int ny, TYPE **px, TYPE **py, TYPE **pp) 
@@ -29,122 +85,71 @@ __global__ void GpuConv1DOnDevice_Chunks(FUN fun, int nx, int ny, TYPE **px, TYP
 	typedef typename FUN::DIMSX DIMSX;  // DIMSX is a "vector" of templates giving dimensions of xi variables
 	typedef typename FUN::DIMSY DIMSY;  // DIMSY is a "vector" of templates giving dimensions of yj variables
 	typedef typename FUN::DIMSP DIMSP;  // DIMSP is a "vector" of templates giving dimensions of parameters variables
-	const int DIMY = DIMSY::SUM;        // DIMY  is sum of dimensions for yj variables
 	const int DIMP = DIMSP::SUM;        // DIMP  is sum of dimensions for parameters variables
 	const int DIMOUT = FUN::DIM; // dimension of output variable
 	const int DIMRED = FUN::DIMRED; // dimension of reduction operation
 	const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
-	
-	static_assert(DIMFOUT == 1, "implemented only for dim 1.");
-	
-	const int NCHUNKS = 1 + (DIMY-1) / DIMCHUNK;
-	const int DIMLASTCHUNK = DIMY - (NCHUNKS-1)*DIMCHUNK;
-	
-	using F0 = typename FUN::F::template ReplaceVars2 < Var<0,DIMY,0>, Var<0,DIMCHUNK,0>, Var<1,DIMY,1>, Var<1,DIMCHUNK,1> >;
-	using FUN_CHUNK = typename F0::template ReplaceVars2 < Var<1,DIMY,0>, Var<1,DIMCHUNK,0>, Var<0,DIMY,1>, Var<0,DIMCHUNK,1> >;
-	
-	using F1 = typename FUN::F::template ReplaceVars2 < Var<0,DIMY,0>, Var<0,DIMLASTCHUNK,0>, Var<1,DIMY,1>, Var<1,DIMLASTCHUNK,1> >;
-	using FUN_LASTCHUNK = typename F1::template ReplaceVars2 < Var<1,DIMY,0>, Var<1,DIMLASTCHUNK,0>, Var<0,DIMY,1>, Var<0,DIMLASTCHUNK,1> >;
-	
+
+	static const int DIM_ORG = FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::FIRST::NEXT::FIRST::FIRST;
+	static const int NCHUNKS = 1 + (DIM_ORG-1) / DIMCHUNK;
+	static const int DIMLASTCHUNK = DIM_ORG - (NCHUNKS-1)*DIMCHUNK;
+	static const int NMINARGS = FUN::NMINARGS;
+
+	using FUN_CHUNK = typename FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::FIRST::FIRST;
+	using VARSI_CHUNK = typename FUN_CHUNK::template VARS<FUN::tagI>;
+	using DIMSX_CHUNK = typename GetDims<VARSI_CHUNK>::template PUTLEFT<FUN_CHUNK::DIM>;
+	using VARSJ_CHUNK = typename FUN_CHUNK::template VARS<FUN::tagJ>;
+	using DIMSY_CHUNK = GetDims<VARSJ_CHUNK>;
+	using FUN_LASTCHUNK = typename FUN::F::template CHUNKED_FORMULAS<DIMLASTCHUNK>::FIRST::FIRST;
+	using VARSI_LASTCHUNK = typename FUN_LASTCHUNK::template VARS<FUN::tagI>;
+	using VARSJ_LASTCHUNK = typename FUN_LASTCHUNK::template VARS<FUN::tagJ>;
+	using DIMSX_LASTCHUNK = typename GetDims<VARSI_LASTCHUNK>::template PUTLEFT<FUN_LASTCHUNK::DIM>;
+	using DIMSY_LASTCHUNK = GetDims<VARSJ_LASTCHUNK>;
+	using FUN_POSTCHUNK = typename FUN::F::template POST_CHUNK_FORMULA < NMINARGS >;
+
 	// load parameter(s)
 	TYPE param_loc[DIMP < 1 ? 1 : DIMP];
 	load<DIMSP>(0, param_loc, pp); // load parameters variables from global memory to local thread memory
 	
 	// get the value of variable (index with i)
-	TYPE xi[1+DIMCHUNK];
-	TYPE fout[CUDA_BLOCK_SIZE_CHUNKS];
+	const int DIMX_CHUNK = DIMSX_CHUNK::SUM; 
+	const int DIMY_CHUNK = DIMSY_CHUNK::SUM; 
+	const int DIMOUT_CHUNK = FUN_CHUNK::DIM;
+	TYPE xi[DIMX_CHUNK];
+
+	TYPE fout[CUDA_BLOCK_SIZE_CHUNKS*DIMOUT_CHUNK];
 	
 	__TYPEACC__ acc[DIMRED];
 
-	if (i < nx) 
-	{
+	if (i < nx) {
 		typename FUN::template InitializeReduction<__TYPEACC__, TYPE >()(acc); // acc = 0
+		load_nochunks < typename DIMSX::NEXT, typename DIMSX_CHUNK::NEXT > 
+			(i, xi + DIMFOUT, px + 1); // load xi variables from global memory to local thread memory
 	}
 	__syncthreads();
 
-	for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) 
-	{
+	for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {
 		// get the current column
 		int j = tile * blockDim.x + threadIdx.x;
 	
-		if (i < nx) 
-		{ // we compute x1i only if needed
-			for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++) 
-			{
-				fout[jrel] = 0;
+		if (j < ny) { // we load yj from device global memory only if j<ny
+			load_nochunks<DIMSY, DIMSY_CHUNK>(j, yj + threadIdx.x * DIMY_CHUNK, py); // load yj variables from global memory to shared memory
+		}
+		__syncthreads();
+
+		if (i < nx) { // we compute x1i only if needed
+			for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++) {
+				FUN_CHUNK::initacc_chunk(fout+jrel*DIMOUT_CHUNK);
 			}
 		}
 		__syncthreads();
 	
 		// looping on chunks (except the last)
 		#pragma unroll
-		for (int chunk=0; chunk<NCHUNKS-1; chunk++) 
-		{
-			if (i < nx) 
-			{
-				#pragma unroll
-				for (int k=0; k<DIMCHUNK; k++) 
-					xi[k+1] = px[1][i*DIMSX::NEXT::FIRST+chunk*DIMCHUNK+k];  // load xi variable from global memory to local thread memory
-			}
-			__syncthreads();
-	
-			if (j < ny) 
-			{ // we load yj from device global memory only if j<ny
-				#pragma unroll
-				for (int k=0; k<DIMCHUNK; k++) 
-					yj[threadIdx.x * DIMCHUNK+k] = py[0][j*DIMSY::FIRST+chunk*DIMCHUNK+k];
-			}
-			__syncthreads();
-	
-			if (i < nx) 
-			{ // we compute x1i only if needed
-				TYPE * yjrel = yj; // Loop on the columns of the current block.
-				for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += DIMCHUNK) 
-				{
-					call<pack<DIMFOUT,DIMCHUNK>, pack<DIMCHUNK>, DIMSP>(FUN_CHUNK::template EvalFun<FUN::INDS>(),
-	                                  xi,
-	                                  yjrel,
-	                                  param_loc); // Call the function, which outputs results in xi[0:DIMX1]
-					fout[jrel] += xi[0];
-				}
-			}
-			__syncthreads();
-		}
-	
+		for (int chunk=0; chunk<NCHUNKS-1; chunk++)
+			do_chunk_sub < FUN, FUN_CHUNK, FUN_CHUNK, false >(acc, tile, i, j, jstart, chunk, nx, ny, px, py, fout, xi, yj, param_loc);	
 		// last chunk
-		{
-			if (i < nx) 
-			{
-				#pragma unroll
-				for (int k=0; k<DIMLASTCHUNK; k++) 
-					xi[k+1] = px[1][i*DIMSX::NEXT::FIRST+(NCHUNKS-1)*DIMCHUNK+k];  // load xi variable from global memory to local thread memory
-			}
-			__syncthreads();
-	
-			if (j < ny) 
-			{ // we load yj from device global memory only if j<ny
-				#pragma unroll
-				for (int k=0; k<DIMLASTCHUNK; k++) 
-					yj[threadIdx.x * DIMCHUNK+k] = py[0][j*DIMSY::FIRST+(NCHUNKS-1)*DIMCHUNK+k];
-			}
-			__syncthreads();
-	
-			if (i < nx) 
-			{ // we compute x1i only if needed
-				TYPE * yjrel = yj; // Loop on the columns of the current block.
-				for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += DIMCHUNK) 
-				{
-					call<pack<DIMFOUT,DIMLASTCHUNK>, pack<DIMLASTCHUNK>, DIMSP>(FUN_LASTCHUNK::template EvalFun<FUN::INDS>(),
-								  xi,
-								  yjrel,
-								  param_loc); // Call the function, which outputs results in xi[0:DIMX1]
-					fout[jrel] += xi[0];
-					typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, fout+jrel, jrel + tile * blockDim.x);     // acc += xi
-				}
-			}
-			__syncthreads();
-		}
-
+		do_chunk_sub < FUN, FUN_CHUNK, FUN_LASTCHUNK, true >(acc, tile, i, j, jstart, NCHUNKS-1, nx, ny, px, py, fout, xi, yj, param_loc);
 	}
 
 	if (i < nx) {
@@ -246,6 +251,11 @@ __global__ void GpuConv1DOnDevice(FUN fun, int nx, int ny, TYPE **px, TYPE **py,
   }
 
 }
+
+
+
+
+
 
 
 struct GpuConv1D_FromHost {
@@ -517,6 +527,7 @@ struct GpuConv1D_FromDevice {
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
 #if ENABLECHUNK
+      printf("Hello, using chunks !!\n");
       GpuConv1DOnDevice_Chunks<TYPE> 
 		  <<< gridSize, blockSize, blockSize.x * DIMCHUNK * sizeof(TYPE) >>> 
 			  (fun, nx, ny, px_d, py_d, pp_d);

@@ -7,6 +7,7 @@
 #include "core/utils/TypesUtils.h"
 
 #include "core/pre_headers.h"
+
 namespace keops {
 
 //////////////////////////////////////////////////////////////
@@ -38,6 +39,40 @@ struct Sum : UnaryOp<Sum, F> {
 
   template<class V, class GRADIN>
   using DiffT = typename F::template DiffT<V, SumT<GRADIN, F::DIM>>;
+
+  template < int DIMCHK >
+  using CHUNKED_VERSION = Sum < typename F::template CHUNKED_VERSION<DIMCHK> >;
+
+  template < int CAT, int DIMCHK >
+  using CHUNKED_VARS = typename F::template CHUNKED_VARS<CAT,DIMCHK>;
+
+  static const bool IS_CHUNKABLE = false;
+
+  static const bool USE_CHUNK = ENABLECHUNK && F::IS_CHUNKABLE && F::DIM>100;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULA = CondType < univpack<univpack<CHUNKED_VERSION<DIMCHK>,pack<F::DIM>>>, univpack<>, USE_CHUNK >;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = ConcatPacks < typename F::template CHUNKED_FORMULAS<DIMCHK>, CHUNKED_FORMULA<DIMCHK> >;
+
+  static const int NUM_CHUNKED_FORMULAS = F::NUM_CHUNKED_FORMULAS + USE_CHUNK;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = CondType < Var < IND, 1, 3 >, Sum<typename F::template POST_CHUNK_FORMULA<IND>>, USE_CHUNK >;
+
+  template < typename TYPE >
+  static DEVICE INLINE void initacc_chunk(TYPE *acc) {
+	*acc = 0.0f;
+  }
+
+  template < typename TYPE >
+  static DEVICE INLINE void acc_chunk(TYPE *acc, TYPE *out) {
+	*acc += *out;
+  }
+
+  //template < int IND >
+  //using POST_CHUNK_FORMULA = CondType < USE_CHUNK, Var<IND,DIM,4>, Sum<F::POST_CHUNK_FORMULA<IND>> >;
 
 };
 

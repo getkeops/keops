@@ -64,6 +64,13 @@ struct pack {
   template<typename TYPE>
   HOST_DEVICE static void load(int i, TYPE *xi, TYPE **px, int *offsets) {}
 
+  // (even in chunked mode)
+  template<class DIMS_CHUNKS, class DIMS_CHUNKS_LOAD, typename TYPE>
+  HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px) {}
+
+  template<class DIMS_CHUNKS, typename TYPE>
+  HOST_DEVICE static void load_nochunks(int i, TYPE *xi, TYPE **px) {}
+
   // ... counts for nothing in the evaluation of a function ...
   template<typename TYPE, class FUN, typename... Args>
   HOST_DEVICE static void call(FUN fun, TYPE *x, Args... args) {
@@ -80,6 +87,12 @@ struct pack {
   template<class DIMS1, class DIMS2, typename TYPE, class FUN, typename... Args>
   HOST_DEVICE static void call3(FUN fun, TYPE *x, Args... args) {
     DIMS1::template call2<DIMS2>(fun, args...);
+  }
+
+  // ... idem ...
+  template<class DIMS1, class DIMS2, class DIMS3, typename TYPE, class FUN, typename... Args>
+  HOST_DEVICE static void call4(FUN fun, TYPE *x, Args... args) {
+    DIMS1::template call3<DIMS2, DIMS3>(fun, args...);
   }
 
   // ... does not have anything to give to a list of variables.
@@ -169,6 +182,35 @@ struct pack<N, NS...> {
                offsets + 1);                        // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
   }
 
+  // idem for chunked mode : here we load only the chunked variables
+  template<class DIMS_CHUNKS, class DIMS_CHUNKS_LOAD, typename TYPE>
+  HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px) {
+    assert(xi != nullptr);
+    assert(px != nullptr);
+    if ( DIMS_CHUNKS::FIRST < FIRST) { // different dimensions : means the variable is chunked 
+      #pragma unroll
+      for (int k = 0; k < DIMS_CHUNKS_LOAD::FIRST; k++) {
+        xi[k] = (*px)[i * FIRST + chunk_index*DIMS_CHUNKS::FIRST + k];
+      }
+    }
+    NEXT::template load_chunks<DIMS_CHUNKS::NEXT,DIMS_CHUNKS_LOAD::NEXT>(i, chunk_index, xi + DIMS_CHUNKS::FIRST, px + 1);
+  }
+
+  // idem for chunked mode : here we load only the non chunked variables
+  template<class DIMS_CHUNKS, typename TYPE>
+  HOST_DEVICE static void load_nochunks(int i, TYPE *xi, TYPE **px) {
+    assert(xi != nullptr);
+    assert(px != nullptr);
+    if ( DIMS_CHUNKS::FIRST == FIRST) { // same dimensions : means the variable is not chunked 
+      #pragma unroll
+      for (int k = 0; k < FIRST; k++) {
+        xi[k] = (*px)[i * FIRST + k];
+      }
+    }
+    NEXT::load_nochunks<DIMS_CHUNKS::NEXT>(i, xi + FIRST, px + 1);
+  }
+
+
   // call(fun, [x1, x2, x3], arg1, arg2 ) will end up executing fun( arg1, arg2, x1, x2, x3 ).
   template<typename TYPE, class FUN, typename... Args>
   HOST_DEVICE static void call(FUN fun, TYPE *x, Args... args) {
@@ -190,6 +232,15 @@ struct pack<N, NS...> {
     NEXT::template call3<DIMS1, DIMS2>(fun, x + FIRST, args..., x);
   }
 
+
+  // Idem, with a triple template on DIMS. This allows you to call fun with
+  // four "packed" variables
+  template<class DIMS1, class DIMS2, class DIMS3, typename TYPE, class FUN, typename... Args>
+  HOST_DEVICE static void call4(FUN fun, TYPE *x, Args... args) {
+    NEXT::template call4<DIMS1, DIMS2, DIMS3>(fun, x + FIRST, args..., x);
+  }
+
+
   // Out of a long  list of pointers, extract the ones which "belong" to the current pack
   // and put them into a pointer array px.
   template<typename TYPE, typename... Args>
@@ -210,6 +261,12 @@ HOST_DEVICE void call(FUN fun, TYPE *x, Args... args) {
   DIMSX::template call3<DIMSY, DIMSP>(fun, x, args...);
 }
 
+// Templated call
+template<class DIMSX, class DIMSY, class DIMSP, class DIMST, typename TYPE, class FUN, typename... Args>
+HOST_DEVICE void call(FUN fun, TYPE *x, Args... args) {
+  DIMSX::template call4<DIMSY, DIMSP, DIMST>(fun, x, args...);
+}
+
 template<class INDS, typename TYPE, typename... Args>
 void getlist(TYPE **px, Args... args) {
   INDS::getlist(px, args...);
@@ -226,5 +283,19 @@ template<class DIMS, typename TYPE>
 HOST_DEVICE void load(int i, TYPE *xi, TYPE **px, int *offsets) {
   DIMS::load(i, xi, px, offsets);
 }
+
+// Loads the i-th "line" of px to xi. - for chunked mode
+template<class DIMS, class DIMS_CHUNKS, class DIMS_CHUNKS_LOAD, typename TYPE>
+HOST_DEVICE void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px) {
+  DIMS::template load_chunks<DIMS_CHUNKS,DIMS_CHUNKS_LOAD>(i, chunk_index, xi, px);
+}
+
+// Loads the i-th "line" of px to xi. - for chunked mode
+template<class DIMS, class DIMS_CHUNKS, typename TYPE>
+HOST_DEVICE void load_nochunks(int i, TYPE *xi, TYPE **px) {
+  DIMS::template load_nochunks<DIMS_CHUNKS>(i, xi, px);
+}
+
+
 
 }

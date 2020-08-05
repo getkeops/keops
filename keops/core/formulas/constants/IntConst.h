@@ -43,6 +43,25 @@ struct IntConstant_Impl {
   // There is no gradient to accumulate on V, whatever V.
   template < class V, class GRADIN >
   using DiffT = Zero<V::DIM>;
+
+
+  template < int DIMCHK >
+  using CHUNKED_VERSION = IntConstant< N >;
+
+  static const bool IS_CHUNKABLE = true;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = univpack<>;
+
+  static const int NUM_CHUNKED_FORMULAS = 0;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = IntConstant< N >;
+
+  template < int CAT, int DIMCHK >
+  using CHUNKED_VARS = pack<>;
+
+
 };
 
 // Simplification rule
