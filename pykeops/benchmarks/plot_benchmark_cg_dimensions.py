@@ -5,7 +5,7 @@ Conjugate gradient method in arbitrary dimension
 Different implementations of the conjugate gradient (CG) exist. Here, we compare the CG implemented in scipy which uses Fortran
 against it's pythonized version and the older version of the algorithm available in pykeops.
 
-We want to solve the positive definite linear system :math:`(K_{x,x} + \\alpha Id)a = b` for :math:`a, b\in \mathbb R^N` and :math:`x\in\mathbb R^{N\times d}`.
+We want to solve the positive definite linear system :math:`(K_{x,x} + \\alpha Id)a = b` for :math:`a, b\in \mathbb R^N` and :math:`x\in\mathbb R^{N\\times d}`.
 We will use :math:`N=100000` points.
 
 Let the Gaussian RBF kernel be defined as

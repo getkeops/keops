@@ -573,7 +573,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         err = ((self.sigmac * ans + K(self.xc, self.xc,
                                      ans, self.sigmac) - self.fc) ** 2).sum()
         self.assertTrue(np.allclose(err.cpu().data.numpy(), np.zeros(err.shape)))
-    
+
     #############################################################
     def test_cg(self):
     ############################################################
