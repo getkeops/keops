@@ -58,9 +58,11 @@ struct IntConstant_Impl {
   template < int IND >
   using POST_CHUNK_FORMULA = IntConstant< N >;
 
-  template < int CAT, int DIMCHK >
-  using CHUNKED_VARS = pack<>;
+  template < int CAT >
+  using CHUNKED_VARS = univpack<>;
 
+  template < int CAT >
+  using NOTCHUNKED_VARS = univpack<>;
 
 };
 

@@ -47,9 +47,6 @@ struct Var {
   template < int IND >
   using POST_CHUNK_FORMULA = Var< N, DIM, CAT >;
 
-  template < int CAT_, int DIMCHK >
-  using CHUNKED_VARS = CondType< univpack< Var< N, DIMCHK, CAT>>, univpack<>, CAT == CAT_ >;
-
   // prints the variable as a string
   // we just print e.g. x0, y2, p1 to simplify reading, forgetting about dimensions
   static void PrintId(::std::stringstream &str) {
@@ -82,8 +79,14 @@ struct Var {
 
   // VARS gives the list of all Vars of a given category in a formula
   // Here we add the current Var to the list if it is of the requested category, otherwise nothing
-  template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
-  using VARS = CondType< univpack< Var< N, DIM, CAT>>, univpack<>, CAT == CAT_ >;
+  template < int CAT_=-1 >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
+  using VARS = CondType< univpack< Var< N, DIM, CAT>>, univpack<>, CAT==CAT_ || CAT_==-1 >;
+
+  template < int CAT_=-1 >
+  using CHUNKED_VARS = VARS<CAT_>;
+
+  template < int CAT_=-1 >
+  using NOTCHUNKED_VARS = univpack<>;
 
   // Evaluate a variable given a list of arguments:
   //

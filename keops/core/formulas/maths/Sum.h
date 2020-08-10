@@ -43,8 +43,11 @@ struct Sum : UnaryOp<Sum, F> {
   template < int DIMCHK >
   using CHUNKED_VERSION = Sum < typename F::template CHUNKED_VERSION<DIMCHK> >;
 
-  template < int CAT, int DIMCHK >
-  using CHUNKED_VARS = typename F::template CHUNKED_VARS<CAT,DIMCHK>;
+  template < int CAT >
+  using CHUNKED_VARS = typename F::template CHUNKED_VARS<CAT>;
+
+  template < int CAT >
+  using NOTCHUNKED_VARS = univpack<>;
 
   static const bool IS_CHUNKABLE = false;
 

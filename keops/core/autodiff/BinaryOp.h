@@ -67,8 +67,17 @@ struct BinaryOp_base {
   template < int CAT >
   using VARS = MergePacks<typename FA::template VARS<CAT>,typename FB::template VARS<CAT>>;
 
-  template < int CAT, int DIMCHK >
+  template < int CAT >
   using CHUNKED_VARS = univpack<>;
+
+  // operator as shortcut to Eval...
+  template < typename INDS >
+  struct EvalFun {
+	template < typename... Args >
+	DEVICE INLINE void operator()(Args... args) {
+		THIS::template Eval<INDS>(args...);
+	}
+  };
 
 };
 
@@ -89,42 +98,43 @@ struct BinaryOp : BinaryOp_base<OP,FA,FB,PARAMS...> {
     // then we call the Operation function
     THIS::Operation(out,outA,outB);
   }
+
 };
 
 // specialization when left template is of type Var
 template < template<class,class,class...> class OP, int N, int DIM, int CAT, class FB, class... PARAMS >
 struct BinaryOp<OP,Var<N,DIM,CAT>,FB,PARAMS...>  : BinaryOp_base<OP,Var<N,DIM,CAT>,FB,PARAMS...> {
 
-using THIS = OP<Var<N,DIM,CAT>,FB,PARAMS...>;
+	using THIS = OP<Var<N,DIM,CAT>,FB,PARAMS...>;
 
-template < class INDS, typename TYPE, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
-  // we create a vector and call Eval only for FB
-  TYPE outB[FB::DIM];
-  FB::template Eval<INDS>(outB,args...);
-  // access the Nth argument of args
-  TYPE *outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
-  // then we call the Operation function
-  THIS::Operation(out,outA,outB);
-}
+	template < class INDS, typename TYPE, typename... ARGS >
+	static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
+	  // we create a vector and call Eval only for FB
+	  TYPE outB[FB::DIM];
+	  FB::template Eval<INDS>(outB,args...);
+	  // access the Nth argument of args
+	  TYPE *outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
+	  // then we call the Operation function
+	  THIS::Operation(out,outA,outB);
+	}
 };
 
 // specialization when right template is of type Var
 template < template<class,class,class...> class OP, class FA, int N, int DIM, int CAT, class... PARAMS >
 struct BinaryOp<OP,FA,Var<N,DIM,CAT>,PARAMS...>  : BinaryOp_base<OP,FA,Var<N,DIM,CAT>,PARAMS...> {
 
-using THIS = OP<FA,Var<N,DIM,CAT>,PARAMS...>;
+	using THIS = OP<FA,Var<N,DIM,CAT>,PARAMS...>;
 
-template < class INDS, typename TYPE, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
-  // we create a vector and call Eval only for FA
-  TYPE outA[FA::DIM];
-  FA::template Eval<INDS>(outA,args...);
-  // access the Nth argument of args
-  TYPE *outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
-  // then we call the Operation function
-  THIS::Operation(out,outA,outB);
-}
+	template < class INDS, typename TYPE, typename... ARGS >
+	static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
+	  // we create a vector and call Eval only for FA
+	  TYPE outA[FA::DIM];
+	  FA::template Eval<INDS>(outA,args...);
+	  // access the Nth argument of args
+	  TYPE *outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
+	  // then we call the Operation function
+	  THIS::Operation(out,outA,outB);
+	}
 };
 
 // specialization when both templates are of type Var
@@ -132,25 +142,16 @@ template < template<class,class, class...> class OP, int NA, int DIMA, int CATA,
 struct BinaryOp<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PARAMS...> :
 BinaryOp_base<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PARAMS...> {
 
-using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PARAMS...>;
+	using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PARAMS...>;
 
-template < class INDS, typename TYPE, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
-  // we access the NAth and NBth arguments of args
-  TYPE *outA = Get<IndVal_Alias<INDS,NA>::ind>(args...);
-  TYPE *outB = Get<IndVal_Alias<INDS,NB>::ind>(args...);
-  // then we call the Operation function
-  THIS::Operation(out,outA,outB);
-}
-
-  // operator as shortcut to Eval...
-  template < typename INDS >
-  struct EvalFun {
-      template < typename... Args >
-      DEVICE INLINE void operator()(Args... args) {
-      	THIS::template Eval<INDS>(args...);
-      }
-  };
+	template < class INDS, typename TYPE, typename... ARGS >
+	static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
+	  // we access the NAth and NBth arguments of args
+	  TYPE *outA = Get<IndVal_Alias<INDS,NA>::ind>(args...);
+	  TYPE *outB = Get<IndVal_Alias<INDS,NB>::ind>(args...);
+	  // then we call the Operation function	
+	  THIS::Operation(out,outA,outB);
+	}
     
 };
 

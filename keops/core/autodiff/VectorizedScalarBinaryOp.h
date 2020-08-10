@@ -17,8 +17,11 @@ struct VectorizedScalarBinaryOp : BinaryOp<OP, F, G> {
     template < int DIMCHK >
     using CHUNKED_VERSION = OP<typename F::template CHUNKED_VERSION<DIMCHK>,typename G::template CHUNKED_VERSION<DIMCHK>>;
 
-    template < int CAT, int DIMCHK >
-    using CHUNKED_VARS = MergePacks<typename F::template CHUNKED_VARS<CAT,DIMCHK>,typename G::template CHUNKED_VARS<CAT,DIMCHK>>;
+    template < int CAT >
+    using CHUNKED_VARS = MergePacks<typename F::template CHUNKED_VARS<CAT>,typename G::template CHUNKED_VARS<CAT>>;
+
+    template < int CAT >
+    using NOTCHUNKED_VARS = MergePacks<typename F::template NOTCHUNKED_VARS<CAT>,typename G::template NOTCHUNKED_VARS<CAT>>;
 
     template < typename TYPE >
     static DEVICE INLINE void Operation(TYPE *out, TYPE *outF, TYPE *outG) {

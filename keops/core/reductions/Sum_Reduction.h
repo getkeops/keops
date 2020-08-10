@@ -80,7 +80,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
 
   template < typename TYPEACC, typename TYPE >
   struct FinalizeOutput {
-    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, int i) {
       VectCopy<DIM>(out, acc);
     }
   };

@@ -17,8 +17,11 @@ struct VectorizedScalarUnaryOp : UnaryOp<OP, F, NS...> {
     template < int DIMCHK >
     using CHUNKED_VERSION = OP<typename F::template CHUNKED_VERSION<DIMCHK>,NS...>;
 
-    template < int CAT, int DIMCHK >
-    using CHUNKED_VARS = typename F::template CHUNKED_VARS<CAT,DIMCHK>;
+    template < int CAT >
+    using CHUNKED_VARS = typename F::template CHUNKED_VARS<CAT>;
+
+    template < int CAT >
+    using NOTCHUNKED_VARS = typename F::template NOTCHUNKED_VARS<CAT>;
 
     template < typename TYPE >
     static DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {

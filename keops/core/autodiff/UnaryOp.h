@@ -75,7 +75,7 @@ struct UnaryOp_base {
   template < int CAT >
   using VARS = typename F::template VARS<CAT>;
 
-  template < int CAT, int DIMCHK >
+  template < int CAT >
   using CHUNKED_VARS = univpack<>;
 
   // operator as shortcut to Eval...
