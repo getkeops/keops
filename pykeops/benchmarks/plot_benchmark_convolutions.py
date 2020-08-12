@@ -24,6 +24,8 @@ import timeit
 import matplotlib
 from matplotlib import pyplot as plt
 from pykeops.numpy.utils import np_kernel
+from pykeops.torch import Vi, Vj, Pm
+
 
 ######################################################################
 # Benchmark specifications:
@@ -74,6 +76,11 @@ except:
 #
 
 kernel_to_test = ['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']
+kernels = {'gaussian'   : (- Pm(1 / sigmac ** 2)   * Vi(xc).sqdist(Vj(yc)) ).exp(),
+           'laplacian'  : (- (Pm(1 / sigmac ** 2)  * Vi(xc).sqdist(Vj(yc)) ).sqrt()).exp(),
+           'cauchy'     : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).power(-1),
+           'inverse_multiquadric'  : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).sqrt().power(-1)
+}
 
 #####################################################################
 # With four backends: Numpy, vanilla PyTorch, Generic KeOps reductions
@@ -81,9 +88,10 @@ kernel_to_test = ['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']
 #
 
 speed_numpy = {i:np.nan for i in kernel_to_test}
-speed_pykeops = {i:np.nan for i in kernel_to_test}
 speed_pytorch = {i:np.nan for i in kernel_to_test}
 speed_pykeops_specific = {i:np.nan for i in kernel_to_test}
+speed_pykeops = {i:np.nan for i in kernel_to_test}
+
 
 print('Timings for {}x{} convolutions:'.format(M, N))
 
@@ -120,29 +128,6 @@ for k in kernel_to_test:
         print('Time for PyTorch:             Not Done')
     
     
-    
-    # Keops: generic tiled implementation (with cuda if available, and cpu otherwise)
-    try:
-        from pykeops.torch import Kernel, kernel_product
-    
-        params = {
-            'id': Kernel(k + '(x,y)'),
-            'gamma': 1. / (sigmac**2),
-            'backend': 'auto',
-        }
-
-        g_keops = kernel_product(params, xc, yc, bc,  mode='sum').cpu()
-        torch.cuda.synchronize()
-        speed_pykeops[k] = np.array(timeit.repeat(
-            "kernel_product(params, xc, yc, bc, mode='sum'); torch.cuda.synchronize()", 
-            globals=globals(), repeat=REPEAT, number=4)) / 4
-        print('Time for KeOps generic:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
-        print('   (absolute error:       ', np.max(np.abs(g_keops.data.numpy() - g_numpy)), ')')
-    except:
-        print('Time for KeOps generic:       Not Done')
-    
-    
-    
     # Specific cuda tiled implementation (if cuda is available)
     try:
         from pykeops.numpy import RadialKernelConv
@@ -156,6 +141,20 @@ for k in kernel_to_test:
         print('   (absolute error:       ', np.max(np.abs(g_specific - g_numpy)),')')
     except:
         print('Time for KeOps cuda specific: Not Done')
+
+
+
+    # Keops: LazyTensors implementation (with cuda if available)
+    try:    
+        g_pykeops = (kernels[k] @ bc).cpu()
+        torch.cuda.synchronize()
+        speed_pykeops[k] = np.array(timeit.repeat(
+            "kernels[k] @ bc; torch.cuda.synchronize()", 
+            globals=globals(), repeat=REPEAT, number=4)) / 4
+        print('Time for KeOps LazyTensors:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
+        print('   (absolute error:       ', np.max(np.abs(g_pykeops.data.numpy() - g_numpy)), ')')
+    except:
+        print('Time for KeOps LazyTensors:       Not Done')
 
 
 ####################################################################
@@ -172,11 +171,11 @@ plt.violinplot(list(speed_pytorch.values()),
                showmeans=False,
                showmedians=True,
                )
-plt.violinplot(list(speed_pykeops.values()),
+plt.violinplot(list(speed_pykeops_specific.values()),
                showmeans=False,
                showmedians=True,
                )
-plt.violinplot(list(speed_pykeops_specific.values()),
+plt.violinplot(list(speed_pykeops.values()),
                showmeans=False,
                showmedians=True,
                )
@@ -192,6 +191,6 @@ plt.ylabel('time in s.')
 cmap = plt.get_cmap("tab10")
 fake_handles = [matplotlib.patches.Patch(color=cmap(i)) for i in range(4)]
 
-plt.legend(fake_handles, ['NumPy', 'PyTorch', 'KeOps', 'KeOps specific'], loc='best')
+plt.legend(fake_handles, ['NumPy', 'PyTorch', 'KeOps specific', 'KeOps Lazytensors'], loc='best')
 
 plt.show()
