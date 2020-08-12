@@ -24,7 +24,7 @@ from torch.autograd import grad
 import plotly
 import plotly.graph_objs as go
 
-from pykeops.torch import Kernel, kernel_product, LazyTensor, Vi, Vj
+from pykeops.torch import LazyTensor, Vi, Vj
 from pykeops.torch.kernel_product.formula import *
 
 # torch type and device

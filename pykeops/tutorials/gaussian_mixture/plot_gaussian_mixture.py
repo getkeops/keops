@@ -22,6 +22,8 @@ from torch.nn import Module, Parameter
 from torch.nn.functional import softmax, log_softmax
 
 from pykeops.torch import Kernel, kernel_product
+from pykeops.torch import Vi, Vj, Pm, LazyTensor
+
 
 ####################################################################
 # Define our dataset: a collection of points :math:`(x_i)_{i\in[1,N]}` which describe a
@@ -29,7 +31,7 @@ from pykeops.torch import Kernel, kernel_product
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-
+torch.manual_seed(0)
 N = 10000  # Number of samples
 t = torch.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = torch.stack((.5 + .4 * (t / 7) * t.cos(), .5 + .3 * t.sin()), 1)
@@ -99,7 +101,7 @@ class GaussianMixture(Module):
         self.params = {'id': Kernel('gaussian(x,y)')}
         # We initialize our model with random blobs scattered across
         # the unit square, with a small-ish radius:
-        self.mu = Parameter(torch.rand(M, D).type(dtype))
+        self.mu = torch.rand(M, D).type(dtype)
         self.A = 15 * torch.ones(M, 1, 1) * torch.eye(D, D).view(1, D, D)
         self.A = Parameter((self.A).type(dtype).contiguous())
         self.w = Parameter(torch.ones(M, 1).type(dtype))
@@ -139,12 +141,13 @@ class GaussianMixture(Module):
     def likelihoods(self, sample):
         """Samples the density on a given point cloud."""
         self.update_covariances()
-        return kernel_product(self.params, sample, self.mu, self.weights(), mode='sum')
+        return (-LazyTensor.weightedsqdist(Vj(self.params['gamma']), Vi(sample), Vj(self.mu))).exp() @ self.weights()
     
     
     def log_likelihoods(self, sample):
         """Log-density, sampled on a given point cloud."""
         self.update_covariances()
+        print("log-lik", kernel_product(self.params, sample, self.mu, self.weights_log(), mode='lse'))
         return kernel_product(self.params, sample, self.mu, self.weights_log(), mode='lse')
     
     
