@@ -24,6 +24,7 @@ import timeit
 import matplotlib
 from matplotlib import pyplot as plt
 from pykeops.numpy.utils import grad_np_kernel, chain_rules
+from pykeops.torch.utils import torch_kernel
 from pykeops.torch import Vi, Vj, Pm
 
 
@@ -117,19 +118,11 @@ for k in kernel_to_test:
     # Vanilla pytorch (with cuda if available, and cpu otherwise)
     if use_vanilla :
         try:
-            from pykeops.torch import Kernel, kernel_product
-
-            params = {
-                'id': Kernel(k + '(x,y)'),
-                'gamma': 1. / (sigmac**2),
-                'backend': 'pytorch',
-            }
-
-            aKxy_b = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))
+            aKxy_b = torch.dot(ac.view(-1), (torch_kernel(xc, yc, sigmac, kernel=k) @ bc).view(-1))
             g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
             torch.cuda.synchronize()
             speed_pytorch[k] =  np.array(timeit.repeat(
-                setup = "cost = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))",
+                setup = "cost = torch.dot(ac.view(-1), (torch_kernel(xc, yc, sigmac, kernel=k) @ bc).view(-1))",
                 stmt  = "g3 = torch.autograd.grad(cost, xc, create_graph=False)[0] ; torch.cuda.synchronize()",
                 globals=globals(), repeat=REPEAT, number=1))
             print('Time for PyTorch:             {:.4f}s'.format(np.median(speed_pytorch[k])), end='')
@@ -141,12 +134,6 @@ for k in kernel_to_test:
 
     # Keops: generic tiled implementation (with cuda if available, and cpu otherwise)
     try:
-        params = {
-            'id': Kernel(k + '(x,y)'),
-            'gamma': 1. / (sigmac**2),
-            'backend': 'auto',
-        }
-
         aKxy_b = torch.dot(ac.view(-1), (kernels[k](xc, yc, sigmac) @ bc).view(-1))
         g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
         torch.cuda.synchronize()

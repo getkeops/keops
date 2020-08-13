@@ -24,6 +24,7 @@ import timeit
 import matplotlib
 from matplotlib import pyplot as plt
 from pykeops.numpy.utils import np_kernel
+from pykeops.torch.utils import torch_kernel
 from pykeops.torch import Vi, Vj, Pm
 
 
@@ -108,22 +109,14 @@ for k in kernel_to_test:
 
     # Vanilla pytorch (with cuda if available, and cpu otherwise)
     try:
-        from pykeops.torch import Kernel, kernel_product
-        
-        params = {
-            'id': Kernel(k + '(x,y)'),
-            'gamma': 1. / (sigmac**2),
-            'backend': 'pytorch',
-        }
-        
-        g_pytorch = kernel_product(params, xc, yc, bc, mode='sum').cpu()
+        g_pytorch = torch_kernel(xc, yc, sigmac, kernel=k) @ bc
         torch.cuda.synchronize()
         speed_pytorch[k] = np.array(timeit.repeat(
-            "kernel_product(params, xc, yc, bc, mode='sum'); torch.cuda.synchronize()", 
+            "torch_kernel(xc, yc, sigmac, kernel=k) @ bc; torch.cuda.synchronize()", 
             globals=globals(), repeat=REPEAT, number=4)) / 4
 
         print('Time for PyTorch:             {:.4f}s'.format(np.median(speed_pytorch[k])), end='')
-        print('   (absolute error:       ', np.max(np.abs(g_pytorch.numpy() - g_numpy)),')')
+        print('   (absolute error:       ', np.max(np.abs(g_pytorch.cpu().numpy() - g_numpy)),')')
     except:
         print('Time for PyTorch:             Not Done')
     
