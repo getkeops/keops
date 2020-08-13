@@ -76,10 +76,10 @@ except:
 #
 
 kernel_to_test = ['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']
-kernels = {'gaussian'   : (- Pm(1 / sigmac ** 2)   * Vi(xc).sqdist(Vj(yc)) ).exp(),
-           'laplacian'  : (- (Pm(1 / sigmac ** 2)  * Vi(xc).sqdist(Vj(yc)) ).sqrt()).exp(),
-           'cauchy'     : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).power(-1),
-           'inverse_multiquadric'  : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).sqrt().power(-1)
+kernels = {'gaussian'   : lambda xc, yc, sigmac : (- Pm(1 / sigmac ** 2)   * Vi(xc).sqdist(Vj(yc)) ).exp(),
+           'laplacian'  : lambda xc, yc, sigmac : (- (Pm(1 / sigmac ** 2)  * Vi(xc).sqdist(Vj(yc)) ).sqrt()).exp(),
+           'cauchy'     : lambda xc, yc, sigmac : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).power(-1),
+           'inverse_multiquadric'  : lambda xc, yc, sigmac : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).sqrt().power(-1)
 }
 
 #####################################################################
@@ -146,10 +146,10 @@ for k in kernel_to_test:
 
     # Keops: LazyTensors implementation (with cuda if available)
     try:    
-        g_pykeops = (kernels[k] @ bc).cpu()
+        g_pykeops = (kernels[k](xc, yc, sigmac) @ bc).cpu()
         torch.cuda.synchronize()
         speed_pykeops[k] = np.array(timeit.repeat(
-            "kernels[k] @ bc; torch.cuda.synchronize()", 
+            "kernels[k](xc, yc, sigmac) @ bc; torch.cuda.synchronize()", 
             globals=globals(), repeat=REPEAT, number=4)) / 4
         print('Time for KeOps LazyTensors:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
         print('   (absolute error:       ', np.max(np.abs(g_pykeops.data.numpy() - g_numpy)), ')')

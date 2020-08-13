@@ -83,10 +83,10 @@ except:
 #
 
 kernel_to_test = ['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']
-kernels = {'gaussian'   : (- Pm(1 / sigmac ** 2)   * Vi(xc).sqdist(Vj(yc)) ).exp(),
-           'laplacian'  : (- (Pm(1 / sigmac ** 2)  * Vi(xc).sqdist(Vj(yc)) ).sqrt()).exp(),
-           'cauchy'     : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).power(-1),
-           'inverse_multiquadric'  : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).sqrt().power(-1)
+kernels = {'gaussian'   : lambda xc, yc, sigmac : (- Pm(1 / sigmac ** 2)   * Vi(xc).sqdist(Vj(yc)) ).exp(),
+           'laplacian'  : lambda xc, yc, sigmac : (- (Pm(1 / sigmac ** 2)  * Vi(xc).sqdist(Vj(yc)) ).sqrt()).exp(),
+           'cauchy'     : lambda xc, yc, sigmac : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).power(-1),
+           'inverse_multiquadric'  : lambda xc, yc, sigmac : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).sqrt().power(-1)
 }
 
 #####################################################################
@@ -147,11 +147,11 @@ for k in kernel_to_test:
             'backend': 'auto',
         }
 
-        aKxy_b = torch.dot(ac.view(-1), (kernels[k] @ bc).view(-1))
+        aKxy_b = torch.dot(ac.view(-1), (kernels[k](xc, yc, sigmac) @ bc).view(-1))
         g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
         torch.cuda.synchronize()
         speed_pykeops[k] =  np.array(timeit.repeat(
-            setup = "cost = torch.dot(ac.view(-1), (kernels[k] @ bc).view(-1))",
+            setup = "cost = torch.dot(ac.view(-1), (kernels[k](xc, yc, sigmac) @ bc).view(-1))",
             stmt  = "g3 = torch.autograd.grad(cost, xc, create_graph=False)[0] ; torch.cuda.synchronize()", 
             globals=globals(), repeat=REPEAT, number=1))
         print('Time for KeOps LazyTensors:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
