@@ -18,10 +18,9 @@ import matplotlib.cm as cm
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
-from torch.nn import Module, Parameter
+from torch.nn import Module
 from torch.nn.functional import softmax, log_softmax
 
-from pykeops.torch import Kernel, kernel_product
 from pykeops.torch import Vi, Vj, Pm, LazyTensor
 
 
@@ -78,7 +77,7 @@ grid = torch.from_numpy(np.vstack((X.ravel(), Y.ravel())).T).contiguous().type(d
 # The log-likelihood of a sample :math:`(x_i)` with respect to the parameters
 # :math:`(A_j)` and :math:`(w_j)` can thus be computed using a straightforward
 # log-sum-exp reduction, which is most easily implemented through
-# the :func:`pykeops.torch.kernel_product` interface.
+# the :func:`pykeops.torch.LazyTensor` interface.
 #
 # **Custom sparsity prior.** Going further, we may allow our model
 # to select **adaptively** the number of **active components**
@@ -98,14 +97,15 @@ class GaussianMixture(Module):
     def __init__(self, M, sparsity=0, D=2):
         super(GaussianMixture, self).__init__()
         
-        self.params = {'id': Kernel('gaussian(x,y)')}
+        self.params = {}
         # We initialize our model with random blobs scattered across
         # the unit square, with a small-ish radius:
         self.mu = torch.rand(M, D).type(dtype)
         self.A = 15 * torch.ones(M, 1, 1) * torch.eye(D, D).view(1, D, D)
-        self.A = Parameter((self.A).type(dtype).contiguous())
-        self.w = Parameter(torch.ones(M, 1).type(dtype))
+        self.A = (self.A).type(dtype).contiguous()
+        self.w = torch.ones(M, 1).type(dtype)
         self.sparsity = sparsity
+        self.mu.requires_grad, self.A.requires_grad, self.w.requires_grad = True, True, True
     
     
     def update_covariances(self):
@@ -147,9 +147,8 @@ class GaussianMixture(Module):
     def log_likelihoods(self, sample):
         """Log-density, sampled on a given point cloud."""
         self.update_covariances()
-        print("log-lik", kernel_product(self.params, sample, self.mu, self.weights_log(), mode='lse'))
-        return kernel_product(self.params, sample, self.mu, self.weights_log(), mode='lse')
-    
+        K_ij = - LazyTensor.weightedsqdist(Vj(self.params['gamma']), Vi(sample), Vj(self.mu))
+        return K_ij.logsumexp(dim=1, weight=Vj(self.weights_log().exp()))
     
     def neglog_likelihood(self, sample):
         """Returns -log(likelihood(sample)) up to an additive factor."""
@@ -200,10 +199,8 @@ class GaussianMixture(Module):
 # to the data through a stochastic gradient descent on our empiric log-likelihood,
 # with a sparsity-inducing penalty:
 
-
 model = GaussianMixture(30, sparsity=20)
-optimizer = torch.optim.Adam(model.parameters(), lr=.1)
-
+optimizer = torch.optim.Adam([model.A, model.w, model.mu], lr=.1)
 loss = np.zeros(501)
 
 for it in range(501):
@@ -211,7 +208,6 @@ for it in range(501):
     cost = model.neglog_likelihood(x)  # Cost to minimize.
     cost.backward()  # Backpropagate to compute the gradient.
     optimizer.step()
-    
     loss[it] = cost.data.cpu().numpy()
     
     # sphinx_gallery_thumbnail_number = 6
@@ -224,7 +220,6 @@ for it in range(501):
         plt.tight_layout() ; plt.pause(.01)
 
 
-
 ####################################################################
 # Monitor the optimization process:
 #
@@ -232,4 +227,3 @@ plt.figure()
 plt.plot(loss)
 plt.tight_layout()
 plt.show()
-
