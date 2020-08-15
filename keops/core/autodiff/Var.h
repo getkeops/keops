@@ -49,7 +49,7 @@ struct Var {
 
   // prints the variable as a string
   // we just print e.g. x0, y2, p1 to simplify reading, forgetting about dimensions
-  static void PrintId(::std::stringstream &str) {
+  static void PrintId(::std::ostream &str) {
     if (CAT == 0)
       str << "x";
     else if (CAT == 1)

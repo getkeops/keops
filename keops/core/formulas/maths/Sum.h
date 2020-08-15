@@ -49,7 +49,7 @@ struct Sum : UnaryOp<Sum, F> {
   template < int CAT >
   using NOTCHUNKED_VARS = univpack<>;
 
-  static const bool IS_CHUNKABLE = false;
+  static const bool IS_CHUNKABLE = false; // a bit counter-intuitive.. it means the formula itself cannot be part of a chunked formula
 
   static const bool USE_CHUNK = ENABLECHUNK && F::IS_CHUNKABLE && F::DIM>100;
 
@@ -73,9 +73,6 @@ struct Sum : UnaryOp<Sum, F> {
   static DEVICE INLINE void acc_chunk(TYPE *acc, TYPE *out) {
 	*acc += *out;
   }
-
-  //template < int IND >
-  //using POST_CHUNK_FORMULA = CondType < USE_CHUNK, Var<IND,DIM,4>, Sum<F::POST_CHUNK_FORMULA<IND>> >;
 
 };
 

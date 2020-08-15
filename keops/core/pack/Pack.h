@@ -36,14 +36,14 @@ struct pack {
 
   // DIMSX::VAL(2) is the size of its 3rd vector (starts at 0) (in the example above, DIM).
   // Therefore, EMPTY::VAL(n) should never be called : we return -1 as an error signal.
-  static int VAL(int m) {
+  HOST_DEVICE static int VAL(int m) {
     return -1;
   }
 
   // helpers to print the pack to the standard output
-  static void PrintAll(::std::stringstream &str) {}
-  static void PrintComma(::std::stringstream &str) {}
-  static void PrintId(::std::stringstream &str) {
+  static void PrintAll(::std::ostream &str) {}
+  static void PrintComma(::std::ostream &str) {}
+  static void PrintId(::std::ostream &str) {
     str << "pack< >";
   }
 
@@ -105,7 +105,7 @@ struct pack<N, NS...> {
   static const int FIRST = N;    // Size of its first element.
 
   // DIMSX::VAL(2) = size of its 3rd vector (we start counting at 0).
-  static int VAL(int m) {
+  HOST_DEVICE static int VAL(int m) {
     if (m)
       return NEXT::VAL(m - 1);
     else
@@ -113,17 +113,17 @@ struct pack<N, NS...> {
   }
 
   // helpers to print the pack to the standard output
-  static void PrintComma(::std::stringstream &str) {
+  static void PrintComma(::std::ostream &str) {
     str << ",";
   }
 
-  static void PrintAll(::std::stringstream &str) {
+  static void PrintAll(::std::ostream &str) {
     str << FIRST;
     NEXT::PrintComma(str);
     NEXT::PrintAll(str);
   }
 
-  static void PrintId(::std::stringstream &str) {
+  static void PrintId(::std::ostream &str) {
     str << "pack<";
     PrintAll(str);
     str << ">";

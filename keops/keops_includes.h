@@ -6,9 +6,6 @@
 #ifndef DIMCHUNK
   #define DIMCHUNK 64
 #endif
-#ifndef CUDA_BLOCK_SIZE_CHUNKS
-  #define CUDA_BLOCK_SIZE_CHUNKS 192
-#endif
 #ifndef DIM_TRESHOLD_CHUNK
   #define DIM_TRESHOLD_CHUNK 110
 #endif
