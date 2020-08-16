@@ -1,7 +1,7 @@
 
 // special computation scheme for dim>100
 #ifndef ENABLECHUNK
-  #define ENABLECHUNK 0
+  #define ENABLECHUNK 1
 #endif
 #ifndef DIMCHUNK
   #define DIMCHUNK 64

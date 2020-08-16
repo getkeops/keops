@@ -56,7 +56,7 @@ if(SUM_SCHEME)
 endif()
 
 # option for special computation scheme when dim > 100
-if(ENABLECHUNK)
+if(DEFINED ENABLECHUNK)
   add_definitions(-DENABLECHUNK=${ENABLECHUNK})
 endif()
 

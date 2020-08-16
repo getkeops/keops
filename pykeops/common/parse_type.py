@@ -202,5 +202,7 @@ def get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_sch
     
     if enable_chunks:
         optional_flags += ['-DENABLECHUNK=1']
+    else:
+        optional_flags += ['-DENABLECHUNK=0']
         
     return optional_flags

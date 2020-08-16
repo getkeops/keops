@@ -16,7 +16,7 @@ class GenredAutograd(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, optional_flags, *args):
-    
+
         myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags+include_dirs).import_module()
         
         # Context variables: save everything to compute the gradient:
@@ -258,7 +258,7 @@ class Genred():
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
         
         self.optional_flags = get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
-
+        
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
