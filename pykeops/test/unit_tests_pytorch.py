@@ -85,16 +85,26 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_conv_kernels_feature(self):
     ############################################################
         from pykeops.torch.kernel_product.kernels import Kernel, kernel_product
+        from pykeops.torch import Vi, Vj, Pm
+
+        kernels = {'gaussian'   : lambda xc, yc, sigmac : (- Pm(1 / sigmac ** 2)   * Vi(xc).sqdist(Vj(yc)) ).exp(),
+           'laplacian'  : lambda xc, yc, sigmac : (- (Pm(1 / sigmac ** 2)  * Vi(xc).sqdist(Vj(yc)) ).sqrt()).exp(),
+           'cauchy'     : lambda xc, yc, sigmac : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).power(-1),
+           'inverse_multiquadric'  : lambda xc, yc, sigmac : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).sqrt().power(-1)
+        }
+
         params = {
             'gamma': 1. / self.sigmac ** 2,
             'mode': 'sum',
         }
+
         if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
         else:
             backend_to_test = ['auto', 'pytorch']
         
         for k, b in itertools.product(['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric'], backend_to_test):
+            gamma_lazy = (kernels[k](self.xc, self.yc, self.sigmac) @ self.bc)
             with self.subTest(k=k, b=b):
                 params['id'] = Kernel(k + '(x,y)')
                 params['backend'] = b
@@ -103,26 +113,30 @@ class PytorchUnitTestCase(unittest.TestCase):
                 
                 # Numpy version
                 gamma_py = np.matmul(np_kernel(self.x, self.y, self.sigma, kernel=k), self.b)
-                
                 # compare output
                 self.assertTrue(np.allclose(gamma.cpu().data.numpy(), gamma_py))
+                self.assertTrue(np.allclose(gamma_lazy.cpu().data.numpy(), gamma_py))
     
     ############################################################
     def test_grad1conv_kernels_feature(self):
     ############################################################
         import torch
         from pykeops.torch import Kernel, kernel_product
+        from pykeops.torch.kernel_product.formula import torch_kernel
 
         params = {
             'gamma': 1. / self.sigmac ** 2,
             'mode': 'sum',
         }
+
         if pykeops.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
         else:
             backend_to_test = ['auto', 'pytorch']
         
         for k, b in itertools.product(['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric'], backend_to_test):
+            aKxy_b_lazy = torch.dot(self.ac.view(-1), (torch_kernel(self.xc, self.yc, self.sigmac, kernel=k) @ self.bc).view(-1))
+            gamma_lazy = torch.autograd.grad(aKxy_b_lazy, self.xc, create_graph=False)[0].cpu()
             with self.subTest(k=k, b=b):
                 params['id'] = Kernel(k + '(x,y)')
                 params['backend'] = b
@@ -137,6 +151,8 @@ class PytorchUnitTestCase(unittest.TestCase):
                 
                 # compare output
                 self.assertTrue(np.allclose(gamma_keops.cpu().data.numpy(), gamma_py, atol=1e-6))
+                self.assertTrue(np.allclose(gamma_lazy.cpu().data.numpy(), gamma_py, atol=1e-6))
+
     
     ############################################################
     def test_generic_syntax_float(self):
