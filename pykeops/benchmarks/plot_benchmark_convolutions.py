@@ -24,7 +24,7 @@ import timeit
 import matplotlib
 from matplotlib import pyplot as plt
 from pykeops.numpy.utils import np_kernel
-from pykeops.torch.kernel_product.formula import torch_kernel
+from pykeops.torch.utils import torch_kernel
 from pykeops.torch import Vi, Vj, Pm
 
 

@@ -100,7 +100,6 @@ setup(
         'pykeops.torch',
         'pykeops.torch.cluster',
         'pykeops.torch.generic',
-        'pykeops.torch.kernel_product',
     ],
 
     package_data={

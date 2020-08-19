@@ -25,7 +25,7 @@ import plotly
 import plotly.graph_objs as go
 
 from pykeops.torch import LazyTensor, Vi, Vj
-from pykeops.torch.kernel_product.formula import *
+from pykeops.torch.utils import *
 
 # torch type and device
 use_cuda = torch.cuda.is_available()

@@ -9,5 +9,4 @@ PyTorch API
     Genred_torch
     GenericOps
     KernelSolve
-    KernelProduct
     Cluster

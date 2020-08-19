@@ -29,9 +29,8 @@ default_dtype = 'float32'
 
 from .generic.generic_red import Genred
 from .operations import KernelSolve
-from .kernel_product.kernels import Kernel, kernel_product, kernel_formulas
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
-from .kernel_product.formula import Formula
+from pykeops.torch.utils import Formula
 from pykeops.common.lazy_tensor import LazyTensor, Vi, Vj, Pm
 
 # N.B.: If "from pykeops.numpy import LazyTensor" has already been run,
@@ -43,5 +42,5 @@ import importlib
 importlib.reload(pykeops.common.lazy_tensor)
 
 __all__ = sorted(
-    ["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin", "Kernel", "kernel_product",
-     "KernelSolve", "kernel_formulas", "Formula", "LazyTensor", "Vi", "Vj", "Pm"])
+    ["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin",
+     "KernelSolve", "Formula", "LazyTensor", "Vi", "Vj", "Pm"])
