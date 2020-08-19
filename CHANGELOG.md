@@ -1,3 +1,8 @@
+* v1.4.1
+    - Fix compatibility issue with pytorch 1.5
+    - Fix compatibility issue with cuda 11.0
+    - Improve performances for computations with dimension D>100
+
 * v1.4
     - Added multiprocessor parallelization in Cpu mode.
     - Added support for float16 data type.
