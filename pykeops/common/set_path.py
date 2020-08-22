@@ -34,4 +34,5 @@ def set_bin_folder(bf_user=None):
     os.makedirs(bin_folder, exist_ok=True)
 
     pykeops.bin_folder = bin_folder
+    sys.path.append(bin_folder)
 
