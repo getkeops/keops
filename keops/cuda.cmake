@@ -59,8 +59,7 @@ if(USE_CUDA)
   if(NOT gpu_compute_props)
     caffe_detect_installed_gpus(gpu_compute_props)
     if(NOT gpu_compute_props)
-      set(USE_CUDA FALSE)
-      message(STATUS "No GPU detected. USE_CUDA set to FALSE.")
+      message(STATUS "No GPU detected. Compute properties will be set to default values.")
     else()
       message(STATUS "Compute properties automatically set to: ${gpu_compute_props}")
       add_definitions(${gpu_compute_props})
@@ -87,17 +86,15 @@ if(USE_CUDA)
 
 
   # Options for nvcc
+  set(CMAKE_CUDA_ARCHITECTURES OFF) # arch gencode are directly written in CUDA_NVCC_FLAGS
   CUDA_SELECT_NVCC_ARCH_FLAGS(out_variable "Auto")
 
   set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
-
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
 
   List(APPEND CUDA_NVCC_FLAGS ${out_variable})
   List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
   List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
-  #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-backtrace-limit 900")
-  #List(APPEND CUDA_NVCC_FLAGS "--ftemplate-depth 900")
   List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")
 
 endif()

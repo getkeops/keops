@@ -44,14 +44,53 @@ struct UnaryOp_base {
   // for example Exp<Pow<Var<0,1,0>,3>>::AllTypes is univpack< Exp<Pow<Var<0,1,0>,3>> , Pow<Var<0,1,0>,3> , Var<0,1,0> >
   using AllTypes = MergePacks<univpack<THIS>, typename F::AllTypes>;
 
+
   // "Replace" can be used to replace any occurrence of a sub-formula in a formula
   // For example Exp<Pow<Var<0,1,0>,3>>::Replace<Var<0,1,0>,Var<2,1,0>> will be Exp<Pow<Var<2,1,0>,3>>
+
+  // NB. The following commented code should be ok but it dos not compile with Cuda 11 as of 2020 aug 13th...
+  /*
   template<class A, class B>
   using Replace = CondType< B, OP<typename F::template Replace<A,B>,NS...>, IsSameType<A,THIS>::val >;
+  */
 
-  // version with two replacements of Vars at a time (two consecutive Replace might not work because of non compatible dimensions)
+  // ... so we use an additional "_Impl" structure to specialize in case of empty NS pack : 
+  template < class A, class B, int SIZE_NS >
+  struct Replace_Impl {
+    using type = CondType < B, OP < typename F::template Replace<A,B>, NS... >, IsSameType<A,THIS>::val >;
+  };
+
+  template < class A, class B >
+  struct Replace_Impl<A,B,0> {
+    using type = CondType < B, OP < typename F::template Replace<A,B> >, IsSameType<A,THIS>::val >;
+  };
+
+  template < class A, class B >
+  using Replace = typename Replace_Impl<A,B,sizeof...(NS)>::type;
+
+
+  // version with two replacements of Vars at a time (two consecutive Replace might not work because of non compatibl>
+
+  // NB. The following commented code should be ok but it dos not compile with Cuda 11 as of 2020 aug 13th...
+  /*
   template<class A1, class B1, class A2, class B2>
   using ReplaceVars2 = OP<typename F::template ReplaceVars2<A1,B1,A2,B2>,NS...>;
+  */
+
+  // ... so we use an additional "_Impl" structure to specialize in case of empty NS pack : 
+  template<class A1, class B1, class A2, class B2, int SIZE_NS>
+  struct ReplaceVars2_Impl {
+    using type = OP<typename F::template ReplaceVars2<A1,B1,A2,B2>, NS...>;
+  };
+
+  template<class A1, class B1, class A2, class B2>
+  struct ReplaceVars2_Impl<A1,B1,A2,B2,0> {
+    using type = OP<typename F::template ReplaceVars2<A1,B1,A2,B2>>;
+  };
+
+  template<class A1, class B1, class A2, class B2>
+  using ReplaceVars2 = typename ReplaceVars2_Impl<A1,B1,A2,B2,sizeof...(NS)>::type;
+
 
   // VARS gives the list of all "Vars" of a given category inside a formula
   // Here it is simple : the variables inside the formula OP<F,NS..> are the variables in F
