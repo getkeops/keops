@@ -145,7 +145,7 @@ over the reduction index :math:`j` and eating-up the values of :math:`F`
 **(b)** Due to the importance
 of the **Shared memory and block-wise memory accesses**, **(a)** is cut in 
 :math:`\mathrm{K}`-by-:math:`\mathrm{K}` tiles to ensure an optimal
-management of the :math`y_j`\ 's.
+management of the :math:`y_j`\ 's.
 
 
 Performances

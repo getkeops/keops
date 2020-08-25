@@ -82,7 +82,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
 
         .. math::
             a_i~=~f(x_i)~&=~ \log \sum_{j=1}^{N} \exp(-\gamma\cdot\|x_i-y_j\|^2)\cdot b_j \\\\
-               ~&=~ \log \sum_{j=1}^{N} \exp\\big(-\gamma\cdot\|x_i-y_j\|^2 \,+\, \log(b_j) \\big).
+               ~&=~ \log \sum_{j=1}^{N} \exp\big(-\gamma\cdot\|x_i-y_j\|^2 \,+\, \log(b_j) \big).
 
         >>> log_likelihood = generic_logsumexp(
         ...     '(-(g * SqNorm2(x - y))) + b', # Formula
