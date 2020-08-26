@@ -7,6 +7,7 @@ from pykeops.common.parse_type import complete_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
+from pykeops.common.cg import cg
 
 class KernelSolve:
     r"""
@@ -135,7 +136,7 @@ class KernelSolve:
             varinvpos = tmp.index(varinvalias)
         self.varinvpos = varinvpos
     
-    def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
+    def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None, callback=None):
         r"""
         To apply the routine on arbitrary NumPy arrays.
             
@@ -181,6 +182,9 @@ class KernelSolve:
                 as we loop over all indices
                 :math:`i\in[0,M)` and :math:`j\in[0,N)`.
 
+            callback (function, default=None): function of x called at the end of
+                each iteration of the conjugate gradient.
+
         Returns:
             (M,D) or (N,D) array:
 
@@ -203,4 +207,33 @@ class KernelSolve:
                 res += alpha * var
             return res
 
-        return ConjugateGradientSolver('numpy', linop, varinv, eps=eps)
+        return ConjugateGradientSolver('numpy', linop, varinv, eps=eps, callback=callback)
+
+    def cg(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=None, ranges=None, check_cond=False, callback=None):
+        r"""
+        Another version of the conjugate gradient. Args and keywords args are the same
+        as calling ``KernelSolve``. Only one keyword is added.
+
+        Keyword Args:
+            check_cond (boolean, False by default): Indicates if the condition number
+                might be greater than 500. *Warning: setting it to True will
+                result in a more time-consuming method.*
+
+        Returns:
+            A tuple containing the (M,D) or (N,D) array being the approximated
+            solution of the problem and the iteration number the algorithm stopped.
+
+        """
+        tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
+        varinv = args[self.varinvpos]
+        
+        if ranges is None: ranges = ()  # ranges should be encoded as a tuple
+
+        def linop(var):
+            newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos + 1:]
+            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
+            if alpha:
+                res += alpha * var
+            return res
+
+        return cg(linop, varinv, 'numpy', eps=eps, callback=callback, check_cond=check_cond)

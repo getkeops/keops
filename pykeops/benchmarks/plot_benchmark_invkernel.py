@@ -30,11 +30,12 @@ from matplotlib import pyplot as plt
 
 from scipy.sparse import diags
 from scipy.sparse.linalg import aslinearoperator, cg
-from scipy.sparse.linalg.interface import IdentityOperator
 
 from pykeops.numpy import KernelSolve as KernelSolve_np, LazyTensor
 from pykeops.torch import KernelSolve
 from pykeops.torch.utils import squared_distances
+from pykeops.numpy import Vi, Vj, Pm
+
 
 use_cuda = torch.cuda.is_available()
 
@@ -71,7 +72,7 @@ def generate_samples(N, device, lang):
         x = torch.rand(N, D, device=device)
         b = torch.randn(N, Dv, device=device)
         gamma = torch.ones(1, device=device) * .5 / .01 ** 2  # kernel bandwidth
-        alpha = torch.ones(1, device=device) * 0.8  # regularization
+        alpha = torch.ones(1, device=device) * 2  # regularization
     else:
         np.random.seed(1234)
 
@@ -116,9 +117,9 @@ def Kinv_keops_numpy(x, b, gamma, alpha):
     return res
 
 def Kinv_scipy(x, b, gamma, alpha):
-    x_i, y_j = LazyTensor( gamma * x[:, None, :]), LazyTensor( gamma * x[None, :, :])
-    K_ij = (- ((x_i - y_j) ** 2).sum(2)).exp()
-    A = aslinearoperator(diags(alpha * np.ones(x.shape[0]))) +  aslinearoperator(K_ij)
+    K_ij = (-Pm(gamma) * Vi(x).sqdist(Vj(x))).exp()
+    A = aslinearoperator(
+        diags(alpha * np.ones(x.shape[0]))) + aslinearoperator(K_ij)
     A.dtype = np.dtype('float32')
     res = cg(A, b)
     return res
