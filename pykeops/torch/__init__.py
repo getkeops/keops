@@ -1,5 +1,4 @@
 import torch
-import os, sys
 import pykeops
 
 ##########################################################
@@ -10,7 +9,6 @@ torch_version_required = '1.3'
 
 if torch.__version__ < torch_version_required:
     raise ImportError('[pyKeOps]: The pytorch version should be >=' + torch_version_required)
-
 
 # get the path of the current pytorch and some built options
 include_dirs = ['-DPYTORCH_ROOT_DIR=' + ';'.join(torch.__path__),

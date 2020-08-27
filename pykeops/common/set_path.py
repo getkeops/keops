@@ -33,7 +33,6 @@ def set_bin_folder(bf_user=None):
     bin_folder = os.path.realpath(bin_folder)
     if not bin_folder.endswith(os.path.sep):
         bin_folder += os.path.sep
-    os.makedirs(bin_folder, exist_ok=True)
 
     # Save the path and append in python path
     pykeops.bin_folder = bin_folder

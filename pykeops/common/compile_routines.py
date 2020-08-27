@@ -1,3 +1,4 @@
+import os
 import sys
 import subprocess
 
@@ -13,6 +14,7 @@ def run_and_display(args, build_folder, msg=''):
     :param msg: str
     :return: None
     """
+    os.makedirs(build_folder, exist_ok=True)
     try:
         proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
         if verbose:

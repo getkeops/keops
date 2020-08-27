@@ -24,7 +24,7 @@ class LoadKeopsFshapeScp:
         spec = importlib.util.find_spec(self.dll_name)
         
         if (spec is None) or (build_type == 'Debug'):
-            self.build_folder = bin_folder + os.path.sep + 'build-' + self.dll_name
+            self.build_folder = os.path.join(bin_folder, 'build-' + self.dll_name)
             self._safe_compile()
     
     @create_and_lock_build_folder()

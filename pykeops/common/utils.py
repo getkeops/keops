@@ -83,7 +83,7 @@ def create_and_lock_build_folder():
             os.makedirs(bf, exist_ok=True)
 
             # create a file lock to prevent multiple compilations at the same time
-            with open(bf + os.path.sep + 'pykeops_build2.lock', 'w') as f:
+            with open(os.path.join(bf, 'pykeops_build2.lock'), 'w') as f:
                 with FileLock(f):
                     func_res = func(*args, **kwargs)
 
@@ -128,7 +128,7 @@ def WarmUpGpu(lang):
 
 def clean_pykeops(path=bin_folder, lang=""):
     if lang not in ["numpy", "torch", ""]:
-        raise ValueError("lang should be the empty string, numpy or torch")
+        raise ValueError('[pyKeOps:] lang should be the empty string, "numpy" or "torch"')
 
     for f in os.listdir(path):
         if (f.endswith('so')) and (f.count("libKeOps" + lang)):
