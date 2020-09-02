@@ -139,6 +139,17 @@ pipeline {
               '''
           }
         }
+        
+        stage('Test Mac') {
+          agent { label 'macos' }
+          steps {
+            echo 'Testing..'
+              sh 'git submodule update --init'
+              sh '''
+                 bash rkeops/ci/run_ci.sh
+              '''
+          }
+        }
 
         stage('Test Cuda') {
           agent { label 'cuda' }
