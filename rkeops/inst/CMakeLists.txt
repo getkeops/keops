@@ -24,6 +24,10 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set( CMAKE_VERBOSE_MAKEFILE on )
+endif()
+
 ## include keops header for cuda
 include(${KEOPS_SRC_DIR}/cuda.cmake)
 
