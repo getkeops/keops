@@ -44,7 +44,7 @@ def sort_clusters(x, lab):
 
 
 def cluster_ranges(lab, Nlab=None):
-    """Computes the ``[start,end)`` indices that specify clusters in a sorted point cloud.
+    r"""Computes the ``[start,end)`` indices that specify clusters in a sorted point cloud.
 
     If **lab** denotes a vector of labels :math:`\ell_i\in[0,C)`,
     :func:`sort_clusters` allows us to sort our point clouds and make sure
@@ -64,7 +64,7 @@ def cluster_ranges(lab, Nlab=None):
     Returns:
         (C,2) integer array:
         
-        Stacked array of :math:`[\\text{start}_k,\\text{end}_k)` indices in :math:`[0,M]`,
+        Stacked array of :math:`[\text{start}_k,\text{end}_k)` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`.
 
     Example:
@@ -94,15 +94,16 @@ def cluster_ranges(lab, Nlab=None):
 
 
 def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):
-    """Computes the (weighted) centroids of classes specified by a vector of labels.
-    
+    r"""Computes the (weighted) centroids of classes specified by a vector of labels.
+
     If points :math:`x_i \in\mathbb{R}^D` are assigned to :math:`C` different classes
     by the vector of integer labels :math:`\ell_i \in [0,C)`,
     this function returns a collection of :math:`C` centroids
 
     .. math::
-        c_k = \\frac{\sum_{i, \ell_i = k} w_i\cdot x_i}{\sum_{i, \ell_i=k} w_i},
-    
+
+        c_k = \frac{\sum_{i, \ell_i = k} w_i\cdot x_i}{\sum_{i, \ell_i=k} w_i},
+        
     where the weights :math:`w_i` are set to 1 by default.
 
     Args:
@@ -116,7 +117,7 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):
 
     Returns:
         (C,D) array:
-        
+
         List of centroids :math:`c_k \in \mathbb{R}^D`.
 
     Example:
@@ -142,18 +143,19 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):
 
 
 def cluster_ranges_centroids(x, lab, weights=None):
-    """Computes the cluster indices and centroids of a (weighted) point cloud with labels.
-    
+    r"""Computes the cluster indices and centroids of a (weighted) point cloud with labels.
+
     If **x** and **lab** encode a cloud of points :math:`x_i\in\mathbb{R}^D`
     with labels :math:`\ell_i\in[0,C)`, for :math:`i\in[0,M)`, this routine returns:
-      
-    - Ranges :math:`[\\text{start}_k,\\text{end}_k)` compatible with
+
+    - Ranges :math:`[\text{start}_k,\text{end}_k)` compatible with
       :func:`sort_clusters` for :math:`k\in[0,C)`.
     - Centroids :math:`c_k` for each cluster :math:`k`, computed as barycenters
       using the weights :math:`w_i \in \mathbb{R}_{>0}`:
 
         .. math::
-            c_k = \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
+
+            c_k = \frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
 
     - Total weights :math:`\sum_{i, \ell_i=k} w_i`, for :math:`k\in[0,C)`.
 
@@ -171,7 +173,7 @@ def cluster_ranges_centroids(x, lab, weights=None):
     Returns:
         (C,2) integer array, (C,D) array, (C,) array:
         
-        **ranges** - Stacked array of :math:`[\\text{start}_k,\\text{end}_k)` indices in :math:`[0,M]`,
+        **ranges** - Stacked array of :math:`[\text{start}_k,\text{end}_k)` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`, compatible with the :func:`sort_clusters` routine.
 
         **centroids** - List of centroids :math:`c_k \in \mathbb{R}^D`.
@@ -215,7 +217,7 @@ def cluster_ranges_centroids(x, lab, weights=None):
 
 
 def swap_axes(ranges):
-    """Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional **ranges** parameter.
+    r"""Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional **ranges** parameter.
     
     This function returns **None** if **ranges** is **None**,
     and swaps the :math:`i` and :math:`j` arrays of indices otherwise."""

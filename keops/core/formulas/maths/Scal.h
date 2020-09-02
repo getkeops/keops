@@ -33,16 +33,16 @@ using Add = typename Add_Alias<FA, FB>::type;
 
 template<class FA, class FB>
 struct Scal_Impl : BinaryOp<Scal_Impl, FA, FB> {
+
   // FB is a vector, Output has the same size, and FA is a scalar
   static const int DIM = FB::DIM;
   static_assert(FA::DIM == 1, "Dimension of FA must be 1 for Scal");
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "*";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "*"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
+    #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = *outA * outB[k];
   }

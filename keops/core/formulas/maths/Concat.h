@@ -21,11 +21,12 @@ struct Concat_Impl : BinaryOp<Concat_Impl, F, G> {
     str << "Concat";
   }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF, __TYPE__ *outG) {
-#pragma unroll
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outF, TYPE *outG) {
+    #pragma unroll
     for (int k = 0; k < F::DIM; k++)
       out[k] = outF[k];
-#pragma unroll
+    #pragma unroll
     for (int k = 0; k < G::DIM; k++)
       out[k + F::DIM] = outG[k];
   }

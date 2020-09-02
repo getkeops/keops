@@ -18,14 +18,14 @@ struct ElemT;
 
 template< class F, int M >
 struct Elem : UnaryOp< Elem, F, M > {
+
   static const int DIM = 1;
   static_assert(F::DIM > M, "Index out of bound in Elem");
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Elem";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "Elem"; }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
+  template < typename TYPE > 
+  static HOST_DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
     *out = outF[M];
   }
 

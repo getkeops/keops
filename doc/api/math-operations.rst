@@ -4,7 +4,7 @@ Formulas and syntax
 ###################
 
 
-KeOps lets you define any reduction operation of the form
+KeOps lets us define any reduction operation of the form
 
 .. math::
 
@@ -124,6 +124,10 @@ Constants and padding/concatenation operations:
 ``IntInv(N)``             alias for ``Inv(IntCst(N))`` : 1/N
 ``Zero(N)``               vector of zeros of size N
 ``Sum(f)``                sum of elements of vector ``f``
+``Max(f)``                max of elements of vector ``f``
+``Min(f)``                min of elements of vector ``f``
+``ArgMax(f)``             argmax of elements of vector ``f``
+``ArgMin(f)``             argmin of elements of vector ``f``
 ``Elem(f, M)``            extract M-th element of vector ``f``
 ``ElemT(f, N, M)``        insert scalar value ``f`` at position M in a vector of zeros of length N
 ``Extract(f, M, D)``      extract sub-vector from vector ``f`` (M is starting index, D is dimension of sub-vector)

@@ -66,7 +66,7 @@ def cluster_ranges(lab, Nlab=None) :
     Returns:
         (C,2) IntTensor:
         
-        Stacked array of :math:`[\\text{start}_k,\\text{end}_k)` indices in :math:`[0,M]`,
+        Stacked array of :math:`[\text{start}_k, \text{end}_k )` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`.
 
     Example:
@@ -102,7 +102,7 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
     this function returns a collection of :math:`C` centroids
 
     .. math::
-        c_k ~=~ \\frac{\sum_{i, \ell_i = k} w_i\cdot x_i}{\sum_{i, \ell_i=k} w_i},
+        c_k = \frac{\sum_{i, \ell_i = k} w_i\cdot x_i}{\sum_{i, \ell_i=k} w_i},
     
     where the weights :math:`w_i` are set to 1 by default.
 
@@ -147,13 +147,13 @@ def cluster_ranges_centroids(x, lab, weights=None) :
     If **x** and **lab** encode a cloud of points :math:`x_i\in\mathbb{R}^D`
     with labels :math:`\ell_i\in[0,C)`, for :math:`i\in[0,M)`, this routine returns:
       
-    - Ranges :math:`[\\text{start}_k,\\text{end}_k)` compatible with
+    - Ranges :math:`[\text{start}_k,\text{end}_k)` compatible with
       :func:`sort_clusters` for :math:`k\in[0,C)`.
     - Centroids :math:`c_k` for each cluster :math:`k`, computed as barycenters
       using the weights :math:`w_i \in \mathbb{R}_{>0}`:
 
         .. math::
-            c_k = \\frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
+            c_k = \frac{\sum_{i, \ell_i=k} w_i\cdot \ell_i}{\sum_{i, \ell_i=k} w_i}
 
     - Total weights :math:`\sum_{i, \ell_i=k} w_i`, for :math:`k\in[0,C)`.
 
@@ -171,7 +171,7 @@ def cluster_ranges_centroids(x, lab, weights=None) :
     Returns:
         (C,2) IntTensor, (C,D) Tensor, (C,) Tensor:
         
-        **ranges** - Stacked array of :math:`[\\text{start}_k,\\text{end}_k)` indices in :math:`[0,M]`,
+        **ranges** - Stacked array of :math:`[\text{start}_k,\text{end}_k)` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`, compatible with the :func:`sort_clusters` routine.
 
         **centroids** - List of centroids :math:`c_k \in \mathbb{R}^D`.

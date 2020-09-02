@@ -36,11 +36,11 @@ int main() {
 
     // symbolic expression of the function ------------------------------------------------------
 
-    // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 where F0 = <U,V>^2 * exp(-C*|X-Y|^2) * Beta in usual notations
+    // here we define F to be F0+F0+F0+F0+F0+F0+F0+F0 where F0 = 1/(C+|X-Y|^2) in usual notations
     // with the standard implementation it means we will compute 8 times F0 to evaluate F
     using F0 = decltype(InvKeopsNS(  Inv( IntCst(1) + KeopsNS<C>()* SqNorm2(KeopsNS<X>()-KeopsNS<Y>())))  );//Scal<Exp<Scal<C,Minus<SqNorm2<Subtract<X,Y>>>>>,Beta>;
     using F1 = Add<F0,F0>;
-    using F = Grad<F0, X, Var<6,3,0>>;
+    using F = Grad<F0, X, Var<6,1,0>>;
 
     std::cout << std::endl << "Function F : " << std::endl;
     std::cout << PrintFormula<F>();

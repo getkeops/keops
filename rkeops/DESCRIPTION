@@ -1,0 +1,51 @@
+Package: rkeops
+Type: Package
+Title: Kernel Operations on the GPU, with Autodiff, without Memory Overflows
+Version: 1.4.1
+Date: 2020-05-14
+Authors@R: c(
+    person(given="Benjamin", family="Charlier", 
+           comment="<http://imag.umontpellier.fr/~charlier/>", 
+           role="aut"), 
+    person(given="Jean", family="Feydy", 
+           comment="<https://www.math.ens.fr/~feydy/>", 
+           role="aut"), 
+    person(given="Joan A.", family="Glaunès", 
+           comment="<https://www.mi.parisdescartes.fr/~glaunes/>", 
+           role="aut"), 
+    person(given="Ghislain", family="Durif", 
+           comment="<https://gdurif.perso.math.cnrs.fr/>", 
+           email="gd.dev@libertymail.net", 
+           role=c("aut", "cre")), 
+    person(given="François-David", family="Collin", 
+           comment="Development-related consulting and support", 
+           role="ctb"),
+    person(given="Daniel", family="Frey", 
+           comment="Author of the included C++ library 'sequences'", 
+           role="ctb"))
+Description: The 'KeOps' library lets you compute generic reductions of very large arrays 
+    whose entries are given by a mathematical formula. It combines a tiled reduction scheme 
+    with an automatic differentiation engine, and can be used through 'R', 'Matlab', 'NumPy' or 
+    'PyTorch' backends. It is perfectly suited to the computation of Kernel dot products 
+    and the associated gradients, even when the full kernel matrix does not fit into 
+    the GPU memory.
+License: MIT + file LICENSE
+Depends: R (>= 3.1.0)
+LinkingTo:
+    Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5)
+Imports:
+    Rcpp (>= 1.0.1), openssl (>= 1.3), stringr (>= 1.4.0)
+Suggests: 
+    testthat (>= 2.1.0),
+    knitr,
+    rmarkdown
+OS_type: unix
+SystemRequirements: C++11, cmake (>= 3.10), clang (optional), 
+    CUDA (optional but recommended)
+URL: https://www.kernel-operations.io/, https://github.com/getkeops/keops/
+BugReports: https://github.com/getkeops/keops/issues
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.0
+VignetteBuilder: knitr

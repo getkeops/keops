@@ -7,7 +7,7 @@ from hashlib import sha256
 
 from pykeops import build_type, bin_folder
 
-c_type = dict(float32="float", float64="double")
+c_type = dict(float16="half2", float32="float", float64="double")
 
 
 def module_exists(dllname):
@@ -83,12 +83,12 @@ def create_and_lock_build_folder():
             os.makedirs(bf, exist_ok=True)
 
             # create a file lock to prevent multiple compilations at the same time
-            with open(bf + os.path.sep + 'pykeops_build2.lock', 'w') as f:
+            with open(os.path.join(bf, 'pykeops_build2.lock'), 'w') as f:
                 with FileLock(f):
                     func_res = func(*args, **kwargs)
 
             # clean
-            if (module_exists(args[0].dll_name)) or (build_type != 'Debug'):
+            if (module_exists(args[0].dll_name)) and (build_type != 'Debug'):
                 shutil.rmtree(bf)
 
             return func_res
@@ -120,7 +120,7 @@ def get_tools(lang):
 def WarmUpGpu(lang):
     tools = get_tools(lang)
     # dummy first calls for accurate timing in case of GPU use
-    my_routine = tools.Genred("SqDist(x,y)", ["x = Vi(1)", "y = Vj(1)"], reduction_op='Sum', axis=1, dtype=tools.dtype)
+    my_routine = tools.Genred("SqDist(x,y)", ["x = Vi(1)",  "y = Vj(1)"], reduction_op='Sum', axis=1, dtype=tools.dtype)
     dum = tools.rand(10, 1)
     my_routine(dum, dum)
     my_routine(dum, dum)
@@ -128,7 +128,7 @@ def WarmUpGpu(lang):
 
 def clean_pykeops(path=bin_folder, lang=""):
     if lang not in ["numpy", "torch", ""]:
-        raise ValueError("lang should be the empty string, numpy or torch")
+        raise ValueError('[pyKeOps:] lang should be the empty string, "numpy" or "torch"')
 
     for f in os.listdir(path):
         if (f.endswith('so')) and (f.count("libKeOps" + lang)):

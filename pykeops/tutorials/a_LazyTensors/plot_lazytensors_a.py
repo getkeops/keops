@@ -4,8 +4,8 @@ A wrapper for NumPy and PyTorch arrays
 ================================================
 
 KeOps is all about bringing **semi-symbolic** calculus
-to modern computing libraries,
-alleviating the need for **huge intermediate variables**
+to modern computing libraries:
+it alleviates the need for **huge intermediate variables**
 such as *kernel* or *distance* matrices in machine
 learning and computational geometry.
  
@@ -15,9 +15,9 @@ learning and computational geometry.
 # First steps
 # -----------
 #
-# A simple high-level interface to the KeOps inner routines is provided by
+# A simple interface to the KeOps inner routines is provided by
 # the :class:`pykeops.numpy.LazyTensor` or :class:`pykeops.torch.LazyTensor`
-# **symbolic wrapper**, which can be used with **NumPy arrays** or **PyTorch 
+# **symbolic wrapper**, to be used with **NumPy arrays** or **PyTorch 
 # tensors** respectively.
 #
 # To illustrate its main features on a **simple example**, let's generate two point
@@ -52,7 +52,7 @@ s_i = np.argmin(D_ij, axis=1)  # (M,)   array of integer indices
 print(s_i[:10])
 
 ###########################################################################
-# That's good! Going further, we may speed-up these computations
+# That's good! Going further, we can speed-up these computations
 # using the **CUDA routines** of the PyTorch library:
 
 import torch
@@ -71,7 +71,7 @@ print(s_i[:10])
 # But **can we scale to larger point clouds?**
 # Unfortunately, tensorized codes will throw an exception
 # as soon as the **M-by-N matrix** :math:`(D_{i,j})` stops fitting
-# contiguously on the device memory, which happens 
+# contiguously on the device memory. This generally happens 
 # when :math:`\sqrt{MN}` goes past a hardware-dependent threshold 
 # in the [5,000; 50,000] range:
 
@@ -91,16 +91,16 @@ except RuntimeError as err:
 # **That's unfortunate...** And unexpected!
 # After all, modern GPUs routinely handle
 # `the real-time rendering of scenes with millions of triangles moving around <https://www.youtube.com/watch?v=RaLQuJtQ-gc>`_.
-# So how do `SIGGRAPH <https://www.siggraph.org/>`_ programmers achieve such
+# So how do `graphics <https://www.siggraph.org/>`_ programmers achieve such
 # a level of performance?
 #
 # The key to efficient numerical schemes is to remark that
 # even though the distance matrix :math:`(D_{i,j})` is not **sparse** in the
-# traditional sense, it definitely is **from a computational point of view**.
-# As its coefficients are fully described by two lists of points 
-# and a **symbolic formula**, sensible implementations will always 
+# traditional sense, it definitely is **compact from a computational perspective**.
+# Since its coefficients are fully described by two lists of points 
+# and a **symbolic formula**, sensible implementations should
 # compute required values on-the-fly...
-# Bypassing, **lazily**, the cumbersome pre-computation and storage
+# and bypass, **lazily**, the cumbersome pre-computation and storage
 # of all pairwise distances :math:`\|x_i-y_j\|^2`.
 # 
 # 
@@ -117,14 +117,14 @@ print(D_ij)
 # With KeOps, implementing **lazy** numerical schemes really
 # is **that simple**!
 # Our :class:`LazyTensor<pykeops.torch.LazyTensor>` variables
-# are encoded by a list of data arrays plus an arbitrary
+# are encoded as a list of data arrays plus an arbitrary
 # symbolic formula, written with a :doc:`custom mathematical syntax <../../api/math-operations>`
 # that is modified after each "pythonic" operation such as ``-``, ``**2`` or ``.exp()``.
 #
-# We may now perform our :meth:`pykeops.torch.LazyTensor.argmin` reduction using
+# We can then perform a :meth:`pykeops.torch.LazyTensor.argmin` reduction with
 # an efficient Map-Reduce scheme, implemented 
-# as a `highly templated CUDA kernel <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv1D.cu>`_ around
-# our custom symbolic formula.
+# as a `templated CUDA kernel <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv1D.cu>`_ around
+# our custom formula.
 # As evidenced by our :doc:`benchmarks <../../_auto_benchmarks/index>`,
 # the KeOps routines have a **linear memory footprint**
 # and generally **outperform tensorized GPU implementations by two orders of magnitude**.
@@ -134,10 +134,10 @@ print("s_i is now a {} of shape {}.".format(type(s_i), s_i.shape))
 print(s_i[:10])
 
 ##########################################################
-# Going further, you may combine :class:`LazyTensors <pykeops.torch.LazyTensor>`
+# Going further, we can combine :class:`LazyTensors <pykeops.torch.LazyTensor>`
 # using a **wide range of mathematical operations**.
 # For instance, with data arrays stored directly on the GPU,
-# a Laplacian kernel dot product 
+# an exponential kernel dot product 
 # 
 # .. math::
 #   a_i = \sum_{j=1}^N \exp(-\|x_i-y_j\|)\cdot b_j
@@ -166,12 +166,12 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 # Automatic differentiation
 # -----------------------------------------------
 #
-# Crucially, :class:`LazyTensors<pykeops.torch.LazyTensor>`
+# KeOps
 # **fully support** the :mod:`torch.autograd` engine:
-# you may backprop through KeOps reductions as easily as through
+# we can backprop through KeOps reductions as easily as through
 # vanilla PyTorch operations.
 # For instance, coming back to the kernel dot product above,
-# we may compute the gradient
+# we can compute the gradient
 #
 # .. math::
 #   g_i ~=~ \frac{\partial \sum_i \|a_i\|^2}{\partial x_i}
@@ -240,7 +240,7 @@ print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape))
 # -----------------------------------------------
 # 
 # As should be expected, :class:`LazyTensors<pykeops.torch.LazyTensor>`
-# also provide a simple support of **batch processing**,
+# also provide full support of **batch processing**,
 # with broadcasting over dummy (=1) batch dimensions:
 
 A, B = 7, 3  # Batch dimensions
@@ -259,15 +259,15 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 ##################################################################
 # Everything works just fine, with two major caveats:
 #   
-# - The structure of KeOps computations is still a little bit **rigid**,
-#   and :class:`LazyTensors<pykeops.torch.LazyTensor>` should only
+# - The structure of KeOps computations is still a little bit **rigid**:
+#   :class:`LazyTensors<pykeops.torch.LazyTensor>` should only
 #   be used in situations where the **large** dimensions M and N 
 #   over which the main reduction
-#   will be performed are in positions
+#   is performed are in positions
 #   -3 and -2 (respectively), with **vector** variables in position
 #   -1 and an arbitrary number of batch dimensions beforehand.
 #   We're working towards a full support of **tensor** variables,
-#   but this will probably take a few more weeks to implement and test properly...
+#   but this will probably take some time to implement and test properly...
 #
 # - KeOps :class:`LazyTensors<pykeops.torch.LazyTensor>` never collapse
 #   their last "dimension", even after a ``.sum(-1)`` reduction

@@ -47,8 +47,8 @@ y = tensor( mnist.target.astype('int64') )
 
 D = x.shape[1]
 Ntrain, Ntest = (60000, 10000) if use_cuda else (1000, 100)
-x_train, y_train = x[:Ntrain,:], y[:Ntrain]
-x_test,  y_test  = x[Ntrain:Ntrain+Ntest,:], y[Ntrain:Ntrain+Ntest]
+x_train, y_train = x[:Ntrain,:].contiguous(), y[:Ntrain].contiguous()
+x_test,  y_test  = x[Ntrain:Ntrain+Ntest,:].contiguous(), y[Ntrain:Ntrain+Ntest].contiguous()
 
 
 ######################################################################

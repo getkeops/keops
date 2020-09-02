@@ -1,0 +1,7 @@
+Files: inst/include/keops/lib/sequences/*
+Copyright: 2015 - 2019 Daniel Frey
+License: MIT
+
+Files: *
+Copyright: 2018 - 2020 Benjamin Charlier, Jean Feydy, Joan A. Glaunès, Ghislain Durif, François-David Collin
+License: MIT

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sstream>
+#include "core/utils/TypesUtils.h"
 #include "core/pack/UnivPack.h"
 
 namespace keops {
@@ -19,16 +20,18 @@ struct Zero {
   template<class A, class B>
   using Replace = Zero<DIM>;
 
+  template<class A1, class B1, class A2, class B2>
+  using ReplaceVars2 = Zero<DIM>;
+
   using AllTypes = univpack<Zero<DIM>>;
 
   template < int CAT >      // Whatever CAT...
   using VARS = univpack<>;  // there's no variable used in there.
 
   // Evaluation is easy : simply fill-up *out with zeros.
-  template < class INDS, typename... ARGS >
-  static DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
-    for(int k=0; k<DIM; k++)
-      out[k] = 0;
+  template < class INDS, typename TYPE, typename... ARGS >
+  static DEVICE INLINE void Eval(TYPE* out, ARGS... args) {
+    VectAssign<DIM>(out, 0.0f);
   }
 
   // There is no gradient to accumulate on V, whatever V.

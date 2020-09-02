@@ -114,7 +114,7 @@ Crucially, any backprop engine should be able to:
 The ``Grad`` operator
 ---------------------
 
-At a low level, KeOps allows you to perform these tasks with the ``Grad`` instruction:
+At a low level, KeOps allows us to perform these tasks with the ``Grad`` instruction:
 given a formula :math:`F`, the symbolic expression ``Grad(F, V, E)``
 denotes the gradient :math:`[\partial_V F(x)] (E)` with respect to the variable :math:`V` evaluated on the input variable :math:`E`.
 
@@ -128,13 +128,13 @@ operations such as ``Grad(Grad(..,..,..),..,..)`` are fully supported.
 User interfaces
 ---------------
 
-As evidenced by this :doc:`example <../_auto_examples/numpy/plot_generic_syntax_numpy>`, the simple ``Grad`` syntax can relieve you from the burden of differentiating symbolic formulas by hand.
+As evidenced by this :doc:`example <../_auto_examples/numpy/plot_generic_syntax_numpy>`, the simple ``Grad`` syntax can relieve us from the burden of differentiating symbolic formulas by hand.
 
-Going further, our python interface is fully compatible with the `PyTorch <https://pytorch.org/>`_ library:
+Going further, our Python interface is fully compatible with the `PyTorch <https://pytorch.org/>`_ library:
 feel free to use the output of a :mod:`pykeops.torch` routine **just like any other differentiable tensor**!
 Thanks to the flexibility of the :mod:`torch.autograd` engine,
 end-to-end automatic differentiation is at hand: 
-see this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`.
+see this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch>` or this :doc:`example <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>` for an introduction.
 
 
 .. _`part.example2`:

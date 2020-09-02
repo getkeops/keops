@@ -29,16 +29,16 @@ using Subtract = typename Subtract_Alias< FA, FB >::type;
 
 template < class FA, class FB >
 struct Subtract_Impl : BinaryOp< Subtract_Impl, FA, FB > {
+
   // Output dim = FA::DIM = FB::DIM
   static const int DIM = FA::DIM;
   static_assert(DIM == FB::DIM, "Dimensions must be the same for Subtract");
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "-";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "-"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
+    #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = outA[k] - outB[k];
   }
@@ -51,15 +51,15 @@ struct Subtract_Impl : BinaryOp< Subtract_Impl, FA, FB > {
 
 template < class FA, class FB >
 struct Subtract_Impl_Broadcast : BinaryOp< Subtract_Impl_Broadcast, FA, FB > {
+
   // Output dim = FB::DIM
   static const int DIM = FB::DIM;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "-";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "-"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
+    #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = *outA - outB[k];
   }

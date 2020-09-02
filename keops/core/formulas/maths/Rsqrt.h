@@ -2,15 +2,15 @@
 
 #include <sstream>
 
-#include "core/autodiff/UnaryOp.h"
+#include "core/utils/keops_math.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
+
 #include "core/formulas/constants/Zero.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Pow.h"
 #include "core/formulas/maths/Inv.h"
 #include "core/formulas/maths/IntInv.h"
-
-#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -23,32 +23,29 @@ template<class F> using Rsqrt = typename Rsqrt_Alias<F>::type;
 
 
 template<class F>
-struct Rsqrt_Impl : UnaryOp<Rsqrt_Impl, F> {
-  static const int DIM = F::DIM;
+struct Rsqrt_Impl : VectorizedScalarUnaryOp<Rsqrt_Impl, F> {
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Rsqrt";
+  static void PrintIdString(::std::stringstream &str) { str << "Rsqrt"; }
+
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
+    #pragma unroll
+    for (int k = 0; k < F::DIM; k++)
+      if (outF[k] == 0.0f)
+        out[k] = 0.0f;
+      else
+        out[k] = keops_rsqrt(outF[k]);
   }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++) {
-      if (outF[k] == 0) {
-        out[k] = 0;  // warning !! value should be Inf at 0 but we put 0 instead. This is intentional...
-      }
-      else {
-#ifdef __CUDA_ARCH__    // check if we are compiling a device code
-#if USE_DOUBLE
-        out[k] = rsqrt(outF[k]);
-#else
-        out[k] = rsqrtf(outF[k]);
-#endif
-#else
-        out[k] = 1.0 / sqrt(outF[k]); // should use specific rsqrt implementation for cpp ..
-#endif
-      }
+#if USE_HALF && GPU_ON
+  static DEVICE INLINE void Operation(half2 *out, half2 *outF) {
+    #pragma unroll
+    for (int k = 0; k < F::DIM; k++) {
+      half2 cond = __heq2(outF[k],__float2half2_rn(0.0f));
+      out[k] = h2rsqrt(outF[k]+cond) * (__float2half2_rn(1.0f)-cond);
     }
   }
+#endif
 
   template<class V, class GRADIN>
   using DiffTF = typename F::template DiffT<V, GRADIN>;

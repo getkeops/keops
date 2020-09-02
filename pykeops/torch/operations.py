@@ -3,8 +3,7 @@ import torch
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import get_type, complete_aliases
-from pykeops.common.parse_type import parse_aliases, get_accuracy_flags
+from pykeops.common.parse_type import get_type, complete_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype
 from pykeops.torch import include_dirs, library_dirs
@@ -18,8 +17,8 @@ class KernelSolveAutograd(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args):
-    
-        optional_flags = ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)] +  + ['-DPYTORCH_LIBRARY_DIR' + ';'.join(library_dirs) ] + accuracy_flags
+
+        optional_flags = include_dirs + accuracy_flags
 
         myconv = LoadKeOps(formula, aliases, dtype, 'torch',
                            optional_flags).import_module()
@@ -36,26 +35,24 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.myconv = myconv
         ctx.ranges = ranges
         ctx.accuracy_flags = accuracy_flags
-        if ranges is None: ranges = () # To keep the same type
-            
+        if ranges is None: ranges = ()  # To keep the same type
+
         varinv = args[varinvpos]
         ctx.varinvpos = varinvpos
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
-        if tagCPUGPU==1 & tagHostDevice==1:
+        if tagCPUGPU == 1 & tagHostDevice == 1:
             device_id = args[0].device.index
-            for i in range(1,len(args)):
+            for i in range(1, len(args)):
                 if args[i].device.index != device_id:
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
 
-        (categories, dimensions) = parse_aliases(aliases)
         def linop(var):
-            newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
-            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions,
-                                        *newargs)
+            newargs = args[:varinvpos] + (var,) + args[varinvpos + 1:]
+            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
             if alpha:
-                res += alpha*var
+                res += alpha * var
             return res
 
         global copy
@@ -63,7 +60,7 @@ class KernelSolveAutograd(torch.autograd.Function):
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
-        ctx.save_for_backward(*args,result)
+        ctx.save_for_backward(*args, result)
 
         return result
 
@@ -78,7 +75,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         device_id = ctx.device_id
         eps = ctx.eps
         myconv = ctx.myconv
-        varinvpos = ctx.varinvpos
         ranges = ctx.ranges
         accuracy_flags = ctx.accuracy_flags
 
@@ -90,12 +86,13 @@ class KernelSolveAutograd(torch.autograd.Function):
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
         eta = 'Var(' + str(nargs) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
-      
+
         # there is also a new variable for the formula's output
-        resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
-        
-        newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *newargs)
+        resvar = 'Var(' + str(nargs + 1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
+
+        newargs = args[:varinvpos] + (G,) + args[varinvpos + 1:]
+        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges,
+                                          accuracy_flags, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
@@ -136,10 +133,9 @@ class KernelSolveAutograd(torch.autograd.Function):
                     else:
                         grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
                     grads.append(grad)
-         
+
         # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, accuracy_flags, *args
         return (None, None, None, None, None, None, None, None, None, None, *grads)
-
 
 
 class KernelSolve():
@@ -184,7 +180,9 @@ class KernelSolve():
         >>> print(g_x.shape)
         torch.Size([10000, 3]) 
     """
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None, use_double_acc=False, use_BlockRed="auto", use_Kahan=False):
+
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None, dtype_acc="auto",
+                 use_double_acc=False, sum_scheme="auto"):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -231,16 +229,38 @@ class KernelSolve():
             dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
                 The supported values are:
 
+                  - **dtype** = ``"float16"`` or ``"half"``.
                   - **dtype** = ``"float32"`` or ``"float"``.
                   - **dtype** = ``"float64"`` or ``"double"``.
                   
+            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+                It improves the accuracy of results in case of large sized data, but is slower.
+                Default value "auto" will set this option to the value of dtype. The supported values are: 
+
+                  - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+                  - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+                  - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+
+            use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+                If True, accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32 or float64.
+                It improves the accuracy of results in case of large sized data, but is slower.       
+           
+            sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
+                Default value "auto" will set this option to "block_red". Possible values are:
+                  - **sum_scheme** =  ``"direct_sum"``: direct summation
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
+
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type 
-        reduction_op='Sum'
+            dtype = cuda_type
+        reduction_op = 'Sum'
 
-        self.accuracy_flags = get_accuracy_flags(use_double_acc, use_BlockRed, use_Kahan, dtype, reduction_op)
+        self.accuracy_flags = get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op)
 
         self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
         self.aliases = complete_aliases(formula, list(aliases))  # just in case the user provided a tuple
@@ -308,7 +328,5 @@ class KernelSolve():
             
         """
 
-        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, self.accuracy_flags, *args)
-
-
-
+        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype,
+                                         device_id, eps, ranges, self.accuracy_flags, *args)

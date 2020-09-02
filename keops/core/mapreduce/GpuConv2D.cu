@@ -10,6 +10,7 @@
 #include "core/pack/GetDims.h"
 #include "core/utils/CudaErrorCheck.cu"
 #include "core/utils/CudaSizes.h"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 
@@ -53,7 +54,7 @@ __global__ void reduce2D(TYPE *in, TYPE *out, TYPE ** px, int sizeY,int nx) {
     // However, for now, we use a "vectorized" reduction op.,
     // which can also handle non-trivial reductions such as "LogSumExp"
     __TYPEACC__ acc[DIMIN];
-    typename FUN::template InitializeReduction<__TYPEACC__>()(acc); // acc = 0
+    typename FUN::template InitializeReduction<__TYPEACC__,TYPE>()(acc); // acc = 0
     if(tid < nx) {
         for (int y = 0; y < sizeY; y++)
             typename FUN::template ReducePair<__TYPEACC__,TYPE>()(acc, in + (tid+y*nx)*DIMIN);     // acc += in[(tid+y*nx) *DIMVECT : +DIMVECT];
@@ -100,27 +101,25 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     // Step 1 : Load in Thread Memory the information needed in the current line ---------------------------
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     TYPE xi[DIMX < 1 ? 1 : DIMX];
-#if USE_BLOCKRED 
-// N.B. To be consistent with the convention used in GpuConv1D, when USE_BLOCKRED=1 we accumulate results in TYPE 
+#if SUM_SCHEME == BLOCK_SUM 
+// N.B. To be consistent with the convention used in GpuConv1D, when SUM_SCHEME == BLOCK_SUM=1 we accumulate results in TYPE 
 // instead of __TYPEACC__ in each block, __TYPEACC__ will be used only to sum up results from each block
     TYPE acc[DIMRED];
 #else
     __TYPEACC__ acc[DIMRED];
 #endif
-#if USE_KAHAN
+#if SUM_SCHEME == KAHAN_SCHEME
     const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
     TYPE tmp[DIM_KAHAN];
 #endif
     if(i<nx) { // we will compute x1i only if i is in the range
-#if USE_BLOCKRED         
-        typename FUN::template InitializeReduction<TYPE>()(acc); // acc = 0
+#if SUM_SCHEME == BLOCK_SUM         
+        typename FUN::template InitializeReduction<TYPE,TYPE>()(acc); // acc = 0
 #else
-        typename FUN::template InitializeReduction<__TYPEACC__>()(acc); // acc = 0
+        typename FUN::template InitializeReduction<__TYPEACC__,TYPE>()(acc); // acc = 0
 #endif
-#if USE_KAHAN
-#pragma unroll
-        for (int k = 0; k < DIM_KAHAN; k++)
-          tmp[k] = 0.0f;
+#if SUM_SCHEME == KAHAN_SCHEME
+        VectAssign<DIM_KAHAN>(tmp,0.0f);
 #endif
         // Load xi from device global memory.
         // Remember that we use an interleaved memory scheme where
@@ -152,12 +151,22 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         TYPE* yjrel = yj; // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-#if USE_BLOCKRED
-            typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
-#elif USE_KAHAN
+#if SUM_SCHEME == BLOCK_SUM
+#if USE_HALF
+        int ind = blockDim.x*blockIdx.y+jrel;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#endif
+#elif SUM_SCHEME == KAHAN_SCHEME
             typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);   
 #else
-            typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#if USE_HALF
+        int ind = blockDim.x*blockIdx.y+jrel;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#endif
 #endif
         }
     }

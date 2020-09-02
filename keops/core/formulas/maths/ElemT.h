@@ -18,17 +18,17 @@ struct Elem;
 
 template< class F, int N, int M >
 struct ElemT : UnaryOp< ElemT, F, N, M > {
+
   static const int DIM = N;
   static_assert(F::DIM == 1, "Input of ElemT should be a scalar");
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "ElemT";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "ElemT"; }
 
-  static HOST_DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-    for (int k = 0; k < DIM; k++)
-      out[k] = 0.0;
+  template < typename TYPE >
+  static HOST_DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
+    VectAssign<M>(out, 0.0f);
     out[M] = *outF;
+    VectAssign<N-M-1>(out+M+1, 0.0f);
   }
 
   template<class V, class GRADIN>

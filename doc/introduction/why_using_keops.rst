@@ -38,11 +38,12 @@ Unfortunately, though, *no magic* is involved: optimised CUDA codes still have t
 Consequently, in array-centric frameworks, the standard way of computing Gaussian convolutions is to create and store in memory the full :math:`M`-by-:math:`N` kernel matrix :math:`K_{i,j}=K(x_i,y_j)`, before computing :math:`(a_i) = (K_{i,j}) (b_j)` as a matrix product.  
 But for large datasets (say, :math:`M,N \geqslant 10,000`), this is not realistic: **large matrices just don't fit in GPU memories**.
 
-KeOps is all about **letting researchers break through this memory bottleneck**. Relying on **online map-reduce schemes**, we provide CUDA routines that "sum" the coefficients :math:`K_{i,j}\cdot b_j` as they are computed, without ever storing the full matrix :math:`K` in memory.
+KeOps is all about **letting researchers break through this memory bottleneck**. 
+We rely on **online map-reduce schemes** to provide CUDA routines that "sum" the coefficients :math:`K_{i,j}\cdot b_j` as they are computed, without ever storing the full matrix :math:`K` in memory.
 
 
 As evidenced by our :doc:`benchmarks <../_auto_benchmarks/index>`,
-the KeOps routines **outperform** their standard GPU-tensorized counterparts
+the KeOps routines **outperform** their standard counterparts
 **by two orders of magnitude** on modern hardware:
 on top of a reduced memory usage, they can also bring
 a considerable speed-up to all applications 
@@ -54,14 +55,14 @@ A generic framework that suits your needs
 =========================================
 
 KeOps supports **generic operations**, way beyond the simple case of kernel convolutions.
-Let's say that you have at hand:
+Let's say that we have at hand:
 
 - a collection :math:`p^1, p^2, ..., p^P` of vectors.
 - a collection :math:`x^1_i, x^2_i, ..., x^X_i` of vector sequences, indexed by an integer :math:`i` ranging from 1 to :math:`M`.
 - a collection :math:`y^1_j, y^2_j, ..., y^Y_j` of vector sequences, indexed by an integer :math:`j` ranging from 1 to :math:`N`.
 - a vector-valued function :math:`f(p^1, p^2,..., x^1_i, x^2_i,..., y^1_j, y^2_j, ...)` on these input vectors.
 
-Then, referring to the :math:`p`'s as **parameters**, the :math:`x_i`'s as **x-variables** and the :math:`y_j`'s as **y-variables**, the KeOps library allows you to compute efficiently *any* expression :math:`a_i` of the form
+Then, referring to the :math:`p`'s as **parameters**, the :math:`x_i`'s as **x-variables** and the :math:`y_j`'s as **y-variables**, the KeOps library allows us to compute efficiently *any* expression :math:`a_i` of the form
 
 .. math::
     a_i = \operatorname{Reduction}_{j=1,\cdots,N}\limits \big[ f(p^1, p^2,..., x^1_i, x^2_i,..., y^1_j, y^2_j, ...)  \big], \qquad i=1,\cdots,M
@@ -76,7 +77,7 @@ for examples of applications.
 Features
 ========
 
-- Most common reduction operations: Summation, stabilized :doc:`LogSumExp reduction <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max, :doc:`SoftMin <../_auto_examples/numpy/plot_test_softmax_numpy>`, Softmax...
+- Most common reduction operations: Summation, stabilized :doc:`LogSumExp reduction <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max, :doc:`ArgKMin <../_auto_tutorials/knn/plot_knn_numpy>`, :doc:`SoftMin <../_auto_examples/numpy/plot_test_softmax_numpy>`, Softmax...
 - :doc:`Block-sparse reductions <../python/sparsity>` and kernel matrices.
 - Custom high-level (``'gaussian(x,y) * (1+linear(u,v)**2)'``) and low-level (``'Exp(-G*SqDist(X,Y)) * ( IntCst(1) + Pow((U|V), 2) )'``) syntaxes to compute general formulas.
 - :doc:`High-order derivatives with respect to all parameters and variables <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>`.

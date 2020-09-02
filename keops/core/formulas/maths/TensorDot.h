@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "core/utils/keops_math.h"
+#include "core/utils/TypesUtils.h"
 #include "lib/sequences/include/tao/seq/integer_sequence.hpp"
 #include "lib/sequences/include/tao/seq/concatenate.hpp"
 #include "lib/sequences/include/tao/seq/sum.hpp"
@@ -270,18 +272,16 @@ struct TensorDot : BinaryOp< TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERM
 
   static const int DIM = parameters::dimout;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << ":";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << ":"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-#pragma unroll
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inA, TYPE *inB) {
+    #pragma unroll
     for (int i = 0; i < DIM; i++)
-      out[i] = 0;
-
+      out[i] = cast_to<TYPE>(0.0f);
     loop< typename parameters::loopdim_t >::f(parameters::compute_tensordot_indices_apply([&out, &inA, &inB](
         tensordot_indices td) {
-      out[td.out_indices] += inA[td.a_indices] * inB[td.b_indices];
+      out[td.out_indices] = keops_fma(inA[td.a_indices], inB[td.b_indices], out[td.out_indices]);
     }));
   }
 

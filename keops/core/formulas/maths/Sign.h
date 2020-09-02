@@ -2,12 +2,11 @@
 
 #include <sstream>
 
-#include "core/autodiff/UnaryOp.h"
+#include "core/utils/keops_math.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/constants/Zero.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Scal.h"
-
-#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -16,23 +15,16 @@ namespace keops {
 //////////////////////////////////////////////////////////////
 
 template<class F>
-struct Sign : UnaryOp<Sign, F> {
-  static const int DIM = F::DIM;
+struct Sign : VectorizedScalarUnaryOp<Sign, F> {
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Sign";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "Sign"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++)
-      if (outF[k] > 0)
-        out[k] = 1.0;
-      else if (outF[k] < 0)
-        out[k] = -1.0;
-      else
-        out[k] = 0.0;
-  }
+  template < typename TYPE > 
+  struct Operation_Scalar {
+	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
+    	  out = keops_sign(outF);
+    }
+  };
 
   template<class V, class GRADIN>
   using DiffT = Zero<V::DIM>;

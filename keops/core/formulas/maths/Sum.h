@@ -4,6 +4,7 @@
 
 #include "core/autodiff/UnaryOp.h"
 #include "core/formulas/maths/SumT.h"
+#include "core/utils/TypesUtils.h"
 
 #include "core/pre_headers.h"
 namespace keops {
@@ -20,16 +21,19 @@ struct Sum : UnaryOp<Sum, F> {
 
   static const int DIM = 1;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "Sum";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "Sum"; }
 
-  static DEVICE INLINE
-  void Operation(__TYPE__ *out, __TYPE__ *outF) {
-    *out = 0;
-#pragma unroll
-    for (int k = 0; k < F::DIM; k++)
-      *out += outF[k];
+  template < typename TYPE >
+  struct Operation_Scalar {
+  	DEVICE INLINE void operator() (TYPE& out, TYPE& outF) {
+      	  out += outF;
+	}
+  };
+  
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
+    *out = cast_to<TYPE>(0.0f);
+    VectApply < Operation_Scalar<TYPE>, F::DIM > (*out, outF);
   }
 
   template<class V, class GRADIN>

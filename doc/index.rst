@@ -8,10 +8,44 @@ Kernel Operations on the GPU, with autodiff, without memory overflows
 The KeOps library lets you compute generic reductions of **very large arrays** 
 whose entries are given by a mathematical formula. 
 It combines a **tiled reduction scheme** with an **automatic differentiation** 
-engine, and can be used through **Matlab**, **NumPy** or **PyTorch** backends.
-It is perfectly suited to the computation of **Kernel dot products**
+engine, and can be used through **Matlab**, **Python** (NumPy or PyTorch) or 
+**R** backends.
+It is perfectly suited to the computation of **Kernel matrix-vector products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
+
+The project is hosted on `GitHub <https://github.com/getkeops/keops>`_.
+
+
+.. figure:: _static/symbolic_matrix.svg
+    :width: 90% 
+    :alt: Symbolic matrices
+    :align: center
+
+Math libraries understand variables as matrices,
+also known as tensors.
+(a) These are usually **dense** and encoded as
+explicit numerical arrays :math:`(M_{i,j}) = (M[i,j]) \in \mathbb{R}^{\mathrm{M}\times\mathrm{N}}`
+that can have a large memory footprint.
+(b) Alternatively, some operators can be encoded as
+**sparse matrices**: libraries store in memory the indices
+:math:`(i_n,j_n)` and values :math:`M_n = M_{i_n,j_n}`
+that correspond to a small number
+of non-zero coefficients.
+Reduction operations are then implemented using
+indexing methods and scattered memory accesses.
+(c) **We provide support for a third class of tensors:**
+**symbolic matrices** whose coefficients
+are given by a formula
+:math:`M_{i,j} = F(x_i,y_j)` that is evaluated on
+data arrays :math:`(x_i)` and :math:`(y_j)`.
+Reduction operations are implemented using
+parallel schemes that compute the coefficients :math:`M_{i,j}`
+on-the-fly.
+We take advantage of the structure of CUDA registers
+to bypass costly memory transfers
+and achieve optimal runtimes on a wide range of applications.
+
 
 Using the **PyTorch backend**, a typical sample of code looks like:
 
@@ -63,7 +97,6 @@ More details are provided below:
 * :doc:`Gallery of examples <_auto_examples/index>`
 * :doc:`Benchmarks <_auto_benchmarks/index>`
 
-**KeOps is licensed** under the `MIT license <https://github.com/getkeops/keops/blob/master/licence.txt>`_.
 
 Projects using KeOps
 --------------------
@@ -79,18 +112,48 @@ As of today, KeOps provides core routines for:
   `Shapes toolbox <https://plmlab.math.cnrs.fr/jeanfeydy/shapes_toolbox>`_,
   two research-oriented `LDDMM <https://en.wikipedia.org/wiki/Large_deformation_diffeomorphic_metric_mapping>`_ toolkits.
 
+
+
+Licensing, academic use
+-----------------------
+
+This library is licensed under the permissive `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_,
+which is fully compatible with both **academic** and **commercial** applications.
+If you use this code in a research paper, **please cite**:
+
+::
+
+    @article{charlier2020kernel,
+        title={Kernel operations on the {GPU}, with autodiff, without memory overflows},
+        author={Charlier, Benjamin and Feydy, Jean and Glaun{\`e}s, Joan Alexis and Collin, Fran{\c{c}}ois-David and Durif, Ghislain},
+        journal={arXiv preprint arXiv:2004.11127},
+        year={2020}
+    }
+
+
+
 Authors
 -------
 
-Feel free to contact us for any bug report or feature request:
+Feel free to contact us for any bug report or feature request, you can also fill 
+an issue report on `GitHub issue tracker <https://github.com/getkeops/keops/issues>`_.
+
+**KeOps, PyKeOps, KeOpsLab**
 
 - `Benjamin Charlier <http://imag.umontpellier.fr/~charlier/>`_
 - `Jean Feydy <http://www.math.ens.fr/~feydy/>`_
 - `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_
 
+**RKeOps**
 
-Table of content
-----------------
+- `Ghislain Durif <https://gdurif.perso.math.cnrs.fr/>`_ (R package)
+
+**Contributors**
+
+- François-David Collin
+
+Table of contents
+-------------------
 
 .. toctree::
    :maxdepth: 2
@@ -108,7 +171,7 @@ Table of content
 
 .. toctree::
    :maxdepth: 2
-   :caption: PyKeops
+   :caption: PyKeOps
 
    python/index
    _auto_tutorials/index
@@ -118,7 +181,13 @@ Table of content
 
 .. toctree::
    :maxdepth: 2
-   :caption: KeopsLab
+   :caption: RKeOps
+
+   R/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: KeOpsLab
 
    matlab/index
 

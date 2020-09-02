@@ -26,30 +26,35 @@ struct MatVecMult: BinaryOp<MatVecMult, A, B> {
 
   static const int DIM = A::DIM / B::DIM;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "x";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "x"; }
+
 #if C_CONTIGUOUS //row major
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
+
+  template < typename TYPE > 
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inA, TYPE *inB) {
         int q = 0;
-#pragma unroll
+        #pragma unroll
         for (int i = 0; i < DIM; i++) {
-            out[i] = 0;
-#pragma unroll
+            out[i] = cast_to<TYPE>(0.0f);
+            #pragma unroll
             for (int k = 0; k < B::DIM; k++, q++)
                 out[i] += inA[q] * inB[k];
         }
     }
+
 #else // column major
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inA, __TYPE__ *inB) {
-#pragma unroll
+
+  template < typename TYPE > 
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inA, TYPE *inB) {
+    #pragma unroll
     for (int i = 0; i < DIM; i++) {
-      out[i] = 0;
-#pragma unroll
+      out[i] = cast_to<TYPE>(0.0f);
+      #pragma unroll
       for (int k = 0; k < B::DIM; k++)
         out[i] += inA[k * DIM + i] * inB[k];
     }
   }
+
 #endif
 
   template<class V, class GRADIN>

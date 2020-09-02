@@ -6,7 +6,7 @@ Now that the main rules of GPU programming have been exposed, let us
 AD*, the algorithm that allows Automatic Differentiation (AD) engines to
 differentiate scalar-valued computer programs :math:`F : \mathbb{R}^n \to \mathbb{R}`
 efficiently. As we uncover the methods that are hidden behind the
-transparent :meth:`.grad()` calls of modern libraries, we will hopefully
+transparent `.grad()` calls of modern libraries, we will hopefully
 allow the reader to get a clear understanding of the **rules** and
 **limitations** of automatic differentiation engines.
 
@@ -108,8 +108,8 @@ evaluations of the function \ :math:`F` to compute a *single* gradient
 vector! As soon as the dimension :math:`n` of the input space exceeds 10
 or 100, **this stops being tractable**: just like inverting a full matrix
 :math:`A` is not a sensible way of solving the linear system
-“:math:`Ax = b`”, one should not use finite differences – or any
-equivalent *forward* method – to compute the gradient of a scalar-valued
+":math:`Ax = b`", one should not use finite differences - or any
+equivalent *forward* method - to compute the gradient of a scalar-valued
 objective.
 
 **Generalized gradient.**
@@ -134,7 +134,7 @@ structures of :math:`X` and \ :math:`Y`.
 **Calculus.**
 The generalized gradient appears in the infinitesimal development of
 scalar quantities computed from :math:`F(x)` around a reference location
-:math:`x_0`. Let :math:`\alpha \in Y^*` be a *continuous* linear form on
+:math:`x_0`. Let :math:`\alpha \in Y^*` be a **continuous** linear form on
 :math:`Y`, identified with a vector :math:`a \in Y` through the Riesz
 representation theorem:
 

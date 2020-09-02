@@ -1,3 +1,5 @@
+.. _`part.backend`:
+
 Using KeOps as a backend
 ------------------------------
 

@@ -1,7 +1,7 @@
 % This script shows how to select the GPU device used for a KeOps
 % computation
 
-path_to_lib = '..';
+path_to_lib = [fileparts(mfilename('fullpath')), filesep, '..'];
 addpath(genpath(path_to_lib))
 
 %--------------------------------------%

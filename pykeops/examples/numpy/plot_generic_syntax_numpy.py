@@ -32,8 +32,8 @@ from pykeops.numpy import Genred
 #####################################################################
 # Declare random inputs:
 
-M = 3000
-N = 5000
+M = 30
+N = 50
 
 dtype = 'float32'  # May be 'float32' or 'float64'
 

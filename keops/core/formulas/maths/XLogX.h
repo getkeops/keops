@@ -1,15 +1,12 @@
 #pragma once
 
 #include <sstream>
-#include <cmath>
-
-#include "core/autodiff/UnaryOp.h"
+#include "core/utils/keops_math.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/Log.h"
 #include "core/formulas/constants/IntConst.h"
-
-#include "core/pre_headers.h"
 
 namespace keops {
 
@@ -18,23 +15,16 @@ namespace keops {
 //////////////////////////////////////////////////////////////
 
 template<class F>
-struct XLogX : UnaryOp<XLogX, F> {
-  static const int DIM = F::DIM;
+struct XLogX : VectorizedScalarUnaryOp<XLogX, F> {
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "XLogX";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "XLogX"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outF) {
-#pragma unroll
-    for (int k = 0; k < DIM; k++) {
-#if USE_DOUBLE
-      out[k] = outF[k] ? outF[k]*log(outF[k]) : 0.0;
-#else
-      out[k] = outF[k] ? outF[k]*logf(outF[k]) : 0.0;
-#endif
+  template < typename TYPE > 
+  struct Operation_Scalar {
+	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
+    	  out = keops_xlogx(outF);
     }
-  }
+  };
 
   template<class V, class GRADIN>
   using DiffTF = typename F::template DiffT<V, GRADIN>;

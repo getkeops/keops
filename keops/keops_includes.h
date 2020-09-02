@@ -1,3 +1,8 @@
+
+#if USE_HALF
+  #include <cuda_fp16.h>
+#endif
+
 // import constant
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/constants/Zero.h"
@@ -6,6 +11,10 @@
 // import all math implementations
 #include "core/formulas/maths/Minus.h"
 #include "core/formulas/maths/Sum.h"
+#include "core/formulas/maths/Min.h"
+#include "core/formulas/maths/Max.h"
+#include "core/formulas/maths/ArgMin.h"
+#include "core/formulas/maths/ArgMax.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/Concat.h"
 #include "core/formulas/maths/Scal.h"
@@ -76,16 +85,34 @@
 #ifndef __TYPEACC__
   #define __TYPEACC__ __TYPE__
 #endif
-#ifndef USE_BLOCKRED
-  #define USE_BLOCKRED 0
-#endif
-#ifndef USE_KAHAN
-  #define USE_KAHAN 0
+#define DIRECT_SUM 0
+#define BLOCK_SUM 1
+#define KAHAN_SCHEME 2
+#ifndef SUM_SCHEME
+  #define SUM_SCHEME DIRECT_SUM
 #endif
 
+// special computation scheme for dim>100
+#ifndef ENABLECHUNK
+  #define ENABLECHUNK 0
+#endif
+#ifndef DIMCHUNK
+  #define DIMCHUNK 64
+#endif
+#ifndef CUDA_BLOCK_SIZE_CHUNKS
+  #define CUDA_BLOCK_SIZE_CHUNKS 192
+#endif
+#ifndef DIM_TRESHOLD_CHUNK
+  #define DIM_TRESHOLD_CHUNK 110
+#endif
+
+// float16 support
+#if !USE_HALF
 #include "core/mapreduce/CpuConv.cpp"
+#endif
 
 #ifdef __CUDACC__
+  #include <cuda_fp16.h>
   #include "core/mapreduce/GpuConv1D.cu"
   #include "core/mapreduce/GpuConv2D.cu"
 #endif
