@@ -163,7 +163,7 @@ if(APPLE)
     set_target_properties(
         rkeops${shared_obj_name} 
         PROPERTIES LINK_FLAGS 
-        "-Wno-ignored-attributes -Wl,-rpath,@loader_path/."
+        "-Wno-ignored-attributes -Wl,-rpath,@loader_path/. -lR -Wl,-framework -Wl,CoreFoundation"
     )
 else()
     set_target_properties(
