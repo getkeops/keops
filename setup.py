@@ -11,12 +11,12 @@ here = path.abspath(path.dirname(__file__))
 from pykeops import __version__ as current_version
 
 # Get the long description from the README file
-with open(path.join(here, 'pykeops','pykeops.md'), encoding='utf-8') as f:
+with open(path.join(here, 'pykeops','readme.md'), encoding='utf-8') as f:
   long_description = f.read()
 
-def import_files(dirname):
+def import_files(dirname, ext=['h', 'hpp']):
   _dirname = path.join(os.getcwd(), 'pykeops', dirname)
-  res = [path.join(dirname, f) for f in os.listdir(_dirname) if any(f.endswith(ext) for ext in ['h', 'hpp'])]
+  res = [path.join(dirname, f) for f in os.listdir(_dirname) if any(f.endswith(ext) for ext in ext)]
   return res
 
 
@@ -56,7 +56,8 @@ tao_seq_files = import_files('keops/lib/sequences/include/tao/seq/')
 
 setup(
     name='pykeops',
-    version=current_version,
+
+    version = current_version,
 
     description='Python bindings of KeOps: KErnel OPerationS, on CPUs and GPUs, with autodiff and without memory overflows',  # Required
     long_description=long_description,
@@ -95,6 +96,7 @@ setup(
         'pykeops.numpy.convolutions',
         'pykeops.numpy.generic',
         'pykeops.numpy.shape_distance',
+        'pykeops.test',
         'pykeops.torch',
         'pykeops.torch.cluster',
         'pykeops.torch.generic',
@@ -103,7 +105,6 @@ setup(
 
     package_data={
         'pykeops': [
-            'pykeops.md',
             'readme.md',
             'licence.txt',
             'CMakeLists.txt',
@@ -119,28 +120,21 @@ setup(
             'keops/formula.h.in',
             'keops/headers.cmake',
             'keops/keops_includes.h',
+            'version',
             ] +
-            import_files('keops/core/autodiff/') +
-            import_files('keops/core/pack/') +
-            import_files('keops/core/formulas/') +
-            import_files('keops/core/formulas/constants/') +
-            import_files('keops/core/formulas/kernels') +
-            import_files('keops/core/formulas/maths/') +
-            import_files('keops/core/formulas/norms/') +
-            import_files('keops/core/reductions') +
+            import_files(path.join('keops', 'binders')) +
+            import_files(path.join('keops', 'core', 'autodiff')) +
+            import_files(path.join('keops', 'core', 'pack')) +
+            import_files(path.join('keops', 'core', 'formulas')) +
+            import_files(path.join('keops', 'core', 'formulas', 'constants')) +
+            import_files(path.join('keops', 'core', 'formulas', 'kernels')) +
+            import_files(path.join('keops', 'core', 'formulas', 'maths')) +
+            import_files(path.join('keops', 'core', 'formulas', 'norms')) +
+            import_files(path.join('keops', 'core', 'reductions')) +
+            import_files(path.join('keops', 'core', 'utils'), ['h', 'cu']) +
+            import_files(path.join('keops', 'core', 'mapreduce'), ['h', 'cpp', 'cu']) +
+            import_files(path.join('keops', 'core'), ['h', 'cpp', 'cu']) +
             [
-            'keops/core/mapreduce/broadcast_batch_dimensions.h',
-            'keops/core/mapreduce/CpuConv.cpp',
-            'keops/core/mapreduce/CpuConv_ranges.cpp',
-            'keops/core/mapreduce/GpuConv1D.cu',
-            'keops/core/mapreduce/GpuConv1D_ranges.cu',
-            'keops/core/mapreduce/GpuConv2D.cu',
-            'keops/core/utils/CudaErrorCheck.cu',
-            'keops/core/utils/CudaSizes.h',
-            'keops/core/utils/Infinity.h',
-            'keops/core/link_autodiff.cpp',
-            'keops/core/link_autodiff.cu',
-            'keops/core/pre_headers.h',
             'keops/specific/CMakeLists.txt',
             'keops/specific/radial_kernels/cuda_conv.cu',
             'keops/specific/radial_kernels/cuda_conv.cx',

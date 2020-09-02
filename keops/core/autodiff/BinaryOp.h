@@ -42,8 +42,56 @@ struct BinaryOp_base {
 
   // "Replace" can be used to replace any occurrence of a sub-formula in a formula
   // For example Add<Var<0,2,0>,Var<1,2,1>>::Replace<Var<1,2,1>,Var<1,2,0>> will be Add<Var<0,2,0>,Var<1,2,0>>
+
+  // NB. The following commented code should be ok but it dos not compile with Cuda 11 as of 2020 aug 13th...
+  /*
   template<class A, class B>
   using Replace = CondType< B, OP<typename FA::template Replace<A,B>,typename FB::template Replace<A,B>, PARAMS...>, IsSameType<A,THIS>::val >;
+  */
+  
+  // ... so we use an additional "_Impl" structure to specialize in case of empty PARAMS pack :
+  template < class A, class B, int SIZE_PARAMS >
+  struct Replace_Impl {
+    using type = CondType < B, OP < typename FA::template Replace<A,B>,
+        typename FB::template Replace<A,B> , PARAMS... >, IsSameType<A,THIS>::val >;
+  };
+
+  template < class A, class B >
+  struct Replace_Impl<A,B,0> {
+    using type = CondType < B, OP < typename FA::template Replace<A,B>,
+        typename FB::template Replace<A,B> >, IsSameType<A,THIS>::val >;
+  };
+
+  template < class A, class B >
+  using Replace = typename Replace_Impl<A,B,sizeof...(PARAMS)>::type;
+  
+  
+  
+  // version with two replacements of Vars at a time (two consecutive Replace might not work because of non compatible dimensions)
+  
+  // NB. The following commented code should be ok but it dos not compile with Cuda 11 as of 2020 aug 13th...
+  /*
+  template<class A1, class B1, class A2, class B2>
+  using ReplaceVars2 = OP<typename FA::template ReplaceVars2<A1,B1,A2,B2>,typename FB::template ReplaceVars2<A1,B1,A2,B2>, PARAMS...>;
+  */
+  
+  // ... so we use an additional "_Impl" structure to specialize in case of empty PARAMS pack :  
+  template<class A1, class B1, class A2, class B2, int SIZE_PARAMS>
+  struct ReplaceVars2_Impl { 
+    using type = OP<typename FA::template ReplaceVars2<A1,B1,A2,B2>,
+                        typename FB::template ReplaceVars2<A1,B1,A2,B2>, PARAMS...>;
+  };
+
+  template<class A1, class B1, class A2, class B2>
+  struct ReplaceVars2_Impl<A1,B1,A2,B2,0> {
+    using type = OP<typename FA::template ReplaceVars2<A1,B1,A2,B2>,
+                        typename FB::template ReplaceVars2<A1,B1,A2,B2>>;
+  };
+
+  template<class A1, class B1, class A2, class B2>
+  using ReplaceVars2 = typename ReplaceVars2_Impl<A1,B1,A2,B2,sizeof...(PARAMS)>::type;
+
+
 
   // VARS gives the list of all "Vars" of a given category inside a formula
   // Here we must take the union of Vars that are inside FA and Vars that are inside FB
@@ -59,10 +107,10 @@ struct BinaryOp : BinaryOp_base<OP,FA,FB,PARAMS...> {
 
   using THIS = OP<FA,FB,PARAMS...>;
 
-  template < class INDS, typename... ARGS >
-  static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+  template < class INDS, typename TYPE, typename... ARGS >
+  static HOST_DEVICE INLINE void Eval(TYPE* out, ARGS... args) {
     // we create vectors of sizes FA::DIM and FB::DIM
-    __TYPE__ outA[FA::DIM], outB[FB::DIM];
+    TYPE outA[FA::DIM], outB[FB::DIM];
     // then we call the Eval function of FA and FB
     FA::template Eval<INDS>(outA,args...);
     FB::template Eval<INDS>(outB,args...);
@@ -77,13 +125,13 @@ struct BinaryOp<OP,Var<N,DIM,CAT>,FB,PARAMS...>  : BinaryOp_base<OP,Var<N,DIM,CA
 
 using THIS = OP<Var<N,DIM,CAT>,FB,PARAMS...>;
 
-template < class INDS, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+template < class INDS, typename TYPE, typename... ARGS >
+static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   // we create a vector and call Eval only for FB
-  __TYPE__ outB[FB::DIM];
+  TYPE outB[FB::DIM];
   FB::template Eval<INDS>(outB,args...);
   // access the Nth argument of args
-  __TYPE__* outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
+  TYPE *outA = Get<IndVal_Alias<INDS,N>::ind>(args...); // outA = the "ind"-th argument.
   // then we call the Operation function
   THIS::Operation(out,outA,outB);
 }
@@ -95,13 +143,13 @@ struct BinaryOp<OP,FA,Var<N,DIM,CAT>,PARAMS...>  : BinaryOp_base<OP,FA,Var<N,DIM
 
 using THIS = OP<FA,Var<N,DIM,CAT>,PARAMS...>;
 
-template < class INDS, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+template < class INDS, typename TYPE, typename... ARGS >
+static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   // we create a vector and call Eval only for FA
-  __TYPE__ outA[FA::DIM];
+  TYPE outA[FA::DIM];
   FA::template Eval<INDS>(outA,args...);
   // access the Nth argument of args
-  __TYPE__* outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
+  TYPE *outB = Get<IndVal_Alias<INDS,N>::ind>(args...); // outB = the "ind"-th argument.
   // then we call the Operation function
   THIS::Operation(out,outA,outB);
 }
@@ -114,14 +162,24 @@ BinaryOp_base<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PARAMS...> {
 
 using THIS = OP<Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,PARAMS...>;
 
-template < class INDS, typename... ARGS >
-static HOST_DEVICE INLINE void Eval(__TYPE__* out, ARGS... args) {
+template < class INDS, typename TYPE, typename... ARGS >
+static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
   // we access the NAth and NBth arguments of args
-  __TYPE__* outA = Get<IndVal_Alias<INDS,NA>::ind>(args...);
-  __TYPE__* outB = Get<IndVal_Alias<INDS,NB>::ind>(args...);
+  TYPE *outA = Get<IndVal_Alias<INDS,NA>::ind>(args...);
+  TYPE *outB = Get<IndVal_Alias<INDS,NB>::ind>(args...);
   // then we call the Operation function
   THIS::Operation(out,outA,outB);
 }
+
+  // operator as shortcut to Eval...
+  template < typename INDS >
+  struct EvalFun {
+      template < typename... Args >
+      DEVICE INLINE void operator()(Args... args) {
+      	THIS::template Eval<INDS>(args...);
+      }
+  };
+    
 };
 
 

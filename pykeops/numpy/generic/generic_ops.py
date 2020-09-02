@@ -24,6 +24,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
         dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
+              - **dtype** = ``"float16"``,
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
 
@@ -68,6 +69,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs):
         dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
+              - **dtype** = ``"float16"``,
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
 
@@ -79,8 +81,8 @@ def generic_logsumexp(formula, output, *aliases, **kwargs):
         Log-likelihood of a Gaussian Mixture Model,
 
         .. math::
-            a_i~=~f(x_i)~&=~ \log \sum_{j=1}^{N} \exp(-\gamma\cdot\|x_i-y_j\|^2)\cdot b_j \\\\
-               ~&=~ \log \sum_{j=1}^{N} \exp\\big(-\gamma\cdot\|x_i-y_j\|^2 \,+\, \log(b_j) \\big).
+            a_i = f(x_i) &= \log \sum_{j=1}^{N} \exp(-\gamma\cdot\|x_i-y_j\|^2)\cdot b_j \\
+                         &= \log \sum_{j=1}^{N} \exp\big(-\gamma\cdot\|x_i-y_j\|^2 \,+\, \log(b_j) \big).
 
         >>> log_likelihood = generic_logsumexp(
         ...     '(-(g * SqNorm2(x - y))) + b', # Formula
@@ -124,6 +126,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs):
         dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
+              - **dtype** = ``"float16"``,
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
 
@@ -179,6 +182,7 @@ def generic_argmin(formula, output, *aliases, **kwargs):
         dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
             The supported values are:
 
+              - **dtype** = ``"float16"``,
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
 

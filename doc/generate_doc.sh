@@ -25,7 +25,8 @@ while getopts "n:v:bl" opt; do
 
     v ) version=${OPTARG##v}
         echo "Set a new version number: ${version}"
-        sed -i.bak "/__version__/c__version__ = \'$version\'" ../pykeops/__init__.py
+        mv ../version ../version.bak
+        echo "${version}" > ../version
       ;;
     \? ) echo "Usage: generate_doc [-v VERSION_NUMBER] [-l] [-b] [-n NUMBER_OF_BUILD]
 
@@ -63,7 +64,7 @@ fi
 
 # restore original __init__.py
 if [ ! -z "$version" ]; then
-    mv ../pykeops/__init__.py.bak ../pykeops/__init__.py
+    mv ../version.bak ../version
 fi
 
 set -e

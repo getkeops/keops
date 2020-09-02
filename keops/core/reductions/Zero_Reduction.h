@@ -4,6 +4,7 @@
 
 #include "core/reductions/Reduction.h"
 #include "core/formulas/constants/Zero.h"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 
@@ -35,7 +36,7 @@ struct Eval< Zero_Reduction < DIM, tagI >, MODE > {
 template < typename TYPE, typename... Args >
 static int Run(int nx, int ny, TYPE *out, Args... args) {
   for (int k = 0; k < (tagI == 0 ? nx : ny) * DIM; k++)
-    out[k] = 0;
+    out[k] = cast_to<TYPE>(0.0f);
   return 0;
 }
 };
@@ -53,7 +54,7 @@ static int Run(int nx, int ny,
                int nranges_x, int nranges_y, __INDEX__ **ranges,
                TYPE *out, Args... args) {
   for (int k = 0; k < (tagI == 0 ? nx : ny) * DIM; k++)
-    out[k] = 0;
+    out[k] = cast_to<TYPE>(0.0f);
   return 0;
 }
 };
@@ -66,7 +67,7 @@ static int Run(int nx, int ny,
                int nranges_x, int nranges_y, int nredranges_x, int nredranges_y, __INDEX__ **ranges,
                TYPE *out, Args... args) {
   for (int k = 0; k < (tagI == 0 ? nx : ny) * DIM; k++)
-    out[k] = 0;
+    out[k] = cast_to<TYPE>(0.0f);
   return 0;
 }
 };

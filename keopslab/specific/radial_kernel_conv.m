@@ -15,7 +15,7 @@ function [res] = radial_kernel_conv(x,y,b,s,kernel_type)
 %
 
 if ~(exist(['conv.',mexext],'file')==3)
-    compile_routine_conv([])
+    compile_routine_conv([]);
 end
 
 res = conv(x,y,b,s,kernel_type);

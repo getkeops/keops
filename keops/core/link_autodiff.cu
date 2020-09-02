@@ -30,6 +30,8 @@ extern "C" int GpuReduc2D_FromDevice(int nx, int ny, __TYPE__ *gamma, __TYPE__ *
   return Eval< F, GpuConv2D_FromDevice >::Run(nx, ny, gamma, args, device_id);
 }
 
+#if !USE_HALF
+
 /////////////////////////
 // Convolutions on Cpu //
 /////////////////////////
@@ -59,6 +61,7 @@ extern "C" int CpuReduc_ranges(int nx,
   return Eval< F, CpuConv_ranges >::Run(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, castedranges, gamma, args);
 }
 
+#endif
 
 //////////////////////////////////////
 // Convolutions on GPU, with ranges //

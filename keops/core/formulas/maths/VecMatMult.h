@@ -3,6 +3,8 @@
 #include <sstream>
 #include <assert.h>
 
+#include "core/utils/keops_math.h"
+#include "core/utils/TypesUtils.h"
 #include "core/autodiff/BinaryOp.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/maths/MatVecMult.h"
@@ -22,6 +24,7 @@ struct TensorProd;
 
 template<class B, class A>
 struct VecMatMult : BinaryOp<VecMatMult, B, A> {
+
   // A is vector of size n*p, interpreted as matrix, B is vector of size n, interpreted as row vector
   // output is vector of size p
 
@@ -29,32 +32,37 @@ struct VecMatMult : BinaryOp<VecMatMult, B, A> {
 
   static const int DIM = A::DIM / B::DIM;
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "x";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "x"; }
 
 #if C_CONTIGUOUS //row major
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
-#pragma unroll
+
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inB, TYPE *inA) {
+        #pragma unroll
         for (int i = 0; i < DIM; i++) {
-            out[i] = 0;
-#pragma unroll
+            out[i] = cast_to<TYPE>(0.0f);
+	    #pragma unroll
             for (int k = 0; k < B::DIM; k++)
-                out[i] += inB[k] * inA[DIM * k + i];
+                out[i] = keops_fma(inB[k], inA[DIM * k + i], out[i]);
         }
     }
+
 #else // column major
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *inB, __TYPE__ *inA) {
+
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *inB, TYPE *inA) {
     int q = 0;
-#pragma unroll
+    #pragma unroll
     for (int i = 0; i < DIM; i++) {
-      out[i] = 0;
-#pragma unroll
+      out[i] = cast_to<TYPE>(0.0f);
+      #pragma unroll
       for (int k = 0; k < B::DIM; k++, q++)
-        out[i] += inB[k] * inA[q];
+        out[i] = keops_fma(inB[k], inA[q], out[i]);
     }
   }
+
 #endif
+
   template<class V, class GRADIN>
   using DiffTA = typename A::template DiffT<V, GRADIN>;
 

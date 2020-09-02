@@ -24,16 +24,16 @@ using Mult = typename Mult_Alias<FA, FB>::type;
 
 template<class FA, class FB>
 struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
+
   // FA and FB are vectors with same size, Output has the same size
   static const int DIM = FA::DIM;
-  static_assert(FA::DIM == DIM, "Dimensions of FA and FB must be the same for Mult");
+  static_assert(FB::DIM == DIM, "Dimensions of FA and FB must be the same for Mult");
 
-  static void PrintIdString(::std::stringstream &str) {
-    str << "*";
-  }
+  static void PrintIdString(::std::stringstream &str) { str << "*"; }
 
-  static DEVICE INLINE void Operation(__TYPE__ *out, __TYPE__ *outA, __TYPE__ *outB) {
-#pragma unroll
+  template < typename TYPE >
+  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
+    #pragma unroll
     for (int k = 0; k < DIM; k++)
       out[k] = outA[k] * outB[k];
   }

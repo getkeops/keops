@@ -98,8 +98,9 @@ class LazyTensor:
             axis (int): should be equal to 0 or 1 if **x** is a 2D tensor, and  **None** otherwise.
     
         .. warning::
+
             A :class:`LazyTensor` constructed
-            from a NumPy array or a PyTorch tensor retains its **dtype** (float32 vs float64)
+            from a NumPy array or a PyTorch tensor retains its **dtype** (float16, float32 or float64)
             and **device** properties (is it stored on the GPU?).
             Since KeOps does **not** support automatic type conversions and data transfers,
             please make sure **not to mix** :class:`LazyTensor`
@@ -160,7 +161,7 @@ class LazyTensor:
             elif typex == list:
                 pass
             
-            elif usenumpy and typex in (np.float32, np.float64):  # NumPy scalar -> NumPy array
+            elif usenumpy and typex in (np.float16, np.float32, np.float64):  # NumPy scalar -> NumPy array
                 x = np.array(x).reshape(1)
             
             elif usetorch and typex == torch.Tensor and len(x.shape) == 0:  # Torch scalar -> Torch tensor
@@ -264,7 +265,7 @@ class LazyTensor:
                 # N.B.: We allow empty init!
     
     def fixvariables(self):
-        """If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
+        r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
         
         newvars = ()
         if self.formula2 is None: self.formula2 = ""  # We don't want to get regexp errors...
@@ -302,7 +303,22 @@ class LazyTensor:
         
         if self.formula2 == "": self.formula2 = None  # The pre-processing step is now over
         self.variables = newvars
-    
+
+    def separate_kwargs(self, kwargs):    
+        # separating keyword arguments for Genred init vs Genred call...
+        # Currently the only three additional optional keyword arguments that are passed to Genred init
+        # are accuracy options: dtype_acc, use_double_acc and sum_cheme.
+        kwargs_init = []
+        kwargs_call = []
+        for key in kwargs:
+            if key in ("dtype_acc","use_double_acc","sum_scheme"):
+                kwargs_init += [(key,kwargs[key])]
+            else:
+                kwargs_call += [(key,kwargs[key])]                
+        kwargs_init = dict(kwargs_init)
+        kwargs_call = dict(kwargs_call)
+        return kwargs_init, kwargs_call
+
     def promote(self, other, props):
         r"""
         Creates a new :class:`LazyTensor` whose **None** properties are set to those of **self** or **other**.
@@ -312,8 +328,13 @@ class LazyTensor:
         for prop in props:
             x, y = getattr(self, prop), getattr(other, prop)
             if x is not None:
-                if y is not None and x != y:
-                    raise ValueError("Incompatible values for attribute {}: {} and {}.".format(prop, x, y))
+                if y is not None:
+                    if prop == "ranges":
+                        x_eq_y = all(tuple(map(lambda x,y : torch.eq(x,y).all().item(),x,y)))
+                    else:
+                        x_eq_y = x==y
+                    if not(x_eq_y):
+                        raise ValueError("Incompatible values for attribute {}: {} and {}.".format(prop, x, y))
                 setattr(res, prop, x)
             else:
                 setattr(res, prop, y)
@@ -487,6 +508,24 @@ class LazyTensor:
             If **None** (default), we simply use a **dense Kernel matrix**
             as we loop over all indices
             :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+          dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+            It improves the accuracy of results in case of large sized data, but is slower.
+            Default value "auto" will set this option to the value of dtype. The supported values are: 
+              - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+              - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+              - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+          use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+            If True, accumulate results of reduction in float64 variables, before casting to float32. 
+            This can only be set to True when data is in float32 or float64.
+            It improves the accuracy of results in case of large sized data, but is slower.           
+          sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
+            when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+            Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
+              - **sum_scheme** =  ``"direct_sum"``: direct summation
+              - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                in the output. This improves accuracy for large sized data. 
+              - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
         """
         
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
@@ -505,14 +544,17 @@ class LazyTensor:
         res.reduction_op = reduction_op
         res.axis = axis - self.nbatchdims
         res.opt_arg = opt_arg
-        res.kwargs = kwargs
+
+        kwargs_init, kwargs_call = self.separate_kwargs(kwargs)
+
+        res.kwargs = kwargs_call
         res.ndim = self.ndim
         
         if res.dtype is not None:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
             # "res" now becomes a callable object:
             res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis,
-                                     res.dtype, res.opt_arg, res.formula2)
+                                     res.dtype, res.opt_arg, res.formula2, **kwargs_init)
         
         if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
             return res()
@@ -528,7 +570,6 @@ class LazyTensor:
           other (:class:`LazyTensor`): KeOps variable that encodes the second member of the equation.
 
         Keyword args:
-
           var (:class:`LazyTensor`):
             If **var** is **None**, **solve** will return the solution
             of the ``self * var = other`` equation.
@@ -552,10 +593,28 @@ class LazyTensor:
             :doc:`block-sparse reduction scheme <../../sparsity>`
             as detailed in the documentation of the :mod:`Genred <pykeops.torch.Genred>` module.
             If **None** (default), we simply use a **dense Kernel matrix**
-            as we loop over all indices
-            :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+            as we loop over all indices :math:`i\in[0,M)` and :math:`j\in[0,N)`.
+          dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+            It improves the accuracy of results in case of large sized data, but is slower.
+            Default value "auto" will set this option to the value of dtype. The supported values are: 
+              - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+              - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+              - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+          use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+            If True, accumulate results of reduction in float64 variables, before casting to float32. 
+            This can only be set to True when data is in float32 or float64.
+            It improves the accuracy of results in case of large sized data, but is slower.           
+          sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
+            when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+            Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
+              - **sum_scheme** =  ``"direct_sum"``: direct summation
+              - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                in the output. This improves accuracy for large sized data. 
+              - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
 
         .. warning::
+
             Please note that **no check** of symmetry and definiteness will be
             performed prior to our conjugate gradient descent.
         """
@@ -592,13 +651,15 @@ class LazyTensor:
         res.varformula = var.formula.replace("VarSymb", "Var")
         res.other = other
         res.axis = axis
-        res.kwargs = kwargs
+
+        kwargs_init, res.kwargs = self.separate_kwargs(kwargs)
+
         res.ndim = self.ndim
         
         if res.dtype is not None:
             res.fixvariables()
             res.callfun = res.KernelSolve(res.formula, [], res.varformula,
-                                          res.axis, res.dtype)
+                                          res.axis, res.dtype, **kwargs_init)
         
         # we call if call=True, if other is not symbolic, and if the dtype is set
         if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
@@ -610,6 +671,9 @@ class LazyTensor:
         r"""
         Executes a :mod:`Genred <pykeops.torch.Genred>` or :mod:`KernelSolve <pykeops.torch.KernelSolve>` call on the input data, as specified by **self.formula** .
         """
+        if not hasattr(self,"reduction_op"):
+            raise ValueError("A LazyTensor object may be called only if it corresponds to the ouput of a reduction operation or solve operation.")
+
         self.kwargs.update(kwargs)
         
         if self.ranges is not None and "ranges" not in self.kwargs:
@@ -632,12 +696,15 @@ class LazyTensor:
             
             self.dtype = self.tools.dtypename(self.tools.dtype(args[0]))
             self.fixvariables()
+            
+            kwargs_init, self.kwargs = self.separate_kwargs(self.kwargs)
+
             if self.reduction_op == "Solve":
                 self.callfun = self.KernelSolve(self.formula, [], self.formula2,
-                                                self.axis, self.dtype)
+                                                self.axis, self.dtype, **kwargs_init)
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op,
-                                           self.axis, self.dtype, self.opt_arg, self.formula2)
+                                           self.axis, self.dtype, self.opt_arg, self.formula2, **kwargs_init)
         
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
             # here args should be empty, according to our rule
@@ -865,6 +932,15 @@ class LazyTensor:
         the element-wise logarithm of ``x``.
         """
         return self.unary("Log")
+    
+    def xlogx(self):
+        r"""
+        Element-wise x*log(x) function - a unary operation.
+        
+        ``x.xlogx()`` returns a :class:`LazyTensor` that encodes, symbolically, 
+        the element-wise ``x`` times logarithm of ``x`` (with value 0 at 0).
+        """
+        return self.unary("XLogX")
     
     def cos(self):
         r"""
@@ -1117,6 +1193,22 @@ class LazyTensor:
         else:
             raise ValueError("LazyTensors only support indexing with integers and vanilla python slices.")
     
+
+    def one_hot(self, D):
+        r"""
+        Encodes a (rounded) scalar value as a one-hot vector of dimension D. 
+        
+        ``x.one_hot(D)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        a vector of length D whose round(x)-th coordinate is equal to 1, and the other ones to zero.
+        """
+        if type(D) is not int:
+            raise ValueError("One-hot encoding expects an integer dimension of the output vector.")
+        if self.ndim != 1:
+            raise ValueError("One-hot encoding is only supported for scalar formulas.")
+            
+        return self.unary("OneHot", dimres=D, opt_arg=D)
+
+
     def concat(self, other):
         r"""
         Concatenation of two :class:`LazyTensor` - a binary operation.
@@ -1136,17 +1228,18 @@ class LazyTensor:
         LazyTensors only support concatenation and indexing operations with respect
         to the last dimension.
         """
-        if axis not in [-1, len(self._shape) - 1]:
-            raise ValueError("LazyTensor only supports concatenation along the last axis.")
         if isinstance(self, tuple):
             if len(self) == 0:
                 raise ValueError("Received an empty tuple of LazyTensors.")
-            elif len(self) == 1:
-                return self
-            elif len(self) == 2:
-                return self[0].concat(self[1])
             else:
-                return LazyTensor.concatenate((self[0].concat(self[1]), self[2:]), axis=-1)
+                if axis not in [-1, len(self[0]._shape) - 1]:
+                    raise ValueError("LazyTensor only supports concatenation along the last axis.")
+                if len(self) == 1:
+                    return self[0]
+                elif len(self) == 2:
+                    return self[0].concat(self[1])
+                else:
+                    return LazyTensor.concatenate((self[0].concat(self[1]),)+self[2:], axis=-1)
         else:
             raise ValueError("LazyTensor.concatenate is implemented on *tuples* of LazyTensors.")
     
@@ -1343,15 +1436,38 @@ class LazyTensor:
         Sum of weighted Soft-Max reduction. Redirects to :meth:`sumsoftmaxweight` method.          
         """
         return self.sumsoftmaxweight(**kwargs)
-    
-    def min(self, axis=None, dim=None, **kwargs):
+
+    def min(self, axis=-1, dim=None, **kwargs):
         r"""
-        Min reduction. 
+        Minimum unary operation, or Min reduction. 
         
         ``min(axis, dim, **kwargs)`` will:
 
-          - if **axis or dim = 0**, return the minimal values of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the minimal values of **self** over the "j" indexes.
+          - if **axis or dim = 0**, return the min reduction of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the min reduction of **self** over the "j" indexes.
+          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the min of the values of the vector **self**,
+        
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, min along the 
+            dimension of the vector variable).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("Min", dimres=1)
+        else:
+            return self.reduction("Min", axis=axis, **kwargs)
+                
+    def min_reduction(self, axis=None, dim=None, **kwargs):
+        r"""
+        Min reduction. 
+        
+        ``min_reduction(axis, dim, **kwargs)`` will return the min reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1363,26 +1479,43 @@ class LazyTensor:
         """
         return self.reduction("Min", axis=axis, dim=dim, **kwargs)
     
-    def min_reduction(self, **kwargs):
-        r"""
-        Min reduction. Redirects to :meth:`min` method.          
-        """
-        return self.min(**kwargs)
-    
     def __min__(self, **kwargs):
         r"""
-        Min reduction. Redirects to :meth:`min` method.          
+        Minimum unary operation, or Min reduction. Redirects to :meth:`min` method.          
         """
         return self.min(**kwargs)
     
-    def argmin(self, axis=None, dim=None, **kwargs):
+    def argmin(self, axis=-1, dim=None, **kwargs):
         r"""
-        ArgMin reduction. 
+        ArgMin unary operation, or ArgMin reduction. 
         
         ``argmin(axis, dim, **kwargs)`` will:
 
-          - if **axis or dim = 0**, return the indices of minimal values of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the indices of minimal values of **self** over the "j" indexes.
+          - if **axis or dim = 0**, return the argmin reduction of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the argmin reduction of **self** over the "j" indexes.
+          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the argmin of the values of the vector **self**,
+        
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, argmin along the 
+            dimension of the vector variable).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("ArgMin", dimres=1)
+        else:
+            return self.reduction("ArgMin", axis=axis, **kwargs)
+    
+    def argmin_reduction(self, axis=None, dim=None, **kwargs):
+        r"""
+        ArgMin reduction. 
+        
+        ``argmin_reduction(axis, dim, **kwargs)`` will return the argmin reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1393,12 +1526,6 @@ class LazyTensor:
 
         """
         return self.reduction("ArgMin", axis=axis, dim=dim, **kwargs)
-    
-    def argmin_reduction(self, **kwargs):
-        r"""
-        ArgMin reduction. Redirects to :meth:`argmin` method.          
-        """
-        return self.argmin(**kwargs)
     
     def min_argmin(self, axis=None, dim=None, **kwargs):
         r"""
@@ -1425,14 +1552,37 @@ class LazyTensor:
         """
         return self.min_argmin(**kwargs)
     
-    def max(self, axis=None, dim=None, **kwargs):
+    def max(self, axis=-1, dim=None, **kwargs):
         r"""
-        Max reduction. 
+        Miaximum unary operation, or Max reduction. 
         
         ``max(axis, dim, **kwargs)`` will:
 
-          - if **axis or dim = 0**, return the maximal values of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the maximal values of **self** over the "j" indexes.
+          - if **axis or dim = 0**, return the max reduction of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the max reduction of **self** over the "j" indexes.
+          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the max of the values of the vector **self**,
+        
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, max along the 
+            dimension of the vector variable).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("Max", dimres=1)
+        else:
+            return self.reduction("Max", axis=axis, **kwargs)
+                
+    def max_reduction(self, axis=None, dim=None, **kwargs):
+        r"""
+        Max reduction. 
+        
+        ``max_reduction(axis, dim, **kwargs)`` will return the max reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1444,26 +1594,43 @@ class LazyTensor:
         """
         return self.reduction("Max", axis=axis, dim=dim, **kwargs)
     
-    def max_reduction(self, **kwargs):
-        r"""
-        Max reduction. Redirects to :meth:`max` method.          
-        """
-        return self.max(**kwargs)
-    
     def __max__(self, **kwargs):
         r"""
-        Max reduction. Redirects to :meth:`max` method.          
+        Maximum unary operation, or Max reduction. Redirects to :meth:`max` method.          
         """
         return self.max(**kwargs)
     
-    def argmax(self, axis=None, dim=None, **kwargs):
+    def argmax(self, axis=-1, dim=None, **kwargs):
         r"""
-        ArgMax reduction. 
+        ArgMax unary operation, or ArgMax reduction. 
         
         ``argmax(axis, dim, **kwargs)`` will:
 
-          - if **axis or dim = 0**, return the indices of maximal values of **self** over the "i" indexes.
-          - if **axis or dim = 1**, return the indices of maximal values of **self** over the "j" indexes.
+          - if **axis or dim = 0**, return the argmax reduction of **self** over the "i" indexes.
+          - if **axis or dim = 1**, return the argmax reduction of **self** over the "j" indexes.
+          - if **axis or dim = 2**, return a new :class:`LazyTensor` object representing the argmax of the values of the vector **self**,
+        
+        Keyword Args:
+          axis (integer): reduction dimension, which should be equal to the number
+            of batch dimensions plus 0 (= reduction over :math:`i`), 
+            1 (= reduction over :math:`j`) or 2 (i.e. -1, argmax along the 
+            dimension of the vector variable).
+          dim (integer): alternative keyword for the axis parameter.
+          **kwargs: optional parameters that are passed to the :meth:`reduction` method.
+
+        """
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("ArgMax", dimres=1)
+        else:
+            return self.reduction("ArgMax", axis=axis, **kwargs)
+    
+    def argmax_reduction(self, axis=None, dim=None, **kwargs):
+        r"""
+        ArgMax reduction. 
+        
+        ``argmax_reduction(axis, dim, **kwargs)`` will return the argmax reduction of **self**.
         
         Keyword Args:
           axis (integer): reduction dimension, which should be equal to the number
@@ -1474,12 +1641,6 @@ class LazyTensor:
 
         """
         return self.reduction("ArgMax", axis=axis, dim=dim, **kwargs)
-    
-    def argmax_reduction(self, **kwargs):
-        r"""
-        ArgMax reduction. Redirects to :meth:`argmax` method.          
-        """
-        return self.argmax(**kwargs)
     
     def max_argmax(self, axis=None, dim=None, **kwargs):
         r"""
@@ -1613,31 +1774,9 @@ class LazyTensor:
         else:
             newdims = v.shape[:-2] + (1,) + v.shape[-2:]
 
-        v_ = self.tools.view( v, newdims )
-        
-        if pykeops.gpu_available and v_.shape[-1] > 80 :
-            # custom method when last dim of v is large
-            # we have :
-            # K._shape = (batchdimsK,M,N,1)
-            # v_.shape = (batchdimsv,1,N,Nv)        
-            # we expand v_ to get same shape as K :
-            v_ = self.tools.view(v_,[1]*(len(self._shape)-len(v_.shape))+list(v_.shape)) # (1,..,1,batchdimsv,1,N,Nv)
-            # (NB if K has less batch dims than v it does nothing)
-            # now we shift the Nv dim from last to first position
-            v_ = self.tools.permute(v_,[len(v_.shape)-1]+list(range(0,len(v_.shape)-1))) # (Nv,1,..,1,batchdimsv,1,N)
-            v_ = self.tools.contiguous(v_)
-            # we add a dummy dimension at the end (maybe not necessary ?)
-            v_ = self.tools.view(v_,list(v_.shape)+[1]) # (Nv,1,..,1,batchdimsv,1,N,1)
-            v_ = LazyTensor(v_)
-            Kv = (self*v_).sum(dim=len(v_._shape)-2) # (Nv,outbatchdims,M,1)
-            Kv = self.tools.permute(Kv,list(range(1,len(Kv.shape)))+[0]) # (outbatchdims,M,1,Nv)
-            Kv = self.tools.contiguous(Kv)
-            Kv = self.tools.view(Kv,list(Kv.shape[:-2])+[Kv.shape[-1]]) # (outbatchdims,M,Nv)
-        else :
-            # otherwise, direct KeOps operation
-            v_ = LazyTensor(v_)
-            Kv = (self * v_ )            # Supports broadcasting
-            Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
+        v_ = LazyTensor(self.tools.view( v, newdims ))
+        Kv = (self * v_ )            # Supports broadcasting
+        Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
 
         # Expected behavior: if v is a vector, so should K @ v.
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv

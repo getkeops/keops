@@ -27,7 +27,7 @@ Using pip (recommended)
 
   Note that the compiled shared objects (``*.so`` files) will be stored into the folder  ``~/.cache/libkeops-$version`` where ``~`` is the path to your home folder and ``$version`` is the package version number.
 
-3. Test your installation, as described in the :ref:`next section. <part.checkPython>`
+3. Test your installation, as described in the :ref:`next section <part.checkPython>`.
 
 On Google Colab
 ===============
@@ -79,62 +79,47 @@ From source using git
 Testing your installation
 =========================
 
-1. In a python terminal,
+You can use the following test functions that compile simple pykeops formulas. If the compilation fails, it returns the full log.
+
+1.  In a python terminal, 
 
   .. code-block:: python
 
-    import numpy as np
-    import pykeops.numpy as pknp
-    
-    x = np.arange(1, 10).reshape(-1, 3).astype('float32')
-    y = np.arange(3, 9).reshape(-1, 3).astype('float32')
-    
-    my_conv = pknp.Genred('SqNorm2(x - y)', ['x = Vi(3)', 'y = Vj(3)'])
-    print(my_conv(x, y))
+    import pykeops
+    pykeops.clean_pykeops()          # just in case old build files are still present 
+    pykeops.test_numpy_bindings()    # perform the compilation
         
   should return:
 
   .. code-block:: console
 
-    Compiling libKeOpsnumpy5ac3d464a2 in /path/to/build_dir/:
+    Compiling libKeOpsnumpyb10acd1892 in /path/to/build_dir/build-libKeOpsnumpyb10acd1892:
        formula: Sum_Reduction(SqNorm2(x - y),1)
        aliases: x = Vi(0,3); y = Vj(1,3); 
        dtype  : float64
-
-  .. code-block:: python
-
-    [[63.]
-     [90.]]
-
-
+    ... Done.
+    
+    pyKeOps with numpy bindings is working!
 
 2. If you use PyTorch, the following code:
 
   .. code-block:: python
 
-    import torch
-    import pykeops.torch as pktorch
-    
-    x = torch.arange(1, 10, dtype=torch.float32).view(-1, 3)
-    y = torch.arange(3, 9, dtype=torch.float32).view(-1, 3)
-    
-    my_conv = pktorch.Genred('SqNorm2(x-y)', ['x = Vi(3)', 'y = Vj(3)'])
-    print(my_conv(x, y))
-
+    import pykeops
+    pykeops.clean_pykeops()          # just in case old build files are still present
+    pykeops.test_torch_bindings()    # perform the compilation
+  
   should return:
 
   .. code-block:: console
 
-    Compiling libKeOpstorch91c92bd508 in /path/to/build_dir/:
-       formula: Sum_Reduction(SqNorm2(x-y),1)
+    Compiling libKeOpstorch2ee7a43993 in /path/to/build_dir/build-libKeOpstorch2ee7a43993:
+       formula: Sum_Reduction(SqNorm2(x - y),1)
        aliases: x = Vi(0,3); y = Vj(1,3); 
        dtype  : float32
-    ... Done. 
+    ... Done.
 
-  .. code-block:: python
-
-    tensor([[63.],
-            [90.]])
+    pyKeOps with torch bindings is working!
 
 
 Troubleshooting
@@ -155,12 +140,12 @@ First of all, make sure that you are using a C++ compiler which is compatible wi
 Cache directory
 ---------------
 
-If you experience problems with compilation (or numerical inaccuracies after a KeOps update), it may be a good idea to **flush the build folder** (i.e. the cache of already-compiled formulas). To get the directory name, just type:
+If you experience problems with compilation, it may be a good idea to **flush the build folder** (i.e. the cache of already-compiled formulas). To do this, just type:
 
 .. code-block:: python
 
   import pykeops
-  print(pykeops.bin_folder)
+  pykeops.clean_pykeops()
 
 
 

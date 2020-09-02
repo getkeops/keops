@@ -1,20 +1,23 @@
+import torch
 import pykeops
 
 ##########################################################
-# Search for Pytorch and a GPU
+# Check Pytorch install
 
-torch_version_required = '1.0'
-
-# is torch installed ?
-import torch
-from torch.utils.cpp_extension import include_paths
-
-include_dirs = include_paths()[0:2]
+# is the proper torch version  installed ?
+torch_version_required = '1.3'
 
 if torch.__version__ < torch_version_required:
-    raise ImportError('The pytorch version should be >=' + torch_version_required)
+    raise ImportError('[pyKeOps]: The pytorch version should be >=' + torch_version_required)
 
-pykeops.gpu_available = torch.cuda.is_available() # use torch to detect gpu
+# get the path of the current pytorch and some built options
+include_dirs = ['-DPYTORCH_ROOT_DIR=' + ';'.join(torch.__path__),
+                '-D_GLIBCXX_USE_CXX11_ABI=' + str(int(torch._C._GLIBCXX_USE_CXX11_ABI))]
+
+##########################################################
+# Get GPU informations
+
+pykeops.gpu_available = torch.cuda.is_available()  # use torch to detect gpu
 pykeops.torch_found = True
 
 default_dtype = 'float32'

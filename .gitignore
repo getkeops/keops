@@ -36,6 +36,10 @@
 *__pycache__*
 *.pyc
 
+# coverage data files
+*.coverage*
+htmlcov
+
 # Setuptools distribution folder.
 /dist/
 
@@ -46,3 +50,10 @@
 keopslab/generic/pathtocmake
 
 keopslab/common/pathtocmake
+
+# R/Rstudio related files
+.Rproj.user
+.Rhistory
+
+# benchmark extra file
+benchmarks/*halide*

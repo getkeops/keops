@@ -8,6 +8,7 @@
 #include "core/pack/GetDims.h"
 #include "core/mapreduce/broadcast_batch_dimensions.h"
 #include "core/utils/CudaErrorCheck.cu"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 
@@ -77,9 +78,21 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
     }
 
     // get the value of variable (index with i)
-    TYPE xi[DIMX < 1 ? 1 : DIMX] ,tmp[DIMRED];
+    TYPE xi[DIMX < 1 ? 1 : DIMX];
+    __TYPEACC__ acc[DIMRED];
+#if SUM_SCHEME == BLOCK_SUM
+    // additional tmp vector to store intermediate results from each block
+    TYPE tmp[DIMRED];
+#elif SUM_SCHEME == KAHAN_SCHEME
+    // additional tmp vector to accumulate errors
+    const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+    TYPE tmp[DIM_KAHAN];
+#endif
     if(i<end_x) {
-        typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
+        typename FUN::template InitializeReduction<__TYPEACC__,TYPE>()(acc); // acc = 0
+#if SUM_SCHEME == KAHAN_SCHEME
+        VectAssign<DIM_KAHAN>(tmp,0.0f);
+#endif
         if (nbatchdims == 0) {
             load<typename DIMSX::NEXT>(i, xi+DIMFOUT, px+1); // load xi variables from global memory to local thread memory
         } else {
@@ -109,14 +122,56 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
 
                 if(i<end_x) { // we compute x1i only if needed
                     TYPE* yjrel = yj; // Loop on the columns of the current block.
-                    for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {
-                        call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-                        if (nbatchdims == 0) {
-                            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x + start_y);     // tmp += xi
-                        } else {
-                            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, jrel+tile*blockDim.x);
+#if SUM_SCHEME == BLOCK_SUM
+      	            typename FUN::template InitializeReduction<TYPE,TYPE>()(tmp); // tmp = 0
+#endif
+                    if (nbatchdims == 0) {
+                        for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {
+                            call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
+#if SUM_SCHEME == BLOCK_SUM
+#if USE_HALF
+        int ind = jrel+tile*blockDim.x + start_y;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, __floats2half2_rn(2*ind,2*ind+1));     // tmp += xi
+#else
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, jrel+tile*blockDim.x + start_y);     // tmp += xi
+#endif                           
+#elif SUM_SCHEME == KAHAN_SCHEME
+                            typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
+#else
+#if USE_HALF
+        int ind = jrel+tile*blockDim.x + start_y;
+        typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+        typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, jrel+tile*blockDim.x + start_y);     // acc += xi
+#endif                              
+#endif
+                        } 
+                    }
+                    else {
+                        for(int jrel = 0; (jrel < blockDim.x) && (jrel<end_y-jstart); jrel++, yjrel+=DIMY) {
+                            call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
+#if SUM_SCHEME == BLOCK_SUM
+#if USE_HALF
+       			    int ind = jrel+tile*blockDim.x;
+        		    typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, __floats2half2_rn(2*ind,2*ind+1));     // tmp += xi
+#else
+                            typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, xi, jrel+tile*blockDim.x);     // tmp += xi
+#endif
+#elif SUM_SCHEME == KAHAN_SCHEME
+                            typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
+#else
+#if USE_HALF
+       			    int ind = jrel+tile*blockDim.x;
+        		    typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+                            typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, xi, jrel+tile*blockDim.x);     // acc += xi
+#endif
+#endif
                         }
                     }
+#if SUM_SCHEME == BLOCK_SUM
+                    typename FUN::template ReducePair<__TYPEACC__,TYPE>()(acc, tmp);     // acc += tmp
+#endif
                 }
                 __syncthreads();
             }
@@ -127,8 +182,8 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
         }
     }
     if(i<end_x) {
-    	typename FUN::template FinalizeOutput<TYPE>()(tmp, px[0]+i*DIMOUT, px, i);
-//printf("blockIdx.x=%d, threadIdx.x=%d, i=%d, start_x=%d, end_x=%d, *tmp=%f, *(px[0]+i*DIMOUT)=%f\n",blockIdx.x,threadIdx.x,i,start_x,end_x,*tmp,*(px[0]+i*DIMOUT));
+    	typename FUN::template FinalizeOutput<__TYPEACC__,TYPE>()(acc, px[0]+i*DIMOUT, px, i);
+//printf("blockIdx.x=%d, threadIdx.x=%d, i=%d, start_x=%d, end_x=%d, *acc=%f, *(px[0]+i*DIMOUT)=%f\n",blockIdx.x,threadIdx.x,i,start_x,end_x,*acc,*(px[0]+i*DIMOUT));
     }
 
 }

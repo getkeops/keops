@@ -150,7 +150,7 @@ The :mod:`LazyTensor` abstraction
 
 Implementation details are covered in the next few sections but probably
 won’t interest most mathematicians. Wary of making users step outside of
-the convenient tensor-centric paradigm, we give a matrix-like interface
+the convenient tensor-centric paradigm, we give a **matrix-like interface**
 to the generic reduction above. Through a new
 :mod:`LazyTensor` wrapper for NumPy arrays and PyTorch tensors,
 users may specify formulas :math:`F` without ever leaving the comfort of

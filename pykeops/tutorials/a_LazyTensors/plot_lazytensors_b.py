@@ -10,7 +10,7 @@ Fancy reductions, solving linear systems
 # As discussed in the previous notebook, 
 # KeOps :class:`LazyTensors <pykeops.torch.LazyTensor>`
 # support a wide range of **mathematical formulas**.
-# Let us now discuss the different operators that may be used
+# Let us now discuss the different operators that can be used
 # to **reduce** our large M-by-N symbolic tensors into
 # vanilla NumPy arrays or PyTorch tensors.
 #
@@ -55,30 +55,30 @@ print("Sum reduction of S_ij wrt. the 'N' dimension:", S_ij.sum(dim=1).shape)
 
 ###############################################
 # Note that :class:`LazyTensors<pykeops.torch.LazyTensor>`
-# support reductions over both indexing ``M`` and ``N`` dimensions,
-# which may be specified using the PyTorch-friendly ``dim``
-# or the standard NumPy ``axis`` optional arguments:
+# support reductions over both indexing dimensions ``M`` and ``N``,
+# which can be specified using the PyTorch ``dim``
+# or the NumPy ``axis`` optional arguments:
 
 print("Sum reduction of V_ij wrt. the 'M' dimension:", V_ij.sum(axis=0).shape)
 
 ##################################################################
 # Just like PyTorch tensors, 
 # :mod:`pykeops.torch.LazyTensor`
-# also support a **stabilized** `log-sum-exp reduction <https://en.wikipedia.org/wiki/LogSumExp>`_,
+# support a **stabilized** `log-sum-exp reduction <https://en.wikipedia.org/wiki/LogSumExp>`_,
 # computed efficiently with a **running maximum** in the CUDA loop. For example, the 
 # following line computes :math:`\log(\sum_ie^{S_{ij}})`
 
 print("LogSumExp reduction of S_ij wrt. the 'M' dimension:", S_ij.logsumexp(dim=0).shape)
 
 ##################################################################
-# This reduction supports a weight parameter, which can be scalar or vector-valued.
+# This reduction supports a weight parameter that can be scalar or vector-valued.
 # For example, the following line computes :math:`\log(\sum_je^{S_{ij}}V_{ij})`
 print("LogSumExp reduction of S_ij, with 'weight' V_ij, wrt. the 'N' dimension:",
       S_ij.logsumexp(dim=1, weight=V_ij).shape)
 
 ###############################################################
 # Going further, the :meth:`pykeops.torch.LazyTensor.min`, :meth:`pykeops.torch.LazyTensor.max()`, :meth:`pykeops.torch.LazyTensor.argmin` or :meth:`pykeops.torch.LazyTensor.argmax`
-# reductions work as expected, following the (sensible) NumPy convention:
+# reductions work as expected, following the sensible NumPy convention:
 
 print("Min    reduction of S_ij wrt. the 'M' dimension:", S_ij.min(dim=0).shape)
 print("ArgMin reduction of S_ij wrt. the 'N' dimension:", S_ij.argmin(dim=1).shape)
@@ -99,7 +99,7 @@ print("Max-ArgMax reduction on V_ij wrt. the 'N' dimension:", m_i.shape, s_i.sha
 ##################################################################
 # More interestingly, KeOps also provides support for
 # the :meth:`pykeops.torch.LazyTensor.Kmin`, :meth:`pykeops.torch.LazyTensor.argKmin` and :meth:`pykeops.torch.LazyTensor.Kmin_argKmin`
-# reductions that may be used to implement an efficient
+# reductions that can be used to implement an efficient
 # :doc:`K-nearest neighbor algorithm <../knn/plot_knn_torch>` :
 #
 
@@ -116,7 +116,7 @@ print("ArgKMin reduction of V_ij wrt. the 'N' dimension:", V_ij.argKmin(K=K, dim
 
 #################################################################
 # Finally, the :meth:`pykeops.torch.LazyTensor.sumsoftmaxweight` reduction
-# may be used to computed weighted SoftMax combinations
+# can be used to computed weighted SoftMax combinations
 #
 # .. math::
 #   a_i = \frac{\sum_j \exp(s_{i,j})\,v_{i,j} }{\sum_j \exp(s_{i,j})},
@@ -139,7 +139,7 @@ print("SumSoftMaxWeight reduction of S_ij, with weights V_ij, wrt. the 'N' dimen
 #       &\text{i.e.}\quad &  a^{\star} & = (\alpha \operatorname{Id} + K_{xx})^{-1}  b,
 #
 # KeOps :mod:`pykeops.torch.LazyTensor` support 
-# a simple :meth:`LazyTensor.solve(b, alpha=1e-10)<pykeops.torch.LazyTensor.solve>` operation that can be used as follows:
+# a simple :meth:`LazyTensor.solve(b, alpha=1e-10)<pykeops.torch.LazyTensor.solve>` operation that we use as follows:
 
 x = torch.randn(M, D, requires_grad=True).type(tensor)  # Random point cloud
 x_i = LazyTensor(x[:, None, :])  # (M, 1, D) LazyTensor

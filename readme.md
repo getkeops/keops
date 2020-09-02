@@ -2,15 +2,45 @@
 
 [![Build Status](https://ci.inria.fr/keops/buildStatus/icon?job=keops%2Fmaster)](https://ci.inria.fr/keops/job/keops/job/master/)
 
+You can visit KeOps official [website](https://www.kernel-operations.io/) for 
+documentation and tutorials.
+
 # Kernel Operations on the GPU, with autodiff, without memory overflows
 
 The KeOps library lets you compute generic reductions of **very large arrays**
-whose entries are given by a mathematical formula. 
+whose entries are given by a mathematical formula.
 It combines a **tiled reduction scheme** with an **automatic differentiation**
-engine, and can be used through **Matlab**, **NumPy** or **PyTorch** backends.
-It is perfectly suited to the computation of **Kernel dot products**
+engine, and can be used through **Matlab**, **Python** (NumPy or PyTorch) or
+**R** backends.
+It is perfectly suited to the computation of **Kernel matrix-vector products**
 and the associated gradients,
 even when the full kernel matrix does *not* fit into the GPU memory.
+
+![Symbolic matrices](./doc/_static/symbolic_matrix.svg)
+
+Math libraries understand variables as matrices,
+also known as tensors.
+(a) These are usually **dense** and encoded as
+explicit numerical arrays that can have a large memory footprint.
+(b) Alternatively, some operators can be encoded as
+**sparse matrices**: libraries store in memory the indices
+(i<sub>n</sub>,j<sub>n</sub>) and 
+values M<sub>n</sub> = M<sub>i<sub>n</sub>,j<sub>n</sub></sub>
+that correspond to a small number
+of non-zero coefficients.
+Reduction operations are then implemented using
+indexing methods and scattered memory accesses.
+(c) **We provide support for a third class of tensors:**
+**symbolic matrices** whose coefficients
+are given by a formula
+M<sub>i,j</sub> = F(x<sub>i</sub>,y<sub>j</sub>) that is evaluated on
+data arrays (x<sub>i</sub>) and (y<sub>j</sub>).
+Reduction operations are implemented using
+parallel schemes that compute the coefficients M<sub>i,j</sub>
+on-the-fly.
+We take advantage of the structure of CUDA registers
+to bypass costly memory transfers
+and achieve optimal runtimes on a wide range of applications.
 
 Using the **PyTorch backend**, a typical sample of code looks like:
 
@@ -62,6 +92,23 @@ More details are provided below:
 * [Gallery of examples](http://www.kernel-operations.io/keops/_auto_examples/index.html)
 * [Benchmarks](http://www.kernel-operations.io/keops/_auto_benchmarks/index.html)
 
+# Benchmark
+
+KeOps is one of the fastest solution to compute generic Kernel formula. See our [benchmark](./benchmarks/README.md)
+
+# How to cite
+
+When using KeOps for your scientific work, please cite the [preprint](https://hal.archives-ouvertes.fr/hal-02517462) or directly use the following bibtex:
+
+```tex
+@article{charlier2020kernel,
+  title={Kernel operations on the {GPU}, with autodiff, without memory overflows},
+  author={Charlier, Benjamin and Feydy, Jean and Glaun{\`e}s, Joan Alexis and Collin, Fran{\c{c}}ois-David and Durif, Ghislain},
+  journal={arXiv preprint arXiv:2004.11127},
+  year={2020}
+}
+```
+
 # Projects using KeOps
 
 As of today, KeOps provides core routines for:
@@ -77,8 +124,19 @@ As of today, KeOps provides core routines for:
 
 # Authors
 
-Feel free to contact us for any bug report or feature request:
+Feel free to contact us for any bug report or feature request, you can also fill 
+an issue report on [GitHub](https://github.com/getkeops/keops/issues).
 
-* [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
-* [Jean Feydy](https://www.math.ens.fr/~feydy/)
-* [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)
+## KeOps, PyKeOps, KeOpsLab
+
+- [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
+- [Jean Feydy](https://www.math.ens.fr/~feydy/)
+- [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
+
+## RKeOps
+
+- [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
+
+## Contributors
+
+- François-David Collin

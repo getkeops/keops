@@ -11,8 +11,9 @@
 #include "core/formulas/maths/Exp.h"
 #include "core/pre_headers.h"
 #include "core/utils/Infinity.h"
+#include "core/utils/TypesUtils.h"
 
-// Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(m_i-f_ij) g_ij
+// Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(f_ij-m_i) g_ij
 // where f and g are two formulas. f must be scalar-valued.
 // This reduciton is the base for numerically stable computation of log-sum-exp and softmax type reductions.
 
@@ -29,7 +30,7 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
 
   static const int DIM = DIMRED;
 
-  static_assert(F::DIM == 1, "LogSumExp requires first formula F of dimension 1.");
+  static_assert(F::DIM == 1, "Max_SumShiftExp requires first formula F of dimension 1.");
 
   static void PrintId(::std::stringstream &str) {
     str << "Max_SumShiftExp_Reduction(F=";            // prints "("
@@ -39,67 +40,150 @@ struct Max_SumShiftExp_Reduction : public Reduction< Concat< F, G_ >, tagI > {
     str << ")";
   }
 
-  template < typename TYPE >
+  template < typename TYPEACC, typename TYPE >
   struct InitializeReduction {
-    DEVICE INLINE void operator()(TYPE *tmp) {
+    DEVICE INLINE void operator()(TYPEACC *acc) {
       // We fill empty cells with the neutral element of the reduction operation,
       //                   (-inf,0) = e^{-inf} * 0 = 0
-
-      tmp[0] = NEG_INFINITY< TYPE >::value;
-      for (int k = 1; k < DIMRED; k++)
-        tmp[k] = 0.0f;
+      acc[0] = cast_to<TYPEACC>(NEG_INFINITY< TYPE >::value);
+      VectAssign<DIMRED-1>(acc+1,0.0f);
     }
   };
 
   // equivalent of the += operation
-  template < typename TYPE >
+  template < typename TYPEACC, typename TYPE >
   struct ReducePairShort {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi, int j) {
-      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
-      TYPE tmpexp;
-      if (tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
-        tmpexp = exp(xi[0] - tmp[0]);
-        for (int k = 1; k < DIMRED; k++)
-          tmp[k] += xi[k] * tmpexp;
-      } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
-        tmpexp = exp(tmp[0] - xi[0]);
-        for (int k = 1; k < DIMRED; k++)
-          tmp[k] = xi[k] + tmpexp * tmp[k];
-        tmp[0] = xi[0];
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPE val) {
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+      TYPEACC tmpexp;
+#if USE_HALF && GPU_ON
+      __half2 cond = __hgt2(acc[0],xi[0]);
+      __half2 negcond = __float2half2_rn(1.0f) - cond;
+      __half2 m_min = cond * xi[0] + negcond * acc[0];
+      __half2 m_max = negcond * xi[0] + cond * acc[0];
+      tmpexp = h2exp(m_min - m_max);
+      #pragma unroll
+      for (int k = 1; k < DIMRED; k++) {
+        __half2 s_min = cond * xi[k] + negcond * acc[k];
+        __half2 s_max = negcond * xi[k] + cond * acc[k];
+        acc[k] = __hfma2(s_min, tmpexp, s_max);
       }
+      acc[0] = m_max;
+#else
+      if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+        tmpexp = exp(xi[0] - acc[0]);
+        #pragma unroll
+        for (int k = 1; k < DIMRED; k++)
+          acc[k] += xi[k] * tmpexp;
+      } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+        tmpexp = exp(acc[0] - xi[0]);
+        #pragma unroll
+        for (int k = 1; k < DIMRED; k++)
+          acc[k] = xi[k] + tmpexp * acc[k];
+        acc[0] = xi[0];
+      }
+#endif
     }
   };
 
   // equivalent of the += operation
-  template < typename TYPE >
+  template < typename TYPEACC, typename TYPE >
   struct ReducePair {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *xi) {
-      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')
-      TYPE tmpexp;
-      if (tmp[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
-        tmpexp = exp(xi[0] - tmp[0]);
-        for (int k = 1; k < DIMRED; k++)
-          tmp[k] += xi[k] * tmpexp;
-      } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
-        tmpexp = exp(tmp[0] - xi[0]);
-        for (int k = 1; k < DIMRED; k++)
-          tmp[k] = xi[k] + tmpexp * tmp[k];
-        tmp[0] = xi[0];
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi) {
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+      TYPEACC tmpexp;
+#if USE_HALF && GPU_ON
+      __half2 cond = __hgt2(acc[0],xi[0]);
+      __half2 negcond = __float2half2_rn(1.0f) - cond;
+      __half2 m_min = cond * xi[0] + negcond * acc[0];
+      __half2 m_max = negcond * xi[0] + cond * acc[0];
+      tmpexp = h2exp(m_min - m_max);
+      #pragma unroll
+      for (int k = 1; k < DIMRED; k++) {
+        __half2 s_min = cond * xi[k] + negcond * acc[k];
+        __half2 s_max = negcond * xi[k] + cond * acc[k];
+        acc[k] = __hfma2(s_min, tmpexp, s_max);
       }
+      acc[0] = m_max;
+#else
+      if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+        tmpexp = exp(xi[0] - acc[0]);
+        #pragma unroll
+        for (int k = 1; k < DIMRED; k++)
+          acc[k] += xi[k] * tmpexp;
+      } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+        tmpexp = exp(acc[0] - xi[0]);
+        #pragma unroll
+        for (int k = 1; k < DIMRED; k++)
+          acc[k] = xi[k] + tmpexp * acc[k];
+        acc[0] = xi[0];
+      }
+#endif
     }
   };
 
-  template < typename TYPE >
+  // Kahan scheme
+  template < typename TYPEACC, typename TYPE >
+  struct KahanScheme {
+    static const int DIMACC = DIMRED-1;
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi, TYPE *tmp) {
+      // (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+      TYPEACC tmpexp;
+#if USE_HALF && GPU_ON
+      __half2 cond = __hgt2(acc[0],xi[0]);
+      __half2 negcond = __float2half2_rn(1.0f) - cond;
+      __half2 m_min = cond * xi[0] + negcond * acc[0];
+      __half2 m_max = negcond * xi[0] + cond * acc[0];
+      tmpexp = h2exp(m_min - m_max);
+      #pragma unroll
+      for (int k = 1; k < DIMRED; k++) {
+        __half2 s_min = cond * xi[k] + negcond * acc[k];
+        __half2 s_max = negcond * xi[k] + cond * acc[k];
+      }
+      acc[0] = m_min;
+      // to be continued....
+      if (threadIdx.x==0 && blockIdx.x==0 && blockIdx.y==0) {
+        printf("\n   [KeOps] Error : Kahan summation for Max_SumShiftExp reduction is not yet implemented with half precision type.\n\n");
+        asm("trap;");
+      }
+#else
+      if (acc[0] > xi[0]) { // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+        tmpexp = exp(xi[0] - acc[0]);
+        #pragma unroll
+	for (int k=1; k<DIMRED; k++)
+        {
+		TYPEACC a = xi[k] * tmpexp - tmp[k-1];
+		TYPEACC b = acc[k] + a;
+		tmp[k-1] = (b - acc[k]) - a;
+		acc[k] = b;
+	}
+      } else {             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+        tmpexp = exp(acc[0] - xi[0]);
+        #pragma unroll
+        for (int k = 1; k < DIMRED; k++)
+        {
+		TYPEACC u = tmpexp * acc[k];
+		TYPEACC a = xi[k] - tmpexp * tmp[k-1];
+		TYPEACC b = u + a;
+		tmp[k-1] = (b - u) - a;
+		acc[k] = b;
+	}
+	acc[0] = xi[0];
+      }
+#endif
+    }
+  };
+
+  template < typename TYPEACC, typename TYPE >
   struct FinalizeOutput {
-    DEVICE INLINE void operator()(TYPE *tmp, TYPE *out, TYPE **px, int i) {
-      for (int k = 0; k < DIM; k++)
-        out[k] = tmp[k];
+    DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+      VectCopy<DIM>(out,acc);
     }
   };
 
   // Beware: the formula that we use for the gradient is *only* valid
   // if the output [M,S] = Max_SumShiftExp(F,G) has been flattened through a
-  // L = M + log(S)
+  // L = M + log(S) (Log-Sum-Exp) or a weighted Soft-Max
   // operation (as done by the Python bindings), and if 
   // GRADIN = [Grad(L), Grad(L)/S ]
   // has been backpropagated from L.

@@ -59,10 +59,10 @@ struct Factorize_Impl : BinaryOp< Factorize_Impl, F, G > {
                                                                G::DIM,
                                                                3>>;    // means replace G by Var<INDS::SIZE,G::DIM,3> in formula F
 
-  template < class INDS, typename ...ARGS >
-  static DEVICE INLINE void Eval(__TYPE__ *out, ARGS... args) {
+  template < class INDS, typename TYPE, typename ...ARGS >
+  static DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
     // First we compute G
-    __TYPE__ outG[G::DIM];
+    TYPE outG[G::DIM];
     G::template Eval< INDS >(outG, args...);
     // Ffact is the factorized formula
     using Ffact = typename THIS::template FactorizedFormula< INDS >;

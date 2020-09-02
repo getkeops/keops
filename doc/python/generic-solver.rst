@@ -11,7 +11,7 @@ On top of the :mod:`Genred` interface, KeOps provides a simple
 which can be used to solve
 large-scale `Kriging/regression <https://en.wikipedia.org/wiki/Kriging>`_ 
 problems on the GPU: the :mod:`KernelSolve` module.
-Depending on your framework, you may import it using either:
+Depending on the framework, we can import it using either:
 
 .. code-block:: python
 

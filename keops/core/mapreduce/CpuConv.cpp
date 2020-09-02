@@ -4,6 +4,12 @@
 #include <assert.h>
 #include <vector>
 
+#include "core/utils/TypesUtils.h"
+
+#ifdef USE_OPENMP
+#include <omp.h>
+#endif
+
 #include "core/pack/GetInds.h"
 
 // Host implementation of the convolution, for comparison
@@ -22,18 +28,47 @@ struct CpuConv {
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
     const int DIMFOUT = DIMSX::FIRST; // dimension of output variable of inner function
-    TYPE xi[DIMX], yj[DIMY], pp[DIMP], tmp[DIMRED];
+    TYPE pp[DIMP];
     load< DIMSP >(0, pp, param);
 
+#pragma omp parallel for 
     for (int i = 0; i < nx; i++) {
+    TYPE xi[DIMX], yj[DIMY];
+    __TYPEACC__ acc[DIMRED];
+#if SUM_SCHEME == BLOCK_SUM
+    // additional tmp vector to store intermediate results from each block
+    TYPE tmp[DIMRED];
+#elif SUM_SCHEME == KAHAN_SCHEME
+    // additional tmp vector to accumulate errors
+    const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+    TYPE tmp[DIM_KAHAN];
+#endif
       load< typename DIMSX::NEXT >(i, xi + DIMFOUT, px + 1);
-      typename FUN::template InitializeReduction< TYPE >()(tmp);   // tmp = 0
+      typename FUN::template InitializeReduction< __TYPEACC__, TYPE >()(acc);   // acc = 0
+#if SUM_SCHEME == BLOCK_SUM
+      typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
+#elif SUM_SCHEME == KAHAN_SCHEME
+      VectAssign<DIM_KAHAN>(tmp,0.0f);
+#endif
       for (int j = 0; j < ny; j++) {
         load< DIMSY >(j, yj, py);
         call< DIMSX, DIMSY, DIMSP >(fun, xi, yj, pp);
-        typename FUN::template ReducePairShort< TYPE >()(tmp, xi, j); // tmp += xi
+#if SUM_SCHEME == BLOCK_SUM
+        typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, xi, j); // tmp += xi
+        if ((j+1)%200) {
+            typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
+            typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
+        }
+#elif SUM_SCHEME == KAHAN_SCHEME
+        typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);
+#else
+        typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(acc, xi, j); // acc += xi
+#endif
       }
-      typename FUN::template FinalizeOutput< TYPE >()(tmp, px[0] + i * DIMOUT, px, i);
+#if SUM_SCHEME == BLOCK_SUM
+      typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
+#endif          
+      typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acc, px[0] + i * DIMOUT, px, i);
     }
 
     return 0;

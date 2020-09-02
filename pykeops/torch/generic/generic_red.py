@@ -1,13 +1,13 @@
 import torch
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import LoadKEops
+from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
+from pykeops.torch.half2_convert import preprocess_half2, postprocess_half2
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
-from pykeops.common.parse_type import parse_aliases
+from pykeops.common.parse_type import get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype, include_dirs
-
 
 class GenredAutograd(torch.autograd.Function):
     """
@@ -15,10 +15,11 @@ class GenredAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, *args):
+    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, accuracy_flags, *args):
     
-        myconv = LoadKEops(formula, aliases, dtype, 'torch',
-                           ['-DPYTORCH_INCLUDE_DIR=' + ';'.join(include_dirs)]).import_module()
+        optional_flags = include_dirs + accuracy_flags
+
+        myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags).import_module()
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
@@ -27,6 +28,7 @@ class GenredAutograd(torch.autograd.Function):
         ctx.dtype = dtype
         ctx.device_id = device_id
         ctx.ranges = ranges
+        ctx.accuracy_flags = accuracy_flags
         ctx.myconv = myconv
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
@@ -38,13 +40,12 @@ class GenredAutograd(torch.autograd.Function):
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
         
         if ranges is None : ranges = () # To keep the same type
-        (categories, dimensions) = parse_aliases(aliases)
-        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, categories, dimensions,
-                                       *args)
+
+        result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
-        ctx.save_for_backward(*args,result)
+        ctx.save_for_backward(*args, result)
 
         return result
 
@@ -54,7 +55,8 @@ class GenredAutograd(torch.autograd.Function):
         aliases = ctx.aliases
         backend = ctx.backend
         dtype = ctx.dtype
-        ranges    = ctx.ranges
+        ranges = ctx.ranges
+        accuracy_flags = ctx.accuracy_flags
         device_id = ctx.device_id
         myconv = ctx.myconv
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
@@ -87,7 +89,7 @@ class GenredAutograd(torch.autograd.Function):
 
         for (var_ind, (sig, arg_ind)) in enumerate(zip(aliases, args)):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 6]:  # because of (formula, aliases, backend, dtype, device_id, ranges)
+            if not ctx.needs_input_grad[var_ind + 7]:  # because of (formula, aliases, backend, dtype, device_id, ranges, accuracy_flags)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -108,7 +110,7 @@ class GenredAutograd(torch.autograd.Function):
                 if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/formulas/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -120,7 +122,7 @@ class GenredAutograd(torch.autograd.Function):
                         i for (i, (x, y)) in enumerate(zip(arg_ind.shape[:-1], grad.shape[:-1])) if x < y)
 
                 else:
-                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
 
                     # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
                     #       whereas 'arg_ind' may have some broadcasted batched dimensions.
@@ -136,7 +138,7 @@ class GenredAutograd(torch.autograd.Function):
                 grads.append(grad)
         
         # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, *args
-        return (None, None, None, None, None, None, *grads)
+        return (None, None, None, None, None, None, None, *grads)
 
 
 class Genred():
@@ -176,7 +178,7 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None):
+                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto"):
         r"""
         Instantiate a new generic operation.
 
@@ -219,11 +221,34 @@ class Genred():
             dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
                 The supported values are:
 
+                  - **dtype** = ``"float16"`` or ``"half"``.
                   - **dtype** = ``"float32"`` or ``"float"``.
                   - **dtype** = ``"float64"`` or ``"double"``.
 
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMin_ArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
+
+            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+                It improves the accuracy of results in case of large sized data, but is slower.
+                Default value "auto" will set this option to the value of dtype. The supported values are: 
+
+                  - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+                  - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+                  - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+
+            use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+                If True, accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32 or float64.
+                It improves the accuracy of results in case of large sized data, but is slower.
+           
+            sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
+                Default value "auto" will set this option to "block_red". Possible values are:
+                  - **sum_scheme** =  ``"direct_sum"``: direct summation
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
+
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
@@ -231,6 +256,8 @@ class Genred():
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
         
+        self.accuracy_flags = get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op_internal)
+
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
@@ -245,7 +272,7 @@ class Genred():
         r"""
         To apply the routine on arbitrary torch Tensors.
 
-        Warning:
+        .. warning:
             Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
             for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
             as 2d Tensors of size ``(M,dim)``. In practice,
@@ -299,7 +326,7 @@ class Genred():
                       **The first 0 is implicit**, meaning that :math:`\operatorname{start}^S_0 = 0`, and we typically expect that
                       ``slices_i[-1] == len(redrange_j)``.
                     - ``redranges_j``, (Mcc,2) IntTensor - slice indices
-                      :math:`[\operatorname{start}^J_l,\operatorname{end}^J_l)` in :math:`[0,N]`
+                      :math:`[\operatorname{start}^J_\ell,\operatorname{end}^J_\ell)` in :math:`[0,N]`
                       that specify reduction ranges along the axis 1
                       of ":math:`j` variables".
 
@@ -326,7 +353,7 @@ class Genred():
                       **The first 0 is implicit**, meaning that :math:`\operatorname{start}^S_0 = 0`, and we typically expect that
                       ``slices_j[-1] == len(redrange_i)``.
                     - ``redranges_i``, (Ncc,2) IntTensor - slice indices
-                      :math:`[\operatorname{start}^I_l,\operatorname{end}^I_l)` in :math:`[0,M]`
+                      :math:`[\operatorname{start}^I_\ell,\operatorname{end}^I_\ell)` in :math:`[0,M]`
                       that specify reduction ranges along the axis 0
                       of ":math:`i` variables".
 
@@ -348,7 +375,27 @@ class Genred():
             that is inferred from the **formula**.
 
         """
-        out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, device_id, ranges, *args)
+
         nx, ny = get_sizes(self.aliases, *args)
-        nout = nx if self.axis==1 else ny
+        nout, nred = (nx, ny) if self.axis==1 else (ny, nx)
+
+        if "Arg" in self.reduction_op:
+            # when using Arg type reductions,
+            # if nred is greater than 16 millions and dtype=float32, the result is not reliable
+            # because we encode indices as floats, so we raise an exception ;
+            # same with float16 type and nred>2048
+            if nred>1.6e7 and self.dtype in ("float32","float"):
+                raise ValueError('size of input array is too large for Arg type reduction with single precision. Use double precision.')  
+            elif nred>2048 and self.dtype in ("float16","half"):
+                raise ValueError('size of input array is too large for Arg type reduction with float16 dtype..')  
+
+        if self.dtype in ('float16','half'):
+            args, ranges, tag_dummy, N = preprocess_half2(args, self.aliases, self.axis, ranges, nx, ny)
+        
+        out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
+                                   device_id, ranges, self.accuracy_flags, *args)
+
+        if self.dtype in ('float16','half'):
+            out = postprocess_half2(out, tag_dummy, self.reduction_op, N)
+
         return postprocess(out, "torch", self.reduction_op, nout, self.opt_arg, self.dtype)

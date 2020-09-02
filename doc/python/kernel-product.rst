@@ -10,7 +10,7 @@ On top of the low-level operators, we also provide a **kernel name parser** that
 - :class:`pykeops.torch.Kernel  <pykeops.torch.Kernel>` is the name parser: it turns a string identifier (say, ``"gaussian(x,y) * linear(u,v)**2"``) into a set of KeOps formulas.
 - :func:`pykeops.torch.kernel_product()  <pykeops.torch.kernel_product>` is the "numerical" torch routine. It takes as input a dict of parameters and a set of input tensors, to return a fully differentiable torch variable.
 
-**A quick example:** here is how you can compute a *fully differentiable* Gaussian-RBF kernel product:
+**A quick example:** here is how we can compute a *fully differentiable* Gaussian-RBF kernel product:
 
 .. code-block:: python
 

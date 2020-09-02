@@ -68,11 +68,13 @@ the Figure below and can be summarized as follows:
 #. GPU threads are organized in interchangeable **blocks** of up to
    1,024 workers, which can be identified to the many teams of a large
    State department.
+   |br|
 
 #. Far from lying scattered in the device Random Access Memory (RAM),
    **information is finely managed** in several layers of
    hardware. In practice, pushing aside some technicalities, scientific
    CUDA programs may rely on **four different types of memory**:
+   |br|
 
    #. The **Host memory**, i.e. the usual RAM of the computer that is
       managed by the main CPU program. It is located far away from the
@@ -80,12 +82,14 @@ the Figure below and can be summarized as follows:
       XIX\ :math:`{}^\text{th}` century analogy, it would be represented
       by the mountains of documentation stored in *other* State offices,
       possibly overseas.
+      |br|
 
    #. The **Device memory**, which plays the role of a *local* RAM chip
       embedded on the GPU. This is the *library* of our State office,
       where information is stored before being processed by diligent
       workers: depending on the model, recent GPUs may be able to store
       up to 32 Gigabytes of data in this convenient storage location.
+      |br|
 
    #. The **Shared memory** which is, well, *shared* by all threads in a
       CUDA block. This small buffer may only store up to
@@ -94,6 +98,7 @@ the Figure below and can be summarized as follows:
       latency is **much lower** than that of the Device memory: 
       **optimizing its usage in the KeOps library was the key to a x50 speed-up**
       for all kernel-related operations.
+      |br|
 
    #. The **Register** or **Thread memory**, a very low-latency buffer
       that is uniquely attributed to each worker – a bit like sheets of
@@ -110,7 +115,7 @@ the Figure below and can be summarized as follows:
 
          ..
 
-         **(a)** 
+         |br| **(a)** 
          `The CUDA memory model <https://www.sciencedirect.com/book/9780128119860/programming-massively-parallel-processors>`_.
 
     - .. figure:: images/war_offices_2.jpg
@@ -118,7 +123,7 @@ the Figure below and can be summarized as follows:
 
          ..
 
-         **(b)** 
+         |br| **(b)** 
          The *Admiralty and War Offices*, built in 1884.
 
     - .. figure:: images/belfast_office_2.png
@@ -126,7 +131,7 @@ the Figure below and can be summarized as follows:
 
          ..
 
-         **(c)** 
+         |br| **(c)** 
          Inside a computational block.
 
 
@@ -147,6 +152,7 @@ algorithms should thus obey to **four guiding principles**:
    #. **Promote block-wise parallelism.** Threads can interact with each
       other during the execution of a program, but may only do so
       *inside their own CUDA block*.
+      |br|
 
    #. **Reduce Host** :math:`\leftrightarrow` **Device memory transfers.**
       Incessant back-and-forth copies between the “CPU” and “GPU” RAMs
@@ -154,6 +160,7 @@ algorithms should thus obey to **four guiding principles**:
       Fortunately, the TensorFlow and PyTorch APIs now allow
       users to store and manipulate their data on the device, without
       ever coming back to the Host memory chip.
+      |br|
 
    #. **Reduce Device** :math:`\leftrightarrow` 
       **Shared/Register memory transfers.** 
@@ -165,6 +172,7 @@ algorithms should thus obey to **four guiding principles**:
       control on their computations: this is the main limitation that
       the KeOps package strives to mitigate, with minimal impact on
       users’ existing codebases.
+      |br|
 
    #. **Promote block-wise memory accesses.** GPUs’ memory circuits are
       wired in a way that promotes *contiguous*, page-wise exchanges
@@ -282,6 +290,7 @@ a **captive market**, with two ranges of products to pick from:
    :math:`\sim`\ 1,500$ and slightly defective or more compact chips
    marketed at lower prices. As of 2019, the **GeForce RTX 2080 Ti**
    provides the best value for money for generic academic purposes.
+   |br|
 
 #. The **data center** series, whose slightly more versatile chips are
    typically sold for :math:`\sim`\ 10,000$ per unit. This higher price
@@ -323,3 +332,8 @@ Usually, typing ``!pip install pykeops[full]`` in a Colab cell is
 everything it takes to try our software online: so please play around
 with these tools, they’re **free as in freedom** for everything that’s
 explained here, and **free as in beer** for the rest!
+
+
+.. |br| raw:: html
+
+  <br/><br/>

@@ -5,7 +5,7 @@ end
 
 function setupOnce(testCase)  % do not change function name
     % set a new path, for example
-    path_to_lib = '..';
+    path_to_lib = [fileparts(mfilename('fullpath')) , filesep, '..']
     addpath(genpath(path_to_lib))
     
 end

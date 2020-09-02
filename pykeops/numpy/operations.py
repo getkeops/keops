@@ -1,9 +1,9 @@
 import numpy as np
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import LoadKEops
+from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import complete_aliases, parse_aliases
+from pykeops.common.parse_type import complete_aliases, get_accuracy_flags
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
@@ -43,7 +43,7 @@ class KernelSolve:
     
     """
     
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto"):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -82,11 +82,33 @@ class KernelSolve:
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays. 
                 The supported values are:
 
-                  - **dtype** = ``"float32"`` or ``"float"``.
-                  - **dtype** = ``"float64"`` or ``"double"``.
+                  - **dtype** = ``"float16"``.
+                  - **dtype** = ``"float32"``.
+                  - **dtype** = ``"float64"``.
+
+            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+                It improves the accuracy of results in case of large sized data, but is slower.
+                Default value "auto" will set this option to the value of dtype. The supported values are: 
+
+                  - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
+                  - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
+                  - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
+
+            use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
+                If True, accumulate results of reduction in float64 variables, before casting to float32. 
+                This can only be set to True when data is in float32 or float64.
+                It improves the accuracy of results in case of large sized data, but is slower.
+           
+            sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
+                Default value "auto" will set this option to "block_red". Possible values are:
+                  - **sum_scheme** =  ``"direct_sum"``: direct summation
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
+                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
+                accuracy for large sized data. 
 
         """
         reduction_op = 'Sum'
@@ -94,11 +116,13 @@ class KernelSolve:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
         else:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+
+        optional_flags = get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op)
+
         self.aliases = complete_aliases(formula, aliases)
-        (self.categories, self.dimensions) = parse_aliases(self.aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
-        self.myconv = LoadKEops(self.formula, self.aliases, self.dtype, 'numpy').import_module()
+        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
 
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
@@ -174,8 +198,7 @@ class KernelSolve:
 
         def linop(var):
             newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos + 1:]
-            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, self.categories, self.dimensions,
-                                           *newargs)
+            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
             if alpha:
                 res += alpha * var
             return res

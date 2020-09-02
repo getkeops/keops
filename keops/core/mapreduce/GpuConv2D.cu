@@ -10,6 +10,7 @@
 #include "core/pack/GetDims.h"
 #include "core/utils/CudaErrorCheck.cu"
 #include "core/utils/CudaSizes.h"
+#include "core/utils/TypesUtils.h"
 
 namespace keops {
 
@@ -52,12 +53,12 @@ __global__ void reduce2D(TYPE *in, TYPE *out, TYPE ** px, int sizeY,int nx) {
 
     // However, for now, we use a "vectorized" reduction op.,
     // which can also handle non-trivial reductions such as "LogSumExp"
-    TYPE tmp[DIMIN];
-    typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
+    __TYPEACC__ acc[DIMIN];
+    typename FUN::template InitializeReduction<__TYPEACC__,TYPE>()(acc); // acc = 0
     if(tid < nx) {
         for (int y = 0; y < sizeY; y++)
-            typename FUN::template ReducePair<TYPE>()(tmp, in + (tid+y*nx)*DIMIN);     // tmp += in[(tid+y*nx) *DIMVECT : +DIMVECT];
-        typename FUN::template FinalizeOutput<TYPE>()(tmp, out+tid*DIMOUT, px, tid);
+            typename FUN::template ReducePair<__TYPEACC__,TYPE>()(acc, in + (tid+y*nx)*DIMIN);     // acc += in[(tid+y*nx) *DIMVECT : +DIMVECT];
+        typename FUN::template FinalizeOutput<__TYPEACC__,TYPE>()(acc, out+tid*DIMOUT, px, tid);
     }
 
 }
@@ -100,9 +101,26 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     // Step 1 : Load in Thread Memory the information needed in the current line ---------------------------
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     TYPE xi[DIMX < 1 ? 1 : DIMX];
-    TYPE tmp[DIMRED];
+#if SUM_SCHEME == BLOCK_SUM 
+// N.B. To be consistent with the convention used in GpuConv1D, when SUM_SCHEME == BLOCK_SUM=1 we accumulate results in TYPE 
+// instead of __TYPEACC__ in each block, __TYPEACC__ will be used only to sum up results from each block
+    TYPE acc[DIMRED];
+#else
+    __TYPEACC__ acc[DIMRED];
+#endif
+#if SUM_SCHEME == KAHAN_SCHEME
+    const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+    TYPE tmp[DIM_KAHAN];
+#endif
     if(i<nx) { // we will compute x1i only if i is in the range
-        typename FUN::template InitializeReduction<TYPE>()(tmp); // tmp = 0
+#if SUM_SCHEME == BLOCK_SUM         
+        typename FUN::template InitializeReduction<TYPE,TYPE>()(acc); // acc = 0
+#else
+        typename FUN::template InitializeReduction<__TYPEACC__,TYPE>()(acc); // acc = 0
+#endif
+#if SUM_SCHEME == KAHAN_SCHEME
+        VectAssign<DIM_KAHAN>(tmp,0.0f);
+#endif
         // Load xi from device global memory.
         // Remember that we use an interleaved memory scheme where
         // xi = [ x1i, x2i, x3i, ... ].
@@ -133,7 +151,23 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
         TYPE* yjrel = yj; // Loop on the columns of the current block.
         for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+=DIMY) {
             call<DIMSX,DIMSY,DIMSP>(fun,xi,yjrel,param_loc); // Call the function, which accumulates results in xi[0:DIMX1]
-            typename FUN::template ReducePairShort<TYPE>()(tmp, xi, blockDim.x*blockIdx.y+jrel);     // tmp += xi
+#if SUM_SCHEME == BLOCK_SUM
+#if USE_HALF
+        int ind = blockDim.x*blockIdx.y+jrel;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#endif
+#elif SUM_SCHEME == KAHAN_SCHEME
+            typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, xi, tmp);   
+#else
+#if USE_HALF
+        int ind = blockDim.x*blockIdx.y+jrel;
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, __floats2half2_rn(2*ind,2*ind+1));     // acc += xi
+#else
+        typename FUN::template ReducePairShort<TYPE,TYPE>()(acc, xi, blockDim.x*blockIdx.y+jrel);     // acc += xi
+#endif
+#endif
         }
     }
     __syncthreads();
@@ -147,7 +181,7 @@ __global__ void GpuConv2DOnDevice(FUN fun, int nx, int ny, TYPE** px, TYPE** py,
     // shall be done in a later step.
     if(i<nx)
         for(int k=0; k<DIMRED; k++)
-            (*px)[blockIdx.y*DIMRED*nx+i*DIMRED+k] = tmp[k];
+            (*px)[blockIdx.y*DIMRED*nx+i*DIMRED+k] = acc[k];
 }
 ///////////////////////////////////////////////////
 
