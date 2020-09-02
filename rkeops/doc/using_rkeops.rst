@@ -32,6 +32,11 @@ Install from CRAN
 Install from Github sources
 ---------------------------
 
+    !! In most recent version of devtools, the ``args`` argument is not
+    available anymore and it is not possible to use
+    ``devtools::install_git``. Please check next section to install from
+    sources.
+
 -  Install directly from Github (requires ``git``)
 
 ::
@@ -73,7 +78,7 @@ Load RKeOps in R:
 
     library(rkeops)
     ## 
-    ## You are using rkeops version 1.3
+    ## You are using rkeops version 1.4.1
 
 RKeOps allows to define and compile new operators that run computations
 on GPU.
