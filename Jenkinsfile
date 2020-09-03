@@ -149,7 +149,7 @@ pipeline {
             echo 'Testing..'
               sh 'git submodule update --init'
               sh '''
-                 bash rkeops/ci/run_ci.sh
+                 # bash rkeops/ci/run_ci.sh
               '''
           }
         }
