@@ -44,18 +44,26 @@ get_cmake <- function(path = NULL) {
                     NULL
                 }
             } else {
+                # find default cmake (search in PATH)
                 tmp <- system("which cmake", intern = TRUE)
-                if(!str_detect(string = tmp,
-                               pattern = "not found")) {
-                    tmp
+                
+                # found it
+                if(length(tmp) == 1) {
+                    if(file.exists(tmp)) {
+                        tmp
+                    } else {
+                        warning("Issue with `cmake` found in PATH")
+                        NULL
+                    }
                 } else {
-                    # path to cmake on OsX CRAN
+                    # cmake not found in PATH
+                    # specific path to cmake on OsX CRAN
                     tmp <- "/Applications/CMake.app/Contents/bin/cmake"
-                    if(str_detect(string = R.version$os, 
-                                  pattern = "darwin") & 
+                    if(str_detect(string = R.version$os, pattern = "darwin") & 
                        file.exists(tmp)) {
                         tmp
                     } else {
+                        warning("`cmake` not found in PATH")
                         NULL
                     }
                 }
@@ -64,7 +72,8 @@ get_cmake <- function(path = NULL) {
         windows = {
             warning("Windows not supported at the moment")
             NULL
-        })
+        }
+    )
     # out
     return(cmake_executable)
 }
