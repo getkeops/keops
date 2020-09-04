@@ -80,7 +80,7 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
         load<DIMSP,INDSP>(0, param_loc, args, indices_p); // Possibly, with offsets as we support broadcasting over batch dimensions
     }
 
-    TYPE fout[DIMFOUT];
+    TYPE fout[DIMFOUT < 1 ? 1 : DIMFOUT];
     // get the value of variable (index with i)
     TYPE xi[DIMX < 1 ? 1 : DIMX];
     __TYPEACC__ acc[DIMRED];

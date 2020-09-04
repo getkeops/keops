@@ -37,6 +37,27 @@ struct Zero {
   // There is no gradient to accumulate on V, whatever V.
   template < class V, class GRADIN >
   using DiffT = Zero<V::DIM>;
+
+
+  template < int DIMCHK >
+  using CHUNKED_VERSION = Zero<DIMCHK>;
+
+  static const bool IS_CHUNKABLE = true;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = univpack<>;
+
+  static const int NUM_CHUNKED_FORMULAS = 0;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = Zero<DIM>;
+
+  template < int CAT >
+  using CHUNKED_VARS = univpack<>;
+
+  template < int CAT >
+  using NOTCHUNKED_VARS = univpack<>;
+
 };
 
 #define Zero(D) KeopsNS<Zero<D>>()
