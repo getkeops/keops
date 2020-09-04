@@ -13,6 +13,9 @@ if [[ -f ${HOME}/.R/Makevars ]]; then
 fi
 cat ${CIDIR}/Makevars > ${HOME}/.R/Makevars
 
+# set up .Rprofile files
+export R_PROFILE_USER=${CIDIR/.Rprofile}
+
 # check package build
 Rscript ${CIDIR}/run_check.R
 

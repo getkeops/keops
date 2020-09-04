@@ -50,6 +50,8 @@ export TEST_GPU=1
 To generate html files from the vignettes that can be integrated into the 
 Sphinx doc, see this [script](./ci/html2doc.sh).
 
+> Note: on MacOS, you need to install pdflatex to run check, e.g. with `brew cask install basictex`.
+
 
 ## Rstudio
 
