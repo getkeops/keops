@@ -1,3 +1,5 @@
+import numpy as np
+
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
@@ -245,6 +247,9 @@ class Genred():
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         if ranges is None :
             ranges = () # To keep the same type
+
+        # N.B.: KeOps C++ expects contiguous integer arrays as ranges
+        ranges = tuple(np.ascontiguousarray(r) for r in ranges)
 
         nx, ny = get_sizes(self.aliases, *args)
         nout, nred = (nx, ny) if self.axis==1 else (ny, nx)
