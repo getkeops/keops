@@ -56,46 +56,6 @@ struct pack {
   static const int MAX = -1; // max is set to -1 (we assume packs of non negative integers...)
   static const int SUM = 0;  // ... zero sum  (total memory footprint) ...
 
-  // ... is loaded trivially ...
-  template<class INDS, typename TYPE>
-  HOST_DEVICE static void load(int i, TYPE *xi, TYPE **px) {}
-
-  // (even with broadcasting batch dimensions!)
-  template<class INDS, typename TYPE>
-  HOST_DEVICE static void load(int i, TYPE *xi, TYPE **px, int *offsets) {}
-
-  // (even in chunked mode)
-  template < int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
-  HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px) {}
-
-  // (even in chunked mode and broadcasting batch dimensions)
-  template < int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
-  HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px, int *offsets) {}
-
-  // ... counts for nothing in the evaluation of a function ...
-  template<typename TYPE, class FUN, typename... Args>
-  HOST_DEVICE static void call(FUN fun, TYPE *out, TYPE *x, Args... args) {
-    fun(out, args...);
-  }
-
-  // ... idem ...
-  template<class DIMS, typename TYPE, class FUN, typename... Args>
-  HOST_DEVICE static void call2(FUN fun, TYPE *out, TYPE *x, Args... args) {
-    DIMS::call(fun, out, args...);
-  }
-
-  // ... idem ...
-  template<class DIMS1, class DIMS2, typename TYPE, class FUN, typename... Args>
-  HOST_DEVICE static void call3(FUN fun, TYPE *out, TYPE *x, Args... args) {
-    DIMS1::template call2<DIMS2>(fun, out, args...);
-  }
-
-  // ... idem ...
-  template<class DIMS1, class DIMS2, class DIMS3, typename TYPE, class FUN, typename... Args>
-  HOST_DEVICE static void call4(FUN fun, TYPE *out, TYPE *x, Args... args) {
-    DIMS1::template call3<DIMS2, DIMS3>(fun, out, args...);
-  }
-
   // ... does not have anything to give to a list of variables.
   template<typename TYPE, typename... Args>
   static void getlist(TYPE **px, Args... args) {}
@@ -143,99 +103,6 @@ struct pack<N, NS...> {
   static const int
       SUM = N + NEXT::SUM;                           // The total "memory footprint" of pack<N,NS...> is computed recursively.
 
-  // Loads the i-th element of the (global device memory pointer) px to the "array" xi.
-  template<class INDS, typename TYPE>
-  HOST_DEVICE static void load(int i, TYPE *xi, TYPE **px) {
-    assert(xi != nullptr);
-    assert(px != nullptr);
-    /*
-     * px is an "array" of pointers to data arrays of appropriate sizes.
-     * That is, px[0] = *px     is a pointer to a TYPE array of size Ni * FIRST
-     * Then,    px[1] = *(px+1) is a pointer to a TYPE array of size Ni * NEXT::FIRST; etc.
-     *
-     * (where Ni is the max value of "i" you should expect)
-     * Obviously, we do not make any sanity check... so beware of illicit memory accesses !
-     */
-#pragma unroll
-    for (int k = 0; k < FIRST; k++) {
-      //assert(&((*px)[i * FIRST + k]) != nullptr);
-      xi[k] = px[INDS::FIRST][i * FIRST + k];                 // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
-    }
-    NEXT::template load<typename INDS::NEXT>(i, xi + FIRST, px);              // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
-  }
-
-  // Idem, but with variable-dependent offsets; this is critical for broadcasting
-  // batch dimensions in the *_ranges reduction routines:
-  template<class INDS, typename TYPE>
-  HOST_DEVICE static void load(int i, TYPE *xi, TYPE **px, int *offsets) {
-    assert(xi != nullptr);
-    assert(px != nullptr);
-    int true_i = offsets[0] + i;
-    // Using pythonic syntax, we can describe our loading procedure as follows :
-#pragma unroll
-    for (int k = 0; k < FIRST; k++) {
-      //assert(&((*px)[true_i * FIRST + k]) != nullptr);
-      xi[k] = px[INDS::FIRST][true_i * FIRST + k];            // First, load the i-th line of px[0]  -> xi[ 0 : FIRST ].
-    }
-    NEXT::template load<typename INDS::NEXT>(i,
-               xi + FIRST,
-               px,
-               offsets + 1);                        // Then,  load the i-th line of px[1:] -> xi[ FIRST : ] (recursively)
-  }
-
-  // idem for chunked mode : here we load only the chunked variables
-  template < int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
-  HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px) {
-    assert(xi != nullptr);
-    assert(px != nullptr);
-    #pragma unroll
-    for (int k = 0; k < DIM_CHUNK_LOAD; k++)
-      xi[k] = px[FIRST][i * DIM_ORG + chunk_index*DIM_CHUNK + k];
-    NEXT::template load_chunks<DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>(i, chunk_index, xi + DIM_CHUNK, px);
-  }
-
-  // idem for chunked mode and variable-dependent offsets
-  template < int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
-  HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px, int *offsets) {
-    assert(xi != nullptr);
-    assert(px != nullptr);
-    int true_i = offsets[0] + i;
-    #pragma unroll
-    for (int k = 0; k < DIM_CHUNK_LOAD; k++)
-      xi[k] = px[FIRST][true_i * DIM_ORG + chunk_index*DIM_CHUNK + k];
-    NEXT::template load_chunks<DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>(i, chunk_index, xi + DIM_CHUNK, px, offsets + 1);
-  }
-
-  // call(fun, [x1, x2, x3], arg1, arg2 ) will end up executing fun( arg1, arg2, x1, x2, x3 ).
-  template<typename TYPE, class FUN, typename... Args>
-  HOST_DEVICE static void call(FUN fun, TYPE *out, TYPE *x, Args... args) {
-    NEXT::call(fun, out, x + FIRST, args..., x);         // Append [x[0:FIRST]] to the list of arguments, then iterate.
-  }
-
-  // Idem, with a template on DIMS. This allows you to call fun with
-  // two "packed" variables (x_i and y_j) as first inputs.
-  // call2(fun, [x1, x2], [y1, y2], arg1 ) will end up executing fun(arg1, x1, x2, y1, y2).
-  template<class DIMS, typename TYPE, class FUN, typename... Args>
-  HOST_DEVICE static void call2(FUN fun, TYPE *out, TYPE *x, Args... args) {
-    NEXT::template call2<DIMS>(fun, out, x + FIRST, args..., x);
-  }
-
-  // Idem, with a double template on DIMS. This allows you to call fun with
-  // three "packed" variables
-  template<class DIMS1, class DIMS2, typename TYPE, class FUN, typename... Args>
-  HOST_DEVICE static void call3(FUN fun, TYPE *out, TYPE *x, Args... args) {
-    NEXT::template call3<DIMS1, DIMS2>(fun, out, x + FIRST, args..., x);
-  }
-
-
-  // Idem, with a triple template on DIMS. This allows you to call fun with
-  // four "packed" variables
-  template<class DIMS1, class DIMS2, class DIMS3, typename TYPE, class FUN, typename... Args>
-  HOST_DEVICE static void call4(FUN fun, TYPE *out, TYPE *x, Args... args) {
-    NEXT::template call4<DIMS1, DIMS2, DIMS3>(fun, out, x + FIRST, args..., x);
-  }
-
-
   // Out of a long  list of pointers, extract the ones which "belong" to the current pack
   // and put them into a pointer array px.
   template<typename TYPE, typename... Args>
@@ -250,45 +117,10 @@ struct pack<N, NS...> {
 
 // USEFUL METHODS ===================================================================================
 
-// Templated call
-template<class DIMSX, class DIMSY, class DIMSP, typename TYPE, class FUN, typename... Args>
-HOST_DEVICE void call(FUN fun, TYPE *out, TYPE *x, Args... args) {
-  DIMSX::template call3<DIMSY, DIMSP>(fun, out, x, args...);
-}
-
-// Templated call
-template<class DIMSX, class DIMSY, class DIMSP, class DIMST, typename TYPE, class FUN, typename... Args>
-HOST_DEVICE void call(FUN fun, TYPE *out, TYPE *x, Args... args) {
-  DIMSX::template call4<DIMSY, DIMSP, DIMST>(fun, out, x, args...);
-}
 
 template<class INDS, typename TYPE, typename... Args>
 void getlist(TYPE **px, Args... args) {
   INDS::getlist(px, args...);
-}
-
-// Loads the i-th "line" of px to xi.
-template<class DIMS, class INDS, typename TYPE>
-HOST_DEVICE void load(int i, TYPE *xi, TYPE **px) {
-  DIMS::template load<INDS>(i, xi, px);
-}
-
-// Loads the i-th "line" of px to xi, with offsets (used when broadcasting batch dimensions)
-template<class DIMS, class INDS, typename TYPE>
-HOST_DEVICE void load(int i, TYPE *xi, TYPE **px, int *offsets) {
-  DIMS::template load<INDS>(i, xi, px, offsets);
-}
-
-// Loads the i-th "line" of px to xi. - for chunked mode
-template < class INDS, int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
-HOST_DEVICE void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px) {
-  INDS::template load_chunks<DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>(i, chunk_index, xi, px);
-}
-
-// Loads the i-th "line" of px to xi. - for chunked mode, with offsets (used when broadcasting batch dimensions)
-template < class INDS, int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
-HOST_DEVICE void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px, int *offsets) {
-  INDS::template load_chunks<DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>(i, chunk_index, xi, px, offsets);
 }
 
 

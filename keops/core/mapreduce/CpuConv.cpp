@@ -11,6 +11,8 @@
 #endif
 
 #include "core/pack/GetInds.h"
+#include "core/pack/Load.h"
+#include "core/pack/Call.h"
 
 // Host implementation of the convolution, for comparison
 

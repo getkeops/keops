@@ -4,6 +4,10 @@
 #include <cuda.h>
 
 #include "core/pack/Pack.h"
+#include "core/pack/Load.h"
+#include "core/pack/Load_Chunks.h"
+#include "core/pack/Load_Indref.h"
+#include "core/pack/Call.h"
 #include "core/pack/GetInds.h"
 #include "core/pack/GetDims.h"
 #include "core/mapreduce/broadcast_batch_dimensions.h"
@@ -29,17 +33,21 @@ __device__ void do_chunk_sub_ranges(TYPE *acc, int tile, int i, int j, int jstar
 	
 	if (i < end_x) {
             if (nbatchdims == 0) {
-				load_chunks < typename CHK::INDSI_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG >(i, chunk, xi + CHK::DIMX_NOTCHUNKED, args);
+				load_chunks < typename CHK::INDSI_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG >
+					(i, chunk, xi + CHK::DIMX_NOTCHUNKED, args);
             } else {
-                load_chunks < typename CHK::INDSI_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG >(threadIdx.x, chunk, xi + CHK::DIMX_NOTCHUNKED, args, indices_i);
+                load_chunks < typename CHK::INDSI_CHUNKED, typename FUN::INDSI, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG >
+					(threadIdx.x, chunk, xi + CHK::DIMX_NOTCHUNKED, args, indices_i);
             }
         }
 
 	if (j < end_y) { // we load yj from device global memory only if j<ny
             if (nbatchdims == 0) {
-				load_chunks < typename CHK::INDSJ_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG > (j, chunk, yj + threadIdx.x * CHK::DIMY + CHK::DIMY_NOTCHUNKED, args);
+				load_chunks < typename CHK::INDSJ_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG > 
+						(j, chunk, yj + threadIdx.x * CHK::DIMY + CHK::DIMY_NOTCHUNKED, args);
             } else {
-                load_chunks < typename CHK::INDSJ_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG > (j-start_y, chunk, yj + threadIdx.x * CHK::DIMY + CHK::DIMY_NOTCHUNKED, args, indices_j);
+                load_chunks < typename CHK::INDSJ_CHUNKED, typename FUN::INDSJ, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG > 
+						(j-start_y, chunk, yj + threadIdx.x * CHK::DIMY + CHK::DIMY_NOTCHUNKED, args, indices_j);
             }
         }
 
@@ -141,9 +149,11 @@ __global__ void GpuConv1DOnDevice_ranges_Chunks(FUN fun, int nx, int ny,
 	
     if (i < end_x) {
         if (nbatchdims == 0) {
-            load < CHK::DIMSX_NOTCHUNKED, CHK::INDSI_NOTCHUNKED > (i, xi, args); // load xi variables from global memory to local thread memory
+            load < CHK::DIMSX_NOTCHUNKED, CHK::INDSI_NOTCHUNKED > 
+				(i, xi, args); // load xi variables from global memory to local thread memory
         } else {
-            load < CHK::DIMSX_NOTCHUNKED, CHK::INDSI_NOTCHUNKED > (threadIdx.x, xi, args, indices_i); // load xi variables from global memory to local thread memory
+            load_indref < CHK::DIMSX_NOTCHUNKED, CHK::INDSI_NOTCHUNKED, FUN::INDSI > 
+				(threadIdx.x, xi, args, indices_i); // load xi variables from global memory to local thread memory
         }
     }
 
@@ -160,9 +170,11 @@ __global__ void GpuConv1DOnDevice_ranges_Chunks(FUN fun, int nx, int ny,
 	
 				if (j < end_y) {
                     if (nbatchdims == 0) {
-						load<CHK::DIMSY_NOTCHUNKED, CHK::INDSJ_NOTCHUNKED>(j, yj + threadIdx.x * CHK::DIMY, args);
+						load < CHK::DIMSY_NOTCHUNKED, CHK::INDSJ_NOTCHUNKED >
+							(j, yj + threadIdx.x * CHK::DIMY, args);
                     } else {
-                        load<CHK::DIMSY_NOTCHUNKED, CHK::INDSJ_NOTCHUNKED>(j-start_y, yj + threadIdx.x * CHK::DIMY, args, indices_j);
+                        load_indref < CHK::DIMSY_NOTCHUNKED, CHK::INDSJ_NOTCHUNKED, FUN::INDSJ >
+							(j-start_y, yj + threadIdx.x * CHK::DIMY, args, indices_j);
                     }
 				}
 				__syncthreads();

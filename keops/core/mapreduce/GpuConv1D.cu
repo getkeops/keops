@@ -6,6 +6,9 @@
 #include <cuda.h>
 
 #include "core/pack/Pack.h"
+#include "core/pack/Load.h"
+#include "core/pack/Load_Chunks.h"
+#include "core/pack/Call.h"
 #include "core/pack/GetInds.h"
 #include "core/pack/GetDims.h"
 #include "core/utils/CudaErrorCheck.cu"
