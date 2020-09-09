@@ -10,10 +10,271 @@
 #include "core/utils/CudaErrorCheck.cu"
 #include "core/utils/TypesUtils.h"
 
+#include "Chunk_Mode_Constants.h"
+
 namespace keops {
 
+
+template < int USE_CHUNK_MODE, int BLOCKSIZE_CHUNKS > struct GpuConv1DOnDevice_ranges {};
+
+
+
+template < class FUN, class FUN_CHUNKED_CURR, int DIMCHUNK_CURR, typename TYPE >
+__device__ void do_chunk_sub_ranges(TYPE *acc, int tile, int i, int j, int jstart, int start_y, int chunk, int end_x, int end_y, 
+			int nbatchdims, int *indices_i, int *indices_j, TYPE **args, TYPE *fout, TYPE *xi, TYPE *yj, TYPE *param_loc) {
+
+	using CHK = Chunk_Mode_Constants<FUN>;
+
+	TYPE fout_tmp_chunk[CHK::FUN_CHUNKED::DIM];
+	
+	if (i < end_x) {
+            if (nbatchdims == 0) {
+				load_chunks < typename CHK::INDSI_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG >(i, chunk, xi + CHK::DIMX_NOTCHUNKED, args);
+            } else {
+                load_chunks < typename CHK::INDSI_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG >(threadIdx.x, chunk, xi + CHK::DIMX_NOTCHUNKED, args, indices_i);
+            }
+        }
+
+	if (j < end_y) { // we load yj from device global memory only if j<ny
+            if (nbatchdims == 0) {
+				load_chunks < typename CHK::INDSJ_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG > (j, chunk, yj + threadIdx.x * CHK::DIMY + CHK::DIMY_NOTCHUNKED, args);
+            } else {
+                load_chunks < typename CHK::INDSJ_CHUNKED, DIMCHUNK, DIMCHUNK_CURR, CHK::DIM_ORG > (j-start_y, chunk, yj + threadIdx.x * CHK::DIMY + CHK::DIMY_NOTCHUNKED, args, indices_j);
+            }
+        }
+
+	__syncthreads();
+
+	if (i < end_x) { // we compute only if needed
+		TYPE *yjrel = yj; // Loop on the columns of the current block.
+        for (int jrel = 0; (jrel < blockDim.x) && (jrel < end_y - jstart); jrel++, yjrel += CHK::DIMY) {
+				TYPE *foutj = fout+jrel*CHK::FUN_CHUNKED::DIM;
+			call < CHK::DIMSX, CHK::DIMSY, CHK::DIMSP > 
+				(FUN_CHUNKED_CURR::template EvalFun<CHK::INDS>(), fout_tmp_chunk, xi, yjrel, param_loc);
+			CHK::FUN_CHUNKED::acc_chunk(foutj, fout_tmp_chunk);
+		}
+	}
+	__syncthreads();
+}
+
+
+
+
+
+template < int BLOCKSIZE_CHUNKS, typename TYPE, class FUN >
+__global__ void GpuConv1DOnDevice_ranges_Chunks(FUN fun, int nx, int ny,
+    int nbatchdims, int *shapes, int *offsets_d,
+    __INDEX__* lookup_d, __INDEX__* slices_x, __INDEX__* ranges_y,
+    TYPE *out, TYPE **args) {
+
+    using CHK = Chunk_Mode_Constants<FUN>;
+
+    // Buffers for the "broadcasted indices" -----------------------------------
+    typedef typename FUN::VARSI VARSI;
+    typedef typename FUN::VARSJ VARSJ;
+    typedef typename FUN::VARSP VARSP;
+
+    const int SIZEI = VARSI::SIZE;
+    const int SIZEJ = VARSJ::SIZE;
+    const int SIZEP = VARSP::SIZE;
+
+    const int SIZEVARS = SIZEI + SIZEJ + SIZEP;
+
+    int offsets[SIZEVARS];
+    int *indices_i = offsets, *indices_j = offsets + SIZEI, *indices_p = offsets + SIZEI + SIZEJ;
+
+    if (nbatchdims > 0) {
+        for (int k = 0; k < SIZEVARS; k++) {
+            offsets[k] = offsets_d[ SIZEVARS * blockIdx.x + k ];
+        }
+    }
+
+
+    // Retrieve our position along the laaaaarge [1,~nx] axis: -----------------
+    __INDEX__ range_id= (lookup_d)[3*blockIdx.x] ;
+    __INDEX__ start_x = (lookup_d)[3*blockIdx.x+1] ;
+    __INDEX__ end_x   = (lookup_d)[3*blockIdx.x+2] ;
+    
+    // The "slices_x" vector encodes a set of cutting points in
+    // the "ranges_y" array of ranges.
+    // As discussed in the Genred docstring, the first "0" is implicit:
+    __INDEX__ start_slice = range_id < 1 ? 0 : slices_x[range_id-1];
+    __INDEX__ end_slice   = slices_x[range_id];
+
+    // get the index of the current thread
+    int i = start_x + threadIdx.x;
+
+    // declare shared mem
+    extern __shared__ TYPE yj[];
+
+    TYPE param_loc[CHK::DIMP < 1 ? 1 : CHK::DIMP];
+    if (nbatchdims == 0) {
+        load<CHK::DIMSP,CHK::INDSP>(0, param_loc, args); // load parameters variables from global memory to local thread memory
+    } else {
+        load<CHK::DIMSP,CHK::INDSP>(0, param_loc, args, indices_p); // Possibly, with offsets as we support broadcasting over batch dimensions
+    }
+
+
+
+
+	__TYPEACC__ acc[CHK::DIMRED];
+
+#if SUM_SCHEME == BLOCK_SUM
+    // additional tmp vector to store intermediate results from each block
+    TYPE tmp[CHK::DIMRED];
+#elif SUM_SCHEME == KAHAN_SCHEME
+    // additional tmp vector to accumulate errors
+    static const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+    TYPE tmp[DIM_KAHAN];
+#endif
+
+    if (i < end_x) {
+	typename FUN::template InitializeReduction<__TYPEACC__, TYPE >()(acc); // acc = 0
+#if SUM_SCHEME == KAHAN_SCHEME
+	VectAssign<DIM_KAHAN>(tmp,0.0f);
+#endif		
+    }
+
+    TYPE xi[CHK::DIMX];
+
+    TYPE fout_chunk[BLOCKSIZE_CHUNKS*CHK::DIMOUT_CHUNK];
+	
+    if (i < end_x) {
+        if (nbatchdims == 0) {
+            load < CHK::DIMSX_NOTCHUNKED, CHK::INDSI_NOTCHUNKED > (i, xi, args); // load xi variables from global memory to local thread memory
+        } else {
+            load < CHK::DIMSX_NOTCHUNKED, CHK::INDSI_NOTCHUNKED > (threadIdx.x, xi, args, indices_i); // load xi variables from global memory to local thread memory
+        }
+    }
+
+    __INDEX__ start_y = ranges_y[2*start_slice], end_y = 0;
+    for( __INDEX__ index = start_slice ; index < end_slice ; index++ ) {
+        if( (index+1 >= end_slice) || (ranges_y[2*index+2] != ranges_y[2*index+1]) ) {
+            //start_y = ranges_y[2*index] ;
+            end_y = ranges_y[2*index+1];
+
+			for (int jstart = start_y, tile = 0; jstart < end_y; jstart += blockDim.x, tile++) {
+
+				// get the current column
+				int j = jstart + threadIdx.x;
+	
+				if (j < end_y) {
+                    if (nbatchdims == 0) {
+						load<CHK::DIMSY_NOTCHUNKED, CHK::INDSJ_NOTCHUNKED>(j, yj + threadIdx.x * CHK::DIMY, args);
+                    } else {
+                        load<CHK::DIMSY_NOTCHUNKED, CHK::INDSJ_NOTCHUNKED>(j-start_y, yj + threadIdx.x * CHK::DIMY, args, indices_j);
+                    }
+				}
+				__syncthreads();
+
+				if (i < end_x) { // we compute only if needed
+					for (int jrel = 0; (jrel < blockDim.x) && (jrel < end_y - jstart); jrel++)
+						CHK::FUN_CHUNKED::initacc_chunk(fout_chunk+jrel*CHK::DIMOUT_CHUNK);
+#if SUM_SCHEME == BLOCK_SUM
+					typename FUN::template InitializeReduction<TYPE,TYPE>()(tmp); // tmp = 0
+#endif
+				}
+
+				// looping on chunks (except the last)
+				#pragma unroll
+				for (int chunk=0; chunk<CHK::NCHUNKS-1; chunk++)
+					do_chunk_sub_ranges < FUN, CHK::FUN_CHUNKED, DIMCHUNK >
+						(acc, tile, i, j, jstart, start_y, chunk, end_x, end_y, nbatchdims, indices_i, indices_j, args, fout_chunk, xi, yj, param_loc);	
+				// last chunk
+				do_chunk_sub_ranges < FUN, CHK::FUN_LASTCHUNKED, CHK::DIMLASTCHUNK >
+					(acc, tile, i, j, jstart, start_y, CHK::NCHUNKS-1, end_x,end_y, nbatchdims, indices_i, indices_j, args, fout_chunk, xi, yj, param_loc);
+
+			if (i < end_x) { 
+				TYPE *yjrel = yj; // Loop on the columns of the current block.
+                if (nbatchdims == 0) {
+					for (int jrel = 0; (jrel < blockDim.x) && (jrel <end_y - jstart); jrel++, yjrel += CHK::DIMY) {
+#if SUM_SCHEME != KAHAN_SCHEME
+						int ind = jrel + tile * blockDim.x + start_y;
+#endif
+						TYPE *foutj = fout_chunk + jrel*CHK::DIMOUT_CHUNK;					
+						TYPE fout_tmp[CHK::DIMFOUT];
+						call<CHK::DIMSX, CHK::DIMSY, CHK::DIMSP, pack<CHK::DIMOUT_CHUNK> >
+								(typename CHK::FUN_POSTCHUNK::template EvalFun<ConcatPacks<typename CHK::INDS,pack<FUN::NMINARGS>>>(), 
+									fout_tmp,xi, yjrel, param_loc, foutj);
+#if SUM_SCHEME == BLOCK_SUM
+#if USE_HALF
+						typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, fout_tmp, __floats2half2_rn(2*ind,2*ind+1));     // tmp += fout_tmp
+#else
+						typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, fout_tmp, ind);     // tmp += fout_tmp
+#endif
+#elif SUM_SCHEME == KAHAN_SCHEME
+						typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, fout_tmp, tmp);     
+#else
+#if USE_HALF
+						typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, fout_tmp, __floats2half2_rn(2*ind,2*ind+1));     // acc += fout_tmp
+#else
+						typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, fout_tmp, ind);     // acc += fout_tmp
+#endif
+#endif
+					}
+				} 
+                else {
+					for (int jrel = 0; (jrel < blockDim.x) && (jrel <end_y - jstart); jrel++, yjrel += CHK::DIMY) {
+#if SUM_SCHEME != KAHAN_SCHEME
+							int ind = jrel + tile * blockDim.x;
+#endif
+							TYPE *foutj = fout_chunk + jrel*CHK::DIMOUT_CHUNK;
+							TYPE fout_tmp[CHK::DIMFOUT];
+							call<CHK::DIMSX, CHK::DIMSY, CHK::DIMSP, pack<CHK::DIMOUT_CHUNK> >
+									(typename CHK::FUN_POSTCHUNK::template EvalFun<ConcatPacks<typename CHK::INDS,pack<FUN::NMINARGS>>>(), 
+										fout_tmp,xi, yjrel, param_loc, foutj);
+#if SUM_SCHEME == BLOCK_SUM
+#if USE_HALF
+							typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, fout_tmp, __floats2half2_rn(2*ind,2*ind+1));     // tmp += fout_tmp
+#else
+							typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, fout_tmp, ind);     // tmp += fout_tmp
+#endif
+#elif SUM_SCHEME == KAHAN_SCHEME
+							typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, fout_tmp, tmp);     
+#else
+#if USE_HALF
+							typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, fout_tmp, __floats2half2_rn(2*ind,2*ind+1));     // acc += fout_tmp
+#else
+							typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, fout_tmp, ind);     // acc += fout_tmp
+#endif
+#endif
+						}
+				}
+#if SUM_SCHEME == BLOCK_SUM
+				typename FUN::template ReducePair<__TYPEACC__,TYPE>()(acc, tmp);     // acc += tmp
+#endif
+			}
+	__syncthreads();
+	}
+	
+			if(index+1 < end_slice) {
+                start_y = ranges_y[2*index+2] ;
+			}
+		}
+	}
+
+    if (i < end_x) 
+		typename FUN::template FinalizeOutput<__TYPEACC__,TYPE>()(acc, out + i * CHK::DIMOUT, i);
+
+}
+
+
+template < int BLOCKSIZE_CHUNKS > 
+struct GpuConv1DOnDevice_ranges<1,BLOCKSIZE_CHUNKS> {
+    template < typename TYPE, class FUN >
+    static void Eval(dim3 gridSize, dim3 blockSize, size_t SharedMem, FUN fun, int nx, int ny, int nbatchdims, int *shapes, int *offsets_d,
+    __INDEX__* lookup_d, __INDEX__* slices_x, __INDEX__* ranges_y,
+    TYPE *out, TYPE **args) {
+        GpuConv1DOnDevice_ranges_Chunks < BLOCKSIZE_CHUNKS > <<< gridSize, blockSize, SharedMem >>> (fun, nx, ny, nbatchdims, shapes, offsets_d,
+    		lookup_d, slices_x, ranges_y, out, args);
+    }
+};
+
+
+
+
 template < typename TYPE, class FUN >
-__global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
+__global__ void GpuConv1DOnDevice_ranges_NoChunks(FUN fun, int nx, int ny,
     int nbatchdims, int *shapes, int *offsets_d,
     __INDEX__* lookup_d, __INDEX__* slices_x, __INDEX__* ranges_y,
     TYPE *out, TYPE **args) {
@@ -192,6 +453,19 @@ __global__ void GpuConv1DOnDevice_ranges(FUN fun, int nx, int ny,
 }
 
 
+template < int DUMMY > 
+struct GpuConv1DOnDevice_ranges<0,DUMMY> {
+    template < typename TYPE, class FUN >
+    static void Eval(dim3 gridSize, dim3 blockSize, size_t SharedMem, FUN fun, int nx, int ny, int nbatchdims, int *shapes, int *offsets_d,
+    __INDEX__* lookup_d, __INDEX__* slices_x, __INDEX__* ranges_y,
+    TYPE *out, TYPE **args) {
+        GpuConv1DOnDevice_ranges_NoChunks <<< gridSize, blockSize, SharedMem >>> (fun, nx, ny, nbatchdims, shapes, offsets_d,
+    		lookup_d, slices_x, ranges_y, out, args);
+    }
+};
+
+
+
 
 
 template < class FUN >
@@ -277,7 +551,6 @@ static int Eval_(FUN fun, int nx, int ny,
     typedef typename FUN::INDSI INDSI;
     typedef typename FUN::INDSJ INDSJ;
     typedef typename FUN::INDSP INDSP;
-    const int DIMY = DIMSY::SUM;
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int SIZEI = DIMSX::SIZE;
     const int SIZEJ = DIMSY::SIZE;
@@ -407,14 +680,28 @@ static int Eval_(FUN fun, int nx, int ny,
 
     // Setup the compute properties ==============================================================
     // Compute on device : grid and block are both 1d
-    cudaDeviceProp deviceProp;
     int dev = -1;
     CudaSafeCall(cudaGetDevice(&dev));
-    CudaSafeCall(cudaGetDeviceProperties(&deviceProp, dev));
+
+    SetGpuProps(dev);
 
     dim3 blockSize;
-    // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    blockSize.x = ::std::min(CUDA_BLOCK_SIZE,::std::min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / ::std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
+
+    static const int USE_CHUNK_MODE = ENABLECHUNK && ( FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::SIZE > 0 );
+
+    static const int DIMY_SHARED = Get_DIMY_SHARED<FUN,USE_CHUNK_MODE>::Value;
+
+    static const int BLOCKSIZE_CHUNKS = ::std::min(CUDA_BLOCK_SIZE,
+                             ::std::min(1024,
+                                        (int) (49152 / ::std::max(1,
+                                                    (int) (  DIMY_SHARED * sizeof(TYPE))))));
+
+    int blocksize_nochunks = ::std::min(CUDA_BLOCK_SIZE,
+                             ::std::min(maxThreadsPerBlock,
+                                        (int) (sharedMemPerBlock / ::std::max(1,
+                                                    (int) (  DIMY_SHARED * sizeof(TYPE))))));
+
+    blockSize.x = USE_CHUNK_MODE ? BLOCKSIZE_CHUNKS : blocksize_nochunks;
 
 
     // Ranges pre-processing... ==================================================================
@@ -483,12 +770,11 @@ static int Eval_(FUN fun, int nx, int ny,
     dim3 gridSize;
     gridSize.x =  nblocks; //nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
-    // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
-    GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,
-        nbatchdims,shapes, offsets_d,
-        lookup_d,slices_x_d,ranges_y_d,
-        out_d, args_d);
-    
+    GpuConv1DOnDevice_ranges<USE_CHUNK_MODE,BLOCKSIZE_CHUNKS>::Eval(gridSize, blockSize, blockSize.x * DIMY_SHARED * sizeof(TYPE), 
+									fun, nx, ny, nbatchdims,shapes, offsets_d,
+								        lookup_d,slices_x_d,ranges_y_d,
+								        out_d, args_d);
+
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
     CudaCheckError();
@@ -578,16 +864,27 @@ static int Eval_(FUN fun, int nx, int ny,
 
     // Compute on device : grid and block are both 1d
 
-    cudaDeviceProp deviceProp;
     int dev = -1;
     CudaSafeCall(cudaGetDevice(&dev));
-    CudaSafeCall(cudaGetDeviceProperties(&deviceProp, dev));
+    SetGpuProps(dev);
 
     dim3 blockSize;
-    // warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
-    typedef typename FUN::DIMSY DIMSY;
-    const int DIMY = DIMSY::SUM;
-    blockSize.x = ::std::min(CUDA_BLOCK_SIZE,::std::min(deviceProp.maxThreadsPerBlock, (int) (deviceProp.sharedMemPerBlock / ::std::max(1, (int)(DIMY*sizeof(TYPE))) ))); // number of threads in each block
+
+    static const int USE_CHUNK_MODE = ENABLECHUNK && ( FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::SIZE > 0 );
+
+    static const int DIMY_SHARED = Get_DIMY_SHARED<FUN,USE_CHUNK_MODE>::Value;
+
+    static const int BLOCKSIZE_CHUNKS = ::std::min(CUDA_BLOCK_SIZE,
+                             ::std::min(1024,
+                                        (int) (49152 / ::std::max(1,
+                                                    (int) (  DIMY_SHARED * sizeof(TYPE))))));
+
+    int blocksize_nochunks = ::std::min(CUDA_BLOCK_SIZE,
+                             ::std::min(maxThreadsPerBlock,
+                                        (int) (sharedMemPerBlock / ::std::max(1,
+                                                    (int) (  DIMY_SHARED * sizeof(TYPE))))));
+
+    blockSize.x = USE_CHUNK_MODE ? BLOCKSIZE_CHUNKS : blocksize_nochunks;
 
 
     // Ranges pre-processing... ==================================================================
@@ -675,8 +972,7 @@ static int Eval_(FUN fun, int nx, int ny,
     dim3 gridSize;
     gridSize.x =  nblocks ; //nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
 
-    // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
-    GpuConv1DOnDevice_ranges<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,
+    GpuConv1DOnDevice_ranges<USE_CHUNK_MODE,BLOCKSIZE_CHUNKS>::Eval(gridSize, blockSize, blockSize.x * DIMY_SHARED * sizeof(TYPE), fun, nx, ny, 
         nbatchdims,shapes, offsets_d,
         lookup_d,slices_x_d,ranges_y_d,
         out,args_d);

@@ -68,6 +68,10 @@ struct pack {
   template < int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
   HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px) {}
 
+  // (even in chunked mode and broadcasting batch dimensions)
+  template < int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
+  HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px, int *offsets) {}
+
   // ... counts for nothing in the evaluation of a function ...
   template<typename TYPE, class FUN, typename... Args>
   HOST_DEVICE static void call(FUN fun, TYPE *out, TYPE *x, Args... args) {
@@ -190,6 +194,18 @@ struct pack<N, NS...> {
     NEXT::template load_chunks<DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>(i, chunk_index, xi + DIM_CHUNK, px);
   }
 
+  // idem for chunked mode and variable-dependent offsets
+  template < int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
+  HOST_DEVICE static void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px, int *offsets) {
+    assert(xi != nullptr);
+    assert(px != nullptr);
+    int true_i = offsets[0] + i;
+    #pragma unroll
+    for (int k = 0; k < DIM_CHUNK_LOAD; k++)
+      xi[k] = px[FIRST][true_i * DIM_ORG + chunk_index*DIM_CHUNK + k];
+    NEXT::template load_chunks<DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>(i, chunk_index, xi + DIM_CHUNK, px, offsets + 1);
+  }
+
   // call(fun, [x1, x2, x3], arg1, arg2 ) will end up executing fun( arg1, arg2, x1, x2, x3 ).
   template<typename TYPE, class FUN, typename... Args>
   HOST_DEVICE static void call(FUN fun, TYPE *out, TYPE *x, Args... args) {
@@ -267,6 +283,12 @@ HOST_DEVICE void load(int i, TYPE *xi, TYPE **px, int *offsets) {
 template < class INDS, int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
 HOST_DEVICE void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px) {
   INDS::template load_chunks<DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>(i, chunk_index, xi, px);
+}
+
+// Loads the i-th "line" of px to xi. - for chunked mode, with offsets (used when broadcasting batch dimensions)
+template < class INDS, int DIM_CHUNK, int DIM_CHUNK_LOAD, int DIM_ORG, typename TYPE>
+HOST_DEVICE void load_chunks(int i, int chunk_index, TYPE *xi, TYPE **px, int *offsets) {
+  INDS::template load_chunks<DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>(i, chunk_index, xi, px, offsets);
 }
 
 
