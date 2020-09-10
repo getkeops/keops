@@ -45,8 +45,6 @@ struct UnaryOp_base {
   template < int IND >
   using POST_CHUNK_FORMULA = OP < typename F::template POST_CHUNK_FORMULA<IND>, NS... >;
 
-  static const bool USE_CHUNK = F::USE_CHUNK;
-
   // recursive function to print the formula as a string
   static void PrintId(::std::stringstream& str) {
     THIS::PrintIdString(str);      // prints the id string of the operator : "Exp", "Log", "Pow",...
