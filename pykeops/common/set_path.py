@@ -20,7 +20,7 @@ def set_bin_folder(bf_user=None):
         name += "-gpu" + os.environ['CUDA_VISIBLE_DEVICES'].replace(',', '-')
     
     if bf_user is not None:        # user provide an explicit path
-        bin_folder = bf_user
+        bin_folder = os.path.expanduser(bf_user)
     elif os.path.isdir(bf_source): # assume we are loading from source
         bin_folder = bf_source
     elif os.path.isdir(bf_home):   # assume we are using wheel and home is accessible
@@ -29,9 +29,12 @@ def set_bin_folder(bf_user=None):
         import tempfile
         bin_folder = tempfile.mkdtemp(prefix=name)
     
+    # Clean path name
+    bin_folder = os.path.realpath(bin_folder)
     if not bin_folder.endswith(os.path.sep):
         bin_folder += os.path.sep
-    os.makedirs(bin_folder, exist_ok=True)
 
+    # Save the path and append in python path
     pykeops.bin_folder = bin_folder
+    sys.path.append(bin_folder)
 

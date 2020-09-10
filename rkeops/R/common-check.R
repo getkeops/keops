@@ -45,7 +45,7 @@ check_cmake <- function(cmake_executable) {
             out <- 1
         }
     } else {
-        stop("No camke executable was provided.")
+        stop("No cmake executable was provided.")
     }
     # return
     return(out)

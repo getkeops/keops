@@ -42,17 +42,17 @@ class KernelSolveAutograd(torch.autograd.Function):
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
-        if tagCPUGPU==1 & tagHostDevice==1:
+        if tagCPUGPU == 1 & tagHostDevice == 1:
             device_id = args[0].device.index
-            for i in range(1,len(args)):
+            for i in range(1, len(args)):
                 if args[i].device.index != device_id:
                     raise ValueError("[KeOps] Input arrays must be all located on the same device.")
 
         def linop(var):
-            newargs = args[:varinvpos] + (var,) + args[varinvpos+1:]
+            newargs = args[:varinvpos] + (var,) + args[varinvpos + 1:]
             res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
             if alpha:
-                res += alpha*var
+                res += alpha * var
             return res
 
         global copy
@@ -86,12 +86,16 @@ class KernelSolveAutograd(torch.autograd.Function):
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
         eta = 'Var(' + str(nargs) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
-      
+
         # there is also a new variable for the formula's output
         resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
         
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
         KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, *newargs)
+
+        newargs = args[:varinvpos] + (G,) + args[varinvpos + 1:]
+        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges,
+                                          accuracy_flags, *newargs)
 
         grads = []  # list of gradients wrt. args;
 
@@ -135,7 +139,6 @@ class KernelSolveAutograd(torch.autograd.Function):
          
         # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, *args
         return (None, None, None, None, None, None, None, None, None, None, *grads)
-
 
 
 class KernelSolve():
@@ -258,7 +261,7 @@ class KernelSolve():
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type 
+            dtype = cuda_type
         reduction_op = 'Sum'
 
         self.optional_flags = get_optional_flags(reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
@@ -330,6 +333,3 @@ class KernelSolve():
         """
 
         return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, self.optional_flags, *args)
-
-
-

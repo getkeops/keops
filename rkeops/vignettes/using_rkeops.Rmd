@@ -46,6 +46,8 @@ install.packages("rkeops")
 
 ## Install from Github sources
 
+> !! In most recent version of devtools, the `args` argument is not available anymore and it is not possible to use `devtools::install_git`. Please check next section to install from sources.
+
 * Install directly from Github (requires `git`)
 ```{r install_github, eval=FALSE}
 devtools::install_git("https://github.com/getkeops/keops", 

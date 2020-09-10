@@ -9,6 +9,7 @@ from pykeops.common.utils import module_exists, create_and_lock_build_folder
    
     
 
+
 class LoadKeOps:
     """
     Load the keops shared library that corresponds to the given formula, aliases, dtype and lang.
@@ -38,7 +39,7 @@ class LoadKeOps:
         """
         formula = formula.replace(" ", "")  # Remove spaces
         aliases = [alias.replace(" ", "") for alias in aliases]
-    
+
         # Since the OS prevents us from using arbitrary long file names, an okayish solution is to call
         # a standard hash function, and hope that we won't fall into a non-injective nightmare case...
         dll_name = ",".join(aliases + [formula] + optional_flags) + "_" + dtype

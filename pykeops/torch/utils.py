@@ -21,40 +21,52 @@ class torchtools:
 
     Genred = Genred
     KernelSolve = KernelSolve
+
     # GenredLowlevel = GenredLowlevel
 
     @staticmethod
-    def transpose(x): return (x.t())
+    def transpose(x):
+        return (x.t())
 
     @staticmethod
-    def permute(x,*args): return x.permute(*args)
+    def permute(x, *args):
+        return x.permute(*args)
 
     @staticmethod
-    def contiguous(x): return x.contiguous()
+    def contiguous(x):
+        return x.contiguous()
 
     @staticmethod
-    def solve(A, b): return torch.solve(b, A)[0].contiguous()
+    def solve(A, b):
+        return torch.solve(b, A)[0].contiguous()
 
     @staticmethod
-    def arraysum(x, axis=None): return x.sum() if axis is None else x.sum(dim=axis)
+    def arraysum(x, axis=None):
+        return x.sum() if axis is None else x.sum(dim=axis)
 
     @staticmethod
-    def long(x): return x.long()
+    def long(x):
+        return x.long()
 
     @staticmethod
-    def size(x): return x.numel()
+    def size(x):
+        return x.numel()
 
     @staticmethod
-    def tile(*args): return torch.Tensor.repeat(*args)
+    def tile(*args):
+        return torch.Tensor.repeat(*args)
 
     @staticmethod
-    def numpy(x): return x.detach().cpu().numpy()
+    def numpy(x):
+        return x.detach().cpu().numpy()
 
     @staticmethod
-    def view(x, s): return x.view(s)
+    def view(x, s):
+        return x.view(s)
 
     @staticmethod
-    def dtype(x): return x.dtype
+    def dtype(x):
+        return x.dtype
 
     @staticmethod
     def dtypename(dtype):

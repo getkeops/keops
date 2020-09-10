@@ -39,6 +39,9 @@ class GenredAutograd(torch.autograd.Function):
         
         if ranges is None : ranges = () # To keep the same type
 
+        # N.B.: KeOps C++ expects contiguous integer arrays as ranges
+        ranges = tuple(r.contiguous() for r in ranges)
+
         result = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *args)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output

@@ -91,8 +91,8 @@ def cluster_ranges(lab, Nlab=None) :
         --> cluster 2 = x_sorted[4:5, :]
     """
     if Nlab is None : Nlab = torch.bincount(lab).float()
-    pivots = torch.cat( (torch.Tensor([0.]).to(Nlab.device), Nlab.cumsum(0)) )
-    return torch.stack( (pivots[:-1], pivots[1:]) ).t().int()
+    pivots = torch.cat((torch.Tensor([0.]).to(Nlab.device), Nlab.cumsum(0)))
+    return torch.stack((pivots[:-1], pivots[1:]), dim=1).int()
 
 def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
     r"""Computes the (weighted) centroids of classes specified by a vector of labels.
