@@ -605,7 +605,7 @@ static int Eval_(FUN fun, int nx, int ny,
     for (int k=0; k < SIZEI; k++) { // For the actual variables:
         tmp = DIMSX::VAL(k);  // use the product of the vector dimension...
         for (int l=0; l < nbatchdims+1; l++) {
-            tmp *= shapes_i[ (k-1)*(nbatchdims+1) + l];  // with all the shape's dimensions
+            tmp *= shapes_i[ k*(nbatchdims+1) + l];  // with all the shape's dimensions
         }
         footprints_x[k] = tmp;
         total_footprint_x += tmp;
@@ -646,7 +646,8 @@ static int Eval_(FUN fun, int nx, int ny,
     void *p_data;
     CudaSafeCall(cudaMalloc(&p_data, 
                              sizeof(TYPE*) * NMINARGS      // pointers to the start of each variable
-                           + sizeof(TYPE) * ( total_footprint_p       // parameters
+                           + sizeof(TYPE) * ( nx*DIMOUT				  // output
+											+ total_footprint_p       // parameters
                                             + total_footprint_x       // "i" variables if tagIJ==1, "j" otherwise
                                             + total_footprint_y )));  // "j" variables if tagIJ==1, "i" otherwise
     
