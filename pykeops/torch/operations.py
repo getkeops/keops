@@ -93,10 +93,6 @@ class KernelSolveAutograd(torch.autograd.Function):
         newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
         KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, *newargs)
 
-        newargs = args[:varinvpos] + (G,) + args[varinvpos + 1:]
-        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges,
-                                          accuracy_flags, *newargs)
-
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
