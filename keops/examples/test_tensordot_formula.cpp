@@ -1,13 +1,6 @@
-// test convolution
+
 // compile with
-//		g++ -I.. -std=c++14 -O3 -o build/test_simple test_simple.cpp
-
-// we define an arbitrary function using available blocks,
-// then test its convolution on the CPU
-
-// Here we build the function f(x,y,u,v,beta) = <u,v>^2 * exp(-p*|x-y|^2) * beta
-// where p is a scalar parameter, x, y, beta are 3D vectors, and u, v are 4D vectors
-// and the convolution is res_i = sum_j f(x_i,y_j,u_i,v_j,beta_j)
+//		g++ -I.. -std=c++14 -O3 -o build/test_tensordot_formula test_tensordot_formula.cpp
 
 #include <iostream>
 #include <algorithm>

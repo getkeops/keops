@@ -114,6 +114,9 @@ struct BinaryOp_base {
   template < int CAT >
   using CHUNKED_VARS = univpack<>;
 
+  template < int CAT >
+  using NOTCHUNKED_VARS = univpack<>;
+  
   // operator as shortcut to Eval...
   template < typename INDS >
   struct EvalFun {

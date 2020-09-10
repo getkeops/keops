@@ -6,9 +6,9 @@ M, N, D = 10000, 10000, 300
 niter = 1
 
 import torch
-x = torch.randn(M, 1, D).cuda()
-y = torch.randn(1, N, D).cuda()
-b = torch.randn(1, N, 1).cuda()
+x = torch.randn(M, 1, D)#.cuda()
+y = torch.randn(1, N, D)#.cuda()
+b = torch.randn(1, N, 1)#.cuda()
 
 from pykeops.torch import LazyTensor
 x_i = LazyTensor( x )
