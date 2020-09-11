@@ -45,10 +45,26 @@ struct ChunkableUnaryOp : UnaryOp<OP, F, NS...> {
 
   static const int NUM_CHUNKED_FORMULAS = F::NUM_CHUNKED_FORMULAS + USE_CHUNK;
 
+
+  // NB. The following commented code should be ok but it dos not compile with Cuda 11 as of 2020 aug 13th...
+  /*
   template < int IND >
   using POST_CHUNK_FORMULA = CondType < Var < IND, 1, 3 >, OP<typename F::template POST_CHUNK_FORMULA<IND>, NS...>, USE_CHUNK >;
-
-
+  */
+  // ... so we use an additional "_Impl" structure to specialize in case of empty PARAMS pack : 
+  template < int IND, int SIZE_NS >
+  struct POST_CHUNK_FORMULA_Impl {
+	  using type = CondType < Var < IND, 1, 3 >, OP<typename F::template POST_CHUNK_FORMULA<IND>, NS...>, USE_CHUNK >;
+  };
+  
+  template < int IND >
+  struct POST_CHUNK_FORMULA_Impl < IND, 0 > {
+	  using type = CondType < Var < IND, 1, 3 >, OP<typename F::template POST_CHUNK_FORMULA<IND>>, USE_CHUNK >;
+  };
+  
+  template < int IND >
+  using POST_CHUNK_FORMULA = typename POST_CHUNK_FORMULA_Impl<IND,sizeof...(NS)>::type;
+  
 };
   
 }
