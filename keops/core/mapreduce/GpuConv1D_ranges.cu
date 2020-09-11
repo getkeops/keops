@@ -342,7 +342,7 @@ __global__ void GpuConv1DOnDevice_ranges_NoChunks(FUN fun, int nx, int ny,
     const int DIMP = DIMSP::SUM;        // DIMP  is sum of dimensions for parameters variables
     const int DIMOUT = FUN::DIM; // dimension of output variable
     const int DIMRED = FUN::DIMRED; // dimension of reduction operation
-    const int DIMFOUT = DIMSX::FIRST;     // DIMFOUT is dimension of output variable of inner function
+    const int DIMFOUT = FUN::F::DIM;     // DIMFOUT is dimension of output variable of inner function
 
     // load parameter(s)
     TYPE param_loc[DIMP < 1 ? 1 : DIMP];

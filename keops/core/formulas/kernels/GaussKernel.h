@@ -108,7 +108,7 @@ struct GaussKernel_specific : Kernel {
 
 // by default we link to the standard autodiff versions of the gradients
 template < class C, class X, class Y, class B, class V, class GRADIN >
-struct GradGaussKernel_specific {
+struct GradGaussKernel_specific : Kernel {
   using GenericVersion = Grad<GaussKernel<C,X,Y,B>,V,GRADIN>;
 
   static const int DIM = GenericVersion::DIM;
