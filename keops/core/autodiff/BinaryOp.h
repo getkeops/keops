@@ -31,9 +31,31 @@ struct BinaryOp_base {
 
   static const int NUM_CHUNKED_FORMULAS = FA::NUM_CHUNKED_FORMULAS + FB::NUM_CHUNKED_FORMULAS;
 
+  // NB. The following commented code should be ok but it dos not compile with Cuda 11 as of 2020 aug 13th...
+  /*
   template < int IND >
-  using POST_CHUNK_FORMULA = OP < typename FA::template POST_CHUNK_FORMULA<IND>, typename FB::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS>, PARAMS... >;
-
+  using POST_CHUNK_FORMULA = OP < typename FA::template POST_CHUNK_FORMULA<IND>, 
+  * 								typename FB::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS>, 
+  * 								PARAMS... >;
+  */
+  // ... so we use an additional "_Impl" structure to specialize in case of empty PARAMS pack : 
+  template < int IND, int SIZE_PARAMS >
+  struct POST_CHUNK_FORMULA_Impl {
+	  using type = OP < typename FA::template POST_CHUNK_FORMULA<IND>, 
+   								typename FB::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS>, 
+   								PARAMS... >;
+  };
+  
+  template < int IND >
+  struct POST_CHUNK_FORMULA_Impl < IND, 0 > {
+	  using type = OP < typename FA::template POST_CHUNK_FORMULA<IND>, 
+   								typename FB::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS> >;
+  };
+  
+  template < int IND >
+  using POST_CHUNK_FORMULA = typename POST_CHUNK_FORMULA_Impl<IND,sizeof...(PARAMS)>::type;
+  
+  
   // recursive function to print the formula as a string
   static void PrintId(::std::stringstream& str) {
     str << "(";                                  // prints "("

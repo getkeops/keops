@@ -42,9 +42,27 @@ struct UnaryOp_base {
 
   static const int NUM_CHUNKED_FORMULAS = F::NUM_CHUNKED_FORMULAS;
 
+
+  // NB. The following commented code should be ok but it dos not compile with Cuda 11 as of 2020 aug 13th...
+  /*
   template < int IND >
   using POST_CHUNK_FORMULA = OP < typename F::template POST_CHUNK_FORMULA<IND>, NS... >;
-
+  */
+  // ... so we use an additional "_Impl" structure to specialize in case of empty PARAMS pack : 
+  template < int IND, int SIZE_NS >
+  struct POST_CHUNK_FORMULA_Impl {
+	  using type = OP < typename F::template POST_CHUNK_FORMULA<IND>, NS... >;
+  };
+  
+  template < int IND >
+  struct POST_CHUNK_FORMULA_Impl < IND, 0 > {
+	  using type = OP < typename F::template POST_CHUNK_FORMULA<IND> >;
+  };
+  
+  template < int IND >
+  using POST_CHUNK_FORMULA = typename POST_CHUNK_FORMULA_Impl<IND,sizeof...(NS)>::type;
+ 
+  
   // recursive function to print the formula as a string
   static void PrintId(::std::stringstream& str) {
     THIS::PrintIdString(str);      // prints the id string of the operator : "Exp", "Log", "Pow",...
