@@ -3,9 +3,10 @@ import os
 
 import numpy as np
 
-from pykeops import bin_folder, build_type
+import pykeops.config
 from pykeops.common.compile_routines import compile_specific_fshape_scp_routine
 from pykeops.common.utils import c_type, create_and_lock_build_folder
+from pykeops.common.set_path import set_build_folder
 from pykeops.numpy import default_dtype
 
 
@@ -23,14 +24,14 @@ class LoadKeopsFshapeScp:
         
         spec = importlib.util.find_spec(self.dll_name)
         
-        if (spec is None) or (build_type == 'Debug'):
-            self.build_folder = os.path.join(bin_folder, 'build-' + self.dll_name)
+        if (spec is None) or (pykeops.config.build_type == 'Debug'):
+            self.build_folder = set_build_folder(pykeops.config.bin_folder, self.dll_name)
             self._safe_compile()
     
     @create_and_lock_build_folder()
     def _safe_compile(self):
         compile_specific_fshape_scp_routine(self.dll_name, self.kernel_geom, self.kernel_sig, self.kernel_sphere,
-                                            self.dtype, build_folder=self.build_folder)
+                                            self.dtype, self.build_folder)
     
     def import_module(self):
         return importlib.import_module(self.dll_name)

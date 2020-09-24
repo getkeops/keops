@@ -15,7 +15,10 @@ class numpytools:
 
     @staticmethod
     def copy(x): return np.copy(x)
-    
+
+    @staticmethod
+    def eq(x, y): return np.equal(x, y)
+
     @staticmethod
     def transpose(x): return x.T
     

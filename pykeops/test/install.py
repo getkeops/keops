@@ -1,5 +1,7 @@
 import numpy as np
 
+import pykeops.config
+
 formula = 'SqNorm2(x - y)'
 var = ['x = Vi(3)', 'y = Vj(3)']
 expected_res = np.array([63., 90.])
@@ -26,8 +28,8 @@ def test_numpy_bindings():
     import pykeops
     import pykeops.numpy as pknp
     
-    pykeops.verbose = True;
-    pykeops.build_type = "Debug"
+    pykeops.config.verbose = True
+    pykeops.config.build_type = "Debug"
     my_conv = pknp.Genred(formula, var)
     print(my_conv(x, y))
 
@@ -60,8 +62,8 @@ def test_torch_bindings():
     import pykeops
     import pykeops.torch as pktorch
     
-    pykeops.verbose = True;
-    pykeops.build_type = "Debug"
+    pykeops.config.verbose = True
+    pykeops.config.build_type = "Debug"
     my_conv = pktorch.Genred(formula, var)
     print(my_conv(x, y))
 
