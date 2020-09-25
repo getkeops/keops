@@ -24,6 +24,7 @@
 #include "core/formulas/maths/Exp.h"
 #include "core/formulas/maths/Sin.h"
 #include "core/formulas/maths/Cos.h"
+#include "core/formulas/maths/Acos.h"
 #include "core/formulas/maths/Pow.h"
 #include "core/formulas/maths/Square.h"
 #include "core/formulas/maths/Inv.h"
