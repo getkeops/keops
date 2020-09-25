@@ -72,8 +72,6 @@ struct CpuConv_ranges {
   
     // Actual for-for loop -----------------------------------------------------
 
-    TYPE fout[DIMFOUT];
-
     TYPE pp[DIMP];
     load< DIMSP, INDSP >(0, pp, args);  // If nbatchdims == 0, the parameters are fixed once and for all
         
@@ -120,7 +118,7 @@ struct CpuConv_ranges {
 
 #pragma omp parallel for   
       for (__INDEX__ i = start_x; i < end_x; i++) {
-        TYPE xi[DIMX], yj[DIMY];
+        TYPE xi[DIMX], yj[DIMY], fout[DIMFOUT];
         __TYPEACC__ acc[DIMRED];
 #if SUM_SCHEME == BLOCK_SUM
         // additional tmp vector to store intermediate results from each block
