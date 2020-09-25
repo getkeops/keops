@@ -27,6 +27,7 @@ Standard math functions :
  *      XLogX<F>                       : function F*log(F) (vectorized)
  *      Sin<F>                         : sine of F (vectorized)
  *      Cos<F>                         : cosine of F (vectorized)
+ *      Acos<F>                        : cosine of F (vectorized)
  *      Sign<F>                        : sign of F (vectorized)
  *      Step<F>                        : step of F (vectorized)
  *      ReLU<F>                        : ReLU of F (vectorized)
