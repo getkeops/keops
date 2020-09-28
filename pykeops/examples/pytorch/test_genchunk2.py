@@ -1,3 +1,6 @@
+# testing chunk mode with Genred syntax, and with float64
+# and comparing with PyTorch matrix mutiply
+
 import torch
 from pykeops.torch import Genred
 import timeit

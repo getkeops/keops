@@ -1,3 +1,4 @@
+# same as test_genchunk.py, but adding batch dimensions
 
 import time
 
@@ -6,9 +7,9 @@ B1, B2, M, N, D = 3, 2, 1000, 10000, 300
 niter = 1
 
 import torch
-x = torch.randn(B1, B2, M, 1, D)#.cuda()
-y = torch.randn( 1, B2, 1, N, D)#.cuda()
-b = torch.randn(B1, B2, 1, N, 1)#.cuda()
+x = torch.randn(B1, B2, M, 1, D).cuda()
+y = torch.randn( 1, B2, 1, N, D).cuda()
+b = torch.randn(B1, B2, 1, N, 1).cuda()
 
 from pykeops.torch import LazyTensor
 x_i = LazyTensor( x )
