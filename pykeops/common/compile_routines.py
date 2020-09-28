@@ -2,7 +2,7 @@ import os
 import sys
 import subprocess
 
-from pykeops import bin_folder, script_folder, verbose, build_type
+import pykeops.config
 from pykeops.common.parse_type import check_aliases_list
 from pykeops.common.utils import c_type
 
@@ -17,7 +17,7 @@ def run_and_display(args, build_folder, msg=''):
     os.makedirs(build_folder, exist_ok=True)
     try:
         proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
-        if verbose:
+        if pykeops.config.verbose:
             print(proc.stdout.decode('utf-8'))
 
     except subprocess.CalledProcessError as e:
@@ -27,7 +27,7 @@ def run_and_display(args, build_folder, msg=''):
         print('--------------------- ----------- -----------------')
 
 
-def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_flags, build_folder=bin_folder):
+def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_flags, build_folder):
     aliases = check_aliases_list(aliases)
 
     def process_alias(alias):
@@ -43,11 +43,11 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     alias_disp_string = ''.join([process_disp_alias(alias) for alias in aliases])
 
     print(
-        'Compiling ' + dllname + ' in ' + build_folder + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
+        'Compiling ' + dllname + ' in ' + os.path.realpath(build_folder + os.path.sep + '..' ) + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
         end='', flush=True)
 
-    command_line = ["cmake", script_folder,
-                     "-DCMAKE_BUILD_TYPE=" + "'{}'".format(build_type),
+    command_line = ["cmake", pykeops.config.script_folder,
+                     "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
                      "-DFORMULA_OBJ=" + "'{}'".format(formula),
                      "-DVAR_ALIASES=" + "'{}'".format(alias_string),
                      "-Dshared_obj_name=" + "'{}'".format(dllname),
@@ -67,24 +67,24 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     print('Done.')
 
 
-def compile_specific_conv_routine(dllname, dtype, build_folder=bin_folder):
-    print('Compiling ' + dllname + ' using ' + dtype + '... ', end='', flush=True)
-    run_and_display(['cmake', script_folder,
-                     '-DCMAKE_BUILD_TYPE=' + build_type,
+def compile_specific_conv_routine(dllname, dtype, build_folder):
+    print('Compiling ' + dllname + ' using ' + dtype + ' in ' + os.path.realpath(build_folder + os.path.sep + '..' ) + '... ', end='', flush=True)
+    run_and_display(['cmake', pykeops.config.script_folder,
+                     '-DCMAKE_BUILD_TYPE=' + pykeops.config.build_type,
                      '-Ushared_obj_name',
                      '-D__TYPE__=' + c_type[dtype],
                      ],
                     build_folder,
                     msg='CMAKE')
+
     run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
     print('Done.')
 
 
-def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel_sphere, dtype,
-                                        build_folder=bin_folder):
-    print('Compiling ' + dllname + ' using ' + dtype + '... ', end='', flush=True)
-    run_and_display(['cmake', script_folder,
-                     '-DCMAKE_BUILD_TYPE=' + build_type,
+def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel_sphere, dtype, build_folder):
+    print('Compiling ' + dllname + ' using ' + dtype + ' in ' + os.path.realpath(build_folder + os.path.sep + '..' ) + '... ', end='', flush=True)
+    run_and_display(['cmake', pykeops.config.script_folder,
+                     '-DCMAKE_BUILD_TYPE=' + pykeops.config.build_type,
                      '-Ushared_obj_name',
                      '-DKERNEL_GEOM=' + kernel_geom,
                      '-DKERNEL_SIG=' + kernel_sig,
@@ -93,5 +93,6 @@ def compile_specific_fshape_scp_routine(dllname, kernel_geom, kernel_sig, kernel
                      ],
                     build_folder,
                     msg='CMAKE')
+
     run_and_display(['cmake', '--build', '.', '--target', dllname, '--', 'VERBOSE=1'], build_folder, msg='MAKE')
     print('Done.')
