@@ -143,7 +143,7 @@ def check_aliases_list(types_list):
 
 
 def get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op_internal):
-    if dtype_acc is not "auto" and use_double_acc:
+    if dtype_acc != "auto" and use_double_acc:
         raise ValueError("[KeOps] you cannot set both options use_double_acc and dtype_acc.")
     if use_double_acc:
         dtype_acc = "float64"
@@ -152,7 +152,7 @@ def get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_o
             "[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)")
     if dtype_acc == "auto":
         dtype_acc = dtype
-    if dtype is "float32" and dtype_acc not in ("float32", "float64"):
+    if dtype == "float32" and dtype_acc not in ("float32", "float64"):
         raise ValueError(
             "[KeOps] invalid parameter dtype_acc : should be either 'float32' or 'float64' when dtype is 'float32'")
     elif dtype == "float16" and dtype_acc not in ("float16", "float32"):
