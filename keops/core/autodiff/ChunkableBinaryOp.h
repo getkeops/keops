@@ -19,7 +19,9 @@ struct ChunkableBinaryOp : BinaryOp<OP, F, G> {
   template < int CAT >
   using NOTCHUNKED_VARS = univpack<>;
 
-  static const bool USE_CHUNK = ENABLECHUNK && F::IS_CHUNKABLE && G::IS_CHUNKABLE && F::DIM>100;
+  static const bool USE_CHUNK = ENABLECHUNK && F::IS_CHUNKABLE && G::IS_CHUNKABLE 
+						&& (F::DIM>DIM_TRESHOLD_CHUNK || F::DIM==SPECDIM_USE_CHUNK1 || F::DIM==SPECDIM_USE_CHUNK2
+											 || F::DIM==SPECDIM_USE_CHUNK3 || F::DIM==SPECDIM_USE_CHUNK4);
 
   template < int DIMCHK >
   using CHUNKED_FORMULA = CondType < univpack<univpack<CHUNKED_VERSION<DIMCHK>,pack<F::DIM>>>, univpack<>, USE_CHUNK >;

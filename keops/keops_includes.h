@@ -7,7 +7,19 @@
   #define DIMCHUNK 64
 #endif
 #ifndef DIM_TRESHOLD_CHUNK
-  #define DIM_TRESHOLD_CHUNK 110
+  #define DIM_TRESHOLD_CHUNK 143
+#endif
+#ifndef SPECDIM_USE_CHUNK1
+  #define SPECDIM_USE_CHUNK1 80
+#endif
+#ifndef SPECDIM_USE_CHUNK2
+  #define SPECDIM_USE_CHUNK2 109
+#endif
+#ifndef SPECDIM_USE_CHUNK3
+  #define SPECDIM_USE_CHUNK3 112
+#endif
+#ifndef SPECDIM_USE_CHUNK4
+  #define SPECDIM_USE_CHUNK4 114
 #endif
 
 #if USE_HALF

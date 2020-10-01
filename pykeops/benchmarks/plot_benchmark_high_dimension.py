@@ -28,15 +28,17 @@ use_cuda = torch.cuda.is_available()
 # 
 
 N = 10000       # number of samples
-MAXTIME = 10 if use_cuda else 10   # Max number of seconds before we break the loop
-REDTIME = 2  if use_cuda else 2  # Decrease the number of runs if computations take longer than 2s...
+MAXTIME = 3 if use_cuda else 10   # Max number of seconds before we break the loop
+REDTIME = 2 if use_cuda else 2  # Decrease the number of runs if computations take longer than 2s...
 
 # Dimensions to test
-DS = [1, 3, 5, 10, ]
-#      20, 30, 50, 
-#      75, 100, 150, 
-#      200, 300, 500,
-#      1000, 2000, 3000]
+DS =  [
+      1, 3, 5, 10,
+      20, 30, 50, 
+      80, 100, 120, 150, 200,
+      300, 500,
+      1000, 2000, 3000
+      ]
 
 ##############################################
 # Synthetic dataset. 
@@ -70,7 +72,7 @@ def generate_samples(D, device, lang, batchsize=None):
 
 
 ##############################################
-# Define a simple Gaussian RBF product, using a **tensorized** implementation:
+# Define a Gaussian RBF product, using a **tensorized** implementation:
 #
 
 def gaussianconv_numpy(x, y, b):
@@ -96,46 +98,50 @@ from pykeops.torch import generic_sum
 
 def gaussianconv_keops(x, y, b):
     D  = x.shape[1]
-    fun = generic_sum("Exp(-SqDist(X,Y)) * B",  # Formula
+    fun = generic_sum("Exp(X|Y) * B",  # Formula
                                  "A = Vi(1)",              # Output
                                  "X = Vi({})".format(D),   # 1st argument
                                  "Y = Vj({})".format(D),   # 2nd argument
                                  "B = Vj(1)" )             # 3rd argument
     backend = 'GPU' if use_cuda else 'CPU'
-    return fun(x, y, b, backend=backend)
+    ex = (-(x*x).sum(-1)).exp()[:,None]
+    ey = (-(y*y).sum(-1)).exp()[:,None]
+    return ex*fun(2*x, y, b*ey, backend=backend)
 
 ##############################################
-# Same, but deactivating chunked computation scheme
+# Same, but deactivating chunked computation mode
 #
-
-from pykeops.torch import generic_sum
 
 def gaussianconv_keops_nochunks(x, y, b):
     D  = x.shape[1]
-    fun = generic_sum("Exp(-SqDist(X,Y)) * B",  # Formula
+    fun = generic_sum("Exp(X|Y) * B",  # Formula
                                  "A = Vi(1)",              # Output
                                  "X = Vi({})".format(D),   # 1st argument
                                  "Y = Vj({})".format(D),   # 2nd argument
-                                 "B = Vj(1)" )             # 3rd argument
+                                 "B = Vj(1)",              # 3rd argument
+                                 enable_chunks = False)
     backend = 'GPU' if use_cuda else 'CPU'
-    return fun(x, y, b, backend=backend, enable_chunks=False)
-
-#############################################
-# Finally, perform the same operation with our high-level :class:`pykeops.torch.LazyTensor` wrapper:
-
-from pykeops.torch import LazyTensor
+    ex = (-(x*x).sum(-1)).exp()[:,None]
+    ey = (-(y*y).sum(-1)).exp()[:,None]
+    return ex*fun(2*x, y, b*ey, backend=backend)
 
 
-def gaussianconv_lazytensor(x, y, b):
+##############################################
+# Same, but deactivating chunked computation mode
+#
+
+def expscalprod_keops_nochunks(x, y, b):
+    D  = x.shape[1]
+    fun = generic_sum("Exp(X|Y) * B",  # Formula
+                                 "A = Vi(1)",              # Output
+                                 "X = Vi({})".format(D),   # 1st argument
+                                 "Y = Vj({})".format(D),   # 2nd argument
+                                 "B = Vj(1)",              # 3rd argument
+                                 enable_chunks = False)
     backend = 'GPU' if use_cuda else 'CPU'
-    nbatchdims = len(x.shape) - 2
-    x_i = LazyTensor(x.unsqueeze(-2))  # (B, M, 1, D)
-    y_j = LazyTensor(y.unsqueeze(-3))  # (B, 1, N, D)
-    D_ij = ((x_i - y_j) ** 2).sum(-1)  # (B, M, N, 1)
-    K_ij = (- D_ij).exp()  # (B, M, N, 1)
-    S_ij = K_ij * b.unsqueeze(-3)  # (B, M, N, 1) * (B, 1, N, 1)
-    return S_ij.sum(dim=nbatchdims + 1, backend=backend)
-
+    return fun(x, y, b, backend=backend)
+    
+    
 ##############################################
 # Benchmarking loops
 # -----------------------
@@ -150,7 +156,6 @@ def benchmark(routine_batchsize, dev, D, loops=10, lang='torch'):
 
     importlib.reload(torch)  # In case we had a memory overflow just before...
     device = torch.device(dev)
-    print(Routine)
     x, y, b = generate_samples(D, device, lang, batchsize=B)
 
     # We simply benchmark a convolution
@@ -213,7 +218,7 @@ def full_bench(title, routines) :
 
     # Creates a pyplot figure:
     plt.figure(figsize=(12,8))
-    linestyles = ["o-", "s-", "^-"]
+    linestyles = ["o-", "s-", "^:", "+-", "d-"]
     for i, backend in enumerate(backends):
         plt.plot( benches[:,0], benches[:,i+1], linestyles[i], 
                   linewidth=2, label='backend = "{}"'.format(backend) )
@@ -235,6 +240,7 @@ def full_bench(title, routines) :
     plt.grid(True, which="major", linestyle="-")
     plt.grid(True, which="minor", linestyle="dotted")
     plt.axis([DS[0], DS[-1], 1e-5, MAXTIME])
+    #plt.axis([DS[0], DS[-1], 0, 0.35])
     plt.tight_layout()
 
     # Save as a .csv to put a nice Tikz figure in the papers:
@@ -245,36 +251,14 @@ def full_bench(title, routines) :
 
 
 ##############################################
-# NumPy vs. PyTorch vs. KeOps (Gpu)
+# PyTorch vs. KeOps (Gpu)
 # --------------------------------------------------------
 
 if use_cuda:
-    routines = [ (gaussianconv_numpy,   "Numpy (Cpu)",   "numpy"),
-                 (gaussianconv_pytorch, "PyTorch (Gpu)", "torch"),
-                 (gaussianconv_keops,   "KeOps (Gpu)",   "torch"),
-                 (gaussianconv_keops_nochunks,   "KeOps (non chunked mode, Gpu)",   "torch"), ]
+    routines = [ (gaussianconv_pytorch, "PyTorch (Gpu)", "torch"),
+                 (gaussianconv_keops,   "KeOps > 1.4.1 (Gpu)",   "torch"),
+                 (gaussianconv_keops_nochunks,   "KeOps <= 1.4.1 (Gpu)",   "torch"), ]
     full_bench( "Gaussian Matrix-Vector products", routines )
 
-
-##############################################
-# NumPy vs. PyTorch vs. KeOps (Cpu)
-# --------------------------------------------------------
-
-use_cuda = False
-routines = [ (gaussianconv_numpy,   "Numpy (Cpu)",   "numpy"),
-             (gaussianconv_pytorch, "PyTorch (Cpu)", "torch"),
-             (gaussianconv_keops,   "KeOps (Cpu)",   "torch"), ]
-full_bench( "Gaussian Matrix-Vector products", routines )
-
-
-################################################
-# Genred vs. LazyTensor vs. batched LazyTensor
-# ------------------------------------------------
-
-use_cuda = torch.cuda.is_available()
-routines = [(gaussianconv_keops, "KeOps (Genred)", "torch"),
-            (gaussianconv_lazytensor, "KeOps (LazyTensor)", "torch"),
-            ((gaussianconv_lazytensor, 10), "KeOps (LazyTensor, batchsize=10)", "torch"), ]
-full_bench( "Gaussian Matrix-Vector products", routines )
 
 plt.show()

@@ -50,7 +50,7 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True):
+                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, optional_flags=[]):
         r"""
         Instantiate a new generic operation.
 
@@ -122,6 +122,8 @@ class Genred():
 
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
 				with formulas involving large dimension variables.
+				
+			optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
 
         """
         if cuda_type:
@@ -134,8 +136,7 @@ class Genred():
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
 
-        optional_flags = get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
-        
+        optional_flags += get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
