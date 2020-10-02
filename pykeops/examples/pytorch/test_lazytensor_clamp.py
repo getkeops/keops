@@ -3,23 +3,25 @@
 import torch
 from pykeops.torch import LazyTensor
 
-x = torch.randn(1000, 1, 1, requires_grad=True).cuda()
-y = -1.5
-z = 1.5
+x = torch.randn(1000,   1, 3, requires_grad=True)
+y = torch.randn(   1, 500, 1, requires_grad=True)
+a = -1.5
+b = 1.5
 
-def fun(x,y,z,backend):
+def fun(x,y,a,b,backend):
     if backend=="keops":
         x = LazyTensor(x)
         y = LazyTensor(y)
-        z = LazyTensor(z)
+        #a = LazyTensor(a)
+        #b = LazyTensor(b)
     elif backend!="torch":
         raise ValueError("wrong backend")
-    Dxy = (x.clamp(y,z)).sum(dim=2) 
+    Dxy = ((x*y).clamp(a,b)).sum(dim=2) 
     Kxy = (- Dxy).exp() 
     return Kxy.sum(dim=1)
     
-out_torch = fun(x,y,z,"torch")
-out_keops = fun(x,y,z,"keops").squeeze()
+out_torch = fun(x,y,a,b,"torch")
+out_keops = fun(x,y,a,b,"keops").squeeze()
 print("relative error:", (torch.norm(out_torch-out_keops)/torch.norm(out_torch)).item() )
 
 g_torch = torch.autograd.grad((out_torch ** 2).sum(), [x])[0] 
