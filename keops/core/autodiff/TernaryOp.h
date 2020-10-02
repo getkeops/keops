@@ -27,11 +27,9 @@ struct TernaryOp_base {
   static const bool IS_CHUNKABLE = false;
 
   template < int DIMCHK >
-  using CHUNKED_FORMULAS = ConcatPacks < 
-	  							typename FA::template CHUNKED_FORMULAS<DIMCHK>, 
-  								typename FB::template CHUNKED_FORMULAS<DIMCHK>,
-								typename FC::template CHUNKED_FORMULAS<DIMCHK>,
-								 >;
+  using CHUNKED_FORMULAS = ConcatPacks < typename FA::template CHUNKED_FORMULAS<DIMCHK>, 
+				ConcatPacks < typename FB::template CHUNKED_FORMULAS<DIMCHK>, 
+						typename FC::template CHUNKED_FORMULAS<DIMCHK> > >;
 
   static const int NUM_CHUNKED_FORMULAS = FA::NUM_CHUNKED_FORMULAS + FB::NUM_CHUNKED_FORMULAS + FC::NUM_CHUNKED_FORMULAS;
 
@@ -55,9 +53,8 @@ struct TernaryOp_base {
   template < int IND >
   struct POST_CHUNK_FORMULA_Impl < IND, 0 > {
 	  using type = OP < typename FA::template POST_CHUNK_FORMULA<IND>, 
-   						typename FB::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS>,
-   						typename FC::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS+FB::NUM_CHUNKED_FORMULAS>,						
-						 >;
+   				typename FB::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS>,
+   					typename FC::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULA+FB::NUM_CHUNKED_FORMULAS> >;
   };
   
   template < int IND >
