@@ -466,10 +466,15 @@ class PytorchUnitTestCase(unittest.TestCase):
                 a_i = K_ij.logsumexp(self.nbatchdims + 1)
                 if use_keops: a_i = a_i.squeeze(-1)
                 [g_x, g_y, g_s] = torch.autograd.grad((1. * a_i).sum(), [x, y, s], create_graph=True)
-                [g_xs] = torch.autograd.grad((g_x.abs()).sum(), [s], create_graph=True)
                 
-                results += [a_i, g_x, g_y, g_s, g_xs]
-            
+                # N.B. (Joan, sept 2020) commenting out the 2nd order gradient computation here, 
+                # since it slows down too much the compilation currently, when using Cuda 11.
+                #
+                #[g_xs] = torch.autograd.grad((g_x.abs()).sum(), [s], create_graph=True)
+                #results += [a_i, g_x, g_y, g_s, g_xs]
+                
+                results += [a_i, g_x, g_y, g_s]
+                
             full_results.append(results)
         
         for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
