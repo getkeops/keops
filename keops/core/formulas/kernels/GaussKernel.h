@@ -11,6 +11,8 @@
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Exp.h"
 #include "core/formulas/maths/Subtract.h"
+
+#include "core/formulas/kernels/Kernel.h"
 #include "core/formulas/kernels/ScalarRadialKernels.h"
 
 
@@ -45,7 +47,7 @@ template < class C, class X, class Y, class B > struct GaussKernel_specific;
 template < class C, class X, class Y, class B, class V, class GRADIN > struct GradGaussKernel_specific;
 
 template < class C, class X, class Y, class B >
-struct GaussKernel_specific {
+struct GaussKernel_specific : Kernel {
 
   static_assert(C::DIM==1,"First template argument must be a of dimension 1 for GaussKernel_specific");
   static_assert(C::CAT==2,"First template argument must be a parameter variable (CAT=2) for GaussKernel_specific");
@@ -106,7 +108,7 @@ struct GaussKernel_specific {
 
 // by default we link to the standard autodiff versions of the gradients
 template < class C, class X, class Y, class B, class V, class GRADIN >
-struct GradGaussKernel_specific {
+struct GradGaussKernel_specific : Kernel {
   using GenericVersion = Grad<GaussKernel<C,X,Y,B>,V,GRADIN>;
 
   static const int DIM = GenericVersion::DIM;
@@ -151,7 +153,7 @@ struct GradGaussKernel_specific {
 
 // specific implementation of gradient wrt X
 template < class C, class X, class Y, class B, class GRADIN >
-struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
+struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> : Kernel {
   using GenericVersion = Grad<GaussKernel<C,X,Y,B>,X,GRADIN>;
 
   static const int DIM = GenericVersion::DIM;

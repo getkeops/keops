@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "core/pack/CondType.h"
-#include "core/autodiff/BinaryOp.h"
+#include "core/autodiff/VectorizedScalarBinaryOp.h"
 #include "core/formulas/constants/Zero.h"
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Add.h"
@@ -28,7 +28,7 @@ using Subtract = typename Subtract_Alias< FA, FB >::type;
 
 
 template < class FA, class FB >
-struct Subtract_Impl : BinaryOp< Subtract_Impl, FA, FB > {
+struct Subtract_Impl : VectorizedScalarBinaryOp< Subtract_Impl, FA, FB > {
 
   // Output dim = FA::DIM = FB::DIM
   static const int DIM = FA::DIM;

@@ -142,7 +142,10 @@ def check_aliases_list(types_list):
     return aliases
 
 
-def get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op_internal):
+def get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks):
+	
+	# 1. Options for accuracy
+	
     if dtype_acc is not "auto" and use_double_acc:
         raise ValueError("[KeOps] you cannot set both options use_double_acc and dtype_acc.")
     if use_double_acc:
@@ -193,4 +196,13 @@ def get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_o
         optional_flags += ['-DSUM_SCHEME=1']
     elif sum_scheme == "kahan_scheme":
         optional_flags += ['-DSUM_SCHEME=2']
+    
+    
+    # 2. Option for chunk mode
+    
+    if enable_chunks:
+        optional_flags += ['-DENABLECHUNK=1']
+    else:
+        optional_flags += ['-DENABLECHUNK=0']
+        
     return optional_flags

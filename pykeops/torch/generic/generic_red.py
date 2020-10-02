@@ -5,7 +5,7 @@ from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.torch.half2_convert import preprocess_half2, postprocess_half2
 from pykeops.common.parse_type import get_type, get_sizes, complete_aliases
-from pykeops.common.parse_type import get_accuracy_flags
+from pykeops.common.parse_type import get_optional_flags
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype, include_dirs
 
@@ -15,12 +15,10 @@ class GenredAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, accuracy_flags, *args):
-    
-        optional_flags = include_dirs + accuracy_flags
+    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, optional_flags, *args):
 
-        myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags).import_module()
-
+        myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags+include_dirs).import_module()
+        
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
         ctx.aliases = aliases
@@ -28,7 +26,7 @@ class GenredAutograd(torch.autograd.Function):
         ctx.dtype = dtype
         ctx.device_id = device_id
         ctx.ranges = ranges
-        ctx.accuracy_flags = accuracy_flags
+        ctx.optional_flags = optional_flags
         ctx.myconv = myconv
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
@@ -59,7 +57,7 @@ class GenredAutograd(torch.autograd.Function):
         backend = ctx.backend
         dtype = ctx.dtype
         ranges = ctx.ranges
-        accuracy_flags = ctx.accuracy_flags
+        optional_flags = ctx.optional_flags
         device_id = ctx.device_id
         myconv = ctx.myconv
         args = ctx.saved_tensors[:-1]  # Unwrap the saved variables
@@ -92,7 +90,7 @@ class GenredAutograd(torch.autograd.Function):
 
         for (var_ind, (sig, arg_ind)) in enumerate(zip(aliases, args)):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 7]:  # because of (formula, aliases, backend, dtype, device_id, ranges, accuracy_flags)
+            if not ctx.needs_input_grad[var_ind + 7]:  # because of (formula, aliases, backend, dtype, device_id, ranges, optional_flags)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -113,7 +111,7 @@ class GenredAutograd(torch.autograd.Function):
                 if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/formulas/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, *args_g)
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -125,7 +123,7 @@ class GenredAutograd(torch.autograd.Function):
                         i for (i, (x, y)) in enumerate(zip(arg_ind.shape[:-1], grad.shape[:-1])) if x < y)
 
                 else:
-                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, accuracy_flags, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, *args_g)
 
                     # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
                     #       whereas 'arg_ind' may have some broadcasted batched dimensions.
@@ -140,7 +138,7 @@ class GenredAutograd(torch.autograd.Function):
                 grad = grad.reshape(arg_ind.shape)  # The gradient should have the same shape as the input!
                 grads.append(grad)
         
-        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, *args
+        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, *args
         return (None, None, None, None, None, None, None, *grads)
 
 
@@ -181,7 +179,7 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto"):
+                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, optional_flags=[]):
         r"""
         Instantiate a new generic operation.
 
@@ -251,6 +249,11 @@ class Genred():
                     in the output. This improves accuracy for large sized data. 
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data. 
+                
+            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+				with formulas involving large dimension variables.
+				
+			optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
 
         """
         if cuda_type:
@@ -259,8 +262,8 @@ class Genred():
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
         
-        self.accuracy_flags = get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op_internal)
-
+        self.optional_flags = optional_flags + get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
+        
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
@@ -396,7 +399,7 @@ class Genred():
             args, ranges, tag_dummy, N = preprocess_half2(args, self.aliases, self.axis, ranges, nx, ny)
         
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
-                                   device_id, ranges, self.accuracy_flags, *args)
+                                   device_id, ranges, self.optional_flags, *args)
 
         if self.dtype in ('float16','half'):
             out = postprocess_half2(out, tag_dummy, self.reduction_op, N)

@@ -1,3 +1,6 @@
+
+// g++ -I.. -D__TYPE__=float -std=c++14 -O3 -o build/test_tensordot_c14 test_tensordot_c14.cpp
+
 #include <array>
 #include <iostream>
 #include <iomanip>

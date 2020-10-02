@@ -23,7 +23,7 @@ using Mult = typename Mult_Alias<FA, FB>::type;
 
 
 template<class FA, class FB>
-struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
+struct Mult_Impl : VectorizedScalarBinaryOp<Mult_Impl, FA, FB> {
 
   // FA and FB are vectors with same size, Output has the same size
   static const int DIM = FA::DIM;

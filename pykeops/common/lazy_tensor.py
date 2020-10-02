@@ -244,12 +244,12 @@ class GenericLazyTensor:
 
     def separate_kwargs(self, kwargs):    
         # separating keyword arguments for Genred init vs Genred call...
-        # Currently the only three additional optional keyword arguments that are passed to Genred init
-        # are accuracy options: dtype_acc, use_double_acc and sum_cheme.
+        # Currently the only four additional optional keyword arguments that are passed to Genred init
+        # are accuracy options: dtype_acc, use_double_acc and sum_cheme, and chunk mode option enable_chunks.
         kwargs_init = []
         kwargs_call = []
         for key in kwargs:
-            if key in ("dtype_acc","use_double_acc","sum_scheme"):
+            if key in ("dtype_acc","use_double_acc","sum_scheme","enable_chunks"):
                 kwargs_init += [(key,kwargs[key])]
             else:
                 kwargs_call += [(key,kwargs[key])]                
@@ -449,6 +449,8 @@ class GenericLazyTensor:
                 in the output. This improves accuracy for large sized data. 
               - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data. 
+            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+				with formulas involving large dimension variables.                
         """
         
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
@@ -535,7 +537,9 @@ class GenericLazyTensor:
                 in the output. This improves accuracy for large sized data. 
               - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data. 
-
+            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+				with formulas involving large dimension variables.
+				
         .. warning::
 
             Please note that **no check** of symmetry and definiteness will be
