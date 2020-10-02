@@ -46,6 +46,7 @@
 #include "core/formulas/maths/Abs.h"
 #include "core/formulas/maths/Step.h"
 #include "core/formulas/maths/ReLu.h"
+#include "core/formulas/maths/Clamp.h"
 #include "core/formulas/maths/Powf.h"
 #include "core/formulas/maths/Sqrt.h"
 #include "core/formulas/maths/Rsqrt.h"
