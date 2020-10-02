@@ -875,7 +875,16 @@ class GenericLazyTensor:
         the element-wise sine of ``x``.
         """
         return self.unary("Sin")
-    
+
+    def acos(self):
+        r"""
+        Element-wise arccosine - a unary operation.
+
+        ``x.acos()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise arccosine of ``x``.
+        """
+        return self.unary("Acos")
+
     def sqrt(self):
         r"""
         Element-wise square root - a unary operation.
@@ -1227,7 +1236,7 @@ class GenericLazyTensor:
         :param args: a tuple of int containing the graph of a permutation of the output
         :return:
         """
-        # permute = tuple(range(len(dimfa) + len(dimfb) - 2 * len(contfa)))
+        # permute = tuple(range(len(dimfa) + len(dimfb) - 2 * len(contfa)))
         opt_arg = ""
         for intseq in (dimfa, dimfb, contfa, contfb) + args:
             opt_arg += "Ind("
