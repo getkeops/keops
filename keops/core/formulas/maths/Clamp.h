@@ -24,7 +24,7 @@ struct Clamp : VectorizedScalarTernaryOp<Clamp, F, G, H> {
   template < typename TYPE > 
   struct Operation_Scalar {
 	DEVICE INLINE void operator() (TYPE &out, TYPE &outF, TYPE &outG, TYPE &outH) {
-    	  out = keops_clamp(outF);
+    	  out = keops_clamp(outF, outG, outH);
     }
   };
 

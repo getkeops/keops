@@ -6,6 +6,10 @@ import numpy as np
 from pykeops.common.utils import check_broadcasting
 
 
+def same_or_one_test(*dims):
+    # test wether input dimensions are compatible with broadcasting
+    return len(set(list(dims)+[1]))<=2
+        
 class GenericLazyTensor:
     r"""Symbolic wrapper for NumPy arrays and PyTorch tensors. This is the abstract class,
     end user should use :class:`pykeops.numpy.LazyTensor` or :class:`pykeops.torch.LazyTensor`.
@@ -128,7 +132,7 @@ class GenericLazyTensor:
                 return  # That's it!
             else:
                 self.dtype = self.tools.dtypename(self.tools.dtype(x))
-
+            
     def lt_constructor(self, x=None, axis=None):
         r"""This method is specialized in :class:`pykeops.numpy.LazyTensor` and :class:`pykeops.torch.LazyTensor`. It
         returns a new instance of a LazyTensor (numpy or pytorch)."""
@@ -398,6 +402,58 @@ class GenericLazyTensor:
 
         return res
     
+    def ternary(self, other1, other2, operation, dimres=None, dimcheck="sameor1", opt_arg=None):
+        r"""Symbolically applies **operation** to **self**, with optional arguments if needed.
+        
+        Keyword args:
+          - dimres (int): May be used to specify the dimension of the output **result**.
+          - is_operator (bool, default=False): May be used to specify if **operation** is
+            an operator like ``+``, ``-`` or a "genuine" function.
+          - dimcheck (string): shall we check the input dimensions?
+            Supported values are ``"same"``, ``"sameor1"``, or **None**.
+        """
+        # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
+        if not hasattr(other1, "__GenericLazyTensor__"):
+            other1 = self.lt_constructor(other1)
+            
+        if not hasattr(other2, "__GenericLazyTensor__"):
+            other2 = self.lt_constructor(other2)
+        
+        # we must prevent any operation if self, other1 or other2 is the output of a reduction operation,
+        # i.e. if it has a reduction_op field
+        if hasattr(self, 'reduction_op') or hasattr(other1, 'reduction_op') or hasattr(other2, 'reduction_op'):
+            raise ValueError("One of the inputs is a 'reduced' LazyTensor, no operation can be applied to it. ")
+        
+        # By default, the dimension of the output variable is the max of the three operands:
+        if not dimres:
+            dimres = max(self.ndim, other1.ndim, other2.ndim)
+        
+        if dimcheck == "same":
+            if (self.ndim != other1.ndim) or (self.ndim != other2.ndim):
+                raise ValueError("Operation {} expects inputs of the same dimension. ".format(operation) \
+                                 + "Received {}, {} and {}.".format(self.ndim, other1.ndim, other2.ndim))
+        
+        elif dimcheck == "sameor1":
+            if not same_or_one_test(self.ndim, other1.ndim, other2.ndim):
+                raise ValueError("Operation {} expects inputs of the same dimension or dimension 1. ".format(operation) \
+                                 + "Received {}, {} and {}.".format(self.ndim, other1.ndim, other2.ndim))
+        
+        elif dimcheck != None:
+            raise ValueError("incorrect dimcheck keyword in binary operation")
+        
+        res = self.join(other1.join(other2))  # Merge the attributes and variables of operands
+        res.ndim = dimres
+
+        if opt_arg is not None:
+            if hasattr(opt_arg, "__GenericLazyTensor__"):
+                opt_arg = opt_arg.formula
+            res.formula = "{}({}, {}, {}, {})".format(operation, self.formula, other1.formula, other2.formula, opt_arg)
+        else:
+            res.formula = "{}({}, {}, {})".format(operation, self.formula, other1.formula, other2.formula)
+
+        return res
+        
+
     # Prototypes for reduction operations  =====================================
     
     def reduction(self, reduction_op, other=None, opt_arg=None, axis=None, dim=None, call=True, **kwargs):
@@ -978,6 +1034,19 @@ class GenericLazyTensor:
         the element-wise positive part of ``x``.
         """
         return self.unary("ReLU")
+    
+    def clamp(self, other1, other2):
+        r"""
+        Element-wise Clamp function - a ternary operation.
+        
+        ``x.clamp(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise clamping of ``x`` in ``(a,b)``. Braoodcasting rules apply.
+        a and b may be fixed integers or floats, or other LazyTensors
+        """
+        if (type(other1) == int) and (type(other2) == int):
+            return self.unary("ClampInt", opt_arg=other1, opt_arg2=other2)
+        else:
+            return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
     
     def sqnorm2(self):
         r"""
