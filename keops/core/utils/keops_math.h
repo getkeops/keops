@@ -16,7 +16,8 @@ template < typename TYPE > DEVICE INLINE TYPE keops_cos(TYPE x) { return cos(x);
 template < typename TYPE > DEVICE INLINE TYPE keops_sin(TYPE x) { return sin(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_relu(TYPE x) { return (x<0.0f)? 0.0f : x; }
 template < typename TYPE > DEVICE INLINE TYPE keops_step(TYPE x) { return (x<0.0f)? 0.0f : 1.0f; }
-template < typename TYPE > DEVICE INLINE TYPE keops_sign(TYPE x) { return (x>0.0F)? 1.0f : ( (x<0.0f)? -1.0f : 0.0f ); }
+template < typename TYPE > DEVICE INLINE TYPE keops_sign(TYPE x) { return (x>0.0f)? 1.0f : ( (x<0.0f)? -1.0f : 0.0f ); }
+template < typename TYPE > DEVICE INLINE TYPE keops_clamp(TYPE x, TYPE a, TYPE b) { return (x<a)? a : ( (x>b)? b : x ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sqrt(TYPE x) { return sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE x) { return 1.0f / sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_acos(TYPE x) { return acos(x); }
@@ -43,6 +44,7 @@ DEVICE INLINE half2 keops_rcp(half2 x) { return h2rcp(x); }
 DEVICE INLINE half2 keops_xlogx(half2 x) { return x * h2log(x + __heq2(x,__float2half2_rn(0.0f))); } 
 DEVICE INLINE half2 keops_relu(half2 x) { return __hlt2(__float2half2_rn(0.0f),x) * x; }  // (0<x) * x (element-wise) 
 DEVICE INLINE half2 keops_sign(half2 x) { return __hgt2(x,__float2half2_rn(0.0f)) - __hlt2(x,__float2half2_rn(0.0f)); } // (x>0) - (x<0) (element-wise)
+DEVICE INLINE half2 keops_clamp(half2 x,half2 a,half2 b) { return __hlt2(a,x)*(x-a) + a - __hlt2(b,x); } // (a<x)(x-a) + a - (b<x)(x-b) (element-wise)
 DEVICE INLINE half2 keops_step(half2 x) { return __hgt2(x,__float2half2_rn(0.0f)); }
 DEVICE INLINE half2 keops_sqrt(half2 x) { return h2sqrt(x); }
 
