@@ -27,7 +27,7 @@ struct Reduction {
     using VARSJ = typename F::template VARS<tagJ>; // Use the tag to select the "summation" variable
     using VARSP = typename F::template VARS<2>;    // Parameters
 
-    using DIMSX = typename GetDims<VARSI>::template PUTLEFT<F::DIM>; // dimensions of "i" variables. We add the output's dimension.
+    using DIMSX = GetDims<VARSI>;		   	 // dimensions of "i" variables.
     using DIMSY = GetDims<VARSJ>;                           // dimensions of "j" variables
     using DIMSP = GetDims<VARSP>;                           // dimensions of parameters variables
 
@@ -42,13 +42,13 @@ struct Reduction {
     using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;  // indices of variables
     static_assert(CheckAllDistinct<INDS>::val,"Incorrect formula : at least two distinct variables have the same position index.");
 
-    static const int NMINARGS = 1+INDS::MAX; // minimal number of arguments when calling the formula.
+    static const int NMINARGS = INDS::MAX + 1; // minimal number of arguments when calling the formula.
 
     template < typename... Args >
     DEVICE INLINE void operator()(Args... args) {
         F::template Eval<INDS>(args...);
     }
-    
+
 };
 
 // default evaluation by calling Cpu/Gpu reduction engine, taking care of axis of reduction

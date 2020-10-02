@@ -1,6 +1,6 @@
 // test convolution
-// compile with ( broken for now :( )
-//		nvcc -I.. -Wno-deprecated-gpu-targets -std=c++14 -O3 -o build/test_tensordot_formula test_tensordot_formula.cu
+// compile with 
+//		g++ -I.. -std=c++14 -O3 -o build/test_formula_without_j test_formula_without_j.cpp
 
 // we define an arbitrary function using available blocks,
 // then test its convolution on the CPU

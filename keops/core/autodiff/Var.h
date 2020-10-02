@@ -34,9 +34,22 @@ struct Var {
 
   using THIS = Var< N, DIM, CAT >;
 
+  template < int DIMCHK >
+  using CHUNKED_VERSION = Var< N, DIMCHK, CAT >;
+
+  static const bool IS_CHUNKABLE = true;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = univpack<>;
+
+  static const int NUM_CHUNKED_FORMULAS = 0;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = Var< N, DIM, CAT >;
+
   // prints the variable as a string
   // we just print e.g. x0, y2, p1 to simplify reading, forgetting about dimensions
-  static void PrintId(::std::stringstream &str) {
+  static void PrintId(::std::ostream &str) {
     if (CAT == 0)
       str << "x";
     else if (CAT == 1)
@@ -66,8 +79,14 @@ struct Var {
 
   // VARS gives the list of all Vars of a given category in a formula
   // Here we add the current Var to the list if it is of the requested category, otherwise nothing
-  template < int CAT_ >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
-  using VARS = CondType< univpack< Var< N, DIM, CAT>>, univpack<>, CAT == CAT_ >;
+  template < int CAT_=-1 >        // Var::VARS<1> = [Var(with CAT=0)] if Var::CAT=1, [] otherwise
+  using VARS = CondType< univpack< Var< N, DIM, CAT>>, univpack<>, CAT==CAT_ || CAT_==-1 >;
+
+  template < int CAT_=-1 >
+  using CHUNKED_VARS = VARS<CAT_>;
+
+  template < int CAT_=-1 >
+  using NOTCHUNKED_VARS = univpack<>;
 
   // Evaluate a variable given a list of arguments:
   //
@@ -90,6 +109,15 @@ struct Var {
   //                             Zero(V::DIM) otherwise
   template < class V, class GRADIN >
   using DiffT = IdOrZero< Var< N, DIM, CAT >, V, GRADIN >;
+
+  // operator as shortcut to Eval...
+  template < typename INDS >
+  struct EvalFun {
+      template < typename... Args >
+      DEVICE INLINE void operator()(Args... args) {
+      	THIS::template Eval<INDS>(args...);
+      }
+  };
 
 };
 
@@ -117,5 +145,24 @@ using _P = Param< N, DIM >;
 #define Vi(N, DIM) KeopsNS<_X<N,DIM>>()
 #define Vj(N, DIM) KeopsNS<_Y<N,DIM>>()
 #define Pm(N, DIM) KeopsNS<_P<N,DIM>>()
+
+
+
+//////////////////////////////////////////////////////////////
+////                      CHUNK FORMULA                   ////
+//////////////////////////////////////////////////////////////
+
+/*
+ * Class for building a chunked computation scheme.
+ */
+
+template < class _CHUNKED_FORMULA, class _POST_CHUNK_FORMULA >
+struct ChunkedFormula {
+
+  using CHUNKED_FORMULA = univpack < _CHUNKED_FORMULA >;
+
+  using POST_CHUNK_FORMULA = _POST_CHUNK_FORMULA;
+
+};
 
 }

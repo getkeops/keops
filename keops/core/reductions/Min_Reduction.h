@@ -71,7 +71,7 @@ template < typename TYPEACC >
         
 	    template < typename TYPEACC, typename TYPE >
 	    struct FinalizeOutput {
-	        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+	        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, int i) {
 				VectCopy<F::DIM>(out,acc);
 	        }
 	    };
@@ -153,7 +153,7 @@ struct Min_ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<
         
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, int i) {
 			VectCopy<DIM>(out,acc);
         }
     };
@@ -177,7 +177,7 @@ struct ArgMin_Reduction : public Min_ArgMin_Reduction_Base<F,tagI>, UnaryOp<ArgM
 
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, int i) {
 			VectCopy<F::DIM>(out,acc+F::DIM);
         }
     };

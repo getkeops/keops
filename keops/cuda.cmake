@@ -44,7 +44,7 @@ if(USE_CUDA)
                       ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
       if(__nvcc_res EQUAL 0)
-        set(CUDA_gpu_detect_props ${__nvcc_out} CACHE INTERNAL "Returned GPU architetures from caffe_detect_gpus tool" FORCE)
+        set(CUDA_gpu_detect_props ${__nvcc_out} CACHE INTERNAL "Returned GPU architectures from caffe_detect_gpus tool" FORCE)
       endif()
     endif()
 

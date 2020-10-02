@@ -2,11 +2,12 @@
 
 #include <assert.h>
 
-#include "core/autodiff/UnaryOp.h"
+#include "core/autodiff/ChunkableUnaryOp.h"
 #include "core/formulas/maths/SumT.h"
 #include "core/utils/TypesUtils.h"
 
 #include "core/pre_headers.h"
+
 namespace keops {
 
 //////////////////////////////////////////////////////////////
@@ -17,7 +18,7 @@ template<class F, int D>
 struct SumT;
 
 template<class F>
-struct Sum : UnaryOp<Sum, F> {
+struct Sum : ChunkableUnaryOp<Sum, F> {
 
   static const int DIM = 1;
 
@@ -38,6 +39,16 @@ struct Sum : UnaryOp<Sum, F> {
 
   template<class V, class GRADIN>
   using DiffT = typename F::template DiffT<V, SumT<GRADIN, F::DIM>>;
+
+  template < typename TYPE >
+  static DEVICE INLINE void initacc_chunk(TYPE *acc) {
+	*acc = 0.0f;
+  }
+
+  template < typename TYPE >
+  static DEVICE INLINE void acc_chunk(TYPE *acc, TYPE *out) {
+	*acc += *out;
+  }
 
 };
 
