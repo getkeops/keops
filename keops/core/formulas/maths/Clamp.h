@@ -36,7 +36,7 @@ struct Clamp : VectorizedScalarTernaryOp<Clamp, F, G, H> {
   using Generic_Clamp = Subtract<Add<G,ReLU<Subtract<F,G>>>,ReLU<Subtract<F,H>>>;
 
   template<class V, class GRADIN>
-  using DiffT = Generic_Clamp::DiffT<V,GRADIN>;
+  using DiffT = typename Generic_Clamp::template DiffT<V,GRADIN>;
 
 };
 

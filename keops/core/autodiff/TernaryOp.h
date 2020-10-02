@@ -150,8 +150,8 @@ struct TernaryOp_base {
   // Here we must take the union of Vars that are inside FA and Vars that are inside FB
   template < int CAT >
   using VARS = MergePacks<typename FA::template VARS<CAT>,
-  							typename FB::template VARS<CAT>,
-								typename FC::template VARS<CAT> >;
+  					MergePacks<typename FB::template VARS<CAT>,
+									typename FC::template VARS<CAT> > >;
 
   template < int CAT >
   using CHUNKED_VARS = univpack<>;
@@ -273,7 +273,7 @@ template < template<class,class,class,class...> class OP, int NA, int DIMA, int 
 struct TernaryOp<OP,Var<NA,DIMA,CATA>,FB,Var<NC,DIMC,CATC>,PARAMS...> :
 TernaryOp_base<OP,Var<NA,DIMA,CATA>,FB,Var<NC,DIMC,CATC>,PARAMS...> {
 
-	using THIS = OP<Var<NA,DIMA,CATA>,FB,Var<NB,DIMB,CATB>,PARAMS...>;
+	using THIS = OP<Var<NA,DIMA,CATA>,FB,Var<NC,DIMC,CATC>,PARAMS...>;
 
 	template < class INDS, typename TYPE, typename... ARGS >
 	static HOST_DEVICE INLINE void Eval(TYPE *out, ARGS... args) {
@@ -327,20 +327,6 @@ TernaryOp_base<OP,Var<NA,DIMA,CATA>,Var<NB,DIMB,CATB>,Var<NC,DIMC,CATC>,PARAMS..
 };
 
 
-// iterate ternary operator
-
-template < template<class,class,class> class OP, class PACK >
-struct IterTernaryOp_Impl {
-  using type = OP<typename PACK::FIRST,typename IterTernaryOp_Impl<OP,typename PACK::NEXT>::type>;
-};
-
-template < template<class,class,class> class OP, class F >
-struct IterTernaryOp_Impl<OP,univpack<F>> {
-using type = F;
-};
-
-template < template<class,class> class OP, class PACK >
-using IterTernaryOp = typename IterTernaryOp_Impl<OP,PACK>::type;
 
 
 

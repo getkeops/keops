@@ -21,13 +21,13 @@ struct VectorizedScalarTernaryOp : TernaryOp<OP, F, G, H> {
 
     template < int CAT >
     using CHUNKED_VARS = MergePacks< typename F::template CHUNKED_VARS<CAT>,
-					typename G::template CHUNKED_VARS<CAT>,
-					typename H::template CHUNKED_VARS<CAT> >;
+							MergePacks< typename G::template CHUNKED_VARS<CAT>,
+											typename H::template CHUNKED_VARS<CAT> > >;
 
     template < int CAT >
     using NOTCHUNKED_VARS = MergePacks< typename F::template NOTCHUNKED_VARS<CAT>,
-					typename G::template NOTCHUNKED_VARS<CAT>,
-					typename H::template NOTCHUNKED_VARS<CAT> >;
+								MergePacks< typename G::template NOTCHUNKED_VARS<CAT>,
+												typename H::template NOTCHUNKED_VARS<CAT> > >;
 
     template < typename TYPE >
     static DEVICE INLINE void Operation(TYPE *out, TYPE *outF, TYPE *outG, TYPE *outH) {
