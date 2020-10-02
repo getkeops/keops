@@ -11,7 +11,7 @@
 namespace keops {
 
 
-// ternary operator class : common methods
+// Ternary operator class : common methods
 
 // ternary operators are of the type OP<F,G,H>
 // There template parameters are three sub-formulas FA, FB and FC and PARAMS... is a pack of index_sequences containing the
