@@ -55,7 +55,7 @@ struct Add_Impl : VectorizedScalarBinaryOp< Add_Impl, FA, FB > {
 
 // Addition with scalar-> vector broadcasting on the left
 template < class FA, class FB >
-struct Add_Impl_Broadcast : BinaryOp< Add_Impl_Broadcast, FA, FB > {
+struct Add_Impl_Broadcast : VectorizedScalarBinaryOp< Add_Impl_Broadcast, FA, FB > {
   // Output dim = FB::DIM
   static const int DIM = FB::DIM;
 
@@ -67,11 +67,6 @@ struct Add_Impl_Broadcast : BinaryOp< Add_Impl_Broadcast, FA, FB > {
 		out = outA + outB;
 	}
   };
-
-  template < typename TYPE >
-  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
-      VectApply < Operation_Scalar<TYPE>, DIM, FA::DIM, FB::DIM > (out, outA, outB);
-  }
 
   // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin
   template < class V, class GRADIN >

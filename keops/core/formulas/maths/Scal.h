@@ -32,7 +32,7 @@ using Add = typename Add_Alias<FA, FB>::type;
 
 
 template<class FA, class FB>
-struct Scal_Impl : BinaryOp<Scal_Impl, FA, FB> {
+struct Scal_Impl : VectorizedScalarBinaryOp<Scal_Impl, FA, FB> {
 
   // FB is a vector, Output has the same size, and FA is a scalar
   static const int DIM = FB::DIM;
@@ -41,11 +41,11 @@ struct Scal_Impl : BinaryOp<Scal_Impl, FA, FB> {
   static void PrintIdString(::std::stringstream &str) { str << "*"; }
 
   template < typename TYPE >
-  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
-    #pragma unroll
-    for (int k = 0; k < DIM; k++)
-      out[k] = *outA * outB[k];
-  }
+  struct Operation_Scalar {
+  	DEVICE INLINE void operator() (TYPE &out, TYPE &outA, TYPE &outB) {
+	  out = outA * outB;
+    }
+  };
 
   //  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
   // i.e.
