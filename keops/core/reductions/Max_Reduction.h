@@ -57,7 +57,7 @@ template < typename TYPEACC >
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePairShort {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
-				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,xi);
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM,F::DIM>(tmp,xi);
 			}
 		};
         
@@ -65,7 +65,7 @@ template < typename TYPEACC >
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePair {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi) {
-				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,xi);
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM,F::DIM>(tmp,xi);
 			}
 		};
         
@@ -124,7 +124,7 @@ template < typename TYPEACC >
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePairShort {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE ind) {
-				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,tmp+F::DIM,xi,ind);
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM,F::DIM,F::DIM,F::DIM>(tmp,tmp+F::DIM,xi,ind);
 			}
 		};
         
@@ -132,7 +132,7 @@ template < typename TYPEACC >
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePair {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi) {
-				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,tmp+F::DIM,xi,xi+F::DIM);
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM,F::DIM,F::DIM,F::DIM>(tmp,tmp+F::DIM,xi,xi+F::DIM);
 			}
 		};
         

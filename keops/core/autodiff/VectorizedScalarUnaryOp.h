@@ -44,7 +44,7 @@ struct VectorizedScalarUnaryOp : UnaryOp<OP, F, NS...> {
     template < typename TYPE >
     static DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
 	using OpScal = typename OP<F,NS...>::template Operation_Scalar<TYPE>;
-  	VectApply < OpScal, DIM > (out, outF);
+  	VectApply < OpScal, DIM, DIM > (out, outF);
     }
 
 };

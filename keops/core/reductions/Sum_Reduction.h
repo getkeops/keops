@@ -42,7 +42,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   template < typename TYPEACC, typename TYPE >		
   struct ReducePairScalar {
       DEVICE INLINE void operator()(TYPEACC& tmp, const TYPE& xi) {
-	tmp += cast_to<TYPEACC>(xi);
+		  tmp += cast_to<TYPEACC>(xi);
       }
   };
 
@@ -50,7 +50,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   template < typename TYPEACC, typename TYPE >
   struct ReducePairShort {
     DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
-      VectApply < ReducePairScalar<TYPEACC,TYPE>, DIM > (tmp, xi);
+      VectApply < ReducePairScalar<TYPEACC,TYPE>, DIM, DIM > (tmp, xi);
     }
   };
 
@@ -58,7 +58,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
   template < typename TYPEACC, typename TYPE >
   struct ReducePair {
     DEVICE INLINE void operator()(TYPEACC *acc, TYPE *xi) {
-      VectApply < ReducePairScalar<TYPEACC,TYPE>, DIM > (acc, xi);
+      VectApply < ReducePairScalar<TYPEACC,TYPE>, DIM, DIM > (acc, xi);
     }
   };
 

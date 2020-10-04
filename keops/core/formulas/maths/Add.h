@@ -70,7 +70,7 @@ struct Add_Impl_Broadcast : BinaryOp< Add_Impl_Broadcast, FA, FB > {
 
   template < typename TYPE >
   static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
-      VectApply < Operation_Scalar<TYPE>, DIM > (out, *outA, outB);
+      VectApply < Operation_Scalar<TYPE>, DIM, FA::DIM, FB::DIM > (out, outA, outB);
   }
 
   // [\partial_V (A + B) ] . gradin = [\partial_V A ] . gradin  + [\partial_V B ] . gradin
