@@ -23,7 +23,8 @@ struct Zero {
   template<class A1, class B1, class A2, class B2>
   using ReplaceVars2 = Zero<DIM>;
 
-  using AllTypes = univpack<Zero<DIM>>;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = univpack<Zero<DIM>>;
 
   template < int CAT >      // Whatever CAT...
   using VARS = univpack<>;  // there's no variable used in there.

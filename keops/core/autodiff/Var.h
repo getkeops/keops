@@ -75,7 +75,8 @@ struct Var {
   // AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
   // here there is just one type in the Var type : itself
   // because it does not depend on other sub-formula
-  using AllTypes = univpack< Var< N, DIM, CAT>>;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = univpack< Var< N, DIM, CAT>>;
 
   // VARS gives the list of all Vars of a given category in a formula
   // Here we add the current Var to the list if it is of the requested category, otherwise nothing

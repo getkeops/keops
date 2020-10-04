@@ -25,7 +25,10 @@ template < class V > void fillrandom(V& v) {
 }
 
 int main() {
-
+	
+	std::cout << std::endl << "N.B. AutoFactorize is deactivated in all code as of oct 2020 to speed up compile time." << std::endl << std::endl;
+	
+	/*
     // In this part we define the symbolic variables of the function
     using X = Var<1,3,0>; 	// X is the second variable and represents a 3D vector
     using Y = Var<2,3,1>; 	// Y is the third variable and represents a 3D vector
@@ -201,6 +204,8 @@ int main() {
     for(int i=0; i<Nx*FUNCONVF::DIM; i++)
         s += std::abs(resgpu1[i]-resgpu2[i]);
     std::cout << "mean abs error (gpu1 vs gpu2) =" << s/Nx << std::endl;
+	
+	*/
 
     return 0 ;
 }

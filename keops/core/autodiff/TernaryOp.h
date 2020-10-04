@@ -81,9 +81,10 @@ struct TernaryOp_base {
   // AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
   // for example Add<Var<0,2,0>,Var<1,2,1>>::AllTypes is :
   // univpack< Add<Var<0,2,0>,Var<1,2,1>> , Var<0,2,0> , Var<1,2,2> >
-  using AllTypes = MergePacks<
-	  					univpack<OP<FA,FB,FC,PARAMS...>>,
-  						MergePacks<typename FA::AllTypes,MergePacks<typename FB::AllTypes,typename FC::AllTypes>>>;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  //using AllTypes = MergePacks<
+  //	  					univpack<OP<FA,FB,FC,PARAMS...>>,
+  //						MergePacks<typename FA::AllTypes,MergePacks<typename FB::AllTypes,typename FC::AllTypes>>>;
 
   // "Replace" can be used to replace any occurrence of a sub-formula in a formula
   // For example Add<Var<0,2,0>,Var<1,2,1>>::Replace<Var<1,2,1>,Var<1,2,0>> will be Add<Var<0,2,0>,Var<1,2,0>>

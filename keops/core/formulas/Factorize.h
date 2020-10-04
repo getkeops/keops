@@ -124,10 +124,11 @@ struct Factorize_Alias< F, univpack< G, GS...>> {
 
 
 // Auto factorization : factorize F by each of its subformulas
-template < class F >
-using AutoFactorize = Factorize< F, typename F::AllTypes >;
+// N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+//template < class F >
+//using AutoFactorize = Factorize< F, typename F::AllTypes >;
 
 #define Factorize(F, G) KeopsNS<Factorize<decltype(InvKeopsNS(F)),decltype(InvKeopsNS(G))>()
-#define AutoFactorize(F) KeopsNS<AutoFactorize<decltype(InvKeopsNS(F))>>()
+//#define AutoFactorize(F) KeopsNS<AutoFactorize<decltype(InvKeopsNS(F))>>()
 
 }

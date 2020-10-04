@@ -80,7 +80,8 @@ struct GaussKernel_specific : Kernel {
   template<class U, class V>
   using Replace = CondType< V, THIS, IsSameType<U,THIS>::val >;
 
-  using AllTypes = univpack<THIS>;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = univpack<THIS>;
 
   template < class INDS, typename TYPE, typename... ARGS >
   static DEVICE INLINE void Eval(TYPE* gammai, ARGS... args) {
@@ -139,7 +140,8 @@ struct GradGaussKernel_specific : Kernel {
   template<class E, class F>
   using Replace = CondType< F, GradGaussKernel_specific<C,X,Y,B,V,typename GRADIN::template Replace<E,F>>, IsSameType<E,THIS>::val >;
 
-  using AllTypes = MergePacks < univpack<THIS,V>, typename GRADIN::AllTypes >;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = MergePacks < univpack<THIS,V>, typename GRADIN::AllTypes >;
 
   template < class INDS, typename TYPE, typename... ARGS >
   static DEVICE INLINE void Eval(TYPE* gammai, ARGS... args) {
@@ -184,7 +186,8 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> : Kernel {
   template<class U, class V>
   using Replace = CondType< V, GradGaussKernel_specific<C,X,Y,B,X,typename GRADIN::template Replace<U,V>>, IsSameType<U,THIS>::val >;
 
-  using AllTypes = MergePacks < univpack<THIS,X>, typename GRADIN::AllTypes >;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = MergePacks < univpack<THIS,X>, typename GRADIN::AllTypes >;
 
   template < class INDS, typename TYPE, typename... ARGS >
   static DEVICE INLINE void Eval(TYPE* gammai, ARGS... args) {

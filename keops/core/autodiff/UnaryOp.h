@@ -75,7 +75,8 @@ struct UnaryOp_base {
 
   // AllTypes is a tuple of types which gives all sub-formulas in a formula (including the formula itself)
   // for example Exp<Pow<Var<0,1,0>,3>>::AllTypes is univpack< Exp<Pow<Var<0,1,0>,3>> , Pow<Var<0,1,0>,3> , Var<0,1,0> >
-  using AllTypes = MergePacks<univpack<THIS>, typename F::AllTypes>;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = MergePacks<univpack<THIS>, typename F::AllTypes>;
 
 
   // "Replace" can be used to replace any occurrence of a sub-formula in a formula

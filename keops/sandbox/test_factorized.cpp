@@ -26,7 +26,9 @@ template < class V > void fillrandom(V& v) {
 }
 
 int main() {
-
+    std::cout << std::endl << "N.B. AutoFactorize is deactivated in all code as of oct 2020 to speed up compile time." << std::endl << std::endl;
+	
+	/*
     // symbolic variables of the function
     using X = Var<1,3,0>; 	// X is the first variable and represents a 3D vector
     using Y = Var<2,3,1>; 	// Y is the second variable and represents a 3D vector
@@ -104,6 +106,8 @@ int main() {
     for(int i=0; i<Nx*F::DIM; i++)
         s += std::abs(rescpu1[i]-rescpu2[i]);
     std::cout << std::endl << "mean abs error =" << s/Nx << std::endl;
+	
+	*/
 
 }
 
