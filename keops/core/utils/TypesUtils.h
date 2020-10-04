@@ -49,7 +49,7 @@ DEVICE INLINE float2 cast_to<float2,half2>(half2 in) {
 #endif
 #endif
 
-#define STATIC_MAX(a,b) a < b ? b : a
+#define STATIC_MAX(a,b) ((a < b) ? b : a)
 
 template < class FUN, int DIMOUT, int DIMIN, typename TYPEOUT, typename TYPEIN > 
 DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg) {

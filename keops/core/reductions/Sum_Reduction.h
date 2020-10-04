@@ -41,7 +41,7 @@ struct Sum_Reduction_Impl : public Reduction< F, tagI > {
 
   template < typename TYPEACC, typename TYPE >		
   struct ReducePairScalar {
-      DEVICE INLINE void operator()(TYPEACC& tmp, const TYPE& xi) {
+      DEVICE INLINE void operator()(TYPEACC &tmp, const TYPE &xi) {
 		  tmp += cast_to<TYPEACC>(xi);
       }
   };
