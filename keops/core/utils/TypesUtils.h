@@ -49,10 +49,11 @@ DEVICE INLINE float2 cast_to<float2,half2>(half2 in) {
 #endif
 #endif
 
+#define STATIC_MAX(a,b) a < b ? b : a
 
 template < class FUN, int DIMOUT, int DIMIN, typename TYPEOUT, typename TYPEIN > 
 DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg) {
-	static const int DIMLOOP = ::std::max(DIMOUT,DIMIN);
+	static const int DIMLOOP = STATIC_MAX(DIMOUT,DIMIN);
 	static_assert( ((DIMOUT==DIMLOOP)||(DIMOUT==1)) &&
 				   ((DIMIN ==DIMLOOP)||(DIMIN ==1)) ,"incompatible dimensions in VectApply");
 	static const int incr_out = (DIMOUT==DIMLOOP) ? 1 : 0;
@@ -64,7 +65,7 @@ DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg) {
 
 template < class FUN, int DIMOUT, int DIMIN1, int DIMIN2, typename TYPEOUT, typename TYPEIN > 
 DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg1, TYPEIN *arg2) {
-	static const int DIMLOOP = ::std::max(DIMOUT,::std::max(DIMIN1,DIMIN2));
+	static const int DIMLOOP = STATIC_MAX(DIMOUT,STATIC_MAX(DIMIN1,DIMIN2));
 	static_assert( ((DIMOUT==DIMLOOP)||(DIMOUT==1)) &&
 				   ((DIMIN1==DIMLOOP)||(DIMIN1==1)) &&
 				   ((DIMIN2==DIMLOOP)||(DIMIN2==1)) ,"incompatible dimensions in VectApply");
@@ -78,7 +79,7 @@ DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg1, TYPEIN *arg2) {
 
 template < class FUN, int DIMOUT, int DIMIN1, int DIMIN2, int DIMIN3, typename TYPEOUT, typename TYPEIN > 
 DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg1, TYPEIN *arg2, TYPEIN *arg3) {
-	static const int DIMLOOP = ::std::max(DIMOUT,::std::max(DIMIN1,DIMIN2));
+	static const int DIMLOOP = STATIC_MAX(DIMOUT,STATIC_MAX(DIMIN1,STATIC_MAX(DIMIN2,DIMIN3)));
 	static_assert( ((DIMOUT==DIMLOOP)||(DIMOUT==1)) &&
 	   			   ((DIMIN1==DIMLOOP)||(DIMIN1==1)) &&
 		   		   ((DIMIN2==DIMLOOP)||(DIMIN2==1)) &&
