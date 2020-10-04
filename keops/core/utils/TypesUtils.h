@@ -90,7 +90,7 @@ DEVICE INLINE void VectApply(TYPEOUT *out, TYPEIN *arg1, TYPEIN *arg2, TYPEIN *a
 	static const int incr_in3 = (DIMIN3==DIMLOOP) ? 1 : 0;
 	#pragma unroll
   	for(int k=0; k<DIMLOOP; k++)
-    	FUN()(out[k*incr_out], arg1[k*incr_in1], arg2[k*incr_in2], arg2[k*incr_in3]);
+    	FUN()(out[k*incr_out], arg1[k*incr_in1], arg2[k*incr_in2], arg3[k*incr_in3]);
 }
 
 template < int DIM, typename TYPEOUT, typename TYPEIN > 
