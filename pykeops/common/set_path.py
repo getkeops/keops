@@ -86,5 +86,7 @@ def clean_pykeops(path="", lang=""):
                 (f.name.count("libKeOps" + lang) or f.name.count("fshape_scp") or f.name.count(
                     "radial_kernel") or f.name.count("keops_hash")):
             os.remove(f.path)
+        else:
+            continue
 
         print("    - " + f.path + " has been removed.")
