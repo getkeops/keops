@@ -147,6 +147,20 @@ If you experience problems with compilation, it may be a good idea to **flush th
   import pykeops
   pykeops.clean_pykeops()
 
+You can change the build folder by using the ``set_build_folder()`` function :
+
+.. code-block:: python
+
+  import pykeops
+  print(pykeops.config.bin_folder)  # display default build_folder
+  pykeops.set_bin_folder("/my/new/location")  # change the build folder
+  print(pykeops.config.bin_folder)  # display new build_folder
+
+
+.. warning::
+    The ``build_folder`` variable should be changed at the beginning of a session.
+    That is **before** importing any pykeops modules.
+
 
 
 Verbosity level
@@ -159,12 +173,12 @@ To help debugging, you can activate a **verbose** compilation mode. It may be do
   export PYKEOPS_VERBOSE=1
   python my_script_calling_pykeops.py
 
-Or directly in your python script by setting **after** your KeOps imports the flag pykeops.verbose to true. It gives in a python shell something like: 
+Or directly in your python script by setting **after** your KeOps imports the flag ``pykeops.verbose`` to ``True``. It gives in a python shell something like:
 
 .. code-block:: python
 
   import pykeops
-  pykeops.verbose = True
+  pykeops.config.verbose = True
 
 
 Build type
@@ -182,7 +196,7 @@ Or directly in your python script, altering the value of the (string) variable `
 .. code-block:: python
 
   import pykeops
-  pykeops.build_type = 'Debug'
+  pykeops.config.build_type = 'Debug'
 
 .. warning::
   Beware! The shared objects generated in debug mode are **not optimized**,

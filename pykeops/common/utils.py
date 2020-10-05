@@ -10,8 +10,10 @@ c_type = dict(float16="half2", float32="float", float64="double")
 
 
 def module_exists(dllname):
+    if not os.path.exists(pykeops.config.bin_folder):
+        return False
     spec = importlib.util.find_spec(dllname)
-    return (spec is not None)
+    return (spec is not None) and (os.path.samefile(os.path.dirname(spec.origin), pykeops.config.bin_folder))
 
 
 def axis2cat(axis):
@@ -109,20 +111,6 @@ def WarmUpGpu(lang):
     dum = tools.rand(10, 1)
     my_routine(dum, dum)
     my_routine(dum, dum)
-
-
-def clean_pykeops(path="", lang=""):
-    if lang not in ["numpy", "torch", ""]:
-        raise ValueError('[pyKeOps:] lang should be the empty string, "numpy" or "torch"')
-
-    if path == "":
-        path = pykeops.config.bin_folder
-
-    print("Cleaning " + path)
-    for f in os.listdir(path):
-        if (f.endswith('so')) and (f.count("libKeOps" + lang)):
-            os.remove(os.path.join(path, f))
-            print(os.path.join(path, f) + " has been removed.")
 
 
 def max_tuple(a, b):

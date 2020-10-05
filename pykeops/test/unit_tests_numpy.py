@@ -69,7 +69,6 @@ class NumpyUnitTestCase(unittest.TestCase):
                               * np_kernel_sphere(nalpha, nbeta, sigma_sphere, ksphere), axis=1)
 
             # compare output
-            print("ee")
             self.assertTrue(np.allclose(gamma, gamma_py, atol=1e-6))
 
     @unittest.skipIf(not pykeops.config.gpu_available, 'No GPU detected. Skip tests.')

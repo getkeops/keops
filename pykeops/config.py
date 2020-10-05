@@ -1,7 +1,6 @@
 import os
+import importlib
 import GPUtil
-from pykeops.common.utils import module_exists
-from pykeops.common.set_path import set_bin_folder
 
 ###############################################################
 # Initialize some variables: the values may be redefined later
@@ -14,15 +13,15 @@ try:
 except:
     gpu_available = False
 
-numpy_found = module_exists('numpy')
-torch_found = module_exists('torch')
+numpy_found = importlib.util.find_spec('numpy') is not None
+torch_found = importlib.util.find_spec('torch') is not None
 
 ###############################################################
 # Compilation options
 
 script_folder = os.path.dirname(os.path.abspath(__file__))
 
-bin_folder = set_bin_folder()
+bin_folder = ""  # init bin_folder... shlould be populated with the set_bin_folder() function
 
 # Set the verbosity option: display output of compilations. This is a boolean: False or True
 verbose = bool(int(os.environ['PYKEOPS_VERBOSE'])) if 'PYKEOPS_VERBOSE' in os.environ else False
