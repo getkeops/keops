@@ -19,6 +19,7 @@ template < typename TYPE > DEVICE INLINE TYPE keops_step(TYPE x) { return (x<0.0
 template < typename TYPE > DEVICE INLINE TYPE keops_sign(TYPE x) { return (x>0.0f)? 1.0f : ( (x<0.0f)? -1.0f : 0.0f ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_clamp(TYPE x, TYPE a, TYPE b) { return (x<a)? a : ( (x>b)? b : x ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_clampint(TYPE x, int a, int b) { return (x<a)? a : ( (x>b)? b : x ); }
+template < typename TYPE > DEVICE INLINE TYPE keops_diffclampint(TYPE x, int a, int b) { return (x<a)? 0.0f : ( (x>b)? 0.0f : 1.0f ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sqrt(TYPE x) { return sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE x) { return 1.0f / sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_acos(TYPE x) { return acos(x); }
@@ -50,6 +51,11 @@ DEVICE INLINE half2 keops_clampint(half2 x,int a,int b) {
 	half2 ah2 = __float2half2_rn((float)a);
 	half2 bh2 = __float2half2_rn((float)b);
 	return __hlt2(ah2,x)*(x-ah2) + ah2 - __hlt2(bh2,x); 
+}
+DEVICE INLINE half2 keops_diffclampint(half2 x,int a,int b) { 
+	half2 ah2 = __float2half2_rn((float)a);
+	half2 bh2 = __float2half2_rn((float)b);
+	return __hlt2(ah2,x)*__hlt2(x,bh2); 
 }
 DEVICE INLINE half2 keops_step(half2 x) { return __hgt2(x,__float2half2_rn(0.0f)); }
 DEVICE INLINE half2 keops_sqrt(half2 x) { return h2sqrt(x); }

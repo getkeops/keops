@@ -5,6 +5,7 @@
 #include "core/utils/keops_math.h"
 #include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/maths/ReLu.h"
+#include "core/formulas/maths/DiffClampInt.h"
 #include "core/formulas/constants/IntConst.h"
 
 
@@ -31,14 +32,8 @@ struct ClampInt : VectorizedScalarUnaryOp<ClampInt, F, A, B> {
     }
   };
 
-  // N.B.   ClampInt(F,A,B) = ReLU(F-A) + A - ReLU(F-B)
-  // We use this fact to avoid writing another custom operation for the gradient.
-  // (This may be slower however...)
-
-  using Generic_ClampInt = Subtract<Add<IntConstant<A>,ReLU<Subtract<F,IntConstant<A>>>>,ReLU<Subtract<F,IntConstant<B>>>>;
-
   template<class V, class GRADIN>
-  using DiffT = typename Generic_ClampInt::template DiffT<V,GRADIN>;
+  using DiffT = typename F::template DiffT<V, Mult< DiffClampInt<F,A,B>, GRADIN > >;
 
 };
 
