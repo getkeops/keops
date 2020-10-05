@@ -15,7 +15,7 @@ namespace keops {
 
 // binary operators are of the type OP<F,G> : for example Add<F,G>, Mult<F,G>
 // There template parameters are two sub-formulas FA and FB and PARAMS... is a pack of index_sequences containing the
-// needed parameters. As for now it is used
+// needed parameters. 
 template < template<class,class,class...> class OP, class FA, class FB, class... PARAMS >
 struct BinaryOp_base {
 

@@ -15,7 +15,8 @@ struct Exp : VectorizedScalarUnaryOp<Exp, F> {
 
   static void PrintIdString(::std::stringstream &str) { str << "Exp"; }
 
-  template < typename TYPE > struct Operation_Scalar {
+  template < typename TYPE > 
+  struct Operation_Scalar {
     DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
   	  out = keops_exp(outF);
     }

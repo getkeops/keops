@@ -34,7 +34,7 @@ struct Sum : ChunkableUnaryOp<Sum, F> {
   template < typename TYPE >
   static DEVICE INLINE void Operation(TYPE *out, TYPE *outF) {
     *out = cast_to<TYPE>(0.0f);
-    VectApply < Operation_Scalar<TYPE>, F::DIM > (*out, outF);
+    VectApply < Operation_Scalar<TYPE>, DIM, F::DIM > (out, outF);
   }
 
   template<class V, class GRADIN>
