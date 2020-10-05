@@ -9,15 +9,13 @@ M, N, D = 1000, 1000, 300
 
 x = torch.randn(M, 1, D, requires_grad=True)
 y = torch.randn(1, N, D)
-a = -1 # -1.23
-b = 1 # 1.42
+a = -1.23
+b = 1.34
 
 def fun(x,y,a,b,backend):
     if backend=="keops":
         x = LazyTensor(x)
         y = LazyTensor(y)
-        #a = LazyTensor(a)
-        #b = LazyTensor(b)
     elif backend!="torch":
         raise ValueError("wrong backend")
     Dxy = ((x*y).clamp(a,b)).sum(dim=2) 
