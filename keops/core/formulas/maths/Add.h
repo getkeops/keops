@@ -138,22 +138,22 @@ struct Add_Alias {
 // A + 0 = A
 template < class FA, int DIM >
 struct Add_Alias< FA, Zero< DIM>> {
-  static_assert(DIM == FA::DIM, "Dimensions must be the same for Add");
-  using type = FA;
+  static_assert((DIM == FA::DIM)||(DIM==1)||(FA::DIM==1), "Incompatible dimensions for Add");
+  using type = CondType<SumT<FA,DIM>,FA,FA::DIM==1>;
 };
 
 // 0 + B = B
 template < class FB, int DIM >
 struct Add_Alias< Zero< DIM >, FB > {
-  static_assert(DIM == FB::DIM, "Dimensions must be the same for Add");
-  using type = FB;
+  static_assert((DIM == FB::DIM)||(DIM==1)||(FB::DIM==1), "Incompatible dimensions for Add");
+  using type = CondType<SumT<FB,DIM>,FB,FB::DIM==1>;
 };
 
 // 0 + 0 = la tete a Toto
 template < int DIM1, int DIM2 >
 struct Add_Alias< Zero< DIM1 >, Zero< DIM2>> {
-  static_assert(DIM1 == DIM2, "Dimensions must be the same for Add");
-  using type = Zero< DIM1 >;
+  static_assert((DIM1 == DIM1)||(DIM1==1)||(DIM2==1), "Incompatible dimensions for Add");
+  using type = Zero < ::std::max(DIM1,DIM2) >;
 };
 
 // m+n = m+n
