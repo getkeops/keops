@@ -14,11 +14,8 @@ namespace keops {
 ////                 SUM : Sum< F >                       ////
 //////////////////////////////////////////////////////////////
 
-template<class F, int D>
-struct SumT;
-
 template<class F>
-struct Sum : ChunkableUnaryOp<Sum, F> {
+struct Sum_Impl : ChunkableUnaryOp<Sum_Impl, F> {
 
   static const int DIM = 1;
 
@@ -52,6 +49,19 @@ struct Sum : ChunkableUnaryOp<Sum, F> {
 
 };
 
+template < class F, int DIMF >
+struct Sum_Alias {
+	using type = Sum_Impl<F>;
+};
+
+template < class F >
+struct Sum_Alias<F,1> {
+	using type = F;
+};
+
+template < class F >
+using Sum = typename Sum_Alias < F, F::DIM >::type;
+	
 #define Sum(p) KeopsNS<Sum<decltype(InvKeopsNS(p))>>()
 
 }
