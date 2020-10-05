@@ -23,20 +23,16 @@ using Mult = typename Mult_Alias<FA, FB>::type;
 
 
 template<class FA, class FB>
-struct Mult_Impl : BinaryOp<Mult_Impl, FA, FB> {
-
-  // FA and FB are vectors with same size, Output has the same size
-  static const int DIM = FA::DIM;
-  static_assert(FB::DIM == DIM, "Dimensions of FA and FB must be the same for Mult");
-
+struct Mult_Impl : VectorizedScalarBinaryOp<Mult_Impl, FA, FB> {
+	
   static void PrintIdString(::std::stringstream &str) { str << "*"; }
 
   template < typename TYPE >
-  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
-    #pragma unroll
-    for (int k = 0; k < DIM; k++)
-      out[k] = outA[k] * outB[k];
-  }
+  struct Operation_Scalar {
+  	DEVICE INLINE void operator() (TYPE &out, TYPE &outA, TYPE &outB) {
+	  out = outA * outB;
+    }
+  };
 
   //  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
   template<class V, class GRADIN>

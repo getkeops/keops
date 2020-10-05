@@ -29,7 +29,8 @@ struct IntConstant_Impl {
   template< class A1, class B1, class A2, class B2 >
   using ReplaceVars2 = IntConstant< N >;
 
-  using AllTypes = univpack< IntConstant< N > >;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = univpack< IntConstant< N > >;
 
   template < int CAT >      // Whatever CAT...
   using VARS = univpack<>;  // there's no variable used in there.
@@ -43,6 +44,27 @@ struct IntConstant_Impl {
   // There is no gradient to accumulate on V, whatever V.
   template < class V, class GRADIN >
   using DiffT = Zero<V::DIM>;
+
+
+  template < int DIMCHK >
+  using CHUNKED_VERSION = IntConstant< N >;
+
+  static const bool IS_CHUNKABLE = true;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = univpack<>;
+
+  static const int NUM_CHUNKED_FORMULAS = 0;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = IntConstant< N >;
+
+  template < int CAT >
+  using CHUNKED_VARS = univpack<>;
+
+  template < int CAT >
+  using NOTCHUNKED_VARS = univpack<>;
+
 };
 
 // Simplification rule

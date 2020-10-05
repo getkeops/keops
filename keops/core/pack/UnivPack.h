@@ -20,13 +20,13 @@ struct univpack {
   static const int SIZE = 0;  // len([])   = 0
 
   // helpers to print the univpack to the standard output
-  static void PrintAll(::std::stringstream& str) {}
-  static void PrintComma(::std::stringstream& str) {}
-  static void PrintId(::std::stringstream& str) {
+  static void PrintAll(::std::ostream& str) {}
+  static void PrintComma(::std::ostream& str) {}
+  static void PrintId(::std::ostream& str) {
     str << "univpack< >";
   }
 
-  static void PrintAllIndexSequence(::std::stringstream& str) {}
+  static void PrintAllIndexSequence(::std::ostream& str) {}
 
   template < class D >        // [].append_first(D) = [D]
   using PUTLEFT = univpack<D>;
@@ -52,24 +52,24 @@ struct univpack<C,Args...> {
   static const int SIZE = 1+sizeof...(Args); // len([C, ...]) = 1 + len([...])
 
   // helpers to print the univpack to the standard output
-  static void PrintComma(::std::stringstream& str) {
+  static void PrintComma(::std::ostream& str) {
     str << " ," << ::std::endl;
   }
 
-  static void PrintAll(::std::stringstream& str) {
+  static void PrintAll(::std::ostream& str) {
     FIRST::PrintId(str);
     NEXT::PrintComma(str);
     NEXT::PrintAll(str);
   }
   // This function prints binaryOp with template...
-  static void PrintAllIndexSequence(::std::stringstream& str) {
+  static void PrintAllIndexSequence(::std::ostream& str) {
     str << ", {";
     packFromIndSeq<FIRST>::type::PrintAll(str);
     str << "}";
     NEXT::PrintAllIndexSequence(str);
   }
 
-  static void PrintId(::std::stringstream& str) {
+  static void PrintId(::std::ostream& str) {
     str << "univpack< " << ::std::endl;
     PrintAll(str);
     str << " >";

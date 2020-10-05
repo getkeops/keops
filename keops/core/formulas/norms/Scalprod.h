@@ -6,7 +6,7 @@
 #include "core/utils/keops_math.h"
 #include "core/utils/TypesUtils.h"
 
-#include "core/autodiff/BinaryOp.h"
+#include "core/autodiff/ChunkableBinaryOp.h"
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Add.h"
 #include "core/formulas/constants/Zero.h"
@@ -41,7 +41,7 @@ using Add = typename Add_Alias< FA, FB >::type;
 
 
 template < class FA, class FB >
-struct Scalprod_Impl : BinaryOp< Scalprod_Impl, FA, FB > {
+struct Scalprod_Impl : ChunkableBinaryOp< Scalprod_Impl, FA, FB > {
 
   // Output dimension = 1, provided that FA::DIM = FB::DIM
   static const int DIMIN = FA::DIM;
@@ -62,6 +62,17 @@ struct Scalprod_Impl : BinaryOp< Scalprod_Impl, FA, FB > {
   // [\partial_V <A,B>].gradin = gradin * ( [\partial_V A].B + [\partial_V B].A )
   template < class V, class GRADIN >
   using DiffT = Scal< GRADIN, Add< typename FA::template DiffT< V, FB >, typename FB::template DiffT< V, FA > > >;
+
+  template < typename TYPE >
+  static DEVICE INLINE void initacc_chunk(TYPE *acc) {
+	*acc = 0.0f;
+  }
+
+  template < typename TYPE >
+  static DEVICE INLINE void acc_chunk(TYPE *acc, TYPE *out) {
+	*acc += *out;
+  }
+
 };
 
 template < class FA, class FB >

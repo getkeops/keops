@@ -1,6 +1,6 @@
 // test convolution
 // compile with
-//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 --use_fast_math -O3 -o test_fromdevice test_fromdevice.cu
+//		nvcc -I.. -DCUDA_BLOCK_SIZE=192 -DMAXTHREADSPERBLOCK0=1024 -DSHAREDMEMPERBLOCK0=49152 -Wno-deprecated-gpu-targets -std=c++14 --use_fast_math -O3 -o build/test_fromdevice test_fromdevice.cu
 
 // testing "from device" convolution, i.e. convolution which is performed on the device
 // directly from device data
@@ -23,6 +23,22 @@ __TYPE__ floatrand() {
 
 template < class V > void fillrandom(V& v) {
     generate(v.begin(), v.end(), floatrand);    // fills vector with random values
+}
+
+__TYPE__ floatone() {
+    return 1.0f; 
+}
+
+template < class V > void fillones(V& v) {
+    generate(v.begin(), v.end(), floatone);   
+}
+
+__TYPE__ floatzero() {
+    return 0.0f; 
+}
+
+template < class V > void fillzeros(V& v) {
+    generate(v.begin(), v.end(), floatzero);   
 }
 
 void DispValues(__TYPE__ *x, int N, int dim) {
@@ -63,26 +79,27 @@ int main(int argc, char **argv) {
     // now we test ------------------------------------------------------------------------------
 
     int Nx;
-    sscanf(argv[1], "%d", &Nx);
-    
-    std::vector<__TYPE__> vx(Nx*x.DIM);    fillrandom(vx); __TYPE__ *px = vx.data();
+    if (argc>1)
+        sscanf(argv[1], "%d", &Nx);
+    else
+        Nx = 100000;
+    std::cout << std::endl << "Nx = " << Nx << std::endl;
+
+    std::vector<__TYPE__> vx(Nx*x.DIM);    fillones(vx); __TYPE__ *px = vx.data();
     thrust::device_vector<__TYPE__> vx_d(vx);
     __TYPE__ *x_d = thrust::raw_pointer_cast(vx_d.data());
 
-    std::vector<__TYPE__> vy(Nx*DIMPOINT);    fillrandom(vy); __TYPE__ *py = vy.data();
+    std::vector<__TYPE__> vy(Nx*DIMPOINT);    fillones(vy); __TYPE__ *py = vy.data();
     thrust::device_vector<__TYPE__> vy_d(vy);
     __TYPE__ *y_d = thrust::raw_pointer_cast(vy_d.data());
    
-    std::vector<__TYPE__> vb(Nx*DIMVECT);     fillrandom(vb); __TYPE__ *pb = vb.data();
+    std::vector<__TYPE__> vb(Nx*DIMVECT);     fillzeros(vb); __TYPE__ *pb = vb.data();
     thrust::device_vector<__TYPE__> vb_d(vb);
     __TYPE__ *b_d = thrust::raw_pointer_cast(vb_d.data());
    
     thrust::device_vector<__TYPE__> vres_d(Nx*Sum_f.DIM);
     __TYPE__ *res_d = thrust::raw_pointer_cast(vres_d.data());
     
-
-
-
     clock_t begin, end;
 
     std::cout << "blank run 1" << std::endl;
@@ -104,14 +121,11 @@ int main(int argc, char **argv) {
 
     std::cout << "testing From_Device mode" << std::endl;
 
-    //begin = clock();
     auto start = Clock::now();
 
     for(int i=0; i<Ntest; i++)
-        EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Nx, res_d, x_d, y_d, b_d);
+      EvalRed<GpuConv1D_FromDevice>(Sum_f,Nx, Nx, res_d, x_d, y_d, b_d);
 
-    //end = clock();
-    //std::cout << "time for "<< Ntest <<" GPU computations (1D scheme) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     auto stop = Clock::now();
     std::cout << "time = " 
                   << Ntest << "x "
@@ -123,7 +137,7 @@ int main(int argc, char **argv) {
 
 
 
-
+    DispValues(resgpu1D.data(),5,1);
 
 }
 

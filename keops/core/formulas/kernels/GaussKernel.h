@@ -11,6 +11,8 @@
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Exp.h"
 #include "core/formulas/maths/Subtract.h"
+
+#include "core/formulas/kernels/Kernel.h"
 #include "core/formulas/kernels/ScalarRadialKernels.h"
 
 
@@ -45,7 +47,7 @@ template < class C, class X, class Y, class B > struct GaussKernel_specific;
 template < class C, class X, class Y, class B, class V, class GRADIN > struct GradGaussKernel_specific;
 
 template < class C, class X, class Y, class B >
-struct GaussKernel_specific {
+struct GaussKernel_specific : Kernel {
 
   static_assert(C::DIM==1,"First template argument must be a of dimension 1 for GaussKernel_specific");
   static_assert(C::CAT==2,"First template argument must be a parameter variable (CAT=2) for GaussKernel_specific");
@@ -78,7 +80,8 @@ struct GaussKernel_specific {
   template<class U, class V>
   using Replace = CondType< V, THIS, IsSameType<U,THIS>::val >;
 
-  using AllTypes = univpack<THIS>;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = univpack<THIS>;
 
   template < class INDS, typename TYPE, typename... ARGS >
   static DEVICE INLINE void Eval(TYPE* gammai, ARGS... args) {
@@ -106,7 +109,7 @@ struct GaussKernel_specific {
 
 // by default we link to the standard autodiff versions of the gradients
 template < class C, class X, class Y, class B, class V, class GRADIN >
-struct GradGaussKernel_specific {
+struct GradGaussKernel_specific : Kernel {
   using GenericVersion = Grad<GaussKernel<C,X,Y,B>,V,GRADIN>;
 
   static const int DIM = GenericVersion::DIM;
@@ -137,7 +140,8 @@ struct GradGaussKernel_specific {
   template<class E, class F>
   using Replace = CondType< F, GradGaussKernel_specific<C,X,Y,B,V,typename GRADIN::template Replace<E,F>>, IsSameType<E,THIS>::val >;
 
-  using AllTypes = MergePacks < univpack<THIS,V>, typename GRADIN::AllTypes >;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = MergePacks < univpack<THIS,V>, typename GRADIN::AllTypes >;
 
   template < class INDS, typename TYPE, typename... ARGS >
   static DEVICE INLINE void Eval(TYPE* gammai, ARGS... args) {
@@ -151,7 +155,7 @@ struct GradGaussKernel_specific {
 
 // specific implementation of gradient wrt X
 template < class C, class X, class Y, class B, class GRADIN >
-struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
+struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> : Kernel {
   using GenericVersion = Grad<GaussKernel<C,X,Y,B>,X,GRADIN>;
 
   static const int DIM = GenericVersion::DIM;
@@ -182,7 +186,8 @@ struct GradGaussKernel_specific<C,X,Y,B,X,GRADIN> {
   template<class U, class V>
   using Replace = CondType< V, GradGaussKernel_specific<C,X,Y,B,X,typename GRADIN::template Replace<U,V>>, IsSameType<U,THIS>::val >;
 
-  using AllTypes = MergePacks < univpack<THIS,X>, typename GRADIN::AllTypes >;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = MergePacks < univpack<THIS,X>, typename GRADIN::AllTypes >;
 
   template < class INDS, typename TYPE, typename... ARGS >
   static DEVICE INLINE void Eval(TYPE* gammai, ARGS... args) {

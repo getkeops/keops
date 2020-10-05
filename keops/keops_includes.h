@@ -1,4 +1,27 @@
 
+// special computation scheme for dim>100
+#ifndef ENABLECHUNK
+  #define ENABLECHUNK 1
+#endif
+#ifndef DIMCHUNK
+  #define DIMCHUNK 64
+#endif
+#ifndef DIM_TRESHOLD_CHUNK
+  #define DIM_TRESHOLD_CHUNK 143
+#endif
+#ifndef SPECDIM_USE_CHUNK1
+  #define SPECDIM_USE_CHUNK1 80
+#endif
+#ifndef SPECDIM_USE_CHUNK2
+  #define SPECDIM_USE_CHUNK2 109
+#endif
+#ifndef SPECDIM_USE_CHUNK3
+  #define SPECDIM_USE_CHUNK3 112
+#endif
+#ifndef SPECDIM_USE_CHUNK4
+  #define SPECDIM_USE_CHUNK4 114
+#endif
+
 #if USE_HALF
   #include <cuda_fp16.h>
 #endif
@@ -24,6 +47,7 @@
 #include "core/formulas/maths/Exp.h"
 #include "core/formulas/maths/Sin.h"
 #include "core/formulas/maths/Cos.h"
+#include "core/formulas/maths/Acos.h"
 #include "core/formulas/maths/Pow.h"
 #include "core/formulas/maths/Square.h"
 #include "core/formulas/maths/Inv.h"
@@ -35,6 +59,8 @@
 #include "core/formulas/maths/Abs.h"
 #include "core/formulas/maths/Step.h"
 #include "core/formulas/maths/ReLu.h"
+#include "core/formulas/maths/Clamp.h"
+#include "core/formulas/maths/ClampInt.h"
 #include "core/formulas/maths/Powf.h"
 #include "core/formulas/maths/Sqrt.h"
 #include "core/formulas/maths/Rsqrt.h"
@@ -90,20 +116,6 @@
 #define KAHAN_SCHEME 2
 #ifndef SUM_SCHEME
   #define SUM_SCHEME DIRECT_SUM
-#endif
-
-// special computation scheme for dim>100
-#ifndef ENABLECHUNK
-  #define ENABLECHUNK 0
-#endif
-#ifndef DIMCHUNK
-  #define DIMCHUNK 64
-#endif
-#ifndef CUDA_BLOCK_SIZE_CHUNKS
-  #define CUDA_BLOCK_SIZE_CHUNKS 192
-#endif
-#ifndef DIM_TRESHOLD_CHUNK
-  #define DIM_TRESHOLD_CHUNK 110
 #endif
 
 // float16 support

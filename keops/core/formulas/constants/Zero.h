@@ -23,7 +23,8 @@ struct Zero {
   template<class A1, class B1, class A2, class B2>
   using ReplaceVars2 = Zero<DIM>;
 
-  using AllTypes = univpack<Zero<DIM>>;
+  // N.B we comment out AutoFactorize and AllTypes in all code as of oct 2020 to speed up compile time
+  // using AllTypes = univpack<Zero<DIM>>;
 
   template < int CAT >      // Whatever CAT...
   using VARS = univpack<>;  // there's no variable used in there.
@@ -37,6 +38,27 @@ struct Zero {
   // There is no gradient to accumulate on V, whatever V.
   template < class V, class GRADIN >
   using DiffT = Zero<V::DIM>;
+
+
+  template < int DIMCHK >
+  using CHUNKED_VERSION = Zero<DIMCHK>;
+
+  static const bool IS_CHUNKABLE = true;
+
+  template < int DIMCHK >
+  using CHUNKED_FORMULAS = univpack<>;
+
+  static const int NUM_CHUNKED_FORMULAS = 0;
+
+  template < int IND >
+  using POST_CHUNK_FORMULA = Zero<DIM>;
+
+  template < int CAT >
+  using CHUNKED_VARS = univpack<>;
+
+  template < int CAT >
+  using NOTCHUNKED_VARS = univpack<>;
+
 };
 
 #define Zero(D) KeopsNS<Zero<D>>()
