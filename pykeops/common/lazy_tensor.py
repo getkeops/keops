@@ -1748,7 +1748,7 @@ class GenericLazyTensor:
     
     # LazyTensors as linear operators  =========================================
     
-    def __matmul__(self, v):
+    def __matmul__(self, v, **kwargs):
         r"""
         Matrix-vector or Matrix-matrix product, supporting batch dimensions.
 
@@ -1777,7 +1777,7 @@ class GenericLazyTensor:
 
         v_ = self.lt_constructor(self.tools.view( v, newdims ))
         Kv = (self * v_ )            # Supports broadcasting
-        Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
+        Kv = Kv.sum( Kv.dim() - 2, **kwargs)  # Matrix-vector or Matrix-matrix product
 
         # Expected behavior: if v is a vector, so should K @ v.
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv
