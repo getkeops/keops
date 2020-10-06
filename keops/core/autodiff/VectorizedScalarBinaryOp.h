@@ -19,8 +19,8 @@ struct VectorizedScalarBinaryOp : BinaryOp<OP, F, G> {
     static const bool IS_CHUNKABLE = F::IS_CHUNKABLE && G::IS_CHUNKABLE;
 
     template < int DIMCHK >
-    using CHUNKED_VERSION = OP < typename F::template CHUNKED_VERSION<DIMCHK>, 
-								 typename G::template CHUNKED_VERSION<DIMCHK> >;
+    using CHUNKED_VERSION = OP < CondType< F, typename F::template CHUNKED_VERSION<DIMCHK>, F::DIM==1 > , 
+				CondType< G, typename G::template CHUNKED_VERSION<DIMCHK>, G::DIM==1 >  >;
 
     template < int CAT >
     using CHUNKED_VARS = MergePacks < CondType < univpack<> , typename F::template CHUNKED_VARS<CAT>, F::DIM==1 >,

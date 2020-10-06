@@ -54,7 +54,7 @@ struct TernaryOp_base {
   struct POST_CHUNK_FORMULA_Impl < IND, 0 > {
 	  using type = OP < typename FA::template POST_CHUNK_FORMULA<IND>, 
    				typename FB::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS>,
-   					typename FC::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULA+FB::NUM_CHUNKED_FORMULAS> >;
+   					typename FC::template POST_CHUNK_FORMULA<IND+FA::NUM_CHUNKED_FORMULAS+FB::NUM_CHUNKED_FORMULAS> >;
   };
   
   template < int IND >
