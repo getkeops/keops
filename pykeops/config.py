@@ -1,6 +1,5 @@
 import os
 import importlib.util
-import GPUtil
 
 ###############################################################
 # Initialize some variables: the values may be redefined later
@@ -9,6 +8,7 @@ import GPUtil
 # Update config module: Search for GPU
 
 try:
+    import GPUtil
     gpu_available = len(GPUtil.getGPUs()) > 0
 except:
     gpu_available = False
