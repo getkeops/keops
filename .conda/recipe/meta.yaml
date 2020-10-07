@@ -1,0 +1,39 @@
+# Credits: P. Madden, B. Charlier
+#
+# https://github.com/getkeops/keops/issues/85
+#
+# To build the conda package : 
+#   conda build -c pytorch -c conda-forge recipe
+#
+# To cretate an environment
+#   conda create -y -n pykeops -c local -c pytorch -c conda-forge pykeops=1.4.2
+
+{% set version = '1.4.2' %}
+
+package:
+  name: pykeops
+  version: {{ version }}
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python
+  run:
+    - cmake >=3.10
+    - cudatoolkit-dev >=10.0
+    - gputil
+    - numpy
+    - pytorch 1.5.*
+    - {{ compiler('cxx') }} 8.*
+    - python
+
+source:
+  git_url: https://github.com/getkeops/keops.git
+  #git_rev: v{{ version }}
+  #patches:
+      #- patch
+
+about:
+  license: MIT
