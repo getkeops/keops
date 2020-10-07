@@ -22,6 +22,14 @@
   #define SPECDIM_USE_CHUNK4 114
 #endif
 
+// special mode for formula of the type sum_j k(x_i,y_j)*b_j with high dimensional b_j
+#ifndef USE_FINAL_CHUNKS
+  #define USE_FINAL_CHUNKS 0
+#endif
+#ifndef DIMFINALCHUNK
+  #define DIMFINALCHUNK 64
+#endif
+
 #if USE_HALF
   #include <cuda_fp16.h>
 #endif

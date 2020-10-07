@@ -55,7 +55,7 @@ if(SUM_SCHEME)
   add_definitions(-DSUM_SCHEME=${SUM_SCHEME})
 endif()
 
-# options for special computation scheme for large dimension
+# options for special computation schemes for large dimension
 if(DEFINED ENABLECHUNK)
   add_definitions(-DENABLECHUNK=${ENABLECHUNK})
 endif()
@@ -64,6 +64,12 @@ if(DEFINED DIM_TRESHOLD_CHUNK)
 endif()
 if(DEFINED DIMCHUNK)
   add_definitions(-DDIMCHUNK=${DIMCHUNK})
+endif()
+if(DEFINED USE_FINAL_CHUNKS)
+  add_definitions(-DUSE_FINAL_CHUNKS=${USE_FINAL_CHUNKS})
+endif()
+if(DEFINED DIMFINALCHUNK)
+  add_definitions(-DDIMFINALCHUNK=${DIMFINALCHUNK})
 endif()
 
 # - Declare the templates formula if not provided by the user

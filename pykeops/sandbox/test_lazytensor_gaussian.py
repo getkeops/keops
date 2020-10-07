@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 1000, 1000, 300, 1
+M, N, D, DV = 10000, 10000, 3, 1000
 
 test_grad = False
 device_id = 'cuda'
@@ -25,9 +25,11 @@ def fun(x,y,b,backend):
     Dxy = ((x-y)**2).sum(dim=2) 
     Kxy = (- Dxy).exp() 
     if backend=="keops":
-        out = LazyTensor.__matmul__(Kxy,b,enable_chunks=False)
+        out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DUSE_FINAL_CHUNKS=1','-DDIMFINALCHUNK=64'])
     else:
         out = Kxy @ b
+    torch.cuda.synchronize() 
+    #print("out:",out.flatten()[:10])
     return out
     
 backends = ["torch","keops"]

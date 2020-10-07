@@ -249,11 +249,13 @@ class GenericLazyTensor:
     def separate_kwargs(self, kwargs):    
         # separating keyword arguments for Genred init vs Genred call...
         # Currently the only four additional optional keyword arguments that are passed to Genred init
-        # are accuracy options: dtype_acc, use_double_acc and sum_cheme, and chunk mode option enable_chunks.
+        # are accuracy options: dtype_acc, use_double_acc and sum_cheme, 
+        # chunk mode option enable_chunks,
+        # and compiler option optional_flags.
         kwargs_init = []
         kwargs_call = []
         for key in kwargs:
-            if key in ("dtype_acc","use_double_acc","sum_scheme","enable_chunks"):
+            if key in ("dtype_acc","use_double_acc","sum_scheme","enable_chunks","optional_flags"):
                 kwargs_init += [(key,kwargs[key])]
             else:
                 kwargs_call += [(key,kwargs[key])]                

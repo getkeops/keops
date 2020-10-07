@@ -19,6 +19,9 @@ namespace keops {
 template < template<class,class,class...> class OP, class FA, class FB, class... PARAMS >
 struct BinaryOp_base {
 
+  using ARG1 = FA;
+  using ARG2 = FB;
+
   using THIS = OP<FA,FB,PARAMS...>;
 
   template < int DIMCHK >
