@@ -68,7 +68,7 @@ setup(
         'Source': 'https://github.com/getkeops/keops',
     },
     author='B. Charlier, J. Feydy, J. Glaunes',
-    author_email='benjamin.charlier@umontpellier.fr, jfeydy@ens.fr, alexis.glaunes@parisdescartes.fr',
+    author_email='benjamin.charlier@umontpellier.fr, jean.feydy@gmail.com, alexis.glaunes@parisdescartes.fr',
 
     python_requires='>=3',
 
@@ -95,11 +95,13 @@ setup(
         'pykeops.numpy.cluster',
         'pykeops.numpy.convolutions',
         'pykeops.numpy.generic',
+        'pykeops.numpy.lazytensor',
         'pykeops.numpy.shape_distance',
         'pykeops.test',
         'pykeops.torch',
         'pykeops.torch.cluster',
         'pykeops.torch.generic',
+        'pykeops.torch.lazytensor',
         'pykeops.torch.kernel_product',
     ],
 
