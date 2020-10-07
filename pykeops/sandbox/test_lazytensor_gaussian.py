@@ -1,4 +1,4 @@
-# Test for gaussian kernel operation using LazyTensors
+# Test for gaussian kernel operation using LazyTensors.
 
 import time
 
