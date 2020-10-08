@@ -26,6 +26,7 @@ template < int USE_CHUNK_MODE, int BLOCKSIZE_CHUNKS, class VARFINAL=void > struc
 
 #if USE_FINAL_CHUNKS==1
 
+
 template < class VARFINAL, int DIMFINALCHUNK_CURR, typename TYPE >
 __device__ void do_finalchunk_sub(TYPE *acc, int i, int j, int jstart, int chunk, int nx, int ny, 
 			TYPE **args, TYPE *fout, TYPE *yj, TYPE *out) {
@@ -82,8 +83,6 @@ __global__ void GpuConv1DOnDevice_FinalChunks(FUN fun, int nx, int ny, TYPE *out
     static_assert(DIMFOUT==1,"DIMFOUT should be 1");
     
     static_assert(SUM_SCHEME==BLOCK_SUM,"only BLOCK_SUM available");
-    
-    static_assert(FUN::tagI==0,"tagI should be 0");
             
     // load parameter(s)
     TYPE param_loc[DIMP < 1 ? 1 : DIMP];
@@ -99,7 +98,6 @@ __global__ void GpuConv1DOnDevice_FinalChunks(FUN fun, int nx, int ny, TYPE *out
         #pragma unroll
         for (int k=0; k<DIMOUT; k++) {
             out[i*DIMOUT+k] = 0.0f;
-            //printf("i=%d, DIMOUT=%d, k=%d, i*DIMOUT+k=%d, out[i*DIMOUT+k]=%f\n",i,DIMOUT,k,i*DIMOUT+k,out[i*DIMOUT+k]);
         }
     }
     
@@ -123,7 +121,6 @@ __global__ void GpuConv1DOnDevice_FinalChunks(FUN fun, int nx, int ny, TYPE *out
                                   xi,
                                   yjrel,
                                   param_loc); // Call the function, which outputs results in fout
-                //printf("*(fout+jrel*DIMFOUT)=%f\n",*(fout+jrel*DIMFOUT));
             }
         }
         
@@ -139,7 +136,6 @@ template < int BLOCKSIZE_CHUNKS, class VARFINAL >
 struct GpuConv1DOnDevice<2,BLOCKSIZE_CHUNKS,VARFINAL> {
     template < typename TYPE, class FUN >
     static void Eval(dim3 gridSize, dim3 blockSize, size_t SharedMem, FUN fun, int nx, int ny, TYPE *out, TYPE **args) {
-        //printf("Final Chunks\n");
         GpuConv1DOnDevice_FinalChunks < BLOCKSIZE_CHUNKS, VARFINAL > <<< gridSize, blockSize, SharedMem >>> (fun, nx, ny, out, args);
     }
 };
