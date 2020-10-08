@@ -8,6 +8,7 @@ from pykeops.torch import LazyTensor
 
 M, N, D, DV = 1000, 1000, 3, 1000
 
+
 test_grad = True
 device_id = 'cuda'
 do_warmup = False
