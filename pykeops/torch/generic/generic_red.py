@@ -15,7 +15,7 @@ class GenredAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, optional_flags, *args):
+    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args):
 
         myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags+include_dirs).import_module()
         
@@ -27,6 +27,7 @@ class GenredAutograd(torch.autograd.Function):
         ctx.device_id = device_id
         ctx.ranges = ranges
         ctx.optional_flags = optional_flags
+        ctx.rec_multVar = rec_multVar
         ctx.myconv = myconv
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
@@ -90,16 +91,24 @@ class GenredAutograd(torch.autograd.Function):
 
         for (var_ind, (sig, arg_ind)) in enumerate(zip(aliases, args)):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 7]:  # because of (formula, aliases, backend, dtype, device_id, ranges, optional_flags)
+            if not ctx.needs_input_grad[var_ind + 8]:  # because of (formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar)
                 grads.append(None)  # Don't waste time computing it.
 
-            else:  # Otherwise, the current gradient is really needed by the user:
-                # adding new aliases is way too dangerous if we want to compute
+            else:  
+                # Otherwise, the current gradient is really needed by the user.
+                _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
+                # First special case : for a reduction of the type sum_j k(x_i,y_j) b_j, and if we require the gradient
+                # with respect to b, the gradient will be of the type sum_i k(x_i,y_j) b_j, which means b_j can be put out
+                # of the summation. The optional argument rec_multVar has been set in the LazyTensor class to detect this case.
+                #if ctx.rec_multVar is not None and pos==ctx.rec_multVar[1]:
+                #    print("here ok 3")
+                #    grads.append((ctx.rec_multVar[0]*G).sum(dim=-3))
+                #    break
+                # Now the general case. Adding new aliases is way too dangerous if we want to compute
                 # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
                 # New here (Joan) : we still add the new variables to the list of "aliases" (without
                 # giving new aliases for them) these will not be used in the C++ code,
                 # but are useful to keep track of the actual variables used in the formula
-                _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
                 formula_g = 'Grad_WithSavedForward(' + formula + ', ' + var + ', ' + eta + ', ' + resvar + ')'  # Grad<F,V,G,R>
                 aliases_g = aliases + [eta, resvar]
@@ -138,8 +147,8 @@ class GenredAutograd(torch.autograd.Function):
                 grad = grad.reshape(arg_ind.shape)  # The gradient should have the same shape as the input!
                 grads.append(grad)
         
-        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, *args
-        return (None, None, None, None, None, None, None, *grads)
+        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args
+        return (None, None, None, None, None, None, None, None, *grads)
 
 
 class Genred():
@@ -179,7 +188,8 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, optional_flags=[]):
+                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", 
+                 enable_chunks=True, optional_flags=[], rec_multVar=None):
         r"""
         Instantiate a new generic operation.
 
@@ -273,6 +283,8 @@ class Genred():
         self.dtype = dtype
         self.axis = axis
         self.opt_arg = opt_arg
+        
+        self.rec_multVar = rec_multVar
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
         r"""
@@ -399,7 +411,7 @@ class Genred():
             args, ranges, tag_dummy, N = preprocess_half2(args, self.aliases, self.axis, ranges, nx, ny)
         
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
-                                   device_id, ranges, self.optional_flags, *args)
+                                   device_id, ranges, self.optional_flags, self.rec_multVar, *args)
 
         if self.dtype in ('float16','half'):
             out = postprocess_half2(out, tag_dummy, self.reduction_op, N)

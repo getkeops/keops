@@ -402,6 +402,13 @@ class GenericLazyTensor:
         else:
             res.formula = "{}({}, {})".format(operation, lformula, rformula)
 
+        # special case of multiplication with a variable V : we define a special tag to enable factorization in case
+        # the user requires a sum reduction over the opposite index (or any index if V is a paremeter):
+        # for example sum_i V_j k(x_i,y_j) = V_j sum_i k(x_i,y_j), so we will use KeOps reduction for the kernel
+        # k(x_i,y_j) only, then multiply the result with V.
+        if operation=='*' and 'Var' in other.formula:
+            res.rec_multVar = (self,other.variables[0])
+
         return res
     
     def ternary(self, other1, other2, operation, dimres=None, dimcheck="sameor1", opt_arg=None):
@@ -513,6 +520,8 @@ class GenericLazyTensor:
         
         if axis is None:  axis = dim  # NumPy uses axis, PyTorch uses dim...
         if axis - self.nbatchdims not in (0, 1):
+            print(axis)
+            print(self.nbatchdims)
             raise ValueError(
                 "Reductions must be called with 'axis' (or 'dim') equal to the number of batch dimensions + 0 or 1.")
         
@@ -533,11 +542,18 @@ class GenericLazyTensor:
         res.kwargs = kwargs_call
         res.ndim = self.ndim
         
+        if reduction_op=='Sum' and hasattr(self,'rec_multVar'):
+            print("here ok 1 !!!")
+            if res.axis==0:
+                print("here ok 2 !!!")
+                return self.rec_multVar[0].sum(axis=axis) * self.rec_multVar[1]
+            res.rec_multVar = self.rec_multVar            
+        
         if res.dtype is not None:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
             # "res" now becomes a callable object:
             res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis,
-                                     res.dtype, res.opt_arg, res.formula2, **kwargs_init)
+                                     res.dtype, res.opt_arg, res.formula2, **kwargs_init, rec_multVar=res.rec_multVar)
         
         if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
             return res()
@@ -1360,6 +1376,7 @@ class GenericLazyTensor:
         if axis in [-1, len(self._shape) - 1]:
             return self.unary("Sum", dimres=1)
         else:
+            #print("here ok 0, axis=", axis)
             return self.reduction("Sum", axis=axis, **kwargs)
     
     def sum_reduction(self, axis=None, dim=None, **kwargs):

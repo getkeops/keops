@@ -10,7 +10,7 @@ M, N, D, DV = 1000, 1000, 3, 1000
 
 
 test_grad = True
-device_id = 'cuda'
+device_id = 'cpu'
 do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id)/math.sqrt(D)
@@ -26,10 +26,13 @@ def fun(x,y,b,backend):
     Dxy = ((x-y)**2).sum(dim=2) 
     Kxy = (- Dxy).exp() 
     if backend=="keops":
-        out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DUSE_FINAL_CHUNKS=0','-DDIMFINALCHUNK=64'])
+        #out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DUSE_FINAL_CHUNKS=0','-DDIMFINALCHUNK=64'])
+        out = (Kxy*b[None,:,:]).sum(axis=1,optional_flags=['-DUSE_FINAL_CHUNKS=0','-DDIMFINALCHUNK=64'])
     else:
-        out = Kxy @ b
-    torch.cuda.synchronize() 
+        #out = Kxy @ b
+        out = (Kxy[:,:,None] * b[None,:,:]).sum(dim=1)
+    if device_id != 'cpu':
+        torch.cuda.synchronize() 
     #print("out:",out.flatten()[:10])
     return out
     
