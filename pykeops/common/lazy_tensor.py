@@ -117,7 +117,7 @@ class GenericLazyTensor:
                 # as C++'s templating system cannot deal with floating point arithmetics.
                 x = [x]  # Convert to list and go to stage 2
                 typex = list
-
+            
             # Stage 2: Dealing with python lists, understood as arrays of floats, 
             #          and handled as Parameter variables without fixed dtype
             if typex == list:
@@ -208,16 +208,16 @@ class GenericLazyTensor:
     
     def fixvariables(self):
         r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
-        
+        print("here ok a")
         newvars = ()
         if self.formula2 is None: self.formula2 = ""  # We don't want to get regexp errors...
-        
+        print("here ok b")
         device = None  # Useful to load lists (and float constants) on the proper device
         for v in self.variables:
             device = self.tools.device(v)
             if device is not None:
                 break
-        
+        print("here ok c")
         i = len(self.symbolic_variables)  # The first few labels are already taken...
         for v in self.variables:  # So let's loop over our tensors, and give them labels:
             idv = id(v)
@@ -226,26 +226,33 @@ class GenericLazyTensor:
             
             # Replace "Var(idv," by "Var(i," and increment 'i':
             tag = "Var({},".format(idv)
+            print("here ok c+")
             if tag in self.formula + self.formula2:
+                print("here ok c++ 1")
                 self.formula = self.formula.replace(tag, "Var({},".format(i))
                 self.formula2 = self.formula2.replace(tag, "Var({},".format(i))
-                
+                print("here ok c++ 2")
                 # Detect if v is meant to be used as a variable or as a parameter:
                 str_cat_v = re.search(r"Var\({},\d+,([012])\)".format(i), self.formula + self.formula2).group(1)
                 is_variable = 1 if str_cat_v in ('0', '1') else 0
                 dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
                 padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
                 newvars += (padded_v,)
+                print("here ok c++ 3")
+                if hasattr(self,'rec_multVar') and self.rec_multVar is not None and id(self.rec_multVar[1])==idv:
+                    print("here ok c++ 3 a")
+                    self.rec_multVar = *self.rec_multVar, i
+                print("here ok c++ 4")
                 i += 1
-        
+                        
         # "VarSymb(..)" appear when users rely on the "LazyTensor(Ind,Dim,Cat)" syntax,
         # for the sake of disambiguation:
         self.formula = self.formula.replace("VarSymb(", "Var(")  # We can now replace them with
         self.formula2 = self.formula2.replace("VarSymb(", "Var(")  # actual "Var" symbols
-        
+        print("here ok d")
         if self.formula2 == "": self.formula2 = None  # The pre-processing step is now over
         self.variables = newvars
-
+        
     def separate_kwargs(self, kwargs):    
         # separating keyword arguments for Genred init vs Genred call...
         # Currently the only four additional optional keyword arguments that are passed to Genred init
@@ -525,6 +532,7 @@ class GenericLazyTensor:
             raise ValueError(
                 "Reductions must be called with 'axis' (or 'dim') equal to the number of batch dimensions + 0 or 1.")
         
+        print("here ok 6")
         if other is None:
             res = self.init()  # ~ self.copy()
             res.formula2 = None
@@ -541,20 +549,24 @@ class GenericLazyTensor:
 
         res.kwargs = kwargs_call
         res.ndim = self.ndim
-        
+        print("here ok 7")
         if reduction_op=='Sum' and hasattr(self,'rec_multVar'):
             print("here ok 1 !!!")
             if res.axis==0:
                 print("here ok 2 !!!")
                 return self.rec_multVar[0].sum(axis=axis) * self.rec_multVar[1]
-            res.rec_multVar = self.rec_multVar            
-        
+            res.rec_multVar = self.rec_multVar
+        else:
+            res.rec_multVar = None
+        print("here ok 8")
         if res.dtype is not None:
+            print("here ok 8.1")
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
+            print("here ok 8.2")
             # "res" now becomes a callable object:
             res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis,
                                      res.dtype, res.opt_arg, res.formula2, **kwargs_init, rec_multVar=res.rec_multVar)
-        
+        print("here ok 9")
         if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
             return res()
         else:
@@ -1393,6 +1405,7 @@ class GenericLazyTensor:
           **kwargs: optional parameters that are passed to the :meth:`reduction` method.
 
         """
+        print("here ok 5 !!")
         return self.reduction("Sum", axis=axis, dim=dim, **kwargs)
     
     def logsumexp(self, axis=None, dim=None, weight=None, **kwargs):
