@@ -16,6 +16,15 @@ class GenredAutograd(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args):
+        
+        # N.B. when rec_multVar option is set, it means that formula is of the form "sum(F*b)", where b is a variable
+        # In this case we set compiler option MULT_VAR to allow for the use of the special "final chunk" computation
+        # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
+        # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx, 
+        # before adding the MULT_VAR compiler option.
+        ctx.optional_flags = optional_flags
+        if rec_multVar is not None:
+            optional_flags += ['-DMULT_VAR=1']
 
         myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags+include_dirs).import_module()
         
@@ -26,7 +35,6 @@ class GenredAutograd(torch.autograd.Function):
         ctx.dtype = dtype
         ctx.device_id = device_id
         ctx.ranges = ranges
-        ctx.optional_flags = optional_flags
         ctx.rec_multVar = rec_multVar
         ctx.myconv = myconv
 
@@ -97,17 +105,7 @@ class GenredAutograd(torch.autograd.Function):
             else:  
                 # Otherwise, the current gradient is really needed by the user.
                 _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
-                # First special case : for a reduction of the type sum_j k(x_i,y_j) b_j, and if we require the gradient
-                # with respect to b, the gradient will be of the type sum_i k(x_i,y_j) b_j, which means b_j can be put out
-                # of the summation. The optional argument rec_multVar has been set in the LazyTensor class to detect this case.
-                if ctx.rec_multVar is not None and pos==ctx.rec_multVar[2]:
-                    print("here ok 3")
-                    subexpr = ctx.rec_multVar[0]
-                    G = G[:,None,:] if len(G.shape)==2 else G.view(*G.shape[:subexpr.nbatchdims]+(G.shape[-2],1,G.shape[-1]))
-                    print("G.shape=",G.shape)
-                    tmpconv = (subexpr*G).sum_reduction(dim=subexpr.nbatchdims)
-                    grads.append(tmpconv)
-                    break
+
                 # Now the general case. Adding new aliases is way too dangerous if we want to compute
                 # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
                 # New here (Joan) : we still add the new variables to the list of "aliases" (without
@@ -121,10 +119,18 @@ class GenredAutograd(torch.autograd.Function):
                 # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
                 genconv = GenredAutograd().apply
 
+                # For a reduction of the type sum(F*b), with b a variable, and if we require the gradient
+                # with respect to b, the gradient will be of same type sum(F*eta). So we set again rec_multVar option
+                # in this case.
+                if pos==ctx.rec_multVar:
+                    rec_multVar = nargs # nargs is the position of variable eta.
+                else:
+                    rec_multVar = None
+
                 if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/formulas/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, None, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args_g)
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -136,7 +142,7 @@ class GenredAutograd(torch.autograd.Function):
                         i for (i, (x, y)) in enumerate(zip(arg_ind.shape[:-1], grad.shape[:-1])) if x < y)
 
                 else:
-                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, None, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args_g)
 
                     # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
                     #       whereas 'arg_ind' may have some broadcasted batched dimensions.

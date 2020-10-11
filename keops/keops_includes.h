@@ -23,11 +23,17 @@
 #endif
 
 // special mode for formula of the type sum_j k(x_i,y_j)*b_j with high dimensional b_j
-#ifndef USE_FINAL_CHUNKS
-  #define USE_FINAL_CHUNKS 0
+#ifndef ENABLE_FINAL_CHUNKS
+  #define ENABLE_FINAL_CHUNKS 0
 #endif
 #ifndef DIMFINALCHUNK
   #define DIMFINALCHUNK 64
+#endif
+#ifndef DIM_TRESHOLD_FINALCHUNK
+  #define DIM_TRESHOLD_FINALCHUNK 100
+#endif
+#ifndef MULT_VAR
+  #define MULT_VAR 0
 #endif
 
 #if USE_HALF
