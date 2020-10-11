@@ -71,11 +71,8 @@ endif()
 if(DEFINED DIMFINALCHUNK)
   add_definitions(-DDIMFINALCHUNK=${DIMFINALCHUNK})
 endif()
-if(DEFINED DIM_TRESHOLD_FINALCHUNK)
-  add_definitions(-DDIM_TRESHOLD_FINALCHUNK=${DIM_TRESHOLD_FINALCHUNK})
-endif()
-if(DEFINED MULT_VAR)
-  add_definitions(-DMULT_VAR=${MULT_VAR})
+if(DEFINED MULT_VAR_HIGHDIM)
+  add_definitions(-DMULT_VAR_HIGHDIM=${MULT_VAR_HIGHDIM})
 endif()
 
 # - Declare the templates formula if not provided by the user

@@ -3,13 +3,6 @@
 using namespace keops;
 
 
-#if ENABLE_FINAL_CHUNKS && MULT_VAR==1 && F::F::ARG2::DIM > DIM_TRESHOLD_FINAL_CHUNKS
-	#define USE_FINAL_CHUNKS 1
-#else
-	#define USE_FINAL_CHUNKS 0
-#endif
-
-
 ///////////////////////////////////////////////
 // Convolutions on Gpu device from host data //
 ///////////////////////////////////////////////

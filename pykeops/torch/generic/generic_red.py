@@ -15,16 +15,16 @@ class GenredAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args):
+    def forward(ctx, formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, *args):
         
-        # N.B. when rec_multVar option is set, it means that formula is of the form "sum(F*b)", where b is a variable
-        # In this case we set compiler option MULT_VAR to allow for the use of the special "final chunk" computation
+        # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
+        # with large dimension. In this case we set compiler option MULT_VAR_HIGHDIM to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
         # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx, 
-        # before adding the MULT_VAR compiler option.
-        ctx.optional_flags = optional_flags
-        if rec_multVar is not None:
-            optional_flags += ['-DMULT_VAR=1']
+        # before adding the MULT_VAR_HIGHDIM compiler option.
+        ctx.optional_flags = optional_flags.copy()
+        if rec_multVar_highdim is not None:
+            optional_flags += ['-DMULT_VAR_HIGHDIM=1']
 
         myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags+include_dirs).import_module()
         
@@ -35,7 +35,7 @@ class GenredAutograd(torch.autograd.Function):
         ctx.dtype = dtype
         ctx.device_id = device_id
         ctx.ranges = ranges
-        ctx.rec_multVar = rec_multVar
+        ctx.rec_multVar_highdim = rec_multVar_highdim
         ctx.myconv = myconv
 
         tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
@@ -99,18 +99,16 @@ class GenredAutograd(torch.autograd.Function):
 
         for (var_ind, (sig, arg_ind)) in enumerate(zip(aliases, args)):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 8]:  # because of (formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar)
+            if not ctx.needs_input_grad[var_ind + 8]:  # because of (formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  
-                # Otherwise, the current gradient is really needed by the user.
-                _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
-
-                # Now the general case. Adding new aliases is way too dangerous if we want to compute
+                # Otherwise, the current gradient is really needed by the user. Adding new aliases is way too dangerous if we want to compute
                 # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
                 # New here (Joan) : we still add the new variables to the list of "aliases" (without
                 # giving new aliases for them) these will not be used in the C++ code,
                 # but are useful to keep track of the actual variables used in the formula
+                _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
                 var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
                 formula_g = 'Grad_WithSavedForward(' + formula + ', ' + var + ', ' + eta + ', ' + resvar + ')'  # Grad<F,V,G,R>
                 aliases_g = aliases + [eta, resvar]
@@ -122,15 +120,15 @@ class GenredAutograd(torch.autograd.Function):
                 # For a reduction of the type sum(F*b), with b a variable, and if we require the gradient
                 # with respect to b, the gradient will be of same type sum(F*eta). So we set again rec_multVar option
                 # in this case.
-                if pos==ctx.rec_multVar:
-                    rec_multVar = nargs # nargs is the position of variable eta.
+                if pos==ctx.rec_multVar_highdim:
+                    rec_multVar_highdim = nargs # nargs is the position of variable eta.
                 else:
-                    rec_multVar = None
+                    rec_multVar_highdim = None
 
                 if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                     # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/formulas/reductions
                     # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, *args_g)
                     # Then, sum 'grad' wrt 'i' :
                     # I think that '.sum''s backward introduces non-contiguous arrays,
                     # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -142,7 +140,7 @@ class GenredAutograd(torch.autograd.Function):
                         i for (i, (x, y)) in enumerate(zip(arg_ind.shape[:-1], grad.shape[:-1])) if x < y)
 
                 else:
-                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args_g)
+                    grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, *args_g)
 
                     # N.B.: 'grad' is always a full [A, .., B, M, D] or [A, .., B, N, D] or [A, .., B, D] tensor,
                     #       whereas 'arg_ind' may have some broadcasted batched dimensions.
@@ -157,7 +155,7 @@ class GenredAutograd(torch.autograd.Function):
                 grad = grad.reshape(arg_ind.shape)  # The gradient should have the same shape as the input!
                 grads.append(grad)
         
-        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar, *args
+        # Grads wrt. formula, aliases, backend, dtype, device_id, ranges, optional_flags, rec_multVar_highdim, *args
         return (None, None, None, None, None, None, None, None, *grads)
 
 
@@ -199,7 +197,7 @@ class Genred():
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
                  formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", 
-                 enable_chunks=True, optional_flags=[], rec_multVar=None):
+                 enable_chunks=True, optional_flags=[], rec_multVar_highdim=None):
         r"""
         Instantiate a new generic operation.
 
@@ -294,7 +292,7 @@ class Genred():
         self.axis = axis
         self.opt_arg = opt_arg
         
-        self.rec_multVar = rec_multVar
+        self.rec_multVar_highdim = rec_multVar_highdim
 
     def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
         r"""
@@ -421,7 +419,7 @@ class Genred():
             args, ranges, tag_dummy, N = preprocess_half2(args, self.aliases, self.axis, ranges, nx, ny)
         
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
-                                   device_id, ranges, self.optional_flags, self.rec_multVar, *args)
+                                   device_id, ranges, self.optional_flags, self.rec_multVar_highdim, *args)
 
         if self.dtype in ('float16','half'):
             out = postprocess_half2(out, tag_dummy, self.reduction_op, N)

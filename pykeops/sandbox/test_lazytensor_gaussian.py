@@ -6,12 +6,12 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 1000, 1000, 3, 1000
+M, N, D, DV = 10000, 10000, 3, 150
 
 
-test_grad = True
-device_id = 'cpu'
-do_warmup = False
+test_grad = False
+device_id = 'cuda'
+do_warmup = True
 
 x = torch.rand(M, 1, D, device=device_id)/math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id)/math.sqrt(D)
@@ -26,7 +26,7 @@ def fun(x,y,b,backend):
     Dxy = ((x-y)**2).sum(dim=2) 
     Kxy = (- Dxy).exp() 
     if backend=="keops":
-        out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DENABLE_FINAL_CHUNKS=0','-DDIMFINALCHUNK=64'])
+        out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DENABLE_FINAL_CHUNKS=1','-DDIMFINALCHUNK=64'])
     else:
         out = Kxy @ b
     if device_id != 'cpu':

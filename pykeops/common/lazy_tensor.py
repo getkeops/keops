@@ -232,8 +232,8 @@ class GenericLazyTensor:
                 dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
                 padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
                 newvars += (padded_v,)
-                if hasattr(self,'rec_multVar') and self.rec_multVar==idv:
-                    self.rec_multVar = i
+                if hasattr(self,'rec_multVar_highdim') and self.rec_multVar_highdim==idv:
+                    self.rec_multVar_highdim = i
                 i += 1
                         
         # "VarSymb(..)" appear when users rely on the "LazyTensor(Ind,Dim,Cat)" syntax,
@@ -403,8 +403,8 @@ class GenericLazyTensor:
         # the user requires a sum reduction over the opposite index (or any index if V is a parameter):
         # for example sum_i V_j k(x_i,y_j) = V_j sum_i k(x_i,y_j), so we will use KeOps reduction for the kernel
         # k(x_i,y_j) only, then multiply the result with V.
-        if operation=='*' and other.formula[:3]=='Var':
-            res.rec_multVar = (self,other)
+        if operation=='*' and other.formula[:3]=='Var' and other.ndim>100:
+            res.rec_multVar_highdim = (self,other)
 
         return res
     
@@ -536,17 +536,17 @@ class GenericLazyTensor:
 
         res.kwargs = kwargs_call
         res.ndim = self.ndim
-        if reduction_op=='Sum' and hasattr(self,'rec_multVar'):
-            if res.axis!=self.rec_multVar[1].axis:
-                return self.rec_multVar[0].sum(axis=axis) * self.rec_multVar[1].variables[0]
-            res.rec_multVar = id(self.rec_multVar[1].variables[0])
+        if reduction_op=='Sum' and hasattr(self,'rec_multVar_highdim'):
+            if res.axis!=self.rec_multVar_highdim[1].axis:
+                return self.rec_multVar_highdim[0].sum(axis=axis) * self.rec_multVar_highdim[1].variables[0]
+            res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
         else:
-            res.rec_multVar = None
+            res.rec_multVar_highdim = None
         if res.dtype is not None:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
             # "res" now becomes a callable object:
             res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis,
-                                     res.dtype, res.opt_arg, res.formula2, **kwargs_init, rec_multVar=res.rec_multVar)
+                                     res.dtype, res.opt_arg, res.formula2, **kwargs_init, rec_multVar_highdim=res.rec_multVar_highdim)
         if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
             return res()
         else:

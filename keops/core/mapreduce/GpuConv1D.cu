@@ -282,7 +282,6 @@ template < int BLOCKSIZE_CHUNKS >
 struct GpuConv1DOnDevice<1,BLOCKSIZE_CHUNKS> {
     template < typename TYPE, class FUN >
     static void Eval(dim3 gridSize, dim3 blockSize, size_t SharedMem, FUN fun, int nx, int ny, TYPE *out, TYPE **args) {
-        //printf("Chunks\n");
         GpuConv1DOnDevice_Chunks < BLOCKSIZE_CHUNKS > <<< gridSize, blockSize, SharedMem >>> (fun, nx, ny, out, args);
     }
 };
@@ -394,7 +393,6 @@ template < int DUMMY >
 struct GpuConv1DOnDevice<0,DUMMY> {
     template < typename TYPE, class FUN >
     static void Eval(dim3 gridSize, dim3 blockSize, size_t SharedMem, FUN fun, int nx, int ny, TYPE *out, TYPE **args) {
-        //printf("No Chunks\n");
         GpuConv1DOnDevice_NoChunks <<< gridSize, blockSize, SharedMem >>> (fun, nx, ny, out, args);
     }
 };
@@ -601,9 +599,6 @@ struct GpuConv1D_FromDevice {
                                                     (int) (  DIMY_SHARED * sizeof(TYPE))))));
 
     blockSize.x = USE_CHUNK_MODE ? BLOCKSIZE_CHUNKS : blocksize_nochunks;
-    
-    //printf("blockSize.x=%d\n",blockSize.x);
-    //printf("BLOCKSIZE_CHUNKS=%d\n",BLOCKSIZE_CHUNKS);
 	
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
