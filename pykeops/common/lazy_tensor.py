@@ -648,11 +648,16 @@ class GenericLazyTensor:
         kwargs_init, res.kwargs = self.separate_kwargs(kwargs)
 
         res.ndim = self.ndim
-        
+
+        if other.ndim>100:
+            res.rec_multVar_highdim = varindex
+        else:
+            res.rec_multVar_highdim = None
+                    
         if res.dtype is not None:
             res.fixvariables()
             res.callfun = res.KernelSolve(res.formula, [], res.varformula,
-                                          res.axis, res.dtype, **kwargs_init)
+                                          res.axis, res.dtype, **kwargs_init, rec_multVar_highdim=res.rec_multVar_highdim)
         
         # we call if call=True, if other is not symbolic, and if the dtype is set
         if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
@@ -685,10 +690,10 @@ class GenericLazyTensor:
 
             if self.reduction_op == "Solve":
                 self.callfun = self.KernelSolve(self.formula, [], self.formula2,
-                                                self.axis, self.dtype, **kwargs_init)
+                                                self.axis, self.dtype, **kwargs_init, rec_multVar_highdim=res.rec_multVar_highdim)
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op,
-                                           self.axis, self.dtype, self.opt_arg, self.formula2, **kwargs_init)
+                                           self.axis, self.dtype, self.opt_arg, self.formula2, **kwargs_init, rec_multVar_highdim=res.rec_multVar_highdim)
         
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
             # here args should be empty, according to our rule
