@@ -123,14 +123,12 @@ __global__ void GpuConv1DOnDevice_FinalChunks(FUN fun, int nx, int ny, TYPE *out
                                   param_loc); // Call the function, which outputs results in fout
             }
         }
+        
         __syncthreads();
         
-        if (i < nx) {
-            for (int chunk=0; chunk<NCHUNKS-1; chunk++) 
-                do_finalchunk_sub < VARFINAL, DIMFINALCHUNK > (acc, i, j, jstart, chunk, nx, ny, args, fout, yj, out);
-            do_finalchunk_sub < VARFINAL, DIMLASTFINALCHUNK > (acc, i, j, jstart, NCHUNKS-1, nx, ny, args, fout, yj, out);
-        }
-        __syncthreads();
+        for (int chunk=0; chunk<NCHUNKS-1; chunk++) 
+            do_finalchunk_sub < VARFINAL, DIMFINALCHUNK > (acc, i, j, jstart, chunk, nx, ny, args, fout, yj, out);
+        do_finalchunk_sub < VARFINAL, DIMLASTFINALCHUNK > (acc, i, j, jstart, NCHUNKS-1, nx, ny, args, fout, yj, out);
     }
 }
 
