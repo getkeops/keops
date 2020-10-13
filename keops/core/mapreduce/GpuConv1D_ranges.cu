@@ -177,12 +177,10 @@ __global__ void GpuConv1DOnDevice_ranges_FinalChunks(FUN_GLOBAL fun_global, FUN 
                 }
                 __syncthreads();
                 
-                if (i < end_x) {
-                    for (int chunk=0; chunk<NCHUNKS-1; chunk++) 
-                        do_finalchunk_sub_ranges < FUN_GLOBAL, VARFINAL, DIMFINALCHUNK > (acc, i, j, jstart, start_y, chunk, end_x, end_y, nbatchdims, indices_j, args, fout, yj, out);
-                    do_finalchunk_sub_ranges < FUN_GLOBAL, VARFINAL, DIMLASTFINALCHUNK > (acc, i, j, jstart, start_y, NCHUNKS-1, end_x, end_y, nbatchdims, indices_j, args, fout, yj, out);
-                }
-                __syncthreads();
+                for (int chunk=0; chunk<NCHUNKS-1; chunk++) 
+                    do_finalchunk_sub_ranges < FUN_GLOBAL, VARFINAL, DIMFINALCHUNK > (acc, i, j, jstart, start_y, chunk, end_x, end_y, nbatchdims, indices_j, args, fout, yj, out);
+                do_finalchunk_sub_ranges < FUN_GLOBAL, VARFINAL, DIMLASTFINALCHUNK > (acc, i, j, jstart, start_y, NCHUNKS-1, end_x, end_y, nbatchdims, indices_j, args, fout, yj, out);
+                    
             }
             if(index+1 < end_slice) 
                 start_y = ranges_y[2*index+2] ;

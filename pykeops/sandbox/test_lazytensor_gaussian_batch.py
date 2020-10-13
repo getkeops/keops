@@ -6,16 +6,16 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-B1, B2, M, N, D, DV = 3, 4, 3, 2, 2, 101
+B1, B2, M, N, D, DV = 3, 4, 1000, 1000, 3, 1000
 
 
-test_grad = False
+test_grad = True
 device_id = 'cuda'
 do_warmup = True
 
-x = torch.ones(B1, B2, M, 1, D, device=device_id)/math.sqrt(D)
-y = torch.ones(B1, B2, 1, N, D, device=device_id)/math.sqrt(D)
-b = torch.ones(B1, B2, N, DV, requires_grad=test_grad, device=device_id)
+x = torch.rand(  1, B2, M, 1,  D, requires_grad=test_grad, device=device_id)/math.sqrt(D)
+y = torch.rand( B1, B2, 1, N,  D, device=device_id)/math.sqrt(D)
+b = torch.randn(B1,  1,    N, DV, requires_grad=test_grad, device=device_id)
 
 def fun(x,y,b,backend):
     if backend=="keops":
@@ -49,14 +49,11 @@ for backend in backends:
 if len(out)>1:
     print("relative error:", (torch.norm(out[0]-out[1])/torch.norm(out[0])).item() )
 
-print("torch:",out[0].flatten()[:10])
-print("keops:",out[1].flatten()[:10])
-
 if test_grad:
     out_g = []
     for k, backend in enumerate(backends):
         start = time.time()
-        out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [b])[0])
+        out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [x])[0])
         end = time.time()
         print("time for "+backend+" (grad):", end-start )
     
