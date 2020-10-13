@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 10000, 10000, 3, 150
+M, N, D, DV = 10000, 10000, 3, 1000
 
 
 test_grad = False
