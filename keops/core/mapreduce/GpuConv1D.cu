@@ -17,11 +17,132 @@
 
 #include "Chunk_Mode_Constants.h"
 
+
 namespace keops {
 
 
-template < int USE_CHUNK_MODE, int BLOCKSIZE_CHUNKS > struct GpuConv1DOnDevice {};
+template < int USE_CHUNK_MODE, int BLOCKSIZE_CHUNKS, class VARFINAL=void > struct GpuConv1DOnDevice {};
 
+
+#if USE_FINAL_CHUNKS==1
+
+
+template < class VARFINAL, int DIMFINALCHUNK_CURR, typename TYPE >
+__device__ void do_finalchunk_sub(TYPE *acc, int i, int j, int jstart, int chunk, int nx, int ny, 
+			TYPE **args, TYPE *fout, TYPE *yj, TYPE *out) {
+                
+            static const int DIMOUT = VARFINAL::DIM;
+                
+            VectAssign<DIMFINALCHUNK>(acc,0.0f); //typename FUN::template InitializeReduction<__TYPEACC__, TYPE >()(acc); // acc = 0
+            TYPE *yjrel = yj;
+            if (j < ny) // we load yj from device global memory only if j<ny
+                    load_chunks < pack<VARFINAL::N>, DIMFINALCHUNK, DIMFINALCHUNK_CURR, VARFINAL::DIM >(j, chunk, yj + threadIdx.x * DIMFINALCHUNK, args);
+            __syncthreads();
+            for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += DIMFINALCHUNK) {          
+                if (i < nx) { // we compute only if needed
+                    #pragma unroll
+                    for (int k=0; k<DIMFINALCHUNK_CURR; k++)
+                        acc[k] += yjrel[k] * fout[jrel];
+                }
+                __syncthreads();
+            }
+            if (i < nx) {
+                //typename FUN::template FinalizeOutput<__TYPEACC__,TYPE>()(acc, out + i * DIMOUT, i);
+                #pragma unroll
+                for (int k=0; k<DIMFINALCHUNK_CURR; k++)
+                    out[i*DIMOUT+chunk*DIMFINALCHUNK+k] += acc[k];
+            }
+            __syncthreads();
+        }
+
+template < int BLOCKSIZE_CHUNKS, class VARFINAL, typename TYPE, class FUN >
+__global__ void GpuConv1DOnDevice_FinalChunks(FUN fun, int nx, int ny, TYPE *out, TYPE **args) {
+    
+    // get the index of the current thread
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // declare shared mem
+    extern __shared__ TYPE yj[];
+    
+    const int NCHUNKS = 1 + (VARFINAL::DIM-1) / DIMFINALCHUNK;
+    const int DIMLASTFINALCHUNK = VARFINAL::DIM - (NCHUNKS-1)*DIMFINALCHUNK;
+    
+    // get templated dimensions :
+    typedef typename FUN::DIMSX DIMSX;  // DIMSX is a "vector" of templates giving dimensions of xi variables
+    typedef typename FUN::DIMSY DIMSY;  // DIMSY is a "vector" of templates giving dimensions of yj variables
+    typedef typename FUN::DIMSP DIMSP;  // DIMSP is a "vector" of templates giving dimensions of parameters variables
+    typedef typename FUN::INDSI INDSI;
+    typedef typename FUN::INDSJ INDSJ;
+    typedef typename FUN::INDSP INDSP;
+    const int DIMX = DIMSX::SUM;        // DIMX  is sum of dimensions for xi variables
+    const int DIMY = DIMSY::SUM;        // DIMY  is sum of dimensions for yj variables
+    const int DIMP = DIMSP::SUM;        // DIMP  is sum of dimensions for parameters variables
+    const int DIMOUT = VARFINAL::DIM; // dimension of output variable
+    const int DIMFOUT = FUN::F::DIM;     // DIMFOUT is dimension of output variable of inner function
+
+    static_assert(DIMFOUT==1,"DIMFOUT should be 1");
+    
+    static_assert(SUM_SCHEME==BLOCK_SUM,"only BLOCK_SUM available");
+            
+    // load parameter(s)
+    TYPE param_loc[DIMP < 1 ? 1 : DIMP];
+    load<DIMSP, INDSP>(0, param_loc, args); // load parameters variables from global memory to local thread memory
+
+    TYPE fout[DIMFOUT*BLOCKSIZE_CHUNKS];
+    
+    // get the value of variable (index with i)
+    TYPE xi[DIMX < 1 ? 1 : DIMX];
+    if (i < nx) {
+        load<DIMSX, INDSI>(i, xi, args); // load xi variables from global memory to local thread memory
+        
+        #pragma unroll
+        for (int k=0; k<DIMOUT; k++) {
+            out[i*DIMOUT+k] = 0.0f;
+        }
+    }
+    
+    __TYPEACC__ acc[DIMFINALCHUNK];
+
+    for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {
+
+        // get the current column
+        int j = tile * blockDim.x + threadIdx.x;
+
+        if (j < ny) { // we load yj from device global memory only if j<ny
+            load<DIMSY,INDSJ>(j, yj + threadIdx.x * DIMY, args); // load yj variables from global memory to shared memory
+        }
+        __syncthreads();
+
+        if (i < nx) { // we compute x1i only if needed
+            TYPE * yjrel = yj; // Loop on the columns of the current block.
+            for (int jrel = 0; (jrel < BLOCKSIZE_CHUNKS) && (jrel < ny - jstart); jrel++, yjrel += DIMY) {
+                call<DIMSX, DIMSY, DIMSP>(fun,
+                                  fout+jrel*DIMFOUT,
+                                  xi,
+                                  yjrel,
+                                  param_loc); // Call the function, which outputs results in fout
+            }
+        }
+        __syncthreads();
+        
+        if (i < nx) {
+            for (int chunk=0; chunk<NCHUNKS-1; chunk++) 
+                do_finalchunk_sub < VARFINAL, DIMFINALCHUNK > (acc, i, j, jstart, chunk, nx, ny, args, fout, yj, out);
+            do_finalchunk_sub < VARFINAL, DIMLASTFINALCHUNK > (acc, i, j, jstart, NCHUNKS-1, nx, ny, args, fout, yj, out);
+        }
+        __syncthreads();
+    }
+}
+
+template < int BLOCKSIZE_CHUNKS, class VARFINAL > 
+struct GpuConv1DOnDevice<2,BLOCKSIZE_CHUNKS,VARFINAL> {
+    template < typename TYPE, class FUN >
+    static void Eval(dim3 gridSize, dim3 blockSize, size_t SharedMem, FUN fun, int nx, int ny, TYPE *out, TYPE **args) {
+        GpuConv1DOnDevice_FinalChunks < BLOCKSIZE_CHUNKS, VARFINAL > <<< gridSize, blockSize, SharedMem >>> (fun, nx, ny, out, args);
+    }
+};
+
+#endif
 
 
 template < class FUN, class FUN_CHUNKED_CURR, int DIMCHUNK_CURR, typename TYPE >
@@ -356,8 +477,14 @@ struct GpuConv1D_FromHost {
 
     SetGpuProps(dev);
 
-    static const int USE_CHUNK_MODE = ENABLECHUNK && ( FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::SIZE == 1 );
-
+    #if USE_FINAL_CHUNKS==1
+        static const int USE_CHUNK_MODE = 2;
+        using FUN_INTERNAL = Sum_Reduction<typename FUN::F::ARG1,FUN::tagI>;
+        using VARFINAL = typename FUN::F::ARG2;
+    #else
+        static const int USE_CHUNK_MODE = ENABLECHUNK && ( FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::SIZE == 1 );
+    #endif
+    
     static const int DIMY_SHARED = Get_DIMY_SHARED<FUN,USE_CHUNK_MODE>::Value;
 
     static const int BLOCKSIZE_CHUNKS = ::std::min(CUDA_BLOCK_SIZE,
@@ -375,8 +502,12 @@ struct GpuConv1D_FromHost {
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-    GpuConv1DOnDevice<USE_CHUNK_MODE,BLOCKSIZE_CHUNKS>::Eval(gridSize, blockSize, blockSize.x * DIMY_SHARED * sizeof(TYPE), fun, nx, ny, out_d, args_d);
-
+    #if USE_FINAL_CHUNKS==1
+        GpuConv1DOnDevice<USE_CHUNK_MODE,BLOCKSIZE_CHUNKS,VARFINAL>::Eval(gridSize, blockSize, blockSize.x * DIMY_SHARED * sizeof(TYPE), FUN_INTERNAL(), nx, ny, out_d, args_d);
+    #else
+        GpuConv1DOnDevice<USE_CHUNK_MODE,BLOCKSIZE_CHUNKS>::Eval(gridSize, blockSize, blockSize.x * DIMY_SHARED * sizeof(TYPE), fun, nx, ny, out_d, args_d);
+    #endif
+    
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
     CudaCheckError();
@@ -449,8 +580,14 @@ struct GpuConv1D_FromDevice {
 
     dim3 blockSize;
 
-    static const int USE_CHUNK_MODE = ENABLECHUNK && ( FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::SIZE == 1 );
-
+    #if USE_FINAL_CHUNKS==1
+        static const int USE_CHUNK_MODE = 2;
+        using FUN_INTERNAL = Sum_Reduction<typename FUN::F::ARG1,FUN::tagI>;
+        using VARFINAL = typename FUN::F::ARG2;
+    #else
+        static const int USE_CHUNK_MODE = ENABLECHUNK && ( FUN::F::template CHUNKED_FORMULAS<DIMCHUNK>::SIZE == 1 );
+    #endif
+    
     static const int DIMY_SHARED = Get_DIMY_SHARED<FUN,USE_CHUNK_MODE>::Value;
 
     static const int BLOCKSIZE_CHUNKS = ::std::min(CUDA_BLOCK_SIZE,
@@ -468,8 +605,12 @@ struct GpuConv1D_FromDevice {
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-    GpuConv1DOnDevice<USE_CHUNK_MODE,BLOCKSIZE_CHUNKS>::Eval(gridSize, blockSize, blockSize.x * DIMY_SHARED * sizeof(TYPE), fun, nx, ny, out, args_d);
-
+    #if USE_FINAL_CHUNKS==1
+        GpuConv1DOnDevice<USE_CHUNK_MODE,BLOCKSIZE_CHUNKS,VARFINAL>::Eval(gridSize, blockSize, blockSize.x * DIMY_SHARED * sizeof(TYPE), FUN_INTERNAL(), nx, ny, out, args_d);
+    #else
+        GpuConv1DOnDevice<USE_CHUNK_MODE,BLOCKSIZE_CHUNKS>::Eval(gridSize, blockSize, blockSize.x * DIMY_SHARED * sizeof(TYPE), fun, nx, ny, out, args_d);
+    #endif
+    
     // block until the device has completed
     CudaSafeCall(cudaDeviceSynchronize());
 

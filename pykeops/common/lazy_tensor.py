@@ -117,7 +117,7 @@ class GenericLazyTensor:
                 # as C++'s templating system cannot deal with floating point arithmetics.
                 x = [x]  # Convert to list and go to stage 2
                 typex = list
-
+            
             # Stage 2: Dealing with python lists, understood as arrays of floats, 
             #          and handled as Parameter variables without fixed dtype
             if typex == list:
@@ -208,16 +208,13 @@ class GenericLazyTensor:
     
     def fixvariables(self):
         r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
-        
         newvars = ()
         if self.formula2 is None: self.formula2 = ""  # We don't want to get regexp errors...
-        
         device = None  # Useful to load lists (and float constants) on the proper device
         for v in self.variables:
             device = self.tools.device(v)
             if device is not None:
                 break
-        
         i = len(self.symbolic_variables)  # The first few labels are already taken...
         for v in self.variables:  # So let's loop over our tensors, and give them labels:
             idv = id(v)
@@ -229,31 +226,33 @@ class GenericLazyTensor:
             if tag in self.formula + self.formula2:
                 self.formula = self.formula.replace(tag, "Var({},".format(i))
                 self.formula2 = self.formula2.replace(tag, "Var({},".format(i))
-                
                 # Detect if v is meant to be used as a variable or as a parameter:
                 str_cat_v = re.search(r"Var\({},\d+,([012])\)".format(i), self.formula + self.formula2).group(1)
                 is_variable = 1 if str_cat_v in ('0', '1') else 0
                 dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
                 padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
                 newvars += (padded_v,)
+                if hasattr(self,'rec_multVar_highdim') and self.rec_multVar_highdim==idv:
+                    self.rec_multVar_highdim = i
                 i += 1
-        
+                        
         # "VarSymb(..)" appear when users rely on the "LazyTensor(Ind,Dim,Cat)" syntax,
         # for the sake of disambiguation:
         self.formula = self.formula.replace("VarSymb(", "Var(")  # We can now replace them with
         self.formula2 = self.formula2.replace("VarSymb(", "Var(")  # actual "Var" symbols
-        
         if self.formula2 == "": self.formula2 = None  # The pre-processing step is now over
         self.variables = newvars
-
+        
     def separate_kwargs(self, kwargs):    
         # separating keyword arguments for Genred init vs Genred call...
         # Currently the only four additional optional keyword arguments that are passed to Genred init
-        # are accuracy options: dtype_acc, use_double_acc and sum_cheme, and chunk mode option enable_chunks.
+        # are accuracy options: dtype_acc, use_double_acc and sum_cheme, 
+        # chunk mode option enable_chunks,
+        # and compiler option optional_flags.
         kwargs_init = []
         kwargs_call = []
         for key in kwargs:
-            if key in ("dtype_acc","use_double_acc","sum_scheme","enable_chunks"):
+            if key in ("dtype_acc","use_double_acc","sum_scheme","enable_chunks","optional_flags"):
                 kwargs_init += [(key,kwargs[key])]
             else:
                 kwargs_call += [(key,kwargs[key])]                
@@ -400,6 +399,13 @@ class GenericLazyTensor:
         else:
             res.formula = "{}({}, {})".format(operation, lformula, rformula)
 
+        # special case of multiplication with a variable V : we define a special tag to enable factorization in case
+        # the user requires a sum reduction over the opposite index (or any index if V is a parameter):
+        # for example sum_i V_j k(x_i,y_j) = V_j sum_i k(x_i,y_j), so we will use KeOps reduction for the kernel
+        # k(x_i,y_j) only, then multiply the result with V.
+        if operation=='*' and other.formula[:3]=='Var' and other.ndim>100:
+            res.rec_multVar_highdim = (self,other)
+
         return res
     
     def ternary(self, other1, other2, operation, dimres=None, dimcheck="sameor1", opt_arg=None):
@@ -530,13 +536,17 @@ class GenericLazyTensor:
 
         res.kwargs = kwargs_call
         res.ndim = self.ndim
-        
+        if reduction_op=='Sum' and hasattr(self,'rec_multVar_highdim'):
+            if res.axis!=self.rec_multVar_highdim[1].axis:
+                return self.rec_multVar_highdim[0].sum(axis=axis) * self.rec_multVar_highdim[1].variables[0]
+            res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
+        else:
+            res.rec_multVar_highdim = None
         if res.dtype is not None:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
             # "res" now becomes a callable object:
             res.callfun = res.Genred(res.formula, [], res.reduction_op, res.axis,
-                                     res.dtype, res.opt_arg, res.formula2, **kwargs_init)
-        
+                                     res.dtype, res.opt_arg, res.formula2, **kwargs_init, rec_multVar_highdim=res.rec_multVar_highdim)
         if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
             return res()
         else:
@@ -638,11 +648,16 @@ class GenericLazyTensor:
         kwargs_init, res.kwargs = self.separate_kwargs(kwargs)
 
         res.ndim = self.ndim
-        
+
+        if other.ndim>100:
+            res.rec_multVar_highdim = varindex
+        else:
+            res.rec_multVar_highdim = None
+                    
         if res.dtype is not None:
             res.fixvariables()
             res.callfun = res.KernelSolve(res.formula, [], res.varformula,
-                                          res.axis, res.dtype, **kwargs_init)
+                                          res.axis, res.dtype, **kwargs_init, rec_multVar_highdim=res.rec_multVar_highdim)
         
         # we call if call=True, if other is not symbolic, and if the dtype is set
         if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
@@ -675,10 +690,10 @@ class GenericLazyTensor:
 
             if self.reduction_op == "Solve":
                 self.callfun = self.KernelSolve(self.formula, [], self.formula2,
-                                                self.axis, self.dtype, **kwargs_init)
+                                                self.axis, self.dtype, **kwargs_init, rec_multVar_highdim=res.rec_multVar_highdim)
             else:
                 self.callfun = self.Genred(self.formula, [], self.reduction_op,
-                                           self.axis, self.dtype, self.opt_arg, self.formula2, **kwargs_init)
+                                           self.axis, self.dtype, self.opt_arg, self.formula2, **kwargs_init, rec_multVar_highdim=res.rec_multVar_highdim)
         
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
             # here args should be empty, according to our rule
@@ -1748,7 +1763,7 @@ class GenericLazyTensor:
     
     # LazyTensors as linear operators  =========================================
     
-    def __matmul__(self, v):
+    def __matmul__(self, v, **kwargs):
         r"""
         Matrix-vector or Matrix-matrix product, supporting batch dimensions.
 
@@ -1777,7 +1792,7 @@ class GenericLazyTensor:
 
         v_ = self.lt_constructor(self.tools.view( v, newdims ))
         Kv = (self * v_ )            # Supports broadcasting
-        Kv = Kv.sum( Kv.dim() - 2 )  # Matrix-vector or Matrix-matrix product
+        Kv = Kv.sum( Kv.dim() - 2, **kwargs)  # Matrix-vector or Matrix-matrix product
 
         # Expected behavior: if v is a vector, so should K @ v.
         return self.tools.view( Kv, -1 ) if len(v.shape) == 1 else Kv

@@ -23,8 +23,8 @@ template < typename TYPE > DEVICE INLINE TYPE keops_diffclampint(TYPE x, int a, 
 template < typename TYPE > DEVICE INLINE TYPE keops_sqrt(TYPE x) { return sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE x) { return 1.0f / sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_acos(TYPE x) { return acos(x); }
-#ifdef __CUDA_ARCH__
-  
+
+#ifdef __CUDA_ARCH__  
 DEVICE INLINE float keops_pow(float x, int n) { return powf(x,n); } 
 DEVICE INLINE float keops_fma(float x, float y, float z) { return fmaf(x,y,z); } 
 DEVICE INLINE float keops_log(float x) { return logf(x); } 
@@ -36,11 +36,9 @@ DEVICE INLINE float keops_sin(float x) { return sinf(x); }
 DEVICE INLINE float keops_sqrt(float x) { return sqrtf(x); } 
 DEVICE INLINE float keops_rsqrt(float x) { return rsqrtf(x); } 
 DEVICE INLINE float keops_acos(float x) { return acosf(x); }
-
 DEVICE INLINE double keops_rsqrt(double x) { return rsqrt(x); } 
    
-  #if USE_HALF 
-
+#if USE_HALF 
 DEVICE INLINE half2 keops_fma(half2 x, half2 y, half2 z) { return __hfma2(x,y,z); }
 DEVICE INLINE half2 keops_rcp(half2 x) { return h2rcp(x); } 
 DEVICE INLINE half2 keops_xlogx(half2 x) { return x * h2log(x + __heq2(x,__float2half2_rn(0.0f))); } 

@@ -50,7 +50,7 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, optional_flags=[]):
+                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, optional_flags=[], rec_multVar_highdim=None):
         r"""
         Instantiate a new generic operation.
 
@@ -135,6 +135,9 @@ class Genred():
 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
+        
+        if rec_multVar_highdim is not None:
+            optional_flags += ['-DMULT_VAR_HIGHDIM=1']
 
         optional_flags += get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''

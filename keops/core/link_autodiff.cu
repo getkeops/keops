@@ -2,9 +2,11 @@
 
 using namespace keops;
 
+
 ///////////////////////////////////////////////
 // Convolutions on Gpu device from host data //
 ///////////////////////////////////////////////
+
 
 #include "core/mapreduce/GpuConv1D.cu"
 

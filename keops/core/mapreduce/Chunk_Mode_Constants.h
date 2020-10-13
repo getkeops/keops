@@ -82,5 +82,9 @@ struct Get_DIMY_SHARED<FUN,1> {
     static const int Value = Chunk_Mode_Constants<FUN>::DIMY;
 };
 
+template < class FUN >
+struct Get_DIMY_SHARED<FUN,2> {
+    static const int Value = DIMFINALCHUNK;
+};
 
 }
