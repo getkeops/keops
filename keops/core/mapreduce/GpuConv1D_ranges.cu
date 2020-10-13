@@ -39,14 +39,16 @@ __device__ void do_finalchunk_sub_ranges(TYPE *acc, int i, int j, int jstart, in
             TYPE *yjrel = yj;
             if (j < end_y) // we load yj from device global memory only if j<end_y
                 if (nbatchdims==0)
-                    load_chunks < pack<VARFINAL::N>, DIMFINALCHUNK, DIMFINALCHUNK_CURR, VARFINAL::DIM >(j, chunk, yj + threadIdx.x * DIMFINALCHUNK, args);
+                    load_chunks < pack<VARFINAL::N>, DIMFINALCHUNK, DIMFINALCHUNK_CURR, VARFINAL::DIM >
+                                    (j, chunk, yj + threadIdx.x * DIMFINALCHUNK, args);
                 else
-                    load_chunks < pack<VARFINAL::N>, typename FUN_GLOBAL::INDSJ, DIMFINALCHUNK, DIMFINALCHUNK_CURR, VARFINAL::DIM >(j-start_y, chunk, yj + threadIdx.x * DIMFINALCHUNK, args, indices_j);
+                    load_chunks < pack<VARFINAL::N>, typename FUN_GLOBAL::INDSJ, DIMFINALCHUNK, DIMFINALCHUNK_CURR, VARFINAL::DIM >
+                                    (j-start_y, chunk, yj + threadIdx.x * DIMFINALCHUNK, args, indices_j);
             __syncthreads();
             for (int jrel = 0; (jrel < blockDim.x) && (jrel < end_y - jstart); jrel++, yjrel += DIMFINALCHUNK) {          
                 if (i < end_x) { // we compute only if needed
                     #pragma unroll
-                    for (int k=0; k<DIMFINALCHUNK_CURR; k++)
+                    for (int k=0; k<DIMFINALCHUNK_CURR; k++)                         
                         acc[k] += yjrel[k] * fout[jrel];
                 }
                 __syncthreads();

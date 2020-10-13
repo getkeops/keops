@@ -79,6 +79,7 @@ struct load_chunks_offsets_Impl < pack<FIRSTIND,NEXTINDS...>, INDSREF, DIM_CHUNK
     #pragma unroll
     for (int k = 0; k < DIM_CHUNK_LOAD; k++) {
       xi[k] = px[FIRSTIND][true_i * DIM_ORG + chunk_index*DIM_CHUNK + k];
+        printf("k=%d, FIRSTIND=%d, i=%d, true_i=%d, DIM_ORG=%d, chunk_index=%d, DIM_CHUNK=%d, true_i * DIM_ORG + chunk_index*DIM_CHUNK + k=%d, xi[k]=%f\n",k,FIRSTIND,i,true_i,DIM_ORG,chunk_index,DIM_CHUNK,true_i * DIM_ORG + chunk_index*DIM_CHUNK + k);
     }
     load_chunks_offsets_Impl<NEXTIND,INDSREF,DIM_CHUNK,DIM_CHUNK_LOAD,DIM_ORG>::Eval(i, chunk_index, xi + DIM_CHUNK, px, offsets); 
   }
