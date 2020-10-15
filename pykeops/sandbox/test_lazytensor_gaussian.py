@@ -18,15 +18,13 @@ y = torch.rand(1, N, D, device=device_id)/math.sqrt(D)
 b = torch.randn(N, DV, requires_grad=test_grad, device=device_id)
 
 def fun(x,y,b,backend):
-    if backend=="keops":
+    if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    elif backend!="torch":
-        raise ValueError("wrong backend")
     Dxy = ((x-y)**2).sum(dim=2) 
     Kxy = (- Dxy).exp() 
-    if backend=="keops":
-        out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DENABLE_FINAL_CHUNKS=1','-DDIMFINALCHUNK=64'])
+    if backend=="keops_old":
+        out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DENABLE_FINAL_CHUNKS=0'])
     else:
         out = Kxy @ b
     if device_id != 'cpu':
@@ -34,7 +32,7 @@ def fun(x,y,b,backend):
     #print("out:",out.flatten()[:10])
     return out
     
-backends = ["torch","keops"]
+backends = ["keops","keops_old"] # "torch"
     
 out = []
 for backend in backends:
