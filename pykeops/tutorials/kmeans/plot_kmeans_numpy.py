@@ -29,7 +29,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from pykeops.numpy import LazyTensor
-from pykeops.numpy.utils import IsGpuAvailable
+import pykeops.config
 
 dtype = 'float32'  # May be 'float32' or 'float64'
 
@@ -98,7 +98,7 @@ plt.show()
 # -------------------------
 # Second experiment with N=1,000,000 points in dimension D=100, with K=1,000 classes:
 
-if IsGpuAvailable():
+if pykeops.config.gpu_available:
     N, D, K = 1000000, 100, 1000
     x = np.random.randn(N, D).astype(dtype)
     cl, c = KMeans(x, K)

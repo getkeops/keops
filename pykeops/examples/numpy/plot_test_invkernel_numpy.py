@@ -21,13 +21,13 @@ import time
 import matplotlib.pyplot as plt
 
 from pykeops.numpy import KernelSolve
-from pykeops.numpy.utils import IsGpuAvailable
+import pykeops.config
 
 ###############################################################################
 # Define our dataset:
 #
 
-N  = 5000 if IsGpuAvailable() else 500  # Number of points
+N  = 5000 if pykeops.config.gpu_available else 500  # Number of points
 D  = 2      # Dimension of the ambient space
 Dv = 2      # Dimension of the vectors (= number of linear problems to solve)
 sigma = .1  # Radius of our RBF kernel    

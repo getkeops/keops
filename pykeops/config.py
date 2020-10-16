@@ -1,17 +1,14 @@
 import os
 import importlib.util
 
+from pykeops.common.gpu_utils import get_gpu_number
 ###############################################################
 # Initialize some variables: the values may be redefined later
 
 ##########################################################
 # Update config module: Search for GPU
 
-try:
-    import GPUtil
-    gpu_available = len(GPUtil.getGPUs()) > 0
-except:
-    gpu_available = False
+gpu_available = get_gpu_number() > 0
 
 numpy_found = importlib.util.find_spec('numpy') is not None
 torch_found = importlib.util.find_spec('torch') is not None

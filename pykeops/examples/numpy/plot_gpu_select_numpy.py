@@ -17,16 +17,16 @@ operation will be performed.
 
 import matplotlib.pyplot as plt
 import numpy as np
-import GPUtil
 
 from pykeops.numpy import Genred, Vi, Vj
-from pykeops.numpy.utils import IsGpuAvailable
+from pykeops.common.gpu_utils import get_gpu_number
+import pykeops.config
 
 ####################################################################
 # Define the list of gpu ids to be tested:
 
 # By default we assume that there are two GPUs available with 0 and 1 labels:
-gpuids = [0,1] if len(GPUtil.getGPUs()) > 1 else [0]
+gpuids = [0,1] if get_gpu_number() > 1 else [0]
 
 
 ####################################################################
@@ -63,7 +63,7 @@ c = my_routine(x, y, a, p, backend='CPU')
 # And on our GPUs, with copies between 
 # the Host and Device memories:
 #
-if IsGpuAvailable():
+if pykeops.config.gpu_available:
     for gpuid in gpuids:
         d = my_routine(x, y, a, p, backend='GPU', device_id=gpuid)
         print('Relative error on gpu {}: {:1.3e}'.format( gpuid, 
@@ -93,7 +93,7 @@ c = ((p - aj) ** 2 * (xi + yj).exp()).sum(axis=1, backend='CPU')
 ####################################################################
 # And on the GPUs, with copies between the Host and Device memories:
 #
-if IsGpuAvailable():
+if pykeops.config.gpu_available:
     for gpuid in gpuids:
         d = ((p - aj) ** 2 * (xi + yj).exp()).sum(axis=1, backend='GPU', device_id=gpuid)
         print('Relative error on gpu {}: {:1.3e}'.format(gpuid,
