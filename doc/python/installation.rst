@@ -7,11 +7,11 @@ It provides functions that can be used in any **NumPy** or **PyTorch** script.
 Requirements
 ============
 
-- **Python 3** with packages **numpy** and **GPUtil**.
+- **Python 3** with packages **numpy**.
 - A C++ compiler compatible with std=c++14: **g++** version >=7 or **clang++** version >=8.
 - The **Cmake** build system, version >= 3.10.
 - The **Cuda** toolkit, including the **nvcc** compiler (optional): version >=10.0 is recommended. Make sure that your C++ compiler is compatible with the installed nvcc.
-- **PyTorch** (optional): version >= 1.1.0.
+- **PyTorch** (optional): version >= 1.5.
 
 
 Using pip (recommended)

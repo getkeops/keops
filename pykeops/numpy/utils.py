@@ -2,7 +2,7 @@ import numpy as np
 
 from pykeops.numpy import Genred, default_dtype, KernelSolve
 from pykeops.numpy.cluster import swap_axes as np_swap_axes
-
+import pykeops.config
 
 class numpytools:
     norm = np.linalg.norm
@@ -153,21 +153,10 @@ def log_sum_exp(mat, axis=0):
     max_rc = mat.max(axis=axis)
     return max_rc + np.log(np.sum(np.exp(mat - np.expand_dims(max_rc, axis=axis)), axis=axis))
 
-
-def IsGpuAvailable():
-    # testing availability of Gpu: 
-    try:
-        import GPUtil
-        useGpu = len(GPUtil.getGPUs()) > 0
-    except:
-        useGpu = False
-    return useGpu
-
-
 def WarmUpGpu():
     # dummy first calls for accurate timing in case of GPU use
     print("Warming up the Gpu (numpy bindings) !!!")
-    if IsGpuAvailable():
+    if pykeops.config.gpu_available:
         formula = 'Exp(-oos2*SqDist(x,y))*b'
         aliases = ['x = Vi(1)',  # First arg   : i-variable, of size 1
                    'y = Vj(1)',  # Second arg  : j-variable, of size 1

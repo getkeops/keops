@@ -33,15 +33,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from pykeops.numpy import LazyTensor
-from pykeops.numpy.utils import IsGpuAvailable
-
+import pykeops.config
 #######################################################################
 # Generate some data:
 
-use_cuda = IsGpuAvailable()
 dtype = 'float64'
 
-N = 10000 if use_cuda else 1000  # Number of samples
+N = 10000 if pykeops.config.gpu_available else 1000  # Number of samples
 
 # Sampling locations:
 x = np.random.rand(N, 1).astype(dtype)

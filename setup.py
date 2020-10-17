@@ -8,7 +8,8 @@ from setuptools import setup
 
 here = path.abspath(path.dirname(__file__))
 
-from pykeops import __version__ as current_version
+with open(os.path.join(here, 'pykeops', 'version'), encoding='utf-8') as v:
+    current_version = v.read().rstrip()
 
 # Get the long description from the README file
 with open(path.join(here, 'pykeops','readme.md'), encoding='utf-8') as f:
@@ -151,7 +152,6 @@ setup(
 
     install_requires=[
             'numpy',
-            'GPUtil',
     ],
 
     extras_require={
@@ -161,16 +161,11 @@ setup(
                      'sphinxcontrib-httpdomain',
                      'sphinx_rtd_theme',
                      'breathe',
-                     'gcc7',
-                     'cmake',
                      'matplotlib',
                      'imageio',
                      'torch',
                      'gpytorch',
                      'scikit-learn',
-                     ],
-        'devtools': ['gcc7',
-                     'cmake',
                      ],
             },
 )
