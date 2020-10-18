@@ -182,7 +182,11 @@ class Formula:
         """
         N.B.: other should be a Formula(intvalue=N).
         """
-        return Formula(formula_sum="Pow(" + self.formula_sum + "," + str(other.intvalue) + ")",
+        if other.intvalue == 2:
+            formula_sum = f"Square({self.formula_sum})"
+        else:
+            formula_sum = f"Pow({self.formula_sum},{other.intvalue})"
+        return Formula(formula_sum=formula_sum,
                        routine_sum=lambda **x: self.routine_sum(**x) ** (other.intvalue),
                        formula_log="(" + other.formula_sum + " * " + self.formula_log + ")",
                        routine_log=lambda **x: other.routine_sum(**x) * self.routine_log(**x),
