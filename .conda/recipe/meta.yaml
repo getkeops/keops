@@ -2,38 +2,42 @@
 #
 # https://github.com/getkeops/keops/issues/85
 #
-# To build the conda package : 
-#   conda build -c pytorch -c conda-forge recipe
+# To build the conda package :
+#   cd keops   # root folder of keops git
+#   conda build -c pytorch -c nvidia .conda/recipe
 #
 # To cretate an environment
-#   conda create -y -n pykeops -c local -c pytorch -c conda-forge pykeops=1.4.2
+#   conda create -y -n pykeops_env -c local -c pytorch -c nvidia pykeops
 
-{% set version = '1.4.2' %}
+
+{% set data = load_setup_py_data(setup_file="../../setup.py", from_recipe_dir=True) %}
 
 package:
-  name: pykeops
-  version: {{ version }}
+  name: {{ data.get("name")|lower }}
+  version: {{ data.get("version") }}
 
 build:
+  noarch: python
   number: 0
 
 requirements:
   build:
-    - python
+    - python 3.7
   run:
-    - cmake >=3.10
-    - cudatoolkit-dev >=10.0
-    - gputil
+    - python 3.7
+    - cmake
+    - {{ compiler('cxx') }}
+    - {{ compiler('nvcc') }}
+    - pytorch 1.6.*
     - numpy
-    - pytorch 1.5.*
-    - {{ compiler('cxx') }} 8.*
-    - python
 
 source:
-  git_url: https://github.com/getkeops/keops.git
-  #git_rev: v{{ version }}
-  #patches:
-      #- patch
+  path: ../../
 
 about:
+  home: https://www.kernel-operations.io/
   license: MIT
+  license_file: licence.txt
+  summary: Kernel Operations on the GPU, with autodiff, without memory overflows
+  doc_url: https://www.kernel-operations.io/
+  dev_url: https://github.com/getkeops/keops
