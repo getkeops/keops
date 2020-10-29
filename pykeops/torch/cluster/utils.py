@@ -141,7 +141,8 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
             c[:,d] = torch.bincount(lab,weights=x[:,d]*weights.view(-1)) / weights_c.view(-1)
     return c
 
-def cluster_ranges_centroids(x, lab, weights=None) :
+
+def cluster_ranges_centroids(x, lab, weights=None, min_weight=1e-9) :
     r"""Computes the cluster indices and centroids of a (weighted) point cloud with labels.
     
     If **x** and **lab** encode a cloud of points :math:`x_i\in\mathbb{R}^D`
@@ -167,6 +168,9 @@ def cluster_ranges_centroids(x, lab, weights=None) :
     Keyword Args:
         weights ((M,) Tensor): Positive weights :math:`w_i` that can be used to compute
             our barycenters.
+        
+        min_weight (float): For the sake of numerical stability,
+            weights are clamped to be larger or equal to this value.
 
     Returns:
         (C,2) IntTensor, (C,D) Tensor, (C,) Tensor:
@@ -208,6 +212,9 @@ def cluster_ranges_centroids(x, lab, weights=None) :
     """
     Nlab = torch.bincount(lab).float()
     if weights is not None :
+        # Remove "zero weights" for the sake of numerical stability:
+        weights = weights.clone()
+        weights[weights <= min_weight] = min_weight
         w_c = torch.bincount(lab, weights=weights).view(-1)
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab, weights=weights, weights_c=w_c), w_c
     else :
