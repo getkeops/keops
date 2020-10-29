@@ -18,14 +18,12 @@ We perform an LDDMM matching of two meshes using the geodesic shooting algorithm
 import os
 import time
 
-import numpy as np
+import torch
 from torch.autograd import grad
 
-import plotly
 import plotly.graph_objs as go
 
-from pykeops.torch import Kernel, kernel_product, LazyTensor, Vi, Vj
-from pykeops.torch.kernel_product.formula import *
+from pykeops.torch import Vi, Vj
 
 # torch type and device
 use_cuda = torch.cuda.is_available()

@@ -33,7 +33,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
         Torch tensors, as documented in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Example:
-        >>> my_conv = generic_sum(       # Custom Kernel Density Estimator
+        >>> my_conv = generic_sum(       # Custom Kernel Density Estimator
         ...     'Exp(-SqNorm2(x - y))',  # Formula
         ...     'a = Vi(1)',             # Output: 1 scalar per line
         ...     'x = Vi(3)',             # 1st input: dim-3 vector per line
@@ -49,7 +49,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
     axis = cat2axis(cat)
     return Genred(formula, aliases, reduction_op='Sum', axis=axis, **kwargs)
 
-def generic_logsumexp(formula, output, *aliases, **kwargs) :
+def generic_logsumexp(formula, output, *aliases, **kwargs):
     r"""Alias for :class:`torch.Genred <pykeops.torch.Genred>` with a "LogSumExp" reduction.
 
     Args:
@@ -82,7 +82,7 @@ def generic_logsumexp(formula, output, *aliases, **kwargs) :
 
         .. math::
             a_i~=~f(x_i)~&=~ \log \sum_{j=1}^{N} \exp(-\gamma\cdot\|x_i-y_j\|^2)\cdot b_j \\\\
-               ~&=~ \log \sum_{j=1}^{N} \exp\\big(-\gamma\cdot\|x_i-y_j\|^2 \,+\, \log(b_j) \\big).
+               ~&=~ \log \sum_{j=1}^{N} \exp\big(-\gamma\cdot\|x_i-y_j\|^2 \,+\, \log(b_j) \big).
 
         >>> log_likelihood = generic_logsumexp(
         ...     '(-(g * SqNorm2(x - y))) + b', # Formula

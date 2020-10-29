@@ -24,6 +24,8 @@ import timeit
 import matplotlib
 from matplotlib import pyplot as plt
 from pykeops.numpy.utils import grad_np_kernel, chain_rules
+from pykeops.torch.utils import torch_kernel
+from pykeops.torch import Vi, Vj, Pm
 
 
 ######################################################################
@@ -82,6 +84,11 @@ except:
 #
 
 kernel_to_test = ['gaussian', 'laplacian', 'cauchy', 'inverse_multiquadric']
+kernels = {'gaussian'   : lambda xc, yc, sigmac : (- Pm(1 / sigmac ** 2)   * Vi(xc).sqdist(Vj(yc)) ).exp(),
+           'laplacian'  : lambda xc, yc, sigmac : (- (Pm(1 / sigmac ** 2)  * Vi(xc).sqdist(Vj(yc)) ).sqrt()).exp(),
+           'cauchy'     : lambda xc, yc, sigmac : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).power(-1),
+           'inverse_multiquadric'  : lambda xc, yc, sigmac : (1 + Pm(1 / sigmac ** 2) * Vi(xc).sqdist(Vj(yc)) ).sqrt().power(-1)
+}
 
 #####################################################################
 # With four backends: Numpy, vanilla PyTorch, Generic KeOps reductions
@@ -111,19 +118,11 @@ for k in kernel_to_test:
     # Vanilla pytorch (with cuda if available, and cpu otherwise)
     if use_vanilla :
         try:
-            from pykeops.torch import Kernel, kernel_product
-            
-            params = {
-                'id': Kernel(k + '(x,y)'),
-                'gamma': 1. / (sigmac**2),
-                'backend': 'pytorch',
-            }
-            
-            aKxy_b = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))
+            aKxy_b = torch.dot(ac.view(-1), (torch_kernel(xc, yc, sigmac, kernel=k) @ bc).view(-1))
             g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
             torch.cuda.synchronize()
             speed_pytorch[k] =  np.array(timeit.repeat(
-                setup = "cost = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))",
+                setup = "cost = torch.dot(ac.view(-1), (torch_kernel(xc, yc, sigmac, kernel=k) @ bc).view(-1))",
                 stmt  = "g3 = torch.autograd.grad(cost, xc, create_graph=False)[0] ; torch.cuda.synchronize()",
                 globals=globals(), repeat=REPEAT, number=1))
             print('Time for PyTorch:             {:.4f}s'.format(np.median(speed_pytorch[k])), end='')
@@ -135,25 +134,17 @@ for k in kernel_to_test:
 
     # Keops: generic tiled implementation (with cuda if available, and cpu otherwise)
     try:
-        from pykeops.torch import Kernel, kernel_product
-
-        params = {
-            'id': Kernel(k + '(x,y)'),
-            'gamma': 1. / (sigmac**2),
-            'backend': 'auto',
-        }
-
-        aKxy_b = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))
+        aKxy_b = torch.dot(ac.view(-1), (kernels[k](xc, yc, sigmac) @ bc).view(-1))
         g3 = torch.autograd.grad(aKxy_b, xc, create_graph=False)[0].cpu()
         torch.cuda.synchronize()
         speed_pykeops[k] =  np.array(timeit.repeat(
-            setup = "cost = torch.dot(ac.view(-1), kernel_product(params, xc, yc, bc, mode='sum').view(-1))",
+            setup = "cost = torch.dot(ac.view(-1), (kernels[k](xc, yc, sigmac) @ bc).view(-1))",
             stmt  = "g3 = torch.autograd.grad(cost, xc, create_graph=False)[0] ; torch.cuda.synchronize()", 
             globals=globals(), repeat=REPEAT, number=1))
-        print('Time for KeOps generic:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
+        print('Time for KeOps LazyTensors:       {:.4f}s'.format(np.median(speed_pykeops[k])), end='')
         print('   (absolute error:       ', np.max(np.abs(g3.data.numpy() - gnumpy)), ')')
     except:
-        print('Time for KeOps generic:       Not Done')
+        print('Time for KeOps LazyTensors:       Not Done')
     
     
     # Specific cuda tiled implementation (if cuda is available)
@@ -196,7 +187,7 @@ plt.violinplot(list(speed_pykeops_specific.values()),
 
 plt.xticks([1, 2, 3, 4], kernel_to_test)
 plt.yscale('log')
-# plt.ylim((0, .01))
+# plt.ylim((0, .01))
 
 plt.grid(True)
 plt.xlabel('kernel type')
@@ -205,6 +196,6 @@ plt.ylabel('time in s.')
 cmap = plt.get_cmap("tab10")
 fake_handles = [matplotlib.patches.Patch(color=cmap(i)) for i in range(4)]
 
-plt.legend(fake_handles, ['NumPy', 'PyTorch', 'KeOps', 'KeOps specific'], loc='best')
+plt.legend(fake_handles, ['NumPy', 'PyTorch', 'KeOps LazyTensors', 'KeOps specific'], loc='best')
 
 plt.show()

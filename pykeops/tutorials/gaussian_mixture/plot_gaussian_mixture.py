@@ -18,10 +18,11 @@ import matplotlib.cm as cm
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
-from torch.nn import Module, Parameter
+from torch.nn import Module
 from torch.nn.functional import softmax, log_softmax
 
-from pykeops.torch import Kernel, kernel_product
+from pykeops.torch import Vi, Vj, LazyTensor
+
 
 ####################################################################
 # Define our dataset: a collection of points :math:`(x_i)_{i\in[1,N]}` which describe a
@@ -29,7 +30,7 @@ from pykeops.torch import Kernel, kernel_product
 
 # Choose the storage place for our data : CPU (host) or GPU (device) memory.
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-
+torch.manual_seed(0)
 N = 10000  # Number of samples
 t = torch.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = torch.stack((.5 + .4 * (t / 7) * t.cos(), .5 + .3 * t.sin()), 1)
@@ -76,7 +77,7 @@ grid = torch.from_numpy(np.vstack((X.ravel(), Y.ravel())).T).contiguous().type(d
 # The log-likelihood of a sample :math:`(x_i)` with respect to the parameters
 # :math:`(A_j)` and :math:`(w_j)` can thus be computed using a straightforward
 # log-sum-exp reduction, which is most easily implemented through
-# the :func:`pykeops.torch.kernel_product` interface.
+# the :func:`pykeops.torch.LazyTensor` interface.
 #
 # **Custom sparsity prior.** Going further, we may allow our model
 # to select **adaptively** the number of **active components**
@@ -96,14 +97,15 @@ class GaussianMixture(Module):
     def __init__(self, M, sparsity=0, D=2):
         super(GaussianMixture, self).__init__()
         
-        self.params = {'id': Kernel('gaussian(x,y)')}
+        self.params = {}
         # We initialize our model with random blobs scattered across
         # the unit square, with a small-ish radius:
-        self.mu = Parameter(torch.rand(M, D).type(dtype))
+        self.mu = torch.rand(M, D).type(dtype)
         self.A = 15 * torch.ones(M, 1, 1) * torch.eye(D, D).view(1, D, D)
-        self.A = Parameter((self.A).type(dtype).contiguous())
-        self.w = Parameter(torch.ones(M, 1).type(dtype))
+        self.A = (self.A).type(dtype).contiguous()
+        self.w = torch.ones(M, 1).type(dtype)
         self.sparsity = sparsity
+        self.mu.requires_grad, self.A.requires_grad, self.w.requires_grad = True, True, True
     
     
     def update_covariances(self):
@@ -139,14 +141,14 @@ class GaussianMixture(Module):
     def likelihoods(self, sample):
         """Samples the density on a given point cloud."""
         self.update_covariances()
-        return kernel_product(self.params, sample, self.mu, self.weights(), mode='sum')
+        return (-LazyTensor.weightedsqdist(Vj(self.params['gamma']), Vi(sample), Vj(self.mu))).exp() @ self.weights()
     
     
     def log_likelihoods(self, sample):
         """Log-density, sampled on a given point cloud."""
         self.update_covariances()
-        return kernel_product(self.params, sample, self.mu, self.weights_log(), mode='lse')
-    
+        K_ij = - LazyTensor.weightedsqdist(Vj(self.params['gamma']), Vi(sample), Vj(self.mu))
+        return K_ij.logsumexp(dim=1, weight=Vj(self.weights_log().exp()))
     
     def neglog_likelihood(self, sample):
         """Returns -log(likelihood(sample)) up to an additive factor."""
@@ -197,10 +199,8 @@ class GaussianMixture(Module):
 # to the data through a stochastic gradient descent on our empiric log-likelihood,
 # with a sparsity-inducing penalty:
 
-
 model = GaussianMixture(30, sparsity=20)
-optimizer = torch.optim.Adam(model.parameters(), lr=.1)
-
+optimizer = torch.optim.Adam([model.A, model.w, model.mu], lr=.1)
 loss = np.zeros(501)
 
 for it in range(501):
@@ -208,7 +208,6 @@ for it in range(501):
     cost = model.neglog_likelihood(x)  # Cost to minimize.
     cost.backward()  # Backpropagate to compute the gradient.
     optimizer.step()
-    
     loss[it] = cost.data.cpu().numpy()
     
     # sphinx_gallery_thumbnail_number = 6
@@ -221,7 +220,6 @@ for it in range(501):
         plt.tight_layout() ; plt.pause(.01)
 
 
-
 ####################################################################
 # Monitor the optimization process:
 #
@@ -229,4 +227,3 @@ plt.figure()
 plt.plot(loss)
 plt.tight_layout()
 plt.show()
-

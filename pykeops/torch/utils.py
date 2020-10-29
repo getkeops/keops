@@ -130,3 +130,12 @@ def squared_distances(x, y):
     y_norm = (y ** 2).sum(1).reshape(1, -1)
     dist = x_norm + y_norm - 2.0 * torch.matmul(x, torch.transpose(y, 0, 1))
     return dist
+
+
+def torch_kernel(x, y, s, kernel):
+    sq = squared_distances(x, y)
+    _kernel = {"gaussian": lambda _sq, _s: torch.exp(-_sq / (_s * _s)),
+               "laplacian": lambda _sq, _s: torch.exp(-torch.sqrt(_sq) / _s),
+               "cauchy": lambda _sq, _s: 1. / (1 + _sq / (_s * _s)),
+               "inverse_multiquadric": lambda _sq, _s: torch.rsqrt(1 + _sq / (_s * _s))}
+    return _kernel[kernel](sq, s)

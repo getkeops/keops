@@ -24,12 +24,10 @@ default_dtype = 'float32'
 # Import pyKeOps routines 
 
 from .generic.generic_red import Genred
-from .operations import KernelSolve
-from .kernel_product.kernels import Kernel, kernel_product, kernel_formulas
 from .generic.generic_ops import generic_sum, generic_logsumexp, generic_argmin, generic_argkmin
-from .kernel_product.formula import Formula
+from .operations import KernelSolve
 from .lazytensor.LazyTensor import LazyTensor, Vi, Vj, Pm
 
 __all__ = sorted(
-    ["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin", "Kernel", "kernel_product",
-     "KernelSolve", "kernel_formulas", "Formula", "LazyTensor", "Vi", "Vj", "Pm"])
+    ["Genred", "generic_sum", "generic_logsumexp", "generic_argmin", "generic_argkmin",
+     "KernelSolve", "LazyTensor", "Vi", "Vj", "Pm"])
