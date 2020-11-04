@@ -1,5 +1,5 @@
 ## conda install -c conda-forge portalocker pywin32
-
+## pip install GPUtil
 #%%
 import os
 os.environ['PYKEOPS_VERBOSE'] = "1"
