@@ -1,3 +1,7 @@
+
+// g++ -I.. -D__TYPE__=float -std=c++17 -O3 -o build/test_tensordot test_tensordot.cpp
+
+
 #include <iostream>
 #include <tuple>
 #include <array>

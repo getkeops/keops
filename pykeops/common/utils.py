@@ -3,30 +3,17 @@ import functools
 import importlib.util
 import os
 import shutil
-from hashlib import sha256
 
-from pykeops import build_type, bin_folder
+import pykeops.config
 
 c_type = dict(float16="half2", float32="float", float64="double")
 
 
 def module_exists(dllname):
+    if not os.path.exists(pykeops.config.bin_folder):
+        return False
     spec = importlib.util.find_spec(dllname)
-    return (spec is None)
-
-
-def create_name(formula, aliases, dtype, lang):
-    """
-    Compose the shared object name
-    """
-    formula = formula.replace(" ", "")  # Remove spaces
-    aliases = [alias.replace(" ", "") for alias in aliases]
-
-    # Since the OS prevents us from using arbitrary long file names, an okayish solution is to call
-    # a standard hash function, and hope that we won't fall into a non-injective nightmare case...
-    dll_name = ",".join(aliases + [formula]) + "_" + dtype
-    dll_name = "libKeOps" + lang + sha256(dll_name.encode("utf-8")).hexdigest()[:10]
-    return dll_name
+    return (spec is not None) and (os.path.samefile(os.path.dirname(spec.origin), pykeops.config.bin_folder))
 
 
 def axis2cat(axis):
@@ -88,7 +75,7 @@ def create_and_lock_build_folder():
                     func_res = func(*args, **kwargs)
 
             # clean
-            if (module_exists(args[0].dll_name)) and (build_type != 'Debug'):
+            if (module_exists(args[0].dll_name)) and (pykeops.config.build_type == 'Release'):
                 shutil.rmtree(bf)
 
             return func_res
@@ -126,11 +113,24 @@ def WarmUpGpu(lang):
     my_routine(dum, dum)
 
 
-def clean_pykeops(path=bin_folder, lang=""):
-    if lang not in ["numpy", "torch", ""]:
-        raise ValueError('[pyKeOps:] lang should be the empty string, "numpy" or "torch"')
+def max_tuple(a, b):
+    return tuple( max(a_i, b_i) for (a_i, b_i) in zip(a, b) )
 
-    for f in os.listdir(path):
-        if (f.endswith('so')) and (f.count("libKeOps" + lang)):
-            os.remove(os.path.join(path, f))
-            print(os.path.join(path, f) + " has been removed.")
+
+def check_broadcasting(dims_1, dims_2):
+    r"""
+    Checks that the shapes **dims_1** and **dims_2** are compatible with each other.
+    """
+    if dims_1 is None:
+        return dims_2
+    if dims_2 is None:
+        return dims_1
+    
+    padded_dims_1 = (1,) * (len(dims_2) - len(dims_1)) + dims_1
+    padded_dims_2 = (1,) * (len(dims_1) - len(dims_2)) + dims_2
+    
+    for (dim_1, dim_2) in zip(padded_dims_1, padded_dims_2):
+        if dim_1 != 1 and dim_2 != 1 and dim_1 != dim_2:
+            raise ValueError("Incompatible batch dimensions: {} and {}.".format(dims_1, dims_2))
+    
+    return max_tuple(padded_dims_1, padded_dims_2)

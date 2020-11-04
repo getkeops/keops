@@ -37,15 +37,14 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
 from pykeops.numpy import LazyTensor
-from pykeops.numpy.utils import IsGpuAvailable
+import pykeops.config
 
-use_cuda = IsGpuAvailable()
 dtype = "float32"  # No need for double precision here!
 
 ###################################################################
 # Create a toy dataset, a spiral in 2D sampled with 10,000 points:
 
-N = 10000 if use_cuda else 1000
+N = 10000 if pykeops.config.gpu_available else 1000
 t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = np.stack((.4 + .4 * (t / 7) * np.cos(t), .5 + .3 * np.sin(t)), 1)
 x = x + .01 * np.random.randn(*x.shape)
@@ -210,7 +209,7 @@ plt.show()
 # let's generate a large "noisy Swiss roll" with **1,000,000 points** in the unit cube:
 #
 
-N = 1000000 if use_cuda else 1000
+N = 1000000 if pykeops.config.gpu_available else 1000
 t = np.linspace(0, 2 * np.pi, N + 1)[:-1]
 x = np.stack((.4 + .4 * (t / 7) * np.cos(1.5 * t),
               .1 + .8 * np.random.rand(N),
@@ -222,7 +221,7 @@ x = x.astype(dtype)
 # To **display** our toy dataset with the (not-so-efficient) PyPlot library,
 # we pick **10,000 points** at random:
 
-N_display = 10000 if use_cuda else N
+N_display = 10000 if pykeops.config.gpu_available else N
 indices_display = np.random.randint(0, N, N_display)
 
 _, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 8), subplot_kw=dict(projection='3d'))
@@ -299,7 +298,7 @@ plt.show()
 # diameter that is equal to :math:`\sqrt{3}\,\varepsilon`, this "block-sparsity"
 # pattern can be encoded in a small boolean matrix **keep** computed through:
 
-sigma = .01 if use_cuda else .1  # Standard deviation of our Gaussian kernel
+sigma = .01 if pykeops.config.gpu_available else .1  # Standard deviation of our Gaussian kernel
 # Compute a coarse Boolean mask:
 D = np.sum((x_centroids[:, None, :] - x_centroids[None, :, :]) ** 2, 2)
 keep = D < (4 * sigma + np.sqrt(3) * eps) ** 2

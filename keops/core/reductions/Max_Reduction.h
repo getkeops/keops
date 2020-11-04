@@ -35,7 +35,7 @@ struct Max_Reduction : public Reduction<F,tagI>, UnaryOp<Max_Reduction,F,tagI> {
 
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePairScalar {
-			DEVICE INLINE void operator()(TYPEACC& tmp, const TYPE& xi) {
+			DEVICE INLINE void operator()(TYPEACC &tmp, const TYPE &xi) {
 					if(xi>tmp) {
 						tmp = xi;
 					}
@@ -45,7 +45,7 @@ struct Max_Reduction : public Reduction<F,tagI>, UnaryOp<Max_Reduction,F,tagI> {
 #if USE_HALF && GPU_ON
 template < typename TYPEACC >
 	struct ReducePairScalar<TYPEACC, half2 > {
-			DEVICE INLINE void operator()(TYPEACC& tmp, const half2& xi) {
+			DEVICE INLINE void operator()(TYPEACC &tmp, const half2 &xi) {
 					half2 cond = __hgt2(xi,tmp);
 					half2 negcond = cast_to<half2>(1.0f)-cond;
 					tmp = cond * xi + negcond * tmp;
@@ -57,7 +57,7 @@ template < typename TYPEACC >
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePairShort {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE val) {
-				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,xi);
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM,F::DIM>(tmp,xi);
 			}
 		};
         
@@ -65,13 +65,13 @@ template < typename TYPEACC >
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePair {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi) {
-				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,xi);
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM,F::DIM>(tmp,xi);
 			}
 		};
         
 	    template < typename TYPEACC, typename TYPE >
 	    struct FinalizeOutput {
-	        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+	        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, int i) {
 				VectCopy<F::DIM>(out,acc);
 	        }
 	    };
@@ -111,7 +111,7 @@ template < typename TYPEACC, typename TYPE >
 #if USE_HALF && GPU_ON
 template < typename TYPEACC >
 	struct ReducePairScalar<TYPEACC, half2 > {
-			DEVICE INLINE void operator()(TYPEACC tmpval, TYPEACC tmpind, half2 xi, half2 ind) {
+			DEVICE INLINE void operator()(TYPEACC &tmpval, TYPEACC &tmpind, half2 &xi, half2 &ind) {
 					half2 cond = __hgt2(xi,tmpval);
 					half2 negcond = cast_to<half2>(1.0f)-cond;
 					tmpval = cast_to<TYPEACC> (cond * xi + negcond * tmpval);
@@ -124,7 +124,7 @@ template < typename TYPEACC >
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePairShort {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi, TYPE ind) {
-				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,tmp+F::DIM,xi,ind);
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM,F::DIM,F::DIM,1>(tmp,tmp+F::DIM,xi,&ind);
 			}
 		};
         
@@ -132,7 +132,7 @@ template < typename TYPEACC >
 		template < typename TYPEACC, typename TYPE >
 		struct ReducePair {
 			DEVICE INLINE void operator()(TYPEACC *tmp, TYPE *xi) {
-				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM>(tmp,tmp+F::DIM,xi,xi+F::DIM);
+				VectApply<ReducePairScalar<TYPEACC,TYPE>,F::DIM,F::DIM,F::DIM,F::DIM>(tmp,tmp+F::DIM,xi,xi+F::DIM);
 			}
 		};
         
@@ -153,7 +153,7 @@ struct Max_ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<
         
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, int i) {
 			VectCopy<DIM>(out,acc);
         }
     };
@@ -177,7 +177,7 @@ struct ArgMax_Reduction : public Max_ArgMax_Reduction_Base<F,tagI>, UnaryOp<ArgM
 
     template < typename TYPEACC, typename TYPE >
     struct FinalizeOutput {
-        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, TYPE **px, int i) {
+        DEVICE INLINE void operator()(TYPEACC *acc, TYPE *out, int i) {
 			VectCopy<F::DIM>(out,acc+F::DIM);
         }
     };

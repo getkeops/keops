@@ -90,7 +90,7 @@ def cluster_ranges(lab, Nlab=None):
     """
     if Nlab is None: Nlab = np.bincount(lab)
     pivots = np.concatenate((np.array([0]), np.cumsum(Nlab, axis=0)))
-    return np.stack((pivots[:-1], pivots[1:])).T.astype(int)
+    return np.stack((pivots[:-1], pivots[1:]), axis=1).astype(int)
 
 
 def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):

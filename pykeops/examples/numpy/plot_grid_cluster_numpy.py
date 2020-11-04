@@ -20,15 +20,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from pykeops.numpy import LazyTensor
-from pykeops.numpy.utils import IsGpuAvailable
+import pykeops.config
 
-use_cuda = IsGpuAvailable()
 dtype = "float32"
    
 ########################################################################
 # Define our dataset: two point clouds on the unit square.
 #
-M, N = (5000, 5000) if use_cuda else (2000, 2000)
+M, N = (5000, 5000) if pykeops.config.gpu_available else (2000, 2000)
 
 t = np.linspace(0, 2 * np.pi, M + 1)[:-1]
 x = np.stack((.4 + .4 * (t / 7) * np.cos(t), .5 + .3 * np.sin(t)), 1)
@@ -183,7 +182,7 @@ b = np.random.randn(N, 1).astype(dtype)
 #   make up for the clustering and branching overheads.
 #
 
-backends = (["CPU", "GPU"] if M*N < 4e8 else ["GPU"]) if use_cuda else ["CPU"]
+backends = (["CPU", "GPU"] if M*N < 4e8 else ["GPU"]) if pykeops.config.gpu_available else ["CPU"]
 for backend in backends :
     K.backend = backend  # Switch to CPU or GPU mode
 

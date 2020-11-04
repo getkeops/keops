@@ -8,6 +8,7 @@ import itertools
 import numpy as np
 
 import pykeops
+import pykeops.config
 from pykeops.numpy.utils import squared_distances, np_kernel, log_np_kernel, grad_np_kernel, differences, log_sum_exp
 
 
@@ -44,35 +45,35 @@ class PytorchUnitTestCase(unittest.TestCase):
         
         dtype = torch.float32
         xc = torch.tensor(x, dtype=dtype, device=device, requires_grad=True)
-        ac = torch.tensor(a, dtype=dtype, device=device, requires_grad=True)
-        ec = torch.tensor(e, dtype=dtype, device=device, requires_grad=True)
+        ac = torch.tensor(a, dtype=dtype, device=device, requires_grad=False)
+        ec = torch.tensor(e, dtype=dtype, device=device, requires_grad=False)
         fc = torch.tensor(f, dtype=dtype, device=device, requires_grad=True)
-        yc = torch.tensor(y, dtype=dtype, device=device, requires_grad=True)
-        bc = torch.tensor(b, dtype=dtype, device=device, requires_grad=True)
+        yc = torch.tensor(y, dtype=dtype, device=device, requires_grad=False)
+        bc = torch.tensor(b, dtype=dtype, device=device, requires_grad=False)
         gc = torch.tensor(g, dtype=dtype, device=device, requires_grad=True)
-        pc = torch.tensor(p, dtype=dtype, device=device, requires_grad=True)
+        pc = torch.tensor(p, dtype=dtype, device=device, requires_grad=False)
         sigmac = torch.tensor(sigma, dtype=dtype, device=device, requires_grad=False)
         alphac = torch.tensor(alpha, dtype=dtype, device=device, requires_grad=False)
 
         Xc = torch.tensor(X, dtype=dtype, device=device, requires_grad=True)
-        Lc = torch.tensor(L, dtype=dtype, device=device, requires_grad=True)
+        Lc = torch.tensor(L, dtype=dtype, device=device, requires_grad=False)
         Yc = torch.tensor(Y, dtype=dtype, device=device, requires_grad=True)
         Sc = torch.tensor(S, dtype=dtype, device=device, requires_grad=True)
 
         
         dtype = torch.float64
-        xcd = torch.tensor(x, dtype=dtype, device=device, requires_grad=True)
-        acd = torch.tensor(a, dtype=dtype, device=device, requires_grad=True)
-        ecd = torch.tensor(e, dtype=dtype, device=device, requires_grad=True)
-        fcd = torch.tensor(f, dtype=dtype, device=device, requires_grad=True)
-        ycd = torch.tensor(y, dtype=dtype, device=device, requires_grad=True)
-        bcd = torch.tensor(b, dtype=dtype, device=device, requires_grad=True)
-        gcd = torch.tensor(g, dtype=dtype, device=device, requires_grad=True)
-        pcd = torch.tensor(p, dtype=dtype, device=device, requires_grad=True)
+        xcd = torch.tensor(x, dtype=dtype, device=device, requires_grad=False)
+        acd = torch.tensor(a, dtype=dtype, device=device, requires_grad=False)
+        ecd = torch.tensor(e, dtype=dtype, device=device, requires_grad=False)
+        fcd = torch.tensor(f, dtype=dtype, device=device, requires_grad=False)
+        ycd = torch.tensor(y, dtype=dtype, device=device, requires_grad=False)
+        bcd = torch.tensor(b, dtype=dtype, device=device, requires_grad=False)
+        gcd = torch.tensor(g, dtype=dtype, device=device, requires_grad=False)
+        pcd = torch.tensor(p, dtype=dtype, device=device, requires_grad=False)
         sigmacd = torch.tensor(sigma, dtype=dtype, device=device, requires_grad=False)
         alphacd = torch.tensor(alpha, dtype=dtype, device=device, requires_grad=False)
         Xcd = torch.tensor(X, dtype=dtype, device=device, requires_grad=True)
-        Lcd = torch.tensor(L, dtype=dtype, device=device, requires_grad=True)
+        Lcd = torch.tensor(L, dtype=dtype, device=device, requires_grad=False)
         Ycd = torch.tensor(Y, dtype=dtype, device=device, requires_grad=True)
         Scd = torch.tensor(S, dtype=dtype, device=device, requires_grad=True)
         
@@ -89,7 +90,7 @@ class PytorchUnitTestCase(unittest.TestCase):
             'gamma': 1. / self.sigmac ** 2,
             'mode': 'sum',
         }
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
         else:
             backend_to_test = ['auto', 'pytorch']
@@ -117,7 +118,7 @@ class PytorchUnitTestCase(unittest.TestCase):
             'gamma': 1. / self.sigmac ** 2,
             'mode': 'sum',
         }
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
         else:
             backend_to_test = ['auto', 'pytorch']
@@ -144,7 +145,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch import Genred
         aliases = ['p=Pm(1)', 'a=Vj(1)', 'x=Vi(3)', 'y=Vj(3)']
         formula = 'Square(p-a)*Exp(x+y)'
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -165,7 +166,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch import Genred
         aliases = ['p=Pm(1)', 'a=Vj(1)', 'x=Vi(3)', 'y=Vj(3)']
         formula = 'Square(p-a)*Exp(x+y)'
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -187,7 +188,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         aliases = ['p=Pm(1)', 'a=Vj(1)', 'x=Vi(3)', 'y=Vj(3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
         formula_weights = 'y'
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -217,7 +218,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         
         formula = 'Pow((X|Y),2) * ((Elem(P,0) * X) + (Elem(P,1) * Y))'
         
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -240,7 +241,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         from pykeops.torch import Kernel, kernel_product
 
         params = {'gamma': 1. / self.sigmac ** 2, 'mode': 'lse'}
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'pytorch']
         else:
             backend_to_test = ['auto', 'pytorch']
@@ -465,10 +466,15 @@ class PytorchUnitTestCase(unittest.TestCase):
                 a_i = K_ij.logsumexp(self.nbatchdims + 1)
                 if use_keops: a_i = a_i.squeeze(-1)
                 [g_x, g_y, g_s] = torch.autograd.grad((1. * a_i).sum(), [x, y, s], create_graph=True)
-                [g_xs] = torch.autograd.grad((g_x.abs()).sum(), [s], create_graph=True)
                 
-                results += [a_i, g_x, g_y, g_s, g_xs]
-            
+                # N.B. (Joan, sept 2020) commenting out the 2nd order gradient computation here, 
+                # since it slows down too much the compilation currently, when using Cuda 11.
+                #
+                #[g_xs] = torch.autograd.grad((g_x.abs()).sum(), [s], create_graph=True)
+                #results += [a_i, g_x, g_y, g_s, g_xs]
+                
+                results += [a_i, g_x, g_y, g_s]
+                
             full_results.append(results)
         
         for (res_keops, res_torch) in zip(full_results[0], full_results[1]):

@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "core/pack/CondType.h"
-#include "core/autodiff/BinaryOp.h"
+#include "core/autodiff/VectorizedScalarBinaryOp.h"
 #include "core/formulas/constants/Zero.h"
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Add.h"
@@ -28,7 +28,7 @@ using Subtract = typename Subtract_Alias< FA, FB >::type;
 
 
 template < class FA, class FB >
-struct Subtract_Impl : BinaryOp< Subtract_Impl, FA, FB > {
+struct Subtract_Impl : VectorizedScalarBinaryOp< Subtract_Impl, FA, FB > {
 
   // Output dim = FA::DIM = FB::DIM
   static const int DIM = FA::DIM;
@@ -37,11 +37,11 @@ struct Subtract_Impl : BinaryOp< Subtract_Impl, FA, FB > {
   static void PrintIdString(::std::stringstream &str) { str << "-"; }
 
   template < typename TYPE >
-  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
-    #pragma unroll
-    for (int k = 0; k < DIM; k++)
-      out[k] = outA[k] - outB[k];
-  }
+  struct Operation_Scalar {
+  	DEVICE INLINE void operator() (TYPE &out, TYPE &outA, TYPE &outB) {
+	  out = outA - outB;
+    }
+  };
 
   // [\partial_V (A - B) ] . gradin = [\partial_V A ] . gradin  - [\partial_V B ] . gradin
   template < class V, class GRADIN >
@@ -49,8 +49,9 @@ struct Subtract_Impl : BinaryOp< Subtract_Impl, FA, FB > {
 
 };
 
+
 template < class FA, class FB >
-struct Subtract_Impl_Broadcast : BinaryOp< Subtract_Impl_Broadcast, FA, FB > {
+struct Subtract_Impl_Broadcast : VectorizedScalarBinaryOp< Subtract_Impl_Broadcast, FA, FB > {
 
   // Output dim = FB::DIM
   static const int DIM = FB::DIM;
@@ -58,12 +59,12 @@ struct Subtract_Impl_Broadcast : BinaryOp< Subtract_Impl_Broadcast, FA, FB > {
   static void PrintIdString(::std::stringstream &str) { str << "-"; }
 
   template < typename TYPE >
-  static DEVICE INLINE void Operation(TYPE *out, TYPE *outA, TYPE *outB) {
-    #pragma unroll
-    for (int k = 0; k < DIM; k++)
-      out[k] = *outA - outB[k];
-  }
-
+  struct Operation_Scalar {
+  	DEVICE INLINE void operator() (TYPE &out, TYPE &outA, TYPE &outB) {
+	  out = outA - outB;
+    }
+  };
+  
   // [\partial_V (A - B) ] . gradin = [\partial_V A ] . gradin  - [\partial_V B ] . gradin
   template < class V, class GRADIN >
   using DiffT = Subtract< typename FA::template DiffT< V, Sum < GRADIN>>, typename FB::template DiffT< V, GRADIN > >;
@@ -159,6 +160,7 @@ template < class FA, class FB >
 KeopsNS <Subtract< FA, FB>> operator-(KeopsNS <FA> fa, KeopsNS <FB> fb) {
   return KeopsNS < Subtract < FA, FB >> ();
 }
+
 #define Subtract(fa, fb) KeopsNS<Subtract<decltype(InvKeopsNS(fa)),decltype(InvKeopsNS(fb))>>()
 
 }

@@ -25,6 +25,9 @@ class torchtools:
     # GenredLowlevel = GenredLowlevel
 
     @staticmethod
+    def eq(x, y): return torch.eq(x, y)
+
+    @staticmethod
     def transpose(x):
         return (x.t())
 
@@ -66,7 +69,10 @@ class torchtools:
 
     @staticmethod
     def dtype(x):
-        return x.dtype
+        if hasattr(x, "dtype"):
+            return x.dtype
+        else:
+            return type(x)
 
     @staticmethod
     def dtypename(dtype):
@@ -76,8 +82,12 @@ class torchtools:
             return 'float64'
         elif dtype == torch.float16:
             return 'float16'
+        elif dtype == int:
+            return int
+        elif dtype == list:
+            return "float32"
         else:
-            raise ValueError("[KeOps] data type incompatible with KeOps.")
+            raise ValueError("[KeOps] {} data type incompatible with KeOps.".format(dtype))
 
     @staticmethod
     def rand(m, n, dtype=default_dtype, device='cpu'):
@@ -113,22 +123,6 @@ class torchtools:
             return x.device
         else:
             return None
-
-
-def WarmUpGpu():
-    # dummy first calls for accurate timing in case of GPU use
-    print("Warming up the Gpu (torch bindings) !!!")
-    if torch.cuda.is_available():
-        formula = 'Exp(-oos2*SqDist(x,y))*b'
-        aliases = ['x = Vi(1)',  # First arg   : i-variable, of size 1
-                   'y = Vj(1)',  # Second arg  : j-variable, of size 1
-                   'b = Vj(1)',  # Third arg  : j-variable, of size 1
-                   'oos2 = Pm(1)']  # Fourth arg  : scalar parameter
-        my_routine = Genred(formula, aliases, reduction_op='Sum', axis=1, dtype='float32')
-        dum = torch.rand(10, 1)
-        dum2 = torch.rand(10, 1)
-        my_routine(dum, dum, dum2, torch.tensor([1.0]))
-        my_routine(dum, dum, dum2, torch.tensor([1.0]))
 
 
 def squared_distances(x, y):

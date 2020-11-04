@@ -8,6 +8,7 @@ import itertools
 import numpy as np
 
 import pykeops
+import  pykeops.config
 from pykeops.numpy.utils import np_kernel, grad_np_kernel, differences, squared_distances, log_sum_exp, np_kernel_sphere
 
 class NumpyUnitTestCase(unittest.TestCase):
@@ -34,7 +35,7 @@ class NumpyUnitTestCase(unittest.TestCase):
 
     type_to_test = ['float32', 'float64']
 
-    @unittest.skipIf(not pykeops.gpu_available, 'No GPU detected. Skip tests.')
+    @unittest.skipIf(not pykeops.config.gpu_available, 'No GPU detected. Skip tests.')
     ############################################################
     def test_fshape_scp_specific(self):
     ############################################################
@@ -68,10 +69,9 @@ class NumpyUnitTestCase(unittest.TestCase):
                               * np_kernel_sphere(nalpha, nbeta, sigma_sphere, ksphere), axis=1)
 
             # compare output
-            print("ee")
             self.assertTrue(np.allclose(gamma, gamma_py, atol=1e-6))
 
-    @unittest.skipIf(not pykeops.gpu_available,'No GPU detected. Skip tests.')
+    @unittest.skipIf(not pykeops.config.gpu_available, 'No GPU detected. Skip tests.')
     ############################################################
     def test_gaussian_conv_specific(self):
     ############################################################
@@ -88,7 +88,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                 # compare output
                 self.assertTrue(np.allclose(gamma, gamma_py, atol=1e-6))
 
-    @unittest.skipIf(not pykeops.gpu_available, 'No GPU detected. Skip tests.')
+    @unittest.skipIf(not pykeops.config.gpu_available, 'No GPU detected. Skip tests.')
     ############################################################
     def test_gaussian_grad1conv_specific(self):
     ############################################################
@@ -114,7 +114,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         formula = 'Square(p-a)*Exp(x+y)'
         axis = 1  # 0 means summation over i, 1 means over j
 
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -140,7 +140,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         aliases = ['p=Pm(0,1)', 'a=Vj(1,1)', 'x=Vi(2,3)', 'y=Vj(3,3)']
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
 
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']
@@ -166,7 +166,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         formula = 'Square(p-a)*Exp(-SqNorm2(x-y))'
         formula_weights = 'y'
         
-        if pykeops.gpu_available:
+        if pykeops.config.gpu_available:
             backend_to_test = ['auto', 'GPU_1D', 'GPU_2D', 'GPU']
         else:
             backend_to_test = ['auto']

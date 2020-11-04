@@ -139,6 +139,20 @@ pipeline {
               '''
           }
         }
+        
+        stage('Test Mac') {
+          agent { label 'macos' }
+          environment {
+            PATH="/Users/ci/miniconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
+          }
+          steps {
+            echo 'Testing..'
+              sh 'git submodule update --init'
+              sh '''
+                 # bash rkeops/ci/run_ci.sh
+              '''
+          }
+        }
 
         stage('Test Cuda') {
           agent { label 'cuda' }

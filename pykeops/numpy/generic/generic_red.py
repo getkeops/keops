@@ -1,7 +1,9 @@
+import numpy as np
+
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
-from pykeops.common.parse_type import get_sizes, complete_aliases, get_accuracy_flags
+from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
@@ -48,7 +50,7 @@ class Genred():
         """
     
     def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto"):
+                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, optional_flags=[], rec_multVar_highdim=None):
         r"""
         Instantiate a new generic operation.
 
@@ -117,6 +119,12 @@ class Genred():
                   - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating in the output. This improves accuracy for large sized data. 
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data. 
+
+            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+				with formulas involving large dimension variables.
+				
+			optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
+
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
@@ -127,9 +135,11 @@ class Genred():
 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
-
-        optional_flags = get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op_internal)
         
+        if rec_multVar_highdim is not None:
+            optional_flags += ['-DMULT_VAR_HIGHDIM=1']
+
+        optional_flags += get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
@@ -245,6 +255,9 @@ class Genred():
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         if ranges is None :
             ranges = () # To keep the same type
+
+        # N.B.: KeOps C++ expects contiguous integer arrays as ranges
+        ranges = tuple(np.ascontiguousarray(r) for r in ranges)
 
         nx, ny = get_sizes(self.aliases, *args)
         nout, nred = (nx, ny) if self.axis==1 else (ny, nx)

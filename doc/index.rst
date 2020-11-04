@@ -141,7 +141,7 @@ an issue report on `GitHub issue tracker <https://github.com/getkeops/keops/issu
 **KeOps, PyKeOps, KeOpsLab**
 
 - `Benjamin Charlier <http://imag.umontpellier.fr/~charlier/>`_
-- `Jean Feydy <http://www.math.ens.fr/~feydy/>`_
+- `Jean Feydy <https://www.jeanfeydy.com/>`_
 - `Joan Alexis Glaunès <http://www.mi.parisdescartes.fr/~glaunes/>`_
 
 **RKeOps**

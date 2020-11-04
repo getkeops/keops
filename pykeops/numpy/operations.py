@@ -3,7 +3,7 @@ import numpy as np
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import complete_aliases, get_accuracy_flags
+from pykeops.common.parse_type import complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
@@ -43,7 +43,7 @@ class KernelSolve:
     
     """
     
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto"):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -110,6 +110,9 @@ class KernelSolve:
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
                 accuracy for large sized data. 
 
+            enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
+				with formulas involving large dimension variables.
+
         """
         reduction_op = 'Sum'
         if opt_arg:
@@ -117,7 +120,7 @@ class KernelSolve:
         else:
             self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
 
-        optional_flags = get_accuracy_flags(dtype_acc, use_double_acc, sum_scheme, dtype, reduction_op)
+        optional_flags = get_optional_flags(reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
 
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
