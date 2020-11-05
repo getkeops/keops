@@ -3,7 +3,7 @@ r"""
 A wrapper for NumPy and PyTorch arrays
 ================================================
 
-KeOps is all about bringing **semi-symbolic** calculus
+KeOps brings **semi-symbolic** calculus
 to modern computing libraries:
 it alleviates the need for **huge intermediate variables**
 such as *kernel* or *distance* matrices in machine
@@ -163,6 +163,19 @@ a_i = K_ij @ b  # The matrix-vector product "@" can be used on "raw" PyTorch ten
 print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 
 #############################################################################
+#
+# .. note::
+#   KeOps LazyTensors have two symbolic or
+#   "virtual" axes at positions -3 and -2.
+#   Operations on the last "vector" dimension (-1)
+#   or on optional "batch" dimensions (-4 and beyond) 
+#   are evaluated **lazily**.
+#   On the other hand, a reduction on one of the two symbolic axes
+#   (-2 or -3) triggers an **explicit computation**:
+#   we return a standard dense array with no symbolic axes.
+#
+#
+#
 # Automatic differentiation
 # -----------------------------------------------
 #
