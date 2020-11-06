@@ -43,7 +43,7 @@ class KernelSolve:
     
     """
     
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True):
+    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, rec_multVar_highdim=None):
         r"""
         Instantiate a new KernelSolve operation.
 
@@ -122,6 +122,9 @@ class KernelSolve:
 
         optional_flags = get_optional_flags(reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
 
+        if rec_multVar_highdim is not None:
+            optional_flags += ['-DMULT_VAR_HIGHDIM=1']
+            
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
