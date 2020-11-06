@@ -1139,7 +1139,7 @@ class GenericLazyTensor:
         if not hasattr(s, "__GenericLazyTensor__"):
             s = self.lt_constructor(s)
 
-        return self.weightedsqnorm(self - g, s)
+        return (self - g).weightedsqnorm(s)
     
     def elem(self, i):
         r"""

@@ -141,14 +141,14 @@ class GaussianMixture(Module):
     def likelihoods(self, sample):
         """Samples the density on a given point cloud."""
         self.update_covariances()
-        return (-LazyTensor.weightedsqdist(Vj(self.params['gamma']), Vi(sample), Vj(self.mu))).exp() @ self.weights()
+        return (-Vi(sample).weightedsqdist(Vj(self.mu),Vj(self.params['gamma']))).exp() @ self.weights()
     
     
     def log_likelihoods(self, sample):
         """Log-density, sampled on a given point cloud."""
         self.update_covariances()
-        K_ij = - LazyTensor.weightedsqdist(Vj(self.params['gamma']), Vi(sample), Vj(self.mu))
-        return K_ij.logsumexp(dim=1, weight=Vj(self.weights_log().exp()))
+        K_ij = - Vi(sample).weightedsqdist(Vj(self.mu), Vj(self.params['gamma']))
+        return K_ij.logsumexp(dim=1, weight=Vj(self.weights()))
     
     def neglog_likelihood(self, sample):
         """Returns -log(likelihood(sample)) up to an additive factor."""
