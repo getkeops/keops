@@ -142,7 +142,7 @@ project = 'KeOps'
 #import time
 #copyright = '2018-{}, Benjamin Charlier, Jean Feydy, Joan A. Glaunès'.format(time.strftime("%Y"))
 
-copyright = '2018-2019, Benjamin Charlier, Jean Feydy, Joan A. Glaunès.'
+copyright = '2018-2020, Benjamin Charlier, Jean Feydy, Joan A. Glaunès.'
 author = 'Benjamin Charlier, Jean Feydy, Joan A. Glaunès.'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -290,5 +290,5 @@ texinfo_documents = [
 ]
 
 def setup(app):
-    app.add_stylesheet('theme_override.css')
+    app.add_css_file('theme_override.css')
 

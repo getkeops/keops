@@ -71,9 +71,9 @@ x = torch.from_numpy(np.vstack( (X.ravel(), Y.ravel()) ).T).contiguous().type(dt
 def plot_kernel(gamma) :
     """ Samples 'x -> ∑_j b_j * k_j(x - y_j)' on the grid, and displays it as a heatmap. """
     if gamma.dim() == 2:
-        heatmap   = (- LazyTensor.weightedsqdist(Vj(gamma), Vi(x), Vj(y))).exp() @ b
+        heatmap   = (- Vi(x).weightedsqdist(Vj(y), Vj(gamma))).exp() @ b
     else:
-        heatmap   = (- LazyTensor.weightedsqdist(Pm(gamma), Vi(x), Vj(y))).exp() @ b
+        heatmap   = (- Vi(x).weightedsqdist(Vj(y), Pm(gamma))).exp() @ b
     heatmap   = heatmap.view(res,res).cpu().numpy() # reshape as a 'background' image
     plt.imshow(-heatmap, interpolation='bilinear', origin='lower',
                 vmin = -1, vmax = 1, cmap=cm.RdBu,
