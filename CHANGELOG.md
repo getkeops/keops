@@ -1,3 +1,11 @@
+* v1.4.2 - Nov 8, 2020
+    - Refactor pykeops LazyTensor class
+    - Add multi gpu example with pykeops
+    - pykeops' kernel_product module is deprecated
+    - Fix pykeops.set_bin_folder() function
+    - remove Gputils dependency for pykeops
+    - Add Clamp operator in keops
+
 * v1.4.1 - Aug 19, 2020
     - Fix compatibility issue with PyTorch 1.5-6.
     - Fix compatibility issue with Cuda 11.0

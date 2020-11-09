@@ -139,7 +139,7 @@ class Genred():
         if rec_multVar_highdim is not None:
             optional_flags += ['-DMULT_VAR_HIGHDIM=1']
 
-        optional_flags += get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
+        self.optional_flags = optional_flags + get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
         str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
         str_formula2 = ',' + formula2 if formula2 else ''
         
@@ -147,7 +147,7 @@ class Genred():
             axis2cat(axis)) + str_formula2 + ')'
         self.aliases = complete_aliases(self.formula, aliases)
         self.dtype = dtype
-        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
+        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy', self.optional_flags).import_module()
         self.axis = axis
         self.opt_arg = opt_arg
 
