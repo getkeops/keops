@@ -1328,11 +1328,13 @@ class GenericLazyTensor:
                 intseq = (intseq,)  # convert to tuple
             for item in intseq:
                 opt_arg += "{},".format(item)
-            opt_arg = opt_arg[:-1] + "), " # to remove last comma
+            opt_arg = opt_arg[:-1] if len(intseq) else opt_arg # to remove last comma
+            opt_arg += "), "
         opt_arg = opt_arg[:-2] # to remove last comma and space
 
-        dimres = np.array(dimfa).prod() * np.array(dimfb).prod() / np.array(dimfa)[np.array(contfa)].prod() ** 2
-        return self.binary(other, "TensorDot", dimres=dimres, dimcheck=None, opt_arg=opt_arg)
+        dimres = np.array(dimfa).prod() * np.array(dimfb).prod()
+        dimres /=  np.array(dimfa)[np.array(contfa)].prod() ** 2 if len(contfa) else 1
+        return self.binary(other, "TensorDot", dimres=int(dimres), dimcheck=None, opt_arg=opt_arg)
     
     def grad(self, other, gradin):
         r"""
