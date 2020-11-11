@@ -12,7 +12,7 @@
 #include "lib/sequences/include/tao/seq/make_integer_range.hpp"
 #include "lib/sequences/include/tao/seq/first.hpp"
 #include "lib/sequences/include/tao/seq/functional.hpp"
-// #include "lib/sequences/include/tao/seq/difference.hpp"
+#include "lib/sequences/include/tao/seq/difference.hpp"
 #include "lib/sequences/include/tao/seq/reverse.hpp"
 #include "lib/sequences/include/tao/seq/multiplies.hpp"
 #include "lib/sequences/include/tao/seq/prod.hpp"
@@ -24,48 +24,6 @@
 #include "core/pre_headers.h"
 
 // TODO : wait for a fix from tao::seq
-namespace tao {
-namespace seq {
-namespace impl {
-template < typename, typename, typename >
-struct difference;
-
-template < typename T, T... As >
-struct difference< T, integer_sequence< T >, integer_sequence< T, As... > > {
-  using type = integer_sequence< T >;
-};
-
-template < typename T, T... As, T b, T... Bs >
-struct difference< T, integer_sequence< T, b, Bs... >, integer_sequence< T, As... > > {
-  constexpr static bool included = tao::seq::contains< T, b, As... >::value;
-  using tail = typename difference< T, integer_sequence< T, Bs... >, integer_sequence< T, As... > >::type;
-  using type = typename ::std::conditional< included, tail, typename tao::seq::concatenate< integer_sequence< T, b >, tail >::type >::type;
-};
-
-}  // namespace impl
-
-template < typename, typename >
-struct difference;
-
-template < typename TA, TA... As, typename TB, TB... Bs >
-struct difference< integer_sequence< TA, As... >, integer_sequence< TB, Bs... > > {
-  using CT = typename ::std::common_type< TA, TB >::type;
-
-  template < CT N >
-  using check = contains< CT, N, Bs... >;
-
-  // ERROR THERE
-  // using type = concatenate_t< impl::conditional_t< check< As >::value, integer_sequence< CT >, integer_sequence< CT, As > >... >;
-  // OK
-  using type = typename impl::difference< CT, integer_sequence< CT, As... >, integer_sequence< CT, Bs... > >::type; // ERROR
-};
-
-template < typename A, typename B >
-using difference_t = typename difference< A, B >::type;
-
-}  // namespace seq
-
-}  // namespace tao
 
 namespace keops {
 
@@ -295,13 +253,13 @@ struct TensorDot : BinaryOp< TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERM
   template < class V, class GRADIN >
   using DiffT = Add<
       DiffTA< V, TensorDot< GRADIN, B,
-                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   // 3
+                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   // @fradav : c'est ca qui merdoit.. Ca marche si on remplace par std::integer_sequence<int,3>
                             DIMFB,                                                                                    // 4 2
                             tao::seq::map_t< typename parameters::list_indices_keepdim_b_inout, PERMUTEDIMOUT >,      // .
                             typename parameters::indices_keepdim_b_t,                                                 // .
                             typename parameters::moveaxis_a>>,                                                        // 1, 2 0
       DiffTB< V, TensorDot< GRADIN, A,
-                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   // 3
+                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   // @fradav : c'est ca qui merdoit.. Ca marche si on remplace par std::integer_sequence<int,3>
                             DIMFA,                                                                                    // 2, 3, 4
                             tao::seq::map_t< typename parameters::list_indices_keepdim_a_inout, PERMUTEDIMOUT >,      //0
                             typename parameters::indices_keepdim_a_t,                                                 //1
