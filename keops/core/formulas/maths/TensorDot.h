@@ -12,16 +12,85 @@
 #include "lib/sequences/include/tao/seq/make_integer_range.hpp"
 #include "lib/sequences/include/tao/seq/first.hpp"
 #include "lib/sequences/include/tao/seq/functional.hpp"
-#include "lib/sequences/include/tao/seq/difference.hpp"
+// #include "lib/sequences/include/tao/seq/difference.hpp"
 #include "lib/sequences/include/tao/seq/reverse.hpp"
 #include "lib/sequences/include/tao/seq/multiplies.hpp"
 #include "lib/sequences/include/tao/seq/prod.hpp"
 #include "lib/sequences/include/tao/seq/exclusive_scan.hpp"
-#include "lib/sequences/include/tao/seq/contrib/permutate.hpp"
+// #include "lib/sequences/include/tao/seq/contrib/permutate.hpp"
 #include "lib/sequences/include/tao/seq/contrib/sort_index.hpp"
 
 #include "core/autodiff/BinaryOp.h"
 #include "core/pre_headers.h"
+
+#include "lib/sequences/include/tao/seq/map.hpp"
+#include "lib/sequences/include/tao/seq/sequence_helper.hpp"
+#include "lib/sequences/include/tao/seq/contrib/make_index_of_sequence.hpp"
+
+// Below there is two differents workaround for toa::seq and nvcc
+// First one is about permutate, which uses a direct ::size() but apparently gcc >= 8.*
+// is expecting a real integral_constant, hence the impl::sequence_size<>::value
+// Second there is a bug with expansion pack in nvcc in tao::seq::difference when
+// using concatenate meta function, here is the workaround.
+namespace tao
+{
+   namespace seq
+   {
+      template< typename I >
+      using inverse_t = make_index_of_sequence_t< I, make_index_sequence< impl::sequence_size< I >::value > >; 
+
+      template< typename I, typename S >
+      using permutate = map< inverse_t< I >, S >;
+
+      template< typename I, typename S >
+      using permutate_t = typename permutate< I, S >::type;
+
+      namespace impl 
+      {
+          template< typename, typename, typename >
+          struct difference;
+
+           template< typename T, T... As >
+          struct difference< T, integer_sequence< T >, integer_sequence< T, As... > >
+          {
+             using type = integer_sequence< T >;
+          };
+
+           template< typename T, T... As, T b, T... Bs >
+          struct difference< T, integer_sequence< T, b, Bs... >, integer_sequence< T, As... > >
+          {
+             constexpr static bool included = tao::seq::contains< T, b, As... >::value;
+             using tail = typename difference< T, integer_sequence< T, Bs... >, integer_sequence< T, As... > >::type;
+             using type = typename std::conditional<
+                included,
+                tail,
+                typename tao::seq::concatenate< integer_sequence< T, b >, tail >::type >::type;
+          };
+
+        }  // namespace impl
+
+        template< typename, typename >
+       struct difference;
+
+        template< typename TA, TA... As, typename TB, TB... Bs >
+       struct difference< integer_sequence< TA, As... >, integer_sequence< TB, Bs... > >
+       {
+         using CT = typename std::common_type< TA, TB >::type;
+
+           template< CT N >
+          using check = contains< CT, N, Bs... >;
+
+         // using type = concatenate_t< impl::conditional_t< check< As >::value, integer_sequence< CT >, integer_sequence< CT, As > >... >; // ERROR
+         using type = typename impl::difference< CT, integer_sequence< CT, As... >, integer_sequence< CT, Bs... > >::type; // OK
+       };
+
+        template< typename A, typename B >
+       using difference_t = typename difference< A, B >::type;
+
+     }  // namespace seq
+
+  }  // namespace tao
+
 
 // TODO : wait for a fix from tao::seq
 
