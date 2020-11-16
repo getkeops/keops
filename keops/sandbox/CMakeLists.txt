@@ -19,6 +19,11 @@ add_executable(
 )
 
 add_executable(
+        notao_cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/notao.cpp
+)
+
+add_executable(
   test_sumgauss_cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test_sumgauss.cpp
 )
