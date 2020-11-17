@@ -186,7 +186,7 @@ struct tensordot_parameters {
   using list_stride_dim_b_t = cum_prod< tao::seq::reverse_t< DIMFB>>;
 #endif
 
-  static_assert(::std::is_same< contdim_a_t, contdim_b_t >::value,
+  static_assert(std::is_same< contdim_a_t, contdim_b_t >::value,
                 "In TensorDot: contracting dimensions should be the same");
 
   // Output
@@ -198,7 +198,7 @@ struct tensordot_parameters {
 #endif
   constexpr static size_t dimout = tao::seq::prod< keepdim_t >::value;
 
-  static_assert(::std::is_same< tao::seq::permutate_t< PERMUTE, PERMUTE >, tao::seq::make_index_range< 0, keepdim_t::size()>>::value,
+  static_assert(std::is_same< tao::seq::permutate_t< PERMUTE, PERMUTE >, tao::seq::make_index_range< 0, keepdim_t::size()>>::value,
                 "In TensorDot: PERMUTE should be a permutation index_sequence.");
 
   // Loop: in this code we choose to loop on the keepdims first and then on the contraction dims.
@@ -322,13 +322,13 @@ struct TensorDot : BinaryOp< TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERM
   template < class V, class GRADIN >
   using DiffT = Add<
       DiffTA< V, TensorDot< GRADIN, B,
-                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   // @fradav : c'est ca qui merdoit.. Ca marche si on remplace par std::integer_sequence<int,3>
+                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   //
                             DIMFB,                                                                                    // 4 2
                             tao::seq::map_t< typename parameters::list_indices_keepdim_b_inout, PERMUTEDIMOUT >,      // .
                             typename parameters::indices_keepdim_b_t,                                                 // .
                             typename parameters::moveaxis_a>>,                                                        // 1, 2 0
       DiffTB< V, TensorDot< GRADIN, A,
-                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   // @fradav : c'est ca qui merdoit.. Ca marche si on remplace par std::integer_sequence<int,3>
+                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   //
                             DIMFA,                                                                                    // 2, 3, 4
                             tao::seq::map_t< typename parameters::list_indices_keepdim_a_inout, PERMUTEDIMOUT >,      //0
                             typename parameters::indices_keepdim_a_t,                                                 //1
