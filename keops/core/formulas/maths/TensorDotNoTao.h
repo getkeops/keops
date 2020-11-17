@@ -79,7 +79,7 @@ namespace keops {
     template<std::size_t N>
     static constexpr size_t prod_array(std::array<size_t, N> arr) {
         size_t res = 1;
-        for (size_t i=0; i < N; i++){
+        for (int i=0; i < static_cast<int>(N); i++){
             res *= arr[i];
         }
         return res;
@@ -90,7 +90,7 @@ namespace keops {
         std::array<size_t, N> res{};
         res[N-1] = 1;
         if (N > 1) {
-            for (int i = N - 2; i > -1; i--)
+            for (int i = static_cast<int>(N) - 2; i > -1; i--)
                 res[i] = res[i + 1] * arr[i + 1];
         }
         return res;
@@ -99,7 +99,7 @@ namespace keops {
     template<std::size_t N>
     HOST_DEVICE static constexpr auto reverse_array(std::array<size_t, N> arr) {
         std::array<size_t, N> res{};
-        for (size_t i=0; i < N; i++){
+        for (int i=0; i < static_cast<int>(N); i++){
             res[i] = arr[N-i-1];
         }
         return res;
@@ -108,10 +108,10 @@ namespace keops {
     template<size_t N, size_t M>
     static constexpr auto concat_array(std::array<size_t, N> arr0, std::array<size_t, M> arr1) {
         std::array<size_t, N+M> res{};
-        for (size_t i=0; i<N; i++){
+        for (int i=0; i<static_cast<int>(N); i++){
             res[i] = arr0[i];
         }
-        for (size_t i=0; i<M; i++){
+        for (int i=0; i<static_cast<int>(M); i++){
             res[i+N] = arr1[i];
         }
         return res;
@@ -120,7 +120,7 @@ namespace keops {
     template<size_t N, size_t M>
     HOST_DEVICE static constexpr auto map_array(std::array<size_t, N> ind, std::array<size_t, M> arr1) {
         std::array<size_t, N> res{};
-        for (size_t i= 0; i < N; i++){
+        for (int i= 0; i < static_cast<int>(N); i++){
             res[i] = arr1[ind[i]];
         }
         return res;
@@ -129,7 +129,7 @@ namespace keops {
     template<size_t N>
     HOST_DEVICE static constexpr auto permutate_array(std::array<size_t, N> perm, std::array<size_t, N> arr) {
         std::array<size_t, N> res{};
-        for (size_t i= 0; i < N; i++){
+        for (int i= 0; i < static_cast<int>(N); i++){
             res[perm[i]] = arr[i];
         }
         return res;
@@ -139,7 +139,7 @@ namespace keops {
     constexpr auto make_range_array() {
         static_assert(E >= B, "please provide E >= B");
         std::array<size_t, E - B> res{};
-        for (size_t i= B; i < E; i++){
+        for (int i= static_cast<int>(B); i < static_cast<int>(E); i++){
             res[i - B] = i;
         }
         return res;
@@ -149,14 +149,14 @@ namespace keops {
     static constexpr auto diff_array(std::array< size_t, M > ind) {
         auto res = make_range_array<0, N - M >();
         size_t l = 0;
-        for (size_t i= 0; i < N; i++){
+        for (int i= 0; i < static_cast<int>(N); i++){
             bool include = false;
-            for (size_t j=0; j < M; j++) {
-                if (ind[j] == i)
+            for (int j=0; j < static_cast<int>(M); j++) {
+                if (ind[j] == static_cast<size_t>(i))
                     include = true;
             }
             if (!include) {
-                res[l] = i;
+                res[l] = static_cast<size_t>(i);
                 l++;
             }
         }
@@ -167,7 +167,7 @@ namespace keops {
     template<std::size_t N>
     HOST_DEVICE constexpr size_t sum_multiplies_array(const std::array<size_t, N> arr0, const std::array<size_t, N>  arr1) {
         size_t res = 0;
-        for (size_t i= 0; i < N; i++){
+        for (int i= 0; i < static_cast<int>(N); i++){
             res += arr0[i] * arr1[i];
         }
         return res;
@@ -176,7 +176,7 @@ namespace keops {
     template<std::size_t N, size_t M>
     HOST_DEVICE constexpr auto first_array(const std::array<size_t, M> arr) {
         std::array<size_t, N> res;
-        for (size_t i= 0; i < N; i++){
+        for (int i= 0; i < static_cast<int>(N); i++){
             res[i] = arr[i];
         }
         return res;
@@ -200,7 +200,7 @@ namespace keops {
         // initialize original index locations
         auto idx = make_range_array<0, N>();
 
-        for (size_t i=0; i < N; i++) {
+        for (int i=0; i < static_cast<int>(N); i++) {
             auto tmp =  std::min_element(idx.begin()+i, idx.end(), [&arr](size_t i1, size_t i2) {
                 return arr[i1] < arr[i2];
             });
