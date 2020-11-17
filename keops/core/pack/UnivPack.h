@@ -20,13 +20,13 @@ struct univpack {
   static const int SIZE = 0;  // len([])   = 0
 
   // helpers to print the univpack to the standard output
-  static void PrintAll(::std::ostream& str) {}
-  static void PrintComma(::std::ostream& str) {}
-  static void PrintId(::std::ostream& str) {
+  static void PrintAll(std::ostream& str) {}
+  static void PrintComma(std::ostream& str) {}
+  static void PrintId(std::ostream& str) {
     str << "univpack< >";
   }
 
-  static void PrintAllIndexSequence(::std::ostream& str) {}
+  static void PrintAllIndexSequence(std::ostream& str) {}
 
   template < class D >        // [].append_first(D) = [D]
   using PUTLEFT = univpack<D>;
@@ -39,11 +39,13 @@ struct univpack {
 // An helper class to convert index_sequence to Pack
 template<typename> struct packFromIndSeq{};
 
-template<size_t... Is> struct packFromIndSeq<::std::index_sequence<Is...>> {
+template<size_t... Is> struct packFromIndSeq<std::index_sequence<Is...>> {
 using type = pack<Is...>;
 };
 
-
+    template<size_t... Is> struct packFromIndSeq<const std::index_sequence<Is...>> {
+        using type = pack<Is...>;
+    };
 
 // A non-empty univpack, defined recursively as [C] + univpack( Args )
 template < class C, typename... Args >
@@ -52,25 +54,25 @@ struct univpack<C,Args...> {
   static const int SIZE = 1+sizeof...(Args); // len([C, ...]) = 1 + len([...])
 
   // helpers to print the univpack to the standard output
-  static void PrintComma(::std::ostream& str) {
-    str << " ," << ::std::endl;
+  static void PrintComma(std::ostream& str) {
+    str << " ," << std::endl;
   }
 
-  static void PrintAll(::std::ostream& str) {
+  static void PrintAll(std::ostream& str) {
     FIRST::PrintId(str);
     NEXT::PrintComma(str);
     NEXT::PrintAll(str);
   }
   // This function prints binaryOp with template...
-  static void PrintAllIndexSequence(::std::ostream& str) {
+  static void PrintAllIndexSequence(std::ostream& str) {
     str << ", {";
     packFromIndSeq<FIRST>::type::PrintAll(str);
     str << "}";
     NEXT::PrintAllIndexSequence(str);
   }
 
-  static void PrintId(::std::ostream& str) {
-    str << "univpack< " << ::std::endl;
+  static void PrintId(std::ostream& str) {
+    str << "univpack< " << std::endl;
     PrintAll(str);
     str << " >";
   }

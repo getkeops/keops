@@ -105,11 +105,9 @@ namespace keops {
         return res;
     }
 
-    template<std::size_t N, size_t M>
+    template<size_t N, size_t M>
     static constexpr auto concat_array(std::array<size_t, N> arr0, std::array<size_t, M> arr1) {
         std::array<size_t, N+M> res{};
-        //std::copy(arr0.begin(), arr0.end(), res.begin());
-        //std::copy(arr1.begin(), arr1.end(), res.begin()+N);
         for (size_t i=0; i<N; i++){
             res[i] = arr0[i];
         }
@@ -119,7 +117,7 @@ namespace keops {
         return res;
     }
 
-    template<std::size_t N, size_t M>
+    template<size_t N, size_t M>
     HOST_DEVICE static constexpr auto map_array(std::array<size_t, N> ind, std::array<size_t, M> arr1) {
         std::array<size_t, N> res{};
         for (size_t i= 0; i < N; i++){
@@ -128,7 +126,7 @@ namespace keops {
         return res;
     }
 
-    template<std::size_t N>
+    template<size_t N>
     HOST_DEVICE static constexpr auto permutate_array(std::array<size_t, N> perm, std::array<size_t, N> arr) {
         std::array<size_t, N> res{};
         for (size_t i= 0; i < N; i++){
@@ -260,7 +258,7 @@ namespace keops {
         static constexpr  std::array<size_t, keepdim_size> permute_arr = make_array(PERMUTE{});
         static constexpr std::array<size_t, keepdim_size > keepdim = concat_array(keepdim_a, keepdim_b);
 #if C_CONTIGUOUS
-        static constexpr std::array<size_t, keepdim_size > list_stride_keepdim = cumprod_array(permutate_array(permute_arr, keepdim);
+        static constexpr std::array<size_t, keepdim_size > list_stride_keepdim = cumprod_array(permutate_array(permute_arr, keepdim));
 #else
         static constexpr std::array<size_t, keepdim_size > list_stride_keepdim = cumprod_array( reverse_array(permutate_array(permute_arr, keepdim))) ;
 #endif

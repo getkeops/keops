@@ -49,11 +49,4 @@ F InvKeopsNS(KeopsNS< F > kf) {
 
 #define Ind(...) std::index_sequence< __VA_ARGS__ >
 
-template<std::size_t... I>
-constexpr auto make_array() {
-  return std::array<size_t, sizeof...(I)>{{I...}};
-}
-#define Indarr(...) make_array< __VA_ARGS__ >()
-
-
 }

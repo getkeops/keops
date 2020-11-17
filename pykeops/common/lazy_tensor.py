@@ -1334,7 +1334,7 @@ class GenericLazyTensor:
 
         dimres = np.array(dimfa).prod() * np.array(dimfb).prod()
         dimres /=  np.array(dimfa)[np.array(contfa)].prod() ** 2 if len(contfa) else 1
-        return self.binary(other, "TensorDot", dimres=int(dimres), dimcheck=None, opt_arg=opt_arg)
+        return self.binary(other, "TensorDotNoTao", dimres=int(dimres), dimcheck=None, opt_arg=opt_arg)
     
     def grad(self, other, gradin):
         r"""
