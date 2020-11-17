@@ -96,7 +96,8 @@ if(USE_CUDA)
   List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
   List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
   List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")
-
+  List(APPEND CUDA_NVCC_FLAGS "-std=c++17")
+  LIST(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr")
 endif()
 
 if(USE_CUDA)
