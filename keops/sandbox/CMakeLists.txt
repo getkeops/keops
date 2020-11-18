@@ -35,12 +35,12 @@ add_executable(
 
 if(USE_CUDA)
 
-  CUDA_add_executable(
+  add_executable(
     test_specific
     ${CMAKE_CURRENT_SOURCE_DIR}/test_specific.cu
   )
 
-  CUDA_add_executable(
+  add_executable(
     test_factorized
     ${CMAKE_CURRENT_SOURCE_DIR}/test_factorized.cu
   )

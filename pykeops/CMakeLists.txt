@@ -82,7 +82,7 @@ endif ()
 
 if (USE_CUDA) # ----------------- create shared lib (cuda)
 
-    CUDA_add_library(
+    add_library(
             keops${shared_obj_name} SHARED
             ${KEOPS_SRC}/core/link_autodiff.cu
             OPTIONS --pre-include=${shared_obj_name}.h
@@ -220,7 +220,7 @@ endif ()
 if (USE_CUDA)
 
     # --------------------------------------------------- CONV ---------------------------------------------------------
-    CUDA_add_library(
+    add_library(
             radial_kernel_conv_cuda SHARED
             ${KEOPS_SRC}/specific/radial_kernels/cuda_conv.cu
     )
@@ -259,7 +259,7 @@ if (USE_CUDA)
 
     # ------------------------------------------------ GRAD1CONV -------------------------------------------------------
 
-    CUDA_add_library(
+    add_library(
             radial_kernel_grad1conv_cuda SHARED
             ${KEOPS_SRC}/specific/radial_kernels/cuda_grad1conv.cu
     )
@@ -339,7 +339,7 @@ if (USE_CUDA)
 
         SET(name1 fshape_gpu${ext_name})
 
-        CUDA_add_library(
+        add_library(
                 ${name1} SHARED
                 ${KEOPS_SRC}/specific/shape_distance/${name1}.cu
         )
