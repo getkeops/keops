@@ -53,7 +53,7 @@ short int cast_Device_Id(_T Device_Id) {
 }
 
 const auto Error_msg_no_cuda =
-    "[KeOps] This KeOps shared object has been compiled without cuda support: \n 1) to perform computations on CPU, simply set tagHostDevice to 0\n 2) to perform computations on GPU, please recompile the formula with a working version of cuda.";
+    "[KeOps] This KeOps shared object has been compiled without cuda support: \n 1) to perform computations on CPU, simply set tagHostDevice to 0\n 2) to perform computations on GPU, please recompile the formula with a working version of cuda.";
 
 void check_tag(int tag, std::string msg);
 

@@ -4,7 +4,7 @@ from pykeops.torch import Genred, KernelSolve, default_dtype
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
 
 
-#  from pykeops.torch.generic.generic_red import GenredLowlevel
+# from pykeops.torch.generic.generic_red import GenredLowlevel
 
 
 def is_on_device(x):

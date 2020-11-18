@@ -64,7 +64,7 @@ y = y / 10 + np.array([.6,.6]).astype(dtype)
 
 from pykeops.numpy.cluster import grid_cluster
     
-eps = .05  # Size of our square bins
+eps = .05  # Size of our square bins
 
 Start  = time.time()
 start  = time.time()

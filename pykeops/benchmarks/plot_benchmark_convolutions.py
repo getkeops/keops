@@ -45,7 +45,7 @@ dtype = 'float32'
 #
 
 x = np.random.randn(M, D).astype(dtype)  # Target points
-y = np.random.randn(N, D).astype(dtype)  # Source points
+y = np.random.randn(N, D).astype(dtype)  # Source points
 b = np.random.randn(N, E).astype(dtype)  # Source signal
 sigma = np.array([2.4]).astype(dtype)    # Kernel radius
 
@@ -175,7 +175,7 @@ plt.violinplot(list(speed_pykeops.values()),
 
 plt.xticks([1, 2, 3, 4], kernel_to_test)
 plt.yscale('log')
-# plt.ylim((0, .01))
+# plt.ylim((0, .01))
 
 plt.grid(True)
 plt.xlabel('kernel type')

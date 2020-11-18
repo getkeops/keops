@@ -32,20 +32,20 @@ A = LazyTensor(a[None, None, :])
 B = LazyTensor(b[None, None, :])
 C = A.keops_tensordot(B, (4, 7), (7,), (1,), (0,)).sum_reduction(dim=1)
 
-#  print(C, c)
+# print(C, c)
 print("Compare the two MatVecMul implementations. All good?", torch.allclose(c.flatten(), C.flatten()))
 
 xi = torch.randn(4, dtype=torch.float64)
 dC = torch.autograd.grad(C, a, xi.reshape(1, 4), retain_graph=True)[0].view(-1)
 dc = torch.autograd.grad(c, a, xi, retain_graph=True)[0].view(-1)
 
-#  print(dC, dc)
+# print(dC, dc)
 print("Compare the two MatVecMul gradient wrt a implementations. All good?", torch.allclose(dc.flatten(), dC.flatten()))
 
 dC = torch.autograd.grad(C, b, xi.reshape(1, 4))[0].view(-1)
 dc = torch.autograd.grad(c, b, xi)[0].view(-1)
 
-#  print(dC, dc)
+# print(dC, dc)
 print("Compare the two MatVecMul gradient wrt b implementations. All good?", torch.allclose(dc.flatten(), dC.flatten()))
 
 print('-------------------------------')
@@ -78,7 +78,7 @@ print("Compare the two MatVecMul with sum gradient wrt a implementations. All go
 dCb = torch.autograd.grad(C, b, xi)[0].view(-1)
 dcb = torch.autograd.grad(c, b, xi)[0].view(-1)
 
-#  print(dC, dc)
+# print(dC, dc)
 print("Compare the two MatVecMul with sum gradient wrt b implementations. All good ?",
       torch.allclose(dcb.flatten(), dCb.flatten()))
 
@@ -97,14 +97,14 @@ A = LazyTensor(a[None, None, :])
 B = LazyTensor(b[None, None, :])
 C = A.keops_tensordot(B, (4, 7), (7, 2), (1,), (0,)).sum_reduction(dim=1)
 
-#  print(C, c)
+# print(C, c)
 print("Compare the two MatMul implementations. All good?", torch.allclose(c.flatten(), C.flatten()))
 
 xi = torch.randn(4 * 2, dtype=torch.float64)
 dC = torch.autograd.grad(C, a, xi.reshape(1, 4 * 2), retain_graph=True)[0].view(-1)
 dc = torch.autograd.grad(c, a, xi.reshape(4, 2), retain_graph=True)[0].view(-1)
 
-#  print(dC, dc)
+# print(dC, dc)
 print("Compare the two MatMul gradient wrt a implementations. All good?", torch.allclose(dc.flatten(), dC.flatten()))
 
 dCb = torch.autograd.grad(C, b, xi.reshape(1, 4 * 2))[0].view(-1)
@@ -163,8 +163,8 @@ print("Check gradient wrt x. All good ?", np.allclose(grad_keops.flatten(), grad
 grad_keops = torch.autograd.grad(sum_f_keops, y, e)[0].numpy()
 grad_torch = torch.autograd.grad(sum_f_torch2, y, Ee)[0].numpy()
 
-#  print(grad_keops[:1])
-#  print(grad_torch[:1])
+# print(grad_keops[:1])
+# print(grad_torch[:1])
 print("Check gradient wrt y. All good ?", np.allclose(grad_keops.flatten(), grad_torch.flatten()))
 
 print('-------------------------------')
@@ -198,16 +198,16 @@ Ee = e.reshape(M, 4, 3, 2)
 grad_keops = torch.autograd.grad(sum_f_keops, x, e, retain_graph=True)[0].squeeze().numpy()
 grad_torch = torch.autograd.grad(sum_f_torch2, x, Ee, retain_graph=True)[0].squeeze().numpy()
 
-#  print(grad_keops[0,:,:,:])
-#  print(grad_torch[0,:,:,:])
+# print(grad_keops[0,:,:,:])
+# print(grad_torch[0,:,:,:])
 print("Compare the two gradient x tensordot implementation. All good ?",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
 
 grad_keops = torch.autograd.grad(sum_f_keops, y, e, retain_graph=True)[0].squeeze().numpy()
 grad_torch = torch.autograd.grad(sum_f_torch2, y, Ee, retain_graph=True)[0].squeeze().numpy()
 
-#  print(grad_keops[0,:,:,:])
-#  print(grad_torch[0,:,:,:])
+# print(grad_keops[0,:,:,:])
+# print(grad_torch[0,:,:,:])
 print("Compare the two gradient y tensordot implementation. All good ?",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
 
@@ -356,7 +356,7 @@ print("Compare the two gradient x tensordot implementation. All good ????",
 grad_keops = torch.autograd.grad(sum_f_keops, y, e.reshape(M, -1))[0].numpy()
 grad_torch = torch.autograd.grad(sum_f_torch2, y, e)[0].numpy()
 # print(grad_keops)
-#  print(grad_torch)
+# print(grad_torch)
 print("Compare the two gradient y tensordot implementation. All good ????",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
 
@@ -420,12 +420,12 @@ y = torch.randn(N, 2, 4, requires_grad=True, dtype=torch.float64)
 dimfa, dimfb = x.shape[1:], y.shape[1:]
 contfa, contfb = [3], [2]
 keepfa, keepfb = [item - 1 for item in [1, 2, 3] if item not in contfa], [item for item in [1, 2] if item not in contfb]
-#  contfa, contfb = [2, 3], [1, 2]
+# contfa, contfb = [2, 3], [1, 2]
 n = len(dimfa) + len(dimfb) - 2 * len(contfa)
 # perm = [int(i) for i in torch.randperm(n)]
 perm = [2, 0, 1]
 # perm = [2, 1, 3, 0]
-#  perm = [1, 0]
+# perm = [1, 0]
 
 
 perm_torch = (0,) + tuple([(i + 1) for i in invert_permutation_numpy(perm)])
@@ -454,17 +454,17 @@ grad_torch = torch.autograd.grad(sum_f_torch2, x, e, retain_graph=True)[0].numpy
 print("Compare the two gradient x tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
 # print("Compare the two gradient x tensordot implementation. All good ????!",
-#        np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
+#       np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
 grad_keops = torch.autograd.grad(sum_f_keops, y, e.reshape(M, -1), retain_graph=True)[0].numpy()
 grad_torch = torch.autograd.grad(sum_f_torch2, y, e, retain_graph=True)[0].numpy()
 
-#  grad_torch2 = my_tensordort_perm(e, x, dims=([1,3], [1,2]), perm=[0,1,2,3]).permute(perm)
+# grad_torch2 = my_tensordort_perm(e, x, dims=([1,3], [1,2]), perm=[0,1,2,3]).permute(perm)
 # grad_torch2 = my_tensordort_perm(e, x, dims=([1,3], [1,2]), perm=perm)
 
 print("Compare the two gradient y tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
-#  print("Compare the two gradient y tensordot implementation. All good ????!",
-#        np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
+# print("Compare the two gradient y tensordot implementation. All good ????!",
+#       np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
 print('------------------------------------------')
 
 x = torch.randn(M, 2, 3, 4, requires_grad=True, dtype=torch.float64)
@@ -474,12 +474,12 @@ dimfa, dimfb = x.shape[1:], y.shape[1:]
 contfa, contfb = [3], [2]
 keepfa, keepfb = [item - 1 for item in [1, 2, 3] if item not in contfa], [item for item in [1, 2, 3] if
                                                                           item not in contfb]
-#  contfa, contfb = [2, 3], [1, 2]
+# contfa, contfb = [2, 3], [1, 2]
 n = len(dimfa) + len(dimfb) - 2 * len(contfa)
 # perm = [int(i) for i in torch.randperm(n)]
 perm = [0, 2, 3, 1]
 # perm = [2, 1, 3, 0]
-#  perm = [1, 0]
+# perm = [1, 0]
 
 
 perm_torch = (0,) + tuple([(i + 1) for i in invert_permutation_numpy(perm)])
@@ -501,14 +501,14 @@ print("Compare the two tensordot implementation. All good ????!!",
 # checking gradients
 e = torch.randn_like(sum_f_torch2)
 grad_keops = torch.autograd.grad(sum_f_keops, x, e.reshape(M, -1), retain_graph=True)[0].numpy()
-#  grad_torch2 = my_tensordort_perm(e, y, dims=([4,2], keepfb), perm=[0,1,2,3])
+# grad_torch2 = my_tensordort_perm(e, y, dims=([4,2], keepfb), perm=[0,1,2,3])
 
 grad_torch = torch.autograd.grad(sum_f_torch2, x, e, retain_graph=True)[0].numpy()
 
 print("Compare the two gradient x tensordot implementation. All good ????!",
       np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4))
-#  print("Compare the two gradient x tensordot implementation. All good ????!",
-#        np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
+# print("Compare the two gradient x tensordot implementation. All good ????!",
+#       np.allclose(grad_torch2.detach().numpy(), grad_torch, rtol=1e-4))
 
 
 grad_keops = torch.autograd.grad(sum_f_keops, y, e.reshape(M, -1), retain_graph=True)[0]
@@ -587,7 +587,7 @@ def my_tensordot2(x, y):
                                            xshape,
                                            yshape,
                                            (2, 0),  # (2,0,1),
-                                           (0, 1)  #  (0,3,2)
+                                           (0, 1)  # (0,3,2)
                                            )
     return f_keops.sum_reduction(dim=1)
 

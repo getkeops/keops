@@ -95,7 +95,7 @@ def gaussianconv_numpy(x, y, b):
 
 def gaussianconv_pytorch(x, y, b):
     D_xx = (x*x).sum(-1).unsqueeze(1)         # (N,1)
-    D_xy = torch.matmul( x, y.permute(1,0) )  # (N,D) @ (D,M) = (N,M)
+    D_xy = torch.matmul( x, y.permute(1,0) )  # (N,D) @ (D,M) = (N,M)
     D_yy = (y*y).sum(-1).unsqueeze(0)         # (1,M)
     D_xy = D_xx - 2*D_xy + D_yy
     K_xy = (-D_xy).exp()
