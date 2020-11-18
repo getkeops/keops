@@ -93,10 +93,13 @@ namespace keops {
     template<std::size_t N>
     static constexpr auto cumprod_array(std::array<size_t, N> arr) {
         std::array<size_t, N> res{};
-        res[N-1] = 1;
+        if (N >= 1) {
+            res[N - 1] = 1;
+        }
         if (N > 1) {
-            for (int i = static_cast<int>(N) - 2; i > -1; i--)
+            for (int i = static_cast<int>(N) - 2; i > -1; i--) {
                 res[i] = res[i + 1] * arr[i + 1];
+            }
         }
         return res;
     }
