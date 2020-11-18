@@ -85,7 +85,6 @@ if (USE_CUDA) # ----------------- create shared lib (cuda)
     add_library(
             keops${shared_obj_name} SHARED
             ${KEOPS_SRC}/core/link_autodiff.cu
-            OPTIONS --pre-include=${shared_obj_name}.h
     )
 
 else () # ----------------- create shared lib (cpp)
@@ -95,18 +94,19 @@ else () # ----------------- create shared lib (cpp)
             ${KEOPS_SRC}/core/link_autodiff.cpp
     )
 
-    target_compile_options(
-            keops${shared_obj_name} BEFORE
-            PRIVATE -include ${shared_obj_name}.h
-    )
-
-    # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
-    set_source_files_properties(
-            ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
-            OBJECT_DEPENDS ${shared_obj_name}.h
-    )
-
 endif ()
+
+
+target_compile_options(
+        keops${shared_obj_name} BEFORE
+        PRIVATE -include ${shared_obj_name}.h
+)
+
+# tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+set_source_files_properties(
+        ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
+        OBJECT_DEPENDS ${shared_obj_name}.h
+)
 
 # set name
 set_target_properties(
@@ -200,7 +200,7 @@ if (commandLine)
         Set(COMPILER_VERSION ${CMAKE_CXX_COMPILER_VERSION})
     endif ()
     file(APPEND ${PROJECT_BINARY_DIR}/../keops_hash.log
-            "# ${shared_obj_name} compiled on ${TODAY} with ${COMPILER} (${COMPILER_VERSION}):\n\n ${commandLine}\n cmake --build . --target ${shared_obj_name} --  VERBOSE=1\n\n# ----------------------------------------------------------------------\n")
+            "# ${shared_obj_name} compiled on ${TODAY} with ${COMPILER} (${COMPILER_VERSION}):\n\n ${commandLine}\n cmake --build . --target ${shared_obj_name} --  VERBOSE=1\n\n# ----------------------------------------------------------------------\n")
 endif ()
 
 

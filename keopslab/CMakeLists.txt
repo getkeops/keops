@@ -68,10 +68,9 @@ if(Matlab_FOUND)
 
   if(USE_CUDA)
 
-    CUDA_add_library(
+    add_library(
       keops${shared_obj_name} SHARED
       ${KEOPS_SRC}/core/link_autodiff.cu
-      OPTIONS --pre-include=${shared_obj_name}.h
     )
 
   else()
@@ -82,19 +81,19 @@ if(Matlab_FOUND)
       keops${shared_obj_name} SHARED
       ${KEOPS_SRC}/core/link_autodiff.cpp
     )
-
-    target_compile_options(
-      keops${shared_obj_name} BEFORE
-      PRIVATE -include ${shared_obj_name}.h
-    )
-
-    # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
-    set_source_files_properties(
-      ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
-      OBJECT_DEPENDS ${shared_obj_name}.h
-    )
-
   endif()
+
+
+  target_compile_options(
+    keops${shared_obj_name} BEFORE
+    PRIVATE -include ${shared_obj_name}.h
+  )
+
+  # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+  set_source_files_properties(
+    ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
+    OBJECT_DEPENDS ${shared_obj_name}.h
+  )
 
   # set name
   set_target_properties(keops${shared_obj_name} PROPERTIES
@@ -168,12 +167,12 @@ if(Matlab_FOUND)
   if(USE_CUDA)
 
     # --------------------------- radial kernel conv
-    CUDA_add_library(
+    add_library(
       radial_kernels_conv SHARED
       ${KEOPS_SRC}/specific/radial_kernels/cuda_conv.cu
     )
 
-    Add_library( # generate the string "g++ -c ..." but do not execute it
+    add_library( # generate the string "g++ -c ..." but do not execute it
       mex_file_conv OBJECT
       ${CMAKE_CURRENT_SOURCE_DIR}/specific/convolutions/radial_kernel_conv.cpp
       )
@@ -241,7 +240,7 @@ if(Matlab_FOUND)
       SET(mex_fshape_scp_name keops_fshape_scp${ext_name}_${KERNEL_GEOM}${KERNEL_SIG}${KERNEL_SPHERE})
 
       SET(name1 fshape_gpu${ext_name})
-      CUDA_add_library(
+      add_library(
         ${name1} SHARED
         ${KEOPS_SRC}/specific/shape_distance/${name1}.cu
       )
