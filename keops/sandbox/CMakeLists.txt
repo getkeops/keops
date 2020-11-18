@@ -13,16 +13,16 @@ if(NOT (APPLE))
     test_tensordot
     ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot.cpp
   )
+
+  add_executable(
+          notao_cpp
+          ${CMAKE_CURRENT_SOURCE_DIR}/notao.cpp
+  )
 endif()
 
 add_executable(
   test_factorized_cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/test_factorized.cpp
-)
-
-add_executable(
-        notao_cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/notao.cpp
 )
 
 add_executable(

@@ -226,7 +226,7 @@ constexpr auto array0 = make_array(i_seq);
 constexpr auto array1 = make_index_array<4>();
 constexpr std::array<size_t, 2> array2{0, 3};
 constexpr std::array<size_t, 4> array3{0, 3, 2, 1};
-constexpr std::array<size_t, 0> arrayEmpy;
+constexpr std::array<size_t, 0> arrayEmpy{};
 constexpr auto array10 = make_range_array<0, 4>();
 
 constexpr auto toto = concat_array(array0, array1);
