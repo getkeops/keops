@@ -183,7 +183,7 @@ namespace keops {
 
     template<std::size_t N, size_t M>
     HOST_DEVICE constexpr auto first_array(const std::array<size_t, M> arr) {
-        std::array<size_t, N> res;
+        std::array<size_t, N> res{};
         for (int i= 0; i < static_cast<int>(N); i++){
             res[i] = arr[i];
         }
