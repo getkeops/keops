@@ -10,7 +10,7 @@
   #define DIM_TRESHOLD_CHUNK 143
 #endif
 #ifndef SPECDIM_USE_CHUNK1
-  #define SPECDIM_USE_CHUNK1 80
+  #define SPECDIM_USE_CHUNK1 -1 // originally 80 but deactivated for release 1.4.2
 #endif
 #ifndef SPECDIM_USE_CHUNK2
   #define SPECDIM_USE_CHUNK2 109
