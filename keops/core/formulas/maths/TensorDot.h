@@ -274,6 +274,16 @@ struct tensordot_parameters {
     return compute_tensordot_indices_t< Func >(::std::forward< Func >(f));
   }
 
+
+    tensordot_parameters(){
+        printf("\nDIMFA: "); print_index_sequence(DIMFA{});
+        printf("DIMFB: "); print_index_sequence(DIMFB{});
+        printf("CONTFA: "); print_index_sequence(CONTFA{});
+        printf("CONTFB: "); print_index_sequence(CONTFB{});
+        printf("PERMUTE: "); print_index_sequence(PERMUTE{});
+
+        printf("-----------------------\n");
+    }
 };
 
 
@@ -296,6 +306,7 @@ struct TensorDot : BinaryOp< TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERM
   static_assert(tao::seq::prod< DIMFB >::value == B::DIM, "DIMB is not consistant with dimension of B");
 
   using parameters = tensordot_parameters< DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT >;
+  parameters pap = tensordot_parameters< DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT >{};
 
   static const int DIM = parameters::dimout;
 

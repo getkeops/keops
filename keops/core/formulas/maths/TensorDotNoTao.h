@@ -65,7 +65,15 @@ namespace keops {
 
     // Constexpr Array manipulation
 
-    template <auto& Arr, size_t... Is>
+    // Print an Index sequence
+
+    template < size_t... Is >
+    DEVICE void print_index_sequence(std::index_sequence< Is... >) {
+        (void) std::initializer_list< int >{(printf("%d ", Is), 0)...};
+        printf("\n");
+    }
+
+template <auto& Arr, size_t... Is>
     static constexpr auto make_seq_impl(std::index_sequence<Is...>) {
         using T = typename std::decay_t<decltype(Arr)>::value_type;
         return std::integer_sequence<T, Arr[Is]...>{};
@@ -208,11 +216,13 @@ namespace keops {
         // initialize original index locations
         auto idx = make_range_array<0, N>();
 
-        for (int i=0; i < static_cast<int>(N); i++) {
-            auto tmp =  std::min_element(idx.begin()+i, idx.end(), [&arr](size_t i1, size_t i2) {
-                return arr[i1] < arr[i2];
-            });
-            cstd::iter_swap(idx.begin() +i, tmp);
+        if (N>1){
+            for (int i=0; i < static_cast<int>(N); i++) {
+                auto tmp =  std::min_element(idx.begin()+i, idx.end(), [&arr](size_t i1, size_t i2) {
+                    return arr[i1] < arr[i2];
+                });
+                cstd::iter_swap(idx.begin() +i, tmp);
+            }
         }
         return idx;
     }
@@ -231,34 +241,52 @@ namespace keops {
     template < class DIMFA, class DIMFB, class CONTFA, class CONTFB, class PERMUTE >
     struct tensordot_parameters_arr{
 
-        // Left hand-side
+
         static constexpr auto contfa_arr = make_array(CONTFA{});
         static constexpr auto dimfa_arr = make_array(DIMFA{});
+        static constexpr size_t dimfa_size = DIMFA::size();
+        static constexpr size_t contfa_size = CONTFA::size();
 
-        static constexpr std::array<size_t, DIMFA::size() - CONTFA::size() > indices_keepdim_a = diff_array< DIMFA::size() >(contfa_arr); // tao::seq::make_index_sequence< tao::seq::impl::sequence_size< DIMFA >::value >, CONTFA >;
-        static constexpr std::array<size_t, DIMFA::size() - CONTFA::size() > keepdim_a = map_array(indices_keepdim_a, dimfa_arr);
-        static constexpr std::array<size_t, CONTFA::size() > contdim_a = map_array(contfa_arr, dimfa_arr);
+        static constexpr auto contfb_arr = make_array(CONTFB{});
+        static constexpr auto dimfb_arr = make_array(DIMFB{});
+        static constexpr size_t dimfb_size = DIMFB::size();
+        static constexpr size_t contfb_size = CONTFB::size();
+
+        static constexpr size_t keepdim_size = dimfa_size - contfa_size + dimfb_size - contfb_size;
+        static constexpr  std::array<size_t, keepdim_size> permute_arr = make_array(PERMUTE{});
+
+        // Left hand-side
+        static constexpr std::array<size_t, dimfa_size - contfa_size > indices_keepdim_a = diff_array< dimfa_size >(contfa_arr); // tao::seq::make_index_sequence< tao::seq::impl::sequence_size< DIMFA >::value >, CONTFA >;
+        static constexpr std::array<size_t, dimfa_size - contfa_size > keepdim_a = map_array(indices_keepdim_a, dimfa_arr);
+        static constexpr std::array<size_t, contfa_size > contdim_a = map_array(contfa_arr, dimfa_arr);
 
 #if C_CONTIGUOUS
-        static constexpr std::array<size_t, DIMFA::size()> list_stride_dim_a = cumprod_array(dimfa_arr);
+        static constexpr std::array<size_t, dimfa_size> list_stride_dim_a = cumprod_array(dimfa_arr);
 #else
-        static constexpr std::array<size_t, DIMFA::size()> list_stride_dim_a = cumprod_array(reverse_array(dimfa_arr));
+        static constexpr std::array<size_t, dimfa_size> list_stride_dim_a = cumprod_array(reverse_array(dimfa_arr));
 #endif
 
         // Right hand-side
-        static constexpr auto contfb_arr = make_array(CONTFB{});
-        static constexpr auto dimfb_arr = make_array(DIMFB{});
-
-        static constexpr std::array<size_t, DIMFB::size() - CONTFB::size() > indices_keepdim_b = diff_array< DIMFB::size() >(contfb_arr); // tao::seq::make_index_sequence< tao::seq::impl::sequence_size< DIMFA >{} >, CONTFA >;
-        static constexpr std::array<size_t, DIMFB::size() - CONTFB::size() > keepdim_b = map_array(indices_keepdim_b, dimfb_arr);
-        static constexpr std::array<size_t, CONTFB::size() > contdim_b = map_array(contfb_arr, dimfb_arr);
+        static constexpr std::array<size_t, dimfb_size - contfb_size > indices_keepdim_b = diff_array< dimfb_size >(contfb_arr); // tao::seq::make_index_sequence< tao::seq::impl::sequence_size< DIMFA >{} >, CONTFA >;
+        static constexpr std::array<size_t, dimfb_size - contfb_size > keepdim_b = map_array(indices_keepdim_b, dimfb_arr);
+        static constexpr std::array<size_t, contfb_size > contdim_b = map_array(contfb_arr, dimfb_arr);
 
 #if C_CONTIGUOUS
-        static constexpr std::array<size_t, DIMFB::size()> list_stride_dim_b = cumprod_array(dimfb_arr);
+        static constexpr std::array<size_t, dimfb_size> list_stride_dim_b = cumprod_array(dimfb_arr);
 #else
-        static constexpr std::array<size_t, DIMFB::size()> list_stride_dim_b = cumprod_array(reverse_array(dimfb_arr));
+        static constexpr std::array<size_t, dimfb_size> list_stride_dim_b = cumprod_array(reverse_array(dimfb_arr));
 #endif
-        // Convert to type
+
+        // Output
+        static constexpr std::array<size_t, keepdim_size > keepdim = concat_array(keepdim_a, keepdim_b);
+#if C_CONTIGUOUS
+        static constexpr std::array<size_t, keepdim_size > list_stride_keepdim = cumprod_array(permutate_array(permute_arr, keepdim));
+#else
+        static constexpr std::array<size_t, keepdim_size > list_stride_keepdim = cumprod_array(reverse_array(permutate_array(permute_arr, keepdim))) ;
+#endif
+        static constexpr size_t dimout = prod_array(keepdim);
+
+        // test
         static constexpr auto contdim_a_impl = make_seq<contdim_a>();
         using contdim_a_t = decltype(contdim_a_impl);
         static constexpr auto contdim_b_impl = make_seq<contdim_b>();
@@ -267,18 +295,6 @@ namespace keops {
         static_assert(std::is_same< contdim_a_t, contdim_b_t >::value,
                       "In TensorDot: contracting dimensions should be the same");
 
-        // Output
-        static constexpr size_t keepdim_size = DIMFA::size() - CONTFA::size() + DIMFB::size() - CONTFB::size();
-        static constexpr  std::array<size_t, keepdim_size> permute_arr = make_array(PERMUTE{});
-        static constexpr std::array<size_t, keepdim_size > keepdim = concat_array(keepdim_a, keepdim_b);
-#if C_CONTIGUOUS
-        static constexpr std::array<size_t, keepdim_size > list_stride_keepdim = cumprod_array(permutate_array(permute_arr, keepdim));
-#else
-        static constexpr std::array<size_t, keepdim_size > list_stride_keepdim = cumprod_array( reverse_array(permutate_array(permute_arr, keepdim))) ;
-#endif
-        static constexpr size_t dimout = prod_array(keepdim);
-
-        // test
         static constexpr auto ttmp = permutate_array(permute_arr, permute_arr);
         static constexpr auto test_impl = make_seq<ttmp>();
         using test_impl_t = decltype(test_impl);
@@ -291,44 +307,44 @@ namespace keops {
         // end test
 
         // Loop: in this code we choose to loop on the keepdims first and then on the contraction dims.
-        static constexpr std::array<size_t, keepdim_size + CONTFA::size() > loopdim = concat_array(keepdim, contdim_a);
+        static constexpr std::array<size_t, keepdim_size + contfa_size > loopdim = concat_array(keepdim, contdim_a);
 
         constexpr static size_t dimloop = prod_array(loopdim);
-        constexpr static size_t number_of_dimloop = DIMFA::size() - CONTFA::size() + DIMFB::size();
+        constexpr static size_t number_of_dimloop = dimfa_size - contfa_size + dimfb_size;
 
-        static constexpr std::array<size_t, DIMFA::size() > ala =
+        static constexpr std::array<size_t, dimfa_size > ala =
                 concat_array(make_range_array<0, keepdim_a.size() >(), make_range_array< keepdim.size(), number_of_dimloop>());
-        static constexpr std::array<size_t, DIMFA::size() > ali = concat_array(indices_keepdim_a, contfa_arr);
-        static constexpr std::array<size_t, DIMFA::size() > list_indices_a_intot = permutate_array(ali, ala);
+        static constexpr std::array<size_t, dimfa_size > ali = concat_array(indices_keepdim_a, contfa_arr);
+        static constexpr std::array<size_t, dimfa_size > list_indices_a_intot = permutate_array(ali, ala);
 
-        static constexpr std::array<size_t, DIMFB::size() > bla =
+        static constexpr std::array<size_t, dimfb_size > bla =
                 concat_array(make_range_array< keepdim_a.size(), keepdim.size()>(), make_range_array< keepdim.size(), number_of_dimloop>());
-        static constexpr std::array<size_t, DIMFB::size() > bli = concat_array(indices_keepdim_b, contfb_arr);
-        static constexpr std::array<size_t, DIMFB::size() > list_indices_b_intot = permutate_array(bli, bla);
+        static constexpr std::array<size_t, dimfb_size > bli = concat_array(indices_keepdim_b, contfb_arr);
+        static constexpr std::array<size_t, dimfb_size > list_indices_b_intot = permutate_array(bli, bla);
 
         // used to compute the Gradient
-        static constexpr std::array<size_t, DIMFA::size() - CONTFA::size() > list_indices_keepdim_a_inout = make_range_array< 0, keepdim_a.size() >();
-        static constexpr std::array<size_t, CONTFA::size() > reordered_contfa = permutate_array(sort_indexes_array(contfb_arr), contfa_arr);
-        static constexpr std::array<size_t, DIMFA::size() - CONTFA::size() > reordered_keepdim_a =
+        static constexpr std::array<size_t, dimfa_size - contfa_size > list_indices_keepdim_a_inout = make_range_array< 0, keepdim_a.size() >();
+        static constexpr std::array<size_t, contfa_size > reordered_contfa = permutate_array(sort_indexes_array(contfb_arr), contfa_arr);
+        static constexpr std::array<size_t, dimfa_size - contfa_size > reordered_keepdim_a =
                 permutate_array(sort_indexes_array(map_array(list_indices_keepdim_a_inout, permute_arr)), indices_keepdim_a );
-        static constexpr std::array<size_t, DIMFA::size() > moveaxis_a = concat_array(reordered_keepdim_a, reordered_contfa);
+        static constexpr std::array<size_t, dimfa_size > moveaxis_a = concat_array(reordered_keepdim_a, reordered_contfa);
 
-        static constexpr std::array<size_t, DIMFB::size() - CONTFB::size() >  list_indices_keepdim_b_inout = make_range_array< keepdim_a.size(), keepdim.size() >();
-        static constexpr std::array<size_t, CONTFB::size() >  reordered_contfb = permutate_array(sort_indexes_array(contfa_arr), contfb_arr);
-        static constexpr std::array<size_t, DIMFB::size() - CONTFB::size() >  reordered_keepdim_b =
+        static constexpr std::array<size_t, dimfb_size - contfb_size >  list_indices_keepdim_b_inout = make_range_array< keepdim_a.size(), keepdim.size() >();
+        static constexpr std::array<size_t, contfb_size >  reordered_contfb = permutate_array(sort_indexes_array(contfa_arr), contfb_arr);
+        static constexpr std::array<size_t, dimfb_size - contfb_size >  reordered_keepdim_b =
                 permutate_array(sort_indexes_array(map_array(list_indices_keepdim_b_inout, permute_arr)), indices_keepdim_b);
-        static constexpr std::array<size_t, DIMFB::size() > moveaxis_b = concat_array(reordered_keepdim_b, reordered_contfb);
+        static constexpr std::array<size_t, dimfb_size > moveaxis_b = concat_array(reordered_keepdim_b, reordered_contfb);
 
         //////////////////////////////////// cast to type
         static constexpr std::array< size_t, keepdim_size>  dimfa_grad = permutate_array(permute_arr, keepdim);
         static constexpr auto DIMFA_GRAD_imp = make_seq<dimfa_grad>();
         using DIMFA_GRAD = decltype(DIMFA_GRAD_imp);
 
-        static constexpr std::array< size_t, DIMFB::size() - CONTFB::size() > contfa_grad=map_array(list_indices_keepdim_b_inout, permute_arr);
+        static constexpr std::array< size_t, dimfb_size - contfb_size > contfa_grad=map_array(list_indices_keepdim_b_inout, permute_arr);
         static constexpr auto CONTFA_GRAD_imp = make_seq<contfa_grad>();
         using CONTFA_GRAD = decltype(CONTFA_GRAD_imp);
 
-        static constexpr std::array< size_t, DIMFA::size() - CONTFA::size() > contfb_grad=map_array(list_indices_keepdim_a_inout, permute_arr);
+        static constexpr std::array< size_t, dimfa_size - contfa_size > contfb_grad=map_array(list_indices_keepdim_a_inout, permute_arr);
         static constexpr auto CONTFB_GRAD_imp = make_seq<contfb_grad>();
         using CONTFB_GRAD = decltype(CONTFB_GRAD_imp);
 
@@ -348,15 +364,13 @@ namespace keops {
         using moveaxis_b_t = decltype(moveaxis_b_impl);
 
         /////////////////////////////////////
-        static constexpr size_t DIMFA_SIZE =  DIMFA::size();
-        static constexpr size_t DIMFB_SIZE =  DIMFB::size();
 
         template < class IND >
         DEVICE constexpr static tensordot_indices_arr compute_tensordot_indices_arr(IND) {
             auto ind_arr = make_array(IND{});
 
             // a_indices
-            std::array<size_t, DIMFA_SIZE > list_indices_a = map_array(list_indices_a_intot, ind_arr);
+            std::array<size_t, dimfa_size > list_indices_a = map_array(list_indices_a_intot, ind_arr);
 #if C_CONTIGUOUS
             size_t a_indices = sum_multiplies_array(list_stride_dim_a, list_indices_a);
 #else
@@ -364,7 +378,7 @@ namespace keops {
 #endif
 
             // b_indices
-            std::array<size_t, DIMFB_SIZE >  list_indices_b  = map_array(list_indices_b_intot, ind_arr);
+            std::array<size_t, dimfb_size >  list_indices_b  = map_array(list_indices_b_intot, ind_arr);
 #if C_CONTIGUOUS
             size_t b_indices = sum_multiplies_array(list_stride_dim_b, list_indices_b);
 #else
@@ -398,6 +412,16 @@ namespace keops {
             return compute_tensordot_indices_t_arr< Func >(std::forward< Func >(f));
         }
 
+        tensordot_parameters_arr(){
+            printf("\nDIMFA: "); print_index_sequence(DIMFA{});
+            printf("DIMFB: "); print_index_sequence(DIMFB{});
+            printf("CONTFA: "); print_index_sequence(CONTFA{});
+            printf("CONTFB: "); print_index_sequence(CONTFB{});
+            printf("PERMUTE: "); print_index_sequence(PERMUTE{});
+
+            printf("-----------------------\n");
+        }
+
     };
 
 /////////////////////////////////////////////////////////////////////////
@@ -416,6 +440,7 @@ namespace keops {
         static_assert(DIMFB::size() > 0, "Please provide a non empty DIMB");
 
         using parameters = tensordot_parameters_arr< DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT >;
+        parameters pap = tensordot_parameters_arr< DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT >{};
 
         static_assert(prod_array(parameters::dimfa_arr) == A::DIM, "DIMA is not consistant with dimension of A");
         static_assert(prod_array(parameters::dimfb_arr) == B::DIM, "DIMB is not consistant with dimension of B");
