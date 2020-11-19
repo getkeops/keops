@@ -115,6 +115,10 @@ pipeline {
 
         stage('Test Cuda') {
           agent { label 'matlab' }
+          environment { 
+            CXX="g++-8"
+            PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
+          }
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
