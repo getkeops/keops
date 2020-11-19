@@ -66,7 +66,7 @@ y = y/10 + dtype([.6,.6])
 
 from pykeops.torch.cluster import grid_cluster
     
-eps = .05  # Size of our square bins
+eps = .05  # Size of our square bins
 
 if use_cuda : torch.cuda.synchronize()
 Start  = time.time()

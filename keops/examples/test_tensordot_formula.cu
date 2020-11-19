@@ -41,16 +41,15 @@ void DispValues(__TYPE__ *x, int N, int dim) {
 
 int main() {
 
-  // In this part we define the symbolic variables of the function
-  auto x = Vi(0,2*3*2*2*4); 	 // x is the second variable and represents a 3D vector, "i"-indexed.
-  auto y = Vj(1,2*4*2*3*2*3); 	 // y is the third variable and represents a 3D vector, "j"-indexed.
+    // In this part we define the symbolic variables of the function
+    auto x = Vi(0, 3 * 12 * 12);   // x is the second variable and represents a 3D vector, "i"-indexed.
+    auto y = Vj(1, 12 * 12);   // y is the third variable and represents a 3D vector, "j"-indexed.
 
 
-  // symbolic expression of the function ------------------------------------------------------
+    // symbolic expression of the function ------------------------------------------------------
 
-  // here we define f = x : y in usual notations
-  // auto f = TensorDot(x,y, Ind(3,12,12), Ind(12,12), Ind(1,2), Ind(0,1));
-  auto f = TensorDot(x,y, Ind(2,3,2,2,4), Ind(2,4,2,3,2,3), Ind(4,0,2), Ind(1,4,2));
+    // here we define f = x : y in usual notations
+    auto f = TensorDot(x, y, Ind(3, 12, 12), Ind(12, 12), Ind(1, 2), Ind(0, 1));
 
   // We define the reduction operation on f. Here a sum reduction, performed over the "j" index, and resulting in a "i"-indexed variable
   auto Sum_f = Sum_Reduction(f,0);  // 0 means output of reduction will be "i"-indexed (0 means"i", 1 means "j")

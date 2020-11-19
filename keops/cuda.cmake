@@ -2,16 +2,31 @@
 #------------------------------FIND CUDA AND GPUs------------------------------------#
 #------------------------------------------------------------------------------------#
 
-# As of now, we use an ugly mix of old and new cmake methods to properly detect cuda, nvcc and the gpu arch...
+# As of now (nov. 2020), we use an ugly mix of old and new cmake methods to properly detect cuda, nvcc and the gpu arch...
 
 # set USE_CUDA to CUDA_FOUND, unless USE_CUDA value is enforced
 if(((DEFINED ENV{USE_CUDA}) AND (NOT ENV{USE_CUDA})) OR ((DEFINED USE_CUDA) AND (NOT USE_CUDA)))
   Set(USE_CUDA 0)
-
 else()
-  find_package(CUDA QUIET)
-  Set(USE_CUDA ${CUDA_FOUND})
+  include(CheckLanguage)
+  check_language(CUDA)
 
+  if(CMAKE_CUDA_COMPILER)
+    Set(USE_CUDA 1)
+
+    if(CMAKE_CUDA_HOST_COMPILER)
+      message(STATUS "The CUDA Host CXX Compiler is: ${CMAKE_CUDA_HOST_COMPILER}")
+    else()
+      message(STATUS "The CUDA Host CXX Compiler: ${CMAKE_CXX_COMPILER}")
+      set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+    endif()
+
+    enable_language(CUDA)
+
+  else()
+    message(STATUS "No CUDA support")
+    Set(USE_CUDA 0)
+  endif()
 endif()
 
 # second : we detect Gpu properties with a home-made script
@@ -38,7 +53,7 @@ if(USE_CUDA)
            "  return 0;\n"
            "}\n")
 
-      execute_process(COMMAND "${CUDA_NVCC_EXECUTABLE}" "--run" "${__cufile}"
+      execute_process(COMMAND "${CMAKE_CUDA_COMPILER}" "--run" "${__cufile}"
                       WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/CMakeFiles/"
                       RESULT_VARIABLE __nvcc_res OUTPUT_VARIABLE __nvcc_out
                       ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -73,30 +88,23 @@ if(USE_CUDA)
   add_definitions(-D_FORCE_INLINES)
   add_definitions(-DCUDA_BLOCK_SIZE=192)
 
-  set(CMAKE_CUDA_COMPILER ${CUDA_NVCC_EXECUTABLE})
-
-  enable_language(CUDA)
-
-  if(CMAKE_CUDA_HOST_COMPILER)
-    message(STATUS "The CUDA Host CXX Compiler: ${CMAKE_CUDA_HOST_COMPILER}")
-  else()
-    message(STATUS "The CUDA Host CXX Compiler: ${CMAKE_CXX_COMPILER}")
-    set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-  endif()
-
-
   # Options for nvcc
-  set(CMAKE_CUDA_ARCHITECTURES OFF) # arch gencode are directly written in CUDA_NVCC_FLAGS
-  CUDA_SELECT_NVCC_ARCH_FLAGS(out_variable "Auto")
 
   set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
-  set(CUDA_PROPAGATE_HOST_FLAGS ON)
 
-  List(APPEND CUDA_NVCC_FLAGS ${out_variable})
-  List(APPEND CUDA_NVCC_FLAGS "--use_fast_math")
-  List(APPEND CUDA_NVCC_FLAGS "--compiler-options=-fPIC")
-  List(APPEND CUDA_NVCC_FLAGS "-ccbin ${CMAKE_CUDA_HOST_COMPILER}")
 
+  # arch gencode are directly written in CMAKE_CUDA_FLAGS and use the "good old" way to detect the arch
+  set(CMAKE_CUDA_ARCHITECTURES OFF)
+  find_package(CUDA QUIET)
+  CUDA_SELECT_NVCC_ARCH_FLAGS(out_variable "Auto")
+  list(JOIN out_variable " " arch_flags)
+
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${arch_flags}")
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math")
+  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --compiler-options=-fPIC")
+  if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
+  endif()
 endif()
 
 if(USE_CUDA)

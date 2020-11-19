@@ -17,55 +17,82 @@
 #include "lib/sequences/include/tao/seq/multiplies.hpp"
 #include "lib/sequences/include/tao/seq/prod.hpp"
 #include "lib/sequences/include/tao/seq/exclusive_scan.hpp"
-#include "lib/sequences/include/tao/seq/contrib/permutate.hpp"
+// #include "lib/sequences/include/tao/seq/contrib/permutate.hpp"
 #include "lib/sequences/include/tao/seq/contrib/sort_index.hpp"
 
 #include "core/autodiff/BinaryOp.h"
 #include "core/pre_headers.h"
 
+#include "lib/sequences/include/tao/seq/map.hpp"
+#include "lib/sequences/include/tao/seq/sequence_helper.hpp"
+#include "lib/sequences/include/tao/seq/contrib/make_index_of_sequence.hpp"
+
+// Below there is two differents workaround for toa::seq and nvcc
+// First one is about permutate, which uses a direct ::size() but apparently gcc >= 8.*
+// is expecting a real integral_constant, hence the impl::sequence_size<>::value
+// Second there is a bug with expansion pack in nvcc in tao::seq::difference when
+// using concatenate meta function, here is the workaround.
+namespace tao
+{
+   namespace seq
+   {
+      template< typename I >
+      using inverse_t = make_index_of_sequence_t< I, make_index_sequence< impl::sequence_size< I >::value > >; 
+
+      template< typename I, typename S >
+      using permutate = map< inverse_t< I >, S >;
+
+      template< typename I, typename S >
+      using permutate_t = typename permutate< I, S >::type;
+
+      namespace impl 
+      {
+          template< typename, typename, typename >
+          struct difference;
+
+           template< typename T, T... As >
+          struct difference< T, integer_sequence< T >, integer_sequence< T, As... > >
+          {
+             using type = integer_sequence< T >;
+          };
+
+           template< typename T, T... As, T b, T... Bs >
+          struct difference< T, integer_sequence< T, b, Bs... >, integer_sequence< T, As... > >
+          {
+             constexpr static bool included = tao::seq::contains< T, b, As... >::value;
+             using tail = typename difference< T, integer_sequence< T, Bs... >, integer_sequence< T, As... > >::type;
+             using type = typename std::conditional<
+                included,
+                tail,
+                typename tao::seq::concatenate< integer_sequence< T, b >, tail >::type >::type;
+          };
+
+        }  // namespace impl
+
+        template< typename, typename >
+       struct difference;
+
+        template< typename TA, TA... As, typename TB, TB... Bs >
+       struct difference< integer_sequence< TA, As... >, integer_sequence< TB, Bs... > >
+       {
+         using CT = typename std::common_type< TA, TB >::type;
+
+           template< CT N >
+          using check = contains< CT, N, Bs... >;
+
+         // using type = concatenate_t< impl::conditional_t< check< As >::value, integer_sequence< CT >, integer_sequence< CT, As > >... >; // ERROR
+         using type = typename impl::difference< CT, integer_sequence< CT, As... >, integer_sequence< CT, Bs... > >::type; // OK
+       };
+
+        template< typename A, typename B >
+       using difference_t = typename difference< A, B >::type;
+
+     }  // namespace seq
+
+  }  // namespace tao
+
+
 // TODO : wait for a fix from tao::seq
-namespace tao {
-namespace seq {
-namespace impl {
-template < typename, typename, typename >
-struct difference;
-
-template < typename T, T... As >
-struct difference< T, integer_sequence< T >, integer_sequence< T, As... > > {
-  using type = integer_sequence< T >;
-};
-
-template < typename T, T... As, T b, T... Bs >
-struct difference< T, integer_sequence< T, b, Bs... >, integer_sequence< T, As... > > {
-  constexpr static bool included = tao::seq::contains< T, b, As... >::value;
-  using tail = typename difference< T, integer_sequence< T, Bs... >, integer_sequence< T, As... > >::type;
-  using type = typename ::std::conditional< included, tail, typename tao::seq::concatenate< integer_sequence< T, b >, tail >::type >::type;
-};
-
-}  // namespace impl
-
-template < typename, typename >
-struct difference;
-
-template < typename TA, TA... As, typename TB, TB... Bs >
-struct difference< integer_sequence< TA, As... >, integer_sequence< TB, Bs... > > {
-  using CT = typename ::std::common_type< TA, TB >::type;
-
-  template < CT N >
-  using check = contains< CT, N, Bs... >;
-
-  // ERROR THERE
-  // using type = concatenate_t< impl::conditional_t< check< As >::value, integer_sequence< CT >, integer_sequence< CT, As > >... >;
-  // OK
-  using type = typename impl::difference< CT, integer_sequence< CT, As... >, integer_sequence< CT, Bs... > >::type; // ERROR
-};
-
-template < typename A, typename B >
-using difference_t = typename difference< A, B >::type;
-
-}  // namespace seq
-
-}  // namespace tao
 
 namespace keops {
 
@@ -159,7 +186,7 @@ struct tensordot_parameters {
   using list_stride_dim_b_t = cum_prod< tao::seq::reverse_t< DIMFB>>;
 #endif
 
-  static_assert(::std::is_same< contdim_a_t, contdim_b_t >::value,
+  static_assert(std::is_same< contdim_a_t, contdim_b_t >::value,
                 "In TensorDot: contracting dimensions should be the same");
 
   // Output
@@ -171,7 +198,7 @@ struct tensordot_parameters {
 #endif
   constexpr static size_t dimout = tao::seq::prod< keepdim_t >::value;
 
-  static_assert(::std::is_same< tao::seq::permutate_t< PERMUTE, PERMUTE >, tao::seq::make_index_range< 0, keepdim_t::size()>>::value,
+  static_assert(std::is_same< tao::seq::permutate_t< PERMUTE, PERMUTE >, tao::seq::make_index_range< 0, keepdim_t::size()>>::value,
                 "In TensorDot: PERMUTE should be a permutation index_sequence.");
 
   // Loop: in this code we choose to loop on the keepdims first and then on the contraction dims.
@@ -295,13 +322,13 @@ struct TensorDot : BinaryOp< TensorDot, A, B, DIMFA, DIMFB, CONTFA, CONTFB, PERM
   template < class V, class GRADIN >
   using DiffT = Add<
       DiffTA< V, TensorDot< GRADIN, B,
-                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   // 3
+                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   //
                             DIMFB,                                                                                    // 4 2
                             tao::seq::map_t< typename parameters::list_indices_keepdim_b_inout, PERMUTEDIMOUT >,      // .
                             typename parameters::indices_keepdim_b_t,                                                 // .
                             typename parameters::moveaxis_a>>,                                                        // 1, 2 0
       DiffTB< V, TensorDot< GRADIN, A,
-                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   // 3
+                            tao::seq::permutate_t< PERMUTEDIMOUT, typename parameters::keepdim_t >,                   //
                             DIMFA,                                                                                    // 2, 3, 4
                             tao::seq::map_t< typename parameters::list_indices_keepdim_a_inout, PERMUTEDIMOUT >,      //0
                             typename parameters::indices_keepdim_a_t,                                                 //1

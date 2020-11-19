@@ -12,7 +12,7 @@ if(Threads_FOUND) # skip bench if pthread is not found
     
     if (USE_CUDA)
     
-        CUDA_add_executable(
+        add_executable(
             bench_grad1conv
             ${CMAKE_CURRENT_SOURCE_DIR}/bench_grad1conv.cu
         )

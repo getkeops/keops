@@ -70,10 +70,9 @@ endif()
 # ----------------- create shared lib (cuda)
 if(USE_CUDA)
   
-    CUDA_add_library(
+    add_library(
         keops${shared_obj_name} SHARED
         ${KEOPS_SRC_DIR}/core/link_autodiff.cu
-        OPTIONS --pre-include=${shared_obj_name}.h
     )
 
 # ----------------- create shared lib (cpp)
@@ -83,20 +82,19 @@ else()
         keops${shared_obj_name} SHARED
         ${KEOPS_SRC_DIR}/core/link_autodiff.cpp
     )
-
-    target_compile_options(
-        keops${shared_obj_name} BEFORE
-        PRIVATE -include ${shared_obj_name}.h
-    )
-
-    # tell Cmake to explicitly add the dependency: 
-    # keops is recompiled as soon as formula.h change.
-    set_source_files_properties(
-        ${KEOPS_SRC_DIR}/core/link_autodiff.cpp PROPERTIES
-        OBJECT_DEPENDS ${shared_obj_name}.h
-    )
-
 endif()
+
+
+target_compile_options(
+    keops${shared_obj_name} BEFORE
+    PRIVATE -include ${shared_obj_name}.h
+)
+
+# tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h change.
+set_source_files_properties(
+    ${KEOPS_SRC_DIR}/core/link_autodiff.cpp PROPERTIES
+    OBJECT_DEPENDS ${shared_obj_name}.h
+)
 
 # skip the full RPATH (~run path) for the build tree. We append $ORIGIN later
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)

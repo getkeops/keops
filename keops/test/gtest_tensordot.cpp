@@ -107,10 +107,10 @@ TEST(tensordot, two){
 #endif
   __TYPE__ s2d = 0;
   for(int i=0; i<2; i++) {
-    // std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
+    std::cout << out_keops[i] << "      " << out_loop[i] << std::endl;
     s2d += abs(out_keops[i] - out_loop[i]);
   }
-  EXPECT_LE(s2d,5e-10);
+  EXPECT_LE(s2d,5e-06);
 }
 
 

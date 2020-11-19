@@ -82,10 +82,9 @@ endif ()
 
 if (USE_CUDA) # ----------------- create shared lib (cuda)
 
-    CUDA_add_library(
+    add_library(
             keops${shared_obj_name} SHARED
             ${KEOPS_SRC}/core/link_autodiff.cu
-            OPTIONS --pre-include=${shared_obj_name}.h
     )
 
 else () # ----------------- create shared lib (cpp)
@@ -95,18 +94,19 @@ else () # ----------------- create shared lib (cpp)
             ${KEOPS_SRC}/core/link_autodiff.cpp
     )
 
-    target_compile_options(
-            keops${shared_obj_name} BEFORE
-            PRIVATE -include ${shared_obj_name}.h
-    )
-
-    # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
-    set_source_files_properties(
-            ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
-            OBJECT_DEPENDS ${shared_obj_name}.h
-    )
-
 endif ()
+
+
+target_compile_options(
+        keops${shared_obj_name} BEFORE
+        PRIVATE -include ${shared_obj_name}.h
+)
+
+# tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+set_source_files_properties(
+        ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
+        OBJECT_DEPENDS ${shared_obj_name}.h
+)
 
 # set name
 set_target_properties(
@@ -200,7 +200,7 @@ if (commandLine)
         Set(COMPILER_VERSION ${CMAKE_CXX_COMPILER_VERSION})
     endif ()
     file(APPEND ${PROJECT_BINARY_DIR}/../keops_hash.log
-            "# ${shared_obj_name} compiled on ${TODAY} with ${COMPILER} (${COMPILER_VERSION}):\n\n ${commandLine}\n cmake --build . --target ${shared_obj_name} --  VERBOSE=1\n\n# ----------------------------------------------------------------------\n")
+            "# ${shared_obj_name} compiled on ${TODAY} with ${COMPILER} (${COMPILER_VERSION}):\n\n ${commandLine}\n cmake --build . --target ${shared_obj_name} --  VERBOSE=1\n\n# ----------------------------------------------------------------------\n")
 endif ()
 
 
@@ -220,7 +220,7 @@ endif ()
 if (USE_CUDA)
 
     # --------------------------------------------------- CONV ---------------------------------------------------------
-    CUDA_add_library(
+    add_library(
             radial_kernel_conv_cuda SHARED
             ${KEOPS_SRC}/specific/radial_kernels/cuda_conv.cu
     )
@@ -259,7 +259,7 @@ if (USE_CUDA)
 
     # ------------------------------------------------ GRAD1CONV -------------------------------------------------------
 
-    CUDA_add_library(
+    add_library(
             radial_kernel_grad1conv_cuda SHARED
             ${KEOPS_SRC}/specific/radial_kernels/cuda_grad1conv.cu
     )
@@ -339,7 +339,7 @@ if (USE_CUDA)
 
         SET(name1 fshape_gpu${ext_name})
 
-        CUDA_add_library(
+        add_library(
                 ${name1} SHARED
                 ${KEOPS_SRC}/specific/shape_distance/${name1}.cu
         )

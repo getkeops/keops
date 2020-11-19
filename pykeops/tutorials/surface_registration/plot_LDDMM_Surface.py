@@ -190,7 +190,7 @@ fig.write_html(save_folder + 'data.html', auto_open=False)
 
 
 ############################################################################
-# .. raw:: html
+# .. raw:: html
 #
 #     <iframe src="../../_images/data.html" height="700px" width="100%"></iframe>
 #
@@ -234,7 +234,7 @@ nt = 15
 listpq = Shooting(p0, q0, Kv, nt=nt)
 
 ############################################################################
-# .. raw:: html
+# .. raw:: html
 #
 #     <iframe src="../../_images/results.html" height="700px" width="100%"></iframe>
 #

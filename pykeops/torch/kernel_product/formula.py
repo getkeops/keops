@@ -90,8 +90,8 @@ def _weighted_squared_distances(g, x, y):
         elif g_dim == D ** 2:  # G is a symmetric matrix
             G = g.view(1, 1, D, D)  # Shape (D**2) -> Shape (1,1,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
-            xmy_ = xmy.unsqueeze(2)  #  Shape (N,M,1,D)
-            Gxmy = (G * xmy_).sum(3)  #  Shape (N,M,D,D) -> (N,M,D)
+            xmy_ = xmy.unsqueeze(2)  #  Shape (N,M,1,D)
+            Gxmy = (G * xmy_).sum(3)  #  Shape (N,M,D,D) -> (N,M,D)
             return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G (x_i-y_j) >
         else:
             raise ValueError("[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
@@ -107,8 +107,8 @@ def _weighted_squared_distances(g, x, y):
         elif g_dim == D ** 2:  # G_i is a symmetric matrix
             G_i = g.view(-1, 1, D, D)  # Shape (N,D**2) -> Shape (N,1,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
-            xmy_ = xmy.unsqueeze(2)  #  Shape (N,M,1,D)
-            Gxmy = (G_i * xmy_).sum(3)  #  Shape (N,M,D,D) -> (N,M,D)
+            xmy_ = xmy.unsqueeze(2)  # Shape (N,M,1,D)
+            Gxmy = (G_i * xmy_).sum(3)  # Shape (N,M,D,D) -> (N,M,D)
             return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_i (x_i-y_j) >
 
         else:
@@ -125,8 +125,8 @@ def _weighted_squared_distances(g, x, y):
         elif g_dim == D ** 2:  # G_j is a symmetric matrix
             G_j = g.view(1, -1, D, D)  # Shape (M,D**2) -> Shape (1,M,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
-            xmy_ = xmy.unsqueeze(2)  #  Shape (N,M,1,D)
-            Gxmy = (G_j * xmy_).sum(3)  #  Shape (N,M,D,D) -> (N,M,D)
+            xmy_ = xmy.unsqueeze(2)  # Shape (N,M,1,D)
+            Gxmy = (G_j * xmy_).sum(3)  # Shape (N,M,D,D) -> (N,M,D)
             return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_j (x_i-y_j) >
 
         else:

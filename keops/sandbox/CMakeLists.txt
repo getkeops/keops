@@ -3,14 +3,21 @@ if(NOT (APPLE))
     test_tensordot_c14
     ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot_c14.cpp
   )
+  SET_PROPERTY(
+    TARGET test_tensordot_c14
+    PROPERTY CXX_STANDARD 14
+  )
+
 
   add_executable(
     test_tensordot
     ${CMAKE_CURRENT_SOURCE_DIR}/test_tensordot.cpp
   )
-  SET_PROPERTY(TARGET test_tensordot
-               PROPERTY CXX_STANDARD 17
-               )
+
+  add_executable(
+          notao_cpp
+          ${CMAKE_CURRENT_SOURCE_DIR}/notao.cpp
+  )
 endif()
 
 add_executable(
@@ -30,12 +37,12 @@ add_executable(
 
 if(USE_CUDA)
 
-  CUDA_add_executable(
+  add_executable(
     test_specific
     ${CMAKE_CURRENT_SOURCE_DIR}/test_specific.cu
   )
 
-  CUDA_add_executable(
+  add_executable(
     test_factorized
     ${CMAKE_CURRENT_SOURCE_DIR}/test_factorized.cu
   )

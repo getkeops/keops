@@ -39,7 +39,9 @@ pipeline {
 
         stage('Build Cuda') {
           agent { label 'cuda' }
-          environment { CXX="g++-8" }
+          environment { 
+            PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
+          }
           steps {
             echo 'Building..'
               sh 'git submodule update --init'
@@ -83,6 +85,8 @@ pipeline {
           agent { label 'cuda' }
           environment { 
             CXX="g++-8"
+            PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
+            PYKEOPS_VERBOSE=1
           }
           steps {
             echo 'Testing..'
@@ -157,7 +161,7 @@ pipeline {
         stage('Test Cuda') {
           agent { label 'cuda' }
           environment { 
-            CXX="g++-8"
+            PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
           }
           steps {
             echo 'Testing..'

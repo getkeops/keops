@@ -47,6 +47,6 @@ F InvKeopsNS(KeopsNS< F > kf) {
   return F();
 }
 
-#define Ind(...) index_sequence< __VA_ARGS__ >
+#define Ind(...) std::index_sequence< __VA_ARGS__ >
 
 }

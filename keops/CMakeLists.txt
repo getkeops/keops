@@ -33,10 +33,10 @@ include(headers.cmake)
 
 if(USE_CUDA)
 
-  CUDA_add_library(
+  add_library(
     ${shared_obj_name} SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cu
-    OPTIONS --pre-include=${shared_obj_name}.h
+    #OPTIONS --pre-include=${shared_obj_name}.h
   )
 
 else()
@@ -48,18 +48,19 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp
   )
 
-  target_compile_options(
-    ${shared_obj_name} BEFORE
-    PRIVATE -include ${shared_obj_name}.h
-  )
-
-  # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
-  set_source_files_properties(
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp PROPERTIES
-    OBJECT_DEPENDS ${shared_obj_name}.h
-  )
-
 endif()
+
+
+target_compile_options(
+        ${shared_obj_name} BEFORE
+        PRIVATE -include ${shared_obj_name}.h
+)
+
+# tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+set_source_files_properties(
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/link_autodiff.cpp PROPERTIES
+        OBJECT_DEPENDS ${shared_obj_name}.h
+)
 
 # shared_lib can be rename if the variable shared_lib_name is provided.
 set_target_properties(${shared_obj_name} PROPERTIES
