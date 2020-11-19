@@ -83,6 +83,7 @@ pipeline {
           agent { label 'cuda' }
           environment { 
             CXX="g++-8"
+            PYKEOPS_VERBOSE=1
           }
           steps {
             echo 'Testing..'
