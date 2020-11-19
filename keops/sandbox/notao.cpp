@@ -77,7 +77,7 @@ constexpr auto concat_array(const std::array<size_t, N> arr0, const std::array<s
 
 template<std::size_t N, size_t M>
 constexpr auto map_array(const std::array<size_t, N> ind, const std::array<size_t, M> arr1) {
-    std::array<size_t, N> res;
+    std::array<size_t, N> res{};
     for (size_t i= 0; i < N; i++){
         res[i] = arr1[ind[i]];
     }
@@ -86,7 +86,7 @@ constexpr auto map_array(const std::array<size_t, N> ind, const std::array<size_
 
 template<std::size_t N>
 constexpr auto permutate_array(const std::array<size_t, N> perm, const std::array<size_t, N> arr) {
-    std::array<size_t, N> res;
+    std::array<size_t, N> res{};
     for (size_t i= 0; i < N; i++){
         res[perm[i]] = arr[i];
     }
@@ -202,7 +202,7 @@ constexpr void quick_sort(RAIt first, RAIt last, Compare cmp = Compare{}) {
 }
 
 template <size_t N>
-constexpr auto sort_indexes_array(const std::array< size_t, N > arr) {
+constexpr auto sort_indexes_array2(const std::array< size_t, N > arr) {
 
     // initialize original index locations
     auto idx = make_index_array<N>();
@@ -219,18 +219,37 @@ constexpr auto sort_indexes_array(const std::array< size_t, N > arr) {
     return idx;
 }
 
-constexpr std::array<size_t, 3> a{7, 15, 28};
 
+template <size_t N>
+constexpr auto sort_indexes_array(std::array< size_t, N > arr) {
+
+    // initialize original index locations
+    std::array<size_t, N> res{};
+    const size_t max_elem = *std::max_element(arr.begin(), arr.end());
+
+    if (N>1){
+        for (int i=0; i < static_cast<int>(N); i++) {
+            auto tmp =  std::distance(arr.begin(),std::min_element(arr.begin(), arr.end()));
+            res[tmp] = i;
+            arr[tmp] += max_elem +1;
+        }
+    }
+    return res;
+}
+
+constexpr std::array<size_t, 3> a{7, 15, 28};
+constexpr std::array<size_t, 3> b{4, 0, 2};
 constexpr std::index_sequence<7,3,5,6> i_seq;
 constexpr auto array0 = make_array(i_seq);
 constexpr auto array1 = make_index_array<4>();
-constexpr std::array<size_t, 2> array2{0, 3};
+constexpr std::array<size_t, 4> array2{2, 0, 1, 3};
 constexpr std::array<size_t, 4> array3{0, 3, 2, 1};
 constexpr std::array<size_t, 0> arrayEmpy{};
 constexpr auto array10 = make_range_array<0, 4>();
 
 constexpr auto toto = concat_array(array0, array1);
 constexpr auto tata = prod_array(array0);
+constexpr auto eee = map_array(array2, array0);
 constexpr auto tutu = sort_indexes_array(array0);
 
 int main() {
@@ -249,7 +268,7 @@ int main() {
     std::cout << "CumProd Array0 : " << cumprod_array(array0) << std::endl;
     std::cout << "Reverse Array0 : " << reverse_array(array0) << std::endl;
     std::cout << "concat Array0+Array1 : " << toto << std::endl;
-    std::cout << "Map Array2 and Array1 :" << map_array(arrayEmpy, array0) << std::endl;
+    std::cout << "Map Array2 and Array1 :" << eee << std::endl;
     std::cout << "Permutate Array3 Array0 : " << permutate_array(array3, array0) << std::endl;
     std::cout << "Permutate Array0 Array0 : " << permutate_array(array3, array3) << std::endl;
     std::cout << "DiffArray Array0 Array0 : " << diff_array<8>(array0) << std::endl;

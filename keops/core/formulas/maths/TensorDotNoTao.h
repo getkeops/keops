@@ -7,6 +7,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <utility>
 #include <array>
@@ -69,8 +70,15 @@ namespace keops {
 
     template < size_t... Is >
     DEVICE void print_index_sequence(std::index_sequence< Is... >) {
-        (void) std::initializer_list< int >{(printf("%d ", Is), 0)...};
+        (void) std::initializer_list< int >{(printf("%lu ", Is), 0)...};
         printf("\n");
+    }
+
+    template <class T, std::size_t N>
+    std::ostream& operator<<(std::ostream& o, const std::array<T, N>& arr)
+    {
+        std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(o, " "));
+        return o;
     }
 
 template <auto& Arr, size_t... Is>
@@ -198,33 +206,20 @@ template <auto& Arr, size_t... Is>
         return res;
     }
 
-    namespace cstd {
-
-        template<class ForwardIt1, class ForwardIt2>
-        constexpr void iter_swap(ForwardIt1 a, ForwardIt2 b) {
-            auto temp = std::move(*a);
-            *a = std::move(*b);
-            *b = std::move(temp);
-        }
-
-    }
-
-
-    template <size_t N>
-    constexpr auto sort_indexes_array(const std::array< size_t, N > arr) {
+    template <size_t M, size_t N>
+    constexpr auto sort_indexes_array(std::array< size_t, N > arr) {
 
         // initialize original index locations
-        auto idx = make_range_array<0, N>();
+        std::array<size_t, N> res{};
 
         if (N>1){
             for (int i=0; i < static_cast<int>(N); i++) {
-                auto tmp =  std::min_element(idx.begin()+i, idx.end(), [&arr](size_t i1, size_t i2) {
-                    return arr[i1] < arr[i2];
-                });
-                cstd::iter_swap(idx.begin() +i, tmp);
+                auto tmp =  std::distance(arr.begin(),std::min_element(arr.begin(), arr.end()));
+                res[tmp] = i;
+                arr[tmp] += M +1;
             }
         }
-        return idx;
+        return res;
     }
 
 
@@ -324,15 +319,15 @@ template <auto& Arr, size_t... Is>
 
         // used to compute the Gradient
         static constexpr std::array<size_t, dimfa_size - contfa_size > list_indices_keepdim_a_inout = make_range_array< 0, keepdim_a.size() >();
-        static constexpr std::array<size_t, contfa_size > reordered_contfa = permutate_array(sort_indexes_array(contfb_arr), contfa_arr);
+        static constexpr std::array<size_t, contfa_size > reordered_contfa = permutate_array(sort_indexes_array<dimfb_size>(contfb_arr), contfa_arr);
         static constexpr std::array<size_t, dimfa_size - contfa_size > reordered_keepdim_a =
-                permutate_array(sort_indexes_array(map_array(list_indices_keepdim_a_inout, permute_arr)), indices_keepdim_a );
+                permutate_array(sort_indexes_array<dimfa_size - contfa_size>(map_array(list_indices_keepdim_a_inout, permute_arr)), indices_keepdim_a );
         static constexpr std::array<size_t, dimfa_size > moveaxis_a = concat_array(reordered_keepdim_a, reordered_contfa);
 
         static constexpr std::array<size_t, dimfb_size - contfb_size >  list_indices_keepdim_b_inout = make_range_array< keepdim_a.size(), keepdim.size() >();
-        static constexpr std::array<size_t, contfb_size >  reordered_contfb = permutate_array(sort_indexes_array(contfa_arr), contfb_arr);
+        static constexpr std::array<size_t, contfb_size >  reordered_contfb = permutate_array(sort_indexes_array<dimfa_size>(contfa_arr), contfb_arr);
         static constexpr std::array<size_t, dimfb_size - contfb_size >  reordered_keepdim_b =
-                permutate_array(sort_indexes_array(map_array(list_indices_keepdim_b_inout, permute_arr)), indices_keepdim_b);
+                permutate_array(sort_indexes_array<dimfb_size - contfb_size>(map_array(list_indices_keepdim_b_inout, permute_arr)), indices_keepdim_b);
         static constexpr std::array<size_t, dimfb_size > moveaxis_b = concat_array(reordered_keepdim_b, reordered_contfb);
 
         //////////////////////////////////// cast to type
@@ -411,7 +406,7 @@ template <auto& Arr, size_t... Is>
         static DEVICE auto compute_tensordot_indices_apply_arr(Func &&f) {
             return compute_tensordot_indices_t_arr< Func >(std::forward< Func >(f));
         }
-
+/*
         tensordot_parameters_arr(){
             printf("\nDIMFA: "); print_index_sequence(DIMFA{});
             printf("DIMFB: "); print_index_sequence(DIMFB{});
@@ -419,9 +414,19 @@ template <auto& Arr, size_t... Is>
             printf("CONTFB: "); print_index_sequence(CONTFB{});
             printf("PERMUTE: "); print_index_sequence(PERMUTE{});
 
+
+            std::cout << "list_indices_keepdim_a_inout: " << list_indices_keepdim_a_inout << std::endl;
+            std::cout << "reordered_contfa: " << reordered_contfa << std::endl;
+            std::cout << "reordered_keepdim_a: " << reordered_keepdim_a << std::endl;
+            std::cout << "moveaxis_a: " << moveaxis_a << std::endl;
+            std::cout << "list_indices_keepdim_b_inout: " << list_indices_keepdim_b_inout << std::endl;
+            std::cout << "reordered_contfb: " << reordered_contfb << std::endl;
+            std::cout << "reordered_keepdim_b: " << reordered_keepdim_b << std::endl;
+            std::cout << "moveaxis_b: " << moveaxis_b << std::endl;
+
             printf("-----------------------\n");
         }
-
+*/
     };
 
 /////////////////////////////////////////////////////////////////////////
@@ -440,14 +445,14 @@ template <auto& Arr, size_t... Is>
         static_assert(DIMFB::size() > 0, "Please provide a non empty DIMB");
 
         using parameters = tensordot_parameters_arr< DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT >;
-        parameters pap = tensordot_parameters_arr< DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT >{};
+        //parameters pap = tensordot_parameters_arr< DIMFA, DIMFB, CONTFA, CONTFB, PERMUTEDIMOUT >{};
 
         static_assert(prod_array(parameters::dimfa_arr) == A::DIM, "DIMA is not consistant with dimension of A");
         static_assert(prod_array(parameters::dimfb_arr) == B::DIM, "DIMB is not consistant with dimension of B");
 
         static const int DIM = parameters::dimout;
 
-        static void PrintIdString(std::stringstream &str) { str << "::"; }
+        static void PrintIdString(std::stringstream &str) { str << ":"; }
 
         template < typename TYPE >
         static DEVICE INLINE void Operation(TYPE *out, TYPE *inA, TYPE *inB) {
