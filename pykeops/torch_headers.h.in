@@ -1,6 +1,6 @@
 # pragma once
 
 // include order matters...
-#include <torch/extension.h>
+#include <torch/python.h>
 
 #include <@shared_obj_name@.h>
