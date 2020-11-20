@@ -90,20 +90,20 @@ if(USE_CUDA)
 
   # Options for nvcc
 
-  set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
-
-
   # arch gencode are directly written in CMAKE_CUDA_FLAGS and use the "good old" way to detect the arch
   set(CMAKE_CUDA_ARCHITECTURES OFF)
   find_package(CUDA QUIET)
   CUDA_SELECT_NVCC_ARCH_FLAGS(out_variable "Auto")
-  list(JOIN out_variable " " arch_flags)
+  string(REPLACE ";" " " arch_flags "${out_variable}")
 
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} ${arch_flags}")
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math")
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --compiler-options=-fPIC")
   if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
+    set(CMAKE_CUDA_STANDARD 17)
+  else()
+    set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
   endif()
 endif()
 
