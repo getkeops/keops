@@ -6,12 +6,12 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 10000, 10000, 3, 1000
+M, N, D, DV = 10000, 10000, 3, 1
 
 
 test_grad = False
 device_id = 'cuda'
-do_warmup = True
+do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id)/math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id)/math.sqrt(D)
@@ -32,7 +32,7 @@ def fun(x,y,b,backend):
     #print("out:",out.flatten()[:10])
     return out
     
-backends = ["keops","keops_old"] # "torch"
+backends = ["keops","torch"] # "keops_old"
     
 out = []
 for backend in backends:
