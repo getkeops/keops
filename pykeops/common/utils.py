@@ -66,8 +66,12 @@ def create_and_lock_build_folder():
         def wrapper_filelock(*args, **kwargs):
             # get build folder name
             bf = args[0].build_folder
+            
             # create build folder
             os.makedirs(bf, exist_ok=True)
+            
+            # create build folder and copy template build files in it
+            #shutil.copytree('/home/glaunes/Bureau/getkeops/keops/pykeops/build_template',bf)
 
             # create a file lock to prevent multiple compilations at the same time
             with open(os.path.join(bf, 'pykeops_build2.lock'), 'w') as f:

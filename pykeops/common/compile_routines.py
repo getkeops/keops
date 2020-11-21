@@ -16,6 +16,8 @@ def run_and_display(args, build_folder, msg=''):
     """
     os.makedirs(build_folder, exist_ok=True)
     try:
+        #print('\n'.join(args))
+        #aaaa
         proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
         if pykeops.config.verbose:
             print(proc.stdout.decode('utf-8'))
@@ -61,7 +63,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
                     build_folder,
                     msg="CMAKE")
-
+    aaaaaa
     run_and_display(["cmake", "--build", ".", "--target", dllname, "--", "VERBOSE=1"], build_folder, msg="MAKE")
 
     print('Done.')
