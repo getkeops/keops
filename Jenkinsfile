@@ -113,7 +113,7 @@ pipeline {
     stage('Test KeOpsLab') {
       //parallel {
 
-        stage('Test Cuda') {
+        //stage('Test Cuda') {
           agent { label 'matlab' }
           environment { 
             CXX="g++-8"
@@ -128,7 +128,7 @@ pipeline {
                  matlab -nodisplay -r "r=runtests('generic_test.m'),exit(sum([r(:).Failed]))"
               '''
           }
-        }
+        //}
 
       //}
     }

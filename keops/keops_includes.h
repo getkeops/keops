@@ -82,7 +82,6 @@
 #include "core/formulas/maths/Rsqrt.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/GradMatrix.h"
-//#if ((__CUDACC_VER_MAJOR__ >= 11) and (__CUDACC_VER_MINOR__ >= 1))
 #if ((__CUDACC_VER_MAJOR__ * 1000 + __CUDACC_VER_MINOR__ * 100 + __CUDACC_VER_BUILD__) >= 11100)
     #include "core/formulas/maths/TensorDotNoTao.h"
 #else
