@@ -245,7 +245,7 @@ array_t_out launch_keops(int tag1D2D,
     }
     
     default: {
-      keops_error("[KeOps] Inconsistant values for tagHostDevice, tagCpuGpu, tagRanges, tag1D2D...");
+      keops_error("[KeOps] Inconsistent values for tagHostDevice, tagCpuGpu, tagRanges, tag1D2D...");
       throw std::runtime_error("A dummy error to avoid return-type warning");
     }
   }
