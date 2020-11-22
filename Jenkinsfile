@@ -110,30 +110,6 @@ pipeline {
     }*/
 
 // ----------------------------------------------------------------------------------------
-    stage('Test KeOpsLab') {
-      //parallel {
-
-        //stage('Test Cuda') {
-          agent { label 'matlab' }
-          environment { 
-            CXX="g++-8"
-            PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
-          }
-          steps {
-            echo 'Testing..'
-              //sh 'git submodule update --init'
-              sh '''
-                 cd keopslab/test
-                 export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
-                 matlab -nodisplay -r "r=runtests('generic_test.m'),exit(sum([r(:).Failed]))"
-              '''
-          }
-        //}
-
-      //}
-    }
-
-// ----------------------------------------------------------------------------------------
     stage('Test RKeOps') {
       parallel {
 
@@ -147,7 +123,7 @@ pipeline {
               '''
           }
         }
-        
+
         stage('Test Mac') {
           agent { label 'macos' }
           environment {
@@ -164,7 +140,7 @@ pipeline {
 
         stage('Test Cuda') {
           agent { label 'cuda' }
-          environment { 
+          environment {
             PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
           }
           steps {
@@ -179,6 +155,27 @@ pipeline {
 
       }
     }
+
+// ----------------------------------------------------------------------------------------
+    stage('Test KeOpsLab') {
+      //parallel {
+
+        //stage('Test Cuda') {
+          agent { label 'matlab' }
+          steps {
+            echo 'Testing..'
+              //sh 'git submodule update --init'
+              sh '''
+                 cd keopslab/test
+                 export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
+                 matlab -nodisplay -r "r=runtests('generic_test.m'),exit(sum([r(:).Failed]))"
+              '''
+          }
+        //}
+
+      //}
+    }
+
 
 
 // ----------------------------------------------------------------------------------------
