@@ -14,7 +14,7 @@ pipeline {
   stages {
 
 // ----------------------------------------------------------------------------------------
-    stage('Test KeOps++') {
+    /*stage('Test KeOps++') {
       parallel {
 
         stage('Build in Linux') {
@@ -51,11 +51,11 @@ pipeline {
         }
 
       }
-    }
+    }*/
 
 
 // ----------------------------------------------------------------------------------------
-    stage('Test PyKeOps') {
+    /*stage('Test PyKeOps') {
       parallel {
 
         stage('Test Linux') {
@@ -107,7 +107,7 @@ pipeline {
         }
 
       }
-    }
+    }*/
 
 // ----------------------------------------------------------------------------------------
     stage('Test KeOpsLab') {
@@ -121,7 +121,7 @@ pipeline {
           }
           steps {
             echo 'Testing..'
-              sh 'git submodule update --init'
+              //sh 'git submodule update --init'
               sh '''
                  cd keopslab/test
                  export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
