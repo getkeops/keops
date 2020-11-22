@@ -14,7 +14,7 @@ pipeline {
   stages {
 
 // ----------------------------------------------------------------------------------------
-    /*stage('Test KeOps++') {
+    stage('Test KeOps++') {
       parallel {
 
         stage('Build in Linux') {
@@ -39,9 +39,6 @@ pipeline {
 
         stage('Build Cuda') {
           agent { label 'cuda' }
-          environment { 
-            PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
-          }
           steps {
             echo 'Building..'
               sh 'git submodule update --init'
@@ -51,11 +48,11 @@ pipeline {
         }
 
       }
-    }*/
+    }
 
 
 // ----------------------------------------------------------------------------------------
-    /*stage('Test PyKeOps') {
+    stage('Test PyKeOps') {
       parallel {
 
         stage('Test Linux') {
@@ -70,9 +67,6 @@ pipeline {
 
         stage('Test Mac') {
           agent { label 'macos' }
-          environment {
-            PATH="/Users/ci/miniconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
-          }
           steps {
             echo 'Testing...'
               sh 'git submodule update --init'
@@ -83,11 +77,6 @@ pipeline {
 
         stage('Test Cuda') {
           agent { label 'cuda' }
-          environment { 
-            CXX="g++-8"
-            PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
-            PYKEOPS_VERBOSE=1
-          }
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
@@ -107,7 +96,7 @@ pipeline {
         }
 
       }
-    }*/
+    }
 
 // ----------------------------------------------------------------------------------------
     stage('Test RKeOps') {
@@ -126,9 +115,6 @@ pipeline {
 
         stage('Test Mac') {
           agent { label 'macos' }
-          environment {
-            PATH="/Users/ci/miniconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
-          }
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
@@ -140,9 +126,6 @@ pipeline {
 
         stage('Test Cuda') {
           agent { label 'cuda' }
-          environment {
-            PATH="/usr/local/bin:/usr/bin:/opt/cuda/bin"
-          }
           steps {
             echo 'Testing..'
               sh 'git submodule update --init'
@@ -164,7 +147,7 @@ pipeline {
           agent { label 'matlab' }
           steps {
             echo 'Testing..'
-              //sh 'git submodule update --init'
+              sh 'git submodule update --init'
               sh '''
                  cd keopslab/test
                  export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
