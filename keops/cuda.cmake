@@ -84,6 +84,9 @@ if(USE_CUDA)
     add_definitions(${gpu_compute_props})
   endif()
 
+  # Include dirs
+  include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+
   # Template macros.
   add_definitions(-D_FORCE_INLINES)
   add_definitions(-DCUDA_BLOCK_SIZE=192)
@@ -103,11 +106,10 @@ if(USE_CUDA)
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
     set(CMAKE_CUDA_STANDARD 17)
   else()
-    set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
+    set(CMAKE_CUDA_STANDARD 14)
   endif()
-endif()
 
-if(USE_CUDA)
+# Set the macro variable
   add_definitions(-DUSE_CUDA=1)
 else()
   add_definitions(-DUSE_CUDA=0)
