@@ -1,5 +1,6 @@
 import importlib.util
 import os
+import sys
 
 import pykeops.config
 from pykeops.common.compile_routines import compile_generic_routine
@@ -47,4 +48,6 @@ class LoadKeOps:
         #         "is fine.".format(
         #             pykeops.config.bin_folder, self.dll_name,
         #             os.path.dirname(importlib.util.find_spec(self.dll_name).origin)))
-        return importlib.import_module(self.dll_name)
+        os.chdir(pykeops.config.bin_folder+'/'+self.dll_name+'.dir')
+        sys.path.insert(0, '')
+        return importlib.import_module('libKeOpstorchXXXtemplateXXX')#self.dll_name)

@@ -3,6 +3,7 @@ import functools
 import importlib.util
 import os
 import shutil
+import sys
 
 import pykeops.config
 
@@ -12,9 +13,12 @@ c_type = dict(float16="half2", float32="float", float64="double")
 def module_exists(dllname):
     if not os.path.exists(pykeops.config.bin_folder):
         return False
-    spec = importlib.util.find_spec(dllname)
-    return (spec is not None) and (os.path.samefile(os.path.dirname(spec.origin), pykeops.config.bin_folder))
-
+    sys.path.append(pykeops.config.bin_folder+'/'+dllname+'.dir')
+    spec = importlib.util.find_spec('libKeOpstorchXXXtemplateXXX')    
+    if spec is not None:
+        return True #os.path.samefile(os.path.dirname(spec.origin), pykeops.config.bin_folder)
+    else:
+        return None
 
 def axis2cat(axis):
     """
@@ -70,9 +74,6 @@ def create_and_lock_build_folder():
             # create build folder
             os.makedirs(bf, exist_ok=True)
             
-            # create build folder and copy template build files in it
-            #shutil.copytree('/home/glaunes/Bureau/getkeops/keops/pykeops/build_template',bf)
-
             # create a file lock to prevent multiple compilations at the same time
             with open(os.path.join(bf, 'pykeops_build2.lock'), 'w') as f:
                 with FileLock(f):

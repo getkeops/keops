@@ -22,7 +22,7 @@ def fun(x,y,b,backend):
         x = LazyTensor(x)
         y = LazyTensor(y)
     Dxy = ((x-y)**2).sum(dim=2) 
-    Kxy = (- Dxy).cos() 
+    Kxy = (- Dxy).sin() 
     if backend=="keops_old":
         out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DENABLE_FINAL_CHUNKS=0'])
     else:
