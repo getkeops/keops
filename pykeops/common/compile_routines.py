@@ -50,14 +50,14 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     target_tag = str.replace(dllname,'libKeOpstorch','')
     
     def replace_string_in_file(filename, source_string, target_string):
-        subprocess.run(['/bin/sed -i "s/'+source_string+'/'+target_string+'/g" '+filename],shell=True)
+        subprocess.run(['LC_ALL=C sed -i.bak "s/'+source_string+'/'+target_string+'/g" '+filename+' && rm '+filename+'.bak'],shell=True)
 
     def change_tag_build_folder(foldername, source_tag, target_tag):
         commands = [
             'mv '+foldername+'/CMakeFiles/keopslibKeOpstorch'+source_tag+'.dir '+foldername+'/CMakeFiles/keopslibKeOpstorch'+target_tag+'.dir',
             "rename 's/"+source_tag+"/"+target_tag+"/' "+foldername+"/CMakeFiles/keopslibKeOpstorch"+target_tag+".dir/keops/core/*",
             'mv '+foldername+'/CMakeFiles/libKeOpstorch'+source_tag+'.dir '+foldername+'/CMakeFiles/libKeOpstorch'+target_tag+'.dir',
-            "grep -rli '"+source_tag+"' "+foldername+"/* | xargs -i@ sed -i 's/"+source_tag+"/"+target_tag+"/g' @",
+            "LANG=C grep -rli '"+source_tag+"' "+foldername+"/* | xargs -i@ sed -i 's/"+source_tag+"/"+target_tag+"/g' @",
             "rename 's/"+source_tag+"/"+target_tag+"/' "+foldername+"/*"
             ]
         for c in commands:
@@ -65,16 +65,17 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
             
     template_tag = 'XXXtemplateXXX'
     template_loc_tag = 'LOCtemplateLOC'
-    template_build_folder = '/home/glaunes/Bureau/build-libKeOpstorch'
-    template_include_file = '/home/glaunes/Bureau/libKeOpstorch.h'
-    template_dllname = 'libKeOpstorch'+template_tag
+    template_name = 'libKeOpstorch'
+    templates_folder = pykeops.config.bin_folder
+    template_build_folder = templates_folder + '/build-' + template_name
+    pykeops_root_folder = pykeops.config.bin_folder + '/../'
+    template_include_file = pykeops_root_folder + '/' + template_name + '.h'
+    template_dllname = template_name + template_tag
     
     if not os.path.isdir(template_build_folder):
         
         command_line = ["cmake", pykeops.config.script_folder,
                      "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
-                     #"-DFORMULA_OBJ=" + "'{}'".format(formula),
-                     #"-DVAR_ALIASES=" + "'{}'".format(alias_string),
                      "-Dshared_obj_name=" + "'{}'".format(template_dllname),
                      "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
                      "-DPYTHON_LANG=" + "'{}'".format(lang),
@@ -108,12 +109,12 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
         subprocess.run(['rm -f '+template_build_folder+'/'+template_dllname+'.h'], shell=True)
         subprocess.run(['rm -f '+template_build_folder+'/'+template_dllname+'.so'], shell=True)
         #change_tag_build_folder(template_build_folder, target_tag, template_tag)
-        subprocess.run(["grep -rli '"+target_tag+"' "+template_build_folder+"/* | xargs -i@ sed -i 's/"+target_tag+"/"+template_loc_tag+"/g' @"],shell=True)
+        subprocess.run(["export LC_ALL=C && export LANG=C && export LC_CTYPE=C && grep -rli '"+target_tag+"' "+template_build_folder+"/* | xargs -I@ sed -i '' 's/"+target_tag+"/"+template_loc_tag+"/g' @"],shell=True)
     
     
     
     subprocess.run(['cp -rf '+template_build_folder+'/* '+build_folder],shell=True)
-    subprocess.run(["grep -rli '"+template_loc_tag+"' "+build_folder+"/* | xargs -i@ sed -i 's/"+template_loc_tag+"/"+target_tag+"/g' @"],shell=True)
+    subprocess.run(["export LC_ALL=C && export LANG=C && export LC_CTYPE=C && grep -rli '"+template_loc_tag+"' "+build_folder+"/* | xargs -I@ sed -i.bak 's/"+template_loc_tag+"/"+target_tag+"/g' @"],shell=True)
     #change_tag_build_folder(build_folder, template_tag, target_tag)
         
     
@@ -121,6 +122,11 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     # creating keops formula include file :
     target_include_file = build_folder+'/'+template_dllname+'.h'
     subprocess.run(['cp '+template_include_file+' '+target_include_file], shell=True)
+    
+    dllfolder = build_folder+'/../'+dllname+'.dir'
+    subprocess.run(['mkdir '+dllfolder],shell=True)
+    subprocess.run(['mv '+build_folder+'/'+template_dllname+'*.so '+dllfolder],shell=True)
+    
     replace_pairs = [
                     ('@__TYPE__@', c_type[dtype]),
                     ('@FORMULA_OBJ@', formula),
@@ -131,13 +137,11 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                     ]
     for p in replace_pairs:
         replace_string_in_file(target_include_file, p[0], '{}'.format(p[1]))
-        
-    pykeops.config.verbose = True
+            
+    #pykeops.config.verbose = True
+    subprocess.run(['cd ' + build_folder + ' && make clean'], shell=True)
     run_and_display(["cmake", "--build", ".", "--target", 'keops'+template_dllname, "--", "VERBOSE=1"], build_folder, msg="MAKE")
     
-    dllfolder = build_folder+'/../'+dllname+'.dir'
-    subprocess.run(['mkdir '+dllfolder],shell=True)
-    subprocess.run(['mv '+build_folder+'/'+template_dllname+'*.so '+dllfolder],shell=True)
     subprocess.run(['mv '+build_folder+'/../'+template_dllname+'*.so '+dllfolder],shell=True)
     #subprocess.run(['mv '+dllfolder+'/'+template_dllname+'.cpython-38-x86_64-linux-gnu.so '+dllfolder+'/'+dllname+'.cpython-38-x86_64-linux-gnu.so '],shell=True)
     
