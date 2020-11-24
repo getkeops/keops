@@ -21,8 +21,8 @@ def fun(x,y,b,backend):
     if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    Dxy = ((x+y)**2).sum(dim=2) 
-    Kxy = (- Dxy).sin() 
+    Dxy = ((x-y)**2).sum(dim=2) 
+    Kxy = (- Dxy).cos() 
     if backend=="keops_old":
         out = LazyTensor.__matmul__(Kxy,b,optional_flags=['-DENABLE_FINAL_CHUNKS=0'])
     else:

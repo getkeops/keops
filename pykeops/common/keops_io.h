@@ -17,7 +17,7 @@ array_t generic_red(
         py::tuple py_ranges,  // () if no "sparsity" ranges are given (default behavior)
                               // Otherwise, ranges is a 6-uple of (integer) array_t
                               // ranges = (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
-                              // as documented in the doc on sparstiy and clustering.
+                              // as documented in the doc on sparsity and clustering.
         py::args py_args) {
   
 //////////////////////////////////////////////////////////////
