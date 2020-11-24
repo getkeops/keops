@@ -1,7 +1,7 @@
 """
-=========
-Multi GPU 
-=========
+=============
+GPU Selection
+=============
 
 On multi-device clusters,
 let's see how to make use of several Gpus for further speedups
