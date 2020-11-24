@@ -109,7 +109,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
         subprocess.run(['rm -f '+template_build_folder+'/'+template_dllname+'.h'], shell=True)
         subprocess.run(['rm -f '+template_build_folder+'/'+template_dllname+'.so'], shell=True)
         #change_tag_build_folder(template_build_folder, target_tag, template_tag)
-        subprocess.run(["export LC_ALL=C && export LANG=C && export LC_CTYPE=C && grep -rli '"+target_tag+"' "+template_build_folder+"/* | xargs -I@ sed -i '' 's/"+target_tag+"/"+template_loc_tag+"/g' @"],shell=True)
+        subprocess.run(["export LC_ALL=C && export LANG=C && export LC_CTYPE=C && grep -rli '"+target_tag+"' "+template_build_folder+"/* | xargs -I@ sed -i.bak 's/"+target_tag+"/"+template_loc_tag+"/g' @"],shell=True)
     
     
     
