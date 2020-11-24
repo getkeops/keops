@@ -48,12 +48,19 @@ pybind11_files = [
     'pybind11/include/pybind11/stl.h',
     'pybind11/include/pybind11/stl_bind.h',
     'pybind11/CMakeLists.txt',
+    'pybind11/tools/cmake_uninstall.cmake.in',
+    'pybind11/tools/FindCatch.cmake',
+    'pybind11/tools/FindEigen3.cmake',
     'pybind11/tools/FindPythonLibsNew.cmake',
-    'pybind11/tools/pybind11Tools.cmake',
+    'pybind11/tools/pybind11Common.cmake',
     'pybind11/tools/pybind11Config.cmake.in',
+    'pybind11/tools/pybind11NewTools.cmake',
+    'pybind11/tools/pybind11Tools.cmake',
+    'pybind11/tools/setup_global.py.in',
+    'pybind11/tools/setup_main.py.in',
 ]
 
-tao_seq_files = import_files('keops/lib/sequences/include/tao/seq/')
+tao_seq_files = import_files('keops/lib/sequences/include/tao/seq/') + import_files('keops/lib/sequences/include/tao/seq/contrib/')
 
 setup(
     name='pykeops',
