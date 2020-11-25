@@ -20,7 +20,7 @@ def get_gpu_number():
         else:
             break
     else:
-        print("[pyKeOps]: no cuda detected.")
+        print("[pyKeOps]: Warning, no cuda detected. Switching to cpu only.")
         return 0  # raise
 
     nGpus = ctypes.c_int()
@@ -28,14 +28,16 @@ def get_gpu_number():
 
     result = cuda.cuInit(0)
     if result != CUDA_SUCCESS:
-        cuda.cuGetErrorString(result, ctypes.byref(error_str))
-        print("[pyKeOps]: cuInit failed with error code %d: %s" % (result, error_str.value.decode()))
+        # cuda.cuGetErrorString(result, ctypes.byref(error_str))
+        # print("[pyKeOps]: cuInit failed with error code %d: %s" % (result, error_str.value.decode()))
+        print("[pyKeOps]: Warning, cuda was detected, but driver API could not be initialized. Switching to cpu only.")
         return 0
 
     result = cuda.cuDeviceGetCount(ctypes.byref(nGpus))
     if result != CUDA_SUCCESS:
-        cuda.cuGetErrorString(result, ctypes.byref(error_str))
-        print("[pyKeOps]: cuDeviceGetCount failed with error code %d: %s" % (result, error_str.value.decode()))
+        # cuda.cuGetErrorString(result, ctypes.byref(error_str))
+        # print("[pyKeOps]: cuDeviceGetCount failed with error code %d: %s" % (result, error_str.value.decode()))
+        print("[pyKeOps]: Warning, cuda was detected, driver API has been initialized, but no working GPU has been found. Switching to cpu only.")
         return 0
 
     return nGpus.value
