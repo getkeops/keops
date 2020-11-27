@@ -1,4 +1,4 @@
-* v1.4.2 - Nov 8, 2020
+* v1.4.2 - Nov 27, 2020
     - Refactor pykeops LazyTensor class
     - Add multi gpu example with pykeops
     - pykeops' kernel_product module is deprecated
