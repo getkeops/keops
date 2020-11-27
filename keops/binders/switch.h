@@ -4,6 +4,16 @@
 #include "binders/utils.h"
 #include "binders/checks.h"
 
+extern "C" {
+int GetFormulaConstants(int*);
+int GetIndsI(int*);
+int GetIndsJ(int*);
+int GetIndsP(int*);
+int GetDimsX(int*);
+int GetDimsY(int*);
+int GetDimsP(int*);
+};
+
 #if !USE_HALF
 extern "C" {
 int CpuReduc(int, int, __TYPE__*, __TYPE__**);
@@ -140,16 +150,33 @@ array_t_out launch_keops(int tag1D2D,
                          array_t* args,
                          int nranges = 0,
                          index_t* ranges = {}) {
+							
+  int formula_constants[9]; 
+  GetFormulaConstants(formula_constants);
+  int nminargs = formula_constants[0];
+  int nvars = formula_constants[4];
+  int nvarsI = formula_constants[5];
+  int nvarsJ = formula_constants[6];
+  int nvarsP = formula_constants[7];
+  
+  std::vector<int> indsI(nvarsI), indsJ(nvarsJ), indsP(nvarsP);
+  GetIndsI(indsI.data());
+  GetIndsJ(indsJ.data());
+  GetIndsP(indsP.data());
+  std::vector<int> dimsX(nvarsI), dimsY(nvarsJ), dimsP(nvarsP);
+  GetDimsX(dimsX.data());
+  GetDimsY(dimsY.data());
+  GetDimsP(dimsP.data());
   
   keops_binders::check_tag(tag1D2D, "1D2D");
   keops_binders::check_tag(tagCpuGpu, "CpuGpu");
   keops_binders::check_tag(tagHostDevice, "HostDevice");
   
-  keops_binders::check_nargs(nargs);
+  keops_binders::check_nargs(nargs, nminargs);
   short int deviceId_casted = cast_Device_Id(deviceId);
-  
-  Sizes< array_t > SS(nargs, args);
 
+  Sizes< array_t > SS(nargs, args, formula_constants, indsI.data(), indsJ.data(), indsP.data(), dimsX.data(), dimsY.data(), dimsP.data());
+  
   array_t_out result = (tagHostDevice == 0) ? allocate_result_array< array_t_out, __TYPE__ >(SS.shape_out, SS.nbatchdims)
                                             : allocate_result_array_gpu< array_t_out, __TYPE__ >(SS.shape_out, SS.nbatchdims, deviceId_casted);
   __TYPE__* result_ptr = get_data< array_t_out, __TYPE__ >(result);
@@ -161,8 +188,8 @@ array_t_out launch_keops(int tag1D2D,
   Ranges< array_t, index_t > RR(SS, nranges, ranges);
   
   // get the pointers to data to avoid a copy
-  __TYPE__* args_ptr[keops::NARGS];
-  for (int i = 0; i < keops::NARGS; i++)
+  __TYPE__* args_ptr[nvars];
+  for (int i = 0; i < nvars; i++)
     args_ptr[i] = get_data< array_t, __TYPE__ >(args[i]);
   
   // Create a decimal word to avoid nested conditional below

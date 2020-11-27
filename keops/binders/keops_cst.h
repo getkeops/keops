@@ -1,37 +1,44 @@
 #pragma once
 
-namespace keops {
+extern "C" {
+int GetFormulaConstants(int*);
+int GetIndsI(int*);
+int GetIndsJ(int*);
+int GetIndsP(int*);
+int GetDimsX(int*);
+int GetDimsY(int*);
+int GetDimsP(int*);
+};
+
+namespace keops_binders {
 
 /////////////////////////////////////////////////////////////////////////////////
 //                           Keops                                             //
 /////////////////////////////////////////////////////////////////////////////////
 
-using FF = F::F; // F::F is formula inside reduction (ex if F is SumReduction<Form> then F::F is Form)
+int formula_constants[9]; 
+int dummy1 = GetFormulaConstants(formula_constants);
+int nminargs = formula_constants[0];
+int tagIJ = formula_constants[1];
+int pos_first_argI = formula_constants[2];
+int pos_first_argJ= formula_constants[3];
+int nvars = formula_constants[4];
+int nvarsI = formula_constants[5];
+int nvarsJ = formula_constants[6];
+int nvarsP = formula_constants[7];
+int dimout = formula_constants[8];
 
-using VARSI = typename FF::template VARS< 0 >;    // list variables of type I used in formula F
-using VARSJ = typename FF::template VARS< 1 >;    // list variables of type J used in formula F
-using VARSP = typename FF::template VARS< 2 >;    // list variables of type parameter used in formula F
+std::vector<int> indsI(nvarsI), indsJ(nvarsJ), indsP(nvarsP);
+int dummy2 = GetIndsI(indsI.data());
+int dummy3 = GetIndsJ(indsJ.data());
+int dummy4 = GetIndsP(indsP.data());
+std::vector<int> dimsX(nvarsI), dimsY(nvarsJ), dimsP(nvarsP);
+int dummy5 = GetDimsX(dimsX.data());
+int dummy6 = GetDimsY(dimsY.data());
+int dummy7 = GetDimsP(dimsP.data());
 
-using DIMSX = GetDims< VARSI >;
-using DIMSY = GetDims< VARSJ >;
-using DIMSP = GetDims< VARSP >;
 
-using INDSI = GetInds< VARSI >;
-using INDSJ = GetInds< VARSJ >;
-using INDSP = GetInds< VARSP >;
 
-using INDS = ConcatPacks <ConcatPacks< INDSI, INDSJ >, INDSP>;
-
-const int NARGSI = VARSI::SIZE; // number of I variables used in formula F
-const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
-const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
-
-const int NMINARGS = F::NMINARGS;
-
-const int DIMOUT = F::DIM;
-
-const int TAGIJ = F::tagI;
-
-const std::string f = PrintReduction< F >();
+//const std::string f = PrintReduction< F >();
 
 }

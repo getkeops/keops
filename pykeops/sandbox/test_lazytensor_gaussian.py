@@ -10,7 +10,7 @@ M, N, D, DV = 10000, 10000, 3, 1
 
 
 test_grad = False
-device_id = 'cuda'
+device_id = 'cuda' if torch.cuda.is_available() else 'cpu'
 do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id)/math.sqrt(D)
