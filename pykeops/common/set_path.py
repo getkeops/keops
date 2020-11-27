@@ -35,6 +35,9 @@ def set_bin_folder(bf_user=None, append_to_python_path=True):
     if not bin_folder.endswith(os.path.sep):
         bin_folder += os.path.sep
 
+    # Create the bin_folder dir here... as importing a non existing dir makes python not happy...
+    os.makedirs(bin_folder, exist_ok=True)
+
     # Save the path and append in python path
     if append_to_python_path:
         while pykeops.config.bin_folder in sys.path:
