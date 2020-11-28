@@ -193,6 +193,24 @@ template< typename array_t >
 void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
 //void check_ranges(int nargs, array_t* args) {
 
+    printf("nargs=%d, nvars=%d, nminargs=%d\n",nargs,nvars,nminargs);
+    for(int i=0; i<nvarsI; i++) {
+   	 printf("dimsX(%d)=%d, ",i,dimsX[i]);
+   	 printf("indsI(%d)=%d, ",i,indsI[i]);
+    }
+    printf("\n");
+    for(int i=0; i<nvarsJ; i++) {
+   	 printf("dimsY(%d)=%d, ",i,dimsY[i]);
+   	 printf("indsJ(%d)=%d, ",i,indsJ[i]);
+    }
+    printf("\n");
+    for(int i=0; i<nvarsP; i++) {
+   	 printf("dimsP(%d)=%d, ",i,dimsP[i]);
+   	 printf("indsP(%d)=%d, ",i,indsP[i]);
+    }
+    printf("\n");
+    printf("dimout=%d\n",dimout);
+	
   // Check the compatibility of all tensor shapes ==================================
   if (nminargs > 0) {
     
