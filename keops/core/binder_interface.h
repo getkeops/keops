@@ -3,6 +3,11 @@ using namespace keops;
 
 // Interface with binders : we define functions to communicate properties of the formula to the binders
 
+extern "C" int GetFormulaString(std::string &out) {
+	out = PrintReduction<F>();
+	return 0;
+}
+	
 extern "C" int GetFormulaConstants(int *out) {
 	
     constexpr int POS = std::max(F::POS_FIRST_ARGI, F::POS_FIRST_ARGJ);
@@ -13,18 +18,17 @@ extern "C" int GetFormulaConstants(int *out) {
 	if(F::tagI==0) {
 		out[2] = F::POS_FIRST_ARGI;
 		out[3] = F::POS_FIRST_ARGJ;
-		out[5] = F::NVARSI;
-		out[6] = F::NVARSJ;
+		out[4] = F::NVARSI;
+		out[5] = F::NVARSJ;
 	}
 	else {
 		out[2] = F::POS_FIRST_ARGJ;
 		out[3] = F::POS_FIRST_ARGI;
-		out[5] = F::NVARSJ;
-		out[6] = F::NVARSI;
+		out[4] = F::NVARSJ;
+		out[5] = F::NVARSI;
 	}
-	out[4] = F::NVARS;
-	out[7] = F::NVARSP;
-	out[8] = F::DIM;
+	out[6] = F::NVARSP;
+	out[7] = F::DIM;
 	return 0;
 }
 

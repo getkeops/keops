@@ -83,10 +83,8 @@ m.doc() = "pyKeOps: KeOps for numpy through pybind11.";
 
 m.def("genred_numpy", &generic_red <__NUMPYARRAY__, __RANGEARRAY__>, "Entry point to keops - numpy version.");
 
-m.attr("tagIJ") = keops::TAGIJ;
-m.attr("dimout") = keops::DIMOUT;
-m.attr("formula") = keops::f;
-m.attr("compiled_formula") = xstr(keops::FORMULA_OBJ_STR);
-m.attr("compiled_aliases") = xstr(keops::VAR_ALIASES_STR);
+m.attr("tagIJ") = keops_binders::keops_tagIJ;
+m.attr("dimout") = keops_binders::keops_dimout;
+m.attr("formula") = keops_binders::keops_formula_string;
 }
 

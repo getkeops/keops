@@ -15,10 +15,10 @@ namespace keops_binders {
 //                    Sanity checks on args
 /////////////////////////////////////////////////////////////////////////////////
 
-void check_nargs(int narg, int nminargs) {
-  if (narg < nminargs)
+void check_nargs(int narg, int keops_nminargs) {
+  if (narg < keops_nminargs)
     keops_error("[KeOps] Wrong number of args : is " + std::to_string(narg)
-                + " but should be at least " + std::to_string(nminargs)
+                + " but should be at least " + std::to_string(keops_nminargs)
                 + " in formula.");
 }
 
@@ -45,27 +45,9 @@ template< typename array_t >
 class Sizes {
 public:
   // constructors
-  Sizes(int _nargs, array_t* args, int *formula_constants, int* _indsI, int* _indsJ, int* _indsP, int* _dimsX, int* _dimsY, int* _dimsP) {
+  Sizes(int _nargs, array_t* args) {
 	    
     nargs = _nargs;
-		
-	nminargs = formula_constants[0];
-	tagIJ = formula_constants[1];
-	pos_first_argI = formula_constants[2];
-	pos_first_argJ= formula_constants[3];
-	nvars = formula_constants[4];
-	nvarsI = formula_constants[5];
-	nvarsJ = formula_constants[6];
-	nvarsP = formula_constants[7];
-	dimout = formula_constants[8];
-	
-	indsI = _indsI;
-	indsJ = _indsJ;
-	indsP = _indsP;
-	
-	dimsX = _dimsX;
-	dimsY = _dimsY;
-	dimsP = _dimsP;
 
     // fill shapes wit "batch dimensions" [A, .., B], the table will look like:
     //
@@ -85,11 +67,11 @@ public:
     _shape_out.resize(nbatchdims + 3);
     #if C_CONTIGUOUS
     std::copy(_shapes.begin(), _shapes.begin() + nbatchdims + 3, _shape_out.begin());// Copy the "batch dimensions"
-    _shape_out.erase(_shape_out.begin() + nbatchdims + (1 - tagIJ));
+    _shape_out.erase(_shape_out.begin() + nbatchdims + (1 - keops_tagIJ));
     #else
     std::reverse_copy(_shapes.begin(), _shapes.begin() + nbatchdims + 3,
                       _shape_out.begin());// Copy the "batch dimensions"
-    _shape_out.erase(_shape_out.begin() + 1 + tagIJ);
+    _shape_out.erase(_shape_out.begin() + 1 + keops_tagIJ);
     #endif
     
     shape_out = &_shape_out[0];
@@ -110,14 +92,6 @@ public:
   
   // attributs
   int nargs;
-  int tagIJ;
-  int pos_first_argI, pos_first_argJ;
-  int nvars;
-  int nminargs;
-  int nvarsI, nvarsJ, nvarsP;
-  int *indsI, *indsJ, *indsP;
-  int *dimsX, *dimsY, *dimsP;
-  int dimout;
   int nx, ny;
   int M, N;
   int nbatchdims;
@@ -145,12 +119,11 @@ private:
 template< typename array_t >
 void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
 
-  int pos = std::max(pos_first_argI, pos_first_argJ);
+  int pos = std::max(keops_pos_first_argI, keops_pos_first_argJ);
 
-  if ((nvars > 0) && (pos > -1)) {
+  if ((nargs > 0) && (pos > -1)) {
     // Are we working in batch mode? Infer the answer from the first arg =============
-    nbatchdims =  get_ndim(args[pos]);  // Number of dims of the first tensor
-    nbatchdims -= 2;
+    nbatchdims =  get_ndim(args[pos]) - 2;  // numbe of batch dimensiosn = Number of dims of the first tensor - 2
 
     if (nbatchdims < 0) {
       keops_error("[KeOps] Wrong number of dimensions for arg at position 0: is "
@@ -176,15 +149,15 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
   #endif
   
   // Now, we'll keep track of the output + all arguments' shapes in a large array:
-  _shapes.resize((nvars + 1) * (nbatchdims + 3), 1);
+  _shapes.resize((nargs + 1) * (nbatchdims + 3), 1);
   
-  if (pos_first_argI > -1)
-    _shapes[nbatchdims] = get_size(args[pos_first_argI], MN_pos);
+  if (keops_pos_first_argI > -1)
+    _shapes[nbatchdims] = get_size(args[keops_pos_first_argI], MN_pos);
   
-  if (pos_first_argJ > -1)
-    _shapes[nbatchdims + 1] = get_size(args[pos_first_argJ], MN_pos);
+  if (keops_pos_first_argJ > -1)
+    _shapes[nbatchdims + 1] = get_size(args[keops_pos_first_argJ], MN_pos);
   
-  _shapes[nbatchdims + 2] = dimout;   // Top right corner: dimension of the output
+  _shapes[nbatchdims + 2] = keops_dimout;   // Top right corner: dimension of the output
   
 }
 
@@ -192,31 +165,13 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
 template< typename array_t >
 void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
 //void check_ranges(int nargs, array_t* args) {
-
-    printf("nargs=%d, nvars=%d, nminargs=%d\n",nargs,nvars,nminargs);
-    for(int i=0; i<nvarsI; i++) {
-   	 printf("dimsX(%d)=%d, ",i,dimsX[i]);
-   	 printf("indsI(%d)=%d, ",i,indsI[i]);
-    }
-    printf("\n");
-    for(int i=0; i<nvarsJ; i++) {
-   	 printf("dimsY(%d)=%d, ",i,dimsY[i]);
-   	 printf("indsJ(%d)=%d, ",i,indsJ[i]);
-    }
-    printf("\n");
-    for(int i=0; i<nvarsP; i++) {
-   	 printf("dimsP(%d)=%d, ",i,dimsP[i]);
-   	 printf("indsP(%d)=%d, ",i,indsP[i]);
-    }
-    printf("\n");
-    printf("dimout=%d\n",dimout);
 	
   // Check the compatibility of all tensor shapes ==================================
-  if (nminargs > 0) {
+  if (keops_nminargs > 0) {
     
     // Checks args in all the positions that correspond to "i" variables:
-    for (int k = 0; k < nvarsI; k++) {
-      int i = indsI[k];
+    for (int k = 0; k < keops_nvarsI; k++) {
+      int i = keops_indsI[k];
       // Fill in the (i+1)-th line of the "shapes" array ---------------------------
       int off_i = (i + 1) * (nbatchdims + 3);
       
@@ -269,19 +224,19 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
       }
       
       // And the number of "columns":
-      if (_shapes[off_i + nbatchdims + 2] != static_cast< int >(dimsX[k])) {
+      if (_shapes[off_i + nbatchdims + 2] != static_cast< int >(keops_dimsX[k])) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
                     + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(_shapes[off_i + nbatchdims + 2])
-                    + " but should be " + std::to_string(dimsX[k]));
+                    + " but should be " + std::to_string(keops_dimsX[k]));
       }
   
       check_contiguity(args[i], i);
     }
       
     // Checks args in all the positions that correspond to "j" variables:
-    for (int k = 0; k < nvarsJ; k++) {
-      int i = indsJ[k];
+    for (int k = 0; k < keops_nvarsJ; k++) {
+      int i = keops_indsJ[k];
       
       // Check the number of dimensions --------------------------------------------
       int ndims = get_ndim(args[i]);  // Number of dims of the i-th tensor
@@ -333,18 +288,18 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
       }
       
       // And the number of "columns":
-      if (_shapes[off_i + nbatchdims + 2] != static_cast< int >(dimsY[k])) {
+      if (_shapes[off_i + nbatchdims + 2] != static_cast< int >(keops_dimsY[k])) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
                     + std::to_string(nbatchdims + 1) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(_shapes[off_i + nbatchdims + 2])
-                    + " but should be " + std::to_string(dimsY[k]));
+                    + " but should be " + std::to_string(keops_dimsY[k]));
       }
   
       check_contiguity(args[i], i);
     }
     
-    for (int k = 0; k < nvarsP; k++) {
-      int i = indsP[k];
+    for (int k = 0; k < keops_nvarsP; k++) {
+      int i = keops_indsP[k];
       // Fill in the (i+1)-th line of the "shapes" array ---------------------------
       int off_i = (i + 1) * (nbatchdims + 3);
       // First, the batch dimensions:
@@ -357,11 +312,11 @@ void Sizes< array_t >::check_ranges(int nargs, array_t* args) {
 #else
       int dim_param = _shapes[off_i + nbatchdims + 2];
 #endif
-      if (dim_param != static_cast< int >(dimsP[k])) {
+      if (dim_param != static_cast< int >(keops_dimsP[k])) {
         keops_error("[KeOps] Wrong value of the 'vector size' dimension "
                     + std::to_string(nbatchdims) + " for arg at position " + std::to_string(i)
                     + " : is " + std::to_string(dim_param)
-                    + " but should be " + std::to_string(dimsP[k]));
+                    + " but should be " + std::to_string(keops_dimsP[k]));
       }
       check_contiguity(args[i], i);
     }

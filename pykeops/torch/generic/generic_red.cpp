@@ -96,11 +96,9 @@ m.doc() = "pyKeOps: KeOps for pytorch through pybind11 (pytorch flavour).";
 
 m.def("genred_pytorch", &generic_red <at::Tensor, at::Tensor>, "Entry point to keops - pytorch version.");
 
-m.attr("tagIJ") = keops_binders::tagIJ;
-m.attr("dimout") = keops_binders::dimout;
-//m.attr("formula") = keops::f;
-//m.attr("compiled_formula") = xstr(keops::FORMULA_OBJ_STR);
-//m.attr("compiled_aliases") = xstr(keops::VAR_ALIASES_STR);
+m.attr("tagIJ") = keops_binders::keops_tagIJ;
+m.attr("dimout") = keops_binders::keops_dimout;
+m.attr("formula") = keops_binders::keops_formula_string;
 
 }
 

@@ -150,34 +150,15 @@ array_t_out launch_keops(int tag1D2D,
                          array_t* args,
                          int nranges = 0,
                          index_t* ranges = {}) {
-							
-  int formula_constants[9]; 
-  GetFormulaConstants(formula_constants);
-  int nminargs = formula_constants[0];
-  int nvars = formula_constants[4];
-  int nvarsI = formula_constants[5];
-  int nvarsJ = formula_constants[6];
-  int nvarsP = formula_constants[7];
-  
-  std::vector<int> indsI(nvarsI), indsJ(nvarsJ), indsP(nvarsP);
-  GetIndsI(indsI.data());
-  GetIndsJ(indsJ.data());
-  GetIndsP(indsP.data());
-  std::vector<int> dimsX(nvarsI), dimsY(nvarsJ), dimsP(nvarsP);
-  GetDimsX(dimsX.data());
-  GetDimsY(dimsY.data());
-  GetDimsP(dimsP.data());
   
   keops_binders::check_tag(tag1D2D, "1D2D");
   keops_binders::check_tag(tagCpuGpu, "CpuGpu");
   keops_binders::check_tag(tagHostDevice, "HostDevice");
   
-  printf("ok1 \n");
-  
-  keops_binders::check_nargs(nargs, nminargs);
+  keops_binders::check_nargs(nargs, keops_nminargs);
   short int deviceId_casted = cast_Device_Id(deviceId);
 
-  Sizes< array_t > SS(nargs, args, formula_constants, indsI.data(), indsJ.data(), indsP.data(), dimsX.data(), dimsY.data(), dimsP.data());
+  Sizes< array_t > SS(nargs, args);
   
   array_t_out result = (tagHostDevice == 0) ? allocate_result_array< array_t_out, __TYPE__ >(SS.shape_out, SS.nbatchdims)
                                             : allocate_result_array_gpu< array_t_out, __TYPE__ >(SS.shape_out, SS.nbatchdims, deviceId_casted);
@@ -186,17 +167,17 @@ array_t_out launch_keops(int tag1D2D,
 #if USE_HALF
   SS.switch_to_half2_indexing();
 #endif
-  printf("ok2\n ");
+
   Ranges< array_t, index_t > RR(SS, nranges, ranges);
   
   // get the pointers to data to avoid a copy
-  std::vector<__TYPE__*> args_ptr(nvars);
-  for (int i = 0; i < nvars; i++)
+  std::vector<__TYPE__*> args_ptr(nargs);
+  for (int i = 0; i < nargs; i++)
     args_ptr[i] = get_data< array_t, __TYPE__ >(args[i]);
   
   // Create a decimal word to avoid nested conditional below
   int decision = 1000 * RR.tagRanges + 100 * tagHostDevice + 10 * tagCpuGpu + tag1D2D;
-  printf("ok3 \n");
+
   switch (decision) {
 
 #if !USE_HALF
@@ -278,7 +259,6 @@ array_t_out launch_keops(int tag1D2D,
       throw std::runtime_error("A dummy error to avoid return-type warning");
     }
   }
-  printf("ok4\n ");
 }
 
 }
