@@ -1,0 +1,96 @@
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ce6f51e7d5 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -D__TYPE__='float' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -D__TYPEACC__=float -DSUM_SCHEME=1 -DENABLECHUNK=1 -DPYTORCH_ROOT_DIR=/Users/glaunes/opt/anaconda3/envs/pytorch/lib/python3.8/site-packages/torch -D_GLIBCXX_USE_CXX11_ABI=0 -Dshared_obj_name='libKeOps_template_ce6f51e7d5'
+ cmake --build . --target libKeOps_template_ce6f51e7d5 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_ab0ae83357 compiled on 2020/11/28 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -DC_CONTIGUOUS=1 -Dshared_obj_name='libKeOps_template_ab0ae83357'
+ cmake --build . --target libKeOps_template_ab0ae83357 --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_d07ddc230a compiled on 2020/11/29 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -Dshared_obj_name='libKeOps_template_d07ddc230a'
+ cmake --build . --target libKeOps_template_d07ddc230a --  VERBOSE=1
+
+# ----------------------------------------------------------------------
+# libKeOps_template_d07ddc230a compiled on 2020/11/29 with /Library/Developer/CommandLineTools/usr/bin/c++ (12.0.0.12000032):
+
+ cmake /Users/glaunes/repos_git/keops/pykeops/scripts_templates/ -DCMAKE_BUILD_TYPE='' -DPYTHON_LANG='torch' -DPYTHON_EXECUTABLE='/Users/glaunes/opt/anaconda3/envs/pytorch/bin/python' -DPYBIND11_PYTHON_VERSION='3.8' -Dshared_obj_name='libKeOps_template_d07ddc230a'
+ cmake --build . --target libKeOps_template_d07ddc230a --  VERBOSE=1
+
+# ----------------------------------------------------------------------

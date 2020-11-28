@@ -1,0 +1,5 @@
+/Library/Developer/CommandLineTools/usr/bin/c++  -Wall -ferror-limit=2 -O3 -DNDEBUG -O3 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk -bundle -Wl,-headerpad_max_install_names -Wl,-rpath,@loader_path/. -Xlinker -undefined -Xlinker dynamic_lookup -flto -o build/$1.cpython-38-darwin.so generic_red.cpp.o -Wl,-rpath,build/build-$1 build/$1.so
+
+/Library/Developer/CommandLineTools/usr/bin/strip -x $1.cpython-38-darwin.so
+
+
