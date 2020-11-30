@@ -16,9 +16,9 @@ torch_found = importlib.util.find_spec('torch') is not None
 ###############################################################
 # Compilation options
 
-script_folder = os.path.dirname(os.path.abspath(__file__))
-
-script_template_folder = os.path.dirname(os.path.abspath(__file__)) + '/scripts_templates/'
+script_formula_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_keops_formula/'
+script_template_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_template/'
+script_specific_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_specific/'
 
 bin_folder = ""  # init bin_folder... should be populated with the set_bin_folder() function
 

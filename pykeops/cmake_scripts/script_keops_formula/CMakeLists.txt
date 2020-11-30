@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(PyKeOps LANGUAGES CXX)
 
-set(PYKEOPS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
+set(PYKEOPS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 set(KEOPS_SRC ${PYKEOPS_FOLDER}/keops)
 

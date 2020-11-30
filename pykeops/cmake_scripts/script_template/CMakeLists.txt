@@ -10,7 +10,7 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-set(PYKEOPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../)
+set(PYKEOPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 
 set(KEOPS_SOURCE_DIR ${PYKEOPS_SOURCE_DIR}/keops/)
 
@@ -121,10 +121,6 @@ if(${PYTHON_LANG} STREQUAL "torch")
     endif()
 
 endif ()
-
-#SET_TARGET_PROPERTIES(${shared_obj_name} PROPERTIES RULE_LAUNCH_LINK
-#    "${CMAKE_CURRENT_SOURCE_DIR}/cpo ${BIN_DIR} <OBJECTS> --"
-#)
 
 # Ensure the shared lib look for the other .so in its own dir.
 if (APPLE)
