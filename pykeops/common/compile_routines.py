@@ -26,6 +26,11 @@ def run_and_display(args, build_folder, msg=''):
         print(e.stdout.decode('utf-8'))
         print('--------------------- ----------- -----------------')
     
+
+def replace_string_in_file(filename, source_string, target_string):
+        # replaces all occurences of source_string by target_string in file named filename
+        subprocess.run(['LC_ALL=C sed -i.bak "s/'+source_string+'/'+target_string+'/g" '+filename+' && rm '+filename+'.bak'],shell=True)
+
     
 def get_or_build_pybind11_template(dtype, lang, include_dirs):
     
@@ -84,7 +89,8 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
 
     template_name = get_or_build_pybind11_template(dtype, lang, include_dirs)
     
-    command_line = ["cmake", pykeops.config.script_formula_folder,
+    if False:
+        command_line = ["cmake", pykeops.config.script_formula_folder,
                      "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
                      "-DFORMULA_OBJ=" + "'{}'".format(formula),
                      "-DVAR_ALIASES=" + "'{}'".format(alias_string),
@@ -97,9 +103,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                     build_folder,
                     msg="CMAKE")
                     
-    pykeops.config.verbose = True
     run_and_display(["cmake", "--build", ".", "--", "VERBOSE=1"], build_folder, msg="MAKE")
-    pykeops.config.verbose = False
     
     subprocess.run(["./mylink "+template_name+" "+dllname+" "+build_folder+"/.."], cwd=pykeops.config.script_template_folder, shell=True)
                     

@@ -25,7 +25,14 @@ set(SOURCE_FILES
 
 Include_Directories(${SOURCE_FILES})
 
-include(${KEOPS_SRC}/headers.cmake)
+
+
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/headers.cmake) #include(${KEOPS_SRC}/headers.cmake)
+
+
+
+
 
 # installation directory
 set(BIN_DIR ${PROJECT_BINARY_DIR}/../)

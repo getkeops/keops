@@ -75,8 +75,8 @@ def create_and_lock_build_folder():
                     func_res = func(*args, **kwargs)
 
             # clean
-            if (pykeops.config.build_type == 'Release'): # and (module_exists(args[0].dll_name,template_name)):
-                shutil.rmtree(bf)
+            #if (pykeops.config.build_type == 'Release'): # and (module_exists(args[0].dll_name,template_name)):
+            #    shutil.rmtree(bf)
 
             return func_res
 
