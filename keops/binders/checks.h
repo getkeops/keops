@@ -45,9 +45,11 @@ template< typename array_t >
 class Sizes {
 public:
   // constructors
-  Sizes(int _nargs, array_t* args) {
+  Sizes(int _nargs, array_t* args, int _nx, int _ny) {
 	  
     nargs = _nargs;
+	nx = _nx;
+	ny = _ny;
 
     // fill shapes wit "batch dimensions" [A, .., B], the table will look like:
     //
@@ -122,7 +124,7 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
 
   int pos = std::max(keops_pos_first_argI, keops_pos_first_argJ);
 
-  if ((nargs > 0) && (pos > -1)) {
+  if (pos > -1) {
     // Are we working in batch mode? Infer the answer from the first arg =============
     nbatchdims =  get_ndim(args[pos]) - 2;  // number of batch dimensiosn = Number of dims of the first tensor - 2
 
@@ -152,11 +154,9 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
   // Now, we'll keep track of the output + all arguments' shapes in a large array:
   _shapes.resize((nargs + 1) * (nbatchdims + 3), 1);
   
-  if (keops_pos_first_argI > -1)
-    _shapes[nbatchdims] = get_size(args[keops_pos_first_argI], MN_pos);
+  _shapes[nbatchdims] = nx;
   
-  if (keops_pos_first_argJ > -1)
-    _shapes[nbatchdims + 1] = get_size(args[keops_pos_first_argJ], MN_pos);
+  _shapes[nbatchdims + 1] = ny;
   
   _shapes[nbatchdims + 2] = keops_dimout;   // Top right corner: dimension of the output
   

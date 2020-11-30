@@ -10,9 +10,6 @@ extern "C" int GetFormulaString(std::string &out) {
 	
 extern "C" int GetFormulaConstants(int *out) {
 	
-    constexpr int POS = std::max(F::POS_FIRST_ARGI, F::POS_FIRST_ARGJ);
-    static_assert(((POS > -1) || (F::NVARS > 0)) , "[KeOps] There is no variables detected in the formula.");
-	
 	out[0] = F::NMINARGS;
 	out[1] = F::tagI;
 	if(F::tagI==0) {
