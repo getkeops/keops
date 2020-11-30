@@ -1,5 +1,14 @@
-/Library/Developer/CommandLineTools/usr/bin/c++  -Wall -ferror-limit=2 -O3 -DNDEBUG -O3 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk -bundle -Wl,-headerpad_max_install_names -Wl,-rpath,@loader_path/. -Xlinker -undefined -Xlinker dynamic_lookup -flto -o build/$1.cpython-38-darwin.so generic_red.cpp.o -Wl,-rpath,build/build-$1 build/$1.so
+# args :
+# 1 - template name
+# 2 - keops formula name
+# 3 - pykeops build folder
 
-/Library/Developer/CommandLineTools/usr/bin/strip -x $1.cpython-38-darwin.so
+mkdir $3/$2
+
+mv $3/$2.so $3/$2
+
+/Library/Developer/CommandLineTools/usr/bin/c++  -Wall -ferror-limit=2 -O3 -DNDEBUG -O3 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk -bundle -Wl,-headerpad_max_install_names -Wl,-rpath,@loader_path/. -Xlinker -undefined -Xlinker dynamic_lookup -flto -o $3/$2/$1.cpython-38-darwin.so $1.o -Wl,-rpath,build $3/$2/$2.so
+
+/Library/Developer/CommandLineTools/usr/bin/strip -x $3/$2/$1.cpython-38-darwin.so
 
 

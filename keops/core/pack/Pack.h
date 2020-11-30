@@ -53,7 +53,7 @@ struct pack {
 
   // Furthermore, the empty package :
   static const int SIZE = 0; // Has zero size (number of vectors) ...
-  static const int MIN = INT_MAX-10;
+  static const int MIN = INT_MAX;
   static const int MAX = -1; // max is set to -1 (we assume packs of non negative integers...)
   static const int SUM = 0;  // ... zero sum  (total memory footprint) ...
 

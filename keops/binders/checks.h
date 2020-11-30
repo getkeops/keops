@@ -46,7 +46,7 @@ class Sizes {
 public:
   // constructors
   Sizes(int _nargs, array_t* args) {
-	    
+	  
     nargs = _nargs;
 
     // fill shapes wit "batch dimensions" [A, .., B], the table will look like:
@@ -73,13 +73,13 @@ public:
                       _shape_out.begin());// Copy the "batch dimensions"
     _shape_out.erase(_shape_out.begin() + 1 + keops_tagIJ);
     #endif
-    
+
     shape_out = &_shape_out[0];
-    
+
     // fill nx and ny
     M = _shapes[nbatchdims];      // = M
     N = _shapes[nbatchdims + 1];  // = N
-    
+
     // Compute the product of all "batch dimensions"
     nbatches = 1;
     for (int b = 0; b < nbatchdims; b++)
@@ -88,6 +88,7 @@ public:
     
     nx = nbatches * M;  // = A * ... * B * M
     ny = nbatches * N;  // = A * ... * B * N
+
   }
   
   // attributs
@@ -123,7 +124,7 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
 
   if ((nargs > 0) && (pos > -1)) {
     // Are we working in batch mode? Infer the answer from the first arg =============
-    nbatchdims =  get_ndim(args[pos]) - 2;  // numbe of batch dimensiosn = Number of dims of the first tensor - 2
+    nbatchdims =  get_ndim(args[pos]) - 2;  // number of batch dimensiosn = Number of dims of the first tensor - 2
 
     if (nbatchdims < 0) {
       keops_error("[KeOps] Wrong number of dimensions for arg at position 0: is "
@@ -133,7 +134,7 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
   } else {
     nbatchdims = 0;
   }
-  
+
   #if C_CONTIGUOUS
   get_size_batch = [](auto args, int nbatch, int b) {
     return get_size(args, b);
@@ -147,7 +148,7 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
     return get_size(obj_ptr, nbatch - b);
   };
   #endif
-  
+
   // Now, we'll keep track of the output + all arguments' shapes in a large array:
   _shapes.resize((nargs + 1) * (nbatchdims + 3), 1);
   

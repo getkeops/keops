@@ -18,7 +18,7 @@ class KernelSolveAutograd(torch.autograd.Function):
     @staticmethod
     def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, *args):
     
-        optional_flags += include_dirs
+        optional_flags
 
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
         # with large dimension. In this case we set compiler option MULT_VAR_HIGHDIM to allow for the use of the special "final chunk" computation
@@ -30,7 +30,7 @@ class KernelSolveAutograd(torch.autograd.Function):
             optional_flags += ['-DMULT_VAR_HIGHDIM=1']
         
         myconv = LoadKeOps(formula, aliases, dtype, 'torch',
-                           optional_flags).import_module()
+                           optional_flags, include_dirs).import_module()
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula

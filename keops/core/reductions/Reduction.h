@@ -39,8 +39,8 @@ struct Reduction {
     using INDSJ = GetInds<VARSJ>;
     using INDSP = GetInds<VARSP>;
 
-    static const int POS_FIRST_ARGI = INDSI::MIN;
-	static const int POS_FIRST_ARGJ = INDSJ::MIN;
+    static const int POS_FIRST_ARGI = (INDSI::MIN==INT_MAX)? -1 : INDSI::MIN;
+	static const int POS_FIRST_ARGJ = (INDSJ::MIN==INT_MAX)? -1 : INDSJ::MIN;
 	
     using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;  // indices of variables
     static_assert(CheckAllDistinct<INDS>::val,"Incorrect formula : at least two distinct variables have the same position index.");

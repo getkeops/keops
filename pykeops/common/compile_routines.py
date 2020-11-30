@@ -25,8 +25,19 @@ def run_and_display(args, build_folder, msg=''):
         print(e.stdout.decode('utf-8'))
         print('--------------------- ----------- -----------------')
 
-
-def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_flags, build_folder):
+def get_template_command_line_and_name(dtype, lang, include_dirs):
+    command_line = ["cmake", pykeops.config.script_template_folder,
+                     "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
+                     "-DPYTHON_LANG=" + "'{}'".format(lang),
+                     "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
+                     "-DPYTHON_EXECUTABLE=" + "'{}'".format(sys.executable),
+                     "-DPYBIND11_PYTHON_VERSION=" + "'{}'".format(str(sys.version_info.major) + "." + str(sys.version_info.minor)),
+                     "-DC_CONTIGUOUS=1",
+                    ] + include_dirs
+    template_name = 'libKeOps_template_' + sha256(''.join(command_line).encode("utf-8")).hexdigest()[:10]
+    return command_line, template_name
+    
+def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_flags, include_dirs, build_folder):
     aliases = check_aliases_list(aliases)
 
     def process_alias(alias):
@@ -45,29 +56,24 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
         'Compiling ' + dllname + ' in ' + os.path.realpath(build_folder + os.path.sep + '..' ) + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
         end='', flush=True)
 
-    command_line = ["cmake", pykeops.config.script_template_folder,
-                     "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
-                     "-DPYTHON_LANG=" + "'{}'".format(lang),
-                     "-DPYTHON_EXECUTABLE=" + "'{}'".format(sys.executable),
-                     "-DPYBIND11_PYTHON_VERSION=" + "'{}'".format(str(sys.version_info.major) + "." + str(sys.version_info.minor)),
-                    ]
+    command_line, template_name = get_template_command_line_and_name(dtype, lang, include_dirs)
     
-    template_name = 'libKeOps_template_' + sha256(''.join(command_line).encode("utf-8")).hexdigest()[:10]
+    if not os.path.exists(pykeops.config.script_template_folder+'/'+template_name+'.o'):
+        
+        template_build_folder = pykeops.config.script_template_folder + '/build/'
     
-    template_build_folder = pykeops.config.script_template_folder + '/build/'
-    
-    command_line += "-Dshared_obj_name=" + "'{}'".format(template_name),
+        command_line += "-Dshared_obj_name=" + "'{}'".format(template_name),
 
-    run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
-                    template_build_folder,
-                    msg="CMAKE")
-    pykeops.config.verbose = True
-    run_and_display(["cmake", "--build", ".", "--target", template_name, "--", "VERBOSE=1"], template_build_folder, msg="MAKE")
-    
-    
+        run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
+                        template_build_folder,
+                        msg="CMAKE")
+        #pykeops.config.verbose = True
+        run_and_display(["cmake", "--build", ".", "--target", template_name, "--", "VERBOSE=1"], template_build_folder, msg="MAKE")
     
     command_line = ["cmake", pykeops.config.script_folder,
                      "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
+                     "-DFORMULA_OBJ=" + "'{}'".format(formula),
+                     "-DVAR_ALIASES=" + "'{}'".format(alias_string),
                      "-Dshared_obj_name=" + "'{}'".format(dllname),
                      "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
                      "-DC_CONTIGUOUS=1",
@@ -77,8 +83,9 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
                     build_folder,
                     msg="CMAKE")
                     
-    #run_and_display(["cmake", "--build", ".", "--target", "keops"+dllname, "--", "VERBOSE=1"], build_folder, msg="MAKE")
     run_and_display(["cmake", "--build", ".", "--", "VERBOSE=1"], build_folder, msg="MAKE")
+    
+    subprocess.run(["./mylink "+template_name+" "+dllname+" "+build_folder+"/.."], cwd=pykeops.config.script_template_folder, shell=True)
                     
     print('Done.')
 

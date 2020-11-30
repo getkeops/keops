@@ -26,8 +26,11 @@ class GenredAutograd(torch.autograd.Function):
         if rec_multVar_highdim is not None:
             optional_flags += ['-DMULT_VAR_HIGHDIM=1']
 
-        myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags+include_dirs).import_module()
+        myconv = LoadKeOps(formula, aliases, dtype, 'torch', optional_flags, include_dirs).import_module()
                 
+        print("loaded formula :",myconv.formula)
+        print("")
+        
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
         ctx.aliases = aliases
