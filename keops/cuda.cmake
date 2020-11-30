@@ -104,6 +104,7 @@ if(USE_CUDA)
   set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --compiler-options=-fPIC")
   if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr")
+    cmake_minimum_required(VERSION 3.18) # https://github.com/getkeops/keops/issues/122
     set(CMAKE_CUDA_STANDARD 17)
   else()
     set(CMAKE_CUDA_STANDARD 14)

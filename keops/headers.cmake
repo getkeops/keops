@@ -41,7 +41,7 @@ if(NOT __TYPE__)
 endif()
 add_definitions(-D__TYPE__=${__TYPE__})
 
-# - Choose if the multi-dimensional kernels are stored column or row wise 
+# - Choose if the multi-dimensional kernels are stored column or row wise
 if(NOT C_CONTIGUOUS)
   Set(C_CONTIGUOUS O CACHE STRING "Multi-dimensional kernels are stored column wise.")
 endif()
