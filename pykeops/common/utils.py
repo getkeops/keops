@@ -77,6 +77,7 @@ def create_and_lock_build_folder():
             # clean
             #if (pykeops.config.build_type == 'Release'): # and (module_exists(args[0].dll_name,template_name)):
             #    shutil.rmtree(bf)
+            os.remove(os.path.join(bf, 'pykeops_build2.lock'))
 
             return func_res
 

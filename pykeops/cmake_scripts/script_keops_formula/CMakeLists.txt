@@ -58,14 +58,14 @@ endif ()
 if (USE_CUDA) # ----------------- create shared lib (cuda)
 
     add_library(
-            keops${shared_obj_name} SHARED
+            ${shared_obj_name} OBJECT
             ${KEOPS_SRC}/core/link_autodiff.cu
     )
 
 else () # ----------------- create shared lib (cpp)
 
     add_library(
-            keops${shared_obj_name} SHARED
+            ${shared_obj_name} OBJECT
             ${KEOPS_SRC}/core/link_autodiff.cpp
     )
 
@@ -73,7 +73,7 @@ endif ()
 
 
 target_compile_options(
-        keops${shared_obj_name} BEFORE
+        ${shared_obj_name} BEFORE
         PRIVATE -include ${shared_obj_name}.h
 )
 
@@ -85,7 +85,7 @@ set_source_files_properties(
 
 # set name
 set_target_properties(
-        keops${shared_obj_name} PROPERTIES
+        ${shared_obj_name} PROPERTIES
         LIBRARY_OUTPUT_NAME ${shared_obj_name}
         PREFIX ""
 )
@@ -100,10 +100,10 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 #                                                   INSTALLATION                                                       #
 ########################################################################################################################
 
-add_custom_command(
-        TARGET keops${shared_obj_name} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:keops${shared_obj_name}> ${BIN_DIR}
-)
+#add_custom_command(
+#        TARGET ${shared_obj_name} POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${shared_obj_name}> ${BIN_DIR}
+#)
 
 # Write a log file to decypher keops dllname
 if (commandLine)

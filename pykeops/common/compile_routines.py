@@ -69,6 +69,9 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
     
     
 def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_flags, include_dirs, build_folder):
+    
+    pykeops.config.verbose = True
+    
     aliases = check_aliases_list(aliases)
 
     def process_alias(alias):
@@ -89,23 +92,42 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
 
     template_name = get_or_build_pybind11_template(dtype, lang, include_dirs)
     
-    if False:
+    template_dllname = 'KeOps_formula'
+    
+    # creating KeOps include file for formula
+    template_include_file = pykeops.config.script_formula_folder + os.path.sep + 'formula.h.in'
+    target_include_file = build_folder + os.path.sep + template_dllname + '.h'
+    shutil.copyfile(template_include_file,target_include_file)
+    
+    replace_pairs = [
+            ('@__TYPE__@', c_type[dtype]),
+            ('@FORMULA_OBJ@', formula),
+            ('@VAR_ALIASES@', alias_string),
+            ]
+            
+    for p in replace_pairs:
+        replace_string_in_file(target_include_file, p[0], '{}'.format(p[1]))
+        
+    
+    
+    if not os.path.exists(build_folder+'/CMakeCache.txt'):
         command_line = ["cmake", pykeops.config.script_formula_folder,
                      "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
-                     "-DFORMULA_OBJ=" + "'{}'".format(formula),
-                     "-DVAR_ALIASES=" + "'{}'".format(alias_string),
-                     "-Dshared_obj_name=" + "'{}'".format(dllname),
+                     "-Dshared_obj_name=" + "'{}'".format(template_dllname),
                      "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
                      "-DC_CONTIGUOUS=1",
                     ] + optional_flags
 
-    run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
+        run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
                     build_folder,
                     msg="CMAKE")
                     
     run_and_display(["cmake", "--build", ".", "--", "VERBOSE=1"], build_folder, msg="MAKE")
     
-    subprocess.run(["./mylink "+template_name+" "+dllname+" "+build_folder+"/.."], cwd=pykeops.config.script_template_folder, shell=True)
+    pykeops_folder = os.path.abspath(pykeops.config.script_template_folder+"/../..")
+    subprocess.run(["cp "+build_folder+"/CMakeFiles/"+template_dllname+".dir/"+pykeops_folder+"/keops/core/link_autodiff.*.o "+build_folder], cwd=pykeops.config.script_template_folder, shell=True)
+    
+    subprocess.run([pykeops.config.script_template_folder+"/mylink "+template_name+" "+build_folder+"/link_autodiff.cpp.o "+dllname], cwd=build_folder+"/..", shell=True)
                     
     print('Done.')
 
