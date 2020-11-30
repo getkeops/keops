@@ -70,8 +70,6 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
     
 def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_flags, include_dirs, build_folder):
     
-    pykeops.config.verbose = True
-    
     aliases = check_aliases_list(aliases)
 
     def process_alias(alias):
