@@ -66,10 +66,6 @@ def create_name(formula, aliases, dtype, lang, optional_flags):
     return dll_name
 
 
-def set_build_folder(bin_folder, dll_name):
-    return os.path.join(bin_folder, 'build') #os.path.join(bin_folder, 'build-' + dll_name)
-
-
 def clean_pykeops(path="", lang=""):
     if lang not in ["numpy", "torch", ""]:
         raise ValueError('[pyKeOps:] lang should be the empty string, "numpy" or "torch"')

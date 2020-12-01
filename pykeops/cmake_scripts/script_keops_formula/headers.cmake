@@ -51,6 +51,7 @@ add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 if(__TYPEACC__)
   add_definitions(-D__TYPEACC__=${__TYPEACC__})
 endif()
+
 if(SUM_SCHEME)
   add_definitions(-DSUM_SCHEME=${SUM_SCHEME})
 endif()

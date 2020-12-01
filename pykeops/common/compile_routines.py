@@ -27,9 +27,14 @@ def run_and_display(args, build_folder, msg=''):
         print('--------------------- ----------- -----------------')
     
 
-def replace_string_in_file(filename, source_string, target_string):
+def replace_strings_in_file(filename, source_target_string_pairs):
         # replaces all occurences of source_string by target_string in file named filename
-        subprocess.run(['LC_ALL=C sed -i.bak "s/'+source_string+'/'+target_string+'/g" '+filename+' && rm '+filename+'.bak'],shell=True)
+        with open(filename, 'r') as file :
+            filedata = file.read()
+        for source_string, target_string in source_target_string_pairs:
+            filedata = filedata.replace(source_string, target_string)
+        with open(filename, 'w') as file:
+            file.write(filedata)
 
     
 def get_or_build_pybind11_template(dtype, lang, include_dirs):
@@ -67,7 +72,50 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
         
     return template_name
     
+def create_keops_include_file(build_folder, dtype, formula, alias_string, optional_flags):
+    # creating KeOps include file for formula
+    template_include_file = pykeops.config.script_formula_folder + os.path.sep + 'formula.h.in'
+    target_include_file = build_folder + os.path.sep + pykeops.config.template_formula_name + '.h'
+    shutil.copyfile(template_include_file,target_include_file)
     
+    optional_flags_string = ''
+    for flag in optional_flags:
+        if flag[:2] != '-D':
+            raise ValueError('Optional flag must be in the form "-D..."')
+        macroid, macroval = str.split(flag[2:],'=')
+        optional_flags_string += '#define ' + macroid + ' ' + macroval + '\n'
+        
+    replace_pairs = [
+            ('@__TYPE__@', str(c_type[dtype])),
+            ('@FORMULA_OBJ@', formula),
+            ('@VAR_ALIASES@', alias_string),
+            ('@OPTIONAL_FLAGS@', optional_flags_string)
+            ]
+    replace_strings_in_file(target_include_file, replace_pairs)
+    
+    
+def get_build_folder_name_and_command(dtype):
+    command_line = ["cmake", pykeops.config.script_formula_folder,
+                 "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
+                 "-Dshared_obj_name=" + "'{}'".format(pykeops.config.template_formula_name),
+                 "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
+                 "-DC_CONTIGUOUS=1",
+                ]
+    build_folder = pykeops.config.bin_folder + '/build-' + sha256(''.join(command_line).encode("utf-8")).hexdigest()[:10]
+    return build_folder, command_line
+
+def get_build_folder_name(dtype):
+    build_folder, _ = get_build_folder_name_and_command(dtype)
+    return build_folder
+
+def check_or_prebuild(dtype):
+    build_folder, command_line = get_build_folder_name_and_command(dtype)
+    if not os.path.exists(build_folder+'/CMakeCache.txt'):
+        run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
+                build_folder,
+                msg="CMAKE")
+
+
 def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_flags, include_dirs, build_folder):
     
     aliases = check_aliases_list(aliases)
@@ -90,41 +138,16 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
 
     template_name = get_or_build_pybind11_template(dtype, lang, include_dirs)
     
-    template_dllname = 'KeOps_formula'
-    
-    # creating KeOps include file for formula
-    template_include_file = pykeops.config.script_formula_folder + os.path.sep + 'formula.h.in'
-    target_include_file = build_folder + os.path.sep + template_dllname + '.h'
-    shutil.copyfile(template_include_file,target_include_file)
-    
-    replace_pairs = [
-            ('@__TYPE__@', c_type[dtype]),
-            ('@FORMULA_OBJ@', formula),
-            ('@VAR_ALIASES@', alias_string),
-            ]
-            
-    for p in replace_pairs:
-        replace_string_in_file(target_include_file, p[0], '{}'.format(p[1]))
-        
-    
-    
-    if not os.path.exists(build_folder+'/CMakeCache.txt'):
-        command_line = ["cmake", pykeops.config.script_formula_folder,
-                     "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
-                     "-Dshared_obj_name=" + "'{}'".format(template_dllname),
-                     "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
-                     "-DC_CONTIGUOUS=1",
-                    ] + optional_flags
-
-        run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
-                    build_folder,
-                    msg="CMAKE")
-                    
+    create_keops_include_file(build_folder, dtype, formula, alias_string, optional_flags)
+                        
     run_and_display(["cmake", "--build", ".", "--", "VERBOSE=1"], build_folder, msg="MAKE")
     
     pykeops_folder = os.path.abspath(pykeops.config.script_template_folder+"/../..")
-    subprocess.run(["cp "+build_folder+"/CMakeFiles/"+template_dllname+".dir/"+pykeops_folder+"/keops/core/link_autodiff.*.o "+build_folder], cwd=pykeops.config.script_template_folder, shell=True)
     
+    # copy object file link_autodiff.(cpp,cu).o to build_folder
+    subprocess.run(["cp "+build_folder+"/CMakeFiles/"+pykeops.config.template_formula_name+".dir/"+pykeops_folder+"/keops/core/link_autodiff.*.o "+build_folder], cwd=pykeops.config.script_template_folder, shell=True)
+    
+    # special script "mylink" to do the linking
     subprocess.run([pykeops.config.script_template_folder+"/mylink "+template_name+" "+build_folder+"/link_autodiff.cpp.o "+dllname], cwd=build_folder+"/..", shell=True)
                     
     print('Done.')

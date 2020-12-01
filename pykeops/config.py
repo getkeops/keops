@@ -20,6 +20,8 @@ script_formula_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scr
 script_template_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_template/'
 script_specific_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_specific/'
 
+template_formula_name = 'KeOps_formula'
+
 bin_folder = ""  # init bin_folder... should be populated with the set_bin_folder() function
 
 # Set the verbosity option: display output of compilations. This is a boolean: False or True

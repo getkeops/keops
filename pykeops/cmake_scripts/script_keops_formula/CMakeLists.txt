@@ -100,10 +100,10 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 #                                                   INSTALLATION                                                       #
 ########################################################################################################################
 
-#add_custom_command(
-#        TARGET ${shared_obj_name} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${shared_obj_name}> ${BIN_DIR}
-#)
+add_custom_command(
+        OUTPUT ${shared_obj_name} 
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${shared_obj_name}> ${BIN_DIR}
+)
 
 # Write a log file to decypher keops dllname
 if (commandLine)
