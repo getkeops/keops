@@ -6,29 +6,29 @@ def from_matrix(ranges_i, ranges_j, keep):
 
     This routine is a helper for the **block-sparse** reduction mode of KeOps,
     allowing you to turn clustering information (**ranges_i**,
-    **ranges_j**) and a cluster-to-cluster boolean mask (**keep**) 
+    **ranges_j**) and a cluster-to-cluster boolean mask (**keep**)
     into integer tensors of indices that can be used to schedule the KeOps routines.
 
     Suppose that you're working with variables :math:`x_i`  (:math:`i \in [0,10^6)`),
     :math:`y_j`  (:math:`j \in [0,10^7)`), and that you want to compute a KeOps reduction
-    over indices :math:`i` or :math:`j`: Instead of performing the full 
-    kernel dot product (:math:`10^6 \cdot 10^7 = 10^{13}` operations!), 
+    over indices :math:`i` or :math:`j`: Instead of performing the full
+    kernel dot product (:math:`10^6 \cdot 10^7 = 10^{13}` operations!),
     you may want to restrict yourself to
     interactions between points :math:`x_i` and :math:`y_j` that are "close" to each other.
 
     With KeOps, the simplest way of doing so is to:
-    
-    1. Compute cluster labels for the :math:`x_i`'s and :math:`y_j`'s, using e.g. 
+
+    1. Compute cluster labels for the :math:`x_i`'s and :math:`y_j`'s, using e.g.
        the :func:`grid_cluster` method.
-    2. Compute the ranges (**ranges_i**, **ranges_j**) and centroids associated 
+    2. Compute the ranges (**ranges_i**, **ranges_j**) and centroids associated
        to each cluster, using e.g. the :func:`cluster_ranges_centroids` method.
     3. Sort the tensors ``x_i`` and ``y_j`` with :func:`sort_clusters` to make sure that the
        clusters are stored contiguously in memory (this step is **critical** for performance on GPUs).
 
     At this point:
-        - the :math:`k`-th cluster of :math:`x_i`'s is given by ``x_i[ ranges_i[k,0]:ranges_i[k,1], : ]``, for :math:`k \in [0,M)`, 
+        - the :math:`k`-th cluster of :math:`x_i`'s is given by ``x_i[ ranges_i[k,0]:ranges_i[k,1], : ]``, for :math:`k \in [0,M)`,
         - the :math:`\ell`-th cluster of :math:`y_j`'s is given by ``y_j[ ranges_j[l,0]:ranges_j[l,1], : ]``, for :math:`\ell \in [0,N)`.
-    
+
     4. Compute the :math:`(M,N)` matrix **dist** of pairwise distances between cluster centroids.
     5. Apply a threshold on **dist** to generate a boolean matrix ``keep = dist < threshold``.
     6. Define a KeOps reduction ``my_genred = Genred(..., axis = 0 or 1)``, as usual.
@@ -37,7 +37,7 @@ def from_matrix(ranges_i, ranges_j, keep):
 
     :func:`from_matrix` is thus the routine that turns a **high-level description**
     of your block-sparse computation (cluster ranges + boolean matrix)
-    into a set of **integer tensors** (the **ranges** optional argument), 
+    into a set of **integer tensors** (the **ranges** optional argument),
     used by KeOps to schedule computations on the GPU.
 
     Args:
@@ -47,7 +47,7 @@ def from_matrix(ranges_i, ranges_j, keep):
         ranges_j ((N,2) integer array): List of :math:`[\text{start}_\ell,\text{end}_\ell)` indices.
             For :math:`\ell \in [0,N)`, the :math:`\ell`-th cluster of ":math:`j`" variables is
             given by ``y_j[ ranges_j[l,0]:ranges_j[l,1], : ]``, etc.
-        keep ((M,N) boolean array): 
+        keep ((M,N) boolean array):
             If the output ``ranges`` of :func:`from_matrix` is used in a KeOps reduction,
             we will only compute and reduce the terms associated to pairs of "points"
             :math:`x_i`, :math:`y_j` in clusters :math:`k` and :math:`\ell`
@@ -77,7 +77,7 @@ def from_matrix(ranges_i, ranges_j, keep):
         [[ 2,  5],
          [ 7, 12]]
         --> Two "target" clusters in a reduction wrt. j
-        >>> print(slices_i)  
+        >>> print(slices_i)
         [2, 3]
         --> X[0] is associated to redranges_j[0:2]
         --> X[1] is associated to redranges_j[2:3]
@@ -110,9 +110,21 @@ def from_matrix(ranges_i, ranges_j, keep):
         --> For Y[2], j in [20,21,...,29], there is no reduction to be done
     """
     J, I = np.meshgrid(np.arange(0, keep.shape[1]), np.arange(0, keep.shape[0]))
-    redranges_i = ranges_i[I.T[keep.T]]  # Use PyTorch indexing to "stack" copies of ranges_i[...]
+    redranges_i = ranges_i[
+        I.T[keep.T]
+    ]  # Use PyTorch indexing to "stack" copies of ranges_i[...]
     redranges_j = ranges_j[J[keep]]
-    slices_i = np.cumsum(np.sum(keep, axis=1), axis=0)  # slice indices in the "stacked" array redranges_j
-    slices_j = np.cumsum(np.sum(keep, axis=0), axis=0)  # slice indices in the "stacked" array redranges_i
-    return (ranges_i.astype("int32"), slices_i.astype("int32"), redranges_j.astype("int32"), \
-            ranges_j.astype("int32"), slices_j.astype("int32"), redranges_i.astype("int32"))
+    slices_i = np.cumsum(
+        np.sum(keep, axis=1), axis=0
+    )  # slice indices in the "stacked" array redranges_j
+    slices_j = np.cumsum(
+        np.sum(keep, axis=0), axis=0
+    )  # slice indices in the "stacked" array redranges_i
+    return (
+        ranges_i.astype("int32"),
+        slices_i.astype("int32"),
+        redranges_j.astype("int32"),
+        ranges_j.astype("int32"),
+        slices_j.astype("int32"),
+        redranges_i.astype("int32"),
+    )

@@ -42,13 +42,26 @@ class KernelSolve:
         1.5619025770417854e-06
     
     """
-    
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, opt_arg=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, rec_multVar_highdim=None):
+
+    def __init__(
+        self,
+        formula,
+        aliases,
+        varinvalias,
+        axis=0,
+        dtype=default_dtype,
+        opt_arg=None,
+        dtype_acc="auto",
+        use_double_acc=False,
+        sum_scheme="auto",
+        enable_chunks=True,
+        rec_multVar_highdim=None,
+    ):
         r"""
         Instantiate a new KernelSolve operation.
 
         Note:
-            :class:`KernelSolve` relies on C++ or CUDA kernels that are compiled on-the-fly 
+            :class:`KernelSolve` relies on C++ or CUDA kernels that are compiled on-the-fly
             and stored in a :ref:`cache directory <part.cache>` as shared libraries (".so" files) for later use.
 
         Args:
@@ -56,7 +69,7 @@ class KernelSolve:
                 that should be computed and reduced.
                 The correct syntax is described in the :doc:`documentation <../../Genred>`,
                 using appropriate :doc:`mathematical operations <../../../api/math-operations>`.
-            aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"`` 
+            aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"``
                 that specify the categories and dimensions of the input variables. Here:
 
                   - ``AL`` is an alphanumerical alias, used in the **formula**.
@@ -67,7 +80,7 @@ class KernelSolve:
                     - ``Pm``: no indexation, the input tensor is a *vector* and not a 2d array.
 
                   - ``DIM`` is an integer, the dimension of the current variable.
-                
+
                 As described below, :meth:`__call__` will expect input arrays whose
                 shape are compatible with **aliases**.
             varinvalias (string): The alphanumerical **alias** of the variable with
@@ -76,86 +89,103 @@ class KernelSolve:
                 but may be more sophisticated than a mere ``"K(x,y) * {varinvalias}"``.
 
         Keyword Args:
-            axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine. 
+            axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine.
                 The supported values are:
 
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+            dtype (string, default = ``"float64"``): Specifies the numerical ``dtype`` of the input and output arrays.
                 The supported values are:
 
                   - **dtype** = ``"float16"``.
                   - **dtype** = ``"float32"``.
                   - **dtype** = ``"float64"``.
 
-            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype.
                 It improves the accuracy of results in case of large sized data, but is slower.
-                Default value "auto" will set this option to the value of dtype. The supported values are: 
+                Default value "auto" will set this option to the value of dtype. The supported values are:
 
                   - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
                   - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
                   - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
 
             use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
-                If True, accumulate results of reduction in float64 variables, before casting to float32. 
+                If True, accumulate results of reduction in float64 variables, before casting to float32.
                 This can only be set to True when data is in float32 or float64.
                 It improves the accuracy of results in case of large sized data, but is slower.
-           
+
             sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
                 Default value "auto" will set this option to "block_red". Possible values are:
                   - **sum_scheme** =  ``"direct_sum"``: direct summation
-                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
-                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating
+                    in the output. This improves accuracy for large sized data.
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
-                accuracy for large sized data. 
+                accuracy for large sized data.
 
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
-				with formulas involving large dimension variables.
+                                with formulas involving large dimension variables.
 
         """
-        reduction_op = 'Sum'
+        reduction_op = "Sum"
         if opt_arg:
-            self.formula = reduction_op + '_Reduction(' + formula + ',' + str(opt_arg) + ',' + str(axis2cat(axis)) + ')'
+            self.formula = (
+                reduction_op
+                + "_Reduction("
+                + formula
+                + ","
+                + str(opt_arg)
+                + ","
+                + str(axis2cat(axis))
+                + ")"
+            )
         else:
-            self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
+            self.formula = (
+                reduction_op + "_Reduction(" + formula + "," + str(axis2cat(axis)) + ")"
+            )
 
-        optional_flags = get_optional_flags(reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
+        optional_flags = get_optional_flags(
+            reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks
+        )
 
         if rec_multVar_highdim is not None:
-            optional_flags += ['-DMULT_VAR_HIGHDIM=1']
-            
+            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
+
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
-        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy', optional_flags).import_module()
+        self.myconv = LoadKeOps(
+            self.formula, self.aliases, self.dtype, "numpy", optional_flags
+        ).import_module()
 
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
-            varinvpos = int(varinvalias[4:varinvalias.find(",")])
+            varinvpos = int(varinvalias[4 : varinvalias.find(",")])
         else:
             # we need to recover index from alias
             tmp = self.aliases.copy()
             for (i, s) in enumerate(tmp):
-                tmp[i] = s[:s.find("=")].strip()
+                tmp[i] = s[: s.find("=")].strip()
             varinvpos = tmp.index(varinvalias)
         self.varinvpos = varinvpos
-    
-    def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
+
+    def __call__(
+        self, *args, backend="auto", device_id=-1, alpha=1e-10, eps=1e-6, ranges=None
+    ):
         r"""
         To apply the routine on arbitrary NumPy arrays.
-            
+
         Warning:
             Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
             for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
             as 2d arrays of size ``(M,dim)``. In practice,
             ``a.view(-1,1)`` should be used to turn a vector of weights
             into a *list of scalar values*.
-        
+
         Args:
-            *args (2d arrays (variables ``Vi(..)``, ``Vj(..)``) and 1d arrays (parameters ``Pm(..)``)): The input numerical arrays, 
-                which should all have the same ``dtype``, be **contiguous** and be stored on 
-                the **same device**. KeOps expects one array per alias, 
+            *args (2d arrays (variables ``Vi(..)``, ``Vj(..)``) and 1d arrays (parameters ``Pm(..)``)): The input numerical arrays,
+                which should all have the same ``dtype``, be **contiguous** and be stored on
+                the **same device**. KeOps expects one array per alias,
                 with the following compatibility rules:
 
                     - All ``Vi(Dim_k)`` variables are encoded as **2d-arrays** with ``Dim_k`` columns and the same number of lines :math:`M`.
@@ -163,24 +193,24 @@ class KernelSolve:
                     - All ``Pm(Dim_k)`` variables are encoded as **1d-arrays** (vectors) of size ``Dim_k``.
 
         Keyword Args:
-            alpha (float, default = 1e-10): Non-negative 
+            alpha (float, default = 1e-10): Non-negative
                 **ridge regularization** parameter, added to the diagonal
                 of the Kernel matrix :math:`K_{xx}`.
 
             backend (string): Specifies the map-reduce scheme,
-                as detailed in the documentation 
+                as detailed in the documentation
                 of the :class:`numpy.Genred <pykeops.numpy.Genred>` module.
 
-            device_id (int, default=-1): Specifies the GPU that should be used 
-                to perform   the computation; a negative value lets your system 
-                choose the default GPU. This parameter is only useful if your 
+            device_id (int, default=-1): Specifies the GPU that should be used
+                to perform   the computation; a negative value lets your system
+                choose the default GPU. This parameter is only useful if your
                 system has access to several GPUs.
 
             ranges (6-uple of IntTensors, None by default):
-                Ranges of integers that specify a 
+                Ranges of integers that specify a
                 :doc:`block-sparse reduction scheme <../../sparsity>`
                 with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
-                as detailed in the documentation 
+                as detailed in the documentation
                 of the :class:`numpy.Genred <pykeops.numpy.Genred>` module.
 
                 If **None** (default), we simply use a **dense Kernel matrix**
@@ -190,23 +220,26 @@ class KernelSolve:
         Returns:
             (M,D) or (N,D) array:
 
-            The solution of the optimization problem, which is always a 
-            **2d-array** with :math:`M` or :math:`N` lines (if **axis** = 1 
-            or **axis** = 0, respectively) and a number of columns 
+            The solution of the optimization problem, which is always a
+            **2d-array** with :math:`M` or :math:`N` lines (if **axis** = 1
+            or **axis** = 0, respectively) and a number of columns
             that is inferred from the **formula**.
 
         """
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
         varinv = args[self.varinvpos]
-        
-        if ranges is None: ranges = ()  # ranges should be encoded as a tuple
+
+        if ranges is None:
+            ranges = ()  # ranges should be encoded as a tuple
 
         def linop(var):
-            newargs = args[:self.varinvpos] + (var,) + args[self.varinvpos + 1:]
-            res = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs)
+            newargs = args[: self.varinvpos] + (var,) + args[self.varinvpos + 1 :]
+            res = self.myconv.genred_numpy(
+                tagCpuGpu, tag1D2D, 0, device_id, ranges, *newargs
+            )
             if alpha:
                 res += alpha * var
             return res
 
-        return ConjugateGradientSolver('numpy', linop, varinv, eps=eps)
+        return ConjugateGradientSolver("numpy", linop, varinv, eps=eps)

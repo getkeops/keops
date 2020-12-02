@@ -18,7 +18,7 @@ It can thus be used to implement a **large-scale**
 """
 
 ########################################################################
-# Setup 
+# Setup
 # -----------------
 # Standard imports:
 
@@ -40,7 +40,7 @@ def KMeans(x, K=10, Niter=10, verbose=True):
     start = time.time()
     N, D = x.shape  # Number of samples, dimension of the ambient space
 
-    c = x[:K, :].clone()    # Simplistic initialization for the centroids
+    c = x[:K, :].clone()  # Simplistic initialization for the centroids
 
     x_i = LazyTensor(x.view(N, 1, D))  # (N, 1, D) samples
     c_j = LazyTensor(c.view(1, K, D))  # (1, K, D) centroids
@@ -58,23 +58,26 @@ def KMeans(x, K=10, Niter=10, verbose=True):
         # M step: update the centroids to the normalized cluster average: ------
         # Compute the sum of points per cluster:
         c.zero_()
-        c.scatter_add_(0, cl[:,None].repeat(1, D), x)
+        c.scatter_add_(0, cl[:, None].repeat(1, D), x)
 
         # Divide by the number of points per cluster:
         Ncl = torch.bincount(cl, minlength=K).type_as(c).view(K, 1)
         c /= Ncl  # in-place division to compute the average
 
-    
     if verbose:  # Fancy display -----------------------------------------------
-        if use_cuda: torch.cuda.synchronize()
+        if use_cuda:
+            torch.cuda.synchronize()
         end = time.time()
-        print(f"K-means for the Euclidean metric with {N:,} points in dimension {D:,}, K = {K:,}:")
-        print("Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n".format(
-                Niter, end - start, Niter, (end-start) / Niter))
+        print(
+            f"K-means for the Euclidean metric with {N:,} points in dimension {D:,}, K = {K:,}:"
+        )
+        print(
+            "Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n".format(
+                Niter, end - start, Niter, (end - start) / Niter
+            )
+        )
 
     return cl, c
-
-
 
 
 ###############################################################
@@ -86,7 +89,7 @@ N, D, K = 10000, 2, 50
 
 ###############################################################
 # Define our dataset:
-x = .7 * torch.randn(N, D, dtype=dtype) + .3
+x = 0.7 * torch.randn(N, D, dtype=dtype) + 0.3
 
 ###############################################################
 # Perform the computation:
@@ -95,11 +98,13 @@ cl, c = KMeans(x, K)
 ###############################################################
 # Fancy display:
 
-plt.figure(figsize=(8,8))
-plt.scatter(x[:, 0].cpu(), x[:, 1].cpu(), c=cl.cpu(), s= 30000 / len(x), cmap="tab10")
-plt.scatter(c[:, 0].cpu(), c[:, 1].cpu(), c='black', s=50, alpha=.8)
-plt.axis([-2,2,-2,2]) ; plt.tight_layout() ; plt.show()
- 
+plt.figure(figsize=(8, 8))
+plt.scatter(x[:, 0].cpu(), x[:, 1].cpu(), c=cl.cpu(), s=30000 / len(x), cmap="tab10")
+plt.scatter(c[:, 0].cpu(), c[:, 1].cpu(), c="black", s=50, alpha=0.8)
+plt.axis([-2, 2, -2, 2])
+plt.tight_layout()
+plt.show()
+
 
 ################################################################
 # KeOps is a versatile library: we can add support for the cosine
@@ -112,8 +117,8 @@ def KMeans_cosine(x, K=10, Niter=10, verbose=True):
     start = time.time()
     N, D = x.shape  # Number of samples, dimension of the ambient space
 
-    c = x[:K, :].clone()    # Simplistic initialization for the centroids
-    # Normalize the centroids for the cosine similarity:        
+    c = x[:K, :].clone()  # Simplistic initialization for the centroids
+    # Normalize the centroids for the cosine similarity:
     c = torch.nn.functional.normalize(c, dim=1, p=2)
 
     x_i = LazyTensor(x.view(N, 1, D))  # (N, 1, D) samples
@@ -126,24 +131,29 @@ def KMeans_cosine(x, K=10, Niter=10, verbose=True):
     for i in range(Niter):
 
         # E step: assign points to the closest cluster -------------------------
-        S_ij = (x_i | c_j)  # (N, K) symbolic Gram matrix of dot products
+        S_ij = x_i | c_j  # (N, K) symbolic Gram matrix of dot products
         cl = S_ij.argmax(dim=1).long().view(-1)  # Points -> Nearest cluster
 
         # M step: update the centroids to the normalized cluster average: ------
         # Compute the sum of points per cluster:
         c.zero_()
-        c.scatter_add_(0, cl[:,None].repeat(1, D), x)
+        c.scatter_add_(0, cl[:, None].repeat(1, D), x)
 
         # Normalize the centroids, in place:
         c[:] = torch.nn.functional.normalize(c, dim=1, p=2)
 
-    
     if verbose:  # Fancy display -----------------------------------------------
-        if use_cuda: torch.cuda.synchronize()
+        if use_cuda:
+            torch.cuda.synchronize()
         end = time.time()
-        print(f"K-means for the cosine similarity with {N:,} points in dimension {D:,}, K = {K:,}:")
-        print("Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n".format(
-                Niter, end - start, Niter, (end-start) / Niter))
+        print(
+            f"K-means for the cosine similarity with {N:,} points in dimension {D:,}, K = {K:,}:"
+        )
+        print(
+            "Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n".format(
+                Niter, end - start, Niter, (end - start) / Niter
+            )
+        )
 
     return cl, c
 
@@ -155,11 +165,12 @@ cl, c = KMeans_cosine(x, K)
 ###############################################################
 # Clusters behave as slices around the origin:
 
-plt.figure(figsize=(8,8))
-plt.scatter(x[:, 0].cpu(), x[:, 1].cpu(), c=cl.cpu(), s= 30000 / len(x), cmap="tab10")
-plt.scatter(c[:, 0].cpu(), c[:, 1].cpu(), c='black', s=50, alpha=.8)
-plt.axis([-2,2,-2,2]) ; plt.tight_layout() ; plt.show()
- 
+plt.figure(figsize=(8, 8))
+plt.scatter(x[:, 0].cpu(), x[:, 1].cpu(), c=cl.cpu(), s=30000 / len(x), cmap="tab10")
+plt.scatter(c[:, 0].cpu(), c[:, 1].cpu(), c="black", s=50, alpha=0.8)
+plt.axis([-2, 2, -2, 2])
+plt.tight_layout()
+plt.show()
 
 
 ####################################################################

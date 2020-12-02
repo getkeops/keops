@@ -1,6 +1,7 @@
 import torch
 
-def sort_clusters(x, lab) :
+
+def sort_clusters(x, lab):
     r"""Sorts a list of points and labels to make sure that the clusters are contiguous in memory.
 
     On the GPU, **contiguous memory accesses** are key to high performances.
@@ -19,7 +20,7 @@ def sort_clusters(x, lab) :
 
     Returns:
         (M,D) Tensor or tuple/list of (M,..) Tensors, (M,) IntTensor:
-        
+
         Sorted **point cloud(s)** and **vector of labels**.
 
     Example:
@@ -37,15 +38,16 @@ def sort_clusters(x, lab) :
     """
     lab, perm = torch.sort(lab.view(-1))
     if type(x) is tuple:
-        x_sorted = tuple( a[perm] for a in x )
+        x_sorted = tuple(a[perm] for a in x)
     elif type(x) is list:
-        x_sorted =  list( a[perm] for a in x )
+        x_sorted = list(a[perm] for a in x)
     else:
         x_sorted = x[perm]
 
     return x_sorted, lab
 
-def cluster_ranges(lab, Nlab=None) :
+
+def cluster_ranges(lab, Nlab=None):
     r"""Computes the ``[start,end)`` indices that specify clusters in a sorted point cloud.
 
     If **lab** denotes a vector of labels :math:`\ell_i\in[0,C)`,
@@ -65,7 +67,7 @@ def cluster_ranges(lab, Nlab=None) :
 
     Returns:
         (C,2) IntTensor:
-        
+
         Stacked array of :math:`[\text{start}_k, \text{end}_k )` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`.
 
@@ -90,20 +92,22 @@ def cluster_ranges(lab, Nlab=None) :
         --> cluster 1 = x_sorted[3:4, :]
         --> cluster 2 = x_sorted[4:5, :]
     """
-    if Nlab is None : Nlab = torch.bincount(lab).float()
-    pivots = torch.cat((torch.Tensor([0.]).to(Nlab.device), Nlab.cumsum(0)))
+    if Nlab is None:
+        Nlab = torch.bincount(lab).float()
+    pivots = torch.cat((torch.Tensor([0.0]).to(Nlab.device), Nlab.cumsum(0)))
     return torch.stack((pivots[:-1], pivots[1:]), dim=1).int()
 
-def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
+
+def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):
     r"""Computes the (weighted) centroids of classes specified by a vector of labels.
-    
+
     If points :math:`x_i \in\mathbb{R}^D` are assigned to :math:`C` different classes
     by the vector of integer labels :math:`\ell_i \in [0,C)`,
     this function returns a collection of :math:`C` centroids
 
     .. math::
         c_k = \frac{\sum_{i, \ell_i = k} w_i\cdot x_i}{\sum_{i, \ell_i=k} w_i},
-    
+
     where the weights :math:`w_i` are set to 1 by default.
 
     Args:
@@ -117,7 +121,7 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
 
     Returns:
         (C,D) Tensor:
-        
+
         List of centroids :math:`c_k \in \mathbb{R}^D`.
 
     Example:
@@ -129,25 +133,28 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None) :
         tensor([[0.5000],
                 [4.7500]])
     """
-    if Nlab is None : Nlab = torch.bincount(lab).float()
+    if Nlab is None:
+        Nlab = torch.bincount(lab).float()
     if weights is not None and weights_c is None:
-        weights_c = torch.bincount(lab, weights=weights).view(-1,1)
+        weights_c = torch.bincount(lab, weights=weights).view(-1, 1)
 
-    c = torch.zeros( (len(Nlab), x.shape[1]), dtype=x.dtype,device=x.device)
+    c = torch.zeros((len(Nlab), x.shape[1]), dtype=x.dtype, device=x.device)
     for d in range(x.shape[1]):
         if weights is None:
-            c[:,d] = torch.bincount(lab,weights=x[:,d]) / Nlab
-        else :
-            c[:,d] = torch.bincount(lab,weights=x[:,d]*weights.view(-1)) / weights_c.view(-1)
+            c[:, d] = torch.bincount(lab, weights=x[:, d]) / Nlab
+        else:
+            c[:, d] = torch.bincount(
+                lab, weights=x[:, d] * weights.view(-1)
+            ) / weights_c.view(-1)
     return c
 
 
-def cluster_ranges_centroids(x, lab, weights=None, min_weight=1e-9) :
+def cluster_ranges_centroids(x, lab, weights=None, min_weight=1e-9):
     r"""Computes the cluster indices and centroids of a (weighted) point cloud with labels.
-    
+
     If **x** and **lab** encode a cloud of points :math:`x_i\in\mathbb{R}^D`
     with labels :math:`\ell_i\in[0,C)`, for :math:`i\in[0,M)`, this routine returns:
-      
+
     - Ranges :math:`[\text{start}_k,\text{end}_k)` compatible with
       :func:`sort_clusters` for :math:`k\in[0,C)`.
     - Centroids :math:`c_k` for each cluster :math:`k`, computed as barycenters
@@ -168,13 +175,13 @@ def cluster_ranges_centroids(x, lab, weights=None, min_weight=1e-9) :
     Keyword Args:
         weights ((M,) Tensor): Positive weights :math:`w_i` that can be used to compute
             our barycenters.
-        
+
         min_weight (float): For the sake of numerical stability,
             weights are clamped to be larger or equal to this value.
 
     Returns:
         (C,2) IntTensor, (C,D) Tensor, (C,) Tensor:
-        
+
         **ranges** - Stacked array of :math:`[\text{start}_k,\text{end}_k)` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`, compatible with the :func:`sort_clusters` routine.
 
@@ -211,23 +218,28 @@ def cluster_ranges_centroids(x, lab, weights=None, min_weight=1e-9) :
         tensor([1.5000, 12.0000])
     """
     Nlab = torch.bincount(lab).float()
-    if weights is not None :
+    if weights is not None:
         # Remove "zero weights" for the sake of numerical stability:
         weights = weights.clone()
         weights[weights <= min_weight] = min_weight
         w_c = torch.bincount(lab, weights=weights).view(-1)
-        return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab, weights=weights, weights_c=w_c), w_c
-    else :
+        return (
+            cluster_ranges(lab, Nlab),
+            cluster_centroids(x, lab, Nlab, weights=weights, weights_c=w_c),
+            w_c,
+        )
+    else:
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab), Nlab
 
-def swap_axes(ranges) :
+
+def swap_axes(ranges):
     r"""
     Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional **ranges** parameter.
-    
+
     This function returns **None** if **ranges** is **None**,
     and swaps the :math:`i` and :math:`j` arrays of indices otherwise.
     """
-    if ranges is None :
+    if ranges is None:
         return None
-    else :
-        return (*ranges[3:6],*ranges[0:3])
+    else:
+        return (*ranges[3:6], *ranges[0:3])

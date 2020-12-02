@@ -11,7 +11,7 @@ def grid_cluster(x, size):
     Returns:
         (M,) integer array:
 
-        Vector of integer **labels**. Two points ``x[i]`` and ``x[j]`` are 
+        Vector of integer **labels**. Two points ``x[i]`` and ``x[j]`` are
         in the same cluster if and only if ``labels[i] == labels[j]``.
         Labels are sorted in a compact range :math:`[0,C)`,
         where :math:`C` is the number of non-empty cubic cells.
@@ -43,5 +43,5 @@ def grid_cluster(x, size):
     foo = np.empty(np.max(u_lab) + 1, dtype=int)
     foo[u_lab] = np.arange(N_lab, dtype=int)
     lab = foo[lab]
-    
+
     return lab

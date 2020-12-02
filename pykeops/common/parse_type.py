@@ -1,17 +1,13 @@
 import re
 from collections import OrderedDict
 
-categories = OrderedDict([
-    ("Vi", 0),
-    ("Vj", 1),
-    ("Pm", 2)
-])
+categories = OrderedDict([("Vi", 0), ("Vj", 1), ("Pm", 2)])
 
 
 def complete_aliases(formula, aliases):
-    """ 
-        This function parse formula (a string) to find pattern like 'Var(x,x,x)'.
-        It then append to aliases (list of strings), the extra 'Var(x,x,x)'.
+    """
+    This function parse formula (a string) to find pattern like 'Var(x,x,x)'.
+    It then append to aliases (list of strings), the extra 'Var(x,x,x)'.
     """
     # first we detect all instances of Var(*,*,*) in formula.
     # These may be extra variables that are not listed in the aliases
@@ -48,7 +44,9 @@ def parse_aliases(aliases):
     for i, alias in enumerate(aliases):
         varname, cat, dim, pos = get_type(alias)
         if pos is not None and pos != i:
-            raise ValueError("This list of aliases is not ordered properly: " + str(aliases))
+            raise ValueError(
+                "This list of aliases is not ordered properly: " + str(aliases)
+            )
         categories.append(cat)
         dimensions.append(dim)
 
@@ -66,12 +64,14 @@ def get_sizes(aliases, *args):
         if (nx is not None) and (ny is not None):
             return nx, ny
 
-    # At this point, we know that our formula is degenerate, 
+    # At this point, we know that our formula is degenerate,
     # with no "x" or no "y" variable. The sensible behavior is to assume that
     # the corresponding "empty" dimension is equal to 1,
     # in accordance with the dimcheck of keops_io.h:
-    if nx is None: nx = 1
-    if ny is None: ny = 1
+    if nx is None:
+        nx = 1
+    if ny is None:
+        ny = 1
 
     return nx, ny
 
@@ -80,11 +80,11 @@ def get_type(type_str, position_in_list=None):
     """
     Get the type of the variable declared in type_str.
 
-    :param type_str: is a string of the form 
+    :param type_str: is a string of the form
     "var = Xy(dim)" or "var = Xy(pos,dim)" or "Xy(pos,dim)" or "Xy(dim)" with Xy being either Vi, Vj, Vx, Vy, or Pm,
     or "var = Var(pos,dim,cat)" (N.B. Vx and Vy are equivalent to resp. Vi and Vj and kept for backward compatibility)
     :param position_in_list: an optional integer used if the position is not given
-                             in type_str (ie is of the form "var = Xy(dim)" or "Xy(dim)") 
+                             in type_str (ie is of the form "var = Xy(dim)" or "Xy(dim)")
 
     :return: name : a string (here "var"), cat : an int (0,1 or 2), dim : an int
     """
@@ -94,17 +94,26 @@ def get_type(type_str, position_in_list=None):
         type_str = type_str.replace("Vx", "Vi")
         type_str = type_str.replace("Vy", "Vj")
         import warnings
+
         warnings.warn("'Vx' and 'Vy' variables types are now renamed 'Vi' and 'Vj'")
 
-    m = re.match('([a-zA-Z_][a-zA-Z_0-9]*)=(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
+    m = re.match(
+        "([a-zA-Z_][a-zA-Z_0-9]*)=(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)",
+        type_str.replace(" ", ""),
+    )
 
     if m is None:
-        m = re.match('(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)', type_str.replace(" ", ""))
+        m = re.match("(Vi|Vj|Pm)\(([0-9]*?),?([0-9]*)\)", type_str.replace(" ", ""))
         if m is None:
-            m = re.match('Var\(([0-9]*?),?([0-9]*),?([0-9]*)\)', type_str.replace(" ", ""))
+            m = re.match(
+                "Var\(([0-9]*?),?([0-9]*),?([0-9]*)\)", type_str.replace(" ", "")
+            )
             if m is None:
                 raise ValueError(
-                    type_str + " type_str does not match the 'var = [Vi|Vj|Pm](dim)' or 'var = [Vi|Vj|Pm](pos,dim) or '[Vi|Vj|Pm](dim) or '[Vi|Vj|Pm](pos,dim) or Var(pos,dim,cat)'  format: " + type_str)
+                    type_str
+                    + " type_str does not match the 'var = [Vi|Vj|Pm](dim)' or 'var = [Vi|Vj|Pm](pos,dim) or '[Vi|Vj|Pm](dim) or '[Vi|Vj|Pm](pos,dim) or Var(pos,dim,cat)'  format: "
+                    + type_str
+                )
             else:
                 # output: varname,          cat          ,     dim        , pos
                 return None, int(m.group(3)), int(m.group(2)), int(m.group(1))
@@ -137,70 +146,106 @@ def check_aliases_list(types_list):
         if name == None:
             aliases.append("Var(" + str(pos) + "," + str(dim) + "," + str(cat) + ")")
         else:
-            aliases.append(name + " = " + list(categories.keys())[cat] + "(" + str(pos) + "," + str(dim) + ")")
+            aliases.append(
+                name
+                + " = "
+                + list(categories.keys())[cat]
+                + "("
+                + str(pos)
+                + ","
+                + str(dim)
+                + ")"
+            )
 
     return aliases
 
 
-def get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks):
+def get_optional_flags(
+    reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks
+):
     # 1. Options for accuracy
 
     if dtype_acc != "auto" and use_double_acc:
-        raise ValueError("[KeOps] you cannot set both options use_double_acc and dtype_acc.")
+        raise ValueError(
+            "[KeOps] you cannot set both options use_double_acc and dtype_acc."
+        )
     if use_double_acc:
         dtype_acc = "float64"
-    if dtype_acc != "auto" and reduction_op_internal not in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
+    if dtype_acc != "auto" and reduction_op_internal not in (
+        "Sum",
+        "Max_SumShiftExp",
+        "Max_SumShiftExpWeight",
+    ):
         raise ValueError(
-            "[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)")
+            "[KeOps] parameter dtype_acc should be set to 'auto' for no-sum type reductions (Min, Max, ArgMin, etc.)"
+        )
     if dtype_acc == "auto":
         dtype_acc = dtype
     if dtype == "float32" and dtype_acc not in ("float32", "float64"):
         raise ValueError(
-            "[KeOps] invalid parameter dtype_acc : should be either 'float32' or 'float64' when dtype is 'float32'")
+            "[KeOps] invalid parameter dtype_acc : should be either 'float32' or 'float64' when dtype is 'float32'"
+        )
     elif dtype == "float16" and dtype_acc not in ("float16", "float32"):
         raise ValueError(
-            "[KeOps] invalid parameter dtype_acc : should be either 'float16' or 'float32' when dtype is 'float16'")
+            "[KeOps] invalid parameter dtype_acc : should be either 'float16' or 'float32' when dtype is 'float16'"
+        )
     elif dtype == "float64" and dtype_acc not in "float64":
-        raise ValueError("[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'")
+        raise ValueError(
+            "[KeOps] invalid parameter dtype_acc : should be 'float64' when dtype is 'float64'"
+        )
     if sum_scheme == "auto":
         if reduction_op_internal in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
             sum_scheme = "block_sum"
         else:
             sum_scheme = "direct_sum"
     if sum_scheme == "block_sum":
-        if reduction_op_internal not in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
-            raise ValueError('[KeOps] sum_scheme="block_sum" is only valid for sum type reductions.')
+        if reduction_op_internal not in (
+            "Sum",
+            "Max_SumShiftExp",
+            "Max_SumShiftExpWeight",
+        ):
+            raise ValueError(
+                '[KeOps] sum_scheme="block_sum" is only valid for sum type reductions.'
+            )
     elif sum_scheme == "kahan_scheme":
-        if reduction_op_internal not in ("Sum", "Max_SumShiftExp", "Max_SumShiftExpWeight"):
-            raise ValueError('[KeOps] sum_scheme="kahan_scheme" is only valid for sum type reductions.')
+        if reduction_op_internal not in (
+            "Sum",
+            "Max_SumShiftExp",
+            "Max_SumShiftExpWeight",
+        ):
+            raise ValueError(
+                '[KeOps] sum_scheme="kahan_scheme" is only valid for sum type reductions.'
+            )
     elif sum_scheme != "direct_sum":
         raise ValueError(
-            '[KeOps] invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".')
+            '[KeOps] invalid value for option sum_scheme : should be one of "auto", "direct_sum", "block_sum" or "kahan_scheme".'
+        )
 
     optional_flags = []
     if dtype_acc == "float64":
-        optional_flags += ['-D__TYPEACC__=double']
+        optional_flags += ["-D__TYPEACC__=double"]
     elif dtype_acc == "float32":
         if dtype == "float16":
-            optional_flags += ['-D__TYPEACC__=float2']
+            optional_flags += ["-D__TYPEACC__=float2"]
         else:
-            optional_flags += ['-D__TYPEACC__=float']
+            optional_flags += ["-D__TYPEACC__=float"]
     elif dtype_acc == "float16":
-        optional_flags += ['-D__TYPEACC__=half2']
+        optional_flags += ["-D__TYPEACC__=half2"]
     else:
         raise ValueError(
-            '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".')
+            '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".'
+        )
 
     if sum_scheme == "block_sum":
-        optional_flags += ['-DSUM_SCHEME=1']
+        optional_flags += ["-DSUM_SCHEME=1"]
     elif sum_scheme == "kahan_scheme":
-        optional_flags += ['-DSUM_SCHEME=2']
+        optional_flags += ["-DSUM_SCHEME=2"]
 
     # 2. Option for chunk mode
 
     if enable_chunks:
-        optional_flags += ['-DENABLECHUNK=1']
+        optional_flags += ["-DENABLECHUNK=1"]
     else:
-        optional_flags += ['-DENABLECHUNK=0']
+        optional_flags += ["-DENABLECHUNK=0"]
 
     return optional_flags

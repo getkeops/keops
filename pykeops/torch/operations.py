@@ -16,21 +16,36 @@ class KernelSolveAutograd(torch.autograd.Function):
     """
 
     @staticmethod
-    def forward(ctx, formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, *args):
-    
+    def forward(
+        ctx,
+        formula,
+        aliases,
+        varinvpos,
+        alpha,
+        backend,
+        dtype,
+        device_id,
+        eps,
+        ranges,
+        optional_flags,
+        rec_multVar_highdim,
+        *args
+    ):
+
         optional_flags += include_dirs
 
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
         # with large dimension. In this case we set compiler option MULT_VAR_HIGHDIM to allow for the use of the special "final chunk" computation
         # mode. However, this may not be also true for the gradients of the same formula. In fact only the gradient
-        # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx, 
+        # with respect to variable b will have the same form. Hence, we save optional_flags current status into ctx,
         # before adding the MULT_VAR_HIGHDIM compiler option.
         ctx.optional_flags = optional_flags.copy()
         if rec_multVar_highdim is not None:
-            optional_flags += ['-DMULT_VAR_HIGHDIM=1']
-        
-        myconv = LoadKeOps(formula, aliases, dtype, 'torch',
-                           optional_flags).import_module()
+            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
+
+        myconv = LoadKeOps(
+            formula, aliases, dtype, "torch", optional_flags
+        ).import_module()
 
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
@@ -45,8 +60,9 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.ranges = ranges
         ctx.rec_multVar_highdim = rec_multVar_highdim
         ctx.optional_flags = optional_flags
-        if ranges is None: ranges = () # To keep the same type
-            
+        if ranges is None:
+            ranges = ()  # To keep the same type
+
         varinv = args[varinvpos]
         ctx.varinvpos = varinvpos
 
@@ -56,17 +72,21 @@ class KernelSolveAutograd(torch.autograd.Function):
             device_id = args[0].device.index
             for i in range(1, len(args)):
                 if args[i].device.index != device_id:
-                    raise ValueError("[KeOps] Input arrays must be all located on the same device.")
+                    raise ValueError(
+                        "[KeOps] Input arrays must be all located on the same device."
+                    )
 
         def linop(var):
-            newargs = args[:varinvpos] + (var,) + args[varinvpos + 1:]
-            res = myconv.genred_pytorch(tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs)
+            newargs = args[:varinvpos] + (var,) + args[varinvpos + 1 :]
+            res = myconv.genred_pytorch(
+                tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs
+            )
             if alpha:
                 res += alpha * var
             return res
 
         global copy
-        result = ConjugateGradientSolver('torch', linop, varinv.data, eps)
+        result = ConjugateGradientSolver("torch", linop, varinv.data, eps)
 
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
@@ -96,19 +116,50 @@ class KernelSolveAutograd(torch.autograd.Function):
         # If formula takes 5 variables (numbered from 0 to 4), then the gradient
         # wrt. the output, G, should be given as a 6-th variable (numbered 5),
         # with the same dim-cat as the formula's output.
-        eta = 'Var(' + str(nargs) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
+        eta = (
+            "Var("
+            + str(nargs)
+            + ","
+            + str(myconv.dimout)
+            + ","
+            + str(myconv.tagIJ)
+            + ")"
+        )
 
         # there is also a new variable for the formula's output
-        resvar = 'Var(' + str(nargs+1) + ',' + str(myconv.dimout) + ',' + str(myconv.tagIJ) + ')'
-        
-        newargs = args[:varinvpos] + (G,) + args[varinvpos+1:]
-        KinvG = KernelSolveAutograd.apply(formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, *newargs)
+        resvar = (
+            "Var("
+            + str(nargs + 1)
+            + ","
+            + str(myconv.dimout)
+            + ","
+            + str(myconv.tagIJ)
+            + ")"
+        )
+
+        newargs = args[:varinvpos] + (G,) + args[varinvpos + 1 :]
+        KinvG = KernelSolveAutograd.apply(
+            formula,
+            aliases,
+            varinvpos,
+            alpha,
+            backend,
+            dtype,
+            device_id,
+            eps,
+            ranges,
+            optional_flags,
+            rec_multVar_highdim,
+            *newargs
+        )
 
         grads = []  # list of gradients wrt. args;
 
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
-            if not ctx.needs_input_grad[var_ind + 11]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim)
+            if not ctx.needs_input_grad[
+                var_ind + 11
+            ]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -119,21 +170,49 @@ class KernelSolveAutograd(torch.autograd.Function):
                     # adding new aliases is way too dangerous if we want to compute
                     # second derivatives, etc. So we make explicit references to Var<ind,dim,cat> instead.
                     # New here (Joan) : we still add the new variables to the list of "aliases" (without giving new aliases for them)
-                    # these will not be used in the C++ code, 
+                    # these will not be used in the C++ code,
                     # but are useful to keep track of the actual variables used in the formula
                     _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
-                    var = 'Var(' + str(pos) + ',' + str(dim) + ',' + str(cat) + ')'  # V
-                    formula_g = 'Grad_WithSavedForward(' + formula + ', ' + var + ', ' + eta + ', ' + resvar + ')'  # Grad<F,V,G,R>
+                    var = "Var(" + str(pos) + "," + str(dim) + "," + str(cat) + ")"  # V
+                    formula_g = (
+                        "Grad_WithSavedForward("
+                        + formula
+                        + ", "
+                        + var
+                        + ", "
+                        + eta
+                        + ", "
+                        + resvar
+                        + ")"
+                    )  # Grad<F,V,G,R>
                     aliases_g = aliases + [eta, resvar]
-                    args_g = args[:varinvpos] + (result,) + args[varinvpos+1:] + (-KinvG,) + (result,)  # Don't forget the gradient to backprop !
+                    args_g = (
+                        args[:varinvpos]
+                        + (result,)
+                        + args[varinvpos + 1 :]
+                        + (-KinvG,)
+                        + (result,)
+                    )  # Don't forget the gradient to backprop !
 
                     # N.B.: if I understand PyTorch's doc, we should redefine this function every time we use it?
                     genconv = GenredAutograd().apply
 
-                    if cat == 2:  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
+                    if (
+                        cat == 2
+                    ):  # we're referring to a parameter, so we'll have to sum both wrt 'i' and 'j'
                         # WARNING !! : here we rely on the implementation of DiffT in files in folder keops/core/formulas/reductions
                         # if tagI==cat of V is 2, then reduction is done wrt j, so we need to further sum output wrt i
-                        grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, None, *args_g)
+                        grad = genconv(
+                            formula_g,
+                            aliases_g,
+                            backend,
+                            dtype,
+                            device_id,
+                            ranges,
+                            optional_flags,
+                            None,
+                            *args_g
+                        )
                         # Then, sum 'grad' wrt 'i' :
                         # I think that '.sum''s backward introduces non-contiguous arrays,
                         # and is thus non-compatible with GenredAutograd: grad = grad.sum(0)
@@ -141,14 +220,37 @@ class KernelSolveAutograd(torch.autograd.Function):
                         grad = torch.ones(1, grad.shape[0]).type_as(grad.data) @ grad
                         grad = grad.view(-1)
                     else:
-                        grad = genconv(formula_g, aliases_g, backend, dtype, device_id, ranges, optional_flags, None, *args_g)
+                        grad = genconv(
+                            formula_g,
+                            aliases_g,
+                            backend,
+                            dtype,
+                            device_id,
+                            ranges,
+                            optional_flags,
+                            None,
+                            *args_g
+                        )
                     grads.append(grad)
-         
+
         # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, *args
-        return (None, None, None, None, None, None, None, None, None, None, None, *grads)
+        return (
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            *grads,
+        )
 
 
-class KernelSolve():
+class KernelSolve:
     r"""
     Creates a new conjugate gradient solver.
 
@@ -190,12 +292,26 @@ class KernelSolve():
         >>> print(g_x.shape)
         torch.Size([10000, 3]) 
     """
-    def __init__(self, formula, aliases, varinvalias, axis=0, dtype=default_dtype, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, rec_multVar_highdim=None):
+
+    def __init__(
+        self,
+        formula,
+        aliases,
+        varinvalias,
+        axis=0,
+        dtype=default_dtype,
+        cuda_type=None,
+        dtype_acc="auto",
+        use_double_acc=False,
+        sum_scheme="auto",
+        enable_chunks=True,
+        rec_multVar_highdim=None,
+    ):
         r"""
         Instantiate a new KernelSolve operation.
 
         Note:
-            :class:`KernelSolve` relies on CUDA kernels that are compiled on-the-fly 
+            :class:`KernelSolve` relies on CUDA kernels that are compiled on-the-fly
             and stored in a :ref:`cache directory <part.cache>` as shared libraries (".so" files) for later use.
 
 
@@ -204,7 +320,7 @@ class KernelSolve():
                 that should be computed and reduced.
                 The correct syntax is described in the :doc:`documentation <../../Genred>`,
                 using appropriate :doc:`mathematical operations <../../../api/math-operations>`.
-            aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"`` 
+            aliases (list of strings): A list of identifiers of the form ``"AL = TYPE(DIM)"``
                 that specify the categories and dimensions of the input variables. Here:
 
                   - ``AL`` is an alphanumerical alias, used in the **formula**.
@@ -215,7 +331,7 @@ class KernelSolve():
                     - ``Pm``: no indexation, the input tensor is a *vector* and not a 2d array.
 
                   - ``DIM`` is an integer, the dimension of the current variable.
-                
+
                 As described below, :meth:`__call__` will expect input Tensors whose
                 shape are compatible with **aliases**.
             varinvalias (string): The alphanumerical **alias** of the variable with
@@ -224,105 +340,113 @@ class KernelSolve():
                 but may be more sophisticated than a mere ``"K(x,y) * {varinvalias}"``.
 
         Keyword Args:
-            alpha (float, default = 1e-10): Non-negative 
+            alpha (float, default = 1e-10): Non-negative
                 **ridge regularization** parameter, added to the diagonal
                 of the Kernel matrix :math:`K_{xx}`.
 
-            axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine. 
+            axis (int, default = 0): Specifies the dimension of the kernel matrix :math:`K_{x_ix_j}` that is reduced by our routine.
                 The supported values are:
 
                   - **axis** = 0: reduction with respect to :math:`i`, outputs a ``Vj`` or ":math:`j`" variable.
                   - **axis** = 1: reduction with respect to :math:`j`, outputs a ``Vi`` or ":math:`i`" variable.
 
-            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays. 
+            dtype (string, default = ``"float32"``): Specifies the numerical ``dtype`` of the input and output arrays.
                 The supported values are:
 
                   - **dtype** = ``"float16"`` or ``"half"``.
                   - **dtype** = ``"float32"`` or ``"float"``.
                   - **dtype** = ``"float64"`` or ``"double"``.
-                  
-            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+
+            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype.
                 It improves the accuracy of results in case of large sized data, but is slower.
-                Default value "auto" will set this option to the value of dtype. The supported values are: 
+                Default value "auto" will set this option to the value of dtype. The supported values are:
 
                   - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
                   - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
                   - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
 
             use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
-                If True, accumulate results of reduction in float64 variables, before casting to float32. 
+                If True, accumulate results of reduction in float64 variables, before casting to float32.
                 This can only be set to True when data is in float32 or float64.
-                It improves the accuracy of results in case of large sized data, but is slower.       
-           
+                It improves the accuracy of results in case of large sized data, but is slower.
+
             sum_scheme (string, default ``"auto"``): method used to sum up results for reductions.
                 Default value "auto" will set this option to "block_red". Possible values are:
                   - **sum_scheme** =  ``"direct_sum"``: direct summation
-                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating 
-                    in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating
+                    in the output. This improves accuracy for large sized data.
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
-                accuracy for large sized data. 
+                accuracy for large sized data.
 
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
-				with formulas involving large dimension variables.
+                                with formulas involving large dimension variables.
 
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type
-        reduction_op = 'Sum'
+        reduction_op = "Sum"
 
-        self.optional_flags = get_optional_flags(reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
+        self.optional_flags = get_optional_flags(
+            reduction_op, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks
+        )
 
-        self.formula = reduction_op + '_Reduction(' + formula + ',' + str(axis2cat(axis)) + ')'
-        self.aliases = complete_aliases(formula, list(aliases))  # just in case the user provided a tuple
+        self.formula = (
+            reduction_op + "_Reduction(" + formula + "," + str(axis2cat(axis)) + ")"
+        )
+        self.aliases = complete_aliases(
+            formula, list(aliases)
+        )  # just in case the user provided a tuple
         if varinvalias[:4] == "Var(":
             # varinv is given directly as Var(*,*,*) so we just have to read the index
-            varinvpos = int(varinvalias[4:varinvalias.find(",")])
+            varinvpos = int(varinvalias[4 : varinvalias.find(",")])
         else:
             # we need to recover index from alias
             tmp = self.aliases.copy()
             for (i, s) in enumerate(tmp):
-                tmp[i] = s[:s.find("=")].strip()
+                tmp[i] = s[: s.find("=")].strip()
             varinvpos = tmp.index(varinvalias)
         self.varinvpos = varinvpos
         self.dtype = dtype
         self.rec_multVar_highdim = rec_multVar_highdim
 
-    def __call__(self, *args, backend='auto', device_id=-1, alpha=1e-10, eps=1e-6, ranges=None):
+    def __call__(
+        self, *args, backend="auto", device_id=-1, alpha=1e-10, eps=1e-6, ranges=None
+    ):
         r"""
         Apply the routine on arbitrary torch Tensors.
-            
+
         Warning:
             Even for variables of size 1 (e.g. :math:`a_i\in\mathbb{R}`
             for :math:`i\in[0,M)`), KeOps expects inputs to be formatted
             as 2d Tensors of size ``(M,dim)``. In practice,
             ``a.view(-1,1)`` should be used to turn a vector of weights
             into a *list of scalar values*.
-        
+
         Args:
-            *args (2d Tensors (variables ``Vi(..)``, ``Vj(..)``) and 1d Tensors (parameters ``Pm(..)``)): The input numerical arrays, 
-                which should all have the same ``dtype``, be **contiguous** and be stored on 
-                the **same device**. KeOps expects one array per alias, 
+            *args (2d Tensors (variables ``Vi(..)``, ``Vj(..)``) and 1d Tensors (parameters ``Pm(..)``)): The input numerical arrays,
+                which should all have the same ``dtype``, be **contiguous** and be stored on
+                the **same device**. KeOps expects one array per alias,
                 with the following compatibility rules:
 
                     - All ``Vi(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`M`.
                     - All ``Vj(Dim_k)`` variables are encoded as **2d-tensors** with ``Dim_k`` columns and the same number of lines :math:`N`.
                     - All ``Pm(Dim_k)`` variables are encoded as **1d-tensors** (vectors) of size ``Dim_k``.
-                
+
         Keyword Args:
             backend (string): Specifies the map-reduce scheme,
-                as detailed in the documentation 
+                as detailed in the documentation
                 of the :class:`torch.Genred <pykeops.torch.Genred>` module.
 
-            device_id (int, default=-1): Specifies the GPU that should be used 
-                to perform   the computation; a negative value lets your system 
-                choose the default GPU. This parameter is only useful if your 
+            device_id (int, default=-1): Specifies the GPU that should be used
+                to perform   the computation; a negative value lets your system
+                choose the default GPU. This parameter is only useful if your
                 system has access to several GPUs.
 
-            ranges (6-uple of IntTensors, None by default): Ranges of integers 
+            ranges (6-uple of IntTensors, None by default): Ranges of integers
                 that specify a :doc:`block-sparse reduction scheme <../../sparsity>`
                 with *Mc clusters along axis 0* and *Nc clusters along axis 1*,
-                as detailed in the documentation 
+                as detailed in the documentation
                 of the :class:`torch.Genred <pykeops.torch.Genred>` module.
 
                 If **None** (default), we simply use a **dense Kernel matrix**
@@ -332,12 +456,25 @@ class KernelSolve():
             (M,D) or (N,D) Tensor:
 
             The solution of the optimization problem, stored on the same device
-            as the input Tensors. The output of a :class:`KernelSolve` 
-            call is always a 
-            **2d-tensor** with :math:`M` or :math:`N` lines (if **axis** = 1 
-            or **axis** = 0, respectively) and a number of columns 
+            as the input Tensors. The output of a :class:`KernelSolve`
+            call is always a
+            **2d-tensor** with :math:`M` or :math:`N` lines (if **axis** = 1
+            or **axis** = 0, respectively) and a number of columns
             that is inferred from the **formula**.
-            
+
         """
 
-        return KernelSolveAutograd.apply(self.formula, self.aliases, self.varinvpos, alpha, backend, self.dtype, device_id, eps, ranges, self.optional_flags, self.rec_multVar_highdim, *args)
+        return KernelSolveAutograd.apply(
+            self.formula,
+            self.aliases,
+            self.varinvpos,
+            alpha,
+            backend,
+            self.dtype,
+            device_id,
+            eps,
+            ranges,
+            self.optional_flags,
+            self.rec_multVar_highdim,
+            *args
+        )

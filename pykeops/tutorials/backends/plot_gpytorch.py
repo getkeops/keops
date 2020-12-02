@@ -36,7 +36,7 @@ if you encounter any unexpected behavior with this experimental KeOps-GPytorch i
 """
 
 #####################################################################
-# Setup 
+# Setup
 # -----------------
 # Standard imports, including `gpytorch <https://gpytorch.ai/>`_:
 
@@ -54,25 +54,26 @@ dtype = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 
 N = 1000 if use_cuda else 100
 train_x = torch.linspace(0, 1, N).type(dtype)
-train_y = torch.sin(train_x * (2 * math.pi)) \
-          + .2 * torch.randn(train_x.size()).type(dtype)
+train_y = torch.sin(train_x * (2 * math.pi)) + 0.2 * torch.randn(train_x.size()).type(
+    dtype
+)
 
 #####################################################################
-# Defining a new KeOps RBF kernel 
+# Defining a new KeOps RBF kernel
 # ---------------------------------
-# 
+#
 # Internally, GPytorch relies on `LazyTensors  <https://gpytorch.readthedocs.io/en/latest/lazy.html>`_
 # parameterized by explicit **torch Tensors** - and **nothing** else.
 # To let GPytorch use our KeOps CUDA routines, we should thus create
 # a new class of :mod:`gpytorch.lazy.LazyTensor`, encoding an implicit
 # kernel matrix built from raw point clouds **x_i** and **y_j**.
-# 
+#
 # .. note::
 #   Ideally, we'd like to be able to **export KeOps LazyTensors** directly as
 #   GPytorch objects, but the reliance of the latter's internal engine on
 #   explicit **torch.Tensor** variables is a hurdle that we could not bypass
-#   easily. Working on this problem with the GPytorch team, 
-#   we hope to provide a simpler interface in future releases. 
+#   easily. Working on this problem with the GPytorch team,
+#   we hope to provide a simpler interface in future releases.
 
 
 from pykeops.torch import LazyTensor
@@ -81,34 +82,40 @@ from pykeops.torch import LazyTensor
 class KeOpsRBFLazyTensor(gpytorch.lazy.LazyTensor):
     def __init__(self, x_i, y_j):
         """Creates a symbolic Gaussian RBF kernel out of two point clouds `x_i` and `y_j`."""
-        super().__init__(x_i, y_j)  # GPytorch will remember that self was built from x_i and y_j
-        
+        super().__init__(
+            x_i, y_j
+        )  # GPytorch will remember that self was built from x_i and y_j
+
         self.x_i, self.y_j = x_i, y_j  # Useful to define a symbolic transpose
-        
+
         with torch.autograd.enable_grad():  # N.B.: gpytorch operates in no_grad mode
-            x_i, y_j = LazyTensor(self.x_i[:, None, :]), LazyTensor(self.y_j[None, :, :])
-            K_xy = (- ((x_i - y_j) ** 2).sum(-1) / 2).exp()  # Compute the kernel matrix symbolically...
-        
+            x_i, y_j = LazyTensor(self.x_i[:, None, :]), LazyTensor(
+                self.y_j[None, :, :]
+            )
+            K_xy = (
+                -((x_i - y_j) ** 2).sum(-1) / 2
+            ).exp()  # Compute the kernel matrix symbolically...
+
         self.K = K_xy  # ... and store it for later use
-    
+
     def _matmul(self, M):
         """Kernel-Matrix multiplication."""
         return self.K @ M
-    
+
     def _size(self):
         """Shape attribute."""
         return torch.Size(self.K.shape)
-    
+
     def _transpose_nonbatch(self):
         """Symbolic transpose operation."""
         return KeOpsRBFLazyTensor(self.y_j, self.x_i)
-    
+
     def _get_indices(self, row_index, col_index, *batch_indices):
         """Returns a (small) explicit sub-matrix, used e.g. for Nystroem approximation."""
         X_i = self.x_i[row_index]
         Y_j = self.y_j[col_index]
-        return (- ((X_i - Y_j) ** 2).sum(-1) / 2).exp()  # Genuine torch.Tensor
-    
+        return (-((X_i - Y_j) ** 2).sum(-1) / 2).exp()  # Genuine torch.Tensor
+
     def _quad_form_derivative(self, *args, **kwargs):
         """As of gpytorch v0.3.2, the default implementation returns a list instead of a tuple..."""
         return tuple(super()._quad_form_derivative(*args, **kwargs))  # Bugfix!
@@ -118,20 +125,25 @@ class KeOpsRBFLazyTensor(gpytorch.lazy.LazyTensor):
 # We can now create a new GPytorch **Kernel** object, wrapped around
 # our KeOps+GPytorch LazyTensor:
 
+
 class KeOpsRBFKernel(gpytorch.kernels.Kernel):
     """Simple KeOps re-implementation of 'gpytorch.kernels.RBFKernel'."""
-    
-    has_lengthscale=True
-    
+
+    has_lengthscale = True
+
     def forward(self, x1, x2, diag=False, **params):
         if diag:  # A Gaussian RBF kernel only has "ones" on the diagonal
             return torch.ones(len(x1)).type_as(x1)
         else:
-            if x1.dim() == 1: x1 = x1.view(-1, 1)
-            if x2.dim() == 1: x2 = x2.view(-1, 1)
+            if x1.dim() == 1:
+                x1 = x1.view(-1, 1)
+            if x2.dim() == 1:
+                x2 = x2.view(-1, 1)
             # Rescale the input data...
             x_i, y_j = x1.div(self.lengthscale), x2.div(self.lengthscale)
-            return KeOpsRBFLazyTensor(x_i, y_j)  # ... and return it as a gyptorch.lazy.LazyTensor
+            return KeOpsRBFLazyTensor(
+                x_i, y_j
+            )  # ... and return it as a gyptorch.lazy.LazyTensor
 
 
 #####################################################################
@@ -143,7 +155,7 @@ class KeOpsGPModel(gpytorch.models.ExactGP):
         super().__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.ConstantMean()
         self.covar_module = gpytorch.kernels.ScaleKernel(KeOpsRBFKernel())
-    
+
     def forward(self, x):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
@@ -152,15 +164,16 @@ class KeOpsGPModel(gpytorch.models.ExactGP):
 
 ##########################################################
 # **N.B., for the sake of comparison:** the GPytorch documentation went with
-# the code below, using the standard :meth:`gpytorch.kernels.RBFKernel()` 
+# the code below, using the standard :meth:`gpytorch.kernels.RBFKernel()`
 # instead of our custom :meth:`KeOpsRBFKernel()`:
+
 
 class ExactGPModel(gpytorch.models.ExactGP):
     def __init__(self, train_x, train_y, likelihood):
         super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.ConstantMean()
         self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
-    
+
     def forward(self, x):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
@@ -188,9 +201,12 @@ model.train()
 likelihood.train()
 
 # Use the adam optimizer
-optimizer = torch.optim.Adam([
-    {'params': model.parameters()},  # Includes GaussianLikelihood parameters
-], lr=0.1)
+optimizer = torch.optim.Adam(
+    [
+        {"params": model.parameters()},  # Includes GaussianLikelihood parameters
+    ],
+    lr=0.1,
+)
 
 # "Loss" for GPs - the marginal log likelihood
 mll = gpytorch.mlls.ExactMarginalLogLikelihood(likelihood, model)
@@ -205,11 +221,16 @@ for i in range(training_iter):
     loss = -mll(output, train_y)
     loss.backward()
     if i % 10 == 0 or i == training_iter - 1:
-        print('Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f' % (
-            i + 1, training_iter, loss.item(),
-            model.covar_module.base_kernel.lengthscale.item(),
-            model.likelihood.noise.item()
-        ))
+        print(
+            "Iter %d/%d - Loss: %.3f   lengthscale: %.3f   noise: %.3f"
+            % (
+                i + 1,
+                training_iter,
+                loss.item(),
+                model.covar_module.base_kernel.lengthscale.item(),
+                model.likelihood.noise.item(),
+            )
+        )
     optimizer.step()
 
 #####################################################################
@@ -236,18 +257,20 @@ with torch.no_grad(), gpytorch.settings.fast_pred_var():
 with torch.no_grad():
     # Initialize plot
     f, ax = plt.subplots(1, 1, figsize=(12, 9))
-    
+
     # Get upper and lower confidence bounds
     lower, upper = observed_pred.confidence_region()
     # Plot training data as black stars
-    ax.plot(train_x.cpu().numpy(), train_y.cpu().numpy(), 'k*')
+    ax.plot(train_x.cpu().numpy(), train_y.cpu().numpy(), "k*")
     # Plot predictive means as blue line
-    ax.plot(test_x.cpu().numpy(), observed_pred.mean.cpu().numpy(), 'b')
+    ax.plot(test_x.cpu().numpy(), observed_pred.mean.cpu().numpy(), "b")
     # Shade between the lower and upper confidence bounds
-    ax.fill_between(test_x.cpu().numpy(), lower.cpu().numpy(), upper.cpu().numpy(), alpha=0.5)
+    ax.fill_between(
+        test_x.cpu().numpy(), lower.cpu().numpy(), upper.cpu().numpy(), alpha=0.5
+    )
     ax.set_ylim([-3, 3])
-    ax.legend(['Observed Data', 'Mean', 'Confidence'])
+    ax.legend(["Observed Data", "Mean", "Confidence"])
 
-plt.axis([0, 1, -2, 2]);
+plt.axis([0, 1, -2, 2])
 plt.tight_layout()
 plt.show()

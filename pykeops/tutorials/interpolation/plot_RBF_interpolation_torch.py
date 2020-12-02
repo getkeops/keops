@@ -46,7 +46,12 @@ N = 10000 if use_cuda else 1000  # Number of samples
 x = torch.rand(N, 1).type(dtype)
 
 # Some random-ish 1D signal:
-b = x + .5 * (6 * x).sin() + .1 * (20 * x).sin() + .05 * torch.randn(N, 1).type(dtype)
+b = (
+    x
+    + 0.5 * (6 * x).sin()
+    + 0.1 * (20 * x).sin()
+    + 0.05 * torch.randn(N, 1).type(dtype)
+)
 
 
 ######################################################################
@@ -56,20 +61,21 @@ b = x + .5 * (6 * x).sin() + .1 * (20 * x).sin() + .05 * torch.randn(N, 1).type(
 # Specify our **regression model** - a simple **Gaussian** variogram or **kernel matrix**
 # of deviation **sigma**:
 
-def gaussian_kernel(x, y, sigma=.1):
+
+def gaussian_kernel(x, y, sigma=0.1):
     x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
     y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
     D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
-    return (- D_ij / (2 * sigma ** 2)).exp()  # (M, N) symbolic Gaussian kernel matrix
+    return (-D_ij / (2 * sigma ** 2)).exp()  # (M, N) symbolic Gaussian kernel matrix
 
 
 #######################################################################
 # Perform the **Kernel interpolation**, without forgetting to specify
 # the ridge regularization parameter **alpha** which controls the trade-off
-# between a perfect fit (**alpha** = 0) and a 
+# between a perfect fit (**alpha** = 0) and a
 # smooth interpolation (**alpha** = :math:`+\infty`):
 
-alpha = 1.  # Ridge regularization
+alpha = 1.0  # Ridge regularization
 
 start = time.time()
 
@@ -78,12 +84,15 @@ a = K_xx.solve(b, alpha=alpha)
 
 end = time.time()
 
-print('Time to perform an RBF interpolation with {:,} samples in 1D: {:.5f}s'.format(
-    N, end - start))
+print(
+    "Time to perform an RBF interpolation with {:,} samples in 1D: {:.5f}s".format(
+        N, end - start
+    )
+)
 
 ###############################################################################################
 # Display the (fitted) model on the unit interval:
-#    
+#
 
 # Extrapolate on a uniform sample:
 t = torch.linspace(0, 1, 1001).type(dtype)[:, None]
@@ -97,7 +106,7 @@ plt.figure(figsize=(8, 6))
 plt.scatter(x.cpu()[:, 0], b.cpu()[:, 0], s=100 / len(x))  # Noisy samples
 plt.plot(t.cpu().numpy(), mean_t.cpu().numpy(), "r")
 
-plt.axis([0, 1, 0, 1]);
+plt.axis([0, 1, 0, 1])
 plt.tight_layout()
 
 ###############################################################################################
@@ -110,11 +119,11 @@ plt.tight_layout()
 x = torch.rand(N, 2).type(dtype)
 
 # Some random-ish 2D signal:
-b = ((x - .5) ** 2).sum(1, keepdim=True)
-b[b > .4 ** 2] = 0
-b[b < .3 ** 2] = 0
-b[b >= .3 ** 2] = 1
-b = b + .05 * torch.randn(N, 1).type(dtype)
+b = ((x - 0.5) ** 2).sum(1, keepdim=True)
+b[b > 0.4 ** 2] = 0
+b[b < 0.3 ** 2] = 0
+b[b >= 0.3 ** 2] = 1
+b = b + 0.05 * torch.randn(N, 1).type(dtype)
 
 # Add 25% of outliers:
 Nout = N // 4
@@ -125,17 +134,18 @@ b[-Nout:] = torch.rand(Nout, 1).type(dtype)
 # Specify our **regression model** - a simple **Exponential** variogram
 # or **Laplacian** kernel matrix of deviation **sigma**:
 
-def laplacian_kernel(x, y, sigma=.1):
+
+def laplacian_kernel(x, y, sigma=0.1):
     x_i = LazyTensor(x[:, None, :])  # (M, 1, 1)
     y_j = LazyTensor(y[None, :, :])  # (1, N, 1)
     D_ij = ((x_i - y_j) ** 2).sum(-1)  # (M, N) symbolic matrix of squared distances
-    return (- D_ij.sqrt() / sigma).exp()  # (M, N) symbolic Laplacian kernel matrix
+    return (-D_ij.sqrt() / sigma).exp()  # (M, N) symbolic Laplacian kernel matrix
 
 
 #######################################################################
 # Perform the **Kernel interpolation**, without forgetting to specify
 # the ridge regularization parameter **alpha** which controls the trade-off
-# between a perfect fit (**alpha** = 0) and a 
+# between a perfect fit (**alpha** = 0) and a
 # smooth interpolation (**alpha** = :math:`+\infty`):
 
 alpha = 10  # Ridge regularization
@@ -147,12 +157,16 @@ a = K_xx.solve(b, alpha=alpha)
 
 end = time.time()
 
-print('Time to perform an RBF interpolation with {:,} samples in 2D: {:.5f}s'.format(N, end - start))
+print(
+    "Time to perform an RBF interpolation with {:,} samples in 2D: {:.5f}s".format(
+        N, end - start
+    )
+)
 
 
 ###############################################################################################
 # Display the (fitted) model on the unit square:
-#    
+#
 
 # Extrapolate on a uniform sample:
 X = Y = torch.linspace(0, 1, 101).type(dtype)
@@ -166,8 +180,15 @@ mean_t = mean_t.view(101, 101)
 # 2D plot: noisy samples and interpolation in the background
 plt.figure(figsize=(8, 8))
 
-plt.scatter(x.cpu()[:, 0], x.cpu()[:, 1], c=b.cpu().view(-1), s=25000 / len(x), cmap="bwr")
-plt.imshow(mean_t.cpu().numpy()[::-1, :], interpolation="bilinear", extent=[0, 1, 0, 1], cmap="coolwarm")
+plt.scatter(
+    x.cpu()[:, 0], x.cpu()[:, 1], c=b.cpu().view(-1), s=25000 / len(x), cmap="bwr"
+)
+plt.imshow(
+    mean_t.cpu().numpy()[::-1, :],
+    interpolation="bilinear",
+    extent=[0, 1, 0, 1],
+    cmap="coolwarm",
+)
 
 # sphinx_gallery_thumbnail_number = 2
 plt.axis([0, 1, 0, 1])

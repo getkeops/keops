@@ -12,21 +12,23 @@ class LoadKeopsSpecific:
     r"""
     This class compile the cuda routines if necessary and load it via the method import_module()
     """
-    
+
     def __init__(self, dllname, dtype=default_dtype):
         self.dll_name = dllname
         self.dtype = dtype
-        
+
         spec = importlib.util.find_spec(dllname)
-        
-        if (spec is None) or (pykeops.config.build_type == 'Debug'):
-            self.build_folder = set_build_folder(pykeops.config.bin_folder, self.dll_name)
+
+        if (spec is None) or (pykeops.config.build_type == "Debug"):
+            self.build_folder = set_build_folder(
+                pykeops.config.bin_folder, self.dll_name
+            )
             self._safe_compile()
-    
+
     @create_and_lock_build_folder()
     def _safe_compile(self):
         compile_specific_conv_routine(self.dll_name, self.dtype, self.build_folder)
-    
+
     def import_module(self):
         return importlib.import_module(self.dll_name)
 
@@ -42,16 +44,16 @@ class RadialKernelConv:
     k(x_i,y_j) : it is therefore possible to use it when len(x) and len(y) are both large
     without getting a "memory overflow".
 
-    N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p". 
+    N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
-    
+
     def __init__(self, dtype=default_dtype, cuda_type=None):
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type
-        self.myconv = LoadKeopsSpecific('radial_kernel_conv', dtype).import_module()
-    
-    def __call__(self, x, y, beta, sigma, kernel='gaussian'):
+        self.myconv = LoadKeopsSpecific("radial_kernel_conv", dtype).import_module()
+
+    def __call__(self, x, y, beta, sigma, kernel="gaussian"):
         return self.myconv.specific_conv(x, y, beta, sigma, kernel)
 
 
@@ -68,7 +70,7 @@ class RadialKernelGrad1conv:
 
     N.B.: in an LDDMM setting, one would typically use "x = y = q", "beta = p".
     """
-    
+
     def __init__(self, dtype=default_dtype, cuda_type=None):
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
@@ -76,7 +78,9 @@ class RadialKernelGrad1conv:
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
             dtype = cuda_type
-        self.myconv = LoadKeopsSpecific('radial_kernel_grad1conv', dtype).import_module()
-    
-    def __call__(self, a, x, y, beta, sigma, kernel='gaussian'):
+        self.myconv = LoadKeopsSpecific(
+            "radial_kernel_grad1conv", dtype
+        ).import_module()
+
+    def __call__(self, a, x, y, beta, sigma, kernel="gaussian"):
         return self.myconv.specific_grad1conv(a, x, y, beta, sigma, kernel)

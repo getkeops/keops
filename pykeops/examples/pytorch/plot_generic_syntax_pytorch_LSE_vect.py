@@ -6,19 +6,18 @@ Vectorial LogSumExp reduction
 ####################################################################
 # Let's compute the (3000,1) tensor :math:`c` whose entries
 # :math:`c_i` are given by:
-#    
+#
 # .. math::
 #   c_i = \log \left[ \sum_j \exp\left( (p-a_j)^2 \exp(x_i+y_j) \right) b_j\right]
-# 
-# where 
-# 
+#
+# where
+#
 # * :math:`x` is a (3000,1) tensor, with entries :math:`x_i`.
 # * :math:`y` is a (5000,1) tensor, with entries :math:`y_j`.
 # * :math:`a` is a (5000,1) tensor, with entries :math:`a_j`.
 # * :math:`p` is a scalar, encoded as a vector of size (1,).
 # * :math:`b` is a (5000,3) tensor, with entries :math:`b_j`.
 #
-
 
 
 ####################################################################
@@ -41,8 +40,8 @@ from pykeops.torch import Genred
 M = 3000
 N = 5000
 
-dtype = 'float32' # Could be 'float32' or 'float64'
-torchtype = torch.float32 if dtype == 'float32' else torch.float64
+dtype = "float32"  # Could be 'float32' or 'float64'
+torchtype = torch.float32 if dtype == "float32" else torch.float64
 
 x = torch.rand(M, 1, dtype=torchtype)
 y = torch.rand(N, 1, dtype=torchtype, requires_grad=True)
@@ -54,14 +53,16 @@ b = torch.rand(N, 3, dtype=torchtype)
 # Define a custom formula
 # -----------------------
 
-formula = 'Square(p-a)*Exp(x+y)'
-formula2 = 'b'
-variables = ['x = Vi(1)',  # First arg   : i-variable, of size 1 (scalar)
-             'y = Vj(1)',  # Second arg  : j-variable, of size 1 (scalar)
-             'a = Vj(1)',  # Third arg   : j-variable, of size 1 (scalar)
-             'p = Pm(1)',  # Fourth arg  : Parameter,  of size 1 (scalar)
-             'b = Vj(3)']  # Fifth arg   : j-variable, of size 3 (vector)
-                      
+formula = "Square(p-a)*Exp(x+y)"
+formula2 = "b"
+variables = [
+    "x = Vi(1)",  # First arg   : i-variable, of size 1 (scalar)
+    "y = Vj(1)",  # Second arg  : j-variable, of size 1 (scalar)
+    "a = Vj(1)",  # Third arg   : j-variable, of size 1 (scalar)
+    "p = Pm(1)",  # Fourth arg  : Parameter,  of size 1 (scalar)
+    "b = Vj(3)",
+]  # Fifth arg   : j-variable, of size 3 (vector)
+
 start = time.time()
 
 ####################################################################
@@ -69,39 +70,53 @@ start = time.time()
 # i.e. on the axis ``1`` of the kernel matrix.
 # The output c is an :math:`x`-variable indexed by :math:`i`.
 
-my_routine = Genred(formula, variables, reduction_op='LogSumExp', axis=1, dtype=dtype, formula2=formula2)
-c = my_routine(x, y, a, p, b, backend='CPU')
+my_routine = Genred(
+    formula, variables, reduction_op="LogSumExp", axis=1, dtype=dtype, formula2=formula2
+)
+c = my_routine(x, y, a, p, b, backend="CPU")
 
 # N.B.: By specifying backend='CPU', we can make sure that the result is computed using a simple C++ for loop.
-print('Time to compute the convolution operation on the cpu: ', round(time.time()-start,5), 's', end=' ')
+print(
+    "Time to compute the convolution operation on the cpu: ",
+    round(time.time() - start, 5),
+    "s",
+    end=" ",
+)
 
 #######################################################################
 # We compare with the unstable, naive computation "Log of Sum of Exp":
 
-my_routine2 = Genred('Exp('+formula+')*'+formula2, variables, reduction_op='Sum', axis=1, dtype=dtype)
-c2 = torch.log(my_routine2(x, y, a, p, b, backend='CPU'))
-print('(relative error: ',((c2-c).norm()/c.norm()).item(), ')')
+my_routine2 = Genred(
+    "Exp(" + formula + ")*" + formula2,
+    variables,
+    reduction_op="Sum",
+    axis=1,
+    dtype=dtype,
+)
+c2 = torch.log(my_routine2(x, y, a, p, b, backend="CPU"))
+print("(relative error: ", ((c2 - c).norm() / c.norm()).item(), ")")
 
 # Plot the results next to each other:
 for i in range(3):
-    plt.subplot(3, 1, i+1)
-    plt.plot(c.detach().cpu().numpy()[:40, i], '-', label='KeOps - Stable')
-    plt.plot(c2.detach().cpu().numpy()[:40, i], '--', label='KeOps - Unstable')
-    plt.legend(loc='lower right')
-plt.tight_layout() ; plt.show()
+    plt.subplot(3, 1, i + 1)
+    plt.plot(c.detach().cpu().numpy()[:40, i], "-", label="KeOps - Stable")
+    plt.plot(c2.detach().cpu().numpy()[:40, i], "--", label="KeOps - Unstable")
+    plt.legend(loc="lower right")
+plt.tight_layout()
+plt.show()
 
 
 ####################################################################
 # Compute the gradient
 # --------------------
-# Now, let's compute the gradient of :math:`c` with 
-# respect to :math:`y`. Since :math:`c` is not scalar valued, 
-# its "gradient" :math:`\partial c` should be understood as the adjoint of the 
+# Now, let's compute the gradient of :math:`c` with
+# respect to :math:`y`. Since :math:`c` is not scalar valued,
+# its "gradient" :math:`\partial c` should be understood as the adjoint of the
 # differential operator, i.e. as the linear operator that:
 #
 # - takes as input a new tensor :math:`e` with the shape of :math:`c`
-# - outputs a tensor :math:`g` with the shape of :math:`y` 
-# 
+# - outputs a tensor :math:`g` with the shape of :math:`y`
+#
 # such that for all variation :math:`\delta y` of :math:`y` we have:
 #
 # .. math::
@@ -119,20 +134,26 @@ start = time.time()
 g = grad(c, y, e)[0]
 # PyTorch remark : grad(c, y, e) alone outputs a length 1 tuple, hence the need for [0] at the end.
 
-print('Time to compute gradient of convolution operation on the cpu: ', round(time.time()-start,5), 's', end=' ')
+print(
+    "Time to compute gradient of convolution operation on the cpu: ",
+    round(time.time() - start, 5),
+    "s",
+    end=" ",
+)
 
 ####################################################################
 # We compare with gradient of Log of Sum of Exp:
 
 g2 = grad(c2, y, e)[0]
-print('(relative error: ',((g2-g).norm()/g.norm()).item(), ')')
+print("(relative error: ", ((g2 - g).norm() / g.norm()).item(), ")")
 
 
 # Plot the results next to each other:
-plt.plot(g.detach().cpu().numpy()[:40], '-', label='KeOps - Stable')
-plt.plot(g2.detach().cpu().numpy()[:40], '--', label='KeOps - Unstable')
-plt.legend(loc='lower right')
-plt.tight_layout() ; plt.show()
+plt.plot(g.detach().cpu().numpy()[:40], "-", label="KeOps - Stable")
+plt.plot(g2.detach().cpu().numpy()[:40], "--", label="KeOps - Unstable")
+plt.legend(loc="lower right")
+plt.tight_layout()
+plt.show()
 
 
 ####################################################################
@@ -146,26 +167,36 @@ if torch.cuda.is_available():
     pc, ac, xc, yc, bc, ec = p.cuda(), a.cuda(), x.cuda(), y.cuda(), b.cuda(), e.cuda()
     # then call the operations
     start = time.time()
-    c3 = my_routine(xc, yc, ac, pc, bc, backend='GPU')
-    print('Time to compute convolution operation on the gpu:',round(time.time()-start,5), 's ', end='')
-    print('(relative error:', float(torch.abs((c2 - c3.cpu()) / c2).mean()), ')')
+    c3 = my_routine(xc, yc, ac, pc, bc, backend="GPU")
+    print(
+        "Time to compute convolution operation on the gpu:",
+        round(time.time() - start, 5),
+        "s ",
+        end="",
+    )
+    print("(relative error:", float(torch.abs((c2 - c3.cpu()) / c2).mean()), ")")
     start = time.time()
     g3 = grad(c3, yc, ec)[0]
-    print('Time to compute gradient of convolution operation on the gpu:', round(time.time()-start,5), 's ', end='')
-    print('(relative error:', float(torch.abs((g2 - g3.cpu()) / g2).mean()), ')')
+    print(
+        "Time to compute gradient of convolution operation on the gpu:",
+        round(time.time() - start, 5),
+        "s ",
+        end="",
+    )
+    print("(relative error:", float(torch.abs((g2 - g3.cpu()) / g2).mean()), ")")
 
     # Plot the results next to each other:
     for i in range(3):
-        plt.subplot(3, 1, i+1)
-        plt.plot(c.detach().cpu().numpy()[:40, i], '-', label='KeOps - CPU')
-        plt.plot(c3.detach().cpu().numpy()[:40, i], '--', label='KeOps - GPU')
-        plt.legend(loc='lower right')
-    plt.tight_layout() ; plt.show()
+        plt.subplot(3, 1, i + 1)
+        plt.plot(c.detach().cpu().numpy()[:40, i], "-", label="KeOps - CPU")
+        plt.plot(c3.detach().cpu().numpy()[:40, i], "--", label="KeOps - GPU")
+        plt.legend(loc="lower right")
+    plt.tight_layout()
+    plt.show()
 
     # Plot the results next to each other:
-    plt.plot(g.detach().cpu().numpy()[:40], '-', label='KeOps - CPU')
-    plt.plot(g3.detach().cpu().numpy()[:40], '--', label='KeOps - GPU')
-    plt.legend(loc='lower right')
-    plt.tight_layout() ; plt.show()
-
-
+    plt.plot(g.detach().cpu().numpy()[:40], "-", label="KeOps - CPU")
+    plt.plot(g3.detach().cpu().numpy()[:40], "--", label="KeOps - GPU")
+    plt.legend(loc="lower right")
+    plt.tight_layout()
+    plt.show()

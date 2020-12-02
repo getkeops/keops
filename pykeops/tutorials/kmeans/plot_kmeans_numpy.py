@@ -19,7 +19,7 @@ It can thus be used to implement a **large-scale**
 """
 
 #########################################################################
-# Setup 
+# Setup
 # -----------------
 # Standard imports:
 
@@ -31,40 +31,50 @@ from matplotlib import pyplot as plt
 from pykeops.numpy import LazyTensor
 import pykeops.config
 
-dtype = 'float32'  # May be 'float32' or 'float64'
+dtype = "float32"  # May be 'float32' or 'float64'
 
 
 ##########################################################################
 # Simple implementation of the K-means algorithm:
 
+
 def KMeans(x, K=10, Niter=10, verbose=True):
     N, D = x.shape  # Number of samples, dimension of the ambient space
-    
+
     # K-means loop:
-    # - x  is the point cloud, 
+    # - x  is the point cloud,
     # - cl is the vector of class labels
     # - c  is the cloud of cluster centroids
     start = time.time()
     c = np.copy(x[:K, :])  # Simplistic random initialization
     x_i = LazyTensor(x[:, None, :])  # (Npoints, 1, D)
-    
+
     for i in range(Niter):
-    
+
         c_j = LazyTensor(c[None, :, :])  # (1, Nclusters, D)
-        D_ij = ((x_i - c_j) ** 2).sum(-1)  # (Npoints, Nclusters) symbolic matrix of squared distances
+        D_ij = ((x_i - c_j) ** 2).sum(
+            -1
+        )  # (Npoints, Nclusters) symbolic matrix of squared distances
         cl = D_ij.argmin(axis=1).astype(int).reshape(N)  # Points -> Nearest cluster
 
         Ncl = np.bincount(cl).astype(dtype)  # Class weights
         for d in range(D):  # Compute the cluster centroids with np.bincount:
             c[:, d] = np.bincount(cl, weights=x[:, d]) / Ncl
-    
+
     end = time.time()
-    
+
     if verbose:
-        print("K-means example with {:,} points in dimension {:,}, K = {:,}:".format(N, D, K))
-        print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n'.format(
-            Niter, end - start, Niter, (end - start) / Niter))
-    
+        print(
+            "K-means example with {:,} points in dimension {:,}, K = {:,}:".format(
+                N, D, K
+            )
+        )
+        print(
+            "Timing for {} iterations: {:.5f}s = {} x {:.5f}s\n".format(
+                Niter, end - start, Niter, (end - start) / Niter
+            )
+        )
+
     return cl, c
 
 
@@ -77,7 +87,7 @@ N, D, K = 10000, 2, 50
 
 ###############################################################
 # Define our dataset:
-x = np.random.randn(N, D).astype(dtype) / 6 + .5
+x = np.random.randn(N, D).astype(dtype) / 6 + 0.5
 
 ##############################################################
 # Perform the computation:
@@ -88,9 +98,9 @@ cl, c = KMeans(x, K)
 
 plt.figure(figsize=(8, 8))
 plt.scatter(x[:, 0], x[:, 1], c=cl, s=30000 / len(x), cmap="tab10")
-plt.scatter(c[:, 0], c[:, 1], c='black', s=50, alpha=.8)
-plt.axis([0, 1, 0, 1]);
-plt.tight_layout();
+plt.scatter(c[:, 0], c[:, 1], c="black", s=50, alpha=0.8)
+plt.axis([0, 1, 0, 1])
+plt.tight_layout()
 plt.show()
 
 ####################################################################

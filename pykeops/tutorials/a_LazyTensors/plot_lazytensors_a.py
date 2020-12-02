@@ -17,7 +17,7 @@ learning and computational geometry.
 #
 # A simple interface to the KeOps inner routines is provided by
 # the :class:`pykeops.numpy.LazyTensor` or :class:`pykeops.torch.LazyTensor`
-# **symbolic wrapper**, to be used with **NumPy arrays** or **PyTorch 
+# **symbolic wrapper**, to be used with **NumPy arrays** or **PyTorch
 # tensors** respectively.
 #
 # To illustrate its main features on a **simple example**, let's generate two point
@@ -71,8 +71,8 @@ print(s_i[:10])
 # But **can we scale to larger point clouds?**
 # Unfortunately, tensorized codes will throw an exception
 # as soon as the **M-by-N matrix** :math:`(D_{i,j})` stops fitting
-# contiguously on the device memory. This generally happens 
-# when :math:`\sqrt{MN}` goes past a hardware-dependent threshold 
+# contiguously on the device memory. This generally happens
+# when :math:`\sqrt{MN}` goes past a hardware-dependent threshold
 # in the [5,000; 50,000] range:
 
 M, N = (100000, 200000) if use_cuda else (1000, 2000)
@@ -97,18 +97,22 @@ except RuntimeError as err:
 # The key to efficient numerical schemes is to remark that
 # even though the distance matrix :math:`(D_{i,j})` is not **sparse** in the
 # traditional sense, it definitely is **compact from a computational perspective**.
-# Since its coefficients are fully described by two lists of points 
+# Since its coefficients are fully described by two lists of points
 # and a **symbolic formula**, sensible implementations should
 # compute required values on-the-fly...
 # and bypass, **lazily**, the cumbersome pre-computation and storage
 # of all pairwise distances :math:`\|x_i-y_j\|^2`.
-# 
-# 
+#
+#
 
 from pykeops.numpy import LazyTensor as LazyTensor_np
 
-x_i = LazyTensor_np(x[:, None, :])  # (M, 1, 2) KeOps LazyTensor, wrapped around the numpy array x
-y_j = LazyTensor_np(y[None, :, :])  # (1, N, 2) KeOps LazyTensor, wrapped around the numpy array y
+x_i = LazyTensor_np(
+    x[:, None, :]
+)  # (M, 1, 2) KeOps LazyTensor, wrapped around the numpy array x
+y_j = LazyTensor_np(
+    y[None, :, :]
+)  # (1, N, 2) KeOps LazyTensor, wrapped around the numpy array y
 
 D_ij = ((x_i - y_j) ** 2).sum(-1)  # **Symbolic** (M, N) matrix of squared distances
 print(D_ij)
@@ -122,7 +126,7 @@ print(D_ij)
 # that is modified after each "pythonic" operation such as ``-``, ``**2`` or ``.exp()``.
 #
 # We can then perform a :meth:`pykeops.torch.LazyTensor.argmin` reduction with
-# an efficient Map-Reduce scheme, implemented 
+# an efficient Map-Reduce scheme, implemented
 # as a `templated CUDA kernel <https://github.com/getkeops/keops/blob/master/keops/core/GpuConv1D.cu>`_ around
 # our custom formula.
 # As evidenced by our :doc:`benchmarks <../../_auto_benchmarks/index>`,
@@ -137,11 +141,11 @@ print(s_i[:10])
 # Going further, we can combine :class:`LazyTensors <pykeops.torch.LazyTensor>`
 # using a **wide range of mathematical operations**.
 # For instance, with data arrays stored directly on the GPU,
-# an exponential kernel dot product 
-# 
+# an exponential kernel dot product
+#
 # .. math::
 #   a_i = \sum_{j=1}^N \exp(-\|x_i-y_j\|)\cdot b_j
-# 
+#
 # in dimension D=10 can be performed with:
 
 from pykeops.torch import LazyTensor
@@ -149,7 +153,9 @@ from pykeops.torch import LazyTensor
 D = 10
 x = torch.randn(M, D).type(tensor)  # M target points in dimension D, stored on the GPU
 y = torch.randn(N, D).type(tensor)  # N source points in dimension D, stored on the GPU
-b = torch.randn(N, 4).type(tensor)  # N values of the 4D source signal, stored on the GPU
+b = torch.randn(N, 4).type(
+    tensor
+)  # N values of the 4D source signal, stored on the GPU
 
 x.requires_grad = True  # In the next section, we'll compute gradients wrt. x!
 
@@ -157,7 +163,7 @@ x_i = LazyTensor(x[:, None, :])  # (M, 1, D) LazyTensor
 y_j = LazyTensor(y[None, :, :])  # (1, N, D) LazyTensor
 
 D_ij = ((x_i - y_j) ** 2).sum(-1).sqrt()  # Symbolic (M, N) matrix of distances
-K_ij = (- D_ij).exp()  # Symbolic (M, N) Laplacian (aka. exponential) kernel matrix
+K_ij = (-D_ij).exp()  # Symbolic (M, N) Laplacian (aka. exponential) kernel matrix
 a_i = K_ij @ b  # The matrix-vector product "@" can be used on "raw" PyTorch tensors!
 
 print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
@@ -168,7 +174,7 @@ print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 #   KeOps LazyTensors have two symbolic or
 #   "virtual" axes at positions -3 and -2.
 #   Operations on the last "vector" dimension (-1)
-#   or on optional "batch" dimensions (-4 and beyond) 
+#   or on optional "batch" dimensions (-4 and beyond)
 #   are evaluated **lazily**.
 #   On the other hand, a reduction on one of the two symbolic axes
 #   (-2 or -3) triggers an **explicit computation**:
@@ -235,8 +241,9 @@ to_nn_alt = ((x - y[s_i, :]) ** 2).sum(-1)
 ##########################################################
 # outputs the same result, while also allowing us to **compute arbitrary gradients**:
 
-print("Difference between the two vectors: {:.2e}".format(
-    (to_nn - to_nn_alt).abs().max()))
+print(
+    "Difference between the two vectors: {:.2e}".format((to_nn - to_nn_alt).abs().max())
+)
 
 [g_i] = torch.autograd.grad(to_nn_alt.sum(), [x])
 print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape))
@@ -251,7 +258,7 @@ print("g_i is now a {} of shape {}.".format(type(g_i), g_i.shape))
 #############################################################################
 # Batch processing
 # -----------------------------------------------
-# 
+#
 # As should be expected, :class:`LazyTensors<pykeops.torch.LazyTensor>`
 # also provide full support of **batch processing**,
 # with broadcasting over dummy (=1) batch dimensions:
@@ -264,17 +271,17 @@ y_j = LazyTensor(torch.randn(1, B, 1, N, D))
 s = LazyTensor(torch.rand(A, 1, 1, 1, 1))
 
 D_ij = ((l_i * x_i - y_j) ** 2).sum(-1)  # Symbolic (A, B, M, N, 1) LazyTensor
-K_ij = (- 1.6 * D_ij / (1 + s ** 2))  # Some arbitrary (A, B, M, N, 1) Kernel matrix
+K_ij = -1.6 * D_ij / (1 + s ** 2)  # Some arbitrary (A, B, M, N, 1) Kernel matrix
 
 a_i = K_ij.sum(dim=3)
 print("a_i is now a {} of shape {}.".format(type(a_i), a_i.shape))
 
 ##################################################################
 # Everything works just fine, with two major caveats:
-#   
+#
 # - The structure of KeOps computations is still a little bit **rigid**:
 #   :class:`LazyTensors<pykeops.torch.LazyTensor>` should only
-#   be used in situations where the **large** dimensions M and N 
+#   be used in situations where the **large** dimensions M and N
 #   over which the main reduction
 #   is performed are in positions
 #   -3 and -2 (respectively), with **vector** variables in position
@@ -291,7 +298,7 @@ print("Actual shape, used internally by KeOps: ", K_ij._shape)
 
 ##################################################################
 # This is the reason why in the example above,
-# **a_i** is a 4D Tensor of shape ``(7, 3, 1000, 1)`` and **not** 
+# **a_i** is a 4D Tensor of shape ``(7, 3, 1000, 1)`` and **not**
 # a 3D Tensor of shape ``(7, 3, 1000)``.
 #
 
@@ -299,7 +306,7 @@ print("Actual shape, used internally by KeOps: ", K_ij._shape)
 #############################################################################
 # Supported formulas
 # ------------------------------------
-# 
+#
 # The full range of mathematical operations supported by
 # :class:`LazyTensors<pykeops.torch.LazyTensor>` is described
 # in our API documentation.
@@ -311,7 +318,9 @@ l_i = LazyTensor(torch.randn(1, 1, M, 1, D))
 y_j = LazyTensor(torch.randn(1, B, 1, N, D))
 s = LazyTensor(torch.rand(A, 1, 1, 1, 1))
 
-F_ij = (x_i ** 1.5 + y_j / l_i).cos() - (x_i | y_j) + (x_i[:, :, :, :, 2] * s.relu() * y_j)
+F_ij = (
+    (x_i ** 1.5 + y_j / l_i).cos() - (x_i | y_j) + (x_i[:, :, :, :, 2] * s.relu() * y_j)
+)
 print(F_ij)
 
 a_j = F_ij.sum(dim=2)

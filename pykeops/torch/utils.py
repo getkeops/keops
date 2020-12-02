@@ -25,11 +25,12 @@ class torchtools:
     # GenredLowlevel = GenredLowlevel
 
     @staticmethod
-    def eq(x, y): return torch.eq(x, y)
+    def eq(x, y):
+        return torch.eq(x, y)
 
     @staticmethod
     def transpose(x):
-        return (x.t())
+        return x.t()
 
     @staticmethod
     def permute(x, *args):
@@ -77,36 +78,38 @@ class torchtools:
     @staticmethod
     def dtypename(dtype):
         if dtype == torch.float32:
-            return 'float32'
+            return "float32"
         elif dtype == torch.float64:
-            return 'float64'
+            return "float64"
         elif dtype == torch.float16:
-            return 'float16'
+            return "float16"
         elif dtype == int:
             return int
         elif dtype == list:
             return "float32"
         else:
-            raise ValueError("[KeOps] {} data type incompatible with KeOps.".format(dtype))
+            raise ValueError(
+                "[KeOps] {} data type incompatible with KeOps.".format(dtype)
+            )
 
     @staticmethod
-    def rand(m, n, dtype=default_dtype, device='cpu'):
+    def rand(m, n, dtype=default_dtype, device="cpu"):
         return torch.rand(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def randn(m, n, dtype=default_dtype, device='cpu'):
+    def randn(m, n, dtype=default_dtype, device="cpu"):
         return torch.randn(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype, device='cpu'):
+    def zeros(shape, dtype=default_dtype, device="cpu"):
         return torch.zeros(shape, dtype=dtype, device=device)
 
     @staticmethod
-    def eye(n, dtype=default_dtype, device='cpu'):
+    def eye(n, dtype=default_dtype, device="cpu"):
         return torch.eye(n, dtype=dtype, device=device)
 
     @staticmethod
-    def array(x, dtype=default_dtype, device='cpu'):
+    def array(x, dtype=default_dtype, device="cpu"):
         if dtype == "float32":
             dtype = torch.float32
         elif dtype == "float64":
@@ -134,8 +137,10 @@ def squared_distances(x, y):
 
 def torch_kernel(x, y, s, kernel):
     sq = squared_distances(x, y)
-    _kernel = {"gaussian": lambda _sq, _s: torch.exp(-_sq / (_s * _s)),
-               "laplacian": lambda _sq, _s: torch.exp(-torch.sqrt(_sq) / _s),
-               "cauchy": lambda _sq, _s: 1. / (1 + _sq / (_s * _s)),
-               "inverse_multiquadric": lambda _sq, _s: torch.rsqrt(1 + _sq / (_s * _s))}
+    _kernel = {
+        "gaussian": lambda _sq, _s: torch.exp(-_sq / (_s * _s)),
+        "laplacian": lambda _sq, _s: torch.exp(-torch.sqrt(_sq) / _s),
+        "cauchy": lambda _sq, _s: 1.0 / (1 + _sq / (_s * _s)),
+        "inverse_multiquadric": lambda _sq, _s: torch.rsqrt(1 + _sq / (_s * _s)),
+    }
     return _kernel[kernel](sq, s)

@@ -15,7 +15,7 @@ def sort_clusters(x, lab):
 
     Returns:
         (M,D) array or tuple/list of (M,..) arrays, (M,) integer array:
-        
+
         Sorted **point cloud(s)** and **vector of labels**.
 
     Example:
@@ -39,7 +39,7 @@ def sort_clusters(x, lab):
         x_sorted = list(a[perm] for a in x)
     else:
         x_sorted = x[perm]
-    
+
     return x_sorted, lab
 
 
@@ -63,7 +63,7 @@ def cluster_ranges(lab, Nlab=None):
 
     Returns:
         (C,2) integer array:
-        
+
         Stacked array of :math:`[\text{start}_k,\text{end}_k)` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`.
 
@@ -88,7 +88,8 @@ def cluster_ranges(lab, Nlab=None):
         --> cluster 1 = x_sorted[3:4, :]
         --> cluster 2 = x_sorted[4:5, :]
     """
-    if Nlab is None: Nlab = np.bincount(lab)
+    if Nlab is None:
+        Nlab = np.bincount(lab)
     pivots = np.concatenate((np.array([0]), np.cumsum(Nlab, axis=0)))
     return np.stack((pivots[:-1], pivots[1:]), axis=1).astype(int)
 
@@ -103,7 +104,7 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):
     .. math::
 
         c_k = \frac{\sum_{i, \ell_i = k} w_i\cdot x_i}{\sum_{i, \ell_i=k} w_i},
-        
+
     where the weights :math:`w_i` are set to 1 by default.
 
     Args:
@@ -129,16 +130,19 @@ def cluster_centroids(x, lab, Nlab=None, weights=None, weights_c=None):
         [[0.5 ]
          [4.75]]
     """
-    if Nlab is None: Nlab = np.bincount(lab).astype(float)
+    if Nlab is None:
+        Nlab = np.bincount(lab).astype(float)
     if weights is not None and weights_c is None:
         weights_c = np.bincount(lab, weights=weights)[:, None]
-    
+
     c = np.zeros((len(Nlab), x.shape[1]), dtype=x.dtype)
     for d in range(x.shape[1]):
         if weights is None:
             c[:, d] = np.bincount(lab, weights=x[:, d]) / Nlab
         else:
-            c[:, d] = np.bincount(lab, weights=x[:, d] * weights.ravel()) / weights_c.ravel()
+            c[:, d] = (
+                np.bincount(lab, weights=x[:, d] * weights.ravel()) / weights_c.ravel()
+            )
     return c
 
 
@@ -172,7 +176,7 @@ def cluster_ranges_centroids(x, lab, weights=None):
 
     Returns:
         (C,2) integer array, (C,D) array, (C,) array:
-        
+
         **ranges** - Stacked array of :math:`[\text{start}_k,\text{end}_k)` indices in :math:`[0,M]`,
         for :math:`k\in[0,C)`, compatible with the :func:`sort_clusters` routine.
 
@@ -211,14 +215,18 @@ def cluster_ranges_centroids(x, lab, weights=None):
     Nlab = np.bincount(lab).astype(float)
     if weights is not None:
         w_c = np.bincount(lab, weights=weights).ravel()
-        return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab, weights=weights, weights_c=w_c), w_c
+        return (
+            cluster_ranges(lab, Nlab),
+            cluster_centroids(x, lab, Nlab, weights=weights, weights_c=w_c),
+            w_c,
+        )
     else:
         return cluster_ranges(lab, Nlab), cluster_centroids(x, lab, Nlab), Nlab
 
 
 def swap_axes(ranges):
     r"""Swaps the ":math:`i`" and ":math:`j`" axes of a reduction's optional **ranges** parameter.
-    
+
     This function returns **None** if **ranges** is **None**,
     and swaps the :math:`i` and :math:`j` arrays of indices otherwise."""
     if ranges is None:

@@ -20,14 +20,14 @@ tensor = torch.cuda.FloatTensor if use_cuda else torch.FloatTensor
 # The Vi, Vj, Pm decorators
 # -------------------------
 # This part presents an alternative style for using the KeOps LazyTensor wrapper, that
-# some users may find more convenient. The idea is to always input 2D tensors, 
-# and use the :func:`Vi <pykeops.torch.Vi>`, :func:`Vj <pykeops.torch.Vj>` helpers described below to specify wether the tensor is to be 
+# some users may find more convenient. The idea is to always input 2D tensors,
+# and use the :func:`Vi <pykeops.torch.Vi>`, :func:`Vj <pykeops.torch.Vj>` helpers described below to specify wether the tensor is to be
 # understood as indexed by i (i.e. with an equivalent shape of the form (M,1,D))
-# or by j (shape of the form (1,N,D)). Note that it is currently not possible to use 
+# or by j (shape of the form (1,N,D)). Note that it is currently not possible to use
 # additional batch dimensions with this specific syntax.
-# 
+#
 # Here is how it works, if we
-# want to perform a simple gaussian convolution. 
+# want to perform a simple gaussian convolution.
 #
 # We first create the dataset using 2D tensors:
 
@@ -42,7 +42,7 @@ y = torch.randn(N, D).type(tensor)
 from pykeops.torch import Vi, Vj
 
 x_i = Vi(x)  # (M, 1, D) LazyTensor, equivalent to LazyTensor( x[:,None,:] )
-y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] ) 
+y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] )
 
 ############################################################################
 # and perform our operations:
@@ -60,10 +60,10 @@ gamma = D2xy.sum_reduction(dim=1)
 
 
 ############################################################################
-# We have not spoken about :func:`Pm <pykeops.torch.Pm>` yet. In fact :func:`Pm <pykeops.torch.Pm>` is used to introduce 
+# We have not spoken about :func:`Pm <pykeops.torch.Pm>` yet. In fact :func:`Pm <pykeops.torch.Pm>` is used to introduce
 # scalars or 1D vectors of parameters into formulas, but it is useless
 # in such examples because scalars, lists of scalars, 0D or 1D NumPy vectors
-# are automatically converted into parameters when combined with 
+# are automatically converted into parameters when combined with
 # KeOps formulas. We will have to use :func:`Pm <pykeops.torch.Pm>` in other parts below.
 
 
@@ -72,8 +72,8 @@ gamma = D2xy.sum_reduction(dim=1)
 # --------------
 # All KeOps operations and reductions
 # are available, either via operators or methods. Here are one line
-# examples 
-# 
+# examples
+#
 # Getting indices of closest point between x and y:
 indmin = ((x_i - y_j) ** 2).sum().argmin(axis=0)
 
@@ -82,20 +82,20 @@ indmin = ((x_i - y_j) ** 2).sum().argmin(axis=0)
 res = (abs(x_i | y_j) ** 1.5).sumsoftmaxweight(x_i, axis=1)
 
 ########################################################################
-# The ``[]`` operator can be used to do element selection or slicing 
+# The ``[]`` operator can be used to do element selection or slicing
 # (Elem or Extract operation in KeOps).
 res = (x_i[:2] * y_j[2:] - x_i[2:] * y_j[:2]).sqnorm2().sum(axis=1)
 
 ########################################################################
 # Kernel inversion : let's do a gaussian kernel inversion. Note that
 # we have to use both :func:`Vi <pykeops.torch.Vi>` and :func:`Vj <pykeops.torch.Vj>` helpers on the same tensor ``x`` here.
-# 
+#
 e_i = Vi(torch.rand(M, D).type(tensor))
 x_j = Vj(x)
 D2xx = LazyTensor.sum((x_i - x_j) ** 2)
 sigma = 0.25
 Kxx = (-D2xx / sigma ** 2).exp()
-res = LazyTensor.solve(Kxx, e_i, alpha=.1)
+res = LazyTensor.solve(Kxx, e_i, alpha=0.1)
 
 #########################################################################
 # Use of loops or vector operations for sums of kernels
@@ -114,9 +114,9 @@ gamma = (Kxy * b_j).sum_reduction(axis=1)
 
 ###############################################################################
 # Note again that after the for loop, no actual computation has been performed.
-# So we can actually build formulas with much more flexibility than with the 
+# So we can actually build formulas with much more flexibility than with the
 # use of Genred.
-# 
+#
 # Ok, this was just to showcase the use of a for loop,
 # however in this case there is no need for a for loop, we can do simply:
 Kxy = LazyTensor.exp(-D2xy / sigmas ** 2).sum()
@@ -144,8 +144,8 @@ sigmas = tensor([0.5, 1.0, 2.0, 4.0])
 from pykeops.torch import Vi, Vj, Pm
 
 x_i = Vi(x)  # (M, 1, D) LazyTensor, equivalent to LazyTensor( x[:,None,:] )
-y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] ) 
-b_j = Vj(b)  # (1, N, D) LazyTensor, equivalent to LazyTensor( b[None,:,:] ) 
+y_j = Vj(y)  # (1, N, D) LazyTensor, equivalent to LazyTensor( y[None,:,:] )
+b_j = Vj(b)  # (1, N, D) LazyTensor, equivalent to LazyTensor( b[None,:,:] )
 
 D2xy = ((x_i - y_j) ** 2).sum(-1)
 
@@ -179,8 +179,11 @@ for k in range(Niter):
     Kxyb = LazyTensor.exp(-dxy2 / sigmas ** 2).sum() * bj
     gamma = Kxyb.sum_reduction(axis=1)
 end = time.time()
-print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s'.format(
-    Niter, end - start, Niter, (end - start) / Niter))
+print(
+    "Timing for {} iterations: {:.5f}s = {} x {:.5f}s".format(
+        Niter, end - start, Niter, (end - start) / Niter
+    )
+)
 
 start = time.time()
 Kxyb = LazyTensor.exp(-dxy2 / sigmas ** 2).sum() * bj
@@ -188,8 +191,11 @@ gammafun = Kxyb.sum_reduction(axis=1, call=False)
 for k in range(Niter):
     gamma = gammafun()
 end = time.time()
-print('Timing for {} iterations: {:.5f}s = {} x {:.5f}s'.format(
-    Niter, end - start, Niter, (end - start) / Niter))
+print(
+    "Timing for {} iterations: {:.5f}s = {} x {:.5f}s".format(
+        Niter, end - start, Niter, (end - start) / Niter
+    )
+)
 
 ###########################################################################
 # Of course this means the user has to perform in-place operations

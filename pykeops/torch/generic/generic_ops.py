@@ -8,7 +8,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
 
     Args:
         formula (string): Symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
-        output (string): An identifier of the form ``"AL = TYPE(DIM)"`` 
+        output (string): An identifier of the form ``"AL = TYPE(DIM)"``
             that specifies the category and dimension of the output variable. Here:
 
               - ``AL`` is a dummy alphanumerical name.
@@ -21,7 +21,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
         *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
-        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays.
             The supported values are:
 
               - **dtype** = ``"float16"`` or ``"half"``.
@@ -45,9 +45,10 @@ def generic_sum(formula, output, *aliases, **kwargs):
         >>> print(a.shape)
         torch.Size([1000000, 1])
     """
-    _,cat,_,_ = get_type(output)
+    _, cat, _, _ = get_type(output)
     axis = cat2axis(cat)
-    return Genred(formula, aliases, reduction_op='Sum', axis=axis, **kwargs)
+    return Genred(formula, aliases, reduction_op="Sum", axis=axis, **kwargs)
+
 
 def generic_logsumexp(formula, output, *aliases, **kwargs):
     r"""Alias for :class:`torch.Genred <pykeops.torch.Genred>` with a "LogSumExp" reduction.
@@ -100,16 +101,17 @@ def generic_logsumexp(formula, output, *aliases, **kwargs):
         >>> print(a.shape)
         torch.Size([1000000, 1])
     """
-    _,cat,_,_ = get_type(output)
+    _, cat, _, _ = get_type(output)
     axis = cat2axis(cat)
-    return Genred(formula, aliases, reduction_op='LogSumExp', axis=axis,  **kwargs)
+    return Genred(formula, aliases, reduction_op="LogSumExp", axis=axis, **kwargs)
 
-def generic_argkmin(formula, output, *aliases, **kwargs) :
+
+def generic_argkmin(formula, output, *aliases, **kwargs):
     r"""Alias for :class:`torch.Genred <pykeops.torch.Genred>` with an "ArgKMin" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
-        output (string): An identifier of the form ``"AL = TYPE(K)"`` 
+        output (string): An identifier of the form ``"AL = TYPE(K)"``
             that specifies the category and dimension of the output variable. Here:
 
               - ``AL`` is a dummy alphanumerical name.
@@ -123,7 +125,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
-        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays.
             The supported values are:
 
               - **dtype** = ``"float16"`` or ``"half"``.
@@ -158,17 +160,19 @@ def generic_argkmin(formula, output, *aliases, **kwargs) :
         >>> print( (x - y[ a[:,2].long() ]).norm(dim=1) )  # Distance to the third neighbor
         tensor([11.3820, 10.6725, 10.8510, 11.6071, 11.1968])
     """
-    _,cat,k,_ = get_type(output)
+    _, cat, k, _ = get_type(output)
     axis = cat2axis(cat)
-    return Genred(formula, aliases, reduction_op='ArgKMin', axis=axis, opt_arg=k, **kwargs)
+    return Genred(
+        formula, aliases, reduction_op="ArgKMin", axis=axis, opt_arg=k, **kwargs
+    )
 
 
-def generic_argmin(formula, output, *aliases, **kwargs) :
+def generic_argmin(formula, output, *aliases, **kwargs):
     r"""Alias for :class:`torch.Genred <pykeops.torch.Genred>` with an "ArgMin" reduction.
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`torch.Genred <pykeops.torch.Genred>`.
-        output (string): An identifier of the form ``"AL = TYPE(1)"`` 
+        output (string): An identifier of the form ``"AL = TYPE(1)"``
             that specifies the category and dimension of the output variable. Here:
 
               - ``AL`` is a dummy alphanumerical name.
@@ -180,7 +184,7 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
         *aliases (strings): List of identifiers, as in :class:`torch.Genred <pykeops.torch.Genred>`.
 
     Keyword Args:
-        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float32"``): Specifies the numerical **dtype** of the input and output arrays.
             The supported values are:
 
               - **dtype** = ``"float16"`` or ``"float"``.
@@ -212,6 +216,6 @@ def generic_argmin(formula, output, *aliases, **kwargs) :
         >>> print(dists)
         tensor([10.5926, 10.9132,  9.9694, 10.1396, 10.1955])
     """
-    _,cat,_,_ = get_type(output)
+    _, cat, _, _ = get_type(output)
     axis = cat2axis(cat)
-    return Genred(formula, aliases, reduction_op='ArgMin', axis=axis,  **kwargs)
+    return Genred(formula, aliases, reduction_op="ArgMin", axis=axis, **kwargs)

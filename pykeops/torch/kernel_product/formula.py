@@ -21,7 +21,7 @@ def torch_kernel(x, y, s, kernel):
     elif kernel == "laplacian":
         return torch.exp(-torch.sqrt(sq) / s)
     elif kernel == "cauchy":
-        return 1. / (1 + sq / (s * s))
+        return 1.0 / (1 + sq / (s * s))
     elif kernel == "inverse_multiquadric":
         return torch.rsqrt(1 + sq / (s * s))
 
@@ -38,7 +38,9 @@ def _log_sum_exp(mat, axis=0):
     by factoring out the row-wise maximas.
     """
     max_rc = mat.max(dim=axis)[0]
-    return max_rc + torch.log(torch.sum(torch.exp(mat - max_rc.unsqueeze(dim=axis)), dim=axis))
+    return max_rc + torch.log(
+        torch.sum(torch.exp(mat - max_rc.unsqueeze(dim=axis)), dim=axis)
+    )
 
 
 def extract_metric_parameters(G):
@@ -65,7 +67,9 @@ def extract_metric_parameters(G):
         G_cat = 2
         G_dim = G.shape[0]
     else:
-        raise ValueError("[KeOps] A 'metric' parameter is expected to be of dimension 1 or 2.")
+        raise ValueError(
+            "[KeOps] A 'metric' parameter is expected to be of dimension 1 or 2."
+        )
 
     G_str = ["Vi", "Vj", "Pm"][G_cat]
     return G_var, G_dim, G_cat, G_str
@@ -81,66 +85,96 @@ def _weighted_squared_distances(g, x, y):
 
     if g_cat == 2:  # g is a parameter
         if g_dim == 1:  # g is a scalar
-            return g * ((x_i - y_j) ** 2).sum(2)  # N-by-M matrix, xmy[i,j] = g * |x_i-y_j|^2
+            return g * ((x_i - y_j) ** 2).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] = g * |x_i-y_j|^2
 
         elif g_dim == D:  # g is a diagonal matrix
             g_d = g.unsqueeze(0).unsqueeze(1)  # Shape (D) -> Shape (1,1,D)
-            return (g_d * (x_i - y_j) ** 2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_d * (x_i,d-y_j,d)^2
+            return (g_d * (x_i - y_j) ** 2).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] =  \sum_d g_d * (x_i,d-y_j,d)^2
 
         elif g_dim == D ** 2:  # G is a symmetric matrix
             G = g.view(1, 1, D, D)  # Shape (D**2) -> Shape (1,1,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
             xmy_ = xmy.unsqueeze(2)  #  Shape (N,M,1,D)
             Gxmy = (G * xmy_).sum(3)  #  Shape (N,M,D,D) -> (N,M,D)
-            return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G (x_i-y_j) >
+            return (xmy * Gxmy).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G (x_i-y_j) >
         else:
-            raise ValueError("[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
+            raise ValueError(
+                "[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics."
+            )
 
     elif g_cat == 0:  # g is a 'i' variable
         if g_dim == 1:  # g_i is scalar
-            return g.view(-1, 1) * ((x_i - y_j) ** 2).sum(2)  # N-by-M matrix, xmy[i,j] = g_i * |x_i-y_j|^2
+            return g.view(-1, 1) * ((x_i - y_j) ** 2).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] = g_i * |x_i-y_j|^2
 
         elif g_dim == D:  # g_i is a diagonal matrix
             g_d = g.unsqueeze(1)  # Shape (N,D) -> Shape (N,1,D)
-            return (g_d * (x_i - y_j) ** 2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_i,d * (x_i,d-y_j,d)^2
+            return (g_d * (x_i - y_j) ** 2).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] =  \sum_d g_i,d * (x_i,d-y_j,d)^2
 
         elif g_dim == D ** 2:  # G_i is a symmetric matrix
             G_i = g.view(-1, 1, D, D)  # Shape (N,D**2) -> Shape (N,1,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
             xmy_ = xmy.unsqueeze(2)  # Shape (N,M,1,D)
             Gxmy = (G_i * xmy_).sum(3)  # Shape (N,M,D,D) -> (N,M,D)
-            return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_i (x_i-y_j) >
+            return (xmy * Gxmy).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_i (x_i-y_j) >
 
         else:
-            raise ValueError("[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
+            raise ValueError(
+                "[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics."
+            )
 
     elif g_cat == 1:  # g is a 'j' variable
         if g_dim == 1:  # g_j is scalar
-            return g.view(1, -1) * ((x_i - y_j) ** 2).sum(2)  # N-by-M matrix, xmy[i,j] = g_j * |x_i-y_j|^2
+            return g.view(1, -1) * ((x_i - y_j) ** 2).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] = g_j * |x_i-y_j|^2
 
         elif g_dim == D:  # g_j is a diagonal matrix
             g_d = g.unsqueeze(0)  # Shape (M,D) -> Shape (1,M,D)
-            return (g_d * (x_i - y_j) ** 2).sum(2)  # N-by-M matrix, xmy[i,j] =  \sum_d g_j,d * (x_i,d-y_j,d)^2
+            return (g_d * (x_i - y_j) ** 2).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] =  \sum_d g_j,d * (x_i,d-y_j,d)^2
 
         elif g_dim == D ** 2:  # G_j is a symmetric matrix
             G_j = g.view(1, -1, D, D)  # Shape (M,D**2) -> Shape (1,M,D,D)
             xmy = x_i - y_j  # Shape (N,M,D)
             xmy_ = xmy.unsqueeze(2)  # Shape (N,M,1,D)
             Gxmy = (G_j * xmy_).sum(3)  # Shape (N,M,D,D) -> (N,M,D)
-            return (xmy * Gxmy).sum(2)  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_j (x_i-y_j) >
+            return (xmy * Gxmy).sum(
+                2
+            )  # N-by-M matrix, xmy[i,j] =  < (x_i-y_j), G_j (x_i-y_j) >
 
         else:
-            raise ValueError("[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics.")
+            raise ValueError(
+                "[KeOps] We support scalar (dim=1), diagonal (dim=D) and symmetric (dim=D**2) metrics."
+            )
 
     else:
-        raise ValueError("[KeOps] A metric parameter should either be a vector or a 2d-tensor.")
-    
+        raise ValueError(
+            "[KeOps] A metric parameter should either be a vector or a 2d-tensor."
+        )
 
 
 class Formula:
-
-    def __init__(self, formula_sum=None, routine_sum=None,
-                 formula_log=None, routine_log=None, intvalue=None):
+    def __init__(
+        self,
+        formula_sum=None,
+        routine_sum=None,
+        formula_log=None,
+        routine_log=None,
+        intvalue=None,
+    ):
         if intvalue is None:
             self.formula_sum = formula_sum
             self.routine_sum = routine_sum
@@ -158,25 +192,30 @@ class Formula:
         self.n_vars = 2
 
     def __add__(self, other):
-        return Formula(formula_sum="(" + self.formula_sum + " + " + other.formula_sum + ")",
-                       routine_sum=lambda **x: self.routine_sum(**x) + other.routine_sum(**x),
-                       formula_log="Log((" + self.formula_sum + " + " + other.formula_sum + ") )",
-                       routine_log=lambda **x: (self.routine_sum(**x) + other.routine_sum(**x)).log(),
-                       )
+        return Formula(
+            formula_sum="(" + self.formula_sum + " + " + other.formula_sum + ")",
+            routine_sum=lambda **x: self.routine_sum(**x) + other.routine_sum(**x),
+            formula_log="Log((" + self.formula_sum + " + " + other.formula_sum + ") )",
+            routine_log=lambda **x: (
+                self.routine_sum(**x) + other.routine_sum(**x)
+            ).log(),
+        )
 
     def __mul__(self, other):
-        return Formula(formula_sum="(" + self.formula_sum + " * " + other.formula_sum + ")",
-                       routine_sum=lambda **x: self.routine_sum(**x) * other.routine_sum(**x),
-                       formula_log="(" + self.formula_log + " + " + other.formula_log + ")",
-                       routine_log=lambda **x: (self.routine_log(**x) + other.routine_log(**x)),
-                       )
+        return Formula(
+            formula_sum="(" + self.formula_sum + " * " + other.formula_sum + ")",
+            routine_sum=lambda **x: self.routine_sum(**x) * other.routine_sum(**x),
+            formula_log="(" + self.formula_log + " + " + other.formula_log + ")",
+            routine_log=lambda **x: (self.routine_log(**x) + other.routine_log(**x)),
+        )
 
     def __neg__(self):
-        return Formula(formula_sum="(-" + self.formula_sum + ")",
-                       routine_sum=lambda **x: - self.routine_sum(**x),
-                       formula_log=None,
-                       routine_log=lambda **x: None,
-                       )
+        return Formula(
+            formula_sum="(-" + self.formula_sum + ")",
+            routine_sum=lambda **x: -self.routine_sum(**x),
+            formula_log=None,
+            routine_log=lambda **x: None,
+        )
 
     def __pow__(self, other):
         """
@@ -186,8 +225,9 @@ class Formula:
             formula_sum = f"Square({self.formula_sum})"
         else:
             formula_sum = f"Pow({self.formula_sum},{other.intvalue})"
-        return Formula(formula_sum=formula_sum,
-                       routine_sum=lambda **x: self.routine_sum(**x) ** (other.intvalue),
-                       formula_log="(" + other.formula_sum + " * " + self.formula_log + ")",
-                       routine_log=lambda **x: other.routine_sum(**x) * self.routine_log(**x),
-                       )
+        return Formula(
+            formula_sum=formula_sum,
+            routine_sum=lambda **x: self.routine_sum(**x) ** (other.intvalue),
+            formula_log="(" + other.formula_sum + " * " + self.formula_log + ")",
+            routine_log=lambda **x: other.routine_sum(**x) * self.routine_log(**x),
+        )

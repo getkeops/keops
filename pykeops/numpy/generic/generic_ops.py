@@ -8,7 +8,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
 
     Args:
         formula (string): Symbolic KeOps expression, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
-        output (string): An identifier of the form ``"AL = TYPE(DIM)"`` 
+        output (string): An identifier of the form ``"AL = TYPE(DIM)"``
             that specifies the category and dimension of the output variable. Here:
 
               - ``AL`` is a dummy alphanumerical name.
@@ -21,7 +21,7 @@ def generic_sum(formula, output, *aliases, **kwargs):
         *aliases (strings): List of identifiers, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
 
     Keyword Args:
-        dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays.
             The supported values are:
 
               - **dtype** = ``"float16"``,
@@ -46,7 +46,9 @@ def generic_sum(formula, output, *aliases, **kwargs):
         (1000000, 1)
     """
     _, cat, _, _ = get_type(output)
-    return Genred(formula, list(aliases), reduction_op='Sum', axis=cat2axis(cat), **kwargs)
+    return Genred(
+        formula, list(aliases), reduction_op="Sum", axis=cat2axis(cat), **kwargs
+    )
 
 
 def generic_logsumexp(formula, output, *aliases, **kwargs):
@@ -101,7 +103,9 @@ def generic_logsumexp(formula, output, *aliases, **kwargs):
         (1000000, 1)
     """
     _, cat, _, _ = get_type(output)
-    return Genred(formula, list(aliases), reduction_op='LogSumExp', axis=cat2axis(cat), **kwargs)
+    return Genred(
+        formula, list(aliases), reduction_op="LogSumExp", axis=cat2axis(cat), **kwargs
+    )
 
 
 def generic_argkmin(formula, output, *aliases, **kwargs):
@@ -109,7 +113,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs):
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
-        output (string): An identifier of the form ``"AL = TYPE(K)"`` 
+        output (string): An identifier of the form ``"AL = TYPE(K)"``
             that specifies the category and dimension of the output variable. Here:
 
               - ``AL`` is a dummy alphanumerical name.
@@ -123,7 +127,7 @@ def generic_argkmin(formula, output, *aliases, **kwargs):
         *aliases (strings): List of identifiers, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
 
     Keyword Args:
-        dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays.
             The supported values are:
 
               - **dtype** = ``"float16"``,
@@ -159,7 +163,14 @@ def generic_argkmin(formula, output, *aliases, **kwargs):
         [11.3820, 10.6725, 10.8510, 11.6071, 11.1968]
     """
     _, cat, k, _ = get_type(output)
-    return Genred(formula, list(aliases), reduction_op='ArgKMin', axis=cat2axis(cat), opt_arg=k, **kwargs)
+    return Genred(
+        formula,
+        list(aliases),
+        reduction_op="ArgKMin",
+        axis=cat2axis(cat),
+        opt_arg=k,
+        **kwargs
+    )
 
 
 def generic_argmin(formula, output, *aliases, **kwargs):
@@ -167,7 +178,7 @@ def generic_argmin(formula, output, *aliases, **kwargs):
 
     Args:
         formula (string): Scalar-valued symbolic KeOps expression, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
-        output (string): An identifier of the form ``"AL = TYPE(1)"`` 
+        output (string): An identifier of the form ``"AL = TYPE(1)"``
             that specifies the category and dimension of the output variable. Here:
 
               - ``AL`` is a dummy alphanumerical name.
@@ -179,7 +190,7 @@ def generic_argmin(formula, output, *aliases, **kwargs):
         *aliases (strings): List of identifiers, as in :class:`numpy.Genred <pykeops.numpy.Genred>`.
 
     Keyword Args:
-        dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays. 
+        dtype (string, default = ``"float64"``): Specifies the numerical **dtype** of the input and output arrays.
             The supported values are:
 
               - **dtype** = ``"float16"``,
@@ -212,5 +223,6 @@ def generic_argmin(formula, output, *aliases, **kwargs):
         [10.5926, 10.9132,  9.9694, 10.1396, 10.1955]
     """
     _, cat, _, _ = get_type(output)
-    return Genred(formula, list(aliases), reduction_op='ArgMin', axis=cat2axis(cat), **kwargs)
-
+    return Genred(
+        formula, list(aliases), reduction_op="ArgMin", axis=cat2axis(cat), **kwargs
+    )

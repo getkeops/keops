@@ -8,49 +8,64 @@ from pykeops.common.utils import axis2cat
 from pykeops.numpy import default_dtype
 
 
-class Genred():
+class Genred:
     r"""
-        Creates a new generic operation.
+    Creates a new generic operation.
 
-        This is KeOps' main function, whose usage is documented in
-        the :doc:`user-guide <../../Genred>`,
-        the :doc:`gallery of examples <../../../_auto_examples/index>`
-        and the :doc:`high-level tutorials <../../../_auto_tutorials/index>`.
-        Taking as input a handful of strings and integers that specify
-        a custom Map-Reduce operation, it returns a C++ wrapper
-        that can be called just like any other NumPy function.
+    This is KeOps' main function, whose usage is documented in
+    the :doc:`user-guide <../../Genred>`,
+    the :doc:`gallery of examples <../../../_auto_examples/index>`
+    and the :doc:`high-level tutorials <../../../_auto_tutorials/index>`.
+    Taking as input a handful of strings and integers that specify
+    a custom Map-Reduce operation, it returns a C++ wrapper
+    that can be called just like any other NumPy function.
 
 
-        Note:
-            On top of the **Sum** and **LogSumExp** reductions, KeOps
-            supports
-            :ref:`variants of the ArgKMin reduction <part.reduction>`
-            that can be used
-            to implement k-nearest neighbor search.
-            These routines return indices encoded as **floating point numbers**, and
-            produce no gradient. Fortunately though, you can simply
-            turn them into ``LongTensors`` and use them to index
-            your arrays, as showcased in the documentation
-            of :func:`generic_argmin() <pykeops.numpy.generic_argmin>`, :func:`generic_argkmin() <pykeops.numpy.generic_argkmin>` and in the
-            :doc:`K-means tutorial <../../../_auto_tutorials/kmeans/plot_kmeans_numpy>`.
+    Note:
+        On top of the **Sum** and **LogSumExp** reductions, KeOps
+        supports
+        :ref:`variants of the ArgKMin reduction <part.reduction>`
+        that can be used
+        to implement k-nearest neighbor search.
+        These routines return indices encoded as **floating point numbers**, and
+        produce no gradient. Fortunately though, you can simply
+        turn them into ``LongTensors`` and use them to index
+        your arrays, as showcased in the documentation
+        of :func:`generic_argmin() <pykeops.numpy.generic_argmin>`, :func:`generic_argkmin() <pykeops.numpy.generic_argkmin>` and in the
+        :doc:`K-means tutorial <../../../_auto_tutorials/kmeans/plot_kmeans_numpy>`.
 
-        Example:
-            >>> my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
-            ...                  ['x = Vi(3)',            # 1st input: dim-3 vector per line
-            ...                   'y = Vj(3)'],           # 2nd input: dim-3 vector per column
-            ...                  reduction_op='Sum',      # we also support LogSumExp, Min, etc.
-            ...                  axis=1)                  # reduce along the lines of the kernel matrix
-            >>> # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
-            >>> x = np.random.randn(1000000, 3)
-            >>> y = np.random.randn(2000000, 3)
-            >>> a = my_conv(x, y)  # a_i = sum_j exp(-|x_i-y_j|^2)
-            >>> print(a.shape)
-            [1000000, 1]
+    Example:
+        >>> my_conv = Genred('Exp(-SqNorm2(x - y))',  # formula
+        ...                  ['x = Vi(3)',            # 1st input: dim-3 vector per line
+        ...                   'y = Vj(3)'],           # 2nd input: dim-3 vector per column
+        ...                  reduction_op='Sum',      # we also support LogSumExp, Min, etc.
+        ...                  axis=1)                  # reduce along the lines of the kernel matrix
+        >>> # Apply it to 2d arrays x and y with 3 columns and a (huge) number of lines
+        >>> x = np.random.randn(1000000, 3)
+        >>> y = np.random.randn(2000000, 3)
+        >>> a = my_conv(x, y)  # a_i = sum_j exp(-|x_i-y_j|^2)
+        >>> print(a.shape)
+        [1000000, 1]
 
-        """
-    
-    def __init__(self, formula, aliases, reduction_op='Sum', axis=0, dtype=default_dtype, opt_arg=None,
-                 formula2=None, cuda_type=None, dtype_acc="auto", use_double_acc=False, sum_scheme="auto", enable_chunks=True, optional_flags=[], rec_multVar_highdim=None):
+    """
+
+    def __init__(
+        self,
+        formula,
+        aliases,
+        reduction_op="Sum",
+        axis=0,
+        dtype=default_dtype,
+        opt_arg=None,
+        formula2=None,
+        cuda_type=None,
+        dtype_acc="auto",
+        use_double_acc=False,
+        sum_scheme="auto",
+        enable_chunks=True,
+        optional_flags=[],
+        rec_multVar_highdim=None,
+    ):
         r"""
         Instantiate a new generic operation.
 
@@ -99,59 +114,78 @@ class Genred():
             opt_arg (int, default = None): If **reduction_op** is in ``["KMin", "ArgKMin", "KMinArgKMin"]``,
                 this argument allows you to specify the number ``K`` of neighbors to consider.
 
-            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype. 
+            dtype_acc (string, default ``"auto"``): type for accumulator of reduction, before casting to dtype.
                 It improves the accuracy of results in case of large sized data, but is slower.
-                Default value "auto" will set this option to the value of dtype. The supported values are: 
+                Default value "auto" will set this option to the value of dtype. The supported values are:
 
                   - **dtype_acc** = ``"float16"`` : allowed only if dtype is "float16".
                   - **dtype_acc** = ``"float32"`` : allowed only if dtype is "float16" or "float32".
                   - **dtype_acc** = ``"float64"`` : allowed only if dtype is "float32" or "float64"..
 
             use_double_acc (bool, default False): same as setting dtype_acc="float64" (only one of the two options can be set)
-                If True, accumulate results of reduction in float64 variables, before casting to float32. 
+                If True, accumulate results of reduction in float64 variables, before casting to float32.
                 This can only be set to True when data is in float32 or float64.
                 It improves the accuracy of results in case of large sized data, but is slower.
-                      
+
             sum_scheme (string, default ``"auto"``): method used to sum up results for reductions. This option may be changed only
-                when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight". 
+                when reduction_op is one of: "Sum", "MaxSumShiftExp", "LogSumExp", "Max_SumShiftExpWeight", "LogSumExpWeight", "SumSoftMaxWeight".
                 Default value "auto" will set this option to "block_red" for these reductions. Possible values are:
                   - **sum_scheme** =  ``"direct_sum"``: direct summation
-                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating in the output. This improves accuracy for large sized data. 
+                  - **sum_scheme** =  ``"block_sum"``: use an intermediate accumulator in each block before accumulating in the output. This improves accuracy for large sized data.
                   - **sum_scheme** =  ``"kahan_scheme"``: use Kahan summation algorithm to compensate for round-off errors. This improves
-                accuracy for large sized data. 
+                accuracy for large sized data.
 
             enable_chunks (bool, default True): enable automatic selection of special "chunked" computation mode for accelerating reductions
-				with formulas involving large dimension variables.
-				
-			optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
+                                with formulas involving large dimension variables.
+
+                        optional_flags (list, default []): further optional flags passed to the compiler, in the form ['-D...=...','-D...=...']
 
         """
         if cuda_type:
             # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-            dtype = cuda_type 
+            dtype = cuda_type
 
-        if dtype in ('float16','half'):
-            raise ValueError("[KeOps] Float16 type is only supported with PyTorch tensors inputs.")
+        if dtype in ("float16", "half"):
+            raise ValueError(
+                "[KeOps] Float16 type is only supported with PyTorch tensors inputs."
+            )
 
         self.reduction_op = reduction_op
         reduction_op_internal, formula2 = preprocess(reduction_op, formula2)
-        
-        if rec_multVar_highdim is not None:
-            optional_flags += ['-DMULT_VAR_HIGHDIM=1']
 
-        self.optional_flags = optional_flags + get_optional_flags(reduction_op_internal, dtype_acc, use_double_acc, sum_scheme, dtype, enable_chunks)
-        str_opt_arg = ',' + str(opt_arg) if opt_arg else ''
-        str_formula2 = ',' + formula2 if formula2 else ''
-        
-        self.formula = reduction_op_internal + '_Reduction(' + formula + str_opt_arg + ',' + str(
-            axis2cat(axis)) + str_formula2 + ')'
+        if rec_multVar_highdim is not None:
+            optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
+
+        self.optional_flags = optional_flags + get_optional_flags(
+            reduction_op_internal,
+            dtype_acc,
+            use_double_acc,
+            sum_scheme,
+            dtype,
+            enable_chunks,
+        )
+        str_opt_arg = "," + str(opt_arg) if opt_arg else ""
+        str_formula2 = "," + formula2 if formula2 else ""
+
+        self.formula = (
+            reduction_op_internal
+            + "_Reduction("
+            + formula
+            + str_opt_arg
+            + ","
+            + str(axis2cat(axis))
+            + str_formula2
+            + ")"
+        )
         self.aliases = complete_aliases(self.formula, aliases)
         self.dtype = dtype
-        self.myconv = LoadKeOps(self.formula, self.aliases, self.dtype, 'numpy', self.optional_flags).import_module()
+        self.myconv = LoadKeOps(
+            self.formula, self.aliases, self.dtype, "numpy", self.optional_flags
+        ).import_module()
         self.axis = axis
         self.opt_arg = opt_arg
 
-    def __call__(self, *args, backend='auto', device_id=-1, ranges=None):
+    def __call__(self, *args, backend="auto", device_id=-1, ranges=None):
         r"""
         Apply the routine on arbitrary NumPy arrays.
 
@@ -253,25 +287,31 @@ class Genred():
 
         # Get tags
         tagCpuGpu, tag1D2D, _ = get_tag_backend(backend, args)
-        if ranges is None :
-            ranges = () # To keep the same type
+        if ranges is None:
+            ranges = ()  # To keep the same type
 
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
         ranges = tuple(np.ascontiguousarray(r) for r in ranges)
 
         nx, ny = get_sizes(self.aliases, *args)
-        nout, nred = (nx, ny) if self.axis==1 else (ny, nx)
-        
+        nout, nred = (nx, ny) if self.axis == 1 else (ny, nx)
+
         if "Arg" in self.reduction_op:
             # when using Arg type reductions,
             # if nred is greater than 16 millions and dtype=float32, the result is not reliable
             # because we encode indices as floats, so we raise an exception ;
             # same with float16 type and nred>2048
-            if nred>1.6e7 and self.dtype in ("float32","float"):
-                raise ValueError('size of input array is too large for Arg type reduction with single precision. Use double precision.')  
-            elif nred>2048 and self.dtype in ("float16","half"):
-                raise ValueError('size of input array is too large for Arg type reduction with float16 dtype..')  
+            if nred > 1.6e7 and self.dtype in ("float32", "float"):
+                raise ValueError(
+                    "size of input array is too large for Arg type reduction with single precision. Use double precision."
+                )
+            elif nred > 2048 and self.dtype in ("float16", "half"):
+                raise ValueError(
+                    "size of input array is too large for Arg type reduction with float16 dtype.."
+                )
 
         out = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
 
-        return postprocess(out, "numpy", self.reduction_op, nout, self.opt_arg, self.dtype)
+        return postprocess(
+            out, "numpy", self.reduction_op, nout, self.opt_arg, self.dtype
+        )

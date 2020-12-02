@@ -9,7 +9,7 @@ from pykeops.torch.kernel_product.features_kernels import FeaturesKP
 
 # Define the standard kernel building blocks.
 # They will be concatenated depending on the "name" argument of Kernel.__init__
-# Feel free to add your own "pet formula" at run-time, 
+# Feel free to add your own "pet formula" at run-time,
 # using for instance :
 #  " kernel_formulas["mykernel"] = Formula(... ) "
 
@@ -26,13 +26,13 @@ kernel_formulas = dict(
         formula_sum="({X}|{Y})",
         routine_sum=lambda xsy=None, **kwargs: xsy,
         formula_log="(IntInv(2) * Log(Square(({X}|{Y})) + " + Epsilon + "))",
-        routine_log=lambda xsy=None, **kwargs: .5 * (xsy ** 2 + epsilon).log()
+        routine_log=lambda xsy=None, **kwargs: 0.5 * (xsy ** 2 + epsilon).log(),
     ),
     distance=Formula(  # -1* Energy distance kernel
         formula_sum="Sqrt(WeightedSqDist({G},{X},{Y}))",
         routine_sum=lambda gxmy2=None, **kwargs: gxmy2.sqrt(),
         formula_log="(IntInv(2) * Log(WeightedSqDist({G},{X},{Y})) + " + Epsilon + "))",
-        routine_log=lambda gxmy2=None, **kwargs: .5 * (gxmy2 ** 2 + epsilon).log()
+        routine_log=lambda gxmy2=None, **kwargs: 0.5 * (gxmy2 ** 2 + epsilon).log(),
     ),
     gaussian=Formula(  # Standard RBF kernel
         formula_sum="Exp( -(WeightedSqDist({G},{X},{Y})))",
@@ -42,7 +42,7 @@ kernel_formulas = dict(
     ),
     cauchy=Formula(  # Heavy tail kernel
         formula_sum="Inv( IntCst(1) + WeightedSqDist({G},{X},{Y}))",
-        routine_sum=lambda gxmy2=None, **kwargs: 1. / (1 + gxmy2),
+        routine_sum=lambda gxmy2=None, **kwargs: 1.0 / (1 + gxmy2),
         formula_log="(IntInv(-1) * Log(IntCst(1) + WeightedSqDist({G},{X},{Y})))",
         routine_log=lambda gxmy2=None, **kwargs: -(1 + gxmy2).log(),
     ),
@@ -56,11 +56,12 @@ kernel_formulas = dict(
         formula_sum="Inv(Sqrt(IntCst(1) + WeightedSqDist({G},{X},{Y})))",
         routine_sum=lambda gxmy2=None, **kwargs: torch.rsqrt(1 + gxmy2),
         formula_log="(IntInv(-2) * Log(IntCst(1) + WeightedSqDist({G},{X},{Y})))",
-        routine_log=lambda gxmy2=None, **kwargs: -.5 * (1 + gxmy2).log(),
-    ))
+        routine_log=lambda gxmy2=None, **kwargs: -0.5 * (1 + gxmy2).log(),
+    ),
+)
 
 
-def set_indices(formula, f_ind, v_ind) :
+def set_indices(formula, f_ind, v_ind):
     """
     Modify the patterns stored in kernel_formulas, taking into account the fact that
     the current formula is the f_ind-th, working with the v_ind-th pair of variables.
@@ -71,7 +72,7 @@ def set_indices(formula, f_ind, v_ind) :
     n_vars = formula.n_vars
 
     if n_params == 1:
-        G_str = "G_"+str(f_ind)
+        G_str = "G_" + str(f_ind)
     else:
         G_str = None
 
@@ -80,35 +81,53 @@ def set_indices(formula, f_ind, v_ind) :
     else:
         X_str, Y_str = None, None
 
-    formula.formula_sum = formula.formula_sum.format(G = G_str, X = X_str, Y = Y_str)
-    formula.formula_log = formula.formula_log.format(G = G_str, X = X_str, Y = Y_str)
+    formula.formula_sum = formula.formula_sum.format(G=G_str, X=X_str, Y=Y_str)
+    formula.formula_log = formula.formula_log.format(G=G_str, X=X_str, Y=Y_str)
 
     # Vanilla PyTorch backend -------------------------------------------------------------------
     # Guess which quantities will be needed by the vanilla pytorch binding:
     params_sum = inspect.signature(formula.routine_sum).parameters
-    needs_x_y_gxmy2_xsy_sum = (v_ind, 'x' in params_sum, 'y' in params_sum, 'gxmy2' in params_sum, 'xsy' in params_sum)
+    needs_x_y_gxmy2_xsy_sum = (
+        v_ind,
+        "x" in params_sum,
+        "y" in params_sum,
+        "gxmy2" in params_sum,
+        "xsy" in params_sum,
+    )
     formula.subroutine_sum = formula.routine_sum
-    formula.routine_sum = lambda x=None, y=None, g=None, gxmy2=None, xsy=None : \
-                          formula.subroutine_sum(x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind])
-    
+    formula.routine_sum = (
+        lambda x=None, y=None, g=None, gxmy2=None, xsy=None: formula.subroutine_sum(
+            x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind]
+        )
+    )
+
     params_log = inspect.signature(formula.routine_log).parameters
-    needs_x_y_gxmy2_xsy_log = (v_ind, 'x' in params_log, 'y' in params_log, 'gxmy2' in params_log, 'xsy' in params_log)
+    needs_x_y_gxmy2_xsy_log = (
+        v_ind,
+        "x" in params_log,
+        "y" in params_log,
+        "gxmy2" in params_log,
+        "xsy" in params_log,
+    )
     formula.subroutine_log = formula.routine_log
-    formula.routine_log = lambda x=None, y=None, g=None, gxmy2=None, xsy=None : \
-                          formula.subroutine_log(x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind])
-    return formula, f_ind+1, needs_x_y_gxmy2_xsy_sum, needs_x_y_gxmy2_xsy_log
+    formula.routine_log = (
+        lambda x=None, y=None, g=None, gxmy2=None, xsy=None: formula.subroutine_log(
+            x=x[v_ind], y=y[v_ind], gxmy2=gxmy2[f_ind], xsy=xsy[f_ind]
+        )
+    )
+    return formula, f_ind + 1, needs_x_y_gxmy2_xsy_sum, needs_x_y_gxmy2_xsy_log
 
 
 class Kernel:
     r"""Defines a new Kernel identifier for :func:`kernel_product`.
-    
+
     Keyword Args:
         name (string): **Computation identifier.**
-            The kernel **name** should be built from a small set 
+            The kernel **name** should be built from a small set
             of atomic formulas, acting on arbitrary pairs of variables and **combined** using:
 
-              - integer constants, 
-              - the addition ``+``, 
+              - integer constants,
+              - the addition ``+``,
               - the product ``*``,
               - the integer exponentiation ``**k``.
 
@@ -126,9 +145,9 @@ class Kernel:
               - ``linear(x,y)``, the :math:`L^2` scalar product:
 
                 .. math::
-                
+
                     k(x,y)=\langle x,y\rangle.
-            
+
               - ``gaussian(x,y)``, the standard RBF kernel:
 
                 .. math::
@@ -210,22 +229,36 @@ class Kernel:
         >>> v = torch.nn.functional.normalize(v, p=2, dim=1)
         >>> #
         >>> # We're good to go! Notice how we grouped together the "i" and "j" features:
-        >>> a = kernel_product(params, (x,u), (y,v), b)  
-        >>> print(a)  
+        >>> a = kernel_product(params, (x,u), (y,v), b)
+        >>> print(a)
     """
-    def __init__(self, name=None, formula_sum=None, routine_sum=None, formula_log=None, routine_log=None):
+
+    def __init__(
+        self,
+        name=None,
+        formula_sum=None,
+        routine_sum=None,
+        formula_log=None,
+        routine_log=None,
+    ):
         if name is not None:
             # in the comments, let's suppose that name="gaussian(x,y) + laplacian(x,y) * linear(u,v)**2"
             # Determine the features type from the formula : ------------------------------------------------
-            variables = re.findall(r'(\([a-z],[a-z]\))', name) # ['(x,y)', '(x,y)', '(u,v)']
+            variables = re.findall(
+                r"(\([a-z],[a-z]\))", name
+            )  # ['(x,y)', '(x,y)', '(u,v)']
             used = set()
-            variables = [x for x in variables if x not in used and (used.add(x) or True)]
+            variables = [
+                x for x in variables if x not in used and (used.add(x) or True)
+            ]
             #         = ordered, "unique" list of pairs "(x,y)", "(u,v)", etc. used
             #         = ['(x,y)', '(u,v)']
             var_to_ind = {k: i for (i, k) in enumerate(variables)}
             #          = {'(x,y)': 0, '(u,v)': 1}
 
-            subformulas_str = re.findall(r'([a-zA-Z_][a-zA-Z_0-9]*)(\([a-z],[a-z]\))', name)
+            subformulas_str = re.findall(
+                r"([a-zA-Z_][a-zA-Z_0-9]*)(\([a-z],[a-z]\))", name
+            )
             #               = [('gaussian', '(x,y)'), ('laplacian', '(x,y)'), ('linear', '(u,v)')]
 
             # f_ind = index of the current formula
@@ -235,25 +268,32 @@ class Kernel:
             f_ind, subformulas, vars_needed_sum, vars_needed_log = 0, [], [], []
             for formula_str, var_str in subformulas_str:
                 # Don't forget the copy! This code should have no side effect on kernel_formulas!
-                formula = copy.copy(kernel_formulas[formula_str]) # = Formula(...)
+                formula = copy.copy(kernel_formulas[formula_str])  # = Formula(...)
                 # Modify the symbolic "formula" to let it take into account the formula and variable indices:
-                formula, f_ind, need_sum, need_log = set_indices(formula, f_ind, var_to_ind[var_str])
+                formula, f_ind, need_sum, need_log = set_indices(
+                    formula, f_ind, var_to_ind[var_str]
+                )
                 # Store everyone for later use and substitution:
                 subformulas.append(formula)
                 vars_needed_sum.append(need_sum)
                 vars_needed_log.append(need_log)
-                
+
             # One after another, replace the symbolic "name(x,y)" by references to our list of "index-aware" formulas
             for (i, _) in enumerate(subformulas):
-                name = re.sub(r'[a-zA-Z_][a-zA-Z_0-9]*\([a-z],[a-z]\)',  r'subformulas[{}]'.format(i), name, count=1)
+                name = re.sub(
+                    r"[a-zA-Z_][a-zA-Z_0-9]*\([a-z],[a-z]\)",
+                    r"subformulas[{}]".format(i),
+                    name,
+                    count=1,
+                )
             #        = "subformulas[0] + subformulas[1] * subformulas[2]**2"
 
             # Replace int values "N" with "Formula(intvalue=N)"" (except the indices of subformulas!)
-            name = re.sub(r'(?<!subformulas\[)([0-9]+)', r'Formula(intvalue=\1)', name)
+            name = re.sub(r"(?<!subformulas\[)([0-9]+)", r"Formula(intvalue=\1)", name)
 
             # Final result : ----------------------------------------------------------------------------------
-            kernel = eval(name) # It's a bit dirty... Please forgive me !
-            
+            kernel = eval(name)  # It's a bit dirty... Please forgive me !
+
             # Store the required info
             self.formula_sum = kernel.formula_sum
             self.routine_sum = kernel.routine_sum
@@ -263,21 +303,23 @@ class Kernel:
             self.routine_sum.vars_needed = vars_needed_sum
             self.routine_log.vars_needed = vars_needed_log
 
-        else :
+        else:
             self.formula_sum = formula_sum
             self.routine_sum = routine_sum
             self.formula_log = formula_log
             self.routine_log = routine_log
 
 
-def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', cuda_type=None):
+def kernel_product(
+    params, x, y, *bs, mode=None, backend=None, dtype="float32", cuda_type=None
+):
     r""":doc:`Math-friendly wrapper <../../kernel-product>` around the :class:`torch.Genred <pykeops.torch.Genred>` constructor.
 
     This routine allows you to compute kernel dot products (aka. as discrete convolutions)
     with arbitrary formulas, using a **Sum** or a **LogSumExp** reduction operation.
     It is syntactic sugar, meant to ease the implementation of mixture models
     on point clouds.
-    
+
     Its use is explained in the :doc:`documentation <../../kernel-product>`
     and showcased in the :doc:`anisotropic kernels <../../../_auto_examples/pytorch/plot_anisotropic_kernels>`
     and :doc:`GMM-fitting <../../../_auto_tutorials/gaussian_mixture/plot_gaussian_mixture>` tutorials.
@@ -290,27 +332,27 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', 
         params (dict): Describes the kernel being used.
             It should have the following attributes :
 
-              - ``"id"`` (:class:`Kernel`): Describes the formulas for 
-                :math:`k(x_i,y_j)`, :math:`c(x_i,y_j)` 
+              - ``"id"`` (:class:`Kernel`): Describes the formulas for
+                :math:`k(x_i,y_j)`, :math:`c(x_i,y_j)`
                 and the number of features `F`
                 (locations, location+directions, etc.) being used.
               - ``"gamma"`` (`tuple of Tensors`): Parameterizes
                 the kernel. Typically, something along the lines of
                 ``(.5/σ**2, .5/τ**2, .5/κ**2)`` for Gaussian or Laplacian kernels...
 
-        x (Tensor, or F-tuple of Tensors): 
-            The `F` features associated to points :math:`x_i`, 
+        x (Tensor, or F-tuple of Tensors):
+            The `F` features associated to points :math:`x_i`,
             for :math:`i\in [0,M)`.
             All feature Tensors should be 2d, with the
             same number of lines :math:`M` and an arbitrary number of columns.
-        y (Tensor, or F-tuple of Tensors): 
-            The `F` features associated to points :math:`y_j`, 
+        y (Tensor, or F-tuple of Tensors):
+            The `F` features associated to points :math:`y_j`,
             for :math:`j\in [0,N)`.
             All feature Tensors should be 2d, with the
             same number of lines :math:`N` and an arbitrary number of columns,
             compatible with **x**.
         b ((N,E) Tensor):
-            The `weights`, or `signal` vectors :math:`b_j` 
+            The `weights`, or `signal` vectors :math:`b_j`
             associated to the points :math:`y_j`.
         a_log ((M,1) Tensor, optional): If **mode** is one of
             the ``"log_*"`` reductions, specifies the scalar
@@ -329,24 +371,24 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', 
 
                 .. math::
                     v_i =     \sum_j k(x_i, y_j) \cdot b_j
-    
+
               - ``"lse"``:
 
                 .. math::
                     v_i = \log \sum_j \exp(c(x_i, y_j) + b_j )
-                
+
                 with :math:`c(x_i,y_j) = \log(k(x_i,y_j) )`
-    
+
               - ``"log_scaled"``:
 
                 .. math::
                     v_i = \sum_j \exp(c(x_i,y_j) + \text{Alog}_i + \text{Blog}_j ) \cdot b_j
-            
+
               - ``"log_scaled_lse"``:
 
                 .. math::
                     v_i = \log \sum_j \exp(c(x_i,y_j) + \text{Alog}_i + \text{Blog}_j + b_j )
-            
+
         backend (string, default="auto"): Specifies the implementation to run.
             The supported values are:
 
@@ -354,12 +396,12 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', 
             - ``"pytorch"``: to fall back on a reference tensorized implementation.
 
         dtype (string, default = ``"float32"``): Specifies the numerical **dtype**
-            of the input and output arrays. 
+            of the input and output arrays.
             The supported values are:
 
               - **dtype** = ``"float32"``,
               - **dtype** = ``"float64"``.
-        
+
 
 
     Returns:
@@ -367,7 +409,7 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', 
 
         The output scalar or vector :math:`v_i` sampled on the
         :math:`x_i`'s.
-    
+
     Example:
         >>> # Generate the data as pytorch tensors
         >>> x = torch.randn(1000,3, requires_grad=True)
@@ -394,19 +436,24 @@ def kernel_product(params, x, y, *bs, mode=None, backend=None, dtype='float32', 
                 [ 1.3097,  4.3967],
                 [ 0.4095, -0.3039]], grad_fn=<GenredAutogradBackward>)
     """
-    
+
     if cuda_type:
         # cuda_type is just old keyword for dtype, so this is just a trick to keep backward compatibility
-        dtype = cuda_type 
+        dtype = cuda_type
 
-    kernel  = params["id"]
-    if mode is None:    mode    = params.get("mode", "sum")
-    if backend is None: backend = params.get("backend", "auto")
+    kernel = params["id"]
+    if mode is None:
+        mode = params.get("mode", "sum")
+    if backend is None:
+        backend = params.get("backend", "auto")
     # gamma should have been generated along the lines of "Variable(torch.Tensor([1/(s**2)])).type(dtype)"
-    gamma   = params["gamma"]
+    gamma = params["gamma"]
 
-    if not gamma.__class__ in [tuple, list]: gamma = (gamma,)
-    if not     x.__class__ in [tuple, list]:     x = (x,)
-    if not     y.__class__ in [tuple, list]:     y = (y,)
+    if not gamma.__class__ in [tuple, list]:
+        gamma = (gamma,)
+    if not x.__class__ in [tuple, list]:
+        x = (x,)
+    if not y.__class__ in [tuple, list]:
+        y = (y,)
 
     return FeaturesKP(kernel, gamma, x, y, bs, mode=mode, backend=backend, dtype=dtype)
