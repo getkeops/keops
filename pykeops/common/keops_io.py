@@ -34,12 +34,12 @@ class LoadKeOps:
         self.template_name = get_or_build_pybind11_template(dtype, lang, include_dirs)
         
         if (not module_exists(self.dll_name,self.template_name)) or (pykeops.config.build_type == 'Debug'):
-            self.build_folder = get_build_folder_name(self.dtype)
+            self.build_folder = get_build_folder_name(self.dtype, self.dll_name)
             self._safe_compile()
 
     @create_and_lock_build_folder()
     def _safe_compile(self):
-        check_or_prebuild(self.dtype)
+        check_or_prebuild(self.dtype, self.dll_name)
         compile_generic_routine(self.formula, self.aliases, self.dll_name, self.dtype, self.lang,
                                 self.optional_flags, self.include_dirs, self.build_folder)
 

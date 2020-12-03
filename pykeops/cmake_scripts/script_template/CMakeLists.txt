@@ -138,7 +138,7 @@ get_filename_component(PYKEOPS_SOURCE_DIR_ABS ${PYKEOPS_SOURCE_DIR} ABSOLUTE)
 
 add_custom_command(
         TARGET ${shared_obj_name} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${shared_obj_name}.dir/${PYKEOPS_SOURCE_DIR_ABS}/${PYTHON_LANG}/generic/generic_red.cpp.o ${BIN_DIR}/${shared_obj_name}.o
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${shared_obj_name}> ${BIN_DIR}/${shared_obj_name}.o
 )
 
 # Write a log file to decypher keops dllname

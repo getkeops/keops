@@ -58,36 +58,34 @@ endif ()
 if (USE_CUDA) # ----------------- create shared lib (cuda)
 
     add_library(
-            ${shared_obj_name} OBJECT
+            copy_${shared_obj_name} OBJECT
             ${KEOPS_SRC}/core/link_autodiff.cu
+    )
+
+    # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+    set_source_files_properties(
+        ${KEOPS_SRC}/core/link_autodiff.cu PROPERTIES
+        OBJECT_DEPENDS ${shared_obj_name}.h
     )
 
 else () # ----------------- create shared lib (cpp)
 
     add_library(
-            ${shared_obj_name} OBJECT
+            copy_${shared_obj_name} OBJECT
             ${KEOPS_SRC}/core/link_autodiff.cpp
+    )
+
+    # tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
+    set_source_files_properties(
+        ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
+        OBJECT_DEPENDS ${shared_obj_name}.h
     )
 
 endif ()
 
-
 target_compile_options(
-        ${shared_obj_name} BEFORE
+        copy_${shared_obj_name} BEFORE
         PRIVATE -include ${shared_obj_name}.h
-)
-
-# tell Cmake to explicitly add the dependency: keops is recompiled as soon as formula.h changes.
-set_source_files_properties(
-        ${KEOPS_SRC}/core/link_autodiff.cpp PROPERTIES
-        OBJECT_DEPENDS ${shared_obj_name}.h
-)
-
-# set name
-set_target_properties(
-        ${shared_obj_name} PROPERTIES
-        LIBRARY_OUTPUT_NAME ${shared_obj_name}
-        PREFIX ""
 )
 
 # skip the full RPATH for the build tree. We append $ORIGIN later
@@ -100,10 +98,12 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 #                                                   INSTALLATION                                                       #
 ########################################################################################################################
 
-add_custom_command(
-        OUTPUT ${shared_obj_name} 
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${shared_obj_name}> ${BIN_DIR}
+add_custom_target(
+        ${shared_obj_name}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:copy_${shared_obj_name}> ${BIN_DIR}/${shared_obj_name}.o
 )
+
+add_dependencies(${shared_obj_name} copy_${shared_obj_name})
 
 # Write a log file to decypher keops dllname
 if (commandLine)
