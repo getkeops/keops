@@ -40,7 +40,7 @@ set(CMAKE_CXX_STANDARD 17)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   if(APPLE) 
 	  # Apple built-in clang apparently does not support openmp...
-	  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -ferror-limit=2")
+	  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ferror-limit=2")
   else()
 	  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_OPENMP -fopenmp -Wall -ferror-limit=2")
   endif()
@@ -94,11 +94,26 @@ endif()
 ########################################################################################################################
 
 add_subdirectory(${PYKEOPS_SOURCE_DIR}/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11)  #find_package(pybind11  REQUIRED)
-add_definitions(-DMODULE_NAME=${shared_obj_name})
+add_definitions(-DMODULE_NAME=${template_name})
 
 pybind11_add_module(${template_name}
         ${PYKEOPS_SOURCE_DIR}/${PYTHON_LANG}/generic/generic_red.cpp
+		${keops_formula_name}.o
 )
+
+SET_SOURCE_FILES_PROPERTIES(
+  ${BIN_DIR}/${keops_formula_name}.o
+  PROPERTIES
+  EXTERNAL_OBJECT true
+  GENERATED true
+)
+
+
+
+
+
+
+
 
 if(${PYTHON_LANG} STREQUAL "torch")
 
@@ -145,43 +160,6 @@ add_custom_command(
         TARGET ${template_name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${template_name}> ${BIN_DIR}/${template_name}.o
 )
-
-
-
-
-
-########################################################################################################################
-#                            SECOND TARGET : link the two .o files to produce final .so                                #
-########################################################################################################################
-
-
-set(OBJS
-  $<TARGET_OBJECTS:${template_name}>  #${BIN_DIR}/${template_name}.o
-  ${BIN_DIR}/${keops_formula_name}.o
-)
-
-add_library(${shared_obj_name} SHARED ${OBJS})
-
-#set_target_properties(${shared_obj_name} PROPERTIES LINKER_LANGUAGE CXX)
-
-#target_link_libraries(${shared_obj_name} PUBLIC ${template_name})
-
-SET_SOURCE_FILES_PROPERTIES(
-  ${BIN_DIR}/${keops_formula_name}.o
-  PROPERTIES
-  EXTERNAL_OBJECT true
-  GENERATED true
-)
-
-
-
-
-
-
-
-
-
-
 
 
 

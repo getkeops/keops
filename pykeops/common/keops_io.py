@@ -2,7 +2,7 @@ import importlib.util
 import os
 
 import pykeops.config
-from pykeops.common.compile_routines import compile_generic_routine, get_or_build_pybind11_template, get_build_folder_name, check_or_prebuild
+from pykeops.common.compile_routines import compile_generic_routine, get_pybind11_template_name, get_build_folder_name, check_or_prebuild
 from pykeops.common.utils import module_exists, create_and_lock_build_folder
 from pykeops.common.set_path import create_name
 
@@ -31,7 +31,7 @@ class LoadKeOps:
         self.dll_name = create_name(self.formula, self.aliases, self.dtype, self.lang, self.optional_flags)
         
         # get the name of the template build
-        self.template_name = get_or_build_pybind11_template(dtype, lang, include_dirs)
+        self.template_name = get_pybind11_template_name(dtype, lang, include_dirs)
         
         if (not module_exists(self.dll_name,self.template_name)) or (pykeops.config.build_type == 'Debug'):
             self.build_folder = get_build_folder_name(self.dtype)
