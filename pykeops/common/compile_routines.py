@@ -147,11 +147,11 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     create_keops_include_file(build_folder, dllname, dtype, formula, alias_string, optional_flags)
 
     run_and_display(["cmake", "--build", ".", "--target", dllname, "--", "VERBOSE=1"], build_folder, msg="MAKE")
-
+    
     # special script "mylink" to do the linking
-    subprocess.run([pykeops.config.script_template_folder + "/mylink",
-                    template_name,
-                    build_folder + "/" + dllname + ".o",
+    subprocess.run([pykeops.config.script_template_folder + "/mylink " +
+                    template_name + " " +
+                    dllname + ".o " +
                     dllname],
                    cwd=build_folder + "/..", shell=True)
 

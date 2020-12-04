@@ -1,6 +1,6 @@
 # args :
 # 1 - template file name
-# 2 - keops template formula file
+# 2 - keops template formula file name
 # 3 - keops formula name
 
 mkdir $3
