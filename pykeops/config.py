@@ -18,9 +18,10 @@ torch_found = importlib.util.find_spec('torch') is not None
 
 script_formula_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_keops_formula/'
 script_template_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_template/'
+script_linking_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_linking/'
 script_specific_folder = os.path.dirname(os.path.abspath(__file__)) + '/cmake_scripts/script_specific/'
 
-template_formula_name = 'KeOps_formula'
+shared_obj_name = 'KeOps_formula'
 
 bin_folder = ""  # init bin_folder... should be populated with the set_bin_folder() function
 

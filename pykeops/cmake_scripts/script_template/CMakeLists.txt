@@ -96,7 +96,7 @@ endif()
 add_subdirectory(${PYKEOPS_SOURCE_DIR}/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11)  #find_package(pybind11  REQUIRED)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
 
-pybind11_add_module(${shared_obj_name}
+pybind11_add_module(${template_name}
         ${PYKEOPS_SOURCE_DIR}/${PYTHON_LANG}/generic/generic_red.cpp
 )
 
@@ -108,14 +108,14 @@ if(${PYTHON_LANG} STREQUAL "torch")
     )
 
     target_compile_options(
-            ${shared_obj_name} BEFORE
+            ${template_name} BEFORE
             PRIVATE -include torch_headers.h
     )
 
     # We should include libtorch_python.so as an explicit include: https://github.com/pytorch/pytorch/issues/38122
     if (NOT APPLE AND NOT WIN32)
         target_link_libraries(
-                ${shared_obj_name} PUBLIC
+                ${template_name} PUBLIC
                 ${PYTORCH_ROOT_DIR}/lib/libtorch_python.so
         )
     endif()
@@ -124,10 +124,15 @@ endif ()
 
 # Ensure the shared lib look for the other .so in its own dir.
 if (APPLE)
-    set_target_properties(${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
+    set_target_properties(${template_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
 else ()
-    set_target_properties(${shared_obj_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
+    set_target_properties(${template_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
 endif ()
+
+
+
+
+
 
 
 ########################################################################################################################
@@ -137,9 +142,52 @@ endif ()
 get_filename_component(PYKEOPS_SOURCE_DIR_ABS ${PYKEOPS_SOURCE_DIR} ABSOLUTE)
 
 add_custom_command(
-        TARGET ${shared_obj_name} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${shared_obj_name}> ${BIN_DIR}/${shared_obj_name}.o
+        TARGET ${template_name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${template_name}> ${BIN_DIR}/${template_name}.o
 )
+
+
+
+
+
+########################################################################################################################
+#                            SECOND TARGET : link the two .o files to produce final .so                                #
+########################################################################################################################
+
+
+set(OBJS
+  $<TARGET_OBJECTS:${template_name}>  #${BIN_DIR}/${template_name}.o
+  ${BIN_DIR}/${keops_formula_name}.o
+)
+
+add_library(${shared_obj_name} SHARED ${OBJS})
+
+#set_target_properties(${shared_obj_name} PROPERTIES LINKER_LANGUAGE CXX)
+
+#target_link_libraries(${shared_obj_name} PUBLIC ${template_name})
+
+SET_SOURCE_FILES_PROPERTIES(
+  ${BIN_DIR}/${keops_formula_name}.o
+  PROPERTIES
+  EXTERNAL_OBJECT true
+  GENERATED true
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Write a log file to decypher keops dllname
 if (commandLine)

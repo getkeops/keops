@@ -59,7 +59,10 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
 
         os.mkdir(template_build_folder)
 
-        command_line += ["-Dshared_obj_name=" + "'{}'".format(template_name)]
+        command_line += ["-Dshared_obj_name=" + "'{}'".format(pykeops.config.shared_obj_name)]
+        
+        command_line += ["-Dtemplate_name=" + "'{}'".format(template_name)]
+        command_line += ["-Dkeops_formula_name=" + "'{}'".format(pykeops.config.shared_obj_name)]
 
         run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
                         template_build_folder,
@@ -68,17 +71,17 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
         run_and_display(["cmake", "--build", ".", "--target", template_name, "--", "VERBOSE=1"], template_build_folder,
                         msg="MAKE")
 
-        shutil.rmtree(template_build_folder)
+        #shutil.rmtree(template_build_folder)
 
         print('Done.')
 
     return template_name
 
 
-def create_keops_include_file(build_folder, dllname, dtype, formula, alias_string, optional_flags):
+def create_keops_include_file(build_folder, dtype, formula, alias_string, optional_flags):
     # creating KeOps include file for formula
     template_include_file = pykeops.config.script_formula_folder + os.path.sep + 'formula.h.in'
-    target_include_file = build_folder + os.path.sep + dllname + '.h'
+    target_include_file = build_folder + os.path.sep + pykeops.config.shared_obj_name + '.h'
     shutil.copyfile(template_include_file, target_include_file)
 
     optional_flags_string = ''
@@ -97,10 +100,10 @@ def create_keops_include_file(build_folder, dllname, dtype, formula, alias_strin
     replace_strings_in_file(target_include_file, replace_pairs)
 
 
-def get_build_folder_name_and_command(dtype, dllname):
+def get_build_folder_name_and_command(dtype):
     command_line = ["cmake", pykeops.config.script_formula_folder,
                     "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
-                    "-Dshared_obj_name=" + "'{}'".format(dllname),
+                    "-Dshared_obj_name=" + "'{}'".format(pykeops.config.shared_obj_name),
                     "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
                     "-DC_CONTIGUOUS=1",
                     ]
@@ -109,13 +112,13 @@ def get_build_folder_name_and_command(dtype, dllname):
     return build_folder, command_line
 
 
-def get_build_folder_name(dtype, dllname):
-    build_folder, _ = get_build_folder_name_and_command(dtype, dllname)
+def get_build_folder_name(dtype):
+    build_folder, _ = get_build_folder_name_and_command(dtype)
     return build_folder
 
 
-def check_or_prebuild(dtype, dllname):
-    build_folder, command_line = get_build_folder_name_and_command(dtype, dllname)
+def check_or_prebuild(dtype):
+    build_folder, command_line = get_build_folder_name_and_command(dtype)
     if not os.path.exists(build_folder + '/CMakeCache.txt'):
         run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
                         build_folder,
@@ -144,16 +147,50 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
 
     template_name = get_or_build_pybind11_template(dtype, lang, include_dirs)
 
-    create_keops_include_file(build_folder, dllname, dtype, formula, alias_string, optional_flags)
+    create_keops_include_file(build_folder, dtype, formula, alias_string, optional_flags)
 
-    run_and_display(["cmake", "--build", ".", "--target", dllname, "--", "VERBOSE=1"], build_folder, msg="MAKE")
+    run_and_display(["cmake", "--build", ".", "--target", pykeops.config.shared_obj_name, "--", "VERBOSE=1"], build_folder, msg="MAKE")
+    
+    
+    
+    
     
     # special script "mylink" to do the linking
-    subprocess.run([pykeops.config.script_template_folder + "/mylink " +
-                    template_name + " " +
-                    dllname + ".o " +
-                    dllname],
-                   cwd=build_folder + "/..", shell=True)
+    #subprocess.run([pykeops.config.script_template_folder + "/mylink " +
+    #                template_name + " " +
+    #                dllname + ".o " +
+    #                dllname],
+    #               cwd=build_folder + "/..", shell=True)
+    
+    
+    template_build_folder = pykeops.config.bin_folder + '/build-pybind11_template-' + template_name
+    
+    input("ok1")
+    #subprocess.run(["mv "+pykeops.config.shared_obj_name+".o "+template_build_folder], cwd=pykeops.config.bin_folder, shell=True)
+    input("ok2")
+    run_and_display(["cmake", "--build", ".", "--target", pykeops.config.shared_obj_name, "--", "VERBOSE=1"], template_build_folder, msg="MAKE")  
+    input("ok3")
+    
+          
+    '''
+    input("ok1")
+    subprocess.run(["mkdir tmp"], cwd=pykeops.config.bin_folder, shell=True)
+    input("ok2")
+    command_line = ["cmake", pykeops.config.script_linking_folder,
+                    "-Dtemplate_name=" + "'{}'".format(template_name),
+                    "-Dkeops_formula_name=" + "'{}'".format(dllname),
+                    ]
+    run_and_display(command_line, pykeops.config.bin_folder+"/tmp", msg="CMAKE")  
+    input("ok3")
+    run_and_display(["cmake", "--build", ".", "--target", template_name, "--", "VERBOSE=1"], pykeops.config.bin_folder+"/tmp", msg="MAKE")  
+    input("ok4")
+    subprocess.run(["rm -rf tmp"], cwd=pykeops.config.bin_folder, shell=True)
+    input("ok5")
+    '''     
+                    
+
+
+
 
     print('Done.')
 
