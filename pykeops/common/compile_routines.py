@@ -56,12 +56,12 @@ def get_pybind11_template_name(dtype, lang, include_dirs):
     
 def get_or_build_pybind11_template(dtype, lang, include_dirs):
     template_name, command_line = get_pybind11_template_name_and_command(dtype, lang, include_dirs)
-    if not os.path.exists(pykeops.config.bin_folder + template_name + '.o'):
+    template_build_folder = pykeops.config.bin_folder + '/build-pybind11_template-' + template_name
+    
+    if not os.path.exists(template_build_folder + '/CMakeCache.txt'):
         print('Compiling pybind11 template ' + template_name + ' in ' + os.path.realpath(
             pykeops.config.bin_folder) + '...', flush=True)
         # print('(with dtype=',dtype,', lang=',lang,', include_dirs=',include_dirs,')', flush=True)
-
-        template_build_folder = pykeops.config.bin_folder + '/build-pybind11_template-' + template_name
 
         os.mkdir(template_build_folder)
         
@@ -169,7 +169,9 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     build_keops_formula_object_file(build_folder, dtype, formula, alias_string, optional_flags)
     
     subprocess.run(["mv "+pykeops.config.shared_obj_name+".o "+template_build_folder], cwd=pykeops.config.bin_folder, shell=True)
+    
     run_and_display(["cmake", "--build", ".", "--target", template_name, "--", "VERBOSE=1"], template_build_folder, msg="MAKE")  
+    
     subprocess.run(["mkdir "+dllname], cwd=pykeops.config.bin_folder, shell=True)
     subprocess.run(["mv "+template_build_folder+"/"+template_name+"*.so "+dllname+"/"], cwd=pykeops.config.bin_folder, shell=True)
 

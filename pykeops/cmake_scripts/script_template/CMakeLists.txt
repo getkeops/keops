@@ -154,12 +154,12 @@ endif ()
 #                                                   INSTALLATION                                                       #
 ########################################################################################################################
 
-get_filename_component(PYKEOPS_SOURCE_DIR_ABS ${PYKEOPS_SOURCE_DIR} ABSOLUTE)
+#get_filename_component(PYKEOPS_SOURCE_DIR_ABS ${PYKEOPS_SOURCE_DIR} ABSOLUTE)
 
-add_custom_command(
-        TARGET ${template_name} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${template_name}> ${BIN_DIR}/${template_name}.o
-)
+#add_custom_command(
+#        TARGET ${template_name} POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${template_name}> ${BIN_DIR}/${template_name}.o
+#)
 
 
 
