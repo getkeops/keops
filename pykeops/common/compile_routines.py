@@ -59,8 +59,8 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
     template_build_folder = pykeops.config.bin_folder + '/build-pybind11_template-' + template_name
     
     if not os.path.exists(template_build_folder + '/CMakeCache.txt'):
-        print('Compiling pybind11 template ' + template_name + ' in ' + os.path.realpath(
-            pykeops.config.bin_folder) + '...', flush=True)
+        print('[pyKeOps] Compiling pybind11 template ' + template_name + ' in ' + os.path.realpath(
+            pykeops.config.bin_folder) + ' ... ', end='', flush=True)
         # print('(with dtype=',dtype,', lang=',lang,', include_dirs=',include_dirs,')', flush=True)
 
         os.mkdir(template_build_folder)
@@ -69,7 +69,7 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
         command_line += ["-Dkeops_formula_name=" + "'{}'".format(pykeops.config.shared_obj_name)]
         
         # here we build an arbitrary dummy formula to create a formula object file ; otherwise the initial cmake call would fail
-        build_folder = get_build_folder_name(dtype)
+        build_folder = check_or_prebuild(dtype)
         formula = "Sum_Reduction(Var(0,1,0)*Var(1,1,1),0)"
         alias_string = ""
         optional_flags = []
@@ -87,7 +87,7 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
 
         #shutil.rmtree(template_build_folder)
 
-        print('Done.')
+        print('done.', flush=True)
 
     return template_name
 
@@ -134,9 +134,13 @@ def get_build_folder_name(dtype):
 def check_or_prebuild(dtype):
     build_folder, command_line = get_build_folder_name_and_command(dtype)
     if not os.path.exists(build_folder + '/CMakeCache.txt'):
+        print('[pyKeOps] Initializing build folder for dtype=' + str(dtype) + ' in ' + os.path.realpath(
+            pykeops.config.bin_folder) + ' ... ', end='', flush=True)
         run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
                         build_folder,
                         msg="CMAKE")
+        print('done.', flush=True)
+    return build_folder
 
 def build_keops_formula_object_file(build_folder, dtype, formula, alias_string, optional_flags):
     create_keops_include_file(build_folder, dtype, formula, alias_string, optional_flags)
@@ -159,7 +163,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     alias_disp_string = ''.join([process_disp_alias(alias) for alias in aliases])
 
     print(
-        'Compiling ' + dllname + ' in ' + os.path.realpath(
+        '[pyKeOps] Compiling ' + dllname + ' in ' + os.path.realpath(
             build_folder + os.path.sep + '..') + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
         end='', flush=True)
 
@@ -175,7 +179,7 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
     subprocess.run(["mkdir "+dllname], cwd=pykeops.config.bin_folder, shell=True)
     subprocess.run(["mv "+template_build_folder+"/"+template_name+"*.so "+dllname+"/"], cwd=pykeops.config.bin_folder, shell=True)
 
-    print('Done.')
+    print('done.', flush=True)
 
 
 def compile_specific_conv_routine(dllname, dtype, build_folder):

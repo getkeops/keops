@@ -2,7 +2,7 @@ import importlib.util
 import os
 
 import pykeops.config
-from pykeops.common.compile_routines import compile_generic_routine, get_pybind11_template_name, get_build_folder_name, check_or_prebuild
+from pykeops.common.compile_routines import compile_generic_routine, get_pybind11_template_name, get_or_build_pybind11_template, get_build_folder_name, check_or_prebuild
 from pykeops.common.utils import module_exists, create_and_lock_build_folder
 from pykeops.common.set_path import create_name
 
@@ -27,19 +27,26 @@ class LoadKeOps:
         self.optional_flags = optional_flags
         self.include_dirs = include_dirs
         
-        # create the name from formula, aliases and dtype.
-        self.dll_name = create_name(self.formula, self.aliases, self.dtype, self.lang, self.optional_flags)
+        # get build folder name for dtype
+        self.build_folder = get_build_folder_name(self.dtype)    
         
-        # get the name of the template build
+        # get template name for dtype
         self.template_name = get_pybind11_template_name(dtype, lang, include_dirs)
         
+        # create the name from formula, aliases and dtype.
+        self.dll_name = create_name(self.formula, self.aliases, self.dtype, self.lang, self.optional_flags)
+                
         if (not module_exists(self.dll_name,self.template_name)) or (pykeops.config.build_type == 'Debug'):
-            self.build_folder = get_build_folder_name(self.dtype)
             self._safe_compile()
-
+        
+        
     @create_and_lock_build_folder()
     def _safe_compile(self):
+        # if needed, safely run cmake in build folder to prepare for building
         check_or_prebuild(self.dtype)
+        # if needed, safely run inital build of template to prepare for building
+        get_or_build_pybind11_template(self.dtype, self.lang, self.include_dirs)
+        # launch compilation and linking of required KeOps formula
         compile_generic_routine(self.formula, self.aliases, self.dll_name, self.dtype, self.lang,
                                 self.optional_flags, self.include_dirs, self.build_folder)
 
