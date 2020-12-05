@@ -5,17 +5,15 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(PyKeOps LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 14)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
 set(PYKEOPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../)
-
 set(KEOPS_SOURCE_DIR ${PYKEOPS_SOURCE_DIR}/keops/)
-
-add_definitions(-D__TYPE__=${__TYPE__})
-add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
+set(BIN_DIR ${PROJECT_BINARY_DIR}/../) # installation directory
 
 ## Set Path to sources
 set(SOURCE_FILES
@@ -25,39 +23,22 @@ set(SOURCE_FILES
 )
 
 Include_Directories(${SOURCE_FILES})
-set(PYKEOPS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
-set(KEOPS_SRC ${PYKEOPS_FOLDER}/keops)
-include(${KEOPS_SRC}/cuda.cmake)
+include(${KEOPS_SOURCE_DIR}/cuda.cmake)
 
-# installation directory
-set(BIN_DIR ${PROJECT_BINARY_DIR}/../)
+include(../PyKeOpsHeader.cmake)
 
-
-#------------------------------------------------------------------------------------#
-#------------------------------- COMPILATOR OPTS ------------------------------------#
-#------------------------------------------------------------------------------------#
-
-set(CMAKE_CXX_STANDARD 17)
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  if(APPLE) 
-	  # Apple built-in clang apparently does not support openmp...
-	  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ferror-limit=2")
-  else()
-	  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_OPENMP -fopenmp -Wall -ferror-limit=2")
-  endif()
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_OPENMP -fopenmp -Wall -Wno-unknown-pragmas -fmax-errors=2")
+# - type for computation. The CACHE option enable to see it in ccmake.
+if(NOT __TYPE__)
+  Set(__TYPE__ float CACHE STRING "Precision type of the computations (__half, float or double)")
 endif()
+add_definitions(-D__TYPE__=${__TYPE__})
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
-
-if(APPLE)
-  set(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
-  set(CMAKE_MACOSX_RPATH TRUE)
-endif(APPLE)
+# - Choose if the multi-dimensional kernels are stored column or row wise
+if(NOT C_CONTIGUOUS)
+  Set(C_CONTIGUOUS O CACHE STRING "Multi-dimensional kernels are stored column wise.")
+endif()
+add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 
 ########################################################################################################################
 #                                                       PYTORCH                                                        #
@@ -112,12 +93,6 @@ SET_SOURCE_FILES_PROPERTIES(
 )
 
 
-
-
-
-
-
-
 if(${PYTHON_LANG} STREQUAL "torch")
 
     set_source_files_properties(
@@ -147,42 +122,8 @@ else ()
     set_target_properties(${template_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
 endif ()
 
-
-
-
-
-
-
-########################################################################################################################
-#                                                   INSTALLATION                                                       #
-########################################################################################################################
-
-#get_filename_component(PYKEOPS_SOURCE_DIR_ABS ${PYKEOPS_SOURCE_DIR} ABSOLUTE)
-
-#add_custom_command(
-#        TARGET ${template_name} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${template_name}> ${BIN_DIR}/${template_name}.o
-#)
-
-
-
-
-
-
-
 # Write a log file to decypher keops dllname
-if (commandLine)
-    string(TIMESTAMP TODAY "%Y/%m/%d")
-    if (USE_CUDA)
-        Set(COMPILER ${CMAKE_CUDA_COMPILER})
-        Set(COMPILER_VERSION ${CMAKE_CUDA_COMPILER_VERSION})
-    else ()
-        Set(COMPILER ${CMAKE_CXX_COMPILER})
-        Set(COMPILER_VERSION ${CMAKE_CXX_COMPILER_VERSION})
-    endif ()
-    file(APPEND ${PROJECT_BINARY_DIR}/../keops_hash.log
-            "# ${shared_obj_name} compiled on ${TODAY} with ${COMPILER} (${COMPILER_VERSION}):\n\n ${commandLine}\n cmake --build . --target ${shared_obj_name} --  VERBOSE=1\n\n# ----------------------------------------------------------------------\n")
-endif ()
+include(../PyKeOpsLog.cmake)
 
 
 
