@@ -11,7 +11,15 @@ project(PyKeOps LANGUAGES C CXX)
 set(BIN_DIR ${PROJECT_BINARY_DIR}/../)
 
 
+set(PYKEOPS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
+set(KEOPS_SRC ${PYKEOPS_FOLDER}/keops)
+
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif ()
+
+include(${KEOPS_SRC}/cuda.cmake)
 
 
 #------------------------------------------------------------------------------------#
@@ -54,7 +62,7 @@ set(OBJS
 
 add_library(${template_name} SHARED ${OBJS})
 
-set_target_properties(${template_name} PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(${template_name} PROPERTIES LINKER_LANGUAGE CUDA)
 
 SET_SOURCE_FILES_PROPERTIES(
   ${OBJS}

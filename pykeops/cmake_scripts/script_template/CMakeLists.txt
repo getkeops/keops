@@ -25,7 +25,10 @@ set(SOURCE_FILES
 )
 
 Include_Directories(${SOURCE_FILES})
+set(PYKEOPS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
+set(KEOPS_SRC ${PYKEOPS_FOLDER}/keops)
+include(${KEOPS_SRC}/cuda.cmake)
 
 # installation directory
 set(BIN_DIR ${PROJECT_BINARY_DIR}/../)
