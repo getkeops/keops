@@ -85,7 +85,9 @@ pybind11_add_module(${template_name}
 		${keops_formula_name}.o
 )
 
-set_target_properties(${template_name} PROPERTIES LINKER_LANGUAGE CUDA)
+if (USE_CUDA)
+	set_target_properties(${template_name} PROPERTIES LINKER_LANGUAGE CUDA)
+endif()
 
 SET_SOURCE_FILES_PROPERTIES(
   ${BIN_DIR}/${keops_formula_name}.o
