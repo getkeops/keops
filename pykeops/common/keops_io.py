@@ -44,8 +44,6 @@ class LoadKeOps:
     def _safe_compile(self):
         # if needed, safely run cmake in build folder to prepare for building
         check_or_prebuild(self.dtype, self.lang, self.include_dirs)
-        # if needed, safely run inital build of template to prepare for building
-        get_or_build_pybind11_template(self.dtype, self.lang, self.include_dirs)
         # launch compilation and linking of required KeOps formula
         compile_generic_routine(self.formula, self.aliases, self.dll_name, self.dtype, self.lang,
                                 self.optional_flags, self.include_dirs, self.build_folder)

@@ -54,11 +54,13 @@ def get_pybind11_template_name(dtype, lang, include_dirs):
     template_name, command_line = get_pybind11_template_name_and_command(dtype, lang, include_dirs)
     return template_name
     
-def get_or_build_pybind11_template(dtype, lang, include_dirs):
+def get_or_build_pybind11_template(dtype, lang, include_dirs, use_prebuilt_formula=False):
     template_name, command_line = get_pybind11_template_name_and_command(dtype, lang, include_dirs)
     template_build_folder = pykeops.config.bin_folder + '/build-pybind11_template-' + template_name
     
+    is_rebuilt = False
     if not os.path.exists(template_build_folder + '/CMakeCache.txt'):
+        is_rebuilt = True
         print('[pyKeOps] Compiling pybind11 template ' + template_name + ' in ' + os.path.realpath(
             pykeops.config.bin_folder) + ' ... ', end='', flush=True)
         # print('(with dtype=',dtype,', lang=',lang,', include_dirs=',include_dirs,')', flush=True)
@@ -68,12 +70,15 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
         command_line += ["-Dtemplate_name=" + "'{}'".format(template_name)]
         command_line += ["-Dkeops_formula_name=" + "'{}'".format(pykeops.config.shared_obj_name)]
         
-        # here we build an arbitrary dummy formula to create a formula object file ; otherwise the initial cmake call would fail
         build_folder = check_or_prebuild(dtype, lang, include_dirs)
-        formula = "Sum_Reduction(Var(0,1,0)*Var(1,1,1),0)"
-        alias_string = ""
-        optional_flags = []
-        build_keops_formula_object_file(build_folder, dtype, formula, alias_string, optional_flags)
+        
+        if not use_prebuilt_formula:
+            # here we build an arbitrary dummy formula to create a formula object file ; otherwise the initial cmake call would fail
+            formula = "Sum_Reduction(Var(0,1,0)*Var(1,1,1),0)"
+            alias_string = ""
+            optional_flags = []
+            build_keops_formula_object_file(build_folder, dtype, formula, alias_string, optional_flags)
+            
         subprocess.run(["mv "+pykeops.config.shared_obj_name+".o "+template_build_folder], cwd=pykeops.config.bin_folder, shell=True)
 
         run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
@@ -83,13 +88,13 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
         run_and_display(["cmake", "--build", ".", "--target", template_name, "--", "VERBOSE=1"], template_build_folder,
                         msg="MAKE")
                         
-        subprocess.run(["rm "+template_name+"*.so"], cwd=template_build_folder, shell=True)
+        #subprocess.run(["rm "+template_name+"*.so"], cwd=template_build_folder, shell=True)
 
         #shutil.rmtree(template_build_folder)
 
         print('done.', flush=True)
 
-    return template_name
+    return template_name, is_rebuilt
 
 
 def create_keops_include_file(build_folder, dtype, formula, alias_string, optional_flags):
@@ -165,17 +170,18 @@ def compile_generic_routine(formula, aliases, dllname, dtype, lang, optional_fla
 
     print(
         '[pyKeOps] Compiling ' + dllname + ' in ' + os.path.realpath(
-            build_folder + os.path.sep + '..') + ':\n' + '       formula: ' + formula + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ',
-        end='', flush=True)
+            build_folder + os.path.sep + '..') + ':\n' + '       formula: ' + formula 
+            + '\n       aliases: ' + alias_disp_string + '\n       dtype  : ' + dtype + '\n... ', flush=True)
+        
+    build_keops_formula_object_file(build_folder, dtype, formula, alias_string, optional_flags)
 
-    template_name = get_or_build_pybind11_template(dtype, lang, include_dirs, )
+    template_name, is_rebuilt = get_or_build_pybind11_template(dtype, lang, include_dirs, use_prebuilt_formula=True)
+    
     template_build_folder = pykeops.config.bin_folder + '/build-pybind11_template-' + template_name 
     
-    build_keops_formula_object_file(build_folder, dtype, formula, alias_string, optional_flags)
-    
-    subprocess.run(["mv "+pykeops.config.shared_obj_name+".o "+template_build_folder], cwd=pykeops.config.bin_folder, shell=True)
-    
-    run_and_display(["cmake", "--build", ".", "--target", template_name, "--", "VERBOSE=1"], template_build_folder, msg="MAKE")  
+    if not is_rebuilt:    
+        subprocess.run(["mv "+pykeops.config.shared_obj_name+".o "+template_build_folder], cwd=pykeops.config.bin_folder, shell=True)
+        run_and_display(["cmake", "--build", ".", "--target", template_name, "--", "VERBOSE=1"], template_build_folder, msg="MAKE")  
     
     subprocess.run(["mkdir "+dllname], cwd=pykeops.config.bin_folder, shell=True)
     subprocess.run(["mv "+template_build_folder+"/"+template_name+"*.so "+dllname+"/"], cwd=pykeops.config.bin_folder, shell=True)
