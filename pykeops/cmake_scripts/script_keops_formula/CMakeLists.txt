@@ -11,6 +11,8 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
+set(ignoreMe "${PYTORCH_ROOT_DIR}")
+
 set(PYKEOPS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../)
 set(KEOPS_SOURCE_DIR ${PYKEOPS_SOURCE_DIR}/keops/)
 set(BIN_DIR ${PROJECT_BINARY_DIR}/../) # installation directory

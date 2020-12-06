@@ -28,7 +28,7 @@ class LoadKeOps:
         self.include_dirs = include_dirs
         
         # get build folder name for dtype
-        self.build_folder = get_build_folder_name(self.dtype, self.lang)    
+        self.build_folder = get_build_folder_name(dtype, lang, include_dirs)    
         
         # get template name for dtype
         self.template_name = get_pybind11_template_name(dtype, lang, include_dirs)
@@ -43,7 +43,7 @@ class LoadKeOps:
     @create_and_lock_build_folder()
     def _safe_compile(self):
         # if needed, safely run cmake in build folder to prepare for building
-        check_or_prebuild(self.dtype, self.lang)
+        check_or_prebuild(self.dtype, self.lang, self.include_dirs)
         # if needed, safely run inital build of template to prepare for building
         get_or_build_pybind11_template(self.dtype, self.lang, self.include_dirs)
         # launch compilation and linking of required KeOps formula
