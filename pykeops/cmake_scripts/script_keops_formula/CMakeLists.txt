@@ -28,6 +28,16 @@ include(${KEOPS_SOURCE_DIR}/cuda.cmake)
 
 include(../PyKeOpsHeader.cmake)
 
+if(${PYTHON_LANG} STREQUAL "torch")
+    # fix for pytorch: https://discuss.pytorch.org/t/pytorch-0-4-1-undefined-symbol-at-import-of-a-cpp-extension/24420
+    # and https://stackoverflow.com/questions/33394934/converting-std-cxx11string-to-stdstring
+    if(NOT DEFINED _GLIBCXX_USE_CXX11_ABI)
+        Set(_GLIBCXX_USE_CXX11_ABI 0)  # set default value to False...
+    endif()
+    add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${_GLIBCXX_USE_CXX11_ABI})
+endif()
+
+
 # - type for computation. The CACHE option enable to see it in ccmake.
 if(NOT __TYPE__)
   Set(__TYPE__ float CACHE STRING "Precision type of the computations (__half, float or double)")

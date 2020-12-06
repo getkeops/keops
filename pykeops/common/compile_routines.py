@@ -69,7 +69,7 @@ def get_or_build_pybind11_template(dtype, lang, include_dirs):
         command_line += ["-Dkeops_formula_name=" + "'{}'".format(pykeops.config.shared_obj_name)]
         
         # here we build an arbitrary dummy formula to create a formula object file ; otherwise the initial cmake call would fail
-        build_folder = check_or_prebuild(dtype)
+        build_folder = check_or_prebuild(dtype, lang)
         formula = "Sum_Reduction(Var(0,1,0)*Var(1,1,1),0)"
         alias_string = ""
         optional_flags = []
@@ -114,10 +114,11 @@ def create_keops_include_file(build_folder, dtype, formula, alias_string, option
     replace_strings_in_file(target_include_file, replace_pairs)
 
 
-def get_build_folder_name_and_command(dtype):
+def get_build_folder_name_and_command(dtype, lang):
     command_line = ["cmake", pykeops.config.script_formula_folder,
                     "-DCMAKE_BUILD_TYPE=" + "'{}'".format(pykeops.config.build_type),
                     "-Dshared_obj_name=" + "'{}'".format(pykeops.config.shared_obj_name),
+                    "-DPYTHON_LANG=" + "'{}'".format(lang),
                     "-D__TYPE__=" + "'{}'".format(c_type[dtype]),
                     "-DC_CONTIGUOUS=1",
                     ]
@@ -126,15 +127,15 @@ def get_build_folder_name_and_command(dtype):
     return build_folder, command_line
 
 
-def get_build_folder_name(dtype):
-    build_folder, _ = get_build_folder_name_and_command(dtype)
+def get_build_folder_name(dtype, lang):
+    build_folder, _ = get_build_folder_name_and_command(dtype, lang)
     return build_folder
 
 
-def check_or_prebuild(dtype):
-    build_folder, command_line = get_build_folder_name_and_command(dtype)
+def check_or_prebuild(dtype, lang):
+    build_folder, command_line = get_build_folder_name_and_command(dtype, lang)
     if not os.path.exists(build_folder + '/CMakeCache.txt'):
-        print('[pyKeOps] Initializing build folder for dtype=' + str(dtype) + ' in ' + os.path.realpath(
+        print('[pyKeOps] Initializing build folder for dtype=' + str(dtype) + ' and lang=' + lang + ' in ' + os.path.realpath(
             pykeops.config.bin_folder) + ' ... ', end='', flush=True)
         run_and_display(command_line + ["-DcommandLine=" + " ".join(command_line)],
                         build_folder,
