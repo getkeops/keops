@@ -1,5 +1,7 @@
 #pragma once
 
+#include <climits>
+
 #include "core/pack/GetInds.h"
 #include "core/pack/ConcatPack.h"
 #include "core/pack/GetDims.h"

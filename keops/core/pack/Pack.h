@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <assert.h>
+#include <climits>
 
 #include "core/pre_headers.h"
 #include "core/pack/Get.h"
