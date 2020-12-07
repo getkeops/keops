@@ -67,25 +67,38 @@ def generate_samples(N, device="cuda", lang="torch", batchsize=1, **kwargs):
 
 
 ##############################################
-# Define a simple Gaussian RBF product, using a **tensorized** implementation:
+# Define a simple Gaussian RBF product, using a **tensorized** implementation.
+# Note that expanding the squared norm :math:`\|x-y\|^2` as a sum
+# :math:`\|x\|^2 - 2 \langle x, y \rangle + \|y\|^2` allows us
+# to leverage the fast matrix-matrix product of the BLAS/cuBLAS
+# libraries.
 #
 
 
 def gaussianconv_numpy(x, y, b, **kwargs):
     """(1,N,D), (1,N,D), (1,N,1) -> (1,N,1)"""
+
+    # N.B.: NumPy does not really support batch matrix multiplications:
     x, y, b = x.squeeze(0), y.squeeze(0), b.squeeze(0)
-    K_xy = np.exp(-np.sum((x[:, None, :] - y[None, :, :]) ** 2, axis=2))
+
+    D_xx = np.sum((x ** 2), axis=-1)[:, None]  # (N,1)
+    D_xy = x @ y.T  # (N,D) @ (D,M) = (N,M)
+    D_yy = np.sum((y ** 2), axis=-1)[None, :]  # (1,M)
+    D_xy = D_xx - 2 * D_xy + D_yy  # (N,M)
+    K_xy = np.exp(-D_xy)  # (B,N,M)
 
     return K_xy @ b
 
 
 def gaussianconv_pytorch(x, y, b, **kwargs):
     """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
+
     D_xx = (x * x).sum(-1).unsqueeze(2)  # (B,N,1)
     D_xy = torch.matmul(x, y.permute(0, 2, 1))  # (B,N,D) @ (B,D,M) = (B,N,M)
     D_yy = (y * y).sum(-1).unsqueeze(1)  # (B,1,M)
     D_xy = D_xx - 2 * D_xy + D_yy  # (B,N,M)
     K_xy = (-D_xy).exp()  # (B,N,M)
+
     return K_xy @ b  # (B,N,1)
 
 
