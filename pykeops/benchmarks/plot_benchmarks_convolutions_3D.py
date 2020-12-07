@@ -57,7 +57,7 @@ def generate_samples(N, device="cuda", lang="torch", batchsize=1, **kwargs):
     Returns:
         3-uple of arrays: x, y, b
     """
-    randn = random_normal(device=device, lang=lang, batchsize=batchsize)
+    randn = random_normal(device=device, lang=lang)
 
     x = randn((batchsize, N, D))
     y = randn((batchsize, N, D))

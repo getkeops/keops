@@ -28,12 +28,22 @@ def flatten(list_of_lists):
     return [val for sublist in list_of_lists for val in sublist]
 
 
-def random_normal(device="cuda", lang="torch", batchsize=None):
+def random_normal(device="cuda", lang="torch"):
     def sampler(shape):
         if lang == "torch":
             return torch.randn(shape, device=torch.device(device))
         else:
             return np.random.rand(*shape).astype("float32")
+
+    return sampler
+
+
+def unit_tensor(device="cuda", lang="torch"):
+    def sampler(shape):
+        if lang == "torch":
+            return torch.ones(shape, device=torch.device(device))
+        else:
+            return np.ones(*shape).astype("float32")
 
     return sampler
 
@@ -79,6 +89,7 @@ def bench_config(
     print(f"{label} -------------")
 
     times = []
+    not_recorded_times = []
     try:
         Nloops = [100, 10, 1]
         nloops = Nloops.pop(0)
@@ -100,10 +111,13 @@ def bench_config(
 
     except RuntimeError:
         print("**\nMemory overflow !")
+        not_recorded_times = (len(problem_sizes) - len(times)) * [np.nan]
+
     except IndexError:  # Thrown by Nloops.pop(0) if Nloops = []
         print("**\nToo slow !")
+        not_recorded_times = (len(problem_sizes) - len(times)) * [np.Infinity]
 
-    return times + (len(problem_sizes) - len(times)) * [np.nan]
+    return times + not_recorded_times
 
 
 # Max number of seconds before we break the loop:
@@ -156,6 +170,16 @@ def full_benchmark(
                 x, y = benches[j - 1, 0], benches[j - 1, i + 1]
                 plt.annotate(
                     "Memory overflow!",
+                    xy=(x, 1.05 * y),
+                    horizontalalignment="center",
+                    verticalalignment="bottom",
+                )
+                break
+
+            elif np.isinf(val) and j > 0:
+                x, y = benches[j - 1, 0], benches[j - 1, i + 1]
+                plt.annotate(
+                    "Too slow!",
                     xy=(x, 1.05 * y),
                     horizontalalignment="center",
                     verticalalignment="bottom",
