@@ -71,7 +71,7 @@ def benchmark(routine, label, N, loops=10, generate_samples=None, **kwargs):
     B = kwargs.get("batchsize", 1)
     perf = elapsed / (B * loops)
 
-    print(f"{B:3}x{loops:3} loops of size N ={N:9,}: {B:3}x{loops:3}x{perf:3.6f}s")
+    print(f"{B:3}x{loops:3} loops of size {N:9,}: {B:3}x{loops:3}x{perf:3.6f}s")
     return perf
 
 
