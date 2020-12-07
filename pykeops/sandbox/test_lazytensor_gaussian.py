@@ -8,15 +8,16 @@ from pykeops.torch import LazyTensor
 
 M, N, D, DV = 10000, 10000, 3, 1
 
+dtype = torch.float64
 
 test_grad = True
 test_grad2 = False
 device_id = 'cuda' if torch.cuda.is_available() else 'cpu'
 do_warmup = False
 
-x = torch.rand(M, 1, D, device=device_id)/math.sqrt(D)
-y = torch.rand(1, N, D, device=device_id)/math.sqrt(D)
-b = torch.randn(N, DV, requires_grad=test_grad, device=device_id)
+x = torch.rand(M, 1, D, device=device_id, dtype=dtype)/math.sqrt(D)
+y = torch.rand(1, N, D, device=device_id, dtype=dtype)/math.sqrt(D)
+b = torch.randn(N, DV, requires_grad=test_grad, device=device_id, dtype=dtype)
 
 def fun(x,y,b,backend):
     if "keops" in backend:
