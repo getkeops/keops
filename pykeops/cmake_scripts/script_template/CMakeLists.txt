@@ -34,6 +34,20 @@ if(NOT __TYPE__)
 endif()
 add_definitions(-D__TYPE__=${__TYPE__})
 
+# this dummy flag is used in the bindings
+if (${__TYPE__} STREQUAL "double")
+    add_definitions(-DUSE_DOUBLE=1)
+else ()
+    add_definitions(-DUSE_DOUBLE=0)
+endif ()
+
+# this dummy flag is used in the bindings
+if (${__TYPE__} STREQUAL "half2")
+    add_definitions(-DUSE_HALF=1)
+else ()
+    add_definitions(-DUSE_HALF=0)
+endif ()
+
 # - Choose if the multi-dimensional kernels are stored column or row wise
 if(NOT C_CONTIGUOUS)
   Set(C_CONTIGUOUS O CACHE STRING "Multi-dimensional kernels are stored column wise.")
