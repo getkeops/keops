@@ -9,9 +9,9 @@ as the number of samples grows from 100 to 1,000,000.
 .. note::
     In this demo, we use exact **bruteforce** computations 
     (tensorized for PyTorch and online for KeOps), without leveraging any multiscale
-    or low-rank (multipole) decomposition of the Kernel matrix.
-    Please visit the documentation of the `GeomLoss package <https://www.kernel-operations.io/geomloss>`_
-    for a discussion of clever, scalable schemes.
+    or low-rank (Nystroem/multipole) decomposition of the Kernel matrix.
+    First support for these approximation schemes is scheduled for
+    May-June 2021.
 
  
 """
@@ -21,13 +21,11 @@ as the number of samples grows from 100 to 1,000,000.
 # Setup
 # ---------------------
 
-import importlib
-import os
-import time
-
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
+
+from benchmarks import flatten, random_normal, full_benchmark
 
 use_cuda = torch.cuda.is_available()
 
@@ -35,28 +33,11 @@ use_cuda = torch.cuda.is_available()
 # Benchmark specifications:
 #
 
-D = 3  # Let's do this in 3D
-MAXTIME = 10 if use_cuda else 1  # Max number of seconds before we break the loop
-REDTIME = (
-    2 if use_cuda else 0.2
-)  # Decrease the number of runs if computations take longer than 2s...
-
-# Number of samples that we'll loop upon
-NS = [
-    100,
-    200,
-    500,
-    1000,
-    2000,
-    5000,
-    10000,
-    20000,
-    50000,
-    100000,
-    200000,
-    500000,
-    1000000,
-]
+# Numbers of samples that we'll loop upon:
+problem_sizes = flatten(
+    [[1 * 10 ** k, 2 * 10 ** k, 5 * 10 ** k] for k in [2, 3, 4, 5]] + [[10 ** 6]]
+)
+D = 3  # We work with 3D points
 
 
 ##############################################
@@ -64,34 +45,23 @@ NS = [
 # a Stanford Bunny, or whatever!
 
 
-def generate_samples(N, device, lang, batchsize=None):
-    """Create point clouds sampled non-uniformly on a sphere of diameter 1."""
+def generate_samples(N, device="cuda", lang="torch", batchsize=1, **kwargs):
+    """Generates two point clouds x, y and a scalar signal b of size N.
 
-    B = () if batchsize is None else (batchsize,)
+    Args:
+        N (int): number of point.
+        device (str, optional): "cuda", "cpu", etc. Defaults to "cuda".
+        lang (str, optional): "torch", "numpy", etc. Defaults to "torch".
+        batchsize (int, optional): number of experiments to run in parallel. Defaults to None.
 
-    if lang == "torch":
-        if device == "cuda":
-            torch.cuda.manual_seed_all(1234)
-        else:
-            torch.manual_seed(1234)
+    Returns:
+        3-uple of arrays: x, y, b
+    """
+    randn = random_normal(device=device, lang=lang, batchsize=batchsize)
 
-        x = torch.randn(B + (N, D), device=device)
-        x[:, 0] += 1
-        x = x / (2 * x.norm(dim=1, keepdim=True))
-
-        y = torch.randn(B + (N, D), device=device)
-        y[:, 1] += 2
-        y = y / (2 * y.norm(dim=1, keepdim=True))
-
-        # Draw a random source signal:
-        b = torch.randn(B + (N, 1), device=device)
-
-    else:
-        np.random.seed(1234)
-
-        x = np.random.rand(*(B + (N, D))).astype("float32")
-        y = np.random.rand(*(B + (N, D))).astype("float32")
-        b = np.random.randn(*(B + (N,))).astype("float32")
+    x = randn((batchsize, N, D))
+    y = randn((batchsize, N, D))
+    b = randn((batchsize, N, 1))
 
     return x, y, b
 
@@ -101,20 +71,22 @@ def generate_samples(N, device, lang, batchsize=None):
 #
 
 
-def gaussianconv_numpy(x, y, b):
+def gaussianconv_numpy(x, y, b, **kwargs):
+    """(1,N,D), (1,N,D), (1,N,1) -> (1,N,1)"""
+    x, y, b = x.squeeze(0), y.squeeze(0), b.squeeze(0)
     K_xy = np.exp(-np.sum((x[:, None, :] - y[None, :, :]) ** 2, axis=2))
 
     return K_xy @ b
 
 
-def gaussianconv_pytorch(x, y, b):
-    D_xx = (x * x).sum(-1).unsqueeze(1)  # (N,1)
-    D_xy = torch.matmul(x, y.permute(1, 0))  # (N,D) @ (D,M) = (N,M)
-    D_yy = (y * y).sum(-1).unsqueeze(0)  # (1,M)
-    D_xy = D_xx - 2 * D_xy + D_yy
-    K_xy = (-D_xy).exp()
-
-    return K_xy @ b
+def gaussianconv_pytorch(x, y, b, **kwargs):
+    """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
+    D_xx = (x * x).sum(-1).unsqueeze(2)  # (B,N,1)
+    D_xy = torch.matmul(x, y.permute(0, 2, 1))  # (B,N,D) @ (B,D,M) = (B,N,M)
+    D_yy = (y * y).sum(-1).unsqueeze(1)  # (B,1,M)
+    D_xy = D_xx - 2 * D_xy + D_yy  # (B,N,M)
+    K_xy = (-D_xy).exp()  # (B,N,M)
+    return K_xy @ b  # (B,N,1)
 
 
 ##############################################
@@ -124,15 +96,15 @@ def gaussianconv_pytorch(x, y, b):
 from pykeops.torch import generic_sum
 
 
-def gaussianconv_keops(x, y, b):
+def gaussianconv_keops(x, y, b, backend="GPU", **kwargs):
+    """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
     fun = generic_sum(
         "Exp(-SqDist(X,Y)) * B",  # Formula
         "A = Vi(1)",  # Output
         "X = Vi({})".format(D),  # 1st argument
         "Y = Vj({})".format(D),  # 2nd argument
-        "B = Vj(1)",
-    )  # 3rd argument
-    backend = "GPU" if use_cuda else "CPU"
+        "B = Vj(1)",  # 3rd argument
+    )
     return fun(x, y, b, backend=backend)
 
 
@@ -142,148 +114,14 @@ def gaussianconv_keops(x, y, b):
 from pykeops.torch import LazyTensor
 
 
-def gaussianconv_lazytensor(x, y, b):
-    backend = "GPU" if use_cuda else "CPU"
-    nbatchdims = len(x.shape) - 2
+def gaussianconv_lazytensor(x, y, b, backend="GPU", **kwargs):
+    """(B,N,D), (B,N,D), (B,N,1) -> (B,N,1)"""
     x_i = LazyTensor(x.unsqueeze(-2))  # (B, M, 1, D)
     y_j = LazyTensor(y.unsqueeze(-3))  # (B, 1, N, D)
     D_ij = ((x_i - y_j) ** 2).sum(-1)  # (B, M, N, 1)
     K_ij = (-D_ij).exp()  # (B, M, N, 1)
     S_ij = K_ij * b.unsqueeze(-3)  # (B, M, N, 1) * (B, 1, N, 1)
-    return S_ij.sum(dim=nbatchdims + 1, backend=backend)
-
-
-##############################################
-# Benchmarking loops
-# -----------------------
-
-
-def benchmark(routine_batchsize, dev, N, loops=10, lang="torch"):
-    """Times a convolution on an N-by-N problem."""
-
-    if isinstance(routine_batchsize, tuple):
-        Routine, B = routine_batchsize
-    else:
-        Routine, B = routine_batchsize, None
-
-    importlib.reload(torch)  # In case we had a memory overflow just before...
-    device = torch.device(dev)
-    x, y, b = generate_samples(N, device, lang, batchsize=B)
-
-    # We simply benchmark a convolution
-    code = "a = Routine( x, y, b ) "
-    exec(code, locals())  # Warmup run, to compile and load everything
-
-    t_0 = time.perf_counter()  # Actual benchmark --------------------
-    if use_cuda:
-        torch.cuda.synchronize()
-    for i in range(loops):
-        exec(code, locals())
-    if use_cuda:
-        torch.cuda.synchronize()
-    elapsed = time.perf_counter() - t_0  # ---------------------------
-
-    if B is None:
-        print(
-            "{:3} NxN convolution, with N ={:7}: {:3}x{:3.6f}s".format(
-                loops, N, loops, elapsed / loops
-            )
-        )
-        return elapsed / loops
-    else:
-        print(
-            "{:3}x{:3} NxN convolution, with N ={:7}: {:3}x{:3}x{:3.6f}s".format(
-                B, loops, N, B, loops, elapsed / (B * loops)
-            )
-        )
-        return elapsed / (B * loops)
-
-
-def bench_config(Routine, backend, dev, l):
-    """Times a convolution for an increasing number of samples."""
-
-    print("Backend : {}, Device : {} -------------".format(backend, dev))
-
-    times = []
-    try:
-        Nloops = [100, 10, 1]
-        nloops = Nloops.pop(0)
-        for n in NS:
-            elapsed = benchmark(Routine, dev, n, loops=nloops, lang=l)
-
-            times.append(elapsed)
-            if (nloops * elapsed > MAXTIME) or (
-                nloops * elapsed > REDTIME / 10 and len(Nloops) > 0
-            ):
-                nloops = Nloops.pop(0)
-
-    except RuntimeError:
-        print("**\nMemory overflow !")
-    except IndexError:
-        print("**\nToo slow !")
-
-    return times + (len(NS) - len(times)) * [np.nan]
-
-
-def full_bench(title, routines):
-    """Benchmarks the varied backends of a geometric loss function."""
-
-    backends = [backend for (_, backend, _) in routines]
-
-    print("Benchmarking : {} ===============================".format(title))
-
-    lines = [NS]
-    for routine, backend, lang in routines:
-        lines.append(
-            bench_config(routine, backend, "cuda" if use_cuda else "cpu", lang)
-        )
-
-    benches = np.array(lines).T
-
-    # Creates a pyplot figure:
-    plt.figure(figsize=(12, 8))
-    linestyles = ["o-", "s-", "^-"]
-    for i, backend in enumerate(backends):
-        plt.plot(
-            benches[:, 0],
-            benches[:, i + 1],
-            linestyles[i],
-            linewidth=2,
-            label='backend = "{}"'.format(backend),
-        )
-
-        for (j, val) in enumerate(benches[:, i + 1]):
-            if np.isnan(val) and j > 0:
-                x, y = benches[j - 1, 0], benches[j - 1, i + 1]
-                plt.annotate(
-                    "Memory overflow!",
-                    xy=(x, 1.05 * y),
-                    horizontalalignment="center",
-                    verticalalignment="bottom",
-                )
-                break
-
-    plt.title("Runtimes for {} in dimension {}".format(title, D))
-    plt.xlabel("Number of samples")
-    plt.ylabel("Seconds")
-    plt.yscale("log")
-    plt.xscale("log")
-    plt.legend(loc="upper left")
-    plt.grid(True, which="major", linestyle="-")
-    plt.grid(True, which="minor", linestyle="dotted")
-    plt.axis([NS[0], NS[-1], 1e-5, MAXTIME])
-    plt.tight_layout()
-
-    # Save as a .csv to put a nice Tikz figure in the papers:
-    header = "Npoints " + " ".join(backends)
-    os.makedirs("output", exist_ok=True)
-    np.savetxt(
-        "output/benchmark_convolutions_3D.csv",
-        benches,
-        fmt="%-9.5f",
-        header=header,
-        comments="",
-    )
+    return S_ij.sum(dim=2, backend=backend)
 
 
 ##############################################
@@ -292,36 +130,58 @@ def full_bench(title, routines):
 
 if use_cuda:
     routines = [
-        (gaussianconv_numpy, "Numpy (Cpu)", "numpy"),
-        (gaussianconv_pytorch, "PyTorch (Gpu)", "torch"),
-        (gaussianconv_keops, "KeOps (Gpu)", "torch"),
+        (gaussianconv_numpy, "Numpy (CPU)", {"lang": "numpy"}),
+        (gaussianconv_pytorch, "PyTorch (GPU)", {}),
+        (gaussianconv_keops, "KeOps (GPU)", {}),
     ]
-    full_bench("Gaussian Matrix-Vector products", routines)
+
+    full_benchmark(
+        "Gaussian Matrix-Vector products (GPU)",
+        routines,
+        generate_samples,
+        problem_sizes=problem_sizes,
+    )
 
 
 ##############################################
 # NumPy vs. PyTorch vs. KeOps (Cpu)
 # --------------------------------------------------------
 
-use_cuda = False
 routines = [
-    (gaussianconv_numpy, "Numpy (Cpu)", "numpy"),
-    (gaussianconv_pytorch, "PyTorch (Cpu)", "torch"),
-    (gaussianconv_keops, "KeOps (Cpu)", "torch"),
+    (gaussianconv_numpy, "Numpy (CPU)", {"device": "cpu", "lang": "numpy"}),
+    (gaussianconv_pytorch, "PyTorch (CPU)", {"device": "cpu"}),
+    (gaussianconv_keops, "KeOps (CPU)", {"device": "cpu", "backend": "CPU"}),
 ]
-full_bench("Gaussian Matrix-Vector products", routines)
+
+full_benchmark(
+    "Gaussian Matrix-Vector products (CPU)",
+    routines,
+    generate_samples,
+    problem_sizes=problem_sizes,
+)
 
 
 ################################################
 # Genred vs. LazyTensor vs. batched LazyTensor
 # ------------------------------------------------
 
-use_cuda = torch.cuda.is_available()
-routines = [
-    (gaussianconv_keops, "KeOps (Genred)", "torch"),
-    (gaussianconv_lazytensor, "KeOps (LazyTensor)", "torch"),
-    ((gaussianconv_lazytensor, 10), "KeOps (LazyTensor, batchsize=10)", "torch"),
-]
-full_bench("Gaussian Matrix-Vector products", routines)
+if use_cuda:
+    routines = [
+        (gaussianconv_keops, "KeOps (Genred)", {}),
+        (gaussianconv_lazytensor, "KeOps (LazyTensor)", {}),
+        (
+            gaussianconv_lazytensor,
+            "KeOps (LazyTensor, batchsize=10)",
+            {"batchsize": 10},
+        ),
+    ]
+
+    full_benchmark(
+        "Gaussian Matrix-Vector products (batch)",
+        routines,
+        generate_samples,
+        problem_sizes=problem_sizes,
+    )
+
 
 plt.show()
