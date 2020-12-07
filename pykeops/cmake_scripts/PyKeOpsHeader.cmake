@@ -2,6 +2,8 @@
 #------------------------------- COMPILATOR OPTS ------------------------------------#
 #------------------------------------------------------------------------------------#
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   if(APPLE)
 	  # Apple built-in clang apparently does not support openmp...
