@@ -128,7 +128,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 #                                                     PYBIND11                                                         #
 ########################################################################################################################
 
-add_subdirectory(${PYKEOPS_FOLDER}/pybind11)  #find_package(pybind11  REQUIRED)
+add_subdirectory(${PYKEOPS_FOLDER}/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11)  #find_package(pybind11  REQUIRED)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
 
 pybind11_add_module(${shared_obj_name}
