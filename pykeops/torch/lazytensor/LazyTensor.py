@@ -3,6 +3,7 @@ import torch
 from pykeops.common.lazy_tensor import GenericLazyTensor
 from pykeops.torch.utils import torchtools
 
+
 # Convenient aliases:
 
 
@@ -59,7 +60,7 @@ class LazyTensor(GenericLazyTensor):
         # torch specialization
         typex = type(x)
 
-        if typex not in (type(None), tuple, int, float, list, torch.Tensor):
+        if typex not in [type(None), tuple, int, list, torch.Tensor] + self.float_types:
             raise TypeError(
                 "LazyTensors should be built from PyTorch tensors, "
                 "float/integer numbers, lists of floats or 3-uples of integers. "
@@ -68,7 +69,7 @@ class LazyTensor(GenericLazyTensor):
 
         if typex == torch.Tensor and len(x.shape) == 0:  # Torch scalar -> Torch tensor
             x = x.view(1)
-        elif typex == float:
+        elif typex in self.float_types:
             x = torch.Tensor([x]).view(1)
 
         if typex == torch.Tensor:
@@ -81,3 +82,5 @@ class LazyTensor(GenericLazyTensor):
 
     def lt_constructor(self, x=None, axis=None):
         return LazyTensor(x=x, axis=axis)
+
+    float_types = [float,]

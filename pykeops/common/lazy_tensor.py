@@ -44,6 +44,7 @@ class GenericLazyTensor:
     ranges = None  # Block-sparsity pattern
     backend = None  # "CPU", "GPU", "GPU_2D", etc.
     dtype = None
+    float_types = []
 
     def __init__(self, x=None, axis=None):
         r"""Creates a KeOps symbolic variable.
@@ -118,15 +119,13 @@ class GenericLazyTensor:
                 self.formula = "VarSymb({},{},{})".format(x[0], self.ndim, self.axis)
                 return  # That's it!
 
-            elif (
-                typex == int
-            ):  # Integer constants are best handled directly by the compiler
+            elif typex == int:  # Integer constants are best handled directly by the compiler
                 self.formula = "IntCst(" + str(x) + ")"
                 self.ndim = 1
                 self.axis = 2
                 return  # That's it!
 
-            elif typex == float:  # Float numbers must be encoded as Parameters,
+            elif typex in self.float_types:  # Float numbers must be encoded as Parameters,
                 # as C++'s templating system cannot deal with floating point arithmetics.
                 x = [x]  # Convert to list and go to stage 2
                 typex = list
@@ -187,9 +186,7 @@ class GenericLazyTensor:
                 )
 
         # Stage 4: x is now encoded as a 2D or 1D array + batch dimensions --------------------
-        if (
-            len(x.shape) >= 2 and axis != 2
-        ):  # shape is (..,M,D) or (..,N,D), with an explicit 'axis' parameter
+        if len(x.shape) >= 2 and axis != 2:  # shape is (..,M,D) or (..,N,D), with an explicit 'axis' parameter
             if axis is None or axis not in (0, 1):
                 raise ValueError(
                     "When 'x' is encoded as a 2D array, LazyTensor expects an explicit 'axis' value in {0,1}."
@@ -241,9 +238,8 @@ class GenericLazyTensor:
             if device is not None:
                 break
         i = len(self.symbolic_variables)  # The first few labels are already taken...
-        for (
-            v
-        ) in self.variables:  # So let's loop over our tensors, and give them labels:
+
+        for v in self.variables:  # So let's loop over our tensors, and give them labels:
             idv = id(v)
             if type(v) == list:
                 v = self.tools.array(v, self.dtype, device)
