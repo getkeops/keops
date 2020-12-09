@@ -90,9 +90,8 @@ class GenericLazyTensor:
 
         self.get_tools()
 
-        if (
-            x is not None
-        ):  # A KeOps LazyTensor can be built from many different objects:
+        # A KeOps LazyTensor can be built from many different objects:
+        if x is not None:
 
             # Stage 1: Are we dealing with simple numbers? ---------------------
             typex = type(x)
@@ -119,14 +118,16 @@ class GenericLazyTensor:
                 self.formula = "VarSymb({},{},{})".format(x[0], self.ndim, self.axis)
                 return  # That's it!
 
-            elif typex == int:  # Integer constants are best handled directly by the compiler
+            # Integer constants are best handled directly by the compiler
+            elif typex == int:
                 self.formula = "IntCst(" + str(x) + ")"
                 self.ndim = 1
                 self.axis = 2
                 return  # That's it!
 
-            elif typex in self.float_types:  # Float numbers must be encoded as Parameters,
-                # as C++'s templating system cannot deal with floating point arithmetics.
+            # Float numbers must be encoded as Parameters,  as C++'s templating system cannot deal
+            # with floating point arithmetics.
+            elif typex in self.float_types:
                 x = [x]  # Convert to list and go to stage 2
                 typex = list
 
@@ -186,7 +187,9 @@ class GenericLazyTensor:
                 )
 
         # Stage 4: x is now encoded as a 2D or 1D array + batch dimensions --------------------
-        if len(x.shape) >= 2 and axis != 2:  # shape is (..,M,D) or (..,N,D), with an explicit 'axis' parameter
+        if (
+            len(x.shape) >= 2 and axis != 2
+        ):  # shape is (..,M,D) or (..,N,D), with an explicit 'axis' parameter
             if axis is None or axis not in (0, 1):
                 raise ValueError(
                     "When 'x' is encoded as a 2D array, LazyTensor expects an explicit 'axis' value in {0,1}."
@@ -239,7 +242,8 @@ class GenericLazyTensor:
                 break
         i = len(self.symbolic_variables)  # The first few labels are already taken...
 
-        for v in self.variables:  # So let's loop over our tensors, and give them labels:
+        # So let's loop over our tensors, and give them labels:
+        for v in self.variables:
             idv = id(v)
             if type(v) == list:
                 v = self.tools.array(v, self.dtype, device)
@@ -348,7 +352,8 @@ class GenericLazyTensor:
 
     def join(self, other):
         r"""
-        Merges the variables and attributes of two :class:`LazyTensor`, with a compatibility check. This method concatenates tuples of variables, without paying attention to repetitions.
+        Merges the variables and attributes of two :class:`LazyTensor`, with a compatibility check.
+        This method concatenates tuples of variables, without paying attention to repetitions.
         """
         res = self.promote(
             other,
@@ -493,7 +498,9 @@ class GenericLazyTensor:
 
         return res
 
-    def ternary(self, other1, other2, operation, dimres=None, dimcheck="sameor1", opt_arg=None):
+    def ternary(
+        self, other1, other2, operation, dimres=None, dimcheck="sameor1", opt_arg=None
+    ):
         r"""Symbolically applies **operation** to **self**, with optional arguments if needed.
 
         Keyword args:

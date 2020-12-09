@@ -83,4 +83,4 @@ class LazyTensor(GenericLazyTensor):
     def lt_constructor(self, x=None, axis=None):
         return LazyTensor(x=x, axis=axis)
 
-    float_types = [float,]
+    float_types = [float]
