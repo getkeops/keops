@@ -188,6 +188,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   int Device_Id_s = *mxGetPr(prhs[argu]);
   
   argu++;
+  //----- the next input arguments: device_id--------------//
+  if (mxGetM(prhs[argu]) != 1 || mxGetN(prhs[argu]) != 1)
+    mexErrMsgTxt("[KeOps]: sixth arg should be scalar nx");
+  int nx = *mxGetPr(prhs[argu]);
+  
+  argu++;
+  //----- the next input arguments: device_id--------------//
+  if (mxGetM(prhs[argu]) != 1 || mxGetN(prhs[argu]) != 1)
+    mexErrMsgTxt("[KeOps]: seventh arg should be scalar ny");
+  int ny = *mxGetPr(prhs[argu]);
+  
+  argu++;
   //----- the next input arguments: args--------------//
   //  create pointers to the input vectors
   const mxArray *castedargs[keops::NARGS];
@@ -204,6 +216,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
           tagCpuGpu,
           tagHostDevice,
           Device_Id_s,
+		  nx,
+		  ny,
           nrhs - 3,
           castedargs));
 }
