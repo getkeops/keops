@@ -123,6 +123,8 @@ array_t_out generic_red(
         int tag1D2D,
         int tagHostDevice,
         int Device_Id,
+		int nx,
+		int ny,
         rkeops_list_t & input) {
     
     // number of arguments
@@ -133,6 +135,8 @@ array_t_out generic_red(
         tag1D2D,
         tagCpuGpu,
         tagHostDevice,
+		nx,
+		ny,
         Device_Id,
         nargs,
         input.data(),
