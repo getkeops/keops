@@ -25,7 +25,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from benchmarks import flatten, random_normal, full_benchmark
+from benchmark_utils import flatten, random_normal, full_benchmark
 
 use_cuda = torch.cuda.is_available()
 

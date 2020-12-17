@@ -45,7 +45,7 @@ from pykeops.torch import KernelSolve
 from pykeops.torch.utils import squared_distances as sqdist_torch
 from pykeops.numpy.utils import squared_distances as sqdist_np
 
-from benchmarks import flatten, random_normal, unit_tensor, full_benchmark
+from benchmark_utils import flatten, random_normal, unit_tensor, full_benchmark
 
 use_cuda = torch.cuda.is_available()
 
