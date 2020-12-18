@@ -50,7 +50,7 @@ SEXP r_genred(
     int tagHostDevice = Rcpp::as<int>(param["tagHostDevice"]);
     // id of GPU device
     int Device_Id = Rcpp::as<int>(param["device_id"]);
-    // // nx, ny (managed lated)
+    // nx, ny
     int nx = Rcpp::as<int>(param["nx"]);
     int ny = Rcpp::as<int>(param["ny"]);
     // data contiguity
