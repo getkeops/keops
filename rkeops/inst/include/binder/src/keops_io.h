@@ -135,9 +135,9 @@ array_t_out generic_red(
         tag1D2D,
         tagCpuGpu,
         tagHostDevice,
-		nx,
-		ny,
         Device_Id,
+        nx,
+        ny,
         nargs,
         input.data(),
         0, {});
