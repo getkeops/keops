@@ -203,7 +203,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
   //----- the next input arguments: args--------------//
   //  create pointers to the input vectors
   const mxArray *castedargs[keops::NARGS];
-  for (int k = 0; k < nrhs - 3; k++) {
+  for (int k = 0; k < nrhs - 5; k++) {
     castedargs[k] = castedFun(prhs[argu + k]);
   }
   
@@ -218,7 +218,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
           Device_Id_s,
 		  nx,
 		  ny,
-          nrhs - 3,
+          nrhs - 5,
           castedargs));
 }
 

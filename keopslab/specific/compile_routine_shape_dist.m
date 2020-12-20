@@ -12,6 +12,6 @@ filename =  create_mex_name(kernel_geom, kernel_sig, kernel_sphere, ext_name);
 
 msg = '';
 
-testbuild = compile_code(cmd_cmake, cmd_make, filename, msg)
+testbuild = compile_code(cmd_cmake, cmd_make, filename, msg);
 
 end
