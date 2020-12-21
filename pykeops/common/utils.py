@@ -3,6 +3,7 @@ import functools
 import importlib.util
 import os
 import shutil
+import subprocess
 
 import pykeops.config
 
@@ -135,3 +136,32 @@ def check_broadcasting(dims_1, dims_2):
             raise ValueError("Incompatible batch dimensions: {} and {}.".format(dims_1, dims_2))
     
     return max_tuple(padded_dims_1, padded_dims_2)
+
+
+def replace_strings_in_file(filename, source_target_string_pairs):
+    # replaces all occurences of source_string by target_string in file named filename
+    with open(filename, 'r') as file:
+        filedata = file.read()
+    for source_string, target_string in source_target_string_pairs:
+        filedata = filedata.replace(source_string, target_string)
+    with open(filename, 'w') as file:
+        file.write(filedata)
+
+
+def run_and_display(args, build_folder, msg=''):
+    """
+    This function run the command stored in args and display the output if needed
+    :param args: list
+    :param msg: str
+    :return: None
+    """
+    try:
+        proc = subprocess.run(args, cwd=build_folder, stdout=subprocess.PIPE, check=True)
+        if pykeops.config.verbose:
+            print(proc.stdout.decode('utf-8'))
+
+    except subprocess.CalledProcessError as e:
+        print('\n--------------------- ' + msg + ' DEBUG -----------------')
+        print(e)
+        print(e.stdout.decode('utf-8'))
+        print('--------------------- ----------- -----------------')
