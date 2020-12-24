@@ -33,6 +33,10 @@ def flatten(list_of_lists):
     return [val for sublist in list_of_lists for val in sublist]
 
 
+def clear_gpu_cache():
+    if use_cuda:
+        torch.cuda.empty_cache()
+
 ################################################
 # Timeout helper:
 #
@@ -112,13 +116,91 @@ def unit_tensor(device="cuda", lang="torch"):
 
     return sampler
 
+###########################################
+# Multiprocessing code
+# -----------------------------------------
+#
+# 
+# Unfortunately, some FAISS routines throw a C++ "abort" signal instead
+# of a proper Python exception for out of memory errors on large problems.
+# Letting them run in a separate process is the only way of handling
+# the error without aborting the full benchmark.
+
+import multiprocess as mp
+import traceback
+import queue
+import sys
+import uuid
+
+
+def globalize(func):
+    def result(*args, **kwargs):
+        return func(*args, **kwargs)
+    result.__name__ = result.__qualname__ = uuid.uuid4().hex
+    setattr(sys.modules[result.__module__], result.__name__, result)
+    return result
+
+
+class Process(mp.Process):
+    """Exception-friendly process class."""
+    def __init__(self, *args, **kwargs):
+        mp.Process.__init__(self, *args, **kwargs)
+        self._pconn, self._cconn = mp.Pipe()
+        self._exception = None
+
+    def run(self):
+        try:
+            mp.Process.run(self)
+            self._cconn.send(None)
+        except Exception as e:
+            tb = traceback.format_exc()
+            self._cconn.send((e, tb))
+            raise e  # You can still rise this exception if you need to
+
+    @property
+    def exception(self):
+        if self._pconn.poll():
+            self._exception = self._pconn.recv()
+        return self._exception
+
+def with_queue(f, queue, points):
+    o = f(points)
+    queue.put(o)
+
+def run_safely(f, x):
+    """Runs f(args) in a separate process."""
+    
+    #f_global = f # globalize(f)    
+    #mp.freeze_support()
+    mp.set_start_method("spawn")
+    q = mp.Queue()
+    p = Process(
+        target=with_queue,
+        args=(f, q, x)
+    )
+    p.start()
+    p.join()
+
+    if p.exception:
+        error, traceback = p.exception
+        print(traceback)
+        raise error
+
+    try:
+        out = q.get(False, 2.)  # Non-blocking mode
+    except queue.Empty:
+        print("Empty queue!")
+        print("Exit code: ", p.exitcode)
+        raise MemoryError()
+
+    return out
 
 ##############################################
 # Benchmarking loops
 # -----------------------
 
 
-def simple_loop(N, loops, routine, args, kwargs):
+def simple_loop(N, loops, routine, max_time, args, kwargs):
     # Warmup run, to compile and load everything:
     output = routine(*args, **kwargs)
 
@@ -134,35 +216,56 @@ def simple_loop(N, loops, routine, args, kwargs):
     return perf
 
 
+def recall(out_indices, true_indices):
+    Ntest, K = out_indices.shape
+    true_indices = true_indices[:Ntest,:K]
+    r = 0.
+    for k in range(Ntest):
+        r += np.sum(np.in1d(out_indices[k],true_indices[k],assume_unique=True)) / K
+    r /= Ntest
+    return r
+
+
 def train_test_loop(N, loops, routine, max_time, args, kwargs):
 
     x_train = args["train"]
     x_test = args["test"]
     ground_truth = args["output"]
 
+
     # Warmup run, to compile and load everything:
     operator = routine(N, **args, **kwargs)
+    clear_gpu_cache()
     model, _ = timeout(5 * max_time)(operator)(x_train)
+    clear_gpu_cache()
     output, _ = timeout(max_time)(model)(x_test)
-
+        
     # Time the training step:
     train_time = 0.0
     for i in range(loops):
+        clear_gpu_cache()
         model, elapsed = operator(x_train)
         train_time += elapsed
 
     # Time the test step:
     test_time = 0.0
     for i in range(loops):
+        clear_gpu_cache()
         output, elapsed = model(x_test)
         test_time += elapsed
 
     B = kwargs.get("batchsize", 1)
     train_perf = train_time / (B * loops)
     test_perf = test_time / (B * loops)
-    print(f"{B:3}x{loops:3} loops of size {N:9,}:")
-    print(f"    train = {B:3}x{loops:3}x{train_perf:3.6f}s")
-    print(f"    test  = {B:3}x{loops:3}x{test_perf:3.6f}s")
+    perf = recall(output, ground_truth)
+
+    print(f"{B:3}x{loops:3} loops of size {N:9,}: ", end="")
+    print(f"train = {B:3}x{loops:3}x{train_perf:3.6f}s, ", end="")
+    print(f"test  = {B:3}x{loops:3}x{test_perf:3.6f}s, ", end="")
+    print(f"recall = {100*perf:.1f}%")
+
+    if perf < .9:
+        raise ValueError("** Recall lower than 90%!")
 
     return test_perf
 
@@ -183,7 +286,13 @@ def benchmark(
     benchmark_loop = train_test_loop if type(args) is dict else simple_loop
 
     # Actual benchmark:
-    return benchmark_loop(N, loops, routine, max_time, args, kwargs)
+    elapsed = benchmark_loop(N, loops, routine, max_time, args, kwargs)
+
+    if True:
+        return elapsed
+    else:
+        q.put(elapsed)
+
 
 
 def bench_config(
@@ -194,6 +303,7 @@ def bench_config(
     problem_sizes=[1],
     max_time=10,
     red_time=2,
+    loops=[100, 10, 1],
 ):
     """Times a convolution for an increasing number of samples."""
 
@@ -202,9 +312,10 @@ def bench_config(
     times = []
     not_recorded_times = []
     try:
-        Nloops = [100, 10, 1]
+        Nloops = loops.copy()
         nloops = Nloops.pop(0)
         for n in problem_sizes:
+
             elapsed = benchmark(
                 routine,
                 label,
@@ -221,16 +332,45 @@ def bench_config(
             ):
                 nloops = Nloops.pop(0)
 
-    except RuntimeError:
-        print("**\nMemory overflow !")
+    except MemoryError:
+        print("** Memory overflow!")
         not_recorded_times = (len(problem_sizes) - len(times)) * [np.nan]
 
     except (TimeoutError, IndexError):  # Thrown by Nloops.pop(0) if Nloops = []
-        print("**\nToo slow !")
+        print("** Too slow!")
         not_recorded_times = (len(problem_sizes) - len(times)) * [np.Infinity]
+
+    except NotImplementedError:
+        print("** This metric is not supported!")
+        not_recorded_times = (len(problem_sizes) - len(times)) * [np.Infinity]
+    
+    except ValueError as err:
+        print(err)
+        not_recorded_times = (len(problem_sizes) - len(times)) * [np.NINF]
+
+    except RuntimeError as err:
+        print(err)
+        print("** Runtime error!")
+        not_recorded_times = (len(problem_sizes) - len(times)) * [np.nan]
+
 
     return times + not_recorded_times
 
+
+def identity(x):
+    return x
+
+
+def queries_per_second(N):
+    def qps(x):
+        return N / x
+
+    return qps
+
+def inf_to_nan(x):
+    y = x.copy()
+    y[~np.isfinite(y)] = np.nan
+    return y
 
 def full_benchmark(
     to_plot,
@@ -240,10 +380,22 @@ def full_benchmark(
     min_time=1e-5,
     max_time=10,
     red_time=2,
+    loops=[100, 10, 1],
     xlabel="Number of samples",
     ylabel="Time (s)",
+    frequency=False,
     legend_location="upper left",
 ):
+
+    if frequency:
+        N = len(generate_samples(1)["test"])
+        transform = queries_per_second(N)
+        ymin, ymax = transform(max_time), transform(min_time)
+        y_suffix = "Hz"
+    else:
+        transform = identity
+        ymin, ymax = min_time, max_time
+        y_suffix = "s"
 
     print("Benchmarking : {} ===============================".format(to_plot))
 
@@ -256,6 +408,7 @@ def full_benchmark(
             problem_sizes=problem_sizes,
             max_time=max_time,
             red_time=red_time,
+            loops=loops,
         )
         for routine in routines
     ]
@@ -267,7 +420,7 @@ def full_benchmark(
     for i, label in enumerate(labels):
         plt.plot(
             benches[:, 0],
-            benches[:, i + 1],
+            transform(inf_to_nan(benches[:, i + 1])),
             linestyles[i % len(linestyles)],
             linewidth=2,
             label=label,
@@ -275,22 +428,32 @@ def full_benchmark(
 
         for (j, val) in enumerate(benches[:, i + 1]):
             if np.isnan(val) and j > 0:
-                x, y = benches[j - 1, 0], benches[j - 1, i + 1]
+                x, y = benches[j - 1, 0], transform(benches[j - 1, i + 1])
                 plt.annotate(
                     "Memory overflow!",
-                    xy=(x, 1.05 * y),
-                    horizontalalignment="center",
-                    verticalalignment="bottom",
+                    xy=(1.05 * x, y),
+                    horizontalalignment="left",
+                    verticalalignment="center",
                 )
                 break
 
-            elif np.isinf(val) and j > 0:
-                x, y = benches[j - 1, 0], benches[j - 1, i + 1]
+            elif np.isposinf(val) and j > 0:
+                x, y = benches[j - 1, 0], transform(benches[j - 1, i + 1])
                 plt.annotate(
                     "Too slow!",
-                    xy=(x, 1.05 * y),
-                    horizontalalignment="center",
-                    verticalalignment="bottom",
+                    xy=(1.05 * x, y),
+                    horizontalalignment="left",
+                    verticalalignment="center",
+                )
+                break
+
+            elif np.isneginf(val) and j > 0:
+                x, y = benches[j - 1, 0], transform(benches[j - 1, i + 1])
+                plt.annotate(
+                    "Recall < 90%",
+                    xy=(1.05 * x, y),
+                    horizontalalignment="left",
+                    verticalalignment="center",
                 )
                 break
 
@@ -302,21 +465,21 @@ def full_benchmark(
     plt.legend(loc=legend_location)
     plt.grid(True, which="major", linestyle="-")
     plt.grid(True, which="minor", linestyle="dotted")
-    plt.axis([problem_sizes[0], problem_sizes[-1], min_time, max_time])
+    plt.axis([problem_sizes[0], problem_sizes[-1], ymin, ymax])
 
     fmt = lambda x, pos: si_format(x, precision=0)
     plt.gca().xaxis.set_major_formatter(mpl.ticker.FuncFormatter(fmt))
 
-    fmt = lambda x, pos: si_format(x, precision=0) + "s"
+    fmt = lambda x, pos: si_format(x, precision=0) + y_suffix
     plt.gca().yaxis.set_major_formatter(mpl.ticker.FuncFormatter(fmt))
 
-    plt.tight_layout()
+    # plt.tight_layout()
 
     # Save as a .csv to put a nice Tikz figure in the papers:
     header = "Npoints, " + ", ".join(labels)
     os.makedirs("output", exist_ok=True)
     np.savetxt(
-        "output/benchmark_convolutions_3D.csv",
+        f"output/{to_plot}.csv",
         benches,
         fmt="%-9.5f",
         header=header,

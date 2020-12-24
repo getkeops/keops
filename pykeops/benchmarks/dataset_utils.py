@@ -4,7 +4,9 @@ Datasets for the benchmarks
 
 """
 
+import os
 import numpy as np
+import urllib.request
 
 synthetic = {
     # Key   :  metric,    Ntrain, Ntest, D,
@@ -20,17 +22,33 @@ synthetic = {
 }
 
 downloaded = {
-    # Key     :    metric, filename, do_check
-    "MNIST a": ("euclidean", "mnist-784-euclidean.hdf5", True),
-    "MNIST b": ("manhattan", "mnist-784-euclidean.hdf5", False),
-    "GloVe25": ("angular", "glove-25-angular.hdf5", True),
-    "GloVe100": ("angular", "glove-100-angular.hdf5", True),
+    # Key     :    metric, filename, url
+    "MNIST a": (
+        "euclidean",
+        "mnist-784-euclidean.hdf5",
+        "http://ann-benchmarks.com/mnist-784-euclidean.hdf5",
+    ),
+    "MNIST b": (
+        "manhattan",
+        "mnist-784-euclidean.hdf5",
+        "http://ann-benchmarks.com/mnist-784-euclidean.hdf5",
+    ),
+    "GloVe25": (
+        "angular",
+        "glove-25-angular.hdf5",
+        "http://ann-benchmarks.com/glove-25-angular.hdf5",
+    ),
+    "GloVe100": (
+        "angular",
+        "glove-100-angular.hdf5",
+        "http://ann-benchmarks.com/glove-100-angular.hdf5",
+    ),
 }
 
 
 def get_dataset(key):
 
-    data_folder = ""  #'../data/'
+    data_folder = "benchmark_datasets/"
 
     filename = None
 
@@ -48,11 +66,17 @@ def get_dataset(key):
             x_test = np.random.randn(Ntest, D)
 
     else:
-        metric, filename, do_check = downloaded[key]
-
         import h5py
 
-        f = h5py.File(data_folder + filename, "r")
+        metric, filename, url = downloaded[key]
+        filename = data_folder + filename
+
+        if not os.path.isfile(filename):
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+            urllib.request.urlretrieve(url, filename)
+
+        f = h5py.File(filename, "r")
+
         x_train = f["train"][()]
         x_test = f["test"][()]
         true_indices = f["neighbors"][()]
