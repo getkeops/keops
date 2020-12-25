@@ -487,7 +487,7 @@ def KNN_faiss_HNSW(K, metric="euclidean", M=36, **kwargs):
 # is a non-trivial problem.
 # To keep things simple, we stick to the guidelines of the
 # reference `ANN-Benchmarks website <https://github.com/erikbern/ann-benchmarks/blob/cb954d1af7124c201aa2c8dfc77681e639fce586/algos.yaml#L95>`_
-# and consider three configurations with an **increasing level of precision**,
+# and consider two configurations with an **increasing level of precision**,
 # but **slower run times**:
 #
 
@@ -583,7 +583,7 @@ KNN_faiss_gpu_Flat = partial(KNN_faiss_gpu, algorithm="flat")
 # On the other hand, the FAISS-IVF-Flat method is a bit more complex.
 # Just as we did for the HNSW algorithm, we rely on the
 # `ANN-Benchmarks guidelines <https://github.com/erikbern/ann-benchmarks/blob/cb954d1af7124c201aa2c8dfc77681e639fce586/algos.yaml#L50>`_
-# and define three routines with **increasing levels of precision**:
+# and define two routines with **increasing levels of precision**:
 
 KNN_faiss_gpu_IVFFlat_fast = partial(
     KNN_faiss_gpu, algorithm="ivfflat", nlist=400, nprobe=1

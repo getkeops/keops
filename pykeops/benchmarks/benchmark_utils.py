@@ -267,8 +267,8 @@ def train_test_loop(N, loops, routine, max_time, args, kwargs):
     print(f"test  = {B:3}x{loops:3}x {si_format(test_perf):>7}s, ", end="")
     print(f"recall = {100*perf:>3.0f}%")
 
-    if perf < 0.9:
-        raise ValueError("** Recall lower than 90%!")
+    if perf < 0.75:
+        raise ValueError("** Recall lower than 75%!")
 
     return test_perf
 
