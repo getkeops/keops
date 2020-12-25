@@ -6,10 +6,13 @@ We compare the performances of PyTorch, JAX, KeOps, Scikit-Learn and FAISS (when
 for K-NN queries on random samples and standard datasets.
 A detailed discussion of these results can be found in Section 5.2
 of our `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_.
-As a rule of thumb, the generic KeOps routines perform on par
+Generally speaking, generic KeOps routines are orders
+of magnitude faster and more memory efficient than
+their PyTorch and JAX counterparts.
+They perform on par
 with the handcrafted CUDA kernels of the FAISS-Flat (bruteforce) method for problems
 with **up to 1M samples in dimension 1 to 50-100**,
-but are clearly sub-optimal on larger datasets.
+but are sub-optimal on larger datasets.
 Crucially, KeOps is easy to use with **any metric**:
 it provides the only competitive run times in the many settings
 that are not supported by existing C++ libraries.
@@ -23,8 +26,8 @@ May-June 2021. Going forward, a major priority for KeOps
 is to get closer to the reference run times of the FAISS library
 in all settings.
 We intend to provide a versatile, generic and pythonic code that is easy to
-modify and integrate in other projects:
-hopefully, this will **stimulate research on non-Euclidean metrics**,
+modify and integrate in other projects.
+Hopefully, this will **stimulate research on non-Euclidean metrics**,
 such as hyperbolic or discrete spaces.
 
 .. note::
@@ -48,8 +51,6 @@ from matplotlib import pyplot as plt
 from functools import partial
 
 from benchmark_utils import (
-    flatten,
-    random_normal,
     full_benchmark,
     timer,
     tensor,
@@ -83,7 +84,7 @@ Ks = [1, 10, 50, 100]  # Numbers of neighbors to find
 #   of vectors :math:`x` such that :math:`x[0] > 0`,
 #   :math:`\text{d}_{\mathbb{H}}(x, y)= \text{arcosh}(1+ \|x-y\|^2 / (2 \,x[0]y[0]))`.
 #   Since :math:`d \mapsto \text{arcosh}(1+d/2)` is increasing,
-#   we only compute the pseudo distance 
+#   we only compute the pseudo distance
 #   :math:`\|x-y\|^2 / x[0]y[0]`.
 #
 # .. note::
@@ -128,7 +129,7 @@ def KNN_torch_fun(x_train, x_train_norm, x_test, K, metric):
 
 
 ############################################################################
-# We rely on the **tensorized** 
+# We rely on the **tensorized**
 # implementation above to define a simple K-NN query operator.
 # We follow the scikit-learn API with "train" and "test" methods:
 
@@ -159,7 +160,7 @@ def KNN_torch(K, metric="euclidean", **kwargs):
 
 
 #############################################################################
-# Unfortunately, the code above creates a full 
+# Unfortunately, the code above creates a full
 # :math:`\mathrm{N}_{\text{queries}}\times \mathrm{N}_{\text{points}}`
 # distance matrix that may not fit in the GPU memory.
 # To work around this problem and avoid memory overflows, we benchmark a second implementation
@@ -217,7 +218,7 @@ def KNN_torch_batch_loop(K, metric="euclidean", **kwargs):
 # from locking up GPU memory and allows
 # us to benchmark JAX, FAISS, PyTorch and KeOps next to each other.
 # This may impact performances - but as a general rule,
-# we found JAX to be orders of magnitude slower than PyTorch   
+# we found JAX to be orders of magnitude slower than PyTorch
 # and KeOps in these benchmarks, even with unrestrained access to the GPU device memory.
 # Needless to say, this is subject to change with future releases:
 # we stay tuned to keep this documentation up to date and welcome
@@ -452,7 +453,6 @@ import faiss
 
 
 def KNN_faiss_HNSW(K, metric="euclidean", M=36, **kwargs):
-
     def fit(x_train):
         from benchmark_utils import timer
 
@@ -481,6 +481,7 @@ def KNN_faiss_HNSW(K, metric="euclidean", M=36, **kwargs):
 
     return fit
 
+
 ##################################################################
 # Choosing good parameter values for approximate nearest neighbors schemes
 # is a non-trivial problem.
@@ -488,12 +489,11 @@ def KNN_faiss_HNSW(K, metric="euclidean", M=36, **kwargs):
 # reference `ANN-Benchmarks website <https://github.com/erikbern/ann-benchmarks/blob/cb954d1af7124c201aa2c8dfc77681e639fce586/algos.yaml#L95>`_
 # and consider three configurations with an **increasing level of precision**,
 # but **slower run times**:
-# 
+#
 
 KNN_faiss_HNSW_fast = partial(KNN_faiss_HNSW, M=4)
 KNN_faiss_HNSW_med = partial(KNN_faiss_HNSW, M=36)
 KNN_faiss_HNSW_slow = partial(KNN_faiss_HNSW, M=96)
-
 
 
 ##############################################
@@ -501,7 +501,7 @@ KNN_faiss_HNSW_slow = partial(KNN_faiss_HNSW, M=96)
 #
 # - a **bruteforce "Flat"** method, with no parameters;
 # - the **approximate "IVF-Flat"** method, with two main parameters (`nlist` and `nprobe`).
-# 
+#
 # Crucially, we do **not** benchmark the most advanced schemes
 # provided by FAISS, such as the quantization-based
 # **IVF-PQ** algorithm. These methods are powerful and very efficient, but come with many
@@ -526,7 +526,6 @@ def KNN_faiss_gpu(
     use_float16=False,
     **kwargs,
 ):
-
     def fit(x_train):
 
         D = x_train.shape[1]
@@ -574,6 +573,7 @@ def KNN_faiss_gpu(
 
     return fit
 
+
 ##################################################################
 # Using the FAISS-Flat bruteforce routines is straightforward:
 #
@@ -586,9 +586,15 @@ KNN_faiss_gpu_Flat = partial(KNN_faiss_gpu, algorithm="flat")
 # `ANN-Benchmarks guidelines <https://github.com/erikbern/ann-benchmarks/blob/cb954d1af7124c201aa2c8dfc77681e639fce586/algos.yaml#L50>`_
 # and define three routines with **increasing levels of precision**:
 
-KNN_faiss_gpu_IVFFlat_fast = partial(KNN_faiss_gpu, algorithm="ivfflat", nlist=400, nprobe=1)
-KNN_faiss_gpu_IVFFlat_med = partial(KNN_faiss_gpu, algorithm="ivfflat", nlist=4096, nprobe=40)
-KNN_faiss_gpu_IVFFlat_slow = partial(KNN_faiss_gpu, algorithm="ivfflat", nlist=16384, nprobe=200)
+KNN_faiss_gpu_IVFFlat_fast = partial(
+    KNN_faiss_gpu, algorithm="ivfflat", nlist=400, nprobe=1
+)
+KNN_faiss_gpu_IVFFlat_med = partial(
+    KNN_faiss_gpu, algorithm="ivfflat", nlist=4096, nprobe=40
+)
+KNN_faiss_gpu_IVFFlat_slow = partial(
+    KNN_faiss_gpu, algorithm="ivfflat", nlist=16384, nprobe=200
+)
 
 
 ##############################################
@@ -597,12 +603,9 @@ KNN_faiss_gpu_IVFFlat_slow = partial(KNN_faiss_gpu, algorithm="ivfflat", nlist=1
 #
 # Finally, we compare all our methods through a unified interface.
 #
-# .. note::
-#   The IVF-Flat method may sometimes throw "out of memory" errors
-#   using C++ ``abort()`` signals that cannot be handled properly with
-#   Python. We exclude these routines manually whenever needed.
 
-def run_KNN_benchmark(name, loops=[1], fast_only = False, light_only = False):
+
+def run_KNN_benchmark(name, loops=[1]):
 
     # Load the dataset and some info:
     dataset = generate_samples(name)(1)
@@ -614,16 +617,13 @@ def run_KNN_benchmark(name, loops=[1], fast_only = False, light_only = False):
     routines = [
         (KNN_KeOps, "KeOps (GPU)", {}),
         (KNN_faiss_gpu_Flat, "FAISS-Flat (GPU)", {}),
-    ] + ([] if light_only else [
         (KNN_faiss_gpu_IVFFlat_fast, "FAISS-IVF-Flat (GPU, nprobe=1)", {}),
         (KNN_faiss_gpu_IVFFlat_med, "FAISS-IVF-Flat (GPU, nprobe=40)", {}),
         (KNN_faiss_gpu_IVFFlat_slow, "FAISS-IVF-Flat (GPU, nprobe=200)", {}),
-    ]) + [
-        # (KNN_torch, "PyTorch (GPU)", {}),
+        (KNN_torch, "PyTorch (GPU)", {}),
         (KNN_torch_batch_loop, "PyTorch  (small batches, GPU)", {}),
         # (KNN_JAX, "JAX (GPU)", {}),
         (KNN_JAX_batch_loop, "JAX (small batches, GPU)", {}),
-    ] + ([] if fast_only else [
         (KNN_faiss_HNSW_fast, "FAISS-HNSW (CPU, M=4)", {}),
         (KNN_faiss_HNSW_med, "FAISS-HNSW (CPU, M=36)", {}),
         (KNN_faiss_HNSW_slow, "FAISS-HNSW (CPU, M=96)", {}),
@@ -631,7 +631,7 @@ def run_KNN_benchmark(name, loops=[1], fast_only = False, light_only = False):
         (KNN_sklearn_ball_tree, "sklearn, Ball-tree (CPU)", {}),
         (KNN_sklearn_kd_tree, "sklearn, KD-tree (CPU)", {}),
         (KNN_sklearn_brute, "sklearn, bruteforce (CPU)", {}),
-    ])
+    ]
 
     # Actual run:
     full_benchmark(
@@ -639,13 +639,30 @@ def run_KNN_benchmark(name, loops=[1], fast_only = False, light_only = False):
         routines,
         generate_samples(name),
         min_time=1e-4,
-        max_time=10,
+        max_time=1,
         loops=loops,
         problem_sizes=Ks,
         xlabel="Number of neighbours K",
         frequency=True,
-        ylabel="Queries per second (Hz)",
+        ylabel="Queries per second (Hz = 1/s)",
         legend_location="upper right",
+        linestyles=[
+            "o-",
+            "s-",
+            "^:",
+            "<:",
+            ">:",
+            "v-",
+            "d-",
+            "+-",
+            "*--",
+            "x--",
+            "p--",
+            "o-.",
+            "s-.",
+            "^-.",
+            "<-.",
+        ],
     )
 
 
@@ -657,12 +674,12 @@ def run_KNN_benchmark(name, loops=[1], fast_only = False, light_only = False):
 # e.g. **shape analysis** and point cloud processing.
 # In this scenario, bruteforce approaches are most efficient:
 # **KeOps slightly edges FAISS-Flat**, with both methods out-performing
-# other routines by **an order of magnitude**. 
+# other routines by **an order of magnitude**.
 # Note that the HNSW, IVF-Flat and scikit-learn functions
 # incur a significant "training" pre-processing time,
-# detailed below the curves. 
+# detailed below the curves.
 
-run_KNN_benchmark("R^D a", loops = [10, 1])
+run_KNN_benchmark("R^D a", loops=[10, 1])
 
 ########################################
 # Large dataset of **1M points in dimension 3**, as is typical
@@ -671,7 +688,7 @@ run_KNN_benchmark("R^D a", loops = [10, 1])
 # index of the input dataset can be worthwhile:
 # the IVF-Flat and HNSW methods provide **faster queries** at the cost
 # of significant **pre-processing times**.
-# Among "online" bruteforce methods, KeOps edges
+# Among "on-the-fly" bruteforce methods, KeOps edges
 # the FAISS-Flat routine and is the most competitive option.
 
 run_KNN_benchmark("R^D b")
@@ -686,7 +703,7 @@ run_KNN_benchmark("R^D b")
 #
 # .. note::
 #   We don't display CPU-based methods with pre-processing
-#   times longer than 10s-30s, but stress that these routines can
+#   times longer than 60s, but stress that these routines can
 #   provide excellent performances in "offline" scenarios.
 
 run_KNN_benchmark("R^D c")
@@ -703,8 +720,8 @@ run_KNN_benchmark("R^D c")
 # when the dimension of the ambient space D exceeds 50-100.
 #
 # One of our top priorities for early 2021 is to close this gap
-# with improved CUDA schemes. Adding support for 
-# some of the new hardware features of Ampere GPUs (Tensor cores, 
+# with improved CUDA schemes. Adding support for
+# some of the new hardware features of Ampere GPUs (Tensor cores,
 # quantized numerical types, etc.) should also help
 # to improve performances across the board.
 
@@ -723,9 +740,9 @@ run_KNN_benchmark("R^D d")
 #
 # Unsurprisingly, run times follow closely the trends
 # of the previous examples.
-# In dimension 10, approximate IVF-* strategies provide
-# the largest amount of queries per second -
-# but KeOps remains competitive among bruteforce methods,
+# In dimension 10, approximate IVF-like strategies provide
+# the largest amount of queries per second.
+# KeOps remains competitive among bruteforce methods,
 # without any pre-processing time.
 
 run_KNN_benchmark("S^{D-1}")
@@ -734,11 +751,11 @@ run_KNN_benchmark("S^{D-1}")
 ########################################
 # The picture changes completely
 # once we start working with less common formulas
-# such as the **Manhattan-L1 metric**. 
+# such as the **Manhattan-L1 metric**.
 # In this scenario, neither cuBLAS nor FAISS can be used and
 # KeOps remain the only competitive library for K-NN search on the GPU.
 # This is true with **1M points in dimension 10**:
-# 
+#
 
 run_KNN_benchmark("R^D f")
 
@@ -749,13 +766,12 @@ run_KNN_benchmark("R^D f")
 run_KNN_benchmark("R^D g")
 
 
-
 ########################################
 # The same lesson holds in e.g. hyperbolic spaces.
 # In the example below, we perform K-NN queries
 # for the hyperbolic metric with **1M points in the Poincare half-plane of dimension 10**.
 # The run times for KeOps remain in line with the "Euclidean" benchmarks
-# and **orders of magnitude faster** than tensorized PyTorch and JAX implementations.
+# and **orders of magnitude faster** than standard PyTorch and JAX implementations.
 
 run_KNN_benchmark("H^D")
 
@@ -764,25 +780,53 @@ run_KNN_benchmark("H^D")
 # Standard datasets
 # --------------------------------------------------------
 #
-# MNIST, endowed with the Euclidean metric:
+# The benchmarks above were all performed on random Gaussian samples.
+# These results provide an informative baseline...
+# But in practice, most real-life datasets present a
+# geometric structure that can be leveraged by clever approximation schemes.
+# To showcase the performances of bruteforce and IVF-like methods in
+# "realistic" machine learning scenarios, we now benchmark
+# our routines on several `standard datasets <https://ann-benchmarks.com>`_.
+#
+# First of all, on the well-known **MNIST collection of handwritten digits**:
+# a collection of 60k 28-by-28 images, encoded as vectors
+# of dimension 784 and endowed with the **Euclidean metric**.
+# This dataset is relatively small (less than 100k training samples)
+# but high-dimensional (D > 50) and highly clustered around
+# a dozen of prototypes (the digits 0, 1, ..., 9 and their variants):
+# unsurprisingly, it is handled much more efficiently by the FAISS routines
+# than by our bruteforce KeOps implementation.
+#
 
 run_KNN_benchmark("MNIST a")
 
 
 ########################################
-# MNIST, endowed with the Manhattan metric:
+# Note, however, that KeOps remains the only (?) viable option
+# if we intend to work with a less common metric such as the Manhattan-L1 norm:
 
 run_KNN_benchmark("MNIST b")
 
 
 ########################################
-# GloVe-25, endowed with the cosine similarity metric:
+# To conclude this benchmark, we evaluate our routines
+# on the `GloVe word embeddings <https://nlp.stanford.edu/projects/glove/>`_
+# for natural language processing:
+# **1.2M words**, represented as vectors of **dimension 25-100** and
+# endowed with the **cosine similarity metric**.
+#
+# In dimension 25, KeOps performs on par with the FAISS-Flat bruteforce
+# routines, with both methods slower than IVF-like algorithms
+# in terms of queries per second:
 
 run_KNN_benchmark("GloVe25")
 
 
 ########################################
-# GloVe-100, endowed with the cosine similarity metric:
+# In dimension 100, the pre-processing times associated
+# to IVF-like methods increase significantly while
+# the FAISS-Flat CUDA kernels edge the KeOps engine
+# by a sizeable margin:
 
 run_KNN_benchmark("GloVe100")
 

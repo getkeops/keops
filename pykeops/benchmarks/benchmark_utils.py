@@ -37,6 +37,7 @@ def clear_gpu_cache():
     if use_cuda:
         torch.cuda.empty_cache()
 
+
 ################################################
 # Timeout helper:
 #
@@ -116,11 +117,12 @@ def unit_tensor(device="cuda", lang="torch"):
 
     return sampler
 
+
 ###########################################
 # Multiprocessing code
 # -----------------------------------------
 #
-# 
+#
 # Unfortunately, some FAISS routines throw a C++ "abort" signal instead
 # of a proper Python exception for out of memory errors on large problems.
 # Letting them run in a separate process is the only way of handling
@@ -136,6 +138,7 @@ import uuid
 def globalize(func):
     def result(*args, **kwargs):
         return func(*args, **kwargs)
+
     result.__name__ = result.__qualname__ = uuid.uuid4().hex
     setattr(sys.modules[result.__module__], result.__name__, result)
     return result
@@ -143,6 +146,7 @@ def globalize(func):
 
 class Process(mp.Process):
     """Exception-friendly process class."""
+
     def __init__(self, *args, **kwargs):
         mp.Process.__init__(self, *args, **kwargs)
         self._pconn, self._cconn = mp.Pipe()
@@ -163,21 +167,20 @@ class Process(mp.Process):
             self._exception = self._pconn.recv()
         return self._exception
 
+
 def with_queue(f, queue, points):
     o = f(points)
     queue.put(o)
 
+
 def run_safely(f, x):
     """Runs f(args) in a separate process."""
-    
-    #f_global = f # globalize(f)    
-    #mp.freeze_support()
+
+    # f_global = f # globalize(f)
+    # mp.freeze_support()
     mp.set_start_method("spawn")
     q = mp.Queue()
-    p = Process(
-        target=with_queue,
-        args=(f, q, x)
-    )
+    p = Process(target=with_queue, args=(f, q, x))
     p.start()
     p.join()
 
@@ -187,13 +190,14 @@ def run_safely(f, x):
         raise error
 
     try:
-        out = q.get(False, 2.)  # Non-blocking mode
+        out = q.get(False, 2.0)  # Non-blocking mode
     except queue.Empty:
         print("Empty queue!")
         print("Exit code: ", p.exitcode)
         raise MemoryError()
 
     return out
+
 
 ##############################################
 # Benchmarking loops
@@ -218,10 +222,10 @@ def simple_loop(N, loops, routine, max_time, args, kwargs):
 
 def recall(out_indices, true_indices):
     Ntest, K = out_indices.shape
-    true_indices = true_indices[:Ntest,:K]
-    r = 0.
+    true_indices = true_indices[:Ntest, :K]
+    r = 0.0
     for k in range(Ntest):
-        r += np.sum(np.in1d(out_indices[k],true_indices[k],assume_unique=True)) / K
+        r += np.sum(np.in1d(out_indices[k], true_indices[k], assume_unique=True)) / K
     r /= Ntest
     return r
 
@@ -232,14 +236,13 @@ def train_test_loop(N, loops, routine, max_time, args, kwargs):
     x_test = args["test"]
     ground_truth = args["output"]
 
-
     # Warmup run, to compile and load everything:
     operator = routine(N, **args, **kwargs)
     clear_gpu_cache()
-    model, _ = timeout(5 * max_time)(operator)(x_train)
+    model, _ = timeout(6 * max_time)(operator)(x_train)
     clear_gpu_cache()
     output, _ = timeout(max_time)(model)(x_test)
-        
+
     # Time the training step:
     train_time = 0.0
     for i in range(loops):
@@ -264,7 +267,7 @@ def train_test_loop(N, loops, routine, max_time, args, kwargs):
     print(f"test  = {B:3}x{loops:3}x {si_format(test_perf):>7}s, ", end="")
     print(f"recall = {100*perf:>3.0f}%")
 
-    if perf < .9:
+    if perf < 0.9:
         raise ValueError("** Recall lower than 90%!")
 
     return test_perf
@@ -292,7 +295,6 @@ def benchmark(
         return elapsed
     else:
         q.put(elapsed)
-
 
 
 def bench_config(
@@ -343,7 +345,7 @@ def bench_config(
     except NotImplementedError:
         print("** This metric is not supported!")
         not_recorded_times = (len(problem_sizes) - len(times)) * [np.Infinity]
-    
+
     except ValueError as err:
         print(err)
         not_recorded_times = (len(problem_sizes) - len(times)) * [np.NINF]
@@ -352,7 +354,6 @@ def bench_config(
         print(err)
         print("** Runtime error!")
         not_recorded_times = (len(problem_sizes) - len(times)) * [np.nan]
-
 
     return times + not_recorded_times
 
@@ -367,10 +368,12 @@ def queries_per_second(N):
 
     return qps
 
+
 def inf_to_nan(x):
     y = x.copy()
     y[~np.isfinite(y)] = np.nan
     return y
+
 
 def full_benchmark(
     to_plot,
@@ -385,6 +388,7 @@ def full_benchmark(
     ylabel="Time (s)",
     frequency=False,
     legend_location="upper left",
+    linestyles=["o-", "s-", "^-", "<-", ">-", "v-", "+-", "*-", "x-", "p-", "d-"],
 ):
 
     if frequency:
@@ -416,7 +420,6 @@ def full_benchmark(
 
     # Creates a pyplot figure:
     plt.figure(figsize=(12, 8))
-    linestyles = ["o-", "s-", "^-", "<-", ">-", "v-", "+-", "*-", "x-", "p-", "d-"]
     for i, label in enumerate(labels):
         plt.plot(
             benches[:, 0],
