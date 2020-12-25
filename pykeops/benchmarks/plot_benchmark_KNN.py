@@ -211,9 +211,9 @@ def KNN_torch_batch_loop(K, metric="euclidean", **kwargs):
 # JAX bruteforce implementation
 # ------------------------------------------
 #
-# We re-implement the same method with a JAX-XLA backend:
+# We now re-implement the same method with JAX-XLA routines.
 #
-# Nota that we run this script with the command line option
+# Note that we run this script with the command line option
 # ``XLA_PYTHON_CLIENT_ALLOCATOR=platform``: this prevents JAX
 # from locking up GPU memory and allows
 # us to benchmark JAX, FAISS, PyTorch and KeOps next to each other.
@@ -622,7 +622,7 @@ def run_KNN_benchmark(name, loops=[1]):
         (KNN_faiss_gpu_IVFFlat_slow, "FAISS-IVF-Flat (GPU, nprobe=200)", {}),
         (KNN_torch, "PyTorch (GPU)", {}),
         (KNN_torch_batch_loop, "PyTorch  (small batches, GPU)", {}),
-        # (KNN_JAX, "JAX (GPU)", {}),
+        (KNN_JAX, "JAX (GPU)", {}),
         (KNN_JAX_batch_loop, "JAX (small batches, GPU)", {}),
         (KNN_faiss_HNSW_fast, "FAISS-HNSW (CPU, M=4)", {}),
         (KNN_faiss_HNSW_med, "FAISS-HNSW (CPU, M=36)", {}),
@@ -639,7 +639,7 @@ def run_KNN_benchmark(name, loops=[1]):
         routines,
         generate_samples(name),
         min_time=1e-4,
-        max_time=1,
+        max_time=10,
         loops=loops,
         problem_sizes=Ks,
         xlabel="Number of neighbours K",
@@ -654,6 +654,7 @@ def run_KNN_benchmark(name, loops=[1]):
             ">:",
             "v-",
             "d-",
+            "x-",
             "+-",
             "*--",
             "x--",
@@ -783,18 +784,18 @@ run_KNN_benchmark("H^D")
 # The benchmarks above were all performed on random Gaussian samples.
 # These results provide an informative baseline...
 # But in practice, most real-life datasets present a
-# geometric structure that can be leveraged by clever approximation schemes.
-# To showcase the performances of bruteforce and IVF-like methods in
+# **geometric structure** that can be leveraged by clever algorithms.
+# To measure the performances of bruteforce and IVF-like methods in
 # "realistic" machine learning scenarios, we now benchmark
 # our routines on several `standard datasets <https://ann-benchmarks.com>`_.
 #
 # First of all, on the well-known **MNIST collection of handwritten digits**:
 # a collection of 60k 28-by-28 images, encoded as vectors
 # of dimension 784 and endowed with the **Euclidean metric**.
-# This dataset is relatively small (less than 100k training samples)
-# but high-dimensional (D > 50) and highly clustered around
-# a dozen of prototypes (the digits 0, 1, ..., 9 and their variants):
-# unsurprisingly, it is handled much more efficiently by the FAISS routines
+# This dataset is relatively **small** (less than 100k training samples)
+# but **high-dimensional** (D > 50) and highly **clustered** around
+# a dozen of prototypes (the digits 0, 1, ..., 9 and their variants).
+# Unsurprisingly, it is handled much more efficiently by the FAISS routines
 # than by our bruteforce KeOps implementation.
 #
 
@@ -802,8 +803,8 @@ run_KNN_benchmark("MNIST a")
 
 
 ########################################
-# Note, however, that KeOps remains the only (?) viable option
-# if we intend to work with a less common metric such as the Manhattan-L1 norm:
+# Note, however, that KeOps remains the only viable option
+# to work easily with less common metrics such as the Manhattan-L1 norm:
 
 run_KNN_benchmark("MNIST b")
 
@@ -813,10 +814,10 @@ run_KNN_benchmark("MNIST b")
 # on the `GloVe word embeddings <https://nlp.stanford.edu/projects/glove/>`_
 # for natural language processing:
 # **1.2M words**, represented as vectors of **dimension 25-100** and
-# endowed with the **cosine similarity metric**.
+# compared with each other using the **cosine similarity metric**.
 #
 # In dimension 25, KeOps performs on par with the FAISS-Flat bruteforce
-# routines, with both methods slower than IVF-like algorithms
+# routines. Both methods are slower than IVF-like algorithms
 # in terms of queries per second:
 
 run_KNN_benchmark("GloVe25")
@@ -825,7 +826,7 @@ run_KNN_benchmark("GloVe25")
 ########################################
 # In dimension 100, the pre-processing times associated
 # to IVF-like methods increase significantly while
-# the FAISS-Flat CUDA kernels edge the KeOps engine
+# the FAISS-Flat routine edges the KeOps engine
 # by a sizeable margin:
 
 run_KNN_benchmark("GloVe100")
