@@ -492,8 +492,7 @@ def KNN_faiss_HNSW(K, metric="euclidean", M=36, **kwargs):
 #
 
 KNN_faiss_HNSW_fast = partial(KNN_faiss_HNSW, M=4)
-KNN_faiss_HNSW_med = partial(KNN_faiss_HNSW, M=36)
-KNN_faiss_HNSW_slow = partial(KNN_faiss_HNSW, M=96)
+KNN_faiss_HNSW_slow = partial(KNN_faiss_HNSW, M=36)
 
 
 ##############################################
@@ -589,11 +588,8 @@ KNN_faiss_gpu_Flat = partial(KNN_faiss_gpu, algorithm="flat")
 KNN_faiss_gpu_IVFFlat_fast = partial(
     KNN_faiss_gpu, algorithm="ivfflat", nlist=400, nprobe=1
 )
-KNN_faiss_gpu_IVFFlat_med = partial(
-    KNN_faiss_gpu, algorithm="ivfflat", nlist=4096, nprobe=40
-)
 KNN_faiss_gpu_IVFFlat_slow = partial(
-    KNN_faiss_gpu, algorithm="ivfflat", nlist=16384, nprobe=200
+    KNN_faiss_gpu, algorithm="ivfflat", nlist=4096, nprobe=40
 )
 
 
@@ -618,16 +614,12 @@ def run_KNN_benchmark(name, loops=[1]):
         (KNN_KeOps, "KeOps (GPU)", {}),
         (KNN_faiss_gpu_Flat, "FAISS-Flat (GPU)", {}),
         (KNN_faiss_gpu_IVFFlat_fast, "FAISS-IVF-Flat (GPU, nprobe=1)", {}),
-        (KNN_faiss_gpu_IVFFlat_med, "FAISS-IVF-Flat (GPU, nprobe=40)", {}),
-        (KNN_faiss_gpu_IVFFlat_slow, "FAISS-IVF-Flat (GPU, nprobe=200)", {}),
+        (KNN_faiss_gpu_IVFFlat_slow, "FAISS-IVF-Flat (GPU, nprobe=40)", {}),
         (KNN_torch, "PyTorch (GPU)", {}),
         (KNN_torch_batch_loop, "PyTorch  (small batches, GPU)", {}),
-        (KNN_JAX, "JAX (GPU)", {}),
         (KNN_JAX_batch_loop, "JAX (small batches, GPU)", {}),
         (KNN_faiss_HNSW_fast, "FAISS-HNSW (CPU, M=4)", {}),
-        (KNN_faiss_HNSW_med, "FAISS-HNSW (CPU, M=36)", {}),
-        (KNN_faiss_HNSW_slow, "FAISS-HNSW (CPU, M=96)", {}),
-        (KNN_sklearn_auto, "sklearn, auto (CPU)", {}),
+        (KNN_faiss_HNSW_slow, "FAISS-HNSW (CPU, M=36)", {}),
         (KNN_sklearn_ball_tree, "sklearn, Ball-tree (CPU)", {}),
         (KNN_sklearn_kd_tree, "sklearn, KD-tree (CPU)", {}),
         (KNN_sklearn_brute, "sklearn, bruteforce (CPU)", {}),
@@ -651,15 +643,11 @@ def run_KNN_benchmark(name, loops=[1]):
             "s-",
             "^:",
             "<:",
-            ">:",
             "v-",
-            "d-",
             "x-",
             "+-",
             "*--",
-            "x--",
             "p--",
-            "o-.",
             "s-.",
             "^-.",
             "<-.",
