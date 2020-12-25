@@ -259,10 +259,10 @@ def train_test_loop(N, loops, routine, max_time, args, kwargs):
     test_perf = test_time / (B * loops)
     perf = recall(output, ground_truth)
 
-    print(f"{B:3}x{loops:3} loops of size {N:9,}: ", end="")
-    print(f"train = {B:3}x{loops:3}x{train_perf:3.6f}s, ", end="")
-    print(f"test  = {B:3}x{loops:3}x{test_perf:3.6f}s, ", end="")
-    print(f"recall = {100*perf:.1f}%")
+    print(f"{B:3}x{loops:3} loops of size {si_format(N,precision=0):>5}: ", end="")
+    print(f"train = {B:3}x{loops:3}x {si_format(train_perf):>7}s, ", end="")
+    print(f"test  = {B:3}x{loops:3}x {si_format(test_perf):>7}s, ", end="")
+    print(f"recall = {100*perf:>3.0f}%")
 
     if perf < .9:
         raise ValueError("** Recall lower than 90%!")

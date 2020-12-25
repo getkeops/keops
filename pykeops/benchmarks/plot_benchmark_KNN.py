@@ -15,7 +15,7 @@ it provides the only competitive run times in the many settings
 that are not supported by existing C++ libraries.
 
 In this demo, we often use exact **bruteforce** computations 
-(tensorized for PyTorch/JAX, online for KeOps) and do not leverage any
+(tensorized for PyTorch/JAX, on-the-fly for KeOps) and do not leverage any
 quantization scheme or multiscale
 decomposition of the distance matrix.
 First support for these approximation strategies with KeOps is scheduled for
@@ -212,11 +212,16 @@ def KNN_torch_batch_loop(K, metric="euclidean", **kwargs):
 #
 # We re-implement the same method with a JAX-XLA backend:
 #
-# .. note::
-#   We run this script with the command line option
-#   ``XLA_PYTHON_CLIENT_MEM_FRACTION=.25``: this prevents JAX
-#   from pre-allocating more than 25% of the total GPU memory and allows
-#   us to benchmark JAX, FAISS, PyTorch and KeOps next to each other.
+# Nota that we run this script with the command line option
+# ``XLA_PYTHON_CLIENT_ALLOCATOR=platform``: this prevents JAX
+# from locking up GPU memory and allows
+# us to benchmark JAX, FAISS, PyTorch and KeOps next to each other.
+# This may impact performances - but as a general rule,
+# we found JAX to be orders of magnitude slower than PyTorch   
+# and KeOps in these benchmarks, even with unrestrained access to the GPU device memory.
+# Needless to say, this is subject to change with future releases:
+# we stay tuned to keep this documentation up to date and welcome
+# all suggestions!
 
 from functools import partial
 import jax
@@ -615,9 +620,9 @@ def run_KNN_benchmark(name, loops=[1], fast_only = False, light_only = False):
         (KNN_faiss_gpu_IVFFlat_slow, "FAISS-IVF-Flat (GPU, nprobe=200)", {}),
     ]) + [
         # (KNN_torch, "PyTorch (GPU)", {}),
-        (KNN_torch_batch_loop, "PyTorch (small batches, GPU)", {}),
+        (KNN_torch_batch_loop, "PyTorch  (small batches, GPU)", {}),
         # (KNN_JAX, "JAX (GPU)", {}),
-        # (KNN_JAX_batch_loop, "JAX (small batches, GPU)", {}),
+        (KNN_JAX_batch_loop, "JAX (small batches, GPU)", {}),
     ] + ([] if fast_only else [
         (KNN_faiss_HNSW_fast, "FAISS-HNSW (CPU, M=4)", {}),
         (KNN_faiss_HNSW_med, "FAISS-HNSW (CPU, M=36)", {}),
@@ -634,7 +639,7 @@ def run_KNN_benchmark(name, loops=[1], fast_only = False, light_only = False):
         routines,
         generate_samples(name),
         min_time=1e-4,
-        max_time=1,
+        max_time=10,
         loops=loops,
         problem_sizes=Ks,
         xlabel="Number of neighbours K",
