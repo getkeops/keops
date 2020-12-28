@@ -455,7 +455,7 @@ def full_benchmark(
             elif np.isneginf(val) and j > 0:
                 x, y = benches[j - 1, 0], transform(benches[j - 1, i + 1])
                 plt.annotate(
-                    "Recall < 90%",
+                    "Recall < 75%",
                     xy=(1.05 * x, y),
                     horizontalalignment="left",
                     verticalalignment="center",
