@@ -128,9 +128,9 @@ Troubleshooting
 Compilation issues
 ------------------
 
-First of all, make sure that you are using a C++ compiler which is compatible with the **C++11 revision** and/or your **nvcc** (CUDA) compiler. Otherwise, compilation of formulas may fail in unexpected ways. Depending on your system, you can:
+First of all, make sure that you are using a C++ compiler which is compatible with the **C++11 revision** and/or your **nvcc** (CUDA) compiler. Otherwise, compilation of formulas may fail in unexpected ways. A table of supported combinations is available at `this address <https://gist.github.com/ax3l/9489132>`_. Depending on your system, you can:
 
-1. Install a compiler **system-wide**: for instance, on Debian based Linux distros, this can be done by installing g++ with apt and then using `update-alternatives <https://askubuntu.com/questions/26498/choose-gcc-and-g-version>`_ to choose the right compiler.
+1. Install a compiler **system-wide**: for instance, on Debian based Linux distros, this can be done by installing g++ with apt and then using `update-alternatives <https://askubuntu.com/questions/26498/choose-gcc-and-g-version>`_ to choose the right compiler. Don't forget to pick compatible versions for both **gcc** and **g++**.  
 
 2. Install a compiler **locally**: if you are using a conda environment, you can install a new instance of gcc and g++ by following the `documentation of conda <https://conda.io/docs/user-guide/tasks/build-packages/compiler-tools.html>`_.
 

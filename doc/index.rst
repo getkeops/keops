@@ -78,7 +78,7 @@ Math libraries represent most objects as matrices and tensors:
   a mathematical formula :math:`F` and relatively
   small data arrays :math:`(x_i)` and :math:`(y_j)`.
   The main purpose of the KeOps library
-  is to provide support for this encoding
+  is to provide support for this abstraction
   **with all the perks of a deep learning library**:
 
   - A transparent :doc:`interface <python/api/common/index>` with CPU and GPU integration.
@@ -174,8 +174,8 @@ KeOps provides core routines for the following projects and libraries:
   and higher dimensional geometry understanding,
   from the `DataShape <https://team.inria.fr/datashape/>`_ Inria team.
 
-* `GeomLoss <http://www.kernel-operations.io/geomloss>`_, a multiscale
-  implementation of Kernel MMDs and **Wasserstein distances** that scales up to
+* `GeomLoss <http://www.kernel-operations.io/geomloss>`_, a PyTorch package for Chamfer (Hausdorff) distances, Kernel (Sobolev) divergences and **Earth Mover's (Wasserstein) distances**.
+  It provides **optimal transport** solvers that scale up to
   **millions of samples** in seconds.
   
 * The `deep graph matching consensus <https://github.com/rusty1s/deep-graph-matching-consensus>`_ module, 
@@ -253,6 +253,8 @@ Table of contents
 
    introduction/why_using_keops
    introduction/installation
+   introduction/road-map
+   introduction/contributing
 
 .. toctree::
    :maxdepth: 2
@@ -260,7 +262,6 @@ Table of contents
 
    api/math-operations
    api/autodiff
-   api/road-map
 
 .. toctree::
    :maxdepth: 2

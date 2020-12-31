@@ -1,6 +1,11 @@
 Changelog and Road map
 =======================
 
+
+Design philosophy
+--------------------
+
+
 Changelog
 ---------
 
