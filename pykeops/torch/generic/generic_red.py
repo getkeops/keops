@@ -518,18 +518,6 @@ class Genred:
         out = GenredAutograd.apply(self.formula, self.aliases, backend, self.dtype, 
                                    device_id, ranges, self.optional_flags, self.rec_multVar_highdim, nx, ny, *args)
 
-        out = GenredAutograd.apply(
-            self.formula,
-            self.aliases,
-            backend,
-            self.dtype,
-            device_id,
-            ranges,
-            self.optional_flags,
-            self.rec_multVar_highdim,
-            *args
-        )
-
         if self.dtype in ("float16", "half"):
             out = postprocess_half2(out, tag_dummy, self.reduction_op, N)
 
