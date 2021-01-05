@@ -25,9 +25,6 @@ class LoadKeOps:
         self.include_dirs = include_dirs
         
         # get build folder name for dtype
-        print("include_dirs=",include_dirs)
-        if include_dirs==[]:
-            msqlk
         self.build_folder = get_build_folder_name(dtype, lang, include_dirs)    
         
         # get template name for dtype
