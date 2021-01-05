@@ -105,7 +105,7 @@ function test_fshape_scp(testCase)
     opt.kernel_signal = 'gaussian';
     opt.kernel_sphere = 'gaussian_oriented';
 
-    res_cuda = shape_scp(center_faceX, center_faceY, signalX, signalY, normalsX, normalsY, kernel_size_geom, kernel_size_signal, kernel_size_sphere, opt)
+    res_cuda = shape_scp(center_faceX, center_faceY, signalX, signalY, normalsX, normalsY, kernel_size_geom, kernel_size_signal, kernel_size_sphere, opt);
 
     % Compare with matlab
     kernel_gaussian = @(r2,s) exp(-r2 / s^2);
@@ -134,7 +134,7 @@ function test_fshape_scp(testCase)
     eval(['radial_function_sphere=kernel_', lower(opt.kernel_sphere) , ';']);
     kernel_sphereXY = radial_function_sphere(oriented_angle_normalsXY, kernel_size_sphere);
 
-    res_matlab = sum(sum((norm_normalsX * norm_normalsY') .* kernel_geomXY .* kernel_signalXY .* kernel_sphereXY))
+    res_matlab = sum(sum((norm_normalsX * norm_normalsY') .* kernel_geomXY .* kernel_signalXY .* kernel_sphereXY));
 
     assert( allclose(res_cuda,res_matlab)==1 )
 end

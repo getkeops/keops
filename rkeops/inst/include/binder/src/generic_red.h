@@ -12,5 +12,5 @@ using rkeops_list_t = std::vector< rkeops_base_matrix_t >;
 // generic reduction
 rkeops_matrix_t genred(
         int tagCpuGpu, int tag1D2D, int tagHostDevice, 
-        int Device_Id,
+        int Device_Id, int nx, int ny,
         rkeops_list_t & input);

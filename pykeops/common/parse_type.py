@@ -58,9 +58,9 @@ def get_sizes(aliases, *args):
     for (var_ind, sig) in enumerate(aliases):
         _, cat, dim, pos = get_type(sig, position_in_list=var_ind)
         if cat == 0:
-            nx = args[pos].shape[0]
+            nx = args[pos].shape[-2]
         elif cat == 1:
-            ny = args[pos].shape[0]
+            ny = args[pos].shape[-2]
         if (nx is not None) and (ny is not None):
             return nx, ny
 

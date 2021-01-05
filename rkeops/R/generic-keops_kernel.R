@@ -136,11 +136,15 @@ keops_kernel <- function(formula, args) {
                          genred=TRUE)
     
     # reordering var_aliases (to correspond to operator input)
-    var_aliases <- lapply(var_aliases, function(elem)
-        if(length(elem)>1)
-            return(elem[order(var_aliases$var_pos)])
-        else
-            return(elem))
+    var_aliases <- lapply(
+        var_aliases, 
+        function(elem) {
+            if(length(elem)>1)
+                return(elem[order(var_aliases$var_pos)])
+            else
+                return(elem)
+        }
+    )
     
     
     # return function calling the corresponding compile operator
@@ -182,9 +186,36 @@ keops_kernel <- function(formula, args) {
             names(input) <- tmp_names
         }
         
+        ## dimension
+        nx <- 0
+        if("Vi" %in% env$var_aliases$var_type) {
+            ind_Vi <- head(which(env$var_aliases$var_type == "Vi"), 1)
+            dim_Vi <- dim(input[[ind_Vi]])
+            if(env$inner_dim == 1) {
+                # inner dim = columns
+                nx <- dim_Vi[1]
+            } else {
+                # inner dim = rows
+                nx <- dim_Vi[2]
+            }
+        }
+        
+        ny <- 0
+        if("Vj" %in% env$var_aliases$var_type) {
+            ind_Vj <- head(which(env$var_aliases$var_type == "Vj"), 1)
+            dim_Vj <- dim(input[[ind_Vj]])
+            if(env$inner_dim == 1) {
+                # inner dim = columns
+                ny <- dim_Vj[1]
+            } else {
+                # inner dim = rows
+                ny <- dim_Vj[2]
+            }
+        }
+        
         ## run
         param <- c(get_rkeops_options("runtime"),
-                   list(inner_dim=inner_dim))
+                   list(inner_dim=inner_dim, nx=nx, ny=ny))
         out <- r_genred(input, param)
         ## transpose if necessary
         if(inner_dim) {

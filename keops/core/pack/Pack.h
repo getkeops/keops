@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <assert.h>
+#include <climits>
 
 #include "core/pre_headers.h"
 #include "core/pack/Get.h"
@@ -53,6 +54,7 @@ struct pack {
 
   // Furthermore, the empty package :
   static const int SIZE = 0; // Has zero size (number of vectors) ...
+  static const int MIN = INT_MAX;
   static const int MAX = -1; // max is set to -1 (we assume packs of non negative integers...)
   static const int SUM = 0;  // ... zero sum  (total memory footprint) ...
 
@@ -99,6 +101,7 @@ struct pack<N, NS...> {
 
   static const int SIZE = 1 + sizeof...(NS);         // The number of vectors in pack<N,NS...>
   typedef pack<NS...> NEXT;                          // "NEXT" is the tail of our list of vectors.
+  static const int MIN = -static_max(-N, -NEXT::MIN);   // get the min of values
   static const int MAX = static_max(N, NEXT::MAX);   // get the max of values
   static const int
       SUM = N + NEXT::SUM;                           // The total "memory footprint" of pack<N,NS...> is computed recursively.
@@ -116,6 +119,7 @@ struct pack<N, NS...> {
 
 
 // USEFUL METHODS ===================================================================================
+
 
 
 template<class INDS, typename TYPE, typename... Args>

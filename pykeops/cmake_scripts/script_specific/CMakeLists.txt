@@ -6,7 +6,9 @@ cmake_minimum_required(VERSION 3.10)
 
 project(PyKeOps LANGUAGES CXX)
 
-set(KEOPS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/keops)
+set(PYKEOPS_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+
+set(KEOPS_SRC ${PYKEOPS_FOLDER}/keops)
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -16,7 +18,7 @@ include(${KEOPS_SRC}/cuda.cmake)
 
 ## Set Path to sources
 set(SOURCE_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${PYKEOPS_FOLDER}
         ${KEOPS_SRC}
         ${PROJECT_BINARY_DIR}
 )
@@ -59,7 +61,7 @@ if (${PYTHON_LANG} STREQUAL "torch")
     add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${_GLIBCXX_USE_CXX11_ABI})
 
     # We should generate a file to avoid parsing problem with shell: write the macros in a file which will be included
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/torch_headers.h.in ${CMAKE_CURRENT_BINARY_DIR}/torch_headers.h @ONLY)
+    configure_file(${PYKEOPS_FOLDER}/torch_headers.h.in ${CMAKE_CURRENT_BINARY_DIR}/torch_headers.h @ONLY)
 endif()
 
 ########################################################################################################################
@@ -126,17 +128,17 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 #                                                     PYBIND11                                                         #
 ########################################################################################################################
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/pybind11)  #find_package(pybind11  REQUIRED)
+add_subdirectory(${PYKEOPS_FOLDER}/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11)  #find_package(pybind11  REQUIRED)
 add_definitions(-DMODULE_NAME=${shared_obj_name})
 
 pybind11_add_module(${shared_obj_name}
-        ${CMAKE_CURRENT_SOURCE_DIR}/${PYTHON_LANG}/generic/generic_red.cpp
+        ${PYKEOPS_FOLDER}/${PYTHON_LANG}/generic/generic_red.cpp
 )
 
 if(${PYTHON_LANG} STREQUAL "torch")
 
     set_source_files_properties(
-            ${CMAKE_CURRENT_SOURCE_DIR}/${PYTHON_LANG}/generic/generic_red.cpp
+            ${PYKEOPS_FOLDER}/${PYTHON_LANG}/generic/generic_red.cpp
             OBJECT_DEPENDS torch_headers.h
     )
 
@@ -226,7 +228,7 @@ if (USE_CUDA)
     )
 
     pybind11_add_module(radial_kernel_conv
-            ${CMAKE_CURRENT_SOURCE_DIR}/numpy/convolutions/radial_kernel_conv.cpp
+            ${PYKEOPS_FOLDER}/numpy/convolutions/radial_kernel_conv.cpp
             )
 
     target_compile_options(
@@ -265,7 +267,7 @@ if (USE_CUDA)
     )
 
     pybind11_add_module(radial_kernel_grad1conv
-            ${CMAKE_CURRENT_SOURCE_DIR}/numpy/convolutions/radial_kernel_grad1conv.cpp
+            ${PYKEOPS_FOLDER}/numpy/convolutions/radial_kernel_grad1conv.cpp
             )
 
     target_compile_options(
@@ -353,7 +355,7 @@ if (USE_CUDA)
         add_definitions(-DMODULE_NAME_FSHAPE_SCP=${fshape_scp_name})
 
         pybind11_add_module(${fshape_scp_name}
-                ${CMAKE_CURRENT_SOURCE_DIR}/numpy/shape_distance/${name2}.cpp
+                ${PYKEOPS_FOLDER}/numpy/shape_distance/${name2}.cpp
                 )
 
         target_compile_options(
@@ -386,4 +388,3 @@ if (USE_CUDA)
     endforeach ()
 
 endif ()
-
