@@ -150,10 +150,10 @@ More details are provided below:
 # Projects using KeOps
 
 **Symbolic** matrices are to **geometric** learning what **sparse** matrices are to **graph** processing.
-KeOps can thus be used in a wide variety of settings,
+KeOps can thus be used in a wide range of settings,
 from **shape analysis** (registration, geometric deep learning, optimal transport...)
 to **machine learning** (kernel methods, k-means, UMAP...),
-**Gaussian process** modelling, computational **biology** and **physics**.
+**Gaussian processes**, computational **biology** and **physics**.
 
 KeOps provides core routines for the following projects and libraries:
 
@@ -234,3 +234,11 @@ a report on our [GitHub issue tracker](https://github.com/getkeops/keops/issues)
 - [Francis Williams](https://www.fwilliams.info), from New York University: arc-cosine operation.
 - [D. J. Sutherland](https://djsutherland.ml), from the TTI-Chicago: bug fix in the Python package.
 - [David Völgyes](https://scholar.google.no/citations?user=ngT2GvMAAAAJ&hl=en), from the Norwegian Institute of Science and Technology: bug fix in the formula parser.
+
+
+Beyond explicit code contributions, KeOps has grown out of numerous discussions with applied mathematicians and machine learning experts. We would especially like to thank 
+[Alain Trouvé](https://atrouve.perso.math.cnrs.fr/), 
+[Stanley Durrleman](https://who.rocq.inria.fr/Stanley.Durrleman/), 
+[Gabriel Peyré](http://www.gpeyre.com/) and 
+[Michael Bronstein](https://people.lu.usi.ch/bronstem/)
+for their valuable suggestions and financial support.
