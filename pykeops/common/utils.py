@@ -1,4 +1,3 @@
-import fcntl
 import functools
 import importlib.util
 import os
@@ -44,7 +43,11 @@ def cat2axis(cat):
 
 
 class FileLock:
-    def __init__(self, fd, op=fcntl.LOCK_EX):
+    def __init__(self, fd, op=None):
+        # fcntl is not available on Windows, import it and set the default locally.
+        import fcntl
+        if op is None:
+            op = fcntl.LOCK_EX
         self.fd = fd
         self.op = op
 
@@ -53,6 +56,7 @@ class FileLock:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        import fcntl
         fcntl.flock(self.fd, fcntl.LOCK_UN)
 
 
