@@ -10,12 +10,12 @@ B1, B2, M, N, D, DV = 3, 4, 1000, 1000, 3, 2
 
 
 test_grad = True
-device_id = 'cuda' if torch.cuda.is_available() else 'cpu'
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 do_warmup = False
 
-x = torch.rand(  1, B2, M, 1,  D, device=device_id)/math.sqrt(D)
-y = torch.rand( B1, B2, 1, N,  D, device=device_id)/math.sqrt(D)
-b = torch.randn(B1,  1,    N, DV, requires_grad=test_grad, device=device_id)
+x = torch.rand(1, B2, M, 1, D, device=device_id) / math.sqrt(D)
+y = torch.rand(B1, B2, 1, N, D, device=device_id) / math.sqrt(D)
+b = torch.randn(B1, 1, N, DV, requires_grad=test_grad, device=device_id)
 
 
 def fun(x, y, b, backend):
