@@ -2,7 +2,6 @@ import fcntl
 import functools
 import importlib.util
 import os
-import shutil
 import subprocess
 
 import pykeops.config
@@ -11,12 +10,10 @@ c_type = dict(float16="half2", float32="float", float64="double")
 
 
 def module_exists(dllname, template_name):
-    if not os.path.exists(pykeops.config.bin_folder + "/" + dllname):
+    if not os.path.exists(pykeops.config.bin_folder + os.path.sep + dllname):
         return False
     spec = importlib.util.find_spec(dllname + "." + template_name)
-    return (
-        spec is not None
-    )  # and (os.path.samefile(os.path.dirname(spec.origin), pykeops.config.bin_folder))
+    return spec is not None
 
 
 def axis2cat(axis):
