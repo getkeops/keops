@@ -65,10 +65,11 @@ class LoadKeOps:
 
     def import_module(self):
         full_dll_name = self.dll_name + "." + self.template_name
-        if not os.path.samefile(
-            os.path.dirname(
+        module_bin_folder = os.path.dirname(
                 os.path.dirname(importlib.util.find_spec(full_dll_name).origin)
-            ),
+            )
+        if not os.path.samefile(
+            module_bin_folder,
             pykeops.config.bin_folder,
         ):
             raise ImportError(
@@ -77,11 +78,7 @@ class LoadKeOps:
                 "is fine.".format(
                     pykeops.config.bin_folder,
                     self.dll_name,
-                    os.path.dirname(
-                        os.path.dirname(
-                            importlib.util.find_spec(full_dll_name).origin.origin
-                        )
-                    ),
+                    module_bin_folder,
                 )
             )
         return importlib.import_module(full_dll_name)
