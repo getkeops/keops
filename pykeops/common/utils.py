@@ -14,7 +14,7 @@ def module_exists(dllname,template_name):
     if not os.path.exists(pykeops.config.bin_folder+'/'+dllname):
         return False
     spec = importlib.util.find_spec(dllname+"."+template_name)
-    return (spec is not None) #and (os.path.samefile(os.path.dirname(spec.origin), pykeops.config.bin_folder))
+    return (spec is not None) and (os.path.samefile(os.path.dirname(os.path.dirname(spec.origin)), pykeops.config.bin_folder))
 
 
 def axis2cat(axis):

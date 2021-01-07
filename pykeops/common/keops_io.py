@@ -46,12 +46,13 @@ class LoadKeOps:
                                 self.optional_flags, self.include_dirs, self.build_folder)
 
     def import_module(self):
-        # if not os.path.samefile(os.path.dirname(importlib.util.find_spec(self.dll_name).origin),
-        #                         pykeops.config.bin_folder):
-        #     raise ImportError(
-        #         "[pyKeOps]: Current pykeops.config.bin_folder is {} but keops module {} is loaded from {} folder. "
-        #         "This may happened when changing bin_folder **after** loading a keops module. Please check everything "
-        #         "is fine.".format(
-        #             pykeops.config.bin_folder, self.dll_name,
-        #             os.path.dirname(importlib.util.find_spec(self.dll_name).origin)))
-        return importlib.import_module(self.dll_name+"."+self.template_name)
+        full_dll_name = self.dll_name+"."+self.template_name
+        if not os.path.samefile(os.path.dirname(os.path.dirname(importlib.util.find_spec(full_dll_name).origin)),
+                                pykeops.config.bin_folder):
+            raise ImportError(
+                "[pyKeOps]: Current pykeops.config.bin_folder is {} but keops module {} is loaded from {} folder. "
+                "This may happened when changing bin_folder **after** loading a keops module. Please check everything "
+                "is fine.".format(
+                    pykeops.config.bin_folder, self.dll_name,
+                    os.path.dirname(os.path.dirname(importlib.util.find_spec(full_dll_name).origin.origin))))
+        return importlib.import_module(full_dll_name)
