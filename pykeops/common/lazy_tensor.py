@@ -1141,6 +1141,15 @@ class GenericLazyTensor:
         """
         return self.unary("Sin")
 
+    def asin(self):
+        r"""
+        Element-wise arcsine - a unary operation.
+
+        ``x.asin()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise arcsine of ``x``.
+        """
+        return self.unary("Asin")
+
     def acos(self):
         r"""
         Element-wise arccosine - a unary operation.
