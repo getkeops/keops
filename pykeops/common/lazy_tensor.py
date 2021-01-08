@@ -1164,7 +1164,7 @@ class GenericLazyTensor:
         Element-wise arctangent - a unary operation.
 
         ``x.atan()`` returns a :class:`LazyTensor` that encodes, symbolically,
-        the element-wise arccosine of ``x``.
+        the element-wise arctangent of ``x``.
         """
         return self.unary("Atan")
 
