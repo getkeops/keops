@@ -24,10 +24,7 @@ template < typename TYPE > DEVICE INLINE TYPE keops_sqrt(TYPE x) { return sqrt(x
 template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE x) { return 1.0f / sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_acos(TYPE x) { return acos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_asin(TYPE x) { return asin(x); }
-<<<<<<< HEAD
 template < typename TYPE > DEVICE INLINE TYPE keops_atan(TYPE x) { return atan(x); }
-=======
->>>>>>> 25707d3dc3adbb55f272f9603b163cd443b6e5f2
 
 #ifdef __CUDA_ARCH__  
 DEVICE INLINE float keops_pow(float x, int n) { return powf(x,n); } 

@@ -31,7 +31,7 @@ struct Atan : VectorizedScalarUnaryOp<Atan, F>
         }
     };
 
-    // dx = 1/sqrt(1 - x^2)
+    // dx = 1/(1 + x^2)
     template <class V, class GRADIN>
     using DiffT = typename F::template DiffT<V, Mult<Inv<Add<IntConstant<1>, Square<F>>>, GRADIN>>;
 
