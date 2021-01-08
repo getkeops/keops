@@ -141,17 +141,22 @@ This type of computation is common in machine learning and applied mathematics:
   rely on **interaction steps** that fit this template to update the positions and inner states of their agents. For instance, on modest gaming hardware, KeOps can scale up simulations of `Vicsek-like systems <https://en.wikipedia.org/wiki/Vicsek_model>`_ to millions of active swimmers: this allows researchers to make original conjectures on their models with a minimal amount of programming effort.
 
 
-At first glance, these theories have little in common with each other.
-Crucially though, we can understand all these computations as **reductions of "symbolic" matrices** whose coefficients are given, for all indices :math:`i` and :math:`j`, by a mathematical formula :math:`F(p, x_i, y_j)`.
-As detailed on the :doc:`front page <../index>` of this website,
-**the KeOps library is built around this remark**. Our main user interface 
 
-From a computational perspective, . 
-Under the hood,  :doc:`guided tour of the KeOps inner engine <../engine/index>` for more details.
+Crucially, we can understand all these computations as **reductions of "symbolic" matrices** whose coefficients are given, for all indices :math:`i` and :math:`j`, by a mathematical formula :math:`F(p, x_i, y_j)`.
+As detailed on the :doc:`front page <../index>` of this website,
+**the KeOps library is built around this remark**. We introduce a new type of "symbolic" tensor that lets users implement all these operations efficiently, with a small memory footprint. 
+Under the hood, operations on KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.GenericLazyTensor>` avoid storing in memory the matrix of values :math:`F(p,x_i,y_j)` and rely instead on fast C++/CUDA routines that are compiled on demand.
+We refer to our :doc:`guided tour of the KeOps++ engine <../engine/index>` for more details.
 
 
 High performances
 =================
+
+KeOps fits into a thriving ecosystem of Python/C++ libraries for scientific computing. So how does it compare with other acceleration franeworks such as ?
+To answer this question, Let us now briefly explain the relationship between our library, and the 
+
+Tensor computing on the GPU
+----------------------------
 
 In recent years, deep learning frameworks such as `PyTorch  <http://pytorch.org>`_, 
 `JAX <https://github.com/google/jax>`_ and `TensorFlow <http://www.tensorflow.org>`_ have evolved into fully-fledged applied math libraries. With negligible overhead, they bring **automatic differentiation** and **seamless GPU support** to research communities that were used to Matlab, NumPy and other tensor-centric frameworks.
@@ -165,6 +170,9 @@ This
 Even if other operations are also supported, they seldom
 benefit from the same level of integration.
 
+The memory bottleneck
+-----------------------
+
 As a consequence of this focus on matrix manipulations, 
 the standard way of computing a Gaussian kernel convolution with PyTorch or Numpy is to create and store in memory the full :math:`\mathrm{M}\times\mathrm{N}` kernel matrix :math:`K_{i,j}=K(x_i,y_j)`, before computing :math:`(a_i) = (K_{i,j}) (b_j)` as a matrix-vector product. 
 This method leverages the 
@@ -173,6 +181,9 @@ But for large datasets (say, :math:`M,N \geqslant 10,000`), it is not a realisti
 KeOps is all about **letting researchers break through this memory bottleneck**. 
 We rely on **online map-reduce schemes** to provide CUDA routines that "sum" the coefficients :math:`K_{i,j}\cdot b_j` as they are computed, without ever storing the full matrix :math:`K` in memory.
 
+
+KeOps: a specialized tool
+---------------------------
 
 As evidenced by our :doc:`benchmarks <../_auto_benchmarks/index>`,
 the KeOps routines **outperform** their standard counterparts
@@ -184,7 +195,7 @@ in machine learning, computational physics and other applied fields.
 
 
 Is KeOps going to speed-up your program?
-========================================
+-----------------------------------------
 
 
 Main features
