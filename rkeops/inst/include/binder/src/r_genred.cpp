@@ -50,9 +50,9 @@ SEXP r_genred(
     int tagHostDevice = Rcpp::as<int>(param["tagHostDevice"]);
     // id of GPU device
     int Device_Id = Rcpp::as<int>(param["device_id"]);
-    // // nx, ny (managed lated)
-    // int nx = Rcpp::as<int>(param["nx"]);
-    // int ny = Rcpp::as<int>(param["ny"]);
+    // nx, ny
+    int nx = Rcpp::as<int>(param["nx"]);
+    int ny = Rcpp::as<int>(param["ny"]);
     // data contiguity
     // inner_dim = 1 means columns
     // inner_dim = 0 means rows
@@ -97,7 +97,7 @@ SEXP r_genred(
     // Computation
     rkeops_matrix_t raw_output = genred(
             tagCpuGpu, tag1D2D, tagHostDevice, 
-            Device_Id, raw_input_list);
+            Device_Id, nx, ny, raw_input_list);
     
     // ---------------------------------------------------------------------- //
     // Result

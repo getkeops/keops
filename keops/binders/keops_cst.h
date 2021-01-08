@@ -1,37 +1,46 @@
 #pragma once
 
-namespace keops {
+extern "C" {
+int GetFormulaString(std::string&);
+int GetFormulaConstants(int*);
+int GetIndsI(int*);
+int GetIndsJ(int*);
+int GetIndsP(int*);
+int GetDimsX(int*);
+int GetDimsY(int*);
+int GetDimsP(int*);
+};
+
+namespace keops_binders {
 
 /////////////////////////////////////////////////////////////////////////////////
 //                           Keops                                             //
 /////////////////////////////////////////////////////////////////////////////////
 
-using FF = F::F; // F::F is formula inside reduction (ex if F is SumReduction<Form> then F::F is Form)
+int formula_constants[8]; 
+int dummy1 = GetFormulaConstants(formula_constants);
+int keops_nminargs = formula_constants[0];
+int keops_tagIJ = formula_constants[1];
+int keops_pos_first_argI = formula_constants[2];
+int keops_pos_first_argJ= formula_constants[3];
+int keops_nvarsI = formula_constants[4];
+int keops_nvarsJ = formula_constants[5];
+int keops_nvarsP = formula_constants[6];
+int keops_dimout = formula_constants[7];
 
-using VARSI = typename FF::template VARS< 0 >;    // list variables of type I used in formula F
-using VARSJ = typename FF::template VARS< 1 >;    // list variables of type J used in formula F
-using VARSP = typename FF::template VARS< 2 >;    // list variables of type parameter used in formula F
 
-using DIMSX = GetDims< VARSI >;
-using DIMSY = GetDims< VARSJ >;
-using DIMSP = GetDims< VARSP >;
+std::vector<int> keops_indsI(keops_nvarsI), keops_indsJ(keops_nvarsJ), keops_indsP(keops_nvarsP);
+int dummy2 = GetIndsI(keops_indsI.data());
+int dummy3 = GetIndsJ(keops_indsJ.data());
+int dummy4 = GetIndsP(keops_indsP.data());
+std::vector<int> keops_dimsX(keops_nvarsI), keops_dimsY(keops_nvarsJ), keops_dimsP(keops_nvarsP);
+int dummy5 = GetDimsX(keops_dimsX.data());
+int dummy6 = GetDimsY(keops_dimsY.data());
+int dummy7 = GetDimsP(keops_dimsP.data());
 
-using INDSI = GetInds< VARSI >;
-using INDSJ = GetInds< VARSJ >;
-using INDSP = GetInds< VARSP >;
 
-using INDS = ConcatPacks <ConcatPacks< INDSI, INDSJ >, INDSP>;
+std::string keops_formula_string;
+int dummy8 = GetFormulaString(keops_formula_string);
 
-const int NARGSI = VARSI::SIZE; // number of I variables used in formula F
-const int NARGSJ = VARSJ::SIZE; // number of J variables used in formula F
-const int NARGSP = VARSP::SIZE; // number of parameters variables used in formula F
-
-const int NMINARGS = F::NMINARGS;
-
-const int DIMOUT = F::DIM;
-
-const int TAGIJ = F::tagI;
-
-const std::string f = PrintReduction< F >();
 
 }

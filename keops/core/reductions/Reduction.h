@@ -1,5 +1,7 @@
 #pragma once
 
+#include <climits>
+
 #include "core/pack/GetInds.h"
 #include "core/pack/ConcatPack.h"
 #include "core/pack/GetDims.h"
@@ -39,11 +41,23 @@ struct Reduction {
     using INDSJ = GetInds<VARSJ>;
     using INDSP = GetInds<VARSP>;
 
+    static const int POS_FIRST_ARGI = (INDSI::MIN==INT_MAX)? -1 : INDSI::MIN;
+	static const int POS_FIRST_ARGJ = (INDSJ::MIN==INT_MAX)? -1 : INDSJ::MIN;
+	
     using INDS = ConcatPacks<ConcatPacks<INDSI,INDSJ>,INDSP>;  // indices of variables
     static_assert(CheckAllDistinct<INDS>::val,"Incorrect formula : at least two distinct variables have the same position index.");
 
-    static const int NMINARGS = INDS::MAX + 1; // minimal number of arguments when calling the formula.
-
+	 // NMINARGS is minimal number of arguments when calling the formula.
+    static const int NMINARGS = INDS::MAX + 1;
+	
+	// NVARS is actual number of variables in the formula
+	// N.B: NVARS <= NMINARGS and not the converse, because INDS should be all distinct.
+	// For example if the variables are Var<0,...>, Var<5,...> and Var<2,...> then INDS=pack<0,5,2>, so NVARS=3 and NMINARGS=6
+	static const int NVARS = INDS::SIZE; 
+	static const int NVARSI = INDSI::SIZE; 
+	static const int NVARSJ = INDSJ::SIZE; 
+	static const int NVARSP = INDSP::SIZE; 
+	
     template < typename... Args >
     DEVICE INLINE void operator()(Args... args) {
         F::template Eval<INDS>(args...);
