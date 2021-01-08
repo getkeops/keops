@@ -25,7 +25,7 @@ test_that("compile_formula", {
     y <- matrix(runif(ny*3), nrow=3, ncol=ny)
     # run
     param <- c(get_rkeops_options("runtime"),
-               list(inner_dim=0))
+               list(inner_dim=0, nx=nx, ny=ny))
     input <- list(x, y)
     res <- r_genred(input, param)
     # check result

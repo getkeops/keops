@@ -1,11 +1,5 @@
 # pragma once
 
-// include order matters : we need to include
-// first the torch headers, then the header
-// for the KeOps formula
-
-// 1) torch headers
-
 // (Joan) : originally we included here the
 // following file :
 //
@@ -23,9 +17,3 @@
 
 #include <torch/types.h>
 #include <torch/csrc/utils/pybind.h>
-
-
-
-// 2) KeOps formula header
-
-#include <@shared_obj_name@.h>

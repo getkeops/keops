@@ -2,20 +2,18 @@ import fcntl
 import functools
 import importlib.util
 import os
-import shutil
+import subprocess
 
 import pykeops.config
 
 c_type = dict(float16="half2", float32="float", float64="double")
 
 
-def module_exists(dllname):
-    if not os.path.exists(pykeops.config.bin_folder):
+def module_exists(dllname, template_name):
+    if not os.path.exists(pykeops.config.bin_folder + os.path.sep + dllname):
         return False
-    spec = importlib.util.find_spec(dllname)
-    return (spec is not None) and (
-        os.path.samefile(os.path.dirname(spec.origin), pykeops.config.bin_folder)
-    )
+    spec = importlib.util.find_spec(dllname + "." + template_name)
+    return spec is not None
 
 
 def axis2cat(axis):
@@ -77,10 +75,9 @@ def create_and_lock_build_folder():
                     func_res = func(*args, **kwargs)
 
             # clean
-            if (module_exists(args[0].dll_name)) and (
-                pykeops.config.build_type == "Release"
-            ):
-                shutil.rmtree(bf)
+            # if (pykeops.config.build_type == 'Release'): # and (module_exists(args[0].dll_name,template_name)):
+            #    shutil.rmtree(bf)
+            os.remove(os.path.join(bf, "pykeops_build2.lock"))
 
             return func_res
 
@@ -148,3 +145,34 @@ def check_broadcasting(dims_1, dims_2):
             )
 
     return max_tuple(padded_dims_1, padded_dims_2)
+
+
+def replace_strings_in_file(filename, source_target_string_pairs):
+    # replaces all occurences of source_string by target_string in file named filename
+    with open(filename, "r") as file:
+        filedata = file.read()
+    for source_string, target_string in source_target_string_pairs:
+        filedata = filedata.replace(source_string, target_string)
+    with open(filename, "w") as file:
+        file.write(filedata)
+
+
+def run_and_display(args, build_folder, msg=""):
+    """
+    This function run the command stored in args and display the output if needed
+    :param args: list
+    :param msg: str
+    :return: None
+    """
+    try:
+        proc = subprocess.run(
+            args, cwd=build_folder, stdout=subprocess.PIPE, check=True
+        )
+        if pykeops.config.verbose:
+            print(proc.stdout.decode("utf-8"))
+
+    except subprocess.CalledProcessError as e:
+        print("\n--------------------- " + msg + " DEBUG -----------------")
+        print(e)
+        print(e.stdout.decode("utf-8"))
+        print("--------------------- ----------- -----------------")

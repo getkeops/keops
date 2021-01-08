@@ -17,10 +17,23 @@ torch_found = importlib.util.find_spec("torch") is not None
 ###############################################################
 # Compilation options
 
-script_folder = os.path.dirname(os.path.abspath(__file__))
+script_formula_folder = (
+    os.path.dirname(os.path.abspath(__file__)) + "/cmake_scripts/script_keops_formula/"
+)
+script_template_folder = (
+    os.path.dirname(os.path.abspath(__file__)) + "/cmake_scripts/script_template/"
+)
+script_linking_folder = (
+    os.path.dirname(os.path.abspath(__file__)) + "/cmake_scripts/script_linking/"
+)
+script_specific_folder = (
+    os.path.dirname(os.path.abspath(__file__)) + "/cmake_scripts/script_specific/"
+)
+
+shared_obj_name = "KeOps_formula"
 
 bin_folder = (
-    ""  # init bin_folder... shlould be populated with the set_bin_folder() function
+    ""  # init bin_folder... should be populated with the set_bin_folder() function
 )
 
 # Set the verbosity option: display output of compilations. This is a boolean: False or True

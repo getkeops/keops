@@ -18,6 +18,8 @@ array_t generic_red(
                               // Otherwise, ranges is a 6-uple of (integer) array_t
                               // ranges = (ranges_i, slices_i, redranges_j, ranges_j, slices_j, redranges_i)
                               // as documented in the doc on sparstiy and clustering.
+		int nx,				  // number of samples / data points of the "i" indexed variables
+		int ny,				  // number of samples / data points of the "j" indexed variables
         py::args py_args) {
   
 //////////////////////////////////////////////////////////////
@@ -51,6 +53,8 @@ array_t generic_red(
            tagCpuGpu,
            tagHostDevice,
            Device_Id,
+		   nx,
+		   ny,
            nargs,
            &args[0],
            nranges,

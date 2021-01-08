@@ -310,7 +310,9 @@ class Genred:
                     "size of input array is too large for Arg type reduction with float16 dtype.."
                 )
 
-        out = self.myconv.genred_numpy(tagCpuGpu, tag1D2D, 0, device_id, ranges, *args)
+        out = self.myconv.genred_numpy(
+            tagCpuGpu, tag1D2D, 0, device_id, ranges, nx, ny, *args
+        )
 
         return postprocess(
             out, "numpy", self.reduction_op, nout, self.opt_arg, self.dtype

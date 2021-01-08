@@ -28,6 +28,7 @@ Standard math functions :
  *      Sin<F>                         : sine of F (vectorized)
  *      Cos<F>                         : cosine of F (vectorized)
  *      Acos<F>                        : arc-cosine of F (vectorized)
+ *      Asin<F>                        : arc-sine of F (vectorized)
  *      Sign<F>                        : sign of F (vectorized)
  *      Step<F>                        : step of F (vectorized)
  *      ReLU<F>                        : ReLU of F (vectorized)

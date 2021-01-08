@@ -3,7 +3,12 @@ import torch
 from pykeops.common.get_options import get_tag_backend
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import ConjugateGradientSolver
-from pykeops.common.parse_type import get_type, complete_aliases, get_optional_flags
+from pykeops.common.parse_type import (
+    get_type,
+    get_sizes,
+    complete_aliases,
+    get_optional_flags,
+)
 from pykeops.common.utils import axis2cat
 from pykeops.torch import default_dtype
 from pykeops.torch import include_dirs
@@ -29,10 +34,10 @@ class KernelSolveAutograd(torch.autograd.Function):
         ranges,
         optional_flags,
         rec_multVar_highdim,
+        nx,
+        ny,
         *args
     ):
-
-        optional_flags += include_dirs
 
         # N.B. when rec_multVar_highdim option is set, it means that formula is of the form "sum(F*b)", where b is a variable
         # with large dimension. In this case we set compiler option MULT_VAR_HIGHDIM to allow for the use of the special "final chunk" computation
@@ -44,7 +49,7 @@ class KernelSolveAutograd(torch.autograd.Function):
             optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
 
         myconv = LoadKeOps(
-            formula, aliases, dtype, "torch", optional_flags
+            formula, aliases, dtype, "torch", optional_flags, include_dirs
         ).import_module()
 
         # Context variables: save everything to compute the gradient:
@@ -56,6 +61,8 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.dtype = dtype
         ctx.device_id = device_id
         ctx.eps = eps
+        ctx.nx = nx
+        ctx.ny = ny
         ctx.myconv = myconv
         ctx.ranges = ranges
         ctx.rec_multVar_highdim = rec_multVar_highdim
@@ -79,7 +86,7 @@ class KernelSolveAutograd(torch.autograd.Function):
         def linop(var):
             newargs = args[:varinvpos] + (var,) + args[varinvpos + 1 :]
             res = myconv.genred_pytorch(
-                tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, *newargs
+                tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, *newargs
             )
             if alpha:
                 res += alpha * var
@@ -104,6 +111,8 @@ class KernelSolveAutograd(torch.autograd.Function):
         dtype = ctx.dtype
         device_id = ctx.device_id
         eps = ctx.eps
+        nx = ctx.nx
+        ny = ctx.ny
         myconv = ctx.myconv
         ranges = ctx.ranges
         optional_flags = ctx.optional_flags
@@ -150,6 +159,8 @@ class KernelSolveAutograd(torch.autograd.Function):
             ranges,
             optional_flags,
             rec_multVar_highdim,
+            nx,
+            ny,
             *newargs
         )
 
@@ -158,8 +169,8 @@ class KernelSolveAutograd(torch.autograd.Function):
         for (var_ind, sig) in enumerate(aliases):  # Run through the arguments
             # If the current gradient is to be discarded immediatly...
             if not ctx.needs_input_grad[
-                var_ind + 11
-            ]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim)
+                var_ind + 13
+            ]:  # because of (formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, nx, ny)
                 grads.append(None)  # Don't waste time computing it.
 
             else:  # Otherwise, the current gradient is really needed by the user:
@@ -211,6 +222,8 @@ class KernelSolveAutograd(torch.autograd.Function):
                             ranges,
                             optional_flags,
                             None,
+                            nx,
+                            ny,
                             *args_g
                         )
                         # Then, sum 'grad' wrt 'i' :
@@ -229,12 +242,16 @@ class KernelSolveAutograd(torch.autograd.Function):
                             ranges,
                             optional_flags,
                             None,
+                            nx,
+                            ny,
                             *args_g
                         )
                     grads.append(grad)
 
         # Grads wrt. formula, aliases, varinvpos, alpha, backend, dtype, device_id, eps, ranges, optional_flags, rec_multVar_highdim, *args
         return (
+            None,
+            None,
             None,
             None,
             None,
@@ -464,6 +481,8 @@ class KernelSolve:
 
         """
 
+        nx, ny = get_sizes(self.aliases, *args)
+
         return KernelSolveAutograd.apply(
             self.formula,
             self.aliases,
@@ -476,5 +495,7 @@ class KernelSolve:
             ranges,
             self.optional_flags,
             self.rec_multVar_highdim,
+            nx,
+            ny,
             *args
         )

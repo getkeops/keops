@@ -44,6 +44,7 @@ class GenericLazyTensor:
     ranges = None  # Block-sparsity pattern
     backend = None  # "CPU", "GPU", "GPU_2D", etc.
     dtype = None
+    float_types = []
 
     def __init__(self, x=None, axis=None):
         r"""Creates a KeOps symbolic variable.
@@ -89,9 +90,8 @@ class GenericLazyTensor:
 
         self.get_tools()
 
-        if (
-            x is not None
-        ):  # A KeOps LazyTensor can be built from many different objects:
+        # A KeOps LazyTensor can be built from many different objects:
+        if x is not None:
 
             # Stage 1: Are we dealing with simple numbers? ---------------------
             typex = type(x)
@@ -118,16 +118,16 @@ class GenericLazyTensor:
                 self.formula = "VarSymb({},{},{})".format(x[0], self.ndim, self.axis)
                 return  # That's it!
 
-            elif (
-                typex == int
-            ):  # Integer constants are best handled directly by the compiler
+            # Integer constants are best handled directly by the compiler
+            elif typex == int:
                 self.formula = "IntCst(" + str(x) + ")"
                 self.ndim = 1
                 self.axis = 2
                 return  # That's it!
 
-            elif typex == float:  # Float numbers must be encoded as Parameters,
-                # as C++'s templating system cannot deal with floating point arithmetics.
+            # Float numbers must be encoded as Parameters,  as C++'s templating system cannot deal
+            # with floating point arithmetics.
+            elif typex in self.float_types:
                 x = [x]  # Convert to list and go to stage 2
                 typex = list
 
@@ -241,9 +241,9 @@ class GenericLazyTensor:
             if device is not None:
                 break
         i = len(self.symbolic_variables)  # The first few labels are already taken...
-        for (
-            v
-        ) in self.variables:  # So let's loop over our tensors, and give them labels:
+
+        # So let's loop over our tensors, and give them labels:
+        for v in self.variables:
             idv = id(v)
             if type(v) == list:
                 v = self.tools.array(v, self.dtype, device)
@@ -352,7 +352,8 @@ class GenericLazyTensor:
 
     def join(self, other):
         r"""
-        Merges the variables and attributes of two :class:`LazyTensor`, with a compatibility check. This method concatenates tuples of variables, without paying attention to repetitions.
+        Merges the variables and attributes of two :class:`LazyTensor`, with a compatibility check.
+        This method concatenates tuples of variables, without paying attention to repetitions.
         """
         res = self.promote(
             other,
@@ -945,7 +946,10 @@ class GenericLazyTensor:
         ``x + y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the addition of ``x`` and ``y``.
         """
-        return self.binary(other, "+", is_operator=True)
+        if other == 0:
+            return self
+        else:
+            return self.binary(other, "+", is_operator=True)
 
     def __radd__(self, other):
         r"""
@@ -966,7 +970,10 @@ class GenericLazyTensor:
         ``x - y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the subtraction of ``x`` and ``y``.
         """
-        return self.binary(other, "-", is_operator=True)
+        if other == 0:
+            return self
+        else:
+            return self.binary(other, "-", is_operator=True)
 
     def __rsub__(self, other):
         r"""
@@ -976,7 +983,7 @@ class GenericLazyTensor:
         symbolically, the subtraction of ``x`` and ``y``.
         """
         if other == 0:
-            return -self
+            return self.unary("Minus")
         else:
             return self.binary(other, "-", is_operator=True, rversion=True)
 
@@ -987,7 +994,14 @@ class GenericLazyTensor:
         ``x * y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise product of ``x`` and ``y``.
         """
-        return self.binary(other, "*", is_operator=True)
+        if other == 0:
+            return 0
+        elif other == 1:
+            return self
+        elif other == -1:
+            return self.unary("Minus")
+        else:
+            return self.binary(other, "*", is_operator=True)
 
     def __rmul__(self, other):
         r"""
@@ -1000,6 +1014,8 @@ class GenericLazyTensor:
             return 0
         elif other == 1:
             return self
+        elif other == -1:
+            return self.unary("Minus")
         else:
             return self.binary(other, "*", is_operator=True, rversion=True)
 
@@ -1010,7 +1026,10 @@ class GenericLazyTensor:
         ``x / y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise division of ``x`` by ``y``.
         """
-        return self.binary(other, "/", is_operator=True)
+        if other == 1:
+            return self
+        else:
+            return self.binary(other, "/", is_operator=True)
 
     def __rtruediv__(self, other):
         r"""
@@ -1121,6 +1140,15 @@ class GenericLazyTensor:
         the element-wise sine of ``x``.
         """
         return self.unary("Sin")
+
+    def asin(self):
+        r"""
+        Element-wise arcsine - a unary operation.
+
+        ``x.asin()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise arcsine of ``x``.
+        """
+        return self.unary("Asin")
 
     def acos(self):
         r"""

@@ -59,16 +59,9 @@ class LazyTensor(GenericLazyTensor):
         # numpy specialization
         typex = type(x)
 
-        if typex not in (
-            type(None),
-            tuple,
-            int,
-            float,
-            list,
-            np.ndarray,
-            np.float16,
-            np.float32,
-            np.float64,
+        if (
+            typex
+            not in [type(None), tuple, int, float, list, np.ndarray] + self.float_types
         ):
             raise TypeError(
                 "LazyTensors should be built from NumPy arrays, "
@@ -76,12 +69,7 @@ class LazyTensor(GenericLazyTensor):
                 "integers. Received: {}".format(typex)
             )
 
-        if typex in (
-            float,
-            np.float16,
-            np.float32,
-            np.float64,
-        ):  # NumPy scalar -> NumPy array
+        if typex in self.float_types:  # NumPy scalar -> NumPy array
             x = np.array(x).reshape(1)
 
         if typex == np.ndarray:
@@ -94,3 +82,5 @@ class LazyTensor(GenericLazyTensor):
 
     def lt_constructor(self, x=None, axis=None):
         return LazyTensor(x=x, axis=axis)
+
+    float_types = [float, np.float16, np.float32, np.float64]

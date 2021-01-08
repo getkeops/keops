@@ -86,7 +86,7 @@ options = set_accuracy_options(options,formula);
 options = set_default_option(options,'sumoutput',0);
 
 % from the string inputs we form the code which will be added to the source cpp/cu file, and the string used to encode the file name
-[CodeVars, indij] = format_var_aliase(aliases);
+[CodeVars, indijp] = format_var_aliase(aliases);
 
 % we use a hash to shorten string and avoid special characters in the filename
 hash = string2hash(lower(compile_formula(CodeVars, formula, 'gros_bidon', options, 'no_compile')));
@@ -105,13 +105,15 @@ F = @Eval;
         if nargin==0
             out = feval(Fname);
         else
-            out = feval(Fname, options.tagCpuGpu, options.tag1D2D, options.device_id, varargin{:});
+			nx = size(varargin{indijp(1)},2);
+			ny = size(varargin{indijp(2)},2);
+            out = feval(Fname, options.tagCpuGpu, options.tag1D2D, options.device_id, nx, ny, varargin{:});
             if options.sumoutput
                 out = sum(out,2); % '2' because we sum with respect to index, not dimension !
             end
         end
     end
-
+	
 % numvars is the number of input arguments of the formula.
 % numvars is used by function Grad because taking gradients introduces new
 % variables whose dimensions are unknown at the matlab level.

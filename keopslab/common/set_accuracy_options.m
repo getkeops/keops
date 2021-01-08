@@ -20,7 +20,6 @@ else
     ind_start = 1;
 end
 ind_end = strfind(formula,'_Reduction(') - 1;
-disp(formula(ind_start:ind_end))
 is_sum_type_red = any(strcmp(formula(ind_start:ind_end),...
     {'Sum','MaxSumShiftExp','MaxSumShiftExpWeight'}));
 if is_sum_type_red
