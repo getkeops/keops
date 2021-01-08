@@ -1150,6 +1150,15 @@ class GenericLazyTensor:
         """
         return self.unary("Acos")
 
+    def atan(self):
+        r"""
+        Element-wise arctangent - a unary operation.
+
+        ``x.atan()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise arccosine of ``x``.
+        """
+        return self.unary("Atan")
+
     def sqrt(self):
         r"""
         Element-wise square root - a unary operation.

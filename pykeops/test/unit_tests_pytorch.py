@@ -622,6 +622,41 @@ class PytorchUnitTestCase(unittest.TestCase):
             )
 
     ############################################################
+    def test_LazyTensor_asin(self):
+        ############################################################
+        from pykeops.torch import LazyTensor
+
+        full_results = []
+        for use_keops in [True, False]:
+
+            results = []
+
+            # N.B.: We could loop over float32 and float64, but this would take longer...
+            for (x,) in [(self.Xc,)]:  # Float32
+
+                x = x.unsqueeze(-2)
+
+                if use_keops:
+                    x, = (
+                        LazyTensor(x),
+                    )
+
+                x_asin = x.asin()
+                results += [(x_asin)]
+
+            full_results.append(results)
+
+        for (res_keops, res_torch) in zip(full_results[0], full_results[1]):
+            self.assertTrue(res_keops.shape == res_torch.shape)
+            self.assertTrue(
+                np.allclose(
+                    res_keops.cpu().data.numpy().ravel(),
+                    res_torch.cpu().data.numpy().ravel(),
+                    atol=1e-5,
+                )
+            )
+
+    ############################################################
     def test_TensorDot_with_permute(self):
         ############################################################
         import torch
