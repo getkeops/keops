@@ -40,8 +40,8 @@ import matplotlib.pyplot as plt
 # Define our dataset:
 #
 
-M = 500  # Number of "i" points
-N = 400  # Number of "j" points
+M = 5000  # Number of "i" points
+N = 4000  # Number of "j" points
 D = 3  # Dimension of the ambient space
 Dv = 2  # Dimension of the vectors
 
@@ -76,7 +76,8 @@ _ = softmax_op(x, y, b)
 #
 
 start = time.time()
-c = softmax_op(x, y, b)
+print('starting KeOps')
+c = softmax_op(x, y, b, backend='GPU_1D')
 print("Timing (KeOps implementation): ", round(time.time() - start, 5), "s")
 
 # compare with direct implementation
