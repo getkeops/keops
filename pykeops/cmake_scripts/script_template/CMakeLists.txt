@@ -100,7 +100,8 @@ pybind11_add_module(${template_name}
 )
 
 if (USE_CUDA)
-	set_target_properties(${template_name} PROPERTIES LINKER_LANGUAGE CUDA)
+	set_target_properties(${template_name} PROPERTIES LINKER_LANGUAGE CUDA) 
+	target_link_libraries(${template_name} PUBLIC ${CUDA_LIBRARIES})
 endif()
 
 SET_SOURCE_FILES_PROPERTIES(
