@@ -76,7 +76,6 @@ _ = softmax_op(x, y, b)
 #
 
 start = time.time()
-print('starting KeOps')
 c = softmax_op(x, y, b, backend='GPU_1D')
 print("Timing (KeOps implementation): ", round(time.time() - start, 5), "s")
 
