@@ -24,7 +24,7 @@ from pykeops.numpy import Genred
 ###############################################################
 # Define our dataset:
 
-N = 1000  # Number of points
+N = 100000  # Number of points
 D = 2  # Dimension of the ambient space
 K = 3  # Number of neighbors to look for
 
