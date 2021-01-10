@@ -94,15 +94,16 @@ def clean_pykeops(path="", lang=""):
 
     for f in os.scandir(path):
         if f.is_dir(follow_symlinks=False) and (
-            f.name.count("build-libKeOps" + lang)
+            f.name.count("build-" + lang)
+            or f.name.count("build-pybind11_template-libKeOps")
+            or f.name.count("libKeOps" + lang)
             or f.name.count("build-fshape_scp")
             or f.name.count("build-radial_kernel")
         ):
             shutil.rmtree(f.path)
 
         elif f.is_file() and (
-            f.name.count("libKeOps" + lang)
-            or f.name.count("fshape_scp")
+            f.name.count("fshape_scp")
             or f.name.count("radial_kernel")
             or f.name.count("keops_hash")
         ):
