@@ -1026,10 +1026,13 @@ class GenericLazyTensor:
         ``x / y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise division of ``x`` by ``y``.
         """
-        if other == 1:
-            return self
-        else:
-            return self.binary(other, "/", is_operator=True)
+        try:  # Special cases
+            if other == 1:
+                return self
+        except RuntimeError:  # May happen if "other" is an array
+            pass
+
+        return self.binary(other, "/", is_operator=True)
 
     def __rtruediv__(self, other):
         r"""

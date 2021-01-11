@@ -598,7 +598,21 @@ KNN_faiss_gpu_IVFFlat_slow = partial(
 # --------------------------------------------------------
 #
 # Finally, we compare all our methods through a unified interface.
-#
+# 
+# .. note::
+#   Fitting KeOps, JAX, PyTorch and FAISS in a single script is not easy:
+#   all these libraries have different failure modes,
+#   with some of the C++ errors thrown by JAX and FAISS being
+#   very hard to "catch" in a proper Python structure.
+#   To keep things simple, we use environment variables
+#   to make a few "pre-compilation runs" prior to the
+#   final benchmark that is rendered on this website.
+
+import os
+getenv = lambda s : bool(os.getenv(s, 'False').lower() in ['true', '1'])
+
+keops_only = getenv("KEOPS_DOC_PRECOMPILE")
+jax_only = getenv("KEOPS_DOC_PRECOMPILE_JAX")
 
 
 def run_KNN_benchmark(name, loops=[1]):
@@ -610,7 +624,12 @@ def run_KNN_benchmark(name, loops=[1]):
     metric = dataset["metric"]
 
     # Routines to benchmark:
-    routines = [
+    if keops_only:
+        routines = [(KNN_KeOps, "KeOps (GPU)", {})]
+    elif jax_only:
+        routines = [(KNN_JAX_batch_loop, "JAX (small batches, GPU)", {})]        
+    else:
+        routines = [
         (KNN_KeOps, "KeOps (GPU)", {}),
         (KNN_faiss_gpu_Flat, "FAISS-Flat (GPU)", {}),
         (KNN_faiss_gpu_IVFFlat_fast, "FAISS-IVF-Flat (GPU, nprobe=1)", {}),
@@ -631,7 +650,7 @@ def run_KNN_benchmark(name, loops=[1]):
         routines,
         generate_samples(name),
         min_time=1e-4,
-        max_time=10,
+        max_time= 1 if (keops_only or jax_only) else 10,
         loops=loops,
         problem_sizes=Ks,
         xlabel="Number of neighbours K",
