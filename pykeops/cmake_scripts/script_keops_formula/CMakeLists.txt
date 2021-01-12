@@ -52,6 +52,20 @@ if(NOT C_CONTIGUOUS)
 endif()
 add_definitions(-DC_CONTIGUOUS=${C_CONTIGUOUS})
 
+# this dummy flag is used in the bindings
+if (${__TYPE__} STREQUAL "double")
+    add_definitions(-DUSE_DOUBLE=1)
+else ()
+    add_definitions(-DUSE_DOUBLE=0)
+endif ()
+
+# this dummy flag is used in the bindings
+if (${__TYPE__} STREQUAL "half2")
+    add_definitions(-DUSE_HALF=1)
+else ()
+    add_definitions(-DUSE_HALF=0)
+endif ()
+
 # - some options for accuracy of summations
 if(__TYPEACC__)
   add_definitions(-D__TYPEACC__=${__TYPEACC__})
