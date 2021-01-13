@@ -121,19 +121,11 @@ def preprocess_half2(args, aliases, axis, ranges, nx, ny):
                 tuple(arg.shape[:-2]) + (2 * dim,)
             )  # (...,2,D) -> (...,2*D) (we "hide" the factor 2 in the dimension...)
         newargs[pos] = arg
-        if cat==0:
-            nx = arg.shape[0]//2
-        elif cat==1:
-            ny = arg.shape[0]//2
-    return newargs, ranges, tag_dummy, N, nx, ny
+    return newargs, ranges, tag_dummy, N
 
 
 def postprocess_half2(out, tag_dummy, reduction_op, N):
-    print("out.shape=", out.shape)
     out = half22half(out)
-    print("out.shape=", out.shape)
-    print("N=", N)
-    input()
     if tag_dummy:
         out = out[..., :-1, :]
     if reduction_op in ("ArgMin", "ArgMax", "ArgKMin"):

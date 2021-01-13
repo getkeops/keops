@@ -270,7 +270,7 @@ def compile_generic_routine(
         pykeops.config.bin_folder + os.path.sep + dllname + os.path.sep + fname,
     )
 
-    print("done.", flush=True)
+    print("Done.", flush=True)
 
 
 def compile_specific_conv_routine(dllname, dtype, build_folder):

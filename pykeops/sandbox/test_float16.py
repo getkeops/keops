@@ -8,7 +8,7 @@ from pykeops.torch import LazyTensor
 
 dtype = torch.float16
 
-M, N, D = 1000, 1000, 3
+M, N, D = 1001, 1001, 3
 
 test_grad = False
 
@@ -30,7 +30,7 @@ def fun(x, y, a, b, backend):
         raise ValueError("wrong backend")
     Dxy = ((x * y)).sum(dim=2)
     Kxy = (-(Dxy ** 2)).exp()
-    return Kxy.sum(dim=1)
+    return Kxy.sum(dim=0)
 
 
 backends = ["torch", "keops"]
