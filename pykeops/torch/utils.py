@@ -85,6 +85,8 @@ class torchtools:
             return "float16"
         elif dtype == int:
             return int
+        elif dtype == torch.cfloat:
+            return "cfloat"
         elif dtype == list:
             return "float32"
         else:
