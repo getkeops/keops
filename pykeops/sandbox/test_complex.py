@@ -1,4 +1,3 @@
-    # Test for Clamp operation using LazyTensors
 
 import time
 
@@ -8,18 +7,25 @@ from pykeops.torch import LazyTensor
 
 dtype = torch.cfloat
 
-M, N, D = 1001, 1001, 3
+M, N, D = 5, 5, 2
 
-test_grad = False
+test_grad = True
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 do_warmup = False
 
-x = torch.randn(M, 1, D, dtype=dtype, requires_grad=test_grad, device=device_id)
-y = torch.randn(1, N, D, dtype=dtype, device=device_id)
+x = torch.rand(M, 1, D, dtype=dtype, requires_grad=test_grad, device=device_id)
+y = torch.rand(1, N, D, dtype=dtype, device=device_id)
 a = -1.23
 b = 1.54
+
+
+def view_as_real(x):
+    if x.dtype==torch.cfloat:
+        return torch.view_as_real(x)
+    else:
+        return x
 
 
 def fun(x, y, a, b, backend):
@@ -28,10 +34,8 @@ def fun(x, y, a, b, backend):
         y = LazyTensor(y)
     elif backend != "torch":
         raise ValueError("wrong backend")
-    Dxy = ((x * y)).sum(dim=2)
-    Kxy = (-(Dxy ** 2)).exp()
+    Kxy = ((x * y).real).sum(dim=2)
     return Kxy.sum(dim=0)
-
 
 backends = ["torch", "keops"]
 
@@ -46,18 +50,22 @@ for backend in backends:
     print("time for " + backend + ":", end - start)
 
 if len(out) > 1:
-    print("relative error:", (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item())
+    #print(out[0])
+    #print(out[1])
+    print("relative error:", (torch.norm(view_as_real(out[0] - out[1])) / torch.norm(view_as_real(out[0]))).item())
 
 if test_grad:
     out_g = []
     for k, backend in enumerate(backends):
         start = time.time()
-        out_g.append(torch.autograd.grad((out[k] ** 2).sum(), [x])[0])
+        out_g.append(torch.autograd.grad((out[k]).abs().sum(), [x])[0])
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
 
     if len(out_g) > 1:
+        #print(out_g[0])
+        #print(out_g[1])
         print(
             "relative error grad:",
-            (torch.norm(out_g[0] - out_g[1]) / torch.norm(out_g[0])).item(),
-        )
+            (torch.norm(view_as_real(out_g[0] - out_g[1])) / torch.norm(view_as_real(out_g[0]))).item())
+        

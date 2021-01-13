@@ -24,6 +24,8 @@ template < typename TYPE > DEVICE INLINE TYPE keops_sqrt(TYPE x) { return sqrt(x
 template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE x) { return 1.0f / sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_acos(TYPE x) { return acos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_asin(TYPE x) { return asin(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_atan(TYPE x) { return atan(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_atan2(TYPE x, TYPE y) { return atan2(x,y); }
 
 #ifdef __CUDA_ARCH__  
 DEVICE INLINE float keops_pow(float x, int n) { return powf(x,n); } 
@@ -38,7 +40,9 @@ DEVICE INLINE float keops_sqrt(float x) { return sqrtf(x); }
 DEVICE INLINE float keops_rsqrt(float x) { return rsqrtf(x); } 
 DEVICE INLINE float keops_acos(float x) { return acosf(x); }
 DEVICE INLINE float keops_asin(float x) { return asinf(x); }
-DEVICE INLINE double keops_rsqrt(double x) { return rsqrt(x); } 
+DEVICE INLINE float keops_atan(float x) { return atanf(x); }
+DEVICE INLINE float keops_atan2(float x, float y) { return atan2f(x,y); }
+DEVICE INLINE double keops_rsqrt(double x) { return rsqrt(x); }
    
 #if USE_HALF 
 DEVICE INLINE half2 keops_fma(half2 x, half2 y, half2 z) { return __hfma2(x,y,z); }

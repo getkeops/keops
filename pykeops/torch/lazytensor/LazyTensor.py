@@ -70,9 +70,15 @@ class LazyTensor(GenericLazyTensor):
         if typex == torch.Tensor and len(x.shape) == 0:  # Torch scalar -> Torch tensor
             x = x.view(1)
         elif typex in self.float_types:
-            x = torch.Tensor([x]).view(1)
+            if typex==complex:
+                x = torch.view_as_complex(torch.Tensor([x.real,x.imag]))
+            else:
+                x = torch.Tensor([x]).view(1)
 
         if typex == torch.Tensor:
+            if self.tools.detect_complex(x):
+                self.is_complex = True
+                x = self.tools.view_as_real(x)
             self.infer_dim(x, axis)
 
     def get_tools(self):
@@ -83,4 +89,4 @@ class LazyTensor(GenericLazyTensor):
     def lt_constructor(self, x=None, axis=None):
         return LazyTensor(x=x, axis=axis)
 
-    float_types = [float]
+    float_types = [float, complex]

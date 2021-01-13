@@ -74,6 +74,24 @@ class torchtools:
             return x.dtype
         else:
             return type(x)
+            
+    @staticmethod
+    def detect_complex(x):
+        return torch.is_complex(x)
+
+    @staticmethod
+    def view_as_complex(x):
+        sh = list(x.shape)
+        sh[-1] //= 2
+        sh += [2]
+        x = x.view(sh)
+        return torch.view_as_complex(x)
+
+    @staticmethod
+    def view_as_real(x):
+        sh = list(x.shape)
+        sh[-1] *= 2
+        return torch.view_as_real(x).view(sh)
 
     @staticmethod
     def dtypename(dtype):
@@ -85,8 +103,6 @@ class torchtools:
             return "float16"
         elif dtype == int:
             return int
-        elif dtype == torch.cfloat:
-            return "cfloat"
         elif dtype == list:
             return "float32"
         else:

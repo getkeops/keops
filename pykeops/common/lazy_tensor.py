@@ -50,7 +50,8 @@ class GenericLazyTensor:
     axis = None
     ranges = None  # Block-sparsity pattern
     backend = None  # "CPU", "GPU", "GPU_2D", etc.
-    dtype = None
+    _dtype = None
+    is_complex = None
     float_types = []
 
     def __init__(self, x=None, axis=None):
@@ -152,8 +153,6 @@ class GenericLazyTensor:
                 self.axis = 2
                 self.formula = "Var({},{},2)".format(id(x), self.ndim)
                 return  # That's it!
-            else:
-                self.dtype = self.tools.dtypename(self.tools.dtype(x))
 
     def lt_constructor(self, x=None, axis=None):
         r"""This method is specialized in :class:`pykeops.numpy.LazyTensor` and :class:`pykeops.torch.LazyTensor`. It
@@ -219,8 +218,6 @@ class GenericLazyTensor:
             else:
                 self.nj = x.shape[-2]
 
-            self.dtype = self.tools.dtypename(self.tools.dtype(x))
-
         elif len(x.shape) == 1 or axis == 2:  # shape is (D,): x is a "Pm(D)" parameter
             if axis is not None and axis != 2:
                 raise ValueError(
@@ -236,6 +233,8 @@ class GenericLazyTensor:
                 "LazyTensors can be built from 0D, 1D, 2D or 3D+ tensors. "
                 + "Received x of shape: {}.".format(x.shape)
             )
+            
+        self._dtype = self.tools.dtypename(self.tools.dtype(x))
 
     def fixvariables(self):
         r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
@@ -253,7 +252,7 @@ class GenericLazyTensor:
         for v in self.variables:
             idv = id(v)
             if type(v) == list:
-                v = self.tools.array(v, self.dtype, device)
+                v = self.tools.array(v, self._dtype, device)
 
             # Replace "Var(idv," by "Var(i," and increment 'i':
             tag = "Var({},".format(idv)
@@ -345,7 +344,8 @@ class GenericLazyTensor:
         """
         res = self.lt_constructor()
         res.tools = self.tools
-        res.dtype = self.dtype
+        res._dtype = self._dtype
+        res.is_complex = self.is_complex
         res.Genred = self.Genred
         res.KernelSolve = self.KernelSolve
         res.batchdims = self.batchdims
@@ -365,7 +365,8 @@ class GenericLazyTensor:
         res = self.promote(
             other,
             (
-                "dtype",
+                "_dtype",
+                "is_complex",
                 "tools",
                 "Genred",
                 "KernelSolve",
@@ -392,6 +393,12 @@ class GenericLazyTensor:
 
         The optional argument **dimres** may be used to specify the dimension of the output **result**.
         """
+        
+        # convert to complex valued operations in case self or other is complex
+        if self.is_complex:
+            operation, _, _, is_complex = self.complex_op(operation, None, None, None)
+        else:
+            is_complex = False
 
         # we must prevent any operation if self is the output of a reduction operation,
         # i.e. if it has a reduction_op field
@@ -413,6 +420,7 @@ class GenericLazyTensor:
         else:
             res.formula = "{}({})".format(operation, self.formula)
         res.ndim = dimres
+        res.is_complex = is_complex
         return res
 
     def binary(
@@ -439,6 +447,12 @@ class GenericLazyTensor:
         # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
         if not hasattr(other, "__GenericLazyTensor__"):
             other = self.lt_constructor(other)
+        
+        # convert to complex valued operations in case self or other is complex
+        if self.is_complex or other.is_complex:
+            operation, is_operator, dimcheck, is_complex = self.complex_op(operation, other, is_operator, dimcheck)
+        else:
+            is_complex = False
 
         # we must prevent any operation if self or other is the output of a reduction operation,
         # i.e. if it has a reduction_op field
@@ -474,7 +488,8 @@ class GenericLazyTensor:
 
         res = self.join(other)  # Merge the attributes and variables of both operands
         res.ndim = dimres
-
+        res.is_complex = is_complex
+        
         if not rversion:
             lformula, rformula = self.formula, other.formula
         else:
@@ -678,7 +693,7 @@ class GenericLazyTensor:
             res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
         else:
             res.rec_multVar_highdim = None
-        if res.dtype is not None:
+        if res._dtype is not None:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
             # "res" now becomes a callable object:
             res.callfun = res.Genred(
@@ -686,13 +701,13 @@ class GenericLazyTensor:
                 [],
                 res.reduction_op,
                 res.axis,
-                res.dtype,
+                res._dtype,
                 res.opt_arg,
                 res.formula2,
                 **kwargs_init,
                 rec_multVar_highdim=res.rec_multVar_highdim
             )
-        if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
+        if call and len(res.symbolic_variables) == 0 and res._dtype is not None:
             return res()
         else:
             return res
@@ -801,20 +816,20 @@ class GenericLazyTensor:
         else:
             res.rec_multVar_highdim = None
 
-        if res.dtype is not None:
+        if res._dtype is not None:
             res.fixvariables()
             res.callfun = res.KernelSolve(
                 res.formula,
                 [],
                 res.varformula,
                 res.axis,
-                res.dtype,
+                res._dtype,
                 **kwargs_init,
                 rec_multVar_highdim=res.rec_multVar_highdim
             )
 
-        # we call if call=True, if other is not symbolic, and if the dtype is set
-        if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
+        # we call if call=True, if other is not symbolic, and if the _dtype is set
+        if call and len(other.symbolic_variables) == 0 and res._dtype is not None:
             return res()
         else:
             return res
@@ -837,12 +852,12 @@ class GenericLazyTensor:
             self.kwargs.update({"backend": self.backend})
 
         if (
-            self.dtype is None
+            self._dtype is None
         ):  # This can only happen if we haven't encountered 2D or 3D arrays just yet...
             self.get_tools()
 
-            self.dtype = self.tools.dtypename(
-                self.tools.dtype(args[0])
+            self._dtype = self.tools.dtypename(
+                self.tools._dtype(args[0])
             )  # crash if LazyTensor is called
             self.fixvariables()
 
@@ -854,7 +869,7 @@ class GenericLazyTensor:
                     [],
                     self.formula2,
                     self.axis,
-                    self.dtype,
+                    self._dtype,
                     **kwargs_init,
                     rec_multVar_highdim=self.rec_multVar_highdim
                 )
@@ -864,7 +879,7 @@ class GenericLazyTensor:
                     [],
                     self.reduction_op,
                     self.axis,
-                    self.dtype,
+                    self._dtype,
                     self.opt_arg,
                     self.formula2,
                     **kwargs_init,
@@ -878,7 +893,12 @@ class GenericLazyTensor:
             # we replace by other
             args = (self.other.variables[0],)
 
-        return self.callfun(*args, *self.variables, **self.kwargs)
+        res = self.callfun(*args, *self.variables, **self.kwargs)
+        
+        if self.is_complex:
+            res = self.tools.view_as_complex(res)
+        
+        return res
 
     def __str__(self):
         r"""
@@ -909,6 +929,13 @@ class GenericLazyTensor:
             if hasattr(self, "opt_arg") and self.opt_arg is not None:
                 string += "\n        opt_arg: {}".format(self.opt_arg)
         return string
+    
+    @property
+    def dtype(self):
+        if self.is_complex:
+            return "complex64"
+        else:
+            return self._dtype
 
     @property
     def shape(self):
@@ -916,6 +943,8 @@ class GenericLazyTensor:
         ni = 1 if self.ni is None else self.ni
         nj = 1 if self.nj is None else self.nj
         ndim = 1 if self.ndim is None else self.ndim
+        if self.is_complex:
+            ndim /= 2
         return btch + (ni, nj) if ndim == 1 else btch + (ni, nj, ndim)
 
     @property
@@ -2149,3 +2178,43 @@ class GenericLazyTensor:
         See :meth:`matvec` for further reference.
         """
         return self.T @ v
+        
+        
+        
+    # Operations on complex vectors
+    
+    @property
+    def real(self):
+        if self.is_complex:
+            return self.unary("ComplexReal", dimres=self.shape[-1])
+        else:
+            return self
+        
+    @property
+    def imag(self):
+        if self.is_complex:
+            return self.unary("ComplexImag", dimres=self.shape[-1])
+        else:
+            return 0*self
+        
+    def angle(self):
+        if self.is_complex:
+            return self.unary("ComplexAngle", dimres=self.shape[-1])
+        else:
+            return 0*self
+        
+    def complex_op(self, operation, other, is_operator, dimcheck):
+        if operation == "Sum":
+            return "ComplexSum", None, None, True
+        elif operation == "Abs":
+            return "ComplexAbs", None, None, False
+        elif operation == "ComplexAngle":
+            return "ComplexAngle", None, None, False
+        elif operation == "*":
+            return "ComplexMult", False, "same", True
+        elif operation == "ComplexReal":
+            return "ComplexReal", None, None, False
+        elif operation == "ComplexImag":
+            return "ComplexImag", None, None, False
+        else:
+            return operation, is_operator, dimcheck, True
