@@ -73,6 +73,9 @@ class LazyTensor(GenericLazyTensor):
             x = np.array(x).reshape(1)
 
         if typex == np.ndarray:
+            if np.iscomplexobj(x):
+                self.is_complex = True
+                x = self.tools.view_as_real(x)
             self.infer_dim(x, axis)
 
     def get_tools(self):
@@ -83,4 +86,4 @@ class LazyTensor(GenericLazyTensor):
     def lt_constructor(self, x=None, axis=None):
         return LazyTensor(x=x, axis=axis)
 
-    float_types = [float, np.float16, np.float32, np.float64]
+    float_types = [float, complex, np.float16, np.float32, np.float64, np.complex64, np.complex128]

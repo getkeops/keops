@@ -2203,6 +2203,12 @@ class GenericLazyTensor:
         else:
             return 0*self
         
+    def conj(self):
+        if self.is_complex:
+            return self.unary("Conj", dimres=self._shape[-1])
+        else:
+            return self
+        
     def complex_op(self, operation, other, is_operator, dimcheck):
         if operation == "Sum":
             return "ComplexSum", None, None, True
