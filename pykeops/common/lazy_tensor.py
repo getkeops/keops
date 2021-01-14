@@ -147,7 +147,13 @@ class GenericLazyTensor:
                         "Lists of numbers are handled as Parameter "
                         "variables, with an optional 'axis' argument that is equal to 2."
                     )
-
+                if type(x[0])==complex:
+                    x_ = [None]*(2*len(x))
+                    for i in range(len(x)):
+                        x_[2*i] = x[i].real
+                        x_[2*i+1] = x[i].imag
+                    x = x_
+                    self.is_complex = True
                 self.variables = (x,)
                 self.ndim = len(x)
                 self.axis = 2
@@ -397,6 +403,8 @@ class GenericLazyTensor:
         # convert to complex valued operations in case self or other is complex
         if self.is_complex:
             operation, _, _, is_complex = self.complex_op(operation, None, None, None)
+            if is_complex and dimres is not None:
+                dimres *= 2
         else:
             is_complex = False
 
@@ -451,6 +459,8 @@ class GenericLazyTensor:
         # convert to complex valued operations in case self or other is complex
         if self.is_complex or other.is_complex:
             operation, is_operator, dimcheck, is_complex = self.complex_op(operation, other, is_operator, dimcheck)
+            if is_complex and dimres is not None:
+                dimres *= 2
         else:
             is_complex = False
 

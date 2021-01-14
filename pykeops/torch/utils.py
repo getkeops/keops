@@ -128,14 +128,12 @@ class torchtools:
 
     @staticmethod
     def array(x, dtype=default_dtype, device="cpu"):
-        if dtype == "float32":
-            dtype = torch.float32
-        elif dtype == "float64":
+        if dtype == "float64":
             dtype = torch.float64
         elif dtype == "float16":
             dtype = torch.float16
         else:
-            raise ValueError("[KeOps] data type incompatible with KeOps.")
+            dtype = torch.float32
         return torch.tensor(x, dtype=dtype, device=device)
 
     @staticmethod

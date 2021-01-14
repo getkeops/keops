@@ -5,7 +5,7 @@ import math
 import numpy as np
 from pykeops.numpy import LazyTensor
 
-M, N, D = 100, 200, 3
+M, N, D = 1000, 1000, 3
 
 dtype = 'float32'
 
@@ -33,7 +33,7 @@ def fun(x, y, a, b, backend):
     else:
         conj = np.conj
         angle = np.angle
-    Kxy = angle(x*y).sum(axis=2)
+    Kxy = (x*y+y).sum(axis=2)
     return Kxy.sum(axis=0)
 
 backends = ["numpy", "keops"]

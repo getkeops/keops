@@ -5,7 +5,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-dtype = torch.cfloat
+dtype = torch.complex64
 
 M, N, D = 5, 5, 2
 
@@ -22,7 +22,7 @@ b = 1.54
 
 
 def view_as_real(x):
-    if x.dtype==torch.cfloat:
+    if torch.is_complex(x):
         return torch.view_as_real(x)
     else:
         return x
@@ -34,10 +34,10 @@ def fun(x, y, a, b, backend):
         y = LazyTensor(y)
     elif backend != "torch":
         raise ValueError("wrong backend")
-    Kxy = ((x * y).real).sum(dim=2)
+    Kxy = (x * y).sum(dim=2)
     return Kxy.sum(dim=0)
-
-backends = ["torch", "keops"]
+    
+backends = ["keops","torch"]
 
 out = []
 for backend in backends:
@@ -52,7 +52,7 @@ for backend in backends:
 if len(out) > 1:
     #print(out[0])
     #print(out[1])
-    print("relative error:", (torch.norm(view_as_real(out[0] - out[1])) / torch.norm(view_as_real(out[0]))).item())
+    print("relative error:", (torch.norm(view_as_real(out[0] - out[1]).cpu()) / torch.norm(view_as_real(out[0]).cpu())).item())
 
 if test_grad:
     out_g = []
@@ -67,5 +67,5 @@ if test_grad:
         #print(out_g[1])
         print(
             "relative error grad:",
-            (torch.norm(view_as_real(out_g[0] - out_g[1])) / torch.norm(view_as_real(out_g[0]))).item())
+            (torch.norm(view_as_real(out_g[0] - out_g[1]).cpu()) / torch.norm(view_as_real(out_g[0]).cpu())).item())
         
