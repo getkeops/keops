@@ -10,6 +10,7 @@
 
 namespace keops {
 
+template<class F> struct Real2Complex;
 
 /////////////////////////////////////////////////////////////////////////
 ////      ComplexReal                           ////

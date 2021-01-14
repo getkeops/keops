@@ -60,6 +60,8 @@
 #include "core/formulas/maths/Scal.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/ComplexMult.h"
+#include "core/formulas/maths/ComplexScal.h"
+#include "core/formulas/maths/ComplexRealScal.h"
 #include "core/formulas/maths/ComplexReal.h"
 #include "core/formulas/maths/ComplexImag.h"
 #include "core/formulas/maths/ComplexAbs.h"

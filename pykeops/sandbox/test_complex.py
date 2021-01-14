@@ -7,18 +7,17 @@ from pykeops.torch import LazyTensor
 
 dtype = torch.complex64
 
-M, N, D = 5, 5, 2
+M, N, D = 1000, 1000, 1
 
-test_grad = True
+test_grad = False
 
-device_id = "cpu" # "cuda" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 do_warmup = False
 
-x = torch.rand(M, 1, D, dtype=dtype, requires_grad=test_grad, device=device_id)
-y = torch.rand(1, N, D, dtype=dtype, device=device_id)
-a = -1.23
-b = 1.54
+x = torch.rand(1, N, D, dtype=dtype, requires_grad=test_grad, device=device_id)
+p = torch.rand(1, N, D, dtype=dtype, device=device_id)
+f = torch.rand(M, 1, D, dtype=dtype, device=device_id)
 
 
 def view_as_real(x):
@@ -28,28 +27,23 @@ def view_as_real(x):
         return x
 
 
-def fun(x, y, a, b, backend):
+def fun(x, p, f, backend):
     if backend == "keops":
         x = LazyTensor(x)
-        y = LazyTensor(y)
-        conj = LazyTensor.conj
-        angle = LazyTensor.angle
-    elif backend == "torch":
-        conj = torch.conj
-        angle = torch.angle
-    z = x-y
-    Kxy = z.sum(dim=2).exp()*1j
-    return Kxy.sum(dim=0)
+        p = LazyTensor(p)
+        f = LazyTensor(f)
+    X = x*(-2*math.pi*1j*p*f).exp()
+    return X.sum(dim=0)
     
 backends = ["keops","torch"]
 
 out = []
 for backend in backends:
     if do_warmup:
-        fun(x[: min(M, 100), :, :], y[:, : min(N, 100), :], a, b, backend)
-        fun(x[: min(M, 100), :, :], y[:, : min(N, 100), :], a, b, backend)
+        fun(x[:, : min(N, 100), :], p[:, : min(N, 100), :], f[: min(M, 100), :, :], backend)
+        fun(x[:, : min(N, 100), :], p[:, : min(N, 100), :], f[: min(M, 100), :, :], backend)
     start = time.time()
-    out.append(fun(x, y, a, b, backend).squeeze())
+    out.append(fun(x, p, f, backend).squeeze())
     end = time.time()
     print("time for " + backend + ":", end - start)
 

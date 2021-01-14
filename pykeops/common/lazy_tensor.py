@@ -2229,7 +2229,12 @@ class GenericLazyTensor:
         elif operation == "ComplexAngle":
             return "ComplexAngle", None, None, False
         elif operation == "*":
-            return "ComplexMult", False, "same", True
+            if self._shape[-1] == 1 or other._shape[-1] == 1:
+                return "ComplexRealScal", False, None, True
+            elif self.shape[-1] == 1 or other.shape[-1] == 1:
+                return "ComplexScal", False, None, True
+            else:
+                return "ComplexMult", False, "same", True
         elif operation == "ComplexReal":
             return "ComplexReal", None, None, False
         elif operation == "ComplexImag":
