@@ -67,6 +67,7 @@
 #include "core/formulas/maths/ScalOrMult.h"
 #include "core/formulas/maths/Subtract.h"
 #include "core/formulas/maths/Exp.h"
+#include "core/formulas/maths/ComplexExp.h"
 #include "core/formulas/maths/Sin.h"
 #include "core/formulas/maths/Asin.h"
 #include "core/formulas/maths/Cos.h"

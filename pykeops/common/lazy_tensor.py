@@ -2215,7 +2215,7 @@ class GenericLazyTensor:
         
     def conj(self):
         if self.is_complex:
-            return self.unary("Conj", dimres=self._shape[-1])
+            return self.unary("Conj", dimres=self.shape[-1])
         else:
             return self
         
@@ -2224,6 +2224,8 @@ class GenericLazyTensor:
             return "ComplexSum", None, None, True
         elif operation == "Abs":
             return "ComplexAbs", None, None, False
+        elif operation == "Exp":
+            return "ComplexExp", None, None, True
         elif operation == "ComplexAngle":
             return "ComplexAngle", None, None, False
         elif operation == "*":

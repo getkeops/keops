@@ -11,7 +11,7 @@ M, N, D = 5, 5, 2
 
 test_grad = True
 
-device_id = "cuda" if torch.cuda.is_available() else "cpu"
+device_id = "cpu" # "cuda" if torch.cuda.is_available() else "cpu"
 
 do_warmup = False
 
@@ -32,9 +32,13 @@ def fun(x, y, a, b, backend):
     if backend == "keops":
         x = LazyTensor(x)
         y = LazyTensor(y)
-    elif backend != "torch":
-        raise ValueError("wrong backend")
-    Kxy = (x * y).sum(dim=2)
+        conj = LazyTensor.conj
+        angle = LazyTensor.angle
+    elif backend == "torch":
+        conj = torch.conj
+        angle = torch.angle
+    z = x-y
+    Kxy = z.sum(dim=2).exp()*1j
     return Kxy.sum(dim=0)
     
 backends = ["keops","torch"]
@@ -58,7 +62,10 @@ if test_grad:
     out_g = []
     for k, backend in enumerate(backends):
         start = time.time()
-        out_g.append(torch.autograd.grad((out[k]).abs().sum(), [x])[0])
+        if out[k].is_complex():
+            out_g.append(torch.autograd.grad((out[k].real**2+out[k].imag**2).sum(), [x])[0])
+        else:
+            out_g.append(torch.autograd.grad((out[k]**2).sum(), [x])[0])
         end = time.time()
         print("time for " + backend + " (grad):", end - start)
 
