@@ -393,7 +393,7 @@ class GenericLazyTensor:
 
     # Prototypes for unary and binary operations  ==============================
 
-    def unary(self, operation, dimres=None, opt_arg=None, opt_arg2=None):
+    def unary(self, operation, dimres=None, opt_arg=None, opt_arg2=None, is_complex=False):
         r"""
         Symbolically applies **operation** to **self**, with optional arguments if needed.
 
@@ -403,10 +403,6 @@ class GenericLazyTensor:
         # convert to complex valued operations in case self or other is complex
         if self.is_complex:
             operation, _, _, is_complex = self.complex_op(operation, None, None, None)
-            if is_complex and dimres is not None:
-                dimres *= 2
-        else:
-            is_complex = False
 
         # we must prevent any operation if self is the output of a reduction operation,
         # i.e. if it has a reduction_op field
@@ -2196,28 +2192,34 @@ class GenericLazyTensor:
     @property
     def real(self):
         if self.is_complex:
-            return self.unary("ComplexReal", dimres=self.shape[-1])
+            return self.unary("ComplexReal", dimres=self._shape[-1]//2)
         else:
             return self
         
     @property
     def imag(self):
         if self.is_complex:
-            return self.unary("ComplexImag", dimres=self.shape[-1])
+            return self.unary("ComplexImag", dimres=self._shape[-1]//2)
         else:
             return 0*self
         
     def angle(self):
         if self.is_complex:
-            return self.unary("ComplexAngle", dimres=self.shape[-1])
+            return self.unary("ComplexAngle", dimres=self._shape[-1]//2)
         else:
             return 0*self
         
     def conj(self):
         if self.is_complex:
-            return self.unary("Conj", dimres=self.shape[-1])
+            return self.unary("Conj", dimres=self._shape[-1])
         else:
             return self
+        
+    def exp1j(self):
+        if self.is_complex:
+            return (1j*self).exp()
+        else:
+            return self.unary("ComplexExp1j", dimres=2*self._shape[-1], is_complex=True)
         
     def complex_op(self, operation, other, is_operator, dimcheck):
         if operation == "Sum":
