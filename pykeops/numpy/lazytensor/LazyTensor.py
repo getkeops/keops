@@ -1,6 +1,6 @@
 import numpy as np
 
-from pykeops.common.lazy_tensor import GenericLazyTensor
+from pykeops.common.lazy_tensor import GenericLazyTensor, ComplexGenericLazyTensor
 from pykeops.numpy.utils import numpytools
 
 # Convenient aliases:
@@ -52,35 +52,36 @@ class LazyTensor(GenericLazyTensor):
     efficient reduction routines, which outperform
     standard tensorized implementations by two orders of magnitude.
     """
+    
+    def __new__(self, x=None, axis=None, is_complex=False):
+        if is_complex or numpytools.detect_complex(x):
+            return ComplexLazyTensor(x,axis)
+        else:
+            return object.__new__(self)
 
     def __init__(self, x=None, axis=None):
         super().__init__(x=x, axis=axis)
-
-        # numpy specialization
-        typex = type(x)
-
-        if (
-            typex
-            not in [type(None), tuple, int, float, list, np.ndarray] + self.float_types
-        ):
-            raise TypeError(
-                "LazyTensors should be built from NumPy arrays, "
-                "float/integer numbers, lists of floats or 3-uples of "
-                "integers. Received: {}".format(typex)
-            )
-
-        if typex in self.float_types:  # NumPy scalar -> NumPy array
-            x = np.array(x).reshape(1)
-
-        if typex == np.ndarray:
-            self.infer_dim(x, axis)
 
     def get_tools(self):
         self.tools = numpytools
         self.Genred = numpytools.Genred
         self.KernelSolve = numpytools.KernelSolve
 
-    def lt_constructor(self, x=None, axis=None):
-        return LazyTensor(x=x, axis=axis)
+    def lt_constructor(self, x=None, axis=None, is_complex=False):
+        return LazyTensor(x=x, axis=axis, is_complex=is_complex)
 
-    float_types = [float, np.float16, np.float32, np.float64]
+
+class ComplexLazyTensor(ComplexGenericLazyTensor):
+    r"""
+    """
+
+    def __init__(self, x=None, axis=None):
+        super().__init__(x=x, axis=axis)
+
+    def get_tools(self):
+        self.tools = numpytools
+        self.Genred = numpytools.Genred
+        self.KernelSolve = numpytools.KernelSolve
+
+    def lt_constructor(self, x=None, axis=None, is_complex=True):
+        return LazyTensor(x=x, axis=axis, is_complex=is_complex)

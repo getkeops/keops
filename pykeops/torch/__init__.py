@@ -35,7 +35,7 @@ from .generic.generic_ops import (
     generic_argkmin,
 )
 from .operations import KernelSolve
-from .lazytensor.LazyTensor import LazyTensor, Vi, Vj, Pm
+from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
 
 __all__ = sorted(
     [
