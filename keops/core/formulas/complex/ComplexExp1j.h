@@ -31,8 +31,9 @@ struct ComplexExp1j: UnaryOp<ComplexExp1j, F> {
   static DEVICE INLINE void Operation(TYPE *out, TYPE *inF) {
         #pragma unroll
         for (int i = 0; i < F::DIM; i+=2) {
-            out[i] =  keops_cos(inF[i/2]);
-            out[i+1] = keops_sin(inF[i/2]);
+            keops_sincos(inF[i/2], out+i+1, out+i);
+            //out[i] =  keops_cos(inF[i/2]);
+            //out[i+1] = keops_sin(inF[i/2]);
         }
     }
     

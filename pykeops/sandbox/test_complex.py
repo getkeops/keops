@@ -8,7 +8,7 @@ from pykeops.torch import LazyTensor
 dtype = torch.float32
 dtype_c = torch.complex64
 
-M, N, D = 5, 5, 1
+M, N, D = 1000, 1000, 1
 
 test_grad = False
 
@@ -52,8 +52,8 @@ for backend in backends:
     print("time for " + backend + ":", end - start)
 
 if len(out) > 1:
-    print(out[0])
-    print(out[1])
+    #print(out[0])
+    #print(out[1])
     print("relative error:", (torch.norm(view_as_real(out[0] - out[1]).cpu()) / torch.norm(view_as_real(out[0]).cpu())).item())
 
 if test_grad:
