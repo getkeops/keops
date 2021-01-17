@@ -59,7 +59,7 @@ class LazyTensor(GenericLazyTensor):
         else:
             return object.__new__(self)
 
-    def __init__(self, x=None, axis=None):
+    def __init__(self, x=None, axis=None, is_complex=False):
         super().__init__(x=x, axis=axis)
 
     def get_tools(self):

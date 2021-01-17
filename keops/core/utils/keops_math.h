@@ -35,6 +35,7 @@ DEVICE INLINE float keops_abs(float x) { return fabsf(x); }
 DEVICE INLINE float keops_exp(float x) { return expf(x); } 
 DEVICE INLINE float keops_cos(float x) { return cosf(x); } 
 DEVICE INLINE float keops_sin(float x) { return sinf(x); } 
+DEVICE INLINE void keops_sincos(float x, float *s, float *c) { sincosf(x,s,c); }
 DEVICE INLINE float keops_sqrt(float x) { return sqrtf(x); } 
 DEVICE INLINE float keops_rsqrt(float x) { return rsqrtf(x); } 
 DEVICE INLINE float keops_acos(float x) { return acosf(x); }
