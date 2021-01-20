@@ -42,6 +42,7 @@ Configuration failed to find libgit2 library. Try installing:
   - brew: libgit2 (MacOS)
   - deb: libgit2-dev (Debian, Ubuntu, etc)
   - rpm: libgit2-devel (Fedora, CentOS, RHEL)
+  - pacman: libgit2 (arch)
 
 ### Tests and checks
 
