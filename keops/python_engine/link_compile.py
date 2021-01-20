@@ -1,18 +1,29 @@
 from utils import *
 
 class code_writer:
+    # base class for common formatting operations of C++ code
+    
     def __call__(self):
+        # reads the source_file associated with the class and  
+        # format the code according to rules given in dict_format
         f = open(self.source_file)
         string = f.read()
         f.close()
         return self.format_code(string)
+        
     def format_code(self, string):
+        # format the code according to rules given in dict_format
         return string.format(**self.dict_format)    
     
 class CpuReduc(code_writer):
+    # class for generating the final C++ code, Cpu version
+    
     def __init__(self, red_formula, dtype, dtypeacc):
-        self.source_file = "link_autodiff.cpp"
-        formula = red_formula.formula
+        # - red_formula is instance of Reduction class
+        # - dtype and dtypeacc are strings 
+        
+        self.source_file = "link_autodiff.cpp" 
+        formula = red_formula.formula 
         self.dtype = dtype
         self.dtypeacc = dtypeacc
         pdtype = pointer(dtype)

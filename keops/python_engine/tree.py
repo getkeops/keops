@@ -1,4 +1,7 @@
 class tree:
+    # a custom class for handling a tree structure.
+    # Currently we use it only to recursively print a formula or reduction
+    
     def __str__(self):
         return self.recursive_str()
     
