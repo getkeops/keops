@@ -23,12 +23,7 @@ export TEST_GPU=1
 
 ### Requirements
 
-Before running any R script, you should run the environment setup script (to configure a local `.Renviron` file) with:
-```bash
-bash setup_Renviron.sh
-```
-
-You should also setup a local `Makevars` file to add options to R compilation engine (it backs up any pre-existing version of the `${HOME}/.R/Makevars` file) with:
+Before running any R package installation script, you should also setup a local `Makevars` file to add options to R compilation engine (it backs up any pre-existing version of the `${HOME}/.R/Makevars` file) with:
 ```bash
 bash setup_Makevars.sh
 ```
