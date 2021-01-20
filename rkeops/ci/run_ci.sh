@@ -14,7 +14,11 @@ fi
 cat ${CIDIR}/Makevars > ${HOME}/.R/Makevars
 
 # set up .Rprofile files
-export R_PROFILE_USER=${CIDIR/.Rprofile}
+export R_PROFILE_USER=${CIDIR}/.Rprofile
+
+# set up .Renviron files
+bash ${CIDIR}/setup_Renviron.sh
+export R_ENVIRON_USER=${CIDIR}/.Renviron
 
 # check package build
 Rscript ${CIDIR}/run_check.R
