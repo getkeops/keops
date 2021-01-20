@@ -19,5 +19,6 @@ class tree:
         string = self.string_id + "("
         for child in self.children:
             string += "{},".format(child.recursive_repr())
+        string = string[:-1]
         string += ")"
         return string

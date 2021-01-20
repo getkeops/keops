@@ -23,9 +23,9 @@ class Operation(tree):
         # for explanations.
         # Here we simply surround the piece of code with some C++ comments
         # for clarity of the output.
-        string  = f"\n// Starting code block for {self.string_id}.\n{{\n"
+        string  = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
         string += self.Eval(out, table)
-        string += f"}}\n// Finished code block for {self.string_id}.\n\n"
+        string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
         return string
             
     def __mul__(self, other):
@@ -74,7 +74,8 @@ class UnaryOp(Operation):
             # We first create a new c_variable to store the result of the child operation.
             # This c_variable must have a unique name in the code, to avoid conflicts
             # when we will recursively evaluate nested operations.
-            arg = new_c_variable("arg",out.dtype)
+            template_string_id = "out_" + self.children[0].string_id.lower()
+            arg = new_c_variable(template_string_id,out.dtype)
             # Now we append into string the C++ code to declare the array
             string += f"{value(out.dtype)} {arg()}[{self.children[0].dim}];\n"
             # Now we evaluate the child operation and append the result into string
@@ -110,7 +111,8 @@ class BinaryOp(Operation):
             # We first create a new c_variable to store the result of the child operation.
             # This c_variable must have a unique name in the code, to avoid conflicts
             # when we will recursively evaluate nested operations.
-            arg0 = new_c_variable("arg0",out.dtype)
+            template_string_id = "out_" + self.children[0].string_id.lower()
+            arg0 = new_c_variable(template_string_id,out.dtype)
             # Now we append into string the C++ code to declare the array
             string += f"{value(out.dtype)} {arg0()}[{self.children[0].dim}];\n"
             # Now we evaluate the child operation and append the result into string
@@ -119,7 +121,8 @@ class BinaryOp(Operation):
         if isinstance(self.children[1],Var):
             arg1 = table[self.children[1].ind]
         else:
-            arg1 = new_c_variable("arg1",out.dtype)
+            template_string_id = "out_" + self.children[1].string_id.lower()
+            arg1 = new_c_variable(template_string_id,out.dtype)
             string += f"{value(out.dtype)} {arg1()}[{self.children[1].dim}];\n"
             string += self.children[1](arg1, table)
         # Finally, evaluation of the operation itself
