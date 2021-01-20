@@ -28,6 +28,11 @@ Before running any R script, you should run the environment setup script (to con
 bash setup_Renviron.sh
 ```
 
+You should also setup a local `Makevars` file to add options to R compilation engine (it backs up any pre-existing version of the `${HOME}/.R/Makevars` file) with:
+```bash
+bash setup_Makevars.sh
+```
+
 To install the requirements, you must run:
 ```bash
 Rscript prepare_ci.R
@@ -55,7 +60,7 @@ To run the R package check (equivalent to `R CMD build` and `R CMD check`), you 
 Rscript run_tests.R
 ```
 
-#Vignette to online doc conversion
+### Vignette to online doc conversion
 
 To generate html files from the vignettes that can be integrated into the 
 Sphinx doc, see this script [`./html2doc.sh`](./html2doc.sh).
