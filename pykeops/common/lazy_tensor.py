@@ -946,6 +946,8 @@ class GenericLazyTensor:
         
     @property
     def _shape(self):
+        r"""returns the internal shape of the LazyTensor.
+        """
         btch = () if self.batchdims is None else self.batchdims
         ni = 1 if self.ni is None else self.ni
         nj = 1 if self.nj is None else self.nj
@@ -954,6 +956,8 @@ class GenericLazyTensor:
 
     @property
     def shape(self):
+        r"""returns the shape of the LazyTensor
+        """
         s = self._shape
         if s[-1]==1:
             return s[:-1]
@@ -2192,12 +2196,30 @@ class GenericLazyTensor:
         return self.T @ v
 
     def real2complex(self):
+        r"""
+        Element-wise "real 2 complex" operation - a unary operation.
+
+        ``x.real2complex()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the same tensor as ``x``, but seen as complex-valued (with zero imaginary part for each coefficient)
+        """
         return self.unary("Real2Complex", dimres=2*self._shape[-1], is_complex=True)
         
     def imag2complex(self):
+        r"""
+        Element-wise "imag 2 complex" operation - a unary operation.
+
+        ``x.real2complex()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the multiplication of ``1j`` with ``x``.
+        """
         return self.unary("Imag2Complex", dimres=2*self._shape[-1], is_complex=True)
 
     def exp1j(self):
+        r"""
+        Element-wise "complex exponential of 1j x" operation - a unary operation.
+
+        ``x.exp1j()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the complex exponential of ``1j*x``.
+        """
         return self.unary("ComplexExp1j", dimres=2*self._shape[-1], is_complex=True)
 
 
@@ -2208,7 +2230,7 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
     """
 
     def __init__(self, x=None, axis=None):
-        r"""Creates a KeOps symbolic variable.
+        r"""Creates a KeOps symbolic variable of complex dtype.
         """        
         self.get_tools()
         if type(x)==complex:
@@ -2237,6 +2259,8 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
         
     @property
     def shape(self):
+        r"""returns the shape of the complex LazyTensor.
+        """
         s = super()._shape
         s = s[:-1] + (s[-1]//2,)
         if s[-1]==1:
@@ -2249,21 +2273,42 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
 
     @property
     def real(self):
+        r"""
+        Element-wise real part of complex - a unary operation.
+
+        ``z.real`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise real part of ``z``.
+        """
         return self.unary("ComplexReal", dimres=self._shape[-1]//2, is_complex=False)
 
     @property
     def imag(self):
+        r"""
+        Element-wise imaginary part of complex - a unary operation.
+
+        ``z.imag`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise imaginary part of ``z``.
+        """
         return self.unary("ComplexImag", dimres=self._shape[-1]//2, is_complex=False)
                 
     def angle(self):
+        r"""
+        Element-wise angle (or argument) of complex - a unary operation.
+
+        ``z.angle()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise angle of ``z``.
+        """
         return self.unary("ComplexAngle", dimres=self._shape[-1]//2, is_complex=False)
         
     def conj(self):
+        r"""
+        Element-wise complex conjugate - a unary operation.
+
+        ``z.conj()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the element-wise complex conjugate of ``z``.
+        """
         return self.unary("Conj", dimres=self._shape[-1], is_complex=True)
         
-    def exp(self):
-        return self.unary("ComplexExp", dimres=self._shape[-1], is_complex=True)
-                
     def sum(self, axis=-1, dim=None, **kwargs):
         if dim is not None:
             axis = dim
@@ -2273,9 +2318,21 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
             return self.reduction("Sum", axis=axis, **kwargs)
             
     def __abs__(self):
+        r"""
+        Element-wise absolute value (or modulus) of complex - a unary operation.
+
+        ``z.abs()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise absolute value of ``z``.
+        """
         return self.unary("ComplexAbs", dimres=self._shape[-1]//2, is_complex=False)
  
     def exp(self):
+        r"""
+        Element-wise complex exponential - a unary operation.
+
+        ``z.exp()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the element-wise complex exponential of ``z``.
+        """
         return self.unary("ComplexExp", dimres=self._shape[-1], is_complex=True)
         
     def mulop(self, other, **kwargs):
