@@ -64,5 +64,22 @@ class Sum_Reduction(Reduction):
         # updated during the reduction, with possibly a cast if the accumulator was of
         # different data type.
         return VectCopy(self.dim, out, acc)
+    
+    def DiffT(self, v, gradin, f0=None):
+        return Sum_Reduction(Grad(self.formula,v,gradin),v.cat%2)
         
 
+
+#/////////////////////////////////////////////////////////////
+#///      GRADIENT OPERATOR  : Grad< F, V, Gradin >       ////
+#/////////////////////////////////////////////////////////////
+
+# Defines [\partial_V F].gradin function
+# Symbolic differentiation is a straightforward recursive operation,
+# provided that the operators have implemented their DiffT "compiler methods":
+def Grad(formula,v,gradin):
+    return formula.DiffT(v,gradin)
+        
+# same with additional saved forward variable. This is only used for taking gradients of reductions operations.
+def Grad_WithSavedForward(red_formula, v, gradin, f0):
+    return red_formula.DiffT(v,gradin,f0)
