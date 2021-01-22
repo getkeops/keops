@@ -23,7 +23,7 @@ def cast_to(dtype):
     # returns C++ code string to do a cast ; e.g. "(float)" if dtype is "float" for example
     return f"({dtype})"
 
-def VectAssign(out, dim, val):
+def VectAssign(dim, out, val):
     # returns C++ code string to fill all elements of a fixed size array with a single value
     # out is c_variable representing the array, dim is the size, val is a c_variable representing the value.
     return f"#pragma unroll\nfor(int k=0; k<{dim}; k++)\n    {out()}[k] = {cast_to(value(out.dtype))}({val()});"

@@ -1,5 +1,5 @@
 from tree import tree
-from utils import new_c_variable, VectApply, VectCopy, VectApply2, value, keops_exp, cast_to
+from utils import *
 
 class Operation(tree):
     
@@ -100,7 +100,7 @@ class Var(Operation):
         
     # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects
     def __eq__(self, other):
-        return self.ind == other.ind and self.dim == other.dim and self.cat == other.cat 
+        return type(self)==type(other) and self.ind == other.ind and self.dim == other.dim and self.cat == other.cat 
     def __hash__(self):
         return hash((self.ind,self.dim,self.cat))
         
@@ -151,7 +151,7 @@ class IntConstant(Operation):
         return self.recursive_str()
         
     def Op(self, out, table):
-        return f"*{out()} = {cast_to(out.dtype)}((float){self.value});\n"
+        return f"*{out()} = {cast_to(value(out.dtype))}((float){self.value});\n"
 
     def DiffT(self,v,gradin):
         return Zero(v.dim)
@@ -202,14 +202,9 @@ class Exp(VectorizedScalarUnaryOp):
         f = self.children[0]
         return f.DiffT(v,Exp(f)*gradin)
     
-class Minus(VectorizedScalarUnaryOp):
+class Minus_(VectorizedScalarUnaryOp):
     # the "minus" vectorized operation
     string_id = "Minus"
-    def __new__(self, arg):
-        if isinstance(arg,Zero):
-            return arg
-        else:
-            return super().__new__(self)
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -217,15 +212,16 @@ class Minus(VectorizedScalarUnaryOp):
     def DiffT(self,v,gradin):
         f = self.children[0]
         return -f.DiffT(v,gradin)
-        
-class Square(VectorizedScalarUnaryOp):
+
+def Minus(arg):
+    if isinstance(arg,Zero):
+        return arg
+    else:
+        return Minus_(arg)
+            
+class Square_(VectorizedScalarUnaryOp):
     # the square vectorized operation
     string_id = "Square"
-    def __new__(self, arg):
-        if isinstance(arg,Zero):
-            return arg
-        else:
-            return super().__new__(self)
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -233,16 +229,17 @@ class Square(VectorizedScalarUnaryOp):
     def DiffT(self,v,gradin):
         # [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
         f = self.children[0]
-        return IntConstant(2) * f.DiffT(v, f*gradin);
-        
-class Sum(Operation):
+        return IntConstant(2) * f.DiffT(v, f*gradin)
+
+def Square(arg):
+    if isinstance(arg,Zero):
+        return arg
+    else:
+        return Square_(arg)
+                
+class Sum_(Operation):
     # the summation operation
     string_id = "Sum"
-    def __new__(self, arg):
-        if isinstance(arg,Zero):
-            return Zero(1)
-        else:
-            return super().__new__(self)
     dim = 1
     def Op(self, out, table, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
@@ -256,14 +253,15 @@ class Sum(Operation):
         f = self.children[0]
         return f.DiffT(v,SumT(gradin,f.dim))
 
-class SumT(Operation):
+def Sum(arg):
+    if isinstance(arg,Zero):
+        return Zero(1)
+    else:
+        return Sum_(arg)
+
+class SumT_(Operation):
     # the adjoint of the summation operation
     string_id = "SumT"
-    def __new__(self, arg, dim):
-        if isinstance(arg,Zero):
-            return Zero(dim)
-        else:
-            return super().__new__(self)
     def __init__(self, arg, dim):
         super().__init__(arg)
         self.dim = dim
@@ -276,16 +274,15 @@ class SumT(Operation):
         f = self.children[0]
         return f.DiffT(v,Sum(gradin))
 
-class Mult(VectorizedScalarBinaryOp):
+def SumT(arg, dim):
+    if isinstance(arg,Zero):
+        return Zero(dim)
+    else:
+        return SumT_(arg,dim)    
+            
+class Mult_(VectorizedScalarBinaryOp):
     # the binary multiply operation
-    string_id = "Mult"
-    def __new__(self, arg0, arg1):
-        if isinstance(arg0,Zero):
-            return arg0
-        elif isinstance(arg1,Zero):
-            return arg1
-        else:
-            return super().__new__(self)
+    string_id = "Mult"        
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -295,16 +292,17 @@ class Mult(VectorizedScalarBinaryOp):
         fa, fb = self.children
         return fa.DiffT(v,fb*gradin) + fb.DiffT(v,fa*gradin)
 
-class Add(VectorizedScalarBinaryOp):
+def Mult(arg0, arg1):
+    if isinstance(arg0,Zero):
+        return arg0
+    elif isinstance(arg1,Zero):
+        return arg1
+    else:
+        return Mult_(arg0, arg1)
+        
+class Add_(VectorizedScalarBinaryOp):
     # the binary addition operation
     string_id = "Add"
-    def __new__(self, arg0, arg1):
-        if isinstance(arg0,Zero):
-            return arg1
-        elif isinstance(arg1,Zero):
-            return arg0
-        else:
-            return super().__new__(self)
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -313,16 +311,17 @@ class Add(VectorizedScalarBinaryOp):
         fa, fb = self.children
         return fa.DiffT(v,gradin) + fb.DiffT(v,gradin)
 
-class Subtract(VectorizedScalarBinaryOp):
+def Add(arg0, arg1):
+    if isinstance(arg0,Zero):
+        return arg1
+    elif isinstance(arg1,Zero):
+        return arg0
+    else:
+        return Add_(arg0, arg1)
+        
+class Subtract_(VectorizedScalarBinaryOp):
     # the binary subtract operation
     string_id = "Subtract"
-    def __new__(self, arg0, arg1):
-        if isinstance(arg0,Zero):
-            return -arg1
-        elif isinstance(arg1,Zero):
-            return arg0
-        else:
-            return super().__new__(self)
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -331,6 +330,12 @@ class Subtract(VectorizedScalarBinaryOp):
         fa, fb = self.children
         return fa.DiffT(v,gradin) - fb.DiffT(v,gradin)
 
-
+def Subtract(arg0, arg1):
+    if isinstance(arg0,Zero):
+        return -arg1
+    elif isinstance(arg1,Zero):
+        return arg0
+    else:
+        return Subtract_(arg0, arg1)
 
 
