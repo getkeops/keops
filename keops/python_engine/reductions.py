@@ -1,4 +1,5 @@
 from tree import tree
+from operations import Var
 from utils import GetDims, GetInds, c_variable, VectAssign, VectApply, VectCopy, cast_to
 
 class Reduction(tree):
@@ -41,12 +42,13 @@ class Sum_Reduction(Reduction):
         super().__init__(formula, tagIJ)
         self.dim = formula.dim                      # dimension of final output of reduction
         self.dimred = self.dim                      # dimension of inner reduction variables
+        self._Vars = formula._Vars
         
     def InitializeReduction(self, tmp):
         # Returns C++ code to be used at initialization phase of the reduction.
         # Here it consists in setting the output array to zero.
         zero = c_variable("0.0f","float")
-        return VectAssign(tmp, self.dim, zero)
+        return VectAssign(self.dim, tmp, zero)
         
     def ReducePairScalar(self, tmp, xi):
         # Subroutine of ReducePairShort and ReducePair methods.
@@ -77,7 +79,14 @@ class Sum_Reduction(Reduction):
 # Defines [\partial_V F].gradin function
 # Symbolic differentiation is a straightforward recursive operation,
 # provided that the operators have implemented their DiffT "compiler methods":
-def Grad(formula,v,gradin):
+def Grad(formula,v,gradin=None):
+    if gradin==None:
+        if v.cat==2:
+            raise ValueError("not implemented")
+        ind = 1 + max(GetInds(formula._Vars))
+        dim = formula.dim
+        cat = 1-v.cat
+        gradin = Var(ind,dim,cat) 
     return formula.DiffT(v,gradin)
         
 # same with additional saved forward variable. This is only used for taking gradients of reductions operations.
