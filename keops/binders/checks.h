@@ -126,7 +126,7 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
 
   if (pos > -1) {
     // Are we working in batch mode? Infer the answer from the first arg =============
-    nbatchdims =  get_ndim(args[pos]) - 2;  // number of batch dimensiosn = Number of dims of the first tensor - 2
+    nbatchdims =  get_ndim(args[pos]) - 2;  // number of batch dimensions = Number of dims of the first tensor - 2
 
     if (nbatchdims < 0) {
       keops_error("[KeOps] Wrong number of dimensions for arg at position 0: is "
@@ -154,9 +154,18 @@ void Sizes< array_t >::fill_shape(int nargs, array_t* args) {
   // Now, we'll keep track of the output + all arguments' shapes in a large array:
   _shapes.resize((nargs + 1) * (nbatchdims + 3), 1);
   
-  _shapes[nbatchdims] = nx;
-  
-  _shapes[nbatchdims + 1] = ny;
+  #if USE_HALF
+    if(keops_tagIJ==0) {
+        _shapes[nbatchdims] = nx%2? nx+1 : nx;
+        _shapes[nbatchdims + 1] = 2*ny;
+    } else {
+        _shapes[nbatchdims] = 2*nx;
+        _shapes[nbatchdims + 1] = ny%2? ny+1 : ny;
+    }
+  #else
+    _shapes[nbatchdims] = nx;
+    _shapes[nbatchdims + 1] = ny;
+  #endif
   
   _shapes[nbatchdims + 2] = keops_dimout;   // Top right corner: dimension of the output
   

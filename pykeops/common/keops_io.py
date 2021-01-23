@@ -66,8 +66,8 @@ class LoadKeOps:
     def import_module(self):
         full_dll_name = self.dll_name + "." + self.template_name
         module_bin_folder = os.path.dirname(
-                os.path.dirname(importlib.util.find_spec(full_dll_name).origin)
-            )
+            os.path.dirname(importlib.util.find_spec(full_dll_name).origin)
+        )
         if not os.path.samefile(
             module_bin_folder,
             pykeops.config.bin_folder,

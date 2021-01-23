@@ -44,11 +44,14 @@ def get_or_build_pybind11_template(
         dtype, lang, include_dirs
     )
     template_build_folder = (
-        pykeops.config.bin_folder + "/build-pybind11_template-" + template_name
+        pykeops.config.bin_folder
+        + os.path.sep
+        + "build-pybind11_template-"
+        + template_name
     )
 
     is_rebuilt = False
-    if not os.path.exists(template_build_folder + "/CMakeCache.txt"):
+    if not os.path.exists(template_build_folder + os.path.sep + "CMakeCache.txt"):
         is_rebuilt = True
         print(
             "[pyKeOps] Compiling pybind11 template "
@@ -142,7 +145,8 @@ def get_build_folder_name_and_command(dtype, lang, include_dirs):
     ] + include_dirs
     build_folder = (
         pykeops.config.bin_folder
-        + "/build-"
+        + os.path.sep
+        + "build-"
         + sha256("".join(command_line).encode("utf-8")).hexdigest()[:10]
     )
     return build_folder, command_line
@@ -270,7 +274,7 @@ def compile_generic_routine(
         pykeops.config.bin_folder + os.path.sep + dllname + os.path.sep + fname,
     )
 
-    print("done.", flush=True)
+    print("Done.", flush=True)
 
 
 def compile_specific_conv_routine(dllname, dtype, build_folder):
