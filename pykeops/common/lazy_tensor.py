@@ -946,10 +946,13 @@ class GenericLazyTensor:
         ``x + y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the addition of ``x`` and ``y``.
         """
-        if other == 0:
-            return self
-        else:
-            return self.binary(other, "+", is_operator=True)
+        try:  # Special cases
+            if other == 0:
+                return self
+        except RuntimeError:  # May happen if "other" is an array
+            pass
+            
+        return self.binary(other, "+", is_operator=True)
 
     def __radd__(self, other):
         r"""
@@ -958,10 +961,13 @@ class GenericLazyTensor:
         ``x + y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the addition of ``x`` and ``y``.
         """
-        if other == 0:
-            return self
-        else:
-            return self.binary(other, "+", is_operator=True, rversion=True)
+        try:  # Special cases
+            if other == 0:
+                return self
+        except RuntimeError:  # May happen if "other" is an array
+            pass
+
+        return self.binary(other, "+", is_operator=True, rversion=True)
 
     def __sub__(self, other):
         r"""
@@ -970,10 +976,13 @@ class GenericLazyTensor:
         ``x - y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the subtraction of ``x`` and ``y``.
         """
-        if other == 0:
-            return self
-        else:
-            return self.binary(other, "-", is_operator=True)
+        try:  # Special cases
+            if other == 0:
+                return self
+        except RuntimeError:  # May happen if "other" is an array
+            pass
+
+        return self.binary(other, "-", is_operator=True)
 
     def __rsub__(self, other):
         r"""
@@ -982,10 +991,14 @@ class GenericLazyTensor:
         ``x - y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the subtraction of ``x`` and ``y``.
         """
-        if other == 0:
-            return self.unary("Minus")
-        else:
-            return self.binary(other, "-", is_operator=True, rversion=True)
+
+        try:  # Special cases
+            if other == 0:
+                return self.unary("Minus")
+        except RuntimeError:  # May happen if "other" is an array
+            pass
+
+        return self.binary(other, "-", is_operator=True, rversion=True)
 
     def __mul__(self, other):
         r"""
@@ -994,14 +1007,18 @@ class GenericLazyTensor:
         ``x * y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise product of ``x`` and ``y``.
         """
-        if other == 0:
-            return 0
-        elif other == 1:
-            return self
-        elif other == -1:
-            return self.unary("Minus")
-        else:
-            return self.binary(other, "*", is_operator=True)
+
+        try:  # Special cases
+            if other == 0:
+                return 0
+            elif other == 1:
+                return self
+            elif other == -1:
+                return self.unary("Minus")
+        except RuntimeError:  # May happen if "other" is an array
+            pass
+
+        return self.binary(other, "*", is_operator=True)
 
     def __rmul__(self, other):
         r"""
@@ -1010,14 +1027,18 @@ class GenericLazyTensor:
         ``x * y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise product of ``x`` and ``y``.
         """
-        if other == 0:
-            return 0
-        elif other == 1:
-            return self
-        elif other == -1:
-            return self.unary("Minus")
-        else:
-            return self.binary(other, "*", is_operator=True, rversion=True)
+
+        try:  # Special cases
+            if other == 0:
+                return 0
+            elif other == 1:
+                return self
+            elif other == -1:
+                return self.unary("Minus")
+        except RuntimeError:  # May happen if "other" is an array
+            pass
+
+        return self.binary(other, "*", is_operator=True, rversion=True)
 
     def __truediv__(self, other):
         r"""
@@ -1041,12 +1062,16 @@ class GenericLazyTensor:
         ``x / y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise division of ``x`` by ``y``.
         """
-        if other == 0:
-            return 0
-        elif other == 1:
-            return self.unary("Inv")
-        else:
-            return self.binary(other, "/", is_operator=True, rversion=True)
+
+        try:  # Special cases
+            if other == 0:
+                return 0
+            elif other == 1:
+                return self.unary("Inv")
+        except RuntimeError:  # May happen if "other" is an array
+            pass
+
+        return self.binary(other, "/", is_operator=True, rversion=True)
 
     def __or__(self, other):
         r"""

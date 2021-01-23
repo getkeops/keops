@@ -627,7 +627,7 @@ def run_KNN_benchmark(name, loops=[1]):
     if keops_only:
         routines = [(KNN_KeOps, "KeOps (GPU)", {})]
     elif jax_only:
-        routines = [(KNN_JAX_batch_loop, "JAX (small batches, GPU)", {})]        
+        routines = [(KNN_JAX_batch_loop, "JAX (small batches, GPU)", {})]
     else:
         routines = [
         (KNN_KeOps, "KeOps (GPU)", {}),
@@ -686,6 +686,7 @@ def run_KNN_benchmark(name, loops=[1]):
 # Note that the HNSW, IVF-Flat and scikit-learn functions
 # incur a significant "training" pre-processing time,
 # detailed below the curves.
+#
 
 run_KNN_benchmark("R^D a", loops=[10, 1])
 
