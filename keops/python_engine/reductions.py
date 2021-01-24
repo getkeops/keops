@@ -13,6 +13,7 @@ class Reduction(tree):
         # We initialize several constants, most of them infered from the formula
         self.formula = formula
         self.children = [formula]
+        self.params = (tagI,)
         self.tagI = tagI
         self.tagJ = 1-tagI
         self.cat = tagI

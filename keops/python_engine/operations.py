@@ -8,6 +8,7 @@ class Operation(tree):
     def __init__(self, *args):
         # *args are other instances of Operation, they are the child operations of self
         self.children = args
+        self.params = ()
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class
         self._Vars = set.union(*(arg._Vars for arg in args)) if len(args)>0 else set()
@@ -58,6 +59,10 @@ class Operation(tree):
         # f*g redirects to Mult(f,g)
         return Mult(self, other)
         
+    def __rmul__(self, other):
+        # g*f redirects to Mult(f,g)
+        return Mult(self, other)
+        
     def __add__(self, other):
         # f+g redirects to Add(f,g)
         return Add(self, other)
@@ -69,6 +74,14 @@ class Operation(tree):
     def __neg__(self):
         # -f redirects to Minus(f)
         return Minus(self)
+        
+    def __pow__(self, other):
+        # f**2 redirects to Square(f)
+        if other==2:
+            return Square(self)
+        else:
+            print("not implemented")
+            
             
 
         
@@ -91,12 +104,7 @@ class Var(Operation):
         self.dim = dim
         self.cat = cat
         self._Vars = {self}
-        
-    # custom methods for printing the object
-    def recursive_str(self, depth=0):
-        return "Var({},{},{})".format(self.ind, self.dim, self.cat)
-    def recursive_repr(self):
-        return self.recursive_str()
+        self.params = (ind, dim, cat)
         
     # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects
     def __eq__(self, other):
@@ -121,12 +129,11 @@ class Zero(Operation):
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
-        
-    # custom methods for printing the object
-    def recursive_str(self, depth=0):
-        return "Zero({})".format(self.dim)
-    def recursive_repr(self):
-        return self.recursive_str()
+        self.params = (dim,)
+    
+    # custom __eq__ method
+    def __eq__(self, other):
+        return type(self)==type(other) and self.dim==other.dim
         
     def Op(self, out, table):
         zero = c_variable("0.0f","float")
@@ -138,17 +145,17 @@ class Zero(Operation):
 class IntConstant(Operation):
     # constant integer "operation"
     string_id = "IntConstant"
+    print_spec = "", "pre", 0
     
     def __init__(self, value):
         super().__init__()
         self.value = value
         self.dim = 1
+        self.params = (value,)
         
-    # custom methods for printing the object
-    def recursive_str(self, depth=0):
-        return "IntConstant({})".format(self.value)
-    def recursive_repr(self):
-        return self.recursive_str()
+    # custom __eq__ method
+    def __eq__(self, other):
+        return type(self)==type(other) and self.value==other.value
         
     def Op(self, out, table):
         return f"*{out()} = {cast_to(value(out.dtype))}((float){self.value});\n"
@@ -205,6 +212,7 @@ class Exp(VectorizedScalarUnaryOp):
 class Minus_(VectorizedScalarUnaryOp):
     # the "minus" vectorized operation
     string_id = "Minus"
+    print_spec = "-", "pre", 2
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -222,6 +230,7 @@ def Minus(arg):
 class Square_(VectorizedScalarUnaryOp):
     # the square vectorized operation
     string_id = "Square"
+    print_spec = "**2", "post", 1
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -245,7 +254,7 @@ class Sum_(Operation):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
         string = f"*{out()} = {cast_to(value(out.dtype))}(0.0f);\n"
-        string += VectApply(self.ScalarOp, 1, self.dim, out, arg)
+        string += VectApply(self.ScalarOp, 1, self.children[0].dim, out, arg)
         return string
     def ScalarOp(self,out,arg):
         return f"{out()} += {arg()};\n"
@@ -265,6 +274,9 @@ class SumT_(Operation):
     def __init__(self, arg, dim):
         super().__init__(arg)
         self.dim = dim
+        self.params = (dim,)
+    def __eq__(self, other):
+        return type(self)==type(other) and self.dim==other.dim
     def Op(self, out, table, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -282,7 +294,8 @@ def SumT(arg, dim):
             
 class Mult_(VectorizedScalarBinaryOp):
     # the binary multiply operation
-    string_id = "Mult"        
+    string_id = "Mult" 
+    print_spec = "*", "mid", 3       
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -297,12 +310,15 @@ def Mult(arg0, arg1):
         return arg0
     elif isinstance(arg1,Zero):
         return arg1
+    elif isinstance(arg1,int):
+        return Mult_(IntConstant(arg1),arg0)
     else:
         return Mult_(arg0, arg1)
         
 class Add_(VectorizedScalarBinaryOp):
     # the binary addition operation
     string_id = "Add"
+    print_spec = "+", "mid", 4
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
@@ -316,12 +332,15 @@ def Add(arg0, arg1):
         return arg1
     elif isinstance(arg1,Zero):
         return arg0
+    elif arg0==arg1:
+        return IntConstant(2)*arg0
     else:
         return Add_(arg0, arg1)
         
 class Subtract_(VectorizedScalarBinaryOp):
     # the binary subtract operation
     string_id = "Subtract"
+    print_spec = "-", "mid", 4
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out

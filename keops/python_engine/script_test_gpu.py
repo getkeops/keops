@@ -1,6 +1,6 @@
 from operations import *
 from reductions import *
-from link_compile import CpuReduc
+from link_compile import GpuReduc1D
 import time
 import os
 
@@ -16,7 +16,11 @@ h = Grad(g,x)
 k = Grad(h,x)
 l = Grad(k,x)
 nargs = 6
-myred = CpuReduc(f,dtype="float",dtypeacc="float",nargs=nargs)
+myred = GpuReduc1D(f,dtype="float",dtypeacc="float",nargs=nargs)
+
+myred.write_code()
+
+"""
 myred.compile_code()
 elapsed = time.time() - start
 print("time for compile : ",elapsed)
@@ -37,14 +41,14 @@ c = torch.ones(N, D)
 d = torch.ones(N, D)
 out = torch.zeros(N)
 
-for k in range(4):
+for k in range(10):
     start = time.time()
     myred(N, N, out, x, y, a, b, c, d)
     elapsed = time.time() - start
     print(f"time for eval (run {k}) : {elapsed}")
 
 import torch
-for k in range(4):
+for k in range(10):
     start = time.time()
     x_ = (x[:,None,:])
     y_ = (y[None,:,:])
@@ -56,6 +60,7 @@ for k in range(4):
 
 print((torch.norm(out_-out)/torch.norm(out_)).item())
 
+"""
 
 
 
