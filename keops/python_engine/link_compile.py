@@ -57,7 +57,7 @@ class CpuReduc(genred):
         # - red_formula is instance of Reduction class
         # - dtype and dtypeacc are strings 
         
-        self.source_file = "link_autodiff.cpp" 
+        self.source_file = "CpuReduc.cpp" 
         formula = red_formula.formula 
         self.dtype = dtype
         self.dtypeacc = dtypeacc
@@ -77,7 +77,7 @@ class CpuReduc(genred):
         j = c_variable("j","int")
         pp = c_variable("pp",pdtype)
         outi = c_variable(f"(out + i * {red_formula.dim})", out.dtype) 
-        inds = GetInds(formula._Vars)
+        inds = GetInds(formula.Vars_)
         nminargs = max(inds)+1
         table = [None]*nminargs
         loadp, table = load_vars(red_formula.dimsp, red_formula.indsp, zero, pp, args, table)
@@ -145,7 +145,7 @@ class GpuReduc1D(genred):
         jreltile = c_variable("(jrel + tile * blockDim.x)","int")
         param_loc = c_variable("param_loc",pdtype)
         outi = c_variable(f"(out + i * {red_formula.dim})", out.dtype) 
-        inds = GetInds(formula._Vars)
+        inds = GetInds(formula.Vars_)
         nminargs = max(inds)+1
         table = [None]*nminargs
         yjrel = c_variable("yjrel",pdtype)

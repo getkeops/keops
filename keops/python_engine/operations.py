@@ -11,16 +11,16 @@ class Operation(tree):
         self.params = ()
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class
-        self._Vars = set.union(*(arg._Vars for arg in args)) if len(args)>0 else set()
+        self.Vars_ = set.union(*(arg.Vars_ for arg in args)) if len(args)>0 else set()
         
     def Vars(self, cat="all"):
-        # if cat=="all", returns the list of all variables in a formula, stored in self._Vars
+        # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_
         # if cat is an integer between 0 and 2, returns the list of variables v such that v.cat=cat
         if cat=="all":
             return list(self.Vars_)
         else:
             res = []
-            for v in self._Vars:
+            for v in self.Vars_:
                 if v.cat == cat:
                     res.append(v)
             return res
@@ -103,7 +103,7 @@ class Var(Operation):
         self.ind = ind
         self.dim = dim
         self.cat = cat
-        self._Vars = {self}
+        self.Vars_ = {self}
         self.params = (ind, dim, cat)
         
     # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects
