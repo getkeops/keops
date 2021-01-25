@@ -48,9 +48,10 @@ def load_args(nargs):
 class CpuReduc(genred):
     # class for generating the final C++ code, Cpu version
     
-    gencode_file = "test.cpp"
-    compile_command = "g++ -dynamiclib -O3 test.cpp -o test.dylib"
-    dllname = "test.dylib"
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    gencode_file = dir_path + os.path.sep + "test.cpp"
+    dllname = dir_path + os.path.sep + "test.so"
+    compile_command = f"g++ -shared -O3 {gencode_file} -o {dllname}"
     
     def __init__(self, red_formula, dtype, dtypeacc, nargs):
         # - red_formula is instance of Reduction class
@@ -114,9 +115,10 @@ class CpuReduc(genred):
 class GpuReduc1D(genred):
     # class for generating the final C++ code, Gpu version
     
-    gencode_file = "test.cu"
-    compile_command = "nvcc -shared -Xcompiler -fPIC -O3 test.cu -o test.so"
-    dllname = "/home/glaunes/Bureau/keops/keops/python_engine/test.so"
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    gencode_file = dir_path + os.path.sep + "test.cu"
+    dllname = dir_path + os.path.sep + "test.so"
+    compile_command = f"nvcc -shared -Xcompiler -fPIC -O3 {gencode_file} -o {dllname}"
     
     def __init__(self, red_formula, dtype, dtypeacc, nargs):
         # - red_formula is instance of Reduction class
