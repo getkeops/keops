@@ -43,7 +43,7 @@ class Sum_Reduction(Reduction):
         super().__init__(formula, tagIJ)
         self.dim = formula.dim                      # dimension of final output of reduction
         self.dimred = self.dim                      # dimension of inner reduction variables
-        self._Vars = formula._Vars
+        self.Vars_ = formula.Vars_
         
     def InitializeReduction(self, tmp):
         # Returns C++ code to be used at initialization phase of the reduction.
@@ -84,7 +84,7 @@ def Grad(formula,v,gradin=None):
     if gradin==None:
         if v.cat==2:
             raise ValueError("not implemented")
-        inds = GetInds(formula._Vars)
+        inds = GetInds(formula.Vars_)
         ind = 1 + max(inds) if len(inds)>0 else 0
         dim = formula.dim
         cat = 1-v.cat
