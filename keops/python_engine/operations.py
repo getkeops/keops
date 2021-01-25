@@ -179,7 +179,7 @@ class VectorizedScalarUnaryOp(Operation):
     def Op(self, out, table, arg):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
-        return VectApply(self.ScalarOp, self.dim, self.dim, out, arg)
+        return VectApply(self.ScalarOp, self.dim, self.children[0].dim, out, arg)
         
 
 class VectorizedScalarBinaryOp(Operation):
@@ -195,7 +195,7 @@ class VectorizedScalarBinaryOp(Operation):
     def Op(self, out, table, arg0, arg1):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
-        return VectApply2(self.ScalarOp, self.dim, self.dim, self.dim, out, arg0, arg1)
+        return VectApply2(self.ScalarOp, self.dim, self.children[0].dim, self.children[1].dim, out, arg0, arg1)
         
 class Exp(VectorizedScalarUnaryOp):
     # the exponential vectorized operation

@@ -31,7 +31,7 @@ class genred:
         if self.dll is None:
             self.load_dll()
         c_args = [c_void_p(x.data_ptr()) for x in args]
-        self.dll.CpuReduc(c_int(nx), c_int(ny), c_void_p(out.data_ptr()), *c_args)
+        self.dll.Eval(c_int(nx), c_int(ny), c_void_p(out.data_ptr()), *c_args)
             
 def signature_args(nargs, dtype):
     string = ""
@@ -115,8 +115,8 @@ class GpuReduc1D(genred):
     # class for generating the final C++ code, Gpu version
     
     gencode_file = "test.cu"
-    compile_command = "nvcc -shared -O3 test.cu -o test.so"
-    dllname = "test.so"
+    compile_command = "nvcc -shared -Xcompiler -fPIC -O3 test.cu -o test.so"
+    dllname = "/home/glaunes/Bureau/keops/keops/python_engine/test.so"
     
     def __init__(self, red_formula, dtype, dtypeacc, nargs):
         # - red_formula is instance of Reduction class
@@ -133,14 +133,14 @@ class GpuReduc1D(genred):
         formula = red_formula.formula
         acc = c_variable("acc",pdtypeacc)
         xi = c_variable("xi",pdtype)
-        yjloc = c_variable(f"yj + threadIdx.x * {red_formula.dimy}",pdtype)
+        yjloc = c_variable(f"(yj + threadIdx.x * {red_formula.dimy})",pdtype)
         fout = c_variable("fout",pdtype)
         out = c_variable("out",pdtype)
         args = c_variable("args",pointer(pdtype))
         zero = c_variable("0","int")
         i = c_variable("i","int")
         j = c_variable("j","int")
-        jreltile = c_variable("jrel + tile * blockDim.x","int")
+        jreltile = c_variable("(jrel + tile * blockDim.x)","int")
         param_loc = c_variable("param_loc",pdtype)
         outi = c_variable(f"(out + i * {red_formula.dim})", out.dtype) 
         inds = GetInds(formula._Vars)
