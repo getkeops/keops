@@ -4,7 +4,7 @@
 #include <omp.h>
 #endif
 
-extern "C" int CpuReduc(int nx, int ny, {TYPE}* out {args}) {{
+extern "C" int Eval(int nx, int ny, {TYPE}* out {args}) {{
     {TYPE}* args[{nargs}];
     {loadargs}
     {definep}
