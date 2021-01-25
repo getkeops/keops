@@ -84,7 +84,8 @@ def Grad(formula,v,gradin=None):
     if gradin==None:
         if v.cat==2:
             raise ValueError("not implemented")
-        ind = 1 + max(GetInds(formula._Vars))
+        inds = GetInds(formula._Vars)
+        ind = 1 + max(inds) if len(inds)>0 else 0
         dim = formula.dim
         cat = 1-v.cat
         gradin = Var(ind,dim,cat) 

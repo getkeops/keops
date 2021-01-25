@@ -9,7 +9,7 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
 
   // load parameter(s)
   {TYPE} param_loc[{DIMP} < 1 ? 1 : {DIMP}];
-  loadp //load<DIMSP, INDSP>(0, param_loc, args); // load parameters variables from global memory to local thread memory
+  {loadp} //load<DIMSP, INDSP>(0, param_loc, args); // load parameters variables from global memory to local thread memory
 
   {TYPE} fout[{DIMFOUT}];
   // get the value of variable (index with i)
@@ -50,7 +50,7 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
 
 
 
-  extern int GpuConv1D_FromDevice(int nx, int ny, {TYPE} *out {args}) {{
+  extern "C" __host__ int Eval(int nx, int ny, {TYPE} *out {args}) {{
 
 	{TYPE}* args[{nargs}];
 	{loadargs}
@@ -59,16 +59,16 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
     {TYPE} **args_d;
 
     // single cudaMalloc
-    CudaSafeCall(cudaMalloc(&args_d, sizeof({TYPE} *) * {NMINARGS}));
+    cudaMalloc(&args_d, sizeof({TYPE} *) * {NMINARGS});
 
-    CudaSafeCall(cudaMemcpy(args_d, args, {NMINARGS} * sizeof({TYPE} *), cudaMemcpyHostToDevice));
+    cudaMemcpy(args_d, args, {NMINARGS} * sizeof({TYPE} *), cudaMemcpyHostToDevice);
 
     // Compute on device : grid and block are both 1d
 
-    int dev = -1;
-    CudaSafeCall(cudaGetDevice(&dev));
+    //int dev = -1;
+    //cudaGetDevice(&dev);
 
-    SetGpuProps(dev);
+    //SetGpuProps(dev);
 
     dim3 blockSize;
 
@@ -80,11 +80,11 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
     GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * {DIMY} * sizeof({TYPE}) >>> (nx, ny, out, args_d);
     
     // block until the device has completed
-    CudaSafeCall(cudaDeviceSynchronize());
+    cudaDeviceSynchronize();
 
-    CudaCheckError();
+    //CudaCheckError();
 
-    CudaSafeCall(cudaFree(args_d));
+    cudaFree(args_d);
 
     return 0;
   }}

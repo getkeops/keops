@@ -4,12 +4,13 @@ from link_compile import GpuReduc1D
 import time
 import os
 
-D = 2
+D = 3
 
 start = time.time()
-x = Var(0,2,0)
-y = Var(1,2,1)
-z = Exp(-Sum(Square(x-y)))
+x = Var(0,D,0)
+y = Var(1,D,1)
+a = Var(2,D,0)
+z = x+y #Exp(-Sum(Square(x-y)))*a
 f = Sum_Reduction(z,0)
 g = Grad(f,x)
 h = Grad(g,x)
@@ -18,49 +19,54 @@ l = Grad(k,x)
 nargs = 6
 myred = GpuReduc1D(f,dtype="float",dtypeacc="float",nargs=nargs)
 
-myred.write_code()
-
-"""
 myred.compile_code()
 elapsed = time.time() - start
 print("time for compile : ",elapsed)
 
 
 
-print(g)
-
-
 import torch
 
-N = 1000
-x = torch.ones(N, D)
-y = torch.zeros(N, D)
-a = torch.ones(N, D)
-b = torch.ones(N, D)
-c = torch.ones(N, D)
-d = torch.ones(N, D)
-out = torch.zeros(N)
-
+start = time.time()
+N = 10
+x = torch.zeros(N, D).cuda()
+y = torch.ones(N, D).cuda()
+a = torch.rand(N, D).cuda()
+b = torch.ones(N, D).cuda()
+c = torch.ones(N, D).cuda()
+d = torch.ones(N, D).cuda()
+out = torch.zeros(N,D).cuda()
+elapsed = time.time() - start
+print(f"time for init tensors : {elapsed}")
+    
 for k in range(10):
-    start = time.time()
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
+    start.record()
     myred(N, N, out, x, y, a, b, c, d)
-    elapsed = time.time() - start
-    print(f"time for eval (run {k}) : {elapsed}")
+    end.record()
+    torch.cuda.synchronize()
+    print(f"time for eval (run {k}) : {start.elapsed_time(end)/1000}")
 
 import torch
 for k in range(10):
-    start = time.time()
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
+    start.record()
     x_ = (x[:,None,:])
     y_ = (y[None,:,:])
-    z_ = (-((x_-y_)**2).sum(dim=2)).exp()
+    a_ = (a[:,None,:])
+    K = (-((x_-y_)**2).sum(dim=2)).exp()
+    z_ = x_+y_#K[:,:,None]*a_
     out_ = z_.sum(dim=0)
-    elapsed = time.time() - start
-    print(f"time for torch (run {k}) : {elapsed}")
+    end.record()
+    torch.cuda.synchronize()
+    print(f"time for torch (run {k}) : {start.elapsed_time(end)/1000}")
 
-
+print(out)
+print(out_)
 print((torch.norm(out_-out)/torch.norm(out_)).item())
 
-"""
 
 
 
