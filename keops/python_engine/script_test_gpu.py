@@ -10,12 +10,12 @@ start = time.time()
 x = Var(0,D,0)
 y = Var(1,D,1)
 a = Var(2,D,0)
-z = x+y #Exp(-Sum(Square(x-y)))*a
+z = Exp(-Sum(Square(x-y)))*a
 f = Sum_Reduction(z,0)
-g = Grad(f,x)
-h = Grad(g,x)
-k = Grad(h,x)
-l = Grad(k,x)
+#g = Grad(f,x)
+#h = Grad(g,x)
+#k = Grad(h,x)
+#l = Grad(k,x)
 nargs = 6
 myred = GpuReduc1D(f,dtype="float",dtypeacc="float",nargs=nargs)
 
@@ -29,8 +29,8 @@ import torch
 
 start = time.time()
 N = 10
-x = torch.zeros(N, D).cuda()
-y = torch.ones(N, D).cuda()
+x = torch.rand(N, D, requires_grad=True).cuda()
+y = torch.rand(N, D).cuda()
 a = torch.rand(N, D).cuda()
 b = torch.ones(N, D).cuda()
 c = torch.ones(N, D).cuda()
@@ -57,8 +57,8 @@ for k in range(10):
     y_ = (y[None,:,:])
     a_ = (a[:,None,:])
     K = (-((x_-y_)**2).sum(dim=2)).exp()
-    z_ = x_+y_#K[:,:,None]*a_
-    out_ = z_.sum(dim=0)
+    z_ = K[:,:,None]*a_
+    out_ = z_.sum(dim=1)
     end.record()
     torch.cuda.synchronize()
     print(f"time for torch (run {k}) : {start.elapsed_time(end)/1000}")

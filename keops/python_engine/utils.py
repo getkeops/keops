@@ -140,7 +140,7 @@ def GetInds(Vars):
     return tuple(v.ind for v in Vars)
     
     
-def load_vars(dims, inds, i, xi, px, table=None):
+def load_vars(dims, inds, i, xi, px, table=None, xi_table=None):
     # returns a c++ code used to create a local copy of slices of the input tensors, for evaluating a formula
     # - dims is a list of integers specifying "dimension" of each input tensor ; each tensor being interpreted as a matrix of shape (n,dim)
     # - inds is a list of integers specifying "indices" of each input tensor, i.e. its position in the input px (which is a pointer to pointer)
@@ -159,13 +159,15 @@ def load_vars(dims, inds, i, xi, px, table=None):
     #   xi[6] = px[8][5*3+1];
     #   xi[7] = px[8][5*3+2];
     #
-    # N.B. the optional table argument is used to build the table of c_variables, used in the Eval methods of operations.
+    # N.B. the optional table and xi_table arguments are used to build the table of c_variables, used in the Eval methods of operations.
     
     string = ""
     k = 0
+    if xi_table is None:
+        xi_table = xi
     for u in range(len(dims)):
         if table is not None:
-            table[inds[u]] = c_variable(f"({xi()}+{k})",xi.dtype)
+            table[inds[u]] = c_variable(f"({xi_table()}+{k})",xi.dtype)
         for v in range(dims[u]):
             string += f"{xi()}[{k}] = {px()}[{inds[u]}][{i()}*{dims[u]}+{v}];\n"
             k+=1

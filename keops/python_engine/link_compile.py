@@ -146,9 +146,10 @@ class GpuReduc1D(genred):
         inds = GetInds(formula._Vars)
         nminargs = max(inds)+1
         table = [None]*nminargs
+        yjrel = c_variable("yjrel",pdtype)
         loadp, table = load_vars(red_formula.dimsp, red_formula.indsp, zero, param_loc, args, table)
         loadx, table = load_vars(red_formula.dimsx, red_formula.indsi, i, xi, args, table)
-        loady, table = load_vars(red_formula.dimsy, red_formula.indsj, j, yjloc, args, table)
+        loady, table = load_vars(red_formula.dimsy, red_formula.indsj, j, yjloc, args, table, yjrel)
         self.dict_format = { 
             "TYPE" : self.dtype,
             "TYPEACC" : self.dtypeacc,
