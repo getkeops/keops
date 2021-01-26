@@ -7,13 +7,12 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
   // declare shared mem
   extern __shared__ {TYPE} yj[];
 
-  // load parameter(s)
-  {TYPE} param_loc[{DIMP} < 1 ? 1 : {DIMP}];
-  {loadp} // load parameters variables from global memory to local thread memory
+  // load parameters variables from global memory to local thread memory
+  {definep}
+  {loadp}
 
   {TYPE} fout[{DIMFOUT}];
-  // get the value of variable (index with i)
-  {TYPE} xi[{DIMX} < 1 ? 1 : {DIMX}];
+  {definex}
   {TYPEACC} acc[{DIMRED}];
   
   if (i < nx) {{
@@ -72,7 +71,7 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
 
     dim3 blockSize;
 
-    blockSize.x = 192;
+    blockSize.x = 32;
 	
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);

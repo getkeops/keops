@@ -1,6 +1,7 @@
 from utils import *
 import os
 from ctypes import c_int, c_float, c_double, c_void_p, CDLL, POINTER
+from hashlib import sha256
 
 class genred:
     # base class for compiling and launching reductions
@@ -49,15 +50,18 @@ class CpuReduc(genred):
     # class for generating the final C++ code, Cpu version
     
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    gencode_file = dir_path + os.path.sep + "test.cpp"
-    dllname = dir_path + os.path.sep + "test.so"
-    compile_command = f"g++ -shared -O3 {gencode_file} -o {dllname}"
     
     def __init__(self, red_formula, dtype, dtypeacc, nargs):
         # - red_formula is instance of Reduction class
         # - dtype and dtypeacc are strings 
         
+        filename = sha256((red_formula.__str__() + dtype + dtypeacc + str(nargs)).encode("utf-8")).hexdigest()[:10]
+        self.gencode_file = self.dir_path + os.path.sep + filename + ".cpp"
+        self.dllname = self.dir_path + os.path.sep + filename + "_cpu.so"
+        self.compile_command = f"g++ -shared -O3 {self.gencode_file} -o {self.dllname}"
+    
         self.source_file = "CpuReduc.cpp" 
+        self.red_formula = red_formula
         formula = red_formula.formula 
         self.dtype = dtype
         self.dtypeacc = dtypeacc
@@ -116,15 +120,18 @@ class GpuReduc1D(genred):
     # class for generating the final C++ code, Gpu version
     
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    gencode_file = dir_path + os.path.sep + "test.cu"
-    dllname = dir_path + os.path.sep + "test.so"
-    compile_command = f"nvcc -shared -Xcompiler -fPIC -O3 {gencode_file} -o {dllname}"
     
     def __init__(self, red_formula, dtype, dtypeacc, nargs):
         # - red_formula is instance of Reduction class
         # - dtype and dtypeacc are strings 
         
+        filename = sha256((red_formula.__str__() + dtype + dtypeacc + str(nargs)).encode("utf-8")).hexdigest()[:10]
+        self.gencode_file = self.dir_path + os.path.sep + filename + ".cu"
+        self.dllname = self.dir_path + os.path.sep + filename + "_gpu.so"
+        self.compile_command = f"nvcc -shared -Xcompiler -fPIC -O3 {self.gencode_file} -o {self.dllname}"
+        
         self.source_file = "GpuReduc1D.cu" 
+        self.red_formula = red_formula
         formula = red_formula.formula 
         self.dtype = dtype
         self.dtypeacc = dtypeacc
@@ -168,8 +175,49 @@ class GpuReduc1D(genred):
             "InitializeReduction" : red_formula.InitializeReduction(acc),
             "ReducePairShort" : red_formula.ReducePairShort(acc, fout, jreltile),
             "FinalizeOutput" : red_formula.FinalizeOutput(acc, outi, i),
+            "definep" : declare_array(param_loc,red_formula.dimp),
+            "definex" : declare_array(xi,red_formula.dimx),
             "loadp" : loadp,
             "loadx" : loadx,
             "loady" : loady,
             "call" : formula(fout,table),
         }
+
+
+
+
+
+
+from reductions import *
+from operations import *
+import torch
+import time
+
+def hack_eval_lazytensor(x):
+    if x.reduction_op == "Sum":
+        red_formula = eval(f"Sum_Reduction({x.formula},{1-x.axis})")
+    else:
+        raise ValueError("not implemented")
+    nargs = len(x.variables)
+    dtype = x.variables[0].dtype
+    device = x.variables[0].device
+    if dtype == torch.float32:
+        c_dtype = "float"
+    elif dtype == torch.float64:
+        c_dtype = "double"
+    else:
+        raise ValueError("not implemented")
+    if device.type == "cpu":
+        myred = CpuReduc(red_formula, c_dtype, c_dtype, nargs)
+    else:
+        myred = GpuReduc1D(red_formula, c_dtype, c_dtype, nargs)
+    if not os.path.exists(myred.dllname):
+        print("compiling dll...", end="", flush=True)
+        start = time.time()
+        myred.compile_code()
+        elapsed = time.time()-start
+        print("done ({:.2f} s)".format(elapsed))
+    M, N = (x.ni, x.nj) if x.axis==1 else (x.nj, x.ni)
+    out = torch.zeros(M, myred.red_formula.dim, dtype=dtype, device=device)
+    myred(M, N, out, *x.variables)
+    return out
