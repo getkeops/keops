@@ -142,9 +142,9 @@ class Zero(Operation):
     def DiffT(self,v,gradin):
         return Zero(v.dim)
     
-class IntConstant(Operation):
+class IntCst(Operation):
     # constant integer "operation"
-    string_id = "IntConstant"
+    string_id = "IntCst"
     print_spec = "", "pre", 0
     
     def __init__(self, value):
@@ -238,7 +238,7 @@ class Square_(VectorizedScalarUnaryOp):
     def DiffT(self,v,gradin):
         # [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
         f = self.children[0]
-        return IntConstant(2) * f.DiffT(v, f*gradin)
+        return IntCst(2) * f.DiffT(v, f*gradin)
 
 def Square(arg):
     if isinstance(arg,Zero):
@@ -311,7 +311,7 @@ def Mult(arg0, arg1):
     elif isinstance(arg1,Zero):
         return arg1
     elif isinstance(arg1,int):
-        return Mult_(IntConstant(arg1),arg0)
+        return Mult_(IntCst(arg1),arg0)
     else:
         return Mult_(arg0, arg1)
         
@@ -333,7 +333,7 @@ def Add(arg0, arg1):
     elif isinstance(arg1,Zero):
         return arg0
     elif arg0==arg1:
-        return IntConstant(2)*arg0
+        return IntCst(2)*arg0
     else:
         return Add_(arg0, arg1)
         
