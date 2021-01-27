@@ -1,5 +1,6 @@
 from utils import *
 import os
+import ctypes
 from ctypes import c_int, c_float, c_double, c_void_p, CDLL, POINTER
 from hashlib import sha256
 
@@ -227,4 +228,38 @@ def hack_eval_lazytensor(x, force_recompile=False):
     M, N = (x.ni, x.nj) if x.axis==1 else (x.nj, x.ni)
     out = torch.zeros(M, myred.red_formula.dim, dtype=dtype, device=device)
     myred(M, N, out, *x.variables)
+    return out
+
+
+def hack_eval_lazytensor_nvrtc(x, force_recompile=False):
+    if x.reduction_op == "Sum":
+        red_formula = eval(f"Sum_Reduction({x.formula},{1-x.axis})")
+    else:
+        raise ValueError("not implemented")
+    nargs = len(x.variables)
+    dtype = x.variables[0].dtype
+    device = x.variables[0].device
+    if dtype == torch.float32:
+        c_dtype = "float"
+    elif dtype == torch.float64:
+        c_dtype = "double"
+    else:
+        raise ValueError("not implemented")
+    if device.type == "cpu":
+        myred = CpuReduc(red_formula, c_dtype, c_dtype, nargs)
+    else:
+        myred = GpuReduc1D(red_formula, c_dtype, c_dtype, nargs)
+    if True:#not os.path.exists(myred.dllname) or force_recompile:
+        print("compiling dll...", end="", flush=True)
+        start = time.time()
+        code = myred.get_code().encode('utf-8')
+        my_c_function = CDLL(os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "test_nvrtc.so")
+        my_c_function.argtypes = [ctypes.c_char_p, c_int, c_int, POINTER(c_float)] + [POINTER(c_float)]*myred.nargs
+        elapsed = time.time()-start
+        print("done ({:.2f} s)".format(elapsed))
+    M, N = (x.ni, x.nj) if x.axis==1 else (x.nj, x.ni)
+    out = torch.zeros(M, myred.red_formula.dim, dtype=dtype, device=device)
+    c_args = [c_void_p(x.data_ptr()) for x in x.variables]
+    dimy = myred.red_formula.dimy
+    my_c_function.Eval(ctypes.create_string_buffer(code), c_int(dimy), c_int(M), c_int(N), c_void_p(out.data_ptr()), *c_args)
     return out
