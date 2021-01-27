@@ -1,6 +1,9 @@
 
-__global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
+__global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out {args}) {{
 
+  {TYPE}* args[{nargs}];
+  {loadargs}
+    
   // get the index of the current thread
   int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -49,18 +52,7 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
 
 
 
-  extern "C" __host__ int Eval(int nx, int ny, {TYPE} *out {args}) {{
-
-	{TYPE}* args[{nargs}];
-	{loadargs}
-		  
-    // device array of pointers to device data
-    {TYPE} **args_d;
-
-    // single cudaMalloc
-    cudaMalloc(&args_d, sizeof({TYPE} *) * {NMINARGS});
-
-    cudaMemcpy(args_d, args, {NMINARGS} * sizeof({TYPE} *), cudaMemcpyHostToDevice);
+extern "C" __host__ int Eval(int nx, int ny, {TYPE} *out {args}) {{
 
     // Compute on device : grid and block are both 1d
 
@@ -76,14 +68,12 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out, {TYPE} **args) {{
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-    GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * {DIMY} * sizeof({TYPE}) >>> (nx, ny, out, args_d);
+    GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * {DIMY} * sizeof({TYPE}) >>> (nx, ny, out {args_call});
     
     // block until the device has completed
     cudaDeviceSynchronize();
 
     //CudaCheckError();
 
-    cudaFree(args_d);
-
     return 0;
-  }}
+}}

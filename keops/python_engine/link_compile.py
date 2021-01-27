@@ -40,6 +40,12 @@ def signature_args(nargs, dtype):
         string += f", {dtype}* arg{k}"
     return string
 
+def call_list_args(nargs, dtype):
+    string = ""
+    for k in range(nargs):
+        string += f", arg{k}"
+    return string
+
 def load_args(nargs):
     string = ""
     for k in range(nargs):
@@ -163,6 +169,7 @@ class GpuReduc1D(genred):
             "TYPE" : self.dtype,
             "TYPEACC" : self.dtypeacc,
             "args" : signature_args(nargs, self.dtype),
+            "args_call" : call_list_args(nargs, self.dtype),
             "loadargs" : load_args(nargs),
             "nargs" : nargs,
             "NMINARGS" : nminargs,
@@ -193,7 +200,7 @@ from operations import *
 import torch
 import time
 
-def hack_eval_lazytensor(x):
+def hack_eval_lazytensor(x, force_recompile=False):
     if x.reduction_op == "Sum":
         red_formula = eval(f"Sum_Reduction({x.formula},{1-x.axis})")
     else:
@@ -211,7 +218,7 @@ def hack_eval_lazytensor(x):
         myred = CpuReduc(red_formula, c_dtype, c_dtype, nargs)
     else:
         myred = GpuReduc1D(red_formula, c_dtype, c_dtype, nargs)
-    if not os.path.exists(myred.dllname):
+    if not os.path.exists(myred.dllname) or force_recompile:
         print("compiling dll...", end="", flush=True)
         start = time.time()
         myred.compile_code()
