@@ -14,7 +14,7 @@ dtype = torch.float32
 c_dtype = "float" if dtype==torch.float32 else "double"
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
-do_warmup = False
+do_warmup = True
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
@@ -28,7 +28,7 @@ def fun(x, y, b, backend):
     Kxy = (-Dxy).exp()
     if backend=="keops_new":
         tmp = Kxy.__matmul__(b, call=False)
-        out = hack_eval_lazytensor_nvrtc(tmp, force_recompile=True)
+        out = hack_eval_lazytensor_nvrtc(tmp)
     else:
         out = Kxy @ b
     if device_id != "cpu":

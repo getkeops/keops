@@ -1,17 +1,39 @@
+
+// nvcc -shared -Xcompiler -fPIC -lnvrtc -lcuda test_nvrtc.cu -o test_nvrtc.so
+
 #include <nvrtc.h>
 #include <cuda.h>
 #include <stdio.h>
 #include <iostream>
 #include <ctime>
 
-#define NUM_THREADS 128
-#define NUM_BLOCKS 32
+
+#define NVRTC_SAFE_CALL(x)                                        \
+  do {                                                            \
+    nvrtcResult result = x;                                       \
+    if (result != NVRTC_SUCCESS) {                                \
+      std::cerr << "\nerror: " #x " failed with error "           \
+                << nvrtcGetErrorString(result) << '\n';           \
+      exit(1);                                                    \
+    }                                                             \
+  } while(0)
+#define CUDA_SAFE_CALL(x)                                         \
+  do {                                                            \
+    CUresult result = x;                                          \
+    if (result != CUDA_SUCCESS) {                                 \
+      const char *msg;                                            \
+      cuGetErrorName(result, &msg);                               \
+      std::cerr << "\nerror: " #x " failed with error "           \
+                << msg << '\n';                                   \
+      exit(1);                                                    \
+    }                                                             \
+  } while(0)
 
 
 char* read_text_file(char const* path) {
     char* buffer = 0;
     long length;
-    FILE * f = fopen (path, "rb"); //was "rb"
+    FILE * f = fopen (path, "rb");
     if (f)
     {
       fseek (f, 0, SEEK_END);
@@ -29,9 +51,7 @@ char* read_text_file(char const* path) {
 }
 
 
-extern "C" __host__ int Eval(const char* cu_code, int dimY, int nx, int ny, float *out, float *arg0, float *arg1, float *arg2) {
-    
-    std::cout << cu_code << "ZZZZZ" << std::endl;
+extern "C" __host__ int Eval(bool recompile, const char* ptx_file_name, const char* cu_code, int dimY, int nx, int ny, float *out, float *arg0, float *arg1, float *arg2) {
     
     dim3 blockSize;
     blockSize.x = 32;
@@ -41,34 +61,42 @@ extern "C" __host__ int Eval(const char* cu_code, int dimY, int nx, int ny, floa
     
     clock_t begin, end;
     
-    
-    char ptx_file_name[20] = "test.ptx";
-    
-    bool recompile = true;
     char *ptx;
     if (recompile) {
         
         begin = clock();
         nvrtcProgram prog;
     
-        nvrtcCreateProgram(&prog,         // prog
+        NVRTC_SAFE_CALL(nvrtcCreateProgram(&prog,         // prog
                        cu_code,         // buffer
                        NULL,    // name
                        0,             // numHeaders
                        NULL,          // headers
-                       NULL);        // includeNames
+                       NULL));        // includeNames
     
-        const char *opts[] = {"-O3"};
+        const char *opts[] = {};
         nvrtcResult compileResult = nvrtcCompileProgram(prog,  // prog
-                                                  1,     // numOptions
+                                                  0,     // numOptions
                                                   opts); // options
-                                                  
+                  
+        // Obtain compilation log from the program.
+        size_t logSize;
+        NVRTC_SAFE_CALL(nvrtcGetProgramLogSize(prog, &logSize));
+        char *log = new char[logSize];
+        NVRTC_SAFE_CALL(nvrtcGetProgramLog(prog, log));
+        std::cout << log << '\n';
+        delete[] log;
+        if (compileResult != NVRTC_SUCCESS) {
+            exit(1);
+        }
+  
+        // Obtain PTX from the program.
         size_t ptxSize;
-        nvrtcGetPTXSize(prog, &ptxSize);
+        NVRTC_SAFE_CALL(nvrtcGetPTXSize(prog, &ptxSize));
         ptx = new char[ptxSize];
-        nvrtcGetPTX(prog, ptx);
+        NVRTC_SAFE_CALL(nvrtcGetPTX(prog, ptx));
         // Destroy the program.
-        nvrtcDestroyProgram(&prog);
+        NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
         end = clock();
         std::cout << "time for compiling ptx code : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     
@@ -90,35 +118,37 @@ extern "C" __host__ int Eval(const char* cu_code, int dimY, int nx, int ny, floa
     
     
     begin = clock();
-    // Load the generated PTX and get a handle to the SAXPY kernel.
+    // Load the generated PTX and get a handle to the kernel.
     CUdevice cuDevice;
     CUcontext context;
     CUmodule module;
     CUfunction kernel;
-    cuInit(0);
-    cuDeviceGet(&cuDevice, 0);
-    cuCtxCreate(&context, 0, cuDevice);
-    cuModuleLoadDataEx(&module, ptx, 0, 0, 0);
-    cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice");
+    CUDA_SAFE_CALL(cuInit(0));
+    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, 0));
+    CUDA_SAFE_CALL(cuCtxCreate(&context, 0, cuDevice));
+    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
+    CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
     end = clock();
     std::cout << "time for loading the ptx : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
   
         
-    void *args[] = { &nx, &ny, &out, &arg0, &arg1, &arg1, &arg2 };
+    void *args[] = { &nx, &ny, &out, &arg0, &arg1, &arg2 };
     begin = clock();
-    cuLaunchKernel(kernel,
+    CUDA_SAFE_CALL(cuLaunchKernel(kernel,
                    gridSize.x, gridSize.y, gridSize.z,    // grid dim
                    blockSize.x, blockSize.y, blockSize.z,   // block dim
                    blockSize.x * dimY * sizeof(float), NULL,             // shared mem and stream
-                   args, 0);           // arguments
-    cuCtxSynchronize();
+                   args, 0));           // arguments
+    CUDA_SAFE_CALL(cuCtxSynchronize());
     end = clock();
     std::cout << "time for executing kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     
     // Release resources.
-    cuModuleUnload(module);
-    cuCtxDestroy(context);
-                                                  
+    begin = clock();
+    CUDA_SAFE_CALL(cuModuleUnload(module));
+    CUDA_SAFE_CALL(cuCtxDestroy(context));
+    end = clock();
+    std::cout << "time for releasing resources : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;                                              
 
     return 0;
 }

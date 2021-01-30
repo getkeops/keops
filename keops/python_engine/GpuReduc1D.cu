@@ -1,5 +1,5 @@
 
-__global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out {args}) {{
+extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out {args}) {{
 
   {TYPE}* args[{nargs}];
   {loadargs}
@@ -46,34 +46,4 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {TYPE} *out {args}) {{
     {FinalizeOutput} 
   }}
 
-}}
-
-
-
-
-
-extern "C" __host__ int Eval(int nx, int ny, {TYPE} *out {args}) {{
-
-    // Compute on device : grid and block are both 1d
-
-    //int dev = -1;
-    //cudaGetDevice(&dev);
-
-    //SetGpuProps(dev);
-
-    dim3 blockSize;
-
-    blockSize.x = 32;
-	
-    dim3 gridSize;
-    gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
-
-    GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * {DIMY} * sizeof({TYPE}) >>> (nx, ny, out {args_call});
-    
-    // block until the device has completed
-    cudaDeviceSynchronize();
-
-    //CudaCheckError();
-
-    return 0;
 }}
