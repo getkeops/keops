@@ -40,13 +40,14 @@ class Operation(tree):
                 arg = table[child.ind]
             else:
                 # otherwise, we need to evaluate the child operation.
-                # We first create a new c_variable to store the result of the child operation.
-                # This c_variable must have a unique name in the code, to avoid conflicts
+                # We first create a new c_array to store the result of the child operation.
+                # This c_array must have a unique name in the code, to avoid conflicts
                 # when we will recursively evaluate nested operations.
                 template_string_id = "out_" + child.string_id.lower()
-                arg = new_c_variable(template_string_id,out.dtype)
+                arg_name = new_c_varname(template_string_id)
+                arg = c_array(arg_name, out.dtype, child.dim)
                 # Now we append into string the C++ code to declare the array
-                string += f"{value(out.dtype)} {arg()}[{child.dim}];\n"
+                string += f"{arg.declare()}\n"
                 # Now we evaluate the child operation and append the result into string
                 string += child(arg, table)    
             args.append(arg)
@@ -113,7 +114,7 @@ class Var(Operation):
         return hash((self.ind,self.dim,self.cat))
         
     def Op(self, out, table):
-        return VectCopy(self.dim, out, table[self.ind], cast=False)    
+        return VectCopy(out, table[self.ind], cast=False)    
     
     # Assuming that the gradient wrt. Var is GRADIN, how does it affect V ?
     # Var::DiffT<V, grad_input> = grad_input   if V == Var (in the sense that it represents the same symb. var.)
@@ -137,7 +138,7 @@ class Zero(Operation):
         
     def Op(self, out, table):
         zero = c_variable("0.0f","float")
-        return VectAssign(self.dim, out, zero)
+        return out.assign(zero)
 
     def DiffT(self,v,gradin):
         return Zero(v.dim)
@@ -179,7 +180,7 @@ class VectorizedScalarUnaryOp(Operation):
     def Op(self, out, table, arg):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
-        return VectApply(self.ScalarOp, self.dim, self.children[0].dim, out, arg)
+        return VectApply(self.ScalarOp, out, arg)
         
 
 class VectorizedScalarBinaryOp(Operation):
@@ -195,7 +196,7 @@ class VectorizedScalarBinaryOp(Operation):
     def Op(self, out, table, arg0, arg1):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
-        return VectApply2(self.ScalarOp, self.dim, self.children[0].dim, self.children[1].dim, out, arg0, arg1)
+        return VectApply(self.ScalarOp, out, arg0, arg1)
         
 class Exp(VectorizedScalarUnaryOp):
     # the exponential vectorized operation
@@ -253,9 +254,7 @@ class Sum_(Operation):
     def Op(self, out, table, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        string = f"*{out()} = {cast_to(value(out.dtype))}(0.0f);\n"
-        string += VectApply(self.ScalarOp, 1, self.children[0].dim, out, arg)
-        return string
+        return out.assign(c_zero_float) + VectApply(self.ScalarOp, out, arg)
     def ScalarOp(self,out,arg):
         return f"{out()} += {arg()};\n"
     def DiffT(self,v,gradin):
@@ -281,7 +280,7 @@ class SumT_(Operation):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
         value_arg = c_variable(f"*{arg()}",value(arg.dtype))
-        return VectAssign(self.dim,out,value_arg)
+        return out.assign(value_arg)
     def DiffT(self,v,gradin):
         f = self.children[0]
         return f.DiffT(v,Sum(gradin))

@@ -11,10 +11,11 @@ M, N, D, DV = 10000, 10000, 3, 1
 
 dtype = torch.float32
 
-c_dtype = "float" if dtype==torch.float32 else "double"
+sum_scheme = "auto"
+c_dtype_acc = "auto"
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
-do_warmup = True
+do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
@@ -28,7 +29,7 @@ def fun(x, y, b, backend):
     Kxy = (-Dxy).exp()
     if backend=="keops_new":
         tmp = Kxy.__matmul__(b, call=False)
-        out = hack_eval_lazytensor(tmp)
+        out = hack_eval_lazytensor(tmp, force_recompile=True, sum_scheme=sum_scheme, c_dtype_acc=c_dtype_acc)
     else:
         out = Kxy @ b
     if device_id != "cpu":
