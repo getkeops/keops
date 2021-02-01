@@ -11,7 +11,7 @@ M, N, D, DV = 10000, 10000, 3, 1
 
 dtype = torch.float32
 
-sum_scheme = "auto"
+sum_scheme = "block_sum"
 c_dtype_acc = "auto"
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
