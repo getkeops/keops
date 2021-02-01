@@ -111,6 +111,8 @@ class CpuReduc(genred):
         
         i = self.i
         j = self.j
+        dtype = self.dtype
+        red_formula = self.red_formula
         fout = self.fout
         outi = self.outi
         acc = self.acc
