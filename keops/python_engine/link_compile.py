@@ -28,6 +28,7 @@ class genred:
         self.dtype = dtype
         self.nargs = nargs
         formula = red_formula.formula
+
         self.varloader = varloader = Var_loader(red_formula)
         
         self.i = i = c_variable("i", "int")
@@ -134,43 +135,3 @@ class GpuReduc1D(genred):
         self.code = eval("f'''"+self.get_template_code()+"'''")
 
 
-
-
-
-from reductions import *
-from operations import *
-import torch
-import time
-
-def hack_eval_lazytensor(x, force_recompile=False, c_dtype_acc="auto", sum_scheme="auto"):
-    if sum_scheme == "auto":
-        sum_scheme = "block_sum"
-    if x.reduction_op == "Sum":
-        red_formula = eval(f"Sum_Reduction({x.formula},{1-x.axis})")
-    else:
-        raise ValueError("not implemented")
-    nargs = len(x.variables)
-    dtype = x.variables[0].dtype
-    device = x.variables[0].device
-    if dtype == torch.float32:
-        c_dtype = "float"
-    elif dtype == torch.float64:
-        c_dtype = "double"
-    else:
-        raise ValueError("not implemented")
-    if c_dtype_acc == "auto":
-        c_dtype_acc = c_dtype
-    if device.type == "cpu":
-        myred = CpuReduc(red_formula, c_dtype, c_dtype, nargs, sum_scheme=sum_scheme)
-    else:
-        myred = GpuReduc1D(red_formula, c_dtype, c_dtype, nargs, sum_scheme=sum_scheme)
-    if not os.path.exists(myred.dllname) or force_recompile:
-        print("compiling dll...", end="", flush=True)
-        start = time.time()
-        myred.compile_code()
-        elapsed = time.time()-start
-        print("done ({:.2f} s)".format(elapsed))
-    M, N = (x.ni, x.nj) if x.axis==1 else (x.nj, x.ni)
-    out = torch.zeros(M, myred.red_formula.dim, dtype=dtype, device=device)
-    myred(M, N, out, *x.variables)
-    return out
