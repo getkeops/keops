@@ -33,7 +33,7 @@ class LoadKeOps:
         
         if '-D__TYPEACC__=double' in self.optional_flags:
             c_dtype_acc = 'double'
-        if '-D__TYPEACC__=float' in self.optional_flags:
+        elif '-D__TYPEACC__=float' in self.optional_flags:
             c_dtype_acc = 'float'
         else:
             raise ValueError('not implemented')
@@ -59,7 +59,8 @@ class LoadKeOps:
             print("done ({:.2f} s)".format(elapsed))
         M, N = (nx, ny) if self.red_formula.tagI==0 else (ny, nx)
         out = torch.zeros(M, self.red_formula.dim, dtype=dtype, device=device)
-        myred(M, N, out, *args)
+        if self.red_formula.formula != Zero(self.red_formula.dim):
+            myred(M, N, out, *args)
         return out
         
     def import_module(self):

@@ -302,7 +302,12 @@ class Mult_(VectorizedScalarBinaryOp):
     #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)    
     def DiffT(self,v,gradin):
         fa, fb = self.children
-        return fa.DiffT(v,fb*gradin) + fb.DiffT(v,fa*gradin)
+        if fa.dim==1 and fb.dim>1:
+            return fa.DiffT(v, Scalprod(gradin,fb)) + fa * fb.DiffT(v,gradin)
+        elif fb.dim==1 and fa.dim>1:
+            return fb.DiffT(v, Scalprod(gradin,fa)) + fb * fa.DiffT(v,gradin)
+        else:
+            return fa.DiffT(v,fb*gradin) + fb.DiffT(v,fa*gradin)
 
 def Mult(arg0, arg1):
     if isinstance(arg0,Zero):
