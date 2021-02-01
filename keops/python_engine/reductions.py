@@ -1,6 +1,18 @@
 from tree import tree
-from operations import Var
+from operations import *
 from utils import *
+
+class getReduction:
+    library = {}
+    def __init__(self, string_id):
+        string_id_hash = get_hash_name(string_id)
+        if string_id_hash in getReduction.library:
+            self.reduction = getReduction.library[string_id_hash]
+        else:
+            self.reduction = eval(string_id)
+            getReduction.library[string_id_hash] = self.reduction
+    def __call__(self):
+        return self.reduction
 
 class Reduction(tree):
     

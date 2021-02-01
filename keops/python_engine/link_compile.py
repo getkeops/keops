@@ -1,33 +1,47 @@
 from utils import *
 import os
 from ctypes import c_int, c_float, c_double, c_void_p, CDLL, POINTER
-from hashlib import sha256
+import time
 
+base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep
+template_path = base_dir_path + "templates"
+build_path = base_dir_path + "build" + os.path.sep
+    
 class genred:
     # base class for compiling and launching reductions
     
-    base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep
-    template_path = base_dir_path + "templates"
-    build_path = base_dir_path + "build"
+    library = {}
     
     def __init__(self, red_formula, dtype, dtypeacc, nargs, sum_scheme):
         # - red_formula is instance of Reduction class
         # - dtype and dtypeacc are strings 
-        gencode_filename = sha256((red_formula.__str__() + dtype + dtypeacc + str(nargs) + sum_scheme).encode("utf-8")).hexdigest()[:10]
-        self.template_source_file = self.template_path + os.path.sep + self.template_source_filename
-        self.gencode_file = self.build_path + os.path.sep + gencode_filename + "." + self.source_code_extension
-        self.dllname = self.build_path + os.path.sep + gencode_filename + "_" + self.source_code_extension + ".so"
-        
-        sum_schemes_dict = {"direct_sum" : 0, "block_sum" : 1, "kahan_scheme" : 2}
-        self.compile_options += [f"-DSUM_SCHEME={sum_schemes_dict[sum_scheme]}"]
-        
-        self.compile_command = f"{self.compiler} {' '.join(self.compile_options)} {self.gencode_file} -o {self.dllname}"
-        self.dll = None
-        
+        self.gencode_filename = get_hash_name(type(self), red_formula, dtype, dtypeacc, nargs, sum_scheme)
+        self.dllname = build_path + os.path.sep + self.gencode_filename + "_" + self.source_code_extension + ".so"
         self.red_formula = red_formula
         self.dtype = dtype
+        self.dtypeacc = dtypeacc
         self.nargs = nargs
+        self.sum_scheme = sum_scheme
+        if self.gencode_filename in genred.library:
+            rec = genred.library[self.gencode_filename]  
+            self.dll = rec["dll"]
+            self.tagI = rec["tagI"]
+            self.dim = rec["dim"]
+        else:
+            self.load_dll()
+    
+    def get_code(self):  
+        self.template_source_file = template_path + os.path.sep + self.template_source_filename
+        self.gencode_file = build_path + os.path.sep + self.gencode_filename + "." + self.source_code_extension
+        self.compile_command = f"{self.compiler} {' '.join(self.compile_options)} {self.gencode_file} -o {self.dllname}"
+        sum_schemes_dict = {"direct_sum" : 0, "block_sum" : 1, "kahan_scheme" : 2}
+        self.compile_options += [f"-DSUM_SCHEME={sum_schemes_dict[self.sum_scheme]}"]
+          
+        red_formula = self.red_formula
         formula = red_formula.formula
+        dtype = self.dtype
+        dtypeacc = self.dtypeacc
+        nargs = self.nargs
 
         self.varloader = varloader = Var_loader(red_formula)
         
@@ -60,11 +74,19 @@ class genred:
         f.close()
     
     def compile_code(self):
+        self.get_code()
         self.write_code()
         os.system(self.compile_command)
     
     def load_dll(self):
+        if not os.path.exists(self.dllname):
+            print("compiling dll...", end="", flush=True)
+            start = time.time()
+            self.compile_code()
+            elapsed = time.time()-start
+            print("done ({:.2f} s)".format(elapsed))
         self.dll = CDLL(self.dllname)
+        genred.library[self.gencode_filename] = { "dll":self.dll, "tagI":self.red_formula.tagI, "dim":self.red_formula.dim }
         ctype = eval(f"c_{self.dtype}")
         self.dll.argtypes = [c_int, c_int, POINTER(ctype)] + [POINTER(ctype)]*self.nargs
         
@@ -83,9 +105,9 @@ class CpuReduc(genred):
     compiler = "g++"
     compile_options = ["-shared", "-O3"]
     
-    def __init__(self, red_formula, dtype, dtypeacc, nargs, sum_scheme):
+    def get_code(self):
 
-        super().__init__(red_formula, dtype, dtypeacc, nargs, sum_scheme)
+        super().get_code()
         
         i = self.i
         j = self.j
@@ -109,10 +131,12 @@ class GpuReduc1D(genred):
     compiler = "nvcc"
     compile_options = ["-shared", "-Xcompiler", "-fPIC", "-O3"]
     
-    def __init__(self, red_formula, dtype, dtypeacc, nargs, sum_scheme):
+    def get_code(self):
         
-        super().__init__(red_formula, dtype, dtypeacc, nargs, sum_scheme)
+        super().get_code()
         
+        red_formula = self.red_formula
+        dtype = self.dtype
         varloader = self.varloader
         
         i = c_variable("i", "int")
