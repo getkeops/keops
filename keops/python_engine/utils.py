@@ -1,5 +1,7 @@
-
+from hashlib import sha256
  
+def get_hash_name(*args):
+    return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[:10]
     
 
 def c_function(name, dtypeout, args, commands, qualifier=None):

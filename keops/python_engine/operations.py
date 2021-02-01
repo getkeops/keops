@@ -121,7 +121,7 @@ class Var(Operation):
     #                             Zero(V::DIM) otherwise
     def DiffT(self,v,gradin):
         return gradin if v==self else Zero(v.dim)
-            
+
     
 class Zero(Operation):
     # zero operation : encodes a vector of zeros
