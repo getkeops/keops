@@ -143,6 +143,8 @@ def keops_exp(x):
     # - x must be of type c_variable
     if x.dtype in ["float","double"]:
         return f"exp({x()})"
+    else:
+        raise ValueError("not implemented.")
 
 
 

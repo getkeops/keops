@@ -3,7 +3,11 @@
 #define KAHAN_SCHEME 2
 
 #ifndef USE_HALF
-#define USE_HALF 0
+  #define USE_HALF 0
+#endif
+
+#if USE_HALF
+  #include <cuda_fp16.h>
 #endif
 
 __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
@@ -53,23 +57,26 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(
       for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy}) {{
         {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
 #if SUM_SCHEME == BLOCK_SUM
-#if USE_HALF
+    #if USE_HALF
         int ind = jrel + tile * blockDim.x;
         {red_formula.ReducePairShort(tmp, fout, ind_pack_half2)}     // tmp += fout
-#else
+    #else
         {red_formula.ReducePairShort(tmp, fout, jreltile)}  // tmp += fout
-#endif
+    #endif
 #elif SUM_SCHEME == KAHAN_SCHEME
         {red_formula.KahanScheme(acc, fout, tmp_kahan)}
 #else
-#if USE_HALF
+    #if USE_HALF
         int ind = jrel + tile * blockDim.x;
         {red_formula.ReducePairShort(acc, fout, ind_pack_half2)}       // acc += fout
-#else
+    #else
 	    {red_formula.ReducePairShort(acc, fout, jreltile)} // acc += fout
-#endif
+    #endif
 #endif
       }}
+#if SUM_SCHEME == BLOCK_SUM
+      {red_formula.ReducePair(acc, tmp)}  // acc += tmp
+#endif
     }}
     __syncthreads();
   }}

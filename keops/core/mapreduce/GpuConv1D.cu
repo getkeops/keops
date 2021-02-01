@@ -359,21 +359,21 @@ __global__ void GpuConv1DOnDevice_NoChunks(FUN fun, int nx, int ny, TYPE *out, T
                                   yjrel,
                                   param_loc); // Call the function, which outputs results in fout
 #if SUM_SCHEME == BLOCK_SUM
-#if USE_HALF
+    #if USE_HALF
         int ind = jrel + tile * blockDim.x;
         typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, fout, __floats2half2_rn(2*ind,2*ind+1));     // tmp += fout
-#else
+    #else
         typename FUN::template ReducePairShort<TYPE,TYPE>()(tmp, fout, jrel + tile * blockDim.x);     // tmp += fout
-#endif
+    #endif
 #elif SUM_SCHEME == KAHAN_SCHEME
         typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, fout, tmp);     
 #else
-#if USE_HALF
+    #if USE_HALF
         int ind = jrel + tile * blockDim.x;
         typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, fout, __floats2half2_rn(2*ind,2*ind+1));     // acc += fout
-#else
-	typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, fout, jrel + tile * blockDim.x);     // acc += fout
-#endif
+    #else
+	    typename FUN::template ReducePairShort<__TYPEACC__,TYPE>()(acc, fout, jrel + tile * blockDim.x);     // acc += fout
+    #endif
 #endif
       }
 #if SUM_SCHEME == BLOCK_SUM
