@@ -148,18 +148,18 @@ class IntCst(Operation):
     string_id = "IntCst"
     print_spec = "", "pre", 0
     
-    def __init__(self, value):
+    def __init__(self, val):
         super().__init__()
-        self.value = value
+        self.val = val
         self.dim = 1
-        self.params = (value,)
+        self.params = (val,)
         
     # custom __eq__ method
     def __eq__(self, other):
-        return type(self)==type(other) and self.value==other.value
+        return type(self)==type(other) and self.val==other.val
         
     def Op(self, out, table):
-        return f"*{out()} = {cast_to(value(out.dtype))}((float){self.value});\n"
+        return f"*{out()} = {cast_to(out.dtype)}((float){self.val});\n"
 
     def DiffT(self,v,gradin):
         return Zero(v.dim)
@@ -279,7 +279,7 @@ class SumT_(Operation):
     def Op(self, out, table, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        value_arg = c_variable(f"*{arg()}",value(arg.dtype))
+        value_arg = c_variable(f"*{arg()}",arg.dtype)
         return out.assign(value_arg)
     def DiffT(self,v,gradin):
         f = self.children[0]
@@ -355,5 +355,15 @@ def Subtract(arg0, arg1):
         return arg0
     else:
         return Subtract_(arg0, arg1)
+        
+        
+def SqDist(arg0, arg1):
+    return SqNorm2(arg0-arg1)
+    
+def SqNorm2(arg0):
+    return Scalprod(arg0,arg0)
+
+def Scalprod(arg0, arg1):
+    return Sum(arg0*arg1)
 
 

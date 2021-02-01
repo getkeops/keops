@@ -5,14 +5,10 @@ import time
 import math
 import torch
 from pykeops.torch import LazyTensor
-from link_compile import hack_eval_lazytensor
 
-M, N, D, DV = 10000, 10000, 3, 1
+M, N, D, DV = 2000, 1000, 3, 1
 
 dtype = torch.float32
-
-sum_scheme = "block_sum"
-c_dtype_acc = "auto"
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 do_warmup = False
@@ -27,18 +23,14 @@ def fun(x, y, b, backend):
         y = LazyTensor(y)
     Dxy = ((x - y) ** 2).sum(dim=2)
     Kxy = (-Dxy).exp()
-    if backend=="keops_new":
-        tmp = Kxy.__matmul__(b, call=False)
-        out = hack_eval_lazytensor(tmp, force_recompile=True, sum_scheme=sum_scheme, c_dtype_acc=c_dtype_acc)
-    else:
-        out = Kxy @ b
+    out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
     #print("out:",out.flatten()[:10])
     return out
 
 
-backends = ["keops_new", "torch"]  # "keops"
+backends = ["keops", "torch"]
 
 out = []
 for backend in backends:
