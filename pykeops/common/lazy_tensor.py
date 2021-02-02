@@ -1295,7 +1295,7 @@ class GenericLazyTensor:
         Element-wise modulo with offset function - a ternary operation.
 
         ``x.mod(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
-        the element-wise modulo of ``x`` with modulus ``a`` and offset ``b``. 
+        the element-wise modulo of ``x`` with modulus ``a`` and offset ``b``.
         Braodcasting rules apply. a and b are fixed integers or float.
         """
         return self.ternary(modulus, offset, "Mod", dimcheck="sameor1")
