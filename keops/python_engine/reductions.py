@@ -4,15 +4,14 @@ from utils import *
 
 class getReduction:
     library = {}
-    def __init__(self, string_id):
+    def __new__(self, string_id):
         string_id_hash = get_hash_name(string_id)
         if string_id_hash in getReduction.library:
-            self.reduction = getReduction.library[string_id_hash]
+            return getReduction.library[string_id_hash]
         else:
-            self.reduction = eval(string_id)
-            getReduction.library[string_id_hash] = self.reduction
-    def __call__(self):
-        return self.reduction
+            reduction = eval(string_id)
+            getReduction.library[string_id_hash] = reduction
+            return reduction
 
 class Reduction(tree):
     

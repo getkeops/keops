@@ -167,38 +167,24 @@ class IntCst(Operation):
         
         
     
-class VectorizedScalarUnaryOp(Operation):
-    # class for unary operations that are vectorized scalar operations,
-    # such as Exp(f), Cos(f), etc.
+class VectorizedScalarOp(Operation):
+    # class for operations that are vectorized or broadcasted
+    # scalar operations,
+    # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
     
     @property
     def dim(self):
         # dim gives the output dimension of the operation, 
         # here it is the same as the output dimension of the child operation
-        return self.children[0].dim
+        return max(child.dim for child in self.children)
         
-    def Op(self, out, table, arg):
+    def Op(self, out, table, *arg):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
-        return VectApply(self.ScalarOp, out, arg)
-        
+        return VectApply(self.ScalarOp, out, *arg)
 
-class VectorizedScalarBinaryOp(Operation):
-    # class for binary operations that are vectorized or broadcasted scalar operations,
-    # such as Mult(f), Subtract(f), etc.
-    
-    @property
-    def dim(self):
-        # dim gives the output dimension of the operation, 
-        # here it is the max of the child operations (because we allow for broadcasting here)
-        return max(self.children[0].dim, self.children[1].dim)
         
-    def Op(self, out, table, arg0, arg1):
-        # Atomic evaluation of the operation : it consists in a simple
-        # for loop around the call to the correponding scalar operation
-        return VectApply(self.ScalarOp, out, arg0, arg1)
-        
-class Exp(VectorizedScalarUnaryOp):
+class Exp(VectorizedScalarOp):
     # the exponential vectorized operation
     string_id = "Exp"
     def ScalarOp(self,out,arg):
@@ -210,8 +196,14 @@ class Exp(VectorizedScalarUnaryOp):
         f = self.children[0]
         return f.DiffT(v,Exp(f)*gradin)
     
-class Minus_(VectorizedScalarUnaryOp):
+    
+class Minus(VectorizedScalarOp):
     # the "minus" vectorized operation
+    def __new__(self, arg):
+        if isinstance(arg,Zero):
+            return arg
+        else:
+            return super(Minus, self).__new__(self)
     string_id = "Minus"
     print_spec = "-", "pre", 2
     def ScalarOp(self,out,arg):
@@ -222,14 +214,14 @@ class Minus_(VectorizedScalarUnaryOp):
         f = self.children[0]
         return -f.DiffT(v,gradin)
 
-def Minus(arg):
-    if isinstance(arg,Zero):
-        return arg
-    else:
-        return Minus_(arg)
             
-class Square_(VectorizedScalarUnaryOp):
+class Square(VectorizedScalarOp):
     # the square vectorized operation
+    def __new__(self, arg):
+        if isinstance(arg,Zero):
+            return arg
+        else:
+            return super(Square, self).__new__(self)
     string_id = "Square"
     print_spec = "**2", "post", 1
     def ScalarOp(self,out,arg):
@@ -241,14 +233,14 @@ class Square_(VectorizedScalarUnaryOp):
         f = self.children[0]
         return IntCst(2) * f.DiffT(v, f*gradin)
 
-def Square(arg):
-    if isinstance(arg,Zero):
-        return arg
-    else:
-        return Square_(arg)
                 
-class Sum_(Operation):
+class Sum(Operation):
     # the summation operation
+    def __new__(self, arg):
+        if isinstance(arg,Zero):
+            return Zero(1)
+        else:
+            return super(Sum, self).__new__(self)
     string_id = "Sum"
     dim = 1
     def Op(self, out, table, arg):
@@ -261,14 +253,14 @@ class Sum_(Operation):
         f = self.children[0]
         return f.DiffT(v,SumT(gradin,f.dim))
 
-def Sum(arg):
-    if isinstance(arg,Zero):
-        return Zero(1)
-    else:
-        return Sum_(arg)
 
-class SumT_(Operation):
+class SumT(Operation):
     # the adjoint of the summation operation
+    def __new__(self, arg, dim):
+        if isinstance(arg,Zero):
+            return Zero(dim)
+        else:
+            return super(SumT, self).__new__(self)
     string_id = "SumT"
     def __init__(self, arg, dim):
         super().__init__(arg)
@@ -285,14 +277,18 @@ class SumT_(Operation):
         f = self.children[0]
         return f.DiffT(v,Sum(gradin))
 
-def SumT(arg, dim):
-    if isinstance(arg,Zero):
-        return Zero(dim)
-    else:
-        return SumT_(arg,dim)    
             
-class Mult_(VectorizedScalarBinaryOp):
+class Mult(VectorizedScalarOp):
     # the binary multiply operation
+    def __new__(self, arg0, arg1):
+        if isinstance(arg0,Zero):
+            return arg0
+        elif isinstance(arg1,Zero):
+            return arg1
+        elif isinstance(arg1,int):
+            return Mult(IntCst(arg1),arg0)
+        else:
+            return super(Mult, self).__new__(self)
     string_id = "Mult" 
     print_spec = "*", "mid", 3       
     def ScalarOp(self,out,arg0,arg1):
@@ -308,19 +304,19 @@ class Mult_(VectorizedScalarBinaryOp):
             return fb.DiffT(v, Scalprod(gradin,fa)) + fb * fa.DiffT(v,gradin)
         else:
             return fa.DiffT(v,fb*gradin) + fb.DiffT(v,fa*gradin)
-
-def Mult(arg0, arg1):
-    if isinstance(arg0,Zero):
-        return arg0
-    elif isinstance(arg1,Zero):
-        return arg1
-    elif isinstance(arg1,int):
-        return Mult_(IntCst(arg1),arg0)
-    else:
-        return Mult_(arg0, arg1)
+    
         
-class Add_(VectorizedScalarBinaryOp):
+class Add(VectorizedScalarOp):
     # the binary addition operation
+    def __new__(self, arg0, arg1):
+        if isinstance(arg0,Zero):
+            return arg1
+        elif isinstance(arg1,Zero):
+            return arg0
+        elif arg0==arg1:
+            return IntCst(2)*arg0
+        else:
+            return super(Add, self).__new__(self)
     string_id = "Add"
     print_spec = "+", "mid", 4
     def ScalarOp(self,out,arg0,arg1):
@@ -331,18 +327,16 @@ class Add_(VectorizedScalarBinaryOp):
         fa, fb = self.children
         return fa.DiffT(v,gradin) + fb.DiffT(v,gradin)
 
-def Add(arg0, arg1):
-    if isinstance(arg0,Zero):
-        return arg1
-    elif isinstance(arg1,Zero):
-        return arg0
-    elif arg0==arg1:
-        return IntCst(2)*arg0
-    else:
-        return Add_(arg0, arg1)
         
-class Subtract_(VectorizedScalarBinaryOp):
+class Subtract(VectorizedScalarOp):
     # the binary subtract operation
+    def __new__(self, arg0, arg1):
+        if isinstance(arg0,Zero):
+            return -arg1
+        elif isinstance(arg1,Zero):
+            return arg0
+        else:
+            return super(Subtract, self).__new__(self)
     string_id = "Subtract"
     print_spec = "-", "mid", 4
     def ScalarOp(self,out,arg0,arg1):
@@ -351,15 +345,7 @@ class Subtract_(VectorizedScalarBinaryOp):
         return f"{out()} = {arg0()}-{arg1()};\n"
     def DiffT(self,v,gradin):
         fa, fb = self.children
-        return fa.DiffT(v,gradin) - fb.DiffT(v,gradin)
-
-def Subtract(arg0, arg1):
-    if isinstance(arg0,Zero):
-        return -arg1
-    elif isinstance(arg1,Zero):
-        return arg0
-    else:
-        return Subtract_(arg0, arg1)
+        return fa.DiffT(v,gradin) - fb.DiffT(v,gradin)        
         
         
 def SqDist(arg0, arg1):

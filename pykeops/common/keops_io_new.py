@@ -31,7 +31,7 @@ class LoadKeOps:
         self.lang = lang
         self.optional_flags = optional_flags
         self.include_dirs = include_dirs
-        self.red_formula = getReduction(formula)()
+        self.red_formula = getReduction(formula)
         self.dimout = self.red_formula.dim
         self.tagIJ = self.red_formula.tagI
     
