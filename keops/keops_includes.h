@@ -65,6 +65,8 @@
 #include "core/formulas/maths/Asin.h"
 #include "core/formulas/maths/Cos.h"
 #include "core/formulas/maths/Acos.h"
+#include "core/formulas/maths/Atan.h"
+#include "core/formulas/maths/Atan2.h"
 #include "core/formulas/maths/Pow.h"
 #include "core/formulas/maths/Square.h"
 #include "core/formulas/maths/Inv.h"
@@ -81,7 +83,6 @@
 #include "core/formulas/maths/Powf.h"
 #include "core/formulas/maths/Sqrt.h"
 #include "core/formulas/maths/Rsqrt.h"
-#include "core/formulas/maths/Atan.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/GradMatrix.h"
 #if ((__CUDACC_VER_MAJOR__ * 1000 + __CUDACC_VER_MINOR__ * 100 + __CUDACC_VER_BUILD__) >= 11100)

@@ -1177,6 +1177,15 @@ class GenericLazyTensor:
         """
         return self.unary("Atan")
 
+    def atan2(self, other):
+        r"""
+        Element-wise atan2 - a binary operation.
+
+        ``y.atan2(x)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise atan2 of ``x`` and ``y``.
+        """
+        return self.binary(other, "Atan2", dimcheck="same")
+
     def sqrt(self):
         r"""
         Element-wise square root - a unary operation.
