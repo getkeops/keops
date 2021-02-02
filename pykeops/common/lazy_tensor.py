@@ -1289,6 +1289,16 @@ class GenericLazyTensor:
             return self.unary("ClampInt", opt_arg=other1, opt_arg2=other2)
         else:
             return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
+    
+    def mod(self, modulus, offset):
+        r"""
+        Element-wise modulo with offset function - a ternary operation.
+
+        ``x.mod(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise modulo of ``x`` with modulus ``a`` and offset ``b``. Braodcasting 
+        rules apply. a and b are floats.
+        """
+        return self.ternary(modulus, offset, "Mod", dimcheck="sameor1")
 
     def sqnorm2(self):
         r"""
