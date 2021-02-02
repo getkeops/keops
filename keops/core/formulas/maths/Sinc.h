@@ -12,27 +12,26 @@
 namespace keops {
 
 //////////////////////////////////////////////////////////////
-////                 SINX/X :  SinXDivX < F >                   ////
+////                 SINC :  Sinc < F >                   ////
 //////////////////////////////////////////////////////////////
 
 
 template<class F>
-struct SinXDivX : VectorizedScalarUnaryOp<SinXDivX, F> {
+struct Sinc : VectorizedScalarUnaryOp<Sinc, F> {
 
-  static void PrintIdString(::std::stringstream &str) { str << "SinXDivX"; }
+  static void PrintIdString(::std::stringstream &str) { str << "Sinc"; }
 
   template < typename TYPE > 
   struct Operation_Scalar {
 	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
-    	  out = keops_sinxdivx(outF);
+    	  out = keops_sinc(outF);
     }
   };
-  
  
   template<class V, class GRADIN>
   using DiffT = typename F::template DiffT<V, Mult<Subtract<Divide<Cos<F>, F>, Divide<Sin<F>,Square<F>>>, GRADIN>>;
 };
 
-#define SinXDivX(f) KeopsNS<SinXDivX<decltype(InvKeopsNS(f))>>()
+#define Sinc(f) KeopsNS<Sinc<decltype(InvKeopsNS(f))>>()
 
 }

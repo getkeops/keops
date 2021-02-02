@@ -1150,14 +1150,14 @@ class GenericLazyTensor:
         """
         return self.unary("Sin")
 
-    def sinxdivx(self):
+    def sinc(self):
         r"""
-        Element-wise sin x / x - a unary operation.
+        Element-wise sinc function - a unary operation.
 
-        ``x.sinxdivx()`` returns a :class:`LazyTensor` that encodes, symbolically,
-        the element-wise sin x / x  of ``x``.
+        ``x.sinc()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise sinc function  of ``x``.
         """
-        return self.unary("SinXDivX")
+        return self.unary("Sinc")
 
     def asin(self):
         r"""
