@@ -6,6 +6,7 @@ import time
 base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep
 template_path = base_dir_path + "templates"
 build_path = base_dir_path + "build" + os.path.sep
+os.makedirs(build_path, exist_ok=True)
     
 class genred:
     # base class for compiling and launching reductions
@@ -123,7 +124,12 @@ class CpuReduc(genred):
         
         self.code = eval("f'''"+self.get_template_code()+"'''")
 
-     
+    def __call__(self, nx, ny, out, *args):
+        if self.dll is None:
+            self.load_dll()
+        c_args = [c_void_p(x.data_ptr()) for x in args]
+        self.dll.Eval(c_int(nx), c_int(ny), c_void_p(out.data_ptr()), *c_args)
+
 
 class GpuReduc1D(genred):
     # class for generating the final C++ code, Gpu version
@@ -160,4 +166,10 @@ class GpuReduc1D(genred):
         
         self.code = eval("f'''"+self.get_template_code()+"'''")
 
+    def __call__(self, nx, ny, out, *args):
+        if self.dll is None:
+            self.load_dll()
+        c_args = [c_void_p(x.data_ptr()) for x in args]
+        device_id = out.device.index
+        self.dll.Eval(c_int(nx), c_int(ny), c_int(device_id), c_void_p(out.data_ptr()), *c_args)
 

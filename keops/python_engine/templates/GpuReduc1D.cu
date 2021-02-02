@@ -90,14 +90,15 @@ __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(
 
 
 
-extern "C" __host__ int Eval(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
+extern "C" __host__ int Eval(int nx, int ny, int device_id, {dtype} *out, {signature_list(args)}) {{
 
+    // device_id is provided, so we set the GPU device accordingly
+    // Warning : is has to be consistent with location of data
+    cudaSetDevice(device_id);
+	
     // Compute on device : grid and block are both 1d
 
-    //int dev = -1;
-    //cudaGetDevice(&dev);
-
-    //SetGpuProps(dev);
+    //SetGpuProps(devise_id);
 
     dim3 blockSize;
 
@@ -115,3 +116,4 @@ extern "C" __host__ int Eval(int nx, int ny, {dtype} *out, {signature_list(args)
 
     return 0;
 }}
+
