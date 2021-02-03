@@ -2169,4 +2169,3 @@ class GenericLazyTensor:
         See :meth:`matvec` for further reference.
         """
         return self.T @ v
-
