@@ -2,7 +2,6 @@ import copy
 import re
 
 import numpy as np
-
 from pykeops.common.utils import check_broadcasting
 
 
@@ -172,9 +171,7 @@ class GenericLazyTensor:
             # If x is a 3D+ array, its shape must be either (..,M,1,D) or (..,1,N,D) or (..,1,1,D).
             # We infer axis from shape and squeeze out the "1" dimensions:
             if axis is not None:
-                raise ValueError(
-                    "'axis' parameter should not be given when 'x' is a 3D tensor."
-                )
+                raise ValueError("'axis' parameter should not be given when 'x' is a 3D tensor.")
 
             if len(x.shape) > 3:  # We're in "batch mode"
                 self.batchdims = tuple(x.shape[:-3])
@@ -270,21 +267,14 @@ class GenericLazyTensor:
                 dims_to_pad = self.nbatchdims + 1 + is_variable - len(v.shape)
                 padded_v = self.tools.view(v, (1,) * dims_to_pad + v.shape)
                 newvars += (padded_v,)
-                if (
-                    hasattr(self, "rec_multVar_highdim")
-                    and self.rec_multVar_highdim == idv
-                ):
+                if hasattr(self, "rec_multVar_highdim") and self.rec_multVar_highdim == idv:
                     self.rec_multVar_highdim = i
                 i += 1
 
         # "VarSymb(..)" appear when users rely on the "LazyTensor(Ind,Dim,Cat)" syntax,
         # for the sake of disambiguation:
-        self.formula = self.formula.replace(
-            "VarSymb(", "Var("
-        )  # We can now replace them with
-        self.formula2 = self.formula2.replace(
-            "VarSymb(", "Var("
-        )  # actual "Var" symbols
+        self.formula = self.formula.replace("VarSymb(", "Var(")  # We can now replace them with
+        self.formula2 = self.formula2.replace("VarSymb(", "Var(")  # actual "Var" symbols
         if self.formula2 == "":
             self.formula2 = None  # The pre-processing step is now over
         self.variables = newvars
@@ -324,17 +314,13 @@ class GenericLazyTensor:
                 if y is not None:
                     if prop == "ranges":
                         x_eq_y = all(
-                            tuple(
-                                map(lambda x, y: self.tools.eq(x, y).all().item(), x, y)
-                            )
+                            tuple(map(lambda x, y: self.tools.eq(x, y).all().item(), x, y))
                         )
                     else:
                         x_eq_y = x == y
                     if not (x_eq_y):
                         raise ValueError(
-                            "Incompatible values for attribute {}: {} and {}.".format(
-                                prop, x, y
-                            )
+                            "Incompatible values for attribute {}: {} and {}.".format(prop, x, y)
                         )
                 setattr(res, prop, x)
             else:
@@ -398,18 +384,14 @@ class GenericLazyTensor:
         # we must prevent any operation if self is the output of a reduction operation,
         # i.e. if it has a reduction_op field
         if hasattr(self, "reduction_op"):
-            raise ValueError(
-                "Input is a 'reduced' LazyTensor, no operation can be applied to it. "
-            )
+            raise ValueError("Input is a 'reduced' LazyTensor, no operation can be applied to it. ")
 
         if not dimres:
             dimres = self.ndim
 
         res = self.init()  # Copy of self, without a formula
         if opt_arg2 is not None:
-            res.formula = "{}({},{},{})".format(
-                operation, self.formula, opt_arg, opt_arg2
-            )
+            res.formula = "{}({},{},{})".format(operation, self.formula, opt_arg, opt_arg2)
         elif opt_arg is not None:
             res.formula = "{}({},{})".format(operation, self.formula, opt_arg)
         else:
@@ -456,9 +438,7 @@ class GenericLazyTensor:
         if dimcheck == "same":
             if self.ndim != other.ndim:
                 raise ValueError(
-                    "Operation {} expects inputs of the same dimension. ".format(
-                        operation
-                    )
+                    "Operation {} expects inputs of the same dimension. ".format(operation)
                     + "Received {} and {}.".format(self.ndim, other.ndim)
                 )
 
@@ -488,13 +468,9 @@ class GenericLazyTensor:
             if hasattr(opt_arg, "__GenericLazyTensor__"):
                 opt_arg = opt_arg.formula
             if opt_pos == "last":
-                res.formula = "{}({}, {}, {})".format(
-                    operation, lformula, rformula, opt_arg
-                )
+                res.formula = "{}({}, {}, {})".format(operation, lformula, rformula, opt_arg)
             elif opt_pos == "middle":
-                res.formula = "{}({}, {}, {})".format(
-                    operation, lformula, opt_arg, rformula
-                )
+                res.formula = "{}({}, {}, {})".format(operation, lformula, opt_arg, rformula)
         else:
             res.formula = "{}({}, {})".format(operation, lformula, rformula)
 
@@ -507,9 +483,7 @@ class GenericLazyTensor:
 
         return res
 
-    def ternary(
-        self, other1, other2, operation, dimres=None, dimcheck="sameor1", opt_arg=None
-    ):
+    def ternary(self, other1, other2, operation, dimres=None, dimcheck="sameor1", opt_arg=None):
         r"""Symbolically applies **operation** to **self**, with optional arguments if needed.
 
         Keyword args:
@@ -544,12 +518,8 @@ class GenericLazyTensor:
         if dimcheck == "same":
             if (self.ndim != other1.ndim) or (self.ndim != other2.ndim):
                 raise ValueError(
-                    "Operation {} expects inputs of the same dimension. ".format(
-                        operation
-                    )
-                    + "Received {}, {} and {}.".format(
-                        self.ndim, other1.ndim, other2.ndim
-                    )
+                    "Operation {} expects inputs of the same dimension. ".format(operation)
+                    + "Received {}, {} and {}.".format(self.ndim, other1.ndim, other2.ndim)
                 )
 
         elif dimcheck == "sameor1":
@@ -558,17 +528,13 @@ class GenericLazyTensor:
                     "Operation {} expects inputs of the same dimension or dimension 1. ".format(
                         operation
                     )
-                    + "Received {}, {} and {}.".format(
-                        self.ndim, other1.ndim, other2.ndim
-                    )
+                    + "Received {}, {} and {}.".format(self.ndim, other1.ndim, other2.ndim)
                 )
 
         elif dimcheck != None:
             raise ValueError("incorrect dimcheck keyword in binary operation")
 
-        res = self.join(
-            other1.join(other2)
-        )  # Merge the attributes and variables of operands
+        res = self.join(other1.join(other2))  # Merge the attributes and variables of operands
         res.ndim = dimres
 
         if opt_arg is not None:
@@ -587,14 +553,7 @@ class GenericLazyTensor:
     # Prototypes for reduction operations  =====================================
 
     def reduction(
-        self,
-        reduction_op,
-        other=None,
-        opt_arg=None,
-        axis=None,
-        dim=None,
-        call=True,
-        **kwargs
+        self, reduction_op, other=None, opt_arg=None, axis=None, dim=None, call=True, **kwargs
     ):
         r"""
         Applies a reduction to a :class:`LazyTensor`. This method is used internally by the LazyTensor class.
@@ -760,9 +719,7 @@ class GenericLazyTensor:
         """
 
         if not hasattr(other, "__GenericLazyTensor__"):
-            other = self.lt_constructor(
-                x=other, axis=0
-            )  # a vector is normally indexed by "i"
+            other = self.lt_constructor(x=other, axis=0)  # a vector is normally indexed by "i"
 
         # If given, var is symbolic variable corresponding to unknown
         # other must be a variable equal to the second member of the linear system,
@@ -894,18 +851,14 @@ class GenericLazyTensor:
 
         string = "KeOps LazyTensor\n    formula: {}".format(tmp.formula)
         if len(self.symbolic_variables) > 0:
-            string += "\n    symbolic variables: Var{}".format(
-                self.symbolic_variables[0]
-            )
+            string += "\n    symbolic variables: Var{}".format(self.symbolic_variables[0])
             for var in self.symbolic_variables[1:]:
                 string += ", Var{}".format(var)
 
         string += "\n    shape: {}".format(self.shape)
 
         if hasattr(self, "reduction_op"):
-            string += "\n    reduction: {} (axis={})".format(
-                self.reduction_op, self.axis
-            )
+            string += "\n    reduction: {} (axis={})".format(self.reduction_op, self.axis)
             if tmp.formula2 is not None:
                 string += "\n        formula2: {}".format(tmp.formula2)
             if hasattr(self, "opt_arg") and self.opt_arg is not None:
@@ -1070,9 +1023,7 @@ class GenericLazyTensor:
         ``(x|y)`` returns a :class:`LazyTensor` that encodes, symbolically,
         the scalar product of ``x`` and ``y`` which are assumed to have the same shape.
         """
-        return self.binary(
-            other, "|", is_operator=True, dimres=1, dimcheck="same", rversion=True
-        )
+        return self.binary(other, "|", is_operator=True, dimres=1, dimcheck="same", rversion=True)
 
     # Unary arithmetics --------------------------------------------------------
 
@@ -1208,9 +1159,7 @@ class GenericLazyTensor:
           - if **y = -0.5**, ``x**y`` uses on the ``"Rsqrt"`` KeOps operation.
         """
         if type(other) == int:
-            return (
-                self.unary("Square") if other == 2 else self.unary("Pow", opt_arg=other)
-            )
+            return self.unary("Square") if other == 2 else self.unary("Pow", opt_arg=other)
 
         elif type(other) == float:
             if other == 0.5:
@@ -1229,9 +1178,7 @@ class GenericLazyTensor:
                     + "{} and {}.".format(self.ndim, other.ndim)
                 )
         else:
-            raise ValueError(
-                "The exponent should be an integer, a float number or a LazyTensor."
-            )
+            raise ValueError("The exponent should be an integer, a float number or a LazyTensor.")
 
     def power(self, other):
         r"""
@@ -1289,6 +1236,15 @@ class GenericLazyTensor:
             return self.unary("ClampInt", opt_arg=other1, opt_arg2=other2)
         else:
             return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
+
+    def round(self, other):
+        r"""
+        Element-wise rounding function - a unary operation.
+
+        ``x.round()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise rounding of ``x`` to d decimal places. d is int.
+        """
+        return self.binary(other, "Round", dimcheck=None)
 
     def sqnorm2(self):
         r"""
@@ -1355,9 +1311,7 @@ class GenericLazyTensor:
                 + "{} with D={}.".format(other.ndim, self.ndim)
             )
 
-        return self.binary(
-            other, "WeightedSqNorm", dimres=1, dimcheck=None, rversion=True
-        )
+        return self.binary(other, "WeightedSqNorm", dimres=1, dimcheck=None, rversion=True)
 
     def weightedsqdist(self, g, s):
         r"""
@@ -1382,9 +1336,7 @@ class GenericLazyTensor:
         if type(i) is not int:
             raise ValueError("Elem indexing is only supported for integer indices.")
         if i < 0 or i >= self.ndim:
-            raise ValueError(
-                "Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.ndim)
-            )
+            raise ValueError("Index i={} is out of bounds [0,D) = [0,{}).".format(i, self.ndim))
         return self.unary("Elem", dimres=1, opt_arg=i)
 
     def extract(self, i, d):
@@ -1422,9 +1374,7 @@ class GenericLazyTensor:
         #    [..,:,:,k], [..,:,:,k:l], [..,:,:,k:], [..,:,:,:l]
         #    or equivalent [k], [k:l], [k:], [:l]
         if isinstance(key, tuple):
-            if len(key) == len(self._shape) and key[:-1] == (slice(None),) * (
-                len(self._shape) - 1
-            ):
+            if len(key) == len(self._shape) and key[:-1] == (slice(None),) * (len(self._shape) - 1):
                 key = key[-1]
             else:
                 raise ValueError(
@@ -1433,9 +1383,7 @@ class GenericLazyTensor:
 
         if isinstance(key, slice):
             if not key.step in [None, 1]:
-                raise ValueError(
-                    "LazyTensors do not support sliced indexing with stepsizes > 1."
-                )
+                raise ValueError("LazyTensors do not support sliced indexing with stepsizes > 1.")
             if key.start is None:
                 key = slice(0, key.stop)
             if key.stop is None:
@@ -1456,9 +1404,7 @@ class GenericLazyTensor:
         a vector of length D whose round(x)-th coordinate is equal to 1, and the other ones to zero.
         """
         if type(D) is not int:
-            raise ValueError(
-                "One-hot encoding expects an integer dimension of the output vector."
-            )
+            raise ValueError("One-hot encoding expects an integer dimension of the output vector.")
         if self.ndim != 1:
             raise ValueError("One-hot encoding is only supported for scalar formulas.")
 
@@ -1471,9 +1417,7 @@ class GenericLazyTensor:
         ``x.concat(y)`` returns a :class:`LazyTensor` that encodes, symbolically,
         the concatenation of ``x`` and ``y`` along their last dimension.
         """
-        return self.binary(
-            other, "Concat", dimres=(self.ndim + other.ndim), dimcheck=None
-        )
+        return self.binary(other, "Concat", dimres=(self.ndim + other.ndim), dimcheck=None)
 
     @staticmethod
     def concatenate(tuple_of_lt, axis=-1):
@@ -1491,9 +1435,7 @@ class GenericLazyTensor:
                 raise ValueError("Received an empty tuple of LazyTensors.")
             elif hasattr(tuple_of_lt[0], "__GenericLazyTensor__"):
                 if axis not in [-1, len(tuple_of_lt[0]._shape) - 1]:
-                    raise ValueError(
-                        "LazyTensor only supports concatenation along the last axis."
-                    )
+                    raise ValueError("LazyTensor only supports concatenation along the last axis.")
                 if len(tuple_of_lt) == 1:
                     return tuple_of_lt[0]
                 elif len(tuple_of_lt) == 2:
@@ -1504,9 +1446,7 @@ class GenericLazyTensor:
                         axis=-1,
                     )
         else:
-            raise ValueError(
-                "LazyTensor.concatenate is implemented on *tuples* of LazyTensors."
-            )
+            raise ValueError("LazyTensor.concatenate is implemented on *tuples* of LazyTensors.")
 
     @staticmethod
     def cat(tuple_of_lt, dim):
@@ -1530,9 +1470,7 @@ class GenericLazyTensor:
         For details, please check the documentation of the KeOps operation ``"MatVecMult"`` in
         the :doc:`main reference page <../../../api/math-operations>`.
         """
-        return self.binary(
-            other, "MatVecMult", dimres=(self.ndim // other.ndim), dimcheck=None
-        )
+        return self.binary(other, "MatVecMult", dimres=(self.ndim // other.ndim), dimcheck=None)
 
     def vecmatmult(self, other):
         r"""
@@ -1545,9 +1483,7 @@ class GenericLazyTensor:
         For details, please check the documentation of the KeOps operation ``"VecMacMult"`` in
         the :doc:`main reference page <../../../api/math-operations>`.
         """
-        return self.binary(
-            other, "VecMatMult", dimres=(other.ndim // self.ndim), dimcheck=None
-        )
+        return self.binary(other, "VecMatMult", dimres=(other.ndim // self.ndim), dimcheck=None)
 
     def tensorprod(self, other):
         r"""
@@ -1560,9 +1496,7 @@ class GenericLazyTensor:
         For details, please check the documentation of the KeOps operation ``"TensorProd"`` in
         the :doc:`main reference page <../../../api/math-operations>`.
         """
-        return self.binary(
-            other, "TensorProd", dimres=(other.ndim * self.ndim), dimcheck=None
-        )
+        return self.binary(other, "TensorProd", dimres=(other.ndim * self.ndim), dimcheck=None)
 
     def keops_tensordot(self, other, dimfa, dimfb, contfa, contfb, *args):
         """
@@ -1590,9 +1524,7 @@ class GenericLazyTensor:
 
         dimres = np.array(dimfa).prod() * np.array(dimfb).prod()
         dimres /= np.array(dimfa)[np.array(contfa)].prod() ** 2 if len(contfa) else 1
-        return self.binary(
-            other, "TensorDot", dimres=int(dimres), dimcheck=None, opt_arg=opt_arg
-        )
+        return self.binary(other, "TensorDot", dimres=int(dimres), dimcheck=None, opt_arg=opt_arg)
 
     def grad(self, other, gradin):
         r"""
@@ -1683,9 +1615,7 @@ class GenericLazyTensor:
         if weight is None:
             return self.reduction("LogSumExp", axis=axis, dim=dim, **kwargs)
         else:
-            return self.reduction(
-                "LogSumExp", other=weight, axis=axis, dim=dim, **kwargs
-            )
+            return self.reduction("LogSumExp", other=weight, axis=axis, dim=dim, **kwargs)
 
     def logsumexp_reduction(self, **kwargs):
         r"""
@@ -1714,9 +1644,7 @@ class GenericLazyTensor:
           **kwargs: optional parameters that are passed to the :meth:`reduction` method.
 
         """
-        return self.reduction(
-            "SumSoftMaxWeight", other=weight, axis=axis, dim=dim, **kwargs
-        )
+        return self.reduction("SumSoftMaxWeight", other=weight, axis=axis, dim=dim, **kwargs)
 
     def sumsoftmaxweight_reduction(self, **kwargs):
         r"""
@@ -2100,26 +2028,14 @@ class GenericLazyTensor:
             res.axis = 0
 
         if res.formula is not None:  # Switch variables with CAT=0 and CAT=1
-            res.formula = re.sub(
-                r"(Var|VarSymb)\((\d+),(\d+),0\)", r"\1(\2,\3,i)", res.formula
-            )
-            res.formula = re.sub(
-                r"(Var|VarSymb)\((\d+),(\d+),1\)", r"\1(\2,\3,0)", res.formula
-            )
-            res.formula = re.sub(
-                r"(Var|VarSymb)\((\d+),(\d+),i\)", r"\1(\2,\3,1)", res.formula
-            )
+            res.formula = re.sub(r"(Var|VarSymb)\((\d+),(\d+),0\)", r"\1(\2,\3,i)", res.formula)
+            res.formula = re.sub(r"(Var|VarSymb)\((\d+),(\d+),1\)", r"\1(\2,\3,0)", res.formula)
+            res.formula = re.sub(r"(Var|VarSymb)\((\d+),(\d+),i\)", r"\1(\2,\3,1)", res.formula)
 
         if res.formula2 is not None:  # Switch variables with CAT=0 and CAT=1
-            res.formula2 = re.sub(
-                r"(Var|VarSymb)\((\d+),(\d+),0\)", r"\1(\2,\3,i)", res.formula2
-            )
-            res.formula2 = re.sub(
-                r"(Var|VarSymb)\((\d+),(\d+),1\)", r"\1(\2,\3,0)", res.formula2
-            )
-            res.formula2 = re.sub(
-                r"(Var|VarSymb)\((\d+),(\d+),i\)", r"\1(\2,\3,1)", res.formula2
-            )
+            res.formula2 = re.sub(r"(Var|VarSymb)\((\d+),(\d+),0\)", r"\1(\2,\3,i)", res.formula2)
+            res.formula2 = re.sub(r"(Var|VarSymb)\((\d+),(\d+),1\)", r"\1(\2,\3,0)", res.formula2)
+            res.formula2 = re.sub(r"(Var|VarSymb)\((\d+),(\d+),i\)", r"\1(\2,\3,1)", res.formula2)
 
         return res
 

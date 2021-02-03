@@ -78,6 +78,7 @@
 #include "core/formulas/maths/ReLu.h"
 #include "core/formulas/maths/Clamp.h"
 #include "core/formulas/maths/ClampInt.h"
+#include "core/formulas/maths/Round.h"
 #include "core/formulas/maths/Powf.h"
 #include "core/formulas/maths/Sqrt.h"
 #include "core/formulas/maths/Rsqrt.h"
