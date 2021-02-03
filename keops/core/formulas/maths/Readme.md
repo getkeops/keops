@@ -30,7 +30,7 @@ Standard math functions :
  *      Acos<F>                        : arc-cosine of F (vectorized)
  *      Asin<F>                        : arc-sine of F (vectorized)
  *      Atan<F>                        : arc-tangent of F (vectorized)
- *      Atan<F, G>                     : arc-tangent of F and G (vectorized) ; F corresponds to y and G to x
+ *      Atan2<F, G>                    : arc-tangent of F and G (vectorized) ; F corresponds to y and G to x
  *      Sign<F>                        : sign of F (vectorized)
  *      Step<F>                        : step of F (vectorized)
  *      ReLU<F>                        : ReLU of F (vectorized)
