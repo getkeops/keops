@@ -2,7 +2,6 @@ import copy
 import re
 
 import numpy as np
-
 from pykeops.common.utils import check_broadcasting
 
 
@@ -1289,7 +1288,7 @@ class GenericLazyTensor:
             return self.unary("ClampInt", opt_arg=other1, opt_arg2=other2)
         else:
             return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
-    
+
     def mod(self, modulus, offset):
         r"""
         Element-wise modulo with offset function - a ternary operation.
