@@ -42,7 +42,7 @@ DEVICE INLINE float keops_rsqrt(float x) { return rsqrtf(x); }
 DEVICE INLINE float keops_acos(float x) { return acosf(x); }
 DEVICE INLINE float keops_asin(float x) { return asinf(x); }
 DEVICE INLINE float keops_atan(float x) { return atanf(x); }
-DEVICE INLINE float keops_atan(float x) { return atan2f(x); }
+DEVICE INLINE float keops_atan2(float y, float x) { return atan2f(y, x); }
 DEVICE INLINE double keops_rsqrt(double x) { return rsqrt(x); } 
    
 #if USE_HALF 
