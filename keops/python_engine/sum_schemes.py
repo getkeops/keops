@@ -1,8 +1,8 @@
 
-class sum_scheme:
+class Sum_Scheme:
     def __init__(self, red_formula, dtype):
         self.red_formula = red_formula
-    def declare_temporary_accumulator():
+    def declare_temporary_accumulator(self):
         return self.tmp_acc.declare()
     def initialize_temporary_accumulator_first_init(self):
         return ""
@@ -13,7 +13,7 @@ class sum_scheme:
     def final_operation(self, acc):  
         return ""
 
-class direct_sum(sum_scheme):
+class direct_sum(Sum_Scheme):
     def declare_temporary_accumulator(self):
         return ""
     def initialize_temporary_accumulator(self):
@@ -21,7 +21,7 @@ class direct_sum(sum_scheme):
     def accumulate_result(self, acc, fout, j):  
         return self.red_formula.ReducePairShort(acc, fout, j)
     
-class block_sum(sum_scheme):
+class block_sum(Sum_Scheme):
     def __init__(self, red_formula, dtype):
         super().__init__(red_formula, dtype)
         self.tmp_acc = c_array("tmp", dtype, red_formula.dimred)
@@ -39,7 +39,7 @@ class block_sum(sum_scheme):
     def final_operation(self, acc):  
         return self.red_formula.ReducePair(acc, self.tmp_acc)
 
-class kahan_scheme(sum_scheme):
+class kahan_scheme(Sum_Scheme):
     def __init__(self, red_formula, dtype):
         super().__init__(red_formula, dtype)
         self.tmp_acc = c_array("tmp", dtype, red_formula.dim_kahan)
