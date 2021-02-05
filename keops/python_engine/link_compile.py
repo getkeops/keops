@@ -1,6 +1,5 @@
-import os
+import os, glob, time
 from ctypes import c_int, c_float, c_double, c_void_p, CDLL, POINTER
-import time
 from map_reduce import *
 
 base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep
@@ -18,13 +17,14 @@ class link_compile:
     
     def __init__(self, map_reduce_id, red_formula_string, nargs, dtype, *params):
         self.gencode_filename = get_hash_name(map_reduce_id, *params)
-        self.dllname = build_path + os.path.sep + self.gencode_filename + "_" + self.source_code_extension + ".so"
+        self.gencode_file = build_path + os.path.sep + self.gencode_filename + "." + self.source_code_extension
+        self.dllname = self.gencode_file + ".so"
+        self.info_file = self.gencode_file + ".nfo"
         self.map_reduce_id = map_reduce_id
         self.red_formula_string = red_formula_string
         self.nargs = nargs
         self.dtype = dtype
         self.params = params
-        self.gencode_file = build_path + os.path.sep + self.gencode_filename + "." + self.source_code_extension
         self.compile_command = f"{self.compiler} {' '.join(self.compile_options)} {self.gencode_file} -o {self.dllname}"
         if self.gencode_filename in link_compile.library:
             rec = link_compile.library[self.gencode_filename]  
@@ -39,6 +39,24 @@ class link_compile:
         f.write(map_reduce_obj.code)
         f.close()
     
+    def save_info(self):
+        f = open(self.info_file,"w")
+        f.write(f"dim={self.dim}\ntagI={self.tagI}")
+        f.close()
+    
+    def read_info(self):
+        f = open(self.info_file,"r")
+        string = f.read()
+        f.close()
+        tmp = string.split("\n")
+        if len(tmp)!= 2:
+            raise ValueError("incorrect info file")
+        tmp_dim, tmp_tag = tmp[0].split("="), tmp[1].split("=")
+        if len(tmp_dim)!=2 or tmp_dim[0]!="dim" or len(tmp_tag)!=2 or tmp_tag[0]!="tagI":
+            raise ValueError("incoreect info file")
+        self.dim = eval(tmp_dim[1])
+        self.tagI = eval(tmp_tag[1])
+        
     def compile_code(self):        
         self.map_reduce_obj = eval(self.map_reduce_id)(self.red_formula_string, self.nargs, self.dtype, *self.params)
         self.tagI = self.map_reduce_obj.red_formula.tagI
@@ -52,8 +70,11 @@ class link_compile:
             print("compiling dll...", end="", flush=True)
             start = time.time()
             self.compile_code()
+            self.save_info()
             elapsed = time.time()-start
             print("done ({:.2f} s)".format(elapsed))
+        else:
+            self.read_info()
         self.dll = CDLL(self.dllname)
         link_compile.library[self.gencode_filename] = { "dll":self.dll, "tagI":self.tagI, "dim":self.dim }
         ctype = eval(f"c_{self.dtype}")
