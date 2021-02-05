@@ -3,6 +3,12 @@ from hashlib import sha256
 def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[:10]
     
+def c_if(condition, *commands):
+    block_string = "".join(commands)
+    return f""" if ({cond_string}) {{
+                      {block_string}
+                }}
+            """
 
 def c_function(name, dtypeout, args, commands, qualifier=None):
     # first write the signature of the function :
@@ -69,6 +75,10 @@ class c_variable:
     def __repr__(self):
         # method for printing the c_variable inside Python code
         return self.string_id
+    def declare(self):
+        return f"{self.dtype} {self.string_id}\n"
+    def declare_assign(self, value_string):
+        return f"{self.dtype} {self.string_id} = {value_string}\n"
         
 c_zero_int = c_variable("0","int")
 c_zero_float = c_variable("0.0f","float")

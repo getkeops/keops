@@ -52,9 +52,15 @@ class Sum_Reduction(Reduction):
         # Returns C++ code that implements the "+=" accumulation operation of the sum reduction
         return f"{tmp()} += {cast_to(tmp.dtype)}({xi()});"
         
-    def ReducePairShort(self, tmp, xi, val):
+    def ReducePairShort(self, tmp, xi, ind):
         # Returns C++ code that implements the update phase of the reduction.
         # Here for the sum reduction it consists in a vectorized version of the "+=" operation.
+        
+        # N.B next lines are useless for SumReduction, but to be used in other reductions :
+        # if xi.dtype == "half2":
+        #     half2_val = c_variable("half2_ind")
+        #     string = half2_val.declare_assign(f"__floats2half2_rn(2*{ind()},2*{ind()}+1)")
+        
         return VectApply(self.ReducePairScalar, tmp, xi)
         
     def ReducePair(self, acc, xi):

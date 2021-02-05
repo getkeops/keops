@@ -68,7 +68,7 @@ class LoadKeOps:
             reduc = CpuReduc
         else:
             reduc = GpuReduc1D            
-        myred = reduc(self.red_formula, c_dtype, c_dtype_acc, nargs, sum_scheme=sum_scheme)
+        myred = reduc(self.red_formula, c_dtype, c_dtype_acc, nargs, sum_scheme_string=sum_scheme)
         M, N = (nx, ny) if self.red_formula.tagI==0 else (ny, nx)
         out = torch.zeros(M, self.red_formula.dim, dtype=dtype, device=device)
         if self.red_formula.formula != Zero(self.red_formula.dim):
