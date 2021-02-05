@@ -168,6 +168,7 @@ class GpuReduc1D(genred):
         outi = self.outi
         acc = self.acc
         args = self.args
+        sum_scheme = self.sum_scheme
         
         param_loc = self.param_loc
         xi = self.xi
