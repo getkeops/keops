@@ -65,14 +65,16 @@ class LoadKeOps:
             raise ValueError('not implemented')
             
         if device.type == "cpu":
-            reduc = CpuReduc
+            reduc = Cpu_link_compile
+            map_reduce_id = "CpuReduc"
         else:
-            reduc = GpuReduc1D            
-        myred = reduc(self.red_formula, c_dtype, c_dtype_acc, nargs, sum_scheme_string=sum_scheme)
+            reduc = Gpu_link_compile   
+            map_reduce_id = "GpuReduc1D"   
+        myfun = reduc(map_reduce_id, self.red_formula, nargs, c_dtype, c_dtype_acc, sum_scheme)
         M, N = (nx, ny) if self.red_formula.tagI==0 else (ny, nx)
         out = torch.zeros(M, self.red_formula.dim, dtype=dtype, device=device)
         if self.red_formula.formula != Zero(self.red_formula.dim):
-            myred(M, N, out, *args)
+            myfun(M, N, out, *args)
         return out
         
     def import_module(self):
