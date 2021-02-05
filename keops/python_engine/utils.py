@@ -3,6 +3,10 @@ from hashlib import sha256
 def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[:10]
     
+
+def c_include(*headers):
+    return "".join(f"#include <{header}>\n" for header in headers)
+    
 def c_if(condition, *commands):
     block_string = "".join(commands)
     return f""" if ({cond_string}) {{
