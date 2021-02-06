@@ -16,7 +16,7 @@ class link_compile:
     library = {}
     
     def __init__(self, map_reduce_id, red_formula_string, nargs, dtype, *params):
-        self.gencode_filename = get_hash_name(map_reduce_id, *params)
+        self.gencode_filename = get_hash_name(map_reduce_id, red_formula_string, nargs, dtype, *params)
         self.gencode_file = build_path + os.path.sep + self.gencode_filename + "." + self.source_code_extension
         self.dllname = self.gencode_file + ".so"
         self.info_file = self.gencode_file + ".nfo"
