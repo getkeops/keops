@@ -1,15 +1,14 @@
 from utils import *
 from sum_schemes import *
-
+from reductions import *
+from link_compile import *
 
     
 class map_reduce:
     # base class for map-reduce schemes
     
-    def __init__(self, red_formula, nargs, dtype, dtypeacc, sum_scheme_string):
-        # - red_formula is instance of Reduction class
-        # - dtype and dtypeacc are strings 
-        self.red_formula = red_formula
+    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
+        self.red_formula = eval(red_formula_string)
         self.dtype = dtype
         self.dtypeacc = dtypeacc
         self.nargs = nargs
@@ -44,6 +43,8 @@ class map_reduce:
             
 class CpuReduc(map_reduce):
     # class for generating the final C++ code, Cpu version
+    
+    link_compile_class = Cpu_link_compile
     
     def get_code(self):
 
@@ -88,6 +89,8 @@ class CpuReduc(map_reduce):
 
 class GpuReduc1D(map_reduce):
     # class for generating the final C++ code, Gpu version
+    
+    link_compile_class = Gpu_link_compile
     
     def get_code(self):
         
