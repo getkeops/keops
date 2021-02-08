@@ -163,7 +163,7 @@ class torchtools:
             if str(dev)=="cpu":
                 return dict(cat="cpu", index=0)
             else:
-                return dict(cat="gpu", index=dev.index)
+                return dict(cat="cuda", index=dev.index)
         else:
             return None
     
