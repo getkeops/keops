@@ -2,15 +2,15 @@ import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'keops', 'python_engine'))
 from operations import *
 from reductions import *  
-from link_compile import *     
+from get_keops_routine import *     
 import time 
+import torch
         
 class LoadKeOps:
     
     def __init__(
         self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
     ):
-
         for k, alias in enumerate(aliases):
             alias = alias.replace(" ","")
             if "=" in alias:
@@ -26,18 +26,18 @@ class LoadKeOps:
                     var = f"Var({k},{dim},2)"
                 formula = formula.replace(varname, var)
 
-        self.aliases = aliases
-        self.dtype = dtype
-        self.lang = lang
+        #self.aliases = aliases
+        #self.dtype = dtype
+        #self.lang = lang
         self.optional_flags = optional_flags
-        self.include_dirs = include_dirs
-        self.red_formula = getReduction(formula)
+        #self.include_dirs = include_dirs
+        self.red_formula_string = formula
+        self.red_formula = eval(formula)
         self.dimout = self.red_formula.dim
         self.tagIJ = self.red_formula.tagI
     
     def genred_pytorch(self, tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, *args):
-        
-        import torch
+
         nargs = len(args)
         dtype = args[0].dtype
         device = args[0].device
@@ -65,16 +65,17 @@ class LoadKeOps:
             raise ValueError('not implemented')
             
         if device.type == "cpu":
-            reduc = Cpu_link_compile
             map_reduce_id = "CpuReduc"
+            device_id = -1
         else:
-            reduc = Gpu_link_compile   
             map_reduce_id = "GpuReduc1D"   
-        myfun = reduc(map_reduce_id, self.red_formula, nargs, c_dtype, c_dtype_acc, sum_scheme)
-        M, N = (nx, ny) if self.red_formula.tagI==0 else (ny, nx)
-        out = torch.zeros(M, self.red_formula.dim, dtype=dtype, device=device)
-        if self.red_formula.formula != Zero(self.red_formula.dim):
-            myfun(M, N, out, *args)
+            device_id = device.index
+        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, nargs, c_dtype, c_dtype_acc, sum_scheme)
+        M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)
+        out = torch.zeros(M, myfun.dim, dtype=dtype, device=device)
+        out_ptr = out.data_ptr()
+        args_ptr = (arg.data_ptr() for arg in args)
+        myfun(M, N, device_id, out_ptr, *args_ptr)
         return out
         
     def import_module(self):
