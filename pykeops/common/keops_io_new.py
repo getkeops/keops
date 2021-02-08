@@ -31,6 +31,7 @@ class LoadKeOps:
         #self.lang = lang
         self.optional_flags = optional_flags
         #self.include_dirs = include_dirs
+        self.red_formula_string = formula
         self.red_formula = eval(formula)
         self.dimout = self.red_formula.dim
         self.tagIJ = self.red_formula.tagI
@@ -65,14 +66,16 @@ class LoadKeOps:
             
         if device.type == "cpu":
             map_reduce_id = "CpuReduc"
+            device_id = -1
         else:
             map_reduce_id = "GpuReduc1D"   
-        myfun = get_keops_routine(map_reduce_id, self.red_formula, nargs, c_dtype, c_dtype_acc, sum_scheme)
+            device_id = device.index
+        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, nargs, c_dtype, c_dtype_acc, sum_scheme)
         M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)
         out = torch.zeros(M, myfun.dim, dtype=dtype, device=device)
         out_ptr = out.data_ptr()
         args_ptr = (arg.data_ptr() for arg in args)
-        myfun(M, N, out_ptr, *args_ptr)
+        myfun(M, N, device_id, out_ptr, *args_ptr)
         return out
         
     def import_module(self):

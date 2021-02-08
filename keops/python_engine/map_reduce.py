@@ -8,6 +8,7 @@ class map_reduce:
     # base class for map-reduce schemes
     
     def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
+        self.red_formula_string = red_formula_string
         self.red_formula = eval(red_formula_string)
         self.dtype = dtype
         self.dtypeacc = dtypeacc
@@ -38,14 +39,115 @@ class map_reduce:
         self.acc = acc = c_array("acc", dtypeacc, red_formula.dimred)
         self.fout = fout = c_array("fout", dtype, formula.dim)
         self.outi = c_array(f"(out + i * {red_formula.dim})", dtype, red_formula.dim) 
-        
-            
-            
-class CpuReduc(map_reduce):
+
+
+
+class CpuAssignZero(map_reduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
     
-    link_compile_class = Cpu_link_compile
+    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
+        map_reduce.__init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string)
+        Cpu_link_compile.__init__(self)
     
+    def get_code(self):
+        
+        super().get_code()
+        
+        outi = self.outi
+        dtype = self.dtype
+        args = self.args
+        
+        self.headers += c_include("omp.h")
+
+        self.code = f"""
+                        {self.headers}
+
+                        extern "C" int Eval(int nx, int ny, int dummy, {dtype}* out, {signature_list(args)}) {{
+                            #pragma omp parallel for
+                            for (int i = 0; i < nx; i++) {{
+                                {outi.assign(c_zero_float)}
+                            }}
+                            return 0;
+                        }}
+                    """
+
+
+class GpuAssignZero(map_reduce, Gpu_link_compile):
+    # class for generating the final C++ code, Gpu version
+    
+    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
+        map_reduce.__init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string)
+        Gpu_link_compile.__init__(self)
+    
+    def get_code(self):
+        
+        super().get_code()
+        
+        outi = self.outi
+        dtype = self.dtype
+        args = self.args
+        varloader = self.varloader
+        
+        if dtype == "half2":
+            self.headers += c_include("cuda_fp16.h")
+            
+        self.code = f"""
+                        {self.headers}
+
+                        __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
+    
+                          // get the index of the current thread
+                          int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+                          if (i < nx) {{
+                            {outi.assign(c_zero_float)}
+                          }}
+
+                        }}
+
+
+
+                        extern "C" __host__ int Eval(int nx, int ny, int device_id, {dtype} *out, {signature_list(args)}) {{
+
+                            // device_id is provided, so we set the GPU device accordingly
+                            // Warning : is has to be consistent with location of data
+                            cudaSetDevice(device_id);
+	
+                            // Compute on device : grid and block are both 1d
+
+                            //SetGpuProps(device_id);
+
+                            dim3 blockSize;
+
+                            blockSize.x = 32;
+	
+                            dim3 gridSize;
+                            gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
+
+                            GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * {varloader.dimy} * sizeof({dtype}) >>> (nx, ny, out, {call_list(args)});
+    
+                            // block until the device has completed
+                            cudaDeviceSynchronize();
+
+                            //CudaCheckError();
+
+                            return 0;
+                        }}
+                    """
+
+
+
+            
+            
+class CpuReduc(map_reduce, Cpu_link_compile):
+    # class for generating the final C++ code, Cpu version
+    
+    AssignZero = CpuAssignZero
+
+    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
+        map_reduce.__init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string)
+        Cpu_link_compile.__init__(self)
+        
     def get_code(self):
 
         super().get_code()
@@ -66,7 +168,7 @@ class CpuReduc(map_reduce):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" int Eval(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
+                        extern "C" int Eval(int nx, int ny, int dummy, {dtype}* out, {signature_list(args)}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {fout.declare()}
@@ -87,11 +189,15 @@ class CpuReduc(map_reduce):
                     """
 
 
-class GpuReduc1D(map_reduce):
+class GpuReduc1D(map_reduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
     
-    link_compile_class = Gpu_link_compile
-    
+    AssignZero = GpuAssignZero
+
+    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
+        map_reduce.__init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string)
+        Gpu_link_compile.__init__(self)
+        
     def get_code(self):
         
         super().get_code()
@@ -120,13 +226,6 @@ class GpuReduc1D(map_reduce):
             
         self.code = f"""
                         {self.headers}
-                        #ifndef USE_HALF
-                          #define USE_HALF 0
-                        #endif
-
-                        #if USE_HALF
-                          #include <cuda_fp16.h>
-                        #endif
 
                         __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
     
@@ -207,3 +306,19 @@ class GpuReduc1D(map_reduce):
                             return 0;
                         }}
                     """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
