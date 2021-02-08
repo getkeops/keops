@@ -14,25 +14,20 @@ os.makedirs(build_path, exist_ok=True)
         
         
 class link_compile:
-    # base class for compiling reductions
     
-    def __init__(self, map_reduce_obj, red_formula_string, nargs, dtype, *params):
-        self.gencode_filename = get_hash_name(type(map_reduce_obj), red_formula_string, nargs, dtype, *params)
+    # base class for compiling the map_reduce schemes and
+    # providing the dll to KeOps bindings.
+    
+    def __init__(self):
+        self.gencode_filename = get_hash_name(type(self), self.red_formula_string, self.nargs, self.dtype, self.dtypeacc, self.sum_scheme_string)
         self.gencode_file = build_path + os.path.sep + self.gencode_filename + "." + self.source_code_extension
-        print(type(map_reduce_obj))
-        print(type(map_reduce_obj.red_formula))
-        self.dllname = self.gencode_file + ".so" if not isinstance(map_reduce_obj.red_formula.formula,Zero) else "zero"
+        self.dllname = self.gencode_file + ".so"
         self.info_file = self.gencode_file + ".nfo"
-        self.map_reduce_obj = map_reduce_obj
-        self.red_formula_string = red_formula_string
-        self.nargs = nargs
-        self.dtype = dtype
-        self.params = params
         self.compile_command = f"{self.compiler} {' '.join(self.compile_options)} {self.gencode_file} -o {self.dllname}"
         
-    def write_code(self, map_reduce_obj):
+    def write_code(self):
         f = open(self.gencode_file,"w")
-        f.write(map_reduce_obj.code)
+        f.write(self.code)
         f.close()
     
     def save_info(self):
@@ -54,14 +49,14 @@ class link_compile:
         self.tagI = eval(tmp_tag[1])
         
     def compile_code(self):        
-        self.tagI = self.map_reduce_obj.red_formula.tagI
-        self.dim = self.map_reduce_obj.red_formula.dim
-        self.map_reduce_obj.get_code()
-        self.write_code(self.map_reduce_obj)
+        self.tagI = self.red_formula.tagI
+        self.dim = self.red_formula.dim
+        self.get_code()
+        self.write_code()
         os.system(self.compile_command)
         
     def get_dll_and_params(self):
-        if self.dllname != "zero" and not os.path.exists(self.dllname):
+        if not os.path.exists(self.dllname):
             print("compiling dll...", end="", flush=True)
             start = time.time()
             self.compile_code()
@@ -78,26 +73,23 @@ class link_compile:
 class Cpu_link_compile(link_compile):
 
     source_code_extension = "cpp"
+    
+    # standard, both linux and mac, no openmp support
     compiler = "g++"
     compile_options = ["-shared", "-O3"]
     
-    def __call__(self, nx, ny, out, *args):
-        if self.dll is None:
-            self.load_dll()
-        c_args = [c_void_p(x.data_ptr()) for x in args]
-        self.dll.Eval(c_int(nx), c_int(ny), c_void_p(out.data_ptr()), *c_args)
-
+    # for linux with openmp support
+    #compiler = "g++"
+    #compile_options = ["-Xclang", "-fopenmp", "-shared", "-O3", "-lomp"]
+    
+    # for mac with openmp (only works with unsafe export KMP_DUPLICATE_LIB_OK=TRUE)
+    #compiler = "g++"
+    #compile_options = ["-Xclang", "-fopenmp", "-shared", "-O3", "-lomp"]
+    
 
 class Gpu_link_compile(link_compile):
     
     source_code_extension = "cu"
     compiler = "nvcc"
     compile_options = ["-shared", "-Xcompiler", "-fPIC", "-O3"]
-
-    def __call__(self, nx, ny, out, *args):
-        if self.dll is None:
-            self.load_dll()
-        c_args = [c_void_p(x.data_ptr()) for x in args]
-        device_id = out.device.index
-        self.dll.Eval(c_int(nx), c_int(ny), c_int(device_id), c_void_p(out.data_ptr()), *c_args)
 
