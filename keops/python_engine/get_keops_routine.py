@@ -1,5 +1,6 @@
 from utils import *
 from map_reduce import *
+from ctypes import c_int, c_float, c_double, c_void_p, CDLL, POINTER
 
 
 class create_or_load:
@@ -22,12 +23,12 @@ class create_or_load:
 
 class get_keops_routine_class:
     
-    def __init__(self, map_reduce_id, red_formula_string, nargs, dtype, *params):
+    def __init__(self, map_reduce_id, red_formula_string, aliases, nargs, dtype, *params):
         self.nargs = nargs
         self.dtype = dtype
         self.dll = None
         map_reduce_class = eval(map_reduce_id)
-        self.map_reduce_obj = map_reduce_class(red_formula_string, nargs, dtype, *params)
+        self.map_reduce_obj = map_reduce_class(red_formula_string, aliases, nargs, dtype, *params)
         
         # detecting the case of formula being equal to zero, to bypass reduction.
         # This part is ugly, needs refactoring...
@@ -43,14 +44,13 @@ class get_keops_routine_class:
         self.dll = CDLL(self.dllname)            
         self.tagI = res["tagI"]
         self.dim = res["dim"]
-        ctype = eval(f"c_{self.dtype}")
-        self.dll.argtypes = [c_int, c_int, c_int, POINTER(ctype)] + [POINTER(ctype)]*self.nargs
         return self
         
-    def __call__(self, nx, ny, device_id, out_ptr, *args_ptr):
+    def __call__(self, nx, ny, device_id, out_ctype, *args_ctype):
         if self.dll is not None:
-            c_args = [c_void_p(ptr) for ptr in args_ptr]
-            self.dll.Eval(c_int(nx), c_int(ny), c_int(device_id), c_void_p(out_ptr), *c_args)
+            self.dll.Eval.argtypes = [c_int, c_int, c_int, out_ctype["type"]] + [arg["type"] for arg in args_ctype]
+            c_args = [arg["data"] for arg in args_ctype]
+            self.dll.Eval(c_int(nx), c_int(ny), c_int(device_id), out_ctype["data"], *c_args)
    
             
 def get_keops_routine(*args):

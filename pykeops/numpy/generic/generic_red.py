@@ -1,7 +1,7 @@
 import numpy as np
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io import LoadKeOps
+from pykeops.common.keops_io_new import LoadKeOps
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
 from pykeops.common.utils import axis2cat

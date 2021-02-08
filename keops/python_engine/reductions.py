@@ -1,17 +1,7 @@
 from tree import tree
 from operations import *
-from utils import *
+from utils import *    
 
-class getReduction:
-    library = {}
-    def __new__(self, string_id):
-        string_id_hash = get_hash_name(string_id)
-        if string_id_hash in getReduction.library:
-            return getReduction.library[string_id_hash]
-        else:
-            reduction = eval(string_id)
-            getReduction.library[string_id_hash] = reduction
-            return reduction
 
 class Reduction(tree):
     
@@ -113,3 +103,22 @@ def Grad(formula,v,gradin=None):
 # same with additional saved forward variable. This is only used for taking gradients of reductions operations.
 def Grad_WithSavedForward(red_formula, v, gradin, f0):
     return red_formula.DiffT(v,gradin,f0)
+
+
+
+
+class getReduction:
+    library = {}
+    def __new__(self, red_formula_string, aliases=[]):
+        aliases_dict = {}
+        for alias in aliases:
+            if "=" in alias:
+                varname, var = alias.split("=")
+                aliases_dict[varname] = eval(var)
+        string_id_hash = get_hash_name(red_formula_string, aliases)
+        if string_id_hash in getReduction.library:
+            return getReduction.library[string_id_hash]
+        else:
+            reduction = eval(red_formula_string, globals(), aliases_dict)
+            getReduction.library[string_id_hash] = reduction
+            return reduction

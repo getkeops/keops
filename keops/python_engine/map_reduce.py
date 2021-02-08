@@ -3,13 +3,16 @@ from sum_schemes import *
 from reductions import *
 from link_compile import *
 
-    
+
 class map_reduce:
     # base class for map-reduce schemes
     
-    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
+    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
         self.red_formula_string = red_formula_string
-        self.red_formula = eval(red_formula_string)
+        self.aliases = aliases
+                
+        self.red_formula = getReduction(red_formula_string, aliases)
+        
         self.dtype = dtype
         self.dtypeacc = dtypeacc
         self.nargs = nargs
@@ -45,8 +48,8 @@ class map_reduce:
 class CpuAssignZero(map_reduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
     
-    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
-        map_reduce.__init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string)
+    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
+        map_reduce.__init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string)
         Cpu_link_compile.__init__(self)
     
     def get_code(self):
@@ -75,8 +78,8 @@ class CpuAssignZero(map_reduce, Cpu_link_compile):
 class GpuAssignZero(map_reduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
     
-    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
-        map_reduce.__init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string)
+    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
+        map_reduce.__init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string)
         Gpu_link_compile.__init__(self)
     
     def get_code(self):
@@ -144,8 +147,8 @@ class CpuReduc(map_reduce, Cpu_link_compile):
     
     AssignZero = CpuAssignZero
 
-    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
-        map_reduce.__init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string)
+    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
+        map_reduce.__init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string)
         Cpu_link_compile.__init__(self)
         
     def get_code(self):
@@ -194,8 +197,8 @@ class GpuReduc1D(map_reduce, Gpu_link_compile):
     
     AssignZero = GpuAssignZero
 
-    def __init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string):
-        map_reduce.__init__(self, red_formula_string, nargs, dtype, dtypeacc, sum_scheme_string)
+    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
+        map_reduce.__init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string)
         Gpu_link_compile.__init__(self)
         
     def get_code(self):
