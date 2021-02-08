@@ -60,11 +60,16 @@ class numpytools:
 
     @staticmethod
     def dtype(x):
-        return x.dtype.name
-
+        return x.dtype
+        
     @staticmethod
     def dtypename(dtype):
-        return dtype
+        return dtype.name
+
+    @staticmethod
+    def ctypes(x):
+        argtype = np.ctypeslib.ndpointer(dtype=x.dtype, ndim=x.ndim, flags='C_CONTIGUOUS')
+        return dict(data=x, type=argtype)
 
     @staticmethod
     def rand(m, n, dtype=default_dtype):
@@ -75,7 +80,7 @@ class numpytools:
         return np.random.randn(m, n).astype(dtype)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype):
+    def zeros(shape, dtype=default_dtype, device=None):
         return np.zeros(shape).astype(dtype)
 
     @staticmethod
@@ -88,7 +93,8 @@ class numpytools:
 
     @staticmethod
     def device(x):
-        return "cpu"
+        return dict(cat="cpu")
+                
 
 
 def squared_distances(x, y):

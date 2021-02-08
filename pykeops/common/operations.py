@@ -186,7 +186,7 @@ def KernelLinearSolver(
             "oos2 = Pm(1)",
         ]  # Fourth arg  : scalar parameter
         my_routine = tools.Genred(
-            formula, variables, reduction_op="Sum", axis=1, dtype=dtype
+            formula, variables, reduction_op="Sum", axis=1, dtype=tools.dtypename(dtype)
         )
         oos2 = tools.array([1.0 / sigma ** 2], dtype=dtype)
         KernelMatrix = GaussKernelMatrix(sigma)

@@ -2,6 +2,7 @@ import torch
 
 from pykeops.torch import Genred, KernelSolve, default_dtype
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
+from ctypes import c_float, c_double, c_void_p, POINTER
 
 
 # from pykeops.torch.generic.generic_red import GenredLowlevel
@@ -93,6 +94,10 @@ class torchtools:
             )
 
     @staticmethod
+    def ctypes(x):
+        return dict(data=c_void_p(x.data_ptr()), type=c_void_p)
+
+    @staticmethod
     def rand(m, n, dtype=default_dtype, device="cpu"):
         return torch.rand(m, n, dtype=dtype, device=device)
 
@@ -101,8 +106,9 @@ class torchtools:
         return torch.randn(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype, device="cpu"):
-        return torch.zeros(shape, dtype=dtype, device=device)
+    def zeros(shape, dtype=default_dtype, device={"cat":"cpu", "device":-1}):
+        device = torch.device(device["cat"], device["index"])
+        return torch.zeros(*shape, dtype=dtype, device=device)
 
     @staticmethod
     def eye(n, dtype=default_dtype, device="cpu"):
@@ -123,9 +129,17 @@ class torchtools:
     @staticmethod
     def device(x):
         if isinstance(x, torch.Tensor):
-            return x.device
+            dev = x.device
+            if str(dev)=="cpu":
+                return dict(cat="cpu", index=0)
+            else:
+                return dict(cat="gpu", index=dev.index)
         else:
             return None
+    
+    @staticmethod
+    def pointer(x):
+        return x.data.data_ptr()
 
 
 def squared_distances(x, y):

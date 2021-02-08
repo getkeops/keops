@@ -64,6 +64,10 @@ class Operation(tree):
         # g*f redirects to Mult(f,g)
         return Mult(self, other)
         
+    def __truediv__(self, other):
+        # f/g redirects to Divide(f,g)
+        return Divide(self, other)
+        
     def __add__(self, other):
         # f+g redirects to Add(f,g)
         return Add(self, other)
@@ -81,7 +85,7 @@ class Operation(tree):
         if other==2:
             return Square(self)
         else:
-            print("not implemented")
+            raise ValueError("not implemented")
             
             
 
@@ -171,6 +175,12 @@ class VectorizedScalarOp(Operation):
     # class for operations that are vectorized or broadcasted
     # scalar operations,
     # such as Exp(f), Cos(f), Mult(f,g), Subtract(f,g), etc.
+    
+    def __init__(self, *args):
+        dims = set(arg.dim for arg in args)
+        if len(dims)>2 or (len(dims)==2 and min(dims)!=1):
+            raise ValueError("dimensions are not compatible for VectorizedScalarOp")
+        super().__init__(*args)
     
     @property
     def dim(self):
@@ -274,7 +284,9 @@ class SumT_(Operation):
         return f.DiffT(v,Sum(gradin))
 
 def SumT(arg, dim):
-    if isinstance(arg,Zero):
+    if arg.dim != 1:
+        raise ValueError("dimension of argument must be 1 for SumT operation")
+    elif isinstance(arg,Zero):
         return Zero(dim)
     else:
         return SumT_(arg, dim)
@@ -291,22 +303,41 @@ class Mult_(VectorizedScalarOp):
     #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)    
     def DiffT(self,v,gradin):
         fa, fb = self.children
-        if fa.dim==1 and fb.dim>1:
-            return fa.DiffT(v, Scalprod(gradin,fb)) + fa * fb.DiffT(v,gradin)
-        elif fb.dim==1 and fa.dim>1:
-            return fb.DiffT(v, Scalprod(gradin,fa)) + fb * fa.DiffT(v,gradin)
-        else:
-            return fa.DiffT(v,fb*gradin) + fb.DiffT(v,fa*gradin)
+        return fa.DiffT(v, Scalprod(gradin,fb)) + fb.DiffT(v, Scalprod(gradin,fa))
     
 def Mult(arg0, arg1):
     if isinstance(arg0,Zero):
-        return arg0
+        return Broadcast(arg0, arg1.dim)
     elif isinstance(arg1,Zero):
-        return arg1
+        return Broadcast(arg1, arg0.dim)
     elif isinstance(arg1,int):
         return Mult(IntCst(arg1),arg0)
     else:
         return Mult_(arg0, arg1)
+        
+        
+class Divide_(VectorizedScalarOp):
+    # the binary divide operation
+    string_id = "Divide" 
+    print_spec = "/", "mid", 3       
+    def ScalarOp(self,out,arg0,arg1):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        return f"{out()} = {arg0()} / {arg1()};\n"
+    #  \diff_V (A/B) = ((\diff_V A) * B - A * (\diff_V B)) / B^2
+    def DiffT(self,v,gradin):
+        fa, fb = self.children
+        return (fa.DiffT(v, Scalprod(gradin,fb)) - fb.DiffT(v, Scalprod(gradin,fa))) / fb**2
+    
+def Divide(arg0, arg1):
+    if isinstance(arg0,Zero):
+        return Broadcast(arg0, arg1.dim)
+    elif isinstance(arg1,Zero):
+        raise ValueError("division by zero")
+    elif isinstance(arg1,int):
+        return Divide(arg0, IntCst(arg1))
+    else:
+        return Divide_(arg0, arg1)
         
         
 class Add_(VectorizedScalarOp):
@@ -323,9 +354,9 @@ class Add_(VectorizedScalarOp):
 
 def Add(arg0, arg1):
     if isinstance(arg0,Zero):
-        return arg1
+        return Broadcast(arg1, arg0.dim)
     elif isinstance(arg1,Zero):
-        return arg0
+        return Broadcast(arg0, arg1.dim)
     elif arg0==arg1:
         return IntCst(2)*arg0
     else:
@@ -346,9 +377,9 @@ class Subtract_(VectorizedScalarOp):
         
 def Subtract(arg0, arg1):
     if isinstance(arg0,Zero):
-        return -arg1
+        return -Broadcast(arg1, arg0.dim)
     elif isinstance(arg1,Zero):
-        return arg0
+        return Broadcast(arg0, arg1.dim)
     else:
         return Subtract_(arg0, arg1)
 
@@ -360,6 +391,19 @@ def SqNorm2(arg0):
     return Scalprod(arg0,arg0)
 
 def Scalprod(arg0, arg1):
-    return Sum(arg0*arg1)
+    if arg0.dim == 1:
+        return arg0 * Sum(arg1)
+    elif arg1.dim == 1:
+        return Sum(arg0) * arg1
+    else:
+        return Sum(arg0*arg1)
 
-
+def Broadcast(arg, dim):
+    if arg.dim == dim or dim == 1:
+        return arg
+    elif arg.dim == 1:
+        return SumT(arg, dim)
+    else:
+        raise ValueError("dimensions are not compatible for Broadcast operation")
+    
+    

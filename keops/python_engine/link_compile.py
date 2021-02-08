@@ -1,5 +1,4 @@
 import os, glob, time
-from ctypes import c_int, c_float, c_double, c_void_p, CDLL, POINTER
 from utils import *
 from operations import Zero
 
@@ -19,7 +18,7 @@ class link_compile:
     # providing the dll to KeOps bindings.
     
     def __init__(self):
-        self.gencode_filename = get_hash_name(type(self), self.red_formula_string, self.nargs, self.dtype, self.dtypeacc, self.sum_scheme_string)
+        self.gencode_filename = get_hash_name(type(self), self.red_formula_string, self.aliases, self.nargs, self.dtype, self.dtypeacc, self.sum_scheme_string)
         self.gencode_file = build_path + os.path.sep + self.gencode_filename + "." + self.source_code_extension
         self.dllname = self.gencode_file + ".so"
         self.info_file = self.gencode_file + ".nfo"
@@ -57,12 +56,12 @@ class link_compile:
         
     def get_dll_and_params(self):
         if not os.path.exists(self.dllname):
-            print("compiling dll...", end="", flush=True)
+            print("[KeOps] compiling dll for formula :", self.red_formula, "...", flush=True)
             start = time.time()
             self.compile_code()
             self.save_info()
             elapsed = time.time()-start
-            print("done ({:.2f} s)".format(elapsed))
+            print("Done ({:.2f} s)".format(elapsed))
         else:
             self.read_info()
         return dict(dllname=self.dllname, tagI=self.tagI, dim=self.dim)
