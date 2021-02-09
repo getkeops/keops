@@ -136,9 +136,9 @@ class torchtools:
         return torch.randn(m, n, dtype=dtype, device=device)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype, device={"cat":"cpu", "device":-1}):
+    def zeros(shape, dtype=default_dtype, device={"cat":"cpu", "device":-1}, requires_grad=False):
         device = torch.device(device["cat"], device["index"])
-        return torch.zeros(*shape, dtype=dtype, device=device)
+        return torch.zeros(*shape, dtype=dtype, device=device, requires_grad=requires_grad)
 
     @staticmethod
     def eye(n, dtype=default_dtype, device="cpu"):
@@ -155,9 +155,16 @@ class torchtools:
         else:
             raise ValueError("[KeOps] data type incompatible with KeOps.")
         return torch.tensor(x, dtype=dtype, device=device)
-
+    
     @staticmethod
     def device(x):
+        if isinstance(x, torch.Tensor):
+            return x.device
+        else:
+            return None
+            
+    @staticmethod
+    def device_dict(x):
         if isinstance(x, torch.Tensor):
             dev = x.device
             if str(dev)=="cpu":

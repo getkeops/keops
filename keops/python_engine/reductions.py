@@ -18,7 +18,15 @@ class Reduction(tree):
         self.tagI = tagI
         self.tagJ = 1-tagI
         self.cat = tagI
+        self.Vars_ = formula.Vars_
 
+    def FinalizeOutput(self, acc, out, i):
+        # Returns C++ code that implements the final output of the reduction.
+        # For most reducitons it is a simple copy of the temporary variable
+        # updated during the reduction, with possibly a cast if the accumulator was of
+        # different data type.
+        return VectCopy(out, acc)
+    
 
 
 class Sum_Reduction(Reduction):
@@ -29,7 +37,6 @@ class Sum_Reduction(Reduction):
         super().__init__(formula, tagIJ)
         self.dim = formula.dim                      # dimension of final output of reduction
         self.dimred = self.dim                      # dimension of inner reduction variables
-        self.Vars_ = formula.Vars_
         self.dim_kahan = self.dim
         
     def InitializeReduction(self, tmp):
@@ -40,7 +47,7 @@ class Sum_Reduction(Reduction):
     def ReducePairScalar(self, tmp, xi):
         # Subroutine of ReducePairShort and ReducePair methods.
         # Returns C++ code that implements the "+=" accumulation operation of the sum reduction
-        return f"{tmp()} += {cast_to(tmp.dtype)}({xi()});"
+        return f"{tmp.id} += {cast_to(tmp.dtype)}({xi.id});"
         
     def ReducePairShort(self, tmp, xi, ind):
         # Returns C++ code that implements the update phase of the reduction.
@@ -59,27 +66,131 @@ class Sum_Reduction(Reduction):
         return VectApply(self.ReducePairScalar, acc, xi)
         
     def KahanScheme(self, acc, xi, tmp):
-        string = ""
-        string +=  "#pragma unroll\n"
-        string += f"for (int k=0; k<{self.dim}; k++)\n"
-        string +=  "{\n"
-        string += f"  {acc.dtype} a = {cast_to(acc.dtype)}({xi()}[k] - {tmp()}[k]);\n"
-        string += f"  {acc.dtype} b = {acc()}[k] + a;\n"
-        string += f"  {tmp()}[k] = {cast_to(tmp.dtype)}((b - {acc()}[k]) - a);\n"
-        string += f"  {acc()}[k] = b;\n"
-        string +=  "}\n"
-        return string
-        
-    def FinalizeOutput(self, acc, out, i):
-        # Returns C++ code that implements the final output of the reduction.
-        # Here for the sum reduction it is a simple copy of the temporary variable
-        # updated during the reduction, with possibly a cast if the accumulator was of
-        # different data type.
-        return VectCopy(out, acc)
-    
+        return f"""
+                        #pragma unroll
+                        for (int k=0; k<{self.dim}; k++) 
+                        {{
+                            {acc.dtype} a = ({acc.dtype}) ({xi.id}[k] - {tmp.id}[k]);
+                            {acc.dtype} b = {acc.id}[k] + a;
+                            {tmp.id}[k] = ({tmp.dtype}) ((b - {acc.id}[k]) - a);
+                            {acc.id}[k] = b;
+                        }}
+                """
+            
     def DiffT(self, v, gradin, f0=None):
         return Sum_Reduction(Grad(self.formula,v,gradin),v.cat%2)
         
+
+
+
+
+
+
+
+
+
+class Max_SumShiftExpWeight_Reduction(Reduction):
+    
+    #// Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(f_ij-m_i) g_ij
+    #// where f and g are two formulas. f must be scalar-valued.
+    #// This reduciton is the base for numerically stable computation of log-sum-exp and softmax type reductions.
+
+    string_id = "Max_SumShiftExpWeight_Reduction"
+    
+    def __init__(self, formulaF, tagIJ, formulaG = IntCst(1)):
+        if formulaF.dim != 1:
+            raise ValueError("Max_SumShiftExpWeight_Reduction requires first formula of dimension 1.")
+        super().__init__(Concat(formulaF, formulaG), tagIJ)
+        self.formulaF = formulaF
+        self.formulaG = formulaG
+        self.dim = formulaF.dim + formulaG.dim       # dimension of final output of reduction
+        self.dimred = self.dim                      # dimension of inner reduction variables
+        
+    def InitializeReduction(self, acc):
+        # Returns C++ code to be used at initialization phase of the reduction.
+        # We fill empty cells with the neutral element of the reduction operation,
+        #                   (-inf,0) = e^{-inf} * 0 = 0
+        string = f"{acc.id}[0] = {neg_infinity(acc.dtype)};\n"
+        v = c_array(f"({acc.id}+1)", acc.dtype, self.dimred-1)
+        string += v.assign(c_zero_float)
+        return string
+        
+    def ReducePair(self, acc, xi):
+        # Returns C++ code that implements the update phase of the reduction.
+        # (m,s) + (m',s'), i.e. exp(m)*s + exp(m')*s'
+        
+        if xi.dtype == "half2":
+            raise ValueError("Not implemented.")
+        
+        return f"""       
+                      {acc.dtype} tmpexp;
+                      if ({acc.id}[0] > {xi.id}[0]) {{ // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+                        tmpexp = exp({xi.id}[0] - {acc.id}[0]);
+                        #pragma unroll
+                        for (int k = 1; k < {self.dimred}; k++)
+                          {acc.id}[k] += {xi.id}[k] * tmpexp;
+                      }} else {{             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+                        tmpexp = exp({acc.id}[0] - {xi.id}[0]);
+                        #pragma unroll
+                        for (int k = 1; k < {self.dimred}; k++)
+                          {acc.id}[k] = {xi.id}[k] + tmpexp * {acc.id}[k];
+                        {acc.id}[0] = {xi.id}[0];
+                      }}
+              """
+        
+    def ReducePairShort(self, acc, xi, ind):
+        return self.ReducePair(acc, xi)
+        
+    def KahanScheme(self, acc, xi, tmp):
+        if xi.dtype == "half2":
+            raise ValueError("Not implemented.")
+        return f"""
+                        {acc.id}.dtype tmpexp;
+                        if ({acc.id}[0] > {xi.id}[0])    // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
+                        {{      
+                            tmpexp = exp({xi.id}[0] - {acc.id}[0]);
+                            #pragma unroll
+                        	for (int k=1; k<{self.dimred}; k++)
+                            {{
+                        		{acc.dtype} a = {xi.id}[k] * tmpexp - {tmp.id}[k-1];
+                        		{acc.dtype} b = {acc.id}[k] + a;
+                        		{tmp.id}[k-1] = (b - {acc.id}[k]) - a;
+                        		{acc.id}[k] = b;
+                        	}}
+                        }} 
+                        else      // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
+                        {{             
+                            tmpexp = exp({acc.id}[0] - {xi.id}[0]);
+                            #pragma unroll
+                            for (int k = 1; k < {self.dimred}; k++)
+                            {{
+                        		{acc.dtype} u = tmpexp * {acc.id}[k];
+                        		{acc.dtype} a = {xi.id}[k] - tmpexp * {tmp.id}[k-1];
+                        		{acc.dtype} b = u + a;
+                        		{tmp.id}[k-1] = (b - u) - a;
+                        		{acc.id}[k] = b;
+                        	}}
+                        	{acc.id}[0] = {xi.id}[0];
+                        }}
+                """
+    
+    def DiffT(self, v, gradin, MS):
+        """
+          // Beware: the formula that we use for the gradient is *only* valid
+          // if the output [M,S] = Max_SumShiftExp(F,G) has been flattened through a
+          // L = M + log(S) (Log-Sum-Exp) or a weighted Soft-Max
+          // operation (as done by the Python bindings), and if 
+          // GRADIN = [Grad(L), Grad(L)/S ]
+          // has been backpropagated from L.
+        """
+        M = Extract(MS, 0, self.formulaF.dim)
+        S = Extract(gradin, self.formulaF.dim, self.formulaG.dim)      
+        return Grad( Sum_Reduction( Exp(self.formulaF-M)*self.formulaG, self.tagI ), v, S)
+        
+
+Max_SumShiftExp_Reduction = Max_SumShiftExpWeight_Reduction
+
+
 
 
 #/////////////////////////////////////////////////////////////
