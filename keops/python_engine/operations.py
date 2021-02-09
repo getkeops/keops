@@ -59,6 +59,11 @@ class Operation(tree):
         string += self.Op(out, table, *args)
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
         return string
+        
+    def Grad(self, v, gradin):
+        if gradin.dim != self.dim:
+            raise ValueError("incompatible dimensions")
+        return self.DiffT(v, gradin)
             
     def __mul__(self, other):
         # f*g redirects to Mult(f,g)
@@ -200,7 +205,7 @@ class IntCst(Operation):
         return type(self)==type(other) and self.val==other.val
         
     def Op(self, out, table):
-        return f"*{out()} = {cast_to(out.dtype)}((float){self.val});\n"
+        return f"*{out.id} = {cast_to(out.dtype)}((float){self.val});\n"
 
     def DiffT(self,v,gradin):
         return Zero(v.dim)
@@ -228,10 +233,10 @@ class Add_(VectorizedScalarOp):
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = {arg0()}+{arg1()};\n"
+        return f"{out.id} = {arg0.id}+{arg1.id};\n"
     def DiffT(self,v,gradin):
         fa, fb = self.children
-        return fa.DiffT(v,gradin) + fb.DiffT(v,gradin)
+        return fa.Grad(v,gradin) + fb.Grad(v,gradin)
 
 def Add(arg0, arg1):
     if isinstance(arg0,Zero):
@@ -256,10 +261,10 @@ class Subtract_(VectorizedScalarOp):
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = {arg0()}-{arg1()};\n"
+        return f"{out.id} = {arg0.id}-{arg1.id};\n"
     def DiffT(self,v,gradin):
         fa, fb = self.children
-        return fa.DiffT(v,gradin) - fb.DiffT(v,gradin)        
+        return fa.Grad(v,gradin) - fb.Grad(v,gradin)        
         
 def Subtract(arg0, arg1):
     if isinstance(arg0,Zero):
@@ -282,10 +287,10 @@ class Minus_(VectorizedScalarOp):
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = -{arg()};\n"
+        return f"{out.id} = -{arg.id};\n"
     def DiffT(self,v,gradin):
         f = self.children[0]
-        return -f.DiffT(v,gradin)
+        return -f.Grad(v,gradin)
         
 def Minus(arg):
     if isinstance(arg,Zero):
@@ -306,11 +311,16 @@ class Mult_(VectorizedScalarOp):
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = {arg0()}*{arg1()};\n"
+        return f"{out.id} = {arg0.id}*{arg1.id};\n"
     #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)    
     def DiffT(self,v,gradin):
         fa, fb = self.children
-        return fa.DiffT(v, Scalprod(gradin,fb)) + fb.DiffT(v, Scalprod(gradin,fa))
+        if fa.dim == 1 and fb.dim > 1:
+            return fa.Grad(v, Scalprod(gradin,fb)) + fb.Grad(v, fa*gradin)
+        elif fb.dim == 1 and fa.dim > 1:
+            return fa.Grad(v, fb*gradin) + fb.Grad(v, Scalprod(gradin,fa))
+        else:
+            return fa.Grad(v, fb*gradin) + fb.Grad(v, fa*gradin)
     
 def Mult(arg0, arg1):
     if isinstance(arg0,Zero):
@@ -335,11 +345,16 @@ class Divide_(VectorizedScalarOp):
     def ScalarOp(self,out,arg0,arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = {arg0()} / {arg1()};\n"
+        return f"{out.id} = {arg0.id} / {arg1.id};\n"
     #  \diff_V (A/B) = ((\diff_V A) * B - A * (\diff_V B)) / B^2
     def DiffT(self,v,gradin):
         fa, fb = self.children
-        return (fa.DiffT(v, Scalprod(gradin,fb)) - fb.DiffT(v, Scalprod(gradin,fa))) / Square(fb)
+        if fa.dim == 1 and fb.dim > 1:
+            return (fa.Grad(v, Scalprod(gradin,fb)) - fb.Grad(v, fa*gradin)) / Square(fb)
+        elif fb.dim == 1 and fa.dim > 1:
+            return (fa.Grad(v, fb*gradin) - fb.Grad(v, Scalprod(gradin,fa))) / Square(fb)
+        else:
+            return (fa.Grad(v, fb*gradin) - fb.Grad(v, fa*gradin)) / Square(fb)
     
 def Divide(arg0, arg1):
     if isinstance(arg0,Zero):
@@ -376,11 +391,11 @@ class Square_(VectorizedScalarOp):
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = {arg()}*{arg()};\n"
+        return f"{out.id} = {arg.id}*{arg.id};\n"
     def DiffT(self,v,gradin):
         # [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
         f = self.children[0]
-        return IntCst(2) * f.DiffT(v, f*gradin)
+        return IntCst(2) * f.Grad(v, f*gradin)
 
 def Square(arg):
     if isinstance(arg,Zero):
@@ -400,10 +415,10 @@ class Abs(VectorizedScalarOp):
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = {keops_abs(arg)};\n"
+        return f"{out.id} = {keops_abs(arg)};\n"
     def DiffT(self,v,gradin):
         f = self.children[0]
-        return f.DiffT(v,Sign(f)*gradin)
+        return f.Grad(v,Sign(f)*gradin)
     
     
 
@@ -417,11 +432,29 @@ class Exp(VectorizedScalarOp):
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = {keops_exp(arg)};\n"
+        return f"{out.id} = {keops_exp(arg)};\n"
     def DiffT(self,v,gradin):
         # [\partial_V exp(F)].gradin = exp(F) * [\partial_V F].gradin
         f = self.children[0]
-        return f.DiffT(v,Exp(f)*gradin)
+        return f.Grad(v,Exp(f)*gradin)
+    
+    
+
+##########################
+######    Sqrt       #####
+##########################
+        
+class Sqrt(VectorizedScalarOp):
+    # the square root vectorized operation
+    string_id = "Sqrt"
+    def ScalarOp(self,out,arg):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        return f"{out.id} = {keops_sqrt(arg)};\n"
+    def DiffT(self,v,gradin):
+        # [\partial_V exp(F)].gradin = exp(F) * [\partial_V F].gradin
+        f = self.children[0]
+        return f.Grad(v, IntInv(2) * Rsqrt(f) * gradin)
     
     
 
@@ -435,10 +468,10 @@ class Acos(VectorizedScalarOp):
     def ScalarOp(self,out,arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out()} = {keops_acos(arg)};\n"
+        return f"{out.id} = {keops_acos(arg)};\n"
     def DiffT(self,v,gradin):
         f = self.children[0]
-        return f.DiffT(v, - Rsqrt( (IntCst(1)-Square(f)) ) * gradin)
+        return f.Grad(v, - Rsqrt( (IntCst(1)-Square(f)) ) * gradin)
 
     
 
@@ -455,10 +488,10 @@ class Sum_(Operation):
         # the result in out
         return out.assign(c_zero_float) + VectApply(self.ScalarOp, out, arg)
     def ScalarOp(self,out,arg):
-        return f"{out()} += {arg()};\n"
+        return f"{out.id} += {arg.id};\n"
     def DiffT(self,v,gradin):
         f = self.children[0]
-        return f.DiffT(v,SumT(gradin,f.dim))
+        return f.Grad(v,SumT(gradin,f.dim))
 
 def Sum(arg):
     if isinstance(arg,Zero):
@@ -484,11 +517,11 @@ class SumT_(Operation):
     def Op(self, out, table, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        value_arg = c_variable(f"*{arg()}",arg.dtype)
+        value_arg = c_variable(f"*{arg.id}",arg.dtype)
         return out.assign(value_arg)
     def DiffT(self,v,gradin):
         f = self.children[0]
-        return f.DiffT(v,Sum(gradin))
+        return f.Grad(v,Sum(gradin))
 
 def SumT(arg, dim):
     if arg.dim != 1:
@@ -517,7 +550,83 @@ def Broadcast(arg, dim):
     else:
         raise ValueError("dimensions are not compatible for Broadcast operation")
     
+    
+    
+############################
+######    Concat       #####
+############################
 
+class Concat(Operation):
+    string_id = "Concat"
+    def __init__(self, arg0, arg1):
+        super().__init__(arg0, arg1)
+        self.dim = arg0.dim + arg1.dim
+    def Op(self, out, table, arg0, arg1):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        v0 = c_array(out.id, out.dtype, arg0.dim)
+        string = VectCopy(v0, arg0)
+        v1 = c_array(f"({out.id}+{arg0.dim})", out.dtype, arg1.dim)
+        string += VectCopy(v1, arg1)
+        return string
+    def DiffT(self,v,gradin):
+        f = self.children[0]
+        g = self.children[1]
+        return f.Grad(v,Extract(gradin, 0, f.dim)) + g.Grad(v,Extract(gradin, f.dim, g.dim))
+        
+        
+        
+#//////////////////////////////////////////////////////////////
+#////     VECTOR EXTRACTION : Extract<F,START,DIM>         ////
+#//////////////////////////////////////////////////////////////
+
+class Extract(Operation):
+    string_id = "Extract"
+    def __init__(self, arg0, start, dim):
+        if arg0.dim < start+dim or start<0:
+            raise ValueError("Index out of bound in Extract")
+        super().__init__(arg0)
+        self.start = start
+        self.dim = dim
+        self.params = (start, dim)
+    def Op(self, out, table, arg0):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        v = c_array(f"({arg0.id}+{self.start})", arg0.dtype, out.dim)
+        return VectCopy(out, v)
+    def DiffT(self,v,gradin):
+        f = self.children[0]
+        return f.Grad(v,ExtractT(gradin, self.start, f.dim))     
+
+
+
+#//////////////////////////////////////////////////////////////
+#////     VECTOR "INJECTION" : ExtractT<F,START,DIM>       ////
+#//////////////////////////////////////////////////////////////
+
+class ExtractT(Operation):
+    string_id = "ExtractT"
+    def __init__(self, F, start, dim):
+        if start+F.dim > dim or start<0:
+            raise ValueError("Index out of bound in ExtractT")
+        super().__init__(F)
+        self.start = start
+        self.dim = dim
+        self.params = (start, dim)
+    def Op(self, out, table, arg0):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        out_prev = c_array(out.id, out.dtype, self.start)
+        out_mid = c_array(f"({out.id}+{self.start})", out.dtype, self.dim)
+        out_end = c_array(f"({out.id}+{self.start}+{self.dim})", out.dtype, out.dim-self.start-self.dim)
+        return "\n".join( 
+                            out_prev.assign(c_zero_float),
+                            VectCopy(out_mid, arg0),
+                            out_end.assign(c_zero_float)
+                        )
+    def DiffT(self,v,gradin):
+        f = self.children[0]
+        return f.Grad(v,Extract(gradin, self.start, f.dim))     
 
 
 
@@ -628,5 +737,145 @@ def WeightedSqNorm(A, X):
         return SqNormDiag(A,X)
     else:
         return SymSqNorm(A,X)
+
+
+
+
+
+##################################################
+#######                                ###########
+#######     Tensor operations          ###########
+#######                                ###########
+##################################################
+
+
+
+#/////////////////////////////////////////////////////////////////////////
+#////     Vector-matrix product           b x A                       ////
+#/////////////////////////////////////////////////////////////////////////
+
+class VecMatMult(Operation):
+    string_id = "VecMatMult"
+    def __init__(self, B, A):
+        # A is vector of size n*p, interpreted as matrix, B is vector of size n, interpreted as row vector
+        # output is vector of size p
+        if A.dim % B.dim != 0:
+            raise ValueError("Dimensions of A and B are not compatible for vector-matrix product")
+        super().__init__(B, A)
+        self.dim = A.dim // B.dim
+    def Op(self, out, table, inB, inA):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        return f"""
+                    #if C_CONTIGUOUS     // row major
+                        #pragma unroll
+                        for (int i = 0; i < {self.dim}; i++) 
+                        {{
+                            {out.id}[i] = ({out.dtype})(0.0f);
+                        	#pragma unroll
+                            for (int k = 0; k < {inB.dim}; k++)
+                                {out.id}[i] += {inA.id}[{self.dim} * k + i] * {inB.id}[k];
+                        }}
+                    #else               // column major
+                        int q = 0;
+                        #pragma unroll
+                        for (int i = 0; i < {self.dim}; i++) 
+                        {{
+                            {out.id}[i] = ({out.dtype})(0.0f);
+                            #pragma unroll
+                            for (int k = 0; k < {inB.dim}; k++, q++)
+                                {out.id}[i] += {inA.id}[q] * {inB.id}[k];
+                        }}
+                    #endif
+                """
+    def DiffT(self,v,gradin):
+        B = self.children[0]
+        A = self.children[1]
+        return A.Grad(v,TensorProd(B, gradin)) + B.Grad(v,MatVecMult(A, gradin))
+
+
+
+#/////////////////////////////////////////////////////////////////////////
+#////     Matrix-vector product      A x b                           ////
+#/////////////////////////////////////////////////////////////////////////
+
+class MatVecMult(Operation):
+    string_id = "MatVecMult"
+    def __init__(self, A, B):
+        # A is vector of size n*p, interpreted as matrix, B is vector of size p, interpreted as column vector
+        # output is vector of size n
+        if A.dim % B.dim != 0:
+            raise ValueError("Dimensions of A and B are not compatible for matrix-vector product")
+        super().__init__(A, B)
+        self.dim = A.dim // B.dim
+    def Op(self, out, table, inB, inA):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        return f"""
+                    #if C_CONTIGUOUS     // row major
+                        int q = 0;
+                        #pragma unroll
+                        for (int i = 0; i < {self.dim}; i++) 
+                        {{
+                            {out.id}[i] = ({out.dtype})(0.0f);
+                            #pragma unroll
+                            for (int k = 0; k < {inB.dim}; k++, q++)
+                                {out.id}[i] += {inA.id}[q] * {inB.id}[k];
+                        }}
+                    #else               // column major
+                        #pragma unroll
+                        for (int i = 0; i < {self.dim}; i++) 
+                        {{
+                            {out.id}[i] = ({out.dtype})(0.0f);
+                        	#pragma unroll
+                            for (int k = 0; k < {inB.dim}; k++)
+                                {out.id}[i] += {inA.id}[{self.dim} * k + i] * {inB.id}[k];
+                        }}
+                    #endif
+                """
+    def DiffT(self,v,gradin):
+        A = self.children[0]
+        B = self.children[1]
+        return A.Grad(v,TensorProd(gradin, B)) + B.Grad(v,VecMatMult(gradin, A))
+        
+        
+        
+####################################
+######    Tensor product       #####
+####################################
+
+class TensorProd(Operation):
+    string_id = "TensorProd"
+    def __init__(self, arg0, arg1):
+        super().__init__(arg0, arg1)
+        self.dim = arg0.dim * arg1.dim
+    def Op(self, out, table, arg0, arg1):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        return f"""
+                    #if C_CONTIGUOUS     // row major
+                        int q = 0;
+        	            #pragma unroll
+                        for (int k = 0; k < {arg0.dim}; k++) 
+                        {{
+                            #pragma unroll
+                            for (int l = 0; l < {arg1.dim}; l++, q++)
+                                {out.id}[q] = {arg0.id}[k] * {arg1.id}[l];
+                        }}
+                    #else               // column major
+                        int q = 0;
+                        #pragma unroll
+                        for (int i = 0; i < {arg0.dim}; i++) 
+                        {{
+                            #pragma unroll
+                            for (int j = 0; j < {arg1.dim}; j++, q++)
+                                {out.id}[{arg0.dim} * j + i] = {arg0.id}[i] * {arg1.id}[j];
+                        }}
+                    #endif
+                """
+    def DiffT(self,v,gradin):
+        f = self.children[0]
+        g = self.children[1]
+        return f.Grad(v,MatVecMult(gradin, g)) + g.Grad(v,VecMatMult(f, gradin))
 
 

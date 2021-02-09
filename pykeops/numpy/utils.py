@@ -80,7 +80,7 @@ class numpytools:
         return np.random.randn(m, n).astype(dtype)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype, device=None):
+    def zeros(shape, dtype=default_dtype, device=None, requires_grad=None):
         return np.zeros(shape).astype(dtype)
 
     @staticmethod
@@ -93,6 +93,10 @@ class numpytools:
 
     @staticmethod
     def device(x):
+        return "cpu"
+                
+    @staticmethod
+    def device_dict(x):
         return dict(cat="cpu")
                 
 

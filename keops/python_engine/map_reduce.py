@@ -19,7 +19,9 @@ class map_reduce:
         self.sum_scheme_string = sum_scheme_string
     
     def get_code(self):       
-        self.headers = ""     
+        
+        self.headers = "#define C_CONTIGUOUS 1\n"     
+        
         red_formula = self.red_formula
         formula = red_formula.formula
         dtype = self.dtype

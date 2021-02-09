@@ -46,7 +46,7 @@ class LoadKeOps:
             tools = numpytools
         
         nargs = len(args)
-        device = tools.device(args[0])
+        device = tools.device_dict(args[0])
         dtype = tools.dtype(args[0])
         dtypename = tools.dtypename(dtype)
         if dtypename == "float32":

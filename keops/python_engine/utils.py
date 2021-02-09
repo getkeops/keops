@@ -30,7 +30,7 @@ def call_list(args):
     return ", ".join(list(arg() for arg in args))
 
 def signature_list(args):
-    return ", ".join(list(f"{arg.dtype} {arg()}" for arg in args))
+    return ", ".join(list(f"{arg.dtype} {arg.id}" for arg in args))
 
 def value(pdtype):
     # converts string "dtype*" to "dtype" 
@@ -71,29 +71,28 @@ class c_variable:
         else:
             return super(c_variable, self).__new__(self)
     def __init__(self, string_id, dtype):
-        self.string_id = string_id      # string_id is C++ name of variable
+        self.id = string_id             # string_id is C++ name of variable
         self.dtype = dtype              # dtype is C++ type of variable
-    def __call__(self):
-        # ouputs string_id, the C++ name of the variable
-        return self.string_id
     def __repr__(self):
         # method for printing the c_variable inside Python code
-        return self.string_id
+        return self.id
     def declare(self):
-        return f"{self.dtype} {self.string_id}\n"
+        return f"{self.dtype} {self.id}\n"
     def declare_assign(self, value_string):
-        return f"{self.dtype} {self.string_id} = {value_string}\n"
+        return f"{self.dtype} {self.id} = {value_string}\n"
         
 c_zero_int = c_variable("0","int")
 c_zero_float = c_variable("0.0f","float")
+
+def neg_infinity(dtype):
+    return f"-std::numeric_limits< {dtype} >::infinity()"
     
 class c_array:
     def __init__(self, string_id, dtype, dim):
         self.c_var = c_variable(string_id, pointer(dtype))
         self.dtype = dtype
         self.dim = dim
-    def __call__(self):
-        return self.c_var()
+        self.id = string_id
     def __repr__(self):
         # method for printing the c_variable inside Python code
         return self.c_var.__repr__()
@@ -101,13 +100,17 @@ class c_array:
         # returns C++ code to declare a fixed-size arry of size dim, 
         # skipping declaration if dim=0
         if self.dim>0:
-            return f"{self.dtype} {self.c_var()}[{self.dim}];"
+            return f"{self.dtype} {self.c_var.id}[{self.dim}];"
         else:
             return ""
     def assign(self, val):
         # returns C++ code string to fill all elements of a fixed size array with a single value
         # val is a c_variable representing the value.
-        return f"#pragma unroll\nfor(int k=0; k<{self.dim}; k++)\n    {self()}[k] = {cast_to(self.dtype)}({val()});\n"
+        return f"""
+                    #pragma unroll
+                    for(int k=0; k<{self.dim}; k++)
+                        {self.id}[k] = {cast_to(self.dtype)}({val.id});
+                """
         
 def cast_to(dtype):
     # returns C++ code string to do a cast ; e.g. "(float)" if dtype is "float" for example
@@ -130,9 +133,9 @@ def VectApply(fun, out, *args):
     if not set(dims) in ({dimloop}, {1, dimloop}):
         raise ValueError("incompatible dimensions in VectApply")
     incr_out = 1 if out.dim==dimloop else 0
-    outk = c_variable(f"{out()}[k*{incr_out}]" , out.dtype)
+    outk = c_variable(f"{out.id}[k*{incr_out}]" , out.dtype)
     incr_args = list((1 if arg.dim==dimloop else 0) for arg in args)
-    argks = list(c_variable(f"{arg()}[k*{incr}]", arg.dtype) for (arg, incr) in zip(args, incr_args))
+    argks = list(c_variable(f"{arg.id}[k*{incr}]", arg.dtype) for (arg, incr) in zip(args, incr_args))
     return f"#pragma unroll\nfor(int k=0; k<{dimloop}; k++) {{\n    {fun(outk, *argks)} }}\n"
 
 
@@ -143,7 +146,7 @@ def VectCopy(out, arg, cast=True):
     # - arg is c_variable representing the input array
     # - optional cast=True if we want to add a (type) cast operation before the copy
     cast_string = cast_to(out.dtype) if cast else ""
-    return f"#pragma unroll\nfor(int k=0; k<{out.dim}; k++)\n    {out()}[k] = {cast_string}{arg()}[k];\n"
+    return f"#pragma unroll\nfor(int k=0; k<{out.dim}; k++)\n    {out.id}[k] = {cast_string}{arg.id}[k];\n"
 
 
 
@@ -197,7 +200,7 @@ class Var_loader:
         for (dims, inds, row_index) in ((self.dimsx, self.indsi, i), (self.dimsy, self.indsj, j), (self.dimsp, self.indsp, c_zero_int)):
             for u in range(len(dims)):
                 arg = args[inds[u]]
-                table[inds[u]] = c_array(f"({arg()}+{row_index()}*{dims[u]})", value(arg.dtype), dims[u])
+                table[inds[u]] = c_array(f"({arg.id}+{row_index.id}*{dims[u]})", value(arg.dtype), dims[u])
         return table
     
     def load_vars(self, cat, xloc, args, row_index=c_zero_int):
@@ -229,7 +232,7 @@ class Var_loader:
         k = 0
         for u in range(len(dims)):
             for v in range(dims[u]):
-                string += f"{xloc()}[{k}] = {args[inds[u]]()}[{row_index()}*{dims[u]}+{v}];\n"
+                string += f"{xloc.id}[{k}] = {args[inds[u]].id}[{row_index()}*{dims[u]}+{v}];\n"
                 k+=1
         return string   
         
@@ -241,7 +244,17 @@ def keops_exp(x):
     # returns the C++ code string for the exponential function applied to a C++ variable
     # - x must be of type c_variable
     if x.dtype in ["float","double"]:
-        return f"exp({x()})"
+        return f"exp({x.id})"
+    else:
+        raise ValueError("not implemented.")
+
+
+
+def keops_sqrt(x):
+    # returns the C++ code string for the square root function applied to a C++ variable
+    # - x must be of type c_variable
+    if x.dtype in ["float","double"]:
+        return f"sqrt({x.id})"
     else:
         raise ValueError("not implemented.")
 
