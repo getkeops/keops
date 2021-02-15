@@ -63,9 +63,9 @@ RKeOps) and read the vignettes available in R with the command
 
 ## Install from CRAN
 
-> **Note:** RKeOps is not avaible on CRAN yet, it should be soon.
+> **Note:** RKeOps is avaible on CRAN but only for UNIX environment (GNU/Linux and MacOS) and not for Windows.
 
-```{r install, eval=FALSE}
+```R
 install.packages("rkeops")
 ```
 
