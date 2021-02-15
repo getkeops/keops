@@ -34,7 +34,7 @@ class get_keops_routine_class:
         # This part is ugly, needs refactoring...
         if isinstance(self.map_reduce_obj.red_formula.formula, Zero):
              if isinstance(self.map_reduce_obj.red_formula, Sum_Reduction):
-                 self.map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, nargs, dtype, *params)
+                 self.map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, aliases, nargs, dtype, *params)
                  
         self.load_dll()
             
@@ -50,7 +50,7 @@ class get_keops_routine_class:
         if self.dll is not None:
             self.dll.Eval.argtypes = [c_int, c_int, c_int, out_ctype["type"]] + [arg["type"] for arg in args_ctype]
             c_args = [arg["data"] for arg in args_ctype]
-            self.dll.Eval(c_int(nx), c_int(ny), c_int(device_id), out_ctype["data"], *c_args)
+            self.dll.Eval(c_int(nx), c_int(ny), c_int(device_id), out_ctype["data"], *c_args)   
    
             
 def get_keops_routine(*args):

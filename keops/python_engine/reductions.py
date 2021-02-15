@@ -19,6 +19,18 @@ class Reduction(tree):
         self.tagJ = 1-tagI
         self.cat = tagI
         self.Vars_ = formula.Vars_
+        
+    def ReducePair(self, acc, xi):
+        # Returns C++ code that implements the update phase of the reduction.
+        # by default it consists in a vectorized version of the ReducePairScalar operation.        
+        return VectApply(self.ReducePairScalar, acc, xi)
+        
+    def ReducePairShort(self, acc, xi, ind):
+        # N.B next lines are useless here, but to be used in other reductions :
+        # if xi.dtype == "half2":
+        #     half2_val = c_variable("half2_ind")
+        #     string = half2_val.declare_assign(f"__floats2half2_rn(2*{ind()},2*{ind()}+1)")
+        return self.ReducePair(acc, xi)
 
     def FinalizeOutput(self, acc, out, i):
         # Returns C++ code that implements the final output of the reduction.
@@ -49,22 +61,6 @@ class Sum_Reduction(Reduction):
         # Returns C++ code that implements the "+=" accumulation operation of the sum reduction
         return f"{tmp.id} += {cast_to(tmp.dtype)}({xi.id});"
         
-    def ReducePairShort(self, tmp, xi, ind):
-        # Returns C++ code that implements the update phase of the reduction.
-        # Here for the sum reduction it consists in a vectorized version of the "+=" operation.
-        
-        # N.B next lines are useless for SumReduction, but to be used in other reductions :
-        # if xi.dtype == "half2":
-        #     half2_val = c_variable("half2_ind")
-        #     string = half2_val.declare_assign(f"__floats2half2_rn(2*{ind()},2*{ind()}+1)")
-        
-        return VectApply(self.ReducePairScalar, tmp, xi)
-        
-    def ReducePair(self, acc, xi):
-        # Returns C++ code that implements the update phase of the reduction.
-        # Here for the sum reduction it consists in a vectorized version of the "+=" operation.
-        return VectApply(self.ReducePairScalar, acc, xi)
-        
     def KahanScheme(self, acc, xi, tmp):
         return f"""
                         #pragma unroll
@@ -80,6 +76,113 @@ class Sum_Reduction(Reduction):
     def DiffT(self, v, gradin, f0=None):
         return Sum_Reduction(Grad(self.formula,v,gradin),v.cat%2)
         
+
+
+
+
+
+
+
+
+
+class Max_Reduction(Reduction):
+    
+    #// Implements the max reduction operation : for each i or each j, find the
+    #// maximal value of Fij
+    #// operation is vectorized: if Fij is vector-valued, max is computed for each dimension.
+    
+    string_id = "Max_Reduction"
+    
+    def __init__(self, formula, tagIJ):
+        super().__init__(formula, tagIJ)
+        self.dim = formula.dim                      # dimension of final output of reduction
+        self.dimred = self.dim                      # dimension of inner reduction variables
+        
+    def InitializeReduction(self, acc):
+        # Returns C++ code to be used at initialization phase of the reduction.
+        # Here it consists in setting the output array to -infinity.
+        return acc.assign(neg_infinity(acc.dtype))
+        
+    def ReducePairScalar(self, acc, xi):
+        # Subroutine of ReducePairShort and ReducePair methods.
+        if xi.dtype == "half2":
+            raise ValueError("not implemented")
+        return f"""
+                    if({xi.id}>{acc.id}) 
+                        {acc.id} = {xi.id};
+                """        
+
+
+
+
+class Max_ArgMax_Reduction_Base(Reduction):
+    
+    #/////////////////////////////////////////////////////////////////////////
+    #//          max+argmax reduction : base class                          //
+    #/////////////////////////////////////////////////////////////////////////
+    
+    def __init__(self, formula, tagIJ):
+        super().__init__(formula, tagIJ)
+        
+        # We work with a (values,indices) vector
+        self.dimred = 2*formula.dim                      # dimension of inner reduction variables
+        
+    def InitializeReduction(self, acc):
+        # Returns C++ code to be used at initialization phase of the reduction.
+        acc_max, acc_argmax = acc.split(self.dim, self.dim)
+        return acc_max.assign(neg_infinity(acc.dtype)) + acc_argmax.assign(c_zero_float)
+        
+    def ReducePairScalar(self, acc_val, acc_ind, xi, ind):
+        # Subroutine of ReducePairShort and ReducePair methods.
+        if xi.dtype == "half2":
+            raise ValueError("not implemented")
+        return f"""
+                    if({xi.id}>{acc_val.id}) 
+                    {{
+                        {acc_val.id} = {xi.id};
+                        {acc_ind.id} = {ind.id};
+                    }}
+                """        
+
+    def ReducePair(self, acc, xi):
+        # Returns C++ code that implements the update phase of the reduction.
+        acc_val, acc_ind = acc.split(self.dim, self.dim)     
+        xi_val, xi_ind = xi.split(self.dim, self.dim)     
+        return VectApply(self.ReducePairScalar, acc_val, xi_val, xi_ind)
+        
+    def ReducePairShort(self, acc, xi, ind):
+        if xi.dtype == "half2":
+            raise ValueError("not implemented")
+            half2_val = c_variable("half2_ind")
+            string = half2_val.declare_assign(f"__floats2half2_rn(2*{ind()},2*{ind()}+1)")
+        acc_val, acc_ind = acc.split(self.dim, self.dim)    
+        ind_arr = c_array(xi.dtype, 1, f"(&{ind.id})")
+        return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind_arr)
+
+
+
+
+
+class ArgMax_Reduction(Max_ArgMax_Reduction_Base):
+    
+    #// Implements the argmax reduction operation : for each i or each j, find the index of the
+    #// maximal value of Fij
+    #// operation is vectorized: if Fij is vector-valued, argmax is computed for each dimension.
+    
+    string_id = "ArgMax_Reduction"
+    
+    def __init__(self, formula, tagIJ):
+        super().__init__(formula, tagIJ)
+        self.dim = formula.dim    
+        
+    def FinalizeOutput(self, acc, out, i):
+        acc_val, acc_ind = acc.split(self.dim, self.dim)
+        return VectCopy(out, acc_ind) 
+        
+    def DiffT(self, v, gradin):
+        return Zero_Reduction(v.dim,v.cat%2)
+
+
 
 
 
@@ -110,10 +213,8 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         # Returns C++ code to be used at initialization phase of the reduction.
         # We fill empty cells with the neutral element of the reduction operation,
         #                   (-inf,0) = e^{-inf} * 0 = 0
-        string = f"{acc.id}[0] = {neg_infinity(acc.dtype)};\n"
-        v = c_array(f"({acc.id}+1)", acc.dtype, self.dimred-1)
-        string += v.assign(c_zero_float)
-        return string
+        m, s = acc.split(1, self.formulaG.dim)
+        return m.assign(neg_infinity(acc.dtype)) + s.assign(c_zero_float)
         
     def ReducePair(self, acc, xi):
         # Returns C++ code that implements the update phase of the reduction.
