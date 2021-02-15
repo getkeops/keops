@@ -96,6 +96,10 @@ class Operation(tree):
         else:
             raise ValueError("not implemented")
             
+    def __or__(self, other):
+        # f|g redirects to Scalprod(f,g)
+        return Scalprod(self, other)
+            
             
 class VectorizedScalarOp(Operation):
     # class for operations that are vectorized or broadcasted
