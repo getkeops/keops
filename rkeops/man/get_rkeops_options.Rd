@@ -15,8 +15,8 @@ a list with \code{rkeops} current options values (see Details).
 }
 \description{
 \code{rkeops} uses two sets of options: compile options (see
-\code{\link[rkeops:compile_options]{rkeops::compile_options()}}) and runtime options (see
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}). These options define the behavior of \code{rkeops}
+\code{\link[=compile_options]{compile_options()}}) and runtime options (see
+\code{\link[=runtime_options]{runtime_options()}}). These options define the behavior of \code{rkeops}
 when compiling or when calling user-defined operators.
 
 You can read the current states of \code{rkeops} options by calling
@@ -25,25 +25,25 @@ You can read the current states of \code{rkeops} options by calling
 \details{
 \code{rkeops} global options includes two lists defining options used at
 compilation of user-defined operators or at runtime. These two list
-contains specific informations (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} respectively, in particular for default values).
+contains specific informations (see \code{\link[=compile_options]{compile_options()}} and
+\code{\link[=runtime_options]{runtime_options()}} respectively, in particular for default values).
 
 If the \code{tag} input parameter is specified (e.g. \code{"compile"} or \code{"runtime"}),
 only the corresponding option list is returned.
 
-These options are set with the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} and
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which
-options, you can check \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.
+These options are set with the functions \code{\link[=set_rkeops_options]{set_rkeops_options()}} and
+\code{\link[=set_rkeops_option]{set_rkeops_option()}}. To know which values are allowed for which
+options, you can check \code{\link[=compile_options]{compile_options()}} and
+\code{\link[=runtime_options]{runtime_options()}}.
 }
 \examples{
 library(rkeops)
 get_rkeops_options()
 }
 \seealso{
-\code{\link[rkeops:get_rkeops_option]{rkeops::get_rkeops_option()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
+\code{\link[=get_rkeops_option]{get_rkeops_option()}}, \code{\link[=compile_options]{compile_options()}},
+\code{\link[=runtime_options]{runtime_options()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}},
+\code{\link[=set_rkeops_option]{set_rkeops_option()}}
 }
 \author{
 Ghislain Durif

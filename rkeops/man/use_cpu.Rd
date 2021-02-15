@@ -17,15 +17,15 @@ user-defined operators.
 \strong{Note:} The default behavior in \code{rkeops} is to use CPU computing, thus
 calling the function \code{use_gpu} is mandatory to run computations on GPU.
 
-To enable GPU computing, run \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}.
+To enable GPU computing, run \code{\link[=use_gpu]{use_gpu()}}.
 }
 \examples{
 library(rkeops)
 use_cpu()
 }
 \seealso{
-\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},
-\code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}
+\code{\link[=compile4cpu]{compile4cpu()}}, \code{\link[=compile4gpu]{compile4gpu()}},
+\code{\link[=use_gpu]{use_gpu()}}
 }
 \author{
 Ghislain Durif
