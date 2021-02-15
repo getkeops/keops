@@ -3,6 +3,8 @@ from operations import *
 from utils import *    
 
 
+
+
 class Reduction(tree):
     
     # Base class for all KeOps final reductions over a formula
@@ -39,8 +41,20 @@ class Reduction(tree):
         # different data type.
         return VectCopy(out, acc)
     
+class Zero_Reduction(Reduction):
+    # Implements the zero reduction operation (fills output with zeros).
+    # N.B. The actual code for filling zeros is not here ; when a Zero_reduction is detected,
+    # the map_reduce scheme is redirected to CpuAssignZero or GpuAssignZero
 
-
+    string_id = "Zero_Reduction"
+    
+    def __init__(self, dim, tagIJ):
+        super().__init__(Zero(dim), tagIJ)
+        self.dim = dim
+        
+    def DiffT(self, v, gradin, f0=None):
+        return Zero_Reduction(v.dim,v.cat%2)
+    
 class Sum_Reduction(Reduction):
     # Sum reduction class
     string_id = "Sum_Reduction"
@@ -77,14 +91,6 @@ class Sum_Reduction(Reduction):
         return Sum_Reduction(Grad(self.formula,v,gradin),v.cat%2)
         
 
-
-
-
-
-
-
-
-
 class Max_Reduction(Reduction):
     
     #// Implements the max reduction operation : for each i or each j, find the
@@ -110,10 +116,7 @@ class Max_Reduction(Reduction):
         return f"""
                     if({xi.id}>{acc.id}) 
                         {acc.id} = {xi.id};
-                """        
-
-
-
+                """
 
 class Max_ArgMax_Reduction_Base(Reduction):
     
@@ -159,10 +162,20 @@ class Max_ArgMax_Reduction_Base(Reduction):
         ind_arr = c_array(xi.dtype, 1, f"(&{ind.id})")
         return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind_arr)
 
-
-
-
-
+class Max_ArgMax_Reduction(Max_ArgMax_Reduction_Base):
+    
+    #// Implements the max+argmax reduction operation : for each i or each j, find the maximal value of Fij and its index
+    #// operation is vectorized: if Fij is vector-valued, max+argmax is computed for each dimension.
+    
+    string_id = "Max_ArgMax_Reduction"
+    
+    def __init__(self, formula, tagIJ):
+        super().__init__(formula, tagIJ)
+        self.dim = 2*formula.dim    
+        
+    def FinalizeOutput(self, acc, out, i):
+        return VectCopy(out, acc) 
+        
 class ArgMax_Reduction(Max_ArgMax_Reduction_Base):
     
     #// Implements the argmax reduction operation : for each i or each j, find the index of the
@@ -183,13 +196,247 @@ class ArgMax_Reduction(Max_ArgMax_Reduction_Base):
         return Zero_Reduction(v.dim,v.cat%2)
 
 
+class Min_Reduction(Reduction):
+    
+    #// Implements the min reduction operation : for each i or each j, find the
+    #// minimal value of Fij
+    #// operation is vectorized: if Fij is vector-valued, min is computed for each dimension.
+    
+    string_id = "Min_Reduction"
+    
+    def __init__(self, formula, tagIJ):
+        super().__init__(formula, tagIJ)
+        self.dim = formula.dim                      # dimension of final output of reduction
+        self.dimred = self.dim                      # dimension of inner reduction variables
+        
+    def InitializeReduction(self, acc):
+        # Returns C++ code to be used at initialization phase of the reduction.
+        # Here it consists in setting the output array to -infinity.
+        return acc.assign(infinity(acc.dtype))
+        
+    def ReducePairScalar(self, acc, xi):
+        # Subroutine of ReducePairShort and ReducePair methods.
+        if xi.dtype == "half2":
+            raise ValueError("not implemented")
+        return f"""
+                    if({xi.id}<{acc.id}) 
+                        {acc.id} = {xi.id};
+                """
+
+class Min_ArgMin_Reduction_Base(Reduction):
+    
+    #/////////////////////////////////////////////////////////////////////////
+    #//          min+argmin reduction : base class                          //
+    #/////////////////////////////////////////////////////////////////////////
+    
+    def __init__(self, formula, tagIJ):
+        super().__init__(formula, tagIJ)
+        
+        # We work with a (values,indices) vector
+        self.dimred = 2*formula.dim                      # dimension of inner reduction variables
+        
+    def InitializeReduction(self, acc):
+        # Returns C++ code to be used at initialization phase of the reduction.
+        acc_min, acc_argmin = acc.split(self.dim, self.dim)
+        return acc_min.assign(infinity(acc.dtype)) + acc_argmin.assign(c_zero_float)
+        
+    def ReducePairScalar(self, acc_val, acc_ind, xi, ind):
+        # Subroutine of ReducePairShort and ReducePair methods.
+        if xi.dtype == "half2":
+            raise ValueError("not implemented")
+        return f"""
+                    if({xi.id}<{acc_val.id}) 
+                    {{
+                        {acc_val.id} = {xi.id};
+                        {acc_ind.id} = {ind.id};
+                    }}
+                """        
+
+    def ReducePair(self, acc, xi):
+        # Returns C++ code that implements the update phase of the reduction.
+        acc_val, acc_ind = acc.split(self.dim, self.dim)     
+        xi_val, xi_ind = xi.split(self.dim, self.dim)     
+        return VectApply(self.ReducePairScalar, acc_val, xi_val, xi_ind)
+        
+    def ReducePairShort(self, acc, xi, ind):
+        if xi.dtype == "half2":
+            raise ValueError("not implemented")
+            half2_val = c_variable("half2_ind")
+            string = half2_val.declare_assign(f"__floats2half2_rn(2*{ind()},2*{ind()}+1)")
+        acc_val, acc_ind = acc.split(self.dim, self.dim)    
+        ind_arr = c_array(xi.dtype, 1, f"(&{ind.id})")
+        return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind_arr)
+
+class Min_ArgMin_Reduction(Min_ArgMin_Reduction_Base):
+    
+    #// Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij and its index
+    #// operation is vectorized: if Fij is vector-valued, min+argmain is computed for each dimension.
+    
+    string_id = "Min_ArgMin_Reduction"
+    
+    def __init__(self, formula, tagIJ):
+        super().__init__(formula, tagIJ)
+        self.dim = 2*formula.dim    
+        
+    def FinalizeOutput(self, acc, out, i):
+        return VectCopy(out, acc) 
+        
+class ArgMin_Reduction(Min_ArgMin_Reduction_Base):
+    
+    #// Implements the argmin reduction operation : for each i or each j, find the index of the
+    #// minimal value of Fij
+    #// operation is vectorized: if Fij is vector-valued, argmin is computed for each dimension.
+    
+    string_id = "ArgMin_Reduction"
+    
+    def __init__(self, formula, tagIJ):
+        super().__init__(formula, tagIJ)
+        self.dim = formula.dim    
+        
+    def FinalizeOutput(self, acc, out, i):
+        acc_val, acc_ind = acc.split(self.dim, self.dim)
+        return VectCopy(out, acc_ind) 
+        
+    def DiffT(self, v, gradin):
+        return Zero_Reduction(v.dim,v.cat%2)
 
 
+class KMin_ArgKMin_Reduction(Reduction):
+    
+    #// Implements the k-min-arg-k-min reduction operation : for each i or each j, find the values and indices of the
+    #// k minimal values of Fij
+    #// operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
+    
+    string_id = "KMin_ArgKMin_Reduction"
+    
+    def __init__(self, formula, K, tagIJ):
+        super().__init__(formula, tagIJ)
+        
+        self.K = K
+        
+        # dim is dimension of output of reduction ; for a arg-k-min reduction it is equal to the dimension of output of formula
+        self.dim = 2*K*formula.dim
+        
+        # We work with a (values,indices) vector
+        self.dimred = self.dim                      # dimension of inner reduction variables
+        
+    def InitializeReduction(self, acc):
+        # Returns C++ code to be used at initialization phase of the reduction.
+        if acc.dtype == "half2":
+            raise ValueError("not implemented")
+        return f"""
+                    #pragma unroll
+                    for(int k=0; k<{self.formula.dim}; k++) {{
+                        #pragma unroll
+                        for(int l=k; l<{self.K}*2*{self.formula.dim}+k; l+=2*{self.formula.dim}) {{
+                            {acc.id}[l] = {infinity(acc.dtype)}; // initialize output
+                            {acc.id}[l+{self.formula.dim}] = {cast_to(acc.dtype)} 0.0f; // initialize output
+                        }}
+                    }}
+                """
+        
+    def ReducePair(self, acc, xi):
+        # Returns C++ code that implements the update phase of the reduction.        
+        dtype = xi.dtype
+        fdim = self.formula.dim
+        return f"""
+                    {{
+            		    {dtype} out[{self.dimred}];
+                        #pragma unroll
+            			for(int k=0; k<{fdim}; k++) {{
+            			    int p = k;
+            			    int q = k;
+                            #pragma unroll
+            			    for(int l=k; l<{self.dimred}; l+=2*{fdim}) {{
+            			        if({xi.id}[p]<{acc.id}[q]) {{
+            					    out[l] = {xi.id}[p];
+            					    out[{fdim}+l] = {xi.id}[{fdim}+p];
+            					    p += 2*{fdim};
+            					}}
+            					else {{
+            					    out[l] = {acc.id}[q];
+            					    out[{fdim}+l] = {acc.id}[{fdim}+q];
+            					    q += 2*{fdim};
+            					}}  
+            				}}
+            			}}
+                        #pragma unroll
+            			for(int k=0; k<{self.dimred}; k++)
+            			    {acc.id}[k] = out[k];
+                    }}
+                """
+        
+    def ReducePairShort(self, acc, xi, ind):
+        fdim = self.formula.dim
+        dtype = xi.dtype
+        return f"""
+                    {{
+                        {dtype} xik;
+                        int l;
+                        #pragma unroll
+                        for(int k=0; k<{fdim}; k++) {{
+                            xik = {xi.id}[k];
+                            #pragma unroll
+                            for(l=({self.K}-1)*2*{fdim}+k; l>=k && xik<{acc.id}[l]; l-=2*{fdim}) {{
+                                {dtype} tmpl = {acc.id}[l];
+                                int indtmpl = {acc.id}[l+{fdim}];
+                                {acc.id}[l] = xik;
+                                {acc.id}[l+{fdim}] = {ind.id};
+                                if(l<({self.K}-1)*2*{fdim}+k) {{
+                                    {acc.id}[l+2*{fdim}] = tmpl;
+                                    {acc.id}[l+2*{fdim}+{fdim}] = indtmpl;
+                                }}
+                            }}
+                        }}
+                    }}
+                """
 
+class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
+    
+    #// Implements the arg-k-min reduction operation : for each i or each j, find the indices of the
+    #// k minimal values of Fij
+    #// operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
+    
+    string_id = "ArgKMin_Reduction"
+    
+    def __init__(self, formula, K, tagIJ):
+        super().__init__(formula, K, tagIJ)
+        self.dim = K * formula.dim
+        
+    def FinalizeOutput(self, acc, out, i):
+        fdim = self.formula.dim
+        return f"""
+                        #pragma unroll
+                        for(int k=0; k<{fdim}; k++)
+                            #pragma unroll
+                            for(int p=k, l=k; l<{self.K}*2*{fdim}+k; p+={fdim}, l+=2*{fdim})
+                                {out.id}[p] = {acc.id}[l+{fdim}];
+                """
+                
+    def DiffT(self, v, gradin):
+        return Zero_Reduction(v.dim,v.cat%2)
 
-
-
-
+class KMin_Reduction(KMin_ArgKMin_Reduction):
+    
+    #// Implements the k-min reduction operation : for each i or each j, find the
+    #// k minimal values of Fij
+    #// operation is vectorized: if Fij is vector-valued, arg-k-min is computed for each dimension.
+    
+    string_id = "KMin_Reduction"
+    
+    def __init__(self, formula, K, tagIJ):
+        super().__init__(formula, K, tagIJ)
+        self.dim = K * formula.dim
+        
+    def FinalizeOutput(self, acc, out, i):
+        fdim = self.formula.dim
+        return f"""
+                        #pragma unroll
+                        for(int k=0; k<{fdim}; k++)
+                            #pragma unroll
+                            for(int p=k, l=k; l<{self.K}*2*{fdim}+k; p+={fdim}, l+=2*{fdim})
+                                {out.id}[p] = {acc.id}[l];
+                """
 
 
 class Max_SumShiftExpWeight_Reduction(Reduction):
@@ -288,13 +535,20 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         S = Extract(gradin, self.formulaF.dim, self.formulaG.dim)      
         return Grad( Sum_Reduction( Exp(self.formulaF-M)*self.formulaG, self.tagI ), v, S)
         
-
 Max_SumShiftExp_Reduction = Max_SumShiftExpWeight_Reduction
 
 
 
 
+
+
+
+
 #/////////////////////////////////////////////////////////////
+
+
+
+
 #///      GRADIENT OPERATOR  : Grad< F, V, Gradin >       ////
 #/////////////////////////////////////////////////////////////
 

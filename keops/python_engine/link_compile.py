@@ -56,7 +56,7 @@ class link_compile:
         
     def get_dll_and_params(self):
         if not os.path.exists(self.dllname):
-            print("[KeOps] compiling dll for formula :", self.red_formula, "...", flush=True)
+            print("[KeOps] Compiling formula :", self.red_formula, "...", flush=True)
             start = time.time()
             self.compile_code()
             self.save_info()

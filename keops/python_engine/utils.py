@@ -4,45 +4,10 @@ def get_hash_name(*args):
     return sha256("".join(list(str(arg) for arg in args)).encode("utf-8")).hexdigest()[:10]
     
 
-def c_include(*headers):
-    return "".join(f"#include <{header}>\n" for header in headers)
-    
-def c_if(condition, *commands):
-    block_string = "".join(commands)
-    return f""" if ({cond_string}) {{
-                      {block_string}
-                }}
-            """
+#######################################################################
+#.  Python to C++ meta programming toolbox
+#######################################################################
 
-def c_function(name, dtypeout, args, commands, qualifier=None):
-    # first write the signature of the function :
-    string = ""
-    if qualifier is not None:
-        string += f"{qualifier} "
-    string += f"{dtypeout} {name}({signature_list(args)}) "
-    # then the body
-    string += "\n{\n"
-    string += "\n".join(list(c for c in commands))
-    string += "\n}\n"
-    return string   
-
-def call_list(args):
-    return ", ".join(list(arg() for arg in args))
-
-def signature_list(args):
-    return ", ".join(list(f"{arg.dtype} {arg.id}" for arg in args))
-
-def value(pdtype):
-    # converts string "dtype*" to "dtype" 
-    if pdtype[-1]=="*":
-        return pdtype[:-1]
-    else:
-        raise ValueError("Incorrect input string in value function; it should represent a pointer C++ type.")
-
-def pointer(dtype):
-    # converts string "dtype" to "dtype*" 
-    return dtype+"*"
-    
 class new_c_varname:
     # class to generate unique names for variables in C++ code, to avoid conflicts
     dict_instances = {}
@@ -77,14 +42,37 @@ class c_variable:
     def declare(self):
         return f"{self.dtype} {self.id}\n"
     def declare_assign(self, value_string):
-        return f"{self.dtype} {self.id} = {value_string}\n"
+        return f"{self.dtype} " + self.assign(value_string)
+    def assign(self, value_string):
+        return f"{self.id} = {cast_to(self.dtype)}({value_string})\n"
+    
+        
+        
         
 c_zero_int = c_variable("int", "0")
 c_zero_float = c_variable("float", "0.0f")
 
 def neg_infinity(dtype):
     return c_variable(dtype, f"-std::numeric_limits< {dtype} >::infinity()")
-    
+
+def infinity(dtype):
+    return c_variable(dtype, f"std::numeric_limits< {dtype} >::infinity()")
+
+def cast_to(dtype):
+    # returns C++ code string to do a cast ; e.g. "(float)" if dtype is "float" for example
+    return f"({dtype})"
+
+def value(pdtype):
+    # converts string "dtype*" to "dtype" 
+    if pdtype[-1]=="*":
+        return pdtype[:-1]
+    else:
+        raise ValueError("Incorrect input string in value function; it should represent a pointer C++ type.")
+
+def pointer(dtype):
+    # converts string "dtype" to "dtype*" 
+    return dtype+"*"
+
 class c_array:
     def __init__(self, dtype, dim, string_id=new_c_varname("array")):
         if dim<0:
@@ -122,10 +110,6 @@ class c_array:
                     for(int k=0; k<{self.dim}; k++)
                         {self.id}[k] = {cast_to(self.dtype)}({val.id});
                 """
-        
-def cast_to(dtype):
-    # returns C++ code string to do a cast ; e.g. "(float)" if dtype is "float" for example
-    return f"({dtype})"
 
 def VectApply(fun, out, *args):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
@@ -155,7 +139,6 @@ def VectApply(fun, out, *args):
                 }}
             """
 
-
 def VectCopy(out, arg, cast=True):
     # returns a C++ code string representing a vector copy between fixed-size arrays
     # - dim is dimension of arrays
@@ -169,7 +152,41 @@ def VectCopy(out, arg, cast=True):
                     {out.id}[k] = {cast_string}{arg.id}[k];
             """
 
+def call_list(args):
+    return ", ".join(list(arg() for arg in args))
 
+def signature_list(args):
+    return ", ".join(list(f"{arg.dtype} {arg.id}" for arg in args))
+
+def c_include(*headers):
+    return "".join(f"#include <{header}>\n" for header in headers)
+    
+def c_if(condition, *commands):
+    block_string = "".join(commands)
+    return f""" if ({cond_string}) {{
+                      {block_string}
+                }}
+            """
+
+def c_function(name, dtypeout, args, commands, qualifier=None):
+    # first write the signature of the function :
+    string = ""
+    if qualifier is not None:
+        string += f"{qualifier} "
+    string += f"{dtypeout} {name}({signature_list(args)}) "
+    # then the body
+    string += "\n{\n"
+    string += "\n".join(list(c for c in commands))
+    string += "\n}\n"
+    return string   
+
+        
+
+
+    
+#######################################################################
+#.  KeOps related helpers
+#######################################################################
 
 def GetDims(Vars):
     # returns the list of dim fields (dimensions) of a list of Var instances
@@ -179,9 +196,6 @@ def GetInds(Vars):
     # returns the list of ind fields (indices) of a list of Var instances
     return tuple(v.ind for v in Vars)
     
-
-
-
 class Var_loader:
     
     def __init__(self, red_formula):
@@ -259,7 +273,9 @@ class Var_loader:
         
         
         
-        
+#######################################################################
+#.  KeOps wrappers for math functions
+#######################################################################      
         
 def keops_exp(x):
     # returns the C++ code string for the exponential function applied to a C++ variable
@@ -268,8 +284,6 @@ def keops_exp(x):
         return f"exp({x.id})"
     else:
         raise ValueError("not implemented.")
-
-
 
 def keops_sqrt(x):
     # returns the C++ code string for the square root function applied to a C++ variable
