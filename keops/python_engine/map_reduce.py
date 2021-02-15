@@ -31,19 +31,19 @@ class map_reduce:
 
         self.varloader = varloader = Var_loader(red_formula)
         
-        self.i = i = c_variable("i", "int")
-        self.j = j = c_variable("j", "int")
+        self.i = i = c_variable("int", "i")
+        self.j = j = c_variable("int", "j")
 
-        nx = c_variable("nx", "int")
-        ny = c_variable("ny", "int")
+        nx = c_variable("int", "nx")
+        ny = c_variable("int", "ny")
         
-        self.xi = xi = c_array("xi", dtype, self.varloader.dimx)
-        self.param_loc = param_loc = c_array("param_loc", dtype, self.varloader.dimp)
+        self.xi = xi = c_array(dtype, self.varloader.dimx, "xi")
+        self.param_loc = param_loc = c_array(dtype, self.varloader.dimp, "param_loc")
         argnames = new_c_varname("arg", nargs)
-        self.args = args = c_variable(argnames, pointer(dtype))
-        self.acc = acc = c_array("acc", dtypeacc, red_formula.dimred)
-        self.fout = fout = c_array("fout", dtype, formula.dim)
-        self.outi = c_array(f"(out + i * {red_formula.dim})", dtype, red_formula.dim) 
+        self.args = args = c_variable(pointer(dtype), argnames)
+        self.acc = acc = c_array(dtypeacc, red_formula.dimred, "acc")
+        self.fout = fout = c_array(dtype, formula.dim, "fout")
+        self.outi = c_array(dtype, red_formula.dim, f"(out + i * {red_formula.dim})") 
 
 
 
@@ -211,8 +211,8 @@ class GpuReduc1D(map_reduce, Gpu_link_compile):
         dtype = self.dtype
         varloader = self.varloader
         
-        i = c_variable("i", "int")
-        j = c_variable("j", "int")
+        i = c_variable("int", "i")
+        j = c_variable("int", "j")
         fout = self.fout
         outi = self.outi
         acc = self.acc
@@ -221,10 +221,10 @@ class GpuReduc1D(map_reduce, Gpu_link_compile):
         
         param_loc = self.param_loc
         xi = self.xi
-        yjloc = c_array(f"(yj + threadIdx.x * {varloader.dimy})", dtype, varloader.dimy)
-        yjrel = c_array("yjrel", dtype, varloader.dimy)
+        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
+        yjrel = c_array(dtype, varloader.dimy, "yjrel")
         table = varloader.table(self.xi, yjrel, self.param_loc)
-        jreltile = c_variable("(jrel + tile * blockDim.x)","int")
+        jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
         
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")

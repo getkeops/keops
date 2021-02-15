@@ -49,7 +49,7 @@ class Operation(tree):
                 # when we will recursively evaluate nested operations.
                 template_string_id = "out_" + child.string_id.lower()
                 arg_name = new_c_varname(template_string_id)
-                arg = c_array(arg_name, out.dtype, child.dim)
+                arg = c_array(out.dtype, child.dim, arg_name)
                 # Now we append into string the C++ code to declare the array
                 string += f"{arg.declare()}\n"
                 # Now we evaluate the child operation and append the result into string
@@ -183,7 +183,7 @@ class Zero(Operation):
         return type(self)==type(other) and self.dim==other.dim
         
     def Op(self, out, table):
-        zero = c_variable("0.0f","float")
+        zero = c_variable("float", "0.0f")
         return out.assign(zero)
 
     def DiffT(self,v,gradin):
@@ -517,7 +517,7 @@ class SumT_(Operation):
     def Op(self, out, table, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        value_arg = c_variable(f"*{arg.id}",arg.dtype)
+        value_arg = c_variable(arg.dtype, f"*{arg.id}")
         return out.assign(value_arg)
     def DiffT(self,v,gradin):
         f = self.children[0]
@@ -564,11 +564,8 @@ class Concat(Operation):
     def Op(self, out, table, arg0, arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        v0 = c_array(out.id, out.dtype, arg0.dim)
-        string = VectCopy(v0, arg0)
-        v1 = c_array(f"({out.id}+{arg0.dim})", out.dtype, arg1.dim)
-        string += VectCopy(v1, arg1)
-        return string
+        out0, out1 = out.split(arg0.dim, arg1.dim)
+        return VectCopy(out0, arg0) + VectCopy(out1, arg1)
     def DiffT(self,v,gradin):
         f = self.children[0]
         g = self.children[1]
@@ -592,7 +589,7 @@ class Extract(Operation):
     def Op(self, out, table, arg0):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        v = c_array(f"({arg0.id}+{self.start})", arg0.dtype, out.dim)
+        v = c_array(arg0.dtype, out.dim, f"({arg0.id}+{self.start})")
         return VectCopy(out, v)
     def DiffT(self,v,gradin):
         f = self.children[0]
@@ -613,12 +610,11 @@ class ExtractT(Operation):
         self.start = start
         self.dim = dim
         self.params = (start, dim)
+        self.dimarg = F.dim
     def Op(self, out, table, arg0):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        out_prev = c_array(out.id, out.dtype, self.start)
-        out_mid = c_array(f"({out.id}+{self.start})", out.dtype, self.dim)
-        out_end = c_array(f"({out.id}+{self.start}+{self.dim})", out.dtype, out.dim-self.start-self.dim)
+        out_prev, out_mid, out_end = out.split(self.start, self.dim, self.dimarg-self.start-self.dim)
         return "\n".join( 
                             out_prev.assign(c_zero_float),
                             VectCopy(out_mid, arg0),

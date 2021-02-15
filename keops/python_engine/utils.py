@@ -48,11 +48,9 @@ class new_c_varname:
     dict_instances = {}
     def __new__(self, template_string_id, num=1):
         # - template_string_id is a string, the base name for c_variable
-        # - dtype is a string, the C++ type of the c_variable to create
-        # - if num>1 returns a list of num new variables with same base names
-        # For example the first call to new_c_variable("x","float")
-        # will create a c_variable with string_id="x_1", the second call 
-        # will create a c_variable with string_id="x_2", etc.   
+        # - if num>1 returns a list of num new names with same base names
+        # For example the first call to new_c_variable("x")
+        # will return "x_1", the second call will return "x_2", etc.   
         if num > 1:
             return list(new_c_varname(template_string_id) for k in range(num))    
         if template_string_id in new_c_varname.dict_instances:
@@ -65,14 +63,14 @@ class new_c_varname:
             
 class c_variable:
     # class to represent a C++ variable, storing its c++ name and its C++ type.
-    def __new__(self, list_string_id, dtype):
+    def __new__(self, dtype, list_string_id=new_c_varname("var")):
         if isinstance(list_string_id,list):
-            return list(c_variable(string_id, dtype) for string_id in list_string_id) 
+            return list(c_variable(dtype, string_id) for string_id in list_string_id) 
         else:
             return super(c_variable, self).__new__(self)
-    def __init__(self, string_id, dtype):
-        self.id = string_id             # string_id is C++ name of variable
+    def __init__(self, dtype, string_id):
         self.dtype = dtype              # dtype is C++ type of variable
+        self.id = string_id             # string_id is C++ name of variable
     def __repr__(self):
         # method for printing the c_variable inside Python code
         return self.id
@@ -81,15 +79,17 @@ class c_variable:
     def declare_assign(self, value_string):
         return f"{self.dtype} {self.id} = {value_string}\n"
         
-c_zero_int = c_variable("0","int")
-c_zero_float = c_variable("0.0f","float")
+c_zero_int = c_variable("int", "0")
+c_zero_float = c_variable("float", "0.0f")
 
 def neg_infinity(dtype):
-    return f"-std::numeric_limits< {dtype} >::infinity()"
+    return c_variable(dtype, f"-std::numeric_limits< {dtype} >::infinity()")
     
 class c_array:
-    def __init__(self, string_id, dtype, dim):
-        self.c_var = c_variable(string_id, pointer(dtype))
+    def __init__(self, dtype, dim, string_id=new_c_varname("array")):
+        if dim<0:
+            raise ValueError("negative dimension for array")
+        self.c_var = c_variable(pointer(dtype), string_id)
         self.dtype = dtype
         self.dim = dim
         self.id = string_id
@@ -103,6 +103,17 @@ class c_array:
             return f"{self.dtype} {self.c_var.id}[{self.dim}];"
         else:
             return ""
+            
+    def split(self, *dims):
+        # split c_array in n sub arrays with dimensions dims[0], dims[1], ..., dims[n-1]
+        if sum(dims) != self.dim:
+            raise ValueError("incompatible dimensions for split")
+        listarr, cumdim = [], 0
+        for dim in dims:
+            listarr.append(c_array(self.dtype, dim, f"({self.id}+{cumdim})"))
+            cumdim += dim
+        return listarr
+        
     def assign(self, val):
         # returns C++ code string to fill all elements of a fixed size array with a single value
         # val is a c_variable representing the value.
@@ -133,10 +144,16 @@ def VectApply(fun, out, *args):
     if not set(dims) in ({dimloop}, {1, dimloop}):
         raise ValueError("incompatible dimensions in VectApply")
     incr_out = 1 if out.dim==dimloop else 0
-    outk = c_variable(f"{out.id}[k*{incr_out}]" , out.dtype)
+    outk = c_variable(out.dtype, f"{out.id}[k*{incr_out}]")
     incr_args = list((1 if arg.dim==dimloop else 0) for arg in args)
-    argks = list(c_variable(f"{arg.id}[k*{incr}]", arg.dtype) for (arg, incr) in zip(args, incr_args))
-    return f"#pragma unroll\nfor(int k=0; k<{dimloop}; k++) {{\n    {fun(outk, *argks)} }}\n"
+    argks = list(c_variable(arg.dtype, f"{arg.id}[k*{incr}]") for (arg, incr) in zip(args, incr_args))
+    return f"""
+                #pragma unroll
+                for(int k=0; k<{dimloop}; k++) 
+                {{
+                    {fun(outk, *argks)} 
+                }}
+            """
 
 
 def VectCopy(out, arg, cast=True):
@@ -146,7 +163,11 @@ def VectCopy(out, arg, cast=True):
     # - arg is c_variable representing the input array
     # - optional cast=True if we want to add a (type) cast operation before the copy
     cast_string = cast_to(out.dtype) if cast else ""
-    return f"#pragma unroll\nfor(int k=0; k<{out.dim}; k++)\n    {out.id}[k] = {cast_string}{arg.id}[k];\n"
+    return f"""
+                #pragma unroll
+                for(int k=0; k<{out.dim}; k++)
+                    {out.id}[k] = {cast_string}{arg.id}[k];
+            """
 
 
 
@@ -200,7 +221,7 @@ class Var_loader:
         for (dims, inds, row_index) in ((self.dimsx, self.indsi, i), (self.dimsy, self.indsj, j), (self.dimsp, self.indsp, c_zero_int)):
             for u in range(len(dims)):
                 arg = args[inds[u]]
-                table[inds[u]] = c_array(f"({arg.id}+{row_index.id}*{dims[u]})", value(arg.dtype), dims[u])
+                table[inds[u]] = c_array(value(arg.dtype), dims[u], f"({arg.id}+{row_index.id}*{dims[u]})")
         return table
     
     def load_vars(self, cat, xloc, args, row_index=c_zero_int):
@@ -210,7 +231,7 @@ class Var_loader:
         # - args is a list of c_variable, representing pointers to input tensors 
         # - row_index is a c_variable (of dtype="int"), specifying which row of the matrix should be loaded
         #
-        # Example: assuming i=c_variable("5","int"), xloc=c_variable("xi","float") and px=c_variable("px","float**"), then 
+        # Example: assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi") and px=c_variable("float**", "px"), then 
         # if self.dimsx = [2,2,3] and self.indsi = [7,9,8], the call to
         #   load_vars ( "i", xi, [arg0, arg1,..., arg9], row_index=i )
         # will output the following code:
