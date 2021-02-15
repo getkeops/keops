@@ -97,3 +97,11 @@ git submodule update --init -- keops/lib/sequences
 ```R
 devtools::install("rkeops")
 ```
+
+# Control multi-threading in CPU computing mode
+
+You can use the package 'RhpcBLASctl' to control the number of CPU cores used by RKeOps for computations.
+
+See <https://cran.r-project.org/package=RhpcBLASctl> and the function `RhpcBLASctl::omp_set_num_thread(nthreads)`.
+
+This section is not relevant for GPU computing.

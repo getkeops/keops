@@ -235,6 +235,15 @@ use_gpu <- function(device=0) {
 #' @export
 use_cpu <- function() {
     set_rkeops_option("tagCpuGpu", 0)
+    txt <- paste(
+        "\nIn CPU mode (not relevant for GPU computing), you can",
+        "use the package 'RhpcBLASctl' to control the number",
+        "of CPU cores used by RKeOps for computations.\n", 
+        "See https://cran.r-project.org/package=RhpcBLASctl",
+        "and the function `RhpcBLASctl::omp_set_num_thread(nthreads)`\n",
+        sep = "\n"
+    )
+    message(txt)
 }
 
 #' Enable compilation of GPU-compatible user-defined operators if possible
