@@ -119,6 +119,34 @@ get_build_dir <- function(pkg = "rkeops", create = TRUE) {
     return(out)
 }
 
+#' Find which OS is running
+#' @keywords internal
+#' @description
+#' Return the name of the currently running OS.
+#' @details
+#' Possible output among `"linux"`, `"macos"`, `"windows"`.
+#' @return a character string containing the OS name.
+#' @importFrom stringr str_c str_extract
+#' @author Ghislain Durif
+get_os <- function() {
+    # get OS id given by R
+    os_id <- str_extract(string = R.version$os, 
+                         pattern = "mingw32|windows|darwin|linux")
+    # check if error
+    if(is.na(os_id)) {
+        stop(str_c("Issue with os:", os_id, "not supported.", sep = " "))
+    }
+    # return OS name
+    os_name <- switch(
+        os_id,
+        "linux"  = "linux",
+        "darwin" = "macos",
+        "mingw32" = "windows",
+        "windows" = "windows",
+    )
+    return(os_name)
+}
+
 #' Check if `rkeops` is installed on the system
 #' @keywords internal
 #' @description
@@ -221,20 +249,38 @@ use_gpu <- function(device=0) {
 #' Set up `rkeops` runtime options to use CPU computing when calling 
 #' user-defined operators.
 #' @details
-#' **Note:** The default behavior in `rkeops` is to use CPU computing, thus 
-#' calling the function `use_gpu` is mandatory to run computations on GPU.
+#' **Note 1:** By default, `rkeops` user-defined operators run computations 
+#' on CPU (even for GPU-compiled operators), thus calling the function 
+#' [rkeops::use_gpu()] is mandatory to run computations on GPU.
 #' 
-#' To enable GPU computing, run [rkeops::use_gpu()].
+#' **Note 2:** By default, in CPU mode, `rkeops` user-defined operators run 
+#' computations on all available cores for parallel computing. To control, 
+#' the number of cores used by `rkeops` user-defined operators, you can used 
+#' the input parameter `ncore`.
+#' @param ncore integer, number of cores used by `rkeops` user-defined 
+#' operators to run computations in CPU mode. Default value is `0` and all 
+#' available cores are used.
 #' @author Ghislain Durif
 #' @return None
 #' @seealso [rkeops::compile4cpu()], [rkeops::compile4gpu()], 
 #' [rkeops::use_gpu()]
+#' @importFrom parallel detectCores
+#' @importFrom RhpcBLASctl omp_set_num_threads
 #' @examples
 #' library(rkeops)
 #' use_cpu()
 #' @export
-use_cpu <- function() {
+use_cpu <- function(ncore=0) {
     set_rkeops_option("tagCpuGpu", 0)
+    
+    if(missing(ncore) || is.null(ncore) || ncore <= 0) {
+        ncore <- parallel::detectCores()
+    } else {
+        ncore <- min(ncore, parallel::detectCores())
+    }
+    
+    # setup max number of threads for OpenMP
+    RhpcBLASctl::omp_set_num_threads(ncore)
 }
 
 #' Enable compilation of GPU-compatible user-defined operators if possible

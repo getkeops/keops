@@ -19,7 +19,7 @@ The function \code{check_compile_options} checks the validity of \code{rkeops} c
 options provided in input as a list.
 }
 \details{
-Refer to \code{\link[rkeops:compile_options]{rkeops::compile_options()}} for a detailed description of
+Refer to \code{\link[=compile_options]{compile_options()}} for a detailed description of
 these options.
 }
 \author{

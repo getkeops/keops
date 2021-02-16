@@ -10,7 +10,7 @@ compile_code(formula, var_aliases, dllname, cmake_dir)
 \item{formula}{text string, formula defining the new operator.}
 
 \item{var_aliases}{text string, formated formula input arguments returned by
-\code{\link[rkeops:format_var_aliases]{rkeops::format_var_aliases()}} (specifically \verb{$var_aliases}).}
+\code{\link[=format_var_aliases]{format_var_aliases()}} (specifically \verb{$var_aliases}).}
 
 \item{dllname}{text string, the name associated to the related shared object
 file.}
@@ -23,7 +23,7 @@ an exit code (integer value), 0 if no problem, not 0 otherwise.
 }
 \description{
 The function \code{compile_code} is a wrapper to call cmake used in the function
-\code{\link[rkeops:compile_formula]{rkeops::compile_formula()}}.
+\code{\link[=compile_formula]{compile_formula()}}.
 }
 \details{
 The function \code{compile_code} should only be called in the directory where the
@@ -33,7 +33,7 @@ The corresponging \code{CMakeLists.txt} file is located in directory \code{cmake
 given as input argument.
 }
 \seealso{
-\code{\link[rkeops:compile_formula]{rkeops::compile_formula()}}, \code{\link[rkeops:format_var_aliases]{rkeops::format_var_aliases()}}
+\code{\link[=compile_formula]{compile_formula()}}, \code{\link[=format_var_aliases]{format_var_aliases()}}
 }
 \author{
 Ghislain Durif

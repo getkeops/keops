@@ -103,8 +103,12 @@ X <- matrix(runif(nx*3), nrow=nx)   # matrix 100 x 3
 Y <- matrix(runif(ny*3), nrow=ny)   # matrix 150 x 3
 B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
 s <- 0.2
-# run computations on GPU (to be used only if relevant)
+
+# to run computation on CPU (default mode)
+use_cpu()
+# to run computations on GPU (to be used only if relevant)
 use_gpu()
+
 # computation (order of the input arguments should be similar to `args`)
 res <- op(list(X, Y, B, s))
 ```
@@ -225,8 +229,12 @@ X <- matrix(runif(nx*3), nrow=nx)   # matrix 100 x 3
 Y <- matrix(runif(ny*3), nrow=ny)   # matrix 150 x 3
 B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
 s <- 0.2
-# run computations on GPU (to be used only if relevant)
+
+# to run computation on CPU (default mode)
+use_cpu()
+# to run computations on GPU (to be used only if relevant)
 use_gpu()
+
 # computation (order of the input arguments should be similar to `args`)
 res <- op(list(x, y, beta, s))
 ```
@@ -326,9 +334,9 @@ enable float 32bits precision (default) and float 64bits (or double) precision.
 add debugging flag), see `?compile_options`
 
 
-### Runtime options
+### Choosing CPU or GPU computing at runtime
 
-* GPU computing: by default, RKeOps runs computations on CPU (even for GPU-compiled operators). To enable GPU computing, you can run (before calling your operator):
+By default, RKeOps runs computations on CPU (even for GPU-compiled operators). To enable GPU computing, you can run (before calling your operator):
 ```{r use_gpu, eval=FALSE}
 use_gpu()
 # see `?runtime_options` for a more advanced use of GPU inside RKeOps
@@ -337,6 +345,10 @@ You can also specify the GPU id that you want to use, e.g. `use_gpu(device=0)`
 to use GPU 0 (default) for instance.
 
 To deactivate GPU computations, you can run `use_cpu()`.
+
+> In CPU mode, you can control the number of CPU cores used by RKeOps for computations, e.g. with `use_cpu(ncore = 2)` to run on 2 cores.
+
+### Other runtime options
 
 * `device_id`: choose on which GPU the computations will be done, default is 0.
 ```{r set_device_id, eval=FALSE}

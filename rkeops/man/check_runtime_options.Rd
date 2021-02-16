@@ -18,7 +18,7 @@ The function \code{check_runtime_options} checks the validity of \code{rkeops} r
 options provided in input as a list.
 }
 \details{
-Refer to \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} for a detailed description of
+Refer to \code{\link[=runtime_options]{runtime_options()}} for a detailed description of
 these options.
 }
 \author{
