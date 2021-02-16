@@ -346,7 +346,7 @@ to use GPU 0 (default) for instance.
 
 To deactivate GPU computations, you can run `use_cpu()`.
 
-> In CPU mode, you can use the package 'RhpcBLASctl' to control the number of CPU cores used by RKeOps for computations. See <https://cran.r-project.org/package=RhpcBLASctl> and the function `RhpcBLASctl::omp_set_num_thread(nthreads)`.
+> In CPU mode, you can control the number of CPU cores used by RKeOps for computations, e.g. with `use_cpu(ncore = 2)` to run on 2 cores.
 
 ### Other runtime options
 

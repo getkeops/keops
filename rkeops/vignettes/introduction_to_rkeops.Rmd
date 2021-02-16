@@ -181,6 +181,10 @@ Based on your formulae, RKeOps compile on the fly operators that can be used to 
 
 > **_Note:_** You can use the same code (i.e. define the same operators) for CPU or GPU computing. The only difference will be the compiler used for the compilation of your operators (upon the availability of CUDA on your system).
 
+To use CPU computing mode, you can call `use_cpu()` (with an optional argument `ncore` specifying the number of cores used to run parallel computations).
+
+To use GPU computing mode, you can call `use_gpu()` (with an optional argument `device` to choose a specific GPU id to run computations).
+
 ---
 
 # Installing and using RKeOps
