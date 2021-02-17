@@ -132,9 +132,8 @@ get_os <- function() {
     # get OS id given by R
     os_id <- str_extract(string = R.version$os, 
                          pattern = "mingw32|windows|darwin|linux")
-    # check if error
     if(is.na(os_id)) {
-        stop(str_c("Issue with os:", os_id, "not supported.", sep = " "))
+        os_id <- "unknown"
     }
     # return OS name
     os_name <- switch(
@@ -143,6 +142,7 @@ get_os <- function() {
         "darwin" = "macos",
         "mingw32" = "windows",
         "windows" = "windows",
+        R.version$os
     )
     return(os_name)
 }
