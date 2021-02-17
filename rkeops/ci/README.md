@@ -2,36 +2,20 @@
 
 ## Automatic test
 
-For check the [requirements](#requirements) section below to configure your system.
-
 To run the CI of RKeOps 
 ```bash
 bash run_ci.sh
 ```
 
-> **Note 1**: required R packages and dependencies for the CI are installed in the directory `${HOME}/.R_libs_keops_ci`.
+> **Note 1**: this script creates a file `${HOME}/.R/Makevars` to add options to R compilation engine (it backs up any pre-existing version of the file and restore it afterwards).
 
-> **Note 2**: this script creates a file `${HOME}/.R/Makevars` to add options to R compilation engine (it backs up any pre-existing version of the file).
-
-To enable automatic tests to be run on GPU, the environment variable `TEST_GPU` 
-should be defined with the value `1` before running the CI scripts, i.e.
+To enable automatic tests to be run on GPU, the environment variable `TEST_GPU` should be defined with the value `1` before running the CI scripts, i.e.
 ```bash
 export TEST_GPU=1
+bash run_ci.sh
 ```
 
 ## Details
-
-### Requirements
-
-Before running any R package installation script, you should also setup a local `Makevars` file to add options to R compilation engine (it backs up any pre-existing version of the `${HOME}/.R/Makevars` file) with:
-```bash
-bash setup_Makevars.sh
-```
-
-To install the requirements, you must run:
-```bash
-Rscript prepare_ci.R
-```
 
 ### Troubleshooting
 
@@ -44,7 +28,7 @@ Configuration failed to find libgit2 library. Try installing:
   - rpm: libgit2-devel (Fedora, CentOS, RHEL)
   - pacman: libgit2 (arch)
 
-### Tests and checks
+### Triggering tests and checks
 
 To run the package automatic tests, you must run:
 ```bash
@@ -53,8 +37,10 @@ Rscript run_tests.R
 
 To run the R package check (equivalent to `R CMD build` and `R CMD check`), you must run:
 ```bash
-Rscript run_tests.R
+Rscript run_check.R
 ```
+
+> **Note:** you should run `Rscript prepare_ci.R` before calling `run_tests.R` or `run_check.R` to install dependencies.
 
 ### Vignette to online doc conversion
 

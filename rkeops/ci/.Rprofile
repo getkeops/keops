@@ -9,7 +9,7 @@ local({
 # install package list
 install_pkg <- function(pkg_list) {
     
-    message("---------------------------------")
+    message("-------------------------------------")
     
     # current installed packages
     cur_pkg_list <- installed.packages()[,1]
@@ -23,7 +23,7 @@ install_pkg <- function(pkg_list) {
     if(length(pkg_ok_list) > 0) {
         message("-- Available and up-to-date packages:")
         message(paste(pkg_ok_list, collapse = "\n"))
-        message("---------------------------------")
+        message("-------------------------------------")
     }
     
     # package to update
@@ -35,7 +35,7 @@ install_pkg <- function(pkg_list) {
         message("--> updating")
         Sys.sleep(2)
         install.packages(pkg2update_list)
-        message("---------------------------------")
+        message("-------------------------------------")
     }
     
     # missing package
@@ -47,6 +47,6 @@ install_pkg <- function(pkg_list) {
         message("--> installing")
         Sys.sleep(2)
         install.packages(missing_pkg_list)
-        message("---------------------------------")
+        message("-------------------------------------")
     }
 }
