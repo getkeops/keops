@@ -170,6 +170,25 @@ is_installed <- function() {
     return(out_compile & out_file)
 }
 
+#' Print message if used on startup or raise error otherwise
+#' @keywords internal
+#' @description
+#' Different behavior for message raised by checks.
+#' @details 
+#' If `onLoad=TRUE`, print the message `msg`. If `onLoad=FALSE`, raise on error 
+#' with message `msg`.
+#' @param msg character string, text message.
+#' @param onLoad boolean, indicating whether the function is called from 
+#' startup or not.
+#' @author Ghislain Durif
+msg_or_error <- function(msg, onLoad=FALSE) {
+    if(onLoad) {
+        message(msg)
+    } else {
+        stop(msg)
+    }
+}
+
 #' Load function from dll shared library for user-defined operator
 #' @keywords internal
 #' @description
