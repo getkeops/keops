@@ -50,7 +50,7 @@ get_cmake <- function(path = NULL) {
             } else {
                 # find default cmake (search in PATH)
                 tmp <- tryCatch(
-                    system("which cmake", intern = TRUE),
+                    suppressWarnings(system("which cmake", intern = TRUE)),
                     error = function(e) return(e)
                 )
                 
