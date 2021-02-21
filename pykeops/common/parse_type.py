@@ -236,7 +236,9 @@ def get_optional_flags(
             '[KeOps] invalid value for option dtype_acc : should be one of "auto", "float16", "float32" or "float64".'
         )
 
-    if sum_scheme == "block_sum":
+    if sum_scheme == "direct_sum":
+        optional_flags += ["-DSUM_SCHEME=0"]
+    elif sum_scheme == "block_sum":
         optional_flags += ["-DSUM_SCHEME=1"]
     elif sum_scheme == "kahan_scheme":
         optional_flags += ["-DSUM_SCHEME=2"]

@@ -184,7 +184,7 @@ class CpuReduc(map_reduce, Cpu_link_compile):
                                 for (int j = 0; j < ny; j++) {{
                                     {red_formula.formula(fout,table)}
                                     {sum_scheme.accumulate_result(acc, fout, j)}
-                                    {sum_scheme.periodic_accumulate_temporary(acc)}
+                                    {sum_scheme.periodic_accumulate_temporary(acc, j)}
                                 }}
                                 {sum_scheme.final_operation(acc)}
                                 {red_formula.FinalizeOutput(acc, outi, i)}

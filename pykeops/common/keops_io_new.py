@@ -63,13 +63,14 @@ class LoadKeOps:
         else:
             raise ValueError('not implemented')
             
-        if '-DSUM_SCHEME=0':
+        if '-DSUM_SCHEME=0' in self.optional_flags:
             sum_scheme = 'direct_sum'
-        elif '-DSUM_SCHEME=1':
+        elif '-DSUM_SCHEME=1' in self.optional_flags:
             sum_scheme = 'block_sum'
-        elif '-DSUM_SCHEME=2':
+        elif '-DSUM_SCHEME=2' in self.optional_flags:
             sum_scheme = 'kahan_scheme'
         else:
+            print(self.optional_flags)
             raise ValueError('not implemented')
             
         if device["cat"] == "cpu":

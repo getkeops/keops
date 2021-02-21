@@ -9,6 +9,7 @@ from pykeops.torch import LazyTensor
 M, N, D, DV = 2000, 1000, 3, 1
 
 dtype = torch.float32
+sum_scheme = 'block_sum'
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 do_warmup = True
@@ -23,7 +24,10 @@ def fun(x, y, b, backend):
         y = LazyTensor(y)
     Dxy = ((x / y) ** 2).sum(dim=2)
     Kxy = (-Dxy).exp()
-    out = Kxy @ b
+    if "keops" in backend:
+        out = Kxy.__matmul__(b, sum_scheme=sum_scheme)
+    else:
+        out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
     #print("out:",out.flatten()[:10])
