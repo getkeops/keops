@@ -31,7 +31,6 @@ class get_keops_routine_class:
         self.map_reduce_obj = map_reduce_class(red_formula_string, aliases, nargs, dtype, *params)
         
         # detecting the case of formula being equal to zero, to bypass reduction.
-        # This part is ugly, needs refactoring...
         rf = self.map_reduce_obj.red_formula
         if isinstance(rf, Zero_Reduction) or (isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)):
             self.map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, aliases, nargs, dtype, *params)

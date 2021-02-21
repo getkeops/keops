@@ -48,10 +48,6 @@ NS = [
     50000,
     100000,
     200000,
-    500000,
-    1000000,
-    2000000,
-    5000000,
 ]
 
 ##############################################
@@ -288,31 +284,6 @@ def full_bench(title, routines):
 # --------------------------------------------------------
 
 routines = [
-    (
-        conv_lazytensor,
-        "float16, direct_sum",
-        "torch",
-        "float16",
-        "float16",
-        "direct_sum",
-    ),
-    (conv_lazytensor, "float16, block_sum", "torch", "float16", "float16", "block_sum"),
-    (
-        conv_lazytensor,
-        "float16, kahan_scheme",
-        "torch",
-        "float16",
-        "float16",
-        "kahan_scheme",
-    ),
-    (
-        conv_lazytensor,
-        "float16, float32 acc",
-        "torch",
-        "float16",
-        "float32",
-        "block_sum",
-    ),
     (
         conv_lazytensor,
         "float32, direct_sum",

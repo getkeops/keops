@@ -163,7 +163,7 @@ def c_include(*headers):
     
 def c_if(condition, *commands):
     block_string = "".join(commands)
-    return f""" if ({cond_string}) {{
+    return f""" if ({condition}) {{
                       {block_string}
                 }}
             """
