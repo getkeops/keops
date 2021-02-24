@@ -44,28 +44,40 @@ import time
 ################################################################################
 # Same as LazyNystrom_T but written with pyKeOps
 
-class LazyNystrom_TK:
-    '''
-        Class to implement Nystrom on torch LazyTensors.
-        This class works as an interface between lazy tensors and
-        the Nystrom algorithm in NumPy.
-        * The fit method computes K^{-1}_q.
-        * The transform method maps the data into the feature space underlying
-        the Nystrom-approximated kernel.
-        * The method K_approx directly computes the Nystrom approximation.
-        Parameters:
-        n_components [int] = how many samples to select from data.
-        kernel [str] = type of kernel to use. Current options = {linear, rbf}.
-        gamma [float] = exponential constant for the RBF kernel.
-        random_state=[None, float] = to set a random seed for the random
-                                     sampling of the samples. To be used when
-                                     reproducibility is needed.
-    '''
 
-    def __init__(self, n_components=100, kernel='rbf', sigma: float = 1.,
-                 exp_sigma: float = 1.0, eps: float = 0.05, mask_radius: float = None,
-                 k_means=10, n_iter: int = 10, inv_eps: float = None, dtype=np.float32,
-                 backend='CPU', random_state=None):
+class LazyNystrom_TK:
+    """
+    Class to implement Nystrom on torch LazyTensors.
+    This class works as an interface between lazy tensors and
+    the Nystrom algorithm in NumPy.
+    * The fit method computes K^{-1}_q.
+    * The transform method maps the data into the feature space underlying
+    the Nystrom-approximated kernel.
+    * The method K_approx directly computes the Nystrom approximation.
+    Parameters:
+    n_components [int] = how many samples to select from data.
+    kernel [str] = type of kernel to use. Current options = {linear, rbf}.
+    gamma [float] = exponential constant for the RBF kernel.
+    random_state=[None, float] = to set a random seed for the random
+                                 sampling of the samples. To be used when
+                                 reproducibility is needed.
+    """
+
+    def __init__(
+        self,
+        n_components=100,
+        kernel="rbf",
+        sigma: float = 1.0,
+        exp_sigma: float = 1.0,
+        eps: float = 0.05,
+        mask_radius: float = None,
+        k_means=10,
+        n_iter: int = 10,
+        inv_eps: float = None,
+        dtype=np.float32,
+        backend="CPU",
+        random_state=None,
+    ):
 
         self.n_components = n_components
         self.kernel = kernel
@@ -81,33 +93,35 @@ class LazyNystrom_TK:
         if inv_eps:
             self.inv_eps = inv_eps
         else:
-            if kernel == 'linear':
+            if kernel == "linear":
                 self.inv_eps = 1e-4
             else:
                 self.inv_eps = 1e-8
         if not mask_radius:
-            if kernel == 'rbf':
+            if kernel == "rbf":
                 self.mask_radius = 2 * np.sqrt(2) * self.sigma
-            if kernel == 'exp':
+            if kernel == "exp":
                 self.mask_radius = 8 * self.exp_sigma
 
     def fit(self, X: torch.tensor):
-        '''
+        """
         Args:   X = torch tensor with features of shape
                 (1, n_samples, n_features)
         Returns: Fitted instance of the class
-        '''
+        """
 
         # Basic checks: we have a lazy tensor and n_components isn't too large
-        assert type(X) == torch.Tensor, 'Input to fit(.) must be a Tensor.'
-        assert X.size(0) >= self.n_components, f'The application needs X.shape[1] >= n_components.'
+        assert type(X) == torch.Tensor, "Input to fit(.) must be a Tensor."
+        assert (
+            X.size(0) >= self.n_components
+        ), f"The application needs X.shape[1] >= n_components."
         # self._update_dtype(X)
         # Number of samples
         n_samples = X.size(0)
         # Define basis
         rnd = check_random_state(self.random_state)
         inds = rnd.permutation(n_samples)
-        basis_inds = inds[:self.n_components]
+        basis_inds = inds[: self.n_components]
         basis = X[basis_inds]
         # Build smaller kernel
         basis_kernel = self._pairwise_kernels(basis, kernel=self.kernel)
@@ -121,39 +135,40 @@ class LazyNystrom_TK:
         return self
 
     def transform(self, X: torch.tensor) -> torch.tensor:
-        ''' Applies transform on the data.
+        """Applies transform on the data.
         Args:
             X [LazyTensor] = data to transform
         Returns
             X [LazyTensor] = data after transformation
-        '''
+        """
         K_nq = self._pairwise_kernels(X, self.components_, self.kernel)
         return K_nq @ self.normalization_.t()
 
     def K_approx(self, X: torch.tensor) -> torch.tensor:
-        ''' Function to return Nystrom approximation to the kernel.
+        """Function to return Nystrom approximation to the kernel.
         Args:
             X[torch.tensor] = data used in fit(.) function.
         Returns
-            K[torch.tensor] = Nystrom approximation to kernel'''
+            K[torch.tensor] = Nystrom approximation to kernel"""
 
         K_nq = self._pairwise_kernels(X, self.components_, self.kernel)
         K_approx = K_nq @ self.normalization_ @ K_nq.t()
         return K_approx
 
-    def _pairwise_kernels(self, x: torch.tensor, y: torch.tensor = None, kernel='rbf',
-                          sigma: float = 1.) -> LazyTensor:
-        '''Helper function to build kernel
+    def _pairwise_kernels(
+        self, x: torch.tensor, y: torch.tensor = None, kernel="rbf", sigma: float = 1.0
+    ) -> LazyTensor:
+        """Helper function to build kernel
         Args:   X = torch tensor of dimension 2.
                 K_type = type of Kernel to return
         Returns:
                 K_ij[LazyTensor]
-        '''
+        """
         if y is None:
             y = x
-        if kernel == 'linear':
+        if kernel == "linear":
             K_ij = x @ y.T
-        elif kernel == 'rbf':
+        elif kernel == "rbf":
             x /= sigma
             y /= sigma
 
@@ -163,8 +178,7 @@ class LazyNystrom_TK:
             # block-sparse reduction preprocess
             K_ij = self._Gauss_block_sparse_pre(x, y, K_ij)
 
-
-        elif kernel == 'exp':
+        elif kernel == "exp":
             x_i, x_j = LazyTensor(x[:, None, :]), LazyTensor(y[None, :, :])
             K_ij = (-1 * ((x_i - x_j) ** 2).sum().sqrt()).exp()
             # block-sparse reduction preprocess
@@ -175,8 +189,10 @@ class LazyNystrom_TK:
         K_ij.backend = self.backend
         return K_ij
 
-    def _Gauss_block_sparse_pre(self, x: torch.tensor, y: torch.tensor, K_ij: LazyTensor):
-        '''
+    def _Gauss_block_sparse_pre(
+        self, x: torch.tensor, y: torch.tensor, K_ij: LazyTensor
+    ):
+        """
         Helper function to preprocess data for block-sparse reduction
         of the Gaussian kernel
 
@@ -187,7 +203,7 @@ class LazyNystrom_TK:
         Returns:
             K_ij[LazyTensor_n] = symbolic representation of K(x,y) with
                                 set sparse ranges
-        '''
+        """
         # labels for low dimensions
 
         if x.shape[1] < 4 or y.shape[1] < 4:
@@ -219,7 +235,7 @@ class LazyNystrom_TK:
         return K_ij
 
     def _KMeans(self, x: torch.tensor):
-        ''' KMeans with Pykeops to do binning of original data.
+        """KMeans with Pykeops to do binning of original data.
         Args:
             x[np.array] = data
             k_means[int] = number of bins to build
@@ -227,10 +243,10 @@ class LazyNystrom_TK:
         Returns:
             labels[np.array] = class labels for each point in x
             clusters[np.array] = coordinates for each centroid
-        '''
+        """
 
         N, D = x.shape
-        clusters = torch.clone(x[:self.k_means, :])  # initialization of clusters
+        clusters = torch.clone(x[: self.k_means, :])  # initialization of clusters
         x_i = LazyTensor(x[:, None, :])
 
         for i in range(self.n_iter):
@@ -245,13 +261,13 @@ class LazyNystrom_TK:
         return labels, clusters
 
     def _update_dtype(self, x):
-        ''' Helper function that sets inv_eps to dtype to that of
+        """Helper function that sets inv_eps to dtype to that of
             the given data in the fitting step.
 
         Args:
             x [np.array] = raw data to remap
         Returns:
             nothing
-        '''
+        """
         self.dtype = x.dtype
         self.inv_eps = np.array([self.inv_eps]).astype(self.dtype)[0]

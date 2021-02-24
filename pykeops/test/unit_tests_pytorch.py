@@ -672,7 +672,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         self.assertTrue(
             torch.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4)
         )
-        
+
     ############################################################
     def test_IVF(self):
         ############################################################
@@ -680,30 +680,32 @@ class PytorchUnitTestCase(unittest.TestCase):
         import torch
 
         torch.manual_seed(0)
-        N, D, K, k, a = 10**3, 3, 50, 5, 5
-        
+        N, D, K, k, a = 10 ** 3, 3, 50, 5, 5
+
         # Generate random datapoints x, y
         x = 0.7 * torch.randn(N, D) + 0.3
         y = 0.7 * torch.randn(N, D) + 0.3
 
         # Ground truth K nearest neighbours
-        truth = torch.argsort(((y.unsqueeze(1)-x.unsqueeze(0))**2).sum(-1),dim=1)
-        truth = truth[:,:k]
+        truth = torch.argsort(((y.unsqueeze(1) - x.unsqueeze(0)) ** 2).sum(-1), dim=1)
+        truth = truth[:, :k]
 
         # IVF K nearest neighbours
         IVF = ivf()
-        IVF.fit(x,a=a)
+        IVF.fit(x, a=a)
         ivf_fit = IVF.kneighbors(y)
 
         # Calculate accuracy
         accuracy = 0
         for i in range(k):
-            accuracy += torch.sum(ivf_fit == truth).float()/N
-            truth = torch.roll(truth, 1, -1) # Create a rolling window (index positions may not match)
+            accuracy += torch.sum(ivf_fit == truth).float() / N
+            truth = torch.roll(
+                truth, 1, -1
+            )  # Create a rolling window (index positions may not match)
         # Record accuracies
-        accuracy = float(accuracy/k)
+        accuracy = float(accuracy / k)
 
-        self.assertTrue(accuracy >= 0.8, f'Failed at {a}, {accuracy}')
+        self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
 
 
 if __name__ == "__main__":
