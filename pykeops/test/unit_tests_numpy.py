@@ -26,8 +26,6 @@ class NumpyUnitTestCase(unittest.TestCase):
     N = int(6)
     D = int(3)
     E = int(3)
-
-    
     nbatchdims = int(2)
 
     x = np.random.rand(M, D)
@@ -438,43 +436,40 @@ class NumpyUnitTestCase(unittest.TestCase):
         for (res_keops, res_numpy) in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_numpy.shape)
             self.assertTrue(np.allclose(res_keops, res_numpy, atol=1e-3))
-    
-    ############################################################    
-    def Nystrom_K_approx_test(self):
-        ############################################################
-        
-        from pykeops.numpy.nystrom import Nystrom_NK
-        inp = np.random.randint(1,10,(100,3)).astype(np.float32)
-
-        kernels = ['rbf', 'exp']
-        
-        for kernel in kernels:
-            N_NK = Nystrom_NK(n_components=20, kernel = kernel, 
-                              random_state=0).fit(inp)
             
-            K = N_NK.K_approx(inp)
-            x_new = N_NK.transform(inp)
-            
-            ML2_error = np.linalg.norm(x_new @ x_new.T - K) / K.size
+    ############################################################
+    def test_IVF(self):
+        ###########################################################
+        from pykeops.numpy.nn.ivf_np import ivf
+        import numpy as np
 
-            self.assertTrue(ML2_error < 1e-2)
-
-    ############################################################ 
-    def Nystrom_K_shape_test(self):
-        ############################################################
-
-        from pykeops.numpy.nystrom import Nystrom_NK 
-        inp = np.random.randint(1,10,size = (100,3)).astype(np.float32)
-
-        kernels = ['rbf', 'exp']
+        np.random.seed(0)
+        N, D, K, k, a = 10**3, 3, 50, 5, 5
         
-        for kernel in kernels:
-            N_NK = Nystrom_NK(n_components=20, kernel = 'rbf', 
-                              random_state=0).fit(inp)
+        # Generate random datapoints x, y
+        x = 0.7 * np.random.normal(size=(N, D)) + 0.3
+        y = 0.7 * np.random.normal(size=(N, D)) + 0.3
 
+        # Ground truth K nearest neighbours
+        truth = np.argsort(((np.expand_dims(y,1)-np.expand_dims(x,0))**2).sum(-1),axis=1)
+        truth = truth[:,:k]
+        
+        # IVF K nearest neighbours
+        IVF = ivf()
+        IVF.fit(x,a=a)
+        ivf_fit = IVF.kneighbors(y)
+        
+        # Calculate accuracy
+        accuracy = 0
+        for i in range(k):
+            accuracy += float(np.sum(ivf_fit == truth))/N
+            truth = np.roll(truth, 1, -1) # Create a rolling window (index positions may not match)
+        # Record accuracies
+        accuracy = float(accuracy/k)
+        
+        print(a,accuracy)
+        self.assertTrue(accuracy >= 0.8, f'Failed at {a}, {accuracy}')
 
-            self.assertTrue(N_NK.normalization_.shape == (20,20))
-            self.assertTrue(N_NK.transform(inp).shape == (100, 20))
 
 if __name__ == "__main__":
     unittest.main()
