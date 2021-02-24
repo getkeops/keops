@@ -673,6 +673,40 @@ class PytorchUnitTestCase(unittest.TestCase):
             torch.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4)
         )
 
+    ############################################################         
+    def Nystrom_K_approx_test(self):
+        ############################################################ 
+
+        from pykeops.torch.nystrom import LazyNystrom_TK as Nystrom_TK
+        import torch
+        
+        inp = torch.rand(100,3)*100
+        kernels = ['rbf', 'exp']
+        
+        for kernel in kernels:
+            N_TK = Nystrom_TK(n_components=20, kernel = kernel, random_state=0).fit(inp)
+            K = N_TK.K_approx(inp)
+            x_new = N_TK.transform(inp)
+            
+            ML2_error = np.linalg.norm(x_new @ x_new.T - K) / K.shape[0]
+
+            self.assertTrue(ML2_error < 0.01)
+    
+    ############################################################ 
+    def Nystrom_K_shape_test(self):
+        ############################################################ 
+
+        from pykeops.torch.nystrom import LazyNystrom_TK as Nystrom_TK
+        import torch
+        
+        inp = torch.rand(100,3)*100
+        kernels = ['rbf', 'exp']
+        
+        for kernel in kernels:
+            N_NT = Nystrom_TK(n_components=20, kernel = 'rbf', random_state=0).fit(inp)
+
+            self.assertTrue(N_NT.normalization_.shape == (20,20))
+            self.assertTrue(N_NT.transform(inp).shape == (100,20))
 
 if __name__ == "__main__":
     """
