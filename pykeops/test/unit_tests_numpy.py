@@ -436,6 +436,39 @@ class NumpyUnitTestCase(unittest.TestCase):
         for (res_keops, res_numpy) in zip(full_results[0], full_results[1]):
             self.assertTrue(res_keops.shape == res_numpy.shape)
             self.assertTrue(np.allclose(res_keops, res_numpy, atol=1e-3))
+            
+    ############################################################
+    def test_IVF(self):
+        ###########################################################
+        from pykeops.numpy.nn.ivf_np import ivf
+        import numpy as np
+
+        np.random.seed(0)
+        N, D, K, k, a = 10**3, 3, 50, 5, 5
+        
+        # Generate random datapoints x, y
+        x = 0.7 * np.random.normal(size=(N, D)) + 0.3
+        y = 0.7 * np.random.normal(size=(N, D)) + 0.3
+
+        # Ground truth K nearest neighbours
+        truth = np.argsort(((np.expand_dims(y,1)-np.expand_dims(x,0))**2).sum(-1),axis=1)
+        truth = truth[:,:k]
+        
+        # IVF K nearest neighbours
+        IVF = ivf()
+        IVF.fit(x,a=a)
+        ivf_fit = IVF.kneighbors(y)
+        
+        # Calculate accuracy
+        accuracy = 0
+        for i in range(k):
+            accuracy += float(np.sum(ivf_fit == truth))/N
+            truth = np.roll(truth, 1, -1) # Create a rolling window (index positions may not match)
+        # Record accuracies
+        accuracy = float(accuracy/k)
+        
+        print(a,accuracy)
+        self.assertTrue(accuracy >= 0.8, f'Failed at {a}, {accuracy}')
 
 
 if __name__ == "__main__":
