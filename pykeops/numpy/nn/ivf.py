@@ -59,7 +59,7 @@ class ivf:
     def __unsort(self, nn):
         return np.take(self.__x_perm[nn], self.__y_perm.argsort(), axis=0)
 
-    def fit(self, x, clusters=50, a=5, use_gpu=True, n=15):
+    def fit(self, x, clusters=50, a=5, use_gpu=False, n=15):
         """
         Fits the main dataset
         """
