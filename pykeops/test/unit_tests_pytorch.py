@@ -672,41 +672,40 @@ class PytorchUnitTestCase(unittest.TestCase):
         self.assertTrue(
             torch.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4)
         )
-
-    ############################################################         
-    def Nystrom_K_approx_test(self):
-        ############################################################ 
-
-        from pykeops.torch.nystrom import LazyNystrom_TK as Nystrom_TK
+        
+    ############################################################
+    def test_IVF(self):
+        ############################################################
+        from pykeops.torch.nn.ivf_torch import ivf
         import torch
-        
-        inp = torch.rand(100,3)*100
-        kernels = ['rbf', 'exp']
-        
-        for kernel in kernels:
-            N_TK = Nystrom_TK(n_components=20, kernel = kernel, random_state=0).fit(inp)
-            K = N_TK.K_approx(inp)
-            x_new = N_TK.transform(inp)
-            
-            ML2_error = np.linalg.norm(x_new @ x_new.T - K) / K.shape[0]
 
-            self.assertTrue(ML2_error < 0.01)
-    
-    ############################################################ 
-    def Nystrom_K_shape_test(self):
-        ############################################################ 
-
-        from pykeops.torch.nystrom import LazyNystrom_TK as Nystrom_TK
-        import torch
+        torch.manual_seed(0)
+        N, D, K, k, a = 10**3, 3, 50, 5, 5
         
-        inp = torch.rand(100,3)*100
-        kernels = ['rbf', 'exp']
-        
-        for kernel in kernels:
-            N_NT = Nystrom_TK(n_components=20, kernel = 'rbf', random_state=0).fit(inp)
+        # Generate random datapoints x, y
+        x = 0.7 * torch.randn(N, D) + 0.3
+        y = 0.7 * torch.randn(N, D) + 0.3
 
-            self.assertTrue(N_NT.normalization_.shape == (20,20))
-            self.assertTrue(N_NT.transform(inp).shape == (100,20))
+        # Ground truth K nearest neighbours
+        truth = torch.argsort(((y.unsqueeze(1)-x.unsqueeze(0))**2).sum(-1),dim=1)
+        truth = truth[:,:k]
+
+        # IVF K nearest neighbours
+        IVF = ivf()
+        IVF.fit(x,a=a)
+        ivf_fit = IVF.kneighbors(y)
+
+        # Calculate accuracy
+        accuracy = 0
+        for i in range(k):
+            accuracy += torch.sum(ivf_fit == truth).float()/N
+            truth = torch.roll(truth, 1, -1) # Create a rolling window (index positions may not match)
+        # Record accuracies
+        accuracy = float(accuracy/k)
+
+        print(a,accuracy)
+        self.assertTrue(accuracy >= 0.8, f'Failed at {a}, {accuracy}')
+
 
 if __name__ == "__main__":
     """
