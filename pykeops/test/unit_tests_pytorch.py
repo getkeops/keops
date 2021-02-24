@@ -676,7 +676,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_IVF(self):
         ############################################################
-        from pykeops.torch.nn.ivf_torch import ivf
+        from pykeops.torch.nn.ivf import ivf
         import torch
 
         torch.manual_seed(0)
@@ -703,7 +703,6 @@ class PytorchUnitTestCase(unittest.TestCase):
         # Record accuracies
         accuracy = float(accuracy/k)
 
-        print(a,accuracy)
         self.assertTrue(accuracy >= 0.8, f'Failed at {a}, {accuracy}')
 
 

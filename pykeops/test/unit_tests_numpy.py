@@ -440,7 +440,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_IVF(self):
         ###########################################################
-        from pykeops.numpy.nn.ivf_np import ivf
+        from pykeops.numpy.nn.ivf import ivf
         import numpy as np
 
         np.random.seed(0)
@@ -467,7 +467,6 @@ class NumpyUnitTestCase(unittest.TestCase):
         # Record accuracies
         accuracy = float(accuracy/k)
         
-        print(a,accuracy)
         self.assertTrue(accuracy >= 0.8, f'Failed at {a}, {accuracy}')
 
 
