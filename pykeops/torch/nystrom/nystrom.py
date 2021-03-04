@@ -119,7 +119,7 @@ class LazyNystrom_TK:
         basis_kernel = self._pairwise_kernels(basis, kernel=self.kernel)
         # Get SVD
         U, S, V = torch.svd(basis_kernel)
-        S = torch.maximum(S, torch.ones(S.size()) * 1e-12)
+        S = torch.max(S, torch.ones(S.size()) * 1e-12)
         self.normalization_ = torch.mm(U / np.sqrt(S), V.t())
         self.components_ = basis
         self.component_indices_ = inds
