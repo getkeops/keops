@@ -711,7 +711,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_Nystrom_K_approx(self):
         ############################################################
 
-        from pykeops.torch.nystrom import nystrom as Nystrom_TK
+        from pykeops.torch.nystrom.nystrom import LazyNystrom_TK
         import torch
 
         length = 100
@@ -721,7 +721,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         kernels = ["rbf", "exp"]
 
         for kernel in kernels:
-            N_TK = Nystrom_TK(
+            N_TK = LazyNystrom_TK(
                 n_components=num_sampling, kernel=kernel, random_state=0
             ).fit(x)
             K = N_TK.K_approx(x)
@@ -735,7 +735,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_Nystrom_K_shape(self):
         ############################################################
 
-        from pykeops.torch.nystrom import nystrom as Nystrom_TK
+        from pykeops.torch.nystrom.nystrom import LazyNystrom_TK
         import torch
 
         length = 100
@@ -745,7 +745,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         kernels = ["rbf", "exp"]
 
         for kernel in kernels:
-            N_NT = Nystrom_TK(
+            N_NT = LazyNystrom_TK(
                 n_components=num_sampling, kernel=kernel, random_state=0
             ).fit(x)
 
