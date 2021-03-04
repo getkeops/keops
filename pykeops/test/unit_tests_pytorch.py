@@ -707,47 +707,52 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
 
-    ############################################################         
+    ############################################################
     def test_Nystrom_K_approx(self):
-        ############################################################ 
+        ############################################################
 
         from pykeops.torch.nystrom import nystrom as Nystrom_TK
         import torch
-        
+
         length = 100
         num_sampling = 20
-        x = torch.rand(length,3)*100
+        x = torch.rand(length, 3) * 100
 
-        kernels = ['rbf', 'exp']
-        
+        kernels = ["rbf", "exp"]
+
         for kernel in kernels:
-            N_TK = Nystrom_TK(n_components=num_sampling, kernel=kernel, random_state=0).fit(x)
+            N_TK = Nystrom_TK(
+                n_components=num_sampling, kernel=kernel, random_state=0
+            ).fit(x)
             K = N_TK.K_approx(x)
             x_new = N_TK.transform(x)
-            
+
             ML2_error = np.linalg.norm(x_new @ x_new.T - K) / K.shape[0]
 
             self.assertTrue(ML2_error < 0.01)
 
-    ############################################################ 
+    ############################################################
     def test_Nystrom_K_shape(self):
-        ############################################################ 
+        ############################################################
 
         from pykeops.torch.nystrom import nystrom as Nystrom_TK
         import torch
-        
+
         length = 100
         num_sampling = 20
-        x = torch.rand(length,3)*100
+        x = torch.rand(length, 3) * 100
 
-        kernels = ['rbf', 'exp']
-        
+        kernels = ["rbf", "exp"]
+
         for kernel in kernels:
-            N_NT = Nystrom_TK(n_components=num_sampling, kernel=kernel, random_state=0).fit(x)
+            N_NT = Nystrom_TK(
+                n_components=num_sampling, kernel=kernel, random_state=0
+            ).fit(x)
 
             self.assertTrue(N_NT.normalization_.shape == (num_sampling, num_sampling))
             self.assertTrue(N_NT.transform(x).shape == (length, num_sampling))
-            
+
+
 if __name__ == "__main__":
     """
     run tests
