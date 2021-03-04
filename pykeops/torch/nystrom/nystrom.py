@@ -3,7 +3,7 @@
 # https://colab.research.google.com/drive/1vF2cOSddbRFM5PLqxkIzyZ9XkuzO5DKN?usp=sharing
 import numpy as np
 import torch
-import pykeops
+import numbers
 
 from pykeops.torch.cluster import grid_cluster
 from pykeops.torch.cluster import from_matrix
@@ -11,34 +11,26 @@ from pykeops.torch.cluster import cluster_ranges_centroids, cluster_ranges
 from pykeops.torch.cluster import sort_clusters
 from pykeops.torch import LazyTensor
 
-from sklearn.utils import check_random_state
-
-from scipy.sparse.linalg import aslinearoperator, eigsh
-from scipy.sparse.linalg.interface import IdentityOperator
-
-
-################################################################################
-# Same as LazyNystrom_T but written with pyKeOps
-import numpy as np
-import torch
-import pykeops
-
-from pykeops.numpy import LazyTensor as LazyTensor_n
-from pykeops.torch.cluster import grid_cluster
-from pykeops.torch.cluster import from_matrix
-from pykeops.torch.cluster import cluster_ranges_centroids, cluster_ranges
-from pykeops.torch.cluster import sort_clusters
-from pykeops.torch import LazyTensor
-
-from sklearn.utils import check_random_state, as_float_array
-from scipy.linalg import svd
-
-from scipy.sparse.linalg import aslinearoperator, eigsh
-from scipy.sparse.linalg.interface import IdentityOperator
-from pykeops.torch import Genred
-
-import matplotlib.pyplot as plt
-import time
+# Note: this is a function taken from Sklearn
+def check_random_state(seed):
+    """Turn seed into a np.random.RandomState instance
+    Parameters
+    ----------
+    seed : None, int or instance of RandomState
+        If seed is None, return the RandomState singleton used by np.random.
+        If seed is an int, return a new RandomState instance seeded with seed.
+        If seed is already a RandomState instance, return it.
+        Otherwise raise ValueError.
+    """
+    if seed is None or seed is np.random:
+        return np.random.mtrand._rand
+    if isinstance(seed, numbers.Integral):
+        return np.random.RandomState(seed)
+    if isinstance(seed, np.random.RandomState):
+        return seed
+    raise ValueError(
+        "%r cannot be used to seed a numpy.random.RandomState" " instance" % seed
+    )
 
 
 ################################################################################
@@ -114,7 +106,7 @@ class LazyNystrom_TK:
         assert type(X) == torch.Tensor, "Input to fit(.) must be a Tensor."
         assert (
             X.size(0) >= self.n_components
-        ), f"The application needs X.shape[1] >= n_components."
+        ), "The application needs X.shape[1] >= n_components."
         # self._update_dtype(X)
         # Number of samples
         n_samples = X.size(0)
