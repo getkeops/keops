@@ -39,6 +39,8 @@ install.packages(c("Rcpp", "RcppEigen", "openssl", "stringr",
 
 ## Continuous Integration (CI)
 
+See the [dedicated file](./ci/README.md) for more details.
+
 Check this [script](./ci/run_ci.sh).
 
 To enable automatic tests to be run on GPU, the environment variable `TEST_GPU` 

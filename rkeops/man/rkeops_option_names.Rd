@@ -20,8 +20,8 @@ The function \code{rkeops_option_names} returns the names of the different
 }
 \details{
 \code{rkeops} uses two sets of options: compile options
-(see \code{\link[rkeops:compile_options]{rkeops::compile_options()}}), and runtime options
-(see \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}).
+(see \code{\link[=compile_options]{compile_options()}}), and runtime options
+(see \code{\link[=runtime_options]{runtime_options()}}).
 
 These options define the behavior of \code{rkeops} when compiling or when
 calling user-defined operators.
@@ -30,8 +30,8 @@ You can specify a tag (\code{"compile"} or \code{"runtime"} or both) in input, y
 will get the names of the corresponding subset of \code{rkeops} options.
 }
 \seealso{
-\code{\link[rkeops:get_rkeops_options]{rkeops::get_rkeops_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
-\code{\link[rkeops:compile_options]{rkeops::compile_options()}}, \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}
+\code{\link[=get_rkeops_options]{get_rkeops_options()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}},
+\code{\link[=compile_options]{compile_options()}}, \code{\link[=runtime_options]{runtime_options()}}
 }
 \author{
 Ghislain Durif

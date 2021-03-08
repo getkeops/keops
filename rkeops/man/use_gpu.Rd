@@ -19,21 +19,21 @@ Set up \code{rkeops} runtime options to use GPU computing when calling
 user-defined operators.
 }
 \details{
-If you have compiled GPU-compatible operators (see \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}),
+If you have compiled GPU-compatible operators (see \code{\link[=compile4gpu]{compile4gpu()}}),
 you can call the function \code{use_gpu} to specificly run computations on GPU.
 
 \strong{Note:} The default behavior in \code{rkeops} is to use CPU computing, thus
 calling the function \code{use_gpu} is mandatory to run computations on GPU.
 
-To disable GPU computing, run \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}.
+To disable GPU computing, run \code{\link[=use_cpu]{use_cpu()}}.
 }
 \examples{
 library(rkeops)
 use_gpu()
 }
 \seealso{
-\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},
-\code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}
+\code{\link[=compile4cpu]{compile4cpu()}}, \code{\link[=compile4gpu]{compile4gpu()}},
+\code{\link[=use_cpu]{use_cpu()}}
 }
 \author{
 Ghislain Durif

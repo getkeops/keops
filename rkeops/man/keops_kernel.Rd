@@ -52,7 +52,7 @@ to the input dimension specified in \code{args} (see inner ou outer dimension in
 \code{browseVignettes("rkeops")}.
 
 It is possible to compute partial derivatives of user defined operators
-with the function \code{\link[rkeops:keops_grad]{rkeops::keops_grad()}}.
+with the function \code{\link[=keops_grad]{keops_grad()}}.
 }
 \examples{
 \dontrun{
@@ -120,7 +120,7 @@ res <- op(list(X, Y, beta, lambda))
 }
 }
 \seealso{
-\code{\link[rkeops:keops_grad]{rkeops::keops_grad()}}
+\code{\link[=keops_grad]{keops_grad()}}
 }
 \author{
 Ghislain Durif
