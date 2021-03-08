@@ -17,6 +17,9 @@ def is_scalar_and_equals(x,val):
     else:
         return False
 
+def is_complex_lazytensor(x):
+    return hasattr(x,"is_complex") and x.is_complex
+
 class GenericLazyTensor:
     r"""Symbolic wrapper for NumPy arrays and PyTorch tensors. This is the abstract class,
     end user should use :class:`pykeops.numpy.LazyTensor` or :class:`pykeops.torch.LazyTensor`.
@@ -997,6 +1000,8 @@ class GenericLazyTensor:
         """
         if is_scalar_and_equals(other,0):
             return self
+        elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
+            return self.real2complex().addop(other)
         else:
             return self.addop(other)
 
@@ -1012,6 +1017,9 @@ class GenericLazyTensor:
         else:
             return self.addop(other, rversion=True)
 
+    def subop(self, other, **kwargs):
+        return self.binary(other, "-", is_operator=True, **kwargs)
+        
     def __sub__(self, other):
         r"""
         Broadcasted subtraction operator - a binary operation.
@@ -1021,8 +1029,10 @@ class GenericLazyTensor:
         """
         if is_scalar_and_equals(other,0):
             return self
+        elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
+            return self.real2complex().subop(other)
         else:
-            return self.binary(other, "-", is_operator=True)
+            return self.subop(other)
 
     def __rsub__(self, other):
         r"""
@@ -1034,7 +1044,7 @@ class GenericLazyTensor:
         if is_scalar_and_equals(other,0):
             return self.unary("Minus")
         else:
-            return self.binary(other, "-", is_operator=True, rversion=True)
+            return self.subop(other, rversion=True)
             
     def mulop(self, other, **kwargs):
         return self.binary(other, "*", is_operator=True, **kwargs)
@@ -1052,6 +1062,8 @@ class GenericLazyTensor:
             return self
         elif is_scalar_and_equals(other,-1):
             return self.unary("Minus")
+        elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
+            return self.real2complex().mulop(other)
         else:
             return self.mulop(other)
 
@@ -1071,6 +1083,9 @@ class GenericLazyTensor:
         else:
             return self.mulop(other, rversion=True)
 
+    def divop(self, other, **kwargs):
+        return self.binary(other, "/", is_operator=True, **kwargs)
+
     def __truediv__(self, other):
         r"""
         Broadcasted elementwise division - a binary operation.
@@ -1080,8 +1095,10 @@ class GenericLazyTensor:
         """
         if is_scalar_and_equals(other,1):
             return self
+        elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
+            return self.real2complex().divop(other)
         else:
-            return self.binary(other, "/", is_operator=True)
+            return self.divop(other)
 
     def __rtruediv__(self, other):
         r"""
@@ -1095,7 +1112,7 @@ class GenericLazyTensor:
         elif is_scalar_and_equals(other,1):
             return self.unary("Inv")
         else:
-            return self.binary(other, "/", is_operator=True, rversion=True)
+            return self.divop(other, rversion=True)
 
     def __or__(self, other):
         r"""
@@ -2336,7 +2353,9 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
         return self.unary("ComplexExp", dimres=self._shape[-1], is_complex=True)
         
     def mulop(self, other, **kwargs):
-        if self._shape[-1] == 1 or other._shape[-1] == 1:
+        if not is_complex_lazytensor(other):
+            return self.mulop(other.real2complex())
+        elif self._shape[-1] == 1 or other._shape[-1] == 1:
             return self.binary(other, "ComplexRealScal", **kwargs, is_complex=True)
         elif self._shape[-1] == 2 or other._shape[-1] == 2:
             return self.binary(other, "ComplexScal", **kwargs, is_complex=True)
@@ -2344,12 +2363,28 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
             return self.binary(other, "ComplexMult", **kwargs, is_complex=True)
             
     def addop(self, other, **kwargs):
-        if self._shape[-1] == other._shape[-1]:
+        if not is_complex_lazytensor(other):
+            return self.addop(other.real2complex())
+        elif self._shape[-1] == other._shape[-1]:
             return self.binary(other, "Add", **kwargs, is_complex=True)
-        elif not other.is_complex:
-            return self + other.real2complex()
         else:
             raise ValueError("incompatible shapes for addition.")
+                    
+    def subop(self, other, **kwargs):
+        if not is_complex_lazytensor(other):
+            return self.subop(other.real2complex())
+        elif self._shape[-1] == other._shape[-1]:
+            return self.binary(other, "Subtract", **kwargs, is_complex=True)
+        else:
+            raise ValueError("incompatible shapes for subtraction.")
+                    
+    def divop(self, other, **kwargs):
+        if not is_complex_lazytensor(other):
+            return self.divop(other.real2complex())
+        elif self._shape[-1] == other._shape[-1]:
+            return self.binary(other, "ComplexDivide", **kwargs, is_complex=True)
+        else:
+            raise ValueError("incompatible shapes for division.")
                     
     def real2complex(self):
         raise ValueError("real2complex cannot be applied to a complex LazyTensor.")

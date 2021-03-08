@@ -33,7 +33,7 @@ def fun(x, y, a, b, backend):
     else:
         conj = np.conj
         angle = np.angle
-    Kxy = (y.real+x*y).sum(axis=2)
+    Kxy = ((x*y)*y.real+x+x.real).sum(axis=2)
     return Kxy.sum(axis=0)
 
 backends = ["numpy", "keops"]

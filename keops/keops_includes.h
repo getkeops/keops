@@ -115,11 +115,13 @@
 #include "core/formulas/complex/Conj.h"
 #include "core/formulas/complex/ComplexExp1j.h"
 #include "core/formulas/complex/ComplexSum.h"
+#include "core/formulas/complex/ComplexSquareAbs.h"
 #include "core/formulas/complex/ComplexAbs.h"
 #include "core/formulas/complex/ComplexExp.h"
 #include "core/formulas/complex/ComplexRealScal.h"
 #include "core/formulas/complex/ComplexScal.h"
 #include "core/formulas/complex/ComplexMult.h"
+#include "core/formulas/complex/ComplexDivide.h"
 
 // import all reductions
 #include "core/reductions/Sum_Reduction.h"
