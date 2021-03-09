@@ -1299,6 +1299,15 @@ class GenericLazyTensor:
         else:
             return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
 
+    def round(self, other=0):
+        r"""
+        Element-wise rounding function - a unary operation.
+
+        ``x.round(d)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise rounding of ``x`` to d decimal places. d is int.
+        """
+        return self.unary("Round", opt_arg=other)
+
     def sqnorm2(self):
         r"""
         Squared Euclidean norm - a unary operation.

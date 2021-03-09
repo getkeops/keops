@@ -19,6 +19,7 @@ template < typename TYPE > DEVICE INLINE TYPE keops_step(TYPE x) { return (x<0.0
 template < typename TYPE > DEVICE INLINE TYPE keops_sign(TYPE x) { return (x>0.0f)? 1.0f : ( (x<0.0f)? -1.0f : 0.0f ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_clamp(TYPE x, TYPE a, TYPE b) { return (x<a)? a : ( (x>b)? b : x ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_clampint(TYPE x, int a, int b) { return (x<a)? a : ( (x>b)? b : x ); }
+template < typename TYPE > DEVICE INLINE TYPE keops_round(TYPE x, int d) { return d ? round(x * pow(10, d))/pow(10, d) : round(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_diffclampint(TYPE x, int a, int b) { return (x<a)? 0.0f : ( (x>b)? 0.0f : 1.0f ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sqrt(TYPE x) { return sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE x) { return 1.0f / sqrt(x); }
@@ -33,6 +34,7 @@ DEVICE INLINE float keops_fma(float x, float y, float z) { return fmaf(x,y,z); }
 DEVICE INLINE float keops_log(float x) { return logf(x); } 
 DEVICE INLINE float keops_rcp(float x) { return __frcp_rn(x); } 
 DEVICE INLINE float keops_abs(float x) { return fabsf(x); } 
+DEVICE INLINE float keops_round(float x, int d) { return d ? roundf(x * pow(10, d))/pow(10, d) : roundf(x); } 
 DEVICE INLINE float keops_exp(float x) { return expf(x); } 
 DEVICE INLINE float keops_cos(float x) { return cosf(x); } 
 DEVICE INLINE float keops_sin(float x) { return sinf(x); } 
