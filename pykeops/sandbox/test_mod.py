@@ -29,5 +29,7 @@ assert torch.abs(s1 - s2) / torch.abs(s2) < 1e-3
 s1.backward()
 s2.backward()
 
-print("relative error grad : ", (torch.norm(x.grad - y.grad) / torch.norm(y.grad)).item())
+print(
+    "relative error grad : ", (torch.norm(x.grad - y.grad) / torch.norm(y.grad)).item()
+)
 assert torch.norm(x.grad - y.grad) / torch.norm(y.grad) < 1e-3
