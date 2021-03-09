@@ -65,6 +65,7 @@
 #include "core/formulas/maths/Asin.h"
 #include "core/formulas/maths/Cos.h"
 #include "core/formulas/maths/Acos.h"
+#include "core/formulas/maths/Atan2.h"
 #include "core/formulas/maths/Pow.h"
 #include "core/formulas/maths/Square.h"
 #include "core/formulas/maths/Inv.h"
