@@ -5,8 +5,10 @@ from pykeops.torch import LazyTensor
 
 # test for modulus operation
 
+
 def torch_mod(input, modulus, offset=0):
     return input - modulus * torch.floor((input - offset) / modulus)
+
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 

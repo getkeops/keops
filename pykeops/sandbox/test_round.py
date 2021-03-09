@@ -3,7 +3,7 @@ import torch
 import math
 from pykeops.torch import LazyTensor
 
-device = "cpu" 
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # rounds to the nearest integer (0 decimal)
 x = torch.FloatTensor(1000, 1).uniform_(-10, 10)
