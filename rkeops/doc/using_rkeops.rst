@@ -78,7 +78,7 @@ Load RKeOps in R:
 
     library(rkeops)
     ## 
-    ## You are using rkeops version 1.4.1
+    ## You are using rkeops version 1.4.2
 
 RKeOps allows to define and compile new operators that run computations
 on GPU.
@@ -104,8 +104,12 @@ Example
     Y <- matrix(runif(ny*3), nrow=ny)   # matrix 150 x 3
     B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
     s <- 0.2
-    # run computations on GPU (to be used only if relevant)
+
+    # to run computation on CPU (default mode)
+    use_cpu()
+    # to run computations on GPU (to be used only if relevant)
     use_gpu()
+
     # computation (order of the input arguments should be similar to `args`)
     res <- op(list(X, Y, B, s))
 
@@ -305,8 +309,12 @@ the input list to match the expected order of arguments.
     Y <- matrix(runif(ny*3), nrow=ny)   # matrix 150 x 3
     B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
     s <- 0.2
-    # run computations on GPU (to be used only if relevant)
+
+    # to run computation on CPU (default mode)
+    use_cpu()
+    # to run computations on GPU (to be used only if relevant)
     use_gpu()
+
     # computation (order of the input arguments should be similar to `args`)
     res <- op(list(x, y, beta, s))
 
@@ -431,12 +439,12 @@ respectively enable float 32bits precision (default) and float 64bits
 -  other compile options (including boolean value to enable verbosity or
    to add debugging flag), see ``?compile_options``
 
-Runtime options
-~~~~~~~~~~~~~~~
+Choosing CPU or GPU computing at runtime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  GPU computing: by default, RKeOps runs computations on CPU (even for
-   GPU-compiled operators). To enable GPU computing, you can run (before
-   calling your operator):
+By default, RKeOps runs computations on CPU (even for GPU-compiled
+operators). To enable GPU computing, you can run (before calling your
+operator):
 
 ::
 
@@ -447,6 +455,13 @@ You can also specify the GPU id that you want to use, e.g.
 ``use_gpu(device=0)`` to use GPU 0 (default) for instance.
 
 To deactivate GPU computations, you can run ``use_cpu()``.
+
+    In CPU mode, you can control the number of CPU cores used by RKeOps
+    for computations, e.g. with ``use_cpu(ncore = 2)`` to run on 2
+    cores.
+
+Other runtime options
+~~~~~~~~~~~~~~~~~~~~~
 
 -  ``device_id``: choose on which GPU the computations will be done,
    default is 0.

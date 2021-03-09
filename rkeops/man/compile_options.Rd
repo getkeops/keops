@@ -110,12 +110,12 @@ compilation (to avoid useless matrix conversion).
 
 \strong{Note:} Default options are set up when loading \code{rkeops}. To reset
 \code{rkeops} options to default, you should use the function
-\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
-use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+\code{\link[=set_rkeops_options]{set_rkeops_options()}}. To set up a particular option, you should
+use the function \code{\link[=set_rkeops_option]{set_rkeops_option()}}.
 
 Some wrappers are available to enable some compilation options,
-see \code{\link[rkeops:compile4float32]{rkeops::compile4float32()}}, \code{\link[rkeops:compile4float64]{rkeops::compile4float64()}},
-\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}.
+see \code{\link[=compile4float32]{compile4float32()}}, \code{\link[=compile4float64]{compile4float64()}},
+\code{\link[=compile4cpu]{compile4cpu()}}, \code{\link[=compile4gpu]{compile4gpu()}}.
 }
 \examples{
 compile_options(
@@ -126,10 +126,10 @@ compile_options(
     src_dir = NULL)
 }
 \seealso{
-\code{\link[rkeops:default_compile_options]{rkeops::default_compile_options()}},
-\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}, \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}},
-\code{\link[rkeops:compile4float32]{rkeops::compile4float32()}}, \code{\link[rkeops:compile4float64]{rkeops::compile4float64()}},
-\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}
+\code{\link[=default_compile_options]{default_compile_options()}},
+\code{\link[=set_rkeops_options]{set_rkeops_options()}}, \code{\link[=set_rkeops_option]{set_rkeops_option()}},
+\code{\link[=compile4float32]{compile4float32()}}, \code{\link[=compile4float64]{compile4float64()}},
+\code{\link[=compile4cpu]{compile4cpu()}}, \code{\link[=compile4gpu]{compile4gpu()}}
 }
 \author{
 Ghislain Durif
