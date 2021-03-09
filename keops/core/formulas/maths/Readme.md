@@ -30,12 +30,15 @@ Standard math functions :
  *      Acos<F>                        : arc-cosine of F (vectorized)
  *      Asin<F>                        : arc-sine of F (vectorized)
  *      Atan<F>                        : arc-tangent of F (vectorized)
+ *      Atan2<F, G>                    : 2-argument arc-tangent of F and G (vectorized) ; F corresponds to y and G to x
  *      Sign<F>                        : sign of F (vectorized)
  *      Step<F>                        : step of F (vectorized)
  *      ReLU<F>                        : ReLU of F (vectorized)
  *      Sign<F>                        : sign of F (vectorized)
  *      ClampInt<F,A,B>                : clamping of F in [A,B] (vectorized) ; F is function, A and B are integers
  *      Clamp<F,G,H>                   : clamping of F in [G,H] (vectorized) ; F, G, H are functions
+ *      Mod<FA,FB,FC>                  : modulo of FA with modulus FB and offset FC (vectorized)
+ *      Round<F,A>                     : round of F to A decimal places (vectorized) ; F is function, A is integer
  
 Concatenation and matrix-vector products:
  *      Concat<FA,FB>                  : concatenation of FB and FB

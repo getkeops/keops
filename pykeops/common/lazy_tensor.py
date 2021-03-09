@@ -2,7 +2,6 @@ import copy
 import re
 
 import numpy as np
-
 from pykeops.common.utils import check_broadcasting
 
 def same_or_one_test(*dims):
@@ -1238,6 +1237,15 @@ class GenericLazyTensor:
         """
         return self.unary("Atan")
 
+    def atan2(self, other):
+        r"""
+        Element-wise atan2 - a binary operation.
+
+        ``y.atan2(x)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise atan2 of ``x`` and ``y``.
+        """
+        return self.binary(other, "Atan2", dimcheck="same")
+
     def sqrt(self):
         r"""
         Element-wise square root - a unary operation.
@@ -1343,13 +1351,33 @@ class GenericLazyTensor:
         Element-wise Clamp function - a ternary operation.
 
         ``x.clamp(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
-        the element-wise clamping of ``x`` in ``(a,b)``. Braoodcasting rules apply.
-        a and b may be fixed integers or floats, or other LazyTensors
+        the element-wise clamping of ``x`` in ``(a,b)``. Broadcasting rules apply.
+        a and b may be fixed integers or floats, or other LazyTensors.
         """
         if (type(other1) == int) and (type(other2) == int):
             return self.unary("ClampInt", opt_arg=other1, opt_arg2=other2)
         else:
             return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
+
+    def mod(self, modulus, offset=0):
+        r"""
+        Element-wise modulo with offset function - a ternary operation.
+
+        ``x.mod(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise modulo of ``x`` with modulus ``a`` and offset ``b``.
+        By default b=0, so that x.mod(a) becomes equivalent to the NumPy function mod.
+        Broadcasting rules apply. a and b are fixed integers or float.
+        """
+        return self.ternary(modulus, offset, "Mod", dimcheck="sameor1")
+
+    def round(self, other=0):
+        r"""
+        Element-wise rounding function - a unary operation.
+
+        ``x.round(d)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise rounding of ``x`` to d decimal places. d is int.
+        """
+        return self.unary("Round", opt_arg=other)
 
     def sqnorm2(self):
         r"""
