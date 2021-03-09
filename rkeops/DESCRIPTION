@@ -1,8 +1,8 @@
 Package: rkeops
 Type: Package
-Title: Kernel Operations on the GPU, with Autodiff, without Memory Overflows
-Version: 1.4.1.1
-Date: 2020-09-04
+Title: Kernel Operations on GPU or CPU, with Autodiff, without Memory Overflows
+Version: 1.4.2.2
+Date: 2021-02-17
 Authors@R: c(
     person(given="Benjamin", family="Charlier", 
            comment="<http://imag.umontpellier.fr/~charlier/>", 
@@ -23,18 +23,22 @@ Authors@R: c(
     person(given="Daniel", family="Frey", 
            comment="Author of the included C++ library 'sequences'", 
            role="ctb"))
-Description: The 'KeOps' library lets you compute generic reductions of very large arrays 
-    whose entries are given by a mathematical formula. It combines a tiled reduction scheme 
-    with an automatic differentiation engine, and can be used through 'R', 'Matlab', 'NumPy' or 
-    'PyTorch' backends. It is perfectly suited to the computation of Kernel dot products 
-    and the associated gradients, even when the full kernel matrix does not fit into 
-    the GPU memory.
+Description: The 'KeOps' library lets you compute generic reductions of very 
+    large arrays whose entries are given by a mathematical formula with CPU and 
+    GPU computing support. It combines a tiled reduction scheme with an 
+    automatic differentiation engine. It is perfectly suited to the efficient 
+    computation of Kernel dot products and the associated gradients, even when 
+    the full kernel matrix does not fit into the GPU memory.
 License: MIT + file LICENSE
 Depends: R (>= 3.1.0)
 LinkingTo:
-    Rcpp (>= 1.0.1), RcppEigen (>= 0.3.3.5)
+    Rcpp (>= 1.0.1), 
+    RcppEigen (>= 0.3.3.5)
 Imports:
-    Rcpp (>= 1.0.1), openssl (>= 1.3), stringr (>= 1.4.0)
+    Rcpp (>= 1.0.1), 
+    RhpcBLASctl, 
+    openssl (>= 1.3), 
+    stringr (>= 1.4.0)
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
@@ -47,5 +51,5 @@ BugReports: https://github.com/getkeops/keops/issues
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr

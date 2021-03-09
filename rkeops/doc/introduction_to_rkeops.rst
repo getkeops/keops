@@ -41,8 +41,8 @@ library.
 KeOps
 -----
 
-    Seamless Kernel Operations on GPU, with auto-differentiation and
-    without memory overflows
+    Seamless Kernel Operations on GPU (or CPU), with
+    auto-differentiation and without memory overflows
 
 The KeOps library (http://www.kernel-operations.io) provides routines to
 compute generic reductions of large 2d arrays whose entries are given by
@@ -58,8 +58,8 @@ GPU power available for seamless standard mathematical routine
 computations. As of 2019, this effort has been mostly restricted to the
 operations needed to implement Convolutional Neural Networks: linear
 algebra routines and convolutions on grids, images and volumes. KeOps
-provides GPU support without the cost of developing a specific CUDA
-implementation of your custom mathematical operators.
+provides CPU and GPU support without the cost of developing a specific
+CUDA implementation of your custom mathematical operators.
 
 To ensure its versatility, KeOps can be used through Matlab, Python
 (NumPy or PyTorch) and R back-ends.
@@ -264,19 +264,26 @@ Generic kernel function
    and \\((\\mathbf y\_j)\_{j=1,…,N}, (\\mathbf v\_j)\_{j=1,…,N},
    (\\boldsymbol\\beta\_j)\_{j=1,…,N} \\in \\mathbb R^{N\\times D}\\)
 
-GPU computing
--------------
+CPU and GPU computing
+---------------------
 
 Based on your formulae, RKeOps compile on the fly operators that can be
-used to run the corresponding computations on GPU, it uses a tiling
-scheme to decompose the data and avoid (i) useless and costly memory
-transfers between host and GPU (performance gain) and (ii) memory
+used to run the corresponding computations on CPU or GPU, it uses a
+tiling scheme to decompose the data and avoid (i) useless and costly
+memory transfers between host and GPU (performance gain) and (ii) memory
 overflow.
 
     ***Note:*** You can use the same code (i.e. define the same
     operators) for CPU or GPU computing. The only difference will be the
     compiler used for the compilation of your operators (upon the
     availability of CUDA on your system).
+
+To use CPU computing mode, you can call ``use_cpu()`` (with an optional
+argument ``ncore`` specifying the number of cores used to run parallel
+computations).
+
+To use GPU computing mode, you can call ``use_gpu()`` (with an optional
+argument ``device`` to choose a specific GPU id to run computations).
 
 --------------
 

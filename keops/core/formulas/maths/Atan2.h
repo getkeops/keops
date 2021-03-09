@@ -5,6 +5,11 @@
 #include "core/utils/keops_math.h"
 #include "core/autodiff/VectorizedScalarBinaryOp.h"
 
+#include "core/formulas/maths/Add.h"
+#include "core/formulas/maths/Square.h"
+#include "core/formulas/maths/Divide.h"
+#include "core/formulas/maths/Mult.h"
+#include "core/formulas/maths/Subtract.h"
 
 
 namespace keops {
@@ -26,12 +31,18 @@ struct Atan2 : VectorizedScalarBinaryOp<Atan2, F, G> {
 	  }
   };
 
-  // d/dx atan2(y, x) = -y /(x**2 + y**2) and d/dy atan2(y, x) = x /(x**2 + y**2)
-  template<class V, class GRADIN>
-  using DiffT = typename F::template DiffT<V,GRADIN>;
+  // [ \partial_V Atan2(F, G) ] . gradin = [ -(F / F^2 + G^2) . \partial_V F ] . gradin  + [ (G / F^2 + G^2) . \partial_V G ] . gradin
+  template < class V, class GRADIN>
+  using partial_F = typename F::template DiffT< V, Mult< Divide<F, Add<Square<F>, Square<G>> >, GRADIN> >;
+  template < class V, class GRADIN>
+  using partial_G = typename G::template DiffT< V, Mult< Divide<G, Add<Square<F>, Square<G>> >, GRADIN> >;
+
+  template < class V, class GRADIN >
+  using DiffT = Subtract<partial_G<V, GRADIN>, partial_F<V, GRADIN>>;
 
 };
 
 #define Atan2(f,g) KeopsNS<Atan2<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+
 
 }

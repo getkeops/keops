@@ -27,7 +27,6 @@ template < typename TYPE > DEVICE INLINE TYPE keops_asin(TYPE x) { return asin(x
 template < typename TYPE > DEVICE INLINE TYPE keops_atan(TYPE x) { return atan(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_atan2(TYPE y, TYPE x) { return atan2(y, x); }
 
-
 #ifdef __CUDA_ARCH__  
 DEVICE INLINE float keops_pow(float x, int n) { return powf(x,n); } 
 DEVICE INLINE float keops_fma(float x, float y, float z) { return fmaf(x,y,z); } 

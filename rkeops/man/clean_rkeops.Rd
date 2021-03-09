@@ -26,7 +26,7 @@ library(rkeops)
 clean_rkeops()
 }
 \seealso{
-\code{\link[rkeops:compile_options]{rkeops::compile_options()}}, \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
+\code{\link[=compile_options]{compile_options()}}, \code{\link[=set_rkeops_option]{set_rkeops_option()}}
 }
 \author{
 Ghislain Durif
