@@ -1,4 +1,6 @@
 
+# Non-Uniform Discrete Fourier Tranform example
+
 import time
 
 import math
@@ -12,7 +14,7 @@ M, N, D = 1000, 1000, 1
 
 test_grad = False
 
-device_id = "cpu" #"cuda" if torch.cuda.is_available() else "cpu"
+device_id = "cuda" if torch.cuda.is_available() else "cpu"
 
 do_warmup = False
 
@@ -33,13 +35,10 @@ def fun(x, p, f, backend):
         x = LazyTensor(x)
         p = LazyTensor(p)
         f = LazyTensor(f)
-    if backend == "keops_alt":
-        X = x*(-2*math.pi*p*f).exp1j()
-    else:
-        X = x*(-2*math.pi*1j*p*f).exp()
+    X = x*(-2*math.pi*1j*p*f).exp()
     return X.sum(dim=0)
     
-backends = ["keops_alt","torch"]
+backends = ["keops","torch"]
 
 out = []
 for backend in backends:
@@ -52,8 +51,6 @@ for backend in backends:
     print("time for " + backend + ":", end - start)
 
 if len(out) > 1:
-    #print(out[0])
-    #print(out[1])
     print("relative error:", (torch.norm(view_as_real(out[0] - out[1]).cpu()) / torch.norm(view_as_real(out[0]).cpu())).item())
 
 if test_grad:
@@ -68,8 +65,6 @@ if test_grad:
         print("time for " + backend + " (grad):", end - start)
 
     if len(out_g) > 1:
-        #print(out_g[0])
-        #print(out_g[1])
         print(
             "relative error grad:",
             (torch.norm(view_as_real(out_g[0] - out_g[1]).cpu()) / torch.norm(view_as_real(out_g[0]).cpu())).item())
