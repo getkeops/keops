@@ -1294,7 +1294,7 @@ class GenericLazyTensor:
         r"""
         Element-wise rounding function - a unary operation.
 
-        ``x.round()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        ``x.round(d)`` returns a :class:`LazyTensor` that encodes, symbolically,
         the element-wise rounding of ``x`` to d decimal places. d is int.
         """
         return self.binary(other, "Round", dimcheck=None)
