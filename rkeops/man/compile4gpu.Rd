@@ -24,7 +24,7 @@ you do not modify \code{rkeops} options, it is optional to use the function
 \code{compile4gpu}.
 
 When a GPU-compatible operator is compiled, you should call
-\code{\link[rkeops:use_gpu]{rkeops::use_gpu()}} to ensure that computation will be run on GPU
+\code{\link[=use_gpu]{use_gpu()}} to ensure that computation will be run on GPU
 (difference between compilation and runtime options). GPU-compatible
 operators can run on CPU.
 }
@@ -33,7 +33,7 @@ library(rkeops)
 compile4gpu()
 }
 \seealso{
-\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}},
+\code{\link[=compile4cpu]{compile4cpu()}}, \code{\link[=use_gpu]{use_gpu()}},
 }
 \author{
 Ghislain Durif

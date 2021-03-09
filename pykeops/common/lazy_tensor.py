@@ -1176,6 +1176,15 @@ class GenericLazyTensor:
         """
         return self.unary("Atan")
 
+    def atan2(self, other):
+        r"""
+        Element-wise atan2 - a binary operation.
+
+        ``y.atan2(x)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise atan2 of ``x`` and ``y``.
+        """
+        return self.binary(other, "Atan2", dimcheck="same")
+
     def sqrt(self):
         r"""
         Element-wise square root - a unary operation.
@@ -1299,6 +1308,15 @@ class GenericLazyTensor:
         Broadcasting rules apply. a and b are fixed integers or float.
         """
         return self.ternary(modulus, offset, "Mod", dimcheck="sameor1")
+
+    def round(self, other=0):
+        r"""
+        Element-wise rounding function - a unary operation.
+
+        ``x.round(d)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise rounding of ``x`` to d decimal places. d is int.
+        """
+        return self.unary("Round", opt_arg=other)
 
     def sqnorm2(self):
         r"""
