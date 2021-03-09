@@ -14,6 +14,7 @@ template < typename TYPE > DEVICE INLINE TYPE keops_abs(TYPE x) { return fabs(x)
 template < typename TYPE > DEVICE INLINE TYPE keops_exp(TYPE x) { return exp(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_cos(TYPE x) { return cos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sin(TYPE x) { return sin(x); }
+template < typename TYPE > DEVICE INLINE void keops_sincos(TYPE x, TYPE *s, TYPE *c) { *s=sin(x); *c=cos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_relu(TYPE x) { return (x<0.0f)? 0.0f : x; }
 template < typename TYPE > DEVICE INLINE TYPE keops_step(TYPE x) { return (x<0.0f)? 0.0f : 1.0f; }
 template < typename TYPE > DEVICE INLINE TYPE keops_sign(TYPE x) { return (x>0.0f)? 1.0f : ( (x<0.0f)? -1.0f : 0.0f ); }
@@ -39,6 +40,7 @@ DEVICE INLINE float keops_round(float x, int d) { return d ? roundf(x * pow(10, 
 DEVICE INLINE float keops_exp(float x) { return expf(x); } 
 DEVICE INLINE float keops_cos(float x) { return cosf(x); } 
 DEVICE INLINE float keops_sin(float x) { return sinf(x); } 
+DEVICE INLINE void keops_sincos(float x, float *s, float *c) { sincosf(x,s,c); }
 DEVICE INLINE float keops_sqrt(float x) { return sqrtf(x); } 
 DEVICE INLINE float keops_rsqrt(float x) { return rsqrtf(x); } 
 DEVICE INLINE float keops_acos(float x) { return acosf(x); }

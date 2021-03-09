@@ -65,7 +65,6 @@
 #include "core/formulas/maths/Asin.h"
 #include "core/formulas/maths/Cos.h"
 #include "core/formulas/maths/Acos.h"
-#include "core/formulas/maths/Atan2.h"
 #include "core/formulas/maths/Pow.h"
 #include "core/formulas/maths/Square.h"
 #include "core/formulas/maths/Inv.h"
@@ -109,6 +108,22 @@
 #include "core/formulas/norms/WeightedSqDist.h"
 #include "core/formulas/norms/WeightedSqNorm.h"
 
+// operations on complex
+#include "core/formulas/complex/ComplexReal.h"
+#include "core/formulas/complex/ComplexImag.h"
+#include "core/formulas/complex/Real2Complex.h"
+#include "core/formulas/complex/Imag2Complex.h"
+#include "core/formulas/complex/ComplexAngle.h"
+#include "core/formulas/complex/Conj.h"
+#include "core/formulas/complex/ComplexExp1j.h"
+#include "core/formulas/complex/ComplexSum.h"
+#include "core/formulas/complex/ComplexSquareAbs.h"
+#include "core/formulas/complex/ComplexAbs.h"
+#include "core/formulas/complex/ComplexExp.h"
+#include "core/formulas/complex/ComplexRealScal.h"
+#include "core/formulas/complex/ComplexScal.h"
+#include "core/formulas/complex/ComplexMult.h"
+#include "core/formulas/complex/ComplexDivide.h"
 
 // import all reductions
 #include "core/reductions/Sum_Reduction.h"
