@@ -1281,7 +1281,7 @@ class GenericLazyTensor:
         Element-wise Clamp function - a ternary operation.
 
         ``x.clamp(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
-        the element-wise clamping of ``x`` in ``(a,b)``. Braodcasting rules apply.
+        the element-wise clamping of ``x`` in ``(a,b)``. Broadcasting rules apply.
         a and b may be fixed integers or floats, or other LazyTensors.
         """
         if (type(other1) == int) and (type(other2) == int):
@@ -1289,13 +1289,14 @@ class GenericLazyTensor:
         else:
             return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
 
-    def mod(self, modulus, offset):
+    def mod(self, modulus, offset=0):
         r"""
         Element-wise modulo with offset function - a ternary operation.
 
         ``x.mod(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
         the element-wise modulo of ``x`` with modulus ``a`` and offset ``b``.
-        Braodcasting rules apply. a and b are fixed integers or float.
+        By default b=0, so that x.mod(a) becomes equivalent to the NumPy function mod.
+        Broadcasting rules apply. a and b are fixed integers or float.
         """
         return self.ternary(modulus, offset, "Mod", dimcheck="sameor1")
 
