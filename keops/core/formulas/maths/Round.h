@@ -3,7 +3,7 @@
 #include <sstream>
 
 #include "core/utils/keops_math.h"
-#include "core/autodiff/VectorizedScalarBinaryOp.h"
+#include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/constants/Zero.h"
 
 #include "core/pre_headers.h"
@@ -11,18 +11,18 @@
 namespace keops {
 
 //////////////////////////////////////////////////////////////
-////             ROUND : Round< F, G >                    ////
+////             ROUND : Round< F, D >                    ////
 //////////////////////////////////////////////////////////////
 
-template < class F, class G >
-struct Round : VectorizedScalarBinaryOp< Round, F, G > {
+template < class F, int D >
+struct Round : VectorizedScalarUnaryOp< Round, F, D > {
 
   static void PrintIdString(::std::stringstream &str) { str << "Round"; }
 
   template < typename TYPE > 
   struct Operation_Scalar {
-	DEVICE INLINE void operator() (TYPE &out, TYPE &outF, TYPE &outG) {
-    	  out = keops_round(outF, outG);
+	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
+    	  out = keops_round(outF, D);
     }
   };
 
@@ -30,6 +30,6 @@ struct Round : VectorizedScalarBinaryOp< Round, F, G > {
   using DiffT = Zero< V::DIM >;
 };
 
-#define Round(f,g) KeopsNS<Round<decltype(InvKeopsNS(f)),decltype(InvKeopsNS(g))>>()
+#define Round(f,d) KeopsNS<Round<decltype(InvKeopsNS(f)),d>>()
 
 }
