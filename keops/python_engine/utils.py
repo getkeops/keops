@@ -153,7 +153,7 @@ def VectCopy(out, arg, cast=True):
             """
 
 def call_list(args):
-    return ", ".join(list(arg() for arg in args))
+    return ", ".join(list(arg.id for arg in args))
 
 def signature_list(args):
     return ", ".join(list(f"{arg.dtype} {arg.id}" for arg in args))
@@ -226,7 +226,7 @@ class Var_loader:
         for (dims, inds, xloc) in ((self.dimsx, self.indsi, xi), (self.dimsy, self.indsj, yj), (self.dimsp, self.indsp, pp)):
             k = 0
             for u in range(len(dims)):
-                table[inds[u]] = c_array(f"({xloc()}+{k})", xloc.dtype, dims[u])
+                table[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
                 k += dims[u]
         return table
     
@@ -267,7 +267,7 @@ class Var_loader:
         k = 0
         for u in range(len(dims)):
             for v in range(dims[u]):
-                string += f"{xloc.id}[{k}] = {args[inds[u]].id}[{row_index()}*{dims[u]}+{v}];\n"
+                string += f"{xloc.id}[{k}] = {args[inds[u]].id}[{row_index.id}*{dims[u]}+{v}];\n"
                 k+=1
         return string   
         
