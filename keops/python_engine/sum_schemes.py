@@ -29,7 +29,7 @@ class block_sum(Sum_Scheme):
     def initialize_temporary_accumulator(self):
         return "int period_accumulate = ny<10 ? 100 : sqrt(ny);\n" + self.red_formula.InitializeReduction(self.tmp_acc)
     def initialize_temporary_accumulator_block_init(self):
-        return self.initialize_temporary_accumulator()
+        return self.red_formula.InitializeReduction(self.tmp_acc)
     def accumulate_result(self, acc, fout, j):    
         return self.red_formula.ReducePairShort(self.tmp_acc, fout, j)
     def periodic_accumulate_temporary(self, acc, j):
