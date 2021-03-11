@@ -598,7 +598,7 @@ KNN_faiss_gpu_IVFFlat_slow = partial(
 # --------------------------------------------------------
 #
 # Finally, we compare all our methods through a unified interface.
-# 
+#
 # .. note::
 #   Fitting KeOps, JAX, PyTorch and FAISS in a single script is not easy:
 #   all these libraries have different failure modes,
@@ -609,7 +609,8 @@ KNN_faiss_gpu_IVFFlat_slow = partial(
 #   final benchmark that is rendered on this website.
 
 import os
-getenv = lambda s : bool(os.getenv(s, 'False').lower() in ['true', '1'])
+
+getenv = lambda s: bool(os.getenv(s, "False").lower() in ["true", "1"])
 
 keops_only = getenv("KEOPS_DOC_PRECOMPILE")
 jax_only = getenv("KEOPS_DOC_PRECOMPILE_JAX")
@@ -630,19 +631,19 @@ def run_KNN_benchmark(name, loops=[1]):
         routines = [(KNN_JAX_batch_loop, "JAX (small batches, GPU)", {})]
     else:
         routines = [
-        (KNN_KeOps, "KeOps (GPU)", {}),
-        (KNN_faiss_gpu_Flat, "FAISS-Flat (GPU)", {}),
-        (KNN_faiss_gpu_IVFFlat_fast, "FAISS-IVF-Flat (GPU, nprobe=1)", {}),
-        (KNN_faiss_gpu_IVFFlat_slow, "FAISS-IVF-Flat (GPU, nprobe=40)", {}),
-        (KNN_torch, "PyTorch (GPU)", {}),
-        (KNN_torch_batch_loop, "PyTorch  (small batches, GPU)", {}),
-        (KNN_JAX_batch_loop, "JAX (small batches, GPU)", {}),
-        (KNN_faiss_HNSW_fast, "FAISS-HNSW (CPU, M=4)", {}),
-        (KNN_faiss_HNSW_slow, "FAISS-HNSW (CPU, M=36)", {}),
-        (KNN_sklearn_ball_tree, "sklearn, Ball-tree (CPU)", {}),
-        (KNN_sklearn_kd_tree, "sklearn, KD-tree (CPU)", {}),
-        (KNN_sklearn_brute, "sklearn, bruteforce (CPU)", {}),
-    ]
+            (KNN_KeOps, "KeOps (GPU)", {}),
+            (KNN_faiss_gpu_Flat, "FAISS-Flat (GPU)", {}),
+            (KNN_faiss_gpu_IVFFlat_fast, "FAISS-IVF-Flat (GPU, nprobe=1)", {}),
+            (KNN_faiss_gpu_IVFFlat_slow, "FAISS-IVF-Flat (GPU, nprobe=40)", {}),
+            (KNN_torch, "PyTorch (GPU)", {}),
+            (KNN_torch_batch_loop, "PyTorch  (small batches, GPU)", {}),
+            (KNN_JAX_batch_loop, "JAX (small batches, GPU)", {}),
+            (KNN_faiss_HNSW_fast, "FAISS-HNSW (CPU, M=4)", {}),
+            (KNN_faiss_HNSW_slow, "FAISS-HNSW (CPU, M=36)", {}),
+            (KNN_sklearn_ball_tree, "sklearn, Ball-tree (CPU)", {}),
+            (KNN_sklearn_kd_tree, "sklearn, KD-tree (CPU)", {}),
+            (KNN_sklearn_brute, "sklearn, bruteforce (CPU)", {}),
+        ]
 
     # Actual run:
     full_benchmark(
@@ -650,7 +651,7 @@ def run_KNN_benchmark(name, loops=[1]):
         routines,
         generate_samples(name),
         min_time=1e-4,
-        max_time= 1 if (keops_only or jax_only) else 10,
+        max_time=1 if (keops_only or jax_only) else 10,
         loops=loops,
         problem_sizes=Ks,
         xlabel="Number of neighbours K",
