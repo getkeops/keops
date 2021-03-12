@@ -14,6 +14,7 @@ template < typename TYPE > DEVICE INLINE TYPE keops_abs(TYPE x) { return fabs(x)
 template < typename TYPE > DEVICE INLINE TYPE keops_exp(TYPE x) { return exp(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_cos(TYPE x) { return cos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sin(TYPE x) { return sin(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_sinxdivx(TYPE x) { return x ? keops_sin(x)/x : 1.0f; }
 template < typename TYPE > DEVICE INLINE void keops_sincos(TYPE x, TYPE *s, TYPE *c) { *s=sin(x); *c=cos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_relu(TYPE x) { return (x<0.0f)? 0.0f : x; }
 template < typename TYPE > DEVICE INLINE TYPE keops_step(TYPE x) { return (x<0.0f)? 0.0f : 1.0f; }
