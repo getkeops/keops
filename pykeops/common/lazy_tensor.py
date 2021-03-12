@@ -20,7 +20,7 @@ def is_scalar_and_equals(x, val):
         return False
 
 def is_complex_lazytensor(x):
-    return hasattr(x,"is_complex") and x.is_complex
+    return isinstance(x,ComplexGenericLazyTensor)
 
 class GenericLazyTensor:
     r"""Symbolic wrapper for NumPy arrays and PyTorch tensors. This is the abstract class,
