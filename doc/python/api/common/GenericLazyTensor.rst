@@ -10,10 +10,15 @@ This section contains the full API documentation of the :doc:`LazyTensor <../../
 
 .. autosummary::
     GenericLazyTensor
+    ComplexGenericLazyTensor
 
 .. rubric:: Syntax
 
 .. autoclass:: GenericLazyTensor
+    :members:
+    :special-members:
+
+.. autoclass:: ComplexGenericLazyTensor
     :members:
     :special-members:
 

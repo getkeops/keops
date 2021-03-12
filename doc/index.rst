@@ -59,8 +59,8 @@ Math libraries represent most objects as matrices and tensors:
   As a consequence, when compared with dense arrays,
   sparse encodings only speed up computations for matrices
   that have **less than 1% non-zero coefficients**. 
-  This restrictive condition prevents sparse matrices 
-  from being very useful outside of graph and mesh processing.
+  This restriction prevents sparse matrices 
+  from being truly useful outside of graph and mesh processing.
 
 - **(c) Symbolic matrices.**
   KeOps provides another solution to **speed up tensor programs**.
@@ -91,7 +91,7 @@ In practice, KeOps symbolic tensors are both
 **fast** and **memory-efficient**.
 We take advantage of the structure of CUDA registers
 to bypass costly memory transfers between
-arithmetic and memory circuits. This allows us to provide a
+arithmetic units and memory circuits. This allows us to provide a
 **x10-x100 speed-up** to PyTorch GPU programs
 in a wide range of settings.
 
@@ -153,11 +153,11 @@ Projects using KeOps
 --------------------
 
 **Symbolic** matrices are to **geometric** learning what **sparse** matrices are to **graph** processing.
+
 KeOps can thus be used in a wide range of settings, 
 from **shape analysis** (registration, geometric deep learning, optimal transport...)
 to **machine learning** (kernel methods, k-means, UMAP...), 
 **Gaussian processes**, computational **biology** and **physics**.
-
 Among other projects,
 KeOps provides core routines for the following packages:
 

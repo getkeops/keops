@@ -196,7 +196,11 @@ High performances
 =================
 
 KeOps fits within a thriving ecosystem of Python/C++ libraries for scientific computing. So how does it compare with other acceleration franeworks such as 
-Numba, Halide, Julia or JAX/XLA?
+`Numba <https://numba.pydata.org>`_, 
+`Halide <https://halide-lang.org>`_, 
+`TVM <https://tvm.apache.org>`_,
+`Julia <https://julialang.org>`_ or 
+`JAX/XLA <https://github.com/google/jax>`_?
 To answer this question, let us now briefly explain the relationship between our library and the wider software stack for tensor computing.
 
 
@@ -206,7 +210,7 @@ Tensor computing on the GPU
 In recent years, deep learning frameworks such as `PyTorch  <http://pytorch.org>`_, 
 `JAX <https://github.com/google/jax>`_ and `TensorFlow <http://www.tensorflow.org>`_ have evolved into fully-fledged applied math libraries. With negligible overhead, they bring **automatic differentiation** and **seamless GPU support** to research communities that were used to Matlab, NumPy and other tensor-centric frameworks.
 
-Unfortunately though, **no magic** is involved: optimized C++/CUDA codes still have to be written for every operation that is provided to end-users, from matrix-vector products to fast Fourier transforms. Supporting all the standard mathematical routines thus comes at a **huge engineering cost** for the developers of the main frameworks. 
+Unfortunately though, **no magic** is involved: optimized C++/CUDA schemes still have to be written for every operation that is provided to end-users, from matrix-vector products to fast Fourier transforms. Supporting all the standard mathematical routines thus comes at a **huge engineering cost** for the developers of the main frameworks. 
 
 As of today, efforts in the machine learning community have been mostly focused on the operations that are needed to implement **(Convolutional) Neural Networks**: 
 linear algebra routines on **dense matrices** and convolutions on **grids**, such as images and volumes.
@@ -247,11 +251,10 @@ Main features
 
 Feel free to browse through our :doc:`gallery of tutorials <../_auto_tutorials/index>`
 for examples of applications.
-
+Among other features, KeOps supports:
 
 - Most common reduction operations: Summation, stabilized :doc:`LogSumExp reduction <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max, :doc:`ArgKMin <../_auto_tutorials/knn/plot_knn_numpy>`, :doc:`SoftMin <../_auto_examples/numpy/plot_test_softmax_numpy>`, Softmax...
-- :doc:`Block-sparse reductions <../python/sparsity>` and kernel matrices.
-- Custom high-level (``'gaussian(x,y) * (1+linear(u,v)**2)'``) and low-level (``'Exp(-G*SqDist(X,Y)) * ( IntCst(1) + Pow((U|V), 2) )'``) syntaxes to compute general formulas.
+- :doc:`Block-wise sparsity masks <../python/sparsity>` and kernel matrices.
 - :doc:`High-order derivatives with respect to all parameters and variables <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>`.
 - :doc:`Non-radial kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`.
 - Inverse of positive definite linear systems through the classes :class:`torch.KernelSolve <pykeops.torch.KernelSolve>` (see also :doc:`here <../_auto_examples/pytorch/plot_test_invkernel_torch>`) and  :class:`numpy.KernelSolve <pykeops.numpy.KernelSolve>` (see also :doc:`here <../_auto_examples/numpy/plot_test_invkernel_numpy>`)
