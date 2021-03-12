@@ -3,9 +3,9 @@ import torch
 import math
 from pykeops.torch import LazyTensor
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-x = torch.rand(5, 1)*2*math.pi
+x = torch.rand(5, 1) * 2 * math.pi
 y = x.data.clone()
 x = x.to(device)
 y = y.to(device)

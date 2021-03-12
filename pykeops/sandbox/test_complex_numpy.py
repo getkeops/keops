@@ -1,4 +1,3 @@
-
 import time
 
 import math
@@ -7,7 +6,7 @@ from pykeops.numpy import LazyTensor, ComplexLazyTensor
 
 M, N, D = 1000, 1000, 3
 
-dtype = 'float32'
+dtype = "float32"
 
 do_warmup = False
 
@@ -18,7 +17,7 @@ b = 1.54
 
 
 def view_as_real(x):
-    if x.dtype==complex:
+    if x.dtype == complex:
         return torch.view_as_real(x)
     else:
         return x
@@ -33,8 +32,9 @@ def fun(x, y, a, b, backend):
     else:
         conj = np.conj
         angle = np.angle
-    Kxy = ((x*y)*y.real+x+x.real).sum(axis=2)
+    Kxy = ((x * y) * y.real + x + x.real).sum(axis=2)
     return Kxy.sum(axis=0)
+
 
 backends = ["numpy", "keops"]
 
@@ -49,7 +49,12 @@ for backend in backends:
     print("time for " + backend + ":", end - start)
 
 if len(out) > 1:
-    #print(out[0])
-    #print(out[1])
-    print("relative error:", (np.linalg.norm((out[0] - out[1]).view("float")) / np.linalg.norm((out[0]).view("float"))).item())
-
+    # print(out[0])
+    # print(out[1])
+    print(
+        "relative error:",
+        (
+            np.linalg.norm((out[0] - out[1]).view("float"))
+            / np.linalg.norm((out[0]).view("float"))
+        ).item(),
+    )

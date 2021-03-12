@@ -115,18 +115,17 @@ This type of computation is common in machine learning and applied mathematics:
   It can be implemented efficiently using the KeOps "Sum-SoftMax-Weight" reduction.  |br| |br|
 
 
-- We implement the **Fourier transform** using
-  a sum reduction and a formula:
+- We implement the **Fourier transform** with
+  a sum reduction and a complex exponential:
   
   .. math::
-    F(\omega_i,x_j,f_j)~=~
-    \begin{bmatrix}
-    \cos(\langle \omega_i,x_j\rangle)~\cdot~ f_j \\ 
-    \sin(\langle \omega_i,x_j\rangle)~\cdot~ f_j
-    \end{bmatrix}~.
+    \widehat{f_i} = \widehat{f}(\omega_i)
+    ~\gets~ 
+    \sum_{j=1}^{\mathrm{N}}
+    \exp(i\langle \omega_i,x_j\rangle)~\cdot~ f_j ~.
 
-  This trigonometric function evaluates the spectral content at frequency :math:`\omega_i` of a signal :math:`f` that is represented by sampled values :math:`f_j=f(x_j)` at locations :math:`x_j`.
-  Even though KeOps does not (yet) support complex numbers, it allows users to define efficient `Fourier-Stieltjes transforms <https://en.wikipedia.org/wiki/Fourier_transform#Fourier%E2%80%93Stieltjes_transform>`_ on **non-uniform data** with real-valued trigonometric functions. |br|  |br|
+  This expression evaluates the spectral content at frequency :math:`\omega_i` of a signal :math:`f` that is represented by sampled values :math:`f_j=f(x_j)` at locations :math:`x_j`.
+  KeOps thus allows users to implement efficient `Fourier-Stieltjes transforms <https://en.wikipedia.org/wiki/Fourier_transform#Fourier%E2%80%93Stieltjes_transform>`_ on **non-uniform data** using both real- and complex-valued trigonometric functions. |br|  |br|
 
 - In **optimization theory**,
   we implement the `Legendre-Fenchel transform <https://en.wikipedia.org/wiki/Legendre_transformation>`_
@@ -195,13 +194,13 @@ We refer to our :doc:`guided tour of the KeOps++ engine <../engine/index>` for m
 High performances
 =================
 
-KeOps fits within a thriving ecosystem of Python/C++ libraries for scientific computing. So how does it compare with other acceleration franeworks such as 
+KeOps fits within a thriving ecosystem of Python/C++ libraries for scientific computing. So how does it compare with other acceleration frameworks such as 
 `Numba <https://numba.pydata.org>`_, 
 `Halide <https://halide-lang.org>`_, 
 `TVM <https://tvm.apache.org>`_,
 `Julia <https://julialang.org>`_ or 
 `JAX/XLA <https://github.com/google/jax>`_?
-To answer this question, let us now briefly explain the relationship between our library and the wider software stack for tensor computing.
+To answer this question, let us now briefly explain the relationship between our library and the wider software environment for tensor computing.
 
 
 Tensor computing on the GPU
@@ -253,9 +252,9 @@ Feel free to browse through our :doc:`gallery of tutorials <../_auto_tutorials/i
 for examples of applications.
 Among other features, KeOps supports:
 
-- Most common reduction operations: Summation, stabilized :doc:`LogSumExp reduction <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max, :doc:`ArgKMin <../_auto_tutorials/knn/plot_knn_numpy>`, :doc:`SoftMin <../_auto_examples/numpy/plot_test_softmax_numpy>`, Softmax...
-- :doc:`Block-wise sparsity masks <../python/sparsity>` and kernel matrices.
-- :doc:`High-order derivatives with respect to all parameters and variables <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>`.
-- :doc:`Non-radial kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`.
-- Inverse of positive definite linear systems through the classes :class:`torch.KernelSolve <pykeops.torch.KernelSolve>` (see also :doc:`here <../_auto_examples/pytorch/plot_test_invkernel_torch>`) and  :class:`numpy.KernelSolve <pykeops.numpy.KernelSolve>` (see also :doc:`here <../_auto_examples/numpy/plot_test_invkernel_numpy>`)
+- :doc:`Non-radial kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`, `neural networks <https://www.biorxiv.org/content/10.1101/2020.12.28.424589v1.full>`_ and other arbitary formulas.
+- Most common reduction operations: Summations, stabilized :doc:`LogSumExp reductions <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max, :doc:`ArgKMin <../_auto_tutorials/knn/plot_knn_numpy>`, :doc:`SoftMin <../_auto_examples/numpy/plot_test_softmax_numpy>`, Softmax...
+- Batch processing and :doc:`block-wise sparsity masks <../python/sparsity>`.
+- :doc:`High-order derivatives <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>` with respect to all parameters and variables.
+- The resolution of positive definite linear systems using a :doc:`conjugate gradient solver <../_auto_benchmarks/plot_benchmark_invkernel>`.
 

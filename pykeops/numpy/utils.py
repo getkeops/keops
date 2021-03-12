@@ -15,12 +15,11 @@ class numpytools:
     swap_axes = np_swap_axes
     arraytype = np.ndarray
     float_types = [float, np.float16, np.float32, np.float64]
-    
-    
+
     @staticmethod
     def is_tensor(x):
         return isinstance(x, np.ndarray)
-        
+
     @staticmethod
     def copy(x):
         return np.copy(x)
@@ -71,27 +70,27 @@ class numpytools:
 
     @staticmethod
     def detect_complex(x):
-        if type(x)==list:
-            return any(type(v)==complex for v in x)
-        elif type(x)==np.ndarray:
+        if type(x) == list:
+            return any(type(v) == complex for v in x)
+        elif type(x) == np.ndarray:
             return np.iscomplexobj(x)
         else:
-            return type(x)==complex
+            return type(x) == complex
 
     @staticmethod
     def view_as_complex(x):
-        if x.dtype=='float32':
-            return x.view('complex64')
-        elif x.dtype=='float64':
-            return x.view('complex128')
+        if x.dtype == "float32":
+            return x.view("complex64")
+        elif x.dtype == "float64":
+            return x.view("complex128")
 
     @staticmethod
     def view_as_real(x):
-        if x.dtype=='complex64':
-            return x.view('float32')
-        elif x.dtype=='complex128':
-            return x.view('float64')
-            
+        if x.dtype == "complex64":
+            return x.view("float32")
+        elif x.dtype == "complex128":
+            return x.view("float64")
+
     @staticmethod
     def dtypename(dtype):
         return dtype

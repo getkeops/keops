@@ -56,10 +56,10 @@ class LazyTensor(GenericLazyTensor):
 
     def __new__(self, x=None, axis=None, is_complex=False):
         if is_complex or torchtools.detect_complex(x):
-            return ComplexLazyTensor(x,axis)
+            return ComplexLazyTensor(x, axis)
         else:
             return object.__new__(self)
-            
+
     def __init__(self, x=None, axis=None, is_complex=False):
         super().__init__(x=x, axis=axis)
 
@@ -72,10 +72,8 @@ class LazyTensor(GenericLazyTensor):
         return LazyTensor(x=x, axis=axis, is_complex=is_complex)
 
 
-
 class ComplexLazyTensor(ComplexGenericLazyTensor):
-    r"""
-    """
+    r"""Extension of the LazyTensor class for complex operations."""
 
     def __init__(self, x=None, axis=None):
         super().__init__(x=x, axis=axis)
