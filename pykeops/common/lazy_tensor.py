@@ -1,6 +1,8 @@
 import copy
 import re
 
+import math
+
 import numpy as np
 from pykeops.common.utils import check_broadcasting
 
@@ -18,7 +20,7 @@ def is_scalar_and_equals(x, val):
         return False
 
 def is_complex_lazytensor(x):
-    return hasattr(x,"is_complex") and x.is_complex
+    return isinstance(x,ComplexGenericLazyTensor)
 
 class GenericLazyTensor:
     r"""Symbolic wrapper for NumPy arrays and PyTorch tensors. This is the abstract class,
@@ -1209,6 +1211,24 @@ class GenericLazyTensor:
         the element-wise sine of ``x``.
         """
         return self.unary("Sin")
+
+    def sinxdivx(self):
+        r"""
+        Element-wise sin(x)/x function - a unary operation.
+
+        ``x.sinxdivx()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise sinxdivx function  of ``x``.
+        """
+        return self.unary("SinXDivX")
+
+    def sinc(self):
+        r"""
+        Element-wise sinc(x) = sin(pi x) / (pi x) function - a unary operation.
+
+        ``x.sinc()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise sinc function  of ``x``.
+        """
+        return (math.pi*self).sinxdivx()
 
     def asin(self):
         r"""
