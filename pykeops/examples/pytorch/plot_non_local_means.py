@@ -30,11 +30,13 @@ import imageio
 if 'cuda' in device:
     imfile = "https://homepages.cae.wisc.edu/~ece533/images/fruits.png"
 else:
+    #imfile = "http://helios.math-info.univ-paris5.fr/~glaunes/pikagotmilk64.bmp"
     imfile = "http://helios.math-info.univ-paris5.fr/~glaunes/pikachu.bmp"
 I = torch.tensor(imageio.imread(imfile)).float().to(device)
-sigma = 5.
+sigma = 30.
 I += torch.randn(I.shape)*sigma
-h2 = (0.4*sigma)**2
+I = I.clamp(0,255)
+h2 = (1.*sigma)**2
 
 m, n, d = I.shape
 
@@ -59,11 +61,11 @@ def torch_patches(I,s):
 ###############################################################
 # Testing with PyTorch if image is not too large
 import time
-if m*n<20000:
+if True:#m*n<20000:
     start = time.time()
     P = torch_patches(I,s)
     D2 = ((P[:,None,:]-P[None,:,:])**2).sum(dim=2)
-    K = (-D2/(s**2*h2)).exp()
+    K = (-D2/(d*s**2*h2)).exp()
     C = K.sum(dim=1)
     out_torch = (K[:,:,None]*I[sd2:-sd2,sd2:-sd2,:].reshape((1,(m-s+1)*(n-s+1),d))).sum(dim=1) / C[:,None]
     out_torch = out_torch.reshape((m-s+1,n-s+1,d))
@@ -107,28 +109,27 @@ def LazyTensor_patches(I,s,axis,use_ranges=True):
 
 ###############################################################
 # Testing with KeOps - using ranges
-
-start = time.time()
-
-# creating LazyTensor objects for patches and computing
-P_i, ranges = LazyTensor_patches(I,s,axis=0)
-P_j, ranges = LazyTensor_patches(I,s,axis=1)
-D2 = P_i.sqdist(P_j)
-K = (-D2/h2).exp()
-C = K.sum(dim=1)
-ind_keep = torch.arange(m*n).view(m,n)[:-s+1,:-s+1].flatten()
-I_ = torch.zeros((m-s+1)*n-s+1,d)
-I_[ind_keep,:] = I[sd2:-sd2,sd2:-sd2,:].reshape((m-s+1)*(n-s+1),d)
-out_keops = (K*I_[None,:,:]).sum(dim=1) / C
-out_keops = out_keops[ind_keep,:]
-out_keops = out_keops.reshape((m-s+1,n-s+1,d))
-print("elapsed time with KeOps (ranges) : ",time.time()-start)
+if False:
+    start = time.time()
+    # creating LazyTensor objects for patches and computing
+    P_i, ranges = LazyTensor_patches(I,s,axis=0)
+    P_j, ranges = LazyTensor_patches(I,s,axis=1)
+    D2 = P_i.sqdist(P_j)
+    K = (-D2/(d*s**2*h2)).exp()
+    C = K.sum(dim=1)
+    ind_keep = torch.arange(m*n).view(m,n)[:-s+1,:-s+1].flatten()
+    I_ = torch.zeros((m-s+1)*n-s+1,d)
+    I_[ind_keep,:] = I[sd2:-sd2,sd2:-sd2,:].reshape((m-s+1)*(n-s+1),d)
+    out_keops = (K*I_[None,:,:]).sum(dim=1) / C
+    out_keops = out_keops[ind_keep,:]
+    out_keops = out_keops.reshape((m-s+1,n-s+1,d))
+    print("elapsed time with KeOps (ranges) : ",time.time()-start)
 
 
 
 
 ###############################################################
-# displaying the image with some results 
+# displaying the results 
 # ----------------------------------------------------
 
 from PIL import Image
