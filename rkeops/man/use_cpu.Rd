@@ -4,7 +4,12 @@
 \alias{use_cpu}
 \title{Disable GPU-computing when calling user-defined operators}
 \usage{
-use_cpu()
+use_cpu(ncore = 0)
+}
+\arguments{
+\item{ncore}{integer, number of cores used by \code{rkeops} user-defined
+operators to run computations in CPU mode. Default value is \code{0} and all
+available cores are used.}
 }
 \value{
 None
@@ -14,18 +19,22 @@ Set up \code{rkeops} runtime options to use CPU computing when calling
 user-defined operators.
 }
 \details{
-\strong{Note:} The default behavior in \code{rkeops} is to use CPU computing, thus
-calling the function \code{use_gpu} is mandatory to run computations on GPU.
+\strong{Note 1:} By default, \code{rkeops} user-defined operators run computations
+on CPU (even for GPU-compiled operators), thus calling the function
+\code{\link[=use_gpu]{use_gpu()}} is mandatory to run computations on GPU.
 
-To enable GPU computing, run \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}.
+\strong{Note 2:} By default, in CPU mode, \code{rkeops} user-defined operators run
+computations on all available cores for parallel computing. To control,
+the number of cores used by \code{rkeops} user-defined operators, you can used
+the input parameter \code{ncore}.
 }
 \examples{
 library(rkeops)
 use_cpu()
 }
 \seealso{
-\code{\link[rkeops:compile4cpu]{rkeops::compile4cpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},
-\code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}
+\code{\link[=compile4cpu]{compile4cpu()}}, \code{\link[=compile4gpu]{compile4gpu()}},
+\code{\link[=use_gpu]{use_gpu()}}
 }
 \author{
 Ghislain Durif

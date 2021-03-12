@@ -14,17 +14,22 @@ template < typename TYPE > DEVICE INLINE TYPE keops_abs(TYPE x) { return fabs(x)
 template < typename TYPE > DEVICE INLINE TYPE keops_exp(TYPE x) { return exp(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_cos(TYPE x) { return cos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sin(TYPE x) { return sin(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_sinxdivx(TYPE x) { return x ? keops_sin(x)/x : 1.0f; }
+template < typename TYPE > DEVICE INLINE void keops_sincos(TYPE x, TYPE *s, TYPE *c) { *s=sin(x); *c=cos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_relu(TYPE x) { return (x<0.0f)? 0.0f : x; }
 template < typename TYPE > DEVICE INLINE TYPE keops_step(TYPE x) { return (x<0.0f)? 0.0f : 1.0f; }
 template < typename TYPE > DEVICE INLINE TYPE keops_sign(TYPE x) { return (x>0.0f)? 1.0f : ( (x<0.0f)? -1.0f : 0.0f ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_clamp(TYPE x, TYPE a, TYPE b) { return (x<a)? a : ( (x>b)? b : x ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_clampint(TYPE x, int a, int b) { return (x<a)? a : ( (x>b)? b : x ); }
+template < typename TYPE > DEVICE INLINE TYPE keops_round(TYPE x, int d) { return d ? round(x * pow(10, d))/pow(10, d) : round(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_diffclampint(TYPE x, int a, int b) { return (x<a)? 0.0f : ( (x>b)? 0.0f : 1.0f ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_sqrt(TYPE x) { return sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE x) { return 1.0f / sqrt(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_mod(TYPE x, TYPE n, TYPE d) { return x - n * floor((x - d)/n); }
 template < typename TYPE > DEVICE INLINE TYPE keops_acos(TYPE x) { return acos(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_asin(TYPE x) { return asin(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_atan(TYPE x) { return atan(x); }
+template < typename TYPE > DEVICE INLINE TYPE keops_atan2(TYPE y, TYPE x) { return atan2(y, x); }
 
 #ifdef __CUDA_ARCH__  
 DEVICE INLINE float keops_pow(float x, int n) { return powf(x,n); } 
@@ -32,14 +37,17 @@ DEVICE INLINE float keops_fma(float x, float y, float z) { return fmaf(x,y,z); }
 DEVICE INLINE float keops_log(float x) { return logf(x); } 
 DEVICE INLINE float keops_rcp(float x) { return __frcp_rn(x); } 
 DEVICE INLINE float keops_abs(float x) { return fabsf(x); } 
+DEVICE INLINE float keops_round(float x, int d) { return d ? roundf(x * pow(10, d))/pow(10, d) : roundf(x); } 
 DEVICE INLINE float keops_exp(float x) { return expf(x); } 
 DEVICE INLINE float keops_cos(float x) { return cosf(x); } 
 DEVICE INLINE float keops_sin(float x) { return sinf(x); } 
+DEVICE INLINE void keops_sincos(float x, float *s, float *c) { sincosf(x,s,c); }
 DEVICE INLINE float keops_sqrt(float x) { return sqrtf(x); } 
 DEVICE INLINE float keops_rsqrt(float x) { return rsqrtf(x); } 
 DEVICE INLINE float keops_acos(float x) { return acosf(x); }
 DEVICE INLINE float keops_asin(float x) { return asinf(x); }
 DEVICE INLINE float keops_atan(float x) { return atanf(x); }
+DEVICE INLINE float keops_atan2(float y, float x) { return atan2f(y, x); }
 DEVICE INLINE double keops_rsqrt(double x) { return rsqrt(x); } 
    
 #if USE_HALF 

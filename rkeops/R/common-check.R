@@ -15,38 +15,61 @@
 #' @importFrom stringr str_extract
 #' @importFrom utils compareVersion
 #' @export
-check_cmake <- function(cmake_executable) {
+check_cmake <- function(cmake_executable, onLoad = FALSE) {
     out <- 0
+    
     # if NULL -> no check
-    if(!is.null(cmake_executable)) {
-        # check if string
-        if(!is.character(cmake_executable))
-            stop("`cmake_executable` input parameter should be a text string.")
-        # check if file exists
-        if(!file.exists(cmake_executable)) {
-            stop(paste0("`cmake_executable` input parameter does not ", 
-                        "correspond to an existing file."))
-        } else {
-            # get cmake version
-            tmp <- system(paste0(shQuote(cmake_executable), " --version"), 
-                          intern = TRUE)
-            tmp <- paste0(tmp, collapse = "\n")
-            # check if it is cmake
-            if(!str_detect(string = tmp, pattern = "cmake"))
-                stop(paste0("`cmake_executable` input parameter is not a ", 
-                            "path to a cmake executable."))
-            # check version number (requirement >= 3.10)
-            current_version <- str_extract(string = tmp, 
-                                           pattern = "([0-9]+.?)+")
-            expected_version <- "3.10"
-            if(compareVersion(current_version, expected_version) < 0) {
-                stop("cmake version is too old, version >= 3.10 is required")
-            }
-            out <- 1
-        }
-    } else {
-        stop("No cmake executable was provided.")
+    if(is.null(cmake_executable)) {
+        msg <- "No cmake executable was provided."
+        msg_or_error(msg, onLoad)
+        return(out)
     }
+        
+    # check if string
+    if(!is.character(cmake_executable)) {
+        msg <- "`cmake_executable` input parameter should be a text string."
+        msg_or_error(msg, onLoad)
+        return(out)
+    }
+    
+    # check if file exists
+    if(!file.exists(cmake_executable)) {
+        msg <- paste0("`cmake_executable` input parameter does not ", 
+                      "correspond to an existing file.")
+        msg_or_error(msg, onLoad)
+        return(out)
+    }
+    
+    # get cmake version
+    tmp <- tryCatch(
+        suppressWarnings(system(
+            paste0(shQuote(cmake_executable), " --version"), 
+            intern = TRUE)
+        ),
+        error = function(e) return(e)
+    )
+    
+    # check for error
+    if("error" %in% class(tmp) || length(tmp) == 0 ||
+       !any(str_detect(string = tmp, pattern = "cmake"))) {
+        msg <- paste0("`cmake_executable` input parameter is not a ", 
+                      "path to a cmake executable.")
+        msg_or_error(msg, onLoad)
+        return(out)
+    }
+    
+    # parse output
+    tmp <- paste0(tmp, collapse = "\n")
+    
+    # check version number (requirement >= 3.10)
+    current_version <- str_extract(string = tmp, 
+                                   pattern = "([0-9]+.?)+")
+    expected_version <- "3.10"
+    if(compareVersion(current_version, expected_version) < 0) {
+        stop("cmake version is too old, version >= 3.10 is required")
+    }
+    out <- 1
+    
     # return
     return(out)
 }
@@ -67,11 +90,7 @@ check_os <- function(onLoad = FALSE) {
     if(.Platform$OS.type != "unix") {
         msg <- paste0("Platform ", .Platform$OS.type, 
                       "is not supported at the moment.")
-        if(!onLoad) {
-            stop(msg)
-        } else {
-            message(msg)
-        }
+        msg_or_error(msg, onLoad)
         return(0)
     } else {
         return(1)        

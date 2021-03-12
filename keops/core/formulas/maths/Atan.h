@@ -4,7 +4,8 @@
 #include "core/autodiff/VectorizedScalarUnaryOp.h"
 #include "core/formulas/maths/Mult.h"
 #include "core/formulas/maths/Inv.h"
-#include "core/formulas/maths/Add.h"
+#include "core/formulas/maths/Sqrt.h"
+#include "core/formulas/maths/Subtract.h"
 #include "core/formulas/constants/IntConst.h"
 #include "core/formulas/maths/Square.h"
 
@@ -12,7 +13,7 @@
 namespace keops {
 
 //////////////////////////////////////////////////////////////
-////                ARCTANGENT :  Atan< F >               ////
+////                ARCTANGENT :  Atan< F >                ////
 //////////////////////////////////////////////////////////////
 
 template <class F>
