@@ -26,7 +26,7 @@ Standard math functions :
  *      Log<F>                         : logarithm of F (vectorized)
  *      XLogX<F>                       : function F*log(F) (vectorized)
  *      Sin<F>                         : sine of F (vectorized)
- *      Sinc<F>                        : sinc function of F (vectorized)
+ *      SinXDivX<F>                    : function of sin(F)/F, with value 1 at 0 (vectorized)
  *      Cos<F>                         : cosine of F (vectorized)
  *      Acos<F>                        : arc-cosine of F (vectorized)
  *      Asin<F>                        : arc-sine of F (vectorized)

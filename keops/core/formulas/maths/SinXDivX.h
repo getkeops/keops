@@ -11,20 +11,20 @@
 
 namespace keops {
 
-//////////////////////////////////////////////////////////////
-////                 SINC :  Sinc < F >                   ////
-//////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+////         SINXDIVX :  SinXDivX < F >                   ////
+////////////////////////////////////////////////////////////////////
 
 
 template<class F>
-struct Sinc : VectorizedScalarUnaryOp<Sinc, F> {
+struct SinXDivX : VectorizedScalarUnaryOp<SinXDivX, F> {
 
-  static void PrintIdString(::std::stringstream &str) { str << "Sinc"; }
+  static void PrintIdString(::std::stringstream &str) { str << "SinXDivX"; }
 
   template < typename TYPE > 
   struct Operation_Scalar {
 	DEVICE INLINE void operator() (TYPE &out, TYPE &outF) {
-    	  out = keops_sinc(outF);
+    	  out = keops_sinxdivx(outF);
     }
   };
  
@@ -32,6 +32,6 @@ struct Sinc : VectorizedScalarUnaryOp<Sinc, F> {
   using DiffT = typename F::template DiffT<V, Mult<Subtract<Divide<Cos<F>, F>, Divide<Sin<F>,Square<F>>>, GRADIN>>;
 };
 
-#define Sinc(f) KeopsNS<Sinc<decltype(InvKeopsNS(f))>>()
+#define SinXDivX(f) KeopsNS<SinXDivX<decltype(InvKeopsNS(f))>>()
 
 }

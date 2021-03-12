@@ -5,8 +5,8 @@ from pykeops.torch import LazyTensor
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-x = torch.zeros(5, 1)*2*math.pi
-y = x.data.clone()/math.pi # torch.sinc is defined as sin(pi*x)/pi*x
+x = torch.rand(5, 1)*2*math.pi
+y = x.data.clone()
 x = x.to(device)
 y = y.to(device)
 x.requires_grad = True
@@ -20,9 +20,6 @@ assert torch.abs(s1 - s2) < 1e-3, torch.abs(s1 - s2)
 
 s1.backward()
 s2.backward()
-
-print(x.grad)
-print(y.grad)
 
 print("grad_s1 - grad_s2", torch.max(torch.abs(x.grad - y.grad)).item())
 assert torch.max(torch.abs(x.grad - y.grad)) < 1e-3
