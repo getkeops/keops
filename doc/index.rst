@@ -34,7 +34,7 @@ Math libraries represent most objects as matrices and tensors:
   dense numerical arrays :math:`(M_{i,j}) = (M[i,j]) \in \mathbb{R}^{\mathrm{M}\times\mathrm{N}}`.
   This representation is convenient and well-supported,
   but also puts a **heavy load** on the memories of our computers.
-  Unfortunately, **large arrays are expensive** to move around and
+  Unfortunately, **large arrays are cumbersome** to move around and
   may not even fit in RAM or GPU memories.
 
   In practice, this means that a majority of scientific programs are **memory-bound**.
@@ -158,7 +158,8 @@ from **shape analysis** (registration, geometric deep learning, optimal transpor
 to **machine learning** (kernel methods, k-means, UMAP...), 
 **Gaussian processes**, computational **biology** and **physics**.
 
-KeOps provides core routines for the following projects and libraries:
+Among other projects,
+KeOps provides core routines for the following packages:
 
 * `GPyTorch <https://docs.gpytorch.ai/en/stable/examples/02_Scalable_Exact_GPs/KeOps_GP_Regression.html>`_ 
   (from the universities of Cornell, Columbia, Pennsylvania) and 
@@ -205,7 +206,7 @@ If you use this code in a research paper, **please cite**:
 
 
 For applications to **geometric (deep) learning**, 
-you may also consider our `NeurIPS 2020 paper <jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_:
+you may also consider our `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_:
 
 .. code-block:: bibtex
 
@@ -240,7 +241,8 @@ a report on our `GitHub issue tracker <https://github.com/getkeops/keops/issues>
 - `Tanguy Lefort <https://github.com/tanglef>`_, from the University of Montpellier: conjugate gradient solver.
 - `Mauricio Diaz <https://github.com/mdiazmel>`_, from the University of Montpellier: CI setup.
 - `Benoît Martin <https://github.com/benoitmartin88>`_, from the Aramis Inria team: multi-GPU support.
-- `Francis Williams <https://www.fwilliams.info>`_, from New York University: arc-cosine operation.
+- `Francis Williams <https://www.fwilliams.info>`_, from New York University: maths operations.
+- `Kshiteej Kalambarkar <https://www.linkedin.com/in/kshiteejkalambarkar/>`_, from Quansight: maths operations.
 - `D. J. Sutherland <https://djsutherland.ml>`_, from the TTI-Chicago: bug fix in the Python package.
 - `David Völgyes <https://scholar.google.no/citations?user=ngT2GvMAAAAJ&hl=en>`_, from the Norwegian Institute of Science and Technology: bug fix in the formula parser.
 

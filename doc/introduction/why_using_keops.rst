@@ -5,7 +5,7 @@ Scalable kernel operations
 ==========================
 
 KeOps can be used on a broad class of problems (:ref:`part.formula`).
-But the first motivation behind this library is very simple:
+But the first motivation behind this library is simple:
 we intend to accelerate the computation of Gaussian convolutions on point clouds, 
 also known as **RBF kernel products** on sampled data. 
 
@@ -56,6 +56,11 @@ Then, referring to the :math:`p`'s as **parameters**, the :math:`x_i`'s as **i-v
 
 alongside its **derivatives** with respect to all variables and parameters.
 
+
+.. |br| raw:: html
+
+  <br/>
+
 Examples of applications
 =========================
 
@@ -68,64 +73,101 @@ This type of computation is common in machine learning and applied mathematics:
     a_i \gets \sum_{j=1}^{\mathrm{N}} k(x_i,y_j)\, b_j~,  \qquad i=1,\dots,\mathrm{M}~.
 
   This operation is key to `spline regression <https://en.wikipedia.org/wiki/Smoothing_spline>`_, `kernel methods <https://en.wikipedia.org/wiki/Kernel_method>`_ and the study of `Gausian processes <https://en.wikipedia.org/wiki/Gaussian_process>`_.
-  In physics, we often use Newton or Coulomb kernels such as :math:`k(x,y)=1/\|x-y\|^2`: accelerating kernel products is the first step towards fast `N-body simulations <https://en.wikipedia.org/wiki/N-body_simulation>`_.
+  In physics, we often use Newton or Coulomb kernels such as :math:`k(x,y)=1/\|x-y\|^2`: accelerating kernel products is the first step towards fast `N-body simulations <https://en.wikipedia.org/wiki/N-body_simulation>`_. |br|  |br|
 
-- **K-Nearest Neighbors queries** correspond to the case
-  where the reduction is an "arg-K-min" operator
+- **K-Nearest Neighbors queries** are implemented using an "arg-K-min" reduction
   that returns, for all index :math:`i`, the indices :math:`(j_1,\dots,j_{\mathrm{K}})` that correspond to the K smallest values of a distance or similarity metric :math:`F(x_i,y_j)`. For instance, in a Euclidean space, we compute:
 
   .. math::
     a_i \gets \arg_{\mathrm{K}} \min_{j=1,\,\dots\,,\,\mathrm{N}} \|x_i - y_j\|^2 ~,  \qquad i=1,\dots,\mathrm{M}~,
 
   where :math:`\| x - y \|^2 = \sum_k (x[k] - y[k])^2` is a sum of squared distances.
-  K-NN search is a key building block for numerous methods in data sciences, from `simple classifiers <https://scikit-learn.org/stable/modules/neighbors.html>`_ to advanced methods in `topological data analysis <https://en.wikipedia.org/wiki/Topological_data_analysis>`_ and `dimensionality reduction <https://umap-learn.readthedocs.io/en/latest/>`_. KeOps intends to provide fast runtimes for **all types of metrics**, beyond the standard Euclidean distance and cosine similarity: we refer to our :doc:`benchmarks <../_auto_benchmarks/plot_benchmark_KNN>` for an extensive discussion.
+  K-NN search is a key building block for numerous methods in data sciences, from `simple classifiers <https://scikit-learn.org/stable/modules/neighbors.html>`_ to advanced methods in `topological data analysis <https://en.wikipedia.org/wiki/Topological_data_analysis>`_ and `dimensionality reduction <https://umap-learn.readthedocs.io/en/latest/>`_. KeOps intends to provide fast runtimes for **all types of metrics**, beyond the standard Euclidean distance and cosine similarity: we refer to our :doc:`benchmarks <../_auto_benchmarks/plot_benchmark_KNN>` for an extensive discussion. |br|  |br|
 
-- In computer graphics and geometric deep learning, 
+- In **computer graphics** and **geometric deep learning**, we implement
   **point cloud convolutions** and 
-  **message passing layers** correspond to cases where the function:
+  **message passing layers** using a function:
   
   .. math::
     F(p,x_i,y_j,f_j)=\text{Window}(x_i,y_j)\cdot \text{Filter}(p,x_i,y_j,f_j)
     
-  is the product of a neighborhood function :math:`\text{Window}(x_i,y_j)` between point positions :math:`x_i`, :math:`y_j` and a parametric filter that is applied to a collection of feature vectors :math:`f_j`. The reduction or "pooling" operator is usually a (weighted) sum or a maximum.
+  that is the product of a neighborhood :math:`\text{Window}(x_i,y_j)` between point positions :math:`x_i`, :math:`y_j` and of a parametric filter that is applied to a collection of feature vectors :math:`f_j`. The reduction or "pooling" operator is usually a (weighted) sum or a maximum.
 
-  Most architectures in computer vision rely on K-Nearest Neighbors graphs (":math:`x_i \leftrightarrow y_j`") to define sparse neighborhood windows that are equal to 1 if :math:`y_j` is one of the closest neighbors of :math:`x_i` and 0 otherwise. The point convolution then reads:
+  Most architectures in computer vision rely on K-Nearest Neighbors graphs (":math:`x_i \leftrightarrow y_j`") to define sparse neighborhood windows. These are equal to 1 if :math:`y_j` is one of the closest neighbors of :math:`x_i` and 0 otherwise. The point convolution then reads:
 
   .. math::
     a_i \gets \sum_{\substack{j \text{ such that }\\ x_i \leftrightarrow y_j}} \text{Filter}(p,x_i,y_j,f_j) ~.
   
-  Crucially, KeOps now also allows users to work with **global point convolutions** without compromising on performances: we refer to the Section 5.3 of our `NeurIPS 2020 paper <http://jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_ and to `this presentation <https://www.biorxiv.org/content/10.1101/2020.12.28.424589v1.full.pdf>`_ of quasi-geodesic convolutions on protein surfaces for a detailed discussion.
+  Crucially, KeOps now also lets users work with **global point convolutions** without compromising on performances: we refer to the Section 5.3 of our `NeurIPS 2020 paper <http://jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_ and to `this presentation <https://www.biorxiv.org/content/10.1101/2020.12.28.424589v1.full.pdf>`_ of quasi-geodesic convolutions on protein surfaces for a detailed discussion. |br|  |br|
 
-- In `transformer networks <https://en.wikipedia.org/wiki/Transformer_(machine_learning_model)>`_ for language processing, 
-  **attention layers** are implemented using an exponentiated dot product :math:`F(q_i,k_j)=\exp(\langle q_i,k_j\rangle/ \sqrt{D})` between *query* (:math:`q_i`) and *key* (:math:`k_j`) vectors of dimension :math:`\mathrm{D}`. The reduction is a normalized matrix-vector product with an array of *value* vectors :math:`v_j` (a **soft maximum**) and the overall computation reads:
+- In **natural language processing**,
+  we implement **attention layers** for `transformer networks <https://en.wikipedia.org/wiki/Transformer_(machine_learning_model)>`_ using an exponentiated dot product :math:`F(q_i,k_j)=\exp(\langle q_i,k_j\rangle/ \sqrt{\mathrm{D}})` between *query* (:math:`q_i`) and *key* (:math:`k_j`) vectors of dimension :math:`\mathrm{D}`. The reduction is a normalized matrix-vector product with an array of *value* vectors :math:`v_j` (a **soft maximum**) and the overall computation reads:
 
   .. math::
     a_i \gets \frac{
      \sum_{j=1}^{\mathrm{N}}
-     \exp\big[ \langle q_i,k_j\rangle / \sqrt{D} \big]~\cdot~ v_j
+     \exp\big[ \langle q_i,k_j\rangle / \sqrt{\mathrm{D}} \big]~\cdot~ v_j
     }{
     \sum_{j=1}^{\mathrm{N}}
-    \exp\big[ \langle q_i,k_j\rangle / \sqrt{D}\big]
+    \exp\big[ \langle q_i,k_j\rangle / \sqrt{\mathrm{D}}\big]
     }~.
 
-  It can be implemented efficiently using the KeOps "Sum-SoftMax-Weight" reduction.
+  It can be implemented efficiently using the KeOps "Sum-SoftMax-Weight" reduction.  |br| |br|
 
 
-- The **Fourier transform** corresponds to the case where
-  the reduction is a sum and the formula:
+- We implement the **Fourier transform** using
+  a sum reduction and a formula:
   
   .. math::
     F(\omega_i,x_j,f_j)~=~
     \begin{bmatrix}
     \cos(\langle \omega_i,x_j\rangle)~\cdot~ f_j \\ 
     \sin(\langle \omega_i,x_j\rangle)~\cdot~ f_j
-    \end{bmatrix}
+    \end{bmatrix}~.
 
-  evaluates the spectral content at frequency :math:`\omega_i` of a function :math:`f` that is represented by sampled values :math:`f_j=f(x_j)` at locations :math:`x_j`.
-  Even though KeOps does not (yet) support complex numbers, it thus allows users to define efficient `Fourier-Stieltjes transforms <https://en.wikipedia.org/wiki/Fourier_transform#Fourier%E2%80%93Stieltjes_transform>`_ on **non-uniform data** with real-valued trigonometric functions.
+  This trigonometric function evaluates the spectral content at frequency :math:`\omega_i` of a signal :math:`f` that is represented by sampled values :math:`f_j=f(x_j)` at locations :math:`x_j`.
+  Even though KeOps does not (yet) support complex numbers, it allows users to define efficient `Fourier-Stieltjes transforms <https://en.wikipedia.org/wiki/Fourier_transform#Fourier%E2%80%93Stieltjes_transform>`_ on **non-uniform data** with real-valued trigonometric functions. |br|  |br|
+
+- In **optimization theory**,
+  we implement the `Legendre-Fenchel transform <https://en.wikipedia.org/wiki/Legendre_transformation>`_
+  or `convex conjugate <https://en.wikipedia.org/wiki/Convex_conjugate>`_
+  of an arbitrary function :math:`f(x)`
+  that is sampled on a point cloud :math:`x_1, \dots, x_\mathrm{N}`
+  with a vector of values :math:`f_j = f(x_j)`
+  using a dot product and a maximum reduction:
+
+  .. math::
+    \forall u_i \in \mathbb{R}^\mathrm{D},~~
+    f^*_i = f^*(u_i) ~\gets~
+    \max_{j=1,\, \dots\,,\,\mathrm{N}} \langle u_i, x_j\rangle - f_j.
+
+
+- In **imaging sciences**, 
+  we implement the `distance transform <https://en.wikipedia.org/wiki/Distance_transform>`_ 
+  of a binary mask :math:`m_j = m(y_j) \in \{0, 1\}`
+  that is defined on the rectangle domain :math:`[\![1, \text{W} ]\!] \times [\![1, \text{H} ]\!]`
+  using a minimum reduction and a squared distance function:
+  
+  .. math::
+    \forall x_i \in [\![1, \text{W} ]\!] \times [\![1, \text{H} ]\!],~~
+    d_i = d(x_i) ~\gets~ 
+    \min_{y_j \in [\![1, \text{W} ]\!] \times [\![1, \text{H} ]\!]}
+    \|x_i-y_j\|^2 - \log(m_j) .
+
+  We note that just like the Legendre-Fenchel transform,
+  the distance transform is **separable** and can be implemented
+  efficiently on 2D and 3D grids.
+  Just as with `separable Gaussian convolution <https://en.wikipedia.org/wiki/Gaussian_blur#Implementation>`_,
+  the trick is to apply the transform **successively** on the lines 
+  and columns of the image.
+  Thanks to its native support for batch processing,
+  KeOps is ideally suited to these manipulations:
+  it can be used to implement all types of fast separable transforms 
+  on the GPU. |br|  |br|
+
 
 - In `optimal transport theory <https://optimaltransport.github.io/book/>`_, 
-  the **C-transform** is implemented using a "min" reduction and a formula :math:`F(x_i,y_j,g_j)=\text{C}(x_i,y_j) -g_j` that penalizes the value of the ground cost function :math:`\text{C}` by that of the dual potential :math:`g` :
+  we implement the **C-transform** using a "min" reduction and a formula :math:`F(x_i,y_j,g_j)=\text{C}(x_i,y_j) -g_j` that penalizes the value of the ground cost function :math:`\text{C}` by that of the dual potential :math:`g` :
 
   .. math::
     a_i \gets \min_{j=1,\, \dots\,,\,\mathrm{N}} \big[ \text{C}(x_i,y_j) - g_j \big],  \qquad i=1,\dots,\mathrm{M}~.
@@ -135,10 +177,11 @@ This type of computation is common in machine learning and applied mathematics:
   .. math::
     a_i \gets - \varepsilon \cdot \log \sum_{j=1}^{\mathrm{N}} \exp \tfrac{1}{\varepsilon} \big[ g_j - \text{C}(x_i,y_j) \big],  \qquad i=1,\dots,\mathrm{M}~.
 
-  As detailed in our `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_, KeOps speeds up modern optimal transport solvers by **one to three orders of magnitude**, from standard auction iterations to multiscale Sinkhorn loops. A collection of reference solvers is provided by the `GeomLoss library <https://www.kernel-operations.io/geomloss>`_, that now scales up to millions of samples in seconds.
+  As detailed in our `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_, KeOps speeds up modern optimal transport solvers by **one to three orders of magnitude**, from standard auction iterations to multiscale Sinkhorn loops. A collection of reference solvers is provided by the `GeomLoss library <https://www.kernel-operations.io/geomloss>`_, that now scales up to millions of samples in seconds. |br|  |br|
 
 - Numerous **particle** and **swarming** models
-  rely on **interaction steps** that fit this template to update the positions and inner states of their agents. For instance, on modest gaming hardware, KeOps can scale up simulations of `Vicsek-like systems <https://en.wikipedia.org/wiki/Vicsek_model>`_ to millions of active swimmers: this allows researchers to make original conjectures on their models with a minimal amount of programming effort.
+  rely on **interaction steps** that fit this template to update the positions and inner states of their agents. For instance, on modest gaming hardware, KeOps can scale up simulations of `Vicsek-like systems <https://en.wikipedia.org/wiki/Vicsek_model>`_ to 
+  `millions of active swimmers and flyers <https://arxiv.org/pdf/2101.10864.pdf>`_: this allows researchers to make original conjectures on their models with a minimal amount of programming effort.
 
 
 
@@ -152,8 +195,10 @@ We refer to our :doc:`guided tour of the KeOps++ engine <../engine/index>` for m
 High performances
 =================
 
-KeOps fits into a thriving ecosystem of Python/C++ libraries for scientific computing. So how does it compare with other acceleration franeworks such as ?
-To answer this question, Let us now briefly explain the relationship between our library, and the 
+KeOps fits within a thriving ecosystem of Python/C++ libraries for scientific computing. So how does it compare with other acceleration franeworks such as 
+Numba, Halide, Julia or JAX/XLA?
+To answer this question, let us now briefly explain the relationship between our library and the wider software stack for tensor computing.
+
 
 Tensor computing on the GPU
 ----------------------------
@@ -162,10 +207,9 @@ In recent years, deep learning frameworks such as `PyTorch  <http://pytorch.org>
 `JAX <https://github.com/google/jax>`_ and `TensorFlow <http://www.tensorflow.org>`_ have evolved into fully-fledged applied math libraries. With negligible overhead, they bring **automatic differentiation** and **seamless GPU support** to research communities that were used to Matlab, NumPy and other tensor-centric frameworks.
 
 Unfortunately though, **no magic** is involved: optimized C++/CUDA codes still have to be written for every operation that is provided to end-users, from matrix-vector products to fast Fourier transforms. Supporting all the standard mathematical routines thus comes at a **huge engineering cost** for the developers of the main frameworks. 
-This
 
-As of today, their efforts have been mostly focused on the operations that are needed to implement **(Convolutional) Neural Networks**: 
-dense **linear algebra** routines and convolutions on **grids**, such as images and volumes.
+As of today, efforts in the machine learning community have been mostly focused on the operations that are needed to implement **(Convolutional) Neural Networks**: 
+linear algebra routines on **dense matrices** and convolutions on **grids**, such as images and volumes.
 This 
 Even if other operations are also supported, they seldom
 benefit from the same level of integration.
