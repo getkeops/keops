@@ -1,3 +1,4 @@
+
 """
 =======================================
 Image denoising with non local means 
@@ -16,7 +17,7 @@ Denoising via non local means (brute-force)
 import torch
 from pykeops.torch import LazyTensor
 
-id_device = 0
+id_device = 1
 device = 'cuda:'+str(id_device) if torch.cuda.is_available() else 'cpu'
 
 ###############################################################
@@ -34,7 +35,7 @@ else:
     imfile = "http://helios.math-info.univ-paris5.fr/~glaunes/pikachu.bmp"
 I = torch.tensor(imageio.imread(imfile)).float().to(device)
 sigma = 30.
-I += torch.randn(I.shape)*sigma
+I += torch.randn(I.shape, device=device)*sigma
 I = I.clamp(0,255)
 h2 = (1.*sigma)**2
 
@@ -61,7 +62,7 @@ def torch_patches(I,s):
 ###############################################################
 # Testing with PyTorch if image is not too large
 import time
-if True:#m*n<20000:
+if m*n<20000:
     start = time.time()
     P = torch_patches(I,s)
     D2 = ((P[:,None,:]-P[None,:,:])**2).sum(dim=2)
@@ -109,7 +110,7 @@ def LazyTensor_patches(I,s,axis,use_ranges=True):
 
 ###############################################################
 # Testing with KeOps - using ranges
-if False:
+if True:
     start = time.time()
     # creating LazyTensor objects for patches and computing
     P_i, ranges = LazyTensor_patches(I,s,axis=0)
@@ -118,7 +119,7 @@ if False:
     K = (-D2/(d*s**2*h2)).exp()
     C = K.sum(dim=1)
     ind_keep = torch.arange(m*n).view(m,n)[:-s+1,:-s+1].flatten()
-    I_ = torch.zeros((m-s+1)*n-s+1,d)
+    I_ = torch.zeros((m-s+1)*n-s+1,d, device=device)
     I_[ind_keep,:] = I[sd2:-sd2,sd2:-sd2,:].reshape((m-s+1)*(n-s+1),d)
     out_keops = (K*I_[None,:,:]).sum(dim=1) / C
     out_keops = out_keops[ind_keep,:]
@@ -134,12 +135,15 @@ if False:
 
 from PIL import Image
 import numpy as np
+import matplotlib.pyplot as plt
 def plot_image(I):
     I = I.cpu().numpy().astype(np.uint8)
     I = Image.fromarray(I, 'RGB')
-    I.resize((256,256)).show()
+    I = I.resize((256,256))
+    plt.imshow(I)
+
 plot_image(I)
-plot_image(out_torch)
-
-
+plt.figure()
+plot_image(out_keops)
+plt.show()
 
