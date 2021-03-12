@@ -21,6 +21,7 @@ lib/benchmark
 lib/gtest
 lib/sequences/.appveyor.yml
 lib/sequences/.clang-format
+lib/sequences/.clang-tidy
 lib/sequences/.git
 lib/sequences/.travis.yml
 lib/sequences/.conan

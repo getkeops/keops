@@ -39,7 +39,7 @@ operator. The user just needs to choose regarding which variable (given by
 name or by position starting at 0), they want to compute the partial
 derivative.
 
-The function \code{keops_grad} then calls the function \code{\link[rkeops:keops_kernel]{rkeops::keops_kernel()}}
+The function \code{keops_grad} then calls the function \code{\link[=keops_kernel]{keops_kernel()}}
 to compile a new operator corresponding to the partial derivative of the
 input operator.
 
@@ -89,7 +89,7 @@ res <- op(input)
 }
 }
 \seealso{
-\code{\link[rkeops:keops_kernel]{rkeops::keops_kernel()}}
+\code{\link[=keops_kernel]{keops_kernel()}}
 }
 \author{
 Ghislain Durif

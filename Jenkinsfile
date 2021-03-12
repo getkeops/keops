@@ -160,7 +160,7 @@ pipeline {
     }
 
 
-
+/* skipping Doc stage because Oban computer is currently down as of march 9th 2021 - Joan
 // ----------------------------------------------------------------------------------------
     stage('Doc') {
       when { buildingTag() }
@@ -182,6 +182,7 @@ pipeline {
         }
       }
     }
+*/
 
 // ----------------------------------------------------------------------------------------
     stage('Deploy') {

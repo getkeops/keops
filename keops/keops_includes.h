@@ -79,10 +79,13 @@
 #include "core/formulas/maths/ReLu.h"
 #include "core/formulas/maths/Clamp.h"
 #include "core/formulas/maths/ClampInt.h"
+#include "core/formulas/maths/Mod.h"
+#include "core/formulas/maths/Round.h"
 #include "core/formulas/maths/Powf.h"
 #include "core/formulas/maths/Sqrt.h"
 #include "core/formulas/maths/Rsqrt.h"
 #include "core/formulas/maths/Atan.h"
+#include "core/formulas/maths/Atan2.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/GradMatrix.h"
 #if ((__CUDACC_VER_MAJOR__ * 1000 + __CUDACC_VER_MINOR__ * 100 + __CUDACC_VER_BUILD__) >= 11100)
@@ -106,6 +109,22 @@
 #include "core/formulas/norms/WeightedSqDist.h"
 #include "core/formulas/norms/WeightedSqNorm.h"
 
+// operations on complex
+#include "core/formulas/complex/ComplexReal.h"
+#include "core/formulas/complex/ComplexImag.h"
+#include "core/formulas/complex/Real2Complex.h"
+#include "core/formulas/complex/Imag2Complex.h"
+#include "core/formulas/complex/ComplexAngle.h"
+#include "core/formulas/complex/Conj.h"
+#include "core/formulas/complex/ComplexExp1j.h"
+#include "core/formulas/complex/ComplexSum.h"
+#include "core/formulas/complex/ComplexSquareAbs.h"
+#include "core/formulas/complex/ComplexAbs.h"
+#include "core/formulas/complex/ComplexExp.h"
+#include "core/formulas/complex/ComplexRealScal.h"
+#include "core/formulas/complex/ComplexScal.h"
+#include "core/formulas/complex/ComplexMult.h"
+#include "core/formulas/complex/ComplexDivide.h"
 
 // import all reductions
 #include "core/reductions/Sum_Reduction.h"

@@ -4,7 +4,7 @@
 \alias{check_cmake}
 \title{Check cmake version}
 \usage{
-check_cmake(cmake_executable)
+check_cmake(cmake_executable, onLoad = FALSE)
 }
 \arguments{
 \item{cmake_executable}{text string, path to cmake

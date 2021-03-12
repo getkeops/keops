@@ -19,8 +19,8 @@ The function \code{get_rkeops_option} returns the current value of a specific
 \details{
 \code{rkeops} global options includes two lists defining options used at
 compilation of user-defined operators or at runtime. These two list
-contains specific informations (see \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} respectively, in particular for default values).
+contains specific informations (see \code{\link[=compile_options]{compile_options()}} and
+\code{\link[=runtime_options]{runtime_options()}} respectively, in particular for default values).
 
 With the function \code{get_rkeops_option}, you get the value of a specific
 \code{rkeops} option among:
@@ -28,10 +28,10 @@ With the function \code{get_rkeops_option}, you get the value of a specific
 \item \code{rkeops} compile options: rkeops_dir\verb{(not recommended),}build_dir\verb{,  }src_dir\verb{(not recommended),}precision\verb{, }verbosity\verb{,  }use_cuda_if_possible\verb{, }col_major\verb{(not recommended),}debug`
 \item \code{rkeops} runtime options: \code{tagCpuGpu}, \code{tag1D2D}, \code{tagHostDevice},
 \code{device_id}
-These options are set with the functions \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}} and
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}. To know which values are allowed for which
-options, you can check \code{\link[rkeops:compile_options]{rkeops::compile_options()}} and
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.
+These options are set with the functions \code{\link[=set_rkeops_options]{set_rkeops_options()}} and
+\code{\link[=set_rkeops_option]{set_rkeops_option()}}. To know which values are allowed for which
+options, you can check \code{\link[=compile_options]{compile_options()}} and
+\code{\link[=runtime_options]{runtime_options()}}.
 }
 }
 \examples{
@@ -40,9 +40,9 @@ library(rkeops)
 get_rkeops_option("device_id")
 }
 \seealso{
-\code{\link[rkeops:get_rkeops_options]{rkeops::get_rkeops_options()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}
+\code{\link[=get_rkeops_options]{get_rkeops_options()}}, \code{\link[=compile_options]{compile_options()}},
+\code{\link[=runtime_options]{runtime_options()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}},
+\code{\link[=set_rkeops_option]{set_rkeops_option()}}
 }
 \author{
 Ghislain Durif
