@@ -22,17 +22,18 @@ device = 'cuda:'+str(id_device) if torch.cuda.is_available() else 'cpu'
 
 ###############################################################
 # Parameters (s size of block, K number of nearest neighbours)
-s, K = 5, 10
-sd2 = s//2
+K = 10
 
 ###############################################################
 # Loading image
 import imageio
 if 'cuda' in device:
     imfile = "https://homepages.cae.wisc.edu/~ece533/images/fruits.png"
+    s = 5
 else:
-    #imfile = "http://helios.math-info.univ-paris5.fr/~glaunes/pikagotmilk64.bmp"
     imfile = "http://helios.math-info.univ-paris5.fr/~glaunes/pikachu.bmp"
+    s = 3
+sd2 = s//2
 I = torch.tensor(imageio.imread(imfile)).float().to(device)
 sigma = 30.
 I += torch.randn(I.shape, device=device)*sigma
@@ -139,11 +140,9 @@ import matplotlib.pyplot as plt
 def plot_image(I):
     I = I.cpu().numpy().astype(np.uint8)
     I = Image.fromarray(I, 'RGB')
-    I = I.resize((256,256))
+    plt.figure(figsize=(6,6))
     plt.imshow(I)
 
 plot_image(I)
-plt.figure()
 plot_image(out_keops)
 plt.show()
-
