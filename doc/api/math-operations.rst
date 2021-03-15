@@ -83,6 +83,7 @@ Elementary functions:
 ``Log(f)``                element-wise natural logarithm
 ``XLogX(f)``              computes ``f * log(f)`` element-wise (with value ``0`` at ``0``) 
 ``Sin(f)``                element-wise sine function
+``SinXDivX(f)``           function ``sin(f)/f`` element-wise (with value ``1`` at ``0``)
 ``Asin(f)``               element-wise arc-sine function
 ``Cos(f)``                element-wise cosine function
 ``Acos(f)``               element-wise arc-cosine function
