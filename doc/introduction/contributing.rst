@@ -31,7 +31,7 @@ you may help us to develop KeOps as follows:
    All suggestions are welcome!
    |br| |br|
 
-#. **Let us now about your work.**
+#. **Let us know about your work.**
    We are always happy to learn about
    new use cases for KeOps.
    If you are using this library in your
@@ -72,7 +72,7 @@ you may help us to develop KeOps as follows:
    of the `Pythonic compilation engine <https://github.com/getkeops/keops/tree/python_engine/keops/python_engine>`_
    that we are scheduling for the summer of 2021.
    You may prefer to wait until then to start
-   dealing with the KeOps++ engine!
+   dealing with KeOps++!
    |br| |br|
 
 
@@ -110,4 +110,4 @@ helping new developers to contribute
 to KeOps is one of our main targets for 2021.
 With a simpler compilation engine and C++ code structure,
 KeOps should become much easier to extend and maintain
-in the long term.
+in the long run.

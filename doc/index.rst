@@ -19,8 +19,9 @@ Compared with a PyTorch GPU baseline, KeOps provides
 a **x10-x100 speed-up** on a wide range of geometric applications,
 from kernel methods to geometric deep learning.
 
-The project is hosted on `GitHub <https://github.com/getkeops/keops>`_.
-
+The project is hosted on `GitHub <https://github.com/getkeops/keops>`_,
+under the permissive `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_. |br|  
+|space| |PyPi version| |Downloads| |R version| |RDownloads| |br| |br|
 
 .. figure:: _static/symbolic_matrix.svg
     :width: 90% 
@@ -310,3 +311,19 @@ Table of contents
    formulas/index
    conclusion/conclusion
 
+.. |PyPi version| image:: https://img.shields.io/pypi/v/pykeops?color=blue
+   :target: https://pypi.org/project/pykeops/
+.. |Downloads| image:: https://pepy.tech/badge/pykeops?color=green
+   :target: https://pepy.tech/project/pykeops
+.. |R version| image:: https://img.shields.io/cran/v/rkeops?color=yellowgreen
+   :target: https://cran.r-project.org/web/packages/rkeops/index.html
+.. |RDownloads| image:: http://cranlogs.r-pkg.org/badges/grand-total/rkeops?color=yellowgreen
+   :target: https://cran.r-project.org/web/packages/rkeops/index.html
+   
+.. |space| raw:: html
+
+   &emsp;
+
+.. |br| raw:: html
+
+  <br/>

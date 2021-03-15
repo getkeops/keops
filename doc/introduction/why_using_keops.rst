@@ -252,7 +252,7 @@ Feel free to browse through our :doc:`gallery of tutorials <../_auto_tutorials/i
 for examples of applications.
 Among other features, KeOps supports:
 
-- :doc:`Non-radial kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`, `neural networks <https://www.biorxiv.org/content/10.1101/2020.12.28.424589v1.full>`_ and other arbitary formulas.
+- :doc:`Non-radial kernels <../_auto_examples/pytorch/plot_anisotropic_kernels>`, `neural networks <https://www.biorxiv.org/content/10.1101/2020.12.28.424589v1.full>`_ and other arbitrary formulas.
 - Most common reduction operations: Summations, stabilized :doc:`LogSumExp reductions <../_auto_examples/pytorch/plot_generic_syntax_pytorch_LSE>`, :doc:`Min <../_auto_tutorials/kmeans/plot_kmeans_numpy>`, Max, :doc:`ArgKMin <../_auto_tutorials/knn/plot_knn_numpy>`, :doc:`SoftMin <../_auto_examples/numpy/plot_test_softmax_numpy>`, Softmax...
 - Batch processing and :doc:`block-wise sparsity masks <../python/sparsity>`.
 - :doc:`High-order derivatives <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>` with respect to all parameters and variables.
