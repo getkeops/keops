@@ -194,7 +194,7 @@ for 2021-2023 in three main axes.
    repository could provide us with a convenient
    interface to these libraries: 
    preliminary plans are detailed on our
-   GitHub `projects page <https://github.com/getkeops/keops/projects>`_.
+   GitHub `project page <https://github.com/getkeops/keops/projects>`_.
    |br| |br|
 
 #. **Test suite.** 
