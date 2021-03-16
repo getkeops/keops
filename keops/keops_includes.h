@@ -88,7 +88,7 @@
 #include "core/formulas/maths/Atan2.h"
 #include "core/formulas/maths/MatVecMult.h"
 #include "core/formulas/maths/GradMatrix.h"
-#if ((__CUDACC_VER_MAJOR__ * 1000 + __CUDACC_VER_MINOR__ * 100 + __CUDACC_VER_BUILD__) >= 11100)
+#if ((__CUDACC_VER_MAJOR__ * 1000 + __CUDACC_VER_MINOR__ * 100 + __CUDACC_VER_BUILD__) >= 11000)
     #include "core/formulas/maths/TensorDotNoTao.h"
 #else
     #include "core/formulas/maths/TensorDot.h"
