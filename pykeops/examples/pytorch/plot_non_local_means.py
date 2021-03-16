@@ -137,12 +137,13 @@ if True:
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
-def plot_image(I):
+def plot_image(I, title=""):
     I = I.cpu().numpy().astype(np.uint8)
     I = Image.fromarray(I, 'RGB')
-    plt.figure(figsize=(6,6))
+    fig = plt.figure(figsize=(6,6))
+    fig.suptitle(title)
     plt.imshow(I)
 
-plot_image(I)
-plot_image(out_keops)
+plot_image(I, "noisy image")
+plot_image(out_keops, "denoised image")
 plt.show()

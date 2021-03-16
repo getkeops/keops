@@ -153,6 +153,7 @@ print("elapsed time with KeOps (padding) : ",time.time()-start)
 # ----------------------------------------------------
 
 from PIL import Image
+import matplotlib.pyplot as plt
 import numpy as np
 I = I.cpu().numpy().astype(np.uint8)
 def ShowNearestPatches(I,i,j):
@@ -185,7 +186,9 @@ for k in range(10 if 'cuda' in device else 1):
     i, j = np.random.randint(m-s+1), np.random.randint(n-s+1)
     I = ShowNearestPatches(I,i,j)
 I = Image.fromarray(I, 'RGB')
-I.show()
-
+fig = plt.figure(figsize=(6,6))
+fig.suptitle(f'one {s}x{s} patch and its {K} nearest neighbours')
+plt.imshow(I)
+plt.show()
 
 
