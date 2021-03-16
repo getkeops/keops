@@ -6,26 +6,20 @@ LazyTensor
 
 This section contains the full API documentation of the :doc:`LazyTensor <../../LazyTensor>` wrapper, which works identically on NumPy arrays and PyTorch tensors.
 
-.. currentmodule:: pykeops.torch
+.. currentmodule:: pykeops.common.lazy_tensor 
+
 .. autosummary::
-    Vi
-    Vj
-    Pm
-    LazyTensor
-    ComplexLazyTensor
+    GenericLazyTensor
+    ComplexGenericLazyTensor
 
 .. rubric:: Syntax
 
-.. autofunction:: Vi
-.. autofunction:: Vj
-.. autofunction:: Pm
-
-.. autoclass:: LazyTensor
+.. autoclass:: GenericLazyTensor
     :members:
     :special-members:
 
-
-.. autoclass:: ComplexLazyTensor
+.. autoclass:: ComplexGenericLazyTensor
     :members:
     :special-members:
 
+		

@@ -6,22 +6,22 @@ Generic reductions
 Overview
 ========
 
-The low-level interface of KeOps is the :mod:`Genred` module, which allows us to **define and reduce** generic operations. Depending on the framework, we can import :mod:`Genred` using either:
+A low-level interface for KeOps is provided by the :mod:`Genred` module, which allows users to **define and reduce** generic mathematical formulas. Depending on the framework, we can import :mod:`Genred` using either:
 
 .. code-block:: python
 
     from pykeops.numpy import Genred  # for NumPy users, or...
     from pykeops.torch import Genred  # for PyTorch users.
     
-In both cases, :mod:`Genred` is a class with no methods: its instantiation simply returns a **numerical function** that can be called at will.
+In both cases, :mod:`Genred` is a class with no methods: its instantiation simply returns a **numerical function** that can be called on numerical arrays.
 
-1. **Instantiation**: :mod:`Genred(...)` takes as input a bunch of *strings* that specify the desired computation. It returns a **python function** or **PyTorch layer**, callable on numpy arrays or torch tensors. The syntax is:
+1. **Instantiation**: :mod:`Genred(...)` takes as input a collection of *strings* that specify the desired computation. It returns a **python function** or **PyTorch layer**, callable on numpy arrays or torch tensors. The syntax is:
 
   .. code-block:: python
 
     my_red = Genred(formula, aliases, reduction_op='Sum', axis=0, dtype='float32')
 
-2. **Call**: The variable ``my_red`` now refers to a callable object wrapped around a set of custom Cuda routines. It may be used on any set of arrays (either NumPy arrays or Torch tensors) with the correct shapes, as described in the ``aliases`` argument:
+2. **Call**: The variable ``my_red`` now refers to a callable object, wrapped around a set of custom CUDA routines. It can be used on any collection of arrays (either NumPy arrays or Torch tensors) that have the correct shapes, as described in the ``aliases`` argument:
 
   .. code-block:: python
 
@@ -41,11 +41,11 @@ See the :class:`numpy.Genred<pykeops.numpy.Genred>` or :class:`torch.Genred<pyke
 An example
 ==========
 
-Using the generic syntax, computing a Gaussian-RBF kernel product
+Using the generic syntax, computing a Gaussian-RBF kernel product:
 
 .. math::
 
- \text{for } i = 1, \cdots, 1000, \quad\quad a_i =  \sum_{j=1}^{2000} \exp(-\gamma\|x_i-y_j\|^2) \,\cdot\, b_j.
+ a_i =  \sum_{j=1}^{2000} \exp(-\gamma\|x_i-y_j\|^2) \,\cdot\, b_j~,\qquad \text{for } i =1 \text{ to }1000
 
 can be done with:
 
@@ -78,4 +78,4 @@ can be done with:
     a = gaussian_conv(gamma, x, y, b, backend='CPU')
 
 
-**More examples** can be found in the :doc:`gallery <../_auto_examples/index>`.
+**More examples** can be found in our :doc:`gallery <../_auto_examples/index>`.

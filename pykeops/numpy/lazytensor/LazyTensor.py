@@ -52,10 +52,10 @@ class LazyTensor(GenericLazyTensor):
     efficient reduction routines, which outperform
     standard tensorized implementations by two orders of magnitude.
     """
-    
+
     def __new__(self, x=None, axis=None, is_complex=False):
         if is_complex or numpytools.detect_complex(x):
-            return ComplexLazyTensor(x,axis)
+            return ComplexLazyTensor(x, axis)
         else:
             return object.__new__(self)
 
@@ -72,8 +72,7 @@ class LazyTensor(GenericLazyTensor):
 
 
 class ComplexLazyTensor(ComplexGenericLazyTensor):
-    r"""
-    """
+    r"""Extension of the LazyTensor class for complex operations."""
 
     def __init__(self, x=None, axis=None):
         super().__init__(x=x, axis=axis)

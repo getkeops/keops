@@ -12,17 +12,25 @@ In a nutshell, given :math:`x \in\mathbb R^{N\\times D}`  and :math:`b \in \math
   
 where :math:`K_{x,x} = \Big[\exp(-\|x_i -x_j\|^2 / \sigma^2)\Big]_{i,j=1}^N`. The method is based on a conjugate gradient scheme. The benchmark tests various values of :math:`N \in [10, \cdots,10^6]`.
 
- 
+
+.. note::
+    In this demo, we implement the linear operator :math:`K_xx`
+    using a **bruteforce** implementation and do not leverage any multiscale
+    or low-rank (Nystroem/multipole) decomposition of the Kernel matrix.
+    First support for these approximation schemes is scheduled for
+    May-June 2021. 
+    Going further, advanced strategies and solvers
+    are now available through the 
+    `GPyTorch <https://docs.gpytorch.ai/en/v1.1.1/examples/02_Scalable_Exact_GPs/KeOps_GP_Regression.html>`_
+    and `Falkon <https://falkonml.github.io/falkon/>`_ libraries,
+    which rely on a KeOps backend whenever relevant.
+
 """
 
 #####################################################################
 # Setup
 # -----
 # Standard imports:
-
-import importlib
-import os
-import time
 
 import numpy as np
 import torch
@@ -34,7 +42,10 @@ from scipy.sparse.linalg.interface import IdentityOperator
 
 from pykeops.numpy import KernelSolve as KernelSolve_np, LazyTensor
 from pykeops.torch import KernelSolve
-from pykeops.torch.utils import squared_distances
+from pykeops.torch.utils import squared_distances as sqdist_torch
+from pykeops.numpy.utils import squared_distances as sqdist_np
+
+from benchmark_utils import flatten, random_normal, unit_tensor, full_benchmark
 
 use_cuda = torch.cuda.is_available()
 
@@ -44,56 +55,38 @@ use_cuda = torch.cuda.is_available()
 
 D = 3  # Let's do this in 3D
 Dv = 1  # Dimension of the vectors (= number of linear problems to solve)
-MAXTIME = 10 if use_cuda else 1  # Max number of seconds before we break the loop
-REDTIME = (
-    5 if use_cuda else 0.2
-)  # Decrease the number of runs if computations take longer than 2s...
 
-# Number of samples that we'll loop upon
-NS = [
-    10,
-    20,
-    50,
-    100,
-    200,
-    500,
-    1000,
-    2000,
-    5000,
-    10000,
-    20000,
-    50000,
-    100000,
-    200000,
-    500000,
-    1000000,
-]
+# Numbers of samples that we'll loop upon:
+problem_sizes = flatten(
+    [[1 * 10 ** k, 2 * 10 ** k, 5 * 10 ** k] for k in [1, 2, 3, 4, 5]] + [[10 ** 6]]
+)
+D = 3  # We work with 3D points
+Dv = 1  # and solve one problem at a time.
+
 
 #####################################################################
 # Create some random input data:
 #
 
 
-def generate_samples(N, device, lang):
-    """Create point clouds sampled non-uniformly on a sphere of diameter 1."""
-    if lang == "torch":
-        if device == "cuda":
-            torch.cuda.manual_seed_all(1234)
-        else:
-            torch.manual_seed(1234)
+def generate_samples(N, device="cuda", lang="torch", **kwargs):
+    """Generates a point cloud x, a scalar signal b of size N and two regularization parameters.
 
-        x = torch.rand(N, D, device=device)
-        b = torch.randn(N, Dv, device=device)
-        gamma = torch.ones(1, device=device) * 0.5 / 0.01 ** 2  # kernel bandwidth
-        alpha = torch.ones(1, device=device) * 0.8  # regularization
-    else:
-        np.random.seed(1234)
+    Args:
+        N (int): number of point.
+        device (str, optional): "cuda", "cpu", etc. Defaults to "cuda".
+        lang (str, optional): "torch", "numpy", etc. Defaults to "torch".
 
-        x = np.random.rand(N, D).astype("float32")
-        b = np.random.randn(N, Dv).astype("float32")
-        gamma = (np.ones(1) * 1 / 0.01 ** 2).astype("float32")  # kernel bandwidth
-        alpha = (np.ones(1) * 0.8).astype("float32")  # regularization
+    Returns:
+        3-uple of arrays: x, y, b
+    """
+    randn = random_normal(device=device, lang=lang)
+    ones = unit_tensor(device=device, lang=lang)
 
+    x = randn((N, D))
+    b = randn((N, Dv))
+    gamma = ones((1,)) / (2 * 0.01 ** 2)  # kernel bandwidth
+    alpha = ones((1,)) * 0.8  # regularization
     return x, b, gamma, alpha
 
 
@@ -123,21 +116,25 @@ aliases = [
 #
 
 
-def Kinv_keops(x, b, gamma, alpha):
+def Kinv_keops(x, b, gamma, alpha, **kwargs):
     Kinv = KernelSolve(formula, aliases, "a", axis=1)
     res = Kinv(x, x, b, gamma, alpha=alpha)
     return res
 
 
-def Kinv_keops_numpy(x, b, gamma, alpha):
+def Kinv_keops_numpy(x, b, gamma, alpha, **kwargs):
     Kinv = KernelSolve_np(formula, aliases, "a", axis=1, dtype="float32")
     res = Kinv(x, x, b, gamma, alpha=alpha)
     return res
 
 
-def Kinv_scipy(x, b, gamma, alpha):
-    x_i, y_j = LazyTensor(gamma * x[:, None, :]), LazyTensor(gamma * x[None, :, :])
+def Kinv_scipy(x, b, gamma, alpha, **kwargs):
+
+    x_i = LazyTensor(np.sqrt(gamma) * x[:, None, :])
+    y_j = LazyTensor(np.sqrt(gamma) * x[None, :, :])
+
     K_ij = (-((x_i - y_j) ** 2).sum(2)).exp()
+
     A = aslinearoperator(diags(alpha * np.ones(x.shape[0]))) + aslinearoperator(K_ij)
     A.dtype = np.dtype("float32")
     res = cg(A, b)
@@ -149,164 +146,37 @@ def Kinv_scipy(x, b, gamma, alpha):
 #
 
 
-def Kinv_pytorch(x, b, gamma, alpha):
+def Kinv_pytorch(x, b, gamma, alpha, **kwargs):
     K_xx = alpha * torch.eye(x.shape[0], device=x.get_device()) + torch.exp(
-        -squared_distances(x, x) * gamma
+        -gamma * sqdist_torch(x, x)
     )
     res = torch.solve(b, K_xx)[0]
     return res
 
 
-def Kinv_numpy(x, b, gamma, alpha):
-    K_xx = alpha * np.eye(x.shape[0]) + np.exp(
-        -gamma * np.sum((x[:, None, :] - x[None, :, :]) ** 2, axis=2)
-    )
+def Kinv_numpy(x, b, gamma, alpha, **kwargs):
+    K_xx = alpha * np.eye(x.shape[0]) + np.exp(-gamma * sqdist_np(x, x))
     res = np.linalg.solve(K_xx, b)
     return res
-
-
-######################################################################
-# Benchmarking loops
-# -----------------------
-
-
-def benchmark(Routine, dev, N, loops=10, lang="torch"):
-    """Times a routine on an N-by-N problem."""
-
-    importlib.reload(torch)  # In case we had a memory overflow just before...
-    device = torch.device(dev)
-    x, b, gamma, alpha = generate_samples(N, device, lang)
-
-    # We simply benchmark a kernel inversion
-    code = "a = Routine(x, b, gamma, alpha)"
-    exec(code, locals())  # Warmup run, to compile and load everything
-    if use_cuda:
-        torch.cuda.synchronize()
-
-    t_0 = time.perf_counter()  # Actual benchmark --------------------
-    for i in range(loops):
-        exec(code, locals())
-    if use_cuda:
-        torch.cuda.synchronize()
-    elapsed = time.perf_counter() - t_0  # ---------------------------
-
-    print(
-        "{:3} NxN kernel inversion, with N ={:7}: {:3}x{:3.6f}s".format(
-            loops, N, loops, elapsed / loops
-        )
-    )
-    return elapsed / loops
-
-
-def bench_config(Routine, backend, dev, l):
-    """Times a routine for an increasing number of samples."""
-
-    print("Backend : {}, Device : {} -------------".format(backend, dev))
-
-    times = []
-    not_recorded_times = []
-    try:
-        Nloops = [100, 10, 1]
-        nloops = Nloops.pop(0)
-        for n in NS:
-            elapsed = benchmark(Routine, dev, n, loops=nloops, lang=l)
-
-            times.append(elapsed)
-            if (nloops * elapsed > MAXTIME) or (
-                nloops * elapsed > REDTIME / nloops and len(Nloops) > 0
-            ):
-                nloops = Nloops.pop(0)
-
-    except RuntimeError:
-        print("**\nMemory overflow !")
-        not_recorded_times = (len(NS) - len(times)) * [np.nan]
-    except IndexError:
-        print("**\nToo slow !")
-        not_recorded_times = (len(NS) - len(times)) * [np.Infinity]
-
-    return times + not_recorded_times
-
-
-def full_bench(title, routines):
-    """Benchmarks a collection of routines."""
-
-    backends = [backend for (_, backend, _) in routines]
-
-    print("Benchmarking : {} ===============================".format(title))
-
-    lines = [NS]
-    for routine, backend, lang in routines:
-        lines.append(
-            bench_config(routine, backend, "cuda" if use_cuda else "cpu", lang)
-        )
-
-    benches = np.array(lines).T
-
-    # Creates a pyplot figure:
-    plt.figure(figsize=(12, 8))
-    linestyles = ["o-", "s-", "^-", "x-", "<-"]
-    for i, backend in enumerate(backends):
-        plt.plot(
-            benches[:, 0],
-            benches[:, i + 1],
-            linestyles[i],
-            linewidth=2,
-            label='backend = "{}"'.format(backend),
-        )
-
-        for (j, val) in enumerate(benches[:, i + 1]):
-            if np.isnan(val) and j > 0:
-                x, y = benches[j - 1, 0], benches[j - 1, i + 1]
-                plt.annotate(
-                    "Memory overflow!",
-                    xy=(x, 1.05 * y),
-                    horizontalalignment="center",
-                    verticalalignment="bottom",
-                )
-                break
-            elif np.isinf(val) and j > 0:
-                x, y = benches[j - 1, 0], benches[j - 1, i + 1]
-                plt.annotate(
-                    "Too slow!",
-                    xy=(x, 1.05 * y),
-                    horizontalalignment="center",
-                    verticalalignment="bottom",
-                )
-                break
-
-    plt.title("Runtimes for {} in dimension {}".format(title, D))
-    plt.xlabel("Number of samples")
-    plt.ylabel("Seconds")
-    plt.yscale("log")
-    plt.xscale("log")
-    plt.legend(loc="upper left")
-    plt.grid(True, which="major", linestyle="-")
-    plt.grid(True, which="minor", linestyle="dotted")
-    plt.tight_layout()
-
-    # Save as a .csv to put a nice Tikz figure in the papers:
-    header = "Npoints " + " ".join(backends)
-    os.makedirs("output", exist_ok=True)
-    np.savetxt(
-        "output/benchmark_kernelsolve.csv",
-        benches,
-        fmt="%-9.5f",
-        header=header,
-        comments="",
-    )
 
 
 ######################################################################
 # Run the benchmark
 # ---------------------
 
+
 routines = [
-    (Kinv_numpy, "NumPy", "numpy"),
-    (Kinv_pytorch, "PyTorch", "torch"),
-    (Kinv_keops_numpy, "NumPy + KeOps", "numpy"),
-    (Kinv_keops, "PyTorch + KeOps", "torch"),
-    (Kinv_scipy, "Scipy + KeOps", "numpy"),
+    (Kinv_numpy, "NumPy", {"lang": "numpy"}),
+    (Kinv_pytorch, "PyTorch", {}),
+    (Kinv_keops_numpy, "NumPy + KeOps", {"lang": "numpy"}),
+    (Kinv_keops, "PyTorch + KeOps", {}),
+    (Kinv_scipy, "Scipy + KeOps", {"lang": "numpy"}),
 ]
-full_bench("Inverse radial kernel matrix", routines)
+full_benchmark(
+    "Inverse radial kernel matrix",
+    routines,
+    generate_samples,
+    problem_sizes=problem_sizes,
+)
 
 plt.show()
