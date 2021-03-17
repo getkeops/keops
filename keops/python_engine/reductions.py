@@ -1,4 +1,4 @@
-from tree import tree
+from tree_class import tree
 from operations import *
 from utils import *    
 
