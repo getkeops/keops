@@ -31,14 +31,14 @@ struct Atan2 : VectorizedScalarBinaryOp<Atan2, F, G> {
 	  }
   };
 
-  // [ \partial_V Atan2(F, G) ] . gradin = [ -(F / F^2 + G^2) . \partial_V F ] . gradin  + [ (G / F^2 + G^2) . \partial_V G ] . gradin
-  template < class V, class GRADIN>
-  using partial_F = typename F::template DiffT< V, Mult< Divide<F, Add<Square<F>, Square<G>> >, GRADIN> >;
-  template < class V, class GRADIN>
-  using partial_G = typename G::template DiffT< V, Mult< Divide<G, Add<Square<F>, Square<G>> >, GRADIN> >;
+  // [ \partial_V Atan2(F, G) ] . gradin = [ (G / F^2 + G^2) . \partial_V F ] . gradin  - [ (F / F^2 + G^2) . \partial_V G ] . gradin
+  template < class V, class GRADIN >
+  using partial_F = typename F::template DiffT< V, Mult< Divide<G, Add<Square<F>, Square<G>> >, GRADIN> >;
+  template < class V, class GRADIN >
+  using partial_G = typename G::template DiffT< V, Mult< Divide<F, Add<Square<F>, Square<G>> >, GRADIN> >;
 
   template < class V, class GRADIN >
-  using DiffT = Subtract<partial_G<V, GRADIN>, partial_F<V, GRADIN>>;
+  using DiffT = Subtract<partial_F<V, GRADIN>, partial_G<V, GRADIN>>;
 
 };
 
