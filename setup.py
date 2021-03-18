@@ -162,6 +162,7 @@ setup(
     },
     install_requires=[
         "numpy",
+        "cmake>=3.18",
     ],
     extras_require={
         "full": [
