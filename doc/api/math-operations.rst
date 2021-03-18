@@ -100,6 +100,7 @@ Elementary functions:
 ``ReLU(f)``               element-wise ReLU function (``0`` if ``f<0``, ``f`` if ``f>=0``)
 ``Clamp(f,a,b)``          element-wise Clamp function (``a`` if ``f<a``, ``f`` if ``a<=f<=b``, ``b`` if ``b<f``)
 ``ClampInt(f,a,b)``       element-wise Clamp function, with a and b fixed integers
+``IfElse(f,g,h)``         element-wise IfElse function (``g`` if ``f>=0``, ``h`` if ``f<0``)
 ``Mod(f,m,off)``          element-wise Modulo function, with offset (computes ``f - m * floor((f - off)/m)``)
 ``Round(f,d)``            element-wise Round function, with d decimal rounding
 ======================   =========================================================================================================
