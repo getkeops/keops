@@ -23,6 +23,7 @@ template < typename TYPE > DEVICE INLINE TYPE keops_clamp(TYPE x, TYPE a, TYPE b
 template < typename TYPE > DEVICE INLINE TYPE keops_clampint(TYPE x, int a, int b) { return (x<a)? a : ( (x>b)? b : x ); }
 template < typename TYPE > DEVICE INLINE TYPE keops_round(TYPE x, int d) { return d ? round(x * pow(10, d))/pow(10, d) : round(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_diffclampint(TYPE x, int a, int b) { return (x<a)? 0.0f : ( (x>b)? 0.0f : 1.0f ); }
+template < typename TYPE > DEVICE INLINE TYPE keops_ifelse(TYPE x, TYPE a, TYPE b) { return (x>=0.0f) ? a : b; }
 template < typename TYPE > DEVICE INLINE TYPE keops_sqrt(TYPE x) { return sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_rsqrt(TYPE x) { return 1.0f / sqrt(x); }
 template < typename TYPE > DEVICE INLINE TYPE keops_mod(TYPE x, TYPE n, TYPE d) { return x - n * floor((x - d)/n); }

@@ -1390,6 +1390,16 @@ class GenericLazyTensor:
         else:
             return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
 
+    def ifelse(self, other1, other2):
+        r"""
+        Element-wise if-else function - a ternary operation.
+
+        ``x.ifelse(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        ``a`` where ``x >= 0`` and ``b`` where ``x < 0``.  Broadcasting rules apply.
+        a and b may be fixed integers or floats, or other LazyTensors.
+        """
+        return self.ternary(other1, other2, "IfElse", dimcheck="sameor1")
+
     def mod(self, modulus, offset=0):
         r"""
         Element-wise modulo with offset function - a ternary operation.

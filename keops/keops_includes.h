@@ -79,6 +79,7 @@
 #include "core/formulas/maths/ReLu.h"
 #include "core/formulas/maths/Clamp.h"
 #include "core/formulas/maths/ClampInt.h"
+#include "core/formulas/maths/IfElse.h"
 #include "core/formulas/maths/Mod.h"
 #include "core/formulas/maths/Round.h"
 #include "core/formulas/maths/Powf.h"
