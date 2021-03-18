@@ -37,7 +37,7 @@ Standard math functions :
  *      Sign<F>                        : sign of F (vectorized)
  *      ClampInt<F,A,B>                : clamping of F in [A,B] (vectorized) ; F is function, A and B are integers
  *      Clamp<F,G,H>                   : clamping of F in [G,H] (vectorized) ; F, G, H are functions
- *      IfElse<F,G,H>                  : return G where F < 0 and H where F >= 0 (vectorized) ; F, G, H are functions
+ *      IfElse<F,G,H>                  : return G where F >= 0 and H where F < 0 (vectorized) ; F, G, H are functions
  *      Mod<FA,FB,FC>                  : modulo of FA with modulus FB and offset FC (vectorized)
  *      Round<F,A>                     : round of F to A decimal places (vectorized) ; F is function, A is integer
  

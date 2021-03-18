@@ -1361,16 +1361,11 @@ class GenericLazyTensor:
 
     def ifelse(self, other1, other2):
         r"""
-        Element-wise modulo with offset function - a ternary operation.
         Element-wise if-else function - a ternary operation.
 
-        ``x.mod(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
-        the element-wise modulo of ``x`` with modulus ``a`` and offset ``b``.
-        By default b=0, so that x.mod(a) becomes equivalent to the NumPy function mod.
-        Broadcasting rules apply. a and b are fixed integers or float.
         ``x.ifelse(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
-        ``a`` where ``x < 0`` and ``b`` where ``x >= 0``.  Broadcasting rules apply.
-        a and b may be fixed integers or floats, or other LazyTensors
+        ``a`` where ``x >= 0`` and ``b`` where ``x < 0``.  Broadcasting rules apply.
+        a and b may be fixed integers or floats, or other LazyTensors.
         """
         return self.ternary(other1, other2, "IfElse", dimcheck="sameor1")
 
