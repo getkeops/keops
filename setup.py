@@ -162,9 +162,12 @@ setup(
     },
     install_requires=[
         "numpy",
-        "cmake>=3.18",
     ],
     extras_require={
+        "colab": [
+            "torch",
+            "cmake>=3.18",
+        ],
         "full": [
             "sphinx",
             "sphinx-gallery",
