@@ -2,7 +2,7 @@
 # usage : python keops_main.py <map_reduce_id> <red_formula_string> <aliases> <nargs> <dtype> <dtypeacc> <sum_scheme_string>
 
 # example : 
-#    python keops_main.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" [] 3 float float block_sum
+#    python keops_main.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" "[]" 3 float float block_sum
 
 import sys
 from map_reduce import *
