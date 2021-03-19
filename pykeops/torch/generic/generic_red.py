@@ -1,7 +1,12 @@
 import torch
 
+import pykeops
+
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io_new import LoadKeOps
+
+from pykeops.common.keops_io_new import LoadKeOps_new
+from pykeops.common.keops_io import LoadKeOps
+
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.torch.half2_convert import preprocess_half2, postprocess_half2
 from pykeops.common.parse_type import (
@@ -44,10 +49,17 @@ class GenredAutograd(torch.autograd.Function):
         if rec_multVar_highdim is not None:
             optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
 
-        myconv = LoadKeOps(
-            formula, aliases, dtype, "torch", optional_flags, include_dirs
-        ).import_module()
-
+        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
+        
+        if pykeops.use_python_engine:
+            myconv = LoadKeOps_new(
+                formula, aliases, tagCPUGPU, dtype, "torch", args, optional_flags, include_dirs
+            )
+        else:
+            myconv = LoadKeOps(
+                formula, aliases, dtype, "torch", optional_flags, include_dirs
+            ).import_module()
+            
         # Context variables: save everything to compute the gradient:
         ctx.formula = formula
         ctx.aliases = aliases
@@ -59,8 +71,6 @@ class GenredAutograd(torch.autograd.Function):
         ctx.myconv = myconv
         ctx.nx = nx
         ctx.ny = ny
-
-        tagCPUGPU, tag1D2D, tagHostDevice = get_tag_backend(backend, args)
 
         if tagCPUGPU == 1 & tagHostDevice == 1:
             device_id = args[0].device.index
@@ -75,11 +85,16 @@ class GenredAutograd(torch.autograd.Function):
 
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
         ranges = tuple(r.contiguous() for r in ranges)
-
-        result = myconv.genred_pytorch(
-            tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, *args
-        )
-
+        
+        if pykeops.use_python_engine:
+            result = myconv(
+                tag1D2D, tagHostDevice, device_id, ranges, nx, ny, *args
+            )
+        else:
+            result = myconv.genred_pytorch(
+                tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, *args
+            )
+            
         # relying on the 'ctx.saved_variables' attribute is necessary  if you want to be able to differentiate the output
         #  of the backward once again. It helps pytorch to keep track of 'who is who'.
         ctx.save_for_backward(*args, result)
