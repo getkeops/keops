@@ -75,7 +75,7 @@ class Cpu_link_compile(link_compile):
     
     # standard, both linux and mac, no openmp support
     compiler = "g++"
-    compile_options = ["-shared", "-O3"]
+    compile_options = ["-shared", "-fPIC", "-O3"]
     
     # for linux with openmp support
     #compiler = "g++"
