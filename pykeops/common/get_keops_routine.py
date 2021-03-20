@@ -1,3 +1,8 @@
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'keops', 'python_engine'))
+from operations import *
+from reductions import *  
+
 from utils import *
 from map_reduce import *
 from ctypes import c_int, c_float, c_double, c_void_p, CDLL, POINTER
