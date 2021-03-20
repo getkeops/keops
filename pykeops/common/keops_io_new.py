@@ -1,7 +1,7 @@
 from pykeops.common.get_keops_routine import get_keops_routine    
 import time 
         
-class LoadKeOps:
+class LoadKeOps_new:
     
     def __init__(
         self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
