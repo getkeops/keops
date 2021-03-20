@@ -1,7 +1,9 @@
 import torch
 
 from pykeops.common.get_options import get_tag_backend
-from pykeops.common.keops_io_new import LoadKeOps
+import pykeops
+from pykeops.common.keops_io import LoadKeOps
+from pykeops.common.keops_io_new import LoadKeOps_new
 from pykeops.common.operations import preprocess, postprocess
 from pykeops.torch.half2_convert import preprocess_half2, postprocess_half2
 from pykeops.common.parse_type import (
@@ -44,7 +46,8 @@ class GenredAutograd(torch.autograd.Function):
         if rec_multVar_highdim is not None:
             optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
 
-        myconv = LoadKeOps(
+        my_LoadKeOps = LoadKeOps_new if pykeops.use_python_engine else LoadKeOps
+        myconv = my_LoadKeOps(
             formula, aliases, dtype, "torch", optional_flags, include_dirs
         ).import_module()
 
