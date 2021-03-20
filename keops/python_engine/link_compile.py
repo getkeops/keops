@@ -75,32 +75,23 @@ class Cpu_link_compile(link_compile):
     source_code_extension = "cpp"
     
     compiler = "g++"
+    compile_options = ["-shared", "-fPIC", "-O3"]
     
     if use_OpenMP:
-        compile_options = ["-Xclang", "-fopenmp", "-shared", "-fPIC", "-O3", "-lomp"]
         import platform
         if platform.system()=="Darwin":
+            compile_options += ["-Xclang -fopenmp"]
             # warning : this is unsafe hack for OpenMP support on mac...
-            import os
             os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-    else:
-        # standard, both linux and mac, no openmp support
-        compile_options = ["-shared", "-fPIC", "-O3"]
-        
-    if sys=="Linux":
-        # for linux with openmp support
-        compile_options = ["-Xclang", "-fopenmp", "-shared", "-fPIC", "-O3", "-lomp"]
-    elif sys=="Darwin":
-        # for mac with openmp (only works with unsafe export KMP_DUPLICATE_LIB_OK=TRUE)
-        import os
-        os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-        compile_options = ["-Xclang", "-fopenmp", "-shared", "-fPIC", "-O3", "-lomp"]
-
+        else:
+            compile_options += ["-fopenmp"]
+        compile_options += ["-lomp"]
     
+
 
 class Gpu_link_compile(link_compile):
     
     source_code_extension = "cu"
     compiler = "nvcc"
-    compile_options = ["-shared", "-Xcompiler", "-fPIC", "-O3"]
+    compile_options = ["-shared", "-Xcompiler -fPIC", "-O3"]
 
