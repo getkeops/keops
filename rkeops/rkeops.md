@@ -63,9 +63,9 @@ RKeOps) and read the vignettes available in R with the command
 
 ## Install from CRAN
 
-> **Note:** RKeOps is not avaible on CRAN yet, it should be soon.
+> **Note:** RKeOps is avaible on CRAN but only for UNIX environment (GNU/Linux and MacOS) and not for Windows.
 
-```{r install, eval=FALSE}
+```R
 install.packages("rkeops")
 ```
 
@@ -97,3 +97,74 @@ git submodule update --init -- keops/lib/sequences
 ```R
 devtools::install("rkeops")
 ```
+
+# Quick start
+
+## Defining a new operator
+
+Here is an example how to define and compute a Gaussian convolution with RKeOps.
+
+```R
+# implementation of a convolution with a Gaussian kernel
+formula = "Sum_Reduction(Exp(-s * SqNorm2(x - y)) * b, 0)"
+
+# input arguments
+args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
+         "y = Vj(3)",      # vector indexed by j (of dim 3)
+         "b = Vj(6)",      # vector indexed by j (of dim 6)
+         "s = Pm(1)")      # parameter (scalar)
+
+# compilation of the corresponding operator
+op <- keops_kernel(formula, args)
+
+# data and parameter values
+nx <- 100
+ny <- 150
+X <- matrix(runif(nx*3), nrow=nx)   # matrix 100 x 3
+Y <- matrix(runif(ny*3), nrow=ny)   # matrix 150 x 3
+B <- matrix(runif(ny*6), nrow=ny)   # matrix 150 x 6
+s <- 0.2
+
+# to run computation on CPU (default mode)
+use_cpu()
+# to run computations on GPU (to be used only if relevant)
+use_gpu()
+
+# computation (order of the input arguments should be similar to `args`)
+res <- op(list(X, Y, B, s))
+```
+
+## Computing gradients
+
+Here is an example how to define and compute the gradient of an existing KeOps operators.
+
+```R
+# defining an operator (reduction on squared distance)
+formula <- "Sum_Reduction(SqNorm2(x-y), 0)"
+args <- c("x=Vi(0,3)", "y=Vj(1,3)")
+op <- keops_kernel(formula, args)
+# defining its gradient regarding x
+grad_op <- keops_grad(op, var="x")
+
+# data
+nx <- 100
+ny <- 150
+x <- matrix(runif(nx*3), nrow=nx, ncol=3)     # matrix 100 x 3
+y <- matrix(runif(ny*3), nrow=ny, ncol=3)     # matrix 150 x 3
+eta <- matrix(runif(nx*1), nrow=nx, ncol=1)   # matrix 100 x 1
+
+# computation
+input <- list(x, y, eta)
+res <- grad_op(input)
+```
+
+
+## CPU and GPU computing
+
+Based on your formulae, RKeOps compile on the fly operators that can be used to run the corresponding computations on CPU or GPU, it uses a tiling scheme to decompose the data and avoid (i) useless and costly memory transfers between host and GPU (performance gain) and (ii) memory overflow.
+
+> **_Note:_** You can use the same code (i.e. define the same operators) for CPU or GPU computing. The only difference will be the compiler used for the compilation of your operators (upon the availability of CUDA on your system).
+
+To use CPU computing mode, you can call `use_cpu()` (with an optional argument `ncore` specifying the number of cores used to run parallel computations).
+
+To use GPU computing mode, you can call `use_gpu()` (with an optional argument `device` to choose a specific GPU id to run computations).

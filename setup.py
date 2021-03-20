@@ -128,12 +128,17 @@ setup(
             "keops/headers.cmake",
             "keops/keops_includes.h",
             "version",
+            "cmake_scripts/*",
+            "cmake_scripts/script_keops_formula/*",
+            "cmake_scripts/script_specific/*",
+            "cmake_scripts/script_template/*",
         ]
         + import_files(path.join("keops", "binders"))
         + import_files(path.join("keops", "core", "autodiff"))
         + import_files(path.join("keops", "core", "pack"))
         + import_files(path.join("keops", "core", "formulas"))
         + import_files(path.join("keops", "core", "formulas", "constants"))
+        + import_files(path.join("keops", "core", "formulas", "complex"))        
         + import_files(path.join("keops", "core", "formulas", "kernels"))
         + import_files(path.join("keops", "core", "formulas", "maths"))
         + import_files(path.join("keops", "core", "formulas", "norms"))
@@ -159,6 +164,10 @@ setup(
         "numpy",
     ],
     extras_require={
+        "colab": [
+            "torch",
+            "cmake>=3.18",
+        ],
         "full": [
             "sphinx",
             "sphinx-gallery",

@@ -20,12 +20,12 @@ replaced by \code{include}, or \code{src} by \code{lib}. Check functions inside 
 have different behavior between these two cases.
 
 The function \code{is_compiled} is used, if available, by the function
-\code{\link[rkeops:is_installed]{rkeops::is_installed()}} to check the availability of \code{rkeops} package
+\code{\link[=is_installed]{is_installed()}} to check the availability of \code{rkeops} package
 installation files. If not, i.e. if \code{rkeops} is not installed, the
-function \code{\link[rkeops:is_installed]{rkeops::is_installed()}} can detect it.
+function \code{\link[=is_installed]{is_installed()}} can detect it.
 }
 \seealso{
-\code{\link[rkeops:is_installed]{rkeops::is_installed()}}
+\code{\link[=is_installed]{is_installed()}}
 }
 \author{
 Ghislain Durif

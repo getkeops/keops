@@ -6,7 +6,7 @@ LazyTensors
 Overview
 ========
 
-The **high-level** interface of KeOps is the :mod:`LazyTensor <pykeops.numpy.LazyTensor>` (NumPy version) or :mod:`LazyTensor <pykeops.torch.LazyTensor>` (PyTorch version) wrapper, which allows users to perform **efficient, semi-symbolic computations** on very large NumPy arrays or PyTorch tensors respectively.  As displayed on this website's :doc:`front page, <../index>` this new tensor type can be used with **very little overhead**:
+**High-level** interface for the KeOps routines is provided by the :mod:`pykeops.numpy.LazyTensor <pykeops.numpy.LazyTensor>` and :mod:`pykeops.torch.LazyTensor <pykeops.torch.LazyTensor>` modules, which allow users to perform **efficient, semi-symbolic computations** on large NumPy arrays and PyTorch tensors. As displayed on this website's :doc:`front page, <../index>` these new tensor types can be used with **very little overhead** in existing Python programs:
 
 .. code-block:: python
 
@@ -40,9 +40,9 @@ Documentation
 
 Starting with the :doc:`KeOps 101 tutorial <../_auto_tutorials/a_LazyTensors/plot_lazytensors_a>`,
 most examples in our :doc:`gallery <../_auto_tutorials/index>`
-rely on :mod:`LazyTensor <pykeops.numpy.LazyTensor>` (NumPy) or :mod:`LazyTensors <pykeops.torch.LazyTensor>` (PyTorch) :
+rely on :mod:`LazyTensors <pykeops.common.lazy_tensor.GenericLazyTensor>`:
 going through this collection of **real-life demos** is probably
 the best way of getting familiar with the KeOps user interface.
 
-Going further, please refer to the :mod:`LazyTensor <pykeops.numpy.LazyTensor>` (NumPy) or :mod:`LazyTensor <pykeops.torch.LazyTensor>` (PyTorch) API for an exhaustive list of all supported operations.
+Going further, please refer to the :mod:`GenericLazyTensor <pykeops.common.lazy_tensor.GenericLazyTensor>` (common), :mod:`numpy.LazyTensor <pykeops.numpy.LazyTensor>` (NumPy) and :mod:`torch.LazyTensor <pykeops.torch.LazyTensor>` (PyTorch) API documentations for an exhaustive list of all supported operations.
 

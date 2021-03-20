@@ -1,8 +1,9 @@
 import copy
 import re
 
-import numpy as np
+import math
 
+import numpy as np
 from pykeops.common.utils import check_broadcasting
 
 
@@ -10,13 +11,19 @@ def same_or_one_test(*dims):
     # test wether input dimensions are compatible with broadcasting
     return len(set(list(dims) + [1])) <= 2
 
-def is_scalar_and_equals(x,val):
+
+def is_scalar_and_equals(x, val):
     # test wether the input x is a Python scalar and
     # that its value equals val
     if isinstance(x, (int, float, complex)) and not isinstance(x, bool):
         return x == val
     else:
         return False
+
+
+def is_complex_lazytensor(x):
+    return isinstance(x, ComplexGenericLazyTensor)
+
 
 class GenericLazyTensor:
     r"""Symbolic wrapper for NumPy arrays and PyTorch tensors. This is the abstract class,
@@ -50,8 +57,8 @@ class GenericLazyTensor:
     axis = None
     ranges = None  # Block-sparsity pattern
     backend = None  # "CPU", "GPU", "GPU_2D", etc.
-    dtype = None
-    float_types = []
+    _dtype = None
+    is_complex = False
 
     def __init__(self, x=None, axis=None):
         r"""Creates a KeOps symbolic variable.
@@ -134,7 +141,7 @@ class GenericLazyTensor:
 
             # Float numbers must be encoded as Parameters,  as C++'s templating system cannot deal
             # with floating point arithmetics.
-            elif typex in self.float_types:
+            elif typex in self.tools.float_types:
                 x = [x]  # Convert to list and go to stage 2
                 typex = list
 
@@ -153,7 +160,99 @@ class GenericLazyTensor:
                 self.formula = "Var({},{},2)".format(id(x), self.ndim)
                 return  # That's it!
             else:
-                self.dtype = self.tools.dtypename(self.tools.dtype(x))
+                self._dtype = self.tools.dtypename(self.tools.dtype(x))
+
+        typex = type(x)
+
+        if (
+            typex
+            not in [type(None), tuple, int, float, list, self.tools.arraytype]
+            + self.tools.float_types
+        ):
+            raise TypeError(
+                "LazyTensors should be built from " + self.tools.arrayname + ", "
+                "float/integer numbers, lists of floats or 3-uples of integers. "
+                "Received: {}".format(typex)
+            )
+
+        if typex == self.tools.arraytype and len(x.shape) == 0:
+            x = x.view(1)
+        elif typex in self.tools.float_types:
+            x = self.tools.arraytype([x]).view(1)
+
+        if typex == self.tools.arraytype:
+            if len(x.shape) >= 3:  # Infer axis from the input shape
+                # If x is a 3D+ array, its shape must be either (..,M,1,D) or (..,1,N,D) or (..,1,1,D).
+                # We infer axis from shape and squeeze out the "1" dimensions:
+                if axis is not None:
+                    raise ValueError(
+                        "'axis' parameter should not be given when 'x' is a 3D tensor."
+                    )
+
+                if len(x.shape) > 3:  # We're in "batch mode"
+                    self.batchdims = tuple(x.shape[:-3])
+
+                if x.shape[-3] == 1:
+                    if x.shape[-2] == 1:  # (..,1,1,D) -> Pm(D)
+                        x = x.squeeze(-2).squeeze(-2)
+                        axis = 2
+                    else:  # (..,1,N,D) -> Vj(D)
+                        x = x.squeeze(-3)
+                        axis = 1
+
+                elif x.shape[-2] == 1:  # (M,1,D) -> Vi(D)
+                    x = x.squeeze(-2)
+                    axis = 0
+                else:
+                    raise ValueError(
+                        "If 'x' is a 3D+ tensor, its shape should be one of (..,M,1,D), (..,1,N,D) or (..,1,1,D)."
+                    )
+
+            # Stage 4: x is now encoded as a 2D or 1D array + batch dimensions --------------------
+            if (
+                len(x.shape) >= 2 and axis != 2
+            ):  # shape is (..,M,D) or (..,N,D), with an explicit 'axis' parameter
+                if axis is None or axis not in (0, 1):
+                    raise ValueError(
+                        "When 'x' is encoded as a 2D array, LazyTensor expects an explicit 'axis' value in {0,1}."
+                    )
+
+                # id(x) is used as temporary identifier for KeOps "Var",
+                # this identifier will be changed when calling method "fixvariables"
+                # But first we do a small hack, in order to distinguish same array involved twice in a formula but with
+                # different axis (e.g. Vi(x)-Vj(x) formula): we do a dummy reshape in order to get a different id
+                if axis == 1:
+                    x = self.tools.view(x, x.shape)
+
+                self.variables = (x,)
+                self.ndim = x.shape[-1]
+                self.axis = axis
+                self.formula = "Var({},{},{})".format(id(x), self.ndim, self.axis)
+
+                if axis == 0:
+                    self.ni = x.shape[-2]
+                else:
+                    self.nj = x.shape[-2]
+
+                self._dtype = self.tools.dtypename(self.tools.dtype(x))
+
+            elif (
+                len(x.shape) == 1 or axis == 2
+            ):  # shape is (D,): x is a "Pm(D)" parameter
+                if axis is not None and axis != 2:
+                    raise ValueError(
+                        "When 'x' is encoded as a 1D or 0D array, 'axis' must be None or 2 (= Parameter variable)."
+                    )
+                self.variables = (x,)
+                self.ndim = x.shape[-1]
+                self.axis = 2
+                self.formula = "Var({},{},2)".format(id(x), self.ndim)
+
+            else:
+                raise ValueError(
+                    "LazyTensors can be built from 0D, 1D, 2D or 3D+ tensors. "
+                    + "Received x of shape: {}.".format(x.shape)
+                )
 
     def lt_constructor(self, x=None, axis=None):
         r"""This method is specialized in :class:`pykeops.numpy.LazyTensor` and :class:`pykeops.torch.LazyTensor`. It
@@ -164,78 +263,6 @@ class GenericLazyTensor:
         r"""This method is specialized in :class:`pykeops.numpy.LazyTensor` and :class:`pykeops.torch.LazyTensor`. It
         populate the tools class."""
         pass
-
-    def infer_dim(self, x, axis):
-        if len(x.shape) >= 3:  # Infer axis from the input shape
-            # If x is a 3D+ array, its shape must be either (..,M,1,D) or (..,1,N,D) or (..,1,1,D).
-            # We infer axis from shape and squeeze out the "1" dimensions:
-            if axis is not None:
-                raise ValueError(
-                    "'axis' parameter should not be given when 'x' is a 3D tensor."
-                )
-
-            if len(x.shape) > 3:  # We're in "batch mode"
-                self.batchdims = tuple(x.shape[:-3])
-
-            if x.shape[-3] == 1:
-                if x.shape[-2] == 1:  # (..,1,1,D) -> Pm(D)
-                    x = x.squeeze(-2).squeeze(-2)
-                    axis = 2
-                else:  # (..,1,N,D) -> Vj(D)
-                    x = x.squeeze(-3)
-                    axis = 1
-
-            elif x.shape[-2] == 1:  # (M,1,D) -> Vi(D)
-                x = x.squeeze(-2)
-                axis = 0
-            else:
-                raise ValueError(
-                    "If 'x' is a 3D+ tensor, its shape should be one of (..,M,1,D), (..,1,N,D) or (..,1,1,D)."
-                )
-
-        # Stage 4: x is now encoded as a 2D or 1D array + batch dimensions --------------------
-        if (
-            len(x.shape) >= 2 and axis != 2
-        ):  # shape is (..,M,D) or (..,N,D), with an explicit 'axis' parameter
-            if axis is None or axis not in (0, 1):
-                raise ValueError(
-                    "When 'x' is encoded as a 2D array, LazyTensor expects an explicit 'axis' value in {0,1}."
-                )
-
-            # id(x) is used as temporary identifier for KeOps "Var",
-            # this identifier will be changed when calling method "fixvariables"
-            # But first we do a small hack, in order to distinguish same array involved twice in a formula but with
-            # different axis (e.g. Vi(x)-Vj(x) formula): we do a dummy reshape in order to get a different id
-            if axis == 1:
-                x = self.tools.view(x, x.shape)
-
-            self.variables = (x,)
-            self.ndim = x.shape[-1]
-            self.axis = axis
-            self.formula = "Var({},{},{})".format(id(x), self.ndim, self.axis)
-
-            if axis == 0:
-                self.ni = x.shape[-2]
-            else:
-                self.nj = x.shape[-2]
-
-            self.dtype = self.tools.dtypename(self.tools.dtype(x))
-
-        elif len(x.shape) == 1 or axis == 2:  # shape is (D,): x is a "Pm(D)" parameter
-            if axis is not None and axis != 2:
-                raise ValueError(
-                    "When 'x' is encoded as a 1D or 0D array, 'axis' must be None or 2 (= Parameter variable)."
-                )
-            self.variables = (x,)
-            self.ndim = x.shape[-1]
-            self.axis = 2
-            self.formula = "Var({},{},2)".format(id(x), self.ndim)
-
-        else:
-            raise ValueError(
-                "LazyTensors can be built from 0D, 1D, 2D or 3D+ tensors. "
-                + "Received x of shape: {}.".format(x.shape)
-            )
 
     def fixvariables(self):
         r"""If needed, assigns final labels to each variable and pads their batch dimensions prior to a :mod:`Genred()` call."""
@@ -253,7 +280,7 @@ class GenericLazyTensor:
         for v in self.variables:
             idv = id(v)
             if type(v) == list:
-                v = self.tools.array(v, self.dtype, device)
+                v = self.tools.array(v, self._dtype, device)
 
             # Replace "Var(idv," by "Var(i," and increment 'i':
             tag = "Var({},".format(idv)
@@ -310,11 +337,11 @@ class GenericLazyTensor:
         kwargs_call = dict(kwargs_call)
         return kwargs_init, kwargs_call
 
-    def promote(self, other, props):
+    def promote(self, other, props, is_complex=False):
         r"""
         Creates a new :class:`LazyTensor` whose **None** properties are set to those of **self** or **other**.
         """
-        res = self.lt_constructor()
+        res = self.lt_constructor(is_complex=is_complex)
 
         for prop in props:
             y, x = getattr(self, prop), getattr(other, prop)
@@ -339,13 +366,13 @@ class GenericLazyTensor:
                 setattr(res, prop, y)
         return res
 
-    def init(self):
+    def init(self, is_complex=False):
         r"""
         Creates a copy of a :class:`LazyTensor`, without **formula** attribute.
         """
-        res = self.lt_constructor()
+        res = self.lt_constructor(is_complex=is_complex)
         res.tools = self.tools
-        res.dtype = self.dtype
+        res._dtype = self._dtype
         res.Genred = self.Genred
         res.KernelSolve = self.KernelSolve
         res.batchdims = self.batchdims
@@ -357,7 +384,7 @@ class GenericLazyTensor:
         res.symbolic_variables = self.symbolic_variables
         return res
 
-    def join(self, other):
+    def join(self, other, is_complex=False):
         r"""
         Merges the variables and attributes of two :class:`LazyTensor`, with a compatibility check.
         This method concatenates tuples of variables, without paying attention to repetitions.
@@ -365,7 +392,7 @@ class GenericLazyTensor:
         res = self.promote(
             other,
             (
-                "dtype",
+                "_dtype",
                 "tools",
                 "Genred",
                 "KernelSolve",
@@ -374,6 +401,7 @@ class GenericLazyTensor:
                 "ranges",
                 "backend",
             ),
+            is_complex=is_complex,
         )
         res.symbolic_variables = self.symbolic_variables + other.symbolic_variables
 
@@ -386,12 +414,17 @@ class GenericLazyTensor:
 
     # Prototypes for unary and binary operations  ==============================
 
-    def unary(self, operation, dimres=None, opt_arg=None, opt_arg2=None):
+    def unary(
+        self, operation, dimres=None, opt_arg=None, opt_arg2=None, is_complex=None
+    ):
         r"""
         Symbolically applies **operation** to **self**, with optional arguments if needed.
 
         The optional argument **dimres** may be used to specify the dimension of the output **result**.
         """
+
+        if is_complex is None:
+            is_complex = self.is_complex
 
         # we must prevent any operation if self is the output of a reduction operation,
         # i.e. if it has a reduction_op field
@@ -403,7 +436,7 @@ class GenericLazyTensor:
         if not dimres:
             dimres = self.ndim
 
-        res = self.init()  # Copy of self, without a formula
+        res = self.init(is_complex)  # Copy of self, without a formula
         if opt_arg2 is not None:
             res.formula = "{}({},{},{})".format(
                 operation, self.formula, opt_arg, opt_arg2
@@ -425,6 +458,7 @@ class GenericLazyTensor:
         opt_arg=None,
         opt_pos="last",
         rversion=False,
+        is_complex=None,
     ):
         r"""Symbolically applies **operation** to **self**, with optional arguments if needed.
 
@@ -436,9 +470,13 @@ class GenericLazyTensor:
             Supported values are ``"same"``, ``"sameor1"``, or **None**.
           - rversion (Boolean): shall we invert lhs and rhs of the binary op, e.g. as in __radd__, __rmut__, etc...
         """
+
         # If needed, convert float numbers / lists / arrays / tensors to LazyTensors:
         if not hasattr(other, "__GenericLazyTensor__"):
             other = self.lt_constructor(other)
+
+        if is_complex is None:
+            is_complex = True if (self.is_complex or other.is_complex) else False
 
         # we must prevent any operation if self or other is the output of a reduction operation,
         # i.e. if it has a reduction_op field
@@ -472,7 +510,10 @@ class GenericLazyTensor:
         elif dimcheck != None:
             raise ValueError("incorrect dimcheck keyword in binary operation")
 
-        res = self.join(other)  # Merge the attributes and variables of both operands
+        res = self.join(
+            other, is_complex=is_complex
+        )  # Merge the attributes and variables of both operands
+
         res.ndim = dimres
 
         if not rversion:
@@ -592,6 +633,7 @@ class GenericLazyTensor:
         axis=None,
         dim=None,
         call=True,
+        is_complex=None,
         **kwargs
     ):
         r"""
@@ -646,6 +688,12 @@ class GenericLazyTensor:
                                 with formulas involving large dimension variables.
         """
 
+        if is_complex is None:
+            if other is None:
+                is_complex = self.is_complex
+            else:
+                is_complex = self.is_complex or other.is_complex
+
         if axis is None:
             axis = dim  # NumPy uses axis, PyTorch uses dim...
         if axis - self.nbatchdims not in (0, 1):
@@ -654,10 +702,10 @@ class GenericLazyTensor:
             )
 
         if other is None:
-            res = self.init()  # ~ self.copy()
+            res = self.init(is_complex=is_complex)  # ~ self.copy()
             res.formula2 = None
         else:
-            res = self.join(other)
+            res = self.join(other, is_complex=is_complex)
             res.formula2 = other.formula
 
         res.formula = self.formula
@@ -678,7 +726,7 @@ class GenericLazyTensor:
             res.rec_multVar_highdim = id(self.rec_multVar_highdim[1].variables[0])
         else:
             res.rec_multVar_highdim = None
-        if res.dtype is not None:
+        if res._dtype is not None:
             res.fixvariables()  # Turn the "id(x)" numbers into consecutive labels
             # "res" now becomes a callable object:
             res.callfun = res.Genred(
@@ -686,13 +734,13 @@ class GenericLazyTensor:
                 [],
                 res.reduction_op,
                 res.axis,
-                res.dtype,
+                res._dtype,
                 res.opt_arg,
                 res.formula2,
                 **kwargs_init,
                 rec_multVar_highdim=res.rec_multVar_highdim
             )
-        if call and len(res.symbolic_variables) == 0 and res.dtype is not None:
+        if call and len(res.symbolic_variables) == 0 and res._dtype is not None:
             return res()
         else:
             return res
@@ -801,20 +849,20 @@ class GenericLazyTensor:
         else:
             res.rec_multVar_highdim = None
 
-        if res.dtype is not None:
+        if res._dtype is not None:
             res.fixvariables()
             res.callfun = res.KernelSolve(
                 res.formula,
                 [],
                 res.varformula,
                 res.axis,
-                res.dtype,
+                res._dtype,
                 **kwargs_init,
                 rec_multVar_highdim=res.rec_multVar_highdim
             )
 
         # we call if call=True, if other is not symbolic, and if the dtype is set
-        if call and len(other.symbolic_variables) == 0 and res.dtype is not None:
+        if call and len(other.symbolic_variables) == 0 and res._dtype is not None:
             return res()
         else:
             return res
@@ -837,11 +885,11 @@ class GenericLazyTensor:
             self.kwargs.update({"backend": self.backend})
 
         if (
-            self.dtype is None
+            self._dtype is None
         ):  # This can only happen if we haven't encountered 2D or 3D arrays just yet...
             self.get_tools()
 
-            self.dtype = self.tools.dtypename(
+            self._dtype = self.tools.dtypename(
                 self.tools.dtype(args[0])
             )  # crash if LazyTensor is called
             self.fixvariables()
@@ -854,7 +902,7 @@ class GenericLazyTensor:
                     [],
                     self.formula2,
                     self.axis,
-                    self.dtype,
+                    self._dtype,
                     **kwargs_init,
                     rec_multVar_highdim=self.rec_multVar_highdim
                 )
@@ -864,7 +912,7 @@ class GenericLazyTensor:
                     [],
                     self.reduction_op,
                     self.axis,
-                    self.dtype,
+                    self._dtype,
                     self.opt_arg,
                     self.formula2,
                     **kwargs_init,
@@ -884,7 +932,7 @@ class GenericLazyTensor:
         r"""
         Returns a verbose string identifier.
         """
-        tmp = self.init()  # ~ self.copy()
+        tmp = self.init(is_complex=self.is_complex)  # ~ self.copy()
         tmp.formula = self.formula
         tmp.formula2 = None if not hasattr(self, "formula2") else self.formula2
 
@@ -911,20 +959,26 @@ class GenericLazyTensor:
         return string
 
     @property
-    def shape(self):
-        btch = () if self.batchdims is None else self.batchdims
-        ni = 1 if self.ni is None else self.ni
-        nj = 1 if self.nj is None else self.nj
-        ndim = 1 if self.ndim is None else self.ndim
-        return btch + (ni, nj) if ndim == 1 else btch + (ni, nj, ndim)
+    def dtype(self):
+        return self._dtype
 
     @property
     def _shape(self):
+        r"""returns the internal shape of the LazyTensor."""
         btch = () if self.batchdims is None else self.batchdims
         ni = 1 if self.ni is None else self.ni
         nj = 1 if self.nj is None else self.nj
         ndim = 1 if self.ndim is None else self.ndim
         return btch + (ni, nj, ndim)
+
+    @property
+    def shape(self):
+        r"""returns the shape of the LazyTensor"""
+        s = self._shape
+        if s[-1] == 1:
+            return s[:-1]
+        else:
+            return s
 
     def dim(self):
         r"""
@@ -946,6 +1000,10 @@ class GenericLazyTensor:
     __array_ufunc__ = None
 
     # Arithmetics --------------------------------------------------------------
+
+    def addop(self, other, **kwargs):
+        return self.binary(other, "+", is_operator=True, **kwargs)
+
     def __add__(self, other):
         r"""
         Broadcasted addition operator - a binary operation.
@@ -953,10 +1011,12 @@ class GenericLazyTensor:
         ``x + y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the addition of ``x`` and ``y``.
         """
-        if is_scalar_and_equals(other,0):
+        if is_scalar_and_equals(other, 0):
             return self
+        elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
+            return self.real2complex().addop(other)
         else:
-            return self.binary(other, "+", is_operator=True)
+            return self.addop(other)
 
     def __radd__(self, other):
         r"""
@@ -965,10 +1025,13 @@ class GenericLazyTensor:
         ``x + y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the addition of ``x`` and ``y``.
         """
-        if is_scalar_and_equals(other,0):
+        if is_scalar_and_equals(other, 0):
             return self
         else:
-            return self.binary(other, "+", is_operator=True, rversion=True)
+            return self.addop(other, rversion=True)
+
+    def subop(self, other, **kwargs):
+        return self.binary(other, "-", is_operator=True, **kwargs)
 
     def __sub__(self, other):
         r"""
@@ -977,10 +1040,12 @@ class GenericLazyTensor:
         ``x - y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the subtraction of ``x`` and ``y``.
         """
-        if is_scalar_and_equals(other,0):
+        if is_scalar_and_equals(other, 0):
             return self
+        elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
+            return self.real2complex().subop(other)
         else:
-            return self.binary(other, "-", is_operator=True)
+            return self.subop(other)
 
     def __rsub__(self, other):
         r"""
@@ -989,10 +1054,13 @@ class GenericLazyTensor:
         ``x - y`` returns a :class:`LazyTensor` that encodes,
         symbolically, the subtraction of ``x`` and ``y``.
         """
-        if is_scalar_and_equals(other,0):
+        if is_scalar_and_equals(other, 0):
             return self.unary("Minus")
         else:
-            return self.binary(other, "-", is_operator=True, rversion=True)
+            return self.subop(other, rversion=True)
+
+    def mulop(self, other, **kwargs):
+        return self.binary(other, "*", is_operator=True, **kwargs)
 
     def __mul__(self, other):
         r"""
@@ -1001,14 +1069,16 @@ class GenericLazyTensor:
         ``x * y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise product of ``x`` and ``y``.
         """
-        if is_scalar_and_equals(other,0):
+        if is_scalar_and_equals(other, 0):
             return 0
-        elif is_scalar_and_equals(other,1):
+        elif is_scalar_and_equals(other, 1):
             return self
-        elif is_scalar_and_equals(other,-1):
+        elif is_scalar_and_equals(other, -1):
             return self.unary("Minus")
+        elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
+            return self.real2complex().mulop(other)
         else:
-            return self.binary(other, "*", is_operator=True)
+            return self.mulop(other)
 
     def __rmul__(self, other):
         r"""
@@ -1017,14 +1087,17 @@ class GenericLazyTensor:
         ``x * y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise product of ``x`` and ``y``.
         """
-        if is_scalar_and_equals(other,0):
+        if is_scalar_and_equals(other, 0):
             return 0
-        elif is_scalar_and_equals(other,1):
+        elif is_scalar_and_equals(other, 1):
             return self
-        elif is_scalar_and_equals(other,-1):
+        elif is_scalar_and_equals(other, -1):
             return self.unary("Minus")
         else:
-            return self.binary(other, "*", is_operator=True, rversion=True)
+            return self.mulop(other, rversion=True)
+
+    def divop(self, other, **kwargs):
+        return self.binary(other, "/", is_operator=True, **kwargs)
 
     def __truediv__(self, other):
         r"""
@@ -1033,10 +1106,12 @@ class GenericLazyTensor:
         ``x / y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise division of ``x`` by ``y``.
         """
-        if is_scalar_and_equals(other,1):
+        if is_scalar_and_equals(other, 1):
             return self
+        elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
+            return self.real2complex().divop(other)
         else:
-            return self.binary(other, "/", is_operator=True)
+            return self.divop(other)
 
     def __rtruediv__(self, other):
         r"""
@@ -1045,12 +1120,12 @@ class GenericLazyTensor:
         ``x / y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise division of ``x`` by ``y``.
         """
-        if is_scalar_and_equals(other,0):
+        if is_scalar_and_equals(other, 0):
             return 0
-        elif is_scalar_and_equals(other,1):
+        elif is_scalar_and_equals(other, 1):
             return self.unary("Inv")
         else:
-            return self.binary(other, "/", is_operator=True, rversion=True)
+            return self.divop(other, rversion=True)
 
     def __or__(self, other):
         r"""
@@ -1148,6 +1223,24 @@ class GenericLazyTensor:
         """
         return self.unary("Sin")
 
+    def sinxdivx(self):
+        r"""
+        Element-wise sin(x)/x function - a unary operation.
+
+        ``x.sinxdivx()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise sinxdivx function  of ``x``.
+        """
+        return self.unary("SinXDivX")
+
+    def sinc(self):
+        r"""
+        Element-wise sinc(x) = sin(pi x) / (pi x) function - a unary operation.
+
+        ``x.sinc()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise sinc function  of ``x``.
+        """
+        return (math.pi * self).sinxdivx()
+
     def asin(self):
         r"""
         Element-wise arcsine - a unary operation.
@@ -1165,6 +1258,24 @@ class GenericLazyTensor:
         the element-wise arccosine of ``x``.
         """
         return self.unary("Acos")
+
+    def atan(self):
+        r"""
+        Element-wise arctangent - a unary operation.
+
+        ``x.atan()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise arctangent of ``x``.
+        """
+        return self.unary("Atan")
+
+    def atan2(self, other):
+        r"""
+        Element-wise atan2 - a binary operation.
+
+        ``y.atan2(x)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise atan2 of ``x`` and ``y``.
+        """
+        return self.binary(other, "Atan2", dimcheck="same")
 
     def sqrt(self):
         r"""
@@ -1271,13 +1382,43 @@ class GenericLazyTensor:
         Element-wise Clamp function - a ternary operation.
 
         ``x.clamp(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
-        the element-wise clamping of ``x`` in ``(a,b)``. Braoodcasting rules apply.
-        a and b may be fixed integers or floats, or other LazyTensors
+        the element-wise clamping of ``x`` in ``(a,b)``. Broadcasting rules apply.
+        a and b may be fixed integers or floats, or other LazyTensors.
         """
         if (type(other1) == int) and (type(other2) == int):
             return self.unary("ClampInt", opt_arg=other1, opt_arg2=other2)
         else:
             return self.ternary(other1, other2, "Clamp", dimcheck="sameor1")
+
+    def ifelse(self, other1, other2):
+        r"""
+        Element-wise if-else function - a ternary operation.
+
+        ``x.ifelse(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        ``a`` where ``x >= 0`` and ``b`` where ``x < 0``.  Broadcasting rules apply.
+        a and b may be fixed integers or floats, or other LazyTensors.
+        """
+        return self.ternary(other1, other2, "IfElse", dimcheck="sameor1")
+
+    def mod(self, modulus, offset=0):
+        r"""
+        Element-wise modulo with offset function - a ternary operation.
+
+        ``x.mod(a,b)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise modulo of ``x`` with modulus ``a`` and offset ``b``.
+        By default b=0, so that x.mod(a) becomes equivalent to the NumPy function mod.
+        Broadcasting rules apply. a and b are fixed integers or float.
+        """
+        return self.ternary(modulus, offset, "Mod", dimcheck="sameor1")
+
+    def round(self, other=0):
+        r"""
+        Element-wise rounding function - a unary operation.
+
+        ``x.round(d)`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise rounding of ``x`` to d decimal places. d is int.
+        """
+        return self.unary("Round", opt_arg=other)
 
     def sqnorm2(self):
         r"""
@@ -2149,3 +2290,184 @@ class GenericLazyTensor:
         See :meth:`matvec` for further reference.
         """
         return self.T @ v
+
+    def real2complex(self):
+        r"""
+        Element-wise "real 2 complex" operation - a unary operation.
+
+        ``x.real2complex()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the same tensor as ``x``, but seen as complex-valued (with zero imaginary part for each coefficient)
+        """
+        return self.unary("Real2Complex", dimres=2 * self._shape[-1], is_complex=True)
+
+    def imag2complex(self):
+        r"""
+        Element-wise "imag 2 complex" operation - a unary operation.
+
+        ``x.real2complex()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the multiplication of ``1j`` with ``x``.
+        """
+        return self.unary("Imag2Complex", dimres=2 * self._shape[-1], is_complex=True)
+
+    def exp1j(self):
+        r"""
+        Element-wise "complex exponential of 1j x" operation - a unary operation.
+
+        ``x.exp1j()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the complex exponential of ``1j*x``.
+        """
+        return self.unary("ComplexExp1j", dimres=2 * self._shape[-1], is_complex=True)
+
+
+class ComplexGenericLazyTensor(GenericLazyTensor):
+    r"""Extension of the LazyTensor class for complex operations."""
+
+    def __init__(self, x=None, axis=None):
+        r"""Creates a KeOps symbolic variable of complex dtype."""
+        self.get_tools()
+        if type(x) == complex:
+            x = [x]
+        if type(x) == list:
+            x_ = [None] * (2 * len(x))
+            for i in range(len(x)):
+                x_[2 * i] = x[i].real
+                x_[2 * i + 1] = x[i].imag
+                x = x_
+        elif self.tools.is_tensor(x):
+            x = self.tools.view_as_real(x)
+        super().__init__(x=x, axis=axis)
+        self.is_complex = True
+
+    def __call__(self, *args, **kwargs):
+        res = super().__call__(*args, **kwargs)
+        return self.tools.view_as_complex(res)
+
+    @property
+    def dtype(self):
+        if self._dtype == "float32":
+            return "complex64"
+        elif self._dtype == "float64":
+            return "complex128"
+
+    @property
+    def shape(self):
+        r"""returns the shape of the complex LazyTensor."""
+        s = super()._shape
+        s = s[:-1] + (s[-1] // 2,)
+        if s[-1] == 1:
+            return s[:-1]
+        else:
+            return s
+
+    # List of supported operations  ============================================
+
+    @property
+    def real(self):
+        r"""
+        Element-wise real part of complex - a unary operation.
+
+        ``z.real`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise real part of ``z``.
+        """
+        return self.unary("ComplexReal", dimres=self._shape[-1] // 2, is_complex=False)
+
+    @property
+    def imag(self):
+        r"""
+        Element-wise imaginary part of complex - a unary operation.
+
+        ``z.imag`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise imaginary part of ``z``.
+        """
+        return self.unary("ComplexImag", dimres=self._shape[-1] // 2, is_complex=False)
+
+    def angle(self):
+        r"""
+        Element-wise angle (or argument) of complex - a unary operation.
+
+        ``z.angle()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise angle of ``z``.
+        """
+        return self.unary("ComplexAngle", dimres=self._shape[-1] // 2, is_complex=False)
+
+    def conj(self):
+        r"""
+        Element-wise complex conjugate - a unary operation.
+
+        ``z.conj()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the element-wise complex conjugate of ``z``.
+        """
+        return self.unary("Conj", dimres=self._shape[-1], is_complex=True)
+
+    def sum(self, axis=-1, dim=None, **kwargs):
+        if dim is not None:
+            axis = dim
+        if axis in [-1, len(self._shape) - 1]:
+            return self.unary("ComplexSum", dimres=2, is_complex=True)
+        else:
+            return self.reduction("Sum", axis=axis, **kwargs)
+
+    def __abs__(self):
+        r"""
+        Element-wise absolute value (or modulus) of complex - a unary operation.
+
+        ``z.abs()`` returns a :class:`LazyTensor` that encodes, symbolically,
+        the element-wise absolute value of ``z``.
+        """
+        return self.unary("ComplexAbs", dimres=self._shape[-1] // 2, is_complex=False)
+
+    def exp(self):
+        r"""
+        Element-wise complex exponential - a unary operation.
+
+        ``z.exp()`` returns a :class:`ComplexLazyTensor` that encodes, symbolically,
+        the element-wise complex exponential of ``z``.
+        """
+        return self.unary("ComplexExp", dimres=self._shape[-1], is_complex=True)
+
+    def mulop(self, other, **kwargs):
+        if not is_complex_lazytensor(other):
+            return self.mulop(other.real2complex())
+        elif self._shape[-1] == 1 or other._shape[-1] == 1:
+            return self.binary(other, "ComplexRealScal", **kwargs, is_complex=True)
+        elif self._shape[-1] == 2 or other._shape[-1] == 2:
+            return self.binary(other, "ComplexScal", **kwargs, is_complex=True)
+        else:
+            return self.binary(other, "ComplexMult", **kwargs, is_complex=True)
+
+    def addop(self, other, **kwargs):
+        if not is_complex_lazytensor(other):
+            return self.addop(other.real2complex())
+        elif self._shape[-1] == other._shape[-1]:
+            return self.binary(other, "Add", **kwargs, is_complex=True)
+        else:
+            raise ValueError("incompatible shapes for addition.")
+
+    def subop(self, other, **kwargs):
+        if not is_complex_lazytensor(other):
+            return self.subop(other.real2complex())
+        elif self._shape[-1] == other._shape[-1]:
+            return self.binary(other, "Subtract", **kwargs, is_complex=True)
+        else:
+            raise ValueError("incompatible shapes for subtraction.")
+
+    def divop(self, other, **kwargs):
+        if not is_complex_lazytensor(other):
+            return self.divop(other.real2complex())
+        elif self._shape[-1] == other._shape[-1]:
+            return self.binary(other, "ComplexDivide", **kwargs, is_complex=True)
+        else:
+            raise ValueError("incompatible shapes for division.")
+
+    def real2complex(self):
+        raise ValueError("real2complex cannot be applied to a complex LazyTensor.")
+
+    def imag2complex(self):
+        raise ValueError("imag2complex cannot be applied to a complex LazyTensor.")
+
+    def exp1j(self):
+        raise ValueError("exp1j cannot be applied to a complex LazyTensor.")
+
+    def __call__(self, *args, **kwargs):
+        res = super().__call__(*args, **kwargs)
+        return self.tools.view_as_complex(res)

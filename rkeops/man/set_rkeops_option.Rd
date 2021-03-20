@@ -21,8 +21,8 @@ specific \code{rkeops} options in \code{R} global options scope.
 }
 \details{
 \code{rkeops} uses two sets of options: compile options (see
-\code{\link[rkeops:compile_options]{rkeops::compile_options()}}) and runtime options (see
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}). These options define the behavior of \code{rkeops}
+\code{\link[=compile_options]{compile_options()}}) and runtime options (see
+\code{\link[=runtime_options]{runtime_options()}}). These options define the behavior of \code{rkeops}
 when compiling or when calling user-defined operators.
 
 With the function \code{set_rkeops_option}, you can set up a specific \code{rkeops}
@@ -35,7 +35,7 @@ with a value that you provide in input.
 }
 
 To know which values are allowed for which options, you can check
-\code{\link[rkeops:compile_options]{rkeops::compile_options()}} and \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}.
+\code{\link[=compile_options]{compile_options()}} and \code{\link[=runtime_options]{runtime_options()}}.
 }
 \examples{
 library(rkeops)
@@ -45,9 +45,9 @@ set_rkeops_option("tagCpuGpu", 1)
 set_rkeops_option("device_id", 0L) # integer value
 }
 \seealso{
-\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}, \code{\link[rkeops:compile_options]{rkeops::compile_options()}},
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}},  \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}, \code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}},
-\code{\link[rkeops:get_rkeops_options]{rkeops::get_rkeops_options()}}
+\code{\link[=set_rkeops_options]{set_rkeops_options()}}, \code{\link[=compile_options]{compile_options()}},
+\code{\link[=runtime_options]{runtime_options()}},  \code{\link[=use_gpu]{use_gpu()}}, \code{\link[=compile4gpu]{compile4gpu()}},
+\code{\link[=get_rkeops_options]{get_rkeops_options()}}
 }
 \author{
 Ghislain Durif

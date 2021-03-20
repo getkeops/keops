@@ -57,3 +57,4 @@ keopslab/common/pathtocmake
 
 # benchmark extra file
 benchmarks/*halide*
+*benchmark_datasets*

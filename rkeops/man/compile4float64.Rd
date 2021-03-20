@@ -29,7 +29,7 @@ library(rkeops)
 compile4float64()
 }
 \seealso{
-\code{\link[rkeops:compile4float32]{rkeops::compile4float32()}}
+\code{\link[=compile4float32]{compile4float32()}}
 }
 \author{
 Ghislain Durif

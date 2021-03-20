@@ -18,11 +18,11 @@ replaced by \code{include}, or \code{src} by \code{lib}. Check functions inside 
 have different behavior between these two cases.
 
 The function \code{is_installed} checks the availability of the compiled
-function \code{\link[rkeops:is_compiled]{rkeops::is_compiled()}}. If available, it means that \code{rkeops} is
+function \code{\link[=is_compiled]{is_compiled()}}. If available, it means that \code{rkeops} is
 installed on the system.
 }
 \seealso{
-\code{\link[rkeops:is_installed]{rkeops::is_installed()}}
+\code{\link[=is_installed]{is_installed()}}
 }
 \author{
 Ghislain Durif

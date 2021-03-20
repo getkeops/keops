@@ -8,7 +8,7 @@ default_runtime_options()
 }
 \value{
 a list of class \code{rkeops_runtime_options} (see
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} for the detailed output).
+\code{\link[=runtime_options]{runtime_options()}} for the detailed output).
 }
 \description{
 To call user-defined operators, \code{rkeops} requires runtime options.
@@ -17,23 +17,23 @@ The function \code{default_runtime_options} returns a list with default values
 for the corresponding options (see Details).
 }
 \details{
-Please refer to \code{\link[rkeops:runtime_options]{rkeops::runtime_options()}} for a detailed description of
+Please refer to \code{\link[=runtime_options]{runtime_options()}} for a detailed description of
 these options.
 
 \strong{Note:} Default options are set up when loading \code{rkeops}. To reset
 \code{rkeops} options to default, you should use the function
-\code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}}. To set up a particular option, you should
-use the function \code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}.
+\code{\link[=set_rkeops_options]{set_rkeops_options()}}. To set up a particular option, you should
+use the function \code{\link[=set_rkeops_option]{set_rkeops_option()}}.
 
 Some wrappers are available to enable some compilation options,
-see \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}, \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}.
+see \code{\link[=use_cpu]{use_cpu()}}, \code{\link[=use_gpu]{use_gpu()}}.
 }
 \examples{
 default_runtime_options()
 }
 \seealso{
-\code{\link[rkeops:runtime_options]{rkeops::runtime_options()}}, \code{\link[rkeops:set_rkeops_options]{rkeops::set_rkeops_options()}},
-\code{\link[rkeops:set_rkeops_option]{rkeops::set_rkeops_option()}}, \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}, \code{\link[rkeops:use_gpu]{rkeops::use_gpu()}}
+\code{\link[=runtime_options]{runtime_options()}}, \code{\link[=set_rkeops_options]{set_rkeops_options()}},
+\code{\link[=set_rkeops_option]{set_rkeops_option()}}, \code{\link[=use_cpu]{use_cpu()}}, \code{\link[=use_gpu]{use_gpu()}}
 }
 \author{
 Ghislain Durif

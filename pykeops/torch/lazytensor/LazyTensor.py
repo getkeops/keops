@@ -1,6 +1,6 @@
 import torch
 
-from pykeops.common.lazy_tensor import GenericLazyTensor
+from pykeops.common.lazy_tensor import GenericLazyTensor, ComplexGenericLazyTensor
 from pykeops.torch.utils import torchtools
 
 
@@ -54,33 +54,34 @@ class LazyTensor(GenericLazyTensor):
     standard tensorized implementations by two orders of magnitude.
     """
 
-    def __init__(self, x=None, axis=None):
+    def __new__(self, x=None, axis=None, is_complex=False):
+        if is_complex or torchtools.detect_complex(x):
+            return ComplexLazyTensor(x, axis)
+        else:
+            return object.__new__(self)
+
+    def __init__(self, x=None, axis=None, is_complex=False):
         super().__init__(x=x, axis=axis)
-
-        # torch specialization
-        typex = type(x)
-
-        if typex not in [type(None), tuple, int, list, torch.Tensor] + self.float_types:
-            raise TypeError(
-                "LazyTensors should be built from PyTorch tensors, "
-                "float/integer numbers, lists of floats or 3-uples of integers. "
-                "Received: {}".format(typex)
-            )
-
-        if typex == torch.Tensor and len(x.shape) == 0:  # Torch scalar -> Torch tensor
-            x = x.view(1)
-        elif typex in self.float_types:
-            x = torch.Tensor([x]).view(1)
-
-        if typex == torch.Tensor:
-            self.infer_dim(x, axis)
 
     def get_tools(self):
         self.tools = torchtools
         self.Genred = torchtools.Genred
         self.KernelSolve = torchtools.KernelSolve
 
-    def lt_constructor(self, x=None, axis=None):
-        return LazyTensor(x=x, axis=axis)
+    def lt_constructor(self, x=None, axis=None, is_complex=False):
+        return LazyTensor(x=x, axis=axis, is_complex=is_complex)
 
-    float_types = [float]
+
+class ComplexLazyTensor(ComplexGenericLazyTensor):
+    r"""Extension of the LazyTensor class for complex operations."""
+
+    def __init__(self, x=None, axis=None):
+        super().__init__(x=x, axis=axis)
+
+    def get_tools(self):
+        self.tools = torchtools
+        self.Genred = torchtools.Genred
+        self.KernelSolve = torchtools.KernelSolve
+
+    def lt_constructor(self, x=None, axis=None, is_complex=True):
+        return LazyTensor(x=x, axis=axis, is_complex=is_complex)

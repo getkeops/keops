@@ -11,6 +11,7 @@ This section contains the full API documentation of the :doc:`LazyTensor <../../
     Vj
     Pm
     LazyTensor
+    ComplexLazyTensor
 
 .. rubric:: Syntax
 
@@ -22,4 +23,7 @@ This section contains the full API documentation of the :doc:`LazyTensor <../../
     :members:
     :special-members:
 
-		
+.. autoclass:: ComplexLazyTensor
+    :members:
+    :special-members:
+

@@ -25,7 +25,7 @@ library(rkeops)
 compile4cpu()
 }
 \seealso{
-\code{\link[rkeops:compile4gpu]{rkeops::compile4gpu()}}, \code{\link[rkeops:use_cpu]{rkeops::use_cpu()}}
+\code{\link[=compile4gpu]{compile4gpu()}}, \code{\link[=use_cpu]{use_cpu()}}
 }
 \author{
 Ghislain Durif
