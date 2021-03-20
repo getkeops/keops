@@ -74,7 +74,8 @@ class LoadKeOps_new:
             raise ValueError('not implemented')
         
         if '-DENABLECHUNK=1' in self.optional_flags:
-            print("[KeOps] warning : chunk mode is not yet implemented in new KeOps engine, option is deactivated.")
+            if max(arg.shape[-1] for arg in args) > 100:
+                print("[KeOps] warning : chunk mode is not yet implemented in new KeOps engine, option is deactivated.")
             self.optional_flags.remove('-DENABLECHUNK=1')
         
         if self.optional_flags:
@@ -103,14 +104,19 @@ class LoadKeOps_new:
         if max(list(len(arg.shape) for arg in args)) > 2:
             raise ValueError('[KeOps] reductions with batch dimensions are not yet implemented in new KeOps engine')
         
-        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme)
+        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme, tagCPUGPU, tag1D2D, tagHostDevice)
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
         M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)
+        
+        if not ranges:
+            ranges = (-1,) # temporary hack
+        ranges_ctype = tools.ctypes(tools.array(ranges))
+        
         out = tools.zeros((M, myfun.dim), dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
         args_ctype = (tools.ctypes(arg) for arg in args)
-        myfun(M, N, device_id, out_ctype, *args_ctype)
+        myfun(M, N, device_id, ranges_ctype, out_ctype, *args_ctype)
         return out
 
 

@@ -7,7 +7,7 @@ from link_compile import *
 class map_reduce:
     # base class for map-reduce schemes
     
-    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
+    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string, tagCPUGPU, tag1D2D, tagHostDevice):
         self.red_formula_string = red_formula_string
         self.aliases = aliases
                 
@@ -50,8 +50,8 @@ class map_reduce:
 class CpuAssignZero(map_reduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
     
-    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
-        map_reduce.__init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string)
+    def __init__(self, *args):
+        map_reduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)
     
     def get_code(self):
@@ -67,12 +67,16 @@ class CpuAssignZero(map_reduce, Cpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" int Eval(int nx, int ny, int dummy, {dtype}* out, {signature_list(args)}) {{
+                        extern "C" int AssignZeroCpu(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {outi.assign(c_zero_float)}
                             }}
                             return 0;
+                        }}
+                        
+                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}) {{
+                            return AssignZeroCpu(nx, ny, out, {call_list(args)});
                         }}
                     """
 
@@ -80,8 +84,8 @@ class CpuAssignZero(map_reduce, Cpu_link_compile):
 class GpuAssignZero(map_reduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
     
-    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
-        map_reduce.__init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string)
+    def __init__(self, *args):
+        map_reduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
     
     def get_code(self):
@@ -99,7 +103,7 @@ class GpuAssignZero(map_reduce, Gpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
+                        __global__ void AssignZeroGpu(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
     
                           // get the index of the current thread
                           int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -112,7 +116,7 @@ class GpuAssignZero(map_reduce, Gpu_link_compile):
 
 
 
-                        extern "C" __host__ int Eval(int nx, int ny, int device_id, {dtype} *out, {signature_list(args)}) {{
+                        extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}) {{
 
                             // device_id is provided, so we set the GPU device accordingly
                             // Warning : is has to be consistent with location of data
@@ -129,7 +133,7 @@ class GpuAssignZero(map_reduce, Gpu_link_compile):
                             dim3 gridSize;
                             gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-                            GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * {varloader.dimy} * sizeof({dtype}) >>> (nx, ny, out, {call_list(args)});
+                            AssignZeroGpu <<< gridSize, blockSize, blockSize.x * {varloader.dimy} * sizeof({dtype}) >>> (nx, ny, out, {call_list(args)});
     
                             // block until the device has completed
                             cudaDeviceSynchronize();
@@ -149,8 +153,8 @@ class CpuReduc(map_reduce, Cpu_link_compile):
     
     AssignZero = CpuAssignZero
 
-    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
-        map_reduce.__init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string)
+    def __init__(self, *args):
+        map_reduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)
         
     def get_code(self):
@@ -173,7 +177,7 @@ class CpuReduc(map_reduce, Cpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" int Eval(int nx, int ny, int dummy, {dtype}* out, {signature_list(args)}) {{
+                        int CpuConv(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {fout.declare()}
@@ -191,6 +195,10 @@ class CpuReduc(map_reduce, Cpu_link_compile):
                             }}
                             return 0;
                         }}
+                        
+                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}) {{
+                            return CpuConv(nx, ny, out, {call_list(args)});
+                        }}
                     """
 
 
@@ -199,8 +207,8 @@ class GpuReduc1D(map_reduce, Gpu_link_compile):
     
     AssignZero = GpuAssignZero
 
-    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
-        map_reduce.__init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string)
+    def __init__(self, *args):
+        map_reduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
         
     def get_code(self):
@@ -284,7 +292,7 @@ class GpuReduc1D(map_reduce, Gpu_link_compile):
 
 
 
-                        extern "C" __host__ int Eval(int nx, int ny, int device_id, {dtype} *out, {signature_list(args)}) {{
+                        extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}) {{
 
                             // device_id is provided, so we set the GPU device accordingly
                             // Warning : is has to be consistent with location of data
@@ -292,7 +300,7 @@ class GpuReduc1D(map_reduce, Gpu_link_compile):
 	
                             // Compute on device : grid and block are both 1d
 
-                            //SetGpuProps(devise_id);
+                            //SetGpuProps(device_id);
 
                             dim3 blockSize;
 
