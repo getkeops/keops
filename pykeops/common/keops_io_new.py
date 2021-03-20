@@ -1,8 +1,4 @@
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'keops', 'python_engine'))
-from operations import *
-from reductions import *  
-from get_keops_routine import *     
+from pykeops.common.get_keops_routine import get_keops_routine    
 import time 
         
 class LoadKeOps:
@@ -25,16 +21,11 @@ class LoadKeOps:
                 alias = f"{varname}=Var({k},{dim},{cat})"
                 aliases_new.append(alias)
         aliases = aliases_new
-
         self.aliases = aliases
-        #self.dtype = dtype
         self.lang = lang
         self.optional_flags = optional_flags
-        #self.include_dirs = include_dirs
         self.red_formula_string = formula
-        self.red_formula = getReduction(formula, aliases)
-        self.dimout = self.red_formula.dim
-        self.tagIJ = self.red_formula.tagI
+        self.dtype = dtype
     
     def genred(self, tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, *args):
         
@@ -49,6 +40,10 @@ class LoadKeOps:
         device = tools.device_dict(args[0])
         dtype = tools.dtype(args[0])
         dtypename = tools.dtypename(dtype)
+                
+        if self.dtype not in ['auto', dtypename]:
+            print("[KeOps] warning : setting a dtype argument in Genred different from the input dtype of tensors is not permitted anymore, argument is ignored.")
+        
         if dtypename == "float32":
             c_dtype = "float"
         elif dtypename == "float64":
@@ -80,6 +75,8 @@ class LoadKeOps:
             map_reduce_id = "GpuReduc1D"   
             device_id = device["index"]
         myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme)
+        self.tagIJ = myfun.tagI
+        self.dimout = myfun.dim
         M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)
         out = tools.zeros((M, myfun.dim), dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
