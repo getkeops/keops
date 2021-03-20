@@ -176,7 +176,6 @@ class CpuReduc(map_reduce, Cpu_link_compile):
 
         self.code = f"""
                         {self.headers}
-
                         int CpuConv(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
