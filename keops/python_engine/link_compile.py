@@ -8,7 +8,8 @@ build_path = base_dir_path + "build" + os.path.sep
 os.makedirs(build_path, exist_ok=True)
 
 
-
+# flag for OpenMP support
+use_OpenMP = True
     
         
         
@@ -73,17 +74,28 @@ class Cpu_link_compile(link_compile):
 
     source_code_extension = "cpp"
     
-    # standard, both linux and mac, no openmp support
     compiler = "g++"
-    compile_options = ["-shared", "-fPIC", "-O3"]
     
-    # for linux with openmp support
-    #compiler = "g++"
-    #compile_options = ["-Xclang", "-fopenmp", "-shared", "-O3", "-lomp"]
-    
-    # for mac with openmp (only works with unsafe export KMP_DUPLICATE_LIB_OK=TRUE)
-    #compiler = "g++"
-    #compile_options = ["-Xclang", "-fopenmp", "-shared", "-O3", "-lomp"]
+    if use_OpenMP:
+        compile_options = ["-Xclang", "-fopenmp", "-shared", "-fPIC", "-O3", "-lomp"]
+        import platform
+        if platform.system()=="Darwin":
+            # warning : this is unsafe hack for OpenMP support on mac...
+            import os
+            os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+    else:
+        # standard, both linux and mac, no openmp support
+        compile_options = ["-shared", "-fPIC", "-O3"]
+        
+    if sys=="Linux":
+        # for linux with openmp support
+        compile_options = ["-Xclang", "-fopenmp", "-shared", "-fPIC", "-O3", "-lomp"]
+    elif sys=="Darwin":
+        # for mac with openmp (only works with unsafe export KMP_DUPLICATE_LIB_OK=TRUE)
+        import os
+        os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+        compile_options = ["-Xclang", "-fopenmp", "-shared", "-fPIC", "-O3", "-lomp"]
+
     
 
 class Gpu_link_compile(link_compile):
