@@ -82,13 +82,20 @@ class LoadKeOps_new:
             print("[KeOps] warning : there are options not yet implemented in new KeOps engine, these options are deactivated.")
             print("Options are:", self.optional_flags)
             
-        map_reduce_id = "CpuReduc" if tagCPUGPU==0 else "GpuReduc1D" 
-        
         if tag1D2D==1:
             print("[KeOps] warning : GPU_2D method is not yet implemented in new KeOps engine, switching to GPU_1D.")
+            tag1D2D = 0
         
         if tagHostDevice==0 and tagCPUGPU==1:
-            raise ValueError('[KeOps] not implemented')
+            raise ValueError('[KeOps] "From Host" reductions are not yet implemented in new KeOps engine, switching to "From Device"')
+            tagHostDevice = 1
+        
+        if tagCPUGPU==0:
+            map_reduce_id = "CpuReduc"
+        else:
+            map_reduce_id = "GpuReduc"
+            map_reduce_id += "1D" if tag1D2D==0 else "2D"
+            map_reduce_id += "_FromHost" if tagHostDevice==0 else "_FromDevice"
         
         if device["cat"] == "cpu":
             device_id = -1
@@ -96,7 +103,7 @@ class LoadKeOps_new:
             device_id = device["index"]
             
         if device_id_ != -1 and device_id_ != device_id:
-            raise ValueError('[KeOps] internal error : device_id_ and device_id do not match, needs investigation...')
+            raise ValueError('[KeOps] internal error : device_id_ and device_id do not match, code needs some cleaning...')
         
         if ranges:
             raise ValueError('[KeOps] ranges are not yet implemented in new KeOps engine')
@@ -104,7 +111,7 @@ class LoadKeOps_new:
         if max(list(len(arg.shape) for arg in args)) > 2:
             raise ValueError('[KeOps] reductions with batch dimensions are not yet implemented in new KeOps engine')
         
-        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme, tagCPUGPU, tag1D2D, tagHostDevice)
+        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme)
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
         M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)

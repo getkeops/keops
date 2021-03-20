@@ -7,7 +7,7 @@ from link_compile import *
 class map_reduce:
     # base class for map-reduce schemes
     
-    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string, tagCPUGPU, tag1D2D, tagHostDevice):
+    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
         self.red_formula_string = red_formula_string
         self.aliases = aliases
                 
@@ -202,7 +202,7 @@ class CpuReduc(map_reduce, Cpu_link_compile):
                     """
 
 
-class GpuReduc1D(map_reduce, Gpu_link_compile):
+class GpuReduc1D_FromDevice(map_reduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
     
     AssignZero = GpuAssignZero
