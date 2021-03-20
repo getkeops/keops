@@ -27,7 +27,7 @@ class LoadKeOps_new:
         self.red_formula_string = formula
         self.dtype = dtype
     
-    def genred(self, tagCPUGPU, tag1D2D, tagHostDevice, device_id, ranges, nx, ny, *args):
+    def genred(self, tagCPUGPU, tag1D2D, tagHostDevice, device_id_, ranges, nx, ny, *args):
         
         if self.lang == "torch":
             from pykeops.torch.utils import torchtools
@@ -53,27 +53,56 @@ class LoadKeOps_new:
         
         if '-D__TYPEACC__=double' in self.optional_flags:
             c_dtype_acc = 'double'
+            self.optional_flags.remove('-D__TYPEACC__=double')
         elif '-D__TYPEACC__=float' in self.optional_flags:
             c_dtype_acc = 'float'
+            self.optional_flags.remove('-D__TYPEACC__=float')
         else:
             raise ValueError('not implemented')
             
         if '-DSUM_SCHEME=0' in self.optional_flags:
             sum_scheme = 'direct_sum'
+            self.optional_flags.remove('-DSUM_SCHEME=0')
         elif '-DSUM_SCHEME=1' in self.optional_flags:
             sum_scheme = 'block_sum'
+            self.optional_flags.remove('-DSUM_SCHEME=1')
         elif '-DSUM_SCHEME=2' in self.optional_flags:
             sum_scheme = 'kahan_scheme'
+            self.optional_flags.remove('-DSUM_SCHEME=2')
         else:
             print(self.optional_flags)
             raise ValueError('not implemented')
+        
+        if '-DENABLECHUNK=1' in self.optional_flags:
+            print("[KeOps] warning : chunk mode is not yet implemented in new KeOps engine, option is deactivated.")
+            self.optional_flags.remove('-DENABLECHUNK=1')
+        
+        if self.optional_flags:
+            print("[KeOps] warning : there are options not yet implemented in new KeOps engine, these options are deactivated.")
+            print("Options are:", self.optional_flags)
             
+        map_reduce_id = "CpuReduc" if tagCPUGPU==0 else "GpuReduc1D" 
+        
+        if tag1D2D==1:
+            print("[KeOps] warning : GPU_2D method is not yet implemented in new KeOps engine, switching to GPU_1D.")
+        
+        if tagHostDevice==0 and tagCPUGPU==1:
+            raise ValueError('[KeOps] not implemented')
+        
         if device["cat"] == "cpu":
-            map_reduce_id = "CpuReduc"
             device_id = -1
         else:
-            map_reduce_id = "GpuReduc1D"   
             device_id = device["index"]
+            
+        if device_id_ != -1 and device_id_ != device_id:
+            raise ValueError('[KeOps] internal error : device_id_ and device_id do not match, needs investigation...')
+        
+        if ranges:
+            raise ValueError('[KeOps] ranges are not yet implemented in new KeOps engine')
+        
+        if max(list(len(arg.shape) for arg in args)) > 2:
+            raise ValueError('[KeOps] reductions with batch dimensions are not yet implemented in new KeOps engine')
+        
         myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme)
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
