@@ -53,6 +53,7 @@ class link_compile:
         self.dim = self.red_formula.dim
         self.get_code()
         self.write_code()
+        print("compile_command =", self.compile_command)
         os.system(self.compile_command)
         
     def get_dll_and_params(self):
