@@ -53,7 +53,6 @@ class link_compile:
         self.dim = self.red_formula.dim
         self.get_code()
         self.write_code()
-        print("compile_command =", self.compile_command)
         os.system(self.compile_command)
         
     def get_dll_and_params(self):
@@ -81,12 +80,11 @@ class Cpu_link_compile(link_compile):
     if use_OpenMP:
         import platform
         if platform.system()=="Darwin":
-            compile_options += ["-Xclang -fopenmp"]
+            compile_options += ["-Xclang -fopenmp", "-lomp"]
             # warning : this is unsafe hack for OpenMP support on mac...
             os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         else:
             compile_options += ["-fopenmp"]
-        compile_options += ["-lomp"]
     
 
 
