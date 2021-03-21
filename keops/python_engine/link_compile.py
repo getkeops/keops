@@ -75,7 +75,7 @@ class Cpu_link_compile(link_compile):
     source_code_extension = "cpp"
     
     compiler = "g++"
-    compile_options = ["-shared", "-fPIC", "-O3"]
+    compile_options = ["-shared", "-fPIC", "-O3", "-flto"]
     
     if use_OpenMP:
         import platform
@@ -84,7 +84,7 @@ class Cpu_link_compile(link_compile):
             # warning : this is unsafe hack for OpenMP support on mac...
             os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         else:
-            compile_options += ["-fopenmp"]
+            compile_options += ["-fopenmp", "-fno-fat-lto-objects"]
     
 
 
