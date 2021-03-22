@@ -1,5 +1,5 @@
 import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'keops', 'python_engine'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'keops', 'python_engine'))
 from operations import *
 from reductions import *  
 
