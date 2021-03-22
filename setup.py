@@ -146,6 +146,7 @@ setup(
         + import_files(path.join("keops", "core", "utils"), ["h", "cu"])
         + import_files(path.join("keops", "core", "mapreduce"), ["h", "cpp", "cu"])
         + import_files(path.join("keops", "core"), ["h", "cpp", "cu"])
+        + import_files(path.join("keops", "python_engine"), ["py"])
         + [
             "keops/specific/CMakeLists.txt",
             "keops/specific/radial_kernels/cuda_conv.cu",
