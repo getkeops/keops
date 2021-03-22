@@ -3,7 +3,11 @@ import pykeops
 from pykeops.torch import LazyTensor
 
 
-ttypes = (torch.FloatTensor, torch.cuda.FloatTensor) if torch.cuda.is_available() else (torch.FloatTensor,)
+ttypes = (
+    (torch.FloatTensor, torch.cuda.FloatTensor)
+    if torch.cuda.is_available()
+    else (torch.FloatTensor,)
+)
 
 # Test when LazyTensors share underlying data
 for ttype in ttypes:
