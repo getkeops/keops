@@ -34,7 +34,7 @@ an issue report on [GitHub](https://github.com/getkeops/keops/issues).
 ## KeOps, PyKeOps, KeOpsLab
 
 * [Benjamin Charlier](https://imag.umontpellier.fr/~charlier/)
-* [Jean Feydy](https://www.math.ens.fr/~feydy/)
+* [Jean Feydy](https://www.jeanfeydy.com)
 * [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
 
 ## RKeOps

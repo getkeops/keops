@@ -14,7 +14,7 @@ KeOps, PyKeOps, KeOpsLab
 ------------------------
 
 -  `Benjamin Charlier <https://imag.umontpellier.fr/%7Echarlier/>`__
--  `Jean Feydy <https://www.math.ens.fr/%7Efeydy/>`__
+-  `Jean Feydy <https://www.jeanfeydy.com>`__
 -  `Joan Alexis
    Glaunès <http://helios.mi.parisdescartes.fr/%7Eglaunes/>`__
 

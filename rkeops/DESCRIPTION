@@ -8,7 +8,7 @@ Authors@R: c(
            comment="<http://imag.umontpellier.fr/~charlier/>", 
            role="aut"), 
     person(given="Jean", family="Feydy", 
-           comment="<https://www.math.ens.fr/~feydy/>", 
+           comment="<https://www.jeanfeydy.com>", 
            role="aut"), 
     person(given="Joan A.", family="Glaunès", 
            comment="<https://www.mi.parisdescartes.fr/~glaunes/>", 

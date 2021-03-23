@@ -11,8 +11,8 @@ that lie at the heart
 of the KeOps engine.
 
 Note that this section is extracted
-from the Chapter 2.2 of Jean Feydy's PhD thesis,
-to be available soon.
+from the Chapter 2.2 of Jean Feydy's 
+`PhD thesis <https://www.jeanfeydy.com/geometric_data_analysis.pdf>`_.
 
 
 .. toctree::
