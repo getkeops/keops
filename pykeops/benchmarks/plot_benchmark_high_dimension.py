@@ -6,6 +6,7 @@ Let's compare the performances of PyTorch and KeOps on
 simple Gaussian RBF kernel products,
 as the dimension grows.
  
+ 
 """
 
 

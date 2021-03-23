@@ -292,11 +292,7 @@ def benchmark(
 
     # Actual benchmark:
     elapsed = benchmark_loop(N, loops, routine, max_time, args, kwargs)
-
-    if True:
-        return elapsed
-    else:
-        q.put(elapsed)
+    return elapsed
 
 
 def bench_config(
@@ -332,7 +328,7 @@ def bench_config(
 
             times.append(elapsed)
             if (nloops * elapsed > max_time) or (
-                nloops * elapsed > red_time / 10 and len(Nloops) > 0
+                nloops * elapsed > red_time and len(Nloops) > 0
             ):
                 nloops = Nloops.pop(0)
 
