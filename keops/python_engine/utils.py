@@ -155,8 +155,9 @@ def VectCopy(out, arg, cast=True):
 def call_list(args):
     return ", ".join(list(arg.id for arg in args))
 
-def signature_list(args):
-    return ", ".join(list(f"{arg.dtype} {arg.id}" for arg in args))
+def signature_list(args, default=None):
+    prepend = f" = {default}" if default else ""
+    return ", ".join(list(f"{arg.dtype} {arg.id}{prepend}" for arg in args))
 
 def c_include(*headers):
     return "".join(f"#include <{header}>\n" for header in headers)

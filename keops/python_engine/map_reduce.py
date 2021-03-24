@@ -17,6 +17,8 @@ class map_reduce:
         self.dtypeacc = dtypeacc
         self.nargs = nargs
         self.sum_scheme_string = sum_scheme_string
+        argshapes_names = new_c_varname("argshape", nargs)
+        self.argshapes = c_variable(pointer("int"), argshapes_names)
     
     def get_code(self):       
         
@@ -195,7 +197,7 @@ class CpuReduc(map_reduce, Cpu_link_compile):
                             return 0;
                         }}
                         
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}) {{
+                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, int nbatchdims = 0, {signature_list(self.argshapes, default="0")}) {{
                             return CpuConv(nx, ny, out, {call_list(args)});
                         }}
                     """
