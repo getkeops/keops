@@ -16,6 +16,7 @@ class Operation(tree):
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class
         self.Vars_ = set.union(*(arg.Vars_ for arg in args)) if len(args)>0 else set()
+        self.size_i = 
         
     def Vars(self, cat="all"):
         # if cat=="all", returns the list of all variables in a formula, stored in self.Vars_

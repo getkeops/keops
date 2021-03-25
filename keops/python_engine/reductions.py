@@ -455,6 +455,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         self.formulaG = formulaG
         self.dim = formulaF.dim + formulaG.dim       # dimension of final output of reduction
         self.dimred = self.dim                      # dimension of inner reduction variables
+        self.Vars = lambda cat : formulaF.Vars(cat) + formulaG.Vars(cat)
         
     def InitializeReduction(self, acc):
         # Returns C++ code to be used at initialization phase of the reduction.

@@ -201,6 +201,221 @@ class CpuReduc(map_reduce, Cpu_link_compile):
                     """
 
 
+class CpuReduc_ranges(map_reduce, Cpu_link_compile):
+    # class for generating the final C++ code, Cpu version
+    
+    AssignZero = CpuAssignZero
+
+    def __init__(self, *args):
+        map_reduce.__init__(self, *args)
+        Cpu_link_compile.__init__(self)
+        
+    def get_code(self):
+
+        super().get_code()
+        
+        i = self.i
+        j = self.j
+        dtype = self.dtype
+        red_formula = self.red_formula
+        fout = self.fout
+        outi = self.outi
+        acc = self.acc
+        args = self.args
+        table = self.varloader.direct_table(args, i, j)
+        sum_scheme = self.sum_scheme
+        
+        tagI, tagJ = self.red_formula.tagI, self.red_formula.tagJ
+        size_i, size_j, size_p = (len(self.red_formula.Vars(cat)) for cat in tagI, tagJ, 2)
+        
+        self.headers += c_include("cmath", "omp.h")
+
+        self.code = f"""
+                        {self.headers}
+                        static int CpuConv(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
+                            #pragma omp parallel for
+                            for (int i = 0; i < nx; i++) {{
+                                {fout.declare()}
+                                {acc.declare()}
+                                {sum_scheme.declare_temporary_accumulator()}
+                                {red_formula.InitializeReduction(acc)}
+                                {sum_scheme.initialize_temporary_accumulator()}
+                                for (int j = 0; j < ny; j++) {{
+                                    {red_formula.formula(fout,table)}
+                                    {sum_scheme.accumulate_result(acc, fout, j)}
+                                    {sum_scheme.periodic_accumulate_temporary(acc, j)}
+                                }}
+                                {sum_scheme.final_operation(acc)}
+                                {red_formula.FinalizeOutput(acc, outi, i)}
+                            }}
+                            return 0;
+                        }}
+                        
+                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}) {{
+                            return CpuConv(nx, ny, out, {call_list(args)});
+                        }}
+                    """
+
+        self.code = f"""
+                    {self.headers}
+                    #define __INDEX__ int32_t
+                    
+                    {define_fill_shapes_function(red_formula)}
+                    
+                    static int CpuConv_ranges(int nx, int ny, int nbatchdims, int* shapes,
+                                              int nranges_x, int nranges_y, __INDEX__** ranges, 
+                                              {dtype}* out, {signature_list(args)}) {{
+                        
+                        // Separate and store the shapes of the "i" and "j" variables + parameters --------------
+                        //
+                        // shapes is an array of size (1+nargs)*(nbatchdims+3), which looks like:
+                        // [ A, .., B, M, N, D_out]  -> output
+                        // [ A, .., B, M, 1, D_1  ]  -> "i" variable
+                        // [ A, .., B, 1, N, D_2  ]  -> "j" variable
+                        // [ A, .., B, 1, 1, D_3  ]  -> "parameter"
+                        // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
+                        // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
+                        
+                        {shapes_i.declare()}
+                        int shapes_i[({size_i}) * (nbatchdims + 1)], shapes_j[{size_j} * (nbatchdims + 1)],
+                        shapes_p[{size_p} * (nbatchdims + 1)];
+                        
+                        // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
+                        // making it look like, say:
+                        // [ A, .., B, M]
+                        // [ A, .., 1, M]
+                        // [ A, .., A, M]
+                        // Then, we do the same for shapes_j, but with "N" instead of "M".
+                        // And finally for the parameters, with "1" instead of "M".
+                        fill_shapes(nbatchdims, shapes, shapes_i, shapes_j, shapes_p);
+                        
+                        // Actual for-for loop -----------------------------------------------------
+                        
+                        TYPE pp[DIMP];
+                        load< DIMSP, INDSP >(0, pp, args);  // If nbatchdims == 0, the parameters are fixed once and for all
+                        
+                        // Set the output to zero, as the ranges may not cover the full output -----
+                        __TYPEACC__ acctmp[DIMRED];
+                        for (int i = 0; i < nx; i++) {
+                        typename FUN::template InitializeReduction< __TYPEACC__, TYPE >()(acctmp);
+                        typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acctmp, out + i * DIMOUT, i);
+                        }
+                        
+                        // N.B.: In the following code, we assume that the x-ranges do not overlap.
+                        //       Otherwise, we'd have to assume that DIMRED == DIMOUT
+                        //       or allocate a buffer of size nx * DIMRED. This may be done in the future.
+                        // Cf. reduction.h: 
+                        //    FUN::tagJ = 1 for a reduction over j, result indexed by i
+                        //    FUN::tagJ = 0 for a reduction over i, result indexed by j
+                        
+                        int nranges = FUN::tagJ ? nranges_x : nranges_y;
+                        __INDEX__* ranges_x = FUN::tagJ ? ranges[0] : ranges[3];
+                        __INDEX__* slices_x = FUN::tagJ ? ranges[1] : ranges[4];
+                        __INDEX__* ranges_y = FUN::tagJ ? ranges[2] : ranges[5];
+                        
+                        int indices_i[SIZEI], indices_j[SIZEJ], indices_p[SIZEP];  // Buffers for the "broadcasted indices"
+                        for (int k = 0; k < SIZEI; k++) { indices_i[k] = 0; }  // Fill the "offsets" with zeroes,
+                        for (int k = 0; k < SIZEJ; k++) { indices_j[k] = 0; }  // the default value when nbatchdims == 0.
+                        for (int k = 0; k < SIZEP; k++) { indices_p[k] = 0; }
+                        
+                        for (int range_index = 0; range_index < nranges; range_index++) {
+                        
+                        __INDEX__ start_x = ranges_x[2 * range_index];
+                        __INDEX__ end_x = ranges_x[2 * range_index + 1];
+                        
+                        __INDEX__ start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
+                        __INDEX__ end_slice = slices_x[range_index];
+                        
+                        // If needed, compute the "true" start indices of the range, turning
+                        // the "abstract" index start_x into an array of actual "pointers/offsets" stored in indices_i:
+                        if (nbatchdims > 0) {
+                        vect_broadcast_index(start_x, nbatchdims, SIZEI, shapes, shapes_i, indices_i);
+                        // And for the parameters, too:
+                        vect_broadcast_index(range_index, nbatchdims, SIZEP, shapes, shapes_p, indices_p);
+                        load< DIMSP, INDSP >(0, pp, args, indices_p); // Load the paramaters, once per tile
+                        }
+                        
+                        #pragma omp parallel for   
+                        for (__INDEX__ i = start_x; i < end_x; i++) {
+                        TYPE xi[DIMX], yj[DIMY], fout[DIMFOUT];
+                        __TYPEACC__ acc[DIMRED];
+                        #if SUM_SCHEME == BLOCK_SUM
+                        // additional tmp vector to store intermediate results from each block
+                        TYPE tmp[DIMRED];
+                        #elif SUM_SCHEME == KAHAN_SCHEME
+                        // additional tmp vector to accumulate errors
+                        const int DIM_KAHAN = FUN::template KahanScheme<__TYPEACC__,TYPE>::DIMACC;
+                        TYPE tmp[DIM_KAHAN];
+                        #endif
+                        if (nbatchdims == 0) {
+                        load< DIMSX, INDSI >(i, xi, args);
+                        } else {
+                        load< DIMSX, INDSI >(i - start_x, xi, args, indices_i);
+                        }
+                        typename FUN::template InitializeReduction< __TYPEACC__, TYPE >()(acc);   // tmp = 0
+                        #if SUM_SCHEME == BLOCK_SUM
+                        typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
+                        #elif SUM_SCHEME == KAHAN_SCHEME
+                        VectAssign<DIM_KAHAN>(tmp,0.0f);
+                        #endif
+                        for (__INDEX__ slice = start_slice; slice < end_slice; slice++) {
+                        __INDEX__ start_y = ranges_y[2 * slice];
+                        __INDEX__ end_y = ranges_y[2 * slice + 1];
+                        
+                        // If needed, compute the "true" start indices of the range, turning
+                        // the "abstract" index start_y into an array of actual "pointers/offsets" stored in indices_j:
+                        if (nbatchdims > 0) {
+                        vect_broadcast_index(start_y, nbatchdims, SIZEJ, shapes, shapes_j, indices_j);
+                        }
+                        
+                        if (nbatchdims == 0) {
+                        for (int j = start_y; j < end_y; j++) {
+                        load< DIMSY, INDSJ >(j, yj, args);
+                        call< DIMSX, DIMSY, DIMSP >(fun, fout, xi, yj, pp);
+                        #if SUM_SCHEME == BLOCK_SUM
+                        typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, fout, j); // tmp += fout
+                        if ((j+1)%200) {
+                        typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
+                        typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
+                        }
+                        #elif SUM_SCHEME == KAHAN_SCHEME
+                        typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, fout, tmp);
+                        #else
+                        typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(acc, fout, j); // acc += fout
+                        #endif
+                        }
+                        }
+                        else {
+                        for (int j = start_y; j < end_y; j++) {
+                        load< DIMSY, INDSJ >(j - start_y, yj, args, indices_j);
+                        call< DIMSX, DIMSY, DIMSP >(fun, fout, xi, yj, pp);
+                        #if SUM_SCHEME == BLOCK_SUM
+                        typename FUN::template ReducePairShort< TYPE, TYPE >()(tmp, fout, j - start_y); // tmp += fout
+                        if ((j+1)%200) {
+                        typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
+                        typename FUN::template InitializeReduction< TYPE, TYPE >()(tmp);   // tmp = 0
+                        }
+                        #elif SUM_SCHEME == KAHAN_SCHEME
+                        typename FUN::template KahanScheme<__TYPEACC__,TYPE>()(acc, fout, tmp);
+                        #else
+                        typename FUN::template ReducePairShort< __TYPEACC__, TYPE >()(acc, fout, j - start_y); // acc += fout
+                        #endif
+                        }
+                        }
+                        }
+                        #if SUM_SCHEME == BLOCK_SUM
+                        typename FUN::template ReducePair< __TYPEACC__, TYPE >()(acc, tmp); // acc += tmp
+                        #endif
+                        typename FUN::template FinalizeOutput< __TYPEACC__, TYPE >()(acc, out + i * DIMOUT, i);
+                        }
+                        
+                        }
+                        
+                        return 0;
+                        }
+                    """
+
+
 class GpuReduc1D_FromDevice(map_reduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
     
