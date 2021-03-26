@@ -15,28 +15,6 @@ from scipy.sparse.linalg import aslinearoperator, eigsh
 from scipy.sparse.linalg.interface import IdentityOperator
 
 
-# Note: this is a function taken from Sklearn
-def check_random_state(seed):
-    """Turn seed into a np.random.RandomState instance
-    Parameters
-    ----------
-    seed : None, int or instance of RandomState
-        If seed is None, return the RandomState singleton used by np.random.
-        If seed is an int, return a new RandomState instance seeded with seed.
-        If seed is already a RandomState instance, return it.
-        Otherwise raise ValueError.
-    """
-    if seed is None or seed is np.random:
-        return np.random.mtrand._rand
-    if isinstance(seed, numbers.Integral):
-        return np.random.RandomState(seed)
-    if isinstance(seed, np.random.RandomState):
-        return seed
-    raise ValueError(
-        "%r cannot be used to seed a numpy.random.RandomState" " instance" % seed
-    )
-
-
 class Nystrom_NK:
     """
     Class to implement Nystrom using numpy and PyKeops.
@@ -46,7 +24,8 @@ class Nystrom_NK:
     * The method K_approx directly computes the Nystrom approximation.
     Parameters:
     n_components [int] = how many samples to select from data.
-    kernel [str] = type of kernel to use. Current options = {rbf}.
+    kernel [str] = type of kernel to use. Current options = {rbf:Gaussian,
+                                                             exp: exponential}.
     sigma [float] = exponential constant for the RBF kernel.
     exp_sigma [float] = exponential constant for the exponential kernel.
     eps[float] = size for square bins in block-sparse preprocessing.
@@ -99,10 +78,7 @@ class Nystrom_NK:
         if inv_eps:
             self.inv_eps = inv_eps
         else:
-            if kernel == "linear":
-                self.inv_eps = 1e-4
-            else:
-                self.inv_eps = 1e-8
+            self.inv_eps = 1e-8
 
         if not mask_radius:
             if kernel == "rbf":
@@ -130,12 +106,12 @@ class Nystrom_NK:
         # Number of samples
         n_samples = x.shape[0]
         # Define basis
-        rnd = check_random_state(self.random_state)
+        rnd = self._check_random_state(self.random_state)
         inds = rnd.permutation(n_samples)
         basis_inds = inds[: self.n_components]
         basis = x[basis_inds]
         # Build smaller kernel
-        basis_kernel = self._pairwise_kernels(basis)
+        basis_kernel = self._pairwise_kernels(basis, dense=False)
         # Spectral decomposition
         S, U = self._spectral(basis_kernel)
         S = np.maximum(S, 1e-12)
@@ -150,9 +126,11 @@ class Nystrom_NK:
         Helper function to compute eigendecomposition of K_q.
         Written using LinearOperators which are lazy
         representations of sparse and/or structured data.
-        Args: X_i[numpy LazyTensor]
-        Returns S[np.array] eigenvalues,
-                U[np.array] eigenvectors
+        Args:
+            X_i[numpy LazyTensor]
+        Returns
+            S[np.array] eigenvalues,
+            U[np.array] eigenvectors
         """
         K_linear = aslinearoperator(X_i)
         # K <- K + eps
@@ -173,9 +151,8 @@ class Nystrom_NK:
             X [np.array] = data after transformation
         """
 
-        K_nq = self._pairwise_kernels(x, self.components_)
+        K_nq = self._pairwise_kernels(x, self.components_, dense=True)
         x_new = K_nq @ self.normalization_.T
-
         return x_new
 
     def K_approx(self, x: np.array) -> np.array:
@@ -186,42 +163,54 @@ class Nystrom_NK:
         Returns
             K[np.array] = Nystrom approximation to kernel"""
 
-        K_nq = self._pairwise_kernels(x, self.components_)
+        K_nq = self._pairwise_kernels(x, self.components_, dense=True)
         # For arrays: K_approx = K_nq @ K_q_inv @ K_nq.T
         # But to use @ with lazy tensors we have:
         K_q_inv = self.normalization_.T @ self.normalization_
         K_approx = K_nq @ (K_nq @ K_q_inv).T
-
         return K_approx.T
 
-    def _pairwise_kernels(self, x: np.array, y: np.array = None) -> LazyTensor:
+    def _pairwise_kernels(
+        self, x: np.array, y: np.array = None, dense: bool = False
+    ) -> LazyTensor:
         """Helper function to build kernel
 
-        Args:   X = torch tensor of dimension 2,
-                K_type = type of Kernel to return.
+        Args:   x[np.array] = data
+                y[np.array] = array
+                dense[bool] = False to work with lazy tensor reduction,
+                              True to work with dense arrays
         Returns:
-                K_ij[LazyTensor]
+                K_ij[LazyTensor] if dense = False
+                K_ij[np.array] if dense = True
+
         """
         if y is None:
             y = x
-        if self.kernel == "linear":
-            K_ij = x @ y.T
-        elif self.kernel == "rbf":
+        if self.kernel == "rbf":
             x /= self.sigma
             y /= self.sigma
-            x_i, x_j = LazyTensor_n(x[:, None, :]), LazyTensor_n(y[None, :, :])
-            K_ij = (-(((x_i - x_j) ** 2).sum(dim=2))).exp()
-            # block-sparse reduction preprocess
-            K_ij = self._Gauss_block_sparse_pre(x, y, K_ij)
+            if dense:
+                x_i, x_j = x[:, None, :], y[None, :, :]
+                K_ij = np.exp(-(((x_i - x_j) ** 2).sum(axis=2)))
+            else:
+                x_i, x_j = LazyTensor_n(x[:, None, :]), LazyTensor_n(y[None, :, :])
+                K_ij = (-(((x_i - x_j) ** 2).sum(dim=2))).exp()
+                # block-sparse reduction preprocess
+                K_ij = self._Gauss_block_sparse_pre(x, y, K_ij)
         elif self.kernel == "exp":
             x /= self.exp_sigma
             y /= self.exp_sigma
-            x_i, x_j = LazyTensor_n(x[:, None, :]), LazyTensor_n(y[None, :, :])
-            K_ij = (-(((x_i - x_j) ** 2).sum(-1))).sqrt().exp()
-            # block-sparse reduction preprocess
-            K_ij = self._Gauss_block_sparse_pre(x, y, K_ij)  # TODO
+            if dense:
+                x_i, x_j = x[:, None, :], y[None, :, :]
+                K_ij = np.exp(-np.sqrt((((x_i - x_j) ** 2).sum(axis=2))))
+            else:
+                x_i, x_j = LazyTensor_n(x[:, None, :]), LazyTensor_n(y[None, :, :])
+                K_ij = (-(((x_i - x_j) ** 2).sum(-1)).sqrt()).exp()
+                # block-sparse reduction preprocess
+                K_ij = self._Gauss_block_sparse_pre(x, y, K_ij)  # TODO
 
-        K_ij.backend = self.backend
+        if not dense:
+            K_ij.backend = self.backend
 
         return K_ij
 
@@ -307,4 +296,18 @@ class Nystrom_NK:
             nothing
         """
         self.dtype = x.dtype
-        self.inv_eps = np.array([self.inv_eps]).astype(np.float32)[0]
+        self.inv_eps = np.array([self.inv_eps]).astype(self.dtype)[0]
+
+    def _check_random_state(self, seed):
+        """Set/get np.random.RandomState instance for permutation
+
+        Args
+            seed[None, int]
+        Returns:
+            numpy random state
+        """
+        if seed is None:
+            return np.random.mtrand._rand
+        elif type(seed) == int:
+            return np.random.RandomState(seed)
+        raise ValueError(f"Seed {seed} must be None or an integer.")
