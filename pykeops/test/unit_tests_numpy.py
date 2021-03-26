@@ -481,7 +481,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         num_sampling = 20
         x = np.random.randint(1, 10, (100, 3)).astype(np.float32)
 
-        kernels = ["rbf"]
+        kernels = ["rbf", "exp"]
 
         for kernel in kernels:
             N_NK = Nystrom_NK(
