@@ -69,7 +69,8 @@ at::Tensor allocate_result_array_gpu< at::Tensor, __TYPE__ >(int* shape_out, int
   c10::ArrayRef < int64_t > shape_out_array(shape_out_long, (int64_t) nbatchdims + 2);
 
   // Create a new result array of shape [A, .., B, M, D] or [A, .., B, N, D]:
-  return torch::empty(shape_out_array, at::device({at::kCUDA, Device_Id}).dtype(AT_kTYPE).requires_grad(true));
+  return torch::empty(shape_out_array, at::device({at::kCUDA, static_cast< c10::DeviceIndex >(Device_Id)}).dtype(AT_kTYPE).requires_grad(true));
+
 #else
   keops_error(Error_msg_no_cuda);
   throw std::runtime_error("Simply here to avoid a warning at compilation.");

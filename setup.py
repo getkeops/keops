@@ -138,7 +138,7 @@ setup(
         + import_files(path.join("keops", "core", "pack"))
         + import_files(path.join("keops", "core", "formulas"))
         + import_files(path.join("keops", "core", "formulas", "constants"))
-        + import_files(path.join("keops", "core", "formulas", "complex"))        
+        + import_files(path.join("keops", "core", "formulas", "complex"))
         + import_files(path.join("keops", "core", "formulas", "kernels"))
         + import_files(path.join("keops", "core", "formulas", "maths"))
         + import_files(path.join("keops", "core", "formulas", "norms"))

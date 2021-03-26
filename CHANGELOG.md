@@ -1,14 +1,21 @@
+* v1.5 - Mar 22, 2021
+    - Add multiple operations: acos, asin, atan, atan2, sinc, if-else, round, modulo.
+    - Complex numbers: full python support, pairs of float/double for other languages.
+    - Extensive benchmarks for knn, etc...
+    - Extensive documentation improvements.
+    - New compilation pipeline for python.
+
 * v1.4.2 - Nov 27, 2020
-    - Refactor pykeops LazyTensor class
-    - Add multi gpu example with pykeops
-    - pykeops' kernel_product module is deprecated
-    - Fix pykeops.set_bin_folder() function
-    - remove Gputils dependency for pykeops
-    - Add Clamp operator in keops
+    - Refactor pykeops LazyTensor class.
+    - Add multi gpu example with pykeops.
+    - pykeops' kernel_product module is deprecated.
+    - Fix pykeops.set_bin_folder() function.
+    - remove Gputils dependency for pykeops.
+    - Add Clamp operator in keops.
 
 * v1.4.1 - Aug 19, 2020
     - Fix compatibility issue with PyTorch 1.5-6.
-    - Fix compatibility issue with Cuda 11.0
+    - Fix compatibility issue with Cuda 11.0.
     - Improve performances for computations with dimension D>100.
 
 * v1.4 - Mar 22, 2020
@@ -45,7 +52,7 @@
 
 * v1.0.2 - Apr 21, 2019
     - fix a bug in variable parsing for pykeops bindings.
-    - KernelSolve syntax: move alpha kwarg in 'KernelSolve.__call__'
+    - KernelSolve syntax: move alpha kwarg in 'KernelSolve.__call__'.
     - Improve the documentation.
 
 

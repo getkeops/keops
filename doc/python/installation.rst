@@ -38,13 +38,25 @@ In a new `Colab notebook <https://colab.research.google.com>`_, typing:
 
 .. code-block:: bash
 
-    !pip install pykeops[full] > install.log
+    !pip install pykeops[colab] > install.log
 
 should allow you to get a working version of KeOps in less than twenty seconds.
 
 
 From source using git
 =====================
+
+
+The simplest way of installing a specific version
+of KeOps is to use `some advanced pip syntax <https://pip.pypa.io/en/stable/reference/pip_install/#git>`_:
+
+
+.. code-block:: bash
+
+    pip install git+https://github.com/getkeops/keops.git@master
+
+
+Alternatively, you may:
 
 1. Clone the KeOps repo at a location of your choice (denoted here as ``/path/to``):
 

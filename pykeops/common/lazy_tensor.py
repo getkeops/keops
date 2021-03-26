@@ -2431,7 +2431,7 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
         elif self._shape[-1] == 1 or other._shape[-1] == 1:
             return self.binary(other, "ComplexRealScal", **kwargs, is_complex=True)
         elif self._shape[-1] == 2 or other._shape[-1] == 2:
-            return self.binary(other, "ComplexScal", **kwargs, is_complex=True)
+            return self.binary(other, "ComplexScal", **kwargs, is_complex=True, dimcheck=None)
         else:
             return self.binary(other, "ComplexMult", **kwargs, is_complex=True)
 

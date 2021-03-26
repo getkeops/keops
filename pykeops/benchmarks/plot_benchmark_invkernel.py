@@ -25,6 +25,7 @@ where :math:`K_{x,x} = \Big[\exp(-\|x_i -x_j\|^2 / \sigma^2)\Big]_{i,j=1}^N`. Th
     and `Falkon <https://falkonml.github.io/falkon/>`_ libraries,
     which rely on a KeOps backend whenever relevant.
 
+
 """
 
 #####################################################################

@@ -4,6 +4,7 @@ Mixed-precision and accuracy settings
 
 We test various options of KeOps regarding accuracy of computations.
  
+ 
 """
 
 

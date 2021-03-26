@@ -11,5 +11,5 @@ For a full documentation you may read:
 # Authors
 
 - [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
-- [Jean Feydy](https://www.math.ens.fr/~feydy/)
+- [Jean Feydy](https://www.jeanfeydy.com)
 - [Joan Alexis Glaunès](https://www.mi.parisdescartes.fr/~glaunes/)

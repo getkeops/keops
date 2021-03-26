@@ -21,7 +21,7 @@ from kernel methods to geometric deep learning.
 
 The project is hosted on `GitHub <https://github.com/getkeops/keops>`_,
 under the permissive `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_. |br|  
-|space| |PyPi version| |Downloads| |R version| |RDownloads| |br| |br|
+|PyPi version| |Downloads| |R version| |RDownloads| |br| |br|
 
 .. figure:: _static/symbolic_matrix.svg
     :width: 90% 
