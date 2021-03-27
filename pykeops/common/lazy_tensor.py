@@ -1076,7 +1076,9 @@ class GenericLazyTensor:
         elif is_scalar_and_equals(other, -1):
             return self.unary("Minus")
         elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
-            return self.binary(other, "ComplexRealScal", is_complex=True)
+            return other.mulop(self)
+        elif self.tools.detect_complex(other) and not is_complex_lazytensor(self):
+            return self.lt_constructor(other).mulop(self)
         else:
             return self.mulop(other)
 
@@ -1093,6 +1095,8 @@ class GenericLazyTensor:
             return self
         elif is_scalar_and_equals(other, -1):
             return self.unary("Minus")
+        elif self.tools.detect_complex(other) and not is_complex_lazytensor(self):
+            return self.real2complex().mulop(self.lt_constructor(other))
         else:
             return self.mulop(other, rversion=True)
 
