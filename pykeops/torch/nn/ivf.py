@@ -9,7 +9,7 @@ import torch
 class IVF(GenericIVF):
     def __init__(self, k=5, metric="euclidean", normalise=False):
         self.__get_tools()
-        super().__init__(k=k, metric=metric, normalise=normalise,LazyTensor=LazyTensor)
+        super().__init__(k=k, metric=metric, normalise=normalise, LazyTensor=LazyTensor)
 
     def __get_tools(self):
         self.tools = torchtools

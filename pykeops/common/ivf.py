@@ -1,16 +1,21 @@
 class GenericIVF:
-    def __init__(self, k, metric, normalise,LazyTensor):
+    def __init__(self, k, metric, normalise, LazyTensor):
         self.__k = k
         self.__normalise = normalise
         self.__distance = self.tools.distance_function(metric)
         self.__metric = metric
-	self.__LazyTensor=LazyTensor
+        self.__LazyTensor = LazyTensor
+
     def __get_tools(self):
         pass
 
     def __k_argmin(self, x, y, k=1):
-        x_LT = self.__LazyTensor(self.tools.to(self.tools.unsqueeze(x, 1), self.__device))
-        y_LT = self.__LazyTensor(self.tools.to(self.tools.unsqueeze(y, 0), self.__device))
+        x_LT = self.__LazyTensor(
+            self.tools.to(self.tools.unsqueeze(x, 1), self.__device)
+        )
+        y_LT = self.__LazyTensor(
+            self.tools.to(self.tools.unsqueeze(y, 0), self.__device)
+        )
 
         d = self.__distance(x_LT, y_LT)
         if not self.tools.is_tensor(x):
