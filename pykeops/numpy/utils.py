@@ -75,7 +75,7 @@ class numpytools:
         return np.random.randn(m, n).astype(dtype)
 
     @staticmethod
-    def zeros(shape, dtype=default_dtype):
+    def zeros(shape, dtype=default_dtype, device=None):
         return np.zeros(shape).astype(dtype)
 
     @staticmethod
