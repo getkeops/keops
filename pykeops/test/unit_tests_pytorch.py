@@ -676,7 +676,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_IVF(self):
         ############################################################
-        from pykeops.torch.nn.ivf import IVF
+        from pykeops.torch.nn.ivf import ivf
         import torch
 
         torch.manual_seed(0)
