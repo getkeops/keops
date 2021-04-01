@@ -58,7 +58,7 @@ class LoadKeOps_new:
             c_dtype_acc = 'float'
             self.optional_flags.remove('-D__TYPEACC__=float')
         else:
-            raise ValueError('not implemented')
+            c_dtype_acc = c_dtype
             
         if '-DSUM_SCHEME=0' in self.optional_flags:
             sum_scheme = 'direct_sum'
@@ -70,8 +70,7 @@ class LoadKeOps_new:
             sum_scheme = 'kahan_scheme'
             self.optional_flags.remove('-DSUM_SCHEME=2')
         else:
-            print(self.optional_flags)
-            raise ValueError('not implemented')
+            sum_scheme = 'block_sum'
         
         if '-DENABLECHUNK=1' in self.optional_flags:
             if max(arg.shape[-1] for arg in args) > 100:
