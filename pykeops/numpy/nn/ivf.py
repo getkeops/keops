@@ -2,6 +2,8 @@ from pykeops.numpy import LazyTensor
 from pykeops.numpy.cluster import cluster_ranges_centroids
 from pykeops.numpy.cluster import from_matrix
 from pykeops.common.ivf import GenericIVF
+from pykeops.numpy.utils import numpytools
+
 import numpy as np
 
 
