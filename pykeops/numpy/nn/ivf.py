@@ -10,7 +10,14 @@ import numpy as np
 class IVF(GenericIVF):
     def __init__(self, k=5, metric="euclidean", normalise=False):
         self.__get_tools()
-        super().__init__(k=k, metric=metric, normalise=normalise, LazyTensor=LazyTensor)
+        super().__init__(
+            k=k,
+            metric=metric,
+            normalise=normalise,
+            LazyTensor=LazyTensor,
+            cluster_ranges_centroids=cluster_ranges_centroids,
+            from_matrix=from_matrix,
+        )
 
     def __get_tools(self):
         self.tools = numpytools

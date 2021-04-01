@@ -1,10 +1,14 @@
 class GenericIVF:
-    def __init__(self, k, metric, normalise, LazyTensor):
+    def __init__(
+        self, k, metric, normalise, LazyTensor, cluster_ranges_centroids, from_matrix
+    ):
         self.__k = k
         self.__normalise = normalise
         self.__distance = self.tools.distance_function(metric)
         self.__metric = metric
         self.__LazyTensor = LazyTensor
+        self.__cluster_ranges_centroids = cluster_ranges_centroids
+        self.__from_matrix = from_matrix
 
     def __get_tools(self):
         pass
@@ -71,7 +75,7 @@ class GenericIVF:
         cl = self.__assign(x)
 
         ncl = self.__k_argmin(c, c, k=a)
-        self.__x_ranges, _, _ = cluster_ranges_centroids(x, cl)
+        self.__x_ranges, _, _ = self.__cluster_ranges_centroids(x, cl)
 
         x, x_labels = self.__sort_clusters(x, cl, store_x=True)
         self.__x = x
@@ -107,13 +111,13 @@ class GenericIVF:
         y = self.tools.contiguous(y)
         y_labels = self.__assign(y)
 
-        y_ranges, _, _ = cluster_ranges_centroids(y, y_labels)
+        y_ranges, _, _ = self.__cluster_ranges_centroids(y, y_labels)
         self.__y_ranges = y_ranges
         y, y_labels = self.__sort_clusters(y, y_labels, store_x=False)
         x_LT = self.__LazyTensor(self.tools.unsqueeze(self.__x, 0))
         y_LT = self.__LazyTensor(self.tools.unsqueeze(y, 1))
         D_ij = self.__distance(y_LT, x_LT)
-        ranges_ij = from_matrix(y_ranges, self.__x_ranges, self.__keep)
+        ranges_ij = self.__from_matrix(y_ranges, self.__x_ranges, self.__keep)
         D_ij.ranges = ranges_ij
         nn = D_ij.argKmin(K=self.__k, axis=1)
         return self.__unsort(nn)
