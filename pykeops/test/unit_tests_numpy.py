@@ -440,7 +440,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_IVF(self):
         ###########################################################
-        from pykeops.numpy.nn.ivf import ivf
+        from pykeops.numpy.nn.ivf import IVF
         import numpy as np
 
         np.random.seed(0)
