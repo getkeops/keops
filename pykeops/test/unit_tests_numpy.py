@@ -440,7 +440,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_IVF(self):
         ###########################################################
-        from pykeops.numpy.nn.ivf import ivf
+        from pykeops.numpy.nn.ivf import IVF
         import numpy as np
 
         np.random.seed(0)
@@ -457,7 +457,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         truth = truth[:, :k]
 
         # IVF K nearest neighbours
-        IVF = ivf()
+        IVF = IVF()
         IVF.fit(x, a=a)
         ivf_fit = IVF.kneighbors(y)
 

@@ -676,7 +676,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     ############################################################
     def test_IVF(self):
         ############################################################
-        from pykeops.torch.nn.ivf import ivf
+        from pykeops.torch.nn.ivf import IVF
         import torch
 
         torch.manual_seed(0)
@@ -691,7 +691,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         truth = truth[:, :k]
 
         # IVF K nearest neighbours
-        IVF = ivf()
+        IVF = IVF()
         IVF.fit(x, a=a)
         ivf_fit = IVF.kneighbors(y)
 
