@@ -1,16 +1,16 @@
 class GenericIVF:
-    def __init__(self, k, metric, normalise):
+    def __init__(self, k, metric, normalise,LazyTensor):
         self.__k = k
         self.__normalise = normalise
         self.__distance = self.tools.distance_function(metric)
         self.__metric = metric
-
+	self.__LazyTensor=LazyTensor
     def __get_tools(self):
         pass
 
     def __k_argmin(self, x, y, k=1):
-        x_LT = LazyTensor(self.tools.to(self.tools.unsqueeze(x, 1), self.__device))
-        y_LT = LazyTensor(self.tools.to(self.tools.unsqueeze(y, 0), self.__device))
+        x_LT = self.__LazyTensor(self.tools.to(self.tools.unsqueeze(x, 1), self.__device))
+        y_LT = self.__LazyTensor(self.tools.to(self.tools.unsqueeze(y, 0), self.__device))
 
         d = self.__distance(x_LT, y_LT)
         if not self.tools.is_tensor(x):
@@ -105,8 +105,8 @@ class GenericIVF:
         y_ranges, _, _ = cluster_ranges_centroids(y, y_labels)
         self.__y_ranges = y_ranges
         y, y_labels = self.__sort_clusters(y, y_labels, store_x=False)
-        x_LT = LazyTensor(self.tools.unsqueeze(self.__x, 0))
-        y_LT = LazyTensor(self.tools.unsqueeze(y, 1))
+        x_LT = self.__LazyTensor(self.tools.unsqueeze(self.__x, 0))
+        y_LT = self.__LazyTensor(self.tools.unsqueeze(y, 1))
         D_ij = self.__distance(y_LT, x_LT)
         ranges_ij = from_matrix(y_ranges, self.__x_ranges, self.__keep)
         D_ij.ranges = ranges_ij
@@ -114,7 +114,7 @@ class GenericIVF:
         return self.__unsort(nn)
 
     def brute_force(self, x, y, k=5):
-        x_LT = LazyTensor(self.tools.unsqueeze(x, 0))
-        y_LT = LazyTensor(self.tools.unsqueeze(y, 1))
+        x_LT = self.__LazyTensor(self.tools.unsqueeze(x, 0))
+        y_LT = self.__LazyTensor(self.tools.unsqueeze(y, 1))
         D_ij = self.__distance(y_LT, x_LT)
         return D_ij.argKmin(K=k, axis=1)
