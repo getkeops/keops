@@ -20,7 +20,6 @@ class numpytools:
     exp = np.exp
     log = np.log
     sqrt = np.sqrt
-    copy = np.copy
 
     Genred = Genred
     KernelSolve = KernelSolve
@@ -31,6 +30,17 @@ class numpytools:
     cluster_ranges_centroids = np_cluster_ranges_centroids
     cluster_ranges = np_cluster_ranges
     sort_clusters = np_sort_clusters
+
+    arraytype = np.ndarray
+    float_types = [float, np.float16, np.float32, np.float64]
+
+    @staticmethod
+    def is_tensor(x):
+        return isinstance(x, np.ndarray)
+
+    @staticmethod
+    def copy(x):
+        return np.copy(x)
 
     @staticmethod
     def eq(x, y):
@@ -155,10 +165,6 @@ class numpytools:
         return np.take(input, index, axis=dim)
 
     @staticmethod
-    def norm(x, p=2, dim=-1):
-        return np.linalg.norm(x, ord=p, axis=dim)
-
-    @staticmethod
     def kmeans(x, K=10, Niter=15, metric="euclidean", device="CPU"):
 
         distance = numpytools.distance_function(metric)
@@ -174,10 +180,6 @@ class numpytools:
             for d in range(D):
                 c[:, d] = np.bincount(cl, weights=x[:, d]) / Ncl
         return cl, c
-
-    @staticmethod
-    def is_tensor(x):
-        return isinstance(x, np.ndarray)
 
     @staticmethod
     def LazyTensor(x):

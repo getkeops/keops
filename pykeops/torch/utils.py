@@ -25,15 +25,19 @@ class torchtools:
     norm = torch.norm
     sqrt = torch.sqrt
 
+    swap_axes = torch_swap_axes
+
     Genred = Genred
     KernelSolve = KernelSolve
     LazyTensor = LazyTensor
-    swap_axes = torch_swap_axes
     grid_cluster = torch_grid_cluster
     from_matrix = torch_from_matrix
     cluster_ranges_centroids = torch_cluster_ranges_centroids
     cluster_ranges = torch_cluster_ranges
     sort_clusters = torch_sort_clusters
+
+    arraytype = torch.Tensor
+    float_types = [float]
 
     # GenredLowlevel = GenredLowlevel
 
@@ -190,10 +194,6 @@ class torchtools:
     @staticmethod
     def index_select(input, dim, index):
         return torch.index_select(input, dim, index)
-
-    @staticmethod
-    def norm(x, p=2, dim=-1):
-        return torch.norm(x, p=p, dim=dim)
 
     @staticmethod
     def kmeans(x, K=10, Niter=15, metric="euclidean", device="cuda"):
