@@ -2,7 +2,14 @@ import torch
 
 from pykeops.torch import Genred, KernelSolve, default_dtype
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
-
+from pykeops.torch import LazyTensor
+from pykeops.torch.cluster import grid_cluster as torch_grid_cluster
+from pykeops.torch.cluster import from_matrix as torch_from_matrix
+from pykeops.torch.cluster import (
+    cluster_ranges_centroids as torch_cluster_ranges_centroids,
+)
+from pykeops.torch.cluster import cluster_ranges as torch_cluster_ranges
+from pykeops.torch.cluster import sort_clusters as torch_sort_clusters
 
 # from pykeops.torch.generic.generic_red import GenredLowlevel
 
@@ -16,11 +23,17 @@ class torchtools:
     exp = torch.exp
     log = torch.log
     norm = torch.norm
-
-    swap_axes = torch_swap_axes
+    sqrt = torch.sqrt
 
     Genred = Genred
     KernelSolve = KernelSolve
+    LazyTensor = LazyTensor
+    swap_axes = torch_swap_axes
+    grid_cluster = torch_grid_cluster
+    from_matrix = torch_from_matrix
+    cluster_ranges_centroids = torch_cluster_ranges_centroids
+    cluster_ranges = torch_cluster_ranges
+    sort_clusters = torch_sort_clusters
 
     # GenredLowlevel = GenredLowlevel
 
@@ -184,7 +197,6 @@ class torchtools:
 
     @staticmethod
     def kmeans(x, K=10, Niter=15, metric="euclidean", device="cuda"):
-        from pykeops.torch import LazyTensor
 
         distance = torchtools.distance_function(metric)
         N, D = x.shape
@@ -201,6 +213,10 @@ class torchtools:
             if torch.any(torch.isnan(c)) and metric == "angular":
                 raise ValueError("Please normalise inputs")
         return cl, c
+
+    @staticmethod
+    def is_tensor(x):
+        return isinstance(x, torch.Tensor)
 
 
 def squared_distances(x, y):
