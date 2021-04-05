@@ -2,8 +2,8 @@ import numpy as np
 
 from pykeops.numpy import Genred, default_dtype, KernelSolve
 from pykeops.numpy.cluster import swap_axes as np_swap_axes
-from pykeops.numpy.cluster import grid_cluster as np_grid_cluster
-from pykeops.numpy.cluster import from_matrix as np_from_matrix
+from pykeops.numpy.cluster.grid_cluster import grid_cluster as np_grid_cluster
+from pykeops.numpy.cluster.matrix import from_matrix as np_from_matrix
 from pykeops.numpy.cluster import (
     cluster_ranges_centroids as np_cluster_ranges_centroids,
 )
