@@ -20,19 +20,17 @@ class numpytools:
     exp = np.exp
     log = np.log
     sqrt = np.sqrt
-
     Genred = Genred
     KernelSolve = KernelSolve
     LazyTensor = LazyTensor
     swap_axes = np_swap_axes
+    arraytype = np.ndarray
+    float_types = [float, np.float16, np.float32, np.float64]
     grid_cluster = np_grid_cluster
     from_matrix = np_from_matrix
     cluster_ranges_centroids = np_cluster_ranges_centroids
     cluster_ranges = np_cluster_ranges
     sort_clusters = np_sort_clusters
-
-    arraytype = np.ndarray
-    float_types = [float, np.float16, np.float32, np.float64]
 
     @staticmethod
     def is_tensor(x):
