@@ -32,7 +32,6 @@ class numpytools:
     arraytype = np.ndarray
     float_types = [float, np.float16, np.float32, np.float64]
 
-
     @staticmethod
     def is_tensor(x):
         return isinstance(x, np.ndarray)
