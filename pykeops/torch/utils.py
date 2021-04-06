@@ -198,7 +198,7 @@ class torchtools:
     def index_select(input, dim, index):
         return torch.index_select(input, dim, index)
 
-     @staticmethod
+    @staticmethod
     def kmeans(x,distance,K=10,Niter=15,device='cuda',approx=False,n=10,normalise=False):
 
       from pykeops.torch import LazyTensor

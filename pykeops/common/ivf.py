@@ -108,6 +108,7 @@ class GenericIVF:
             device=self.__device,
             approx=approx,
             normalise=self.__normalise,
+            n=n,
         )
 
         self.__c = c
