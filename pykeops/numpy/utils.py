@@ -123,9 +123,6 @@ class numpytools:
         def angular(x, y):
             return x | y
 
-        def hyperbolic(x, y):
-            return ((x - y) ** 2).sum(-1) / (x[0] * y[0])
-
         if metric == "euclidean":
             return euclidean
         elif metric == "manhattan":
@@ -133,7 +130,9 @@ class numpytools:
         elif metric == "angular":
             return angular
         elif metric == "hyperbolic":
-            return hyperbolic
+            raise ValueError(
+                "Hyperbolic not supported for numpy, please use torch version with approximation"
+            )
         else:
             raise ValueError("Unknown metric")
 

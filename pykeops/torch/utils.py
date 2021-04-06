@@ -155,6 +155,9 @@ class torchtools:
         def angular(x, y):
             return x | y
 
+        def angular_full(x, y):
+            return angular(x, y) / ((angular(x, x) * angular(y, y)).sqrt())
+
         def hyperbolic(x, y):
             return ((x - y) ** 2).sum(-1) / (x[0] * y[0])
 
@@ -164,6 +167,8 @@ class torchtools:
             return manhattan
         elif metric == "angular":
             return angular
+        elif metric == "angular_full":
+            return angular_full
         elif metric == "hyperbolic":
             return hyperbolic
         else:

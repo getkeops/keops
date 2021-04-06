@@ -1,14 +1,33 @@
 class GenericIVF:
-    def __init__(
-        self, k, metric, normalise, LazyTensor, cluster_ranges_centroids, from_matrix
-    ):
+    def __init__(self, k, metric, normalise, LazyTensor):
         self.__k = k
         self.__normalise = normalise
-        self.__distance = self.tools.distance_function(metric)
-        self.__metric = metric
+
+        self.__update_metric(metric)
         self.__LazyTensor = LazyTensor
-        self.__cluster_ranges_centroids = cluster_ranges_centroids
-        self.__from_matrix = from_matrix
+
+        self.__c = None
+
+    def __update_metric(self, metric):
+        if isinstance(metric, str):
+            self.__distance = self.tools.distance_function(metric)
+            self.__metric = metric
+        elif callable(metric):
+            self.__distance = metric
+            self.__metric = "custom"
+        else:
+            raise ValueError("Unrecognised metric input type")
+
+    @property
+    def metric(self):
+        return self.__metric
+
+    @property
+    def c(self):
+        if self.__c is not None:
+            return self.__c
+        else:
+            raise ValueError("Run .fit() first!")
 
     def __get_tools(self):
         pass
@@ -42,7 +61,17 @@ class GenericIVF:
     def __unsort(self, nn):
         return self.tools.index_select(self.__x_perm[nn], 0, self.__y_perm.argsort())
 
-    def _fit(self, x, clusters=50, a=5, Niter=15, device=None, backend=None):
+    def _fit(
+        self,
+        x,
+        clusters=50,
+        a=5,
+        Niter=15,
+        device=None,
+        backend=None,
+        approx=False,
+        n=50,
+    ):
         """
         Fits the main dataset
         """
@@ -62,26 +91,36 @@ class GenericIVF:
             x = x / self.tools.repeat(self.tools.norm(x, 2, -1), x.shape[1]).reshape(
                 -1, x.shape[1]
             )
+
+        # if we want to use the approximation in Kmeans, and our metric is angular, switch to full angular metric
+        if approx and self.__metric == "angular":
+            self.__update_metric("angular_full")
+
         x = self.tools.contiguous(x)
         self.__device = device
         self.__backend = backend
 
         cl, c = self.tools.kmeans(
-            x, clusters, Niter=Niter, metric=self.__metric, device=self.__device
+            x,
+            self.__distance,
+            clusters,
+            Niter=Niter,
+            device=self.__device,
+            approx=approx,
+            normalise=self.__normalise,
         )
 
         self.__c = c
-
         cl = self.__assign(x)
 
         ncl = self.__k_argmin(c, c, k=a)
-        self.__x_ranges, _, _ = self.__cluster_ranges_centroids(x, cl)
+        self.__x_ranges, _, _ = self.tools.cluster_ranges_centroids(x, cl)
 
         x, x_labels = self.__sort_clusters(x, cl, store_x=True)
         self.__x = x
         r = self.tools.repeat(self.tools.arange(clusters, device=self.__device), a)
-        self.__keep = self.tools.zeros(
-            [clusters, clusters], dtype=bool, device=self.__device
+        self.__keep = self.tools.to(
+            self.tools.zeros([clusters, clusters], dtype=bool), self.__device
         )
         self.__keep[r, ncl.flatten()] = True
 
@@ -111,13 +150,13 @@ class GenericIVF:
         y = self.tools.contiguous(y)
         y_labels = self.__assign(y)
 
-        y_ranges, _, _ = self.__cluster_ranges_centroids(y, y_labels)
+        y_ranges, _, _ = self.tools.cluster_ranges_centroids(y, y_labels)
         self.__y_ranges = y_ranges
         y, y_labels = self.__sort_clusters(y, y_labels, store_x=False)
         x_LT = self.__LazyTensor(self.tools.unsqueeze(self.__x, 0))
         y_LT = self.__LazyTensor(self.tools.unsqueeze(y, 1))
         D_ij = self.__distance(y_LT, x_LT)
-        ranges_ij = self.__from_matrix(y_ranges, self.__x_ranges, self.__keep)
+        ranges_ij = self.tools.from_matrix(y_ranges, self.__x_ranges, self.__keep)
         D_ij.ranges = ranges_ij
         nn = D_ij.argKmin(K=self.__k, axis=1)
         return self.__unsort(nn)

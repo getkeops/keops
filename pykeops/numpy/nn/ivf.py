@@ -1,9 +1,6 @@
 from pykeops.numpy import LazyTensor
-from pykeops.numpy.cluster import cluster_ranges_centroids
-from pykeops.numpy.cluster import from_matrix
 from pykeops.common.ivf import GenericIVF
 from pykeops.numpy.utils import numpytools
-
 import numpy as np
 
 
@@ -14,15 +11,15 @@ class IVF(GenericIVF):
             k=k,
             metric=metric,
             normalise=normalise,
-            LazyTensor=LazyTensor,
-            cluster_ranges_centroids=cluster_ranges_centroids,
-            from_matrix=from_matrix,
+            LazyTensor=LazyTensor
         )
 
     def __get_tools(self):
         self.tools = numpytools
 
-    def fit(self, x, clusters=50, a=5, Niter=15, backend="CPU"):
+    def fit(self, x, clusters=50, a=5, Niter=15, backend="CPU", approx=False):
+	if approx:
+	    raise ValueError("Approximation not supported for numpy")
         if type(x) != np.ndarray:
             raise ValueError("Input dataset must be a np array")
         return self._fit(x, clusters=clusters, a=a, Niter=Niter, backend=backend)
