@@ -18,7 +18,7 @@ class IVF(GenericIVF):
         self.tools = numpytools
 
     def fit(self, x, clusters=50, a=5, Niter=15, backend="CPU", approx=False):
-	if approx:
+        if approx:
 	    raise ValueError("Approximation not supported for numpy")
         if type(x) != np.ndarray:
             raise ValueError("Input dataset must be np array")
