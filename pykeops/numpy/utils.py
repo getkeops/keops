@@ -160,7 +160,9 @@ class numpytools:
         return np.take(input, index, axis=dim)
 
     @staticmethod
-    def kmeans(x, distance, K=10, Niter=15, device="CPU"):
+    def kmeans(x, distance, K=10, Niter=15, device="CPU", approx=False, n=0):
+        if approx:
+            raise ValueError("Approx not supported on numpy version")
         from pykeops.numpy import LazyTensor
 
         distance = numpytools.distance_function(metric)
