@@ -2,10 +2,8 @@ class GenericIVF:
     def __init__(self, k, metric, normalise, LazyTensor):
         self.__k = k
         self.__normalise = normalise
-
         self.__update_metric(metric)
         self.__LazyTensor = LazyTensor
-
         self.__c = None
 
     def __update_metric(self, metric):
@@ -107,7 +105,6 @@ class GenericIVF:
             Niter=Niter,
             device=self.__device,
             approx=approx,
-            normalise=self.__normalise,
             n=n,
         )
 

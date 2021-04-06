@@ -160,7 +160,9 @@ class numpytools:
         return np.take(input, index, axis=dim)
 
     @staticmethod
-    def kmeans(x, distance, K=10, Niter=15, device="CPU", approx=False, n=0):
+    def kmeans(x, distance=None, K=10, Niter=15, device="CPU", approx=False, n=0):
+        if distance is None:
+            distance = numpytools.distance_function("euclidean")
         if approx:
             raise ValueError("Approx not supported on numpy version")
         from pykeops.numpy import LazyTensor
