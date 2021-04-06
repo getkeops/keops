@@ -166,7 +166,6 @@ class numpytools:
         if approx:
             raise ValueError("Approx not supported on numpy version")
         from pykeops.numpy import LazyTensor
-        distance = numpytools.distance_function(distance)
         N, D = x.shape
         c = np.copy(x[:K, :])
         x_i = LazyTensor(x[:, None, :])
