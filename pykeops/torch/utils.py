@@ -198,25 +198,57 @@ class torchtools:
     def index_select(input, dim, index):
         return torch.index_select(input, dim, index)
 
-    @staticmethod
-    def kmeans(x, K=10, Niter=15, metric="euclidean", device="cuda"):
-        from pykeops.torch import LazyTensor
+     @staticmethod
+    def kmeans(x,distance,K=10,Niter=15,device='cuda',approx=False,n=10,normalise=False):
 
-        distance = torchtools.distance_function(metric)
-        N, D = x.shape
-        c = x[:K, :].clone()
-        x_i = LazyTensor(x.view(N, 1, D).to(device))
-        for i in range(Niter):
-            c_j = LazyTensor(c.view(1, K, D).to(device))
-            D_ij = distance(x_i, c_j)
-            cl = D_ij.argmin(dim=1).long().view(-1)
-            c.zero_()
-            c.scatter_add_(0, cl[:, None].repeat(1, D), x)
+      from pykeops.torch import LazyTensor
+
+      def calc_centroid(x,c,cl,n=10):
+        "Helper function to optimise centroid location"
+        c=torch.clone(c.detach()).to(device)
+        c.requires_grad=True
+        x1=LazyTensor(x.unsqueeze(0))
+        op=torch.optim.Adam([c],lr=1/n)
+        scaling=1/torch.gather(torch.bincount(cl),0,cl).view(-1,1)
+        scaling.requires_grad=False
+        with torch.autograd.set_detect_anomaly(True):
+          for _ in range(n):
+            c.requires_grad=True
+            op.zero_grad()
+            c1=LazyTensor(torch.index_select(c,0,cl).unsqueeze(0))
+            d=distance(x1,c1)
+            loss=(d.sum(0) * scaling).sum() #calculate distance to centroid for each datapoint, divide by total number of points in that cluster, and sum
+            loss.backward(retain_graph=False)
+            op.step()
+            if normalise:
+              with torch.no_grad():
+                c=c/torch.norm(c,dim=-1).repeat_interleave(c.shape[1]).reshape(-1,c.shape[1]) #normalising centroids to have norm 1
+        return c.detach()
+
+      N, D = x.shape  
+      c = x[:K, :].clone() 
+      x_i = LazyTensor(x.view(N, 1, D).to(device))  
+
+      for i in range(Niter):
+          c_j = LazyTensor(c.view(1, K, D).to(device))  
+          D_ij=distance(x_i,c_j)
+          cl = D_ij.argmin(dim=1).long().view(-1)  
+
+          #updating c: either with approximation or exact
+          if approx:
+            #approximate with GD optimisation 
+            c=calc_centroid(x,c,cl,n)
+
+          else:
+            #exact from average
+            c.zero_() 
+            c.scatter_add_(0, cl[:, None].repeat(1, D), x) 
             Ncl = torch.bincount(cl, minlength=K).type_as(c).view(K, 1)
-            c /= Ncl
-            if torch.any(torch.isnan(c)) and metric == "angular":
-                raise ValueError("Please normalise inputs")
-        return cl, c
+            c /= Ncl  
+
+          if torch.any(torch.isnan(c)):
+            raise ValueError("NaN detected in centroids during KMeans, please check metric is correct")
+      return cl, c      
 
     @staticmethod
     def is_tensor(x):

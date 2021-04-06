@@ -160,7 +160,7 @@ class numpytools:
         return np.take(input, index, axis=dim)
 
     @staticmethod
-    def kmeans(x, K=10, Niter=15, metric="euclidean", device="CPU"):
+    def kmeans(x, distance, K=10, Niter=15, device="CPU"):
         from pykeops.numpy import LazyTensor
 
         distance = numpytools.distance_function(metric)

@@ -21,7 +21,7 @@ class IVF(GenericIVF):
 	if approx:
 	    raise ValueError("Approximation not supported for numpy")
         if type(x) != np.ndarray:
-            raise ValueError("Input dataset must be a np array")
+            raise ValueError("Input dataset must be np array")
         return self._fit(x, clusters=clusters, a=a, Niter=Niter, backend=backend)
 
     def kneighbors(self, y):
