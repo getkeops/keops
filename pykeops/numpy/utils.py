@@ -2,8 +2,8 @@ import numpy as np
 
 from pykeops.numpy import Genred, default_dtype, KernelSolve
 from pykeops.numpy.cluster import swap_axes as np_swap_axes
-from pykeops.numpy.cluster import grid_cluster as np_grid_cluster
-from pykeops.numpy.cluster import from_matrix as np_from_matrix
+from pykeops.numpy.cluster.grid_cluster import grid_cluster as np_grid_cluster
+from pykeops.numpy.cluster.matrix import from_matrix as np_from_matrix
 from pykeops.numpy.cluster import (
     cluster_ranges_centroids as np_cluster_ranges_centroids,
 )
@@ -11,7 +11,6 @@ from pykeops.numpy.cluster import cluster_ranges as np_cluster_ranges
 from pykeops.numpy.cluster import sort_clusters as np_sort_clusters
 
 import pykeops.config
-from pykeops.numpy import LazyTensor
 
 
 class numpytools:
@@ -22,7 +21,6 @@ class numpytools:
     sqrt = np.sqrt
     Genred = Genred
     KernelSolve = KernelSolve
-    LazyTensor = LazyTensor
     grid_cluster = np_grid_cluster
     from_matrix = np_from_matrix
     cluster_ranges_centroids = np_cluster_ranges_centroids
@@ -163,6 +161,7 @@ class numpytools:
 
     @staticmethod
     def kmeans(x, K=10, Niter=15, metric="euclidean", device="CPU"):
+        from pykeops.numpy import LazyTensor
 
         distance = numpytools.distance_function(metric)
         N, D = x.shape
@@ -177,10 +176,6 @@ class numpytools:
             for d in range(D):
                 c[:, d] = np.bincount(cl, weights=x[:, d]) / Ncl
         return cl, c
-
-    @staticmethod
-    def LazyTensor(x):
-        return LazyTensor(x)
 
 
 def squared_distances(x, y):

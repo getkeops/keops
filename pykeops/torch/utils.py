@@ -2,7 +2,6 @@ import torch
 
 from pykeops.torch import Genred, KernelSolve, default_dtype
 from pykeops.torch.cluster import swap_axes as torch_swap_axes
-from pykeops.torch import LazyTensor
 from pykeops.torch.cluster import grid_cluster as torch_grid_cluster
 from pykeops.torch.cluster import from_matrix as torch_from_matrix
 from pykeops.torch.cluster import (
@@ -29,7 +28,6 @@ class torchtools:
 
     Genred = Genred
     KernelSolve = KernelSolve
-    LazyTensor = LazyTensor
     grid_cluster = torch_grid_cluster
     from_matrix = torch_from_matrix
     cluster_ranges_centroids = torch_cluster_ranges_centroids
@@ -202,6 +200,7 @@ class torchtools:
 
     @staticmethod
     def kmeans(x, K=10, Niter=15, metric="euclidean", device="cuda"):
+        from pykeops.torch import LazyTensor
 
         distance = torchtools.distance_function(metric)
         N, D = x.shape
