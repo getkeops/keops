@@ -1,9 +1,6 @@
 Introduction to RKeOps
 ======================
 
-2021-04-08
-^^^^^^^^^^
-
 .. raw:: html
 
    <div id="TOC">
