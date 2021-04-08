@@ -189,20 +189,28 @@ KeOps provides core routines for the following packages:
 
 
 
-Licensing, academic use
+Licensing, citation, academic use
 -----------------------
 
 This library is licensed under the permissive `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_,
 which is fully compatible with both **academic** and **commercial** applications.
-If you use this code in a research paper, **please cite**:
+
+If you use this code in a research paper, **please cite** our 
+`original publication <https://jmlr.org/papers/v22/20-275.htm>`_:
+
+> Charlier, B., Feydy, J., Glaunès, J. A., Collin, F.-D. & Durif, G. Kernel Operations on the GPU, with Autodiff, without Memory Overflows. Journal of Machine Learning Research 22, 1–6 (2021).
 
 .. code-block:: bibtex
 
-    @article{charlier2020kernel,
-        title={Kernel operations on the {GPU}, with autodiff, without memory overflows},
-        author={Charlier, Benjamin and Feydy, Jean and Glaun{\`e}s, Joan Alexis and Collin, Fran{\c{c}}ois-David and Durif, Ghislain},
-        journal={arXiv preprint arXiv:2004.11127},
-        year={2020}
+    @article{JMLR:v22:20-275,
+      author  = {Benjamin Charlier and Jean Feydy and Joan Alexis Glaunès and François-David Collin and Ghislain Durif},
+      title   = {Kernel Operations on the GPU, with Autodiff, without Memory Overflows},
+      journal = {Journal of Machine Learning Research},
+      year    = {2021},
+      volume  = {22},
+      number  = {74},
+      pages   = {1-6},
+      url     = {http://jmlr.org/papers/v22/20-275.html}
     }
 
 
