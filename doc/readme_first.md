@@ -9,7 +9,7 @@ If you want to rebuild KeOps documentation, here are the steps:
 * first install required packages via pip:
 
 ```
-pip install sphinx sphinx-gallery recommonmark sphinxcontrib-httpdomain sphinx_rtd_theme
+pip install sphinx sphinx-gallery recommonmark sphinxcontrib-httpdomain sphinx_rtd_theme matplotlib
 ```
 * Then do
 
