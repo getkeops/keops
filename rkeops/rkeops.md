@@ -32,7 +32,7 @@ a report on our [GitHub issue tracker](https://github.com/getkeops/keops/issues)
 - [Mauricio Diaz](https://github.com/mdiazmel), from the University of Montpellier: CI setup.
 - [Benoît Martin](https://github.com/benoitmartin88), from the Aramis Inria team: multi-GPU support.
 - [Francis Williams](https://www.fwilliams.info), from New York University: maths operations.
-- [Kshiteej Kalambarkar](https://www.linkedin.com/in/kshiteejkalambarkar/), from Quansight: maths operations.
+- [Kshiteej Kalambarkar](https://github.com/kshitij12345), from Quansight: maths operations.
 - [D. J. Sutherland](https://djsutherland.ml), from the TTI-Chicago: bug fix in the Python package.
 - [David Völgyes](https://scholar.google.no/citations?user=ngT2GvMAAAAJ&hl=en), from the Norwegian Institute of Science and Technology: bug fix in the formula parser.
 
