@@ -196,9 +196,7 @@ This library is licensed under the permissive `MIT license <https://en.wikipedia
 which is fully compatible with both **academic** and **commercial** applications.
 
 If you use this code in a research paper, **please cite** our 
-`original publication <https://jmlr.org/papers/v22/20-275.htm>`_:
-
-> Charlier, B., Feydy, J., Glaunès, J. A., Collin, F.-D. & Durif, G. Kernel Operations on the GPU, with Autodiff, without Memory Overflows. Journal of Machine Learning Research 22, 1–6 (2021).
+`original publication <https://jmlr.org/papers/v22/20-275.html>`_:
 
 .. code-block:: bibtex
 
@@ -212,6 +210,8 @@ If you use this code in a research paper, **please cite** our
       pages   = {1-6},
       url     = {http://jmlr.org/papers/v22/20-275.html}
     }
+
+.. note:: Charlier, B., Feydy, J., Glaunès, J. A., Collin, F.-D. & Durif, G. Kernel Operations on the GPU, with Autodiff, without Memory Overflows. Journal of Machine Learning Research 22, 1–6 (2021).
 
 
 For applications to **geometric (deep) learning**, 
