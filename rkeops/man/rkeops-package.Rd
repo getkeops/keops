@@ -27,6 +27,9 @@ For more information, please read the vignettes
 (\code{browseVignettes("rkeops")}) and visit
 https://www.kernel-operations.io/.
 }
+\references{
+\insertRef{JMLR:v22:20-275}{rkeops}
+}
 \author{
 \itemize{
 \item \href{http://imag.umontpellier.fr/~charlier/}{Benjamin Charlier}
