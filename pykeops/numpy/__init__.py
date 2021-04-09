@@ -18,6 +18,7 @@ from .generic.generic_ops import (
 from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
 from .nn.ivf import IVF
 
+
 __all__ = sorted(
     [
         "Genred",
