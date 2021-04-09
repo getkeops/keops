@@ -189,21 +189,29 @@ KeOps provides core routines for the following packages:
 
 
 
-Licensing, academic use
+Licensing, citation, academic use
 -----------------------
 
 This library is licensed under the permissive `MIT license <https://en.wikipedia.org/wiki/MIT_License>`_,
 which is fully compatible with both **academic** and **commercial** applications.
-If you use this code in a research paper, **please cite**:
+
+If you use this code in a research paper, **please cite** our 
+`original publication <https://jmlr.org/papers/v22/20-275.html>`_:
 
 .. code-block:: bibtex
 
-    @article{charlier2020kernel,
-        title={Kernel operations on the {GPU}, with autodiff, without memory overflows},
-        author={Charlier, Benjamin and Feydy, Jean and Glaun{\`e}s, Joan Alexis and Collin, Fran{\c{c}}ois-David and Durif, Ghislain},
-        journal={arXiv preprint arXiv:2004.11127},
-        year={2020}
+    @article{JMLR:v22:20-275,
+      author  = {Benjamin Charlier and Jean Feydy and Joan Alexis Glaunès and François-David Collin and Ghislain Durif},
+      title   = {Kernel Operations on the GPU, with Autodiff, without Memory Overflows},
+      journal = {Journal of Machine Learning Research},
+      year    = {2021},
+      volume  = {22},
+      number  = {74},
+      pages   = {1-6},
+      url     = {http://jmlr.org/papers/v22/20-275.html}
     }
+
+.. note:: Charlier, B., Feydy, J., Glaunès, J. A., Collin, F.-D. & Durif, G. Kernel Operations on the GPU, with Autodiff, without Memory Overflows. Journal of Machine Learning Research 22, 1–6 (2021).
 
 
 For applications to **geometric (deep) learning**, 
@@ -243,7 +251,7 @@ a report on our `GitHub issue tracker <https://github.com/getkeops/keops/issues>
 - `Mauricio Diaz <https://github.com/mdiazmel>`_, from the University of Montpellier: CI setup.
 - `Benoît Martin <https://github.com/benoitmartin88>`_, from the Aramis Inria team: multi-GPU support.
 - `Francis Williams <https://www.fwilliams.info>`_, from New York University: maths operations.
-- `Kshiteej Kalambarkar <https://www.linkedin.com/in/kshiteejkalambarkar/>`_, from Quansight: maths operations.
+- `Kshiteej Kalambarkar <https://github.com/kshitij12345>`_, from Quansight: maths operations.
 - `D. J. Sutherland <https://djsutherland.ml>`_, from the TTI-Chicago: bug fix in the Python package.
 - `David Völgyes <https://scholar.google.no/citations?user=ngT2GvMAAAAJ&hl=en>`_, from the Norwegian Institute of Science and Technology: bug fix in the formula parser.
 
