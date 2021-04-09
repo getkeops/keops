@@ -2435,9 +2435,13 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
         elif not is_complex_lazytensor(other):
             return self.mulop(other.real2complex())
         elif self._shape[-1] == 2:
-            return self.binary(other, "ComplexScal", **kwargs, is_complex=True, dimcheck=None)
+            return self.binary(
+                other, "ComplexScal", **kwargs, is_complex=True, dimcheck=None
+            )
         elif other._shape[-1] == 2:
-            return other.binary(self, "ComplexScal", **kwargs, is_complex=True, dimcheck=None)
+            return other.binary(
+                self, "ComplexScal", **kwargs, is_complex=True, dimcheck=None
+            )
         else:
             return self.binary(other, "ComplexMult", **kwargs, is_complex=True)
 
