@@ -225,13 +225,6 @@ class torchtools:
                     ).sum()  # calculate distance to centroid for each datapoint, divide by total number of points in that cluster, and sum
                     loss.backward(retain_graph=False)
                     op.step()
-                    if normalise:
-                        with torch.no_grad():
-                            c = c / torch.norm(c, dim=-1).repeat_interleave(
-                                c.shape[1]
-                            ).reshape(
-                                -1, c.shape[1]
-                            )  # normalising centroids to have norm 1
             return c.detach()
 
         N, D = x.shape
