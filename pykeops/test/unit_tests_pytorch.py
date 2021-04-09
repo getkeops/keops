@@ -704,9 +704,7 @@ class PytorchUnitTestCase(unittest.TestCase):
                 distance = ((y2-x2) .abs()).sum(-1)
             elif metric in {'angular', 'angular_full'}:
                 # Calculate normalised dot product (angular distances)
-                x3 = x/torch.linalg.norm(x, dim=1, keepdim=True)
-                y3 = y/torch.linalg.norm(y, dim=1, keepdim=True)
-                distance = -y3@(x3.T)
+                distance = -y@(x.T)/(((x@(x.T)).diag().unsqueeze(0)*(y@(y.T)).diag().unsqueeze(1)).sqrt())
                 if metric == 'angular':
                 # Need to normalize data for angular metric
                     normalise = True
