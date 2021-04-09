@@ -6,6 +6,7 @@ default_dtype = "float64"  # float32' or 'float64'
 # Import pyKeOps routines
 
 
+from .nn.ivf import IVF
 from .generic.generic_red import Genred
 from .operations import KernelSolve
 from .convolutions.radial_kernel import RadialKernelConv, RadialKernelGrad1conv
@@ -16,11 +17,10 @@ from .generic.generic_ops import (
     generic_argkmin,
 )
 from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
-from .nn.ivf import IVF
-
 
 __all__ = sorted(
     [
+        "IVF",
         "Genred",
         "generic_sum",
         "generic_logsumexp",
@@ -31,6 +31,5 @@ __all__ = sorted(
         "Vi",
         "Vj",
         "Pm",
-        "IVF",
     ]
 )
