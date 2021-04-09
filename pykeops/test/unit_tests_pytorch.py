@@ -690,7 +690,7 @@ class PytorchUnitTestCase(unittest.TestCase):
         y2 = y.unsqueeze(1)
 
         # Metrics
-        metrics = ['euclidean','manhattan','angular','angular_full','hyperbolic']
+        metrics = ["euclidean", "manhattan", "angular", "angular_full", "hyperbolic"]
 
         for metric in metrics:
             # Inputs to IVF algorithm
@@ -698,25 +698,36 @@ class PytorchUnitTestCase(unittest.TestCase):
             approx = False
 
             # Brute force distance calculation
-            if metric == 'euclidean':
-                distance = ((y2-x2) ** 2).sum(-1)
-            elif metric == 'manhattan':
-                distance = ((y2-x2) .abs()).sum(-1)
-            elif metric in {'angular', 'angular_full'}:
+            if metric == "euclidean":
+                distance = ((y2 - x2) ** 2).sum(-1)
+            elif metric == "manhattan":
+                distance = ((y2 - x2).abs()).sum(-1)
+            elif metric in {"angular", "angular_full"}:
                 # Calculate normalised dot product (angular distances)
-                distance = -y@(x.T)/(((x@(x.T)).diag().unsqueeze(0)*(y@(y.T)).diag().unsqueeze(1)).sqrt())
-                if metric == 'angular':
-                # Need to normalize data for angular metric
+                distance = (
+                    -y
+                    @ (x.T)
+                    / (
+                        (
+                            (x @ (x.T)).diag().unsqueeze(0)
+                            * (y @ (y.T)).diag().unsqueeze(1)
+                        ).sqrt()
+                    )
+                )
+                if metric == "angular":
+                    # Need to normalize data for angular metric
                     normalise = True
-            elif metric == 'hyperbolic':
+            elif metric == "hyperbolic":
                 # Need to ensure first dimension is positive for hyperbolic metric
                 x += 5
                 y += 5
                 approx = True
-                distance = ((y2-x2) ** 2).sum(-1) / (x[:,0].unsqueeze(0) * y[:,0].unsqueeze(1))
+                distance = ((y2 - x2) ** 2).sum(-1) / (
+                    x[:, 0].unsqueeze(0) * y[:, 0].unsqueeze(1)
+                )
 
             # Ground truth K nearest neighbours
-            truth = torch.argsort(distance,dim=1)
+            truth = torch.argsort(distance, dim=1)
             truth = truth[:, :k]
 
             # IVF K nearest neighbours

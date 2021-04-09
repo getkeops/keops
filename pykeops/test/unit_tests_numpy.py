@@ -454,7 +454,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         y2 = np.expand_dims(y, 1)
 
         # Metrics (hyperbolic metric not implemented for numpy)
-        metrics = ['euclidean','manhattan','angular','angular_full']
+        metrics = ["euclidean", "manhattan", "angular", "angular_full"]
 
         for metric in metrics:
             # Inputs to IVF algorithm
@@ -462,27 +462,29 @@ class NumpyUnitTestCase(unittest.TestCase):
             approx = False
 
             # Brute force distance calculation
-            if metric == 'euclidean':
+            if metric == "euclidean":
                 distance = ((y2 - x2) ** 2).sum(-1)
-            elif metric == 'manhattan':
+            elif metric == "manhattan":
                 distance = np.abs(y2 - x2).sum(-1)
-            elif metric in {'angular','angular_full'}:
-                x3 = x/np.linalg.norm(x, axis=1, keepdims=True)
-                y3 = y/np.linalg.norm(y, axis=1, keepdims=True)
-                distance = -y3@(x3.T)
-                if metric == 'angular':
-                # Need to normalize data for angular metric
+            elif metric in {"angular", "angular_full"}:
+                x3 = x / np.linalg.norm(x, axis=1, keepdims=True)
+                y3 = y / np.linalg.norm(y, axis=1, keepdims=True)
+                distance = -y3 @ (x3.T)
+                if metric == "angular":
+                    # Need to normalize data for angular metric
                     normalise = True
-            elif metric == 'hyperbolic':
+            elif metric == "hyperbolic":
                 # Placeholder in case hyperbolic metric is implemented in future
                 # Need to ensure first dimension is positive for hyperbolic metric
                 x += 5
                 y += 5
                 approx = True
-                distance = ((y2-x2) ** 2).sum(-1) / (np.expand_dims(x[:,0],0) * np.expand_dims(y[:,0],1))
+                distance = ((y2 - x2) ** 2).sum(-1) / (
+                    np.expand_dims(x[:, 0], 0) * np.expand_dims(y[:, 0], 1)
+                )
 
             # Ground truth K nearest neighbours
-            truth = np.argsort(distance,axis=1)
+            truth = np.argsort(distance, axis=1)
             truth = truth[:, :k]
 
             # IVF K nearest neighbours
@@ -497,7 +499,7 @@ class NumpyUnitTestCase(unittest.TestCase):
                 truth = np.roll(
                     truth, 1, -1
                 )  # Create a rolling window (index positions may not match)
-            
+
             accuracy = float(accuracy / k)
 
             self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
