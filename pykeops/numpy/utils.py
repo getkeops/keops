@@ -119,7 +119,7 @@ class numpytools:
             return ((x - y).abs()).sum(-1)
 
         def angular(x, y):
-            return x | y
+            return -(x | y)
 
         if metric == "euclidean":
             return euclidean

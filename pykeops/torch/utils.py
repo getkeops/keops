@@ -151,7 +151,7 @@ class torchtools:
             return ((x - y).abs()).sum(-1)
 
         def angular(x, y):
-            return x | y
+            return -(x | y)
 
         def angular_full(x, y):
             return angular(x, y) / ((angular(x, x) * angular(y, y)).sqrt())
