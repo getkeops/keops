@@ -36,7 +36,7 @@ from .generic.generic_ops import (
 )
 from .operations import KernelSolve
 from .nn.ivf import IVF
-from .lazytensor.LazyTensor import LazyTensor, Vi, Vj, Pm
+from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
 
 
 __all__ = sorted(
