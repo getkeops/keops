@@ -1,11 +1,12 @@
-from pykeops.torch import LazyTensor
 from pykeops.common.ivf import GenericIVF
-from pykeops.torch.utils import torchtools
 import torch
 
 
 class IVF(GenericIVF):
     def __init__(self, k=5, metric="euclidean", normalise=False):
+        from pykeops.torch import LazyTensor
+        from pykeops.torch.utils import torchtools
+
         self.__get_tools()
         super().__init__(k=k, metric=metric, normalise=normalise, LazyTensor=LazyTensor)
 

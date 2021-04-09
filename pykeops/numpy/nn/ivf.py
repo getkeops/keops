@@ -1,11 +1,12 @@
-from pykeops.numpy import LazyTensor
 from pykeops.common.ivf import GenericIVF
-from pykeops.numpy.utils import numpytools
 import numpy as np
 
 
 class IVF(GenericIVF):
     def __init__(self, k=5, metric="euclidean", normalise=False):
+        from pykeops.numpy import LazyTensor
+        from pykeops.numpy.utils import numpytools
+
         self.__get_tools()
         super().__init__(k=k, metric=metric, normalise=normalise, LazyTensor=LazyTensor)
 
