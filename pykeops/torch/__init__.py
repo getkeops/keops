@@ -36,6 +36,7 @@ from .generic.generic_ops import (
 )
 from .operations import KernelSolve
 from .lazytensor.LazyTensor import LazyTensor, Vi, Vj, Pm
+from .nn.ivf import IVF
 
 __all__ = sorted(
     [
@@ -49,5 +50,6 @@ __all__ = sorted(
         "Vi",
         "Vj",
         "Pm",
+        "IVF",
     ]
 )
