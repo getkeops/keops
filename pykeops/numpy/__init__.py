@@ -16,7 +16,7 @@ from .generic.generic_ops import (
     generic_argmin,
     generic_argkmin,
 )
-from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
+from .lazytensor.LazyTensor import LazyTensor, Vi, Vj, Pm
 
 __all__ = sorted(
     [
