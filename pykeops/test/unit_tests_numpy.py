@@ -444,34 +444,63 @@ class NumpyUnitTestCase(unittest.TestCase):
         import numpy as np
 
         np.random.seed(0)
-        N, D, K, k, a = 10 ** 3, 3, 50, 5, 5
+        N, D, clusters, k, a = 10 ** 3, 3, 10, 5, 5
 
         # Generate random datapoints x, y
-        x = 0.7 * np.random.normal(size=(N, D)) + 0.3
-        y = 0.7 * np.random.normal(size=(N, D)) + 0.3
+        x = np.random.normal(size=(N, D))
+        y = np.random.normal(size=(N, D))
 
-        # Ground truth K nearest neighbours
-        truth = np.argsort(
-            ((np.expand_dims(y, 1) - np.expand_dims(x, 0)) ** 2).sum(-1), axis=1
-        )
-        truth = truth[:, :k]
+        x2 = np.expand_dims(x, 0)
+        y2 = np.expand_dims(y, 1)
 
-        # IVF K nearest neighbours
-        IVF = IVF()
-        IVF.fit(x, a=a)
-        ivf_fit = IVF.kneighbors(y)
+        # Metrics (hyperbolic metric not implemented for numpy)
+        metrics = ['euclidean','manhattan','angular','angular_full']
 
-        # Calculate accuracy
-        accuracy = 0
-        for i in range(k):
-            accuracy += float(np.sum(ivf_fit == truth)) / N
-            truth = np.roll(
-                truth, 1, -1
-            )  # Create a rolling window (index positions may not match)
-        # Record accuracies
-        accuracy = float(accuracy / k)
+        for metric in metrics:
+            # Inputs to IVF algorithm
+            normalise = False
+            approx = False
 
-        self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
+            # Brute force distance calculation
+            if metric == 'euclidean':
+                distance = ((y2 - x2) ** 2).sum(-1)
+            elif metric == 'manhattan':
+                distance = np.abs(y2 - x2).sum(-1)
+            elif metric in {'angular','angular_full'}:
+                x3 = x/np.linalg.norm(x, axis=1, keepdims=True)
+                y3 = y/np.linalg.norm(y, axis=1, keepdims=True)
+                distance = -y3@(x3.T)
+                if metric == 'angular':
+                # Need to normalize data for angular metric
+                    normalise = True
+            elif metric == 'hyperbolic':
+                # Placeholder in case hyperbolic metric is implemented in future
+                # Need to ensure first dimension is positive for hyperbolic metric
+                x += 5
+                y += 5
+                approx = True
+                distance = ((y2-x2) ** 2).sum(-1) / (np.expand_dims(x[:,0],0) * np.expand_dims(y[:,0],1))
+
+            # Ground truth K nearest neighbours
+            truth = np.argsort(distance,axis=1)
+            truth = truth[:, :k]
+
+            # IVF K nearest neighbours
+            test = IVF(metric=metric, k=k, normalise=normalise)
+            test.fit(x, a=a, approx=approx, clusters=clusters)
+            ivf_fit = test.kneighbors(y)
+
+            # Calculate accuracy
+            accuracy = 0
+            for i in range(k):
+                accuracy += float(np.sum(ivf_fit == truth)) / N
+                truth = np.roll(
+                    truth, 1, -1
+                )  # Create a rolling window (index positions may not match)
+            
+            accuracy = float(accuracy / k)
+
+            self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
 
     ############################################################
     def test_Nystrom_k_approx(self):
