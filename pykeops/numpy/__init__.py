@@ -15,9 +15,9 @@ from .generic.generic_ops import (
     generic_argmin,
     generic_argkmin,
 )
-
-from .lazytensor.LazyTensor import LazyTensor, Vi, Vj, Pm
 from .nn.ivf import IVF
+from .lazytensor.LazyTensor import LazyTensor, Vi, Vj, Pm
+
 
 __all__ = sorted(
     [
@@ -27,10 +27,10 @@ __all__ = sorted(
         "generic_argmin",
         "generic_argkmin",
         "KernelSolve",
+        "IVF",
         "LazyTensor",
         "Vi",
         "Vj",
         "Pm",
-        "IVF",
     ]
 )
