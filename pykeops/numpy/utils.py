@@ -121,12 +121,17 @@ class numpytools:
         def angular(x, y):
             return -(x | y)
 
+        def angular_full(x, y):
+            return angular(x, y) / ((angular(x, x) * angular(y, y)).sqrt())
+
         if metric == "euclidean":
             return euclidean
         elif metric == "manhattan":
             return manhattan
         elif metric == "angular":
             return angular
+        elif metric == "angular_full":
+            return angular_full
         elif metric == "hyperbolic":
             raise ValueError(
                 "Hyperbolic not supported for numpy, please use torch version with approximation"
