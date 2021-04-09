@@ -680,32 +680,61 @@ class PytorchUnitTestCase(unittest.TestCase):
         import torch
 
         torch.manual_seed(0)
-        N, D, K, k, a = 10 ** 3, 3, 50, 5, 5
+        N, D, clusters, k, a = 10 ** 3, 3, 10, 5, 5
 
         # Generate random datapoints x, y
-        x = 0.7 * torch.randn(N, D) + 0.3
-        y = 0.7 * torch.randn(N, D) + 0.3
+        x = torch.randn(N, D)
+        y = torch.randn(N, D)
 
-        # Ground truth K nearest neighbours
-        truth = torch.argsort(((y.unsqueeze(1) - x.unsqueeze(0)) ** 2).sum(-1), dim=1)
-        truth = truth[:, :k]
+        x2 = x.unsqueeze(0)
+        y2 = y.unsqueeze(1)
 
-        # IVF K nearest neighbours
-        IVF = IVF()
-        IVF.fit(x, a=a)
-        ivf_fit = IVF.kneighbors(y)
+        # Metrics
+        metrics = ['euclidean','manhattan','angular','angular_full','hyperbolic']
 
-        # Calculate accuracy
-        accuracy = 0
-        for i in range(k):
-            accuracy += torch.sum(ivf_fit == truth).float() / N
-            truth = torch.roll(
-                truth, 1, -1
-            )  # Create a rolling window (index positions may not match)
-        # Record accuracies
-        accuracy = float(accuracy / k)
+        for metric in metrics:
+            # Inputs to IVF algorithm
+            normalise = False
+            approx = False
 
-        self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
+            # Brute force distance calculation
+            if metric == 'euclidean':
+                distance = ((y2-x2) ** 2).sum(-1)
+            elif metric == 'manhattan':
+                distance = ((y2-x2) .abs()).sum(-1)
+            elif metric in {'angular', 'angular_full'}:
+                # Calculate normalised dot product (angular distances)
+                distance = -y@(x.T)/(((x@(x.T)).diag().unsqueeze(0)*(y@(y.T)).diag().unsqueeze(1)).sqrt())
+                if metric == 'angular':
+                # Need to normalize data for angular metric
+                    normalise = True
+            elif metric == 'hyperbolic':
+                # Need to ensure first dimension is positive for hyperbolic metric
+                x += 5
+                y += 5
+                approx = True
+                distance = ((y2-x2) ** 2).sum(-1) / (x[:,0].unsqueeze(0) * y[:,0].unsqueeze(1))
+
+            # Ground truth K nearest neighbours
+            truth = torch.argsort(distance,dim=1)
+            truth = truth[:, :k]
+
+            # IVF K nearest neighbours
+            test = IVF(metric=metric, k=k, normalise=normalise)
+            test.fit(x, a=a, approx=approx, clusters=clusters)
+            ivf_fit = test.kneighbors(y)
+
+            # Calculate accuracy
+            accuracy = 0
+            for i in range(k):
+                accuracy += torch.sum(ivf_fit == truth).float() / N
+                truth = torch.roll(
+                    truth, 1, -1
+                )  # Create a rolling window (index positions may not match)
+
+            accuracy = float(accuracy / k)
+
+            self.assertTrue(accuracy >= 0.8, f"Failed at {a}, {accuracy}")
 
     ############################################################
     def test_Nystrom_K_approx(self):
