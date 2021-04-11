@@ -1,5 +1,11 @@
 class GenericIVF:
+    """Abstract class to compute IVF functions
+
+    End-users should use 'pykeops.numpy.ivf' or 'pykeops.torch.ivf'
+
+    """
     def __init__(self, k, metric, normalise, LazyTensor):
+
         self.__k = k
         self.__normalise = normalise
         self.__update_metric(metric)
@@ -18,10 +24,14 @@ class GenericIVF:
 
     @property
     def metric(self):
+        """Returns the metric used in the search
+        """
         return self.__metric
 
     @property
     def c(self):
+        """Returns the clusters obtained through K-Means
+        """
         if self.__c is not None:
             return self.__c
         else:
@@ -160,6 +170,14 @@ class GenericIVF:
         return self.__unsort(nn)
 
     def brute_force(self, x, y, k=5):
+        """Performs a brute force search with KeOps
+
+        Args:
+          x (array): Input dataset
+          y (array): Query dataset
+          k (int): Number of nearest neighbors to obtain
+
+        """
         x_LT = self.__LazyTensor(self.tools.unsqueeze(x, 0))
         y_LT = self.__LazyTensor(self.tools.unsqueeze(y, 1))
         D_ij = self.__distance(y_LT, x_LT)
