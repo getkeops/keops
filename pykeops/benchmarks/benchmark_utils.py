@@ -208,9 +208,15 @@ def simple_loop(N, loops, routine, max_time, args, kwargs):
     # Warmup run, to compile and load everything:
     output = routine(*args, **kwargs)
 
+    if callable(output):
+        to_call = output
+        _ = to_call(*args, **kwargs)
+    else:
+        to_call = routine
+
     t_0 = timer()
     for i in range(loops):
-        output = routine(*args, **kwargs)
+        _ = to_call(*args, **kwargs)
     elapsed = timer() - t_0
 
     B = kwargs.get("batchsize", 1)

@@ -315,9 +315,9 @@ def multi_head_attention_forward(
         assert list(attn_output_weights.size()) == [bsz * num_heads, tgt_len, src_len]
 
     else:
-        q_i = LazyTensor(q[:, :, None, :])  # (N*H, L, 1, D)
-        k_j = LazyTensor(k[:, None, :, :])  # (N*H, 1, S, D)
-        v_j = LazyTensor(v[:, None, :, :])  # (N*H, 1, S, D)
+        q_i = LazyTensor(q[:, :, None, :].contiguous())  # (N*H, L, 1, D)
+        k_j = LazyTensor(k[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+        v_j = LazyTensor(v[:, None, :, :].contiguous())  # (N*H, 1, S, D)
 
         attn_output_weights = q_i | k_j  # (N*H, L, S)
         assert list(attn_output_weights.shape) == [bsz * num_heads, tgt_len, src_len]
@@ -399,7 +399,7 @@ class MultiheadAttention(torch.nn.MultiheadAttention):
         key: Tensor,
         value: Tensor,
         key_padding_mask: Optional[Tensor] = None,
-        need_weights: bool = True,
+        need_weights: bool = False,
         attn_mask: Optional[Tensor] = None,
     ) -> Tuple[Tensor, Optional[Tensor]]:
         if not self._qkv_same_embed_dim:
