@@ -4,6 +4,7 @@ class GenericIVF:
     End-users should use 'pykeops.numpy.ivf' or 'pykeops.torch.ivf'
 
     """
+
     def __init__(self, k, metric, normalise, LazyTensor):
 
         self.__k = k
@@ -24,14 +25,12 @@ class GenericIVF:
 
     @property
     def metric(self):
-        """Returns the metric used in the search
-        """
+        """Returns the metric used in the search"""
         return self.__metric
 
     @property
     def c(self):
-        """Returns the clusters obtained through K-Means
-        """
+        """Returns the clusters obtained through K-Means"""
         if self.__c is not None:
             return self.__c
         else:
