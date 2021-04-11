@@ -1,3 +1,7 @@
+import torch
+import time
+
+
 class NNDescent:
     def __init__(
         self,
