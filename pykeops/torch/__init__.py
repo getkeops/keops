@@ -36,6 +36,10 @@ from .generic.generic_ops import (
 )
 from .operations import KernelSolve
 from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
+from .attention.multi_head_attention import (
+    MultiheadAttention,
+    multi_head_attention_forward,
+)
 
 __all__ = sorted(
     [
@@ -49,5 +53,7 @@ __all__ = sorted(
         "Vi",
         "Vj",
         "Pm",
+        "MultiheadAttention",
+        "multi_head_attention_forward",
     ]
 )
