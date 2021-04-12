@@ -7,10 +7,10 @@ class NNDescent:
         self,
         data=None,
         k=5,
-        metric="euclidian",
+        metric="euclidean",
         initialization_method="forest",
         num_trees=5,
-        leaf_multiplier=1,
+        leaf_multiplier=10,
         big_leaf_depth=5,
         verbose=False,
     ):
