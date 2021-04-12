@@ -37,9 +37,7 @@ use_cuda = torch.cuda.is_available()
 #
 
 # Sequence lengths that we'll loop upon:
-problem_sizes = flatten(
-    [[1 * 10 ** k, 2 * 10 ** k, 5 * 10 ** k] for k in [2, 3, 4]] + [[10 ** 5]]
-)
+problem_sizes = [2 ** k for k in range(7, 18)]
 
 
 ##############################################
@@ -65,6 +63,9 @@ def generate_sequences(
     target_len = target_source_len
     source_len = target_source_len
 
+    if callable(batchsize):
+        batchsize = batchsize(target_source_len)
+
     query = randn((target_len, batchsize, embed_dim))
     key = randn((source_len, batchsize, embed_dim))
     value = randn((source_len, batchsize, embed_dim))
@@ -79,9 +80,40 @@ def generate_sequences(
 #
 
 
-def run_experiment(embed_dim=1, num_heads=1, batchsize=1):
+def run_experiment(embed_dim=1, num_heads=1):
 
     generate_samples = partial(generate_sequences, embed_dim=embed_dim)
+
+    batchmems_torch = {
+        2 ** 7: 2 ** 15,
+        2 ** 8: 2 ** 14,
+        2 ** 9: 2 ** 12,
+        2 ** 10: 2 ** 8,
+    }
+    batchmems_keops = {
+        2 ** 7: 2 ** 20,
+        2 ** 8: 2 ** 19,
+        2 ** 9: 2 ** 18,
+        2 ** 10: 2 ** 17,
+        2 ** 11: 2 ** 12,
+        2 ** 12: 2 ** 11,
+        2 ** 13: 2 ** 10,
+        2 ** 14: 2 ** 9,
+        2 ** 15: 2 ** 8,
+        2 ** 16: 2 ** 7,
+    }
+
+    def batchsize_fun(n, use_keops=False, **kwargs):
+        batchmems = batchmems_keops if use_keops else batchmems_torch
+        batchmem = batchmems.get(n, 1)
+        if batchmem <= embed_dim:
+            batchsize = 1
+        else:
+            batchsize = batchmem // embed_dim
+        return batchsize
+
+    batchsize_torch = partial(batchsize_fun, use_keops=False)
+    batchsize_keops = partial(batchsize_fun, use_keops=True)
 
     def attention(query, key, value, use_keops=False, backward=False, **kwargs):
 
@@ -109,38 +141,38 @@ def run_experiment(embed_dim=1, num_heads=1, batchsize=1):
         (
             attention,
             "PyTorch forward+backward",
-            {"batchsize": batchsize, "use_keops": False, "backward": True},
+            {"batchsize": batchsize_torch, "use_keops": False, "backward": True},
         ),
         (
             attention,
             "PyTorch forward",
-            {"batchsize": batchsize, "use_keops": False},
+            {"batchsize": batchsize_torch, "use_keops": False},
         ),
         (
             attention,
             "KeOps forward+backward",
-            {"batchsize": batchsize, "use_keops": True, "backward": True},
+            {"batchsize": batchsize_keops, "use_keops": True, "backward": True},
         ),
         (
             attention,
             "KeOps forward",
-            {"batchsize": batchsize, "use_keops": True},
+            {"batchsize": batchsize_keops, "use_keops": True},
         ),
     ]
 
     full_benchmark(
-        f"Multi-head attention (embed_dim={embed_dim},n_heads={num_heads},heads_dim={embed_dim//num_heads},batchsize={batchsize})",
+        f"Multi-head attention (embed_dim={embed_dim},n_heads={num_heads},heads_dim={embed_dim//num_heads})",
         routines,
         generate_samples,
         problem_sizes=problem_sizes,
         loops=[10, 1],
-        max_time=10 / batchsize,
-        red_time=1 / batchsize,
+        max_time=1,
+        red_time=0.1,
         linestyles=[
-            "o-",
-            "s:",
-            "^-",
-            "<:",
+            "o-b",
+            "s:b",
+            "^-r",
+            "<:r",
         ],
         xlabel="Sequence length",
     )
@@ -152,17 +184,17 @@ def run_experiment(embed_dim=1, num_heads=1, batchsize=1):
 #
 # Embedding of dimension 64 = 64 heads of dimension 1.
 
-run_experiment(embed_dim=64, num_heads=64, batchsize=256)
+run_experiment(embed_dim=64, num_heads=64)
 
 ##############################################
 # Embedding of dimension 64 = 16 heads of dimension 4.
 
-run_experiment(embed_dim=64, num_heads=16, batchsize=256)
+run_experiment(embed_dim=64, num_heads=16)
 
 ##############################################
 # Embedding of dimension 64 = 1 head of dimension 64.
 
-run_experiment(embed_dim=64, num_heads=1, batchsize=256)
+run_experiment(embed_dim=64, num_heads=1)
 
 
 ##############################################
@@ -171,17 +203,17 @@ run_experiment(embed_dim=64, num_heads=1, batchsize=256)
 #
 # Embedding of dimension 256 = 64 heads of dimension 4.
 
-run_experiment(embed_dim=256, num_heads=64, batchsize=32)
+run_experiment(embed_dim=256, num_heads=64)
 
 ##############################################
 # Embedding of dimension 256 = 16 heads of dimension 16.
 
-run_experiment(embed_dim=256, num_heads=16, batchsize=32)
+run_experiment(embed_dim=256, num_heads=16)
 
 ##############################################
 # Embedding of dimension 256 = 4 heads of dimension 64.
 
-run_experiment(embed_dim=256, num_heads=4, batchsize=32)
+run_experiment(embed_dim=256, num_heads=4)
 
 
 ##############################################
@@ -190,17 +222,17 @@ run_experiment(embed_dim=256, num_heads=4, batchsize=32)
 #
 # Embedding of dimension 1,024 = 256 heads of dimension 4.
 
-run_experiment(embed_dim=1024, num_heads=256, batchsize=8)
+run_experiment(embed_dim=1024, num_heads=256)
 
 ##############################################
 # Embedding of dimension 1,024 = 32 heads of dimension 32.
 
-run_experiment(embed_dim=1024, num_heads=32, batchsize=8)
+run_experiment(embed_dim=1024, num_heads=32)
 
 ##############################################
 # Embedding of dimension 1,024 = 8 heads of dimension 128.
 
-run_experiment(embed_dim=1024, num_heads=8, batchsize=8)
+run_experiment(embed_dim=1024, num_heads=8)
 
 
 plt.show()

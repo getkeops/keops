@@ -220,6 +220,9 @@ def simple_loop(N, loops, routine, max_time, args, kwargs):
     elapsed = timer() - t_0
 
     B = kwargs.get("batchsize", 1)
+    if callable(B):
+        B = B(N)
+
     perf = elapsed / (B * loops)
     print(
         f"{B:3}x{loops:3} loops of size {si_format(N,precision=0):>5}: {B:3}x{loops:3}x {si_format(perf):>7}s"
