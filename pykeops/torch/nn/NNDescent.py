@@ -22,7 +22,7 @@ class NNDescent:
         Args:
           data ((N,d) Tensor): Dataset of N datapoints of dimensionality d.
           k (int): The number of neighbors to which each node connects in the search graph.
-          metric (string): Name of metric, either "euclidian" and "manhattan"
+          metric (string): Name of metric, either "euclidean" and "manhattan"
           initialization_method (string): The type of initialization to be used for
             the search graph. Can be "random", "random_big" or "forest".
           num_trees (int): Number of trees used in "random_big" or "forest" initializations.
@@ -45,8 +45,8 @@ class NNDescent:
             self.fit(data, verbose=verbose)
 
     def distance(self, x, y):
-        # Square of euclidian distance. Skip the root for faster computation.
-        if self.metric == "euclidian":
+        # Square of euclidean distance. Skip the root for faster computation.
+        if self.metric == "euclidean":
             return ((x - y) ** 2).sum(-1)
         elif self.metric == "manhattan":
             return ((x - y).abs()).sum(-1)
