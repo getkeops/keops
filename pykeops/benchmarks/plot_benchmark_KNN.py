@@ -62,6 +62,49 @@ from dataset_utils import generate_samples
 
 use_cuda = torch.cuda.is_available()
 
+############################################################################
+# KeOps IVF-Flat implementation
+# --------------------------------------
+#
+# KeOps IVF-Flat is an approximation method that leverages the KeOps engine. It uses the IVF-Flat approximation algorithm comprising 4 steps: (1) split the training data into clusters using k-means, (2) find the 'a' nearest clusters to each cluster, (3) find the nearest cluster to each query point, and (4) perform the nearest neighbour search within only these nearest clusters, and the 'a' nearest clusters to each of these clusters. (1) and (2) are performed during fitting, while (3) and (4) are performed during query time. Steps (3) and (4) achieve time savings during query time by reducing the amount of pair-wise distance calculations.
+
+from pykeops.torch.nn.ivf import IVF
+
+
+def KNN_KeOps_ivf_flat(K, metric="euclidean", clusters=100, a=10, **kwargs):
+
+    # Setup the K-NN estimator:
+    if metric == "angular":
+        metric = "angular_full"
+    KNN = IVF(k=K, metric=metric)  # normalise=False because dataset is normalised
+
+    def fit(x_train):
+        x_train = tensor(x_train)
+        start = timer()
+        KNN.fit(x_train, clusters=clusters, a=a)
+        elapsed = timer() - start
+
+        def f(x_test):
+            x_test = tensor(x_test)
+            start = timer()
+            indices = KNN.kneighbors(x_test)
+            elapsed = timer() - start
+            indices = indices.cpu().numpy()
+
+            return indices, elapsed
+
+        return f, elapsed
+
+    return fit
+
+
+##################################################################
+# The time savings and accuracies achieved depend on the underlying data structure, the number of clusters chosen and the 'a' parameter. The algorithm speed suffers for clusters >200. Reducing the proportion of clusters searched over (i.e. the a/clusters value) increases the algorithm speed, but lowers its accuracy. For structured data (e.g. MNIST), high accuracies >90% can be reached by just searching over 10% of clusters. However, for uniformly distributed random data, over 80% of the clusters will need to be searched over to attain >90% accuracy.
+
+# Here, we propose 2 sets of parameters that work well on real data (e.g. MNIST, GloVe):
+
+KNN_KeOps_gpu_IVFFlat_fast = partial(KNN_KeOps_ivf_flat, clusters=10, a=1)
+KNN_KeOps_gpu_IVFFlat_slow = partial(KNN_KeOps_ivf_flat, clusters=200, a=40)
 
 ##############################################
 # We then specify the values of K that we will inspect:
@@ -631,6 +674,8 @@ def run_KNN_benchmark(name, loops=[1]):
         routines = [(KNN_JAX_batch_loop, "JAX (small batches, GPU)", {})]
     else:
         routines = [
+            (KNN_KeOps_gpu_IVFFlat_fast, "IVF-Flat Keops (GPU, nprobe=1)", {}),
+            (KNN_KeOps_gpu_IVFFlat_slow, "IVF-Flat Keops (GPU, nprobe=40)", {}),
             (KNN_KeOps, "KeOps (GPU)", {}),
             (KNN_faiss_gpu_Flat, "FAISS-Flat (GPU)", {}),
             (KNN_faiss_gpu_IVFFlat_fast, "FAISS-IVF-Flat (GPU, nprobe=1)", {}),
