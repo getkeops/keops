@@ -1,5 +1,14 @@
 import torch
 import time
+from pykeops.torch import LazyTensor
+from pykeops.torch.cluster import cluster_ranges_centroids, from_matrix, sort_clusters
+
+use_cuda = torch.cuda.is_available()
+if use_cuda:
+    torch.cuda.synchronize()
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
 
 
 class NNDescent:
@@ -10,9 +19,10 @@ class NNDescent:
         metric="euclidean",
         initialization_method="forest",
         num_trees=5,
-        leaf_multiplier=10,
+        leaf_multiplier=128,
         big_leaf_depth=5,
         verbose=False,
+        LT=False,
     ):
         """Initialize the NNDescent class.
 
@@ -21,14 +31,20 @@ class NNDescent:
 
         Args:
           data ((N,d) Tensor): Dataset of N datapoints of dimensionality d.
-          k (int): The number of neighbors to which each node connects in the search graph.
+          k (int): The number of nearest neighbors which we want to find for each query point
           metric (string): Name of metric, either "euclidean" and "manhattan"
           initialization_method (string): The type of initialization to be used for
-            the search graph. Can be "random", "random_big" or "forest".
+            the search graph. Can be "random", "random_big", "forest" or "cluster".
           num_trees (int): Number of trees used in "random_big" or "forest" initializations.
-          leaf_multiplier (int): Parameter for the Tree class for tree-based initializations.
           big_leaf_depth (int): The depth at which the big leaves are taken to be used at
             the start of search.
+          verbose (boolean): Determines whether or not to print information while fitting.
+          LT (boolean): Determines if we want to use LazyTensors in cluster initialization.
+
+        Arg not used when initialization_method = "cluster":
+          leaf_multiplier (int): Parameter for the Tree class for tree-based initializations.
+          when initialization_method = "cluster", this parameter is used to adjust the number
+            of clusters to be close to the value specified in the fit function.
         """
 
         # Setting parameters
@@ -39,30 +55,54 @@ class NNDescent:
         self.leaf_multiplier = leaf_multiplier
         self.big_leaf_depth = big_leaf_depth
         self.big_leaves = None
+        self.LT = LT
 
         # If data is provided, we call the fit function.
         if data is not None:
             self.fit(data, verbose=verbose)
 
     def distance(self, x, y):
-        # Square of euclidean distance. Skip the root for faster computation.
+        # Square of euclidian distance. Skip the root for faster computation.
         if self.metric == "euclidean":
             return ((x - y) ** 2).sum(-1)
         elif self.metric == "manhattan":
             return ((x - y).abs()).sum(-1)
+        else:
+            raise ValueError("Metric not implemented!")
 
-    def fit(self, X, iter=20, verbose=False):
+    def fit(self, X, iter=20, verbose=False, clusters=32, a=10, queue=5):
         """Fits the NNDescent search graph to the data set X.
 
         Args:
           X ((N,d) Tensor): Dataset of N datapoints of dimensionality d.
+          iter (int): Maximum number of iterations for graph updates
+          verbose (boolean): Determines whether or not to print information while fitting.
+          queue (int): The number of neighbors to which each node connects in the search graph.
+
+        Used only when initialization_method = "cluster":
+          clusters (int): The min no. of clusters that we want the data to be clustered into
+          a (int): The number of clusters we want to search over using the cluster method.
+
         """
         self.data = X
+        self.queue = queue
+
+        if queue < self.k and self.init_method is not "cluster":
+            self.queue = self.k
+            print(
+                "Warning: Value of queue must be larger than or equal to k! Set queue = k."
+            )
+        elif queue > a and self.init_method is "cluster":
+            raise ValueError("Value of queue must be smaller than value of a!")
+        elif clusters < 32:
+            raise ValueError("Minimum number of clusters is 32!")
+        elif a > clusters:
+            raise ValueError("Number of clusters must be larger than or equal to a!")
 
         # A 2D tensor representing a directed graph.
         # The value a = graph[i,j] represents an edge from point x_i to x_a.
         N = X.shape[0]
-        self.graph = torch.zeros(size=[N, self.k], dtype=torch.long)
+        self.graph = torch.zeros(size=[N, self.queue], dtype=torch.long)
 
         # Initialize graph
         if self.init_method == "random":
@@ -73,22 +113,29 @@ class NNDescent:
             self._initialize_graph_forest(
                 self.data, self.num_trees, self.leaf_multiplier, self.big_leaf_depth
             )
+        elif self.init_method == "cluster":
+            # Parameters used only for cluster search
+            self.a = a
+            self.num_clusters = clusters
+            self._initialize_graph_clusters(self.data)
 
         # A set of tuples (i,j) of indices for which the distance has already been calculated.
         self.explored_edges = set()
 
-        # A 2D tensor representing the distance between point x_i and x_graph[i,j]
-        self.k_distances = torch.zeros([N, self.k])
+        if self.init_method != "cluster":
+            # A 2D tensor representing the distance between point x_i and x_graph[i,j]
+            self.k_distances = torch.zeros([N, self.queue])
 
-        # Update the graph
-        self._calculate_all_distances()
-        self._update_graph(iter=iter, verbose=verbose)
+            # Update the graph
+            self._calculate_all_distances()
+            self._update_graph(iter=iter, verbose=verbose)
 
-    def _update_graph(self, iter=25, verbose=False):
+    def _update_graph(self, iter, verbose=False):
         """Updates the graph using algorithm: https://pynndescent.readthedocs.io/en/latest/how_pynndescent_works.html
 
         Args:
           iter (int): Number of iterations to use when updating search graph.
+          verbose (boolean): Printing information about iterations while searching.
         """
         # [STEP 1: Start with random graph.] Iterate
         start = time.time()
@@ -110,7 +157,7 @@ class NNDescent:
                 # Distances of current neighbors
                 dist_current_neighbors = self.k_distances[i]
 
-                # [STEP 3: Measure distance from the node to the neighbors of its neighbors]
+                # [STEP 3: Measure distance from the node to the neighbors of its neighbors]
                 # Find neighbors of neighbors
                 potential_neighbors = {
                     a.item()
@@ -135,10 +182,10 @@ class NNDescent:
 
                 # [STEP 4: If any are closer, then update the graph accordingly, and only keep the k closest]
                 dist_sorted, idx = torch.sort(cat_dist)
-                if torch.max(idx[: self.k]) >= self.k:
+                if torch.max(idx[: self.queue]) >= self.queue:
                     has_changed = True
-                    self.graph[i] = cat_idx[idx[: self.k]]
-                    self.k_distances[i] = dist_sorted[: self.k]
+                    self.graph[i] = cat_idx[idx[: self.queue]]
+                    self.k_distances[i] = dist_sorted[: self.queue]
 
             # [STEP 5: If any changes were made, repeat iteration, otherwise stop]
             if not has_changed:
@@ -152,9 +199,15 @@ class NNDescent:
         Our code is largely based on this algorithm:
           https://pynndescent.readthedocs.io/en/latest/how_pynndescent_works.html#Searching-using-a-nearest-neighbor-graph
 
+        If init_method = 'clusters', we first cluster the data. Each node in the graph then represents a cluster.
+        We then use the KeOps engine to perform the final nearest neighbours search over the nearest clusters to each query point
+
         Args:
           X ((N,d) Tensor): A query set for which to find k neighbors.
+          K (int): How many neighbors to search for. Must be <=self.k for non-cluster methods. Default: self.k
           max_num_steps (int): The maximum number of steps to take during search.
+          tree_init (boolean): Determine whether or not to use big leaves from projection trees as the starting point of search.
+          verbose (boolean): Printing information about iterations while searching.
 
         Returns:
           The indices of the k nearest neighbors in the fitted data.
@@ -162,7 +215,7 @@ class NNDescent:
 
         # N datapoints of dimension d
         N, d = X.shape
-        k = self.k
+        k = self.queue
 
         # Boolean mask to keep track of those points whose search is still ongoing
         is_active = torch.ones(N) == 1
@@ -176,6 +229,10 @@ class NNDescent:
                 high=len(self.data), size=[N, k + 1], dtype=torch.long
             )
 
+        if self.init_method == "cluster":
+            is_active = is_active.to(device)
+            candidate_idx = candidate_idx.to(device)
+
         # Sort the candidates by distance from X
         distances = self.distance(self.data[candidate_idx], X.unsqueeze(1))
         # distances = ((self.data[candidate_idx] - X.unsqueeze(1))**2).sum(-1)
@@ -185,8 +242,11 @@ class NNDescent:
         candidate_idx = candidate_idx[:, : (k + 1)]
 
         # Track the nodes we have explored already, in N x num_explored tensor
-        num_explored = self.k * 2
+        num_explored = k * 2
         explored = torch.full(size=[N, num_explored], fill_value=-1)
+
+        if self.init_method == "cluster":
+            explored = explored.to(device)
 
         start = time.time()
         # The initialization of candidates and explored set is done. Now we can search.
@@ -237,9 +297,15 @@ class NNDescent:
 
             # We remove repeated indices from consideration by adding float('inf') to them.
             expanded_idx = torch.sort(expanded_idx)[0]
+            temp = torch.full((len(expanded_idx), 1), -1)
+
+            if self.init_method == "cluster":
+                expanded_idx = expanded_idx.to(device)
+                temp = temp.to(device)
+
             shift = torch.cat(
                 (
-                    torch.full((len(expanded_idx), 1), -1),
+                    temp,
                     torch.sort(expanded_idx, dim=1)[0][:, :-1],
                 ),
                 dim=1,
@@ -256,7 +322,7 @@ class NNDescent:
             expanded_idx = torch.gather(expanded_idx, dim=1, index=idx)
 
             # [5. Truncate to k+1 best]
-            candidate_idx[is_active] = expanded_idx[:, : (self.k + 1)]
+            candidate_idx[is_active] = expanded_idx[:, : (k + 1)]
 
             # [6. Return to step 2. If we have already tried all candidates in pool, we stop in the if not unexplored]
             count += 1
@@ -267,9 +333,14 @@ class NNDescent:
                 "Graph search finished after",
                 count,
                 "steps. Finished for:",
-                1 - torch.mean(1.0 * is_active).item(),
+                (1 - torch.mean(1.0 * is_active).item()) * 100,
+                "%.",
             )
-        return candidate_idx[:, :-1]
+
+        if self.init_method == "cluster":
+            return self.final_brute_force(candidate_idx[:, : self.k], X)
+        else:
+            return candidate_idx[:, : self.k]
 
     def _calculate_all_distances(self):
         """Updates the distances (self.k_distances) of the edges found in self.graph."""
@@ -285,7 +356,7 @@ class NNDescent:
             self.explored_edges.update(neighbor_indices)
 
     def _initialize_graph_randomly(self):
-        """Initializes self.graph with random values such that each point has k distinct neighbors"""
+        """Initializes self.graph with random values such that each point has 'queue' distinct neighbors"""
         N, k = self.graph.shape
         # Initialize graph randomly, removing self-loops
         self.graph = torch.randint(high=N - 1, size=[N, k], dtype=torch.long)
@@ -321,12 +392,12 @@ class NNDescent:
             temp_points = data[temp_row, :]  # pick out elements from dataset
             distances = self.distance(temp_points, data[i])  # Euclidean distances
             indices = distances.topk(
-                k=self.k, largest=False
+                k=self.queue, largest=False
             ).indices  # find indices of KNN
             self.graph[i] = temp_row[indices]  # assign KNN to graph
 
     def _initialize_graph_forest(self, data, numtrees, leaf_multiplier, big_leaf_depth):
-        """Initializes self.graph with a forest of random trees, such that each point has k distinct neighbors"""
+        """Initializes self.graph with a forest of random trees, such that each point has 'queue' distinct neighbors"""
         N, k = self.graph.shape
         dim = data.shape[1]
 
@@ -358,7 +429,7 @@ class NNDescent:
             temp_graph = torch.cat((temp_graph, tree_graph), 1)
 
             # Add the first tree's big_leaves to the NNDescent's big_leaves
-            if j == 0:
+            if j == 0 and t.big_leaves:
                 self.big_leaves = torch.LongTensor(t.big_leaves)
 
         warning_count = 0  # number of indices for which some neighbours are random
@@ -370,9 +441,9 @@ class NNDescent:
             temp_row = temp_row[temp_row != i]  # remove self
 
             temp_points = data[temp_row, :]  # pick out elements from dataset
-            d = (
-                (data[i].reshape(1, dim).unsqueeze(1) - temp_points.unsqueeze(0)) ** 2
-            ).sum(-1)
+            d = self.distance(
+                data[i].reshape(1, dim).unsqueeze(1), temp_points.unsqueeze(0)
+            )
             distances, indices = torch.sort(d, dim=1)
             indices = indices.flatten()[:k]
 
@@ -403,8 +474,112 @@ class NNDescent:
         if warning_count:
             print("WARNING!", warning_count, " INDICES ARE RANDOM!")
 
+    def _initialize_graph_clusters(self, data):
+        """Initializes self.graph on cluster centroids, such that each cluster has 'a' distinct neighbors"""
+        N, dim = data.shape
+        k = self.k
+        a = self.a
+        LT = self.LT
+        leaf_multiplier = (
+            N / self.num_clusters / k
+        )  # to get number of clusters ~ num_clusters
+        self.clusters = (
+            torch.ones(
+                N,
+            )
+            * -1
+        )
 
-class Tree:
+        data = data.to(device)
+
+        # Create trees, obtain leaves
+        t = Tree(
+            data, k, self.big_leaf_depth, leaf_multiplier, LT
+        )  # TreeClusters(data, k, leaf_multiplier, LT)
+
+        self.leaves = len(t.leaves)
+
+        # Assign each point to a cluster, 1 cluster per tree in forest
+        for i, leaf in enumerate(t.leaves):
+            self.clusters[leaf] = i
+        self.data_orig = self.data.clone()  # ADDED BY STEFAN
+        self.data = t.centroids.clone()  # CHANGED TO self.centroids to self.data
+
+        # Find nearest centroids
+        x_LT = LazyTensor(self.data.unsqueeze(1).to(device))
+        y_LT = LazyTensor(self.data.unsqueeze(0).to(device))
+        d = self.distance(x_LT, y_LT)
+        indices = d.argKmin(K=a + 1, dim=1).long()
+        self.centroids_neighbours = indices[:, 1:].long()
+
+        self.num_clusters = self.centroids_neighbours.shape[0]
+        self.graph = self.centroids_neighbours
+
+        # Assign big_leaves by searching for the correct cluster
+        self.big_leaves = torch.LongTensor(t.big_leaves)
+        for i, index in enumerate(self.big_leaves):
+            self.big_leaves[i] = self.clusters[index]
+        return
+
+    def final_brute_force(self, nearest_clusters, query_pts, verbose=False):
+        """ Final brute force search over clusters in cluster method"""
+        if verbose:
+            print("Starting brute force search over clusters.")
+        return self._final_brute_force(nearest_clusters, query_pts)
+
+    def _final_brute_force(self, nearest_clusters, query_pts):
+        """ Final brute force search over clusters in cluster method"""
+        if use_cuda:
+            torch.cuda.synchronize()
+
+        k = self.k
+
+        x = self.data_orig.to(device)
+        x_labels = self.clusters.long()
+        y = query_pts.to(device)
+        y_labels = nearest_clusters[:, 0]
+
+        x = x.contiguous()
+        y = y.contiguous()
+        x_labels = x_labels.to(device)
+        y_labels = y_labels.to(device)
+
+        clusters, a = self.graph.shape
+        r = torch.arange(clusters).repeat(a, 1).T.reshape(-1).long()
+        keep = torch.zeros([clusters, clusters], dtype=torch.bool).to(device)
+        keep[r, self.graph.flatten()] = True
+        keep += torch.eye(clusters).bool().to(device)
+
+        x_ranges, x_centroids, _ = cluster_ranges_centroids(x, x_labels)
+        y_ranges, y_centroids, _ = cluster_ranges_centroids(y, y_labels)
+
+        x, x_labels = self.__sort_clusters(x, x_labels, store_x=True)
+        y, y_labels = self.__sort_clusters(y, y_labels, store_x=False)
+
+        x_LT = LazyTensor(x.unsqueeze(0).to(device).contiguous())
+        y_LT = LazyTensor(y.unsqueeze(1).to(device).contiguous())
+        D_ij = self.distance(y_LT, x_LT)
+
+        x_ranges = x_ranges.to(device)
+        y_ranges = y_ranges.to(device)
+        ranges_ij = from_matrix(y_ranges, x_ranges, keep)
+        D_ij.ranges = ranges_ij
+        nn = D_ij.argKmin(K=k, axis=1)
+        return self.__unsort(nn)
+
+    def __sort_clusters(self, x, lab, store_x=True):
+        lab, perm = torch.sort(lab.view(-1))
+        if store_x:
+            self.__x_perm = perm
+        else:
+            self.__y_perm = perm
+        return x[perm], lab
+
+    def __unsort(self, nn):
+        return torch.index_select(self.__x_perm[nn], 0, self.__y_perm.argsort())
+
+
+class Tree:  # NN clusters tree
     """
     Random projection tree class that splits the data evenly per split
     Each split is performed by calculating the projection distance of each datapoint to a random unit vector
@@ -412,39 +587,57 @@ class Tree:
     The indices of the datapoints are stored in tree.leaves, as a nested list
     """
 
-    def __init__(self, x, k=5, big_leaf_depth=5):
-        self.min_size = 2 * k - 1
+    def __init__(self, x, k=5, big_leaf_depth=5, leaf_multiplier=128, LT=False):
+        self.min_size = k * leaf_multiplier
         self.leaves = []
         self.sizes = []
+        self.centroids = torch.tensor(()).to(device)
         self.big_leaf_depth = big_leaf_depth
         self.big_leaves = []  # leaves at depth = 5
         indices = torch.arange(x.shape[0])
-        self.tree = self.make_tree(x, indices, depth=0)
 
-    def make_tree(self, x, indices, depth):
-        if depth == self.big_leaf_depth:  # add to big_leaves if depth=5
+        self.dim = x.shape[1]
+        self.data = x.to(device)
+        self.LT = LT  # Boolean to choose LT or torch initialization
+
+        self.tree = self.make_tree(indices, depth=0)
+        self.centroids = self.centroids.reshape(-1, x.shape[1])
+
+    def make_tree(self, indices, depth):
+        if depth == 5:  # add to big_leaves if depth=5
             self.big_leaves.append(int(indices[0]))
-        if x.shape[0] > self.min_size:
-            v = self.choose_rule(x)
-            distances = torch.tensordot(
-                x, v, dims=1
-            )  # create list of projection distances
+        if indices.shape[0] > self.min_size:
+            v = self.choose_rule().to(device)
+
+            if self.LT:
+                distances = self.dot_product(
+                    self.data[indices], v
+                )  # create list of projection distances
+            else:
+                distances = torch.tensordot(
+                    self.data[indices], v, dims=1
+                )  # create list of projection distances
+
             median = torch.median(distances)
             left_bool = (
                 distances <= median
             )  # create boolean array where entries are true if distance <= median
-            right_bool = ~left_bool  # inverse of left_bool
-            left_indices = indices[left_bool]
-            right_indices = indices[right_bool]
-            self.make_tree(x[left_bool, :], left_indices, depth + 1)
-            self.make_tree(x[right_bool, :], right_indices, depth + 1)
-        elif x.shape[0] != 0:
+            self.make_tree(indices[left_bool], depth + 1)
+            self.make_tree(indices[~left_bool], depth + 1)
+        elif indices.shape[0] != 0:
             self.leaves.append(indices.tolist())
-            self.sizes.append(x.shape[0])
+            self.sizes.append(indices.shape[0])
+            centroid = self.data[indices].mean(dim=0)  # get centroid position
+            self.centroids = torch.cat((self.centroids, centroid))
         return
 
-    def choose_rule(self, x):
-        dim = x.shape[1]
-        v = torch.rand(dim)  # create random vector
+    def choose_rule(self):
+        v = torch.rand(self.dim)  # create random vector
         v /= torch.norm(v)  # normalize to unit vector
         return v
+
+    def dot_product(self, x, v):
+        # Calculate dot product between matrix x and vector v using LazyTensors
+        v_LT = LazyTensor(v.view(1, 1, -1))
+        x_LT = LazyTensor(x.unsqueeze(0))
+        return (v_LT | x_LT).sum_reduction(axis=0).flatten()
