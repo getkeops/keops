@@ -37,6 +37,9 @@ class torchtools:
     arraytype = torch.Tensor
     float_types = [float]
 
+    arraytype = torch.Tensor
+    float_types = [float]
+
     # GenredLowlevel = GenredLowlevel
 
     @staticmethod
@@ -84,11 +87,38 @@ class torchtools:
         return x.view(s)
 
     @staticmethod
+    def is_tensor(x):
+        return isinstance(x, torch.Tensor)
+
+    @staticmethod
     def dtype(x):
         if hasattr(x, "dtype"):
             return x.dtype
         else:
             return type(x)
+
+    @staticmethod
+    def detect_complex(x):
+        if type(x) == list:
+            return any(type(v) == complex for v in x)
+        elif type(x) == torch.Tensor:
+            return torch.is_complex(x)
+        else:
+            return type(x) == complex
+
+    @staticmethod
+    def view_as_complex(x):
+        sh = list(x.shape)
+        sh[-1] //= 2
+        sh += [2]
+        x = x.view(sh)
+        return torch.view_as_complex(x)
+
+    @staticmethod
+    def view_as_real(x):
+        sh = list(x.shape)
+        sh[-1] *= 2
+        return torch.view_as_real(x).view(sh)
 
     @staticmethod
     def dtypename(dtype):

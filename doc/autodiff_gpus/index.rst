@@ -12,8 +12,8 @@ allow readers to understand the
 capabilities and limitations of these (remarkable) tools.
 
 Note that this section is extracted
-from the Chapter 2.1 of Jean Feydy's PhD thesis,
-to be available soon.
+from the Chapter 2.1 of Jean Feydy's 
+`PhD thesis <https://www.jeanfeydy.com/geometric_data_analysis.pdf>`_.
 
 
 .. toctree::

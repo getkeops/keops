@@ -81,8 +81,14 @@ Elementary functions:
 ``Inv(f)``                element-wise inverse ``1 ./ f``
 ``Exp(f)``                element-wise exponential function
 ``Log(f)``                element-wise natural logarithm
+``XLogX(f)``              computes ``f * log(f)`` element-wise (with value ``0`` at ``0``) 
 ``Sin(f)``                element-wise sine function
+``SinXDivX(f)``           function ``sin(f)/f`` element-wise (with value ``1`` at ``0``)
+``Asin(f)``               element-wise arc-sine function
 ``Cos(f)``                element-wise cosine function
+``Acos(f)``               element-wise arc-cosine function
+``Atan(f)``               element-wise arc-tangent function
+``Atan2(f,g)``            element-wise 2-argument arc-tangent function
 ``Pow(f, P)``             ``P``-th power of ``f`` (element-wise), where ``P`` is a fixed integer
 ``Powf(f, g)``            power operation, alias for ``Exp(g*Log(f))``
 ``Square(f)``             element-wise square, faster than ``Pow(f,2)``
@@ -92,6 +98,11 @@ Elementary functions:
 ``Sign(f)``               element-wise sign function (``-1`` if ``f<0``, ``0`` if ``f=0``, ``1`` if ``f>0``)
 ``Step(f)``               element-wise step function (``0`` if ``f<0``, ``1`` if ``f>=0``)
 ``ReLU(f)``               element-wise ReLU function (``0`` if ``f<0``, ``f`` if ``f>=0``)
+``Clamp(f,a,b)``          element-wise Clamp function (``a`` if ``f<a``, ``f`` if ``a<=f<=b``, ``b`` if ``b<f``)
+``ClampInt(f,a,b)``       element-wise Clamp function, with a and b fixed integers
+``IfElse(f,g,h)``         element-wise IfElse function (``g`` if ``f>=0``, ``h`` if ``f<0``)
+``Mod(f,m,off)``          element-wise Modulo function, with offset (computes ``f - m * floor((f - off)/m)``)
+``Round(f,d)``            element-wise Round function, with d decimal rounding
 ======================   =========================================================================================================
 
 
@@ -101,7 +112,7 @@ Simple vector operations:
 ``SqNorm2(f)``               squared L2 norm, same as ``(f|f)``
 ``Norm2(f)``                 L2 norm, same as ``Sqrt((f|f))``
 ``Normalize(f)``             normalize vector, same as ``Rsqrt(SqNorm2(f)) * f``
-``SqDist(f, g)``              squared L2 distance, same as ``SqNorm2(f - g)``
+``SqDist(f, g)``             squared L2 distance, same as ``SqNorm2(f - g)``
 =========================   =============================================================================================================
 
 Generic squared Euclidean norms, with support for scalar, diagonal and full (symmetric)
@@ -116,6 +127,25 @@ matrices. If ``f`` is a vector of size `N`, depending on the size of
 ``WeightedSqNorm(s, f)``         generic squared euclidean norm
 ``WeightedSqDist(s, f, g)``      generic squared distance, same as ``WeightedSqNorm(s, f-g)``
 ============================   =============================================================================================================
+
+Operations involving complex numbers:
+
+==========================  =========================================================================================================
+``ComplexReal(f)``                  Real part of complex (vectorized)
+``ComplexImag(f)``                  Imaginary part of complex (vectorized)
+``Real2Complex(f)``                 convert real vector to complex vector with zero imaginary part (F+0*i)
+``Imag2Complex(f)``                 convert real vector to complex vector with zero real part (0+i*F)
+``Conj(f)``                         Complex conjugate (vectorized)
+``ComplexAbs(f)``                   Absolute value or modulus of complex (vectorized)
+``ComplexSquareAbs(f)``             Square of modulus of complex (vectorized)
+``ComplexAngle(f)``                 Angle of complex (vectorized)
+``ComplexSum(f)``                   Sum of complex vector
+``ComplexSumT(f,dim)``              Adjoint operation of ComplexSum - replicates f (complex scalar) dim times
+``ComplexMult(f,g)``                Complex multiplication of f and g (vectorized)
+``ComplexScal(f,g)``                Multiplication of f (complex scalar) with g (complex vector)
+``ComplexRealScal(f,g)``            Multiplication of f (real scalar) with g (complex vector)
+``ComplexDivide(f,g)``              Complex division of f and g (vectorized)
+==========================  =========================================================================================================
 
 Constants and padding/concatenation operations:
 

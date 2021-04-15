@@ -138,7 +138,7 @@ endif ()
 if (APPLE)
     set_target_properties(${template_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,@loader_path/.")
 else ()
-    set_target_properties(${template_name} PROPERTIES LINK_FLAGS "-Wl,-rpath,$ORIGIN")
+    set_target_properties(${template_name} PROPERTIES LINK_FLAGS "-fopenmp -Wl,-rpath,$ORIGIN")
 endif ()
 
 # Write a log file to decypher keops dllname

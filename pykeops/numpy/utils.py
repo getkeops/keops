@@ -83,6 +83,29 @@ class numpytools:
         return x.dtype.name
 
     @staticmethod
+    def detect_complex(x):
+        if type(x) == list:
+            return any(type(v) == complex for v in x)
+        elif type(x) == np.ndarray:
+            return np.iscomplexobj(x)
+        else:
+            return type(x) == complex
+
+    @staticmethod
+    def view_as_complex(x):
+        if x.dtype == "float32":
+            return x.view("complex64")
+        elif x.dtype == "float64":
+            return x.view("complex128")
+
+    @staticmethod
+    def view_as_real(x):
+        if x.dtype == "complex64":
+            return x.view("float32")
+        elif x.dtype == "complex128":
+            return x.view("float64")
+
+    @staticmethod
     def dtypename(dtype):
         return dtype
 

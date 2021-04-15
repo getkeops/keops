@@ -14,7 +14,7 @@
 #' @author 
 #' - [Benjamin Charlier](http://imag.umontpellier.fr/~charlier/)
 #' - [Ghislain Durif](https://gdurif.perso.math.cnrs.fr/)
-#' - [Jean Feydy](https://www.math.ens.fr/~feydy/)
+#' - [Jean Feydy](https://www.jeanfeydy.com)
 #' - [Joan Alexis Glaunès](http://helios.mi.parisdescartes.fr/~glaunes/)
 #' - François-David Collin
 #' 
@@ -32,9 +32,13 @@
 #' (`browseVignettes("rkeops")`) and visit 
 #' https://www.kernel-operations.io/.
 #' 
+#' @references
+#' \insertRef{JMLR:v22:20-275}{rkeops}
+#' 
 #' @import Rcpp
 #' @importFrom Rcpp sourceCpp
 #' @importFrom utils head packageVersion
+#' @importFrom Rdpack reprompt
 #' @useDynLib rkeops, .registration = TRUE
 #' 
 NULL

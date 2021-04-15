@@ -674,9 +674,9 @@ def run_KNN_benchmark(name, loops=[1]):
         routines = [(KNN_JAX_batch_loop, "JAX (small batches, GPU)", {})]
     else:
         routines = [
-            (KNN_KeOps_gpu_IVFFlat_fast, "IVF-Flat Keops (GPU, nprobe=1)", {}),
-            (KNN_KeOps_gpu_IVFFlat_slow, "IVF-Flat Keops (GPU, nprobe=40)", {}),
-            (KNN_KeOps, "KeOps (GPU)", {}),
+            (KNN_KeOps, "KeOps-Flat (GPU)", {}),
+            (KNN_KeOps_gpu_IVFFlat_fast, "KeOps-IVF-Flat (GPU, nprobe=1)", {}),
+            (KNN_KeOps_gpu_IVFFlat_slow, "KeOps-IVF-Flat (GPU, nprobe=40)", {}),
             (KNN_faiss_gpu_Flat, "FAISS-Flat (GPU)", {}),
             (KNN_faiss_gpu_IVFFlat_fast, "FAISS-IVF-Flat (GPU, nprobe=1)", {}),
             (KNN_faiss_gpu_IVFFlat_slow, "FAISS-IVF-Flat (GPU, nprobe=40)", {}),

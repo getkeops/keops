@@ -27,11 +27,14 @@ For more information, please read the vignettes
 (\code{browseVignettes("rkeops")}) and visit
 https://www.kernel-operations.io/.
 }
+\references{
+\insertRef{JMLR:v22:20-275}{rkeops}
+}
 \author{
 \itemize{
 \item \href{http://imag.umontpellier.fr/~charlier/}{Benjamin Charlier}
 \item \href{https://gdurif.perso.math.cnrs.fr/}{Ghislain Durif}
-\item \href{https://www.math.ens.fr/~feydy/}{Jean Feydy}
+\item \href{https://www.jeanfeydy.com}{Jean Feydy}
 \item \href{http://helios.mi.parisdescartes.fr/~glaunes/}{Joan Alexis Glaunès}
 \item François-David Collin
 }
