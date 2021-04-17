@@ -40,6 +40,9 @@ def multi_head_attention_forward(
     v_proj_weight: Optional[Tensor] = None,
     static_k: Optional[Tensor] = None,
     static_v: Optional[Tensor] = None,
+    lazy: bool = True,
+    landmarks: int = None,
+    landmarks_selection: str = "random",
 ) -> Tuple[Tensor, Optional[Tensor]]:
     r"""
     Args:
@@ -88,6 +91,17 @@ def multi_head_attention_forward(
           N is the batch size, E is the embedding dimension. E/num_heads is the head dimension.
         - static_v: :math:`(N*num_heads, S, E/num_heads)`, where S is the source sequence length,
           N is the batch size, E is the embedding dimension. E/num_heads is the head dimension.
+        - lazy: bool, defaults to True.
+          If True, use KeOps LazyTensors instead of the original dense PyTorch tensors.
+        - landmarks: int, defaults to None.
+          If None, use the original bruteforce self-attention.
+          Otherwise, use the Nystroem method with a set number of landmarks (aka. inducing points).
+          See "Nyströmformer: A Nyström-Based Algorithm for Approximating Self-Attention",
+          Xiong et al. (2021) for reference.
+        - landmarks_selection: str, defaults to "random".
+          Method to select the Nyström landmarks:
+          either "random" or "local average".
+
         Outputs:
         - attn_output: :math:`(L, N, E)` where L is the target sequence length, N is the batch size,
           E is the embedding dimension.
@@ -303,70 +317,195 @@ def multi_head_attention_forward(
     # - E denotes the full embedding dimension
     # - H or num_heads denotes the number of attention heads
     # - D = E / H denotes the effective "head" dimension of each query/key vector.
+    # - C denotes the number of Nystroem landmarks (= inducing points).
     #
     # At this point:
     # q is (N*H, L, D)
     # k is (N*H, S, D)
     # v is (N*H, S, D)
 
-    # Compute the attention scores -----------------------------------------------------
-    if False:  # Original PyTorch code
-        attn_output_weights = torch.bmm(q, k.transpose(1, 2))
-        assert list(attn_output_weights.size()) == [bsz * num_heads, tgt_len, src_len]
+    # Shall we use the Nystroem method? ================================================
+    nystroem = landmarks is not None
 
-    else:
-        q_i = LazyTensor(q[:, :, None, :].contiguous())  # (N*H, L, 1, D)
-        k_j = LazyTensor(k[:, None, :, :].contiguous())  # (N*H, 1, S, D)
-        v_j = LazyTensor(v[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+    if nystroem:
+        # 1. Select the landmarks for the queries and keys -----------------------------
+        if landmarks_selection == "random":
+            # Draw "landmarks" (= "C") indices without replacements
+            # in [0, tgt_len-1] and [0, src_len-1].
+            id_q = torch.ones(tgt_len).multinomial(landmarks, replacement=False)
+            id_k = torch.ones(src_len).multinomial(landmarks, replacement=False)
+            q_landmarks = q[:, id_q, :]  # (N*H, C, D)
+            k_landmarks = k[:, id_k, :]  # (N*H, C, D)
 
-        attn_output_weights = q_i | k_j  # (N*H, L, S)
-        assert list(attn_output_weights.shape) == [bsz * num_heads, tgt_len, src_len]
+        elif landmarks_selection == "local average":
+            # This method assumes that the key and query points
+            # can be grouped in meaningful contiguous blocks along the
+            # "sequence" dimension.
+            # This may be sensible for language processing (where tokens
+            # are usually words in a sentence), but is unreasonable
+            # for e.g. point cloud processing (with token=points being ordered
+            # at random).
+            q_landmarks = q.reshape(
+                bsz * num_heads, landmarks, -1, head_dim
+            )  # (N*H, C, L/C, D)
+            q_landmarks = q.mean(2)  # (N*H, C, D)
+            k_landmarks = k.reshape(
+                bsz * num_heads, landmarks, -1, head_dim
+            )  # (N*H, C, S/C, D)
+            k_landmarks = k.mean(2)  # (N*H, C, D)
 
-    # Mask on the attention matrix: not supported yet ----------------------------------
-    if attn_mask is not None:
-        raise NotImplementedError(
-            "KeOps attention layers do not support attention masks."
-        )
-
-        if attn_mask.dtype == torch.bool:
-            attn_output_weights.masked_fill_(attn_mask, float("-inf"))
         else:
-            attn_output_weights += attn_mask
+            raise ValueError(
+                f"landmarks_selection method is '{landmarks_selection}', "
+                + "but should be either 'random' or 'local average'."
+            )
 
-    # Mask on the keys: not supported yet ----------------------------------------------
-    if key_padding_mask is not None:
-        raise NotImplementedError(
-            "KeOps attention layers do not support key padding masks."
-        )
+        # 2. Compute the Nystroem correction matrix ------------------------------------
+        # 2.a. Compute the Attention matrix for the landmarks:
+        A = q_landmarks @ k_landmarks.transpose(
+            1, 2
+        )  # (N*H, C, D) @ (N*H, D, C) = (N*H, C, C)
+        assert list(A.size()) == [bsz * num_heads, landmarks, landmarks]
+        A = softmax(A, dim=-1)  # (N*H, C, C) with rows that sum up to 1.
 
-        attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, src_len)
-        attn_output_weights = attn_output_weights.masked_fill(
-            key_padding_mask.unsqueeze(1).unsqueeze(2),
-            float("-inf"),
-        )
-        attn_output_weights = attn_output_weights.view(
-            bsz * num_heads, tgt_len, src_len
-        )
+        # 2.b. Compute the pseudo-inverse of A_s using the iterative method of
+        #      "A New Iterative Method for Finding Approximate Inverses of Complex Matrices",
+        #      Razavi et al. (2014).
+        I = torch.eye(landmarks, device=A.device)  # (C, C)
 
-    # Perform the normalized matrix-vector product -------------------------------------
-    if False:  # Original PyTorch code
-        attn_output_weights = softmax(attn_output_weights, dim=-1)
-        attn_output_weights = dropout(
-            attn_output_weights, p=dropout_p, training=training
-        )
+        A_norms = torch.max(torch.sum(A, dim=-2), dim=-1).values  # (N*H,)
+        Z = 1 / A_norms[:, None, None] * A.transpose(1, 2)  # (N*H, C, C)
 
-        attn_output = torch.bmm(attn_output_weights, v)
-        assert list(attn_output.size()) == [bsz * num_heads, tgt_len, head_dim]
+        for _ in range(6):  # The Nyström-former paper advises to use 6 iterations
+            AZ = A @ Z  # (N*H, C, C)
+            Z = 0.25 * Z @ (13 * I - AZ @ (15 * I - AZ @ (7 * I - AZ)))
 
-    else:
-        if dropout_p > 0.0:
-            raise NotImplementedError("KeOps attentions layers do not support dropout.")
+        # --> Z is now a (N*H, C, C) batch of (C, C) matrices that
+        #     are close to the pseudoinverss of A.
 
-        # (N*H, L, S) @ (N*H, S, D) = (N*H, L, D)
-        attn_output = attn_output_weights.sumsoftmaxweight(v_j, dim=2)
-        assert list(attn_output.shape) == [bsz * num_heads, tgt_len, head_dim]
+        # 3. Nyström approximate matrix-matrix product ---------------------------------
+        if attn_mask is not None:
+            raise NotImplementedError(
+                "KeOps attention layers do not support attention masks."
+            )
+        if key_padding_mask is not None:
+            raise NotImplementedError(
+                "KeOps attention layers do not support key padding masks."
+            )
 
-    # Final post-processing ------------------------------------------------------------
+        if not lazy:  # Original PyTorch code.
+            # See https://github.com/mlpen/Nystromformer/blob/main/code/attention_nystrom.py
+            # for the reference implementation.
+
+            # (N*H, L, D) @ (N*H, D, C) = (N*H, L, C), with rows that sum up to 1:
+            A_q_kl = softmax(q @ k_landmarks.transpose(1, 2), dim=-1)
+
+            A_ql_kl_inv = Z  # see above: (N*H, C, C).
+
+            # (N*H, C, D) @ (N*H, D, S) = (N*H, C, S), with rows that sum up to 1:
+            A_ql_k = softmax(q_landmarks @ k.transpose(1, 2), dim=-1)
+
+            # (N*H, L, C) @ (N*H, C, C) @ (N*H, C, S) @ (N*H, S, D) = (N*H, L, D)
+            attn_output = (A_q_kl @ A_ql_kl_inv) @ (A_ql_k @ v)
+
+        else:  # KeOps implementation
+
+            # 3.a: "vv = A_ql_k @ v"  --------------------------------------------------
+            ql_i = LazyTensor(q_landmarks[:, :, None, :].contiguous())  # (N*H, C, 1, D)
+            k_j = LazyTensor(k[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+            v_j = LazyTensor(v[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+
+            A_qlk_ij = ql_i | k_j  # (N*H, C, S)
+            assert list(A_qlk_ij.shape) == [bsz * num_heads, landmarks, src_len]
+
+            # (N*H, C, S) @ (N*H, S, D) = (N*H, C, D)
+            vv = A_qlk_ij.sumsoftmaxweight(v_j, dim=2)
+
+            # 3.b: "vvv = A_ql_kl_inv @ vv" --------------------------------------------
+            vvv = Z @ vv  # (N*H, C, C) @ (N*H, C, D) = (N*H, C, D)
+
+            # 3.d: "attn_output = A_q_kl @ vvv" ----------------------------------------
+            q_i = LazyTensor(q[:, :, None, :].contiguous())  # (N*H, L, 1, D)
+            kl_j = LazyTensor(k_landmarks[:, None, :, :].contiguous())  # (N*H, 1, C, D)
+            vvv_j = LazyTensor(vvv[:, None, :, :].contiguous())  # (N*H, 1, C, D)
+
+            A_qkl_ij = q_i | kl_j  # (N*H, L, C)
+            assert list(A_qkl_ij.shape) == [bsz * num_heads, tgt_len, landmarks]
+
+            # (N*H, L, C) @ (N*H, C, D) = (N*H, L, D)
+            attn_output = A_qkl_ij.sumsoftmaxweight(vvv_j, dim=2)
+
+    else:  # No Nystroem: vanilla attention ============================================
+        # Compute the attention scores -----------------------------------------------------
+        if not lazy:  # Original PyTorch code
+            attn_output_weights = torch.bmm(q, k.transpose(1, 2))
+            assert list(attn_output_weights.size()) == [
+                bsz * num_heads,
+                tgt_len,
+                src_len,
+            ]
+
+        else:
+            q_i = LazyTensor(q[:, :, None, :].contiguous())  # (N*H, L, 1, D)
+            k_j = LazyTensor(k[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+            v_j = LazyTensor(v[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+
+            attn_output_weights = q_i | k_j  # (N*H, L, S)
+            assert list(attn_output_weights.shape) == [
+                bsz * num_heads,
+                tgt_len,
+                src_len,
+            ]
+
+        # Mask on the attention matrix: not supported yet ----------------------------------
+        if attn_mask is not None:
+            raise NotImplementedError(
+                "KeOps attention layers do not support attention masks."
+            )
+
+            if attn_mask.dtype == torch.bool:
+                attn_output_weights.masked_fill_(attn_mask, float("-inf"))
+            else:
+                attn_output_weights += attn_mask
+
+        # Mask on the keys: not supported yet ----------------------------------------------
+        if key_padding_mask is not None:
+            raise NotImplementedError(
+                "KeOps attention layers do not support key padding masks."
+            )
+
+            attn_output_weights = attn_output_weights.view(
+                bsz, num_heads, tgt_len, src_len
+            )
+            attn_output_weights = attn_output_weights.masked_fill(
+                key_padding_mask.unsqueeze(1).unsqueeze(2),
+                float("-inf"),
+            )
+            attn_output_weights = attn_output_weights.view(
+                bsz * num_heads, tgt_len, src_len
+            )
+
+        # Perform the normalized matrix-vector product -------------------------------------
+        if not lazy:  # Original PyTorch code
+            attn_output_weights = softmax(attn_output_weights, dim=-1)
+            attn_output_weights = dropout(
+                attn_output_weights, p=dropout_p, training=training
+            )
+
+            attn_output = torch.bmm(attn_output_weights, v)
+
+        else:
+            if dropout_p > 0.0:
+                raise NotImplementedError(
+                    "KeOps attentions layers do not support dropout."
+                )
+
+            # (N*H, L, S) @ (N*H, S, D) = (N*H, L, D)
+            attn_output = attn_output_weights.sumsoftmaxweight(v_j, dim=2)
+
+    assert list(attn_output.shape) == [bsz * num_heads, tgt_len, head_dim]
+
+    # Final post-processing ============================================================
     attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, embed_dim)
     attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
 
@@ -390,8 +529,18 @@ from torch.nn import Parameter
 
 
 class MultiheadAttention(torch.nn.MultiheadAttention):
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        *args,
+        lazy: bool = True,
+        landmarks: int = None,
+        landmarks_selection: str = "random",
+        **kwargs,
+    ):
         super(MultiheadAttention, self).__init__(*args, **kwargs)
+        self.lazy = lazy
+        self.landmarks = landmarks
+        self.landmarks_selection = landmarks_selection
 
     def forward(
         self,
@@ -425,6 +574,9 @@ class MultiheadAttention(torch.nn.MultiheadAttention):
                 q_proj_weight=self.q_proj_weight,
                 k_proj_weight=self.k_proj_weight,
                 v_proj_weight=self.v_proj_weight,
+                lazy=self.lazy,
+                landmarks=self.landmarks,
+                landmarks_selection=self.landmarks_selection,
             )
         else:
             return multi_head_attention_forward(
@@ -445,4 +597,7 @@ class MultiheadAttention(torch.nn.MultiheadAttention):
                 key_padding_mask=key_padding_mask,
                 need_weights=need_weights,
                 attn_mask=attn_mask,
+                lazy=self.lazy,
+                landmarks=self.landmarks,
+                landmarks_selection=self.landmarks_selection,
             )
