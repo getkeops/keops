@@ -1,7 +1,7 @@
 class GenericIVF:
-    """Abstract class to compute IVF functions
+    """Abstract class to compute IVF functions.
 
-    End-users should use 'pykeops.numpy.ivf' or 'pykeops.torch.ivf'
+    End-users should use 'pykeops.numpy.ivf' or 'pykeops.torch.ivf'.
 
     """
 
@@ -15,7 +15,7 @@ class GenericIVF:
 
     def __update_metric(self, metric):
         """
-        Update the metric used in the class
+        Update the metric used in the class.
         """
         if isinstance(metric, str):
             self.__distance = self.tools.distance_function(metric)
@@ -30,12 +30,12 @@ class GenericIVF:
 
     @property
     def metric(self):
-        """Returns the metric used in the search"""
+        """Returns the metric used in the search."""
         return self.__metric
 
     @property
     def clusters(self):
-        """Returns the clusters obtained through K-Means"""
+        """Returns the clusters obtained through K-Means."""
         if self.__c is not None:
             return self.__c
         else:
@@ -46,7 +46,7 @@ class GenericIVF:
 
     def __k_argmin(self, x, y, k=1):
         """
-        Compute the k nearest neighbors between x and y, for various k
+        Compute the k nearest neighbors between x and y, for various k.
         """
         x_i = self.__LazyTensor(
             self.tools.to(self.tools.unsqueeze(x, 1), self.__device)
@@ -71,8 +71,8 @@ class GenericIVF:
 
         Args:
           x ((N, D) array): Input dataset of N points in dimension D.
-          lab ((N) array): Labels for each point in x
-          store_x (bool): Store the sort permutations for use later
+          lab ((N) array): Labels for each point in x.
+          store_x (bool): Store the sort permutations for use later.
         """
         lab, perm = self.tools.sort(self.tools.view(lab, -1))
         if store_x:
@@ -84,7 +84,7 @@ class GenericIVF:
     def __unsort(self, indices):
         """
         Given an input indices, undo and prior sorting operations.
-        First, select the true x indices with __x_perm[indices]
+        First, select the true x indices with __x_perm[indices].
         Then, use index_select to choose the indices in true x, for each true y.
         """
         return self.tools.index_select(
@@ -179,7 +179,7 @@ class GenericIVF:
 
     def _kneighbors(self, y):
         """
-        Obtain the k nearest neighbors of the query dataset y
+        Obtain the k nearest neighbors of the query dataset y.
         """
         if self.__x is None:
             raise ValueError("Input dataset not fitted yet! Call .fit() first!")
@@ -219,7 +219,7 @@ class GenericIVF:
         Args:
           x ((N, D) array): Input dataset of N points in dimension D.
           y ((M, D) array): Query dataset of M points in dimension D.
-          k (int): Number of nearest neighbors to obtain
+          k (int): Number of nearest neighbors to obtain.
 
         """
         x_LT = self.__LazyTensor(self.tools.unsqueeze(x, 0))
