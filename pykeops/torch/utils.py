@@ -233,6 +233,7 @@ class torchtools:
 
         from pykeops.torch import LazyTensor
 
+        # default metric is euclidean
         if distance is None:
             distance = torchtools.distance_function("euclidean")
 
@@ -243,8 +244,10 @@ class torchtools:
             x1 = LazyTensor(x.unsqueeze(0))
             op = torch.optim.Adam([c], lr=1 / n)
             scaling = 1 / torch.gather(torch.bincount(cl), 0, cl).view(-1, 1)
+            # get the counts of all the labels for use later
             scaling.requires_grad = False
             with torch.autograd.set_detect_anomaly(True):
+                # perform grad descent n times
                 for _ in range(n):
                     c.requires_grad = True
                     op.zero_grad()
@@ -255,7 +258,7 @@ class torchtools:
                     ).sum()  # calculate distance to centroid for each datapoint, divide by total number of points in that cluster, and sum
                     loss.backward(retain_graph=False)
                     op.step()
-            return c.detach()
+            return c.detach()  # return the optimised cluster centroids
 
         N, D = x.shape
         c = x[:K, :].clone()
@@ -264,7 +267,7 @@ class torchtools:
         for i in range(Niter):
             c_j = LazyTensor(c.view(1, K, D).to(device))
             D_ij = distance(x_i, c_j)
-            cl = D_ij.argmin(dim=1).long().view(-1)
+            cl = D_ij.argmin(dim=1).long().view(-1)  # cluster assignment
 
             # updating c: either with approximation or exact
             if approx:
@@ -277,7 +280,7 @@ class torchtools:
                 c.scatter_add_(0, cl[:, None].repeat(1, D), x)
                 Ncl = torch.bincount(cl, minlength=K).type_as(c).view(K, 1)
                 c /= Ncl
-
+            # check if NaN exists, may occur when metric is used incorrectly, eg angular metric with unnormalised data
             if torch.any(torch.isnan(c)):
                 raise ValueError(
                     "NaN detected in centroids during KMeans, please check metric is correct"

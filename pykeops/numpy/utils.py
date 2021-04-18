@@ -157,10 +157,12 @@ class numpytools:
             return angular_full
         elif metric == "hyperbolic":
             raise ValueError(
-                "Hyperbolic not supported for numpy, please use torch version with approximation"
+                "Hyperbolic not supported for IVF numpy, please use IVF torch instead"
             )
         else:
-            raise ValueError("Unknown metric")
+            raise ValueError(
+                f"Unknown metric: {metric}. Supported values are euclidean, manhattan and angular"
+            )
 
     @staticmethod
     def sort(x):
@@ -189,6 +191,7 @@ class numpytools:
 
     @staticmethod
     def kmeans(x, distance=None, K=10, Niter=15, device="CPU", approx=False, n=0):
+        # default metric is euclidean
         if distance is None:
             distance = numpytools.distance_function("euclidean")
         if approx:
@@ -202,7 +205,8 @@ class numpytools:
             c_j = LazyTensor(c[None, :, :])
             D_ij = distance(x_i, c_j)
             D_ij.backend = device
-            cl = D_ij.argmin(axis=1).astype(int).reshape(N)
+            cl = D_ij.argmin(axis=1).astype(int).reshape(N)  # cluster assignment
+            # cluster location update
             Ncl = np.bincount(cl).astype(dtype="float32")
             for d in range(D):
                 c[:, d] = np.bincount(cl, weights=x[:, d]) / Ncl
