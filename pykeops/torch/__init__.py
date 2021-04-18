@@ -27,7 +27,7 @@ default_dtype = "float32"
 ##########################################################
 # Import pyKeOps routines
 
-from .nn.ivf import IVF
+from .knn.ivf import IVF
 from .generic.generic_red import Genred
 from .generic.generic_ops import (
     generic_sum,
