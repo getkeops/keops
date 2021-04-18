@@ -51,7 +51,9 @@ class IVF(GenericIVF):
 
         """
         if approx:
-            raise ValueError("Approximation not supported for numpy")
+            raise NotImplementedError(
+                "Approximation in K-Means not supported for numpy"
+            )
         return self._fit(x, clusters=clusters, a=a, Niter=Niter, backend=backend)
 
     def kneighbors(self, y):
