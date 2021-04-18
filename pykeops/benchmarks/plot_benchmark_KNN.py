@@ -405,7 +405,7 @@ def KNN_KeOps_ivf_flat(K, metric="euclidean", clusters=100, a=10, **kwargs):
 
     # Setup the K-NN estimator:
     if metric == "angular":
-        metric = "angular_full" # alternative metric for non-normalised data
+        metric = "angular_full"  # alternative metric for non-normalised data
     KNN = IVF(k=K, metric=metric)
 
     def fit(x_train):
