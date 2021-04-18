@@ -102,23 +102,42 @@ def run_experiment(embed_dim=1, num_heads=1):
         2 ** 15: 2 ** 8,
         2 ** 16: 2 ** 7,
     }
+    batchmems_nystroem = {
+        2 ** 7: 2 ** 13,
+        2 ** 8: 2 ** 13,
+        2 ** 9: 2 ** 13,
+        2 ** 10: 2 ** 12,
+        2 ** 11: 2 ** 11,
+        2 ** 12: 2 ** 10,
+        2 ** 13: 2 ** 9,
+        2 ** 14: 2 ** 8,
+        2 ** 15: 2 ** 7,
+    }
 
-    def batchsize_fun(n, use_keops=False, **kwargs):
-        batchmems = batchmems_keops if use_keops else batchmems_torch
+    def batchsize_fun(n, batchmems=batchmems_torch, **kwargs):
         batchmem = batchmems.get(n, 1)
-        if batchmem <= embed_dim:
+        if batchmem <= 4 * embed_dim:
             batchsize = 1
         else:
-            batchsize = batchmem // embed_dim
+            batchsize = batchmem // (4 * embed_dim)
         return batchsize
 
-    batchsize_torch = partial(batchsize_fun, use_keops=False)
-    batchsize_keops = partial(batchsize_fun, use_keops=True)
+    batchsize_torch = partial(batchsize_fun, batchmems=batchmems_torch)
+    batchsize_keops = partial(batchsize_fun, batchmems=batchmems_keops)
+    batchsize_nystroem = partial(batchsize_fun, batchmems=batchmems_nystroem)
 
-    def attention(query, key, value, use_keops=False, backward=False, **kwargs):
+    def attention(
+        query, key, value, use_keops=False, backward=False, landmarks=None, **kwargs
+    ):
 
         MHA = MultiheadAttention_keops if use_keops else MultiheadAttention_torch
-        layer = MHA(embed_dim, num_heads)
+        if landmarks is None:
+            layer = MHA(embed_dim, num_heads)
+        else:
+            layer = MultiheadAttention_keops(
+                embed_dim, num_heads, lazy=use_keops, landmarks=landmarks
+            )
+
         if use_cuda:
             layer = layer.cuda()
 
@@ -150,6 +169,21 @@ def run_experiment(embed_dim=1, num_heads=1):
         ),
         (
             attention,
+            "PyTorch forward+backward (Nyström landmarks = 64)",
+            {
+                "batchsize": batchsize_nystroem,
+                "use_keops": False,
+                "backward": True,
+                "landmarks": 64,
+            },
+        ),
+        (
+            attention,
+            "PyTorch forward (Nyström landmarks = 64)",
+            {"batchsize": batchsize_nystroem, "use_keops": False, "landmarks": 64},
+        ),
+        (
+            attention,
             "KeOps forward+backward",
             {"batchsize": batchsize_keops, "use_keops": True, "backward": True},
         ),
@@ -157,6 +191,21 @@ def run_experiment(embed_dim=1, num_heads=1):
             attention,
             "KeOps forward",
             {"batchsize": batchsize_keops, "use_keops": True},
+        ),
+        (
+            attention,
+            "KeOps forward+backward (Nyström landmarks = 64)",
+            {
+                "batchsize": batchsize_nystroem,
+                "use_keops": True,
+                "backward": True,
+                "landmarks": 64,
+            },
+        ),
+        (
+            attention,
+            "KeOps forward (Nyström landmarks = 64)",
+            {"batchsize": batchsize_nystroem, "use_keops": True, "landmarks": 64},
         ),
     ]
 
@@ -171,8 +220,12 @@ def run_experiment(embed_dim=1, num_heads=1):
         linestyles=[
             "o-b",
             "s:b",
+            "+-c",
+            "x:c",
             "^-r",
             "<:r",
+            "H-m",
+            "h:m",
         ],
         xlabel="Sequence length",
     )

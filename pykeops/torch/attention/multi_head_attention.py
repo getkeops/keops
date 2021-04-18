@@ -1,6 +1,7 @@
 import torch
 from torch.nn.functional import linear
 from pykeops.torch import LazyTensor
+from torch.nn.functional import softmax, dropout
 
 # Plug-in replacements for the PyTorch v1.8
 # torch.nn.functional.multi_head_attention_forward
@@ -348,11 +349,11 @@ def multi_head_attention_forward(
             q_landmarks = q.reshape(
                 bsz * num_heads, landmarks, -1, head_dim
             )  # (N*H, C, L/C, D)
-            q_landmarks = q.mean(2)  # (N*H, C, D)
+            q_landmarks = q_landmarks.mean(2)  # (N*H, C, D)
             k_landmarks = k.reshape(
                 bsz * num_heads, landmarks, -1, head_dim
             )  # (N*H, C, S/C, D)
-            k_landmarks = k.mean(2)  # (N*H, C, D)
+            k_landmarks = k_landmarks.mean(2)  # (N*H, C, D)
 
         else:
             raise ValueError(
@@ -411,29 +412,105 @@ def multi_head_attention_forward(
         else:  # KeOps implementation
 
             # 3.a: "vv = A_ql_k @ v"  --------------------------------------------------
-            ql_i = LazyTensor(q_landmarks[:, :, None, :].contiguous())  # (N*H, C, 1, D)
-            k_j = LazyTensor(k[:, None, :, :].contiguous())  # (N*H, 1, S, D)
-            v_j = LazyTensor(v[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+            bsz_2 = 64  # = "B"
 
-            A_qlk_ij = ql_i | k_j  # (N*H, C, S)
-            assert list(A_qlk_ij.shape) == [bsz * num_heads, landmarks, src_len]
+            if bsz * num_heads * landmarks < 1024 * 8:
+                # We reshape the problem to use more treads than the number of CUDA cores
 
-            # (N*H, C, S) @ (N*H, S, D) = (N*H, C, D)
-            vv = A_qlk_ij.sumsoftmaxweight(v_j, dim=2)
+                ql_i = LazyTensor(
+                    q_landmarks.reshape(
+                        bsz * num_heads, 1, landmarks, 1, head_dim
+                    ).contiguous()
+                )  # (N*H, 1, C, 1, D)
+                k_j = LazyTensor(
+                    k.reshape(
+                        bsz * num_heads, bsz_2, 1, src_len // bsz_2, head_dim
+                    ).contiguous()
+                )  # (N*H, B, 1, S/B, D)
+                v_j = LazyTensor(
+                    v.reshape(
+                        bsz * num_heads, bsz_2, 1, src_len // bsz_2, head_dim
+                    ).contiguous()
+                )  # (N*H, B, 1, S/B, D)
+
+                A_qlk_ij = ql_i | k_j  # (N*H, B, C, S/B)
+                assert list(A_qlk_ij.shape) == [
+                    bsz * num_heads,
+                    bsz_2,
+                    landmarks,
+                    src_len // bsz_2,
+                ]
+
+                # (N*H, B, C, S//B) @ (N*H, B, S//B, D) = (N*H, B, C, D)
+                vv = A_qlk_ij.reduction(
+                    "Max_SumShiftExpWeight", other=LazyTensor(1).concat(v_j), dim=3
+                )
+                # vv has shape (N*H, B, C, D+2): [max_i, sum exp(att_ij - m_i), sum exp(att_ij - m_i) v_j]
+                max_vv = (
+                    vv[:, :, :, :1].max(dim=1, keepdim=True).values
+                )  # (N*H, 1, C, 1)
+                max_vv = vv[:, :, :, :1] - max_vv  # (N*H, B, C, 1)
+                weighted = vv[:, :, :, 1:] * max_vv.exp()  # (N*H, B, C, 1+D)
+                vv = weighted[:, :, :, 1:].sum(dim=1) / weighted[:, :, :, :1].sum(
+                    dim=1
+                )  # (N*H, C, D)
+
+            else:
+                ql_i = LazyTensor(
+                    q_landmarks[:, :, None, :].contiguous()
+                )  # (N*H, C, 1, D)
+                k_j = LazyTensor(k[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+                v_j = LazyTensor(v[:, None, :, :].contiguous())  # (N*H, 1, S, D)
+
+                A_qlk_ij = ql_i | k_j  # (N*H, C, S)
+                assert list(A_qlk_ij.shape) == [bsz * num_heads, landmarks, src_len]
+
+                # (N*H, C, S) @ (N*H, S, D) = (N*H, C, D)
+                vv = A_qlk_ij.sumsoftmaxweight(v_j, dim=2)
 
             # 3.b: "vvv = A_ql_kl_inv @ vv" --------------------------------------------
             vvv = Z @ vv  # (N*H, C, C) @ (N*H, C, D) = (N*H, C, D)
 
             # 3.d: "attn_output = A_q_kl @ vvv" ----------------------------------------
-            q_i = LazyTensor(q[:, :, None, :].contiguous())  # (N*H, L, 1, D)
-            kl_j = LazyTensor(k_landmarks[:, None, :, :].contiguous())  # (N*H, 1, C, D)
-            vvv_j = LazyTensor(vvv[:, None, :, :].contiguous())  # (N*H, 1, C, D)
+            if bsz * num_heads * landmarks < 1024 * 8:
+                q_i = LazyTensor(
+                    q.reshape(
+                        bsz * num_heads, bsz_2, tgt_len // bsz_2, 1, head_dim
+                    ).contiguous()
+                )  # (N*H, B, L/B, 1, D)
+                kl_j = LazyTensor(
+                    k_landmarks[:, None, None, :, :].contiguous()
+                )  # (N*H, 1, 1, C, D)
+                vvv_j = LazyTensor(
+                    vvv[:, None, None, :, :].contiguous()
+                )  # (N*H, 1, 1, C, D)
 
-            A_qkl_ij = q_i | kl_j  # (N*H, L, C)
-            assert list(A_qkl_ij.shape) == [bsz * num_heads, tgt_len, landmarks]
+                A_qkl_ij = q_i | kl_j  # (N*H, B, L/B, C)
+                assert list(A_qkl_ij.shape) == [
+                    bsz * num_heads,
+                    bsz_2,
+                    tgt_len // bsz_2,
+                    landmarks,
+                ]
 
-            # (N*H, L, C) @ (N*H, C, D) = (N*H, L, D)
-            attn_output = A_qkl_ij.sumsoftmaxweight(vvv_j, dim=2)
+                # (N*H, B, L/B, C) @ (N*H, 1, C, D) = (N*H, B, L/B, D)
+                attn_output = A_qkl_ij.sumsoftmaxweight(vvv_j, dim=3)
+                attn_output = attn_output.view(
+                    bsz * num_heads, tgt_len, head_dim
+                )  # (N*H, L, D)
+
+            else:
+                q_i = LazyTensor(q[:, :, None, :].contiguous())  # (N*H, L, 1, D)
+                kl_j = LazyTensor(
+                    k_landmarks[:, None, :, :].contiguous()
+                )  # (N*H, 1, C, D)
+                vvv_j = LazyTensor(vvv[:, None, :, :].contiguous())  # (N*H, 1, C, D)
+
+                A_qkl_ij = q_i | kl_j  # (N*H, L, C)
+                assert list(A_qkl_ij.shape) == [bsz * num_heads, tgt_len, landmarks]
+
+                # (N*H, L, C) @ (N*H, C, D) = (N*H, L, D)
+                attn_output = A_qkl_ij.sumsoftmaxweight(vvv_j, dim=2)
 
     else:  # No Nystroem: vanilla attention ============================================
         # Compute the attention scores -----------------------------------------------------

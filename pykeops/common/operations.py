@@ -12,7 +12,7 @@ def preprocess(reduction_op, formula2):
     ):  # SoftMax is just old naming for SumSoftMaxWeight
         # SumSoftMaxWeight relies on KeOps Max_SumShiftExpWeight reduction, with a custom finalize
         reduction_op_internal = "Max_SumShiftExpWeight"
-        # we concatenate the 2nd formula (g) with a constant 1, so that we get sum_j exp(m_i-f_ij) g_ij and sum_j exp(m_i-f_ij) together
+        # we concatenate the 2nd formula (g) with a constant 1, so that we get sum_j exp(f_ij-m_i) g_ij and sum_j exp(f_ij-m_i) together
         formula2 = "Concat(IntCst(1)," + formula2 + ")"
     elif reduction_op == "LogSumExp":
         # LogSumExp relies also on Max_SumShiftExp or Max_SumShiftExpWeight reductions, with a custom finalize
