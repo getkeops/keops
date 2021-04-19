@@ -6,13 +6,6 @@ Let's compare the performances of PyTorch and KeOps
 for simple attention computations, with an increasing
 number of tokens, attention heads and embedding features.
 
-.. note::
-    In this demo, we use exact **bruteforce** computations 
-    (tensorized for PyTorch and online for KeOps), without leveraging any multiscale
-    or low-rank (Nystroem/multipole) decomposition of the attention matrix.
-    First support for these approximation schemes is scheduled for
-    May-June 2021.
-
 """
 
 
@@ -37,7 +30,7 @@ use_cuda = torch.cuda.is_available()
 #
 
 # Sequence lengths that we'll loop upon:
-problem_sizes = [2 ** k for k in range(7, 18)]
+problem_sizes = [2 ** k for k in range(8, 18)]
 
 
 ##############################################
@@ -84,6 +77,11 @@ def run_experiment(embed_dim=1, num_heads=1):
 
     generate_samples = partial(generate_sequences, embed_dim=embed_dim)
 
+    # To best saturate our GPU, we use batch sizes that are (approximately)
+    # "as large as possible" without throwing a memory overflow.
+    # To take into account the wide variations of memory footprint between
+    # different implementations, we specify this parameter through
+    # "lists" of values for increasing sequence lengths:
     batchmems_torch = {
         2 ** 7: 2 ** 15,
         2 ** 8: 2 ** 14,
@@ -114,25 +112,27 @@ def run_experiment(embed_dim=1, num_heads=1):
         2 ** 15: 2 ** 7,
     }
 
-    def batchsize_fun(n, batchmems=batchmems_torch, **kwargs):
+    def batchsize_fun(n, batchmems=batchmems_torch, multiplier=4, **kwargs):
         batchmem = batchmems.get(n, 1)
-        if batchmem <= 4 * embed_dim:
+        if batchmem <= multiplier * embed_dim:
             batchsize = 1
         else:
-            batchsize = batchmem // (4 * embed_dim)
+            batchsize = batchmem // (multiplier * embed_dim)
         return batchsize
 
     batchsize_torch = partial(batchsize_fun, batchmems=batchmems_torch)
     batchsize_keops = partial(batchsize_fun, batchmems=batchmems_keops)
-    batchsize_nystroem = partial(batchsize_fun, batchmems=batchmems_nystroem)
+    batchsize_nystroem_64 = partial(batchsize_fun, batchmems=batchmems_nystroem)
+    batchsize_nystroem_256 = partial(
+        batchsize_fun, batchmems=batchmems_nystroem, multiplier=16
+    )
 
     def attention(
-        query, key, value, use_keops=False, backward=False, landmarks=None, **kwargs
+        query, key, value, use_keops=False, backward=True, landmarks=None, **kwargs
     ):
 
-        MHA = MultiheadAttention_keops if use_keops else MultiheadAttention_torch
-        if landmarks is None:
-            layer = MHA(embed_dim, num_heads)
+        if landmarks is None and not use_keops:
+            layer = MultiheadAttention_torch(embed_dim, num_heads)
         else:
             layer = MultiheadAttention_keops(
                 embed_dim, num_heads, lazy=use_keops, landmarks=landmarks
@@ -159,73 +159,73 @@ def run_experiment(embed_dim=1, num_heads=1):
     routines = [
         (
             attention,
-            "PyTorch forward+backward",
-            {"batchsize": batchsize_torch, "use_keops": False, "backward": True},
-        ),
-        (
-            attention,
-            "PyTorch forward",
-            {"batchsize": batchsize_torch, "use_keops": False},
-        ),
-        (
-            attention,
-            "PyTorch forward+backward (Nyström landmarks = 64)",
+            "PyTorch",
             {
-                "batchsize": batchsize_nystroem,
+                "batchsize": batchsize_torch,
                 "use_keops": False,
-                "backward": True,
-                "landmarks": 64,
             },
         ),
         (
             attention,
-            "PyTorch forward (Nyström landmarks = 64)",
-            {"batchsize": batchsize_nystroem, "use_keops": False, "landmarks": 64},
-        ),
-        (
-            attention,
-            "KeOps forward+backward",
-            {"batchsize": batchsize_keops, "use_keops": True, "backward": True},
-        ),
-        (
-            attention,
-            "KeOps forward",
-            {"batchsize": batchsize_keops, "use_keops": True},
-        ),
-        (
-            attention,
-            "KeOps forward+backward (Nyström landmarks = 64)",
+            "PyTorch (Nyström landmarks = 256)",
             {
-                "batchsize": batchsize_nystroem,
-                "use_keops": True,
-                "backward": True,
+                "batchsize": batchsize_nystroem_256,
+                "use_keops": False,
+                "landmarks": 256,
+            },
+        ),
+        (
+            attention,
+            "PyTorch (Nyström landmarks = 64)",
+            {
+                "batchsize": batchsize_nystroem_64,
+                "use_keops": False,
                 "landmarks": 64,
             },
         ),
         (
             attention,
-            "KeOps forward (Nyström landmarks = 64)",
-            {"batchsize": batchsize_nystroem, "use_keops": True, "landmarks": 64},
+            "KeOps",
+            {
+                "batchsize": batchsize_keops,
+                "use_keops": True,
+            },
+        ),
+        (
+            attention,
+            "KeOps (Nyström landmarks = 256)",
+            {
+                "batchsize": batchsize_nystroem_256,
+                "use_keops": True,
+                "landmarks": 256,
+            },
+        ),
+        (
+            attention,
+            "KeOps (Nyström landmarks = 64)",
+            {
+                "batchsize": batchsize_nystroem_64,
+                "use_keops": True,
+                "landmarks": 64,
+            },
         ),
     ]
 
     full_benchmark(
-        f"Multi-head attention (embed_dim={embed_dim},n_heads={num_heads},heads_dim={embed_dim//num_heads})",
+        f"Multi-head attention (forward+backward, embed_dim={embed_dim},n_heads={num_heads},heads_dim={embed_dim//num_heads})",
         routines,
         generate_samples,
         problem_sizes=problem_sizes,
         loops=[10, 1],
-        max_time=1,
-        red_time=0.1,
+        max_time=10,
+        red_time=1,
         linestyles=[
             "o-b",
-            "s:b",
-            "+-c",
-            "x:c",
-            "^-r",
+            "s--b",
+            "+:b",
+            "x-r",
+            "^--r",
             "<:r",
-            "H-m",
-            "h:m",
         ],
         xlabel="Sequence length",
     )
