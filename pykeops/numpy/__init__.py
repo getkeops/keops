@@ -20,7 +20,8 @@ from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
 
 __all__ = sorted(
     [
-        "Nystrom" "IVF",
+        "Nystrom",
+        "IVF",
         "Genred",
         "generic_sum",
         "generic_logsumexp",

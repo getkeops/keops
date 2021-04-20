@@ -782,7 +782,7 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_Nystrom_K_shape(self):
         ############################################################
 
-        from pykeops.torch.nystrom.nystrom import Nystrom
+        from pykeops.torch import Nystrom
         import torch
 
         length = 100
