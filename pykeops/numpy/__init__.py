@@ -5,7 +5,7 @@ default_dtype = "float64"  # float32' or 'float64'
 ##########################################################
 # Import pyKeOps routines
 
-from .nystrom.nystrom import Nystrom
+from .nystrom.Nystrom import Nystrom
 from .knn.ivf import IVF
 from .generic.generic_red import Genred
 from .operations import KernelSolve
