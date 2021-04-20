@@ -535,7 +535,7 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_Nystrom_k_shape(self):
         ############################################################
-        from pykeops.numpy.nystrom.nystrom import Nystrom
+        from pykeops.numpy import Nystrom
 
         length = 100
         num_sampling = 20
