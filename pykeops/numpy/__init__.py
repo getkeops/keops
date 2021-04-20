@@ -5,7 +5,7 @@ default_dtype = "float64"  # float32' or 'float64'
 ##########################################################
 # Import pyKeOps routines
 
-
+from .nystrom.nystrom import Nystrom
 from .knn.ivf import IVF
 from .generic.generic_red import Genred
 from .operations import KernelSolve
@@ -20,7 +20,7 @@ from .lazytensor.LazyTensor import LazyTensor, ComplexLazyTensor, Vi, Vj, Pm
 
 __all__ = sorted(
     [
-        "IVF",
+        "Nystrom" "IVF",
         "Genred",
         "generic_sum",
         "generic_logsumexp",

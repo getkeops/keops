@@ -751,41 +751,48 @@ class PytorchUnitTestCase(unittest.TestCase):
     def test_Nystrom_K_approx(self):
         ############################################################
 
-        from pykeops.torch.nystrom.nystrom import LazyNystrom_TK
+        from pykeops.torch.nystrom.nystrom import Nystrom
         import torch
 
         length = 100
-        num_sampling = 20
-        x = torch.rand(length, 3) * 100
+        num_sampling = 40
+        x = torch.rand((length, 3), dtype=torch.float32) * 10
 
         kernels = ["rbf", "exp"]
 
         for kernel in kernels:
-            N_TK = LazyNystrom_TK(
+            # calculate the ground truth
+            N_truth = Nystrom(n_components=length, kernel=kernel, random_state=0).fit(x)
+            x_truth = N_truth.transform(x)
+            K = x_truth @ x_truth.T
+
+            # calculate an approximation
+            N_TK = Nystrom(
                 n_components=num_sampling, kernel=kernel, random_state=0
             ).fit(x)
-            K = N_TK.K_approx(x)
+
             x_new = N_TK.transform(x)
+            K_approx = x_new @ x_new.T
 
-            ML2_error = np.linalg.norm(x_new @ x_new.T - K) / K.shape[0]
+            error = torch.linalg.norm(K - K_approx) / (K.shape[0] * K.shape[1])
 
-            self.assertTrue(ML2_error < 0.01)
+            self.assertTrue(error < 0.01)
 
     ############################################################
     def test_Nystrom_K_shape(self):
         ############################################################
 
-        from pykeops.torch.nystrom.nystrom import LazyNystrom_TK
+        from pykeops.torch.nystrom.nystrom import Nystrom
         import torch
 
         length = 100
-        num_sampling = 20
+        num_sampling = 40
         x = torch.rand(length, 3) * 100
 
         kernels = ["rbf", "exp"]
 
         for kernel in kernels:
-            N_NT = LazyNystrom_TK(
+            N_NT = Nystrom(
                 n_components=num_sampling, kernel=kernel, random_state=0
             ).fit(x)
 

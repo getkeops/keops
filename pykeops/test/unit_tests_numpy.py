@@ -507,28 +507,35 @@ class NumpyUnitTestCase(unittest.TestCase):
     ############################################################
     def test_Nystrom_k_approx(self):
         ############################################################
-        from pykeops.numpy.nystrom.Nystrom import Nystrom_NK
+        from pykeops.numpy.nystrom.nystrom import Nystrom
 
+        length = 100
         num_sampling = 20
         x = np.random.randint(1, 10, (100, 3)).astype(np.float32)
 
         kernels = ["rbf", "exp"]
 
         for kernel in kernels:
-            N_NK = Nystrom_NK(
+            # calculate the ground truth kernel
+            N_truth = Nystrom(n_components=length, kernel=kernel, random_state=0).fit(x)
+            x_truth = N_truth.transform(x)
+            K = x_truth @ x_truth.T
+
+            # calculate an approximation
+            N_NK = Nystrom(
                 n_components=num_sampling, kernel=kernel, random_state=0
             ).fit(x)
-            K = N_NK.K_approx(x)
             x_new = N_NK.transform(x)
+            K_approx = x_new @ x_new.T
 
-            ML2_error = np.linalg.norm(x_new @ x_new.T - K) / K.size
+            error = np.linalg.norm(K - K_approx) / K.size
 
-            self.assertTrue(ML2_error < 0.01)
+            self.assertTrue(error < 0.01)
 
     ############################################################
     def test_Nystrom_k_shape(self):
         ############################################################
-        from pykeops.numpy.nystrom.Nystrom import Nystrom_NK
+        from pykeops.numpy.nystrom.nystrom import Nystrom
 
         length = 100
         num_sampling = 20
@@ -537,7 +544,7 @@ class NumpyUnitTestCase(unittest.TestCase):
         kernels = ["rbf", "exp"]
 
         for kernel in kernels:
-            N_NK = Nystrom_NK(
+            N_NK = Nystrom(
                 n_components=num_sampling, kernel=kernel, random_state=0
             ).fit(x)
 
