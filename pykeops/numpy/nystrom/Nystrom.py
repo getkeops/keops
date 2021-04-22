@@ -4,7 +4,6 @@ from scipy.linalg import eigh
 from scipy.sparse.linalg import aslinearoperator
 
 from pykeops.common.nystrom_generic import GenericNystrom
-from pykeops.numpy import LazyTensor
 
 from typing import Tuple, List
 
@@ -48,6 +47,8 @@ class Nystrom(GenericNystrom):
         from pykeops.numpy.utils import numpytools
 
         self.tools = numpytools
+        from pykeops.numpy import LazyTensor
+
         self.LazyTensor = LazyTensor
         self.eigvals = eigvals
 

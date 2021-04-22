@@ -2,8 +2,6 @@ import torch
 
 from pykeops.common.nystrom_generic import GenericNystrom
 
-from pykeops.torch import LazyTensor
-
 
 class Nystrom(GenericNystrom):
     def __init__(
@@ -37,6 +35,8 @@ class Nystrom(GenericNystrom):
 
         self.tools = torchtools
         self.verbose = verbose
+        from pykeops.torch import LazyTensor
+
         self.LazyTensor = LazyTensor
 
     def _update_dtype(self, x):
