@@ -4,7 +4,6 @@ from scipy.linalg import eigh
 from scipy.sparse.linalg import aslinearoperator
 
 from pykeops.common.nystrom_generic import GenericNystrom
-from pykeops.numpy.utils import numpytools
 from pykeops.numpy import LazyTensor
 
 from typing import Tuple, List
@@ -46,6 +45,7 @@ class Nystrom(GenericNystrom):
             verbose,
             random_state,
         )
+        from pykeops.numpy.utils import numpytools
 
         self.tools = numpytools
         self.LazyTensor = LazyTensor

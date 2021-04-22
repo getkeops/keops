@@ -1,7 +1,7 @@
 import torch
 
 from pykeops.common.nystrom_generic import GenericNystrom
-from pykeops.torch.utils import torchtools
+
 from pykeops.torch import LazyTensor
 
 
@@ -32,6 +32,8 @@ class Nystrom(GenericNystrom):
             verbose,
             random_state,
         )
+
+        from pykeops.torch.utils import torchtools
 
         self.tools = torchtools
         self.verbose = verbose
