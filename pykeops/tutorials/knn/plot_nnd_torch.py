@@ -78,27 +78,41 @@ indices = brute_force(x=x, y=y, k=k, metric="euclidean")
 print("NND Recall:", torchtools.accuracy(approx_nn.to(device), indices))
 
 ########################################################################
-# Timing the algorithms to observe their performance
+# Define function to time the algorithms to observe their performance
 
-start = time.time()
-iters = 10
 
-# timing KeOps brute force
-for _ in range(iters):
-    indices = brute_force(x=x, y=y, k=k, metric="euclidean")
-bf_time = time.time() - start
-print(
-    "KeOps brute force timing for", N, "points with", D, "dimensions:", bf_time / iters
-)
+def timing(x, y, k, N, D, metric):
+    start = time.time()
+    iters = 10
 
-# timing NNDescent
-start = time.time()
-for _ in range(iters):
-    approx_nn = nn.kneighbors(y)
-nnd_time = time.time() - start
-print("KeOps NND timing for", N, "points with", D, "dimensions:", nnd_time / iters)
+    # timing KeOps brute force
+    for _ in range(iters):
+        indices = brute_force(x=x, y=y, k=k, metric=metric)
+    bf_time = time.time() - start
+    print(
+        "KeOps brute force timing for",
+        N,
+        "points with",
+        D,
+        "dimensions:",
+        bf_time / iters,
+    )
+
+    # timing NNDescent
+    start = time.time()
+    for _ in range(iters):
+        approx_nn = nn.kneighbors(y)
+    nnd_time = time.time() - start
+    print("KeOps NND timing for", N, "points with", D, "dimensions:", nnd_time / iters)
+
 
 ########################################################################
+# Timing the algorithms to observe their performance
+
+timing(x=x, y=y, k=k, N=N, D=D, metric="euclidean")
+
+########################################################################
+
 # NNDescent search using clusters and Manhattan distance
 # Second experiment with N=$10^6$ points in dimension D=3, with 5 nearest neighbors and manhattan distance.
 
@@ -137,20 +151,4 @@ print("NND Recall:", torchtools.accuracy(approx_nn.to(device), indices))
 ########################################################################
 # Timing the algorithms to observe their performance
 
-start = time.time()
-iters = 10
-
-# timing KeOps brute force
-for _ in range(iters):
-    indices = brute_force(x=x, y=y, k=k, metric="manhattan")
-bf_time = time.time() - start
-print(
-    "KeOps brute force timing for", N, "points with", D, "dimensions:", bf_time / iters
-)
-
-# timing NNDescent
-start = time.time()
-for _ in range(iters):
-    approx_nn = nn.kneighbors(y)
-nnd_time = time.time() - start
-print("KeOps NND timing for", N, "points with", D, "dimensions:", nnd_time / iters)
+timing(x=x, y=y, k=k, N=N, D=D, metric="manhattan")
