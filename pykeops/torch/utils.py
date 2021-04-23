@@ -290,6 +290,25 @@ class torchtools:
     @staticmethod
     def is_tensor(x):
         return isinstance(x, torch.Tensor)
+    
+    @staticmethod
+    def accuracy(indices_test, indices_truth):
+    """
+    Compares the test and ground truth indices (rows = KNN for each point in dataset)
+    Returns accuracy: proportion of correct nearest neighbours
+    """
+    N, k = indices_test.shape
+
+    # Calculate number of correct nearest neighbours
+    accuracy = 0
+    for i in range(k):
+        accuracy += float(np.sum(indices_test == indices_truth)) / N
+        indices_truth = np.roll(
+            indices_truth, 1, -1
+        )  # Create a rolling window (index positions may not match)
+    accuracy = float(accuracy / k)  # percentage accuracy
+
+    return accuracy
 
 
 def squared_distances(x, y):
