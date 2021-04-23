@@ -22,6 +22,7 @@ Euclidean and Manhattan metrics are supported.
 import time
 import torch
 from pykeops.torch import NND
+from pykeops.torch.utils import torchtools
 
 use_cuda = torch.cuda.is_available()
 device = torch.device("cuda") if use_cuda else torch.device("cpu")
@@ -65,29 +66,6 @@ def brute_force(x, y, k, metric):
     indices = D_ij.argKmin(K=k, dim=1).long()
     return indices
 
-   
-########################################################################
-# Define the function to compute recall of the nearest neighbors
-
-
-def accuracy(indices_test, indices_truth):
-    """
-    Compares the test and ground truth indices (rows = KNN for each point in dataset)
-    Returns accuracy: proportion of correct nearest neighbours
-    """
-    N, k = indices_test.shape
-
-    # Calculate number of correct nearest neighbours
-    accuracy = 0
-    for i in range(k):
-        accuracy += torch.sum(indices_test == indices_truth).float() / N
-        indices_truth = torch.roll(
-            indices_truth, 1, -1
-        )  # Create a rolling window (index positions may not match)
-    accuracy = float(accuracy / k)  # percentage accuracy
-
-    return accuracy
-
 
 ########################################################################
 # Compute the true nearest neighbors with brute force search using Euclidean distance
@@ -97,7 +75,7 @@ indices = brute_force(x=x, y=y, k=k, metric="euclidean")
 ########################################################################
 # Check the performance of our algorithm
 
-print("NND Recall:", accuracy(approx_nn.to(device), indices))
+print("NND Recall:", torchtools.accuracy(approx_nn.to(device), indices))
 
 ########################################################################
 # Timing the algorithms to observe their performance
@@ -154,7 +132,7 @@ indices = brute_force(x=x, y=y, k=k, metric="manhattan")
 ########################################################################
 # Check the performance of our algorithm
 
-print("NND Recall:", accuracy(approx_nn.to(device), indices))
+print("NND Recall:", torchtools.accuracy(approx_nn.to(device), indices))
 
 ########################################################################
 # Timing the algorithms to observe their performance
