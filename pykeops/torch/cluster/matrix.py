@@ -110,7 +110,10 @@ def from_matrix(ranges_i, ranges_j, keep):
         --> For Y[2], j in [20,21,...,29], there is no reduction to be done
     """
     I, J = torch.meshgrid(
-        (torch.arange(0, keep.shape[0]), torch.arange(0, keep.shape[1]))
+        (
+            torch.arange(0, keep.shape[0], device=keep.device),
+            torch.arange(0, keep.shape[1], device=keep.device),
+        )
     )
     redranges_i = ranges_i[
         I.t()[keep.t()]
