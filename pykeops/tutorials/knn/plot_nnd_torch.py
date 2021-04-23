@@ -52,13 +52,20 @@ nn.fit(x, queue=8)
 approx_nn = nn.kneighbors(y)
 
 ########################################################################
-# Now computing the true nearest neighbors with brute force search
+# Define the function to compute the true nearest neighbors with brute force search
 
-x_LT = LazyTensor(x.unsqueeze(0).to(device))
-y_LT = LazyTensor(y.unsqueeze(1).to(device))
-d = ((x_LT - y_LT) ** 2).sum(-1)
-true_nn = d.argKmin(K=k, dim=1).long()
 
+def brute_force(x, y, k, metric):
+    x_i = LazyTensor(x.unsqueeze(0).to(device))
+    y_j = LazyTensor(y.unsqueeze(1).to(device))
+    if metric == "euclidean":
+        D_ij = ((x_i - y_j) ** 2).sum(-1)
+    elif metric == "manhattan":
+        D_ij = ((x_i - y_j).abs()).sum(-1)
+    indices = D_ij.argKmin(K=k, dim=1).long()
+    return indices
+
+   
 ########################################################################
 # Define the function to compute recall of the nearest neighbors
 
@@ -83,9 +90,14 @@ def accuracy(indices_test, indices_truth):
 
 
 ########################################################################
+# Compute the true nearest neighbors with brute force search using Euclidean distance
+
+indices = brute_force(x=x, y=y, k=k, metric="euclidean")
+
+########################################################################
 # Check the performance of our algorithm
 
-print("NND Recall:", accuracy(approx_nn.to(device), true_nn))
+print("NND Recall:", accuracy(approx_nn.to(device), indices))
 
 ########################################################################
 # Timing the algorithms to observe their performance
@@ -95,10 +107,7 @@ iters = 10
 
 # timing KeOps brute force
 for _ in range(iters):
-    x_LT = LazyTensor(x.unsqueeze(0).to(device))
-    y_LT = LazyTensor(y.unsqueeze(1).to(device))
-    d = ((x_LT - y_LT) ** 2).sum(-1)
-    true_nn = d.argKmin(K=k, dim=1).long()
+    indices = brute_force(x=x, y=y, k=k, metric="euclidean")
 bf_time = time.time() - start
 print(
     "KeOps brute force timing for", N, "points with", D, "dimensions:", bf_time / iters
@@ -140,15 +149,12 @@ approx_nn = nn.kneighbors(y)
 ########################################################################
 # Now computing the true nearest neighbors with brute force search using Manhattan distance
 
-x_LT = LazyTensor(x.unsqueeze(0).to(device))
-y_LT = LazyTensor(y.unsqueeze(1).to(device))
-d = ((x_LT - y_LT).abs()).sum(-1)
-true_nn = d.argKmin(K=k, dim=1).long()
+indices = brute_force(x=x, y=y, k=k, metric="manhattan")
 
 ########################################################################
 # Check the performance of our algorithm
 
-print("NND Recall:", accuracy(approx_nn.to(device), true_nn))
+print("NND Recall:", accuracy(approx_nn.to(device), indices))
 
 ########################################################################
 # Timing the algorithms to observe their performance
@@ -158,10 +164,7 @@ iters = 10
 
 # timing KeOps brute force
 for _ in range(iters):
-    x_LT = LazyTensor(x.unsqueeze(0).to(device))
-    y_LT = LazyTensor(y.unsqueeze(1).to(device))
-    d = ((x_LT - y_LT).abs()).sum(-1)
-    true_nn = d.argKmin(K=k, dim=1).long()
+    indices = brute_force(x=x, y=y, k=k, metric="manhattan")
 bf_time = time.time() - start
 print(
     "KeOps brute force timing for", N, "points with", D, "dimensions:", bf_time / iters
