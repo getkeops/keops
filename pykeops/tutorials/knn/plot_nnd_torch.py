@@ -75,7 +75,7 @@ indices = brute_force(x=x, y=y, k=k, metric="euclidean")
 ########################################################################
 # Check the performance of our algorithm
 
-print("NND Recall:", torchtools.accuracy(approx_nn.to(device), indices))
+print("NND Recall:", torchtools.knn_accuracy(approx_nn.to(device), indices))
 
 ########################################################################
 # Define function to time the algorithms to observe their performance
@@ -146,7 +146,7 @@ indices = brute_force(x=x, y=y, k=k, metric="manhattan")
 ########################################################################
 # Check the performance of our algorithm
 
-print("NND Recall:", torchtools.accuracy(approx_nn.to(device), indices))
+print("NND Recall:", torchtools.knn_accuracy(approx_nn.to(device), indices))
 
 ########################################################################
 # Timing the algorithms to observe their performance

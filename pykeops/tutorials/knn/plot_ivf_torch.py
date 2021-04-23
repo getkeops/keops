@@ -65,7 +65,7 @@ true_nn = nn.brute_force(x, y, k=k)
 ###############################################################
 # Check the performance of our algorithm
 
-print("IVF Recall:", torchtools.accuracy(approx_nn, true_nn))
+print("IVF Recall:", torchtools.knn_accuracy(approx_nn, true_nn))
 
 ###############################################################
 # Timing the algorithms to observe their performance
@@ -108,7 +108,7 @@ true_nn = nn.brute_force(x_norm, y_norm)
 nn = IVF(metric="angular")
 nn.fit(x_norm)
 approx_nn = nn.kneighbors(y_norm)
-print("IVF Recall:", torchtools.accuracy(approx_nn, true_nn))
+print("IVF Recall:", torchtools.knn_accuracy(approx_nn, true_nn))
 
 ###############################################################
 # The IVF class also has an option to automatically normalise all inputs
@@ -116,7 +116,7 @@ print("IVF Recall:", torchtools.accuracy(approx_nn, true_nn))
 nn = IVF(metric="angular", normalise=True)
 nn.fit(x)
 approx_nn = nn.kneighbors(y)
-print("IVF Recall:", torchtools.accuracy(approx_nn, true_nn))
+print("IVF Recall:", torchtools.knn_accuracy(approx_nn, true_nn))
 
 ###############################################################
 # There is also an option to use full angular metric "angular_full", which uses the full angular metric. "angular" simply uses the dot product.
@@ -124,7 +124,7 @@ print("IVF Recall:", torchtools.accuracy(approx_nn, true_nn))
 nn = IVF(metric="angular_full")
 nn.fit(x)
 approx_nn = nn.kneighbors(y)
-print("IVF Recall:", torchtools.accuracy(approx_nn, true_nn))
+print("IVF Recall:", torchtools.knn_accuracy(approx_nn, true_nn))
 
 ###############################################################
 # IVF nearest neighbors search with approximations for K-Means centroids
@@ -141,7 +141,7 @@ nn = IVF(metric="hyperbolic")
 nn.fit(x, approx=True, n=50)
 approx_nn = nn.kneighbors(y)
 true_nn = nn.brute_force(x, y)
-print("IVF Recall:", torchtools.accuracy(approx_nn, true_nn))
+print("IVF Recall:", torchtools.knn_accuracy(approx_nn, true_nn))
 
 # define a custom metric
 def minkowski(x, y, p=3):
@@ -161,4 +161,4 @@ nn = IVF(metric=minkowski)
 nn.fit(x, approx=True)
 approx_nn = nn.kneighbors(y)
 true_nn = nn.brute_force(x, y)
-print("IVF Recall:", torchtools.accuracy(approx_nn, true_nn))
+print("IVF Recall:", torchtools.knn_accuracy(approx_nn, true_nn))

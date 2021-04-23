@@ -23,6 +23,7 @@ Euclidean, Manhattan and Angular metrics are supported.
 import time
 import numpy as np
 from pykeops.numpy import IVF
+from pykeops.numpy.utils import numpytools
 
 ########################################################################
 # IVF nearest neighbour search with Euclidean metric
@@ -56,32 +57,9 @@ approx_nn = nn.kneighbors(y)
 true_nn = nn.brute_force(x, y, k=k)
 
 ########################################################################
-# Define the function to compute recall of the nearest neighbors
-
-
-def accuracy(indices_test, indices_truth):
-    """
-    Compares the test and ground truth indices (rows = KNN for each point in dataset)
-    Returns accuracy: proportion of correct nearest neighbours
-    """
-    N, k = indices_test.shape
-
-    # Calculate number of correct nearest neighbours
-    accuracy = 0
-    for i in range(k):
-        accuracy += float(np.sum(indices_test == indices_truth)) / N
-        indices_truth = np.roll(
-            indices_truth, 1, -1
-        )  # Create a rolling window (index positions may not match)
-    accuracy = float(accuracy / k)  # percentage accuracy
-
-    return accuracy
-
-
-########################################################################
 # Check the performance of our algorithm
 
-print("IVF Recall:", accuracy(approx_nn, true_nn))
+print("IVF Recall:", numpytools.knn_accuracy(approx_nn, true_nn))
 
 ########################################################################
 # Timing the algorithms to observe their performance
@@ -124,7 +102,7 @@ true_nn = nn.brute_force(x_norm, y_norm)
 nn = IVF(metric="angular")
 nn.fit(x_norm)
 approx_nn = nn.kneighbors(y_norm)
-print("IVF Recall:", accuracy(approx_nn, true_nn))
+print("IVF Recall:", numpytools.knn_accuracy(approx_nn, true_nn))
 
 ########################################################################
 # The IVF class also has an option to automatically normalise all inputs
@@ -132,7 +110,7 @@ print("IVF Recall:", accuracy(approx_nn, true_nn))
 nn = IVF(metric="angular", normalise=True)
 nn.fit(x)
 approx_nn = nn.kneighbors(y)
-print("IVF Recall:", accuracy(approx_nn, true_nn))
+print("IVF Recall:", numpytools.knn_accuracy(approx_nn, true_nn))
 
 ########################################################################
 # There is also an option to use full angular metric "angular_full", which uses the full angular metric. "angular" simply uses the dot product.
@@ -140,4 +118,4 @@ print("IVF Recall:", accuracy(approx_nn, true_nn))
 nn = IVF(metric="angular_full")
 nn.fit(x)
 approx_nn = nn.kneighbors(y)
-print("IVF Recall:", accuracy(approx_nn, true_nn))
+print("IVF Recall:", numpytools.knn_accuracy(approx_nn, true_nn))

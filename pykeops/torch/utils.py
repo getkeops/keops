@@ -290,12 +290,16 @@ class torchtools:
     @staticmethod
     def is_tensor(x):
         return isinstance(x, torch.Tensor)
-    
+
     @staticmethod
-    def accuracy(indices_test, indices_truth):
+    def knn_accuracy(indices_test, indices_truth):
         """
         Compares the test and ground truth indices (rows = KNN for each point in dataset)
-        Returns accuracy: proportion of correct nearest neighbours
+        Returns the accuracy or proportion of correct nearest neighbours
+
+        Args:
+          indices_test ((N, K) array): K indices obtained from approximate NN search
+          indices_truth ((N, K) array): K indices obtained from exact NN search
         """
         N, k = indices_test.shape
 
