@@ -467,7 +467,7 @@ class GenericLazyTensor:
           - is_operator (bool, default=False): May be used to specify if **operation** is
             an operator like ``+``, ``-`` or a "genuine" function.
           - dimcheck (string): shall we check the input dimensions?
-            Supported values are ``"same"``, ``"sameor1"``, or **None**.
+            Supported values are ``"same"``, ``"sameor1"``, "vecand1" or **None**.
           - rversion (Boolean): shall we invert lhs and rhs of the binary op, e.g. as in __radd__, __rmut__, etc...
         """
 
@@ -498,7 +498,7 @@ class GenericLazyTensor:
                     + "Received {} and {}.".format(self.ndim, other.ndim)
                 )
 
-        elif dimcheck == "sameor1":
+        elif dimcheck == "vecand1":
             if self.ndim != other.ndim and self.ndim != 1 and other.ndim != 1:
                 raise ValueError(
                     "Operation {} expects inputs of the same dimension or dimension 1. ".format(
@@ -507,8 +507,17 @@ class GenericLazyTensor:
                     + "Received {} and {}.".format(self.ndim, other.ndim)
                 )
 
+        elif dimcheck == "1":
+            if other.ndim != 1:
+                raise ValueError(
+                    "Operation {} expects a vector and a scalar input (of dimension 1). ".format(
+                        operation
+                    )
+                    + "Received {} and {}.".format(self.ndim, other.ndim)
+                )
+
         elif dimcheck != None:
-            raise ValueError("incorrect dimcheck keyword in binary operation")
+            raise ValueError("Incorrect dimcheck keyword in binary operation.")
 
         res = self.join(
             other, is_complex=is_complex
@@ -634,7 +643,7 @@ class GenericLazyTensor:
         dim=None,
         call=True,
         is_complex=None,
-        **kwargs
+        **kwargs,
     ):
         r"""
         Applies a reduction to a :class:`LazyTensor`. This method is used internally by the LazyTensor class.
@@ -738,7 +747,7 @@ class GenericLazyTensor:
                 res.opt_arg,
                 res.formula2,
                 **kwargs_init,
-                rec_multVar_highdim=res.rec_multVar_highdim
+                rec_multVar_highdim=res.rec_multVar_highdim,
             )
         if call and len(res.symbolic_variables) == 0 and res._dtype is not None:
             return res()
@@ -858,7 +867,7 @@ class GenericLazyTensor:
                 res.axis,
                 res._dtype,
                 **kwargs_init,
-                rec_multVar_highdim=res.rec_multVar_highdim
+                rec_multVar_highdim=res.rec_multVar_highdim,
             )
 
         # we call if call=True, if other is not symbolic, and if the dtype is set
@@ -904,7 +913,7 @@ class GenericLazyTensor:
                     self.axis,
                     self._dtype,
                     **kwargs_init,
-                    rec_multVar_highdim=self.rec_multVar_highdim
+                    rec_multVar_highdim=self.rec_multVar_highdim,
                 )
             else:
                 self.callfun = self.Genred(
@@ -916,7 +925,7 @@ class GenericLazyTensor:
                     self.opt_arg,
                     self.formula2,
                     **kwargs_init,
-                    rec_multVar_highdim=self.rec_multVar_highdim
+                    rec_multVar_highdim=self.rec_multVar_highdim,
                 )
 
         if self.reduction_op == "Solve" and len(self.other.symbolic_variables) == 0:
@@ -1597,6 +1606,21 @@ class GenericLazyTensor:
             raise ValueError("One-hot encoding is only supported for scalar formulas.")
 
         return self.unary("OneHot", dimres=D, opt_arg=D)
+
+    def bspline(self, x, k=1):
+        """[summary]
+
+        Args:
+            x ([type]): [description]
+            k ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        mylist = ",".join([f"{k}"] * k)
+        return self.binary(
+            x, "BSpline", dimres=1, dimcheck="vecand1", opt_arg=f"Ind({mylist})"
+        )
 
     def concat(self, other):
         r"""

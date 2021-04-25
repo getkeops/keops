@@ -41,6 +41,7 @@ Standard math functions :
  *      IfElse<F,G,H>                  : return G where F >= 0 and H where F < 0 (vectorized) ; F, G, H are functions
  *      Mod<FA,FB,FC>                  : modulo of FA with modulus FB and offset FC (vectorized)
  *      Round<F,A>                     : round of F to A decimal places (vectorized) ; F is function, A is integer
+ *      BSpline<FT,FX,FK>              : BSpline vector of order FK (int, >= 1) associated to the knot vector FT (vector of T non-decreasing scalar values) and evaluated at location FX (scalar). The dot product of this vector of length T-FK with a vector of coefficients can be used to evaluate any Spline function on the knots FT.
  
 Concatenation and matrix-vector products:
  *      Concat<FA,FB>                  : concatenation of FB and FB

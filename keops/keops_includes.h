@@ -97,6 +97,7 @@
 #include "core/formulas/maths/TensorProd.h"
 #include "core/formulas/maths/VecMatMult.h"
 #include "core/formulas/maths/OneHot.h"
+#include "core/formulas/maths/BSpline.h"
 
 
 // import all operations on vector implementations
