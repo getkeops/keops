@@ -214,26 +214,27 @@ class numpytools:
 
     @staticmethod
     def knn_accuracy(indices_test, indices_truth):
-      """
-      Compares the test and ground truth indices (rows = KNN for each point in dataset)
-      Returns the accuracy or proportion of correct nearest neighbours
+        """
+        Compares the test and ground truth indices (rows = KNN for each point in dataset)
+        Returns the accuracy or proportion of correct nearest neighbours
 
-      Args:
-        indices_test ((N, K) array): K indices obtained from approximate NN search
-        indices_truth ((N, K) array): K indices obtained from exact NN search
-      """
-      N, k = indices_test.shape
+        Args:
+          indices_test ((N, K) array): K indices obtained from approximate NN search
+          indices_truth ((N, K) array): K indices obtained from exact NN search
+        """
+        N, k = indices_test.shape
 
-      # Calculate number of correct nearest neighbours
-      accuracy = 0
-      for i in range(k):
-          accuracy += float(np.sum(indices_test == indices_truth)) / N
-          indices_truth = np.roll(
-              indices_truth, 1, -1
-          )  # Create a rolling window (index positions may not match)
-      accuracy = float(accuracy / k)  # percentage accuracy
+        # Calculate number of correct nearest neighbours
+        accuracy = 0
+        for i in range(k):
+            accuracy += float(np.sum(indices_test == indices_truth)) / N
+            indices_truth = np.roll(
+                indices_truth, 1, -1
+            )  # Create a rolling window (index positions may not match)
+        accuracy = float(accuracy / k)  # percentage accuracy
 
-      return accuracy
+        return accuracy
+
 
 def squared_distances(x, y):
     x_norm = (x ** 2).sum(1).reshape(-1, 1)

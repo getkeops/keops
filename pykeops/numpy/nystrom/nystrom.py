@@ -8,7 +8,7 @@ from pykeops.common.nystrom_generic import GenericNystroem
 from typing import List
 
 
-class Nystroem(GenericNystroem):
+class Nystrom(GenericNystroem):
     """
     Nystroem class to work with Numpy arrays.
     """

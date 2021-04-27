@@ -3,7 +3,7 @@ import torch
 from pykeops.common.nystrom_generic import GenericNystroem
 
 
-class Nystroem(GenericNystroem):
+class Nystrom(GenericNystroem):
     """
     Nystroem class to work with Pytorch tensors.
     """
