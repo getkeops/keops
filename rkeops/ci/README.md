@@ -28,6 +28,10 @@ Configuration failed to find libgit2 library. Try installing:
   - rpm: libgit2-devel (Fedora, CentOS, RHEL)
   - pacman: libgit2 (arch)
 
+**MacOS**: see [`./prepare_macos_ci.sh`](./prepare_macos_ci.sh)
+
+**Pandoc**: version >= 1.12.3 necessary for Rmarkdown
+
 ### Triggering tests and checks
 
 To run the package automatic tests, you must run:
