@@ -8,6 +8,17 @@
 
 namespace keops {
 
+
+// Utility template to convert an "Ind(k)" sequence into an integer k.
+template <class C> struct GetFirst {};
+
+template <int N>
+struct GetFirst<std::integer_sequence<int,N>>
+{
+    static const int value = N;
+};
+
+
 //////////////////////////////////////////////////////////////
 ////        BSPLINE VECTOR : BSPLINE<FT,FX,FK>            ////
 //////////////////////////////////////////////////////////////
@@ -19,10 +30,10 @@ This operation returns the BSpline vector of order FK (int, >= 1) associated to 
 //struct BSpline : BinaryOp< BSpline, FT, FX, FK > {
 
 template< class FT, class FX, class FKK >
-struct BSpline : BinaryOp< BSpline, FT, FX, FKK > {
+struct BSpline_Impl : BinaryOp< BSpline_Impl, FT, FX, FKK > {
   static const int DIM = FT::DIM - 1; //FT::DIM - FK;
 
-  static const int FK = FKK::size();
+  static const int FK = GetFirst<FKK>::value;
   static_assert(FT::DIM >= FK + 1, "BSpline Knot vector must be of length >= order + 1");
   static_assert(FK >= 1, "BSpline order must be >= 1");
   static_assert(FX::DIM == 1, "BSpline can only be evaluated at a scalar (DIM=1) location");
@@ -74,6 +85,16 @@ struct BSpline : BinaryOp< BSpline, FT, FX, FKK > {
   using DiffT = Zero< V::DIM >;
 
 };
+
+
+// N.B.: BSpline_Impl creates a vector of size "FT::DIM - 1 = n_knots - 1"
+// since we need this amount of space as an intermediate buffer for the computation
+// of the final "FT::DIM - FKK = n_knots - order" coefficients.
+// In the final BSpline operation, we simply use "extract" to discard
+// the FKK-1 irrelevant coefficients.
+template< class FT, class FX, int FKK >
+using BSpline = Extract<BSpline_Impl<FT, FX, std::integer_sequence<int, FKK> >, 0, FT::DIM - FKK>;
+
 
 #define BSpline(t,x,k) KeopsNS<BSpline<decltype(InvKeopsNS(t)),decltype(InvKeopsNS(x)),k>>()
 

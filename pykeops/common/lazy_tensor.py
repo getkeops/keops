@@ -1617,10 +1617,7 @@ class GenericLazyTensor:
         Returns:
             [type]: [description]
         """
-        mylist = ",".join([f"{k}"] * k)
-        return self.binary(
-            x, "BSpline", dimres=1, dimcheck="vecand1", opt_arg=f"Ind({mylist})"
-        )
+        return self.binary(x, "BSpline", dimres=1, dimcheck="vecand1", opt_arg=f"{k}")
 
     def concat(self, other):
         r"""
