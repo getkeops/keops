@@ -66,7 +66,7 @@ struct univpack<C,Args...> {
   // This function prints binaryOp with template...
   static void PrintAllIndexSequence(std::ostream& str) {
     str << ", {";
-    //packFromIndSeq<FIRST>::type::PrintAll(str);
+    packFromIndSeq<FIRST>::type::PrintAll(str);
     str << "}";
     NEXT::PrintAllIndexSequence(str);
   }

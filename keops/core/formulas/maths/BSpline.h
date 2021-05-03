@@ -73,6 +73,16 @@ struct BSpline_Impl : BinaryOp< BSpline_Impl, FT, FX, FKK > {
         }
   }
 
+  // The default version in UnivPack.h crashes at compile time
+  // so we have to override it.
+  static void PrintId(::std::stringstream& str) {
+    str << "BSpline(";  
+    FT::PrintId(str);                            // prints the formula FT
+    str << ",";
+    FX::PrintId(str);                            // prints the formula FX
+    str << "," << FK<< ")";                       
+  }
+  
 
   template<class V, class GRADIN>
   using DiffTFT = typename FT::template DiffT<V, GRADIN>;
