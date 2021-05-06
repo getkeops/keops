@@ -1,4 +1,4 @@
-class tree:
+class Tree:
     """a custom class for handling a tree structure.
     Currently we use it only to recursively print a formula or reduction"""
 

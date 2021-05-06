@@ -1,5 +1,4 @@
 from keops.python_engine.formulas import *
-from keops.python_engine.mapreduce import *
 from keops.python_engine.code_gen_utils import get_hash_name, GetInds
 
 

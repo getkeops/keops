@@ -1,4 +1,4 @@
-from keops.python_engine.mapreduce.KMin_ArgKMin_Reduction import KMin_ArgKMin_Reduction
+from keops.python_engine.formulas.reductions.KMin_ArgKMin_Reduction import KMin_ArgKMin_Reduction
 
 
 class KMin_Reduction(KMin_ArgKMin_Reduction):
