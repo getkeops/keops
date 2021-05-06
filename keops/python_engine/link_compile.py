@@ -1,11 +1,7 @@
 import os, time
 
+from keops.python_engine.config import build_path
 from keops.python_engine.utils.code_gen_utils import get_hash_name
-
-base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep
-template_path = base_dir_path + "templates"
-build_path = base_dir_path + "build" + os.path.sep
-os.makedirs(build_path, exist_ok=True)
 
 
 # flag for OpenMP support
