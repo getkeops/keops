@@ -1,4 +1,8 @@
-from keops.python_engine.formulas.Operation import VectorizedScalarOp, Zero, Broadcast
+from keops.python_engine.formulas.Operation import Broadcast
+from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.formulas.Zero import Zero
+
+
 ##########################
 ######    Subtract   #####
 ##########################

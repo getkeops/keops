@@ -1,4 +1,6 @@
-from keops.python_engine.formulas.Operation import VectorizedScalarOp, Zero
+from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.formulas.Zero import Zero
+
 
 ##########################
 ######    Minus      #####

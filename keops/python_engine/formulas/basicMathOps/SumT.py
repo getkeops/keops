@@ -1,5 +1,7 @@
 from keops.python_engine.code_gen_utils import c_variable
-from keops.python_engine.formulas.Operation import Operation, Zero
+from keops.python_engine.formulas.Operation import Operation
+from keops.python_engine.formulas.Zero import Zero
+
 
 ##########################
 ######    SumT       #####

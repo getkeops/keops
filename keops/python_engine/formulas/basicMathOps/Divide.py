@@ -1,4 +1,7 @@
-from keops.python_engine.formulas.Operation import VectorizedScalarOp, Broadcast, Zero, IntCst
+from keops.python_engine.formulas.Operation import Broadcast
+from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.formulas.IntCst import IntCst
+from keops.python_engine.formulas.Zero import Zero
 from keops.python_engine.formulas.basicMathOps import Scalprod, Square
 ##########################
 ######    Divide     #####

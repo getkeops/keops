@@ -1,6 +1,5 @@
-from keops.python_engine.reductions import *
 from keops.python_engine.map_reduce import *
-from ctypes import c_int, c_float, c_double, c_void_p, CDLL, POINTER
+from ctypes import c_int, CDLL
 
 
 class create_or_load:

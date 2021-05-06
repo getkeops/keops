@@ -1,4 +1,5 @@
-from keops.python_engine.formulas.Operation import VectorizedScalarOp, IntCst
+from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.formulas.IntCst import IntCst
 from keops.python_engine.formulas.basicMathOps import Square
 from keops.python_engine.formulas.maths import Rsqrt
 
