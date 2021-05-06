@@ -1,3 +1,5 @@
+import os
+
 from keops.python_engine.compilation import link_compile
 from keops.python_engine.config import use_OpenMP
             
