@@ -1,12 +1,12 @@
 from keops.python_engine.code_gen_utils import new_c_varname, c_array
-from keops.python_engine.Tree import tree
+from keops.python_engine.Tree import Tree
 
 
 ###################
 ## Base class
 ###################
 
-class Operation(tree):
+class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
 
     def __init__(self, *args):

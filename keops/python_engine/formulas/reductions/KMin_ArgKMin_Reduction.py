@@ -1,5 +1,5 @@
 from keops.python_engine.code_gen_utils import infinity, cast_to
-from keops.python_engine.mapreduce.Reduction import Reduction
+from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
 class KMin_ArgKMin_Reduction(Reduction):

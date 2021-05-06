@@ -1,5 +1,5 @@
 from keops.python_engine.code_gen_utils import infinity
-from keops.python_engine.mapreduce.Reduction import Reduction
+from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
 class Min_Reduction(Reduction):

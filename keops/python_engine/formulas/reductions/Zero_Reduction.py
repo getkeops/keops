@@ -1,5 +1,5 @@
 from keops.python_engine.formulas import Zero
-from keops.python_engine.mapreduce.Reduction import Reduction
+from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
 class Zero_Reduction(Reduction):

@@ -1,6 +1,5 @@
 from keops.python_engine.code_gen_utils import c_zero_float, cast_to
-from keops.python_engine.reductions import Grad
-from keops.python_engine.mapreduce.Reduction import Reduction
+from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
 class Sum_Reduction(Reduction):
@@ -36,4 +35,5 @@ class Sum_Reduction(Reduction):
                 """
 
     def DiffT(self, v, gradin, f0=None):
+        from keops.python_engine.reductions import Grad
         return Sum_Reduction(Grad(self.formula, v, gradin), v.cat % 2)

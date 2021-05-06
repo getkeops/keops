@@ -1,8 +1,7 @@
 from keops.python_engine.code_gen_utils import neg_infinity, c_zero_float
 from keops.python_engine.formulas import IntCst, Concat, Extract, Exp
-from keops.python_engine.mapreduce.Sum_Reduction import Sum_Reduction
-from keops.python_engine.reductions import Grad
-from keops.python_engine.mapreduce.Reduction import Reduction
+from keops.python_engine.formulas.reductions.Sum_Reduction import Sum_Reduction
+from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
 class Max_SumShiftExpWeight_Reduction(Reduction):
@@ -96,6 +95,7 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
           // GRADIN = [Grad(L), Grad(L)/S ]
           // has been backpropagated from L.
         """
+        from keops.python_engine.reductions import Grad
         M = Extract(MS, 0, self.formulaF.dim)
         S = Extract(gradin, self.formulaF.dim, self.formulaG.dim)
         return Grad(Sum_Reduction(Exp(self.formulaF - M) * self.formulaG, self.tagI), v, S)

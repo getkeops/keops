@@ -21,4 +21,5 @@ class IntCst(Operation):
         return f"*{out.id} = {cast_to(out.dtype)}((float){self.val});\n"
 
     def DiffT(self, v, gradin):
+        from keops.python_engine.formulas import Zero
         return Zero(v.dim)

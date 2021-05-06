@@ -1,4 +1,5 @@
-from code_gen_utils import c_array, c_if, c_zero_float
+from keops.python_engine.code_gen_utils import c_array, c_zero_float, c_if
+
 
 class Sum_Scheme:
     def __init__(self, red_formula, dtype):

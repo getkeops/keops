@@ -1,8 +1,8 @@
 from keops.python_engine.code_gen_utils import VectApply, VectCopy
-from keops.python_engine.Tree import tree
+from keops.python_engine.Tree import Tree
 
 
-class Reduction(tree):
+class Reduction(Tree):
     """ Base class for all KeOps final reductions over a formula"""
 
     def __init__(self, formula, tagI):

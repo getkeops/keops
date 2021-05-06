@@ -1,6 +1,6 @@
 from keops.python_engine.code_gen_utils import VectCopy
-from keops.python_engine.mapreduce.Min_ArgMin_Reduction_Base import Min_ArgMin_Reduction_Base
-from keops.python_engine.mapreduce.Zero_Reduction import Zero_Reduction
+from keops.python_engine.formulas.reductions.Min_ArgMin_Reduction_Base import Min_ArgMin_Reduction_Base
+from keops.python_engine.formulas.reductions.Zero_Reduction import Zero_Reduction
 
 
 class ArgMin_Reduction(Min_ArgMin_Reduction_Base):
