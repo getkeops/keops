@@ -1,6 +1,9 @@
 from keops.python_engine.map_reduce import *
 from ctypes import c_int, CDLL
 
+from keops.python_engine.mapreduce.Sum_Reduction import Sum_Reduction
+from keops.python_engine.mapreduce.Zero_Reduction import Zero_Reduction
+
 
 class create_or_load:
     library = {}
