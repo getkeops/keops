@@ -1,8 +1,12 @@
-from keops.python_engine.formulas.Operation import VectorizedScalarOp, Square
+from keops.python_engine.formulas.Operation import VectorizedScalarOp, IntCst
+from keops.python_engine.formulas.basicMathOps import Square
+from keops.python_engine.formulas.maths import Rsqrt
 
 ##########################
 ######    Acos       #####
 ##########################
+
+
 
 class Acos(VectorizedScalarOp):
     """the arc-cosine vectorized operation"""

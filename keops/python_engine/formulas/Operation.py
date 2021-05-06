@@ -1,7 +1,6 @@
-from keops.python_engine.code_gen_utils import new_c_varname, c_array, VectApply, c_variable, c_zero_float, cast_to, \
+from keops.python_engine.code_gen_utils import new_c_varname, c_array, VectApply, c_variable, cast_to, \
     VectCopy
 from keops.python_engine.tree_class import tree
-
 
 ###################
 ## Base class
@@ -68,38 +67,46 @@ class Operation(tree):
         return self.DiffT(v, gradin)
 
     def __mul__(self, other):
-        # f*g redirects to Mult(f,g)
+        """f*g redirects to Mult(f,g)"""
+        from keops.python_engine.formulas.basicMathOps.Mult import Mult
         return Mult(self, other)
 
     def __rmul__(self, other):
-        # g*f redirects to Mult(f,g)
+        """g*f redirects to Mult(f,g)"""
+        from keops.python_engine.formulas.basicMathOps.Mult import Mult
         return Mult(self, other)
 
     def __truediv__(self, other):
-        # f/g redirects to Divide(f,g)
+        """f/g redirects to Divide(f,g)"""
+        from keops.python_engine.formulas.basicMathOps.Divide import Divide
         return Divide(self, other)
 
     def __add__(self, other):
-        # f+g redirects to Add(f,g)
+        """f+g redirects to Add(f,g)"""
+        from keops.python_engine.formulas.basicMathOps.Add import Add
         return Add(self, other)
 
     def __sub__(self, other):
-        # f-g redirects to Subtract(f,g)
+        """f-g redirects to Subtract(f,g)"""
+        from keops.python_engine.formulas.basicMathOps.Subtract import Subtract
         return Subtract(self, other)
 
     def __neg__(self):
-        # -f redirects to Minus(f)
+        """-f redirects to Minus(f)"""
+        from keops.python_engine.formulas.basicMathOps.Minus import Minus
         return Minus(self)
 
     def __pow__(self, other):
-        # f**2 redirects to Square(f)
+        """f**2 redirects to Square(f)"""
+        from keops.python_engine.formulas.basicMathOps.Square import Square
         if other==2:
             return Square(self)
         else:
             raise ValueError("not implemented")
 
     def __or__(self, other):
-        # f|g redirects to Scalprod(f,g)
+        """f|g redirects to Scalprod(f,g)"""
+        from keops.python_engine.formulas.basicMathOps.Scalprod import Scalprod
         return Scalprod(self, other)
 
 
@@ -216,233 +223,6 @@ class IntCst(Operation):
 
 
 
-##################################################
-##########                          ##############
-##########   Basic math operators   ##############
-##########                          ##############
-##################################################
-
-
-##########################
-######    Add        #####
-##########################
-
-class Add_(VectorizedScalarOp):
-    # the binary addition operation
-    string_id = "Add"
-    print_spec = "+", "mid", 4
-
-    def ScalarOp(self, out, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = {arg0.id}+{arg1.id};\n"
-
-    def DiffT(self, v, gradin):
-        fa, fb = self.children
-        return fa.Grad(v, gradin) + fb.Grad(v, gradin)
-
-
-def Add(arg0, arg1):
-    if isinstance(arg0, Zero):
-        return Broadcast(arg1, arg0.dim)
-    elif isinstance(arg1, Zero):
-        return Broadcast(arg0, arg1.dim)
-    elif arg0 == arg1:
-        return IntCst(2) * arg0
-    else:
-        return Add_(arg0, arg1)
-
-
-##########################
-######    Subtract   #####
-##########################
-
-class Subtract_(VectorizedScalarOp):
-    # the binary subtract operation
-    string_id = "Subtract"
-    print_spec = "-", "mid", 4
-
-    def ScalarOp(self, out, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = {arg0.id}-{arg1.id};\n"
-
-    def DiffT(self, v, gradin):
-        fa, fb = self.children
-        return fa.Grad(v, gradin) - fb.Grad(v, gradin)
-
-
-def Subtract(arg0, arg1):
-    if isinstance(arg0, Zero):
-        return -Broadcast(arg1, arg0.dim)
-    elif isinstance(arg1, Zero):
-        return Broadcast(arg0, arg1.dim)
-    else:
-        return Subtract_(arg0, arg1)
-
-
-##########################
-######    Minus      #####
-##########################
-
-class Minus_(VectorizedScalarOp):
-    # the "minus" vectorized operation
-    string_id = "Minus"
-    print_spec = "-", "pre", 2
-
-    def ScalarOp(self, out, arg):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = -{arg.id};\n"
-
-    def DiffT(self, v, gradin):
-        f = self.children[0]
-        return -f.Grad(v, gradin)
-
-
-def Minus(arg):
-    if isinstance(arg, Zero):
-        return arg
-    else:
-        return Minus_(arg)
-
-
-##########################
-######    Mult       #####
-##########################
-
-class Mult_(VectorizedScalarOp):
-    # the binary multiply operation
-    string_id = "Mult"
-    print_spec = "*", "mid", 3
-
-    def ScalarOp(self, out, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = {arg0.id}*{arg1.id};\n"
-
-    #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
-    def DiffT(self, v, gradin):
-        fa, fb = self.children
-        if fa.dim == 1 and fb.dim > 1:
-            return fa.Grad(v, Scalprod(gradin, fb)) + fb.Grad(v, fa * gradin)
-        elif fb.dim == 1 and fa.dim > 1:
-            return fa.Grad(v, fb * gradin) + fb.Grad(v, Scalprod(gradin, fa))
-        else:
-            return fa.Grad(v, fb * gradin) + fb.Grad(v, fa * gradin)
-
-
-def Mult(arg0, arg1):
-    if isinstance(arg0, Zero):
-        return Broadcast(arg0, arg1.dim)
-    elif isinstance(arg1, Zero):
-        return Broadcast(arg1, arg0.dim)
-    elif isinstance(arg1, int):
-        return Mult(IntCst(arg1), arg0)
-    else:
-        return Mult_(arg0, arg1)
-
-
-##########################
-######    Divide     #####
-##########################
-
-class Divide_(VectorizedScalarOp):
-    # the binary divide operation
-    string_id = "Divide"
-    print_spec = "/", "mid", 3
-
-    def ScalarOp(self, out, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = {arg0.id} / {arg1.id};\n"
-
-    #  \diff_V (A/B) = ((\diff_V A) * B - A * (\diff_V B)) / B^2
-    def DiffT(self, v, gradin):
-        fa, fb = self.children
-        if fa.dim == 1 and fb.dim > 1:
-            return (fa.Grad(v, Scalprod(gradin, fb)) - fb.Grad(v, fa * gradin)) / Square(fb)
-        elif fb.dim == 1 and fa.dim > 1:
-            return (fa.Grad(v, fb * gradin) - fb.Grad(v, Scalprod(gradin, fa))) / Square(fb)
-        else:
-            return (fa.Grad(v, fb * gradin) - fb.Grad(v, fa * gradin)) / Square(fb)
-
-
-def Divide(arg0, arg1):
-    if isinstance(arg0, Zero):
-        return Broadcast(arg0, arg1.dim)
-    elif isinstance(arg1, Zero):
-        raise ValueError("division by zero")
-    elif isinstance(arg1, int):
-        return Divide(arg0, IntCst(arg1))
-    else:
-        return Divide_(arg0, arg1)
-
-
-##########################
-######    Sum        #####
-##########################
-
-class Sum_(Operation):
-    # the summation operation
-    string_id = "Sum"
-    dim = 1
-
-    def Op(self, out, table, arg):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return out.assign(c_zero_float) + VectApply(self.ScalarOp, out, arg)
-
-    def ScalarOp(self, out, arg):
-        return f"{out.id} += {arg.id};\n"
-
-    def DiffT(self, v, gradin):
-        f = self.children[0]
-        return f.Grad(v, SumT(gradin, f.dim))
-
-
-def Sum(arg):
-    if isinstance(arg, Zero):
-        return Zero(1)
-    else:
-        return Sum_(arg)
-
-
-##########################
-######    SumT       #####
-##########################
-
-class SumT_(Operation):
-    # the adjoint of the summation operation
-    string_id = "SumT"
-
-    def __init__(self, arg, dim):
-        super().__init__(arg)
-        self.dim = dim
-        self.params = (dim,)
-
-    def __eq__(self, other):
-        return type(self) == type(other) and self.dim == other.dim
-
-    def Op(self, out, table, arg):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        value_arg = c_variable(arg.dtype, f"*{arg.id}")
-        return out.assign(value_arg)
-
-    def DiffT(self, v, gradin):
-        f = self.children[0]
-        return f.Grad(v, Sum(gradin))
-
-
-def SumT(arg, dim):
-    if arg.dim != 1:
-        raise ValueError("dimension of argument must be 1 for SumT operation")
-    elif isinstance(arg, Zero):
-        return Zero(dim)
-    else:
-        return SumT_(arg, dim)
-
 ##########################
 #####    Broadcast    ####
 ##########################
@@ -457,41 +237,3 @@ def Broadcast(arg, dim):
         raise ValueError("dimensions are not compatible for Broadcast operation")
 
 
-##########################
-#####    Scalprod     ####
-##########################
-
-def Scalprod(arg0, arg1):
-    if arg0.dim == 1:
-        return arg0 * Sum(arg1)
-    elif arg1.dim == 1:
-        return Sum(arg0) * arg1
-    else:
-        return Sum(arg0 * arg1)
-
-
-##########################
-######    Square     #####
-##########################
-
-class Square_(VectorizedScalarOp):
-    # the square vectorized operation
-    string_id = "Square"
-    print_spec = "**2", "post", 1
-
-    def ScalarOp(self, out, arg):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = {arg.id}*{arg.id};\n"
-
-    def DiffT(self, v, gradin):
-        # [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
-        f = self.children[0]
-        return IntCst(2) * f.Grad(v, f * gradin)
-
-
-def Square(arg):
-    if isinstance(arg, Zero):
-        return arg
-    else:
-        return Square_(arg)
