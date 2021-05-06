@@ -1,5 +1,5 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
-from keops.python_engine.code_gen_utils import c_include, signature_list, c_zero_float, call_list
+from keops.python_engine.utils.code_gen_utils import c_include, signature_list, c_zero_float, call_list
 from keops.python_engine.link_compile import Cpu_link_compile
 
 

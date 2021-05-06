@@ -1,6 +1,6 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
 from keops.python_engine.mapreduce.GpuAssignZero import GpuAssignZero
-from keops.python_engine.code_gen_utils import c_variable, c_array, c_include, signature_list, call_list
+from keops.python_engine.utils.code_gen_utils import c_variable, c_array, c_include, signature_list, call_list
 from keops.python_engine.link_compile import Gpu_link_compile
 
 

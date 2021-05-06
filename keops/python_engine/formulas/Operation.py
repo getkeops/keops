@@ -1,5 +1,5 @@
-from keops.python_engine.code_gen_utils import new_c_varname, c_array
-from keops.python_engine.Tree import Tree
+from keops.python_engine.utils.code_gen_utils import new_c_varname, c_array
+from keops.python_engine.utils.Tree import Tree
 
 
 ###################

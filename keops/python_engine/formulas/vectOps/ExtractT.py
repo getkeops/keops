@@ -1,4 +1,4 @@
-from keops.python_engine.code_gen_utils import c_zero_float, VectCopy
+from keops.python_engine.utils.code_gen_utils import c_zero_float, VectCopy
 from keops.python_engine.formulas.Operation import Operation
 
 

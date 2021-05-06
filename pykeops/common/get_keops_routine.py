@@ -1,9 +1,9 @@
-from keops.python_engine.map_reduce import *
 from ctypes import c_int, CDLL
 
-from keops.python_engine.mapreduce.Sum_Reduction import Sum_Reduction
-from keops.python_engine.mapreduce.Zero_Reduction import Zero_Reduction
-
+from keops.python_engine.utils.code_gen_utils import get_hash_name
+from keops.python_engine.formulas import Zero
+from keops.python_engine.formulas.reductions import *
+from keops.python_engine.mapreduce import *
 
 class create_or_load:
     library = {}

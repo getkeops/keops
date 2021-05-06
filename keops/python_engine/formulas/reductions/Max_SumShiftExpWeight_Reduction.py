@@ -1,4 +1,4 @@
-from keops.python_engine.code_gen_utils import neg_infinity, c_zero_float
+from keops.python_engine.utils.code_gen_utils import neg_infinity, c_zero_float
 from keops.python_engine.formulas import IntCst, Concat, Extract, Exp
 from keops.python_engine.formulas.reductions.Sum_Reduction import Sum_Reduction
 from keops.python_engine.formulas.reductions.Reduction import Reduction
