@@ -271,29 +271,6 @@ class Var_loader:
                 k+=1
         return string   
         
-        
-        
-#######################################################################
-#.  KeOps wrappers for math functions
-#######################################################################      
-        
-def keops_exp(x):
-    # returns the C++ code string for the exponential function applied to a C++ variable
-    # - x must be of type c_variable
-    if x.dtype in ["float","double"]:
-        return f"exp({x.id})"
-    else:
-        raise ValueError("not implemented.")
-
-def keops_sqrt(x):
-    # returns the C++ code string for the square root function applied to a C++ variable
-    # - x must be of type c_variable
-    if x.dtype in ["float","double"]:
-        return f"sqrt({x.id})"
-    else:
-        raise ValueError("not implemented.")
-
-
 
 
 

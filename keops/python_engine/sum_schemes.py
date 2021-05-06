@@ -1,4 +1,4 @@
-from utils import c_array, c_if, c_zero_float
+from code_gen_utils import c_array, c_if, c_zero_float
 
 class Sum_Scheme:
     def __init__(self, red_formula, dtype):

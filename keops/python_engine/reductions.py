@@ -1,6 +1,9 @@
+from keops.python_engine.formulas.Operation import *
+from keops.python_engine.formulas import *
+from keops.python_engine.code_gen_utils import neg_infinity, infinity, get_hash_name, GetInds
+from keops.python_engine.operations import Concat, Extract
 from tree_class import tree
-from operations import *
-from utils import *    
+
 
 
 

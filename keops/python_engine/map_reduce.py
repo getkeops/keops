@@ -1,4 +1,4 @@
-from utils import *
+from code_gen_utils import *
 from sum_schemes import *
 from reductions import *
 from link_compile import *
