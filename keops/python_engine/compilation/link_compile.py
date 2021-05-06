@@ -3,12 +3,6 @@ import os, time
 from keops.python_engine.config import build_path
 from keops.python_engine.utils.code_gen_utils import get_hash_name
 
-
-# flag for OpenMP support
-use_OpenMP = True
-    
-        
-        
 class link_compile:
     
     # base class for compiling the map_reduce schemes and
@@ -63,30 +57,4 @@ class link_compile:
             self.read_info()
         return dict(dllname=self.dllname, tagI=self.tagI, dim=self.dim)
     
-
-            
-            
-class Cpu_link_compile(link_compile):
-
-    source_code_extension = "cpp"
-    
-    compiler = "g++"
-    compile_options = ["-shared", "-fPIC", "-O3", "-flto"]
-    
-    if use_OpenMP:
-        import platform
-        if platform.system()=="Darwin":
-            compile_options += ["-Xclang -fopenmp", "-lomp"]
-            # warning : this is unsafe hack for OpenMP support on mac...
-            os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-        else:
-            compile_options += ["-fopenmp", "-fno-fat-lto-objects"]
-    
-
-
-class Gpu_link_compile(link_compile):
-    
-    source_code_extension = "cu"
-    compiler = "nvcc"
-    compile_options = ["-shared", "-Xcompiler -fPIC", "-O3"]
 
