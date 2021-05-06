@@ -1,4 +1,4 @@
-from code_gen_utils import *
+from keops.python_engine.utils.code_gen_utils import *
 
 def define_broadcast_index_function():
     return """

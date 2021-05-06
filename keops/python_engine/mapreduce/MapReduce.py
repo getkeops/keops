@@ -1,4 +1,4 @@
-from keops.python_engine.code_gen_utils import Var_loader, c_variable, c_array, new_c_varname, pointer
+from keops.python_engine.utils.code_gen_utils import Var_loader, c_variable, new_c_varname, pointer
 from keops.python_engine.reductions import *
 
 

@@ -1,6 +1,6 @@
 import os, time
 
-from keops.python_engine.code_gen_utils import get_hash_name
+from keops.python_engine.utils.code_gen_utils import get_hash_name
 
 base_dir_path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep
 template_path = base_dir_path + "templates"
