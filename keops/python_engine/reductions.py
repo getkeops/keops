@@ -1,8 +1,9 @@
 from keops.python_engine.formulas.maths import *
 from keops.python_engine.formulas.basicMathOps import *
 from keops.python_engine.formulas.Operation import *
+from keops.python_engine.formulas.vectOps import *
 from keops.python_engine.code_gen_utils import neg_infinity, infinity, get_hash_name, GetInds, c_zero_float
-from keops.python_engine.operations import Concat, Extract
+
 from tree_class import tree
 
 
