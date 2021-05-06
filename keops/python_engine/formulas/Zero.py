@@ -3,7 +3,7 @@ from keops.python_engine.formulas.Operation import Operation
 
 
 class Zero(Operation):
-    # zero operation : encodes a vector of zeros
+    """zero operation : encodes a vector of zeros"""
     string_id = "Zero"
 
     def __init__(self, dim):
