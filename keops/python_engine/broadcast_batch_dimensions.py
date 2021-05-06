@@ -1,4 +1,4 @@
-from utils import *
+from code_gen_utils import *
 
 def define_broadcast_index_function():
     return """
