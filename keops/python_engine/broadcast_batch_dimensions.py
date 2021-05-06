@@ -41,7 +41,7 @@ def define_fill_shapes_function(red_formula):
     inds_p = varloader.indsp
     tagIJ = red_formula.tagJ # 1 if the reduction is made "over j", 0 if it is made "over i"
     
-    string = f"""
+    string = """
                 void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int *shapes_p) {
 
                   // Separate and store the shapes of the "i" and "j" variables + parameters --------------
@@ -66,9 +66,9 @@ def define_fill_shapes_function(red_formula):
             """
     for k in range(size_i-1):
         string += f"""
-                      for (int l = 0; l < nbatchdims; l++) {  // l-th column
+                      for (int l = 0; l < nbatchdims; l++) {{  // l-th column
                         shapes_i[k * (nbatchdims + 1) + l] = shapes[(1 + {inds_i[k]}) * (nbatchdims + 3) + l];
-                      }  
+                      }}  
                       shapes_i[k * (nbatchdims + 1) + nbatchdims] =
                           shapes[(1 + {inds_i[k]}) * (nbatchdims + 3) + nbatchdims + 1 - {tagIJ}];
 
@@ -78,9 +78,9 @@ def define_fill_shapes_function(red_formula):
 
     for k in range(size_j):
         string += f"""         
-                        for (int l = 0; l < nbatchdims; l++) {  // l-th column
+                        for (int l = 0; l < nbatchdims; l++) {{  // l-th column
                           shapes_j[k * (nbatchdims + 1) + l] = shapes[(1 + {inds_j[k]}) * (nbatchdims + 3) + l];
-                        }
+                        }}
                         shapes_j[k * (nbatchdims + 1) + nbatchdims] = shapes[(1 + {inds_j[k]}) * (nbatchdims + 3) + nbatchdims + {tagIJ}];
                   
 
@@ -89,9 +89,9 @@ def define_fill_shapes_function(red_formula):
                   
     for k in range(size_p):
         string += f"""  
-                        for (int l = 0; l < nbatchdims; l++) {  // l-th column
+                        for (int l = 0; l < nbatchdims; l++) {{  // l-th column
                           shapes_p[k * (nbatchdims + 1) + l] = shapes[(1 + {inds_p[k]}) * (nbatchdims + 3) + l];
-                        }
+                        }}
                         shapes_p[k * (nbatchdims + 1) + nbatchdims] = 1;
 
                    """
