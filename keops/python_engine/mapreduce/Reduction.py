@@ -1,5 +1,5 @@
 from keops.python_engine.code_gen_utils import VectApply, VectCopy
-from keops.python_engine.tree_class import tree
+from keops.python_engine.Tree import tree
 
 
 class Reduction(tree):
