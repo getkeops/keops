@@ -1,19 +1,7 @@
-from keops.python_engine.formulas.Operation import VectorizedScalarOp, Scalprod, Sum, Square
+from keops.python_engine.formulas.basicMathOps import Sum, Square, Scalprod
 
 from code_gen_utils import VectCopy, c_array, c_zero_float
-from keops.python_engine.formulas.maths.Abs import keops_abs
 from keops.python_engine.formulas.Operation import Operation
-
-
-##################################################
-##########                          ##############
-##########      Math operations     ##############
-##########                          ##############
-##################################################
-
-
-
-
 
 
 ############################
