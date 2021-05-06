@@ -1,4 +1,5 @@
-from keops.python_engine.formulas.Operation import VectorizedScalarOp
+from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+
 
 ##########################
 ######    Rsqrt      #####
