@@ -5,7 +5,7 @@
 #    python keops_main.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" "[]" 3 float float block_sum
 
 import sys
-from map_reduce import *
+from keops.python_engine.mapreduce import *
 
 argv = sys.argv[1:]
 
