@@ -1,7 +1,7 @@
 from ctypes import c_int, CDLL
 
 from keops.python_engine.utils.code_gen_utils import get_hash_name
-from keops.python_engine.formulas import Zero
+from keops.python_engine.formulas.variables.Zero import Zero
 from keops.python_engine.formulas.reductions import *
 from keops.python_engine.mapreduce import *
 

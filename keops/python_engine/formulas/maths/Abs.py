@@ -1,9 +1,5 @@
-from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.formulas.maths.VectorizedScalarOp import VectorizedScalarOp
 
-
-##########################
-######    Abs        #####
-##########################
 
 class Abs(VectorizedScalarOp):
     """the absolute value vectorized operation"""

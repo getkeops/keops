@@ -1,4 +1,4 @@
-from keops.python_engine.formulas import Zero
+from keops.python_engine.formulas.variables import Zero
 from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
