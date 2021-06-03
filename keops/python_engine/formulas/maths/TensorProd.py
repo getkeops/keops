@@ -17,7 +17,7 @@ class TensorProd(Operation):
         return f"""
                     #if C_CONTIGUOUS     // row major
                         int q = 0;
-        	            #pragma unroll
+                        #pragma unroll
                         for (int k = 0; k < {arg0.dim}; k++) 
                         {{
                             #pragma unroll
@@ -37,6 +37,7 @@ class TensorProd(Operation):
                 """
 
     def DiffT(self, v, gradin):
+        from keops.python_engine.formulas import MatVecMult, VecMatMult
         f = self.children[0]
         g = self.children[1]
         return f.Grad(v, MatVecMult(gradin, g)) + g.Grad(v, VecMatMult(f, gradin))
