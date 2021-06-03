@@ -8,7 +8,7 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ##########################
 
 
-class SumT_(Operation):
+class SumT(Operation):
     # the adjoint of the summation operation
     string_id = "SumT"
 
@@ -16,6 +16,14 @@ class SumT_(Operation):
         super().__init__(arg)
         self.dim = dim
         self.params = (dim,)
+
+    def __new__(cls, arg, dim):
+        if arg.dim != 1:
+            raise ValueError("dimension of argument must be 1 for SumT operation")
+        elif isinstance(arg, Zero):
+            return Zero(dim)
+        else:
+            return super(SumT, cls).__new__(cls)
 
     def __eq__(self, other):
         return type(self) == type(other) and self.dim == other.dim
@@ -30,12 +38,3 @@ class SumT_(Operation):
         from keops.python_engine.formulas.maths.Sum import Sum
         f = self.children[0]
         return f.Grad(v, Sum(gradin))
-
-
-def SumT(arg, dim):
-    if arg.dim != 1:
-        raise ValueError("dimension of argument must be 1 for SumT operation")
-    elif isinstance(arg, Zero):
-        return Zero(dim)
-    else:
-        return SumT_(arg, dim)

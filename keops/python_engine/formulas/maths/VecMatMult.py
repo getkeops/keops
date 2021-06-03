@@ -26,7 +26,7 @@ class VecMatMult(Operation):
                         for (int i = 0; i < {self.dim}; i++) 
                         {{
                             {out.id}[i] = ({out.dtype})(0.0f);
-                        	#pragma unroll
+                            #pragma unroll
                             for (int k = 0; k < {inB.dim}; k++)
                                 {out.id}[i] += {inA.id}[{self.dim} * k + i] * {inB.id}[k];
                         }}

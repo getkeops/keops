@@ -7,10 +7,16 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ######    Sum        #####
 ##########################
 
-class Sum_(Operation):
+class Sum(Operation):
     # the summation operation
     string_id = "Sum"
     dim = 1
+
+    def __new__(cls, arg):
+        if isinstance(arg, Zero):
+            return Zero(1)
+        else:
+            return super(Sum, cls).__new__(cls)
 
     def Op(self, out, table, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
@@ -24,10 +30,3 @@ class Sum_(Operation):
         from keops.python_engine.formulas.maths.SumT import SumT
         f = self.children[0]
         return f.Grad(v, SumT(gradin, f.dim))
-
-
-def Sum(arg):
-    if isinstance(arg, Zero):
-        return Zero(1)
-    else:
-        return Sum_(arg)
