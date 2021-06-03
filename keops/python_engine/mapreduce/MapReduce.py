@@ -27,7 +27,7 @@ class MapReduce:
         nargs = self.nargs
         self.sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype)
 
-        self.varloader = varloader = Var_loader(red_formula)
+        self.varloader = Var_loader(red_formula)
         
         self.i = i = c_variable("int", "i")
         self.j = j = c_variable("int", "j")
@@ -35,12 +35,12 @@ class MapReduce:
         nx = c_variable("int", "nx")
         ny = c_variable("int", "ny")
         
-        self.xi = xi = c_array(dtype, self.varloader.dimx, "xi")
-        self.param_loc = param_loc = c_array(dtype, self.varloader.dimp, "param_loc")
+        self.xi = c_array(dtype, self.varloader.dimx, "xi")
+        self.param_loc = c_array(dtype, self.varloader.dimp, "param_loc")
         argnames = new_c_varname("arg", nargs)
-        self.args = args = c_variable(pointer(dtype), argnames)
-        self.acc = acc = c_array(dtypeacc, red_formula.dimred, "acc")
-        self.fout = fout = c_array(dtype, formula.dim, "fout")
+        self.args = c_variable(pointer(dtype), argnames)
+        self.acc = c_array(dtypeacc, red_formula.dimred, "acc")
+        self.fout = c_array(dtype, formula.dim, "fout")
         self.outi = c_array(dtype, red_formula.dim, f"(out + i * {red_formula.dim})")
 
 
