@@ -40,5 +40,4 @@ class Max_ArgMax_Reduction_Base(Reduction):
             half2_val = c_variable("half2_ind")
             string = half2_val.declare_assign(f"__floats2half2_rn(2*{ind()},2*{ind()}+1)")
         acc_val, acc_ind = acc.split(self.dim, self.dim)
-        ind_arr = c_array(xi.dtype, 1, f"(&{ind.id})")
-        return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind_arr)
+        return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind)
