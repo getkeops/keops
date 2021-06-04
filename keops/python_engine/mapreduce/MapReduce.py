@@ -19,6 +19,13 @@ class MapReduce:
     def get_code(self):       
         
         self.headers = "#define C_CONTIGUOUS 1\n"     
+        self.headers += f"""
+                            #ifdef __CUDACC__
+                                #include <npp.h>
+                            #else
+                                #include <limits>
+                            #endif
+                        """
         
         red_formula = self.red_formula
         formula = red_formula.formula

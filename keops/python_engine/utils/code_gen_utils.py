@@ -53,11 +53,19 @@ c_zero_int = c_variable("int", "0")
 c_zero_float = c_variable("float", "0.0f")
 
 def neg_infinity(dtype):
-    return c_variable(dtype, f"-std::numeric_limits< {dtype} >::infinity()")
+    return c_variable(dtype, f"-({infinity(dtype).id})")
 
 def infinity(dtype):
-    return c_variable(dtype, f"std::numeric_limits< {dtype} >::infinity()")
-
+    if dtype == "float":
+        code_gpu = "NPP_MAXABS_32F"
+    elif dtype == "double":
+        code_gpu = "NPP_MAXABS_64F"
+    else:
+        raise ValueError("only float and double dtypes are implemented in new python engine for now")
+    code_cpu = "std::numeric_limits< {dtype} >::infinity()"
+    code = f"\n#ifdef __CUDACC__\n{code_gpu}\n#else\n{code_cpu}\n#endif\n"
+    return c_variable(dtype, code)
+        
 def cast_to(dtype):
     # returns C++ code string to do a cast ; e.g. "(float)" if dtype is "float" for example
     return f"({dtype})"
@@ -113,29 +121,48 @@ class c_array:
 
 def VectApply(fun, out, *args):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
-    # - fun is the scalar unary function to be applied, it must accept two c_variable inputs and output a string
-    # - out and args must be c_array instances
+    # - fun is the scalar unary function to be applied, it must accept two c_variable or c_array inputs and output a string
+    # - out must be a c_array instance
+    # - args may be c_array or c_variable instances
     # 
     # Example : if out.dim = 3, arg0.dim = 1, arg1.dim = 3, 
     # it will generate the following (in pseudo-code for clarity) :
     #   #pragma unroll
     #   for(int k=0; k<out.dim; k++)
     #       fun(out[k], arg0[0], arg1[k]);
+    #
+    # Equivalently, if out.dim = 3, arg0 is c_variable, arg1.dim = 3, 
+    # it will generate the following (in pseudo-code for clarity) :
+    #   #pragma unroll
+    #   for(int k=0; k<out.dim; k++)
+    #       fun(out[k], arg0, arg1[k]);
     
-    dims = [out.dim] + list(arg.dim for arg in args)
-    
+    dims = [out.dim]
+    for arg in args:
+        if isinstance(arg, c_variable):
+            dims.append(1)
+        elif isinstance(arg, c_array):
+            dims.append(arg.dim)
+        else:
+            raise ValueError("args must be c_variable or c_array instances")
     dimloop = max(dims)
     if not set(dims) in ({dimloop}, {1, dimloop}):
         raise ValueError("incompatible dimensions in VectApply")
     incr_out = 1 if out.dim==dimloop else 0
     outk = c_variable(out.dtype, f"{out.id}[k*{incr_out}]")
-    incr_args = list((1 if arg.dim==dimloop else 0) for arg in args)
-    argks = list(c_variable(arg.dtype, f"{arg.id}[k*{incr}]") for (arg, incr) in zip(args, incr_args))
+    incr_args = list((1 if dim==dimloop else 0) for dim in dims[1:])
+    
+    argsk = []
+    for (arg, incr) in zip(args, incr_args):
+        if isinstance(arg, c_variable):
+            argsk.append(arg)
+        elif isinstance(arg, c_array):
+            argsk.append(c_variable(arg.dtype, f"{arg.id}[k*{incr}]"))
     return f"""
                 #pragma unroll
                 for(int k=0; k<{dimloop}; k++) 
                 {{
-                    {fun(outk, *argks)} 
+                    {fun(outk, *argsk)} 
                 }}
             """
 
