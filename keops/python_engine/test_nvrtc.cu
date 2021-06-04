@@ -120,16 +120,37 @@ extern "C" __host__ int Eval(bool recompile, const char* ptx_file_name, const ch
     begin = clock();
     // Load the generated PTX and get a handle to the kernel.
     CUdevice cuDevice;
-    CUcontext context;
+    //CUcontext context;
     CUmodule module;
     CUfunction kernel;
+    end = clock();
+    
+    std::cout << "time for loading the ptx (part 1) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    
+    begin = clock();
     CUDA_SAFE_CALL(cuInit(0));
+    end = clock();
+    std::cout << "time for loading the ptx part 2) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    
+    begin = clock();
     CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, 0));
-    CUDA_SAFE_CALL(cuCtxCreate(&context, 0, cuDevice));
+    end = clock();
+    std::cout << "time for loading the ptx (part 3) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    
+    begin = clock();
+    //CUDA_SAFE_CALL(cuCtxCreate(&context, 0, cuDevice));
+    end = clock();
+    std::cout << "time for loading the ptx (part 4) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    
+    begin = clock();
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
+    end = clock();
+    std::cout << "time for loading the ptx (part 5) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    
+    begin = clock();
     CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
     end = clock();
-    std::cout << "time for loading the ptx : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    std::cout << "time for loading the ptx (part 6) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
   
         
     void *args[] = { &nx, &ny, &out, &arg0, &arg1, &arg2 };
@@ -146,7 +167,7 @@ extern "C" __host__ int Eval(bool recompile, const char* ptx_file_name, const ch
     // Release resources.
     begin = clock();
     CUDA_SAFE_CALL(cuModuleUnload(module));
-    CUDA_SAFE_CALL(cuCtxDestroy(context));
+    //CUDA_SAFE_CALL(cuCtxDestroy(context));
     end = clock();
     std::cout << "time for releasing resources : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;                                              
 
