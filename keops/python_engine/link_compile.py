@@ -250,16 +250,16 @@ def hack_eval_lazytensor_nvrtc(x, force_recompile=False):
     else:
         myred = GpuReduc1D(red_formula, c_dtype, c_dtype, nargs)
     myred.ptxname = (myred.dir_path + os.path.sep + myred.hash_name + ".ptx").encode('utf-8')
-    my_c_function = CDLL(os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "test_nvrtc.so")
-    my_c_function.argtypes = [c_bool, ctypes.c_char_p, ctypes.c_char_p, c_int, c_int, POINTER(c_float)] + [POINTER(c_float)]*myred.nargs
+    my_c_dll = CDLL(os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "test_nvrtc.so")
     test_recompile = not os.path.exists(myred.ptxname) or force_recompile
     if test_recompile:
         code = myred.get_code().encode('utf-8')
+        my_c_dll.Compile(ctypes.create_string_buffer(myred.ptxname), ctypes.create_string_buffer(code))
     else:
         code = "".encode('utf-8')
     M, N = (x.ni, x.nj) if x.axis==1 else (x.nj, x.ni)
     out = torch.zeros(M, myred.red_formula.dim, dtype=dtype, device=device)
     c_args = [c_void_p(x.data_ptr()) for x in x.variables]
     dimy = myred.red_formula.dimy
-    my_c_function.Eval(c_bool(test_recompile), ctypes.create_string_buffer(myred.ptxname), ctypes.create_string_buffer(code), c_int(dimy), c_int(M), c_int(N), c_void_p(out.data_ptr()), *c_args)
+    my_c_dll.Eval(ctypes.create_string_buffer(myred.ptxname), c_int(dimy), c_int(M), c_int(N), c_void_p(out.data_ptr()), *c_args)
     return out

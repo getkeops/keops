@@ -51,7 +51,62 @@ char* read_text_file(char const* path) {
 }
 
 
-extern "C" __host__ int Eval(bool recompile, const char* ptx_file_name, const char* cu_code, int dimY, int nx, int ny, float *out, float *arg0, float *arg1, float *arg2) {
+extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) {
+        
+    clock_t begin, end;
+    
+    char *ptx;
+
+    begin = clock();
+    nvrtcProgram prog;
+
+    NVRTC_SAFE_CALL(nvrtcCreateProgram(&prog,         // prog
+                   cu_code,         // buffer
+                   NULL,    // name
+                   0,             // numHeaders
+                   NULL,          // headers
+                   NULL));        // includeNames
+
+    const char *opts[] = {};
+    nvrtcResult compileResult = nvrtcCompileProgram(prog,  // prog
+                                              0,     // numOptions
+                                              opts); // options
+              
+    // Obtain compilation log from the program.
+    size_t logSize;
+    NVRTC_SAFE_CALL(nvrtcGetProgramLogSize(prog, &logSize));
+    char *log = new char[logSize];
+    NVRTC_SAFE_CALL(nvrtcGetProgramLog(prog, log));
+    std::cout << log << '\n';
+    delete[] log;
+    if (compileResult != NVRTC_SUCCESS) {
+        exit(1);
+    }
+
+    // Obtain PTX from the program.
+    size_t ptxSize;
+    NVRTC_SAFE_CALL(nvrtcGetPTXSize(prog, &ptxSize));
+    ptx = new char[ptxSize];
+    NVRTC_SAFE_CALL(nvrtcGetPTX(prog, ptx));
+    // Destroy the program.
+    NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
+    end = clock();
+    std::cout << "time for compiling ptx code : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+
+    // write ptx code to file
+    begin = clock();
+    FILE *ptx_file = fopen(ptx_file_name, "w");
+    fputs(ptx, ptx_file);
+    fclose(ptx_file);
+    end = clock();
+    std::cout << "time for writing ptx code to file : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+
+
+    return 0;
+}
+
+
+extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny, float *out, float *arg0, float *arg1, float *arg2) {
     
     dim3 blockSize;
     blockSize.x = 32;
@@ -62,60 +117,12 @@ extern "C" __host__ int Eval(bool recompile, const char* ptx_file_name, const ch
     clock_t begin, end;
     
     char *ptx;
-    if (recompile) {
-        
-        begin = clock();
-        nvrtcProgram prog;
     
-        NVRTC_SAFE_CALL(nvrtcCreateProgram(&prog,         // prog
-                       cu_code,         // buffer
-                       NULL,    // name
-                       0,             // numHeaders
-                       NULL,          // headers
-                       NULL));        // includeNames
-    
-        const char *opts[] = {};
-        nvrtcResult compileResult = nvrtcCompileProgram(prog,  // prog
-                                                  0,     // numOptions
-                                                  opts); // options
-                  
-        // Obtain compilation log from the program.
-        size_t logSize;
-        NVRTC_SAFE_CALL(nvrtcGetProgramLogSize(prog, &logSize));
-        char *log = new char[logSize];
-        NVRTC_SAFE_CALL(nvrtcGetProgramLog(prog, log));
-        std::cout << log << '\n';
-        delete[] log;
-        if (compileResult != NVRTC_SUCCESS) {
-            exit(1);
-        }
-  
-        // Obtain PTX from the program.
-        size_t ptxSize;
-        NVRTC_SAFE_CALL(nvrtcGetPTXSize(prog, &ptxSize));
-        ptx = new char[ptxSize];
-        NVRTC_SAFE_CALL(nvrtcGetPTX(prog, ptx));
-        // Destroy the program.
-        NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
-        end = clock();
-        std::cout << "time for compiling ptx code : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
-        // write ptx code to file
-        begin = clock();
-        FILE *ptx_file = fopen(ptx_file_name, "w");
-        fputs(ptx, ptx_file);
-        fclose(ptx_file);
-        end = clock();
-        std::cout << "time for writing ptx code to file : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    }
-    else {
-        // read ptx code from file
-        begin = clock();
-        ptx = read_text_file(ptx_file_name);
-        end = clock();
-        std::cout << "time for reading ptx code from file : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    }
-    
+    // read ptx code from file
+    begin = clock();
+    ptx = read_text_file(ptx_file_name);
+    end = clock();
+    std::cout << "time for reading ptx code from file : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     
     begin = clock();
     // Load the generated PTX and get a handle to the kernel.
