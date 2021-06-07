@@ -9,11 +9,11 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
 
     AssignZero = GpuAssignZero
 
-    def __init__(self, *args):
+    def __init__(self, use_jit, *args):
         MapReduce.__init__(self, *args)
-        Gpu_link_compile.__init__(self)
+        Gpu_link_compile.__init__(self, use_jit)
 
-    def get_code(self):
+    def get_code(self, for_jit=False):
 
         super().get_code()
 
@@ -91,9 +91,10 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
                           }}
 
                         }}
+                    """
 
-
-
+        if not for_jit:
+            self.code += f"""
                         extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}) {{
 
                             // device_id is provided, so we set the GPU device accordingly

@@ -9,9 +9,11 @@ class CpuReduc(MapReduce, Cpu_link_compile):
 
     AssignZero = CpuAssignZero
 
-    def __init__(self, *args):
+    def __init__(self, use_jit, *args):
+        if use_jit:
+            raise ValueError("JIT compiling not yet implemented in Cpu mode")
         MapReduce.__init__(self, *args)
-        Cpu_link_compile.__init__(self)
+        Cpu_link_compile.__init__(self, use_jit)
 
     def get_code(self):
 

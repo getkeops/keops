@@ -57,13 +57,11 @@ def neg_infinity(dtype):
 
 def infinity(dtype):
     if dtype == "float":
-        code_gpu = "NPP_MAXABS_32F"
+        code = "( 3.402823466e+38f )"
     elif dtype == "double":
-        code_gpu = "NPP_MAXABS_64F"
+        code = "( 1.7976931348623158e+308 )"
     else:
         raise ValueError("only float and double dtypes are implemented in new python engine for now")
-    code_cpu = "std::numeric_limits< {dtype} >::infinity()"
-    code = f"\n#ifdef __CUDACC__\n{code_gpu}\n#else\n{code_cpu}\n#endif\n"
     return c_variable(dtype, code)
         
 def cast_to(dtype):
