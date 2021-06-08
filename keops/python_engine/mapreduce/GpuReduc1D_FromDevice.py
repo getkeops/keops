@@ -38,11 +38,16 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
 
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")
+            
+        if for_jit:
+            optional_extern_qualif = 'extern "C" '
+        else:
+            optional_extern_qualif = ""
 
         self.code = f"""
                         {self.headers}
 
-                        __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
+                        {optional_extern_qualif}__global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
     
                           // get the index of the current thread
                           int i = blockIdx.x * blockDim.x + threadIdx.x;

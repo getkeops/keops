@@ -5,7 +5,12 @@
 #include <cuda.h>
 #include <stdio.h>
 #include <iostream>
+#include <stdarg.h>
+
+#define TIMEIT 1
+#if TIMEIT
 #include <ctime>
+#endif
 
 
 #define NVRTC_SAFE_CALL(x)                                        \
@@ -53,11 +58,14 @@ char* read_text_file(char const* path) {
 
 extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) {
         
+#if TIMEIT
     clock_t begin, end;
     
+    begin = clock();
+#endif
+
     char *ptx;
 
-    begin = clock();
     nvrtcProgram prog;
 
     NVRTC_SAFE_CALL(nvrtcCreateProgram(&prog,         // prog
@@ -90,93 +98,111 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) 
     NVRTC_SAFE_CALL(nvrtcGetPTX(prog, ptx));
     // Destroy the program.
     NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
+    
+#if TIMEIT
     end = clock();
     std::cout << "time for compiling ptx code : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
-    // write ptx code to file
+    
     begin = clock();
+#endif
+    // write ptx code to file
     FILE *ptx_file = fopen(ptx_file_name, "w");
     fputs(ptx, ptx_file);
     fclose(ptx_file);
+#if TIMEIT
     end = clock();
     std::cout << "time for writing ptx code to file : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
+#endif
 
     return 0;
 }
 
 
-extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny, float *out, float *arg0, float *arg1, float *arg2) {
+extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny, float *out, int nargs, ...) {
+    
+    float *arg[nargs];
+    va_list ap;
+    va_start(ap, nargs);
+    for (int i=0; i<nargs; i++)
+        arg[i] = va_arg(ap, float*);
+    va_end(ap);
     
     dim3 blockSize;
     blockSize.x = 32;
 	
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
-    
+
+#if TIMEIT    
     clock_t begin, end;
+    begin = clock();
+#endif
     
     char *ptx;
     
     // read ptx code from file
-    begin = clock();
     ptx = read_text_file(ptx_file_name);
+#if TIMEIT    
     end = clock();
     std::cout << "time for reading ptx code from file : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
+
     begin = clock();
+#endif
     // Load the generated PTX and get a handle to the kernel.
     CUdevice cuDevice;
     //CUcontext context;
     CUmodule module;
     CUfunction kernel;
+
+    CUDA_SAFE_CALL(cuInit(0));
+
+    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, 0));
+
+    //CUDA_SAFE_CALL(cuCtxCreate(&context, 0, cuDevice));
+#if TIMEIT  
     end = clock();
-    
     std::cout << "time for loading the ptx (part 1) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     
     begin = clock();
-    CUDA_SAFE_CALL(cuInit(0));
+#endif
+    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
+#if TIMEIT 
     end = clock();
-    std::cout << "time for loading the ptx part 2) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
+    std::cout << "time for loading the ptx (part 2) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     
     begin = clock();
-    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, 0));
+#endif
+    CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
+#if TIMEIT
     end = clock();
     std::cout << "time for loading the ptx (part 3) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
-    begin = clock();
-    //CUDA_SAFE_CALL(cuCtxCreate(&context, 0, cuDevice));
-    end = clock();
-    std::cout << "time for loading the ptx (part 4) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
-    begin = clock();
-    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
-    end = clock();
-    std::cout << "time for loading the ptx (part 5) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
-    begin = clock();
-    CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
-    end = clock();
-    std::cout << "time for loading the ptx (part 6) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
   
-        
-    void *args[] = { &nx, &ny, &out, &arg0, &arg1, &arg2 };
     begin = clock();
+#endif
+    void *kernel_params[nargs+3];
+    kernel_params[0] = &nx;
+    kernel_params[1] = &ny;
+    kernel_params[2] = &out;
+    for (int i=0; i<nargs; i++)
+        kernel_params[i+3] = &arg[i];
     CUDA_SAFE_CALL(cuLaunchKernel(kernel,
                    gridSize.x, gridSize.y, gridSize.z,    // grid dim
                    blockSize.x, blockSize.y, blockSize.z,   // block dim
                    blockSize.x * dimY * sizeof(float), NULL,             // shared mem and stream
-                   args, 0));           // arguments
+                   kernel_params, 0));           // arguments
     CUDA_SAFE_CALL(cuCtxSynchronize());
+#if TIMEIT
     end = clock();
     std::cout << "time for executing kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     
-    // Release resources.
     begin = clock();
+#endif
+    // Release resources.
     CUDA_SAFE_CALL(cuModuleUnload(module));
     //CUDA_SAFE_CALL(cuCtxDestroy(context));
+#if TIMEIT
     end = clock();
     std::cout << "time for releasing resources : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;                                              
-
+#endif
     return 0;
 }
