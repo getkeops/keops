@@ -5,6 +5,6 @@ os.makedirs(build_path, exist_ok=True)
 
 from keops.python_engine.get_keops_dll import get_keops_dll
 
-use_jit = False
+use_jit = True
 
 
