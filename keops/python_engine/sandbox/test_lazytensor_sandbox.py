@@ -12,7 +12,7 @@ dtype = torch.float32
 sum_scheme = 'block_sum'
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
-do_warmup = True
+do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)

@@ -118,22 +118,14 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) 
 }
 
 
-extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny, float *out, int nargs, ...) {
-    
-    float *arg[nargs];
-    va_list ap;
-    va_start(ap, nargs);
-    for (int i=0; i<nargs; i++)
-        arg[i] = va_arg(ap, float*);
-    va_end(ap);
-    
-    dim3 blockSize;
-    blockSize.x = 32;
-	
-    dim3 gridSize;
-    gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-#if TIMEIT    
+
+
+
+
+
+extern "C" __host__ int LoadKernel(void **pp_cuDevice, void **pp_module, void **pp_kernel, void **pp_ptx, const char* ptx_file_name) {
+    #if TIMEIT    
     clock_t begin, end;
     begin = clock();
 #endif
@@ -176,16 +168,59 @@ extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny
 #if TIMEIT
     end = clock();
     std::cout << "time for loading the ptx (part 3) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-  
+#endif
+
+    *pp_cuDevice = (void*)(&cuDevice);
+    *pp_module = &module;
+    *pp_kernel = &kernel;
+    *pp_ptx = &ptx;
+    
+    return 0;
+}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+extern "C" __host__ int Eval(void **pp_cuDevice, void **pp_module, void **pp_kernel, void **pp_ptx, int dimY, int nx, int ny, float *out, int nargs, ...) {
+    
+    float *arg[nargs];
+    va_list ap;
+    va_start(ap, nargs);
+    for (int i=0; i<nargs; i++)
+        arg[i] = va_arg(ap, float*);
+    va_end(ap);
+    
+    dim3 blockSize;
+    blockSize.x = 32;
+	
+    dim3 gridSize;
+    gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
+
+#if TIMEIT    
+    clock_t begin, end;
     begin = clock();
 #endif
+    
+    // Load the generated PTX and get a handle to the kernel.
+    CUdevice *p_cuDevice = (CUdevice*)(*pp_cuDevice);
+    //CUcontext context;
+    CUmodule *p_module = (CUmodule*)(*pp_module);
+    CUfunction *p_kernel = (CUfunction*)(*pp_kernel);
+    
+    char *ptx = (char*)(*pp_ptx);
+
     void *kernel_params[nargs+3];
     kernel_params[0] = &nx;
     kernel_params[1] = &ny;
     kernel_params[2] = &out;
     for (int i=0; i<nargs; i++)
         kernel_params[i+3] = &arg[i];
-    CUDA_SAFE_CALL(cuLaunchKernel(kernel,
+    CUDA_SAFE_CALL(cuLaunchKernel(*p_kernel,
                    gridSize.x, gridSize.y, gridSize.z,    // grid dim
                    blockSize.x, blockSize.y, blockSize.z,   // block dim
                    blockSize.x * dimY * sizeof(float), NULL,             // shared mem and stream
@@ -198,8 +233,7 @@ extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny
     begin = clock();
 #endif
     // Release resources.
-    CUDA_SAFE_CALL(cuModuleUnload(module));
-    //CUDA_SAFE_CALL(cuCtxDestroy(context));
+    //CUDA_SAFE_CALL(cuModuleUnload(*p_module));
 #if TIMEIT
     end = clock();
     std::cout << "time for releasing resources : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;                                              

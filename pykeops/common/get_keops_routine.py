@@ -1,4 +1,4 @@
-from ctypes import create_string_buffer, c_char_p, c_int, CDLL
+from ctypes import create_string_buffer, c_char_p, c_int, CDLL, c_void_p, byref
 
 from keops.python_engine.utils.code_gen_utils import get_hash_name
 from keops.python_engine import get_keops_dll, use_jit
@@ -35,10 +35,14 @@ class get_keops_routine_class:
         
     def __call__(self, nx, ny, device_id, ranges_ctype, out_ctype, *args_ctype):
         if use_jit:
-            self.dll.Eval.argtypes = [c_char_p, c_int, c_int, c_int, out_ctype["type"], c_int] + [arg["type"] for arg in args_ctype]
+            self.dll.LoadKernel.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p, c_char_p]
+            p_cuDevice, p_module, p_kernel, p_ptx = c_int(), c_int(), c_int(), c_int()
+            self.dll.LoadKernel(byref(p_cuDevice), byref(p_module), byref(p_kernel), byref(p_ptx), create_string_buffer(self.low_level_code_file))
+            
+            self.dll.Eval.argtypes = [c_void_p, c_void_p, c_void_p, c_void_p, c_int, c_int, c_int, out_ctype["type"], c_int] + [arg["type"] for arg in args_ctype]
             c_args = [arg["data"] for arg in args_ctype]
             nargs = len(args_ctype)
-            self.dll.Eval(create_string_buffer(self.low_level_code_file), c_int(self.dimy), c_int(nx), c_int(ny), out_ctype["data"], c_int(nargs), *c_args)
+            self.dll.Eval(byref(p_cuDevice), byref(p_module), byref(p_kernel), byref(p_ptx), c_int(self.dimy), c_int(nx), c_int(ny), out_ctype["data"], c_int(nargs), *c_args)
         else:
             self.dll.launch_keops.argtypes = [c_int, c_int, c_int, ranges_ctype["type"], out_ctype["type"]] + [arg["type"] for arg in args_ctype]
             c_args = [arg["data"] for arg in args_ctype]
