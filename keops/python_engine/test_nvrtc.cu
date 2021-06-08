@@ -1,4 +1,5 @@
 
+
 // nvcc -shared -Xcompiler -fPIC -lnvrtc -lcuda test_nvrtc.cu -o test_nvrtc.so
 
 #include <nvrtc.h>
