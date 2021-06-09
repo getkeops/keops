@@ -18,7 +18,7 @@ class link_compile:
         if use_jit:
             # these are used for JIT compiling mode
             self.low_level_code_file = (build_path + os.path.sep + self.gencode_filename + "." + self.low_level_code_extension).encode('utf-8')
-            self.my_c_dll = CDLL(self.keops_binary)
+            self.my_c_dll = CDLL(self.jit_binary)
         else:
             # these are used for command line compiling mode
             self.dllname = self.gencode_file + ".so"  
@@ -63,7 +63,7 @@ class link_compile:
     def get_dll_and_params(self):
         file_to_check = self.low_level_code_file if self.use_jit else self.dllname
         if not os.path.exists(file_to_check):
-            print("[KeOps] Compiling formula :", self.red_formula, "...", flush=True)
+            print("[KeOps] Compiling formula :", self.red_formula, "...", flush=True, end="")
             start = time.time()
             self.compile_code()
             self.save_info()
@@ -72,7 +72,7 @@ class link_compile:
         else:
             self.read_info()
         if self.use_jit:
-            return dict(dllname=self.keops_binary, low_level_code_file=self.low_level_code_file, tagI=self.tagI, dim=self.dim, dimy=self.dimy)
+            return dict(dllname=self.jit_binary, low_level_code_file=self.low_level_code_file, tagI=self.tagI, dim=self.dim, dimy=self.dimy)
         else:
             return dict(dllname=self.dllname, tagI=self.tagI, dim=self.dim)    
         
