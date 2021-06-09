@@ -1,5 +1,5 @@
 
-// nvcc -shared -Xcompiler -fPIC -lnvrtc -lcuda test_nvrtc.cu -o test_nvrtc.so
+// nvcc -shared -Xcompiler -fPIC -lnvrtc -lcuda keops_nvrtc.cu -o keops_nvrtc.so
 
 #include <nvrtc.h>
 #include <cuda.h>
@@ -7,7 +7,7 @@
 #include <iostream>
 #include <stdarg.h>
 
-#define TIMEIT 1
+#define TIMEIT 0
 #if TIMEIT
 #include <ctime>
 #endif
