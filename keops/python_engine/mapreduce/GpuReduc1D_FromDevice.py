@@ -3,15 +3,14 @@ from keops.python_engine.mapreduce.GpuAssignZero import GpuAssignZero
 from keops.python_engine.utils.code_gen_utils import c_variable, c_array, c_include, signature_list, call_list
 from keops.python_engine.compilation import Gpu_link_compile
 
-
 class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
 
-    def __init__(self, use_jit, *args):
+    def __init__(self, *args):
         MapReduce.__init__(self, *args)
-        Gpu_link_compile.__init__(self, use_jit)
+        Gpu_link_compile.__init__(self)
 
     def get_code(self, for_jit=False):
 
