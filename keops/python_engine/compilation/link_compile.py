@@ -24,7 +24,7 @@ class link_compile:
                                                 self.sum_scheme_string)
         
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo
-        self.info_file = self.gencode_file + ".nfo"      
+        self.info_file = build_path + os.path.sep + self.gencode_filename + ".nfo"      
         
         if use_jit:
             # these are used for JIT compiling mode
