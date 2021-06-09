@@ -1,7 +1,8 @@
 from ctypes import create_string_buffer, c_char_p, c_int, CDLL
 
 from keops.python_engine.utils.code_gen_utils import get_hash_name
-from keops.python_engine import get_keops_dll, use_jit
+from keops.python_engine import use_jit
+from keops.python_engine.get_keops_dll import get_keops_dll
 
 
 
@@ -28,9 +29,9 @@ class get_keops_routine_class:
     def __init__(self, map_reduce_id, *args):
         self.dll = None
         if use_jit:
-            self.dllname, self.low_level_code_file, self.tagI, self.dim, self.dimy = get_keops_dll(True, map_reduce_id, *args)
+            self.dllname, self.low_level_code_file, self.tagI, self.dim, self.dimy = get_keops_dll(map_reduce_id, *args)
         else:
-            self.dllname, self.tagI, self.dim = get_keops_dll(False, map_reduce_id, *args)
+            self.dllname, self.tagI, self.dim = get_keops_dll(map_reduce_id, *args)
         self.dll = CDLL(self.dllname)            
         
     def __call__(self, nx, ny, device_id, ranges_ctype, out_ctype, *args_ctype):

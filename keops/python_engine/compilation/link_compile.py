@@ -3,17 +3,16 @@ from ctypes import create_string_buffer, CDLL
 
 from keops.python_engine.utils.code_gen_utils import get_hash_name
 from keops.python_engine.config import build_path
+from keops.python_engine import use_jit, jit_binary
 
 class link_compile:
     
     # base class for compiling the map_reduce schemes and
     # providing the dll to KeOps bindings.
     
-    def __init__(self, use_jit):
+    def __init__(self):
         # N.B. Here self is assumed to be populated by the __init__ of one of the MapReduce classes
         
-        # use_jit : if True, use JIT compiling mode
-        self.use_jit = use_jit
         # we create the hash string id corresponding to all parameters, e.g. 7b9a611f7e
         self.gencode_filename = get_hash_name(type(self), 
                                                 self.red_formula_string, 
@@ -72,7 +71,7 @@ class link_compile:
         
     def compile_code(self):   
         # method to generate the code and compile it           
-        if self.use_jit:
+        if use_jit:
             # generate the code and save it in self.code, by calling get_code method from CpuReduc or GpuReduc classes :
             self.get_code(for_jit=True)
             # we execute the main dll, passing the code as argument, and the name of the low level code file to save the assembly instructions
@@ -93,7 +92,7 @@ class link_compile:
         # main method of the class : it compiles - if needed - the code and returns the name of the dll to be run for 
         # performing the reduction, e.g. 7b9a611f7e.so, or in the case of JIT compilation, the name of the main KeOps dll,
         # and the name of the assembly code file.
-        file_to_check = self.low_level_code_file if self.use_jit else self.dllname
+        file_to_check = self.low_level_code_file if use_jit else self.dllname
         if not os.path.exists(file_to_check):
             print("[KeOps] Compiling formula :", self.red_formula, "...", flush=True, end="")
             start = time.time()
@@ -103,7 +102,7 @@ class link_compile:
             print("Done ({:.2f} s)".format(elapsed))
         else:
             self.read_info()
-        if self.use_jit:
+        if use_jit:
             return dict(dllname=self.jit_binary, low_level_code_file=self.low_level_code_file, tagI=self.tagI, dim=self.dim, dimy=self.dimy)
         else:
             return dict(dllname=self.dllname, tagI=self.tagI, dim=self.dim)    
