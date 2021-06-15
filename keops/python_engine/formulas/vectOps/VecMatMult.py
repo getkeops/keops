@@ -1,5 +1,5 @@
-from keops.python_engine.formulas.maths.Operation import Operation
-from keops.python_engine.formulas.maths.TensorProd import TensorProd
+from keops.python_engine.formulas.Operation import Operation
+from keops.python_engine.formulas.vectOps.TensorProd import TensorProd
 
 
 # /////////////////////////////////////////////////////////////////////////

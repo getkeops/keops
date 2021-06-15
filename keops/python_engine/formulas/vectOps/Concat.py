@@ -1,6 +1,6 @@
 from keops.python_engine.utils.code_gen_utils import VectCopy
-from keops.python_engine.formulas.maths.Operation import Operation
-from keops.python_engine.formulas.maths.Extract import Extract
+from keops.python_engine.formulas.Operation import Operation
+from keops.python_engine.formulas.vectOps.Extract import Extract
 
 
 ############################

@@ -1,4 +1,4 @@
-from keops.python_engine.formulas.maths.SqNorm2 import SqNorm2
+from keops.python_engine.formulas.vectOps.SqNorm2 import SqNorm2
 
 ##########################
 ######    SqDist     #####

@@ -71,32 +71,32 @@ class Operation(Tree):
 
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""
-        from keops.python_engine.formulas.maths.Mult import Mult
+        from keops.python_engine.formulas.basicMathOps.Mult import Mult
         return Mult(self, other)
 
     def __rmul__(self, other):
         """g*f redirects to Mult(f,g)"""
-        from keops.python_engine.formulas.maths.Mult import Mult
+        from keops.python_engine.formulas.basicMathOps.Mult import Mult
         return Mult(self, other)
 
     def __truediv__(self, other):
         """f/g redirects to Divide(f,g)"""
-        from keops.python_engine.formulas.maths.Divide import Divide
+        from keops.python_engine.formulas.basicMathOps.Divide import Divide
         return Divide(self, other)
 
     def __add__(self, other):
         """f+g redirects to Add(f,g)"""
-        from keops.python_engine.formulas.maths.Add import Add
+        from keops.python_engine.formulas.basicMathOps.Add import Add
         return Add(self, other)
 
     def __sub__(self, other):
         """f-g redirects to Subtract(f,g)"""
-        from keops.python_engine.formulas.maths.Subtract import Subtract
+        from keops.python_engine.formulas.basicMathOps.Subtract import Subtract
         return Subtract(self, other)
 
     def __neg__(self):
         """-f redirects to Minus(f)"""
-        from keops.python_engine.formulas.maths.Minus import Minus
+        from keops.python_engine.formulas.basicMathOps.Minus import Minus
         return Minus(self)
 
     def __pow__(self, other):
@@ -109,7 +109,7 @@ class Operation(Tree):
 
     def __or__(self, other):
         """f|g redirects to Scalprod(f,g)"""
-        from keops.python_engine.formulas.maths.Scalprod import Scalprod
+        from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
         return Scalprod(self, other)
 
     def Op(self, out, table, param):

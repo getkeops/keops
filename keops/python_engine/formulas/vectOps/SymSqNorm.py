@@ -1,4 +1,4 @@
-from keops.python_engine.formulas.maths import Sum, TensorProd
+from keops.python_engine.formulas.vectOps import Sum, TensorProd
 
 ###########################################################################
 ####       Fully anisotropic norm, if S.dim == A.dim * A.dim          #####

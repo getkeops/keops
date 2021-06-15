@@ -1,4 +1,4 @@
-from keops.python_engine.formulas.maths import SqNormIso, SqNormDiag, SymSqNorm
+from keops.python_engine.formulas.vectOps import SqNormIso, SqNormDiag, SymSqNorm
 
 # WeightedSqNorm(A,X) : redirects to SqNormIso, SqNormDiag or SymSqNorm
 # depending on dimension of A.

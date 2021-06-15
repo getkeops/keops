@@ -1,4 +1,4 @@
-from keops.python_engine.formulas.maths.Operation import Operation
+from keops.python_engine.formulas.Operation import Operation
 
 ####################################
 ######    Tensor product       #####
