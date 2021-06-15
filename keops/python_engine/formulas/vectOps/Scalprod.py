@@ -1,4 +1,4 @@
-from keops.python_engine.formulas.maths.Sum import Sum
+from keops.python_engine.formulas.vectOps.Sum import Sum
 
 ##########################
 #####    Scalprod     ####

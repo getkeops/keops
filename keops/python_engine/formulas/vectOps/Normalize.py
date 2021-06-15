@@ -1,4 +1,5 @@
-from keops.python_engine.formulas.maths import Rsqrt, SqNorm2
+from keops.python_engine.formulas.maths import Rsqrt
+from keops.python_engine.formulas.vectOps import SqNorm2
 
 
 ##########################

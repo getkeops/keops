@@ -1,5 +1,5 @@
-from keops.python_engine.formulas.maths.Operation import Broadcast
-from keops.python_engine.formulas.maths.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.formulas.Operation import Broadcast
+from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.python_engine.formulas.variables.Zero import Zero
 
 

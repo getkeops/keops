@@ -1,6 +1,6 @@
 from keops.python_engine.formulas.maths.Rsqrt import Rsqrt
 from keops.python_engine.formulas.maths.Square import Square
-from keops.python_engine.formulas.maths.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
 
 
 class Acos(VectorizedScalarOp):

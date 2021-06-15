@@ -1,5 +1,5 @@
 from keops.python_engine.utils.code_gen_utils import c_array, VectCopy
-from keops.python_engine.formulas.maths.Operation import Operation
+from keops.python_engine.formulas.Operation import Operation
 
 
 # //////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 from keops.python_engine.utils.code_gen_utils import c_zero_float, VectApply
-from keops.python_engine.formulas.maths.Operation import Operation
+from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.formulas.variables.Zero import Zero
 
 
