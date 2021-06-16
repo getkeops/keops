@@ -31,6 +31,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         outi = self.outi
         acc = self.acc
         args = self.args
+        argshapes = self.argshapes
         table = self.varloader.direct_table(args, i, j)
         sum_scheme = self.sum_scheme
 
@@ -57,7 +58,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                             return 0;
                         }}
                         
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}) {{
+                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
                             return CpuConv(nx, ny, out, {call_list(args)});
                         }}
                     """
