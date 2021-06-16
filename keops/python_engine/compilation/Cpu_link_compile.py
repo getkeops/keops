@@ -1,14 +1,16 @@
 import os
 
 from keops.python_engine.compilation import link_compile
-from keops.python_engine.config import use_OpenMP
+from keops.python_engine.config import use_OpenMP, base_dir_path
             
 class Cpu_link_compile(link_compile):
 
     source_code_extension = "cpp"
     
+    bindings_source_dir = base_dir_path+"binders"
+    
     compiler = "g++"
-    compile_options = ["-shared", "-fPIC", "-O3", "-flto"]
+    compile_options = ["-shared", "-fPIC", "-O3", "-flto", "-I"+bindings_source_dir]
     
     if use_OpenMP:
         import platform

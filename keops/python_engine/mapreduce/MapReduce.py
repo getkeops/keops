@@ -5,7 +5,7 @@ from keops.python_engine.reductions import *
 class MapReduce:
     # base class for map-reduce schemes
     
-    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string):
+    def __init__(self, red_formula_string, aliases, nargs, dtype, dtypeacc, sum_scheme_string, tagHostDevice, tagCpuGpu, tag1D2D):
         self.red_formula_string = red_formula_string
         self.aliases = aliases
                 
@@ -15,6 +15,7 @@ class MapReduce:
         self.dtypeacc = dtypeacc
         self.nargs = nargs
         self.sum_scheme_string = sum_scheme_string
+        self.tagHostDevice, self.tagCpuGpu, self.tag1D2D = tagHostDevice, tagCpuGpu, tag1D2D
     
     def get_code(self):       
         
