@@ -21,9 +21,15 @@ class link_compile:
                                                 self.dtype, 
                                                 self.dtypeacc, 
                                                 self.sum_scheme_string)
+                                                
+        if use_jit:
+            self.gencode_filename += "_jit"
         
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo
-        self.info_file = build_path + os.path.sep + self.gencode_filename + ".nfo"      
+        self.info_file = build_path + os.path.sep + self.gencode_filename + ".nfo"   
+        
+        # gencode_file is the name of the source file to be created and then compiled, e.g. 7b9a611f7e.cpp or 7b9a611f7e.cu
+        self.gencode_file = build_path + os.path.sep + self.gencode_filename + "." + self.source_code_extension   
         
         if use_jit:
             # these are used for JIT compiling mode
@@ -33,8 +39,6 @@ class link_compile:
             self.my_c_dll = CDLL(jit_binary)
         else:
             # these are used for command line compiling mode
-            # gencode_file is the name of the source file to be created and then compiled, e.g. 7b9a611f7e.cpp or 7b9a611f7e.cu
-            self.gencode_file = build_path + os.path.sep + self.gencode_filename + "." + self.source_code_extension
             # dllname is the name of the binary dll obtained after compilation, e.g. 7b9a611f7e.so
             self.dllname = self.gencode_file + ".so"  
             # compile command string to obtain the dll, e.g. "g++ 7b9a611f7e.cpp -shared -fPIC -O3 -flto -o 7b9a611f7e.so"
@@ -70,17 +74,15 @@ class link_compile:
         f.close()
         
     def compile_code(self):   
-        # method to generate the code and compile it           
+        # method to generate the code and compile it     
+        # generate the code and save it in self.code, by calling get_code method from CpuReduc or GpuReduc classes :
+        self.get_code(for_jit=use_jit)   
+        # write the code in the source file
+        self.write_code()
         if use_jit:
-            # generate the code and save it in self.code, by calling get_code method from CpuReduc or GpuReduc classes :
-            self.get_code(for_jit=True)
             # we execute the main dll, passing the code as argument, and the name of the low level code file to save the assembly instructions
             self.my_c_dll.Compile(create_string_buffer(self.low_level_code_file), create_string_buffer(self.code.encode('utf-8')))
         else:
-            # generate the code and save it in self.code, by calling get_code method from CpuReduc or GpuReduc classes :
-            self.get_code(for_jit=False)
-            # write the code in the source file
-            self.write_code()
             # call the compilation command
             os.system(self.compile_command)
         # retreive some parameters that will be saved into info_file.
