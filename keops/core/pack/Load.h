@@ -11,11 +11,11 @@ namespace keops {
 // will execute:
 //   xi[0] = px[7][5*2];
 //   xi[1] = px[7][5*2+1];
-//   xi[3] = px[9][5*2];
-//   xi[4] = px[9][5*2+1];
-//   xi[5] = px[8][5*3];
-//   xi[6] = px[8][5*3+1];
-//   xi[7] = px[8][5*3+2];
+//   xi[2] = px[9][5*2];
+//   xi[3] = px[9][5*2+1];
+//   xi[4] = px[8][5*3];
+//   xi[5] = px[8][5*3+1];
+//   xi[6] = px[8][5*3+2];
   
 template < class DIMS, class INDS >
 struct load_Impl {
@@ -49,11 +49,11 @@ HOST_DEVICE static void load(int i, TYPE *xi, TYPE **px) {
 // will execute:
 //   xi[0] = px[7][(5+offsets[0])*2];
 //   xi[1] = px[7][(5+offsets[0])*2+1];
-//   xi[3] = px[9][(5+offsets[1])*2];
-//   xi[4] = px[9][(5+offsets[1])*2+1];
-//   xi[5] = px[8][(5+offsets[2])*3];
-//   xi[6] = px[8][(5+offsets[2])*3+1];
-//   xi[7] = px[8][(5+offsets[2])*3+2];
+//   xi[2] = px[9][(5+offsets[1])*2];
+//   xi[3] = px[9][(5+offsets[1])*2+1];
+//   xi[4] = px[8][(5+offsets[2])*3];
+//   xi[5] = px[8][(5+offsets[2])*3+1];
+//   xi[6] = px[8][(5+offsets[2])*3+2];
 
 template < class DIMS, class INDS >
 struct load_offsets_Impl {

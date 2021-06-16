@@ -45,6 +45,7 @@ class MapReduce:
         self.argshapes = c_variable(pointer("int"), argshapenames)
         
         self.acc = c_array(dtypeacc, red_formula.dimred, "acc")
+        self.acctmp = c_array(dtypeacc, red_formula.dimred, "acctmp")
         self.fout = c_array(dtype, formula.dim, "fout")
         self.outi = c_array(dtype, red_formula.dim, f"(out + i * {red_formula.dim})")
 
