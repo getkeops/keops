@@ -115,14 +115,23 @@ class LoadKeOps_new:
         self.dimout = myfun.dim
         M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)
         
+        # get ranges argument as ctypes
         if not ranges:
             ranges = (-1,) # temporary hack
         ranges_ctype = tools.ctypes(tools.array(ranges))
         
+        # convert arguments arrays to ctypes
+        args_ctype = [tools.ctypes(arg) for arg in args]
+        
+        # get all shapes of arguments as ctypes
+        argshapes_ctype = [tools.ctypes(tools.array(arg.shape)) for arg in args]
+        
+        # initialize output array and converting to ctypes
         out = tools.zeros((M, myfun.dim), dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
-        args_ctype = (tools.ctypes(arg) for arg in args)
-        myfun(M, N, device_id, ranges_ctype, out_ctype, *args_ctype)
+        
+        # call the routine
+        myfun(M, N, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype)
         return out
 
 

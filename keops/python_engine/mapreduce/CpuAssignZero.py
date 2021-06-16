@@ -17,6 +17,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         outi = self.outi
         dtype = self.dtype
         args = self.args
+        argshapes = self.argshapes
 
         self.headers += c_include("omp.h")
 
@@ -31,7 +32,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                             return 0;
                         }}
                         
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}) {{
+                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
                             return AssignZeroCpu(nx, ny, out, {call_list(args)});
                         }}
                     """

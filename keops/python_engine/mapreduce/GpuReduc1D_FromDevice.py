@@ -26,6 +26,7 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
         outi = self.outi
         acc = self.acc
         args = self.args
+        argshapes = self.argshapes
         sum_scheme = self.sum_scheme
 
         param_loc = self.param_loc
@@ -99,7 +100,7 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
 
         if not for_jit:
             self.code += f"""
-                        extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}) {{
+                        extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}, {signature_list(argshapes)}) {{
 
                             // device_id is provided, so we set the GPU device accordingly
                             // Warning : is has to be consistent with location of data

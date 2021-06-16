@@ -37,8 +37,13 @@ class MapReduce:
         
         self.xi = c_array(dtype, self.varloader.dimx, "xi")
         self.param_loc = c_array(dtype, self.varloader.dimp, "param_loc")
+        
         argnames = new_c_varname("arg", nargs)
         self.args = c_variable(pointer(dtype), argnames)
+        
+        argshapenames = new_c_varname("argshape", nargs)
+        self.argshapes = c_variable(pointer("int"), argshapenames)
+        
         self.acc = c_array(dtypeacc, red_formula.dimred, "acc")
         self.fout = c_array(dtype, formula.dim, "fout")
         self.outi = c_array(dtype, red_formula.dim, f"(out + i * {red_formula.dim})")

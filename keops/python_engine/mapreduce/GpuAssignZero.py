@@ -17,6 +17,7 @@ class GpuAssignZero(MapReduce, Gpu_link_compile):
         outi = self.outi
         dtype = self.dtype
         args = self.args
+        argshapes = self.argshapes
         varloader = self.varloader
 
         if dtype == "half2":
@@ -38,7 +39,7 @@ class GpuAssignZero(MapReduce, Gpu_link_compile):
 
 
 
-                        extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}) {{
+                        extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}, {signature_list(argshapes)}) {{
 
                             // device_id is provided, so we set the GPU device accordingly
                             // Warning : is has to be consistent with location of data
