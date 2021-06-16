@@ -228,18 +228,26 @@ class Var_loader:
         formula = red_formula.formula
         tagI, tagJ = red_formula.tagI, red_formula.tagJ
         
+        mymin = lambda x : min(x) if len(x)>0 else -1
+        
         self.Varsi = formula.Vars(cat=tagI)         # list all "i"-indexed variables in the formula
+        self.nvarsi = len(self.Varsi)               # number of "i"-indexed variables
         self.indsi = GetInds(self.Varsi)            # list indices of "i"-indexed variables
+        self.pos_first_argI = mymin(self.indsi)       # first index of "i"-indexed variables
         self.dimsx = GetDims(self.Varsi)            # list dimensions of "i"-indexed variables
         self.dimx = sum(self.dimsx)                 # total dimension of "i"-indexed variables
         
         self.Varsj = formula.Vars(cat=tagJ)         # list all "j"-indexed variables in the formula
+        self.nvarsj = len(self.Varsj)               # number of "j"-indexed variables
         self.indsj = GetInds(self.Varsj)            # list indices of "j"-indexed variables
+        self.pos_first_argJ = mymin(self.indsj)       # first index of "j"-indexed variables
         self.dimsy = GetDims(self.Varsj)            # list dimensions of "j"-indexed variables
         self.dimy = sum(self.dimsy)                 # total dimension of "j"-indexed variables
         
         self.Varsp = formula.Vars(cat=2)            # list all parameter variables in the formula
+        self.nvarsp = len(self.Varsp)               # number of parameter variables
         self.indsp = GetInds(self.Varsp)            # list indices of parameter variables
+        self.pos_first_argP = mymin(self.indsp)       # first index of parameter variables
         self.dimsp = GetDims(self.Varsp)            # list indices of parameter variables
         self.dimp = sum(self.dimsp)                 # total dimension of parameter variables
         
@@ -313,7 +321,22 @@ class Var_loader:
         return string   
         
 
-
+def varseq_to_array(vars, vars_ptr_name):
+    # returns the C++ code corresponding to storing the values of a sequence of variables
+    # into an array.
+    
+    dtype = vars[0].dtype
+    nvars = len(vars)
+    
+    # we check that all variables have the same type
+    if not all(var.dtype==dtype for var in vars[1:]):
+        raise ValueError("[KeOps] internal error ; incompatible dtypes in varseq_to_array.")
+    string = f"""   {dtype} {vars_ptr_name}[{nvars}];
+              """
+    for i in range(nvars):
+        string += f"""  {vars_ptr_name}[{i}] = {vars[i].id};
+                   """
+    return string
 
 
 

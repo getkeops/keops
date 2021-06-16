@@ -1,8 +1,9 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
 from keops.python_engine.mapreduce.CpuAssignZero import CpuAssignZero
-from keops.python_engine.utils.code_gen_utils import c_include, signature_list, call_list
+from keops.python_engine.utils.code_gen_utils import c_include, signature_list, call_list, varseq_to_array
 from keops.python_engine.compilation import Cpu_link_compile
 from keops.python_engine import use_jit
+from keops.python_engine.binders.binders_definitions import binders_definitions
 
 
 class CpuReduc(MapReduce, Cpu_link_compile):
@@ -31,14 +32,24 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         outi = self.outi
         acc = self.acc
         args = self.args
+        nargs = len(args)
         argshapes = self.argshapes
-        table = self.varloader.direct_table(args, i, j)
+        
+        varloader = self.varloader
+        table = varloader.direct_table(args, i, j)
+        
+        tagHostDevice, tagCpuGpu, tag1D2D = self.tagHostDevice, self.tagCpuGpu, self.tag1D2D
+        
         sum_scheme = self.sum_scheme
 
         self.headers += c_include("cmath", "omp.h")
 
         self.code = f"""
                         {self.headers}
+                        
+                        {binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu, tag1D2D)}
+                        #include "Sizes.h"
+                        
                         int CpuConv(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
@@ -59,6 +70,11 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                         }}
                         
                         extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
+                            
+                            {varseq_to_array(args, "args_ptr")}
+                            {varseq_to_array(argshapes, "argshapes_ptr")}
+                            //Sizes SS({nargs}, args_ptr, argshapes_ptr, nx, ny);
+                            
                             return CpuConv(nx, ny, out, {call_list(args)});
                         }}
                     """
