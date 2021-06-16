@@ -110,7 +110,7 @@ class LoadKeOps_new:
         if max(list(len(arg.shape) for arg in args)) > 2:
             raise ValueError('[KeOps] reductions with batch dimensions are not yet implemented in new KeOps engine')
         
-        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme)
+        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme, tagHostDevice, tagCPUGPU, tag1D2D)
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
         M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)
