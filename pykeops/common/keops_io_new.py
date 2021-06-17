@@ -107,9 +107,11 @@ class LoadKeOps_new:
         
         if ranges:
             raise ValueError('[KeOps] ranges are not yet implemented in new KeOps engine')
-        
-        #if max(list(len(arg.shape) for arg in args)) > 2:
-        #    raise ValueError('[KeOps] reductions with batch dimensions are not yet implemented in new KeOps engine')
+
+        # detect the need for using "ranges" method
+        nbatchdims = len(args[0].shape)-2
+        if nbatchdims>0 or ranges:
+            map_reduce_id += "_ranges"
         
         myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme, tagHostDevice, tagCPUGPU, tag1D2D)
         self.tagIJ = myfun.tagI
@@ -126,7 +128,7 @@ class LoadKeOps_new:
                 
         # get all shapes of arguments as ctypes
         argshapes_ctype = [(c_int*(len(arg.shape)+1))(*((len(arg.shape),)+arg.shape)) for arg in args]
-        
+            
         # initialize output array and converting to ctypes        
         shapes = []
         for arg in args:

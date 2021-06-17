@@ -122,7 +122,7 @@ class Operation(Tree):
 
 # N.B. this is used internally
 def Broadcast(arg, dim):
-    from keops.python_engine.formulas.maths import SumT
+    from keops.python_engine.formulas.vectOps import SumT
 
     if arg.dim == dim or dim == 1:
         return arg

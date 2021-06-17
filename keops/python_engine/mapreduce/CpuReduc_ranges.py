@@ -1,11 +1,10 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
 from keops.python_engine.mapreduce.CpuAssignZero import CpuAssignZero
-from keops.python_engine.utils.code_gen_utils import c_include, signature_list, call_list
+from keops.python_engine.utils.code_gen_utils import c_variable, c_array, c_include, signature_list, call_list, varseq_to_array
 from keops.python_engine.compilation import Cpu_link_compile
 from keops.python_engine import use_jit
-
-from keops.python_engine.broadcast_batch_dimensions import define_fill_shapes_function
-
+from keops.python_engine.binders.binders_definitions import binders_definitions
+from keops.python_engine.broadcast_batch_dimensions import define_fill_shapes_function, define_broadcast_index_function, define_vect_broadcast_index_function
 
 class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
@@ -31,17 +30,24 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         red_formula = self.red_formula
         fout = self.fout
         outi = self.outi
-        xi = self.xi
-        yj = c_array(dtype, self.varloader.dimy, "yj")
-        param_loc = self.param_loc
         acc = self.acc
         acctmp = self.acctmp
         args = self.args
+        nargs = len(args)
         argshapes = self.argshapes
-        table = varloader.table(xi, yj, param_loc)
-        nvarsi, nvarsj, nvarsp = len(self.varloader.varsi), len(self.varloader.varsj), len(self.varloader.varsp)
-        sum_scheme = self.sum_scheme
         
+        xi = self.xi
+        yj = c_array(dtype, self.varloader.dimy, "yj")
+        param_loc = self.param_loc
+        
+        varloader = self.varloader
+        table = varloader.table(xi, yj, param_loc)
+        
+        nvarsi, nvarsj, nvarsp = len(self.varloader.Varsi), len(self.varloader.Varsj), len(self.varloader.Varsp)
+        
+        tagHostDevice, tagCpuGpu, tag1D2D = self.tagHostDevice, self.tagCpuGpu, self.tag1D2D
+        
+        sum_scheme = self.sum_scheme
         
         indices_i = c_array("int", nvarsi, "indices_i")
         indices_j = c_array("int", nvarsj, "indices_j")
@@ -54,8 +60,14 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         self.code = f"""
                         {self.headers}
                         #define __INDEX__ int32_t
+                  
+                        {binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu, tag1D2D)}
+                        #include "Sizes.h"
+                        #include "Ranges.h"
                         
                         {define_fill_shapes_function(red_formula)}
+                        {define_broadcast_index_function()}
+                        {define_vect_broadcast_index_function()}
                         
                         int CpuConv_ranges(int nx, int ny, 
                                             int nbatchdims, int* shapes,
@@ -74,7 +86,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     
                             int shapes_i[({nvarsi}) * (nbatchdims + 1)], shapes_j[{nvarsj} * (nbatchdims + 1)],
                                     shapes_p[{nvarsp} * (nbatchdims + 1)];
-                                    
+                            
                             // First, we fill shapes_i with the "relevant" shapes of the "i" variables,
                             // making it look like, say:
                             // [ A, .., B, M]
@@ -177,6 +189,22 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         
                         
                         extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
-                            return CpuConv_ranges(nx, ny, nbatchdims, shapes, nranges_x, nranges_y, ranges, out, {call_list(args)});
+                            
+                            {varseq_to_array(args, "args_ptr")}
+                            {varseq_to_array(argshapes, "argshapes_ptr")}
+
+                            Sizes SS({nargs}, args_ptr, argshapes_ptr, nx, ny);
+                            
+                            #if USE_HALF
+                              SS.switch_to_half2_indexing();
+                            #endif
+                            
+                            int nranges = 0;
+
+                            Ranges RR(SS, nranges, NULL);  // N.B. third arg should be ranges
+                            
+                            return CpuConv_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
+                                                      RR.nranges_x, RR.nranges_y, RR.castedranges,
+                                                      out, {call_list(args)});
                         }}
                     """
