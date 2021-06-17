@@ -56,7 +56,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         jmstarty = c_variable("int", "j-start_y")
 
         self.headers += c_include("cmath", "omp.h")
-
+        
+        
         self.code = f"""
                         {self.headers}
                         #define __INDEX__ int32_t
@@ -127,10 +128,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             
                             
                             for (int range_index = 0; range_index < nranges; range_index++) {{
-
                                 __INDEX__ start_x = ranges_x[2 * range_index];
                                 __INDEX__ end_x = ranges_x[2 * range_index + 1];
-
                                 __INDEX__ start_slice = (range_index < 1) ? 0 : slices_x[range_index - 1];
                                 __INDEX__ end_slice = slices_x[range_index];
 
@@ -202,16 +201,6 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             int nranges = 0;
 
                             Ranges RR(SS, nranges, NULL);  // N.B. third arg should be ranges
-
-std::cout << "nx, ny = " << nx << ", " << ny << std::endl; 
-std::cout << "SS.nx, SS.ny = " << SS.nx << ", " << SS.ny << std::endl;    
-std::cout << "SS.nbatchdims = " << SS.nbatchdims << std::endl;     
-std::cout << "SS.shapes = " << std::endl;    
-std::cout << SS.shapes[0] << " " << SS.shapes[1] << " " << SS.shapes[2] << " " << SS.shapes[3] << " " << SS.shapes[4] << std::endl;
-std::cout << SS.shapes[5] << " " << SS.shapes[6] << " " << SS.shapes[7] << " " << SS.shapes[8] << " " << SS.shapes[9] << std::endl;
-std::cout << SS.shapes[10] << " " << SS.shapes[11] << " " << SS.shapes[12] << " " << SS.shapes[13] << " " << SS.shapes[14] << std::endl;
-std::cout << SS.shapes[15] << " " << SS.shapes[16] << " " << SS.shapes[17] << " " << SS.shapes[18] << " " << SS.shapes[19] << std::endl;
-std::cout << SS.shapes[20] << " " << SS.shapes[21] << " " << SS.shapes[22] << " " << SS.shapes[23] << " " << SS.shapes[24] << std::endl;
                             
                             return CpuConv_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
                                                       RR.nranges_x, RR.nranges_y, RR.castedranges,

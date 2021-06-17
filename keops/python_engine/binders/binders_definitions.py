@@ -11,7 +11,7 @@ def binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu,
                 #include <iostream>
 
                 #define __TYPE__ {dtype}
-                #define keops_tagIJ {red_formula.tagJ}
+                #define keops_tagIJ {red_formula.tagI}
                 #define keops_pos_first_argI {varloader.pos_first_argI}
                 #define keops_pos_first_argJ {varloader.pos_first_argJ}
                 #define keops_dimout {red_formula.dim}
