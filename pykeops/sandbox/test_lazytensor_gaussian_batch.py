@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-B1, B2, M, N, D, DV = 3, 4, 2000, 2000, 3, 2
+B1, B2, M, N, D, DV = 3, 4, 20, 25, 3, 2
 
 
 test_grad = True
@@ -64,7 +64,6 @@ if len(out) > 1:
     print("relative error:", (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item())
 
 if test_grad:
-    print("")
     out_g = []
     for k, backend in enumerate(backends):
         start = time.time()
@@ -73,6 +72,9 @@ if test_grad:
         print("time for " + backend + " (grad):", end - start)
 
     if len(out_g) > 1:
+        print()
+        print("out_g[0]:",out_g[0].flatten()[:10])
+        print("out_g[1]:",out_g[1].flatten()[:10])
         print(
             "relative error grad:",
             (torch.norm(out_g[0] - out_g[1]) / torch.norm(out_g[0])).item(),
