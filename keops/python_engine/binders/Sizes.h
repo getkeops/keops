@@ -132,6 +132,9 @@ void Sizes::check_ranges(int nargs, __TYPE__** args, index_t* argshapes) {
     // Checks args in all the positions that correspond to "i" variables:
     for (int k = 0; k < keops_nvarsI; k++) {
       int i = keops_indsI[k];
+
+std::cout << "i var, i= " << i << std::endl; 
+
       // Fill in the (i+1)-th line of the "shapes" array ---------------------------
       int off_i = (i + 1) * (nbatchdims + 3);
       
@@ -195,6 +198,8 @@ void Sizes::check_ranges(int nargs, __TYPE__** args, index_t* argshapes) {
     // Checks args in all the positions that correspond to "j" variables:
     for (int k = 0; k < keops_nvarsJ; k++) {
       int i = keops_indsJ[k];
+	  
+std::cout << "j var, i= " << i << std::endl; 
       
       // Check the number of dimensions --------------------------------------------
       int ndims = get_ndim(argshapes[i]);  // Number of dims of the i-th tensor
