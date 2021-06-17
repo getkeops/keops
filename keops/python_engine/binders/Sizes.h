@@ -8,7 +8,7 @@ public:
     nargs = _nargs;
 	nx = _nx;
 	ny = _ny;
-
+	
     // fill shapes wit "batch dimensions" [A, .., B], the table will look like:
     //
     // [ A, .., B, M, N, D_out]  -> output
@@ -18,7 +18,7 @@ public:
     // [ A, .., 1, M, 1, D_4  ]  -> N.B.: we support broadcasting on the batch dimensions!
     // [ 1, .., 1, M, 1, D_5  ]  ->      (we'll just ask users to fill in the shapes with *explicit* ones)
     fill_shape(_nargs, args, argshapes);
-
+	
     check_ranges(_nargs, args, argshapes);
 
     shapes = &_shapes[0];
@@ -95,7 +95,7 @@ void Sizes::fill_shape(int nargs, __TYPE__** args, index_t* argshapes) {
   } else {
     nbatchdims = 0;
   }
-
+  
   #if C_CONTIGUOUS
   MN_pos = nbatchdims;
   D_pos = nbatchdims + 1;
@@ -103,7 +103,7 @@ void Sizes::fill_shape(int nargs, __TYPE__** args, index_t* argshapes) {
   D_pos = 0;
   MN_pos = 1;
   #endif
-
+  
   // Now, we'll keep track of the output + all arguments' shapes in a large array:
   _shapes.resize((nargs + 1) * (nbatchdims + 3), 1);
   

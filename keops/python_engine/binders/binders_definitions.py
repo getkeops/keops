@@ -6,6 +6,9 @@ def binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu,
     dimsY_str = str(varloader.dimsy)[1:-1]
     dimsP_str = str(varloader.dimsp)[1:-1]
     return f"""
+                #include <string>
+                #include <vector>
+                #include <iostream>
 
                 #define __TYPE__ {dtype}
                 #define keops_tagIJ {red_formula.tagJ}
@@ -30,7 +33,6 @@ def binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu,
                 #define Error_msg_no_cuda "[KeOps] This KeOps shared object has been compiled without cuda support: - 1) to perform computations on CPU, simply set tagHostDevice to 0 - 2) to perform computations on GPU, please recompile the formula with a working version of cuda."
 
                 #define index_t int*
-                #define __INDEX__ int
                 
                 int get_ndim(index_t shape) {{
                 	return shape[0];
