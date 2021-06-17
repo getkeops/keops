@@ -27,6 +27,6 @@ class Sum(Operation):
         return f"{out.id} += {arg.id};\n"
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.maths.SumT import SumT
+        from keops.python_engine.formulas.vectOps.SumT import SumT
         f = self.children[0]
         return f.Grad(v, SumT(gradin, f.dim))

@@ -13,15 +13,15 @@ sum_scheme = 'block_sum'
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-x = torch.rand(1, 4, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
-y = torch.rand(2, 1, 1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
-b = torch.randn(1, 1, N, DV, device=device_id, dtype=dtype)
+x = torch.rand(3, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
+y = torch.rand(1, 1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
+b = torch.randn(1, N, DV, device=device_id, dtype=dtype)
 
 def fun(x, y, b, backend):
     if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    Dxy = ((x * y).square()).sum(dim=4)
+    Dxy = ((x * y).square()).sum(dim=3)
     Kxy = (-Dxy).exp()
     if "keops" in backend:
         out = Kxy.__matmul__(b, sum_scheme=sum_scheme)
