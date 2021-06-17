@@ -48,6 +48,12 @@ public:
     
     nx = nbatches * M;  // = A * ... * B * M
     ny = nbatches * N;  // = A * ... * B * N
+	
+	if (keops_tagIJ==1) {
+		int tmp = nx;
+		nx = ny;
+		ny = tmp;
+	}
 
   }
   

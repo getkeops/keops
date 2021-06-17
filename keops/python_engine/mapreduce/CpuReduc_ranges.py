@@ -58,6 +58,11 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         self.headers += c_include("cmath", "omp.h")
         
         
+        
+        red_formula_tagJ = 1
+        
+        
+        
         self.code = f"""
                         {self.headers}
                         #define __INDEX__ int32_t
@@ -109,6 +114,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                                 {red_formula.FinalizeOutput(acctmp, outi, i)}
                             }}
                             
+                            
                             // N.B.: In the following code, we assume that the x-ranges do not overlap.
                             //       Otherwise, we'd have to assume that DIMRED == DIMOUT
                             //       or allocate a buffer of size nx * DIMRED. This may be done in the future.
@@ -116,10 +122,10 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             //    FUN::tagJ = 1 for a reduction over j, result indexed by i
                             //    FUN::tagJ = 0 for a reduction over i, result indexed by j
     
-                            int nranges = {red_formula.tagJ} ? nranges_x : nranges_y;
-                            __INDEX__* ranges_x = {red_formula.tagJ} ? ranges[0] : ranges[3];
-                            __INDEX__* slices_x = {red_formula.tagJ} ? ranges[1] : ranges[4];
-                            __INDEX__* ranges_y = {red_formula.tagJ} ? ranges[2] : ranges[5];
+                            int nranges = {red_formula_tagJ} ? nranges_x : nranges_y;
+                            __INDEX__* ranges_x = {red_formula_tagJ} ? ranges[0] : ranges[3];
+                            __INDEX__* slices_x = {red_formula_tagJ} ? ranges[1] : ranges[4];
+                            __INDEX__* ranges_y = {red_formula_tagJ} ? ranges[2] : ranges[5];
 
                             int indices_i[{nvarsi}], indices_j[{nvarsj}], indices_p[{nvarsp}];  // Buffers for the "broadcasted indices"
                             for (int k = 0; k < {nvarsi}; k++) {{ indices_i[k] = 0; }}  // Fill the "offsets" with zeroes,
