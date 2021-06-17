@@ -1,5 +1,6 @@
 from pykeops.common.get_keops_routine import get_keops_routine    
 import time 
+from ctypes import c_int
         
 class LoadKeOps_new:
     
@@ -107,8 +108,8 @@ class LoadKeOps_new:
         if ranges:
             raise ValueError('[KeOps] ranges are not yet implemented in new KeOps engine')
         
-        if max(list(len(arg.shape) for arg in args)) > 2:
-            raise ValueError('[KeOps] reductions with batch dimensions are not yet implemented in new KeOps engine')
+        #if max(list(len(arg.shape) for arg in args)) > 2:
+        #    raise ValueError('[KeOps] reductions with batch dimensions are not yet implemented in new KeOps engine')
         
         myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme, tagHostDevice, tagCPUGPU, tag1D2D)
         self.tagIJ = myfun.tagI
@@ -122,16 +123,28 @@ class LoadKeOps_new:
         
         # convert arguments arrays to ctypes
         args_ctype = [tools.ctypes(arg) for arg in args]
-        
+                
         # get all shapes of arguments as ctypes
-        argshapes_ctype = [tools.ctypes(tools.array(arg.shape)) for arg in args]
+        argshapes_ctype = [(c_int*(len(arg.shape)+1))(*((len(arg.shape),)+arg.shape)) for arg in args]
         
         # initialize output array and converting to ctypes
+        print(args[0].shape)
+        print(args[1].shape)
+        print(args[2].shape)
+        input()
+        
         out = tools.zeros((M, myfun.dim), dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
         
         # call the routine
+        print("in python a")
         myfun(M, N, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype)
+        
+        print(out)
+        print(out.shape)
+        print(out.squeeze())
+        print(out.squeeze().shape)
+        print("in python b")
         return out
 
 

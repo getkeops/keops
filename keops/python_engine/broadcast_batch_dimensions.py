@@ -67,9 +67,9 @@ def define_fill_shapes_function(red_formula):
     for k in range(size_i-1):
         string += f"""
                       for (int l = 0; l < nbatchdims; l++) {{  // l-th column
-                        shapes_i[k * (nbatchdims + 1) + l] = shapes[(1 + {inds_i[k]}) * (nbatchdims + 3) + l];
+                        shapes_i[{k} * (nbatchdims + 1) + l] = shapes[(1 + {inds_i[k]}) * (nbatchdims + 3) + l];
                       }}  
-                      shapes_i[k * (nbatchdims + 1) + nbatchdims] =
+                      shapes_i[{k} * (nbatchdims + 1) + nbatchdims] =
                           shapes[(1 + {inds_i[k]}) * (nbatchdims + 3) + nbatchdims + 1 - {tagIJ}];
 
                           
@@ -79,9 +79,9 @@ def define_fill_shapes_function(red_formula):
     for k in range(size_j):
         string += f"""         
                         for (int l = 0; l < nbatchdims; l++) {{  // l-th column
-                          shapes_j[k * (nbatchdims + 1) + l] = shapes[(1 + {inds_j[k]}) * (nbatchdims + 3) + l];
+                          shapes_j[{k} * (nbatchdims + 1) + l] = shapes[(1 + {inds_j[k]}) * (nbatchdims + 3) + l];
                         }}
-                        shapes_j[k * (nbatchdims + 1) + nbatchdims] = shapes[(1 + {inds_j[k]}) * (nbatchdims + 3) + nbatchdims + {tagIJ}];
+                        shapes_j[{k} * (nbatchdims + 1) + nbatchdims] = shapes[(1 + {inds_j[k]}) * (nbatchdims + 3) + nbatchdims + {tagIJ}];
                   
 
                         // And finally for the parameters, with "1" instead of "M":
@@ -90,9 +90,9 @@ def define_fill_shapes_function(red_formula):
     for k in range(size_p):
         string += f"""  
                         for (int l = 0; l < nbatchdims; l++) {{  // l-th column
-                          shapes_p[k * (nbatchdims + 1) + l] = shapes[(1 + {inds_p[k]}) * (nbatchdims + 3) + l];
+                          shapes_p[{k} * (nbatchdims + 1) + l] = shapes[(1 + {inds_p[k]}) * (nbatchdims + 3) + l];
                         }}
-                        shapes_p[k * (nbatchdims + 1) + nbatchdims] = 1;
+                        shapes_p[{k} * (nbatchdims + 1) + nbatchdims] = 1;
 
                    """
     

@@ -91,10 +91,10 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             
                             // Set the output to zero, as the ranges may not cover the full output -----
                             {acctmp.declare()} // __TYPEACC__ acctmp[DIMRED];
-                            for (int i = 0; i < nx; i++) {
+                            for (int i = 0; i < nx; i++) {{
                                 {red_formula.InitializeReduction(acctmp)}
                                 {red_formula.FinalizeOutput(acctmp, outi, i)}
-                            }
+                            }}
                             
                             // N.B.: In the following code, we assume that the x-ranges do not overlap.
                             //       Otherwise, we'd have to assume that DIMRED == DIMOUT
