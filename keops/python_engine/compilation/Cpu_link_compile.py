@@ -15,8 +15,7 @@ class Cpu_link_compile(link_compile):
     if use_OpenMP:
         import platform
         if platform.system()=="Darwin":
-            pass
-            #compile_options += ["-Xclang -fopenmp", "-lomp"]
+            compile_options += ["-Xclang -fopenmp", "-lomp"]
             # warning : this is unsafe hack for OpenMP support on mac...
             #os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         else:

@@ -127,24 +127,19 @@ class LoadKeOps_new:
         # get all shapes of arguments as ctypes
         argshapes_ctype = [(c_int*(len(arg.shape)+1))(*((len(arg.shape),)+arg.shape)) for arg in args]
         
-        # initialize output array and converting to ctypes
-        print(args[0].shape)
-        print(args[1].shape)
-        print(args[2].shape)
-        input()
-        
-        out = tools.zeros((M, myfun.dim), dtype=dtype, device=device)
+        # initialize output array and converting to ctypes        
+        shapes = []
+        for arg in args:
+            shapes.append(list(arg.shape[:-2]))
+        import numpy as np
+        shapes = np.array(shapes)
+        shapeout = tuple(np.max(shapes,axis=0))+(M,myfun.dim)
+        out = tools.zeros(shapeout, dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
         
         # call the routine
-        print("in python a")
         myfun(M, N, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype)
         
-        print(out)
-        print(out.shape)
-        print(out.squeeze())
-        print(out.squeeze().shape)
-        print("in python b")
         return out
 
 
