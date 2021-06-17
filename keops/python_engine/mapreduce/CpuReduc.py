@@ -56,7 +56,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
 
-        self.headers += c_include("cmath")#, "omp.h")
+        self.headers += c_include("cmath", "omp.h")
 
         self.code = f"""
                         {self.headers}
@@ -71,7 +71,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                         {define_vect_broadcast_index_function()}
                         
                         int CpuConv(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
-                            //#pragma omp parallel for
+                            #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {fout.declare()}
                                 {acc.declare()}
@@ -200,15 +200,10 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                                             }}
                                         }}
                                     }}
-std::cout << "hi here 1 i=" << i << std::endl;
                                     {sum_scheme.final_operation(acc)}
-std::cout << "hi here 2 i=" << i << std::endl;
                                     {red_formula.FinalizeOutput(acc, outi, i)}
-std::cout << "hi here 3 i=" << i << std::endl;
                                 }}
-std::cout << "hi here 4" << std::endl;
                             }}
-std::cout << "hi here 5" << std::endl;
                             return 0;
                         }}
                         

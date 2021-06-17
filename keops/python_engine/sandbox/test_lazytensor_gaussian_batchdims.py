@@ -6,22 +6,22 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 2, 4, 3, 1
+M, N, D, DV = 200, 400, 3, 1
 
 dtype = torch.float32
 sum_scheme = 'block_sum'
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-x = torch.rand(1, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
-y = torch.rand(2, 1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
+x = torch.rand(1, 4, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
+y = torch.rand(2, 1, 1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
 b = torch.randn(1, 1, N, DV, device=device_id, dtype=dtype)
 
 def fun(x, y, b, backend):
     if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    Dxy = ((x * y).square()).sum(dim=3)
+    Dxy = ((x * y).square()).sum(dim=4)
     Kxy = (-Dxy).exp()
     if "keops" in backend:
         out = Kxy.__matmul__(b, sum_scheme=sum_scheme)
