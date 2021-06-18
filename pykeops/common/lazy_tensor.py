@@ -1368,7 +1368,7 @@ class GenericLazyTensor:
         Element-wise step function - a unary operation.
 
         ``x.step()`` returns a :class:`LazyTensor` that encodes, symbolically,
-        the element-wise sign of ``x``.
+        the element-wise step of ``x``.
         """
         return self.unary("Step")
 
