@@ -13,6 +13,7 @@ from .Sum import Sum
 from .SumT import SumT
 from .SymSqNorm import SymSqNorm
 from .TensorProd import TensorProd
+from .TensorDot import TensorDot
 from .VecMatMult import VecMatMult
 from .WeightedSqDist import WeightedSqDist
 from .WeightedSqNorm import WeightedSqNorm
