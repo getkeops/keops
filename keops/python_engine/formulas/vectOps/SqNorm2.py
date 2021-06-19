@@ -1,4 +1,4 @@
-from keops.python_engine.formulas.vectOps import Scalprod
+from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
 
 ##########################
 ######    SqNorm2    #####
