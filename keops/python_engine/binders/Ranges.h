@@ -1,18 +1,14 @@
 
-#include <vector>
-#include <string>
-
 #include "Sizes.h"
 
 class Ranges {
 public:
   int tagRanges, nranges_x, nranges_y, nredranges_x, nredranges_y;
   
-  std::vector< __INDEX__* > _castedranges;
-  std::vector< __INDEX__ > ranges_i, slices_i, redranges_j;
-  __INDEX__** castedranges;
+  __INDEX__ **castedranges;
+  __INDEX__ *ranges_i, *slices_i, *redranges_j;
   
-  Ranges(Sizes sizes, int nranges, index_t* ranges) {
+  Ranges(Sizes sizes, int nranges, index_t *ranges) {
     
     // Sparsity: should we handle ranges? ======================================
     if (sizes.nbatchdims == 0) {  // Standard M-by-N computation
@@ -36,11 +32,9 @@ public:
         nredranges_y = get_size(ranges[2], 0);
         
         // get the pointers to data to avoid a copy
-        _castedranges.resize(nranges);
+        castedranges = (__INDEX__**) malloc(sizeof(__INDEX__*)*nranges);
         for (int i = 0; i < nranges; i++)
-          _castedranges[i] = ranges[i];
-        
-        castedranges = &_castedranges[0];
+          castedranges[i] = ranges[i];
       }
       
     } else if (nranges == 0) {
@@ -56,16 +50,22 @@ public:
       // - redranges_j = ranges_j    = [ [0,N], [N,2N], ..., [(nbatches-1)N, nbatches*N] ]
       
       //__INDEX__* castedranges[6];
-      _castedranges.resize(6);
+	  castedranges = (__INDEX__**) malloc(sizeof(__INDEX__*)*6);
       
       //__INDEX__ ranges_i[2 * sizes.nbatches];  // ranges_i
-      ranges_i.resize(2 * sizes.nbatches, 0);
+	  ranges_i = (__INDEX__*) malloc(sizeof(__INDEX__)*(2 * sizes.nbatches));
+	  for(int i=0; i<2 * sizes.nbatches; i++)
+		  ranges_i[i] = 0;
       
       //__INDEX__ slices_i[sizes.nbatches];    // slices_i
-      slices_i.resize(sizes.nbatches, 0);
+	  slices_i = (__INDEX__*) malloc(sizeof(__INDEX__)*(sizes.nbatches));
+	  for(int i=0; i<sizes.nbatches; i++)
+		  slices_i[i] = 0;
       
       //__INDEX__ redranges_j[2 * sizes.nbatches];  // redranges_j
-      redranges_j.resize(2 * sizes.nbatches, 0);
+	  redranges_j = (__INDEX__*) malloc(sizeof(__INDEX__)*(2 * sizes.nbatches));
+	  for(int i=0; i<2 * sizes.nbatches; i++)
+		  redranges_j[i] = 0;
       
       for (int b = 0; b < sizes.nbatches; b++) {
         ranges_i[2 * b] = b * sizes.M;
@@ -75,26 +75,27 @@ public:
         redranges_j[2 * b + 1] = (b + 1) * sizes.N;
       }
   
-      _castedranges[0] = &ranges_i[0];
-      _castedranges[1] = &slices_i[0];
-      _castedranges[2] = &redranges_j[0];
-      _castedranges[3] = &redranges_j[0];            // ranges_j
-      _castedranges[4] = &slices_i[0];            // slices_j
-      _castedranges[5] = &ranges_i[0];            // redranges_i
+      castedranges[0] = &ranges_i[0];
+      castedranges[1] = &slices_i[0];
+      castedranges[2] = &redranges_j[0];
+      castedranges[3] = &redranges_j[0];            // ranges_j
+      castedranges[4] = &slices_i[0];            // slices_j
+      castedranges[5] = &ranges_i[0];            // redranges_i
  
-      
       nranges_x = sizes.nbatches;
       nredranges_x = sizes.nbatches;
       nranges_y = sizes.nbatches;
       nredranges_y = sizes.nbatches;
-      castedranges = &_castedranges[0];
   
-    } else {
+    } 
+	#if do_keops_checks
+	else {
       throw std::runtime_error(
               "[KeOps] The 'ranges' argument (block-sparse mode) is not supported with batch processing, "
               "but we detected " + std::to_string(sizes.nbatchdims) + " > 0 batch dimensions."
       );
     }
+	#endif
   
 
     
