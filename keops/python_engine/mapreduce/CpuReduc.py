@@ -59,6 +59,9 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                         }}
                         
                         extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
-                            return CpuConv(nx, ny, out, {call_list(args)});
+                            if ({red_formula.tagJ}==1)
+                                return CpuConv(nx, ny, out, {call_list(args)});
+                            else
+                                return CpuConv(ny, nx, out, {call_list(args)});
                         }}
                     """
