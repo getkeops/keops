@@ -1,6 +1,7 @@
 from pykeops.common.get_keops_routine import get_keops_routine    
 import time 
-from ctypes import c_int
+from ctypes import c_int, c_void_p
+import numpy
         
 class LoadKeOps_new:
     
@@ -105,8 +106,8 @@ class LoadKeOps_new:
         if device_id_ != -1 and device_id_ != device_id:
             raise ValueError('[KeOps] internal error : device_id_ and device_id do not match, code needs some cleaning...')
         
-        if ranges:
-            raise ValueError('[KeOps] ranges are not yet implemented in new KeOps engine')
+        if ranges and tagCPUGPU==1:
+            raise ValueError('[KeOps] ranges are not yet implemented in Gpu mode in new KeOps engine')
 
         # detect the need for using "ranges" method
         nbatchdims = len(args[0].shape)-2
@@ -119,8 +120,12 @@ class LoadKeOps_new:
         
         # get ranges argument as ctypes
         if not ranges:
-            ranges = (-1,) # temporary hack
-        ranges_ctype = tools.ctypes(tools.array(ranges))
+            ranges = (numpy.array([-1], dtype="int32"),)*7 # temporary hack
+        else:
+            ranges = tuple(tools.numpy(r) for r in ranges)
+            ranges = (*ranges,tools.array([r.shape[0] for r in ranges], dtype="int32"))
+        ranges_ctype = list(c_void_p(r.ctypes.data) for r in ranges)
+        ranges_ctype = (c_void_p*7)(*ranges_ctype)
         
         # convert arguments arrays to ctypes
         args_ctype = [tools.ctypes(arg) for arg in args]
