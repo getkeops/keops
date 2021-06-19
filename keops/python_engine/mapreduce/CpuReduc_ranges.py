@@ -187,7 +187,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         }}
                         
                         
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
+                        extern "C" int launch_keops(int nx, int ny, int device_id, int **ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
                             
                             {varseq_to_array(args, "args_ptr")}
                             {varseq_to_array(argshapes, "argshapes_ptr")}
@@ -197,10 +197,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             #if USE_HALF
                               SS.switch_to_half2_indexing();
                             #endif
-                            
-                            int nranges = 0;
 
-                            Ranges RR(SS, nranges, NULL);  // N.B. third arg should be ranges
+                            Ranges RR(SS, ranges);
                             
                             if ({red_formula.tagJ}==1)
                                 return CpuConv_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,

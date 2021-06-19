@@ -8,12 +8,11 @@ public:
   __INDEX__ **castedranges;
   __INDEX__ *ranges_i, *slices_i, *redranges_j;
   
-  Ranges(Sizes sizes, int nranges, index_t *ranges) {
+  Ranges(Sizes sizes, index_t *ranges) {
     
     // Sparsity: should we handle ranges? ======================================
     if (sizes.nbatchdims == 0) {  // Standard M-by-N computation
-      if (nranges == 0) {
-        
+      if (ranges[6][0] == -1) {  
         tagRanges = 0;
         
         nranges_x = 0;
@@ -22,22 +21,21 @@ public:
         nredranges_x = 0;
         nredranges_y = 0;
         
-      } else if (nranges == 6) {
-  
+      } else { 
         tagRanges = 1;
-        nranges_x = get_size(ranges[0], 0);
-        nranges_y = get_size(ranges[3], 0);
+        nranges_x = ranges[6][0];
+        nranges_y = ranges[6][3];
         
-        nredranges_x = get_size(ranges[5], 0);
-        nredranges_y = get_size(ranges[2], 0);
+        nredranges_x = ranges[6][5];
+        nredranges_y = ranges[6][2];
         
         // get the pointers to data to avoid a copy
-        castedranges = (__INDEX__**) malloc(sizeof(__INDEX__*)*nranges);
-        for (int i = 0; i < nranges; i++)
+        castedranges = (__INDEX__**) malloc(sizeof(__INDEX__*)*6);
+        for (int i = 0; i < 6; i++)
           castedranges[i] = ranges[i];
       }
       
-    } else if (nranges == 0) {
+    } else if (ranges[6][0] == -1) {
       // Batch processing: we'll have to generate a custom, block-diagonal sparsity pattern
       tagRanges = 1;  // Batch processing is emulated through the block-sparse mode
       
