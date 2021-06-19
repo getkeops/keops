@@ -1,4 +1,4 @@
-from keops.python_engine.formulas.vectOps import SqNorm2
+from keops.python_engine.formulas.vectOps.SqNorm2 import SqNorm2
 ###############################################################
 ######     ISOTROPIC NORM : SqNormIso(S,A)    #################
 ###############################################################

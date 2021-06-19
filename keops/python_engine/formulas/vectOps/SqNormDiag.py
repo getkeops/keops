@@ -1,5 +1,5 @@
-from keops.python_engine.formulas.maths import Square
-from keops.python_engine.formulas.vectOps import Sum
+from keops.python_engine.formulas.maths.Square import Square
+from keops.python_engine.formulas.vectOps.Sum import Sum
 
 #############################
 ######    SqNormDiag    #####
