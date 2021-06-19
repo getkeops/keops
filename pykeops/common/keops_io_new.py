@@ -116,7 +116,6 @@ class LoadKeOps_new:
         myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme, tagHostDevice, tagCPUGPU, tag1D2D)
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
-        M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)
         
         # get ranges argument as ctypes
         if not ranges:
@@ -135,12 +134,13 @@ class LoadKeOps_new:
             shapes.append(list(arg.shape[:-2]))
         import numpy as np
         shapes = np.array(shapes)
+        M = nx if myfun.tagI==0 else ny
         shapeout = tuple(np.max(shapes,axis=0))+(M,myfun.dim)
         out = tools.zeros(shapeout, dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
         
         # call the routine
-        myfun(M, N, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype)
+        myfun(nx, ny, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype)
         
         return out
 
