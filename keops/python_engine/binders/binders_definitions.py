@@ -1,9 +1,29 @@
 def binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu, tag1D2D):
-    indsI_str = str(varloader.indsi)[1:-1]
-    indsJ_str = str(varloader.indsj)[1:-1]
+    
+    if red_formula.tagI==0:
+        pos_first_argI = varloader.pos_first_argI
+        nvarsi = varloader.nvarsi
+        indsi = varloader.indsi
+        dimsx = varloader.dimsx
+        pos_first_argJ = varloader.pos_first_argJ
+        nvarsj = varloader.nvarsj
+        indsj = varloader.indsj
+        dimsy = varloader.dimsy
+    else:
+        pos_first_argI = varloader.pos_first_argJ
+        nvarsi = varloader.nvarsj
+        indsi = varloader.indsj
+        dimsx = varloader.dimsy
+        pos_first_argJ = varloader.pos_first_argI
+        nvarsj = varloader.nvarsi
+        indsj = varloader.indsi
+        dimsy = varloader.dimsx
+    
+    indsI_str = str(indsi)[1:-1]
+    indsJ_str = str(indsj)[1:-1]
     indsP_str = str(varloader.indsp)[1:-1]
-    dimsX_str = str(varloader.dimsx)[1:-1]
-    dimsY_str = str(varloader.dimsy)[1:-1]
+    dimsX_str = str(dimsx)[1:-1]
+    dimsY_str = str(dimsy)[1:-1]
     dimsP_str = str(varloader.dimsp)[1:-1]
     return f"""
                 #include <string>
@@ -12,12 +32,12 @@ def binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu,
 
                 #define __TYPE__ {dtype}
                 #define keops_tagIJ {red_formula.tagI}
-                #define keops_pos_first_argI {varloader.pos_first_argI}
-                #define keops_pos_first_argJ {varloader.pos_first_argJ}
+                #define keops_pos_first_argI {pos_first_argI}
+                #define keops_pos_first_argJ {pos_first_argJ}
                 #define keops_dimout {red_formula.dim}
                 #define keops_nminargs {varloader.nminargs}
-                #define keops_nvarsI {varloader.nvarsi}
-                #define keops_nvarsJ {varloader.nvarsj}
+                #define keops_nvarsI {nvarsi}
+                #define keops_nvarsJ {nvarsj}
                 #define keops_nvarsP {varloader.nvarsp}
                 #define tagHostDevice {tagHostDevice}
                 #define tagCpuGpu {tagCpuGpu}
