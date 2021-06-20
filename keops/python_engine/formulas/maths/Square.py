@@ -22,7 +22,7 @@ class Square(VectorizedScalarOp):
     def ScalarOp(self, out, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
-        return f"{out.id} = {arg.id}*{arg.id};\n"
+        return out.assign(arg*arg)
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.variables.IntCst import IntCst

@@ -1,4 +1,4 @@
-from keops.python_engine.utils.code_gen_utils import infinity, cast_to
+from keops.python_engine.utils.code_gen_utils import infinity, cast_to, c_zero_float
 from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
@@ -30,7 +30,7 @@ class KMin_ArgKMin_Reduction(Reduction):
                         #pragma unroll
                         for(int l=k; l<{self.K}*2*{self.formula.dim}+k; l+=2*{self.formula.dim}) {{
                             {acc.id}[l] = {infinity(acc.dtype)}; // initialize output
-                            {acc.id}[l+{self.formula.dim}] = {cast_to(acc.dtype)} 0.0f; // initialize output
+                            {acc.id}[l+{self.formula.dim}] = {cast_to(acc.dtype, c_zero_float)}; // initialize output
                         }}
                     }}
                 """

@@ -32,7 +32,6 @@ struct Inv : VectorizedScalarUnaryOp<Inv, F> {
   template<class V, class GRADIN>
   using DiffTF = typename F::template DiffT<V, GRADIN>;
 
-  // [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
   template<class V, class GRADIN>
   using DiffT = Scal<IntConstant<-1>, DiffTF<V, Mult<Square<Inv<F>>, GRADIN>>>;
 
