@@ -11,12 +11,12 @@ def get_hash_name(*args):
 class new_c_varname:
     # class to generate unique names for variables in C++ code, to avoid conflicts
     dict_instances = {}
-    def __new__(self, template_string_id, num=1):
+    def __new__(self, template_string_id, num=1, as_list=False):
         # - template_string_id is a string, the base name for c_variable
         # - if num>1 returns a list of num new names with same base names
         # For example the first call to new_c_variable("x")
         # will return "x_1", the second call will return "x_2", etc.   
-        if num > 1:
+        if num > 1 or as_list:
             return list(new_c_varname(template_string_id) for k in range(num))    
         if template_string_id in new_c_varname.dict_instances:
             cnt = new_c_varname.dict_instances[template_string_id] + 1
@@ -41,13 +41,98 @@ class c_variable:
         return self.id
     def declare(self):
         return f"{self.dtype} {self.id}\n"
-    def declare_assign(self, value_string):
-        return f"{self.dtype} " + self.assign(value_string)
-    def assign(self, value_string):
-        return f"{self.id} = {cast_to(self.dtype)}({value_string})\n"
+    def declare_assign(self, value):
+        return f"{self.dtype} " + self.assign(value)
+    def assign(self, value):
+        if type(value)==str:
+            return f"{self.id} = ({self.dtype})({value});\n"
+        elif value.dtype!=self.dtype:
+            return f"{self.id} = ({self.dtype})({value.id});\n"
+        else:
+            return f"{self.id} = ({value.id});\n"
+    def add_assign(self, value):
+        if type(value)==str:
+            return f"{self.id} += ({self.dtype})({value});\n"
+        elif value.dtype!=self.dtype:
+            return f"{self.id} += ({self.dtype})({value.id});\n"
+        else:
+            return f"{self.id} += ({value.id});\n"
+    def __add__(self, other):
+        if type(other) in (int, float):
+            dtype = "int" if type(other)==int else "float"
+            return self + c_variable(dtype, str(other))
+        elif type(other)==c_variable:
+            if self.dtype != other.dtype:
+                raise ValueError("addition of two c_variable only possible with same dtype")
+            return c_variable(self.dtype, f"({self.id}+{other.id})")
+        else:
+            raise ValueError("not implemented")
+    def __mul__(self, other):
+        if type(other) in (int, float):
+            dtype = "int" if type(other)==int else "float"
+            return self * c_variable(dtype, str(other))
+        elif type(other)==c_variable:
+            if self.dtype != other.dtype:
+                raise ValueError("multiplication of two c_variable only possible with same dtype")
+            return c_variable(self.dtype, f"({self.id}*{other.id})")
+        else:
+            raise ValueError("not implemented")
+    def __sub__(self, other):
+        if type(other) in (int, float):
+            dtype = "int" if type(other)==int else "float"
+            return self - c_variable(dtype, str(other))
+        elif type(other)==c_variable:
+            if self.dtype != other.dtype:
+                raise ValueError("subtraction of two c_variable only possible with same dtype")
+            return c_variable(self.dtype, f"({self.id}-{other.id})")
+        else:
+            raise ValueError("not implemented")
+    def __truediv__(self, other):
+        if type(other) in (int, float):
+            dtype = "int" if type(other)==int else "float"
+            return self - c_variable(dtype, str(other))
+        elif type(other)==c_variable:
+            if self.dtype != other.dtype:
+                raise ValueError("division of two c_variable only possible with same dtype")
+            return c_variable(self.dtype, f"({self.id}/{other.id})")
+        else:
+            raise ValueError("not implemented")
+    def __neg__(self):
+        return c_variable(self.dtype, f"(-{self.id})")
+    def __getitem__(self, other):
+        if type(other) == int:
+            return self[c_variable("int",str(other))]
+        elif type(other)==c_variable:
+            if other.dtype != "int":
+                raise ValueError("v[i] with i and v c_variable requires i.dtype='int' ")
+            return c_variable(value(self.dtype), f"{self.id}[{other.id}]")
+        else:
+            raise ValueError("not implemented")
     
         
-        
+def c_for_loop(start, end, incr, pragma_unroll=False):
+    def to_string(x):
+        if type(x)==c_variable:
+            if x.type != "int":
+                raise ValueError("only simple int type for loops implemented")
+            return x.id
+        elif type(x)==int:
+            return str(x)
+        else:
+            raise ValueError("only simple int type for loops implemented")
+    start, end, incr = map(to_string, (start,end,incr))
+    k = c_variable("int", new_c_varname("k"))
+    def print(body_code):
+        string = ""
+        if pragma_unroll:
+            string += "\n#pragma unroll\n"
+        string += f""" for(int {k.id}={start}; {k.id}<{end}; {k.id}+=({incr})) {{
+                            {body_code}
+                        }}
+                    """
+        return string
+    return print, k
+            
         
 c_zero_int = c_variable("int", "0")
 c_zero_float = c_variable("float", "0.0f")
@@ -64,9 +149,13 @@ def infinity(dtype):
         raise ValueError("only float and double dtypes are implemented in new python engine for now")
     return c_variable(dtype, code)
         
-def cast_to(dtype):
+def cast_to(dtype, var):
     # returns C++ code string to do a cast ; e.g. "(float)" if dtype is "float" for example
-    return f"({dtype})"
+    simple_dtypes = ["float", "double", "int"]
+    if (dtype in simple_dtypes) and (var.dtype in simple_dtypes):
+        return f"({dtype})({var.id})"
+    else:
+        raise ValueError("not implemented.")
 
 def value(pdtype):
     # converts string "dtype*" to "dtype" 
@@ -114,8 +203,19 @@ class c_array:
         return f"""
                     #pragma unroll
                     for(int k=0; k<{self.dim}; k++)
-                        {self.id}[k] = {cast_to(self.dtype)}({val.id});
+                        {self.id}[k] = {cast_to(self.dtype, val)};
                 """
+                
+    def __getitem__(self, other):
+        if type(other) == int:
+            return self[c_variable("int",str(other))]
+        elif type(other)==c_variable:
+            if other.dtype != "int":
+                raise ValueError("v[i] with i and v c_array requires i.dtype='int' ")
+            return c_variable(self.dtype, f"{self.id}[{other.id}]")
+        else:
+            raise ValueError("not implemented")
+            
 
 def VectApply(fun, out, *args):
     # returns C++ code string to apply a scalar operation to fixed-size arrays, following broadcasting rules.
@@ -170,7 +270,7 @@ def VectCopy(out, arg, cast=True):
     # - out is c_variable representing the output array
     # - arg is c_variable representing the input array
     # - optional cast=True if we want to add a (type) cast operation before the copy
-    cast_string = cast_to(out.dtype) if cast else ""
+    cast_string = f"({out.dtype})" if cast else ""
     return f"""
                 #pragma unroll
                 for(int k=0; k<{out.dim}; k++)

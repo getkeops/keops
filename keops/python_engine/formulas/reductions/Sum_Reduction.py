@@ -20,7 +20,7 @@ class Sum_Reduction(Reduction):
     def ReducePairScalar(self, tmp, xi):
         # Subroutine of ReducePairShort and ReducePair methods.
         # Returns C++ code that implements the "+=" accumulation operation of the sum reduction
-        return f"{tmp.id} += {cast_to(tmp.dtype)}({xi.id});"
+        return f"{tmp.id} += {cast_to(tmp.dtype, xi)};"
 
     def KahanScheme(self, acc, xi, tmp):
         return f"""
