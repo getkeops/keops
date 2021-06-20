@@ -1076,7 +1076,9 @@ class GenericLazyTensor:
         elif is_scalar_and_equals(other, -1):
             return self.unary("Minus")
         elif is_complex_lazytensor(other) and not is_complex_lazytensor(self):
-            return self.real2complex().mulop(other)
+            return other.mulop(self)
+        elif self.tools.detect_complex(other) and not is_complex_lazytensor(self):
+            return self.lt_constructor(other).mulop(self)
         else:
             return self.mulop(other)
 
@@ -1093,6 +1095,8 @@ class GenericLazyTensor:
             return self
         elif is_scalar_and_equals(other, -1):
             return self.unary("Minus")
+        elif self.tools.detect_complex(other) and not is_complex_lazytensor(self):
+            return self.real2complex().mulop(self.lt_constructor(other))
         else:
             return self.mulop(other, rversion=True)
 
@@ -2426,12 +2430,18 @@ class ComplexGenericLazyTensor(GenericLazyTensor):
         return self.unary("ComplexExp", dimres=self._shape[-1], is_complex=True)
 
     def mulop(self, other, **kwargs):
-        if not is_complex_lazytensor(other):
+        if other._shape[-1] == 1:
+            return other.binary(self, "ComplexRealScal", **kwargs, is_complex=True)
+        elif not is_complex_lazytensor(other):
             return self.mulop(other.real2complex())
-        elif self._shape[-1] == 1 or other._shape[-1] == 1:
-            return self.binary(other, "ComplexRealScal", **kwargs, is_complex=True)
-        elif self._shape[-1] == 2 or other._shape[-1] == 2:
-            return self.binary(other, "ComplexScal", **kwargs, is_complex=True, dimcheck=None)
+        elif self._shape[-1] == 2:
+            return self.binary(
+                other, "ComplexScal", **kwargs, is_complex=True, dimcheck=None
+            )
+        elif other._shape[-1] == 2:
+            return other.binary(
+                self, "ComplexScal", **kwargs, is_complex=True, dimcheck=None
+            )
         else:
             return self.binary(other, "ComplexMult", **kwargs, is_complex=True)
 

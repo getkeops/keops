@@ -115,6 +115,10 @@ class SetBackend:
                     raise ValueError(
                         "At least two input variables have different memory locations (Cpu/Gpu)."
                     )
+            else:
+                raise TypeError(
+                    "All variables should either be numpy arrays or torch tensors."
+                )
         else:
             raise TypeError(
                 "All variables should either be numpy arrays or torch tensors."

@@ -38,7 +38,8 @@ Imports:
     Rcpp (>= 1.0.1), 
     RhpcBLASctl, 
     openssl (>= 1.3), 
-    stringr (>= 1.4.0)
+    stringr (>= 1.4.0),
+    Rdpack
 Suggests: 
     testthat (>= 2.1.0),
     knitr,
@@ -53,3 +54,4 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
+RdMacros: Rdpack

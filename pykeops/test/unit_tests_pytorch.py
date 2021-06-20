@@ -329,8 +329,7 @@ class PytorchUnitTestCase(unittest.TestCase):
 
         # check output
         self.assertFalse(yc_tmp.is_contiguous())
-        with self.assertRaises(RuntimeError):
-            my_routine(self.pc, self.xc, yc_tmp, backend="auto")
+        my_routine(self.pc, self.xc, yc_tmp, backend="auto")
 
     ############################################################
     def test_heterogeneous_var_aliases(self):
