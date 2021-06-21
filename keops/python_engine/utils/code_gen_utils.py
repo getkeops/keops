@@ -28,12 +28,12 @@ class new_c_varname:
             
 class c_variable:
     # class to represent a C++ variable, storing its c++ name and its C++ type.
-    def __new__(self, dtype, list_string_id=new_c_varname("var")):
+    def __new__(self, dtype, list_string_id=None):
         if isinstance(list_string_id,list):
             return list(c_variable(dtype, string_id) for string_id in list_string_id) 
         else:
             return super(c_variable, self).__new__(self)
-    def __init__(self, dtype, string_id):
+    def __init__(self, dtype, string_id=new_c_varname("var")):
         self.dtype = dtype              # dtype is C++ type of variable
         self.id = string_id             # string_id is C++ name of variable
     def __repr__(self):
@@ -44,7 +44,10 @@ class c_variable:
     def declare_assign(self, value):
         return f"{self.dtype} " + self.assign(value)
     def assign(self, value):
-        if type(value)==str:
+        if type(value) in (int, float):
+            dtype = "int" if type(value)==int else "float"
+            return self.assign(c_variable(dtype, str(value)))
+        elif type(value)==str:
             return f"{self.id} = ({self.dtype})({value});\n"
         elif value.dtype!=self.dtype:
             return f"{self.id} = ({self.dtype})({value.id});\n"
@@ -223,11 +226,8 @@ class c_array:
     def assign(self, val):
         # returns C++ code string to fill all elements of a fixed size array with a single value
         # val is a c_variable representing the value.
-        return f"""
-                    #pragma unroll
-                    for(int k=0; k<{self.dim}; k++)
-                        {self.id}[k] = {cast_to(self.dtype, val)};
-                """
+        loop, k = c_for_loop(0, self.dim, 1)
+        return loop( self[k].assign(val) )
                 
     def __getitem__(self, other):
         if type(other) == int:
@@ -238,6 +238,13 @@ class c_array:
             return c_variable(self.dtype, f"{self.id}[{other.id}]")
         else:
             raise ValueError("not implemented")
+        
+    def c_print(self):    
+        string = f'std::cout << "{self.id} : ";\n'
+        for i in range(self.dim):
+            string += f'std::cout << {self[i].id} << " ";\n'
+        string += "std::cout << std::endl;\n"
+        return string
             
 
 def VectApply(fun, out, *args):

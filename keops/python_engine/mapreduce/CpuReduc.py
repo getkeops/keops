@@ -2,7 +2,7 @@ from keops.python_engine.mapreduce.MapReduce import MapReduce
 from keops.python_engine.mapreduce.CpuAssignZero import CpuAssignZero
 from keops.python_engine.utils.code_gen_utils import c_include, signature_list, call_list
 from keops.python_engine.compilation import Cpu_link_compile
-from keops.python_engine import use_jit
+from keops.python_engine import use_jit, debug_ops
 
 
 class CpuReduc(MapReduce, Cpu_link_compile):
@@ -35,7 +35,10 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         table = self.varloader.direct_table(args, i, j)
         sum_scheme = self.sum_scheme
 
-        self.headers += c_include("cmath", "omp.h")
+        headers = ["cmath", "omp.h"]
+        if debug_ops:
+            headers.append("iostream")
+        self.headers += c_include(*headers)
 
         self.code = f"""
                         {self.headers}

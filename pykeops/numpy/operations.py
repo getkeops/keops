@@ -1,6 +1,8 @@
 import numpy as np
 
+import pykeops
 from pykeops.common.get_options import get_tag_backend
+from pykeops.common.keops_io_new import LoadKeOps_new
 from pykeops.common.keops_io import LoadKeOps
 from pykeops.common.operations import ConjugateGradientSolver
 from pykeops.common.parse_type import get_sizes, complete_aliases, get_optional_flags
@@ -154,7 +156,10 @@ class KernelSolve:
         self.aliases = complete_aliases(formula, aliases)
         self.varinvalias = varinvalias
         self.dtype = dtype
-        self.myconv = LoadKeOps(
+        
+        my_LoadKeOps = LoadKeOps_new if pykeops.use_python_engine else LoadKeOps
+        
+        self.myconv = my_LoadKeOps(
             self.formula, self.aliases, self.dtype, "numpy", optional_flags
         ).import_module()
 

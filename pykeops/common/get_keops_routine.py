@@ -32,7 +32,7 @@ class get_keops_routine_class:
             self.dllname, self.low_level_code_file, self.tagI, self.dim, self.dimy = get_keops_dll(map_reduce_id, *args)
         else:
             self.dllname, self.tagI, self.dim = get_keops_dll(map_reduce_id, *args)
-        self.dll = CDLL(self.dllname)            
+        self.dll = CDLL(self.dllname)  
         
     def __call__(self, nx, ny, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype):
         c_args = [arg["data"] for arg in args_ctype]
