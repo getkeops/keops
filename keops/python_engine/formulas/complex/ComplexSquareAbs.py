@@ -1,4 +1,5 @@
 from keops.python_engine.formulas.Operation import Operation
+from keops.python_engine.utils.code_gen_utils import c_for_loop
 
 #/////////////////////////////////////////////////////////////////////////
 #////      ComplexSquareAbs                           ////

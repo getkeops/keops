@@ -1,5 +1,5 @@
 from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.utils.code_gen_utils import cast_to, c_zero_float
+from keops.python_engine.utils.code_gen_utils import c_zero_float, c_for_loop
 
 #/////////////////////////////////////////////////////////////////////////
 #////      ComplexSum                           ////
@@ -21,7 +21,8 @@ class ComplexSum(Operation):
         forloop, i = c_for_loop(0, f.dim, 2, pragma_unroll=True)
         body = out[0].add_assign(inF[i])
         body += out[1].add_assign(inF[i+1])
-        return forloop(body)
+        string += forloop(body)
+        return string
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.complex.ComplexSumT import ComplexSumT

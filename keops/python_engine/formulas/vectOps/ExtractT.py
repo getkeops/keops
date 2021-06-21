@@ -29,6 +29,6 @@ class ExtractT(Operation):
         )
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.maths.Extract import Extract
+        from keops.python_engine.formulas.vectOps.Extract import Extract
         f = self.children[0]
         return f.Grad(v, Extract(gradin, self.start, f.dim))

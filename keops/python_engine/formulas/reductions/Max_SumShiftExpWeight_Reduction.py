@@ -4,7 +4,8 @@ from keops.python_engine.formulas.vectOps.Extract import Extract
 from keops.python_engine.formulas.reductions.Reduction import Reduction
 from keops.python_engine.formulas.reductions.Sum_Reduction import Sum_Reduction
 from keops.python_engine.formulas.variables.IntCst import IntCst
-from keops.python_engine.utils.code_gen_utils import neg_infinity, c_zero_float
+from keops.python_engine.utils.code_gen_utils import neg_infinity, c_zero_float, new_c_varname, c_variable, c_for_loop
+from keops.python_engine.utils.math_functions import keops_exp
 
 
 class Max_SumShiftExpWeight_Reduction(Reduction):
@@ -37,19 +38,17 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
         if xi.dtype == "half2":
             raise ValueError("Not implemented.")
 
+        tmpexp = c_variable(acc.dtype, new_c_varname("tmpexp"))
+        loop, k = c_for_loop(1, self.dimred, 1, pragma_unroll=True)
         return f"""       
-                      {acc.dtype} tmpexp;
+                      {tmpexp.declare()}
                       if ({acc.id}[0] > {xi.id}[0]) {{ // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
-                        tmpexp = exp({xi.id}[0] - {acc.id}[0]);
-                        #pragma unroll
-                        for (int k = 1; k < {self.dimred}; k++)
-                          {acc.id}[k] += {xi.id}[k] * tmpexp;
+                        {tmpexp.assign(keops_exp(xi[0]-acc[0]))}
+                        {loop(acc[k].add_assign(xi[k]*tmpexp))}
                       }} else {{             // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
-                        tmpexp = exp({acc.id}[0] - {xi.id}[0]);
-                        #pragma unroll
-                        for (int k = 1; k < {self.dimred}; k++)
-                          {acc.id}[k] = {xi.id}[k] + tmpexp * {acc.id}[k];
-                        {acc.id}[0] = {xi.id}[0];
+                        {tmpexp.assign(keops_exp(acc[0]-xi[0]))}
+                        {loop(acc[k].assign(xi[k]+tmpexp*acc[k]))}
+                        {acc[0].assign(xi[0])}
                       }}
               """
 
@@ -59,33 +58,23 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
     def KahanScheme(self, acc, xi, tmp):
         if xi.dtype == "half2":
             raise ValueError("Not implemented.")
+        tmpexp = c_variable(acc.dtype, new_c_varname("tmpexp"))
+        loop, k = c_for_loop(1, self.dimred, 1, pragma_unroll=True)
+        a = c_variable(acc.dtype, new_c_varname("a"))
+        b = c_variable(acc.dtype, new_c_varname("b"))
+        u = c_variable(acc.dtype, new_c_varname("u"))
         return f"""
-                        {acc.id}.dtype tmpexp;
+                        {tmpexp.declare()}
                         if ({acc.id}[0] > {xi.id}[0])    // =  exp(m)  * (s + s'*exp(m'-m))   if m > m'
                         {{      
-                            tmpexp = exp({xi.id}[0] - {acc.id}[0]);
-                            #pragma unroll
-                            for (int k=1; k<{self.dimred}; k++)
-                            {{
-                                {acc.dtype} a = {xi.id}[k] * tmpexp - {tmp.id}[k-1];
-                                {acc.dtype} b = {acc.id}[k] + a;
-                                {tmp.id}[k-1] = (b - {acc.id}[k]) - a;
-                                {acc.id}[k] = b;
-                            }}
+                            {tmpexp.assign(keops_exp(xi[0]-acc[0]))}
+                            {loop( a.declare_assign(xi[k]*tmpexp-tmp[k-1]) + b.declare_assign(acc[k]+a) + tmp[k-1].assign((b-acc[k])-a) + acc[k].assign(b))}
                         }} 
                         else      // =  exp(m') * (s' + exp(m-m')*s)   if m <= m'
                         {{             
-                            tmpexp = exp({acc.id}[0] - {xi.id}[0]);
-                            #pragma unroll
-                            for (int k = 1; k < {self.dimred}; k++)
-                            {{
-                                {acc.dtype} u = tmpexp * {acc.id}[k];
-                                {acc.dtype} a = {xi.id}[k] - tmpexp * {tmp.id}[k-1];
-                                {acc.dtype} b = u + a;
-                                {tmp.id}[k-1] = (b - u) - a;
-                                {acc.id}[k] = b;
-                            }}
-                            {acc.id}[0] = {xi.id}[0];
+                            {tmpexp.assign(keops_exp(acc[0]-xi[0]))}
+                            {loop( u.declare_assign(tmpexp*acc[k]) + a.declare_assign(xi[k]-tmpexp*tmp[k-1]) + b.declare_assign(u+a) + tmp[k-1].assign((b-u)-a) + acc[k].assign(b))}
+                            {acc[0].assign(xi[0])}
                         }}
                 """
 

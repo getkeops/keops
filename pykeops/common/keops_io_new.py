@@ -123,7 +123,7 @@ class LoadKeOps_new:
             ranges = (numpy.array([-1], dtype="int32"),)*7 # temporary hack
         else:
             ranges = tuple(tools.numpy(r) for r in ranges)
-            ranges = (*ranges,tools.array([r.shape[0] for r in ranges], dtype="int32"))
+            ranges = (*ranges,numpy.array([r.shape[0] for r in ranges], dtype="int32"))
         ranges_ctype = list(c_void_p(r.ctypes.data) for r in ranges)
         ranges_ctype = (c_void_p*7)(*ranges_ctype)
         

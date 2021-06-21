@@ -10,7 +10,10 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         MapReduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)
 
-    def get_code(self):
+    def get_code(self, for_jit=False):
+        
+        if for_jit:
+            raise ValueError("JIT compiling not yet implemented in Cpu mode")
 
         super().get_code()
 

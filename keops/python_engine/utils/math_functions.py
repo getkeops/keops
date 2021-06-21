@@ -49,10 +49,21 @@ def keops_exp(x):
     else:
         raise ValueError("not implemented.")
         
-
-def keops_rsqrt():
-    return NotImplementedError()
+def keops_rcp(x):
+    # returns the C++ code string for the inverse function applied to a C++ variable
+    # - x must be of type c_variable
+    if x.dtype in ["float", "double"]:
+        return c_variable(x.dtype, f"(1.0f/({x.id}))")
+    else:
+        raise ValueError("not implemented.")
         
+def keops_rsqrt(x):
+    # returns the C++ code string for the inverse square root function applied to a C++ variable
+    # - x must be of type c_variable
+    if x.dtype in ["float", "double"]:  # TODO: check CUDA_ARCH version
+        return c_variable(x.dtype, f"(1.0f/sqrt({x.id}))")
+    else:
+        raise ValueError("not implemented.")
                 
 def keops_sqrt(x):
     # returns the C++ code string for the square root function applied to a C++ variable

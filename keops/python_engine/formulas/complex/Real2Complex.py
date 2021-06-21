@@ -1,5 +1,5 @@
 from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.utils.code_gen_utils import cast_to, c_zero_float, c_for_loop
+from keops.python_engine.utils.code_gen_utils import c_zero_float, c_for_loop
 
 #/////////////////////////////////////////////////////////////////////////
 #////      Real2Complex                           ////

@@ -40,7 +40,7 @@ class c_variable:
         # method for printing the c_variable inside Python code
         return self.id
     def declare(self):
-        return f"{self.dtype} {self.id}\n"
+        return f"{self.dtype} {self.id};\n"
     def declare_assign(self, value):
         return f"{self.dtype} " + self.assign(value)
     def assign(self, value):
@@ -51,6 +51,9 @@ class c_variable:
         else:
             return f"{self.id} = ({value.id});\n"
     def add_assign(self, value):
+        if type(value) in (int, float):
+            dtype = "int" if type(value)==int else "float"
+            return self.add_assign(c_variable(dtype, str(value)))
         if type(value)==str:
             return f"{self.id} += ({self.dtype})({value});\n"
         elif value.dtype!=self.dtype:
@@ -90,11 +93,31 @@ class c_variable:
     def __truediv__(self, other):
         if type(other) in (int, float):
             dtype = "int" if type(other)==int else "float"
-            return self - c_variable(dtype, str(other))
+            return self / c_variable(dtype, str(other))
         elif type(other)==c_variable:
             if self.dtype != other.dtype:
                 raise ValueError("division of two c_variable only possible with same dtype")
             return c_variable(self.dtype, f"({self.id}/{other.id})")
+        else:
+            raise ValueError("not implemented")
+    def __lt__(self, other):
+        if type(other) in (int, float):
+            dtype = "int" if type(other)==int else "float"
+            return (self < c_variable(dtype, str(other)))
+        elif type(other)==c_variable:
+            if self.dtype != other.dtype:
+                raise ValueError("comparison of two c_variable only possible with same dtype")
+            return c_variable("bool", f"({self.id}<{other.id})")
+        else:
+            raise ValueError("not implemented")
+    def __gt__(self, other):
+        if type(other) in (int, float):
+            dtype = "int" if type(other)==int else "float"
+            return (self > c_variable(dtype, str(other)))
+        elif type(other)==c_variable:
+            if self.dtype != other.dtype:
+                raise ValueError("comparison of two c_variable only possible with same dtype")
+            return c_variable("bool", f"({self.id}>{other.id})")
         else:
             raise ValueError("not implemented")
     def __neg__(self):
@@ -113,7 +136,7 @@ class c_variable:
 def c_for_loop(start, end, incr, pragma_unroll=False):
     def to_string(x):
         if type(x)==c_variable:
-            if x.type != "int":
+            if x.dtype != "int":
                 raise ValueError("only simple int type for loops implemented")
             return x.id
         elif type(x)==int:
@@ -247,35 +270,27 @@ def VectApply(fun, out, *args):
     if not set(dims) in ({dimloop}, {1, dimloop}):
         raise ValueError("incompatible dimensions in VectApply")
     incr_out = 1 if out.dim==dimloop else 0
-    outk = c_variable(out.dtype, f"{out.id}[k*{incr_out}]")
     incr_args = list((1 if dim==dimloop else 0) for dim in dims[1:])
+    
+    forloop, k = c_for_loop(0,dimloop,1, pragma_unroll=True)
     
     argsk = []
     for (arg, incr) in zip(args, incr_args):
         if isinstance(arg, c_variable):
             argsk.append(arg)
         elif isinstance(arg, c_array):
-            argsk.append(c_variable(arg.dtype, f"{arg.id}[k*{incr}]"))
-    return f"""
-                #pragma unroll
-                for(int k=0; k<{dimloop}; k++) 
-                {{
-                    {fun(outk, *argsk)} 
-                }}
-            """
+            argsk.append(arg[k*incr]) 
+            
+    return forloop(fun(out[k*incr_out], *argsk))
 
-def VectCopy(out, arg, cast=True):
+
+def VectCopy(out, arg):
     # returns a C++ code string representing a vector copy between fixed-size arrays
     # - dim is dimension of arrays
     # - out is c_variable representing the output array
     # - arg is c_variable representing the input array
-    # - optional cast=True if we want to add a (type) cast operation before the copy
-    cast_string = f"({out.dtype})" if cast else ""
-    return f"""
-                #pragma unroll
-                for(int k=0; k<{out.dim}; k++)
-                    {out.id}[k] = {cast_string}{arg.id}[k];
-            """
+    forloop, k = c_for_loop(0, out.dim, 1)
+    return forloop( out[k].assign(arg[k]) )
 
 def call_list(args):
     return ", ".join(list(arg.id for arg in args))
@@ -286,9 +301,21 @@ def signature_list(args):
 def c_include(*headers):
     return "".join(f"#include <{header}>\n" for header in headers)
     
-def c_if(condition, *commands):
+def c_if(condition, command, else_command=None):
+    string = f""" if ({condition.id}) {{
+                      {command}
+                }}
+            """
+    if else_command:
+        string += f""" else {{
+                      {else_command}
+                }}
+            """
+    return string
+
+def c_block(*commands):
     block_string = "".join(commands)
-    return f""" if ({condition}) {{
+    return f""" {{
                       {block_string}
                 }}
             """
