@@ -1,4 +1,4 @@
-from keops.python_engine.utils.code_gen_utils import infinity, cast_to, c_zero_float
+from keops.python_engine.utils.code_gen_utils import infinity, cast_to, c_zero_float, c_for_loop, c_variable, new_c_varname, c_if, c_array
 from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
@@ -24,67 +24,53 @@ class KMin_ArgKMin_Reduction(Reduction):
         # Returns C++ code to be used at initialization phase of the reduction.
         if acc.dtype == "half2":
             raise ValueError("not implemented")
-        return f"""
-                    #pragma unroll
-                    for(int k=0; k<{self.formula.dim}; k++) {{
-                        #pragma unroll
-                        for(int l=k; l<{self.K}*2*{self.formula.dim}+k; l+=2*{self.formula.dim}) {{
-                            {acc.id}[l] = {infinity(acc.dtype)}; // initialize output
-                            {acc.id}[l+{self.formula.dim}] = {cast_to(acc.dtype, c_zero_float)}; // initialize output
-                        }}
-                    }}
-                """
+        fdim, K = self.formula.dim, self.K
+        outer_loop, k = c_for_loop(0, fdim, 1, pragma_unroll=True)
+        inner_loop, l = c_for_loop(k, k+(2*K*fdim), 2*fdim, pragma_unroll=True)
+        return outer_loop( inner_loop( acc[l].assign(infinity(acc.dtype)) + acc[l+fdim].assign(c_zero_float) ) )
 
     def ReducePair(self, acc, xi):
         # Returns C++ code that implements the update phase of the reduction.
         dtype = xi.dtype
         fdim = self.formula.dim
-        return f"""
-                    {{
-                        {dtype} out[{self.dimred}];
-                        #pragma unroll
-                        for(int k=0; k<{fdim}; k++) {{
-                            int p = k;
-                            int q = k;
-                            #pragma unroll
-                            for(int l=k; l<{self.dimred}; l+=2*{fdim}) {{
-                                if({xi.id}[p]<{acc.id}[q]) {{
-                                    out[l] = {xi.id}[p];
-                                    out[{fdim}+l] = {xi.id}[{fdim}+p];
-                                    p += 2*{fdim};
-                                }}
-                                else {{
-                                    out[l] = {acc.id}[q];
-                                    out[{fdim}+l] = {acc.id}[{fdim}+q];
-                                    q += 2*{fdim};
-                                }}  
-                            }}
-                        }}
-                        #pragma unroll
-                        for(int k=0; k<{self.dimred}; k++)
-                            {acc.id}[k] = out[k];
-                    }}
-                """
+        out = c_array(dtype, self.dimred, new_c_varname("out"))
+        outer_loop, k = c_for_loop(0, fdim, 1)
+        p = c_variable("int", new_c_varname("p"))
+        q = c_variable("int", new_c_varname("q"))
+        inner_loop, l = c_for_loop(k, self.dimred, 2*fdim)
+        inner_body = c_if( xi[p]<acc[q], 
+              out[l].assign(xi[p]) + out[l+fdim].assign(xi[p+fdim]) + p.add_assign(2*fdim),
+              out[l].assign(acc[q]) + out[l+fdim].assign(acc[q+fdim]) + q.add_assign(2*fdim),
+            )
+        outer_body = p.declare_assign(k) + q.declare_assign(k) + inner_loop(inner_body)
+        final_loop, k = c_for_loop(0, self.dimred, 1)
+        return out.declare() + outer_loop(outer_body) + final_loop(acc[k].assign(out[k]))
 
     def ReducePairShort(self, acc, xi, ind):
-        fdim = self.formula.dim
+        fdim, K = self.formula.dim, self.K
         dtype = xi.dtype
+        
+        xik = c_variable(dtype, new_c_varname("xik"))
+        l = c_variable("int", new_c_varname("l"))
+        k = c_variable("int", new_c_varname("k"))
+        tmpl = c_variable(dtype, new_c_varname("tmpl"))
+        indtmpl = c_variable("int", new_c_varname("indtmpl"))
         return f"""
                     {{
-                        {dtype} xik;
-                        int l;
+                        {xik.declare()}
+                        {l.declare()}
                         #pragma unroll
-                        for(int k=0; k<{fdim}; k++) {{
-                            xik = {xi.id}[k];
-                            #pragma unroll
-                            for(l=({self.K}-1)*2*{fdim}+k; l>=k && xik<{acc.id}[l]; l-=2*{fdim}) {{
-                                {dtype} tmpl = {acc.id}[l];
-                                int indtmpl = {acc.id}[l+{fdim}];
-                                {acc.id}[l] = xik;
-                                {acc.id}[l+{fdim}] = {ind.id};
-                                if(l<({self.K}-1)*2*{fdim}+k) {{
-                                    {acc.id}[l+2*{fdim}] = tmpl;
-                                    {acc.id}[l+2*{fdim}+{fdim}] = indtmpl;
+                        for(int {k.id}=0; {k.id}<{fdim}; {k.id}++) {{
+                            {xik.assign(xi[k])}
+                            #pragma unroll                     
+                            for({l.id}={(k+(K-1)*2*fdim).id}; {l.id}>={k.id} && {(xik<acc[l]).id}; {l.id}-={2*fdim}) {{
+                                {tmpl.declare_assign(acc[l])}
+                                {indtmpl.declare_assign(acc[l+fdim])}
+                                {acc[l].assign(xik)}
+                                {acc[l+fdim].assign(ind)}                      
+                                if({l.id}<{(k+(2*fdim*(K-1))).id}) {{
+                                    {acc[l+2*fdim].assign(tmpl)}
+                                    {acc[l+2*fdim+fdim].assign(indtmpl)}
                                 }}
                             }}
                         }}

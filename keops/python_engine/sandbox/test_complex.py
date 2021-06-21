@@ -9,7 +9,7 @@ from pykeops.torch import LazyTensor
 dtype = torch.float32
 dtype_c = torch.complex64
 
-M, N, D = 5, 3, 1
+M, N, D = 500, 300, 1
 
 test_grad = False
 
@@ -44,7 +44,6 @@ for backend in backends:
     out.append(fun(x, p, f, backend).squeeze())
     end = time.time()
     print("time for " + backend + ":", end - start)
-    print(out[-1])
 
 if len(out) > 1:
     print(

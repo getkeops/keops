@@ -1,4 +1,4 @@
-from keops.python_engine.utils.code_gen_utils import c_variable
+from keops.python_engine.utils.code_gen_utils import c_zero_float
 from keops.python_engine.formulas.Operation import Operation
 
 
@@ -16,8 +16,7 @@ class Zero(Operation):
         return type(self) == type(other) and self.dim == other.dim
 
     def Op(self, out, table):
-        zero = c_variable("float", "0.0f")
-        return out.assign(zero)
+        return out.assign(c_zero_float)
 
     def DiffT(self, v, gradin):
         return Zero(v.dim)

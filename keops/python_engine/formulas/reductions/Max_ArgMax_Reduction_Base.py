@@ -1,4 +1,4 @@
-from keops.python_engine.utils.code_gen_utils import neg_infinity, c_zero_float, VectApply
+from keops.python_engine.utils.code_gen_utils import neg_infinity, c_zero_float, VectApply, c_if
 from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
@@ -13,25 +13,21 @@ class Max_ArgMax_Reduction_Base(Reduction):
 
     def InitializeReduction(self, acc):
         # Returns C++ code to be used at initialization phase of the reduction.
-        acc_max, acc_argmax = acc.split(self.dim, self.dim)
+        dim = self.formula.dim
+        acc_max, acc_argmax = acc.split(dim, dim)
         return acc_max.assign(neg_infinity(acc.dtype)) + acc_argmax.assign(c_zero_float)
 
     def ReducePairScalar(self, acc_val, acc_ind, xi, ind):
         # Subroutine of ReducePairShort and ReducePair methods.
         if xi.dtype == "half2":
             raise ValueError("not implemented")
-        return f"""
-                    if({xi.id}>{acc_val.id}) 
-                    {{
-                        {acc_val.id} = {xi.id};
-                        {acc_ind.id} = {ind.id};
-                    }}
-                """
+        return c_if(xi>acc_val, acc_val.assign(xi) + acc_ind.assign(ind))
 
     def ReducePair(self, acc, xi):
         # Returns C++ code that implements the update phase of the reduction.
-        acc_val, acc_ind = acc.split(self.dim, self.dim)
-        xi_val, xi_ind = xi.split(self.dim, self.dim)
+        dim = self.formula.dim
+        acc_val, acc_ind = acc.split(dim, dim)
+        xi_val, xi_ind = xi.split(dim, dim)
         return VectApply(self.ReducePairScalar, acc_val, xi_val, xi_ind)
 
     def ReducePairShort(self, acc, xi, ind):
@@ -39,5 +35,6 @@ class Max_ArgMax_Reduction_Base(Reduction):
             raise ValueError("not implemented")
             half2_val = c_variable("half2_ind")
             string = half2_val.declare_assign(f"__floats2half2_rn(2*{ind()},2*{ind()}+1)")
-        acc_val, acc_ind = acc.split(self.dim, self.dim)
+        dim = self.formula.dim
+        acc_val, acc_ind = acc.split(dim, dim)
         return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind)
