@@ -1,5 +1,6 @@
 from keops.python_engine.utils.code_gen_utils import new_c_varname, c_array
 from keops.python_engine.utils.Tree import Tree
+from keops.python_engine import debug_ops
 
 
 ###################
@@ -36,6 +37,8 @@ class Operation(Tree):
         from keops.python_engine.formulas.variables.Var import Var
 
         string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
+        if debug_ops:
+            string += f'std::cout << std::endl << std::endl << "Computing {self.__repr__()} :" << std::endl;\n'
         args = []
         # Evaluation of the child operations
         for child in self.children:
@@ -58,6 +61,14 @@ class Operation(Tree):
             args.append(arg)
         # Finally, evaluation of the operation itself
         string += self.Op(out, table, *args)
+        
+        # some debugging helper :
+        if debug_ops:
+            for arg in args:
+                string += arg.c_print()
+            string += out.c_print()
+            string += f'std::cout << std::endl << std::endl;\n'
+            
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
         return string
 
