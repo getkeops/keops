@@ -37,6 +37,8 @@ class get_keops_routine_class:
     def __call__(self, nx, ny, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype):
         c_args = [arg["data"] for arg in args_ctype]
         if use_jit:
+            if self.tagI == 1:
+                nx, ny = ny, nx
             nargs = len(args_ctype)
             self.dll.Eval.argtypes = [c_char_p, c_int, c_int, c_int, c_int, out_ctype["type"], c_int] + [arg["type"] for arg in args_ctype] + [c_int*len(argshape) for argshape in argshapes_ctype]
             self.dll.Eval(create_string_buffer(self.low_level_code_file), c_int(self.dimy), c_int(nx), c_int(ny), c_int(device_id),

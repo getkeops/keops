@@ -1279,7 +1279,7 @@ class GenericLazyTensor:
         ``y.atan2(x)`` returns a :class:`LazyTensor` that encodes, symbolically,
         the element-wise atan2 of ``x`` and ``y``.
         """
-        return self.binary(other, "Atan2", dimcheck="same")
+        return self.binary(other, "Atan2", dimcheck="sameor1")
 
     def sqrt(self):
         r"""
