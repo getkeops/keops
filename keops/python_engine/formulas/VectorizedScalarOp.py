@@ -30,10 +30,7 @@ class VectorizedScalarOp(Operation):
         return out.assign(type(self).ScalarOpFun(*args))
         
     def DiffT(self, v, gradin):        
+        derivatives = self.Derivative(*self.children)
         if len(self.children)==1:
-            f = self.children[0]
-            return f.DiffT(v, gradin*self.Derivative) 
-        else:
-            # this is buggy, must investigate...
-            raise ValueError("not implemented")
-            return sum(f.DiffT(v,gradin*df) for f,df in zip(self.children, self.Derivative))
+            derivatives = (derivatives,)
+        return sum(f.DiffT(v,gradin*df) for f,df in zip(self.children, derivatives))

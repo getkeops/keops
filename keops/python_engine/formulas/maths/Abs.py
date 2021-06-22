@@ -1,19 +1,17 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.utils.math_functions import keops_abs
+from keops.python_engine.formulas.maths.Sign import Sign
 
 class Abs(VectorizedScalarOp):
-    """the absolute value vectorized operation"""
-    string_id = "Abs"
 
-    def ScalarOp(self, out, arg):
-        from keops.python_engine.utils.math_functions import keops_abs
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return out.assign(keops_abs(arg))
+    """the absolute value vectorized operation"""
+
+    string_id = "Abs"
     
-    @property
-    def Derivative(self):  
-        from keops.python_engine.formulas.maths.Sign import Sign
-        f = self.children[0]
+    ScalarOpFun = keops_abs
+    
+    @staticmethod
+    def Derivative(f):  
         return Sign(f)
 
     

@@ -6,12 +6,13 @@ from keops.python_engine.utils.math_functions import keops_exp
 ##########################
 
 class Exp(VectorizedScalarOp):
+    
     """the exponential vectorized operation"""
+    
     string_id = "Exp"
     
     ScalarOpFun = keops_exp
       
-    @property
-    def Derivative(self):  
-        f = self.children[0]
+    @staticmethod
+    def Derivative(f):  
         return Exp(f)

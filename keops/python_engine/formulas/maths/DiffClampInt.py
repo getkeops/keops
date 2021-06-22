@@ -1,4 +1,5 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.utils.math_functions import keops_diffclampint
 
 """
 //////////////////////////////////////////////////////////////
@@ -19,7 +20,6 @@ class DiffClampInt(VectorizedScalarOp):
         self.b = b
 
     def ScalarOp(self, out, arg):
-        from keops.python_engine.utils.math_functions import keops_diffclampint
         return out.assign(keops_diffclampint(arg, self.a, self.b))
     
     def DiffT(self, v, gradin):

@@ -23,7 +23,8 @@ def fun(x, y, b, backend):
     if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    Kxy = (x**2*y).sum(dim=2)
+    Kxy = ((x-.5).ifelse(.25,.75)-y).sum(dim=2)
+    #Kxy = ((x-.5).exp()-y).sum(dim=2)
     out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
@@ -31,7 +32,7 @@ def fun(x, y, b, backend):
     return out
 
 
-backends = ["keops", "torch"]  # "keops_old"
+backends = ["keops"]#, "torch"]  # "keops_old"
 
 out = []
 for backend in backends:

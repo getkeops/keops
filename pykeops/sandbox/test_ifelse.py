@@ -4,7 +4,7 @@ from pykeops.torch import LazyTensor
 
 
 ttypes = (
-    (torch.FloatTensor, torch.cuda.FloatTensor)
+    (torch.cuda.FloatTensor, )
     if torch.cuda.is_available()
     else (torch.FloatTensor,)
 )

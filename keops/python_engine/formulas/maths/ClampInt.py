@@ -1,4 +1,5 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
+from keops.python_engine.formulas.maths.DiffClampInt import DiffClampInt
 
 class ClampInt(VectorizedScalarOp):
     """ ClampInt(x,a,b) = a if x<a, x if a<=x<=b, b if b<x 
@@ -17,8 +18,5 @@ class ClampInt(VectorizedScalarOp):
         from keops.python_engine.utils.math_functions import keops_clampint
         return out.assign(keops_clampint(arg, self.a, self.b))
     
-    @property
-    def Derivative(self):  
-        from keops.python_engine.formulas.maths.DiffClampInt import DiffClampInt
-        x, a, b = self.children[0], self.a, self.b
-        return DiffClampInt(x,a,b)
+    def Derivative(self, x):  
+        return DiffClampInt(x,self.a,self.b)
