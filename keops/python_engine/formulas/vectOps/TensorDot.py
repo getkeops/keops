@@ -133,9 +133,9 @@ class TensorDot(Operation):
 
         out_indices, a_indices, b_indices = self.looper(self.loopdim)
         str_code = ""
-        for i in range(self.dim):
+        for i in range(len(out_indices)):
             str_code += f"                            " + \
-                   f"{out.id}[{out_indices[i]}] = keops_fma({arg0.id}[{a_indices[i]}], {arg1.id}[{b_indices[i]}], {out.id}[{out_indices[i]}]);\n"
+                   f"{out.id}[{out_indices[i]}] += {arg0.id}[{a_indices[i]}] * {arg1.id}[{b_indices[i]}];\n"
 
         return f"""
                     #if C_CONTIGUOUS     // row major
