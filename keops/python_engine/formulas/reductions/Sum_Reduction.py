@@ -1,4 +1,4 @@
-from keops.python_engine.utils.code_gen_utils import c_zero_float
+from keops.python_engine.utils.code_gen_utils import c_zero_float, c_for_loop, c_variable, new_c_varname
 from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
@@ -26,7 +26,7 @@ class Sum_Reduction(Reduction):
         loop, k = c_for_loop(0, self.dim, 1, pragma_unroll=True)
         a = c_variable(acc.dtype, new_c_varname("a"))
         b = c_variable(acc.dtype, new_c_varname("b"))
-        loop( a.declare_assign(xi[k]-tmp[k]) + b.declare_assign(acc[k]+a) + tmp[k].assign((b-acc[k])-a) + acc[k].assign(b))
+        return loop( a.declare_assign(xi[k]-tmp[k]) + b.declare_assign(acc[k]+a) + tmp[k].assign((b-acc[k])-a) + acc[k].assign(b))
 
     def DiffT(self, v, gradin, f0=None):
         from keops.python_engine.reductions import Grad

@@ -22,11 +22,11 @@ class Divide_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
-            return (fa.Grad(v, Scalprod(gradin, fb)) - fb.Grad(v, fa * gradin)) / Square(fb)
+            return (fa.DiffT(v, Scalprod(gradin, fb)) - fb.DiffT(v, fa * gradin)) / Square(fb)
         elif fb.dim == 1 and fa.dim > 1:
-            return (fa.Grad(v, fb * gradin) - fb.Grad(v, Scalprod(gradin, fa))) / Square(fb)
+            return (fa.DiffT(v, fb * gradin) - fb.DiffT(v, Scalprod(gradin, fa))) / Square(fb)
         else:
-            return (fa.Grad(v, fb * gradin) - fb.Grad(v, fa * gradin)) / Square(fb)
+            return (fa.DiffT(v, fb * gradin) - fb.DiffT(v, fa * gradin)) / Square(fb)
 
 
 # N.B. The following separate function should theoretically be implemented

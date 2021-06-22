@@ -19,7 +19,21 @@ class VectorizedScalarOp(Operation):
         # here it is the same as the output dimension of the child operation
         return max(child.dim for child in self.children)
 
-    def Op(self, out, table, *arg):
+    def Op(self, out, table, *args):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
-        return VectApply(self.ScalarOp, out, *arg)
+        return VectApply(self.ScalarOp, out, *args)
+    
+    def ScalarOp(self, out, *args):
+        # returns the atomic piece of c++ code to evaluate the function on arg and return
+        # the result in out
+        return out.assign(type(self).ScalarOpFun(*args))
+        
+    def DiffT(self, v, gradin):        
+        if len(self.children)==1:
+            f = self.children[0]
+            return f.DiffT(v, gradin*self.Derivative) 
+        else:
+            # this is buggy, must investigate...
+            raise ValueError("not implemented")
+            return sum(f.DiffT(v,gradin*df) for f,df in zip(self.children, self.Derivative))

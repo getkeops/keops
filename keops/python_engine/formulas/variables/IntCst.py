@@ -1,8 +1,8 @@
 from keops.python_engine.utils.code_gen_utils import cast_to, c_variable
 from keops.python_engine.formulas.Operation import Operation
+from keops.python_engine.formulas.variables.Zero import Zero
 
-
-class IntCst(Operation):
+class IntCst_Impl(Operation):
     # constant integer "operation"
     string_id = "IntCst"
     print_spec = "", "pre", 0
@@ -22,5 +22,13 @@ class IntCst(Operation):
         return f"*{out.id} = {cast_to(out.dtype, float_val)};\n"
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas import Zero
         return Zero(v.dim)
+        
+
+# N.B. The following separate function should theoretically be implemented
+# as a __new__ method of the previous class, but this can generate infinite recursion problems
+def IntCst(arg):
+    if arg==0:
+        return Zero(1)
+    else:
+        return IntCst_Impl(arg)

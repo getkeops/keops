@@ -38,4 +38,4 @@ class MatVecMult(Operation):
 
         A = self.children[0]
         B = self.children[1]
-        return A.Grad(v, TensorProd(gradin, B)) + B.Grad(v, VecMatMult(gradin, A))
+        return A.DiffT(v, TensorProd(gradin, B)) + B.DiffT(v, VecMatMult(gradin, A))

@@ -9,10 +9,11 @@ class Abs(VectorizedScalarOp):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
         return out.assign(keops_abs(arg))
-
-    def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.basicMathOps.Sign import Sign
+    
+    @property
+    def Derivative(self):  
+        from keops.python_engine.formulas.maths.Sign import Sign
         f = self.children[0]
-        return f.Grad(v, Sign(f) * gradin)
+        return Sign(f)
 
     

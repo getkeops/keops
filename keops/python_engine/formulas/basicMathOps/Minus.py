@@ -18,7 +18,7 @@ class Minus_Impl(VectorizedScalarOp):
 
     def DiffT(self, v, gradin):
         f = self.children[0]
-        return -f.Grad(v, gradin)
+        return -f.DiffT(v, gradin)
 
 
 # N.B. The following separate function should theoretically be implemented
