@@ -32,9 +32,13 @@
 #' (`browseVignettes("rkeops")`) and visit 
 #' https://www.kernel-operations.io/.
 #' 
+#' @references
+#' \insertRef{JMLR:v22:20-275}{rkeops}
+#' 
 #' @import Rcpp
 #' @importFrom Rcpp sourceCpp
 #' @importFrom utils head packageVersion
+#' @importFrom Rdpack reprompt
 #' @useDynLib rkeops, .registration = TRUE
 #' 
 NULL

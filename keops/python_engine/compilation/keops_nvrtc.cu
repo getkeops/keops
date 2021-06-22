@@ -118,7 +118,7 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) 
 }
 
 
-extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny, float *out, int nargs, ...) {
+extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, float *out, int nargs, ...) {
     
     float *arg[nargs];
     va_list ap;
@@ -150,13 +150,16 @@ extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny
 #endif
     // Load the generated PTX and get a handle to the kernel.
     CUdevice cuDevice;
+    
     //CUcontext context;
+    cudaSetDevice(device_id);
+    
     CUmodule module;
     CUfunction kernel;
 
     CUDA_SAFE_CALL(cuInit(0));
 
-    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, 0));
+    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
 
     //CUDA_SAFE_CALL(cuCtxCreate(&context, 0, cuDevice));
 #if TIMEIT  

@@ -7,16 +7,10 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ######    Sum        #####
 ##########################
 
-class Sum(Operation):
+class Sum_Impl(Operation):
     # the summation operation
     string_id = "Sum"
     dim = 1
-
-    def __new__(cls, arg):
-        if isinstance(arg, Zero):
-            return Zero(1)
-        else:
-            return super(Sum, cls).__new__(cls)
 
     def Op(self, out, table, arg):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
@@ -29,4 +23,13 @@ class Sum(Operation):
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.vectOps.SumT import SumT
         f = self.children[0]
-        return f.Grad(v, SumT(gradin, f.dim))
+        return f.DiffT(v, SumT(gradin, f.dim))
+        
+
+# N.B. The following separate function should theoretically be implemented
+# as a __new__ method of the previous class, but this can generate infinite recursion problems
+def Sum(arg):
+    if isinstance(arg, Zero):
+        return Zero(1)
+    else:
+        return Sum_Impl(arg)

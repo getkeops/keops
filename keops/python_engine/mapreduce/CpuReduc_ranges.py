@@ -55,13 +55,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
 
-        self.headers += c_include("cmath", "omp.h")
-        
-        
-        
-        red_formula_tagJ = 1
-        
-        
+        self.headers += c_include("cmath", "omp.h")        
         
         self.code = f"""
                         {self.headers}
@@ -122,10 +116,10 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             //    FUN::tagJ = 1 for a reduction over j, result indexed by i
                             //    FUN::tagJ = 0 for a reduction over i, result indexed by j
     
-                            int nranges = {red_formula_tagJ} ? nranges_x : nranges_y;
-                            __INDEX__* ranges_x = {red_formula_tagJ} ? ranges[0] : ranges[3];
-                            __INDEX__* slices_x = {red_formula_tagJ} ? ranges[1] : ranges[4];
-                            __INDEX__* ranges_y = {red_formula_tagJ} ? ranges[2] : ranges[5];
+                            int nranges = {red_formula.tagJ} ? nranges_x : nranges_y;
+                            __INDEX__* ranges_x = {red_formula.tagJ} ? ranges[0] : ranges[3];
+                            __INDEX__* slices_x = {red_formula.tagJ} ? ranges[1] : ranges[4];
+                            __INDEX__* ranges_y = {red_formula.tagJ} ? ranges[2] : ranges[5];
 
                             int indices_i[{nvarsi}], indices_j[{nvarsj}], indices_p[{nvarsp}];  // Buffers for the "broadcasted indices"
                             for (int k = 0; k < {nvarsi}; k++) {{ indices_i[k] = 0; }}  // Fill the "offsets" with zeroes,
@@ -193,7 +187,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         }}
                         
                         
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
+                        extern "C" int launch_keops(int nx, int ny, int device_id, int **ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
                             
                             {varseq_to_array(args, "args_ptr")}
                             {varseq_to_array(argshapes, "argshapes_ptr")}
@@ -203,13 +197,17 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             #if USE_HALF
                               SS.switch_to_half2_indexing();
                             #endif
-                            
-                            int nranges = 0;
 
-                            Ranges RR(SS, nranges, NULL);  // N.B. third arg should be ranges
+                            Ranges RR(SS, ranges);
                             
-                            return CpuConv_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
+                            if ({red_formula.tagJ}==1)
+                                return CpuConv_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
                                                       RR.nranges_x, RR.nranges_y, RR.castedranges,
                                                       out, {call_list(args)});
+                            else
+                                return CpuConv_ranges(SS.ny, SS.nx, SS.nbatchdims, SS.shapes,
+                                                      RR.nranges_x, RR.nranges_y, RR.castedranges,
+                                                      out, {call_list(args)});
+                            
                         }}
                     """

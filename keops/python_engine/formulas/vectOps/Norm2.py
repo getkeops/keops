@@ -1,5 +1,5 @@
 from keops.python_engine.formulas.maths import Sqrt
-from keops.python_engine.formulas.vectOps import Scalprod
+from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
 
 ##########################
 ######    Norm2      #####

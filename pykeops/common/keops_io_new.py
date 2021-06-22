@@ -1,6 +1,7 @@
 from pykeops.common.get_keops_routine import get_keops_routine    
 import time 
-from ctypes import c_int
+from ctypes import c_int, c_void_p
+import numpy
         
 class LoadKeOps_new:
     
@@ -18,8 +19,12 @@ class LoadKeOps_new:
                     cat = 1
                 elif "Pm" in var:
                     cat = 2
-                dim = eval(var[3:-1])
-                alias = f"{varname}=Var({k},{dim},{cat})"
+                alias_args = var[3:-1].split(",")
+                if len(alias_args)==1:
+                    ind, dim = k, eval(alias_args[0])
+                elif len(alias_args)==2:
+                    ind, dim = eval(alias_args[0]), eval(alias_args[1])
+                alias = f"{varname}=Var({ind},{dim},{cat})"
                 aliases_new.append(alias)
         aliases = aliases_new
         self.aliases = aliases
@@ -87,7 +92,7 @@ class LoadKeOps_new:
             tag1D2D = 0
         
         if tagHostDevice==0 and tagCPUGPU==1:
-            raise ValueError('[KeOps] "From Host" reductions are not yet implemented in new KeOps engine, switching to "From Device"')
+            raise ValueError('[KeOps] "From Host" reductions are not yet implemented in new KeOps engine."')
             tagHostDevice = 1
         
         if tagCPUGPU==0:
@@ -105,23 +110,27 @@ class LoadKeOps_new:
         if device_id_ != -1 and device_id_ != device_id:
             raise ValueError('[KeOps] internal error : device_id_ and device_id do not match, code needs some cleaning...')
         
-        if ranges:
-            raise ValueError('[KeOps] ranges are not yet implemented in new KeOps engine')
+        if ranges and tagCPUGPU==1:
+            raise ValueError('[KeOps] ranges are not yet implemented in Gpu mode in new KeOps engine')
 
         # detect the need for using "ranges" method
-        nbatchdims = len(args[0].shape)-2
+        # N.B. we assume here that there is a least a cat=0 or cat=1 variable in the formula...
+        nbatchdims = max(len(arg.shape) for arg in args)-2
         if nbatchdims>0 or ranges:
             map_reduce_id += "_ranges"
         
         myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme, tagHostDevice, tagCPUGPU, tag1D2D)
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
-        M, N = (nx, ny) if myfun.tagI==0 else (ny, nx)
         
         # get ranges argument as ctypes
         if not ranges:
-            ranges = (-1,) # temporary hack
-        ranges_ctype = tools.ctypes(tools.array(ranges))
+            ranges = (numpy.array([-1], dtype="int32"),)*7 # temporary hack
+        else:
+            ranges = tuple(tools.numpy(r) for r in ranges)
+            ranges = (*ranges,numpy.array([r.shape[0] for r in ranges], dtype="int32"))
+        ranges_ctype = list(c_void_p(r.ctypes.data) for r in ranges)
+        ranges_ctype = (c_void_p*7)(*ranges_ctype)
         
         # convert arguments arrays to ctypes
         args_ctype = [tools.ctypes(arg) for arg in args]
@@ -130,17 +139,18 @@ class LoadKeOps_new:
         argshapes_ctype = [(c_int*(len(arg.shape)+1))(*((len(arg.shape),)+arg.shape)) for arg in args]
             
         # initialize output array and converting to ctypes        
-        shapes = []
+        batchdims_shapes = []
         for arg in args:
-            shapes.append(list(arg.shape[:-2]))
+            batchdims_shapes.append(list(arg.shape[:nbatchdims]))
         import numpy as np
-        shapes = np.array(shapes)
-        shapeout = tuple(np.max(shapes,axis=0))+(M,myfun.dim)
+        batchdims_shapes = np.array(batchdims_shapes)
+        M = nx if myfun.tagI==0 else ny
+        shapeout = tuple(np.max(batchdims_shapes,axis=0))+(M,myfun.dim)
         out = tools.zeros(shapeout, dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
         
         # call the routine
-        myfun(M, N, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype)
+        myfun(nx, ny, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype)
         
         return out
 

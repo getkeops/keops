@@ -8,7 +8,7 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ##########################
 
 
-class SumT(Operation):
+class SumT_Impl(Operation):
     # the adjoint of the summation operation
     string_id = "SumT"
 
@@ -16,14 +16,6 @@ class SumT(Operation):
         super().__init__(arg)
         self.dim = dim
         self.params = (dim,)
-
-    def __new__(cls, arg, dim):
-        if arg.dim != 1:
-            raise ValueError("dimension of argument must be 1 for SumT operation")
-        elif isinstance(arg, Zero):
-            return Zero(dim)
-        else:
-            return super(SumT, cls).__new__(cls)
 
     def __eq__(self, other):
         return type(self) == type(other) and self.dim == other.dim
@@ -35,6 +27,17 @@ class SumT(Operation):
         return out.assign(value_arg)
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.maths.Sum import Sum
+        from keops.python_engine.formulas.vectOps.Sum import Sum
         f = self.children[0]
-        return f.Grad(v, Sum(gradin))
+        return f.DiffT(v, Sum(gradin))
+
+
+# N.B. The following separate function should theoretically be implemented
+# as a __new__ method of the previous class, but this can generate infinite recursion problems
+def SumT(arg, dim):
+    if arg.dim != 1:
+        raise ValueError("dimension of argument must be 1 for SumT operation")
+    elif isinstance(arg, Zero):
+        return Zero(dim)
+    else:
+        return SumT_Impl(arg, dim)

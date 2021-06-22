@@ -29,7 +29,7 @@ from pykeops.torch import LazyTensor
 
 use_cuda = torch.cuda.is_available()
 dtype = torch.float32 if use_cuda else torch.float64
-device_id = "cuda:1" if use_cuda else "cpu"
+device = "cuda:0" if use_cuda else "cpu"
 
 ########################################################################
 # Simple implementation of the K-means algorithm:
@@ -90,7 +90,7 @@ N, D, K = 10000, 2, 50
 
 ###############################################################
 # Define our dataset:
-x = 0.7 * torch.randn(N, D, dtype=dtype, device=device_id) + 0.3
+x = 0.7 * torch.randn(N, D, dtype=dtype, device=device) + 0.3
 
 ###############################################################
 # Perform the computation:
@@ -181,6 +181,6 @@ plt.show()
 
 if use_cuda:
     N, D, K = 1000000, 100, 1000
-    x = torch.randn(N, D, dtype=dtype, device=device_id)
+    x = torch.randn(N, D, dtype=dtype, device=device)
     cl, c = KMeans(x, K)
     cl, c = KMeans_cosine(x, K)

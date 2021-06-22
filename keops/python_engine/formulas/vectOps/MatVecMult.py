@@ -1,6 +1,6 @@
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.formulas.vectOps.TensorProd import TensorProd
-
+from keops.python_engine.utils.code_gen_utils import c_variable, c_for_loop, c_zero_float
 
 # /////////////////////////////////////////////////////////////////////////
 # ////     Matrix-vector product      A x b                           ////
@@ -18,29 +18,18 @@ class MatVecMult(Operation):
         super().__init__(A, B)
         self.dim = A.dim // B.dim
 
-    def Op(self, out, table, inB, inA):
+    def Op(self, out, table, inA, inB):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
+        q = c_variable("int")
+        loop, i = c_for_loop(0, self.dim, 1, pragma_unroll=True)
+        inner_loop, k = c_for_loop(0, inB.dim, 1, pragma_unroll=True)
         return f"""
                     #if C_CONTIGUOUS     // row major
-                        int q = 0;
-                        #pragma unroll
-                        for (int i = 0; i < {self.dim}; i++) 
-                        {{
-                            {out.id}[i] = ({out.dtype})(0.0f);
-                            #pragma unroll
-                            for (int k = 0; k < {inB.dim}; k++, q++)
-                                {out.id}[i] += {inA.id}[q] * {inB.id}[k];
-                        }}
+                        {q.declare_assign(0)}
+                        {loop( out[i].assign(c_zero_float) + inner_loop( out[i].add_assign(inA[q]*inB[k]) + q.add_assign(1) ) )}
                     #else               // column major
-                        #pragma unroll
-                        for (int i = 0; i < {self.dim}; i++) 
-                        {{
-                            {out.id}[i] = ({out.dtype})(0.0f);
-                        	#pragma unroll
-                            for (int k = 0; k < {inB.dim}; k++)
-                                {out.id}[i] += {inA.id}[{self.dim} * k + i] * {inB.id}[k];
-                        }}
+                        {loop( out[i].assign(c_zero_float) + inner_loop( out[i].add_assign(inA[k*self.dim+i]*inB[k]) ) )}
                     #endif
                 """
 
@@ -49,4 +38,4 @@ class MatVecMult(Operation):
 
         A = self.children[0]
         B = self.children[1]
-        return A.Grad(v, TensorProd(gradin, B)) + B.Grad(v, VecMatMult(gradin, A))
+        return A.DiffT(v, TensorProd(gradin, B)) + B.DiffT(v, VecMatMult(gradin, A))

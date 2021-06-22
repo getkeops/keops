@@ -1,4 +1,4 @@
-from keops.python_engine.utils.code_gen_utils import c_array, c_zero_float, c_if
+from keops.python_engine.utils.code_gen_utils import c_array, c_zero_float, c_if, c_variable
 
 
 class Sum_Scheme:
@@ -47,10 +47,8 @@ class block_sum(Sum_Scheme):
         return self.red_formula.ReducePairShort(self.tmp_acc, fout, j)
 
     def periodic_accumulate_temporary(self, acc, j):
-        return c_if(f"!(({j.id}+1)%period_accumulate)",
-                    self.red_formula.ReducePair(acc, self.tmp_acc),
-                    self.red_formula.InitializeReduction(self.tmp_acc)
-                    )
+        condition = c_variable("bool", f"!(({j.id}+1)%period_accumulate)")
+        return c_if( condition, self.red_formula.ReducePair(acc, self.tmp_acc) + self.red_formula.InitializeReduction(self.tmp_acc) )
 
     def final_operation(self, acc):
         return self.red_formula.ReducePair(acc, self.tmp_acc)
