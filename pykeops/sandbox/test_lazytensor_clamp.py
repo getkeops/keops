@@ -8,7 +8,7 @@ from pykeops.torch import LazyTensor
 
 M, N, D = 1000, 1000, 300
 
-test_grad = False
+test_grad = True
 
 device_id = "cuda" if torch.cuda.is_available() else "cpu"
 

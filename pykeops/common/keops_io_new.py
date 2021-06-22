@@ -19,8 +19,12 @@ class LoadKeOps_new:
                     cat = 1
                 elif "Pm" in var:
                     cat = 2
-                dim = eval(var[3:-1])
-                alias = f"{varname}=Var({k},{dim},{cat})"
+                alias_args = var[3:-1].split(",")
+                if len(alias_args)==1:
+                    ind, dim = k, eval(alias_args[0])
+                elif len(alias_args)==2:
+                    ind, dim = eval(alias_args[0]), eval(alias_args[1])
+                alias = f"{varname}=Var({ind},{dim},{cat})"
                 aliases_new.append(alias)
         aliases = aliases_new
         self.aliases = aliases
@@ -110,7 +114,8 @@ class LoadKeOps_new:
             raise ValueError('[KeOps] ranges are not yet implemented in Gpu mode in new KeOps engine')
 
         # detect the need for using "ranges" method
-        nbatchdims = len(args[0].shape)-2
+        # N.B. we assume here that there is a least a cat=0 or cat=1 variable in the formula...
+        nbatchdims = max(len(arg.shape) for arg in args)-2
         if nbatchdims>0 or ranges:
             map_reduce_id += "_ranges"
         
@@ -134,13 +139,13 @@ class LoadKeOps_new:
         argshapes_ctype = [(c_int*(len(arg.shape)+1))(*((len(arg.shape),)+arg.shape)) for arg in args]
             
         # initialize output array and converting to ctypes        
-        shapes = []
+        batchdims_shapes = []
         for arg in args:
-            shapes.append(list(arg.shape[:-2]))
+            batchdims_shapes.append(list(arg.shape[:nbatchdims]))
         import numpy as np
-        shapes = np.array(shapes)
+        batchdims_shapes = np.array(batchdims_shapes)
         M = nx if myfun.tagI==0 else ny
-        shapeout = tuple(np.max(shapes,axis=0))+(M,myfun.dim)
+        shapeout = tuple(np.max(batchdims_shapes,axis=0))+(M,myfun.dim)
         out = tools.zeros(shapeout, dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
         

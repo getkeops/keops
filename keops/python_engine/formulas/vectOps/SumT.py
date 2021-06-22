@@ -29,7 +29,7 @@ class SumT_Impl(Operation):
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.vectOps.Sum import Sum
         f = self.children[0]
-        return f.Grad(v, Sum(gradin))
+        return f.DiffT(v, Sum(gradin))
 
 
 # N.B. The following separate function should theoretically be implemented

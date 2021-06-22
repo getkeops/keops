@@ -10,10 +10,9 @@ class Acos(VectorizedScalarOp):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
         return out.assign(keops_acos(arg))
-
-    def DiffT(self, v, gradin):
+        
+    @property
+    def Derivative(self):  
         from keops.python_engine.formulas.maths.Rsqrt import Rsqrt
-        from keops.python_engine.formulas.maths.Square import Square
-        from keops.python_engine.formulas.variables.IntCst import IntCst
         f = self.children[0]
-        return f.Grad(v, - Rsqrt((IntCst(1) - Square(f))) * gradin)
+        return -Rsqrt(1-f**2)

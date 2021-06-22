@@ -71,15 +71,7 @@ class Operation(Tree):
             
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
         return string
-
-    def Grad(self, v, gradin):
-        if gradin.dim != self.dim:
-            raise ValueError("incompatible dimensions")
-        return self.DiffT(v, gradin)
-
-    def DiffT(self, v, gradin):
-        pass
-
+        
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Mult import Mult
@@ -95,15 +87,30 @@ class Operation(Tree):
         from keops.python_engine.formulas.basicMathOps.Divide import Divide
         return Divide(self, other)
 
+    def __rtruediv__(self, other):
+        if other==1:
+            from keops.python_engine.formulas.basicMathOps.Inv import Inv
+            return Inv(self)
+        else:
+            return int2Op(other) / self
+
     def __add__(self, other):
         """f+g redirects to Add(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Add import Add
         return Add(self, other)
 
+    def __radd__(self, other):
+        """f+g redirects to Add(f,g)"""
+        return int2Op(other) + self
+
     def __sub__(self, other):
         """f-g redirects to Subtract(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Subtract import Subtract
         return Subtract(self, other)
+
+    def __rsub__(self, other):
+        """f-g redirects to Subtract(f,g)"""
+        return int2Op(other) - self
 
     def __neg__(self):
         """-f redirects to Minus(f)"""
@@ -125,6 +132,17 @@ class Operation(Tree):
 
     def Op(self, out, table, param):
         pass
+
+
+
+def int2Op(x):
+    if isinstance(x, int):
+        from keops.python_engine.formulas.variables.IntCst import IntCst
+        return IntCst(x)
+    elif isinstance(x, Operation):
+        return x
+    else:
+        raise ValueError("invalid type : ", type(x))
 
 
 ##########################

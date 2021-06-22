@@ -22,7 +22,7 @@ class Square_Impl(VectorizedScalarOp):
         from keops.python_engine.formulas.variables.IntCst import IntCst
         # [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
         f = self.children[0]
-        return IntCst(2) * f.Grad(v, f * gradin)
+        return IntCst(2) * f.DiffT(v, f * gradin)
 
 
 # N.B. The following separate function should theoretically be implemented

@@ -32,4 +32,4 @@ class TensorProd(Operation):
         from keops.python_engine.formulas import MatVecMult, VecMatMult
         f = self.children[0]
         g = self.children[1]
-        return f.Grad(v, MatVecMult(gradin, g)) + g.Grad(v, VecMatMult(f, gradin))
+        return f.DiffT(v, MatVecMult(gradin, g)) + g.DiffT(v, VecMatMult(f, gradin))

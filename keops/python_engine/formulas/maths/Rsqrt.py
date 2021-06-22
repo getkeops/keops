@@ -19,4 +19,4 @@ class Rsqrt(VectorizedScalarOp):
         from keops.python_engine.formulas.basicMathOps.IntInv import IntInv
         # [\partial_V exp(F)].gradin = exp(F) * [\partial_V F].gradin
         f = self.children[0]
-        return f.Grad(v, IntInv(-2) * Rsqrt(f) ** 3 * gradin)
+        return f.DiffT(v, IntInv(-2) * Rsqrt(f) ** 3 * gradin)

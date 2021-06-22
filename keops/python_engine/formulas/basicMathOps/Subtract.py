@@ -19,7 +19,7 @@ class Subtract_Impl(VectorizedScalarOp):
 
     def DiffT(self, v, gradin):
         fa, fb = self.children
-        return fa.Grad(v, gradin) - fb.Grad(v, gradin)
+        return fa.DiffT(v, gradin) - fb.DiffT(v, gradin)
 
 
 # N.B. The following separate function should theoretically be implemented

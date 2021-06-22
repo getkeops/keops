@@ -38,4 +38,4 @@ class VecMatMult(Operation):
         from keops.python_engine.formulas.maths.MatVecMult import MatVecMult
         B = self.children[0]
         A = self.children[1]
-        return A.Grad(v, TensorProd(B, gradin)) + B.Grad(v, MatVecMult(A, gradin))
+        return A.DiffT(v, TensorProd(B, gradin)) + B.DiffT(v, MatVecMult(A, gradin))
