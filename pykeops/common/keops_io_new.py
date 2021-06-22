@@ -92,7 +92,7 @@ class LoadKeOps_new:
             tag1D2D = 0
         
         if tagHostDevice==0 and tagCPUGPU==1:
-            raise ValueError('[KeOps] "From Host" reductions are not yet implemented in new KeOps engine, switching to "From Device"')
+            raise ValueError('[KeOps] "From Host" reductions are not yet implemented in new KeOps engine."')
             tagHostDevice = 1
         
         if tagCPUGPU==0:
