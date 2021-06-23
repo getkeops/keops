@@ -9,10 +9,10 @@ from keops.python_engine import debug_ops
 
 class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
-    def __init__(self, *args):
+    def __init__(self, *args, params=()):
         # *args are other instances of Operation, they are the child operations of self
         self.children = args
-        self.params = ()
+        self.params = params
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class
         self.Vars_ = set.union(*(arg.Vars_ for arg in args)) if len(args) > 0 else set()

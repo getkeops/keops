@@ -12,5 +12,5 @@ class IfElse(VectorizedScalarOp):
     ScalarOpFun = keops_ifelse
     
     def DiffT(self, v, gradin):
-        f, g, h = self.children
-        return IfElse(f, g.DiffT(v,gradin), h.DiffT(v,gradin))
+        f, a, b = self.children
+        return IfElse(f, a.DiffT(v,gradin), b.DiffT(v,gradin))

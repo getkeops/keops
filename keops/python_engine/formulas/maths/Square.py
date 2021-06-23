@@ -14,15 +14,11 @@ class Square_Impl(VectorizedScalarOp):
     print_spec = "**2", "post", 1
 
     def ScalarOp(self, out, arg):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
         return out.assign(arg*arg)
 
-    def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.variables.IntCst import IntCst
-        # [\partial_V (F)**2].gradin = F * [\partial_V F].gradin
-        f = self.children[0]
-        return IntCst(2) * f.DiffT(v, f * gradin)
+    @staticmethod
+    def Derivative(f):  
+        return 2*f
 
 
 # N.B. The following separate function should theoretically be implemented
