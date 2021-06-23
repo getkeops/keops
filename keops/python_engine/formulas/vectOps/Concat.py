@@ -15,8 +15,6 @@ class Concat(Operation):
         self.dim = arg0.dim + arg1.dim
 
     def Op(self, out, table, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
         out0, out1 = out.split(arg0.dim, arg1.dim)
         return VectCopy(out0, arg0) + VectCopy(out1, arg1)
 

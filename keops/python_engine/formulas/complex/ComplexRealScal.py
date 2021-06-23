@@ -1,11 +1,14 @@
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.utils.code_gen_utils import c_for_loop
-
+from keops.python_engine.formulas.complex.Real2Complex import Real2Complex
+from keops.python_engine.formulas.complex.ComplexScal import ComplexScal
+        
 #/////////////////////////////////////////////////////////////////////////
 #////      ComplexRealScal                           ////
 #/////////////////////////////////////////////////////////////////////////
 
 class ComplexRealScal_Impl(Operation):
+    
     string_id = "ComplexRealScal"
 
     def __init__(self, f, g):
@@ -23,12 +26,10 @@ class ComplexRealScal_Impl(Operation):
         return forloop(body)
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.complex.Real2Complex import Real2Complex
-        from keops.python_engine.formulas.complex.ComplexScal import ComplexScal
         f, g = self.children
         AltFormula = ComplexScal(Real2Complex(f), g)
         return AltFormula.DiffT(v, gradin)
-
+        
 
 def ComplexRealScal(f,g):
     return ComplexRealScal_Impl(f,g) if f.dim==1 else ComplexRealScal_Impl(g,f)

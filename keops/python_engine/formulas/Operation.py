@@ -129,6 +129,9 @@ class Operation(Tree):
         """f|g redirects to Scalprod(f,g)"""
         from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
         return Scalprod(self, other)
+        
+    def __eq__(self, other):
+        return type(self) == type(other) and self.params == other.params
 
     def Op(self, out, table, param):
         pass

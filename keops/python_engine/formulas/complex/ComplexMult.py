@@ -1,11 +1,14 @@
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.utils.code_gen_utils import c_for_loop
-
+from keops.python_engine.formulas.complex.ComplexMult import ComplexMult
+from keops.python_engine.formulas.complex.Conj import Conj
+        
 #/////////////////////////////////////////////////////////////////////////
 #////      ComplexMult                           ////
 #/////////////////////////////////////////////////////////////////////////
 
 class ComplexMult(Operation):
+    
     string_id = "ComplexMult"
 
     def __init__(self, f, g):
@@ -23,11 +26,8 @@ class ComplexMult(Operation):
         return forloop(body)
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.complex.ComplexMult import ComplexMult
-        from keops.python_engine.formulas.complex.Conj import Conj
-        from keops.python_engine.formulas.basicMathOps.Add import Add
         f, g = self.children
         DiffTF = f.DiffT(v, gradin)
         DiffTG = g.DiffT(v, gradin)
-        return Add(DiffTF(v, ComplexMult(Conj(g), gradin)), DiffTG(v, ComplexMult(Conj(f), gradin)))
+        return DiffTF(v, ComplexMult(Conj(g), gradin)) + DiffTG(v, ComplexMult(Conj(f), gradin))
     

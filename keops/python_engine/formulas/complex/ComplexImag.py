@@ -1,11 +1,13 @@
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.utils.code_gen_utils import c_for_loop
+from keops.python_engine.formulas.complex.Imag2Complex import Imag2Complex
 
 #/////////////////////////////////////////////////////////////////////////
 #////      ComplexImag                           ////
 #/////////////////////////////////////////////////////////////////////////
 
 class ComplexImag(Operation):
+    
     string_id = "ComplexImag"
 
     def __init__(self, f):
@@ -20,7 +22,6 @@ class ComplexImag(Operation):
         return forloop( out[i/2].assign(inF[i+1]) )
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.complex.Imag2Complex import Imag2Complex
         f = self.children[0]
         return f.DiffT(v, Imag2Complex(gradin))
 
