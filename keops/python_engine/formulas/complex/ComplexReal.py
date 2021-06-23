@@ -1,11 +1,13 @@
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.utils.code_gen_utils import c_for_loop
+from keops.python_engine.formulas.complex.Real2Complex import Real2Complex
 
 #/////////////////////////////////////////////////////////////////////////
 #////      ComplexReal                           ////
 #/////////////////////////////////////////////////////////////////////////
 
 class ComplexReal(Operation):
+    
     string_id = "ComplexReal"
 
     def __init__(self, f):
@@ -20,7 +22,6 @@ class ComplexReal(Operation):
         return forloop( out[i/2].assign(inF[i]) )
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.complex.Real2Complex import Real2Complex
         f = self.children[0]
         return f.DiffT(v, Real2Complex(gradin))
 

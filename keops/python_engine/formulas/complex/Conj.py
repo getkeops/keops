@@ -6,6 +6,7 @@ from keops.python_engine.utils.code_gen_utils import c_for_loop
 #/////////////////////////////////////////////////////////////////////////
 
 class Conj(Operation):
+    
     string_id = "Conj"
 
     def __init__(self, f):

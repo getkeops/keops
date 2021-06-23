@@ -33,7 +33,9 @@ class c_variable:
             return list(c_variable(dtype, string_id) for string_id in list_string_id) 
         else:
             return super(c_variable, self).__new__(self)
-    def __init__(self, dtype, string_id=new_c_varname("var")):
+    def __init__(self, dtype, string_id=None):
+        if string_id is None:
+            string_id = new_c_varname("var")
         self.dtype = dtype              # dtype is C++ type of variable
         self.id = string_id             # string_id is C++ name of variable
     def __repr__(self):
@@ -183,16 +185,30 @@ def cast_to(dtype, var):
     else:
         raise ValueError("not implemented.")
 
-def value(pdtype):
-    # converts string "dtype*" to "dtype" 
-    if pdtype[-1]=="*":
-        return pdtype[:-1]
+def value(x):
+    # either convert c_array or c_variable representing a pointer to its value c_variable (dereference)
+    # or converts string "dtype*" to "dtype"
+    if isinstance(x, c_array):
+        return c_variable(x.dtype,f"(*{x.id})")
+    if isinstance(x, c_variable):
+        return c_variable(value(x.dtype),f"(*{x.id})")
+    elif isinstance(x, str):
+        if x[-1]=="*":
+            return x[:-1]
+        else:
+            raise ValueError("Incorrect input string in value function; it should represent a pointer C++ type.")
     else:
-        raise ValueError("Incorrect input string in value function; it should represent a pointer C++ type.")
-
-def pointer(dtype):
-    # converts string "dtype" to "dtype*" 
-    return dtype+"*"
+        raise ValueError("input should be either c_variable instance or string.")
+        
+def pointer(x):
+    # either convert c_variable to its address c_variable (reference)
+    # or converts string "dtype" to "dtype*"
+    if isinstance(x, c_variable):
+        return c_variable(pointer(x.dtype),f"(&{x.id})")
+    elif isinstance(x, str):
+        return x+"*"
+    else:
+        raise ValueError("input should be either c_variable instance or string.") 
 
 class c_array:
     def __init__(self, dtype, dim, string_id=new_c_varname("array")):
@@ -291,12 +307,14 @@ def VectApply(fun, out, *args):
     return forloop(fun(out[k*incr_out], *argsk))
 
 
-def VectCopy(out, arg):
+def VectCopy(out, arg, dim=None):
     # returns a C++ code string representing a vector copy between fixed-size arrays
     # - dim is dimension of arrays
     # - out is c_variable representing the output array
     # - arg is c_variable representing the input array
-    forloop, k = c_for_loop(0, out.dim, 1)
+    if dim is None:
+        dim = out.dim
+    forloop, k = c_for_loop(0, dim, 1, pragma_unroll=True)
     return forloop( out[k].assign(arg[k]) )
 
 def call_list(args):

@@ -6,6 +6,7 @@ from keops.python_engine.utils.code_gen_utils import c_zero_float, c_for_loop
 #/////////////////////////////////////////////////////////////////////////
 
 class Imag2Complex(Operation):
+    
     string_id = "Imag2Complex"
 
     def __init__(self, f):
