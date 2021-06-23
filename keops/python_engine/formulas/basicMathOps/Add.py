@@ -38,6 +38,5 @@ def Add(arg0, arg1):
         elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl) and arg1.children[1] == arg0.children[1]:
             #  factorization :  mx + nx = (m+n)x
             return IntCst(arg0.children[0].val+arg1.children[0].val) * arg0.children[1]
-    else:
-        return Add_Impl(arg0, arg1)
+    return Add_Impl(arg0, arg1)
 

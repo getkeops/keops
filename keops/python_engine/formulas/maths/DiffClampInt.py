@@ -15,12 +15,9 @@ class DiffClampInt(VectorizedScalarOp):
     string_id = "DiffClampInt"
     
     def __init__(self, x, a, b):
-        super().__init__(x)
-        self.a = a
-        self.b = b
+        super().__init__(x, params=(a,b))
 
-    def ScalarOp(self, out, arg):
-        return out.assign(keops_diffclampint(arg, self.a, self.b))
+    ScalarOpFun = keops_diffclampint
     
     def DiffT(self, v, gradin):
         return Zero(v.dim)
