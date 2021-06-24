@@ -1,6 +1,5 @@
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.utils.code_gen_utils import c_variable, c_for_loop, c_zero_float
-from keops.python_engine.formulas import MatVecMult, VecMatMult
 
 ####################################
 ######    Tensor product       #####
@@ -29,5 +28,6 @@ class TensorProd(Operation):
                 """
 
     def DiffT(self, v, gradin):
+        from keops.python_engine.formulas import MatVecMult, VecMatMult
         f, g = self.children
         return f.DiffT(v, MatVecMult(gradin, g)) + g.DiffT(v, VecMatMult(f, gradin))

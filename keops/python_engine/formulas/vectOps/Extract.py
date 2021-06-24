@@ -1,6 +1,5 @@
 from keops.python_engine.utils.code_gen_utils import c_array, VectCopy
 from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.formulas.vectOps.ExtractT import ExtractT
 
 # //////////////////////////////////////////////////////////////
 # ////     VECTOR EXTRACTION : Extract<F,START,DIM>         ////
@@ -25,5 +24,6 @@ class Extract(Operation):
         return VectCopy(out, v)
 
     def DiffT(self, v, gradin):
+        from keops.python_engine.formulas.vectOps.ExtractT import ExtractT
         f = self.children[0]
         return f.DiffT(v, ExtractT(gradin, self.start, f.dim))
