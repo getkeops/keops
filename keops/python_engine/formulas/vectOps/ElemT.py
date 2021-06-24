@@ -1,6 +1,5 @@
 from keops.python_engine.utils.code_gen_utils import value, c_zero_float, VectCopy
 from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.formulas.vectOps.Elem import Elem
 
 
 ############################
@@ -27,6 +26,7 @@ class ElemT(Operation):
         return string
 
     def DiffT(self, v, gradin):
+        from keops.python_engine.formulas.vectOps.Elem import Elem
         f = self.children[0]
         return f.DiffT(v, Elem(gradin, self.m))
 

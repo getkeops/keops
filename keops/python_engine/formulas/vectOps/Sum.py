@@ -1,7 +1,6 @@
 from keops.python_engine.utils.code_gen_utils import c_zero_float, VectApply
 from keops.python_engine.formulas.Operation import Operation
 from keops.python_engine.formulas.variables.Zero import Zero
-from keops.python_engine.formulas.vectOps.SumT import SumT
 
 ##########################
 ######    Sum        #####
@@ -22,6 +21,7 @@ class Sum_Impl(Operation):
         return out.add_assign(arg)
 
     def DiffT(self, v, gradin):
+        from keops.python_engine.formulas.vectOps.SumT import SumT
         f = self.children[0]
         return f.DiffT(v, SumT(gradin, f.dim))
         

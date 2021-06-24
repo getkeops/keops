@@ -1,6 +1,5 @@
 from keops.python_engine.utils.code_gen_utils import c_zero_float, VectCopy
 from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.formulas.vectOps.Extract import Extract
 
 # //////////////////////////////////////////////////////////////
 # ////     VECTOR "INJECTION" : ExtractT<F,START,DIM>       ////
@@ -28,5 +27,6 @@ class ExtractT(Operation):
         )
 
     def DiffT(self, v, gradin):
+        from keops.python_engine.formulas.vectOps.Extract import Extract
         f = self.children[0]
         return f.DiffT(v, Extract(gradin, self.start, f.dim))
