@@ -34,7 +34,7 @@ class Var(Operation):
         return hash((self.ind, self.dim, self.cat))
 
     def Op(self, out, table):
-        return VectCopy(out, table[self.ind], cast=False)
+        return VectCopy(out, table[self.ind])
 
     # Assuming that the gradient wrt. Var is GRADIN, how does it affect V ?
     # Var::DiffT<V, grad_input> = grad_input   if V == Var (in the sense that it represents the same symb. var.)
