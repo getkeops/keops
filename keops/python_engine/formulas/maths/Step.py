@@ -12,3 +12,8 @@ class Step(VectorizedScalarOp):
     
     def DiffT(self, v, gradin):
         return Zero(v.dim)
+        
+        
+        
+    
+    nargs = 1

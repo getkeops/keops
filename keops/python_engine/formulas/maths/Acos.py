@@ -14,3 +14,8 @@ class Acos(VectorizedScalarOp):
     @staticmethod
     def Derivative(f):  
         return -Rsqrt(1-f**2)
+
+
+    
+    # range of argument (optional, used for testing)
+    test_ranges = [(-1,1)]

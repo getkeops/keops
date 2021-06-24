@@ -19,6 +19,8 @@ class Mod(VectorizedScalarOp):
         return Mod_alt.DiffT(v,gradin)
 
 
+    
+    nargs = 3
 
 
 """

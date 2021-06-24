@@ -15,10 +15,13 @@ class Minus_Impl(VectorizedScalarOp):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
         return f"{out.id} = -{arg.id};\n"
-
+        
     def DiffT(self, v, gradin):
         f = self.children[0]
         return -f.DiffT(v, gradin)
+        
+    nargs = 1
+    torch_op = "torch.neg"
 
 
 # N.B. The following separate function should theoretically be implemented

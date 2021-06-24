@@ -18,3 +18,8 @@ class Round(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         return Zero(v.dim)
 
+    
+    
+    
+    nargs = 1
+    test_params = (3,)

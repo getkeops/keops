@@ -34,3 +34,6 @@ class VectorizedScalarOp(Operation):
         if len(self.children)==1:
             derivatives = (derivatives,)
         return sum(f.DiffT(v,gradin*df) for f,df in zip(self.children, derivatives))
+
+    enable_test = True
+

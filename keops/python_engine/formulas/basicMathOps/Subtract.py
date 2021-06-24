@@ -20,6 +20,9 @@ class Subtract_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         fa, fb = self.children
         return fa.DiffT(v, gradin) - fb.DiffT(v, gradin)
+    
+    nargs = 2
+    torch_op = "torch.sub"
 
 
 # N.B. The following separate function should theoretically be implemented

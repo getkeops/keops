@@ -21,6 +21,8 @@ class Add_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         fa, fb = self.children
         return fa.DiffT(v, gradin) + fb.DiffT(v, gradin)
+    
+    nargs = 2
 
 # N.B. The following separate function could theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

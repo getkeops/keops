@@ -29,6 +29,8 @@ class Mult_Impl(VectorizedScalarOp):
         else:
             return fa.DiffT(v, fb * gradin) + fb.DiffT(v, fa * gradin)
 
+    nargs = 2
+    torch_op = "torch.mul"
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

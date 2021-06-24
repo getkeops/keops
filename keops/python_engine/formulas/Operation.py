@@ -136,7 +136,7 @@ class Operation(Tree):
     def Op(self, out, table, param):
         pass
 
-
+    enable_test = False
 
 def int2Op(x):
     if isinstance(x, int):

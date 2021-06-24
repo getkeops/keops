@@ -14,3 +14,8 @@ class XLogX(VectorizedScalarOp):
     @staticmethod
     def Derivative(f):  
         return Log(f)+1
+
+
+
+
+    test_ranges = [(0,2)]

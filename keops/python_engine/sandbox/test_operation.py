@@ -1,0 +1,138 @@
+
+import time
+import torch
+import numpy as np
+from torch.autograd import grad
+from pykeops.torch import Genred
+import sys
+from keops.python_engine.formulas import *
+
+
+def DoTest(op_str, tol=1e-4):
+    
+    print("")
+    
+    keops_op = eval(op_str)
+    if keops_op.enable_test:
+        if hasattr(keops_op, "test_argdims"):
+            dims = keops_op.test_argdims
+            nargs = len(dims)
+        else:
+            if hasattr(keops_op, "nargs"):
+                nargs = keops_op.nargs
+            elif hasattr(keops_op, "test_ranges"):
+                nargs = len(keops_op.test_ranges)
+            elif hasattr(keops_op, "Derivative"):
+                from inspect import signature
+                nargs = len(signature(keops_op.Derivative).parameters)
+                if hasattr(keops_op, "test_params"):
+                    nargs -= len(keops_op.test_params)
+            else:
+                print("no test available for "+op_str)
+                return None
+            dims = [3]*nargs   
+    else:
+        print("no test available for "+op_str)
+        return None
+    
+    #####################################################################
+    # Declare random inputs:
+
+    M = 3000
+    N = 5000
+
+    # Choose the storage place for our data : CPU (host) or GPU (device) memory.
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    dtype = "float32"  # Could be 'float32' or 'float64'
+    torchtype = torch.float32 if dtype == "float32" else torch.float64
+
+    argcats = np.random.choice(["i","j"], nargs)
+    
+    if hasattr(keops_op, "test_ranges"):
+        rng = keops_op.test_ranges
+        rand = torch.rand
+    else:
+        rng = [(0,1)]*nargs
+        rand = torch.randn
+    
+    args = [None]*nargs
+    for k in range(nargs):            
+        MorN = M if argcats[k] == "i" else N
+        args[k] = rand(MorN, dims[k], dtype=torchtype, device=device, requires_grad=True) 
+        args[k] = args[k]*(rng[k][1]-rng[k][0]) + rng[k][0]
+
+    ####################################################################
+    # Define a custom formula
+    # -----------------------
+    
+    if hasattr(keops_op, "test_params"):
+        params = keops_op.test_params
+    else:
+        params = ()
+        
+    formula = op_str + "(" + ",".join(f"v{k}" for k in range(nargs)) + "," + ",".join(str(p) for p in params) + ")"
+    
+    variables = list(f"v{k} = V{argcats[k]}({dims[k]})" for k in range(nargs))
+    
+    print("Testing operation "+ op_str)
+
+    my_routine = Genred(formula, variables, reduction_op="Sum", axis=1, dtype=dtype)
+    c = my_routine(*args)
+    
+    print("ok, no error")
+    print("5 first values :", *c.flatten()[:5].tolist())
+    
+    
+    ####################################################################
+    # Compute the gradient
+    # -----------------------
+    
+    e = torch.rand_like(c)
+    
+    print("Testing gradient of operation "+op_str)
+
+    # PyTorch remark : grad(c, y, e) alone outputs a length 1 tuple, hence the need for [0].
+    g = grad(c, args, e)
+    
+    print("ok, no error")
+    for k in range(nargs):
+        print(f"5 first values for gradient nr {k}:", *g[k].flatten()[:5].tolist())
+    
+    
+    
+    
+    if not hasattr(keops_op, "torch_op"):
+        torch_op_str = keops_op.string_id.lower()
+        if not torch_op_str in dir(torch):
+            return "no_torch"
+        torch_op = "torch."+torch_op_str        
+    else:
+        torch_op = keops_op.torch_op
+        
+    print("Comparing with PyTorch implementation ")
+    
+    torch_args = [None]*nargs
+    for k in range(nargs):
+        torch_args[k] = args[k][:,None,:] if argcats[k] == "i" else args[k][None,:,:]
+    
+    ####################################################################
+    # The equivalent code with a "vanilla" pytorch implementation
+
+    c_torch = eval(torch_op)(*torch_args, *params).sum(dim=1)
+
+    g_torch = grad(c_torch, args, e) 
+
+    err_op = torch.norm(c-c_torch).item() / torch.norm(c_torch).item()
+    print("relative error for operation :", err_op)
+    
+    err_gr = [None]*nargs
+    for k in range(nargs):
+        err_gr[k] = (torch.norm(g[k]-g_torch[k])/torch.norm(g_torch[k])).item()
+        print(f"relative error for gradient nr {k}:", err_gr[k])
+    
+    return abs(err_op)>tol, list(abs(err)>tol for err in err_gr)
+
+if __name__ == "__main__":
+    res = DoTest(sys.argv[1])
+    #if res not in [None, ""] and all()

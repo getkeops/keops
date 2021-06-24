@@ -19,3 +19,7 @@ class Sqrt(VectorizedScalarOp):
     def Derivative(f):  
         return IntInv(2) * Rsqrt(f)
 
+
+
+    
+    test_ranges = [(0,2)]

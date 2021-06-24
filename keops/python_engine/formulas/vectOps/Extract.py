@@ -27,3 +27,10 @@ class Extract(Operation):
         from keops.python_engine.formulas.vectOps.ExtractT import ExtractT
         f = self.children[0]
         return f.DiffT(v, ExtractT(gradin, self.start, f.dim))
+        
+    
+    enable_test = True
+    nargs = 1
+    test_argdims = [10]
+    test_params = [3, 5]
+    

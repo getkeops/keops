@@ -18,3 +18,9 @@ class ClampInt(VectorizedScalarOp):
     @staticmethod
     def Derivative(x, a, b):  
         return DiffClampInt(x,a,b)
+
+
+
+    
+    test_params = [0,1]
+    torch_op = "torch.clamp"

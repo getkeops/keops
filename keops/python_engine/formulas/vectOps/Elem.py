@@ -24,3 +24,9 @@ class Elem(Operation):
         from keops.python_engine.formulas.vectOps.ElemT import ElemT
         f = self.children[0]
         return f.DiffT(v, ElemT(gradin, f.dim, self.m))
+    
+    
+    enable_test = True
+    nargs = 1
+    test_argdims = [5]
+    test_params = [3]
