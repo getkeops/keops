@@ -12,8 +12,7 @@ class Inv(VectorizedScalarOp):
     
     ScalarOpFun = keops_rcp
     
-    @property
-    def Derivative(self):  
-        f = self.children[0]
+    @staticmethod
+    def Derivative(f):  
         return -1/f**2
 

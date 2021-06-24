@@ -1,5 +1,5 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
-
+from keops.python_engine.formulas.basicMathOps.IntInv import IntInv
 
 ##########################
 ######    Rsqrt      #####
@@ -15,8 +15,6 @@ class Rsqrt(VectorizedScalarOp):
         # the result in out
         return out.assign(keops_rsqrt(arg)) # TODO: check HALF_PRECISION implementation
 
-    def DiffT(self, v, gradin):
-        from keops.python_engine.formulas.basicMathOps.IntInv import IntInv
-        # [\partial_V exp(F)].gradin = exp(F) * [\partial_V F].gradin
-        f = self.children[0]
-        return f.DiffT(v, IntInv(-2) * Rsqrt(f) ** 3 * gradin)
+    @staticmethod
+    def Derivative(f):  
+        return IntInv(-2) * Rsqrt(f)**3

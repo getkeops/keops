@@ -1,4 +1,4 @@
-from keops.python_engine.utils.code_gen_utils import value, c_zero_float, VectCopy
+from keops.python_engine.utils.code_gen_utils import value, c_zero_float, c_for_loop
 from keops.python_engine.formulas.Operation import Operation
 
 
@@ -10,19 +10,21 @@ class ElemT(Operation):
     
     string_id = "ElemT"
 
-    def __init__(self, f, m, n):
-        super().__init__(f, params=(m,n))
+    def __init__(self, f, n, m):
+        super().__init__(f, params=(n,m))
         if f.dim != 1:
             raise ValueError("Input of ElemT should be a scalar")
         self.dim = n
-        self.m = m
         self.n = n
+        self.m = m
 
     def Op(self, out, table, arg):
-        m, n = self.m, self.n
-        string = VectCopy(out, c_zero_float, m-1)
+        n, m = self.n, self.m
+        loop1, k = c_for_loop(0, m, 1, pragma_unroll=True)
+        string = loop1(out[k].assign(c_zero_float))
         string += out[m].assign(value(arg))
-        string += VectCopy(out+m+1, c_zero_float, n-m-1)
+        loop2, k = c_for_loop(m+1, n, 1, pragma_unroll=True)
+        string += loop2(out[k].assign(c_zero_float))
         return string
 
     def DiffT(self, v, gradin):

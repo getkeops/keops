@@ -75,17 +75,17 @@ class Operation(Tree):
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Mult import Mult
-        return Mult(self, other)
+        return Mult(self, int2Op(other))
 
     def __rmul__(self, other):
         """g*f redirects to Mult(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Mult import Mult
-        return Mult(self, other)
+        return Mult(self, int2Op(other))
 
     def __truediv__(self, other):
         """f/g redirects to Divide(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Divide import Divide
-        return Divide(self, other)
+        return Divide(self, int2Op(other))
 
     def __rtruediv__(self, other):
         if other==1:
@@ -97,7 +97,7 @@ class Operation(Tree):
     def __add__(self, other):
         """f+g redirects to Add(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Add import Add
-        return Add(self, other)
+        return Add(self, int2Op(other))
 
     def __radd__(self, other):
         """f+g redirects to Add(f,g)"""
@@ -106,7 +106,7 @@ class Operation(Tree):
     def __sub__(self, other):
         """f-g redirects to Subtract(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Subtract import Subtract
-        return Subtract(self, other)
+        return Subtract(self, int2Op(other))
 
     def __rsub__(self, other):
         """f-g redirects to Subtract(f,g)"""
