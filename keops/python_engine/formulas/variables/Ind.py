@@ -3,5 +3,6 @@
 
 import numpy as np
 
+
 def Ind(*x):
     return np.array(tuple(x))

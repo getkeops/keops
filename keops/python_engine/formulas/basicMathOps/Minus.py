@@ -6,8 +6,10 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ######    Minus      #####
 ##########################
 
+
 class Minus_Impl(VectorizedScalarOp):
     """the "minus" vectorized operation"""
+
     string_id = "Minus"
     print_spec = "-", "pre", 2
 

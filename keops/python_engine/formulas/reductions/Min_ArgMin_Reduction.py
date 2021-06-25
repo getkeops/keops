@@ -1,5 +1,7 @@
 from keops.python_engine.utils.code_gen_utils import VectCopy
-from keops.python_engine.formulas.reductions.Min_ArgMin_Reduction_Base import Min_ArgMin_Reduction_Base
+from keops.python_engine.formulas.reductions.Min_ArgMin_Reduction_Base import (
+    Min_ArgMin_Reduction_Base,
+)
 
 
 class Min_ArgMin_Reduction(Min_ArgMin_Reduction_Base):

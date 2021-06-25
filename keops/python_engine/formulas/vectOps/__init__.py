@@ -19,10 +19,3 @@ from .TensorDot import TensorDot
 from .VecMatMult import VecMatMult
 from .WeightedSqDist import WeightedSqDist
 from .WeightedSqNorm import WeightedSqNorm
-
-
-
-
-
-
-

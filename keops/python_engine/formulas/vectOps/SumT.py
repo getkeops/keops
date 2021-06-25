@@ -8,13 +8,13 @@ from keops.python_engine.formulas.variables.Zero import Zero
 
 
 class SumT_Impl(Operation):
-    
+
     # the adjoint of the summation operation
-    
+
     string_id = "SumT"
 
     def __init__(self, arg, dim):
-        super().__init__(arg, params = (dim,))
+        super().__init__(arg, params=(dim,))
         self.dim = dim
 
     def Op(self, out, table, arg):
@@ -22,6 +22,7 @@ class SumT_Impl(Operation):
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.vectOps.Sum import Sum
+
         f = self.children[0]
         return f.DiffT(v, Sum(gradin))
 

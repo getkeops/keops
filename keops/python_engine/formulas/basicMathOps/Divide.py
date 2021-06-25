@@ -3,14 +3,15 @@ from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.python_engine.formulas.variables.Zero import Zero
 from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
 from keops.python_engine.formulas.maths.Square import Square
+
 ##########################
 ######    Divide     #####
 ##########################
 
 
-
 class Divide_Impl(VectorizedScalarOp):
     """the binary divide operation"""
+
     string_id = "Divide"
     print_spec = "/", "mid", 3
 
@@ -22,9 +23,13 @@ class Divide_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         fa, fb = self.children
         if fa.dim == 1 and fb.dim > 1:
-            return (fa.DiffT(v, Scalprod(gradin, fb)) - fb.DiffT(v, fa * gradin)) / Square(fb)
+            return (
+                fa.DiffT(v, Scalprod(gradin, fb)) - fb.DiffT(v, fa * gradin)
+            ) / Square(fb)
         elif fb.dim == 1 and fa.dim > 1:
-            return (fa.DiffT(v, fb * gradin) - fb.DiffT(v, Scalprod(gradin, fa))) / Square(fb)
+            return (
+                fa.DiffT(v, fb * gradin) - fb.DiffT(v, Scalprod(gradin, fa))
+            ) / Square(fb)
         else:
             return (fa.DiffT(v, fb * gradin) - fb.DiffT(v, fa * gradin)) / Square(fb)
 
@@ -38,6 +43,7 @@ def Divide(arg0, arg1):
         raise ValueError("division by zero")
     elif isinstance(arg1, int):
         from keops.python_engine.formulas.variables.IntCst import IntCst
+
         return Divide(arg0, IntCst(arg1))
     else:
         return Divide_Impl(arg0, arg1)

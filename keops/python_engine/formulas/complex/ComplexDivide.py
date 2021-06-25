@@ -4,9 +4,10 @@ from keops.python_engine.formulas.complex.ComplexSquareAbs import ComplexSquareA
 from keops.python_engine.formulas.complex.Conj import Conj
 from keops.python_engine.formulas.basicMathOps.Inv import Inv
 
-#/////////////////////////////////////////////////////////////////////////
-#////      ComplexDivide                           ////
-#/////////////////////////////////////////////////////////////////////////
+# /////////////////////////////////////////////////////////////////////////
+# ////      ComplexDivide                           ////
+# /////////////////////////////////////////////////////////////////////////
 
-def ComplexDivide(f,g):
+
+def ComplexDivide(f, g):
     return ComplexMult(Real2Complex(Inv(ComplexSquareAbs(g))), ComplexMult(f, Conj(g)))

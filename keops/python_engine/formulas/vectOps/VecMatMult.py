@@ -1,9 +1,14 @@
 from keops.python_engine.formulas.Operation import Operation
-from keops.python_engine.utils.code_gen_utils import c_variable, c_for_loop, c_zero_float
+from keops.python_engine.utils.code_gen_utils import (
+    c_variable,
+    c_for_loop,
+    c_zero_float,
+)
 
 # /////////////////////////////////////////////////////////////////////////
 # ////     Vector-matrix product           b x A                       ////
 # /////////////////////////////////////////////////////////////////////////
+
 
 class VecMatMult(Operation):
     string_id = "VecMatMult"
@@ -12,7 +17,9 @@ class VecMatMult(Operation):
         # A is vector of size n*p, interpreted as matrix, B is vector of size n, interpreted as row vector
         # output is vector of size p
         if A.dim % B.dim != 0:
-            raise ValueError("Dimensions of A and B are not compatible for vector-matrix product")
+            raise ValueError(
+                "Dimensions of A and B are not compatible for vector-matrix product"
+            )
         super().__init__(B, A)
         self.dim = A.dim // B.dim
 
@@ -33,5 +40,6 @@ class VecMatMult(Operation):
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.maths.MatVecMult import MatVecMult
         from keops.python_engine.formulas.vectOps.TensorProd import TensorProd
+
         B, A = self.children
         return A.DiffT(v, TensorProd(B, gradin)) + B.DiffT(v, MatVecMult(A, gradin))

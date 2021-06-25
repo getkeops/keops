@@ -8,14 +8,16 @@ from keops.python_engine.formulas.Operation import Operation
 
 
 class OneHot(Operation):
-    
+
     raise ValueError("One-hot is not yet implemented.")
-    
+
     string_id = "OneHot"
 
     def __init__(self, f, dim):
         if f.dim != 1:
-            raise ValueError("One-hot representation is only supported for scalar formulas.")
+            raise ValueError(
+                "One-hot representation is only supported for scalar formulas."
+            )
         if dim < 1:
             raise ValueError("A one-hot vector should have length >= 1.")
         super().__init__(f)
@@ -30,6 +32,7 @@ class OneHot(Operation):
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.vectOps.ExtractT import ExtractT
+
         f = self.children[0]
         return f.DiffT(v, ExtractT(gradin, self.start, f.dim))
 

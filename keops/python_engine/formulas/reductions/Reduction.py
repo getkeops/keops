@@ -14,7 +14,7 @@ class Reduction(Tree):
         self.children = [formula]
         self.params = (tagI,)
         self.tagI = tagI
-        self.tagJ = 1-tagI
+        self.tagJ = 1 - tagI
         self.cat = tagI
         self.Vars_ = formula.Vars_
 

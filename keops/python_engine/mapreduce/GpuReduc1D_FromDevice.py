@@ -1,7 +1,14 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
 from keops.python_engine.mapreduce.GpuAssignZero import GpuAssignZero
-from keops.python_engine.utils.code_gen_utils import c_variable, c_array, c_include, signature_list, call_list
+from keops.python_engine.utils.code_gen_utils import (
+    c_variable,
+    c_array,
+    c_include,
+    signature_list,
+    call_list,
+)
 from keops.python_engine.compilation import Gpu_link_compile
+
 
 class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
@@ -38,7 +45,7 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
 
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")
-            
+
         if for_jit:
             optional_extern_qualif = 'extern "C" '
         else:

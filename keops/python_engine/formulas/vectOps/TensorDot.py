@@ -13,10 +13,10 @@ class TensorDot(Operation):
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
 
-        assert (dimsfb[contfb] == dimsfa[contfa])
+        assert dimsfb[contfb] == dimsfa[contfa]
 
-        assert (fa.dim == dimsfa.prod())
-        assert (fb.dim == dimsfb.prod())
+        assert fa.dim == dimsfa.prod()
+        assert fb.dim == dimsfb.prod()
 
         super().__init__(fa, fb)
 
@@ -33,23 +33,37 @@ class TensorDot(Operation):
         self.list_strides_dimsfb = self.cumprod_array(dimsfb)
 
         self.keepdims = np.concatenate((self.keepdims_a, self.keepdims_b))
-        self.list_strides_keepdim = self.cumprod_array(self.permutation(permute, self.keepdims))
+        self.list_strides_keepdim = self.cumprod_array(
+            self.permutation(permute, self.keepdims)
+        )
 
         self.dim = fa.dim * fb.dim
-        self.dim = int(self.dim / self.contdims.prod() ** 2) if len(contfa)else 1
+        self.dim = int(self.dim / self.contdims.prod() ** 2) if len(contfa) else 1
 
         # loop
         self.loopdim = np.concatenate((self.keepdims, self.contdims_a))
         self.dimloop = self.loopdim.prod()
-        self.number_of_dimloop = len(dimsfa) - len(contfa) + len(dimsfb);
+        self.number_of_dimloop = len(dimsfa) - len(contfa) + len(dimsfb)
 
-        ala = np.concatenate( (np.arange(0, len(self.keepdims_a)), np.arange(len(self.keepdims), self.number_of_dimloop)), axis=None);
-        ali = np.concatenate((self.indices_keepdim_a, contfa), axis=None);
-        self.list_indices_a_intot = self.permutation(ali, ala);
+        ala = np.concatenate(
+            (
+                np.arange(0, len(self.keepdims_a)),
+                np.arange(len(self.keepdims), self.number_of_dimloop),
+            ),
+            axis=None,
+        )
+        ali = np.concatenate((self.indices_keepdim_a, contfa), axis=None)
+        self.list_indices_a_intot = self.permutation(ali, ala)
 
-        bla = np.concatenate((np.arange(len(self.keepdims_a), len(self.keepdims)), np.arange(len(self.keepdims), self.number_of_dimloop)), axis=None);
-        bli = np.concatenate((self.indices_keepdim_b, contfb), axis=None);
-        self.list_indices_b_intot = self.permutation(bli, bla);
+        bla = np.concatenate(
+            (
+                np.arange(len(self.keepdims_a), len(self.keepdims)),
+                np.arange(len(self.keepdims), self.number_of_dimloop),
+            ),
+            axis=None,
+        )
+        bli = np.concatenate((self.indices_keepdim_b, contfb), axis=None)
+        self.list_indices_b_intot = self.permutation(bli, bla)
 
         if permute is None:
             permute = np.arange(self.dim)
@@ -67,7 +81,9 @@ class TensorDot(Operation):
         list_indices_b = inds[:, self.list_indices_b_intot]
         b_indices = (list_indices_b * self.list_strides_dimsfb).sum(axis=1)
 
-        list_indices_keepdim = self.permutation(self.permute, inds[:,:len(self.keepdims)])
+        list_indices_keepdim = self.permutation(
+            self.permute, inds[:, : len(self.keepdims)]
+        )
         out_indices = (list_indices_keepdim * self.list_strides_keepdim).sum(axis=1)
 
         return out_indices, a_indices, b_indices
@@ -134,8 +150,10 @@ class TensorDot(Operation):
         out_indices, a_indices, b_indices = self.looper(self.loopdim)
         str_code = ""
         for i in range(len(out_indices)):
-            str_code += f"                            " + \
-                   f"{out.id}[{out_indices[i]}] += {arg0.id}[{a_indices[i]}] * {arg1.id}[{b_indices[i]}];\n"
+            str_code += (
+                f"                            "
+                + f"{out.id}[{out_indices[i]}] += {arg0.id}[{a_indices[i]}] * {arg1.id}[{b_indices[i]}];\n"
+            )
 
         return f"""
                     #if C_CONTIGUOUS     // row major
@@ -151,6 +169,7 @@ class TensorDot(Operation):
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas import MatVecMult, VecMatMult
+
         f = self.children[0]
         g = self.children[1]
         return f.Grad(v, MatVecMult(gradin, g)) + g.Grad(v, VecMatMult(f, gradin))

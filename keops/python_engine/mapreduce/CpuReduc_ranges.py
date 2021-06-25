@@ -1,10 +1,22 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
 from keops.python_engine.mapreduce.CpuAssignZero import CpuAssignZero
-from keops.python_engine.utils.code_gen_utils import c_variable, c_array, c_include, signature_list, call_list, varseq_to_array
+from keops.python_engine.utils.code_gen_utils import (
+    c_variable,
+    c_array,
+    c_include,
+    signature_list,
+    call_list,
+    varseq_to_array,
+)
 from keops.python_engine.compilation import Cpu_link_compile
 from keops.python_engine import use_jit
 from keops.python_engine.binders.binders_definitions import binders_definitions
-from keops.python_engine.broadcast_batch_dimensions import define_fill_shapes_function, define_broadcast_index_function, define_vect_broadcast_index_function
+from keops.python_engine.broadcast_batch_dimensions import (
+    define_fill_shapes_function,
+    define_broadcast_index_function,
+    define_vect_broadcast_index_function,
+)
+
 
 class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
@@ -18,7 +30,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         Cpu_link_compile.__init__(self)
 
     def get_code(self, for_jit=False):
-        
+
         if for_jit:
             raise ValueError("JIT compiling not yet implemented in Cpu mode")
 
@@ -35,28 +47,36 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         args = self.args
         nargs = len(args)
         argshapes = self.argshapes
-        
+
         xi = self.xi
         yj = c_array(dtype, self.varloader.dimy, "yj")
         param_loc = self.param_loc
-        
+
         varloader = self.varloader
         table = varloader.table(xi, yj, param_loc)
-        
-        nvarsi, nvarsj, nvarsp = len(self.varloader.Varsi), len(self.varloader.Varsj), len(self.varloader.Varsp)
-        
-        tagHostDevice, tagCpuGpu, tag1D2D = self.tagHostDevice, self.tagCpuGpu, self.tag1D2D
-        
+
+        nvarsi, nvarsj, nvarsp = (
+            len(self.varloader.Varsi),
+            len(self.varloader.Varsj),
+            len(self.varloader.Varsp),
+        )
+
+        tagHostDevice, tagCpuGpu, tag1D2D = (
+            self.tagHostDevice,
+            self.tagCpuGpu,
+            self.tag1D2D,
+        )
+
         sum_scheme = self.sum_scheme
-        
+
         indices_i = c_array("int", nvarsi, "indices_i")
         indices_j = c_array("int", nvarsj, "indices_j")
         indices_p = c_array("int", nvarsp, "indices_p")
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
 
-        self.headers += c_include("cmath", "omp.h")        
-        
+        self.headers += c_include("cmath", "omp.h")
+
         self.code = f"""
                         {self.headers}
                         #define __INDEX__ int32_t

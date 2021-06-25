@@ -6,6 +6,7 @@ from keops.python_engine.formulas.Operation import Operation
 ## Var operation
 #######################
 
+
 class Var(Operation):
     """Var operation class. Var(ind,dim,cat) is a symbolic
      object that encodes an input tensor in the call to the
@@ -28,7 +29,12 @@ class Var(Operation):
 
     # custom __eq__ and __hash__ methods, required to handle properly the union of two sets of Var objects
     def __eq__(self, other):
-        return type(self) == type(other) and self.ind == other.ind and self.dim == other.dim and self.cat == other.cat
+        return (
+            type(self) == type(other)
+            and self.ind == other.ind
+            and self.dim == other.dim
+            and self.cat == other.cat
+        )
 
     def __hash__(self):
         return hash((self.ind, self.dim, self.cat))
@@ -41,4 +47,5 @@ class Var(Operation):
     #                             Zero(V::DIM) otherwise
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.variables.Zero import Zero
+
         return gradin if v == self else Zero(v.dim)

@@ -1,6 +1,7 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.python_engine.utils.math_functions import keops_ifelse
 
+
 class IfElse(VectorizedScalarOp):
 
     """the if/else vectorized operation
@@ -8,9 +9,9 @@ class IfElse(VectorizedScalarOp):
     """
 
     string_id = "IfElse"
-    
+
     ScalarOpFun = keops_ifelse
-    
+
     def DiffT(self, v, gradin):
         f, a, b = self.children
-        return IfElse(f, a.DiffT(v,gradin), b.DiffT(v,gradin))
+        return IfElse(f, a.DiffT(v, gradin), b.DiffT(v, gradin))

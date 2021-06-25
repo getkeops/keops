@@ -1,6 +1,7 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.python_engine.utils.math_functions import keops_mod
 
+
 class Mod(VectorizedScalarOp):
 
     """the Modulo vectorized operation
@@ -8,17 +9,16 @@ class Mod(VectorizedScalarOp):
     """
 
     string_id = "Mod"
-    
+
     ScalarOpFun = keops_mod
-    
-    def DiffT(self, v, gradin):  
+
+    def DiffT(self, v, gradin):
         from keops.python_engine.formulas.maths.Floor import Floor
+
         # we fall back to an alternative definition of Mod for defining the gradient
         x, n, d = self.children
-        Mod_alt = x - n * Floor((x - d)/n)
-        return Mod_alt.DiffT(v,gradin)
-
-
+        Mod_alt = x - n * Floor((x - d) / n)
+        return Mod_alt.DiffT(v, gradin)
 
 
 """

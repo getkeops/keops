@@ -1,5 +1,10 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
-from keops.python_engine.utils.code_gen_utils import c_include, signature_list, c_zero_float, call_list
+from keops.python_engine.utils.code_gen_utils import (
+    c_include,
+    signature_list,
+    c_zero_float,
+    call_list,
+)
 from keops.python_engine.compilation import Cpu_link_compile
 
 
@@ -11,7 +16,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         Cpu_link_compile.__init__(self)
 
     def get_code(self, for_jit=False):
-        
+
         if for_jit:
             raise ValueError("JIT compiling not yet implemented in Cpu mode")
 

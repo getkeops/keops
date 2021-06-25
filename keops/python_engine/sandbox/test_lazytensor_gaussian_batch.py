@@ -7,7 +7,7 @@ B, N = 5, 2
 
 
 x = torch.ones(B, 1, N, 1)
-y = torch.arange(B*N, dtype=torch.float32).reshape(B, 1, N, 1)
+y = torch.arange(B * N, dtype=torch.float32).reshape(B, 1, N, 1)
 
 
 def fun(x, y, backend):
@@ -16,7 +16,7 @@ def fun(x, y, backend):
         y = LazyTensor(y)
     elif backend != "torch":
         raise ValueError("wrong backend")
-    out = (x*y).sum(dim=1)
+    out = (x * y).sum(dim=1)
     print("out", backend, ":")
     print(out)
     return out

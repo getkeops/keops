@@ -6,8 +6,9 @@ from keops.python_engine.formulas.Operation import Operation
 ######    ELEMENT EXTRACTION : Elem(f,m) (aka get_item)       #####
 ############################
 
+
 class Elem(Operation):
-    
+
     string_id = "Elem"
 
     def __init__(self, f, m):
@@ -22,5 +23,6 @@ class Elem(Operation):
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.vectOps.ElemT import ElemT
+
         f = self.children[0]
         return f.DiffT(v, ElemT(gradin, f.dim, self.m))

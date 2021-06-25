@@ -8,9 +8,9 @@ from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
 ##########################
 
 
-
 class Mult_Impl(VectorizedScalarOp):
     """the binary multiply operation"""
+
     string_id = "Mult"
     print_spec = "*", "mid", 3
 
@@ -39,6 +39,7 @@ def Mult(arg0, arg1):
         return Broadcast(arg1, arg0.dim)
     elif isinstance(arg1, int):
         from keops.python_engine.formulas.variables.IntCst import IntCst
+
         return Mult(IntCst(arg1), arg0)
     else:
         return Mult_Impl(arg0, arg1)
