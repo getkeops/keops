@@ -22,4 +22,4 @@ class Max_Reduction(Reduction):
         # Subroutine of ReducePairShort and ReducePair methods.
         if xi.dtype == "half2":
             raise ValueError("not implemented")
-        return c_if(xi>acc, acc.assign(xi))
+        return c_if(xi > acc, acc.assign(xi))

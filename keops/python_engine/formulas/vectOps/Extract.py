@@ -7,13 +7,13 @@ from keops.python_engine.formulas.Operation import Operation
 
 
 class Extract(Operation):
-    
+
     string_id = "Extract"
 
     def __init__(self, arg0, start, dim):
         if arg0.dim < start + dim or start < 0:
             raise ValueError("Index out of bound in Extract")
-        super().__init__(arg0, params = (start, dim))
+        super().__init__(arg0, params=(start, dim))
         self.start = start
         self.dim = dim
 
@@ -25,5 +25,6 @@ class Extract(Operation):
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.vectOps.ExtractT import ExtractT
+
         f = self.children[0]
         return f.DiffT(v, ExtractT(gradin, self.start, f.dim))

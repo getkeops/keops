@@ -9,7 +9,7 @@ class VectorizedScalarOp(Operation):
 
     def __init__(self, *args, params=()):
         dims = set(arg.dim for arg in args)
-        if len(dims)>2 or (len(dims)==2 and min(dims)!=1):
+        if len(dims) > 2 or (len(dims) == 2 and min(dims) != 1):
             raise ValueError("dimensions are not compatible for VectorizedScalarOp")
         super().__init__(*args, params=params)
 
@@ -23,14 +23,14 @@ class VectorizedScalarOp(Operation):
         # Atomic evaluation of the operation : it consists in a simple
         # for loop around the call to the correponding scalar operation
         return VectApply(self.ScalarOp, out, *args)
-    
+
     def ScalarOp(self, out, *args):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
         return out.assign(type(self).ScalarOpFun(*args, *self.params))
-        
-    def DiffT(self, v, gradin):        
+
+    def DiffT(self, v, gradin):
         derivatives = self.Derivative(*self.children, *self.params)
-        if len(self.children)==1:
+        if len(self.children) == 1:
             derivatives = (derivatives,)
-        return sum(f.DiffT(v,gradin*df) for f,df in zip(self.children, derivatives))
+        return sum(f.DiffT(v, gradin * df) for f, df in zip(self.children, derivatives))

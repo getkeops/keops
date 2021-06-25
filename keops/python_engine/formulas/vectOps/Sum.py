@@ -6,12 +6,13 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ######    Sum        #####
 ##########################
 
+
 class Sum_Impl(Operation):
-    
+
     # the summation operation
-    
+
     string_id = "Sum"
-    
+
     dim = 1
 
     def Op(self, out, table, arg):
@@ -22,9 +23,10 @@ class Sum_Impl(Operation):
 
     def DiffT(self, v, gradin):
         from keops.python_engine.formulas.vectOps.SumT import SumT
+
         f = self.children[0]
         return f.DiffT(v, SumT(gradin, f.dim))
-        
+
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

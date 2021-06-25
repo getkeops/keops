@@ -10,14 +10,15 @@ from keops.python_engine.utils.math_functions import keops_diffclampint
 // N.B. used as derivative of ClampInt operation
 """
 
+
 class DiffClampInt(VectorizedScalarOp):
 
     string_id = "DiffClampInt"
-    
+
     def __init__(self, x, a, b):
-        super().__init__(x, params=(a,b))
+        super().__init__(x, params=(a, b))
 
     ScalarOpFun = keops_diffclampint
-    
+
     def DiffT(self, v, gradin):
         return Zero(v.dim)

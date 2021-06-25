@@ -7,5 +7,6 @@ from keops.python_engine.formulas.vectOps.TensorProd import TensorProd
 
 # SymSqNorm(A,X) = sum_{ij} a_ij * x_i*x_j
 
+
 def SymSqNorm(A, X):
     return Sum(A * TensorProd(X, X))

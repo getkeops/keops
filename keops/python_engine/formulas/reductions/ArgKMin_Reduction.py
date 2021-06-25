@@ -1,6 +1,12 @@
-from keops.python_engine.formulas.reductions.KMin_ArgKMin_Reduction import KMin_ArgKMin_Reduction
+from keops.python_engine.formulas.reductions.KMin_ArgKMin_Reduction import (
+    KMin_ArgKMin_Reduction,
+)
 from keops.python_engine.formulas.reductions.Zero_Reduction import Zero_Reduction
-from keops.python_engine.utils.code_gen_utils import c_for_loop, new_c_varname, c_variable
+from keops.python_engine.utils.code_gen_utils import (
+    c_for_loop,
+    new_c_varname,
+    c_variable,
+)
 
 
 class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
@@ -16,11 +22,13 @@ class ArgKMin_Reduction(KMin_ArgKMin_Reduction):
 
     def FinalizeOutput(self, acc, out, i):
         fdim = self.formula.dim
-        p = c_variable("int",new_c_varname("p"))
+        p = c_variable("int", new_c_varname("p"))
         loop, k = c_for_loop(0, fdim, 1, pragma_unroll=True)
         body = p.declare_assign(k)
-        inner_loop, l = c_for_loop(k, k+2*self.K*fdim, 2*fdim, pragma_unroll=True)
-        body += inner_loop( out[p].assign(acc[l+fdim]) + p.add_assign(fdim) )
+        inner_loop, l = c_for_loop(
+            k, k + 2 * self.K * fdim, 2 * fdim, pragma_unroll=True
+        )
+        body += inner_loop(out[p].assign(acc[l + fdim]) + p.add_assign(fdim))
         return loop(body)
         outer_body
 

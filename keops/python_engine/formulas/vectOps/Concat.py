@@ -7,6 +7,7 @@ from keops.python_engine.formulas.vectOps.Extract import Extract
 ######    Concat       #####
 ############################
 
+
 class Concat(Operation):
     string_id = "Concat"
 
@@ -21,4 +22,6 @@ class Concat(Operation):
     def DiffT(self, v, gradin):
         f = self.children[0]
         g = self.children[1]
-        return f.DiffT(v, Extract(gradin, 0, f.dim)) + g.DiffT(v, Extract(gradin, f.dim, g.dim))
+        return f.DiffT(v, Extract(gradin, 0, f.dim)) + g.DiffT(
+            v, Extract(gradin, f.dim, g.dim)
+        )

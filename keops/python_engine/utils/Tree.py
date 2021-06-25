@@ -23,14 +23,18 @@ class Tree:
             post_string = ")"
         string = pre_string
         for k, child in enumerate(self.children):
-            test = hasattr(child, "print_spec") and hasattr(self, "print_spec") and child.print_spec[2] >= level
+            test = (
+                hasattr(child, "print_spec")
+                and hasattr(self, "print_spec")
+                and child.print_spec[2] >= level
+            )
             string += "(" if test else ""
             string += child.recursive_str()
             string += ")" if test else ""
             string += middle_string if k < len(self.children) - 1 else ""
         for k, param in enumerate(self.params):
             if k > 0 or len(self.children) > 0:
-                string += ','
+                string += ","
             string += str(param)
         string += post_string
         return string
@@ -39,7 +43,9 @@ class Tree:
         depth += 1
         string = self.string_id
         for child in self.children:
-            string += "\n" + depth * 4 * " " + "{}".format(child.recursive_str(depth=depth))
+            string += (
+                "\n" + depth * 4 * " " + "{}".format(child.recursive_str(depth=depth))
+            )
         for param in self.params:
             string += "\n" + depth * 4 * " " + str(param)
         return string
@@ -52,5 +58,8 @@ class Tree:
 
     # custom __eq__ method
     def __eq__(self, other):
-        return type(self) == type(other) and len(self.children) == len(other.children) and all(
-            [x == y for x, y in zip(self.children, other.children)])
+        return (
+            type(self) == type(other)
+            and len(self.children) == len(other.children)
+            and all([x == y for x, y in zip(self.children, other.children)])
+        )

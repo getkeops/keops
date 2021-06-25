@@ -35,7 +35,9 @@ class TensorDot(Operation):
         self.list_strides_dimsfb = self.cumprod_array(dimsfb)
 
         self.keepdims = np.concatenate((self.keepdims_a, self.keepdims_b))
-        self.list_strides_keepdim = self.cumprod_array(self.permutation(permute, self.keepdims))
+        self.list_strides_keepdim = self.cumprod_array(
+            self.permutation(permute, self.keepdims)
+        )
 
         self.dim = fa.dim * fb.dim
         self.dim = int(self.dim / self.contdims.prod() ** 2) if len(contfa) else self.dim
@@ -89,7 +91,9 @@ class TensorDot(Operation):
         list_indices_b = inds[:, self.list_indices_b_intot]
         b_indices = (list_indices_b * self.list_strides_dimsfb).sum(axis=1)
 
-        list_indices_keepdim = self.permutation(self.permute, inds[:, :len(self.keepdims)])
+        list_indices_keepdim = self.permutation(
+            self.permute, inds[:, : len(self.keepdims)]
+        )
         out_indices = (list_indices_keepdim * self.list_strides_keepdim).sum(axis=1)
 
         return out_indices, a_indices, b_indices
@@ -215,8 +219,10 @@ class TensorDot(Operation):
         out_indices, a_indices, b_indices = self.looper(self.loopdim)
         str_code = ""
         for i in range(len(out_indices)):
-            str_code += f"                            " + \
-                        f"{out.id}[{out_indices[i]}] += {arg0.id}[{a_indices[i]}] * {arg1.id}[{b_indices[i]}];\n"
+            str_code += (
+                f"                            "
+                + f"{out.id}[{out_indices[i]}] += {arg0.id}[{a_indices[i]}] * {arg1.id}[{b_indices[i]}];\n"
+            )
 
         return f"""
                     #if C_CONTIGUOUS     // row major

@@ -10,15 +10,16 @@ from keops.python_engine.formulas.variables.Zero import Zero
 
 class Square_Impl(VectorizedScalarOp):
     """the square vectorized operation"""
+
     string_id = "Square"
     print_spec = "**2", "post", 1
 
     def ScalarOp(self, out, arg):
-        return out.assign(arg*arg)
+        return out.assign(arg * arg)
 
     @staticmethod
-    def Derivative(f):  
-        return 2*f
+    def Derivative(f):
+        return 2 * f
 
 
 # N.B. The following separate function should theoretically be implemented
@@ -28,4 +29,3 @@ def Square(arg):
         return arg
     else:
         return Square_Impl(arg)
-

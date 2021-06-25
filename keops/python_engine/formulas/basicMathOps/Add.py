@@ -8,8 +8,10 @@ from keops.python_engine.formulas.variables.IntCst import IntCst, IntCst_Impl
 ######    Add        #####
 ##########################
 
+
 class Add_Impl(VectorizedScalarOp):
     """the binary addition operation"""
+
     string_id = "Add"
     print_spec = "+", "mid", 4
 
@@ -21,6 +23,7 @@ class Add_Impl(VectorizedScalarOp):
     def DiffT(self, v, gradin):
         fa, fb = self.children
         return fa.DiffT(v, gradin) + fb.DiffT(v, gradin)
+
 
 # N.B. The following separate function could theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems
@@ -34,9 +37,14 @@ def Add(arg0, arg1):
     elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[0], IntCst_Impl):
         if arg0.children[1] == arg1:
             #  factorization :  nx + x = (n+1)x
-            return IntCst(arg0.children[0].val+1) * arg1
-        elif isinstance(arg1, Mult_Impl) and isinstance(arg1.children[0], IntCst_Impl) and arg1.children[1] == arg0.children[1]:
+            return IntCst(arg0.children[0].val + 1) * arg1
+        elif (
+            isinstance(arg1, Mult_Impl)
+            and isinstance(arg1.children[0], IntCst_Impl)
+            and arg1.children[1] == arg0.children[1]
+        ):
             #  factorization :  mx + nx = (m+n)x
-            return IntCst(arg0.children[0].val+arg1.children[0].val) * arg0.children[1]
+            return (
+                IntCst(arg0.children[0].val + arg1.children[0].val) * arg0.children[1]
+            )
     return Add_Impl(arg0, arg1)
-
