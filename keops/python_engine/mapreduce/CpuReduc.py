@@ -4,6 +4,7 @@ from keops.python_engine.utils.code_gen_utils import (
     c_include,
     signature_list,
     call_list,
+    c_variable
 )
 from keops.python_engine.compilation import Cpu_link_compile
 from keops.python_engine import use_jit, debug_ops
@@ -34,19 +35,19 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         fout = self.fout
         outi = self.outi
         acc = self.acc
+        arg = self.arg
         args = self.args
-        argshapes = self.argshapes
         table = self.varloader.direct_table(args, i, j)
         sum_scheme = self.sum_scheme
 
-        headers = ["cmath", "omp.h", "stdarg.h"]
+        headers = ["cmath", "omp.h"]
         if debug_ops:
             headers.append("iostream")
         self.headers += c_include(*headers)
 
         self.code = f"""
                         {self.headers}
-                        int CpuConv(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
+                        int CpuConv(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {fout.declare()}
@@ -67,13 +68,21 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                     """
                        
         if not for_jit:
-            
-            arg = c_variable("float*", [f"arg[{k}]" for k in range(len(args))])
 
             self.code += f"""
-                        extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, int **ranges, {dtype} *out, int nargs, ...) {{
-                            
-                            {self.read_args_code(with_argshapes=False)}
+            
+                        #include "stdarg.h"
+                                                                            
+                        extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
+                                                    int **ranges, {dtype} *out, int nargs, ...) {{
+                                                        
+                            // reading arguments
+                            va_list ap;
+                            va_start(ap, nargs);
+                            {dtype} *arg[nargs];
+                            for (int i=0; i<nargs; i++)
+                                arg[i] = va_arg(ap, {dtype}*);
+                            va_end(ap);
                             
                             if (tagI==1) {{
                                 int tmp = ny;
@@ -81,6 +90,8 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                                 nx = tmp;
                             }}
                             
-                            return CpuConv(nx, ny, out, {call_list(arg)});
+                            return CpuConv(nx, ny, out, arg);
+
                         }}
+                        
                     """

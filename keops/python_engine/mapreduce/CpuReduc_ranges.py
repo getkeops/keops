@@ -43,9 +43,9 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         outi = self.outi
         acc = self.acc
         acctmp = self.acctmp
+        arg = self.arg
         args = self.args
         nargs = len(args)
-        argshapes = self.argshapes
 
         xi = self.xi
         yj = c_array(dtype, self.varloader.dimy, "yj")
@@ -74,7 +74,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
 
-        self.headers += c_include("cmath", "omp.h", "stdarg.h")
+        self.headers += c_include("cmath", "omp.h")
         
         self.code = f"""
                         {self.headers}
@@ -91,7 +91,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         int CpuConv_ranges(int nx, int ny, 
                                             int nbatchdims, int* shapes,
                                             int nranges_x, int nranges_y, __INDEX__** ranges,
-                                            {dtype}* out, {signature_list(args)}) {{
+                                            {dtype}* out, {dtype} **{arg.id}) {{
                                                 
                             // Separate and store the shapes of the "i" and "j" variables + parameters --------------
                             //
@@ -207,13 +207,24 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                     """
         
         if not for_jit:      
-            
-            arg = c_variable("float*", [f"arg[{k}]" for k in range(len(args))])
                     
             self.code += f"""    
-                        extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, int **ranges, {dtype}* out, int nargs, ...) {{
+                        
+                        #include "stdarg.h"
+                        
+                        extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
+                                                    int **ranges, {dtype}* out, int nargs, ...) {{
                             
-                            {self.read_args_code(with_argshapes=True)}
+                            // reading arguments
+                            va_list ap;
+                            va_start(ap, nargs);
+                            {dtype} *arg[nargs];
+                            for (int i=0; i<nargs; i++)
+                                arg[i] = va_arg(ap, {dtype}*);
+                            int *argshape[nargs];
+                            for (int i=0; i<nargs; i++)
+                                argshape[i] = va_arg(ap, int*);
+                            va_end(ap);
 
                             Sizes SS(nargs, arg, argshape, nx, ny);
                             
@@ -234,6 +245,6 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             
                             return CpuConv_ranges(nx, ny, SS.nbatchdims, SS.shapes,
                                                     RR.nranges_x, RR.nranges_y, RR.castedranges,
-                                                    out, {call_list(arg)});
+                                                    out, arg);
                         }}
                     """
