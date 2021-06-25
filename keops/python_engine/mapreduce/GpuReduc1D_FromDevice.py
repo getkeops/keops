@@ -1,118 +1,21 @@
-from keops.python_engine.mapreduce.MapReduce import MapReduce
-from keops.python_engine.mapreduce.GpuAssignZero import GpuAssignZero
-from keops.python_engine.utils.code_gen_utils import (
-    c_variable,
-    c_array,
-    c_include,
-    signature_list,
-    call_list,
-)
-from keops.python_engine.compilation import Gpu_link_compile
+from keops.python_engine.mapreduce.GpuReduc1D import GpuReduc1D
 
 
-class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
-    # class for generating the final C++ code, Gpu version
 
-    AssignZero = GpuAssignZero
-
-    def __init__(self, *args):
-        MapReduce.__init__(self, *args)
-        Gpu_link_compile.__init__(self)
+class GpuReduc1D_FromDevice(GpuReduc1D):
 
     def get_code(self, for_jit=False):
 
-        super().get_code()
-
-        red_formula = self.red_formula
-        dtype = self.dtype
-        varloader = self.varloader
-
-        i = c_variable("int", "i")
-        j = c_variable("int", "j")
-        fout = self.fout
-        outi = self.outi
-        acc = self.acc
-        args = self.args
-        argshapes = self.argshapes
-        sum_scheme = self.sum_scheme
-
-        param_loc = self.param_loc
-        xi = self.xi
-        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
-        yjrel = c_array(dtype, varloader.dimy, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc)
-        jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
-
-        if dtype == "half2":
-            self.headers += c_include("cuda_fp16.h")
-        
-        self.headers += c_include("stdarg.h")
-
-        if for_jit:
-            optional_extern_qualif = 'extern "C" '
-        else:
-            optional_extern_qualif = ""
-
-        self.code = f"""
-                        {self.headers}
-
-                        {optional_extern_qualif}__global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
-    
-                          // get the index of the current thread
-                          int i = blockIdx.x * blockDim.x + threadIdx.x;
-
-                          // declare shared mem
-                          extern __shared__ {dtype} yj[];
-
-                          // load parameters variables from global memory to local thread memory
-                          {param_loc.declare()}
-                          {varloader.load_vars("p", param_loc, args)}
-
-                          {fout.declare()}
-                          {xi.declare()}
-                          {acc.declare()}
-                          {sum_scheme.declare_temporary_accumulator()}
-
-                          if (i < nx) {{
-                            {red_formula.InitializeReduction(acc)} // acc = 0
-                            {sum_scheme.initialize_temporary_accumulator_first_init()}
-                            {varloader.load_vars('i', xi, args, row_index=i)} // load xi variables from global memory to local thread memory
-                          }}
-
-                          for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
-
-                            // get the current column
-                            int j = tile * blockDim.x + threadIdx.x;
-
-                            if (j < ny) {{ // we load yj from device global memory only if j<ny
-                              {varloader.load_vars("j", yjloc, args, row_index=j)} 
-                            }}
-                            __syncthreads();
-
-                            if (i < nx) {{ // we compute x1i only if needed
-                              {dtype} * yjrel = yj;
-                              {sum_scheme.initialize_temporary_accumulator_block_init()}
-                              for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy}) {{
-                                {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
-                                {sum_scheme.accumulate_result(acc, fout, jreltile)}
-                              }}
-                              {sum_scheme.final_operation(acc)}
-                            }}
-                            __syncthreads();
-                          }}
-                          if (i < nx) {{
-                            {red_formula.FinalizeOutput(acc, outi, i)} 
-                          }}
-
-                        }}
-                    """
+        super().get_code(for_jit=for_jit)
 
         if not for_jit:
-            
-            arg = c_variable("float*", [f"arg[{k}]" for k in range(len(args))])
 
             self.code += f"""
-                        extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, int **ranges, {dtype} *out, int nargs, ...) {{
+            
+                        #include "stdarg.h"
+                        
+                        extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
+                                                            int **ranges, {dtype} *out, int nargs, ...) {{
                             
                             if (tagI==1) {{
                                 int tmp = ny;
@@ -120,7 +23,13 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
                                 nx = tmp;
                             }}
                             
-                            {self.read_args_code(with_argshapes=False)}
+                            // reading arguments
+                            va_list ap;
+                            va_start(ap, nargs);
+                            {dtype} *arg[nargs];
+                            for (int i=0; i<nargs; i++)
+                                arg[i] = va_arg(ap, {dtype}*);
+                            va_end(ap);
     
                             // device_id is provided, so we set the GPU device accordingly
                             // Warning : is has to be consistent with location of data
@@ -137,7 +46,7 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
                             dim3 gridSize;
                             gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-                            GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * dimY * sizeof({dtype}) >>> (nx, ny, out, {call_list(arg)});
+                            GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * dimY * sizeof({dtype}) >>> (nx, ny, out, arg);
     
                             // block until the device has completed
                             cudaDeviceSynchronize();

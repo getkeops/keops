@@ -59,36 +59,13 @@ class MapReduce:
         self.xi = c_array(dtype, self.varloader.dimx, "xi")
         self.param_loc = c_array(dtype, self.varloader.dimp, "param_loc")
 
-        argnames = new_c_varname("arg", nargs, as_list=True)
-        self.args = c_variable(pointer(dtype), argnames)
-
-        argshapenames = new_c_varname("argshape", nargs, as_list=True)
-        self.argshapes = c_variable(pointer("int"), argshapenames)
+        argname = new_c_varname("arg")
+        self.arg = c_variable(pointer(pointer(dtype)), argname)
+        self.args = [self.arg[k] for k in range(nargs)]
 
         self.acc = c_array(dtypeacc, red_formula.dimred, "acc")
         self.acctmp = c_array(dtypeacc, red_formula.dimred, "acctmp")
         self.fout = c_array(dtype, formula.dim, "fout")
         self.outi = c_array(dtype, red_formula.dim, f"(out + i * {red_formula.dim})")
-    
-    
-    def read_args_code(self, with_argshapes=True):
-        string =  f"""
-                       // reading arguments
-                       va_list ap;
-                       va_start(ap, nargs);
-                       float *arg[nargs];
-                       for (int i=0; i<nargs; i++)
-                       arg[i] = va_arg(ap, float*);
-                   """
-        if with_argshapes:
-            string =  f"""
-                            int *argshape[nargs];
-                            for (int i=0; i<nargs; i++)
-                                argshape[i] = va_arg(ap, int*);
-                       """
-        string += f"""
-                       va_end(ap);
-                   """
-        return string
     
     
