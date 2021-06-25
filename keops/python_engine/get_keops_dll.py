@@ -8,16 +8,11 @@
 #   - sum_scheme_string : string specifying the type of accumulation for summation reductions : either "direct_sum", "block_sum" or "kahan_scheme".
 
 # It returns :
-#   * if use_jit is True:
-#       - dllname : string, file name of the dll to be called for performing the reduction,
-#       - low_level_code_file : string, file name of the low level code file to be passed to the dll,
+#       - dllname : string, file name of the dll to be called for performing the reduction
+#       - low_level_code_file : string, file name of the low level code file to be passed to the dll if JIT is enabled, or "none" otherwise
 #       - tagI : integer, 0 or 1, specifying if reduction muust be performed over i or j indices,
 #       - dim : integer, dimension of the output tensor.
 #       - dimy : integer, total dimension of the j indexed variables.
-#   * if use_jit is False:
-#       - dllname : string, file name of the dll to be called for performing the reduction,
-#       - tagI : integer, 0 or 1, specifying if reduction muust be performed over i or j indices,
-#       - dim : integer, dimension of the output tensor.
 
 # It can be used as a Python function or as a standalone Python script (in which case it prints the outputs):
 #   - example (as Python function) :
@@ -29,7 +24,6 @@ import sys
 from keops.python_engine.formulas.variables.Zero import Zero
 from keops.python_engine.formulas.reductions import *
 from keops.python_engine.mapreduce import *
-from keops.python_engine import use_jit
 
 
 def get_keops_dll(map_reduce_id, *args):
@@ -45,16 +39,13 @@ def get_keops_dll(map_reduce_id, *args):
 
     res = map_reduce_obj.get_dll_and_params()
 
-    if use_jit:
-        return (
-            res["dllname"],
-            res["low_level_code_file"],
-            res["tagI"],
-            res["dim"],
-            res["dimy"],
-        )
-    else:
-        return res["dllname"], res["tagI"], res["dim"]
+    return (
+        res["dllname"],
+        res["low_level_code_file"],
+        res["tagI"],
+        res["dim"],
+        res["dimy"],
+    )
 
 
 if __name__ == "__main__":

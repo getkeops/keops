@@ -54,6 +54,7 @@ class link_compile:
             self.my_c_dll = CDLL(jit_binary)
         else:
             # these are used for command line compiling mode
+            self.low_level_code_file = "none".encode("utf-8")
             # dllname is the name of the binary dll obtained after compilation, e.g. 7b9a611f7e.so
             self.dllname = self.gencode_file + ".so"
             # compile command string to obtain the dll, e.g. "g++ 7b9a611f7e.cpp -shared -fPIC -O3 -flto -o 7b9a611f7e.so"
@@ -139,13 +140,11 @@ class link_compile:
             print("Done ({:.2f} s)".format(elapsed))
         else:
             self.read_info()
-        if use_jit:
-            return dict(
-                dllname=jit_binary,
-                low_level_code_file=self.low_level_code_file,
-                tagI=self.tagI,
-                dim=self.dim,
-                dimy=self.dimy,
-            )
-        else:
-            return dict(dllname=self.dllname, tagI=self.tagI, dim=self.dim)
+        dllname = jit_binary if use_jit else self.dllname
+        return dict(
+            dllname=dllname,
+            low_level_code_file=self.low_level_code_file,
+            tagI=self.tagI,
+            dim=self.dim,
+            dimy=self.dimy,
+        )

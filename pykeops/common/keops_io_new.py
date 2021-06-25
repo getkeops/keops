@@ -1,16 +1,16 @@
-from pykeops.common.get_keops_routine import get_keops_routine    
-import time 
+from pykeops.common.get_keops_routine import get_keops_routine
+import time
 from ctypes import c_int, c_void_p
 import numpy
-        
+
+
 class LoadKeOps_new:
-    
     def __init__(
         self, formula, aliases, dtype, lang, optional_flags=[], include_dirs=[]
     ):
         aliases_new = []
         for k, alias in enumerate(aliases):
-            alias = alias.replace(" ","")
+            alias = alias.replace(" ", "")
             if "=" in alias:
                 varname, var = alias.split("=")
                 if "Vi" in var:
@@ -20,9 +20,9 @@ class LoadKeOps_new:
                 elif "Pm" in var:
                     cat = 2
                 alias_args = var[3:-1].split(",")
-                if len(alias_args)==1:
+                if len(alias_args) == 1:
                     ind, dim = k, eval(alias_args[0])
-                elif len(alias_args)==2:
+                elif len(alias_args) == 2:
                     ind, dim = eval(alias_args[0]), eval(alias_args[1])
                 alias = f"{varname}=Var({ind},{dim},{cat})"
                 aliases_new.append(alias)
@@ -32,134 +32,163 @@ class LoadKeOps_new:
         self.optional_flags = optional_flags
         self.red_formula_string = formula
         self.dtype = dtype
-    
-    def genred(self, tagCPUGPU, tag1D2D, tagHostDevice, device_id_, ranges, nx, ny, *args):
-        
+
+    def genred(
+        self, tagCPUGPU, tag1D2D, tagHostDevice, device_id_, ranges, nx, ny, *args
+    ):
+
         if self.lang == "torch":
             from pykeops.torch.utils import torchtools
+
             tools = torchtools
         elif self.lang == "numpy":
             from pykeops.numpy.utils import numpytools
+
             tools = numpytools
-        
+
         nargs = len(args)
         device = tools.device_dict(args[0])
         dtype = tools.dtype(args[0])
         dtypename = tools.dtypename(dtype)
-                
-        if self.dtype not in ['auto', dtypename]:
-            print("[KeOps] warning : setting a dtype argument in Genred different from the input dtype of tensors is not permitted anymore, argument is ignored.")
-        
+
+        if self.dtype not in ["auto", dtypename]:
+            print(
+                "[KeOps] warning : setting a dtype argument in Genred different from the input dtype of tensors is not permitted anymore, argument is ignored."
+            )
+
         if dtypename == "float32":
             c_dtype = "float"
         elif dtypename == "float64":
             c_dtype = "double"
         else:
             raise ValueError("not implemented")
-        
-        if '-D__TYPEACC__=double' in self.optional_flags:
-            c_dtype_acc = 'double'
-            self.optional_flags.remove('-D__TYPEACC__=double')
-        elif '-D__TYPEACC__=float' in self.optional_flags:
-            c_dtype_acc = 'float'
-            self.optional_flags.remove('-D__TYPEACC__=float')
+
+        if "-D__TYPEACC__=double" in self.optional_flags:
+            c_dtype_acc = "double"
+            self.optional_flags.remove("-D__TYPEACC__=double")
+        elif "-D__TYPEACC__=float" in self.optional_flags:
+            c_dtype_acc = "float"
+            self.optional_flags.remove("-D__TYPEACC__=float")
         else:
             c_dtype_acc = c_dtype
-            
-        if '-DSUM_SCHEME=0' in self.optional_flags:
-            sum_scheme = 'direct_sum'
-            self.optional_flags.remove('-DSUM_SCHEME=0')
-        elif '-DSUM_SCHEME=1' in self.optional_flags:
-            sum_scheme = 'block_sum'
-            self.optional_flags.remove('-DSUM_SCHEME=1')
-        elif '-DSUM_SCHEME=2' in self.optional_flags:
-            sum_scheme = 'kahan_scheme'
-            self.optional_flags.remove('-DSUM_SCHEME=2')
+
+        if "-DSUM_SCHEME=0" in self.optional_flags:
+            sum_scheme = "direct_sum"
+            self.optional_flags.remove("-DSUM_SCHEME=0")
+        elif "-DSUM_SCHEME=1" in self.optional_flags:
+            sum_scheme = "block_sum"
+            self.optional_flags.remove("-DSUM_SCHEME=1")
+        elif "-DSUM_SCHEME=2" in self.optional_flags:
+            sum_scheme = "kahan_scheme"
+            self.optional_flags.remove("-DSUM_SCHEME=2")
         else:
-            sum_scheme = 'block_sum'
-        
-        if '-DENABLECHUNK=1' in self.optional_flags:
+            sum_scheme = "block_sum"
+
+        if "-DENABLECHUNK=1" in self.optional_flags:
             if max(arg.shape[-1] for arg in args) > 100:
-                print("[KeOps] warning : chunk mode is not yet implemented in new KeOps engine, option is deactivated.")
-            self.optional_flags.remove('-DENABLECHUNK=1')
-        
+                print(
+                    "[KeOps] warning : chunk mode is not yet implemented in new KeOps engine, option is deactivated."
+                )
+            self.optional_flags.remove("-DENABLECHUNK=1")
+
         if self.optional_flags:
-            print("[KeOps] warning : there are options not yet implemented in new KeOps engine, these options are deactivated.")
+            print(
+                "[KeOps] warning : there are options not yet implemented in new KeOps engine, these options are deactivated."
+            )
             print("Options are:", self.optional_flags)
-            
-        if tag1D2D==1:
-            print("[KeOps] warning : GPU_2D method is not yet implemented in new KeOps engine, switching to GPU_1D.")
+
+        if tag1D2D == 1:
+            print(
+                "[KeOps] warning : GPU_2D method is not yet implemented in new KeOps engine, switching to GPU_1D."
+            )
             tag1D2D = 0
-        
-        if tagHostDevice==0 and tagCPUGPU==1:
-            raise ValueError('[KeOps] "From Host" reductions are not yet implemented in new KeOps engine."')
+
+        if tagHostDevice == 0 and tagCPUGPU == 1:
+            raise ValueError(
+                '[KeOps] "From Host" reductions are not yet implemented in new KeOps engine."'
+            )
             tagHostDevice = 1
-        
-        if tagCPUGPU==0:
+
+        if tagCPUGPU == 0:
             map_reduce_id = "CpuReduc"
         else:
             map_reduce_id = "GpuReduc"
-            map_reduce_id += "1D" if tag1D2D==0 else "2D"
-            map_reduce_id += "_FromHost" if tagHostDevice==0 else "_FromDevice"
-        
+            map_reduce_id += "1D" if tag1D2D == 0 else "2D"
+            map_reduce_id += "_FromHost" if tagHostDevice == 0 else "_FromDevice"
+
         if device["cat"] == "cpu":
             device_id = -1
         else:
             device_id = device["index"]
-            
+
         if device_id_ != -1 and device_id_ != device_id:
-            raise ValueError('[KeOps] internal error : device_id_ and device_id do not match, code needs some cleaning...')
-        
-        if ranges and tagCPUGPU==1:
-            raise ValueError('[KeOps] ranges are not yet implemented in Gpu mode in new KeOps engine')
+            raise ValueError(
+                "[KeOps] internal error : device_id_ and device_id do not match, code needs some cleaning..."
+            )
+
+        if ranges and tagCPUGPU == 1:
+            raise ValueError(
+                "[KeOps] ranges are not yet implemented in Gpu mode in new KeOps engine"
+            )
 
         # detect the need for using "ranges" method
         # N.B. we assume here that there is a least a cat=0 or cat=1 variable in the formula...
-        nbatchdims = max(len(arg.shape) for arg in args)-2
-        if nbatchdims>0 or ranges:
+        nbatchdims = max(len(arg.shape) for arg in args) - 2
+        if nbatchdims > 0 or ranges:
             map_reduce_id += "_ranges"
-        
-        myfun = get_keops_routine(map_reduce_id, self.red_formula_string, self.aliases, nargs, c_dtype, c_dtype_acc, sum_scheme, tagHostDevice, tagCPUGPU, tag1D2D)
+
+        myfun = get_keops_routine(
+            map_reduce_id,
+            self.red_formula_string,
+            self.aliases,
+            nargs,
+            c_dtype,
+            c_dtype_acc,
+            sum_scheme,
+            tagHostDevice,
+            tagCPUGPU,
+            tag1D2D,
+        )
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
-        
+
         # get ranges argument as ctypes
         if not ranges:
-            ranges = (numpy.array([-1], dtype="int32"),)*7 # temporary hack
+            ranges = (numpy.array([-1], dtype="int32"),) * 7  # temporary hack
         else:
             ranges = tuple(tools.numpy(r) for r in ranges)
-            ranges = (*ranges,numpy.array([r.shape[0] for r in ranges], dtype="int32"))
+            ranges = (*ranges, numpy.array([r.shape[0] for r in ranges], dtype="int32"))
         ranges_ctype = list(c_void_p(r.ctypes.data) for r in ranges)
-        ranges_ctype = (c_void_p*7)(*ranges_ctype)
-        
+        ranges_ctype = (c_void_p * 7)(*ranges_ctype)
+
         # convert arguments arrays to ctypes
         args_ctype = [tools.ctypes(arg) for arg in args]
-                
+
         # get all shapes of arguments as ctypes
-        argshapes_ctype = [(c_int*(len(arg.shape)+1))(*((len(arg.shape),)+arg.shape)) for arg in args]
-            
-        # initialize output array and converting to ctypes        
+        argshapes_ctype = [
+            (c_int * (len(arg.shape) + 1))(*((len(arg.shape),) + arg.shape))
+            for arg in args
+        ]
+
+        # initialize output array and converting to ctypes
         batchdims_shapes = []
         for arg in args:
             batchdims_shapes.append(list(arg.shape[:nbatchdims]))
         import numpy as np
+
         batchdims_shapes = np.array(batchdims_shapes)
-        M = nx if myfun.tagI==0 else ny
-        shapeout = tuple(np.max(batchdims_shapes,axis=0))+(M,myfun.dim)
+        M = nx if myfun.tagI == 0 else ny
+        shapeout = tuple(np.max(batchdims_shapes, axis=0)) + (M, myfun.dim)
         out = tools.zeros(shapeout, dtype=dtype, device=device)
         out_ctype = tools.ctypes(out)
-        
+
         # call the routine
         myfun(nx, ny, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype)
-        
+
         return out
 
-
     genred_pytorch = genred
-    genred_numpy = genred   
+    genred_numpy = genred
 
-                
-        
     def import_module(self):
         return self
-        

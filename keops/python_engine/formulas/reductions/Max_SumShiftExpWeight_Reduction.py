@@ -88,12 +88,12 @@ class Max_SumShiftExpWeight_Reduction(Reduction):
 
     def DiffT(self, v, gradin, MS):
         """
-          // Beware: the formula that we use for the gradient is *only* valid
-          // if the output [M,S] = Max_SumShiftExp(F,G) has been flattened through a
-          // L = M + log(S) (Log-Sum-Exp) or a weighted Soft-Max
-          // operation (as done by the Python bindings), and if
-          // GRADIN = [Grad(L), Grad(L)/S ]
-          // has been backpropagated from L.
+        // Beware: the formula that we use for the gradient is *only* valid
+        // if the output [M,S] = Max_SumShiftExp(F,G) has been flattened through a
+        // L = M + log(S) (Log-Sum-Exp) or a weighted Soft-Max
+        // operation (as done by the Python bindings), and if
+        // GRADIN = [Grad(L), Grad(L)/S ]
+        // has been backpropagated from L.
         """
         from keops.python_engine.reductions import Grad
 

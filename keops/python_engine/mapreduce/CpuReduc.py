@@ -39,7 +39,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
         table = self.varloader.direct_table(args, i, j)
         sum_scheme = self.sum_scheme
 
-        headers = ["cmath", "omp.h"]
+        headers = ["cmath", "omp.h", "stdarg.h"]
         if debug_ops:
             headers.append("iostream")
         self.headers += c_include(*headers)
@@ -64,15 +64,23 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                             }}
                             return 0;
                         }}
-                        
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int **ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
+                    """
+                       
+        if not for_jit:
+            
+            arg = c_variable("float*", [f"arg[{k}]" for k in range(len(args))])
+
+            self.code += f"""
+                        extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, int **ranges, {dtype} *out, int nargs, ...) {{
                             
-                            if ({red_formula.tagJ}==0) {{
+                            {self.read_args_code(with_argshapes=False)}
+                            
+                            if (tagI==1) {{
                                 int tmp = ny;
                                 ny = nx;
                                 nx = tmp;
                             }}
                             
-                            return CpuConv(nx, ny, out, {call_list(args)});
+                            return CpuConv(nx, ny, out, {call_list(arg)});
                         }}
                     """

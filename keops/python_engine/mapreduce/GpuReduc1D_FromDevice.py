@@ -45,6 +45,8 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
 
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")
+        
+        self.headers += c_include("stdarg.h")
 
         if for_jit:
             optional_extern_qualif = 'extern "C" '
@@ -106,15 +108,20 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
                     """
 
         if not for_jit:
+            
+            arg = c_variable("float*", [f"arg[{k}]" for k in range(len(args))])
+
             self.code += f"""
-                        extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}, {signature_list(argshapes)}) {{
+                        extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, int **ranges, {dtype} *out, int nargs, ...) {{
                             
-                            if ({red_formula.tagJ}==0) {{
+                            if (tagI==1) {{
                                 int tmp = ny;
                                 ny = nx;
                                 nx = tmp;
                             }}
                             
+                            {self.read_args_code(with_argshapes=False)}
+    
                             // device_id is provided, so we set the GPU device accordingly
                             // Warning : is has to be consistent with location of data
                             cudaSetDevice(device_id);
@@ -130,7 +137,7 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
                             dim3 gridSize;
                             gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-                            GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * {varloader.dimy} * sizeof({dtype}) >>> (nx, ny, out, {call_list(args)});
+                            GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * dimY * sizeof({dtype}) >>> (nx, ny, out, {call_list(arg)});
     
                             // block until the device has completed
                             cudaDeviceSynchronize();

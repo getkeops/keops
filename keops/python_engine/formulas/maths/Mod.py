@@ -5,7 +5,7 @@ from keops.python_engine.utils.math_functions import keops_mod
 class Mod(VectorizedScalarOp):
 
     """the Modulo vectorized operation
-        Mod(x,n,d) = x - n * Floor((x - d)/n)
+    Mod(x,n,d) = x - n * Floor((x - d)/n)
     """
 
     string_id = "Mod"

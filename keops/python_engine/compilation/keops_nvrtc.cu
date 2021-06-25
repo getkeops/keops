@@ -7,11 +7,6 @@
 #include <iostream>
 #include <stdarg.h>
 
-#define TIMEIT 0
-#if TIMEIT
-#include <ctime>
-#endif
-
 
 #define NVRTC_SAFE_CALL(x)                                        \
   do {                                                            \
@@ -57,12 +52,6 @@ char* read_text_file(char const* path) {
 
 
 extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) {
-        
-#if TIMEIT
-    clock_t begin, end;
-    
-    begin = clock();
-#endif
 
     char *ptx;
 
@@ -99,32 +88,33 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) 
     // Destroy the program.
     NVRTC_SAFE_CALL(nvrtcDestroyProgram(&prog));
     
-#if TIMEIT
-    end = clock();
-    std::cout << "time for compiling ptx code : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
-    begin = clock();
-#endif
     // write ptx code to file
     FILE *ptx_file = fopen(ptx_file_name, "w");
     fputs(ptx, ptx_file);
     fclose(ptx_file);
-#if TIMEIT
-    end = clock();
-    std::cout << "time for writing ptx code to file : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-#endif
 
     return 0;
 }
 
 
-extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, float *out, int nargs, ...) {
+
+extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, int **ranges, float *out, int nargs, ...) {
+
+    if (tagI==1) {
+        int tmp = ny;
+        ny = nx;
+        nx = tmp;
+    }
     
-    float *arg[nargs];
+    // reading arguments
     va_list ap;
     va_start(ap, nargs);
+    float *arg[nargs];
     for (int i=0; i<nargs; i++)
         arg[i] = va_arg(ap, float*);
+    int *argshape[nargs];
+    for (int i=0; i<nargs; i++)
+        argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
     dim3 blockSize;
@@ -133,55 +123,18 @@ extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
 
-#if TIMEIT    
-    clock_t begin, end;
-    begin = clock();
-#endif
     
     char *ptx;
-    
-    // read ptx code from file
     ptx = read_text_file(ptx_file_name);
-#if TIMEIT    
-    end = clock();
-    std::cout << "time for reading ptx code from file : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-
-    begin = clock();
-#endif
-    // Load the generated PTX and get a handle to the kernel.
     CUdevice cuDevice;
-    
-    //CUcontext context;
     cudaSetDevice(device_id);
-    
     CUmodule module;
     CUfunction kernel;
-
     CUDA_SAFE_CALL(cuInit(0));
-
     CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
-
-    //CUDA_SAFE_CALL(cuCtxCreate(&context, 0, cuDevice));
-#if TIMEIT  
-    end = clock();
-    std::cout << "time for loading the ptx (part 1) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
-    begin = clock();
-#endif
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
-#if TIMEIT 
-    end = clock();
-    std::cout << "time for loading the ptx (part 2) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
-    begin = clock();
-#endif
     CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
-#if TIMEIT
-    end = clock();
-    std::cout << "time for loading the ptx (part 3) : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-  
-    begin = clock();
-#endif
+
     void *kernel_params[nargs+3];
     kernel_params[0] = &nx;
     kernel_params[1] = &ny;
@@ -194,18 +147,8 @@ extern "C" __host__ int Eval(const char* ptx_file_name, int dimY, int nx, int ny
                    blockSize.x * dimY * sizeof(float), NULL,             // shared mem and stream
                    kernel_params, 0));           // arguments
     CUDA_SAFE_CALL(cuCtxSynchronize());
-#if TIMEIT
-    end = clock();
-    std::cout << "time for executing kernel : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;
-    
-    begin = clock();
-#endif
-    // Release resources.
+
     CUDA_SAFE_CALL(cuModuleUnload(module));
-    //CUDA_SAFE_CALL(cuCtxDestroy(context));
-#if TIMEIT
-    end = clock();
-    std::cout << "time for releasing resources : " << double(end - begin) / CLOCKS_PER_SEC << std::endl;                                              
-#endif
+
     return 0;
 }

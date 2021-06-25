@@ -6,7 +6,7 @@ from keops.python_engine.formulas.basicMathOps.IntInv import IntInv
 
 class Clamp(VectorizedScalarOp):
 
-    """Clamp(x,a,b) = a if x<a, x if a<=x<=b, b if b<x """
+    """Clamp(x,a,b) = a if x<a, x if a<=x<=b, b if b<x"""
 
     string_id = "Clamp"
 

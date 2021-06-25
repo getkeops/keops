@@ -5,8 +5,8 @@ from keops.python_engine.formulas.reductions.Min_ArgMin_Reduction_Base import (
 
 
 class Min_ArgMin_Reduction(Min_ArgMin_Reduction_Base):
-    """ Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij
-     and its index operation is vectorized: if Fij is vector-valued, min+argmain is computed for each dimension."""
+    """Implements the min+argmin reduction operation : for each i or each j, find the minimal value of Fij
+    and its index operation is vectorized: if Fij is vector-valued, min+argmain is computed for each dimension."""
 
     string_id = "Min_ArgMin_Reduction"
 

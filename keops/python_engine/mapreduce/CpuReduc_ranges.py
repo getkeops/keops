@@ -6,7 +6,6 @@ from keops.python_engine.utils.code_gen_utils import (
     c_include,
     signature_list,
     call_list,
-    varseq_to_array,
 )
 from keops.python_engine.compilation import Cpu_link_compile
 from keops.python_engine import use_jit
@@ -75,8 +74,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
 
-        self.headers += c_include("cmath", "omp.h")
-
+        self.headers += c_include("cmath", "omp.h", "stdarg.h")
+        
         self.code = f"""
                         {self.headers}
                         #define __INDEX__ int32_t
@@ -205,14 +204,18 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             }}
                             return 0;
                         }}
-                        
-                        
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int **ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
+                    """
+        
+        if not for_jit:      
+            
+            arg = c_variable("float*", [f"arg[{k}]" for k in range(len(args))])
+                    
+            self.code += f"""    
+                        extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, int **ranges, {dtype}* out, int nargs, ...) {{
                             
-                            {varseq_to_array(args, "args_ptr")}
-                            {varseq_to_array(argshapes, "argshapes_ptr")}
+                            {self.read_args_code(with_argshapes=True)}
 
-                            Sizes SS({nargs}, args_ptr, argshapes_ptr, nx, ny);
+                            Sizes SS(nargs, arg, argshape, nx, ny);
                             
                             #if USE_HALF
                               SS.switch_to_half2_indexing();
@@ -220,14 +223,17 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
 
                             Ranges RR(SS, ranges);
                             
-                            if ({red_formula.tagJ}==1)
-                                return CpuConv_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
-                                                      RR.nranges_x, RR.nranges_y, RR.castedranges,
-                                                      out, {call_list(args)});
-                            else
-                                return CpuConv_ranges(SS.ny, SS.nx, SS.nbatchdims, SS.shapes,
-                                                      RR.nranges_x, RR.nranges_y, RR.castedranges,
-                                                      out, {call_list(args)});
+                            nx = SS.nx;
+                            ny = SS.ny;
                             
+                            if (tagI==1) {{
+                                int tmp = ny;
+                                ny = nx;
+                                nx = tmp;
+                            }}
+                            
+                            return CpuConv_ranges(nx, ny, SS.nbatchdims, SS.shapes,
+                                                    RR.nranges_x, RR.nranges_y, RR.castedranges,
+                                                    out, {call_list(arg)});
                         }}
                     """
