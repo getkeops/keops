@@ -9,13 +9,13 @@ from keops.python_engine.formulas.Operation import Operation
 
 class Var(Operation):
     """Var operation class. Var(ind,dim,cat) is a symbolic
-     object that encodes an input tensor in the call to the
-     KeOps routine, where
-     - ind gives the position of the input tensor in the list of tensors sent to the routine
-     - dim gives the "dimension" of the data : each input tensor is interpreted as a matrix
-     of size (n,dim), where n is dynamically handled and dim is known at compile time.
-     - cat is the "category" of the variable : either a "i"-indexed variable (cat=0),
-     a "j"-indexed variable (cat=1), or a parameter variable (cat=2)"""
+    object that encodes an input tensor in the call to the
+    KeOps routine, where
+    - ind gives the position of the input tensor in the list of tensors sent to the routine
+    - dim gives the "dimension" of the data : each input tensor is interpreted as a matrix
+    of size (n,dim), where n is dynamically handled and dim is known at compile time.
+    - cat is the "category" of the variable : either a "i"-indexed variable (cat=0),
+    a "j"-indexed variable (cat=1), or a parameter variable (cat=2)"""
 
     string_id = "Var"
 

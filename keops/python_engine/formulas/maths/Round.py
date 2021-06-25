@@ -6,7 +6,7 @@ from keops.python_engine.formulas.variables.Zero import Zero
 class Round(VectorizedScalarOp):
 
     """the Round vectorized operation
-        Round(f,d) where d is integer, rounds f to d decimals
+    Round(f,d) where d is integer, rounds f to d decimals
     """
 
     def __init__(self, f, d):

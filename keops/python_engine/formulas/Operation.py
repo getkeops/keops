@@ -33,9 +33,9 @@ class Operation(Tree):
 
     def __call__(self, out, table):
         """returns the C++ code string corresponding to the evaluation of the formula
-          - out is a c_variable in which the result of the evaluation is stored
-          - table is the list of c_variables corresponding to actual local variables
-         required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
+         - out is a c_variable in which the result of the evaluation is stored
+         - table is the list of c_variables corresponding to actual local variables
+        required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
         from keops.python_engine.formulas.variables.Var import Var
 
         string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"

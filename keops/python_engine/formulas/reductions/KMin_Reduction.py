@@ -14,8 +14,8 @@ from keops.python_engine.utils.code_gen_utils import (
 
 class KMin_Reduction(KMin_ArgKMin_Reduction):
     """Implements the k-min reduction operation : for each i or each j, find the
-     k minimal values of Fij operation is vectorized: if Fij is vector-valued, arg-k-min
-     is computed for each dimension."""
+    k minimal values of Fij operation is vectorized: if Fij is vector-valued, arg-k-min
+    is computed for each dimension."""
 
     string_id = "KMin_Reduction"
 

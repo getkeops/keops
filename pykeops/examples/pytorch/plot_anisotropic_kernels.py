@@ -63,7 +63,7 @@ x = torch.from_numpy(np.vstack((X.ravel(), Y.ravel())).T).contiguous().type(dtyp
 
 
 def plot_kernel(gamma):
-    """ Samples 'x -> ∑_j b_j * k_j(x - y_j)' on the grid, and displays it as a heatmap. """
+    """Samples 'x -> ∑_j b_j * k_j(x - y_j)' on the grid, and displays it as a heatmap."""
     if gamma.dim() == 2:
         heatmap = (-Vi(x).weightedsqdist(Vj(y), Vj(gamma))).exp() @ b
     else:

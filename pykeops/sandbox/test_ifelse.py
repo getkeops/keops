@@ -4,9 +4,7 @@ from pykeops.torch import LazyTensor
 
 
 ttypes = (
-    (torch.cuda.FloatTensor, )
-    if torch.cuda.is_available()
-    else (torch.FloatTensor,)
+    (torch.cuda.FloatTensor,) if torch.cuda.is_available() else (torch.FloatTensor,)
 )
 
 # Test when LazyTensors share underlying data

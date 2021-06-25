@@ -79,8 +79,10 @@ class GenredAutograd(torch.autograd.Function):
         # N.B.: KeOps C++ expects contiguous data arrays
         test_contig = all(arg.is_contiguous() for arg in args)
         if not test_contig:
-            print("[pyKeOps] Warning : at least one of the input tensors is not contiguous. "
-                    + "Consider using contiguous data arrays to avoid unnecessary copies.")
+            print(
+                "[pyKeOps] Warning : at least one of the input tensors is not contiguous. "
+                + "Consider using contiguous data arrays to avoid unnecessary copies."
+            )
             args = tuple(arg.contiguous() for arg in args)
 
         # N.B.: KeOps C++ expects contiguous integer arrays as ranges
@@ -158,7 +160,7 @@ class GenredAutograd(torch.autograd.Function):
             + str(myconv.tagIJ)
             + ")"
         )
-        
+
         # convert to contiguous:
         G = G.contiguous()
 
