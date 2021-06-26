@@ -98,7 +98,17 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) 
 
 
 
-extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, int **ranges, float *out, int nargs, ...) {
+extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
+                                        int **ranges, float *out, int nargs, ...) {
+    
+    
+    
+    CUdevice cuDevice;
+    CUDA_SAFE_CALL(cuInit(0));
+    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
+    
+    CUDA_SAFE_CALL(cudaSetDevice(device_id));
+    
 
     if (tagI==1) {
         int tmp = ny;
@@ -117,6 +127,13 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
+    void *p_data;
+    float **arg_d;
+    CUDA_SAFE_CALL(cudaMalloc(&p_data, sizeof(float*) * nargs));
+    arg_d = (float **) p_data;
+    // copy array of pointers
+    CUDA_SAFE_CALL(cudaMemcpy(arg_d, arg, nargs * sizeof(float *), cudaMemcpyHostToDevice));
+    
     dim3 blockSize;
     blockSize.x = 32;
 	
@@ -126,12 +143,10 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx
     
     char *ptx;
     ptx = read_text_file(ptx_file_name);
-    CUdevice cuDevice;
-    cudaSetDevice(device_id);
+    
     CUmodule module;
     CUfunction kernel;
-    CUDA_SAFE_CALL(cuInit(0));
-    CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
+    
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
     CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
 
@@ -140,7 +155,7 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx
     kernel_params[1] = &ny;
     kernel_params[2] = &out;
     for (int i=0; i<nargs; i++)
-        kernel_params[i+3] = &arg[i];
+        kernel_params[i+3] = &arg_d[i];
     CUDA_SAFE_CALL(cuLaunchKernel(kernel,
                    gridSize.x, gridSize.y, gridSize.z,    // grid dim
                    blockSize.x, blockSize.y, blockSize.z,   // block dim
@@ -149,6 +164,8 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx
     CUDA_SAFE_CALL(cuCtxSynchronize());
 
     CUDA_SAFE_CALL(cuModuleUnload(module));
+    
+    CUDA_SAFE_CALL(cudaFree(p_data));
 
     return 0;
 }
