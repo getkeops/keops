@@ -10,7 +10,7 @@ from keops.python_engine.utils.code_gen_utils import (
 from keops.python_engine.compilation import Gpu_link_compile
 
 
-class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
+class GpuReduc1D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero

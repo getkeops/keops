@@ -34,7 +34,7 @@ class get_keops_routine_class:
         self.dll = CDLL(self.dllname)
 
     def __call__(
-        self, nx, ny, device_id, ranges_ctype, out_ctype, args_ctype, argshapes_ctype
+        self, nx, ny, tagHostDevice, device_id, ranges_ctype, outshape_ctype, out_ctype, args_ctype, argshapes_ctype
     ):
         c_args = [arg["data"] for arg in args_ctype]
         nargs = len(args_ctype)
@@ -46,7 +46,9 @@ class get_keops_routine_class:
                 c_int,
                 c_int,
                 c_int,
+                c_int,
                 POINTER(c_void_p),
+                c_int * len(outshape_ctype),
                 out_ctype["type"],
                 c_int,
             ]
@@ -55,12 +57,14 @@ class get_keops_routine_class:
         )
         self.dll.launch_keops(
             create_string_buffer(self.low_level_code_file),
+            c_int(tagHostDevice),
             c_int(self.dimy),
             c_int(nx),
             c_int(ny),
             c_int(device_id),
             c_int(self.tagI),
             ranges_ctype,
+            outshape_ctype,
             out_ctype["data"],
             c_int(nargs),
             *c_args,

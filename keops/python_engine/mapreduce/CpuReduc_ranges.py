@@ -204,8 +204,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                     
                     #include "stdarg.h"
                     
-                    extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
-                                                int **ranges, {dtype}* out, int nargs, ...) {{
+                    extern "C" int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+                                                int **ranges, int *shapeout, {dtype}* out, int nargs, ...) {{
                         
                         // reading arguments
                         va_list ap;
