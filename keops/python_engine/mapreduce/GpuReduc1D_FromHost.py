@@ -25,6 +25,8 @@ class GpuReduc1D_FromHost(GpuReduc1D):
             indsp = self.varloader.indsp
             dimout = self.redformula.dim
             
+            dtype = self.dtype
+            
 
             self.code += f"""
             
@@ -83,21 +85,21 @@ class GpuReduc1D_FromHost(GpuReduc1D):
                                 dataloc += nvals;
                               }}
 
-                            for (int k = 0; k < {nargsi}; k++) {
+                            for (int k = 0; k < {nargsi}; k++) {{
                               int indk = {indsi[k]};
                               int nvals = nx * {dimsx[k]};
                               CudaSafeCall(cudaMemcpy(dataloc, args_h[indk], sizeof({dtype}) * nvals, cudaMemcpyHostToDevice));
                               ph[indk] = dataloc;
                               dataloc += nvals;
-                            }
+                            }}
 
-                              for (int k = 0; k < {nargsj}; k++) {
+                              for (int k = 0; k < {nargsj}; k++) {{
                                 int indk = {indsj[k]};
                                 int nvals = ny * {dimsy[k]};
                                 CudaSafeCall(cudaMemcpy(dataloc, args_h[indk], sizeof({dtype}) * nvals, cudaMemcpyHostToDevice));
                                 ph[indk] = dataloc;
                                 dataloc += nvals;
-                              }
+                              }}
 
 
                             // copy array of pointers

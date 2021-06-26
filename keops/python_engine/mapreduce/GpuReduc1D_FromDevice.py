@@ -9,6 +9,8 @@ class GpuReduc1D_FromDevice(GpuReduc1D):
         super().get_code(for_jit=for_jit)
 
         if not for_jit:
+            
+            dtype = self.dtype
 
             self.code += f"""
             
