@@ -8,7 +8,6 @@ from keops.python_engine.utils.code_gen_utils import (
     call_list,
 )
 from keops.python_engine.compilation import Cpu_link_compile
-from keops.python_engine import use_jit
 from keops.python_engine.binders.binders_definitions import binders_definitions
 from keops.python_engine.broadcast_batch_dimensions import (
     define_fill_shapes_function,
@@ -23,15 +22,10 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     AssignZero = CpuAssignZero
 
     def __init__(self, *args):
-        if use_jit:
-            raise ValueError("JIT compiling not yet implemented in Cpu mode")
         MapReduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)
 
-    def get_code(self, for_jit=False):
-
-        if for_jit:
-            raise ValueError("JIT compiling not yet implemented in Cpu mode")
+    def get_code(self):
 
         super().get_code()
 
@@ -204,47 +198,45 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             }}
                             return 0;
                         }}
-                    """
-        
-        if not for_jit:      
+                    """   
                     
-            self.code += f"""    
+        self.code += f"""    
+                    
+                    #include "stdarg.h"
+                    
+                    extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
+                                                int **ranges, {dtype}* out, int nargs, ...) {{
                         
-                        #include "stdarg.h"
+                        // reading arguments
+                        va_list ap;
+                        va_start(ap, nargs);
+                        {dtype} *arg[nargs];
+                        for (int i=0; i<nargs; i++)
+                            arg[i] = va_arg(ap, {dtype}*);
+                        int *argshape[nargs];
+                        for (int i=0; i<nargs; i++)
+                            argshape[i] = va_arg(ap, int*);
+                        va_end(ap);
+
+                        Sizes SS(nargs, arg, argshape, nx, ny);
                         
-                        extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
-                                                    int **ranges, {dtype}* out, int nargs, ...) {{
-                            
-                            // reading arguments
-                            va_list ap;
-                            va_start(ap, nargs);
-                            {dtype} *arg[nargs];
-                            for (int i=0; i<nargs; i++)
-                                arg[i] = va_arg(ap, {dtype}*);
-                            int *argshape[nargs];
-                            for (int i=0; i<nargs; i++)
-                                argshape[i] = va_arg(ap, int*);
-                            va_end(ap);
+                        #if USE_HALF
+                          SS.switch_to_half2_indexing();
+                        #endif
 
-                            Sizes SS(nargs, arg, argshape, nx, ny);
-                            
-                            #if USE_HALF
-                              SS.switch_to_half2_indexing();
-                            #endif
-
-                            Ranges RR(SS, ranges);
-                            
-                            nx = SS.nx;
-                            ny = SS.ny;
-                            
-                            if (tagI==1) {{
-                                int tmp = ny;
-                                ny = nx;
-                                nx = tmp;
-                            }}
-                            
-                            return CpuConv_ranges(nx, ny, SS.nbatchdims, SS.shapes,
-                                                    RR.nranges_x, RR.nranges_y, RR.castedranges,
-                                                    out, arg);
+                        Ranges RR(SS, ranges);
+                        
+                        nx = SS.nx;
+                        ny = SS.ny;
+                        
+                        if (tagI==1) {{
+                            int tmp = ny;
+                            ny = nx;
+                            nx = tmp;
                         }}
-                    """
+                        
+                        return CpuConv_ranges(nx, ny, SS.nbatchdims, SS.shapes,
+                                                RR.nranges_x, RR.nranges_y, RR.castedranges,
+                                                out, arg);
+                    }}
+                """
