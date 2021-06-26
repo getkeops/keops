@@ -107,7 +107,7 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx
     CUDA_SAFE_CALL(cuInit(0));
     CUDA_SAFE_CALL(cuDeviceGet(&cuDevice, device_id));
     
-    CUDA_SAFE_CALL(cudaSetDevice(device_id));
+    cudaSetDevice(device_id);
     
 
     if (tagI==1) {
@@ -129,10 +129,10 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx
     
     void *p_data;
     float **arg_d;
-    CUDA_SAFE_CALL(cudaMalloc(&p_data, sizeof(float*) * nargs));
+    cudaMalloc(&p_data, sizeof(float*) * nargs);
     arg_d = (float **) p_data;
     // copy array of pointers
-    CUDA_SAFE_CALL(cudaMemcpy(arg_d, arg, nargs * sizeof(float *), cudaMemcpyHostToDevice));
+    cudaMemcpy(arg_d, arg, nargs * sizeof(float *), cudaMemcpyHostToDevice);
     
     dim3 blockSize;
     blockSize.x = 32;
@@ -150,12 +150,11 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
     CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
 
-    void *kernel_params[nargs+3];
+    void *kernel_params[4];
     kernel_params[0] = &nx;
     kernel_params[1] = &ny;
     kernel_params[2] = &out;
-    for (int i=0; i<nargs; i++)
-        kernel_params[i+3] = &arg_d[i];
+    kernel_params[3] = &arg_d;
     CUDA_SAFE_CALL(cuLaunchKernel(kernel,
                    gridSize.x, gridSize.y, gridSize.z,    // grid dim
                    blockSize.x, blockSize.y, blockSize.z,   // block dim
@@ -165,7 +164,7 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx
 
     CUDA_SAFE_CALL(cuModuleUnload(module));
     
-    CUDA_SAFE_CALL(cudaFree(p_data));
+    cudaFree(p_data);
 
     return 0;
 }
