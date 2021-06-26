@@ -7,7 +7,7 @@ from keops.python_engine.utils.code_gen_utils import (
     c_variable
 )
 from keops.python_engine.compilation import Cpu_link_compile
-from keops.python_engine import use_jit, debug_ops
+from keops.python_engine import debug_ops
 
 
 class CpuReduc(MapReduce, Cpu_link_compile):
@@ -16,15 +16,10 @@ class CpuReduc(MapReduce, Cpu_link_compile):
     AssignZero = CpuAssignZero
 
     def __init__(self, *args):
-        if use_jit:
-            raise ValueError("JIT compiling not yet implemented in Cpu mode")
         MapReduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)
 
-    def get_code(self, for_jit=False):
-
-        if for_jit:
-            raise ValueError("JIT compiling not yet implemented in Cpu mode")
+    def get_code(self):
 
         super().get_code()
 
@@ -66,32 +61,30 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                             return 0;
                         }}
                     """
-                       
-        if not for_jit:
-
-            self.code += f"""
-            
-                        #include "stdarg.h"
-                                                                            
-                        extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
-                                                    int **ranges, {dtype} *out, int nargs, ...) {{
-                                                        
-                            // reading arguments
-                            va_list ap;
-                            va_start(ap, nargs);
-                            {dtype} *arg[nargs];
-                            for (int i=0; i<nargs; i++)
-                                arg[i] = va_arg(ap, {dtype}*);
-                            va_end(ap);
-                            
-                            if (tagI==1) {{
-                                int tmp = ny;
-                                ny = nx;
-                                nx = tmp;
-                            }}
-                            
-                            return CpuConv(nx, ny, out, arg);
-
+        
+        self.code += f"""
+        
+                    #include "stdarg.h"
+                                                                        
+                    extern "C" int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
+                                                int **ranges, {dtype} *out, int nargs, ...) {{
+                                                    
+                        // reading arguments
+                        va_list ap;
+                        va_start(ap, nargs);
+                        {dtype} *arg[nargs];
+                        for (int i=0; i<nargs; i++)
+                            arg[i] = va_arg(ap, {dtype}*);
+                        va_end(ap);
+                        
+                        if (tagI==1) {{
+                            int tmp = ny;
+                            ny = nx;
+                            nx = tmp;
                         }}
                         
-                    """
+                        return CpuConv(nx, ny, out, arg);
+
+                    }}
+                    
+                """

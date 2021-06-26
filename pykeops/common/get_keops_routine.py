@@ -1,7 +1,6 @@
 from ctypes import create_string_buffer, c_char_p, c_int, CDLL, POINTER, c_void_p
 
 from keops.python_engine.utils.code_gen_utils import get_hash_name
-from keops.python_engine import use_jit
 from keops.python_engine.get_keops_dll import get_keops_dll
 
 

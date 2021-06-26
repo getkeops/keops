@@ -19,7 +19,7 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
 
-    def get_code(self, for_jit=False):
+    def get_code(self):
 
         super().get_code()
 
@@ -46,15 +46,10 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")
 
-        if for_jit:
-            optional_extern_qualif = 'extern "C" '
-        else:
-            optional_extern_qualif = ""
-
         self.code = f"""
                         {self.headers}
 
-                        {optional_extern_qualif}__global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread
                           int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -104,64 +99,3 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
 
                         }}
                     """
-                    
-        if not for_jit:
-            
-            dtype = self.dtype
-
-            self.code += f"""
-            
-                        #include "stdarg.h"
-                        
-                        extern "C" __host__ int launch_keops(const char* ptx_file_name, int dimY, int nx, int ny, int device_id, int tagI, 
-                                                            int **ranges, {dtype} *out, int nargs, ...) {{
-                            
-                            if (tagI==1) {{
-                                int tmp = ny;
-                                ny = nx;
-                                nx = tmp;
-                            }}
-                            
-                            // device_id is provided, so we set the GPU device accordingly
-                            // Warning : is has to be consistent with location of data
-                            cudaSetDevice(device_id);
-                            
-                            // reading arguments
-                            va_list ap;
-                            va_start(ap, nargs);
-                            {dtype} *arg[nargs];
-                            for (int i=0; i<nargs; i++)
-                                arg[i] = va_arg(ap, {dtype}*);
-                            va_end(ap);
-                            
-                            void *p_data;
-                            {dtype} **arg_d;
-                            cudaMalloc(&p_data, sizeof({dtype}*) * nargs);
-                            arg_d = ({dtype} **) p_data;
-                            // copy array of pointers
-                            cudaMemcpy(arg_d, arg, nargs * sizeof({dtype} *), cudaMemcpyHostToDevice);
-
-                            // Compute on device : grid and block are both 1d
-
-                            //SetGpuProps(device_id);
-
-                            dim3 blockSize;
-
-                            blockSize.x = 32;
-
-                            dim3 gridSize;
-                            gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
-
-                            GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * dimY * sizeof({dtype}) >>> (nx, ny, out, arg_d);
-    
-                            // block until the device has completed
-                            cudaDeviceSynchronize();
-
-                            //CudaCheckError();
-                            
-                            cudaFree(p_data);
-
-                            return 0;
-                        }}
-                    """
-
