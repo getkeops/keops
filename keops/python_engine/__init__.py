@@ -12,7 +12,7 @@ use_cuda = num_gpus > 0
 # flag for JIT compiling : either compile code via JIT tools, such as nvrtc,
 # or use standard command-line compilmer tools.
 # currently only nvrtc is implemented, so we use it only in Gpu mode
-use_jit = False  # use_cuda
+use_jit = use_cuda
 jit_binary = get_jit_binary() if use_jit else None
 
 # flag for debugging : adds C++ code for printing all input and output values
