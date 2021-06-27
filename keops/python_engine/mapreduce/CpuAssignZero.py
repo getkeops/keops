@@ -37,7 +37,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                             return 0;
                         }}
                         
-                        extern "C" int launch_keops(int nx, int ny, int tagHostDevice, int device_id, int *ranges, int *shapeout, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
+                        extern "C" int launch_keops_{dtype}(int nx, int ny, int tagHostDevice, int device_id, int *ranges, int *shapeout, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
                             return AssignZeroCpu(nx, ny, out, {call_list(args)});
                         }}
                     """
