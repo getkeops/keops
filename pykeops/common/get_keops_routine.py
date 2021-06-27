@@ -34,11 +34,17 @@ class get_keops_routine_class:
         self.dll = CDLL(self.dllname)
 
     def __call__(
-        self, nx, ny, tagHostDevice, device_id, ranges_ctype, outshape_ctype, out_ctype, args_ctype, argshapes_ctype
+        self, c_dtype, nx, ny, tagHostDevice, device_id, ranges_ctype, outshape_ctype, out_ctype, args_ctype, argshapes_ctype
     ):
         c_args = [arg["data"] for arg in args_ctype]
         nargs = len(args_ctype)
-        self.dll.launch_keops.argtypes = (
+        if c_dtype=="float":
+            launch_keops = self.dll.launch_keops_float
+        elif c_dtype=="double":
+            launch_keops = self.dll.launch_keops_double
+        else:
+            raise ValueError("dtype",dtype,"not yet implemented in new KeOps engine")
+        launch_keops.argtypes = (
             [
                 c_char_p,
                 c_int,
@@ -55,7 +61,7 @@ class get_keops_routine_class:
             + [arg["type"] for arg in args_ctype]
             + [c_int * len(argshape) for argshape in argshapes_ctype]
         )
-        self.dll.launch_keops(
+        launch_keops(
             create_string_buffer(self.low_level_code_file),
             c_int(tagHostDevice),
             c_int(self.dimy),

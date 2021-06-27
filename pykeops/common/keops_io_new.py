@@ -183,7 +183,7 @@ class LoadKeOps_new:
         out_ctype = tools.ctypes(out)
 
         # call the routine    
-        myfun(nx, ny, tagHostDevice, device_id_request, ranges_ctype, outshape_ctype, out_ctype, args_ctype, argshapes_ctype)
+        myfun(c_dtype, nx, ny, tagHostDevice, device_id_request, ranges_ctype, outshape_ctype, out_ctype, args_ctype, argshapes_ctype)
 
         return out
 
