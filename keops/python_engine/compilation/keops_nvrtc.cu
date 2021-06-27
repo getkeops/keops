@@ -104,6 +104,45 @@ int get_size(TYPE *shape) {
     return size;
 }
 
+
+template < typename TYPE >
+__host__ void load_args_FromDevice(void*& p_data, TYPE* out, TYPE*& out_d, int nargs, TYPE** arg, TYPE**& arg_d) {
+    cudaMalloc(&p_data, sizeof(TYPE*) * nargs);
+    out_d = out;
+    arg_d = (TYPE **) p_data;
+    // copy array of pointers
+    cudaMemcpy(arg_d, arg, nargs * sizeof(TYPE *), cudaMemcpyHostToDevice);
+}
+
+
+template < typename TYPE >
+__host__ void load_args_FromHost(void*& p_data, TYPE* out, TYPE*& out_d, int nargs, TYPE** arg, TYPE**& arg_d, int**& argshape, int sizeout) {
+    int sizes[nargs];
+    int totsize = sizeout;
+    for (int k=0; k<nargs; k++) {
+        sizes[k] = get_size(argshape[k]);
+        totsize += sizes[k];
+    }
+    cudaMalloc(&p_data, sizeof(TYPE *) * nargs + sizeof(TYPE) * totsize);
+    
+    arg_d = (TYPE**) p_data;
+    TYPE *dataloc = (TYPE *) (arg_d + nargs);
+    
+    // host array of pointers to device data
+    TYPE *ph[nargs];
+                
+    out_d = dataloc;
+    dataloc += sizeout;
+    for (int k=0; k<nargs; k++) {
+        ph[k] = dataloc;
+        cudaMemcpy(dataloc, arg[k], sizeof(TYPE) * sizes[k], cudaMemcpyHostToDevice);
+        dataloc += sizes[k];
+    }
+    
+    // copy array of pointers
+    cudaMemcpy(arg_d, ph, nargs * sizeof(TYPE *), cudaMemcpyHostToDevice);
+}
+
 template < typename TYPE >
 __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
                                         int **ranges, int *shapeout, TYPE *out, int nargs, TYPE **arg, int **argshape) {
@@ -114,62 +153,24 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     
     cudaSetDevice(device_id);
     
-
     if (tagI==1) {
         int tmp = ny;
         ny = nx;
         nx = tmp;
     }
     
-    
-    
-    
-    
-    
     void *p_data;
     TYPE *out_d;
     TYPE **arg_d;
     int sizeout = get_size(shapeout);
     
-    if(tagHostDevice==1) {
-        cudaMalloc(&p_data, sizeof(TYPE*) * nargs);
-        out_d = out;
-        arg_d = (TYPE **) p_data;
-        // copy array of pointers
-        cudaMemcpy(arg_d, arg, nargs * sizeof(TYPE *), cudaMemcpyHostToDevice);
-    } else {
-        int sizes[nargs];
-        int totsize = sizeout;
-        for (int k=0; k<nargs; k++) {
-            sizes[k] = get_size(argshape[k]);
-            totsize += sizes[k];
-        }
-        cudaMalloc(&p_data, sizeof(TYPE *) * nargs + sizeof(TYPE) * totsize);
-        
-        arg_d = (TYPE**) p_data;
-        TYPE *dataloc = (TYPE *) (arg_d + nargs);
-        
-        // host array of pointers to device data
-        TYPE *ph[nargs];
-                    
-        out_d = dataloc;
-        dataloc += sizeout;
-        for (int k=0; k<nargs; k++) {
-            ph[k] = dataloc;
-            cudaMemcpy(dataloc, arg[k], sizeof(TYPE) * sizes[k], cudaMemcpyHostToDevice);
-            dataloc += sizes[k];
-        }
-        
-        // copy array of pointers
-        cudaMemcpy(arg_d, ph, nargs * sizeof(TYPE *), cudaMemcpyHostToDevice);
-    }
-    
-    
-    
-    
+    if(tagHostDevice==1)
+        load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d);
+    else
+        load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
     
     dim3 blockSize;
-    blockSize.x = 32;
+    blockSize.x = 192;
 	
     dim3 gridSize;
     gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
@@ -211,7 +212,8 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 }
 
 
-extern "C" __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+
+extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
                                         int **ranges, int *shapeout, float *out, int nargs, ...) {
     // reading arguments
     va_list ap;
@@ -226,5 +228,23 @@ extern "C" __host__ int launch_keops(const char* ptx_file_name, int tagHostDevic
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, 
                                         ranges, shapeout, out, nargs, arg, argshape);
-                                        
+                                                                        
+}
+
+extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+                                        int **ranges, int *shapeout, double *out, int nargs, ...) {
+    // reading arguments
+    va_list ap;
+    va_start(ap, nargs);
+    double *arg[nargs];
+    for (int i=0; i<nargs; i++)
+        arg[i] = va_arg(ap, double*);
+    int *argshape[nargs];
+    for (int i=0; i<nargs; i++)
+        argshape[i] = va_arg(ap, int*);
+    va_end(ap);
+    
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, 
+                                        ranges, shapeout, out, nargs, arg, argshape);
+                                                                        
 }

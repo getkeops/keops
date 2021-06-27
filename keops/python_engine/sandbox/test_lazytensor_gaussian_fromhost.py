@@ -9,7 +9,7 @@ from pykeops.torch import LazyTensor
 M, N, D, DV = 2500, 2000, 3, 1
 #M, N, D, DV = 2, 3, 3, 1
 
-dtype = torch.float32
+dtype = torch.float64
 sum_scheme = "block_sum"
 
 device_id = 1 if torch.cuda.is_available() else -1
