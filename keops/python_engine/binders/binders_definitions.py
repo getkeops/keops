@@ -1,5 +1,5 @@
 def binders_definitions(
-    dtype, red_formula, varloader, tagHostDevice, tagCpuGpu, tag1D2D
+    dtype, red_formula, varloader
 ):
 
     if red_formula.tagI == 0:
@@ -44,9 +44,6 @@ def binders_definitions(
                 #define keops_nvarsI {nvarsi}
                 #define keops_nvarsJ {nvarsj}
                 #define keops_nvarsP {varloader.nvarsp}
-                #define tagHostDevice {tagHostDevice}
-                #define tagCpuGpu {tagCpuGpu}
-                #define tag1D2D {tag1D2D}
                 
                 int keops_indsI[keops_nvarsI] = {{ {indsI_str} }};
                 int keops_indsJ[keops_nvarsJ] = {{ {indsJ_str} }};

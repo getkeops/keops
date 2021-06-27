@@ -74,7 +74,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         {self.headers}
                         #define __INDEX__ int32_t
                   
-                        {binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu, tag1D2D)}
+                        {binders_definitions(dtype, red_formula, varloader)}
                         #include "Sizes.h"
                         #include "Ranges.h"
                         
@@ -204,7 +204,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                     
                     #include "stdarg.h"
                     
-                    extern "C" int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+                    extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
                                                 int **ranges, int *shapeout, {dtype}* out, int nargs, ...) {{
                         
                         // reading arguments
