@@ -27,8 +27,8 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         dtype = self.dtype
         varloader = self.varloader
 
-        i = c_variable("int", "i")
-        j = c_variable("int", "j")
+        i = self.i
+        j = self.j
         fout = self.fout
         outi = self.outi
         acc = self.acc
