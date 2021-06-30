@@ -45,6 +45,12 @@ def get_keops_dll(map_reduce_id, *args):
         res["tagI"],
         res["dim"],
         res["dimy"],
+        res["indsi"],
+        res["indsj"],
+        res["indsp"],
+        res["dimsx"],
+        res["dimsy"],
+        res["dimsp"]
     )
 
 
