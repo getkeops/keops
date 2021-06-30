@@ -36,6 +36,7 @@ class MapReduce:
             tagCpuGpu,
             tag1D2D,
         )
+        self.varloader = Var_loader(self.red_formula)
 
     def get_code(self):
 
@@ -47,8 +48,6 @@ class MapReduce:
         dtypeacc = self.dtypeacc
         nargs = self.nargs
         self.sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype)
-
-        self.varloader = Var_loader(red_formula)
 
         self.i = i = c_variable("int", "i")
         self.j = j = c_variable("int", "j")

@@ -21,7 +21,10 @@ def get_jit_binary(check_compile=True):
     jit_binary = build_path + "keops_nvrtc.so"
     if check_compile and not os.path.exists(jit_binary):
         print("[KeOps] Compiling main dll...", flush=True, end="")
-        jit_compile_command = f"nvcc -shared -Xcompiler -fPIC -lnvrtc -lcuda {jit_source_file} -o {jit_binary}"
+        bindings_source_dir = base_dir_path + "binders"
+        flags = "-shared -Xcompiler -fPIC -lnvrtc -lcuda"
+        #jit_compile_command = f"nvcc -I {bindings_source_dir} {flags} {jit_source_file} -o {jit_binary}"
+        jit_compile_command = f"nvcc {flags} {jit_source_file} -o {jit_binary}"
         os.system(jit_compile_command)
         print("Done.", flush=True)
     return jit_binary
