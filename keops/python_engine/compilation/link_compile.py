@@ -144,4 +144,10 @@ class link_compile:
             tagI=self.tagI,
             dim=self.dim,
             dimy=self.dimy,
+            indsi=self.varloader.indsi,
+            indsj=self.varloader.indsj,
+            indsp=self.varloader.indsp,
+            dimsx=self.varloader.dimsx,
+            dimsy=self.varloader.dimsy,
+            dimsp=self.varloader.dimsp
         )

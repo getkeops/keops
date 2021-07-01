@@ -7,48 +7,16 @@
 #include <iostream>
 #include <stdarg.h>
 
-#define NVRTC_SAFE_CALL(x)                                        \
-  do {                                                            \
-    nvrtcResult result = x;                                       \
-    if (result != NVRTC_SUCCESS) {                                \
-      std::cerr << "\nerror: " #x " failed with error "           \
-                << nvrtcGetErrorString(result) << '\n';           \
-      exit(1);                                                    \
-    }                                                             \
-  } while(0)
-#define CUDA_SAFE_CALL(x)                                         \
-  do {                                                            \
-    CUresult result = x;                                          \
-    if (result != CUDA_SUCCESS) {                                 \
-      const char *msg;                                            \
-      cuGetErrorName(result, &msg);                               \
-      std::cerr << "\nerror: " #x " failed with error "           \
-                << msg << '\n';                                   \
-      exit(1);                                                    \
-    }                                                             \
-  } while(0)
+#define __INDEX__ int //int32_t
 
+#define C_CONTIGUOUS 1
+#define USE_HALF 0
 
-char* read_text_file(char const* path) {
-    char* buffer = 0;
-    long length;
-    FILE * f = fopen (path, "rb");
-    if (f)
-    {
-      fseek (f, 0, SEEK_END);
-      length = ftell (f);
-      fseek (f, 0, SEEK_SET);
-      buffer = (char*)malloc ((length+1)*sizeof(char));
-      if (buffer)
-      {
-        fread (buffer, sizeof(char), length, f);
-      }
-      fclose (f);
-    }
-    buffer[length] = '\0';
-    return buffer;
-}
+#include "Sizes.h"
+#include "Ranges.h"
 
+#include "utils.cpp"
+#include "ranges_utils.cpp"
 
 extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) {
 
@@ -95,56 +63,16 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) 
     return 0;
 }
 
-template < typename TYPE >
-int get_size(TYPE *shape) {
-    int ndims = shape[0];
-    int size = 1;
-    for (int k=0; k<ndims; k++)
-        size *= shape[k+1];
-    return size;
-}
 
 
-template < typename TYPE >
-__host__ void load_args_FromDevice(void*& p_data, TYPE* out, TYPE*& out_d, int nargs, TYPE** arg, TYPE**& arg_d) {
-    cudaMalloc(&p_data, sizeof(TYPE*) * nargs);
-    out_d = out;
-    arg_d = (TYPE **) p_data;
-    // copy array of pointers
-    cudaMemcpy(arg_d, arg, nargs * sizeof(TYPE *), cudaMemcpyHostToDevice);
-}
 
 
-template < typename TYPE >
-__host__ void load_args_FromHost(void*& p_data, TYPE* out, TYPE*& out_d, int nargs, TYPE** arg, TYPE**& arg_d, int**& argshape, int sizeout) {
-    int sizes[nargs];
-    int totsize = sizeout;
-    for (int k=0; k<nargs; k++) {
-        sizes[k] = get_size(argshape[k]);
-        totsize += sizes[k];
-    }
-    cudaMalloc(&p_data, sizeof(TYPE *) * nargs + sizeof(TYPE) * totsize);
-    
-    arg_d = (TYPE**) p_data;
-    TYPE *dataloc = (TYPE *) (arg_d + nargs);
-    
-    // host array of pointers to device data
-    TYPE *ph[nargs];
-                
-    out_d = dataloc;
-    dataloc += sizeout;
-    for (int k=0; k<nargs; k++) {
-        ph[k] = dataloc;
-        cudaMemcpy(dataloc, arg[k], sizeof(TYPE) * sizes[k], cudaMemcpyHostToDevice);
-        dataloc += sizes[k];
-    }
-    
-    // copy array of pointers
-    cudaMemcpy(arg_d, ph, nargs * sizeof(TYPE *), cudaMemcpyHostToDevice);
-}
 
 template < typename TYPE >
 __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+                                        int *indsi, int *indsj, int *indsp,
+                                        int dimout, 
+                                        int *dimsx, int *dimsy, int *dimsp,
                                         int **ranges, int *shapeout, TYPE *out, int nargs, TYPE **arg, int **argshape) {
     
     CUdevice cuDevice;
@@ -153,28 +81,54 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     
     cudaSetDevice(device_id);
     
+    Sizes<TYPE> SS(nargs, arg, argshape, nx, ny, tagI,
+                   dimout, 
+                   indsi, indsj, indsp,
+                   dimsx, dimsy, dimsp);
+                        
+    #if USE_HALF
+        SS.switch_to_half2_indexing();
+    #endif
+
+    Ranges<TYPE> RR(SS, ranges);
+    
+    nx = SS.nx;
+    ny = SS.ny;  
+    
+    dim3 blockSize;
+    blockSize.x = 32;
+	
+    dim3 gridSize;
+    
+    int nblocks;
+    
     if (tagI==1) {
         int tmp = ny;
         ny = nx;
         nx = tmp;
     }
+
+    
+    __INDEX__ *lookup_d = NULL, *slices_x_d = NULL, *ranges_y_d = NULL;
+    int *offsets_d = NULL;
+    
+    if (RR.tagRanges==1) {
+        range_preprocess(nblocks, tagI, RR.nranges_x, RR.nranges_y, RR.castedranges,
+                         SS.nbatchdims, slices_x_d, ranges_y_d, lookup_d,
+                         offsets_d,
+                         blockSize.x, indsi, indsj, indsp, SS.shapes);
+    }
     
     void *p_data;
     TYPE *out_d;
     TYPE **arg_d;
-    int sizeout = get_size(shapeout);
+    int sizeout = get_sum(shapeout);
     
     if(tagHostDevice==1)
         load_args_FromDevice(p_data, out, out_d, nargs, arg, arg_d);
     else
         load_args_FromHost(p_data, out, out_d, nargs, arg, arg_d, argshape, sizeout);
     
-    dim3 blockSize;
-    blockSize.x = 192;
-	
-    dim3 gridSize;
-    gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
-
     
     char *ptx;
     ptx = read_text_file(ptx_file_name);
@@ -183,20 +137,51 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     CUfunction kernel;
     
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
-    CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
+    
+    if (RR.tagRanges==1) {
+        // ranges mode
+        
+        gridSize.x = nblocks;
+        
+        CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice_ranges_NoChunks"));
 
-    void *kernel_params[4];
-    kernel_params[0] = &nx;
-    kernel_params[1] = &ny;
-    kernel_params[2] = &out_d;
-    kernel_params[3] = &arg_d;
+        void *kernel_params[9];
+        kernel_params[0] = &nx;
+        kernel_params[1] = &ny;
+        kernel_params[2] = &SS.nbatchdims;
+        kernel_params[3] = &offsets_d;
+        kernel_params[4] = &lookup_d;
+        kernel_params[5] = &slices_x_d;
+        kernel_params[6] = &ranges_y_d;
+        kernel_params[7] = &out_d;
+        kernel_params[8] = &arg_d;
 
-    CUDA_SAFE_CALL(cuLaunchKernel(kernel,
+        CUDA_SAFE_CALL(cuLaunchKernel(kernel,
                    gridSize.x, gridSize.y, gridSize.z,    // grid dim
                    blockSize.x, blockSize.y, blockSize.z,   // block dim
                    blockSize.x * dimY * sizeof(TYPE), NULL,             // shared mem and stream
                    kernel_params, 0));           // arguments
+                   
+    } else {
+        // simple mode
+        
+        gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
+        
+        CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv1DOnDevice"));
 
+        void *kernel_params[4];
+        kernel_params[0] = &nx;
+        kernel_params[1] = &ny;
+        kernel_params[2] = &out_d;
+        kernel_params[3] = &arg_d;
+
+        CUDA_SAFE_CALL(cuLaunchKernel(kernel,
+                   gridSize.x, gridSize.y, gridSize.z,    // grid dim
+                   blockSize.x, blockSize.y, blockSize.z,   // block dim
+                   blockSize.x * dimY * sizeof(TYPE), NULL,             // shared mem and stream
+                   kernel_params, 0));           // arguments
+    }
+    
     CUDA_SAFE_CALL(cuCtxSynchronize());
 
     CUDA_SAFE_CALL(cuModuleUnload(module));
@@ -207,13 +192,26 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
         cudaMemcpy(out, out_d, sizeof(TYPE) * sizeout, cudaMemcpyDeviceToHost);
 
     cudaFree(p_data);
+    if (RR.tagRanges==1) {
+        cudaFree(lookup_d);
+        cudaFree(slices_x_d);
+        cudaFree(ranges_y_d);
+        if (SS.nbatchdims > 0)
+            cudaFree(offsets_d);
+    }
 
     return 0;
 }
 
 
 
+
+
+
 extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+                                        int *indsi, int *indsj, int *indsp, 
+                                        int dimout, 
+                                        int *dimsx, int *dimsy, int *dimsp,
                                         int **ranges, int *shapeout, float *out, int nargs, ...) {
     // reading arguments
     va_list ap;
@@ -227,11 +225,21 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, 
+                                        indsi, indsj, indsp,
+                                        dimout,
+                                        dimsx, dimsy, dimsp,
                                         ranges, shapeout, out, nargs, arg, argshape);
                                                                         
 }
 
+
+
+
+
 extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+                                        int *indsi, int *indsj, int *indsp, 
+                                        int dimout, 
+                                        int *dimsx, int *dimsy, int *dimsp,
                                         int **ranges, int *shapeout, double *out, int nargs, ...) {
     // reading arguments
     va_list ap;
@@ -245,6 +253,9 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, 
+                                        indsi, indsj, indsp,
+                                        dimout,
+                                        dimsx, dimsy, dimsp,
                                         ranges, shapeout, out, nargs, arg, argshape);
                                                                         
 }

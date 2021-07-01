@@ -3,12 +3,11 @@
 import torch
 from pykeops.torch import LazyTensor
 
-B, N = 5, 2
+B, N = 2, 2
 
 
 x = torch.ones(B, 1, N, 1)
-y = torch.arange(B * N, dtype=torch.float32).reshape(B, 1, N, 1)
-
+y = torch.arange(B * N, dtype=torch.float32).reshape(B, N, 1, 1)
 
 def fun(x, y, backend):
     if backend == "keops":
