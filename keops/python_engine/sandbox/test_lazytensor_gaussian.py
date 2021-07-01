@@ -8,11 +8,11 @@ from pykeops.torch import LazyTensor
 
 M, N, D, DV = 2500, 2000, 3, 1
 
-dtype = torch.float32
+dtype = torch.float64
 sum_scheme = "block_sum"
 
 device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
-do_warmup = True
+do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
