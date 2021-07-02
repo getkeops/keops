@@ -49,24 +49,24 @@ void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int 
   // [ A, .., A, M]
   for (int k = 0; k < (sizei - 1); k++) {  // k-th line
     for (int l = 0; l < nbatchdims; l++) {  // l-th column
-      shapes_i[k * (nbatchdims + 1) + l] = shapes[(1 + indsi[k]) * (nbatchdims + 3) + l];
+      shapes_i[k * (nbatchdims + 1) + l] = shapes[(1 + get_val(indsi,k)) * (nbatchdims + 3) + l];
     }
     shapes_i[k * (nbatchdims + 1) + nbatchdims] =
-        shapes[(1 + indsi[k]) * (nbatchdims + 3) + nbatchdims + 1 - tagIJ];
+        shapes[(1 + get_val(indsi,k)) * (nbatchdims + 3) + nbatchdims + 1 - tagIJ];
   }
 
   // Then, we do the same for shapes_j, but with "N" instead of "M":
   for (int k = 0; k < sizej; k++) {  // k-th line
     for (int l = 0; l < nbatchdims; l++) {  // l-th column
-      shapes_j[k * (nbatchdims + 1) + l] = shapes[(1 + indsj[k]) * (nbatchdims + 3) + l];
+      shapes_j[k * (nbatchdims + 1) + l] = shapes[(1 + get_val(indsj,k)) * (nbatchdims + 3) + l];
     }
-    shapes_j[k * (nbatchdims + 1) + nbatchdims] = shapes[(1 + indsj[k]) * (nbatchdims + 3) + nbatchdims + tagIJ];
+    shapes_j[k * (nbatchdims + 1) + nbatchdims] = shapes[(1 + get_val(indsj,k)) * (nbatchdims + 3) + nbatchdims + tagIJ];
   }
 
   // And finally for the parameters, with "1" instead of "M":
   for (int k = 0; k < sizep; k++) {  // k-th line
     for (int l = 0; l < nbatchdims; l++) {  // l-th column
-      shapes_p[k * (nbatchdims + 1) + l] = shapes[(1 + indsp[k]) * (nbatchdims + 3) + l];
+      shapes_p[k * (nbatchdims + 1) + l] = shapes[(1 + get_val(indsp,k)) * (nbatchdims + 3) + l];
     }
     shapes_p[k * (nbatchdims + 1) + nbatchdims] = 1;
   }
@@ -121,7 +121,7 @@ int* build_offset_tables( int nbatchdims, int *shapes, int nblocks, __INDEX__ *l
             int patch_offset = (int) (lookup_h[3*k+1]-start_x);
             
             vect_broadcast_index(start_x, nbatchdims, sizei, shapes, shapes_i, offsets_h + k*sizevars, patch_offset);
-            vect_broadcast_index(start_y, nbatchdims, sizej,   shapes, shapes_j, offsets_h + k*sizevars + sizei);
+            vect_broadcast_index(start_y, nbatchdims, sizej, shapes, shapes_j, offsets_h + k*sizevars + sizei);
             vect_broadcast_index(range_id, nbatchdims, sizep, shapes, shapes_p, offsets_h + k*sizevars + sizei + sizej);
         }
 

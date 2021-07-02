@@ -302,11 +302,18 @@ class c_array:
         else:
             raise ValueError("not implemented")
 
+    @property
     def c_print(self):
-        string = f'std::cout << "{self.id} : ";\n'
+        if self.dtype in ["float", "double"]:
+            tag = "%f, " * self.dim
+        elif self.dtype == "int":
+            tag = "%d, " * self.dim
+        else:
+            raise ValueError("not implemented")
+        string = f'printf("{self.id} = {tag}\\n"'
         for i in range(self.dim):
-            string += f'std::cout << {self[i].id} << " ";\n'
-        string += "std::cout << std::endl;\n"
+            string += f', {self[i].id}'
+        string += ');\n'
         return string
 
 
