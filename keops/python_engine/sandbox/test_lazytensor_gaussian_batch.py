@@ -3,11 +3,13 @@
 import torch
 from pykeops.torch import LazyTensor
 
-B, N = 2, 2
+B, N = 3, 2
 
+device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+dtype = torch.float32
 
-x = torch.ones(B, 1, N, 1)
-y = torch.arange(B * N, dtype=torch.float32).reshape(B, N, 1, 1)
+x = 3+torch.arange(B * N, dtype=dtype, device=device_id).reshape(B, 1, N, 1)
+y = 2+torch.arange(B * N, dtype=dtype, device=device_id).reshape(B, N, 1, 1)
 
 def fun(x, y, backend):
     if backend == "keops":

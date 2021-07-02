@@ -59,6 +59,8 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         declare_assign_indices_p = f"int *indices_p = offsets + {nvarsi} + {nvarsj};" if nvarsp>0 else ""
         
         starty = c_variable("int", "start_y")
+        
+        threadIdx_x = c_variable("int", "threadIdx.x")
 
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")
@@ -114,7 +116,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
                               if (nbatchdims == 0) {{
                                   {varloader.load_vars('i', xi, args, row_index=i)} // load xi variables from global memory to local thread memory
                               }} else {{
-                                  {varloader.load_vars('i', xi, args, row_index=i, offsets=indices_i)}  // Possibly, with offsets as we support broadcasting over batch dimensions
+                                  {varloader.load_vars('i', xi, args, row_index=threadIdx_x, offsets=indices_i)}  // Possibly, with offsets as we support broadcasting over batch dimensions
                               }}
                           }}
                           

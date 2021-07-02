@@ -8,7 +8,7 @@ from pykeops.torch import LazyTensor
 
 M, N, D, DV = 200, 400, 3, 1
 
-dtype = torch.float32
+dtype = torch.float64
 sum_scheme = "block_sum"
 
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
