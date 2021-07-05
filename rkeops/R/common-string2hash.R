@@ -1,4 +1,4 @@
-#' Generatation of hash values from a text strings
+#' Generation of hash values from a text string
 #' @keywords internal
 #' @description
 #' This function uses a sha256 algorithm to generate 

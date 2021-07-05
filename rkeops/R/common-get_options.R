@@ -2,15 +2,15 @@
 #' @description
 #' `rkeops` uses two sets of options: compile options (see 
 #' [rkeops::compile_options()]) and runtime options (see 
-#' [rkeops::runtime_options()]). These options define the behavior of `rkeops` 
+#' [rkeops::runtime_options()]). These options define the behaviour of `rkeops` 
 #' when compiling or when calling user-defined operators.
 #' 
 #' You can read the current states of `rkeops` options by calling 
 #' `get_rkeops_options()`.
 #' @details
-#' `rkeops` global options includes two lists defining options used at 
-#' compilation of user-defined operators or at runtime. These two list 
-#' contains specific informations (see [rkeops::compile_options()] and 
+#' `rkeops` global options include two lists defining options used at 
+#' compilation of user-defined operators or at runtime. These two lists
+#' contain specific informations (see [rkeops::compile_options()] and 
 #' [rkeops::runtime_options()] respectively, in particular for default values).
 #' 
 #' If the `tag` input parameter is specified (e.g. `"compile"` or `"runtime"`), 
@@ -56,8 +56,8 @@ get_rkeops_options <- function(tag=NULL) {
 #' The function `get_rkeops_option` returns the current value of a specific 
 #' `rkeops` option (in `R` global options scope) provided as input.
 #' @details
-#' `rkeops` global options includes two lists defining options used at 
-#' compilation of user-defined operators or at runtime. These two list 
+#' `rkeops` global options include two lists defining options used at 
+#' compilation of user-defined operators or at runtime. These two lists
 #' contains specific informations (see [rkeops::compile_options()] and 
 #' [rkeops::runtime_options()] respectively, in particular for default values).
 #' 

@@ -2,10 +2,10 @@
 #' @description
 #' `rkeops` uses two sets of options: compile options (see 
 #' [rkeops::compile_options()]) and runtime options (see 
-#' [rkeops::runtime_options()]). These options define the behavior of `rkeops` 
+#' [rkeops::runtime_options()]). These options define the behaviour of `rkeops` 
 #' when compiling or when calling user-defined operators.
 #' 
-#' If no input is provided, the functions `set_rkeops_options` initializes the 
+#' If no input is provided, the function `set_rkeops_options` initializes the 
 #' `rkeops` options in the `R` global options scope (i.e. options available 
 #' by calling `options()` or `getOptions(<option_name>)`) with default values.
 #' 
@@ -13,9 +13,9 @@
 #' runtime options (see Details), `rkeops` global options are updated 
 #' accordingly.
 #' @details
-#' `rkeops` global options includes two lists defining options used at 
-#' compilation of user-defined operators or at runtime. These two list 
-#' contains specific informations (see [rkeops::compile_options()] and 
+#' `rkeops` global options include two lists defining options used at 
+#' compilation of user-defined operators or at runtime. These two lists
+#' contain specific informations (see [rkeops::compile_options()] and 
 #' [rkeops::runtime_options()] respectively, in particular for default values).
 #' 
 #' In order to update, the corresponding options, user should provide objects 
@@ -25,11 +25,11 @@
 #' specific attributes.
 #' @author Ghislain Durif
 #' @param custom_compile_options a list (of class `rkeops_compile_options`). 
-#' See [rkeops::compile_options()] for a detailled description. Default value 
+#' See [rkeops::compile_options()] for a detailed description. Default value 
 #' is `NULL` and default compile options are set up (see 
 #' [rkeops::default_compile_options()]).
 #' @param custom_runtime_options a list (of class `rkeops_runtime_options`). 
-#' See [rkeops::runtime_options()] for a detailled description. Default 
+#' See [rkeops::runtime_options()] for a detailed description. Default 
 #' value is `NULL` and default runtime options are set up 
 #' (see [rkeops::default_runtime_options()]).
 #' @return None
@@ -92,11 +92,11 @@ set_rkeops_options <- function(custom_compile_options = NULL,
 #' options scope
 #' @description
 #' The function `set_rkeops_option` allows to modify the value of a single 
-#' specific `rkeops` options in `R` global options scope.
+#' specific `rkeops` option in `R` global options scope.
 #' @details
 #' `rkeops` uses two sets of options: compile options (see 
 #' [rkeops::compile_options()]) and runtime options (see 
-#' [rkeops::runtime_options()]). These options define the behavior of `rkeops` 
+#' [rkeops::runtime_options()]). These options define the behaviour of `rkeops` 
 #' when compiling or when calling user-defined operators.
 #' 
 #' With the function `set_rkeops_option`, you can set up a specific `rkeops` 

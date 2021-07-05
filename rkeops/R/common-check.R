@@ -2,7 +2,7 @@
 #' @keywords internal
 #' @description
 #' This function calls the cmake executable whose path is
-#' given in input and check if its version is higher than 
+#' given in input and checks if its version is higher than 
 #' 3.10 which is the minimum required for `rkeops` to work.
 #' @details
 #' The function check for the existence of the input file

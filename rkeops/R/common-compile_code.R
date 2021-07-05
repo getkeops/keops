@@ -7,10 +7,10 @@
 #' The function `compile_code` should only be called in the directory where the 
 #' build (i.e. generation of related cmake and so files) will be done.
 #' 
-#' The corresponging `CMakeLists.txt` file is located in directory `cmake_dir` 
+#' The corresponding `CMakeLists.txt` file is located in directory `cmake_dir` 
 #' given as input argument.
 #' @param formula text string, formula defining the new operator.
-#' @param var_aliases text string, formated formula input arguments returned by 
+#' @param var_aliases text string, formatted formula input arguments returned by 
 #' [rkeops::format_var_aliases()] (specifically `$var_aliases`).
 #' @param dllname text string, the name associated to the related shared object 
 #' file.

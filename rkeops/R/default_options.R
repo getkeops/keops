@@ -93,7 +93,7 @@ default_compile_options <- function() {
 #' CUDA is not available, user-defined operators are compiled for CPU 
 #' computations.
 #' @param col_major boolean indicator regarding storage order (default is TRUE).
-#' @param debug boolean indicator regarding debuging flag for compilation. 
+#' @param debug boolean indicator regarding debugging flag for compilation. 
 #' Default value is `FALSE`.
 #' @param rkeops_dir string, path to `rkeops` install directory on the system. 
 #' If NULL, default path described in Details section is used. Default value 
@@ -330,19 +330,19 @@ check_runtime_options <- function(options) {
 #' @keywords internal
 #' @description
 #' The function `rkeops_option_names` returns the names of the different  
-#' `rkeops` option (in `R` global options scope).
+#' `rkeops` options (in `R` global options scope).
 #' @details
 #' `rkeops` uses two sets of options: compile options 
 #' (see [rkeops::compile_options()]), and runtime options 
 #' (see [rkeops::runtime_options()]).
 #' 
-#' These options define the behavior of `rkeops` when compiling or when 
+#' These options define the behaviour of `rkeops` when compiling or when 
 #' calling user-defined operators.
 #' 
 #' You can specify a tag (`"compile"` or `"runtime"` or both) in input, you 
 #' will get the names of the corresponding subset of `rkeops` options.
 #' @author Ghislain Durif
-#' @param tag text string or vector of text string, specifying the requested 
+#' @param tag text string or vector of text strings, specifying the requested 
 #' subset of `rkeops` options, i.e. `"compile"` or `"runtime"`. Default value 
 #' is `c("compile", "runtime")` and both are returned.
 #' @return a vector of requested `rkeops` options.
