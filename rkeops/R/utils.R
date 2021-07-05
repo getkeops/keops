@@ -3,9 +3,9 @@
 #' Remove all dll files generated from compilations of user-defined 
 #' operators.
 #' @details
-#' When compiling a user-defined operators, a shared object (so) library 
+#' When compiling a user-defined operator, a shared object (so) library 
 #' (or dynamic link library, dll) file is created in the directory `build_dir` 
-#' specified in compile options of `rkeops`. For every new operators, such a 
+#' specified in compile options of `rkeops`. For every new operator, such a 
 #' file is created.
 #' 
 #' Calling `clean_rkeops()` allows you to empty the directory `build_dir`.
@@ -33,9 +33,9 @@ clean_rkeops <- function() {
 #' library where the operators defined by the formula and arguments will be 
 #' compiled.
 #' @details
-#' When compiling a user-defined operators, a shared object (so) library 
+#' When compiling a user-defined operator, a shared object (so) library 
 #' (or dynamic link library, dll) file is created in the directory `build_dir` 
-#' specified in compile options of `rkeops`. For every new operators, such a 
+#' specified in compile options of `rkeops`. For every new operator, such a 
 #' file is created.
 #' 
 #' The shared library file associated to a user-defined operator has a unique 
@@ -73,7 +73,7 @@ get_pkg_dir <- function(pkg = "rkeops") {
 #' Return the path to the directory containing `keops` source 
 #' files that are shipped with `rkeops` installation.
 #' @details
-#' This path is generaly something like 
+#' This path is generally something like 
 #' `/path/to/R_package_install/rkeops/include`.
 #' 
 #' **Note:** when running tests in the development project `keops` without 
@@ -98,8 +98,8 @@ get_src_dir <- function(pkg = "rkeops") {
 #' Return the path to the directory `build` where `keops` custom 
 #' operators will be compiled.
 #' @details
-#' This path is generaly something like 
-#' `/path/to/R_package_install/rkeops/build`. The correspondinging
+#' This path is generally something like 
+#' `/path/to/R_package_install/rkeops/build`. The corresponding
 #' directory can be created if not existing.
 #' **Note:** when running tests in the development project `keops` without 
 #' installing `rkeops`, for consistency reason, the function returns 
@@ -154,7 +154,7 @@ get_os <- function() {
 #' i.e. with `devtools::test()`, the package file structure is different 
 #' from the structure of a built and installed package (obtained with 
 #' `devtools::check()`). For instance, the directory `inst/include` is 
-#' replaced by `include`, or `src` by `lib`. Check functions inside `rkeops` 
+#' replaced by `include`, or `src` by `lib`. Check that functions inside `rkeops` 
 #' have different behavior between these two cases.
 #' 
 #' The function `is_installed` checks the availability of the compiled 
@@ -173,7 +173,7 @@ is_installed <- function() {
 #' Print message if used on startup or raise error otherwise
 #' @keywords internal
 #' @description
-#' Different behavior for message raised by checks.
+#' Different behaviors for message raised by checks.
 #' @details 
 #' If `onLoad=TRUE`, print the message `msg`. If `onLoad=FALSE`, raise on error 
 #' with message `msg`.
@@ -195,15 +195,15 @@ msg_or_error <- function(msg, onLoad=FALSE) {
 #' User-defined operators are compiled in shared library files. The associated 
 #' function can be load into R with the function `load_dll`.
 #' @details
-#' When compiling a user-defined operators, a shared object (so) library 
+#' When compiling a user-defined operator, a shared object (so) library 
 #' (or dynamic link library, dll) file is created in the directory `build_dir` 
-#' specified in compile options of `rkeops`. For every new operators, such a 
+#' specified in compile options of `rkeops`. For every new operator, such a 
 #' file is created.
 #' 
 #' When using a user-defined operator, it is imported into R with the function 
 #' `load_dll`. This function is specifically designed to load `rkeops`-related 
 #' operators with a particular signature (and a test function without input 
-#' paremeter).
+#' parameter).
 #' @author Ghislain Durif
 #' @param path test string, path to directory where the dll file can be found.
 #' @param dllname text string, dll file name (without the extension).
@@ -357,7 +357,7 @@ compile4cpu <- function() {
 #' Set up `rkeops` compile options to compile user-defined operators that use 
 #' float 32bits precision in computation.
 #' @details
-#' **Note:** Default behavior is to compile operators operators that use 
+#' **Note:** Default behavior is to compile operators that use 
 #' float 32bits precision in computation. Hence, if you do not modify `rkeops` 
 #' options, you do not have to call the function `compile4float32` to 
 #' compile operators using float 32bits precision.
@@ -380,7 +380,7 @@ compile4float32 <- function() {
 #' Set up `rkeops` compile options to compile user-defined operators that use 
 #' float 64bits precision in computation.
 #' @details
-#' **Note:** Default behavior is to compile operators operators that use 
+#' **Note:** Default behavior is to compile operators that use 
 #' float 32bits precision in computation. Hence, if you do not modify `rkeops` 
 #' options, you have to call the function `compile4float64` to 
 #' compile operators using float 64bits precision.
