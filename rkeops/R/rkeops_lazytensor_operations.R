@@ -63,8 +63,8 @@ LazyTensor <- function(x, index = NA)
         stop("`x` input argument should be a matrix, a vector or a scalar.")
     if(is.matrix(x) && is.na(index))
         stop("missing `index` argument")
-    ni = 0   # will correspond to the number of rows of the input if it is an "i" indexed variable
-    nj = 0   # will correspond to the number of rows of the input if it is a "j" indexed variable
+    ni <- 0   # will correspond to the number of rows of the input if it is an "i" indexed variable
+    nj <- 0   # will correspond to the number of rows of the input if it is a "j" indexed variable
 
     # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
     if(is.matrix(x))
@@ -104,13 +104,13 @@ LazyTensor <- function(x, index = NA)
 }
 
 
-unaryop.LazyTensor = function(x,opstr)
+unaryop.LazyTensor <- function(x,opstr)
 {
     if(is.numeric(x))
-        x = LazyTensor(x)
-    formula = paste(opstr,"(",x$formula,")",sep="")
-    obj = list(formula = formula, vars=x$vars, ni=x$ni, nj=x$nj)
-    class(obj) = "LazyTensor"
+        x <- LazyTensor(x)
+    formula <- paste(opstr, "(", x$formula, ")", sep="")
+    obj <- list(formula = formula, vars=x$vars, ni=x$ni, nj=x$nj)
+    class(obj) <- "LazyTensor"
     obj
 }
 
@@ -143,103 +143,115 @@ unaryop.LazyTensor = function(x,opstr)
 # opstr : string, the operation
 # is_operator : boolean, TRUE if the operation 'opstr' is an operator like "+" or "-"
 # TODO : pb if y is a vector or a matrix etc ?
-binaryop.LazyTensor = function(x, y, opstr, is_operator=FALSE)
+binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
 {
     if(is.numeric(x))
-        x = LazyTensor(x)
+        x <- LazyTensor(x)
     
     # if y is a scalar and the operation is a specific operation
     # for instance we want : Pow(Var(0,3,0),2)
-    op_specific = list("Pow") 
+    op_specific <- list("Pow") 
     if(is.element(opstr, op_specific) & class(y) != "LazyTensor"){
         if(is_operator)
-            formula = paste(x$formula, opstr, y, sep="")
+            formula <- paste(x$formula, opstr, y, sep="")
         # case when the operation is not an operator
         else 
-            formula = paste(opstr, "(", x$formula, ",", y, ")", sep="")
-        vars = c(x$vars,y)
-        ni = x$ni
-        nj = x$nj
+            formula <- paste(opstr, "(", x$formula, ",", y, ")", sep="")
+        vars <- c(x$vars,y)
+        ni <- x$ni
+        nj <- x$nj
     }
-    # case when there is no specific operation 
+    # case with no specific operation 
     else{
         if(is.numeric(y))
-            y = LazyTensor(y)
+            y <- LazyTensor(y)
         
-        dec = length(x$vars)
-        yform = y$formula
+        dec <- length(x$vars)
+        yform <- y$formula
         # update list of variables and update indices in formula
         for(k in 1:length(x$vars))
         {
-            str1 = paste("Var(",k-1,sep="")
-            str2 = paste("Var(",k-1+dec,sep="")
-            yform = gsub(str1, str2, yform, fixed = TRUE)
+            str1 <- paste("Var(",k-1,sep="")
+            str2 <- paste("Var(",k-1+dec,sep="")
+            yform <- gsub(str1, str2, yform, fixed = TRUE)
         }
         # special formula for operator
         if(is_operator)
-            formula = paste(x$formula, opstr, yform, sep="")
+            formula <- paste(x$formula, opstr, yform, sep="")
         else
-            formula = paste(opstr, "(", x$formula, ",", yform, ")", sep="")
-        vars = c(x$vars,y$vars)
-        ni = max(x$ni,y$ni)
-        nj = max(x$nj,y$nj)
+            formula <- paste(opstr, "(", x$formula, ",", yform, ")", sep="")
+        vars <- c(x$vars,y$vars)
+        ni <- max(x$ni,y$ni)
+        nj <- max(x$nj,y$nj)
     }
     
-    obj = list(formula = formula, vars=vars, ni=ni, nj=nj)
-    class(obj) = "LazyTensor"
+    obj <- list(formula = formula, vars=vars, ni=ni, nj=nj)
+    class(obj) <- "LazyTensor"
     obj
 }
 
 
-"-.LazyTensor" = function(x, y=NA)
+"-.LazyTensor" <- function(x, y=NA)
 {
     if(length(y)==1 && is.na(y))
-        obj = unaryop.LazyTensor(x, "Minus")
+        obj <- unaryop.LazyTensor(x, "Minus")
     else
-        obj = binaryop.LazyTensor(x, y, "-")
+        obj <- binaryop.LazyTensor(x, y, "-")
 }
 
-# TODO : n can't be a LazyTensor 
-"^.LazyTensor" = function(x, n)
+
+"^.LazyTensor" <- function(x, y)
 {
-    if(class(a)!="numeric")
-        stop("`n` input argument should be an integer.")
-    if(y==2)
-        obj <- unaryop.LazyTensor(x, "Square")
-    else if(y==0.5)
-        obj <- unaryop.LazyTensor(x, "Sqrt")
+    if(class(y)=="LazyTensor")
+        obj <- binaryop.LazyTensor(x, y, "Powf")
+    else if(length(y)==1){
+        if(y==2)
+            obj <- unaryop.LazyTensor(x, "Square")
+        else if(y==0.5)
+            obj <- unaryop.LazyTensor(x, "Sqrt")
+        else
+            obj <- binaryop.LazyTensor(x, y, "Pow")
+    }
     else
-        obj <- binaryop.LazyTensor(x, n, "Pow")
+        stop("`y` input argument should be a scalar or a LazyTensor.")
 }
 
-"*.LazyTensor" = function(x, y)
+Square <- function(x){
+    obj <- unaryop.LazyTensor(x, "Square")
+}
+
+Sqrt <- function(x){
+    obj <- unaryop.LazyTensor(x, "Sqrt")
+}
+
+"*.LazyTensor" <- function(x, y)
 {
-    obj = binaryop.LazyTensor(x, y, "*", is_operator = TRUE)
+    obj <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE)
 }
 
-"/.LazyTensor" = function(x, y)
+"/.LazyTensor" <- function(x, y)
 {
-    obj = binaryop.LazyTensor(x,y,"/", is_operator = TRUE))
+    obj <- binaryop.LazyTensor(x,y,"/", is_operator = TRUE))
 }
 
-"|.LazyTensor" = function(x,y)
+"|.LazyTensor" <- function(x,y)
 {
     obj <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE)
     obj$formula <- paste("(", obj$formula, ")", sep = "")
     obj
 }
 
-"%*%.default" = .Primitive("%*%") # assign default as current definition
+"%*%.default" <- .Primitive("%*%") # assign default as current definition
 
-"%*%" = function(x,...)
+"%*%" <- function(x,...)
 { 
     UseMethod("%*%",x)
 }
 
-"%*%.LazyTensor" = function(x,y)
+"%*%.LazyTensor" <- function(x,y)
 {
     if(is.matrix(y))
-        y = LazyTensor(y,'j')
+        y <- LazyTensor(y,'j')
     Sum( x*y, index = 'j')
 }
 
@@ -253,9 +265,9 @@ Exp.default <- function(obj,index)
     cat("This is a generic function\n")
 }
 
-Exp.LazyTensor = function(x)
+Exp.LazyTensor <- function(x)
 {
-    obj = unaryop.LazyTensor(x,"Exp")
+    obj <- unaryop.LazyTensor(x,"Exp")
 }
 
 Log <- function(obj,index) 
@@ -268,19 +280,19 @@ Log.default <- function(obj,index)
     cat("This is a generic function\n")
 }
 
-Log.LazyTensor = function(x)
+Log.LazyTensor <- function(x)
 {
-    obj = unaryop.LazyTensor(x,"Log")
+    obj <- unaryop.LazyTensor(x,"Log")
 }
 
 # TODO : this function doesn't work 
-reduction.LazyTensor = function(x,opstr,index)
+reduction.LazyTensor <- function(x,opstr,index)
 {
-    if(index=="i") tag=1 else tag=0
-    formula = paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
-    args = c()
-    op = keops_kernel(formula,args)
-    res = t(op(x$vars,nx=x$ni,ny=x$nj))
+    if(index=="i") tag<-1 else tag<-0
+    formula <- paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
+    args <- c()
+    op <- keops_kernel(formula,args)
+    res <- t(op(x$vars,nx=x$ni,ny=x$nj))
 }
 
 Sum <- function(obj,index) 
@@ -293,39 +305,43 @@ Sum.default <- function(obj,index)
     cat("This is a generic function\n")
 }
 
-Sum.LazyTensor = function(x,index=NA)
+Sum.LazyTensor <- function(x,index=NA)
 {
     if(is.na(index))
     {
-        obj = unaryop.LazyTensor(x,"Sum")
+        obj <- unaryop.LazyTensor(x,"Sum")
     }
     else
-        obj = reduction.LazyTensor(x,"Sum",index)
+        obj <- reduction.LazyTensor(x,"Sum",index)
 }
 
 # element-wise inverse 1/x
 Inv <- function(x){
-    obj = unaryop.LazyTensor(x, "Inv")
+    obj <- unaryop.LazyTensor(x, "Inv")
 }
 
 Sin <- function(x){
-    obj = unaryop.LazyTensor(x, "Sin")
+    obj <- unaryop.LazyTensor(x, "Sin")
 }
 
 Asin <- function(x){
-    obj = unaryop.LazyTensor(x, "Asin")
+    obj <- unaryop.LazyTensor(x, "Asin")
 }
 
 Cos <- function(x){
-    obj = unaryop.LazyTensor(x, "Cos")
+    obj <- unaryop.LazyTensor(x, "Cos")
 }
 
 Acos <- function(x){
-    obj = unaryop.LazyTensor(x, "Acos")
+    obj <- unaryop.LazyTensor(x, "Acos")
 }
 
 Atan <- function(x){
-    obj = unaryop.LazyTensor(x, "Atan")
+    obj <- unaryop.LazyTensor(x, "Atan")
+}
+
+SqNorm2 <- function(x){
+    obj <- unaryop.LazyTensor(x, "SqNorm2")
 }
 
 
