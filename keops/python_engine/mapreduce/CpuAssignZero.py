@@ -29,7 +29,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" int AssignZeroCpu(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
+                        extern "C" int AssignZeroCpu(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {outi.assign(c_zero_float)}
@@ -37,7 +37,26 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                             return 0;
                         }}
                         
-                        extern "C" int launch_keops_{dtype}(int nx, int ny, int tagHostDevice, int device_id, int *ranges, int *shapeout, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
-                            return AssignZeroCpu(nx, ny, out, {call_list(args)});
+                        extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI,
+                                                            int *indsi, int *indsj, int *indsp, 
+                                                            int dimout, 
+                                                            int *dimsx, int *dimsy, int *dimsp, 
+                                                            int **ranges, int *shapeout, {dtype} *out, int nargs, ...) {{
+                            
+                            // reading arguments
+                            va_list ap;
+                            va_start(ap, nargs);
+                            {dtype} *arg[nargs];
+                            for (int i=0; i<nargs; i++)
+                                arg[i] = va_arg(ap, {dtype}*);
+                            va_end(ap);
+                            
+                            if (tagI==1) {{
+                                int tmp = ny;
+                                ny = nx;
+                                nx = tmp;
+                            }}
+                            
+                            return AssignZeroCpu(nx, ny, out, arg);
                         }}
                     """
