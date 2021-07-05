@@ -6,12 +6,12 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 200, 400, 3, 1
+M, N, D, DV = 2000, 4000, 3, 1
 
-dtype = torch.float64
+dtype = torch.float32
 sum_scheme = "block_sum"
 
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
 
 x = torch.rand(3, M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, 1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)

@@ -95,6 +95,22 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     nx = SS.nx;
     ny = SS.ny;  
     
+    // now we switch (back...) indsi, indsj and dimsx, dimsy in case tagI=1.
+    // This is to be consistent with the convention used in the old
+    // bindings where i and j variables had different meanings in bindings
+    // and in the core code. Clearly we could do better if we
+    // carefully rewrite some parts of the code
+    if (tagI==1) {
+        int *tmp;
+        tmp = indsj;
+        indsj = indsi;
+        indsi = tmp;
+        tmp = dimsy;
+        dimsy = dimsx;
+        dimsx = tmp;
+    }
+    
+    
     dim3 blockSize;
     blockSize.x = 32;
 	

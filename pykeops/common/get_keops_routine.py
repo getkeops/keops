@@ -37,6 +37,16 @@ class get_keops_routine_class:
             dimsy,
             dimsp
         ) = get_keops_dll(map_reduce_id, *args)
+        
+        # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
+        # This is to be consistent with the convention used in the old
+        # bindings (see functions GetIndsI, GetIndsJ, GetDimsX, GetDimsY
+        # from file binder_interface.h. Clearly we could do better if we
+        # carefully rewrite some parts of the code
+        if self.tagI == 1:
+            indsi, indsj = indsj, indsi
+            dimsx, dimsy = dimsy, dimsx
+        
         self.dll = CDLL(self.dllname)
         self.indsi_ctype = (c_int * (len(indsi) + 1))(*((len(indsi),) + indsi))
         self.indsj_ctype = (c_int * (len(indsj) + 1))(*((len(indsj),) + indsj))
