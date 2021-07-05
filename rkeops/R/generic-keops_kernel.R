@@ -1,10 +1,10 @@
-#' Defines a new operators
+#' Define a new operator
 #' @description
 #' This function is the core of the KeOps library, it allows you to create 
-#' new operators based on kernel operation and matrix reduction discribed as a 
+#' new operators based on kernel operation and matrix reduction described as a 
 #' mathematic formula.
 #' @details
-#' The use of the function `keops_kernel` is detailled in the vignettes, 
+#' The use of the function `keops_kernel` is detailed in the vignettes, 
 #' especially how to write formulae, specified input arguments, how to format 
 #' data to apply the created operators, etc. Run `browseVignettes("rkeops")` 
 #' to access the vignettes.
@@ -14,7 +14,7 @@
 #' list defining the input arguments of your formula.
 #' 
 #' The function `keops_kernel` compiles and imports a new operator that 
-#' implements the formala given in input, it returns a function that can be 
+#' implements the formula given in input, it returns a function that can be 
 #' used to compute the result of the formula on actual data.
 #' 
 #' The returned function expects a list of arguments, as data matrices, whose 
@@ -26,7 +26,7 @@
 #' reference than the actual input data, especially for big matrices.
 #' 
 #' You should be careful with the input dimension of your data, to correspond 
-#' to the input dimension specified in `args` (see inner ou outer dimension in 
+#' to the input dimension specified in `args` (see inner or outer dimension in 
 #' `browseVignettes("rkeops")`.
 #' 
 #' It is possible to compute partial derivatives of user defined operators 
@@ -36,7 +36,7 @@
 #' @param args vector of text string, formula arguments (see Details).
 #' @return a function that can be used to compute the value of the formula 
 #' on actual data. This function takes as input a list of data corresponding 
-#' to the formula arguments and return the computed values (generally a 
+#' to the formula arguments and returns the computed values (generally a 
 #' vector or a matrix depending on the reduction). It has an additional integer 
 #' input parameter `inner_dim` indicating if the inner dimension 
 #' (c.f. `browseVignettes("rkeops")`) corresponds to columns, i.e. 
@@ -66,7 +66,7 @@
 #' res <- op(list(X,Y))
 #' 
 #' ## Example 1 bis
-#' # In example 1, the inner dimension (i.e. the commun dimension of vectors 
+#' # In example 1, the inner dimension (i.e. the common dimension of vectors 
 #' # `x_i` and `y_j` corresponds to columns of the matrices `X` and `Y` resp.).
 #' # We know consider the inner dimension to be the rows of the matrices `X` 
 #' # and `Y`.
@@ -79,7 +79,7 @@
 #' # y_j = columns of the matrix Y
 #' Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
 #' # compute the result (we specify `inner_dim=0` to indicate that the rows 
-#' # corresponds to the inner dimension)
+#' # correspond to the inner dimension)
 #' res <- op(list(X,Y), inner_dim=0)
 #' 
 #' ## Example 2
@@ -164,12 +164,12 @@ keops_kernel <- function(formula, args) {
         if(missing(input) | is.null(input))
             return(env)
         
-        ## reorder input if names are supplied (if not list order is used)
+        ## reorder input if names are supplied (if not, list order is used)
         # check that all input args are named
         if(sum(str_length(names(input)) > 0) == length(input)) {
             # expected order
             expected_order <- env$var_aliases$var_name
-            # check if names are consistant
+            # check if names are consistent
             if(all(names(input) %in% expected_order))
                 if(any(names(input) != expected_order))
                     input <- input[expected_order]

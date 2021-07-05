@@ -29,7 +29,7 @@
 #' gradient of the formula should be computed.
 #' @return a function that can be used to compute the value of the formula 
 #' on actual data. This function takes as input a list of data corresponding 
-#' to the formula arguments and return the computed values (generally a 
+#' to the formula arguments and returns the computed values (generally a 
 #' vector or a matrix depending on the reduction). It has an additional integer 
 #' input parameter `inner_dim` indicating if the inner dimension 
 #' (c.f. `browseVignettes("rkeops")`) corresponds to columns, i.e. 

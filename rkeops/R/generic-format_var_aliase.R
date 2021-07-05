@@ -38,17 +38,17 @@
 #' equivalent. When specifying the `pos` parameter, the natural order in the 
 #' vector `args` may not correspond to the order of the formula input arguments.
 #' 
-#' **Note:** we recommand to use the `Vi(dim)` notation and let the position be 
+#' **Note:** we recommend to use the `Vi(dim)` notation and let the position be 
 #' determined by the argument order.
 #' @author Ghislain Durif
 #' @param args vector of text string, formula input arguments (see Details).
 #' @return a list with different information about formula input arguments:
-#' \item{args}{vector of text string, input parameter `args`}
-#' \item{var_name}{vector of text string, corresponding name of formula 
+#' \item{args}{vector of text strings, input parameter `args`}
+#' \item{var_name}{vector of text strings, corresponding name of formula 
 #' arguments}
-#' \item{var_type}{vector of text string, corresponding type of formula 
+#' \item{var_type}{vector of text strings, corresponding type of formula 
 #' arguments (among `Vi`, `Vj`, `Pm`).}
-#' \item{var_pos}{vector of integer, corresponding arguments positions.}
+#' \item{var_pos}{vector of integers, corresponding arguments positions.}
 #' \item{var_aliases}{text string, declaration of formula input arguments for 
 #' the C++ KeOps API.}
 #' @importFrom stringr str_count str_detect str_extract str_split str_replace_all fixed
@@ -157,13 +157,13 @@ format_var_aliases <- function(args) {
 #' 
 #' @author Ghislain Durif
 #' @param formula text string, an operator formula (see Details).
-#' @param args vector of text string, formula input arguments (see Details).
+#' @param args vector of text strings, formula input arguments (see Details).
 #' @return a list with different information about formula input arguments:
 #' a list with different information about formula input arguments:
-#' \item{var_type}{vector of text string, corresponding type of formula 
+#' \item{var_type}{vector of text strings, corresponding type of formula 
 #' arguments (among `Vi`, `Vj`, `Pm`).}
-#' \item{var_pos}{vector of integer, corresponding arguments positions.}
-#' \item{var_dim}{vector of integer, corresponding arguments dimensions.}
+#' \item{var_pos}{vector of integers, corresponding arguments positions.}
+#' \item{var_dim}{vector of integers, corresponding arguments dimensions.}
 #' @importFrom stringr str_match_all str_replace
 #' @export
 parse_extra_args <- function(formula, args) {

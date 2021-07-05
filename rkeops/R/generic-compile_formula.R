@@ -8,9 +8,9 @@
 #' environment to call the function [rkeops::compile_code()] for the 
 #' cmake compilation.
 #' 
-#' Afterwards, it also verify that the compilation went smoothly.
+#' Afterwards, it also verifes that the compilation went smoothly.
 #' @param formula text string, formula defining the new operator.
-#' @param var_aliases text string, formated formula input arguments returned by 
+#' @param var_aliases text string, formatted formula input arguments returned by 
 #' [rkeops::format_var_aliases()] (specifically `$var_aliases`).
 #' @param dllname text string, the name associated to the related shared object 
 #' file.
