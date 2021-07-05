@@ -75,8 +75,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         #define __INDEX__ int32_t
                   
                         {binders_definitions(dtype, red_formula, varloader)}
-                        #include "Sizes.h"
-                        #include "Ranges.h"
+                        #include "Sizes_.h"
+                        #include "Ranges_.h"
                         
                         {define_fill_shapes_function(red_formula)}
                         {define_broadcast_index_function()}
@@ -205,7 +205,10 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                     #include "stdarg.h"
                     
                     extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
-                                                int **ranges, int *shapeout, {dtype}* out, int nargs, ...) {{
+                                                        int *indsi, int *indsj, int *indsp, 
+                                                        int dimout, 
+                                                        int *dimsx, int *dimsy, int *dimsp,
+                                                        int **ranges, int *shapeout, {dtype}* out, int nargs, ...) {{
                         
                         // reading arguments
                         va_list ap;
