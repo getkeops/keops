@@ -115,54 +115,118 @@ unaryop.LazyTensor = function(x,opstr)
 }
 
 
-binaryop.LazyTensor = function(x,y,opstr)
+#binaryop.LazyTensor = function(x,y,opstr)
+#{
+#    if(is.numeric(x))
+#        x = LazyTensor(x)
+#    if(is.numeric(y))
+#        y = LazyTensor(y)
+#    # update list of variables and update indices in formula
+#    dec = length(x$vars)
+#    yform = y$formula
+#    for(k in 1:length(x$vars))
+#    {
+#        str1 = paste("Var(",k-1,sep="")
+#        str2 = paste("Var(",k-1+dec,sep="")
+#        yform = gsub(str1, str2, yform, fixed = TRUE)
+#    }
+#    formula = paste(x$formula,opstr,yform,sep="")
+#    vars = c(x$vars,y$vars)
+#    ni = max(x$ni,y$ni)
+#    nj = max(x$nj,y$nj)
+#    obj = list(formula = formula, vars=vars, ni=ni, nj=nj)
+#    class(obj) = "LazyTensor"
+#    obj
+#}
+
+
+# opstr : string, the operation
+# is_operator : boolean, TRUE if the operation 'opstr' is an operator like "+" or "-"
+# TODO : pb if y is a vector or a matrix etc ?
+binaryop.LazyTensor = function(x, y, opstr, is_operator=FALSE)
 {
     if(is.numeric(x))
         x = LazyTensor(x)
-    if(is.numeric(y))
-        y = LazyTensor(y)
-    # update list of variables and update indices in formula
-    dec = length(x$vars)
-    yform = y$formula
-    for(k in 1:length(x$vars))
-    {
-        str1 = paste("Var(",k-1,sep="")
-        str2 = paste("Var(",k-1+dec,sep="")
-        yform = gsub(str1, str2, yform, fixed = TRUE)
+    
+    # if y is a scalar and the operation is a specific operation
+    # for instance we want : Pow(Var(0,3,0),2)
+    op_specific = list("Pow") 
+    if(is.element(opstr, op_specific) & class(y) != "LazyTensor"){
+        if(is_operator)
+            formula = paste(x$formula, opstr, y, sep="")
+        # case when the operation is not an operator
+        else 
+            formula = paste(opstr, "(", x$formula, ",", y, ")", sep="")
+        vars = c(x$vars,y)
+        ni = x$ni
+        nj = x$nj
     }
-    formula = paste(x$formula,opstr,yform,sep="")
-    vars = c(x$vars,y$vars)
-    ni = max(x$ni,y$ni)
-    nj = max(x$nj,y$nj)
+    # case when there is no specific operation 
+    else{
+        if(is.numeric(y))
+            y = LazyTensor(y)
+        
+        dec = length(x$vars)
+        yform = y$formula
+        # update list of variables and update indices in formula
+        for(k in 1:length(x$vars))
+        {
+            str1 = paste("Var(",k-1,sep="")
+            str2 = paste("Var(",k-1+dec,sep="")
+            yform = gsub(str1, str2, yform, fixed = TRUE)
+        }
+        # special formula for operator
+        if(is_operator)
+            formula = paste(x$formula, opstr, yform, sep="")
+        else
+            formula = paste(opstr, "(", x$formula, ",", yform, ")", sep="")
+        vars = c(x$vars,y$vars)
+        ni = max(x$ni,y$ni)
+        nj = max(x$nj,y$nj)
+    }
+    
     obj = list(formula = formula, vars=vars, ni=ni, nj=nj)
     class(obj) = "LazyTensor"
     obj
 }
 
-"-.LazyTensor" = function(x,y=NA)
+
+"-.LazyTensor" = function(x, y=NA)
 {
     if(length(y)==1 && is.na(y))
-        obj = unaryop.LazyTensor(x,"Minus")
+        obj = unaryop.LazyTensor(x, "Minus")
     else
-        obj = binaryop.LazyTensor(x,y,"-")
+        obj = binaryop.LazyTensor(x, y, "-")
 }
 
-"^.LazyTensor" = function(x,y)
+# TODO : n can't be a LazyTensor 
+"^.LazyTensor" = function(x, n)
 {
+    if(class(a)!="numeric")
+        stop("`n` input argument should be an integer.")
     if(y==2)
-        obj = unaryop.LazyTensor(x,"Square")
+        obj <- unaryop.LazyTensor(x, "Square")
+    else if(y==0.5)
+        obj <- unaryop.LazyTensor(x, "Sqrt")
     else
-        stop('not implemented')
+        obj <- binaryop.LazyTensor(x, n, "Pow")
 }
 
-"*.LazyTensor" = function(x,y)
+"*.LazyTensor" = function(x, y)
 {
-    obj = binaryop.LazyTensor(x,y,"*")
+    obj = binaryop.LazyTensor(x, y, "*", is_operator = TRUE)
 }
 
-"/.LazyTensor" = function(x,y)
+"/.LazyTensor" = function(x, y)
 {
-    obj = binaryop.LazyTensor(x,y,"/")
+    obj = binaryop.LazyTensor(x,y,"/", is_operator = TRUE))
+}
+
+"|.LazyTensor" = function(x,y)
+{
+    obj <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE)
+    obj$formula <- paste("(", obj$formula, ")", sep = "")
+    obj
 }
 
 "%*%.default" = .Primitive("%*%") # assign default as current definition
@@ -194,6 +258,22 @@ Exp.LazyTensor = function(x)
     obj = unaryop.LazyTensor(x,"Exp")
 }
 
+Log <- function(obj,index) 
+{
+    UseMethod("Log")
+}
+
+Log.default <- function(obj,index) 
+{
+    cat("This is a generic function\n")
+}
+
+Log.LazyTensor = function(x)
+{
+    obj = unaryop.LazyTensor(x,"Log")
+}
+
+# TODO : this function doesn't work 
 reduction.LazyTensor = function(x,opstr,index)
 {
     if(index=="i") tag=1 else tag=0
@@ -223,6 +303,30 @@ Sum.LazyTensor = function(x,index=NA)
         obj = reduction.LazyTensor(x,"Sum",index)
 }
 
+# element-wise inverse 1/x
+Inv <- function(x){
+    obj = unaryop.LazyTensor(x, "Inv")
+}
+
+Sin <- function(x){
+    obj = unaryop.LazyTensor(x, "Sin")
+}
+
+Asin <- function(x){
+    obj = unaryop.LazyTensor(x, "Asin")
+}
+
+Cos <- function(x){
+    obj = unaryop.LazyTensor(x, "Cos")
+}
+
+Acos <- function(x){
+    obj = unaryop.LazyTensor(x, "Acos")
+}
+
+Atan <- function(x){
+    obj = unaryop.LazyTensor(x, "Atan")
+}
 
 
 ## Basic example
