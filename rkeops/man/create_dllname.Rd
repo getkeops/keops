@@ -21,9 +21,9 @@ library where the operators defined by the formula and arguments will be
 compiled.
 }
 \details{
-When compiling a user-defined operators, a shared object (so) library
+When compiling a user-defined operator, a shared object (so) library
 (or dynamic link library, dll) file is created in the directory \code{build_dir}
-specified in compile options of \code{rkeops}. For every new operators, such a
+specified in compile options of \code{rkeops}. For every new operator, such a
 file is created.
 
 The shared library file associated to a user-defined operator has a unique

@@ -13,7 +13,7 @@ msg_or_error(msg, onLoad = FALSE)
 startup or not.}
 }
 \description{
-Different behavior for message raised by checks.
+Different behaviors for message raised by checks.
 }
 \details{
 If \code{onLoad=TRUE}, print the message \code{msg}. If \code{onLoad=FALSE}, raise on error

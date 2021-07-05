@@ -2,7 +2,7 @@
 % Please edit documentation in R/generic-keops_kernel.R
 \name{keops_kernel}
 \alias{keops_kernel}
-\title{Defines a new operators}
+\title{Define a new operator}
 \usage{
 keops_kernel(formula, args)
 }
@@ -14,7 +14,7 @@ keops_kernel(formula, args)
 \value{
 a function that can be used to compute the value of the formula
 on actual data. This function takes as input a list of data corresponding
-to the formula arguments and return the computed values (generally a
+to the formula arguments and returns the computed values (generally a
 vector or a matrix depending on the reduction). It has an additional integer
 input parameter \code{inner_dim} indicating if the inner dimension
 (c.f. \code{browseVignettes("rkeops")}) corresponds to columns, i.e.
@@ -22,11 +22,11 @@ input parameter \code{inner_dim} indicating if the inner dimension
 }
 \description{
 This function is the core of the KeOps library, it allows you to create
-new operators based on kernel operation and matrix reduction discribed as a
+new operators based on kernel operation and matrix reduction described as a
 mathematic formula.
 }
 \details{
-The use of the function \code{keops_kernel} is detailled in the vignettes,
+The use of the function \code{keops_kernel} is detailed in the vignettes,
 especially how to write formulae, specified input arguments, how to format
 data to apply the created operators, etc. Run \code{browseVignettes("rkeops")}
 to access the vignettes.
@@ -36,7 +36,7 @@ the mathematical operations that you want to apply to your data, and a
 list defining the input arguments of your formula.
 
 The function \code{keops_kernel} compiles and imports a new operator that
-implements the formala given in input, it returns a function that can be
+implements the formula given in input, it returns a function that can be
 used to compute the result of the formula on actual data.
 
 The returned function expects a list of arguments, as data matrices, whose
@@ -48,7 +48,7 @@ argument passing is done by copy in R, it is better to copy a list of
 reference than the actual input data, especially for big matrices.
 
 You should be careful with the input dimension of your data, to correspond
-to the input dimension specified in \code{args} (see inner ou outer dimension in
+to the input dimension specified in \code{args} (see inner or outer dimension in
 \code{browseVignettes("rkeops")}.
 
 It is possible to compute partial derivatives of user defined operators
@@ -77,7 +77,7 @@ Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
 res <- op(list(X,Y))
 
 ## Example 1 bis
-# In example 1, the inner dimension (i.e. the commun dimension of vectors 
+# In example 1, the inner dimension (i.e. the common dimension of vectors 
 # `x_i` and `y_j` corresponds to columns of the matrices `X` and `Y` resp.).
 # We know consider the inner dimension to be the rows of the matrices `X` 
 # and `Y`.
@@ -90,7 +90,7 @@ X <- matrix(runif(nx*3), nrow=3, ncol=nx)
 # y_j = columns of the matrix Y
 Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
 # compute the result (we specify `inner_dim=0` to indicate that the rows 
-# corresponds to the inner dimension)
+# correspond to the inner dimension)
 res <- op(list(X,Y), inner_dim=0)
 
 ## Example 2

@@ -27,3 +27,41 @@ test_that("LazyTensor", {
                "missing `index` argument", 
                fixed = TRUE)
 })
+
+
+test_that("unaryop.LazyTensor", {
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  obj <- unaryop.LazyTensor(x_i, "Square")
+  expect_equal(obj$formula, "Square(Var(0,3,0))")
+  
+  # errors
+  expect_error(unaryop.LazyTensor(x, "Square"), 
+               "`x` input argument should be a LazyTensor, a vector or a scalar.", 
+               fixed = TRUE)
+})
+
+
+# TODO : add other tests
+test_that("binaryop.LazyTensor", {
+  D <- 3
+  M <- 100
+  N = 150
+  x <- matrix(runif(M * D), M, D)
+  y = matrix(runif(N*D),N,D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j  = LazyTensor(y,index='j')
+  
+  obj <-  binaryop.LazyTensor(x_i, y_j, "Sum")
+  expect_equal(obj$formula, "Sum(Var(0,3,0),Var(1,3,1))")
+  
+  obj <-  binaryop.LazyTensor(x_i, y_j, "-", is_operator = TRUE)
+  expect_equal(obj$formula, "Var(0,3,0)-Var(1,3,1)")
+  
+  obj <-  binaryop.LazyTensor(x_i, 3, "Pow")
+  expect_equal(obj$formula, "Pow(Var(0,3,0),3)")
+ 
+  
+})

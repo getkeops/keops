@@ -14,9 +14,9 @@ Remove all dll files generated from compilations of user-defined
 operators.
 }
 \details{
-When compiling a user-defined operators, a shared object (so) library
+When compiling a user-defined operator, a shared object (so) library
 (or dynamic link library, dll) file is created in the directory \code{build_dir}
-specified in compile options of \code{rkeops}. For every new operators, such a
+specified in compile options of \code{rkeops}. For every new operator, such a
 file is created.
 
 Calling \code{clean_rkeops()} allows you to empty the directory \code{build_dir}.

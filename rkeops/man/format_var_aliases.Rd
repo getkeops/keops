@@ -11,12 +11,12 @@ format_var_aliases(args)
 }
 \value{
 a list with different information about formula input arguments:
-\item{args}{vector of text string, input parameter \code{args}}
-\item{var_name}{vector of text string, corresponding name of formula
+\item{args}{vector of text strings, input parameter \code{args}}
+\item{var_name}{vector of text strings, corresponding name of formula
 arguments}
-\item{var_type}{vector of text string, corresponding type of formula
+\item{var_type}{vector of text strings, corresponding type of formula
 arguments (among \code{Vi}, \code{Vj}, \code{Pm}).}
-\item{var_pos}{vector of integer, corresponding arguments positions.}
+\item{var_pos}{vector of integers, corresponding arguments positions.}
 \item{var_aliases}{text string, declaration of formula input arguments for
 the C++ KeOps API.}
 }
@@ -59,7 +59,7 @@ For the formula \code{"Sum_Reduction(Exp(lambda * SqNorm2(x-y)), 0)"}, both
 equivalent. When specifying the \code{pos} parameter, the natural order in the
 vector \code{args} may not correspond to the order of the formula input arguments.
 
-\strong{Note:} we recommand to use the \code{Vi(dim)} notation and let the position be
+\strong{Note:} we recommend to use the \code{Vi(dim)} notation and let the position be
 determined by the argument order.
 }
 \author{

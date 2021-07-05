@@ -14,7 +14,7 @@ Set up \code{rkeops} compile options to compile user-defined operators that use
 float 64bits precision in computation.
 }
 \details{
-\strong{Note:} Default behavior is to compile operators operators that use
+\strong{Note:} Default behavior is to compile operators that use
 float 32bits precision in computation. Hence, if you do not modify \code{rkeops}
 options, you have to call the function \code{compile4float64} to
 compile operators using float 64bits precision.

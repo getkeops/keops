@@ -103,9 +103,14 @@ LazyTensor <- function(x, index = NA)
     obj
 }
 
+# TODO error print when matrix in input
 
+#' @export
 unaryop.LazyTensor <- function(x,opstr)
 {
+    if(is.matrix(x))
+        stop("`x` input argument should be a LazyTensor, a vector or a scalar.")
+    
     if(is.numeric(x))
         x <- LazyTensor(x)
     formula <- paste(opstr, "(", x$formula, ")", sep="")
@@ -143,6 +148,8 @@ unaryop.LazyTensor <- function(x,opstr)
 # opstr : string, the operation
 # is_operator : boolean, TRUE if the operation 'opstr' is an operator like "+" or "-"
 # TODO : pb if y is a vector or a matrix etc ?
+
+#' @export
 binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
 {
     if(is.numeric(x))
@@ -196,7 +203,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
     if(length(y)==1 && is.na(y))
         obj <- unaryop.LazyTensor(x, "Minus")
     else
-        obj <- binaryop.LazyTensor(x, y, "-")
+        obj <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE)
 }
 
 
@@ -231,7 +238,7 @@ Sqrt <- function(x){
 
 "/.LazyTensor" <- function(x, y)
 {
-    obj <- binaryop.LazyTensor(x,y,"/", is_operator = TRUE))
+    obj <- binaryop.LazyTensor(x,y,"/", is_operator = TRUE)
 }
 
 "|.LazyTensor" <- function(x,y)

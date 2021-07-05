@@ -9,7 +9,7 @@ compile_formula(formula, var_aliases, dllname)
 \arguments{
 \item{formula}{text string, formula defining the new operator.}
 
-\item{var_aliases}{text string, formated formula input arguments returned by
+\item{var_aliases}{text string, formatted formula input arguments returned by
 \code{\link[=format_var_aliases]{format_var_aliases()}} (specifically \verb{$var_aliases}).}
 
 \item{dllname}{text string, the name associated to the related shared object
@@ -27,7 +27,7 @@ The function \code{compile_formula} sets up the working directory and the
 environment to call the function \code{\link[=compile_code]{compile_code()}} for the
 cmake compilation.
 
-Afterwards, it also verify that the compilation went smoothly.
+Afterwards, it also verifes that the compilation went smoothly.
 }
 \seealso{
 \code{\link[=keops_kernel]{keops_kernel()}}, \code{\link[=compile_code]{compile_code()}}

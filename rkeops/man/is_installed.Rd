@@ -14,7 +14,7 @@ When running automatic tests without building and installing the package,
 i.e. with \code{devtools::test()}, the package file structure is different
 from the structure of a built and installed package (obtained with
 \code{devtools::check()}). For instance, the directory \code{inst/include} is
-replaced by \code{include}, or \code{src} by \code{lib}. Check functions inside \code{rkeops}
+replaced by \code{include}, or \code{src} by \code{lib}. Check that functions inside \code{rkeops}
 have different behavior between these two cases.
 
 The function \code{is_installed} checks the availability of the compiled

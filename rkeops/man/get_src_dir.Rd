@@ -17,7 +17,7 @@ Return the path to the directory containing \code{keops} source
 files that are shipped with \code{rkeops} installation.
 }
 \details{
-This path is generaly something like
+This path is generally something like
 \verb{/path/to/R_package_install/rkeops/include}.
 
 \strong{Note:} when running tests in the development project \code{keops} without

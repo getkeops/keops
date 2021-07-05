@@ -27,15 +27,15 @@ User-defined operators are compiled in shared library files. The associated
 function can be load into R with the function \code{load_dll}.
 }
 \details{
-When compiling a user-defined operators, a shared object (so) library
+When compiling a user-defined operator, a shared object (so) library
 (or dynamic link library, dll) file is created in the directory \code{build_dir}
-specified in compile options of \code{rkeops}. For every new operators, such a
+specified in compile options of \code{rkeops}. For every new operator, such a
 file is created.
 
 When using a user-defined operator, it is imported into R with the function
 \code{load_dll}. This function is specifically designed to load \code{rkeops}-related
 operators with a particular signature (and a test function without input
-paremeter).
+parameter).
 }
 \author{
 Ghislain Durif
