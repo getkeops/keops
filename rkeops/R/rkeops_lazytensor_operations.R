@@ -11,8 +11,8 @@ LazyTensor = function(x, index=NA)
         stop("`x` input argument should be a matrix, a vector or a scalar.")
     if(is.matrix(x) && is.na(index))
         stop("missing `index` argument")
-    ni = 0   # will correpond to the number of rows of the input if it is an "i" indexed variable
-    nj = 0   # will correpond to the number of rows of the input if it is a "j" indexed variable
+    ni = 0   # will correspond to the number of rows of the input if it is an "i" indexed variable
+    nj = 0   # will correspond to the number of rows of the input if it is a "j" indexed variable
 
     # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
     if(is.matrix(x))
