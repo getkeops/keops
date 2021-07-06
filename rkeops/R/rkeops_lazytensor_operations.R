@@ -203,6 +203,12 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
     return(obj)
 }
 
+"-.default" <- .Primitive("-") # assign default as current definition
+
+"-" <- function(x, ...)
+{ 
+    UseMethod("-", x)
+}
 
 "-.LazyTensor" <- function(x, y=NA)
 {
@@ -240,13 +246,38 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
     return(obj)
 }
 
+# useless ?
 Square <- function(x){
     obj <- unaryop.LazyTensor(x, "Square")
 }
 
-Sqrt <- function(x){
+
+# square root
+sqrt.default <- .Primitive("sqrt") # assign default as current definition
+
+sqrt <- function(x, ...)
+{ 
+    UseMethod("sqrt", x)
+}
+
+sqrt.LazyTensor <- function(x){
     obj <- unaryop.LazyTensor(x, "Sqrt")
 }
+
+
+# addition
+"+.default" <- .Primitive("*") # assign default as current definition
+
+"+" <- function(x, ...)
+{ 
+    UseMethod("+", x)
+}
+
+"+.LazyTensor" <- function(x, y)
+{
+    obj <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE)
+}
+
 
 # multiplication
 "*.default" <- .Primitive("*") # assign default as current definition
@@ -274,6 +305,7 @@ Sqrt <- function(x){
     obj <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE)
 }
 
+# scalar product
 "|.LazyTensor" <- function(x,y)
 {
     obj <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE)
@@ -295,32 +327,29 @@ Sqrt <- function(x){
     Sum( x*y, index = 'j')
 }
 
-Exp <- function(x) # remove the `index` argument
+# exponential
+exp.default <- .Primitive("exp")
+
+exp <- function(x) # remove the `index` argument
 {
-    UseMethod("Exp")
+    UseMethod("exp")
 }
 
-Exp.default <- function(x) 
-{
-    cat("This is a generic function\n")
-}
-
-Exp.LazyTensor <- function(x)
+exp.LazyTensor <- function(x)
 {
     obj <- unaryop.LazyTensor(x, "Exp")
 }
 
-Log <- function(x) # remove the `index` argument
+
+# logarithm
+log.default <- .Primitive("log")
+
+log <- function(x) 
 {
-    UseMethod("Log")
+    UseMethod("log")
 }
 
-Log.default <- function(x) 
-{
-    cat("This is a generic function\n")
-}
-
-Log.LazyTensor <- function(x)
+log.LazyTensor <- function(x)
 {
     obj <- unaryop.LazyTensor(x, "Log")
 }
@@ -336,17 +365,15 @@ reduction.LazyTensor <- function(x,opstr,index)
     return(res)
 }
 
-Sum <- function(obj, index) 
+# sum function
+sum.default <- .Primitive("sum")
+
+sum <- function(obj, index) 
 {
-    UseMethod("Sum")
+    UseMethod("sum")
 }
 
-Sum.default <- function(obj, index) 
-{
-    cat("This is a generic function\n")
-}
-
-Sum.LazyTensor <- function(x, index=NA)
+sum.LazyTensor <- function(x, index=NA)
 {
     if(is.na(index))
     {
@@ -361,15 +388,35 @@ Inv <- function(x){
     obj <- unaryop.LazyTensor(x, "Inv")
 }
 
-Sin <- function(x){
+
+# sinus
+sin.default <- .Primitive("sin")
+
+sin <- function(obj, index) 
+{
+    UseMethod("sin")
+}
+
+sin.LazyTensor  <- function(x){
     obj <- unaryop.LazyTensor(x, "Sin")
 }
+
+
 
 Asin <- function(x){
     obj <- unaryop.LazyTensor(x, "Asin")
 }
 
-Cos <- function(x){
+
+# cosinus
+cos.default <- .Primitive("cos")
+
+cos <- function(obj, index) 
+{
+    UseMethod("cos")
+}
+
+cos <- function(x){
     obj <- unaryop.LazyTensor(x, "Cos")
 }
 
