@@ -36,14 +36,14 @@ def Add(arg0, arg1):
         return IntCst(2) * arg0
     elif isinstance(arg0, Mult_Impl) and isinstance(arg0.children[0], IntCst_Impl):
         if arg0.children[1] == arg1:
-            #  factorization :  nx + x = (n+1)x
+            #  factorization :  n*x + x = (n+1)*x
             return IntCst(arg0.children[0].val + 1) * arg1
         elif (
             isinstance(arg1, Mult_Impl)
             and isinstance(arg1.children[0], IntCst_Impl)
             and arg1.children[1] == arg0.children[1]
         ):
-            #  factorization :  mx + nx = (m+n)x
+            #  factorization :  m*x + n*x = (m+n)*x
             return (
                 IntCst(arg0.children[0].val + arg1.children[0].val) * arg0.children[1]
             )
