@@ -1,9 +1,11 @@
-#library(rkeops)
-#
-#set_rkeops_option("tagCpuGpu", 0)
-#set_rkeops_option("precision", "double")
-#
-# TODO finish doc
+library(rkeops)
+library(stringr)
+
+
+set_rkeops_option("tagCpuGpu", 0)
+set_rkeops_option("precision", "double")
+
+# TODO redo doc
 
 #' Build and return a LazyTensor object
 #' @description
@@ -59,48 +61,53 @@
 #' @export
 LazyTensor <- function(x, index = NA)
 {
+    # init
+    d = NULL
+    cat = NULL
+    
     if(is.character(x))
         stop("`x` input argument should be a matrix, a vector or a scalar.")
     if(is.matrix(x) && is.na(index))
         stop("missing `index` argument")
-    ni <- 0   # will correspond to the number of rows of the input if it is an "i" indexed variable
-    nj <- 0   # will correspond to the number of rows of the input if it is a "j" indexed variable
+    
 
     # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
     if(is.matrix(x))
     {
-	x <- t(x)          # we transpose the input matrix x because KeOps needs C-contiguous arrays
-        d <- nrow(x)   # d is the dimension, now the number of rows of x
+        d <- ncol(x)
         if(index=='i')
         {
-            cat <- 0   # cat is the KeOps "category", 0, 1, or 2, corresponding to the 3 different cases of use
-            ni <- ncol(x)
+            # cat = 0
+            cat = "Vi"
         }
         else
         {
-            cat <- 1
-            nj <- ncol(x)
+            # cat = 1
+            cat = "Vj"
         }
     }
     # 2) else we assume x is a numeric vector, treated as parameter, then converted to matrix
     else
     {
         d <- length(x)
-        cat <- 2
-        x <- t(matrix(x))  # now x is a row matrix, which is the correct shape for KeOps routines
+        # cat <- 2
+        cat <- "Pm"
     }
 
     # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-    formula <- paste('Var(0,', d, ',', cat, ')', sep = "")  # Var(ind,dim,cat), where :
-                                                            # ind gives the position in the final call to KeOps routine,
-                                                            # dim is the dimension
-                                                            # cat the category
+    var_name = "var0"
+    formula = var_name
+    # formula <- paste('Var(0,', d, ',', cat, ')', sep = "")  # Var(ind,dim,cat), where :
+    #                                                         # ind gives the position in the final call to KeOps routine,
+    #                                                         # dim is the dimension
+    #                                                         # cat the category
     vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
+    args = str_c(var_name, "=", cat, "(", d, ")")
 
     # finally we build and return the LazyTensor object
-    obj <- list(formula = formula, vars = vars, ni = ni, nj = nj)
+    obj <- list(formula = formula, args = args, vars = vars)
     class(obj) <- "LazyTensor"
-    obj
+    return(obj)
 }
 
 # TODO error print when matrix in input
@@ -114,9 +121,9 @@ unaryop.LazyTensor <- function(x,opstr)
     if(is.numeric(x))
         x <- LazyTensor(x)
     formula <- paste(opstr, "(", x$formula, ")", sep="")
-    obj <- list(formula = formula, vars=x$vars, ni=x$ni, nj=x$nj)
+    obj <- list(formula = formula, args=x$args, vars=x$vars)
     class(obj) <- "LazyTensor"
-    obj
+    return(obj)
 }
 
 
@@ -156,7 +163,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
         x <- LazyTensor(x)
     
     # if y is a scalar and the operation is a specific operation
-    # for instance we want : Pow(Var(0,3,0),2)
+    # for instance we want : Pow(var0,2)
     op_specific <- list("Pow") 
     if(is.element(opstr, op_specific) & class(y) != "LazyTensor"){
         if(is_operator)
@@ -164,9 +171,8 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
         # case when the operation is not an operator
         else 
             formula <- paste(opstr, "(", x$formula, ",", y, ")", sep="")
-        vars <- c(x$vars,y)
-        ni <- x$ni
-        nj <- x$nj
+        vars <- c(x$vars, y) # TODO check if we need y$vars instead of y
+        args <- c(x$args, y) # TODO check if we need y$args instead of y
     }
     # case with no specific operation 
     else{
@@ -176,11 +182,12 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
         dec <- length(x$vars)
         yform <- y$formula
         # update list of variables and update indices in formula
-        for(k in 1:length(x$vars))
+        for(k in 1:length(y$vars))
         {
-            str1 <- paste("Var(",k-1,sep="")
-            str2 <- paste("Var(",k-1+dec,sep="")
+            str1 <- paste("var", k - 1, sep="")
+            str2 <- paste("var", k - 1 + dec, sep="")
             yform <- gsub(str1, str2, yform, fixed = TRUE)
+            y$args[k] <- gsub(str1, str2, y$args[k], fixed = TRUE)
         }
         # special formula for operator
         if(is_operator)
@@ -188,13 +195,12 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
         else
             formula <- paste(opstr, "(", x$formula, ",", yform, ")", sep="")
         vars <- c(x$vars,y$vars)
-        ni <- max(x$ni,y$ni)
-        nj <- max(x$nj,y$nj)
+        args <- c(x$args,y$args)
     }
     
-    obj <- list(formula = formula, vars=vars, ni=ni, nj=nj)
+    obj <- list(formula = formula, args=args, vars=vars)
     class(obj) <- "LazyTensor"
-    obj
+    return(obj)
 }
 
 
@@ -231,14 +237,30 @@ Sqrt <- function(x){
     obj <- unaryop.LazyTensor(x, "Sqrt")
 }
 
+# multiplication
+"*.default" <- .Primitive("*") # assign default as current definition
+
+"*" <- function(x, ...)
+{ 
+    UseMethod("*", x)
+}
+
 "*.LazyTensor" <- function(x, y)
 {
     obj <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE)
 }
 
+# division
+"/.default" <- .Primitive("/") # assign default as current definition
+
+"/" <- function(x, ...)
+{ 
+    UseMethod("/", x)
+}
+
 "/.LazyTensor" <- function(x, y)
 {
-    obj <- binaryop.LazyTensor(x,y,"/", is_operator = TRUE)
+    obj <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE)
 }
 
 "|.LazyTensor" <- function(x,y)
@@ -250,46 +272,46 @@ Sqrt <- function(x){
 
 "%*%.default" <- .Primitive("%*%") # assign default as current definition
 
-"%*%" <- function(x,...)
+"%*%" <- function(x, ...)
 { 
-    UseMethod("%*%",x)
+    UseMethod("%*%", x)
 }
 
-"%*%.LazyTensor" <- function(x,y)
+"%*%.LazyTensor" <- function(x, y)
 {
     if(is.matrix(y))
         y <- LazyTensor(y,'j')
     Sum( x*y, index = 'j')
 }
 
-Exp <- function(obj,index) 
+Exp <- function(x) # remove the `index` argument
 {
     UseMethod("Exp")
 }
 
-Exp.default <- function(obj,index) 
+Exp.default <- function(x) 
 {
     cat("This is a generic function\n")
 }
 
 Exp.LazyTensor <- function(x)
 {
-    obj <- unaryop.LazyTensor(x,"Exp")
+    obj <- unaryop.LazyTensor(x, "Exp")
 }
 
-Log <- function(obj,index) 
+Log <- function(x) # remove the `index` argument
 {
     UseMethod("Log")
 }
 
-Log.default <- function(obj,index) 
+Log.default <- function(x) 
 {
     cat("This is a generic function\n")
 }
 
 Log.LazyTensor <- function(x)
 {
-    obj <- unaryop.LazyTensor(x,"Log")
+    obj <- unaryop.LazyTensor(x, "Log")
 }
 
 # TODO : this function doesn't work 
@@ -297,22 +319,23 @@ reduction.LazyTensor <- function(x,opstr,index)
 {
     if(index=="i") tag<-1 else tag<-0
     formula <- paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
-    args <- c()
+    args = x$args
     op <- keops_kernel(formula,args)
-    res <- t(op(x$vars,nx=x$ni,ny=x$nj))
+    res <- op(x$vars)
+    return(res)
 }
 
-Sum <- function(obj,index) 
+Sum <- function(obj, index) 
 {
     UseMethod("Sum")
 }
 
-Sum.default <- function(obj,index) 
+Sum.default <- function(obj, index) 
 {
     cat("This is a generic function\n")
 }
 
-Sum.LazyTensor <- function(x,index=NA)
+Sum.LazyTensor <- function(x, index=NA)
 {
     if(is.na(index))
     {
@@ -352,40 +375,71 @@ SqNorm2 <- function(x){
 }
 
 
-## Basic example
-#
-#D = 3
-#M = 100
-#N = 150
-#E = 4
-#x = matrix(runif(M*D),M,D)
-#y = matrix(runif(N*D),N,D)
-#b = matrix(runif(N*E),N,E)
-#s = 0.25
-#
-## creating LazyTensor from matrices
-#x_i  = LazyTensor(x,index='i')
-#y_j  = LazyTensor(y,index='j')
-#b_j  = b
-#
-## Symbolic matrix of squared distances: 
-#SqDist_ij = Sum( (x_i - y_j)^2 )
-#
-## Symbolic Gaussian kernel matrix:
-#K_ij = Exp( - SqDist_ij / (2 * s^2) )
-#
-## Genuine matrix: 
-#v = K_ij %*% b_j
-#
-## we compare to standard R computation
-#SqDist = 0
-#onesM = matrix(1,1,M)
-#onesN = matrix(1,1,N)
-#for(k in 1:D)
-#    SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
-#K = exp(-SqDist/(2*s^2))
-#v2 = K %*% b   
-#
-#print(mean(abs(v-v2)))
-#
-#
+# Basic example
+
+D = 3
+M = 100
+N = 150
+E = 4
+x = matrix(runif(M*D),M,D)
+y = matrix(runif(N*D),N,D)
+b = matrix(runif(N*E),N,E)
+s = 0.25
+
+# creating LazyTensor from matrices
+x_i  = LazyTensor(x,index='i')
+y_j  = LazyTensor(y,index='j')
+b_j  = b
+
+# Symbolic matrix of squared distances: 
+SqDist_ij = Sum( (x_i - y_j)^2 )
+
+# Symbolic Gaussian kernel matrix:
+K_ij = Exp( - SqDist_ij / (2 * s^2) )
+
+# Genuine matrix: 
+v = K_ij %*% b_j
+# equivalent
+# v = "%*%.LazyTensor"(K_ij, b_j)
+
+# equivalent
+op <- keops_kernel(
+    formula = "Sum_Reduction(Exp(Minus(Sum(Square(x-y)))/s)*b,0)",
+    args = c("x=Vi(3)", "y=Vj(3)", "s=Pm(1)", "b=Vj(4)")
+)
+
+#"Sum_Reduction(Exp(Minus(Sum(Square(var0-var1)))/var2)*var3,0)"
+v2 <- op(list(x, y, s, b))
+#v4 = op(list(x, y, s, b))
+
+
+sum((v2-v)^2)
+
+op <- keops_kernel(
+    formula = "Sum_Reduction(Exp(Minus(Sum(Square(toto0-toto1)))/toto2)*toto3,0)",
+    args = c("toto0=Vi(3)", "toto1=Vj(3)", "toto2=Pm(1)", "toto3=Vj(4)")
+)
+v3 = op(list(x, y, s, b))
+
+sum((v2-v3)^2)
+
+op <- keops_kernel(
+    formula = "Sum_Reduction(Exp(Minus(Sum(Square(Var(0,3,0)-Var(1,3,1))))/Var(2,1,2))*Var(3,4,1),0)",
+    args = character(0)
+)
+
+v4 <- op(list(x, y, s, b))
+
+
+# we compare to standard R computation
+SqDist = 0
+onesM = matrix(1,1,M)
+onesN = matrix(1,1,N)
+for(k in 1:D)
+    SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
+K = exp(-SqDist/(2*s^2))
+v2 = K %*% b   
+
+print(mean(abs(v-v2)))
+
+
