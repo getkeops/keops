@@ -165,7 +165,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
     # if y is a scalar and the operation is a specific operation
     # for instance we want : Pow(var0,2)
     op_specific <- list("Pow") 
-    if(is.element(opstr, op_specific) & class(y) != "LazyTensor"){
+    if(is.element(opstr, op_specific) && class(y) != "LazyTensor"){
         if(is_operator)
             formula <- paste(x$formula, opstr, y, sep="")
         # case when the operation is not an operator
@@ -402,33 +402,18 @@ v = K_ij %*% b_j
 # equivalent
 # v = "%*%.LazyTensor"(K_ij, b_j)
 
+s2 = (2 * s^2)
 # equivalent
 op <- keops_kernel(
     formula = "Sum_Reduction(Exp(Minus(Sum(Square(x-y)))/s)*b,0)",
     args = c("x=Vi(3)", "y=Vj(3)", "s=Pm(1)", "b=Vj(4)")
 )
 
-#"Sum_Reduction(Exp(Minus(Sum(Square(var0-var1)))/var2)*var3,0)"
-v2 <- op(list(x, y, s, b))
-#v4 = op(list(x, y, s, b))
 
+v2 <- op(list(x, y, s2, b))
 
 sum((v2-v)^2)
 
-op <- keops_kernel(
-    formula = "Sum_Reduction(Exp(Minus(Sum(Square(toto0-toto1)))/toto2)*toto3,0)",
-    args = c("toto0=Vi(3)", "toto1=Vj(3)", "toto2=Pm(1)", "toto3=Vj(4)")
-)
-v3 = op(list(x, y, s, b))
-
-sum((v2-v3)^2)
-
-op <- keops_kernel(
-    formula = "Sum_Reduction(Exp(Minus(Sum(Square(Var(0,3,0)-Var(1,3,1))))/Var(2,1,2))*Var(3,4,1),0)",
-    args = character(0)
-)
-
-v4 <- op(list(x, y, s, b))
 
 
 # we compare to standard R computation
