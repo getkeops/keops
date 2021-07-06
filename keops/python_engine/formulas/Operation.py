@@ -142,7 +142,7 @@ class Operation(Tree):
         return Scalprod(self, other)
 
     def __eq__(self, other):
-        return type(self) == type(other) and self.params == other.params
+        return type(self) == type(other) and self.children==other.children and self.params == other.params
 
     def Op(self, out, table, param):
         pass
