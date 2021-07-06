@@ -15,12 +15,12 @@ test_that("LazyTensor", {
   k <- length(classes)
   expect_equal(classes, rep("LazyTensor", k))
   # check object formula
-  expect_equal(out_i$formula, "Var(0,3,0)")
-  expect_equal(out_j$formula, "Var(0,3,1)")
-  expect_equal(out_u$formula, "Var(0,100,2)")
-  expect_equal(out_D$formula, "Var(0,1,2)")
+  expect_equal(out_i$formula, "var0")
+  expect_equal(out_j$args, "var0=Vj(3)")
+  expect_equal(out_u$args, "var0=Pm(100)")
+  expect_equal(out_D$args, "var0=Pm(1)")
   # errors
-  expect_error(LazyTensor("Var(0,3,0)"), 
+  expect_error(LazyTensor("x"), 
                "`x` input argument should be a matrix, a vector or a scalar.", 
                fixed = TRUE)
   expect_error(LazyTensor(x), 
@@ -35,7 +35,7 @@ test_that("unaryop.LazyTensor", {
   x <- matrix(runif(M * D), M, D)
   x_i <- LazyTensor(x, index = 'i')
   obj <- unaryop.LazyTensor(x_i, "Square")
-  expect_equal(obj$formula, "Square(Var(0,3,0))")
+  expect_equal(obj$formula, "Square(var0)")
   
   # errors
   expect_error(unaryop.LazyTensor(x, "Square"), 
@@ -48,20 +48,48 @@ test_that("unaryop.LazyTensor", {
 test_that("binaryop.LazyTensor", {
   D <- 3
   M <- 100
-  N = 150
+  N <- 150
   x <- matrix(runif(M * D), M, D)
-  y = matrix(runif(N*D),N,D)
+  y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
-  y_j  = LazyTensor(y,index='j')
+  y_j <- LazyTensor(y, index = 'j')
   
   obj <-  binaryop.LazyTensor(x_i, y_j, "Sum")
-  expect_equal(obj$formula, "Sum(Var(0,3,0),Var(1,3,1))")
+  expect_equal(obj$formula, "Sum(var0,var1)")
   
   obj <-  binaryop.LazyTensor(x_i, y_j, "-", is_operator = TRUE)
-  expect_equal(obj$formula, "Var(0,3,0)-Var(1,3,1)")
+  expect_equal(obj$formula, "var0-var1")
   
   obj <-  binaryop.LazyTensor(x_i, 3, "Pow")
-  expect_equal(obj$formula, "Pow(Var(0,3,0),3)")
- 
-  
+  expect_equal(obj$formula, "Pow(var0,3)")
 })
+
+
+test_that("^", {
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  expect_equal(D^D, 27)
+  obj1 <- x_i^y_j
+  expect_equal(obj1$formula, "Powf(var0,var1)")
+  obj2 <-  x_i^3
+  expect_equal(obj2$formula, "Pow(var0,3)")
+  obj3 <-  x_i^(-0.5)
+  expect_equal(obj3$formula, "Pow(var0,-0.5)")
+  obj4 <-  x_i^(0.5)
+  expect_equal(obj3$formula, "Sqrt(var0)")
+  obj5 <-  x_i^2
+  expect_equal(obj3$formula, "Square(var0)")
+  obj6 <-  x_i^0.314
+  expect_equal(obj3$formula, "Powf(var0,0.314)") # TODO change Pow in Powf
+})
+
+
+
+
+
