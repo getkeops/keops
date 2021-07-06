@@ -212,21 +212,32 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
         obj <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE)
 }
 
+"^.default" <- .Primitive("^") # assign default as current definition
+
+"^" <- function(x, ...)
+{ 
+    UseMethod("^", x)
+}
 
 "^.LazyTensor" <- function(x, y)
 {
-    if(class(y)=="LazyTensor")
-        obj <- binaryop.LazyTensor(x, y, "Powf")
-    else if(length(y)==1){
-        if(y==2)
+    if(is.numeric(y) && (as.integer(y)-y) == 0){
+        if(y == 2)
             obj <- unaryop.LazyTensor(x, "Square")
-        else if(y==0.5)
-            obj <- unaryop.LazyTensor(x, "Sqrt")
         else
             obj <- binaryop.LazyTensor(x, y, "Pow")
     }
+    
+    else if(is.numeric(y) && y == 0.5)
+        obj <- unaryop.LazyTensor(x, "Sqrt") # element-wise square root
+    
+    else if(is.numeric(y) && y == (-0.5))
+        obj <- unaryop.LazyTensor(x, "Rsqrt") # element-wise inverse square root
+    
     else
-        stop("`y` input argument should be a scalar or a LazyTensor.")
+        obj <- binaryop.LazyTensor(x, y, "Powf") # power operation
+    
+    return(obj)
 }
 
 Square <- function(x){
@@ -423,7 +434,7 @@ onesN = matrix(1,1,N)
 for(k in 1:D)
     SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
 K = exp(-SqDist/(2*s^2))
-v2 = K %*% b   
+v2 = K %*% b
 
 print(mean(abs(v-v2)))
 
