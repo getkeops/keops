@@ -312,8 +312,8 @@ class c_array:
             raise ValueError("not implemented")
         string = f'printf("{self.id} = {tag}\\n"'
         for i in range(self.dim):
-            string += f', {self[i].id}'
-        string += ');\n'
+            string += f", {self[i].id}"
+        string += ");\n"
         return string
 
 

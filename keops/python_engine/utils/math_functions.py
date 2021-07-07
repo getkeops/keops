@@ -75,7 +75,9 @@ keops_mod = math_function(
     cpu_code=lambda x, n, d: f"({x} - {n} * floor(({x} - {d})/{n}))"
 )
 keops_round = math_function(
-    cpu_code=lambda x, d: f"round({x})" if eval(d)==0 else f"(round({x}*{10**eval(d)})/{10**eval(d)})"
+    cpu_code=lambda x, d: f"round({x})"
+    if eval(d) == 0
+    else f"(round({x}*{10**eval(d)})/{10**eval(d)})"
 )
 keops_diffclampint = math_function(
     cpu_code=lambda x, a, b: f"(({x}<{a})? 0.0f : ( ({x}>{b})? 0.0f : 1.0f ))"

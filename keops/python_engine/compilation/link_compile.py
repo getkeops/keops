@@ -105,5 +105,5 @@ class link_compile:
             indsp=self.varloader.indsp,
             dimsx=self.varloader.dimsx,
             dimsy=self.varloader.dimsy,
-            dimsp=self.varloader.dimsp
+            dimsp=self.varloader.dimsp,
         )

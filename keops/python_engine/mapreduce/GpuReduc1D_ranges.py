@@ -35,7 +35,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         arg = self.arg
         args = self.args
         sum_scheme = self.sum_scheme
-        
+
         nvarsi, nvarsj, nvarsp = (
             len(self.varloader.Varsi),
             len(self.varloader.Varsj),
@@ -49,17 +49,21 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
         yjrel = c_array(dtype, varloader.dimy, "yjrel")
         table = varloader.table(self.xi, yjrel, self.param_loc)
         jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
-        
+
         indices_i = c_array("int", nvarsi, "indices_i")
         indices_j = c_array("int", nvarsj, "indices_j")
         indices_p = c_array("int", nvarsp, "indices_p")
-        
-        declare_assign_indices_i = "int *indices_i = offsets;" if nvarsi>0 else ""
-        declare_assign_indices_j = f"int *indices_j = offsets + {nvarsi};" if nvarsj>0 else ""
-        declare_assign_indices_p = f"int *indices_p = offsets + {nvarsi} + {nvarsj};" if nvarsp>0 else ""
-        
+
+        declare_assign_indices_i = "int *indices_i = offsets;" if nvarsi > 0 else ""
+        declare_assign_indices_j = (
+            f"int *indices_j = offsets + {nvarsi};" if nvarsj > 0 else ""
+        )
+        declare_assign_indices_p = (
+            f"int *indices_p = offsets + {nvarsi} + {nvarsj};" if nvarsp > 0 else ""
+        )
+
         starty = c_variable("int", "start_y")
-        
+
         threadIdx_x = c_variable("int", "threadIdx.x")
 
         if dtype == "half2":

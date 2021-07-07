@@ -25,18 +25,18 @@ class Cpu_link_compile(link_compile):
             compile_options += ["-fopenmp", "-fno-fat-lto-objects"]
 
     def __init__(self):
-        link_compile.__init__(self)        
+        link_compile.__init__(self)
         # these are used for command line compiling mode
         self.low_level_code_file = "none".encode("utf-8")
         # dllname is the name of the binary dll obtained after compilation, e.g. 7b9a611f7e.so
         self.dllname = self.gencode_file + ".so"
         # compile command string to obtain the dll, e.g. "g++ 7b9a611f7e.cpp -shared -fPIC -O3 -flto -o 7b9a611f7e.so"
         self.compile_command = f"{self.compiler} {' '.join(self.compile_options)} {self.gencode_file} -o {self.dllname}"
-        # actual dll to be called 
+        # actual dll to be called
         self.true_dllname = self.dllname
         # file to check for existence to detect compilation is needed
         self.file_to_check = self.dllname
-        
+
     def compile_code(self):
         # method to generate the code and compile it
         # generate the code and save it in self.code, by calling get_code method from CpuReduc or GpuReduc classes :

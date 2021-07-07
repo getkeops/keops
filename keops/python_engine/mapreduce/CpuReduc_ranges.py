@@ -4,8 +4,6 @@ from keops.python_engine.utils.code_gen_utils import (
     c_variable,
     c_array,
     c_include,
-    signature_list,
-    call_list,
 )
 from keops.python_engine.compilation import Cpu_link_compile
 from keops.python_engine.binders.binders_definitions import binders_definitions
@@ -69,7 +67,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         jmstarty = c_variable("int", "j-start_y")
 
         self.headers += c_include("cmath", "omp.h")
-        
+
         self.code = f"""
                         {self.headers}
                         #define __INDEX__ int32_t
@@ -198,8 +196,8 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             }}
                             return 0;
                         }}
-                    """   
-                    
+                    """
+
         self.code += f"""    
                     
                     #include "stdarg.h"

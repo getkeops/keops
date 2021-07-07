@@ -1,6 +1,5 @@
 from keops.python_engine.utils.code_gen_utils import (
     Var_loader,
-    c_variable,
     new_c_varname,
     pointer,
 )
@@ -66,5 +65,3 @@ class MapReduce:
         self.acctmp = c_array(dtypeacc, red_formula.dimred, "acctmp")
         self.fout = c_array(dtype, formula.dim, "fout")
         self.outi = c_array(dtype, red_formula.dim, f"(out + i * {red_formula.dim})")
-    
-    

@@ -35,9 +35,9 @@ class get_keops_routine_class:
             indsp,
             dimsx,
             dimsy,
-            dimsp
+            dimsp,
         ) = get_keops_dll(map_reduce_id, *args)
-        
+
         # now we switch indsi, indsj and dimsx, dimsy in case tagI=1.
         # This is to be consistent with the convention used in the old
         # bindings (see functions GetIndsI, GetIndsJ, GetDimsX, GetDimsY
@@ -46,7 +46,7 @@ class get_keops_routine_class:
         if self.tagI == 1:
             indsi, indsj = indsj, indsi
             dimsx, dimsy = dimsy, dimsx
-        
+
         self.dll = CDLL(self.dllname)
         self.indsi_ctype = (c_int * (len(indsi) + 1))(*((len(indsi),) + indsi))
         self.indsj_ctype = (c_int * (len(indsj) + 1))(*((len(indsj),) + indsj))
@@ -56,42 +56,51 @@ class get_keops_routine_class:
         self.dimsp_ctype = (c_int * (len(dimsp) + 1))(*((len(dimsp),) + dimsp))
 
     def __call__(
-        self, c_dtype, nx, ny, tagHostDevice, device_id, ranges_ctype, outshape_ctype, out_ctype, args_ctype, argshapes_ctype
+        self,
+        c_dtype,
+        nx,
+        ny,
+        tagHostDevice,
+        device_id,
+        ranges_ctype,
+        outshape_ctype,
+        out_ctype,
+        args_ctype,
+        argshapes_ctype,
     ):
         c_args = [arg["data"] for arg in args_ctype]
         nargs = len(args_ctype)
-        if c_dtype=="float":
+        if c_dtype == "float":
             launch_keops = self.dll.launch_keops_float
-        elif c_dtype=="double":
+        elif c_dtype == "double":
             launch_keops = self.dll.launch_keops_double
         else:
-            raise ValueError("dtype",dtype,"not yet implemented in new KeOps engine")
+            raise ValueError("dtype", dtype, "not yet implemented in new KeOps engine")
         launch_keops.argtypes = (
             [
-                c_char_p,                           # ptx_file_name
-                c_int,                              # tagHostDevice
-                c_int,                              # dimY
-                c_int,                              # nx
-                c_int,                              # ny
-                c_int,                              # device_id
-                c_int,                              # tagI
-                c_int * len(self.indsi_ctype),      # indsi
-                c_int * len(self.indsj_ctype),      # indsj
-                c_int * len(self.indsp_ctype),      # indsp
-                c_int,                              # dimout
-                c_int * len(self.dimsx_ctype),      # dimsx
-                c_int * len(self.dimsy_ctype),      # dimsy
-                c_int * len(self.dimsp_ctype),      # dimsp
-                POINTER(c_void_p),                  # ranges
-                c_int * len(outshape_ctype),        # shapeout
-                out_ctype["type"],                  # out
-                c_int,                              # nargs
+                c_char_p,  # ptx_file_name
+                c_int,  # tagHostDevice
+                c_int,  # dimY
+                c_int,  # nx
+                c_int,  # ny
+                c_int,  # device_id
+                c_int,  # tagI
+                c_int * len(self.indsi_ctype),  # indsi
+                c_int * len(self.indsj_ctype),  # indsj
+                c_int * len(self.indsp_ctype),  # indsp
+                c_int,  # dimout
+                c_int * len(self.dimsx_ctype),  # dimsx
+                c_int * len(self.dimsy_ctype),  # dimsy
+                c_int * len(self.dimsp_ctype),  # dimsp
+                POINTER(c_void_p),  # ranges
+                c_int * len(outshape_ctype),  # shapeout
+                out_ctype["type"],  # out
+                c_int,  # nargs
             ]
-            + [arg["type"] for arg in args_ctype]   # arg
-            + [c_int * len(argshape) for argshape in argshapes_ctype]   #argshape
+            + [arg["type"] for arg in args_ctype]  # arg
+            + [c_int * len(argshape) for argshape in argshapes_ctype]  # argshape
         )
-        
-                                        
+
         launch_keops(
             create_string_buffer(self.low_level_code_file),
             c_int(tagHostDevice),

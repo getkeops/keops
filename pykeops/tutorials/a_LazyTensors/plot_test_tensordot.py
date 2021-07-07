@@ -12,6 +12,7 @@ import torch
 from pykeops.torch import LazyTensor
 
 import pykeops.config
+
 pykeops.config.gpu_available = False
 
 M, N = 2, 10
