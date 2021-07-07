@@ -1,6 +1,6 @@
 library(rkeops)
 library(stringr)
-
+library(data.table)
 
 set_rkeops_option("tagCpuGpu", 0)
 set_rkeops_option("precision", "double")
@@ -95,15 +95,18 @@ LazyTensor <- function(x, index = NA)
     }
 
     # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-    var_name = "var0"
+    #var_name = "var0"
+    var_name = address(x)
+    #var_name = paste("A", address(x), sep="")
+    var_name = paste("A", address(x), index, sep="") 
     formula = var_name
     # formula <- paste('Var(0,', d, ',', cat, ')', sep = "")  # Var(ind,dim,cat), where :
     #                                                         # ind gives the position in the final call to KeOps routine,
     #                                                         # dim is the dimension
     #                                                         # cat the category
     vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
+    #args = str_c(var_name, "=", cat, "(0,", d, ")")
     args = str_c(var_name, "=", cat, "(", d, ")")
-
     # finally we build and return the LazyTensor object
     obj <- list(formula = formula, args = args, vars = vars)
     class(obj) <- "LazyTensor"
@@ -163,9 +166,9 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
         x <- LazyTensor(x)
     
     # if y is a scalar and the operation is a specific operation
-    # for instance we want : Pow(var0,2)
+    # for instance we want : Pow(add,2)
     op_specific <- list("Pow") 
-    if(is.element(opstr, op_specific) && class(y) != "LazyTensor"){
+    if(is.element(opstr, op_specific) && is.numeric(y) && (as.integer(y)-y) == 0){
         if(is_operator)
             formula <- paste(x$formula, opstr, y, sep="")
         # case when the operation is not an operator
@@ -182,20 +185,29 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
         dec <- length(x$vars)
         yform <- y$formula
         # update list of variables and update indices in formula
-        for(k in 1:length(y$vars))
-        {
-            str1 <- paste("var", k - 1, sep="")
-            str2 <- paste("var", k - 1 + dec, sep="")
-            yform <- gsub(str1, str2, yform, fixed = TRUE)
-            y$args[k] <- gsub(str1, str2, y$args[k], fixed = TRUE)
-        }
+        #for(k in 1:length(y$vars))
+        #{
+            #add = substr(y$args[k],1,14)
+            #begin <- substr(y$args[k], 1, 18)
+            #end <- substr(y$args[k], 19, 22)
+            #str1  <- paste(begin, k - 1, ",", end, sep="")
+            #str2 <- paste(begin, k - 1 + dec, ",", end, sep="")
+            #str1 <- paste("(", k - 1, ",", sep="")
+            #str2 <- paste("(", k - 1 + dec, ",", sep="")
+            #str3 <- paste(add, "_", k - 1, sep="")
+            #str4 <- paste(add, "_", k - 1 + dec, sep="")
+            #yform <- gsub(str1, str2, yform, fixed = TRUE)
+            #y$args[k] <- gsub(str1, str2, y$args[k], fixed = TRUE) # to improve
+            #yform <- gsub(str3, str4, yform, fixed = TRUE)
+        #}
         # special formula for operator
         if(is_operator)
             formula <- paste(x$formula, opstr, yform, sep="")
         else
             formula <- paste(opstr, "(", x$formula, ",", yform, ")", sep="")
         vars <- c(x$vars,y$vars)
-        args <- c(x$args,y$args)
+        vars[!duplicated(names(vars))]
+        args <- unique(c(x$args,y$args))
     }
     
     obj <- list(formula = formula, args=args, vars=vars)
@@ -226,19 +238,26 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
 }
 
 "^.LazyTensor" <- function(x, y)
-{
-    if(is.numeric(y) && (as.integer(y)-y) == 0){
-        if(y == 2)
-            obj <- unaryop.LazyTensor(x, "Square")
+{   
+    if(is.numeric(y) && length(y) == 1){
+        if((as.integer(y)-y) == 0){
+            if(y == 2)
+                obj <- unaryop.LazyTensor(x, "Square")
+            else
+                obj <- binaryop.LazyTensor(x, y, "Pow")
+        }
+        
+        else if(y == 0.5)
+            obj <- unaryop.LazyTensor(x, "Sqrt") # element-wise square root
+        
+        else if(y == (-0.5))
+            obj <- unaryop.LazyTensor(x, "Rsqrt") # element-wise inverse square root
+        
+        # check if Powf with y a float number has to be like Powf(var1,var2) or Powf(var,y) (Powf(var, 0.5))
         else
-            obj <- binaryop.LazyTensor(x, y, "Pow")
-    }
-    
-    else if(is.numeric(y) && y == 0.5)
-        obj <- unaryop.LazyTensor(x, "Sqrt") # element-wise square root
-    
-    else if(is.numeric(y) && y == (-0.5))
-        obj <- unaryop.LazyTensor(x, "Rsqrt") # element-wise inverse square root
+            obj <- binaryop.LazyTensor(x, y, "Powf") # power operation
+        
+        }
     
     else
         obj <- binaryop.LazyTensor(x, y, "Powf") # power operation
@@ -266,7 +285,7 @@ sqrt.LazyTensor <- function(x){
 
 
 # addition
-"+.default" <- .Primitive("*") # assign default as current definition
+"+.default" <- .Primitive("+") # assign default as current definition
 
 "+" <- function(x, ...)
 { 
@@ -324,7 +343,7 @@ sqrt.LazyTensor <- function(x){
 {
     if(is.matrix(y))
         y <- LazyTensor(y,'j')
-    Sum( x*y, index = 'j')
+    sum( x*y, index = 'j')
 }
 
 # exponential
@@ -428,11 +447,6 @@ Atan <- function(x){
     obj <- unaryop.LazyTensor(x, "Atan")
 }
 
-SqNorm2 <- function(x){
-    obj <- unaryop.LazyTensor(x, "SqNorm2")
-}
-
-
 # Basic example
 
 D = 3
@@ -450,10 +464,10 @@ y_j  = LazyTensor(y,index='j')
 b_j  = b
 
 # Symbolic matrix of squared distances: 
-SqDist_ij = Sum( (x_i - y_j)^2 )
+SqDist_ij = sum( (x_i - y_j)^2 )
 
 # Symbolic Gaussian kernel matrix:
-K_ij = Exp( - SqDist_ij / (2 * s^2) )
+K_ij = exp( - SqDist_ij / (2 * s^2) )
 
 # Genuine matrix: 
 v = K_ij %*% b_j
