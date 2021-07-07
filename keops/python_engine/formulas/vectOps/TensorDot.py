@@ -1,6 +1,6 @@
 from keops.python_engine.formulas.Operation import Operation
-import numpy as np
 
+import numpy as np
 
 ####################################
 ######  Tensor Dot Product     #####
@@ -12,14 +12,16 @@ class TensorDot(Operation):
     string_id = "TensorDot"
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
+        # print(dimsfa, dimsfb, contfa, contfb, permute)
 
-        assert (dimsfb[contfb] == dimsfa[contfa])
-
+        assert (dimsfb[contfb] == dimsfa[contfa]).all()
         assert (fa.dim == dimsfa.prod())
         assert (fb.dim == dimsfb.prod())
 
         super().__init__(fa, fb)
 
+        self.dimfa = dimsfa
+        self.dimfb = dimsfb
         self.contdims = dimsfa[contfa]
 
         self.indices_keepdim_a = np.delete(np.arange(len(dimsfa)), contfa)
@@ -36,25 +38,45 @@ class TensorDot(Operation):
         self.list_strides_keepdim = self.cumprod_array(self.permutation(permute, self.keepdims))
 
         self.dim = fa.dim * fb.dim
-        self.dim = int(self.dim / self.contdims.prod() ** 2) if len(contfa)else 1
+        self.dim = int(self.dim / self.contdims.prod() ** 2) if len(contfa) else self.dim
+
+        if permute is None:
+            permute = np.arange(len(self.keepdims))
+        else:
+            assert (self.permutation(permute, permute) == np.arange(len(self.keepdims))).all()
+
+        self.permute = permute
 
         # loop
         self.loopdim = np.concatenate((self.keepdims, self.contdims_a))
         self.dimloop = self.loopdim.prod()
-        self.number_of_dimloop = len(dimsfa) - len(contfa) + len(dimsfb);
+        self.number_of_dimloop = len(dimsfa) + len(dimsfb) - len(contfa)
 
-        ala = np.concatenate( (np.arange(0, len(self.keepdims_a)), np.arange(len(self.keepdims), self.number_of_dimloop)), axis=None);
-        ali = np.concatenate((self.indices_keepdim_a, contfa), axis=None);
-        self.list_indices_a_intot = self.permutation(ali, ala);
+        self.ala = np.concatenate((np.arange(0, len(self.keepdims_a)),
+                              np.arange(len(self.keepdims), self.number_of_dimloop)), axis=None).copy()
+        self.ali = np.concatenate((self.indices_keepdim_a, contfa), axis=None)
+        self.list_indices_a_intot = self.permutation(self.ali, self.ala)
 
-        bla = np.concatenate((np.arange(len(self.keepdims_a), len(self.keepdims)), np.arange(len(self.keepdims), self.number_of_dimloop)), axis=None);
-        bli = np.concatenate((self.indices_keepdim_b, contfb), axis=None);
-        self.list_indices_b_intot = self.permutation(bli, bla);
+        self.bla = np.concatenate((np.arange(len(self.keepdims_a), len(self.keepdims)),
+                              np.arange(len(self.keepdims), self.number_of_dimloop)), axis=None).copy()
+        self.bli = np.concatenate((self.indices_keepdim_b, contfb), axis=None)
+        self.list_indices_b_intot = self.permutation(self.bli, self.bla)
 
-        if permute is None:
-            permute = np.arange(self.dim)
+        # Gradient
+        self.dimfa_grad = self.permutation(permute, self.keepdims)
 
-        self.permute = permute
+        self.list_indices_keepdim_a_inout = np.arange(0, len(self.keepdims_a))
+        self.reordered_contfa = contfa[np.argsort(contfb)]#self.permutation(np.argsort(contfb), contfa)#
+        self.reordered_keepdim_a = self.indices_keepdim_a[np.argsort(permute[self.list_indices_keepdim_a_inout])] #self.permutation(np.argsort(permute[self.list_indices_keepdim_a_inout]), self.indices_keepdim_a)
+        self.moveaxis_a = np.concatenate((self.reordered_keepdim_a, self.reordered_contfa), axis=None)
+
+        self.list_indices_keepdim_b_inout = np.arange(len(self.keepdims_a), len(self.keepdims))
+        self.reordered_contfb = contfb[np.argsort(contfa)]#self.permutation(np.argsort(contfa), contfb)#
+        self.reordered_keepdim_b = self.indices_keepdim_b[np.argsort(permute[self.list_indices_keepdim_b_inout])]#self.permutation(np.argsort(permute[self.list_indices_keepdim_b_inout]), self.indices_keepdim_b)
+        self.moveaxis_b = np.concatenate((self.reordered_keepdim_b, self.reordered_contfb), axis=None)
+
+        self.contfa_grad = permute[self.list_indices_keepdim_b_inout]
+        self.contfb_grad = permute[self.list_indices_keepdim_a_inout]
 
     def looper(self, loopdim):
         """Evil looping function!"""
@@ -67,7 +89,7 @@ class TensorDot(Operation):
         list_indices_b = inds[:, self.list_indices_b_intot]
         b_indices = (list_indices_b * self.list_strides_dimsfb).sum(axis=1)
 
-        list_indices_keepdim = self.permutation(self.permute, inds[:,:len(self.keepdims)])
+        list_indices_keepdim = self.permutation(self.permute, inds[:, :len(self.keepdims)])
         out_indices = (list_indices_keepdim * self.list_strides_keepdim).sum(axis=1)
 
         return out_indices, a_indices, b_indices
@@ -92,40 +114,99 @@ class TensorDot(Operation):
         if len(x) == 0:
             return x
         else:
+            # return np.concatenate((np.cumprod(x[:-1][::1])[::-1], [1]))
             return np.concatenate((np.cumprod(x[1:][::-1])[::-1], [1]))
+
+    @staticmethod
+    def permutation2(perm, arr):
+        """Permute column of an array"""
+
+        if perm is None:
+            return arr
+
+        _perm = perm.astype(int).flatten().copy()
+        _arr = arr.copy()
+
+        rs = False
+        if len(_arr.shape) == 1:
+            _arr = _arr.reshape(1, -1)
+            rs = True
+        elif len(_arr.squeeze().shape) >= 3:
+            print("********* " + str(len(arr.shape)))
+            raise RuntimeError()
+
+        def swap(__arr, _i, _j):
+            tmp = __arr[:, _i].copy()
+            __arr[:, _i] = __arr[:, _j].copy()
+            __arr[:, _j] = tmp
+            return __arr
+
+        n = _arr.shape[1]
+
+        for i in range(n):
+            j = _perm[i]
+            while j < i:
+                j = _perm[j]
+            _arr = swap(_arr, i, j)
+
+        if rs:
+            return _arr.reshape(-1)
+        else:
+            return _arr
+
+
+    @staticmethod
+    def permutation1(perm, arr):
+        """Permute column of an array"""
+
+        if perm is None:
+            return arr
+
+        _perm = perm.astype(int).flatten().copy()
+        _arr = arr.copy()
+
+        rs = False
+        if len(_arr.shape) == 1:
+            _arr = _arr.reshape(1, -1)
+            rs = True
+        elif len(_arr.squeeze().shape) >= 3:
+            raise RuntimeError()
+
+        n = _arr.shape[1]
+
+        res = np.zeros_like(_arr)
+
+        for i in range(n):
+            res[:, _perm[i]] = _arr[:, i]
+
+        if rs:
+            return res.flatten()
+        else:
+            return res
 
     @staticmethod
     def permutation(perm, arr):
         """Permute column of an array"""
+
         if perm is None:
             return arr
-        perm = perm.astype(int)
+
+        _perm = perm.astype(int).flatten().copy()
+        _arr = arr.copy()
 
         rs = False
-        if len(arr.shape) == 1:
-            arr = arr.reshape(1, -1)
+        if len(_arr.shape) == 1:
+            _arr = _arr.reshape(1, -1)
             rs = True
-        elif len(arr.shape) > 2:
-            raise RuntimeError
+        elif len(_arr.squeeze().shape) >= 3:
+            raise RuntimeError()
 
-        def swap(_arr, _i, _j):
-            tmp = _arr[:, _i]
-            _arr[:, _i] = _arr[:, _j]
-            _arr[:, _j] = tmp
-            return _arr
-
-        n = arr.shape[1]
-
-        for i in range(n):
-            j = perm[i]
-            while j < i:
-                j = perm[j]
-            arr = swap(arr, i, j)
+        res = _arr[:, np.argsort(_perm)]
 
         if rs:
-            return arr.reshape(-1)
+            return res.flatten()
         else:
-            return arr
+            return res
 
     def Op(self, out, table, arg0, arg1):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
@@ -135,7 +216,7 @@ class TensorDot(Operation):
         str_code = ""
         for i in range(len(out_indices)):
             str_code += f"                            " + \
-                   f"{out.id}[{out_indices[i]}] += {arg0.id}[{a_indices[i]}] * {arg1.id}[{b_indices[i]}];\n"
+                        f"{out.id}[{out_indices[i]}] += {arg0.id}[{a_indices[i]}] * {arg1.id}[{b_indices[i]}];\n"
 
         return f"""
                     #if C_CONTIGUOUS     // row major
@@ -143,14 +224,27 @@ class TensorDot(Operation):
                         for (int i = 0; i < {out.dim}; i++)
                             {out.id}[i] = ({out.dtype})(0.0f);
                     
-                        {str_code}
+{str_code}
                     #else               // column major
                         
                     #endif
                 """
 
     def DiffT(self, v, gradin):
-        from keops.python_engine.formulas import MatVecMult, VecMatMult
+        from keops.python_engine.formulas import Ind
+
         f = self.children[0]
         g = self.children[1]
-        return f.Grad(v, MatVecMult(gradin, g)) + g.Grad(v, VecMatMult(f, gradin))
+        return f.DiffT(v, TensorDot(gradin, g,
+                                   Ind(self.dimfa_grad),
+                                   Ind(self.dimfb),
+                                   Ind(self.contfa_grad),
+                                   Ind(self.indices_keepdim_b),
+                                   Ind(self.moveaxis_a))) + \
+               g.DiffT(v, TensorDot(gradin, f,
+                                   Ind(self.dimfa_grad),
+                                   Ind(self.dimfa),
+                                   Ind(self.contfb_grad),
+                                   Ind(self.indices_keepdim_a),
+                                   Ind(self.moveaxis_b)
+                                   ))
