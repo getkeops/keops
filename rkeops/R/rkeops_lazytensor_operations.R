@@ -96,7 +96,7 @@ LazyTensor <- function(x, index = NA)
 
     # Now we define "formula", a string specifying the variable for KeOps C++ codes.
     #var_name = "var0"
-    var_name = address(x)
+    #var_name = address(x)
     #var_name = paste("A", address(x), sep="")
     var_name = paste("A", address(x), index, sep="") 
     formula = var_name
@@ -174,8 +174,8 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
         # case when the operation is not an operator
         else 
             formula <- paste(opstr, "(", x$formula, ",", y, ")", sep="")
-        vars <- c(x$vars, y) # TODO check if we need y$vars instead of y
-        args <- c(x$args, y) # TODO check if we need y$args instead of y
+        vars <- c(x$vars) # TODO check if we need y$vars instead of y
+        args <- c(x$args) # TODO check if we need y$args instead of y
     }
     # case with no specific operation 
     else{
