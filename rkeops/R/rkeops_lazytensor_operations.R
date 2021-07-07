@@ -301,36 +301,37 @@ sqrt.LazyTensor <- function(x){
 # multiplication
 "*.default" <- .Primitive("*") # assign default as current definition
 
-"*" <- function(x, ...)
-{ 
+"*" <- function(x, ...) { 
     UseMethod("*", x)
 }
 
-"*.LazyTensor" <- function(x, y)
-{
+"*.LazyTensor" <- function(x, y) {
     obj <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE)
 }
 
 # division
-"/.default" <- .Primitive("/") # assign default as current definition
+"/.default" <- .Primitive("/")
 
-"/" <- function(x, ...)
-{ 
+"/" <- function(x, ...) { 
     UseMethod("/", x)
 }
 
-"/.LazyTensor" <- function(x, y)
-{
+"/.LazyTensor" <- function(x, y) {
     obj <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE)
 }
 
 # scalar product
-"|.LazyTensor" <- function(x,y)
-{
+"|.default" <- .Primitive("|")
+
+"|" <- function(x, ...) { 
+    UseMethod("|", x)
+}
+"|.LazyTensor" <- function(x, y) {
     obj <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE)
     obj$formula <- paste("(", obj$formula, ")", sep = "")
     obj
 }
+
 
 "%*%.default" <- .Primitive("%*%") # assign default as current definition
 
@@ -342,20 +343,18 @@ sqrt.LazyTensor <- function(x){
 "%*%.LazyTensor" <- function(x, y)
 {
     if(is.matrix(y))
-        y <- LazyTensor(y,'j')
-    sum( x*y, index = 'j')
+        y <- LazyTensor(y, "j")
+    sum(x * y, index = "j")
 }
 
 # exponential
 exp.default <- .Primitive("exp")
 
-exp <- function(x) # remove the `index` argument
-{
+exp <- function(x) {
     UseMethod("exp")
 }
 
-exp.LazyTensor <- function(x)
-{
+exp.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Exp")
 }
 
@@ -373,45 +372,26 @@ log.LazyTensor <- function(x)
     obj <- unaryop.LazyTensor(x, "Log")
 }
 
-# TODO : this function doesn't work 
-reduction.LazyTensor <- function(x,opstr,index)
-{
-    if(index=="i") tag<-1 else tag<-0
-    formula <- paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
-    args = x$args
-    op <- keops_kernel(formula,args)
-    res <- op(x$vars)
-    return(res)
-}
-
-# sum function
-sum.default <- .Primitive("sum")
-
-sum <- function(obj, index) 
-{
-    UseMethod("sum")
-}
-
-sum.LazyTensor <- function(x, index=NA)
-{
-    if(is.na(index))
-    {
-        obj <- unaryop.LazyTensor(x,"Sum")
-    }
-    else
-        obj <- reduction.LazyTensor(x,"Sum",index)
-}
-
 # element-wise inverse 1/x
-Inv <- function(x){
+Inv <- function(x) {
     obj <- unaryop.LazyTensor(x, "Inv")
 }
 
+# cosinus
+cos.default <- .Primitive("cos")
+
+cos <- function(x) {
+    UseMethod("cos")
+}
+
+cos <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Cos")
+}
 
 # sinus
 sin.default <- .Primitive("sin")
 
-sin <- function(obj, index) 
+sin <- function(x) 
 {
     UseMethod("sin")
 }
@@ -420,32 +400,67 @@ sin.LazyTensor  <- function(x){
     obj <- unaryop.LazyTensor(x, "Sin")
 }
 
+# arccos
+acos.default <- .Primitive("acos")
 
-
-Asin <- function(x){
-    obj <- unaryop.LazyTensor(x, "Asin")
+acos <- function(x) {
+    UseMethod("acos")
 }
-
-
-# cosinus
-cos.default <- .Primitive("cos")
-
-cos <- function(obj, index) 
-{
-    UseMethod("cos")
-}
-
-cos <- function(x){
-    obj <- unaryop.LazyTensor(x, "Cos")
-}
-
-Acos <- function(x){
+acos <- function(x) {
     obj <- unaryop.LazyTensor(x, "Acos")
 }
 
-Atan <- function(x){
+# arcsinus
+asin.default <- .Primitive("asin")
+
+asin <- function(x) {
+    UseMethod("asin")
+}
+
+asin.LazyTensor <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Asin")
+}
+
+# arctan
+atan.default <- .Primitive("atan")
+
+atan <- function(x) {
+    UseMethod("atan")
+}
+
+atan <- function(x) {
     obj <- unaryop.LazyTensor(x, "Atan")
 }
+
+# Reduction
+reduction.LazyTensor <- function(x, opstr, index) {
+    if(index == "i") 
+        tag <- 1
+    else 
+        tag <- 0
+    formula <- paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
+    args <- x$args
+    op <- keops_kernel(formula, args)
+    res <- op(x$vars)
+    return(res)
+}
+
+# sum function
+sum.default <- .Primitive("sum")
+
+sum <- function(obj, index) {
+    UseMethod("sum")
+}
+
+sum.LazyTensor <- function(x, index = NA) {
+    if(is.na(index))
+        obj <- unaryop.LazyTensor(x, "Sum")
+    else
+        obj <- reduction.LazyTensor(x, "Sum", index)
+}
+
+
+
 
 # Basic example
 
