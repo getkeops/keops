@@ -11,6 +11,9 @@ import torch
 
 from pykeops.torch import LazyTensor
 
+import pykeops.config
+pykeops.config.gpu_available = False
+
 M, N = 2, 10
 
 #######################################################################################################################
@@ -51,7 +54,7 @@ print(
 dC = torch.autograd.grad(C, b, xi.reshape(1, 4))[0].view(-1)
 dc = torch.autograd.grad(c, b, xi)[0].view(-1)
 
-# print(dC, dc)
+print(dC, dc)
 print(
     "Compare the two MatVecMul gradient wrt b implementations. All good?",
     torch.allclose(dc.flatten(), dC.flatten()),

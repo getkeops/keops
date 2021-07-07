@@ -67,7 +67,7 @@ class numpytools:
     @staticmethod
     def dtype(x):
         return x.dtype
-        
+
     @staticmethod
     def detect_complex(x):
         if type(x) == list:
@@ -97,7 +97,9 @@ class numpytools:
 
     @staticmethod
     def ctypes(x):
-        argtype = np.ctypeslib.ndpointer(dtype=x.dtype, ndim=x.ndim, flags='C_CONTIGUOUS')
+        argtype = np.ctypeslib.ndpointer(
+            dtype=x.dtype, ndim=x.ndim, flags="C_CONTIGUOUS"
+        )
         return dict(data=x, type=argtype)
 
     @staticmethod
@@ -123,11 +125,10 @@ class numpytools:
     @staticmethod
     def device(x):
         return "cpu"
-                
+
     @staticmethod
     def device_dict(x):
         return dict(cat="cpu")
-                
 
 
 def squared_distances(x, y):

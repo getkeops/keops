@@ -49,9 +49,9 @@ class KernelSolveAutograd(torch.autograd.Function):
         ctx.optional_flags = optional_flags.copy()
         if rec_multVar_highdim is not None:
             optional_flags += ["-DMULT_VAR_HIGHDIM=1"]
-            
+
         my_LoadKeOps = LoadKeOps_new if pykeops.use_python_engine else LoadKeOps
-        
+
         myconv = my_LoadKeOps(
             formula, aliases, dtype, "torch", optional_flags, include_dirs
         ).import_module()

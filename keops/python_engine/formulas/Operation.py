@@ -7,12 +7,14 @@ from keops.python_engine import debug_ops
 ## Base class
 ###################
 
+
 class Operation(Tree):
     """Base class for all keops building block operations in a formula"""
-    def __init__(self, *args):
+
+    def __init__(self, *args, params=()):
         # *args are other instances of Operation, they are the child operations of self
         self.children = args
-        self.params = ()
+        self.params = params
         # The variables in the current formula is the union of the variables in the child operations.
         # Note that this requires implementing properly __eq__ and __hash__ methods in Var class
         self.Vars_ = set.union(*(arg.Vars_ for arg in args)) if len(args) > 0 else set()
@@ -31,9 +33,9 @@ class Operation(Tree):
 
     def __call__(self, out, table):
         """returns the C++ code string corresponding to the evaluation of the formula
-          - out is a c_variable in which the result of the evaluation is stored
-          - table is the list of c_variables corresponding to actual local variables
-         required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
+         - out is a c_variable in which the result of the evaluation is stored
+         - table is the list of c_variables corresponding to actual local variables
+        required for evaluation : each Var(ind,*,*) corresponds to table[ind]"""
         from keops.python_engine.formulas.variables.Var import Var
 
         string = f"\n{{\n// Starting code block for {self.__repr__()}.\n\n"
@@ -61,35 +63,39 @@ class Operation(Tree):
             args.append(arg)
         # Finally, evaluation of the operation itself
         string += self.Op(out, table, *args)
-        
+
         # some debugging helper :
         if debug_ops:
             for arg in args:
                 string += arg.c_print()
             string += out.c_print()
-            string += f'std::cout << std::endl << std::endl;\n'
-            
+            string += f"std::cout << std::endl << std::endl;\n"
+
         string += f"\n\n// Finished code block for {self.__repr__()}.\n}}\n\n"
         return string
-        
+
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Mult import Mult
-        return Mult(self, other)
+
+        return Mult(self, int2Op(other))
 
     def __rmul__(self, other):
         """g*f redirects to Mult(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Mult import Mult
-        return Mult(self, other)
+
+        return Mult(self, int2Op(other))
 
     def __truediv__(self, other):
         """f/g redirects to Divide(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Divide import Divide
-        return Divide(self, other)
+
+        return Divide(self, int2Op(other))
 
     def __rtruediv__(self, other):
-        if other==1:
+        if other == 1:
             from keops.python_engine.formulas.basicMathOps.Inv import Inv
+
             return Inv(self)
         else:
             return int2Op(other) / self
@@ -97,7 +103,8 @@ class Operation(Tree):
     def __add__(self, other):
         """f+g redirects to Add(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Add import Add
-        return Add(self, other)
+
+        return Add(self, int2Op(other))
 
     def __radd__(self, other):
         """f+g redirects to Add(f,g)"""
@@ -106,7 +113,8 @@ class Operation(Tree):
     def __sub__(self, other):
         """f-g redirects to Subtract(f,g)"""
         from keops.python_engine.formulas.basicMathOps.Subtract import Subtract
-        return Subtract(self, other)
+
+        return Subtract(self, int2Op(other))
 
     def __rsub__(self, other):
         """f-g redirects to Subtract(f,g)"""
@@ -115,11 +123,13 @@ class Operation(Tree):
     def __neg__(self):
         """-f redirects to Minus(f)"""
         from keops.python_engine.formulas.basicMathOps.Minus import Minus
+
         return Minus(self)
 
     def __pow__(self, other):
         """f**2 redirects to Square(f)"""
         from keops.python_engine.formulas.maths.Square import Square
+
         if other == 2:
             return Square(self)
         else:
@@ -128,16 +138,20 @@ class Operation(Tree):
     def __or__(self, other):
         """f|g redirects to Scalprod(f,g)"""
         from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
+
         return Scalprod(self, other)
+
+    def __eq__(self, other):
+        return type(self) == type(other) and self.children==other.children and self.params == other.params
 
     def Op(self, out, table, param):
         pass
 
 
-
 def int2Op(x):
     if isinstance(x, int):
         from keops.python_engine.formulas.variables.IntCst import IntCst
+
         return IntCst(x)
     elif isinstance(x, Operation):
         return x

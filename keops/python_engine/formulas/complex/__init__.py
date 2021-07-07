@@ -14,4 +14,3 @@ from .ComplexSumT import ComplexSumT
 from .Conj import Conj
 from .Imag2Complex import Imag2Complex
 from .Real2Complex import Real2Complex
-

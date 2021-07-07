@@ -1,6 +1,8 @@
-def binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu, tag1D2D):
-    
-    if red_formula.tagI==0:
+def binders_definitions(
+    dtype, red_formula, varloader
+):
+
+    if red_formula.tagI == 0:
         pos_first_argI = varloader.pos_first_argI
         nvarsi = varloader.nvarsi
         indsi = varloader.indsi
@@ -18,14 +20,14 @@ def binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu,
         nvarsj = varloader.nvarsi
         indsj = varloader.indsi
         dimsy = varloader.dimsx
-    
+
     indsI_str = str(indsi)[1:-1]
     indsJ_str = str(indsj)[1:-1]
     indsP_str = str(varloader.indsp)[1:-1]
     dimsX_str = str(dimsx)[1:-1]
     dimsY_str = str(dimsy)[1:-1]
     dimsP_str = str(varloader.dimsp)[1:-1]
-    
+
     return f"""
                 #define do_keops_checks 0
                 #if do_keops_checks
@@ -42,9 +44,6 @@ def binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu,
                 #define keops_nvarsI {nvarsi}
                 #define keops_nvarsJ {nvarsj}
                 #define keops_nvarsP {varloader.nvarsp}
-                #define tagHostDevice {tagHostDevice}
-                #define tagCpuGpu {tagCpuGpu}
-                #define tag1D2D {tag1D2D}
                 
                 int keops_indsI[keops_nvarsI] = {{ {indsI_str} }};
                 int keops_indsJ[keops_nvarsJ] = {{ {indsJ_str} }};

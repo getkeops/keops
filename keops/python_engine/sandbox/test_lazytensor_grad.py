@@ -23,8 +23,8 @@ def fun(x, y, b, backend):
     if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    Kxy = ((x-.5).ifelse(.25,.75)-y).sum(dim=2)
-    #Kxy = ((x-.5).exp()-y).sum(dim=2)
+    #Kxy = ((x - 0.5).mod(1, 0.2) - y).sum(dim=2)
+    Kxy = (x.log()-y).sum(dim=2)
     out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
@@ -32,7 +32,7 @@ def fun(x, y, b, backend):
     return out
 
 
-backends = ["keops"]#, "torch"]  # "keops_old"
+backends = ["keops", "torch"]  # "keops_old"
 
 out = []
 for backend in backends:
@@ -59,10 +59,10 @@ if test_grad:
             "relative error grad:",
             (torch.norm(out_g[0] - out_g[1]) / torch.norm(out_g[0])).item(),
         )
-        #print(
+        # print(
         #    "absolute error grad:",
         #    (torch.norm(out_g[0] - out_g[1])).item(),
-        #)
+        # )
 
 if test_grad2:
     out_g2 = []

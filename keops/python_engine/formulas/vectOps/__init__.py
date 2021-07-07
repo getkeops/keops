@@ -1,4 +1,6 @@
 from .Concat import Concat
+from .Elem import Elem
+from .ElemT import ElemT
 from .Extract import Extract
 from .ExtractT import ExtractT
 from .MatVecMult import MatVecMult
@@ -17,10 +19,3 @@ from .TensorDot import TensorDot
 from .VecMatMult import VecMatMult
 from .WeightedSqDist import WeightedSqDist
 from .WeightedSqNorm import WeightedSqNorm
-
-
-
-
-
-
-

@@ -8,15 +8,16 @@ from pykeops.torch import LazyTensor
 
 M, N, D, DV = 2500, 2000, 3, 1
 
-dtype = torch.float32
-sum_scheme = 'block_sum'
+dtype = torch.float64
+sum_scheme = "block_sum"
 
 device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
-do_warmup = True
+do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
 b = torch.randn(N, DV, device=device_id, dtype=dtype)
+
 
 def fun(x, y, b, backend):
     if "keops" in backend:
@@ -30,7 +31,7 @@ def fun(x, y, b, backend):
         out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
-    #print("out:",out)
+    # print("out:",out)
     return out
 
 
@@ -52,4 +53,3 @@ for backend in backends:
 
 if len(out) > 1:
     print("relative error:", (torch.norm(out[0] - out[1]) / torch.norm(out[0])).item())
-

@@ -1,4 +1,9 @@
-from keops.python_engine.utils.code_gen_utils import neg_infinity, c_zero_float, VectApply, c_if
+from keops.python_engine.utils.code_gen_utils import (
+    neg_infinity,
+    c_zero_float,
+    VectApply,
+    c_if,
+)
 from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
@@ -21,7 +26,7 @@ class Max_ArgMax_Reduction_Base(Reduction):
         # Subroutine of ReducePairShort and ReducePair methods.
         if xi.dtype == "half2":
             raise ValueError("not implemented")
-        return c_if(xi>acc_val, acc_val.assign(xi) + acc_ind.assign(ind))
+        return c_if(xi > acc_val, acc_val.assign(xi) + acc_ind.assign(ind))
 
     def ReducePair(self, acc, xi):
         # Returns C++ code that implements the update phase of the reduction.
@@ -34,7 +39,9 @@ class Max_ArgMax_Reduction_Base(Reduction):
         if xi.dtype == "half2":
             raise ValueError("not implemented")
             half2_val = c_variable("half2_ind")
-            string = half2_val.declare_assign(f"__floats2half2_rn(2*{ind()},2*{ind()}+1)")
+            string = half2_val.declare_assign(
+                f"__floats2half2_rn(2*{ind()},2*{ind()}+1)"
+            )
         dim = self.formula.dim
         acc_val, acc_ind = acc.split(dim, dim)
         return VectApply(self.ReducePairScalar, acc_val, acc_ind, xi, ind)

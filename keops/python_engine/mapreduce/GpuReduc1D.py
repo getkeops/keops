@@ -1,9 +1,16 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
 from keops.python_engine.mapreduce.GpuAssignZero import GpuAssignZero
-from keops.python_engine.utils.code_gen_utils import c_variable, c_array, c_include, signature_list, call_list
+from keops.python_engine.utils.code_gen_utils import (
+    c_variable,
+    c_array,
+    c_include,
+    signature_list,
+    call_list,
+)
 from keops.python_engine.compilation import Gpu_link_compile
 
-class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
+
+class GpuReduc1D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
 
     AssignZero = GpuAssignZero
@@ -12,7 +19,7 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
 
-    def get_code(self, for_jit=False):
+    def get_code(self):
 
         super().get_code()
 
@@ -20,13 +27,13 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
         dtype = self.dtype
         varloader = self.varloader
 
-        i = c_variable("int", "i")
-        j = c_variable("int", "j")
+        i = self.i
+        j = self.j
         fout = self.fout
         outi = self.outi
         acc = self.acc
+        arg = self.arg
         args = self.args
-        argshapes = self.argshapes
         sum_scheme = self.sum_scheme
 
         param_loc = self.param_loc
@@ -38,16 +45,11 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
 
         if dtype == "half2":
             self.headers += c_include("cuda_fp16.h")
-            
-        if for_jit:
-            optional_extern_qualif = 'extern "C" '
-        else:
-            optional_extern_qualif = ""
 
         self.code = f"""
                         {self.headers}
 
-                        {optional_extern_qualif}__global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {signature_list(args)}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread
                           int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -95,41 +97,5 @@ class GpuReduc1D_FromDevice(MapReduce, Gpu_link_compile):
                             {red_formula.FinalizeOutput(acc, outi, i)} 
                           }}
 
-                        }}
-                    """
-
-        if not for_jit:
-            self.code += f"""
-                        extern "C" __host__ int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype} *out, {signature_list(args)}, {signature_list(argshapes)}) {{
-                            
-                            if ({red_formula.tagJ}==0) {{
-                                int tmp = ny;
-                                ny = nx;
-                                nx = tmp;
-                            }}
-                            
-                            // device_id is provided, so we set the GPU device accordingly
-                            // Warning : is has to be consistent with location of data
-                            cudaSetDevice(device_id);
-
-                            // Compute on device : grid and block are both 1d
-
-                            //SetGpuProps(device_id);
-
-                            dim3 blockSize;
-
-                            blockSize.x = 32;
-
-                            dim3 gridSize;
-                            gridSize.x = nx / blockSize.x + (nx % blockSize.x == 0 ? 0 : 1);
-
-                            GpuConv1DOnDevice <<< gridSize, blockSize, blockSize.x * {varloader.dimy} * sizeof({dtype}) >>> (nx, ny, out, {call_list(args)});
-    
-                            // block until the device has completed
-                            cudaDeviceSynchronize();
-
-                            //CudaCheckError();
-
-                            return 0;
                         }}
                     """

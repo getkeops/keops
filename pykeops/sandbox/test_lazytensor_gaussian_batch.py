@@ -73,8 +73,8 @@ if test_grad:
 
     if len(out_g) > 1:
         print()
-        print("out_g[0]:",out_g[0].flatten()[:10])
-        print("out_g[1]:",out_g[1].flatten()[:10])
+        print("out_g[0]:", out_g[0].flatten()[:10])
+        print("out_g[1]:", out_g[1].flatten()[:10])
         print(
             "relative error grad:",
             (torch.norm(out_g[0] - out_g[1]) / torch.norm(out_g[0])).item(),

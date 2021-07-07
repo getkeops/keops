@@ -3,8 +3,8 @@ from keops.python_engine.formulas.reductions.Reduction import Reduction
 
 
 class Min_Reduction(Reduction):
-    """ Implements the min reduction operation : for each i or each j, find the minimal value of Fij
-        operation is vectorized: if Fij is vector-valued, min is computed for each dimension."""
+    """Implements the min reduction operation : for each i or each j, find the minimal value of Fij
+    operation is vectorized: if Fij is vector-valued, min is computed for each dimension."""
 
     string_id = "Min_Reduction"
 
@@ -22,4 +22,4 @@ class Min_Reduction(Reduction):
         # Subroutine of ReducePairShort and ReducePair methods.
         if xi.dtype == "half2":
             raise ValueError("not implemented")
-        return c_if(xi<acc, acc.assign(xi))
+        return c_if(xi < acc, acc.assign(xi))

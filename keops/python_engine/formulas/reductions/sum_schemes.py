@@ -1,4 +1,9 @@
-from keops.python_engine.utils.code_gen_utils import c_array, c_zero_float, c_if, c_variable
+from keops.python_engine.utils.code_gen_utils import (
+    c_array,
+    c_zero_float,
+    c_if,
+    c_variable,
+)
 
 
 class Sum_Scheme:
@@ -38,7 +43,10 @@ class block_sum(Sum_Scheme):
         self.tmp_acc = c_array(dtype, red_formula.dimred, "tmp")
 
     def initialize_temporary_accumulator(self):
-        return "int period_accumulate = ny<10 ? 100 : sqrt(ny);\n" + self.red_formula.InitializeReduction(self.tmp_acc)
+        return (
+            "int period_accumulate = ny<10 ? 100 : sqrt(ny);\n"
+            + self.red_formula.InitializeReduction(self.tmp_acc)
+        )
 
     def initialize_temporary_accumulator_block_init(self):
         return self.red_formula.InitializeReduction(self.tmp_acc)
@@ -48,7 +56,11 @@ class block_sum(Sum_Scheme):
 
     def periodic_accumulate_temporary(self, acc, j):
         condition = c_variable("bool", f"!(({j.id}+1)%period_accumulate)")
-        return c_if( condition, self.red_formula.ReducePair(acc, self.tmp_acc) + self.red_formula.InitializeReduction(self.tmp_acc) )
+        return c_if(
+            condition,
+            self.red_formula.ReducePair(acc, self.tmp_acc)
+            + self.red_formula.InitializeReduction(self.tmp_acc),
+        )
 
     def final_operation(self, acc):
         return self.red_formula.ReducePair(acc, self.tmp_acc)

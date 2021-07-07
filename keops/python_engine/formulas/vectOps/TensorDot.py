@@ -1,5 +1,4 @@
 from keops.python_engine.formulas.Operation import Operation
-
 import numpy as np
 
 ####################################
@@ -12,9 +11,9 @@ class TensorDot(Operation):
     string_id = "TensorDot"
 
     def __init__(self, fa, fb, dimsfa, dimsfb, contfa, contfb, permute=None):
-        # print(dimsfa, dimsfb, contfa, contfb, permute)
 
-        assert (dimsfb[contfb] == dimsfa[contfa]).all()
+        assert (np.allclose(dimsfb[contfb], dimsfa[contfa]))
+
         assert (fa.dim == dimsfa.prod())
         assert (fb.dim == dimsfb.prod())
 

@@ -7,8 +7,10 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ######    Subtract   #####
 ##########################
 
+
 class Subtract_Impl(VectorizedScalarOp):
     """the binary subtract operation"""
+
     string_id = "Subtract"
     print_spec = "-", "mid", 4
 

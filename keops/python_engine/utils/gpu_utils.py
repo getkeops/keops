@@ -21,7 +21,7 @@ def get_gpu_number():
         else:
             break
     else:
-        #print("[KeOps]: Warning, no cuda detected. Switching to cpu only.")
+        # print("[KeOps]: Warning, no cuda detected. Switching to cpu only.")
         return 0  # raise
 
     nGpus = ctypes.c_int()

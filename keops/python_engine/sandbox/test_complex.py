@@ -32,7 +32,7 @@ def fun(x, p, f, backend):
         x = LazyTensor(x)
         p = LazyTensor(p)
         f = LazyTensor(f)
-    X = ((-2 * math.pi * 1j) * p * f)*x
+    X = ((-2 * math.pi * 1j) * p * f) * x
     return X.sum(dim=0)
 
 

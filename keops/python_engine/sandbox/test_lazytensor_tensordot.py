@@ -11,31 +11,57 @@ import torch
 
 from pykeops.torch import LazyTensor
 
+import pykeops.config
+pykeops.config.gpu_available = False
+
 M, N = 2, 10
 
-#######################################################################################################################
-# Matrix multiplication as a special case of Tensordot
-# ----------------------------------------------------
-#
-device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
-do_warmup = True
 
-a = torch.randn(4 * 7, requires_grad=True, device=device_id, dtype=torch.float64)
-b = torch.randn(7, requires_grad=True, device=device_id, dtype=torch.float64)
-c = a.reshape(4, 7) @ b
 
 #######################################################################################################################
-# A single matrix multiplication
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#
-# In this case no need to use KeOps: this is a sanity check.
+# A Fourth example
+# ^^^^^^^^^^^^^^^^
 
-A = LazyTensor(a[None, None, :])
-B = LazyTensor(b[None, None, :])
-C = A.keops_tensordot(B, (4, 7), (7,), (1,), (0,)).sum_reduction(dim=1)
+x = torch.randn(M, 2, 3, 4, 2, 2, requires_grad=True, dtype=torch.float64)
+y = torch.randn(N, 2, 4, 5, 3, 2, requires_grad=True, dtype=torch.float64)
 
-# print(C, c)
-print(
-    "Compare the two MatVecMul implementations. All good?",
-    torch.allclose(c.flatten(), C.flatten()),
+xshape, yshape = x.shape[1:], y.shape[1:]
+f_keops = LazyTensor(x.reshape(M, 1, int(np.array((xshape)).prod()))).keops_tensordot(
+    LazyTensor(y.reshape(1, N, int(np.array(yshape).prod()))),
+    xshape,
+    yshape,
+    (0, 1, 4),
+    (0, 3, 4),
 )
+sum_f_keops = f_keops.sum_reduction(dim=1)
+sum_f_torch2 = torch.tensordot(x, y, dims=([1, 2, 5], [1, 4, 5])).sum(3)
+# sum_f_torch2 = torch.tensordot(x, y, dims=([3], [1])).sum(3)
+
+print(sum_f_keops.flatten(), sum_f_torch2.flatten())
+print(
+    "Compare the two tensordot implementation. All good ????!",
+    torch.allclose(sum_f_keops.flatten(), sum_f_torch2.flatten()),
+)
+
+# checking gradients
+e = torch.randn_like(sum_f_torch2)
+grad_keops = torch.autograd.grad(sum_f_keops, x, e.reshape(M, -1), retain_graph=True)[
+    0
+].numpy()
+grad_torch = torch.autograd.grad(sum_f_torch2, x, e, retain_graph=True)[0].numpy()
+
+print(
+    "Compare the two gradient x tensordot implementation. All good ????!",
+    np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4),
+)
+
+grad_keops = torch.autograd.grad(sum_f_keops, y, e.reshape(M, -1), retain_graph=True)[
+    0
+].numpy()
+grad_torch = torch.autograd.grad(sum_f_torch2, y, e, retain_graph=True)[0].numpy()
+print(
+    "Compare the two gradient y tensordot implementation. All good ????!",
+    np.allclose(grad_keops.flatten(), grad_torch.flatten(), rtol=1e-4),
+)
+
+print("------------------------------------------")

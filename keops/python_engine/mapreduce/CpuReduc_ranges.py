@@ -1,10 +1,20 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
 from keops.python_engine.mapreduce.CpuAssignZero import CpuAssignZero
-from keops.python_engine.utils.code_gen_utils import c_variable, c_array, c_include, signature_list, call_list, varseq_to_array
+from keops.python_engine.utils.code_gen_utils import (
+    c_variable,
+    c_array,
+    c_include,
+    signature_list,
+    call_list,
+)
 from keops.python_engine.compilation import Cpu_link_compile
-from keops.python_engine import use_jit
 from keops.python_engine.binders.binders_definitions import binders_definitions
-from keops.python_engine.broadcast_batch_dimensions import define_fill_shapes_function, define_broadcast_index_function, define_vect_broadcast_index_function
+from keops.python_engine.broadcast_batch_dimensions import (
+    define_fill_shapes_function,
+    define_broadcast_index_function,
+    define_vect_broadcast_index_function,
+)
+
 
 class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     # class for generating the final C++ code, Cpu version
@@ -12,15 +22,10 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
     AssignZero = CpuAssignZero
 
     def __init__(self, *args):
-        if use_jit:
-            raise ValueError("JIT compiling not yet implemented in Cpu mode")
         MapReduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)
 
-    def get_code(self, for_jit=False):
-        
-        if for_jit:
-            raise ValueError("JIT compiling not yet implemented in Cpu mode")
+    def get_code(self):
 
         super().get_code()
 
@@ -32,38 +37,46 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
         outi = self.outi
         acc = self.acc
         acctmp = self.acctmp
+        arg = self.arg
         args = self.args
         nargs = len(args)
-        argshapes = self.argshapes
-        
+
         xi = self.xi
         yj = c_array(dtype, self.varloader.dimy, "yj")
         param_loc = self.param_loc
-        
+
         varloader = self.varloader
         table = varloader.table(xi, yj, param_loc)
-        
-        nvarsi, nvarsj, nvarsp = len(self.varloader.Varsi), len(self.varloader.Varsj), len(self.varloader.Varsp)
-        
-        tagHostDevice, tagCpuGpu, tag1D2D = self.tagHostDevice, self.tagCpuGpu, self.tag1D2D
-        
+
+        nvarsi, nvarsj, nvarsp = (
+            len(self.varloader.Varsi),
+            len(self.varloader.Varsj),
+            len(self.varloader.Varsp),
+        )
+
+        tagHostDevice, tagCpuGpu, tag1D2D = (
+            self.tagHostDevice,
+            self.tagCpuGpu,
+            self.tag1D2D,
+        )
+
         sum_scheme = self.sum_scheme
-        
+
         indices_i = c_array("int", nvarsi, "indices_i")
         indices_j = c_array("int", nvarsj, "indices_j")
         indices_p = c_array("int", nvarsp, "indices_p")
         imstartx = c_variable("int", "i-start_x")
         jmstarty = c_variable("int", "j-start_y")
 
-        self.headers += c_include("cmath", "omp.h")        
+        self.headers += c_include("cmath", "omp.h")
         
         self.code = f"""
                         {self.headers}
                         #define __INDEX__ int32_t
                   
-                        {binders_definitions(dtype, red_formula, varloader, tagHostDevice, tagCpuGpu, tag1D2D)}
-                        #include "Sizes.h"
-                        #include "Ranges.h"
+                        {binders_definitions(dtype, red_formula, varloader)}
+                        #include "Sizes_.h"
+                        #include "Ranges_.h"
                         
                         {define_fill_shapes_function(red_formula)}
                         {define_broadcast_index_function()}
@@ -72,7 +85,7 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                         int CpuConv_ranges(int nx, int ny, 
                                             int nbatchdims, int* shapes,
                                             int nranges_x, int nranges_y, __INDEX__** ranges,
-                                            {dtype}* out, {signature_list(args)}) {{
+                                            {dtype}* out, {dtype} **{arg.id}) {{
                                                 
                             // Separate and store the shapes of the "i" and "j" variables + parameters --------------
                             //
@@ -185,29 +198,48 @@ class CpuReduc_ranges(MapReduce, Cpu_link_compile):
                             }}
                             return 0;
                         }}
+                    """   
+                    
+        self.code += f"""    
+                    
+                    #include "stdarg.h"
+                    
+                    extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+                                                        int *indsi, int *indsj, int *indsp, 
+                                                        int dimout, 
+                                                        int *dimsx, int *dimsy, int *dimsp,
+                                                        int **ranges, int *shapeout, {dtype}* out, int nargs, ...) {{
                         
+                        // reading arguments
+                        va_list ap;
+                        va_start(ap, nargs);
+                        {dtype} *arg[nargs];
+                        for (int i=0; i<nargs; i++)
+                            arg[i] = va_arg(ap, {dtype}*);
+                        int *argshape[nargs];
+                        for (int i=0; i<nargs; i++)
+                            argshape[i] = va_arg(ap, int*);
+                        va_end(ap);
+
+                        Sizes SS(nargs, arg, argshape, nx, ny);
                         
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int **ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
-                            
-                            {varseq_to_array(args, "args_ptr")}
-                            {varseq_to_array(argshapes, "argshapes_ptr")}
+                        #if USE_HALF
+                          SS.switch_to_half2_indexing();
+                        #endif
 
-                            Sizes SS({nargs}, args_ptr, argshapes_ptr, nx, ny);
-                            
-                            #if USE_HALF
-                              SS.switch_to_half2_indexing();
-                            #endif
-
-                            Ranges RR(SS, ranges);
-                            
-                            if ({red_formula.tagJ}==1)
-                                return CpuConv_ranges(SS.nx, SS.ny, SS.nbatchdims, SS.shapes,
-                                                      RR.nranges_x, RR.nranges_y, RR.castedranges,
-                                                      out, {call_list(args)});
-                            else
-                                return CpuConv_ranges(SS.ny, SS.nx, SS.nbatchdims, SS.shapes,
-                                                      RR.nranges_x, RR.nranges_y, RR.castedranges,
-                                                      out, {call_list(args)});
-                            
+                        Ranges RR(SS, ranges);
+                        
+                        nx = SS.nx;
+                        ny = SS.ny;
+                        
+                        if (tagI==1) {{
+                            int tmp = ny;
+                            ny = nx;
+                            nx = tmp;
                         }}
-                    """
+                        
+                        return CpuConv_ranges(nx, ny, SS.nbatchdims, SS.shapes,
+                                                RR.nranges_x, RR.nranges_y, RR.castedranges,
+                                                out, arg);
+                    }}
+                """

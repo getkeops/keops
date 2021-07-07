@@ -1,5 +1,10 @@
 from keops.python_engine.mapreduce.MapReduce import MapReduce
-from keops.python_engine.utils.code_gen_utils import c_include, signature_list, c_zero_float, call_list
+from keops.python_engine.utils.code_gen_utils import (
+    c_include,
+    signature_list,
+    c_zero_float,
+    call_list,
+)
 from keops.python_engine.compilation import Cpu_link_compile
 
 
@@ -10,24 +15,21 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
         MapReduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)
 
-    def get_code(self, for_jit=False):
-        
-        if for_jit:
-            raise ValueError("JIT compiling not yet implemented in Cpu mode")
+    def get_code(self):
 
         super().get_code()
 
         outi = self.outi
         dtype = self.dtype
+        arg = self.arg
         args = self.args
-        argshapes = self.argshapes
 
         self.headers += c_include("omp.h")
 
         self.code = f"""
                         {self.headers}
 
-                        extern "C" int AssignZeroCpu(int nx, int ny, {dtype}* out, {signature_list(args)}) {{
+                        extern "C" int AssignZeroCpu(int nx, int ny, {dtype}* out, {dtype} **{arg.id}) {{
                             #pragma omp parallel for
                             for (int i = 0; i < nx; i++) {{
                                 {outi.assign(c_zero_float)}
@@ -35,7 +37,28 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                             return 0;
                         }}
                         
-                        extern "C" int launch_keops(int nx, int ny, int device_id, int *ranges, {dtype}* out, {signature_list(args)}, {signature_list(argshapes)}) {{
-                            return AssignZeroCpu(nx, ny, out, {call_list(args)});
+                        #include "stdarg.h"
+                        
+                        extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI,
+                                                            int *indsi, int *indsj, int *indsp, 
+                                                            int dimout, 
+                                                            int *dimsx, int *dimsy, int *dimsp, 
+                                                            int **ranges, int *shapeout, {dtype} *out, int nargs, ...) {{
+                            
+                            // reading arguments
+                            va_list ap;
+                            va_start(ap, nargs);
+                            {dtype} *arg[nargs];
+                            for (int i=0; i<nargs; i++)
+                                arg[i] = va_arg(ap, {dtype}*);
+                            va_end(ap);
+                            
+                            if (tagI==1) {{
+                                int tmp = ny;
+                                ny = nx;
+                                nx = tmp;
+                            }}
+                            
+                            return AssignZeroCpu(nx, ny, out, arg);
                         }}
                     """

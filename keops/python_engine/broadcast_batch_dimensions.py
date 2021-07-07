@@ -1,5 +1,6 @@
 from keops.python_engine.utils.code_gen_utils import *
 
+
 def define_broadcast_index_function():
     return """
                 int broadcast_index(int i, int nbatchdims, int *full_shape, int *shape) {
@@ -16,8 +17,9 @@ def define_broadcast_index_function():
                 }
             """
 
+
 def define_vect_broadcast_index_function():
-        return """
+    return """
                     void vect_broadcast_index(int i,
                                               int nbatchdims,
                                               int nvars,
@@ -31,6 +33,7 @@ def define_vect_broadcast_index_function():
                     }
                 """
 
+
 def define_fill_shapes_function(red_formula):
     varloader = Var_loader(red_formula)
     size_i = len(varloader.Varsi) + 1
@@ -39,8 +42,10 @@ def define_fill_shapes_function(red_formula):
     inds_i = varloader.indsi
     inds_j = varloader.indsj
     inds_p = varloader.indsp
-    tagIJ = red_formula.tagJ # 1 if the reduction is made "over j", 0 if it is made "over i"
-    
+    tagIJ = (
+        red_formula.tagJ
+    )  # 1 if the reduction is made "over j", 0 if it is made "over i"
+
     string = """
                 void fill_shapes(int nbatchdims, int *shapes, int *shapes_i, int *shapes_j, int *shapes_p) {
 
@@ -64,7 +69,7 @@ def define_fill_shapes_function(red_formula):
                   // [ A, .., 1, M]
                   // [ A, .., A, M]
             """
-    for k in range(size_i-1):
+    for k in range(size_i - 1):
         string += f"""
                       for (int l = 0; l < nbatchdims; l++) {{  // l-th column
                         shapes_i[{k} * (nbatchdims + 1) + l] = shapes[(1 + {inds_i[k]}) * (nbatchdims + 3) + l];
@@ -86,7 +91,7 @@ def define_fill_shapes_function(red_formula):
 
                         // And finally for the parameters, with "1" instead of "M":
                   """
-                  
+
     for k in range(size_p):
         string += f"""  
                         for (int l = 0; l < nbatchdims; l++) {{  // l-th column
@@ -95,12 +100,9 @@ def define_fill_shapes_function(red_formula):
                         shapes_p[{k} * (nbatchdims + 1) + nbatchdims] = 1;
 
                    """
-    
+
     string += """
                     }
               """
-              
+
     return string
-
-
-

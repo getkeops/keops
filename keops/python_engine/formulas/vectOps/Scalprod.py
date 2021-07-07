@@ -4,6 +4,7 @@ from keops.python_engine.formulas.vectOps.Sum import Sum
 #####    Scalprod     ####
 ##########################
 
+
 def Scalprod(arg0, arg1):
     if arg0.dim == 1:
         return arg0 * Sum(arg1)
