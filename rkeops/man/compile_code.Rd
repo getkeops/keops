@@ -9,7 +9,7 @@ compile_code(formula, var_aliases, dllname, cmake_dir)
 \arguments{
 \item{formula}{text string, formula defining the new operator.}
 
-\item{var_aliases}{text string, formated formula input arguments returned by
+\item{var_aliases}{text string, formatted formula input arguments returned by
 \code{\link[=format_var_aliases]{format_var_aliases()}} (specifically \verb{$var_aliases}).}
 
 \item{dllname}{text string, the name associated to the related shared object
@@ -29,7 +29,7 @@ The function \code{compile_code} is a wrapper to call cmake used in the function
 The function \code{compile_code} should only be called in the directory where the
 build (i.e. generation of related cmake and so files) will be done.
 
-The corresponging \code{CMakeLists.txt} file is located in directory \code{cmake_dir}
+The corresponding \code{CMakeLists.txt} file is located in directory \code{cmake_dir}
 given as input argument.
 }
 \seealso{

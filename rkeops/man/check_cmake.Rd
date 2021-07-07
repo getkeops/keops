@@ -15,7 +15,7 @@ a value 1 or 0 depending if checks are ok or not.
 }
 \description{
 This function calls the cmake executable whose path is
-given in input and check if its version is higher than
+given in input and checks if its version is higher than
 3.10 which is the minimum required for \code{rkeops} to work.
 }
 \details{

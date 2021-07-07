@@ -1,9 +1,9 @@
-library(rkeops)
-library(stringr)
-library(data.table)
+#library(rkeops)
+#library(stringr)
+#library(data.table)
 
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
+#set_rkeops_option("tagCpuGpu", 0)
+#set_rkeops_option("precision", "double")
 
 # TODO redo doc
 
@@ -16,21 +16,20 @@ set_rkeops_option("precision", "double")
 #' Run `browseVignettes("rkeops")` to access the vignettes.
 #' @author Ghislain Durif
 #' @param x A matrix or a vector of numeric values, or a scalar value
-#' @param index A text string that should be either `"i"` or `"j"`, or an `NA` value (the default),
-#' to specify whether if the `x` variable is indexed by i, by j, or is a fixed parameter across indices.
-#' If `x` is a matrix, `index` must be `"i"` or `"j"`.
+#' @param index A text string that should be either **i** or **j**, or an **NA** value (the default),
+#' to specify whether if the **x** variable is indexed by **i**, by **j**, or is a fixed parameter across indices.
+#' If **x** is a matrix, **index** must be **i** or **j**.
 #' @return An object of class "LazyTensor", which is a list with the following elements:
 #' @return
 #' \itemize{
-#'     \item{`formula`:}{ A string defining the mathematical operation to be computed by the KeOps routine, of the form Var(ind,dim,cat), where :
+#'     \item{**formula**:}{ A string defining the mathematical operation to be computed by the KeOps routine}
+#'     \item{**args**:}{ A vector of arguments containing a unique identifier associated to type of the argument :
 #'     \itemize{
-#'         \item{`ind`:}{ gives the position in the final call to KeOps routine}
-#'         \item{`dim`:}{ is the dimension of the input}
-#'         \item{`cat`:}{ the KeOps "category": 0 if the input is an R matrix indexed by "i", 1 if the input is an R matrix indexed by "j", or 2 if the input is a parameter vector or scalar, without any attached index}
+#'         \item{**Vi(n)**:}{ vector indexed by **i** of dim **n**}
+#'         \item{**Vj(n)**:}{ vector indexed by **j** of dim **n**}
+#'         \item{**Pm(n)**:}{ fixed parameter of dim **n**}
 #'     }}
-#'     \item{`vars`:}{ a list of R matrices which will be the inputs of the KeOps routine}
-#'     \item{`ni`:}{ the number of rows of the input if it is an "i" indexed variable}
-#'     \item{`nj`:}{ the number of rows of the input if it is a "j" indexed variable}
+#'     \item{**vars**:}{ A list of R matrices which will be the inputs of the KeOps routine}
 #' }
 #' @examples
 #' \dontrun{
@@ -50,10 +49,9 @@ set_rkeops_option("precision", "double")
 #' y_j <- LazyTensor(y, "j")   # symbolic object representing an arbitrary row of y, indexed by the letter "j"
 #' 
 #' # Perform large-scale computations, without memory overflows:
-#' D_ij <- Sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, with 100 rows and 150 columns
-#' K_ij <- Exp(- D_ij / s^2)     # symbolic matrix, 100 rows and 150 columns
-#' # TODO fix `reduction.LazyTensor`
-#' res <- Sum(K_ij, index = "i") # actual R matrix (in fact a row vector of length 150 here)
+#' D_ij <- sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, with 100 rows and 150 columns
+#' K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 100 rows and 150 columns
+#' res <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of length 150 here)
 #'                               # containing the column sums of K_ij
 #'                               # (i.e. the sums over the "i" index, for each "j" index)
 #'
@@ -115,6 +113,16 @@ LazyTensor <- function(x, index = NA)
 
 # TODO error print when matrix in input
 
+#' Build a unary operation
+#' @description
+#' Symbolically applies **opstr** operation to **x**.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param opstr A text string corresponding to an operation.
+#' @return An object of class "LazyTensor".
+#' @examples
+#' \dontrun{
+#' }
 #' @export
 unaryop.LazyTensor <- function(x,opstr)
 {
@@ -155,10 +163,22 @@ unaryop.LazyTensor <- function(x,opstr)
 #}
 
 
-# opstr : string, the operation
-# is_operator : boolean, TRUE if the operation 'opstr' is an operator like "+" or "-"
+
 # TODO : pb if y is a vector or a matrix etc ?
 
+#' Build a binary operation
+#' @description
+#' Symbolically applies **opstr** operation to **x** and **y**.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param opstr A text string corresponding to an operation.
+#' @param is_operator A boolean used to specify if **opstr** is an operator like ``+``
+#' , ``-`` or a "genuine" function.
+#' @return An object of class "LazyTensor".
+#' @examples
+#' \dontrun{
+#' }
 #' @export
 binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
 {
@@ -285,6 +305,9 @@ sqrt.LazyTensor <- function(x){
 
 
 # addition
+# Broadcasted addition operator, a binary operation.
+# x + y returns a class `LazyTensor` that encodes,
+# symbolically, the addition of ``x`` and ``y``.
 "+.default" <- .Primitive("+") # assign default as current definition
 
 "+" <- function(x, ...)
@@ -373,9 +396,15 @@ log.LazyTensor <- function(x)
 }
 
 # element-wise inverse 1/x
-Inv <- function(x) {
-    obj <- unaryop.LazyTensor(x, "Inv")
-}
+# solve.default <- .Primitive("solve")
+# 
+# solve <- function(x) {
+#     UseMethod("solve")
+# }
+# 
+# solve.LazyTensor <- function(x) {
+#     obj <- unaryop.LazyTensor(x, "Inv")
+# }
 
 # cosinus
 cos.default <- .Primitive("cos")
@@ -384,7 +413,7 @@ cos <- function(x) {
     UseMethod("cos")
 }
 
-cos <- function(x) {
+cos.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Cos")
 }
 
@@ -406,7 +435,7 @@ acos.default <- .Primitive("acos")
 acos <- function(x) {
     UseMethod("acos")
 }
-acos <- function(x) {
+acos.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Acos")
 }
 
@@ -428,8 +457,88 @@ atan <- function(x) {
     UseMethod("atan")
 }
 
-atan <- function(x) {
+atan.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Atan")
+}
+
+# 2-argument arc-tangent function
+# atan2.default <- .Primitive("atan2")
+# 
+# atan2 <- function(x, ...) {
+#     UseMethod("atan2", x)
+# }
+# 
+# atan2.LazyTensor <- function(x, y) {
+#     obj <- binaryop.LazyTensor(x, y, "Atan2")
+# }
+
+
+# absolute value
+abs.default <- .Primitive("abs")
+
+abs <- function(x) {
+    UseMethod("abs")
+}
+
+abs.LazyTensor <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Abs")
+}
+
+
+# sign function
+sign.default <- .Primitive("sign")
+
+sign <- function(x) {
+    UseMethod("sign")
+}
+
+sign.LazyTensor <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Sign")
+}
+
+
+# Round function
+round.default <- .Primitive("round")
+
+round <- function(x, ...) {
+    UseMethod("round", x)
+}
+
+round.LazyTensor <- function(x, y) {
+    obj <- binaryop.LazyTensor(x, y, "Round")
+}
+
+
+# Min function
+min.default <- .Primitive("min")
+min <- function(x) {
+    UseMethod("min")
+}
+
+min.LazyTensor <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Min")
+}
+
+
+# Min function
+max.default <- .Primitive("max")
+max <- function(x, ...) {
+    UseMethod("max", x)
+}
+
+max.LazyTensor <- function(x, y) {
+    obj <- unaryop.LazyTensor(x, "Max")
+}
+
+
+# xlogx
+xlogx.LazyTensor <- function(x){
+    obj <- unaryop.LazyTensor(x, "XLogX")
+}
+
+# SinXDivX(f)
+sinxdivx.LazyTensor <- function(x){
+    obj <- unaryop.LazyTensor(x, "SinXDivX")
 }
 
 # Reduction
@@ -460,58 +569,56 @@ sum.LazyTensor <- function(x, index = NA) {
 }
 
 
-
-
 # Basic example
 
-D = 3
-M = 100
-N = 150
-E = 4
-x = matrix(runif(M*D),M,D)
-y = matrix(runif(N*D),N,D)
-b = matrix(runif(N*E),N,E)
-s = 0.25
-
-# creating LazyTensor from matrices
-x_i  = LazyTensor(x,index='i')
-y_j  = LazyTensor(y,index='j')
-b_j  = b
-
-# Symbolic matrix of squared distances: 
-SqDist_ij = sum( (x_i - y_j)^2 )
-
-# Symbolic Gaussian kernel matrix:
-K_ij = exp( - SqDist_ij / (2 * s^2) )
-
-# Genuine matrix: 
-v = K_ij %*% b_j
-# equivalent
-# v = "%*%.LazyTensor"(K_ij, b_j)
-
-s2 = (2 * s^2)
-# equivalent
-op <- keops_kernel(
-    formula = "Sum_Reduction(Exp(Minus(Sum(Square(x-y)))/s)*b,0)",
-    args = c("x=Vi(3)", "y=Vj(3)", "s=Pm(1)", "b=Vj(4)")
-)
-
-
-v2 <- op(list(x, y, s2, b))
-
-sum((v2-v)^2)
-
-
-
-# we compare to standard R computation
-SqDist = 0
-onesM = matrix(1,1,M)
-onesN = matrix(1,1,N)
-for(k in 1:D)
-    SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
-K = exp(-SqDist/(2*s^2))
-v2 = K %*% b
-
-print(mean(abs(v-v2)))
-
-
+# D = 3
+# M = 100
+# N = 150
+# E = 4
+# x = matrix(runif(M*D),M,D)
+# y = matrix(runif(N*D),N,D)
+# b = matrix(runif(N*E),N,E)
+# s = 0.25
+# 
+# # creating LazyTensor from matrices
+# x_i  = LazyTensor(x,index='i')
+# y_j  = LazyTensor(y,index='j')
+# b_j  = b
+# 
+# # Symbolic matrix of squared distances: 
+# SqDist_ij = sum( (x_i - y_j)^2 )
+# 
+# # Symbolic Gaussian kernel matrix:
+# K_ij = exp( - SqDist_ij / (2 * s^2) )
+# 
+# # Genuine matrix: 
+# v = K_ij %*% b_j
+# # equivalent
+# # v = "%*%.LazyTensor"(K_ij, b_j)
+# 
+# s2 = (2 * s^2)
+# # equivalent
+# op <- keops_kernel(
+#     formula = "Sum_Reduction(Exp(Minus(Sum(Square(x-y)))/s)*b,0)",
+#     args = c("x=Vi(3)", "y=Vj(3)", "s=Pm(1)", "b=Vj(4)")
+# )
+# 
+# 
+# v2 <- op(list(x, y, s2, b))
+# 
+# sum((v2-v)^2)
+# 
+# 
+# 
+# # we compare to standard R computation
+# SqDist = 0
+# onesM = matrix(1,1,M)
+# onesN = matrix(1,1,N)
+# for(k in 1:D)
+#     SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
+# K = exp(-SqDist/(2*s^2))
+# v2 = K %*% b
+# 
+# print(mean(abs(v-v2)))
+# 
+# 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/common-string2hash.R
 \name{string2hash}
 \alias{string2hash}
-\title{Generatation of hash values from a text strings}
+\title{Generation of hash values from a text string}
 \usage{
 string2hash(str)
 }

@@ -16,16 +16,16 @@ a list with \code{rkeops} current options values (see Details).
 \description{
 \code{rkeops} uses two sets of options: compile options (see
 \code{\link[=compile_options]{compile_options()}}) and runtime options (see
-\code{\link[=runtime_options]{runtime_options()}}). These options define the behavior of \code{rkeops}
+\code{\link[=runtime_options]{runtime_options()}}). These options define the behaviour of \code{rkeops}
 when compiling or when calling user-defined operators.
 
 You can read the current states of \code{rkeops} options by calling
 \code{get_rkeops_options()}.
 }
 \details{
-\code{rkeops} global options includes two lists defining options used at
-compilation of user-defined operators or at runtime. These two list
-contains specific informations (see \code{\link[=compile_options]{compile_options()}} and
+\code{rkeops} global options include two lists defining options used at
+compilation of user-defined operators or at runtime. These two lists
+contain specific informations (see \code{\link[=compile_options]{compile_options()}} and
 \code{\link[=runtime_options]{runtime_options()}} respectively, in particular for default values).
 
 If the \code{tag} input parameter is specified (e.g. \code{"compile"} or \code{"runtime"}),

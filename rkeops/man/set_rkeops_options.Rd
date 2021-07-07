@@ -11,12 +11,12 @@ set_rkeops_options(
 }
 \arguments{
 \item{custom_compile_options}{a list (of class \code{rkeops_compile_options}).
-See \code{\link[=compile_options]{compile_options()}} for a detailled description. Default value
+See \code{\link[=compile_options]{compile_options()}} for a detailed description. Default value
 is \code{NULL} and default compile options are set up (see
 \code{\link[=default_compile_options]{default_compile_options()}}).}
 
 \item{custom_runtime_options}{a list (of class \code{rkeops_runtime_options}).
-See \code{\link[=runtime_options]{runtime_options()}} for a detailled description. Default
+See \code{\link[=runtime_options]{runtime_options()}} for a detailed description. Default
 value is \code{NULL} and default runtime options are set up
 (see \code{\link[=default_runtime_options]{default_runtime_options()}}).}
 }
@@ -26,10 +26,10 @@ None
 \description{
 \code{rkeops} uses two sets of options: compile options (see
 \code{\link[=compile_options]{compile_options()}}) and runtime options (see
-\code{\link[=runtime_options]{runtime_options()}}). These options define the behavior of \code{rkeops}
+\code{\link[=runtime_options]{runtime_options()}}). These options define the behaviour of \code{rkeops}
 when compiling or when calling user-defined operators.
 
-If no input is provided, the functions \code{set_rkeops_options} initializes the
+If no input is provided, the function \code{set_rkeops_options} initializes the
 \code{rkeops} options in the \code{R} global options scope (i.e. options available
 by calling \code{options()} or \verb{getOptions(<option_name>)}) with default values.
 
@@ -38,9 +38,9 @@ runtime options (see Details), \code{rkeops} global options are updated
 accordingly.
 }
 \details{
-\code{rkeops} global options includes two lists defining options used at
-compilation of user-defined operators or at runtime. These two list
-contains specific informations (see \code{\link[=compile_options]{compile_options()}} and
+\code{rkeops} global options include two lists defining options used at
+compilation of user-defined operators or at runtime. These two lists
+contain specific informations (see \code{\link[=compile_options]{compile_options()}} and
 \code{\link[=runtime_options]{runtime_options()}} respectively, in particular for default values).
 
 In order to update, the corresponding options, user should provide objects

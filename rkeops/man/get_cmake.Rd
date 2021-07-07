@@ -22,7 +22,7 @@ This function returns the path to the cmake executable.
 If no path is supplied, the function searches for the
 \code{cmake} command in the standard PATH (on Unix system).
 If a path is supplied (e.g. \verb{/path/to/dir} on Unix
-system), the function search for the \code{cmake} command
+system), the function searches for the \code{cmake} command
 in this path.
 
 \strong{Note}: for the moment, this does not work on

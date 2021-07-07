@@ -30,7 +30,7 @@ computations.}
 
 \item{col_major}{boolean indicator regarding storage order (default is TRUE).}
 
-\item{debug}{boolean indicator regarding debuging flag for compilation.
+\item{debug}{boolean indicator regarding debugging flag for compilation.
 Default value is \code{FALSE}.}
 
 \item{rkeops_dir}{string, path to \code{rkeops} install directory on the system.

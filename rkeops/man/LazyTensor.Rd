@@ -9,23 +9,22 @@ LazyTensor(x, index = NA)
 \arguments{
 \item{x}{A matrix or a vector of numeric values, or a scalar value}
 
-\item{index}{A text string that should be either \code{"i"} or \code{"j"}, or an \code{NA} value (the default),
-to specify whether if the \code{x} variable is indexed by i, by j, or is a fixed parameter across indices.
-If \code{x} is a matrix, \code{index} must be \code{"i"} or \code{"j"}.}
+\item{index}{A text string that should be either \strong{i} or \strong{j}, or an \strong{NA} value (the default),
+to specify whether if the \strong{x} variable is indexed by \strong{i}, by \strong{j}, or is a fixed parameter across indices.
+If \strong{x} is a matrix, \strong{index} must be \strong{i} or \strong{j}.}
 }
 \value{
 An object of class "LazyTensor", which is a list with the following elements:
 
 \itemize{
-\item{\code{formula}:}{ A string defining the mathematical operation to be computed by the KeOps routine, of the form Var(ind,dim,cat), where :
+\item{\strong{formula}:}{ A string defining the mathematical operation to be computed by the KeOps routine}
+\item{\strong{args}:}{ A vector of arguments containing a unique identifier associated to type of the argument :
 \itemize{
-\item{\code{ind}:}{ gives the position in the final call to KeOps routine}
-\item{\code{dim}:}{ is the dimension of the input}
-\item{\code{cat}:}{ the KeOps "category": 0 if the input is an R matrix indexed by "i", 1 if the input is an R matrix indexed by "j", or 2 if the input is a parameter vector or scalar, without any attached index}
+\item{\strong{Vi(n)}:}{ vector indexed by \strong{i} of dim \strong{n}}
+\item{\strong{Vj(n)}:}{ vector indexed by \strong{j} of dim \strong{n}}
+\item{\strong{Pm(n)}:}{ fixed parameter of dim \strong{n}}
 }}
-\item{\code{vars}:}{ a list of R matrices which will be the inputs of the KeOps routine}
-\item{\code{ni}:}{ the number of rows of the input if it is an "i" indexed variable}
-\item{\code{nj}:}{ the number of rows of the input if it is a "j" indexed variable}
+\item{\strong{vars}:}{ A list of R matrices which will be the inputs of the KeOps routine}
 }
 }
 \description{
@@ -54,10 +53,9 @@ x_i <- LazyTensor(x, "i")   # symbolic object representing an arbitrary row of x
 y_j <- LazyTensor(y, "j")   # symbolic object representing an arbitrary row of y, indexed by the letter "j"
 
 # Perform large-scale computations, without memory overflows:
-D_ij <- Sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, with 100 rows and 150 columns
-K_ij <- Exp(- D_ij / s^2)     # symbolic matrix, 100 rows and 150 columns
-# TODO fix `reduction.LazyTensor`
-res <- Sum(K_ij, index = "i") # actual R matrix (in fact a row vector of length 150 here)
+D_ij <- sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, with 100 rows and 150 columns
+K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 100 rows and 150 columns
+res <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of length 150 here)
                               # containing the column sums of K_ij
                               # (i.e. the sums over the "i" index, for each "j" index)
 

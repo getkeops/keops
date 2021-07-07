@@ -17,8 +17,8 @@ The function \code{get_rkeops_option} returns the current value of a specific
 \code{rkeops} option (in \code{R} global options scope) provided as input.
 }
 \details{
-\code{rkeops} global options includes two lists defining options used at
-compilation of user-defined operators or at runtime. These two list
+\code{rkeops} global options include two lists defining options used at
+compilation of user-defined operators or at runtime. These two lists
 contains specific informations (see \code{\link[=compile_options]{compile_options()}} and
 \code{\link[=runtime_options]{runtime_options()}} respectively, in particular for default values).
 

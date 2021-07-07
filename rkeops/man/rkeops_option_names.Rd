@@ -7,7 +7,7 @@
 rkeops_option_names(tag = c("compile", "runtime"))
 }
 \arguments{
-\item{tag}{text string or vector of text string, specifying the requested
+\item{tag}{text string or vector of text strings, specifying the requested
 subset of \code{rkeops} options, i.e. \code{"compile"} or \code{"runtime"}. Default value
 is \code{c("compile", "runtime")} and both are returned.}
 }
@@ -16,14 +16,14 @@ a vector of requested \code{rkeops} options.
 }
 \description{
 The function \code{rkeops_option_names} returns the names of the different
-\code{rkeops} option (in \code{R} global options scope).
+\code{rkeops} options (in \code{R} global options scope).
 }
 \details{
 \code{rkeops} uses two sets of options: compile options
 (see \code{\link[=compile_options]{compile_options()}}), and runtime options
 (see \code{\link[=runtime_options]{runtime_options()}}).
 
-These options define the behavior of \code{rkeops} when compiling or when
+These options define the behaviour of \code{rkeops} when compiling or when
 calling user-defined operators.
 
 You can specify a tag (\code{"compile"} or \code{"runtime"} or both) in input, you

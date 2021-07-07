@@ -17,12 +17,12 @@ None
 }
 \description{
 The function \code{set_rkeops_option} allows to modify the value of a single
-specific \code{rkeops} options in \code{R} global options scope.
+specific \code{rkeops} option in \code{R} global options scope.
 }
 \details{
 \code{rkeops} uses two sets of options: compile options (see
 \code{\link[=compile_options]{compile_options()}}) and runtime options (see
-\code{\link[=runtime_options]{runtime_options()}}). These options define the behavior of \code{rkeops}
+\code{\link[=runtime_options]{runtime_options()}}). These options define the behaviour of \code{rkeops}
 when compiling or when calling user-defined operators.
 
 With the function \code{set_rkeops_option}, you can set up a specific \code{rkeops}
