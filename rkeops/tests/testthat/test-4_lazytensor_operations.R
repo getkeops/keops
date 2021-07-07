@@ -1,5 +1,11 @@
 context("LazyTensor operations")
 
+# Tests for LazyTensor related functions
+#
+# Use of regular expressions to check formulas and arguments
+# since we use pointer addresses as unique variable id
+
+
 test_that("LazyTensor", {
   # basic examples
   D <- 3
@@ -38,9 +44,15 @@ test_that("unaryop.LazyTensor", {
   M <- 100
   x <- matrix(runif(M * D), M, D)
   x_i <- LazyTensor(x, index = 'i')
+  
+  # check formulas, args & classes
   obj <- unaryop.LazyTensor(x_i, "Square")
   bool_grep_formula <- grep("Square\\(A0x.*i\\)", obj$formula)
+  bool_grep_args <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
   expect_equal(bool_grep_formula, 1)
+  expect_equal(bool_grep_args, 1)
+  expect_is(obj, "LazyTensor")
+  
   # errors
   expect_error(unaryop.LazyTensor(x, "Square"), 
                "`x` input argument should be a LazyTensor, a vector or a scalar.", 
@@ -49,6 +61,7 @@ test_that("unaryop.LazyTensor", {
 
 
 test_that("binaryop.LazyTensor", {
+  # basic example
   D <- 3
   M <- 100
   N <- 150
@@ -57,21 +70,37 @@ test_that("binaryop.LazyTensor", {
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   
+  # check formulas, args & classes
   obj <-  binaryop.LazyTensor(x_i, y_j, "Sum")
   bool_grep_formula <- grep("Sum\\(A0x.*i,A0x.*j\\)", obj$formula)
+  bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
+  bool_grep_args2 <- grep("A0x.*j=Vj\\(3\\)", obj$args[2])
   expect_equal(bool_grep_formula, 1)
+  expect_equal(length(obj$args), 2)
+  expect_equal(bool_grep_args1, 1)
+  expect_equal(bool_grep_args2, 1)
+  expect_is(obj, "LazyTensor")
   
   obj <-  binaryop.LazyTensor(x_i, y_j, "-", is_operator = TRUE)
   bool_grep_formula <- grep("A0x.*i-A0x.*j", obj$formula)
+  bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
+  bool_grep_args2 <- grep("A0x.*j=Vj\\(3\\)", obj$args[2])
   expect_equal(bool_grep_formula, 1)
+  expect_equal(bool_grep_args1, 1)
+  expect_equal(bool_grep_args2, 1)
+  expect_is(obj, "LazyTensor")
   
   obj <-  binaryop.LazyTensor(x_i, 3, "Pow")
   bool_grep_formula <- grep("Pow\\(A0x.*i,3\\)", obj$formula)
+  bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
   expect_equal(bool_grep_formula, 1)
+  expect_equal(length(obj$args), 1)
+  expect_is(obj, "LazyTensor")
 })
 
 
 test_that("^", {
+  # basic example
   D <- 3
   M <- 100
   N <- 150
@@ -79,30 +108,361 @@ test_that("^", {
   y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
-  # check formulas
+  
+  # check results & formulas
   expect_equal(D^D, 27)
+  
   obj <- x_i^y_j
   bool_grep_formula <- grep("Powf\\(A0x.*i,A0x.*j\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
   obj <-  x_i^3
   bool_grep_formula <- grep("Pow\\(A0x.*i,3\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
   obj <-  x_i^(-0.5)
   bool_grep_formula <- grep("Rsqrt\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
   obj <-  x_i^(0.5)
   bool_grep_formula <- grep("Sqrt\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
   obj <-  y_j^2
   bool_grep_formula <- grep("Square\\(A0x.*j\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
   obj <-  x_i^0.314
   bool_grep_formula <- grep("Powf\\(A0x.*i,A0x.*NA\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
 
 
-# TODO : add other tests
+test_that("+", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results & formulas
+  expect_equal(D + M, 103)
+  
+  obj <- x_i + y_j
+  bool_grep_formula <- grep("A0x.*i\\+A0x.*j", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  x_i + 3
+  bool_grep_formula <- grep("A0x.*i\\+A0x.*NA", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # TODO add test for `scalar + LazyTensor` when problem will be fixed
+})
+
+
+test_that("-", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results & formulas
+  expect_equal(D - D, 0)
+  expect_equal(-D, -3)
+  
+  obj <- x_i - y_j
+  bool_grep_formula <- grep("A0x.*i-A0x.*j", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  x_i - 3
+  bool_grep_formula <- grep("A0x.*i-A0x.*NA", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  -x_i
+  bool_grep_formula <- grep("Minus\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # TODO add test for `scalar - LazyTensor` when problem will be fixed
+})
+
+
+test_that("*", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results & formulas
+  expect_equal(D * M, 300)
+  
+  obj <- x_i * y_j
+  bool_grep_formula <- grep("A0x.*i\\*A0x.*j", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  x_i * 3
+  bool_grep_formula <- grep("A0x.*i\\*A0x.*NA", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # TODO add test for `scalar * LazyTensor` when problem will be fixed
+})
+
+
+test_that("/", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results & formulas
+  expect_equal(D / M, 0.03)
+  
+  obj <- x_i / y_j
+  bool_grep_formula <- grep("A0x.*i/A0x.*j", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  x_i / 3
+  bool_grep_formula <- grep("A0x.*i/A0x.*NA", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # TODO add test for `scalar / LazyTensor` when problem will be fixed
+})
+
+
+test_that("|", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results & formulas
+  expect_equal(D | M, TRUE)
+  
+  obj <- x_i | y_j
+  bool_grep_formula <- grep("\\(A0x.*i\\|A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  x_i | 3
+  bool_grep_formula <- grep("\\(A0x.*i\\|A0x.*NA\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # TODO add test for `scalar | LazyTensor` when problem will be fixed
+})
+
+
+test_that("exp", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results & formulas
+  expect_equal(exp(0), 1)
+  
+  obj <- exp(x_i)
+  bool_grep_formula <- grep("Exp\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  exp(x_i - y_j)
+  bool_grep_formula <- grep("Exp\\(A0x.*i-A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("log", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results & formulas
+  expect_equal(log(1), 0)
+  
+  obj <- log(x_i)
+  bool_grep_formula <- grep("Log\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  log(x_i - y_j)
+  bool_grep_formula <- grep("Log\\(A0x.*i-A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("cos", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & class
+  expect_equal(cos(0), 1)
+  expect_equal(class(cos(x))[1] != "LazyTensor", TRUE)
+  
+  obj <- cos(x_i)
+  bool_grep_formula <- grep("Cos\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  cos(x_i + y_j)
+  bool_grep_formula <- grep("Cos\\(A0x.*i\\+A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("sin", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & class
+  expect_equal(sin(0), 0)
+  expect_equal(class(sin(x))[1] != "LazyTensor", TRUE)
+  
+  obj <- sin(x_i)
+  bool_grep_formula <- grep("Sin\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  sin(x_i + y_j)
+  bool_grep_formula <- grep("Sin\\(A0x.*i\\+A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("acos", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & class
+  expect_equal(acos(1), 0)
+  expect_equal(class(acos(x))[1] != "LazyTensor", TRUE)
+  
+  obj <- acos(x_i)
+  bool_grep_formula <- grep("Acos\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  acos(x_i + y_j)
+  bool_grep_formula <- grep("Acos\\(A0x.*i\\+A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("asin", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & class
+  expect_equal(asin(0), 0)
+  expect_equal(class(asin(x))[1] != "LazyTensor", TRUE)
+  
+  obj <- asin(x_i)
+  bool_grep_formula <- grep("Asin\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  asin(x_i + y_j)
+  bool_grep_formula <- grep("Asin\\(A0x.*i\\+A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("atan", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & class
+  expect_equal(atan(0), 0)
+  expect_equal(class(atan(x))[1] != "LazyTensor", TRUE)
+  
+  obj <- atan(x_i)
+  bool_grep_formula <- grep("Atan\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  atan(x_i + y_j)
+  bool_grep_formula <- grep("Atan\\(A0x.*i\\+A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("%*%", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results & formulas
+  DM <- D %*% M
+  expect_equal(DM[1], 300)
+  
+  obj <- x_i %*% y_j
+  expect_equal(dim(obj)[1], 100)
+  expect_equal(dim(obj)[2], 3)
+  
+  obj <-  x_i %*% y
+  expect_equal(dim(obj)[1], 100)
+  expect_equal(dim(obj)[2], 3)
+  
+  # TODO add an error in the %*% function when bad dimensions are used
+  # TODO add test for `scalar %*% LazyTensor` and `matrix %*% LazyTensor` when problem will be fixed
+  # TODO test reduction.LazyTensor and sum before
+})
+
+
+# TODO : add other tests : reduction.LazyTensor, sum, Inv
 
 
 
