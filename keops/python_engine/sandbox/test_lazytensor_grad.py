@@ -23,8 +23,8 @@ def fun(x, y, b, backend):
     if "keops" in backend:
         x = LazyTensor(x)
         y = LazyTensor(y)
-    #Kxy = ((x - 0.5).mod(1, 0.2) - y).sum(dim=2)
-    Kxy = (x.log()-y).sum(dim=2)
+    # Kxy = ((x - 0.5).mod(1, 0.2) - y).sum(dim=2)
+    Kxy = (x.log() - y).sum(dim=2)
     out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()

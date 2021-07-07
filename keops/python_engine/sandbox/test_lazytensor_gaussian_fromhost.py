@@ -7,7 +7,7 @@ import torch
 from pykeops.torch import LazyTensor
 
 M, N, D, DV = 2500, 2000, 3, 1
-#M, N, D, DV = 2, 3, 3, 1
+# M, N, D, DV = 2, 3, 3, 1
 
 dtype = torch.float64
 sum_scheme = "block_sum"
@@ -30,7 +30,7 @@ def fun(x, y, b, backend):
         out = Kxy.__matmul__(b, sum_scheme=sum_scheme, device_id=device_id)
     else:
         out = Kxy @ b
-    #print("out:",out)
+    # print("out:",out)
     return out
 
 

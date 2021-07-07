@@ -23,7 +23,7 @@ def get_jit_binary(check_compile=True):
         print("[KeOps] Compiling main dll...", flush=True, end="")
         bindings_source_dir = base_dir_path + "binders"
         flags = "-shared -Xcompiler -fPIC -lnvrtc -lcuda"
-        #jit_compile_command = f"nvcc -I {bindings_source_dir} {flags} {jit_source_file} -o {jit_binary}"
+        # jit_compile_command = f"nvcc -I {bindings_source_dir} {flags} {jit_source_file} -o {jit_binary}"
         jit_compile_command = f"nvcc {flags} {jit_source_file} -o {jit_binary}"
         os.system(jit_compile_command)
         print("Done.", flush=True)

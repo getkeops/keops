@@ -28,7 +28,7 @@ def fun(x, y, b, backend):
     else:
         Kxy = np.exp(-Dxy)
     out = Kxy @ b
-    #print("out:",out.flatten())
+    # print("out:",out.flatten())
     return out
 
 

@@ -34,9 +34,17 @@ class LoadKeOps_new:
         self.dtype = dtype
 
     def genred(
-        self, tagCPUGPU, tag1D2D, tagHostDevice, device_id_request, ranges, nx, ny, *args
+        self,
+        tagCPUGPU,
+        tag1D2D,
+        tagHostDevice,
+        device_id_request,
+        ranges,
+        nx,
+        ny,
+        *args,
     ):
-        
+
         if self.lang == "torch":
             from pykeops.torch.utils import torchtools
 
@@ -114,11 +122,13 @@ class LoadKeOps_new:
         else:
             device_id_args = device_args["index"]
 
-        if device_id_request != -1 and device_id_args != -1 and device_id_request != device_id_args:
-            raise ValueError(
-                "[KeOps] internal error : code needs some cleaning..."
-            )
-        
+        if (
+            device_id_request != -1
+            and device_id_args != -1
+            and device_id_request != device_id_args
+        ):
+            raise ValueError("[KeOps] internal error : code needs some cleaning...")
+
         if device_id_request == -1:
             if device_id_args == -1:
                 device_id_request = 0
@@ -179,11 +189,24 @@ class LoadKeOps_new:
         M = nx if myfun.tagI == 0 else ny
         shapeout = tuple(np.max(batchdims_shapes, axis=0)) + (M, myfun.dim)
         out = tools.zeros(shapeout, dtype=dtype, device=device_args)
-        outshape_ctype = (c_int * (len(out.shape) + 1))(*((len(out.shape),) + out.shape))
+        outshape_ctype = (c_int * (len(out.shape) + 1))(
+            *((len(out.shape),) + out.shape)
+        )
         out_ctype = tools.ctypes(out)
 
-        # call the routine    
-        myfun(c_dtype, nx, ny, tagHostDevice, device_id_request, ranges_ctype, outshape_ctype, out_ctype, args_ctype, argshapes_ctype)
+        # call the routine
+        myfun(
+            c_dtype,
+            nx,
+            ny,
+            tagHostDevice,
+            device_id_request,
+            ranges_ctype,
+            outshape_ctype,
+            out_ctype,
+            args_ctype,
+            argshapes_ctype,
+        )
 
         return out
 

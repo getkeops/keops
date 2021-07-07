@@ -10,20 +10,21 @@ M, N = 2000, 3000
 device_id = "cuda:0" if torch.cuda.is_available() else "cpu"
 dtype = torch.float32
 
-x = torch.rand(B1,  1, B3, M, 1, D, dtype=dtype, device=device_id)
-y = torch.rand( 1, B2,  1, 1, N, D, dtype=dtype, device=device_id)
-p = 1+torch.arange(B2*B3, dtype=dtype, device=device_id).reshape( 1, B2, B3, 1, 1)
+x = torch.rand(B1, 1, B3, M, 1, D, dtype=dtype, device=device_id)
+y = torch.rand(1, B2, 1, 1, N, D, dtype=dtype, device=device_id)
+p = 1 + torch.arange(B2 * B3, dtype=dtype, device=device_id).reshape(1, B2, B3, 1, 1)
+
 
 def fun(x, y, p, backend):
     if backend == "keops":
         x = LazyTensor(x)
         y = LazyTensor(y)
-        p = LazyTensor(p.reshape(p.shape+(1,)))
+        p = LazyTensor(p.reshape(p.shape + (1,)))
     elif backend != "torch":
         raise ValueError("wrong backend")
-    out = ((x-y).sum(dim=5)/p).exp().sum(dim=4)
-    #print("out", backend, ":")
-    #print(out)
+    out = ((x - y).sum(dim=5) / p).exp().sum(dim=4)
+    # print("out", backend, ":")
+    # print(out)
     return out
 
 

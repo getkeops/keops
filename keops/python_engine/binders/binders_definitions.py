@@ -1,6 +1,4 @@
-def binders_definitions(
-    dtype, red_formula, varloader
-):
+def binders_definitions(dtype, red_formula, varloader):
 
     if red_formula.tagI == 0:
         pos_first_argI = varloader.pos_first_argI
@@ -62,11 +60,11 @@ def binders_definitions(
                 #define index_t int*
                 
                 int get_ndim(index_t shape) {{
-                	return shape[0];
+                    return shape[0];
                 }}
 
                 int get_size(index_t shape, int pos) {{
-                	return shape[pos+1];
+                    return shape[pos+1];
                 }}
                 
                 #if C_CONTIGUOUS
@@ -81,9 +79,9 @@ def binders_definitions(
                 
                 #if do_keops_checks
                 void check_nargs(int nargs, int nminargs) {{
-                	if(nargs<nminargs) {{
-                		keops_error("[KeOps] : not enough input arguments");
-                	}}
+                    if(nargs<nminargs) {{
+                        keops_error("[KeOps] : not enough input arguments");
+                    }}
                 }}
                 #endif
 
