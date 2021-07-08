@@ -1,11 +1,11 @@
+import numpy as np
+
 from keops.python_engine.formulas.Operation import Operation
 
-import numpy as np
 
 ####################################
 ######  Tensor Dot Product     #####
 ####################################
-from keops.python_engine.utils.code_gen_utils import c_variable
 
 
 class TensorDot(Operation):
@@ -40,12 +40,16 @@ class TensorDot(Operation):
         )
 
         self.dim = fa.dim * fb.dim
-        self.dim = int(self.dim / self.contdims.prod() ** 2) if len(contfa) else self.dim
+        self.dim = (
+            int(self.dim / self.contdims.prod() ** 2) if len(contfa) else self.dim
+        )
 
         if permute is None:
             permute = np.arange(len(self.keepdims))
         else:
-            assert (self.permutation(permute, permute) == np.arange(len(self.keepdims))).all()
+            assert (
+                    self.permutation(permute, permute) == np.arange(len(self.keepdims))
+            ).all()
 
         self.permute = permute
 
@@ -54,13 +58,20 @@ class TensorDot(Operation):
         self.dimloop = self.loopdim.prod()
         self.number_of_dimloop = len(dimsfa) + len(dimsfb) - len(contfa)
 
-        self.ala = np.concatenate((np.arange(0, len(self.keepdims_a)),
-                              np.arange(len(self.keepdims), self.number_of_dimloop)), axis=None).copy()
+        self.ala = np.concatenate(
+            (
+                np.arange(0, len(self.keepdims_a)),
+                np.arange(len(self.keepdims), self.number_of_dimloop),
+            ),
+            axis=None,
+        ).copy()
         self.ali = np.concatenate((self.indices_keepdim_a, contfa), axis=None)
         self.list_indices_a_intot = self.permutation(self.ali, self.ala)
 
         self.bla = np.concatenate((np.arange(len(self.keepdims_a), len(self.keepdims)),
-                              np.arange(len(self.keepdims), self.number_of_dimloop)), axis=None).copy()
+                                   np.arange(len(self.keepdims), self.number_of_dimloop),),
+                                  axis=None,
+                                  ).copy()
         self.bli = np.concatenate((self.indices_keepdim_b, contfb), axis=None)
         self.list_indices_b_intot = self.permutation(self.bli, self.bla)
 
@@ -68,13 +79,13 @@ class TensorDot(Operation):
         self.dimfa_grad = self.permutation(permute, self.keepdims)
 
         self.list_indices_keepdim_a_inout = np.arange(0, len(self.keepdims_a))
-        self.reordered_contfa = contfa[np.argsort(contfb)]#self.permutation(np.argsort(contfb), contfa)#
-        self.reordered_keepdim_a = self.indices_keepdim_a[np.argsort(permute[self.list_indices_keepdim_a_inout])] #self.permutation(np.argsort(permute[self.list_indices_keepdim_a_inout]), self.indices_keepdim_a)
+        self.reordered_contfa = self.permutation(contfb, contfa)
+        self.reordered_keepdim_a = self.permutation(permute[self.list_indices_keepdim_a_inout], self.indices_keepdim_a)
         self.moveaxis_a = np.concatenate((self.reordered_keepdim_a, self.reordered_contfa), axis=None)
 
         self.list_indices_keepdim_b_inout = np.arange(len(self.keepdims_a), len(self.keepdims))
-        self.reordered_contfb = contfb[np.argsort(contfa)]#self.permutation(np.argsort(contfa), contfb)#
-        self.reordered_keepdim_b = self.indices_keepdim_b[np.argsort(permute[self.list_indices_keepdim_b_inout])]#self.permutation(np.argsort(permute[self.list_indices_keepdim_b_inout]), self.indices_keepdim_b)
+        self.reordered_contfb = self.permutation(contfa, contfb)
+        self.reordered_keepdim_b = self.permutation(permute[self.list_indices_keepdim_b_inout], self.indices_keepdim_b)
         self.moveaxis_b = np.concatenate((self.reordered_keepdim_b, self.reordered_contfb), axis=None)
 
         self.contfa_grad = permute[self.list_indices_keepdim_b_inout]
@@ -122,73 +133,6 @@ class TensorDot(Operation):
             return np.concatenate((np.cumprod(x[1:][::-1])[::-1], [1]))
 
     @staticmethod
-    def permutation2(perm, arr):
-        """Permute column of an array"""
-
-        if perm is None:
-            return arr
-
-        _perm = perm.astype(int).flatten().copy()
-        _arr = arr.copy()
-
-        rs = False
-        if len(_arr.shape) == 1:
-            _arr = _arr.reshape(1, -1)
-            rs = True
-        elif len(_arr.squeeze().shape) >= 3:
-            print("********* " + str(len(arr.shape)))
-            raise RuntimeError()
-
-        def swap(__arr, _i, _j):
-            tmp = __arr[:, _i].copy()
-            __arr[:, _i] = __arr[:, _j].copy()
-            __arr[:, _j] = tmp
-            return __arr
-
-        n = _arr.shape[1]
-
-        for i in range(n):
-            j = _perm[i]
-            while j < i:
-                j = _perm[j]
-            _arr = swap(_arr, i, j)
-
-        if rs:
-            return _arr.reshape(-1)
-        else:
-            return _arr
-
-
-    @staticmethod
-    def permutation1(perm, arr):
-        """Permute column of an array"""
-
-        if perm is None:
-            return arr
-
-        _perm = perm.astype(int).flatten().copy()
-        _arr = arr.copy()
-
-        rs = False
-        if len(_arr.shape) == 1:
-            _arr = _arr.reshape(1, -1)
-            rs = True
-        elif len(_arr.squeeze().shape) >= 3:
-            raise RuntimeError()
-
-        n = _arr.shape[1]
-
-        res = np.zeros_like(_arr)
-
-        for i in range(n):
-            res[:, _perm[i]] = _arr[:, i]
-
-        if rs:
-            return res.flatten()
-        else:
-            return res
-
-    @staticmethod
     def permutation(perm, arr):
         """Permute column of an array"""
 
@@ -216,7 +160,6 @@ class TensorDot(Operation):
         # returns the atomic piece of c++ code to evaluate the function on arg and return
         # the result in out
 
-        out_indices, a_indices, b_indices = self.looper(self.loopdim)
         str_code = ""
         for i in range(len(out_indices)):
             str_code += (
@@ -226,11 +169,12 @@ class TensorDot(Operation):
 
         return f"""
                     #if C_CONTIGUOUS     // row major
-                                    
+                        #pragma unroll
                         for (int i = 0; i < {out.dim}; i++)
                             {out.id}[i] = ({out.dtype})(0.0f);
-                    
-{str_code}
+                        
+                        #pragma unroll                        
+                        {str_code}
                     #else               // column major
                         
                     #endif
@@ -241,16 +185,26 @@ class TensorDot(Operation):
 
         f = self.children[0]
         g = self.children[1]
-        return f.DiffT(v, TensorDot(gradin, g,
-                                   Ind(self.dimfa_grad),
-                                   Ind(self.dimfb),
-                                   Ind(self.contfa_grad),
-                                   Ind(self.indices_keepdim_b),
-                                   Ind(self.moveaxis_a))) + \
-               g.DiffT(v, TensorDot(gradin, f,
-                                   Ind(self.dimfa_grad),
-                                   Ind(self.dimfa),
-                                   Ind(self.contfb_grad),
-                                   Ind(self.indices_keepdim_a),
-                                   Ind(self.moveaxis_b)
-                                   ))
+        return f.DiffT(
+            v,
+            TensorDot(
+                gradin,
+                g,
+                Ind(self.dimfa_grad),
+                Ind(self.dimfb),
+                Ind(self.contfa_grad),
+                Ind(self.indices_keepdim_b),
+                Ind(self.moveaxis_a),
+            ),
+        ) + g.DiffT(
+            v,
+            TensorDot(
+                gradin,
+                f,
+                Ind(self.dimfa_grad),
+                Ind(self.dimfa),
+                Ind(self.contfb_grad),
+                Ind(self.indices_keepdim_a),
+                Ind(self.moveaxis_b),
+            ),
+        )
