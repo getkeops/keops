@@ -21,8 +21,7 @@ class GpuAssignZero(MapReduce, Gpu_link_compile):
 
         outi = self.outi
         dtype = self.dtype
-        args = self.args
-        argshapes = self.argshapes
+        arg = self.arg
         varloader = self.varloader
 
         if dtype == "half2":
@@ -31,7 +30,7 @@ class GpuAssignZero(MapReduce, Gpu_link_compile):
         self.code = f"""
                         {self.headers}
 
-                        extern "C" __global__ void AssignZeroGpu(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread
                           int i = blockIdx.x * blockDim.x + threadIdx.x;

@@ -10,9 +10,16 @@
 # It returns :
 #       - dllname : string, file name of the dll to be called for performing the reduction
 #       - low_level_code_file : string, file name of the low level code file to be passed to the dll if JIT is enabled, or "none" otherwise
-#       - tagI : integer, 0 or 1, specifying if reduction muust be performed over i or j indices,
+#       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
+#       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
 #       - dim : integer, dimension of the output tensor.
 #       - dimy : integer, total dimension of the j indexed variables.
+#       - indsi : list of integers, indices of i indexed variables.
+#       - indsj : list of integers, indices of j indexed variables.
+#       - indsp : list of integers, indices of parameter variables.
+#       - dimsx : list of integers, dimensions of i indexed variables.
+#       - dimsy : list of integers, dimensions of j indexed variables.
+#       - indsp : list of integers, dimensions of parameter variables.
 
 # It can be used as a Python function or as a standalone Python script (in which case it prints the outputs):
 #   - example (as Python function) :
@@ -36,6 +43,9 @@ def get_keops_dll(map_reduce_id, *args):
         isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)
     ):
         map_reduce_obj = map_reduce_class.AssignZero(*args)
+        tagZero = 1
+    else:
+        tagZero = 0
 
     res = map_reduce_obj.get_dll_and_params()
 
@@ -43,6 +53,7 @@ def get_keops_dll(map_reduce_id, *args):
         res["dllname"],
         res["low_level_code_file"],
         res["tagI"],
+        tagZero,
         res["dim"],
         res["dimy"],
         res["indsi"],
