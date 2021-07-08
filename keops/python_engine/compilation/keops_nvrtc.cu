@@ -11,9 +11,12 @@
 
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
+#define CUDA_BLOCK_SIZE 192
 
 #include "Sizes.h"
 #include "Ranges.h"
+
+#include "CudaSizes.h"
 
 #include "utils.cpp"
 #include "ranges_utils.cpp"
@@ -81,6 +84,8 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     
     cudaSetDevice(device_id);
     
+    SetGpuProps(device_id);
+    
     Sizes<TYPE> SS(nargs, arg, argshape, nx, ny, tagI,
                    dimout, 
                    indsi, indsj, indsp,
@@ -112,8 +117,11 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     
     
     dim3 blockSize;
-    blockSize.x = 32;
-	
+    blockSize.x = ::std::min(CUDA_BLOCK_SIZE,
+                             ::std::min(maxThreadsPerBlock,
+                                        (int) (sharedMemPerBlock / ::std::max(1,
+                                                    (int) (  dimY * sizeof(TYPE))))));
+                                                    
     dim3 gridSize;
     
     int nblocks;
