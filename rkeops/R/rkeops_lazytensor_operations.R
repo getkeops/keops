@@ -1,9 +1,9 @@
-#library(rkeops)
-#library(stringr)
-#library(data.table)
+library(rkeops)
+library(stringr)
+library(data.table)
 
-#set_rkeops_option("tagCpuGpu", 0)
-#set_rkeops_option("precision", "double")
+set_rkeops_option("tagCpuGpu", 0)
+set_rkeops_option("precision", "double")
 
 # TODO redo doc
 
@@ -124,8 +124,7 @@ LazyTensor <- function(x, index = NA)
 #' \dontrun{
 #' }
 #' @export
-unaryop.LazyTensor <- function(x,opstr)
-{
+unaryop.LazyTensor <- function(x,opstr) {
     if(is.matrix(x))
         stop("`x` input argument should be a LazyTensor, a vector or a scalar.")
     
@@ -180,13 +179,12 @@ unaryop.LazyTensor <- function(x,opstr)
 #' \dontrun{
 #' }
 #' @export
-binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
-{
+binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
     if(is.numeric(x))
         x <- LazyTensor(x)
     
     # if y is a scalar and the operation is a specific operation
-    # for instance we want : Pow(add,2)
+    # for instance we want : Pow(x,2)
     op_specific <- list("Pow") 
     if(is.element(opstr, op_specific) && is.numeric(y) && (as.integer(y)-y) == 0){
         if(is_operator)
@@ -237,13 +235,14 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
 
 "-.default" <- .Primitive("-") # assign default as current definition
 
-"-" <- function(x, ...)
-{ 
-    UseMethod("-", x)
+"-" <- function(x, ...) { 
+    if(class(x)!="LazyTensor")
+        UseMethod("-", y)
+    else
+        UseMethod("-", x)
 }
 
-"-.LazyTensor" <- function(x, y=NA)
-{
+"-.LazyTensor" <- function(x, y=NA) {
     if(length(y)==1 && is.na(y))
         obj <- unaryop.LazyTensor(x, "Minus")
     else
@@ -252,13 +251,14 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
 
 "^.default" <- .Primitive("^") # assign default as current definition
 
-"^" <- function(x, ...)
-{ 
-    UseMethod("^", x)
+"^" <- function(x, y) { 
+    if(class(x)!="LazyTensor")
+        UseMethod("^", y)
+    else
+        UseMethod("^", x)
 }
 
-"^.LazyTensor" <- function(x, y)
-{   
+"^.LazyTensor" <- function(x, y) {   
     if(is.numeric(y) && length(y) == 1){
         if((as.integer(y)-y) == 0){
             if(y == 2)
@@ -286,7 +286,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE)
 }
 
 # useless ?
-Square <- function(x){
+Square <- function(x) {
     obj <- unaryop.LazyTensor(x, "Square")
 }
 
@@ -294,12 +294,11 @@ Square <- function(x){
 # square root
 sqrt.default <- .Primitive("sqrt") # assign default as current definition
 
-sqrt <- function(x, ...)
-{ 
+sqrt <- function(x) { 
     UseMethod("sqrt", x)
 }
 
-sqrt.LazyTensor <- function(x){
+sqrt.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Sqrt")
 }
 
@@ -310,13 +309,14 @@ sqrt.LazyTensor <- function(x){
 # symbolically, the addition of ``x`` and ``y``.
 "+.default" <- .Primitive("+") # assign default as current definition
 
-"+" <- function(x, ...)
-{ 
-    UseMethod("+", x)
+"+" <- function(x, y) { 
+    if(class(x)!="LazyTensor")
+        UseMethod("+", y)
+    else
+        UseMethod("+", x)
 }
 
-"+.LazyTensor" <- function(x, y)
-{
+"+.LazyTensor" <- function(x, y) {
     obj <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE)
 }
 
@@ -324,8 +324,11 @@ sqrt.LazyTensor <- function(x){
 # multiplication
 "*.default" <- .Primitive("*") # assign default as current definition
 
-"*" <- function(x, ...) { 
-    UseMethod("*", x)
+"*" <- function(x, y) { 
+    if(class(x)!="LazyTensor")
+        UseMethod("*", y)
+    else
+        UseMethod("*", x)
 }
 
 "*.LazyTensor" <- function(x, y) {
@@ -335,8 +338,11 @@ sqrt.LazyTensor <- function(x){
 # division
 "/.default" <- .Primitive("/")
 
-"/" <- function(x, ...) { 
-    UseMethod("/", x)
+"/" <- function(x, y) { 
+    if(class(x)!="LazyTensor")
+        UseMethod("/", y)
+    else
+        UseMethod("/", x)
 }
 
 "/.LazyTensor" <- function(x, y) {
@@ -346,8 +352,11 @@ sqrt.LazyTensor <- function(x){
 # scalar product
 "|.default" <- .Primitive("|")
 
-"|" <- function(x, ...) { 
-    UseMethod("|", x)
+"|" <- function(x, y) { 
+    if(class(x)!="LazyTensor")
+        UseMethod("|", y)
+    else
+        UseMethod("|", x)
 }
 "|.LazyTensor" <- function(x, y) {
     obj <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE)
@@ -358,13 +367,14 @@ sqrt.LazyTensor <- function(x){
 
 "%*%.default" <- .Primitive("%*%") # assign default as current definition
 
-"%*%" <- function(x, ...)
-{ 
-    UseMethod("%*%", x)
+"%*%" <- function(x, y) { 
+    if(class(x)!="LazyTensor")
+        UseMethod("%*%", y)
+    else
+        UseMethod("%*%", x)
 }
 
-"%*%.LazyTensor" <- function(x, y)
-{
+"%*%.LazyTensor" <- function(x, y) {
     if(is.matrix(y))
         y <- LazyTensor(y, "j")
     sum(x * y, index = "j")
@@ -571,54 +581,54 @@ sum.LazyTensor <- function(x, index = NA) {
 
 # Basic example
 
-# D = 3
-# M = 100
-# N = 150
-# E = 4
-# x = matrix(runif(M*D),M,D)
-# y = matrix(runif(N*D),N,D)
-# b = matrix(runif(N*E),N,E)
-# s = 0.25
-# 
-# # creating LazyTensor from matrices
-# x_i  = LazyTensor(x,index='i')
-# y_j  = LazyTensor(y,index='j')
-# b_j  = b
-# 
-# # Symbolic matrix of squared distances: 
-# SqDist_ij = sum( (x_i - y_j)^2 )
-# 
-# # Symbolic Gaussian kernel matrix:
-# K_ij = exp( - SqDist_ij / (2 * s^2) )
-# 
-# # Genuine matrix: 
-# v = K_ij %*% b_j
-# # equivalent
-# # v = "%*%.LazyTensor"(K_ij, b_j)
-# 
-# s2 = (2 * s^2)
-# # equivalent
-# op <- keops_kernel(
-#     formula = "Sum_Reduction(Exp(Minus(Sum(Square(x-y)))/s)*b,0)",
-#     args = c("x=Vi(3)", "y=Vj(3)", "s=Pm(1)", "b=Vj(4)")
-# )
-# 
-# 
-# v2 <- op(list(x, y, s2, b))
-# 
-# sum((v2-v)^2)
-# 
-# 
-# 
-# # we compare to standard R computation
-# SqDist = 0
-# onesM = matrix(1,1,M)
-# onesN = matrix(1,1,N)
-# for(k in 1:D)
-#     SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
-# K = exp(-SqDist/(2*s^2))
-# v2 = K %*% b
-# 
-# print(mean(abs(v-v2)))
-# 
-# 
+D = 3
+M = 100
+N = 150
+E = 4
+x = matrix(runif(M*D),M,D)
+y = matrix(runif(N*D),N,D)
+b = matrix(runif(N*E),N,E)
+s = 0.25
+
+# creating LazyTensor from matrices
+x_i  = LazyTensor(x,index='i')
+y_j  = LazyTensor(y,index='j')
+b_j  = b
+
+# Symbolic matrix of squared distances:
+SqDist_ij = sum( (x_i - y_j)^2 )
+
+# Symbolic Gaussian kernel matrix:
+K_ij = exp( - SqDist_ij / (2 * s^2) )
+
+# Genuine matrix:
+v = K_ij %*% b_j
+# equivalent
+# v = "%*%.LazyTensor"(K_ij, b_j)
+
+s2 = (2 * s^2)
+# equivalent
+op <- keops_kernel(
+    formula = "Sum_Reduction(Exp(Minus(Sum(Square(x-y)))/s)*b,0)",
+    args = c("x=Vi(3)", "y=Vj(3)", "s=Pm(1)", "b=Vj(4)")
+)
+
+
+v2 <- op(list(x, y, s2, b))
+
+sum((v2-v)^2)
+
+
+
+# we compare to standard R computation
+SqDist = 0
+onesM = matrix(1,1,M)
+onesN = matrix(1,1,N)
+for(k in 1:D)
+    SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
+K = exp(-SqDist/(2*s^2))
+v2 = K %*% b
+
+print(mean(abs(v-v2)))
+
+
