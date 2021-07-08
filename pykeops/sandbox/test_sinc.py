@@ -14,12 +14,14 @@ y.requires_grad = True
 
 x_i = LazyTensor(x[:, None])
 s1 = x_i.sinc().sum(0)
-s2 = torch.sum(torch.sinc(y))
-print("s1 - s2", torch.abs(s1 - s2).item())
-assert torch.abs(s1 - s2) < 1e-3, torch.abs(s1 - s2)
-
 s1.backward()
-s2.backward()
+if torch.__version__ >= '1.8':
+    s2 = torch.sum(torch.sinc(y))
+    print("s1 - s2", torch.abs(s1 - s2).item())
+    assert torch.abs(s1 - s2) < 1e-3, torch.abs(s1 - s2)
+    s2.backward()
+    print("grad_s1 - grad_s2", torch.max(torch.abs(x.grad - y.grad)).item())
+    assert torch.max(torch.abs(x.grad - y.grad)) < 1e-3
+else:
+    print("ok")
 
-print("grad_s1 - grad_s2", torch.max(torch.abs(x.grad - y.grad)).item())
-assert torch.max(torch.abs(x.grad - y.grad)) < 1e-3
