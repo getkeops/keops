@@ -22,8 +22,8 @@ M, N = 2, 10
 # A Fourth example
 # ^^^^^^^^^^^^^^^^
 
-x = torch.randn(M, 2, 3, 4, 2, 2, requires_grad=True, dtype=torch.float64)
-y = torch.randn(N, 2, 4, 5, 3, 2, requires_grad=True, dtype=torch.float64)
+x = torch.randn(M, 20, 30, 4, 2, 20, requires_grad=True, dtype=torch.float64)
+y = torch.randn(N, 20, 4, 5, 30, 20, requires_grad=True, dtype=torch.float64)
 
 xshape, yshape = x.shape[1:], y.shape[1:]
 f_keops = LazyTensor(x.reshape(M, 1, int(np.array((xshape)).prod()))).keops_tensordot(
