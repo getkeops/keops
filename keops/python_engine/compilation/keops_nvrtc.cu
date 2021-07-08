@@ -69,7 +69,7 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) 
 
 
 template < typename TYPE >
-__host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+__host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, int tagZero,
                                         int *indsi, int *indsj, int *indsp,
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -154,7 +154,7 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
     
-    if (RR.tagRanges==1) {
+    if (RR.tagRanges==1 && tagZero==0) {
         // ranges mode
         
         gridSize.x = nblocks;
@@ -224,7 +224,8 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 
 
 
-extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                                        int device_id, int tagI, int tagZero,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -240,7 +241,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, 
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero,
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
@@ -252,7 +253,8 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
 
 
 
-extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, 
+extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                                        int device_id, int tagI, int tagZero,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -268,7 +270,7 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, 
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero,
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
