@@ -58,7 +58,6 @@ class LoadKeOps_new:
         device_args = tools.device_dict(args[0])
         dtype = tools.dtype(args[0])
         dtypename = tools.dtypename(dtype)
-
         if self.dtype not in ["auto", dtypename]:
             print(
                 "[KeOps] warning : setting a dtype argument in Genred different from the input dtype of tensors is not permitted anymore, argument is ignored."
@@ -66,8 +65,13 @@ class LoadKeOps_new:
 
         if dtypename == "float32":
             c_dtype = "float"
+            use_half = False
         elif dtypename == "float64":
             c_dtype = "double"
+            use_half = False
+        elif dtypename == "float16":
+            c_dtype = "half2"
+            use_half = True
         else:
             raise ValueError("not implemented")
 
@@ -157,6 +161,8 @@ class LoadKeOps_new:
             tagHostDevice,
             tagCPUGPU,
             tag1D2D,
+            use_half,
+            device_id_request
         )
         self.tagIJ = myfun.tagI
         self.dimout = myfun.dim
@@ -187,7 +193,10 @@ class LoadKeOps_new:
 
         batchdims_shapes = np.array(batchdims_shapes)
         M = nx if myfun.tagI == 0 else ny
+        if use_half:
+            M += M%2
         shapeout = tuple(np.max(batchdims_shapes, axis=0)) + (M, myfun.dim)
+        
         out = tools.zeros(shapeout, dtype=dtype, device=device_args)
         outshape_ctype = (c_int * (len(out.shape) + 1))(
             *((len(out.shape),) + out.shape)

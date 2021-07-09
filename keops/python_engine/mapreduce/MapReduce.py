@@ -2,6 +2,7 @@ from keops.python_engine.utils.code_gen_utils import (
     Var_loader,
     new_c_varname,
     pointer,
+    c_include
 )
 from keops.python_engine.reductions import *
 
@@ -20,6 +21,8 @@ class MapReduce:
         tagHostDevice,
         tagCpuGpu,
         tag1D2D,
+        use_half,
+        device_id
     ):
         self.red_formula_string = red_formula_string
         self.aliases = aliases
@@ -35,11 +38,19 @@ class MapReduce:
             tagCpuGpu,
             tag1D2D,
         )
+        self.use_half = use_half
+        self.device_id = device_id
         self.varloader = Var_loader(self.red_formula)
 
     def get_code(self):
 
         self.headers = "#define C_CONTIGUOUS 1\n"
+        
+        if self.use_half == 1:
+            self.headers += "#define USE_HALF 1\n"
+            self.headers += c_include("cuda_fp16.h")
+        else:
+            self.headers += "#define USE_HALF 0\n"
 
         red_formula = self.red_formula
         formula = red_formula.formula

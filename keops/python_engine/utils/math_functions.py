@@ -40,6 +40,10 @@ def math_function(cpu_code, gpu_code=None, gpu_half2_code=None, void=False):
 
     return call
 
+keops_mul = math_function(
+    cpu_code = lambda x, y: f"({x}*{y})",
+    gpu_half2_code = "__hmul2"
+)
 
 keops_abs = math_function(cpu_code="abs")
 keops_cos = math_function(cpu_code="cos")
@@ -49,7 +53,10 @@ keops_acos = math_function(cpu_code="acos")
 keops_asin = math_function(cpu_code="asin")
 keops_atan = math_function(cpu_code="atan")
 keops_atan2 = math_function(cpu_code="atan2")
-keops_exp = math_function(cpu_code="exp")
+keops_exp = math_function(
+    cpu_code="exp",
+    gpu_half2_code="h2exp"
+)
 keops_floor = math_function(cpu_code="floor")
 keops_log = math_function(cpu_code="log")
 keops_xlogx = math_function(cpu_code=lambda x: f"({x} ? {x} * log({x}) : 0.0f)")

@@ -2,6 +2,7 @@ from keops.python_engine.formulas.Operation import Broadcast
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.python_engine.formulas.variables.Zero import Zero
 from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
+from keops.python_engine.utils.math_functions import keops_mul
 
 ##########################
 ######    Mult       #####
@@ -14,10 +15,7 @@ class Mult_Impl(VectorizedScalarOp):
     string_id = "Mult"
     print_spec = "*", "mid", 3
 
-    def ScalarOp(self, out, arg0, arg1):
-        # returns the atomic piece of c++ code to evaluate the function on arg and return
-        # the result in out
-        return f"{out.id} = {arg0.id}*{arg1.id};\n"
+    ScalarOpFun = keops_mul
 
     #  \diff_V (A*B) = (\diff_V A) * B + A * (\diff_V B)
     def DiffT(self, v, gradin):

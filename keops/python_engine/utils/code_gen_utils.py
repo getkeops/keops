@@ -63,7 +63,7 @@ class c_variable:
         elif type(value) == str:
             return f"{self.id} = ({self.dtype})({value});\n"
         elif value.dtype != self.dtype:
-            return f"{self.id} = ({self.dtype})({value.id});\n"
+            return f"{self.id} = {cast_to(self.dtype, value)};\n"
         else:
             return f"{self.id} = ({value.id});\n"
 
@@ -72,9 +72,9 @@ class c_variable:
             dtype = "int" if type(value) == int else "float"
             return self.add_assign(c_variable(dtype, str(value)))
         if type(value) == str:
-            return f"{self.id} += ({self.dtype})({value});\n"
+            return f"{self.id} += ({self.dtype})({value});\n" 
         elif value.dtype != self.dtype:
-            return f"{self.id} += ({self.dtype})({value.id});\n"
+            return f"{self.id} += {cast_to(self.dtype, value)};\n"
         else:
             return f"{self.id} += ({value.id});\n"
 
@@ -222,6 +222,8 @@ def cast_to(dtype, var):
     simple_dtypes = ["float", "double", "int"]
     if (dtype in simple_dtypes) and (var.dtype in simple_dtypes):
         return f"({dtype})({var.id})"
+    elif dtype=="half2" and var.dtype=="float":
+        return f"__float2half2_rn({var.id})"
     else:
         raise ValueError("not implemented.")
 

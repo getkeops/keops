@@ -5,6 +5,7 @@
 #include <cuda.h>
 #include <stdio.h>
 #include <iostream>
+#include <sstream>
 #include <stdarg.h>
 
 #define __INDEX__ int //int32_t
@@ -18,25 +19,50 @@
 
 #include "CudaSizes.h"
 
+#include <cuda_fp16.h>
+
 #include "utils.cpp"
 #include "ranges_utils.cpp"
 
-extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) {
+extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code, int use_half, int device_id) {
 
     char *ptx;
 
     nvrtcProgram prog;
+    
+    int numHeaders;
+    const char* header_names[2];
+    const char* header_sources[2];
+    if (use_half) {
+        numHeaders = 2;
+        header_names[0] = "cuda_fp16.h";
+        header_sources[0] = read_text_file("/usr/include/cuda_fp16.h");
+        
+        header_names[1] = "cuda_fp16.hpp";
+        header_sources[1] = read_text_file("/usr/include/cuda_fp16.hpp");
 
+    } else {
+        numHeaders = 0;
+    }
+    
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, device_id);
+    
     NVRTC_SAFE_CALL(nvrtcCreateProgram(&prog,         // prog
                    cu_code,         // buffer
                    NULL,    // name
-                   0,             // numHeaders
-                   NULL,          // headers
-                   NULL));        // includeNames
+                   numHeaders,             // numHeaders
+                   header_sources,                    // headers
+                   header_names               // includeNames 
+                   ));
 
-    const char *opts[] = {};
+    std::ostringstream arch_flag;
+    arch_flag << "-arch=compute_" << deviceProp.major << deviceProp.minor;
+    
+    const char *opts[] = {arch_flag.str().c_str()};
+    
     nvrtcResult compileResult = nvrtcCompileProgram(prog,  // prog
-                                              0,     // numOptions
+                                              1,     // numOptions
                                               opts); // options
               
     // Obtain compilation log from the program.
@@ -72,7 +98,8 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code) 
 
 
 template < typename TYPE >
-__host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, int device_id, int tagI, int tagZero,
+__host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                                        int device_id, int tagI, int tagZero, int use_half,
                                         int *indsi, int *indsj, int *indsp,
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -86,14 +113,14 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     
     SetGpuProps(device_id);
     
-    Sizes<TYPE> SS(nargs, arg, argshape, nx, ny, tagI,
+    Sizes<TYPE> SS(nargs, arg, argshape, nx, ny, 
+                   tagI, use_half,
                    dimout, 
                    indsi, indsj, indsp,
                    dimsx, dimsy, dimsp);
                         
-    #if USE_HALF
+    if (use_half)
         SS.switch_to_half2_indexing();
-    #endif
 
     Ranges<TYPE> RR(SS, ranges);
     
@@ -160,7 +187,13 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     CUmodule module;
     CUfunction kernel;
     
-    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, 0, 0));
+    CUjit_option jitOptions[1];
+    void* jitOptVals[1];
+    jitOptions[0] = CU_JIT_TARGET;
+    long targ_comp = 61;
+    jitOptVals[0] = (void *)targ_comp;
+    
+    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 1, jitOptions, jitOptVals));
     
     if (RR.tagRanges==1 && tagZero==0) {
         // ranges mode
@@ -233,7 +266,7 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 
 
 extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero,
+                                        int device_id, int tagI, int tagZero, int use_half,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -249,7 +282,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero,
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
@@ -262,7 +295,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
 
 
 extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero,
+                                        int device_id, int tagI, int tagZero, int use_half,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -278,7 +311,35 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero,
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
+                                        indsi, indsj, indsp,
+                                        dimout,
+                                        dimsx, dimsy, dimsp,
+                                        ranges, shapeout, out, nargs, arg, argshape);
+                                                                        
+}
+
+
+
+
+extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+                                        int device_id, int tagI, int tagZero, int use_half,
+                                        int *indsi, int *indsj, int *indsp, 
+                                        int dimout, 
+                                        int *dimsx, int *dimsy, int *dimsp,
+                                        int **ranges, int *shapeout, half2 *out, int nargs, ...) {
+    // reading arguments
+    va_list ap;
+    va_start(ap, nargs);
+    half2 *arg[nargs];
+    for (int i=0; i<nargs; i++)
+        arg[i] = va_arg(ap, half2*);
+    int *argshape[nargs];
+    for (int i=0; i<nargs; i++)
+        argshape[i] = va_arg(ap, int*);
+    va_end(ap);
+    
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,

@@ -1,7 +1,7 @@
 import os
 from keops.python_engine.compilation import link_compile
 from keops.python_engine.config import build_path
-from ctypes import create_string_buffer, CDLL
+from ctypes import create_string_buffer, CDLL, c_int
 from keops.python_engine import jit_binary
 
 
@@ -35,7 +35,7 @@ class Gpu_link_compile(link_compile):
 
     def compile_code(self):
         # method to generate the code and compile it
-        # generate the code and save it in self.code, by calling get_code method from CpuReduc or GpuReduc classes :
+        # generate the code and save it in self.code, by calling get_code method from GpuReduc class :
         self.get_code()
         # write the code in the source file
         self.write_code()
@@ -43,6 +43,8 @@ class Gpu_link_compile(link_compile):
         self.my_c_dll.Compile(
             create_string_buffer(self.low_level_code_file),
             create_string_buffer(self.code.encode("utf-8")),
+            c_int(self.use_half),
+            c_int(self.device_id)
         )
         # retreive some parameters that will be saved into info_file.
         self.tagI = self.red_formula.tagI

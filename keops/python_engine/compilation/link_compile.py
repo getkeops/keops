@@ -21,6 +21,11 @@ class link_compile:
             self.dtype,
             self.dtypeacc,
             self.sum_scheme_string,
+            self.tagHostDevice,
+            self.tagCpuGpu,
+            self.tag1D2D,
+            self.use_half,
+            self.device_id
         )
 
         # info_file is the name of the file that will contain some meta-information required by the bindings, e.g. 7b9a611f7e.nfo
@@ -98,6 +103,7 @@ class link_compile:
             dllname=self.true_dllname,
             low_level_code_file=self.low_level_code_file,
             tagI=self.tagI,
+            use_half=self.use_half,
             dim=self.dim,
             dimy=self.dimy,
             indsi=self.varloader.indsi,
