@@ -54,6 +54,8 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
 
                           // declare shared mem
                           extern __shared__ {dtype} yj[];
+                          
+                          printf("__CUDA_ARCH__ = %d\\n", __CUDA_ARCH__);
 
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}

@@ -52,7 +52,7 @@ int get_sum(TYPE *shape) {
 
 
 template < typename TYPE >
-__host__ void load_args_FromDevice(void*& p_data, TYPE* out, TYPE*& out_d, int nargs, TYPE** arg, TYPE**& arg_d) {
+void load_args_FromDevice(void*& p_data, TYPE* out, TYPE*& out_d, int nargs, TYPE** arg, TYPE**& arg_d) {
     cudaMalloc(&p_data, sizeof(TYPE*) * nargs);
     out_d = out;
     arg_d = (TYPE **) p_data;
@@ -62,7 +62,7 @@ __host__ void load_args_FromDevice(void*& p_data, TYPE* out, TYPE*& out_d, int n
 
 
 template < typename TYPE >
-__host__ void load_args_FromHost(void*& p_data, TYPE* out, TYPE*& out_d, int nargs, TYPE** arg, TYPE**& arg_d, int** argshape, int sizeout) {
+void load_args_FromHost(void*& p_data, TYPE* out, TYPE*& out_d, int nargs, TYPE** arg, TYPE**& arg_d, int** argshape, int sizeout) {
     int sizes[nargs];
     int totsize = sizeout;
     for (int k=0; k<nargs; k++) {

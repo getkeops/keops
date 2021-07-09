@@ -3,6 +3,7 @@
 
 #include <nvrtc.h>
 #include <cuda.h>
+#include <cuda_runtime_api.h>
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
@@ -24,7 +25,7 @@
 #include "utils.cpp"
 #include "ranges_utils.cpp"
 
-extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code, int use_half, int device_id) {
+extern "C" int Compile(const char* ptx_file_name, const char* cu_code, int use_half, int device_id) {
 
     char *ptx;
 
@@ -98,7 +99,7 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code, 
 
 
 template < typename TYPE >
-__host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                         int device_id, int tagI, int tagZero, int use_half,
                                         int *indsi, int *indsj, int *indsp,
                                         int dimout, 
@@ -265,7 +266,7 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 
 
 
-extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+extern "C" int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                         int device_id, int tagI, int tagZero, int use_half,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
@@ -294,7 +295,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
 
 
 
-extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+extern "C" int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                         int device_id, int tagI, int tagZero, int use_half,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
@@ -322,7 +323,7 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
 
 
 
-extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
+extern "C" int launch_keops_half(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                         int device_id, int tagI, int tagZero, int use_half,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
