@@ -60,8 +60,8 @@ set_rkeops_option("precision", "double")
 LazyTensor <- function(x, index = NA)
 {
     # init
-    d = NULL
-    cat = NULL
+    d <- NULL
+    cat <- NULL
     
     if(is.character(x))
         stop("`x` input argument should be a matrix, a vector or a scalar.")
@@ -73,7 +73,7 @@ LazyTensor <- function(x, index = NA)
     if(is.matrix(x))
     {
         d <- ncol(x)
-        if(index=='i')
+        if(index == "i")
         {
             # cat = 0
             cat = "Vi"
@@ -96,15 +96,15 @@ LazyTensor <- function(x, index = NA)
     #var_name = "var0"
     #var_name = address(x)
     #var_name = paste("A", address(x), sep="")
-    var_name = paste("A", address(x), index, sep="") 
-    formula = var_name
+    var_name <- paste("A", address(x), index, sep = "") 
+    formula <- var_name
     # formula <- paste('Var(0,', d, ',', cat, ')', sep = "")  # Var(ind,dim,cat), where :
     #                                                         # ind gives the position in the final call to KeOps routine,
     #                                                         # dim is the dimension
     #                                                         # cat the category
     vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
     #args = str_c(var_name, "=", cat, "(0,", d, ")")
-    args = str_c(var_name, "=", cat, "(", d, ")")
+    args <- str_c(var_name, "=", cat, "(", d, ")")
     # finally we build and return the LazyTensor object
     obj <- list(formula = formula, args = args, vars = vars)
     class(obj) <- "LazyTensor"
@@ -131,7 +131,7 @@ unaryop.LazyTensor <- function(x,opstr) {
     if(is.numeric(x))
         x <- LazyTensor(x)
     formula <- paste(opstr, "(", x$formula, ")", sep="")
-    obj <- list(formula = formula, args=x$args, vars=x$vars)
+    obj <- list(formula = formula, args = x$args, vars = x$vars)
     class(obj) <- "LazyTensor"
     return(obj)
 }
@@ -185,15 +185,15 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
     
     # if y is a scalar and the operation is a specific operation
     # for instance we want : Pow(x,2)
-    op_specific <- list("Pow") 
-    if(is.element(opstr, op_specific) && is.numeric(y) && (as.integer(y)-y) == 0){
+    op_specific <- list("Pow", "Round") 
+    if(is.element(opstr, op_specific) && is.numeric(y) && (as.integer(y) - y) == 0){
         if(is_operator)
-            formula <- paste(x$formula, opstr, y, sep="")
+            formula <- paste(x$formula, opstr, y, sep = "")
         # case when the operation is not an operator
         else 
             formula <- paste(opstr, "(", x$formula, ",", y, ")", sep="")
-        vars <- c(x$vars) # TODO check if we need y$vars instead of y
-        args <- c(x$args) # TODO check if we need y$args instead of y
+        vars <- c(x$vars)
+        args <- c(x$args)
     }
     # case with no specific operation 
     else{
@@ -235,15 +235,15 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
 
 "-.default" <- .Primitive("-") # assign default as current definition
 
-"-" <- function(x, ...) { 
-    if(class(x)!="LazyTensor")
+"-" <- function(x, y = NA) { 
+    if(class(x)[1] != "LazyTensor")
         UseMethod("-", y)
     else
         UseMethod("-", x)
 }
 
-"-.LazyTensor" <- function(x, y=NA) {
-    if(length(y)==1 && is.na(y))
+"-.LazyTensor" <- function(x, y = NA) {
+    if((length(y) == 1) && is.na(y))
         obj <- unaryop.LazyTensor(x, "Minus")
     else
         obj <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE)
@@ -252,7 +252,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
 "^.default" <- .Primitive("^") # assign default as current definition
 
 "^" <- function(x, y) { 
-    if(class(x)!="LazyTensor")
+    if(class(x)[1] != "LazyTensor")
         UseMethod("^", y)
     else
         UseMethod("^", x)
@@ -310,7 +310,7 @@ sqrt.LazyTensor <- function(x) {
 "+.default" <- .Primitive("+") # assign default as current definition
 
 "+" <- function(x, y) { 
-    if(class(x)!="LazyTensor")
+    if(class(x)[1] != "LazyTensor")
         UseMethod("+", y)
     else
         UseMethod("+", x)
@@ -325,7 +325,7 @@ sqrt.LazyTensor <- function(x) {
 "*.default" <- .Primitive("*") # assign default as current definition
 
 "*" <- function(x, y) { 
-    if(class(x)!="LazyTensor")
+    if(class(x)[1] != "LazyTensor")
         UseMethod("*", y)
     else
         UseMethod("*", x)
@@ -339,7 +339,7 @@ sqrt.LazyTensor <- function(x) {
 "/.default" <- .Primitive("/")
 
 "/" <- function(x, y) { 
-    if(class(x)!="LazyTensor")
+    if(class(x)[1] != "LazyTensor")
         UseMethod("/", y)
     else
         UseMethod("/", x)
@@ -353,7 +353,7 @@ sqrt.LazyTensor <- function(x) {
 "|.default" <- .Primitive("|")
 
 "|" <- function(x, y) { 
-    if(class(x)!="LazyTensor")
+    if(class(x)[1] != "LazyTensor")
         UseMethod("|", y)
     else
         UseMethod("|", x)
@@ -368,7 +368,7 @@ sqrt.LazyTensor <- function(x) {
 "%*%.default" <- .Primitive("%*%") # assign default as current definition
 
 "%*%" <- function(x, y) { 
-    if(class(x)!="LazyTensor")
+    if(class(x)[1] != "LazyTensor")
         UseMethod("%*%", y)
     else
         UseMethod("%*%", x)
@@ -406,15 +406,23 @@ log.LazyTensor <- function(x)
 }
 
 # element-wise inverse 1/x
-# solve.default <- .Primitive("solve")
-# 
-# solve <- function(x) {
-#     UseMethod("solve")
-# }
-# 
-# solve.LazyTensor <- function(x) {
-#     obj <- unaryop.LazyTensor(x, "Inv")
-# }
+# TODO doc explain that inv(scalar) = 1/scalar and inv(matrix) = matrix^{-1} and 1/vector = element-wise inverse
+inv.default <- function(x) {
+    if(is.matrix(x))
+        res <- solve(x)
+    else
+        res <- 1 / x
+    return(res)
+}
+
+inv <- function(x) {
+    UseMethod("inv")
+}
+
+inv.LazyTensor <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Inv")
+}
+
 
 # cosinus
 cos.default <- .Primitive("cos")
@@ -471,16 +479,18 @@ atan.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Atan")
 }
 
-# 2-argument arc-tangent function
-# atan2.default <- .Primitive("atan2")
-# 
-# atan2 <- function(x, ...) {
-#     UseMethod("atan2", x)
-# }
-# 
-# atan2.LazyTensor <- function(x, y) {
-#     obj <- binaryop.LazyTensor(x, y, "Atan2")
-# }
+# element-wise 2-argument arc-tangent function
+atan2.default <- function(x, y) {
+    .Internal(atan2(x, y))
+}
+
+atan2 <- function(x, ...) {
+    UseMethod("atan2", x)
+}
+
+atan2.LazyTensor <- function(x, y) {
+    obj <- binaryop.LazyTensor(x, y, "Atan2")
+}
 
 
 # absolute value
@@ -519,8 +529,12 @@ round.LazyTensor <- function(x, y) {
 }
 
 
+# Préciser que si on a plusieurs scalaires, on peut faire e.g. min(3, 4, 11)
+# qui renvoie 11 mais pour les LazyTensor c'est juste min(x_i) qui renvoie
+# l'élément minimal de x_i
 # Min function
 min.default <- .Primitive("min")
+
 min <- function(x) {
     UseMethod("min")
 }
@@ -529,27 +543,58 @@ min.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Min")
 }
 
-
-# Min function
+# Préciser que si on a plusieurs scalaires, on peut faire e.g. max(3, 4, 11)
+# qui renvoie 11 mais pour les LazyTensor c'est juste max(x_i) qui renvoie
+# l'élément maximal de x_i
+# Max function
 max.default <- .Primitive("max")
+
 max <- function(x, ...) {
     UseMethod("max", x)
 }
 
-max.LazyTensor <- function(x, y) {
+max.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Max")
 }
 
 
-# xlogx
+# xlogx function
+# TODO value 0 at 0 c'est sûr ??
+xlogx.default <- function(x) {
+    if(x == 0)
+        res <- 0
+    else
+        res <- x * log(x)
+    return(res)
+}
+
+xlogx <- function(x, ...) {
+    UseMethod("xlogx", x)
+}
+
 xlogx.LazyTensor <- function(x){
     obj <- unaryop.LazyTensor(x, "XLogX")
 }
 
-# SinXDivX(f)
+
+# sinxdivx function
+# TODO value 1 at 0 ?
+sinxdivx.default <- function(x) {
+    if(x == 0)
+        res <- 1
+    else
+        res <- sin(x) / x
+    return(res)
+}
+
+sinxdivx <- function(x, ...) {
+    UseMethod("sinxdivx", x)
+}
+
 sinxdivx.LazyTensor <- function(x){
     obj <- unaryop.LazyTensor(x, "SinXDivX")
 }
+
 
 # Reduction
 reduction.LazyTensor <- function(x, opstr, index) {
@@ -591,9 +636,9 @@ b = matrix(runif(N*E),N,E)
 s = 0.25
 
 # creating LazyTensor from matrices
-x_i  = LazyTensor(x,index='i')
-y_j  = LazyTensor(y,index='j')
-b_j  = b
+x_i = LazyTensor(x, index = 'i')
+y_j = LazyTensor(y, index = 'j')
+b_j = b
 
 # Symbolic matrix of squared distances:
 SqDist_ij = sum( (x_i - y_j)^2 )
