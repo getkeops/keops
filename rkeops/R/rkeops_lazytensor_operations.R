@@ -111,7 +111,6 @@ LazyTensor <- function(x, index = NA)
     return(obj)
 }
 
-# TODO error print when matrix in input
 
 #' Build a unary operation
 #' @description
@@ -136,35 +135,6 @@ unaryop.LazyTensor <- function(x,opstr) {
     return(obj)
 }
 
-
-#binaryop.LazyTensor = function(x,y,opstr)
-#{
-#    if(is.numeric(x))
-#        x = LazyTensor(x)
-#    if(is.numeric(y))
-#        y = LazyTensor(y)
-#    # update list of variables and update indices in formula
-#    dec = length(x$vars)
-#    yform = y$formula
-#    for(k in 1:length(x$vars))
-#    {
-#        str1 = paste("Var(",k-1,sep="")
-#        str2 = paste("Var(",k-1+dec,sep="")
-#        yform = gsub(str1, str2, yform, fixed = TRUE)
-#    }
-#    formula = paste(x$formula,opstr,yform,sep="")
-#    vars = c(x$vars,y$vars)
-#    ni = max(x$ni,y$ni)
-#    nj = max(x$nj,y$nj)
-#    obj = list(formula = formula, vars=vars, ni=ni, nj=nj)
-#    class(obj) = "LazyTensor"
-#    obj
-#}
-
-
-
-# TODO : pb if y is a vector or a matrix etc ?
-
 #' Build a binary operation
 #' @description
 #' Symbolically applies **opstr** operation to **x** and **y**.
@@ -180,6 +150,12 @@ unaryop.LazyTensor <- function(x,opstr) {
 #' }
 #' @export
 binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
+    if(is.matrix(x))
+        stop("`x` and  input argument should be a LazyTensor, a vector or a scalar.")
+    
+    if(is.matrix(y))
+        stop("`y` and  input argument should be a LazyTensor, a vector or a scalar.")
+    
     if(is.numeric(x))
         x <- LazyTensor(x)
     
@@ -233,6 +209,8 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
     return(obj)
 }
 
+
+# soustraction
 "-.default" <- .Primitive("-") # assign default as current definition
 
 "-" <- function(x, y = NA) { 
@@ -260,7 +238,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
 
 "^.LazyTensor" <- function(x, y) {   
     if(is.numeric(y) && length(y) == 1){
-        if((as.integer(y)-y) == 0){
+        if((as.integer(y) - y) == 0){
             if(y == 2)
                 obj <- unaryop.LazyTensor(x, "Square")
             else
@@ -285,8 +263,9 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
     return(obj)
 }
 
-# useless ?
-Square <- function(x) {
+
+# square
+square <- function(x) {
     obj <- unaryop.LazyTensor(x, "Square")
 }
 
@@ -302,6 +281,10 @@ sqrt.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Sqrt")
 }
 
+# Rsqrt
+rsqrt <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Rsqrt")
+}
 
 # addition
 # Broadcasted addition operator, a binary operation.
@@ -484,8 +467,11 @@ atan2.default <- function(x, y) {
     .Internal(atan2(x, y))
 }
 
-atan2 <- function(x, ...) {
-    UseMethod("atan2", x)
+atan2 <- function(x, y) {
+    if(class(x)[1] != "LazyTensor")
+        UseMethod("atan2", y)
+    else
+        UseMethod("atan2", x)
 }
 
 atan2.LazyTensor <- function(x, y) {
@@ -535,7 +521,7 @@ round.LazyTensor <- function(x, y) {
 # Min function
 min.default <- .Primitive("min")
 
-min <- function(x) {
+min <- function(x, ...) {
     UseMethod("min")
 }
 
@@ -568,7 +554,7 @@ xlogx.default <- function(x) {
     return(res)
 }
 
-xlogx <- function(x, ...) {
+xlogx <- function(x) {
     UseMethod("xlogx", x)
 }
 
@@ -587,7 +573,7 @@ sinxdivx.default <- function(x) {
     return(res)
 }
 
-sinxdivx <- function(x, ...) {
+sinxdivx <- function(x) {
     UseMethod("sinxdivx", x)
 }
 
@@ -619,8 +605,10 @@ sum <- function(obj, index) {
 sum.LazyTensor <- function(x, index = NA) {
     if(is.na(index))
         obj <- unaryop.LazyTensor(x, "Sum")
-    else
+    else if(is.character(index))
         obj <- reduction.LazyTensor(x, "Sum", index)
+    else
+        stop("`index` input argument should be a character `i`, `j` or NA.")
 }
 
 
