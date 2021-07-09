@@ -43,12 +43,10 @@ class GpuReduc1D(MapReduce, Gpu_link_compile):
         table = varloader.table(self.xi, yjrel, self.param_loc)
         jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
 
-        if dtype == "half2":
-            self.headers += c_include("cuda_fp16.h")
-
         self.code = f"""
+                          
                         {self.headers}
-
+                        
                         extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread

@@ -29,6 +29,7 @@ class get_keops_routine_class:
             self.low_level_code_file,
             self.tagI,
             self.tagZero,
+            self.use_half,
             self.dim,
             self.dimy,
             indsi,
@@ -75,6 +76,8 @@ class get_keops_routine_class:
             launch_keops = self.dll.launch_keops_float
         elif c_dtype == "double":
             launch_keops = self.dll.launch_keops_double
+        elif c_dtype == "half2":
+            launch_keops = self.dll.launch_keops_half
         else:
             raise ValueError("dtype", dtype, "not yet implemented in new KeOps engine")
         launch_keops.argtypes = (
@@ -87,6 +90,7 @@ class get_keops_routine_class:
                 c_int,  # device_id
                 c_int,  # tagI
                 c_int,  # tagZero
+                c_int,  # use_half
                 c_int * len(self.indsi_ctype),  # indsi
                 c_int * len(self.indsj_ctype),  # indsj
                 c_int * len(self.indsp_ctype),  # indsp
@@ -112,6 +116,7 @@ class get_keops_routine_class:
             c_int(device_id),
             c_int(self.tagI),
             c_int(self.tagZero),
+            c_int(self.use_half),
             self.indsi_ctype,
             self.indsj_ctype,
             self.indsp_ctype,

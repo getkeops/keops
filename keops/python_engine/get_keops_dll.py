@@ -6,12 +6,18 @@
 #   - dtype : string specifying the float type of the arguments (currently "float" or "double")
 #   - dtypeacc : string specifying the float type of the accumulator of the reduction (currently "float" or "double")
 #   - sum_scheme_string : string specifying the type of accumulation for summation reductions : either "direct_sum", "block_sum" or "kahan_scheme".
-
+#   - tagHostDevice : 0 or 1, for Gpu mode only, use Host (0) or Device (1) routines
+#   - tagCPUGPU : 0 or 1, use Cpu (0) or Gpu (1) mode
+#   - tag1D2D : 0 or 1, for Gpu mode only, use 1D (0) or 2D (1) computation map-reduce scheme 
+#   - use_half : 0 or 1, for Gpu mode only, enable special routines for half-precision data type
+#   - device_id : integer, for Gpu mode only, id of Gpu device to build the code for
+#
 # It returns :
 #       - dllname : string, file name of the dll to be called for performing the reduction
 #       - low_level_code_file : string, file name of the low level code file to be passed to the dll if JIT is enabled, or "none" otherwise
 #       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
 #       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
+#       - use_half : 0 or 1, enable special routines for half-precision data type,
 #       - dim : integer, dimension of the output tensor.
 #       - dimy : integer, total dimension of the j indexed variables.
 #       - indsi : list of integers, indices of i indexed variables.
@@ -54,6 +60,7 @@ def get_keops_dll(map_reduce_id, *args):
         res["low_level_code_file"],
         res["tagI"],
         tagZero,
+        res["use_half"],
         res["dim"],
         res["dimy"],
         res["indsi"],

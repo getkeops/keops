@@ -86,14 +86,14 @@ public:
       nredranges_y = sizes.nbatches;
 
     } 
-	#if do_keops_checks
+#if do_checks
 	else {
       throw std::runtime_error(
               "[KeOps] The 'ranges' argument (block-sparse mode) is not supported with batch processing, "
               "but we detected " + std::to_string(sizes.nbatchdims) + " > 0 batch dimensions."
       );
     }
-	#endif
+#endif
   
 
     

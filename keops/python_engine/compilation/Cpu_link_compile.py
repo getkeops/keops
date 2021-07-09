@@ -39,7 +39,7 @@ class Cpu_link_compile(link_compile):
 
     def compile_code(self):
         # method to generate the code and compile it
-        # generate the code and save it in self.code, by calling get_code method from CpuReduc or GpuReduc classes :
+        # generate the code and save it in self.code, by calling get_code method from CpuReduc class :
         self.get_code()
         # write the code in the source file
         self.write_code()
