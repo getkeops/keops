@@ -58,13 +58,16 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code, 
 
     std::ostringstream arch_flag;
     arch_flag << "-arch=compute_" << deviceProp.major << deviceProp.minor;
-    
-    const char *opts[] = {strdup(arch_flag.str().c_str())};
+
+    char *arch_flag_char = new char[16];
+    arch_flag_char = strdup(arch_flag.str().c_str());
+    const char *opts[] = {arch_flag_char};
     
     nvrtcResult compileResult = nvrtcCompileProgram(prog,  // prog
                                               1,     // numOptions
                                               opts); // options
-              
+    delete[] arch_flag_char;
+
     // Obtain compilation log from the program.
     size_t logSize;
     NVRTC_SAFE_CALL(nvrtcGetProgramLogSize(prog, &logSize));
@@ -187,13 +190,13 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     CUmodule module;
     CUfunction kernel;
     
-    CUjit_option jitOptions[1];
-    void* jitOptVals[1];
-    jitOptions[0] = CU_JIT_TARGET;
-    long targ_comp = 61;
-    jitOptVals[0] = (void *)targ_comp;
+    //CUjit_option jitOptions[1];
+    //void* jitOptVals[1];
+    //jitOptions[0] = CU_JIT_TARGET;
+    //long targ_comp = 75;
+    //jitOptVals[0] = (void *)targ_comp;
     
-    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 1, jitOptions, jitOptVals));
+    CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, NULL, NULL));
     
     if (RR.tagRanges==1 && tagZero==0) {
         // ranges mode
