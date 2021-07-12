@@ -162,7 +162,9 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
     # if y is a scalar and the operation is a specific operation
     # for instance we want : Pow(x,2)
     op_specific <- list("Pow", "Round") 
-    if(is.element(opstr, op_specific) && is.numeric(y) && (as.integer(y) - y) == 0){
+    condition1 <- is.element(opstr, op_specific) && is.numeric(y) && (as.integer(y) - y) == 0
+    condition2 <- opstr == "Round" && is.numeric(y) && length(y) == 1
+    if(condition1 || condition2){
         if(is_operator)
             formula <- paste(x$formula, opstr, y, sep = "")
         # case when the operation is not an operator
