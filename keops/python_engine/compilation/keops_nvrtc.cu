@@ -59,7 +59,7 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code, 
     std::ostringstream arch_flag;
     arch_flag << "-arch=compute_" << deviceProp.major << deviceProp.minor;
     
-    const char *opts[] = {arch_flag.str().c_str()};
+    const char *opts[] = {strdup(arch_flag.str().c_str())};
     
     nvrtcResult compileResult = nvrtcCompileProgram(prog,  // prog
                                               1,     // numOptions
