@@ -123,13 +123,14 @@ LazyTensor <- function(x, index = NA)
 #' \dontrun{
 #' }
 #' @export
-unaryop.LazyTensor <- function(x,opstr) {
+unaryop.LazyTensor <- function(x, opstr) {
     if(is.matrix(x))
-        stop("`x` input argument should be a LazyTensor, a vector or a scalar.")
+        stop(paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
+                   "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
     
     if(is.numeric(x))
         x <- LazyTensor(x)
-    formula <- paste(opstr, "(", x$formula, ")", sep="")
+    formula <- paste(opstr, "(", x$formula, ")", sep = "")
     obj <- list(formula = formula, args = x$args, vars = x$vars)
     class(obj) <- "LazyTensor"
     return(obj)
@@ -149,12 +150,14 @@ unaryop.LazyTensor <- function(x,opstr) {
 #' \dontrun{
 #' }
 #' @export
-binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
+binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE) {
     if(is.matrix(x))
-        stop("`x` and  input argument should be a LazyTensor, a vector or a scalar.")
+        stop(paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
+                   "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
     
     if(is.matrix(y))
-        stop("`y` and  input argument should be a LazyTensor, a vector or a scalar.")
+        stop(paste("`y` input argument should be a LazyTensor, a vector or a scalar.",
+                   "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
     
     if(is.numeric(x))
         x <- LazyTensor(x)
@@ -169,7 +172,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
             formula <- paste(x$formula, opstr, y, sep = "")
         # case when the operation is not an operator
         else 
-            formula <- paste(opstr, "(", x$formula, ",", y, ")", sep="")
+            formula <- paste(opstr, "(", x$formula, ",", y, ")", sep = "")
         vars <- c(x$vars)
         args <- c(x$args)
     }
@@ -198,23 +201,86 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
         #}
         # special formula for operator
         if(is_operator)
-            formula <- paste(x$formula, opstr, yform, sep="")
+            formula <- paste(x$formula, opstr, yform, sep = "")
         else
-            formula <- paste(opstr, "(", x$formula, ",", yform, ")", sep="")
+            formula <- paste(opstr, "(", x$formula, ",", yform, ")", sep = "")
         vars <- c(x$vars,y$vars)
         vars[!duplicated(names(vars))]
         args <- unique(c(x$args,y$args))
     }
     
-    obj <- list(formula = formula, args=args, vars=vars)
+    obj <- list(formula = formula, args = args, vars = vars)
     class(obj) <- "LazyTensor"
     return(obj)
 }
 
 
-# soustraction
+# addition ---------------------------------------------------------------------
+"+.default" <- .Primitive("+") # assign default as current definition
+
+#' Addition.
+#' @description
+#' Symbolic binary operation for addition.
+#' @details If `x` or `y` is a `LazyTensor`, `x + y` returns a `LazyTensor`
+#' that encodes, symbolically, the addition of `x` and `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted to `LazyTensor`).
+#' If none of the arguments is a `LazyTensor`, is equivalent to the `+` R operator.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", otherwise.
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
+#' Sum_xy <- x_i + y_j                 # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+"+" <- function(x, y) { 
+    if(class(x)[1] != "LazyTensor")
+        UseMethod("+", y)
+    else
+        UseMethod("+", x)
+}
+
+"+.LazyTensor" <- function(x, y) {
+    obj <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE)
+}
+
+
+# subtraction  ----------------------------------------------------------------
 "-.default" <- .Primitive("-") # assign default as current definition
 
+#' Subtraction or minus sign.
+#' @description
+#' Symbolic binary operation for subtraction.
+#' @details Two possible use cases:
+#' \itemize{
+#'     \item{**Subtraction**:}{ If `x` or `y` is a `LazyTensor`, `x - y` returns a `LazyTensor`
+#'     that encodes, symbolically, the subtraction of `x` and `y`.
+#'     (In case one of the arguments is a vector or a scalar, it is first converted to `LazyTensor`).
+#'     If none of the arguments is a `LazyTensor`, is equivalent to the `-` R operator.}
+#'     \item{**Minus sign**:}{ If `x` is a `LazyTensor`, `-x` returns a `LazyTensor`
+#'     that encodes, symbolically, the element-wise opposite of `x`.}
+#' }
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value (matrices can be used with the minus sign only).
+#' @param y A LazyTensor, a vector of numeric values, or a scalar value (matrices can be used with the minus sign only).
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", otherwise.
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
+#' Sub_xy <- x_i - y_j                 # symbolic matrix, 150 rows and 3 columns
+#' Minus_x <- -x_i                     # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
 "-" <- function(x, y = NA) { 
     if(class(x)[1] != "LazyTensor")
         UseMethod("-", y)
@@ -229,8 +295,199 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
         obj <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE)
 }
 
+
+# multiplication  --------------------------------------------------------------
+"*.default" <- .Primitive("*") # assign default as current definition
+
+#' Multiplication.
+#' @description
+#' Symbolic binary operation for multiplication.
+#' @details If `x` or `y` is a `LazyTensor`, `x * y` returns a `LazyTensor`
+#' that encodes, symbolically, the element-wise product of `x` and `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted to `LazyTensor`).
+#' If none of the arguments is a `LazyTensor`, is equivalent to the `*` R operator.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", otherwise.
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
+#' x_times_y <- x_i * y_j              # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+"*" <- function(x, y) { 
+    if(class(x)[1] != "LazyTensor")
+        UseMethod("*", y)
+    else
+        UseMethod("*", x)
+}
+
+"*.LazyTensor" <- function(x, y) {
+    obj <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE)
+}
+
+# division ---------------------------------------------------------------------
+"/.default" <- .Primitive("/")
+
+#' Division.
+#' @description
+#' Symbolic binary operation for division.
+#' @details If `x` or `y` is a `LazyTensor`, `x / y` returns a `LazyTensor`
+#' that encodes, symbolically, the element-wise division of `x` by `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted to `LazyTensor`).
+#' If none of the arguments is a `LazyTensor`, is equivalent to the `/` R operator.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", otherwise.
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
+#' x_div_y <- x_i / y_j                # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+"/" <- function(x, y) { 
+    if(class(x)[1] != "LazyTensor")
+        UseMethod("/", y)
+    else
+        UseMethod("/", x)
+}
+
+"/.LazyTensor" <- function(x, y) {
+    obj <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE)
+}
+
+
+# square -----------------------------------------------------------------------
+square.default <- function(x) {
+    res <- x^2
+    return(res)
+}
+
+#' Element-wise square.
+#' @description
+#' Symbolic unary operation for element-wise square.
+#' @details If `x` is a `LazyTensor`, `square(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise square of `x` ; else, is equivalent to the `^2` R operator.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector or a matrix of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", "matrix", or "array" otherwise, same as the input class.
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' Square_x <- square(x_i)             # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+square <- function(x) {
+    UseMethod("square", x)
+}
+
+square.LazyTensor <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Square")
+}
+
+
+# square root ------------------------------------------------------------------
+sqrt.default <- .Primitive("sqrt") # assign default as current definition
+
+#' Element-wise square root.
+#' @description
+#' Symbolic unary operation for element-wise square root.
+#' @details If `x` is a `LazyTensor`, `sqrt(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise square root of `x` ; else, computes R default square root function.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector or a matrix of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
+#' (see R default `sqrt()` function).
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' Sqrt_x <- sqrt(x_i)                 # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+sqrt <- function(x) { 
+    UseMethod("sqrt", x)
+}
+
+sqrt.LazyTensor <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Sqrt")
+}
+
+# Rsqrt ------------------------------------------------------------------------
+rsqrt.default <- function(x) {
+    res <- 1 / sqrt(x)
+    return(res)
+}
+
+#' Element-wise inverse square root.
+#' @description
+#' Symbolic unary operation for element-wise inverse square root.
+#' @details If `x` is a `LazyTensor`, `sqrt(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise inverse square root of `x` ; else, computes the element-wise inverse
+#' of R default square root function.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector or a matrix of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", "matrix", or "array" otherwise, same as the input class.
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' Rsqrt_x <- rsqrt(x_i)               # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+rsqrt <- function(x) {
+    UseMethod("rsqrt", x)
+}
+
+rsqrt.LazyTensor <- function(x) {
+    obj <- unaryop.LazyTensor(x, "Rsqrt")
+}
+
+
+# power ------------------------------------------------------------------------
 "^.default" <- .Primitive("^") # assign default as current definition
 
+#' Power.
+#' @description
+#' Symbolic binary operation for element-wise power operator.
+#' @details If `x` or `y` is a `LazyTensor`, `x / y` returns a `LazyTensor`
+#' that encodes, symbolically, the element-wise value of `x` to the power of `y`.
+#' (In case one of the arguments is a vector or a scalar, it is first converted to `LazyTensor`).
+#' If none of the arguments is a `LazyTensor`, is equivalent to the `^` R operator.
+#' **Note**
+#' \itemize{
+#'     \item{if **y = 2**,}{ `x^y` relies on the `"Square"` KeOps operation;}
+#'     \item{if **y = 0.5**,}{ `x^y` uses on the `"Sqrt"` KeOps operation;}
+#'     \item{if **y = -0.5**,}{ `x^y` uses on the `"Rsqrt"` KeOps operation.}
+#' }
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", otherwise.
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
+#' x_pow_y <- x_i ^ y_j                # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
 "^" <- function(x, y) { 
     if(class(x)[1] != "LazyTensor")
         UseMethod("^", y)
@@ -246,97 +503,45 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator=FALSE) {
             else
                 obj <- binaryop.LazyTensor(x, y, "Pow")
         }
-        
         else if(y == 0.5)
             obj <- unaryop.LazyTensor(x, "Sqrt") # element-wise square root
-        
         else if(y == (-0.5))
             obj <- unaryop.LazyTensor(x, "Rsqrt") # element-wise inverse square root
-        
         # check if Powf with y a float number has to be like Powf(var1,var2) or Powf(var,y) (Powf(var, 0.5))
         else
             obj <- binaryop.LazyTensor(x, y, "Powf") # power operation
-        
-        }
-    
+    }
     else
         obj <- binaryop.LazyTensor(x, y, "Powf") # power operation
-    
     return(obj)
 }
 
 
-# square
-square <- function(x) {
-    obj <- unaryop.LazyTensor(x, "Square")
-}
-
-
-# square root
-sqrt.default <- .Primitive("sqrt") # assign default as current definition
-
-sqrt <- function(x) { 
-    UseMethod("sqrt", x)
-}
-
-sqrt.LazyTensor <- function(x) {
-    obj <- unaryop.LazyTensor(x, "Sqrt")
-}
-
-# Rsqrt
-rsqrt <- function(x) {
-    obj <- unaryop.LazyTensor(x, "Rsqrt")
-}
-
-# addition
-# Broadcasted addition operator, a binary operation.
-# x + y returns a class `LazyTensor` that encodes,
-# symbolically, the addition of ``x`` and ``y``.
-"+.default" <- .Primitive("+") # assign default as current definition
-
-"+" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
-        UseMethod("+", y)
-    else
-        UseMethod("+", x)
-}
-
-"+.LazyTensor" <- function(x, y) {
-    obj <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE)
-}
-
-
-# multiplication
-"*.default" <- .Primitive("*") # assign default as current definition
-
-"*" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
-        UseMethod("*", y)
-    else
-        UseMethod("*", x)
-}
-
-"*.LazyTensor" <- function(x, y) {
-    obj <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE)
-}
-
-# division
-"/.default" <- .Primitive("/")
-
-"/" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
-        UseMethod("/", y)
-    else
-        UseMethod("/", x)
-}
-
-"/.LazyTensor" <- function(x, y) {
-    obj <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE)
-}
-
-# scalar product
+# Euclidean scalar product -----------------------------------------------------
 "|.default" <- .Primitive("|")
 
+# TODO finish the doc for Euclidean scalar product when questions answered
+# #' Euclidean scalar product.
+# #' @description
+# #' Symbolic binary operation for Euclidean scalar product.
+# #' @details If `x` or `y` is a `LazyTensor`, `(x|y)` (or `x | y`) returns a `LazyTensor`
+# #' that encodes, symbolically, the Euclidean scalar product between `x` and `y`, which must have the same shape.
+# #' (In case one of the arguments is a vector or a scalar, it is first converted to `LazyTensor`).
+# #' If none of the arguments is a `LazyTensor`, is equivalent to the `/` R operator.
+# #' @author Ghislain Durif
+# #' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+# #' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+# #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+# #' and an object of class "numeric", otherwise.
+# #' @example
+# #' \dontrun{
+# #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+# #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+# #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+# #' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
+# #' x_div_y <- x_i / y_j                # symbolic matrix, 150 rows and 3 columns
+# #' }
+# #' @export
 "|" <- function(x, y) { 
     if(class(x)[1] != "LazyTensor")
         UseMethod("|", y)
@@ -365,9 +570,26 @@ rsqrt <- function(x) {
     sum(x * y, index = "j")
 }
 
-# exponential
+# exponential ------------------------------------------------------------------
 exp.default <- .Primitive("exp")
 
+#' Element-wise exponential.
+#' @description
+#' Symbolic unary operation for element-wise exponential.
+#' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise exponential of `x` ; else, computes R default exponential.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
+#' (see R default `exp()` function).
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' Exp_x <- exp(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
 exp <- function(x) {
     UseMethod("exp")
 }
@@ -377,11 +599,27 @@ exp.LazyTensor <- function(x) {
 }
 
 
-# logarithm
+# logarithm --------------------------------------------------------------------
 log.default <- .Primitive("log")
 
-log <- function(x) 
-{
+#' Element-wise logarithm.
+#' @description
+#' Symbolic unary operation for element-wise logarithm.
+#' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise exponential of `x` ; else, computes R default logarithm.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
+#' (see R default `log()` function).
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' Log_x <- log(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
+log <- function(x) {
     UseMethod("log")
 }
 
@@ -390,16 +628,28 @@ log.LazyTensor <- function(x)
     obj <- unaryop.LazyTensor(x, "Log")
 }
 
-# element-wise inverse 1/x
-# TODO doc explain that inv(scalar) = 1/scalar and inv(matrix) = matrix^{-1} and 1/vector = element-wise inverse
+# inverse ----------------------------------------------------------------------
 inv.default <- function(x) {
-    if(is.matrix(x))
-        res <- solve(x)
-    else
-        res <- 1 / x
+    res <- 1 / x
     return(res)
 }
 
+#' Element-wise inverse.
+#' @description
+#' Symbolic unary operation for element-wise inverse.
+#' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise inverse of `x` ; else, computes R default inverse.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", "matrix", or "array" otherwise, same as the input class.
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' Inv_x <- inv(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
 inv <- function(x) {
     UseMethod("inv")
 }
@@ -409,9 +659,26 @@ inv.LazyTensor <- function(x) {
 }
 
 
-# cosinus
+# cosine -----------------------------------------------------------------------
 cos.default <- .Primitive("cos")
 
+#' Element-wise cosine.
+#' @description
+#' Symbolic unary operation for element-wise cosine.
+#' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise cosine of `x` ; else, computes R default cosine.
+#' @author Ghislain Durif
+#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
+#' (see R default `cos()` function).
+#' @example
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' Cos_x <- cos(x_i)                   # symbolic matrix, 150 rows and 3 columns
+#' }
+#' @export
 cos <- function(x) {
     UseMethod("cos")
 }
@@ -420,11 +687,10 @@ cos.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Cos")
 }
 
-# sinus
+# sine -------------------------------------------------------------------------
 sin.default <- .Primitive("sin")
 
-sin <- function(x) 
-{
+sin <- function(x) {
     UseMethod("sin")
 }
 
@@ -432,7 +698,7 @@ sin.LazyTensor  <- function(x){
     obj <- unaryop.LazyTensor(x, "Sin")
 }
 
-# arccos
+# arccos -----------------------------------------------------------------------
 acos.default <- .Primitive("acos")
 
 acos <- function(x) {
@@ -442,7 +708,7 @@ acos.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Acos")
 }
 
-# arcsinus
+# arcsinus ---------------------------------------------------------------------
 asin.default <- .Primitive("asin")
 
 asin <- function(x) {
@@ -453,7 +719,7 @@ asin.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Asin")
 }
 
-# arctan
+# arctan -----------------------------------------------------------------------
 atan.default <- .Primitive("atan")
 
 atan <- function(x) {
@@ -464,6 +730,7 @@ atan.LazyTensor <- function(x) {
     obj <- unaryop.LazyTensor(x, "Atan")
 }
 
+# arctan2 ----------------------------------------------------------------------
 # element-wise 2-argument arc-tangent function
 atan2.default <- function(x, y) {
     .Internal(atan2(x, y))
@@ -481,7 +748,7 @@ atan2.LazyTensor <- function(x, y) {
 }
 
 
-# absolute value
+# absolute value ---------------------------------------------------------------
 abs.default <- .Primitive("abs")
 
 abs <- function(x) {
@@ -493,7 +760,7 @@ abs.LazyTensor <- function(x) {
 }
 
 
-# sign function
+# sign function ----------------------------------------------------------------
 sign.default <- .Primitive("sign")
 
 sign <- function(x) {
@@ -505,7 +772,7 @@ sign.LazyTensor <- function(x) {
 }
 
 
-# Round function
+# Round function ---------------------------------------------------------------
 round.default <- .Primitive("round")
 
 round <- function(x, ...) {
@@ -520,7 +787,7 @@ round.LazyTensor <- function(x, y) {
 # Préciser que si on a plusieurs scalaires, on peut faire e.g. min(3, 4, 11)
 # qui renvoie 11 mais pour les LazyTensor c'est juste min(x_i) qui renvoie
 # l'élément minimal de x_i
-# Min function
+# Min function -----------------------------------------------------------------
 min.default <- .Primitive("min")
 
 min <- function(x, ...) {
@@ -534,7 +801,7 @@ min.LazyTensor <- function(x) {
 # Préciser que si on a plusieurs scalaires, on peut faire e.g. max(3, 4, 11)
 # qui renvoie 11 mais pour les LazyTensor c'est juste max(x_i) qui renvoie
 # l'élément maximal de x_i
-# Max function
+# Max function -----------------------------------------------------------------
 max.default <- .Primitive("max")
 
 max <- function(x, ...) {
@@ -546,7 +813,7 @@ max.LazyTensor <- function(x) {
 }
 
 
-# xlogx function
+# xlogx function ---------------------------------------------------------------
 # TODO value 0 at 0 c'est sûr ??
 xlogx.default <- function(x) {
     if(x == 0)
@@ -565,7 +832,7 @@ xlogx.LazyTensor <- function(x){
 }
 
 
-# sinxdivx function
+# sinxdivx function ------------------------------------------------------------
 # TODO value 1 at 0 ?
 sinxdivx.default <- function(x) {
     if(x == 0)
@@ -584,7 +851,7 @@ sinxdivx.LazyTensor <- function(x){
 }
 
 
-# Reduction
+# Reduction --------------------------------------------------------------------
 reduction.LazyTensor <- function(x, opstr, index) {
     if(index == "i") 
         tag <- 1
@@ -597,7 +864,7 @@ reduction.LazyTensor <- function(x, opstr, index) {
     return(res)
 }
 
-# sum function
+# sum function -----------------------------------------------------------------
 sum.default <- .Primitive("sum")
 
 sum <- function(obj, index) {
@@ -614,16 +881,18 @@ sum.LazyTensor <- function(x, index = NA) {
 }
 
 
+
+
 # Basic example
 
-D = 3
-M = 100
-N = 150
-E = 4
-x = matrix(runif(M*D),M,D)
-y = matrix(runif(N*D),N,D)
-b = matrix(runif(N*E),N,E)
-s = 0.25
+D <- 3
+M <- 100
+N <- 150
+E <- 4
+x <- matrix(runif(M * D), M, D)
+y <- matrix(runif(N * D), N, D)
+b <- matrix(runif(N * E), N, E)
+s <- 0.25
 
 # creating LazyTensor from matrices
 x_i = LazyTensor(x, index = 'i')
@@ -648,7 +917,6 @@ op <- keops_kernel(
     args = c("x=Vi(3)", "y=Vj(3)", "s=Pm(1)", "b=Vj(4)")
 )
 
-
 v2 <- op(list(x, y, s2, b))
 
 sum((v2-v)^2)
@@ -657,13 +925,19 @@ sum((v2-v)^2)
 
 # we compare to standard R computation
 SqDist = 0
-onesM = matrix(1,1,M)
-onesN = matrix(1,1,N)
-for(k in 1:D)
-    SqDist = SqDist + (x[,k] %*% onesN - t(y[,k] %*% onesM))^2
+onesM = matrix(1, 1, 2)
+onesN = matrix(1, 1, 2)
+
+for(k in 1:D) {
+    print(SqDist)
+    SqDist = SqDist + (x[, k] %*% onesN - t(y[, k] %*% onesM))^2
+    print(SqDist)
+}
+    
+
 K = exp(-SqDist/(2*s^2))
+
 v2 = K %*% b
 
 print(mean(abs(v-v2)))
-
 
