@@ -55,7 +55,8 @@ test_that("unaryop.LazyTensor", {
   
   # errors
   expect_error(unaryop.LazyTensor(x, "Square"), 
-               "`x` input argument should be a LazyTensor, a vector or a scalar.", 
+               paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
+                     "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""), 
                fixed = TRUE)
 })
 
@@ -96,6 +97,12 @@ test_that("binaryop.LazyTensor", {
   expect_equal(bool_grep_formula, 1)
   expect_equal(length(obj$args), 1)
   expect_is(obj, "LazyTensor")
+  
+  # errors
+  expect_error(binaryop.LazyTensor(x, y_j, "+"), 
+               paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
+                     "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""), 
+               fixed = TRUE)
 })
 
 
@@ -593,29 +600,34 @@ test_that("sign", {
 })
 
 
-#test_that("round", {
-#  # basic example
-#  D <- 3
-#  M <- 100
-#  N <- 150
-#  x <- matrix(runif(M * D), M, D)
-#  y <- matrix(runif(N * D), N, D)
-#  x_i <- LazyTensor(x, index = 'i')
-#  y_j <- LazyTensor(y, index = 'j')
-#  
-#  # check results, formulas & class
-#  expect_equal(sign(-D), -1)
-#  expect_equal(class(sign(x))[1] != "LazyTensor", TRUE)
-#  expect_equal(class(sign(x_i)) == "LazyTensor", TRUE)
-#  
-#  obj <- sign(x_i)
-#  bool_grep_formula <- grep("Sign\\(A0x.*i\\)", obj$formula)
-#  expect_equal(bool_grep_formula, 1)
-#  
-#  obj <-  sign(-y_j)
-#  bool_grep_formula <- grep("Sign\\(Minus\\(A0x.*j\\)\\)", obj$formula)
-#  expect_equal(bool_grep_formula, 1)
-#})
+test_that("round", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & class
+  expect_equal(round(pi, 2), 3.14)
+  expect_equal(class(round(pi, 2)) != "LazyTensor", TRUE)
+  expect_equal(class(round(x_i, 3)) == "LazyTensor", TRUE)
+  
+  obj <- round(x_i, 3)
+  bool_grep_formula <- grep("Round\\(A0x.*i,3\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- round(y_j, 3.14)
+  bool_grep_formula <- grep("Round\\(A0x.*j,3.14\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(round(x_i, x), 
+               "`d` input argument should be a scalar.", 
+               fixed = TRUE)
+})
 
 
 test_that("min", {
@@ -678,7 +690,7 @@ test_that("xlogx", {
   
   # check results, formulas & classes
   expect_equal(xlogx(1), 0)
-  expect_true(class(xlogx(x))[1] != "LazyTensor")
+  expect_equal(xlogx(0), 0) # check manually added limit
   expect_true(class(xlogx(x_i)) == "LazyTensor")
   
   obj <- xlogx(x_i)
@@ -699,18 +711,35 @@ test_that("sinxdivx", {
   
   # check results, formulas & classes
   expect_equal(sinxdivx(1), sin(1))
-  expect_true(class(sinxdivx(x))[1] != "LazyTensor")
+  expect_equal(sinxdivx(0), 1) # check manually added limit
   expect_true(class(sinxdivx(x_i)) == "LazyTensor")
   
   obj <- sinxdivx(x_i)
   bool_grep_formula <- grep("SinXDivX\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
-  
-  # TODO manage case when x = 0 with limit at 1 ?
 })
 
 
-# TODO : add other tests : reduction.LazyTensor, sum, Inv, round, sinxdivx (to finish) 
+test_that("inv", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_equal(inv(2), 0.5)
+  expect_true(class(inv(x))[1] != "LazyTensor")
+  expect_true(class(inv(x_i)) == "LazyTensor")
+  
+  obj <- inv(x_i)
+  bool_grep_formula <- grep("Inv\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+# TODO : add other tests : reduction.LazyTensor, sum, Relu, step, ...
 
 
 

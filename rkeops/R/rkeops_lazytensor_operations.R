@@ -615,7 +615,7 @@ inv.default <- function(x) {
     return(res)
 }
 
-#' Element-wise inverse.
+#' Element-wise 1/x inverse.
 #' @description
 #' Symbolic unary operation for element-wise inverse.
 #' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that encodes, symbolically,
@@ -1049,6 +1049,7 @@ sinxdivx.LazyTensor <- function(x) {
     return(res)
 }
 
+
 # step function ----------------------------------------------------------------
 
 #' Element-wise step function.
@@ -1066,12 +1067,13 @@ sinxdivx.LazyTensor <- function(x) {
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-#' Step_x <- step(x_i)                 # symbolic matrix, 150 rows and 3 columns
+#' Step_x <- step.LazyTensor(x_i)      # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
 step.LazyTensor <- function(x) {
-    obj <- unaryop.LazyTensor(x, "Step")
+    res <- unaryop.LazyTensor(x, "Step")
 }
+
 
 # ReLu function ----------------------------------------------------------------
 
@@ -1091,7 +1093,7 @@ step.LazyTensor <- function(x) {
 #' }
 #' @export
 relu <- function(x) {
-    obj <- unaryop.LazyTensor(x, "ReLu")
+    res <- unaryop.LazyTensor(x, "ReLu")
 }
 
 
@@ -1113,9 +1115,8 @@ relu <- function(x) {
 #' }
 #' @export
 sqnorm2 <- function(x) {
-    obj <- unaryop.LazyTensor(x, "SqNorm2")
+    res <- unaryop.LazyTensor(x, "SqNorm2")
 }
-
 
 
 # Euclidean norm ---------------------------------------------------------------
@@ -1136,8 +1137,9 @@ sqnorm2 <- function(x) {
 #' }
 #' @export
 norm2 <- function(x) {
-    obj <- unaryop.LazyTensor(x, "Norm2")
+    res <- unaryop.LazyTensor(x, "Norm2")
 }
+
 
 # Vector normalization ---------------------------------------------------------
 
@@ -1157,8 +1159,9 @@ norm2 <- function(x) {
 #' }
 #' @export
 normalize <- function(x) {
-    obj <- unaryop.LazyTensor(x, "Normalize")
+    res <- unaryop.LazyTensor(x, "Normalize")
 }
+
 
 # Squared distance -------------------------------------------------------------
 
@@ -1179,7 +1182,7 @@ normalize <- function(x) {
 #' }
 #' @export
 sqdist <- function(x, y) {
-    obj <- binaryop.LazyTensor(x, y, "SqDist")
+    res <- binaryop.LazyTensor(x, y, "SqDist")
 }
 
 
@@ -1198,8 +1201,8 @@ sqdist <- function(x, y) {
 #' \dontrun{
 #' }
 #' @export
-weightedsqnorm <- function(x, y) {
-    obj <- binaryop.LazyTensor(x, y, "WeightedSqNorm")
+weightedsqnorm <- function(x, s) {
+    obj <- binaryop.LazyTensor(x, s, "WeightedSqNorm")
 }
 
 
@@ -1217,7 +1220,6 @@ weightedsqnorm <- function(x, y) {
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-#' 
 #' }
 #' @export
 reduction.LazyTensor <- function(x, opstr, index) {
