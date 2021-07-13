@@ -4,7 +4,7 @@
 \alias{unaryop.LazyTensor}
 \title{Build a unary operation}
 \usage{
-unaryop.LazyTensor(x, opstr)
+unaryop.LazyTensor(x, opstr, opt_arg = NA, opt_arg2 = NA)
 }
 \arguments{
 \item{x}{A LazyTensor, a vector of numeric values, or a scalar value.}

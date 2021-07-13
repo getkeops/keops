@@ -739,7 +739,184 @@ test_that("inv", {
 })
 
 
-# TODO : add other tests : reduction.LazyTensor, sum, Relu, step, ...
+test_that("relu", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(relu(2)) == "LazyTensor")
+  expect_true(class(relu(x_i)) == "LazyTensor")
+  
+  obj <- relu(x_i)
+  bool_grep_formula <- grep("ReLu\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("step.LazyTensor", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(step.LazyTensor(2)) == "LazyTensor")
+  expect_true(class(step.LazyTensor(x_i)) == "LazyTensor")
+  
+  obj <- step.LazyTensor(x_i)
+  bool_grep_formula <- grep("Step\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("sqnorm2", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(sqnorm2(2)) == "LazyTensor")
+  expect_true(class(sqnorm2(x_i)) == "LazyTensor")
+  
+  obj <- sqnorm2(x_i)
+  bool_grep_formula <- grep("SqNorm2\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("norm2", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(norm2(2)) == "LazyTensor")
+  expect_true(class(norm2(x_i)) == "LazyTensor")
+  
+  obj <- norm2(x_i)
+  bool_grep_formula <- grep("Norm2\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("normalize", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(normalize(2)) == "LazyTensor")
+  expect_true(class(normalize(x_i)) == "LazyTensor")
+  
+  obj <- normalize(x_i)
+  bool_grep_formula <- grep("Normalize\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("sqdist", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & classes
+  expect_true(class(sqdist(2, 3)) == "LazyTensor")
+  expect_true(class(sqdist(x_i, y_j)) == "LazyTensor")
+  
+  obj <- sqdist(x_i, y_j)
+  bool_grep_formula <- grep("SqDist\\(A0x.*i,A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("weightedsqnorm", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & classes
+  expect_true(class(weightedsqnorm(2, 3)) == "LazyTensor")
+  expect_true(class(weightedsqnorm(x_i, y_j)) == "LazyTensor")
+  
+  obj <- weightedsqnorm(x_i, y_j)
+  bool_grep_formula <- grep("WeightedSqNorm\\(A0x.*i,A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("reduction.LazyTensor", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  opstr <- "Sum"
+  
+  obj <- reduction.LazyTensor(x_i, opstr, "i")
+  
+  # check results, formulas & classes
+  expect_true(class(obj)[1] != "LazyTensor")
+})
+
+
+test_that("sum", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  obj <- sum(x_i, "i")
+  expect_true(class(obj)[1] != "LazyTensor")
+  
+  obj <- sum(x_i)
+  expect_true(class(obj) == "LazyTensor")
+ 
+  bool_grep_formula <- grep("Sum\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+test_that("sum_reduction", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  obj <- sum_reduction(x_i, "i")
+  expect_true(class(obj)[1] != "LazyTensor")
+  
+})
+
 
 
 
