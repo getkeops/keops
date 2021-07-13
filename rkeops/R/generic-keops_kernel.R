@@ -187,7 +187,8 @@ keops_kernel <- function(formula, args) {
         }
         
         ## dimension
-        nx <- 0
+        # nx <- 0
+        nx <- 1
         if("Vi" %in% env$var_aliases$var_type) {
             ind_Vi <- head(which(env$var_aliases$var_type == "Vi"), 1)
             dim_Vi <- dim(input[[ind_Vi]])
@@ -199,8 +200,8 @@ keops_kernel <- function(formula, args) {
                 nx <- dim_Vi[2]
             }
         }
-        
-        ny <- 0
+        # ny <- 0
+        ny <- 1
         if("Vj" %in% env$var_aliases$var_type) {
             ind_Vj <- head(which(env$var_aliases$var_type == "Vj"), 1)
             dim_Vj <- dim(input[[ind_Vj]])

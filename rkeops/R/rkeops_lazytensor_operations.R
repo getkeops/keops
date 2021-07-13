@@ -1,9 +1,9 @@
-#library(rkeops)
-#library(stringr)
-#library(data.table)
-#
-#set_rkeops_option("tagCpuGpu", 0)
-#set_rkeops_option("precision", "double")
+library(rkeops)
+library(stringr)
+library(data.table)
+
+set_rkeops_option("tagCpuGpu", 0)
+set_rkeops_option("precision", "double")
 
 # TODO redo doc
 
@@ -171,26 +171,63 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE) {
     if(is.numeric(x))
         x <- LazyTensor(x)
     
-
     if(is.numeric(y))
         y <- LazyTensor(y)
-    
-    dec <- length(x$vars)
-    yform <- y$formula
-       
+
     # special formula for operator
     if(is_operator)
-        formula <- paste(x$formula, opstr, yform, sep = "")
+        formula <- paste(x$formula, opstr, y$formula, sep = "")
     else
-        formula <- paste(opstr, "(", x$formula, ",", yform, ")", sep = "")
-    vars <- c(x$vars,y$vars)
+        formula <- paste(opstr, "(", x$formula, ",", y$formula, ")", sep = "")
+    vars <- c(x$vars, y$vars)
     vars[!duplicated(names(vars))]
-    args <- unique(c(x$args,y$args))
+    args <- unique(c(x$args, y$args))
     
     res <- list(formula = formula, args = args, vars = vars)
     class(res) <- "LazyTensor"
     return(res)
 }
+
+# ternary ----------------------------------------------------------------------
+ternaryop.LazyTensor <- function(x, y, z, opstr) {
+    # check that there are no matrix
+    # and convert numeric values to LazyTensor
+    names <- c("x", "y", "z")
+    args <- list(x, y, z)
+    for (i in 1:3) {
+        if(is.matrix(args[[i]])) {
+            stop(paste("`", names[i], "` input argument should be a LazyTensor, a vector or a scalar.",
+                       "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
+        }
+        if(is.numeric(args[[i]])) {
+            args[[i]] <- LazyTensor(args[[i]])
+        }
+    }
+    x <- args[[1]]
+    y <- args[[2]]
+    z <- args[[3]]
+    # format formula
+    formula <- paste(opstr, "(", x$formula, ",", y$formula, ",", z$formula, ")", sep = "")
+    vars <- c(x$vars, y$vars, z$vars)
+    vars[!duplicated(names(vars))]
+    args <- unique(c(x$args, y$args, z$args))
+    res <- list(formula = formula, args = args, vars = vars)
+    class(res) <- "LazyTensor"
+    return(res)
+}
+
+
+# ====== tests for keops_kernel modif =========
+a <- c(1, 2)
+A <- matrix(a, 2, 2)
+ALT <- LazyTensor(A, index = 'i')
+ALTj <- LazyTensor(A, index = 'j')
+Sum_A <- sum(ALT, index = 'i')
+SumSum_Aj <- sum(ALT, index = 'j')
+Sum_Ajbis <- sum(ALTj, index = 'i')
+Sum_Ajter <- sum(ALTj, index = 'j')
+# ==============================================
+
 
 
 # addition ---------------------------------------------------------------------
@@ -770,7 +807,7 @@ asin.default <- .Primitive("asin")
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-#' Asin_x <- sin(x_i)                  # symbolic matrix, 150 rows and 3 columns
+#' Asin_x <- asin(x_i)                  # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
 asin <- function(x) {
@@ -911,7 +948,7 @@ sign.LazyTensor <- function(x) {
 }
 
 
-# Round function ---------------------------------------------------------------
+# round function ---------------------------------------------------------------
 round.default <- .Primitive("round")
 
 #' Element-wise rounding function.
@@ -949,7 +986,7 @@ round.LazyTensor <- function(x, d) {
 # qui renvoie 11 mais pour les LazyTensor c'est juste min(x_i) qui renvoie
 # l'élément minimal de x_i
 # TODO 
-# Min function -----------------------------------------------------------------
+# min function -----------------------------------------------------------------
 min.default <- .Primitive("min")
 
 # #' Element-wise min function.
@@ -978,7 +1015,7 @@ min.LazyTensor <- function(x) {
 # qui renvoie 11 mais pour les LazyTensor c'est juste max(x_i) qui renvoie
 # l'élément maximal de x_i 
 # TODO
-# Max function -----------------------------------------------------------------
+# max function -----------------------------------------------------------------
 max.default <- .Primitive("max")
 
 # #' Element-wise max function.
@@ -1005,7 +1042,6 @@ max.LazyTensor <- function(x) {
 
 
 # xlogx function ---------------------------------------------------------------
-# TODO value 0 at 0 c'est sûr ??
 xlogx.default <- function(x) {
     if(x == 0)
         res <- 0
@@ -1041,7 +1077,6 @@ xlogx.LazyTensor <- function(x) {
 
 
 # sinxdivx function ------------------------------------------------------------
-# TODO value 1 at 0 ?
 sinxdivx.default <- function(x) {
     if(x == 0)
         res <- 1
@@ -1102,13 +1137,13 @@ step.LazyTensor <- function(x) {
 }
 
 
-# ReLu function ----------------------------------------------------------------
+# relu function ----------------------------------------------------------------
 
 #' Element-wise ReLU function.
 #' @description
 #' Symbolic unary operation for element-wise ReLU function.
 #' @details `relu(x)` returns a `LazyTensor` that encodes, symbolically,
-#' the element-wise ReLu of `x`.
+#' the element-wise ReLU of `x`.
 #' @author Ghislain Durif
 #' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
@@ -1116,13 +1151,38 @@ step.LazyTensor <- function(x) {
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-#' ReLu_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
+#' ReLU_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
 #' }
 #' @export
 relu <- function(x) {
-    res <- unaryop.LazyTensor(x, "ReLu")
+    res <- unaryop.LazyTensor(x, "ReLU")
     return(res)
 }
+
+
+# clamp function ---------------------------------------------------------------
+clamp <- function(x, y, z) {
+    res <- ternaryop.LazyTensor(x, y, z, "Clamp")
+}
+
+
+# clampint function ---------------------------------------------------------------
+clampint <- function(x, y, z) {
+    if ((as.integer(y) - y) != 0 || (as.integer(z) - z) != 0) {
+        stop("'clampint(x, y, z)' expects integer arguments for `y` and `z`. Use clamp(x, y, z) for different `y` and `z` types.")
+    }
+    res <- ternaryop.LazyTensor(x, y, z, "ClampInt")
+}
+
+
+# ifelse function --------------------------------------------------------------
+# Keep ".LazyTensor" because R ifelse function isn't an .Internal nor a .Primitive
+# but is different from KeOps IfElse function.
+ifelse.LazyTensor <- function(x, y, z) {
+    res <- ternaryop.LazyTensor(x, y, z, "IfElse")
+}
+
+
 
 
 # Squared Euclidean norm -------------------------------------------------------
@@ -1341,19 +1401,20 @@ sum_reduction <- function(x, index){
 
 # Basic example
 
-#D <- 3
-#M <- 100
-#N <- 150
-#E <- 4
-#x <- matrix(runif(M * D), M, D)
-#y <- matrix(runif(N * D), N, D)
-#b <- matrix(runif(N * E), N, E)
-#s <- 0.25
-#
-## creating LazyTensor from matrices
-#x_i = LazyTensor(x, index = 'i')
-#y_j = LazyTensor(y, index = 'j')
-#b_j = b
+D <- 3
+M <- 100
+N <- 150
+E <- 4
+x <- matrix(runif(M * D), M, D)
+y <- matrix(runif(N * D), N, D)
+z <- matrix(runif(N * D), N, D)
+b <- matrix(runif(N * E), N, E)
+s <- 0.25
+
+# creating LazyTensor from matrices
+x_i = LazyTensor(x, index = 'i')
+y_j = LazyTensor(y, index = 'j')
+b_j = b
 #
 ## Symbolic matrix of squared distances:
 #SqDist_ij = sum( (x_i - y_j)^2 )
