@@ -6,7 +6,7 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 2, 2, 3, 1
+M, N, D, DV = 2000, 3000, 3, 1
 
 dtype = torch.float64
 sum_scheme = "block_sum"
