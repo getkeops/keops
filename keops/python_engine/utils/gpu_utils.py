@@ -22,7 +22,7 @@ def get_gpu_props():
             break
     else:
         # print("[KeOps]: Warning, no cuda detected. Switching to cpu only.")
-        return 0  # raise
+        return 0, ""  # raise
 
     nGpus = ctypes.c_int()
     error_str = ctypes.c_char_p()
@@ -34,7 +34,7 @@ def get_gpu_props():
         print(
             "[pyKeOps]: Warning, cuda was detected, but driver API could not be initialized. Switching to cpu only."
         )
-        return 0
+        return 0, ""
 
     result = cuda.cuDeviceGetCount(ctypes.byref(nGpus))
     if result != CUDA_SUCCESS:
@@ -43,7 +43,7 @@ def get_gpu_props():
         print(
             "[pyKeOps]: Warning, cuda was detected, driver API has been initialized, but no working GPU has been found. Switching to cpu only."
         )
-        return 0
+        return 0, ""
     
     nGpus = nGpus.value
     
