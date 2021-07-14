@@ -81,6 +81,12 @@ class LoadKeOps_new:
         elif "-D__TYPEACC__=float" in self.optional_flags:
             c_dtype_acc = "float"
             self.optional_flags.remove("-D__TYPEACC__=float")
+        elif "-D__TYPEACC__=half2" in self.optional_flags:
+            c_dtype_acc = "half2"
+            self.optional_flags.remove("-D__TYPEACC__=half2")
+        elif "-D__TYPEACC__=float2" in self.optional_flags:
+            c_dtype_acc = "float2"
+            self.optional_flags.remove("-D__TYPEACC__=float2")
         else:
             c_dtype_acc = c_dtype
 

@@ -63,7 +63,13 @@ class c_variable:
         elif type(value) == str:
             return f"{self.id} = ({self.dtype})({value});\n"
         elif value.dtype != self.dtype:
-            return f"{self.id} = {cast_to(self.dtype, value)};\n"
+            if self.dtype=="float2" and value.dtype=="float":
+                return f"""
+                            {self.id}.x = {value.id};
+                            {self.id}.y = {value.id};
+                        """
+            else:
+                return f"{self.id} = {cast_to(self.dtype, value)};\n"
         else:
             return f"{self.id} = ({value.id});\n"
 
@@ -74,7 +80,13 @@ class c_variable:
         if type(value) == str:
             return f"{self.id} += ({self.dtype})({value});\n" 
         elif value.dtype != self.dtype:
-            return f"{self.id} += {cast_to(self.dtype, value)};\n"
+            if self.dtype=="float2" and value.dtype=="half2":
+                return f"""
+                            {self.id}.x += (float){value.id}.x;
+                            {self.id}.y += (float){value.id}.y;
+                        """
+            else:
+                return f"{self.id} += {cast_to(self.dtype, value)};\n"
         else:
             return f"{self.id} += ({value.id});\n"
 
@@ -224,7 +236,13 @@ def cast_to(dtype, var):
         return f"({dtype})({var.id})"
     elif dtype=="half2" and var.dtype=="float":
         return f"__float2half2_rn({var.id})"
+    elif dtype=="float2" and var.dtype=="half2":
+        return f"__half22float2({var.id})"
+    elif dtype=="half2" and var.dtype=="float2":
+        return f"__float22half2_rn({var.id})"
     else:
+        print(dtype)
+        print(var.dtype)
         raise ValueError("not implemented.")
 
 
