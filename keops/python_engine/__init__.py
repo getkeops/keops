@@ -16,3 +16,22 @@ jit_binary = get_jit_binary(gpu_props_compile_flags) if use_cuda else None
 # flag for debugging : adds C++ code for printing all input and output values
 # for all atomic operations during computations
 debug_ops = False
+
+
+
+
+# special computation scheme for dim>100
+enable_chunk = True
+dimchunk = 64
+dim_treshold_chunk = 143
+specdim_use_chunk1 = -1 # originally 80 but deactivated for release 1.4.2
+specdim_use_chunk2 = 109
+specdim_use_chunk3 = 112
+specdim_use_chunk4 = 114
+
+# special mode for formula of the type sum_j k(x_i,y_j)*b_j with high dimensional b_j
+enable_final_chunks = True
+dimfinalchunk = 64
+mult_var_highdim = False
+use_final_chunks = (enable_final_chunks and mult_var_highdim)
+

@@ -1,5 +1,5 @@
 from keops.python_engine.utils.code_gen_utils import c_zero_float, VectApply
-from keops.python_engine.formulas.Operation import Operation
+from keops.python_engine.formulas.Chunkable_Op import Chunkable_Op
 from keops.python_engine.formulas.variables.Zero import Zero
 
 ##########################
@@ -7,7 +7,7 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ##########################
 
 
-class Sum_Impl(Operation):
+class Sum_Impl(Chunkable_Op):
 
     # the summation operation
 
