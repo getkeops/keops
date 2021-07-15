@@ -370,6 +370,27 @@ get_inner_dim <- function(x) {
 #    return(res)
 #}
 
+#' Check index.
+#' @description
+#' Check index for operation.
+#' @details `check_index(index)` will return a boolean to check if **index** is 
+#' a character and corresponding to **"i"** or **"j"**.
+#' \itemize{
+#'   \item if **index = "i"**, return **TRUE**.
+#'   \item if **index = "j"**, return **TRUE**.
+#'   \item else return **FALSE**.
+#' }
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param  index to check.
+#' @return A boolean TRUE or FALSE.
+#' @examples
+#' \dontrun{
+#' }
+#' @export
+check_index <- function(index){
+    res <- is.character(index) && (index %in% c("i", "j"))
+    return(res)
+}
 
 # addition ---------------------------------------------------------------------
 "+.default" <- .Primitive("+") # assign default as current definition
@@ -1175,60 +1196,406 @@ round.LazyTensor <- function(x, d) {
 # Préciser que si on a plusieurs scalaires, on peut faire e.g. min(3, 4, 11)
 # qui renvoie 11 mais pour les LazyTensor c'est juste min(x_i) qui renvoie
 # l'élément minimal de x_i
-# TODO 
+
 # min function -----------------------------------------------------------------
 min.default <- .Primitive("min")
 
-# #' Element-wise min function.
-# #' @description
-# #' Minimum unary operation.
-# #' @details If `x` is a `LazyTensor`, `min(x)` TODO... else it computes R default max function with 
-# #' other specific arguments (see R default `min()` function).
-# #' @author Chloe Serre-Combe, Amelie Vernay
-# #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
-# #' @return TODO otherwise, depending on the input class
-# #' (see R default `min()` function).
-# #' @examples
-# #' \dontrun{
-# #' }
-# #' @export
+#' Minimum.
+#' @description
+#' Minimum unary operation or Minimum reduction.
+#' @details If `x` is a `LazyTensor`, `min(x, index)` will :
+#' \itemize{
+#'   \item if **index = "i"**, return the min reduction of **x** over the "i" indexes.
+#'   \item if **index = "j"**, return the min reduction of **x** over the "j" indexes.
+#'   \item if **index = NA** (default), return a new `LazyTensor` object representing 
+#'   the min of the values of the vector.
+#' }
+#' If `x` is not a `LazyTensor` it computes R default "min" function with
+#' other specific arguments (see R default `min()` function).
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @return TODO otherwise, depending on the input class
+#' (see R default `min()` function).
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' min_xi <- min(x_i, "i")  # min reduction indexed by "i"
+#' min_x <- min(x_i)       # symbolic matrix
+#' }
+#' @export
 min <- function(x, ...) {
     UseMethod("min")
 }
 
-min.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Min")
+min.LazyTensor <- function(x, index = NA) {
+    if(is.na(index))
+        res <- unaryop.LazyTensor(x, "Min")
+    else if(check_index(index))
+        res <- reduction.LazyTensor(x, "Min", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j` or NA.")
     return(res)
 }
+
+
+
+# min reduction ----------------------------------------------------------------
+
+#' Min reduction.
+#' @description
+#' Minimum reduction.
+#' @details `min_reduction(x, index)` will return the min reduction of **x** indexed by **index**.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' min_red_x <- min_reduction(x_i, "i")  # min reduction indexed by "i"
+#' }
+#' @export
+min_reduction <- function(x, index) {
+    if(check_index(index))
+        res <- reduction.LazyTensor(x, "Min", index)
+    else
+        stop("`index` input argument should be a character `i`, `j`.")
+    return(res)
+}
+
+
+
+# argmin function --------------------------------------------------------------
+
+#' ArgMin.
+#' @description
+#' ArgMin unary operation, or ArgMin reduction.
+#' @details `argmin(x, index)` will :
+#' \itemize{
+#'   \item if **index = "i"**, return the argmin reduction of **x** over the "i" indexes.
+#'   \item if **index = "j"**, return the argmin reduction of **x** over the "j" indexes.
+#'   \item if **index = NA** (default), return a new `LazyTensor` object representing 
+#'   the argmin  of the values of the vector.
+#' }
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
+#' by **j** (columns).
+#' It can be NA (default) when no reduction is desired.
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' argmin_xi <- argmin(x_i, "i")  # argmin reduction indexed by "i"
+#' argmin_x <- argmin(x_i)        # symbolic matrix
+#' }
+#' @export
+argmin <- function(x, index = NA) {
+    if(is.na(index))
+        res <- unaryop.LazyTensor(x, "ArgMin")
+    else if(check_index(index))
+        res <- reduction.LazyTensor(x, "ArgMin", index)
+    else
+        stop("`index` input argument should be a character `i`, `j` or NA.")
+    return(res)
+}
+
+# argmin reduction -------------------------------------------------------------
+
+#' Argmin reduction.
+#' @description
+#' Argmin reduction.
+#' @details `argmin_reduction(x, index)` will return the argmin reduction of `x`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
+#' by **j** (columns).
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' argmin_red <- argmin(x_i, "i")  # argmin reduction indexed by "i"
+#' }
+#' @export
+argmin_reduction <- function(x, index) {
+    if(check_index(index))
+        res <- reduction.LazyTensor(x, "ArgMin", index)
+    else
+        stop("`index` input argument should be a character `i`, `j`.")
+    return(res)
+}
+
+
+# min_argmin -------------------------------------------------------------------
+
+#' Min-ArgMin.
+#' @description
+#' Min-ArgMin reduction.
+#' @details `min_argmin(x, index)` will :
+#' \itemize{
+#'   \item if **index = "i"**, return the minimal values and its indices of **x** over the "i" indexes.
+#'   \item if **index = "j"**, return the minimal values and its indices of **x** over the "j" indexes.
+#' }
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows),
+#' by **j** (columns).
+#' It can be NA (default) when no reduction is desired.
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' min_argmin_xi <- min_argmin(x_i, "i")  # min argmin reduction indexed by "i"
+#' }
+#' @export
+min_argmin <- function(x, index) {
+    if(check_index(index))
+        res <- reduction.LazyTensor(x, "Min_ArgMin", index)
+    else
+        stop("`index` input argument should be a character `i`, `j`.")
+    return(res)
+}
+
+
+# min_argmin reduction -------------------------------------------------------------
+
+#' Min-ArgMin reduction.
+#' @description
+#' Min-ArgMin reduction.
+#' @details `min_argmin_reduction(x, index)` will return the min reduction of `x`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
+#' by **j** (columns).
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' min_argmin_red <- min_argmin_reduction(x_i, "i")  # min reduction indexed by "i"
+#' }
+#' @export
+min_argmin_reduction <- function(x, index) {
+    if(check_index(index))
+        res <- min_argmin(x, index)
+    else
+        stop("`index` input argument should be a character `i`, `j`.")
+    return(res)
+}
+
+
 
 # Préciser que si on a plusieurs scalaires, on peut faire e.g. max(3, 4, 11)
 # qui renvoie 11 mais pour les LazyTensor c'est juste max(x_i) qui renvoie
 # l'élément maximal de x_i 
-# TODO
 # max function -----------------------------------------------------------------
 max.default <- .Primitive("max")
 
-# #' Element-wise max function.
-# #' @description
-# #' Maximum unary operation.
-# #' @details If `x` is a `LazyTensor`, `max(x)` TODO.... else it computes R default max function with 
-# #' other specific arguments (see R default `max()` function).
-# #' @author Chloe Serre-Combe, Amelie Vernay
-# #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
-# #' @return TODO otherwise, 
-# #' 
-# #' @examples
-# #' \dontrun{
-# #' }
-# #' @export
+#' Maximum.
+#' @description
+#' Maximum unary operation, or Max reduction.
+#' @details If `x` is a `LazyTensor`, `max(x, index)` will :
+#' \itemize{
+#'   \item if **index = "i"**, return the max reduction of **x** over the "i" indexes.
+#'   \item if **index = "j"**, return the max reduction of **x** over the "j" indexes.
+#'   \item if **index = NA** (default), return a new `LazyTensor` object representing 
+#'   the max of the values of the vector.
+#' }
+#' If `x` is not a `LazyTensor` it computes R default "max" function with
+#' other specific arguments (see R default `max()` function).
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @return
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' max_xi <- max(x_i, "i")  # max reduction indexed by "i"
+#' max_x <- max(x_i)        # symbolic matrix
+#' }
+#' @export
 max <- function(x, ...) {
     UseMethod("max", x)
 }
 
-max.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Max")
+max.LazyTensor <- function(x, index = NA) {
+    if(is.na(index))
+        res <- unaryop.LazyTensor(x, "Max")
+    else
+        res <- reduction.LazyTensor(x, "Max", index)
     return(res)
 }
+
+
+# max reduction ----------------------------------------------------------------
+
+#' Max reduction.
+#' @description
+#' Maximum reduction.
+#' @details `max_reduction(x, index)` will return the max reduction of **x** indexed by **index**.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' max_red_x <- max_reduction(x_i, "i")  # max reduction indexed by "i"
+#' }
+#' @export
+max_reduction <- function(x, index) {
+    res <- reduction.LazyTensor(x, "Max", index)
+    return(res)
+}
+
+
+# argmax function --------------------------------------------------------------
+
+#' ArgMax.
+#' @description
+#' ArgMax unary operation, or ArgMax reduction.
+#' @details 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
+#'by **j** (columns).
+#' It can be NA (default) when no reduction is desired.
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' argmax_xi <- argmax(x_i, "i")  # argmax reduction indexed by "i"
+#' argmax_x <- argmax(x_i)        # symbolic matrix
+#' }
+#' @export
+argmax <- function(x, index = NA) {
+    if(is.na(index))
+        res <- unaryop.LazyTensor(x, "ArgMax")
+    else
+        res <- reduction.LazyTensor(x, "ArgMax", index)
+    return(res)
+}
+
+# argmax reduction -------------------------------------------------------------
+
+#' ArgMax reduction.
+#' @description
+#' ArgMax reduction.
+#' @details `argmax_reduction(x, index)` will return the argmax reduction of `x`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
+#' by **j** (columns).
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' argmax_red <- argmax_reduction(x_i, "i")  # argmax reduction indexed by "i"
+#' }
+#' @export
+argmax_reduction <- function(x, index) {
+    res <- reduction.LazyTensor(x, "ArgMax", index)
+    return(res)
+}
+
+
+# max_argmax reduction -------------------------------------------------------------
+
+#' Max-ArgMax reduction.
+#' @description
+#' Max-ArgMax reduction.
+#' @details `max_argmax(x, index)` will :
+#' \itemize{
+#'   \item if **index = "i"**, return the maximal values and its indices of **x** over the "i" indexes.
+#'   \item if **index = "j"**, return the maximal values and its indices of **x** over the "j" indexes.
+#' }
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows),
+#' by **j** (columns).
+#' It can be NA (default) when no reduction is desired.
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' max_argmax_x <- max_argmax(x_i, "i")  # max argmax reduction indexed by "i"
+#' }
+#' @export
+max_argmax <- function(x, index) {
+    res <- reduction.LazyTensor(x, "Max_ArgMax", index)
+    return(res)
+}
+
+
+# max_argmax reduction -------------------------------------------------------------
+
+#' Max-ArgMax reduction.
+#' @description
+#' Max-ArgMax reduction.
+#' @details `max_argmax_reduction(x, index)` 
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
+#' by **j** (columns).
+#' @return 
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' max_argmax_red <- max_argmax_reduction(x_i, "i")  # max argmax reduction indexed by "i"
+#' }
+#' @export
+max_argmax_reduction <- function(x, index) {
+    res <- max_argmax(x, index)
+    return(res)
+}
+
+
+
+# Kmin -------------------------------------------------------------------------
+
+
+# Kmin reduction ---------------------------------------------------------------
+
+
+# argKmin ----------------------------------------------------------------------
+
+
+# argKmin reduction ------------------------------------------------------------
+
+
+# Kmin-argKmin -----------------------------------------------------------------
+
+
+# Kmin-argKmin reduction -------------------------------------------------------
+
 
 
 # xlogx function ---------------------------------------------------------------
@@ -1585,7 +1952,11 @@ weightedsqdist <- function(x, y, z) {
 #' Reduction operation.
 #' @description
 #' Applies a reduction to a `LazyTensor`.
-#' @details
+#' @details `reduction.LazyTensor(x, opstr, index)` will :
+#' \itemize{
+#'   \item if **index = "i"**, return the **opstr** reduction of **x** over the "i" indexes.
+#'   \item if **index = "j"**, return the **opstr** reduction of **x** over the "j" indexes.
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param opstr A `string` formula (like "Sum" or "Max").
@@ -1613,18 +1984,26 @@ reduction.LazyTensor <- function(x, opstr, index) {
 }
 
 
-# TODO
 # sum function -----------------------------------------------------------------
 sum.default <- .Primitive("sum")
 
 #' Summation operation or Sum reduction.
 #' @description
 #' Summation unary operation, or Sum reduction.
-#' @details 
+#' @details If `x` is a `LazyTensor`, `sum(x, index)` will :
+#' \itemize{
+#'   \item if **index = "i"**, return the min reduction of **x** over the "i" indexes.
+#'   \item if **index = "j"**, return the min reduction of **x** over the "j" indexes.
+#'   \item if **index = NA** (default), return a new `LazyTensor` object representing 
+#'   the min of the values of the vector.
+#' }
+#' If `x` is not a `LazyTensor` it computes R default "sum" function with
+#' other specific arguments (see R default `sum()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
-#' @param index A `character` that should be either **i** or **j** or **NA** to specify whether if 
-#' the summation is indexed by **i** (rows), by **j** (columns).
+#' @param @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), by **j** (columns).
+#' It can be NA (default) when no reduction is desired.
 #' @return 
 #' @examples
 #' \dontrun{
@@ -1642,7 +2021,7 @@ sum <- function(x, index) {
 sum.LazyTensor <- function(x, index = NA) {
     if(is.na(index))
         res <- unaryop.LazyTensor(x, "Sum")
-    else if(is.character(index))
+    else if(check_index(index))
         res <- reduction.LazyTensor(x, "Sum", index)
     else
         stop("`index` input argument should be a character `i`, `j` or NA.")
@@ -1655,11 +2034,11 @@ sum.LazyTensor <- function(x, index = NA) {
 #' Summation operation or Sum reduction.
 #' @description
 #' Summation unary operation, or Sum reduction.
-#' @details 
+#' @details `sum_reduction(x, index)` will return the sum reduction of **x** indexed by **index**.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
-#' @param index A `character` that should be either **i** or **j** to specify whether if 
-#' the summation is indexed by **i** (rows), by **j** (columns).
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), by **j** (columns).
 #' @return 
 #' @examples
 #' \dontrun{
@@ -1670,7 +2049,11 @@ sum.LazyTensor <- function(x, index = NA) {
 #' }
 #' @export
 sum_reduction <- function(x, index){
-    res <- reduction.LazyTensor(x, "Sum", index)
+    if(check_index(index))
+        res <- reduction.LazyTensor(x, "Sum", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j` or NA.")
+    return(res)
 }
 
 

@@ -901,17 +901,26 @@ test_that("min", {
   # check results, formulas & classes
   expect_equal(min(D), 3)
   expect_true(class(min(x))[1] != "LazyTensor")
-  expect_true(class(min(x_i)) == "LazyTensor")
+  expect_true(class(min(x_i, "i"))[1] != "LazyTensor")
   
   obj <- min(x_i)
+  expect_true(class(obj) == "LazyTensor")
   bool_grep_formula <- grep("Min\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  # error
-  expect_error(min(x_i, y_j), "unused argument (y_j)", fixed = TRUE)
+  # errors
+  expect_error(min(x_i, "b"),
+               "`index` input argument should be a character `i`, `j` or NA.",
+               fixed = TRUE)
+  
+  expect_error(min(x_i, 4),
+               "`index` input argument should be a character `i`, `j` or NA.",
+               fixed = TRUE)
+  
 })
 
 
+#TODO
 test_that("max", {
   # basic example
   D <- 3
@@ -1266,6 +1275,17 @@ test_that("ifelse.LazyTensor", {
   expect_equal(bool_grep_formula, 1)
   expect_is(obj, "LazyTensor")
   
+})
+
+
+test_that("check_index", {
+  expect_is(check_index("i"), "logical")
+  
+  expect_true(check_index("i"))
+  expect_true(check_index("j"))
+  
+  expect_false(check_index(5))
+  expect_false(check_index("n"))
 })
 
 
