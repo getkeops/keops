@@ -14,12 +14,12 @@ An object of class "LazyTensor" indexed by "i".
 }
 \description{
 Simple wrapper that return an instantiation of \code{LazyTensor} indexed by "i".
-Equivalent to \code{LazyTensor(x, index="i")}.
+Equivalent to \code{LazyTensor(x, index = "i")}.
 }
 \examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3)
-Vi_x <- Vi(x)
+Vi_x <- Vi(x) # symbolic object representing an arbitrary row of x, indexed by the letter "i"
 }
 }
 \author{

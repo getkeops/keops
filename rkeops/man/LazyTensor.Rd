@@ -29,9 +29,9 @@ An object of class "LazyTensor", which is a list with the following elements:
 
 \strong{Alternatives}
 \itemize{
-\item LazyTensor(x, "i") is equivalent to Vi(x) (see "Vi()" function)
-\item LazyTensor(x, "j") is equivalent to Vi(x) (see "Vj()" function)
-\item LazyTensor(x) is equivalent to Pm(x) (see "Pm()" function)
+\item LazyTensor(x, "i") is equivalent to Vi(x) (see \strong{Vi()} function)
+\item LazyTensor(x, "j") is equivalent to Vi(x) (see \strong{Vj()} function)
+\item LazyTensor(x) is equivalent to Pm(x) (see \strong{Pm()} function)
 }
 }
 \description{

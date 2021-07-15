@@ -4,7 +4,13 @@
 \alias{binaryop.LazyTensor}
 \title{Build a binary operation}
 \usage{
-binaryop.LazyTensor(x, y, opstr, is_operator = FALSE)
+binaryop.LazyTensor(
+  x,
+  y,
+  opstr,
+  is_operator = FALSE,
+  dim_check_type = "sameor1"
+)
 }
 \arguments{
 \item{x}{A LazyTensor, a vector of numeric values, or a scalar value.}
@@ -15,6 +21,15 @@ binaryop.LazyTensor(x, y, opstr, is_operator = FALSE)
 
 \item{is_operator}{A boolean used to specify if \strong{opstr} is an operator like \code{+}
 , \code{-} or a "genuine" function.}
+
+\item{dim_check_type}{A string to specify if, and how, we should check input dimensions.
+Supported values are:
+\itemize{
+\item {\strong{"same"}:}{ \strong{x} and \strong{y} should have the same inner dimension;}
+\item {\strong{"sameor1"} (default):}{ \strong{x} and \strong{y} should have the same inner dimension or
+at least one of them should be of dimension 1;}
+\item {\strong{NA}:}{ no dimension restriction.}
+}}
 }
 \value{
 An object of class "LazyTensor".

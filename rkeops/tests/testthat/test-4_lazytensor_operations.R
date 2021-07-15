@@ -312,7 +312,7 @@ test_that("check_inner_dim", {
   
   # errors
   expect_error(check_inner_dim(x, y_j),
-               "`x` and `y` input arguments should of class LazyTensor.",
+               "`x` and `y` input arguments should be of class LazyTensor.",
                fixed = TRUE)
 })
 
@@ -324,12 +324,15 @@ test_that("check_inner_dim", {
 test_that("+", {
   # basic example
   D <- 3
+  E <- 7
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
   
   # check results & formulas
   expect_equal(D + M, 103)
@@ -347,18 +350,26 @@ test_that("+", {
   obj <-  3.14 + x_i
   bool_grep_formula <- grep("A0x.*NA\\+A0x.*i", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(x_i + z_j,
+               "Operation `+` expects inputs of the same dimension or dimension 1. Received 3 and 7.",
+               fixed = TRUE)
 })
 
 
 test_that("-", {
   # basic example
   D <- 3
+  E <- 7
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
   
   # check results & formulas
   expect_equal(D - D, 0)
@@ -381,6 +392,11 @@ test_that("-", {
   obj <-  3.14 - x_i
   bool_grep_formula <- grep("A0x.*NA-A0x.*i", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(x_i - z_j,
+               "Operation `-` expects inputs of the same dimension or dimension 1. Received 3 and 7.",
+               fixed = TRUE)
 })
 
 
@@ -391,8 +407,10 @@ test_that("*", {
   N <- 150
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
   
   # check results & formulas
   expect_equal(D * M, 300)
@@ -410,6 +428,11 @@ test_that("*", {
   obj <-  3.14 * x_i
   bool_grep_formula <- grep("A0x.*NA\\*A0x.*i", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(x_i * z_j,
+               "Operation `*` expects inputs of the same dimension or dimension 1. Received 3 and 7.",
+               fixed = TRUE)
 })
 
 
@@ -420,8 +443,10 @@ test_that("/", {
   N <- 150
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
   
   # check results & formulas
   expect_equal(D / M, 0.03)
@@ -439,6 +464,11 @@ test_that("/", {
   obj <-  3.14 / x_i
   bool_grep_formula <- grep("A0x.*NA/A0x.*i", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(x_i / z_j,
+               "Operation `/` expects inputs of the same dimension or dimension 1. Received 3 and 7.",
+               fixed = TRUE)
 })
 
 
@@ -495,8 +525,10 @@ test_that("|", {
   N <- 150
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
   
   # check results & formulas
   expect_equal(D | M, TRUE)
@@ -514,6 +546,11 @@ test_that("|", {
   obj <-  3.14 | x_i
   bool_grep_formula <- grep("A0x.*NA\\|A0x.*i", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(x_i | z_j,
+               "Operation `|` expects inputs of the same dimension. Received 3 and 7.",
+               fixed = TRUE)
 })
 
 
@@ -723,6 +760,10 @@ test_that("atan2", {
   y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  z <- matrix(runif(N * E), N, E)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
   
   # check results, formulas & classes
   expect_equal(atan2(0, 0), 0)
@@ -731,6 +772,11 @@ test_that("atan2", {
   obj <- atan2(x_i, y_j)
   bool_grep_formula <- grep("Atan2\\(A0x.*i,A0x.*j\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(atan2(x_i, z_j),
+               "Operation `Atan2` expects inputs of the same dimension. Received 3 and 7.",
+               fixed = TRUE)
 })
 
 
@@ -1046,10 +1092,16 @@ test_that("sqdist", {
   D <- 3
   M <- 100
   N <- 150
+  P <- 200
+  E <- 7
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  t <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  t_j <- LazyTensor(t, index = 'j')
   
   # check results, formulas & classes
   expect_true(class(sqdist(2, 3)) == "LazyTensor")
@@ -1058,6 +1110,11 @@ test_that("sqdist", {
   obj <- sqdist(x_i, y_j)
   bool_grep_formula <- grep("SqDist\\(A0x.*i,A0x.*j\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(sqdist(x_i, t_j),
+               "Operation `SqDist` expects inputs of the same dimension or dimension 1. Received 3 and 7.",
+               fixed = TRUE)
 })
 
 

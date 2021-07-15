@@ -2,7 +2,7 @@
 % Please edit documentation in R/rkeops_lazytensor_operations.R
 \name{weightedsqnorm}
 \alias{weightedsqnorm}
-\title{Weighted squared norm of a LazyTensor.}
+\title{Generic squared eucidian norm.}
 \usage{
 weightedsqnorm(x, s)
 }

@@ -23,6 +23,10 @@ If \code{x} or \code{y} is a \code{LazyTensor}, \code{x + y} returns a \code{Laz
 that encodes, symbolically, the addition of \code{x} and \code{y}.
 (In case one of the arguments is a vector or a scalar, it is first converted to \code{LazyTensor}).
 If none of the arguments is a \code{LazyTensor}, is equivalent to the "+" R operator.
+
+\strong{Note}
+
+\code{x} and \code{y} input arguments should have the same inner dimension or be of dimension 1.
 }
 \examples{
 \dontrun{
