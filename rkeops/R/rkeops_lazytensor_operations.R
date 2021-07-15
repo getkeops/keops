@@ -59,8 +59,7 @@ set_rkeops_option("precision", "double")
 #'
 #' }
 #' @export
-LazyTensor <- function(x, index = NA)
-{
+LazyTensor <- function(x, index = NA) {
     # init
     d <- NULL
     cat <- NULL
@@ -68,44 +67,30 @@ LazyTensor <- function(x, index = NA)
     if(is.character(x))
         stop("`x` input argument should be a matrix, a vector or a scalar.")
     if(is.matrix(x) && is.na(index))
-        stop("missing `index` argument")
+        stop("missing `index` argument.")
+    if(!is.matrix(x) && !is.na(index))
+        stop("`index` must be NA with a vector or a scalar value.")
+    
     
 
     # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
-    if(is.matrix(x))
-    {
+    if(is.matrix(x)) {
         d <- ncol(x)
         if(index == "i")
-        {
-            # cat = 0
             cat = "Vi"
-        }
         else
-        {
-            # cat = 1
             cat = "Vj"
-        }
     }
     # 2) else we assume x is a numeric vector, treated as parameter, then converted to matrix
-    else
-    {
+    else {
         d <- length(x)
-        # cat <- 2
         cat <- "Pm"
     }
 
     # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-    #var_name = "var0"
-    #var_name = address(x)
-    #var_name = paste("A", address(x), sep = "")
     var_name <- paste("A", address(x), index, sep = "") 
     formula <- var_name
-    # formula <- paste('Var(0,', d, ',', cat, ')', sep = "")  # Var(ind,dim,cat), where :
-    #                                                         # ind gives the position in the final call to KeOps routine,
-    #                                                         # dim is the dimension
-    #                                                         # cat the category
     vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
-    #args = str_c(var_name, "=", cat, "(0,", d, ")")
     args <- str_c(var_name, "=", cat, "(", d, ")")
     # finally we build and return the LazyTensor object
     res <- list(formula = formula, args = args, vars = vars)
@@ -172,8 +157,8 @@ Vj <- function(x){
 #' }
 #' @export
 Pm <- function(x){
-    if(class(x)[1] == "matrix")
-        stop("`x` can't be a matrix. It must be a scalar or a vector.")
+    if(!is.numeric(x) || class(x)[1] == "matrix")
+        stop("`x` input must be a scalar or a vector.")
     
     res <- LazyTensor(x)
     return(res)
@@ -1308,23 +1293,79 @@ relu <- function(x) {
 
 
 # clamp function ---------------------------------------------------------------
+
+#' Element-wise clamp function.
+#' @description
+#' Symbolic ternary operation for element-wise clamp function.
+#' @details `clamp(x, y, z)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise clamping of ``x`` in ``(y, z)``. 
+#' Broadcasting rules apply.
+#' @author Chloé Serre-Combe, Amélie Vernay
+#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param z A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor".
+#' @examples
+#' \dontrun{
+
+#' }
+#' @export
 clamp <- function(x, y, z) {
-    res <- ternaryop.LazyTensor(x, y, z, "Clamp")
+    if(is.numeric(y) && is.numeric(z) && (as.integer(y) - y) == 0 && (as.integer(z) - z) == 0)
+        res <- unaryop.LazyTensor(x, "ClampInt", y, z)
+    else
+        res <- ternaryop.LazyTensor(x, y, z, "Clamp")
+    return(res)
 }
 
 
+
 # clampint function ---------------------------------------------------------------
+
+#' Element-wise clampint function.
+#' @description
+#' Symbolic ternary operation for element-wise clampint function.
+#' @details `clampint(x, y, z)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise clamping of ``x`` in ``(y, z)`` which are integers. 
+#' Broadcasting rules apply.
+#' @author Chloé Serre-Combe, Amélie Vernay
+#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y An `integer`.
+#' @param z An `integer`.
+#' @return An object of class "LazyTensor".
+#' @examples
+#' \dontrun{
+
+#' }
+#' @export
 clampint <- function(x, y, z) {
-    if ((as.integer(y) - y) != 0 || (as.integer(z) - z) != 0) {
+    if(!is.numeric(y) || !is.numeric(z) || (as.integer(y) - y) != 0 || (as.integer(z) - z) != 0) {
         stop("'clampint(x, y, z)' expects integer arguments for `y` and `z`. Use clamp(x, y, z) for different `y` and `z` types.")
     }
-    res <- ternaryop.LazyTensor(x, y, z, "ClampInt")
+    res <- unaryop.LazyTensor(x, "ClampInt", y, z)
 }
 
 
 # ifelse function --------------------------------------------------------------
 # Keep ".LazyTensor" because R ifelse function isn't an .Internal nor a .Primitive
 # but is different from KeOps IfElse function.
+
+#' Element-wise if-else function.
+#' @description
+#' Symbolic ternary operation for element-wise if-else function.
+#' @details `ifelse(x, y, z)` returns a `LazyTensor` that encodes, symbolically,
+#' `y` where ``x >= 0`` and ``z`` where ``x < 0``.  Broadcasting rules apply. 
+#' `y` and `z` may be fixed integers or floats, or other LazyTensors.
+#' @author Chloé Serre-Combe, Amélie Vernay
+#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param z A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor".
+#' @examples
+#' \dontrun{
+
+#' }
+#' @export
 ifelse.LazyTensor <- function(x, y, z) {
     res <- ternaryop.LazyTensor(x, y, z, "IfElse")
 }
@@ -1427,7 +1468,7 @@ sqdist <- function(x, y) {
 
 # Weighted squared norm --------------------------------------------------------
 
-#' Weighted squared norm of a LazyTensor.
+#' Generic squared eucidian norm.
 #' @description
 #' Symbolic binary operation for weighted squared norm of a LazyTensor.
 #' @details `weightedsqnorm(x)` returns a `LazyTensor` that encodes, symbolically,
@@ -1450,6 +1491,31 @@ weightedsqnorm <- function(x, s) {
     res <- binaryop.LazyTensor(x, s, "WeightedSqNorm")
     return(res)
 }
+
+
+# Weighted squared distance ----------------------------------------------------
+
+
+#' Generic squared distance.
+#' @description
+#' Symbolic binary operation for weighted squared distance of a LazyTensor.
+#' @details `weightedsqdist(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the weighted squared distance of a vector `x` with weights stored in the LazyTensor `s`.
+#' @author Chloé Serre-Combe, Amélie Vernay
+#' @param x A `vector` of numeric values or a scalar value.
+#' @param y A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param z A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor".
+#' @examples
+#' \dontrun{
+
+#' }
+#' @export
+weightedsqdist <- function(x, y, z) {
+    res <- weightedsqnorm(x - y, z)
+    return(res)
+}
+
 
 
 # TODO

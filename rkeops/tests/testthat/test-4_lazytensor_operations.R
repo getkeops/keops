@@ -34,9 +34,110 @@ test_that("LazyTensor", {
                "`x` input argument should be a matrix, a vector or a scalar.", 
                fixed = TRUE)
   expect_error(LazyTensor(x), 
-               "missing `index` argument", 
+               "missing `index` argument.", 
+               fixed = TRUE)
+  expect_error(LazyTensor(u, index = "i"), 
+               "`index` must be NA with a vector or a scalar value.", 
+               fixed = TRUE)
+  expect_error(LazyTensor(D, index = "i"), 
+               "`index` must be NA with a vector or a scalar value.", 
                fixed = TRUE)
 })
+
+
+
+test_that("Vi", {
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  u <- runif(M, min = 0, max = 3.14)
+  
+  x_i <- LazyTensor(x, index = 'i')
+  x_Vi <- Vi(x)
+  # check arguments 
+  expect_true(x_i$args == x_Vi$args)
+  expect_true(class(x_Vi) == "LazyTensor")
+  
+  # errors
+  expect_error(Vi(x_i), 
+               "`x` must be a matrix.", 
+               fixed = TRUE)
+  expect_error(Vi(u), 
+               "`x` must be a matrix.", 
+               fixed = TRUE)
+  expect_error(Vi(3), 
+               "`x` must be a matrix.", 
+               fixed = TRUE)
+  expect_error(Vi("3"), 
+               "`x` must be a matrix.", 
+               fixed = TRUE)
+  
+})
+
+
+
+test_that("Vj", {
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  u <- runif(M, min = 0, max = 3.14)
+  
+  x_j <- LazyTensor(x, index = 'j')
+  x_Vj<- Vj(x)
+  # check arguments 
+  expect_true(x_j$args == x_Vj$args)
+  expect_true(class(x_Vj) == "LazyTensor")
+  
+  # errors
+  expect_error(Vj(x_j), 
+               "`x` must be a matrix.", 
+               fixed = TRUE)
+  expect_error(Vj(u), 
+               "`x` must be a matrix.", 
+               fixed = TRUE)
+  expect_error(Vj(3), 
+               "`x` must be a matrix.", 
+               fixed = TRUE)
+  expect_error(Vj("3"), 
+               "`x` must be a matrix.", 
+               fixed = TRUE)
+  
+})
+
+
+
+test_that("Pm", {
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  u <- runif(M, min = 0, max = 3.14)
+  
+  D_LT <- LazyTensor(D)
+  D_Pm <- Pm(D)
+  # check arguments 
+  expect_true(D_LT$args == D_Pm$args)
+  expect_true(class(D_Pm) == "LazyTensor")
+  
+  
+  u_LT <- LazyTensor(u)
+  u_Pm <- Pm(u)
+  # check arguments 
+  expect_true(u_LT$args == u_Pm$args)
+  expect_true(class(u_Pm) == "LazyTensor")
+  
+  # errors
+  expect_error(Pm(x_i), 
+               "`x` input must be a scalar or a vector.", 
+               fixed = TRUE)
+  expect_error(Pm(x), 
+               "`x` input must be a scalar or a vector.", 
+               fixed = TRUE)
+  expect_error(Pm("a"), 
+               "`x` input must be a scalar or a vector.", 
+               fixed = TRUE)
+  
+})
+
 
 
 test_that("unaryop.LazyTensor", {
@@ -112,6 +213,48 @@ test_that("binaryop.LazyTensor", {
                fixed = TRUE)
 })
 
+
+
+test_that("ternaryop.LazyTensor", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  P <- 200
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check formulas, args & classes
+  obj <-  ternaryop.LazyTensor(x_i, y_j, z_i, "Clamp")
+  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
+  bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
+  bool_grep_args2 <- grep("A0x.*j=Vj\\(3\\)", obj$args[2])
+  bool_grep_args3 <- grep("A0x.*i=Vi\\(3\\)", obj$args[3])
+  expect_equal(bool_grep_formula, 1)
+  expect_equal(length(obj$args), 3)
+  expect_equal(bool_grep_args1, 1)
+  expect_equal(bool_grep_args2, 1)
+  expect_equal(bool_grep_args3, 1)
+  expect_is(obj, "LazyTensor")
+  
+  obj <-  ternaryop.LazyTensor(4, y_j, z_i, "Clamp")
+  bool_grep_args <- grep("A0x.*NA=Pm\\(1\\)", obj$args[1])
+  expect_equal(bool_grep_args, 1)
+  
+  # errors
+  expect_error(ternaryop.LazyTensor(x_i, y_j, z, "Clamp"), 
+               paste("`", "z", "` input argument should be a LazyTensor, a vector or a scalar.",
+                     "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""), 
+               fixed = TRUE)
+  expect_error(ternaryop.LazyTensor(x, y_j, z, "Clamp"), 
+               paste("`", "x", "` input argument should be a LazyTensor, a vector or a scalar.",
+                     "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""), 
+               fixed = TRUE)
+})
 
 # Test get and check dimensions
 test_that("get_inner_dim", {
@@ -983,6 +1126,88 @@ test_that("sum_reduction", {
   
   obj <- sum_reduction(x_i, "i")
   expect_true(class(obj)[1] != "LazyTensor")
+  
+})
+
+
+test_that("clamp", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  P <- 200
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check formulas, args & classes
+  obj <-  clamp(x_i, y_j, z_i)
+  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  obj <-  clamp(x_i, y_j, 3)
+  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,A0x.*NA\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  clamp(x_i, 2, 3)
+  bool_grep_formula <- grep("ClampInt\\(A0x.*i,2,3\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+})
+
+
+
+test_that("clampint", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  P <- 200
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check formulas, args & classes
+  obj <-  clampint(x_i, 6, 8)
+  bool_grep_formula <- grep("ClampInt\\(A0x.*i,6,8\\)", obj$formula) 
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  # errors
+  expect_error(clampint(x_i, y_j, 8),
+               "'clampint(x, y, z)' expects integer arguments for `y` and `z`. Use clamp(x, y, z) for different `y` and `z` types.",
+               fixed = TRUE)
+  expect_error(clampint(x_i, y_j, z_i),
+               "'clampint(x, y, z)' expects integer arguments for `y` and `z`. Use clamp(x, y, z) for different `y` and `z` types.",
+               fixed = TRUE)
+})
+
+
+test_that("ifelse.LazyTensor", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  P <- 200
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check formulas, args & classes
+  obj <-  ifelse.LazyTensor(x_i, y_j, z_i)
+  bool_grep_formula <- grep("IfElse\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
   
 })
 
