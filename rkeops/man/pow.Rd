@@ -41,5 +41,5 @@ x_pow_y <- x_i ^ y_j                # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

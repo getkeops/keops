@@ -27,5 +27,5 @@ sum_reduction(x_i, "i")
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

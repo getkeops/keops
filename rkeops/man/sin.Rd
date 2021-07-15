@@ -29,5 +29,5 @@ Sin_x <- sin(x_i)                   # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

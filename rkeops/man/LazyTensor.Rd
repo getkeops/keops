@@ -26,6 +26,13 @@ An object of class "LazyTensor", which is a list with the following elements:
 }}
 \item{\strong{vars}:}{ A list of R matrices which will be the inputs of the KeOps routine}
 }
+
+\strong{Alternatives}
+\itemize{
+\item LazyTensor(x, "i") is equivalent to Vi(x) (see "Vi()" function)
+\item LazyTensor(x, "j") is equivalent to Vi(x) (see "Vj()" function)
+\item LazyTensor(x) is equivalent to Pm(x) (see "Pm()" function)
+}
 }
 \description{
 LazyTensors objects are wrappers around R matrices or vectors that are used to create
@@ -37,11 +44,7 @@ Run \code{browseVignettes("rkeops")} to access the vignettes.
 }
 \examples{
 \dontrun{
-# TODO change set_rkeops_options() below ?
-set_rkeops_options()
-
 # Data
-# TODO increase `nx` and `ny`
 nx <- 100
 ny <- 150
 x <- matrix(runif(nx * 3), nrow = nx, ncol = 3) # arbitrary R matrix representing 100 data points in R^3

@@ -32,5 +32,5 @@ wsqn_xy <- weightedsqnorm(x_i, y_j)
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

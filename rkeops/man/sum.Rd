@@ -28,5 +28,5 @@ sum_red_x <- sum(x_i, "i")  # sum reduction indexed by 'i'
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

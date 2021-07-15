@@ -19,8 +19,13 @@ Symbolically applies \strong{opstr} operation to \strong{x}.
 }
 \examples{
 \dontrun{
+x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+una_xy <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
+
+una2_xy <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

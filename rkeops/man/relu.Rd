@@ -17,15 +17,15 @@ Symbolic unary operation for element-wise ReLU function.
 }
 \details{
 \code{relu(x)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise ReLu of \code{x}.
+the element-wise ReLU of \code{x}.
 }
 \examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-ReLu_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
+ReLU_x <- relu(x_i)                 # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

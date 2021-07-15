@@ -31,5 +31,5 @@ x_mult_y <- x_i \%*\% y_j
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

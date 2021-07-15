@@ -1,11 +1,9 @@
-library(rkeops)
-library(stringr)
-library(data.table)
+#library(rkeops)
+#library(stringr)
+#library(data.table)
 
-set_rkeops_option("tagCpuGpu", 0)
-set_rkeops_option("precision", "double")
-
-# TODO redo doc
+#set_rkeops_option("tagCpuGpu", 0)
+#set_rkeops_option("precision", "double")
 
 #' Build and return a LazyTensor object
 #' @description
@@ -31,13 +29,17 @@ set_rkeops_option("precision", "double")
 #'     }}
 #'     \item{**vars**:}{ A list of R matrices which will be the inputs of the KeOps routine}
 #' }
+#' 
+#' **Alternatives**
+#' \itemize{
+#'    \item LazyTensor(x, "i") is equivalent to Vi(x) (see **Vi()** function)
+#'    \item LazyTensor(x, "j") is equivalent to Vi(x) (see **Vj()** function)
+#'    \item LazyTensor(x) is equivalent to Pm(x) (see **Pm()** function)
+#' }
+#'
 #' @examples
 #' \dontrun{
-#' # TODO change set_rkeops_options() below ?
-#' set_rkeops_options()
-#' 
 #' # Data
-#' # TODO increase `nx` and `ny`
 #' nx <- 100
 #' ny <- 150
 #' x <- matrix(runif(nx * 3), nrow = nx, ncol = 3) # arbitrary R matrix representing 100 data points in R^3
@@ -115,7 +117,7 @@ LazyTensor <- function(x, index = NA)
 #' Wrapper LazyTensor indexed by "i"
 #' @description
 #' Simple wrapper that return an instantiation of `LazyTensor` indexed by "i".
-#' Equivalent to `LazyTensor(x, index="i")`.
+#' Equivalent to `LazyTensor(x, index = "i")`.
 #' @author Chloé Serre-Combe, Amélie Vernay
 #' @param x A matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" indexed by "i".
@@ -129,7 +131,7 @@ Vi <- function(x){
     if(class(x)[1] != "matrix")
         stop("`x` must be a matrix.")
     
-    res <- LazyTensor(x, index="i")
+    res <- LazyTensor(x, index = "i")
     return(res)
 }
 
@@ -137,7 +139,7 @@ Vi <- function(x){
 #' Wrapper LazyTensor indexed by "j"
 #' @description
 #' Simple wrapper that return an instantiation of `LazyTensor` indexed by "j".
-#' Equivalent to `LazyTensor(x, index="j")`.
+#' Equivalent to `LazyTensor(x, index = "j")`.
 #' @author Chloé Serre-Combe, Amélie Vernay
 #' @param x A matrix of numeric values.
 #' @return An object of class "LazyTensor" indexed by "j".
@@ -151,7 +153,7 @@ Vj <- function(x){
     if(class(x)[1] != "matrix")
         stop("`x` must be a matrix.")
     
-    res <- LazyTensor(x, index="j")
+    res <- LazyTensor(x, index = "j")
     return(res)
 }
 
@@ -312,14 +314,14 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 
 
 # ====== tests for keops_kernel modif =========
-a <- c(1, 2)
-A <- matrix(a, 2, 2)
-ALT <- LazyTensor(A, index = 'i')
-ALTj <- LazyTensor(A, index = 'j')
-Sum_A <- sum(ALT, index = 'i')
-SumSum_Aj <- sum(ALT, index = 'j')
-Sum_Ajbis <- sum(ALTj, index = 'i')
-Sum_Ajter <- sum(ALTj, index = 'j')
+# a <- c(1, 2)
+# A <- matrix(a, 2, 2)
+# ALT <- LazyTensor(A, index = 'i')
+# ALTj <- LazyTensor(A, index = 'j')
+# Sum_A <- sum(ALT, index = 'i')
+# SumSum_Aj <- sum(ALT, index = 'j')
+# Sum_Ajbis <- sum(ALTj, index = 'i')
+# Sum_Ajter <- sum(ALTj, index = 'j')
 # ==============================================
 
 

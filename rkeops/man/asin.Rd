@@ -25,9 +25,9 @@ the element-wise arcsine of \code{x} ; else, computes R default arcsine function
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-Asin_x <- sin(x_i)                  # symbolic matrix, 150 rows and 3 columns
+Asin_x <- asin(x_i)                  # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

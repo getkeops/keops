@@ -31,5 +31,5 @@ Round_x <- round(x_i, 2)            # symbolic matrix
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }

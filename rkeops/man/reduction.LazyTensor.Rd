@@ -29,5 +29,5 @@ red_x <- reduction.LazyTensor(x_i, "Sum", "i")
 }
 }
 \author{
-Ghislain Durif
+Chloé Serre-Combe, Amélie Vernay
 }
