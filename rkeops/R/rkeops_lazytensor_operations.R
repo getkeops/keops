@@ -1,9 +1,9 @@
-#library(rkeops)
-#library(stringr)
-#library(data.table)
+library(rkeops)
+library(stringr)
+library(data.table)
 
-#set_rkeops_option("tagCpuGpu", 0)
-#set_rkeops_option("precision", "double")
+set_rkeops_option("tagCpuGpu", 0)
+set_rkeops_option("precision", "double")
 
 #' Build and return a LazyTensor object
 #' @description
@@ -97,7 +97,7 @@ LazyTensor <- function(x, index = NA)
     # Now we define "formula", a string specifying the variable for KeOps C++ codes.
     #var_name = "var0"
     #var_name = address(x)
-    #var_name = paste("A", address(x), sep="")
+    #var_name = paste("A", address(x), sep = "")
     var_name <- paste("A", address(x), index, sep = "") 
     formula <- var_name
     # formula <- paste('Var(0,', d, ',', cat, ')', sep = "")  # Var(ind,dim,cat), where :
@@ -124,7 +124,7 @@ LazyTensor <- function(x, index = NA)
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3)
-#' Vi_x <- Vi(x)
+#' Vi_x <- Vi(x) # symbolic object representing an arbitrary row of x, indexed by the letter "i"
 #' }
 #' @export
 Vi <- function(x){
@@ -146,7 +146,7 @@ Vi <- function(x){
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3)
-#' Vj_x <- Vj(x)
+#' Vj_x <- Vj(x) # symbolic object representing an arbitrary row of x, indexed by the letter "j"
 #' }
 #' @export
 Vj <- function(x){
@@ -241,7 +241,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA) {
 #' bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)   # symbolic matrix
 #' }
 #' @export
-binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE) {
+binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type = "sameor1") {
     if(is.matrix(x))
         stop(paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
                    "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
@@ -255,7 +255,21 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE) {
     
     if(is.numeric(y))
         y <- LazyTensor(y)
-
+    
+    # check dimensions
+    if(dim_check_type == "sameor1") {
+        if (!check_inner_dim(x, y, check_type = dim_check_type)) {
+            stop(paste("Operation `", opstr, "` expects inputs of the same dimension or dimension 1. Received ",
+                       get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
+        }
+    }
+    if(dim_check_type == "same") {
+        if (!check_inner_dim(x, y, check_type = dim_check_type)) {
+            stop(paste("Operation `", opstr, "` expects inputs of the same dimension. Received ",
+                       get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
+        }
+    }
+    
     # special formula for operator
     if(is_operator)
         formula <- paste(x$formula, opstr, y$formula, sep = "")
@@ -325,6 +339,39 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 # ==============================================
 
 
+get_inner_dim <- function(x) {
+    # Grab x inner dimension.
+    # x must be a LazyTensor.
+    if(class(x)[1] != "LazyTensor"){
+        stop("`x` input argument should be a LazyTensor.")
+    }
+    end_x_inner_dim <- sub(".*\\(", "", x$args)
+    x_inner_dim <- substr(end_x_inner_dim, 1, nchar(end_x_inner_dim) - 1)
+    x_inner_dim <- as.integer(x_inner_dim)
+    return(x_inner_dim)
+}
+
+
+check_inner_dim <- function(x, y, check_type = "sameor1") {
+    # x and y must be LazyTensors.
+    if((class(x)[1] != "LazyTensor") || (class(y)[1] != "LazyTensor")) {
+        stop("`x` and `y` input arguments should of class LazyTensor.")
+    }
+    
+    x_inner_dim <- get_inner_dim(x)
+    y_inner_dim <- get_inner_dim(y)
+    
+    # Check whether if x and y inner dimensions are the same or if at least one of these equals 1.
+    if(check_type == "sameor1") {
+        res <- ((x_inner_dim == y_inner_dim) || ((x_inner_dim == 1) || (y_inner_dim == 1)))
+    }
+    
+    if(check_type == "same") {
+        res <- ((x_inner_dim == y_inner_dim))
+    }
+    return(res)
+}
+
 
 # addition ---------------------------------------------------------------------
 "+.default" <- .Primitive("+") # assign default as current definition
@@ -359,7 +406,11 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 }
 
 "+.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE)
+    #if (!check_inner_dim(x, y, check_type = "sameor1")) {
+    #    stop(paste("Operation `+` expects inputs of the same dimension or dimension 1. Received ",
+    #    get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
+    #}
+    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
 }
 
 
@@ -405,7 +456,7 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
     if((length(y) == 1) && is.na(y))
         res <- unaryop.LazyTensor(x, "Minus")
     else
-        res <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE)
+        res <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE, dim_check_type = "sameor1")
 }
 
 
@@ -442,7 +493,7 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 }
 
 "*.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE)
+    res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE, dim_check_type = "sameor1")
 }
 
 # division ---------------------------------------------------------------------
@@ -478,7 +529,7 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 }
 
 "/.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE)
+    res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE, dim_check_type = "sameor1")
 }
 
 
@@ -669,7 +720,7 @@ rsqrt.LazyTensor <- function(x) {
         UseMethod("|", x)
 }
 "|.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE)
+    res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE, dim_check_type = "same")
     res$formula <- paste("(", res$formula, ")", sep = "")
     return(res)
 }
@@ -979,7 +1030,7 @@ atan2 <- function(x, y) {
 }
 
 atan2.LazyTensor <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "Atan2")
+    res <- binaryop.LazyTensor(x, y, "Atan2", dim_check_type = "same")
     return(res)
 }
 

@@ -64,12 +64,15 @@ test_that("unaryop.LazyTensor", {
 test_that("binaryop.LazyTensor", {
   # basic example
   D <- 3
+  E <- 7
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
   
   # check formulas, args & classes
   obj <-  binaryop.LazyTensor(x_i, y_j, "Sum")
@@ -91,11 +94,11 @@ test_that("binaryop.LazyTensor", {
   expect_equal(bool_grep_args2, 1)
   expect_is(obj, "LazyTensor")
   
-  obj <-  binaryop.LazyTensor(x_i, 3, "Pow")
-  bool_grep_formula <- grep("Pow\\(A0x.*i,3\\)", obj$formula)
+  obj <-  binaryop.LazyTensor(x_i, 3, "Powf")
+  bool_grep_formula <- grep("Powf\\(A0x.*i,A0x.*NA\\)", obj$formula)
   bool_grep_args1 <- grep("A0x.*i=Vi\\(3\\)", obj$args[1])
   expect_equal(bool_grep_formula, 1)
-  expect_equal(length(obj$args), 1)
+  expect_equal(length(obj$args), 2)
   expect_is(obj, "LazyTensor")
   
   # errors
@@ -103,7 +106,73 @@ test_that("binaryop.LazyTensor", {
                paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
                      "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""), 
                fixed = TRUE)
+  
+  expect_error(binaryop.LazyTensor(x_i, z_j, "|", is_operator = TRUE, dim_check_type = "same"),
+               "Operation `|` expects inputs of the same dimension. Received 3 and 7.",
+               fixed = TRUE)
 })
+
+
+# Test get and check dimensions
+test_that("get_inner_dim", {
+  # basic example
+  D <- 3
+  E <- 7
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(N * E), N, E)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
+  p <- LazyTensor(runif(3, 0, 1)) # fixed vector parameter across indices
+  l <- LazyTensor(314)            # fixed scalar parameter across indices
+  
+  # check results
+  expect_equal(get_inner_dim(x_i), 3)
+  expect_equal(get_inner_dim(y_j), 3)
+  expect_equal(get_inner_dim(z_j), 7)
+  expect_equal(get_inner_dim(p), 3)
+  expect_equal(get_inner_dim(l), 1)
+  
+  # errors
+  expect_error(get_inner_dim(x),
+               "`x` input argument should be a LazyTensor.",
+               fixed = TRUE)
+})
+
+
+test_that("check_inner_dim", {
+  # basic example
+  D <- 3
+  E <- 7
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(N * E), N, E)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_j <- LazyTensor(z, index = 'j')
+  p <- LazyTensor(runif(3, 0, 1)) # fixed vector parameter across indices
+  l <- LazyTensor(314)            # fixed scalar parameter across indices
+  
+  # check results
+  expect_true(check_inner_dim(x_i, y_j, check_type = "sameor1"))
+  expect_false(check_inner_dim(x_i, z_j, check_type = "sameor1"))
+  expect_true(check_inner_dim(x_i, p, check_type = "sameor1"))
+  expect_true(check_inner_dim(x_i, l, check_type = "sameor1"))
+  
+  expect_true(check_inner_dim(x_i, y_j, check_type = "same"))
+  expect_false(check_inner_dim(x_i, l, check_type = "same"))
+  
+  # errors
+  expect_error(check_inner_dim(x, y_j),
+               "`x` and `y` input arguments should of class LazyTensor.",
+               fixed = TRUE)
+})
+
 
 
 # Test operations
