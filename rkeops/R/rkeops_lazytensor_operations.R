@@ -202,6 +202,8 @@ Pm <- function(x, is_complex = FALSE){
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @param opstr A text string corresponding to an operation.
+#' @param opt_arg An optional argument which can be a scalar value.
+#' @param opt_arg2 An optional argument which can be a scalar value.
 #' @param res_type A character string among "LazyTensor" (default) and "ComplexLazyTensor",
 #' depending on the class we want the result to be of.
 #' (Useful especially when dealing with complex-to-real or real-to-complex functions)
@@ -210,9 +212,9 @@ Pm <- function(x, is_complex = FALSE){
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-#' una_xy <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
+#' una_x <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
 #' 
-#' una2_xy <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
+#' una2_x <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
 #' }
 #' @export
 unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type = "LazyTensor") {
@@ -1630,6 +1632,187 @@ weightedsqdist <- function(x, y, z) {
 
 
 # COMPLEX FUNCTIONS ============================================================
+
+
+# real -------------------------------------------------------------------------
+Re.default <- .Primitive("Re")
+
+#' Element-wise real part of complex.
+#' @description
+#' Symbolic unary operation for element-wise real part of complex.
+#' @details If `z` is a `ComplexLazyTensor`, `Re(z)` returns a `ComplexLazyTensor` that encodes, symbolically,
+#' the element-wise real part of complex `z` ; else, computes R default `Re()` function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param z A `ComplexLazyTensor` or any type of values accepted by R default `Re()` function.
+#' @return An object of class "ComplexLazyTensor" if the function is called with a `ComplexLazyTensor`, else
+#' see R default `Re()` function.
+#' @examples
+#' \dontrun{
+#' z <- matrix(2 + 1i^ (-6:5), nrow = 4)
+#' z_i <- LazyTensor(x, "i", is_complex = TRUE)
+#' 
+#' Re_z <- Re(z_i)
+#' }
+#' @export
+Re <- function(z) {
+    UseMethod("Re", z)
+}
+
+Re.ComplexLazyTensor <- function(z) {
+    res <- unaryop.LazyTensor(z, "ComplexReal")
+}
+
+
+# imaginary --------------------------------------------------------------------
+Im.default <- .Primitive("Im")
+
+#' Element-wise imaginary part of complex.
+#' @description
+#' Symbolic unary operation for element-wise imaginary part of complex.
+#' @details If `z` is a `ComplexLazyTensor`, `Im(z)` returns a `ComplexLazyTensor` that encodes, symbolically,
+#' the element-wise imaginary part of complex `z` ; else, computes R default `Im()` function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param z A `ComplexLazyTensor` or any type of values accepted by R default `Im()` function.
+#' @return An object of class "ComplexLazyTensor" if the function is called with a `ComplexLazyTensor`, else
+#' see R default `Im()` function.
+#' @examples
+#' \dontrun{
+#' z <- matrix(2 + 1i^ (-6:5), nrow = 4)
+#' z_i <- LazyTensor(z, "i", is_complex = TRUE)
+#' 
+#' Im_z <- Im(z_i)
+#' }
+#' @export
+Im <- function(z) {
+    UseMethod("Im", z)
+}
+
+Im.ComplexLazyTensor <- function(z) {
+    res <- unaryop.LazyTensor(z, "ComplexImag")
+}
+
+
+# angle ------------------------------------------------------------------------
+Arg.default <- .Primitive("Arg")
+
+#' Element-wise angle (or argument) of complex.
+#' @description
+#' Symbolic unary operation for element-wise angle (or argument) of complex.
+#' @details If `z` is a `ComplexLazyTensor`, `Arg(z)` returns a `ComplexLazyTensor` that encodes, symbolically,
+#' the element-wise angle (or argument) of complex `z` ; else, computes R default `Arg()` function.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param z A `ComplexLazyTensor` or any type of values accepted by R default `Arg()` function.
+#' @return An object of class "ComplexLazyTensor" if the function is called with a `ComplexLazyTensor`, else
+#' see R default `Arg()` function.
+#' @examples
+#' \dontrun{
+#' z <- matrix(2 + 1i^ (-6:5), nrow = 4)
+#' z_i <- LazyTensor(z, "i", is_complex = TRUE)
+#' 
+#' Arg_z <- Arg(z_i)
+#' }
+#' @export
+Arg <- function(z) {
+    UseMethod("Arg", z)
+}
+
+Arg.ComplexLazyTensor <- function(z) {
+    res <- unaryop.LazyTensor(z, "ComplexAngle")
+}
+
+
+# real to complex ------------------------------------------------------------------------
+
+#' Element-wise "real 2 complex" operation.
+#' @description
+#' Symbolic unary operation for element-wise "real 2 complex".
+#' @details `real2complex(x)` returns a `ComplexLazyTensor` that encodes, symbolically,
+#' the element-wise "real 2 complex" of `x`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`.
+#' @return An object of class "ComplexLazyTensor".
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' z <- real2complex(x_i)              # ComplexLazyTensor object
+#' }
+#' @export
+real2complex <- function(x) {
+    UseMethod("real2complex", x)
+}
+
+real2complex.LazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor")
+}
+
+real2complex.ComplexLazyTensor <- function(x) {
+    stop("`real2complex` cannot be applied to a complex LazyTensor.")
+}
+
+
+# imaginary to complex ------------------------------------------------------------------------
+
+#' Element-wise "imaginary 2 complex" operation.
+#' @description
+#' Symbolic unary operation for element-wise "imaginary 2 complex".
+#' @details `imag2complex(x)` returns a `ComplexLazyTensor` that encodes, symbolically,
+#' the element-wise "imaginary 2 complex" of `x`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`.
+#' @return An object of class "ComplexLazyTensor".
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' z <- imag2complex(x_i)              # ComplexLazyTensor object
+#' }
+#' @export
+imag2complex <- function(x) {
+    UseMethod("imag2complex", x)
+}
+
+imag2complex.LazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Imag2Complex", res_type = "ComplexLazyTensor")
+}
+
+imag2complex.ComplexLazyTensor <- function(x) {
+    stop("`imag2complex` cannot be applied to a complex LazyTensor.")
+}
+
+
+# complex exponential of 1j x --------------------------------------------------
+
+#' Element-wise "complex exponential of 1j x"" operation.
+#' @description
+#' Symbolic unary operation for element-wise "complex exponential of 1j x".
+#' @details `exp1j(x)` returns a `ComplexLazyTensor` that encodes, symbolically,
+#' the multiplication of `1j` with `x`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`.
+#' @return An object of class "ComplexLazyTensor".
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' x_i <- LazyTensor(x, "i")           # creating LazyTensor from matrix x, indexed by 'i'
+#' 
+#' z <- exp1j(x_i)                     # ComplexLazyTensor object
+#' }
+#' @export
+exp1j <- function(x) {
+    UseMethod("exp1j", x)
+}
+
+exp1j.LazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "ComplexExp1j", res_type = "ComplexLazyTensor")
+}
+
+exp1j.ComplexLazyTensor <- function(x) {
+    stop("`exp1j` cannot be applied to a complex LazyTensor.")
+}
+
 
 # complex conjugate ------------------------------------------------------------
 Conj.default <- .Primitive("Conj") # assign default as current definition
