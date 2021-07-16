@@ -1466,11 +1466,12 @@ max <- function(x, ...) {
 max.LazyTensor <- function(x, index = NA) {
     if(is.na(index))
         res <- unaryop.LazyTensor(x, "Max")
-    else
+    else if(check_index(index))
         res <- reduction.LazyTensor(x, "Max", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j` or NA.")
     return(res)
 }
-
 
 # max reduction ----------------------------------------------------------------
 
@@ -1490,7 +1491,10 @@ max.LazyTensor <- function(x, index = NA) {
 #' }
 #' @export
 max_reduction <- function(x, index) {
-    res <- reduction.LazyTensor(x, "Max", index)
+    if(check_index(index))
+        res <- reduction.LazyTensor(x, "Max", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j`.")
     return(res)
 }
 
@@ -1520,8 +1524,10 @@ max_reduction <- function(x, index) {
 argmax <- function(x, index = NA) {
     if(is.na(index))
         res <- unaryop.LazyTensor(x, "ArgMax")
-    else
+    else if(check_index(index))
         res <- reduction.LazyTensor(x, "ArgMax", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j` or NA.")
     return(res)
 }
 
@@ -1546,7 +1552,10 @@ argmax <- function(x, index = NA) {
 #' }
 #' @export
 argmax_reduction <- function(x, index) {
-    res <- reduction.LazyTensor(x, "ArgMax", index)
+    if(check_index(index))
+        res <- reduction.LazyTensor(x, "ArgMax", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j`.")
     return(res)
 }
 
@@ -1577,7 +1586,10 @@ argmax_reduction <- function(x, index) {
 #' }
 #' @export
 max_argmax <- function(x, index) {
-    res <- reduction.LazyTensor(x, "Max_ArgMax", index)
+    if(check_index(index))
+        res <- reduction.LazyTensor(x, "Max_ArgMax", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j`.")
     return(res)
 }
 
@@ -1603,7 +1615,10 @@ max_argmax <- function(x, index) {
 #' }
 #' @export
 max_argmax_reduction <- function(x, index) {
-    res <- max_argmax(x, index)
+    if(check_index(index))
+        res <- max_argmax(x, index)
+    else 
+        stop("`index` input argument should be a character `i`, `j`.")
     return(res)
 }
 
@@ -2002,14 +2017,26 @@ weightedsqdist <- function(x, y, z) {
 #' }
 #' @export
 reduction.LazyTensor <- function(x, opstr, index) {
-    if(index == "i") 
-        tag <- 1
-    else 
-        tag <- 0
-    formula <- paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
-    args <- x$args
-    op <- keops_kernel(formula, args)
-    res <- op(x$vars)
+    if(class(x)[1] != "LazyTensor")
+        stop("`x` input should be a LazyTensor.")
+    
+    if(class(opstr)[1] != "character")
+        stop("`opst` input should be a string text.")
+    
+    if(check_index(index)) {
+        if(index == "i") 
+            tag <- 1
+        else 
+            tag <- 0
+        formula <- paste(opstr, "_Reduction(", x$formula, ",", tag, ")", sep = "")
+        args <- x$args
+        op <- keops_kernel(formula, args)
+        res <- op(x$vars)
+    }
+    
+    else
+        stop("`index` input argument should be a character `i`, `j`.")
+    
     return(res)
 }
 
