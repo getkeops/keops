@@ -59,7 +59,12 @@ set_rkeops_option("precision", "double")
 #'
 #' }
 #' @export
-LazyTensor <- function(x, index = NA) {
+LazyTensor <- function(x, index = NA, is_complex = FALSE) {
+    
+    if(!is_complex && is.complex(x)) {
+        is_complex = TRUE
+    }
+    
     # init
     d <- NULL
     cat <- NULL
@@ -72,7 +77,6 @@ LazyTensor <- function(x, index = NA) {
         stop("`index` must be NA with a vector or a scalar value.")
     
     
-
     # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
     if(is.matrix(x)) {
         d <- ncol(x)
@@ -91,12 +95,22 @@ LazyTensor <- function(x, index = NA) {
     var_name <- paste("A", address(x), index, sep = "") 
     formula <- var_name
     vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
-    args <- str_c(var_name, "=", cat, "(", d, ")")
-    # finally we build and return the LazyTensor object
-    res <- list(formula = formula, args = args, vars = vars)
-    class(res) <- "LazyTensor"
+    
+    if(is_complex) {
+        args <- str_c(var_name, "=", cat, "(", 2 * d, ")")
+        # finally we build and return the LazyTensor object
+        res <- list(formula = formula, args = args, vars = vars)
+        class(res) <- "ComplexLazyTensor"
+    }
+    else {
+        args <- str_c(var_name, "=", cat, "(", d, ")")
+        # finally we build and return the LazyTensor object
+        res <- list(formula = formula, args = args, vars = vars)
+        class(res) <- "LazyTensor"
+    }
     return(res)
 }
+
 
 
 #' Wrapper LazyTensor indexed by "i"
