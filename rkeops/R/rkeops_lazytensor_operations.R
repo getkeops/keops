@@ -1,9 +1,9 @@
-#library(rkeops)
-#library(stringr)
-#library(data.table)
-#
-#set_rkeops_option("tagCpuGpu", 0)
-#set_rkeops_option("precision", "double")
+library(rkeops)
+library(stringr)
+library(data.table)
+
+set_rkeops_option("tagCpuGpu", 0)
+set_rkeops_option("precision", "double")
 
 #' Build and return a LazyTensor object
 #' @description
@@ -331,7 +331,30 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 # Sum_Ajter <- sum(ALTj, index = 'j')
 # ==============================================
 
-
+#' Get inner dimension.
+#' @description
+#' Returns the inner dimension of a given `LazyTensor`.
+#' @details If `x` is a `LazyTensor`, `get_inner_dim(x)` returns an integer corresponding to the inner dimension of `x`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`.
+#' @return An integer corresponding to the inner dimension of `x`.
+#' @example
+#' \dontrun{
+#' # basic example
+#' D <- 3
+#' M <- 100
+#' s <- 0.25
+#' x <- matrix(runif(M * D), M, D)
+#' 
+#' # create LazyTensor
+#' x_i <- LazyTensor(x, index = 'i')
+#' Pm_s <- LazyTensor(s, index = NA)
+#' 
+#' # call get_inner_dim
+#' get_inner_dim(x_i) # returns 3
+#' get_inner_dim(Pm_s) # returns 1
+#' }
+#' @export
 get_inner_dim <- function(x) {
     # Grab x inner dimension.
     # x must be a LazyTensor.
@@ -345,6 +368,16 @@ get_inner_dim <- function(x) {
 }
 
 # TODO finish when question about "or dimension 1" for ternary answered
+#' Check inner dimensions.
+#' @description
+#' Verifies that the inner dimensions of two given `LazyTensor` are the same.
+#' @details If `x` and `y` are of class `LazyTensor`, `check_inner_dim(x, y)`
+#' returns `TRUE` if `x` and `y` inner dimensions are the same, and `FALSE` otherwise.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`.
+#' @param y A `LazyTensor`.
+#' @return A boolean TRUE or FALSE.
+#' @export
 #check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
 #    # x and y must be LazyTensors.
 #    if((class(x)[1] != "LazyTensor") || (class(y)[1] != "LazyTensor")) {
@@ -383,9 +416,6 @@ get_inner_dim <- function(x) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param  index to check.
 #' @return A boolean TRUE or FALSE.
-#' @examples
-#' \dontrun{
-#' }
 #' @export
 check_index <- function(index){
     res <- is.character(index) && (index %in% c("i", "j"))
@@ -2059,19 +2089,20 @@ sum_reduction <- function(x, index){
 
 # Basic example
 
-#D <- 3
-#M <- 100
-#N <- 150
-#E <- 4
-#x <- matrix(runif(M * D), M, D)
-#y <- matrix(runif(N * D), N, D)
-#z <- matrix(runif(N * D), N, D)
-#b <- matrix(runif(N * E), N, E)
-#s <- 0.25
+D <- 3
+M <- 100
+N <- 150
+E <- 4
+x <- matrix(runif(M * D), M, D)
+y <- matrix(runif(N * D), N, D)
+z <- matrix(runif(N * E), N, E)
+b <- matrix(runif(N * E), N, E)
+s <- 0.25
 #
 ## creating LazyTensor from matrices
-#x_i = LazyTensor(x, index = 'i')
-#y_j = LazyTensor(y, index = 'j')
+x_i <- LazyTensor(x, index = 'i')
+y_j <- LazyTensor(y, index = 'j')
+z_j <- LazyTensor(z, index = 'j')
 #b_j = b
 #
 ## Symbolic matrix of squared distances:
