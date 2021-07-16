@@ -894,10 +894,8 @@ test_that("min", {
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
-  y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
-  y_j <- LazyTensor(y, index = 'j')
-  
+
   # check results, formulas & classes
   expect_equal(min(D), 3)
   expect_true(class(min(x))[1] != "LazyTensor")
@@ -920,29 +918,294 @@ test_that("min", {
 })
 
 
-#TODO
-test_that("max", {
+test_that("min_reduction", {
   # basic example
   D <- 3
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
-  y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
-  y_j <- LazyTensor(y, index = 'j')
+  
+  # check results, formulas & classes
+  expect_true(class(min_reduction(x_i, "i"))[1] != "LazyTensor")
+  
+  # errors
+  expect_error(min_reduction(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(min_reduction(x, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(min_reduction(x_i, "b"),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+  
+  expect_error(min_reduction(x_i, 3),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+  
+})
+
+
+test_that("argmin", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(argmin(3)) == "LazyTensor")
+  expect_true(class(argmin(x_i, "i"))[1] != "LazyTensor")
+  
+  
+  obj <- argmin(x_i)
+  expect_true(class(obj) == "LazyTensor")
+  bool_grep_formula <- grep("ArgMin\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(argmin(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(argmin(x, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(argmin(x_i, "b"),
+               "`index` input argument should be a character `i`, `j` or NA.",
+               fixed = TRUE)
+  
+  expect_error(argmin(x_i, 3),
+               "`index` input argument should be a character `i`, `j` or NA.",
+               fixed = TRUE)
+})
+
+
+test_that("argmin_reduction", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(argmin_reduction(x_i, "i"))[1] != "LazyTensor")
+  
+  # errors
+  expect_error(argmin_reduction(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(argmin_reduction(x_i, 3),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+})
+
+
+test_that("min_argmin", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(min_argmin(x_i, "i"))[1] != "LazyTensor")
+  
+  # errors
+  expect_error(min_argmin(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(min_argmin(x_i, "b"),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+})
+
+
+
+test_that("min_argmin_reduction", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(min_argmin_reduction(x_i, "i"))[1] != "LazyTensor")
+  
+  # errors
+  expect_error(min_argmin_reduction(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(min_argmin_reduction(x_i, "b"),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+})
+
+
+
+test_that("max", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
   
   # check results, formulas & classes
   expect_equal(max(D), 3)
   expect_true(class(max(x))[1] != "LazyTensor")
-  expect_true(class(max(x_i)) == "LazyTensor")
+  expect_true(class(max(x_i, "i"))[1] != "LazyTensor")
   
   obj <- max(x_i)
+  expect_true(class(obj) == "LazyTensor")
   bool_grep_formula <- grep("Max\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  # error
-  expect_error(max(x_i, y_j), "unused argument (y_j)", fixed = TRUE)
+  # errors
+  expect_error(max(x_i, "b"),
+               "`index` input argument should be a character `i`, `j` or NA.",
+               fixed = TRUE)
+  
+  expect_error(max(x_i, 4),
+               "`index` input argument should be a character `i`, `j` or NA.",
+               fixed = TRUE)
 })
+
+
+test_that("max_reduction", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(max_reduction(x_i, "i"))[1] != "LazyTensor")
+  
+  # errors
+  expect_error(max_reduction(x_i, "b"),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+  
+  expect_error(max_reduction(x, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+})
+
+
+test_that("argmax", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(argmax(3)) == "LazyTensor")
+  expect_true(class(argmax(x_i, "i"))[1] != "LazyTensor")
+  
+  
+  obj <- argmax(x_i)
+  expect_true(class(obj) == "LazyTensor")
+  bool_grep_formula <- grep("ArgMax\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(argmax(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(argmax(x, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(argmax(x_i, "b"),
+               "`index` input argument should be a character `i`, `j` or NA.",
+               fixed = TRUE)
+  
+  expect_error(argmax(x_i, 3),
+               "`index` input argument should be a character `i`, `j` or NA.",
+               fixed = TRUE)
+})
+
+
+test_that("argmax_reduction", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(argmax_reduction(x_i, "i"))[1] != "LazyTensor")
+  
+  # errors
+  expect_error(argmax_reduction(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(argmax_reduction(x_i, 3),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+})
+
+
+test_that("max_argmax", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(max_argmax(x_i, "i"))[1] != "LazyTensor")
+  
+  # errors
+  expect_error(max_argmax(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(max_argmax(x_i, "b"),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+})
+
+
+
+test_that("max_argmax_reduction", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check results, formulas & classes
+  expect_true(class(max_argmax_reduction(x_i, "i"))[1] != "LazyTensor")
+  
+  # errors
+  expect_error(max_argmax_reduction(3, "i"),
+               "`x` input should be a LazyTensor.",
+               fixed = TRUE)
+  
+  expect_error(max_argmax_reduction(x_i, "b"),
+               "`index` input argument should be a character `i`, `j`.",
+               fixed = TRUE)
+})
+
 
 
 test_that("xlogx", {
@@ -1160,6 +1423,24 @@ test_that("reduction.LazyTensor", {
   
   # check results, formulas & classes
   expect_true(class(obj)[1] != "LazyTensor")
+  
+  # errors
+  expect_error(reduction.LazyTensor(3, opstr, "i"),
+               "`x` input should be a LazyTensor.", 
+               fixed=TRUE)
+  
+  expect_error(reduction.LazyTensor(x, opstr, "i"),
+               "`x` input should be a LazyTensor.", 
+               fixed=TRUE)
+  
+  expect_error(reduction.LazyTensor(x_i, opstr, "b"),
+               "`index` input argument should be a character `i`, `j`.", 
+               fixed=TRUE)
+  
+  expect_error(reduction.LazyTensor(x_i, 2, "i"),
+               "`opst` input should be a string text.", 
+               fixed=TRUE)
+  
 })
 
 
@@ -1179,6 +1460,15 @@ test_that("sum", {
  
   bool_grep_formula <- grep("Sum\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(sum(x_i, "b"),
+               "`index` input argument should be a character `i`, `j` or NA.", 
+               fixed=TRUE)
+  
+  expect_error(sum(x_i, 2),
+               "`index` input argument should be a character `i`, `j` or NA.", 
+               fixed=TRUE)
 })
 
 
@@ -1192,6 +1482,23 @@ test_that("sum_reduction", {
   
   obj <- sum_reduction(x_i, "i")
   expect_true(class(obj)[1] != "LazyTensor")
+  
+  # errors
+  expect_error(sum_reduction(x_i, "b"),
+               "`index` input argument should be a character `i`, `j` or NA.", 
+               fixed=TRUE)
+  
+  expect_error(sum_reduction(x_i, 2),
+               "`index` input argument should be a character `i`, `j` or NA.", 
+               fixed=TRUE)
+  
+  expect_error(sum_reduction(x, "i"),
+               "`x` input should be a LazyTensor.", 
+               fixed=TRUE)
+  
+  expect_error(sum_reduction(3, "i"),
+               "`x` input should be a LazyTensor.", 
+               fixed=TRUE)
   
 })
 
