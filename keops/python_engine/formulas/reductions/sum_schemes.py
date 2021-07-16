@@ -7,8 +7,12 @@ from keops.python_engine.utils.code_gen_utils import (
 
 
 class Sum_Scheme:
-    def __init__(self, red_formula, dtype):
+    def __init__(self, red_formula, dtype, dimred):
         self.red_formula = red_formula
+        if dimred is None:
+            self.dimred = red_formula.dimred
+        else:
+            self.dimred = dimred
 
     def declare_temporary_accumulator(self):
         return self.tmp_acc.declare()
@@ -38,9 +42,9 @@ class direct_sum(Sum_Scheme):
 
 
 class block_sum(Sum_Scheme):
-    def __init__(self, red_formula, dtype):
-        super().__init__(red_formula, dtype)
-        self.tmp_acc = c_array(dtype, red_formula.dimred, "tmp")
+    def __init__(self, red_formula, dtype, dimred=None):
+        super().__init__(red_formula, dtype, dimred)
+        self.tmp_acc = c_array(dtype, self.dimred, "tmp")
 
     def initialize_temporary_accumulator(self):
         return (
@@ -67,8 +71,8 @@ class block_sum(Sum_Scheme):
 
 
 class kahan_scheme(Sum_Scheme):
-    def __init__(self, red_formula, dtype):
-        super().__init__(red_formula, dtype)
+    def __init__(self, red_formula, dtype, dimred=None):
+        super().__init__(red_formula, dtype, dimred)
         self.tmp_acc = c_array(dtype, red_formula.dim_kahan, "tmp")
 
     def initialize_temporary_accumulator(self):

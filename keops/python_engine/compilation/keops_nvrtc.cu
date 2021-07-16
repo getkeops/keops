@@ -102,7 +102,7 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code, 
 
 template < typename TYPE >
 __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero, int use_half,
+                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp,
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -269,7 +269,7 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 
 
 extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero, int use_half,
+                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -285,7 +285,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, use_chunk_mode
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
@@ -298,7 +298,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
 
 
 extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero, int use_half,
+                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -314,7 +314,7 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, use_chunk_mode
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
@@ -326,7 +326,7 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
 
 
 extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero, int use_half,
+                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -342,7 +342,7 @@ extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHost
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half,
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, use_chunk_mode
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,

@@ -490,84 +490,111 @@ class Var_loader:
         self.nminargs = max(self.inds) + 1 if len(self.inds) > 0 else 0
 
     def table(self, xi, yj, pp):
-        table = [None] * self.nminargs
-        for (dims, inds, xloc) in (
-            (self.dimsx, self.indsi, xi),
-            (self.dimsy, self.indsj, yj),
-            (self.dimsp, self.indsp, pp),
-        ):
-            k = 0
-            for u in range(len(dims)):
-                table[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
-                k += dims[u]
-        return table
+        return table(self.nminargs, self.dimsx, self.dimsy, self.dimsp, self.indsi, self.indsj, self.indsp, xi, yj, pp)
 
     def direct_table(self, args, i, j):
-        table = [None] * self.nminargs
-        for (dims, inds, row_index) in (
-            (self.dimsx, self.indsi, i),
-            (self.dimsy, self.indsj, j),
-            (self.dimsp, self.indsp, c_zero_int),
-        ):
-            for u in range(len(dims)):
-                arg = args[inds[u]]
-                table[inds[u]] = c_array(
-                    value(arg.dtype), dims[u], f"({arg.id}+{row_index.id}*{dims[u]})"
-                )
-        return table
-
-    def load_vars(self, cat, xloc, args, row_index=c_zero_int, offsets=None):
-        # returns a c++ code used to create a local copy of slices of the input tensors, for evaluating a formula
-        # cat is either "i", "j" or "p", specifying the category of variables to be loaded
-        # - xloc is a c_array, the local array which will receive the copy
-        # - args is a list of c_variable, representing pointers to input tensors
-        # - row_index is a c_variable (of dtype="int"), specifying which row of the matrix should be loaded
-        # - offsets is an optional c_array (of dtype="int"), specifying variable-dependent offsets (used when broadcasting batch dimensions)
-        #
-        # Example: assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi") and px=c_variable("float**", "px"), then
-        # if self.dimsx = [2,2,3] and self.indsi = [7,9,8], the call to
-        #   load_vars ( "i", xi, [arg0, arg1,..., arg9], row_index=i )
-        # will output the following code:
-        #   xi[0] = arg7[5*2+0];
-        #   xi[1] = arg7[5*2+1];
-        #   xi[2] = arg9[5*2+0];
-        #   xi[3] = arg9[5*2+1];
-        #   xi[4] = arg8[5*3+0];
-        #   xi[5] = arg8[5*3+1];
-        #   xi[6] = arg8[5*3+2];
-        #
-        # Example (with offsets): assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
-        # and offsets = c_array("int", 3, "offsets"), then
-        # if self.dimsx = [2,2,3] and self.indsi = [7,9,8], the call to
-        #   load_vars ( "i", xi, [arg0, arg1,..., arg9], row_index=i, offsets=offsets)
-        # will output the following code:
-        #   xi[0] = arg7[(5+offsets[0])*2+0];
-        #   xi[1] = arg7[(5+offsets[0])*2+1];
-        #   xi[2] = arg9[(5+offsets[1])*2+0];
-        #   xi[3] = arg9[(5+offsets[1])*2+1];
-        #   xi[4] = arg8[(5+offsets[2])*3+0];
-        #   xi[5] = arg8[(5+offsets[2])*3+1];
-        #   xi[6] = arg8[(5+offsets[2])*3+2];
+        return direct_table(self.nminargs, self.dimsx, self.dimsy, self.dimsp, self.indsi, self.indsj, self.indsp, args, i, j)
+        
+    def load_vars(self, cat, *args, **kwargs):
         if cat == "i":
             dims, inds = self.dimsx, self.indsi
         elif cat == "j":
             dims, inds = self.dimsy, self.indsj
         elif cat == "p":
             dims, inds = self.dimsp, self.indsp
-        if offsets and offsets.dim != len(dims):
-            raise ValueError(
-                "[KeOps] internal error: invalid dimension for offsets c_array argument"
-            )
-        string = ""
+        return load_vars(dims, inds, *args, **kwargs)
+        
+        
+def table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, xi, yj, pp):
+    res = [None] * nminargs
+    for (dims, inds, xloc) in (
+        (dimsx, indsi, xi),
+        (dimsy, indsj, yj),
+        (dimsp, indsp, pp),
+    ):
         k = 0
         for u in range(len(dims)):
-            for v in range(dims[u]):
-                row_index_str = (
-                    f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
-                )
-                string += f"{xloc.id}[{k}] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+{v}];\n"
-                k += 1
-        return string
+            res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
+            k += dims[u]
+    return res
+
+def direct_table(nminargs, dimsx, dimsy, dimsp, indsi, indsj, indsp, args, i, j):
+    res = [None] * nminargs
+    for (dims, inds, row_index) in (
+        (dimsx, indsi, i),
+        (dimsy, indsj, j),
+        (dimsp, indsp, c_zero_int),
+    ):
+        for u in range(len(dims)):
+            arg = args[inds[u]]
+            res[inds[u]] = c_array(
+                value(arg.dtype), dims[u], f"({arg.id}+{row_index.id}*{dims[u]})"
+            )
+    return res
+
+def table4(nminargs, dimsx, dimsy, dimsp, dims_new, indsi, indsj, indsp, inds_new, xi, yj, pp, arg_new):
+    res = [None] * nminargs
+    for (dims, inds, xloc) in (
+        (dimsx, indsi, xi),
+        (dimsy, indsj, yj),
+        (dimsp, indsp, pp),
+        (dims_new, inds_new, arg_new),
+    ):
+        k = 0
+        for u in range(len(dims)):
+            res[inds[u]] = c_array(xloc.dtype, dims[u], f"({xloc.id}+{k})")
+            k += dims[u]
+    return res
+
+
+
+def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None):
+    # returns a c++ code used to create a local copy of slices of the input tensors, for evaluating a formula
+    # - dims is a list of integers giving dimensions of variables
+    # - dims is a list of integers giving indices of variables
+    # - xloc is a c_array, the local array which will receive the copy
+    # - args is a list of c_variable, representing pointers to input tensors
+    # - row_index is a c_variable (of dtype="int"), specifying which row of the matrix should be loaded
+    # - offsets is an optional c_array (of dtype="int"), specifying variable-dependent offsets (used when broadcasting batch dimensions)
+    #
+    # Example: assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi") and px=c_variable("float**", "px"), then
+    # if dims = [2,2,3] and inds = [7,9,8], the call to
+    #   load_vars (dims, inds, xi, [arg0, arg1,..., arg9], row_index=i )
+    # will output the following code:
+    #   xi[0] = arg7[5*2+0];
+    #   xi[1] = arg7[5*2+1];
+    #   xi[2] = arg9[5*2+0];
+    #   xi[3] = arg9[5*2+1];
+    #   xi[4] = arg8[5*3+0];
+    #   xi[5] = arg8[5*3+1];
+    #   xi[6] = arg8[5*3+2];
+    #
+    # Example (with offsets): assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
+    # and offsets = c_array("int", 3, "offsets"), then
+    # if dims = [2,2,3] and inds = [7,9,8], the call to
+    #   load_vars (dims, inds, xi, [arg0, arg1,..., arg9], row_index=i, offsets=offsets)
+    # will output the following code:
+    #   xi[0] = arg7[(5+offsets[0])*2+0];
+    #   xi[1] = arg7[(5+offsets[0])*2+1];
+    #   xi[2] = arg9[(5+offsets[1])*2+0];
+    #   xi[3] = arg9[(5+offsets[1])*2+1];
+    #   xi[4] = arg8[(5+offsets[2])*3+0];
+    #   xi[5] = arg8[(5+offsets[2])*3+1];
+    #   xi[6] = arg8[(5+offsets[2])*3+2];
+    if offsets and offsets.dim != len(dims):
+        raise ValueError(
+            "[KeOps] internal error: invalid dimension for offsets c_array argument"
+        )
+    string = ""
+    k = 0
+    for u in range(len(dims)):
+        for v in range(dims[u]):
+            row_index_str = (
+                f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
+            )
+            string += f"{xloc.id}[{k}] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+{v}];\n"
+            k += 1
+    return string
 
 
 def varseq_to_array(vars, vars_ptr_name):
