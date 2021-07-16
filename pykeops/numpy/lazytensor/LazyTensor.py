@@ -17,21 +17,21 @@ def Var(x_or_ind, dim=None, cat=None):
 
 def Vi(x_or_ind, dim=None):
     r"""
-    Simple wrapper that return an instantiation of :class:`LazyTensor` of type 0.
+    Simple wrapper that returns an instantiation of :class:`LazyTensor` of type 0.
     """
     return Var(x_or_ind, dim, 0)
 
 
 def Vj(x_or_ind, dim=None):
     r"""
-    Simple wrapper that return an instantiation of :class:`LazyTensor` of type 1.
+    Simple wrapper that returns an instantiation of :class:`LazyTensor` of type 1.
     """
     return Var(x_or_ind, dim, 1)
 
 
 def Pm(x_or_ind, dim=None):
     r"""
-    Simple wrapper that return an instantiation of :class:`LazyTensor` of type 2.
+    Simple wrapper that returns an instantiation of :class:`LazyTensor` of type 2.
     """
     return Var(x_or_ind, dim, 2)
 
