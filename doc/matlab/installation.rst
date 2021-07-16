@@ -23,7 +23,7 @@ Packaged version (recommended)
 
 Note that temporary files will be written into the ``/path/to/keops-master/keopslab/build`` folder: this directory must have write permissions.
 
-2. Manually add the directory ``/path/to/keops-master/keopslab`` to you Matlab path, as documented :ref:`below <part.path>`.
+2. Manually add the directory ``/path/to/keops-master/keopslab`` to your Matlab path, as documented :ref:`below <part.path>`.
 
 3. :ref:`Test your installation <part.test>`.
 
@@ -40,7 +40,7 @@ From source using git
 
 Note that temporary files will be written into the ``/path/to/keops/keopslab/build`` folder: this directory must have write permissions.
 
-2. Manually add the directory ``/path/to/keops/keopslab`` to you matlab path: see :ref:`part.path`
+2. Manually add the directory ``/path/to/keops/keopslab`` to your Matlab path: see :ref:`part.path`
 
 3. :ref:`Test your installation <part.test>`.
 
