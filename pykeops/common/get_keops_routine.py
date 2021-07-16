@@ -30,6 +30,7 @@ class get_keops_routine_class:
             self.tagI,
             self.tagZero,
             self.use_half,
+            self.use_chunk_mode,
             self.dim,
             self.dimy,
             indsi,
@@ -91,6 +92,7 @@ class get_keops_routine_class:
                 c_int,  # tagI
                 c_int,  # tagZero
                 c_int,  # use_half
+                c_int,  # use_chunk_mode
                 c_int * len(self.indsi_ctype),  # indsi
                 c_int * len(self.indsj_ctype),  # indsj
                 c_int * len(self.indsp_ctype),  # indsp
@@ -117,6 +119,7 @@ class get_keops_routine_class:
             c_int(self.tagI),
             c_int(self.tagZero),
             c_int(self.use_half),
+            c_int(self.use_chunk_mode),
             self.indsi_ctype,
             self.indsj_ctype,
             self.indsp_ctype,

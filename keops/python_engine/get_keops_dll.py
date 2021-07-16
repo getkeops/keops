@@ -18,6 +18,7 @@
 #       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
 #       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
 #       - use_half : 0 or 1, enable special routines for half-precision data type,
+#       - use_chunk_mode : 0, 1 or 2, if 1 or 2, enables special routines for high dimensions,
 #       - dim : integer, dimension of the output tensor.
 #       - dimy : integer, total dimension of the j indexed variables.
 #       - indsi : list of integers, indices of i indexed variables.
@@ -34,21 +35,31 @@
 #       python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" "[]" 3 float float block_sum
 
 import sys
+from keops.python_engine.formulas import *
 from keops.python_engine.formulas.variables.Zero import Zero
 from keops.python_engine.formulas.reductions import *
 from keops.python_engine.mapreduce import *
+from keops.python_engine import enable_chunk, dimchunk
 
-
-def get_keops_dll(map_reduce_id, *args):
+def get_keops_dll(map_reduce_id, red_formula_string, *args):
+    
+    # detecting the need for special chunked computation modes :
+    use_chunk_mode = 0
+    if "Gpu" in map_reduce_id and enable_chunk:
+        red_formula = eval(red_formula_string)
+        if len(red_formula.formula.chunked_formulas(dimchunk))==1:
+            use_chunk_mode = 1
+            map_reduce_id += '_chunks'
+    
     map_reduce_class = eval(map_reduce_id)
-    map_reduce_obj = map_reduce_class(*args)
+    map_reduce_obj = map_reduce_class(red_formula_string, *args)
 
     # detecting the case of formula being equal to zero, to bypass reduction.
     rf = map_reduce_obj.red_formula
     if isinstance(rf, Zero_Reduction) or (
         isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)
     ):
-        map_reduce_obj = map_reduce_class.AssignZero(*args)
+        map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, *args)
         tagZero = 1
     else:
         tagZero = 0
@@ -61,6 +72,7 @@ def get_keops_dll(map_reduce_id, *args):
         res["tagI"],
         tagZero,
         res["use_half"],
+        use_chunk_mode,
         res["dim"],
         res["dimy"],
         res["indsi"],

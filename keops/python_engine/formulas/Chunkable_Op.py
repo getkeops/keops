@@ -31,7 +31,10 @@ class Chunkable_Op(Operation):
             return []
 
     def chunked_formulas(self, dimchk):
-        return [*self.chunked_formula(dimchk), *(child.chunked_formulas(dimchk) for child in self.children)]
+        res = self.chunked_formula(dimchk)
+        for child in self.children:
+            res += child.chunked_formulas(dimchk)
+        return res
 
     @property
     def num_chunked_formulas(self):

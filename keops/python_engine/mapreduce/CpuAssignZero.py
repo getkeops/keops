@@ -40,7 +40,7 @@ class CpuAssignZero(MapReduce, Cpu_link_compile):
                         #include "stdarg.h"
                         
                         extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                                            int device_id, int tagI, int tagZero, int use_half,
+                                                            int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
                                                             int *indsi, int *indsj, int *indsp, 
                                                             int dimout, 
                                                             int *dimsx, int *dimsy, int *dimsp, 

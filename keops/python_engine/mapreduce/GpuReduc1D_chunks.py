@@ -6,10 +6,44 @@ from keops.python_engine.utils.code_gen_utils import (
     c_include,
     signature_list,
     call_list,
+    load_vars
 )
 from keops.python_engine.compilation import Gpu_link_compile
+from keops.python_engine import blocksize_chunks
 from .Chunk_Mode_Constants import Chunk_Mode_Constants
 
+
+def do_chunk_sub(dtype, red_formula, fun_chunked_curr, dimchunk_curr,
+                                acc, tile, i, j, jstart, chunk, nx, ny, arg, fout, xi, yj, param_loc):
+    chk = Chunk_Mode_Constants(red_formula)
+    fout_tmp_chunk = c_array(dtype, chk.fun_chunked.dim)
+    xiloc = c_variable(pointer(dtype), f"({xi.id} + chk.dimx_notchunked)")
+    yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {chk.dimy} + {chk.dimy_notchunked})")
+    load_chunks_routine_i = load_chunks(chk.indsi_chunked, dimchunk, dimchunk_curr, chk.dim_org, i, chunk, xiloc, arg)
+    load_chunks_routine_j = load_chunks(chk.indsj_chunked, dimchunk, dimchunk_curr, chk.dim_org, j, chunk, yjloc, arg)
+    yjrel = c_variable(pointer(dtype), "yjrel")
+    chktable = table(chk.nminargs, chk.dimsx, chk.dimsy, chk.dimsp, chk.indsi, chk.indsj, chk.indsp, xi, yjrel, param_loc)
+    foutj = c_variable(pointer(dtype), "foutj")
+    return f"""
+                {fout_tmp_chunk.declare()}
+                if ({i.id} < {nx.id}) {{
+                    {load_chunks_routine_i}
+                }} 
+                if (j < ny) {{ // we load yj from device global memory only if j<ny
+                    {load_chunks_routine_j}
+                }}
+                __syncthreads();
+                if ({i.id} < {nx.id}) {{ // we compute only if needed
+            		{dtype} *yjrel = {yj.id}; // Loop on the columns of the current block.
+            		for (int jrel = 0; (jrel < blockDim.x) && (jrel < {ny.id} - jstart); jrel++, yjrel += {chk.dimy}) {{
+            			{dtype} *foutj = {fout.id} + jrel*{chk.fun_chunked.dim};
+                        {fun_chunked_curr(fout_tmp_chunk, chktable)}
+                        {chk.fun_chunked.acc_chunk(foutj, fout_tmp_chunk)}
+            		}}
+                }} 
+                __syncthreads();
+            """
+    
 
 class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
@@ -19,6 +53,8 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
+        
+        
 
     def get_code(self):
 
@@ -30,26 +66,52 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
         i = self.i
         j = self.j
-        fout = self.fout
-        outi = self.outi
-        acc = self.acc
+        
+        
+        
         arg = self.arg
         args = self.args
-        sum_scheme = self.sum_scheme
+        
 
         
         
-        xi = self.xi
-        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
+        
+        
         yjrel = c_array(dtype, varloader.dimy, "yjrel")
-        table = varloader.table(self.xi, yjrel, self.param_loc)
+        
         jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
         
         
         
         chk = Chunk_Mode_Constants(red_formula)
         param_loc = c_array(dtype, chk.dimp, "param_loc")
-
+        acc = c_array(dtypeacc, chk.dimred, "acc")
+        sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype, dimred=chk.dimred)
+        xi = c_array(dtype, chk.dimx, "xi")
+        fout_chunk = c_array(dtype, blocksize_chunks*chk.dimout_chunk, "fout_chunk")
+        yj = c_variable(pointer(dtype), "yj")
+        yjloc = c_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
+        
+        fout_chunk_loc = c_variable(pointer(dtype), f"{fout_chunk.id}+jrel*{chk.dimout}")
+        
+        tile = c_variable("int", "tile")
+        nx = c_variable("int", "nx")
+        ny = c_variable("int", "ny")
+        
+        chunk_sub_routine = do_chunk_sub( dtype, red_formula, chk.fun_chunked, dimchunk,
+                                acc, tile, i, j, jstart, chunk, nx, ny, arg, fout_chunk, xi, yj, param_loc)
+        
+        last_chunk = c_variable("int", f"{chk.nchunks-1}")
+        chunk_sub_routine_last = do_chunk_sub( dtype, red_formula, chk.fun_chunked, dimchunk,
+                                acc, tile, i, j, jstart, last_chunk, nx, ny, arg, fout_chunk, xi, yj, param_loc)
+        
+        foutj = c_variable(pointer(dtype), "foutj")
+        chktable_out = table4(chk.nminargs, chk.dimsx, chk.dimsy, chk.dimsp, [chk.dimout_chunk], 
+                                chk.indsi, chk.indsj, chk.indsp, [self.varloader.nminargs], 
+                                xi, yjrel, param_loc, foutj)
+        fout_tmp = c_array(dtype, chk.dimfout, "fout_tmp")
+        outi = c_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
+        
         self.code = f"""
                           
                         {self.headers}
@@ -64,17 +126,23 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
                           // load parameters variables from global memory to local thread memory
                           {param_loc.declare()}
-                          {varloader.load_vars("p", param_loc, args)}
-
-                          {fout.declare()}
-                          {xi.declare()}
+                          {load_vars(chk.dimsp, chk.indsp, param_loc, args)}
+                          
                           {acc.declare()}
-                          {sum_scheme.declare_temporary_accumulator()}
-
+                          
+                          {sum_scheme.declare_temporary_accumulator()}                     
+                          
                           if (i < nx) {{
                             {red_formula.InitializeReduction(acc)} // acc = 0
                             {sum_scheme.initialize_temporary_accumulator_first_init()}
-                            {varloader.load_vars('i', xi, args, row_index=i)} // load xi variables from global memory to local thread memory
+                          }}
+
+                          {xi.declare()}
+
+                          {fout_chunk.declare()}
+                          
+                          if (i < nx) {{
+                            {load_vars(chk.dimsx_notchunked, chk.indsi_notchunked, xi, args, row_index=i)} // load xi variables from global memory to local thread memory
                           }}
 
                           for (int jstart = 0, tile = 0; jstart < ny; jstart += blockDim.x, tile++) {{
@@ -83,24 +151,41 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             int j = tile * blockDim.x + threadIdx.x;
 
                             if (j < ny) {{ // we load yj from device global memory only if j<ny
-                              {varloader.load_vars("j", yjloc, args, row_index=j)} 
+                              {load_vars(chk.dimsy_notchunked, chk.indsj_notchunked, yjloc, args, row_index=j)} 
                             }}
                             __syncthreads();
 
                             if (i < nx) {{ // we compute x1i only if needed
-                              {dtype} * yjrel = yj;
-                              {sum_scheme.initialize_temporary_accumulator_block_init()}
-                              for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {varloader.dimy}) {{
-                                {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
-                                {sum_scheme.accumulate_result(acc, fout, jreltile)}
+                              for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++) {{
+                                {chk.fun_chunked.initacc_chunk(fout_chunk_loc)}
                               }}
-                              {sum_scheme.final_operation(acc)}
+                              {sum_scheme.initialize_temporary_accumulator_block_init()}
+                            }}
+                            
+                            // looping on chunks (except the last)
+                    		#pragma unroll
+                    		for (int chunk=0; chunk<{chk.nchunks}-1; chunk++) {{
+                              {chunk_sub_routine}
+                            }}
+                            // last chunk
+                            {chunk_sub_routine_last}
+                            
+                            if (i < nx) {{
+                                {dtype} * yjrel = yj; // Loop on the columns of the current block.
+                                for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {chk.dimy}) {{
+                                    {"int ind = jrel + tile * blockDim.x;" if not isinstance(sum_scheme, kahan_scheme) else ""}
+                                    {dtype} *foutj = fout_chunk + jrel*{chk.dimout_chunk};
+                                    {fout_tmp.declare()}
+                                    {chk.fun_postchunk(fout_tmp, chktable_out)}
+                                    {sum_scheme.accumulate_result(acc, fout_tmp, jreltile)}
+                                }}
+                                {sum_scheme.final_operation(acc)}
                             }}
                             __syncthreads();
                           }}
+	
                           if (i < nx) {{
                             {red_formula.FinalizeOutput(acc, outi, i)} 
                           }}
-
                         }}
                     """
