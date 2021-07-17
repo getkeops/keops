@@ -48,4 +48,3 @@ class Cpu_link_compile(link_compile):
         # retreive some parameters that will be saved into info_file.
         self.tagI = self.red_formula.tagI
         self.dim = self.red_formula.dim
-        self.dimy = self.varloader.dimy

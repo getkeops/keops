@@ -18,7 +18,7 @@ jit_binary = get_jit_binary(gpu_props_compile_flags) if use_cuda else None
 debug_ops = False
 
 
-
+cuda_block_size = 192
 
 # special computation scheme for dim>100
 enable_chunk = True

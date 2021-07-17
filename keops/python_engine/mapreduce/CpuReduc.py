@@ -14,6 +14,7 @@ class CpuReduc(MapReduce, Cpu_link_compile):
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
         Cpu_link_compile.__init__(self)
+        self.dimy = self.varloader.dimy
 
     def get_code(self):
 
@@ -63,7 +64,8 @@ class CpuReduc(MapReduce, Cpu_link_compile):
                     #include "stdarg.h"
                                                                         
                     extern "C" int launch_keops_{dtype}(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
+                                                        int device_id, int tagI, int tagZero, int use_half, 
+                                                        int cuda_block_size, int use_chunk_mode,
                                                         int *indsi, int *indsj, int *indsp, 
                                                         int dimout, 
                                                         int *dimsx, int *dimsy, int *dimsp, 

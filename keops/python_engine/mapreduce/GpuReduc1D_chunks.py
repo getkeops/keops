@@ -6,10 +6,11 @@ from keops.python_engine.utils.code_gen_utils import (
     c_include,
     signature_list,
     call_list,
-    load_vars
+    load_vars,
+    sizeof
 )
 from keops.python_engine.compilation import Gpu_link_compile
-from keops.python_engine import blocksize_chunks
+from keops.python_engine import cuda_block_size
 from .Chunk_Mode_Constants import Chunk_Mode_Constants
 
 
@@ -53,6 +54,9 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
+        self.chk = Chunk_Mode_Constants(self.red_formula)
+        self.dimy = chk.dimy
+        self.blocksize_chunks = min(cuda_block_size, 1024, 49152 / max(1, self.dimy*sizeof(dtype)))
         
         
 
@@ -83,7 +87,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         
         
         
-        chk = Chunk_Mode_Constants(red_formula)
+        chk = self.chk
         param_loc = c_array(dtype, chk.dimp, "param_loc")
         acc = c_array(dtypeacc, chk.dimred, "acc")
         sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype, dimred=chk.dimred)
@@ -116,7 +120,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                           
                         {self.headers}
                         
-                        extern "C" __global__ void GpuConv1DOnDevice_Chunks(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
+                        extern "C" __global__ void GpuConv1DOnDevice(int nx, int ny, {dtype} *out, {dtype} **{arg.id}) {{
     
                           // get the index of the current thread
                           int i = blockIdx.x * blockDim.x + threadIdx.x;

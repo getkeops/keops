@@ -44,7 +44,18 @@ class VectorizedScalarOp(Operation):
         return type(self)(*((child if child.dim==1 else child.chunked_version(dimchk)) for child in self.children), *self.params)
 
     def chunked_vars(cat):
-        return set.union(*((set() if child.dim==1 else child.chunked_vars(cat)) for child in self.children))
+        res = set()
+        for child in self.children:
+            if child.dim!=1:
+                res = set.union(res, set(child.chunked_vars(cat)))
+        return list(res)
 
     def notchunked_vars(cat):
-        return set.union(*((child.Vars(cat) if child.dim==1 else child.notchunked_vars(cat)) for child in self.children))
+        res = set()
+        for child in self.children:
+            if child.dim==1:
+                res = set.union(res, set(child.Vars(cat)))
+            else:
+                res = set.union(res, set(child.notchunked_vars(cat)))
+        return list(res)
+
