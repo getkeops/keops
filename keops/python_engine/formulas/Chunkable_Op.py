@@ -9,10 +9,13 @@ class Chunkable_Op(Operation):
         return type(self)(*chunked_args, params=self.params)
     
     def chunked_vars(self, cat):
-        return set.union(*(child.chunked_vars(cat) for child in self.children)) if len(self.children) > 0 else set()
+        res = set()
+        for child in self.children:
+            res = set.union(res, set(child.chunked_vars(cat)))
+        return list(res)
 
     def not_chunked_vars(self, cat):
-        return set()
+        return []
 
     @property
     def use_chunk(self):
@@ -26,12 +29,13 @@ class Chunkable_Op(Operation):
     
     def chunked_formula(self, dimchk):
         if self.use_chunk:
-            return [[self.chunked_version(dimchk), [self.children[0].dim]]]
+            return dict(formula=self.chunked_version(dimchk), org_dim=self.children[0].dim)
         else:
-            return []
+            return None
 
     def chunked_formulas(self, dimchk):
-        res = self.chunked_formula(dimchk)
+        chk_f = self.chunked_formula(dimchk)
+        res = [chk_f] if chk_f is not None else []
         for child in self.children:
             res += child.chunked_formulas(dimchk)
         return res

@@ -12,12 +12,12 @@ class Chunk_Mode_Constants:
         self.dimout = red_formula.dim           # dimension of output variable of reduction operation
         formula = red_formula.formula
         self.dimfout = formula.dim  # dimension of output variable of inner function
-        chunked_formulas = formula.chunked_formulas(dimchunk)
-        self.dim_org = chunked_formulas[0][1][0]
+        chunked_formula = formula.chunked_formulas(dimchunk)[0]
+        self.dim_org = chunked_formulas["dim_org"]
         self.nchunks = 1 + (self.dim_org-1) / dimchunk
         self.dimlastchunk = self.dim_org - (self.nchunks-1)*dimchunk
         self.nminargs = formula.nminargs
-        self.fun_chunked = formula.chunked_formulas(dimchunk)[0][0]
+        self.fun_chunked = chunked_formula["formula"]
         self.dimout_chunk = self.fun_chunked.dim
         
         self.varsi_chunked = self.fun_chunked.chunked_vars(red_formula.tagI)
@@ -46,7 +46,7 @@ class Chunk_Mode_Constants:
         self.dimsy_notchunked = GetDims(self.varsj_notchunked)
         self.dimy_notchunked = sum(self.dimsy_notchunked)
 
-        self.fun_lastchunked = formula.chunked_formulas(self.dimalastchunk)[0][0]
+        self.fun_lastchunked = formula.chunked_formulas(self.dimalastchunk)[0]["formula"]
         
         self.varsi_lastchunked = self.fun_lastchunked.chunked_vars(red_formula.tagI)
         self.dimsx_lastchunked = GetDims(self.varsi_lastchunked)

@@ -18,6 +18,7 @@ class GpuReduc1D_ranges(MapReduce, Gpu_link_compile):
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
+        self.dimy = self.varloader.dimy
 
     def get_code(self):
 

@@ -12,7 +12,6 @@
 
 #define C_CONTIGUOUS 1
 #define USE_HALF 0
-#define CUDA_BLOCK_SIZE 192
 
 #include "Sizes.h"
 #include "Ranges.h"
@@ -102,7 +101,8 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code, 
 
 template < typename TYPE >
 __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
+                                        int device_id, int tagI, int tagZero, int use_half, 
+										int cuda_block_size, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp,
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -147,11 +147,21 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     
     
     dim3 blockSize;
-    blockSize.x = ::std::min(CUDA_BLOCK_SIZE,
+	
+	if (use_chunk_mode==0) {
+		blockSize.x = ::std::min(cuda_block_size,
                              ::std::min(maxThreadsPerBlock,
                                         (int) (sharedMemPerBlock / ::std::max(1,
                                                     (int) (  dimY * sizeof(TYPE))))));
-                                                    
+	}			
+	else if (use_chunk_mode==1) {
+		// warning : the value here must match the one which is set in file GpuReduc1D_chunks.py, line 59
+		blockSize.x = ::std::min(cuda_block_size,
+		                             ::std::min(1024,
+		                                        (int) (49152 / ::std::max(1,
+		                                                    (int) (  dimY * sizeof(TYPE))))));
+	}
+		
     dim3 gridSize;
     
     int nblocks;
@@ -269,7 +279,8 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 
 
 extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
+                                        int device_id, int tagI, int tagZero, int use_half, 
+										int cuda_block_size, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -285,7 +296,8 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, use_chunk_mode
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
+										cuda_block_size, use_chunk_mode
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
@@ -298,7 +310,8 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
 
 
 extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
+                                        int device_id, int tagI, int tagZero, int use_half, 
+										int cuda_block_size, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -314,7 +327,8 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, use_chunk_mode
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
+										cuda_block_size, use_chunk_mode
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
@@ -326,7 +340,8 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
 
 
 extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
-                                        int device_id, int tagI, int tagZero, int use_half, int use_chunk_mode,
+                                        int device_id, int tagI, int tagZero, int use_half, 
+										int cuda_block_size, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
                                         int *dimsx, int *dimsy, int *dimsp,
@@ -342,7 +357,8 @@ extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHost
         argshape[i] = va_arg(ap, int*);
     va_end(ap);
     
-    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, use_chunk_mode
+    return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
+										cuda_block_size, use_chunk_mode
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,

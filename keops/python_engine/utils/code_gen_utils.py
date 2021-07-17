@@ -11,7 +11,16 @@ def get_hash_name(*args):
 # .  Python to C++ meta programming toolbox
 #######################################################################
 
-
+def sizeof(dtype):
+    if dtype=="float":
+        return 32
+    elif dtype=="double":
+        return 64
+    elif dtype=="half":
+        return 16
+    else:
+        raise ValueError("not implemented")
+    
 class new_c_varname:
     # class to generate unique names for variables in C++ code, to avoid conflicts
     dict_instances = {}
