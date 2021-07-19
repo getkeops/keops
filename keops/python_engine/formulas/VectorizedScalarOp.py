@@ -43,7 +43,7 @@ class VectorizedScalarOp(Operation):
     def chunked_version(self, dimchk):
         return type(self)(*((child if child.dim==1 else child.chunked_version(dimchk)) for child in self.children), *self.params)
 
-    def chunked_vars(cat):
+    def chunked_vars(self, cat):
         res = set()
         for child in self.children:
             if child.dim!=1:

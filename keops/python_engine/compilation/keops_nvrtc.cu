@@ -297,7 +297,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
-										cuda_block_size, use_chunk_mode
+										cuda_block_size, use_chunk_mode,
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
@@ -328,7 +328,7 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
-										cuda_block_size, use_chunk_mode
+										cuda_block_size, use_chunk_mode,
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,
@@ -358,7 +358,7 @@ extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHost
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
-										cuda_block_size, use_chunk_mode
+										cuda_block_size, use_chunk_mode,
                                         indsi, indsj, indsp,
                                         dimout,
                                         dimsx, dimsy, dimsp,

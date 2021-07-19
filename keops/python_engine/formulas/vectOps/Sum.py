@@ -27,6 +27,14 @@ class Sum_Impl(Chunkable_Op):
         f = self.children[0]
         return f.DiffT(v, SumT(gradin, f.dim))
 
+    
+    def initacc_chunk(self, acc):
+        return f"*{acc.id} = 0.0f;\n"
+
+    def acc_chunk(self, acc, out):
+        return f"*{acc.id} += *{out.id};\n"
+
+
 
 # N.B. The following separate function should theoretically be implemented
 # as a __new__ method of the previous class, but this can generate infinite recursion problems

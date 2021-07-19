@@ -5,7 +5,7 @@ from keops.python_engine import enable_chunk, dim_treshold_chunk, specdim_use_ch
 class Chunkable_Op(Operation):
     
     def chunked_version(self, dimchk):
-        chunked_args = [arg.chunked_version(dimchk) for arg in args]
+        chunked_args = [child.chunked_version(dimchk) for child in self.children]
         return type(self)(*chunked_args, params=self.params)
     
     def chunked_vars(self, cat):
@@ -14,7 +14,7 @@ class Chunkable_Op(Operation):
             res = set.union(res, set(child.chunked_vars(cat)))
         return list(res)
 
-    def not_chunked_vars(self, cat):
+    def notchunked_vars(self, cat):
         return []
 
     @property
@@ -29,7 +29,7 @@ class Chunkable_Op(Operation):
     
     def chunked_formula(self, dimchk):
         if self.use_chunk:
-            return dict(formula=self.chunked_version(dimchk), org_dim=self.children[0].dim)
+            return dict(formula=self.chunked_version(dimchk), dim_org=self.children[0].dim)
         else:
             return None
 

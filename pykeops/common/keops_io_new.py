@@ -102,13 +102,14 @@ class LoadKeOps_new:
         else:
             sum_scheme = "block_sum"
 
+        enable_chunks = -1
         if "-DENABLECHUNK=1" in self.optional_flags:
-            if max(arg.shape[-1] for arg in args) > 100:
-                print(
-                    "[KeOps] warning : chunk mode is not yet implemented in new KeOps engine, option is deactivated."
-                )
+            enable_chunks = 1
             self.optional_flags.remove("-DENABLECHUNK=1")
-
+        elif "-DENABLECHUNK=0" in self.optional_flags:
+            enable_chunks = 0
+            self.optional_flags.remove("-DENABLECHUNK=0")
+        
         if self.optional_flags:
             print(
                 "[KeOps] warning : there are options not yet implemented in new KeOps engine, these options are deactivated."
@@ -159,6 +160,7 @@ class LoadKeOps_new:
         myfun = get_keops_routine(
             map_reduce_id,
             self.red_formula_string,
+            enable_chunks,
             self.aliases,
             nargs,
             c_dtype,
