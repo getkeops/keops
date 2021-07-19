@@ -280,7 +280,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
 #' bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)   # symbolic matrix
 #' }
 #' @export
-binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type = "sameor1") {
+binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type = "sameor1", res_type = "LazyTensor") {
     if(is.matrix(x))
         stop(paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
                    "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
@@ -320,7 +320,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
     
     res <- list(formula = formula, args = args, vars = vars)
     
-    class(res) <- class(x)
+    class(res) <- res_type
     
     return(res)
 }
@@ -379,6 +379,21 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 # Sum_Ajter <- sum(ALTj, index = 'j')
 # ==============================================
 
+
+# Preprocess ===================================================================
+
+
+is.LazyTensor <- function(x){
+    return(class(x)[1] == "LazyTensor")
+}
+
+
+is.ComplexLazyTensor <- function(x){
+    return(class(x)[1] == "ComplexLazyTensor")
+}
+
+
+
 #' Get inner dimension.
 #' @description
 #' Returns the inner dimension of a given `LazyTensor`.
@@ -406,12 +421,15 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 get_inner_dim <- function(x) {
     # Grab x inner dimension.
     # x must be a LazyTensor.
-    if(class(x)[1] != "LazyTensor"){
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         stop("`x` input argument should be a LazyTensor.")
-    }
+    
     end_x_inner_dim <- sub(".*\\(", "", x$args)
     x_inner_dim <- substr(end_x_inner_dim, 1, nchar(end_x_inner_dim) - 1)
     x_inner_dim <- as.integer(x_inner_dim)
+    
+    if(is.ComplexLazyTensor(x))
+        x_inner_dim <- x_inner_dim / 2
     return(x_inner_dim)
 }
 
@@ -428,7 +446,7 @@ get_inner_dim <- function(x) {
 #' @export
 check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
     # x and y must be LazyTensors.
-    if((class(x)[1] != "LazyTensor") || (class(y)[1] != "LazyTensor")) {
+    if((!is.LazyTensor(x) && !is.ComplexLazyTensor(x)) || (!is.LazyTensor(y) && !is.ComplexLazyTensor(y))) {
         stop("`x` and `y` input arguments should be of class LazyTensor.")
     }
     
@@ -500,7 +518,7 @@ check_index <- function(index){
 #' }
 #' @export
 "+" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         UseMethod("+", y)
     else
         UseMethod("+", x)
@@ -511,7 +529,18 @@ check_index <- function(index){
     #    stop(paste("Operation `+` expects inputs of the same dimension or dimension 1. Received ",
     #    get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
     #}
-    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
+    if(is.ComplexLazyTensor(y))
+        res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1", res_type = "ComplexLazyTensor")
+    else 
+        res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
+}
+
+"+.ComplexLazyTensor" <- function(x, y) {
+    #if (!check_inner_dim(x, y, check_type = "sameor1")) {
+    #    stop(paste("Operation `+` expects inputs of the same dimension or dimension 1. Received ",
+    #    get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
+    #}
+    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1", res_type = "ComplexLazyTensor")
 }
 
 
@@ -551,7 +580,7 @@ check_index <- function(index){
 #' }
 #' @export
 "-" <- function(x, y = NA) { 
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x))
         UseMethod("-", y)
     else
         UseMethod("-", x)
