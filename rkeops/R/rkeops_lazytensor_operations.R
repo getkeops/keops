@@ -101,7 +101,10 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     }
     
     # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-    var_name <- paste("A", address(x), index, sep = "") 
+    if(is.numeric(x) && (as.integer(x) - x) == 0)
+        var_name <- paste("IntCst(", as.character(x), ")", sep = "") 
+    else
+        var_name <- paste("A", address(x), index, sep = "") 
     formula <- var_name
     vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
     
@@ -1664,6 +1667,10 @@ Re <- function(z) {
     UseMethod("Re", z)
 }
 
+Re.LazyTensor <- function(z) {
+    stop("`Re` cannot be applied to a LazyTensor. See `?Re` for compatible types.")
+}
+
 Re.ComplexLazyTensor <- function(z) {
     res <- unaryop.LazyTensor(z, "ComplexReal")
 }
@@ -1693,6 +1700,10 @@ Im <- function(z) {
     UseMethod("Im", z)
 }
 
+Im.LazyTensor <- function(z) {
+    stop("`Im` cannot be applied to a LazyTensor. See `?Im` for compatible types.")
+}
+
 Im.ComplexLazyTensor <- function(z) {
     res <- unaryop.LazyTensor(z, "ComplexImag")
 }
@@ -1720,6 +1731,10 @@ Arg.default <- .Primitive("Arg")
 #' @export
 Arg <- function(z) {
     UseMethod("Arg", z)
+}
+
+Arg.LazyTensor <- function(z) {
+    stop("`Arg` cannot be applied to a LazyTensor. See `?Arg` for compatible types.")
 }
 
 Arg.ComplexLazyTensor <- function(z) {

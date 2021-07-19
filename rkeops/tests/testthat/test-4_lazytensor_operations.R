@@ -38,7 +38,7 @@ test_that("LazyTensor", {
   expect_equal(bool_grep_NA, 1)
   bool_grep_zi <- grep("A0x.*i", z_i$formula)
   expect_equal(bool_grep_zi, 1)
-  bool_grep_Pm <- grep("A0x.*NA=Pm\\(1\\)", out_D$args)
+  bool_grep_Pm <- grep("IntCst\\(3\\)=Pm\\(1\\)", out_D$args)
   expect_equal(bool_grep_Pm, 1)
   bool_grep_zi_args <- grep("A0x.*i=Vi\\(6\\)", z_i$args)
   expect_equal(bool_grep_zi_args, 1)
@@ -1456,6 +1456,149 @@ test_that("weightedsqnorm", {
 
 
 # TEST COMPLEX FUNCTIONS =======================================================
+
+
+test_that("Re", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(1i^ (-6:5), nrow = 4)
+  x_i <- LazyTensor(x, index = 'i')
+  z_i <- LazyTensor(y, index = 'i', is_complex = TRUE)
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  
+  # check formulas, args & classes
+  expect_true(Re(2) == 2)
+  expect_true(Re(2+1i) == 2)
+  
+  
+  obj <-  Re(z_i)
+  bool_grep_formula <- grep("ComplexReal\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  expect_error(Re(x_i), 
+               "`Re` cannot be applied to a LazyTensor. See `?Re` for compatible types.",
+               fixed = TRUE)
+  
+})
+
+
+test_that("Im", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(1i^ (-6:5), nrow = 4)
+  x_i <- LazyTensor(x, index = 'i')
+  z_i <- LazyTensor(y, index = 'i', is_complex = TRUE)
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  
+  # check formulas & classes
+  expect_true(Im(2) == 0)
+  expect_true(Im(2+1i) == 1)
+  
+  
+  obj <-  Im(z_i)
+  bool_grep_formula <- grep("ComplexImag\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  expect_error(Im(x_i), 
+               "`Im` cannot be applied to a LazyTensor. See `?Im` for compatible types.",
+               fixed = TRUE)
+  
+})
+
+test_that("Arg", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(1i^ (-6:5), nrow = 4)
+  x_i <- LazyTensor(x, index = 'i')
+  z_i <- LazyTensor(y, index = 'i', is_complex = TRUE)
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  
+  # check formulas & classes
+  expect_true(Arg(2) == 0)
+  expect_true(round(Arg(pi*1i),2) == 1.57)
+  
+  
+  obj <-  Arg(z_i)
+  bool_grep_formula <- grep("ComplexAngle\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  expect_error(Arg(x_i), 
+               "`Arg` cannot be applied to a LazyTensor. See `?Arg` for compatible types.",
+               fixed = TRUE)
+  
+})
+
+
+test_that("real2complex", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  
+  # check formulas & classes
+  obj <-  real2complex(x_i)
+  bool_grep_formula <- grep("Real2Complex\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "ComplexLazyTensor")
+  
+  expect_error(real2complex(xc_i), 
+               "`real2complex` cannot be applied to a complex LazyTensor.",
+               fixed = TRUE)
+  
+})
+
+
+test_that("imag2complex", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  
+  # check formulas & classes
+  obj <-  imag2complex(x_i)
+  bool_grep_formula <- grep("Imag2Complex\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "ComplexLazyTensor")
+  
+  expect_error(imag2complex(xc_i), 
+               "`imag2complex` cannot be applied to a complex LazyTensor.",
+               fixed = TRUE)
+  
+})
+
+
+test_that("exp1j", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  
+  # check formulas & classes
+  obj <-  exp1j(x_i)
+  bool_grep_formula <- grep("ComplexExp1j\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "ComplexLazyTensor")
+  
+  expect_error(exp1j(xc_i), 
+               "`exp1j` cannot be applied to a complex LazyTensor.",
+               fixed = TRUE)
+  
+})
 
 
 test_that("Conj", {
