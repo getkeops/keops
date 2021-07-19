@@ -37,6 +37,15 @@ class Scalprod_Impl(Chunkable_Op):
         fa, fb = self.children
         return gradin * (fa.DiffT(v, fb) + fb.DiffT(v, fa))
 
+
+    def initacc_chunk(self, acc):
+        return f"*{acc.id} = 0.0f;\n"
+
+    def acc_chunk(self, acc, out):
+        return f"*{acc.id} += *{out.id};\n"
+        
+        
+        
 def Scalprod(arg0, arg1):
     if arg0.dim == 1:
         return arg0 * Sum(arg1)

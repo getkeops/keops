@@ -578,7 +578,8 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None):
     #   xi[5] = arg8[5*3+1];
     #   xi[6] = arg8[5*3+2];
     #
-    # Example (with offsets): assuming i=c_variable("int", "5"), xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
+    # Example (with offsets): assuming i=c_variable("int", "5"), 
+    # xloc=c_variable("float", "xi"), px=c_variable("float**", "px"),
     # and offsets = c_array("int", 3, "offsets"), then
     # if dims = [2,2,3] and inds = [7,9,8], the call to
     #   load_vars (dims, inds, xi, [arg0, arg1,..., arg9], row_index=i, offsets=offsets)
@@ -604,6 +605,68 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None):
             string += f"{xloc.id}[{k}] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+{v}];\n"
             k += 1
     return string
+
+
+
+
+
+def load_vars_chunks(inds, dim_chunk, dim_chunk_load, dim_org, 
+                    xloc, args, k, row_index=c_zero_int):
+    #
+    # loads chunks of variables, unrolling dimensions and indices.
+    #
+    # Example:
+    #   load_chunks([7,9,8], 3, 2, 11, xi, px, k, row_index=i)
+    # with:
+    # xi = c_variable("float", "xi"),
+    # px = c_variable("float**", "px")
+    # i = c_variable("int","5"),
+    # k = c_variable("int","k")
+    # means : there are 3 chunks of vectors to load. They are located
+    # at positions 7, 9 and 8 in px. Now i=5 and dim_org=11, so we start
+    # to load vectors at positions px[7]+5*11, px[9]+5*11, px[8]+5*11.
+    # For each, we load the kth chunk, assuming vector is divided
+    # into chunks of size 3. And finally, we stop after loading 2 values.
+    # 
+    # So we will execute:
+    #   xi[0] = px[7][5*11+k*3];
+    #   xi[1] = px[7][5*11+k*3+1];
+    #   xi[2] = px[9][5*11+k*3];
+    #   xi[3] = px[9][5*11+k*3+1];
+    #   xi[4] = px[8][5*11+k*3];
+    #   xi[5] = px[8][5*11+k*3+1];
+    string = ""
+    a = 0
+    for u in range(len(inds)):
+        for v in range(dim_chunk_load):
+            string += f"{xloc.id}[{a}] = {args[inds[u]].id}[{row_index.id}*{dim_org}+{k.id}*{dim_chunk}+{v}];\n"
+            a += 1
+    return string
+    
+
+def load_vars_chunks_offsets(inds, indsref, dim_chunk, dim_chunk_load, dim_org, 
+                    xloc, args, k, offsets, row_index=c_zero_int):
+    # Version with variable-dependent offsets (used when broadcasting batch dimensions)
+    # indsref gives mapping for offsets indexing 
+    # Example:
+    #   load_vars_chunks_offsets([2,3,1], [8,9,7,3,1,2], 3, 2, 11, xi, px, k, offsets, row_index=i)
+    # Since 2,3,1 are at positions 5,3,4 respectively in the list [8,9,7,3,1,2],
+    # will output:
+    #   xi[0] = px[2][(5+offsets[5])*11+k*3];
+    #   xi[1] = px[2][(5+offsets[5])*11+k*3+1];
+    #   xi[2] = px[3][(5+offsets[3])*11+k*3];
+    #   xi[3] = px[3][(5+offsets[3])*11+k*3+1];
+    #   xi[4] = px[1][(5+offsets[4])*11+k*3];
+    #   xi[5] = px[1][(5+offsets[4])*11+k*3+1];
+    string = ""
+    a = 0
+    for u in range(len(inds)):
+        l = indsref.index(inds[u])
+        for v in range(dim_chunk_load):
+            string += f"{xloc.id}[{a}] = {args[inds[u]].id}[({row_index.id}+{offsets.id}[{l}])*{dim_org}+{k.id}*{dim_chunk}+{v}];\n"
+            a += 1
+    return string
+
 
 
 def varseq_to_array(vars, vars_ptr_name):

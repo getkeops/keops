@@ -21,7 +21,18 @@ debug_ops = False
 cuda_block_size = 192
 
 # special computation scheme for dim>100
+
 enable_chunk = True
+def get_enable_chunk():
+    global enable_chunk
+    return enable_chunk
+def set_enable_chunk(val):
+    global enable_chunk
+    if val==1:
+        enable_chunk = True
+    elif val==0:
+        enable_chunk = False
+
 dimchunk = 64
 dim_treshold_chunk = 143
 specdim_use_chunk1 = -1 # originally 80 but deactivated for release 1.4.2

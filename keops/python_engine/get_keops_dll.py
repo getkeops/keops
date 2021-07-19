@@ -1,6 +1,7 @@
 # This is the main entry point for all binders. It takes as inputs :
 #   - map_reduce_id : string naming the type of map-reduce scheme to be used : either "CpuReduc", "GpuReduc1D_FromDevice", ...
 #   - red_formula_string : string expressing the formula, such as "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)",
+#   - enable_chunks : -1, 0 or 1, for Gpu mode only, enable special routines for high dimensions (-1 means automatic setting)
 #   - aliases : list of strings expressing the aliases list, which may be empty,
 #   - nargs : integer specifying the number of arguments for the call to the routine,
 #   - dtype : string specifying the float type of the arguments  "float", "double" or "half")
@@ -40,13 +41,14 @@ from keops.python_engine.formulas import *
 from keops.python_engine.formulas.variables.Zero import Zero
 from keops.python_engine.formulas.reductions import *
 from keops.python_engine.mapreduce import *
-from keops.python_engine import enable_chunk, dimchunk, cuda_block_size
+from keops.python_engine import get_enable_chunk, set_enable_chunk, dimchunk, cuda_block_size
 
-def get_keops_dll(map_reduce_id, red_formula_string, *args):
+def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, *args):
     
     # detecting the need for special chunked computation modes :
+    set_enable_chunk(enable_chunks)
     use_chunk_mode = 0
-    if "Gpu" in map_reduce_id and enable_chunk:
+    if "Gpu" in map_reduce_id and get_enable_chunk():
         red_formula = eval(red_formula_string)
         if len(red_formula.formula.chunked_formulas(dimchunk))==1:
             use_chunk_mode = 1

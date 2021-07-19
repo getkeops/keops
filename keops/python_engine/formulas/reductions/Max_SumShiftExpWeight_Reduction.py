@@ -17,7 +17,7 @@ from keops.python_engine.utils.math_functions import keops_exp
 class Max_SumShiftExpWeight_Reduction(Reduction):
     """Implements the coupled reduction operation m_i=max_j f_ij, s_i=sum_j exp(f_ij-m_i) g_ij
     where f and g are two formulas. f must be scalar-valued.
-    This reduciton is the base for numerically stable computation of log-sum-exp and softmax type reductions."""
+    This reduction is the base for numerically stable computation of log-sum-exp and softmax type reductions."""
 
     string_id = "Max_SumShiftExpWeight_Reduction"
 

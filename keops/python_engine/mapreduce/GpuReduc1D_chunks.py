@@ -7,24 +7,33 @@ from keops.python_engine.utils.code_gen_utils import (
     signature_list,
     call_list,
     load_vars,
-    sizeof
+    load_vars_chunks,
+    sizeof,
+    pointer,
+    table,
+    table4
 )
+from keops.python_engine.formulas.reductions.sum_schemes import *
 from keops.python_engine.compilation import Gpu_link_compile
-from keops.python_engine import cuda_block_size
+from keops.python_engine import cuda_block_size, dimchunk
 from .Chunk_Mode_Constants import Chunk_Mode_Constants
 
 
 def do_chunk_sub(dtype, red_formula, fun_chunked_curr, dimchunk_curr,
+                                dimsx, dimsy, indsi, indsj, indsi_chunked, indsj_chunked,
                                 acc, tile, i, j, jstart, chunk, nx, ny, arg, fout, xi, yj, param_loc):
     chk = Chunk_Mode_Constants(red_formula)
     fout_tmp_chunk = c_array(dtype, chk.fun_chunked.dim)
-    xiloc = c_variable(pointer(dtype), f"({xi.id} + chk.dimx_notchunked)")
+    xiloc = c_variable(pointer(dtype), f"({xi.id} + {chk.dimx_notchunked})")
     yjloc = c_variable(pointer(dtype), f"({yj.id} + threadIdx.x * {chk.dimy} + {chk.dimy_notchunked})")
-    load_chunks_routine_i = load_chunks(chk.indsi_chunked, dimchunk, dimchunk_curr, chk.dim_org, i, chunk, xiloc, arg)
-    load_chunks_routine_j = load_chunks(chk.indsj_chunked, dimchunk, dimchunk_curr, chk.dim_org, j, chunk, yjloc, arg)
+    load_chunks_routine_i = load_vars_chunks(indsi_chunked, dimchunk, dimchunk_curr, chk.dim_org, 
+                                                xiloc, arg, chunk, row_index=i)
+    load_chunks_routine_j = load_vars_chunks(indsj_chunked, dimchunk, dimchunk_curr, chk.dim_org, 
+                                                yjloc, arg, chunk, row_index=j)
     yjrel = c_variable(pointer(dtype), "yjrel")
-    chktable = table(chk.nminargs, chk.dimsx, chk.dimsy, chk.dimsp, chk.indsi, chk.indsj, chk.indsp, xi, yjrel, param_loc)
+    chktable = table(chk.nminargs, dimsx, dimsy, chk.dimsp, indsi, indsj, chk.indsp, xi, yjrel, param_loc)
     foutj = c_variable(pointer(dtype), "foutj")
+    
     return f"""
                 {fout_tmp_chunk.declare()}
                 if ({i.id} < {nx.id}) {{
@@ -55,8 +64,8 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
         self.chk = Chunk_Mode_Constants(self.red_formula)
-        self.dimy = chk.dimy
-        self.blocksize_chunks = min(cuda_block_size, 1024, 49152 / max(1, self.dimy*sizeof(dtype)))
+        self.dimy = self.chk.dimy
+        self.blocksize_chunks = min(cuda_block_size, 1024, 49152 // max(1, self.dimy*sizeof(self.dtype)))
         
         
 
@@ -66,6 +75,7 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
 
         red_formula = self.red_formula
         dtype = self.dtype
+        dtypeacc = self.dtypeacc
         varloader = self.varloader
 
         i = self.i
@@ -92,26 +102,35 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
         acc = c_array(dtypeacc, chk.dimred, "acc")
         sum_scheme = eval(self.sum_scheme_string)(red_formula, dtype, dimred=chk.dimred)
         xi = c_array(dtype, chk.dimx, "xi")
-        fout_chunk = c_array(dtype, blocksize_chunks*chk.dimout_chunk, "fout_chunk")
+        fout_chunk = c_array(dtype, self.blocksize_chunks*chk.dimout_chunk, "fout_chunk")
         yj = c_variable(pointer(dtype), "yj")
         yjloc = c_array(dtype, chk.dimy, f"(yj + threadIdx.x * {chk.dimy})")
         
-        fout_chunk_loc = c_variable(pointer(dtype), f"{fout_chunk.id}+jrel*{chk.dimout}")
+        fout_chunk_loc = c_variable(pointer(dtype), f"({fout_chunk.id}+jrel*{chk.dimout})")
         
         tile = c_variable("int", "tile")
         nx = c_variable("int", "nx")
         ny = c_variable("int", "ny")
         
+        jstart = c_variable("int", "jstart")
+        chunk = c_variable("int", "chunk")
+        
         chunk_sub_routine = do_chunk_sub( dtype, red_formula, chk.fun_chunked, dimchunk,
+                                chk.dimsx, chk.dimsy,
+                                chk.indsi, chk.indsj,
+                                chk.indsi_chunked, chk.indsj_chunked,
                                 acc, tile, i, j, jstart, chunk, nx, ny, arg, fout_chunk, xi, yj, param_loc)
         
         last_chunk = c_variable("int", f"{chk.nchunks-1}")
-        chunk_sub_routine_last = do_chunk_sub( dtype, red_formula, chk.fun_chunked, dimchunk,
+        chunk_sub_routine_last = do_chunk_sub( dtype, red_formula, chk.fun_lastchunked, chk.dimlastchunk,
+                                chk.dimsx_last, chk.dimsy_last,
+                                chk.indsi, chk.indsj,
+                                chk.indsi_lastchunked, chk.indsj_lastchunked,
                                 acc, tile, i, j, jstart, last_chunk, nx, ny, arg, fout_chunk, xi, yj, param_loc)
         
         foutj = c_variable(pointer(dtype), "foutj")
-        chktable_out = table4(chk.nminargs, chk.dimsx, chk.dimsy, chk.dimsp, [chk.dimout_chunk], 
-                                chk.indsi, chk.indsj, chk.indsp, [self.varloader.nminargs], 
+        chktable_out = table4(chk.nminargs+1, chk.dimsx, chk.dimsy, chk.dimsp, [chk.dimout_chunk], 
+                                chk.indsi, chk.indsj, chk.indsp, [chk.nminargs], 
                                 xi, yjrel, param_loc, foutj)
         fout_tmp = c_array(dtype, chk.dimfout, "fout_tmp")
         outi = c_array(dtype, chk.dimout, f"(out + i * {chk.dimout})")
@@ -177,7 +196,6 @@ class GpuReduc1D_chunks(MapReduce, Gpu_link_compile):
                             if (i < nx) {{
                                 {dtype} * yjrel = yj; // Loop on the columns of the current block.
                                 for (int jrel = 0; (jrel < blockDim.x) && (jrel < ny - jstart); jrel++, yjrel += {chk.dimy}) {{
-                                    {"int ind = jrel + tile * blockDim.x;" if not isinstance(sum_scheme, kahan_scheme) else ""}
                                     {dtype} *foutj = fout_chunk + jrel*{chk.dimout_chunk};
                                     {fout_tmp.declare()}
                                     {chk.fun_postchunk(fout_tmp, chktable_out)}
