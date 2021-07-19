@@ -1,5 +1,5 @@
 from keops.python_engine.utils.code_gen_utils import c_zero_float, VectApply
-from keops.python_engine.formulas.Operation import Operation
+from keops.python_engine.formulas.Chunkable_Op import Chunkable_Op
 from keops.python_engine.formulas.variables.Zero import Zero
 
 ##########################
@@ -7,7 +7,7 @@ from keops.python_engine.formulas.variables.Zero import Zero
 ##########################
 
 
-class Sum_Impl(Operation):
+class Sum_Impl(Chunkable_Op):
 
     # the summation operation
 
@@ -26,6 +26,14 @@ class Sum_Impl(Operation):
 
         f = self.children[0]
         return f.DiffT(v, SumT(gradin, f.dim))
+
+    
+    def initacc_chunk(self, acc):
+        return f"*{acc.id} = 0.0f;\n"
+
+    def acc_chunk(self, acc, out):
+        return f"*{acc.id} += *{out.id};\n"
+
 
 
 # N.B. The following separate function should theoretically be implemented

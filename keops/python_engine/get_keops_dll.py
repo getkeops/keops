@@ -1,10 +1,11 @@
 # This is the main entry point for all binders. It takes as inputs :
 #   - map_reduce_id : string naming the type of map-reduce scheme to be used : either "CpuReduc", "GpuReduc1D_FromDevice", ...
 #   - red_formula_string : string expressing the formula, such as "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)",
+#   - enable_chunks : -1, 0 or 1, for Gpu mode only, enable special routines for high dimensions (-1 means automatic setting)
 #   - aliases : list of strings expressing the aliases list, which may be empty,
 #   - nargs : integer specifying the number of arguments for the call to the routine,
-#   - dtype : string specifying the float type of the arguments (currently "float" or "double")
-#   - dtypeacc : string specifying the float type of the accumulator of the reduction (currently "float" or "double")
+#   - dtype : string specifying the float type of the arguments  "float", "double" or "half")
+#   - dtypeacc : string specifying the float type of the accumulator of the reduction ("float", "double" or "half")
 #   - sum_scheme_string : string specifying the type of accumulation for summation reductions : either "direct_sum", "block_sum" or "kahan_scheme".
 #   - tagHostDevice : 0 or 1, for Gpu mode only, use Host (0) or Device (1) routines
 #   - tagCPUGPU : 0 or 1, use Cpu (0) or Gpu (1) mode
@@ -18,6 +19,8 @@
 #       - tagI : integer, 0 or 1, specifying if reduction must be performed over i or j indices,
 #       - tagZero : integer, 0 or 1, specifying if reduction just consists in filling output with zeros,
 #       - use_half : 0 or 1, enable special routines for half-precision data type,
+#       - cuda_block_size : integer, prefered block size for Gpu kernel
+#       - use_chunk_mode : 0, 1 or 2, if 1 or 2, enables special routines for high dimensions,
 #       - dim : integer, dimension of the output tensor.
 #       - dimy : integer, total dimension of the j indexed variables.
 #       - indsi : list of integers, indices of i indexed variables.
@@ -34,21 +37,32 @@
 #       python get_keops_dll.py CpuReduc "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)" "[]" 3 float float block_sum
 
 import sys
+from keops.python_engine.formulas import *
 from keops.python_engine.formulas.variables.Zero import Zero
 from keops.python_engine.formulas.reductions import *
 from keops.python_engine.mapreduce import *
+from keops.python_engine import get_enable_chunk, set_enable_chunk, dimchunk, cuda_block_size
 
-
-def get_keops_dll(map_reduce_id, *args):
+def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, *args):
+    
+    # detecting the need for special chunked computation modes :
+    set_enable_chunk(enable_chunks)
+    use_chunk_mode = 0
+    if "Gpu" in map_reduce_id and get_enable_chunk():
+        red_formula = eval(red_formula_string)
+        if len(red_formula.formula.chunked_formulas(dimchunk))==1:
+            use_chunk_mode = 1
+            map_reduce_id += '_chunks'
+    
     map_reduce_class = eval(map_reduce_id)
-    map_reduce_obj = map_reduce_class(*args)
+    map_reduce_obj = map_reduce_class(red_formula_string, *args)
 
     # detecting the case of formula being equal to zero, to bypass reduction.
     rf = map_reduce_obj.red_formula
     if isinstance(rf, Zero_Reduction) or (
         isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)
     ):
-        map_reduce_obj = map_reduce_class.AssignZero(*args)
+        map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, *args)
         tagZero = 1
     else:
         tagZero = 0
@@ -61,6 +75,8 @@ def get_keops_dll(map_reduce_id, *args):
         res["tagI"],
         tagZero,
         res["use_half"],
+        cuda_block_size,
+        use_chunk_mode,
         res["dim"],
         res["dimy"],
         res["indsi"],

@@ -150,6 +150,32 @@ class Operation(Tree):
 
     def Op(self, out, table, param):
         pass
+        
+        
+    def chunked_version(self, dimchk):
+        return None
+    
+    @property
+    def is_chunkable(self):
+        return False
+
+    def chunked_formulas(self, dimchk):
+        res = []
+        for child in self.children:
+            res += child.chunked_formulas(dimchk)
+        return res
+    
+    @property
+    def num_chunked_formulas(self):
+        return sum([child.num_chunked_formulas for child in self.children])
+
+    def post_chunk_formula(self, ind):
+        args = []
+        for child in self.children:
+            args.append(child.post_chunk_formula(ind))
+            ind += child.num_chunked_formulas
+        return type(self)(*args, *self.params)
+
 
 
 def int2Op(x):
