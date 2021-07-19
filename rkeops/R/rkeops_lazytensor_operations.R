@@ -99,7 +99,7 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
         d <- length(x)
         cat <- "Pm"
     }
-
+    
     # Now we define "formula", a string specifying the variable for KeOps C++ codes.
     var_name <- paste("A", address(x), index, sep = "") 
     formula <- var_name
@@ -138,7 +138,7 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
 #' }
 #' @export
 Vi <- function(x, is_complex = FALSE){
-    if(class(x)[1] != "matrix")
+    if(!is.matrix(x))
         stop("`x` must be a matrix.")
     
     res <- LazyTensor(x, index = "i", is_complex = is_complex)
@@ -162,7 +162,7 @@ Vi <- function(x, is_complex = FALSE){
 #' }
 #' @export
 Vj <- function(x, is_complex = FALSE){
-    if(class(x)[1] != "matrix")
+    if(!is.matrix(x))
         stop("`x` must be a matrix.")
     
     res <- LazyTensor(x, index = "j", is_complex = is_complex)
@@ -186,8 +186,14 @@ Vj <- function(x, is_complex = FALSE){
 #' }
 #' @export
 Pm <- function(x, is_complex = FALSE){
-    if(!is.numeric(x) || class(x)[1] == "matrix")
+    if(class(x)[1] == "LazyTensor") {
+        stop("`x` input is already a LazyTensor.")
+    }
+    
+    if((is.character(x) || is.matrix(x))) {
+        # Should not be a character string, neither a matrix, nor a complex matrix.
         stop("`x` input must be a scalar or a vector.")
+    }
     
     res <- LazyTensor(x, is_complex = is_complex)
     return(res)
@@ -195,7 +201,7 @@ Pm <- function(x, is_complex = FALSE){
 
 
 # unary ------------------------------------------------------------------------
-# TODO add @param opt_arg & opt_arg2
+
 #' Build a unary operation
 #' @description
 #' Symbolically applies **opstr** operation to **x**.
@@ -232,7 +238,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
         formula <- paste(opstr, "(", x$formula, ",", opt_arg, ")", sep = "")
     else 
         formula <- paste(opstr, "(", x$formula, ")", sep = "")
-
+    
     res <- list(formula = formula, args = x$args, vars = x$vars)
     
     # result type
@@ -417,30 +423,30 @@ get_inner_dim <- function(x) {
 #' @param y A `LazyTensor`.
 #' @return A boolean TRUE or FALSE.
 #' @export
-#check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
-#    # x and y must be LazyTensors.
-#    if((class(x)[1] != "LazyTensor") || (class(y)[1] != "LazyTensor")) {
-#        stop("`x` and `y` input arguments should be of class LazyTensor.")
-#    }
-#    
-#    x_inner_dim <- get_inner_dim(x)
-#    y_inner_dim <- get_inner_dim(y)
-#    
-#    if(is.na(z)) {
-#        # Check whether if x and y inner dimensions are the same or if at least one of these equals 1.
-#        if(check_type == "sameor1") {
-#            res <- ((x_inner_dim == y_inner_dim) || ((x_inner_dim == 1) || (y_inner_dim == 1)))
-#        }
-#        if(check_type == "same") {
-#            res <- ((x_inner_dim == y_inner_dim))
-#        }
-#    }
-#    else {
-#        
-#    }
-#    
-#    return(res)
-#}
+check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
+    # x and y must be LazyTensors.
+    if((class(x)[1] != "LazyTensor") || (class(y)[1] != "LazyTensor")) {
+        stop("`x` and `y` input arguments should be of class LazyTensor.")
+    }
+    
+    x_inner_dim <- get_inner_dim(x)
+    y_inner_dim <- get_inner_dim(y)
+    
+    if(is.na(z)) {
+        # Check whether if x and y inner dimensions are the same or if at least one of these equals 1.
+        if(check_type == "sameor1") {
+            res <- ((x_inner_dim == y_inner_dim) || ((x_inner_dim == 1) || (y_inner_dim == 1)))
+        }
+        if(check_type == "same") {
+            res <- ((x_inner_dim == y_inner_dim))
+        }
+    }
+    else {
+        
+    }
+    
+    return(res)
+}
 
 #' Check index.
 #' @description
@@ -1837,6 +1843,10 @@ Conj <- function(z) {
     UseMethod("Conj", z)
 }
 
+Conj.LazyTensor <- function(z) {
+    stop("`Conj` cannot be applied to a LazyTensor. See `?Conj` for compatible types.")
+}
+
 Conj.ComplexLazyTensor <- function(z) {
     res <- unaryop.LazyTensor(z, "Conj", res_type = "ComplexLazyTensor")
 }
@@ -1866,7 +1876,7 @@ Mod <- function(z) {
 }
 
 Mod.ComplexLazyTensor <- function(z) {
-    res <- unaryop.LazyTensor(z, "ComplexAbs", res_complex = FALSE)
+    res <- unaryop.LazyTensor(z, "ComplexAbs")
 }
 
 
@@ -1888,8 +1898,8 @@ Mod.ComplexLazyTensor <- function(z) {
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param opstr A `string` formula (like "Sum" or "Max").
-#' @param  index A `character` that should be either **i** or **j** to specify whether if 
-#' the reduction is indexed by **i** (rows), by **j** (columns).
+#' @param index A `character` that should be either **i** or **j** to specify whether if 
+#' the reduction is indexed by **i** (rows), or **j** (columns).
 #' @return
 #' @examples
 #' \dontrun{
@@ -1941,8 +1951,8 @@ sum.default <- .Primitive("sum")
 #' other specific arguments (see R default `sum()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
-#' @param @param index A `character` corresponding to the reduction dimension that should 
-#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), by **j** (columns).
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
 #' @return 
 #' @examples
@@ -2014,6 +2024,9 @@ min.default <- .Primitive("min")
 #' other specific arguments (see R default `min()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), or **j** (columns).
+#' It can be NA (default) when no reduction is desired.
 #' @return TODO otherwise, depending on the input class
 #' (see R default `min()` function).
 #' @examples
@@ -2022,7 +2035,7 @@ min.default <- .Primitive("min")
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
 #' 
 #' min_xi <- min(x_i, "i")  # min reduction indexed by "i"
-#' min_x <- min(x_i)       # symbolic matrix
+#' min_x <- min(x_i)        # symbolic matrix
 #' }
 #' @export
 min <- function(x, ...) {
@@ -2084,7 +2097,7 @@ min_reduction <- function(x, index) {
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
-#' by **j** (columns).
+#' or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
 #' @return 
 #' @examples
@@ -2116,7 +2129,7 @@ argmin <- function(x, index = NA) {
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
-#' by **j** (columns).
+#' or **j** (columns).
 #' @return 
 #' @examples
 #' \dontrun{
@@ -2149,8 +2162,7 @@ argmin_reduction <- function(x, index) {
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows),
-#' by **j** (columns).
-#' It can be NA (default) when no reduction is desired.
+#' or **j** (columns).
 #' @return 
 #' @examples
 #' \dontrun{
@@ -2179,7 +2191,7 @@ min_argmin <- function(x, index) {
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
-#' by **j** (columns).
+#' or **j** (columns).
 #' @return 
 #' @examples
 #' \dontrun{
@@ -2219,6 +2231,9 @@ max.default <- .Primitive("max")
 #' other specific arguments (see R default `max()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), or **j** (columns).
+#' It can be NA (default) when no reduction is desired.
 #' @return
 #' @examples
 #' \dontrun{
@@ -2251,6 +2266,9 @@ max.LazyTensor <- function(x, index = NA) {
 #' @details `max_reduction(x, index)` will return the max reduction of **x** indexed by **index**.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param index A `character` corresponding to the reduction dimension that should 
+#' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
+#' or **j** (columns).
 #' @return 
 #' @examples
 #' \dontrun{
@@ -2279,7 +2297,7 @@ max_reduction <- function(x, index) {
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
-#'by **j** (columns).
+#' or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
 #' @return 
 #' @examples
@@ -2311,7 +2329,7 @@ argmax <- function(x, index = NA) {
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
-#' by **j** (columns).
+#' or **j** (columns).
 #' @return 
 #' @examples
 #' \dontrun{
@@ -2344,8 +2362,7 @@ argmax_reduction <- function(x, index) {
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows),
-#' by **j** (columns).
-#' It can be NA (default) when no reduction is desired.
+#' or **j** (columns).
 #' @return 
 #' @examples
 #' \dontrun{
@@ -2374,7 +2391,7 @@ max_argmax <- function(x, index) {
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
-#' by **j** (columns).
+#' or **j** (columns).
 #' @return 
 #' @examples
 #' \dontrun{

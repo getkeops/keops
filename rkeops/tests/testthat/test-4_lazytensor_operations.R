@@ -16,10 +16,19 @@ test_that("LazyTensor", {
   out_j <- LazyTensor(x, index = 'j')
   out_u <- LazyTensor(u) # parameter vector
   out_D <- LazyTensor(D) # parameter scalar
+  
+  z <- matrix(1i^ (-6:5), nrow = 4)                     # create a complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
+  still_good_z_Vi <- LazyTensor(z, index = 'i') # without specifying "is_complex = TRUE": should work as well.
+  
   # check the object class
   classes <- c(class(out_i), class(out_j), class(out_u), class(out_D))
   k <- length(classes)
   expect_equal(classes, rep("LazyTensor", k))
+  
+  complex_class <- c(class(z_i), class(still_good_z_Vi))
+  expect_equal(complex_class, rep("ComplexLazyTensor", 2))
+  
   # check object formula and args
   bool_grep_i <- grep("A0x.*i", out_i$formula)
   expect_equal(bool_grep_i, 1)
@@ -27,8 +36,13 @@ test_that("LazyTensor", {
   expect_equal(bool_grep_j, 1)
   bool_grep_NA <- grep("A0x.*NA", out_u$formula)
   expect_equal(bool_grep_NA, 1)
+  bool_grep_zi <- grep("A0x.*i", z_i$formula)
+  expect_equal(bool_grep_zi, 1)
   bool_grep_Pm <- grep("A0x.*NA=Pm\\(1\\)", out_D$args)
   expect_equal(bool_grep_Pm, 1)
+  bool_grep_zi_args <- grep("A0x.*i=Vi\\(6\\)", z_i$args)
+  expect_equal(bool_grep_zi_args, 1)
+  
   # errors
   expect_error(LazyTensor("x"), 
                "`x` input argument should be a matrix, a vector or a scalar.", 
@@ -51,12 +65,23 @@ test_that("Vi", {
   M <- 100
   x <- matrix(runif(M * D), M, D)
   u <- runif(M, min = 0, max = 3.14)
+  z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
   
   x_i <- LazyTensor(x, index = 'i')
   x_Vi <- Vi(x)
+  
+  # ComplexLazyTensor
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
+  z_Vi <- Vi(z, is_complex = TRUE)
+  still_good_z_Vi <- Vi(z) # without specifying "is_complex = TRUE": should work as well.
+  
   # check arguments 
   expect_true(x_i$args == x_Vi$args)
+  expect_true(z_i$args == z_Vi$args)
+  expect_true(z_i$args == still_good_z_Vi$args)
   expect_true(class(x_Vi) == "LazyTensor")
+  expect_true(class(z_Vi) == "ComplexLazyTensor")
+  expect_true(class(still_good_z_Vi) == "ComplexLazyTensor")
   
   # errors
   expect_error(Vi(x_i), 
@@ -81,12 +106,23 @@ test_that("Vj", {
   M <- 100
   x <- matrix(runif(M * D), M, D)
   u <- runif(M, min = 0, max = 3.14)
+  z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
   
   x_j <- LazyTensor(x, index = 'j')
   x_Vj<- Vj(x)
+  
+  # ComplexLazyTensor
+  z_j <- LazyTensor(z, index = 'j', is_complex = TRUE)
+  z_Vj <- Vj(z, is_complex = TRUE)
+  still_good_z_Vj <- Vj(z) # without specifying "is_complex = TRUE": should work as well.
+  
   # check arguments 
   expect_true(x_j$args == x_Vj$args)
+  expect_true(z_j$args == z_Vj$args)
+  expect_true(z_j$args == still_good_z_Vj$args)
   expect_true(class(x_Vj) == "LazyTensor")
+  expect_true(class(z_Vj) == "ComplexLazyTensor")
+  expect_true(class(still_good_z_Vj) == "ComplexLazyTensor")
   
   # errors
   expect_error(Vj(x_j), 
@@ -105,15 +141,17 @@ test_that("Vj", {
 })
 
 
-
 test_that("Pm", {
   D <- 3
   M <- 100
   x <- matrix(runif(M * D), M, D)
   u <- runif(M, min = 0, max = 3.14)
+  z <- rep(1i^(-6:5), 4) # complex vector
   
   D_LT <- LazyTensor(D)
   D_Pm <- Pm(D)
+  z_LT <- LazyTensor(z)
+  z_Pm <- Pm(z)
   # check arguments 
   expect_true(D_LT$args == D_Pm$args)
   expect_true(class(D_Pm) == "LazyTensor")
@@ -127,7 +165,7 @@ test_that("Pm", {
   
   # errors
   expect_error(Pm(x_i), 
-               "`x` input must be a scalar or a vector.", 
+               "`x` input is already a LazyTensor.", 
                fixed = TRUE)
   expect_error(Pm(x), 
                "`x` input must be a scalar or a vector.", 
@@ -137,7 +175,6 @@ test_that("Pm", {
                fixed = TRUE)
   
 })
-
 
 
 test_that("unaryop.LazyTensor", {
@@ -563,17 +600,25 @@ test_that("exp", {
   y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  # basic example with complex exponential
+  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(exp(0), 1)
   expect_true(class(exp(x_i)) == "LazyTensor")
+  expect_true(class(exp(z_i)) == "ComplexLazyTensor")
   
   obj <- exp(x_i)
   bool_grep_formula <- grep("Exp\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <-  exp(x_i - y_j)
+  obj <- exp(x_i - y_j)
   bool_grep_formula <- grep("Exp\\(A0x.*i-A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- exp(z_i)
+  bool_grep_formula <- grep("ComplexExp\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
 
@@ -1408,6 +1453,82 @@ test_that("weightedsqnorm", {
   bool_grep_formula <- grep("WeightedSqNorm\\(A0x.*i,A0x.*j\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
+
+
+# TEST COMPLEX FUNCTIONS =======================================================
+
+
+test_that("Conj", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+
+  z <- matrix(2i^(-6:5), nrow = 4) # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
+  
+  # check results, formulas & classes
+  expect_true(class(Conj(z_i)) == "ComplexLazyTensor")
+  
+  obj <- Conj(z_i)
+  bool_grep_formula <- grep("Conj\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(Conj(x_i),
+               "`Conj` cannot be applied to a LazyTensor. See `?Conj` for compatible types.",
+               fixed = TRUE)
+})
+
+
+test_that("Conj", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  z <- matrix(2i^(-6:5), nrow = 4) # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
+  
+  # check results, formulas & classes
+  expect_true(class(Conj(z_i)) == "ComplexLazyTensor")
+  
+  obj <- Conj(z_i)
+  bool_grep_formula <- grep("Conj\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  # errors
+  expect_error(Conj(x_i),
+               "`Conj` cannot be applied to a LazyTensor. See `?Conj` for compatible types.",
+               fixed = TRUE)
+})
+
+
+test_that("Mod", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  z <- matrix(2i^(-6:5), nrow = 4) # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
+  
+  # check results, formulas & classes
+  expect_true(class(Mod(z_i)) == "LazyTensor")
+  
+  obj <- Mod(z_i)
+  bool_grep_formula <- grep("ComplexAbs\\(A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+})
+
+
+# TEST REDUCTIONS ==============================================================
 
 
 test_that("reduction.LazyTensor", {
