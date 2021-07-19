@@ -280,7 +280,8 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
 #' bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)   # symbolic matrix
 #' }
 #' @export
-binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type = "sameor1", res_type = "LazyTensor") {
+binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type = "sameor1") {
+    
     if(is.matrix(x))
         stop(paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
                    "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
@@ -320,7 +321,10 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
     
     res <- list(formula = formula, args = args, vars = vars)
     
-    class(res) <- res_type
+    if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
+        class(res) <- "ComplexLazyTensor"
+    else
+        class(res) <- class(x)
     
     return(res)
 }
@@ -525,22 +529,13 @@ check_index <- function(index){
 }
 
 "+.LazyTensor" <- function(x, y) {
-    #if (!check_inner_dim(x, y, check_type = "sameor1")) {
-    #    stop(paste("Operation `+` expects inputs of the same dimension or dimension 1. Received ",
-    #    get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
-    #}
-    if(is.ComplexLazyTensor(y))
-        res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1", res_type = "ComplexLazyTensor")
-    else 
-        res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
+    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
+    return(res)
 }
 
 "+.ComplexLazyTensor" <- function(x, y) {
-    #if (!check_inner_dim(x, y, check_type = "sameor1")) {
-    #    stop(paste("Operation `+` expects inputs of the same dimension or dimension 1. Received ",
-    #    get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
-    #}
-    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1", res_type = "ComplexLazyTensor")
+    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
+    return(res)
 }
 
 
@@ -560,7 +555,6 @@ check_index <- function(index){
 #'     \item{**Minus sign**:}{ If `x` is a `LazyTensor`, `-x` returns a `LazyTensor`
 #'     that encodes, symbolically, the element-wise opposite of `x`.}
 #' }
-#' 
 #' **Note**
 #' 
 #' For **subtraction operation**, `x` and `y` input arguments should have the same inner dimension or be of dimension 1.
@@ -580,7 +574,7 @@ check_index <- function(index){
 #' }
 #' @export
 "-" <- function(x, y = NA) { 
-    if(!is.LazyTensor(x))
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         UseMethod("-", y)
     else
         UseMethod("-", x)
@@ -591,8 +585,13 @@ check_index <- function(index){
         res <- unaryop.LazyTensor(x, "Minus")
     else
         res <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE, dim_check_type = "sameor1")
+    return(res)
 }
 
+"-.ComplexLazyTensor" <- function(x, y) {
+    res <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE, dim_check_type = "sameor1")
+    return(res)
+}
 
 # multiplication  --------------------------------------------------------------
 "*.default" <- .Primitive("*") # assign default as current definition
@@ -624,7 +623,7 @@ check_index <- function(index){
 #' }
 #' @export
 "*" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         UseMethod("*", y)
     else
         UseMethod("*", x)
@@ -632,6 +631,12 @@ check_index <- function(index){
 
 "*.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE, dim_check_type = "sameor1")
+    return(res)
+}
+
+"*.ComplexLazyTensor" <- function(x, y) {
+    res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE, dim_check_type = "sameor1")
+    return(res)
 }
 
 # division ---------------------------------------------------------------------
@@ -664,7 +669,7 @@ check_index <- function(index){
 #' }
 #' @export
 "/" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         UseMethod("/", y)
     else
         UseMethod("/", x)
@@ -672,6 +677,12 @@ check_index <- function(index){
 
 "/.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE, dim_check_type = "sameor1")
+    return(res)
+}
+
+"/.ComplexLazyTensor" <- function(x, y) {
+    res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE, dim_check_type = "sameor1")
+    return(res)
 }
 
 
@@ -703,6 +714,12 @@ square <- function(x) {
 
 square.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Square")
+    return(res)
+}
+
+square.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Square")
+    return(res)
 }
 
 
@@ -735,6 +752,11 @@ sqrt.LazyTensor <- function(x) {
     return(res)
 }
 
+sqrt.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Sqrt")
+    return(res)
+}
+
 # Rsqrt ------------------------------------------------------------------------
 rsqrt.default <- function(x) {
     res <- 1 / sqrt(x)
@@ -763,6 +785,11 @@ rsqrt <- function(x) {
 }
 
 rsqrt.LazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Rsqrt")
+    return(res)
+}
+
+rsqrt.ComplexLazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Rsqrt")
     return(res)
 }
@@ -802,7 +829,7 @@ rsqrt.LazyTensor <- function(x) {
 #' }
 #' @export
 "^" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         UseMethod("^", y)
     else
         UseMethod("^", x)
@@ -835,7 +862,45 @@ rsqrt.LazyTensor <- function(x) {
             #    # x and y should have the same inner dimension or y should have its inner dimension equal to 1
             #    
             #}
-            res <- binaryop.LazyTensor(x, y, "Powf", dim_check_type = NA) # power operation
+            #res <- binaryop.LazyTensor(x, y, "Powf", dim_check_type = NA) # power operation
+            res <- binaryop.LazyTensor(x, y, "Powf") # power operation
+        }
+    }
+    else
+        res <- binaryop.LazyTensor(x, y, "Powf") # power operation
+    return(res)
+}
+
+
+"^.ComplexLazyTensor" <- function(x, y) {   
+    if(is.numeric(y) && length(y) == 1){
+        if((as.integer(y) - y) == 0){
+            if(y == 2)
+                res <- unaryop.LazyTensor(x, "Square")
+            else
+                res <- unaryop.LazyTensor(x, "Pow", y)
+        }
+        else if(y == 0.5)
+            res <- unaryop.LazyTensor(x, "Sqrt") # element-wise square root
+        else if(y == (-0.5))
+            res <- unaryop.LazyTensor(x, "Rsqrt") # element-wise inverse square root
+        # check if Powf with y a float number has to be like Powf(var1,var2) or Powf(var,y) (Powf(var, 0.5))
+        else {
+            # TODO !!
+            ## We convert before it goes into binaryop because `get_inner_dim()` requires LazyTensors
+            #if(is.numeric(x))
+            #    x <- LazyTensor(x)
+            #if(is.numeric(y))
+            #    y <- LazyTensor(y)
+            #
+            #x_inner_dim <- get_inner_dim(x)
+            #y_inner_dim <- get_inner_dim(y)
+            #if() {
+            #    # x and y should have the same inner dimension or y should have its inner dimension equal to 1
+            #    
+            #}
+            #res <- binaryop.LazyTensor(x, y, "Powf", dim_check_type = NA, res_type = "ComplexLazyTensor") # power operation
+            res <- binaryop.LazyTensor(x, y, "Powf") # power operation
         }
     }
     else
@@ -875,17 +940,28 @@ rsqrt.LazyTensor <- function(x) {
 # #' }
 # #' @export
 "|" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         UseMethod("|", y)
     else
         UseMethod("|", x)
 }
+
 "|.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE, dim_check_type = "same")
     res$formula <- paste("(", res$formula, ")", sep = "")
     return(res)
 }
 
+"|.ComplexLazyTensor" <- function(x, y) {
+    res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE, dim_check_type = "same")
+    res$formula <- paste("(", res$formula, ")", sep = "")
+    return(res)
+}
+
+
+
+
+# Matrix product ---------------------------------------------------------------
 
 "%*%.default" <- .Primitive("%*%") # assign default as current definition
 
@@ -2498,7 +2574,7 @@ z_j <- LazyTensor(z, index = 'j')
 
 z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
-conj_z_i <- conj(z_i)
+conj_z_i <- Conj(z_i)
 #b_j = b
 #
 ## Symbolic matrix of squared distances:
