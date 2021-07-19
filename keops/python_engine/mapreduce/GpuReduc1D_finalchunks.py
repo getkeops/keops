@@ -83,7 +83,7 @@ class GpuReduc1D_finalchunks(MapReduce, Gpu_link_compile):
         dimfout = self.dimfout
         if dimfout != 1:
             raise ValueError("dimfout should be 1")
-        sum_scheme  self.sum_scheme
+        sum_scheme = self.sum_scheme
         if sum_scheme != block_sum:
             raise ValueError("only block_sum available")
         param_loc = c_array(dtype, dimp, "param_loc")
