@@ -110,6 +110,24 @@ class LoadKeOps_new:
             enable_chunks = 0
             self.optional_flags.remove("-DENABLECHUNK=0")
         
+        enable_final_chunks = -1
+        if "-DENABLE_FINAL_CHUNKS=1" in self.optional_flags:
+            enable_final_chunks = 1
+            self.optional_flags.remove("-DENABLE_FINAL_CHUNKS=1")
+        elif "-DENABLE_FINAL_CHUNKS=0" in self.optional_flags:
+            enable_final_chunks = 0
+            self.optional_flags.remove("-DENABLE_FINAL_CHUNKS=0")
+        
+        mult_var_highdim = -1
+        if "-DMULT_VAR_HIGHDIM=1" in self.optional_flags:
+            mult_var_highdim = 1
+            self.optional_flags.remove("-DMULT_VAR_HIGHDIM=1")
+        elif "-DMULT_VAR_HIGHDIM=0" in self.optional_flags:
+            mult_var_highdim = 0
+            self.optional_flags.remove("-DMULT_VAR_HIGHDIM=0")
+        
+
+        
         if self.optional_flags:
             print(
                 "[KeOps] warning : there are options not yet implemented in new KeOps engine, these options are deactivated."
@@ -161,6 +179,8 @@ class LoadKeOps_new:
             map_reduce_id,
             self.red_formula_string,
             enable_chunks,
+            enable_final_chunks,
+            mult_var_highdim,
             self.aliases,
             nargs,
             c_dtype,

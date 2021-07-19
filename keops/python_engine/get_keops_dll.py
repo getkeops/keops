@@ -2,6 +2,8 @@
 #   - map_reduce_id : string naming the type of map-reduce scheme to be used : either "CpuReduc", "GpuReduc1D_FromDevice", ...
 #   - red_formula_string : string expressing the formula, such as "Sum_Reduction((Exp(Minus(Sum(Square((Var(0,3,0) / Var(1,3,1)))))) * Var(2,1,1)),0)",
 #   - enable_chunks : -1, 0 or 1, for Gpu mode only, enable special routines for high dimensions (-1 means automatic setting)
+#   - enable_finalchunks : -1, 0 or 1, for Gpu mode only, enable special routines for final operation in high dimensions (-1 means automatic setting)
+#   - mul_var_highdim : -1, 0 or 1, for Gpu mode only, another option for special routines of final operation in high dimensions (-1 means automatic setting)
 #   - aliases : list of strings expressing the aliases list, which may be empty,
 #   - nargs : integer specifying the number of arguments for the call to the routine,
 #   - dtype : string specifying the float type of the arguments  "float", "double" or "half")
@@ -43,16 +45,22 @@ from keops.python_engine.formulas.reductions import *
 from keops.python_engine.mapreduce import *
 from keops.python_engine import get_enable_chunk, set_enable_chunk, dimchunk, cuda_block_size
 
-def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, *args):
+def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_finalchunks, mul_var_highdim, *args):
     
     # detecting the need for special chunked computation modes :
-    set_enable_chunk(enable_chunks)
     use_chunk_mode = 0
-    if "Gpu" in map_reduce_id and get_enable_chunk():
-        red_formula = eval(red_formula_string)
-        if len(red_formula.formula.chunked_formulas(dimchunk))==1:
-            use_chunk_mode = 1
-            map_reduce_id += '_chunks'
+    if "Gpu" in map_reduce_id:
+        set_enable_chunk(enable_chunks)
+        set_enable_finalchunk(enable_finalchunks)
+        set_mult_var_highdim(mul_var_highdim)
+        if use_final_chunks:
+            use_chunk_mode = 2
+            map_reduce_id += '_finalchunks'
+        elif get_enable_chunk():
+            red_formula = eval(red_formula_string)
+            if len(red_formula.formula.chunked_formulas(dimchunk))==1:
+                use_chunk_mode = 1
+                map_reduce_id += '_chunks'
     
     map_reduce_class = eval(map_reduce_id)
     map_reduce_obj = map_reduce_class(red_formula_string, *args)
