@@ -1968,9 +1968,11 @@ test_that("clamp", {
   M <- 100
   N <- 150
   P <- 200
+  w <- matrix(runif(P * 7), P, 7)
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
   z <- matrix(runif(P * D), P, D)
+  w_i <- LazyTensor(w, index = 'i')
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   z_i <- LazyTensor(z, index = 'i')
@@ -1982,13 +1984,17 @@ test_that("clamp", {
   expect_is(obj, "LazyTensor")
   
   obj <-  clamp(x_i, y_j, 3)
-  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,A0x.*NA\\)", obj$formula)
+  bool_grep_formula <- grep("Clamp\\(A0x.*i,A0x.*j,IntCst\\(3\\)\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   obj <-  clamp(x_i, 2, 3)
   bool_grep_formula <- grep("ClampInt\\(A0x.*i,2,3\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
+  # errors
+  expect_error(clamp(x_i, y_j, w_i),
+               "Operation `Clamp` expects inputs of the same dimension or dimension 1. Received 3, 3 and 7.",
+               fixed = TRUE)
 })
 
 
@@ -2028,9 +2034,11 @@ test_that("ifelse.LazyTensor", {
   M <- 100
   N <- 150
   P <- 200
+  w <- matrix(runif(P * 7), P, 7)
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
   z <- matrix(runif(P * D), P, D)
+  w_i <- LazyTensor(w, index = 'i')
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   z_i <- LazyTensor(z, index = 'i')
@@ -2041,6 +2049,10 @@ test_that("ifelse.LazyTensor", {
   expect_equal(bool_grep_formula, 1)
   expect_is(obj, "LazyTensor")
   
+  # errors
+  expect_error(ifelse.LazyTensor(x_i, y_j, w_i),
+               "Operation `IfElse` expects inputs of the same dimension or dimension 1. Received 3, 3 and 7.",
+               fixed = TRUE)
 })
 
 
