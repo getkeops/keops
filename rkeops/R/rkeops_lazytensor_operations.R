@@ -6,6 +6,11 @@ set_rkeops_option("tagCpuGpu", 0)
 set_rkeops_option("precision", "double")
 
 
+
+# LAZYTENSOR CONFIGURATION =====================================================
+
+
+
 # LazyTensor -------------------------------------------------------------------
 #' Build and return a LazyTensor object.
 #' @description
@@ -384,24 +389,73 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
 # ==============================================
 
 
-# Preprocess ===================================================================
+
+# PREPROCESS ===================================================================
 
 
+
+#' is.LazyTensor.
+#' @description
+#' Checks whether if the given input is a `LazyTensor` or not.
+#' @details If `x` is a `LazyTensor`, `is.LazyTensor(x)` returns TRUE, else, returns FALSE.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x An object we want to know if it is a `LazyTensor`.
+#' @return A boolean, TRUE or FALSE.
+#' @example
+#' \dontrun{
+#' # basic example
+#' D <- 3
+#' M <- 100
+#' x <- matrix(runif(M * D), M, D)
+#' 
+#' # create LazyTensor
+#' x_i <- LazyTensor(x, index = 'i')
+#' 
+#' # call is.LazyTensor
+#' is.LazyTensor(x_i) # returns TRUE
+#' is.LazyTensor(x)   # returns FALSE
+#' }
+#' @export
 is.LazyTensor <- function(x){
     return(class(x)[1] == "LazyTensor")
 }
 
 
+#' is.ComplexLazyTensor.
+#' @description
+#' Checks whether if the given input is a `ComplexLazyTensor` or not.
+#' @details If `x` is a `ComplexLazyTensor`, `is.ComplexLazyTensor(x)` returns TRUE,
+#' else, returns FALSE.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x An object we want to know if it is a `ComplexLazyTensor`.
+#' @return A boolean, TRUE or FALSE.
+#' @example
+#' \dontrun{
+#' # basic example
+#' D <- 3
+#' M <- 100
+#' x <- matrix(runif(M * D), M, D)
+#' z <- matrix(1i^(-6:5), nrow = 4) # complex 4x3 matrix
+#' 
+#' # create LazyTensor and ComplexLazyTensor
+#' x_i <- LazyTensor(x, index = 'i')
+#' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # ComplexLazyTensor
+#' 
+#' # call is.ComplexLazyTensor
+#' is.ComplexLazyTensor(z_i) # returns TRUE
+#' is.ComplexLazyTensor(x_i) # returns FALSE
+#' }
+#' @export
 is.ComplexLazyTensor <- function(x){
     return(class(x)[1] == "ComplexLazyTensor")
 }
 
 
-
 #' Get inner dimension.
 #' @description
 #' Returns the inner dimension of a given `LazyTensor`.
-#' @details If `x` is a `LazyTensor`, `get_inner_dim(x)` returns an integer corresponding to the inner dimension of `x`.
+#' @details If `x` is a `LazyTensor`, `get_inner_dim(x)` returns an integer
+#' corresponding to the inner dimension of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`.
 #' @return An integer corresponding to the inner dimension of `x`.
@@ -423,41 +477,54 @@ is.ComplexLazyTensor <- function(x){
 #' }
 #' @export
 get_inner_dim <- function(x) {
-    # Grab x inner dimension.
-    # x must be a LazyTensor.
+    # Grab `x` inner dimension.
+    # `x` must be a LazyTensor.
     if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
-        stop("`x` input argument should be a LazyTensor.")
+        stop("`x` input argument should be a LazyTensor or a ComplexLazyTensor.")
     
     end_x_inner_dim <- sub(".*\\(", "", x$args)
     x_inner_dim <- substr(end_x_inner_dim, 1, nchar(end_x_inner_dim) - 1)
     x_inner_dim <- as.integer(x_inner_dim)
     
     if(is.ComplexLazyTensor(x))
-        x_inner_dim <- x_inner_dim / 2
+        x_inner_dim <- (x_inner_dim / 2)
     return(x_inner_dim)
 }
 
-# TODO finish when question about "or dimension 1" for ternary answered
-#' Check inner dimensions.
+
+#' Check inner dimensions for binary or ternary operations.
 #' @description
-#' Verifies that the inner dimensions of two given `LazyTensor` are the same.
-#' @details If `x` and `y` are of class `LazyTensor`, `check_inner_dim(x, y)`
-#' returns `TRUE` if `x` and `y` inner dimensions are the same, and `FALSE` otherwise.
+#' Verifies that the inner dimensions of two or three given `LazyTensor` are the same.
+#' @details If `x` and `y` are of class `LazyTensor` or `ComplexLazyTensor`,
+#' `check_inner_dim(x, y, check_type = "same")` returns `TRUE` if `x` and `y`
+#' inner dimensions are the same, and `FALSE` otherwise, while
+#' `check_inner_dim(x, y, check_type = "sameor1")` returns `TRUE` if `x` and `y`
+#' inner dimensions are the same or if at least one of these equals 1,
+#' and `FALSE` otherwise.
+#' Same idea with a third input `z`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`.
-#' @param y A `LazyTensor`.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param y A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param z A `LazyTensor` or a `ComplexLazyTensor` (optional, default = NA).
+#' @param check_type A character string among "same" and "sameor1" (default),
+#' to specify the desired type of inner dimension verification (see @details section).
 #' @return A boolean TRUE or FALSE.
 #' @export
 check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
-    # x and y must be LazyTensors.
+    # Inputs must be LazyTensors or ComplexLazyTensors.
     if((!is.LazyTensor(x) && !is.ComplexLazyTensor(x)) || (!is.LazyTensor(y) && !is.ComplexLazyTensor(y))) {
-        stop("`x` and `y` input arguments should be of class LazyTensor.")
+        stop("Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.")
+    }
+    if(!is.na(z)[1]) {
+        if(!is.LazyTensor(z) && !is.ComplexLazyTensor(z)) {
+            stop("Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.")
+        }
     }
     
     x_inner_dim <- get_inner_dim(x)
     y_inner_dim <- get_inner_dim(y)
     
-    if(is.na(z)) {
+    if(is.na(z)[1]) {
         # Check whether if x and y inner dimensions are the same or if at least one of these equals 1.
         if(check_type == "sameor1") {
             res <- ((x_inner_dim == y_inner_dim) || ((x_inner_dim == 1) || (y_inner_dim == 1)))
@@ -467,11 +534,20 @@ check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
         }
     }
     else {
-        
+        z_inner_dim <- get_inner_dim(z)
+        # Check whether if x, y and z inner dimensions are the same or if at least one of these equals 1.
+        if(check_type == "sameor1") {
+            unique_dims <- unique(append(c(x_inner_dim, y_inner_dim, z_inner_dim), 1))
+            res <- length(unique_dims) <= 2
+        }
+        if(check_type == "same") {
+            dims <- c(x_inner_dim, y_inner_dim, z_inner_dim)
+            res <- all(dims == rep(x_inner_dim, length(dims)))
+        }
     }
-    
     return(res)
 }
+
 
 #' Check index.
 #' @description
@@ -491,6 +567,12 @@ check_index <- function(index){
     res <- is.character(index) && (index %in% c("i", "j"))
     return(res)
 }
+
+
+
+# OPERATIONS ===================================================================
+
+
 
 # addition ---------------------------------------------------------------------
 "+.default" <- .Primitive("+") # assign default as current definition

@@ -1,5 +1,9 @@
 context("LazyTensor operations")
 
+
+# TEST LAZYTENSOR CONFIGURATION ================================================
+
+
 # Tests for LazyTensor related functions
 #
 # Use of regular expressions to check formulas and arguments
@@ -251,7 +255,6 @@ test_that("binaryop.LazyTensor", {
 })
 
 
-
 test_that("ternaryop.LazyTensor", {
   # basic example
   D <- 3
@@ -293,6 +296,52 @@ test_that("ternaryop.LazyTensor", {
                fixed = TRUE)
 })
 
+
+# TEST PREPROCESS ==============================================================
+
+
+test_that("is.LazyTensor", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  p <- LazyTensor(runif(3, 0, 1)) # fixed vector parameter across indices
+  l <- LazyTensor(314)            # fixed scalar parameter across indices
+  z <- matrix(1i^(-6:5), nrow = 4)                     # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # ComplexLazyTensor
+  
+  # check results
+  expect_true(is.LazyTensor(x_i))
+  expect_true(is.LazyTensor(p))
+  expect_true(is.LazyTensor(l))
+  expect_false(is.LazyTensor(x))
+  expect_false(is.LazyTensor(D))
+  expect_false(is.LazyTensor(z_i))
+})
+
+
+# Test get and check dimensions
+test_that("is.ComplexLazyTensor", {
+  # basic example
+  D <- 3
+  M <- 100
+  x <- matrix(runif(M * D), M, D)
+  x_i <- LazyTensor(x, index = 'i')
+  p <- LazyTensor(runif(3, 0, 1)) # fixed vector parameter across indices
+  l <- LazyTensor(314)            # fixed scalar parameter across indices
+  z <- matrix(1i^(-6:5), nrow = 4)                     # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # ComplexLazyTensor
+  
+  # check results
+  expect_false(is.ComplexLazyTensor(x_i))
+  expect_false(is.ComplexLazyTensor(p))
+  expect_false(is.ComplexLazyTensor(l))
+  expect_true(is.ComplexLazyTensor(z_i))
+})
+
+
+
 # Test get and check dimensions
 test_that("get_inner_dim", {
   # basic example
@@ -302,23 +351,26 @@ test_that("get_inner_dim", {
   N <- 150
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
-  z <- matrix(runif(N * E), N, E)
+  t <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
-  z_j <- LazyTensor(z, index = 'j')
+  t_j <- LazyTensor(t, index = 'j')
   p <- LazyTensor(runif(3, 0, 1)) # fixed vector parameter across indices
   l <- LazyTensor(314)            # fixed scalar parameter across indices
+  z <- matrix(1i^(-6:5), nrow = 4)                     # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # ComplexLazyTensor
   
   # check results
   expect_equal(get_inner_dim(x_i), 3)
   expect_equal(get_inner_dim(y_j), 3)
-  expect_equal(get_inner_dim(z_j), 7)
+  expect_equal(get_inner_dim(t_j), 7)
   expect_equal(get_inner_dim(p), 3)
   expect_equal(get_inner_dim(l), 1)
+  expect_equal(get_inner_dim(z_i), 3)
   
   # errors
   expect_error(get_inner_dim(x),
-               "`x` input argument should be a LazyTensor.",
+               "`x` input argument should be a LazyTensor or a ComplexLazyTensor.",
                fixed = TRUE)
 })
 
@@ -331,31 +383,45 @@ test_that("check_inner_dim", {
   N <- 150
   x <- matrix(runif(M * D), M, D)
   y <- matrix(runif(N * D), N, D)
-  z <- matrix(runif(N * E), N, E)
+  t <- matrix(runif(N * E), N, E)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
-  z_j <- LazyTensor(z, index = 'j')
+  t_j <- LazyTensor(t, index = 'j')
   p <- LazyTensor(runif(3, 0, 1)) # fixed vector parameter across indices
   l <- LazyTensor(314)            # fixed scalar parameter across indices
   
+  z <- matrix(1i^(-6:5), nrow = 4) # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE) # ComplexLazyTensor
+  
   # check results
+  ## with two inputs
   expect_true(check_inner_dim(x_i, y_j, check_type = "sameor1"))
-  expect_false(check_inner_dim(x_i, z_j, check_type = "sameor1"))
+  expect_false(check_inner_dim(x_i, t_j, check_type = "sameor1"))
   expect_true(check_inner_dim(x_i, p, check_type = "sameor1"))
   expect_true(check_inner_dim(x_i, l, check_type = "sameor1"))
   
   expect_true(check_inner_dim(x_i, y_j, check_type = "same"))
   expect_false(check_inner_dim(x_i, l, check_type = "same"))
   
+  ## with three inputs
+  expect_true(check_inner_dim(x_i, p, z_i, check_type = "sameor1"))
+  expect_true(check_inner_dim(x_i, l, z_i, check_type = "sameor1"))
+  
+  expect_true(check_inner_dim(x_i, y_j, z_i, check_type = "same"))
+  expect_false(check_inner_dim(x_i, t_j, z_i, check_type = "same"))
+  
   # errors
   expect_error(check_inner_dim(x, y_j),
-               "`x` and `y` input arguments should be of class LazyTensor.",
+               "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.",
+               fixed = TRUE)
+  expect_error(check_inner_dim(x_i, y_j, z),
+               "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.",
                fixed = TRUE)
 })
 
 
 
-# Test operations
+# TEST OPERATIONS ==============================================================
 
 
 test_that("+", {
