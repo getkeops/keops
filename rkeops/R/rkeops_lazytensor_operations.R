@@ -130,6 +130,7 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
 
 
 # Vi ---------------------------------------------------------------------------
+
 #' Wrapper LazyTensor indexed by "i".
 #' @description
 #' Simple wrapper that return an instantiation of `LazyTensor` indexed by "i".
@@ -154,6 +155,7 @@ Vi <- function(x, is_complex = FALSE){
 }
 
 # Vj ---------------------------------------------------------------------------
+
 #' Wrapper LazyTensor indexed by "j".
 #' @description
 #' Simple wrapper that return an instantiation of `LazyTensor` indexed by "j".
@@ -178,6 +180,7 @@ Vj <- function(x, is_complex = FALSE){
 }
 
 # Pm ---------------------------------------------------------------------------
+
 #' Wrapper LazyTensor parameter.
 #' @description
 #' Simple wrapper that return an instantiation of `LazyTensor` indexed by "i".
@@ -295,10 +298,10 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
         stop(paste("`y` input argument should be a LazyTensor, a vector or a scalar.",
                    "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
     
-    if(is.numeric(x))
+    if(is.numeric(x) || is.complex(x))
         x <- LazyTensor(x)
     
-    if(is.numeric(y))
+    if(is.numeric(y) || is.complex(y))
         y <- LazyTensor(y)
     
     # check dimensions
@@ -351,7 +354,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
 #' @export
 ternaryop.LazyTensor <- function(x, y, z, opstr) {
     # check that there are no matrix
-    # and convert numeric values to LazyTensor
+    # and convert numeric or complex values to LazyTensor
     names <- c("x", "y", "z")
     args <- list(x, y, z)
     for (i in 1:3) {
@@ -359,7 +362,7 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
             stop(paste("`", names[i], "` input argument should be a LazyTensor, a vector or a scalar.",
                        "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
         }
-        if(is.numeric(args[[i]])) {
+        if(is.numeric(args[[i]]) || is.complex(args[[i]])) {
             args[[i]] <- LazyTensor(args[[i]])
         }
     }
