@@ -282,7 +282,7 @@ test_that("ternaryop.LazyTensor", {
   expect_is(obj, "LazyTensor")
   
   obj <-  ternaryop.LazyTensor(4, y_j, z_i, "Clamp")
-  bool_grep_args <- grep("A0x.*NA=Pm\\(1\\)", obj$args[1])
+  bool_grep_args <- grep("IntCst\\(4\\)=Pm\\(1\\)", obj$args[1])
   expect_equal(bool_grep_args, 1)
   
   # errors
@@ -548,7 +548,7 @@ test_that("*", {
   
   # errors
   expect_error(x_i * z_j,
-               "Operation `*` expects inputs of the same dimension or dimension 1. Received 3 and 4.",
+               "Operation `*` expects inputs of the same dimension or dimension 1. Received 3 and 7.",
                fixed = TRUE)
 })
 
@@ -590,7 +590,7 @@ test_that("/", {
   
   # errors
   expect_error(x_i / z_j,
-               "Operation `/` expects inputs of the same dimension or dimension 1. Received 3 and 4.",
+               "Operation `/` expects inputs of the same dimension or dimension 1. Received 3 and 7.",
                fixed = TRUE)
 })
 
@@ -616,8 +616,8 @@ test_that("^", {
   expect_is(xc_i^y_j, "ComplexLazyTensor")
   expect_is(xc_i^yc_j, "ComplexLazyTensor")
   expect_is(xc_i^2, "ComplexLazyTensor")
-  #expect_is(xc_i^3, "ComplexLazyTensor")
-  #expect_is(xc_i^0.5, "ComplexLazyTensor")
+  expect_is(xc_i^3, "ComplexLazyTensor")
+  expect_is(xc_i^0.5, "ComplexLazyTensor")
   
   
   obj <- x_i^y_j
@@ -644,9 +644,19 @@ test_that("^", {
   bool_grep_formula <- grep("Powf\\(A0x.*i,A0x.*NA\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
-  obj <-  3.14^x_i
+  obj <- 3.14^x_i
   bool_grep_formula <- grep("Powf\\(A0x.*NA,A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
+  
+  
+  # TODO
+  expect_error(2i^x_i, 
+               "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.",
+               fixed = TRUE)
+  
+  expect_error(x_i^2i, 
+               "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.",
+               fixed = TRUE)
 })
 
 
@@ -719,27 +729,48 @@ test_that("|", {
   y_j <- LazyTensor(y, index = 'j')
   z_j <- LazyTensor(z, index = 'j')
   
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  yc_j <- LazyTensor(y, index = 'j', is_complex = TRUE)
+ 
   # check results & formulas
   expect_equal(D | M, TRUE)
   
-  expect_true(class(x_i | y_j) == "LazyTensor")
+  expect_true(is.LazyTensor(x_i | y_j))
+  expect_true(is.ComplexLazyTensor(xc_i | yc_j))
+  expect_true(is.ComplexLazyTensor(xc_i | y_j))
+  expect_true(is.ComplexLazyTensor(x_i | yc_j))
   
   obj <- x_i | y_j
   bool_grep_formula <- grep("\\(A0x.*i\\|A0x.*j\\)", obj$formula)
-  expect_equal(bool_grep_formula, 1)
-  
-  obj <-  x_i | 3
-  bool_grep_formula <- grep("\\(A0x.*i\\|A0x.*NA\\)", obj$formula)
-  expect_equal(bool_grep_formula, 1)
-  
-  obj <-  3.14 | x_i
-  bool_grep_formula <- grep("A0x.*NA\\|A0x.*i", obj$formula)
   expect_equal(bool_grep_formula, 1)
   
   # errors
   expect_error(x_i | z_j,
                "Operation `|` expects inputs of the same dimension. Received 3 and 7.",
                fixed = TRUE)
+  
+  expect_error(x_i | 3,
+               "Operation `|` expects inputs of the same dimension. Received 3 and 1.",
+               fixed = TRUE)
+})
+
+
+test_that("%*%", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  yc_j <- LazyTensor(y, index = 'j', is_complex = TRUE)
+
+  # check classes
+  expect_true(is.matrix(x_i %*% y_j))
+  #expect_true(is.matrix(xc_i %*% yc_j))
+
 })
 
 
@@ -784,10 +815,15 @@ test_that("log", {
   y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  # basic example with complex exponential
+  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(log(1), 0)
-  expect_true(class(log(x_i)) == "LazyTensor")
+  expect_true(!is.LazyTensor(log(x)))
+  expect_true(is.LazyTensor(log(x_i)))
+  expect_true(is.ComplexLazyTensor(log(z_i)))
   
   obj <- log(x_i)
   bool_grep_formula <- grep("Log\\(A0x.*i\\)", obj$formula)
@@ -795,6 +831,10 @@ test_that("log", {
   
   obj <-  log(x_i - y_j)
   bool_grep_formula <- grep("Log\\(A0x.*i-A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- log(z_i)
+  bool_grep_formula <- grep("Log\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
 
@@ -808,10 +848,15 @@ test_that("inv", {
   y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  # basic example with complex exponential
+  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(inv(1), 1)
-  expect_true(class(inv(x_i)) == "LazyTensor")
+  expect_true(!is.LazyTensor(inv(x)))
+  expect_true(is.LazyTensor(inv(x_i)))
+  expect_true(is.ComplexLazyTensor(inv(z_i)))
   
   obj <- inv(x_i)
   bool_grep_formula <- grep("Inv\\(A0x.*i\\)", obj$formula)
@@ -819,6 +864,10 @@ test_that("inv", {
   
   obj <-  inv(x_i + y_j)
   bool_grep_formula <- grep("Inv\\(A0x.*i\\+A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  inv(z_i)
+  bool_grep_formula <- grep("Inv\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
 
@@ -832,11 +881,15 @@ test_that("cos", {
   y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  # basic example with complex exponential
+  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(cos(0), 1)
-  expect_true(class(cos(x))[1] != "LazyTensor")
-  expect_true(class(cos(x_i)) == "LazyTensor")
+  expect_true(!is.LazyTensor(x))
+  expect_true(is.LazyTensor(cos(x_i)))
+  expect_true(is.ComplexLazyTensor(cos(z_i)))
   
   obj <- cos(x_i)
   bool_grep_formula <- grep("Cos\\(A0x.*i\\)", obj$formula)
@@ -844,6 +897,10 @@ test_that("cos", {
   
   obj <-  cos(x_i + y_j)
   bool_grep_formula <- grep("Cos\\(A0x.*i\\+A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <-  cos(z_i)
+  bool_grep_formula <- grep("Cos\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
 
@@ -857,11 +914,15 @@ test_that("sin", {
   y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  # basic example with complex exponential
+  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(sin(0), 0)
-  expect_true(class(sin(x))[1] != "LazyTensor")
-  expect_true(class(sin(x_i)) == "LazyTensor")
+  expect_true(!is.LazyTensor(sin(x)))
+  expect_true(is.LazyTensor(sin(x_i)))
+  expect_true(is.ComplexLazyTensor(sin(z_i)))
   
   obj <- sin(x_i)
   bool_grep_formula <- grep("Sin\\(A0x.*i\\)", obj$formula)
@@ -869,6 +930,10 @@ test_that("sin", {
   
   obj <-  sin(x_i + y_j)
   bool_grep_formula <- grep("Sin\\(A0x.*i\\+A0x.*j\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  
+  obj <- sin(z_i)
+  bool_grep_formula <- grep("Sin\\(A0x.*i\\)", obj$formula)
   expect_equal(bool_grep_formula, 1)
 })
 
@@ -882,11 +947,14 @@ test_that("acos", {
   y <- matrix(runif(N * D), N, D)
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
+  xc_i <- LazyTensor(x, index = 'i', is_complex = TRUE)
+  yc_j <- LazyTensor(y, index = 'j', is_complex = TRUE)
   
   # check results, formulas & classes
   expect_equal(acos(1), 0)
-  expect_true(class(acos(x))[1] != "LazyTensor")
-  expect_true(class(acos(x_i)) == "LazyTensor")
+  expect_true(is.matrix(acos(x)))
+  expect_true(is.LazyTensor(acos(x_i)))
+  expect_true(is.ComplexLazyTensor(acos(xc_i)))
   
   obj <- acos(x_i)
   bool_grep_formula <- grep("Acos\\(A0x.*i\\)", obj$formula)
@@ -1750,31 +1818,6 @@ test_that("exp1j", {
                "`exp1j` cannot be applied to a complex LazyTensor.",
                fixed = TRUE)
   
-})
-
-
-test_that("Conj", {
-  # basic example
-  D <- 3
-  M <- 100
-  N <- 150
-  x <- matrix(runif(M * D), M, D)
-  x_i <- LazyTensor(x, index = 'i')
-
-  z <- matrix(2i^(-6:5), nrow = 4) # complex 4x3 matrix
-  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
-  
-  # check results, formulas & classes
-  expect_true(class(Conj(z_i)) == "ComplexLazyTensor")
-  
-  obj <- Conj(z_i)
-  bool_grep_formula <- grep("Conj\\(A0x.*i\\)", obj$formula)
-  expect_equal(bool_grep_formula, 1)
-  
-  # errors
-  expect_error(Conj(x_i),
-               "`Conj` cannot be applied to a LazyTensor. See `?Conj` for compatible types.",
-               fixed = TRUE)
 })
 
 

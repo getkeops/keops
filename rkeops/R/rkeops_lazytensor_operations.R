@@ -240,6 +240,11 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
                    "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
     }
     
+    if(is.complex(x)){
+        res_type = "ComplexLazyTensor"
+        x <- LazyTensor(x)
+    }
+    
     if(is.numeric(x) || is.complex(x))
         x <- LazyTensor(x)
     
@@ -820,7 +825,7 @@ square.LazyTensor <- function(x) {
 }
 
 square.ComplexLazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Square")
+    res <- unaryop.LazyTensor(x, "Square", res_type = "ComplexLazyTensor")
     return(res)
 }
 
@@ -854,8 +859,9 @@ sqrt.LazyTensor <- function(x) {
     return(res)
 }
 
+
 sqrt.ComplexLazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Sqrt")
+    res <- unaryop.LazyTensor(x, "Sqrt", res_type = "ComplexLazyTensor")
     return(res)
 }
 
@@ -892,7 +898,7 @@ rsqrt.LazyTensor <- function(x) {
 }
 
 rsqrt.ComplexLazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Rsqrt")
+    res <- unaryop.LazyTensor(x, "Rsqrt", res_type = "ComplexLazyTensor")
     return(res)
 }
 
@@ -978,14 +984,14 @@ rsqrt.ComplexLazyTensor <- function(x) {
     if(is.numeric(y) && length(y) == 1){
         if((as.integer(y) - y) == 0){
             if(y == 2)
-                res <- unaryop.LazyTensor(x, "Square")
+                res <- unaryop.LazyTensor(x, "Square", res_type = "ComplexLazyTensor")
             else
-                res <- unaryop.LazyTensor(x, "Pow", y)
+                res <- unaryop.LazyTensor(x, "Pow", y, res_type = "ComplexLazyTensor")
         }
         else if(y == 0.5)
-            res <- unaryop.LazyTensor(x, "Sqrt") # element-wise square root
+            res <- unaryop.LazyTensor(x, "Sqrt", res_type = "ComplexLazyTensor") # element-wise square root
         else if(y == (-0.5))
-            res <- unaryop.LazyTensor(x, "Rsqrt") # element-wise inverse square root
+            res <- unaryop.LazyTensor(x, "Rsqrt", res_type = "ComplexLazyTensor") # element-wise inverse square root
         # check if Powf with y a float number has to be like Powf(var1,var2) or Powf(var,y) (Powf(var, 0.5))
         else {
             # TODO !!
@@ -1087,13 +1093,19 @@ rsqrt.ComplexLazyTensor <- function(x) {
 #' }
 #' @export
 "%*%" <- function(x, y) { 
-    if(!is.LazyTensor(x))
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         UseMethod("%*%", y)
     else
         UseMethod("%*%", x)
 }
 
 "%*%.LazyTensor" <- function(x, y) {
+    if(is.matrix(y))
+        y <- LazyTensor(y, "j")
+    sum(x * y, index = "j")
+}
+
+"%*%.ComplexLazyTensor" <- function(x, y) {
     if(is.matrix(y))
         y <- LazyTensor(y, "j")
     sum(x * y, index = "j")
@@ -1178,6 +1190,11 @@ log.LazyTensor <- function(x) {
     return(res)
 }
 
+log.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Log", res_type = "ComplexLazyTensor")
+    return(res)
+}
+
 
 # inverse ----------------------------------------------------------------------
 inv.default <- function(x) {
@@ -1207,6 +1224,11 @@ inv <- function(x) {
 
 inv.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Inv")
+    return(res)
+}
+
+inv.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Inv", res_type = "ComplexLazyTensor")
     return(res)
 }
 
@@ -1240,6 +1262,11 @@ cos.LazyTensor <- function(x) {
     return(res)
 }
 
+cos.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Cos", res_type = "ComplexLazyTensor")
+    return(res)
+}
+
 
 # sine -------------------------------------------------------------------------
 sin.default <- .Primitive("sin")
@@ -1270,6 +1297,11 @@ sin.LazyTensor  <- function(x){
     return(res)
 }
 
+sin.ComplexLazyTensor  <- function(x){
+    res <- unaryop.LazyTensor(x, "Sin", res_type = "ComplexLazyTensor")
+    return(res)
+}
+
 
 # arccosine --------------------------------------------------------------------
 acos.default <- .Primitive("acos")
@@ -1294,8 +1326,14 @@ acos.default <- .Primitive("acos")
 acos <- function(x) {
     UseMethod("acos")
 }
+
 acos.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Acos")
+    return(res)
+}
+
+acos.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Acos", res_type = "ComplexLazyTensor")
     return(res)
 }
 
@@ -1329,6 +1367,11 @@ asin.LazyTensor <- function(x) {
     return(res)
 }
 
+asin.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Asin", res_type = "ComplexLazyTensor")
+    return(res)
+}
+
 
 # arctangent -------------------------------------------------------------------
 atan.default <- .Primitive("atan")
@@ -1356,6 +1399,11 @@ atan <- function(x) {
 
 atan.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Atan")
+    return(res)
+}
+
+atan.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Atan", res_type = "ComplexLasyTensor")
     return(res)
 }
 
@@ -1392,13 +1440,18 @@ atan2.default <- function(x, y) {
 #' }
 #' @export
 atan2 <- function(x, y) {
-    if(!is.LazyTensor(x))
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x)) 
         UseMethod("atan2", y)
     else
         UseMethod("atan2", x)
 }
 
 atan2.LazyTensor <- function(x, y) {
+    res <- binaryop.LazyTensor(x, y, "Atan2", dim_check_type = "same")
+    return(res)
+}
+
+atan2.ComplexLazyTensor <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "Atan2", dim_check_type = "same")
     return(res)
 }
@@ -1412,6 +1465,8 @@ abs.default <- .Primitive("abs")
 #' Symbolic unary operation for element-wise absolute value.
 #' @details If `x` is a `LazyTensor`, `abs(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise absolute value of `x` ; else, computes R default absolute value function.
+#' If `x` is a `ComplexLazyTensor`, `abs(x)` returns a `LazyTensor` that encodes, symbolically,
+#' the modulus of `x` ; else, computes R default absolute value function.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
@@ -1430,6 +1485,11 @@ abs <- function(x) {
 
 abs.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "Abs")
+    return(res)
+}
+
+abs.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "ComplexAbs")
     return(res)
 }
 
@@ -1463,6 +1523,11 @@ sign.LazyTensor <- function(x) {
     return(res)
 }
 
+sign.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "Sign", res_type = "ComplexLazyTensor")
+    return(res)
+}
+
 
 # round function ---------------------------------------------------------------
 round.default <- .Primitive("round")
@@ -1474,7 +1539,7 @@ round.default <- .Primitive("round")
 #' the element-wise rounding of `x` to `d` decimal places ; else, computes R default rounding function.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
-#' @param d A scalar value.
+#' @param d A scalar value. (or a complex ?)
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `round()` function).
@@ -1490,13 +1555,20 @@ round <- function(x, ...) {
 }
 
 round.LazyTensor <- function(x, d) {
-    if(is.numeric(d) && length(d) == 1)
+    if((is.numeric(d) || is.complex(d)) && length(d) == 1)
         res <- unaryop.LazyTensor(x, "Round", d)
     else
         stop("`d` input argument should be a scalar.")
     return(res)
 }
 
+round.ComplexLazyTensor <- function(x, d) {
+    if((is.numeric(d) || is.complex(d)) && length(d) == 1)
+        res <- unaryop.LazyTensor(x, "Round", d, res_type = "ComplexLazyTensor")
+    else
+        stop("`d` input argument should be a scalar.")
+    return(res)
+}
 
 # xlogx function ---------------------------------------------------------------
 xlogx.default <- function(x) {
@@ -1529,6 +1601,11 @@ xlogx <- function(x) {
 
 xlogx.LazyTensor <- function(x) {
     res <- unaryop.LazyTensor(x, "XLogX")
+    return(res)
+}
+
+xlogx.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "XLogX", res_type = "ComplexLazyTensor")
     return(res)
 }
 
@@ -1567,6 +1644,11 @@ sinxdivx.LazyTensor <- function(x) {
     return(res)
 }
 
+sinxdivx.ComplexLazyTensor <- function(x) {
+    res <- unaryop.LazyTensor(x, "SinXDivX", res_type = "ComplexLazyTensor")
+    return(res)
+}
+
 
 # step function ----------------------------------------------------------------
 
@@ -1589,7 +1671,12 @@ sinxdivx.LazyTensor <- function(x) {
 #' }
 #' @export
 step.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Step")
+    if(is.LazyTensor(x) || is.ComplexLazyTensor(x))
+        res <- unaryop.LazyTensor(x, "Step", res_type = class(x))
+    
+    else if(is.complex(x))
+        res <- unaryop.LazyTensor(x, "Step")
+    
     return(res)
 }
 
@@ -1612,7 +1699,10 @@ step.LazyTensor <- function(x) {
 #' }
 #' @export
 relu <- function(x) {
-    res <- unaryop.LazyTensor(x, "ReLU")
+    if(is.LazyTensor(x) || is.ComplexLazyTensor(x))
+        res <- unaryop.LazyTensor(x, "ReLU", res_type = class(x))
+    else
+        res <- unaryop.LazyTensor(x, "ReLU")
     return(res)
 }
 
@@ -1681,7 +1771,7 @@ clamp <- function(x, a, b) {
 #' }
 #' @export
 clampint <- function(x, y, z) {
-    if(!is.numeric(y) || !is.numeric(z) || (as.integer(y) - y) != 0 || (as.integer(z) - z) != 0) {
+    if((!is.numeric(y) || !is.numeric(z)) || ((as.integer(y) - y) != 0 || (as.integer(z) - z) != 0)) {
         stop("'clampint(x, y, z)' expects integer arguments for `y` and `z`. Use clamp(x, y, z) for different `y` and `z` types.")
     }
     res <- unaryop.LazyTensor(x, "ClampInt", y, z)
@@ -1763,7 +1853,10 @@ mod <- function(x, a, b) {
 #' }
 #' @export
 sqnorm2 <- function(x) {
-    res <- unaryop.LazyTensor(x, "SqNorm2")
+    if(is.LazyTensor(x) || is.ComplexLazyTensor(x))
+        res <- unaryop.LazyTensor(x, "SqNorm2", res_type = class(x))
+    else
+        res <- unaryop.LazyTensor(x, "SqNorm2")
     return(res)
 }
 
@@ -1786,7 +1879,10 @@ sqnorm2 <- function(x) {
 #' }
 #' @export
 norm2 <- function(x) {
-    res <- unaryop.LazyTensor(x, "Norm2")
+    if(is.LazyTensor(x) || is.ComplexLazyTensor(x))
+        res <- unaryop.LazyTensor(x, "Norm2", res_type = class(x))
+    else
+        res <- unaryop.LazyTensor(x, "Norm2")
     return(res)
 }
 
@@ -1809,9 +1905,13 @@ norm2 <- function(x) {
 #' }
 #' @export
 normalize <- function(x) {
-    res <- unaryop.LazyTensor(x, "Normalize")
+    if(is.LazyTensor(x) || is.ComplexLazyTensor(x))
+        res <- unaryop.LazyTensor(x, "Normalize", res_type = "ComplexLazyTensor")
+    else 
+        res <- unaryop.LazyTensor(x, "Normalize")
     return(res)
 }
+
 
 
 # Squared distance -------------------------------------------------------------
@@ -2179,10 +2279,10 @@ Mod.ComplexLazyTensor <- function(z) {
 #' }
 #' @export
 reduction.LazyTensor <- function(x, opstr, index) {
-    if(!is.LazyTensor(x))
-        stop("`x` input should be a LazyTensor.")
+    if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
+        stop("`x` input should be a LazyTensor or a ComplexLazyTensor.")
     
-    if(class(opstr)[1] != "character")
+    if(!is.character(opstr))
         stop("`opst` input should be a string text.")
     
     if(check_index(index)) {
@@ -2240,6 +2340,17 @@ sum <- function(x, index) {
 sum.LazyTensor <- function(x, index = NA) {
     if(is.na(index))
         res <- unaryop.LazyTensor(x, "Sum")
+    else if(check_index(index))
+        res <- reduction.LazyTensor(x, "Sum", index)
+    else
+        stop("`index` input argument should be a character `i`, `j` or NA.")
+    return(res)
+}
+
+
+sum.ComplexLazyTensor <- function(x, index = NA) {
+    if(is.na(index))
+        res <- unaryop.LazyTensor(x, "Sum", res_type = "ComplexLazyTensor")
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "Sum", index)
     else
@@ -2321,6 +2432,16 @@ min.LazyTensor <- function(x, index = NA) {
     return(res)
 }
 
+min.ComplexLazyTensor <- function(x, index = NA) {
+    if(is.na(index))
+        res <- unaryop.LazyTensor(x, "Min", res_type = "ComplexLazyTensor")
+    else if(check_index(index))
+        res <- reduction.LazyTensor(x, "Min", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j` or NA.")
+    return(res)
+}
+
 
 
 # min reduction ----------------------------------------------------------------
@@ -2379,14 +2500,20 @@ min_reduction <- function(x, index) {
 #' }
 #' @export
 argmin <- function(x, index = NA) {
-    if(is.na(index))
-        res <- unaryop.LazyTensor(x, "ArgMin")
+    if(is.na(index)) {
+        if(is.LazyTensor(x) || is.ComplexLazyTensor(x))
+            res <- unaryop.LazyTensor(x, "ArgMin", res_type = class(x))
+        else
+            res <- unaryop.LazyTensor(x, "ArgMin")
+    }
+    
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "ArgMin", index)
     else
         stop("`index` input argument should be a character `i`, `j` or NA.")
     return(res)
 }
+
 
 # argmin reduction -------------------------------------------------------------
 
@@ -2527,6 +2654,17 @@ max.LazyTensor <- function(x, index = NA) {
     return(res)
 }
 
+max.ComplexLazyTensor <- function(x, index = NA) {
+    if(is.na(index))
+        res <- unaryop.LazyTensor(x, "Max", res_type = "ComplexLazyTensor")
+    else if(check_index(index))
+        res <- reduction.LazyTensor(x, "Max", index)
+    else 
+        stop("`index` input argument should be a character `i`, `j` or NA.")
+    return(res)
+}
+
+
 # max reduction ----------------------------------------------------------------
 
 #' Max reduction.
@@ -2579,14 +2717,19 @@ max_reduction <- function(x, index) {
 #' }
 #' @export
 argmax <- function(x, index = NA) {
-    if(is.na(index))
-        res <- unaryop.LazyTensor(x, "ArgMax")
+    if(is.na(index)) {
+        if(is.LazyTensor(x) || is.ComplexLazyTensor(x))
+            res <- unaryop.LazyTensor(x, "ArgMax", res_type = class(x))
+        else
+            res <- unaryop.LazyTensor(x, "ArgMax")
+    }
     else if(check_index(index))
         res <- reduction.LazyTensor(x, "ArgMax", index)
     else 
         stop("`index` input argument should be a character `i`, `j` or NA.")
     return(res)
 }
+
 
 # argmax reduction -------------------------------------------------------------
 
