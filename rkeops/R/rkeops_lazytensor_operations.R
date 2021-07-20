@@ -270,8 +270,8 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
 #' @description
 #' Symbolically applies **opstr** operation to **x** and **y**.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
-#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @param opstr A text string corresponding to an operation.
 #' @param is_operator A boolean used to specify if **opstr** is an operator like ``+``
 #' , ``-`` or a "genuine" function.
@@ -349,8 +349,9 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
 #' @description
 #' Symbolically applies **opstr** operation to **x**, **y** and **z**.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
-#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param z A `LazyTensor`, a `ComplexLazyTensor`r, a vector of numeric values, or a scalar value.
 #' @param opstr A text string corresponding to an operation.
 #' @return An object of class "LazyTensor".
 #' @examples
@@ -364,7 +365,7 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1") {
     args <- list(x, y, z)
     for (i in 1:3) {
         if(is.matrix(args[[i]])) {
-            stop(paste("`", names[i], "` input argument should be a LazyTensor, a vector or a scalar.",
+            stop(paste("`", names[i], "` input argument should be a LazyTensor, a ComplexLazyTensor, a vector or a scalar.",
                        "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
         }
         if(is.numeric(args[[i]]) || is.complex(args[[i]])) {
@@ -503,7 +504,7 @@ is.ComplexLazyTensor <- function(x){
 #' @export
 get_inner_dim <- function(x) {
     # Grab `x` inner dimension.
-    # `x` must be a LazyTensor.
+    # `x` must be a LazyTensor or a ComplexLazyTensor.
     if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         stop("`x` input argument should be a LazyTensor or a ComplexLazyTensor.")
     
@@ -615,8 +616,8 @@ check_index <- function(index){
 #' 
 #' `x` and `y` input arguments should have the same inner dimension or be of dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
-#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", otherwise.
 #' @examples
@@ -666,8 +667,8 @@ check_index <- function(index){
 #' 
 #' For **subtraction operation**, `x` and `y` input arguments should have the same inner dimension or be of dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value (matrices can be used with the minus sign only).
-#' @param y A LazyTensor, a vector of numeric values, or a scalar value (matrices can be used with the minus sign only).
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value (matrices can be used with the minus sign only).
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value (matrices can be used with the minus sign only).
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", otherwise.
 #' @examples
@@ -716,8 +717,8 @@ check_index <- function(index){
 #' 
 #' `x` and `y` input arguments should have the same inner dimension or be of dimension 1.
 #' @author Chloé Serre-Combe, Amélie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
-#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", otherwise.
 #' @examples
@@ -762,8 +763,8 @@ check_index <- function(index){
 #' 
 #' `x` and `y` input arguments should have the same inner dimension or be of dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
-#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", otherwise.
 #' @examples
@@ -805,7 +806,7 @@ square.default <- function(x) {
 #' @details If `x` is a `LazyTensor`, `square(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise square of `x` ; else, is equivalent to the "^2" R operator.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, same as the input class.
 #' @examples
@@ -839,7 +840,7 @@ sqrt.default <- .Primitive("sqrt") # assign default as current definition
 #' @details If `x` is a `LazyTensor`, `sqrt(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise square root of `x` ; else, computes R default square root function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `sqrt()` function).
@@ -878,7 +879,7 @@ rsqrt.default <- function(x) {
 #' the element-wise inverse square root of `x` ; else, computes the element-wise inverse
 #' of R default square root function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, same as the input class.
 #' @examples
@@ -923,8 +924,8 @@ rsqrt.ComplexLazyTensor <- function(x) {
 #'     \item{if **y = -0.5**,}{ `x^y` uses on the `"Rsqrt"` KeOps operation.}
 #' }
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
-#' @param y A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", otherwise.
 #' @examples
@@ -1020,33 +1021,33 @@ rsqrt.ComplexLazyTensor <- function(x) {
 # Euclidean scalar product -----------------------------------------------------
 "|.default" <- .Primitive("|")
 
-# TODO finish the doc for Euclidean scalar product when questions answered
-# #' Euclidean scalar product.
-# #' @description
-# #' Symbolic binary operation for Euclidean scalar product.
-# #' @usage x | y  or  (x | y)
-# #' @details If `x` or `y` is a `LazyTensor`, `(x|y)` (or `x | y`) returns a `LazyTensor`
-# #' that encodes, symbolically, the Euclidean scalar product between `x` and `y`, which must have the same shape.
-# #' (In case one of the arguments is a vector or a scalar, it is first converted to `LazyTensor`).
-# #' If none of the arguments is a `LazyTensor`, is equivalent to the "|" R operator.
-# #'
-# #' **Note**
-# #' 
-# #' `x` and `y` input arguments should have the same inner dimension.
-# #' @author Chloe Serre-Combe, Amelie Vernay
-# #' @param x A LazyTensor, a vector of numeric values, or a scalar value.
-# #' @param y A LazyTensor, a vector of numeric values, or a scalar value.
-# #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
-# #' and an object of class "numeric", otherwise.
-# #' @examples
-# #' \dontrun{
-# #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-# #' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
-# #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-# #' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
-# #' x_div_y <- x_i / y_j                # symbolic matrix
-# #' }
-# #' @export
+# TODO finish the doc with dimensions
+#' Euclidean scalar product.
+#' @description
+#' Symbolic binary operation for Euclidean scalar product.
+#' @usage x | y  or  (x | y)
+#' @details If `x` or `y` is a `LazyTensor`, `(x|y)` (or `x | y`) returns a `LazyTensor`
+#' that encodes, symbolically, the Euclidean scalar product between `x` and `y`, which must have the same shape.
+#' (In case one of the arguments is a vector or a scalar, it is first converted to `LazyTensor`).
+#' If none of the arguments is a `LazyTensor`, is equivalent to the "|" R operator.
+#'
+#' **Note**
+#'
+#' `x` and `y` input arguments should have the same inner dimension.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
+#' and an object of class "numeric", otherwise.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
+#' x_div_y <- x_i / y_j                # symbolic matrix
+#' }
+#' @export
 "|" <- function(x, y) { 
     if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
         UseMethod("|", y)
@@ -1080,8 +1081,8 @@ rsqrt.ComplexLazyTensor <- function(x) {
 #' @details If `x` or `y` is a `LazyTensor`, `x %*% y` .... TODO (sum_reduction)
 #' If none of the arguments is a `LazyTensor`, is equivalent to the "%*%" R operator.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector or a matrix of numeric values, or a scalar value.
-#' @param y A LazyTensor, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return A matrix
 #' @examples
 #' \dontrun{
@@ -1170,7 +1171,7 @@ log.default <- .Primitive("log")
 #' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise exponential of `x` ; else, computes R default logarithm.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `log()` function).
@@ -1208,7 +1209,7 @@ inv.default <- function(x) {
 #' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise inverse of `x` ; else, computes R default inverse.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, same as the input class.
 #' @examples
@@ -1242,7 +1243,7 @@ cos.default <- .Primitive("cos")
 #' @details If `x` is a `LazyTensor`, `exp(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise cosine of `x` ; else, computes R default cosine.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A LazyTensor, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `cos()` function).
@@ -1277,7 +1278,7 @@ sin.default <- .Primitive("sin")
 #' @details If `x` is a `LazyTensor`, `sin(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise sine of `x`; else, computes R default sine function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `sin()` function).
@@ -1312,7 +1313,7 @@ acos.default <- .Primitive("acos")
 #' @details If `x` is a `LazyTensor`, `acos(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise arccosine of `x` ; else, computes R default arccosine function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `acos()` function).
@@ -1347,7 +1348,7 @@ asin.default <- .Primitive("asin")
 #' @details If `x` is a `LazyTensor`, `asin(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise arcsine of `x` ; else, computes R default arcsine function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `asin()` function).
@@ -1382,7 +1383,7 @@ atan.default <- .Primitive("atan")
 #' @details If `x` is a `LazyTensor`, `atan(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise arctangent of `x` ; else, computes R default arctangent function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `atan()` function).
@@ -1425,8 +1426,8 @@ atan2.default <- function(x, y) {
 #' 
 #' `x` and `y` input arguments should have the same inner dimension.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param y A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `atan2()` function)
@@ -1468,7 +1469,7 @@ abs.default <- .Primitive("abs")
 #' If `x` is a `ComplexLazyTensor`, `abs(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the modulus of `x` ; else, computes R default absolute value function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `abs()` function).
@@ -1503,7 +1504,7 @@ sign.default <- .Primitive("sign")
 #' @details If `x` is a `LazyTensor`, `sign(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise sign of `x` in {-1, 0, +1} ; else, computes R default sign function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `sign()` function).
@@ -1538,7 +1539,7 @@ round.default <- .Primitive("round")
 #' @details If `x` is a `LazyTensor`, `round(x, d)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise rounding of `x` to `d` decimal places ; else, computes R default rounding function.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param d A scalar value. (or a complex ?)
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
@@ -1585,7 +1586,7 @@ xlogx.default <- function(x) {
 #' @details If `x` is a `LazyTensor`, `xlogx(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise `x` times logarithm of `x` (with value 0 at 0); else, computes `x * log(x)`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class.
 #' @examples
@@ -1625,7 +1626,7 @@ sinxdivx.default <- function(x) {
 #' @details If `x` is a `LazyTensor`, `xlogx(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise sin(x)/x function of `x` (with value 0 at 0); else, computes `sin(x) / x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class.
 #' @examples
@@ -1659,7 +1660,7 @@ sinxdivx.ComplexLazyTensor <- function(x) {
 #' the element-wise step function of `x` ; else, computes R default step function with other specific arguments 
 #' (see R default `step()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor" if the function is called with a `LazyTensor`,
 #' and an object of class "numeric", "matrix", or "array" otherwise, depending on the input class
 #' (see R default `step()` function).
@@ -1689,7 +1690,7 @@ step.LazyTensor <- function(x) {
 #' @details `relu(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the element-wise ReLU of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -1721,9 +1722,9 @@ relu <- function(x) {
 #' 
 #' If `a` and `b` are not scalar values, these should have the same inner dimension as `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param a A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param b A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param a A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param b A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -1762,7 +1763,7 @@ clamp <- function(x, a, b) {
 #' for more details.
 #' Broadcasting rules apply.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @param y An `integer`.
 #' @param z An `integer`.
 #' @return An object of class "LazyTensor".
@@ -1793,9 +1794,9 @@ clampint <- function(x, y, z) {
 #' 
 #' If `a` and `b` are not scalar values, these should have the same inner dimension as `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param a A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param b A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param a A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param b A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -1816,14 +1817,14 @@ ifelse.LazyTensor <- function(x, a, b) {
 #' `mod(x, a, b)` encodes symbolically `x - a * floor((x - b)/a)`.
 #' By default `b = 0`, so that `mod(x, a)` becomes equivalent to the R function `%%`.
 #' TODO check if `a` and `b` really must be int or floats !!
-##' 
-##' **Note**
-##' 
-##' If `a` and `b` are not scalar values, these should have the same inner dimension as `x`.
-##' @author Chloe Serre-Combe, Amelie Vernay
-##' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
-##' @param a A `LazyTensor`, a vector of numeric values, or a scalar value.
-##' @param b A `LazyTensor`, a vector of numeric values, or a scalar value.
+# #' 
+# #' **Note**
+# #' 
+# #' If `a` and `b` are not scalar values, these should have the same inner dimension as `x`.
+# #' @author Chloe Serre-Combe, Amelie Vernay
+# #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+# #' @param a A `LazyTensor`, a vector of numeric values, or a scalar value.
+# #' @param b A `LazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -1843,7 +1844,7 @@ mod <- function(x, a, b) {
 #' @details `sqnorm2(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the squared Euclidean norm of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -1895,7 +1896,7 @@ norm2 <- function(x) {
 #' @details `normalize(x)` returns a `LazyTensor` that encodes, symbolically,
 #' the vector normalization of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -1926,8 +1927,8 @@ normalize <- function(x) {
 #' 
 #' `x` and `y` input arguments should have the same inner dimension or be of dimension 1.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param y A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -1944,6 +1945,8 @@ sqdist <- function(x, y) {
 
 # Weighted squared norm --------------------------------------------------------
 
+# TODO
+
 #' Generic squared eucidian norm.
 #' @description
 #' Symbolic binary operation for weighted squared norm of a LazyTensor.
@@ -1951,7 +1954,7 @@ sqdist <- function(x, y) {
 #' the weighted squared norm of a vector `x` with weights stored in the LazyTensor `s`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `vector` of numeric values or a scalar value.
-#' @param s A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param s A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -1979,8 +1982,8 @@ weightedsqnorm <- function(x, s) {
 #' the weighted squared distance of a vector `x` with weights stored in the LazyTensor `s`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `vector` of numeric values or a scalar value.
-#' @param y A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param z A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param z A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -2265,7 +2268,7 @@ Mod.ComplexLazyTensor <- function(z) {
 #'   \item if **index = "j"**, return the **opstr** reduction of **x** over the "j" indexes.
 #' }
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param opstr A `string` formula (like "Sum" or "Max").
 #' @param index A `character` that should be either **i** or **j** to specify whether if 
 #' the reduction is indexed by **i** (rows), or **j** (columns).
@@ -2319,7 +2322,7 @@ sum.default <- .Primitive("sum")
 #' If `x` is not a `LazyTensor` it computes R default "sum" function with
 #' other specific arguments (see R default `sum()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
@@ -2366,7 +2369,7 @@ sum.ComplexLazyTensor <- function(x, index = NA) {
 #' Summation unary operation, or Sum reduction.
 #' @details `sum_reduction(x, index)` will return the sum reduction of **x** indexed by **index**.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), by **j** (columns).
 #' @return 
@@ -2403,7 +2406,7 @@ min.default <- .Primitive("min")
 #' If `x` is not a `LazyTensor` it computes R default "min" function with
 #' other specific arguments (see R default `min()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
@@ -2451,7 +2454,7 @@ min.ComplexLazyTensor <- function(x, index = NA) {
 #' Minimum reduction.
 #' @details `min_reduction(x, index)` will return the min reduction of **x** indexed by **index**.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @return 
 #' @examples
 #' \dontrun{
@@ -2484,7 +2487,7 @@ min_reduction <- function(x, index) {
 #'   the argmin  of the values of the vector.
 #' }
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
 #' or **j** (columns).
@@ -2522,7 +2525,7 @@ argmin <- function(x, index = NA) {
 #' Argmin reduction.
 #' @details `argmin_reduction(x, index)` will return the argmin reduction of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
 #' or **j** (columns).
@@ -2555,7 +2558,7 @@ argmin_reduction <- function(x, index) {
 #'   \item if **index = "j"**, return the minimal values and its indices of **x** over the "j" indexes.
 #' }
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows),
 #' or **j** (columns).
@@ -2584,7 +2587,7 @@ min_argmin <- function(x, index) {
 #' Min-ArgMin reduction.
 #' @details `min_argmin_reduction(x, index)` will return the min reduction of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
 #' or **j** (columns).
@@ -2626,7 +2629,7 @@ max.default <- .Primitive("max")
 #' If `x` is not a `LazyTensor` it computes R default "max" function with
 #' other specific arguments (see R default `max()` function).
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), or **j** (columns).
 #' It can be NA (default) when no reduction is desired.
@@ -2672,7 +2675,7 @@ max.ComplexLazyTensor <- function(x, index = NA) {
 #' Maximum reduction.
 #' @details `max_reduction(x, index)` will return the max reduction of **x** indexed by **index**.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
 #' or **j** (columns).
@@ -2701,7 +2704,7 @@ max_reduction <- function(x, index) {
 #' ArgMax unary operation, or ArgMax reduction.
 #' @details 
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric values, or a scalar value.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
 #' or **j** (columns).
@@ -2738,7 +2741,7 @@ argmax <- function(x, index = NA) {
 #' ArgMax reduction.
 #' @details `argmax_reduction(x, index)` will return the argmax reduction of `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
 #' or **j** (columns).
@@ -2771,7 +2774,7 @@ argmax_reduction <- function(x, index) {
 #'   \item if **index = "j"**, return the maximal values and its indices of **x** over the "j" indexes.
 #' }
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows),
 #' or **j** (columns).
@@ -2800,7 +2803,7 @@ max_argmax <- function(x, index) {
 #' Max-ArgMax reduction.
 #' @details `max_argmax_reduction(x, index)` 
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a vector or a matrix of numeric values, or a scalar value.
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by **i** (rows), 
 #' or **j** (columns).
