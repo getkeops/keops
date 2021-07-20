@@ -197,7 +197,7 @@ Vj <- function(x, is_complex = FALSE){
 #' }
 #' @export
 Pm <- function(x, is_complex = FALSE){
-    if(class(x)[1] == "LazyTensor") {
+    if(is.LazyTensor(x)) {
         stop("`x` input is already a LazyTensor.")
     }
     
@@ -240,7 +240,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
                    "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
     }
     
-    if(is.numeric(x))
+    if(is.numeric(x) || is.complex(x))
         x <- LazyTensor(x)
     
     if(!is.na(opt_arg2))
@@ -352,7 +352,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
 #' \dontrun{
 #' }
 #' @export
-ternaryop.LazyTensor <- function(x, y, z, opstr) {
+ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1") {
     # check that there are no matrix
     # and convert numeric or complex values to LazyTensor
     names <- c("x", "y", "z")
@@ -369,6 +369,23 @@ ternaryop.LazyTensor <- function(x, y, z, opstr) {
     x <- args[[1]]
     y <- args[[2]]
     z <- args[[3]]
+    
+    # check dimensions
+    if(dim_check_type == "sameor1") {
+        if (!check_inner_dim(x, y, z, check_type = dim_check_type)) {
+            stop(paste("Operation `", opstr, "` expects inputs of the same dimension or dimension 1. Received ",
+                       get_inner_dim(x), ", ", get_inner_dim(y),
+                       " and ", get_inner_dim(z), ".", sep = ""))
+        }
+    }
+    if(dim_check_type == "same") {
+        if (!check_inner_dim(x, y, z, check_type = dim_check_type)) {
+            stop(paste("Operation `", opstr, "` expects inputs of the same dimension. Received ",
+                       get_inner_dim(x), ", ", get_inner_dim(y),
+                       " and ", get_inner_dim(z), ".", sep = ""))
+        }
+    }
+    
     # format formula
     formula <- paste(opstr, "(", x$formula, ",", y$formula, ",", z$formula, ")", sep = "")
     vars <- c(x$vars, y$vars, z$vars)
@@ -1070,7 +1087,7 @@ rsqrt.ComplexLazyTensor <- function(x) {
 #' }
 #' @export
 "%*%" <- function(x, y) { 
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x))
         UseMethod("%*%", y)
     else
         UseMethod("%*%", x)
@@ -1375,7 +1392,7 @@ atan2.default <- function(x, y) {
 #' }
 #' @export
 atan2 <- function(x, y) {
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x))
         UseMethod("atan2", y)
     else
         UseMethod("atan2", x)
@@ -1605,27 +1622,44 @@ relu <- function(x) {
 #' Element-wise clamp function.
 #' @description
 #' Symbolic ternary operation for element-wise clamp function.
-#' @details `clamp(x, y, z)` returns a `LazyTensor` that encodes, symbolically,
-#' the element-wise clamping of ``x`` in ``(y, z)``. 
+#' @details `clamp(x, a, b)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise clamping of ``x`` in ``(a, b)``. That is, `clamp(x, a, b)`
+#' encodes symbolically `a` if `x < a`, `x` if `a <= x <= b`, and `b` if `b < x`.
 #' Broadcasting rules apply.
+#' 
+#' **Note**
+#' 
+#' If `a` and `b` are not scalar values, these should have the same inner dimension as `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param y A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param z A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param a A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param b A `LazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
-
+#' # basic example
+#' D <- 3
+#' M <- 100
+#' N <- 150
+#' P <- 200
+#' x <- matrix(runif(M * D), M, D)
+#' y <- matrix(runif(N * D), N, D)
+#' z <- matrix(runif(P * D), P, D)
+#' x_i <- LazyTensor(x, index = 'i')
+#' y_j <- LazyTensor(y, index = 'j')
+#' z_i <- LazyTensor(z, index = 'i')
+#' 
+#' # call clamp function
+#' clp <- clamp(x_i, y_j, z_i)
 #' }
 #' @export
-clamp <- function(x, y, z) {
-    if(is.numeric(y) && is.numeric(z) && (as.integer(y) - y) == 0 && (as.integer(z) - z) == 0)
-        res <- unaryop.LazyTensor(x, "ClampInt", y, z)
+clamp <- function(x, a, b) {
+    if((is.numeric(a) && is.numeric(b)) && ((as.integer(a) - a) == 0 && (as.integer(b) - b) == 0))
+        res <- unaryop.LazyTensor(x, "ClampInt", a, b)
     else
-        res <- ternaryop.LazyTensor(x, y, z, "Clamp")
+        res <- ternaryop.LazyTensor(x, a, b, "Clamp")
     return(res)
 }
-
 
 
 # clampint function ---------------------------------------------------------------
@@ -1634,7 +1668,8 @@ clamp <- function(x, y, z) {
 #' @description
 #' Symbolic ternary operation for element-wise clampint function.
 #' @details `clampint(x, y, z)` returns a `LazyTensor` that encodes, symbolically,
-#' the element-wise clamping of ``x`` in ``(y, z)`` which are integers. 
+#' the element-wise clamping of ``x`` in ``(y, z)`` which are integers. See `?clamp`
+#' for more details.
 #' Broadcasting rules apply.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
@@ -1643,7 +1678,6 @@ clamp <- function(x, y, z) {
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
-
 #' }
 #' @export
 clampint <- function(x, y, z) {
@@ -1661,23 +1695,53 @@ clampint <- function(x, y, z) {
 #' Element-wise if-else function.
 #' @description
 #' Symbolic ternary operation for element-wise if-else function.
-#' @details `ifelse(x, y, z)` returns a `LazyTensor` that encodes, symbolically,
-#' `y` where ``x >= 0`` and ``z`` where ``x < 0``.  Broadcasting rules apply. 
-#' `y` and `z` may be fixed integers or floats, or other LazyTensors.
+#' @details `ifelse.LazyTensor(x, a, b)` returns a `LazyTensor` that encodes, symbolically,
+#' `a` where ``x >= 0`` and ``b`` where ``x < 0``.  Broadcasting rules apply. 
+#' `a` and `b` may be fixed integers or floats, or other `LazyTensor`.
+#' 
+#' **Note**
+#' 
+#' If `a` and `b` are not scalar values, these should have the same inner dimension as `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param y A `LazyTensor`, a vector of numeric values, or a scalar value.
-#' @param z A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param a A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @param b A `LazyTensor`, a vector of numeric values, or a scalar value.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
-
 #' }
 #' @export
-ifelse.LazyTensor <- function(x, y, z) {
-    res <- ternaryop.LazyTensor(x, y, z, "IfElse")
+ifelse.LazyTensor <- function(x, a, b) {
+    res <- ternaryop.LazyTensor(x, a, b, "IfElse")
 }
 
+
+# mod function --------------------------------------------------------------
+
+#' Element-wise modulo with offset function.
+#' @description
+#' Symbolic ternary operation for element-wise modulo with offset function.
+#' @details `mod(x, a, b)` returns a `LazyTensor` that encodes, symbolically,
+#' the element-wise modulo of `x` with modulus `a` and offset `b`. That is,
+#' `mod(x, a, b)` encodes symbolically `x - a * floor((x - b)/a)`.
+#' By default `b = 0`, so that `mod(x, a)` becomes equivalent to the R function `%%`.
+#' TODO check if `a` and `b` really must be int or floats !!
+##' 
+##' **Note**
+##' 
+##' If `a` and `b` are not scalar values, these should have the same inner dimension as `x`.
+##' @author Chloe Serre-Combe, Amelie Vernay
+##' @param x A `LazyTensor`, a vector of numeric values, or a scalar value.
+##' @param a A `LazyTensor`, a vector of numeric values, or a scalar value.
+##' @param b A `LazyTensor`, a vector of numeric values, or a scalar value.
+#' @return An object of class "LazyTensor".
+#' @examples
+#' \dontrun{
+#' }
+#' @export
+mod <- function(x, a, b) {
+    res <- ternaryop.LazyTensor(x, a, b, "Mod")
+}
 
 
 
@@ -2115,7 +2179,7 @@ Mod.ComplexLazyTensor <- function(z) {
 #' }
 #' @export
 reduction.LazyTensor <- function(x, opstr, index) {
-    if(class(x)[1] != "LazyTensor")
+    if(!is.LazyTensor(x))
         stop("`x` input should be a LazyTensor.")
     
     if(class(opstr)[1] != "character")
