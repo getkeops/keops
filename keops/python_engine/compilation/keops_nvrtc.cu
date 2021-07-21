@@ -154,14 +154,13 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
                                         (int) (sharedMemPerBlock / ::std::max(1,
                                                     (int) (  dimY * sizeof(TYPE))))));
 	}			
-	else if (use_chunk_mode==1) {
+	else {
 		// warning : the value here must match the one which is set in file GpuReduc1D_chunks.py, line 59
+        // and file GpuReduc1D_finalchunks.py, line 67
 		blockSize.x = ::std::min(cuda_block_size,
-		                             ::std::min(1024,
-		                                        (int) (49152 / ::std::max(1,
-		                                                    (int) (  dimY * sizeof(TYPE))))));
-	}
-		
+		                             ::std::min(1024,(int) (49152 / ::std::max(1,(int) (  dimY * sizeof(TYPE))))));
+    }
+    
     dim3 gridSize;
     
     int nblocks;
