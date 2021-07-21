@@ -7,9 +7,9 @@
 round(x, ...)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
 
-\item{d}{A scalar value.}
+\item{d}{A scalar value. (or a complex ?)}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a \code{LazyTensor},
@@ -31,5 +31,5 @@ Round_x <- round(x_i, 2)            # symbolic matrix
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

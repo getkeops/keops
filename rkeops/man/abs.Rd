@@ -7,7 +7,7 @@
 abs(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a \code{LazyTensor},
@@ -20,6 +20,8 @@ Symbolic unary operation for element-wise absolute value.
 \details{
 If \code{x} is a \code{LazyTensor}, \code{abs(x)} returns a \code{LazyTensor} that encodes, symbolically,
 the element-wise absolute value of \code{x} ; else, computes R default absolute value function.
+If \code{x} is a \code{ComplexLazyTensor}, \code{abs(x)} returns a \code{LazyTensor} that encodes, symbolically,
+the modulus of \code{x} ; else, computes R default absolute value function.
 }
 \examples{
 \dontrun{
@@ -29,5 +31,5 @@ Abs_x <- abs(x_i)                   # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

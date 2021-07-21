@@ -7,7 +7,7 @@
 sign(x)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a \code{LazyTensor},
@@ -19,7 +19,7 @@ Symbolic unary operation for element-wise sign.
 }
 \details{
 If \code{x} is a \code{LazyTensor}, \code{sign(x)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise sign of \code{x} in {-1,0,+1} ; else, computes R default sign function.
+the element-wise sign of \code{x} in {-1, 0, +1} ; else, computes R default sign function.
 }
 \examples{
 \dontrun{
@@ -29,5 +29,5 @@ Sign_x <- sign(x_i)                 # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

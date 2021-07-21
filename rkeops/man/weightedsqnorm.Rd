@@ -9,7 +9,7 @@ weightedsqnorm(x, s)
 \arguments{
 \item{x}{A \code{vector} of numeric values or a scalar value.}
 
-\item{s}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{s}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor".
@@ -32,5 +32,5 @@ wsqn_xy <- weightedsqnorm(x_i, y_j)
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

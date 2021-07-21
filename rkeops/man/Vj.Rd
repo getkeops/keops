@@ -2,12 +2,15 @@
 % Please edit documentation in R/rkeops_lazytensor_operations.R
 \name{Vj}
 \alias{Vj}
-\title{Wrapper LazyTensor indexed by "j"}
+\title{Wrapper LazyTensor indexed by "j".}
 \usage{
-Vj(x)
+Vj(x, is_complex = FALSE)
 }
 \arguments{
 \item{x}{A matrix of numeric values.}
+
+\item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
+\code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
 }
 \value{
 An object of class "LazyTensor" indexed by "j".
@@ -23,5 +26,5 @@ Vj_x <- Vj(x) # symbolic object representing an arbitrary row of x, indexed by t
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

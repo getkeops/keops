@@ -4,15 +4,29 @@
 \alias{unaryop.LazyTensor}
 \title{Build a unary operation}
 \usage{
-unaryop.LazyTensor(x, opstr, opt_arg = NA, opt_arg2 = NA)
+unaryop.LazyTensor(
+  x,
+  opstr,
+  opt_arg = NA,
+  opt_arg2 = NA,
+  res_type = "LazyTensor"
+)
 }
 \arguments{
-\item{x}{A LazyTensor, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
 \item{opstr}{A text string corresponding to an operation.}
+
+\item{opt_arg}{An optional argument which can be a scalar value.}
+
+\item{opt_arg2}{An optional argument which can be a scalar value.}
+
+\item{res_type}{A character string among "LazyTensor" (default) and "ComplexLazyTensor",
+depending on the class we want the result to be of.
+(Useful especially when dealing with complex-to-real or real-to-complex functions)}
 }
 \value{
-An object of class "LazyTensor".
+An object of class "LazyTensor" or "ComplexLazyTensor".
 }
 \description{
 Symbolically applies \strong{opstr} operation to \strong{x}.
@@ -21,11 +35,11 @@ Symbolically applies \strong{opstr} operation to \strong{x}.
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-una_xy <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
+una_x <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
 
-una2_xy <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
+una2_x <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

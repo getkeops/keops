@@ -2,15 +2,18 @@
 % Please edit documentation in R/rkeops_lazytensor_operations.R
 \name{Pm}
 \alias{Pm}
-\title{Wrapper LazyTensor parameter}
+\title{Wrapper LazyTensor parameter.}
 \usage{
-Pm(x)
+Pm(x, is_complex = FALSE)
 }
 \arguments{
 \item{x}{A vector or a scalar value.}
+
+\item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
+\code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
 }
 \value{
-An object of class "LazyTensor" in parameter category.
+An object of class "LazyTensor" in parameter category. See \code{?LazyTensor} for more details.
 }
 \description{
 Simple wrapper that return an instantiation of \code{LazyTensor} indexed by "i".
@@ -23,5 +26,5 @@ Pm_x <- Pm(x)
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

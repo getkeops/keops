@@ -7,9 +7,9 @@
 x^y
 }
 \arguments{
-\item{x}{A LazyTensor, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{y}{A LazyTensor, a vector of numeric values, or a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a \code{LazyTensor},
@@ -25,6 +25,7 @@ that encodes, symbolically, the element-wise value of \code{x} to the power of \
 If none of the arguments is a \code{LazyTensor}, is equivalent to the "^" R operator.
 
 \strong{Note}
+
 \itemize{
 \item{if \strong{y = 2},}{ \code{x^y} relies on the \code{"Square"} KeOps operation;}
 \item{if \strong{y = 0.5},}{ \code{x^y} uses on the \code{"Sqrt"} KeOps operation;}
@@ -34,12 +35,12 @@ If none of the arguments is a \code{LazyTensor}, is equivalent to the "^" R oper
 \examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
 y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
-x_pow_y <- x_i ^ y_j                # symbolic matrix, 150 rows and 3 columns
+x_pow_y <- x_i^y_j                  # symbolic matrix
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

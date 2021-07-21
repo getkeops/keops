@@ -2,9 +2,9 @@
 % Please edit documentation in R/rkeops_lazytensor_operations.R
 \name{LazyTensor}
 \alias{LazyTensor}
-\title{Build and return a LazyTensor object}
+\title{Build and return a LazyTensor object.}
 \usage{
-LazyTensor(x, index = NA)
+LazyTensor(x, index = NA, is_complex = FALSE)
 }
 \arguments{
 \item{x}{A matrix or a vector of numeric values, or a scalar value}
@@ -12,9 +12,12 @@ LazyTensor(x, index = NA)
 \item{index}{A text string that should be either \strong{i} or \strong{j}, or an \strong{NA} value (the default),
 to specify whether if the \strong{x} variable is indexed by \strong{i}, by \strong{j}, or is a fixed parameter across indices.
 If \strong{x} is a matrix, \strong{index} must be \strong{i} or \strong{j}.}
+
+\item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
+\code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
 }
 \value{
-An object of class "LazyTensor", which is a list with the following elements:
+An object of class "LazyTensor" or "ComplexLazyTensor", which is a list with the following elements:
 
 \itemize{
 \item{\strong{formula}:}{ A string defining the mathematical operation to be computed by the KeOps routine}
@@ -61,6 +64,11 @@ K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 100 rows and 150 columns
 res <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of length 150 here)
                               # containing the column sums of K_ij
                               # (i.e. the sums over the "i" index, for each "j" index)
+
+
+# Example : create ComplexLazyTensor:
+z <- matrix(1i^ (-6:5), nrow = 4)                     # create a complex 4x3 matrix
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor, indexed by 'i'
 
 }
 }

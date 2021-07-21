@@ -2,15 +2,18 @@
 % Please edit documentation in R/rkeops_lazytensor_operations.R
 \name{Vi}
 \alias{Vi}
-\title{Wrapper LazyTensor indexed by "i"}
+\title{Wrapper LazyTensor indexed by "i".}
 \usage{
-Vi(x)
+Vi(x, is_complex = FALSE)
 }
 \arguments{
 \item{x}{A matrix of numeric values, or a scalar value.}
+
+\item{is_complex}{A boolean (default is FALSE). Whether if we want to create a
+\code{ComplexLazyTensor} (is_complex = TRUE) or a \code{LazyTensor} (is_complex = FALSE).}
 }
 \value{
-An object of class "LazyTensor" indexed by "i".
+An object of class "LazyTensor" indexed by "i". See \code{?LazyTensor} for more details.
 }
 \description{
 Simple wrapper that return an instantiation of \code{LazyTensor} indexed by "i".
@@ -23,5 +26,5 @@ Vi_x <- Vi(x) # symbolic object representing an arbitrary row of x, indexed by t
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

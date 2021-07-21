@@ -4,12 +4,14 @@
 \alias{ternaryop.LazyTensor}
 \title{Build a ternary operation}
 \usage{
-ternaryop.LazyTensor(x, y, z, opstr)
+ternaryop.LazyTensor(x, y, z, opstr, dim_check_type = "sameor1")
 }
 \arguments{
-\item{x}{A LazyTensor, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{y}{A LazyTensor, a vector of numeric values, or a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
+
+\item{z}{A \code{LazyTensor}, a \code{ComplexLazyTensor}r, a vector of numeric values, or a scalar value.}
 
 \item{opstr}{A text string corresponding to an operation.}
 }
@@ -24,5 +26,5 @@ Symbolically applies \strong{opstr} operation to \strong{x}, \strong{y} and \str
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

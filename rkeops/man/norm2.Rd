@@ -27,5 +27,5 @@ N_x <- norm2(x_i)                   # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

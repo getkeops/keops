@@ -7,7 +7,7 @@
 clampint(x, y, z)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
 \item{y}{An \code{integer}.}
 
@@ -21,7 +21,8 @@ Symbolic ternary operation for element-wise clampint function.
 }
 \details{
 \code{clampint(x, y, z)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise clamping of \code{x} in \verb{(y, z)} which are integers.
+the element-wise clamping of \code{x} in \verb{(y, z)} which are integers. See \code{?clamp}
+for more details.
 Broadcasting rules apply.
 }
 \examples{
@@ -29,5 +30,5 @@ Broadcasting rules apply.
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

@@ -4,14 +4,14 @@
 \alias{clamp}
 \title{Element-wise clamp function.}
 \usage{
-clamp(x, y, z)
+clamp(x, a, b)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{y}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{a}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{z}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{b}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor".
@@ -20,14 +20,33 @@ An object of class "LazyTensor".
 Symbolic ternary operation for element-wise clamp function.
 }
 \details{
-\code{clamp(x, y, z)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise clamping of \code{x} in \verb{(y, z)}.
+\code{clamp(x, a, b)} returns a \code{LazyTensor} that encodes, symbolically,
+the element-wise clamping of \code{x} in \verb{(a, b)}. That is, \code{clamp(x, a, b)}
+encodes symbolically \code{a} if \code{x < a}, \code{x} if \verb{a <= x <= b}, and \code{b} if \code{b < x}.
 Broadcasting rules apply.
+
+\strong{Note}
+
+If \code{a} and \code{b} are not scalar values, these should have the same inner dimension as \code{x}.
 }
 \examples{
 \dontrun{
+# basic example
+D <- 3
+M <- 100
+N <- 150
+P <- 200
+x <- matrix(runif(M * D), M, D)
+y <- matrix(runif(N * D), N, D)
+z <- matrix(runif(P * D), P, D)
+x_i <- LazyTensor(x, index = 'i')
+y_j <- LazyTensor(y, index = 'j')
+z_i <- LazyTensor(z, index = 'i')
+
+# call clamp function
+clp <- clamp(x_i, y_j, z_i)
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

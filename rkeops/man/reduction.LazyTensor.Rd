@@ -7,18 +7,25 @@
 reduction.LazyTensor(x, opstr, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
 \item{opstr}{A \code{string} formula (like "Sum" or "Max").}
 
 \item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify whether if
-the reduction is indexed by \strong{i} (rows), by \strong{j} (columns).}
+the reduction is indexed by \strong{i} (rows), or \strong{j} (columns).}
 }
 \value{
 
 }
 \description{
 Applies a reduction to a \code{LazyTensor}.
+}
+\details{
+\code{reduction.LazyTensor(x, opstr, index)} will :
+\itemize{
+\item if \strong{index = "i"}, return the \strong{opstr} reduction of \strong{x} over the "i" indexes;
+\item if \strong{index = "j"}, return the \strong{opstr} reduction of \strong{x} over the "j" indexes.
+}
 }
 \examples{
 \dontrun{
@@ -29,5 +36,5 @@ red_x <- reduction.LazyTensor(x_i, "Sum", "i")
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

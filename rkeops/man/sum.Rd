@@ -7,16 +7,28 @@
 sum(x, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
 
-\item{index}{A \code{character} that should be either \strong{i} or \strong{j} or \strong{NA} to specify whether if
-the summation is indexed by \strong{i} (rows), by \strong{j} (columns).}
+\item{index}{A \code{character} corresponding to the reduction dimension that should
+be either \strong{i} or \strong{j} to specify whether if the summation is indexed by \strong{i} (rows), or \strong{j} (columns).
+It can be NA (default) when no reduction is desired.}
 }
 \value{
 
 }
 \description{
 Summation unary operation, or Sum reduction.
+}
+\details{
+If \code{x} is a \code{LazyTensor}, \code{sum(x, index)} will :
+\itemize{
+\item if \strong{index = "i"}, return the min reduction of \strong{x} over the "i" indexes.
+\item if \strong{index = "j"}, return the min reduction of \strong{x} over the "j" indexes.
+\item if \strong{index = NA} (default), return a new \code{LazyTensor} object representing
+the min of the values of the vector.
+}
+If \code{x} is not a \code{LazyTensor} it computes R default "sum" function with
+other specific arguments (see R default \code{sum()} function).
 }
 \examples{
 \dontrun{
@@ -28,5 +40,5 @@ sum_red_x <- sum(x_i, "i")  # sum reduction indexed by 'i'
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

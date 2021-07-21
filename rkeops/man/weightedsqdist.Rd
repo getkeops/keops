@@ -9,9 +9,9 @@ weightedsqdist(x, y, z)
 \arguments{
 \item{x}{A \code{vector} of numeric values or a scalar value.}
 
-\item{y}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{z}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{z}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor".
@@ -28,5 +28,5 @@ the weighted squared distance of a vector \code{x} with weights stored in the La
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

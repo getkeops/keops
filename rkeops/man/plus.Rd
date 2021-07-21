@@ -7,9 +7,9 @@
 x + y
 }
 \arguments{
-\item{x}{A LazyTensor, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{y}{A LazyTensor, a vector of numeric values, or a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a \code{LazyTensor},
@@ -38,5 +38,5 @@ Sum_xy <- x_i + y_j                 # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

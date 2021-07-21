@@ -7,9 +7,9 @@
 sqdist(x, y)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{y}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor".
@@ -20,6 +20,10 @@ Symbolic binary operation for vector normalization.
 \details{
 \code{sqdist(x)} returns a \code{LazyTensor} that encodes, symbolically,
 the squared Euclidean distance between \code{x} and \code{y}.
+
+\strong{Note}
+
+\code{x} and \code{y} input arguments should have the same inner dimension or be of dimension 1.
 }
 \examples{
 \dontrun{
@@ -29,5 +33,5 @@ SqD_x <- sqdist(x_i)               # symbolic matrix, 150 rows and 3 columns
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

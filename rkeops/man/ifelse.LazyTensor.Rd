@@ -4,14 +4,14 @@
 \alias{ifelse.LazyTensor}
 \title{Element-wise if-else function.}
 \usage{
-ifelse.LazyTensor(x, y, z)
+ifelse.LazyTensor(x, a, b)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{y}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{a}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{z}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{b}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor".
@@ -20,14 +20,18 @@ An object of class "LazyTensor".
 Symbolic ternary operation for element-wise if-else function.
 }
 \details{
-\code{ifelse(x, y, z)} returns a \code{LazyTensor} that encodes, symbolically,
-\code{y} where \code{x >= 0} and \code{z} where \code{x < 0}.  Broadcasting rules apply.
-\code{y} and \code{z} may be fixed integers or floats, or other LazyTensors.
+\code{ifelse.LazyTensor(x, a, b)} returns a \code{LazyTensor} that encodes, symbolically,
+\code{a} where \code{x >= 0} and \code{b} where \code{x < 0}.  Broadcasting rules apply.
+\code{a} and \code{b} may be fixed integers or floats, or other \code{LazyTensor}.
+
+\strong{Note}
+
+If \code{a} and \code{b} are not scalar values, these should have the same inner dimension as \code{x}.
 }
 \examples{
 \dontrun{
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

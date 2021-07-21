@@ -7,9 +7,9 @@
 atan2(x, y)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 
-\item{y}{A \code{LazyTensor}, a vector of numeric values, or a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a \code{LazyTensor},
@@ -24,16 +24,20 @@ If \code{x} or \code{y} is a \code{LazyTensor}, \code{atan2(x, y)} returns a \co
 the element-wise atan2 of \code{x} and \code{y}. (In case one of the arguments is a vector or a scalar,
 it is first converted to LazyTensor).
 If none of the arguments is a LazyTensor, it computes R default atan2 function.
+
+\strong{Note}
+
+\code{x} and \code{y} input arguments should have the same inner dimension.
 }
 \examples{
 \dontrun{
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows and 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
 y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix x, indexed by 'i'
 Atan2_xy <- atan2(x_i, y_j)         # symbolic matrix
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

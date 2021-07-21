@@ -7,16 +7,19 @@
 sum_reduction(x, index)
 }
 \arguments{
-\item{x}{A \code{LazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor} or a \code{ComplexLazyTensor}.}
 
-\item{index}{A \code{character} that should be either \strong{i} or \strong{j} to specify whether if
-the summation is indexed by \strong{i} (rows), by \strong{j} (columns).}
+\item{index}{A \code{character} corresponding to the reduction dimension that should
+be either \strong{i} or \strong{j} to specify whether if the summation is indexed by \strong{i} (rows), by \strong{j} (columns).}
 }
 \value{
 
 }
 \description{
 Summation unary operation, or Sum reduction.
+}
+\details{
+\code{sum_reduction(x, index)} will return the sum reduction of \strong{x} indexed by \strong{index}.
 }
 \examples{
 \dontrun{
@@ -27,5 +30,5 @@ sum_reduction(x_i, "i")
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

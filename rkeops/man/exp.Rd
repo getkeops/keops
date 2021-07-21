@@ -7,7 +7,7 @@
 exp(x)
 }
 \arguments{
-\item{x}{A LazyTensor, a vector of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector of numeric values, or a scalar value.}
 }
 \value{
 An object of class "LazyTensor" if the function is called with a \code{LazyTensor},
@@ -18,16 +18,29 @@ and an object of class "numeric", "matrix", or "array" otherwise, depending on t
 Symbolic unary operation for element-wise exponential.
 }
 \details{
-If \code{x} is a \code{LazyTensor}, \code{exp(x)} returns a \code{LazyTensor} that encodes, symbolically,
-the element-wise exponential of \code{x} ; else, computes R default exponential.
+\strong{Different use cases}:
+
+\itemize{
+\item{\code{x} is a \code{LazyTensor},}{ \code{exp(x)} returns a \code{LazyTensor} that encodes, symbolically,
+the element-wise exponential of \code{x};}
+\item{\code{x} is a \code{ComplexLazyTensor},}{ \code{exp(x)} returns a \code{ComplexLazyTensor} that encodes, symbolically,
+the element-wise complex exponential of \code{x};}
+\item{else,}{ \code{exp(x)} applies R default exponential to \code{x}.}
+}
 }
 \examples{
 \dontrun{
+# basic example
 x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
 Exp_x <- exp(x_i)                   # symbolic matrix, 150 rows and 3 columns
+
+# basic example with complex exponential
+z <- matrix(1i^ (-6:5), nrow = 4)                     # create a complex 4x3 matrix
+z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
+Exp_z_i <- exp(z_i)                                   # symbolic matrix
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }

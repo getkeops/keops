@@ -7,9 +7,9 @@
 x %*% y
 }
 \arguments{
-\item{x}{A LazyTensor, a vector or a matrix of numeric values, or a scalar value.}
+\item{x}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
 
-\item{y}{A LazyTensor, a vector or a matrix of numeric values, or a scalar value.}
+\item{y}{A \code{LazyTensor}, a \code{ComplexLazyTensor}, a vector or a matrix of numeric values, or a scalar value.}
 }
 \value{
 A matrix
@@ -31,5 +31,5 @@ x_mult_y <- x_i \%*\% y_j
 }
 }
 \author{
-Chloé Serre-Combe, Amélie Vernay
+Chloe Serre-Combe, Amelie Vernay
 }
