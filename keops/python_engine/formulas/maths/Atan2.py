@@ -1,13 +1,13 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.python_engine.utils.math_functions import keops_atan2
 
+
 # //////////////////////////////////////////////////////////////
 # ////                 ATAN2 :  Atan2< F, G >               ////
 # //////////////////////////////////////////////////////////////
 
 
 class Atan2(VectorizedScalarOp):
-
     string_id = "Atan2"
 
     ScalarOpFun = keops_atan2

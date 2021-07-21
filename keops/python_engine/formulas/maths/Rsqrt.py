@@ -1,5 +1,6 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keops.python_engine.formulas.basicMathOps.IntInv import IntInv
+from keops.python_engine.formulas.maths.IntInv import IntInv
+
 
 ##########################
 ######    Rsqrt      #####

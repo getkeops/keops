@@ -3,7 +3,6 @@ from keops.python_engine.utils.math_functions import keops_cos
 
 
 class Cos(VectorizedScalarOp):
-
     """the cosine vectorized operation"""
 
     string_id = "Cos"
