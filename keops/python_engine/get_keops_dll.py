@@ -23,6 +23,7 @@
 #       - use_half : 0 or 1, enable special routines for half-precision data type,
 #       - cuda_block_size : integer, prefered block size for Gpu kernel
 #       - use_chunk_mode : 0, 1 or 2, if 1 or 2, enables special routines for high dimensions,
+#       - tag1D2D : same as input
 #       - dim : integer, dimension of the output tensor.
 #       - dimy : integer, total dimension of the j indexed variables.
 #       - indsi : list of integers, indices of i indexed variables.
@@ -85,6 +86,8 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
         res["use_half"],
         cuda_block_size,
         use_chunk_mode,
+        res["tag1D2D"],
+        res["dimred"],
         res["dim"],
         res["dimy"],
         res["indsi"],

@@ -102,6 +102,7 @@ extern "C" __host__ int Compile(const char* ptx_file_name, const char* cu_code, 
 template < typename TYPE >
 __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                         int device_id, int tagI, int tagZero, int use_half, 
+										int tag1D2D, int dimred,
 										int cuda_block_size, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp,
                                         int dimout, 
@@ -149,10 +150,11 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     dim3 blockSize;
 	
 	if (use_chunk_mode==0) {
+		// warning : blockSize.x was previously set to CUDA_BLOCK_SIZE; currently CUDA_BLOCK_SIZE value is used as a bound.
 		blockSize.x = ::std::min(cuda_block_size,
                              ::std::min(maxThreadsPerBlock,
                                         (int) (sharedMemPerBlock / ::std::max(1,
-                                                    (int) (  dimY * sizeof(TYPE))))));
+                                                    (int) (  dimY * sizeof(TYPE)))))); // number of threads in each block
 	}			
 	else if (use_chunk_mode==1) {
 		// warning : the value here must match the one which is set in file GpuReduc1D_chunks.py, line 59
@@ -161,8 +163,6 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 		                                        (int) (49152 / ::std::max(1,
 		                                                    (int) (  dimY * sizeof(TYPE))))));
 	}
-		
-    dim3 gridSize;
     
     int nblocks;
     
@@ -208,7 +208,48 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
     
     CUDA_SAFE_CALL(cuModuleLoadDataEx(&module, ptx, 0, NULL, NULL));
     
-    if (RR.tagRanges==1 && tagZero==0) {
+	dim3 gridSize;    
+	
+	if (tag1D2D==1) { // 2D scheme
+		
+	    gridSize.x =  nx / blockSize.x + (nx%blockSize.x==0 ? 0 : 1);
+	    gridSize.y =  ny / blockSize.x + (ny%blockSize.x==0 ? 0 : 1);
+
+	    // Reduce : grid and block are both 1d
+	    dim3 blockSize2;
+	    blockSize2.x = blockSize.x; // number of threads in each block
+	    dim3 gridSize2;
+	    gridSize2.x =  (nx*DIMRED) / blockSize2.x + ((nx*DIMRED)%blockSize2.x==0 ? 0 : 1);
+
+	    // single cudaMalloc
+	    void *p_data;
+	    CudaSafeCall(cudaMalloc(&p_data, sizeof(TYPE*)*NMINARGS + sizeof(TYPE)*(nx*DIMRED*gridSize.y)));
+
+	    args_d = (TYPE **) p_data;
+	    CudaSafeCall(cudaMemcpy(args_d, args, NMINARGS * sizeof(TYPE *), cudaMemcpyHostToDevice));
+
+	    outB = (TYPE *) (args_d + NMINARGS);
+
+	    // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
+	    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,outB,args_d);
+
+	    // block until the device has completed
+	    CudaSafeCall(cudaDeviceSynchronize());
+	    CudaCheckError();
+
+	    // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
+	    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMRED ) to (nx, DIMOUT)
+	    reduce2D<TYPE,DIMRED,DIMOUT,FUN><<<gridSize2, blockSize2>>>(outB, out, gridSize.y,nx);
+
+	    // block until the device has completed
+	    CudaSafeCall(cudaDeviceSynchronize());
+	    CudaCheckError();
+
+	    CudaSafeCall(cudaFree(p_data));
+		
+		
+		
+	} else if (RR.tagRanges==1 && tagZero==0) {
         // ranges mode
         
         gridSize.x = nblocks;
@@ -280,6 +321,7 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 
 extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                         int device_id, int tagI, int tagZero, int use_half, 
+										int tag1D2D, int dimred,
 										int cuda_block_size, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
@@ -297,6 +339,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
+										tag1D2D, dimred,
 										cuda_block_size, use_chunk_mode,
                                         indsi, indsj, indsp,
                                         dimout,
@@ -311,6 +354,7 @@ extern "C" __host__ int launch_keops_float(const char* ptx_file_name, int tagHos
 
 extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                         int device_id, int tagI, int tagZero, int use_half, 
+										int tag1D2D, int dimred,
 										int cuda_block_size, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
@@ -328,6 +372,7 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
+										tag1D2D, dimred,
 										cuda_block_size, use_chunk_mode,
                                         indsi, indsj, indsp,
                                         dimout,
@@ -341,6 +386,7 @@ extern "C" __host__ int launch_keops_double(const char* ptx_file_name, int tagHo
 
 extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHostDevice, int dimY, int nx, int ny, 
                                         int device_id, int tagI, int tagZero, int use_half, 
+										int tag1D2D, int dimred,
 										int cuda_block_size, int use_chunk_mode,
                                         int *indsi, int *indsj, int *indsp, 
                                         int dimout, 
@@ -358,6 +404,7 @@ extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHost
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
+										tag1D2D, dimred
 										cuda_block_size, use_chunk_mode,
                                         indsi, indsj, indsp,
                                         dimout,
