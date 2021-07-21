@@ -122,8 +122,8 @@ it was only tested on Linux and MacOS.
 
 .. code:: r
 
-    devtools::install_git("https://github.com/getkeops/keops", 
-                          subdir = "rkeops", 
+    devtools::install_git("https://github.com/getkeops/keops",
+                          subdir = "rkeops",
                           args="--recursive")
     # not possible to use `devtools::intall_github()` because of the required submodule
 
@@ -203,7 +203,7 @@ Load RKeOps in R:
 .. code:: r
 
     library(rkeops)
-    ## 
+    ##
     ## You are using rkeops version 1.4.2
 
 .. raw:: html
@@ -232,7 +232,7 @@ on GPU.
     args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
              "y = Vj(3)",      # vector indexed by j (of dim 3)
              "b = Vj(6)",      # vector indexed by j (of dim 6)
-             "s = Pm(1)")      # parameter (scalar) 
+             "s = Pm(1)")      # parameter (scalar)
     # compilation
     op <- keops_kernel(formula, args)
     # data and parameter values
@@ -282,7 +282,7 @@ mathematical operations. It should be characterized by two elements:
    entries are defined by 1.
 
 | RKeOps implements a wide range of mathematical operators and
-  reduction: please refers to
+  reduction: please refer to
   https://www.kernel-operations.io/keops/api/math-operations.html for
   more details.
 
@@ -333,7 +333,7 @@ string**:
 
 The formula describing your computation can take several input
 arguments: variables and parameters. The input variables will generally
-corresponds to rows or columns of your data matrices, you need to be
+correspond to rows or columns of your data matrices, you need to be
 cautious with their dimensions.
 
 .. raw:: html
@@ -343,7 +343,7 @@ cautious with their dimensions.
 .. rubric:: Input matrix
    :name: input-matrix
 
-| You can use two type of input matrices with RKeOps:
+| You can use two types of input matrices with RKeOps:
 
 -  | ones whose rows (or columns) are indexed by \\(i=1,...,M\\) such as
      \\(\\mathbf X = [x\_{ik}]\_{M \\times D}\\)
@@ -453,7 +453,7 @@ or \\(j\\) with their corresponding inner dimensions:
     args = c("x = Vi(3)",      # vector indexed by i (of dim 3)
              "y = Vj(3)",      # vector indexed by j (of dim 3)
              "b = Vj(6)",      # vector indexed by j (of dim 6)
-             "s = Pm(1)")      # parameter (scalar) 
+             "s = Pm(1)")      # parameter (scalar)
 
 .. raw:: html
 
@@ -516,7 +516,7 @@ precision), to avoid useless recompilation.
    :name: run-computations
 
 We generate data with inner dimensions (number of columns) corresponding
-to each arguments expected by the operator ``op``. The function ``op``
+to each argument expected by the operator ``op``. The function ``op``
 takes in input a list of input arguments. If the list if named, ``op``
 checks the association between the supplied names and the names of the
 formula arguments. In this case only, it can also correct the order of
@@ -839,7 +839,7 @@ Thus, you can keep the default GPU device id = 0 in RKeOps.
 
 By default, RKeOps uses float 32bits precision for computations. Since R
 only considers 64bits floating point numbers, if you want to use float
-32bits, input data and output results will be casted befors and after
+32bits, input data and output results will be casted before and after
 computations respectively in your RKeOps operator. If your application
 requires to use float 64bits (double) precision, keep in mind that you
 will suffer a performance loss (potentially not an issue on high-end
@@ -857,7 +857,7 @@ KeOps to correct for 32bits floating point arithmetic errors.
 .. rubric:: Data storage orientation
    :name: data-storage-orientation
 
-| In R, matrices are stored using a column-major order, meaning that a
+| In R, matrices are stored using a column-major order, meaning that an
   \\(M \\times D\\) matrix is stored in memory as a succession of
   \\(D\\) vectors of length \\(M\\) representing each of its columns. A
   consequence is that two successive entries of a column are contiguous
@@ -869,7 +869,7 @@ KeOps to correct for 32bits floating point arithmetic errors.
 For RKeOps to be computationnally efficient, it is important that
 elements of the input matrices are contiguous along the inner dimensions
 \\(D\\) (or \\(D'\\)). Thus, it is recommended to use input matrices
-where the outer dimension (i.e. indexes \\(i\\) or \\(j\\)) are the
+where the outer dimensions (i.e. indexes \\(i\\) or \\(j\\)) are the
 columns, and inner dimensions the rows, e.g. transpose matrices
 \\(\\mathbf X^{t} = [x\_{ki}]\_{D \\times M}\\) or \\(\\mathbf Y^{t} =
 [y\_{k'i}]\_{D' \\times N}\\).
@@ -907,7 +907,7 @@ Example:
     X <- matrix(runif(nx*3), nrow=nx, ncol=3)
     # y_j = rows of the matrix Y
     Y <- matrix(runif(ny*3), nrow=ny, ncol=3)
-    # computing the result (here, by default `inner_dim=1` and columns corresponds
+    # computing the result (here, by default `inner_dim=1` and columns correspond
     # to the inner dimension)
     res <- op(list(X,Y))
 
@@ -919,7 +919,7 @@ Example:
     # y_j = columns of the matrix Y
     Y <- matrix(runif(ny*3), nrow=3, ncol=ny)
     # computing the result (we specify `inner_dim=0` to indicate that rows
-    # corresponds to the inner dimension)
+    # correspond to the inner dimension)
     res <- op(list(X,Y), inner_dim=0)
 
 .. raw:: html

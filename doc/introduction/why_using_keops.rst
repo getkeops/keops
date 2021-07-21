@@ -6,14 +6,14 @@ Scalable kernel operations
 
 KeOps can be used on a broad class of problems (:ref:`part.formula`).
 But the first motivation behind this library is simple:
-we intend to accelerate the computation of Gaussian convolutions on point clouds, 
-also known as **RBF kernel products** on sampled data. 
+we intend to accelerate the computation of Gaussian convolutions on point clouds,
+also known as **RBF kernel products** on sampled data.
 
 Working in a vector space :math:`\mathbb{R}^{\mathrm{D}}`, let
 us consider for **large values** of :math:`\mathrm{M}` and :math:`\mathrm{N}`:
 
-- a **target** point cloud :math:`x_1, \dots, x_{\mathrm{M}} \in  \mathbb{R}^{\mathrm{D}}`, encoded as a :math:`\mathrm{M}\times\mathrm{D}` array;
-- a **source** point cloud :math:`y_1, \dots, y_{\mathrm{N}} \in  \mathbb{R}^{\mathrm{D}}`, encoded as a :math:`\mathrm{N}\times\mathrm{D}` array;
+- a **target** point cloud :math:`x_1, \dots, x_{\mathrm{M}} \in  \mathbb{R}^{\mathrm{D}}`, encoded as an :math:`\mathrm{M}\times\mathrm{D}` array;
+- a **source** point cloud :math:`y_1, \dots, y_{\mathrm{N}} \in  \mathbb{R}^{\mathrm{D}}`, encoded as an :math:`\mathrm{N}\times\mathrm{D}` array;
 - a **signal** :math:`b_1, \dots, b_{\mathrm{N}} \in  \mathbb{R}`, attached to the :math:`y_j`'s and encoded as a :math:`\mathrm{N}\times 1` vector.
 
 Then, KeOps allows us to compute efficiently
@@ -40,7 +40,7 @@ in our programs.
 A generic framework
 =========================================
 
-Going further, KeOps supports a wide range of **mathematical** and 
+Going further, KeOps supports a wide range of **mathematical** and
 **deep learning computations**. Let's say that we have at hand:
 
 - a collection :math:`p^1, p^2, ..., p^{\mathrm{P}}` of vectors;
@@ -85,19 +85,19 @@ This type of computation is common in machine learning and applied mathematics:
   K-NN search is a key building block for numerous methods in data sciences, from `simple classifiers <https://scikit-learn.org/stable/modules/neighbors.html>`_ to advanced methods in `topological data analysis <https://en.wikipedia.org/wiki/Topological_data_analysis>`_ and `dimensionality reduction <https://umap-learn.readthedocs.io/en/latest/>`_. KeOps intends to provide fast runtimes for **all types of metrics**, beyond the standard Euclidean distance and cosine similarity: we refer to our :doc:`benchmarks <../_auto_benchmarks/plot_benchmark_KNN>` for an extensive discussion. |br|  |br|
 
 - In **computer graphics** and **geometric deep learning**, we implement
-  **point cloud convolutions** and 
+  **point cloud convolutions** and
   **message passing layers** using a function:
-  
+
   .. math::
     F(p,x_i,y_j,f_j)=\text{Window}(x_i,y_j)\cdot \text{Filter}(p,x_i,y_j,f_j)
-    
+
   that is the product of a neighborhood :math:`\text{Window}(x_i,y_j)` between point positions :math:`x_i`, :math:`y_j` and of a parametric filter that is applied to a collection of feature vectors :math:`f_j`. The reduction or "pooling" operator is usually a (weighted) sum or a maximum.
 
   Most architectures in computer vision rely on K-Nearest Neighbors graphs (":math:`x_i \leftrightarrow y_j`") to define sparse neighborhood windows. These are equal to 1 if :math:`y_j` is one of the closest neighbors of :math:`x_i` and 0 otherwise. The point convolution then reads:
 
   .. math::
     a_i \gets \sum_{\substack{j \text{ such that }\\ x_i \leftrightarrow y_j}} \text{Filter}(p,x_i,y_j,f_j) ~.
-  
+
   Crucially, KeOps now also lets users work with **global point convolutions** without compromising on performances: we refer to the Section 5.3 of our `NeurIPS 2020 paper <http://jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_ and to `this presentation <https://www.biorxiv.org/content/10.1101/2020.12.28.424589v1.full.pdf>`_ of quasi-geodesic convolutions on protein surfaces for a detailed discussion. |br|  |br|
 
 - In **natural language processing**,
@@ -117,10 +117,10 @@ This type of computation is common in machine learning and applied mathematics:
 
 - We implement the **Fourier transform** with
   a sum reduction and a complex exponential:
-  
+
   .. math::
     \widehat{f_i} = \widehat{f}(\omega_i)
-    ~\gets~ 
+    ~\gets~
     \sum_{j=1}^{\mathrm{N}}
     \exp(i\langle \omega_i,x_j\rangle)~\cdot~ f_j ~.
 
@@ -141,15 +141,15 @@ This type of computation is common in machine learning and applied mathematics:
     \max_{j=1,\, \dots\,,\,\mathrm{N}} \langle u_i, x_j\rangle - f_j.
 
 
-- In **imaging sciences**, 
-  we implement the `distance transform <https://en.wikipedia.org/wiki/Distance_transform>`_ 
+- In **imaging sciences**,
+  we implement the `distance transform <https://en.wikipedia.org/wiki/Distance_transform>`_
   of a binary mask :math:`m_j = m(y_j) \in \{0, 1\}`
   that is defined on the rectangle domain :math:`[\![1, \text{W} ]\!] \times [\![1, \text{H} ]\!]`
   using a minimum reduction and a squared distance function:
-  
+
   .. math::
     \forall x_i \in [\![1, \text{W} ]\!] \times [\![1, \text{H} ]\!],~~
-    d_i = d(x_i) ~\gets~ 
+    d_i = d(x_i) ~\gets~
     \min_{y_j \in [\![1, \text{W} ]\!] \times [\![1, \text{H} ]\!]}
     \|x_i-y_j\|^2 - \log(m_j) .
 
@@ -157,20 +157,20 @@ This type of computation is common in machine learning and applied mathematics:
   the distance transform is **separable** and can be implemented
   efficiently on 2D and 3D grids.
   Just as with `separable Gaussian convolution <https://en.wikipedia.org/wiki/Gaussian_blur#Implementation>`_,
-  the trick is to apply the transform **successively** on the lines 
+  the trick is to apply the transform **successively** on the lines
   and columns of the image.
   Thanks to its native support for batch processing,
   KeOps is ideally suited to these manipulations:
-  it can be used to implement all types of fast separable transforms 
+  it can be used to implement all types of fast separable transforms
   on the GPU. |br|  |br|
 
 
-- In `optimal transport theory <https://optimaltransport.github.io/book/>`_, 
+- In `optimal transport theory <https://optimaltransport.github.io/book/>`_,
   we implement the **C-transform** using a "min" reduction and a formula :math:`F(x_i,y_j,g_j)=\text{C}(x_i,y_j) -g_j` that penalizes the value of the ground cost function :math:`\text{C}` by that of the dual potential :math:`g` :
 
   .. math::
     a_i \gets \min_{j=1,\, \dots\,,\,\mathrm{N}} \big[ \text{C}(x_i,y_j) - g_j \big],  \qquad i=1,\dots,\mathrm{M}~.
-  
+
   Going further, numerically stable **Sinkhorn iterations** correspond to the case where the minimum in the C-transform is replaced by a (rescaled) log-sum-exp reduction, known as a **soft minimum** at temperature :math:`\varepsilon > 0`:
 
   .. math::
@@ -179,14 +179,14 @@ This type of computation is common in machine learning and applied mathematics:
   As detailed in our `NeurIPS 2020 paper <https://www.jeanfeydy.com/Papers/KeOps_NeurIPS_2020.pdf>`_, KeOps speeds up modern optimal transport solvers by **one to three orders of magnitude**, from standard auction iterations to multiscale Sinkhorn loops. A collection of reference solvers is provided by the `GeomLoss library <https://www.kernel-operations.io/geomloss>`_, that now scales up to millions of samples in seconds. |br|  |br|
 
 - Numerous **particle** and **swarming** models
-  rely on **interaction steps** that fit this template to update the positions and inner states of their agents. For instance, on modest gaming hardware, KeOps can scale up simulations of `Vicsek-like systems <https://en.wikipedia.org/wiki/Vicsek_model>`_ to 
+  rely on **interaction steps** that fit this template to update the positions and inner states of their agents. For instance, on modest gaming hardware, KeOps can scale up simulations of `Vicsek-like systems <https://en.wikipedia.org/wiki/Vicsek_model>`_ to
   `millions of active swimmers and flyers <https://arxiv.org/pdf/2101.10864.pdf>`_: this allows researchers to make original conjectures on their models with a minimal amount of programming effort.
 
 
 
 Crucially, we can understand all these computations as **reductions of "symbolic" matrices** whose coefficients are given, for all indices :math:`i` and :math:`j`, by a mathematical formula :math:`F(p, x_i, y_j)`.
 As detailed on the :doc:`front page <../index>` of this website,
-**the KeOps library is built around this remark**. We introduce a new type of "symbolic" tensor that lets users implement all these operations efficiently, with a small memory footprint. 
+**the KeOps library is built around this remark**. We introduce a new type of "symbolic" tensor that lets users implement all these operations efficiently, with a small memory footprint.
 Under the hood, operations on KeOps :mod:`LazyTensors <pykeops.common.lazy_tensor.GenericLazyTensor>` avoid storing in memory the matrix of values :math:`F(p,x_i,y_j)` and rely instead on fast C++/CUDA routines that are compiled on demand.
 We refer to our :doc:`guided tour of the KeOps++ engine <../engine/index>` for more details.
 
@@ -194,11 +194,11 @@ We refer to our :doc:`guided tour of the KeOps++ engine <../engine/index>` for m
 High performances
 =================
 
-KeOps fits within a thriving ecosystem of Python/C++ libraries for scientific computing. So how does it compare with other acceleration frameworks such as 
-`Numba <https://numba.pydata.org>`_, 
-`Halide <https://halide-lang.org>`_, 
+KeOps fits within a thriving ecosystem of Python/C++ libraries for scientific computing. So how does it compare with other acceleration frameworks such as
+`Numba <https://numba.pydata.org>`_,
+`Halide <https://halide-lang.org>`_,
 `TVM <https://tvm.apache.org>`_,
-`Julia <https://julialang.org>`_ or 
+`Julia <https://julialang.org>`_ or
 `JAX/XLA <https://github.com/google/jax>`_?
 To answer this question, let us now briefly explain the relationship between our library and the wider software environment for tensor computing.
 
@@ -206,26 +206,26 @@ To answer this question, let us now briefly explain the relationship between our
 Tensor computing on the GPU
 ----------------------------
 
-**Fast numerical methods are the fuel of machine learning research.** 
+**Fast numerical methods are the fuel of machine learning research.**
 Over the last decade, the sustained
-development of the CUDA ecosystem has driven the progress in the field: 
+development of the CUDA ecosystem has driven the progress in the field:
 though Python is the lingua
-franca of data science and machine learning, 
+franca of data science and machine learning,
 most frameworks rely on **efficient C++ backends** to
-leverage the computing power of GPUs. 
+leverage the computing power of GPUs.
 Recent advances in computer vision or natural
-language processing attest to the fitness of modern libraries: 
-they stem from the **mix of power and flexibility** 
-that is provided by `PyTorch  <http://pytorch.org>`_, 
-`TensorFlow <http://www.tensorflow.org>`_ and general purpose accelerators such 
+language processing attest to the fitness of modern libraries:
+they stem from the **mix of power and flexibility**
+that is provided by `PyTorch  <http://pytorch.org>`_,
+`TensorFlow <http://www.tensorflow.org>`_ and general purpose accelerators such
 as `JAX/XLA <https://github.com/google/jax>`_.
 
 Nevertheless, **important work remains to be done.** Geometric computations present a clear gap
 in performances between Python and C++: notable examples are implementations of point cloud
-convolutions or of the nearest neighbor search that is discussed above. 
+convolutions or of the nearest neighbor search that is discussed above.
 To scale up geometric computations to
 real-world data, a common practice is therefore to replace the compute-intensive parts of a Python
-code by **handcrafted CUDA kernels**. 
+code by **handcrafted CUDA kernels**.
 These are expensive to develop and maintain, which
 leads to an unfortunate need to **compromise between ease of development and scalability**.
 
@@ -233,8 +233,8 @@ leads to an unfortunate need to **compromise between ease of development and sca
 Related works
 ---------------
 
-**KeOps fixes this issue** for computations that fit 
-the Map-Reduce template of the above section. 
+**KeOps fixes this issue** for computations that fit
+the Map-Reduce template of the above section.
 It is part of a large body of work
 that lowers the :math:`O(\text{N}\text{M})` computational cost of
 such an operation.
@@ -246,8 +246,8 @@ let us now recall the main approaches to this problem.
 
 **Sparse matrices.**
 A first strategy is to prune out negligible terms:
-for every index :math:`i`, we perform the reduction 
-on a subset of neighbors 
+for every index :math:`i`, we perform the reduction
+on a subset of neighbors
 :math:`\mathcal{N}(i)\subset [\![1,\text{N} ]\!]`.
 As illustrated on our :doc:`front page <../index.rst>`,
 this method is akin to using sparse matrices:
@@ -260,7 +260,7 @@ at a low level, truncated reductions rely on
 random memory accesses that **do not stream well on GPUs**.
 Consequently, speed-ups are only achieved if the
 neighborhoods :math:`\mathcal{N}(i)` are orders of magnitude smaller
-than the full set of indices :math:`[\![1,\text{N} ]\!]` 
+than the full set of indices :math:`[\![1,\text{N} ]\!]`
 - a condition that is often too restrictive and cannot be satisfied.
 
 
@@ -268,10 +268,10 @@ than the full set of indices :math:`[\![1,\text{N} ]\!]`
 Going further, the implementation
 of KNN queries is itself a geometric
 problem that fits the "KeOps template".
-When the datasets 
-:math:`(x_i)` and 
+When the datasets
+:math:`(x_i)` and
 :math:`(y_j)` have a small
-intrinsic dimension, 
+intrinsic dimension,
 `efficient approximate schemes <http://ann-benchmarks.com>`_
 can outperform brute-force approaches by a wide margin.
 Unfortunately, these methods tend to rely
@@ -279,8 +279,8 @@ on **pre-computations** that are too expensive to
 be performed at every iteration of a "training loop".
 Reference implementations also tend to lack flexibility
 and only support a **handful of metrics**:
-for instance, in spite of a strong interest for 
-`hyperbolic embeddings <https://hazyresearch.stanford.edu/hyperE/>`_ 
+for instance, in spite of a strong interest for
+`hyperbolic embeddings <https://hazyresearch.stanford.edu/hyperE/>`_
 in the machine learning literature,
 `Poincaré metrics <https://en.wikipedia.org/wiki/Poincaré_metric>`_ are not supported out-of-the-box
 by standard libraries.
@@ -295,20 +295,20 @@ we understand the interaction:
 
 
 as a discrete convolution.
-To speed up this operation, a first idea is to rely on 
-`low-rank decompositions <https://en.wikipedia.org/wiki/Low-rank_matrix_approximations>`_ 
+To speed up this operation, a first idea is to rely on
+`low-rank decompositions <https://en.wikipedia.org/wiki/Low-rank_matrix_approximations>`_
 of the kernel matrix :math:`(K_{i,j})`.
-`Multiscale schemes <https://math.nyu.edu/faculty/greengar/shortcourse_fmm.pdf>`_ 
+`Multiscale schemes <https://math.nyu.edu/faculty/greengar/shortcourse_fmm.pdf>`_
 can be used to handle singular kernels such as the Newton potential
-or 
-`compress generic operators <https://en.wikipedia.org/wiki/Hierarchical_matrix>`_. 
+or
+`compress generic operators <https://en.wikipedia.org/wiki/Hierarchical_matrix>`_.
 Alternatively, semi-Eulerian methods rely on
 intermediate grid representations to leverage
-`fast Fourier transforms <https://www-user.tu-chemnitz.de/~potts/nfft/>`_ 
+`fast Fourier transforms <https://www-user.tu-chemnitz.de/~potts/nfft/>`_
 or convolution routines on grids.
 These approaches can achieve dramatic speed-ups but
 tend to require a significant amount
-of tuning for each kernel :math:`k`. 
+of tuning for each kernel :math:`k`.
 They work best when the
 latter is smooth or is defined on a space of dimension :math:`\text{D} \leqslant 3`.
 
@@ -318,19 +318,19 @@ In contrast to mathematical approaches,
 several compilation frameworks have
 been designed to speed-up machine learning architectures.
 Modern toolboxes accelerate a wide range of operations but
-are **not geared towards geometric problems**: 
-most of them keep a focus on 
-`distributed learning <https://github.com/tensorflow/mesh>`_ 
-or 
+are **not geared towards geometric problems**:
+most of them keep a focus on
+`distributed learning <https://github.com/tensorflow/mesh>`_
+or
 `image processing <https://halide-lang.org>`_
-and 
+and
 `dense tensor manipulations <https://github.com/plaidml/plaidml>`_.
-`TVM <https://tvm.apache.org>`_ and 
+`TVM <https://tvm.apache.org>`_ and
 `CuPy <https://cupy.dev>`_
 are the two libraries which are closer to KeOps:
 they both provide **partial support for symbolic tensors**.
 However, they have limited support for
-automatic differentiation and require the use of a 
+automatic differentiation and require the use of a
 custom low-level syntax to produce efficient binaries.
 
 
@@ -341,26 +341,26 @@ KeOps: a specialized tool
 **Requirements for geometric data analysis and learning.**
 None of the aforementioned methods are fully suited
 for exploratory research in geometric data analysis and machine learning.
-Let us briefly explain why: 
+Let us briefly explain why:
 
-1. First of all, some acceleration schemes 
+1. First of all, some acceleration schemes
    **do not stream well on GPUs** or have to rely on **expensive pre-computations**:
    `hierarchical matrices <https://en.wikipedia.org/wiki/Hierarchical_matrix>`_
-   or `advanced nearest neighbor finders <https://github.com/nmslib/hnswlib>`_ 
+   or `advanced nearest neighbor finders <https://github.com/nmslib/hnswlib>`_
    can hardly be used in the training loop of a neural network.
 
 2. Other strategies make **strong assumptions** on the properties
-   of the convolution filter :math:`k` or on 
+   of the convolution filter :math:`k` or on
    the dimension and geometry of the
-   ambient feature space. 
-   These restrictions make existing tools cumbersome 
-   to use in e.g. deep learning, where one 
+   ambient feature space.
+   These restrictions make existing tools cumbersome
+   to use in e.g. deep learning, where one
    wishes to have **modelling freedom**
-   with respect to the choice of the embedding space geometry and dimension. 
+   with respect to the choice of the embedding space geometry and dimension.
 
 3. Finally, most acceleration frameworks for Python
    expect users to be **knowledgeable on GPU parallelism**
-   or do not support **automatic differentiation**. 
+   or do not support **automatic differentiation**.
 
 The bottomline is that most existing tools are not ready to be used by a majority
 of researchers in the community.
@@ -368,21 +368,21 @@ of researchers in the community.
 **A gap in the literature.**
 In order to tackle these issues,
 the developers of deep learning libraries
-have recently put an emphasis on 
-**just-in-time compilation for neural networks**. 
-For instance, the recent 
-`PyTorch JIT <https://pytorch.org/docs/stable/jit.html>`_ and 
+have recently put an emphasis on
+**just-in-time compilation for neural networks**.
+For instance, the recent
+`PyTorch JIT <https://pytorch.org/docs/stable/jit.html>`_ and
 `XLA <https://www.tensorflow.org/xla>`_ engines enable operator
 fusion and unlock performance speed-ups for research code.
 These **general purpose compilers** are fully transparent to users
-and show promise for a wide range of applications. 
-Nevertheless, 
+and show promise for a wide range of applications.
+Nevertheless,
 **they fall short** on the type of **geometric computations** that are discussed above.
 This is most apparent for
 :doc:`nearest neighbor search <../_auto_benchmarks/plot_benchmark_KNN>`,
-:doc:`matrix-vector products <../_auto_benchmarks/plot_benchmark_convolutions>` 
+:doc:`matrix-vector products <../_auto_benchmarks/plot_benchmark_convolutions>`
 with kernel matrices
-and `message passing methods <https://pytorch-geometric.readthedocs.io/en/latest/>`_ on point clouds, 
+and `message passing methods <https://pytorch-geometric.readthedocs.io/en/latest/>`_ on point clouds,
 where one still has to develop and maintain custom CUDA kernels to achieve state-of-the-art performance.
 
 **A unique position.**
@@ -390,7 +390,7 @@ KeOps intends to fix this
 **specific but important problem** with all the convenient
 features of a modern library.
 We present examples of applications
-in our 
+in our
 :doc:`gallery of tutorials <../_auto_tutorials/index>`
 and discuss its inner workings
 in our
@@ -399,7 +399,7 @@ As evidenced by our :doc:`benchmarks <../_auto_benchmarks/index>`,
 the KeOps routines **outperform** their standard counterparts
 **by two orders of magnitude** in many settings.
 On top of a reduced memory usage, they can thus bring
-a considerable speed-up to numerous methods 
+a considerable speed-up to numerous methods
 in machine learning, computational physics and other applied fields.
 
 
@@ -408,21 +408,21 @@ Is KeOps going to speed-up your program?
 -----------------------------------------
 
 **Strengths.**
-At its heart, KeOps leverages the low 
+At its heart, KeOps leverages the low
 `Kolmogorov complexity <https://en.wikipedia.org/wiki/Kolmogorov_complexity>`_ of symbolic arrays: it can be used when the computational bottleneck
-of a method is an interaction step 
-that fits a simple Map-Reduce template. 
-In practice, it is thus likely to offer gains on runtime and memory usage when 
-the formula :math:`F(x_i,y_j)` is compact 
+of a method is an interaction step
+that fits a simple Map-Reduce template.
+In practice, it is thus likely to offer gains on runtime and memory usage when
+the formula :math:`F(x_i,y_j)` is compact
 and the numbers of samples :math:`\text{M}` and :math:`\text{N}` range from :math:`10^3` to :math:`10^7`.
 
 **Limitations.**
 On the other hand, the main limitations of KeOps stem from the overflow of CUDA registers in the computation of the formula :math:`F(x_i,y_j)`.
 These result in decreased performances on large feature vectors
-of dimension D > 100. 
-The problem is known as 
+of dimension D > 100.
+The problem is known as
 `register spilling <https://en.wikipedia.org/wiki/Register_allocation>`_,
-with some documented but non-trivial work-arounds. 
+with some documented but non-trivial work-arounds.
 Another drawback is that we do not pre-ship binaries
 but instead rely on C++/CUDA compilers to run our kernels.
 
@@ -443,4 +443,3 @@ Among other features, KeOps supports:
 - Batch processing and :doc:`block-wise sparsity masks <../python/sparsity>`.
 - :doc:`High-order derivatives <../_auto_tutorials/surface_registration/plot_LDDMM_Surface>` with respect to all parameters and variables.
 - The resolution of positive definite linear systems using a :doc:`conjugate gradient solver <../_auto_benchmarks/plot_benchmark_invkernel>`.
-
