@@ -14,29 +14,34 @@ set_rkeops_option("precision", "double")
 # LazyTensor -------------------------------------------------------------------
 #' Build and return a LazyTensor object.
 #' @description
-#' LazyTensors objects are wrappers around R matrices or vectors that are used to create
-#' symbolic formulas for the KeOps reduction operations.
+#' LazyTensors objects are wrappers around R matrices or vectors that are used 
+#' to create symbolic formulas for the KeOps reduction operations.
 #' @details
 #' The use of the function `LazyTensor` is detailed in the vignettes. 
 #' Run `browseVignettes("rkeops")` to access the vignettes.
 #' @author Ghislain Durif
 #' @param x A matrix or a vector of numeric values, or a scalar value
-#' @param index A text string that should be either **i** or **j**, or an **NA** value (the default),
-#' to specify whether if the **x** variable is indexed by **i**, by **j**, or is a fixed parameter across indices.
+#' @param index A text string that should be either **i** or **j**, or an **NA** 
+#' value (the default), to specify whether if the **x** variable is indexed 
+#' by **i**, by **j**, or is a fixed parameter across indices.
 #' If **x** is a matrix, **index** must be **i** or **j**.
 #' @param is_complex A boolean (default is FALSE). Whether if we want to create a
 #' `ComplexLazyTensor` (is_complex = TRUE) or a `LazyTensor` (is_complex = FALSE).
-#' @return An object of class "LazyTensor" or "ComplexLazyTensor", which is a list with the following elements:
+#' @return An object of class "LazyTensor" or "ComplexLazyTensor", which is a 
+#' list with the following elements:
 #' @return
 #' \itemize{
-#'     \item{**formula**:}{ A string defining the mathematical operation to be computed by the KeOps routine}
-#'     \item{**args**:}{ A vector of arguments containing a unique identifier associated to type of the argument :
+#'     \item{**formula**:}{ A string defining the mathematical operation to 
+#'     be computed by the KeOps routine}
+#'     \item{**args**:}{ A vector of arguments containing a unique identifier 
+#'     associated to type of the argument :
 #'     \itemize{
 #'         \item{**Vi(n)**:}{ vector indexed by **i** of dim **n**}
 #'         \item{**Vj(n)**:}{ vector indexed by **j** of dim **n**}
 #'         \item{**Pm(n)**:}{ fixed parameter of dim **n**}
 #'     }}
-#'     \item{**vars**:}{ A list of R matrices which will be the inputs of the KeOps routine}
+#'     \item{**vars**:}{ A list of R matrices which will be the inputs of the 
+#'                       KeOps routine}
 #' }
 #' 
 #' **Alternatives**
@@ -51,25 +56,33 @@ set_rkeops_option("precision", "double")
 #' # Data
 #' nx <- 100
 #' ny <- 150
-#' x <- matrix(runif(nx * 3), nrow = nx, ncol = 3) # arbitrary R matrix representing 100 data points in R^3
-#' y <- matrix(runif(ny * 3), nrow = ny, ncol = 3) # arbitrary R matrix representing 150 data points in R^3
+#' x <- matrix(runif(nx * 3), nrow = nx, ncol = 3) # arbitrary R matrix representing 
+#'                                                 # 100 data points in R^3
+#' y <- matrix(runif(ny * 3), nrow = ny, ncol = 3) # arbitrary R matrix representing 
+#'                                                 # 150 data points in R^3
 #' s <- 0.1                                        # scale parameter
 #' 
 #' # Turn our Tensors into KeOps symbolic variables:
-#' x_i <- LazyTensor(x, "i")   # symbolic object representing an arbitrary row of x, indexed by the letter "i"
-#' y_j <- LazyTensor(y, "j")   # symbolic object representing an arbitrary row of y, indexed by the letter "j"
+#' x_i <- LazyTensor(x, "i")   # symbolic object representing an arbitrary row of x, 
+#'                             # indexed by the letter "i"
+#' y_j <- LazyTensor(y, "j")   # symbolic object representing an arbitrary row of y, 
+#'                             # indexed by the letter "j"
 #' 
 #' # Perform large-scale computations, without memory overflows:
-#' D_ij <- sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, with 100 rows and 150 columns
+#' D_ij <- sum((x_i - y_j)^2)    # symbolic matrix of pairwise squared distances, 
+#'                               # with 100 rows and 150 columns
 #' K_ij <- exp(- D_ij / s^2)     # symbolic matrix, 100 rows and 150 columns
-#' res <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of length 150 here)
+#' res <- sum(K_ij, index = "i") # actual R matrix (in fact a row vector of 
+#'                               # length 150 here)
 #'                               # containing the column sums of K_ij
-#'                               # (i.e. the sums over the "i" index, for each "j" index)
+#'                               # (i.e. the sums over the "i" index, for each 
+#'                               # "j" index)
 #' 
 #' 
 #' # Example : create ComplexLazyTensor:
 #' z <- matrix(1i^ (-6:5), nrow = 4)                     # create a complex 4x3 matrix
-#' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor, indexed by 'i'
+#' z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor, 
+#'                                                       # indexed by 'i'
 #'
 #' }
 #' @export
@@ -106,18 +119,19 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   }
   
   # Now we define "formula", a string specifying the variable for KeOps C++ codes.
-  if(is.numeric(x) && (as.integer(x) - x) == 0)
+  if(is.int(x))
     var_name <- paste("IntCst(", as.character(x), ")", sep = "") 
   else
     var_name <- paste("A", address(x), index, sep = "") 
   formula <- var_name
-  vars <- list(x)  # vars lists all actual matrices necessary to evaluate the current formula, here only one.
+  vars <- list(x)  # vars lists all actual matrices necessary to evaluate 
+                   # the current formula, here only one.
   
   if(is_complex) {
     args <- str_c(var_name, "=", cat, "(", 2 * d, ")")
     # finally we build and return the LazyTensor object
     res <- list(formula = formula, args = args, vars = vars)
-    class(res) <- "ComplexLazyTensor"
+    class(res) <- c("ComplexLazyTensor", "LazyTensor")
   }
   else {
     args <- str_c(var_name, "=", cat, "(", d, ")")
@@ -139,11 +153,13 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
 #' @param x A matrix of numeric values, or a scalar value.
 #' @param is_complex A boolean (default is FALSE). Whether if we want to create a
 #' `ComplexLazyTensor` (is_complex = TRUE) or a `LazyTensor` (is_complex = FALSE).
-#' @return An object of class "LazyTensor" indexed by "i". See `?LazyTensor` for more details.
+#' @return An object of class "LazyTensor" indexed by "i". See `?LazyTensor` for 
+#' more details.
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3)
-#' Vi_x <- Vi(x) # symbolic object representing an arbitrary row of x, indexed by the letter "i"
+#' Vi_x <- Vi(x) # symbolic object representing an arbitrary row of x, 
+#'               # indexed by the letter "i"
 #' }
 #' @export
 Vi <- function(x, is_complex = FALSE){
@@ -168,7 +184,8 @@ Vi <- function(x, is_complex = FALSE){
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3)
-#' Vj_x <- Vj(x) # symbolic object representing an arbitrary row of x, indexed by the letter "j"
+#' Vj_x <- Vj(x) # symbolic object representing an arbitrary row of x, 
+#'               # indexed by the letter "j"
 #' }
 #' @export
 Vj <- function(x, is_complex = FALSE){
@@ -189,7 +206,8 @@ Vj <- function(x, is_complex = FALSE){
 #' @param x A vector or a scalar value.
 #' @param is_complex A boolean (default is FALSE). Whether if we want to create a
 #' `ComplexLazyTensor` (is_complex = TRUE) or a `LazyTensor` (is_complex = FALSE).
-#' @return An object of class "LazyTensor" in parameter category. See `?LazyTensor` for more details.
+#' @return An object of class "LazyTensor" in parameter category. 
+#' See `?LazyTensor` for more details.
 #' @examples
 #' \dontrun{
 #' x <- 4
@@ -217,12 +235,13 @@ Pm <- function(x, is_complex = FALSE){
 #' @description
 #' Symbolically applies **opstr** operation to **x**.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' or a scalar value.
 #' @param opstr A text string corresponding to an operation.
 #' @param opt_arg An optional argument which can be a scalar value.
 #' @param opt_arg2 An optional argument which can be a scalar value.
-#' @param res_type A character string among "LazyTensor" (default) and "ComplexLazyTensor",
-#' depending on the class we want the result to be of.
+#' @param res_type NA (default) or a character string among "LazyTensor" and 
+#' "ComplexLazyTensor", to specify if a change of class is required for the result.
 #' (Useful especially when dealing with complex-to-real or real-to-complex functions)
 #' @return An object of class "LazyTensor" or "ComplexLazyTensor".
 #' @examples
@@ -234,17 +253,20 @@ Pm <- function(x, is_complex = FALSE){
 #' una2_x <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
 #' }
 #' @export
-unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type = "LazyTensor") {
+unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type = NA) {
   if(is.matrix(x)){
-    stop(paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
-               "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
+    stop(
+      paste(
+        "`x` input argument should be a LazyTensor, a vector or a scalar.",
+        "\nIf you want to use a matrix, convert it to LazyTensor first.", 
+        sep = ""
+        )
+      )
   }
   
-  if(is.complex(x)){
-    res_type = "ComplexLazyTensor"
-    x <- LazyTensor(x)
-  }
-  
+  if(!is.na(res_type) && res_type == "ComplexLazyTensor")
+    res_type <- c("ComplexLazyTensor", "LazyTensor")
+
   if(is.numeric(x) || is.complex(x))
     x <- LazyTensor(x)
   
@@ -258,7 +280,10 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
   res <- list(formula = formula, args = x$args, vars = x$vars)
   
   # result type
-  class(res) <- res_type
+  if(is.na(res_type))
+    class(res) <- class(x)
+  else
+    class(res) <- res_type
   
   return(res)
 }
@@ -270,17 +295,20 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
 #' @description
 #' Symbolically applies **opstr** operation to **x** and **y**.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
-#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or 
+#' a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or 
+#' a scalar value.
 #' @param opstr A text string corresponding to an operation.
-#' @param is_operator A boolean used to specify if **opstr** is an operator like ``+``
-#' , ``-`` or a "genuine" function.
-#' @param dim_check_type A string to specify if, and how, we should check input dimensions.
+#' @param is_operator A boolean used to specify if **opstr** is an operator like 
+#' ``+``, ``-`` or a "genuine" function.
+#' @param dim_check_type A string to specify if, and how, we should check input 
+#' dimensions.
 #' Supported values are:
 #' \itemize{
 #'    \item {**"same"**:}{ **x** and **y** should have the same inner dimension;}
-#'    \item {**"sameor1"** (default):}{ **x** and **y** should have the same inner dimension or
-#'    at least one of them should be of dimension 1;}
+#'    \item {**"sameor1"** (default):}{ **x** and **y** should have the same inner 
+#'    dimension or at least one of them should be of dimension 1;}
 #'    \item {**NA**:}{ no dimension restriction.}
 #' }
 #' @return An object of class "LazyTensor".
@@ -293,15 +321,29 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
 #' bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)   # symbolic matrix
 #' }
 #' @export
-binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type = "sameor1") {
+binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
+                                dim_check_type = "sameor1", res_type = NA) {
   
   if(is.matrix(x))
-    stop(paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
-               "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
+    stop(
+      paste(
+        "`x` input argument should be a LazyTensor, a vector or a scalar.",
+        "\nIf you want to use a matrix, convert it to LazyTensor first.", 
+        sep = ""
+        )
+      )
   
   if(is.matrix(y))
-    stop(paste("`y` input argument should be a LazyTensor, a vector or a scalar.",
-               "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
+    stop(
+      paste(
+        "`y` input argument should be a LazyTensor, a vector or a scalar.",
+        "\nIf you want to use a matrix, convert it to LazyTensor first.", 
+        sep = ""
+        )
+      )
+  
+  if(!is.na(res_type) && res_type == "ComplexLazyTensor")
+    res_type <- c("ComplexLazyTensor", "LazyTensor")
   
   if(is.numeric(x) || is.complex(x))
     x <- LazyTensor(x)
@@ -312,14 +354,23 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
   # check dimensions
   if(dim_check_type == "sameor1") {
     if (!check_inner_dim(x, y, check_type = dim_check_type)) {
-      stop(paste("Operation `", opstr, "` expects inputs of the same dimension or dimension 1. Received ",
-                 get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
+      stop(
+        paste(
+          "Operation `", opstr, 
+          "` expects inputs of the same dimension or dimension 1. Received ",
+          get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+          )
+        )
     }
   }
   if(dim_check_type == "same") {
     if (!check_inner_dim(x, y, check_type = dim_check_type)) {
-      stop(paste("Operation `", opstr, "` expects inputs of the same dimension. Received ",
-                 get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""))
+      stop(
+        paste(
+          "Operation `", opstr, "` expects inputs of the same dimension. Received ",
+           get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+          )
+        )
     }
   }
   
@@ -334,10 +385,14 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
   
   res <- list(formula = formula, args = args, vars = vars)
   
-  if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
-    class(res) <- "ComplexLazyTensor"
+  
+  
+  if(!is.na(res_type))
+    class(res) <- res_type
+  else if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
+      class(res) <- c("ComplexLazyTensor", "LazyTensor")
   else
-    class(res) <- class(x)
+      class(res) <- class(x)
   
   return(res)
 }
@@ -349,9 +404,12 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE, dim_check_type
 #' @description
 #' Symbolically applies **opstr** operation to **x**, **y** and **z**.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
-#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, or a scalar value.
-#' @param z A `LazyTensor`, a `ComplexLazyTensor`r, a vector of numeric values, or a scalar value.
+#' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' or a scalar value.
+#' @param y A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' or a scalar value.
+#' @param z A `LazyTensor`, a `ComplexLazyTensor`r, a vector of numeric values, 
+#' or a scalar value.
 #' @param opstr A text string corresponding to an operation.
 #' @return An object of class "LazyTensor".
 #' @examples
@@ -365,8 +423,16 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1") {
   args <- list(x, y, z)
   for (i in 1:3) {
     if(is.matrix(args[[i]])) {
-      stop(paste("`", names[i], "` input argument should be a LazyTensor, a ComplexLazyTensor, a vector or a scalar.",
-                 "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""))
+      stop(
+        paste(
+          "`", 
+          names[i], 
+          "` input argument should be a LazyTensor, a ComplexLazyTensor,", 
+          " a vector or a scalar.",
+          "\nIf you want to use a matrix, convert it to LazyTensor first.", 
+          sep = ""
+          )
+        )
     }
     if(is.numeric(args[[i]]) || is.complex(args[[i]])) {
       args[[i]] <- LazyTensor(args[[i]])
@@ -379,16 +445,26 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1") {
   # check dimensions
   if(dim_check_type == "sameor1") {
     if (!check_inner_dim(x, y, z, check_type = dim_check_type)) {
-      stop(paste("Operation `", opstr, "` expects inputs of the same dimension or dimension 1. Received ",
-                 get_inner_dim(x), ", ", get_inner_dim(y),
-                 " and ", get_inner_dim(z), ".", sep = ""))
+      stop(
+        paste(
+          "Operation `", opstr, 
+          "` expects inputs of the same dimension or dimension 1. Received ",
+          get_inner_dim(x), ", ", get_inner_dim(y),
+          " and ", get_inner_dim(z), ".", sep = ""
+          )
+        )
     }
   }
   if(dim_check_type == "same") {
     if (!check_inner_dim(x, y, z, check_type = dim_check_type)) {
-      stop(paste("Operation `", opstr, "` expects inputs of the same dimension. Received ",
-                 get_inner_dim(x), ", ", get_inner_dim(y),
-                 " and ", get_inner_dim(z), ".", sep = ""))
+      stop(
+        paste(
+          "Operation `", opstr, 
+          "` expects inputs of the same dimension. Received ",
+          get_inner_dim(x), ", ", get_inner_dim(y),
+          " and ", get_inner_dim(z), ".", sep = ""
+          )
+      )
     }
   }
   
@@ -398,19 +474,48 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1") {
   vars[!duplicated(names(vars))]
   args <- unique(c(x$args, y$args, z$args))
   res <- list(formula = formula, args = args, vars = vars)
-  class(res) <- "LazyTensor"
+  
+  if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
+    class(res) <- c("ComplexLazyTensor", "LazyTensor")
+  else
+    class(res) <- class(x)
+
   return(res)
 }
 
 
 # PREPROCESS ===================================================================
 
-
+#' is an integer constant.
+#' @description
+#' Checks whether if the given input is an `integer` constant or not.
+#' @details If `x` is an `integer` constant, `is.int(x)` returns TRUE, 
+#' else, returns FALSE.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x An object we want to know if it is a `integer`.
+#' @return A boolean, TRUE or FALSE.
+#' @example
+#' \dontrun{
+#' # basic example
+#' A <- 3
+#' B <- 3.4
+#' C <- rep(3, 10)
+#' 
+#' is.int(A)  # returns TRUE
+#' is.int(B)  # returns FALSE
+#' is.int(C)  # returns FALSE
+#' }
+#' @export
+is.int <- function(x) {
+  res <- (is.numeric(x) && length(x) == 1) && ((as.integer(x) - x) == 0)
+  return(res)
+}
 
 #' is.LazyTensor.
 #' @description
 #' Checks whether if the given input is a `LazyTensor` or not.
-#' @details If `x` is a `LazyTensor`, `is.LazyTensor(x)` returns TRUE, else, returns FALSE.
+#' @details If `x` is a `LazyTensor`, `is.LazyTensor(x)` returns TRUE, else, 
+#' returns FALSE.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x An object we want to know if it is a `LazyTensor`.
 #' @return A boolean, TRUE or FALSE.
@@ -430,7 +535,7 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1") {
 #' }
 #' @export
 is.LazyTensor <- function(x){
-  return(class(x)[1] == "LazyTensor")
+  return("LazyTensor" %in% class(x))
 }
 
 # TODO
@@ -439,8 +544,8 @@ is.LazyTensor <- function(x){
 #' is.ComplexLazyTensor.
 #' @description
 #' Checks whether if the given input is a `ComplexLazyTensor` or not.
-#' @details If `x` is a `ComplexLazyTensor`, `is.ComplexLazyTensor(x)` returns TRUE,
-#' else, returns FALSE.
+#' @details If `x` is a `ComplexLazyTensor`, `is.ComplexLazyTensor(x)` 
+#' returns TRUE, else, returns FALSE.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x An object we want to know if it is a `ComplexLazyTensor`.
 #' @return A boolean, TRUE or FALSE.
@@ -462,7 +567,7 @@ is.LazyTensor <- function(x){
 #' }
 #' @export
 is.ComplexLazyTensor <- function(x){
-  return(class(x)[1] == "ComplexLazyTensor")
+  return("ComplexLazyTensor" %in% class(x))
 }
 
 
@@ -494,7 +599,7 @@ is.ComplexLazyTensor <- function(x){
 get_inner_dim <- function(x) {
   # Grab `x` inner dimension.
   # `x` must be a LazyTensor or a ComplexLazyTensor.
-  if(!is.LazyTensor(x) && !is.ComplexLazyTensor(x))
+  if(!is.LazyTensor(x))
     stop("`x` input argument should be a LazyTensor or a ComplexLazyTensor.")
   
   end_x_inner_dim <- sub(".*\\(", "", x$args)
@@ -510,7 +615,8 @@ get_inner_dim <- function(x) {
 #' Check inner dimensions for binary or ternary operations.
 #' @keywords internal
 #' @description
-#' Verifies that the inner dimensions of two or three given `LazyTensor` are the same.
+#' Verifies that the inner dimensions of two or three given `LazyTensor` 
+#' are the same.
 #' @details If `x` and `y` are of class `LazyTensor` or `ComplexLazyTensor`,
 #' `check_inner_dim(x, y, check_type = "same")` returns `TRUE` if `x` and `y`
 #' inner dimensions are the same, and `FALSE` otherwise, while
@@ -523,11 +629,12 @@ get_inner_dim <- function(x) {
 #' @param y A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param z A `LazyTensor` or a `ComplexLazyTensor` (optional, default = NA).
 #' @param check_type A character string among "same" and "sameor1" (default),
-#' to specify the desired type of inner dimension verification (see @details section).
+#' to specify the desired type of inner dimension verification 
+#' (see @details section).
 #' @return A boolean TRUE or FALSE.
 check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
   # Inputs must be LazyTensors or ComplexLazyTensors.
-  if((!is.LazyTensor(x) && !is.ComplexLazyTensor(x)) || (!is.LazyTensor(y) && !is.ComplexLazyTensor(y))) {
+  if(!is.LazyTensor(x) || !is.LazyTensor(y)) {
     stop("Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.")
   }
   if(!is.na(z)[1]) {
