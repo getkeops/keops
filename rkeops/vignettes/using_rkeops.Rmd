@@ -113,7 +113,7 @@ use_gpu()
 res <- op(list(X, Y, B, s))
 ```
 
-The different elements (formula, arguments, compilation, computation) in the previous example will be detailled in the next sections.
+The different elements (formula, arguments, compilation, computation) in the previous example will be detailed in the next sections.
 
 ## Formula
 
@@ -123,7 +123,7 @@ To use RKeOps and define new operators, you need to write the corresponding _for
 
 2. a reduction over indexes $i=1,...,M$ (row-wise) or $j=1,...,N$ (column-wise) of the $M \times N$ matrix whose entries are defined by 1.
 
-RKeOps implements a wide range of mathematical operators and reduction: please refers to 
+RKeOps implements a wide range of mathematical operators and reduction: please refer to 
 <https://www.kernel-operations.io/keops/api/math-operations.html> for more details.<br><br>
 
 **Example:** We want to implement the following kernel-based reduction (convolution with a Gaussian kernel): $$\sum_{j=1}^{N} \exp\Big(-\sigma || \mathbf x_i - \mathbf y_j ||_2^{\,2}\Big)\,\mathbf b_j$$

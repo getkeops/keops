@@ -1,0 +1,151 @@
+---
+title: "RKeOps LazyTensor"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+  pdf_document:
+    toc: true
+    number_sections: yes
+author: ""
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{RKeOps: R bindings for KeOps}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  progress = TRUE,
+  warning = FALSE
+)
+```
+
+## TODO title
+
+LazyTensor allow users to perform efficient, semi-symbolic computations on large arrays and matrices.
+
+## Operations
+
+**Note:** If none of the input arguments are of class `LazyTensor` or `ComplexLazyTensor`, the default `R` function (if any) is used instead.
+Please refer to the help page of each function for type compatibility, dimension compatibility, and further details.
+
+
+### Simple arithmetics
+
+| operation | meaning                                       |
+|:----------|:----------------------------------------------|
+| `x + y`   | element-wise addition of `x` and `y`          |
+| `x - y`   | element-wise subtraction  of `x` and `y`      |
+| `-x   `   | element-wise opposite of `x`                  |
+| `x * y`   | element-wise multiplication of `x` and `y`    |
+| `x / y`   | element-wise division of `x` by `y`           |
+| `x^y`     | element-wise value of `x` to the power of `y` |
+| `(x|y)`   | Euclidean scalar product between `x` and `y`  |
+
+
+### Elementary functions
+
+| function            | meaning                                                                                              |
+|:--------------------|:-----------------------------------------------------------------------------------------------------|
+| `square(x)`         | element-wise square of `x` (faster than `x^2`)                                                       |
+| `sqrt(x)`           | element-wise square root of `x` (faster than `x^(.5)`)                                               |
+| `rsqrt(x)`          | element-wise inverse square root of `x` (faster than `x^(-.5)`)                                      |
+| `exp(x)`            | element-wise exponential of `x`                                                                      |
+| `log(x)`            | element-wise natural logarithm of `x`                                                                |
+| `xlogx(x)`          | element-wise `x * log(x)` (with value `0` at `0`)                                                    |
+| `inv(x)`            | element-wise inverse of `x`                                                                          |
+| `cos(x)`            | element-wise cosine of `x`                                                                           |
+| `sin(x)`            | element-wise sine of `x`                                                                             |
+| `sinxdivx(x)`       | element-wise `sin(x) / x` (with value `1` at `0`)                                                    |
+| `acos(x)`           | element-wise arc-cosine of `x`                                                                       |
+| `asin(x)`           | element-wise arc-sine of `x`                                                                         |
+| `acos(x)`           | element-wise arc-cosine of `x`                                                                       |
+| `atan(x)`           | element-wise arc-tangent of `x`                                                                      |
+| `atan2(x, y)`       | element-wise [2-argument arc-tangent function](https://en.wikipedia.org/wiki/Atan2)                  |
+| `abs(x)`            | element-wise absolute value of `x` (or modulus if `x` is a `ComplexLazyTensor`, same as `Mod(x)`)    |
+| `sign(x)`           | element-wise sign of `x` (`-1` if `x < 0`, `0` if `x = 0`, `+1` if `x > 0`)                          |
+| `step(x)`           | element-wise step function (`0` if `x < 0`, `1` if `x >= 0`)                                         |
+| `relu(x)`           | element-wise ReLU function (`0` if `x < 0`, `x` if `x >= 0`)                                         |
+| `clamp(x, a, b)`    | element-wise Clamp function (`a` if `x < a`, `x` if `a <= x <= b`, `b` if `b < x`)                   |
+| `clampint(x, a, b)` | element-wise Clamp function with `a` and `b` fixed integers                                          |
+| `ifelse(x, a, b)`   | element-wise If-Else function (`a` if ``x >= 0`, `b` if `x < 0`)                                     |
+| `mod(x, a, b)`      | element-wise Modulo function, with offset (`x - a * floor((x - b)/a)`)                               |
+| `round(x, d)`       | element-wise rounding of `x` to `d` decimal places                                                   |
+
+
+### Operations involving complex numbers
+
+Here, `z` is assumed to be a `ComplexLazyTensor`, and `x` a `LazyTensor`.
+
+| operation         | meaning                                                                        |
+|:------------------|:-------------------------------------------------------------------------------|
+| `Re(z)`           | element-wise real part of `z`                                                  |
+| `Im(z)`           | element-wise imaginary part of `z`                                             |
+| `Arg(z)`          | element-wise angle (or argument) of `z`                                        |
+| `Mod(z)`          | element-wise modulus of `z`                                                    |
+| `Conj(z)`         | element-wise conjugate of `z`                                                  |
+| `real2complex(x)` | element-wise conversion of real to complex with zero imaginary part (`x + 0i`) |
+| `imag2complex(x)` | element-wise conversion of real to complex with zero real part (`0 + xi`)      |
+| `Conj(z)`         | element-wise conjugate of `z`                                                  |
+
+
+### Simple vector operations
+
+| operation                 | meaning                                                                                             |
+|:--------------------------|:----------------------------------------------------------------------------------------------------|
+| `norm2(x)`                | L2 norm of `x`, same as `sqrt(x|x)`                                                                 |
+| `sqnorm2(x)`              | squared L2 norm of `x`, same as `(x|x)`                                                             |
+| `normalize(x)`            | normalization of `x`, same as `rsqrt(sqnorm2(x)) * x`                                               |
+| `normalize(x)`            | normalization of `x`, same as `rsqrt(sqnorm2(x)) * x`                                               |
+| `sqdist(x, y)`            | Euclidean distance between `x` and `y`, same as `sqnorm2(x - y)`                                    |
+| `weightedsqnorm(x)`       | generic weighted squared euclidean norm of `x`, with weights stored in `s` (see details below)      |
+| `weightedsqdist(x, y, s)` | generic weighted squared euclidean distance between `x` and `y`, same as `weightedsqnorm(x - y, s)` |
+
+
+Generic squared Euclidean norms support scalar weights, and diagonal or full (symmetric) weight matrices. If $x$ is a vector of size $n$, depending on the size of $s$, `weightedsqnorm(x, s)` may refer to:
+
+- a weighted L2 norm $s_0\cdot\displaystyle\sum_{i = 0}^{n - 1} x_i^2$  if $s$ is a vector of size $1$.
+- a separable norm $\displaystyle\sum_{i = 0}^{n - 1} s_i\cdot x_i^2$  if $s$ is a vector of size $n$.
+- a full anisotropic norm $\displaystyle\sum_{i,j\ =\ 0}^{n - 1} s_{in + j} x_i x_j$  if $s$ is a vector of size $n^2$ such that $s_{in+j} =  s_{jn+i}$ (i.e. stores a symmetric matrix).
+
+
+### Elementary dot products
+
+| `x %*% y` | ... |
+
+
+### Constants and padding/concatenation operations
+
+| `sum(x)` | ... |
+| `max(x)` | ... |
+| `min(x)` | ... |
+| `argmax(x)` | ... |
+| `argmin(x)` | ... |
+| `elem(x)` | ... |
+| `elemT(x)` | ... |
+| `extract(x)` | ... |
+| `extractT(x)` | ... |
+| `concat(x)` | ... |
+| `one_hot(x)` | ... |
+
+
+### Symbolic gradients
+
+
+### Reductions
+
+
+TODO:
+
+* add introduction and many many other things
+* add precision word about dimension compatibility (or link to other vignette) ?
+* add precision word about type compatibility ?
+* ask if reformulation is correct in Generic squared Euclidean norms...
+
+
+
+
+
+
