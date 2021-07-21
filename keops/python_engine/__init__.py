@@ -41,7 +41,7 @@ specdim_use_chunk3 = 112
 specdim_use_chunk4 = 114
 
 # special mode for formula of the type sum_j k(x_i,y_j)*b_j with high dimensional b_j
-enable_final_chunk = False
+enable_final_chunk = True
 def get_enable_finalchunk():
     global enable_finalchunk
     return enable_finalchunk
