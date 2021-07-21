@@ -13,11 +13,11 @@ def get_hash_name(*args):
 
 def sizeof(dtype):
     if dtype=="float":
-        return 32
+        return 4
     elif dtype=="double":
-        return 64
+        return 8
     elif dtype=="half":
-        return 16
+        return 2
     else:
         raise ValueError("not implemented")
     
