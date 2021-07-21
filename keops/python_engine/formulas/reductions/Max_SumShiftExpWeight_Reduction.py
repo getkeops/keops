@@ -1,5 +1,6 @@
 from keops.python_engine.formulas.maths import Concat, Exp, Extract
-from keops.python_engine.formulas.reductions import Reduction, Sum_Reduction
+from keops.python_engine.formulas.reductions.Reduction import Reduction
+from keops.python_engine.formulas.reductions.Sum_Reduction import Sum_Reduction
 from keops.python_engine.formulas.variables.IntCst import IntCst
 from keops.python_engine.utils.code_gen_utils import (
     neg_infinity,
