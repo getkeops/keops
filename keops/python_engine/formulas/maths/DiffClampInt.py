@@ -1,3 +1,4 @@
+from keops.python_engine.formulas import Zero
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
 from keops.python_engine.utils.math_functions import keops_diffclampint
 
@@ -12,7 +13,6 @@ from keops.python_engine.utils.math_functions import keops_diffclampint
 
 
 class DiffClampInt(VectorizedScalarOp):
-
     string_id = "DiffClampInt"
 
     def __init__(self, x, a, b):

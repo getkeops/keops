@@ -3,7 +3,6 @@ from keops.python_engine.utils.math_functions import keops_ifelse
 
 
 class IfElse(VectorizedScalarOp):
-
     """the if/else vectorized operation
     IfElse(f,a,b) = a if f>=0, b otherwise
     """

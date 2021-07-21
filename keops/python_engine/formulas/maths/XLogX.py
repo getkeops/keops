@@ -1,10 +1,9 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keops.python_engine.utils.math_functions import keops_xlogx
 from keops.python_engine.formulas.maths.Log import Log
+from keops.python_engine.utils.math_functions import keops_xlogx
 
 
 class XLogX(VectorizedScalarOp):
-
     """the x*log(x) vectorized operation"""
 
     string_id = "XLogX"

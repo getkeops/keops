@@ -50,7 +50,7 @@ class VectorizedScalarOp(Operation):
                 res = set.union(res, set(child.chunked_vars(cat)))
         return list(res)
 
-    def notchunked_vars(cat):
+    def notchunked_vars(self, cat):
         res = set()
         for child in self.children:
             if child.dim==1:

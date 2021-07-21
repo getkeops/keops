@@ -1,6 +1,7 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keops.python_engine.utils.math_functions import keops_sign
 from keops.python_engine.formulas.variables.Zero import Zero
+from keops.python_engine.utils.math_functions import keops_sign
+
 
 ##########################
 ######    Sign        #####

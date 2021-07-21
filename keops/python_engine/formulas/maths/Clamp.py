@@ -1,11 +1,9 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keops.python_engine.utils.math_functions import keops_clamp
 from keops.python_engine.formulas.maths.ClampInt import ClampInt
-from keops.python_engine.formulas.basicMathOps.IntInv import IntInv
+from keops.python_engine.utils.math_functions import keops_clamp
 
 
 class Clamp(VectorizedScalarOp):
-
     """Clamp(x,a,b) = a if x<a, x if a<=x<=b, b if b<x"""
 
     string_id = "Clamp"
