@@ -37,7 +37,7 @@ class direct_sum(Sum_Scheme):
     def initialize_temporary_accumulator(self):
         return ""
 
-    def accumulate_result(self, acc, fout, j):
+    def accumulate_result(self, acc, fout, j, hack=False):
         return self.red_formula.ReducePairShort(acc, fout, j)
 
 
@@ -55,8 +55,9 @@ class block_sum(Sum_Scheme):
     def initialize_temporary_accumulator_block_init(self):
         return self.red_formula.InitializeReduction(self.tmp_acc)
 
-    def accumulate_result(self, acc, fout, j):
-        return self.red_formula.ReducePairShort(self.tmp_acc, fout, j)
+    def accumulate_result(self, acc, fout, j, hack=False):
+        tmp_acc = acc if hack else self.tmp_acc
+        return self.red_formula.ReducePairShort(tmp_acc, fout, j)
 
     def periodic_accumulate_temporary(self, acc, j):
         condition = c_variable("bool", f"!(({j.id}+1)%period_accumulate)")
@@ -81,5 +82,5 @@ class kahan_scheme(Sum_Scheme):
     def initialize_temporary_accumulator_first_init(self):
         return self.initialize_temporary_accumulator()
 
-    def accumulate_result(self, acc, fout, j):
+    def accumulate_result(self, acc, fout, j, hack=False):
         return self.red_formula.KahanScheme(acc, fout, self.tmp_acc)

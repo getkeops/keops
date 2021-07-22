@@ -6,14 +6,14 @@ import math
 import torch
 from pykeops.torch import LazyTensor
 
-M, N, D, DV = 1000, 1000, 3, 1
+M, N, D, DV = 2000, 3000, 3, 1
 
 dtype = torch.float32
 
-test_grad = True
+test_grad = False
 test_grad2 = False
 device_id = "cuda:1" if torch.cuda.is_available() else "cpu"
-do_warmup = True
+do_warmup = False
 
 x = torch.rand(M, 1, D, device=device_id, dtype=dtype) / math.sqrt(D)
 y = torch.rand(1, N, D, device=device_id, dtype=dtype) / math.sqrt(D)
@@ -32,7 +32,7 @@ def fun(x, y, b, backend):
         out = Kxy @ b
     if device_id != "cpu":
         torch.cuda.synchronize()
-    # print("out:",out.flatten()[:10])
+    #print("out:",out)
     return out
 
 
