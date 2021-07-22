@@ -6,9 +6,10 @@ from keops.python_engine.utils.code_gen_utils import (
     c_include,
     signature_list,
     call_list,
+    pointer
 )
 from keops.python_engine.compilation import Gpu_link_compile
-
+from keops.python_engine.formulas.reductions.sum_schemes import block_sum, kahan_scheme
 
 class GpuReduc2D(MapReduce, Gpu_link_compile):
     # class for generating the final C++ code, Gpu version
@@ -18,43 +19,24 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
     def __init__(self, *args):
         MapReduce.__init__(self, *args)
         Gpu_link_compile.__init__(self)
-        #self.dimy = self.varloader.dimy
+        self.dimy = self.varloader.dimy
 
     def get_code(self):
 
         super().get_code()
-
-        """
-        red_formula = self.red_formula
-        dtype = self.dtype
-        varloader = self.varloader
-
+        
         i = self.i
         j = self.j
-        fout = self.fout
-        outi = self.outi
-        acc = self.acc
-        arg = self.arg
-        args = self.args
-        sum_scheme = self.sum_scheme
-
-        param_loc = self.param_loc
-        xi = self.xi
-        yjloc = c_array(dtype, varloader.dimy, f"(yj + threadIdx.x * {varloader.dimy})")
-        yjrel = c_array(dtype, varloader.dimy, "yjrel")
-        jreltile = c_variable("int", "(jrel + tile * blockDim.x)")
-        """
-        
-        dtype = self.dtype
-        dimin = 
-        dimout = 
         red_formula = self.red_formula
+        dtype = self.dtype
+        dimin = red_formula.dimred
+        dimout = red_formula.dim
         varloader = self.varloader
         dtypeacc = self.dtypeacc
         acc = c_array(dtypeacc, dimin, "acc")
         
-        inloc = c_variable(pointer(dtype), f"(in + (tid+y*nx)*{dimin})")
-        outloc = c_variable(pointer(dtype), f"(out+tid*{dimout})")
+        inloc = c_array(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
+        outloc = c_array(dtype, dimout,  f"(out+tid*{dimout})")
         
         dimsx = varloader.dimsx
         dimsy = varloader.dimsy
@@ -65,12 +47,14 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         dimx = sum(dimsx)
         dimy = sum(dimsy)
         dimp = sum(dimsp)
-        dimred = self.dimred
-        dimfout = self.dimfout
+        dimred = red_formula.dimred
+        dimfout = red_formula.formula.dim
         
         fout = c_array(dtype, dimfout, "fout")
         param_loc = c_array(dtype, dimp, "param_loc")
         xi = c_array(dtype, dimx, "xi")
+        
+        sum_scheme = self.sum_scheme
         
         # N.B. To be consistent with the convention used in GpuConv1D, when SUM_SCHEME == BLOCK_SUM=1 we accumulate results in TYPE 
         # instead of __TYPEACC__ in each block, __TYPEACC__ will be used only to sum up results from each block
@@ -115,12 +99,12 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             /* // This code should be a bit more efficient (more parallel) in the case
                                // of a simple "fully parallel" reduction op such as "sum", "max" or "min"
                             TYPE res = 0;
-                            if(tid < nx*DIMVECT) {
+                            if(tid < nx*DIMVECT) {{
                                 for (int i = 0; i < sizeY; i++)
                                     res += in[tid + i*nx*DIMVECT]; // We use "+=" as a reduction op. But it could be anything, really!
                                 // res = in[tid+ nx* DIMVECT];
                                 out[tid] = res;
-                            }
+                            }}
                             */
 
                             // However, for now, we use a "vectorized" reduction op.,
@@ -156,7 +140,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                             
                             {acc.declare()}
                             
-                            {sum_scheme.tmp_acc.declare() if isinstance(sum_scheme, kahan_scheme) else ""}
+                            {sum_scheme.tmp_acc.declare()} //# if isinstance(sum_scheme, kahan_scheme) else ""
                             
                             if(i<nx) {{ // we will compute outi only if i is in the range
                                 {red_formula.InitializeReduction(acc)} // acc = 0

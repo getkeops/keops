@@ -250,8 +250,6 @@ def cast_to(dtype, var):
     elif dtype=="half2" and var.dtype=="float2":
         return f"__float22half2_rn({var.id})"
     else:
-        print(dtype)
-        print(var.dtype)
         raise ValueError("not implemented.")
 
 
