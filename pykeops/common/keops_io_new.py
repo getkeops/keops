@@ -134,12 +134,6 @@ class LoadKeOps_new:
             )
             print("Options are:", self.optional_flags)
 
-        if tag1D2D == 1:
-            print(
-                "[KeOps] warning : GPU_2D method is not yet implemented in new KeOps engine, switching to GPU_1D."
-            )
-            tag1D2D = 0
-
         if tagCPUGPU == 0:
             map_reduce_id = "CpuReduc"
         else:
