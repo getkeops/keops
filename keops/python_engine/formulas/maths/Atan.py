@@ -3,7 +3,6 @@ from keops.python_engine.utils.math_functions import keops_atan
 
 
 class Atan(VectorizedScalarOp):
-
     """the arc-tangent vectorized operation"""
 
     string_id = "Atan"

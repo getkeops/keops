@@ -1,10 +1,9 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keops.python_engine.utils.math_functions import keops_round
 from keops.python_engine.formulas.variables.Zero import Zero
+from keops.python_engine.utils.math_functions import keops_round
 
 
 class Round(VectorizedScalarOp):
-
     """the Round vectorized operation
     Round(f,d) where d is integer, rounds f to d decimals
     """

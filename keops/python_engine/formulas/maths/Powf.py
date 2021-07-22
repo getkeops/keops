@@ -3,7 +3,6 @@ from keops.python_engine.utils.math_functions import keops_powf
 
 
 class Powf(VectorizedScalarOp):
-
     """the Power vectorized operation"""
 
     string_id = "Powf"

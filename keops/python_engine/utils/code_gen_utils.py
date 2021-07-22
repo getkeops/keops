@@ -13,11 +13,11 @@ def get_hash_name(*args):
 
 def sizeof(dtype):
     if dtype=="float":
-        return 32
+        return 4
     elif dtype=="double":
-        return 64
+        return 8
     elif dtype=="half":
-        return 16
+        return 2
     else:
         raise ValueError("not implemented")
     
@@ -596,14 +596,19 @@ def load_vars(dims, inds, xloc, args, row_index=c_zero_int, offsets=None):
             "[KeOps] internal error: invalid dimension for offsets c_array argument"
         )
     string = ""
-    k = 0
-    for u in range(len(dims)):
-        for v in range(dims[u]):
+    if len(dims)>0:
+        string += "{\n"
+        string += "int a=0;\n"
+        for u in range(len(dims)):
             row_index_str = (
-                f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
-            )
-            string += f"{xloc.id}[{k}] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+{v}];\n"
-            k += 1
+                    f"({row_index.id}+{offsets.id}[{u}])" if offsets else row_index.id
+                )
+            string += "#pragma unroll\n"
+            string += f"for(int v=0; v<{dims[u]}; v++) {{\n"
+            string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index_str}*{dims[u]}+v];\n"
+            string += "     a++;\n"
+            string += "}\n"
+        string += "}\n"
     return string
 
 
@@ -636,11 +641,16 @@ def load_vars_chunks(inds, dim_chunk, dim_chunk_load, dim_org,
     #   xi[4] = px[8][5*11+k*3];
     #   xi[5] = px[8][5*11+k*3+1];
     string = ""
-    a = 0
-    for u in range(len(inds)):
-        for v in range(dim_chunk_load):
-            string += f"{xloc.id}[{a}] = {args[inds[u]].id}[{row_index.id}*{dim_org}+{k.id}*{dim_chunk}+{v}];\n"
-            a += 1
+    if len(inds)>0:
+        string += "{"
+        string += "int a=0;\n"
+        for u in range(len(inds)):
+            string += "#pragma unroll\n"
+            string += f"for(int v=0; v<{dim_chunk_load}; v++) {{\n"
+            string += f"    {xloc.id}[a] = {args[inds[u]].id}[{row_index.id}*{dim_org}+{k.id}*{dim_chunk}+v];\n"
+            string += "     a++;\n"
+            string += "}"
+        string += "}"
     return string
     
 
@@ -659,12 +669,17 @@ def load_vars_chunks_offsets(inds, indsref, dim_chunk, dim_chunk_load, dim_org,
     #   xi[4] = px[1][(5+offsets[4])*11+k*3];
     #   xi[5] = px[1][(5+offsets[4])*11+k*3+1];
     string = ""
-    a = 0
-    for u in range(len(inds)):
-        l = indsref.index(inds[u])
-        for v in range(dim_chunk_load):
-            string += f"{xloc.id}[{a}] = {args[inds[u]].id}[({row_index.id}+{offsets.id}[{l}])*{dim_org}+{k.id}*{dim_chunk}+{v}];\n"
-            a += 1
+    if len(inds)>0:
+        string = "{"
+        string += "int a=0;\n"
+        for u in range(len(inds)):
+            l = indsref.index(inds[u])
+            string += "#pragma unroll\n"
+            string += f"for(int v=0; v<{dim_chunk_load}; v++) {{\n"
+            string += f"    {xloc.id}[a] = {args[inds[u]].id}[({row_index.id}+{offsets.id}[{l}])*{dim_org}+{k.id}*{dim_chunk}+v];\n"
+            string += "     a++;\n"
+            string += "}"
+        string += "}"
     return string
 
 

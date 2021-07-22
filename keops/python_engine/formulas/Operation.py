@@ -76,25 +76,25 @@ class Operation(Tree):
 
     def __mul__(self, other):
         """f*g redirects to Mult(f,g)"""
-        from keops.python_engine.formulas.basicMathOps.Mult import Mult
+        from keops.python_engine.formulas.maths.Mult import Mult
 
         return Mult(self, int2Op(other))
 
     def __rmul__(self, other):
         """g*f redirects to Mult(f,g)"""
-        from keops.python_engine.formulas.basicMathOps.Mult import Mult
+        from keops.python_engine.formulas.maths.Mult import Mult
 
         return Mult(self, int2Op(other))
 
     def __truediv__(self, other):
         """f/g redirects to Divide(f,g)"""
-        from keops.python_engine.formulas.basicMathOps.Divide import Divide
+        from keops.python_engine.formulas.maths.Divide import Divide
 
         return Divide(self, int2Op(other))
 
     def __rtruediv__(self, other):
         if other == 1:
-            from keops.python_engine.formulas.basicMathOps.Inv import Inv
+            from keops.python_engine.formulas.maths.Inv import Inv
 
             return Inv(self)
         else:
@@ -102,7 +102,7 @@ class Operation(Tree):
 
     def __add__(self, other):
         """f+g redirects to Add(f,g)"""
-        from keops.python_engine.formulas.basicMathOps.Add import Add
+        from keops.python_engine.formulas.maths.Add import Add
 
         return Add(self, int2Op(other))
 
@@ -112,7 +112,7 @@ class Operation(Tree):
 
     def __sub__(self, other):
         """f-g redirects to Subtract(f,g)"""
-        from keops.python_engine.formulas.basicMathOps.Subtract import Subtract
+        from keops.python_engine.formulas.maths.Subtract import Subtract
 
         return Subtract(self, int2Op(other))
 
@@ -122,7 +122,7 @@ class Operation(Tree):
 
     def __neg__(self):
         """-f redirects to Minus(f)"""
-        from keops.python_engine.formulas.basicMathOps.Minus import Minus
+        from keops.python_engine.formulas.maths.Minus import Minus
 
         return Minus(self)
 
@@ -137,24 +137,23 @@ class Operation(Tree):
 
     def __or__(self, other):
         """f|g redirects to Scalprod(f,g)"""
-        from keops.python_engine.formulas.vectOps.Scalprod import Scalprod
+        from keops.python_engine.formulas.maths.Scalprod import Scalprod
 
         return Scalprod(self, other)
 
     def __eq__(self, other):
         return (
-            type(self) == type(other)
-            and self.children == other.children
-            and self.params == other.params
+                type(self) == type(other)
+                and self.children == other.children
+                and self.params == other.params
         )
 
     def Op(self, out, table, param):
         pass
-        
-        
+
     def chunked_version(self, dimchk):
         return None
-    
+
     @property
     def is_chunkable(self):
         return False
@@ -164,7 +163,7 @@ class Operation(Tree):
         for child in self.children:
             res += child.chunked_formulas(dimchk)
         return res
-    
+
     @property
     def num_chunked_formulas(self):
         return sum([child.num_chunked_formulas for child in self.children])
@@ -175,7 +174,6 @@ class Operation(Tree):
             args.append(child.post_chunk_formula(ind))
             ind += child.num_chunked_formulas
         return type(self)(*args, *self.params)
-
 
 
 def int2Op(x):
@@ -195,7 +193,7 @@ def int2Op(x):
 
 # N.B. this is used internally
 def Broadcast(arg, dim):
-    from keops.python_engine.formulas.vectOps import SumT
+    from keops.python_engine.formulas.maths import SumT
 
     if arg.dim == dim or dim == 1:
         return arg

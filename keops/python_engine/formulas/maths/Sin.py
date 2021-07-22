@@ -3,7 +3,6 @@ from keops.python_engine.utils.math_functions import keops_sin
 
 
 class Sin(VectorizedScalarOp):
-
     """the Sine vectorized operation"""
 
     string_id = "Sin"

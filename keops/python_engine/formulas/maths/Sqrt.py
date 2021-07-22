@@ -1,7 +1,8 @@
 from keops.python_engine.formulas.VectorizedScalarOp import VectorizedScalarOp
-from keops.python_engine.utils.math_functions import keops_sqrt
+from keops.python_engine.formulas.maths.IntInv import IntInv
 from keops.python_engine.formulas.maths.Rsqrt import Rsqrt
-from keops.python_engine.formulas.basicMathOps.IntInv import IntInv
+from keops.python_engine.utils.math_functions import keops_sqrt
+
 
 ##########################
 ######    Sqrt       #####
@@ -9,7 +10,6 @@ from keops.python_engine.formulas.basicMathOps.IntInv import IntInv
 
 
 class Sqrt(VectorizedScalarOp):
-
     """the square root vectorized operation"""
 
     string_id = "Sqrt"

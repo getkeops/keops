@@ -41,12 +41,13 @@
 
 import sys
 from keops.python_engine.formulas import *
+from keops.python_engine.reductions import getReduction
 from keops.python_engine.formulas.variables.Zero import Zero
 from keops.python_engine.formulas.reductions import *
 from keops.python_engine.mapreduce import *
-from keops.python_engine import get_enable_chunk, set_enable_chunk, dimchunk, cuda_block_size
+from keops.python_engine import get_enable_chunk, set_enable_chunk, set_enable_finalchunk, use_final_chunks, set_mult_var_highdim, dimchunk, cuda_block_size
 
-def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_finalchunks, mul_var_highdim, *args):
+def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_finalchunks, mul_var_highdim, aliases, *args):
     
     # detecting the need for special chunked computation modes :
     use_chunk_mode = 0
@@ -54,24 +55,24 @@ def get_keops_dll(map_reduce_id, red_formula_string, enable_chunks, enable_final
         set_enable_chunk(enable_chunks)
         set_enable_finalchunk(enable_finalchunks)
         set_mult_var_highdim(mul_var_highdim)
-        if use_final_chunks:
+        if use_final_chunks():
             use_chunk_mode = 2
             map_reduce_id += '_finalchunks'
         elif get_enable_chunk():
-            red_formula = eval(red_formula_string)
+            red_formula = getReduction(red_formula_string, aliases)
             if len(red_formula.formula.chunked_formulas(dimchunk))==1:
                 use_chunk_mode = 1
                 map_reduce_id += '_chunks'
     
     map_reduce_class = eval(map_reduce_id)
-    map_reduce_obj = map_reduce_class(red_formula_string, *args)
+    map_reduce_obj = map_reduce_class(red_formula_string, aliases, *args)
 
     # detecting the case of formula being equal to zero, to bypass reduction.
     rf = map_reduce_obj.red_formula
     if isinstance(rf, Zero_Reduction) or (
         isinstance(rf.formula, Zero) and isinstance(rf, Sum_Reduction)
     ):
-        map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, *args)
+        map_reduce_obj = map_reduce_class.AssignZero(red_formula_string, aliases, *args)
         tagZero = 1
     else:
         tagZero = 0

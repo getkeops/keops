@@ -3,7 +3,6 @@ from keops.python_engine.utils.math_functions import keops_log
 
 
 class Log(VectorizedScalarOp):
-
     """the logarithm vectorized operation"""
 
     string_id = "Log"

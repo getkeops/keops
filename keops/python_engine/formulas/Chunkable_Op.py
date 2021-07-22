@@ -6,7 +6,10 @@ class Chunkable_Op(Operation):
     
     def chunked_version(self, dimchk):
         chunked_args = [child.chunked_version(dimchk) for child in self.children]
-        return type(self)(*chunked_args, params=self.params)
+        if self.params==():
+            return type(self)(*chunked_args)
+        else:
+            return type(self)(*chunked_args, params=self.params)
     
     def chunked_vars(self, cat):
         res = set()
