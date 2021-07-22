@@ -280,7 +280,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
   res <- list(formula = formula, args = x$args, vars = x$vars)
   
   # result type
-  if(is.na(res_type))
+  if(is.na(res_type[1]))
     class(res) <- class(x)
   else
     class(res) <- res_type
@@ -387,7 +387,7 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   
   
   
-  if(!is.na(res_type))
+  if(!is.na(res_type[1]))
     class(res) <- res_type
   else if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
       class(res) <- c("ComplexLazyTensor", "LazyTensor")
