@@ -49,7 +49,8 @@ set_rkeops_option("precision", "double")
 }
 
 "+.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE, dim_check_type = "sameor1")
+    res <- binaryop.LazyTensor(x, y, "+", is_operator = TRUE,
+                               dim_check_type = "sameor1")
     return(res)
 }
 
@@ -103,7 +104,8 @@ set_rkeops_option("precision", "double")
     if((length(y) == 1) && is.na(y))
         res <- unaryop.LazyTensor(x, "Minus")
     else
-        res <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE, dim_check_type = "sameor1")
+        res <- binaryop.LazyTensor(x, y, "-", is_operator = TRUE,
+                                   dim_check_type = "sameor1")
     return(res)
 }
 
@@ -148,7 +150,8 @@ set_rkeops_option("precision", "double")
 }
 
 "*.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE, dim_check_type = "sameor1")
+    res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE,
+                               dim_check_type = "sameor1")
     return(res)
 }
 
@@ -193,7 +196,8 @@ set_rkeops_option("precision", "double")
 }
 
 "/.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE, dim_check_type = "sameor1")
+    res <- binaryop.LazyTensor(x, y, "/", is_operator = TRUE,
+                               dim_check_type = "sameor1")
     return(res)
 }
 
@@ -409,7 +413,8 @@ rsqrt.LazyTensor <- function(x) {
 }
 
 "|.LazyTensor" <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE, dim_check_type = "same")
+    res <- binaryop.LazyTensor(x, y, "|", is_operator = TRUE,
+                               dim_check_type = "same", dim_res = 1)
     res$formula <- paste("(", res$formula, ")", sep = "")
     return(res)
 }
@@ -1218,7 +1223,9 @@ mod.LazyTensor <- function(x, a, b = 0) {
 #' }
 #' @export
 sqnorm2 <- function(x) {
-    res <- unaryop.LazyTensor(x, "SqNorm2", res_type = "LazyTensor")
+    res <- unaryop.LazyTensor(x, "SqNorm2",
+                              res_type = "LazyTensor",
+                              dim_res = 1)
     return(res)
 }
 
@@ -1242,7 +1249,9 @@ sqnorm2 <- function(x) {
 #' }
 #' @export
 norm2 <- function(x) {
-    res <- unaryop.LazyTensor(x, "Norm2", res_type = "LazyTensor")
+    res <- unaryop.LazyTensor(x, "Norm2",
+                              res_type = "LazyTensor",
+                              dim_res = 1)
     return(res)
 }
 
@@ -1300,7 +1309,9 @@ normalize <- function(x) {
 #' }
 #' @export
 sqdist <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "SqDist", res_type = "LazyTensor")
+    res <- binaryop.LazyTensor(x, y, "SqDist",
+                               res_type = "LazyTensor",
+                               dim_res = 1)
     return(res)
 }
 
@@ -1333,7 +1344,9 @@ sqdist <- function(x, y) {
 #' @export
 weightedsqnorm <- function(x, s) {
     res <- binaryop.LazyTensor(x, s, "WeightedSqNorm",
-                               dim_check_type = NA, res_type = "LazyTensor")
+                               dim_check_type = NA,
+                               res_type = "LazyTensor",
+                               dim_res = 1)
     return(res)
 }
 
@@ -1695,7 +1708,7 @@ reduction.LazyTensor <- function(x, opstr, index, opt_arg = NA) {
     }
     
     else
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     
     return(res)
 }
@@ -1854,7 +1867,7 @@ min_reduction <- function(x, index) {
     if(check_index(index))
         res <- reduction.LazyTensor(x, "Min", index)
     else
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
@@ -1926,7 +1939,7 @@ argmin_reduction <- function(x, index) {
     if(check_index(index))
         res <- reduction.LazyTensor(x, "ArgMin", index)
     else
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
@@ -1962,7 +1975,7 @@ min_argmin <- function(x, index) {
     if(check_index(index))
         res <- reduction.LazyTensor(x, "Min_ArgMin", index)
     else
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
@@ -1992,7 +2005,7 @@ min_argmin_reduction <- function(x, index) {
     if(check_index(index))
         res <- min_argmin(x, index)
     else
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
@@ -2075,7 +2088,7 @@ max_reduction <- function(x, index) {
     if(check_index(index))
         res <- reduction.LazyTensor(x, "Max", index)
     else 
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
@@ -2085,7 +2098,16 @@ max_reduction <- function(x, index) {
 #' ArgMax.
 #' @description
 #' ArgMax unary operation, or ArgMax reduction.
-#' @details 
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
+#' `argmax(x, index)` will:
+#' \itemize{
+#'     \item{if **index = NA** (default),}{ return a new `LazyTensor` object
+#'     representing the argmax of the values of **x**;}
+#'     \item{if **index = i**,}{ return the argmax reduction of **x** over the
+#'     **i** indices (rows);}
+#'     \item{if **index = j**,}{ return the argmax reduction of **x** over the
+#'     **i** indices (columns).}
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor`, a `ComplexLazyTensor`, a vector or a matrix of numeric 
 #' values, or a scalar value.
@@ -2141,22 +2163,22 @@ argmax_reduction <- function(x, index) {
     if(check_index(index))
         res <- reduction.LazyTensor(x, "ArgMax", index)
     else 
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
 
-# max_argmax reduction -------------------------------------------------------------
+# max_argmax -------------------------------------------------------------------
 
-#' Max-ArgMax reduction.
+#' Max-ArgMax.
 #' @description
 #' Max-ArgMax reduction.
 #' @details `max_argmax(x, index)` will :
 #' \itemize{
-#'   \item if **index = "i"**, return the maximal values and its indices of **x** 
-#'   over the "i" indexes.
-#'   \item if **index = "j"**, return the maximal values and its indices of **x**
-#'   over the "j" indexes.
+#'   \item if **index = "i"**, return the maximal values of **x** and its
+#'   indices over the **i** indices;
+#'   \item if **index = "j"**, return the maximal values of **x** and its
+#'   indices over the **j** indices.
 #' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
@@ -2177,7 +2199,7 @@ max_argmax <- function(x, index) {
     if(check_index(index))
         res <- reduction.LazyTensor(x, "Max_ArgMax", index)
     else 
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
@@ -2186,14 +2208,21 @@ max_argmax <- function(x, index) {
 
 #' Max-ArgMax reduction.
 #' @description
-#' Max-ArgMax reduction.
-#' @details `max_argmax_reduction(x, index)` 
+#' Max-ArgMax reduction. Redirects to `max_argmax` function.
+#' @details `max_argmax(x, index)` will :
+#' \itemize{
+#'   \item if **index = "i"**, return the maximal values of **x** and its
+#'   indices over the **i** indices;
+#'   \item if **index = "j"**, return the maximal values of **x** and its
+#'   indices over the **j** indices.
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
 #' be either **i** or **j** to specify whether if the summation is indexed by 
 #' **i** (rows) or **j** (columns).
 #' @return 
+#' @seealso [rkeops::max_argmax()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
@@ -2208,7 +2237,7 @@ max_argmax_reduction <- function(x, index) {
     if(check_index(index))
         res <- max_argmax(x, index)
     else 
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
@@ -2217,8 +2246,15 @@ max_argmax_reduction <- function(x, index) {
 
 #' Kmin.
 #' @description
-#' Kmin
-#' @details  
+#' K-Min reduction.
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`, `Kmin(x, K, index)`
+#' will:
+#' \itemize{
+#'     \item{if **index = i**,}{ return the **K** minimal values of **x**
+#'     over the **i** indices (rows);}
+#'     \item{if **index = j**,}{ return the **K** minimal values of **x**
+#'     over the **j** indices (columns).}
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -2228,20 +2264,18 @@ max_argmax_reduction <- function(x, index) {
 #' @return 
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-#'                                     # indexed by 'i'
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' K <- 2
-#' kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction 
-#'                                     # indexed by "i"
+#' kmin_x <- Kmin(x_i, K, "i")         # Kmin reduction, over the "i" indices
 #' }
 #' @export
 Kmin <- function(x, K, index) {
     if(!is.int(K))
         stop("`K` input argument should be an integer.")
     if(!check_index(index))
-        stop("`index` input argument should be a character `i`, `j`.")
-    res <- reduction.LazyTensor(x, "Kmin", index, opt_arg = K)
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
+    res <- reduction.LazyTensor(x, "KMin", index, opt_arg = K)
     return(res)
 }
 
@@ -2250,8 +2284,15 @@ Kmin <- function(x, K, index) {
 
 #' Kmin reduction.
 #' @description
-#' Kmin reduction.
-#' @details  
+#' K-Min reduction. Redirects to `Kmin` function.
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
+#' `Kmin(x, K, index)` will:
+#' \itemize{
+#'     \item{if **index = i**,}{ return the **K** minimal values of **x**
+#'     over the **i** indices (rows);}
+#'     \item{if **index = j**,}{ return the **K** minimal values of **x**
+#'     over the **j** indices (columns).}
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -2259,14 +2300,13 @@ Kmin <- function(x, K, index) {
 #' **i** (rows) or **j** (columns).
 #' @param K An `integer` corresponding to the  number of minimal values required.
 #' @return 
+#' @seealso [rkeops::Kmin()]
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-#'                                     # indexed by 'i'
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' K <- 2
-#' kmin_red_x <- Kmin_reduction(x_i, K, "i")   # Kmin reduction 
-#'                                             # indexed by "i"
+#' kmin_red_x <- Kmin_reduction(x_i, K, "i")   # Kmin reduction, indexed by "i"
 #' }
 #' @export
 Kmin_reduction <- function(x, K, index) {
@@ -2280,8 +2320,17 @@ Kmin_reduction <- function(x, K, index) {
 
 #' argKmin.
 #' @description
-#' argKmin.
-#' @details  
+#' argKmin reduction.
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
+#' `argKmin(x, K, index)` will:
+#' \itemize{
+#'     \item{if **index = i**,}{ return the indices of the **K** minimal
+#'     values of **x**
+#'     over the **i** indexes (rows);}
+#'     \item{if **index = j**,}{ return the indices of the **K** minimal
+#'     values of **x**
+#'     over the **j** indexes (columns).}
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -2304,8 +2353,8 @@ argKmin <- function(x, K, index) {
     if(!is.int(K))
         stop("`K` input argument should be an integer.")
     if(!check_index(index))
-        stop("`index` input argument should be a character `i`, `j`.")
-    res <- reduction.LazyTensor(x, "ArgKmin", index, opt_arg = K)
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
+    res <- reduction.LazyTensor(x, "ArgKMin", index, opt_arg = K)
     return(res)
 }
 
@@ -2314,8 +2363,17 @@ argKmin <- function(x, K, index) {
 
 #' argKmin reduction.
 #' @description
-#' argKmin reduction.
-#' @details  
+#' argKmin reduction. Redirects to `argKmin` function.
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
+#' `argKmin(x, K, index)` will:
+#' \itemize{
+#'     \item{if **index = i**,}{ return the indices of the **K** minimal
+#'     values of **x**
+#'     over the **i** indexes (rows);}
+#'     \item{if **index = j**,}{ return the indices of the **K** minimal
+#'     values of **x**
+#'     over the **j** indexes (columns).}
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -2323,6 +2381,7 @@ argKmin <- function(x, K, index) {
 #' **i** (rows) or **j** (columns).
 #' @param K An `integer` corresponding to the  number of minimal values required.
 #' @return 
+#' @seealso [rkeops::argKmin()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
@@ -2331,7 +2390,6 @@ argKmin <- function(x, K, index) {
 #' K <- 2
 #' argkmin_red_x <- argKmin_reduction(x_i, K, "i")  # argKmin reduction 
 #'                                                  # indexed by "i"
-#' 
 #' }
 #' @export
 argKmin_reduction <- function(x, K, index) {
@@ -2344,8 +2402,15 @@ argKmin_reduction <- function(x, K, index) {
 
 #' Kmin-argKmin.
 #' @description
-#' Kmin-argKmin.
-#' @details  
+#' K-Min-argK-min reduction.
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
+#' `Kmin_argKmin(x, K, index)` will:
+#' \itemize{
+#'     \item{if **index = i**,}{ return the **K** minimal values of **x**
+#'     and its indices over the **i** indices (rows);}
+#'     \item{if **index = j**,}{ return the **K** minimal values of **x**
+#'     and its indices over the **j** indices (columns).}
+#' }
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param index A `character` corresponding to the reduction dimension that should 
@@ -2368,8 +2433,8 @@ Kmin_argKmin <- function(x, K, index) {
     if(!is.int(K))
         stop("`K` input argument should be an integer.")
     if(!check_index(index))
-        stop("`index` input argument should be a character `i`, `j`.")
-    res <- reduction.LazyTensor(x, "Kmin-ArgKmin", index, opt_arg = K)
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
+    res <- reduction.LazyTensor(x, "Kmin-ArgKMin", index, opt_arg = K)
     return(res)
 }
 
@@ -2378,7 +2443,15 @@ Kmin_argKmin <- function(x, K, index) {
 
 #' Kmin-argKmin reduction.
 #' @description
-#' Kmin-argKmin reduction.
+#' K-Min-argK-min reduction. Redirects to `Kmin_argKmin` function.
+#' @details If `x` is a `LazyTensor` or a `ComplexLazyTensor`,
+#' `Kmin_argKmin(x, K, index)` will:
+#' \itemize{
+#'     \item{if **index = i**,}{ return the **K** minimal values of **x**
+#'     and its indices over the **i** indices (rows);}
+#'     \item{if **index = j**,}{ return the **K** minimal values of **x**
+#'     and its indices over the **j** indices (columns).}
+#' } 
 #' @details  
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
@@ -2387,15 +2460,16 @@ Kmin_argKmin <- function(x, K, index) {
 #' **i** (rows) or **j** (columns).
 #' @param K An `integer` corresponding to the  number of minimal values required.
 #' @return 
+#' @seealso [rkeops::Kmin_argKmin()]
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, 
 #'                                     # indexed by 'i'
 #' 
 #' K <- 2
 #' k_argk_x <- Kmin_argKmin_reduction(x_i, K, "i")  # Kmin-argKmin reduction 
-#'                                                  # indexed by "i"
+#'                                                  # over the "i" indices
 #' }
 #' @export
 Kmin_argKmin_reduction <- function(x, K, index) {
@@ -2415,7 +2489,7 @@ logsumexp <- function(x, index, weight = NA) {
     else if(check_index(index) && !is.na(weight))
         res <- reduction.LazyTensor(x, "LogSumExp", index, opt_arg = weight)
     else
-        stop("`index` input argument should be a character `i`, `j`.")
+        stop("`index` input argument should be a character, either 'i' or 'j'.")
     return(res)
 }
 
@@ -2444,27 +2518,34 @@ logsumexp <- function(x, index, weight = NA) {
 # TODO doc
 #' Elem.
 #' @description
-#' Elem.
+#' Symbolic element extraction. A unary operation.
 #' @details  
-#' extract M-th element of vector x
+#' Extracts the m-th element of a given vector `x`.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param m An `integer` corresponding to the M-th element of `x`.
-#' @return 
+#' @param m An `integer` corresponding to the index of the element of `x` we
+#' want to extract (`x[m]`).
+#' @return A `LazyTensor` that encodes, symbolically, the m-th element `x[m]`
+#' of the vector `x`.
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-#'                                     # indexed by 'i'
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' m <- 2
 #' 
 #' elem_x <- elem(x_i, m)  # symbolic matrix
 #' }
 #' @export
-elem <- function(m) {
-    if(!is.int(m)) 
+elem <- function(x, m) {
+    if(!is.int(m)) {
         stop("`m` input argument should be an integer.")
-    res <- unaryop.LazyTensor(x, "Elem", m)
+    }
+    D <- get_inner_dim(x) # TODO check that this is, indeed, inner_dim that we want
+    if(m < 0 || m > D) {
+        stop(paste("Index `m` is out of bounds. Should be in [1, ",
+                   D, "].", sep = ""))
+    }
+    res <- unaryop.LazyTensor(x, "Elem", m, dim_res = 1)
     return(res)
 }
 
@@ -2474,8 +2555,8 @@ elem <- function(m) {
 #' ElemT.
 #' @description
 #' ElemT.
-#' @details  
-#' insert scalar value f at position M in a vector of zeros of length N
+#' @details 
+#' `elemT(x, m, n)` insert ??? TODO
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param m An `integer` corresponding at position M of a vector of zeros.
@@ -2507,19 +2588,20 @@ elemT <- function(x, m, n) {
 
 #' Extract.
 #' @description
-#' Extract.
-#' @details extract sub-vector from vector f (M is starting index, 
-#' D is dimension of sub-vector)
+#' Symbolic sub-vector extraction. A unary operation.
+#' @details `extract(x_i, m, d)` extracts a sub-vector from vector `x`
+#' (`m` is the starting index, and `d` is dimension of the extracted sub-vector).
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param m An `integer` corresponding to the starting index.
 #' @param d An `integer` corresponding to the output dimension.
-#' @return 
+# TODO ci-dessous écrire autre chose que "vector" ??
+#' @return A `LazyTensor` that encodes, symbolically, the sub-vector `x[m:m+d]`
+#' of the vector `x`.
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
-#'                                     # indexed by 'i'
+#' x <- matrix(runif(150 * 5), 150, 5) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
 #' m <- 2
 #' d <- 2
 #' 
@@ -2527,11 +2609,26 @@ elemT <- function(x, m, n) {
 #' }
 #' @export
 extract <- function(x, m, d) {
-    if(!is.int(m)) 
+    # type check
+    if(!is.int(m))
         stop("`m` input argument should be an integer.")
     if(!is.int(d)) 
         stop("`d` input argument should be an integer.")
-    res <- unaryop.LazyTensor(x, "Extract", opt_arg = m, opt_arg2 = d)
+    # dim check
+    D <- get_inner_dim(x) # TODO check that this is, indeed, inner_dim that we want
+    if(m < 0 || m > D) {
+        stop(paste("Index `m` is out of bounds. Should be in [1, ",
+                   D, "].", sep = ""))
+    }
+    if(d < 1 || (D < (m + d))) {
+        stop(
+            paste("Slice dimension is out of bounds. Input `d` should be in [1, ",
+                   D, "-m] where `m` is the starting index.", sep = "")
+            )
+    }
+    res <- unaryop.LazyTensor(x, "Extract",
+                              opt_arg = m, opt_arg2 = d,
+                              dim_res = d)
     return(res)
 }
 
@@ -2574,25 +2671,30 @@ extractT <- function(d) {
 
 #' Concatenation.
 #' @description
-#' Concatenation of vectors.
-#' @details Concatenation of vectors
+#' Concatenation of two `LazyTensor` or `ComplexLazyTensor`. A binary operation.
+#' @details If `x` and `y` are two `LazyTensor` or `ComplexLazyTensor`,
+#' `concat(x, y)` encodes, symbolically, the concatenation of `x` and `y` along
+#' their inner dimension. TODO check if this is, indeed, along the inner dimension !
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @return 
+#' @return A `LazyTensor` or a `ComplexLazyTensor` that encodes, symbolically,
+#' the concatenation of `x` and `y` along their inner dimension.
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' y <- matrix(runif(250 * 3), 250, 3)    # arbitrary R matrix, 250 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'                                     
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(250 * 3), 250, 3) # arbitrary R matrix, 250 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix x, indexed by 'j'                                     
 #' 
-#' 
-#' concat_xy <- extract(x_i, y_j)      # symbolic matrix
+#' concat_xy <- concat(x_i, y_j)
 #' }
 #' @export
 concat <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "Concat", dim_check_type = NA)
+    dim_res <- get_inner_dim(x) + get_inner_dim(y)
+    res <- binaryop.LazyTensor(x, y, "Concat",
+                               dim_check_type = NA,
+                               dim_res = dim_res)
     return(res)
 }
 
@@ -2602,24 +2704,38 @@ concat <- function(x, y) {
 #' One-hot.
 #' @description
 #' One-hot 
-#' @details encodes a (rounded) scalar value as a one-hot vector of dimension D
+#' @details If `x` is a scalar value encoded as a `LazyTensor`,
+#' `one_hot(x, D)` encodes, symbolically, a vector of length **D**
+#' whose round(`x`)-th coordinate is equal to 1, and the other ones to 0.
 #' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
-#' @param x D An `integer` corresponding to the output dimension.
-#' @return 
+#' @param x A `LazyTensor` encoding a scalar value.
+#' @param D An `integer` corresponding to the output dimension.
+#' @return A `LazyTensor`.
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' A <- 7
+#' A_LT <- LazyTensor(A) # LazyTensor from scalar A
+#' D <- 7
 #' 
-#' 
-#' onehot_xy <- one_hot(x_i, y_j)      # symbolic matrix
+#' onehot_x <- one_hot(A, D) # symbolic vector of length D
 #' }
 #' @export
 one_hot <- function(x, D) {
-    if(!is.int(D)) 
+    if((!is.LazyTensor(x)) || (is.ComplexLazyTensor(x))) {
+        stop(paste("`one_hot` operation can only be applied to ",
+                   "`LazyTensor`, not `ComplexLazyTensor`",
+                   sep = ""))
+    }
+    
+    if(x$dimres != 1 || !is.LazyScalar(x)) {
+        stop("One-hot encoding is only supported for scalar formulas.")
+    }
+    
+    if(!is.int(D)) {
         stop("`D` input argument should be an integer.")
-    res <- unaryop.LazyTensor(x, "OneHot", opt_arg = D)
+    }
+    
+    res <- unaryop.LazyTensor(x, "OneHot", opt_arg = D, dim_res = D)
     return(res)
 }
 
@@ -2632,8 +2748,8 @@ one_hot <- function(x, D) {
 #' Matrix-vector product.
 #' @description
 #' Matrix-vector product - a binary operation.
-#' @details matrix-vector product `x` x `y`: `x` is vector interpreted as matrix 
-#' (column-major), `y` is vector.
+#' @details `matvecmult(x, y)` encodes, symbolically,
+#' the matrix-vector product of `x` and `y` along their last dimension.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A `LazyTensor` or a `ComplexLazyTensor`.
 #' @param x D An `integer` corresponding to the output dimension.
@@ -2644,11 +2760,15 @@ one_hot <- function(x, D) {
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
 #' 
 #' 
-#' mv_mult_xy <- matvecmultt(x_i, y_j) # symbolic matrix
+#' mv_mult_xy <- matvecmult(x_i, y_j) # symbolic matrix
 #' }
 #' @export
 matvecmult <- function(x, y) {
-    res <- binaryop.LazyTensor(x, y, "MatVecMult", dim_check_type = NA)
+    # TODO dim_res ??
+    #dim_res <- get_inner_dim(x) / get_inner_dim(y)
+    res <- binaryop.LazyTensor(x, y, "MatVecMult",
+                               dim_check_type = NA,
+                               dim_res = dim_res)
     return(res)
 }
 
@@ -2771,13 +2891,13 @@ z_j <- LazyTensor(z, index = 'j')
 z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
 z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)
 conj_z_i <- Conj(z_i)
-#b_j = b
-#
-## Symbolic matrix of squared distances:
-#SqDist_ij = sum( (x_i - y_j)^2 )
-#
-## Symbolic Gaussian kernel matrix:
-#K_ij = exp( - SqDist_ij / (2 * s^2) )
+b_j = b
+
+# Symbolic matrix of squared distances:
+SqDist_ij = sum( (x_i - y_j)^2 )
+
+# Symbolic Gaussian kernel matrix:
+K_ij = exp( - SqDist_ij / (2 * s^2) )
 #
 ## Genuine matrix:
 #v = K_ij %*% b_j

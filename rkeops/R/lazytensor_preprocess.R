@@ -103,7 +103,6 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
   if(!is.matrix(x) && !is.na(index))
     stop("`index` must be NA with a vector or a scalar value.")
   
-  
   # 1) input is a matrix, treated as indexed variable, so index must be "i" or "j"
   if(is.matrix(x)) {
     d <- ncol(x)
@@ -139,6 +138,9 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     res <- list(formula = formula, args = args, vars = vars)
     class(res) <- "LazyTensor"
   }
+  
+  res$dimres <- get_inner_dim(res)
+  
   return(res)
 }
 
@@ -253,7 +255,8 @@ Pm <- function(x, is_complex = FALSE){
 #' una2_x <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
 #' }
 #' @export
-unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type = NA) {
+unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
+                               res_type = NA, dim_res = NA) {
   if(is.matrix(x)){
     stop(
       paste(
@@ -264,6 +267,12 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
       )
   }
   
+  # result dimension
+  if(is.na(dim_res)) {
+    dim_res <- get_inner_dim(x)
+  }
+  
+  # result type
   if(!is.na(res_type) && res_type == "ComplexLazyTensor")
     res_type <- c("ComplexLazyTensor", "LazyTensor")
 
@@ -277,7 +286,9 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
   else 
     formula <- paste(opstr, "(", x$formula, ")", sep = "")
   
-  res <- list(formula = formula, args = x$args, vars = x$vars)
+  dimres <- dim_res
+  
+  res <- list(formula = formula, args = x$args, vars = x$vars, dimres = dimres)
   
   # result type
   if(is.na(res_type[1]))
@@ -317,12 +328,13 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA, res_type =
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 #' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
 #' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-#' y_j <- LazyTensor(x, index = 'j')   # creating LazyTensor from matrix x, indexed by 'j'
+#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, indexed by 'j'
 #' bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)   # symbolic matrix
 #' }
 #' @export
 binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
-                                dim_check_type = "sameor1", res_type = NA) {
+                                dim_check_type = "sameor1", res_type = NA,
+                                dim_res = NA) {
   
   if(is.matrix(x))
     stop(
@@ -352,26 +364,34 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
     y <- LazyTensor(y)
   
   # check dimensions
-  if(dim_check_type == "sameor1") {
-    if (!check_inner_dim(x, y, check_type = dim_check_type)) {
-      stop(
-        paste(
-          "Operation `", opstr, 
-          "` expects inputs of the same dimension or dimension 1. Received ",
-          get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+  if (!is.na(dim_check_type)) {
+    if(dim_check_type == "sameor1") {
+      if (!check_inner_dim(x, y, check_type = dim_check_type)) {
+        stop(
+          paste(
+            "Operation `", opstr, 
+            "` expects inputs of the same dimension or dimension 1. Received ",
+            get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
           )
         )
+      }
+    }
+    else if(dim_check_type == "same") {
+      if (!check_inner_dim(x, y, check_type = dim_check_type)) {
+        stop(
+          paste(
+            "Operation `", opstr,
+            "` expects inputs of the same dimension. Received ",
+            get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
+          )
+        )
+      }
     }
   }
-  if(dim_check_type == "same") {
-    if (!check_inner_dim(x, y, check_type = dim_check_type)) {
-      stop(
-        paste(
-          "Operation `", opstr, "` expects inputs of the same dimension. Received ",
-           get_inner_dim(x), " and ", get_inner_dim(y), ".", sep = ""
-          )
-        )
-    }
+  
+  # result dimension
+  if(is.na(dim_res)) {
+    dim_res <- max(c(get_inner_dim(x), get_inner_dim(y)))
   }
   
   # special formula for operator
@@ -382,10 +402,9 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   vars <- c(x$vars, y$vars)
   vars[!duplicated(names(vars))]
   args <- unique(c(x$args, y$args))
+  dimres <- dim_res
   
-  res <- list(formula = formula, args = args, vars = vars)
-  
-  
+  res <- list(formula = formula, args = args, vars = vars, dimres = dimres)
   
   if(!is.na(res_type[1]))
     class(res) <- res_type
@@ -416,7 +435,8 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
 #' \dontrun{
 #' }
 #' @export
-ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1") {
+ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
+                                 dim_res = NA) {
   # check that there are no matrix
   # and convert numeric or complex values to LazyTensor
   names <- c("x", "y", "z")
@@ -468,12 +488,19 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1") {
     }
   }
   
+  # result dimension
+  if(is.na(dim_res)) {
+    dim_res <- max(c(get_inner_dim(x), get_inner_dim(y), get_inner_dim(z)))
+  }
+  
   # format formula
   formula <- paste(opstr, "(", x$formula, ",", y$formula, ",", z$formula, ")", sep = "")
   vars <- c(x$vars, y$vars, z$vars)
   vars[!duplicated(names(vars))]
   args <- unique(c(x$args, y$args, z$args))
-  res <- list(formula = formula, args = args, vars = vars)
+  dimres <- dim_res
+  
+  res <- list(formula = formula, args = args, vars = vars, dimres = dimres)
   
   if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
     class(res) <- c("ComplexLazyTensor", "LazyTensor")
@@ -569,6 +596,17 @@ is.LazyTensor <- function(x){
 is.ComplexLazyTensor <- function(x){
   return("ComplexLazyTensor" %in% class(x))
 }
+
+
+is.LazyScalar <- function(x) {
+  return((length(x$args) == 1) && any(grep(".*=Pm\\(1\\)", x$args)))
+}
+
+
+is.LazyVector <- function(x) {
+  return(any(grep(".*=Pm\\(.*\\)", x$args)))
+}
+
 
 
 #' Get inner dimension.
