@@ -93,7 +93,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                           
                         {self.headers}
                         
-                        __global__ void reduce2D({dtype} *in, {dtype} *out, int sizeY, int nx) {{
+                        extern "C" __global__ void reduce2D({dtype} *in, {dtype} *out, int sizeY, int nx) {{
                             /* Function used as a final reduction pass in the 2D scheme,
                              * once the block reductions have been made.
                              * Takes as input:
