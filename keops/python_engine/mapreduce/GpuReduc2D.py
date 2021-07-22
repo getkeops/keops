@@ -33,7 +33,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         dimout = red_formula.dim
         varloader = self.varloader
         dtypeacc = self.dtypeacc
-        acc = c_array(dtypeacc, dimin, "acc")
+        acc2 = c_array(dtypeacc, dimin, "acc2")
         
         inloc = c_array(dtype, dimin, f"(in + (tid+y*nx)*{dimin})")
         outloc = c_array(dtype, dimout,  f"(out+tid*{dimout})")
@@ -73,6 +73,8 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
         
         jrelloc= c_variable("int", "(blockDim.x*blockIdx.y+jrel)")
         
+        tid = c_variable("int", "tid")
+        
         self.code = f"""
                           
                         {self.headers}
@@ -109,13 +111,13 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
 
                             // However, for now, we use a "vectorized" reduction op.,
                             // which can also handle non-trivial reductions such as "LogSumExp"
-                            {acc.declare()}
-                            {red_formula.InitializeReduction(acc)} // acc = 0
+                            {acc2.declare()}
+                            {red_formula.InitializeReduction(acc2)} // acc = 0
                             if(tid < nx) {{
                                 for (int y = 0; y < sizeY; y++) {{
-                                    {red_formula.ReducePair(acc, inloc)} // acc += in[(tid+y*nx) *DIMVECT : +DIMVECT]; 
+                                    {red_formula.ReducePair(acc2, inloc)} // acc += in[(tid+y*nx) *DIMVECT : +DIMVECT]; 
                                 }}
-                                {red_formula.ReducePair(acc, outloc)}
+                                {red_formula.FinalizeOutput(acc2, outloc, tid)}
                             }}
                         }}
                         
@@ -173,7 +175,7 @@ class GpuReduc2D(MapReduce, Gpu_link_compile):
                                 {dtype}* yjrel = yj; // Loop on the columns of the current block.
                                 for(int jrel = 0; (jrel<blockDim.x) && ((blockDim.x*blockIdx.y+jrel)< ny); jrel++, yjrel+={dimy}) {{
                                     {red_formula.formula(fout,table)} // Call the function, which outputs results in fout
-                                    {sum_scheme.accumulate_result(acc, fout, jrelloc)}
+                                    {sum_scheme.accumulate_result(acc, fout, jrelloc, hack=True)}
                                 }}
                             }}
                             __syncthreads();
