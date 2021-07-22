@@ -220,15 +220,16 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 	    blockSize2.x = blockSize.x; // number of threads in each block
 	    dim3 gridSize2;
 	    gridSize2.x =  (nx*dimred) / blockSize2.x + ((nx*dimred)%blockSize2.x==0 ? 0 : 1);
-
+        
+        // Data on the device. We need an "inflated" outB, which contains gridSize.y "copies" of out
+        // that will be reduced in the final pass.
+        TYPE *outB;
+    
 	    // single cudaMalloc
-	    void *p_data;
-	    CudaSafeCall(cudaMalloc(&p_data, sizeof(TYPE*)*nargs + sizeof(TYPE)*(nx*dimred*gridSize.y)));
+	    void *p_data_outB;
+	    cudaMalloc(&p_data_outB, sizeof(TYPE)*(nx*dimred*gridSize.y));
 
-	    args_d = (TYPE **) p_data;
-	    CudaSafeCall(cudaMemcpy(args_d, args, nargs * sizeof(TYPE *), cudaMemcpyHostToDevice));
-
-	    outB = (TYPE *) (args_d + nargs);
+	    outB = (TYPE *) ((TYPE **) p_data);
 		
         CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv2DOnDevice"));
 
@@ -246,8 +247,7 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
                    kernel_params, 0));     
 
 	    // block until the device has completed
-	    CudaSafeCall(cudaDeviceSynchronize());
-	    CudaCheckError();
+	    cudaDeviceSynchronize();
 
 	    // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
 	    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMRED ) to (nx, DIMOUT)
@@ -263,7 +263,7 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
                    gridSize2.x, gridSize2.y, gridSize2.z,    // grid dim
                    blockSize2.x, blockSize2.y, blockSize2.z,   // block dim
                    0, NULL,             // shared mem and stream
-                   kernel_params, 0)); 	
+                   kernel_reduce_params, 0)); 	
 		
 		
 	} else if (RR.tagRanges==1 && tagZero==0) {
@@ -421,7 +421,7 @@ extern "C" __host__ int launch_keops_half(const char* ptx_file_name, int tagHost
     va_end(ap);
     
     return launch_keops(ptx_file_name, tagHostDevice, dimY, nx, ny, device_id, tagI, tagZero, use_half, 
-										tag1D2D, dimred
+										tag1D2D, dimred,
 										cuda_block_size, use_chunk_mode,
                                         indsi, indsj, indsp,
                                         dimout,
