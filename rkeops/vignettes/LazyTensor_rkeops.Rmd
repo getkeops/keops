@@ -70,7 +70,7 @@ Please refer to the help page of each function for type compatibility, dimension
 | `relu(x)`           | element-wise ReLU function (`0` if `x < 0`, `x` if `x >= 0`)                                         |
 | `clamp(x, a, b)`    | element-wise Clamp function (`a` if `x < a`, `x` if `a <= x <= b`, `b` if `b < x`)                   |
 | `clampint(x, a, b)` | element-wise Clamp function with `a` and `b` fixed integers                                          |
-| `ifelse(x, a, b)`   | element-wise If-Else function (`a` if ``x >= 0`, `b` if `x < 0`)                                     |
+| `ifelse(x, a, b)`   | element-wise If-Else function (`a` if `x >= 0`, `b` if `x < 0`)                                      |
 | `mod(x, a, b)`      | element-wise Modulo function, with offset (`x - a * floor((x - b)/a)`)                               |
 | `round(x, d)`       | element-wise rounding of `x` to `d` decimal places                                                   |
 
@@ -113,31 +113,55 @@ Generic squared Euclidean norms support scalar weights, and diagonal or full (sy
 
 ### Elementary dot products
 
-| `x %*% y` | ... |
+| operation                 | meaning                                                                                             |
+|:--------------------------|:----------------------------------------------------------------------------------------------------
+| `x %*% y` |  |
+| `matvecmultt(x, y)` | matrix-vector product `x` $\times$ `y`: `x` is a vector interpreted as matrix (column-major), `y` is a vector |
+| `vecmatmultt(x, y)` | vector-matrix product `x` $\times$ `y`: `x` is a vector, `y` is a vector interpreted as matrix (column-major) |
+| `tensorprod(x, y)` | tensor cross product `x` $\times$ `y^T`: `x` and `y` are vectors of sizes $M$ and $N$, output is of size $M \times N$ |
+| `tensordot(x, y)` |  |
 
 
 ### Constants and padding/concatenation operations
 
-| `sum(x)` | ... |
-| `max(x)` | ... |
-| `min(x)` | ... |
-| `argmax(x)` | ... |
-| `argmin(x)` | ... |
-| `elem(x)` | ... |
-| `elemT(x)` | ... |
-| `extract(x)` | ... |
-| `extractT(x)` | ... |
-| `concat(x)` | ... |
-| `one_hot(x)` | ... |
+| operation                 | meaning                                                                                             |
+|:--------------------------|:----------------------------------------------------------------------------------------------------
+| `sum(x)` | sum of elements of vector `x` |
+| `max(x)` | max of elements of vector `x` |
+| `min(x)` | min of elements of vector `x` |
+| `argmax(x)` | argmax of elements of vector `x` |
+| `argmin(x)` | argmin of elements of vector `x` |
+| `elem(x, m)` | extract `m`-th element of vector `x` |
+| `elemT(x, m, n)` | ... |
+| `extract(x, m, d)` | extract sub-vector from vector `x` (`m` is starting index, `d` is dimension of sub-vector) |
+| `extractT(x, m, d)` | ... |
+| `concat(x, y)` | concatenation of vectors `x` and `y` |
+| `one_hot(x, d)` | encodes a (rounded) scalar value as a one-hot vector of dimension `d` |
 
 
 ### Symbolic gradients
 
+| operation                 | meaning                                                                                             |
+|:--------------------------|:----------------------------------------------------------------------------------------------------
+| `grad(x, v, g)` | gradient of `x` with respect to the variable `v`, with `g` as the “grad_input” to backpropagate (in C++) |
+| `gradmatrix(x, v)` | matrix of gradient ($i.e.$ transpose of the jacobian matrix) |
 
 ### Reductions
 
+| operation                                           |     meaning                                            |     mathematical expression                                  |
+|:----------------------------------------------------|:-------------------------------------------------------|:--------------------------------------------------------------
+| `sum(x, "j")` $\qquad$ `sum_reduction(x, "j")`| sum reduction indexed by `j` of elements of vector `x` | $\sum_j x_{ij}$ |
+| `min(x, "j")` $\qquad$ `min_reduction(x, "j")` | min reduction indexed by `j` of elements of vector `x` | $\min_j x_{ij}$ |
+| `argmin(x, "j")` $\qquad$  `argmin_reduction(x, "j")`| argmin reduction indexed by `j` of elements of vector `x` | $\text{argmin}_jx_{ij}$ |
+| `min_argmin(x, "j")`  $\qquad$ `min_argmin_reduction(x, "j")` | min-argmin reduction indexed by `j` of elements of vector `x` | $\left(\min_j x_{ij} ,\text{argmin}_j x_{ij}\right)$ |
+| `max(x, "j")`  $\qquad$ `max_reduction(x, "j")` | max reduction indexed by `j` of elements of vector `x` | $\min_j x_{ij}$ |
+| `argmax(x, "j")` $\qquad$  `argmax_reduction(x, "j")`| argmax reduction indexed by `j` of elements of vector `x` | $\text{argmin}_jx_{ij}$ |
+| `max_argmax(x, "j")` $\qquad$  `max_argmax_reduction(x, "j")`| max-argmax reduction indexed by `j` of elements of vector `x` | $\left(\max_j x_{ij} ,\text{argmax}_j x_{ij}\right)$ |
+
+
 
 TODO:
+
 
 * add introduction and many many other things
 * add precision word about dimension compatibility (or link to other vignette) ?
