@@ -219,19 +219,31 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 	    dim3 blockSize2;
 	    blockSize2.x = blockSize.x; // number of threads in each block
 	    dim3 gridSize2;
-	    gridSize2.x =  (nx*DIMRED) / blockSize2.x + ((nx*DIMRED)%blockSize2.x==0 ? 0 : 1);
+	    gridSize2.x =  (nx*dimred) / blockSize2.x + ((nx*dimred)%blockSize2.x==0 ? 0 : 1);
 
 	    // single cudaMalloc
 	    void *p_data;
-	    CudaSafeCall(cudaMalloc(&p_data, sizeof(TYPE*)*NMINARGS + sizeof(TYPE)*(nx*DIMRED*gridSize.y)));
+	    CudaSafeCall(cudaMalloc(&p_data, sizeof(TYPE*)*nargs + sizeof(TYPE)*(nx*dimred*gridSize.y)));
 
 	    args_d = (TYPE **) p_data;
-	    CudaSafeCall(cudaMemcpy(args_d, args, NMINARGS * sizeof(TYPE *), cudaMemcpyHostToDevice));
+	    CudaSafeCall(cudaMemcpy(args_d, args, nargs * sizeof(TYPE *), cudaMemcpyHostToDevice));
 
-	    outB = (TYPE *) (args_d + NMINARGS);
+	    outB = (TYPE *) (args_d + nargs);
+		
+        CUDA_SAFE_CALL(cuModuleGetFunction(&kernel, module, "GpuConv2DOnDevice"));
 
-	    // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
-	    GpuConv2DOnDevice<TYPE><<<gridSize,blockSize,blockSize.x*(DIMY)*sizeof(TYPE)>>>(fun,nx,ny,outB,args_d);
+        void *kernel_params[4];
+        kernel_params[0] = &nx;
+        kernel_params[1] = &ny;
+        kernel_params[2] = &outB;
+        kernel_params[3] = &arg_d;
+
+        // Size of the SharedData : blockSize.x*(DIMY)*sizeof(TYPE)
+		CUDA_SAFE_CALL(cuLaunchKernel(kernel,
+                   gridSize.x, gridSize.y, gridSize.z,    // grid dim
+                   blockSize.x, blockSize.y, blockSize.z,   // block dim
+                   blockSize.x * dimY * sizeof(TYPE), NULL,             // shared mem and stream
+                   kernel_params, 0));     
 
 	    // block until the device has completed
 	    CudaSafeCall(cudaDeviceSynchronize());
@@ -239,14 +251,19 @@ __host__ int launch_keops(const char* ptx_file_name, int tagHostDevice, int dimY
 
 	    // Since we've used a 2D scheme, there's still a "blockwise" line reduction to make on
 	    // the output array px_d[0] = x1B. We go from shape ( gridSize.y * nx, DIMRED ) to (nx, DIMOUT)
-	    reduce2D<TYPE,DIMRED,DIMOUT,FUN><<<gridSize2, blockSize2>>>(outB, out, gridSize.y,nx);
-
-	    // block until the device has completed
-	    CudaSafeCall(cudaDeviceSynchronize());
-	    CudaCheckError();
-
-	    CudaSafeCall(cudaFree(p_data));
+	    CUfunction kernel_reduce;
+		CUDA_SAFE_CALL(cuModuleGetFunction(&kernel_reduce, module, "reduce2D"));
+        void *kernel_reduce_params[4];
+        kernel_reduce_params[0] = &outB;
+        kernel_reduce_params[1] = &out_d;
+        kernel_reduce_params[2] = &gridSize.y;
+        kernel_reduce_params[3] = &nx;
 		
+		CUDA_SAFE_CALL(cuLaunchKernel(kernel_reduce,
+                   gridSize2.x, gridSize2.y, gridSize2.z,    // grid dim
+                   blockSize2.x, blockSize2.y, blockSize2.z,   // block dim
+                   0, NULL,             // shared mem and stream
+                   kernel_params, 0)); 	
 		
 		
 	} else if (RR.tagRanges==1 && tagZero==0) {
