@@ -104,6 +104,8 @@ class link_compile:
             low_level_code_file=self.low_level_code_file,
             tagI=self.tagI,
             use_half=self.use_half,
+            tag1D2D=self.tag1D2D,
+            dimred=self.red_formula.dimred,
             dim=self.dim,
             dimy=self.dimy,
             indsi=self.varloader.indsi,
