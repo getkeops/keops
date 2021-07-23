@@ -1820,12 +1820,19 @@ test_that("max_argmax_reduction", {
 
 test_that("Kmin", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-  x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  
+  S_ij = sum( (x_i - y_j)^2 )
+  
   K <- 2
   
   # check formulas, args & classes
-  # TODO Kmin(x_i, K, "i")
+  obj <- Kmin(S_ij, K, "i")
+  expect_false(is.LazyTensor(obj))
+  expect_true(is.matrix(obj))
   
   # errors
   expect_error(Kmin(x_i, 3.14, "i"),
@@ -1840,12 +1847,19 @@ test_that("Kmin", {
 
 test_that("Kmin_reduction", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-  x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  
+  S_ij = sum( (x_i - y_j)^2 )
+  
   K <- 2
   
   # check formulas, args & classes
-  # TODO Kmin_reduction(x_i, K, "i")
+  obj <- Kmin_reduction(S_ij, K, "i")
+  expect_false(is.LazyTensor(obj))
+  expect_true(is.matrix(obj))
   
   # errors
   expect_error(Kmin_reduction(x_i, 3.14, "i"),
@@ -1860,12 +1874,19 @@ test_that("Kmin_reduction", {
 
 test_that("argKmin", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-  x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  
+  S_ij = sum( (x_i - y_j)^2 )
+  
   K <- 2
   
   # check formulas, args & classes
-  # TODO argKmin(x_i, K, "i")
+  obj <- argKmin(S_ij, K, "i")
+  expect_false(is.LazyTensor(obj))
+  expect_true(is.matrix(obj))
   
   # errors
   expect_error(argKmin(x_i, 3.14, "i"),
@@ -1880,12 +1901,19 @@ test_that("argKmin", {
 
 test_that("argKmin_reduction", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-  x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  
+  S_ij = sum( (x_i - y_j)^2 )
+  
   K <- 2
   
   # check formulas, args & classes
-  # TODO argKmin_reduction(x_i, K, "i")
+  obj <- argKmin_reduction(S_ij, K, "i")
+  expect_false(is.LazyTensor(obj))
+  expect_true(is.matrix(obj))
   
   # errors
   expect_error(argKmin_reduction(x_i, 3.14, "i"),
@@ -1900,12 +1928,19 @@ test_that("argKmin_reduction", {
 
 test_that("Kmin_argKmin", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-  x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  
+  S_ij = sum( (x_i - y_j)^2 )
+  
   K <- 2
   
   # check formulas, args & classes
-  # TODO Kmin_argKmin(x_i, K, "i")
+  obj <- Kmin_argKmin(S_ij, K, "i")
+  expect_false(is.LazyTensor(obj))
+  expect_true(is.matrix(obj))
   
   # errors
   expect_error(Kmin_argKmin(x_i, 3.14, "i"),
@@ -1920,24 +1955,142 @@ test_that("Kmin_argKmin", {
 
 test_that("Kmin_argKmin_reduction", {
   # basic example
-  x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
-  x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  
+  S_ij = sum( (x_i - y_j)^2 )
+  
   K <- 2
   
   # check formulas, args & classes
-  # TODO Kmin_argKmin_reduction(x_i, K, "i")
+  obj <- Kmin_argKmin_reduction(S_ij, K, "i")
   
   # errors
-  expect_error(Kmin_argKmin_reduction(x_i, 3.14, "i"),
-               "`K` input argument should be an integer.",
-               fixed = TRUE)
-  expect_error(Kmin_argKmin_reduction(x_i, K, "k"),
-               "`index` input argument should be a character, either 'i' or 'j'.",
-               fixed = TRUE)
+  expect_error(
+    Kmin_argKmin_reduction(x_i, 3.14, "i"),
+    "`K` input argument should be an integer.",
+    fixed = TRUE
+  )
+  
+  expect_error(
+    Kmin_argKmin_reduction(x_i, K, "k"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+  )
   
 })
 
 
+
+test_that("logsumexp", {
+  # basic example
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
+  w_j <- LazyTensor(y, index = 'j')
+  
+  V_ij <- x_i - y_j
+  S_ij <- sum(V_ij^2)
+  # check formulas, args & classes
+  obj <- logsumexp(S_ij, 'i', V_ij)
+  expect_false(is.LazyTensor(obj))
+  
+  obj <- logsumexp(S_ij, 'i')
+  expect_false(is.LazyTensor(obj))
+  
+  # errors
+  expect_error(
+    logsumexp(S_ij, '9'),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+  )
+  
+})
+
+
+test_that("logsumexp_reduction", {
+  # basic example
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  w <- matrix(runif(150 * 3), 150, 3) # weight LazyTensor
+  w_j <- LazyTensor(y, index = 'j')
+  
+  S_ij = sum( (x_i - y_j)^2 )
+  # check formulas, args & classes
+  obj <- logsumexp_reduction(S_ij, 'i', w_j)
+  expect_false(is.LazyTensor(obj))
+  
+  obj <- logsumexp(S_ij, 'i')
+  expect_false(is.LazyTensor(obj))
+  
+  # errors
+  expect_error(
+    logsumexp_reduction(S_ij, '9'),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+  )
+  
+})
+
+
+test_that("sumsoftmaxweight", {
+  # basic example
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  
+  V_ij <- x_i - y_j
+  S_ij <- sum(V_ij^2)
+  
+  # check formulas, args & classes
+  obj <- sumsoftmaxweight(S_ij, 'i', V_ij)
+  expect_false(is.LazyTensor(obj))
+  
+  obj <- logsumexp(S_ij, 'i')
+  expect_false(is.LazyTensor(obj))
+  
+  # errors
+  expect_error(
+    sumsoftmaxweight(S_ij, '9', V_ij),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+  )
+  
+})
+
+
+test_that("sumsoftmaxweight_reduction", {
+  # basic example
+  x <- matrix(runif(150 * 3), 150, 3) 
+  x_i <- LazyTensor(x, index = 'i') 
+  y <- matrix(runif(100 * 3), 100, 3)
+  y_j <- LazyTensor(y, index = 'j')
+  
+  V_ij <- x_i - y_j
+  S_ij <- sum(V_ij^2)
+  
+  # check formulas, args & classes
+  obj <- sumsoftmaxweight_reduction(S_ij, 'i', V_ij)
+  expect_false(is.LazyTensor(obj))
+  
+  obj <- logsumexp(S_ij, 'i')
+  expect_false(is.LazyTensor(obj))
+  
+  # errors
+  expect_error(
+    sumsoftmaxweight_reduction(S_ij, '9', V_ij),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+  )
+  
+})
 
 
 
