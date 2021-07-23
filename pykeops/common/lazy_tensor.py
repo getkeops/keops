@@ -261,7 +261,7 @@ class GenericLazyTensor:
 
     def get_tools(self):
         r"""This method is specialized in :class:`pykeops.numpy.LazyTensor` and :class:`pykeops.torch.LazyTensor`. It
-        populate the tools class."""
+        populates the tools class."""
         pass
 
     def fixvariables(self):
@@ -317,7 +317,7 @@ class GenericLazyTensor:
     def separate_kwargs(self, kwargs):
         # separating keyword arguments for Genred init vs Genred call...
         # Currently the only four additional optional keyword arguments that are passed to Genred init
-        # are accuracy options: dtype_acc, use_double_acc and sum_cheme,
+        # are accuracy options: dtype_acc, use_double_acc and sum_scheme,
         # chunk mode option enable_chunks,
         # and compiler option optional_flags.
         kwargs_init = []
@@ -873,7 +873,7 @@ class GenericLazyTensor:
         """
         if not hasattr(self, "reduction_op"):
             raise ValueError(
-                "A LazyTensor object may be called only if it corresponds to the ouput of a reduction operation or solve operation."
+                "A LazyTensor object may be called only if it corresponds to the output of a reduction operation or solve operation."
             )
 
         self.kwargs.update(kwargs)
@@ -964,7 +964,7 @@ class GenericLazyTensor:
 
     @property
     def _shape(self):
-        r"""returns the internal shape of the LazyTensor."""
+        r"""Returns the internal shape of the LazyTensor."""
         btch = () if self.batchdims is None else self.batchdims
         ni = 1 if self.ni is None else self.ni
         nj = 1 if self.nj is None else self.nj
@@ -973,7 +973,7 @@ class GenericLazyTensor:
 
     @property
     def shape(self):
-        r"""returns the shape of the LazyTensor"""
+        r"""Returns the shape of the LazyTensor"""
         s = self._shape
         if s[-1] == 1:
             return s[:-1]
@@ -1064,7 +1064,7 @@ class GenericLazyTensor:
 
     def __mul__(self, other):
         r"""
-        Broadcasted elementwise product - a binary operation.
+        Broadcasted element-wise product - a binary operation.
 
         ``x * y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise product of ``x`` and ``y``.
@@ -1084,7 +1084,7 @@ class GenericLazyTensor:
 
     def __rmul__(self, other):
         r"""
-        Broadcasted elementwise product - a binary operation.
+        Broadcasted element-wise product - a binary operation.
 
         ``x * y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise product of ``x`` and ``y``.
@@ -1105,7 +1105,7 @@ class GenericLazyTensor:
 
     def __truediv__(self, other):
         r"""
-        Broadcasted elementwise division - a binary operation.
+        Broadcasted element-wise division - a binary operation.
 
         ``x / y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise division of ``x`` by ``y``.
@@ -1119,7 +1119,7 @@ class GenericLazyTensor:
 
     def __rtruediv__(self, other):
         r"""
-        Broadcasted elementwise division - a binary operation.
+        Broadcasted element-wise division - a binary operation.
 
         ``x / y`` returns a :class:`LazyTensor` that encodes, symbolically,
         the elementwise division of ``x`` by ``y``.
