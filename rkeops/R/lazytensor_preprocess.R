@@ -114,7 +114,8 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     else
       cat = "Vj"
   }
-  # 2) else we assume x is a numeric vector, treated as parameter, then converted to matrix
+  # 2) else we assume x is a numeric vector, treated as parameter, then converted 
+  # to matrix
   else {
     d <- length(x)
     cat <- "Pm"
@@ -264,7 +265,8 @@ Pm <- function(x, is_complex = FALSE){
 #' @examples
 #' \dontrun{
 #' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
 #' una_x <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
 #' 
 #' una2_x <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
@@ -316,7 +318,8 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
   
   # format formula depending on the arguments
   if(!is.na(opt_arg2))
-    formula <- paste(opstr, "(", x$formula, ",", opt_arg, ",", opt_arg2, ")", sep = "")
+    formula <- paste(opstr, "(", x$formula, ",", opt_arg, ",", 
+                     opt_arg2, ")", sep = "")
   else if(!is.na(opt_arg))
     formula <- paste(opstr, "(", x$formula, ",", opt_arg, ")", sep = "")
   else 
@@ -578,7 +581,8 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
   dim_res <- as.integer(dim_res)
   
   # format formula
-  formula <- paste(opstr, "(", x$formula, ",", y$formula, ",", z$formula, ")", sep = "")
+  formula <- paste(opstr, "(", x$formula, ",", y$formula, ",", 
+                   z$formula, ")", sep = "")
   vars <- c(x$vars, y$vars, z$vars)
   vars[!duplicated(names(vars))]
   args <- unique(c(x$args, y$args, z$args))
@@ -791,11 +795,15 @@ get_inner_dim <- function(x) {
 check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
   # Inputs must be LazyTensors or ComplexLazyTensors.
   if(!is.LazyTensor(x) || !is.LazyTensor(y)) {
-    stop("Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.")
+    stop(
+      "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'."
+    )
   }
   if(!is.na(z)[1]) {
     if(!is.LazyTensor(z) && !is.ComplexLazyTensor(z)) {
-      stop("Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.")
+      stop(
+        "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'."
+      )
     }
   }
   
@@ -803,9 +811,11 @@ check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
   y_inner_dim <- get_inner_dim(y)
   
   if(is.na(z)[1]) {
-    # Check whether if x and y inner dimensions are the same or if at least one of these equals 1.
+    # Check whether if x and y inner dimensions are the same or if at least one 
+    # of these equals 1.
     if(check_type == "sameor1") {
-      res <- ((x_inner_dim == y_inner_dim) || ((x_inner_dim == 1) || (y_inner_dim == 1)))
+      res <- ((x_inner_dim == y_inner_dim) || 
+                ((x_inner_dim == 1) || (y_inner_dim == 1)))
     }
     if(check_type == "same") {
       res <- ((x_inner_dim == y_inner_dim))
@@ -813,7 +823,8 @@ check_inner_dim <- function(x, y, z = NA, check_type = "sameor1") {
   }
   else {
     z_inner_dim <- get_inner_dim(z)
-    # Check whether if x, y and z inner dimensions are the same or if at least one of these equals 1.
+    # Check whether if x, y and z inner dimensions are the same or if at least 
+    # one of these equals 1.
     if(check_type == "sameor1") {
       unique_dims <- unique(append(c(x_inner_dim, y_inner_dim, z_inner_dim), 1))
       res <- length(unique_dims) <= 2
