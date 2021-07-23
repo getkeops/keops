@@ -21,12 +21,12 @@ test_that("LazyTensor", {
   out_u <- LazyTensor(u) # parameter vector
   out_D <- LazyTensor(D) # parameter scalar
   
-  z <- matrix(1i^ (-6:5), nrow = 4)                     # create a complex 4x3 matrix
-  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
+  z <- matrix(1i^ (-6:5), nrow = 4)                     # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   still_good_z_Vi <- LazyTensor(z, index = 'i') # without specifying 
   # "is_complex = TRUE": should work as well.
   
-  # check the object class
+  # check classes
   classes <- c(class(out_i), class(out_j), class(out_u), class(out_D))
   k <- length(classes)
   expect_equal(classes, rep("LazyTensor", k))
@@ -34,7 +34,7 @@ test_that("LazyTensor", {
   expect_true(is.ComplexLazyTensor(z_i))
   expect_true(is.ComplexLazyTensor(still_good_z_Vi))
   
-  # check object formula and args
+  # check formulae
   bool_grep_i <- grep("A0x.*i", out_i$formula)
   expect_equal(bool_grep_i, 1)
   bool_grep_j <- grep("A0x.*j", out_j$formula)
@@ -43,10 +43,18 @@ test_that("LazyTensor", {
   expect_equal(bool_grep_NA, 1)
   bool_grep_zi <- grep("A0x.*i", z_i$formula)
   expect_equal(bool_grep_zi, 1)
+  
+  # check args
   bool_grep_Pm <- grep("IntCst\\(3\\)=Pm\\(1\\)", out_D$args)
   expect_equal(bool_grep_Pm, 1)
   bool_grep_zi_args <- grep("A0x.*i=Vi\\(6\\)", z_i$args)
   expect_equal(bool_grep_zi_args, 1)
+  
+  # check dimres
+  expect_equal(D, out_i$dimres)
+  expect_equal(D, out_j$dimres)
+  expect_equal(M, out_u$dimres)
+  expect_equal(1, out_D$dimres)
   
   # errors
   expect_error(LazyTensor("x"), 
@@ -81,13 +89,25 @@ test_that("Vi", {
   still_good_z_Vi <- Vi(z) # without specifying 
   # "is_complex = TRUE": should work as well.
   
-  # check arguments 
-  expect_true(x_i$args == x_Vi$args)
-  expect_true(z_i$args == z_Vi$args)
-  expect_true(z_i$args == still_good_z_Vi$args)
+  # check classes
   expect_true(is.LazyTensor(x_Vi))
   expect_true(is.ComplexLazyTensor(z_Vi))
   expect_true(is.ComplexLazyTensor(still_good_z_Vi))
+  
+  # check formulae
+  bool_grep_i <- grep("A0x.*i", x_Vi$formula)
+  expect_equal(bool_grep_i, 1)
+  bool_grep_zi <- grep("A0x.*i", z_Vi$formula)
+  expect_equal(bool_grep_zi, 1)
+  
+  # check args
+  expect_true(x_i$args == x_Vi$args)
+  expect_true(z_i$args == z_Vi$args)
+  expect_true(z_i$args == still_good_z_Vi$args)
+  
+  # check dimres
+  expect_equal(D, x_Vi$dimres)
+  expect_equal(D, z_Vi$dimres)
   
   # errors
   expect_error(Vi(x_i), 
@@ -106,7 +126,6 @@ test_that("Vi", {
 })
 
 
-
 test_that("Vj", {
   D <- 3
   M <- 100
@@ -115,7 +134,7 @@ test_that("Vj", {
   z <- matrix(1i^ (-6:5), nrow = 4) # complex 4x3 matrix
   
   x_j <- LazyTensor(x, index = 'j')
-  x_Vj<- Vj(x)
+  x_Vj <- Vj(x)
   
   # ComplexLazyTensor
   z_j <- LazyTensor(z, index = 'j', is_complex = TRUE)
@@ -123,13 +142,28 @@ test_that("Vj", {
   still_good_z_Vj <- Vj(z) # without specifying 
   # "is_complex = TRUE": should work as well.
   
+  # check classes
+  expect_true(is.LazyTensor(x_Vj))
+  expect_true(is.ComplexLazyTensor(z_Vj))
+  expect_true(is.ComplexLazyTensor(still_good_z_Vj))
+  
+  # check formulae
+  bool_grep_j <- grep("A0x.*j", x_Vj$formula)
+  expect_equal(bool_grep_j, 1)
+  bool_grep_zj <- grep("A0x.*j", z_Vj$formula)
+  expect_equal(bool_grep_zj, 1)
+  
   # check arguments 
   expect_true(x_j$args == x_Vj$args)
   expect_true(z_j$args == z_Vj$args)
   expect_true(z_j$args == still_good_z_Vj$args)
-  expect_true(is.LazyTensor(x_Vi))
-  expect_true(is.ComplexLazyTensor(z_Vi))
-  expect_true(is.ComplexLazyTensor(still_good_z_Vi))
+  expect_true(is.LazyTensor(x_Vj))
+  expect_true(is.ComplexLazyTensor(z_Vj))
+  expect_true(is.ComplexLazyTensor(still_good_z_Vj))
+  
+  # check dimres
+  expect_equal(D, x_Vj$dimres)
+  expect_equal(D, z_Vj$dimres)
   
   # errors
   expect_error(Vj(x_j), 
@@ -157,21 +191,34 @@ test_that("Pm", {
   
   D_LT <- LazyTensor(D)
   D_Pm <- Pm(D)
-  # check arguments 
-  expect_true(D_LT$args == D_Pm$args)
-  expect_true(is.LazyTensor(D_Pm))
-  
   u_LT <- LazyTensor(u)
   u_Pm <- Pm(u)
-  # check arguments 
-  expect_true(u_LT$args == u_Pm$args)
-  expect_true(is.LazyTensor(u_Pm))
-  
   z_LT <- LazyTensor(z)
   z_Pm <- Pm(z)
-  # check arguments 
-  expect_true(z_LT$args == z_Pm$args)
+  x_i <- LazyTensor(x, index = 'i')
+  
+  # check classes
+  expect_true(is.LazyTensor(D_Pm))
+  expect_true(is.LazyTensor(u_Pm))
   expect_true(is.ComplexLazyTensor(z_Pm))
+  
+  # check formulae
+  bool_grep_D_Pm <- grep("IntCst\\(3\\)", D_Pm$formula)
+  expect_equal(bool_grep_D_Pm, 1)
+  bool_grep_u_Pm <- grep("A0x.*NA", u_Pm$formula)
+  expect_equal(bool_grep_u_Pm, 1)
+  bool_grep_Z_LT <- grep("A0x.*NA", z_LT$formula)
+  expect_equal(bool_grep_Z_LT, 1)
+  
+  # check arguments
+  expect_true(D_LT$args == D_Pm$args)
+  expect_true(u_LT$args == u_Pm$args)
+  expect_true(z_LT$args == z_Pm$args)
+  
+  # check dimres
+  expect_equal(1, D_Pm$dimres)
+  expect_equal(M, u_Pm$dimres)
+  expect_equal(length(z), z_Pm$dimres)
   
   # errors
   expect_error(Pm(x_i), 
@@ -185,6 +232,10 @@ test_that("Pm", {
                fixed = TRUE)
   
 })
+
+
+
+# TEST LAZYTENSOR *NARYOP ======================================================
 
 
 test_that("unaryop.LazyTensor", {
@@ -211,11 +262,31 @@ test_that("unaryop.LazyTensor", {
   expect_false(is.ComplexLazyTensor(obj))
   expect_true(is.LazyTensor(obj))
   
+  # check dimres
+  una_x <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
+  expect_equal(D, una_x$dimres)
+  una2_x <- unaryop.LazyTensor(x_i, "Norm2",
+                               res_type = "LazyTensor",
+                               dim_res = 1)
+  expect_equal(1, una2_x$dimres)
+  una3_x <- unaryop.LazyTensor(x_i, "Norm2",
+                               res_type = "LazyTensor",
+                               dim_res = 1.0)
+  expect_equal(1, una3_x$dimres)
+  
   # errors
-  expect_error(unaryop.LazyTensor(x, "Square"), 
-               paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
-                     "\nIf you want to use a matrix, convert it to LazyTensor first.",
-                     sep = ""), 
+  expect_error(
+    unaryop.LazyTensor(x, "Square"), 
+    paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
+          "\nIf you want to use a matrix, convert it to LazyTensor first.",
+          sep = ""),
+    fixed = TRUE
+    )
+  expect_error(unaryop.LazyTensor(x_i, "Norm2", dim_res = 3.14), 
+               paste(
+                 "If not NA, `dim_res` input argument should be an integer. ",
+                 "Received 3.14.",
+                 sep = ""), 
                fixed = TRUE)
 })
 
@@ -263,17 +334,37 @@ test_that("binaryop.LazyTensor", {
   expect_equal(length(obj$args), 2)
   expect_is(obj, "LazyTensor")
   
-  obj <-  binaryop.LazyTensor(xc_i, x_i, "+")
+  obj <-  binaryop.LazyTensor(xc_i, x_i, "+", is_operator = TRUE)
   expect_true(is.ComplexLazyTensor(obj))
+  
+  # check dimres
+  bin1 <- binaryop.LazyTensor(xc_i, x_i, "+", is_operator = TRUE)
+  expect_equal(D, bin1$dimres)
+  bin2 <- binaryop.LazyTensor(x_i, y_j, "SqDist",
+                              res_type = "LazyTensor",
+                              dim_res = 1)
+  expect_equal(1, bin2$dimres)
   
   # errors
   expect_error(binaryop.LazyTensor(x, y_j, "+"), 
-               paste("`x` input argument should be a LazyTensor, a vector or a scalar.",
-                     "\nIf you want to use a matrix, convert it to LazyTensor first.", sep = ""), 
+               paste(
+                 "`x` input argument should be a LazyTensor, a vector or a scalar.",
+                 "\nIf you want to use a matrix, convert it to LazyTensor first.",
+                 sep = ""), 
                fixed = TRUE)
   
-  expect_error(binaryop.LazyTensor(x_i, z_j, "|", is_operator = TRUE, dim_check_type = "same"),
+  expect_error(binaryop.LazyTensor(x_i, z_j, "|",
+                                   is_operator = TRUE,
+                                   dim_check_type = "same"),
                "Operation `|` expects inputs of the same dimension. Received 3 and 7.",
+               fixed = TRUE)
+  expect_error(binaryop.LazyTensor(x_i, y_j, "SqDist",
+                                   res_type = "LazyTensor",
+                                   dim_res = 3.14), 
+               paste(
+                 "If not NA, `dim_res` input argument should be an integer. ",
+                 "Received 3.14.",
+                 sep = ""), 
                fixed = TRUE)
 })
 
@@ -308,6 +399,10 @@ test_that("ternaryop.LazyTensor", {
   bool_grep_args <- grep("IntCst\\(4\\)=Pm\\(1\\)", obj$args[1])
   expect_equal(bool_grep_args, 1)
   
+  # check dimres
+  tern1 <- ternaryop.LazyTensor(4, y_j, z_i, "Clamp")
+  expect_equal(D, tern1$dimres)
+  
   # errors
   expect_error(ternaryop.LazyTensor(x_i, y_j, z, "Clamp"), 
                paste(
@@ -327,10 +422,17 @@ test_that("ternaryop.LazyTensor", {
                  sep = ""
                ), 
                fixed = TRUE)
+  expect_error(ternaryop.LazyTensor(4, y_j, z_i, "Clamp", dim_res = 3.14), 
+               paste(
+                 "If not NA, `dim_res` input argument should be an integer. ",
+                 "Received 3.14.",
+                 sep = ""), 
+               fixed = TRUE)
 })
 
 
-# TEST PREPROCESS ==============================================================
+
+# TEST TYPE CHECKING ===========================================================
 
 
 test_that("is.LazyTensor", {
@@ -354,7 +456,6 @@ test_that("is.LazyTensor", {
 })
 
 
-# Test get and check dimensions
 test_that("is.ComplexLazyTensor", {
   # basic example
   D <- 3
@@ -372,6 +473,47 @@ test_that("is.ComplexLazyTensor", {
   expect_false(is.ComplexLazyTensor(l))
   expect_true(is.ComplexLazyTensor(z_i))
 })
+
+
+test_that("is.LazyScalar", {
+  # basic example
+  scal <- 3.14
+  cplx <- 2 + 3i
+  v <- rep(3, 10)
+  x <- matrix(runif(100 * 3), 100, 3)
+  
+  scal_LT <- LazyTensor(scal)
+  cplx_LT <- LazyTensor(cplx)
+  v_LT <- LazyTensor(v)
+  x_i <- LazyTensor(x, index = 'i')
+
+  # check results
+  expect_true(is.LazyScalar(scal_LT))
+  expect_false(is.LazyScalar(cplx_LT))
+  expect_false(is.LazyScalar(v_LT))
+  expect_false(is.LazyScalar(x_i))
+})
+
+
+test_that("is.int", {
+  # basic example
+  A <- 3
+  B <- 3.0
+  C <- 3.14
+  D <- rep(3, 10)
+  E <- 2 + 3i
+  
+  # check results
+  expect_true(is.int(A))
+  expect_true(is.int(B))
+  expect_false(is.int(C))
+  expect_false(is.int(D))
+  expect_false(is.int(E))
+})
+
+
+
+# TEST GLOBAL CHECKS ===========================================================
 
 
 # Test get and check dimensions
@@ -401,9 +543,11 @@ test_that("get_inner_dim", {
   expect_equal(get_inner_dim(z_i), 3)
   
   # errors
-  expect_error(get_inner_dim(x),
-               "`x` input argument should be a LazyTensor or a ComplexLazyTensor.",
-               fixed = TRUE)
+  expect_error(
+    get_inner_dim(x),
+    "`x` input argument should be a LazyTensor or a ComplexLazyTensor.",
+    fixed = TRUE
+    )
 })
 
 
@@ -443,12 +587,16 @@ test_that("check_inner_dim", {
   expect_false(check_inner_dim(x_i, t_j, z_i, check_type = "same"))
   
   # errors
-  expect_error(check_inner_dim(x, y_j),
-               "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.",
-               fixed = TRUE)
-  expect_error(check_inner_dim(x_i, y_j, z),
-               "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.",
-               fixed = TRUE)
+  expect_error(
+    check_inner_dim(x, y_j),
+    "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.",
+    fixed = TRUE
+    )
+  expect_error(
+    check_inner_dim(x_i, y_j, z),
+    "Input arguments should be of class 'LazyTensor' or 'ComplexLazyTensor'.",
+    fixed = TRUE
+    )
 })
 
 

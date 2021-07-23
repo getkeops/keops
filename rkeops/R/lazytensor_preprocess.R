@@ -10,7 +10,6 @@ set_rkeops_option("precision", "double")
 # LAZYTENSOR CONFIGURATION =====================================================
 
 
-
 # LazyTensor -------------------------------------------------------------------
 #' Build and return a LazyTensor object.
 #' @description
@@ -42,6 +41,10 @@ set_rkeops_option("precision", "double")
 #'     }}
 #'     \item{**vars**:}{ A list of R matrices which will be the inputs of the 
 #'                       KeOps routine}
+#'     \item{**dimres**:}{ An integer corresponding to the inner dimension of
+#'                        the LazyTensor. **dimres** is used when creating new
+#'                        LazyTensors that result from operations,
+#'                        to keep track of the dimension.}
 #' }
 #' 
 #' **Alternatives**
@@ -139,6 +142,7 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
     class(res) <- "LazyTensor"
   }
   
+  # add inner dimension
   res$dimres <- get_inner_dim(res)
   
   return(res)
@@ -151,6 +155,7 @@ LazyTensor <- function(x, index = NA, is_complex = FALSE) {
 #' @description
 #' Simple wrapper that return an instantiation of `LazyTensor` indexed by "i".
 #' Equivalent to `LazyTensor(x, index = "i")`.
+#' @details See `?LazyTensor` for more details.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A matrix of numeric values, or a scalar value.
 #' @param is_complex A boolean (default is FALSE). Whether if we want to create a
@@ -178,6 +183,7 @@ Vi <- function(x, is_complex = FALSE){
 #' @description
 #' Simple wrapper that return an instantiation of `LazyTensor` indexed by "j".
 #' Equivalent to `LazyTensor(x, index = "j")`.
+#' @details See `?LazyTensor` for more details.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A matrix of numeric values.
 #' @param is_complex A boolean (default is FALSE). Whether if we want to create a
@@ -202,8 +208,9 @@ Vj <- function(x, is_complex = FALSE){
 
 #' Wrapper LazyTensor parameter.
 #' @description
-#' Simple wrapper that return an instantiation of `LazyTensor` indexed by "i".
+#' Simple wrapper that return an instantiation of a fixed parameter `LazyTensor`.
 #' Equivalent to `LazyTensor(x)`.
+#' @details See `?LazyTensor` for more details.
 #' @author Chloe Serre-Combe, Amelie Vernay
 #' @param x A vector or a scalar value.
 #' @param is_complex A boolean (default is FALSE). Whether if we want to create a
@@ -231,6 +238,10 @@ Pm <- function(x, is_complex = FALSE){
 }
 
 
+
+# LAZYTENSOR *NARYOP ===========================================================
+
+
 # unary ------------------------------------------------------------------------
 
 #' Build a unary operation
@@ -244,7 +255,11 @@ Pm <- function(x, is_complex = FALSE){
 #' @param opt_arg2 An optional argument which can be a scalar value.
 #' @param res_type NA (default) or a character string among "LazyTensor" and 
 #' "ComplexLazyTensor", to specify if a change of class is required for the result.
-#' (Useful especially when dealing with complex-to-real or real-to-complex functions)
+#' (Useful especially when dealing with complex-to-real or
+#' real-to-complex functions).
+#' @param dim_res NA (default) or an integer corresponding to the inner
+#' dimension of the output `LazyTensor`. If NA, **dim_res** is set to the
+#' inner dimension of the input `LazyTensor`.
 #' @return An object of class "LazyTensor" or "ComplexLazyTensor".
 #' @examples
 #' \dontrun{
@@ -253,10 +268,17 @@ Pm <- function(x, is_complex = FALSE){
 #' una_x <- unaryop.LazyTensor(x_i, "Minus")   # symbolic matrix
 #' 
 #' una2_x <- unaryop.LazyTensor(x_i, "Pow", opt_arg = 3)  # symbolic matrix
+#' 
+#' # example with not NA dim_res:
+#' ## set dim_res to 1 because the "Norm2" operation results on a (symbolic) scalar
+#' una3_x <- unaryop.LazyTensor(x, "Norm2",
+#'                              res_type = "LazyTensor",
+#'                              dim_res = 1)
 #' }
 #' @export
 unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
                                res_type = NA, dim_res = NA) {
+  # input checks
   if(is.matrix(x)){
     stop(
       paste(
@@ -267,10 +289,23 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
       )
   }
   
+  if(!is.na(dim_res) && !is.int(dim_res)){
+    stop(
+      paste(
+        "If not NA, `dim_res` input argument should be an integer. ",
+        "Received ", dim_res, ".", sep = ""
+      )
+    )
+  }
+  
   # result dimension
   if(is.na(dim_res)) {
     dim_res <- get_inner_dim(x)
   }
+  # Set `as.integer(dim_res)` to avoid printing potential
+  # decimal zero: 4.0, 5.0, and so on...
+  # If dim_res has a non zero decimal, the function stops anyway.
+  dim_res <- as.integer(dim_res)
   
   # result type
   if(!is.na(res_type) && res_type == "ComplexLazyTensor")
@@ -279,6 +314,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
   if(is.numeric(x) || is.complex(x))
     x <- LazyTensor(x)
   
+  # format formula depending on the arguments
   if(!is.na(opt_arg2))
     formula <- paste(opstr, "(", x$formula, ",", opt_arg, ",", opt_arg2, ")", sep = "")
   else if(!is.na(opt_arg))
@@ -286,6 +322,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
   else 
     formula <- paste(opstr, "(", x$formula, ")", sep = "")
   
+  # result dimension
   dimres <- dim_res
   
   res <- list(formula = formula, args = x$args, vars = x$vars, dimres = dimres)
@@ -322,20 +359,29 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
 #'    dimension or at least one of them should be of dimension 1;}
 #'    \item {**NA**:}{ no dimension restriction.}
 #' }
+#' @param res_type NA (default) or a character string among "LazyTensor" and 
+#' "ComplexLazyTensor", to specify if a change of class is required for the result.
+#' (Useful especially when dealing with complex-to-real or
+#' real-to-complex functions).
+#' @param dim_res NA (default) or an integer corresponding to the inner
+#' dimension of the output `LazyTensor`. If NA, **dim_res** is set to the
+#' maximum between the inner dimensions of the two input `LazyTensor`s.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
-#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
-#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, indexed by 'i'
-#' y_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix y, indexed by 'j'
-#' bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)   # symbolic matrix
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' y <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows, 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # LazyTensor from matrix x, indexed by 'i'
+#' y_j <- LazyTensor(y, index = 'j')   # LazyTensor from matrix y, indexed by 'j'
+#' # symbolic matrix:
+#' bin_xy <- binaryop.LazyTensor(x_i, y_j, "+", is_operator = TRUE)
 #' }
 #' @export
 binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
                                 dim_check_type = "sameor1", res_type = NA,
                                 dim_res = NA) {
   
+  # input checks
   if(is.matrix(x))
     stop(
       paste(
@@ -353,6 +399,15 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
         sep = ""
         )
       )
+  
+  if(!is.na(dim_res) && !is.int(dim_res)){
+    stop(
+      paste(
+        "If not NA, `dim_res` input argument should be an integer. ",
+        "Received ", dim_res, ".", sep = ""
+      )
+    )
+  }
   
   if(!is.na(res_type) && res_type == "ComplexLazyTensor")
     res_type <- c("ComplexLazyTensor", "LazyTensor")
@@ -393,6 +448,10 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   if(is.na(dim_res)) {
     dim_res <- max(c(get_inner_dim(x), get_inner_dim(y)))
   }
+  # Set `as.integer(dim_res)` to avoid printing potential
+  # decimal zero: 4.0, 5.0, and so on...
+  # If dim_res has a non zero decimal, the function stops anyway.
+  dim_res <- as.integer(dim_res)
   
   # special formula for operator
   if(is_operator)
@@ -430,6 +489,18 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
 #' @param z A `LazyTensor`, a `ComplexLazyTensor`r, a vector of numeric values, 
 #' or a scalar value.
 #' @param opstr A text string corresponding to an operation.
+#' @param dim_check_type A string to specify if, and how, we should check input 
+#' dimensions.
+#' Supported values are:
+#' \itemize{
+#'    \item {**"same"**:}{ **x** and **y** should have the same inner dimension;}
+#'    \item {**"sameor1"** (default):}{ **x** and **y** should have the same inner 
+#'    dimension or at least one of them should be of dimension 1;}
+#'    \item {**NA**:}{ no dimension restriction.}
+#' }
+#' @param dim_res NA (default) or an integer corresponding to the inner
+#' dimension of the output `LazyTensor`. If NA, **dim_res** is set to the
+#' maximum between the inner dimensions of the three input `LazyTensor`s.
 #' @return An object of class "LazyTensor".
 #' @examples
 #' \dontrun{
@@ -462,6 +533,15 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
   y <- args[[2]]
   z <- args[[3]]
   
+  if(!is.na(dim_res) && !is.int(dim_res)){
+    stop(
+      paste(
+        "If not NA, `dim_res` input argument should be an integer. ",
+        "Received ", dim_res, ".", sep = ""
+      )
+    )
+  }
+  
   # check dimensions
   if(dim_check_type == "sameor1") {
     if (!check_inner_dim(x, y, z, check_type = dim_check_type)) {
@@ -492,6 +572,10 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
   if(is.na(dim_res)) {
     dim_res <- max(c(get_inner_dim(x), get_inner_dim(y), get_inner_dim(z)))
   }
+  # Set `as.integer(dim_res)` to avoid printing potential
+  # decimal zero: 4.0, 5.0, and so on...
+  # If dim_res has a non zero decimal, the function stops anyway.
+  dim_res <- as.integer(dim_res)
   
   # format formula
   formula <- paste(opstr, "(", x$formula, ",", y$formula, ",", z$formula, ")", sep = "")
@@ -511,34 +595,10 @@ ternaryop.LazyTensor <- function(x, y, z, opstr, dim_check_type = "sameor1",
 }
 
 
-# PREPROCESS ===================================================================
+# TYPE CHECKING ================================================================
 
-#' is an integer constant.
-#' @description
-#' Checks whether if the given input is an `integer` constant or not.
-#' @details If `x` is an `integer` constant, `is.int(x)` returns TRUE, 
-#' else, returns FALSE.
-#' @author Chloe Serre-Combe, Amelie Vernay
-#' @param x An object we want to know if it is a `integer`.
-#' @return A boolean, TRUE or FALSE.
-#' @example
-#' \dontrun{
-#' # basic example
-#' A <- 3
-#' B <- 3.4
-#' C <- rep(3, 10)
-#' 
-#' is.int(A)  # returns TRUE
-#' is.int(B)  # returns FALSE
-#' is.int(C)  # returns FALSE
-#' }
-#' @export
-is.int <- function(x) {
-  res <- (is.numeric(x) && length(x) == 1) && ((as.integer(x) - x) == 0)
-  return(res)
-}
 
-#' is.LazyTensor.
+#' is.LazyTensor?
 #' @description
 #' Checks whether if the given input is a `LazyTensor` or not.
 #' @details If `x` is a `LazyTensor`, `is.LazyTensor(x)` returns TRUE, else, 
@@ -565,10 +625,8 @@ is.LazyTensor <- function(x){
   return("LazyTensor" %in% class(x))
 }
 
-# TODO
-# %in% class(x)
 
-#' is.ComplexLazyTensor.
+#' is.ComplexLazyTensor?
 #' @description
 #' Checks whether if the given input is a `ComplexLazyTensor` or not.
 #' @details If `x` is a `ComplexLazyTensor`, `is.ComplexLazyTensor(x)` 
@@ -598,15 +656,75 @@ is.ComplexLazyTensor <- function(x){
 }
 
 
+#' is.LazyScalar?
+#' @description
+#' Checks whether if the given input is a `LazyTensor`encoding
+#' a single scalar value. That is, if the input is a fixed parameter
+#' `LazyTensor` of dimension 1.
+#' @details If `x` is a fixed parameter `LazyTensor` with dimension 1,
+#' `is.LazyScalar(x)` returns TRUE, else, returns FALSE.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x An object we want to know if it is a `LazyScalar`.
+#' @return A boolean, TRUE or FALSE.
+#' @example
+#' \dontrun{
+#' # basic example
+#' scal <- 3.14
+#' cplx <- 2 + 3i
+#' v <- rep(3, 10)
+#' x <- matrix(runif(100 * 3), 100, 3)
+#' 
+#' # create LazyTensor and ComplexLazyTensor
+#' scal_LT <- LazyTensor(scal)
+#' cplx_LT <- LazyTensor(cplx)
+#' v_LT <- LazyTensor(v)
+#' x_i <- LazyTensor(x, index = 'i')
+#' 
+#' # call is.ComplexLazyTensor
+#' is.LazyScalar(scal_LT) # returns TRUE
+#' is.LazyScalar(cplx_LT) # returns FALSE
+#' is.LazyScalar(v_LT) # returns FALSE
+#' is.LazyScalar(x_i) # returns FALSE
+#' }
+#' @export
 is.LazyScalar <- function(x) {
   return((length(x$args) == 1) && any(grep(".*=Pm\\(1\\)", x$args)))
 }
 
 
-is.LazyVector <- function(x) {
-  return(any(grep(".*=Pm\\(.*\\)", x$args)))
+#' Scalar integer test.
+#' @description
+#' Checks whether if the given input is a scalar `integer` or not.
+#' @details If `x` is a scalar`integer`, `is.int(x)` returns TRUE, 
+#' else, returns FALSE.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x An object we want to know if it is a `integer`.
+#' @return A boolean, TRUE or FALSE.
+#' @example
+#' \dontrun{
+#' # basic example
+#' A <- 3
+#' B <- 3.4
+#' C <- rep(3, 10)
+#' 
+#' is.int(A)  # returns TRUE
+#' is.int(B)  # returns FALSE
+#' is.int(C)  # returns FALSE
+#' }
+#' @export
+is.int <- function(x) {
+  res <- (is.numeric(x) && length(x) == 1) && ((as.integer(x) - x) == 0)
+  return(res)
 }
 
+
+# Function below not useful anymore ?
+#is.LazyVector <- function(x) {
+#  return(any(grep(".*=Pm\\(.*\\)", x$args)))
+#}
+
+
+# GLOBAL CHECKS ================================================================
 
 
 #' Get inner dimension.
