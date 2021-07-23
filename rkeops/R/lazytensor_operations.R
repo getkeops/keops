@@ -45,7 +45,7 @@ set_rkeops_option("precision", "double")
 #' }
 #' @export
 "+" <- function(x, y) { 
-    if(!is.LazyTensor(x))
+    if(!is.ComplexLazyTensor(x) && is.LazyTensor(y))
         UseMethod("+", y)
     else
         UseMethod("+", x)
@@ -57,6 +57,20 @@ set_rkeops_option("precision", "double")
     return(res)
 }
 
+"+.ComplexLazyTensor" <- function(x, y) {
+    if(!is.LazyTensor(y)) {
+        y <- LasyTensor(y)
+    }
+    
+    if(!is.ComplexLazyTensor(y)) {
+        res <- x + real2complex(y)
+        return(res)
+    }
+    
+    res <- binaryop.LazyTensor(x, y, "Add", dim_check_type = "sameor1")
+    return(res)
+    
+}
 
 # subtraction  ----------------------------------------------------------------
 "-.default" <- .Primitive("-") # assign default as current definition
@@ -153,7 +167,7 @@ set_rkeops_option("precision", "double")
 #' }
 #' @export
 "*" <- function(x, y) { 
-    if(!is.LazyTensor(x))
+    if(!is.ComplexLazyTensor(x) && is.LazyTensor(y))
         UseMethod("*", y)
     else
         UseMethod("*", x)
@@ -162,6 +176,34 @@ set_rkeops_option("precision", "double")
 "*.LazyTensor" <- function(x, y) {
     res <- binaryop.LazyTensor(x, y, "*", is_operator = TRUE,
                                dim_check_type = "sameor1")
+    return(res)
+}
+
+"*.ComplexLazyTensor" <- function(x, y) {
+    if(!is.LazyTensor(y)) {
+        y <- LasyTensor(y)
+    }
+    
+    if(is.LazyScalar(y)) {
+        res <- binaryop.LazyTensor(x, y, "ComplexRealScal", dim_check_type = "same")
+    }
+    
+    else if(!is.ComplexLazyTensor(y)) {
+        res <- x * real2complex(y)
+    }
+    
+    else if(is.ComplexLazyScalar(x)) {
+        res <- binaryop.LazyTensor(x, y, "ComplexScal", dim_check_type = NA)
+    }
+    
+    else if(is.ComplexLazyScalar(y)) {
+        res <- binaryop.LazyTensor(y, x, "ComplexScal", dim_check_type = NA)
+    }
+    
+    else {
+        res <- binaryop.LazyTensor(x, y, "ComplexMult", dim_check_type = "sameor1")
+    }
+    
     return(res)
 }
 
@@ -1482,7 +1524,6 @@ weightedsqdist <- function(x, y, z) {
 }
 
 
-
 # COMPLEX FUNCTIONS ============================================================
 
 
@@ -1615,7 +1656,8 @@ real2complex <- function(x) {
 }
 
 real2complex.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor")
+    res <- unaryop.LazyTensor(x, "Real2Complex", res_type = "ComplexLazyTensor",
+                              dim_res = 2 * x$dimres)
 }
 
 real2complex.ComplexLazyTensor <- function(x) {
@@ -1623,7 +1665,7 @@ real2complex.ComplexLazyTensor <- function(x) {
 }
 
 
-# imaginary to complex ------------------------------------------------------------------------
+# imaginary to complex ---------------------------------------------------------
 
 #' Element-wise "imaginary 2 complex" operation.
 #' @description
@@ -1647,7 +1689,8 @@ imag2complex <- function(x) {
 }
 
 imag2complex.LazyTensor <- function(x) {
-    res <- unaryop.LazyTensor(x, "Imag2Complex", res_type = "ComplexLazyTensor")
+    res <- unaryop.LazyTensor(x, "Imag2Complex", res_type = "ComplexLazyTensor",
+                              dim_res = 2 * x$dimres)
 }
 
 imag2complex.ComplexLazyTensor <- function(x) {
@@ -3158,16 +3201,43 @@ tensordot <- function(x, y) {
 }
 
 
-# SYMBOLIC GRADIENTS ===========================================================
-
+# SYMBOLIC GRADIENT ============================================================
 
 # Gradient ---------------------------------------------------------------------
 
-
-# Matrix of Gradient -----------------------------------------------------------
-
-
-
+#' Symbolic gradient operation.
+#' @description
+#' Symbolic gradient operation.
+#' @details `grad(x, v, e)` returns a `LazyTensor` which encodes, 
+#' symbolically, the gradient (more precisely, the adjoint of the differential 
+#' operator) of ``x``, with respect to variable `v`, and applied to `e`.
+#' @author Chloe Serre-Combe, Amelie Vernay
+#' @param x A `LazyTensor` or a `ComplexLazyTensor`.
+#' @param v A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' or a scalar value.
+#' @param gradin A `LazyTensor`, a `ComplexLazyTensor`, a vector of numeric values, 
+#' or a scalar value.
+#' @return A `LazyTensor` or a `ComplexLazyTensor`.
+#' @examples
+#' \dontrun{
+#' x <- matrix(runif(150 * 3), 150, 3) # arbitrary R matrix, 150 rows and 3 columns
+#' g <- matrix(runif(100 * 3), 100, 3) # arbitrary R matrix, 100 rows and 3 columns
+#' x_i <- LazyTensor(x, index = 'i')   # creating LazyTensor from matrix x, 
+#'                                     # indexed by 'i'
+#' g_j <- LazyTensor(y, index = 'j')   # creating LazyTensor from matrix g, 
+#'                                     # indexed by 'j'
+#' v_i <- LazyTensor(c(3,2))           # parameter LazyTensor
+#' 
+#' grad_xy <- weightedsqnorm(x_i, v_i, g_j) # symbolic matrix
+#' }
+#' @export
+grad <- function(x, v, gradin) {
+    if(!is.LazyTensor(v))
+        v <- LazyTensor(v)
+    res <- binaryop.LazyTensor(x, gradin, "Grad", opt_arg = v, 
+                               dim_check_type = "same")
+    return(res)
+}
 
 
 

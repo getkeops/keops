@@ -382,7 +382,7 @@ unaryop.LazyTensor <- function(x, opstr, opt_arg = NA, opt_arg2 = NA,
 #' @export
 binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
                                 dim_check_type = "sameor1", res_type = NA,
-                                dim_res = NA) {
+                                dim_res = NA, opt_arg = NA) {
   
   # input checks
   if(is.matrix(x))
@@ -391,8 +391,8 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
         "`x` input argument should be a LazyTensor, a vector or a scalar.",
         "\nIf you want to use a matrix, convert it to LazyTensor first.", 
         sep = ""
-        )
       )
+    )
   
   if(is.matrix(y))
     stop(
@@ -400,8 +400,8 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
         "`y` input argument should be a LazyTensor, a vector or a scalar.",
         "\nIf you want to use a matrix, convert it to LazyTensor first.", 
         sep = ""
-        )
       )
+    )
   
   if(!is.na(dim_res) && !is.int(dim_res)){
     stop(
@@ -459,8 +459,14 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   # special formula for operator
   if(is_operator)
     formula <- paste(x$formula, opstr, y$formula, sep = "")
-  else
+  
+  else if(!is_operator && is.na(opt_arg))
     formula <- paste(opstr, "(", x$formula, ",", y$formula, ")", sep = "")
+  
+  else if(!is_operator && !is.na(opt_arg))
+    formula <- paste(opstr, "(", x$formula, ",", opt_arg$formula, ",",
+                     y$formula, ")", sep = "")
+  
   vars <- c(x$vars, y$vars)
   vars[!duplicated(names(vars))]
   args <- unique(c(x$args, y$args))
@@ -470,10 +476,12 @@ binaryop.LazyTensor <- function(x, y, opstr, is_operator = FALSE,
   
   if(!is.na(res_type[1]))
     class(res) <- res_type
-  else if(is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y))
-      class(res) <- c("ComplexLazyTensor", "LazyTensor")
+  else if((is.ComplexLazyTensor(x) || is.ComplexLazyTensor(y)) 
+          || is.ComplexLazyTensor(opt_arg)) {
+    class(res) <- c("ComplexLazyTensor", "LazyTensor")
+  }
   else
-      class(res) <- class(x)
+    class(res) <- class(x)
   
   return(res)
 }
