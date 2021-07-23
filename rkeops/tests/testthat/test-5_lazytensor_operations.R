@@ -337,13 +337,17 @@ test_that("|", {
   expect_equal(bool_grep_formula, 1)
   
   # errors
-  expect_error(x_i | z_j,
-               "Operation `|` expects inputs of the same dimension. Received 3 and 7.",
-               fixed = TRUE)
+  expect_error(
+    x_i | z_j,
+    "Operation `|` expects inputs of the same dimension. Received 3 and 7.",
+    fixed = TRUE
+    )
   
-  expect_error(x_i | 3,
-               "Operation `|` expects inputs of the same dimension. Received 3 and 1.",
-               fixed = TRUE)
+  expect_error(
+    x_i | 3,
+    "Operation `|` expects inputs of the same dimension. Received 3 and 1.",
+    fixed = TRUE
+    )
 })
 
 
@@ -357,8 +361,8 @@ test_that("exp", {
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   # basic example with complex exponential
-  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
-  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
+  z <- matrix(1i^(-6:5), nrow = 4)                      # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(exp(0), 1)
@@ -389,8 +393,8 @@ test_that("log", {
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   # basic example with complex exponential
-  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
-  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
+  z <- matrix(1i^(-6:5), nrow = 4)                      # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(log(1), 0)
@@ -422,8 +426,8 @@ test_that("inv", {
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   # basic example with complex exponential
-  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
-  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
+  z <- matrix(1i^(-6:5), nrow = 4)                      # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(inv(1), 1)
@@ -455,8 +459,8 @@ test_that("cos", {
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   # basic example with complex exponential
-  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
-  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
+  z <- matrix(1i^(-6:5), nrow = 4)                      # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(cos(0), 1)
@@ -488,8 +492,8 @@ test_that("sin", {
   x_i <- LazyTensor(x, index = 'i')
   y_j <- LazyTensor(y, index = 'j')
   # basic example with complex exponential
-  z <- matrix(1i^(-6:5), nrow = 4)                      # create a complex 4x3 matrix
-  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # create a ComplexLazyTensor
+  z <- matrix(1i^(-6:5), nrow = 4)                      # complex 4x3 matrix
+  z_i <- LazyTensor(z, index = 'i', is_complex = TRUE)  # ComplexLazyTensor
   
   # check results, formulas & classes
   expect_equal(sin(0), 0)
@@ -592,6 +596,7 @@ test_that("atan", {
 test_that("atan2", {
   # basic example
   D <- 3
+  E <- 4
   M <- 100
   N <- 150
   x <- matrix(runif(M * D), M, D)
@@ -613,7 +618,9 @@ test_that("atan2", {
   
   # errors
   expect_error(atan2(x_i, z_j),
-               "Operation `Atan2` expects inputs of the same dimension. Received 3 and 7.",
+               paste("Operation `Atan2` expects inputs of the",
+                     " same dimension. Received 3 and 4.",
+                     sep = ""),
                fixed = TRUE)
 })
 
@@ -1087,6 +1094,44 @@ test_that("ifelse", {
 })
 
 
+test_that("mod", {
+  # basic example
+  D <- 3
+  M <- 100
+  N <- 150
+  P <- 200
+  w <- matrix(runif(P * 7), P, 7)
+  x <- matrix(runif(M * D), M, D)
+  y <- matrix(runif(N * D), N, D)
+  z <- matrix(runif(P * D), P, D)
+  w_i <- LazyTensor(w, index = 'i')
+  x_i <- LazyTensor(x, index = 'i')
+  y_j <- LazyTensor(y, index = 'j')
+  z_i <- LazyTensor(z, index = 'i')
+  
+  # check formulas, args & classes
+  obj <-  mod(x_i, y_j, z_i)
+  bool_grep_formula <- grep("Mod\\(A0x.*i,A0x.*j,A0x.*i\\)", obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  obj <-  mod(x_i, 2)
+  bool_grep_formula <- grep("Mod\\(A0x.*i,IntCst\\(2\\),IntCst\\(0\\)\\)",
+                            obj$formula)
+  expect_equal(bool_grep_formula, 1)
+  expect_is(obj, "LazyTensor")
+  
+  # errors
+  expect_error(
+    mod(x_i, y_j, w_i),
+    paste(
+      "Operation `Mod` expects inputs of the same dimension or dimension 1.",
+      " Received 3, 3 and 7.", sep = ""
+    ),
+    fixed = TRUE
+  )
+  
+})
 
 
 
@@ -1149,6 +1194,7 @@ test_that("Im", {
     )
   
 })
+
 
 test_that("Arg", {
   # basic example
@@ -1810,11 +1856,13 @@ test_that("max_argmax_reduction", {
   # errors
   expect_error(max_argmax_reduction(3, "i"),
                "`x` input should be a LazyTensor or a ComplexLazyTensor.",
-               fixed = TRUE)
+               fixed = TRUE
+               )
   
   expect_error(max_argmax_reduction(x_i, "b"),
                "`index` input argument should be a character `i`, `j`.",
-               fixed = TRUE)
+               fixed = TRUE
+               )
 })
 
 
@@ -1835,12 +1883,16 @@ test_that("Kmin", {
   expect_true(is.matrix(obj))
   
   # errors
-  expect_error(Kmin(x_i, 3.14, "i"),
-               "`K` input argument should be an integer.",
-               fixed = TRUE)
-  expect_error(Kmin(x_i, K, "k"),
-               "`index` input argument should be a character, either 'i' or 'j'.",
-               fixed = TRUE)
+  expect_error(
+    Kmin(x_i, 3.14, "i"),
+    "`K` input argument should be an integer.",
+    fixed = TRUE
+    )
+  expect_error(
+    Kmin(x_i, K, "k"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
   
 })
 
@@ -1862,12 +1914,16 @@ test_that("Kmin_reduction", {
   expect_true(is.matrix(obj))
   
   # errors
-  expect_error(Kmin_reduction(x_i, 3.14, "i"),
-               "`K` input argument should be an integer.",
-               fixed = TRUE)
-  expect_error(Kmin_reduction(x_i, K, "k"),
-               "`index` input argument should be a character, either 'i' or 'j'.",
-               fixed = TRUE)
+  expect_error(
+    Kmin_reduction(x_i, 3.14, "i"),
+    "`K` input argument should be an integer.",
+    fixed = TRUE
+    )
+  expect_error(
+    Kmin_reduction(x_i, K, "k"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
   
 })
 
@@ -1889,12 +1945,16 @@ test_that("argKmin", {
   expect_true(is.matrix(obj))
   
   # errors
-  expect_error(argKmin(x_i, 3.14, "i"),
-               "`K` input argument should be an integer.",
-               fixed = TRUE)
-  expect_error(argKmin(x_i, K, "k"),
-               "`index` input argument should be a character, either 'i' or 'j'.",
-               fixed = TRUE)
+  expect_error(
+    argKmin(x_i, 3.14, "i"),
+    "`K` input argument should be an integer.",
+    fixed = TRUE
+    )
+  expect_error(
+    argKmin(x_i, K, "k"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
   
 })
 
@@ -1916,12 +1976,16 @@ test_that("argKmin_reduction", {
   expect_true(is.matrix(obj))
   
   # errors
-  expect_error(argKmin_reduction(x_i, 3.14, "i"),
-               "`K` input argument should be an integer.",
-               fixed = TRUE)
-  expect_error(argKmin_reduction(x_i, K, "k"),
-               "`index` input argument should be a character, either 'i' or 'j'.",
-               fixed = TRUE)
+  expect_error(
+    argKmin_reduction(x_i, 3.14, "i"),
+    "`K` input argument should be an integer.",
+    fixed = TRUE
+    )
+  expect_error(
+    argKmin_reduction(x_i, K, "k"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
   
 })
 
@@ -1943,12 +2007,16 @@ test_that("Kmin_argKmin", {
   expect_true(is.matrix(obj))
   
   # errors
-  expect_error(Kmin_argKmin(x_i, 3.14, "i"),
-               "`K` input argument should be an integer.",
-               fixed = TRUE)
-  expect_error(Kmin_argKmin(x_i, K, "k"),
-               "`index` input argument should be a character, either 'i' or 'j'.",
-               fixed = TRUE)
+  expect_error(
+    Kmin_argKmin(x_i, 3.14, "i"),
+    "`K` input argument should be an integer.",
+    fixed = TRUE
+    )
+  expect_error(
+    Kmin_argKmin(x_i, K, "k"),
+    "`index` input argument should be a character, either 'i' or 'j'.",
+    fixed = TRUE
+    )
   
 })
 

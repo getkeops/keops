@@ -98,7 +98,6 @@ Here, `z` is assumed to be a `ComplexLazyTensor`, and `x` a `LazyTensor`.
 | `norm2(x)`                | L2 norm of `x`, same as `sqrt(x|x)`                                                                 |
 | `sqnorm2(x)`              | squared L2 norm of `x`, same as `(x|x)`                                                             |
 | `normalize(x)`            | normalization of `x`, same as `rsqrt(sqnorm2(x)) * x`                                               |
-| `normalize(x)`            | normalization of `x`, same as `rsqrt(sqnorm2(x)) * x`                                               |
 | `sqdist(x, y)`            | Euclidean distance between `x` and `y`, same as `sqnorm2(x - y)`                                    |
 | `weightedsqnorm(x)`       | generic weighted squared euclidean norm of `x`, with weights stored in `s` (see details below)      |
 | `weightedsqdist(x, y, s)` | generic weighted squared euclidean distance between `x` and `y`, same as `weightedsqnorm(x - y, s)` |
